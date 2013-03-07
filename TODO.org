@@ -1,0 +1,9 @@
+* Rcpp error handling
+
+Should not do Rf_error(), as that longjmp's over destructors.  Use
+Rcpp::error instead.
+
+* Exporting utility functions
+
+Perhaps with attributes and Rcpp::compileAttributes() ->
+{RcppExports.cpp, RcppExports.R}

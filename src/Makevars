@@ -1,0 +1,10 @@
+## Emacs please make this a -*- mode: Makefile; -*-
+
+RCPP_CPPFLAGS=$(shell R --slave -e 'Rcpp:::CxxFlags()')
+RCPP_LDFLAGS=$(shell R --slave -e 'Rcpp:::LdFlags()')
+PKG_CPPFLAGS=$(RCPP_CPPFLAGS) -Wall -ansi -pedantic
+PKG_LIBS=$(RCPP_LDFLAGS) -lgsl
+
+## To enable profiling with Google Perftools:
+# PKG_LIBS:=$(PKG_LIBS) -lprofiler
+## However, Instruments seems to be working again.
