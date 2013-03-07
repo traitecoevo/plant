@@ -4,7 +4,8 @@
 
 template <typename T>
 bool is_finite(T x) {
-  Rf_warning("Requesting finite check, but not yet implemented");
+  // TODO: Get the finite check in here!
+  // Rf_warning("Requesting finite check, but not yet implemented");
   return true;
 }
 
