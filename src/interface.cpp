@@ -4,9 +4,8 @@
 #include "AdaptiveSpline.h"
 #include "RAdaptiveSpline.h"
 
-#include "Evolve.h"
-
 #include "Lorenz.h"
+#include "ROde.h"
 
 // Allows Splines to be returned from objects.  Note that this causes
 // a copy, so copy constructors are required if there are any pointers
@@ -47,5 +46,19 @@ RCPP_MODULE(tree) {
     .method("step_fixed", &Lorenz::ode_step_fixed)
     .method("advance",    &Lorenz::ode_advance)
     .method("run",        &Lorenz::ode_r_run)
+    ;
+
+  Rcpp::class_<ROde>("ROde")
+    .constructor<SEXP,SEXP,SEXP>()
+    .method("derivs",     &ROde::r_derivs)
+    .property("size",     &ROde::size)
+    // ODE solving
+    .method("set_state",  &ROde::ode_set_state)
+    .method("get_state",  &ROde::ode_get_state)
+    .method("get_time",   &ROde::ode_get_time)
+    .method("step",       &ROde::ode_step)
+    .method("step_fixed", &ROde::ode_step_fixed)
+    .method("advance",    &ROde::ode_advance)
+    .method("run",        &ROde::ode_r_run)
     ;
 }
