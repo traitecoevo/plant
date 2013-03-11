@@ -1,8 +1,10 @@
 #include "Step.h"
 
 Step::Step() {
-  // Fixed for the lorenz attractor right now.
-  derivs = &derivs_lorenz;
+}
+
+Step::Step(Lorenz *pr_) {
+  pr = pr_;
 }
 
 void Step::resize(int size_) {
@@ -94,6 +96,12 @@ unsigned int Step::order() {
   return 5;
 }
 
+void Step::derivs(double time, 
+		  std::vector<double>::const_iterator y,
+		  std::vector<double>::iterator dydt) {
+  pr->derivs(time, y, dydt);
+}
+
 // RKCK coefficients, from GSL
 const double Step::ah[] = {
   1.0 / 5.0, 0.3, 3.0 / 5.0, 1.0, 7.0 / 8.0 };
@@ -118,22 +126,3 @@ const double Step::ec[] = {
   250.0 / 621.0 - 18575.0 / 48384.0,
   125.0 / 594.0 - 13525.0 / 55296.0,
   -277.0 / 14336.0, 512.0 / 1771.0 - 0.25 };
-
-void derivs_lorenz(double t,
-		   std::vector<double>::const_iterator y,
-		   std::vector<double>::iterator dydt) {
-  const double 
-    sigma = 10.0,
-    R = 28.0,
-    b = 8.0 / 3.0;
-
-  const double y0 = *y++;
-  const double y1 = *y++;
-  const double y2 = *y++;
-
-  *dydt++ = sigma * ( y1 - y0 );
-  *dydt++ = R * y0 - y1 - y0 * y2;
-  *dydt++ = -b * y2 + y0 * y1;
-}
-
-

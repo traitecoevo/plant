@@ -2,7 +2,13 @@
 #include <cmath>     // fabs
 
 Evolve::Evolve() {
+  pr = new Lorenz(10.0, 28.0, 8.0/3.0);
+  s.pr = pr;
   reset();
+}
+
+Evolve::~Evolve() {
+  delete pr;
 }
 
 void Evolve::set_state(std::vector<double> y_, double t_) {
@@ -50,7 +56,7 @@ void Evolve::step() {
   const std::vector<double> y_orig = y;
 
   // Compute the derivatives at the beginning.
-  s.derivs(time, y.begin(), dydt_in.begin());
+  pr->derivs(time, y.begin(), dydt_in.begin());
 
   while ( true ) {
     // TODO: This allows negative step direction.  Worth it?
@@ -138,7 +144,7 @@ void Evolve::step_fixed(double step_size) {
   std::vector<double> y0 = y;
 
   // Compute the derivatives at the beginning.
-  s.derivs(time, y.begin(), dydt_in.begin());
+  pr->derivs(time, y.begin(), dydt_in.begin());
 
   s.step(time, step_size, y, yerr, dydt_in, dydt_out);
   
@@ -157,7 +163,7 @@ void Evolve::step_fixed(double step_size) {
 
 std::vector<double> Evolve::r_derivs() {
   std::vector<double> dydt(size);
-  s.derivs(time, y.begin(), dydt.begin());
+  pr->derivs(time, y.begin(), dydt.begin());
   return dydt;
 }
 

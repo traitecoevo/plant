@@ -8,9 +8,12 @@
 #include "Control.h"
 #include "Step.h"
 
+#include "Lorenz.h"
+
 class Evolve {
 public:
   Evolve();
+  ~Evolve();
 
   void set_state(std::vector<double> y_, double t_);
   std::vector<double> get_state() const { return y; }
@@ -27,6 +30,8 @@ public:
 			    std::vector<double> y_);
   
 private:
+  Lorenz *pr;
+
   void resize(int size_);
 
   int size;              // Problem dimension

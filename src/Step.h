@@ -1,10 +1,12 @@
 // -*-c++-*-
 
 #include <vector>
+#include "Lorenz.h"
 
 class Step {
 public:
   Step();
+  Step(Lorenz *pr_);
   void resize(int size_);
   void step(double time, double step_size,
 	    std::vector<double> &y,
@@ -13,13 +15,17 @@ public:
 	    std::vector<double> &dydt_out);
   void reset();
   unsigned int order();
+  void derivs(double time,
+	      std::vector<double>::const_iterator y,
+	      std::vector<double>::iterator dydt);
 
-  typedef void (*derivs_fun)(double time,
-			     std::vector<double>::const_iterator y,
-			     std::vector<double>::iterator dydt);
-  derivs_fun derivs;
+  // Private soon, but not right now (will be once these are never
+  // instantiated directly).
+  Lorenz *pr;
 
 private:
+
+
   // Intermediate storage, representing state (was GSL rkck_state_t)
   double size;
   std::vector<double> k1, k2, k3, k4, k5, k6, ytmp;
@@ -40,8 +46,3 @@ private:
   // for error estimation
   static const double ec[];
 };
-
-// This is the derivatives function for the Lorenz system.
-void derivs_lorenz(double t,
-		   std::vector<double>::const_iterator y,
-		   std::vector<double>::iterator dydt);
