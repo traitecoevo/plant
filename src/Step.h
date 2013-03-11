@@ -6,11 +6,11 @@ class Step {
 public:
   Step();
   void resize(int size_);
-  void apply(double time, double step_size,
-	     std::vector<double> &y,
-	     std::vector<double> &yerr,
-	     const std::vector<double> &dydt_in,
-	     std::vector<double> &dydt_out);
+  void step(double time, double step_size,
+	    std::vector<double> &y,
+	    std::vector<double> &yerr,
+	    const std::vector<double> &dydt_in,
+	    std::vector<double> &dydt_out);
   void reset();
   unsigned int order();
 

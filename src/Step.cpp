@@ -18,11 +18,11 @@ void Step::resize(int size_) {
 
 // Think carefully about ownership of data, draw a diagram, and go
 // from there.
-void Step::apply(double time, double step_size,
-		 std::vector<double> &y,
-		 std::vector<double> &yerr,
-		 const std::vector<double> &dydt_in,
-		 std::vector<double> &dydt_out) {
+void Step::step(double time, double step_size,
+		std::vector<double> &y,
+		std::vector<double> &yerr,
+		const std::vector<double> &dydt_in,
+		std::vector<double> &dydt_out) {
   const double h = step_size; // Historical reasons.
 
   // k1 step:
@@ -78,7 +78,7 @@ void Step::apply(double time, double step_size,
 }
 
 // Skipping this actually looks totally benign, as these are never
-// read within `apply` without first being written to.
+// read within `step` without first being written to.
 void Step::reset() {
   std::fill(k1.begin(),   k1.end(),   0.0);
   std::fill(k2.begin(),   k2.end(),   0.0);

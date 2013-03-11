@@ -15,7 +15,7 @@ void Evolve::set_state(std::vector<double> y_, double t_) {
 // TODO: In contrast with GSL, this would make more sense as
 // "step()".
 // 
-// After `s.apply()`, the GSL checks to see if the step succeeded
+// After `s.step()`, the GSL checks to see if the step succeeded
 // (some steppers look like they fail for non-user function error),
 // and the divides the step size by 2.  If it fails with `EFAULT` or
 // `EBADFUNC`, then it aborts.  The only place that errors are
@@ -34,18 +34,18 @@ void Evolve::set_state(std::vector<double> y_, double t_) {
 //    updating the step size too after the last current step.
 // 
 // 2. step_size: The size that the current iteration actually advanced
-//    the system (or will) via `s.apply`.
+//    the system (or will) via `s.step`.
 // 
 // 3. step_size_next: The size of the proposed next step (or retry of
 //    the current step).
 
-void Evolve::apply() {
+void Evolve::step() {
   const double time_orig = time, time_remaining = time_max - time;
   double step_size = step_size_last;
   // Does this appear to be the last step before reaching `time_max`?
   bool final_step = false;
   
-  // Save y in case of failure in a step (recall that s.apply changes
+  // Save y in case of failure in a step (recall that s.step changes
   // 'y')
   const std::vector<double> y_orig = y;
 
@@ -58,7 +58,7 @@ void Evolve::apply() {
 		  (time_remaining <  0.0 && step_size < time_remaining));
     if ( final_step )
       step_size = time_remaining;
-    s.apply(time, step_size, y, yerr, dydt_in, dydt_out);
+    s.step(time, step_size, y, yerr, dydt_in, dydt_out);
 
     count++;
     const double 
@@ -104,15 +104,43 @@ void Evolve::apply() {
   }
 }
 
+// This sets time_max, but I need to be careful about other things
+// using it...
+void Evolve::advance(double time_max_) {
+  if ( time_max_ <= time )
+    Rf_error("time_max must be greater than time");
+  time_max = time_max_;
+  while ( time < time_max )
+    step();
+}
+
+Rcpp::NumericMatrix Evolve::r_run(std::vector<double> times, 
+				  std::vector<double> y_) {
+  Rcpp::NumericMatrix ret(size, times.size()-1);
+  Rcpp::NumericMatrix::iterator out = ret.begin();
+
+  std::vector<double>::iterator t = times.begin();
+  set_state(y_, *t++); // This makes 'y' contains mutable state.
+
+  while ( t != times.end() ) {
+    advance(*t++);
+    std::copy(y.begin(), y.end(), out);
+    out += size;
+  }
+
+  return ret;
+}
+
+
 // Note that this could push us past time_max!
-void Evolve::fixed_step(double step_size) {
+void Evolve::step_fixed(double step_size) {
   // Save y in case of failure in the step
   std::vector<double> y0 = y;
 
   // Compute the derivatives at the beginning.
   s.derivs(time, y.begin(), dydt_in.begin());
 
-  s.apply(time, step_size, y, yerr, dydt_in, dydt_out);
+  s.step(time, step_size, y, yerr, dydt_in, dydt_out);
   
   const double step_size_next =
     c.adjust_step_size(size, s.order(), step_size, y, yerr, dydt_out);
@@ -127,11 +155,17 @@ void Evolve::fixed_step(double step_size) {
   }
 }
 
+std::vector<double> Evolve::r_derivs() {
+  std::vector<double> dydt(size);
+  s.derivs(time, y.begin(), dydt.begin());
+  return dydt;
+}
+
 void Evolve::reset() {
   count = 0;
   failed_steps = 0;
-  step_size_last = 0.0;
-  time_max = DBL_MAX; // or infinite?
+  step_size_last = 1e-6; // See ode.md
+  time_max = DBL_MAX;    // or infinite?
   s.reset();
 }
 

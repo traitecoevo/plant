@@ -139,3 +139,29 @@ This is probably going to seem really weird to people, but it exists
 here because we are going to need it in our model.  Not sure how to
 make this optional, but iterators are at least fairly common, and the
 intention is fairly clear.
+
+## Safety
+
+With "evolve" need some flag to prevent any step being taken before
+the state is set.
+
+## Different stepper types
+
+If I stay within the RK family, deSolve has a lovely set of
+abstraction for different RK methods, via rkMethod.  That could be set
+up quite easily.
+
+## Default step size
+
+Need some way (for Evolve) of setting a reasonable default step size.
+Not sure when this makes sense to change, either.
+
+## Stepper direction
+
+The code would be much easier to read if positive steps only were
+allowed.  
+  - When should it change?  On reset?
+  - Where do we refuse to run if it is zero/wrong sign?
+For now, it is in the `reset()` function, but probably more sensibly
+it would be set by it's own function, and done through some function
+so we can sanity check it?

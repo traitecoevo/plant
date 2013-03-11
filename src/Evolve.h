@@ -13,10 +13,18 @@ public:
   Evolve();
 
   void set_state(std::vector<double> y_, double t_);
+  std::vector<double> get_state() const { return y; }
+  double get_time() const { return time; }
 
-  void apply();
-  void fixed_step(double step_size);
+  void step();
+  void step_fixed(double step_size);
+  void advance(double time_max_);
+
   void reset();
+  
+  std::vector<double> r_derivs();
+  Rcpp::NumericMatrix r_run(std::vector<double> times, 
+			    std::vector<double> y_);
   
 private:
   void resize(int size_);
