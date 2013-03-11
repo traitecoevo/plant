@@ -7,6 +7,8 @@
 
 #include "ode_solver.h"
 
+namespace ode {
+
 class Lorenz {
 public:
   Lorenz(double sigma, double R, double b);
@@ -47,5 +49,7 @@ private:
   const double sigma, R, b;
   Solver<Lorenz> solver;
 };
+
+}
 
 #endif

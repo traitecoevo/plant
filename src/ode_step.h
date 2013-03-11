@@ -5,6 +5,8 @@
 
 #include <vector>
 
+namespace ode {
+
 template <class Problem>
 class Step {
 public:
@@ -188,5 +190,7 @@ const double Step<Problem>::ec[] = {
   250.0 / 621.0 - 18575.0 / 48384.0,
   125.0 / 594.0 - 13525.0 / 55296.0,
   -277.0 / 14336.0, 512.0 / 1771.0 - 0.25 };
+
+}
 
 #endif

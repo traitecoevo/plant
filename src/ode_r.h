@@ -7,6 +7,8 @@
 
 #include "ode_solver.h"
 
+namespace ode {
+
 class OdeR {
 public:
   OdeR(SEXP fun, SEXP env, SEXP pars);
@@ -51,5 +53,7 @@ private:
 
   Solver<OdeR> solver;
 };
+
+}
 
 #endif

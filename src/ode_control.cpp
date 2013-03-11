@@ -4,6 +4,8 @@
 
 #include "ode_control.h"
 
+namespace ode {
+
 OdeControl::OdeControl() {
   eps_abs = 1e-8; // hopefully sane default
   eps_rel = 1e-8; // hopefully sane default
@@ -95,4 +97,6 @@ double OdeControl::errlevel(double y, double dydt, double h) {
 
 bool OdeControl::step_size_shrank() const {
   return step_size_shrank_;
+}
+
 }

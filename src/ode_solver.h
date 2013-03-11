@@ -9,6 +9,8 @@
 #include "ode_control.h"
 #include "ode_step.h"
 
+namespace ode {
+
 template <class Problem>
 class Solver {
 public:
@@ -241,6 +243,8 @@ void Solver<Problem>::resize(int size_) {
   dydt_in.resize(size);
   dydt_out.resize(size);
   stepper.resize(size);
+}
+
 }
 
 #endif

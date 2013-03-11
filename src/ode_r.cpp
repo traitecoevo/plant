@@ -1,5 +1,7 @@
 #include "ode_r.h"
 
+namespace ode {
+
 OdeR::OdeR(SEXP fun, SEXP env, SEXP pars) :
   fun(fun), env(env), pars(pars), solver(this) {
 }
@@ -33,4 +35,6 @@ std::vector<double> OdeR::r_derivs(double time, std::vector<double> y) {
 
 SEXP OdeR::target(double time, SEXP y) {
   return Rf_eval(Rf_lang4(fun, Rf_ScalarReal(time), y, pars), env);
+}
+
 }

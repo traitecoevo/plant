@@ -8,6 +8,8 @@
 // parameters along the model parameters; this could be added very
 // easily here with an extra slot in the class.
 
+namespace ode {
+
 class OdeControl {
 public:
   OdeControl();
@@ -27,5 +29,7 @@ private:
   double eps_abs, eps_rel, a_y, a_dydt;
   bool step_size_shrank_; // TODO: inconsistent name.
 };
+
+}
 
 #endif
