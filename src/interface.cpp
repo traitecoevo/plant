@@ -35,22 +35,17 @@ RCPP_MODULE(tree) {
     .method("target", &RAdaptiveSpline::target)
     ;
 
-  Rcpp::class_<Evolve>("Evolve")
-    .constructor()
-    .method("set_state",  &Evolve::set_state)
-    .method("get_state",  &Evolve::get_state)
-    .method("get_time",   &Evolve::get_time)
-    .method("step",       &Evolve::step)
-    .method("step_fixed", &Evolve::step_fixed)
-    .method("advance",    &Evolve::advance)
-    // R interface only...
-    .method("run",        &Evolve::r_run)
-    .method("derivs",     &Evolve::r_derivs)
-    ;
-
   Rcpp::class_<Lorenz>("Lorenz")
     .constructor<double,double,double>()
     .method("derivs", &Lorenz::r_derivs)
     .property("size", &Lorenz::size)
+    // ODE solving
+    .method("set_state",  &Lorenz::ode_set_state)
+    .method("get_state",  &Lorenz::ode_get_state)
+    .method("get_time",   &Lorenz::ode_get_time)
+    .method("step",       &Lorenz::ode_step)
+    .method("step_fixed", &Lorenz::ode_step_fixed)
+    .method("advance",    &Lorenz::ode_advance)
+    .method("run",        &Lorenz::ode_r_run)
     ;
 }

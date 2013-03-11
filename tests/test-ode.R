@@ -18,43 +18,41 @@ t0 <- 0.0
 tt <- seq(t0, t0+2, by=0.001)
 y <- c(21, 21, 21)
 
-e <- new(Evolve)
-
-e$set_state(y, t0)
-expect_that(e$get_state(), is_identical_to(y))
-expect_that(e$get_time(),  is_identical_to(t0))
-
-## Check the derivatives function:
-expect_that(e$derivs(),
+lo <- new(Lorenz, pars[1], pars[2], pars[3])
+expect_that(lo$derivs(t0, y),
             equals(unname(derivs.lorenz(t0, y, pars)[[1]])))
 
+lo$set_state(y, t0)
+expect_that(lo$get_state(), is_identical_to(y))
+expect_that(lo$get_time(),  is_identical_to(t0))
+
 ## Try a fixed step, but one far too large:
-e$step_fixed(1)
-expect_that(e$get_state(), is_identical_to(y))
-expect_that(e$get_time(),  is_identical_to(t0))
+lo$step_fixed(1)
+expect_that(lo$get_state(), is_identical_to(y))
+expect_that(lo$get_time(),  is_identical_to(t0))
 
 dt <- 0.001
-e$step_fixed(dt)
+lo$step_fixed(dt)
 ## Force deSolve to take the same step.
 cmp <- as.numeric(rk(y, c(0, dt), derivs.lorenz, pars,
                      method=rkMethod("rk45ck"), hini=dt, rtol=1,
                      atol=1)[2,-1])
-expect_that(e$get_state(), equals(cmp, tolerance=1e-14))
-expect_that(e$get_time(), is_identical_to(t0+dt))
+expect_that(lo$get_state(), equals(cmp, tolerance=1e-14))
+expect_that(lo$get_time(), is_identical_to(t0+dt))
 
 ## Variable step:
-e$set_state(y, t0)
-e$step()
-expect_that(e$get_time() > t0, is_true())
-expect_that(identical(e$get_state(), y), is_false())
+lo$set_state(y, t0)
+lo$step()
+expect_that(lo$get_time() > t0, is_true())
+expect_that(identical(lo$get_state(), y), is_false())
 
 ## Run:
-e$set_state(y, t0)
-e$advance(tt[2])
-expect_that(e$get_time(), is_identical_to(tt[2]))
-y.cmp <- e$get_state()
+lo$set_state(y, t0)
+lo$advance(tt[2])
+expect_that(lo$get_time(), is_identical_to(tt[2]))
+y.cmp <- lo$get_state()
 
-ans <- t(e$run(tt, y))
+ans <- t(lo$run(tt, y))
 expect_that(ans[1,], is_identical_to(y.cmp))
 
 expect_that(nrow(ans), equals(length(tt)-1))
@@ -64,6 +62,3 @@ ans.d <- rk(y, tt, derivs.lorenz, pars,
 
 expect_that(ans, equals(unname(ans.d), tolerance=1e-11))
 
-lo <- new(Lorenz, pars[1], pars[2], pars[3])
-expect_that(lo$derivs(t0, y),
-            equals(unname(derivs.lorenz(t0, y, pars)[[1]])))

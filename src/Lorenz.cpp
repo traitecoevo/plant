@@ -1,7 +1,7 @@
 #include "Lorenz.h"
 
 Lorenz::Lorenz(double sigma, double R, double b) :
-  sigma(sigma), R(R), b(b) {}
+  sigma(sigma), R(R), b(b), solver(this) {}
 
 void Lorenz::derivs(double time, 
 		    std::vector<double>::const_iterator y,

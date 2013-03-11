@@ -165,3 +165,26 @@ allowed.
 For now, it is in the `reset()` function, but probably more sensibly
 it would be set by it's own function, and done through some function
 so we can sanity check it?
+
+## Static const problems
+
+Now that Step has been templated, the `static const` arrays of
+constants make a little less sense; new copies are made for all
+different problem types.  There are a couple of different solutions
+here:
+
+* Inherit from `StepBase` that  defines all the constants 
+```
+<template class Problem>
+class Step : public class StepBase {
+	Step(Problem pr);
+	// don't define any data members.
+};
+```
+
+* Cope with the duplication
+
+* Make the constants global statics (seems bad form)
+
+Probably hold off on this until I decide how/if to generalise the
+different Stepping algorithms.
