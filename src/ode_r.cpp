@@ -1,10 +1,10 @@
-#include "ROde.h"
+#include "ode_r.h"
 
-ROde::ROde(SEXP fun, SEXP env, SEXP pars) :
+OdeR::OdeR(SEXP fun, SEXP env, SEXP pars) :
   fun(fun), env(env), pars(pars), solver(this) {
 }
 
-void ROde::derivs(double time,
+void OdeR::derivs(double time,
 		  std::vector<double>::const_iterator y,
 		  std::vector<double>::iterator dydt) {
   SEXP y_r;
@@ -24,13 +24,13 @@ void ROde::derivs(double time,
   UNPROTECT(2);
 }
 
-std::vector<double> ROde::r_derivs(double time, std::vector<double> y) {
+std::vector<double> OdeR::r_derivs(double time, std::vector<double> y) {
   size_ = y.size();
   std::vector<double> dydt(size());
   derivs(time, y.begin(), dydt.begin());
   return dydt;
 }
 
-SEXP ROde::target(double time, SEXP y) {
+SEXP OdeR::target(double time, SEXP y) {
   return Rf_eval(Rf_lang4(fun, Rf_ScalarReal(time), y, pars), env);
 }

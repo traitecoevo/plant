@@ -188,3 +188,12 @@ class Step : public class StepBase {
 
 Probably hold off on this until I decide how/if to generalise the
 different Stepping algorithms.
+
+## Namespace
+
+All the ODE stuff should probably go into a namespace.
+
+## OdeControl
+
+I'm not sure that the separate control object is any better than
+having the control stuff within the solver.  Perhaps do that instead.

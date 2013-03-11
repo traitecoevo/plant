@@ -1,14 +1,14 @@
 // -*-c++-*-
 
-#ifndef TREE_STEP_H_
-#define TREE_STEP_H_
+#ifndef TREE_ODE_STEP_H_
+#define TREE_ODE_STEP_H_
 
 #include <vector>
 
 template <class Problem>
 class Step {
 public:
-  Step(Problem *pr_);
+  Step(Problem *problem_);
   void resize(int size_);
   void step(double time, double step_size,
 	    std::vector<double> &y,
@@ -23,7 +23,7 @@ public:
 
   // Private soon, but not right now (will be once these are never
   // instantiated directly).
-  Problem *pr;
+  Problem *problem;
 
 private:
 
@@ -50,7 +50,7 @@ private:
 };
 
 template <class Problem>
-Step<Problem>::Step(Problem *pr_) : pr(pr_) { 
+Step<Problem>::Step(Problem *problem_) : problem(problem_) { 
 }
 
 template <class Problem>
@@ -69,10 +69,10 @@ void Step<Problem>::resize(int size_) {
 // from there.
 template <class Problem>
 void Step<Problem>::step(double time, double step_size,
-		std::vector<double> &y,
-		std::vector<double> &yerr,
-		const std::vector<double> &dydt_in,
-		std::vector<double> &dydt_out) {
+			 std::vector<double> &y,
+			 std::vector<double> &yerr,
+			 const std::vector<double> &dydt_in,
+			 std::vector<double> &dydt_out) {
   const double h = step_size; // Historical reasons.
 
   // k1 step:
@@ -148,9 +148,9 @@ unsigned int Step<Problem>::order() {
 
 template <class Problem>
 void Step<Problem>::derivs(double time, 
-		  std::vector<double>::const_iterator y,
-		  std::vector<double>::iterator dydt) {
-  pr->derivs(time, y, dydt);
+			   std::vector<double>::const_iterator y,
+			   std::vector<double>::iterator dydt) {
+  problem->derivs(time, y, dydt);
 }
 
 // RKCK coefficients, from GSL

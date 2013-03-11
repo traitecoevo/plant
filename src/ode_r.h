@@ -1,15 +1,15 @@
 // -*-c++-*-
-#ifndef TREE_RODE_H_
-#define TREE_RODE_H_
+#ifndef TREE_ODE_R_H_
+#define TREE_ODE_R_H_
 
 #include <Rcpp.h>
 #include <vector>
 
-#include "Evolve.h"
+#include "ode_solver.h"
 
-class ROde {
+class OdeR {
 public:
-  ROde(SEXP fun, SEXP env, SEXP pars);
+  OdeR(SEXP fun, SEXP env, SEXP pars);
   unsigned int size() const { return size_; }
   void derivs(double time,
 	      std::vector<double>::const_iterator y,
@@ -49,7 +49,7 @@ private:
   SEXP fun, env, pars;
   unsigned int size_;
 
-  Evolve<ROde> solver;
+  Solver<OdeR> solver;
 };
 
 #endif

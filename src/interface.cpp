@@ -4,8 +4,8 @@
 #include "AdaptiveSpline.h"
 #include "RAdaptiveSpline.h"
 
-#include "Lorenz.h"
-#include "ROde.h"
+#include "lorenz.h"
+#include "ode_r.h"
 
 // Allows Splines to be returned from objects.  Note that this causes
 // a copy, so copy constructors are required if there are any pointers
@@ -36,8 +36,8 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<Lorenz>("Lorenz")
     .constructor<double,double,double>()
-    .method("derivs", &Lorenz::r_derivs)
-    .property("size", &Lorenz::size)
+    .method("derivs",     &Lorenz::r_derivs)
+    .property("size",     &Lorenz::size)
     // ODE solving
     .method("set_state",  &Lorenz::ode_set_state)
     .method("get_state",  &Lorenz::ode_get_state)
@@ -48,17 +48,17 @@ RCPP_MODULE(tree) {
     .method("run",        &Lorenz::ode_r_run)
     ;
 
-  Rcpp::class_<ROde>("ROde")
+  Rcpp::class_<OdeR>("OdeR")
     .constructor<SEXP,SEXP,SEXP>()
-    .method("derivs",     &ROde::r_derivs)
-    .property("size",     &ROde::size)
+    .method("derivs",     &OdeR::r_derivs)
+    .property("size",     &OdeR::size)
     // ODE solving
-    .method("set_state",  &ROde::ode_set_state)
-    .method("get_state",  &ROde::ode_get_state)
-    .method("get_time",   &ROde::ode_get_time)
-    .method("step",       &ROde::ode_step)
-    .method("step_fixed", &ROde::ode_step_fixed)
-    .method("advance",    &ROde::ode_advance)
-    .method("run",        &ROde::ode_r_run)
+    .method("set_state",  &OdeR::ode_set_state)
+    .method("get_state",  &OdeR::ode_get_state)
+    .method("get_time",   &OdeR::ode_get_time)
+    .method("step",       &OdeR::ode_step)
+    .method("step_fixed", &OdeR::ode_step_fixed)
+    .method("advance",    &OdeR::ode_advance)
+    .method("run",        &OdeR::ode_r_run)
     ;
 }

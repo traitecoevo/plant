@@ -2,10 +2,9 @@
 #include <algorithm> // std::max
 #include <cmath>     // fabs
 
-#include "Control.h"
+#include "ode_control.h"
 
-
-Control::Control() {
+OdeControl::OdeControl() {
   eps_abs = 1e-8; // hopefully sane default
   eps_rel = 1e-8; // hopefully sane default
   a_y    = 1.0;   // tune off changes in y
@@ -13,25 +12,25 @@ Control::Control() {
   step_size_shrank_ = false;
 }
 
-void Control::set_eps_abs(double x) {
+void OdeControl::set_eps_abs(double x) {
   if ( x < 0 )
     Rf_error("eps_abs is negative");
   eps_abs = x;
 }
 
-void Control::set_eps_rel(double x) {
+void OdeControl::set_eps_rel(double x) {
   if ( x < 0 )
     Rf_error("eps_rel is negative");
   eps_rel = x;
 }
 
-void Control::set_a_y(double x) {
+void OdeControl::set_a_y(double x) {
   if ( x < 0 )
     Rf_error("a_y is negative");
   a_y = x;
 }
 
-void Control::set_a_dydt(double x) {
+void OdeControl::set_a_dydt(double x) {
   if ( x < 0 )
     Rf_error("a_dydt is negative");
   a_dydt = x;
@@ -39,7 +38,7 @@ void Control::set_a_dydt(double x) {
 
 // This did used to signal decrease, increase or no change, but let's
 // find out how that worked before doing that.
-double Control::adjust_step_size(int dim, unsigned int ord, 
+double OdeControl::adjust_step_size(int dim, unsigned int ord, 
 				 double step_size,
 				 const std::vector<double> &y,
 				 const std::vector<double> &yerr,
@@ -86,7 +85,7 @@ double Control::adjust_step_size(int dim, unsigned int ord,
   return step_size;
 }
 
-double Control::errlevel(double y, double dydt, double h) {
+double OdeControl::errlevel(double y, double dydt, double h) {
   const double errlev = eps_rel * (a_y    * fabs(y       )  + 
 				   a_dydt * fabs(h * dydt)) + eps_abs;
   if ( errlev <= 0.0 )
@@ -94,6 +93,6 @@ double Control::errlevel(double y, double dydt, double h) {
   return errlev;
 }
 
-bool Control::step_size_shrank() const {
+bool OdeControl::step_size_shrank() const {
   return step_size_shrank_;
 }

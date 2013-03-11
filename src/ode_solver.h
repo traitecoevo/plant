@@ -1,18 +1,18 @@
 // -*-c++-*-
-#ifndef TREE_EVOLVE_H_
-#define TREE_EVOLVE_H_
+#ifndef TREE_ODE_SOLVER_H_
+#define TREE_ODE_SOLVER_H_
 
 #include <Rcpp.h>
 #include <vector>
 #include <cmath> // fabs
 
-#include "Control.h"
-#include "Step.h"
+#include "ode_control.h"
+#include "ode_step.h"
 
 template <class Problem>
-class Evolve {
+class Solver {
 public:
-  Evolve(Problem *pr_);
+  Solver(Problem *problem_);
 
   void set_state(std::vector<double> y_, double t_);
   std::vector<double> get_state() const { return y; }
@@ -29,7 +29,7 @@ public:
 			    std::vector<double> y_);
   
 private:
-  Problem *pr;
+  Problem *problem;
 
   void resize(int size_);
 
@@ -51,17 +51,19 @@ private:
   int    no_steps_max;
 
   // Used internally.
-  Control c;
-  Step<Problem> s;
+  OdeControl control;
+  Step<Problem> stepper;
 };
 
 template <class Problem>
-Evolve<Problem>::Evolve(Problem *pr_) : pr(pr_), s(pr_) {
+Solver<Problem>::Solver(Problem *problem_) 
+  : problem(problem_), 
+    stepper(problem_) {
   reset();
 }
 
 template <class Problem>
-void Evolve<Problem>::set_state(std::vector<double> y_, double t_) {
+void Solver<Problem>::set_state(std::vector<double> y_, double t_) {
   y    = y_;
   time = t_;
   resize(y.size());
@@ -71,7 +73,7 @@ void Evolve<Problem>::set_state(std::vector<double> y_, double t_) {
 // TODO: In contrast with GSL, this would make more sense as
 // "step()".
 // 
-// After `s.step()`, the GSL checks to see if the step succeeded
+// After `stepper.step()`, the GSL checks to see if the step succeeded
 // (some steppers look like they fail for non-user function error),
 // and the divides the step size by 2.  If it fails with `EFAULT` or
 // `EBADFUNC`, then it aborts.  The only place that errors are
@@ -90,24 +92,24 @@ void Evolve<Problem>::set_state(std::vector<double> y_, double t_) {
 //    updating the step size too after the last current step.
 // 
 // 2. step_size: The size that the current iteration actually advanced
-//    the system (or will) via `s.step`.
+//    the system (or will) via `stepper.step`.
 // 
 // 3. step_size_next: The size of the proposed next step (or retry of
 //    the current step).
 
 template <class Problem>
-void Evolve<Problem>::step() {
+void Solver<Problem>::step() {
   const double time_orig = time, time_remaining = time_max - time;
   double step_size = step_size_last;
   // Does this appear to be the last step before reaching `time_max`?
   bool final_step = false;
   
-  // Save y in case of failure in a step (recall that s.step changes
-  // 'y')
+  // Save y in case of failure in a step (recall that stepper.step
+  // changes 'y')
   const std::vector<double> y_orig = y;
 
   // Compute the derivatives at the beginning.
-  pr->derivs(time, y.begin(), dydt_in.begin());
+  problem->derivs(time, y.begin(), dydt_in.begin());
 
   while ( true ) {
     // TODO: This allows negative step direction.  Worth it?
@@ -115,14 +117,14 @@ void Evolve<Problem>::step() {
 		  (time_remaining <  0.0 && step_size < time_remaining));
     if ( final_step )
       step_size = time_remaining;
-    s.step(time, step_size, y, yerr, dydt_in, dydt_out);
+    stepper.step(time, step_size, y, yerr, dydt_in, dydt_out);
 
     count++;
-    const double 
-      step_size_next = c.adjust_step_size(size, s.order(), step_size,
-					  y, yerr, dydt_out);
+    const double step_size_next = 
+      control.adjust_step_size(size, stepper.order(), step_size,
+			       y, yerr, dydt_out);
     
-    if ( c.step_size_shrank() ) {
+    if ( control.step_size_shrank() ) {
       // GSL checks that the step size is actually decreased.
       // Probably we can do this by comparing against hmin?  There are
       // probably loops that this will not catch, but require that
@@ -164,7 +166,7 @@ void Evolve<Problem>::step() {
 // This sets time_max, but I need to be careful about other things
 // using it...
 template <class Problem>
-void Evolve<Problem>::advance(double time_max_) {
+void Solver<Problem>::advance(double time_max_) {
   if ( time_max_ <= time )
     Rf_error("time_max must be greater than time");
   time_max = time_max_;
@@ -173,7 +175,7 @@ void Evolve<Problem>::advance(double time_max_) {
 }
 
 template <class Problem>
-Rcpp::NumericMatrix Evolve<Problem>::r_run(std::vector<double> times, 
+Rcpp::NumericMatrix Solver<Problem>::r_run(std::vector<double> times, 
 				  std::vector<double> y_) {
   Rcpp::NumericMatrix ret(size, times.size()-1);
   Rcpp::NumericMatrix::iterator out = ret.begin();
@@ -193,19 +195,20 @@ Rcpp::NumericMatrix Evolve<Problem>::r_run(std::vector<double> times,
 
 // Note that this could push us past time_max!
 template <class Problem>
-void Evolve<Problem>::step_fixed(double step_size) {
+void Solver<Problem>::step_fixed(double step_size) {
   // Save y in case of failure in the step
   std::vector<double> y0 = y;
 
   // Compute the derivatives at the beginning.
-  pr->derivs(time, y.begin(), dydt_in.begin());
+  problem->derivs(time, y.begin(), dydt_in.begin());
 
-  s.step(time, step_size, y, yerr, dydt_in, dydt_out);
+  stepper.step(time, step_size, y, yerr, dydt_in, dydt_out);
   
   const double step_size_next =
-    c.adjust_step_size(size, s.order(), step_size, y, yerr, dydt_out);
+    control.adjust_step_size(size, stepper.order(), step_size, 
+			     y, yerr, dydt_out);
 
-  if ( c.step_size_shrank() ) {
+  if ( control.step_size_shrank() ) {
     failed_steps++;
     y = y0;
   } else {
@@ -216,28 +219,28 @@ void Evolve<Problem>::step_fixed(double step_size) {
 }
 
 template <class Problem>
-std::vector<double> Evolve<Problem>::r_derivs() {
+std::vector<double> Solver<Problem>::r_derivs() {
   std::vector<double> dydt(size);
-  pr->derivs(time, y.begin(), dydt.begin());
+  problem->derivs(time, y.begin(), dydt.begin());
   return dydt;
 }
 
 template <class Problem>
-void Evolve<Problem>::reset() {
+void Solver<Problem>::reset() {
   count = 0;
   failed_steps = 0;
   step_size_last = 1e-6; // See ode.md
   time_max = DBL_MAX;    // or infinite?
-  s.reset();
+  stepper.reset();
 }
 
 template <class Problem>
-void Evolve<Problem>::resize(int size_) {
+void Solver<Problem>::resize(int size_) {
   size = size_;
   yerr.resize(size);
   dydt_in.resize(size);
   dydt_out.resize(size);
-  s.resize(size);
+  stepper.resize(size);
 }
 
 #endif

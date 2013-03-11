@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef CONTROL_H_
-#define CONTROL_H_
+#ifndef TREE_ODE_CONTROL_H_
+#define TREE_ODE_CONTROL_H_
 
 #include <vector>
 
@@ -8,9 +8,9 @@
 // parameters along the model parameters; this could be added very
 // easily here with an extra slot in the class.
 
-class Control {
+class OdeControl {
 public:
-  Control();
+  OdeControl();
   void set_eps_abs(double x);
   void set_eps_rel(double x);
   void set_a_y(double x);

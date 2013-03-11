@@ -67,7 +67,7 @@ expect_that(ans, equals(unname(ans.d), tolerance=1e-11))
 
 ## With the R Ode verison:
 
-obj <- new(ROde, derivs.lorenz, new.env(), pars)
+obj <- new(OdeR, derivs.lorenz, new.env(), pars)
 
 expect_that(obj$derivs(t0, y),
             is_identical_to(derivs.lorenz(t0, y, pars)))

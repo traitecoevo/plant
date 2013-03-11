@@ -1,11 +1,11 @@
 // -*-c++-*-
-#ifndef LORENZ_H_
-#define LORENZ_H_
+#ifndef TREE_LORENZ_H_
+#define TREE_LORENZ_H_
 
 #include <vector>
 #include <Rcpp.h>
 
-#include "Evolve.h"
+#include "ode_solver.h"
 
 class Lorenz {
 public:
@@ -43,13 +43,9 @@ public:
     return solver.r_run(times, y);
   }
 
-
-
-
 private:
   const double sigma, R, b;
-  Evolve<Lorenz> solver;
+  Solver<Lorenz> solver;
 };
-
 
 #endif
