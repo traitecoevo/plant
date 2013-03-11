@@ -3,7 +3,6 @@
 #define ADAPTIVESPLINE_H_
 
 #include <list>
-// #include <cmath>
 #include <Rcpp.h>
 
 #include "Spline.h"
