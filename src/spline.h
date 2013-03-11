@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef SPLINE_H_
-#define SPLINE_H_
+#ifndef TREE_SPLINE_H_
+#define TREE_SPLINE_H_
 
 #include <vector>
 
@@ -8,6 +8,8 @@
 #include <gsl/gsl_spline.h>
 
 #include <Rcpp.h>
+
+namespace spline {
 
 class Spline {
 public:
@@ -38,4 +40,6 @@ private:
   void gsl_free_acc();
 };
 
-#endif // SPLINE_H_
+}
+
+#endif

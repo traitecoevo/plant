@@ -1,11 +1,13 @@
 // -*-c++-*-
-#ifndef ADAPTIVESPLINE_H_
-#define ADAPTIVESPLINE_H_
+#ifndef TREE_ADAPTIVE_SPLINE_H_
+#define TREE_ADAPTIVE_SPLINE_H_
 
 #include <list>
 #include <Rcpp.h>
 
-#include "Spline.h"
+#include "spline.h"
+
+namespace spline {
 
 class AdaptiveSpline : public Spline {
   // The target function takes two arguments: 'x' (the point to evaluate
@@ -61,5 +63,6 @@ double helper_spline(double x, void *data) {
   return (obj->*Target)(x);
 }
 
+}
 
 #endif

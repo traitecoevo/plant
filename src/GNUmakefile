@@ -4,7 +4,7 @@
 ## Default GCC for now.
 CXX=g++
 
-SOURCES_SPLINE = Spline.cpp AdaptiveSpline.cpp RAdaptiveSpline.cpp
+SOURCES_SPLINE = spline.cpp adaptive_spline.cpp adaptive_spline_r.cpp
 SOURCES_ODE    = ode_control.cpp lorenz.cpp ode_r.cpp
 SOURCES_R      = interface.cpp
 SOURCES_UTIL   = util.cpp

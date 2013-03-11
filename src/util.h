@@ -1,4 +1,7 @@
 // -*-c++-*-
+#ifndef TREE_UTIL_H_
+#define TREE_UTIL_H_
+
 #include <Rcpp.h>
 #include <gsl/gsl_nan.h>
 
@@ -9,3 +12,4 @@ bool is_finite(T x) {
   return true;
 }
 
+#endif

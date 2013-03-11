@@ -1,10 +1,11 @@
 #include <Rcpp.h>
-#include "AdaptiveSpline.h"
+#include "adaptive_spline.h"
 
 #include <gsl/gsl_nan.h>
 
 #include "util.h"
 
+namespace spline {
 
 // Constructor that sets things to sensible defaults.  The bounds are
 // impossible, and the target function is NULL, both of which will
@@ -150,4 +151,6 @@ void AdaptiveSpline::check_bounds() {
     Rf_error("Impossible bounds");
   if ( !is_finite(a) || !is_finite(b) )
     Rf_error("Infinite bounds");
+}
+
 }

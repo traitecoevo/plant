@@ -25,7 +25,7 @@ expect_that(yy.C, equals(yy.cmp, tolerance=1e-6))
 
 ## Adaptive Splines:
 
-a <- new(RAdaptiveSpline, target, new.env(), min(xx), max(xx))
+a <- new(AdaptiveSplineR, target, new.env(), min(xx), max(xx))
 expect_that(nrow(a$xy()), equals(241))
 
 xx.eval <- a$xy()[,1]

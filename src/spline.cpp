@@ -1,4 +1,6 @@
-#include "Spline.h"
+#include "spline.h"
+
+namespace spline {
 
 // On contruction, make sure that `acc` and `spline` are NULL, as
 // we'll use these values to determine if memory needs clearing.
@@ -106,4 +108,6 @@ void Spline::gsl_free_acc() {
     gsl_interp_accel_free(acc);
     acc = NULL;
   }
+}
+
 }

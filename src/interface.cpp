@@ -1,8 +1,8 @@
 #include <Rcpp.h>
 
 #include "Spline.h"
-#include "AdaptiveSpline.h"
-#include "RAdaptiveSpline.h"
+#include "adaptive_spline.h"
+#include "adaptive_spline_r.h"
 
 #include "lorenz.h"
 #include "ode_r.h"
@@ -10,28 +10,28 @@
 // Allows Splines to be returned from objects.  Note that this causes
 // a copy, so copy constructors are required if there are any pointers
 // that would get cleaned up on copy.
-RCPP_EXPOSED_CLASS(Spline)
-RCPP_EXPOSED_CLASS(AdaptiveSpline)
+RCPP_EXPOSED_CLASS(spline::Spline)
+RCPP_EXPOSED_CLASS(spline::AdaptiveSpline)
 
 RCPP_MODULE(tree) {
-  Rcpp::class_<Spline>("Spline")
+  Rcpp::class_<spline::Spline>("Spline")
     .constructor()
-    .method("init", &Spline::init)
-    .method("eval", &Spline::r_eval)
-    .method("xy",   &Spline::r_get_xy)
-    .property("size", &Spline::size)
+    .method("init",   &spline::Spline::init)
+    .method("eval",   &spline::Spline::r_eval)
+    .method("xy",     &spline::Spline::r_get_xy)
+    .property("size", &spline::Spline::size)
     ;
 
-  Rcpp::class_<AdaptiveSpline>("AdaptiveSpline")
+  Rcpp::class_<spline::AdaptiveSpline>("AdaptiveSpline")
     .constructor()
-    .derives<Spline>("Spline")
-    .method("construct_spline", &AdaptiveSpline::construct_spline)
+    .derives<spline::Spline>("Spline")
+    .method("construct_spline", &spline::AdaptiveSpline::construct_spline)
     ;
 
-  Rcpp::class_<RAdaptiveSpline>("RAdaptiveSpline")
-    .derives<AdaptiveSpline>("AdaptiveSpline")
+  Rcpp::class_<spline::AdaptiveSplineR>("AdaptiveSplineR")
+    .derives<spline::AdaptiveSpline>("AdaptiveSpline")
     .constructor<SEXP,SEXP,double,double>()
-    .method("target", &RAdaptiveSpline::target)
+    .method("target", &spline::AdaptiveSplineR::target)
     ;
 
   Rcpp::class_<ode::Lorenz>("Lorenz")
