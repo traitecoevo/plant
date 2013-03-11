@@ -4,11 +4,12 @@
 ## Default GCC for now.
 CXX=g++
 
-SOURCES = util.cpp          \
-	Spline.cpp          \
-	AdaptiveSpline.cpp  \
-	RAdaptiveSpline.cpp \
-	interface.cpp
+SOURCES_SPLINE = Spline.cpp AdaptiveSpline.cpp RAdaptiveSpline.cpp
+SOURCES_ODE    = ode_control.cpp lorenz.cpp ode_r.cpp
+SOURCES_R      = interface.cpp
+SOURCES_UTIL   = util.cpp
+
+SOURCES = $(SOURCES_SPLINE) $(SOURCES_ODE) $(SOURCES_UTIL) $(SOURCES_R)
 
 TARGETS = tree.so
 
