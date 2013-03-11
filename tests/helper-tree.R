@@ -18,4 +18,5 @@ if ( !exists("Spline") ) {
   RAdaptiveSpline   <- tree_module$RAdaptiveSpline
 
   Evolve <- tree_module$Evolve
+  Lorenz <- tree_module$Lorenz
 }

@@ -6,6 +6,8 @@
 
 #include "Evolve.h"
 
+#include "Lorenz.h"
+
 // Allows Splines to be returned from objects.  Note that this causes
 // a copy, so copy constructors are required if there are any pointers
 // that would get cleaned up on copy.
@@ -44,5 +46,11 @@ RCPP_MODULE(tree) {
     // R interface only...
     .method("run",        &Evolve::r_run)
     .method("derivs",     &Evolve::r_derivs)
+    ;
+
+  Rcpp::class_<Lorenz>("Lorenz")
+    .constructor<double,double,double>()
+    .method("derivs", &Lorenz::r_derivs)
+    .property("size", &Lorenz::size)
     ;
 }

@@ -5,7 +5,7 @@
 CXX=g++
 
 SOURCES_SPLINE = Spline.cpp AdaptiveSpline.cpp RAdaptiveSpline.cpp
-SOURCES_ODE    = Step.cpp Control.cpp Evolve.cpp
+SOURCES_ODE    = Step.cpp Control.cpp Evolve.cpp Lorenz.cpp
 SOURCES_R      = interface.cpp
 SOURCES_UTIL   = util.cpp
 

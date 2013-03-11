@@ -17,15 +17,6 @@ pars <- c(sigma=10.0,
 t0 <- 0.0
 tt <- seq(t0, t0+2, by=0.001)
 y <- c(21, 21, 21)
-## ans <- rk(y, tt, derivs.lorenz, pars, method = rkMethod("rk45ck"))
-
-## xx <- ans[,2]
-## yy <- ans[,3]
-## zz <- ans[,4]
-## plt <- persp(matrix(1, 2, 2), border=NA, col=NA, xlim=range(xx),
-##              ylim=range(yy), zlim=range(zz), theta=30,
-##              phi=60, box=FALSE, xlab="x", ylab="y", zlab="z")
-## lines(trans3d(xx, yy, zz, plt))
 
 e <- new(Evolve)
 
@@ -72,3 +63,7 @@ ans.d <- rk(y, tt, derivs.lorenz, pars,
             method=rkMethod("rk45ck"))[-1,-1,drop=FALSE]
 
 expect_that(ans, equals(unname(ans.d), tolerance=1e-11))
+
+lo <- new(Lorenz, pars[1], pars[2], pars[3])
+expect_that(lo$derivs(t0, y),
+            equals(unname(derivs.lorenz(t0, y, pars)[[1]])))
