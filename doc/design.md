@@ -50,3 +50,17 @@ which will become annoying).
 We use splines for the light environment, but I have some code I'm
 quite happy with that works here.
 
+# Compilation issues
+
+Rcpp makes compilation very painful, so we really want to load that as
+little as possible.  However, the utilities depend on it, and whether
+it is included causes Rf_error() vs. error() differences (amongst
+others).
+
+# Filenames and conventions
+
+I've been using Java style file names - switch to lowercase names with
+camel->underscore.
+
+Deciding if to go with class variables with underscore (google style
+guide).

@@ -154,7 +154,11 @@ up quite easily.
 ## Default step size
 
 Need some way (for Evolve) of setting a reasonable default step size.
-Not sure when this makes sense to change, either.
+Not sure when this makes sense to change, either.  For our main use,
+we want the solver to preserve the step size over calls, resets, and
+changes in states.  So I'll probably set it up to go much the same way
+as the min and max step size.  Probably do all of that through a
+control list; I have the code for that in diversitree.
 
 ## Stepper direction
 
