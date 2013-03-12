@@ -21,4 +21,5 @@ if ( !exists("Spline") ) {
   OdeR   <- tree_module$OdeR
 
   Strategy <- tree_module$Strategy
+  Parameters <- tree_module$Parameters
 }

@@ -8,6 +8,7 @@
 #include "ode_r.h"
 
 #include "strategy.h"
+#include "parameters.h"
 
 // Allows Splines to be returned from objects.  Note that this causes
 // a copy, so copy constructors are required if there are any pointers
@@ -68,5 +69,16 @@ RCPP_MODULE(tree) {
     .constructor()
     .method("get_params", &model::Strategy::get_params)
     .method("set_params", &model::Strategy::set_params)
+    ;
+
+  Rcpp::class_<model::Parameters>("Parameters")
+    .constructor()
+    .property("size",         &model::Parameters::size)
+    .method("get_params",     &model::Parameters::get_params)
+    .method("get_strategy",   &model::Parameters::get_strategy)
+    .method("get_strategies", &model::Parameters::get_strategies)
+    .method("set_params",     &model::Parameters::set_params)
+    .method("add_strategy",   &model::Parameters::add_strategy)
+    .method("set_strategy",   &model::Parameters::set_strategy)
     ;
 }
