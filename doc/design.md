@@ -38,6 +38,19 @@ appears as a concept:
 A patch contains multiple species.  In the deterministic model, there
 will be just one patch.
 
+## Parameters
+
+We need a pointer to all the parameters that we can use to seed new
+populations (containing things like a vector of all species
+strategies), and a few parameters that apply at the level above
+species (light extinction, disturbance regime, etc).
+
+The nice thing about this approach is that we can centralise ownership
+and lifespan of the parameter pointers.
+
+Need to decide on names for accessor functions.  Probably change
+`set_params` to `set_parameters` to continue avoiding abbreviations.
+
 ## ODE solver
 
 We need an ODE solver that can cope with changing dimensions, as both
@@ -64,3 +77,9 @@ camel->underscore.
 
 Deciding if to go with class variables with underscore (google style
 guide).
+
+# Consistency
+
+init vs contructors
+reset, clear, etc.
+

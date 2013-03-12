@@ -66,7 +66,7 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::Strategy>("Strategy")
     .constructor()
-    .method("get_params", &model::Strategy::r_get_params)
-    .method("set_params", &model::Strategy::r_set_params)
+    .method("get_params", &model::Strategy::get_params)
+    .method("set_params", &model::Strategy::set_params)
     ;
 }

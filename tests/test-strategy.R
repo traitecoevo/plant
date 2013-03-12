@@ -63,3 +63,13 @@ expect_that(s$get_params(), equals(modifyList(expected, new1)))
 
 ## TODO: error on not the first argument would not satisfy that
 ## property.
+
+## Empty list should be accepted and leave things unchanged.
+obj <- s$get_params()
+s$set_params(list())
+expect_that(s$get_params(), is_identical_to(obj))
+
+## As should NULL, which is converted by R to list()
+obj <- s$get_params()
+s$set_params(NULL)
+expect_that(s$get_params(), is_identical_to(obj))

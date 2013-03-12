@@ -7,6 +7,15 @@ Strategy::Strategy() {
   build_lookup();
 }
 
+// I don't know if this is the best way of doing this; we move through
+// the R constructs and some pretty slow calculations.  At the same
+// time, I don't think that we want to be copying much as I think
+// we'll work with pointers.
+Strategy::Strategy(const Strategy &s) {
+  build_lookup();
+  set_params(s.get_params());
+}
+
 void Strategy::reset() {
   // * Core traits
   lma  = NA_REAL;
@@ -124,16 +133,16 @@ void Strategy::build_lookup() {
   lookup_table["c_d3"] = &c_d3;
 }
 
-double* Strategy::lookup(std::string key) {
-  lookup_type::iterator it = lookup_table.find(key);
+double* Strategy::lookup(std::string key) const {
+  lookup_type::const_iterator it = lookup_table.find(key);
   if ( it == lookup_table.end() )
     Rf_error("Key %s not found", key.c_str());
   return it->second;
 }
 
-Rcpp::List Strategy::r_get_params() {
+Rcpp::List Strategy::get_params() const {
   Rcpp::List ret;
-  for ( lookup_type::iterator it = lookup_table.begin();
+  for ( lookup_type::const_iterator it = lookup_table.begin();
 	it != lookup_table.end(); it++ )
     ret[it->first] = *(it->second);
   return ret;
@@ -143,7 +152,10 @@ Rcpp::List Strategy::r_get_params() {
 // parameters.  Though we would want the same logic to apply to the
 // conversion, too.  There are a couple of strategies here (build a
 // second map or something) but I'll hold off on this until later.
-void Strategy::r_set_params(Rcpp::List x) {
+void Strategy::set_params(Rcpp::List x) {
+  if ( x.size() == 0 )
+    return;
+
   std::vector<std::string> names = x.names();
   for ( int i = 0; i < x.size(); i++ ) {
     double *tmp = lookup(names[i]);
