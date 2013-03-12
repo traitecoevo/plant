@@ -47,3 +47,19 @@ expect_that(sort(names(obj)),
 expect_that(obj[keys], equals(expected[keys]))
 expect_that(all(sapply(obj[core], is.na)), is_true())
 expect_that(all(!sapply(obj[setdiff(keys, core)], is.na)), is_true())
+
+## Add some new parameters:
+new1 <- list(c_acc=4.1, lma=1.2)
+s$set_params(new1)
+expect_that(s$get_params()[names(new1)], is_identical_to(new1))
+expect_that(s$get_params(), equals(modifyList(expected, new1)))
+
+## Generate a failure:
+new2 <- list(unknown_key=1)
+expect_that(s$set_params(new2), throws_error())
+
+## And have the list remain unchanged and valid
+expect_that(s$get_params(), equals(modifyList(expected, new1)))
+
+## TODO: error on not the first argument would not satisfy that
+## property.
