@@ -1,10 +1,10 @@
 source("helper-tree.R")
 
-context("Parameters")
+context("Strategy")
 
-p <- new(Parameters)
+s <- new(Strategy)
 
-obj <- p$get_params()
+obj <- s$get_params()
 
 expected <- list(
   B1     = 0.306,

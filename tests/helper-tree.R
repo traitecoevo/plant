@@ -20,5 +20,5 @@ if ( !exists("Spline") ) {
   Lorenz <- tree_module$Lorenz
   OdeR   <- tree_module$OdeR
 
-  Parameters <- tree_module$Parameters
+  Strategy <- tree_module$Strategy
 }

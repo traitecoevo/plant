@@ -1,13 +1,13 @@
-#include "parameters.h"
+#include "strategy.h"
 
 namespace model {
 
-Parameters::Parameters() {
+Strategy::Strategy() {
   reset();
   build_lookup();
 }
 
-void Parameters::reset() {
+void Strategy::reset() {
   // * Core traits
   lma  = NA_REAL;
   rho  = NA_REAL;
@@ -16,7 +16,7 @@ void Parameters::reset() {
 
   // * Individual allometry
 
-  // Canopy shape parameters (extra calculation here
+  // Canopy shape parameter (extra calculation here later)
   eta = 12;
   // ratio leaf area to sapwood area
   theta  = 4669;
@@ -41,7 +41,6 @@ void Parameters::reset() {
   // Sapwood respiration per stem volume [mol CO2 / m3 / yr]
   c_Rs   = 4012;
   // TODO: This never appears in the Plant version or the paper.
-  // Look to see how it is used in Strategy.cpp
   c_Rb   = 2 * c_Rs;
   // Carbon conversion parameter
   Y      = 0.7;
@@ -86,11 +85,11 @@ void Parameters::reset() {
   compute_constants();
 }
 
-void Parameters::compute_constants() {
+void Strategy::compute_constants() {
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
 }
 
-void Parameters::build_lookup() {
+void Strategy::build_lookup() {
   lookup_table["lma"] = &lma;
   lookup_table["hmat"] = &hmat;
   lookup_table["rho"] = &rho;
@@ -125,14 +124,14 @@ void Parameters::build_lookup() {
   lookup_table["c_d3"] = &c_d3;
 }
 
-double* Parameters::lookup(std::string key) {
+double* Strategy::lookup(std::string key) {
   lookup_type::iterator it = lookup_table.find(key);
   if ( it == lookup_table.end() )
     Rf_error("Key %s not found", key.c_str());
   return it->second;
 }
 
-Rcpp::List Parameters::r_get_params() {
+Rcpp::List Strategy::r_get_params() {
   Rcpp::List ret;
   for ( lookup_type::iterator it = lookup_table.begin();
 	it != lookup_table.end(); it++ )
@@ -144,7 +143,7 @@ Rcpp::List Parameters::r_get_params() {
 // parameters.  Though we would want the same logic to apply to the
 // conversion, too.  There are a couple of strategies here (build a
 // second map or something) but I'll hold off on this until later.
-void Parameters::r_set_params(Rcpp::List x) {
+void Strategy::r_set_params(Rcpp::List x) {
   std::vector<std::string> names = x.names();
   for ( int i = 0; i < x.size(); i++ ) {
     double *tmp = lookup(names[i]);

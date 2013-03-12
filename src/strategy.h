@@ -1,15 +1,15 @@
 // -*-c++-*-
-#ifndef TREE_PARAMETERS_
-#define TREE_PARAMETERS_
+#ifndef TREE_STRATEGY_
+#define TREE_STRATEGY_
 
 #include <Rcpp.h>
 #include <string>
 
 namespace model {
 
-class Parameters {
+class Strategy {
 public:
-  Parameters();
+  Strategy();
   void reset();
   void compute_constants();
   Rcpp::List r_get_params();
