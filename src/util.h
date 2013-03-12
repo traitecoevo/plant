@@ -12,4 +12,6 @@ bool is_finite(T x) {
   return true;
 }
 
+void check_bounds(int idx, int max);
+
 #endif
