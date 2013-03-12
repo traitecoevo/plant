@@ -1,11 +1,13 @@
 #include <Rcpp.h>
 
-#include "Spline.h"
+#include "spline.h"
 #include "adaptive_spline.h"
 #include "adaptive_spline_r.h"
 
 #include "lorenz.h"
 #include "ode_r.h"
+
+#include "parameters.h"
 
 // Allows Splines to be returned from objects.  Note that this causes
 // a copy, so copy constructors are required if there are any pointers
@@ -60,5 +62,11 @@ RCPP_MODULE(tree) {
     .method("step_fixed", &ode::OdeR::ode_step_fixed)
     .method("advance",    &ode::OdeR::ode_advance)
     .method("run",        &ode::OdeR::ode_r_run)
+    ;
+
+  Rcpp::class_<model::Parameters>("Parameters")
+    .constructor()
+    .method("get_params", &model::Parameters::r_get_params)
+    .method("set_params", &model::Parameters::r_set_params)
     ;
 }
