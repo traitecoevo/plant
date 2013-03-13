@@ -6,7 +6,7 @@ void handler_pass_to_R(const char *reason,
                        const char *file,
                        int line,
                        int gsl_errno) {
-  Rf_error("GSLERROR: %s: %s:%d [%d]", reason, file, line, gsl_errno);
+  ::Rf_error("GSLERROR: %s: %s:%d [%d]", reason, file, line, gsl_errno);
 }
 
 // See Rcpp-exports for a better way of doing this.
@@ -21,5 +21,5 @@ void check_bounds(int idx, int max) {
   else if ( max == 0 )
     ::Rf_error("Index %d impossible from empty range", idx);
   else if ( idx < 0 || idx >= max )
-    Rf_error("Index %d out of bounds: must be in [0,%d]", idx, max-1);
+    ::Rf_error("Index %d out of bounds: must be in [0,%d]", idx, max-1);
 }

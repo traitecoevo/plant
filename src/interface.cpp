@@ -82,11 +82,10 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::Parameters>("Parameters")
     .constructor()
+    .derives<utils::Lookup>("Lookup")
     .property("size",         &model::Parameters::size)
-    .method("get_parameters", &model::Parameters::get_parameters)
     .method("get_strategy",   &model::Parameters::get_strategy)
     .method("get_strategies", &model::Parameters::get_strategies)
-    .method("set_parameters", &model::Parameters::set_parameters)
     .method("add_strategy",   &model::Parameters::add_strategy)
     .method("set_strategy",   &model::Parameters::set_strategy)
     ;

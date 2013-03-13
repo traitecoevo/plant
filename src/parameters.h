@@ -4,11 +4,12 @@
 
 #include <Rcpp.h>
 
+#include "lookup.h"
 #include "strategy.h"
 
 namespace model {
 
-class Parameters {
+class Parameters : public utils::Lookup {
 public:
   // Construction
   Parameters();
@@ -16,12 +17,10 @@ public:
 
   // Querying
   unsigned int size() const {return strategies.size();}
-  Rcpp::List get_parameters() const;
   Rcpp::List get_strategy(int idx);
   Rcpp::List get_strategies();
 
   // Setting
-  void set_parameters(Rcpp::List x);
   void add_strategy(Rcpp::List x);
   void set_strategy(Rcpp::List x, int idx);
 
@@ -29,6 +28,8 @@ public:
   double mean_disturbance_interval;
   double c_ext; // Light extinction coefficient
   std::vector<Strategy> strategies;
+private:
+  void do_build_lookup();
 };
 
 }

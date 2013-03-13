@@ -8,8 +8,8 @@ p <- new(Parameters)
 expect_that(p$size, is_identical_to(0L))
 
 ## And these are the defaults:
-expected <- list(mean_disturbance_interval=30.0,
-                 c_ext=0.5)
+expected <- list(c_ext=0.5,
+                 mean_disturbance_interval=30.0)
 expect_that(p$get_parameters(), is_identical_to(expected))
 
 ## Set a parameter and check that it is actually set
