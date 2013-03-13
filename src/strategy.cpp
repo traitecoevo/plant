@@ -14,6 +14,7 @@ Strategy::Strategy() {
 Strategy::Strategy(const Strategy &s) {
   build_lookup();
   set_params(s.get_params());
+  Rprintf("Copying parameters: lma = %2.5f, %2.5f\n", s.lma, lma);
 }
 
 void Strategy::reset() {
@@ -30,9 +31,11 @@ void Strategy::reset() {
   // ratio leaf area to sapwood area
   theta  = 4669;
   // Height - leaf mass scaling
-  a1     = 5.44;    B1= 0.306;
+  a1     = 5.44;
+  B1     = 0.306;
   // Leaf area - stem volume scaling
-  a2     = 6.67e-5; B2 = 1.75;
+  a2     = 6.67e-5;
+  B2      = 1.75;
   // Root - leaf scaling
   a3     = 0.07;
   // Ratio of bark area : sapwood area
@@ -58,7 +61,8 @@ void Strategy::reset() {
   // (12E-3 / 0.49)
   c_bio  = 2.45e-2;
   // Leaf turnover - LMA scaling
-  a4     = 0.0286;  B4 =1.71;
+  a4     = 0.0286;
+  B4     = 1.71;
   // Bark turnover
   k_b    = 0.2;
   // Root turnover
@@ -112,6 +116,7 @@ void Strategy::build_lookup() {
   lookup_table["a2"] = &a2;
   lookup_table["B2"] = &B2;
   lookup_table["a3"] = &a3;
+  lookup_table["b"]  = &b;
   lookup_table["a4"] = &a4;
   lookup_table["B4"] = &B4;
   lookup_table["n_area"] = &n_area;
@@ -129,6 +134,7 @@ void Strategy::build_lookup() {
   lookup_table["c_r1"] = &c_r1;
   lookup_table["c_r2"] = &c_r2;
   lookup_table["Pi_0"] = &Pi_0;
+  lookup_table["c_s0"] = &c_s0;
   lookup_table["c_d0"] = &c_d0;
   lookup_table["c_d1"] = &c_d1;
   lookup_table["c_d2"] = &c_d2;
