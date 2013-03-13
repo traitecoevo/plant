@@ -1,4 +1,4 @@
-SOURCES_MODEL  = strategy.cpp parameters.cpp
+SOURCES_MODEL  = strategy.cpp parameters.cpp plant.cpp
 SOURCES_SPLINE = spline.cpp adaptive_spline.cpp adaptive_spline_r.cpp
 SOURCES_ODE    = ode_control.cpp lorenz.cpp ode_r.cpp
 SOURCES_R      = interface.cpp

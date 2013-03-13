@@ -9,12 +9,14 @@
 
 #include "strategy.h"
 #include "parameters.h"
+#include "plant.h"
 
 // Allows Splines to be returned from objects.  Note that this causes
 // a copy, so copy constructors are required if there are any pointers
 // that would get cleaned up on copy.
 RCPP_EXPOSED_CLASS(spline::Spline)
 RCPP_EXPOSED_CLASS(spline::AdaptiveSpline)
+RCPP_EXPOSED_CLASS(model::Strategy)
 
 RCPP_MODULE(tree) {
   Rcpp::class_<spline::Spline>("Spline")
@@ -80,5 +82,9 @@ RCPP_MODULE(tree) {
     .method("set_params",     &model::Parameters::set_params)
     .method("add_strategy",   &model::Parameters::add_strategy)
     .method("set_strategy",   &model::Parameters::set_strategy)
+    ;
+
+  Rcpp::class_<model::Plant>("Plant")
+    .constructor<model::Strategy>()
     ;
 }

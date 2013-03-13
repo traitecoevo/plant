@@ -22,4 +22,5 @@ if ( !exists("Spline") ) {
 
   Strategy <- tree_module$Strategy
   Parameters <- tree_module$Parameters
+  Plant <- tree_module$Plant
 }
