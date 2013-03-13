@@ -7,6 +7,8 @@
 #include "lorenz.h"
 #include "ode_r.h"
 
+#include "lookup.h"
+
 #include "strategy.h"
 #include "parameters.h"
 #include "plant.h"
@@ -67,19 +69,24 @@ RCPP_MODULE(tree) {
     .method("run",        &ode::OdeR::ode_r_run)
     ;
 
-  Rcpp::class_<model::Strategy>("Strategy")
+  Rcpp::class_<utils::Lookup>("Lookup")
     .constructor()
-    .method("get_params", &model::Strategy::get_params)
-    .method("set_params", &model::Strategy::set_params)
+    .method("get_parameters", &utils::Lookup::get_parameters)
+    .method("set_parameters", &utils::Lookup::set_parameters)
+    ;
+
+  Rcpp::class_<model::Strategy>("Strategy")
+    .derives<utils::Lookup>("Lookup")
+    .constructor()
     ;
 
   Rcpp::class_<model::Parameters>("Parameters")
     .constructor()
     .property("size",         &model::Parameters::size)
-    .method("get_params",     &model::Parameters::get_params)
+    .method("get_parameters", &model::Parameters::get_parameters)
     .method("get_strategy",   &model::Parameters::get_strategy)
     .method("get_strategies", &model::Parameters::get_strategies)
-    .method("set_params",     &model::Parameters::set_params)
+    .method("set_parameters", &model::Parameters::set_parameters)
     .method("add_strategy",   &model::Parameters::add_strategy)
     .method("set_strategy",   &model::Parameters::set_strategy)
     ;

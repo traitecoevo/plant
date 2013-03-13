@@ -5,17 +5,15 @@
 #include <Rcpp.h>
 #include <string>
 
+#include "lookup.h"
+
 namespace model {
 
-class Strategy {
+class Strategy : public utils::Lookup {
 public:
   Strategy();
-  // Violating rule of three, but no resource allocation, so OK?
-  Strategy(const Strategy &s);
   void reset();
   void compute_constants();
-  Rcpp::List get_params() const;
-  void set_params(Rcpp::List x);
 
   // * Core traits
   double lma, rho, hmat, s;
@@ -71,10 +69,7 @@ public:
   bool assimilation_over_distribution;
 
 private:
-  typedef std::map<std::string, double*> lookup_type;
-  lookup_type lookup_table;
-  void build_lookup(); // used on construction
-  double* lookup(std::string key) const; // used for access
+  void do_build_lookup();
 };
 
 }

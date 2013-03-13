@@ -4,16 +4,6 @@ namespace model {
 
 Strategy::Strategy() {
   reset();
-  build_lookup();
-}
-
-// I don't know if this is the best way of doing this; we move through
-// the R constructs and some pretty slow calculations.  At the same
-// time, I don't think that we want to be copying much as I think
-// we'll work with pointers.
-Strategy::Strategy(const Strategy &s) {
-  build_lookup();
-  set_params(s.get_params());
 }
 
 void Strategy::reset() {
@@ -103,7 +93,7 @@ void Strategy::compute_constants() {
   k_l = a4 * pow(lma, -B4);
 }
 
-void Strategy::build_lookup() {
+void Strategy::do_build_lookup() {
   lookup_table["lma"] = &lma;
   lookup_table["hmat"] = &hmat;
   lookup_table["rho"] = &rho;
@@ -138,37 +128,6 @@ void Strategy::build_lookup() {
   lookup_table["c_d1"] = &c_d1;
   lookup_table["c_d2"] = &c_d2;
   lookup_table["c_d3"] = &c_d3;
-}
-
-double* Strategy::lookup(std::string key) const {
-  lookup_type::const_iterator it = lookup_table.find(key);
-  if ( it == lookup_table.end() )
-    Rf_error("Key %s not found", key.c_str());
-  return it->second;
-}
-
-Rcpp::List Strategy::get_params() const {
-  Rcpp::List ret;
-  for ( lookup_type::const_iterator it = lookup_table.begin();
-	it != lookup_table.end(); it++ )
-    ret[it->first] = *(it->second);
-  return ret;
-}
-
-// TODO: Check on first pass, set on second?  Avoids partly set
-// parameters.  Though we would want the same logic to apply to the
-// conversion, too.  There are a couple of strategies here (build a
-// second map or something) but I'll hold off on this until later.
-void Strategy::set_params(Rcpp::List x) {
-  if ( x.size() == 0 )
-    return;
-
-  std::vector<std::string> names = x.names();
-  for ( int i = 0; i < x.size(); i++ ) {
-    double *tmp = lookup(names[i]);
-    *tmp = Rcpp::as<double>(x[i]);
-  }
-  compute_constants();
 }
 
 }

@@ -7,8 +7,8 @@ pars.cmp <- cmp$get_parameters()
 
 s <- new(Strategy)
 core <- list(lma=0.1978791, hmat=16.5958691, rho=608, s=3.8e-5)
-s$set_params(core)
-pars.s <- s$get_params()
+s$set_parameters(core)
+pars.s <- s$get_parameters()
 
 ## Expect that all parameters in the R version are found in the C++
 ## version.

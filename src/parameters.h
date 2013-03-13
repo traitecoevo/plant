@@ -16,12 +16,12 @@ public:
 
   // Querying
   unsigned int size() const {return strategies.size();}
-  Rcpp::List get_params() const;
-  Rcpp::List get_strategy(int idx) const;
-  Rcpp::List get_strategies() const;
+  Rcpp::List get_parameters() const;
+  Rcpp::List get_strategy(int idx);
+  Rcpp::List get_strategies();
 
   // Setting
-  void set_params(Rcpp::List x);
+  void set_parameters(Rcpp::List x);
   void add_strategy(Rcpp::List x);
   void set_strategy(Rcpp::List x, int idx);
 

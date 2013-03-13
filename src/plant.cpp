@@ -228,7 +228,7 @@ double Plant::r_compute_assimilation(spline::Spline env) const {
 }
 
 Rcpp::List Plant::r_get_parameters() const {
-  return strategy->get_params();
+  return strategy->get_parameters();
 }
 
 }

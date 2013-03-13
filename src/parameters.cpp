@@ -19,11 +19,11 @@ void Parameters::reset() {
 
 void Parameters::add_strategy(Rcpp::List x) {
   Strategy s;
-  s.set_params(x);
+  s.set_parameters(x);
   strategies.push_back(s);
 }
 
-Rcpp::List Parameters::get_params() const {
+Rcpp::List Parameters::get_parameters() const {
   Rcpp::List ret;
   ret["mean_disturbance_interval"] = mean_disturbance_interval;
   ret["c_ext"] = c_ext;
@@ -32,16 +32,16 @@ Rcpp::List Parameters::get_params() const {
 
 // This is generally fucking up quite badly, returning corrupted
 // memory.  Probably need to do a valgrind.
-Rcpp::List Parameters::get_strategy(int idx) const {
+Rcpp::List Parameters::get_strategy(int idx) {
   ::check_bounds(idx, strategies.size());
-  return strategies[idx].get_params();
+  return strategies[idx].get_parameters();
 }
 
-Rcpp::List Parameters::get_strategies() const {
+Rcpp::List Parameters::get_strategies() {
   Rcpp::List ret;
-  for ( std::vector<Strategy>::const_iterator it = strategies.begin();
+  for ( std::vector<Strategy>::iterator it = strategies.begin();
 	it != strategies.end(); it++ )
-    ret.push_back(it->get_params());
+    ret.push_back(it->get_parameters());
   return ret;
 }
 
@@ -51,7 +51,7 @@ Rcpp::List Parameters::get_strategies() const {
 // standalone functions, or as a small class that just wraps around
 // map.  That might actually deal with some of the copy issues,
 // actually.
-void Parameters::set_params(Rcpp::List x) {
+void Parameters::set_parameters(Rcpp::List x) {
   std::vector<std::string> names = x.names();
   for ( int i = 0; i < x.size(); i++ ) {
     std::string key = names[i];
@@ -68,7 +68,7 @@ void Parameters::set_params(Rcpp::List x) {
 
 void Parameters::set_strategy(Rcpp::List x, int idx) {
   ::check_bounds(idx, strategies.size());
-  strategies[idx].set_params(x);
+  strategies[idx].set_parameters(x);
 }
 
 

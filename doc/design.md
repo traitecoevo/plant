@@ -144,11 +144,20 @@ Initially, I used single letter variable names in `Plant` -- for
 consistency with the paper.  This is complete for the variable names,
 but functions still have a way to go.
 
-I do have the residual problem that to get a `respiration` function
-and a `respiration` variable to play well together I need to name
-things carefully.
+One place where short variable names persist is `Strategy`, where
+variable names basically mimic those from the paper.  The scope of
+these names is basically restricted to `Strategy` (which does nothing
+with them) and `Plant` (which does a lot of calculations based on
+them).  So I should set all the data content of `Strategy` private and
+declare `Plant` to be a friend.
 
-Perhaps pair `xxx` and `compute_xxx`?
+The downside of the friend approach is that there are things that I
+really don't need `Plant` to be able to see (`lookup_type`,
+`build_lookup`, `lookup_table` and `lookup`).  All of these are based
+around the issues of the data lookup.  So provide a virtual base
+class, privately inherit from this, and then the issue goes away?
+That has the nice effect that the lookup problems go away.
+
 
 # Consistency
 

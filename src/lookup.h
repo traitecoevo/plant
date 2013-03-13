@@ -31,23 +31,30 @@
 // TODO: It might be easiest to do the build_lookup at get/set
 // parameter time (which is never time sensitive) than at copy (which
 // might conceivably be).
+// 
+// One way around this would be to include a pointer to self and check
+// if that is correct (not the result of a copy operator) or not.  One
+// reason for deferring the build is that if we call it in the base
+// constructor then 
 
 namespace utils {
 
 class Lookup {
+public:
   Lookup();
-  Lookup(const Lookup &other);
-  // Assignment operator?
-  Rcpp::List get_parameters() const;
+  Rcpp::List get_parameters();
   void set_parameters(Rcpp::List x);
 
-private:
+protected:
   typedef std::map<std::string, double*> lookup_type;
   lookup_type lookup_table;
+  virtual void do_build_lookup() {};
+
+private:
   void build_lookup(); // used on construction
-  virtual void do_build_lookup() = 0;
   double* lookup(std::string key) const;
-  void copy_parameters(const Lookup &source);
+  bool uninitialised;
+  Lookup* addr;
 };
 
 }
