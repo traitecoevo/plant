@@ -49,7 +49,8 @@ void Strategy::reset() {
   c_Rr   = 217;                 //mol CO2 / kg /yr
   // Sapwood respiration per stem volume [mol CO2 / m3 / yr]
   c_Rs   = 4012;
-  // TODO: This never appears in the Plant version or the paper.
+  // Bark respiration per stem volume [mol CO2 / m3 / yr]
+  // (note, new since paper -- see respiration calculation)
   c_Rb   = 2 * c_Rs;
   // Carbon conversion parameter
   Y      = 0.7;
@@ -96,6 +97,7 @@ void Strategy::reset() {
 
 void Strategy::compute_constants() {
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
+  k_l = a4 * pow(lma, -B4);
 }
 
 void Strategy::build_lookup() {
