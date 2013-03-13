@@ -27,15 +27,19 @@
 //   lookup_table["foo"] = &foo;
 // where "foo" is the name of the element in the R list and &foo is
 // the address of the member (which *must* be a double).
-
-// TODO: It might be easiest to do the build_lookup at get/set
-// parameter time (which is never time sensitive) than at copy (which
-// might conceivably be).
 // 
-// One way around this would be to include a pointer to self and check
-// if that is correct (not the result of a copy operator) or not.  One
-// reason for deferring the build is that if we call it in the base
-// constructor then 
+// We do the lookup table building on get or set of parameters,
+// because these are never time sensitive (wheras construction or copy
+// might be).  It is also partly necessary to stop the abstracton
+// becoming leaky, as the base constructor is called before the
+// derived class (so we no nothing of the look up to be built).  
+// 
+// Lookup construction is still kept to a minimum by keeping a pointer
+// to the address of the object in `addr`.  This is set to NULL on
+// construction so that `addr != this` forcing a build of the table.
+// Likewise, on copy, `addr != this`, because it points at the object
+// that was the *source* object, forcing a rebuild (similarly for
+// assignment).
 
 namespace utils {
 
@@ -48,12 +52,11 @@ public:
 protected:
   typedef std::map<std::string, double*> lookup_type;
   lookup_type lookup_table;
-  virtual void do_build_lookup() {};
+  virtual void do_build_lookup() = 0;
 
 private:
   void build_lookup(); // used on construction
   double* lookup(std::string key) const;
-  bool uninitialised;
   Lookup* addr;
 };
 

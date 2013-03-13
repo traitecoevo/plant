@@ -70,7 +70,7 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<utils::Lookup>("Lookup")
-    .constructor()
+    // No constructor, because class contains pure virtual method.
     .method("get_parameters", &utils::Lookup::get_parameters)
     .method("set_parameters", &utils::Lookup::set_parameters)
     ;
