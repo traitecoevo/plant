@@ -34,7 +34,6 @@ Plant& Plant::operator=(const Plant &rhs) {
 }
 
 Plant::~Plant() {
-  Rprintf("Destructor\n");
   if ( standalone )
     delete strategy;
 }
@@ -49,7 +48,6 @@ void Plant::set_mass_leaf(double x) {
 
 // [eqn 1-8] Update size variables given an input leaf mass
 void Plant::compute_vars_size(double mass_leaf_) {
-  Rprintf("lma = %2.5f\n", strategy->lma);
   if ( mass_leaf_ <= 0.0 ) 
     Rf_error("mass_leaf must be positive");
   // [eqn 1] Leaf mass

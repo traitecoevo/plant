@@ -14,7 +14,6 @@ Strategy::Strategy() {
 Strategy::Strategy(const Strategy &s) {
   build_lookup();
   set_params(s.get_params());
-  Rprintf("Copying parameters: lma = %2.5f, %2.5f\n", s.lma, lma);
 }
 
 void Strategy::reset() {
