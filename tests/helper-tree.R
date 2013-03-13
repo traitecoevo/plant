@@ -24,3 +24,5 @@ if ( !exists("Spline") ) {
   Parameters <- tree_module$Parameters
   Plant <- tree_module$Plant
 }
+
+source("../R/falster.R", chdir=TRUE)
