@@ -1,0 +1,5 @@
+src/tree.so.dSYM
+
+tests/valgrind.txt
+tests/valgrind.supp
+
