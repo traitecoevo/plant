@@ -84,7 +84,21 @@ RCPP_MODULE(tree) {
     .method("set_strategy",   &model::Parameters::set_strategy)
     ;
 
+  // Pending: get_values, set_values, get_rates (for ODE)
+  //          derivs (for R ODE)
   Rcpp::class_<model::Plant>("Plant")
     .constructor<model::Strategy>()
+    .method("set_mass_leaf",        &model::Plant::set_mass_leaf)
+    // Leaf distribution (external interface)
+    .method("leaf_area_above",      &model::Plant::leaf_area_above)
+    .method("q",                    &model::Plant::q)
+    .method("Q",                    &model::Plant::Q)
+    .method("Qp",                   &model::Plant::Qp)
+    // R specific access
+    .property("parameters",         &model::Plant::r_get_parameters)
+    .property("vars_size",          &model::Plant::r_get_vars_size)
+    .property("vars_phys",          &model::Plant::r_get_vars_phys)
+    .method("assimilation_leaf",    &model::Plant::assimilation_leaf)
+    .method("compute_assimilation", &model::Plant::r_compute_assimilation)
     ;
 }

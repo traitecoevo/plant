@@ -24,10 +24,10 @@ public:
 
   // static const int size = 3;
 
-private:
-  // * Individual size
-  // [eqn 1-8] Update size variables to a new leaf mass.
-  void compute_vars_size(double mass_leaf_);
+  Rcpp::NumericVector r_get_vars_size() const;
+  Rcpp::NumericVector r_get_vars_phys() const;
+  double r_compute_assimilation(spline::Spline env) const;
+  Rcpp::List r_get_parameters() const;
 
   // * Competitive environment
   // [eqn  9] Probability density of leaf area at height `z`
@@ -36,12 +36,19 @@ private:
   double Q(double z) const;
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x) const;
-
-  // [eqn 11] -- at population level
+  // [      ] Leaf area (not fraction) above height `z`
+  double leaf_area_above(double z) const;
 
   // * Mass production
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
+
+private:
+  // * Individual size
+  // [eqn 1-8] Update size variables to a new leaf mass.
+  void compute_vars_size(double mass_leaf_);
+
+  // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
   double compute_assimilation(spline::Spline *env) const;
   // [eqn 13] Total maintenance respiration

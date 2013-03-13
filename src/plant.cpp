@@ -49,6 +49,7 @@ void Plant::set_mass_leaf(double x) {
 
 // [eqn 1-8] Update size variables given an input leaf mass
 void Plant::compute_vars_size(double mass_leaf_) {
+  Rprintf("lma = %2.5f\n", strategy->lma);
   if ( mass_leaf_ <= 0.0 ) 
     Rf_error("mass_leaf must be positive");
   // [eqn 1] Leaf mass
@@ -63,7 +64,7 @@ void Plant::compute_vars_size(double mass_leaf_) {
   // [eqn 5] Mass of bark
   mass_bark = strategy->b * mass_sapwood;
   // [eqn 6] Mass of heartwood
-  mass_heartwood = strategy->rho * strategy->a2 * strategy->eta_c *
+  mass_heartwood = strategy->rho * strategy->eta_c * strategy->a2 * 
     pow(leaf_area, strategy->B2);
   // [eqn 7] Mass of (fine) roots
   mass_root = strategy->a3 * leaf_area;
@@ -93,6 +94,12 @@ double Plant::Q(double z) const {
 double Plant::Qp(double x) const { // x in [0,1], unchecked.
   return pow(1 - sqrt(x), (1/strategy->eta)) * height;
 }
+
+// [      ] Leaf area (not fraction) above height `z`
+double Plant::leaf_area_above(double z) const {
+  return leaf_area * Q(height);
+}
+
 
 // [Appendix S6] Per-leaf photosynthetic rate.
 double Plant::assimilation_leaf(double x) const {
@@ -194,8 +201,36 @@ void Plant::compute_vars_phys(spline::Spline *env) {
     strategy->c_d2 * exp(-strategy->c_d3 * net_production / leaf_area);
 }
 
+Rcpp::NumericVector Plant::r_get_vars_size() const {
+  using namespace Rcpp;
+  return NumericVector::create(_["mass_leaf"]=mass_leaf,
+			       _["mass_sapwood"]=mass_sapwood,
+			       _["mass_bark"]=mass_bark,
+			       _["mass_heartwood"]=mass_heartwood,
+			       _["mass_root"]=mass_root,
+			       _["mass_total"]=mass_total,
+			       _["height"]=height,
+			       _["leaf_area"]=leaf_area);
+}
 
+Rcpp::NumericVector Plant::r_get_vars_phys() const {
+  using namespace Rcpp;
+  return NumericVector::create(_["assimilation"]=assimilation,
+			       _["respiration"]=respiration,
+			       _["turnover"]=turnover,
+			       _["net_production"]=net_production,
+			       _["reproduction_fraction"]=reproduction_fraction,
+			       _["fecundity_rate"]=fecundity_rate,
+			       _["leaf_fraction"]=leaf_fraction,
+			       _["growth_rate"]=growth_rate);
+}
 
+double Plant::r_compute_assimilation(spline::Spline env) const {
+  return compute_assimilation(&env);
+}
 
+Rcpp::List Plant::r_get_parameters() const {
+  return strategy->get_params();
+}
 
 }
