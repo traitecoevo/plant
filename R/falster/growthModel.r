@@ -16,7 +16,7 @@ RootMass<-function(A){p.a3*A}
 SapwoodMass<-function(rho, A,h){rho/p.theta*etac(p.eta)*A*h}
 etac<-function(eta){1-2/(1+eta)+1/(1+2*eta)}
 BarkMass<-function(rho, A,h){p.b*SapwoodMass(A,h, rho)}
-HeartwoodMass<-function(rho, A){rho*p.a2*A^p.B2}
+HeartwoodMass<-function(rho, A){rho*etac(p.eta)*p.a2*A^p.B2}
 Diameter<-function(rho, stemMass){(stemMass/rho/p.a5)^(1/p.B5)}
 TotalMass<-function(traits, A){
   ml =LeafMass(traits$lma, A)
