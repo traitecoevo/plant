@@ -1,6 +1,6 @@
 #include "lookup.h"
 
-namespace utils {
+namespace util {
 
 Lookup::Lookup() : addr(NULL) { }
 

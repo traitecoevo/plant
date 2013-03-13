@@ -41,7 +41,7 @@
 // that was the *source* object, forcing a rebuild (similarly for
 // assignment).
 
-namespace utils {
+namespace util {
 
 class Lookup {
 public:

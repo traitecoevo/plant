@@ -9,7 +9,7 @@
 
 namespace model {
 
-class Strategy : public utils::Lookup {
+class Strategy : public util::Lookup {
 public:
   Strategy();
   void reset();

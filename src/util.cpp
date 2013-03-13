@@ -1,6 +1,8 @@
 #include <gsl/gsl_errno.h>
 #include "util.h"
 
+namespace util {
+
 // See Rcpp-exports for alternative to Rf_error
 void handler_pass_to_R(const char *reason,
                        const char *file,
@@ -22,4 +24,6 @@ void check_bounds(int idx, int max) {
     ::Rf_error("Index %d impossible from empty range", idx);
   else if ( idx < 0 || idx >= max )
     ::Rf_error("Index %d out of bounds: must be in [0,%d]", idx, max-1);
+}
+
 }

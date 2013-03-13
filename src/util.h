@@ -5,6 +5,8 @@
 #include <Rcpp.h>
 #include <gsl/gsl_nan.h>
 
+namespace util {
+
 template <typename T>
 bool is_finite(T x) {
   // TODO: Get the finite check in here!
@@ -13,5 +15,7 @@ bool is_finite(T x) {
 }
 
 void check_bounds(int idx, int max);
+
+}
 
 #endif

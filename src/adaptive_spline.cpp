@@ -149,7 +149,7 @@ void AdaptiveSpline::reset() {
 void AdaptiveSpline::check_bounds() {
   if ( a >= b )
     Rf_error("Impossible bounds");
-  if ( !is_finite(a) || !is_finite(b) )
+  if ( !util::is_finite(a) || !util::is_finite(b) )
     Rf_error("Infinite bounds");
 }
 

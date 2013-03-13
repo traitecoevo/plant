@@ -26,7 +26,7 @@ void Parameters::add_strategy(Rcpp::List x) {
 // This is generally fucking up quite badly, returning corrupted
 // memory.  Probably need to do a valgrind.
 Rcpp::List Parameters::get_strategy(int idx) {
-  ::check_bounds(idx, strategies.size());
+  util::check_bounds(idx, strategies.size());
   return strategies[idx].get_parameters();
 }
 
@@ -39,7 +39,7 @@ Rcpp::List Parameters::get_strategies() {
 }
 
 void Parameters::set_strategy(Rcpp::List x, int idx) {
-  ::check_bounds(idx, strategies.size());
+  util::check_bounds(idx, strategies.size());
   strategies[idx].set_parameters(x);
 }
 

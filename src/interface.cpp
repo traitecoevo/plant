@@ -69,20 +69,20 @@ RCPP_MODULE(tree) {
     .method("run",        &ode::OdeR::ode_r_run)
     ;
 
-  Rcpp::class_<utils::Lookup>("Lookup")
+  Rcpp::class_<util::Lookup>("Lookup")
     // No constructor, because class contains pure virtual method.
-    .method("get_parameters", &utils::Lookup::get_parameters)
-    .method("set_parameters", &utils::Lookup::set_parameters)
+    .method("get_parameters", &util::Lookup::get_parameters)
+    .method("set_parameters", &util::Lookup::set_parameters)
     ;
 
   Rcpp::class_<model::Strategy>("Strategy")
-    .derives<utils::Lookup>("Lookup")
+    .derives<util::Lookup>("Lookup")
     .constructor()
     ;
 
   Rcpp::class_<model::Parameters>("Parameters")
     .constructor()
-    .derives<utils::Lookup>("Lookup")
+    .derives<util::Lookup>("Lookup")
     .property("size",         &model::Parameters::size)
     .method("get_strategy",   &model::Parameters::get_strategy)
     .method("get_strategies", &model::Parameters::get_strategies)

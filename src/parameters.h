@@ -9,7 +9,7 @@
 
 namespace model {
 
-class Parameters : public utils::Lookup {
+class Parameters : public util::Lookup {
 public:
   // Construction
   Parameters();
