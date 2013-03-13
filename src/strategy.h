@@ -12,9 +12,11 @@ namespace model {
 class Strategy : public util::Lookup {
 public:
   Strategy();
-  void reset();
-  void compute_constants();
 
+  // All the 
+  friend class Plant;
+
+private:
   // * Core traits
   double lma, rho, hmat, s;
 
@@ -68,8 +70,13 @@ public:
   // assimilation:
   bool assimilation_over_distribution;
 
-private:
+  // These things are really not to be used by anything, but are all
+  // harmless (except for reset, actually).  They're used in
+  // construction, and in mantaining the lookup table used to enable
+  // {get,set}_parameters().
   void do_build_lookup();
+  void reset();
+  void compute_constants();
 };
 
 }
