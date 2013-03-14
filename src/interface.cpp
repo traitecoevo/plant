@@ -13,6 +13,9 @@
 #include "parameters.h"
 #include "plant.h"
 
+#include "functor.h"
+#include "find_root.h"
+
 // Allows Splines to be returned from objects.  Note that this causes
 // a copy, so copy constructors are required if there are any pointers
 // that would get cleaned up on copy.
@@ -107,4 +110,8 @@ RCPP_MODULE(tree) {
     .method("assimilation_leaf",    &model::Plant::assimilation_leaf)
     .method("compute_assimilation", &model::Plant::r_compute_assimilation)
     ;
+
+  // Misc functions
+  Rcpp::function("test_functor",   &util::test::test_functor);
+  Rcpp::function("test_find_root", &util::test::test_find_root);
 }

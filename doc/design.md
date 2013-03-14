@@ -174,11 +174,19 @@ around the issues of the data lookup.  So provide a virtual base
 class, privately inherit from this, and then the issue goes away?
 That has the nice effect that the lookup problems go away.
 
-
 # Consistency
 
 init vs contructors
 reset, clear, etc.
+
+# Callbacks and functors
+
+There are two basic ways that callbacks are being done --
+AdaptiveSpline does it in an ad-hoc way, but the root finding (and the
+quadrature approach) do the call backs with functors (I guess that the
+ODE class is doing it a third way!).
+
+Move everything that make sense over to functors.
 
 # Alternative models
 
