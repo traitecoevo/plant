@@ -2,6 +2,8 @@
 
 namespace ode {
 
+namespace test {
+
 Lorenz::Lorenz(double sigma, double R, double b) :
   sigma(sigma), R(R), b(b), solver(this) {}
 
@@ -27,6 +29,8 @@ std::vector<double> Lorenz::r_derivs(double time,
   std::vector<double> dydt(size());
   derivs(time, y.begin(), dydt.begin());
   return dydt;
+}
+
 }
 
 }

@@ -44,18 +44,18 @@ RCPP_MODULE(tree) {
     .method("target", &spline::AdaptiveSplineR::target)
     ;
 
-  Rcpp::class_<ode::Lorenz>("Lorenz")
+  Rcpp::class_<ode::test::Lorenz>("Lorenz")
     .constructor<double,double,double>()
-    .method("derivs",     &ode::Lorenz::r_derivs)
-    .property("size",     &ode::Lorenz::size)
+    .method("derivs",     &ode::test::Lorenz::r_derivs)
+    .property("size",     &ode::test::Lorenz::size)
     // ODE solving
-    .method("set_state",  &ode::Lorenz::ode_set_state)
-    .method("get_state",  &ode::Lorenz::ode_get_state)
-    .method("get_time",   &ode::Lorenz::ode_get_time)
-    .method("step",       &ode::Lorenz::ode_step)
-    .method("step_fixed", &ode::Lorenz::ode_step_fixed)
-    .method("advance",    &ode::Lorenz::ode_advance)
-    .method("run",        &ode::Lorenz::ode_r_run)
+    .method("set_state",  &ode::test::Lorenz::ode_set_state)
+    .method("get_state",  &ode::test::Lorenz::ode_get_state)
+    .method("get_time",   &ode::test::Lorenz::ode_get_time)
+    .method("step",       &ode::test::Lorenz::ode_step)
+    .method("step_fixed", &ode::test::Lorenz::ode_step_fixed)
+    .method("advance",    &ode::test::Lorenz::ode_advance)
+    .method("run",        &ode::test::Lorenz::ode_r_run)
     ;
 
   Rcpp::class_<ode::OdeR>("OdeR")
