@@ -54,13 +54,54 @@ expect_that(size.p[["height"]],
 expect_that(size.p[["mass_leaf"]], equals(pi))
 expect_that(size.p[["mass_sapwood"]],
             equals(cmp$SapwoodMass(cmp$traits$rho, a, h)))
-## This one differs slightly.
 expect_that(size.p[["mass_heartwood"]],
             equals(cmp$HeartwoodMass(cmp$traits$rho, a)))
 expect_that(size.p[["mass_root"]],
             equals(cmp$RootMass(a)))
 expect_that(size.p[["mass_total"]],
             equals(cmp$TotalMass(cmp$traits, a)))
+
+## Instantaneous photosynthesis:
+xx <- seq(0, 1, length=101)
+yy <- sapply(xx, p$assimilation_leaf)
+zz <- cmp$Assim(a, xx)
+
+## The R model computes A_lf * leaf_area * Y * c_bio, wheras we just
+## compute A_lf
+expect_that(yy * pars.s$Y * pars.s$c_bio * a,
+            equals(zz))
+
+## Make a pretend light environment over the plant height, slightly
+## concave up, whatever.
+hh <- seq(0, h, length=101)
+light.env <- function(x)
+  exp(x/(h*2)) - 1 + (1 - (exp(.5) - 1))/2
+ee <- light.env(hh)
+
+yy.C <- sapply(ee, p$assimilation_leaf)
+yy.R <- cmp$Assim(a, ee) / (pars.s$Y * pars.s$c_bio * a)
+
+expect_that(yy.C, equals(yy.R))
+
+## Now, integrate, using both the C++ and R versions:
+f.C <- Vectorize(function(x)
+                 p$assimilation_leaf(light.env(x)) * p$q(x))
+f.R <- function(x) cmp$leaf.pdf(x, h) * cmp$Assim(a, light.env(x)) /
+  (pars.s$Y * pars.s$c_bio * a)
+
+Y.C <- integrate(f.C, 0, h)
+Y.R <- integrate(f.R, 0, h)
+expect_that(Y.C, equals(Y.C))
+
+## Also can do this with the alternative approach:
+g.C <- Vectorize(function(x) p$assimilation_leaf(light.env(p$Qp(x))))
+g.R <- function(x) cmp$Assim(a, light.env(cmp$leaf.icdf(x, h))) /
+  (pars.s$Y * pars.s$c_bio * a)
+
+expect_that(integrate(g.C, 0, 1)$value,
+            equals(Y.C$value, tolerance=1e-7))
+expect_that(integrate(g.R, 0, 1)$value,
+            equals(Y.R$value, tolerance=1e-7))
 
 ## Delete the plant -- should not crash.
 rm(p)

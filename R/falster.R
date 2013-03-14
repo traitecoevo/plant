@@ -43,6 +43,17 @@ make.falster.generator <- function(path) {
     }
     e$get_parameters <- get.pars
 
+    ## These functions were not included in the core model, so I'm
+    ## including them so that changes in the C++ version will be
+    ## detected.
+    e$leaf.pdf <- function(z, h) {
+      tmp <- (z / h)^e$p.eta
+      2 * e$p.eta * (1 - tmp) * tmp / z
+    }
+    e$leaf.icdf <- function(x, h) {
+      ((1 - sqrt(x))^(1/e$p.eta)) * h
+    }
+
     e
   }
 }

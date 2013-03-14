@@ -115,18 +115,34 @@ For the same reason, the individual allometry functions are not
 written separately; each part depends on previously calculated
 things.  So this is all done in `update_vars_size()`.
 
-## ODE solver
+## Utilities
+
+### ODE solver
 
 We need an ODE solver that can cope with changing dimensions, as both
 the individual-based and deterministic solvers have rapidly changing
 dimensions (and the GSL solvers will have to reallocate every step,
 which will become annoying).
 
-## Splines
+### Splines
 
 We use splines for the light environment, but I have some code I'm
 quite happy with that works here.
 
+### Root finder
+
+This is needed only for the initial seed size calculation, which
+itself is carried out only at the beginning of a simulation.  So
+doesn't need to be anything too crazy.
+
+### Numerical integration (quadrature)
+
+This is a bigger deal, and is required for the photosynthetic
+calculation.  Write something that can take a function of the form
+`(double x)` as a functor (or whatever the C++ canonical style is).
+This will probably also suggest the way forward for the root finder
+too, as it also has a function of the same form.
+  
 # Compilation issues
 
 Rcpp makes compilation very painful, so we really want to load that as
@@ -164,3 +180,16 @@ That has the nice effect that the lookup problems go away.
 init vs contructors
 reset, clear, etc.
 
+# Alternative models
+
+The Kohuama and Takada model would fit quite easily into this
+framework, and might be a nice way of testing some ideas about the
+"right" level of generality.  It would generate a different looking
+"environment" object (sums of leaf area over discrete strata), but the
+idea for plants would still be to convert this environment into
+growth.
+
+The "size" value becomes the partition that a species is in for the
+individual based model.  For the EBT-style model we are also tracking
+the fraction of the population in this size class (but unlike the EBT
+we never bother splitting cohorts).
