@@ -2,7 +2,8 @@ SOURCES_MODEL  = strategy.cpp parameters.cpp plant.cpp
 SOURCES_SPLINE = spline.cpp adaptive_spline.cpp adaptive_spline_r.cpp
 SOURCES_ODE    = ode_control.cpp lorenz.cpp ode_r.cpp
 SOURCES_R      = interface.cpp
-SOURCES_UTIL   = util.cpp lookup.cpp find_root.cpp functor.cpp
+SOURCES_UTIL   = util.cpp lookup.cpp find_root.cpp functor.cpp \
+	integrator.cpp
 
 SOURCES = $(SOURCES_MODEL) $(SOURCES_SPLINE) $(SOURCES_ODE) \
 	$(SOURCES_UTIL) $(SOURCES_R)

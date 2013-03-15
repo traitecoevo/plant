@@ -117,6 +117,37 @@ things.  So this is all done in `update_vars_size()`.
 
 ## Utilities
 
+### General
+
+While I now basically have all of the bits that we need.  However,
+there is a diversity of interface issues still remaining that could be
+tightened:
+
+Integrator and FindRoot take their (modest list of) control parameters
+during initialisation.
+
+ode::Solver has a whole separate class for control parameters (not all
+of which appear to be enforced yet or in the right place --
+e.g. `step_size_min`, `step_size_max`, and `no_steps_max`).  However,
+there is no ability to set them to anything other than the defaults.
+There are rather a lot of possible parameters too.
+
+`Spline` doesn't actually have *any* control parameters, apparently.
+However, `AdaptiveSpline` does, and that needs harmonising.  It also
+has a modest list, so can be done via the constructor.
+
+Bounds setting: `AdaptiveSpline` sets that bounds and target
+separately (and uses the old target style).  Move this over to the
+same approach as the other utilities.
+
+### Organisation
+
+Not sure where the utilities code should all go, from a namespace
+point of view.  I have `Spline` and `AdaptiveSpline` both within
+`spline`, `Solver` is in `ode` (along with its support)
+
+`solver_ode.{cpp,h}` filename is inconsistent with everything else.
+
 ### ODE solver
 
 We need an ODE solver that can cope with changing dimensions, as both
@@ -127,7 +158,15 @@ which will become annoying).
 ### Splines
 
 We use splines for the light environment, but I have some code I'm
-quite happy with that works here.
+quite happy with that works here.  However, the reallocation is slow,
+so this is likely to find itself ported over from GSL to proper C++ at
+some point if it persists in being slow.  However, we should be able
+to do that entirely transparently.
+
+### Numerical integration (quadrature)
+
+This has ended up being a very simple interface, and I think that I'll
+use this as a model for the other utilities where possible.
 
 ### Root finder
 
@@ -135,14 +174,6 @@ This is needed only for the initial seed size calculation, which
 itself is carried out only at the beginning of a simulation.  So
 doesn't need to be anything too crazy.
 
-### Numerical integration (quadrature)
-
-This is a bigger deal, and is required for the photosynthetic
-calculation.  Write something that can take a function of the form
-`(double x)` as a functor (or whatever the C++ canonical style is).
-This will probably also suggest the way forward for the root finder
-too, as it also has a function of the same form.
-  
 # Compilation issues
 
 Rcpp makes compilation very painful, so we really want to load that as

@@ -15,6 +15,7 @@
 
 #include "functor.h"
 #include "find_root.h"
+#include "integrator.h"
 
 // Allows Splines to be returned from objects.  Note that this causes
 // a copy, so copy constructors are required if there are any pointers
@@ -112,6 +113,7 @@ RCPP_MODULE(tree) {
     ;
 
   // Misc functions
-  Rcpp::function("test_functor",   &util::test::test_functor);
-  Rcpp::function("test_find_root", &util::test::test_find_root);
+  Rcpp::function("test_functor",    &util::test::test_functor);
+  Rcpp::function("test_find_root",  &util::test::test_find_root);
+  Rcpp::function("test_integrator", &util::test::test_integrator);
 }

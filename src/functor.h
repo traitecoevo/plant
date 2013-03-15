@@ -5,6 +5,8 @@
 // Something much flasher than this exists in Boost already, but we're
 // reluctant to depend on boost because it's so massive.
 
+#include <vector> // for test_functor
+
 namespace util {
 
 // Abstract class that defines a functor; the operator takes a single
