@@ -128,6 +128,7 @@ void Strategy::do_build_lookup() {
   lookup_table["c_d1"] = &c_d1;
   lookup_table["c_d2"] = &c_d2;
   lookup_table["c_d3"] = &c_d3;
+  // lookup_table["assimilation_over_distribution"] = &assimilation_over_distribution;
 }
 
 }

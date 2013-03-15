@@ -4,7 +4,16 @@ namespace model {
 
 Plant::Plant(Strategy s)
   : standalone(true), 
-    strategy(new Strategy(s)) { }
+    strategy(new Strategy(s)) { 
+  // TODO: If we allow changing parameters, this will need doing
+  // there too.  But only standalone cases should be allowed to change
+  // parameters.
+  // 
+  // TODO: It might be worth pulling this function inside of Plant,
+  // rather than Strategy.  Keep the slots in Strategy, but set them
+  // from Plant.
+  strategy->compute_constants();
+}
 
 Plant::Plant(Strategy *s) 
   : standalone(false),
@@ -113,7 +122,8 @@ double Plant::compute_assimilation(spline::Spline *env) const {
   const double atol = 1e-6, rtol = 1e-6;
   const int max_iterations = 1000;
   util::Integrator integrator(atol, rtol, max_iterations);
-  return integrator.integrate(&fun, 0, height);
+  const double x_max = strategy->assimilation_over_distribution ? 1 : height;
+  return leaf_area * integrator.integrate(&fun, 0.0, x_max);
 }
 
 // This is used in the calculation of assimilation by
@@ -251,5 +261,10 @@ double Plant::r_compute_assimilation_x(double x, spline::Spline env) const {
 Rcpp::List Plant::r_get_parameters() const {
   return strategy->get_parameters();
 }
+
+void Plant::r_compute_vars_phys(spline::Spline env) {
+  compute_vars_phys(&env);
+}
+
 
 }

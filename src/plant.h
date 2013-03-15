@@ -31,6 +31,7 @@ public:
   double r_compute_assimilation(spline::Spline env) const;
   double r_compute_assimilation_x(double x, spline::Spline env) const;
   Rcpp::List r_get_parameters() const;
+  void r_compute_vars_phys(spline::Spline env);
 
   // * Competitive environment
   // [eqn  9] Probability density of leaf area at height `z`
