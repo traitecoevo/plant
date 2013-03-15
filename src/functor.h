@@ -44,6 +44,24 @@ double helper_functor(double x, void *data);
 // 
 // It makes the interface very slightly simpler, so possibly.
 
+// Bind a second argument to return a functor for the first.
+// This seems a bit crap in terms of generalising and naming.  Boost
+// would certainly be easier here.
+template <class T, class T2, double (T::*target)(double, T2)>
+class FunctorBind1 : public DFunctor {
+public:
+  FunctorBind1(T *obj, T2 arg2) : obj(obj), arg2(arg2) {}
+  virtual double operator()(double x) {
+    return (obj->*target)(x, arg2);
+  }
+  
+private:
+  T* obj;
+  T2 arg2;
+};
+
+
+
 // This is used for testing in a couple of places.
 namespace test {
 

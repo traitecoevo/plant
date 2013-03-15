@@ -26,8 +26,8 @@ public:
 
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
-  double r_compute_assimilation(spline::Spline env) const;
-  double r_compute_assimilation_x(double x, spline::Spline env) const;
+  double r_compute_assimilation(spline::Spline env);
+  double r_compute_assimilation_x(double x, spline::Spline env);
   Rcpp::List r_get_parameters() const;
 
   // * Competitive environment
@@ -51,8 +51,8 @@ private:
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
-  double compute_assimilation(spline::Spline *env) const;
-  double compute_assimilation_x(double x, spline::Spline *env) const;
+  double compute_assimilation(spline::Spline *env);
+  double compute_assimilation_x(double x, spline::Spline *env);
   // [eqn 13] Total maintenance respiration
   double compute_respiration() const;
   // [eqn 14] Total turnover

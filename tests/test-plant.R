@@ -111,7 +111,8 @@ tmp <-
             0, h)$value
 expect_that(tmp, equals(Y.C$value))
 
-
+expect_that(p$compute_assimilation(env),
+            equals(Y.C$value))
 
 ## Delete the plant -- should not crash.
 ## rm(p)

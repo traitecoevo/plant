@@ -1,6 +1,9 @@
 #include "plant.h"
 #include "strategy.h"
 
+#include "functor.h"
+#include "integrator.h"
+
 namespace model {
 
 Plant::Plant(Strategy s)
@@ -105,14 +108,18 @@ double Plant::assimilation_leaf(double x) const {
 }
 
 // [eqn 12] Gross annual CO2 assimilation
-double Plant::compute_assimilation(spline::Spline *env) const {
-  //Functor<test::Plant, &test::Plant::assimilation_leaf> fun(&obj);
-
-  Rf_error("Need to write integration support");
-  return 0.0;
+// TODO: This version is completely naive.  Better to provide an
+// already working integrator.
+double Plant::compute_assimilation(spline::Spline *env) {
+  util::FunctorBind1<Plant, spline::Spline*,
+		     &Plant::compute_assimilation_x> fun(this, env);
+  const double atol = 1e-6, rtol = 1e-6;
+  const int max_iterations = 1000;
+  util::Integrator integrator(atol, rtol, max_iterations);
+  return integrator.integrate(&fun, 0, height);
 }
 
-double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
+double Plant::compute_assimilation_x(double x, spline::Spline *env) {
   return assimilation_leaf(env->eval(x)) * q(x);
 }
 
@@ -229,11 +236,11 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 			       _["growth_rate"]=growth_rate);
 }
 
-double Plant::r_compute_assimilation(spline::Spline env) const {
+double Plant::r_compute_assimilation(spline::Spline env) {
   return compute_assimilation(&env);
 }
 
-double Plant::r_compute_assimilation_x(double x, spline::Spline env) const {
+double Plant::r_compute_assimilation_x(double x, spline::Spline env) {
   return compute_assimilation_x(x, &env);
 }
 
