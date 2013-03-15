@@ -140,6 +140,10 @@ Bounds setting: `AdaptiveSpline` sets that bounds and target
 separately (and uses the old target style).  Move this over to the
 same approach as the other utilities.
 
+One way of doing this is to derive from a `WithTolerance` class that
+takes care of getters, setters, and defaults?  Could just be more
+abstraction than is helpful though.
+
 ### Organisation
 
 Not sure where the utilities code should all go, from a namespace

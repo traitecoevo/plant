@@ -83,7 +83,7 @@ void Strategy::reset() {
   // Risk coefficient for dry mass production (per area)
   c_d3    = 20.0;
 
-  assimilation_over_distribution = true;
+  assimilation_over_distribution = false;
 
   compute_constants();
 }

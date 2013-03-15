@@ -29,7 +29,6 @@ public:
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
   double r_compute_assimilation(spline::Spline env) const;
-  double r_compute_assimilation_z(double z, spline::Spline env) const;
   double r_compute_assimilation_x(double x, spline::Spline env) const;
   Rcpp::List r_get_parameters() const;
 
@@ -56,7 +55,6 @@ private:
   // [eqn 12] Gross annual CO2 assimilation
   double compute_assimilation(spline::Spline *env) const;
   // Used internally, corresponding to the inner term in [eqn 12]
-  double compute_assimilation_z(double z, spline::Spline *env) const;
   double compute_assimilation_x(double x, spline::Spline *env) const;
   // [eqn 13] Total maintenance respiration
   double compute_respiration() const;
@@ -104,7 +102,7 @@ private:
 };
 
 // To prepare for the integration in `compute_assimilation` we need to
-// convert the function `compute_assimilation_z(double, util::Spline*)
+// convert the function `compute_assimilation_x(double, util::Spline*)
 // to take just a double as an argument.  Boost has the ability to
 // bind arguments which would be nice here, but we're avoiding
 // depending on that for the time being.

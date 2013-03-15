@@ -109,7 +109,7 @@ double Plant::assimilation_leaf(double x) const {
 // already working integrator.
 double Plant::compute_assimilation(spline::Spline *env) const {
   FunctorBind1<Plant, spline::Spline*,
-	       &Plant::compute_assimilation_z> fun(this, env);
+	       &Plant::compute_assimilation_x> fun(this, env);
   const double atol = 1e-6, rtol = 1e-6;
   const int max_iterations = 1000;
   util::Integrator integrator(atol, rtol, max_iterations);
@@ -120,14 +120,11 @@ double Plant::compute_assimilation(spline::Spline *env) const {
 // `compute_assimilation` above; it is the term within the integral in
 // [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
 // where `z` is height.
-double Plant::compute_assimilation_z(double z, spline::Spline *env) const {
-  return assimilation_leaf(env->eval(z)) * q(z);
-}
-// This is the alternative distribution exploiting the change of
-// variables, where `x` is the fraction of the distance up the leaf
-// area.
 double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
-  return assimilation_leaf(env->eval(Qp(x)));
+  if ( strategy->assimilation_over_distribution )
+    return assimilation_leaf(env->eval(Qp(x)));
+  else
+    return assimilation_leaf(env->eval(x)) * q(x);
 }
 
 // [eqn 13] Total maintenance respiration
@@ -247,8 +244,8 @@ double Plant::r_compute_assimilation(spline::Spline env) const {
   return compute_assimilation(&env);
 }
 
-double Plant::r_compute_assimilation_z(double z, spline::Spline env) const {
-  return compute_assimilation_z(z, &env);
+double Plant::r_compute_assimilation_x(double x, spline::Spline env) const {
+  return compute_assimilation_x(x, &env);
 }
 
 Rcpp::List Plant::r_get_parameters() const {
