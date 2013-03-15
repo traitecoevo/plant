@@ -4,8 +4,10 @@
 
 #include <Rcpp.h>
 
+#include "integrator.h"
 #include "strategy.h"
 #include "spline.h"
+#include "functor.h"
 
 namespace model {
     
@@ -26,8 +28,8 @@ public:
 
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
-  double r_compute_assimilation(spline::Spline env);
-  double r_compute_assimilation_x(double x, spline::Spline env);
+  double r_compute_assimilation(spline::Spline env) const;
+  double r_compute_assimilation_x(double x, spline::Spline env) const;
   Rcpp::List r_get_parameters() const;
 
   // * Competitive environment
@@ -51,8 +53,8 @@ private:
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
-  double compute_assimilation(spline::Spline *env);
-  double compute_assimilation_x(double x, spline::Spline *env);
+  double compute_assimilation(spline::Spline *env) const;
+  double compute_assimilation_x(double x, spline::Spline *env) const;
   // [eqn 13] Total maintenance respiration
   double compute_respiration() const;
   // [eqn 14] Total turnover
@@ -97,6 +99,28 @@ private:
   // *_rate variables (fecundity_rate and mortality_rate).
   double fecundity, mortality;
 };
+
+// To prepare for the integration in `compute_assimilation` we need to
+// convert the function `compute_assimilation_x(double, util::Spline*)
+// to take just a double as an argument.  Boost has the ability to
+// bind arguments which would be nice here, but we're avoiding
+// depending on that for the time being.
+// 
+// This binds the second argument, assuming a const method.  All a bit
+// of a hack, but it does seem to work correctly.
+template <class T, class T2, double (T::*target)(double, T2) const>
+class FunctorBind1 : public util::DFunctor {
+public:
+  FunctorBind1(const T *obj, T2 arg2) : obj(obj), arg2(arg2) {}
+  virtual double operator()(double x) {
+    return (obj->*target)(x, arg2);
+  }
+  
+private:
+  const T* obj;
+  T2 arg2;
+};
+
 
 }
 
