@@ -111,6 +111,7 @@ RCPP_MODULE(tree) {
     .method("assimilation_leaf",    &model::Plant::assimilation_leaf)
     .method("compute_assimilation", &model::Plant::r_compute_assimilation)
     .method("compute_assimilation_x", &model::Plant::r_compute_assimilation_x)
+    .method("compute_assimilation_z", &model::Plant::r_compute_assimilation_z)
     ;
 
   // Misc functions

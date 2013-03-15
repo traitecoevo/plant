@@ -99,6 +99,7 @@ double Plant::leaf_area_above(double z) const {
 
 
 // [Appendix S6] Per-leaf photosynthetic rate.
+// Here, `x` is openness, ranging from 0 to 1.
 double Plant::assimilation_leaf(double x) const {
   return strategy->c_p1 * x / (x + strategy->c_p2);
 }
@@ -108,15 +109,25 @@ double Plant::assimilation_leaf(double x) const {
 // already working integrator.
 double Plant::compute_assimilation(spline::Spline *env) const {
   FunctorBind1<Plant, spline::Spline*,
-	       &Plant::compute_assimilation_x> fun(this, env);
+	       &Plant::compute_assimilation_z> fun(this, env);
   const double atol = 1e-6, rtol = 1e-6;
   const int max_iterations = 1000;
   util::Integrator integrator(atol, rtol, max_iterations);
   return integrator.integrate(&fun, 0, height);
 }
 
+// This is used in the calculation of assimilation by
+// `compute_assimilation` above; it is the term within the integral in
+// [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
+// where `z` is height.
+double Plant::compute_assimilation_z(double z, spline::Spline *env) const {
+  return assimilation_leaf(env->eval(z)) * q(z);
+}
+// This is the alternative distribution exploiting the change of
+// variables, where `x` is the fraction of the distance up the leaf
+// area.
 double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
-  return assimilation_leaf(env->eval(x)) * q(x);
+  return assimilation_leaf(env->eval(Qp(x)));
 }
 
 // [eqn 13] Total maintenance respiration
@@ -236,8 +247,8 @@ double Plant::r_compute_assimilation(spline::Spline env) const {
   return compute_assimilation(&env);
 }
 
-double Plant::r_compute_assimilation_x(double x, spline::Spline env) const {
-  return compute_assimilation_x(x, &env);
+double Plant::r_compute_assimilation_z(double z, spline::Spline env) const {
+  return compute_assimilation_z(z, &env);
 }
 
 Rcpp::List Plant::r_get_parameters() const {
