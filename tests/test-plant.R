@@ -103,7 +103,17 @@ expect_that(integrate(g.C, 0, 1)$value,
 expect_that(integrate(g.R, 0, 1)$value,
             equals(Y.R$value, tolerance=1e-7))
 
+env <- new(Spline)
+env$init(hh, ee)
+
+tmp <-
+  integrate(Vectorize(function(x) p$compute_assimilation_x(x, env)),
+            0, h)$value
+expect_that(tmp, equals(Y.C$value))
+
+
+
 ## Delete the plant -- should not crash.
-rm(p)
-gc()
+## rm(p)
+## gc()
 

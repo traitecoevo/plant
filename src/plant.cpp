@@ -106,8 +106,14 @@ double Plant::assimilation_leaf(double x) const {
 
 // [eqn 12] Gross annual CO2 assimilation
 double Plant::compute_assimilation(spline::Spline *env) const {
+  //Functor<test::Plant, &test::Plant::assimilation_leaf> fun(&obj);
+
   Rf_error("Need to write integration support");
   return 0.0;
+}
+
+double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
+  return assimilation_leaf(env->eval(x)) * q(x);
 }
 
 // [eqn 13] Total maintenance respiration
@@ -225,6 +231,10 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 
 double Plant::r_compute_assimilation(spline::Spline env) const {
   return compute_assimilation(&env);
+}
+
+double Plant::r_compute_assimilation_x(double x, spline::Spline env) const {
+  return compute_assimilation_x(x, &env);
 }
 
 Rcpp::List Plant::r_get_parameters() const {

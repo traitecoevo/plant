@@ -110,6 +110,7 @@ RCPP_MODULE(tree) {
     .property("vars_phys",          &model::Plant::r_get_vars_phys)
     .method("assimilation_leaf",    &model::Plant::assimilation_leaf)
     .method("compute_assimilation", &model::Plant::r_compute_assimilation)
+    .method("compute_assimilation_x", &model::Plant::r_compute_assimilation_x)
     ;
 
   // Misc functions
