@@ -115,5 +115,6 @@ RCPP_MODULE(tree) {
   // Misc functions
   Rcpp::function("test_functor",    &util::test::test_functor);
   Rcpp::function("test_find_root",  &util::test::test_find_root);
+  Rcpp::function("test_find_value", &util::test::test_find_value);
   Rcpp::function("test_integrator", &util::test::test_integrator);
 }

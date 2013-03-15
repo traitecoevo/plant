@@ -54,20 +54,22 @@ private:
 //
 // worked, but that's actually not much clearer.
 
-// template <class T, double(T::*target)(double)>
-// class FunctorRoot : public DFunctor {
-//   FunctorRoot(T *obj, value) : obj(obj), value(value) {}
-//   virtual double operator()(double x) {
-//     return (obj->*target)(x) - value;
-//   }
+template <class T, double(T::*target)(double)>
+class FunctorRoot : public DFunctor {
+public:
+  FunctorRoot(T *obj, double value) : obj(obj), value(value) {}
+  virtual double operator()(double x) {
+    return (obj->*target)(x) - value;
+  }
+private:
+  T* obj;
+  double value;
+};
   
-// private:
-//   T* obj;
-//   double value;
-// }
-
 namespace test {
 double test_find_root(std::vector<double> pars, double x_min, double x_max);
+double test_find_value(std::vector<double> pars, double value,
+		       double x_min, double x_max);
 }
 
 }

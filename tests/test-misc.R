@@ -25,6 +25,16 @@ expect_that(length(f.root), equals(1))
 expect_that(tree_module$test_find_root(pars, x.min, x.max),
             equals(f.root, tolerance=1e-5))
 
+## Root finding to particular value
+value <- 10.0
+f.value <- uniroot(function(x) f(x) - value, c(x.min, x.max))$root
+expect_that(tree_module$test_find_value(pars, value, x.min, x.max),
+            equals(f.value, tolerance=1e-5))
+
+## What happens if we're out of range?
+expect_that(tree_module$test_find_value(pars, value, x.min, x.min+1),
+            throws_error())
+
 ## Integration works?
 ## integrate(f, 0, 5)$value
 
