@@ -160,5 +160,5 @@ expect_that(p.phys[["growth_rate"]],
             equals(cmp.growth.rate, tolerance=1e-7))
 
 ## Delete the plant -- should not crash.
-## rm(p)
-## gc()
+rm(p)
+gc()

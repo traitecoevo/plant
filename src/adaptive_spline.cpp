@@ -13,16 +13,8 @@ namespace spline {
 // and `set_targets()`.  Setting the control parameters (via
 // `set_control`) is optional, and the bounds should be reasonable for
 // many uses.
-AdaptiveSpline::AdaptiveSpline() : Spline() { 
-  a = GSL_POSINF;
-  b = GSL_NEGINF;
-
-  target = NULL;
-
-  atol = 1e-6;
-  rtol = 1e-6;
-  nbase = 17;
-  max_depth = 8;
+AdaptiveSpline::AdaptiveSpline() 
+  : Spline(), atol(1e-6), rtol(1e-6), nbase(17), max_depth(8) {
 }
 
 // TODO: Some translation here with R and GSL infinities might be
@@ -33,11 +25,8 @@ void AdaptiveSpline::set_bounds(double a_, double b_) {
   check_bounds();
 }
 
-// TODO: This requires some effort to explain -- what is the target
-// function and what is the data pointer?
-void AdaptiveSpline::set_target(ASFun target_, void *data_) {
+void AdaptiveSpline::set_target(util::DFunctor *target_) {
   target = target_;
-  data = data_;
 }
 
 // Set *all* the control parameters.
@@ -67,7 +56,7 @@ bool AdaptiveSpline::construct_spline() {
   double xi = a;
   for ( int i = 0; i < nbase; i++, xi += dx ) {
     xx.push_back(xi);
-    yy.push_back(target(xi, data));
+    yy.push_back((*target)(xi));
     zz.push_back(i > 0);
   }
   compute_spline();
@@ -104,7 +93,7 @@ bool AdaptiveSpline::refine() {
   for ( ; xi != xx.end(); ++xi, ++yi, ++zi ) {
     if ( *zi ) {
       const double x_mid = *xi - dx;
-      const double y_mid = target(x_mid, data);
+      const double y_mid = (*target)(x_mid);
       const double p_mid = eval(x_mid);
 
       // Always insert the new points.

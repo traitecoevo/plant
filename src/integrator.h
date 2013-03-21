@@ -29,7 +29,7 @@ private:
   double last_error;
 
   gsl_integration_workspace *workspace;
-  gsl_function functor_wrapper;
+  gsl_function target_data;
 };
 
 namespace test {

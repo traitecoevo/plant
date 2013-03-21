@@ -144,6 +144,14 @@ One way of doing this is to derive from a `WithTolerance` class that
 takes care of getters, setters, and defaults?  Could just be more
 abstraction than is helpful though.
 
+On the other hand, constructor arguments are often shunned, so perhaps
+all these bits should take an `init()` method or something?  The
+`set_control` method to `AdaptiveSpline` but with error checking is
+possibly the trick.
+
+The Integrator does the integration and the bounds all at once.  That
+is probably the way that I should use the adaptive spline too.
+
 ### Organisation
 
 Not sure where the utilities code should all go, from a namespace
@@ -213,6 +221,7 @@ That has the nice effect that the lookup problems go away.
 
 init vs contructors
 reset, clear, etc.
+helper vs wrapper
 
 # Callbacks and functors
 

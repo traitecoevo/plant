@@ -39,12 +39,6 @@ RCPP_MODULE(tree) {
     .method("construct_spline", &spline::AdaptiveSpline::construct_spline)
     ;
 
-  Rcpp::class_<spline::AdaptiveSplineR>("AdaptiveSplineR")
-    .derives<spline::AdaptiveSpline>("AdaptiveSpline")
-    .constructor<SEXP,SEXP,double,double>()
-    .method("target", &spline::AdaptiveSplineR::target)
-    ;
-
   Rcpp::class_<ode::test::Lorenz>("Lorenz")
     .constructor<double,double,double>()
     .method("derivs",     &ode::test::Lorenz::r_derivs)
@@ -119,4 +113,6 @@ RCPP_MODULE(tree) {
   Rcpp::function("test_find_root",  &util::test::test_find_root);
   Rcpp::function("test_find_value", &util::test::test_find_value);
   Rcpp::function("test_integrator", &util::test::test_integrator);
+  Rcpp::function("test_adaptive_spline", 
+		 &spline::test::test_adaptive_spline);
 }

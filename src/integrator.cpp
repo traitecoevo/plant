@@ -5,7 +5,7 @@ namespace util {
 
 Integrator::Integrator(double atol, double rtol, int max_iterations) 
   : atol(atol), rtol(rtol), max_iterations(max_iterations) {
-  functor_wrapper.function = &helper_functor;
+  target_data.function = &helper_functor;
   workspace = gsl_integration_workspace_alloc(max_iterations);
 }
 
@@ -31,12 +31,12 @@ Integrator::~Integrator() {
 // possible to do some `Lookup`-like control for use from within R,
 // but only if it is also straightforward to change from C++.
 double Integrator::integrate(DFunctor *f, double x_min, double x_max) {
-  functor_wrapper.params = f;
+  target_data.params = f;
   double result;
 
   // Not sure if we have a singularity, but we'll want to swich
   // between these two algorithms if we do.
-  // gsl_integration_qag(&functor_wrapper, x_min, x_max, 
+  // gsl_integration_qag(&target_data, x_min, x_max, 
   // 		      atol, rtol, max_iterations,
   // 		      GSL_INTEG_GAUSS15, workspace, 
   // 		      &result, &last_error);
@@ -46,7 +46,7 @@ double Integrator::integrate(DFunctor *f, double x_min, double x_max) {
   // However, we generally know the points in advance for the problems
   // that I've been having -- they are one of the end points.
 
-  gsl_integration_qags(&functor_wrapper, x_min, x_max, 
+  gsl_integration_qags(&target_data, x_min, x_max, 
 		       atol, rtol, max_iterations,
 		       workspace, 
 		       &result, &last_error);

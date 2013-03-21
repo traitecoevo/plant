@@ -11,6 +11,13 @@ namespace util {
 
 // Abstract class that defines a functor; the operator takes a single
 // double as an argument and returns a single double as a result.
+// 
+// TODO: Possibly this would be nicer to template as 
+// template <class R, class A>
+// class Functor {
+// public:
+//   virtual R operator()(A) = 0;
+// };
 class DFunctor {
 public:
   virtual double operator()(double) = 0;
