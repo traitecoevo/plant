@@ -114,6 +114,9 @@ double Plant::assimilation_leaf(double x) const {
 }
 
 // [eqn 12] Gross annual CO2 assimilation
+// 
+// NOTE: In contrast with EBT, we do not normalise by Y*c_bio.
+// 
 // TODO: This version is completely naive.  Better to provide an
 // already working integrator.
 double Plant::compute_assimilation(spline::Spline *env) const {
@@ -139,9 +142,11 @@ double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
 
 // [eqn 13] Total maintenance respiration
 // 
-// (note that there is a reparametrisation here relative to the paper
+// (NOTE that there is a reparametrisation here relative to the paper
 // -- c_Rb is defined (new) as 2*c_Rs, wheras the paper assumes a
 // fixed multiplication by 2)
+//
+// NOTE: In contrast with EBT, we do not normalise by Y*c_bio.
 double Plant::compute_respiration() const {
   return 
     strategy->c_Rl * leaf_area * strategy->n_area +
@@ -170,13 +175,16 @@ double Plant::compute_reproduction_fraction() const {
 // [eqn 18] Fraction of mass growth that is leaves
 // 
 // TODO: This could do with documenting properly and tidying.
+//
+// NOTE: The EBT version actually computed 1/leaf_fraction (modifying
+// growth rate calculation accordingly).  Possibly more stable?
 double Plant::compute_leaf_fraction() const {
   const Strategy *s = strategy; // for brevity.
-  return 1.0 + s->a3/s->lma +
-    (s->rho / s->theta * s->a1 * s->eta_c * (1.0 +s->b) *
-     (1.0+s->B1) * pow(leaf_area, s->B1) / s->lma +
-     s->rho * s->a2 * s->eta_c * s->B2 * pow(leaf_area, s->B2-1) / s->lma);
-  
+  return 1.0/(1.0 + s->a3/s->lma +
+	      (s->rho / s->theta * s->a1 * s->eta_c * (1.0 +s->b) *
+	       (1.0+s->B1) * pow(leaf_area, s->B1) / s->lma +
+	       s->rho * s->a2 * s->eta_c * s->B2 * 
+	       pow(leaf_area, s->B2-1) / s->lma));
 }
 
 // [eqn 12-19,21] Update physiological variables given the current
@@ -192,6 +200,10 @@ void Plant::compute_vars_phys(spline::Spline *env) {
   turnover = compute_turnover();
 
   // [eqn 15] Net production
+  // 
+  // NOTE: Translation of variable names from the EBT.  our
+  // `net_primary_production` is EBT's N, our `net_production` is
+  // EBT's P.
   const double net_primary_production = 
     strategy->c_bio * strategy->Y * (assimilation - respiration);
   net_production = net_primary_production - turnover;
@@ -201,6 +213,9 @@ void Plant::compute_vars_phys(spline::Spline *env) {
     reproduction_fraction = compute_reproduction_fraction();
 
     // [eqn 17] - Rate of offspring production
+    // 
+    // NOTE: In EBT, was multiplied by Pi_0 (survival during
+    // dispersal), but we do not here.
     fecundity_rate = net_production * reproduction_fraction /
       (strategy->c_acc * strategy->s);
 
@@ -208,7 +223,7 @@ void Plant::compute_vars_phys(spline::Spline *env) {
     leaf_fraction = compute_leaf_fraction();
 
     // [eqn 19] - Growth rate in leaf mass
-    growth_rate = net_production * (1 - reproduction_fraction) /
+    growth_rate = net_production * (1 - reproduction_fraction) *
       leaf_fraction;
   } else {
     reproduction_fraction = 0.0;

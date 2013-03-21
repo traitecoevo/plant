@@ -53,6 +53,8 @@ expect_that(size.p[["height"]],
 expect_that(size.p[["mass_leaf"]], equals(pi))
 expect_that(size.p[["mass_sapwood"]],
             equals(cmp$SapwoodMass(cmp$traits$rho, a, h)))
+expect_that(size.p[["mass_bark"]],
+            equals(cmp$BarkMass(cmp$traits$rho, a, h)))
 expect_that(size.p[["mass_heartwood"]],
             equals(cmp$HeartwoodMass(cmp$traits$rho, a)))
 expect_that(size.p[["mass_root"]],
@@ -78,32 +80,25 @@ light.env <- function(x)
   exp(x/(h*2)) - 1 + (1 - (exp(.5) - 1))/2
 ee <- light.env(hh)
 
-assimilation.C <- sapply(ee, p$assimilation_leaf)
-assimilation.R <- cmp$Assim(a, ee) / (cmp.const * a)
-expect_that(assimilation.C, equals(assimilation.R))
+cmp.assimilation.leaf <- cmp$Assim(a, ee) / (cmp.const * a)
+expect_that(sapply(ee, p$assimilation_leaf),
+            equals(cmp.assimilation.leaf))
 
 ## Now, integrate to get whole plant assimilation over the light
-## environment and leaf distribution, using both the C++ and R
-## versions: (these functions only used right around here).
-f.C <- Vectorize(function(x)
-                 a * p$assimilation_leaf(light.env(x)) * p$q(x))
-f.R <- function(x)
-  cmp$leaf.pdf(x, h) * cmp$Assim(a, light.env(x)) / cmp.const
+## environment and leaf distribution.  This is probably overkill from
+## a testing point of view, but this is the most complicated thing
+## that happens.
+cmp.assimilation.plant <- cmp$assimilation.plant(h, light.env)
 
-assimilation.plant.C <- integrate(f.C, 0, h)$value
-assimilation.plant.R <- integrate(f.R, 0, h)$value
-expect_that(assimilation.plant.C, equals(assimilation.plant.C))
-
-## Also can do this with the alternative approach:
-f.distr.C <- Vectorize(function(x)
-                       a * p$assimilation_leaf(light.env(p$Qp(x))))
-f.distr.R <- function(x)
-  cmp$Assim(a, light.env(cmp$leaf.icdf(x, h))) / cmp.const
-
-expect_that(integrate(f.distr.C, 0, 1)$value,
-            equals(assimilation.plant.C, tolerance=1e-7))
-expect_that(integrate(f.distr.R, 0, 1)$value,
-            equals(assimilation.plant.R, tolerance=1e-7))
+f1 <- Vectorize(function(x)
+                a * p$assimilation_leaf(light.env(x)) * p$q(x))
+f2 <- Vectorize(function(x)
+                a * p$assimilation_leaf(light.env(p$Qp(x))))
+expect_that(integrate(f1, 0, h)$value,
+            equals(cmp.assimilation.plant / cmp.const))
+expect_that(integrate(f2, 0, 1)$value,
+            equals(cmp.assimilation.plant / cmp.const,
+                   tolerance=1e-7))
 
 ## Do this assimilation within the Plant class, rather than by hand.
 env <- new(Spline)
@@ -112,62 +107,34 @@ env$init(hh, ee)
 ## Last time by hand, but using target distribution in the Plant class
 f.p <- Vectorize(function(x) p$compute_assimilation_x(x, env))
 expect_that(integrate(f.p, 0, h)$value * a, # leaf area
-            equals(assimilation.plant.C))
+            equals(cmp.assimilation.plant / cmp.const))
 
 ## And then whole plant assimilation completely:
 expect_that(p$compute_assimilation(env),
-            equals(assimilation.plant.C))
-
-## By this point, we should be happy with the assimilation
-## calculation; this is by far the most complicated thing that the
-## plant does.
+            equals(cmp.assimilation.plant / cmp.const))
 
 ## Now, look at all physiological variables:
 
-## First, compute them:
+## Compute the physiological variables and retreive them.
 p$compute_vars_phys(env)
-
-## Then get them:
 p.phys <- p$vars_phys
 
 ## 1. Assimilation:
-## TODO: Replace with R version of assimilation directly once done.
-cmp.assimilation <- assimilation.plant.C * cmp.const
 expect_that(p.phys[["assimilation"]],
-            equals(cmp.assimilation / cmp.const))
+            equals(cmp.assimilation.plant / cmp.const))
 
 ## 2. Respiration:
-## TODO: Abstract the R interface very slightly here?
-cmp.respiration <- 
-  cmp$Respiration(size.p[["leaf_area"]],
-                  size.p[["mass_sapwood"]]/cmp$traits$rho,
-                  size.p[["mass_bark"]]/cmp$traits$rho,
-                  size.p[["mass_root"]])
+cmp.respiration <- cmp$respiration.given.height(cmp$traits, h)
 expect_that(p.phys[["respiration"]],
             equals(cmp.respiration / cmp.const))
 
 ## 3. Turnover:
-## TODO: Abstract the R interface very slightly here?
-cmp.turnover <- 
-  cmp$Turnover(cmp$traits,
-               size.p[["mass_leaf"]],
-               size.p[["mass_sapwood"]],
-               size.p[["mass_bark"]],
-               size.p[["mass_root"]])
+cmp.turnover <- cmp$turnover.given.height(cmp$traits, h)
 expect_that(p.phys[["turnover"]],
             equals(cmp.turnover))
 
 ## 4. Net production:
-## TODO: This depends on assimilation, so cannot do this directly.
-## 
-## TODO: Integrator generating nontrivial difference here.
-##
-## NOTE: Translation of variable names, be careful.  Our
-## "net_production" is R versions "P", not "N".  The R version's "N"
-## is the net production not counting turnover (i.e. A - R, normalised
-## to the same units as net_production).
-cmp.net.production <-
-  cmp.assimilation - cmp.respiration - cmp.turnover
+cmp.net.production <- cmp$net.production(cmp$traits, h, light.env)
 expect_that(p.phys[["net_production"]],
             equals(cmp.net.production, tolerance=1e-7))
 
@@ -178,44 +145,19 @@ expect_that(p.phys[["reproduction_fraction"]],
             equals(cmp.reproduction.fraction))
 
 ## 6. Fecundity rate
-## 
-## TODO: Reproduction not computed in the R version, just the
-## fraction.  For now here is a constant.
-##
-## NOTE: In EBT version, this was multiplied through by Pi_0 (survival
-## during dispersal); we will not want that directly in the stochastic
-## version, and will have to move that calculation in the new EBT
-## version of the model.
-cmp.fecundity.rate <- 0.530234597058596
+cmp.fecundity.rate <- cmp$fecundity.rate(cmp$traits, h, light.env)
 expect_that(p.phys[["fecundity_rate"]],
-            equals(cmp.fecundity.rate))
+            equals(cmp.fecundity.rate, tolerance=1e-7))
 
 ## 7. Fraction of whole plant (mass) growth that is leaf.
-## 
-## TODO: Not actually computed in R version.  Can get dMtdt and things
-## like that but not exactly.
-## 
-## TODO: fraction is really bad name as it should be 0-1 if it really
-## is one.  What is the unit here?  This should be 0-1 according to
-## the paper, so something may be messed up.  Look at my original code
-## and work through this carefully.
-##
-## NOTE: This does agree with the EBT version, but I have my
-## concerns.
-##
-## TODO: given that cmp.net.production * (1-cmp.reproduction.fraction)
-## is 10, I don't see how this is 15.
-cmp.leaf.fraction <- 15.1780934476601
+cmp.leaf.fraction <- cmp$leaf.fraction(cmp$traits, h)
 expect_that(p.phys[["leaf_fraction"]],
             equals(cmp.leaf.fraction))
 
 ## 8. Growth rate for leaf mass
-## 
-## TODO: Can't actually do this directly because Production does not
-## use environment.  Also, the dmldmt is not computed.
-cmp.growth.rate <- 0.711625022619987
+cmp.growth.rate <- cmp$growth.rate(cmp$traits, h, light.env)
 expect_that(p.phys[["growth_rate"]],
-            equals(cmp.growth.rate))
+            equals(cmp.growth.rate, tolerance=1e-7))
 
 ## Delete the plant -- should not crash.
 ## rm(p)

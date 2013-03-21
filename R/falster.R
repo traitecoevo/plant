@@ -16,7 +16,8 @@ make.falster.generator <- function(path) {
     source(file.path(path, "falster/growthModel.r"), local=e)
     ## Not used.
     ## source("falster/plots.r", local=e)
-    e$traits <- list(lma=1.11E-01, rho=608, hmat=20)
+    ## TODO: These should be settable.
+    e$traits <- list(lma=1.11E-01, rho=608, hmat=20, s=3.8e-5)
 
     ## Reset a few parameters to revert back to C++ defaults
     e$traits$lma <- 0.1978791
@@ -46,13 +47,7 @@ make.falster.generator <- function(path) {
     ## These functions were not included in the core model, so I'm
     ## including them so that changes in the C++ version will be
     ## detected.
-    e$leaf.pdf <- function(z, h) {
-      tmp <- (z / h)^e$p.eta
-      2 * e$p.eta * (1 - tmp) * tmp / z
-    }
-    e$leaf.icdf <- function(x, h) {
-      ((1 - sqrt(x))^(1/e$p.eta)) * h
-    }
+    source(file.path(path, "extra.R"), local=e)
 
     e
   }
