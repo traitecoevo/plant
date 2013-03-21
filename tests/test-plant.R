@@ -1,8 +1,5 @@
 source("helper-tree.R")
 
-## TODO: Write a wrapper function within the Falster R model that
-## collects all the physiological bits together.
-
 context("Plant")
 
 cmp <- make.falster()
@@ -46,7 +43,6 @@ size.p <- p$vars_size
 ## Daniel's is done in terms of height, so start there:
 h <- size.p[["height"]]
 a <- size.p[["leaf_area"]]
-
 expect_that(cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h)),
             equals(pi))
 
@@ -82,117 +78,145 @@ light.env <- function(x)
   exp(x/(h*2)) - 1 + (1 - (exp(.5) - 1))/2
 ee <- light.env(hh)
 
-yy.C <- sapply(ee, p$assimilation_leaf)
-yy.R <- cmp$Assim(a, ee) / (cmp.const * a)
+assimilation.C <- sapply(ee, p$assimilation_leaf)
+assimilation.R <- cmp$Assim(a, ee) / (cmp.const * a)
+expect_that(assimilation.C, equals(assimilation.R))
 
-expect_that(yy.C, equals(yy.R))
-
-## Now, integrate, using both the C++ and R versions:
+## Now, integrate to get whole plant assimilation over the light
+## environment and leaf distribution, using both the C++ and R
+## versions: (these functions only used right around here).
 f.C <- Vectorize(function(x)
-                 p$assimilation_leaf(light.env(x)) * p$q(x))
-f.R <- function(x) cmp$leaf.pdf(x, h) * cmp$Assim(a, light.env(x)) /
-  (cmp.const* a)
+                 a * p$assimilation_leaf(light.env(x)) * p$q(x))
+f.R <- function(x)
+  cmp$leaf.pdf(x, h) * cmp$Assim(a, light.env(x)) / cmp.const
 
-Y.C <- integrate(f.C, 0, h)
-Y.R <- integrate(f.R, 0, h)
-expect_that(Y.C, equals(Y.C))
+assimilation.plant.C <- integrate(f.C, 0, h)$value
+assimilation.plant.R <- integrate(f.R, 0, h)$value
+expect_that(assimilation.plant.C, equals(assimilation.plant.C))
 
 ## Also can do this with the alternative approach:
-g.C <- Vectorize(function(x) p$assimilation_leaf(light.env(p$Qp(x))))
-g.R <- function(x) cmp$Assim(a, light.env(cmp$leaf.icdf(x, h))) /
-  (cmp.const * a)
+f.distr.C <- Vectorize(function(x)
+                       a * p$assimilation_leaf(light.env(p$Qp(x))))
+f.distr.R <- function(x)
+  cmp$Assim(a, light.env(cmp$leaf.icdf(x, h))) / cmp.const
 
-expect_that(integrate(g.C, 0, 1)$value,
-            equals(Y.C$value, tolerance=1e-7))
-expect_that(integrate(g.R, 0, 1)$value,
-            equals(Y.R$value, tolerance=1e-7))
+expect_that(integrate(f.distr.C, 0, 1)$value,
+            equals(assimilation.plant.C, tolerance=1e-7))
+expect_that(integrate(f.distr.R, 0, 1)$value,
+            equals(assimilation.plant.R, tolerance=1e-7))
 
-#### Messy below here.
-
+## Do this assimilation within the Plant class, rather than by hand.
 env <- new(Spline)
 env$init(hh, ee)
-tmp <-
-  integrate(Vectorize(function(x) p$compute_assimilation_x(x, env)),
-            0, h)$value
-expect_that(tmp, equals(Y.C$value))
 
-## TODO: Need to actually work out how to compute light averaged
-## photosynthesis in Daniel's R version.  To be consistent it has a
-## different constant...
-cmp.assimilation <- Y.C$value * a * cmp.const
+## Last time by hand, but using target distribution in the Plant class
+f.p <- Vectorize(function(x) p$compute_assimilation_x(x, env))
+expect_that(integrate(f.p, 0, h)$value * a, # leaf area
+            equals(assimilation.plant.C))
 
+## And then whole plant assimilation completely:
 expect_that(p$compute_assimilation(env),
-            equals(cmp.assimilation / cmp.const))
+            equals(assimilation.plant.C))
 
+## By this point, we should be happy with the assimilation
+## calculation; this is by far the most complicated thing that the
+## plant does.
+
+## Now, look at all physiological variables:
+
+## First, compute them:
 p$compute_vars_phys(env)
-## This shows obvious issues; respiration far too high (seen that
-## before).  turover and net_production failed to calculate.  Others
-## are understandible.
-ans <- p$vars_phys
 
-expect_that(ans[["assimilation"]],
+## Then get them:
+p.phys <- p$vars_phys
+
+## 1. Assimilation:
+## TODO: Replace with R version of assimilation directly once done.
+cmp.assimilation <- assimilation.plant.C * cmp.const
+expect_that(p.phys[["assimilation"]],
             equals(cmp.assimilation / cmp.const))
 
+## 2. Respiration:
+## TODO: Abstract the R interface very slightly here?
 cmp.respiration <- 
   cmp$Respiration(size.p[["leaf_area"]],
                   size.p[["mass_sapwood"]]/cmp$traits$rho,
                   size.p[["mass_bark"]]/cmp$traits$rho,
                   size.p[["mass_root"]])
-expect_that(ans[["respiration"]],
+expect_that(p.phys[["respiration"]],
             equals(cmp.respiration / cmp.const))
 
+## 3. Turnover:
+## TODO: Abstract the R interface very slightly here?
 cmp.turnover <- 
   cmp$Turnover(cmp$traits,
                size.p[["mass_leaf"]],
                size.p[["mass_sapwood"]],
                size.p[["mass_bark"]],
                size.p[["mass_root"]])
-expect_that(ans[["turnover"]],
+expect_that(p.phys[["turnover"]],
             equals(cmp.turnover))
 
-## Like the Assimilation one, we actually can't do this directly as
-## the light environment does not integrate?
-## TODO: where does the difference here come from?  Higher order than
-## I would have thought.  Looks like it's from the integrator.  Check
-## the error bounds more carefully.
+## 4. Net production:
+## TODO: This depends on assimilation, so cannot do this directly.
+## 
+## TODO: Integrator generating nontrivial difference here.
+##
+## NOTE: Translation of variable names, be careful.  Our
+## "net_production" is R versions "P", not "N".  The R version's "N"
+## is the net production not counting turnover (i.e. A - R, normalised
+## to the same units as net_production).
 cmp.net.production <-
   cmp.assimilation - cmp.respiration - cmp.turnover
-expect_that(ans[["net_production"]],
+expect_that(p.phys[["net_production"]],
             equals(cmp.net.production, tolerance=1e-7))
 
-## Actually identical.
-cmp.reproduction.fraction <- cmp$ReproductiveAllocation(cmp$traits$hmat,h)
-expect_that(ans[["reproduction_fraction"]],
+## 5. Reproduction fraction
+cmp.reproduction.fraction <-
+  cmp$ReproductiveAllocation(cmp$traits$hmat,h)
+expect_that(p.phys[["reproduction_fraction"]],
             equals(cmp.reproduction.fraction))
 
-## TODO: Reproduction not computed in the R version, apparently, just
-## the fraction.  For now here is a constant.
-expect_that(ans[["fecundity_rate"]],
-            equals(0.530234597058596))
+## 6. Fecundity rate
+## 
+## TODO: Reproduction not computed in the R version, just the
+## fraction.  For now here is a constant.
+##
+## NOTE: In EBT version, this was multiplied through by Pi_0 (survival
+## during dispersal); we will not want that directly in the stochastic
+## version, and will have to move that calculation in the new EBT
+## version of the model.
+cmp.fecundity.rate <- 0.530234597058596
+expect_that(p.phys[["fecundity_rate"]],
+            equals(cmp.fecundity.rate))
 
+## 7. Fraction of whole plant (mass) growth that is leaf.
+## 
 ## TODO: Not actually computed in R version.  Can get dMtdt and things
 ## like that but not exactly.
 ## 
-## TODO: fraction is really bad as it should be 0-1 if it really is
-## one.
+## TODO: fraction is really bad name as it should be 0-1 if it really
+## is one.  What is the unit here?  This should be 0-1 according to
+## the paper, so something may be messed up.  Look at my original code
+## and work through this carefully.
+##
+## NOTE: This does agree with the EBT version, but I have my
+## concerns.
 ##
 ## TODO: given that cmp.net.production * (1-cmp.reproduction.fraction)
 ## is 10, I don't see how this is 15.
-## expect_that(ans[["leaf_fraction"]],
-##             equals())
+cmp.leaf.fraction <- 15.1780934476601
+expect_that(p.phys[["leaf_fraction"]],
+            equals(cmp.leaf.fraction))
 
+## 8. Growth rate for leaf mass
+## 
 ## TODO: Can't actually do this directly because Production does not
 ## use environment.  Also, the dmldmt is not computed.
-## cmp.growth.rate <-
-##   cmp.net.production * (1-cmp.reproduction.fraction)
-
- 
-## expect_that(ans[["growth_rate"]],
-##             equals(cmp.growth.rate))
-
-
+cmp.growth.rate <- 0.711625022619987
+expect_that(p.phys[["growth_rate"]],
+            equals(cmp.growth.rate))
 
 ## Delete the plant -- should not crash.
 ## rm(p)
 ## gc()
-
