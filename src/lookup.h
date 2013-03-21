@@ -48,6 +48,7 @@ public:
   Lookup();
   Rcpp::List get_parameters();
   void set_parameters(Rcpp::List x);
+  virtual ~Lookup() {}
 
 protected:
   typedef std::map<std::string, double*> lookup_type;
