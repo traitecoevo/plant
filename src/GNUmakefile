@@ -1,4 +1,4 @@
-SOURCES_MODEL  = strategy.cpp parameters.cpp plant.cpp
+SOURCES_MODEL  = strategy.cpp parameters.cpp plant.cpp population.cpp
 SOURCES_SPLINE = spline.cpp adaptive_spline.cpp adaptive_spline_r.cpp
 SOURCES_ODE    = ode_control.cpp lorenz.cpp ode_r.cpp
 SOURCES_R      = interface.cpp
@@ -11,7 +11,7 @@ SOURCES = $(SOURCES_MODEL) $(SOURCES_SPLINE) $(SOURCES_ODE) \
 TARGETS = tree.so
 
 # TODO: To work around issues of dependencies, we can use 
-#    R CMD $(FILE)
+#    R CMD COMPILE $(FILE)
 # as the .cpp->.o rule, and I can then have files depend on each
 # other, and on other files.
 #

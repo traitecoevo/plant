@@ -12,6 +12,7 @@
 #include "strategy.h"
 #include "parameters.h"
 #include "plant.h"
+#include "population.h"
 
 #include "functor.h"
 #include "find_root.h"
@@ -23,6 +24,7 @@
 RCPP_EXPOSED_CLASS(spline::Spline)
 RCPP_EXPOSED_CLASS(spline::AdaptiveSpline)
 RCPP_EXPOSED_CLASS(model::Strategy)
+RCPP_EXPOSED_CLASS(model::Parameters)
 
 RCPP_MODULE(tree) {
   Rcpp::class_<spline::Spline>("Spline")
@@ -106,6 +108,10 @@ RCPP_MODULE(tree) {
     .method("compute_assimilation", &model::Plant::r_compute_assimilation)
     .method("compute_assimilation_x", &model::Plant::r_compute_assimilation_x)
     .method("compute_vars_phys",    &model::Plant::r_compute_vars_phys)
+    ;
+
+  Rcpp::class_<model::Population>("Population")
+    .constructor<model::Parameters>()
     ;
 
   // Misc functions
