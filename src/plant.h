@@ -69,6 +69,12 @@ private:
   // [eqn 12-19,21] Update physiological variables
   void compute_vars_phys(spline::Spline *env);
 
+  // Update a number of constants within the model.  This is a work in
+  // progress.
+  void compute_constants();
+  double mass_leaf_seed();
+  double compute_mass_total(double m_);
+
   bool standalone;
   Strategy *strategy;
 

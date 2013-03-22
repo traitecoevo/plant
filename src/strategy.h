@@ -66,6 +66,9 @@ private:
   // Coefficient for dry mass production in mortality function
   double c_d3;
 
+  // Leaf mass of a seed
+  double leaf_mass_0;
+
   // Switch between two different algorithms for computing
   // assimilation:
   bool assimilation_over_distribution;
@@ -76,7 +79,6 @@ private:
   // {get,set}_parameters().
   void do_build_lookup();
   void reset();
-  void compute_constants();
 };
 
 }

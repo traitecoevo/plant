@@ -85,12 +85,9 @@ void Strategy::reset() {
 
   assimilation_over_distribution = false;
 
-  compute_constants();
-}
-
-void Strategy::compute_constants() {
-  eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
-  k_l = a4 * pow(lma, -B4);
+  // No longer compute these.
+  eta_c = NA_REAL;
+  k_l = NA_REAL;
 }
 
 void Strategy::do_build_lookup() {

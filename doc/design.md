@@ -78,10 +78,6 @@ of `Strategy`.
 For example, `(c_acc * s)` appear together and only together in
 computing `fecundity_rate`.  As such they are entirely colinear.
 
-In theory `Pi_0` could be added here too, as the mortality during
-dispersal (as was done in the EBT) but that does mix ideas a bit too
-much.
-
 In computing `mortality`, the value
 `strategy->c_d0 * exp(-strategy->c_d1*strategy->rho)`
 is constant.
@@ -89,6 +85,21 @@ is constant.
 There are others in `compute_vars_size`:
   - `rho / theta * a1 * eta_c` (`sapwood`)
   - `rho         * a2 * eta_c` (`heartwood`)
+  
+When and where do we compute these?  At the moment they are set in
+`Strategy`, but this splits logic over too many files.  The advantage
+of this approach is that we could set it up to run after every
+parameter set.  The disadvantage is that to do anything complicated
+(such as the seed leaf mass calculation) we will have a recursive
+reference.
+
+Probably better to move the constant calculation within the `Plant`
+class.  It might be desirable to have this be a static method?
+
+So then, how do the constants get computed?  Who creates the
+Parameters instance?  In the full model it will be done by
+`Parameters` generally, but for standalone cases the `Plant` itself
+takes care of this.
 
 ## Functions within plant
 

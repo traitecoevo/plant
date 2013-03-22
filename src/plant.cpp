@@ -1,5 +1,7 @@
 #include "plant.h"
 
+#include "find_root.h"
+
 namespace model {
 
 Plant::Plant(Strategy s)
@@ -12,9 +14,11 @@ Plant::Plant(Strategy s)
   // TODO: It might be worth pulling this function inside of Plant,
   // rather than Strategy.  Keep the slots in Strategy, but set them
   // from Plant.
-  strategy->compute_constants();
+  mass_leaf = NA_REAL;
+  compute_constants();
 }
 
+// TODO: More realistically, we'll be setting mass here?
 Plant::Plant(Strategy *s) 
   : standalone(false),
     strategy(s) { }
@@ -50,13 +54,14 @@ double Plant::get_mass_leaf() const {
   return mass_leaf;
 }
 
+// TODO: Given this, why not just move compute_vars_size up here?
 void Plant::set_mass_leaf(double x) {
   compute_vars_size(x);
 }
 
 // [eqn 1-8] Update size variables given an input leaf mass
 void Plant::compute_vars_size(double mass_leaf_) {
-  if ( mass_leaf_ <= 0.0 ) 
+  if ( mass_leaf_ <= 0.0 )
     Rf_error("mass_leaf must be positive");
   // [eqn 1] Leaf mass
   mass_leaf = mass_leaf_;
@@ -239,6 +244,35 @@ void Plant::compute_vars_phys(spline::Spline *env) {
   mortality_rate = 
     strategy->c_d0 * exp(-strategy->c_d1 * strategy->rho) +
     strategy->c_d2 * exp(-strategy->c_d3 * net_production / leaf_area);
+}
+
+void Plant::compute_constants() {
+  strategy->eta_c = 1 - 2/(1 + strategy->eta) + 1/(1 + 2*strategy->eta);
+  strategy->k_l = strategy->a4 * pow(strategy->lma, -strategy->B4);
+  strategy->leaf_mass_0 = mass_leaf_seed();
+}
+
+double Plant::mass_leaf_seed() {
+  const double mass_leaf_orig = mass_leaf;
+  const double s = strategy->s;
+
+  // Here, we compute the leaf mass of a seed
+  util::FunctorRoot<Plant, &Plant::compute_mass_total> fun(this, s);
+  
+  const double atol = 1e-6, rtol = 1e-6;
+  const int max_iterations = 1000;
+  util::RootFinder root(atol, rtol, max_iterations);
+  const double mass_leaf_0 = root.root(&fun, DBL_MIN, s);
+
+  set_mass_leaf(mass_leaf_orig);
+
+  return mass_leaf_0;
+}
+
+// TODO: should this leave things how it found them in terms of mass?
+double Plant::compute_mass_total(double x) {
+  set_mass_leaf(x);
+  return mass_total;
 }
 
 Rcpp::NumericVector Plant::r_get_vars_size() const {

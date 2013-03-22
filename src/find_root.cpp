@@ -52,7 +52,7 @@ double test_find_root(std::vector<double> pars,
   Quadratic obj(pars[0], pars[1], pars[2]);
   Functor<test::Quadratic, &test::Quadratic::mytarget> fun(&obj);
 
-  // Control parameters for the integrator
+  // Control parameters for the root solver
   const double atol = 1e-6, rtol = 1e-6;
   const int max_iterations = 1000;
   RootFinder root(atol, rtol, max_iterations);
@@ -67,7 +67,7 @@ double test_find_value(std::vector<double> pars, double value,
   FunctorRoot<test::Quadratic, &test::Quadratic::mytarget> 
     fun(&obj, value);
 
-  // Control parameters for the integrator
+  // Control parameters for the root solver
   const double atol = 1e-6, rtol = 1e-6;
   const int max_iterations = 1000;
   RootFinder root(atol, rtol, max_iterations);
