@@ -14,7 +14,7 @@ namespace spline {
 // `set_control`) is optional, and the bounds should be reasonable for
 // many uses.
 AdaptiveSpline::AdaptiveSpline() 
-  : Spline(), atol(1e-6), rtol(1e-6), nbase(17), max_depth(8) {
+  : Spline(), atol(1e-6), rtol(1e-6), nbase(17), max_depth(16) {
 }
 
 // TODO: Some translation here with R and GSL infinities might be
