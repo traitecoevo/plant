@@ -6,6 +6,7 @@
 
 #include "parameters.h"
 #include "species.h"
+#include "adaptive_spline.h"
 
 namespace model {
 
@@ -22,7 +23,12 @@ public:
   double height_max() const;
 
   // [eqn 11] Canopy openness at `height`
-  double canopy_openness(double height) const;
+  // NOTE: I'd rather this was const, but that interferes with the
+  // functor code for now (TODO?)
+  double canopy_openness(double height);
+
+  void compute_light_environment();
+  spline::Spline get_light_environment() const;
 
   Rcpp::List get_plants(int idx) const;
 
@@ -38,6 +44,8 @@ private:
 
   bool standalone;
   Parameters *parameters;
+
+  spline::AdaptiveSpline light_environment;
 
   std::vector< Species > species;
 };

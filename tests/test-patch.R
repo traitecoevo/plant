@@ -41,8 +41,25 @@ plants <- patch$get_plants(0L)
 expect_that(plants[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
 
-hh <- seq(0, patch$height_max, length=101)
-yy <- sapply(hh, patch$canopy_openness)
+## Compute the light environment
+patch$compute_light_environment()
+env <- patch$get_light_environment()
+
+## And compare that with the manually computed light environment
+target <- function(x) sapply(x, patch$canopy_openness)
+xx.eval <- env$xy[,1]
+expect_that(env$xy[,2],
+            is_identical_to(target(xx.eval)))
+
+## And then check that the error is under control
+xx.mid <- (xx.eval[-1] + xx.eval[-length(xx.eval)]) / 2
+yy.mid <- target(xx.mid)
+zz.mid <- env$eval(xx.mid)
+expect_that(zz.mid, equals(yy.mid, tolerance=2e-8))
+
+err <- pmax(abs(zz.mid - yy.mid), abs(1 - zz.mid / yy.mid))
+expect_that(all(err < 1e-6), is_true())
+
 
 rm(patch)
 gc()

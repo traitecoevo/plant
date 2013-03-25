@@ -1,5 +1,6 @@
 #include "util.h"
 
+#include "functor.h"
 #include "patch.h"
 
 namespace model {
@@ -57,13 +58,26 @@ double Patch::height_max() const {
 }
 
 // [eqn 11] Canopy openness at `height`
-double Patch::canopy_openness(double height) const {
+double Patch::canopy_openness(double height) {
   double tot = 0.0;
   for ( std::vector<Species>::const_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     tot += sp->leaf_area_above(height);
   // NOTE: patch_area does not appear in the EBT model formulation.
   return exp(-parameters->c_ext * tot / parameters->patch_area);
+}
+
+void Patch::compute_light_environment() {
+  // Naive version -- push out to to body of class
+  util::Functor<Patch, &Patch::canopy_openness> fun(this);
+  light_environment.set_bounds(0, height_max());
+  light_environment.set_target(&fun);
+  // TODO: should be construct(&fun, 0, height())
+  light_environment.construct_spline();
+}
+
+spline::Spline Patch::get_light_environment() const {
+  return light_environment;
 }
 
 Rcpp::List Patch::get_plants(int idx) const {
