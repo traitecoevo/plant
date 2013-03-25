@@ -7,18 +7,21 @@ namespace model {
 
 Patch::Patch(Parameters p)
   : standalone(true),
-    parameters(new Parameters(p)) {
+    parameters(new Parameters(p)),
+    ode_solver(this) {
   set_strategies();
 }
 
 Patch::Patch(Parameters *p)
   : standalone(false),
-    parameters(p) {
+    parameters(p),
+    ode_solver(this) {
   set_strategies();
 }
 
 Patch::Patch(const Patch &other)
-  : standalone(other.standalone) {
+  : standalone(other.standalone), 
+    ode_solver(this) {
   Rprintf("Copy constructor\n");
   if ( standalone )
     parameters = new Parameters(*other.parameters);
@@ -28,7 +31,10 @@ Patch::Patch(const Patch &other)
 }
 
 Patch& Patch::operator=(const Patch &rhs) {
-  Rprintf("Assigmnent operator\n");
+  Rprintf("Patch assigmnent operator\n");
+  // ode_solver needs setting up properly -- pointing at the wrong
+  // thing now.
+  Rf_warning("This will probably crash due to solver issue");
   // TODO: Violates DRY - must be some way of doing both.
   standalone = rhs.standalone;
   if ( standalone )
@@ -162,6 +168,13 @@ ode::iter Patch::ode_rates(ode::iter it) const {
 	sp != species.end(); sp++ )
     it = sp->ode_rates(it);
   return it;
+}
+
+void Patch::step_deterministic() {
+  double time = 0.0; // TODO: Move up?  Ignore?
+  // TODO: Oh dear -- relying on an R-only function here.
+  ode_solver.set_state(r_ode_values(), time);
+  ode_solver.step();
 }
 
 std::vector<double> Patch::r_derivs(std::vector<double> y) {

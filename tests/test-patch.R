@@ -1,4 +1,5 @@
 source("helper-tree.R")
+options(error=traceback)
 
 context("Patch")
 
@@ -81,6 +82,10 @@ cmp.dydt <- unname(cmp$vars_phys[c("growth_rate", "mortality_rate",
 expect_that(dydt, is_identical_to(cmp.dydt))
 
 expect_that(patch$derivs(y), is_identical_to(dydt))
+
+patch$step_deterministic()
+y.new <- patch$ode_values()
+expect_that(all(y.new > y), is_true())
 
 rm(patch)
 gc()

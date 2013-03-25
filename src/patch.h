@@ -7,6 +7,7 @@
 #include "parameters.h"
 #include "species.h"
 #include "adaptive_spline.h"
+#include "ode_solver.h"
 
 namespace model {
 
@@ -41,6 +42,8 @@ public:
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
+  void step_deterministic();
+
   // Births
   void add_seed(int idx);
 
@@ -68,6 +71,7 @@ private:
   spline::AdaptiveSpline light_environment;
 
   std::vector< Species > species;
+  ode::Solver<Patch> ode_solver;
 };
 
 }
