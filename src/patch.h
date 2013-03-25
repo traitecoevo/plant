@@ -18,6 +18,11 @@ public:
   Patch& operator=(const Patch &rhs);
   ~Patch();
 
+  size_t size() const;
+
+  void add_seed(int idx);
+  void r_add_seed(int idx);
+
 private:
   void set_strategies();
 

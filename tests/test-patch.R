@@ -7,5 +7,8 @@ p$add_strategy(list())
 
 popn <- new(Patch, p)
 
+expect_that(popn$size, equals(p$size))
+
+
 rm(popn)
 gc()

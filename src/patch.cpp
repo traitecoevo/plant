@@ -1,3 +1,5 @@
+#include "util.h"
+
 #include "patch.h"
 
 namespace model {
@@ -42,6 +44,19 @@ Patch::~Patch() {
     delete parameters;
 }
 
+size_t Patch::size() const {
+  return species.size();
+}
+
+void Patch::add_seed(int idx) {
+  species[idx].add_seed();
+}
+
+void Patch::r_add_seed(int idx) {
+  util::check_bounds(idx, size());
+  add_seed(idx);
+}
+
 void Patch::set_strategies() {
   species.clear();
 
@@ -49,7 +64,8 @@ void Patch::set_strategies() {
   for ( std::vector<Strategy>::iterator 
 	  it = parameters->strategies.begin();
 	it != parameters->strategies.end(); it++ ) {
-    Species s(&(*it));
+    Species s(&(*it)); // ugly (iterator -> object -> pointer)
+    species.push_back(s);
   }
     
 }

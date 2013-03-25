@@ -282,6 +282,16 @@ many individuals are there).  But at some point we might have to
 change that?  I think that the ODE system just uses the size of the
 created state, and we can get that with `push_back` if needed?
 
+Note that all `size` should return `size_t`.  However, note that Rcpp
+translates that to numeric, and not integer (to get the 64 bit
+precision, I think).
+
+# 0-based vs 1-based indexing
+
+There are a few R-based functions that modify things.  At the moment
+they all use C-style 0-based indexing (with bounds checking).  They
+should probably all move over to useing R-style 1-based indexing.
+
 # Callbacks and functors
 
 There are two basic ways that callbacks are being done --
