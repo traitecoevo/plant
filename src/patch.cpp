@@ -48,6 +48,11 @@ size_t Patch::size() const {
   return species.size();
 }
 
+Rcpp::List Patch::get_plants(int idx) const {
+  util::check_bounds(idx, size());
+  return species[idx].get_plants();
+}
+
 void Patch::add_seed(int idx) {
   species[idx].add_seed();
 }

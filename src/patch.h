@@ -20,6 +20,8 @@ public:
 
   size_t size() const;
 
+  Rcpp::List get_plants(int idx) const;
+
   void add_seed(int idx);
   void r_add_seed(int idx);
 

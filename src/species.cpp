@@ -29,4 +29,12 @@ void Species::add_seed() {
   plants.push_back(p);
 }
 
+Rcpp::List Species::get_plants() const {
+  Rcpp::List ret;
+  for ( std::list<Plant>::const_iterator it = plants.begin();
+	it != plants.end(); it++ )
+    ret.push_back(Rcpp::wrap(*it));
+  return ret;
+}
+
 }

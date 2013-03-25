@@ -112,8 +112,9 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::Patch>("Patch")
     .constructor<model::Parameters>()
-    .property("size", &model::Patch::size)
-    .method("add_seed", &model::Patch::r_add_seed)
+    .property("size",     &model::Patch::size)
+    .method("get_plants", &model::Patch::get_plants)
+    .method("add_seed",   &model::Patch::r_add_seed)
     ;
 
   // Misc functions

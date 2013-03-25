@@ -25,15 +25,40 @@ Plant::Plant(Strategy *s)
 
 Plant::Plant(const Plant &other)
   : standalone(other.standalone) {
-  Rprintf("Copy constructor\n");
+  Rprintf("Plant copy constructor\n");
   if ( standalone )
     strategy = new Strategy(*other.strategy);
   else
     strategy = other.strategy;
+
+  // I don't like this very much, but it will have to do for now.
+  mass_leaf      = other.mass_leaf;
+  leaf_area      = other.leaf_area;
+  height         = other.height;
+  mass_sapwood   = other.mass_sapwood;
+  mass_bark      = other.mass_bark;
+  mass_heartwood = other.mass_heartwood;
+  mass_root      = other.mass_root;
+  mass_total     = other.mass_total;
+  // And keep going [not sure if these should ever be copied though]
+  assimilation   = other.assimilation;
+  respiration    = other.respiration;
+  turnover       = other.turnover;
+  net_production = other.net_production;
+  reproduction_fraction = other.reproduction_fraction;
+  fecundity_rate = other.fecundity_rate;
+  leaf_fraction  = other.leaf_fraction;
+  growth_rate    = other.growth_rate;
+  mortality_rate = other.mortality_rate;
+  // And going.
+  fecundity = other.fecundity;
+  mortality = other.mortality;
+  // TODO: This set of assignments is not done for the assignment
+  // operator.
 }
 
 Plant& Plant::operator=(const Plant &rhs) {
-  Rprintf("Assigmnent operator\n");
+  Rprintf("Plant assigmnent operator\n");
   // TODO: Violates DRY - must be some way of doing both.  This will
   // get more important once the state attributes have been added.
   standalone = rhs.standalone;
@@ -73,9 +98,9 @@ double Plant::get_height() const {
 // track.
 void Plant::set_mass_leaf(double mass_leaf_) {
   if ( mass_leaf_ <= 0.0 )
-    Rf_error("mass_leaf must be positive");
-  if ( mass_leaf_ != mass_leaf )
-    compute_vars_size(mass_leaf_);
+    Rf_error("mass_leaf must be positive (given %2.5f)", mass_leaf_);
+  // if ( mass_leaf_ != mass_leaf )
+  compute_vars_size(mass_leaf_);
 }
 
 void Plant::compute_vars_size(double mass_leaf_) {

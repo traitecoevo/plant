@@ -18,6 +18,10 @@ public:
   size_t size() const;
   double height_max() const;
   double leaf_area_above(double height) const;
+
+  // Try and get everything.
+  Rcpp::List get_plants() const;
+
   void add_seed();
 
 private:
