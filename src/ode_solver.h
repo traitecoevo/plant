@@ -178,12 +178,15 @@ void Solver<Problem>::advance(double time_max_) {
 
 template <class Problem>
 Rcpp::NumericMatrix Solver<Problem>::r_run(std::vector<double> times, 
-				  std::vector<double> y_) {
+					   std::vector<double> y_) {
+  std::vector<double>::iterator t = times.begin();
+
+  // This makes `y` contains mutable state, and `size` contain current
+  // problem dimension.
+  set_state(y_, *t++);
+
   Rcpp::NumericMatrix ret(size, times.size()-1);
   Rcpp::NumericMatrix::iterator out = ret.begin();
-
-  std::vector<double>::iterator t = times.begin();
-  set_state(y_, *t++); // This makes 'y' contains mutable state.
 
   while ( t != times.end() ) {
     advance(*t++);
