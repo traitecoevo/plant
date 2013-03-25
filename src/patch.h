@@ -27,11 +27,12 @@ public:
   // functor code for now (TODO?)
   double canopy_openness(double height);
 
+  // TODO: Need these be public, except for testing?  If not, prefix
+  // r_ or even test_ to be clear.
   void compute_light_environment();
-  spline::Spline get_light_environment() const;
-
   void compute_vars_phys();
 
+  // ODE interface.
   void derivs(double time,
 	      std::vector<double>::const_iterator y,
 	      std::vector<double>::iterator dydt);
@@ -40,10 +41,13 @@ public:
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
-  // Below here is a jumble of R interface stuff, mostly.
-  Rcpp::List get_plants(int idx) const;
-
+  // Births
   void add_seed(int idx);
+
+  // Interface & wrappers
+  Rcpp::List get_plants(int idx) const;
+  spline::Spline get_light_environment() const;
+
   void r_add_seed(int idx);
 
   // This is likely to change as more is written.
