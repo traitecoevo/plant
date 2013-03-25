@@ -60,6 +60,14 @@ expect_that(zz.mid, equals(yy.mid, tolerance=2e-8))
 err <- pmax(abs(zz.mid - yy.mid), abs(1 - zz.mid / yy.mid))
 expect_that(all(err < 1e-6), is_true())
 
+## Compute the physiological parameters:
+cmp$compute_vars_phys(env)
+patch$compute_vars_phys()
+
+## And compare against the single plant.
+plants <- patch$get_plants(0L)
+expect_that(plants[[1]]$vars_phys,
+            equals(cmp$vars_phys))
 
 rm(patch)
 gc()

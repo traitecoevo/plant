@@ -6,6 +6,7 @@
 
 #include "strategy.h"
 #include "plant.h"
+#include "spline.h"
 
 namespace model {
 
@@ -18,6 +19,8 @@ public:
   size_t size() const;
   double height_max() const;
   double leaf_area_above(double height) const;
+
+  void compute_vars_phys(spline::Spline *light_environment);
 
   // Try and get everything.
   Rcpp::List get_plants() const;

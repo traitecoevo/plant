@@ -111,17 +111,18 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::Patch>("Patch")
     .constructor<model::Parameters>()
-    .property("size",          &model::Patch::size)
-    .property("height_max",    &model::Patch::height_max)
-    .method("canopy_openness", &model::Patch::canopy_openness)
+    .property("size",            &model::Patch::size)
+    .property("height_max",      &model::Patch::height_max)
+    .method("canopy_openness",   &model::Patch::canopy_openness)
     .method("compute_light_environment",
 	    &model::Patch::compute_light_environment)
     .method("get_light_environment",
 	    &model::Patch::get_light_environment)
-    .method("get_plants",      &model::Patch::get_plants)
-    .method("add_seed",        &model::Patch::r_add_seed)
-    .method("get_mass_leaf",   &model::Patch::r_get_mass_leaf)
-    .method("set_mass_leaf",   &model::Patch::r_set_mass_leaf)
+    .method("compute_vars_phys", &model::Patch::compute_vars_phys)
+    .method("get_plants",        &model::Patch::get_plants)
+    .method("add_seed",          &model::Patch::r_add_seed)
+    .method("get_mass_leaf",     &model::Patch::r_get_mass_leaf)
+    .method("set_mass_leaf",     &model::Patch::r_set_mass_leaf)
     ;
 
   // Misc functions

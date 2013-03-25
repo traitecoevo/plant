@@ -29,6 +29,12 @@ double Species::leaf_area_above(double height) const {
   return tot;
 }
 
+void Species::compute_vars_phys(spline::Spline *light_environment) {
+  for ( std::list<Plant>::iterator it = plants.begin();
+	it != plants.end(); it++ )
+    it->compute_vars_phys(light_environment);
+}
+
 void Species::add_seed() {
   Plant p(strategy);
   plants.push_back(p);

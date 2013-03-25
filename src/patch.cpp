@@ -80,6 +80,12 @@ spline::Spline Patch::get_light_environment() const {
   return light_environment;
 }
 
+void Patch::compute_vars_phys() {
+  for ( std::vector<Species>::iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    sp->compute_vars_phys(&light_environment);
+}
+
 Rcpp::List Patch::get_plants(int idx) const {
   util::check_bounds(idx, size());
   return species[idx].get_plants();

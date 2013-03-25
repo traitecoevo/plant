@@ -30,6 +30,8 @@ public:
   void compute_light_environment();
   spline::Spline get_light_environment() const;
 
+  void compute_vars_phys();
+
   Rcpp::List get_plants(int idx) const;
 
   void add_seed(int idx);

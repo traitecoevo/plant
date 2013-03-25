@@ -30,6 +30,10 @@ public:
   // [eqn 1-8] Update size variables to a new leaf mass.
   void set_mass_leaf(double mass_leaf_);
 
+  // * Mass production
+  // [eqn 12-19,21] Update physiological variables
+  void compute_vars_phys(spline::Spline *env);
+
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
   double r_compute_assimilation(spline::Spline env) const;
@@ -69,9 +73,6 @@ private:
   double compute_reproduction_fraction() const;
   // [eqn 18] Fraction of mass growth that is leaves
   double compute_leaf_fraction() const;
-
-  // [eqn 12-19,21] Update physiological variables
-  void compute_vars_phys(spline::Spline *env);
 
   // Update a number of constants within the model.  This is a work in
   // progress.
