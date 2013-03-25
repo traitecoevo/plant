@@ -19,6 +19,7 @@ public:
   ~Patch();
 
   size_t size() const;
+  double height_max() const;
 
   Rcpp::List get_plants(int idx) const;
 

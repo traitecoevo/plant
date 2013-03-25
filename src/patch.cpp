@@ -48,6 +48,14 @@ size_t Patch::size() const {
   return species.size();
 }
 
+double Patch::height_max() const {
+  double ret = 0.0;
+  for ( std::vector<Species>::const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    ret = std::max(ret, sp->height_max());
+  return ret;
+}
+
 Rcpp::List Patch::get_plants(int idx) const {
   util::check_bounds(idx, size());
   return species[idx].get_plants();
@@ -65,14 +73,13 @@ void Patch::r_add_seed(int idx) {
 void Patch::set_strategies() {
   species.clear();
 
-  // This is really ugly, and I don't know that it is correct.
+  // This is really ugly.
   for ( std::vector<Strategy>::iterator 
 	  it = parameters->strategies.begin();
 	it != parameters->strategies.end(); it++ ) {
     Species s(&(*it)); // ugly (iterator -> object -> pointer)
     species.push_back(s);
   }
-    
 }
 
 }

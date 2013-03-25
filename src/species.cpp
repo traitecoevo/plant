@@ -13,7 +13,10 @@ size_t Species::size() const {
 }
 
 double Species::height_max() const {
-  return plants.begin()->get_height();
+  if ( size() == 0 )
+    return 0.0;
+  else
+    return plants.begin()->get_height();
 }
 
 double Species::leaf_area_above(double height) const {
