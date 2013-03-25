@@ -21,6 +21,8 @@ public:
   Plant& operator=(const Plant &rhs);
   ~Plant();
 
+  static void prepare_strategy(Strategy *s);
+
   double get_mass_leaf() const;
   void set_mass_leaf(double x);
 
@@ -71,8 +73,7 @@ private:
 
   // Update a number of constants within the model.  This is a work in
   // progress.
-  void compute_constants();
-  double mass_leaf_seed();
+  static double mass_leaf_seed(Strategy *s);
   double compute_mass_total(double m_);
 
   bool standalone;

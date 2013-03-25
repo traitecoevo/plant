@@ -70,6 +70,30 @@ of a provided `Strategy` object, and be responsible for cleaning up on
 deletion.  Copies involving a standalone `Plant` will *copy* the
 `Parameter` object and create a new "standalone" `Plant`.
 
+## Adding strategies, constants and standalone issues
+
+Where should strategies be added?  The two most basic options seem to
+be:
+
+1. In population
+2. In the parameters only
+
+At some point, constants do need sorting out.  So, perhaps on
+`add_strategy`?  I.e., we do `add_strategy(x)` (or `set_strategy`),
+and then make a standalone plant which computes the constants?  Should
+be a better way of doing this.  Perhaps a static method for Plant?
+
+### Changing plant parameters
+
+Probably don't allow plant parameters to be modified?  Otherwise they
+change the paramters of all individuals, which will rarely be what is
+wanted.  Exception for standalone plants?
+
+### Exception safe code
+
+There is a good chance that the root finding can fail, but it is run
+on construction (e.g., standalone Plant).  Probably not a good idea.
+
 ## Constants
 
 There are probably still some constants that are settable at the level
@@ -100,6 +124,11 @@ So then, how do the constants get computed?  Who creates the
 Parameters instance?  In the full model it will be done by
 `Parameters` generally, but for standalone cases the `Plant` itself
 takes care of this.
+
+### Accessing constants
+
+Currently there is no way of accessing the constants (especially
+initial seed mass).  How should we do this?  Should we do this?
 
 ## Functions within plant
 

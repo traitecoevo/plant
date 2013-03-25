@@ -6,22 +6,16 @@ namespace model {
 
 Plant::Plant(Strategy s)
   : standalone(true), 
-    strategy(new Strategy(s)) { 
-  // TODO: If we allow changing parameters, this will need doing
-  // there too.  But only standalone cases should be allowed to change
-  // parameters.
-  // 
-  // TODO: It might be worth pulling this function inside of Plant,
-  // rather than Strategy.  Keep the slots in Strategy, but set them
-  // from Plant.
+    strategy(new Strategy(s)) {
   mass_leaf = NA_REAL;
-  compute_constants();
+  prepare_strategy(strategy);
 }
 
-// TODO: More realistically, we'll be setting mass here?
 Plant::Plant(Strategy *s) 
   : standalone(false),
-    strategy(s) { }
+    strategy(s) { 
+  mass_leaf = s->mass_leaf_0;
+}
 
 Plant::Plant(const Plant &other)
   : standalone(other.standalone) {
@@ -48,6 +42,13 @@ Plant& Plant::operator=(const Plant &rhs) {
 Plant::~Plant() {
   if ( standalone )
     delete strategy;
+}
+
+// NOTE: static method.
+void Plant::prepare_strategy(Strategy *s) {
+  s->eta_c = 1 - 2/(1 + s->eta) + 1/(1 + 2*s->eta);
+  s->k_l = s->a4 * pow(s->lma, -s->B4);
+  s->mass_leaf_0 = mass_leaf_seed(s);
 }
 
 double Plant::get_mass_leaf() const {
@@ -162,8 +163,8 @@ double Plant::compute_respiration() const {
 
 // [eqn 14] Total turnover
 // 
-// (note that k_l is (a_4*\phi)^{b_4} in [eqn 14], and is computed in
-// Plant::compute_constants())
+// (NOTE: `k_l` is (a_4*\phi)^{b_4} in [eqn 14], and is computed by
+// `prepare_strategy`).
 double Plant::compute_turnover() const {
   return
     mass_leaf * strategy->k_l  +
@@ -246,30 +247,26 @@ void Plant::compute_vars_phys(spline::Spline *env) {
     strategy->c_d2 * exp(-strategy->c_d3 * net_production / leaf_area);
 }
 
-void Plant::compute_constants() {
-  strategy->eta_c = 1 - 2/(1 + strategy->eta) + 1/(1 + 2*strategy->eta);
-  strategy->k_l = strategy->a4 * pow(strategy->lma, -strategy->B4);
-  strategy->leaf_mass_0 = mass_leaf_seed();
-}
-
-double Plant::mass_leaf_seed() {
-  const double mass_leaf_orig = mass_leaf;
-  const double s = strategy->s;
+// NOTE: static method
+double Plant::mass_leaf_seed(Strategy *s) {
+  Plant p(s);
+  const double mass_seed = s->s;
 
   // Here, we compute the leaf mass of a seed
-  util::FunctorRoot<Plant, &Plant::compute_mass_total> fun(this, s);
-  
+  util::FunctorRoot<Plant, &Plant::compute_mass_total> 
+    fun(&p, mass_seed);
+
+  // Constants for control (for now at least)
   const double atol = 1e-6, rtol = 1e-6;
   const int max_iterations = 1000;
   util::RootFinder root(atol, rtol, max_iterations);
-  const double mass_leaf_0 = root.root(&fun, DBL_MIN, s);
 
-  set_mass_leaf(mass_leaf_orig);
+  const double mass_leaf_0 = root.root(&fun, DBL_MIN, mass_seed);
 
   return mass_leaf_0;
 }
 
-// TODO: should this leave things how it found them in terms of mass?
+// NOTE: This is used only by mass_leaf_seed.
 double Plant::compute_mass_total(double x) {
   set_mass_leaf(x);
   return mass_total;

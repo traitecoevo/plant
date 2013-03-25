@@ -67,7 +67,7 @@ private:
   double c_d3;
 
   // Leaf mass of a seed
-  double leaf_mass_0;
+  double mass_leaf_0;
 
   // Switch between two different algorithms for computing
   // assimilation:
