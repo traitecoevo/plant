@@ -49,9 +49,9 @@ public:
 private:
   void set_strategies();
 
-  bool set_values(std::vector<double>::const_iterator it);
-  void get_values(std::vector<double>::iterator it) const;
-  void get_rates(std::vector<double>::iterator it) const;
+  bool set_values(ode::iter_const it);
+  void get_values(ode::iter it) const;
+  void get_rates(ode::iter it)  const;
 
   bool standalone;
   Parameters *parameters;

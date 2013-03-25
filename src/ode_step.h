@@ -7,6 +7,9 @@
 
 namespace ode {
 
+typedef std::vector<double>::const_iterator iter_const;
+typedef std::vector<double>::iterator       iter;
+
 template <class Problem>
 class Step {
 public:
@@ -19,9 +22,7 @@ public:
 	    std::vector<double> &dydt_out);
   void reset();
   unsigned int order();
-  void derivs(double time,
-	      std::vector<double>::const_iterator y,
-	      std::vector<double>::iterator dydt);
+  void derivs(double time, iter_const y, iter dydt);
 
   // Private soon, but not right now (will be once these are never
   // instantiated directly).
@@ -149,9 +150,7 @@ unsigned int Step<Problem>::order() {
 }
 
 template <class Problem>
-void Step<Problem>::derivs(double time, 
-			   std::vector<double>::const_iterator y,
-			   std::vector<double>::iterator dydt) {
+void Step<Problem>::derivs(double time, iter_const y, iter dydt) {
   problem->derivs(time, y, dydt);
 }
 

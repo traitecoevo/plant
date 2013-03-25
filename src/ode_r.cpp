@@ -6,9 +6,7 @@ OdeR::OdeR(SEXP fun, SEXP env, SEXP pars) :
   fun(fun), env(env), pars(pars), solver(this) {
 }
 
-void OdeR::derivs(double time,
-		  std::vector<double>::const_iterator y,
-		  std::vector<double>::iterator dydt) {
+void OdeR::derivs(double time, iter_const y, iter dydt) {
   SEXP y_r;
   PROTECT(y_r = Rf_allocVector(REALSXP, size()));
   std::copy(y, y + size(), REAL(y_r));

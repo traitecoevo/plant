@@ -4,6 +4,7 @@
 
 #include <list>
 
+#include "ode_solver.h"
 #include "strategy.h"
 #include "plant.h"
 #include "spline.h"
@@ -23,12 +24,9 @@ public:
   void compute_vars_phys(spline::Spline *light_environment);
 
   // ODE interface
-  std::vector<double>::const_iterator
-  set_values(std::vector<double>::const_iterator it, bool &changed);
-  std::vector<double>::iterator
-  get_rates(std::vector<double>::iterator it) const;
-  std::vector<double>::iterator
-  get_values(std::vector<double>::iterator it) const;
+  ode::iter_const set_values(ode::iter_const it, bool &changed);
+  ode::iter       get_values(ode::iter it) const;
+  ode::iter       get_rates(ode::iter it)  const;
 
   // Try and get everything.
   Rcpp::List get_plants() const;

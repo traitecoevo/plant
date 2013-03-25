@@ -13,9 +13,7 @@ class OdeR {
 public:
   OdeR(SEXP fun, SEXP env, SEXP pars);
   unsigned int size() const { return size_; }
-  void derivs(double time,
-	      std::vector<double>::const_iterator y,
-	      std::vector<double>::iterator dydt);
+  void derivs(double time, iter_const y, iter dydt);
   std::vector<double> r_derivs(double time, std::vector<double> y);
 
   // These are going to be tedious to expose, but in this case we're

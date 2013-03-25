@@ -314,9 +314,7 @@ double Plant::compute_mass_total(double x) {
   return mass_total;
 }
 
-std::vector<double>::const_iterator
-Plant::set_values(std::vector<double>::const_iterator it,
-		  bool &changed) {
+ode::iter_const Plant::set_values(ode::iter_const it, bool &changed) {
   const double m = *it++;
   const bool new_value = mass_leaf != m;
   changed = changed || new_value;
@@ -328,16 +326,15 @@ Plant::set_values(std::vector<double>::const_iterator it,
 
   return it;
 }
-std::vector<double>::iterator
-Plant::get_values(std::vector<double>::iterator it) const {
+
+ode::iter Plant::get_values(ode::iter it) const {
   *it++ = mass_leaf;
   *it++ = mortality;
   *it++ = fecundity;
   return it;
 }
 
-std::vector<double>::iterator
-Plant::get_rates(std::vector<double>::iterator it) const {
+ode::iter Plant::get_rates(ode::iter it) const {
   *it++ = growth_rate;
   *it++ = mortality_rate;
   *it++ = fecundity_rate;

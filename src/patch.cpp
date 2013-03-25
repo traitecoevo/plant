@@ -134,7 +134,7 @@ void Patch::set_strategies() {
   }
 }
 
-bool Patch::set_values(std::vector<double>::const_iterator it) {
+bool Patch::set_values(ode::iter_const it) {
   bool changed = false;
   for ( std::vector<Species>::iterator sp = species.begin();
 	sp != species.end(); sp++ )
@@ -142,13 +142,13 @@ bool Patch::set_values(std::vector<double>::const_iterator it) {
   return changed;
 }
 
-void Patch::get_values(std::vector<double>::iterator it) const {
+void Patch::get_values(ode::iter it) const {
   for ( std::vector<Species>::const_iterator sp = species.begin(); 
 	sp != species.end(); sp++ )
     it = sp->get_values(it);
 }
 
-void Patch::get_rates(std::vector<double>::iterator it) const {
+void Patch::get_rates(ode::iter it) const {
   for ( std::vector<Species>::const_iterator sp = species.begin(); 
 	sp != species.end(); sp++ )
     it = sp->get_rates(it);
