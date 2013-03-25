@@ -24,9 +24,10 @@ public:
   static void prepare_strategy(Strategy *s);
 
   double get_mass_leaf() const;
-  void set_mass_leaf(double x);
 
-  // static const int size = 3;
+  // * Individual size
+  // [eqn 1-8] Update size variables to a new leaf mass.
+  void set_mass_leaf(double mass_leaf_);
 
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;

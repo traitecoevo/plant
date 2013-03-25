@@ -41,10 +41,6 @@ Rcpp::List Parameters::get_strategies() {
 
 // TODO: Not sure that this is the correct name.  
 // 
-// TODO: Also not sure that there won't be a copy here that (on
-// strategies[idx] that will prevent the mass getting updated
-// properly).
-// 
 // TODO: Not sure that this is even the right way forward.  Treating
 // strategies as essentially read-only might be better.
 void Parameters::set_strategy(Rcpp::List x, int idx) {

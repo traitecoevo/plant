@@ -5,16 +5,22 @@
 namespace model {
 
 Plant::Plant(Strategy s)
-  : standalone(true), 
-    strategy(new Strategy(s)) {
-  mass_leaf = NA_REAL;
+  : standalone(true),
+    strategy(new Strategy(s)),
+    mass_leaf(NA_REAL),
+    fecundity(0.0),
+    mortality(0.0) {
   prepare_strategy(strategy);
+  set_mass_leaf(strategy->mass_leaf_0);
 }
 
-Plant::Plant(Strategy *s) 
+Plant::Plant(Strategy *s)
   : standalone(false),
-    strategy(s) { 
-  mass_leaf = s->mass_leaf_0;
+    strategy(s),
+    mass_leaf(NA_REAL),
+    fecundity(0.0),
+    mortality(0.0) {
+  set_mass_leaf(strategy->mass_leaf_0);
 }
 
 Plant::Plant(const Plant &other)
@@ -55,12 +61,20 @@ double Plant::get_mass_leaf() const {
   return mass_leaf;
 }
 
-// TODO: Given this, why not just move compute_vars_size up here?
-void Plant::set_mass_leaf(double x) {
-  compute_vars_size(x);
+// [eqn 1-8] Update size variables given an input leaf mass
+// 
+// NOTE: Only recomputes size variables if the mass is actually
+// different.  This is totally safe if nothing else sets either
+// mass_leaf or any size variable except this method.  This will help
+// save quite a bit of calculation time and book-keeping down the
+// track.
+void Plant::set_mass_leaf(double mass_leaf_) {
+  if ( mass_leaf_ <= 0.0 )
+    Rf_error("mass_leaf must be positive");
+  if ( mass_leaf_ != mass_leaf )
+    compute_vars_size(mass_leaf_);
 }
 
-// [eqn 1-8] Update size variables given an input leaf mass
 void Plant::compute_vars_size(double mass_leaf_) {
   if ( mass_leaf_ <= 0.0 )
     Rf_error("mass_leaf must be positive");
@@ -71,17 +85,17 @@ void Plant::compute_vars_size(double mass_leaf_) {
   // [eqn 3] Height
   height = strategy->a1*pow(leaf_area, strategy->B1);
   // [eqn 4] Mass of sapwood
-  mass_sapwood =   strategy->rho / strategy->theta * 
+  mass_sapwood =   strategy->rho / strategy->theta *
     strategy->a1 * strategy->eta_c * pow(leaf_area, 1 + strategy->B1);
   // [eqn 5] Mass of bark
   mass_bark = strategy->b * mass_sapwood;
   // [eqn 6] Mass of heartwood
-  mass_heartwood = strategy->rho * strategy->eta_c * strategy->a2 * 
+  mass_heartwood = strategy->rho * strategy->eta_c * strategy->a2 *
     pow(leaf_area, strategy->B2);
   // [eqn 7] Mass of (fine) roots
   mass_root = strategy->a3 * leaf_area;
   // [eqn 8] Total mass
-  mass_total = 
+  mass_total =
     mass_leaf + mass_sapwood + mass_bark + mass_heartwood + mass_root;
 }
 
@@ -154,7 +168,7 @@ double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
 //
 // NOTE: In contrast with EBT, we do not normalise by Y*c_bio.
 double Plant::compute_respiration() const {
-  return 
+  return
     strategy->c_Rl * leaf_area * strategy->n_area +
     strategy->c_Rs * mass_sapwood / strategy->rho +
     strategy->c_Rb * mass_bark    / strategy->rho +
@@ -174,7 +188,7 @@ double Plant::compute_turnover() const {
 
 // [eqn 16] Fraction of whole plan growth that is leaf
 double Plant::compute_reproduction_fraction() const {
-  return strategy->c_r1 / (1.0 + exp(strategy->c_r2 * 
+  return strategy->c_r1 / (1.0 + exp(strategy->c_r2 *
 				     (1.0 - height/strategy->hmat)));
 }
 
@@ -189,7 +203,7 @@ double Plant::compute_leaf_fraction() const {
   return 1.0/(1.0 + s->a3/s->lma +
 	      (s->rho / s->theta * s->a1 * s->eta_c * (1.0 +s->b) *
 	       (1.0+s->B1) * pow(leaf_area, s->B1) / s->lma +
-	       s->rho * s->a2 * s->eta_c * s->B2 * 
+	       s->rho * s->a2 * s->eta_c * s->B2 *
 	       pow(leaf_area, s->B2-1) / s->lma));
 }
 
