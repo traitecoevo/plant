@@ -363,7 +363,8 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 			       _["reproduction_fraction"]=reproduction_fraction,
 			       _["fecundity_rate"]=fecundity_rate,
 			       _["leaf_fraction"]=leaf_fraction,
-			       _["growth_rate"]=growth_rate);
+			       _["growth_rate"]=growth_rate,
+			       _["mortality_rate"]=mortality_rate);
 }
 
 double Plant::r_compute_assimilation(spline::Spline env) const {
