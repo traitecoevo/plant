@@ -18,13 +18,6 @@
 #include "find_root.h"
 #include "integrator.h"
 
-// Allows Splines to be returned from objects.  Note that this causes
-// a copy, so copy constructors are required if there are any pointers
-// that would get cleaned up on copy.
-RCPP_EXPOSED_CLASS(spline::Spline)
-RCPP_EXPOSED_CLASS(spline::AdaptiveSpline)
-RCPP_EXPOSED_CLASS(model::Parameters)
-
 RCPP_MODULE(tree) {
   Rcpp::class_<spline::Spline>("Spline")
     .constructor()

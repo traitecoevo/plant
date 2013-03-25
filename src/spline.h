@@ -42,4 +42,6 @@ private:
 
 }
 
+RCPP_EXPOSED_CLASS(spline::Spline)
+
 #endif

@@ -35,4 +35,6 @@ private:
 
 }
 
+RCPP_EXPOSED_CLASS(model::Parameters)
+
 #endif

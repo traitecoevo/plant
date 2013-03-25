@@ -43,4 +43,6 @@ private:
 
 }
 
+RCPP_EXPOSED_CLASS(spline::AdaptiveSpline)
+
 #endif
