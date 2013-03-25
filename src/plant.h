@@ -57,6 +57,7 @@ public:
   double assimilation_leaf(double x) const;
 
   // ODE interface
+  static const size_t ode_size = 3;
   ode::iter_const set_values(ode::iter_const it, bool &changed);
   ode::iter       get_values(ode::iter it) const;
   ode::iter       get_rates(ode::iter it)  const;

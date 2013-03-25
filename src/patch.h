@@ -35,6 +35,10 @@ public:
   void derivs(double time,
 	      std::vector<double>::const_iterator y,
 	      std::vector<double>::iterator dydt);
+  size_t ode_size() const;
+  bool set_values(ode::iter_const it);
+  void get_values(ode::iter it) const;
+  void get_rates(ode::iter it)  const;
 
   // Below here is a jumble of R interface stuff, mostly.
   Rcpp::List get_plants(int idx) const;
@@ -46,12 +50,13 @@ public:
   std::vector<double> r_get_mass_leaf(int idx) const;
   void r_set_mass_leaf(std::vector<double> x, int idx);
 
+  std::vector<double> r_derivs(std::vector<double> y);
+  void r_ode_values_set(std::vector<double> y);
+  std::vector<double> r_ode_values() const;
+  std::vector<double> r_ode_rates() const;
+
 private:
   void set_strategies();
-
-  bool set_values(ode::iter_const it);
-  void get_values(ode::iter it) const;
-  void get_rates(ode::iter it)  const;
 
   bool standalone;
   Parameters *parameters;

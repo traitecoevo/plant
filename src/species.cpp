@@ -71,6 +71,10 @@ void Species::r_set_mass_leaf(std::vector<double> x) {
   }
 }
 
+size_t Species::ode_size() const {
+  return size() * Plant::ode_size;
+}
+
 ode::iter_const Species::set_values(ode::iter_const it, bool &changed) {
   for ( std::list<Plant>::iterator p = plants.begin();
 	p != plants.end(); p++ )

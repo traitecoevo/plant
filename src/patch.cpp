@@ -134,6 +134,14 @@ void Patch::set_strategies() {
   }
 }
 
+size_t Patch::ode_size() const {
+  size_t ret = 0;
+  for ( std::vector<Species>::const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    ret += sp->ode_size();
+  return ret;
+}
+
 bool Patch::set_values(ode::iter_const it) {
   bool changed = false;
   for ( std::vector<Species>::iterator sp = species.begin();
@@ -154,5 +162,35 @@ void Patch::get_rates(ode::iter it) const {
     it = sp->get_rates(it);
 }
 
+std::vector<double> Patch::r_derivs(std::vector<double> y) {
+  // TODO: this check into utils.
+  if ( y.size() != ode_size() )
+    Rf_error("Incorrect size input (expected %d, recieved %d)",
+	     ode_size(), y.size());
+  std::vector<double> dydt(y.size());
+  const double time = 0.0; // always zero here.
+  derivs(time, y.begin(), dydt.begin());
+  return dydt;
+}
+
+void Patch::r_ode_values_set(std::vector<double> y) {
+  // TODO: this check into utils.
+  if ( y.size() != ode_size() )
+    Rf_error("Incorrect size input (expected %d, recieved %d)",
+	     ode_size(), y.size());
+  set_values(y.begin());
+}
+
+std::vector<double> Patch::r_ode_values() const {
+  std::vector<double> values(ode_size());
+  get_values(values.begin());
+  return values;
+}
+
+std::vector<double> Patch::r_ode_rates() const {
+  std::vector<double> rates(ode_size());
+  get_rates(rates.begin());
+  return rates;
+}
 
 }

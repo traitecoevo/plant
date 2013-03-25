@@ -116,6 +116,11 @@ RCPP_MODULE(tree) {
     .method("add_seed",          &model::Patch::r_add_seed)
     .method("get_mass_leaf",     &model::Patch::r_get_mass_leaf)
     .method("set_mass_leaf",     &model::Patch::r_set_mass_leaf)
+    .property("ode_size",        &model::Patch::ode_size)
+    .method("ode_values_set",    &model::Patch::r_ode_values_set)
+    .method("ode_values",        &model::Patch::r_ode_values)
+    .method("ode_rates",         &model::Patch::r_ode_rates)
+    .method("derivs",            &model::Patch::r_derivs)
     ;
 
   // Misc functions
