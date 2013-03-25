@@ -32,12 +32,11 @@ make.falster.generator <- function(path) {
     vars <- c("eta", "theta", "a1", "B1", "a2", "B2", "a3", "b",
               "n_area", "c_Rl", "c_Rr", "c_Rs", "c_Rb", "Y",
               "c_bio", "a4", "B4", "k_b", "k_r", "c_p1", "c_p2",
-              "c_acc", "c_r1", "c_r2")
-    vars.msg <- list("Pi_0"=NA, "c_s0"=NA, "c_d0"=NA, "c_d1"=NA,
-                     "c_d2"=NA, "c_d3"=NA)
+              "c_acc", "c_d0", "c_d1", "c_d2", "c_d3", "c_r1", "c_r2")
+    vars.msg <- list("Pi_0"=NA, "c_s0"=NA)
     get.pars <- function() {
       vars.traits <- list(lma=e$traits$lma, rho=e$traits$rho,
-                          hmat=e$traits$hmat, s=NA) # not set.
+                          hmat=e$traits$hmat, s=e$traits$s)
       ret <- lapply(sprintf("p.%s", vars), get, e)
       names(ret) <- vars
       c(vars.traits, ret, vars.msg)

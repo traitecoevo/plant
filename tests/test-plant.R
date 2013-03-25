@@ -21,8 +21,7 @@ expect_that(any(sapply(pars.s, is.na)), is_false())
 ## But the R version may have a few:
 pars.na <- sort(names(pars.cmp)[sapply(pars.cmp, is.na)])
 expect_that(pars.na,
-            is_identical_to(c("c_d0", "c_d1", "c_d2", "c_d3", 
-                              "c_s0", "Pi_0", "s")))
+            is_identical_to(c("c_s0", "Pi_0")))
 
 ## And demand that all parameters agree.
 pars.ok <- setdiff(names(pars.cmp), pars.na)
@@ -156,6 +155,11 @@ expect_that(p.phys[["leaf_fraction"]],
 cmp.growth.rate <- cmp$growth.rate(cmp$traits, h, light.env)
 expect_that(p.phys[["growth_rate"]],
             equals(cmp.growth.rate, tolerance=1e-7))
+
+## 9. Mortality rate
+cmp.mortality.rate <- cmp$mortality.rate(cmp$traits, h, light.env)
+expect_that(p.phys[["mortality_rate"]],
+            equals(cmp.mortality.rate))
 
 ## Delete the plant -- should not crash.
 rm(p)

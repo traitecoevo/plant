@@ -65,3 +65,15 @@ growth.rate <- function(traits, h, env) {
   g[p < 0] <- 0
   g
 }
+
+p.c_d0 <- 0.520393415085166
+p.c_d1 <- 0.0065
+p.c_d2 <- 5.5
+p.c_d3 <- 20.0
+
+mortality.rate <- function(traits, h, env) {
+  p <- net.production(traits, h, env)
+  a <- LeafArea(h)  
+  p.c_d0 * exp(-p.c_d1 * traits$rho) +
+    p.c_d2 * exp(-p.c_d3 * p / a)
+}
