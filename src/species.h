@@ -18,9 +18,10 @@ public:
   size_t size() const;
   double height_max() const;
   double leaf_area_above(double height) const;
+  void add_seed();
 
 private:
-  Strategy *strategy; // do we actually need this?
+  Strategy *strategy;
   std::list<Plant> plants;
 };
 

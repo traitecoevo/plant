@@ -24,8 +24,9 @@ double Species::leaf_area_above(double height) const {
   return tot;
 }
 
-
-
-
+void Species::add_seed() {
+  Plant p(strategy);
+  plants.push_back(p);
+}
 
 }
