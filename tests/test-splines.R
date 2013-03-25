@@ -10,7 +10,7 @@ yy <- target(xx)
 ## Basic splines:
 s <- new(Spline)
 s$init(xx, yy)
-expect_that(s$xy(),
+expect_that(s$xy,
             is_identical_to(cbind(xx, yy, deparse.level=0)))
 
 ## Test data:
@@ -26,10 +26,10 @@ expect_that(yy.C, equals(yy.cmp, tolerance=1e-6))
 ## Adaptive Splines:
 a <- tree_module$test_adaptive_spline(target, new.env(), min(xx), max(xx))
 
-expect_that(nrow(a$xy()), equals(241))
+expect_that(nrow(a$xy), equals(241))
 
-xx.eval <- a$xy()[,1]
-expect_that(a$xy()[,2], is_identical_to(target(xx.eval)))
+xx.eval <- a$xy[,1]
+expect_that(a$xy[,2], is_identical_to(target(xx.eval)))
 
 xx.mid <- (xx.eval[-1] + xx.eval[-length(xx.eval)]) / 2
 yy.mid <- target(xx.mid)

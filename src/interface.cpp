@@ -30,7 +30,7 @@ RCPP_MODULE(tree) {
     .constructor()
     .method("init",   &spline::Spline::init)
     .method("eval",   &spline::Spline::r_eval)
-    .method("xy",     &spline::Spline::r_get_xy)
+    .property("xy",   &spline::Spline::r_get_xy)
     .property("size", &spline::Spline::size)
     ;
 
