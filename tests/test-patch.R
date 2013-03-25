@@ -33,6 +33,14 @@ expect_that(plants[[1]]$vars_size,
 expect_that(patch$height_max,
             is_identical_to(cmp$vars_size[["height"]]))
 
+cmp$set_mass_leaf(pi)
+patch$set_mass_leaf(pi, 0L)
+expect_that(patch$get_mass_leaf(0L), is_identical_to(pi))
+
+plants <- patch$get_plants(0L)
+expect_that(plants[[1]]$vars_size,
+            is_identical_to(cmp$vars_size))
+
 hh <- seq(0, patch$height_max, length=101)
 yy <- sapply(hh, patch$canopy_openness)
 

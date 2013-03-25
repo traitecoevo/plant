@@ -80,6 +80,16 @@ void Patch::r_add_seed(int idx) {
   add_seed(idx);
 }
 
+std::vector<double> Patch::r_get_mass_leaf(int idx) const {
+  util::check_bounds(idx, size());
+  return species[idx].r_get_mass_leaf();
+}
+
+void Patch::r_set_mass_leaf(std::vector<double> x, int idx) {
+  util::check_bounds(idx, size());
+  species[idx].r_set_mass_leaf(x);
+}
+
 void Patch::set_strategies() {
   species.clear();
 

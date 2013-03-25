@@ -16,6 +16,22 @@ bool is_finite(T x) {
 
 void check_bounds(int idx, int max);
 
+// Based on C++11's is_sorted
+template <class ForwardIterator> 
+bool is_decreasing(ForwardIterator first, ForwardIterator last) {
+  if ( first == last ) 
+    return true;
+
+  ForwardIterator next = first;
+  while ( ++next != last ) {
+    if ( *next > *first )
+      return false;
+    ++first;
+  }
+  return true;
+}
+
+
 }
 
 #endif

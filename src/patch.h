@@ -29,6 +29,10 @@ public:
   void add_seed(int idx);
   void r_add_seed(int idx);
 
+  // This is likely to change as more is written.
+  std::vector<double> r_get_mass_leaf(int idx) const;
+  void r_set_mass_leaf(std::vector<double> x, int idx);
+
 private:
   void set_strategies();
 

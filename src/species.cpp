@@ -1,5 +1,7 @@
 #include "species.h"
 
+#include "util.h" // is_decreasing
+
 namespace model {
 
 Species::Species() : strategy(NULL) { 
@@ -38,6 +40,29 @@ Rcpp::List Species::get_plants() const {
 	it != plants.end(); it++ )
     ret.push_back(Rcpp::wrap(*it));
   return ret;
+}
+
+std::vector<double> Species::r_get_mass_leaf() const { 
+  std::vector<double> ret;
+  std::list<Plant>::const_iterator p = plants.begin(); 
+  while ( p != plants.end() )
+    ret.push_back((p++)->get_mass_leaf());
+  return ret;
+}
+
+// NOTE: Roll back on error is not possible here at present.
+void Species::r_set_mass_leaf(std::vector<double> x) {
+  if ( x.size() != size() )
+    Rf_error("Unexpected size of mass_leaf: expected %d, recieved %d",
+	     size(), x.size());
+  if ( !util::is_decreasing(x.begin(), x.end()) )
+    Rf_error("mass_leaf must be decreasing (ties allowed)");
+  std::vector<double>::iterator it = x.begin();
+  std::list<Plant>::iterator p = plants.begin();
+  while ( p != plants.end() ) {
+    p->set_mass_leaf(*it++);
+    p++;
+  }
 }
 
 }

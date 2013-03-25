@@ -24,6 +24,12 @@ public:
 
   void add_seed();
 
+  // This is likely to change as more is written, as we'll have to set
+  // leaf mass directly anyway.  However, the check within will
+  // remain.
+  std::vector<double> r_get_mass_leaf() const;
+  void r_set_mass_leaf(std::vector<double> x);
+
 private:
   Strategy *strategy;
   std::list<Plant> plants;

@@ -116,6 +116,8 @@ RCPP_MODULE(tree) {
     .method("canopy_openness", &model::Patch::canopy_openness)
     .method("get_plants",      &model::Patch::get_plants)
     .method("add_seed",        &model::Patch::r_add_seed)
+    .method("get_mass_leaf",   &model::Patch::r_get_mass_leaf)
+    .method("set_mass_leaf",   &model::Patch::r_set_mass_leaf)
     ;
 
   // Misc functions
