@@ -73,11 +73,19 @@ void Strategy::reset() {
   Pi_0    = 0.25;
   // Parameter for seedling survival
   c_s0    = 0.1;
-  // Coeffcieint for wood density in mortality function
-  c_d1    = 0.0065;
   // Baseline for intrinsic mortality
   // TODO: In the paper this is given as 0.52 only.
-  c_d0    = 0.01/exp(-c_d1*608.0);
+  // TODO: the 608 here looks a lot like rho
+  // TODO: Previously (in the EBT version) this read as
+  //   c_d0 = 0.01 / exp(-c_d1 * 608.0);
+  // this looks like the c_d0 * exp(c_d1 * rho)
+  // but that was done again in the calculations.
+  // this *does* work out to being close to 0.52, and I've put that
+  // number down here so that we stay fairly comparable to the
+  // previous version
+  c_d0    = 0.520393415085166;
+  // Coefficient for wood density in mortality function
+  c_d1    = 0.0065;
   // Baseline rate for growth-related mortality
   c_d2    = 5.5;
   // Risk coefficient for dry mass production (per area)
