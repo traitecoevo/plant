@@ -37,22 +37,30 @@ expect_that(p$get_parameters(), is_identical_to(expected.s))
 ## The added strategy should be the same as the default strategy:
 s <- new(Strategy)
 cmp <- s$get_parameters()
-expect_that(p$get_strategy(0L), is_identical_to(cmp))
-expect_that(p$get_strategies(), is_identical_to(list(cmp)))
+expect_that(p$get_strategy(0L)$get_parameters(), is_identical_to(cmp))
+res <- p$get_strategies()
+expect_that(length(res), equals(1))
+expect_that(res[[1]]$get_parameters(), is_identical_to(cmp))
 
 new.s <- list(c_acc=4.1, lma=1.2)
 p$set_strategy(new.s, 0L)
 
 s$set_parameters(new.s)
 cmp.mod <- s$get_parameters()
-expect_that(p$get_strategy(0L), is_identical_to(cmp.mod))
-expect_that(p$get_strategies(), is_identical_to(list(cmp.mod)))
+expect_that(p$get_strategy(0L)$get_parameters(),
+            is_identical_to(cmp.mod))
+res <- p$get_strategies()
+expect_that(length(res), equals(1))
+expect_that(res[[1]]$get_parameters(), is_identical_to(cmp.mod))
 
 ## Add another strategy
 p$add_strategy(list())
 expect_that(p$size, is_identical_to(2L))
-expect_that(p$get_strategy(1L), is_identical_to(cmp))
-expect_that(p$get_strategies(), is_identical_to(list(cmp.mod, cmp)))
+expect_that(p$get_strategy(1L)$get_parameters(), is_identical_to(cmp))
+res <- p$get_strategies()
+expect_that(length(res), equals(2))
+expect_that(res[[1]]$get_parameters(), is_identical_to(cmp.mod))
+expect_that(res[[2]]$get_parameters(), is_identical_to(cmp))
 
 expect_that(p$set_strategy(new.s, 10L),
             throws_error())

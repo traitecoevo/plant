@@ -23,7 +23,6 @@
 // that would get cleaned up on copy.
 RCPP_EXPOSED_CLASS(spline::Spline)
 RCPP_EXPOSED_CLASS(spline::AdaptiveSpline)
-RCPP_EXPOSED_CLASS(model::Strategy)
 RCPP_EXPOSED_CLASS(model::Parameters)
 
 RCPP_MODULE(tree) {

@@ -19,6 +19,8 @@ void Parameters::reset() {
   strategies.clear();
 }
 
+// TODO: Should this take a Strategy instead (symmetry with
+// get_strategy?).  What is easiest?
 void Parameters::add_strategy(Rcpp::List x) {
   Strategy s;
   s.set_parameters(x);
@@ -26,16 +28,16 @@ void Parameters::add_strategy(Rcpp::List x) {
   strategies.push_back(s);
 }
 
-Rcpp::List Parameters::get_strategy(int idx) {
+Strategy Parameters::get_strategy(int idx) {
   util::check_bounds(idx, strategies.size());
-  return strategies[idx].get_parameters();
+  return strategies[idx];
 }
 
 Rcpp::List Parameters::get_strategies() {
   Rcpp::List ret;
   for ( std::vector<Strategy>::iterator it = strategies.begin();
 	it != strategies.end(); it++ )
-    ret.push_back(it->get_parameters());
+    ret.push_back(Rcpp::wrap(*it));
   return ret;
 }
 

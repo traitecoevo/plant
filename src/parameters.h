@@ -17,7 +17,7 @@ public:
 
   // Querying
   unsigned int size() const {return strategies.size();}
-  Rcpp::List get_strategy(int idx);
+  Strategy get_strategy(int idx);
   Rcpp::List get_strategies();
 
   // Setting

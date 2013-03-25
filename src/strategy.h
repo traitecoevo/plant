@@ -83,4 +83,6 @@ private:
 
 }
 
+RCPP_EXPOSED_CLASS(model::Strategy)
+
 #endif
