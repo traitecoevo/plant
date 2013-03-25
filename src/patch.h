@@ -32,6 +32,11 @@ public:
 
   void compute_vars_phys();
 
+  void derivs(double time,
+	      std::vector<double>::const_iterator y,
+	      std::vector<double>::iterator dydt);
+
+  // Below here is a jumble of R interface stuff, mostly.
   Rcpp::List get_plants(int idx) const;
 
   void add_seed(int idx);
@@ -43,6 +48,10 @@ public:
 
 private:
   void set_strategies();
+
+  bool set_values(std::vector<double>::const_iterator it);
+  void get_values(std::vector<double>::iterator it) const;
+  void get_rates(std::vector<double>::iterator it) const;
 
   bool standalone;
   Parameters *parameters;

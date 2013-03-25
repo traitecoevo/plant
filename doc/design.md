@@ -220,6 +220,17 @@ the individual-based and deterministic solvers have rapidly changing
 dimensions (and the GSL solvers will have to reallocate every step,
 which will become annoying).
 
+At the moment, this is implemented using iterators for `y` and `dydt`.
+This is so that basically the same interface can be used for each
+sub-component of the model.  Alternatively, we could work with (say)
+`Patch::derivs` taking `y` and `dydt` as `const` and non-`const`
+references respectively, and then do the rest of the inner workings
+with iterators.
+
+However, I do need a typedef somewhere in the ODE so that I can do a
+`ode_iter` and `ode_const_iter` and skip some of the ugliness that I
+currently have.
+
 ### Splines
 
 We use splines for the light environment, but I have some code I'm

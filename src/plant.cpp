@@ -314,6 +314,37 @@ double Plant::compute_mass_total(double x) {
   return mass_total;
 }
 
+std::vector<double>::const_iterator
+Plant::set_values(std::vector<double>::const_iterator it,
+		  bool &changed) {
+  const double m = *it++;
+  const bool new_value = mass_leaf != m;
+  changed = changed || new_value;
+  if ( new_value )
+    set_mass_leaf(m);
+
+  mortality = *it++;
+  fecundity = *it++;
+
+  return it;
+}
+std::vector<double>::iterator
+Plant::get_values(std::vector<double>::iterator it) const {
+  *it++ = mass_leaf;
+  *it++ = mortality;
+  *it++ = fecundity;
+  return it;
+}
+
+std::vector<double>::iterator
+Plant::get_rates(std::vector<double>::iterator it) const {
+  *it++ = growth_rate;
+  *it++ = mortality_rate;
+  *it++ = fecundity_rate;
+  return it;
+}
+
+
 Rcpp::NumericVector Plant::r_get_vars_size() const {
   using namespace Rcpp;
   return NumericVector::create(_["mass_leaf"]=mass_leaf,

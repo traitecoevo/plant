@@ -55,6 +55,15 @@ public:
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 
+  // ODE interface
+  std::vector<double>::const_iterator
+  set_values(std::vector<double>::const_iterator it,
+	     bool &changed);
+  std::vector<double>::iterator
+  get_values(std::vector<double>::iterator it) const;
+  std::vector<double>::iterator
+  get_rates(std::vector<double>::iterator it) const;
+
 private:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.

@@ -86,6 +86,18 @@ void Patch::compute_vars_phys() {
     sp->compute_vars_phys(&light_environment);
 }
 
+void Patch::derivs(double time,
+		   std::vector<double>::const_iterator y,
+		   std::vector<double>::iterator dydt) {
+  set_values(y);
+  // Next two will be optional
+  compute_light_environment();
+  compute_vars_phys();
+
+  get_rates(dydt);
+}
+
+
 Rcpp::List Patch::get_plants(int idx) const {
   util::check_bounds(idx, size());
   return species[idx].get_plants();
@@ -121,5 +133,26 @@ void Patch::set_strategies() {
     species.push_back(s);
   }
 }
+
+bool Patch::set_values(std::vector<double>::const_iterator it) {
+  bool changed = false;
+  for ( std::vector<Species>::iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    it = sp->set_values(it, changed);
+  return changed;
+}
+
+void Patch::get_values(std::vector<double>::iterator it) const {
+  for ( std::vector<Species>::const_iterator sp = species.begin(); 
+	sp != species.end(); sp++ )
+    it = sp->get_values(it);
+}
+
+void Patch::get_rates(std::vector<double>::iterator it) const {
+  for ( std::vector<Species>::const_iterator sp = species.begin(); 
+	sp != species.end(); sp++ )
+    it = sp->get_rates(it);
+}
+
 
 }

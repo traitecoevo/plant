@@ -71,4 +71,31 @@ void Species::r_set_mass_leaf(std::vector<double> x) {
   }
 }
 
+std::vector<double>::const_iterator
+Species::set_values(std::vector<double>::const_iterator it, 
+		    bool &changed) {
+  for ( std::list<Plant>::iterator p = plants.begin();
+	p != plants.end(); p++ )
+    it = p->set_values(it, changed);
+  return it;
+}
+
+std::vector<double>::iterator
+Species::get_values(std::vector<double>::iterator it) const {
+  for ( std::list<Plant>::const_iterator p = plants.begin();
+	p != plants.end(); p++ )
+    it = p->get_values(it);
+  return it;
+}
+
+std::vector<double>::iterator
+Species::get_rates(std::vector<double>::iterator it) const {
+  for ( std::list<Plant>::const_iterator p = plants.begin();
+	p != plants.end(); p++ )
+    it = p->get_rates(it);
+  return it;
+}
+
+
+
 }
