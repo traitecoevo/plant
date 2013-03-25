@@ -151,7 +151,7 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 
 // [      ] Leaf area (not fraction) above height `z`
 double Plant::leaf_area_above(double z) const {
-  return leaf_area * Q(height);
+  return leaf_area * Q(z);
 }
 
 
