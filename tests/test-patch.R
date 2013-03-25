@@ -87,5 +87,29 @@ patch$step_deterministic()
 y.new <- patch$ode_values()
 expect_that(all(y.new > y), is_true())
 
+## Now, wrap up the plant as a new derivatives function:
+derivs <- function(t, y, pars)
+  pars$derivs(y)
+
+tt <- seq(0, 15, length=51)
+obj <- new(OdeR, derivs, new.env(), patch)
+expect_that(obj$derivs(0.0, y),
+            is_identical_to(dydt))
+
+library(deSolve)
+derivs.d <- function(...)
+  list(derivs(...))
+cmp.run <- unname(rk(y, tt, derivs.d, patch,
+                     method=rkMethod("rk45ck"), hini=1/1000, rtol=1,
+                     atol=1)[-1,-1])
+
+## TODO: This is quite slow (0.1s).  This is about 30% slower than the
+## rk45ck in deSolve, so given the overhead involved in going to and
+## from R, there is some serious room for improvement in the ODE
+## solver.  This probably should not be too surprising as it's based
+## on GSL, and that is meant to be fairly slow.
+expect_that(t(obj$run(tt, y)),
+            equals(cmp.run))
+
 rm(patch)
 gc()
