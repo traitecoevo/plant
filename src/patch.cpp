@@ -89,12 +89,13 @@ void Patch::compute_vars_phys() {
 void Patch::derivs(double time,
 		   std::vector<double>::const_iterator y,
 		   std::vector<double>::iterator dydt) {
-  set_values(y);
-  // Next two will be optional
+  bool changed = false;
+  ode_values_set(y, changed);
+  // Next two will be optional (if (changed))
   compute_light_environment();
   compute_vars_phys();
 
-  get_rates(dydt);
+  ode_rates(dydt);
 }
 
 
@@ -142,24 +143,25 @@ size_t Patch::ode_size() const {
   return ret;
 }
 
-bool Patch::set_values(ode::iter_const it) {
-  bool changed = false;
+ode::iter_const Patch::ode_values_set(ode::iter_const it, bool &changed) {
   for ( std::vector<Species>::iterator sp = species.begin();
 	sp != species.end(); sp++ )
-    it = sp->set_values(it, changed);
-  return changed;
+    it = sp->ode_values_set(it, changed);
+  return it;
 }
 
-void Patch::get_values(ode::iter it) const {
+ode::iter Patch::ode_values(ode::iter it) const {
   for ( std::vector<Species>::const_iterator sp = species.begin(); 
 	sp != species.end(); sp++ )
-    it = sp->get_values(it);
+    it = sp->ode_values(it);
+  return it;
 }
 
-void Patch::get_rates(ode::iter it) const {
+ode::iter Patch::ode_rates(ode::iter it) const {
   for ( std::vector<Species>::const_iterator sp = species.begin(); 
 	sp != species.end(); sp++ )
-    it = sp->get_rates(it);
+    it = sp->ode_rates(it);
+  return it;
 }
 
 std::vector<double> Patch::r_derivs(std::vector<double> y) {
@@ -178,18 +180,19 @@ void Patch::r_ode_values_set(std::vector<double> y) {
   if ( y.size() != ode_size() )
     Rf_error("Incorrect size input (expected %d, recieved %d)",
 	     ode_size(), y.size());
-  set_values(y.begin());
+  bool changed = false;
+  ode_values_set(y.begin(), changed);
 }
 
 std::vector<double> Patch::r_ode_values() const {
   std::vector<double> values(ode_size());
-  get_values(values.begin());
+  ode_values(values.begin());
   return values;
 }
 
 std::vector<double> Patch::r_ode_rates() const {
   std::vector<double> rates(ode_size());
-  get_rates(rates.begin());
+  ode_rates(rates.begin());
   return rates;
 }
 

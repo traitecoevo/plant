@@ -36,9 +36,9 @@ public:
 	      std::vector<double>::const_iterator y,
 	      std::vector<double>::iterator dydt);
   size_t ode_size() const;
-  bool set_values(ode::iter_const it);
-  void get_values(ode::iter it) const;
-  void get_rates(ode::iter it)  const;
+  ode::iter_const ode_values_set(ode::iter_const it, bool &changed);
+  ode::iter       ode_values(ode::iter it) const;
+  ode::iter       ode_rates(ode::iter it)  const;
 
   // Below here is a jumble of R interface stuff, mostly.
   Rcpp::List get_plants(int idx) const;

@@ -75,24 +75,24 @@ size_t Species::ode_size() const {
   return size() * Plant::ode_size;
 }
 
-ode::iter_const Species::set_values(ode::iter_const it, bool &changed) {
+ode::iter_const Species::ode_values_set(ode::iter_const it, bool &changed) {
   for ( std::list<Plant>::iterator p = plants.begin();
 	p != plants.end(); p++ )
-    it = p->set_values(it, changed);
+    it = p->ode_values_set(it, changed);
   return it;
 }
 
-ode::iter Species::get_values(ode::iter it) const {
+ode::iter Species::ode_values(ode::iter it) const {
   for ( std::list<Plant>::const_iterator p = plants.begin();
 	p != plants.end(); p++ )
-    it = p->get_values(it);
+    it = p->ode_values(it);
   return it;
 }
 
-ode::iter Species::get_rates(ode::iter it) const {
+ode::iter Species::ode_rates(ode::iter it) const {
   for ( std::list<Plant>::const_iterator p = plants.begin();
 	p != plants.end(); p++ )
-    it = p->get_rates(it);
+    it = p->ode_rates(it);
   return it;
 }
 
