@@ -14,8 +14,9 @@ void Parameters::reset() {
   mean_disturbance_interval = 30.0;
   // Light extinction coefficient
   c_ext = 0.5;
-  // TODO: What to do about the new species?  How many to reset down
-  // to?  Probably zero.
+  // Patch area (m^2?)
+  patch_area = 10.0;
+
   strategies.clear();
 }
 
@@ -54,7 +55,8 @@ void Parameters::set_strategy(Rcpp::List x, int idx) {
 void Parameters::do_build_lookup() {
   lookup_table["mean_disturbance_interval"] =
     &mean_disturbance_interval;
-  lookup_table["c_ext"] = &c_ext;
+  lookup_table["c_ext"]      = &c_ext;
+  lookup_table["patch_area"] = &patch_area;
 }
 
 }
