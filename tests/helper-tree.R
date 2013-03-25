@@ -23,7 +23,7 @@ if ( !exists("Spline") ) {
   Strategy <- tree_module$Strategy
   Parameters <- tree_module$Parameters
   Plant <- tree_module$Plant
-  Population <- tree_module$Population
+  Patch <- tree_module$Patch
 }
 
 source("../R/falster.R", chdir=TRUE)

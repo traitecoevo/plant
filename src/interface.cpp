@@ -12,7 +12,7 @@
 #include "strategy.h"
 #include "parameters.h"
 #include "plant.h"
-#include "population.h"
+#include "patch.h"
 
 #include "functor.h"
 #include "find_root.h"
@@ -110,7 +110,7 @@ RCPP_MODULE(tree) {
     .method("compute_vars_phys",    &model::Plant::r_compute_vars_phys)
     ;
 
-  Rcpp::class_<model::Population>("Population")
+  Rcpp::class_<model::Patch>("Patch")
     .constructor<model::Parameters>()
     ;
 

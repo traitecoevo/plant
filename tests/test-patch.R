@@ -1,11 +1,11 @@
 source("helper-tree.R")
 
-context("Population")
+context("Patch")
 
 p <- new(Parameters)
 p$add_strategy(list())
 
-popn <- new(Population, p)
+popn <- new(Patch, p)
 
 rm(popn)
 gc()

@@ -36,7 +36,7 @@ appears as a concept:
 ## Patch
 
 A patch contains multiple species.  In the deterministic model, there
-will be just one patch.
+will be just one patch.  Previously this was population.
 
 ## Parameters
 
@@ -69,6 +69,12 @@ that case, it will either create the default `Strategy` or take a copy
 of a provided `Strategy` object, and be responsible for cleaning up on
 deletion.  Copies involving a standalone `Plant` will *copy* the
 `Parameter` object and create a new "standalone" `Plant`.
+
+## Dispersal
+
+I might try and do dispersal through a map object with the pointer to
+the relevant strategy and the number of seeds.  Alternatively, we
+could just use the index, as that is known at the correct level.
 
 ## Adding strategies, constants and standalone issues
 
