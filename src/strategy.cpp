@@ -83,9 +83,11 @@ void Strategy::reset() {
   // Risk coefficient for dry mass production (per area)
   c_d3    = 20.0;
 
+  // Will get computed properly by Plant.
+  mass_leaf_0 = NA_REAL;
+
   assimilation_over_distribution = false;
 
-  // No longer compute these.
   eta_c = NA_REAL;
   k_l = NA_REAL;
 }
