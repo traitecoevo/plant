@@ -130,6 +130,13 @@ takes care of this.
 Currently there is no way of accessing the constants (especially
 initial seed mass).  How should we do this?  Should we do this?
 
+### Default values
+
+I have now had to add default values for the four core traits, too,
+otherwise we get cryptic errors when trying to compute the initial
+leaf mass.  It doesn't really make much sense to make a strategy that
+doesn't know it's lma, so this seems OK.
+
 ## Functions within plant
 
 I've pulled into separate functions the physiological variables that

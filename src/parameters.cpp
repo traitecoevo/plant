@@ -1,4 +1,6 @@
-#include "util.h"
+#include "util.h"   // check_bounds
+#include "plant.h"  // prepare_strategy
+
 #include "parameters.h"
 
 namespace model {
@@ -20,11 +22,10 @@ void Parameters::reset() {
 void Parameters::add_strategy(Rcpp::List x) {
   Strategy s;
   s.set_parameters(x);
+  Plant::prepare_strategy(&s);
   strategies.push_back(s);
 }
 
-// This is generally fucking up quite badly, returning corrupted
-// memory.  Probably need to do a valgrind.
 Rcpp::List Parameters::get_strategy(int idx) {
   util::check_bounds(idx, strategies.size());
   return strategies[idx].get_parameters();
@@ -38,9 +39,18 @@ Rcpp::List Parameters::get_strategies() {
   return ret;
 }
 
+// TODO: Not sure that this is the correct name.  
+// 
+// TODO: Also not sure that there won't be a copy here that (on
+// strategies[idx] that will prevent the mass getting updated
+// properly).
+// 
+// TODO: Not sure that this is even the right way forward.  Treating
+// strategies as essentially read-only might be better.
 void Parameters::set_strategy(Rcpp::List x, int idx) {
   util::check_bounds(idx, strategies.size());
   strategies[idx].set_parameters(x);
+  Plant::prepare_strategy(&strategies[idx]);
 }
 
 void Parameters::do_build_lookup() {

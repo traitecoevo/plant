@@ -8,10 +8,10 @@ Strategy::Strategy() {
 
 void Strategy::reset() {
   // * Core traits
-  lma  = NA_REAL;
-  rho  = NA_REAL;
-  hmat = NA_REAL;
-  s    = NA_REAL;
+  lma  = 0.1978791;
+  rho  = 608;
+  hmat = 16.5958691;
+  s    = 3.8e-5;
 
   // * Individual allometry
 

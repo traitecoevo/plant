@@ -33,22 +33,19 @@ expected <- list(
   c_r2   = 50,
   c_s0   = 0.1,
   eta    = 12,
-  hmat   = NA_real_,
+  hmat   = 16.5958691,
   k_b    = 0.2,
   k_r    = 1,
-  lma    = NA_real_,
+  lma    = 0.1978791,
   n_area = 0.00187,
-  rho    = NA_real_,
-  s      = NA_real_,
+  rho    = 608,
+  s      = 3.8e-5,
   theta  = 4669)
-core <- c("lma", "rho", "hmat", "s")
 
 keys <- sort(names(expected))
 expect_that(sort(names(obj)),
             is_identical_to(sort(names(expected))))
 expect_that(obj[keys], equals(expected[keys]))
-expect_that(all(sapply(obj[core], is.na)), is_true())
-expect_that(all(!sapply(obj[setdiff(keys, core)], is.na)), is_true())
 
 ## Add some new parameters:
 new1 <- list(c_acc=4.1, lma=1.2)
