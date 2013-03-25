@@ -2,7 +2,6 @@ library(methods)
 library(Rcpp)
 library(testthat)
 
-
 if ( packageVersion("Rcpp") < package_version("0.10.0") )
   error("Needs Rcpp at least version 0.10.0")
 
@@ -27,3 +26,7 @@ if ( !exists("Spline") ) {
 }
 
 source("../R/falster.R", chdir=TRUE)
+
+## This is here to stop a really weird bug (not our fault(?)) around
+## finalisers.
+gc()
