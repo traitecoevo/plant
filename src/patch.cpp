@@ -56,6 +56,16 @@ double Patch::height_max() const {
   return ret;
 }
 
+// [eqn 11] Canopy openness at `height`
+double Patch::canopy_openness(double height) const {
+  double tot = 0.0;
+  for ( std::vector<Species>::const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    tot += sp->leaf_area_above(height);
+  // NOTE: patch_area does not appear in the EBT model formulation.
+  return exp(-parameters->c_ext * tot / parameters->patch_area);
+}
+
 Rcpp::List Patch::get_plants(int idx) const {
   util::check_bounds(idx, size());
   return species[idx].get_plants();

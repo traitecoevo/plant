@@ -21,6 +21,9 @@ public:
   size_t size() const;
   double height_max() const;
 
+  // [eqn 11] Canopy openness at `height`
+  double canopy_openness(double height) const;
+
   Rcpp::List get_plants(int idx) const;
 
   void add_seed(int idx);
