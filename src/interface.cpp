@@ -100,6 +100,10 @@ RCPP_MODULE(tree) {
     .method("compute_assimilation", &model::Plant::r_compute_assimilation)
     .method("compute_assimilation_x", &model::Plant::r_compute_assimilation_x)
     .method("compute_vars_phys",    &model::Plant::r_compute_vars_phys)
+    // ODE interface
+    .method("ode_values_set",       &model::Plant::r_ode_values_set)
+    .property("ode_values",         &model::Plant::r_ode_values)
+    .property("ode_rates",          &model::Plant::r_ode_rates)
     ;
 
   Rcpp::class_<model::Patch>("Patch")

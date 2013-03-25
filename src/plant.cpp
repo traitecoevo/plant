@@ -383,5 +383,21 @@ void Plant::r_compute_vars_phys(spline::Spline env) {
   compute_vars_phys(&env);
 }
 
+void Plant::r_ode_values_set(std::vector<double> y) {
+  bool changed = false;  
+  ode_values_set(y.begin(), changed);
+}
+
+std::vector<double> Plant::r_ode_values() const {
+  std::vector<double> values(ode_size);
+  ode_values(values.begin());
+  return values;
+}
+
+std::vector<double> Plant::r_ode_rates() const {
+  std::vector<double> rates(ode_size);
+  ode_rates(rates.begin());
+  return rates;
+}
 
 }

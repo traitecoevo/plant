@@ -161,6 +161,49 @@ cmp.mortality.rate <- cmp$mortality.rate(cmp$traits, h, light.env)
 expect_that(p.phys[["mortality_rate"]],
             equals(cmp.mortality.rate))
 
+## Grow the plant in a constant environment
+derivs <- function(t, y, pars) {
+  plant <- pars$plant
+  light.env <- pars$light.env
+  
+  plant$ode_values_set(y)
+  plant$compute_vars_phys(light.env)
+  plant$ode_rates
+}
+
+## Make a bigger light environment, so the plant has room to grow
+env2 <- new(Spline)
+hh2 <- seq(0, pars.s$hmat * 1.2, length=300)
+yy2 <- light.env(hh2)
+env2$init(hh2, yy2)
+
+## Check the derivative calculations are correct
+y <- c(pi, 0, 0)
+pars.derivs <- list(plant=p, light.env=env2)
+tmp <- derivs(t, y, pars.derivs)
+p.derivs <- p.phys[c("growth_rate", "mortality_rate", "fecundity_rate")]
+expect_that(tmp,
+            equals(unname(p.derivs), tolerance=2e-8))
+
+## and again
+t0 <- 0.0
+obj <- new(OdeR, derivs, new.env(), pars.derivs)
+expect_that(obj$derivs(t0, y),
+            equals(unname(p.derivs), tolerance=2e-8))
+
+## Then run for 15 years
+tt <- seq(0, 15, length=51)
+
+library(deSolve)
+derivs.d <- function(...)
+  list(derivs(...))
+cmp.run <- unname(rk(y, tt, derivs.d, pars.derivs,
+                     method=rkMethod("rk45ck"), hini=1/1000, rtol=1,
+                     atol=1)[-1,-1])
+
+expect_that(t(obj$run(tt, y)),
+            equals(cmp.run))
+
 ## Delete the plant -- should not crash.
 rm(p)
 gc()

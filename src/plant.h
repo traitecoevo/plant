@@ -62,6 +62,10 @@ public:
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
+  void r_ode_values_set(std::vector<double> y);
+  std::vector<double> r_ode_values() const;
+  std::vector<double> r_ode_rates() const;
+
 private:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.

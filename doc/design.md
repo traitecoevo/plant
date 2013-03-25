@@ -231,6 +231,18 @@ However, I do need a typedef somewhere in the ODE so that I can do a
 `ode_iter` and `ode_const_iter` and skip some of the ugliness that I
 currently have.
 
+There are a lot of duplicated functions (I see `ode_values`,
+`ode_rates`, `ode_values_set`, `derivs` *and* the R versions of these.
+If we inherit from an interface class we could simplify a lot of this?
+
+Note that the `derivs` one might be hard.  In particular, for `Plant`,
+we need the light environment to compjute the derivatives, and that is
+not stored as part of the class.  So either we modify `Plant` to take
+the light environment (which simplifies the `FunctorBind1` hack a bit)
+or we just can't do this.  The downside of this is that the logic of
+when to compute physiological variables becomes hard.  Is it on set?
+Is it on request?  What if the the value is NULL/expired/etc.
+
 ### Splines
 
 We use splines for the light environment, but I have some code I'm
@@ -238,6 +250,8 @@ quite happy with that works here.  However, the reallocation is slow,
 so this is likely to find itself ported over from GSL to proper C++ at
 some point if it persists in being slow.  However, we should be able
 to do that entirely transparently.
+
+TODO: Crash if eval is called before init.
 
 ### Numerical integration (quadrature)
 
