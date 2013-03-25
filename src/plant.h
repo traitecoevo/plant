@@ -24,6 +24,7 @@ public:
   static void prepare_strategy(Strategy *s);
 
   double get_mass_leaf() const;
+  double get_height() const;
 
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.

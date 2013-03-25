@@ -60,6 +60,9 @@ void Plant::prepare_strategy(Strategy *s) {
 double Plant::get_mass_leaf() const {
   return mass_leaf;
 }
+double Plant::get_height() const {
+  return height;
+}
 
 // [eqn 1-8] Update size variables given an input leaf mass
 // 
