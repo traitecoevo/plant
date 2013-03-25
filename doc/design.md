@@ -276,6 +276,12 @@ init vs contructors
 reset, clear, etc.
 helper vs wrapper
 
+Need to decide how the ODE-related stuff gets named.  I like `size`
+for the size of the container (so Species' size should indicate how
+many individuals are there).  But at some point we might have to
+change that?  I think that the ODE system just uses the size of the
+created state, and we can get that with `push_back` if needed?
+
 # Callbacks and functors
 
 There are two basic ways that callbacks are being done --

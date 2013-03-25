@@ -2,7 +2,10 @@
 #ifndef TREE_PATCH_
 #define TREE_PATCH_
 
+#include <vector>
+
 #include "parameters.h"
+#include "species.h"
 
 namespace model {
 
@@ -16,8 +19,12 @@ public:
   ~Patch();
 
 private:
+  void set_strategies();
+
   bool standalone;
   Parameters *parameters;
+
+  std::vector< Species > species;
 };
 
 }

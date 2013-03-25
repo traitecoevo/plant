@@ -5,11 +5,13 @@ namespace model {
 Patch::Patch(Parameters p)
   : standalone(true),
     parameters(new Parameters(p)) {
+  set_strategies();
 }
 
 Patch::Patch(Parameters *p)
   : standalone(false),
-    parameters(p) { 
+    parameters(p) {
+  set_strategies();
 }
 
 Patch::Patch(const Patch &other)
@@ -19,6 +21,7 @@ Patch::Patch(const Patch &other)
     parameters = new Parameters(*other.parameters);
   else
     parameters = other.parameters;
+  set_strategies();
 }
 
 Patch& Patch::operator=(const Patch &rhs) {
@@ -29,6 +32,7 @@ Patch& Patch::operator=(const Patch &rhs) {
     parameters = new Parameters(*rhs.parameters);
   else
     parameters = rhs.parameters;
+  set_strategies();
 
   return *this;
 }
@@ -36,6 +40,18 @@ Patch& Patch::operator=(const Patch &rhs) {
 Patch::~Patch() {
   if ( standalone )
     delete parameters;
+}
+
+void Patch::set_strategies() {
+  species.clear();
+
+  // This is really ugly, and I don't know that it is correct.
+  for ( std::vector<Strategy>::iterator 
+	  it = parameters->strategies.begin();
+	it != parameters->strategies.end(); it++ ) {
+    Species s(&(*it));
+  }
+    
 }
 
 }
