@@ -79,7 +79,18 @@ could just use the index, as that is known at the correct level.
 So, the metapopulation will create a "seed pool", which is simply an
 integer of the appropriate length.  It then disperses the seeds.
 
+## Seed rain
+
+In the EBT version of the model there is the idea of "seed rain",
+which I have yet to add in.  Need to think about how this is done.
+
 ## Deaths
+
+## Births & Deaths
+
+Not sold on the names for the birth/death functions.  They are all
+going to return different types and work in different ways (some
+return bools, others modify lists and return integers, etc).
 
 ## Adding strategies, constants and standalone issues
 
@@ -315,6 +326,26 @@ created state, and we can get that with `push_back` if needed?
 Note that all `size` should return `size_t`.  However, note that Rcpp
 translates that to numeric, and not integer (to get the 64 bit
 precision, I think).
+
+## Public, private & R interface
+
+I want to test more functions than I actually want to make public, I
+think.  For example, `Patch::height_max` is not exactly bad to expose,
+but it's not really needed to define the interface either (it's
+essentially an implementation detail that only height-related models
+care about).  However, I do use this a bunch from R.  Perhaps make it
+private and provide an `r_height` method that I can access from R to
+make this separation clear?
+
+The idea will be that a `r_` function should never be called except
+for in a `r_` function or in `interface.cpp`.  All `r_` functions must
+be public, but may just be direct wrappers around private functions.
+If a public function has exactly the required interface then there is
+no `r_` function wrapper.
+
+The ordering within the header file remains public/private, but within
+the cpp file, the public `r_` functions are all kept at the bottom of
+the file.
 
 # 0-based vs 1-based indexing
 

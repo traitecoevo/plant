@@ -9,14 +9,14 @@ Patch::Patch(Parameters p)
   : standalone(true),
     parameters(new Parameters(p)),
     ode_solver(this) {
-  set_strategies();
+  initialise();
 }
 
 Patch::Patch(Parameters *p)
   : standalone(false),
     parameters(p),
     ode_solver(this) {
-  set_strategies();
+  initialise();
 }
 
 Patch::Patch(const Patch &other)
@@ -27,7 +27,7 @@ Patch::Patch(const Patch &other)
     parameters = new Parameters(*other.parameters);
   else
     parameters = other.parameters;
-  set_strategies();
+  initialise();
 }
 
 Patch& Patch::operator=(const Patch &rhs) {
@@ -41,7 +41,7 @@ Patch& Patch::operator=(const Patch &rhs) {
     parameters = new Parameters(*rhs.parameters);
   else
     parameters = rhs.parameters;
-  set_strategies();
+  initialise();
 
   return *this;
 }
@@ -51,47 +51,23 @@ Patch::~Patch() {
     delete parameters;
 }
 
-size_t Patch::size() const {
-  return species.size();
+// void Patch::step() {}
+
+// TODO: This is a hack for now, as the state setter is using the R
+// function.  Instead set_state should at least offer to take an
+// interator.
+// 
+// TODO: This should only move in state that needs changing, or update
+// things if the dimension has changed.  For now that, requires
+// knowledge about how I'm going to do things I've not decided yet.
+void Patch::step_deterministic() {
+  double time = 0.0; // TODO: Move up?  Ignore?
+  // TODO: Oh dear -- relying on an R-only function here.
+  ode_solver.set_state(r_ode_values(), time);
+  ode_solver.step();
 }
 
-double Patch::height_max() const {
-  double ret = 0.0;
-  for ( std::vector<Species>::const_iterator sp = species.begin();
-	sp != species.end(); sp++ )
-    ret = std::max(ret, sp->height_max());
-  return ret;
-}
-
-// [eqn 11] Canopy openness at `height`
-double Patch::canopy_openness(double height) {
-  double tot = 0.0;
-  for ( std::vector<Species>::const_iterator sp = species.begin();
-	sp != species.end(); sp++ )
-    tot += sp->leaf_area_above(height);
-  // NOTE: patch_area does not appear in the EBT model formulation.
-  return exp(-parameters->c_ext * tot / parameters->patch_area);
-}
-
-void Patch::compute_light_environment() {
-  // Naive version -- push out to to body of class
-  util::Functor<Patch, &Patch::canopy_openness> fun(this);
-  light_environment.set_bounds(0, height_max());
-  light_environment.set_target(&fun);
-  // TODO: should be construct(&fun, 0, height())
-  light_environment.construct_spline();
-}
-
-spline::Spline Patch::get_light_environment() const {
-  return light_environment;
-}
-
-void Patch::compute_vars_phys() {
-  for ( std::vector<Species>::iterator sp = species.begin();
-	sp != species.end(); sp++ )
-    sp->compute_vars_phys(&light_environment);
-}
-
+// * ODE interface
 void Patch::derivs(double time,
 		   std::vector<double>::const_iterator y,
 		   std::vector<double>::iterator dydt) {
@@ -102,43 +78,6 @@ void Patch::derivs(double time,
   compute_vars_phys();
 
   ode_rates(dydt);
-}
-
-
-Rcpp::List Patch::get_plants(int idx) const {
-  util::check_bounds(idx, size());
-  return species[idx].get_plants();
-}
-
-void Patch::add_seed(int idx) {
-  species[idx].add_seed();
-}
-
-void Patch::r_add_seed(int idx) {
-  util::check_bounds(idx, size());
-  add_seed(idx);
-}
-
-std::vector<double> Patch::r_get_mass_leaf(int idx) const {
-  util::check_bounds(idx, size());
-  return species[idx].r_get_mass_leaf();
-}
-
-void Patch::r_set_mass_leaf(std::vector<double> x, int idx) {
-  util::check_bounds(idx, size());
-  species[idx].r_set_mass_leaf(x);
-}
-
-void Patch::set_strategies() {
-  species.clear();
-
-  // This is really ugly.
-  for ( std::vector<Strategy>::iterator 
-	  it = parameters->strategies.begin();
-	it != parameters->strategies.end(); it++ ) {
-    Species s(&(*it)); // ugly (iterator -> object -> pointer)
-    species.push_back(s);
-  }
 }
 
 size_t Patch::ode_size() const {
@@ -170,16 +109,110 @@ ode::iter Patch::ode_rates(ode::iter it) const {
   return it;
 }
 
-// TODO: This is a hack for now.
-// 
-// TODO: This should only move in state that needs changing, or update
-// things if the dimension has changed.  For now that, requires
-// knowledge about how I'm going to do things I've not decided yet.
-void Patch::step_deterministic() {
-  double time = 0.0; // TODO: Move up?  Ignore?
-  // TODO: Oh dear -- relying on an R-only function here.
-  ode_solver.set_state(r_ode_values(), time);
-  ode_solver.step();
+// * Private functions
+
+// Sets the strategy for each species
+void Patch::initialise() {
+  species.clear();
+
+  // This feels really ugly.
+  for ( std::vector<Strategy>::iterator 
+	  it = parameters->strategies.begin();
+	it != parameters->strategies.end(); it++ ) {
+    Species s(&(*it)); // ugly (iterator -> object -> pointer)
+    species.push_back(s);
+  }
+}
+
+// Number of species
+size_t Patch::size() const {
+  return species.size();
+}
+
+// Maxiumum height for any species in the Patch.  Empty patches (no
+// species or no individuals) have height 0.
+double Patch::height_max() const {
+  double ret = 0.0;
+  for ( std::vector<Species>::const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    ret = std::max(ret, sp->height_max());
+  return ret;
+}
+
+// [eqn 11] Canopy openness at `height`
+double Patch::canopy_openness(double height) {
+  double tot = 0.0;
+  for ( std::vector<Species>::const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    tot += sp->leaf_area_above(height);
+  // NOTE: patch_area does not appear in the EBT model formulation.
+  return exp(-parameters->c_ext * tot / parameters->patch_area);
+}
+
+// Create the spline the characterises the light environment.
+void Patch::compute_light_environment() {
+  // Naive version -- push out to to body of class
+  util::Functor<Patch, &Patch::canopy_openness> fun(this);
+  light_environment.set_bounds(0, height_max());
+  light_environment.set_target(&fun);
+  // TODO: should be construct(&fun, 0, height())
+  light_environment.construct_spline();
+}
+
+// Given the light environment, "apply" it to every species so that
+// physiological variables are updated.
+void Patch::compute_vars_phys() {
+  for ( std::vector<Species>::iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    sp->compute_vars_phys(&light_environment);
+}
+
+// * R interface
+
+// Actually public functions for interrogating & modifying
+Rcpp::List Patch::r_get_plants(int idx) const {
+  util::check_bounds(idx, size());
+  return species[idx].get_plants();
+}
+
+spline::Spline Patch::r_light_environment() const {
+  return light_environment;
+}
+
+void Patch::r_add_seed(int idx) {
+  util::check_bounds(idx, size());
+  species[idx].add_seeds(1);
+}
+
+// Wrapper functions for testing
+size_t Patch::r_size() const {
+  return size();
+}
+
+double Patch::r_height_max() const {
+  return height_max();
+}
+
+double Patch::r_canopy_openness(double height) {
+  return canopy_openness(height);
+}
+
+void Patch::r_compute_light_environment() {
+  compute_light_environment();
+}
+
+void Patch::r_compute_vars_phys() {
+  compute_vars_phys();
+}
+
+std::vector<double> Patch::r_get_mass_leaf(int idx) const {
+  util::check_bounds(idx, size());
+  return species[idx].r_get_mass_leaf();
+}
+
+void Patch::r_set_mass_leaf(std::vector<double> x, int idx) {
+  util::check_bounds(idx, size());
+  species[idx].r_set_mass_leaf(x);
 }
 
 std::vector<double> Patch::r_derivs(std::vector<double> y) {

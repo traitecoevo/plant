@@ -44,7 +44,7 @@ expect_that(plants[[1]]$vars_size,
 
 ## Compute the light environment
 patch$compute_light_environment()
-env <- patch$get_light_environment()
+env <- patch$light_environment
 
 ## And compare that with the manually computed light environment
 target <- function(x) sapply(x, patch$canopy_openness)

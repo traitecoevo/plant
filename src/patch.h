@@ -20,20 +20,17 @@ public:
   Patch& operator=(const Patch &rhs);
   ~Patch();
 
-  size_t size() const;
-  double height_max() const;
+  // Advance the system through one complete time step.
+  // void step();
 
-  // [eqn 11] Canopy openness at `height`
-  // NOTE: I'd rather this was const, but that interferes with the
-  // functor code for now (TODO?)
-  double canopy_openness(double height);
+  // Advance the system through one time step deterministically
+  // (plant growth, physiological accounting)
+  void step_deterministic();
+  // Advance the system through the stochastic life cycle stages
+  // (producing seeds and dying).
+  // void step_stochastic();
 
-  // TODO: Need these be public, except for testing?  If not, prefix
-  // r_ or even test_ to be clear.
-  void compute_light_environment();
-  void compute_vars_phys();
-
-  // ODE interface.
+  // * ODE interface.
   void derivs(double time,
 	      std::vector<double>::const_iterator y,
 	      std::vector<double>::iterator dydt);
@@ -42,25 +39,44 @@ public:
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
-  void step_deterministic();
+  // * R interface.
 
-  // Births
-  void add_seed(int idx);
+  // Actually public functions for interrogating & modifying
+  Rcpp::List r_get_plants(int idx) const; // TODO: return all?
+  spline::Spline r_light_environment() const;
+  void r_add_seed(int idx); // TODO: May change?
 
-  // Interface & wrappers
-  Rcpp::List get_plants(int idx) const;
-  spline::Spline get_light_environment() const;
+  // Wrapper functions for testing
+  size_t r_size() const;
+  double r_height_max() const;
+  double r_canopy_openness(double height);
+  void r_compute_light_environment();
+  void r_compute_vars_phys();
 
-  void r_add_seed(int idx);
-
-  // This is likely to change as more is written.
+  // TODO: This is likely to change as more is written.
   std::vector<double> r_get_mass_leaf(int idx) const;
   void r_set_mass_leaf(std::vector<double> x, int idx);
-
+  
+  // This will move into the OdeTarget
   std::vector<double> r_derivs(std::vector<double> y);
 
 private:
-  void set_strategies();
+  // Basically, initialise (rename as such?)
+  void initialise();
+
+  // Number of species
+  size_t size() const;
+
+  // Maximum height for any species in the Patch
+  double height_max() const;
+
+  // [eqn 11] Canopy openness at `height`
+  // NOTE: I'd rather this was const, but that interferes with the
+  // functor code for now (TODO?)
+  double canopy_openness(double height);
+
+  void compute_light_environment();
+  void compute_vars_phys();
 
   bool standalone;
   Parameters *parameters;
