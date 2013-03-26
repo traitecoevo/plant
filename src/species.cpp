@@ -66,8 +66,9 @@ bool Species::died() {
   return any_died;
 }
 
-void Species::add_seed() {
-  plants.push_back(seed);
+void Species::add_seeds(int n) {
+  for ( ; n > 0; n-- )
+    plants.push_back(seed);
 }
 
 Rcpp::List Species::get_plants() const {

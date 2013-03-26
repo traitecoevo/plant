@@ -39,7 +39,7 @@ public:
   // Try and get everything.
   Rcpp::List get_plants() const;
 
-  void add_seed();
+  void add_seeds(int n);
 
   // This is likely to change as more is written, as we'll have to set
   // leaf mass directly anyway.  However, the check within will
