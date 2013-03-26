@@ -48,6 +48,8 @@ public:
   void r_set_mass_leaf(std::vector<double> x);
 
 private:
+  void disperse_self();
+
   Strategy *strategy;
   Plant seed;
   std::list<Plant> plants;

@@ -127,6 +127,9 @@ ode::iter Species::ode_rates(ode::iter it) const {
   return it;
 }
 
+void Species::disperse_self() {
+  add_seeds(offspring());
+}
 
 
 }

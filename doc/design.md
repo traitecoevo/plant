@@ -76,6 +76,9 @@ I might try and do dispersal through a map object with the pointer to
 the relevant strategy and the number of seeds.  Alternatively, we
 could just use the index, as that is known at the correct level.
 
+So, the metapopulation will create a "seed pool", which is simply an
+integer of the appropriate length.  It then disperses the seeds.
+
 ## Deaths
 
 ## Adding strategies, constants and standalone issues
