@@ -30,6 +30,12 @@ public:
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
+  // * Births
+  int offspring();
+  
+  // * Deaths
+  bool died();
+
   // Try and get everything.
   Rcpp::List get_plants() const;
 

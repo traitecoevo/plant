@@ -35,6 +35,29 @@ void Species::compute_vars_phys(spline::Spline *light_environment) {
     it->compute_vars_phys(light_environment);
 }
 
+int Species::offspring() {
+  int born = 0;
+  for ( std::list<Plant>::iterator it = plants.begin();
+	it != plants.end(); it++ )
+    born += it->offspring();
+  return born;
+}
+
+bool Species::died() {
+  bool any_died = false;
+  std::list<Plant>::iterator it = plants.begin();
+  while ( it != plants.end() ) {
+    if ( it->died() ) {
+      any_died = true;
+      it = plants.erase(it); // increments iterator
+    } else {
+      it++;
+    }
+  }
+
+  return any_died;
+}
+
 void Species::add_seed() {
   Plant p(strategy);
   plants.push_back(p);
