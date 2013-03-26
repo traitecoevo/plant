@@ -31,11 +31,11 @@ test_valgrind_leak: all tests/valgrind-saved.supp
 # 
 # This just loads R and the packages that we use; any error there
 # cannot be our fault, so we can safely ignore them.
-tests/valgrind-saved.supp: all
+tests/valgrind-saved.supp:
 	cd tests; R -d '${VALGRIND} ${VALGRIND_LEAK} ${VALGRIND_SUPP}'  \
 		--slave --vanilla -e "library(testthat); library(Rcpp)" \
 		${VALGRIND_FD}> valgrind.out
 	cd tests; ./trim_valgrind.py
 	cat tests/valgrind.supp >> tests/valgrind-saved.supp
 
-.PHONY: clean test test_valgrind test_valgrind_leak
+.PHONY: all clean test test_valgrind test_valgrind_leak
