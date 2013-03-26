@@ -170,6 +170,11 @@ ode::iter Patch::ode_rates(ode::iter it) const {
   return it;
 }
 
+// TODO: This is a hack for now.
+// 
+// TODO: This should only move in state that needs changing, or update
+// things if the dimension has changed.  For now that, requires
+// knowledge about how I'm going to do things I've not decided yet.
 void Patch::step_deterministic() {
   double time = 0.0; // TODO: Move up?  Ignore?
   // TODO: Oh dear -- relying on an R-only function here.

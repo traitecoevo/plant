@@ -76,6 +76,8 @@ I might try and do dispersal through a map object with the pointer to
 the relevant strategy and the number of seeds.  Alternatively, we
 could just use the index, as that is known at the correct level.
 
+## Deaths
+
 ## Adding strategies, constants and standalone issues
 
 Where should strategies be added?  The two most basic options seem to

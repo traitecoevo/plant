@@ -188,6 +188,21 @@ double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
     return assimilation_leaf(env->eval(x)) * q(x);
 }
 
+// * Births
+int Plant::offspring() {
+  double born = 0;
+  if ( fecundity > 1 )
+    fecundity = modf(fecundity, &born);
+  return born;
+}
+
+// * Deaths
+bool Plant::died() {
+  const int did_die = unif_rand() > exp(-mortality);
+  mortality = 0.0;
+  return did_die;
+}
+
 // [eqn 13] Total maintenance respiration
 // 
 // (NOTE that there is a reparametrisation here relative to the paper

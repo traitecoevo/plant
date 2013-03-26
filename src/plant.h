@@ -56,6 +56,12 @@ public:
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 
+  // * Births
+  int offspring();
+
+  // * Deaths
+  bool died();
+
   // ODE interface
   size_t ode_size() const { return ode_dimension; }
 
