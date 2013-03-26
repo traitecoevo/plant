@@ -49,6 +49,7 @@ public:
 
 private:
   Strategy *strategy;
+  Plant seed;
   std::list<Plant> plants;
 };
 

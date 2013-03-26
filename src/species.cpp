@@ -4,10 +4,18 @@
 
 namespace model {
 
-Species::Species() : strategy(NULL) { 
+// TODO: I'm a bit wary of the impact of seed(NULL) here, especially
+// if a copy constructor is triggered, but also just in general.  It
+// would be nice if we could just skip this contructor entirely, but
+// it is apparently necessary for something in Patch, I think.
+Species::Species() : 
+  strategy(NULL),
+  seed(strategy) {
 }
 
-Species::Species(Strategy *s) : strategy(s) {
+Species::Species(Strategy *s) : 
+  strategy(s),
+  seed(strategy) {
 }
 
 size_t Species::size() const {
@@ -59,8 +67,7 @@ bool Species::died() {
 }
 
 void Species::add_seed() {
-  Plant p(strategy);
-  plants.push_back(p);
+  plants.push_back(seed);
 }
 
 Rcpp::List Species::get_plants() const {
