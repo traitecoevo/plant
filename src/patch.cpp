@@ -188,25 +188,4 @@ std::vector<double> Patch::r_derivs(std::vector<double> y) {
   return dydt;
 }
 
-void Patch::r_ode_values_set(std::vector<double> y) {
-  // TODO: this check into utils.
-  if ( y.size() != ode_size() )
-    Rf_error("Incorrect size input (expected %d, recieved %d)",
-	     ode_size(), y.size());
-  bool changed = false;
-  ode_values_set(y.begin(), changed);
-}
-
-std::vector<double> Patch::r_ode_values() const {
-  std::vector<double> values(ode_size());
-  ode_values(values.begin());
-  return values;
-}
-
-std::vector<double> Patch::r_ode_rates() const {
-  std::vector<double> rates(ode_size());
-  ode_rates(rates.begin());
-  return rates;
-}
-
 }

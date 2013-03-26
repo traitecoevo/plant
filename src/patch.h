@@ -4,14 +4,14 @@
 
 #include <vector>
 
+#include "ode_target.h"
+#include "adaptive_spline.h"
 #include "parameters.h"
 #include "species.h"
-#include "adaptive_spline.h"
-#include "ode_solver.h"
 
 namespace model {
 
-class Patch {
+class Patch : public ode::OdeTarget {
 public:
   Patch(Parameters p);
   Patch(Parameters *p);
@@ -58,9 +58,6 @@ public:
   void r_set_mass_leaf(std::vector<double> x, int idx);
 
   std::vector<double> r_derivs(std::vector<double> y);
-  void r_ode_values_set(std::vector<double> y);
-  std::vector<double> r_ode_values() const;
-  std::vector<double> r_ode_rates() const;
 
 private:
   void set_strategies();

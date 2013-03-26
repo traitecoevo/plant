@@ -341,7 +341,6 @@ ode::iter Plant::ode_rates(ode::iter it) const {
   return it;
 }
 
-
 Rcpp::NumericVector Plant::r_get_vars_size() const {
   using namespace Rcpp;
   return NumericVector::create(_["mass_leaf"]=mass_leaf,
@@ -381,23 +380,6 @@ Rcpp::List Plant::r_get_parameters() const {
 
 void Plant::r_compute_vars_phys(spline::Spline env) {
   compute_vars_phys(&env);
-}
-
-void Plant::r_ode_values_set(std::vector<double> y) {
-  bool changed = false;  
-  ode_values_set(y.begin(), changed);
-}
-
-std::vector<double> Plant::r_ode_values() const {
-  std::vector<double> values(ode_size);
-  ode_values(values.begin());
-  return values;
-}
-
-std::vector<double> Plant::r_ode_rates() const {
-  std::vector<double> rates(ode_size);
-  ode_rates(rates.begin());
-  return rates;
 }
 
 }

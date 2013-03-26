@@ -4,7 +4,7 @@
 
 #include <Rcpp.h>
 
-#include "ode_solver.h"
+#include "ode_target.h"
 #include "integrator.h"
 #include "strategy.h"
 #include "spline.h"
@@ -12,7 +12,7 @@
 
 namespace model {
     
-class Plant {
+class Plant : public ode::OdeTarget {
 public:
   Plant(Strategy  s);
   Plant(Strategy *s);
@@ -57,14 +57,14 @@ public:
   double assimilation_leaf(double x) const;
 
   // ODE interface
-  static const size_t ode_size = 3;
+  size_t ode_size() const { return ode_dimension; }
+
   ode::iter_const ode_values_set(ode::iter_const it, bool &changed);
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
-  void r_ode_values_set(std::vector<double> y);
-  std::vector<double> r_ode_values() const;
-  std::vector<double> r_ode_rates() const;
+  // However, I also use this from Species.
+  static const size_t ode_dimension = 3;
 
 private:
   // * Individual size

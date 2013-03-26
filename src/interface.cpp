@@ -4,6 +4,7 @@
 #include "adaptive_spline.h"
 #include "adaptive_spline_r.h"
 
+#include "ode_target.h"
 #include "lorenz.h"
 #include "ode_r.h"
 
@@ -47,6 +48,13 @@ RCPP_MODULE(tree) {
     .method("run",        &ode::test::Lorenz::ode_r_run)
     ;
 
+  Rcpp::class_<ode::OdeTarget>("OdeTarget")
+    .method("ode_values_set", &ode::OdeTarget::r_ode_values_set)
+    .property("ode_values",   &ode::OdeTarget::r_ode_values)
+    .property("ode_rates",    &ode::OdeTarget::r_ode_rates)
+    .property("ode_size",     &ode::OdeTarget::ode_size)
+    ;
+
   Rcpp::class_<ode::OdeR>("OdeR")
     .constructor<SEXP,SEXP,SEXP>()
     .method("derivs",     &ode::OdeR::r_derivs)
@@ -82,10 +90,9 @@ RCPP_MODULE(tree) {
     .method("set_strategy",   &model::Parameters::set_strategy)
     ;
 
-  // Pending: get_values, set_values, get_rates (for ODE)
-  //          derivs (for R ODE)
   Rcpp::class_<model::Plant>("Plant")
     .constructor<model::Strategy>()
+    .derives<util::Lookup>("OdeTarget")
     .method("set_mass_leaf",        &model::Plant::set_mass_leaf)
     // Leaf distribution (external interface)
     .method("leaf_area_above",      &model::Plant::leaf_area_above)
@@ -100,14 +107,11 @@ RCPP_MODULE(tree) {
     .method("compute_assimilation", &model::Plant::r_compute_assimilation)
     .method("compute_assimilation_x", &model::Plant::r_compute_assimilation_x)
     .method("compute_vars_phys",    &model::Plant::r_compute_vars_phys)
-    // ODE interface
-    .method("ode_values_set",       &model::Plant::r_ode_values_set)
-    .property("ode_values",         &model::Plant::r_ode_values)
-    .property("ode_rates",          &model::Plant::r_ode_rates)
     ;
 
   Rcpp::class_<model::Patch>("Patch")
     .constructor<model::Parameters>()
+    .derives<util::Lookup>("OdeTarget")
     .property("size",             &model::Patch::size)
     .property("height_max",       &model::Patch::height_max)
     .method("canopy_openness",    &model::Patch::canopy_openness)
@@ -120,10 +124,6 @@ RCPP_MODULE(tree) {
     .method("add_seed",           &model::Patch::r_add_seed)
     .method("get_mass_leaf",      &model::Patch::r_get_mass_leaf)
     .method("set_mass_leaf",      &model::Patch::r_set_mass_leaf)
-    .property("ode_size",         &model::Patch::ode_size)
-    .method("ode_values_set",     &model::Patch::r_ode_values_set)
-    .method("ode_values",         &model::Patch::r_ode_values)
-    .method("ode_rates",          &model::Patch::r_ode_rates)
     .method("derivs",             &model::Patch::r_derivs)
     .method("step_deterministic", &model::Patch::step_deterministic)
     ;

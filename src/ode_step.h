@@ -4,11 +4,9 @@
 #define TREE_ODE_STEP_H_
 
 #include <vector>
+#include "ode_target.h"
 
 namespace ode {
-
-typedef std::vector<double>::const_iterator iter_const;
-typedef std::vector<double>::iterator       iter;
 
 template <class Problem>
 class Step {
@@ -29,8 +27,6 @@ public:
   Problem *problem;
 
 private:
-
-
   // Intermediate storage, representing state (was GSL rkck_state_t)
   double size;
   std::vector<double> k1, k2, k3, k4, k5, k6, ytmp;

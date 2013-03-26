@@ -1,6 +1,6 @@
 SOURCES_MODEL  = strategy.cpp parameters.cpp plant.cpp species.cpp patch.cpp
 SOURCES_SPLINE = spline.cpp adaptive_spline.cpp adaptive_spline_r.cpp
-SOURCES_ODE    = ode_control.cpp lorenz.cpp ode_r.cpp
+SOURCES_ODE    = ode_target.cpp ode_control.cpp lorenz.cpp ode_r.cpp
 SOURCES_R      = interface.cpp
 SOURCES_UTIL   = util.cpp lookup.cpp find_root.cpp functor.cpp \
 	integrator.cpp

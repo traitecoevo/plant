@@ -73,9 +73,9 @@ expect_that(plants[[1]]$vars_phys,
 ## One species, one individual
 expect_that(patch$ode_size, equals(3))
 
-y <- patch$ode_values()
+y <- patch$ode_values
 expect_that(y, is_identical_to(c(pi, 0, 0)))
-dydt <- patch$ode_rates()
+dydt <- patch$ode_rates
 
 cmp.dydt <- unname(cmp$vars_phys[c("growth_rate", "mortality_rate",
                                    "fecundity_rate")])
@@ -84,7 +84,7 @@ expect_that(dydt, is_identical_to(cmp.dydt))
 expect_that(patch$derivs(y), is_identical_to(dydt))
 
 patch$step_deterministic()
-y.new <- patch$ode_values()
+y.new <- patch$ode_values
 expect_that(all(y.new > y), is_true())
 
 ## Now, wrap up the plant as a new derivatives function:

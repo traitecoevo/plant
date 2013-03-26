@@ -72,7 +72,7 @@ void Species::r_set_mass_leaf(std::vector<double> x) {
 }
 
 size_t Species::ode_size() const {
-  return size() * Plant::ode_size;
+  return size() * Plant::ode_dimension;
 }
 
 ode::iter_const Species::ode_values_set(ode::iter_const it, bool &changed) {

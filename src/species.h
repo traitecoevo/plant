@@ -4,14 +4,15 @@
 
 #include <list>
 
+#include "ode_target.h"
 #include "ode_solver.h"
+#include "spline.h"
 #include "strategy.h"
 #include "plant.h"
-#include "spline.h"
 
 namespace model {
 
-class Species {
+class Species : public ode::OdeTarget {
 public:
   Species();
   Species(Strategy *s);
