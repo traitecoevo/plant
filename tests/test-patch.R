@@ -81,7 +81,7 @@ cmp.dydt <- unname(cmp$vars_phys[c("growth_rate", "mortality_rate",
                                    "fecundity_rate")])
 expect_that(dydt, is_identical_to(cmp.dydt))
 
-expect_that(patch$derivs(y), is_identical_to(dydt))
+expect_that(patch$derivs(0.0, y), is_identical_to(dydt))
 
 patch$step_deterministic()
 y.new <- patch$ode_values
@@ -89,7 +89,7 @@ expect_that(all(y.new > y), is_true())
 
 ## Now, wrap up the plant as a new derivatives function:
 derivs <- function(t, y, pars)
-  pars$derivs(y)
+  pars$derivs(t, y)
 
 tt <- seq(0, 15, length=51)
 obj <- new(OdeR, derivs, new.env(), patch)

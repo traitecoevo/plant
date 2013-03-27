@@ -49,10 +49,11 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<ode::OdeTarget>("OdeTarget")
+    .method("derivs",         &ode::OdeTarget::r_derivs)
+    .property("ode_size",     &ode::OdeTarget::ode_size)
     .method("ode_values_set", &ode::OdeTarget::r_ode_values_set)
     .property("ode_values",   &ode::OdeTarget::r_ode_values)
     .property("ode_rates",    &ode::OdeTarget::r_ode_rates)
-    .property("ode_size",     &ode::OdeTarget::ode_size)
     ;
 
   Rcpp::class_<ode::OdeR>("OdeR")
@@ -124,7 +125,6 @@ RCPP_MODULE(tree) {
     .method("add_seed",           &model::Patch::r_add_seed)
     .method("get_mass_leaf",      &model::Patch::r_get_mass_leaf)
     .method("set_mass_leaf",      &model::Patch::r_set_mass_leaf)
-    .method("derivs",             &model::Patch::r_derivs)
     .method("step_deterministic", &model::Patch::step_deterministic)
     ;
 

@@ -57,9 +57,6 @@ public:
   std::vector<double> r_get_mass_leaf(int idx) const;
   void r_set_mass_leaf(std::vector<double> x, int idx);
   
-  // This will move into the OdeTarget
-  std::vector<double> r_derivs(std::vector<double> y);
-
 private:
   // Basically, initialise (rename as such?)
   void initialise();

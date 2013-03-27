@@ -3,6 +3,20 @@
 
 namespace ode {
 
+void OdeTarget::derivs(double time, iter_const y, iter dydt) {
+  Rf_error("derivs method not implemented");
+}
+
+std::vector<double> OdeTarget::r_derivs(double time, 
+					std::vector<double> y) {
+  if ( y.size() != ode_size() )
+    Rf_error("Incorrect size input (expected %d, recieved %d)",
+	     ode_size(), y.size());
+  std::vector<double> dydt(y.size());
+  derivs(time, y.begin(), dydt.begin());
+  return dydt;
+}
+
 bool OdeTarget::r_ode_values_set(std::vector<double> y) {
   if ( y.size() != ode_size() )
     Rf_error("Incorrect size input (expected %d, recieved %d)",

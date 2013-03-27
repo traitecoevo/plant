@@ -215,15 +215,4 @@ void Patch::r_set_mass_leaf(std::vector<double> x, int idx) {
   species[idx].r_set_mass_leaf(x);
 }
 
-std::vector<double> Patch::r_derivs(std::vector<double> y) {
-  // TODO: this check into utils.
-  if ( y.size() != ode_size() )
-    Rf_error("Incorrect size input (expected %d, recieved %d)",
-	     ode_size(), y.size());
-  std::vector<double> dydt(y.size());
-  const double time = 0.0; // always zero here.
-  derivs(time, y.begin(), dydt.begin());
-  return dydt;
-}
-
 }
