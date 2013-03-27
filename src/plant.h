@@ -22,25 +22,11 @@ public:
   Plant& operator=(const Plant &rhs);
   ~Plant();
 
-  static void prepare_strategy(Strategy *s);
-
-  double get_mass_leaf() const;
   double get_height() const;
 
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
   void set_mass_leaf(double mass_leaf_);
-
-  // * Mass production
-  // [eqn 12-19,21] Update physiological variables
-  void compute_vars_phys(spline::Spline *env);
-
-  Rcpp::NumericVector r_get_vars_size() const;
-  Rcpp::NumericVector r_get_vars_phys() const;
-  double r_compute_assimilation(spline::Spline env) const;
-  double r_compute_assimilation_x(double x, spline::Spline env) const;
-  Rcpp::List r_get_parameters() const;
-  void r_compute_vars_phys(spline::Spline env);
 
   // * Competitive environment
   // [eqn  9] Probability density of leaf area at height `z`
@@ -53,24 +39,32 @@ public:
   double leaf_area_above(double z) const;
 
   // * Mass production
+  // [eqn 12-19,21] Update physiological variables
+  void compute_vars_phys(spline::Spline *env);
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 
-  // * Births
+  // * Births and deaths
   int offspring();
-
-  // * Deaths
   bool died();
 
-  // ODE interface
-  size_t ode_size() const { return ode_dimension; }
-
+  // * ODE interface
+  size_t ode_size() const;
   ode::iter_const ode_values_set(ode::iter_const it, bool &changed);
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
-  // However, I also use this from Species.
-  static const size_t ode_dimension = 3;
+  // * Set constants within Strategy
+  static void prepare_strategy(Strategy *s);
+
+  // * R interface
+  double r_get_mass_leaf() const;
+  Rcpp::NumericVector r_get_vars_size() const;
+  Rcpp::NumericVector r_get_vars_phys() const;
+  Rcpp::List r_get_parameters() const;
+  void r_compute_vars_phys(spline::Spline env);
+  double r_compute_assimilation(spline::Spline env) const;
+  double r_compute_assimilation_x(double x, spline::Spline env) const;
 
 private:
   // * Individual size
@@ -127,6 +121,8 @@ private:
   // State variables resulting from integration of the corresponding
   // *_rate variables (fecundity_rate and mortality_rate).
   double fecundity, mortality;
+
+  static const int ode_dimension = 3;
 };
 
 // To prepare for the integration in `compute_assimilation` we need to

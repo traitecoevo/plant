@@ -86,7 +86,7 @@ void Species::disperse_self() {
 
 // * ODE interface
 size_t Species::ode_size() const {
-  return size() * Plant::ode_dimension;
+  return size() * seed.ode_size();
 }
 
 ode::iter_const Species::ode_values_set(ode::iter_const it, bool &changed) {
@@ -115,7 +115,7 @@ std::vector<double> Species::r_get_mass_leaf() const {
   std::vector<double> ret;
   std::list<Plant>::const_iterator p = plants.begin(); 
   while ( p != plants.end() )
-    ret.push_back((p++)->get_mass_leaf());
+    ret.push_back((p++)->r_get_mass_leaf());
   return ret;
 }
 
