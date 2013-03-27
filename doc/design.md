@@ -347,6 +347,10 @@ The ordering within the header file remains public/private, but within
 the cpp file, the public `r_` functions are all kept at the bottom of
 the file.
 
+One reason for this is that many input-taking R-exposed function needs
+to check arguments in a way that the compiled code need not do (e.g.,
+checking bounds before accessing containers.
+
 # 0-based vs 1-based indexing
 
 There are a few R-based functions that modify things.  At the moment

@@ -18,6 +18,38 @@ Species::Species(Strategy *s) :
   seed(strategy) {
 }
 
+// Compute the number of offspring that will be born by asking all
+// individuals how many offspring they will have.
+// 
+// NOTE: called a second time, this will always return zero, as the
+// act of asking plants about how many offspring they have causes them
+// to have them.  This may change?
+int Species::births() {
+  int born = 0;
+  for ( std::list<Plant>::iterator it = plants.begin();
+	it != plants.end(); it++ )
+    born += it->offspring();
+  return born;
+}
+
+// Check to see if individuals have died and remove them from the
+// Species.
+int Species::deaths() {
+  int died = 0;
+  std::list<Plant>::iterator it = plants.begin();
+  while ( it != plants.end() ) {
+    if ( it->died() ) {
+      died++;
+      it = plants.erase(it); // will advance iterator
+    } else {
+      it++;
+    }
+  }
+
+  return died;
+}
+
+// * Lower level functions, used by Patch
 size_t Species::size() const {
   return plants.size();
 }
@@ -43,65 +75,16 @@ void Species::compute_vars_phys(spline::Spline *light_environment) {
     it->compute_vars_phys(light_environment);
 }
 
-int Species::offspring() {
-  int born = 0;
-  for ( std::list<Plant>::iterator it = plants.begin();
-	it != plants.end(); it++ )
-    born += it->offspring();
-  return born;
-}
-
-bool Species::died() {
-  bool any_died = false;
-  std::list<Plant>::iterator it = plants.begin();
-  while ( it != plants.end() ) {
-    if ( it->died() ) {
-      any_died = true;
-      it = plants.erase(it); // increments iterator
-    } else {
-      it++;
-    }
-  }
-
-  return any_died;
-}
-
 void Species::add_seeds(int n) {
   for ( ; n > 0; n-- )
     plants.push_back(seed);
 }
 
-Rcpp::List Species::get_plants() const {
-  Rcpp::List ret;
-  for ( std::list<Plant>::const_iterator it = plants.begin();
-	it != plants.end(); it++ )
-    ret.push_back(Rcpp::wrap(*it));
-  return ret;
+void Species::disperse_self() {
+  add_seeds(births());
 }
 
-std::vector<double> Species::r_get_mass_leaf() const { 
-  std::vector<double> ret;
-  std::list<Plant>::const_iterator p = plants.begin(); 
-  while ( p != plants.end() )
-    ret.push_back((p++)->get_mass_leaf());
-  return ret;
-}
-
-// NOTE: Roll back on error is not possible here at present.
-void Species::r_set_mass_leaf(std::vector<double> x) {
-  if ( x.size() != size() )
-    Rf_error("Unexpected size of mass_leaf: expected %d, recieved %d",
-	     size(), x.size());
-  if ( !util::is_decreasing(x.begin(), x.end()) )
-    Rf_error("mass_leaf must be decreasing (ties allowed)");
-  std::vector<double>::iterator it = x.begin();
-  std::list<Plant>::iterator p = plants.begin();
-  while ( p != plants.end() ) {
-    p->set_mass_leaf(*it++);
-    p++;
-  }
-}
-
+// * ODE interface
 size_t Species::ode_size() const {
   return size() * Plant::ode_dimension;
 }
@@ -127,9 +110,36 @@ ode::iter Species::ode_rates(ode::iter it) const {
   return it;
 }
 
-void Species::disperse_self() {
-  add_seeds(offspring());
+// * R interface
+std::vector<double> Species::r_get_mass_leaf() const { 
+  std::vector<double> ret;
+  std::list<Plant>::const_iterator p = plants.begin(); 
+  while ( p != plants.end() )
+    ret.push_back((p++)->get_mass_leaf());
+  return ret;
 }
 
+// NOTE: Roll back on error is not possible here at present.
+void Species::r_set_mass_leaf(std::vector<double> x) {
+  if ( x.size() != size() )
+    Rf_error("Unexpected size of mass_leaf: expected %d, recieved %d",
+	     size(), x.size());
+  if ( !util::is_decreasing(x.begin(), x.end()) )
+    Rf_error("mass_leaf must be decreasing (ties allowed)");
+  std::vector<double>::iterator it = x.begin();
+  std::list<Plant>::iterator p = plants.begin();
+  while ( p != plants.end() ) {
+    p->set_mass_leaf(*it++);
+    p++;
+  }
+}
+
+Rcpp::List Species::r_get_plants() const {
+  Rcpp::List ret;
+  for ( std::list<Plant>::const_iterator it = plants.begin();
+	it != plants.end(); it++ )
+    ret.push_back(Rcpp::wrap(*it));
+  return ret;
+}
 
 }

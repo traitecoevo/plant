@@ -172,7 +172,7 @@ void Patch::compute_vars_phys() {
 // Actually public functions for interrogating & modifying
 Rcpp::List Patch::r_get_plants(int idx) const {
   util::check_bounds(idx, size());
-  return species[idx].get_plants();
+  return species[idx].r_get_plants();
 }
 
 spline::Spline Patch::r_light_environment() const {
