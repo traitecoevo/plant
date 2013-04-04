@@ -6,31 +6,30 @@ namespace model {
 
 Plant::Plant(Strategy s)
   : standalone(true),
-    strategy(new Strategy(s)),
-    mass_leaf(NA_REAL),
-    // other size variables initialised below
-    // TODO: Value of 0.0 not ideal.
-    assimilation(0.0),
-    respiration(0.0),
-    turnover(0.0),
-    net_production(0.0),
-    reproduction_fraction(0.0),
-    fecundity_rate(0.0),
-    leaf_fraction(0.0),
-    growth_rate(0.0),
-    mortality_rate(0.0),
-    fecundity(0.0),
-    mortality(0.0) {
+    strategy(new Strategy(s)) {
   prepare_strategy(strategy);
   set_mass_leaf(strategy->mass_leaf_0);
 }
 
 Plant::Plant(Strategy *s)
   : standalone(false),
-    strategy(s),
-    mass_leaf(NA_REAL),
-    // other size variables initialised below
-    // TODO: Value of 0.0 not ideal.
+    strategy(s) {
+  set_mass_leaf(strategy->mass_leaf_0);
+}
+
+// TODO: Value of 0.0 not ideal, but allows more easy comparison.
+// A value of NA_REAL would be better, but this requires that '=='
+// won't work sensibly on freshly-produced plants.
+Plant::internals::internals() 
+  : mass_leaf(NA_REAL),
+    leaf_area(NA_REAL),
+    height(NA_REAL),
+    mass_sapwood(NA_REAL),
+    mass_bark(NA_REAL),
+    mass_heartwood(NA_REAL),
+    mass_root(NA_REAL),
+    mass_total(NA_REAL),
+    // TODO: Not sure about these being zero
     assimilation(0.0),
     respiration(0.0),
     turnover(0.0),
@@ -40,39 +39,14 @@ Plant::Plant(Strategy *s)
     leaf_fraction(0.0),
     growth_rate(0.0),
     mortality_rate(0.0),
-    fecundity(0.0),
-    mortality(0.0) {
-  set_mass_leaf(strategy->mass_leaf_0);
-}
+    // But these should be zero
+    mortality(0.0),
+    fecundity(0.0) {}
 
-// NOTE: there is some almost-duplication between this and the
-// assignment operator, in that all members are accessed.  If adding a
-// member here, add one there.
 Plant::Plant(const Plant &other)
   : standalone(other.standalone),
     strategy(standalone ? new Strategy(*other.strategy) : other.strategy),
-    // Size members...
-    mass_leaf(other.mass_leaf),
-    leaf_area(other.leaf_area),
-    height(other.height),
-    mass_sapwood(other.mass_sapwood),
-    mass_bark(other.mass_bark),
-    mass_heartwood(other.mass_heartwood),
-    mass_root(other.mass_root),
-    mass_total(other.mass_total),
-    // Physiological members...
-    assimilation(other.assimilation),
-    respiration(other.respiration),
-    turnover(other.turnover),
-    net_production(other.net_production),
-    reproduction_fraction(other.reproduction_fraction),
-    fecundity_rate(other.fecundity_rate),
-    leaf_fraction(other.leaf_fraction),
-    growth_rate(other.growth_rate),
-    mortality_rate(other.mortality_rate),
-    // Other members
-    fecundity(other.fecundity),
-    mortality(other.mortality) { 
+    vars(other.vars) {
 }
 
 Plant& Plant::operator=(Plant rhs) {
@@ -96,6 +70,13 @@ bool Plant::operator==(const Plant &rhs) {
     && standalone == rhs.standalone
     // TODO: Ideally we would delve into Strategy here, but done yet.
     && (standalone || strategy == rhs.strategy)
+    && vars == rhs.vars
+    ;
+  return ret;
+}
+
+bool Plant::internals::operator==(const Plant::internals &rhs) {
+  const bool ret = true
     // Size members...
     && mass_leaf      == rhs.mass_leaf
     && leaf_area      == rhs.leaf_area
@@ -124,7 +105,7 @@ bool Plant::operator==(const Plant &rhs) {
 }
 
 double Plant::get_height() const {
-  return height;
+  return vars.height;
 }
 
 // [eqn 1-8] Update size variables given an input leaf mass
@@ -144,41 +125,41 @@ void Plant::set_mass_leaf(double mass_leaf_) {
 // [eqn  9] Probability density of leaf area at height `z`
 double Plant::q(double z) const {
   const double eta = strategy->eta;
-  const double tmp = pow(z / height, eta);
+  const double tmp = pow(z / vars.height, eta);
   return 2 * eta * (1 - tmp) * tmp / z;
 }
 
 // [eqn 10] ... Fraction of leaf area above height 'z' for an
 //              individual of height 'height'
 double Plant::Q(double z) const {
-  if ( z > height )
+  if ( z > vars.height )
     return 0.0;
-  const double tmp = 1.0-pow(z/height, strategy->eta);
+  const double tmp = 1.0-pow(z / vars.height, strategy->eta);
   return tmp * tmp;
 }
 
 // (inverse of [eqn 10]; return the height above which fraction 'x' of
 // the leaf mass would be found).
 double Plant::Qp(double x) const { // x in [0,1], unchecked.
-  return pow(1 - sqrt(x), (1/strategy->eta)) * height;
+  return pow(1 - sqrt(x), (1/strategy->eta)) * vars.height;
 }
 
 // [      ] Leaf area (not fraction) above height `z`
 double Plant::leaf_area_above(double z) const {
-  return leaf_area * Q(z);
+  return vars.leaf_area * Q(z);
 }
 
 // [eqn 12-19,21] Update physiological variables given the current
 // light environment (and given the current set of size variables).
 void Plant::compute_vars_phys(spline::Spline *env) {
   // [eqn 12] Gross annual CO2 assimilation
-  assimilation = compute_assimilation(env);
+  vars.assimilation = compute_assimilation(env);
 
   // [eqn 13] Total maintenance respiration
-  respiration = compute_respiration();
+  vars.respiration = compute_respiration();
 
   // [eqn 14] Total turnover 
-  turnover = compute_turnover();
+  vars.turnover = compute_turnover();
 
   // [eqn 15] Net production
   // 
@@ -186,40 +167,42 @@ void Plant::compute_vars_phys(spline::Spline *env) {
   // `net_primary_production` is EBT's N, our `net_production` is
   // EBT's P.
   const double net_primary_production = 
-    strategy->c_bio * strategy->Y * (assimilation - respiration);
-  net_production = net_primary_production - turnover;
+    strategy->c_bio * strategy->Y * (vars.assimilation - vars.respiration);
+  vars.net_production = net_primary_production - vars.turnover;
 
-  if ( net_production > 0 ) {
+  if ( vars.net_production > 0 ) {
     // [eqn 16] - Fraction of whole plant growth that is leaf
-    reproduction_fraction = compute_reproduction_fraction();
+    const double rf = compute_reproduction_fraction();
+    vars.reproduction_fraction = rf;
 
     // [eqn 17] - Rate of offspring production
     // 
     // NOTE: In EBT, was multiplied by Pi_0 (survival during
     // dispersal), but we do not here.
-    fecundity_rate = net_production * reproduction_fraction /
+    vars.fecundity_rate = vars.net_production * rf /
       (strategy->c_acc * strategy->s);
 
     // [eqn 18] - Fraction of mass growth in leaves
-    leaf_fraction = compute_leaf_fraction();
+    vars.leaf_fraction = compute_leaf_fraction();
 
     // [eqn 19] - Growth rate in leaf mass
-    growth_rate = net_production * (1 - reproduction_fraction) *
-      leaf_fraction;
+    vars.growth_rate = vars.net_production * (1 - rf) *
+      vars.leaf_fraction;
   } else {
-    reproduction_fraction = 0.0;
-    fecundity_rate        = 0.0;
-    leaf_fraction         = 0.0; // or NA?
-    growth_rate           = 0.0;
+    vars.reproduction_fraction = 0.0;
+    vars.fecundity_rate        = 0.0;
+    vars.leaf_fraction         = 0.0;
+    vars.growth_rate           = 0.0;
   }
 
   // [eqn 21] - Instantaneous mortality rate
   //
   // Composed of a wood density effect (term involving c_d0) and a
   // growth effect (term involving c_d2)
-  mortality_rate = 
+  vars.mortality_rate = 
     strategy->c_d0 * exp(-strategy->c_d1 * strategy->rho) +
-    strategy->c_d2 * exp(-strategy->c_d3 * net_production / leaf_area);
+    strategy->c_d2 * exp(-strategy->c_d3 * 
+			 vars.net_production / vars.leaf_area);
 }
 
 // [Appendix S6] Per-leaf photosynthetic rate.
@@ -231,14 +214,14 @@ double Plant::assimilation_leaf(double x) const {
 // * Births and deaths
 int Plant::offspring() {
   double born = 0;
-  if ( fecundity > 1 )
-    fecundity = modf(fecundity, &born);
+  if ( vars.fecundity > 1 )
+    vars.fecundity = modf(vars.fecundity, &born);
   return born;
 }
 
 bool Plant::died() {
-  const int did_die = unif_rand() > exp(-mortality);
-  mortality = 0.0;
+  const int did_die = unif_rand() > exp(-vars.mortality);
+  vars.mortality = 0.0;
   return did_die;
 }
 
@@ -249,89 +232,63 @@ size_t Plant::ode_size() const {
 
 ode::iter_const Plant::ode_values_set(ode::iter_const it, bool &changed) {
   const double m = *it++;
-  const bool new_value = mass_leaf != m;
+  const bool new_value = vars.mass_leaf != m;
   changed = changed || new_value;
   if ( new_value )
     set_mass_leaf(m);
 
-  mortality = *it++;
-  fecundity = *it++;
+  vars.mortality = *it++;
+  vars.fecundity = *it++;
 
   return it;
 }
 
 ode::iter Plant::ode_values(ode::iter it) const {
-  *it++ = mass_leaf;
-  *it++ = mortality;
-  *it++ = fecundity;
+  *it++ = vars.mass_leaf;
+  *it++ = vars.mortality;
+  *it++ = vars.fecundity;
   return it;
 }
 
 ode::iter Plant::ode_rates(ode::iter it) const {
-  *it++ = growth_rate;
-  *it++ = mortality_rate;
-  *it++ = fecundity_rate;
+  *it++ = vars.growth_rate;
+  *it++ = vars.mortality_rate;
+  *it++ = vars.fecundity_rate;
   return it;
 }
 
 // * Private methods
 
-// NOTE: there is some almost-duplication between this and the copy
-// constructor, in that all members are accessed.  If adding a member
-// here, add one there.
 void swap(Plant &a, Plant &b) {
   using std::swap;
-  // Swap strategy members...
   swap(a.standalone,     b.standalone);
   swap(a.strategy,       b.strategy);
-  // ...size members...
-  swap(a.mass_leaf,      b.mass_leaf);
-  swap(a.leaf_area,      b.leaf_area);
-  swap(a.height,         b.height);
-  swap(a.mass_sapwood,   b.mass_sapwood);
-  swap(a.mass_bark,      b.mass_bark);
-  swap(a.mass_heartwood, b.mass_heartwood);
-  swap(a.mass_root,      b.mass_root);
-  swap(a.mass_total,     b.mass_total);
-  // ...physiological members...
-  swap(a.assimilation,   b.assimilation);
-  swap(a.respiration,    b.respiration);
-  swap(a.turnover,       b.turnover);
-  swap(a.net_production, b.net_production);
-  swap(a.reproduction_fraction, b.reproduction_fraction);
-  swap(a.fecundity_rate, b.fecundity_rate);
-  swap(a.leaf_fraction,  b.leaf_fraction);
-  swap(a.growth_rate,    b.growth_rate);
-  swap(a.mortality_rate, b.mortality_rate);
-  // ...and "other" members...
-  swap(a.fecundity,      b.fecundity);
-  swap(a.mortality,      b.mortality);
+  swap(a.vars,           b.vars);
 }
 
 // * Individual size
 // [eqn 1-8] Update size variables to a new leaf mass.
 void Plant::compute_vars_size(double mass_leaf_) {
-  if ( mass_leaf_ <= 0.0 )
-    Rf_error("mass_leaf must be positive");
   // [eqn 1] Leaf mass
-  mass_leaf = mass_leaf_;
+  vars.mass_leaf = mass_leaf_;
   // [eqn 2] Leaf area
-  leaf_area = mass_leaf / strategy->lma;
+  vars.leaf_area = vars.mass_leaf / strategy->lma;
   // [eqn 3] Height
-  height = strategy->a1*pow(leaf_area, strategy->B1);
+  vars.height = strategy->a1*pow(vars.leaf_area, strategy->B1);
   // [eqn 4] Mass of sapwood
-  mass_sapwood =   strategy->rho / strategy->theta *
-    strategy->a1 * strategy->eta_c * pow(leaf_area, 1 + strategy->B1);
+  vars.mass_sapwood =   strategy->rho / strategy->theta *
+    strategy->a1 * strategy->eta_c * pow(vars.leaf_area, 1 + strategy->B1);
   // [eqn 5] Mass of bark
-  mass_bark = strategy->b * mass_sapwood;
+  vars.mass_bark = strategy->b * vars.mass_sapwood;
   // [eqn 6] Mass of heartwood
-  mass_heartwood = strategy->rho * strategy->eta_c * strategy->a2 *
-    pow(leaf_area, strategy->B2);
+  vars.mass_heartwood = strategy->rho * strategy->eta_c * strategy->a2 *
+    pow(vars.leaf_area, strategy->B2);
   // [eqn 7] Mass of (fine) roots
-  mass_root = strategy->a3 * leaf_area;
+  vars.mass_root = strategy->a3 * vars.leaf_area;
   // [eqn 8] Total mass
-  mass_total =
-    mass_leaf + mass_sapwood + mass_bark + mass_heartwood + mass_root;
+  vars.mass_total =
+    vars.mass_leaf + vars.mass_sapwood + vars.mass_bark + 
+    vars.mass_heartwood + vars.mass_root;
 }
 
 // [eqn 12] Gross annual CO2 assimilation
@@ -346,8 +303,9 @@ double Plant::compute_assimilation(spline::Spline *env) const {
   const double atol = 1e-6, rtol = 1e-6;
   const int max_iterations = 1000;
   util::Integrator integrator(atol, rtol, max_iterations);
-  const double x_max = strategy->assimilation_over_distribution ? 1 : height;
-  return leaf_area * integrator.integrate(&fun, 0.0, x_max);
+  const double x_max = strategy->assimilation_over_distribution ? 
+    1 : vars.height;
+  return vars.leaf_area * integrator.integrate(&fun, 0.0, x_max);
 }
 
 // This is used in the calculation of assimilation by
@@ -370,10 +328,10 @@ double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
 // NOTE: In contrast with EBT, we do not normalise by Y*c_bio.
 double Plant::compute_respiration() const {
   return
-    strategy->c_Rl * leaf_area * strategy->n_area +
-    strategy->c_Rs * mass_sapwood / strategy->rho +
-    strategy->c_Rb * mass_bark    / strategy->rho +
-    strategy->c_Rr * mass_root;
+    strategy->c_Rl * vars.leaf_area * strategy->n_area +
+    strategy->c_Rs * vars.mass_sapwood / strategy->rho +
+    strategy->c_Rb * vars.mass_bark    / strategy->rho +
+    strategy->c_Rr * vars.mass_root;
 }
 
 // [eqn 14] Total turnover
@@ -382,15 +340,15 @@ double Plant::compute_respiration() const {
 // `prepare_strategy`).
 double Plant::compute_turnover() const {
   return
-    mass_leaf * strategy->k_l  +
-    mass_bark * strategy->k_b  +
-    mass_root * strategy->k_r;
+    vars.mass_leaf * strategy->k_l  +
+    vars.mass_bark * strategy->k_b  +
+    vars.mass_root * strategy->k_r;
 }
 
 // [eqn 16] Fraction of whole plan growth that is leaf
 double Plant::compute_reproduction_fraction() const {
   return strategy->c_r1 / (1.0 + exp(strategy->c_r2 *
-				     (1.0 - height/strategy->hmat)));
+				     (1.0 - vars.height/strategy->hmat)));
 }
 
 // [eqn 18] Fraction of mass growth that is leaves
@@ -403,9 +361,9 @@ double Plant::compute_leaf_fraction() const {
   const Strategy *s = strategy; // for brevity.
   return 1.0/(1.0 + s->a3/s->lma +
 	      (s->rho / s->theta * s->a1 * s->eta_c * (1.0 +s->b) *
-	       (1.0+s->B1) * pow(leaf_area, s->B1) / s->lma +
+	       (1.0+s->B1) * pow(vars.leaf_area, s->B1) / s->lma +
 	       s->rho * s->a2 * s->eta_c * s->B2 *
-	       pow(leaf_area, s->B2-1) / s->lma));
+	       pow(vars.leaf_area, s->B2-1) / s->lma));
 }
 
 // NOTE: static method
@@ -430,7 +388,7 @@ double Plant::mass_leaf_seed(Strategy *s) {
 // NOTE: This is used only by mass_leaf_seed.
 double Plant::compute_mass_total(double x) {
   set_mass_leaf(x);
-  return mass_total;
+  return vars.mass_total;
 }
 
 // NOTE: static method.
@@ -443,32 +401,33 @@ void Plant::prepare_strategy(Strategy *s) {
 // * R interface
 
 double Plant::r_get_mass_leaf() const {
-  return mass_leaf;
+  return vars.mass_leaf;
 }
 
 Rcpp::NumericVector Plant::r_get_vars_size() const {
   using namespace Rcpp;
-  return NumericVector::create(_["mass_leaf"]=mass_leaf,
-			       _["mass_sapwood"]=mass_sapwood,
-			       _["mass_bark"]=mass_bark,
-			       _["mass_heartwood"]=mass_heartwood,
-			       _["mass_root"]=mass_root,
-			       _["mass_total"]=mass_total,
-			       _["height"]=height,
-			       _["leaf_area"]=leaf_area);
+  return NumericVector::create(_["mass_leaf"]=vars.mass_leaf,
+			       _["mass_sapwood"]=vars.mass_sapwood,
+			       _["mass_bark"]=vars.mass_bark,
+			       _["mass_heartwood"]=vars.mass_heartwood,
+			       _["mass_root"]=vars.mass_root,
+			       _["mass_total"]=vars.mass_total,
+			       _["height"]=vars.height,
+			       _["leaf_area"]=vars.leaf_area);
 }
 
 Rcpp::NumericVector Plant::r_get_vars_phys() const {
   using namespace Rcpp;
-  return NumericVector::create(_["assimilation"]=assimilation,
-			       _["respiration"]=respiration,
-			       _["turnover"]=turnover,
-			       _["net_production"]=net_production,
-			       _["reproduction_fraction"]=reproduction_fraction,
-			       _["fecundity_rate"]=fecundity_rate,
-			       _["leaf_fraction"]=leaf_fraction,
-			       _["growth_rate"]=growth_rate,
-			       _["mortality_rate"]=mortality_rate);
+  return NumericVector::create(_["assimilation"]=vars.assimilation,
+			       _["respiration"]=vars.respiration,
+			       _["turnover"]=vars.turnover,
+			       _["net_production"]=vars.net_production,
+			       _["reproduction_fraction"]=
+			       vars.reproduction_fraction,
+			       _["fecundity_rate"]=vars.fecundity_rate,
+			       _["leaf_fraction"]=vars.leaf_fraction,
+			       _["growth_rate"]=vars.growth_rate,
+			       _["mortality_rate"]=vars.mortality_rate);
 }
 
 Rcpp::List Plant::r_get_parameters() const {

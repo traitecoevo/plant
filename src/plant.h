@@ -95,37 +95,44 @@ private:
   static double mass_leaf_seed(Strategy *s);
   double compute_mass_total(double m_);
 
+  // To simplify my life, I'm making a small internal-only class that
+  // contains some implementation details here.  This is going to
+  // simplify the assignment operator / copy constructor etc.
+
+  class internals {
+  public:
+    internals();
+    bool operator==(const Plant::internals &rhs);
+    // * Individual size
+    // Mass of leaves.  This is the core independent variable
+    double mass_leaf;      // [eqn 1]
+    // Other size variables that follow directly from `mass_leaf`:
+    double leaf_area;      // [eqn 2]
+    double height;         // [eqn 3]
+    double mass_sapwood;   // [eqn 4]
+    double mass_bark;      // [eqn 5]
+    double mass_heartwood; // [eqn 6]
+    double mass_root;      // [eqn 7] (fine roots)
+    double mass_total;     // [eqn 8]
+    // * Mass production
+    double assimilation;   // [eqn 12] Gross annual CO2 assimilation
+    double respiration;    // [eqn 13] Total maintenance respiration
+    double turnover;       // [eqn 14] Total turnover
+    double net_production; // [eqn 15] Net production
+    double reproduction_fraction; // [eqn 16]
+    double fecundity_rate; // [eqn 17] Rate of offspring production
+    double leaf_fraction;  // [eqn 18] Fraction of mass growth that is leaves
+    double growth_rate;    // [eqn 19] Growth rate in leaf mass
+    // * Mortality
+    double mortality_rate; // [eqn 21]
+    // * Variables
+    double mortality;
+    double fecundity;
+  };
+
   bool standalone;
   Strategy *strategy;
-
-  // * Individual size
-  // Mass of leaves.  This is the core independent variable
-  double mass_leaf;      // [eqn 1]
-  // Other size variables that follow directly from `mass_leaf`:
-  double leaf_area;      // [eqn 2]
-  double height;         // [eqn 3]
-  double mass_sapwood;   // [eqn 4]
-  double mass_bark;      // [eqn 5]
-  double mass_heartwood; // [eqn 6]
-  double mass_root;      // [eqn 7] (fine roots)
-  double mass_total;     // [eqn 8]
-
-  // * Mass production
-  double assimilation;   // [eqn 12] Gross annual CO2 assimilation
-  double respiration;    // [eqn 13] Total maintenance respiration
-  double turnover;       // [eqn 14] Total turnover
-  double net_production; // [eqn 15] Net production
-  double reproduction_fraction; // [eqn 16]
-  double fecundity_rate; // [eqn 17] Rate of offspring production
-  double leaf_fraction;  // [eqn 18] Fraction of mass growth that is leaves
-  double growth_rate;    // [eqn 19] Growth rate in leaf mass
-
-  // * Mortality
-  double mortality_rate; // [eqn 21]
-
-  // State variables resulting from integration of the corresponding
-  // *_rate variables (fecundity_rate and mortality_rate).
-  double fecundity, mortality;
+  internals vars;
 
   static const int ode_dimension = 3;
 };
