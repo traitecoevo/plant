@@ -135,4 +135,5 @@ RCPP_MODULE(tree) {
   Rcpp::function("test_integrator", &util::test::test_integrator);
   Rcpp::function("test_adaptive_spline", 
 		 &spline::test::test_adaptive_spline);
+  Rcpp::function("test_plant",      &model::test::test_plant);
 }

@@ -8,6 +8,17 @@ Plant::Plant(Strategy s)
   : standalone(true),
     strategy(new Strategy(s)),
     mass_leaf(NA_REAL),
+    // other size variables initialised below
+    // TODO: Value of 0.0 not ideal.
+    assimilation(0.0),
+    respiration(0.0),
+    turnover(0.0),
+    net_production(0.0),
+    reproduction_fraction(0.0),
+    fecundity_rate(0.0),
+    leaf_fraction(0.0),
+    growth_rate(0.0),
+    mortality_rate(0.0),
     fecundity(0.0),
     mortality(0.0) {
   prepare_strategy(strategy);
@@ -18,61 +29,98 @@ Plant::Plant(Strategy *s)
   : standalone(false),
     strategy(s),
     mass_leaf(NA_REAL),
+    // other size variables initialised below
+    // TODO: Value of 0.0 not ideal.
+    assimilation(0.0),
+    respiration(0.0),
+    turnover(0.0),
+    net_production(0.0),
+    reproduction_fraction(0.0),
+    fecundity_rate(0.0),
+    leaf_fraction(0.0),
+    growth_rate(0.0),
+    mortality_rate(0.0),
     fecundity(0.0),
     mortality(0.0) {
   set_mass_leaf(strategy->mass_leaf_0);
 }
 
+// NOTE: there is some almost-duplication between this and the
+// assignment operator, in that all members are accessed.  If adding a
+// member here, add one there.
 Plant::Plant(const Plant &other)
-  : standalone(other.standalone) {
-  Rprintf("Plant copy constructor\n");
-  if ( standalone )
-    strategy = new Strategy(*other.strategy);
-  else
-    strategy = other.strategy;
-
-  // I don't like this very much, but it will have to do for now.
-  mass_leaf      = other.mass_leaf;
-  leaf_area      = other.leaf_area;
-  height         = other.height;
-  mass_sapwood   = other.mass_sapwood;
-  mass_bark      = other.mass_bark;
-  mass_heartwood = other.mass_heartwood;
-  mass_root      = other.mass_root;
-  mass_total     = other.mass_total;
-  // And keep going [not sure if these should ever be copied though]
-  assimilation   = other.assimilation;
-  respiration    = other.respiration;
-  turnover       = other.turnover;
-  net_production = other.net_production;
-  reproduction_fraction = other.reproduction_fraction;
-  fecundity_rate = other.fecundity_rate;
-  leaf_fraction  = other.leaf_fraction;
-  growth_rate    = other.growth_rate;
-  mortality_rate = other.mortality_rate;
-  // And going.
-  fecundity = other.fecundity;
-  mortality = other.mortality;
-  // TODO: This set of assignments is not done for the assignment
-  // operator.
+  : standalone(other.standalone),
+    strategy(standalone ? new Strategy(*other.strategy) : other.strategy),
+    // Size members...
+    mass_leaf(other.mass_leaf),
+    leaf_area(other.leaf_area),
+    height(other.height),
+    mass_sapwood(other.mass_sapwood),
+    mass_bark(other.mass_bark),
+    mass_heartwood(other.mass_heartwood),
+    mass_root(other.mass_root),
+    mass_total(other.mass_total),
+    // Physiological members...
+    assimilation(other.assimilation),
+    respiration(other.respiration),
+    turnover(other.turnover),
+    net_production(other.net_production),
+    reproduction_fraction(other.reproduction_fraction),
+    fecundity_rate(other.fecundity_rate),
+    leaf_fraction(other.leaf_fraction),
+    growth_rate(other.growth_rate),
+    mortality_rate(other.mortality_rate),
+    // Other members
+    fecundity(other.fecundity),
+    mortality(other.mortality) { 
 }
 
-Plant& Plant::operator=(const Plant &rhs) {
-  Rprintf("Plant assigmnent operator\n");
-  // TODO: Violates DRY - must be some way of doing both.  This will
-  // get more important once the state attributes have been added.
-  standalone = rhs.standalone;
-  if ( standalone )
-    strategy = new Strategy(*rhs.strategy);
-  else
-    strategy = rhs.strategy;
-
+Plant& Plant::operator=(Plant rhs) {
+  swap(*this, rhs);
   return *this;
 }
 
 Plant::~Plant() {
   if ( standalone )
     delete strategy;
+}
+
+// NOTE: This is essentially only used for testing.
+// NOTE: The semantics around comparing Strategy are ill-defined for
+// the standalone case.
+bool Plant::operator==(const Plant &rhs) {
+  if ( standalone && strategy == rhs.strategy )
+    Rf_error("This is going to end badly.");
+    
+  const bool ret = true
+    && standalone == rhs.standalone
+    // TODO: Ideally we would delve into Strategy here, but done yet.
+    && (standalone || strategy == rhs.strategy)
+    // Size members...
+    && mass_leaf      == rhs.mass_leaf
+    && leaf_area      == rhs.leaf_area
+    && height         == rhs.height
+    && mass_sapwood   == rhs.mass_sapwood
+    && mass_bark      == rhs.mass_bark
+    && mass_heartwood == rhs.mass_heartwood
+    && mass_root      == rhs.mass_root
+    && mass_total     == rhs.mass_total
+    // // ...physiological members...
+    && assimilation   == rhs.assimilation
+    && respiration    == rhs.respiration
+    && turnover       == rhs.turnover
+    && net_production == rhs.net_production
+    && reproduction_fraction == rhs.reproduction_fraction
+    && fecundity_rate == rhs.fecundity_rate
+    && leaf_fraction  == rhs.leaf_fraction
+    && growth_rate    == rhs.growth_rate
+    && mortality_rate == rhs.mortality_rate
+    // // ...and "other" members...
+    && fecundity      == rhs.fecundity
+    && mortality      == rhs.mortality
+    ;  
+
+  return ret;
 }
 
 double Plant::get_height() const {
@@ -227,6 +275,38 @@ ode::iter Plant::ode_rates(ode::iter it) const {
 }
 
 // * Private methods
+
+// NOTE: there is some almost-duplication between this and the copy
+// constructor, in that all members are accessed.  If adding a member
+// here, add one there.
+void swap(Plant &a, Plant &b) {
+  using std::swap;
+  // Swap strategy members...
+  swap(a.standalone,     b.standalone);
+  swap(a.strategy,       b.strategy);
+  // ...size members...
+  swap(a.mass_leaf,      b.mass_leaf);
+  swap(a.leaf_area,      b.leaf_area);
+  swap(a.height,         b.height);
+  swap(a.mass_sapwood,   b.mass_sapwood);
+  swap(a.mass_bark,      b.mass_bark);
+  swap(a.mass_heartwood, b.mass_heartwood);
+  swap(a.mass_root,      b.mass_root);
+  swap(a.mass_total,     b.mass_total);
+  // ...physiological members...
+  swap(a.assimilation,   b.assimilation);
+  swap(a.respiration,    b.respiration);
+  swap(a.turnover,       b.turnover);
+  swap(a.net_production, b.net_production);
+  swap(a.reproduction_fraction, b.reproduction_fraction);
+  swap(a.fecundity_rate, b.fecundity_rate);
+  swap(a.leaf_fraction,  b.leaf_fraction);
+  swap(a.growth_rate,    b.growth_rate);
+  swap(a.mortality_rate, b.mortality_rate);
+  // ...and "other" members...
+  swap(a.fecundity,      b.fecundity);
+  swap(a.mortality,      b.mortality);
+}
 
 // * Individual size
 // [eqn 1-8] Update size variables to a new leaf mass.
@@ -405,6 +485,48 @@ double Plant::r_compute_assimilation(spline::Spline env) const {
 
 double Plant::r_compute_assimilation_x(double x, spline::Spline env) const {
   return compute_assimilation_x(x, &env);
+}
+
+namespace test {
+
+bool test_plant(Strategy s, bool copy, bool ptr) {
+  double mass1 = 1.0;
+  double mass2 = 2.0;
+  bool ok;
+
+  // There is a huge amount of duplication here, but it's largely
+  // unavoidable without missing out on doing what I want to do.
+  if ( ptr ) {
+    Plant::prepare_strategy(&s); // need to set constants!
+    Plant p1(&s);
+    p1.set_mass_leaf(mass1);
+
+    if ( copy ) {
+      Plant p2(p1);
+      ok = p1 == p2;
+    } else {
+      Plant p2(&s);
+      p2.set_mass_leaf(mass2);
+      p2 = p1;
+      ok = p1 == p2;
+    }
+  } else {
+    Plant p1(s);
+    p1.set_mass_leaf(mass1);
+
+    if ( copy ) {
+      Plant p2(p1);
+      ok = p1 == p2;
+    } else {
+      Plant p2(s);
+      p2.set_mass_leaf(mass2);
+      p2 = p1;
+      ok = p1 == p2;
+    }
+  }
+  return ok;
+}
+
 }
 
 }

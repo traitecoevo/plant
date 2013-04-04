@@ -207,3 +207,9 @@ expect_that(t(obj$run(tt, y)),
 ## Delete the plant -- should not crash.
 rm(p)
 gc()
+
+## Test copy and assignment on standalone and non-standalone plants
+expect_that(tree_module$test_plant(s, FALSE, FALSE), is_true())
+expect_that(tree_module$test_plant(s, TRUE,  FALSE), is_true())
+expect_that(tree_module$test_plant(s, FALSE, TRUE),  is_true())
+expect_that(tree_module$test_plant(s, TRUE,  TRUE),  is_true())

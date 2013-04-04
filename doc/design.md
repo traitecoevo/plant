@@ -23,6 +23,28 @@ However, a "cohort" will actually contain two individuals (top and
 middle), and as a result they will provide different numbers of rates
 back to the ODE solvers, etc.
 
+### Components of Plant
+
+It might be worth creating a data type that contains the guts of plant
+(physiological variables, size variables, etc) to avoid the
+duplication through the initialisation, copy construction, etc.
+
+### Cohort
+
+Previously, the key bits of cohort change were:
+
+* Mass of average and top individual (mu, bound)
+* Density of individuals at the first time
+* Survival at the top of the cohort
+* Lifetime seed production at cohort boundary
+* Seed output
+* Number of individuals
+* Density of largest individuals at the first time
+
+We must be able to push new cohorts onto a list.  Probably to match
+the individual based model, we should push on the back.
+
+
 ## Species 
 
 Above the level of species, there are two places that "species"
@@ -158,6 +180,16 @@ I have now had to add default values for the four core traits, too,
 otherwise we get cryptic errors when trying to compute the initial
 leaf mass.  It doesn't really make much sense to make a strategy that
 doesn't know it's lma, so this seems OK.
+
+### Initialising constants
+
+This should be done by anything that takes a `Strategy` object (rather
+than a pointer).  It will be copied, so there is no danger.  This will
+be the same as things that are "standalone".  However, when a
+`Parameters` is made, can we assume that this has taken care of
+sorting this out for us?  In general, this issue is a bit of a design
+wart.  But given the dependencies and trying to avoid a circular
+dependency.  Not sure how I can do this better though.
 
 ## Functions within plant
 

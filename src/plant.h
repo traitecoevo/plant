@@ -11,7 +11,7 @@
 #include "functor.h"
 
 namespace model {
-    
+
 class Plant : public ode::OdeTarget {
 public:
   Plant(Strategy  s);
@@ -19,8 +19,11 @@ public:
 
   // Copy constructor, assigment and destructor (rule of three)
   Plant(const Plant &other);
-  Plant& operator=(const Plant &rhs);
+  Plant& operator=(Plant rhs);
   ~Plant();
+
+  // Equivalence operator
+  bool operator==(const Plant &rhs);
 
   double get_height() const;
 
@@ -67,6 +70,8 @@ public:
   double r_compute_assimilation_x(double x, spline::Spline env) const;
 
 private:
+  friend void swap(Plant &a, Plant &b);
+
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
   void compute_vars_size(double mass_leaf_);
@@ -124,6 +129,11 @@ private:
 
   static const int ode_dimension = 3;
 };
+
+namespace test {
+bool test_plant(Strategy s, bool copy, bool ptr);
+}
+
 
 // To prepare for the integration in `compute_assimilation` we need to
 // convert the function `compute_assimilation_x(double, util::Spline*)
