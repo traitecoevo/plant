@@ -1,4 +1,5 @@
-SOURCES_MODEL  = strategy.cpp parameters.cpp plant.cpp species.cpp patch.cpp
+SOURCES_MODEL  = strategy.cpp parameters.cpp plant.cpp species.cpp \
+	cohort.cpp patch.cpp
 SOURCES_SPLINE = spline.cpp adaptive_spline.cpp adaptive_spline_r.cpp
 SOURCES_ODE    = ode_target.cpp ode_control.cpp lorenz.cpp ode_r.cpp
 SOURCES_R      = interface.cpp
