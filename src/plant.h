@@ -21,6 +21,7 @@ public:
   Plant(const Plant &other);
   Plant& operator=(Plant rhs);
   ~Plant();
+  friend void swap(Plant &a, Plant &b);
 
   // Equivalence operator
   bool operator==(const Plant &rhs);
@@ -70,8 +71,6 @@ public:
   double r_compute_assimilation_x(double x, spline::Spline env) const;
 
 private:
-  friend void swap(Plant &a, Plant &b);
-
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
   void compute_vars_size(double mass_leaf_);

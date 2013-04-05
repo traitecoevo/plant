@@ -261,9 +261,9 @@ ode::iter Plant::ode_rates(ode::iter it) const {
 
 void swap(Plant &a, Plant &b) {
   using std::swap;
-  swap(a.standalone,     b.standalone);
-  swap(a.strategy,       b.strategy);
-  swap(a.vars,           b.vars);
+  swap(a.standalone, b.standalone);
+  swap(a.strategy,   b.strategy);
+  swap(a.vars,       b.vars);
 }
 
 // * Individual size
