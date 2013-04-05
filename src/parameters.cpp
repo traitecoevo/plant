@@ -1,5 +1,4 @@
 #include "util.h"   // check_bounds
-#include "plant.h"  // prepare_strategy
 
 #include "parameters.h"
 
@@ -25,7 +24,6 @@ void Parameters::reset() {
 void Parameters::add_strategy(Rcpp::List x) {
   Strategy s;
   s.set_parameters(x);
-  Plant::prepare_strategy(&s);
   strategies.push_back(s);
 }
 
@@ -49,7 +47,6 @@ Rcpp::List Parameters::get_strategies() {
 void Parameters::set_strategy(Rcpp::List x, int idx) {
   util::check_bounds(idx, strategies.size());
   strategies[idx].set_parameters(x);
-  Plant::prepare_strategy(&strategies[idx]);
 }
 
 void Parameters::do_build_lookup() {

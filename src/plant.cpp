@@ -7,7 +7,6 @@ namespace model {
 Plant::Plant(Strategy s)
   : standalone(true),
     strategy(new Strategy(s)) {
-  prepare_strategy(strategy);
   set_mass_leaf(strategy->mass_leaf_0);
 }
 
@@ -456,7 +455,6 @@ bool test_plant(Strategy s, bool copy, bool ptr) {
   // There is a huge amount of duplication here, but it's largely
   // unavoidable without missing out on doing what I want to do.
   if ( ptr ) {
-    Plant::prepare_strategy(&s); // need to set constants!
     Plant p1(&s);
     p1.set_mass_leaf(mass1);
 
