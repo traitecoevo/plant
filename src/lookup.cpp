@@ -26,8 +26,6 @@ void Lookup::set_parameters(Rcpp::List x) {
 }
 
 void Lookup::build_lookup() {
-  // The first condition detects copies, the second detects that the
-  // list was never built.
   if ( addr != this ) {
     do_build_lookup();
     addr = this;

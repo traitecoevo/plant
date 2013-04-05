@@ -39,7 +39,16 @@
 // construction so that `addr != this` forcing a build of the table.
 // Likewise, on copy, `addr != this`, because it points at the object
 // that was the *source* object, forcing a rebuild (similarly for
-// assignment).
+// assignment).  These rebuilds are deferred until the lookup table is
+// used (through get_parameters() and set_parameters()) so will be
+// skipped for temporary copies created by pass-by-value, etc.
+//
+// In addition, derived classes can optionally provide a function
+// set_parameters_post_hook(), which will be run after
+// set_parameters().  This is used by `Strategy` to compute some
+// constants.  At present, no information is available on which
+// parameters changed, so if this is an expensive and frequent
+// operation this might not be optimal.
 
 namespace util {
 
@@ -57,9 +66,9 @@ protected:
   virtual void set_parameters_post_hook() {}
 
 private:
-  void build_lookup(); // used on construction
+  void build_lookup();
   double* lookup(std::string key) const;
-  Lookup* addr;
+  Lookup* addr; // used to detect copy and trigger lookup table rebuild
 };
 
 }
