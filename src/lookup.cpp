@@ -22,6 +22,7 @@ void Lookup::set_parameters(Rcpp::List x) {
     double *tmp = lookup(names[i]);
     *tmp = Rcpp::as<double>(x[i]);
   }
+  set_parameters_post_hook();
 }
 
 void Lookup::build_lookup() {
