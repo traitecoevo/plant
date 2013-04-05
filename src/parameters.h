@@ -7,6 +7,12 @@
 #include "lookup.h"
 #include "strategy.h"
 
+// NOTE: Most of the interface decisions here are around interaction
+// with R via Rcpp; written in plain C++ this is a really simple class
+// with a vector of strategies and a couple of simulation-wide
+// parameters.  As such, it might change quite a bit as the model
+// evolves.
+
 namespace model {
 
 class Parameters : public util::Lookup {
@@ -21,7 +27,7 @@ public:
   Rcpp::List get_strategies();
 
   // Setting
-  void add_strategy(Rcpp::List x);
+  void add_strategy(Strategy s);
   void set_strategy(Rcpp::List x, int idx);
 
   // Data

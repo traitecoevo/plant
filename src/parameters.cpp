@@ -19,11 +19,7 @@ void Parameters::reset() {
   strategies.clear();
 }
 
-// TODO: Should this take a Strategy instead (symmetry with
-// get_strategy?).  What is easiest?
-void Parameters::add_strategy(Rcpp::List x) {
-  Strategy s;
-  s.set_parameters(x);
+void Parameters::add_strategy(Strategy s) {
   strategies.push_back(s);
 }
 

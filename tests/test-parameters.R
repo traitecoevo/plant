@@ -28,8 +28,8 @@ expect_that(p$get_parameters(), is_identical_to(expected.s))
 expect_that(p$get_strategy(0L), throws_error())
 expect_that(p$get_strategy(10), throws_error())
 
-## Add a strategy:
-p$add_strategy(list())
+## Add a (default) strategy:
+p$add_strategy(new(Strategy))
 
 expect_that(p$size, is_identical_to(1L))
 ## Should not have changed any parameters
@@ -55,7 +55,7 @@ expect_that(length(res), equals(1))
 expect_that(res[[1]]$get_parameters(), is_identical_to(cmp.mod))
 
 ## Add another strategy
-p$add_strategy(list())
+p$add_strategy(new(Strategy))
 expect_that(p$size, is_identical_to(2L))
 expect_that(p$get_strategy(1L)$get_parameters(), is_identical_to(cmp))
 res <- p$get_strategies()

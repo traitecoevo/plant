@@ -4,7 +4,7 @@ options(error=traceback)
 context("Patch")
 
 p <- new(Parameters)
-p$add_strategy(list())
+p$add_strategy(new(Strategy))
 
 ## A plant that will be the same in terms of strategy (and initial
 ## mass).
