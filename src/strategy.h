@@ -12,6 +12,7 @@ namespace model {
 class Strategy : public util::Lookup {
 public:
   Strategy();
+  Strategy(Rcpp::List x);
 
   // All the rest of the class can be accessed only by Plant.
   friend class Plant;

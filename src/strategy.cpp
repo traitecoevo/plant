@@ -8,6 +8,11 @@ Strategy::Strategy() {
   set_parameters_post_hook();
 }
 
+Strategy::Strategy(Rcpp::List x) {
+  reset();
+  set_parameters(x);
+}
+
 void Strategy::reset() {
   // * Core traits
   lma  = 0.1978791;
@@ -39,8 +44,8 @@ void Strategy::reset() {
   // Ratio of leaf dark respiration to leaf nitrogen mass
   // [mol CO2 / kgN / yr] (6.66e-4 * (365*24*60*60))
   c_Rl   = 2.1e4;
-  // Root respiration per mass
-  c_Rr   = 217;                 //mol CO2 / kg /yr
+  // Root respiration per mass [mol CO2 / kg / yr]
+  c_Rr   = 217;
   // Sapwood respiration per stem volume [mol CO2 / m3 / yr]
   c_Rs   = 4012;
   // Bark respiration per stem volume [mol CO2 / m3 / yr]
@@ -103,41 +108,47 @@ void Strategy::reset() {
 }
 
 void Strategy::do_build_lookup() {
-  lookup_table["lma"] = &lma;
-  lookup_table["hmat"] = &hmat;
-  lookup_table["rho"] = &rho;
-  lookup_table["s"] = &s;
-  lookup_table["eta"] = &eta;
-  lookup_table["theta"] = &theta;
-  lookup_table["a1"] = &a1;
-  lookup_table["B1"] = &B1;
-  lookup_table["a2"] = &a2;
-  lookup_table["B2"] = &B2;
-  lookup_table["a3"] = &a3;
-  lookup_table["b"]  = &b;
-  lookup_table["a4"] = &a4;
-  lookup_table["B4"] = &B4;
+  lookup_table["lma"]    = &lma;
+  lookup_table["hmat"]   = &hmat;
+  lookup_table["rho"]    = &rho;
+  lookup_table["s"]      = &s;
+  lookup_table["eta"]    = &eta;
+  lookup_table["theta"]  = &theta;
+  lookup_table["a1"]     = &a1;
+  lookup_table["B1"]     = &B1;
+  lookup_table["a2"]     = &a2;
+  lookup_table["B2"]     = &B2;
+  lookup_table["a3"]     = &a3;
+  lookup_table["b"]      = &b;
+  lookup_table["a4"]     = &a4;
+  lookup_table["B4"]     = &B4;
   lookup_table["n_area"] = &n_area;
-  lookup_table["c_p1"] = &c_p1;
-  lookup_table["c_p2"] = &c_p2;
-  lookup_table["c_Rl"] = &c_Rl;
-  lookup_table["c_Rs"] = &c_Rs;
-  lookup_table["c_Rb"] = &c_Rb;
-  lookup_table["c_Rr"] = &c_Rr;
-  lookup_table["k_b"] = &k_b;
-  lookup_table["k_r"] = &k_r;
-  lookup_table["Y"] = &Y;
-  lookup_table["c_bio"] = &c_bio;
-  lookup_table["c_acc"] = &c_acc;
-  lookup_table["c_r1"] = &c_r1;
-  lookup_table["c_r2"] = &c_r2;
-  lookup_table["Pi_0"] = &Pi_0;
-  lookup_table["c_s0"] = &c_s0;
-  lookup_table["c_d0"] = &c_d0;
-  lookup_table["c_d1"] = &c_d1;
-  lookup_table["c_d2"] = &c_d2;
-  lookup_table["c_d3"] = &c_d3;
-  // lookup_table["assimilation_over_distribution"] = &assimilation_over_distribution;
+  lookup_table["c_p1"]   = &c_p1;
+  lookup_table["c_p2"]   = &c_p2;
+  lookup_table["c_Rl"]   = &c_Rl;
+  lookup_table["c_Rs"]   = &c_Rs;
+  lookup_table["c_Rb"]   = &c_Rb;
+  lookup_table["c_Rr"]   = &c_Rr;
+  lookup_table["k_b"]    = &k_b;
+  lookup_table["k_r"]    = &k_r;
+  lookup_table["Y"]      = &Y;
+  lookup_table["c_bio"]  = &c_bio;
+  lookup_table["c_acc"]  = &c_acc;
+  lookup_table["c_r1"]   = &c_r1;
+  lookup_table["c_r2"]   = &c_r2;
+  lookup_table["Pi_0"]   = &Pi_0;
+  lookup_table["c_s0"]   = &c_s0;
+  lookup_table["c_d0"]   = &c_d0;
+  lookup_table["c_d1"]   = &c_d1;
+  lookup_table["c_d2"]   = &c_d2;
+  lookup_table["c_d3"]   = &c_d3;
+
+  // TODO: Not sure why this is not returned.
+  // lookup_table["assimilation_over_distribution"] =
+  //   &assimilation_over_distribution;
+
+  // It might be nice to flag some variables as readonly, that way we
+  // could return mass_leaf_0, etc_c, and k_l.
 }
 
 void Strategy::set_parameters_post_hook() {

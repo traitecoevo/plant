@@ -43,25 +43,19 @@ res <- p$get_strategies()
 expect_that(length(res), equals(1))
 expect_that(res[[1]]$get_parameters(), is_identical_to(cmp))
 
-new.s <- list(c_acc=4.1, lma=1.2)
-p$set_strategy(new.s, 0L)
+mod <- list(c_acc=4.1, lma=1.2)
+new.s <- new(Strategy, mod)
+cmp.mod <- new.s$get_parameters()
+## Quick check
+expect_that(cmp.mod,
+            equals(modifyList(s$get_parameters(), mod)))
 
-s$set_parameters(new.s)
-cmp.mod <- s$get_parameters()
+p$add_strategy(new.s)
+
 expect_that(p$get_strategy(0L)$get_parameters(),
-            is_identical_to(cmp.mod))
-res <- p$get_strategies()
-expect_that(length(res), equals(1))
-expect_that(res[[1]]$get_parameters(), is_identical_to(cmp.mod))
+            is_identical_to(cmp))
 
-## Add another strategy
-p$add_strategy(new(Strategy))
-expect_that(p$size, is_identical_to(2L))
-expect_that(p$get_strategy(1L)$get_parameters(), is_identical_to(cmp))
 res <- p$get_strategies()
 expect_that(length(res), equals(2))
-expect_that(res[[1]]$get_parameters(), is_identical_to(cmp.mod))
-expect_that(res[[2]]$get_parameters(), is_identical_to(cmp))
-
-expect_that(p$set_strategy(new.s, 10L),
-            throws_error())
+expect_that(res[[1]]$get_parameters(), is_identical_to(cmp))
+expect_that(res[[2]]$get_parameters(), is_identical_to(cmp.mod))

@@ -79,6 +79,7 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::Strategy>("Strategy")
     .derives<util::Lookup>("Lookup")
     .constructor()
+    .constructor<Rcpp::List>()
     ;
 
   Rcpp::class_<model::Parameters>("Parameters")
@@ -88,7 +89,6 @@ RCPP_MODULE(tree) {
     .method("get_strategy",   &model::Parameters::get_strategy)
     .method("get_strategies", &model::Parameters::get_strategies)
     .method("add_strategy",   &model::Parameters::add_strategy)
-    .method("set_strategy",   &model::Parameters::set_strategy)
     ;
 
   Rcpp::class_<model::Plant>("Plant")
