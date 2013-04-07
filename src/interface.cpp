@@ -93,7 +93,7 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::Plant>("Plant")
     .constructor<model::Strategy>()
-    .derives<util::Lookup>("OdeTarget")
+    .derives<ode::OdeTarget>("OdeTarget")
     .method("set_mass_leaf",        &model::Plant::set_mass_leaf)
     // Leaf distribution (external interface)
     .method("leaf_area_above",      &model::Plant::leaf_area_above)
@@ -112,7 +112,7 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::Patch>("Patch")
     .constructor<model::Parameters>()
-    .derives<util::Lookup>("OdeTarget")
+    .derives<ode::OdeTarget>("OdeTarget")
     .property("size",             &model::Patch::r_size)
     .property("height_max",       &model::Patch::r_height_max)
     .method("canopy_openness",    &model::Patch::r_canopy_openness)
