@@ -21,8 +21,11 @@ if ( !exists("Spline") ) {
 
   Strategy <- tree_module$Strategy
   Parameters <- tree_module$Parameters
-  Plant <- tree_module$Plant
-  Patch <- tree_module$Patch
+
+  Plant  <- tree_module$Plant
+  Cohort <- tree_module$Cohort
+
+  Patch  <- tree_module$Patch
 }
 
 source("../R/falster.R", chdir=TRUE)

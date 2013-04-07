@@ -429,6 +429,7 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 			       _["mortality_rate"]=vars.mortality_rate);
 }
 
+// TODO: Is this really needed?
 Rcpp::List Plant::r_get_parameters() const {
   return strategy->get_parameters();
 }

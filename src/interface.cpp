@@ -13,6 +13,7 @@
 #include "strategy.h"
 #include "parameters.h"
 #include "plant.h"
+#include "cohort.h"
 #include "patch.h"
 
 #include "functor.h"
@@ -108,6 +109,25 @@ RCPP_MODULE(tree) {
     .method("compute_assimilation", &model::Plant::r_compute_assimilation)
     .method("compute_assimilation_x", &model::Plant::r_compute_assimilation_x)
     .method("compute_vars_phys",    &model::Plant::r_compute_vars_phys)
+    ;
+
+  Rcpp::class_<model::Cohort>("Cohort")
+    .constructor<model::Strategy>()
+    .derives<ode::OdeTarget>("OdeTarget")
+    // .method("set_mass_leaf",        &model::Cohort::set_mass_leaf)
+    // Leaf distribution (external interface)
+    // .method("leaf_area_above",      &model::Cohort::leaf_area_above)
+    // .method("q",                    &model::Cohort::q)
+    // .method("Q",                    &model::Cohort::Q)
+    // .method("Qp",                   &model::Cohort::Qp)
+    // R specific access
+    // .property("parameters",         &model::Cohort::r_get_parameters)
+    // .property("vars_size",          &model::Cohort::r_get_vars_size)
+    // .property("vars_phys",          &model::Cohort::r_get_vars_phys)
+    // .method("assimilation_leaf",    &model::Cohort::assimilation_leaf)
+    // .method("compute_assimilation", &model::Cohort::r_compute_assimilation)
+    // .method("compute_assimilation_x", &model::Cohort::r_compute_assimilation_x)
+    // .method("compute_vars_phys",    &model::Cohort::r_compute_vars_phys)
     ;
 
   Rcpp::class_<model::Patch>("Patch")
