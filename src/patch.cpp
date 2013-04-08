@@ -40,7 +40,10 @@ Patch::~Patch() {
     delete parameters;
 }
 
-// void Patch::step() {}
+void Patch::step() {
+  step_deterministic();
+  step_stochastic();
+}
 
 // TODO: This is a hack for now, as the state setter is using the R
 // function.  Instead set_state should at least offer to take an
@@ -54,6 +57,18 @@ void Patch::step_deterministic() {
   // TODO: Oh dear -- relying on an R-only function here.
   ode_solver.set_state(r_ode_values(), time);
   ode_solver.step();
+}
+
+// TODO: Should this be a method within species, perhaps?  If so then,
+// we get to do a std::foreach.  Probably not, because that means that
+// the Species class contains code depending on how it is used (wrong
+// level).
+void Patch::step_stochastic() {
+  for ( std::vector<Species>::iterator sp = species.begin();
+	sp != species.end(); sp++ ) {
+    sp->deaths();
+    sp->add_seeds(sp->births());
+  }
 }
 
 // * ODE interface
@@ -179,6 +194,16 @@ spline::Spline Patch::r_light_environment() const {
 void Patch::r_add_seed(int idx) {
   util::check_bounds(idx, size());
   species[idx].add_seeds(1);
+}
+
+void Patch::r_step() {
+  Rcpp::RNGScope scope;
+  step();
+}
+
+void Patch::r_step_stochastic() {
+  Rcpp::RNGScope scope;
+  step_stochastic();
 }
 
 // Wrapper functions for testing

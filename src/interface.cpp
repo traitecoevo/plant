@@ -145,7 +145,9 @@ RCPP_MODULE(tree) {
     .method("add_seed",           &model::Patch::r_add_seed)
     .method("get_mass_leaf",      &model::Patch::r_get_mass_leaf)
     .method("set_mass_leaf",      &model::Patch::r_set_mass_leaf)
+    .method("step",               &model::Patch::r_step)
     .method("step_deterministic", &model::Patch::step_deterministic)
+    .method("step_stochastic",    &model::Patch::r_step_stochastic)
     ;
 
   // Misc functions

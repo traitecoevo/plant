@@ -21,14 +21,14 @@ public:
   ~Patch();
 
   // Advance the system through one complete time step.
-  // void step();
+  void step();
 
   // Advance the system through one time step deterministically
   // (plant growth, physiological accounting)
   void step_deterministic();
   // Advance the system through the stochastic life cycle stages
   // (producing seeds and dying).
-  // void step_stochastic();
+  void step_stochastic();
 
   // * ODE interface.
   void derivs(double time,
@@ -45,6 +45,8 @@ public:
   Rcpp::List r_get_plants(int idx) const; // TODO: return all?
   spline::Spline r_light_environment() const;
   void r_add_seed(int idx); // TODO: May change?
+  void r_step();
+  void r_step_stochastic(); // step_stochastic, plus RNG control
 
   // Wrapper functions for testing
   size_t r_size() const;
