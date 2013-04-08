@@ -80,10 +80,6 @@ void Species::add_seeds(int n) {
     plants.push_back(seed);
 }
 
-void Species::disperse_self() {
-  add_seeds(births());
-}
-
 // * ODE interface
 size_t Species::ode_size() const {
   return size() * seed.ode_size();
