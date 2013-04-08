@@ -30,19 +30,8 @@ Patch::Patch(const Patch &other)
   initialise();
 }
 
-Patch& Patch::operator=(const Patch &rhs) {
-  Rprintf("Patch assigmnent operator\n");
-  // ode_solver needs setting up properly -- pointing at the wrong
-  // thing now.
-  Rf_warning("This will probably crash due to solver issue");
-  // TODO: Violates DRY - must be some way of doing both.
-  standalone = rhs.standalone;
-  if ( standalone )
-    parameters = new Parameters(*rhs.parameters);
-  else
-    parameters = rhs.parameters;
-  initialise();
-
+Patch& Patch::operator=(Patch rhs) {
+  swap(*this, rhs);
   return *this;
 }
 
@@ -110,6 +99,14 @@ ode::iter Patch::ode_rates(ode::iter it) const {
 }
 
 // * Private functions
+void Patch::swap(Patch &a, Patch &b) {
+  using std::swap;
+  swap(a.standalone,        b.standalone);
+  swap(a.parameters,        b.parameters);
+  swap(a.light_environment, b.light_environment);
+  swap(a.species,           b.species);
+  swap(a.ode_solver,        b.ode_solver);
+}
 
 // Sets the strategy for each species
 void Patch::initialise() {

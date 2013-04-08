@@ -17,7 +17,7 @@ public:
   Patch(Parameters *p);
 
   Patch(const Patch &other);
-  Patch& operator=(const Patch &rhs);
+  Patch& operator=(Patch rhs);
   ~Patch();
 
   // Advance the system through one complete time step.
@@ -58,7 +58,8 @@ public:
   void r_set_mass_leaf(std::vector<double> x, int idx);
   
 private:
-  // Basically, initialise (rename as such?)
+  void swap(Patch &a, Patch &b);
+
   void initialise();
 
   // Number of species
