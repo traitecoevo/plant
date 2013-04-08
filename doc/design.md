@@ -291,6 +291,34 @@ or we just can't do this.  The downside of this is that the logic of
 when to compute physiological variables becomes hard.  Is it on set?
 Is it on request?  What if the the value is NULL/expired/etc.
 
+#### ODE State
+
+The more clever ode systems do things like tell you if a solver is
+capable of making use of the exit values from one cycle to be the
+input values for the next.  I'm trying to avoid doing too much of this
+sort of optimisation right now because I know that the problem
+dimension will change pretty much every point.
+
+The problem is that we must easily update the state; we're not
+generally allowed direct access to the ODE state object, but perhaps
+we can arrange to set it with an iterator? 
+
+What I'm trying to avoid is a situation where we go through and build
+a new vector just to get destroyed being passed into `set_state` (this
+is what is currently happening).  However, it's not really clear that
+there is a better solution.  At the moment, the function used is an R
+interface function from ode::OdeTarget, which is really not great.
+
+In contrast with the other copies, this is going to create a large
+heap-allocated copy and then discard it straight away.  Hopefully the
+compiler is smart enough to deal with that.  It's possible that we
+could use an intermediate piece of storage at the level of the class.
+
+Simply having `ode_state` take an iterator would solve at least one
+copy, but not be hugely useful as the we're still creating a temporary
+object.  If the ode system provided an iterator to its internal
+storage we could fill that, but that's ugly too.
+
 ### Splines
 
 We use splines for the light environment, but I have some code I'm

@@ -8,6 +8,7 @@ namespace model {
 Patch::Patch(Parameters p)
   : standalone(true),
     parameters(new Parameters(p)),
+    age(0.0),
     ode_solver(this) {
   initialise();
 }
@@ -15,19 +16,19 @@ Patch::Patch(Parameters p)
 Patch::Patch(Parameters *p)
   : standalone(false),
     parameters(p),
+    age(0.0),
     ode_solver(this) {
   initialise();
 }
 
 Patch::Patch(const Patch &other)
-  : standalone(other.standalone), 
+  : standalone(other.standalone),
+    parameters(standalone ?
+	       new Parameters(*other.parameters) : other.parameters),
+    age(other.age),
+    light_environment(other.light_environment),
+    species(other.species),
     ode_solver(this) {
-  Rprintf("Copy constructor\n");
-  if ( standalone )
-    parameters = new Parameters(*other.parameters);
-  else
-    parameters = other.parameters;
-  initialise();
 }
 
 Patch& Patch::operator=(Patch rhs) {
@@ -45,17 +46,10 @@ void Patch::step() {
   step_stochastic();
 }
 
-// TODO: This is a hack for now, as the state setter is using the R
-// function.  Instead set_state should at least offer to take an
-// interator.
-// 
-// TODO: This should only move in state that needs changing, or update
-// things if the dimension has changed.  For now that, requires
-// knowledge about how I'm going to do things I've not decided yet.
 void Patch::step_deterministic() {
-  double time = 0.0; // TODO: Move up?  Ignore?
-  // TODO: Oh dear -- relying on an R-only function here.
-  ode_solver.set_state(r_ode_values(), time);
+  std::vector<double> y(ode_size());
+  ode_values(y.begin());
+  ode_solver.set_state(y, age);
   ode_solver.step();
 }
 
@@ -118,6 +112,7 @@ void Patch::swap(Patch &a, Patch &b) {
   using std::swap;
   swap(a.standalone,        b.standalone);
   swap(a.parameters,        b.parameters);
+  swap(a.age,               b.age);
   swap(a.light_environment, b.light_environment);
   swap(a.species,           b.species);
   swap(a.ode_solver,        b.ode_solver);
@@ -131,7 +126,7 @@ void Patch::initialise() {
   for ( std::vector<Strategy>::iterator 
 	  it = parameters->strategies.begin();
 	it != parameters->strategies.end(); it++ ) {
-    Species s(&(*it)); // ugly (iterator -> object -> pointer)
+    Species s(&(*it)); // (iterator -> object -> pointer)
     species.push_back(s);
   }
 }

@@ -80,6 +80,7 @@ private:
 
   bool standalone;
   Parameters *parameters;
+  double age;
 
   spline::AdaptiveSpline light_environment;
 
