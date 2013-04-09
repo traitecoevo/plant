@@ -76,8 +76,6 @@ void Strategy::reset() {
   c_r2   = 50;
 
   // * Mortality parameters
-  // Survival during dispersal
-  Pi_0    = 0.25;
   // Parameter for seedling survival
   c_s0    = 0.1;
   // Baseline for intrinsic mortality
@@ -136,7 +134,6 @@ void Strategy::do_build_lookup() {
   lookup_table["c_acc"]  = &c_acc;
   lookup_table["c_r1"]   = &c_r1;
   lookup_table["c_r2"]   = &c_r2;
-  lookup_table["Pi_0"]   = &Pi_0;
   lookup_table["c_s0"]   = &c_s0;
   lookup_table["c_d0"]   = &c_d0;
   lookup_table["c_d1"]   = &c_d1;

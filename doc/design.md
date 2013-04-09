@@ -101,6 +101,15 @@ could just use the index, as that is known at the correct level.
 So, the metapopulation will create a "seed pool", which is simply an
 integer of the appropriate length.  It then disperses the seeds.
 
+Where does the probability of dispersal belong?  Is this a property of
+a plant, or is it a property of a patch?  It seems that there is a
+possibility for different dispersal probabilities to occur at
+different points; one leaving the plant, one in the source patch, one
+in the destination patch, and one depending on the distance between,
+etc.  For now, I'm moving it into the patch.  I'll decide if it's paid
+by the source or destination patch once we get a metapopulation
+going.
+
 ## Seed rain
 
 In the EBT version of the model there is the idea of "seed rain",

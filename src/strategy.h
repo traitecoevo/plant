@@ -54,8 +54,6 @@ private:
   double c_r2;
 
   // * Mortality
-  // Surivival during dispersal
-  double Pi_0;
   // Parameter for seedling mortality
   double c_s0;
   // Baseline structural mortality rate

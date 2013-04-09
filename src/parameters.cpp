@@ -15,6 +15,8 @@ void Parameters::reset() {
   c_ext = 0.5;
   // Patch area (m^2?)
   patch_area = 10.0;
+  // Survival during dispersal
+  Pi_0 = 0.25;
 
   strategies.clear();
 }
@@ -50,6 +52,7 @@ void Parameters::do_build_lookup() {
     &mean_disturbance_interval;
   lookup_table["c_ext"]      = &c_ext;
   lookup_table["patch_area"] = &patch_area;
+  lookup_table["Pi_0"]       = &Pi_0;
 }
 
 }

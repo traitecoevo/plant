@@ -34,6 +34,7 @@ public:
   double mean_disturbance_interval;
   double c_ext;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2, I think?) [TODO]
+  double Pi_0;       // Probability of survival during dispersal
   std::vector<Strategy> strategies;
 private:
   void do_build_lookup();

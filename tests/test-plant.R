@@ -21,7 +21,7 @@ expect_that(any(sapply(pars.s, is.na)), is_false())
 ## But the R version may have a few:
 pars.na <- sort(names(pars.cmp)[sapply(pars.cmp, is.na)])
 expect_that(pars.na,
-            is_identical_to(c("c_s0", "Pi_0")))
+            is_identical_to("c_s0"))
 
 ## And demand that all parameters agree.
 pars.ok <- setdiff(names(pars.cmp), pars.na)
