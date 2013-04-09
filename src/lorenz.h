@@ -26,6 +26,7 @@ public:
   // really not trying to do any abstraction at all.
   void ode_set_state(std::vector<double> y, double t) {
     solver.set_state(y, t);
+    solver.reset();
   }
   std::vector<double> ode_get_state() const {
     return solver.get_state();

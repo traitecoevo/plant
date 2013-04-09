@@ -69,7 +69,6 @@ void Solver<Problem>::set_state(std::vector<double> y_, double t_) {
   y    = y_;
   time = t_;
   resize(y.size());
-  reset();
 }
 
 // TODO: In contrast with GSL, this would make more sense as
@@ -184,6 +183,8 @@ Rcpp::NumericMatrix Solver<Problem>::r_run(std::vector<double> times,
   // This makes `y` contains mutable state, and `size` contain current
   // problem dimension.
   set_state(y_, *t++);
+  // This sets the initial step size to be small.
+  reset();
 
   Rcpp::NumericMatrix ret(size, times.size()-1);
   Rcpp::NumericMatrix::iterator out = ret.begin();

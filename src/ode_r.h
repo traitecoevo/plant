@@ -21,6 +21,7 @@ public:
   void ode_set_state(std::vector<double> y, double t) {
     size_ = y.size();
     solver.set_state(y, t);
+    solver.reset(); // reset step sizes, etc.
   }
   std::vector<double> ode_get_state() const {
     return solver.get_state();
