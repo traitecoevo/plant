@@ -32,6 +32,7 @@ public:
   double leaf_area_above(double height) const;
   void compute_vars_phys(spline::Spline *light_environment);
   void add_seeds(int n);
+  void clear();
 
   // * ODE interface
   size_t ode_size() const;

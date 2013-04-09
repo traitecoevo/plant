@@ -242,4 +242,12 @@ void Patch::r_set_mass_leaf(std::vector<double> x, int idx) {
   species[idx].r_set_mass_leaf(x);
 }
 
+void Patch::r_clear() {
+  age = 0.0;
+  for ( std::vector<Species>::iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    sp->clear();
+  ode_solver.reset();
+}
+
 }

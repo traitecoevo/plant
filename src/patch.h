@@ -60,6 +60,9 @@ public:
   std::vector<double> r_get_mass_leaf(int idx) const;
   void r_set_mass_leaf(std::vector<double> x, int idx);
   
+  // Also this
+  void r_clear();
+  
 private:
   void swap(Patch &a, Patch &b);
 

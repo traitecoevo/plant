@@ -80,6 +80,10 @@ void Species::add_seeds(int n) {
     plants.push_back(seed);
 }
 
+void Species::clear() {
+  plants.clear();
+}
+
 // * ODE interface
 size_t Species::ode_size() const {
   return size() * seed.ode_size();
