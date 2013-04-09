@@ -51,6 +51,7 @@ void Patch::step_deterministic() {
   ode_values(y.begin());
   ode_solver.set_state(y, age);
   ode_solver.step();
+  age = ode_solver.get_time();
 }
 
 // TODO: Should this be a method within species, perhaps?  If so then,
@@ -147,6 +148,11 @@ double Patch::height_max() const {
 }
 
 // [eqn 11] Canopy openness at `height`
+//
+// NOTE: I'd rather that this be a const method (as it is actually
+// const) but that conflicts with the definition of DFunctor.
+// Probably using Boost and a proper and robust way of binding
+// functions would save hassle here.
 double Patch::canopy_openness(double height) {
   double tot = 0.0;
   for ( std::vector<Species>::const_iterator sp = species.begin();
@@ -220,6 +226,10 @@ void Patch::r_compute_light_environment() {
 
 void Patch::r_compute_vars_phys() {
   compute_vars_phys();
+}
+
+double Patch::r_age() const {
+  return age;
 }
 
 std::vector<double> Patch::r_get_mass_leaf(int idx) const {

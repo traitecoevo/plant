@@ -54,6 +54,7 @@ public:
   double r_canopy_openness(double height);
   void r_compute_light_environment();
   void r_compute_vars_phys();
+  double r_age() const;
 
   // TODO: This is likely to change as more is written.
   std::vector<double> r_get_mass_leaf(int idx) const;
@@ -71,8 +72,6 @@ private:
   double height_max() const;
 
   // [eqn 11] Canopy openness at `height`
-  // NOTE: I'd rather this was const, but that interferes with the
-  // functor code for now (TODO?)
   double canopy_openness(double height);
 
   void compute_light_environment();
