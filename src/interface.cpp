@@ -109,6 +109,7 @@ RCPP_MODULE(tree) {
     .method("compute_assimilation", &model::Plant::r_compute_assimilation)
     .method("compute_assimilation_x", &model::Plant::r_compute_assimilation_x)
     .method("compute_vars_phys",    &model::Plant::r_compute_vars_phys)
+    .method("germination_probability", &model::Plant::r_germination_probability)
     ;
 
   Rcpp::class_<model::Cohort>("Cohort")

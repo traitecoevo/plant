@@ -51,6 +51,8 @@ public:
   // * Births and deaths
   int offspring();
   bool died();
+  // [eqn 20] Survival of seedlings during germination
+  double germination_probability(spline::Spline *env);
 
   // * ODE interface
   size_t ode_size() const;
@@ -69,6 +71,7 @@ public:
   void r_compute_vars_phys(spline::Spline env);
   double r_compute_assimilation(spline::Spline env) const;
   double r_compute_assimilation_x(double x, spline::Spline env) const;
+  double r_germination_probability(spline::Spline env);
 
 private:
   // * Individual size

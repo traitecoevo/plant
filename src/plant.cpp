@@ -224,6 +224,17 @@ bool Plant::died() {
   return did_die;
 }
 
+// [eqn 20] Survival of seedlings during germination
+double Plant::germination_probability(spline::Spline *env) {
+  compute_vars_phys(env);
+  if ( vars.net_production > 0 ) {
+    return 1 / (vars.leaf_area * strategy->c_s0 / vars.net_production + 
+		1.0);
+  } else {
+    return 0.0;
+  }
+}
+
 // * ODE interface
 size_t Plant::ode_size() const { 
   return ode_dimension; 
@@ -445,6 +456,11 @@ double Plant::r_compute_assimilation(spline::Spline env) const {
 double Plant::r_compute_assimilation_x(double x, spline::Spline env) const {
   return compute_assimilation_x(x, &env);
 }
+
+double Plant::r_germination_probability(spline::Spline env) {
+  return germination_probability(&env);
+}
+
 
 namespace test {
 
