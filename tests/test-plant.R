@@ -27,6 +27,14 @@ expect_that(pars.na,
 pars.ok <- setdiff(names(pars.cmp), pars.na)
 expect_that(pars.s[pars.ok], is_identical_to(pars.cmp[pars.ok]))
 
+## TODO: This should fail, but currently does not.
+## Not sure which constructor is being called, or how.
+## expect_that(new(Plant),
+##             throws_error())
+## It's not calling either of the defined constructors, so must be
+## using a defalt-defined no-args constructor.  Surprised though.
+## Could this be a bug in Rcpp?
+
 ## Now that that's OK, make a plant with our strategy
 p <- new(Plant, s)
 ## ...so the parameters should agree exactly.
