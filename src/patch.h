@@ -93,8 +93,12 @@ private:
 
   spline::AdaptiveSpline light_environment;
 
-  std::vector< Species > species;
+  std::vector< Species<Plant> > species;
   ode::Solver<Patch> ode_solver;
+
+  typedef std::vector< Species<Plant> >::iterator species_iterator;
+  typedef std::vector< Species<Plant> >::const_iterator
+  species_const_iterator;
 };
 
 }

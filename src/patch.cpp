@@ -64,7 +64,7 @@ void Patch::step_stochastic() {
 }
 
 void Patch::deaths() {
-  for ( std::vector<Species>::iterator sp = species.begin();
+  for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     sp->deaths();
 }
@@ -72,7 +72,7 @@ void Patch::deaths() {
 std::vector<int> Patch::births() {
   std::vector<int> ret(species.size(), 0);
   std::vector<int>::iterator n = ret.begin();
-  for ( std::vector<Species>::iterator sp = species.begin();
+  for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     *n = sp->births();
   return ret;
@@ -120,28 +120,28 @@ void Patch::derivs(double time,
 
 size_t Patch::ode_size() const {
   size_t ret = 0;
-  for ( std::vector<Species>::const_iterator sp = species.begin();
+  for ( species_const_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     ret += sp->ode_size();
   return ret;
 }
 
 ode::iter_const Patch::ode_values_set(ode::iter_const it, bool &changed) {
-  for ( std::vector<Species>::iterator sp = species.begin();
+  for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     it = sp->ode_values_set(it, changed);
   return it;
 }
 
 ode::iter Patch::ode_values(ode::iter it) const {
-  for ( std::vector<Species>::const_iterator sp = species.begin(); 
+  for ( species_const_iterator sp = species.begin(); 
 	sp != species.end(); sp++ )
     it = sp->ode_values(it);
   return it;
 }
 
 ode::iter Patch::ode_rates(ode::iter it) const {
-  for ( std::vector<Species>::const_iterator sp = species.begin(); 
+  for ( species_const_iterator sp = species.begin(); 
 	sp != species.end(); sp++ )
     it = sp->ode_rates(it);
   return it;
@@ -166,7 +166,7 @@ void Patch::initialise() {
   for ( std::vector<Strategy>::iterator 
 	  it = parameters->strategies.begin();
 	it != parameters->strategies.end(); it++ ) {
-    Species s(&(*it)); // (iterator -> object -> pointer)
+    Species<Plant> s(&(*it)); // (iterator -> object -> pointer)
     species.push_back(s);
   }
 }
@@ -180,7 +180,7 @@ size_t Patch::size() const {
 // species or no individuals) have height 0.
 double Patch::height_max() const {
   double ret = 0.0;
-  for ( std::vector<Species>::const_iterator sp = species.begin();
+  for ( species_const_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     ret = std::max(ret, sp->height_max());
   return ret;
@@ -194,7 +194,7 @@ double Patch::height_max() const {
 // functions would save hassle here.
 double Patch::canopy_openness(double height) {
   double tot = 0.0;
-  for ( std::vector<Species>::const_iterator sp = species.begin();
+  for ( species_const_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     tot += sp->leaf_area_above(height);
   // NOTE: patch_area does not appear in the EBT model formulation.
@@ -214,7 +214,7 @@ void Patch::compute_light_environment() {
 // Given the light environment, "apply" it to every species so that
 // physiological variables are updated.
 void Patch::compute_vars_phys() {
-  for ( std::vector<Species>::iterator sp = species.begin();
+  for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     sp->compute_vars_phys(&light_environment);
 }
@@ -224,7 +224,7 @@ void Patch::compute_vars_phys() {
 // Actually public functions for interrogating & modifying
 Rcpp::List Patch::r_get_plants() const {
   Rcpp::List ret;
-  for ( std::vector<Species>::const_iterator sp = species.begin();
+  for ( species_const_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     ret.push_back(sp->r_get_plants());
   return ret;
@@ -291,7 +291,7 @@ void Patch::r_set_mass_leaf(std::vector<double> x, int idx) {
 
 void Patch::r_clear() {
   age = 0.0;
-  for ( std::vector<Species>::iterator sp = species.begin();
+  for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     sp->clear();
   ode_solver.reset();
