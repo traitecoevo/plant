@@ -13,6 +13,7 @@
 #include "strategy.h"
 #include "parameters.h"
 #include "plant.h"
+#include "cohort_discrete.h"
 #include "cohort.h"
 #include "patch.h"
 
@@ -111,6 +112,12 @@ RCPP_MODULE(tree) {
     .method("compute_vars_phys",    &model::Plant::r_compute_vars_phys)
     .method("germination_probability", &model::Plant::r_germination_probability)
     .property("name",               &model::Plant::r_name)
+    ;
+
+  Rcpp::class_<model::CohortDiscrete>("CohortDiscrete")
+    .derives<model::Plant>("Plant")
+    .constructor<model::Strategy>()
+    .constructor<model::Strategy, int>()
     ;
 
   Rcpp::class_<model::Cohort>("Cohort")

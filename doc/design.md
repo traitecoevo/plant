@@ -56,6 +56,16 @@ once we're at zero the individual is destroyed.
 At the moment I've called these CohortDiscrete and we can adjust this
 later.
 
+I've implemented this by composition, but I feel that inheritance
+could be nicer.  However, if we do it via inheritance, then we'll have
+to delare some functions in Plant virtual:
+
+* `Plant::leaf_area_above`
+* `Plant::died`
+* `Plant::offspring`
+
+
+
 ## Species 
 
 Above the level of species, there are two places that "species"

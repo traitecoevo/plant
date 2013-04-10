@@ -77,7 +77,7 @@ public:
   // Psuedo-name, based on memory location
   std::string r_name() const;
 
-  // protected:
+protected:
   double mortality() const;
   void mortality_reset();
 
