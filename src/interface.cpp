@@ -143,6 +143,7 @@ RCPP_MODULE(tree) {
 	      &model::Patch::r_light_environment)
     .method("compute_vars_phys",  &model::Patch::r_compute_vars_phys)
     .property("age",              &model::Patch::r_age)
+    .method("germination",        &model::Patch::r_germination)
     .method("get_plants",         &model::Patch::r_get_plants)
     .method("add_seeds",          &model::Patch::r_add_seeds)
     .method("get_mass_leaf",      &model::Patch::r_get_mass_leaf)

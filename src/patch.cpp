@@ -274,6 +274,11 @@ double Patch::r_age() const {
   return age;
 }
 
+std::vector<int> Patch::r_germination(std::vector<int> seeds) {
+  util::check_length(seeds.size(), species.size());
+  return germination(seeds);
+}
+
 std::vector<double> Patch::r_get_mass_leaf(int idx) const {
   util::check_bounds(idx, size());
   return species[idx].r_get_mass_leaf();

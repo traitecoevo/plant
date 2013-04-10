@@ -29,6 +29,8 @@ public:
   // Advance the system through the stochastic life cycle stages
   // (producing seeds and dying).
   void step_stochastic();
+  // TODO: Not sure (until Metapopulation developed) if these should
+  // be public or private.
   std::vector<int> births();
   void deaths();
   std::vector<int> germination(std::vector<int> seeds);
@@ -59,6 +61,7 @@ public:
   void r_compute_light_environment();
   void r_compute_vars_phys();
   double r_age() const;
+  std::vector<int> r_germination(std::vector<int> seeds);
 
   // TODO: This is likely to change as more is written.
   std::vector<double> r_get_mass_leaf(int idx) const;

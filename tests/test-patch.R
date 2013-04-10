@@ -129,5 +129,20 @@ while ( patch$ode_size == 3 && patch$age < 15.0 ) {
 expect_that(patch$ode_size == 6 && patch$age < 15,
             is_true())
 
+
+## Check that the germination numbers look correct, by comparing fit
+## to a binomial distribution with the appropriate parameters.  Being
+## stochastic, this may give false positives sometimes.
+seed <- new(Plant, p$get_strategy(0))
+pr.cmp <- p$get_parameters()[["Pi_0"]] *
+  seed$germination_probability(patch$light_environment)
+
+set.seed(1)
+n <- 100000
+tmp <- replicate(100, patch$germination(n))
+test <- suppressWarnings(ks.test(tmp, pbinom, n, pr.cmp))
+expect_that(test$p.value > 1/5,
+            is_true())
+
 rm(patch)
 gc()
