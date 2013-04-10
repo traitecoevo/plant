@@ -228,8 +228,8 @@ bool Plant::died() {
 double Plant::germination_probability(spline::Spline *env) {
   compute_vars_phys(env);
   if ( vars.net_production > 0 ) {
-    return 1 / (vars.leaf_area * strategy->c_s0 / vars.net_production + 
-		1.0);
+    const double tmp = vars.leaf_area * strategy->c_s0 / vars.net_production;
+    return 1 / (tmp * tmp + 1.0);
   } else {
     return 0.0;
   }

@@ -70,10 +70,36 @@ p.c_d0 <- 0.520393415085166
 p.c_d1 <- 0.0065
 p.c_d2 <- 5.5
 p.c_d3 <- 20.0
+p.c_s0 <- 0.1
 
 mortality.rate <- function(traits, h, env) {
   p <- net.production(traits, h, env)
   a <- LeafArea(h)  
   p.c_d0 * exp(-p.c_d1 * traits$rho) +
     p.c_d2 * exp(-p.c_d3 * p / a)
+}
+
+height.at.birth <- function(traits) {
+  ## TODO: These are hard-coded for now, but the upper limit could be
+  ## got at directly if we had a couple of extra functions to compute
+  ## height from total area.
+  hmin <- 1e-16
+  hmax <- 1
+  f <- function(h)
+    TotalMass(traits, LeafArea(h)) - traits$s
+  uniroot(f, c(hmin, hmax))$root
+}
+
+leaf.mass.at.birth <- function(traits) {
+  LeafMass(traits$lma, LeafArea(height.at.birth(traits)))
+}
+
+germination.probability <- function(traits, env) {
+  m <- leaf.mass.at.birth(traits)
+  h <- height.at.birth(traits)
+  P <- net.production(traits, h, env)
+  if ( P > 0 )
+    ((P / LeafArea(h))^(-2) * p.c_s0^2 + 1)^(-1)
+  else
+    0
 }

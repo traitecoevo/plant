@@ -10,22 +10,24 @@ pars.s <- s$get_parameters()
 
 ## Expect that all parameters in the R version are found in the C++
 ## version.
-expect_that(all(names(pars.cmp) %in% names(pars.s)), is_true())
+expect_that(all(names(pars.cmp) %in% names(pars.s)),
+            is_true())
 
 ## And v.v.
-expect_that(all(names(pars.s) %in% names(pars.cmp)), is_true())
+expect_that(all(names(pars.s) %in% names(pars.cmp)),
+            is_true())
 
 ## The C++ version should have no NA values by this point.
-expect_that(any(sapply(pars.s, is.na)), is_false())
+expect_that(any(sapply(pars.s, is.na)),
+            is_false())
 
-## But the R version may have a few:
-pars.na <- sort(names(pars.cmp)[sapply(pars.cmp, is.na)])
-expect_that(pars.na,
-            is_identical_to("c_s0"))
+## And neither should the R version.
+expect_that(any(sapply(pars.cmp, is.na)),
+            is_false())
 
 ## And demand that all parameters agree.
-pars.ok <- setdiff(names(pars.cmp), pars.na)
-expect_that(pars.s[pars.ok], is_identical_to(pars.cmp[pars.ok]))
+expect_that(pars.s[names(pars.cmp)],
+            is_identical_to(pars.cmp))
 
 ## TODO: This should fail, but currently does not.
 ## Not sure which constructor is being called, or how.
@@ -38,7 +40,8 @@ expect_that(pars.s[pars.ok], is_identical_to(pars.cmp[pars.ok]))
 ## Now that that's OK, make a plant with our strategy
 p <- new(Plant, s)
 ## ...so the parameters should agree exactly.
-expect_that(p$parameters, is_identical_to(pars.s))
+expect_that(p$parameters,
+            is_identical_to(pars.s))
 
 ## Set the leaf mass to something (here pi)
 p$set_mass_leaf(pi)
@@ -168,6 +171,28 @@ expect_that(p.phys[["growth_rate"]],
 cmp.mortality.rate <- cmp$mortality.rate(cmp$traits, h, light.env)
 expect_that(p.phys[["mortality_rate"]],
             equals(cmp.mortality.rate))
+
+## Seed stuff:
+seed <- new(Plant, s)
+
+## Check that our root-finding succeeded and the leaf mass is correct:
+expect_that(seed$vars_size[["mass_total"]],
+            equals(pars.s$s, tolerance=1e-7))
+
+## Check that the height at birth is correct (this happens to be how
+## the R version computes size).  This is actually quite inaccurate,
+## but I think that's just some instability creeping in from the
+## different ways that the values involved are computed.
+expect_that(seed$vars_size[["height"]],
+            equals(cmp$height.at.birth(cmp$traits), tolerance=1e-4))
+expect_that(seed$vars_size[["mass_leaf"]],
+            equals(cmp$leaf.mass.at.birth(cmp$traits), tolerance=1e-4))
+
+## Then, check the germination probabilities in the current light
+## environment:
+expect_that(seed$germination_probability(env),
+            equals(cmp$germination.probability(cmp$traits, light.env),
+                   tolerance=1e-5))
 
 ## Grow the plant in a constant environment
 derivs <- function(t, y, pars) {
