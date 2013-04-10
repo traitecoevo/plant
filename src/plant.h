@@ -42,7 +42,7 @@ public:
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x) const;
   // [      ] Leaf area (not fraction) above height `z`
-  double leaf_area_above(double z) const;
+  virtual double leaf_area_above(double z) const;
 
   // * Mass production
   // [eqn 12-19,21] Update physiological variables
@@ -51,8 +51,8 @@ public:
   double assimilation_leaf(double x) const;
 
   // * Births and deaths
-  int offspring();
-  bool died();
+  virtual int offspring();
+  virtual bool died();
   // [eqn 20] Survival of seedlings during germination
   double germination_probability(spline::Spline *env);
 
@@ -74,6 +74,7 @@ public:
   double r_compute_assimilation(spline::Spline env) const;
   double r_compute_assimilation_x(double x, spline::Spline env) const;
   double r_germination_probability(spline::Spline env);
+  bool r_died();
   // Psuedo-name, based on memory location
   std::string r_name() const;
 

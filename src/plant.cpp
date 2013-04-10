@@ -220,8 +220,8 @@ int Plant::offspring() {
 }
 
 bool Plant::died() {
-  const int did_die = unif_rand() > exp(-vars.mortality);
-  vars.mortality = 0.0;
+  const int did_die = unif_rand() < mortality();
+  mortality_reset();
   return did_die;
 }
 
@@ -270,7 +270,7 @@ ode::iter Plant::ode_rates(ode::iter it) const {
 
 // * Proteceted methods
 double Plant::mortality() const {
-  return vars.mortality;
+  return 1 - exp(-vars.mortality);
 }
 void Plant::mortality_reset() {
   vars.mortality = 0.0;
@@ -470,12 +470,16 @@ double Plant::r_germination_probability(spline::Spline env) {
   return germination_probability(&env);
 }
 
+bool Plant::r_died() {
+  Rcpp::RNGScope scope;
+  return died();
+}
+
 std::string Plant::r_name() const {
   std::stringstream ss;
   ss << static_cast<const void*>(this);
   return ss.str();
 }
-
 
 namespace test {
 

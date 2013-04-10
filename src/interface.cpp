@@ -111,6 +111,8 @@ RCPP_MODULE(tree) {
     .method("compute_assimilation_x", &model::Plant::r_compute_assimilation_x)
     .method("compute_vars_phys",    &model::Plant::r_compute_vars_phys)
     .method("germination_probability", &model::Plant::r_germination_probability)
+    .method("offspring",            &model::Plant::offspring)
+    .method("died",                 &model::Plant::r_died)
     .property("name",               &model::Plant::r_name)
     ;
 
@@ -118,6 +120,9 @@ RCPP_MODULE(tree) {
     .derives<model::Plant>("Plant")
     .constructor<model::Strategy>()
     .constructor<model::Strategy, int>()
+    .property("n_individuals", 
+	      &model::CohortDiscrete::r_n_individuals,
+	      &model::CohortDiscrete::r_set_n_individuals)
     ;
 
   Rcpp::class_<model::Cohort>("Cohort")

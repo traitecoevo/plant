@@ -12,20 +12,21 @@ if ( !exists("Spline") ) {
   
   tree_module <- Module("tree", "tree")
   
-  Spline            <- tree_module$Spline
-  AdaptiveSpline    <- tree_module$AdaptiveSpline
-  AdaptiveSplineR   <- tree_module$AdaptiveSplineR
+  Spline          <- tree_module$Spline
+  AdaptiveSpline  <- tree_module$AdaptiveSpline
+  AdaptiveSplineR <- tree_module$AdaptiveSplineR
 
   Lorenz <- tree_module$Lorenz
   OdeR   <- tree_module$OdeR
 
-  Strategy <- tree_module$Strategy
+  Strategy   <- tree_module$Strategy
   Parameters <- tree_module$Parameters
 
-  Plant  <- tree_module$Plant
-  Cohort <- tree_module$Cohort
+  Plant          <- tree_module$Plant
+  CohortDiscrete <- tree_module$CohortDiscrete
+  Cohort         <- tree_module$Cohort
 
-  Patch  <- tree_module$Patch
+  Patch <- tree_module$Patch
 }
 
 source("../R/falster.R", chdir=TRUE)

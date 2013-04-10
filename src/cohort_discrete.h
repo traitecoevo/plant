@@ -19,6 +19,10 @@ public:
   int offspring();
   bool died();
 
+  // * R interface
+  int r_n_individuals() const;
+  void r_set_n_individuals(int n);
+
 private:
   int n_individuals;
 };
