@@ -121,11 +121,13 @@ expect_that(t(obj$run(tt, y)),
 patch$clear()
 patch$add_seeds(1)
 
-## set.seed(1)
-## while ( patch$ode_size == 3 && patch$age < 15.0 ) {
-##   patch$step_deterministic()
-##   patch$step_stochastic()
-## }
+set.seed(1)
+while ( patch$ode_size == 3 && patch$age < 15.0 ) {
+  patch$step_deterministic()
+  patch$step_stochastic()
+}
+expect_that(patch$ode_size == 6 && patch$age < 15,
+            is_true())
 
 rm(patch)
 gc()
