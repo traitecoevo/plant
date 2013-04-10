@@ -32,6 +32,7 @@ public:
   double leaf_area_above(double height) const;
   void compute_vars_phys(spline::Spline *light_environment);
   void add_seeds(int n);
+  double germination_probability(spline::Spline *light_environment);
   void clear();
 
   // * ODE interface

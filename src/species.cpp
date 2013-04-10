@@ -142,4 +142,8 @@ Rcpp::List Species::r_get_plants() const {
   return ret;
 }
 
+double Species::germination_probability(spline::Spline *light_environment) {
+  return seed.germination_probability(light_environment);  
+}
+
 }
