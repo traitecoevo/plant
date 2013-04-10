@@ -1,5 +1,6 @@
-#include <Rcpp.h>
 #include "functor.h"
+
+#include "util.h"
 
 namespace util {
 
@@ -13,8 +14,7 @@ namespace test {
 // Possibly better via modules?
 std::vector<double> test_functor(std::vector<double> x, 
 				 std::vector<double> pars) {
-  if ( (int)pars.size() != 3 )
-    Rf_error("Expected parameters of length 3");
+  util::check_length(pars.size(), 3);
   Quadratic obj(pars[0], pars[1], pars[2]);
   Functor<Quadratic, &Quadratic::mytarget> fun(&obj);
   

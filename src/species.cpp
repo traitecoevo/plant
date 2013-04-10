@@ -1,6 +1,6 @@
 #include "species.h"
 
-#include "util.h" // is_decreasing
+#include "util.h" // is_decreasing, check_length
 
 namespace model {
 
@@ -121,9 +121,7 @@ std::vector<double> Species::r_get_mass_leaf() const {
 
 // NOTE: Roll back on error is not possible here at present.
 void Species::r_set_mass_leaf(std::vector<double> x) {
-  if ( x.size() != size() )
-    Rf_error("Unexpected size of mass_leaf: expected %d, recieved %d",
-	     size(), x.size());
+  util::check_length(x.size(), size());
   if ( !util::is_decreasing(x.begin(), x.end()) )
     Rf_error("mass_leaf must be decreasing (ties allowed)");
   std::vector<double>::iterator it = x.begin();

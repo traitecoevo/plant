@@ -1,3 +1,4 @@
+#include "util.h"
 #include "Lorenz.h"
 
 namespace ode {
@@ -23,9 +24,7 @@ void Lorenz::derivs(double time,
 // just straight up boilerplate.
 std::vector<double> Lorenz::r_derivs(double time,
 				     std::vector<double> y) {
-  if ( y.size() != size() )
-    Rf_error("Incorrect parameter vector; expected %d, got %d",
-	     size(), y.size());
+  util::check_length(y.size(), size());
   std::vector<double> dydt(size());
   derivs(time, y.begin(), dydt.begin());
   return dydt;

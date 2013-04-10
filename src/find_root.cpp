@@ -1,6 +1,6 @@
-#include <Rcpp.h>
-
 #include "find_root.h"
+
+#include "util.h"
 
 namespace util {
 
@@ -47,8 +47,7 @@ namespace test {
 
 double test_find_root(std::vector<double> pars,
 		      double x_min, double x_max) {
-  if ( (int)pars.size() != 3 )
-    Rf_error("Expected parameters of length 3");
+  util::check_length(pars.size(), 3);
   Quadratic obj(pars[0], pars[1], pars[2]);
   Functor<test::Quadratic, &test::Quadratic::mytarget> fun(&obj);
 
@@ -61,8 +60,7 @@ double test_find_root(std::vector<double> pars,
 
 double test_find_value(std::vector<double> pars, double value,
 		       double x_min, double x_max) {
-  if ( (int)pars.size() != 3 )
-    Rf_error("Expected parameters of length 3");
+  util::check_length(pars.size(), 3);
   Quadratic obj(pars[0], pars[1], pars[2]);
   FunctorRoot<test::Quadratic, &test::Quadratic::mytarget> 
     fun(&obj, value);

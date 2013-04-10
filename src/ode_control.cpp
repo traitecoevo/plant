@@ -1,8 +1,8 @@
+#include "ode_control.h"
+
 #include <Rcpp.h>    // Rf_error
 #include <algorithm> // std::max
 #include <cmath>     // fabs
-
-#include "ode_control.h"
 
 namespace ode {
 

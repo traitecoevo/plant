@@ -1,5 +1,6 @@
-#include <Rcpp.h> // for Rf_error only.
-#include "Integrator.h"
+#include "integrator.h"
+
+#include "util.h"
 
 namespace util {
 
@@ -61,8 +62,7 @@ namespace test {
 double test_integrator(std::vector<double> pars, 
 		       double x_min, double x_max) {
   // Set up the usual quadratic problem:
-  if ( (int)pars.size() != 3 )
-    Rf_error("Expected parameters of length 3");
+  util::check_length(pars.size(), 3);
   Quadratic obj(pars[0], pars[1], pars[2]);
   Functor<test::Quadratic, &test::Quadratic::mytarget> fun(&obj);
 
