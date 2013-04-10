@@ -21,8 +21,8 @@ Cohort::Cohort(Strategy *s)
 Cohort::Cohort(const Cohort &other)
   : standalone(other.standalone),
     strategy(standalone ? new Strategy(*other.strategy) : other.strategy),
-    plant_mean(strategy),
-    plant_top(strategy) {
+    plant_mean(other.plant_mean),
+    plant_top(other.plant_top) {
 }
 
 Cohort& Cohort::operator=(Cohort rhs) {

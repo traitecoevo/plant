@@ -44,6 +44,17 @@ Previously, the key bits of cohort change were:
 We must be able to push new cohorts onto a list.  Probably to match
 the individual based model, we should push on the back.
 
+### Pseudo-cohorts
+
+In the individual-based simulation, if multiple individuals are born
+at any one time, then we could group them together in a cohort;
+according to this, we just have a plant with a counter indicating how
+many individuals are in it.  Then we just multiply certain output
+variables by the population size.  Death decreases the counter, and
+once we're at zero the individual is destroyed.
+
+At the moment I've called these CohortDiscrete and we can adjust this
+later.
 
 ## Species 
 

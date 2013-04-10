@@ -2,8 +2,6 @@
 #ifndef TREE_COHORT_
 #define TREE_COHORT_
 
-// #include <Rcpp.h>
-
 #include "ode_target.h"
 #include "strategy.h"
 #include "plant.h"
