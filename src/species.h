@@ -8,7 +8,7 @@
 #include "ode_solver.h"
 #include "spline.h"
 #include "strategy.h"
-#include "plant.h"
+#include "cohort_discrete.h" // for a specialisation
 #include "util.h" // is_decreasing, check_length
 
 namespace model {
@@ -143,6 +143,9 @@ void Species<Individual>::add_seeds(int n) {
   for ( ; n > 0; n-- )
     plants.push_back(seed);
 }
+
+// Declare full specialisation
+template<> void Species<CohortDiscrete>::add_seeds(int n);
 
 template <class Individual>
 void Species<Individual>::clear() {
