@@ -18,9 +18,9 @@ void Lookup::set_parameters(Rcpp::List x) {
     return;
   build_lookup();
   std::vector<std::string> names = x.names();
-  for ( size_t i = 0; i < x.size(); i++ ) {
-    double *tmp = lookup(names[i]);
-    *tmp = Rcpp::as<double>(x[(int)i]);
+  for ( int i = 0; i < x.size(); i++ ) {
+    double *tmp = lookup(names[(size_t)i]);
+    *tmp = Rcpp::as<double>(x[i]);
   }
   set_parameters_post_hook();
 }
