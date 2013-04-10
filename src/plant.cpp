@@ -268,6 +268,14 @@ ode::iter Plant::ode_rates(ode::iter it) const {
   return it;
 }
 
+// * Proteceted methods
+double Plant::mortality() const {
+  return vars.mortality;
+}
+void Plant::mortality_reset() {
+  vars.mortality = 0.0;
+}
+
 // * Private methods
 
 void swap(Plant &a, Plant &b) {

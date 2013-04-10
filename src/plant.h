@@ -26,6 +26,8 @@ public:
   // Equivalence operator
   bool operator==(const Plant &rhs);
 
+  // TODO: can make private: q, Q, Qp, assimilation_leaf
+
   double get_height() const;
 
   // * Individual size
@@ -74,6 +76,10 @@ public:
   double r_germination_probability(spline::Spline env);
   // Psuedo-name, based on memory location
   std::string r_name() const;
+
+  // protected:
+  double mortality() const;
+  void mortality_reset();
 
 private:
   // * Individual size

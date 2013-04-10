@@ -20,23 +20,14 @@ public:
   // and a half.
   friend void swap(CohortDiscrete &a, CohortDiscrete &b);
 
-  // Everything below here up to private is directly copied in from
-  // Plant, minus comments.
+  double get_height() const;
+  void set_mass_leaf(double mass_leaf_);
+  double leaf_area_above(double z) const;
+  void compute_vars_phys(spline::Spline *env);
 
-  // double get_height() const;
-
-  // void set_mass_leaf(double mass_leaf_);
-  // double q(double z) const;
-  // double Q(double z) const;
-  // double Qp(double x) const;
-  // double leaf_area_above(double z) const;
-
-  // void compute_vars_phys(spline::Spline *env);
-  // double assimilation_leaf(double x) const;
-
-  // int offspring();
-  // bool died();
-  // double germination_probability(spline::Spline *env);
+  int offspring();
+  bool died();
+  double germination_probability(spline::Spline *env);
 
   // // * ODE interface
   size_t ode_size() const;
