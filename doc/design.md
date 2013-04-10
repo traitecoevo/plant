@@ -64,9 +64,49 @@ to delare some functions in Plant virtual:
 * `Plant::died`
 * `Plant::offspring`
 
+### Functional approach
 
+The deterministic part can be done more carefully; suppose that we
+have a vector of sizes of plants (at the patch level).  We can then
+construct a spline over this size so that we can evaluate the target
+functions (e.g., growth rate) as a function of size given the current
+light environment.  Because interpolation will work well for
+individuals that are close in size, this will greatly reduce the
+amount of data we keep around, and how much work we have to do.
 
-## Species 
+Most of this can be extended to the actual ODE calculation; this is
+all deterministic too, so these just get evaluated on the splines.
+
+Then we have some big lists/matrices of variables 
+(list< vector<double, 3> > probably), and update those for every
+plant, as before.
+
+This has an advantage over the CohortDiscrete approach in that it
+could allow for a true continuous time more easily (still would in
+theory require that every birth and death reset the time, but I think
+it could allow more flexibility there).
+
+To do this, we would need an entirely new `Species` class; it would
+have data members
+
+```
+class Species2 {
+  std::list<Plant> representative_plants;
+  std::list<double> mass_leaf; // main size axis
+  std::list< std::vector<double> > other_variables; // mortality, fecundity
+};
+```
+
+Working out how and when to refine / coarsen the grid would be hard.
+Probably for large individuals we just want to keep all individuals
+(so that the representative_plants would actually correspond exactly
+to plants at some point).  But without rebuilding the spline every
+time it will be hard to know.
+
+Triggering `Plant` injection into `representative_plants` would
+require quite a bit of work reimplementing logic in `AdaptiveSpline`.
+
+## Species
 
 Above the level of species, there are two places that "species"
 appears as a concept:
