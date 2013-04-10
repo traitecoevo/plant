@@ -79,7 +79,7 @@ std::vector<int> Patch::births() {
 }
 
 void Patch::add_seeds(std::vector<int> seeds) {
-  for ( int i = 0; i < seeds.size(); i++ )
+  for ( size_t i = 0; i < seeds.size(); i++ )
     species[i].add_seeds(seeds[i]);
 }
 
@@ -94,7 +94,7 @@ void Patch::add_seeds(std::vector<int> seeds) {
 // independent the number that survive is distributed as
 //   Binom(seeds_in, p_dispersal * p_germination)
 std::vector<int> Patch::germination(std::vector<int> seeds) {
-  for ( int i = 0; i < seeds.size(); i++ ) {
+  for ( size_t i = 0; i < seeds.size(); i++ ) {
     if ( seeds[i] > 0 ) {
       const double p = parameters->Pi_0 *
 	species[i].germination_probability(&light_environment);
