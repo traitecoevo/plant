@@ -480,3 +480,24 @@ The "size" value becomes the partition that a species is in for the
 individual based model.  For the EBT-style model we are also tracking
 the fraction of the population in this size class (but unlike the EBT
 we never bother splitting cohorts).
+
+# Compilation issues
+
+In theory, we can trim out the Rcpp bits with some ifdef'ing.  Will
+require some additional includes and coping with bailing.  Would help
+enable model to be embedded in other control forms (e.g. python with
+boost.python).
+
+To that end, all Rcpp-involving functions should be r_ prefixed.
+
+With clang 3.1 (osx 10.8) this is my system Makevars
+```
+CXX=clang++
+CC=clang
+SHLIB_CXXLD=clang++
+CPLUS_INCLUDE_PATH=/Library/Frameworks/R.framework/Versions/2.15/Resources/library/Rcpp/include/
+CXXFLAGS=-O2 -Wall -pedantic -Wconversion 
+```
+
+There are more `(int)` conversions that desirable, mostly working
+around Rcpp at the moment.
