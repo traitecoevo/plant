@@ -72,6 +72,8 @@ public:
   double r_compute_assimilation(spline::Spline env) const;
   double r_compute_assimilation_x(double x, spline::Spline env) const;
   double r_germination_probability(spline::Spline env);
+  // Psuedo-name, based on memory location
+  std::string r_name() const;
 
 private:
   // * Individual size

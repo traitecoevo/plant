@@ -43,6 +43,10 @@ p <- new(Plant, s)
 expect_that(p$parameters,
             is_identical_to(pars.s))
 
+## Expect that any two plants differ in their "name".
+expect_that(p$name != new(Plant, s)$name,
+            is_true())
+
 ## Set the leaf mass to something (here pi)
 p$set_mass_leaf(pi)
 

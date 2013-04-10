@@ -1,5 +1,6 @@
 #include "plant.h"
 
+#include <sstream> // std::stringstream
 #include "find_root.h"
 
 namespace model {
@@ -459,6 +460,12 @@ double Plant::r_compute_assimilation_x(double x, spline::Spline env) const {
 
 double Plant::r_germination_probability(spline::Spline env) {
   return germination_probability(&env);
+}
+
+std::string Plant::r_name() const {
+  std::stringstream ss;
+  ss << static_cast<const void*>(this);
+  return ss.str();
 }
 
 
