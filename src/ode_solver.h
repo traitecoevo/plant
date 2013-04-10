@@ -33,9 +33,9 @@ public:
 private:
   Problem *problem;
 
-  void resize(int size_);
+  void resize(size_t size_);
 
-  int size;              // Problem dimension
+  size_t size;           // Problem dimension
   int count;             // Number of steps since reset
   int failed_steps;      // Number of failed steps since reset
   double step_size_last; // Size of last successful step (or suggestion)
@@ -186,7 +186,7 @@ Rcpp::NumericMatrix Solver<Problem>::r_run(std::vector<double> times,
   // This sets the initial step size to be small.
   reset();
 
-  Rcpp::NumericMatrix ret(size, times.size()-1);
+  Rcpp::NumericMatrix ret((int)size, (int)times.size()-1);
   Rcpp::NumericMatrix::iterator out = ret.begin();
 
   while ( t != times.end() ) {
@@ -241,7 +241,7 @@ void Solver<Problem>::reset() {
 }
 
 template <class Problem>
-void Solver<Problem>::resize(int size_) {
+void Solver<Problem>::resize(size_t size_) {
   size = size_;
   yerr.resize(size);
   dydt_in.resize(size);

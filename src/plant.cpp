@@ -216,7 +216,7 @@ int Plant::offspring() {
   double born = 0;
   if ( vars.fecundity > 1 )
     vars.fecundity = modf(vars.fecundity, &born);
-  return born;
+  return (int)born;
 }
 
 bool Plant::died() {

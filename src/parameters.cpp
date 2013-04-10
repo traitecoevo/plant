@@ -25,26 +25,17 @@ void Parameters::add_strategy(Strategy s) {
   strategies.push_back(s);
 }
 
-Strategy Parameters::get_strategy(int idx) {
+Strategy Parameters::r_get_strategy(size_t idx) {
   util::check_bounds(idx, strategies.size());
   return strategies[idx];
 }
 
-Rcpp::List Parameters::get_strategies() {
+Rcpp::List Parameters::r_get_strategies() {
   Rcpp::List ret;
   for ( std::vector<Strategy>::iterator it = strategies.begin();
 	it != strategies.end(); it++ )
     ret.push_back(Rcpp::wrap(*it));
   return ret;
-}
-
-// TODO: Not sure that this is the correct name.  
-// 
-// TODO: Not sure that this is even the right way forward.  Treating
-// strategies as essentially read-only might be better.
-void Parameters::set_strategy(Rcpp::List x, int idx) {
-  util::check_bounds(idx, strategies.size());
-  strategies[idx].set_parameters(x);
 }
 
 void Parameters::do_build_lookup() {

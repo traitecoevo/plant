@@ -14,7 +14,7 @@ bool is_finite(T x) {
   return true;
 }
 
-void check_bounds(int idx, int max);
+void check_bounds(size_t idx, size_t max);
 void check_length(size_t received, size_t expected);
 
 // Based on C++11's is_sorted

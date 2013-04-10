@@ -4,7 +4,7 @@
 
 namespace util {
 
-Integrator::Integrator(double atol, double rtol, int max_iterations) 
+Integrator::Integrator(double atol, double rtol, size_t max_iterations) 
   : atol(atol), rtol(rtol), max_iterations(max_iterations) {
   target_data.function = &helper_functor;
   workspace = gsl_integration_workspace_alloc(max_iterations);
@@ -68,7 +68,7 @@ double test_integrator(std::vector<double> pars,
 
   // Control parameters for the integrator
   const double atol = 1e-6, rtol = 1e-6;
-  const int max_iterations = 1000;
+  const size_t max_iterations = 1000;
 
   Integrator integrator(atol, rtol, max_iterations);
   return integrator.integrate(&fun, x_min, x_max);

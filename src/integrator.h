@@ -13,7 +13,7 @@ namespace util {
 //    obj
 class Integrator {
 public:
-  Integrator(double atol, double rtol, int max_iterations);
+  Integrator(double atol, double rtol, size_t max_iterations);
   ~Integrator();
   double integrate(DFunctor *f, double x_min, double x_max);
   
@@ -24,7 +24,7 @@ private:
 
   // TODO: atol/rtol are used throughout, but are abbreviations.
   double atol, rtol;
-  int max_iterations;
+  size_t max_iterations;
 
   double last_error;
 

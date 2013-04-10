@@ -18,12 +18,13 @@ RcppExport SEXP set_sane_gsl_error_handling() {
   return R_NilValue;
 }
 
-void check_bounds(int idx, int max) {
-  if ( max < 0 )
-    ::Rf_error("Impossible upper bound");
-  else if ( max == 0 )
+// TODO: add r_check_bounds with signature (int, size_t) that does
+// conversion and checks positivity of idx?
+void check_bounds(size_t idx, size_t max) {
+  // We don't check max < 0 or idx < 0, as not possible with size_t
+  if ( max == 0 )
     ::Rf_error("Index %d impossible from empty range", idx);
-  else if ( idx < 0 || idx >= max )
+  else if ( idx >= max )
     ::Rf_error("Index %d out of bounds: must be in [0,%d]", idx, max-1);
 }
 

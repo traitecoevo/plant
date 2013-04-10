@@ -24,7 +24,7 @@ public:
   void reset();
 
   double eval(double u) const;
-  int size() const;
+  size_t size() const;
 
   Rcpp::NumericMatrix r_get_xy() const;
   std::vector<double> r_eval(std::vector<double> u) const;

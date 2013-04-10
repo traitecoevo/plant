@@ -22,13 +22,15 @@ public:
   void reset();
 
   // Querying
-  unsigned int size() const {return strategies.size();}
-  Strategy get_strategy(int idx);
-  Rcpp::List get_strategies();
+  size_t size() const {return strategies.size();}
+  Strategy r_get_strategy(size_t idx);
+  Rcpp::List r_get_strategies();
 
   // Setting
   void add_strategy(Strategy s);
-  void set_strategy(Rcpp::List x, int idx);
+
+  // TODO: Support for deletion of strategies, but think about
+  // implications in things that use them.
 
   // Data
   double mean_disturbance_interval;

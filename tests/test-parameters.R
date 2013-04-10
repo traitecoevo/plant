@@ -5,7 +5,7 @@ context("Parameters")
 p <- new(Parameters)
 
 ## Must start empty
-expect_that(p$size, is_identical_to(0L))
+expect_that(p$size, equals(0))
 
 ## And these are the defaults:
 expected <- list(Pi_0=0.25,
@@ -32,7 +32,7 @@ expect_that(p$get_strategy(10), throws_error())
 ## Add a (default) strategy:
 p$add_strategy(new(Strategy))
 
-expect_that(p$size, is_identical_to(1L))
+expect_that(p$size, equals(1))
 ## Should not have changed any parameters
 expect_that(p$get_parameters(), is_identical_to(expected.s))
 

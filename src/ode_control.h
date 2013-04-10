@@ -18,7 +18,7 @@ public:
   void set_a_y(double x);
   void set_a_dydt(double x);
 
-  double adjust_step_size(int dim, unsigned int ord, double step_size,
+  double adjust_step_size(size_t dim, unsigned int ord, double step_size,
 			  const std::vector<double> &y,
 			  const std::vector<double> &yerr,
 			  const std::vector<double> &yp);

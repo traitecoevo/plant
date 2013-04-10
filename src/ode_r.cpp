@@ -8,8 +8,8 @@ OdeR::OdeR(SEXP fun, SEXP env, SEXP pars) :
 
 void OdeR::derivs(double time, iter_const y, iter dydt) {
   SEXP y_r;
-  PROTECT(y_r = Rf_allocVector(REALSXP, size()));
-  std::copy(y, y + size(), REAL(y_r));
+  PROTECT(y_r = Rf_allocVector(REALSXP, (int)size()));
+  std::copy(y, y + (int)size(), REAL(y_r));
 
   // 2. Slot for output
   SEXP dydt_r;

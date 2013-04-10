@@ -40,15 +40,15 @@ void OdeControl::set_a_dydt(double x) {
 
 // This did used to signal decrease, increase or no change, but let's
 // find out how that worked before doing that.
-double OdeControl::adjust_step_size(int dim, unsigned int ord, 
-				 double step_size,
-				 const std::vector<double> &y,
-				 const std::vector<double> &yerr,
-				 const std::vector<double> &dydt) {
+double OdeControl::adjust_step_size(size_t dim, unsigned int ord, 
+				    double step_size,
+				    const std::vector<double> &y,
+				    const std::vector<double> &yerr,
+				    const std::vector<double> &dydt) {
   double rmax = DBL_MIN;
   const double S = 0.9;
 
-  for ( int i = 0; i < dim; i++ ) {
+  for ( size_t i = 0; i < dim; i++ ) {
     // TODO: This is the same as that computed by errlevel(), but
     // without the check?
     //   const double D0 = errlevel(*y++, *dydt++, h);

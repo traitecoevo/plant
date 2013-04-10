@@ -64,8 +64,8 @@ public:
   std::vector<int> r_germination(std::vector<int> seeds);
 
   // TODO: This is likely to change as more is written.
-  std::vector<double> r_get_mass_leaf(int idx) const;
-  void r_set_mass_leaf(std::vector<double> x, int idx);
+  std::vector<double> r_get_mass_leaf(size_t idx) const;
+  void r_set_mass_leaf(std::vector<double> x, size_t idx);
   
   // Also this
   void r_clear();

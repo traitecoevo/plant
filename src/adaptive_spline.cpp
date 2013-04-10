@@ -70,7 +70,7 @@ bool AdaptiveSpline::construct_spline() {
 // Takes the contents of the 'xx' and 'yy' arrays and computes a
 // (non-adaptive) spline with them.
 void AdaptiveSpline::compute_spline() {
-  const int n = xx.size();
+  const size_t n = xx.size();
   x.resize(n);
   y.resize(n);
   std::copy(xx.begin(), xx.end(), x.begin());

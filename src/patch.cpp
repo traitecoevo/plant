@@ -99,7 +99,7 @@ std::vector<int> Patch::germination(std::vector<int> seeds) {
       const double p = parameters->Pi_0 *
 	species[i].germination_probability(&light_environment);
       if ( p > 0 )
-	seeds[i] = Rf_rbinom(seeds[i], p);
+	seeds[i] = (int)Rf_rbinom(seeds[i], p);
     }
   }
   return seeds;
@@ -279,12 +279,12 @@ std::vector<int> Patch::r_germination(std::vector<int> seeds) {
   return germination(seeds);
 }
 
-std::vector<double> Patch::r_get_mass_leaf(int idx) const {
+std::vector<double> Patch::r_get_mass_leaf(size_t idx) const {
   util::check_bounds(idx, size());
   return species[idx].r_get_mass_leaf();
 }
 
-void Patch::r_set_mass_leaf(std::vector<double> x, int idx) {
+void Patch::r_set_mass_leaf(std::vector<double> x, size_t idx) {
   util::check_bounds(idx, size());
   species[idx].r_set_mass_leaf(x);
 }

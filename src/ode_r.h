@@ -12,7 +12,7 @@ namespace ode {
 class OdeR {
 public:
   OdeR(SEXP fun, SEXP env, SEXP pars);
-  unsigned int size() const { return size_; }
+  size_t size() const { return size_; }
   void derivs(double time, iter_const y, iter dydt);
   std::vector<double> r_derivs(double time, std::vector<double> y);
 
@@ -48,7 +48,7 @@ private:
   SEXP target(double time, SEXP y);
 
   SEXP fun, env, pars;
-  unsigned int size_;
+  size_t size_;
 
   Solver<OdeR> solver;
 };

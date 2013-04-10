@@ -39,7 +39,7 @@ void Spline::init(std::vector<double> x_, std::vector<double> y_) {
 
 // Compute the spline from the points contained in 'x' and 'y'.
 void Spline::init_self() {
-  const int n = x.size();
+  const size_t n = x.size();
   gsl_free_spline();
   gsl_free_acc();
   acc    = gsl_interp_accel_alloc();
@@ -67,16 +67,16 @@ double Spline::eval(double u) const {
 }
 
 // Return the number of (x,y) pairs contained in the spline.
-int Spline::size() const {
+size_t Spline::size() const {
   return x.size();
 }
 
 // Get the (x,y) pairs in the spline as a two-column matrix
 Rcpp::NumericMatrix Spline::r_get_xy() const {
-  const int n = x.size();
-  Rcpp::NumericMatrix ret(n, 2);
+  const size_t n = x.size();
+  Rcpp::NumericMatrix ret((int)n, 2);
 
-  for ( int i = 0; i < n; i++ ) {
+  for ( size_t i = 0; i < n; i++ ) {
     ret(i,0) = x[i];
     ret(i,1) = y[i];
   }
@@ -87,9 +87,9 @@ Rcpp::NumericMatrix Spline::r_get_xy() const {
 // Compute the value of the spline at a vector of points `x=u`,
 // returning a vector of the same length.
 std::vector<double> Spline::r_eval(std::vector<double> u) const {
-  const int n = u.size();
+  const size_t n = u.size();
   std::vector<double> ret(n);
-  for ( int i = 0; i < n; i++ )
+  for ( size_t i = 0; i < n; i++ )
     ret[i] = eval(u[i]);
   return ret;
 }
