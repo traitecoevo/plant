@@ -26,4 +26,10 @@ void check_bounds(int idx, int max) {
     ::Rf_error("Index %d out of bounds: must be in [0,%d]", idx, max-1);
 }
 
+void check_length(size_t received, size_t expected) {
+  if ( expected != received )
+    ::Rf_error("Incorrect length input; expected %d, received %d\n",
+	       expected, received);
+}
+
 }

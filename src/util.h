@@ -15,6 +15,7 @@ bool is_finite(T x) {
 }
 
 void check_bounds(int idx, int max);
+void check_length(size_t received, size_t expected);
 
 // Based on C++11's is_sorted
 template <class ForwardIterator> 
