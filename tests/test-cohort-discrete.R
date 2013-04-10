@@ -151,15 +151,9 @@ d.1 <- replicate(nrep, f.c(cohort1, y1))
 set.seed(1)
 d.2 <- replicate(nrep, f.c(cohort2, y1))
 
-## Given this, we don't bother doing any checks on d.1
+expect_that(as.logical(d.0[1,]),
+            is_identical_to(d.p))
 expect_that(d.0, is_identical_to(d.1))
-
-n.p <- sum(d.p)
-n.0 <- sum(d.0[1,])
-
-r <- qbinom(c(1/10, 9/10), nrep, 1 - exp(-y1[2]))
-expect_that(n.p > r[[1]] && n.p < r[[2]], is_true())
-expect_that(n.0 > r[[1]] && n.0 < r[[2]], is_true())
 
 ## Whenever we died, the population has decreased to 0
 expect_that(all(as.logical(d.0[1,]) == (d.0[2,] == 0)),
@@ -169,8 +163,11 @@ expect_that(all(as.logical(d.0[1,]) == (d.0[2,] == 0)),
 expect_that(all(as.logical(d.2[1,]) == (d.2[2,] == 0)),
             is_true())
 
+## Quick check that probably belongs in test-plant
+n.p <- sum(d.p)
+r <- qbinom(c(1/10, 9/10), nrep, 1 - exp(-y1[2]))
+expect_that(n.p > r[[1]] && n.p < r[[2]], is_true())
+
+## Similar check for the 2-individual case
 err <- max(abs(table(d.2[2,]) - table(rbinom(nrep, 2, exp(-y1[2])))))
 expect_that(err/nrep < 1/10, is_true())
-
-
-

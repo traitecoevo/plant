@@ -33,7 +33,10 @@ int CohortDiscrete::offspring() {
 }
 
 bool CohortDiscrete::died() {
-  n_individuals -= Rf_rbinom(n_individuals, mortality());
+  if ( n_individuals > 1 )
+    n_individuals -= Rf_rbinom(n_individuals, mortality());
+  else // ensures same as Plant's behaviour when n_individuals is 1.
+    n_individuals = unif_rand() < mortality() ? 0 : 1;
   mortality_reset();
   if ( n_individuals < 0 )
     Rf_error("Somehow we have negative individuals!");
