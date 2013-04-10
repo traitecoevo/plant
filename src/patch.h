@@ -29,6 +29,10 @@ public:
   // Advance the system through the stochastic life cycle stages
   // (producing seeds and dying).
   void step_stochastic();
+  std::vector<int> births();
+  void deaths();
+  std::vector<int> germination(std::vector<int> seeds);
+  void add_seeds(std::vector<int> seeds);
 
   // * ODE interface.
   void derivs(double time,
@@ -42,9 +46,9 @@ public:
   // * R interface.
 
   // Actually public functions for interrogating & modifying
-  Rcpp::List r_get_plants(int idx) const; // TODO: return all?
+  Rcpp::List r_get_plants() const;
   spline::Spline r_light_environment() const;
-  void r_add_seed(int idx); // TODO: May change?
+  void r_add_seeds(std::vector<int> seeds);
   void r_step();
   void r_step_stochastic(); // step_stochastic, plus RNG control
 

@@ -14,21 +14,23 @@ patch <- new(Patch, p)
 
 expect_that(patch$size, equals(p$size))
 
-## We've not added any seeds yet, so this should be the empty list
-plants <- patch$get_plants(0L)
-expect_that(plants, is_identical_to(list()))
+## We've not added any seeds yet, so this should be a list of length 1
+## containing the empty list.
+plants <- patch$get_plants()
+expect_that(plants, is_identical_to(list(list())))
 
 ## And the height must be zero
 expect_that(patch$height_max, is_identical_to(0.0))
 
 ## Add a single seed to this
-patch$add_seed(0)
+patch$add_seeds(1)
 
-plants <- patch$get_plants(0L)
+plants <- patch$get_plants()
 expect_that(length(plants), equals(1))
 expect_that(length(plants[[1]]), equals(1))
+expect_that(length(plants[[c(1,1)]]), equals(1))
 
-expect_that(plants[[1]]$vars_size,
+expect_that(plants[[c(1,1)]]$vars_size,
             is_identical_to(cmp$vars_size))
 
 expect_that(patch$height_max,
@@ -38,8 +40,8 @@ cmp$set_mass_leaf(pi)
 patch$set_mass_leaf(pi, 0L)
 expect_that(patch$get_mass_leaf(0L), is_identical_to(pi))
 
-plants <- patch$get_plants(0L)
-expect_that(plants[[1]]$vars_size,
+plants <- patch$get_plants()
+expect_that(plants[[c(1,1)]]$vars_size,
             is_identical_to(cmp$vars_size))
 
 ## Compute the light environment
@@ -66,8 +68,8 @@ cmp$compute_vars_phys(env)
 patch$compute_vars_phys()
 
 ## And compare against the single plant.
-plants <- patch$get_plants(0L)
-expect_that(plants[[1]]$vars_phys,
+plants <- patch$get_plants()
+expect_that(plants[[c(1,1)]]$vars_phys,
             equals(cmp$vars_phys))
 
 ## One species, one individual
@@ -100,16 +102,30 @@ library(deSolve)
 derivs.d <- function(...)
   list(derivs(...))
 cmp.run <- unname(rk(y, tt, derivs.d, patch,
-                     method=rkMethod("rk45ck"), hini=1/1000, rtol=1,
-                     atol=1)[-1,-1])
+                     method=rkMethod("rk45ck"), hini=1e-8, rtol=1e-8,
+                     atol=1e-8)[-1,-1])
 
-## TODO: This is quite slow (0.1s).  This is about 30% slower than the
-## rk45ck in deSolve, so given the overhead involved in going to and
-## from R, there is some serious room for improvement in the ODE
-## solver.  This probably should not be too surprising as it's based
-## on GSL, and that is meant to be fairly slow.
+## TODO: This is quite slow (0.1s).  This is about 20% slower than the
+## rk45ck in deSolve (0.08s), so given the overhead involved in going
+## to and from R, there is some serious room for improvement in the
+## ODE solver.  This probably should not be too surprising as it's
+## based on GSL, and that is meant to be fairly slow.
+##
+## It actually looks like some of the overhead could be coming from
+## the R<->C communication?  Time will tell.
 expect_that(t(obj$run(tt, y)),
             equals(cmp.run))
+
+## Reset so that we are starting from the "correct" starting point for
+## a single individual.
+patch$clear()
+patch$add_seeds(1)
+
+## set.seed(1)
+## while ( patch$ode_size == 3 && patch$age < 15.0 ) {
+##   patch$step_deterministic()
+##   patch$step_stochastic()
+## }
 
 rm(patch)
 gc()

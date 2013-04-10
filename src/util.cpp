@@ -12,6 +12,7 @@ void handler_pass_to_R(const char *reason,
 }
 
 // See Rcpp-exports for a better way of doing this.
+// Actually, do this via Rcpp::function in interface.
 RcppExport SEXP set_sane_gsl_error_handling() {
   gsl_set_error_handler(&handler_pass_to_R);
   return R_NilValue;

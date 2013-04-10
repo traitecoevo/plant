@@ -54,16 +54,55 @@ void Patch::step_deterministic() {
   age = ode_solver.get_time();
 }
 
-// TODO: Should this be a method within species, perhaps?  If so then,
-// we get to do a std::foreach.  Probably not, because that means that
-// the Species class contains code depending on how it is used (wrong
-// level).
+// Note that this will change when we are working with a
+// metapopulation.  In particular, we will 
 void Patch::step_stochastic() {
+  deaths();
+  std::vector<int> seeds = births();
+  seeds = germination(seeds);
+  add_seeds(seeds);
+}
+
+void Patch::deaths() {
   for ( std::vector<Species>::iterator sp = species.begin();
-	sp != species.end(); sp++ ) {
+	sp != species.end(); sp++ )
     sp->deaths();
-    sp->add_seeds(sp->births());
+}
+
+std::vector<int> Patch::births() {
+  std::vector<int> ret(species.size(), 0);
+  std::vector<int>::iterator n = ret.begin();
+  for ( std::vector<Species>::iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    *n = sp->births();
+  return ret;
+}
+
+void Patch::add_seeds(std::vector<int> seeds) {
+  for ( int i = 0; i < seeds.size(); i++ )
+    species[i].add_seeds(seeds[i]);
+}
+
+// There are two components to seed survival:
+//   1. survival during dispersal (parameters->Pi_0)
+//   2. survival during germination (species-specific, given light env)
+// 
+// Survival would be distributed as
+//   Binom(Binom(seeds_in, p_dispersal), p_germination)
+// 
+// However, because the dispersal and germination probabilities are
+// independent the number that survive is distributed as
+//   Binom(seeds_in, p_dispersal * p_germination)
+std::vector<int> Patch::germination(std::vector<int> seeds) {
+  for ( int i = 0; i < seeds.size(); i++ ) {
+    if ( seeds[i] > 0 ) {
+      const double p = parameters->Pi_0 *
+	species[i].germination_probability(&light_environment);
+      if ( p > 0 )
+	seeds[i] = Rf_rbinom(seeds[i], p);
+    }
   }
+  return seeds;
 }
 
 // * ODE interface
@@ -183,18 +222,21 @@ void Patch::compute_vars_phys() {
 // * R interface
 
 // Actually public functions for interrogating & modifying
-Rcpp::List Patch::r_get_plants(int idx) const {
-  util::check_bounds(idx, size());
-  return species[idx].r_get_plants();
+Rcpp::List Patch::r_get_plants() const {
+  Rcpp::List ret;
+  for ( std::vector<Species>::const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    ret.push_back(sp->r_get_plants());
+  return ret;
 }
 
 spline::Spline Patch::r_light_environment() const {
   return light_environment;
 }
 
-void Patch::r_add_seed(int idx) {
-  util::check_bounds(idx, size());
-  species[idx].add_seeds(1);
+void Patch::r_add_seeds(std::vector<int> seeds) {
+  util::check_length(seeds.size(), species.size());
+  add_seeds(seeds);
 }
 
 void Patch::r_step() {

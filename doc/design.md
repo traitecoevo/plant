@@ -110,6 +110,17 @@ etc.  For now, I'm moving it into the patch.  I'll decide if it's paid
 by the source or destination patch once we get a metapopulation
 going.
 
+Eventually, I might need a concept of "incoming seed" within a Patch;
+this would allow us to increment this during the dispersal step.  This
+means that a vector of "types" is probably an appropriate intermediate
+data structure to go through.
+
+One way of thinking about where the "correct" place to compute things
+is what happens when we go to a spatial model?  The patch will say
+"what is your germination probability, little seed" for each seed
+(within each species) and append it as needed; it really won't happen
+at the species level.
+
 ## Seed rain
 
 In the EBT version of the model there is the idea of "seed rain",
