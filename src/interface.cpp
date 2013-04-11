@@ -130,28 +130,31 @@ RCPP_MODULE(tree) {
     .derives<ode::OdeTarget>("OdeTarget")
     ;
 
-  typedef model::Patch<model::Plant> PatchP; // only used here
-  Rcpp::class_<PatchP>("Patch")
-    .constructor<model::Parameters>()
+  Rcpp::class_<model::PatchBase>("PatchBase")
     .derives<ode::OdeTarget>("OdeTarget")
-    .property("size",             &PatchP::r_size)
-    .property("height_max",       &PatchP::r_height_max)
-    .method("canopy_openness",    &PatchP::r_canopy_openness)
+    .property("size",             &model::PatchBase::r_size)
+    .property("height_max",       &model::PatchBase::r_height_max)
+    .method("canopy_openness",    &model::PatchBase::r_canopy_openness)
     .method("compute_light_environment",
-	    &PatchP::r_compute_light_environment)
+	    &model::PatchBase::r_compute_light_environment)
     .property("light_environment",
-	      &PatchP::r_light_environment)
-    .method("compute_vars_phys",  &PatchP::r_compute_vars_phys)
-    .property("age",              &PatchP::r_age)
-    .method("germination",        &PatchP::r_germination)
-    .method("get_plants",         &PatchP::r_get_plants)
-    .method("add_seeds",          &PatchP::r_add_seeds)
-    .method("get_mass_leaf",      &PatchP::r_get_mass_leaf)
-    .method("set_mass_leaf",      &PatchP::r_set_mass_leaf)
-    .method("clear",              &PatchP::r_clear)
-    .method("step",               &PatchP::r_step)
-    .method("step_deterministic", &PatchP::step_deterministic)
-    .method("step_stochastic",    &PatchP::r_step_stochastic)
+	      &model::PatchBase::r_light_environment)
+    .method("compute_vars_phys",  &model::PatchBase::r_compute_vars_phys)
+    .property("age",              &model::PatchBase::r_age)
+    .method("germination",        &model::PatchBase::r_germination)
+    .method("get_plants",         &model::PatchBase::r_get_plants)
+    .method("add_seeds",          &model::PatchBase::r_add_seeds)
+    .method("get_mass_leaf",      &model::PatchBase::r_get_mass_leaf)
+    .method("set_mass_leaf",      &model::PatchBase::r_set_mass_leaf)
+    .method("clear",              &model::PatchBase::r_clear)
+    .method("step",               &model::PatchBase::r_step)
+    .method("step_deterministic", &model::PatchBase::step_deterministic)
+    .method("step_stochastic",    &model::PatchBase::r_step_stochastic)
+    ;
+
+  Rcpp::class_< model::Patch<model::Plant> >("Patch")
+    .constructor<model::Parameters>()
+    .derives<model::PatchBase>("PatchBase")
     ;
 
   // Misc functions
