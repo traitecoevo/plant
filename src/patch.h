@@ -309,7 +309,7 @@ void Patch<Individual>::initialise() {
   for ( std::vector<Strategy>::iterator 
 	  it = parameters->strategies.begin();
 	it != parameters->strategies.end(); it++ ) {
-    Species<Plant> s(&(*it)); // (iterator -> object -> pointer)
+    Species<Individual> s(&(*it)); // (iterator -> object -> pointer)
     species.push_back(s);
   }
 }
