@@ -56,13 +56,30 @@ once we're at zero the individual is destroyed.
 At the moment I've called these CohortDiscrete and we can adjust this
 later.
 
-I've implemented this by composition, but I feel that inheritance
-could be nicer.  However, if we do it via inheritance, then we'll have
-to delare some functions in Plant virtual:
+One issue with this is that now we have a `Patch` that contains
+`Species<Plant>`.  If we want to be able to toggle to use
+`Species<CohortDiscrete>` I see a few options:
 
-* `Plant::leaf_area_above`
-* `Plant::died`
-* `Plant::offspring`
+1. Have both data members present in the class, and just use one.
+That is a bit (lot) of a hack though, but it would allow run time
+switches in how things are done.
+
+2. Template the Patch class.  Then we have `Patch< Species<Plant> >`
+and `Patch< Species<CohortDiscrete> >`.  The issue with this is that
+it means that when we have a metapopulation, it will be
+`Metapopulation< Patch< Species<Plant> > >` etc.
+
+3. It seems possible that we could template *just* on the Plant, so
+that we have `Patch<Plant>` and `Patch<CohortDiscrete>`, as the
+`Species` code remains the same.  This would infect the Metapopulation
+similarly, so that we have `Metapopulation<Plant>` and
+`Metapopulation<CohortDiscrete>`, too.  The only other issue here is
+how to export this to R via modules, but that's not that horrible.
+
+4. Use inheritance, create a base class (that does not contain a
+species object), then two subclasses (one for each type).  The `Patch`
+then has a `vector` of pointers base class (leading to an ugly pointer
+iteration situation).
 
 ### Functional approach
 
