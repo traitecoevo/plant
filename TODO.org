@@ -5,5 +5,4 @@ Rcpp::error instead.
 
 * Exporting utility functions
 
-Perhaps with attributes and Rcpp::compileAttributes() ->
-{RcppExports.cpp, RcppExports.R}
+Convert remaining utility functions to use Rcpp::function.

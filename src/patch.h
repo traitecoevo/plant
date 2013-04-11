@@ -11,6 +11,7 @@
 
 namespace model {
 
+template <class Individual>
 class Patch : public ode::OdeTarget {
 public:
   Patch(Parameters p);
@@ -54,15 +55,17 @@ public:
   void r_step();
   void r_step_stochastic(); // step_stochastic, plus RNG control
 
-  // Wrapper functions for testing
-  size_t r_size() const;
-  double r_height_max() const;
-  double r_canopy_openness(double height);
-  void r_compute_light_environment();
-  void r_compute_vars_phys();
-  double r_age() const;
-  std::vector<int> r_germination(std::vector<int> seeds);
+  // Wrapper functions for testing.  Some of these expose otherwise
+  // private methods, and do nothing more than pass through.
+  size_t r_size() const { return size(); }
+  double r_height_max() const { return height_max(); }
+  double r_canopy_openness(double height) {return canopy_openness(height);}
+  void r_compute_light_environment() {compute_light_environment();}
+  void r_compute_vars_phys() {compute_vars_phys();}
+  double r_age() const {return age;}
 
+  // These include size or bounds checking
+  std::vector<int> r_germination(std::vector<int> seeds);
   // TODO: This is likely to change as more is written.
   std::vector<double> r_get_mass_leaf(size_t idx) const;
   void r_set_mass_leaf(std::vector<double> x, size_t idx);
@@ -93,13 +96,316 @@ private:
 
   spline::AdaptiveSpline light_environment;
 
-  std::vector< Species<Plant> > species;
+  std::vector< Species<Individual> > species;
   ode::Solver<Patch> ode_solver;
 
-  typedef std::vector< Species<Plant> >::iterator species_iterator;
-  typedef std::vector< Species<Plant> >::const_iterator
+  typedef typename std::vector< Species<Individual> >::iterator 
+  species_iterator;
+  typedef typename std::vector< Species<Individual> >::const_iterator 
   species_const_iterator;
 };
+
+template <class Individual>
+Patch<Individual>::Patch(Parameters p)
+  : standalone(true),
+    parameters(new Parameters(p)),
+    age(0.0),
+    ode_solver(this) {
+  initialise();
+}
+
+template <class Individual>
+Patch<Individual>::Patch(Parameters *p)
+  : standalone(false),
+    parameters(p),
+    age(0.0),
+    ode_solver(this) {
+  initialise();
+}
+
+template <class Individual>
+Patch<Individual>::Patch(const Patch<Individual> &other)
+  : standalone(other.standalone),
+    parameters(standalone ?
+	       new Parameters(*other.parameters) : other.parameters),
+    age(other.age),
+    light_environment(other.light_environment),
+    species(other.species),
+    ode_solver(this) {
+}
+
+template <class Individual>
+Patch<Individual>& Patch<Individual>::operator=(Patch<Individual> rhs) {
+  swap(*this, rhs);
+  return *this;
+}
+
+template <class Individual>
+Patch<Individual>::~Patch() {
+  if ( standalone )
+    delete parameters;
+}
+
+template <class Individual>
+void Patch<Individual>::step() {
+  step_deterministic();
+  step_stochastic();
+}
+
+template <class Individual>
+void Patch<Individual>::step_deterministic() {
+  std::vector<double> y(ode_size());
+  ode_values(y.begin());
+  ode_solver.set_state(y, age);
+  ode_solver.step();
+  age = ode_solver.get_time();
+}
+
+// Note that this will change when we are working with a
+// metapopulation.  In particular, this will get called in two pieces,
+// with the seed output collected up for general dispersal.
+template <class Individual>
+void Patch<Individual>::step_stochastic() {
+  deaths();
+  std::vector<int> seeds = births();
+  seeds = germination(seeds);
+  add_seeds(seeds);
+}
+
+template <class Individual>
+void Patch<Individual>::deaths() {
+  for ( species_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    sp->deaths();
+}
+
+template <class Individual>
+std::vector<int> Patch<Individual>::births() {
+  std::vector<int> ret(species.size(), 0);
+  std::vector<int>::iterator n = ret.begin();
+  for ( species_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    *n = sp->births();
+  return ret;
+}
+
+template <class Individual>
+void Patch<Individual>::add_seeds(std::vector<int> seeds) {
+  for ( size_t i = 0; i < seeds.size(); i++ )
+    species[i].add_seeds(seeds[i]);
+}
+
+// There are two components to seed survival:
+//   1. survival during dispersal (parameters->Pi_0)
+//   2. survival during germination (species-specific, given light env)
+// 
+// Survival would be distributed as
+//   Binom(Binom(seeds_in, p_dispersal), p_germination)
+// 
+// However, because the dispersal and germination probabilities are
+// independent the number that survive is distributed as
+//   Binom(seeds_in, p_dispersal * p_germination)
+template <class Individual>
+std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
+  for ( size_t i = 0; i < seeds.size(); i++ ) {
+    if ( seeds[i] > 0 ) {
+      const double p = parameters->Pi_0 *
+	species[i].germination_probability(&light_environment);
+      if ( p > 0 )
+	seeds[i] = (int)Rf_rbinom(seeds[i], p);
+    }
+  }
+  return seeds;
+}
+
+// * ODE interface
+template <class Individual>
+void Patch<Individual>::derivs(double time,
+		   std::vector<double>::const_iterator y,
+		   std::vector<double>::iterator dydt) {
+  bool changed = false;
+  ode_values_set(y, changed);
+  // Next two will be optional (if (changed))
+  compute_light_environment();
+  compute_vars_phys();
+
+  ode_rates(dydt);
+}
+
+template <class Individual>
+size_t Patch<Individual>::ode_size() const {
+  size_t ret = 0;
+  for ( species_const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    ret += sp->ode_size();
+  return ret;
+}
+
+template <class Individual>
+ode::iter_const Patch<Individual>::ode_values_set(ode::iter_const it, bool &changed) {
+  for ( species_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    it = sp->ode_values_set(it, changed);
+  return it;
+}
+
+template <class Individual>
+ode::iter Patch<Individual>::ode_values(ode::iter it) const {
+  for ( species_const_iterator sp = species.begin(); 
+	sp != species.end(); sp++ )
+    it = sp->ode_values(it);
+  return it;
+}
+
+template <class Individual>
+ode::iter Patch<Individual>::ode_rates(ode::iter it) const {
+  for ( species_const_iterator sp = species.begin(); 
+	sp != species.end(); sp++ )
+    it = sp->ode_rates(it);
+  return it;
+}
+
+// * Private functions
+template <class Individual>
+void Patch<Individual>::swap(Patch<Individual> &a, Patch<Individual> &b) {
+  using std::swap;
+  swap(a.standalone,        b.standalone);
+  swap(a.parameters,        b.parameters);
+  swap(a.age,               b.age);
+  swap(a.light_environment, b.light_environment);
+  swap(a.species,           b.species);
+  swap(a.ode_solver,        b.ode_solver);
+}
+
+// Sets the strategy for each species
+template <class Individual>
+void Patch<Individual>::initialise() {
+  species.clear();
+
+  // This feels really ugly.
+  for ( std::vector<Strategy>::iterator 
+	  it = parameters->strategies.begin();
+	it != parameters->strategies.end(); it++ ) {
+    Species<Plant> s(&(*it)); // (iterator -> object -> pointer)
+    species.push_back(s);
+  }
+}
+
+// Number of species
+template <class Individual>
+size_t Patch<Individual>::size() const {
+  return species.size();
+}
+
+// Maxiumum height for any species in the Patch.  Empty patches (no
+// species or no individuals) have height 0.
+template <class Individual>
+double Patch<Individual>::height_max() const {
+  double ret = 0.0;
+  for ( species_const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    ret = std::max(ret, sp->height_max());
+  return ret;
+}
+
+// [eqn 11] Canopy openness at `height`
+//
+// NOTE: I'd rather that this be a const method (as it is actually
+// const) but that conflicts with the definition of DFunctor.
+// Probably using Boost and a proper and robust way of binding
+// functions would save hassle here.
+template <class Individual>
+double Patch<Individual>::canopy_openness(double height) {
+  double tot = 0.0;
+  for ( species_const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    tot += sp->leaf_area_above(height);
+  // NOTE: patch_area does not appear in the EBT model formulation.
+  return exp(-parameters->c_ext * tot / parameters->patch_area);
+}
+
+// Create the spline the characterises the light environment.
+template <class Individual>
+void Patch<Individual>::compute_light_environment() {
+  // Naive version -- push out to to body of class
+  util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
+  light_environment.set_bounds(0, height_max());
+  light_environment.set_target(&fun);
+  // TODO: should be construct(&fun, 0, height())
+  light_environment.construct_spline();
+}
+
+// Given the light environment, "apply" it to every species so that
+// physiological variables are updated.
+template <class Individual>
+void Patch<Individual>::compute_vars_phys() {
+  for ( species_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    sp->compute_vars_phys(&light_environment);
+}
+
+// * R interface
+
+// Actually public functions for interrogating & modifying
+template <class Individual>
+Rcpp::List Patch<Individual>::r_get_plants() const {
+  Rcpp::List ret;
+  for ( species_const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    ret.push_back(sp->r_get_plants());
+  return ret;
+}
+
+template <class Individual>
+spline::Spline Patch<Individual>::r_light_environment() const {
+  return light_environment;
+}
+
+template <class Individual>
+void Patch<Individual>::r_add_seeds(std::vector<int> seeds) {
+  util::check_length(seeds.size(), species.size());
+  add_seeds(seeds);
+}
+
+template <class Individual>
+void Patch<Individual>::r_step() {
+  Rcpp::RNGScope scope;
+  step();
+}
+
+template <class Individual>
+void Patch<Individual>::r_step_stochastic() {
+  Rcpp::RNGScope scope;
+  step_stochastic();
+}
+
+// Wrapper functions for testing
+template <class Individual>
+std::vector<int> Patch<Individual>::r_germination(std::vector<int> seeds) {
+  util::check_length(seeds.size(), species.size());
+  return germination(seeds);
+}
+
+template <class Individual>
+std::vector<double> Patch<Individual>::r_get_mass_leaf(size_t idx) const {
+  util::check_bounds(idx, size());
+  return species[idx].r_get_mass_leaf();
+}
+
+template <class Individual>
+void Patch<Individual>::r_set_mass_leaf(std::vector<double> x, size_t idx) {
+  util::check_bounds(idx, size());
+  species[idx].r_set_mass_leaf(x);
+}
+
+template <class Individual>
+void Patch<Individual>::r_clear() {
+  age = 0.0;
+  for ( species_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    sp->clear();
+  ode_solver.reset();
+}
 
 }
 

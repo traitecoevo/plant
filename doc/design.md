@@ -75,11 +75,18 @@ that we have `Patch<Plant>` and `Patch<CohortDiscrete>`, as the
 similarly, so that we have `Metapopulation<Plant>` and
 `Metapopulation<CohortDiscrete>`, too.  The only other issue here is
 how to export this to R via modules, but that's not that horrible.
+The big downside is that I will have to do a lot of repetition for the
+different specialisations.  **But** this would be mitigated if both
+inherited from an abstract base class (which helps with dependency
+inversion I think).
 
 4. Use inheritance, create a base class (that does not contain a
 species object), then two subclasses (one for each type).  The `Patch`
 then has a `vector` of pointers base class (leading to an ugly pointer
 iteration situation).
+
+I leant towards templates though, because I would never *mix* `Plant`s
+and `CohortDiscrete`s together.
 
 ### Functional approach
 
@@ -468,6 +475,23 @@ really don't need `Plant` to be able to see (`lookup_type`,
 around the issues of the data lookup.  So provide a virtual base
 class, privately inherit from this, and then the issue goes away?
 That has the nice effect that the lookup problems go away.
+
+There are a number of `r_` wrapper functions that just bypass the
+public/private interface for testing.  Options here could be to either
+make these `protected` and inherit, or declare these inline rather
+than having four lines where one would do:
+```
+ret_type r_method() const { return method(); }
+```
+vs.
+```
+ret_type r_method() const;
+...
+ret_type Class::r_method() const {
+  return method();
+}
+```
+
 
 # Consistency
 
