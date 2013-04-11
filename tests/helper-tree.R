@@ -26,7 +26,8 @@ if ( !exists("Spline") ) {
   CohortDiscrete <- tree_module$CohortDiscrete
   Cohort         <- tree_module$Cohort
 
-  Patch <- tree_module$Patch
+  Patch  <- tree_module$Patch
+  PatchC <- tree_module$PatchC
 }
 
 source("../R/falster.R", chdir=TRUE)
