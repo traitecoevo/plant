@@ -29,4 +29,6 @@ private:
 
 }
 
+RCPP_EXPOSED_CLASS(model::CohortDiscrete)
+
 #endif

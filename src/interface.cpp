@@ -157,6 +157,11 @@ RCPP_MODULE(tree) {
     .derives<model::PatchBase>("PatchBase")
     ;
 
+  Rcpp::class_< model::Patch<model::CohortDiscrete> >("PatchC")
+    .constructor<model::Parameters>()
+    .derives<model::PatchBase>("PatchBase")
+    ;
+
   // Misc functions
   Rcpp::function("test_functor",    &util::test::test_functor);
   Rcpp::function("test_find_root",  &util::test::test_find_root);
