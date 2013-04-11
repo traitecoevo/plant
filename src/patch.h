@@ -11,8 +11,31 @@
 
 namespace model {
 
+// The only reason for this is so that the code in interface.cpp does
+// not get repeated.
+class PatchBase : public ode::OdeTarget {
+public:
+  virtual ~PatchBase() {};
+  virtual size_t r_size() const = 0;
+  virtual double r_height_max() const = 0;
+  virtual double r_canopy_openness(double) = 0;
+  virtual void r_compute_light_environment() = 0;
+  virtual spline::Spline r_light_environment() const = 0;
+  virtual void r_compute_vars_phys() = 0;
+  virtual double r_age() const = 0;
+  virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
+  virtual Rcpp::List r_get_plants() const = 0;
+  virtual void r_add_seeds(std::vector<int> seeds) = 0;
+  virtual std::vector<double> r_get_mass_leaf(size_t idx) const = 0;
+  virtual void r_set_mass_leaf(std::vector<double> x, size_t idx) = 0;
+  virtual void r_clear() = 0;
+  virtual void r_step() = 0;
+  virtual void step_deterministic() = 0;
+  virtual void r_step_stochastic() = 0;
+};
+
 template <class Individual>
-class Patch : public ode::OdeTarget {
+class Patch : public PatchBase {
 public:
   Patch(Parameters p);
   Patch(Parameters *p);
@@ -181,7 +204,7 @@ void Patch<Individual>::deaths() {
 
 template <class Individual>
 std::vector<int> Patch<Individual>::births() {
-  std::vector<int> ret(species.size(), 0);
+  std::vector<int> ret(size(), 0);
   std::vector<int>::iterator n = ret.begin();
   for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
@@ -363,7 +386,7 @@ spline::Spline Patch<Individual>::r_light_environment() const {
 
 template <class Individual>
 void Patch<Individual>::r_add_seeds(std::vector<int> seeds) {
-  util::check_length(seeds.size(), species.size());
+  util::check_length(seeds.size(), size());
   add_seeds(seeds);
 }
 
@@ -382,7 +405,7 @@ void Patch<Individual>::r_step_stochastic() {
 // Wrapper functions for testing
 template <class Individual>
 std::vector<int> Patch<Individual>::r_germination(std::vector<int> seeds) {
-  util::check_length(seeds.size(), species.size());
+  util::check_length(seeds.size(), size());
   return germination(seeds);
 }
 
