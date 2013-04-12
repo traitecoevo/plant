@@ -88,6 +88,35 @@ iteration situation).
 I leant towards templates though, because I would never *mix* `Plant`s
 and `CohortDiscrete`s together.
 
+A population based on `Plant`s and one based on `CohortDiscrete` will
+stochastically diverge because of the differences in accounting in
+`Species::died`; a `Species<Plant>` must go through and do independent
+Bernoulli trials whereas a `Species<CohortDiscrete>` can do a binomial
+draw when there is more than one individual in a cohort.
+
+We could have a "hard mode" that forces Bernoilli trials; it would
+look like
+
+```
+  bool CohortDiscrete::died_hard_mode() {
+    const double m = mortality();
+    const int n = n_individuals;
+    for ( int i = 0; < n; i++ )
+      if ( unif_rand() < m )
+        n_individuals--;
+    return n_individuals == 0;
+  }
+```
+
+With this, the two cases would be stochastically identical.
+However, at some point the ODE solver will do something with
+scaling the error estimates by the number of variables (not sure if
+it does so already, but if it's done on an average that will
+happen) at which point we'll lose equivalence.
+
+Another downside of this is that this would require more parameters
+set somewhere.
+
 ### Functional approach
 
 The deterministic part can be done more carefully; suppose that we
