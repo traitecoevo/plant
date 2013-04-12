@@ -3,6 +3,7 @@
 #include "spline.h"
 #include "adaptive_spline.h"
 #include "adaptive_spline_r.h"
+#include "multi_spline.h"
 
 #include "ode_target.h"
 #include "lorenz.h"
@@ -28,6 +29,8 @@ RCPP_MODULE(tree) {
     .constructor()
     .method("init",   &spline::Spline::init)
     .method("eval",   &spline::Spline::r_eval)
+    .property("x",    &spline::Spline::r_get_x)
+    .property("y",    &spline::Spline::r_get_y)
     .property("xy",   &spline::Spline::r_get_xy)
     .property("size", &spline::Spline::size)
     ;
@@ -36,6 +39,20 @@ RCPP_MODULE(tree) {
     .constructor()
     .derives<spline::Spline>("Spline")
     .method("construct_spline", &spline::AdaptiveSpline::construct_spline)
+    ;
+
+  Rcpp::class_<spline::MultiSpline>("MultiSpline")
+    .constructor<int>()
+    .method("init",      &spline::MultiSpline::r_init)
+    .method("init_self", &spline::MultiSpline::init_self)
+    .method("add_point", &spline::MultiSpline::r_add_point)
+    .method("eval",      &spline::MultiSpline::r_eval)
+    .method("eval_1",    &spline::MultiSpline::r_eval_1)
+    .method("eval_r",    &spline::MultiSpline::r_eval_r)
+    .property("x",       &spline::MultiSpline::r_get_x)
+    .property("y",       &spline::MultiSpline::r_get_y)
+    .property("size",    &spline::MultiSpline::size)
+    .property("dim",     &spline::MultiSpline::dim)
     ;
 
   Rcpp::class_<ode::test::Lorenz>("Lorenz")

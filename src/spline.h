@@ -26,6 +26,8 @@ public:
   double eval(double u) const;
   size_t size() const;
 
+  Rcpp::NumericVector r_get_x() const;
+  Rcpp::NumericVector r_get_y() const;
   Rcpp::NumericMatrix r_get_xy() const;
   std::vector<double> r_eval(std::vector<double> u) const;
 

@@ -71,6 +71,16 @@ size_t Spline::size() const {
   return x.size();
 }
 
+Rcpp::NumericVector Spline::r_get_x() const {
+  Rcpp::NumericVector ret(x.begin(), x.end());
+  return ret;
+}
+
+Rcpp::NumericVector Spline::r_get_y() const {
+  Rcpp::NumericVector ret(y.begin(), x.end());
+  return ret;
+}
+
 // Get the (x,y) pairs in the spline as a two-column matrix
 // NOTE: line 2 `ret(n, 2)` causes an error, but I don't see how to
 // cast my way out of it.
