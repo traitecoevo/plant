@@ -37,4 +37,6 @@ private:
 
 }
 
+RCPP_EXPOSED_CLASS(spline::MultiSpline)
+
 #endif

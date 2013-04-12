@@ -3,18 +3,27 @@
 #define TREE_PLANT_SPLINE_
 
 #include "plant.h"
-#include "spline.h"
+#include "spline.h"       // light environment
+#include "multi_spline.h" // approximate plant
 
 namespace model {
 
 // The name here may change, as this functions more like a *Strategy*
 // than a Plant.  Or a bit like a Species.  ContinuousPlant might be
 // better and reflect the fact that this is not part of an inheritance
-// heirarcy.
+// hierarchy.
 
 // Also note that this does not inherit from ode::OdeTarget, and so
 // cannot be stepped.  It does not have state itself, though the
 // plants that it happens to contain do.
+
+// Note that not all aspects of plants are gettable from this; in
+// particular, I've focussed on *only* exposing the ODE interface so
+// that the underlying plant can change independently of this.
+// However, this assumes that plants are identifiable by a single
+// axis; any second variable (including location, but also impact of
+// history, resprouting, etc) will violate this assumption.
+
 class PlantSpline {
 public:
   PlantSpline(Strategy s, int n_plants);
@@ -30,20 +39,18 @@ public:
 
   void r_compute_vars_phys(spline::Spline env);
   Rcpp::List r_get_plants() const;
-  Rcpp::NumericMatrix r_get_ode_values() const;
-  Rcpp::List r_get_ode_values_approx() const;
+  spline::MultiSpline r_get_plants_approx() const;
 
 private:
-  void build(int n_plants);
-  size_t ode_size() const;
+  void initialise(int n_plants);
+  void build_plants_approx();
 
   bool standalone;
   Strategy *strategy;
+  Plant seed;
   std::vector<double> mass_leaf_log;
   std::vector<Plant> plants;
-
-  std::vector< std::vector<double> > ode_values;
-  std::vector< spline::Spline > ode_values_approx;
+  spline::MultiSpline plants_approx;
 };
 
 }

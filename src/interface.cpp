@@ -140,8 +140,7 @@ RCPP_MODULE(tree) {
     .constructor<model::Strategy,int>()
     .method("compute_vars_phys",   &model::PlantSpline::r_compute_vars_phys)
     .property("plants",            &model::PlantSpline::r_get_plants)
-    .property("ode_values",        &model::PlantSpline::r_get_ode_values)
-    .property("ode_values_approx", &model::PlantSpline::r_get_ode_values_approx)
+    .property("plants_approx",     &model::PlantSpline::r_get_plants_approx)
     ;
 
   Rcpp::class_<model::CohortDiscrete>("CohortDiscrete")
