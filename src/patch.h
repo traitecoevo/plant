@@ -28,6 +28,7 @@ public:
   virtual void r_add_seeds(std::vector<int> seeds) = 0;
   virtual std::vector<double> r_get_mass_leaf(size_t idx) const = 0;
   virtual void r_set_mass_leaf(std::vector<double> x, size_t idx) = 0;
+  virtual std::vector<int> r_n_individuals() const = 0;
   virtual void r_clear() = 0;
   virtual void r_step() = 0;
   virtual void step_deterministic() = 0;
@@ -92,6 +93,7 @@ public:
   // TODO: This is likely to change as more is written.
   std::vector<double> r_get_mass_leaf(size_t idx) const;
   void r_set_mass_leaf(std::vector<double> x, size_t idx);
+  std::vector<int> r_n_individuals() const;
   
   // Also this
   void r_clear();
@@ -419,6 +421,15 @@ template <class Individual>
 void Patch<Individual>::r_set_mass_leaf(std::vector<double> x, size_t idx) {
   util::check_bounds(idx, size());
   species[idx].r_set_mass_leaf(x);
+}
+
+template <class Individual>
+std::vector<int> Patch<Individual>::r_n_individuals() const {
+  std::vector<int> n;
+  for ( species_const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    n.push_back(sp->r_n_individuals());
+  return n;
 }
 
 template <class Individual>

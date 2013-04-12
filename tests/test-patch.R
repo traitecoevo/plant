@@ -1,7 +1,7 @@
 source("helper-tree.R")
 options(error=traceback)
 
-context("Patch")
+context("Patch [Plant]")
 
 p <- new(Parameters)
 p$add_strategy(new(Strategy))
@@ -29,6 +29,7 @@ plants <- patch$get_plants()
 expect_that(length(plants), equals(1))
 expect_that(length(plants[[1]]), equals(1))
 expect_that(length(plants[[c(1,1)]]), equals(1))
+expect_that(patch$n_individuals, equals(1))
 
 expect_that(plants[[c(1,1)]]$vars_size,
             is_identical_to(cmp$vars_size))
@@ -73,7 +74,8 @@ expect_that(plants[[c(1,1)]]$vars_phys,
             equals(cmp$vars_phys))
 
 ## One species, one individual
-expect_that(patch$ode_size, equals(3))
+expect_that(patch$n_individuals, equals(1))
+expect_that(patch$ode_size,      equals(3))
 
 y <- patch$ode_values
 expect_that(y, is_identical_to(c(pi, 0, 0)))
@@ -122,13 +124,12 @@ patch$clear()
 patch$add_seeds(1)
 
 set.seed(1)
-while ( patch$ode_size == 3 && patch$age < 15.0 ) {
+while ( patch$n_individuals == 1 && patch$age < 15.0 ) {
   patch$step_deterministic()
   patch$step_stochastic()
 }
-expect_that(patch$ode_size == 6 && patch$age < 15,
+expect_that(patch$n_individuals == 2 && patch$age < 15,
             is_true())
-
 
 ## Check that the germination numbers look correct, by comparing fit
 ## to a binomial distribution with the appropriate parameters.  Being

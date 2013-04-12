@@ -129,6 +129,9 @@ time it will be hard to know.
 
 Triggering `Plant` injection into `representative_plants` would
 require quite a bit of work reimplementing logic in `AdaptiveSpline`.
+An alternative would be to define a size "sapling" where the
+self-thinning is less extreme and interpolate the values below this
+over a fixed size number of points.
 
 ## Species
 

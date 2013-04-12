@@ -43,6 +43,9 @@ patch.c$add_seeds(2)
 ## with cohorts.
 expect_that(patch.p$ode_size, equals(6))
 expect_that(patch.c$ode_size, equals(3))
+## but the number of individuals is 2 in both cases:
+expect_that(patch.p$n_individuals, equals(2))
+expect_that(patch.c$n_individuals, equals(2))
 
 ## Now, grow this pair of seeds deterministically for a bit.
 f <- function(patch, t) {
@@ -60,3 +63,9 @@ res.c <- f(patch.c, 10)
 expect_that(res.p[,1:4], equals(res.c[,1:4]))
 expect_that(res.p[,5:7], equals(res.p[,2:4]))
 
+## Add another 3 seeds.
+patch.p$add_seeds(3)
+patch.c$add_seeds(3)
+
+expect_that(patch.p$n_individuals, equals(5))
+expect_that(patch.c$n_individuals, equals(5))

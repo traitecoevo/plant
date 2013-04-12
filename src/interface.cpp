@@ -146,6 +146,7 @@ RCPP_MODULE(tree) {
     .method("add_seeds",          &model::PatchBase::r_add_seeds)
     .method("get_mass_leaf",      &model::PatchBase::r_get_mass_leaf)
     .method("set_mass_leaf",      &model::PatchBase::r_set_mass_leaf)
+    .property("n_individuals",    &model::PatchBase::r_n_individuals)
     .method("clear",              &model::PatchBase::r_clear)
     .method("step",               &model::PatchBase::r_step)
     .method("step_deterministic", &model::PatchBase::step_deterministic)

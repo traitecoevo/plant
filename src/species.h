@@ -49,6 +49,7 @@ public:
   std::vector<double> r_get_mass_leaf() const;
   void r_set_mass_leaf(std::vector<double> x);
   Rcpp::List r_get_plants() const;
+  int r_n_individuals() const;
 
 private:
   Strategy *strategy;
@@ -213,6 +214,17 @@ Rcpp::List Species<Individual>::r_get_plants() const {
 	it != plants.end(); it++ )
     ret.push_back(Rcpp::wrap(*it));
   return ret;
+}
+
+// NOTE: This would be slightly easier (avoiding the template
+// specialisation) if `Plant` had a method r_n_individuals().
+// However, it may not work for other potential Individual classes.
+// Also, that converts O(1) -> O(n), which won't be desirable (though
+// this is never called for speed).
+template<> int Species<CohortDiscrete>::r_n_individuals() const;
+template <class Individual>
+int Species<Individual>::r_n_individuals() const {
+  return (int)plants.size();
 }
 
 template <class Individual>

@@ -22,4 +22,13 @@ void Species<CohortDiscrete>::add_seeds(int n) {
   plants.push_back(tmp);
 }
 
+template <>
+int Species<CohortDiscrete>::r_n_individuals() const {
+  int n = 0;
+  for ( plants_const_iterator it = plants.begin();
+	it != plants.end(); it++ )
+    n += it->r_n_individuals();
+  return n;
+}
+
 }
