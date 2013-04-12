@@ -26,7 +26,6 @@ public:
   void r_init(std::vector<double> x, Rcpp::NumericMatrix y);
   void r_add_point(double xi, std::vector<double> yi);
   Rcpp::NumericVector r_get_x() const;
-  Rcpp::NumericVector r_get_y(size_t i) const;
   Rcpp::NumericMatrix r_get_y() const;
   Rcpp::NumericMatrix r_eval(std::vector<double> u) const;
   double r_eval_1(double u, size_t i) const;

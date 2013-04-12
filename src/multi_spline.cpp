@@ -37,7 +37,7 @@ double MultiSpline::eval(double u, size_t i) const {
 
 std::vector<double> MultiSpline::eval(double u) const {
   std::vector<double> ret;
-  ret.reserve(size());
+  ret.reserve(dim());
   for ( std::vector<Spline>::const_iterator si = splines.begin();
 	si != splines.end(); si++ )
     ret.push_back(si->eval(u));
@@ -64,17 +64,12 @@ void MultiSpline::r_init(std::vector<double> x, Rcpp::NumericMatrix y) {
 }
 
 void MultiSpline::r_add_point(double xi, std::vector<double> yi) {
-  util::check_length(yi.size(), size());
+  util::check_length(yi.size(), dim());
   add_point(xi, yi);
 }
 
 Rcpp::NumericVector MultiSpline::r_get_x() const {
   return splines.begin()->r_get_x();
-}
-
-Rcpp::NumericVector MultiSpline::r_get_y(size_t i) const {
-  util::check_bounds(i, size());
-  return splines[i].r_get_y();
 }
 
 Rcpp::NumericMatrix MultiSpline::r_get_y() const {

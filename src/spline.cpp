@@ -77,7 +77,7 @@ Rcpp::NumericVector Spline::r_get_x() const {
 }
 
 Rcpp::NumericVector Spline::r_get_y() const {
-  Rcpp::NumericVector ret(y.begin(), x.end());
+  Rcpp::NumericVector ret(y.begin(), y.end());
   return ret;
 }
 

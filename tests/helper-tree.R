@@ -15,6 +15,7 @@ if ( !exists("Spline") ) {
   Spline          <- tree_module$Spline
   AdaptiveSpline  <- tree_module$AdaptiveSpline
   AdaptiveSplineR <- tree_module$AdaptiveSplineR
+  MultiSpline     <- tree_module$MultiSpline
 
   Lorenz <- tree_module$Lorenz
   OdeR   <- tree_module$OdeR
