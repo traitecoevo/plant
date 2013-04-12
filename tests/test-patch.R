@@ -62,7 +62,7 @@ zz.mid <- env$eval(xx.mid)
 expect_that(zz.mid, equals(yy.mid, tolerance=2e-8))
 
 err <- pmax(abs(zz.mid - yy.mid), abs(1 - zz.mid / yy.mid))
-expect_that(all(err < 1e-6), is_true())
+expect_that(max(err), is_less_than(1e-6))
 
 ## Compute the physiological parameters:
 cmp$compute_vars_phys(env)
@@ -142,8 +142,7 @@ set.seed(1)
 n <- 100000
 tmp <- replicate(100, patch$germination(n))
 test <- suppressWarnings(ks.test(tmp, pbinom, n, pr.cmp))
-expect_that(test$p.value > 1/5,
-            is_true())
+expect_that(test$p.value, is_greater_than(1/5))
 
 rm(patch)
 gc()

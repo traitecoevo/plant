@@ -46,7 +46,7 @@ expect_that(lo$get_time(), is_identical_to(t0+dt))
 ## Variable step:
 lo$set_state(y, t0)
 lo$step()
-expect_that(lo$get_time() > t0, is_true())
+expect_that(lo$get_time(), is_greater_than(t0))
 expect_that(identical(lo$get_state(), y), is_false())
 
 ## Run:
@@ -93,7 +93,7 @@ expect_that(obj$get_time(), is_identical_to(t0+dt))
 ## Variable step:
 obj$set_state(y, t0)
 obj$step()
-expect_that(obj$get_time() > t0, is_true())
+expect_that(obj$get_time(), is_greater_than(t0))
 expect_that(identical(obj$get_state(), y), is_false())
 
 ## Run:

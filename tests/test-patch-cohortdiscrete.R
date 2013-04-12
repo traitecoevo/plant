@@ -69,3 +69,4 @@ patch.c$add_seeds(3)
 
 expect_that(patch.p$n_individuals, equals(5))
 expect_that(patch.c$n_individuals, equals(5))
+

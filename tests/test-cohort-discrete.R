@@ -166,8 +166,9 @@ expect_that(all(as.logical(d.2[1,]) == (d.2[2,] == 0)),
 ## Quick check that probably belongs in test-plant
 n.p <- sum(d.p)
 r <- qbinom(c(1/10, 9/10), nrep, 1 - exp(-y1[2]))
-expect_that(n.p > r[[1]] && n.p < r[[2]], is_true())
+expect_that(n.p,
+            is_within_interval(r))
 
 ## Similar check for the 2-individual case
 err <- max(abs(table(d.2[2,]) - table(rbinom(nrep, 2, exp(-y1[2])))))
-expect_that(err/nrep < 1/10, is_true())
+expect_that(err/nrep, is_less_than(1/10))
