@@ -11,7 +11,6 @@ double helper_functor(double x, void *data) {
 
 namespace test {
 
-// Possibly better via modules?
 std::vector<double> test_functor(std::vector<double> x, 
 				 std::vector<double> pars) {
   util::check_length(pars.size(), 3);

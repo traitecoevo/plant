@@ -551,6 +551,13 @@ ODE class is doing it a third way!).
 
 Move everything that make sense over to functors.
 
+## Update:
+
+I apparently did not know about `std::bind*` and `std::mem_fun`, which
+will do a lot of this for us.  This will probably make the code a lot
+less fragile.  However, it does all work at the moment, and will take
+some care to fix.
+
 # Alternative models
 
 The Kohuama and Takada model would fit quite easily into this
