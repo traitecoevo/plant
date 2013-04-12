@@ -22,6 +22,8 @@ CohortDiscrete::CohortDiscrete(Strategy s, int n_individuals)
 CohortDiscrete::CohortDiscrete(Strategy *s, int n_individuals)
   : Plant(s),
     n_individuals(n_individuals) {
+  if ( n_individuals < 1 ) // TODO: replace with throw
+    ::Rf_error("Cannot create a cohort with less than 1 individual");
 }
 
 double CohortDiscrete::leaf_area_above(double z) const {
@@ -35,7 +37,7 @@ int CohortDiscrete::offspring() {
 bool CohortDiscrete::died() {
   if ( n_individuals > 1 )
     n_individuals -= Rf_rbinom(n_individuals, mortality());
-  else // ensures same as Plant's behaviour when n_individuals is 1.
+  else if ( n_individuals == 1 ) // ensures same RNG behaviour as Plant
     n_individuals = unif_rand() < mortality() ? 0 : 1;
   mortality_reset();
   if ( n_individuals < 0 )
