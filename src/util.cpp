@@ -34,4 +34,14 @@ void check_length(size_t received, size_t expected) {
 	       expected, received);
 }
 
+std::vector<double> seq_len(double from, double to, int len) {
+  std::vector<double> ret;
+  ret.reserve(len);
+  const double dx = (from - to) / (len - 1);
+  double x = from;
+  for ( int i = 0; i < len; i++, x += dx )
+    ret.push_back(x);
+  return ret;
+}
+
 }

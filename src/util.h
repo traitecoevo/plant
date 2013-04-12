@@ -4,6 +4,7 @@
 
 #include <Rcpp.h>
 #include <gsl/gsl_nan.h>
+#include <vector>
 
 namespace util {
 
@@ -32,6 +33,7 @@ bool is_decreasing(ForwardIterator first, ForwardIterator last) {
   return true;
 }
 
+std::vector<double> seq_len(double from, double to, int len);
 
 }
 

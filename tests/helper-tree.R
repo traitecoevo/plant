@@ -25,6 +25,7 @@ if ( !exists("Spline") ) {
   Plant          <- tree_module$Plant
   CohortDiscrete <- tree_module$CohortDiscrete
   Cohort         <- tree_module$Cohort
+  PlantSpline    <- tree_module$PlantSpline
 
   Patch  <- tree_module$Patch
   PatchC <- tree_module$PatchC
