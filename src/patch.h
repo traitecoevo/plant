@@ -95,7 +95,7 @@ public:
   void r_set_mass_leaf(std::vector<double> x, size_t idx);
   std::vector<int> r_n_individuals() const;
   
-  // Also this
+  // TODO: Should be clear()?
   void r_clear();
   
 private:

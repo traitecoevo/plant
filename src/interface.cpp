@@ -161,6 +161,31 @@ RCPP_MODULE(tree) {
     .derives<ode::OdeTarget>("OdeTarget")
     ;
 
+  Rcpp::class_<model::SpeciesBase>("SpeciesBase")
+    .derives<ode::OdeTarget>("OdeTarget")
+    .property("size",          &model::SpeciesBase::size)
+    .property("height_max",    &model::SpeciesBase::height_max)
+    .method("leaf_area_above", &model::SpeciesBase::leaf_area_above)
+    .method("compute_vars_phys", &model::SpeciesBase::r_compute_vars_phys)
+    .method("add_seeds",       &model::SpeciesBase::add_seeds)
+    .method("germination_probability", 
+            &model::SpeciesBase::r_germination_probability)
+    .method("clear",           &model::SpeciesBase::clear)
+    .property("mass_leaf",     &model::SpeciesBase::r_get_mass_leaf)
+    .property("plants",        &model::SpeciesBase::r_get_plants)
+    .property("n_individuals", &model::SpeciesBase::r_n_individuals)
+    ;
+
+  Rcpp::class_< model::Species<model::Plant> >("Species")
+    .constructor<model::Strategy>()
+    .derives<model::SpeciesBase>("SpeciesBase")
+    ;
+
+  Rcpp::class_< model::Species<model::CohortDiscrete> >("SpeciesC")
+    .constructor<model::Strategy>()
+    .derives<model::SpeciesBase>("SpeciesBase")
+    ;
+
   Rcpp::class_<model::PatchBase>("PatchBase")
     .derives<ode::OdeTarget>("OdeTarget")
     .property("size",             &model::PatchBase::r_size)

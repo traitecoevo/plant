@@ -210,6 +210,23 @@ deletion.  Copies involving a standalone `Plant` will *copy* the
 `Strategy` object and create a new "standalone" `Plant`.  This is done
 through the helper class `WithStrategy`.
 
+A slightly better approach would be to template a simple smart pointer
+that did all this, perhaps?  Same as existing case, but with
+`Strategy` as a template parameter, and save the pointer in field
+`ptr`, then on use do
+
+```
+class Plant : protected SimpleWrapper<Strategy> {
+  Plant(Strategy s) 
+    : SimpleWrapper(s),
+	  strategy(ptr) {}
+};
+```
+
+but that leaves us in the same position with copying as before I think
+(i.e., strategy will point at the wrong pointer).  But if we template
+the base class and have concrete uses of them, then this goes away.
+
 ## Dispersal
 
 I might try and do dispersal through a map object with the pointer to

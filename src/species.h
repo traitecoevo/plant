@@ -4,19 +4,31 @@
 
 #include <list>
 
+#include <Rcpp.h>
+
 #include "ode_target.h"
-#include "ode_solver.h"
 #include "spline.h"
 #include "strategy.h"
 #include "cohort_discrete.h" // for a specialisation
-#include "util.h" // is_decreasing, check_length
+#include "util.h"            // is_decreasing, check_length
 
 namespace model {
 
-// This class is only used by Patch, and will possibly be where some
-// major changes occur once we move to allowing Cohorts.
-
-// It's possible that we should just friend this with Patch.
+class SpeciesBase : public ode::OdeTarget {
+public:
+  virtual ~SpeciesBase() {};
+  virtual size_t size() const = 0;
+  virtual double height_max() const = 0;
+  virtual double leaf_area_above(double height) const = 0;
+  virtual void r_compute_vars_phys(spline::Spline light_environment) = 0;
+  virtual void add_seeds(int n) = 0;
+  virtual void r_germination_probability(spline::Spline light_environment) = 0;
+  virtual void clear() = 0;
+  virtual std::vector<double> r_get_mass_leaf() const = 0;
+  virtual void r_set_mass_leaf(std::vector<double> x) = 0;
+  virtual Rcpp::List r_get_plants() const = 0;
+  virtual int r_n_individuals() const = 0;
+};
 
 template <class Individual>
 class Species : public ode::OdeTarget, protected WithStrategy {
@@ -45,12 +57,12 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
   // * R interface
-  // Even though there is not an R interface to this class, these
-  // functions are used only by other R interface functions.
   std::vector<double> r_get_mass_leaf() const;
   void r_set_mass_leaf(std::vector<double> x);
   Rcpp::List r_get_plants() const;
   int r_n_individuals() const;
+  void r_compute_vars_phys(spline::Spline light_environment);
+  void r_germination_probability(spline::Spline light_environment);
 
 private:
   Individual seed;
@@ -231,6 +243,18 @@ template<> int Species<CohortDiscrete>::r_n_individuals() const;
 template <class Individual>
 int Species<Individual>::r_n_individuals() const {
   return (int)plants.size();
+}
+
+template <class Individual>
+void Species<Individual>::r_compute_vars_phys(spline::Spline 
+					      light_environment) {
+  compute_vars_phys(&light_environment);
+}
+
+template <class Individual>
+void Species<Individual>::r_germination_probability(spline::Spline 
+						    light_environment) {
+  germination_probability(&light_environment);
 }
 
 template <class Individual>
