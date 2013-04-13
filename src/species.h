@@ -19,9 +19,10 @@ namespace model {
 // It's possible that we should just friend this with Patch.
 
 template <class Individual>
-class Species : public ode::OdeTarget {
+class Species : public ode::OdeTarget, protected WithStrategy {
 public:
-  Species();
+  Species(); // TODO: I would like rid of this.
+  Species(Strategy  s);
   Species(Strategy *s);
 
   // * Births and deaths
@@ -52,7 +53,6 @@ public:
   int r_n_individuals() const;
 
 private:
-  Strategy *strategy;
   Individual seed;
   std::list<Individual> plants;
 
@@ -65,15 +65,21 @@ private:
 // would be nice if we could just skip this contructor entirely, but
 // it is apparently necessary for something in Patch, I think.
 template <class Individual>
-Species<Individual>::Species() : 
-  strategy(NULL),
-  seed(strategy) {
+Species<Individual>::Species() 
+  : WithStrategy(NULL),
+    seed(strategy) {
 }
 
 template <class Individual>
-Species<Individual>::Species(Strategy *s) : 
-  strategy(s),
-  seed(strategy) {
+Species<Individual>::Species(Strategy s)
+  : WithStrategy(s),
+    seed(strategy) {
+}
+
+template <class Individual>
+Species<Individual>::Species(Strategy *s)
+  : WithStrategy(s),
+    seed(strategy) {
 }
 
 // Compute the number of offspring that will be born by asking all
