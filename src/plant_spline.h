@@ -48,7 +48,7 @@ private:
   bool standalone;
   Strategy *strategy;
   Plant seed;
-  std::vector<double> mass_leaf_log;
+  std::vector<double> mass_leaf;
   std::vector<Plant> plants;
   spline::MultiSpline plants_approx;
 };

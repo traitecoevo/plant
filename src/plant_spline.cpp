@@ -23,7 +23,7 @@ PlantSpline::PlantSpline(const PlantSpline &other)
   : standalone(other.standalone),
     strategy(standalone ? new Strategy(*other.strategy) : other.strategy),
     seed(other.seed),
-    mass_leaf_log(other.mass_leaf_log),
+    mass_leaf(other.mass_leaf),
     plants(other.plants),
     plants_approx(other.plants_approx) {
 }
@@ -40,12 +40,12 @@ PlantSpline::~PlantSpline() {
 
 void swap(PlantSpline &a, PlantSpline &b) {
   using std::swap;
-  swap(a.standalone,     b.standalone);
-  swap(a.strategy,       b.strategy);
-  swap(a.seed,           b.seed);
-  swap(a.mass_leaf_log,  b.mass_leaf_log);
-  swap(a.plants,         b.plants);
-  swap(a.plants_approx,  b.plants_approx);
+  swap(a.standalone,    b.standalone);
+  swap(a.strategy,      b.strategy);
+  swap(a.seed,          b.seed);
+  swap(a.mass_leaf,     b.mass_leaf);
+  swap(a.plants,        b.plants);
+  swap(a.plants_approx, b.plants_approx);
 }
 
 void PlantSpline::compute_vars_phys(spline::Spline *env) {
@@ -82,9 +82,9 @@ spline::MultiSpline PlantSpline::r_get_plants_approx() const {
 // easier will be to set mass_leaf and look for growth rates heading
 // to zero.
 
-// TODO: not sure about the handling of log/exp here; is it wanted /
-// desirable?  Why do we care more about accuracy at the bottom end
-// than the top?
+// TODO: may want to log transform the spacing of points, or even the
+// full spline basis, but not sure.  Do we care more about accuracy at
+// the bottom end than the top?
 void PlantSpline::initialise(int n_plants) {
   if ( n_plants < 5 )
     ::Rf_error("Need at least 5 plants");
@@ -93,15 +93,13 @@ void PlantSpline::initialise(int n_plants) {
   // TODO: Really ugly; just guessed and hard coded for now.
   const double mass_leaf_max = 5;
 
-  mass_leaf_log = util::seq_len(log(mass_leaf_min),
-				log(mass_leaf_max),
-				n_plants);
+  mass_leaf = util::seq_len(mass_leaf_min, mass_leaf_max, n_plants);
 
   Plant p(seed);
   plants.clear(); // defensive, as only used in constructors.
-  for ( std::vector<double>::iterator lm = mass_leaf_log.begin();
-	lm != mass_leaf_log.end(); lm++ ) {
-    p.set_mass_leaf(exp(*lm));
+  for ( std::vector<double>::iterator m = mass_leaf.begin();
+	m != mass_leaf.end(); m++ ) {
+    p.set_mass_leaf(*m);
     plants.push_back(p);
   }
 
@@ -116,7 +114,7 @@ void PlantSpline::build_plants_approx() {
 
   std::vector<double> ode_rates_p(plants.begin()->ode_size());
 
-  std::vector<double>::const_iterator m = mass_leaf_log.begin();
+  std::vector<double>::const_iterator m = mass_leaf.begin();
   std::vector<Plant>::iterator p = plants.begin();
 
   while ( p != plants.end() ) {
