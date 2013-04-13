@@ -187,9 +187,9 @@ expect_that(seed$vars_size[["mass_total"]],
 ## the R version computes size).  This is actually quite inaccurate,
 ## but I think that's just some instability creeping in from the
 ## different ways that the values involved are computed.
-expect_that(seed$vars_size[["height"]],
+expect_that(seed$height,
             equals(cmp$height.at.birth(cmp$traits), tolerance=1e-4))
-expect_that(seed$vars_size[["mass_leaf"]],
+expect_that(seed$mass_leaf,
             equals(cmp$leaf.mass.at.birth(cmp$traits), tolerance=1e-4))
 
 ## Then, check the germination probabilities in the current light

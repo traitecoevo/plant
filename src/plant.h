@@ -33,6 +33,7 @@ public:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
   void set_mass_leaf(double mass_leaf_);
+  double get_mass_leaf() const;
 
   // * Competitive environment
   // [eqn  9] Probability density of leaf area at height `z`
@@ -66,7 +67,6 @@ public:
   static void prepare_strategy(Strategy *s);
 
   // * R interface
-  double r_get_mass_leaf() const;
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
   Rcpp::List r_get_parameters() const;

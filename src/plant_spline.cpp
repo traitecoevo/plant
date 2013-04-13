@@ -89,8 +89,7 @@ void PlantSpline::initialise(int n_plants) {
   if ( n_plants < 5 )
     ::Rf_error("Need at least 5 plants");
 
-  // TODO: Ugly at the moment (using r_ method)
-  const double mass_leaf_min = seed.r_get_mass_leaf();
+  const double mass_leaf_min = seed.get_mass_leaf();
   // TODO: Really ugly; just guessed and hard coded for now.
   const double mass_leaf_max = 5;
 

@@ -41,7 +41,7 @@ expect_that(cohort0$ode_values, is_identical_to(plant$ode_values))
 expect_that(cohort1$ode_values, is_identical_to(plant$ode_values))
 expect_that(cohort2$ode_values, is_identical_to(plant$ode_values))
 
-hh <- seq(0, plant$vars_size[["height"]], length=101)
+hh <- seq(0, plant$height, length=101)
 cmp <- sapply(hh, plant$leaf_area_above)
 expect_that(sapply(hh, cohort0$leaf_area_above),
             is_identical_to(cmp))

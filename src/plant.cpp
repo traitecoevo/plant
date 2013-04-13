@@ -122,6 +122,12 @@ void Plant::set_mass_leaf(double mass_leaf_) {
   compute_vars_size(mass_leaf_);
 }
 
+// If we can set it, we can get it
+double Plant::get_mass_leaf() const {
+  return vars.mass_leaf;
+}
+
+
 // [eqn  9] Probability density of leaf area at height `z`
 double Plant::q(double z) const {
   const double eta = strategy->eta;
@@ -418,11 +424,6 @@ void Plant::prepare_strategy(Strategy *s) {
 }
 
 // * R interface
-
-double Plant::r_get_mass_leaf() const {
-  return vars.mass_leaf;
-}
-
 Rcpp::NumericVector Plant::r_get_vars_size() const {
   using namespace Rcpp;
   return NumericVector::create(_["mass_leaf"]=vars.mass_leaf,

@@ -35,7 +35,7 @@ expect_that(plants[[c(1,1)]]$vars_size,
             is_identical_to(cmp$vars_size))
 
 expect_that(patch$height_max,
-            is_identical_to(cmp$vars_size[["height"]]))
+            is_identical_to(cmp$height))
 
 cmp$set_mass_leaf(pi)
 patch$set_mass_leaf(pi, 0L)
