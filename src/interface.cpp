@@ -140,9 +140,11 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::PlantSpline>("PlantSpline")
     .constructor<model::Strategy,int>()
-    .method("compute_vars_phys",   &model::PlantSpline::r_compute_vars_phys)
-    .property("plants",            &model::PlantSpline::r_get_plants)
-    .property("plants_approx",     &model::PlantSpline::r_get_plants_approx)
+    .property("max_mass_leaf",   &model::PlantSpline::max_mass_leaf)
+    .method("compute_vars_phys", &model::PlantSpline::r_compute_vars_phys)
+    .method("ode_rates",         &model::PlantSpline::r_ode_rates)
+    .property("plants",          &model::PlantSpline::r_get_plants)
+    .property("plants_approx",   &model::PlantSpline::r_get_plants_approx)
     ;
 
   Rcpp::class_<model::CohortDiscrete>("CohortDiscrete")

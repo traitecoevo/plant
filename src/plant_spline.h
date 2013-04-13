@@ -5,6 +5,7 @@
 #include "plant.h"
 #include "spline.h"       // light environment
 #include "multi_spline.h" // approximate plant
+#include "ode_target.h"   // iter_const
 
 namespace model {
 
@@ -35,13 +36,17 @@ public:
   ~PlantSpline();
   friend void swap(PlantSpline &a, PlantSpline &b);
 
+  double max_mass_leaf() const;
   void compute_vars_phys(spline::Spline *env);
+  ode::iter ode_rates(double m, ode::iter it) const;
 
   void r_compute_vars_phys(spline::Spline env);
+  std::vector<double> r_ode_rates(double m) const;
   Rcpp::List r_get_plants() const;
   spline::MultiSpline r_get_plants_approx() const;
 
 private:
+  size_t ode_size() const;
   void initialise(int n_plants);
   void build_plants_approx();
 

@@ -9,7 +9,11 @@ n.spline <- 50
 plant.spline <- new(PlantSpline, s, n.spline)
 
 ## Expected leaf mass:
-mass.leaf <- seq(plant$mass_leaf, 5, length=n.spline)
+expect_that(plant.spline$max_mass_leaf,
+            equals(5))
+
+mass.leaf <- seq(plant$mass_leaf, plant.spline$max_mass_leaf,
+                 length=n.spline)
 
 ## Check that the plants are correctly spaced:
 expect_that(sapply(plant.spline$plants, function(x) x$mass_leaf),
@@ -66,3 +70,10 @@ rates.spline <- spline$eval(m)
 ## over the simulation?
 expect_that(rates.spline,
             equals(rates.exact, tolerance=2e-3))
+
+expect_that(t(sapply(spline$x, function(m) plant.spline$ode_rates(m))),
+            is_identical_to(spline$y))
+expect_that(t(sapply(m, function(m) plant.spline$ode_rates(m))),
+            is_identical_to(rates.spline))
+expect_that(plant.spline$ode_rates(plant.spline$max_mass_leaf + 1e-8),
+            throws_error())

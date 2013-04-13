@@ -7,7 +7,7 @@ PlantSpline::PlantSpline(Strategy s, int n_plants)
   : standalone(true),
     strategy(new Strategy(s)),
     seed(strategy),
-    plants_approx(seed.ode_size()) {
+    plants_approx(ode_size()) {
   initialise(n_plants);
 }
 
@@ -15,7 +15,7 @@ PlantSpline::PlantSpline(Strategy *s, int n_plants)
   : standalone(false),
     strategy(s),
     seed(strategy),
-    plants_approx(seed.ode_size()) {
+    plants_approx(ode_size()) {
   initialise(n_plants);
 }
 
@@ -48,6 +48,10 @@ void swap(PlantSpline &a, PlantSpline &b) {
   swap(a.plants_approx, b.plants_approx);
 }
 
+double PlantSpline::max_mass_leaf() const {
+  return mass_leaf.back();
+}
+
 void PlantSpline::compute_vars_phys(spline::Spline *env) {
   for ( std::vector<Plant>::iterator p = plants.begin();
 	p != plants.end(); p++ )
@@ -55,9 +59,26 @@ void PlantSpline::compute_vars_phys(spline::Spline *env) {
   build_plants_approx();
 }
 
+// TODO: This would be a bit nicer if the iterator control was in
+// the MultiSpline, but that requires learning about
+// ForwardIterator, etc.
+ode::iter PlantSpline::ode_rates(double m, ode::iter it) const {
+  if ( m > max_mass_leaf() )
+    ::Rf_error("Requested plant too large");
+  for ( size_t i = 0; i < ode_size(); i++ )
+    *it++ = plants_approx.eval(m, i);
+  return it;
+}
+
 // * R interface
 void PlantSpline::r_compute_vars_phys(spline::Spline env) {
   compute_vars_phys(&env);
+}
+
+std::vector<double> PlantSpline::r_ode_rates(double m) const {
+  std::vector<double> ret(ode_size());
+  ode_rates(m, ret.begin());
+  return ret;
 }
 
 Rcpp::List PlantSpline::r_get_plants() const {
@@ -72,8 +93,10 @@ spline::MultiSpline PlantSpline::r_get_plants_approx() const {
   return plants_approx;
 }
 
-
 // * Private methods
+size_t PlantSpline::ode_size() const {
+  return seed.ode_size();
+}
 
 // TODO: Get mass_leaf boundaries here; the minimum and maximum
 // possible (i.e., size at birth, size at maturity).  This requires
