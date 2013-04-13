@@ -12,16 +12,10 @@
 
 namespace model {
 
-class Plant : public ode::OdeTarget {
+class Plant : public ode::OdeTarget, protected WithStrategy {
 public:
   Plant(Strategy  s);
   Plant(Strategy *s);
-
-  // Copy constructor, assigment and destructor (rule of three)
-  Plant(const Plant &other);
-  Plant& operator=(Plant rhs);
-  ~Plant();
-  friend void swap(Plant &a, Plant &b);
 
   // Equivalence operator
   bool operator==(const Plant &rhs);
@@ -141,8 +135,6 @@ private:
     double fecundity;
   };
 
-  bool standalone;
-  Strategy *strategy;
   internals vars;
 
   static const int ode_dimension = 3;

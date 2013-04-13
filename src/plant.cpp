@@ -6,14 +6,12 @@
 namespace model {
 
 Plant::Plant(Strategy s)
-  : standalone(true),
-    strategy(new Strategy(s)) {
+  : WithStrategy(s) {
   set_mass_leaf(strategy->mass_leaf_0);
 }
 
 Plant::Plant(Strategy *s)
-  : standalone(false),
-    strategy(s) {
+  : WithStrategy(s) {
   set_mass_leaf(strategy->mass_leaf_0);
 }
 
@@ -42,22 +40,6 @@ Plant::internals::internals()
     // But these should be zero
     mortality(0.0),
     fecundity(0.0) {}
-
-Plant::Plant(const Plant &other)
-  : standalone(other.standalone),
-    strategy(standalone ? new Strategy(*other.strategy) : other.strategy),
-    vars(other.vars) {
-}
-
-Plant& Plant::operator=(Plant rhs) {
-  swap(*this, rhs);
-  return *this;
-}
-
-Plant::~Plant() {
-  if ( standalone )
-    delete strategy;
-}
 
 // NOTE: This is essentially only used for testing.
 // NOTE: The semantics around comparing Strategy are ill-defined for
@@ -283,13 +265,6 @@ void Plant::mortality_reset() {
 }
 
 // * Private methods
-
-void swap(Plant &a, Plant &b) {
-  using std::swap;
-  swap(a.standalone, b.standalone);
-  swap(a.strategy,   b.strategy);
-  swap(a.vars,       b.vars);
-}
 
 // * Individual size
 // [eqn 1-8] Update size variables to a new leaf mass.

@@ -102,7 +102,7 @@ public:
   }
   friend void swap(WithStrategy &a, WithStrategy &b);
 
-private:
+protected:
   bool standalone;
   Strategy *strategy;
 };
