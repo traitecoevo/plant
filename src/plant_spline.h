@@ -25,16 +25,10 @@ namespace model {
 // axis; any second variable (including location, but also impact of
 // history, resprouting, etc) will violate this assumption.
 
-class PlantSpline {
+class PlantSpline : protected WithStrategy {
 public:
   PlantSpline(Strategy  s, double mass_leaf_max, int n_plants);
   PlantSpline(Strategy *s, double mass_leaf_max, int n_plants);
-
-  // Copy constructor, assigment and destructor (rule of three)
-  PlantSpline(const PlantSpline &other);
-  PlantSpline& operator=(PlantSpline rhs);
-  ~PlantSpline();
-  friend void swap(PlantSpline &a, PlantSpline &b);
 
   double mass_leaf_max() const;
   void compute_vars_phys(spline::Spline *env);
@@ -50,8 +44,6 @@ private:
   void initialise(double mass_leaf_max, int n_plants);
   void build_plants_approx();
 
-  bool standalone;
-  Strategy *strategy;
   Plant seed;
   std::vector<double> mass_leaf;
   std::vector<Plant> plants;

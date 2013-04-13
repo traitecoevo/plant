@@ -8,17 +8,10 @@
 
 namespace model {
 
-class Cohort : public ode::OdeTarget {
+class Cohort : public ode::OdeTarget, protected WithStrategy {
 public:
   Cohort(Strategy s);
   Cohort(Strategy *s);
-
-  // Copy constructor, assigment and destructor (rule of three)
-  Cohort(const Cohort &other);
-  Cohort& operator=(Cohort rhs);
-  ~Cohort();
-  // and a half.
-  friend void swap(Cohort &a, Cohort &b);
 
   // TODO: which height should this return?  Top I think?
   double get_height() const;
@@ -34,10 +27,6 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
 private:
-  // As with other similar components; involved in memory management.
-  bool standalone;
-  Strategy *strategy;
-
   // Two plants; one representing the mean individual and the other
   // representing the top.
   Plant plant_mean, plant_top;

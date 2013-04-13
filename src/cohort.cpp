@@ -5,42 +5,15 @@ namespace model {
 // On initialisation, both the "mean" and "top" plant will have the
 // same initial mass, which will be the seed mass.
 Cohort::Cohort(Strategy s)
-  : standalone(true),
-    strategy(new Strategy(s)),
+  : WithStrategy(s),
     plant_mean(strategy),
     plant_top(strategy) {
 }
 
 Cohort::Cohort(Strategy *s)
-  : standalone(false),
-    strategy(s),
+  : WithStrategy(s),
     plant_mean(strategy),
     plant_top(strategy) {
-}
-
-Cohort::Cohort(const Cohort &other)
-  : standalone(other.standalone),
-    strategy(standalone ? new Strategy(*other.strategy) : other.strategy),
-    plant_mean(other.plant_mean),
-    plant_top(other.plant_top) {
-}
-
-Cohort& Cohort::operator=(Cohort rhs) {
-  swap(*this, rhs);
-  return *this;
-}
-
-void swap(Cohort &a, Cohort &b) {
-  using std::swap;
-  swap(a.standalone, b.standalone);
-  swap(a.strategy,   b.strategy);
-  swap(a.plant_mean, b.plant_mean);
-  swap(a.plant_top,  b.plant_top);
-}
-
-Cohort::~Cohort() {
-  if ( standalone )
-    delete strategy;
 }
 
 // * ODE interface

@@ -4,48 +4,17 @@
 namespace model {
 
 PlantSpline::PlantSpline(Strategy s, double mass_leaf_max, int n_plants)
-  : standalone(true),
-    strategy(new Strategy(s)),
+  : WithStrategy(s),
     seed(strategy),
     plants_approx(ode_size()) {
   initialise(mass_leaf_max, n_plants);
 }
 
 PlantSpline::PlantSpline(Strategy *s, double mass_leaf_max, int n_plants)
-  : standalone(false),
-    strategy(s),
+  : WithStrategy(s),
     seed(strategy),
     plants_approx(ode_size()) {
   initialise(mass_leaf_max, n_plants);
-}
-
-PlantSpline::PlantSpline(const PlantSpline &other)
-  : standalone(other.standalone),
-    strategy(standalone ? new Strategy(*other.strategy) : other.strategy),
-    seed(other.seed),
-    mass_leaf(other.mass_leaf),
-    plants(other.plants),
-    plants_approx(other.plants_approx) {
-}
-
-PlantSpline& PlantSpline::operator=(PlantSpline rhs) {
-  swap(*this, rhs);
-  return *this;
-}
-
-PlantSpline::~PlantSpline() {
-  if ( standalone )
-    delete strategy;
-}
-
-void swap(PlantSpline &a, PlantSpline &b) {
-  using std::swap;
-  swap(a.standalone,    b.standalone);
-  swap(a.strategy,      b.strategy);
-  swap(a.seed,          b.seed);
-  swap(a.mass_leaf,     b.mass_leaf);
-  swap(a.plants,        b.plants);
-  swap(a.plants_approx, b.plants_approx);
 }
 
 double PlantSpline::mass_leaf_max() const {

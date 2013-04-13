@@ -44,6 +44,7 @@ Plant::internals::internals()
 // NOTE: This is essentially only used for testing.
 // NOTE: The semantics around comparing Strategy are ill-defined for
 // the standalone case.
+// TODO: Push this into the WithStrategy class?
 bool Plant::operator==(const Plant &rhs) {
   if ( standalone && strategy == rhs.strategy )
     Rf_error("This is going to end badly.");
