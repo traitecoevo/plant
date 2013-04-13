@@ -34,7 +34,7 @@ public:
   double leaf_area_above(double height) const;
   void compute_vars_phys(spline::Spline *light_environment);
   void add_seeds(int n);
-  double germination_probability(spline::Spline *light_environment);
+  double germination_probability(spline::Spline *light_environment) const;
   void clear();
 
   // * ODE interface
@@ -228,8 +228,9 @@ int Species<Individual>::r_n_individuals() const {
 }
 
 template <class Individual>
-double Species<Individual>::germination_probability(spline::Spline *light_environment) {
-  return seed.germination_probability(light_environment);  
+double Species<Individual>::germination_probability(spline::Spline *light_environment) const {
+  Plant s(seed);
+  return s.germination_probability(light_environment);
 }
 
 }
