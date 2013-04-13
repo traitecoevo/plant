@@ -6,13 +6,14 @@ s <- new(Strategy)
 
 plant <- new(Plant, s)
 n.spline <- 50
-plant.spline <- new(PlantSpline, s, n.spline)
+mass.leaf.max <- 5
+plant.spline <- new(PlantSpline, s, mass.leaf.max, n.spline)
 
 ## Expected leaf mass:
-expect_that(plant.spline$max_mass_leaf,
-            equals(5))
+expect_that(plant.spline$mass_leaf_max,
+            equals(mass.leaf.max))
 
-mass.leaf <- seq(plant$mass_leaf, plant.spline$max_mass_leaf,
+mass.leaf <- seq(plant$mass_leaf, plant.spline$mass_leaf_max,
                  length=n.spline)
 
 ## Check that the plants are correctly spaced:
@@ -75,5 +76,5 @@ expect_that(t(sapply(spline$x, function(m) plant.spline$ode_rates(m))),
             is_identical_to(spline$y))
 expect_that(t(sapply(m, function(m) plant.spline$ode_rates(m))),
             is_identical_to(rates.spline))
-expect_that(plant.spline$ode_rates(plant.spline$max_mass_leaf + 1e-8),
+expect_that(plant.spline$ode_rates(plant.spline$mass_leaf_max + 1e-8),
             throws_error())

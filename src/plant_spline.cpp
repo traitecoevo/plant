@@ -3,20 +3,20 @@
 
 namespace model {
 
-PlantSpline::PlantSpline(Strategy s, int n_plants)
+PlantSpline::PlantSpline(Strategy s, double mass_leaf_max, int n_plants)
   : standalone(true),
     strategy(new Strategy(s)),
     seed(strategy),
     plants_approx(ode_size()) {
-  initialise(n_plants);
+  initialise(mass_leaf_max, n_plants);
 }
 
-PlantSpline::PlantSpline(Strategy *s, int n_plants)
+PlantSpline::PlantSpline(Strategy *s, double mass_leaf_max, int n_plants)
   : standalone(false),
     strategy(s),
     seed(strategy),
     plants_approx(ode_size()) {
-  initialise(n_plants);
+  initialise(mass_leaf_max, n_plants);
 }
 
 PlantSpline::PlantSpline(const PlantSpline &other)
@@ -48,7 +48,7 @@ void swap(PlantSpline &a, PlantSpline &b) {
   swap(a.plants_approx, b.plants_approx);
 }
 
-double PlantSpline::max_mass_leaf() const {
+double PlantSpline::mass_leaf_max() const {
   return mass_leaf.back();
 }
 
@@ -63,7 +63,7 @@ void PlantSpline::compute_vars_phys(spline::Spline *env) {
 // the MultiSpline, but that requires learning about
 // ForwardIterator, etc.
 ode::iter PlantSpline::ode_rates(double m, ode::iter it) const {
-  if ( m > max_mass_leaf() )
+  if ( m > mass_leaf_max() )
     ::Rf_error("Requested plant too large");
   for ( size_t i = 0; i < ode_size(); i++ )
     *it++ = plants_approx.eval(m, i);
@@ -98,25 +98,16 @@ size_t PlantSpline::ode_size() const {
   return seed.ode_size();
 }
 
-// TODO: Get mass_leaf boundaries here; the minimum and maximum
-// possible (i.e., size at birth, size at maturity).  This requires
-// some poking in Plant and/or Strategy.  For now using hardcoded
-// values.  If need be, we can run this out using the ODE step, but
-// easier will be to set mass_leaf and look for growth rates heading
-// to zero.
-
-// TODO: may want to log transform the spacing of points, or even the
-// full spline basis, but not sure.  Do we care more about accuracy at
-// the bottom end than the top?
-void PlantSpline::initialise(int n_plants) {
+// NOTE: Perhaps more gracefully deal with the upper boundary of
+// mass_leaf here?  It looks to me that growth in leaf mass only
+// asymptotically approaches zero, so there is no value truely large
+// enough.  Better to have the really large plants done analytically
+// anyway.
+void PlantSpline::initialise(double mass_leaf_max, int n_plants) {
   if ( n_plants < 5 )
     ::Rf_error("Need at least 5 plants");
 
-  const double mass_leaf_min = seed.get_mass_leaf();
-  // TODO: Really ugly; just guessed and hard coded for now.
-  const double mass_leaf_max = 5;
-
-  mass_leaf = util::seq_len(mass_leaf_min, mass_leaf_max, n_plants);
+  mass_leaf = util::seq_len(seed.get_mass_leaf(), mass_leaf_max, n_plants);
 
   Plant p(seed);
   plants.clear(); // defensive, as only used in constructors.

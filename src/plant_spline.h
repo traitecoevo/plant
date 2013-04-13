@@ -27,8 +27,8 @@ namespace model {
 
 class PlantSpline {
 public:
-  PlantSpline(Strategy s, int n_plants);
-  PlantSpline(Strategy *s, int n_plants);
+  PlantSpline(Strategy  s, double mass_leaf_max, int n_plants);
+  PlantSpline(Strategy *s, double mass_leaf_max, int n_plants);
 
   // Copy constructor, assigment and destructor (rule of three)
   PlantSpline(const PlantSpline &other);
@@ -36,7 +36,7 @@ public:
   ~PlantSpline();
   friend void swap(PlantSpline &a, PlantSpline &b);
 
-  double max_mass_leaf() const;
+  double mass_leaf_max() const;
   void compute_vars_phys(spline::Spline *env);
   ode::iter ode_rates(double m, ode::iter it) const;
 
@@ -47,7 +47,7 @@ public:
 
 private:
   size_t ode_size() const;
-  void initialise(int n_plants);
+  void initialise(double mass_leaf_max, int n_plants);
   void build_plants_approx();
 
   bool standalone;
