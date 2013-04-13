@@ -81,6 +81,32 @@ private:
   void set_parameters_post_hook();
 };
 
+class WithStrategy {
+public:
+  WithStrategy(Strategy *s) 
+    : standalone(false), 
+      strategy(s) {}
+  WithStrategy(Strategy s) 
+    : standalone(true), 
+      strategy(new Strategy(s)) {}
+  WithStrategy(const WithStrategy &other)
+    : standalone(other.standalone),
+      strategy(standalone ? new Strategy(*other.strategy) : other.strategy) {}
+  WithStrategy& operator=(WithStrategy rhs) {
+    swap(*this, rhs);
+    return *this;
+  }
+  ~WithStrategy() {
+    if ( standalone )
+      delete strategy;
+  }
+  friend void swap(WithStrategy &a, WithStrategy &b);
+
+private:
+  bool standalone;
+  Strategy *strategy;
+};
+
 }
 
 RCPP_EXPOSED_CLASS(model::Strategy)

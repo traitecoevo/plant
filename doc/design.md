@@ -209,6 +209,38 @@ of a provided `Strategy` object, and be responsible for cleaning up on
 deletion.  Copies involving a standalone `Plant` will *copy* the
 `Parameter` object and create a new "standalone" `Plant`.
 
+### Possible refinement;
+
+I think that if we inherit from a class defined like this, we can
+avoid most of the issues that I've been having with repetition around
+standalone.
+
+```
+class WithStrategy {
+public:
+  WithStrategy(Strategy *s) : standalone(false), strategy(s) {}
+  WithStrategy(Strategy s) : standalone(true), strategy(new Strategy(s)) {}
+  WithStrategy(const WithStrategy &other)
+    : standalone(other.standalone),
+	  strategy(standalone ? new Strategy(*other.strategy) : other.strategy) {}
+  operator=(WithStrategy rhs) {
+    swap(*this, rhs);
+	return *this;
+  }
+  ~WithStrategy() {
+    if ( standalone )
+	  delete strategy;
+  }
+private:
+  swap(WithStrategy a, WithStrategy b) {
+    swap(a.standalone, b.standalone);
+    swap(a.parameters, b.parameters);
+  }
+  bool standalone;
+  Strategy strategy;
+}
+```
+
 ## Dispersal
 
 I might try and do dispersal through a map object with the pointer to
