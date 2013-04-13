@@ -11,7 +11,7 @@ plant.spline <- new(PlantSpline, s, mass.leaf.max, n.spline)
 
 ## Expected leaf mass:
 expect_that(plant.spline$mass_leaf_max,
-            equals(mass.leaf.max))
+            is_identical_to(mass.leaf.max))
 
 mass.leaf <- seq(plant$mass_leaf, plant.spline$mass_leaf_max,
                  length=n.spline)

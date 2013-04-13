@@ -41,6 +41,7 @@ std::vector<double> seq_len(double from, double to, int len) {
   double x = from;
   for ( int i = 0; i < len; i++, x += dx )
     ret.push_back(x);
+  ret.back() = to; // Protect against rounding errors.
   return ret;
 }
 
