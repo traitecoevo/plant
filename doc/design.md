@@ -8,7 +8,8 @@ However, the scope is very much the same as the original "EBT" code.
    between patch level).
  - one size dimension (but possibly more for the individual based
    model).
- - large number of possibly varying traits
+ - large number of possibly varying traits (in contrast to the 4
+   allowed in the original EBT implementation).
  
 # Shared components
 
@@ -19,17 +20,85 @@ cohorts in the deterministic model; they have a state (mass, leaf
 area, etc) and are capable of computing their physiological rates
 given a light environment.
 
-However, a "cohort" will actually contain two individuals (top and
-middle), and as a result they will provide different numbers of rates
-back to the ODE solvers, etc.
+The key things that an indiviual needs to be able to:
 
-### Components of Plant
+* `get_height`, `get_mass_leaf`, `set_mass_leaf`: return its height and
+  leaf mass, also set the leaf mass. [1]
+* `compute_vars_phys`: given a light environment, update a number of
+  physiological variables.  Could be seen as
+  `update_with_environment`.
+* `offspring`: return the number of offspring the plant is able to
+  produce right now.
+* `died`: test of the plant died right now.
+* `germination_probability`: If the plant were a seed (assumes that
+  the mass has not been changed)
+---
+[1] height is only used to determine the upper limit of the light
+environment that we would care about; declarative programming would do
+away with that.  The leaf mass could as easily be written as "plant
+size" as nothing outside of the plant cares that this is the leaf mass
+and not something else.  In fact, it might be nice to combine the two
+and have height be the only interacting variable (check to see how to
+derive leaf mass given height).
 
-It might be worth creating a data type that contains the guts of plant
-(physiological variables, size variables, etc) to avoid the
-duplication through the initialisation, copy construction, etc.
+In addition, we need some methods by virtue of being able to compute
+derivatives using `ode::OdeTarget` (see below).
 
-### Cohort
+* `ode_size`: return number of underlying variables
+* `ode_values_set`: set underlying variables
+* `ode_values`: return underlying variables
+* `ode_rates`: return rates of change of underlying variables
+
+The typical call by a controlling ODE stepper will look like:
+
+```c++
+ode_values_set();
+env = compute_light_environment(); // given the new sizes of plants, etc
+compute_vars_phys(env); // compute rates given light environment
+ode_rates(); // get the rates of change
+```
+
+The most basic individual is `Plant`, which is a simple-minded plant.
+
+In addition, there are some specialised versions of `Plant` that
+should behave *(essentially) identically* when used in aggregate.
+These are:
+
+`CohortDiscrete`: if multiple individuals are born at the same time,
+then we only have to compute their properties once (growth is
+deterministic).  This simply adds a constructor that takes an integer
+argument indicating how many individals are in a cohort, and modifies
+a few methods where the output depends on the number of individuals in
+the cohort.
+
+`PlantApprox`: this version does the physiological calculations via a
+different backend that uses an spline over the size axis (using
+`PlantSpline`).  It changes very few methods, too.
+
+`CohortDiscreteApprox`: this is a combination of the two approaches
+(not yet implemented).
+
+There will be a related individual type `Cohort` that is the
+individual type for the EBT approach.  It will probably be generated
+via composition though, with two individuals (top and mean).
+
+#### Internals
+
+There are two internal pieces that belong to `Plant`:
+
+An internal class that contains the size variables.  Nothing else
+knows about this, and it is defined within the `Plant` class
+entirely.
+
+A `Strategy` class that contains parameters that the `Plant` uses.
+Other pieces of the program will push these around, but nothing is
+allowed to see inside of `Strategy` except `Plant` (everything except
+constructors are private, but the class has a `friend` relationship to
+`Plant`.
+
+#### More on Cohorts
+
+More information on the `Cohort`s for the EBT:
 
 Previously, the key bits of cohort change were:
 
@@ -44,80 +113,7 @@ Previously, the key bits of cohort change were:
 We must be able to push new cohorts onto a list.  Probably to match
 the individual based model, we should push on the back.
 
-### Pseudo-cohorts
-
-In the individual-based simulation, if multiple individuals are born
-at any one time, then we could group them together in a cohort;
-according to this, we just have a plant with a counter indicating how
-many individuals are in it.  Then we just multiply certain output
-variables by the population size.  Death decreases the counter, and
-once we're at zero the individual is destroyed.
-
-At the moment I've called these CohortDiscrete and we can adjust this
-later.
-
-One issue with this is that now we have a `Patch` that contains
-`Species<Plant>`.  If we want to be able to toggle to use
-`Species<CohortDiscrete>` I see a few options:
-
-1. Have both data members present in the class, and just use one.
-That is a bit (lot) of a hack though, but it would allow run time
-switches in how things are done.
-
-2. Template the Patch class.  Then we have `Patch< Species<Plant> >`
-and `Patch< Species<CohortDiscrete> >`.  The issue with this is that
-it means that when we have a metapopulation, it will be
-`Metapopulation< Patch< Species<Plant> > >` etc.
-
-3. It seems possible that we could template *just* on the Plant, so
-that we have `Patch<Plant>` and `Patch<CohortDiscrete>`, as the
-`Species` code remains the same.  This would infect the Metapopulation
-similarly, so that we have `Metapopulation<Plant>` and
-`Metapopulation<CohortDiscrete>`, too.  The only other issue here is
-how to export this to R via modules, but that's not that horrible.
-The big downside is that I will have to do a lot of repetition for the
-different specialisations.  **But** this would be mitigated if both
-inherited from an abstract base class (which helps with dependency
-inversion I think).
-
-4. Use inheritance, create a base class (that does not contain a
-species object), then two subclasses (one for each type).  The `Patch`
-then has a `vector` of pointers base class (leading to an ugly pointer
-iteration situation).
-
-I leant towards templates though, because I would never *mix* `Plant`s
-and `CohortDiscrete`s together.
-
-A population based on `Plant`s and one based on `CohortDiscrete` will
-stochastically diverge because of the differences in accounting in
-`Species::died`; a `Species<Plant>` must go through and do independent
-Bernoulli trials whereas a `Species<CohortDiscrete>` can do a binomial
-draw when there is more than one individual in a cohort.
-
-We could have a "hard mode" that forces Bernoilli trials; it would
-look like
-
-```
-  bool CohortDiscrete::died_hard_mode() {
-    const double m = mortality();
-    const int n = n_individuals;
-    for ( int i = 0; < n; i++ )
-      if ( unif_rand() < m )
-        n_individuals--;
-    return n_individuals == 0;
-  }
-```
-
-With this, the two cases would be stochastically identical.
-However, at some point the ODE solver will do something with
-scaling the error estimates by the number of variables (not sure if
-it does so already, but if it's done on an average that will
-happen) at which point we'll lose equivalence.
-
-Another downside of this is that this would require more parameters
-set somewhere.
-
-### Functional approach
+#### More on PlantApprox
 
 The deterministic part can be done more carefully; suppose that we
 have a vector of sizes of plants (at the patch level).  We can then
@@ -161,6 +157,39 @@ require quite a bit of work reimplementing logic in `AdaptiveSpline`.
 An alternative would be to define a size "sapling" where the
 self-thinning is less extreme and interpolate the values below this
 over a fixed size number of points.
+
+
+#### Stochastic equivalence of Plant and CohortDiscrete
+
+A population based on `Plant`s and one based on `CohortDiscrete` will
+stochastically diverge because of the differences in accounting in
+`Species::died`; a `Species<Plant>` must go through and do independent
+Bernoulli trials whereas a `Species<CohortDiscrete>` can do a binomial
+draw when there is more than one individual in a cohort.
+
+We could have a "hard mode" that forces Bernoilli trials; it would
+look like
+
+```
+  bool CohortDiscrete::died_hard_mode() {
+    const double m = mortality();
+    const int n = n_individuals;
+    for ( int i = 0; < n; i++ )
+      if ( unif_rand() < m )
+        n_individuals--;
+    return n_individuals == 0;
+  }
+```
+
+With this, the two cases would be stochastically identical.
+However, at some point the ODE solver will do something with
+scaling the error estimates by the number of variables (not sure if
+it does so already, but if it's done on an average that will
+happen) at which point we'll lose equivalence.
+
+Another downside of this is that this would require more parameters
+set somewhere.
+
 
 ## Species
 
