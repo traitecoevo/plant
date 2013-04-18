@@ -8,7 +8,7 @@
 
 namespace model {
 
-class Cohort : public ode::OdeTarget, protected WithStrategy {
+class Cohort : public ode::OdeTarget {
 public:
   Cohort(Strategy s);
   Cohort(Strategy *s);
@@ -27,6 +27,7 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
 private:
+  Strategy::ptr strategy;
   // Two plants; one representing the mean individual and the other
   // representing the top.
   Plant plant_mean, plant_top;

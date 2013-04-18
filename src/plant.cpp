@@ -1,17 +1,16 @@
 #include "plant.h"
 
-#include <sstream> // std::stringstream
 #include "find_root.h"
 
 namespace model {
 
 Plant::Plant(Strategy s)
-  : WithStrategy(s) {
+  : strategy(s) {
   set_mass_leaf(strategy->mass_leaf_0);
 }
 
 Plant::Plant(Strategy *s)
-  : WithStrategy(s) {
+  : strategy(s) {
   set_mass_leaf(strategy->mass_leaf_0);
 }
 
@@ -44,18 +43,10 @@ Plant::internals::internals()
 // NOTE: This is essentially only used for testing.
 // NOTE: The semantics around comparing Strategy are ill-defined for
 // the standalone case.
-// TODO: Push this into the WithStrategy class?
 bool Plant::operator==(const Plant &rhs) {
-  if ( standalone && strategy == rhs.strategy )
-    Rf_error("This is going to end badly.");
-    
-  const bool ret = true
-    && standalone == rhs.standalone
-    // TODO: Ideally we would delve into Strategy here, but done yet.
-    && (standalone || strategy == rhs.strategy)
-    && vars == rhs.vars
-    ;
-  return ret;
+  if ( strategy.standalone() && strategy.ptr == rhs.strategy.ptr )
+    Rf_warning("This is going to end badly.");
+  return strategy == rhs.strategy && vars == rhs.vars;
 }
 
 bool Plant::internals::operator==(const Plant::internals &rhs) {
@@ -359,7 +350,7 @@ double Plant::compute_reproduction_fraction() const {
 // NOTE: The EBT version actually computed 1/leaf_fraction (modifying
 // growth rate calculation accordingly).  Possibly more stable?
 double Plant::compute_leaf_fraction() const {
-  const Strategy *s = strategy; // for brevity.
+  const Strategy *s = strategy.ptr; // for brevity.
   return 1.0/(1.0 + s->a3/s->lma +
 	      (s->rho / s->theta * s->a1 * s->eta_c * (1.0 +s->b) *
 	       (1.0+s->B1) * pow(vars.leaf_area, s->B1) / s->lma +
@@ -427,7 +418,7 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 }
 
 // TODO: Is this really needed?
-Rcpp::List Plant::r_get_parameters() const {
+Rcpp::List Plant::r_get_parameters() {
   return strategy->get_parameters();
 }
 
@@ -453,9 +444,7 @@ bool Plant::r_died() {
 }
 
 std::string Plant::r_name() const {
-  std::stringstream ss;
-  ss << static_cast<const void*>(this);
-  return ss.str();
+  return util::string_from_address(this);
 }
 
 namespace test {

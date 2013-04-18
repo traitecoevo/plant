@@ -25,7 +25,7 @@ namespace model {
 // axis; any second variable (including location, but also impact of
 // history, resprouting, etc) will violate this assumption.
 
-class PlantSpline : protected WithStrategy {
+class PlantSpline {
 public:
   PlantSpline(Strategy  s, double mass_leaf_max, int n_plants);
   PlantSpline(Strategy *s, double mass_leaf_max, int n_plants);
@@ -44,6 +44,7 @@ private:
   void initialise(double mass_leaf_max, int n_plants);
   void build_plants_approx();
 
+  Strategy::ptr strategy;
   Plant seed;
   std::vector<double> mass_leaf;
   std::vector<Plant> plants;

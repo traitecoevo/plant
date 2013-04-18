@@ -152,10 +152,4 @@ void Strategy::set_parameters_post_hook() {
   Plant::prepare_strategy(this);
 }
 
-void swap(WithStrategy &a, WithStrategy &b) {
-  using std::swap;
-  swap(a.standalone, b.standalone);
-  swap(a.strategy,   b.strategy);
-}
-
 }

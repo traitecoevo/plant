@@ -2,6 +2,8 @@ library(methods)
 library(Rcpp)
 library(testthat)
 
+options(warn=1)
+
 if ( packageVersion("Rcpp") < package_version("0.10.0") )
   error("Needs Rcpp at least version 0.10.0")
 

@@ -12,7 +12,7 @@
 
 namespace model {
 
-class Plant : public ode::OdeTarget, protected WithStrategy {
+class Plant : public ode::OdeTarget {
 public:
   Plant(Strategy  s);
   Plant(Strategy *s);
@@ -63,7 +63,7 @@ public:
   // * R interface
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
-  Rcpp::List r_get_parameters() const;
+  Rcpp::List r_get_parameters();
   void r_compute_vars_phys(spline::Spline env);
   double r_compute_assimilation(spline::Spline env) const;
   double r_compute_assimilation_x(double x, spline::Spline env) const;
@@ -135,6 +135,7 @@ private:
     double fecundity;
   };
 
+  Strategy::ptr strategy;
   internals vars;
 
   static const int ode_dimension = 3;

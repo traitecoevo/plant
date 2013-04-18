@@ -5,15 +5,15 @@ namespace model {
 // On initialisation, both the "mean" and "top" plant will have the
 // same initial mass, which will be the seed mass.
 Cohort::Cohort(Strategy s)
-  : WithStrategy(s),
-    plant_mean(strategy),
-    plant_top(strategy) {
+  : strategy(s),
+    plant_mean(strategy.ptr),
+    plant_top(strategy.ptr) {
 }
 
 Cohort::Cohort(Strategy *s)
-  : WithStrategy(s),
-    plant_mean(strategy),
-    plant_top(strategy) {
+  : strategy(s),
+    plant_mean(strategy.ptr),
+    plant_top(strategy.ptr) {
 }
 
 // * ODE interface

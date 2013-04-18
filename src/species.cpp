@@ -20,8 +20,9 @@ namespace model {
 template <>
 void Species<CohortDiscrete>::add_seeds(int n) {
   if ( n > 0 ) {
-    CohortDiscrete tmp(strategy, n);
-    plants.push_back(tmp);
+    CohortDiscrete p = seed;
+    p.r_set_n_individuals(n); // TODO: Temporary
+    plants.push_back(p);
   }
 }
 

@@ -4,15 +4,15 @@
 namespace model {
 
 PlantSpline::PlantSpline(Strategy s, double mass_leaf_max, int n_plants)
-  : WithStrategy(s),
-    seed(strategy),
+  : strategy(s),
+    seed(strategy.ptr),
     plants_approx(ode_size()) {
   initialise(mass_leaf_max, n_plants);
 }
 
 PlantSpline::PlantSpline(Strategy *s, double mass_leaf_max, int n_plants)
-  : WithStrategy(s),
-    seed(strategy),
+  : strategy(s),
+    seed(strategy.ptr),
     plants_approx(ode_size()) {
   initialise(mass_leaf_max, n_plants);
 }

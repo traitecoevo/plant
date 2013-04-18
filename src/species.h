@@ -31,7 +31,7 @@ public:
 };
 
 template <class Individual>
-class Species : public ode::OdeTarget, protected WithStrategy {
+class Species : public ode::OdeTarget {
 public:
   Species(); // TODO: I would like rid of this.
   Species(Strategy  s);
@@ -65,6 +65,7 @@ public:
   void r_germination_probability(spline::Spline light_environment);
 
 private:
+  Strategy::ptr strategy;
   Individual seed;
   std::list<Individual> plants;
 
@@ -78,20 +79,20 @@ private:
 // it is apparently necessary for something in Patch, I think.
 template <class Individual>
 Species<Individual>::Species() 
-  : WithStrategy(NULL),
-    seed(strategy) {
+  : strategy(NULL),
+    seed(strategy.ptr) {
 }
 
 template <class Individual>
 Species<Individual>::Species(Strategy s)
-  : WithStrategy(s),
-    seed(strategy) {
+  : strategy(s),
+    seed(strategy.ptr) {
 }
 
 template <class Individual>
 Species<Individual>::Species(Strategy *s)
-  : WithStrategy(s),
-    seed(strategy) {
+  : strategy(s),
+    seed(strategy.ptr) {
 }
 
 // Compute the number of offspring that will be born by asking all
