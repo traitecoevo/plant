@@ -20,8 +20,8 @@ expect_that(patch.c$height_max, is_identical_to(0.0))
 patch.p$add_seeds(1)
 patch.c$add_seeds(1)
 
-plants.p <- patch.p$get_plants()
-plants.c <- patch.c$get_plants()
+plants.p <- patch.p$plants
+plants.c <- patch.c$plants
 
 expect_that(length(plants.c), equals(1))
 expect_that(length(plants.c[[1]]), equals(1))
@@ -80,7 +80,7 @@ patch.c$add_seeds(1)
 ## accumulate results.
 run <- function(patch, n, age, res=NULL) {
   collect <- function()
-    list(list(patch$age, patch$n_individuals, patch$get_mass_leaf(0)))
+    list(list(patch$age, patch$n_individuals, patch$mass_leaf(0)))
   if ( is.null(res) )
     res <- collect()
   while ( patch$n_individuals <= n && patch$age <= age ) {

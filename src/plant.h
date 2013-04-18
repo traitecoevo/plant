@@ -61,9 +61,9 @@ public:
   static void prepare_strategy(Strategy *s);
 
   // * R interface
+  Strategy r_get_strategy() const;
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
-  Rcpp::List r_get_parameters();
   void r_compute_vars_phys(spline::Spline env);
   double r_compute_assimilation(spline::Spline env) const;
   double r_compute_assimilation_x(double x, spline::Spline env) const;

@@ -6,7 +6,7 @@ cmp <- make.falster()
 pars.cmp <- cmp$get_parameters()
 
 s <- new(Strategy)
-pars.s <- s$get_parameters()
+pars.s <- s$parameters
 
 ## Expect that all parameters in the R version are found in the C++
 ## version.
@@ -40,7 +40,7 @@ expect_that(pars.s[names(pars.cmp)],
 ## Now that that's OK, make a plant with our strategy
 p <- new(Plant, s)
 ## ...so the parameters should agree exactly.
-expect_that(p$parameters,
+expect_that(p$strategy$parameters,
             is_identical_to(pars.s))
 
 ## Expect that any two plants differ in their "name".

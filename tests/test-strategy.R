@@ -4,7 +4,7 @@ context("Strategy")
 
 s <- new(Strategy)
 
-obj <- s$get_parameters()
+obj <- s$parameters
 
 expected <- list(
   B1     = 0.306,
@@ -49,25 +49,25 @@ expect_that(obj[keys], equals(expected[keys]))
 ## Add some new parameters:
 new1 <- list(c_acc=4.1, lma=1.2)
 s$set_parameters(new1)
-expect_that(s$get_parameters()[names(new1)], is_identical_to(new1))
-expect_that(s$get_parameters(), equals(modifyList(expected, new1)))
+expect_that(s$parameters[names(new1)], is_identical_to(new1))
+expect_that(s$parameters, equals(modifyList(expected, new1)))
 
 ## Generate a failure:
 new2 <- list(unknown_key=1)
 expect_that(s$set_parameters(new2), throws_error())
 
 ## And have the list remain unchanged and valid
-expect_that(s$get_parameters(), equals(modifyList(expected, new1)))
+expect_that(s$parameters, equals(modifyList(expected, new1)))
 
 ## TODO: error on not the first argument would not satisfy that
 ## property.
 
 ## Empty list should be accepted and leave things unchanged.
-obj <- s$get_parameters()
+obj <- s$parameters
 s$set_parameters(list())
-expect_that(s$get_parameters(), is_identical_to(obj))
+expect_that(s$parameters, is_identical_to(obj))
 
 ## As should NULL, which is converted by R to list()
-obj <- s$get_parameters()
+obj <- s$parameters
 s$set_parameters(NULL)
-expect_that(s$get_parameters(), is_identical_to(obj))
+expect_that(s$parameters, is_identical_to(obj))

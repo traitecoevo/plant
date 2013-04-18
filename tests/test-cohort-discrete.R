@@ -3,7 +3,7 @@ source("helper-tree.R")
 context("CohortDiscrete")
 
 s <- new(Strategy)
-pars.s <- s$get_parameters()
+pars.s <- s$parameters
 
 plant <- new(Plant, s)
 cohort0 <- new(CohortDiscrete, s)

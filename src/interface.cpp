@@ -62,8 +62,8 @@ RCPP_MODULE(tree) {
     .property("size",     &ode::test::Lorenz::size)
     // ODE solving
     .method("set_state",  &ode::test::Lorenz::ode_set_state)
-    .method("get_state",  &ode::test::Lorenz::ode_get_state)
-    .method("get_time",   &ode::test::Lorenz::ode_get_time)
+    .property("state",    &ode::test::Lorenz::ode_get_state)
+    .property("time",     &ode::test::Lorenz::ode_get_time)
     .method("step",       &ode::test::Lorenz::ode_step)
     .method("step_fixed", &ode::test::Lorenz::ode_step_fixed)
     .method("advance",    &ode::test::Lorenz::ode_advance)
@@ -84,8 +84,8 @@ RCPP_MODULE(tree) {
     .property("size",     &ode::OdeR::size)
     // ODE solving
     .method("set_state",  &ode::OdeR::ode_set_state)
-    .method("get_state",  &ode::OdeR::ode_get_state)
-    .method("get_time",   &ode::OdeR::ode_get_time)
+    .property("state",    &ode::OdeR::ode_get_state)
+    .property("time",     &ode::OdeR::ode_get_time)
     .method("step",       &ode::OdeR::ode_step)
     .method("step_fixed", &ode::OdeR::ode_step_fixed)
     .method("advance",    &ode::OdeR::ode_advance)
@@ -94,7 +94,7 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<util::Lookup>("Lookup")
     // No constructor, because class contains pure virtual method.
-    .method("get_parameters", &util::Lookup::get_parameters)
+    .property("parameters",   &util::Lookup::get_parameters)
     .method("set_parameters", &util::Lookup::set_parameters)
     ;
 
@@ -109,7 +109,7 @@ RCPP_MODULE(tree) {
     .derives<util::Lookup>("Lookup")
     .property("size",         &model::Parameters::size)
     .method("get_strategy",   &model::Parameters::r_get_strategy)
-    .method("get_strategies", &model::Parameters::r_get_strategies)
+    .property("strategies",   &model::Parameters::r_get_strategies)
     .method("add_strategy",   &model::Parameters::add_strategy)
     ;
 
@@ -125,7 +125,7 @@ RCPP_MODULE(tree) {
     .method("Q",                    &model::Plant::Q)
     .method("Qp",                   &model::Plant::Qp)
     // R specific access
-    .property("parameters",         &model::Plant::r_get_parameters)
+    .property("strategy",           &model::Plant::r_get_strategy)
     .property("vars_size",          &model::Plant::r_get_vars_size)
     .property("vars_phys",          &model::Plant::r_get_vars_phys)
     .method("assimilation_leaf",    &model::Plant::assimilation_leaf)
@@ -199,9 +199,9 @@ RCPP_MODULE(tree) {
     .method("compute_vars_phys",  &model::PatchBase::r_compute_vars_phys)
     .property("age",              &model::PatchBase::r_age)
     .method("germination",        &model::PatchBase::r_germination)
-    .method("get_plants",         &model::PatchBase::r_get_plants)
+    .property("plants",           &model::PatchBase::r_get_plants)
     .method("add_seeds",          &model::PatchBase::r_add_seeds)
-    .method("get_mass_leaf",      &model::PatchBase::r_get_mass_leaf)
+    .method("mass_leaf",          &model::PatchBase::r_get_mass_leaf)
     .method("set_mass_leaf",      &model::PatchBase::r_set_mass_leaf)
     .property("n_individuals",    &model::PatchBase::r_n_individuals)
     .method("clear",              &model::PatchBase::r_clear)

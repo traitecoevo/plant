@@ -16,7 +16,7 @@ expect_that(patch$size, equals(p$size))
 
 ## We've not added any seeds yet, so this should be a list of length 1
 ## containing the empty list.
-plants <- patch$get_plants()
+plants <- patch$plants
 expect_that(plants, is_identical_to(list(list())))
 
 ## And the height must be zero
@@ -25,7 +25,7 @@ expect_that(patch$height_max, is_identical_to(0.0))
 ## Add a single seed to this
 patch$add_seeds(1)
 
-plants <- patch$get_plants()
+plants <- patch$plants
 expect_that(length(plants), equals(1))
 expect_that(length(plants[[1]]), equals(1))
 expect_that(length(plants[[c(1,1)]]), equals(1))
@@ -39,9 +39,9 @@ expect_that(patch$height_max,
 
 cmp$set_mass_leaf(pi)
 patch$set_mass_leaf(pi, 0L)
-expect_that(patch$get_mass_leaf(0L), is_identical_to(pi))
+expect_that(patch$mass_leaf(0L), is_identical_to(pi))
 
-plants <- patch$get_plants()
+plants <- patch$plants
 expect_that(plants[[c(1,1)]]$vars_size,
             is_identical_to(cmp$vars_size))
 
@@ -69,7 +69,7 @@ cmp$compute_vars_phys(env)
 patch$compute_vars_phys()
 
 ## And compare against the single plant.
-plants <- patch$get_plants()
+plants <- patch$plants
 expect_that(plants[[c(1,1)]]$vars_phys,
             equals(cmp$vars_phys))
 
@@ -135,7 +135,7 @@ expect_that(patch$n_individuals == 2 && patch$age < 15,
 ## to a binomial distribution with the appropriate parameters.  Being
 ## stochastic, this may give false positives sometimes.
 seed <- new(Plant, p$get_strategy(0))
-pr.cmp <- p$get_parameters()[["Pi_0"]] *
+pr.cmp <- p$parameters[["Pi_0"]] *
   seed$germination_probability(patch$light_environment)
 
 set.seed(1)

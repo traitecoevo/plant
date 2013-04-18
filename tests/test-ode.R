@@ -26,13 +26,13 @@ expect_that(lo$derivs(t0, y),
             equals(derivs.lorenz(t0, y, pars)))
 
 lo$set_state(y, t0)
-expect_that(lo$get_state(), is_identical_to(y))
-expect_that(lo$get_time(),  is_identical_to(t0))
+expect_that(lo$state, is_identical_to(y))
+expect_that(lo$time,  is_identical_to(t0))
 
 ## Try a fixed step, but one far too large:
 lo$step_fixed(1)
-expect_that(lo$get_state(), is_identical_to(y))
-expect_that(lo$get_time(),  is_identical_to(t0))
+expect_that(lo$state, is_identical_to(y))
+expect_that(lo$time,  is_identical_to(t0))
 
 dt <- 0.001
 lo$step_fixed(dt)
@@ -40,20 +40,20 @@ lo$step_fixed(dt)
 cmp <- as.numeric(rk(y, c(0, dt), derivs.lorenz.d, pars,
                      method=rkMethod("rk45ck"), hini=dt, rtol=1,
                      atol=1)[2,-1])
-expect_that(lo$get_state(), equals(cmp, tolerance=1e-14))
-expect_that(lo$get_time(), is_identical_to(t0+dt))
+expect_that(lo$state, equals(cmp, tolerance=1e-14))
+expect_that(lo$time, is_identical_to(t0+dt))
 
 ## Variable step:
 lo$set_state(y, t0)
 lo$step()
-expect_that(lo$get_time(), is_greater_than(t0))
-expect_that(identical(lo$get_state(), y), is_false())
+expect_that(lo$time, is_greater_than(t0))
+expect_that(identical(lo$state, y), is_false())
 
 ## Run:
 lo$set_state(y, t0)
 lo$advance(tt[2])
-expect_that(lo$get_time(), is_identical_to(tt[2]))
-y.cmp <- lo$get_state()
+expect_that(lo$time, is_identical_to(tt[2]))
+y.cmp <- lo$state
 
 ans <- t(lo$run(tt, y))
 expect_that(ans[1,], is_identical_to(y.cmp))
@@ -73,13 +73,13 @@ expect_that(obj$derivs(t0, y),
             is_identical_to(derivs.lorenz(t0, y, pars)))
 
 obj$set_state(y, t0)
-expect_that(obj$get_state(), is_identical_to(y))
-expect_that(obj$get_time(),  is_identical_to(t0))
+expect_that(obj$state, is_identical_to(y))
+expect_that(obj$time,  is_identical_to(t0))
 
 ## Try a fixed step, but one far too large:
 obj$step_fixed(1)
-expect_that(obj$get_state(), is_identical_to(y))
-expect_that(obj$get_time(),  is_identical_to(t0))
+expect_that(obj$state, is_identical_to(y))
+expect_that(obj$time,  is_identical_to(t0))
 
 dt <- 0.001
 obj$step_fixed(dt)
@@ -87,20 +87,20 @@ obj$step_fixed(dt)
 cmp <- as.numeric(rk(y, c(0, dt), derivs.lorenz.d, pars,
                      method=rkMethod("rk45ck"), hini=dt, rtol=1,
                      atol=1)[2,-1])
-expect_that(obj$get_state(), equals(cmp, tolerance=1e-14))
-expect_that(obj$get_time(), is_identical_to(t0+dt))
+expect_that(obj$state, equals(cmp, tolerance=1e-14))
+expect_that(obj$time, is_identical_to(t0+dt))
 
 ## Variable step:
 obj$set_state(y, t0)
 obj$step()
-expect_that(obj$get_time(), is_greater_than(t0))
-expect_that(identical(obj$get_state(), y), is_false())
+expect_that(obj$time, is_greater_than(t0))
+expect_that(identical(obj$state, y), is_false())
 
 ## Run:
 obj$set_state(y, t0)
 obj$advance(tt[2])
-expect_that(obj$get_time(), is_identical_to(tt[2]))
-y.cmp <- obj$get_state()
+expect_that(obj$time, is_identical_to(tt[2]))
+y.cmp <- obj$state
 
 ans <- t(obj$run(tt, y))
 expect_that(ans[1,], is_identical_to(y.cmp))

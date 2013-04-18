@@ -391,6 +391,10 @@ void Plant::prepare_strategy(Strategy *s) {
 }
 
 // * R interface
+Strategy Plant::r_get_strategy() const {
+  return *strategy.ptr;
+}
+
 Rcpp::NumericVector Plant::r_get_vars_size() const {
   using namespace Rcpp;
   return NumericVector::create(_["mass_leaf"]=vars.mass_leaf,
@@ -415,11 +419,6 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 			       _["leaf_fraction"]=vars.leaf_fraction,
 			       _["growth_rate"]=vars.growth_rate,
 			       _["mortality_rate"]=vars.mortality_rate);
-}
-
-// TODO: Is this really needed?
-Rcpp::List Plant::r_get_parameters() {
-  return strategy->get_parameters();
 }
 
 void Plant::r_compute_vars_phys(spline::Spline env) {
