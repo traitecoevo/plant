@@ -235,6 +235,13 @@ To get around that, I'm storing the `Strategy` within a small wrapper
 class.  This almost certainly duplicates auto_ptr or something, and I
 should look into that.
 
+It's possible (probable?) that for `Species` and above there is
+absolutely no benefit from this distinction, and dealing in plain
+objects will be better.
+
+Also mention when doing the cross of PlantApprox and CohortDiscrete
+that I'm trying to avoid DDD.  Traits might be better?
+
 So, define a class member `standalone`, which will be false normally
 but true if a `Plant` is created without a `Strategy` pointer.  In
 that case, it will either create the default `Strategy` or take a copy
