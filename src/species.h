@@ -22,7 +22,7 @@ public:
   virtual double leaf_area_above(double height) const = 0;
   virtual void r_compute_vars_phys(spline::Spline light_environment) = 0;
   virtual void add_seeds(int n) = 0;
-  virtual void r_germination_probability(spline::Spline light_environment) = 0;
+  virtual double r_germination_probability(spline::Spline light_environment) = 0;
   virtual void clear() = 0;
   virtual std::vector<double> r_get_mass_leaf() const = 0;
   virtual void r_set_mass_leaf(std::vector<double> x) = 0;
@@ -61,7 +61,7 @@ public:
   Rcpp::List r_get_plants() const;
   int r_n_individuals() const;
   void r_compute_vars_phys(spline::Spline light_environment);
-  void r_germination_probability(spline::Spline light_environment);
+  double r_germination_probability(spline::Spline light_environment);
 
 private:
   Strategy::ptr strategy;
@@ -242,9 +242,9 @@ void Species<Individual>::r_compute_vars_phys(spline::Spline
 }
 
 template <class Individual>
-void Species<Individual>::r_germination_probability(spline::Spline 
-						    light_environment) {
-  germination_probability(&light_environment);
+double Species<Individual>::r_germination_probability(spline::Spline 
+						      light_environment) {
+  return germination_probability(&light_environment);
 }
 
 template <class Individual>

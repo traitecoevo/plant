@@ -172,6 +172,7 @@ RCPP_MODULE(tree) {
             &model::SpeciesBase::r_germination_probability)
     .method("clear",           &model::SpeciesBase::clear)
     .property("mass_leaf",     &model::SpeciesBase::r_get_mass_leaf)
+    .method("set_mass_leaf",   &model::SpeciesBase::r_set_mass_leaf)
     .property("plants",        &model::SpeciesBase::r_get_plants)
     .property("n_individuals", &model::SpeciesBase::r_n_individuals)
     ;
