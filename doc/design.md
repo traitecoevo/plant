@@ -231,6 +231,10 @@ address is invalid, or it might get destroyed before the plant).
 Similar problems will affect the `Population`, as the `Metapopulation`
 generally has control over this. 
 
+To get around that, I'm storing the `Strategy` within a small wrapper
+class.  This almost certainly duplicates auto_ptr or something, and I
+should look into that.
+
 So, define a class member `standalone`, which will be false normally
 but true if a `Plant` is created without a `Strategy` pointer.  In
 that case, it will either create the default `Strategy` or take a copy
