@@ -30,6 +30,9 @@ if ( !exists("Spline") ) {
   Cohort         <- tree_module$Cohort
   PlantSpline    <- tree_module$PlantSpline
 
+  Species <- tree_module$Species
+  SpeciesC <- tree_module$SpeciesC
+
   Patch  <- tree_module$Patch
   PatchC <- tree_module$PatchC
 }

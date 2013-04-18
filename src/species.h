@@ -31,9 +31,8 @@ public:
 };
 
 template <class Individual>
-class Species : public ode::OdeTarget {
+class Species : public SpeciesBase {
 public:
-  Species(); // TODO: I would like rid of this.
   Species(Strategy  s);
   Species(Strategy *s);
 
@@ -72,16 +71,6 @@ private:
   typedef typename std::list<Individual>::iterator plants_iterator;
   typedef typename std::list<Individual>::const_iterator plants_const_iterator;
 };
-
-// TODO: I'm a bit wary of the impact of seed(NULL) here, especially
-// if a copy constructor is triggered, but also just in general.  It
-// would be nice if we could just skip this contructor entirely, but
-// it is apparently necessary for something in Patch, I think.
-template <class Individual>
-Species<Individual>::Species() 
-  : strategy(NULL),
-    seed(strategy.ptr) {
-}
 
 template <class Individual>
 Species<Individual>::Species(Strategy s)
