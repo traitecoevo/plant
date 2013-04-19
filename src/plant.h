@@ -40,14 +40,11 @@ public:
   // Equivalence operator
   bool operator==(const Plant &rhs);
 
-  // TODO: can make private: q, Q, Qp, assimilation_leaf
-
-  double get_height() const;
-
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
   void set_mass_leaf(double mass_leaf_);
   double get_mass_leaf() const;
+  double get_height() const;
 
   // * Competitive environment
   // [      ] Leaf area (not fraction) above height `z`
@@ -77,17 +74,8 @@ public:
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
   void r_compute_vars_phys(spline::Spline env);
-
   double r_germination_probability(spline::Spline env);
   bool r_died();
-  // Psuedo-name, based on memory location (TODO: Drop?)
-  std::string r_name() const;
-
-  // Temporary
-  double r_q(double z) const { return q(z); }
-  double r_Q(double z) const { return Q(z); }
-  double r_Qp(double z) const { return Qp(z); }
-  double r_assimilation_leaf(double x) const {return assimilation_leaf(x);}
 
 protected:
   double mortality() const;

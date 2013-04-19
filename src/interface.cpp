@@ -120,20 +120,15 @@ RCPP_MODULE(tree) {
     .method("set_mass_leaf",        &model::Plant::set_mass_leaf)
     .property("mass_leaf",          &model::Plant::get_mass_leaf)
     .property("height",             &model::Plant::get_height)
-    // Leaf distribution (external interface)
     .method("leaf_area_above",      &model::Plant::leaf_area_above)
-    .method("q",                    &model::Plant::r_q)
-    .method("Q",                    &model::Plant::r_Q)
-    .method("Qp",                   &model::Plant::r_Qp)
-    // R specific access
-    .property("strategy",           &model::Plant::r_get_strategy)
-    .property("vars_size",          &model::Plant::r_get_vars_size)
-    .property("vars_phys",          &model::Plant::r_get_vars_phys)
-    .method("assimilation_leaf",    &model::Plant::r_assimilation_leaf)
     .method("compute_vars_phys",    &model::Plant::r_compute_vars_phys)
     .method("germination_probability", &model::Plant::r_germination_probability)
     .method("offspring",            &model::Plant::offspring)
     .method("died",                 &model::Plant::r_died)
+    // R specific access
+    .property("strategy",           &model::Plant::r_get_strategy)
+    .property("vars_size",          &model::Plant::r_get_vars_size)
+    .property("vars_phys",          &model::Plant::r_get_vars_phys)
     ;
 
   Rcpp::class_<model::PlantSpline>("PlantSpline")
@@ -157,7 +152,6 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::PlantApprox>("PlantApprox")
     .derives<model::Plant>("Plant")
     .constructor<model::Strategy, model::PlantSpline>()
-    .method("compute_vars_phys", &model::PlantApprox::r_compute_vars_phys)
     ;
 
   Rcpp::class_<model::Cohort>("Cohort")

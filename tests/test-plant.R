@@ -70,53 +70,25 @@ expect_that(size.p[["mass_root"]],
 expect_that(size.p[["mass_total"]],
             equals(cmp$TotalMass(cmp$traits, a)))
 
-## Instantaneous photosynthesis:
-xx <- seq(0, 1, length=101)
-yy <- sapply(xx, p$assimilation_leaf)
-zz <- cmp$Assim(a, xx)
-
-## The R model computes A_lf * leaf_area * Y * c_bio, wheras we just
-## compute A_lf
-cmp.const <- pars.s$Y * pars.s$c_bio
-expect_that(yy * cmp.const * a,
-            equals(zz))
-
 ## Make a pretend light environment over the plant height, slightly
 ## concave up, whatever.
 hh <- seq(0, h, length=101)
 light.env <- function(x)
   exp(x/(h*2)) - 1 + (1 - (exp(.5) - 1))/2
 ee <- light.env(hh)
-
-cmp.assimilation.leaf <- cmp$Assim(a, ee) / (cmp.const * a)
-expect_that(sapply(ee, p$assimilation_leaf),
-            equals(cmp.assimilation.leaf))
-
-## Now, integrate to get whole plant assimilation over the light
-## environment and leaf distribution.  This is probably overkill from
-## a testing point of view, but this is the most complicated thing
-## that happens.
-cmp.assimilation.plant <- cmp$assimilation.plant(h, light.env)
-
-f1 <- Vectorize(function(x)
-                a * p$assimilation_leaf(light.env(x)) * p$q(x))
-f2 <- Vectorize(function(x)
-                a * p$assimilation_leaf(light.env(p$Qp(x))))
-expect_that(integrate(f1, 0, h)$value,
-            equals(cmp.assimilation.plant / cmp.const))
-expect_that(integrate(f2, 0, 1)$value,
-            equals(cmp.assimilation.plant / cmp.const,
-                   tolerance=1e-7))
-
-## Do this assimilation within the Plant class, rather than by hand.
 env <- new(Spline)
 env$init(hh, ee)
+
+## The R model computes A_lf * leaf_area * Y * c_bio, wheras we just
+## compute A_lf; will have to correct some numbers.
+cmp.const <- pars.s$Y * pars.s$c_bio
 
 ## Compute the physiological variables and retreive them.
 p$compute_vars_phys(env)
 p.phys <- p$vars_phys
 
 ## 1. Assimilation:
+cmp.assimilation.plant <- cmp$assimilation.plant(h, light.env)
 expect_that(p.phys[["assimilation"]],
             equals(cmp.assimilation.plant / cmp.const))
 
