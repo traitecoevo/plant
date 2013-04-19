@@ -5,14 +5,14 @@ namespace model {
 
 PlantSpline::PlantSpline(Strategy s, double mass_leaf_max, int n_plants)
   : strategy(s),
-    seed(strategy.ptr),
+    seed(strategy.get()),
     plants_approx(ode_size()) {
   initialise(mass_leaf_max, n_plants);
 }
 
 PlantSpline::PlantSpline(Strategy *s, double mass_leaf_max, int n_plants)
   : strategy(s),
-    seed(strategy.ptr),
+    seed(strategy.get()),
     plants_approx(ode_size()) {
   initialise(mass_leaf_max, n_plants);
 }
@@ -22,7 +22,7 @@ double PlantSpline::mass_leaf_max() const {
 }
 
 Strategy* PlantSpline::get_strategy() const {
-  return strategy.ptr;
+  return strategy.get();
 }
 
 void PlantSpline::compute_vars_phys(spline::Spline *env) {

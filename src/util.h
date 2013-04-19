@@ -34,12 +34,41 @@ bool is_decreasing(ForwardIterator first, ForwardIterator last) {
   return true;
 }
 
+// Wrap up pointers for dealing with passing in and out of R.
+// 
+// The basic idea is, for some object -- if we are given a raw object
+// (not a pointer), we make a a copy of that object and store the
+// pointer to it.  When we are destroyed, we'll delete the new memory.
+// If we're given a pointer to an object, then we will store that
+// pointer, but not clean up memory on exit.
+//
 // I'm fairly certain that this is implementing a crappy and
 // bug-ridden version of something like a smart pointer.  Hopefully
-// it's not too bad, and we can swap it back out later.
+// it's not too bad, and we can swap it back out later if it is.  The
+// use case is a bit odd:
+//
+// Suppose we make an object that *contains* a wrapped pointer.  Then
+// on copy of that object:
+//
+//   1. if the original object is the owner of the information (i.e.,
+//      it was given a raw object when initialising the PtrWrapper),
+//      the new object will get a copy and be owner too; there will be
+//      two fully independent objects.  This logic applies to the all
+//      the children too.
 // 
-// This is only meant for use internally within this project, so
-// hopfully nothing else copies it too much.
+//   2. if the original object is not the owner of the information
+//      (i.e., it was given a pointer when initialising the
+//      PtrWrapper), then the new object only gets a copy of the
+//      pointer and won't clean up after itself.  This also applies to
+//      all children.
+// 
+// This probably makes it a little closer to C++11's shared_ptr, but
+// because of the structure of how I want to use it (and because of
+// the reasons why this matters with passing from R to C via Rcpp
+// modules) the reference counting doesn't need anything clever doing
+// as we generally have a controlling class.
+// 
+// This is only meant for use internally within this project.
 template <typename T>
 class PtrWrapper {
 public:
@@ -61,7 +90,9 @@ public:
   // See http://stackoverflow.com/a/4421719/1798863
   const T* operator->() const { return ptr; }
   T* operator->() { return ptr; }
+  T* get() const { return ptr; }
   bool standalone() const { return owner; }
+  // This is only used for testing, and only in Plant.
   // Semantics here: 
   //   - standalones are never equal.
   //   - non-standalones are equal iff they point to the same memory.
@@ -70,7 +101,7 @@ public:
     return owner == rhs.owner && (owner || ptr == rhs.ptr);
   }
 
-  // public for now...
+private:
   bool owner;
   T *ptr;
 };

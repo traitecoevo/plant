@@ -44,7 +44,7 @@ Plant::internals::internals()
 // NOTE: The semantics around comparing Strategy are ill-defined for
 // the standalone case.
 bool Plant::operator==(const Plant &rhs) {
-  if ( strategy.standalone() && strategy.ptr == rhs.strategy.ptr )
+  if ( strategy.standalone() && strategy.get() == rhs.strategy.get() )
     Rf_warning("This is going to end badly.");
   return strategy == rhs.strategy && vars == rhs.vars;
 }
@@ -352,7 +352,7 @@ double Plant::compute_reproduction_fraction() const {
 // NOTE: The EBT version actually computed 1/leaf_fraction (modifying
 // growth rate calculation accordingly).  Possibly more stable?
 double Plant::compute_leaf_fraction() const {
-  const Strategy *s = strategy.ptr; // for brevity.
+  const Strategy *s = strategy.get(); // for brevity.
   return 1.0/(1.0 + s->a3/s->lma +
 	      (s->rho / s->theta * s->a1 * s->eta_c * (1.0 +s->b) *
 	       (1.0+s->B1) * pow(vars.leaf_area, s->B1) / s->lma +
@@ -394,7 +394,7 @@ void Plant::prepare_strategy(Strategy *s) {
 
 // * R interface
 Strategy Plant::r_get_strategy() const {
-  return *strategy.ptr;
+  return *strategy.get();
 }
 
 Rcpp::NumericVector Plant::r_get_vars_size() const {

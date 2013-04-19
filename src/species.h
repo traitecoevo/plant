@@ -75,13 +75,13 @@ private:
 template <class Individual>
 Species<Individual>::Species(Strategy s)
   : strategy(s),
-    seed(strategy.ptr) {
+    seed(strategy.get()) {
 }
 
 template <class Individual>
 Species<Individual>::Species(Strategy *s)
   : strategy(s),
-    seed(strategy.ptr) {
+    seed(strategy.get()) {
 }
 
 // Compute the number of offspring that will be born by asking all

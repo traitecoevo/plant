@@ -6,14 +6,14 @@ namespace model {
 // same initial mass, which will be the seed mass.
 Cohort::Cohort(Strategy s)
   : strategy(s),
-    plant_mean(strategy.ptr),
-    plant_top(strategy.ptr) {
+    plant_mean(strategy.get()),
+    plant_top(strategy.get()) {
 }
 
 Cohort::Cohort(Strategy *s)
   : strategy(s),
-    plant_mean(strategy.ptr),
-    plant_top(strategy.ptr) {
+    plant_mean(strategy.get()),
+    plant_top(strategy.get()) {
 }
 
 // * ODE interface
