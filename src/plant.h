@@ -12,7 +12,27 @@
 
 namespace model {
 
-class Plant : public ode::OdeTarget {
+class PlantBase : public ode::OdeTarget {
+public:
+  virtual ~PlantBase() {};
+  virtual double get_height() const = 0;
+  virtual void set_mass_leaf(double mass_leaf_) = 0;
+  virtual double get_mass_leaf() const = 0;
+  virtual double leaf_area_above(double z) const = 0;
+  virtual void compute_vars_phys(spline::Spline *env) = 0;
+  virtual double germination_probability(spline::Spline *env) = 0;
+  virtual int offspring() = 0;
+  virtual bool died() = 0;
+  // * R interface
+  virtual Strategy r_get_strategy() const = 0;
+  virtual Rcpp::NumericVector r_get_vars_size() const = 0;
+  virtual Rcpp::NumericVector r_get_vars_phys() const = 0;
+  virtual void r_compute_vars_phys(spline::Spline env) = 0;
+  virtual double r_germination_probability(spline::Spline env) = 0;
+  virtual bool r_died() = 0;
+};
+
+class Plant : public PlantBase {
 public:
   Plant(Strategy  s);
   Plant(Strategy *s);
@@ -39,17 +59,17 @@ public:
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x) const;
   // [      ] Leaf area (not fraction) above height `z`
-  virtual double leaf_area_above(double z) const;
+  double leaf_area_above(double z) const;
 
   // * Mass production
   // [eqn 12-19,21] Update physiological variables
-  virtual void compute_vars_phys(spline::Spline *env);
+  void compute_vars_phys(spline::Spline *env);
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 
   // * Births and deaths
-  virtual int offspring();
-  virtual bool died();
+  int offspring();
+  bool died();
   // [eqn 20] Survival of seedlings during germination
   double germination_probability(spline::Spline *env);
 
@@ -69,7 +89,7 @@ public:
   Strategy r_get_strategy() const;
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
-  virtual void r_compute_vars_phys(spline::Spline env);
+  void r_compute_vars_phys(spline::Spline env);
   // TODO: Next two can disappear
   double r_compute_assimilation(spline::Spline env) const;
   double r_compute_assimilation_x(double x, spline::Spline env) const;
