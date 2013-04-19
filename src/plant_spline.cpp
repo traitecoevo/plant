@@ -21,6 +21,10 @@ double PlantSpline::mass_leaf_max() const {
   return mass_leaf.back();
 }
 
+Strategy* PlantSpline::get_strategy() const {
+  return strategy.ptr;
+}
+
 void PlantSpline::compute_vars_phys(spline::Spline *env) {
   for ( std::vector<Plant>::iterator p = plants.begin();
 	p != plants.end(); p++ )
@@ -42,6 +46,16 @@ ode::iter PlantSpline::ode_rates(double m, ode::iter it) const {
 // * R interface
 void PlantSpline::r_compute_vars_phys(spline::Spline env) {
   compute_vars_phys(&env);
+}
+
+// TODO: A trick here is that we don't actually compute heaps of the
+// useful stuff that things like r_get_vars_phys actually wants.  At
+// the moment I'll probably just put on it.
+Rcpp::NumericVector PlantSpline::r_get_vars_phys(double m) const {
+  Rcpp::NumericVector ret = seed.r_get_vars_phys();
+  for ( size_t i = 0; i < ret.size(); i++ )
+    ret[i] = NA_REAL;
+  return ret;
 }
 
 std::vector<double> PlantSpline::r_ode_rates(double m) const {

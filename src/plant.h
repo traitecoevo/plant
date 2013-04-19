@@ -29,6 +29,8 @@ public:
   void set_mass_leaf(double mass_leaf_);
   double get_mass_leaf() const;
 
+  // TODO: Make private &/or wrap: q, Q, Qp, assimilation_leaf
+
   // * Competitive environment
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z) const;
@@ -58,6 +60,9 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
   // * Set constants within Strategy
+  // 
+  // TODO: Should only Strategy be able to access this?  Would mean
+  // that we have friend relationships going *both* ways.
   static void prepare_strategy(Strategy *s);
 
   // * R interface
@@ -65,11 +70,13 @@ public:
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
   void r_compute_vars_phys(spline::Spline env);
+  // TODO: Next two can disappear
   double r_compute_assimilation(spline::Spline env) const;
   double r_compute_assimilation_x(double x, spline::Spline env) const;
+
   double r_germination_probability(spline::Spline env);
   bool r_died();
-  // Psuedo-name, based on memory location
+  // Psuedo-name, based on memory location (TODO: Drop?)
   std::string r_name() const;
 
 protected:

@@ -27,17 +27,24 @@ namespace model {
 
 class PlantSpline {
 public:
+  typedef util::PtrWrapper<PlantSpline> ptr;
   PlantSpline(Strategy  s, double mass_leaf_max, int n_plants);
   PlantSpline(Strategy *s, double mass_leaf_max, int n_plants);
 
+  // Used by plant_approx (just friend instead?)
   double mass_leaf_max() const;
+  Strategy* get_strategy() const;
+
+  // Used by species & upstream
   void compute_vars_phys(spline::Spline *env);
   ode::iter ode_rates(double m, ode::iter it) const;
 
+  // Used by R
   void r_compute_vars_phys(spline::Spline env);
   std::vector<double> r_ode_rates(double m) const;
   Rcpp::List r_get_plants() const;
   spline::MultiSpline r_get_plants_approx() const;
+  Rcpp::NumericVector r_get_vars_phys(double m) const;
 
 private:
   size_t ode_size() const;
