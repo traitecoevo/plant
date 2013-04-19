@@ -11,12 +11,6 @@ namespace model {
 // the One Definition Rule).  We could get around this by inlining,
 // but not sure if that is any better.  These functions seem a bit big
 // to inline, but I don't know.
-
-// TOFO: Better might be to do:
-//   CohortDiscrete tmp(seed);
-//   tmp.set_n_individuals(n); // not yet written
-// because this will avoid calculating size variables on
-// initialisation, instead copying them from the seed.
 template <>
 void Species<CohortDiscrete>::add_seeds(int n) {
   if ( n > 0 ) {
