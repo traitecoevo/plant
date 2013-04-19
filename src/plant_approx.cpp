@@ -2,16 +2,14 @@
 
 namespace model {
 
-PlantApprox::PlantApprox(PlantSpline ps)
-  : Plant(ps.get_strategy()),
-    plant_spline(ps), 
-    strategy(plant_spline->get_strategy()) {
+PlantApprox::PlantApprox(Strategy s, PlantSpline ps)
+  : Plant(s),
+    plant_spline(ps) {
 }
 
-PlantApprox::PlantApprox(PlantSpline *ps)
-  : Plant(ps->get_strategy()),
-    plant_spline(ps), 
-    strategy(plant_spline->get_strategy()) {
+PlantApprox::PlantApprox(Strategy *s, PlantSpline *ps)
+  : Plant(s),
+    plant_spline(ps) {
 }
 
 void PlantApprox::compute_vars_phys(spline::Spline *env) {
@@ -21,7 +19,7 @@ void PlantApprox::compute_vars_phys(spline::Spline *env) {
 
 ode::iter PlantApprox::ode_rates(ode::iter it) const {
   if ( large_plant_do_exact() )
-    return ode_rates(it);
+    return Plant::ode_rates(it);
   else
     return plant_spline->ode_rates(get_mass_leaf(), it);
 }

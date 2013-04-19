@@ -17,6 +17,7 @@
 #include "cohort_discrete.h"
 #include "cohort.h"
 #include "plant_spline.h"
+#include "plant_approx.h"
 
 #include "patch.h"
 
@@ -154,6 +155,12 @@ RCPP_MODULE(tree) {
     .property("n_individuals", 
 	      &model::CohortDiscrete::r_n_individuals,
 	      &model::CohortDiscrete::r_set_n_individuals)
+    ;
+
+  Rcpp::class_<model::PlantApprox>("PlantApprox")
+    .derives<model::Plant>("Plant")
+    .constructor<model::Strategy, model::PlantSpline>()
+    .method("compute_vars_phys", &model::PlantApprox::r_compute_vars_phys)
     ;
 
   Rcpp::class_<model::Cohort>("Cohort")

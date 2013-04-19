@@ -6,15 +6,16 @@
 
 namespace model {
 
+// This is a bit ugly as it requires a PlantSpline and a strategy --
+// however, at the moment this is the least bad thing I can think of
+// quickly.  It's possible that the C-indended constructor could skip
+// this though.  And then the R-intended constructor could go through
+// and check that the Strategy is actually OK.
 class PlantApprox : public Plant {
 public:
-  PlantApprox(PlantSpline ps);
-  PlantApprox(PlantSpline *ps);
+  PlantApprox(Strategy  s, PlantSpline  ps);
+  PlantApprox(Strategy *s, PlantSpline *ps);
 
-  // get_height -- still OK
-  // get_mass_leaf -- still OK
-  // set_mass_leaf -- still OK
-  // leaf_area_above -- still OK [cf CohortDiscrete]
   void compute_vars_phys(spline::Spline *env);
 
   // * ODE interface
@@ -27,7 +28,6 @@ private:
   bool large_plant_do_exact() const;
 
   PlantSpline::ptr plant_spline;
-  Strategy *strategy;
 };
 
 }

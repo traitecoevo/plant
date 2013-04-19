@@ -60,4 +60,6 @@ private:
 
 }
 
+RCPP_EXPOSED_CLASS(model::PlantSpline)
+
 #endif

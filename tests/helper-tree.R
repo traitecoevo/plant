@@ -22,13 +22,16 @@ if ( !exists("Spline") ) {
   Lorenz <- tree_module$Lorenz
   OdeR   <- tree_module$OdeR
 
-  Strategy   <- tree_module$Strategy
-  Parameters <- tree_module$Parameters
+  Strategy    <- tree_module$Strategy
+  Parameters  <- tree_module$Parameters
+  PlantSpline <- tree_module$PlantSpline # poorly named...
 
   Plant          <- tree_module$Plant
   CohortDiscrete <- tree_module$CohortDiscrete
+  PlantApprox    <- tree_module$PlantApprox
+
+  ## Slightly different to the other Individuals...
   Cohort         <- tree_module$Cohort
-  PlantSpline    <- tree_module$PlantSpline
 
   Species <- tree_module$Species
   SpeciesC <- tree_module$SpeciesC

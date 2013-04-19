@@ -43,7 +43,7 @@ public:
 
   // * Mass production
   // [eqn 12-19,21] Update physiological variables
-  void compute_vars_phys(spline::Spline *env);
+  virtual void compute_vars_phys(spline::Spline *env);
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 
@@ -69,7 +69,7 @@ public:
   Strategy r_get_strategy() const;
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
-  void r_compute_vars_phys(spline::Spline env);
+  virtual void r_compute_vars_phys(spline::Spline env);
   // TODO: Next two can disappear
   double r_compute_assimilation(spline::Spline env) const;
   double r_compute_assimilation_x(double x, spline::Spline env) const;
