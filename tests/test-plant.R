@@ -43,10 +43,6 @@ p <- new(Plant, s)
 expect_that(p$strategy$parameters,
             is_identical_to(pars.s))
 
-## Expect that any two plants differ in their "name".
-expect_that(p$name != new(Plant, s)$name,
-            is_true())
-
 ## Set the leaf mass to something (here pi)
 p$set_mass_leaf(pi)
 
@@ -115,17 +111,6 @@ expect_that(integrate(f2, 0, 1)$value,
 ## Do this assimilation within the Plant class, rather than by hand.
 env <- new(Spline)
 env$init(hh, ee)
-
-## Last time by hand, but using target distribution in the Plant class
-f.p <- Vectorize(function(x) p$compute_assimilation_x(x, env))
-expect_that(integrate(f.p, 0, h)$value * a, # leaf area
-            equals(cmp.assimilation.plant / cmp.const))
-
-## And then whole plant assimilation completely:
-expect_that(p$compute_assimilation(env),
-            equals(cmp.assimilation.plant / cmp.const))
-
-## Now, look at all physiological variables:
 
 ## Compute the physiological variables and retreive them.
 p$compute_vars_phys(env)

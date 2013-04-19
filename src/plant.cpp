@@ -101,34 +101,13 @@ double Plant::get_mass_leaf() const {
   return vars.mass_leaf;
 }
 
-
-// [eqn  9] Probability density of leaf area at height `z`
-double Plant::q(double z) const {
-  const double eta = strategy->eta;
-  const double tmp = pow(z / vars.height, eta);
-  return 2 * eta * (1 - tmp) * tmp / z;
-}
-
-// [eqn 10] ... Fraction of leaf area above height 'z' for an
-//              individual of height 'height'
-double Plant::Q(double z) const {
-  if ( z > vars.height )
-    return 0.0;
-  const double tmp = 1.0-pow(z / vars.height, strategy->eta);
-  return tmp * tmp;
-}
-
-// (inverse of [eqn 10]; return the height above which fraction 'x' of
-// the leaf mass would be found).
-double Plant::Qp(double x) const { // x in [0,1], unchecked.
-  return pow(1 - sqrt(x), (1/strategy->eta)) * vars.height;
-}
-
+// * Competitive environment
 // [      ] Leaf area (not fraction) above height `z`
 double Plant::leaf_area_above(double z) const {
   return vars.leaf_area * Q(z);
 }
 
+// * Mass production
 // [eqn 12-19,21] Update physiological variables given the current
 // light environment (and given the current set of size variables).
 void Plant::compute_vars_phys(spline::Spline *env) {
@@ -183,12 +162,6 @@ void Plant::compute_vars_phys(spline::Spline *env) {
     strategy->c_d0 * exp(-strategy->c_d1 * strategy->rho) +
     strategy->c_d2 * exp(-strategy->c_d3 * 
 			 vars.net_production / vars.leaf_area);
-}
-
-// [Appendix S6] Per-leaf photosynthetic rate.
-// Here, `x` is openness, ranging from 0 to 1.
-double Plant::assimilation_leaf(double x) const {
-  return strategy->c_p1 * x / (x + strategy->c_p2);
 }
 
 // * Births and deaths
@@ -283,6 +256,29 @@ void Plant::compute_vars_size(double mass_leaf_) {
     vars.mass_heartwood + vars.mass_root;
 }
 
+
+// [eqn  9] Probability density of leaf area at height `z`
+double Plant::q(double z) const {
+  const double eta = strategy->eta;
+  const double tmp = pow(z / vars.height, eta);
+  return 2 * eta * (1 - tmp) * tmp / z;
+}
+
+// [eqn 10] ... Fraction of leaf area above height 'z' for an
+//              individual of height 'height'
+double Plant::Q(double z) const {
+  if ( z > vars.height )
+    return 0.0;
+  const double tmp = 1.0-pow(z / vars.height, strategy->eta);
+  return tmp * tmp;
+}
+
+// (inverse of [eqn 10]; return the height above which fraction 'x' of
+// the leaf mass would be found).
+double Plant::Qp(double x) const { // x in [0,1], unchecked.
+  return pow(1 - sqrt(x), (1/strategy->eta)) * vars.height;
+}
+
 // [eqn 12] Gross annual CO2 assimilation
 // 
 // NOTE: In contrast with EBT, we do not normalise by Y*c_bio.
@@ -309,6 +305,12 @@ double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
     return assimilation_leaf(env->eval(Qp(x)));
   else
     return assimilation_leaf(env->eval(x)) * q(x);
+}
+
+// [Appendix S6] Per-leaf photosynthetic rate.
+// Here, `x` is openness, ranging from 0 to 1.
+double Plant::assimilation_leaf(double x) const {
+  return strategy->c_p1 * x / (x + strategy->c_p2);
 }
 
 // [eqn 13] Total maintenance respiration
@@ -425,14 +427,6 @@ void Plant::r_compute_vars_phys(spline::Spline env) {
   compute_vars_phys(&env);
 }
 
-double Plant::r_compute_assimilation(spline::Spline env) const {
-  return compute_assimilation(&env);
-}
-
-double Plant::r_compute_assimilation_x(double x, spline::Spline env) const {
-  return compute_assimilation_x(x, &env);
-}
-
 double Plant::r_germination_probability(spline::Spline env) {
   return germination_probability(&env);
 }
@@ -440,10 +434,6 @@ double Plant::r_germination_probability(spline::Spline env) {
 bool Plant::r_died() {
   Rcpp::RNGScope scope;
   return died();
-}
-
-std::string Plant::r_name() const {
-  return util::string_from_address(this);
 }
 
 namespace test {

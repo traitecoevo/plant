@@ -49,23 +49,13 @@ public:
   void set_mass_leaf(double mass_leaf_);
   double get_mass_leaf() const;
 
-  // TODO: Make private &/or wrap: q, Q, Qp, assimilation_leaf
-
   // * Competitive environment
-  // [eqn  9] Probability density of leaf area at height `z`
-  double q(double z) const;
-  // [eqn 10] Fraction of leaf area above height `z`
-  double Q(double z) const;
-  // [      ] Inverse of Q: height above which fraction 'x' of leaf found
-  double Qp(double x) const;
   // [      ] Leaf area (not fraction) above height `z`
   double leaf_area_above(double z) const;
 
   // * Mass production
   // [eqn 12-19,21] Update physiological variables
   void compute_vars_phys(spline::Spline *env);
-  // [Appendix S6] Per-leaf photosynthetic rate.
-  double assimilation_leaf(double x) const;
 
   // * Births and deaths
   int offspring();
@@ -80,9 +70,6 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
   // * Set constants within Strategy
-  // 
-  // TODO: Should only Strategy be able to access this?  Would mean
-  // that we have friend relationships going *both* ways.
   static void prepare_strategy(Strategy *s);
 
   // * R interface
@@ -90,14 +77,17 @@ public:
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
   void r_compute_vars_phys(spline::Spline env);
-  // TODO: Next two can disappear
-  double r_compute_assimilation(spline::Spline env) const;
-  double r_compute_assimilation_x(double x, spline::Spline env) const;
 
   double r_germination_probability(spline::Spline env);
   bool r_died();
   // Psuedo-name, based on memory location (TODO: Drop?)
   std::string r_name() const;
+
+  // Temporary
+  double r_q(double z) const { return q(z); }
+  double r_Q(double z) const { return Q(z); }
+  double r_Qp(double z) const { return Qp(z); }
+  double r_assimilation_leaf(double x) const {return assimilation_leaf(x);}
 
 protected:
   double mortality() const;
@@ -108,11 +98,21 @@ private:
   // [eqn 1-8] Update size variables to a new leaf mass.
   void compute_vars_size(double mass_leaf_);
 
+  // * Competitive environment
+  // [eqn  9] Probability density of leaf area at height `z`
+  double q(double z) const;
+  // [eqn 10] Fraction of leaf area above height `z`
+  double Q(double z) const;
+  // [      ] Inverse of Q: height above which fraction 'x' of leaf found
+  double Qp(double x) const;
+
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
   double compute_assimilation(spline::Spline *env) const;
   // Used internally, corresponding to the inner term in [eqn 12]
   double compute_assimilation_x(double x, spline::Spline *env) const;
+  // [Appendix S6] Per-leaf photosynthetic rate.
+  double assimilation_leaf(double x) const;
   // [eqn 13] Total maintenance respiration
   double compute_respiration() const;
   // [eqn 14] Total turnover
