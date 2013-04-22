@@ -11,6 +11,7 @@ expect_that(p$size, equals(0))
 expected <- list(Pi_0=0.25,
                  c_ext=0.5,
                  mean_disturbance_interval=30.0,
+                 n_patches=10,
                  patch_area=10.0)
 expect_that(p$parameters, is_identical_to(expected))
 

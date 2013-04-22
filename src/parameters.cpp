@@ -17,6 +17,8 @@ void Parameters::reset() {
   patch_area = 10.0;
   // Survival during dispersal
   Pi_0 = 0.25;
+  // Number of patches
+  n_patches = 10;
 
   strategies.clear();
 }
@@ -44,6 +46,7 @@ void Parameters::do_build_lookup() {
   lookup_table["c_ext"]      = &c_ext;
   lookup_table["patch_area"] = &patch_area;
   lookup_table["Pi_0"]       = &Pi_0;
+  lookup_table["n_patches"]  = &n_patches;
 }
 
 }

@@ -13,6 +13,10 @@
 // parameters.  As such, it might change quite a bit as the model
 // evolves.
 
+// NOTE: The parameter n_patches is stored as a double for use with
+// the lookup class, but will be converted to an int on use.
+// Non-integer values will be accepted silently but this conversion
+// will happen.  Not ideal, but not the end of the world.
 namespace model {
 
 class Parameters : public util::Lookup {
@@ -29,17 +33,17 @@ public:
   // Setting
   void add_strategy(Strategy s);
 
-  // TODO: Support for deletion of strategies, but think about
-  // implications in things that use them.
-
-  // Data
+  // Data -- public for now (TODO).
   double mean_disturbance_interval;
   double c_ext;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2, I think?) [TODO]
   double Pi_0;       // Probability of survival during dispersal
+  double n_patches;  // Number of patches in the metacommunity
   std::vector<Strategy> strategies;
+
 private:
   void do_build_lookup();
+
 };
 
 }
