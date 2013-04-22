@@ -222,6 +222,33 @@ RCPP_MODULE(tree) {
     .method("[[", &model::Patch<model::CohortDiscrete>::r_at)
     ;
 
+  /*
+  Rcpp::class_<model::PatchBase>("MetacommunityBase")
+    .derives<ode::OdeTarget>("OdeTarget")
+    .property("size",    &model::MetacommunityBase::size)
+    .property("age",     &model::MetacommunityBase::age)
+    .method("step",      &model::MetacommunityBase::r_step)
+    .method("step_deterministic",
+	    &model::MetacommunityBase::step_deterministic)
+    .method("step_stochastic",
+	    &model::MetacommunityBase::r_step_stochastic)
+    // births & deaths?
+    .method("add_plants", &model::MetacommunityBase::r_add_plants)
+    .property("patches", &model::MetacommunityBase::r_get_patches)
+    ;
+
+  Rcpp::class_< model::Metacommunity<model::Plant> >("Metacommunity")
+    .constructor<model::Parameters>()
+    .derives<model::MetacommunityBase>("MetacommunityBase")
+    ;
+
+  Rcpp::class_< model::Metacommunity<model::CohortDiscrete> >("MetacommunityC")
+    .constructor<model::Parameters>()
+    .derives<model::MetacommunityBase>("MetacommunityBase")
+    ;
+
+  */
+
   // Misc functions
   Rcpp::function("test_functor",    &util::test::test_functor);
   Rcpp::function("test_find_root",  &util::test::test_find_root);

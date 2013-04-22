@@ -118,6 +118,13 @@ std::string string_from_address(T *x) {
   return ss.str();
 }
 
+template <typename T>
+void sum(std::vector<T> &a, const std::vector<T> &b) {
+  std::transform(a.begin(), a.end(),
+		 b.begin(), b.end(), std::plus<T>());
+  return a;
+}
+
 }
 
 #endif
