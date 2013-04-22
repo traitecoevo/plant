@@ -62,9 +62,7 @@ public:
   void add_seeds(std::vector<int> seeds);
 
   // * ODE interface.
-  void derivs(double time,
-	      std::vector<double>::const_iterator y,
-	      std::vector<double>::iterator dydt);
+  void derivs(double time, ode::iter_const y, ode::iter dydt);
   size_t ode_size() const;
   ode::iter_const ode_values_set(ode::iter_const it, bool &changed);
   ode::iter       ode_values(ode::iter it) const;
@@ -246,8 +244,7 @@ std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
 // * ODE interface
 template <class Individual>
 void Patch<Individual>::derivs(double time,
-		   std::vector<double>::const_iterator y,
-		   std::vector<double>::iterator dydt) {
+			       ode::iter_const y, ode::iter dydt) {
   bool changed = false;
   ode_values_set(y, changed);
   // Next two will be optional (if (changed))
@@ -267,7 +264,8 @@ size_t Patch<Individual>::ode_size() const {
 }
 
 template <class Individual>
-ode::iter_const Patch<Individual>::ode_values_set(ode::iter_const it, bool &changed) {
+ode::iter_const Patch<Individual>::ode_values_set(ode::iter_const it,
+						  bool &changed) {
   for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     it = sp->ode_values_set(it, changed);
@@ -372,6 +370,8 @@ void Patch<Individual>::compute_vars_phys() {
 // * R interface
 
 // Actually public functions for interrogating & modifying
+
+// TODO: This should be returning a list of species?
 template <class Individual>
 Rcpp::List Patch<Individual>::r_get_plants() const {
   Rcpp::List ret;
