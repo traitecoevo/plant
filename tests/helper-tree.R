@@ -39,6 +39,9 @@ if ( !exists("Spline") ) {
 
   Patch  <- tree_module$Patch
   PatchC <- tree_module$PatchC
+
+  Metacommunity <- tree_module$Metacommunity
+  MetacommunityC <- tree_module$MetacommunityC
 }
 
 source("../R/falster.R", chdir=TRUE)
