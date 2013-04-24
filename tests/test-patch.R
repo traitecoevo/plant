@@ -1,5 +1,4 @@
 source("helper-tree.R")
-options(error=traceback)
 
 context("Patch [Plant]")
 
