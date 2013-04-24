@@ -1,5 +1,4 @@
 source("helper-tree.R")
-options(error=traceback)
 
 context("Patch [CohortDiscrete]")
 
@@ -20,15 +19,17 @@ expect_that(patch.c$height_max, is_identical_to(0.0))
 patch.p$add_seeds(1)
 patch.c$add_seeds(1)
 
-plants.p <- patch.p$plants
-plants.c <- patch.c$plants
+spp.p <- patch.p$species
+spp.c <- patch.c$species
+expect_that(length(spp.c), equals(1))
 
-expect_that(length(plants.c), equals(1))
+plants.p <- spp.p[[1]]$plants
+plants.c <- spp.c[[1]]$plants
+
 expect_that(length(plants.c[[1]]), equals(1))
-expect_that(length(plants.c[[c(1,1)]]), equals(1))
-expect_that(class(plants.c[[c(1,1)]]),
+expect_that(class(plants.c[[1]]),
             equals("Rcpp_CohortDiscrete", check.attr=FALSE))
-expect_that(class(plants.p[[c(1,1)]]),
+expect_that(class(plants.p[[1]]),
             equals("Rcpp_Plant", check.attr=FALSE))
 
 ## Then clear both 

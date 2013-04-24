@@ -13,10 +13,11 @@ patch <- new(Patch, p)
 
 expect_that(patch$size, equals(p$size))
 
-## We've not added any seeds yet, so this should be a list of length 1
-## containing the empty list.
-plants <- patch$plants
-expect_that(plants, is_identical_to(list(list())))
+## We've not added any seeds yet, so the only species should have no
+## plants.
+spp <- patch$species
+expect_that(length(spp), equals(1))
+expect_that(spp[[1]]$plants, is_identical_to(list()))
 
 ## And the height must be zero
 expect_that(patch$height_max, is_identical_to(0.0))
@@ -24,15 +25,14 @@ expect_that(patch$height_max, is_identical_to(0.0))
 ## Add a single seed to this
 patch$add_seeds(1)
 
-plants <- patch$plants
+spp <- patch$species
+expect_that(length(spp), equals(1))
+
+plants <- spp[[1]]$plants
 expect_that(length(plants), equals(1))
-expect_that(length(plants[[1]]), equals(1))
-expect_that(length(plants[[c(1,1)]]), equals(1))
 expect_that(patch$n_individuals, equals(1))
-
-expect_that(plants[[c(1,1)]]$vars_size,
+expect_that(plants[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
-
 expect_that(patch$height_max,
             is_identical_to(cmp$height))
 
@@ -40,8 +40,8 @@ cmp$set_mass_leaf(pi)
 patch$set_mass_leaf(pi, 0L)
 expect_that(patch$mass_leaf(0L), is_identical_to(pi))
 
-plants <- patch$plants
-expect_that(plants[[c(1,1)]]$vars_size,
+plants <- patch$species[[1]]$plants
+expect_that(plants[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
 
 ## Compute the light environment
@@ -68,8 +68,8 @@ cmp$compute_vars_phys(env)
 patch$compute_vars_phys()
 
 ## And compare against the single plant.
-plants <- patch$plants
-expect_that(plants[[c(1,1)]]$vars_phys,
+plants <- patch$species[[1]]$plants
+expect_that(plants[[1]]$vars_phys,
             equals(cmp$vars_phys))
 
 ## One species, one individual
