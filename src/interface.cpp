@@ -21,6 +21,8 @@
 
 #include "patch.h"
 
+#include "metacommunity.h"
+
 #include "functor.h"
 #include "find_root.h"
 #include "integrator.h"
@@ -222,17 +224,16 @@ RCPP_MODULE(tree) {
     .method("[[", &model::Patch<model::CohortDiscrete>::r_at)
     ;
 
-  /*
-  Rcpp::class_<model::PatchBase>("MetacommunityBase")
+  Rcpp::class_<model::MetacommunityBase>("MetacommunityBase")
     .derives<ode::OdeTarget>("OdeTarget")
     .property("size",    &model::MetacommunityBase::size)
-    .property("age",     &model::MetacommunityBase::age)
+    .property("age",     &model::MetacommunityBase::r_age)
     .method("step",      &model::MetacommunityBase::r_step)
     .method("step_deterministic",
-	    &model::MetacommunityBase::step_deterministic)
+      	    &model::MetacommunityBase::step_deterministic)
     .method("step_stochastic",
-	    &model::MetacommunityBase::r_step_stochastic)
-    // births & deaths?
+      	    &model::MetacommunityBase::r_step_stochastic)
+    // TODO: births & deaths?
     .method("add_plants", &model::MetacommunityBase::r_add_plants)
     .property("patches", &model::MetacommunityBase::r_get_patches)
     ;
@@ -246,8 +247,6 @@ RCPP_MODULE(tree) {
     .constructor<model::Parameters>()
     .derives<model::MetacommunityBase>("MetacommunityBase")
     ;
-
-  */
 
   // Misc functions
   Rcpp::function("test_functor",    &util::test::test_functor);
