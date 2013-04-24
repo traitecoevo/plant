@@ -19,12 +19,21 @@ void set_sane_gsl_error_handling() {
 
 // TODO: add r_check_bounds with signature (int, size_t) that does
 // conversion and checks positivity of idx?
-void check_bounds(size_t idx, size_t max) {
-  // We don't check max < 0 or idx < 0, as not possible with size_t
-  if ( max == 0 )
+void check_bounds(size_t idx, size_t size) {
+  // We don't check size < 0 or idx < 0, as not possible with size_t
+  if ( size == 0 )
     ::Rf_error("Index %d impossible from empty range", idx);
-  else if ( idx >= max )
-    ::Rf_error("Index %d out of bounds: must be in [0,%d]", idx, max-1);
+  else if ( idx >= size )
+    ::Rf_error("Index %d out of bounds: must be in [0,%d]", idx, size-1);
+}
+
+size_t check_bounds_r(size_t idx, size_t size) {
+  // We don't check size < 0 or idx < 0, as not possible with size_t
+  if ( size == 0 )
+    ::Rf_error("Index %d out of bounds: container is empty", idx);
+  else if ( idx < 1 || idx > size )
+    ::Rf_error("Index %d out of bounds: must be in [1,%d]", idx, size);
+  return idx - 1;
 }
 
 void check_length(size_t received, size_t expected) {
