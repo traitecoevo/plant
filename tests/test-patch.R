@@ -7,7 +7,7 @@ p$add_strategy(new(Strategy))
 
 ## A plant that will be the same in terms of strategy (and initial
 ## mass).
-cmp <- new(Plant, p$get_strategy(0))
+cmp <- new(Plant, p[[1]])
 
 patch <- new(Patch, p)
 
@@ -133,7 +133,7 @@ expect_that(patch$n_individuals == 2 && patch$age < 15,
 ## Check that the germination numbers look correct, by comparing fit
 ## to a binomial distribution with the appropriate parameters.  Being
 ## stochastic, this may give false positives sometimes.
-seed <- new(Plant, p$get_strategy(0))
+seed <- new(Plant, p[[1]])
 pr.cmp <- p$parameters[["Pi_0"]] *
   seed$germination_probability(patch$light_environment)
 

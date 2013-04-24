@@ -1,4 +1,4 @@
-#include "util.h"   // check_bounds
+#include "util.h"   // check_bounds_r
 
 #include "parameters.h"
 
@@ -27,9 +27,8 @@ void Parameters::add_strategy(Strategy s) {
   strategies.push_back(s);
 }
 
-Strategy Parameters::r_get_strategy(size_t idx) {
-  util::check_bounds(idx, strategies.size());
-  return strategies[idx];
+Strategy Parameters::r_at(size_t idx) {
+  return strategies.at(util::check_bounds_r(idx, size()));
 }
 
 Rcpp::List Parameters::r_get_strategies() {

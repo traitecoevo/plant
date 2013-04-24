@@ -27,7 +27,7 @@ public:
 
   // Querying
   size_t size() const {return strategies.size();}
-  Strategy r_get_strategy(size_t idx);
+  Strategy r_at(size_t idx);
   Rcpp::List r_get_strategies();
 
   // Setting

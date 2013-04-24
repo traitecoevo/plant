@@ -7,7 +7,7 @@ p$add_strategy(new(Strategy))
 
 ## A plant that will be the same in terms of strategy (and initial
 ## mass).
-cmp <- new(Plant, p$get_strategy(0))
+cmp <- new(Plant, p[[1]])
 
 patch.p <- new(Patch,  p)
 patch.c <- new(PatchC, p)

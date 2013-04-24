@@ -27,8 +27,8 @@ expect_that(p$set_parameters(new.err), throws_error())
 expect_that(p$parameters, is_identical_to(expected.s))
 
 ## Getting a nonexistant strategy should cause an error
-expect_that(p$get_strategy(0L), throws_error())
-expect_that(p$get_strategy(10), throws_error())
+expect_that(p[[1]],  throws_error())
+expect_that(p[[10]], throws_error())
 
 ## Add a (default) strategy:
 p$add_strategy(new(Strategy))
@@ -40,7 +40,7 @@ expect_that(p$parameters, is_identical_to(expected.s))
 ## The added strategy should be the same as the default strategy:
 s <- new(Strategy)
 cmp <- s$parameters
-expect_that(p$get_strategy(0L)$parameters, is_identical_to(cmp))
+expect_that(p[[1]]$parameters, is_identical_to(cmp))
 res <- p$strategies
 expect_that(length(res), equals(1))
 expect_that(res[[1]]$parameters, is_identical_to(cmp))
@@ -54,10 +54,11 @@ expect_that(cmp.mod,
 
 p$add_strategy(new.s)
 
-expect_that(p$get_strategy(0L)$parameters,
-            is_identical_to(cmp))
-
 res <- p$strategies
 expect_that(length(res), equals(2))
 expect_that(res[[1]]$parameters, is_identical_to(cmp))
 expect_that(res[[2]]$parameters, is_identical_to(cmp.mod))
+
+expect_that(p[[1]]$parameters, is_identical_to(res[[1]]$parameters))
+expect_that(p[[2]]$parameters, is_identical_to(res[[2]]$parameters))
+
