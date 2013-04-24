@@ -25,6 +25,7 @@ public:
   virtual double r_age() const = 0;
   virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
   virtual Rcpp::List r_get_plants() const = 0;
+  virtual Rcpp::List r_get_species() const = 0;
   virtual void r_add_seeds(std::vector<int> seeds) = 0;
   virtual std::vector<double> r_get_mass_leaf(size_t idx) const = 0;
   virtual void r_set_mass_leaf(std::vector<double> x, size_t idx) = 0;
@@ -72,6 +73,7 @@ public:
 
   // Actually public functions for interrogating & modifying
   Rcpp::List r_get_plants() const;
+  Rcpp::List r_get_species() const;
   spline::Spline r_light_environment() const;
   void r_add_seeds(std::vector<int> seeds);
   void r_step();
@@ -378,6 +380,15 @@ Rcpp::List Patch<Individual>::r_get_plants() const {
   for ( species_const_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     ret.push_back(sp->r_get_plants());
+  return ret;
+}
+
+template <class Individual>
+Rcpp::List Patch<Individual>::r_get_species() const {
+  Rcpp::List ret;
+  for ( species_const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    ret.push_back(Rcpp::wrap(*sp));
   return ret;
 }
 

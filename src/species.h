@@ -255,4 +255,10 @@ double Species<Individual>::germination_probability(spline::Spline *light_enviro
 
 }
 
+// NOTE: I've not chased up why, but I apparently need to use
+// RCPP_EXPOSED_CLASS_NOECL here (because these are templated, not
+// real), rather than RCPP_EXPOSED_CLASS.
+RCPP_EXPOSED_CLASS_NODECL(model::Species<model::Plant>)
+RCPP_EXPOSED_CLASS_NODECL(model::Species<model::CohortDiscrete>)
+
 #endif
