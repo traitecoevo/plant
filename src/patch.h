@@ -24,7 +24,6 @@ public:
   virtual void r_compute_vars_phys() = 0;
   virtual double r_age() const = 0;
   virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
-  virtual Rcpp::List r_get_plants() const = 0;
   virtual Rcpp::List r_get_species() const = 0;
   virtual void r_add_seeds(std::vector<int> seeds) = 0;
   virtual std::vector<double> r_get_mass_leaf(size_t idx) const = 0;
@@ -72,7 +71,6 @@ public:
   // * R interface.
 
   // Actually public functions for interrogating & modifying
-  Rcpp::List r_get_plants() const;
   Rcpp::List r_get_species() const;
   spline::Spline r_light_environment() const;
   void r_add_seeds(std::vector<int> seeds);
@@ -372,17 +370,6 @@ void Patch<Individual>::compute_vars_phys() {
 // * R interface
 
 // Actually public functions for interrogating & modifying
-
-// TODO: This should be returning a list of species?
-template <class Individual>
-Rcpp::List Patch<Individual>::r_get_plants() const {
-  Rcpp::List ret;
-  for ( species_const_iterator sp = species.begin();
-	sp != species.end(); sp++ )
-    ret.push_back(sp->r_get_plants());
-  return ret;
-}
-
 template <class Individual>
 Rcpp::List Patch<Individual>::r_get_species() const {
   Rcpp::List ret;
