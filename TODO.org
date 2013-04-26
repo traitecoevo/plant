@@ -6,3 +6,22 @@ Rcpp::error instead.
 * Exporting utility functions
 
 Convert remaining utility functions to use Rcpp::function.
+
+* Interfaces:
+
+- births, deaths export for species, patch, metacommunity
+
+* Consistency
+
+- consistency of iterator typedefs (and others)
+- age vs r_age() -- this is an unwanted distinction, but somewhat
+  necessary because of the name collision.
+
+* R interface
+
+- add_seeds and add_plants are not used consistently.
+
+* Biology
+
+- disturbance regime is not yet handled -- could solver numerically or
+  analytically...
