@@ -71,6 +71,7 @@ public:
   // * R interface.
 
   // Actually public functions for interrogating & modifying
+  Species<Individual> r_at(size_t idx) const;
   Rcpp::List r_get_species() const;
   spline::Spline r_light_environment() const;
   void r_add_seeds(std::vector<int> seeds);
@@ -370,6 +371,12 @@ void Patch<Individual>::compute_vars_phys() {
 // * R interface
 
 // Actually public functions for interrogating & modifying
+
+template <class Individual>
+Species<Individual> Patch<Individual>::r_at(size_t idx) const {
+  return species.at(util::check_bounds_r(idx, size()));
+}
+
 template <class Individual>
 Rcpp::List Patch<Individual>::r_get_species() const {
   Rcpp::List ret;
@@ -440,5 +447,11 @@ void Patch<Individual>::r_clear() {
 }
 
 }
+
+// NOTE: I've not chased up why, but I apparently need to use
+// RCPP_EXPOSED_CLASS_NOECL here (because these are templated, not
+// real), rather than RCPP_EXPOSED_CLASS.
+RCPP_EXPOSED_CLASS_NODECL(model::Patch<model::Plant>)
+RCPP_EXPOSED_CLASS_NODECL(model::Patch<model::CohortDiscrete>)
 
 #endif

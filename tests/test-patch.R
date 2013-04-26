@@ -15,9 +15,12 @@ expect_that(patch$size, equals(p$size))
 
 ## We've not added any seeds yet, so the only species should have no
 ## plants.
-spp <- patch$species
-expect_that(length(spp), equals(1))
-expect_that(spp[[1]]$plants, is_identical_to(list()))
+expect_that(patch$size, equals(1))
+expect_that(patch[[1]]$plants, is_identical_to(list()))
+
+## Check that alternative access approach via $species works:
+expect_that(length(patch$species), equals(1))
+expect_that(patch$species[[1]]$plants, is_identical_to(list()))
 
 ## And the height must be zero
 expect_that(patch$height_max, is_identical_to(0.0))
@@ -25,13 +28,11 @@ expect_that(patch$height_max, is_identical_to(0.0))
 ## Add a single seed to this
 patch$add_seeds(1)
 
-spp <- patch$species
-expect_that(length(spp), equals(1))
+expect_that(patch$size, equals(1)) # no change
 
-plants <- spp[[1]]$plants
-expect_that(length(plants), equals(1))
-expect_that(patch$n_individuals, equals(1))
-expect_that(plants[[1]]$vars_size,
+expect_that(patch[[1]]$size, equals(1))
+expect_that(patch[[1]]$n_individuals, equals(1))
+expect_that(patch[[1]][[1]]$vars_size,
             is_identical_to(cmp$vars_size))
 expect_that(patch$height_max,
             is_identical_to(cmp$height))
@@ -40,7 +41,7 @@ cmp$set_mass_leaf(pi)
 patch$set_mass_leaf(pi, 0L)
 expect_that(patch$mass_leaf(0L), is_identical_to(pi))
 
-plants <- patch$species[[1]]$plants
+plants <- patch[[1]]$plants
 expect_that(plants[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
 
@@ -68,7 +69,7 @@ cmp$compute_vars_phys(env)
 patch$compute_vars_phys()
 
 ## And compare against the single plant.
-plants <- patch$species[[1]]$plants
+plants <- patch[[1]]$plants
 expect_that(plants[[1]]$vars_phys,
             equals(cmp$vars_phys))
 

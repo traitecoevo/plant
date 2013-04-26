@@ -213,11 +213,13 @@ RCPP_MODULE(tree) {
   Rcpp::class_< model::Patch<model::Plant> >("Patch")
     .constructor<model::Parameters>()
     .derives<model::PatchBase>("PatchBase")
+    .method("[[", &model::Patch<model::Plant>::r_at)
     ;
 
   Rcpp::class_< model::Patch<model::CohortDiscrete> >("PatchC")
     .constructor<model::Parameters>()
     .derives<model::PatchBase>("PatchBase")
+    .method("[[", &model::Patch<model::CohortDiscrete>::r_at)
     ;
 
   // Misc functions
