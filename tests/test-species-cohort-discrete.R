@@ -16,10 +16,10 @@ expect_that(sp$size, equals(1))
 expect_that(sp$n_individuals, equals(2))
 expect_that(sp$ode_size, equals(3))
 
-plants <- sp$plants
-expect_that(length(plants), equals(1))
-expect_that(plants[[1]]$vars_size,
+expect_that(sp$size, equals(1))
+expect_that(sp[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
+expect_that(length(sp$plants), equals(1))
 
 cmp$set_mass_leaf(pi)
 
@@ -29,7 +29,7 @@ expect_that(sp$set_mass_leaf(c(pi, pi),),
             throws_error())
 sp$set_mass_leaf(pi)
 
-expect_that(sp$plants[[1]]$vars_size,
+expect_that(sp[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
 
 ## Same light environment as test-plant:
@@ -43,7 +43,7 @@ env$init(hh, ee)
 sp$compute_vars_phys(env)
 cmp$compute_vars_phys(env)
 
-expect_that(sp$plants[[1]]$vars_phys,
+expect_that(sp[[1]]$vars_phys,
             is_identical_to(cmp$vars_phys))
 
 seed <- new(Plant, s)

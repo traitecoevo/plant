@@ -184,6 +184,7 @@ RCPP_MODULE(tree) {
   Rcpp::class_< model::Species<model::CohortDiscrete> >("SpeciesC")
     .constructor<model::Strategy>()
     .derives<model::SpeciesBase>("SpeciesBase")
+    .method("[[", &model::Species<model::CohortDiscrete>::r_at);
     ;
 
   Rcpp::class_<model::PatchBase>("PatchBase")
