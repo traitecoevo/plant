@@ -51,6 +51,7 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
   // * R interface
+  Patch<Individual> r_at(size_t idx) const;
   Rcpp::List r_get_patches() const;
   void r_add_plants(Rcpp::IntegerMatrix seeds);
   Rcpp::IntegerMatrix r_n_individuals() const;
@@ -193,14 +194,18 @@ ode::iter Metacommunity<Individual>::ode_rates(ode::iter it) const {
 }
 
 template <class Individual>
-Rcpp::List Metacommunity<Individual>::r_get_patches() const {
-  Rcpp::List ret;
-  // for ( patch_const_iterator it = patches.begin();
-  // 	it != patches.end(); it++ )
-  //   ret.push_back(Rcpp::wrap(*it));
-  return ret;
+Patch<Individual> Metacommunity<Individual>::r_at(size_t idx) const {
+  return patches.at(util::check_bounds_r(idx, size()));
 }
 
+template <class Individual>
+Rcpp::List Metacommunity<Individual>::r_get_patches() const {
+  Rcpp::List ret;
+  for ( patch_const_iterator it = patches.begin();
+	it != patches.end(); it++ )
+    ret.push_back(Rcpp::wrap(*it));
+  return ret;
+}
 
 // Each column is a patch, each row a species.
 template <class Individual>

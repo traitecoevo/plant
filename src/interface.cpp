@@ -242,11 +242,13 @@ RCPP_MODULE(tree) {
   Rcpp::class_< model::Metacommunity<model::Plant> >("Metacommunity")
     .constructor<model::Parameters>()
     .derives<model::MetacommunityBase>("MetacommunityBase")
+    .method("[[", &model::Metacommunity<model::Plant>::r_at)
     ;
 
   Rcpp::class_< model::Metacommunity<model::CohortDiscrete> >("MetacommunityC")
     .constructor<model::Parameters>()
     .derives<model::MetacommunityBase>("MetacommunityBase")
+    .method("[[", &model::Metacommunity<model::CohortDiscrete>::r_at)
     ;
 
   // Misc functions
