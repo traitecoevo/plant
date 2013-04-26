@@ -20,6 +20,8 @@ Convert remaining utility functions to use Rcpp::function.
 * R interface
 
 - add_seeds and add_plants are not used consistently.
+  - I think that add_seeds should probably do the full germination-test,
+    while add_plants could skip it?
 
 * Biology
 
