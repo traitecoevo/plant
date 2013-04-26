@@ -599,6 +599,16 @@ Note that all `size` should return `size_t`.  However, note that Rcpp
 translates that to numeric, and not integer (to get the 64 bit
 precision, I think).
 
+I've got `r_at` methods for accessing individual items from objects
+that contain them (Parameters -> Strategy, Species -> Individual and
+Patch -> Species, etc).  In the case of the Individual-related bits,
+these can't go into the base classes because they require templating.
+
+It's possible that we could inherit from a container class that wraps
+stuff up, but that's a lot of mucking about for a small amount of
+duplicated code (plus it won't work for species, as that uses a list
+not vector for storage anyway).
+
 ## Public, private & R interface
 
 I want to test more functions than I actually want to make public, I

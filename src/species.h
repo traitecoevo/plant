@@ -56,6 +56,7 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
   // * R interface
+  Individual r_at(size_t idx) const;
   std::vector<double> r_get_mass_leaf() const;
   void r_set_mass_leaf(std::vector<double> x);
   Rcpp::List r_get_plants() const;
@@ -192,6 +193,13 @@ ode::iter Species<Individual>::ode_rates(ode::iter it) const {
 }
 
 // * R interface
+template <class Individual>
+Individual Species<Individual>::r_at(size_t idx) const {
+  plants_const_iterator p = plants.begin();
+  std::advance(p, util::check_bounds_r(idx, size()));
+  return *p;
+}
+
 template <class Individual>
 std::vector<double> Species<Individual>::r_get_mass_leaf() const { 
   std::vector<double> ret;

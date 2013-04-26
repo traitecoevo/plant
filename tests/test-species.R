@@ -21,6 +21,12 @@ expect_that(length(plants), equals(1))
 expect_that(plants[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
 
+## Check that access via "[[" works.
+expect_that(sp[[1]]$vars_size,
+            is_identical_to(cmp$vars_size))
+expect_that(sp[[2]]$vars_size,
+            throws_error())
+
 cmp$set_mass_leaf(pi)
 
 expect_that(sp$set_mass_leaf(numeric(0)),
@@ -30,6 +36,8 @@ expect_that(sp$set_mass_leaf(c(pi, pi),),
 sp$set_mass_leaf(pi)
 
 expect_that(sp$plants[[1]]$vars_size,
+            is_identical_to(cmp$vars_size))
+expect_that(sp[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
 
 ## Same light environment as test-plant:
