@@ -234,6 +234,7 @@ RCPP_MODULE(tree) {
     .method("step_stochastic",
       	    &model::MetacommunityBase::r_step_stochastic)
     // TODO: births & deaths?
+    .method("clear",      &model::MetacommunityBase::r_clear)
     .method("add_plants", &model::MetacommunityBase::r_add_plants)
     .property("n_individuals", &model::MetacommunityBase::r_n_individuals)
     .property("patches", &model::MetacommunityBase::r_get_patches)

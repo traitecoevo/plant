@@ -20,6 +20,7 @@ public:
   virtual Rcpp::List r_get_patches() const = 0;
   virtual void r_add_plants(Rcpp::IntegerMatrix seeds) = 0;
   virtual Rcpp::IntegerMatrix r_n_individuals() const = 0;
+  virtual void r_clear() = 0;
   virtual void r_step() = 0;
   virtual void r_step_stochastic() = 0;
 };
@@ -55,6 +56,7 @@ public:
   Rcpp::List r_get_patches() const;
   void r_add_plants(Rcpp::IntegerMatrix seeds);
   Rcpp::IntegerMatrix r_n_individuals() const;
+  void r_clear();
   void r_step();
   void r_step_stochastic();
 private:
@@ -234,6 +236,14 @@ Rcpp::IntegerMatrix Metacommunity<Individual>::r_n_individuals() const {
   return ret;
 }
 
+template <class Individual>
+void Metacommunity<Individual>::r_clear() {
+  age = 0.0;
+  for ( patch_iterator it = patches.begin();
+	it != patches.end(); it++ )
+    it->r_clear();
+  ode_solver.reset();
+}
 
 template <class Individual>
 void Metacommunity<Individual>::r_step() {
