@@ -248,9 +248,6 @@ void Patch<Individual>::derivs(double time,
 			       ode::iter_const y, ode::iter dydt) {
   bool changed = false;
   ode_values_set(y, changed);
-  // Next two will be optional (if (changed))
-  compute_light_environment();
-  compute_vars_phys();
 
   ode_rates(dydt);
 }
@@ -270,6 +267,11 @@ ode::iter_const Patch<Individual>::ode_values_set(ode::iter_const it,
   for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     it = sp->ode_values_set(it, changed);
+
+  // Next two will be optional (if (changed))
+  compute_light_environment();
+  compute_vars_phys();
+
   return it;
 }
 
