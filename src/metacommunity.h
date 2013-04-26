@@ -18,7 +18,8 @@ public:
   virtual void deaths() = 0;
   virtual void add_seeds(std::vector<int> seeds) = 0;
   virtual Rcpp::List r_get_patches() const = 0;
-  virtual void r_add_plants(std::vector<int> seeds) = 0;
+  virtual void r_add_plants(Rcpp::IntegerMatrix seeds) = 0;
+  virtual Rcpp::IntegerMatrix r_n_individuals() const = 0;
   virtual void r_step() = 0;
   virtual void r_step_stochastic() = 0;
 };
@@ -51,11 +52,13 @@ public:
 
   // * R interface
   Rcpp::List r_get_patches() const;
-  void r_add_plants(std::vector<int> seeds);
+  void r_add_plants(Rcpp::IntegerMatrix seeds);
+  Rcpp::IntegerMatrix r_n_individuals() const;
   void r_step();
   void r_step_stochastic();
 private:
   void initialise();
+  size_t n_species() const {return parameters.size(); }
   
   Parameters parameters;
   std::vector< Patch<Individual> > patches;
@@ -199,11 +202,33 @@ Rcpp::List Metacommunity<Individual>::r_get_patches() const {
 }
 
 
-// This actually should take a matrix.
+// Each column is a patch, each row a species.
 template <class Individual>
-void Metacommunity<Individual>::r_add_plants(std::vector<int> seeds) {
-  Rf_error("Not sure yet");
+void Metacommunity<Individual>::r_add_plants(Rcpp::IntegerMatrix seeds) {
+  util::check_length((size_t)seeds.ncol(), size());
+  util::check_length((size_t)seeds.nrow(), n_species());
+
+  for ( size_t i = 0; i < size(); i++ ) {
+    Rcpp::IntegerMatrix::Column seeds_col_i = seeds(Rcpp::_, i);
+    std::vector<int> seeds_i(seeds_col_i.begin(), seeds_col_i.end());
+    patches[i].add_seeds(seeds_i);
+  }
 }
+
+template <class Individual>
+Rcpp::IntegerMatrix Metacommunity<Individual>::r_n_individuals() const {
+  Rcpp::IntegerMatrix ret(n_species(), size());
+  Rcpp::IntegerMatrix::const_iterator it = ret.begin();
+
+  for ( patch_const_iterator p = patches.begin();
+	p != patches.end(); p++ ) {
+    std::vector<int> n = p->r_n_individuals();
+    it = std::copy(n.begin(), n.end(), it);
+  }
+
+  return ret;
+}
+
 
 template <class Individual>
 void Metacommunity<Individual>::r_step() {
