@@ -237,6 +237,7 @@ RCPP_MODULE(tree) {
     // TODO: births & deaths?
     .method("clear",      &model::MetacommunityBase::r_clear)
     .method("add_seedlings", &model::MetacommunityBase::r_add_seedlings)
+    .method("disperse", &model::MetacommunityBase::r_disperse)
     .property("n_individuals", &model::MetacommunityBase::r_n_individuals)
     .property("patches", &model::MetacommunityBase::r_get_patches)
     ;

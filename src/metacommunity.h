@@ -19,6 +19,7 @@ public:
   virtual void add_seeds(std::vector<int> seeds) = 0;
   virtual Rcpp::List r_get_patches() const = 0;
   virtual void r_add_seedlings(Rcpp::IntegerMatrix seeds) = 0;
+  virtual Rcpp::IntegerMatrix r_disperse(std::vector<int> seeds) const = 0;
   virtual Rcpp::IntegerMatrix r_n_individuals() const = 0;
   virtual void r_clear() = 0;
   virtual void r_step() = 0;
@@ -56,6 +57,7 @@ public:
   Patch<Individual> r_at(size_t idx) const;
   Rcpp::List r_get_patches() const;
   void r_add_seedlings(Rcpp::IntegerMatrix seeds);
+  Rcpp::IntegerMatrix r_disperse(std::vector<int> seeds) const;
   Rcpp::IntegerMatrix r_n_individuals() const;
   void r_clear();
   void r_step();
@@ -63,6 +65,7 @@ public:
 private:
   void initialise();
   size_t n_species() const {return parameters->size(); }
+  std::vector< std::vector<int> > disperse(std::vector<int> seeds) const;
   
   Parameters::ptr parameters;
   std::vector< Patch<Individual> > patches;
@@ -141,18 +144,24 @@ void Metacommunity<Individual>::deaths() {
 
 template <class Individual>
 void Metacommunity<Individual>::add_seeds(std::vector<int> seeds) {
-  size_t j = size();
-  for ( patch_iterator patch = patches.begin();
-  	patch != patches.end(); patch++ ) {
-    std::vector<int> seeds_i(size());
-    double p = 1.0/(double)j;
-    for ( size_t i = 0; i < size(); i++, j-- ) {
-      const int k = (int)R::rbinom(seeds[i], p);
-      seeds[i] -= k;
-      seeds_i[i] = k;
-    }
-    patch->add_seeds(seeds_i);
+  std::vector< std::vector<int> > seeds_dispersed = disperse(seeds);
+  for ( size_t i = 0; i < size(); i++ )
+    patches[i].add_seeds(seeds_dispersed[i]);
+}
+
+// Island model of dispersal, equivalent to equal-probability
+// multinomial sampling.  NOTE: This will change considerably if
+// moving to a spatial model of dispersal.
+template <class Individual>
+std::vector< std::vector<int> >
+Metacommunity<Individual>::disperse(std::vector<int> seeds) const {
+  std::vector< std::vector<int> > ret;
+  for ( size_t i = 0; i < size(); i++ ) {
+    const double p = 1.0/(size() - i);
+    ret.push_back(util::rbinom_multiple(seeds.begin(), seeds.end(), p));
   }
+
+  return ret;
 }
 
 // * ODE interace.
@@ -226,33 +235,18 @@ void Metacommunity<Individual>::r_add_seedlings(Rcpp::IntegerMatrix seeds) {
 template <class Individual>
 Rcpp::IntegerMatrix 
 Metacommunity<Individual>::r_disperse(std::vector<int> seeds) const {
-  util::check_length(seeds.size(), size());
-
+  util::check_length(seeds.size(), n_species());
   Rcpp::RNGScope scope;
-  std::vector< std::vector<int> > seeds_dispersed = disperse(seeds);
-
-  Rcpp::IntegerMatrix ret(n_species(), size());
-  Rcpp::IntegerMatrix::iterator it = ret.begin();
-
-  for ( size_t i = 0; i < size(); i++ )
-    it = std::copy(seeds_dispersed[i].begin(), 
-		   seeds_dispersed[i].end(), it);
-
-  return ret;
+  return util::to_rcpp_matrix(disperse(seeds));
 }
 
 template <class Individual>
 Rcpp::IntegerMatrix Metacommunity<Individual>::r_n_individuals() const {
-  Rcpp::IntegerMatrix ret(n_species(), size());
-  Rcpp::IntegerMatrix::iterator it = ret.begin();
-
-  for ( patch_const_iterator p = patches.begin();
-	p != patches.end(); p++ ) {
-    std::vector<int> n = p->r_n_individuals();
-    it = std::copy(n.begin(), n.end(), it);
-  }
-
-  return ret;
+  std::vector< std::vector<int> > n;
+  for ( patch_const_iterator patch = patches.begin();
+	patch != patches.end(); patch++ )
+    n.push_back(patch->r_n_individuals());
+  return util::to_rcpp_matrix(n);
 }
 
 template <class Individual>
