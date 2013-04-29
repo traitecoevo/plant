@@ -224,6 +224,14 @@ computed and germination tested.  For Species, there is no
 for consistency with `Patch`, but I think `add_seeds` is possibly
 clearer.
 
+## Metacommunity
+
+A metacommunity is comoposed of multiple patches.
+
+At the moment these are assumed equally connected (island model for
+dispersal).  This extends to seed producing patches, with all seed
+immediately joining a global seed pool.
+
 ## Parameters
 
 We need a pointer to all the parameters that we can use to seed new
