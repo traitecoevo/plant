@@ -24,6 +24,8 @@ public:
   virtual void r_clear() = 0;
   virtual void r_step() = 0;
   virtual void r_step_stochastic() = 0;
+  virtual Rcpp::List r_get_mass_leaf() const = 0;
+  virtual void r_set_mass_leaf(Rcpp::List x) = 0;
 };
 
 template <class Individual> 
@@ -62,6 +64,9 @@ public:
   void r_clear();
   void r_step();
   void r_step_stochastic();
+  Rcpp::List r_get_mass_leaf() const;
+  void r_set_mass_leaf(Rcpp::List x);
+
 private:
   void initialise();
   size_t n_species() const {return parameters->size(); }
@@ -123,6 +128,22 @@ template <class Individual>
 void Metacommunity<Individual>::step_stochastic() {
   deaths();
   add_seeds(births());
+}
+
+template <class Individual>
+Rcpp::List Metacommunity<Individual>::r_get_mass_leaf() const {
+  Rcpp::List ret;
+  for ( patch_const_iterator patch = patches.begin();
+	patch != patches.end(); patch++ )
+    ret.push_back(Rcpp::wrap(patch->r_get_mass_leaf()));
+  return ret;
+}
+
+template <class Individual>
+void Metacommunity<Individual>::r_set_mass_leaf(Rcpp::List x) {
+  util::check_length(x.size(), size());
+  for ( size_t i = 0; i < size(); i++ )
+    patches[i].r_set_mass_leaf(x[i]);
 }
 
 template <class Individual>

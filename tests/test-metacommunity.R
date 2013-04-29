@@ -55,10 +55,8 @@ expect_that(sys$derivs(sys$age, sys$ode_values),
 expect_that(sys[[idx]]$derivs(sys[[idx]]$age, sys[[idx]]$ode_values),
             is_identical_to(patch$derivs(patch$age, patch$ode_values)))
 
-## TODO: Add a r_set_mass_leaf function that can be used to set leaf
-## mass like Species::r_set_mass_leaf and Patch::r_set_mass_leaf.
-## Will be easier if we have a get_mass_leaf and if the existing
-## functions are modified to take matrices/lists as appropriate.
+expect_that(sys$mass_leaf,
+            is_identical_to(rep(list(list(y[1])), sys$size)))
 
 ## Check dispersal:
 

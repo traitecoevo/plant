@@ -240,6 +240,8 @@ RCPP_MODULE(tree) {
     .method("disperse", &model::MetacommunityBase::r_disperse)
     .property("n_individuals", &model::MetacommunityBase::r_n_individuals)
     .property("patches", &model::MetacommunityBase::r_get_patches)
+    .property("mass_leaf",   &model::MetacommunityBase::r_get_mass_leaf)
+    .method("set_mass_leaf", &model::MetacommunityBase::r_set_mass_leaf)
     ;
 
   Rcpp::class_< model::Metacommunity<model::Plant> >("Metacommunity")
