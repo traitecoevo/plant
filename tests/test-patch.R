@@ -38,8 +38,8 @@ expect_that(patch$height_max,
             is_identical_to(cmp$height))
 
 cmp$set_mass_leaf(pi)
-patch$set_mass_leaf(pi, 0L)
-expect_that(patch$mass_leaf(0L), is_identical_to(pi))
+patch$set_mass_leaf(list(pi))
+expect_that(patch$mass_leaf, is_identical_to(list(pi)))
 
 plants <- patch[[1]]$plants
 expect_that(plants[[1]]$vars_size,

@@ -27,8 +27,8 @@ public:
   virtual Rcpp::List r_get_species() const = 0;
   virtual void r_add_seeds(std::vector<int> seeds) = 0;
   virtual void r_add_seedlings(std::vector<int> seeds) = 0;
-  virtual std::vector<double> r_get_mass_leaf(size_t idx) const = 0;
-  virtual void r_set_mass_leaf(std::vector<double> x, size_t idx) = 0;
+  virtual Rcpp::List r_get_mass_leaf() const = 0;
+  virtual void r_set_mass_leaf(Rcpp::List x) = 0;
   virtual std::vector<int> r_n_individuals() const = 0;
   virtual void r_clear() = 0;
   virtual void r_step() = 0;
@@ -89,8 +89,8 @@ public:
   // These include size or bounds checking
   std::vector<int> r_germination(std::vector<int> seeds);
   // TODO: This is likely to change as more is written.
-  std::vector<double> r_get_mass_leaf(size_t idx) const;
-  void r_set_mass_leaf(std::vector<double> x, size_t idx);
+  Rcpp::List r_get_mass_leaf() const;
+  void r_set_mass_leaf(Rcpp::List x);
   std::vector<int> r_n_individuals() const;
   
   // TODO: Should be clear()?
@@ -396,15 +396,19 @@ std::vector<int> Patch<Individual>::r_germination(std::vector<int> seeds) {
 }
 
 template <class Individual>
-std::vector<double> Patch<Individual>::r_get_mass_leaf(size_t idx) const {
-  util::check_bounds(idx, size());
-  return species[idx].r_get_mass_leaf();
+Rcpp::List Patch<Individual>::r_get_mass_leaf() const {
+  Rcpp::List ret;
+  for ( species_const_iterator sp = species.begin();
+	sp != species.end(); sp++ )
+    ret.push_back(Rcpp::wrap(sp->r_get_mass_leaf()));
+  return ret;
 }
 
 template <class Individual>
-void Patch<Individual>::r_set_mass_leaf(std::vector<double> x, size_t idx) {
-  util::check_bounds(idx, size());
-  species[idx].r_set_mass_leaf(x);
+void Patch<Individual>::r_set_mass_leaf(Rcpp::List x) {
+  util::check_length(x.size(), size());
+  for ( size_t i = 0; i < size(); i++ )
+    species[i].r_set_mass_leaf(x[i]);
 }
 
 template <class Individual>
