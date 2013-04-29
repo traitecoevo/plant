@@ -22,8 +22,10 @@ public:
   virtual double leaf_area_above(double height) const = 0;
   virtual void r_compute_vars_phys(spline::Spline light_environment) = 0;
   virtual void add_seeds(int n) = 0;
-  virtual double r_germination_probability(spline::Spline light_environment) = 0;
+  virtual double
+  r_germination_probability(spline::Spline light_environment) = 0;
   virtual void clear() = 0;
+  // R-specific wrappers
   virtual std::vector<double> r_get_mass_leaf() const = 0;
   virtual void r_set_mass_leaf(std::vector<double> x) = 0;
   virtual Rcpp::List r_get_plants() const = 0;
@@ -56,10 +58,10 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
   // * R interface
-  Individual r_at(size_t idx) const;
   std::vector<double> r_get_mass_leaf() const;
   void r_set_mass_leaf(std::vector<double> x);
   Rcpp::List r_get_plants() const;
+  Individual r_at(size_t idx) const;
   int r_n_individuals() const;
   void r_compute_vars_phys(spline::Spline light_environment);
   double r_germination_probability(spline::Spline light_environment);

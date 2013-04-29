@@ -21,7 +21,7 @@ public:
   virtual void r_add_seedlings(Rcpp::IntegerMatrix seeds) = 0;
   virtual Rcpp::IntegerMatrix r_disperse(std::vector<int> seeds) const = 0;
   virtual Rcpp::IntegerMatrix r_n_individuals() const = 0;
-  virtual void r_clear() = 0;
+  virtual void clear() = 0;
   virtual void r_step() = 0;
   virtual void r_step_stochastic() = 0;
   virtual Rcpp::List r_get_mass_leaf() const = 0;
@@ -61,7 +61,7 @@ public:
   void r_add_seedlings(Rcpp::IntegerMatrix seeds);
   Rcpp::IntegerMatrix r_disperse(std::vector<int> seeds) const;
   Rcpp::IntegerMatrix r_n_individuals() const;
-  void r_clear();
+  void clear();
   void r_step();
   void r_step_stochastic();
   Rcpp::List r_get_mass_leaf() const;
@@ -267,11 +267,11 @@ Rcpp::IntegerMatrix Metacommunity<Individual>::r_n_individuals() const {
 }
 
 template <class Individual>
-void Metacommunity<Individual>::r_clear() {
+void Metacommunity<Individual>::clear() {
   age = 0.0;
   for ( patch_iterator patch = patches.begin();
 	patch != patches.end(); patch++ )
-    patch->r_clear();
+    patch->clear();
   ode_solver.reset();
 }
 

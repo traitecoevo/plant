@@ -16,24 +16,24 @@ namespace model {
 class PatchBase : public ode::OdeTarget {
 public:
   virtual ~PatchBase() {};
-  virtual size_t r_size() const = 0;
-  virtual double r_height_max() const = 0;
-  virtual double r_canopy_openness(double) = 0;
-  virtual void r_compute_light_environment() = 0;
-  virtual spline::Spline r_light_environment() const = 0;
-  virtual void r_compute_vars_phys() = 0;
-  virtual double r_age() const = 0;
-  virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
-  virtual Rcpp::List r_get_species() const = 0;
+  virtual void r_step() = 0;
+  virtual void step_deterministic() = 0;
+  virtual void r_step_stochastic() = 0;
+  virtual size_t size() const = 0;
   virtual void r_add_seeds(std::vector<int> seeds) = 0;
   virtual void r_add_seedlings(std::vector<int> seeds) = 0;
   virtual Rcpp::List r_get_mass_leaf() const = 0;
   virtual void r_set_mass_leaf(Rcpp::List x) = 0;
+  virtual Rcpp::List r_get_species() const = 0;
+  virtual void clear() = 0;
+  virtual double r_age() const = 0;
   virtual std::vector<int> r_n_individuals() const = 0;
-  virtual void r_clear() = 0;
-  virtual void r_step() = 0;
-  virtual void step_deterministic() = 0;
-  virtual void r_step_stochastic() = 0;
+  virtual double r_height_max() const = 0;
+  virtual spline::Spline r_light_environment() const = 0;
+  virtual double r_canopy_openness(double height) = 0;
+  virtual void r_compute_light_environment() = 0;
+  virtual void r_compute_vars_phys() = 0;
+  virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
 };
 
 template <class Individual>
@@ -42,20 +42,23 @@ public:
   Patch(Parameters p);
   Patch(Parameters *p);
 
+  // * Methods used from Metacommunity:
   // Advance the system through one complete time step.
   void step();
-
   // Advance the system through one time step deterministically
   // (plant growth, physiological accounting)
   void step_deterministic();
   // Advance the system through the stochastic life cycle stages
   // (producing seeds and dying).
   void step_stochastic();
-  // TODO: Not sure (until Metapopulation developed) if these should
-  // be public or private.
+
+  // * Lower level functions
   std::vector<int> births();
   void deaths();
-  std::vector<int> germination(std::vector<int> seeds);
+
+  // * Direct manipulation/interrogation
+  // Number of species
+  size_t size() const;
   void add_seeds(std::vector<int> seeds);
   void add_seedlings(std::vector<int> seeds);
 
@@ -68,39 +71,31 @@ public:
 
   // * R interface.
 
-  // Actually public functions for interrogating & modifying
-  Species<Individual> r_at(size_t idx) const;
-  Rcpp::List r_get_species() const;
-  spline::Spline r_light_environment() const;
-  void r_add_seeds(std::vector<int> seeds);
-  void r_add_seedlings(std::vector<int> seeds);
-  void r_step();
-  void r_step_stochastic(); // step_stochastic, plus RNG control
-
-  // Wrapper functions for testing.  Some of these expose otherwise
-  // private methods, and do nothing more than pass through.
-  size_t r_size() const { return size(); }
-  double r_height_max() const { return height_max(); }
-  double r_canopy_openness(double height) {return canopy_openness(height);}
-  void r_compute_light_environment() {compute_light_environment();}
-  void r_compute_vars_phys() {compute_vars_phys();}
-  double r_age() const {return age;}
-
-  // These include size or bounds checking
-  std::vector<int> r_germination(std::vector<int> seeds);
-  // TODO: This is likely to change as more is written.
+  // Leaf mass:
   Rcpp::List r_get_mass_leaf() const;
   void r_set_mass_leaf(Rcpp::List x);
+  // Access container
+  Rcpp::List r_get_species() const;
+  Species<Individual> r_at(size_t idx) const;
+  // Modify container
+  void r_add_seeds(std::vector<int> seeds);
+  void r_add_seedlings(std::vector<int> seeds);
+  void clear();
+  // Other interrogation
+  double r_age() const {return age;}
   std::vector<int> r_n_individuals() const;
-  
-  // TODO: Should be clear()?
-  void r_clear();
+  spline::Spline r_light_environment() const;
+  void r_step();
+  void r_step_stochastic();
+  double r_height_max() const { return height_max(); }
+  double r_canopy_openness(double height) {return canopy_openness(height);}
+  // Wrappers for testing
+  void r_compute_light_environment() {compute_light_environment();}
+  void r_compute_vars_phys() {compute_vars_phys();}
+  std::vector<int> r_germination(std::vector<int> seeds);
   
 private:
   void initialise();
-
-  // Number of species
-  size_t size() const;
 
   // Maximum height for any species in the Patch
   double height_max() const;
@@ -110,6 +105,8 @@ private:
 
   void compute_light_environment();
   void compute_vars_phys();
+
+  std::vector<int> germination(std::vector<int> seeds);
 
   Parameters::ptr parameters;
   double age;
@@ -421,7 +418,7 @@ std::vector<int> Patch<Individual>::r_n_individuals() const {
 }
 
 template <class Individual>
-void Patch<Individual>::r_clear() {
+void Patch<Individual>::clear() {
   age = 0.0;
   for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )

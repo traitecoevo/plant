@@ -191,7 +191,7 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::PatchBase>("PatchBase")
     .derives<ode::OdeTarget>("OdeTarget")
-    .property("size",             &model::PatchBase::r_size)
+    .property("size",             &model::PatchBase::size)
     .property("height_max",       &model::PatchBase::r_height_max)
     .method("canopy_openness",    &model::PatchBase::r_canopy_openness)
     .method("compute_light_environment",
@@ -207,7 +207,7 @@ RCPP_MODULE(tree) {
     .property("mass_leaf",        &model::PatchBase::r_get_mass_leaf)
     .method("set_mass_leaf",      &model::PatchBase::r_set_mass_leaf)
     .property("n_individuals",    &model::PatchBase::r_n_individuals)
-    .method("clear",              &model::PatchBase::r_clear)
+    .method("clear",              &model::PatchBase::clear)
     .method("step",               &model::PatchBase::r_step)
     .method("step_deterministic", &model::PatchBase::step_deterministic)
     .method("step_stochastic",    &model::PatchBase::r_step_stochastic)
@@ -235,7 +235,7 @@ RCPP_MODULE(tree) {
     .method("step_stochastic",
       	    &model::MetacommunityBase::r_step_stochastic)
     // TODO: births & deaths?
-    .method("clear",      &model::MetacommunityBase::r_clear)
+    .method("clear",      &model::MetacommunityBase::clear)
     .method("add_seedlings", &model::MetacommunityBase::r_add_seedlings)
     .method("disperse", &model::MetacommunityBase::r_disperse)
     .property("n_individuals", &model::MetacommunityBase::r_n_individuals)
