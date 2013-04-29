@@ -114,7 +114,8 @@ std::vector<int> rbinom_multiple(std::vector<int>::iterator it,
 				 std::vector<int>::iterator end,
 				 double p);
 
-Rcpp::IntegerMatrix to_rcpp_matrix(std::vector< std::vector<int> >);
+Rcpp::IntegerMatrix to_rcpp_matrix(std::vector< std::vector<int> > x);
+std::vector< std::vector<int> > from_rcpp_matrix(Rcpp::IntegerMatrix x);
 
 template <typename T>
 std::string string_from_address(T *x) {
@@ -137,6 +138,7 @@ std::vector<double> test_sum_double(std::vector<double> a,
 std::vector<int> test_sum_int(std::vector<int> a,
 			      std::vector<int> b);
 Rcpp::IntegerMatrix test_to_rcpp_matrix(Rcpp::List x);
+Rcpp::List test_from_rcpp_matrix(Rcpp::IntegerMatrix x);
 }
 
 }

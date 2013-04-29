@@ -268,6 +268,8 @@ RCPP_MODULE(tree) {
   Rcpp::function("test_sum_int",    &util::test::test_sum_int);
   Rcpp::function("test_to_rcpp_matrix",
 		 &util::test::test_to_rcpp_matrix);
+  Rcpp::function("test_from_rcpp_matrix",
+		 &util::test::test_from_rcpp_matrix);
 
   // Useful functions
   Rcpp::function("set_sane_gsl_error_handling",

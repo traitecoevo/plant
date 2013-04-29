@@ -55,13 +55,24 @@ std::vector<int> rbinom_multiple(std::vector<int>::iterator it,
 }
 
 // Given a vector-of-vectors, copy the vector x[i] into the ith
-// *column* of an Rcpp matrix/
+// *column* of an Rcpp matrix.
 Rcpp::IntegerMatrix to_rcpp_matrix(std::vector< std::vector<int> > x) {
   const size_t n = x.size();
   Rcpp::IntegerMatrix ret(x.begin()->size(), n);
   Rcpp::IntegerMatrix::iterator it = ret.begin();
   for ( size_t i = 0; i < n; i++ )
     it = std::copy(x[i].begin(), x[i].end(), it);
+  return ret;
+}
+
+// Unpack a matrix column-by-column into a vector of vectors.
+std::vector< std::vector<int> > from_rcpp_matrix(Rcpp::IntegerMatrix x) {
+  std::vector< std::vector<int> > ret;
+  for ( size_t i = 0; i < x.ncol(); i++ ) {
+    Rcpp::IntegerMatrix::Column x_col_i = x(Rcpp::_, i);
+    std::vector<int> xi(x_col_i.begin(), x_col_i.end());
+    ret.push_back(xi);
+  }
   return ret;
 }
 
@@ -90,6 +101,16 @@ Rcpp::IntegerMatrix test_to_rcpp_matrix(Rcpp::List x) {
     check_length(tmp[i].size(), n);
   return to_rcpp_matrix(tmp);
 }
+
+Rcpp::List test_from_rcpp_matrix(Rcpp::IntegerMatrix x) {
+  std::vector< std::vector<int> > res = from_rcpp_matrix(x);
+  Rcpp::List ret;
+  for ( std::vector< std::vector<int> >::iterator it = res.begin();
+	it != res.end(); it++ )
+    ret.push_back(Rcpp::wrap(*it));
+  return ret;
+}
+
 }
 
 }
