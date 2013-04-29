@@ -150,9 +150,8 @@ template <class Individual>
 std::vector<int> Metacommunity<Individual>::births() {
   std::vector<int> n(size(), 0);
   for ( patch_iterator patch = patches.begin();
-	patch != patches.end(); patch++ ) {
+	patch != patches.end(); patch++ )
     n = util::sum(n, patch->births());
-  }
   return n;
 }
 
