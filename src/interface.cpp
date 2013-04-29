@@ -260,6 +260,9 @@ RCPP_MODULE(tree) {
   Rcpp::function("test_adaptive_spline", 
 		 &spline::test::test_adaptive_spline);
   Rcpp::function("test_plant",      &model::test::test_plant);
+  Rcpp::function("test_sum_double", &util::test::test_sum_double);
+  Rcpp::function("test_sum_int",    &util::test::test_sum_int);
+
   Rcpp::function("set_sane_gsl_error_handling",
 		 &util::set_sane_gsl_error_handling);
 }

@@ -44,3 +44,12 @@ f.int <- diff(with(as.list(pars), function(x)
 
 expect_that(tree_module$test_integrator(pars, 0, 5),
             equals(f.int))
+
+set.seed(1)
+a <- runif(10)
+b <- runif(length(a))
+expect_that(tree_module$test_sum_double(a, b), is_identical_to(a + b))
+
+a <- as.integer(a * 10)
+b <- as.integer(b * 10)
+expect_that(tree_module$test_sum_int(a, b), is_identical_to(a + b))

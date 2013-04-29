@@ -119,10 +119,18 @@ std::string string_from_address(T *x) {
 }
 
 template <typename T>
-void sum(std::vector<T> &a, const std::vector<T> &b) {
+std::vector<T> sum(std::vector<T> a, const std::vector<T> b) {
+  std::vector<T> c(a.size());
   std::transform(a.begin(), a.end(),
-		 b.begin(), b.end(), std::plus<T>());
-  return a;
+		 b.begin(), c.begin(), std::plus<T>());
+  return c;
+}
+
+namespace test {
+std::vector<double> test_sum_double(std::vector<double> a,
+				    std::vector<double> b);
+std::vector<int> test_sum_int(std::vector<int> a,
+			      std::vector<int> b);
 }
 
 }

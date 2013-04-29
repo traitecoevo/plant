@@ -53,4 +53,20 @@ std::vector<double> seq_len(double from, double to, int len) {
   return ret;
 }
 
+namespace test {
+std::vector<double> test_sum_double(std::vector<double> a,
+				    std::vector<double> b) {
+  check_length(a.size(), b.size());
+  return sum(a, b);
+}
+
+std::vector<int> test_sum_int(std::vector<int> a,
+			      std::vector<int> b) {
+  check_length(a.size(), b.size());
+  return sum(a, b);
+}
+
+
+}
+
 }
