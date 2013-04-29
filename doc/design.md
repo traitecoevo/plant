@@ -224,6 +224,29 @@ computed and germination tested.  For Species, there is no
 for consistency with `Patch`, but I think `add_seeds` is possibly
 clearer.
 
+### Disturbance
+
+Patches have a disturbance regime.  The model that the original (EBT)
+version uses can be solved analytically, so we can tell when a patch
+is created at what point it will suffer disturbance.
+
+When should this happen?  Perhaps we should do `step_deterministic` /
+check if we've passed death time / `step_stochastic`.  This way we
+will definitely complete a step (deterministic) but not produce
+seeds.  This approach very slightly increases the rate of
+disturbance.
+
+A more exact approach would be to have the system "know" about what
+times are special.  Then we just refuse to run past that time.  This
+would require another set of bookkeeping at the level of
+Metapopulation, but we will need this (somewhere) for the EBT version,
+too.
+
+Then, when we step the Patch, we should check about disturbance.  On
+the other hand, we might want the Metacommunity to decide when the
+patches get disturbed, so I'm not totally sure about the long term
+plan here.
+
 ## Metacommunity
 
 A metacommunity is comoposed of multiple patches.
