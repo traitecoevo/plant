@@ -255,6 +255,13 @@ At the moment these are assumed equally connected (island model for
 dispersal).  This extends to seed producing patches, with all seed
 immediately joining a global seed pool.
 
+I'm not totally convinced that the dispersal function should belong in
+the class (the only class data that it uses is the number of patches).
+It seems that a more generic dispersal object could be useful here.
+However, it's difficult to see how that would work without knowledge
+of the underlying spatial arrangement, which would cause some leakage
+between classes, probably.
+
 ## Parameters
 
 We need a pointer to all the parameters that we can use to seed new
