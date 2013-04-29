@@ -88,8 +88,7 @@ Rcpp::NumericMatrix MultiSpline::r_eval(std::vector<double> u) const {
 }
 
 double MultiSpline::r_eval_1(double u, size_t i) const {
-  util::check_bounds(i, dim());
-  return eval(u, i);
+  return eval(u, util::check_bounds_r(i, dim()));
 }
 
 std::vector<double> MultiSpline::r_eval_r(double u) const {
