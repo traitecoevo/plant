@@ -53,3 +53,6 @@ expect_that(tree_module$test_sum_double(a, b), is_identical_to(a + b))
 a <- as.integer(a * 10)
 b <- as.integer(b * 10)
 expect_that(tree_module$test_sum_int(a, b), is_identical_to(a + b))
+
+expect_that(tree_module$test_to_rcpp_matrix(list(a, b)),
+            is_identical_to(cbind(a, b, deparse.level=0)))

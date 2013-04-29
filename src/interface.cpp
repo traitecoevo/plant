@@ -253,7 +253,7 @@ RCPP_MODULE(tree) {
     .method("[[", &model::Metacommunity<model::CohortDiscrete>::r_at)
     ;
 
-  // Misc functions
+  // Testing functions
   Rcpp::function("test_functor",    &util::test::test_functor);
   Rcpp::function("test_find_root",  &util::test::test_find_root);
   Rcpp::function("test_find_value", &util::test::test_find_value);
@@ -263,7 +263,10 @@ RCPP_MODULE(tree) {
   Rcpp::function("test_plant",      &model::test::test_plant);
   Rcpp::function("test_sum_double", &util::test::test_sum_double);
   Rcpp::function("test_sum_int",    &util::test::test_sum_int);
+  Rcpp::function("test_to_rcpp_matrix",
+		 &util::test::test_to_rcpp_matrix);
 
+  // Useful functions
   Rcpp::function("set_sane_gsl_error_handling",
 		 &util::set_sane_gsl_error_handling);
 }
