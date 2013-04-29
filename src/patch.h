@@ -41,10 +41,6 @@ public:
   Patch(Parameters p);
   Patch(Parameters *p);
 
-  Patch(const Patch &other);
-  Patch& operator=(Patch rhs);
-  ~Patch();
-
   // Advance the system through one complete time step.
   void step();
 
@@ -98,8 +94,6 @@ public:
   void r_clear();
   
 private:
-  void swap(Patch &a, Patch &b);
-
   void initialise();
 
   // Number of species
@@ -114,8 +108,7 @@ private:
   void compute_light_environment();
   void compute_vars_phys();
 
-  bool standalone;
-  Parameters *parameters;
+  Parameters::ptr parameters;
   double age;
 
   spline::AdaptiveSpline light_environment;
@@ -131,8 +124,7 @@ private:
 
 template <class Individual>
 Patch<Individual>::Patch(Parameters p)
-  : standalone(true),
-    parameters(new Parameters(p)),
+  : parameters(p),
     age(0.0),
     ode_solver(this) {
   initialise();
@@ -140,34 +132,10 @@ Patch<Individual>::Patch(Parameters p)
 
 template <class Individual>
 Patch<Individual>::Patch(Parameters *p)
-  : standalone(false),
-    parameters(p),
+  : parameters(p),
     age(0.0),
     ode_solver(this) {
   initialise();
-}
-
-template <class Individual>
-Patch<Individual>::Patch(const Patch<Individual> &other)
-  : standalone(other.standalone),
-    parameters(standalone ?
-	       new Parameters(*other.parameters) : other.parameters),
-    age(other.age),
-    light_environment(other.light_environment),
-    species(other.species),
-    ode_solver(this) {
-}
-
-template <class Individual>
-Patch<Individual>& Patch<Individual>::operator=(Patch<Individual> rhs) {
-  swap(*this, rhs);
-  return *this;
-}
-
-template <class Individual>
-Patch<Individual>::~Patch() {
-  if ( standalone )
-    delete parameters;
 }
 
 template <class Individual>
@@ -292,17 +260,6 @@ ode::iter Patch<Individual>::ode_rates(ode::iter it) const {
 }
 
 // * Private functions
-template <class Individual>
-void Patch<Individual>::swap(Patch<Individual> &a, Patch<Individual> &b) {
-  using std::swap;
-  swap(a.standalone,        b.standalone);
-  swap(a.parameters,        b.parameters);
-  swap(a.age,               b.age);
-  swap(a.light_environment, b.light_environment);
-  swap(a.species,           b.species);
-  swap(a.ode_solver,        b.ode_solver);
-}
-
 // Sets the strategy for each species
 template <class Individual>
 void Patch<Individual>::initialise() {

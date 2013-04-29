@@ -21,6 +21,7 @@ namespace model {
 
 class Parameters : public util::Lookup {
 public:
+  typedef util::PtrWrapper<Parameters> ptr;
   // Construction
   Parameters();
   void reset();
