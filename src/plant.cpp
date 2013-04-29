@@ -194,11 +194,9 @@ size_t Plant::ode_size() const {
   return ode_dimension; 
 }
 
-ode::iter_const Plant::ode_values_set(ode::iter_const it, bool &changed) {
+ode::iter_const Plant::ode_values_set(ode::iter_const it) {
   const double m = *it++;
-  const bool new_value = vars.mass_leaf != m;
-  changed = changed || new_value;
-  if ( new_value )
+  if ( vars.mass_leaf != m )
     set_mass_leaf(m);
 
   vars.mortality = *it++;

@@ -21,10 +21,10 @@ size_t Cohort::ode_size() const {
   return ode_dimension; 
 }
 
-ode::iter_const Cohort::ode_values_set(ode::iter_const it, bool &changed) {
+ode::iter_const Cohort::ode_values_set(ode::iter_const it) {
   *it++; // TODO: Cohort-level variables to add.
-  it = plant_mean.ode_values_set(it, changed);
-  it = plant_top.ode_values_set(it, changed);
+  it = plant_mean.ode_values_set(it);
+  it = plant_top.ode_values_set(it);
   return it;
 }
 

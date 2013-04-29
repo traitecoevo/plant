@@ -62,7 +62,7 @@ public:
   // * ODE interface.
   void derivs(double time, ode::iter_const y, ode::iter dydt);
   size_t ode_size() const;
-  ode::iter_const ode_values_set(ode::iter_const it, bool &changed);
+  ode::iter_const ode_values_set(ode::iter_const it);
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
@@ -222,8 +222,7 @@ std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
 template <class Individual>
 void Patch<Individual>::derivs(double time,
 			       ode::iter_const y, ode::iter dydt) {
-  bool changed = false;
-  ode_values_set(y, changed);
+  ode_values_set(y);
   ode_rates(dydt);
 }
 
@@ -244,11 +243,10 @@ size_t Patch<Individual>::ode_size() const {
 // should not bother doing anything hard like computing the light
 // environment.
 template <class Individual>
-ode::iter_const Patch<Individual>::ode_values_set(ode::iter_const it,
-						  bool &changed) {
+ode::iter_const Patch<Individual>::ode_values_set(ode::iter_const it) {
   for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
-    it = sp->ode_values_set(it, changed);
+    it = sp->ode_values_set(it);
 
   compute_light_environment();
   compute_vars_phys();

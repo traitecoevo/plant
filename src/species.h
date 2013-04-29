@@ -51,7 +51,7 @@ public:
 
   // * ODE interface
   size_t ode_size() const;
-  ode::iter_const ode_values_set(ode::iter_const it, bool &changed);
+  ode::iter_const ode_values_set(ode::iter_const it);
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
@@ -169,10 +169,10 @@ size_t Species<Individual>::ode_size() const {
 }
 
 template <class Individual>
-ode::iter_const Species<Individual>::ode_values_set(ode::iter_const it, bool &changed) {
+ode::iter_const Species<Individual>::ode_values_set(ode::iter_const it) {
   for ( plants_iterator p = plants.begin();
 	p != plants.end(); p++ )
-    it = p->ode_values_set(it, changed);
+    it = p->ode_values_set(it);
   return it;
 }
 

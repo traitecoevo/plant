@@ -16,11 +16,9 @@ std::vector<double> OdeTarget::r_derivs(double time,
   return dydt;
 }
 
-bool OdeTarget::r_ode_values_set(std::vector<double> y) {
+void OdeTarget::r_ode_values_set(std::vector<double> y) {
   util::check_length(y.size(), ode_size());
-  bool changed = false;  
-  ode_values_set(y.begin(), changed);
-  return changed;
+  ode_values_set(y.begin());
 }
 std::vector<double> OdeTarget::r_ode_values() const {
   std::vector<double> ret(ode_size());

@@ -62,7 +62,7 @@ public:
 
   // * ODE interface
   size_t ode_size() const;
-  ode::iter_const ode_values_set(ode::iter_const it, bool &changed);
+  ode::iter_const ode_values_set(ode::iter_const it);
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 

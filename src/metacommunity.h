@@ -48,7 +48,7 @@ public:
   // * ODE interface
   void derivs(double time, ode::iter_const y, ode::iter dydt);
   size_t ode_size() const;
-  ode::iter_const ode_values_set(ode::iter_const it, bool &changed);
+  ode::iter_const ode_values_set(ode::iter_const it);
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
@@ -159,8 +159,7 @@ void Metacommunity<Individual>::add_seeds(std::vector<int> seeds) {
 template <class Individual>
 void Metacommunity<Individual>::derivs(double time, ode::iter_const y,
 				       ode::iter dydt) {
-  bool changed = false;
-  ode_values_set(y, changed);
+  ode_values_set(y);
   ode_rates(dydt);
 }
 
@@ -174,11 +173,10 @@ size_t Metacommunity<Individual>::ode_size() const {
 }
 
 template <class Individual>
-ode::iter_const Metacommunity<Individual>::ode_values_set(ode::iter_const it, 
-						  bool &changed) {
+ode::iter_const Metacommunity<Individual>::ode_values_set(ode::iter_const it) {
   for ( patch_iterator patch = patches.begin();
 	patch != patches.end(); patch++ )
-    it = patch->ode_values_set(it, changed);
+    it = patch->ode_values_set(it);
   return it;
 }
 
