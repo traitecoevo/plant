@@ -53,6 +53,19 @@ std::vector<double> seq_len(double from, double to, int len) {
   return ret;
 }
 
+std::vector<int> rbinom_multiple(std::vector<int>::iterator it,
+				 std::vector<int>::iterator end,
+				 double p) {
+  std::vector<int> ret;
+  while ( it != end ) {
+    const int k = (int)R::rbinom(*it, p);
+    *it -= k;
+    ret.push_back(k);
+    it++;
+  }
+  return ret;
+}
+
 namespace test {
 std::vector<double> test_sum_double(std::vector<double> a,
 				    std::vector<double> b) {

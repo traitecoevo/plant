@@ -111,6 +111,10 @@ private:
 
 std::vector<double> seq_len(double from, double to, int len);
 
+std::vector<int> rbinom_multiple(std::vector<int>::iterator it,
+				 std::vector<int>::iterator end,
+				 double p);
+
 template <typename T>
 std::string string_from_address(T *x) {
   std::stringstream ss;
