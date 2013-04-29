@@ -29,6 +29,7 @@ template <class Individual>
 class Metacommunity : public MetacommunityBase {
 public:
   Metacommunity(Parameters p);
+  Metacommunity(Parameters *p);
   
   // * Simple interrogation:
   size_t size() const;
@@ -61,9 +62,9 @@ public:
   void r_step_stochastic();
 private:
   void initialise();
-  size_t n_species() const {return parameters.size(); }
+  size_t n_species() const {return parameters->size(); }
   
-  Parameters parameters;
+  Parameters::ptr parameters;
   std::vector< Patch<Individual> > patches;
   double age;
   ode::Solver< Metacommunity > ode_solver;
@@ -76,6 +77,14 @@ private:
 
 template <class Individual>
 Metacommunity<Individual>::Metacommunity(Parameters p)
+  : parameters(p),
+    age(0.0),
+    ode_solver(this) {
+  initialise();
+}
+
+template <class Individual>
+Metacommunity<Individual>::Metacommunity(Parameters *p)
   : parameters(p),
     age(0.0),
     ode_solver(this) {
@@ -264,8 +273,8 @@ void Metacommunity<Individual>::r_step_stochastic() {
 template <class Individual>
 void Metacommunity<Individual>::initialise() {
   patches.clear();
-  for ( int i = 0; i < parameters.n_patches; i++ ) {
-    Patch<Individual> p(parameters);
+  for ( int i = 0; i < parameters->n_patches; i++ ) {
+    Patch<Individual> p(parameters.get());
     patches.push_back(p);
   }
 }
