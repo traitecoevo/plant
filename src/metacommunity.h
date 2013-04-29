@@ -125,7 +125,7 @@ void Metacommunity<Individual>::step_stochastic() {
 template <class Individual>
 std::vector<int> Metacommunity<Individual>::births() {
   std::vector<int> n(size(), 0);
-  for ( patch_iterator patch = patches.begin(); 
+  for ( patch_iterator patch = patches.begin();
 	patch != patches.end(); patch++ ) {
     n = util::sum(n, patch->births());
   }
@@ -134,7 +134,7 @@ std::vector<int> Metacommunity<Individual>::births() {
 
 template <class Individual>
 void Metacommunity<Individual>::deaths() {
-  for ( patch_iterator patch = patches.begin(); 
+  for ( patch_iterator patch = patches.begin();
 	patch != patches.end(); patch++ )
     patch->deaths();
 }
@@ -182,7 +182,7 @@ ode::iter_const Metacommunity<Individual>::ode_values_set(ode::iter_const it) {
 
 template <class Individual>
 ode::iter Metacommunity<Individual>::ode_values(ode::iter it) const {
-  for ( patch_const_iterator patch = patches.begin(); 
+  for ( patch_const_iterator patch = patches.begin();
 	patch != patches.end(); patch++ )
     it = patch->ode_values(it);
   return it;
@@ -190,7 +190,7 @@ ode::iter Metacommunity<Individual>::ode_values(ode::iter it) const {
 
 template <class Individual>
 ode::iter Metacommunity<Individual>::ode_rates(ode::iter it) const {
-  for ( patch_const_iterator patch = patches.begin(); 
+  for ( patch_const_iterator patch = patches.begin();
 	patch != patches.end(); patch++ )
     it = patch->ode_rates(it);
   return it;
@@ -204,9 +204,9 @@ Patch<Individual> Metacommunity<Individual>::r_at(size_t idx) const {
 template <class Individual>
 Rcpp::List Metacommunity<Individual>::r_get_patches() const {
   Rcpp::List ret;
-  for ( patch_const_iterator it = patches.begin();
-	it != patches.end(); it++ )
-    ret.push_back(Rcpp::wrap(*it));
+  for ( patch_const_iterator patch = patches.begin();
+	patch != patches.end(); patch++ )
+    ret.push_back(Rcpp::wrap(*patch));
   return ret;
 }
 
@@ -258,9 +258,9 @@ Rcpp::IntegerMatrix Metacommunity<Individual>::r_n_individuals() const {
 template <class Individual>
 void Metacommunity<Individual>::r_clear() {
   age = 0.0;
-  for ( patch_iterator it = patches.begin();
-	it != patches.end(); it++ )
-    it->r_clear();
+  for ( patch_iterator patch = patches.begin();
+	patch != patches.end(); patch++ )
+    patch->r_clear();
   ode_solver.reset();
 }
 
