@@ -127,10 +127,7 @@ std::vector<int> Metacommunity<Individual>::births() {
   std::vector<int> n(size(), 0);
   for ( patch_iterator patch = patches.begin(); 
 	patch != patches.end(); patch++ ) {
-    std::vector<int> ni = patch->births();
-    std::transform(n.begin(), n.end(),
-		   ni.begin(), ni.end(), std::plus<int>());
-    // util::sum(n, ni); // <-- better?
+    n = util::sum(n, patch->births());
   }
   return n;
 }
