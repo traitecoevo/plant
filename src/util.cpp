@@ -30,6 +30,17 @@ void check_length(size_t received, size_t expected) {
 	       expected, received);
 }
 
+void check_dimensions(size_t received_rows, size_t received_cols,
+		      size_t expected_rows, size_t expected_cols) {
+  if ( expected_rows != received_rows )
+    ::Rf_error("Incorrect number of rows; expected %d, received %d\n",
+	       expected_rows, received_rows);
+  if ( expected_cols != received_cols )
+    ::Rf_error("Incorrect number of columns; expected %d, received %d\n",
+	       expected_cols, received_cols);
+}
+
+
 std::vector<double> seq_len(double from, double to, int len) {
   std::vector<double> ret;
   ret.reserve(len);

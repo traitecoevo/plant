@@ -18,8 +18,10 @@ bool is_finite(T x) {
   return true;
 }
 
-void check_length(size_t received, size_t expected);
 size_t check_bounds_r(size_t idx, size_t size);
+void check_length(size_t received, size_t expected);
+void check_dimensions(size_t recieved_rows, size_t recieved_cols,
+		      size_t expected_rows, size_t expected_cols);
 
 // Based on C++11's is_sorted
 template <class ForwardIterator> 

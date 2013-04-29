@@ -242,14 +242,11 @@ Rcpp::List Metacommunity<Individual>::r_get_patches() const {
 // Each column is a patch, each row a species.
 template <class Individual>
 void Metacommunity<Individual>::r_add_seedlings(Rcpp::IntegerMatrix seeds) {
-  util::check_length((size_t)seeds.ncol(), size());
-  util::check_length((size_t)seeds.nrow(), n_species());
-
-  for ( size_t i = 0; i < size(); i++ ) {
-    Rcpp::IntegerMatrix::Column seeds_col_i = seeds(Rcpp::_, i);
-    std::vector<int> seeds_i(seeds_col_i.begin(), seeds_col_i.end());
-    patches[i].add_seedlings(seeds_i);
-  }
+  util::check_dimensions(seeds.ncol(), seeds.nrow(),
+			 size(),       n_species());
+  std::vector< std::vector<int> > seeds_m = util::from_rcpp_matrix(seeds);
+  for ( size_t i = 0; i < size(); i++ )
+    patches[i].add_seedlings(seeds_m[i]);
 }
 
 template <class Individual>
