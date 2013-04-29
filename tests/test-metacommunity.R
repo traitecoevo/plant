@@ -60,5 +60,26 @@ expect_that(sys[[idx]]$derivs(sys[[idx]]$age, sys[[idx]]$ode_values),
 ## Will be easier if we have a get_mass_leaf and if the existing
 ## functions are modified to take matrices/lists as appropriate.
 
+## Check dispersal:
+
+## Sanity check -- should fail with bad input
+expect_that(sys$disperse(integer(0)),           throws_error())
+expect_that(sys$disperse(rep(1, sys$size + 1)), throws_error())
+
+## Compare fit with a Chisq goodness of fit test (may be too harsh?)
+n.seeds <- 100
+set.seed(1)
+m <- replicate(500, sys$disperse(n.seeds)[1,])
+
+## Conservation of seed mass:
+expect_that(all(colSums(m) == n.seeds), is_true())
+
+## Goodness of fit.
+expected <- n.seeds/sys$size
+chisq <- sum((m - expected)^2 / expected)
+expect_that(pchisq(chisq, length(m) - 3, lower.tail=FALSE),
+            is_greater_than(0.05))
+
+
 rm(sys)
 gc()
