@@ -15,16 +15,6 @@ void set_sane_gsl_error_handling() {
   gsl_set_error_handler(&handler_pass_to_R);
 }
 
-// TODO: add r_check_bounds with signature (int, size_t) that does
-// conversion and checks positivity of idx?
-void check_bounds(size_t idx, size_t size) {
-  // We don't check size < 0 or idx < 0, as not possible with size_t
-  if ( size == 0 )
-    ::Rf_error("Index %d impossible from empty range", idx);
-  else if ( idx >= size )
-    ::Rf_error("Index %d out of bounds: must be in [0,%d]", idx, size-1);
-}
-
 size_t check_bounds_r(size_t idx, size_t size) {
   // We don't check size < 0 or idx < 0, as not possible with size_t
   if ( size == 0 )

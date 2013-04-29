@@ -18,7 +18,6 @@ bool is_finite(T x) {
   return true;
 }
 
-void check_bounds(size_t idx, size_t size);
 void check_length(size_t received, size_t expected);
 size_t check_bounds_r(size_t idx, size_t size);
 
