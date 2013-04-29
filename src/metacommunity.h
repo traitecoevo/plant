@@ -18,7 +18,7 @@ public:
   virtual void deaths() = 0;
   virtual void add_seeds(std::vector<int> seeds) = 0;
   virtual Rcpp::List r_get_patches() const = 0;
-  virtual void r_add_plants(Rcpp::IntegerMatrix seeds) = 0;
+  virtual void r_add_seedlings(Rcpp::IntegerMatrix seeds) = 0;
   virtual Rcpp::IntegerMatrix r_n_individuals() const = 0;
   virtual void r_clear() = 0;
   virtual void r_step() = 0;
@@ -55,7 +55,7 @@ public:
   // * R interface
   Patch<Individual> r_at(size_t idx) const;
   Rcpp::List r_get_patches() const;
-  void r_add_plants(Rcpp::IntegerMatrix seeds);
+  void r_add_seedlings(Rcpp::IntegerMatrix seeds);
   Rcpp::IntegerMatrix r_n_individuals() const;
   void r_clear();
   void r_step();
@@ -151,10 +151,7 @@ void Metacommunity<Individual>::add_seeds(std::vector<int> seeds) {
       seeds[i] -= k;
       seeds_i[i] = k;
     }
-    // TODO: We should not care about germination here; this becomes
-    // part of Patch::add_seeds, and if we want a skip route, do it
-    // via a r_ method.  Could have argument?
-    patch->add_seeds(patch->germination(seeds_i));
+    patch->add_seeds(seeds_i);
   }
 }
 
@@ -217,14 +214,14 @@ Rcpp::List Metacommunity<Individual>::r_get_patches() const {
 
 // Each column is a patch, each row a species.
 template <class Individual>
-void Metacommunity<Individual>::r_add_plants(Rcpp::IntegerMatrix seeds) {
+void Metacommunity<Individual>::r_add_seedlings(Rcpp::IntegerMatrix seeds) {
   util::check_length((size_t)seeds.ncol(), size());
   util::check_length((size_t)seeds.nrow(), n_species());
 
   for ( size_t i = 0; i < size(); i++ ) {
     Rcpp::IntegerMatrix::Column seeds_col_i = seeds(Rcpp::_, i);
     std::vector<int> seeds_i(seeds_col_i.begin(), seeds_col_i.end());
-    patches[i].add_seeds(seeds_i);
+    patches[i].add_seedlings(seeds_i);
   }
 }
 

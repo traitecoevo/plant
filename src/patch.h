@@ -26,6 +26,7 @@ public:
   virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
   virtual Rcpp::List r_get_species() const = 0;
   virtual void r_add_seeds(std::vector<int> seeds) = 0;
+  virtual void r_add_seedlings(std::vector<int> seeds) = 0;
   virtual std::vector<double> r_get_mass_leaf(size_t idx) const = 0;
   virtual void r_set_mass_leaf(std::vector<double> x, size_t idx) = 0;
   virtual std::vector<int> r_n_individuals() const = 0;
@@ -56,6 +57,7 @@ public:
   void deaths();
   std::vector<int> germination(std::vector<int> seeds);
   void add_seeds(std::vector<int> seeds);
+  void add_seedlings(std::vector<int> seeds);
 
   // * ODE interface.
   void derivs(double time, ode::iter_const y, ode::iter dydt);
@@ -71,6 +73,7 @@ public:
   Rcpp::List r_get_species() const;
   spline::Spline r_light_environment() const;
   void r_add_seeds(std::vector<int> seeds);
+  void r_add_seedlings(std::vector<int> seeds);
   void r_step();
   void r_step_stochastic(); // step_stochastic, plus RNG control
 
@@ -159,9 +162,7 @@ void Patch<Individual>::step_deterministic() {
 template <class Individual>
 void Patch<Individual>::step_stochastic() {
   deaths();
-  std::vector<int> seeds = births();
-  seeds = germination(seeds);
-  add_seeds(seeds);
+  add_seeds(births());
 }
 
 template <class Individual>
@@ -183,6 +184,12 @@ std::vector<int> Patch<Individual>::births() {
 
 template <class Individual>
 void Patch<Individual>::add_seeds(std::vector<int> seeds) {
+  seeds = germination(seeds);
+  add_seedlings(seeds);
+}
+
+template <class Individual>
+void Patch<Individual>::add_seedlings(std::vector<int> seeds) {
   for ( size_t i = 0; i < seeds.size(); i++ )
     species[i].add_seeds(seeds[i]);
 }
@@ -199,10 +206,11 @@ void Patch<Individual>::add_seeds(std::vector<int> seeds) {
 //   Binom(seeds_in, p_dispersal * p_germination)
 template <class Individual>
 std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
+  const double p_dispersal = parameters->Pi_0;
   for ( size_t i = 0; i < seeds.size(); i++ ) {
     if ( seeds[i] > 0 ) {
-      const double p = parameters->Pi_0 *
-	species[i].germination_probability(&light_environment);
+      const double p =
+	p_dispersal * species[i].germination_probability(&light_environment);
       if ( p > 0 )
 	seeds[i] = (int)Rf_rbinom(seeds[i], p);
     }
@@ -350,10 +358,19 @@ spline::Spline Patch<Individual>::r_light_environment() const {
   return light_environment;
 }
 
+// In contrast with add_seeds(), we must build the light environment
+// in case it has not yet been constructed.
 template <class Individual>
 void Patch<Individual>::r_add_seeds(std::vector<int> seeds) {
   util::check_length(seeds.size(), size());
+  compute_light_environment();
   add_seeds(seeds);
+}
+
+template <class Individual>
+void Patch<Individual>::r_add_seedlings(std::vector<int> seeds) {
+  util::check_length(seeds.size(), size());
+  add_seedlings(seeds);
 }
 
 template <class Individual>

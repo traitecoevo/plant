@@ -26,7 +26,7 @@ expect_that(patch$species[[1]]$plants, is_identical_to(list()))
 expect_that(patch$height_max, is_identical_to(0.0))
 
 ## Add a single seed to this
-patch$add_seeds(1)
+patch$add_seedlings(1)
 
 expect_that(patch$size, equals(1)) # no change
 
@@ -121,7 +121,7 @@ expect_that(t(obj$run(tt, y)),
 ## Reset so that we are starting from the "correct" starting point for
 ## a single individual.
 patch$clear()
-patch$add_seeds(1)
+patch$add_seedlings(1)
 
 set.seed(1)
 while ( patch$n_individuals == 1 && patch$age < 15.0 ) {

@@ -20,7 +20,7 @@ expect_that(sys$ode_size, equals(0))
 ## Put a single individual in the 3rd patch:
 idx <- 3
 n[idx] <- 1
-sys$add_plants(n)
+sys$add_seedlings(n)
 expect_that(sys$n_individuals, equals(n))
 expect_that(sys$ode_size, equals(sum(n)*3))
 
@@ -36,7 +36,7 @@ sys$clear()
 n[idx] <- 0
 expect_that(sys$n_individuals, equals(n))
 n[] <- 1
-sys$add_plants(n)
+sys$add_seedlings(n)
 expect_that(sys$n_individuals, equals(n))
 
 expect_that(sys$ode_values,
@@ -44,7 +44,7 @@ expect_that(sys$ode_values,
 
 ## Compare derivative calculations for full system and patch.
 patch <- new(Patch, p)
-patch$add_seeds(1)
+patch$add_seedlings(1)
 expect_that(sys$ode_values,
             is_identical_to(rep(patch$ode_values, sys$size)))
 

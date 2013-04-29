@@ -16,8 +16,8 @@ expect_that(patch.p$height_max, is_identical_to(0.0))
 expect_that(patch.c$height_max, is_identical_to(0.0))
 
 ## Add a single seed.
-patch.p$add_seeds(1)
-patch.c$add_seeds(1)
+patch.p$add_seedlings(1)
+patch.c$add_seedlings(1)
 
 expect_that(patch.c$size, equals(1))
 
@@ -35,8 +35,8 @@ patch.p$clear()
 patch.c$clear()
 
 ## Add a *pair* of seeds.
-patch.p$add_seeds(2)
-patch.c$add_seeds(2)
+patch.p$add_seedlings(2)
+patch.c$add_seedlings(2)
 
 ## And expect that the size of the system is 6 with no cohorts, and 3
 ## with cohorts.
@@ -63,8 +63,8 @@ expect_that(res.p[,1:4], equals(res.c[,1:4]))
 expect_that(res.p[,5:7], equals(res.p[,2:4]))
 
 ## Add another 3 seeds.
-patch.p$add_seeds(3)
-patch.c$add_seeds(3)
+patch.p$add_seedlings(3)
+patch.c$add_seedlings(3)
 
 expect_that(patch.p$n_individuals, equals(5))
 expect_that(patch.c$n_individuals, equals(5))
@@ -72,8 +72,8 @@ expect_that(patch.c$n_individuals, equals(5))
 ## Clean up and start again.
 patch.p$clear()
 patch.c$clear()
-patch.p$add_seeds(1)
-patch.c$add_seeds(1)
+patch.p$add_seedlings(1)
+patch.c$add_seedlings(1)
 
 ## Function to run a patch up to a population size or age, and
 ## accumulate results.

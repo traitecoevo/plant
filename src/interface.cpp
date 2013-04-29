@@ -203,6 +203,7 @@ RCPP_MODULE(tree) {
     .method("germination",        &model::PatchBase::r_germination)
     .property("species",          &model::PatchBase::r_get_species)
     .method("add_seeds",          &model::PatchBase::r_add_seeds)
+    .method("add_seedlings",      &model::PatchBase::r_add_seedlings)
     .method("mass_leaf",          &model::PatchBase::r_get_mass_leaf)
     .method("set_mass_leaf",      &model::PatchBase::r_set_mass_leaf)
     .property("n_individuals",    &model::PatchBase::r_n_individuals)
@@ -235,7 +236,7 @@ RCPP_MODULE(tree) {
       	    &model::MetacommunityBase::r_step_stochastic)
     // TODO: births & deaths?
     .method("clear",      &model::MetacommunityBase::r_clear)
-    .method("add_plants", &model::MetacommunityBase::r_add_plants)
+    .method("add_seedlings", &model::MetacommunityBase::r_add_seedlings)
     .property("n_individuals", &model::MetacommunityBase::r_n_individuals)
     .property("patches", &model::MetacommunityBase::r_get_patches)
     ;
