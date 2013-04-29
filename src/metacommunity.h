@@ -291,17 +291,11 @@ void Metacommunity<Individual>::r_step_stochastic() {
   step_stochastic();
 }
 
-// Possibly can do 
-//   patches.clear();
-//   Patch p(parameters);
-//   patches.resize(n_patches, p);
 template <class Individual>
 void Metacommunity<Individual>::initialise() {
   patches.clear();
-  for ( int i = 0; i < parameters->n_patches; i++ ) {
-    Patch<Individual> p(parameters.get());
-    patches.push_back(p);
-  }
+  Patch<Individual> p(parameters.get());
+  patches.resize(parameters->n_patches, p);
 }
 
 }
