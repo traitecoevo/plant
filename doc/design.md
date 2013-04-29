@@ -206,6 +206,24 @@ appears as a concept:
 A patch contains multiple species.  In the deterministic model, there
 will be just one patch.  Previously this was population.
 
+It's not totally clear how seed addition should look here:
+
+* The `add_seeds` function will always test to see if seeds have
+  germinated and survived dispersal.
+
+* From R, sometimes we want to just dump seeds in and have them skip
+  germination entirely.  In this case, we work via the
+  `r_add_seedlings` function, which still takes just an integer vector
+  and still adds individuals in as if they were seeds.  However, every
+  seed germinates with probability 1.
+  
+Note that this distinction is made only in `Patch` and
+`Metacommunity`, because `Patch` is where germination probability is
+computed and germination tested.  For Species, there is no
+`add_seedlings`, and `add_seeds` just adds seeds.  It could be updated
+for consistency with `Patch`, but I think `add_seeds` is possibly
+clearer.
+
 ## Parameters
 
 We need a pointer to all the parameters that we can use to seed new
