@@ -224,9 +224,27 @@ void Metacommunity<Individual>::r_add_seedlings(Rcpp::IntegerMatrix seeds) {
 }
 
 template <class Individual>
+Rcpp::IntegerMatrix 
+Metacommunity<Individual>::r_disperse(std::vector<int> seeds) const {
+  util::check_length(seeds.size(), size());
+
+  Rcpp::RNGScope scope;
+  std::vector< std::vector<int> > seeds_dispersed = disperse(seeds);
+
+  Rcpp::IntegerMatrix ret(n_species(), size());
+  Rcpp::IntegerMatrix::iterator it = ret.begin();
+
+  for ( size_t i = 0; i < size(); i++ )
+    it = std::copy(seeds_dispersed[i].begin(), 
+		   seeds_dispersed[i].end(), it);
+
+  return ret;
+}
+
+template <class Individual>
 Rcpp::IntegerMatrix Metacommunity<Individual>::r_n_individuals() const {
   Rcpp::IntegerMatrix ret(n_species(), size());
-  Rcpp::IntegerMatrix::const_iterator it = ret.begin();
+  Rcpp::IntegerMatrix::iterator it = ret.begin();
 
   for ( patch_const_iterator p = patches.begin();
 	p != patches.end(); p++ ) {
