@@ -738,3 +738,19 @@ CXXFLAGS=-O2 -Wall -pedantic -Wconversion
 
 There are more `(int)` conversions that desirable, mostly working
 around Rcpp at the moment.
+
+# Efficiency
+
+There will be many cases where the light environment is the same but
+is recomputed (see notes above `Patch::ode_values_set`).  In addition,
+there will be times where the light environment changes only because
+of the death of a seedling (in which case only the points at the
+seedling's height or lower need recomputing).  Ideally, it would be
+nice to avoid as much of this calculation as possible.
+
+However, the optimisation that seems immediately apparent to
+`ode_values_set` will not work -- if the number of individuals has
+changed this might report that it is unchanged even though it has.
+However, it is possible that the ODE controller could know that we are
+working with an OdeTarget and therefore nothing needs doing.
+

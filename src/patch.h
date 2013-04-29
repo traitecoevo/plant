@@ -224,7 +224,6 @@ void Patch<Individual>::derivs(double time,
 			       ode::iter_const y, ode::iter dydt) {
   bool changed = false;
   ode_values_set(y, changed);
-
   ode_rates(dydt);
 }
 
@@ -237,6 +236,13 @@ size_t Patch<Individual>::ode_size() const {
   return ret;
 }
 
+// NOTE: In theory, this is only necessary if no variables have
+// changed.  This will often be the case on the first call (because of
+// the way that derivs() and ode_set_values works, we take the values
+// from the model, set them in the ODE solver, then try to re-set them
+// in the model.  Obviously on the first use nothing has changed so we
+// should not bother doing anything hard like computing the light
+// environment.
 template <class Individual>
 ode::iter_const Patch<Individual>::ode_values_set(ode::iter_const it,
 						  bool &changed) {
@@ -244,7 +250,6 @@ ode::iter_const Patch<Individual>::ode_values_set(ode::iter_const it,
 	sp != species.end(); sp++ )
     it = sp->ode_values_set(it, changed);
 
-  // Next two will be optional (if (changed))
   compute_light_environment();
   compute_vars_phys();
 
