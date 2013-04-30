@@ -3,10 +3,6 @@
 Should not do Rf_error(), as that longjmp's over destructors.  Use
 Rcpp::error instead.
 
-* Exporting utility functions
-
-Convert remaining utility functions to use Rcpp::function.
-
 * Interfaces:
 
 - births, deaths export for species, patch, metacommunity
@@ -14,16 +10,3 @@ Convert remaining utility functions to use Rcpp::function.
 * Consistency
 
 - consistency of iterator typedefs (and others)
-- age vs r_age() -- this is an unwanted distinction, but somewhat
-  necessary because of the name collision.
-
-* R interface
-
-- add_seeds and add_plants are not used consistently.
-  - I think that add_seeds should probably do the full germination-test,
-    while add_plants could skip it?
-
-* Biology
-
-- disturbance regime is not yet handled -- could solver numerically or
-  analytically...
