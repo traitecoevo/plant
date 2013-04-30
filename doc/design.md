@@ -601,6 +601,27 @@ One reason for this is that many input-taking R-exposed function needs
 to check arguments in a way that the compiled code need not do (e.g.,
 checking bounds before accessing containers.
 
+### An alternative approach
+
+Some of the classes get quite large because of all the R interface
+code bolted on (e.g. `Patch`, in particular).  Another way to do this
+could be to have a class (e.g. `Plant` friend a class `rPlant`) and
+export just that.  Then the important guts of the model stay nice and
+clean while the bits for R get kept off on the side.
+
+Will require a lot of forwarding functions, but looking at the code,
+that's mostly how it's done anyway.
+
+But how deep do we do this for?  Looking at `Spline` it could easily
+be done there, for sure.
+
+However -- this causes its own issues.  At the moment, AdaptiveSpline
+inherits from Spline (so that `init`, `eval`, `get_x`, `get_y`,
+`get_xy` and `size` work on both classes).  We can't get these through
+inheritance in R-wrapped versions because there would be no way of
+initialising the base class sensibly (assuming that an `r_Spline`
+would have a `Spline` object).
+
 ## Callbacks and functors
 
 There are two basic ways that callbacks are being done --
