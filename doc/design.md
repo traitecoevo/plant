@@ -13,7 +13,7 @@ However, the scope is very much the same as the original "EBT" code.
  
 # Shared components
 
-## Individuals
+## Individuals (Plant, etc)
 
 The "individuals" in the individual based model are very similar to
 cohorts in the deterministic model; they have a state (mass, leaf
@@ -82,7 +82,39 @@ There will be a related individual type `Cohort` that is the
 individual type for the EBT approach.  It will probably be generated
 via composition though, with two individuals (top and mean).
 
-#### Internals
+### Changing plant parameters
+
+Probably don't allow plant parameters to be modified?  Otherwise they
+change the paramters of all individuals, which will rarely be what is
+wanted.  Possibly a change in parameters could trigger a clear of all
+individuals?
+
+### Functions within Plant
+
+I've pulled into separate functions the physiological variables that
+depend *only* on size variables (for now at least).  The reason for
+this is that things like `net_production` depends on `assimilation`
+and `respiration`, and only makes sense to be called after these.  So
+by the time it is callable we already have the values stored in the
+class variables.  Ditto for `growth_rate`, which depends on
+`leaf_fraction`, `net_production`, `leaf_fraction`.
+
+In some ways, a slightly nicer way might be to push these into a
+separate method `compute_allometry()`, but some of these are only
+worth computing if net production is positive.
+
+`assimilation`/`compute_assimilation` is the odd one out here, as it
+depends on the environment variable.  It may be the case that this
+ends up set for the individual (on entry to `compute_vars_phys`,
+perhaps), in which case this difference disappears.  But that would
+really require that it is used in something other than computing
+`assimilation` to be worth the confusion.
+
+For the same reason, the individual allometry functions are not
+written separately; each part depends on previously calculated
+things.  So this is all done in `update_vars_size()`.
+
+### Internals
 
 There are two internal pieces that belong to `Plant`:
 
@@ -96,7 +128,37 @@ allowed to see inside of `Strategy` except `Plant` (everything except
 constructors are private, but the class has a `friend` relationship to
 `Plant`.
 
-#### More on Cohorts
+### Default values
+
+All parameters have default values following those in the paper.  The
+four "core" traits have default values added too; these came from the
+orginal EBT implementation (rationale is: it doesn't really make much
+sense to make a strategy that doesn't know its lma).
+
+### Constants
+
+There are probably still some constants that are settable at the level
+of `Strategy`.
+
+For example, `(c_acc * s)` appear together and only together in
+computing `fecundity_rate`.  As such they are entirely colinear.
+
+In computing `mortality`, the value
+`strategy->c_d0 * exp(-strategy->c_d1*strategy->rho)`
+is constant.
+
+There are others in `compute_vars_size`:
+  - `rho / theta * a1 * eta_c` (`sapwood`)
+  - `rho         * a2 * eta_c` (`heartwood`)
+  
+Currently, these are done after setting parameters within `Strategy`,
+using a static method from `Plant`.  This keeps all the logic within
+`Plant`, and `Strategy` is simply a container of parameters.
+
+Currently there is no way of accessing the constants from R (or
+indeed, anything except for `Plant`).
+
+### More on Cohorts
 
 More information on the `Cohort`s for the EBT:
 
@@ -113,7 +175,7 @@ Previously, the key bits of cohort change were:
 We must be able to push new cohorts onto a list.  Probably to match
 the individual based model, we should push on the back.
 
-#### More on PlantApprox
+### More on PlantApprox
 
 The deterministic part can be done more carefully; suppose that we
 have a vector of sizes of plants (at the patch level).  We can then
@@ -158,8 +220,7 @@ An alternative would be to define a size "sapling" where the
 self-thinning is less extreme and interpolate the values below this
 over a fixed size number of points.
 
-
-#### Stochastic equivalence of Plant and CohortDiscrete
+### Stochastic equivalence of Plant and CohortDiscrete
 
 A population based on `Plant`s and one based on `CohortDiscrete` will
 stochastically diverge because of the differences in accounting in
@@ -189,7 +250,6 @@ happen) at which point we'll lose equivalence.
 
 Another downside of this is that this would require more parameters
 set somewhere.
-
 
 ## Species
 
@@ -262,68 +322,7 @@ However, it's difficult to see how that would work without knowledge
 of the underlying spatial arrangement, which would cause some leakage
 between classes, probably.
 
-## Parameters
-
-We need a pointer to all the parameters that we can use to seed new
-populations (containing things like a vector of all species
-strategies), and a few parameters that apply at the level above
-species (light extinction, disturbance regime, etc).
-
-The nice thing about this approach is that we can centralise ownership
-and lifespan of the parameter pointers.
-
-Need to decide on names for accessor functions.  Probably change
-`set_params` to `set_parameters` to continue avoiding abbreviations.
-
-## Standalone Plants, Populations, etc.
-
-Creating a plant needs a *pointer* to `Strategy` object (this is
-necessary as the `Strategy` outlives the `Plant`, and we don't want to
-store 10s of thousands of `Strategy` objects.  Because of the
-design/limitations of the Rcpp modules interface, we can't pass in a
-parameter object to take the address from (even if we could, this
-would do badly because it would be copied along the way and then the
-address is invalid, or it might get destroyed before the plant).
-Similar problems will affect the `Population`, as the `Metapopulation`
-generally has control over this. 
-
-To get around that, I'm storing the `Strategy` within a small wrapper
-class.  This almost certainly duplicates auto_ptr or something, and I
-should look into that.
-
-It's possible (probable?) that for `Species` and above there is
-absolutely no benefit from this distinction, and dealing in plain
-objects will be better.
-
-Also mention when doing the cross of PlantApprox and CohortDiscrete
-that I'm trying to avoid DDD.  Traits might be better?
-
-So, define a class member `standalone`, which will be false normally
-but true if a `Plant` is created without a `Strategy` pointer.  In
-that case, it will either create the default `Strategy` or take a copy
-of a provided `Strategy` object, and be responsible for cleaning up on
-deletion.  Copies involving a standalone `Plant` will *copy* the
-`Strategy` object and create a new "standalone" `Plant`.  This is done
-through the helper class `WithStrategy`.
-
-A slightly better approach would be to template a simple smart pointer
-that did all this, perhaps?  Same as existing case, but with
-`Strategy` as a template parameter, and save the pointer in field
-`ptr`, then on use do
-
-```
-class Plant : protected SimpleWrapper<Strategy> {
-  Plant(Strategy s) 
-    : SimpleWrapper(s),
-	  strategy(ptr) {}
-};
-```
-
-but that leaves us in the same position with copying as before I think
-(i.e., strategy will point at the wrong pointer).  But if we template
-the base class and have concrete uses of them, then this goes away.
-
-## Dispersal
+### More on dispersal
 
 I might try and do dispersal through a map object with the pointer to
 the relevant strategy and the number of seeds.  Alternatively, we
@@ -352,120 +351,52 @@ is what happens when we go to a spatial model?  The patch will say
 (within each species) and append it as needed; it really won't happen
 at the species level.
 
-## Seed rain
+### Seed rain
 
 In the EBT version of the model there is the idea of "seed rain",
-which I have yet to add in.  Need to think about how this is done.
+which I have yet to add in.  Need to think about how this is done, and
+how necessary it is in the stochastic version.
 
-## Deaths
+## Parameters
 
-## Births & Deaths
+We need a pointer to all the parameters that we can use to seed new
+populations (containing things like a vector of all species
+strategies), and a few parameters that apply at the level above
+species (light extinction, disturbance regime, etc).
 
-Not sold on the names for the birth/death functions.  They are all
-going to return different types and work in different ways (some
-return bools, others modify lists and return integers, etc).
+The nice thing about this approach is that we can centralise ownership
+and lifespan of the parameter pointers.
 
-## Adding strategies, constants and standalone issues
+Need to decide on names for accessor functions.  Probably change
+`set_params` to `set_parameters` to continue avoiding abbreviations.
 
-Where should strategies be added?  The two most basic options seem to
-be:
+# Design issues:
 
-1. In population
-2. In the parameters only
+## Standalone Plants, Populations, etc.
 
-At some point, constants do need sorting out.  So, perhaps on
-`add_strategy`?  I.e., we do `add_strategy(x)` (or `set_strategy`),
-and then make a standalone plant which computes the constants?  Should
-be a better way of doing this.  Perhaps a static method for Plant?
+Creating a plant needs a *pointer* to `Strategy` object (this is
+necessary as the `Strategy` outlives the `Plant`, and we don't want to
+store 10s of thousands of `Strategy` objects).  Because of the
+design/limitations of the Rcpp modules interface, we can't pass in a
+parameter object to take the address from (even if we could, this
+would do badly because it would be copied along the way and then the
+address is invalid, or it might get destroyed before the plant).
+Similar problems will affect the `Population`, as the `Metapopulation`
+generally has control over this.
 
-### Changing plant parameters
+To get around that, I'm storing the `Strategy` within a small wrapper
+class `PtrWrapper`.  This almost certainly duplicates `auto_ptr` or
+something, and I should look into that (though our reference counting
+semantics are a bit simpler).
 
-Probably don't allow plant parameters to be modified?  Otherwise they
-change the paramters of all individuals, which will rarely be what is
-wanted.  Exception for standalone plants?
-
-### Exception safe code
+### Exceptions
 
 There is a good chance that the root finding can fail, but it is run
-on construction (e.g., standalone Plant).  Probably not a good idea.
+on construction (e.g., standalone Plant).  Probably not a good idea? 
 
-## Constants
-
-There are probably still some constants that are settable at the level
-of `Strategy`.
-
-For example, `(c_acc * s)` appear together and only together in
-computing `fecundity_rate`.  As such they are entirely colinear.
-
-In computing `mortality`, the value
-`strategy->c_d0 * exp(-strategy->c_d1*strategy->rho)`
-is constant.
-
-There are others in `compute_vars_size`:
-  - `rho / theta * a1 * eta_c` (`sapwood`)
-  - `rho         * a2 * eta_c` (`heartwood`)
-  
-When and where do we compute these?  At the moment they are set in
-`Strategy`, but this splits logic over too many files.  The advantage
-of this approach is that we could set it up to run after every
-parameter set.  The disadvantage is that to do anything complicated
-(such as the seed leaf mass calculation) we will have a recursive
-reference.
-
-Probably better to move the constant calculation within the `Plant`
-class.  It might be desirable to have this be a static method?
-
-So then, how do the constants get computed?  Who creates the
-Parameters instance?  In the full model it will be done by
-`Parameters` generally, but for standalone cases the `Plant` itself
-takes care of this.
-
-### Accessing constants
-
-Currently there is no way of accessing the constants (especially
-initial seed mass).  How should we do this?  Should we do this?
-
-### Default values
-
-I have now had to add default values for the four core traits, too,
-otherwise we get cryptic errors when trying to compute the initial
-leaf mass.  It doesn't really make much sense to make a strategy that
-doesn't know it's lma, so this seems OK.
-
-### Initialising constants
-
-This should be done by anything that takes a `Strategy` object (rather
-than a pointer).  It will be copied, so there is no danger.  This will
-be the same as things that are "standalone".  However, when a
-`Parameters` is made, can we assume that this has taken care of
-sorting this out for us?  In general, this issue is a bit of a design
-wart.  But given the dependencies and trying to avoid a circular
-dependency.  Not sure how I can do this better though.
-
-## Functions within plant
-
-I've pulled into separate functions the physiological variables that
-depend *only* on size variables (for now at least).  The reason for
-this is that things like `net_production` depends on `assimilation`
-and `respiration`, and only makes sense to be called after these.  So
-by the time it is callable we already have the values stored in the
-class variables.  Ditto for `growth_rate`, which depends on
-`leaf_fraction`, `net_production`, `leaf_fraction`.
-
-In some ways, a slightly nicer way might be to push these into a
-separate method `compute_allometry()`, but some of these are only
-worth computing if net production is positive.
-
-`assimilation`/`compute_assimilation` is the odd one out here, as it
-depends on the environment variable.  It may be the case that this
-ends up set for the individual (on entry to `compute_vars_phys`,
-perhaps), in which case this difference disappears.  But that would
-really require that it is used in something other than computing
-`assimilation` to be worth the confusion.
-
-For the same reason, the individual allometry functions are not
-written separately; each part depends on previously calculated
-things.  So this is all done in `update_vars_size()`.
+Probably I should think about moving from `Rf_error` to proper C++
+exceptions.  Apparently `Rf_error` jumps over C++ destructors, so will
+cause leaks.
 
 ## Utilities
 
@@ -512,35 +443,33 @@ point of view.  I have `Spline` and `AdaptiveSpline` both within
 
 `solver_ode.{cpp,h}` filename is inconsistent with everything else.
 
+The actual biology is in the `model` namespace, and testing functions
+are in `test` namespaces (within `util` or `model`).
+
 ### ODE solver
 
 We need an ODE solver that can cope with changing dimensions, as both
 the individual-based and deterministic solvers have rapidly changing
-dimensions (and the GSL solvers will have to reallocate every step,
+dimensions (and the GSL solvers will have to reallocate *every* step,
 which will become annoying).
 
-At the moment, this is implemented using iterators for `y` and `dydt`.
-This is so that basically the same interface can be used for each
-sub-component of the model.  Alternatively, we could work with (say)
-`Patch::derivs` taking `y` and `dydt` as `const` and non-`const`
-references respectively, and then do the rest of the inner workings
-with iterators.
+The current implementation is a rewrite of the GSL solver, but using
+vectors for allocation, which should allow fairly graceful resizing.
+The stepping algorithm (Runge-Kutta Cash/Karp) does not depend on
+long-term observation of the variables, so resizing space is all we
+need to do.
 
-However, I do need a typedef somewhere in the ODE so that I can do a
-`ode_iter` and `ode_const_iter` and skip some of the ugliness that I
-currently have.
+The other major complication is that in contrast with the usual
+presentation ODE problems (a pure derivative function doing (t,y) ->
+(dy/dt)), we have a model that contains state (y) and can compute
+derivatives (dy/dt).  So there ends up being two places that the state
+and rates need to be.
 
-There are a lot of duplicated functions (I see `ode_values`,
-`ode_rates`, `ode_values_set`, `derivs` *and* the R versions of these.
-If we inherit from an interface class we could simplify a lot of this?
-
-Note that the `derivs` one might be hard.  In particular, for `Plant`,
-we need the light environment to compjute the derivatives, and that is
-not stored as part of the class.  So either we modify `Plant` to take
-the light environment (which simplifies the `FunctorBind1` hack a bit)
-or we just can't do this.  The downside of this is that the logic of
-when to compute physiological variables becomes hard.  Is it on set?
-Is it on request?  What if the the value is NULL/expired/etc.
+At the moment, this interaction is implemented using iterators for `y`
+and `dydt`.  This is so that basically the same interface can be used
+for each sub-component of the model; so long as the overal system
+knows how long it is (dimension of y) we can just feed iterators in
+that will distribute the values over the sub-components appropriately.
 
 #### ODE State
 
@@ -548,27 +477,23 @@ The more clever ode systems do things like tell you if a solver is
 capable of making use of the exit values from one cycle to be the
 input values for the next.  I'm trying to avoid doing too much of this
 sort of optimisation right now because I know that the problem
-dimension will change pretty much every point.
+dimension will change pretty much every point (and individuals might
+die in the middle, not just at one end).
 
 The problem is that we must easily update the state; we're not
 generally allowed direct access to the ODE state object, but perhaps
-we can arrange to set it with an iterator? 
+we can arrange to set it with an iterator?
 
 What I'm trying to avoid is a situation where we go through and build
 a new vector just to get destroyed being passed into `set_state` (this
 is what is currently happening).  However, it's not really clear that
 there is a better solution.  At the moment, the function used is an R
-interface function from ode::OdeTarget, which is really not great.
+interface function from `ode::OdeTarget`, which is really not great.
 
 In contrast with the other copies, this is going to create a large
 heap-allocated copy and then discard it straight away.  Hopefully the
 compiler is smart enough to deal with that.  It's possible that we
 could use an intermediate piece of storage at the level of the class.
-
-Simply having `ode_state` take an iterator would solve at least one
-copy, but not be hugely useful as the we're still creating a temporary
-object.  If the ode system provided an iterator to its internal
-storage we could fill that, but that's ugly too.
 
 ### Splines
 
@@ -578,12 +503,11 @@ so this is likely to find itself ported over from GSL to proper C++ at
 some point if it persists in being slow.  However, we should be able
 to do that entirely transparently.
 
-TODO: Crash if eval is called before init.
-
 ### Numerical integration (quadrature)
 
-This has ended up being a very simple interface, and I think that I'll
-use this as a model for the other utilities where possible.
+This has ended up being a very simple interface to GSL routines, and I
+think that I'll use this as a model for the other utilities where
+possible.
 
 ### Root finder
 
@@ -591,18 +515,9 @@ This is needed only for the initial seed size calculation, which
 itself is carried out only at the beginning of a simulation.  So
 doesn't need to be anything too crazy.
 
-# Compilation issues
-
-Rcpp makes compilation very painful, so we really want to load that as
-little as possible.  However, the utilities depend on it, and whether
-it is included causes Rf_error() vs. error() differences (amongst
-others).
-
 # Filenames and conventions
 
-Deciding if to go with class variables with underscore (google style
-guide).  The large number of class variables and equations will make
-this a pretty pervasive change.
+## Variable naming
 
 Initially, I used single letter variable names in `Plant` -- for
 consistency with the paper.  This is complete for the variable names,
@@ -638,32 +553,29 @@ ret_type Class::r_method() const {
 }
 ```
 
+## Method consistency
 
-# Consistency
+Unresolved issues around:
 
-init vs contructors
-reset, clear, etc.
-helper vs wrapper
+- init vs contructors
+- reset, clear, etc.
+- helper vs wrapper
 
-Need to decide how the ODE-related stuff gets named.  I like `size`
-for the size of the container (so Species' size should indicate how
-many individuals are there).  But at some point we might have to
-change that?  I think that the ODE system just uses the size of the
-created state, and we can get that with `push_back` if needed?
+## Container-like classes
 
-Note that all `size` should return `size_t`.  However, note that Rcpp
-translates that to numeric, and not integer (to get the 64 bit
-precision, I think).
+Many classes naturally contain others (`Species` contain `Plant`s,
+`Patch`es contain `Species`, etc).  For these classes, I've used
+`size` for the size of the container (so `Species`' size should
+indicate how many individuals are there).  These all return `size_t`.
+However, note that Rcpp translates that to numeric, and not integer
+(to get the 64 bit precision, I think).
 
 I've got `r_at` methods for accessing individual items from objects
-that contain them (Parameters -> Strategy, Species -> Individual and
-Patch -> Species, etc).  In the case of the Individual-related bits,
-these can't go into the base classes because they require templating.
-
-It's possible that we could inherit from a container class that wraps
-stuff up, but that's a lot of mucking about for a small amount of
-duplicated code (plus it won't work for species, as that uses a list
-not vector for storage anyway).
+that contain them (`Parameters -> Strategy`, `Species -> Individual`
+and `Patch -> Species`, etc).  In the case of the Individual-related
+bits, these can't go into the base classes because they require
+templating.  From the R side, they use 1-based indexing and this is
+bounds checked.
 
 ## Public, private & R interface
 
@@ -672,8 +584,8 @@ think.  For example, `Patch::height_max` is not exactly bad to expose,
 but it's not really needed to define the interface either (it's
 essentially an implementation detail that only height-related models
 care about).  However, I do use this a bunch from R.  Perhaps make it
-private and provide an `r_height` method that I can access from R to
-make this separation clear?
+private and provide an `r_height_max` method that I can access from R
+to make this separation clear?
 
 The idea will be that a `r_` function should never be called except
 for in a `r_` function or in `interface.cpp`.  All `r_` functions must
@@ -689,13 +601,7 @@ One reason for this is that many input-taking R-exposed function needs
 to check arguments in a way that the compiled code need not do (e.g.,
 checking bounds before accessing containers.
 
-# 0-based vs 1-based indexing
-
-There are a few R-based functions that modify things.  At the moment
-they all use C-style 0-based indexing (with bounds checking).  They
-should probably all move over to useing R-style 1-based indexing.
-
-# Callbacks and functors
+## Callbacks and functors
 
 There are two basic ways that callbacks are being done --
 AdaptiveSpline does it in an ad-hoc way, but the root finding (and the
@@ -704,12 +610,7 @@ ODE class is doing it a third way!).
 
 Move everything that make sense over to functors.
 
-## Update:
-
-I apparently did not know about `std::bind*` and `std::mem_fun`, which
-will do a lot of this for us.  This will probably make the code a lot
-less fragile.  However, it does all work at the moment, and will take
-some care to fix.
+Possible that one of `boost`s bind functions would help better here.
 
 # Alternative models
 
@@ -725,7 +626,7 @@ individual based model.  For the EBT-style model we are also tracking
 the fraction of the population in this size class (but unlike the EBT
 we never bother splitting cohorts).
 
-# Compilation issues
+# Is the R code necessary?
 
 In theory, we can trim out the Rcpp bits with some ifdef'ing.  Will
 require some additional includes and coping with bailing.  Would help
@@ -746,7 +647,7 @@ CXXFLAGS=-O2 -Wall -pedantic -Wconversion
 There are more `(int)` conversions that desirable, mostly working
 around Rcpp at the moment.
 
-# Efficiency
+# Efficiency issues
 
 There will be many cases where the light environment is the same but
 is recomputed (see notes above `Patch::ode_values_set`).  In addition,
@@ -760,4 +661,3 @@ However, the optimisation that seems immediately apparent to
 changed this might report that it is unchanged even though it has.
 However, it is possible that the ODE controller could know that we are
 working with an OdeTarget and therefore nothing needs doing.
-

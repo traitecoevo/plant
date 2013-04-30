@@ -62,6 +62,7 @@ void Spline::reset() {
 }
 
 // Compute the value of the spline at point `x=u`
+// TODO: this will crash if called before `init`.
 double Spline::eval(double u) const {
   return gsl_spline_eval(spline, u, acc);
 }
