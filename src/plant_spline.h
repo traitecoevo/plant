@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_PLANT_SPLINE_
-#define TREE_PLANT_SPLINE_
+#ifndef TREE_PLANT_SPLINE_H_
+#define TREE_PLANT_SPLINE_H_
 
 #include "plant.h"
 #include "spline.h"       // light environment

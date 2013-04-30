@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_METACOMMUNITY_
-#define TREE_METACOMMUNITY_
+#ifndef TREE_METACOMMUNITY_H_
+#define TREE_METACOMMUNITY_H_
 
 #include <Rcpp.h>
 #include "patch.h"

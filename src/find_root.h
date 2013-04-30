@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_FIND_ROOT_
-#define TREE_FIND_ROOT_
+#ifndef TREE_FIND_ROOT_H_
+#define TREE_FIND_ROOT_H_
 
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_math.h>

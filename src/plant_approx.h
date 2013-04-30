@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_PLANT_APPROX_
-#define TREE_PLANT_APPROX_
+#ifndef TREE_PLANT_APPROX_H_
+#define TREE_PLANT_APPROX_H_
 
 #include "plant_spline.h"
 

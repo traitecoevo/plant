@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_LOOKUP_
-#define TREE_LOOKUP_
+#ifndef TREE_LOOKUP_H_
+#define TREE_LOOKUP_H_
 
 #include <string>
 #include <map>

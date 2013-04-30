@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_PATCH_
-#define TREE_PATCH_
+#ifndef TREE_PATCH_H_
+#define TREE_PATCH_H_
 
 #include <vector>
 

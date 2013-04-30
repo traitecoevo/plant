@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_INTEGRATOR_
-#define TREE_INTEGRATOR_
+#ifndef TREE_INTEGRATOR_H_
+#define TREE_INTEGRATOR_H_
 
 #include <gsl/gsl_integration.h>
 #include "functor.h"

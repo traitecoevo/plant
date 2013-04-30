@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_SPECIES_
-#define TREE_SPECIES_
+#ifndef TREE_SPECIES_H_
+#define TREE_SPECIES_H_
 
 #include <list>
 

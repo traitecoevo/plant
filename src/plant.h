@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_PLANT_
-#define TREE_PLANT_
+#ifndef TREE_PLANT_H_
+#define TREE_PLANT_H_
 
 #include <Rcpp.h>
 

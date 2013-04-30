@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_STRATEGY_
-#define TREE_STRATEGY_
+#ifndef TREE_STRATEGY_H_
+#define TREE_STRATEGY_H_
 
 #include <Rcpp.h>
 #include <string>

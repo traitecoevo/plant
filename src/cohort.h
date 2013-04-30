@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_COHORT_
-#define TREE_COHORT_
+#ifndef TREE_COHORT_H_
+#define TREE_COHORT_H_
 
 #include "ode_target.h"
 #include "strategy.h"

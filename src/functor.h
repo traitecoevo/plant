@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_FUNCTOR_
-#define TREE_FUNCTOR_
+#ifndef TREE_FUNCTOR_H_
+#define TREE_FUNCTOR_H_
 
 // Something much flasher than this exists in Boost already, but we're
 // reluctant to depend on boost because it's so massive.

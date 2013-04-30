@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_PARAMETERS_
-#define TREE_PARAMETERS_
+#ifndef TREE_PARAMETERS_H_
+#define TREE_PARAMETERS_H_
 
 #include <Rcpp.h>
 
