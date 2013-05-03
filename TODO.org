@@ -10,3 +10,6 @@ Rcpp::error instead.
 * Consistency
 
 - consistency of iterator typedefs (and others)
+
+* How do patches cope with being stepped when empty?
+(e.g., post disturbance)
