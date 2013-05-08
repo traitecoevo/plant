@@ -682,3 +682,24 @@ However, the optimisation that seems immediately apparent to
 changed this might report that it is unchanged even though it has.
 However, it is possible that the ODE controller could know that we are
 working with an OdeTarget and therefore nothing needs doing.
+
+# Mutation and countable types
+
+At the moment, everything is set up on the assumption of a small and
+countable number of types.
+
+If mutation is common and if every individual can have a different
+strategy, the Species class disappears and we have a Patch of
+individuals, each with their own strategy.
+
+If mutation is rare enough, successful types may not have changed very
+much and the Species idea might be useful enough to keep.
+
+There may be a memory cost of having so many different individuals
+with their own parameters.  I'm not sure that this will actually be a
+problem in practice, but it could drastically increase the memory
+requirements.  If it does, it's possible that there is a time/space
+tradeoff where we store a set of "differences" from a base strategy,
+where only a subset of traits actually change.  Then on lookup there
+is a time cost for doing the two stage lookup -- possibly quite bad if
+we have to go through a name lookup using strings or something.
