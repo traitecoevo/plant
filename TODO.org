@@ -1,7 +1,9 @@
 * Rcpp error handling
 
 Should not do Rf_error(), as that longjmp's over destructors.  Use
-Rcpp::error instead.
+Rcpp::error instead.  However, this is made difficult by the lack of
+printf-like behaviour there.  Most Rf_error calls currently compose
+strings, and this is hard in C++ code, apparently.
 
 * Interfaces:
 
