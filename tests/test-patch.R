@@ -23,7 +23,7 @@ expect_that(length(patch$species), equals(1))
 expect_that(patch$species[[1]]$plants, is_identical_to(list()))
 
 ## And the height must be zero
-expect_that(patch$height_max, is_identical_to(0.0))
+expect_that(patch$height_max, is_identical_to(cmp$height))
 
 ## Add a single seed to this
 patch$add_seedlings(1)

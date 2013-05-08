@@ -126,10 +126,14 @@ size_t Species<Individual>::size() const {
   return plants.size();
 }
 
+// If a species contains no individuals, we return the height of a
+// seed of the species.  Otherwise we return the height of the largest
+// individual (always the first in the list) which will be at least
+// tall as a seed.
 template <class Individual>
 double Species<Individual>::height_max() const {
   if ( size() == 0 )
-    return 0.0;
+    return seed.get_height();
   else
     return plants.begin()->get_height();
 }

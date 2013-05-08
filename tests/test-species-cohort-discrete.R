@@ -9,7 +9,7 @@ cmp <- new(Plant, s)
 sp <- new(SpeciesC, s)
 expect_that(sp$size, equals(0))
 expect_that(sp$n_individuals, equals(0))
-expect_that(sp$height_max, is_identical_to(0.0))
+expect_that(sp$height_max, is_identical_to(cmp$height))
 
 sp$add_seeds(2)
 expect_that(sp$size, equals(1))

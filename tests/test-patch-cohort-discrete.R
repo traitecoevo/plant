@@ -12,8 +12,8 @@ cmp <- new(Plant, p[[1]])
 patch.p <- new(Patch,  p)
 patch.c <- new(PatchC, p)
 
-expect_that(patch.p$height_max, is_identical_to(0.0))
-expect_that(patch.c$height_max, is_identical_to(0.0))
+expect_that(patch.p$height_max, is_identical_to(cmp$height))
+expect_that(patch.c$height_max, is_identical_to(cmp$height))
 
 ## Add a single seed.
 patch.p$add_seedlings(1)

@@ -287,8 +287,11 @@ size_t Patch<Individual>::size() const {
   return species.size();
 }
 
-// Maxiumum height for any species in the Patch.  Empty patches (no
-// species or no individuals) have height 0.
+// Maximum height for any species in the Patch.
+//
+// Patches with no species have height 0.
+// Patches with no individuals have the height of the tallest seedling
+// of all species.
 template <class Individual>
 double Patch<Individual>::height_max() const {
   double ret = 0.0;
@@ -315,6 +318,10 @@ double Patch<Individual>::canopy_openness(double height) {
 }
 
 // Create the spline the characterises the light environment.
+//
+// This needs to be done at least to the height of a seed of the
+// tallest species or the height of the tallest individual over all
+// species.
 template <class Individual>
 void Patch<Individual>::compute_light_environment() {
   // Naive version -- push out to to body of class
