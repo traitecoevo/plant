@@ -206,10 +206,9 @@ std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
   const double p_dispersal = parameters->Pi_0;
   for ( size_t i = 0; i < seeds.size(); i++ ) {
     if ( seeds[i] > 0 ) {
-      const double p =
-	p_dispersal * species[i].germination_probability(&light_environment);
-      if ( p > 0 )
-	seeds[i] = (int)Rf_rbinom(seeds[i], p);
+      const double p = p_dispersal * 
+	species[i].germination_probability(&light_environment);
+      seeds[i] = p > 0 ? (int)Rf_rbinom(seeds[i], p) : 0.0;
     }
   }
   return seeds;
