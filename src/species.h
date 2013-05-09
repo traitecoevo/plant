@@ -138,12 +138,21 @@ double Species<Individual>::height_max() const {
     return plants.begin()->get_height();
 }
 
+// Because of plants are always ordered from largest to smallest, we
+// need not continue down the list once the leaf area above a certain
+// height is zero, because it will be zero for all plants further down
+// the list.
 template <class Individual>
 double Species<Individual>::leaf_area_above(double height) const {
   double tot = 0.0;
   for ( plants_const_iterator it = plants.begin();
-	it != plants.end(); it++ )
-    tot += it->leaf_area_above(height);
+	it != plants.end(); it++ ) {
+    const double a = it->leaf_area_above(height);
+    if (a > 0)
+      tot += a;
+    else
+      break;
+  }
   return tot;
 }
 
