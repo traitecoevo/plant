@@ -357,6 +357,20 @@ In the EBT version of the model there is the idea of "seed rain",
 which I have yet to add in.  Need to think about how this is done, and
 how necessary it is in the stochastic version.
 
+It would be good if seed rain was activatable at both the the Patch
+and the Metacommunity; that way once seed rain has stabilised at the
+Metacommunity level, we can easily run individual patches with that
+level of seed (simulating a new patch that has no effect on the other
+patches).  This brings the individual based simulation more closely in
+alignment with the EBT.
+
+In theory this is quite simple -- if the seed rain is a constant
+process, unaffected by the model itself, then it is representable by a
+vector of rates (r1, r2, ..., rn) for n strategies; over a period of
+time dt, the expected number of seeds that arrive is then Poisson
+distributed with mean ri * dt for the ith species.  We can just take a
+draw of that many seeds and add them to the seed input from dispersal.
+
 ## Parameters
 
 We need a pointer to all the parameters that we can use to seed new
