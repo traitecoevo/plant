@@ -58,3 +58,16 @@ expect_that(tree_module$test_to_rcpp_matrix(list(a, b)),
             is_identical_to(cbind(a, b, deparse.level=0)))
 expect_that(tree_module$test_from_rcpp_matrix(cbind(a, b)),
             is_identical_to(list(a, b)))
+
+## Test the simple finite differencing gradient function.
+gradient.fd.forward <- function(f, x, dx)
+  (f(x + dx) - f(x)) / dx
+gradient.fd.centre <- function(f, x, dx)
+  (f(x + dx/2) - f(x - dx/2)) / dx
+
+dx <- 0.001
+x <- 1
+expect_that(tree_module$test_gradient(x, dx, FALSE, pars),
+            is_identical_to(gradient.fd.forward(f, x, dx)))
+expect_that(tree_module$test_gradient(x, dx, TRUE, pars),
+            is_identical_to(gradient.fd.centre(f, x, dx)))

@@ -26,6 +26,7 @@
 #include "functor.h"
 #include "find_root.h"
 #include "integrator.h"
+#include "gradient.h"
 
 RCPP_MODULE(tree) {
   Rcpp::class_<spline::Spline>("Spline")
@@ -270,6 +271,7 @@ RCPP_MODULE(tree) {
 		 &util::test::test_to_rcpp_matrix);
   Rcpp::function("test_from_rcpp_matrix",
 		 &util::test::test_from_rcpp_matrix);
+  Rcpp::function("test_gradient",   &util::test::test_gradient);
 
   // Useful functions
   Rcpp::function("set_sane_gsl_error_handling",
