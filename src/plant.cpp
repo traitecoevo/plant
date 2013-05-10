@@ -250,9 +250,13 @@ double Plant::fecundity_rate() const {
   return vars.fecundity_rate;
 }
 
-// This one is a bit different.
+// This one is a bit different, as it converts from the mean of the
+// poisson process (on [0,Inf)) to a probability (on [0,1]).
 double Plant::mortality_probability() const {
-  return 1 - exp(-vars.mortality);
+  return 1 - exp(-mortality());
+}
+double Plant::survival_probability() const {
+  return exp(-mortality());
 }
 
 // * Private methods
