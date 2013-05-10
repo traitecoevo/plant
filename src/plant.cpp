@@ -179,6 +179,11 @@ bool Plant::died() {
 }
 
 // [eqn 20] Survival of seedlings during germination
+//
+// NOTE: This does not check/enforce that mass_leaf is set to the seed
+// mass leaf (so this is actually the germination probability of a
+// plant that happens to be the current size).  This might be
+// something to change.
 double Plant::germination_probability(spline::Spline *env) {
   compute_vars_phys(env);
   if ( vars.net_production > 0 ) {
