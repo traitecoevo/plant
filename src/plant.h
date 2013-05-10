@@ -78,9 +78,23 @@ public:
   bool r_died();
 
 protected:
-  double mortality_rate() const;
-  double mortality_probability() const;
+  // Accessors to the key variables / rates, for cases where these are
+  // not public.
+  // mass_leaf() -- public
+  // set_mass_leaf() -- public
+  double mass_leaf_rate() const; // this is "growth rate"
+
+  double mortality() const;
   void set_mortality(double x);
+  double mortality_rate() const;
+
+  double fecundity() const;
+  void set_fecundity(double x);
+  double fecundity_rate() const;
+
+  // These are derived from mortality() -- see design.md.
+  double mortality_probability() const;
+  double survival_probability() const;
 
 private:
   // * Individual size

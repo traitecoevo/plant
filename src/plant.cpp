@@ -92,8 +92,8 @@ double Plant::get_height() const {
 void Plant::set_mass_leaf(double mass_leaf_) {
   if ( mass_leaf_ <= 0.0 )
     Rf_error("mass_leaf must be positive (given %2.5f)", mass_leaf_);
-  // if ( mass_leaf_ != mass_leaf )
-  compute_vars_size(mass_leaf_);
+  if ( mass_leaf_ != mass_leaf() )
+    compute_vars_size(mass_leaf_);
 }
 
 // If we can set it, we can get it
@@ -195,27 +195,23 @@ size_t Plant::ode_size() const {
 }
 
 ode::iter_const Plant::ode_values_set(ode::iter_const it) {
-  const double m = *it++;
-  if ( vars.mass_leaf != m )
-    set_mass_leaf(m);
-
-  vars.mortality = *it++;
-  vars.fecundity = *it++;
-
+  set_mass_leaf(*it++);
+  set_mortality(*it++);
+  set_fecundity(*it++);
   return it;
 }
 
 ode::iter Plant::ode_values(ode::iter it) const {
-  *it++ = vars.mass_leaf;
-  *it++ = vars.mortality;
-  *it++ = vars.fecundity;
+  *it++ = mass_leaf();
+  *it++ = mortality();
+  *it++ = fecundity();
   return it;
 }
 
 ode::iter Plant::ode_rates(ode::iter it) const {
-  *it++ = vars.growth_rate;
-  *it++ = vars.mortality_rate;
-  *it++ = vars.fecundity_rate;
+  *it++ = mass_leaf_rate();
+  *it++ = mortality_rate();
+  *it++ = fecundity_rate();
   return it;
 }
 
@@ -224,14 +220,34 @@ ode::iter Plant::ode_rates(ode::iter it) const {
 // These methods protected partly because they require that
 // compute_vars_phys to be run before these will give sensible
 // answers.
-double Plant::mortality_rate() const {
-  return vars.mortality_rate;
+
+double Plant::mass_leaf_rate() const {
+  return vars.growth_rate;
 }
-double Plant::mortality_probability() const {
-  return 1 - exp(-vars.mortality);
+
+double Plant::mortality() const {
+  return vars.mortality;
 }
 void Plant::set_mortality(double x) {
   vars.mortality = x;
+}
+double Plant::mortality_rate() const {
+  return vars.mortality_rate;
+}
+
+double Plant::fecundity() const {
+  return vars.fecundity;
+}
+void Plant::set_fecundity(double x) {
+  vars.fecundity = x;
+}
+double Plant::fecundity_rate() const {
+  return vars.fecundity_rate;
+}
+
+// This one is a bit different.
+double Plant::mortality_probability() const {
+  return 1 - exp(-vars.mortality);
 }
 
 // * Private methods
