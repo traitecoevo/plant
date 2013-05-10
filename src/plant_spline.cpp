@@ -90,7 +90,7 @@ void PlantSpline::initialise(double mass_leaf_max, int n_plants) {
   if ( n_plants < 5 )
     ::Rf_error("Need at least 5 plants");
 
-  mass_leaf = util::seq_len(seed.get_mass_leaf(), mass_leaf_max, n_plants);
+  mass_leaf = util::seq_len(seed.mass_leaf(), mass_leaf_max, n_plants);
 
   Plant p(seed);
   plants.clear(); // defensive, as only used in constructors.

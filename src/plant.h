@@ -17,7 +17,7 @@ public:
   virtual ~PlantBase() {};
   virtual double get_height() const = 0;
   virtual void set_mass_leaf(double mass_leaf_) = 0;
-  virtual double get_mass_leaf() const = 0;
+  virtual double mass_leaf() const = 0;
   virtual double leaf_area_above(double z) const = 0;
   virtual void compute_vars_phys(spline::Spline *env) = 0;
   virtual double germination_probability(spline::Spline *env) = 0;
@@ -43,7 +43,7 @@ public:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
   void set_mass_leaf(double mass_leaf_);
-  double get_mass_leaf() const;
+  double mass_leaf() const;
   double get_height() const;
 
   // * Competitive environment

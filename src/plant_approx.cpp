@@ -21,7 +21,7 @@ ode::iter PlantApprox::ode_rates(ode::iter it) const {
   if ( large_plant_do_exact() )
     return Plant::ode_rates(it);
   else
-    return plant_spline->ode_rates(get_mass_leaf(), it);
+    return plant_spline->ode_rates(mass_leaf(), it);
 }
 
 void PlantApprox::r_compute_vars_phys(spline::Spline env) {
@@ -30,7 +30,7 @@ void PlantApprox::r_compute_vars_phys(spline::Spline env) {
 }
 
 bool PlantApprox::large_plant_do_exact() const {
-  return get_mass_leaf() > plant_spline->mass_leaf_max();
+  return mass_leaf() > plant_spline->mass_leaf_max();
 }
 
 }

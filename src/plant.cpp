@@ -97,7 +97,7 @@ void Plant::set_mass_leaf(double mass_leaf_) {
 }
 
 // If we can set it, we can get it
-double Plant::get_mass_leaf() const {
+double Plant::mass_leaf() const {
   return vars.mass_leaf;
 }
 

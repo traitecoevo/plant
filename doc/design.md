@@ -22,7 +22,7 @@ given a light environment.
 
 The key things that an indiviual needs to be able to:
 
-* `get_height`, `get_mass_leaf`, `set_mass_leaf`: return its height and
+* `get_height`, `mass_leaf`, `set_mass_leaf`: return its height and
   leaf mass, also set the leaf mass. [1]
 * `compute_vars_phys`: given a light environment, update a number of
   physiological variables.  Could be seen as

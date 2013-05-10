@@ -220,7 +220,7 @@ std::vector<double> Species<Individual>::r_get_mass_leaf() const {
   std::vector<double> ret;
   plants_const_iterator p = plants.begin(); 
   while ( p != plants.end() )
-    ret.push_back((p++)->get_mass_leaf());
+    ret.push_back((p++)->mass_leaf());
   return ret;
 }
 
