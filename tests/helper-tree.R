@@ -32,7 +32,6 @@ if ( !exists("Spline") ) {
   PlantApprox    <- tree_module$PlantApprox
 
   ## Slightly different to the other Individuals...
-  Cohort         <- tree_module$Cohort
 
   Species <- tree_module$Species
   SpeciesC <- tree_module$SpeciesC

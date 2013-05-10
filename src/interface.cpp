@@ -15,7 +15,6 @@
 #include "parameters.h"
 #include "plant.h"
 #include "cohort_discrete.h"
-#include "cohort.h"
 #include "plant_spline.h"
 #include "plant_approx.h"
 
@@ -155,11 +154,6 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::PlantApprox>("PlantApprox")
     .derives<model::Plant>("Plant")
     .constructor<model::Strategy, model::PlantSpline>()
-    ;
-
-  Rcpp::class_<model::Cohort>("Cohort")
-    .constructor<model::Strategy>()
-    .derives<ode::OdeTarget>("OdeTarget")
     ;
 
   Rcpp::class_<model::SpeciesBase>("SpeciesBase")
