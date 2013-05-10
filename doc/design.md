@@ -175,6 +175,85 @@ Previously, the key bits of cohort change were:
 We must be able to push new cohorts onto a list.  Probably to match
 the individual based model, we should push on the back.
 
+There are two different sorts of cohorts that were previously rolled
+together:
+
+* CohortMean -- based around the mean value of a potentially large
+  number of individuals within a cohort.  This is the "traditional"
+  EBT model, and requires some care at the bottom individual.
+* CohortTop -- based around the size of the largest individual.
+
+The first of these involves more approximations, and should be less
+accurate than the second.
+
+What I'm really not sure about is -- is a cohort a type of plant
+(inheritance) or does it contain a plant (composition).
+
+#### CohortMean:
+
+For cohorts *except* the smallest (i = 2, ..., k)
+
+Define the number of individuals, $\lambda_i$ as
+$\integrate_{\Omega_i} n(x, m, a) \mathrm{d}m$.
+
+The rate of change in the number of individuals is
+$-\integrate_{\Omega_i} d(x, m, a) n(x, m, a) \mathrm{d}m$
+which is approximately
+$-d(x, \mu_i, E)\lambda_i$.
+
+This is the only extra piece of work.  The fecundity rate is as
+before, and survival is through the death rate, as before.
+
+This probably wants to be a special case of Plant, as we'll just use
+the machinery directly.  That must be easier than having to set up
+forwarding methods for everything.
+
+#### CohortTop
+
+* Size increases simply with the growth rate.
+* Mortality "variable" increases with the mortality rate (survival is
+  exp(-mortality))
+* Density of individuals (n(x,m,a)) requires an extra trick or two.
+  $n(x,m,a) = n(x,m_0,a_0) exp(-\integrate_{a_0}^a X(a') da')$
+  where
+  $X(a') = \partial growth_rate/ \partial m + death_rate$ -- we can
+  integrate that X(a') over time with the ODE stepper.
+* Seed production: $pi_0 * pi_1(x, m_0, a_0) \integrate_{a_0}^a F(a') da'$
+  $F(a') = fecundity_rate(a') * S_I(a') * S_P(a')$
+
+To compute the partial differential equation, suppose we have a
+function that returns growth rate for a given mass.  Then, we can bind
+that with a Functor and pass it to a gradient finding function.  This
+would be a target for eventual replacement with a better adaptive
+gradient calculation function, or with calculation using the
+approximate plant idea.
+
+The survival calculation is a bit tricky.  In the document that Daniel
+has made, we have see production has
+
+$$
+R(x, a_0, a) =
+\pi_1(x, m_0, a_0)\int_{a_0}^a \pi_0 * f(m(a_0, a'), a') *
+  S_I(a_0, a') * S_P(a_0, a') d a'
+$$
+
+where $\pi_1$ is the germination probability.  Note that
+
+$$
+S_i(a_0, a) = \exp(-\int_{a_0}^a d(m(a_0, a')) d a')
+$$
+
+which is simply the probability not dying between $a_0$ and $a$.  So
+$1-\pi_1$ could become the initial condition for that.
+
+In some ways it would be good to hijack the seed production bits
+within Plant, but we don't because that could get a little confusing.
+So we use a new variable `fecundity_survival_weighted`.
+
+Computing the initial survival needs to be done as a cohort is added.
+It is not necessary as it is *created* though, and initial survival is
+set to 1 on creation.
+
 ### More on PlantApprox
 
 The deterministic part can be done more carefully; suppose that we
