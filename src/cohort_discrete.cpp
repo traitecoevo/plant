@@ -35,11 +35,12 @@ int CohortDiscrete::offspring() {
 }
 
 bool CohortDiscrete::died() {
+  const double p_died = mortality_probability();
   if ( n_individuals > 1 )
-    n_individuals -= Rf_rbinom(n_individuals, mortality());
+    n_individuals -= Rf_rbinom(n_individuals, p_died);
   else if ( n_individuals == 1 ) // ensures same RNG behaviour as Plant
-    n_individuals = unif_rand() < mortality() ? 0 : 1;
-  mortality_reset();
+    n_individuals = unif_rand() < p_died ? 0 : 1;
+  set_mortality(0.0);
   if ( n_individuals < 0 )
     Rf_error("Somehow we have negative individuals!");
   return n_individuals == 0;

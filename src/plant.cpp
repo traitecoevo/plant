@@ -173,8 +173,8 @@ int Plant::offspring() {
 }
 
 bool Plant::died() {
-  const int did_die = unif_rand() < mortality();
-  mortality_reset();
+  const int did_die = unif_rand() < mortality_probability();
+  set_mortality(0.0);
   return did_die;
 }
 
@@ -219,12 +219,19 @@ ode::iter Plant::ode_rates(ode::iter it) const {
   return it;
 }
 
-// * Proteceted methods
-double Plant::mortality() const {
+// * Protected methods
+
+// These methods protected partly because they require that
+// compute_vars_phys to be run before these will give sensible
+// answers.
+double Plant::mortality_rate() const {
+  return vars.mortality_rate;
+}
+double Plant::mortality_probability() const {
   return 1 - exp(-vars.mortality);
 }
-void Plant::mortality_reset() {
-  vars.mortality = 0.0;
+void Plant::set_mortality(double x) {
+  vars.mortality = x;
 }
 
 // * Private methods

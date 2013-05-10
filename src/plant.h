@@ -78,8 +78,9 @@ public:
   bool r_died();
 
 protected:
-  double mortality() const;
-  void mortality_reset();
+  double mortality_rate() const;
+  double mortality_probability() const;
+  void set_mortality(double x);
 
 private:
   // * Individual size

@@ -796,3 +796,18 @@ tradeoff where we store a set of "differences" from a base strategy,
 where only a subset of traits actually change.  Then on lookup there
 is a time cost for doing the two stage lookup -- possibly quite bad if
 we have to go through a name lookup using strings or something.
+
+# Unsorted issues
+
+## Mortality
+
+There are a couple of things weird about mortality:
+
+* `mortality_rate` is the instantaneous death rate
+* `mortality` is the integration of `mortality_rate` from some initial
+  time to the present.
+* `mortality_probability` is `1 - exp(-mortality_rate)` -- the
+  probability that the plant has died between the initial time and the
+  present (based on the 1 minus probability that exactly zero events
+  happened with a mean number of events of `mortality_rate` from a
+  Poisson distribution).
