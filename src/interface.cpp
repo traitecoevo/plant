@@ -18,6 +18,8 @@
 #include "plant_spline.h"
 #include "plant_approx.h"
 
+#include "cohort_top.h"
+
 #include "patch.h"
 
 #include "metacommunity.h"
@@ -154,6 +156,19 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::PlantApprox>("PlantApprox")
     .derives<model::Plant>("Plant")
     .constructor<model::Strategy, model::PlantSpline>()
+    ;
+
+  Rcpp::class_<model::CohortTop>("CohortTop")
+    .constructor<model::Strategy>()
+    .derives<model::Plant>("Plant")
+    .method("compute_vars_phys_surv",
+	    &model::CohortTop::r_compute_vars_phys_surv)
+    .method("compute_initial_conditions",
+	    &model::CohortTop::r_compute_initial_conditions)
+    .method("growth_rate_gradient",
+	    &model::CohortTop::r_growth_rate_gradient)
+    .method("growth_rate_given_mass",
+	    &model::CohortTop::r_growth_rate_given_mass)
     ;
 
   Rcpp::class_<model::SpeciesBase>("SpeciesBase")

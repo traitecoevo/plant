@@ -254,6 +254,14 @@ Computing the initial survival needs to be done as a cohort is added.
 It is not necessary as it is *created* though, and initial survival is
 set to 1 on creation.
 
+There is a real ugliness in this at the moment: to compute the seed
+output, we need to know the *patch* survival.  This is something that
+we never need to know for the individual-based model.  This means that
+`compute_vars_phys` needs its signature updated, but we can't overload
+it because it's a virtual function.  At this point, I've called it
+`compute_vars_phys_surv`, as it's really both physiology and
+survival.  This will hopefully change.
+
 ### More on PlantApprox
 
 The deterministic part can be done more carefully; suppose that we
