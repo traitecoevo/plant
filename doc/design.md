@@ -503,6 +503,16 @@ and lifespan of the parameter pointers.
 Need to decide on names for accessor functions.  Probably change
 `set_params` to `set_parameters` to continue avoiding abbreviations.
 
+## Control
+
+In contrast with Parameters, this is where I'm thinking we can dump
+all the algorithmic control parameters.  The separation is fairly
+arbitrary, of course.  Not sure how we'll assign these, but thinking
+something like the way that strategy is done on pointers seems about
+right.  We can just provide one on construction?  Then bundle it
+together with Parameters so that only Species & Plant need to bother
+about getting one specially.
+
 # Design issues:
 
 ## Standalone Plants, Populations, etc.

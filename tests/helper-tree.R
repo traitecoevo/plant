@@ -24,6 +24,7 @@ if ( !exists("Spline") ) {
   OdeR   <- tree_module$OdeR
 
   Strategy    <- tree_module$Strategy
+  Control     <- tree_module$Control
   Parameters  <- tree_module$Parameters
   PlantSpline <- tree_module$PlantSpline # poorly named...
 

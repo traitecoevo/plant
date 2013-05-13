@@ -13,6 +13,8 @@
 
 #include "strategy.h"
 #include "parameters.h"
+#include "control.h"
+
 #include "plant.h"
 #include "cohort_discrete.h"
 #include "plant_spline.h"
@@ -104,6 +106,12 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<model::Strategy>("Strategy")
+    .derives<util::Lookup>("Lookup")
+    .constructor()
+    .constructor<Rcpp::List>()
+    ;
+
+  Rcpp::class_<model::Control>("Control")
     .derives<util::Lookup>("Lookup")
     .constructor()
     .constructor<Rcpp::List>()
