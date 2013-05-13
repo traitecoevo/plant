@@ -12,7 +12,9 @@ expected <- list(
   cohort_gradient_richardson_depth = as.numeric(4L),
   plant_assimilation_iterations = as.numeric(1000L),
   plant_assimilation_over_distribution = as.numeric(FALSE),
-  plant_assimilation_tol = as.numeric(1e-6)
+  plant_assimilation_tol = as.numeric(1e-6),
+  plant_seed_iterations = as.numeric(1000L),
+  plant_seed_tol = as.numeric(1e-6)
   )
 
 keys <- sort(names(expected))
