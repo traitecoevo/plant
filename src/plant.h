@@ -15,9 +15,20 @@ namespace model {
 class PlantBase : public ode::OdeTarget {
 public:
   virtual ~PlantBase() {};
-  virtual double get_height() const = 0;
-  virtual void set_mass_leaf(double mass_leaf_) = 0;
+  // * "Key" variables.
   virtual double mass_leaf() const = 0;
+  virtual void set_mass_leaf(double mass_leaf_) = 0;
+  virtual double mass_leaf_rate() const = 0;
+  virtual double mortality() const = 0;
+  virtual void set_mortality(double x) = 0;
+  virtual double mortality_rate() const = 0;
+  virtual double fecundity() const = 0;
+  virtual void set_fecundity(double x) = 0;
+  virtual double fecundity_rate() const = 0;
+  // * The rest
+  virtual double get_height() const = 0;
+  virtual double mortality_probability() const = 0;
+  virtual double survival_probability() const = 0;
   virtual double leaf_area_above(double z) const = 0;
   virtual void compute_vars_phys(spline::Spline *env) = 0;
   virtual double germination_probability(spline::Spline *env) = 0;
@@ -43,7 +54,25 @@ public:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
   void set_mass_leaf(double mass_leaf_);
+
+  // Accessors to the key variables / rates.
   double mass_leaf() const;
+  // void set_mass_leaf(); -- see above.
+  double mass_leaf_rate() const; // this is "growth rate"
+
+  double mortality() const;
+  void set_mortality(double x);
+  double mortality_rate() const;
+
+  double fecundity() const;
+  void set_fecundity(double x);
+  double fecundity_rate() const;
+
+  // These are derived from mortality() -- see design.md.
+  double mortality_probability() const;
+  double survival_probability() const;
+
+  // Also need access to height.
   double get_height() const;
 
   // * Competitive environment
@@ -76,25 +105,6 @@ public:
   void r_compute_vars_phys(spline::Spline env);
   double r_germination_probability(spline::Spline env);
   bool r_died();
-
-protected:
-  // Accessors to the key variables / rates, for cases where these are
-  // not public.
-  // mass_leaf() -- public
-  // set_mass_leaf() -- public
-  double mass_leaf_rate() const; // this is "growth rate"
-
-  double mortality() const;
-  void set_mortality(double x);
-  double mortality_rate() const;
-
-  double fecundity() const;
-  void set_fecundity(double x);
-  double fecundity_rate() const;
-
-  // These are derived from mortality() -- see design.md.
-  double mortality_probability() const;
-  double survival_probability() const;
 
 private:
   // * Individual size
