@@ -27,7 +27,7 @@ double gradient_fd_centre(DFunctor *f, double x, double dx) {
 //
 // We start with deviation from x of d * x, unless x is almost zero
 // (determined by being smaller than zero_tol) in which case we use
-// eps as the deviation.
+// d as the absolute deviation.
 
 //------------------------------------------------------------------------
 //   Applying Richardson Extrapolation to improve the accuracy of
@@ -46,12 +46,12 @@ double gradient_fd_centre(DFunctor *f, double x, double dx) {
 //	 value of m by one each until m equals r-1
 //
 //-------------------------------------------------------------------------
-double gradient_richardson(DFunctor *f, double x) {
-  const int v = 2; // this is required by scheme (above)
-  const int r = 4; // this should be tuneable (number of iterations)
+double gradient_richardson(DFunctor *f, double x, double d, int r) {
+  const int v = 2; // this value is required by scheme (above)
+  const double zero_tol = sqrt(DOUBLE_EPS)/7e-7;
 
-  const double d = 1e-4, eps = 1e-4, zero_tol = sqrt(DOUBLE_EPS)/7e-7;
-  double h = fabs(d * x) + eps * (fabs(x) < zero_tol);
+  // Initial offset (see above).
+  double h = fabs(d * x) + d * (fabs(x) < zero_tol);
 
   std::vector<double> a;
   for (int i = 0; i < r; i++, h /= v)
@@ -79,12 +79,13 @@ double test_gradient(double x, double dx, bool centre,
     gradient_fd_forward(&fun, x, dx);
 }
 
-double test_gradient_richardson(double x, std::vector<double> pars) {
+double test_gradient_richardson(double x, double d, int r,
+				std::vector<double> pars) {
   util::check_length(pars.size(), 3);
   Quadratic obj(pars[0], pars[1], pars[2]);
   Functor<Quadratic, &Quadratic::mytarget> fun(&obj);
 
-  return gradient_richardson(&fun, x);
+  return gradient_richardson(&fun, x, d, r);
 }
 }
 

@@ -11,6 +11,7 @@ coh <- new(CohortTop, s)
 
 ## Set up cohort with empty light environment
 h <- seq(0, 2 * plant$height, length=10)
+h <- seq(0, 20, length=10)
 env <- new(Spline)
 env$init(h, rep(1.0, length(h)))
 
@@ -48,13 +49,14 @@ grad.forward <- function(f, x, dx, ...) {
 expect_that(growth.rate.given.mass(plant$mass_leaf, p2, env),
             equals(plant$vars_phys[["growth_rate"]]))
 
+method.args <- list(d=1e-6, eps=1e-6)
 dgdm.accurate <- grad(growth.rate.given.mass, plant$mass_leaf,
-                      p=p2, env=env) #, method.args=list(show.details=TRUE))
+                      p=p2, env=env, method.args=method.args)
 dgdm.simple <- grad(growth.rate.given.mass, plant$mass_leaf,
-                    "simple", method.args=list(eps=1e-6),
+                    "simple", method.args=method.args,
                     p=p2, env=env)
 dgdm.forward <- grad.forward(growth.rate.given.mass, plant$mass_leaf,
-                             1e-6, p=p2, env=env)
+                             method.args$eps, p=p2, env=env)
 
 dgdm <- coh$growth_rate_gradient(env)
 expect_that(dgdm, is_identical_to(dgdm.forward))

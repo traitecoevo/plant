@@ -100,10 +100,15 @@ double CohortTop::r_growth_rate_given_mass(double mass_leaf,
 // This is the gradient with respect to mass_leaf.  It is needed for
 // computing the derivative (wrt time) of the density of individuals.
 double CohortTop::growth_rate_gradient(spline::Spline *env) const {
-  const double d_mass_leaf = 1e-6; // TODO: Constant/untunable for now
   CohortTop tmp = *this;
   FunctorBind2<CohortTop, spline::Spline*,
 	       &CohortTop::growth_rate_given_mass> fun(&tmp, env);
+
+  const double d_mass_leaf = 1e-6; // TODO: Constant/untunable for now
+
+  // const int r = 4;
+  // return util::gradient_richardson(&fun, mass_leaf(), d_mass_leaf, r);
+
   return util::gradient_fd_forward(&fun, mass_leaf(),
 				   d_mass_leaf, mass_leaf_rate());
 }
