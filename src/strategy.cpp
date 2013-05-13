@@ -99,8 +99,6 @@ void Strategy::reset() {
   // Will get computed properly by Plant.
   mass_leaf_0 = NA_REAL;
 
-  assimilation_over_distribution = false;
-
   eta_c = NA_REAL;
   k_l = NA_REAL;
 }
@@ -139,10 +137,6 @@ void Strategy::do_build_lookup() {
   lookup_table["c_d1"]   = &c_d1;
   lookup_table["c_d2"]   = &c_d2;
   lookup_table["c_d3"]   = &c_d3;
-
-  // TODO: Not sure why this is not returned.
-  // lookup_table["assimilation_over_distribution"] =
-  //   &assimilation_over_distribution;
 
   // It might be nice to flag some variables as readonly, that way we
   // could return mass_leaf_0, etc_c, and k_l.

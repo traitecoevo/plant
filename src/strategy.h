@@ -75,10 +75,6 @@ private:
   // Leaf mass of a seed
   double mass_leaf_0;
 
-  // Switch between two different algorithms for computing
-  // assimilation:
-  bool assimilation_over_distribution;
-
   // These things are really not to be used by anything, but are all
   // harmless (except for reset, actually).  They're used in
   // construction, and in mantaining the lookup table used to enable

@@ -19,6 +19,9 @@ public:
   double plant_assimilation_tol;
   int    plant_assimilation_iterations;
 
+  double plant_seed_tol;
+  int    plant_seed_iterations;
+
   double cohort_gradient_eps;
   bool   cohort_gradient_richardson;
   int    cohort_gradient_richardson_depth;
@@ -26,6 +29,8 @@ public:
 private:
   double _plant_assimilation_over_distribution;
   double _plant_assimilation_iterations;
+
+  double _plant_seed_iterations;
 
   double _cohort_gradient_richardson;
   double _cohort_gradient_richardson_depth;

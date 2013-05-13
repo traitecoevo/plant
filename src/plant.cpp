@@ -401,18 +401,15 @@ double Plant::mass_leaf_seed(Strategy *s) {
   Plant p(s);
   const double mass_seed = s->s;
 
-  // Here, we compute the leaf mass of a seed
-  util::FunctorRoot<Plant, &Plant::compute_mass_total> 
-    fun(&p, mass_seed);
+  // Functor computing total mass of a seed with mass m, minus the
+  // target seed mass.
+  util::FunctorRoot<Plant, &Plant::compute_mass_total> fun(&p, mass_seed);
 
-  // Constants for control (for now at least)
-  const double atol = 1e-6, rtol = 1e-6;
-  const int max_iterations = 1000;
-  util::RootFinder root(atol, rtol, max_iterations);
+  const double tol = p.control().plant_seed_tol;
+  const int max_iterations = p.control().plant_seed_iterations;
+  util::RootFinder root(tol, tol, max_iterations);
 
-  const double mass_leaf_0 = root.root(&fun, DBL_MIN, mass_seed);
-
-  return mass_leaf_0;
+  return root.root(&fun, DBL_MIN, mass_seed);
 }
 
 // NOTE: This is used only by mass_leaf_seed.
