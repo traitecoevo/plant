@@ -15,11 +15,18 @@ public:
   Control();
   Control(Rcpp::List x);
 
+  bool   plant_assimilation_over_distribution;
+  double plant_assimilation_tol;
+  int    plant_assimilation_iterations;
+
   double cohort_gradient_eps;
   bool   cohort_gradient_richardson;
   int    cohort_gradient_richardson_depth;
 
 private:
+  double _plant_assimilation_over_distribution;
+  double _plant_assimilation_iterations;
+
   double _cohort_gradient_richardson;
   double _cohort_gradient_richardson_depth;
 

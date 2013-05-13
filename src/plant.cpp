@@ -324,10 +324,10 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 double Plant::compute_assimilation(spline::Spline *env) const {
   FunctorBind1<Plant, spline::Spline*,
 	       &Plant::compute_assimilation_x> fun(this, env);
-  const double atol = 1e-6, rtol = 1e-6;
-  const int max_iterations = 1000;
-  util::Integrator integrator(atol, rtol, max_iterations);
-  const double x_max = strategy->assimilation_over_distribution ? 
+  const double tol = control().plant_assimilation_tol;
+  const int max_iterations = control().plant_assimilation_iterations;
+  util::Integrator integrator(tol, tol, max_iterations);
+  const double x_max = control().plant_assimilation_over_distribution ?
     1 : vars.height;
   return vars.leaf_area * integrator.integrate(&fun, 0.0, x_max);
 }
@@ -337,7 +337,7 @@ double Plant::compute_assimilation(spline::Spline *env) const {
 // [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
 // where `z` is height.
 double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
-  if ( strategy->assimilation_over_distribution )
+  if ( control().plant_assimilation_over_distribution )
     return assimilation_leaf(env->eval(Qp(x)));
   else
     return assimilation_leaf(env->eval(x)) * q(x);
