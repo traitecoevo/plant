@@ -283,6 +283,8 @@ RCPP_MODULE(tree) {
   Rcpp::function("test_from_rcpp_matrix",
 		 &util::test::test_from_rcpp_matrix);
   Rcpp::function("test_gradient",   &util::test::test_gradient);
+  Rcpp::function("test_gradient_richardson",
+		 &util::test::test_gradient_richardson);
 
   // Useful functions
   Rcpp::function("set_sane_gsl_error_handling",

@@ -71,3 +71,7 @@ expect_that(tree_module$test_gradient(x, dx, FALSE, pars),
             is_identical_to(gradient.fd.forward(f, x, dx)))
 expect_that(tree_module$test_gradient(x, dx, TRUE, pars),
             is_identical_to(gradient.fd.centre(f, x, dx)))
+
+library(numDeriv)
+expect_that(tree_module$test_gradient_richardson(x, pars),
+            is_identical_to(grad(f, x)))
