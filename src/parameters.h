@@ -35,10 +35,6 @@ public:
   // Setting
   void add_strategy(Strategy s);
 
-  // Algorithm control
-  Control get_control() const;
-  void set_control(Control c);
-
   // Data -- public for now (TODO).
   double mean_disturbance_interval;
   double c_ext;      // Light extinction coefficient

@@ -66,5 +66,5 @@ expect_that(p[[2]]$parameters, is_identical_to(res[[2]]$parameters))
 ctrl <- new(Control)
 expect_that(p$control$parameters, is_identical_to(ctrl$parameters))
 ctrl$set_parameters(list(cohort_gradient_richardson=TRUE))
-p$set_control(ctrl)
+p$control <- ctrl
 expect_that(p$control$parameters, is_identical_to(ctrl$parameters))
