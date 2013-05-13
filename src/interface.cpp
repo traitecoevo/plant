@@ -140,6 +140,7 @@ RCPP_MODULE(tree) {
     .method("offspring",            &model::Plant::offspring)
     .method("died",                 &model::Plant::r_died)
     .property("survival_probability",  &model::Plant::survival_probability)
+    .property("control",            &model::Plant::control)
 
     // R specific access
     .property("strategy",           &model::Plant::r_get_strategy)

@@ -89,6 +89,9 @@ public:
   // [eqn 20] Survival of seedlings during germination
   double germination_probability(spline::Spline *env);
 
+  // * Access the Control parameter.
+  const Control& control() const;
+
   // * ODE interface
   size_t ode_size() const;
   ode::iter_const ode_values_set(ode::iter_const it);

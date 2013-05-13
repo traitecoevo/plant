@@ -43,14 +43,6 @@ Rcpp::List Parameters::r_get_strategies() {
   return ret;
 }
 
-Control Parameters::get_control() const {
-  return control;
-}
-
-void Parameters::set_control(Control c) {
-  control = c;
-}
-
 void Parameters::do_build_lookup() {
   lookup_table["mean_disturbance_interval"] =
     &mean_disturbance_interval;

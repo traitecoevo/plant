@@ -194,6 +194,12 @@ double Plant::germination_probability(spline::Spline *env) {
   }
 }
 
+// * Access the Control parameter
+// NOTE: This might change!
+const Control& Plant::control() const {
+  return strategy->control;
+}
+
 // * ODE interface
 size_t Plant::ode_size() const { 
   return ode_dimension; 
