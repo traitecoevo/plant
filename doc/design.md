@@ -82,6 +82,38 @@ There will be a related individual type `Cohort` that is the
 individual type for the EBT approach.  It will probably be generated
 via composition though, with two individuals (top and mean).
 
+### Key variables
+
+There are a few key variables -- these are plant size (leaf mass),
+mortality and fecundity.  To make the ODE stepping work, we need to be
+able to get and set these variables as well as get the rate of change
+of these.
+
+We also need height in a couple of places.  Given that there is a 1:1
+correspondance between height and seed mass, it might be worth
+reworking all the calculations that way.  The only place that this is
+actually hard is getting dh/dt from d(mass_leaf)/dt.
+
+#### Abstracting these
+
+There is quite a bit of duplication floating around with the key
+variables.  Every one has a get/set/rates function, plus two spots
+somewhere where numbers are stored.  It seems that they could be
+paired together into some generic "ODE variable" type.
+
+These variables are actually kind of weird; we'll often want to access
+them from R (especially for tests), but never from patch etc.  So
+something like
+
+```
+plant$variable("mass_leaf")
+plant$variable("mass_leaf") <- x
+plant$rate("mass_leaf")
+```
+
+could be a nicer way of capturing the dynamics and extend more easily
+to different numbers of traits.
+
 ### Changing plant parameters
 
 Probably don't allow plant parameters to be modified?  Otherwise they
@@ -819,3 +851,6 @@ There are a couple of things weird about mortality:
   present (based on the 1 minus probability that exactly zero events
   happened with a mean number of events of `mortality_rate` from a
   Poisson distribution).
+
+We only really need to use `survival_probability`, so I might remove
+the `mortality_probability` case.
