@@ -5,6 +5,8 @@
 #include <Rcpp.h>
 #include <string>
 
+#include "control.h"
+
 #include "lookup.h"
 #include "util.h"
 
@@ -15,6 +17,9 @@ public:
   typedef util::PtrWrapper<Strategy> ptr;
   Strategy();
   Strategy(Rcpp::List x);
+
+  // This will be accessed by a number of things.
+  Control control;
 
   // All the rest of the class can be accessed only by Plant.
   friend class Plant;
