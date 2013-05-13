@@ -49,7 +49,9 @@ grad.forward <- function(f, x, dx, ...) {
 expect_that(growth.rate.given.mass(plant$mass_leaf, p2, env),
             equals(plant$vars_phys[["growth_rate"]]))
 
-method.args <- list(d=1e-6, eps=1e-6)
+ctrl <- coh$control
+method.args <- list(d=ctrl$parameters$cohort_gradient_eps,
+                    eps=ctrl$parameters$cohort_gradient_eps)
 dgdm.accurate <- grad(growth.rate.given.mass, plant$mass_leaf,
                       p=p2, env=env, method.args=method.args)
 dgdm.simple <- grad(growth.rate.given.mass, plant$mass_leaf,
@@ -62,6 +64,17 @@ dgdm <- coh$growth_rate_gradient(env)
 expect_that(dgdm, is_identical_to(dgdm.forward))
 expect_that(dgdm, equals(dgdm.simple))
 expect_that(dgdm, equals(dgdm.accurate, tolerance=0.002))
+
+## Check with Richardson extrapolation (requires making a whole new
+## Cohort object, as the Control slot is readonly).
+ctrl$set_parameters(list(cohort_gradient_richardson=1))
+s2 <- new(Strategy)
+s2$control <- ctrl
+c2 <- new(CohortTop, s2)
+dgdm2 <- c2$growth_rate_gradient(env)
+expect_that(dgdm2, equals(dgdm.forward, tolerance=0.002))
+expect_that(dgdm2, equals(dgdm.simple, tolerance=0.002))
+expect_that(dgdm2, equals(dgdm.accurate))
 
 ## Then, start comparing ODE rates.
 dydt <- plant$ode_rates
