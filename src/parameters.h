@@ -6,6 +6,7 @@
 
 #include "lookup.h"
 #include "strategy.h"
+#include "control.h"
 
 // NOTE: Most of the interface decisions here are around interaction
 // with R via Rcpp; written in plain C++ this is a really simple class
@@ -27,12 +28,16 @@ public:
   void reset();
 
   // Querying
-  size_t size() const {return strategies.size();}
+  size_t size() const;
   Strategy r_at(size_t idx);
   Rcpp::List r_get_strategies();
 
   // Setting
   void add_strategy(Strategy s);
+
+  // Algorithm control
+  Control get_control() const;
+  void set_control(Control c);
 
   // Data -- public for now (TODO).
   double mean_disturbance_interval;
@@ -41,6 +46,9 @@ public:
   double Pi_0;       // Probability of survival during dispersal
   double n_patches;  // Number of patches in the metacommunity
   std::vector<Strategy> strategies;
+
+  // Algorithm control.
+  Control control;
 
 private:
   void do_build_lookup();

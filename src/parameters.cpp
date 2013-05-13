@@ -23,6 +23,10 @@ void Parameters::reset() {
   strategies.clear();
 }
 
+size_t Parameters::size() const {
+  return strategies.size();
+}
+
 void Parameters::add_strategy(Strategy s) {
   strategies.push_back(s);
 }
@@ -37,6 +41,14 @@ Rcpp::List Parameters::r_get_strategies() {
 	it != strategies.end(); it++ )
     ret.push_back(Rcpp::wrap(*it));
   return ret;
+}
+
+Control Parameters::get_control() const {
+  return control;
+}
+
+void Parameters::set_control(Control c) {
+  control = c;
 }
 
 void Parameters::do_build_lookup() {

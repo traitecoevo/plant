@@ -124,6 +124,8 @@ RCPP_MODULE(tree) {
     .method("[[",             &model::Parameters::r_at)
     .property("strategies",   &model::Parameters::r_get_strategies)
     .method("add_strategy",   &model::Parameters::add_strategy)
+    .property("control",      &model::Parameters::get_control)
+    .method("set_control",    &model::Parameters::set_control)
     ;
 
   Rcpp::class_<model::Plant>("Plant")
