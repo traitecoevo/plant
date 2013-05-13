@@ -1,8 +1,10 @@
 all:
-	cd src; make
+	make -C doc
+	make -C src
 
 clean:
-	cd src; make clean
+	make -C doc clean
+	make -C src clean
 
 test: all
-	cd tests; make test
+	make -C tests test
