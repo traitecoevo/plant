@@ -33,6 +33,20 @@ void CohortTop::compute_vars_phys_surv(spline::Spline *env,
     fecundity_rate() * survival_probability() * survival_patch;
 }
 
+double CohortTop::leaf_area_above(double z) const {
+  return density * Plant::leaf_area_above(z);
+}
+
+int CohortTop::offspring() {
+  ::Rf_error("Cannot use offspring() in CohortTop");
+  return 0;
+}
+
+bool CohortTop::died() {
+  ::Rf_error("Cannot use died() in CohortTop");
+  return false;
+}
+
 // NOTE: germination_probability() will cause all physiological
 // variables to be updated, so mass_leaf_rate() becomes valid so long
 // as it is used afterwards.  This is something that can be improved,

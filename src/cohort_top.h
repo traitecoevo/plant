@@ -18,6 +18,10 @@ public:
   void compute_initial_conditions(spline::Spline *env,
 				  double seed_input);
 
+  double leaf_area_above(double z) const;
+  int offspring();
+  bool died();
+
   // * ODE interface
   size_t ode_size() const;
   ode::iter_const ode_values_set(ode::iter_const it);
