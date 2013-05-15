@@ -218,9 +218,6 @@ together:
 The first of these involves more approximations, and should be less
 accurate than the second.
 
-What I'm really not sure about is -- is a cohort a type of plant
-(inheritance) or does it contain a plant (composition).
-
 #### CohortMean:
 
 For cohorts *except* the smallest (i = 2, ..., k)
@@ -293,6 +290,78 @@ we never need to know for the individual-based model.  This means that
 it because it's a virtual function.  At this point, I've called it
 `compute_vars_phys_surv`, as it's really both physiology and
 survival.  This will hopefully change.
+
+#### Implementation notes
+
+At the moment, this is implemented by inheriting from Plant, as we
+need most of the machinery there.  However, there are some aspects of
+`Plant` that are tied up with the stochastic version (`offspring` and
+`died` in particular) that aren't needed in the EBT version.  However,
+`Species` will also have these, so need to be careful about how these
+are exposed.
+
+#### Bottom cohort
+
+When dealing with integrating over the distribution of individuals, we
+need to include a cohort that is exactly at the seed mass and does not
+grow -- essentially we need a bottom cohort that does not change.
+Ideally the plant does not need to know about this at all, so we
+really want to do this at the level of the species.
+
+This affects only `compute_vars_phys_surv`, really, and the
+derivatives calculations.  We just don't want to 
+
+The trick in all of this is that to compute the boundary condition
+$n(x, m_0, a_0)$, we need to know $g(x, m_0, a_0)$.
+
+So: during `ode_values_set` we want to set *value* of the bottom
+cohort, but we don't know $g$ yet because that requires the
+photosynthetic environment (which is not known).  So far OK -- it will
+be set to the previous value.
+
+Then we *do* compute $g$ and can update $n$.  The problem is that the
+ODE stepper will do that for us again later (will set it back to the
+previous value because)
+
+So: the basic idea (within the `derivs` function)
+
+(once before doing the derivs step a number of times)
+* System takes values from the current species -- this will include
+  the mass as the initial leaf mass, survival of zero, mortality of
+  the germination probability in the *previous* light environment for
+  the initial conditions for the ODE solver.
+
+* ODE solver *sets* values within the system.
+* Compute the light environment
+* Get all cohorts to update their physiological rates (including the
+  lowest cohort).
+* Collect the rates of change for everything.  However, for the
+  smallest cohort, set the rates of change to zero.
+  
+We can do this by specialising the `ode_rates` method, but there are a
+few other bits that need doing too:
+
+* On creation of a species, or on `clear()` we need to create the
+  bottom cohort.  This needs to involve creation of an empty light
+  environment and a bit of a hassle.
+  
+The big issue is that the cohorts need to be able to compute patch
+survival since their birth to be able to compute their seed output.
+The parameters for this are sorted out in the Parameters object that a
+Cohort does not have access to.
+
+So, what I'm planning on doing is having a functor or something that
+we can pass the Cohort on initialisation.  Of course, it's not clear
+how we can initialise that without a new method (that would require
+changing the Species class a lot).
+
+An easier way of getting something working in the short term would be
+to put the survival function right into the plant.  However, even then
+getting the actual parameter values added is tricky.
+
+A longer term solution could see something like the Patch survival
+coming along as part of the environment.  So, with that as a longer
+term aim, I've just got something fairly quick and dirty working now.
 
 ### More on PlantApprox
 
@@ -380,6 +449,29 @@ appears as a concept:
 2. as a book-keeping device, collecting individuals within a
    population
    
+Some of the bits in `Species` aren't going to be wanted for
+`Species<CohortTop>` for the EBT.  In particular, 
+
+* The `leaf_area_above` calculation needs to be done carefully (but
+  see `CohortDiscrete` for how that can be done simply).
+* The `compute_vars_phys` calculations needs to be done via
+  `compute_vars_phys_surv`, passing in the patch survival.
+* `births` and `deaths` are just not really possible, nor do they make
+  sense -- this is probably the biggest ugliness.
+* `add_seeds` may need some care because of issues around getting the
+  entry level cohort done correctly.
+
+It might be best if we make a special class of Species -- something
+like:
+
+```
+class SpeciesCohort : public Species<CohortTop> {
+  ...
+private:
+  // methods to disable go here.
+};
+```
+   
 ## Patch
 
 A patch contains multiple species.  In the deterministic model, there
@@ -440,6 +532,22 @@ It seems that a more generic dispersal object could be useful here.
 However, it's difficult to see how that would work without knowledge
 of the underlying spatial arrangement, which would cause some leakage
 between classes, probably.
+
+## EBT
+
+This is done quite differently than the Metacommunity, because there
+is only one "patch".  More differently even, is that the schedule of
+arrivals is known in advance.
+
+I'm unsure of where to put this.  Two ways seem most obvious:
+
+1. Each species could look after its own introduction times.  This
+   requires an additional field in `Species`, which is undesirable as
+   it's not a self-sufficient class anyway (it can't be "run" because
+   it doesn't know how to compute the light environment).  This also
+   requires that we cycle through the species at every step to see
+   what the next stopping time is.
+2. The EBT will look after the times.  I'm going to go with that.
 
 ### More on dispersal
 
