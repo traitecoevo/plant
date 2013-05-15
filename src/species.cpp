@@ -29,4 +29,36 @@ int Species<CohortDiscrete>::r_n_individuals() const {
   return n;
 }
 
+template <>
+ode::iter Species<CohortTop>::ode_rates(ode::iter it) const {
+  // This is the base case.
+  for ( plants_const_iterator p = plants.begin();
+	p != plants.end(); p++ )
+    it = p->ode_rates(it);
+
+  // Then tweak the boundary conditions.
+  const int n = plants.back().ode_size();
+  std::fill(it - n, it, 0.0);
+
+  return it;
+}
+
+template <>
+void Species<CohortTop>::initialise() {
+  add_seeds(1);
+
+  // TODO: Confirm that this is actually needed.
+  //
+  // Create a blank light environment (so that light value is 1 the
+  // whole way down)
+  const int blank_env_size = 5;
+  spline::Spline env;
+  for (int i = 0; i < blank_env_size; i++)
+    env.add_point(height_max() * i, 1.0);
+  env.init_self();
+  // And run the plants in this.  We need this so that the growth rate
+  // is correct.
+  compute_vars_phys(&env);
+}
+
 }

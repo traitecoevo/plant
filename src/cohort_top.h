@@ -66,7 +66,8 @@ private:
   T2 arg2;
 };
 
-
 }
+
+RCPP_EXPOSED_CLASS(model::CohortTop)
 
 #endif

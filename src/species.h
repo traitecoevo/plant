@@ -10,6 +10,7 @@
 #include "spline.h"
 #include "strategy.h"
 #include "cohort_discrete.h" // for a specialisation
+#include "cohort_top.h"      // for a specialisation
 #include "util.h"            // is_decreasing, check_length
 
 namespace model {
@@ -67,6 +68,8 @@ public:
   double r_germination_probability(spline::Spline light_environment);
 
 private:
+  void initialise();
+
   Strategy::ptr strategy;
   Individual seed;
   std::list<Individual> plants;
@@ -79,12 +82,14 @@ template <class Individual>
 Species<Individual>::Species(Strategy s)
   : strategy(s),
     seed(strategy.get()) {
+  initialise();
 }
 
 template <class Individual>
 Species<Individual>::Species(Strategy *s)
   : strategy(s),
     seed(strategy.get()) {
+  initialise();
 }
 
 // Compute the number of offspring that will be born by asking all
@@ -170,11 +175,12 @@ void Species<Individual>::add_seeds(int n) {
 }
 
 // Declare full specialisation
-template<> void Species<CohortDiscrete>::add_seeds(int n);
+template <> void Species<CohortDiscrete>::add_seeds(int n);
 
 template <class Individual>
 void Species<Individual>::clear() {
   plants.clear();
+  initialise();
 }
 
 // * ODE interface
@@ -206,6 +212,7 @@ ode::iter Species<Individual>::ode_rates(ode::iter it) const {
     it = p->ode_rates(it);
   return it;
 }
+template <> ode::iter Species<CohortTop>::ode_rates(ode::iter it) const;
 
 // * R interface
 template <class Individual>
@@ -252,11 +259,11 @@ Rcpp::List Species<Individual>::r_get_plants() const {
 // However, it may not work for other potential Individual classes.
 // Also, that converts O(1) -> O(n), which won't be desirable (though
 // this is never called for speed).
-template<> int Species<CohortDiscrete>::r_n_individuals() const;
 template <class Individual>
 int Species<Individual>::r_n_individuals() const {
   return (int)plants.size();
 }
+template<> int Species<CohortDiscrete>::r_n_individuals() const;
 
 template <class Individual>
 void Species<Individual>::r_compute_vars_phys(spline::Spline 
@@ -276,6 +283,10 @@ double Species<Individual>::germination_probability(spline::Spline *light_enviro
   return s.germination_probability(light_environment);
 }
 
+template <class Individual>
+void Species<Individual>::initialise() {}
+template <> void Species<CohortTop>::initialise();
+
 }
 
 // NOTE: I've not chased up why, but I apparently need to use
@@ -283,5 +294,5 @@ double Species<Individual>::germination_probability(spline::Spline *light_enviro
 // real), rather than RCPP_EXPOSED_CLASS.
 RCPP_EXPOSED_CLASS_NODECL(model::Species<model::Plant>)
 RCPP_EXPOSED_CLASS_NODECL(model::Species<model::CohortDiscrete>)
-
+RCPP_EXPOSED_CLASS_NODECL(model::Species<model::CohortTop>)
 #endif

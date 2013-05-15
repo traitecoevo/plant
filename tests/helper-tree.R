@@ -37,6 +37,7 @@ if ( !exists("Spline") ) {
 
   Species <- tree_module$Species
   SpeciesC <- tree_module$SpeciesC
+  SpeciesCT <- tree_module$SpeciesCT
 
   Patch  <- tree_module$Patch
   PatchC <- tree_module$PatchC

@@ -212,6 +212,12 @@ RCPP_MODULE(tree) {
     .method("[[", &model::Species<model::CohortDiscrete>::r_at);
     ;
 
+  Rcpp::class_< model::Species<model::CohortTop> >("SpeciesCT")
+    .constructor<model::Strategy>()
+    .derives<model::SpeciesBase>("SpeciesBase")
+    .method("[[", &model::Species<model::CohortTop>::r_at);
+    ;
+
   Rcpp::class_<model::PatchBase>("PatchBase")
     .derives<ode::OdeTarget>("OdeTarget")
     .property("size",             &model::PatchBase::size)
