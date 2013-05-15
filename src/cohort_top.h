@@ -5,6 +5,7 @@
 #include "ode_target.h"
 #include "strategy.h"
 #include "plant.h"
+#include "disturbance.h"
 
 namespace model {
 
@@ -45,6 +46,8 @@ private:
   double density_rate;
   double seeds_survival_weighted;
   double seeds_survival_weighted_rate;
+
+  double age_at_birth;
 
   static const int ode_dimension = 4;
 };
