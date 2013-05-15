@@ -1,4 +1,5 @@
 %  Ecological and evolutionary analysis of size-structured metapopulations using the escalator boxcar train
+Daniel Falster and Rich FitzJohn
 
 A system is physiologically or size structured whenever the basic rates of individuals (growth, mortality, reproduction) vary as functions of their size. These rates may also vary through environment, which can include feedbacks dependent on the current population state (e.g. density dependence).  Theory exists for tracing the development of a size- structured based on a partial differential equation (PDE) describing changes in the size distribution of individuals at any given time (describing the density function of individuals, rather than location of specific individuals). PSPs are formulated such that spatial distribution is neglected; only large populations are considered. Consequently the dynamics are entirely deterministic. These assumptions ensure similar individuals experience a homogeneous environment and are thus treated equally, and that inherently stochastic processes such as mortality can be reliably approximated by a deterministic description [makes use of the law of large numbers]. Individuals enter at the lower size class according to the rate of offspring production. The continuous nature of the system, with appropriate feedbacks, then ensures a dynamical solution to evolving size-structure including the problem of self-thinning. The dynamics of the population is given by the cumulative actions of its individuals.
 
@@ -9,46 +10,46 @@ A system is physiologically or size structured whenever the basic rates of indiv
 
 Consider a population living in a large area of habitat where:
 
-- disturbances (such as fires, storms, landslides, floods, or disease outbreaks) strike patches of the habitat on a stochastic basis, killing individuals within affected patches;
-- individuals compete for resources within patches, but the spatial scale of competitive interaction means interactions among individuals in adjacent patches are negligible;
-- there is high connectivity via dispersal between all patches in the habitat, allowing empty patches to be quickly re-colonised.
+- Disturbances (such as fires, storms, landslides, floods, or disease outbreaks) strike patches of the habitat on a stochastic basis, killing individuals within affected patches;
+- Individuals compete for resources within patches, but the spatial scale of competitive interaction means interactions among individuals in adjacent patches are negligible;
+- There is high connectivity via dispersal between all patches in the habitat, allowing empty patches to be quickly re-colonised.
 
 Such a population is typically referred to as a metapopulation. Assuming pacthes are large, and there are many of them, the dynamics of this metapopulation can be captured deterministically using two PDEs (Kohyama 1993; deRoos 1997). Together these PDEs account for the combined influences of size-dependent variation in an individual's vital rates and disturbances on the size distribution of individuals. Below we outline equations suitable for modelling the equilibrium behaviour of such metapopulations.
 
 The first PDE accounts for the effects of disturbances on the distribution of patch ages (defined as time since last disturbance) in the landscape (Von Foerster 1959; McKendrick 1926). 
 
-Let $p(a)$  be the frequency-density of patches age $a$  and let $\gamma(a)$ be the age-dependent probability that a patch of age $a$ is transformed into a patch of age 0 by a disturbance event. Here we consider situations where the age structure has reached an equilibrium state, which causes the PDE to reduce to an ordinary differential equation (ODE) with respect to patch age. (see appendix about for [non-equilibrium case and derivation of PDE describing age-structured dynamics](#pdeDeriv-age)). The dynamics of $p$ are given by
+Let $p(a)$  be the frequency-density of patches age $a$  and let $\gamma(a)$ be the age-dependent probability that a patch of age $a$ is transformed into a patch of age 0 by a disturbance event. Here we consider situations where the age structure has reached an equilibrium state, which causes the PDE to reduce to an ordinary differential equation (ODE) with respect to patch age. (See appendix for [non-equilibrium case and derivation](#pdeDeriv-age)). The dynamics of $p$ are given by
 
-\begin{equation} \frac{\partial}{\partial a} p(a)  = -\gamma(a) p(a) , \end{equation}
+\begin{equation} \frac{\partial}{\partial a} p(a)  = -\gamma(a) \, p(a) , \end{equation}
 with boundary condition
-\begin{equation}  p(0)  = \int_0^\infty \gamma(a) p(a) \; {\rm d} a. \end{equation}
+\begin{equation}  p(0)  = \int_0^\infty \gamma(a) \, p(a) \; {\rm d} a. \end{equation}
 
 This leads to a solution for the equilibrium distribution of patch-ages
-\begin{equation} p(a) = p(0) \exp \left( \int_0^\infty \gamma(a^\prime) \; {\rm d} a^\prime \right),\end{equation}
+\begin{equation} p(a) = p(0) \exp \left( \int_0^a \gamma(a^\prime) \; {\rm d} a^\prime \right),\end{equation}
 where  
 \begin{equation}
 \frac1{p(0)} = \left( \int_0^\infty \exp \left( \int_0^{a^{\prime\prime}} - \gamma(a^\prime) \; {\rm d} a^\prime \right) d a^{\prime\prime} \right),\end{equation}
  corresponds to the average lifespan of a patch.
 
 
-The second PDE accounts for the development of competitive hierarchies within patches recovering from a disturbance (Sinko \& Streifer 1967; Hara 1984; Metz \& Diekmann 1986; de Roos 1997). Here we consider cases where only newborns disperse between patches, and where disturbances remove all established individuals within a patch. Let $n(x,m,a)$ represent the density of individuals with traits $x$ and mass $m$ in a patch of age $a$. For sufficiently large populations, the dynamics of $n$ are then given by the PDE
+The second PDE accounts for the development of competitive hierarchies within patches recovering from a disturbance (Sinko \& Streifer 1967; Hara 1984; Metz \& Diekmann 1986; de Roos 1997). Here we only consider cases where dispersal is restricted to newborns and where disturbances remove all established individuals within a patch. Let $n(x,m,a)$ represent the density of individuals with traits $x$ and mass $m$ in a patch of age $a$. For sufficiently large populations, the dynamics of $n$ are then given by the PDE
 
 \begin{equation} \label{eq:PDE} \frac{\partial }{\partial a} n(x,m,a)= -d(x,m, a) \; n(x,m,a)-\frac{\partial }{\partial m} \left[g(x,m,a) \; n(x,m,a)\right].  \end{equation}
-For the derivation of this function see Appendix [derivation of PDE approximating size structured dynamics](#pdeDeriv-size). 
+(See appendix for [derivation of PDE approximating size structured dynamics](#pdeDeriv-size).) 
 
-The functions $g(x,m,a)$, $d(x,m,a)$ and $f(x,m,a)$ are growth rate, death rate, and fecundity rate of individuals with traits $x$ and mass $m$ in a patch of age $a$. In principle, the arguments of these functions should be writing something like $g(x,m,E(x,\cdot,a))$, $d(x,m,E(x,\cdot,a))$ and $f(x,m,E(x,\cdot,a))$, where $E(x,\cdot,a)$ is the distribution of resources with respect to size $m$ in a patch age $a$ occupied by residents with traits $x$, and $E(x,m,a)$ gives the resources available to an individual of size $m$. To simplify notation throughout the remainder of the document we will drop the $E(x,\cdot,a)$ from $g, d,$ and $f$, and instead simply refer to patch age $a$, on the understanding by patch age $a$, we mean the structure of a patch age $a$ with given residents. 
+The functions $g(x,m,a)$, $d(x,m,a)$ and $f(x,m,a)$ give the growth, death rate, and fecundity rates of individuals with traits $x$ and mass $m$ in a patch of age $a$. In principle, the arguments of these functions should be written as $g(x,m,E(x,\cdot,a))$, $d(x,m,E(x,\cdot,a))$ and $f(x,m,E(x,\cdot,a))$, where $E(x,\cdot,a)$ is the distribution of resources with respect to size $m$ in a patch age $a$ occupied by residents with traits $x$, and $E(x,m,a)$ gives the resources available to an individual of size $m$. To simplify notation throughout the remainder of the document we will drop the $E(x,\cdot,a)$ from $g, d,$ and $f$, and instead simply refer to patch age $a$, on the understanding by patch age $a$, we mean the structure of a patch age $a$ with given residents. 
 
 Eq. $\ref{eq:PDE}$ has two boundary conditions. The first,
 
 \begin{equation}  \label{eq:BC1} \frac{n(x,m_0,a)g(x,m_0 , a)}{\pi_1(x,m_0 ,a)} = \int_0^{\infty} p(a)  \int_0^{\infty}  \pi_0f(x,m,a) \; n(x,m,a)\,{\rm d} m \, {\rm d} a, \end{equation}
 
-links the flux of newly arriving offspring across the lower bound $(m_0)$ of the size distribution within each patch (LHS), to the rate at which newly arriving offspring are produced in the metapopulation (RHS). The latter quantity, denoted $y_x$, serves as a useful measure for the abundance of the $x$ strategy. $\pi_0$  and $\pi_1$ give probabilities of offspring surviving dispersal and successfully establishing in a new patch, respectively. In this example we let $\pi_1$ be dependent on resource availability and $\pi_0$  be a constant.
+links the flux of newly arriving offspring across the lower bound $(m_0)$ of the size distribution within each patch (LHS), to the rate at which newly arriving offspring are produced in the metapopulation (RHS). The latter quantity, denoted $y_x$, serves as a useful measure for the abundance of the $x$ strategy. $\pi_0$  and $\pi_1$ give probabilities of offspring surviving dispersal and successfully establishing in a new patch, respectively. In this example  $\pi_1$ is dependent on resource availability while $\pi_0$ is a constant.
 
 The second boundary condition of Eq. $\ref{eq:PDE}$ gives the size distribution for patches immediately after a disturbance, $n\left(x,m,0\right)$. Since we are assuming disturbances remove all individuals within a patch,
 
 \begin{equation} \label{eq:BC2} n\left(x,m,0\right) =0. \end{equation}
 
-A convenient feature of Eqs. $\ref{eq:PDE}$ - $\ref{eq:BC2}$ is that the dynamics of a single patch scale up to give the dynamics of the entire metapopulation. The rate that offspring arrive from the disperser pool, $y_x$, is constant for a metapopulation at equilibrium. Combined with the assumption that all patches have the same initial (empty) size distribution, this feature ensures that all patches show the same temporal behaviour, the only difference between them being the ages at which they are disturbed. 
+A convenient feature of Eqs. $\ref{eq:PDE}$ - $\ref{eq:BC2}$ is that the dynamics of a single patch scale up to give the dynamics of the entire metapopulation. Note that the rate offspring arrive from the disperser pool, $y_x$, is constant for a metapopulation at equilibrium. Combined with the assumption that all patches have the same initial (empty) size distribution, this feature ensures that all patches show the same temporal behaviour, the only difference between them being the ages at which they are disturbed. 
 
 To model the temporal dynamics of an archetypal patch, we need only a value for $y_x$. The numerical challenge is therefore to find a value of $y_x$ that balances production and arrival of dispersers:
 
@@ -58,15 +59,15 @@ Solving for $y_x$ is a straightforward one-dimensional root finding problem. Cal
 
 ### Environmental feedback
 
-Individuals are assumed to interact indirectly via their influence on the availability of resources. The competition kernel describes the influence of an individual of size $m$ on the availability of resources for an individual of size $m^\prime$. To get the total influence of all individuals on the target individual requires integration over the density distribution $n$. If there are $N$ different species or types in the system, then their combined effects must be summed. 
+Individuals are assumed to interact  via their influence on the availability of resources. A competition kernel is required, giving the influence of an individual on the availability of resources for another individual. To get the total influence of all individuals on the target individual requires integration of the competition kernel over the density distribution $n$. If there are $N$ different species or types in the system, then their combined effects must be summed. 
 
-The approach outlined is very general and could potentially be tailored to suit a range of different systems where the evolutionary dynamics in a size-structured population are of interest. To do one would need to describe:
+The approach outlined is very general and can be tailored to suit a range of different systems. To do so we need to describe:
 \begin{itemize}
  \item the influence of an individual's size (state), its traits (type), and the availability of resources (environment) on the vital rates of growth, mortality and reproduction
  \item the dependence of resource availability on size-distribution of individuals within each species and their traits. 
 \end{itemize}
 
-For plants, where we are interested in the effect of shading on growth, mortality and fecundity, we can define a function for the amount of light at height $z$ in a patch of age $a$:
+For plants, where we are interested in the effect of shading from other individuals on growth, mortality and fecundity, we can define a function for the amount of light at height $z$ in a patch of age $a$:
 
 \begin{equation} \label{eq:light}
 E(z,a) = \exp \left(-c_{ext}  \sum_{i=1}^{N} \int_{0}^{\infty} \phi(m) \, L(z, h(m)) \, n(x_i, m,a) \, dm \right), \end{equation}
@@ -74,9 +75,9 @@ where $\phi(m)$ is total leaf area and $L(z, h(m))$ is fraction of this leaf are
 
 ## Invasion fitness
 
-Let us now consider how we might estimate the fitness of a rare individual with trats $x^\prime$ growing in the environment of a resident community with traits $x$. We will focus on the phenotypic components of fitness -- i.e. the consequences of a given set of traits for growth, fecundity and mortality -- only, taking into account the non-linear effects of competition on individual success, but ignoring the underlying genetic basis for the trait determination. We also adhere to the standard conventions in such analyses by assuming that the resident population in large enough that a rare mutant has a negligible effect on the environment where it is growing. 
+Let us now consider how we can estimate the fitness of a rare individual with trats $x^\prime$ growing in the environment of a resident community with traits $x$. We will focus on the phenotypic components of fitness -- i.e. the consequences of a given set of traits for growth, fecundity and mortality -- only, taking into account the non-linear effects of competition on individual success, but ignoring the underlying genetic basis for the trait determination. We also adhere to the standard conventions in such analyses in assuming that the mutant is sufficiently rare to have a negligible effect on the environment where it is growing. 
 
-Invasion fitness is most correctly defined as the long-term per capita growth rate of a rare mutant population growing in the environment determined by the resident strategy (Metz et al. 1992). Calculating per-capita growth rates, however, can be particularly challenging in a structured metapopulation model (Gyllenberg \& Metz 2001; Metz \& Gyllenberg 2001). As an alternative measure of fitness, we can use the basic reproduction ratio, which gives the expected number of new dispersers arising from a single dispersal event, Evolutionary inferences made using the basic reproduction ratio will be similar to those made using per-capita growth rates for metapopulations at demographic equilibrium (Gyllenberg \& Metz 2001; Metz \& Gyllenberg 2001).
+Invasion fitness is most correctly defined as the long-term per capita growth rate of a rare mutant population growing in the environment determined by the resident strategy (Metz et al. 1992). Calculating per-capita growth rates, however, can be particularly challenging in a structured metapopulation model (Gyllenberg \& Metz 2001; Metz \& Gyllenberg 2001). As an alternative measure of fitness, we can use the basic reproduction ratio, which gives the expected number of new dispersers arising from a single dispersal event. Evolutionary inferences made using the basic reproduction ratio will be similar to those made using per-capita growth rates for metapopulations at demographic equilibrium (Gyllenberg \& Metz 2001; Metz \& Gyllenberg 2001).
 
 Let $R\left(x^\prime,x\right)$ be the basic reproduction ratio of individuals with traits $x^\prime$ growing in the competitive environment of the resident traits $x$. Recalling that patches of age $a$ have density $p(a)$ in the landscape, it follows that any seed of $x^\prime$ has probability $p(a)$ of landing in a patch age $a$. The basic reproduction ratio for individuals with traits $x^\prime$ is then:
 \begin{equation} \label{eq:InvFit}
