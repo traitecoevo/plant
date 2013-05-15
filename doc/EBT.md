@@ -56,6 +56,22 @@ To model the temporal dynamics of an archetypal patch, we need only a value for 
 
 Solving for $y_x$ is a straightforward one-dimensional root finding problem. Calculation of the LHS of Eq. $\ref{eq:solution}$, however, requires detailed information about $n(x,m,a)$, which in turn, requires a separate numerical method capable of solving the PDE in Eq. $\ref{eq:PDE}$.
 
+### Environmental feedback
+
+Individuals are assumed to interact indirectly via their influence on the availability of resources. The competition kernel describes the influence of an individual of size $m$ on the availability of resources for an individual of size $m^\prime$. To get the total influence of all individuals on the target individual requires integration over the density distribution $n$. If there are $N$ different species or types in the system, then their combined effects must be summed. 
+
+The approach outlined is very general and could potentially be tailored to suit a range of different systems where the evolutionary dynamics in a size-structured population are of interest. To do one would need to describe:
+\begin{itemize}
+ \item the influence of an individual's size (state), its traits (type), and the availability of resources (environment) on the vital rates of growth, mortality and reproduction
+ \item the dependence of resource availability on size-distribution of individuals within each species and their traits. 
+\end{itemize}
+
+For plants, where we are interested in the effect of shading on growth, mortality and fecundity, we can define a function for the amount of light at height $z$ in a patch of age $a$:
+
+\begin{equation} \label{eq:light}
+E(z,a) = \exp \left(-c_{ext}  \sum_{i=1}^{N} \int_{0}^{\infty} \phi(m) \, L(z, h(m)) \, n(x_i, m,a) \, dm \right), \end{equation}
+where $\phi(m)$ is total leaf area and $L(z, h(m))$ is fraction of this leaf area held above height $z$ for plants size $m$, and $c_{ext}$ is the light extinction coefficient. 
+
 ## Invasion fitness
 
 Let us now consider how we might estimate the fitness of a rare individual with trats $x^\prime$ growing in the environment of a resident community with traits $x$. We will focus on the phenotypic components of fitness -- i.e. the consequences of a given set of traits for growth, fecundity and mortality -- only, taking into account the non-linear effects of competition on individual success, but ignoring the underlying genetic basis for the trait determination. We also adhere to the standard conventions in such analyses by assuming that the resident population in large enough that a rare mutant has a negligible effect on the environment where it is growing. 
@@ -68,21 +84,21 @@ R\left(x^\prime,x\right)=\int _0^{\infty }p\left(a\right)\tilde{R}\left(x^\prime
 \end{equation}
 where $\tilde{R}\left(x^\prime,a_0,a \right)$ is the expected number of dispersing offspring produced by a single disperser arriving in a patch of age $a_0$ up until time $a$ (Gyllenberg \& Metz 2001; Metz \& Gyllenberg 2001). $\tilde{R}\left(x^\prime,a,\infty\right)$ is calculated by integrating an individual's fecundity over the expected lifetime the patch, taking into account competitive shading from residents with traits $x$, the individual's probability of surviving, and its traits:
 
-\begin{equation} \label{eq:tildeR} \begin{array}{ll}\tilde{R}(x^\prime, a_0, a) =\pi_1 (x^\prime,m_0, a_0) \int_{a_0}^{a}  &\pi_0f(x^\prime, m(x^\prime, a_0, a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x^\prime, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime.\\\end{array}\end{equation}
+\begin{equation} \label{eq:tildeR} \begin{array}{ll}\tilde{R}(x^\prime, a_0, a) =\int_{a_0}^{a}  &\pi_0f(x^\prime, m(x^\prime, a_0, a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x^\prime, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime.\\\end{array}\end{equation}
 
 Here,
 \begin{equation} \label{eq:size} m(x^\prime, a_0, a) = m_0 + \int_{a_0}^{a} g(x^\prime, m(x^\prime, a_0, a^\prime),a^\prime) \, \rm{d}a^\prime \end{equation}
 
 and 
 
-\begin{equation} \label{eq:survivalIndividual} S_{\rm I} (x^\prime, a_0, a) = \exp\left(- \int_{a_0}^{a} d(x,m_i(x^\prime, a_0 ,a^\prime), a^\prime\right) \, {\rm d} a^\prime\end{equation}
+\begin{equation} \label{eq:survivalIndividual} S_{\rm I} (x^\prime, a_0, a) = \pi_1 (x^\prime,m_0, a_0) \, \exp\left(- \int_{a_0}^{a} d(x,m_i(x^\prime, a_0 ,a^\prime), a^\prime) \, {\rm d} a^\prime \right) \end{equation}
 
 are the size $m$ and survival $S_{\rm I} $ of dispersers that arrived in a patch of age $a_0$ at age $a$, while
 
 \begin{equation} \label{eq:survivalPatch} S_{\rm P} (a_0,a) = \exp\left(-\int_{a_0}^{a} \gamma(a^\prime) \, {\rm d} a^\prime \right) \end{equation}
 gives the probability that the patch remains undisturbed from $a_0$ to $a$. 
 
-The notational complexity required for a general, non-linear solution might obscure an otherwise simple point: Eqs. $\ref{eq:size}$ - $\ref{eq:survivalPatch}$ are simply integrals of the growth and mortality functions, $\frac{{\rm d}}{{\rm d}a} m =g\left(x^\prime,m,a\right)$ and $\frac{{\rm d}}{{\rm d}a} S_{\rm I} =d\left(x^\prime,m,a\right) \; {\rm \; }S_{\rm I} $, with initial conditions $m\left(x^\prime,0,0\right)=m_0 $ and $S_{\rm I} \left(x^\prime,0,0\right)=1$.
+The notational complexity required for a general, non-linear solution might obscure an otherwise simple point: Eqs. $\ref{eq:size}$ - $\ref{eq:survivalPatch}$ are simply integrals of the growth and mortality functions, $\frac{{\rm d}}{{\rm d}a} m =g\left(x^\prime,m,a\right)$ and $\frac{{\rm d}}{{\rm d}a} S_{\rm I} =d\left(x^\prime,m,a\right) \; {\rm \; }S_{\rm I} $, with initial conditions $m\left(x^\prime,0,0\right)=m_0 $ and $S_{\rm I} \left(x^\prime,0,0\right)= \pi_1 (x^\prime,m_0, a_0) $, the survival through germination.
 
 ## Emergent properties of resident community
 
@@ -119,49 +135,75 @@ Let $\Omega = \left[m_0,m_+ \right) $ represent the entire state-space attainabl
 
 ## Approximation based on modelling of cohort boundaries
 
-In the EBT, the cohort (or sub-domain) boundaries are defined by a series of time points where one cohort is ended, and another is initialised. As the patch ages, the width of all cohorts varies, as they are transported up along the size spectrum (see figure). It is helpful to think of these boundaries as representing individual that germinated exactly at the patch age defining the cohort boundary. The growth trajectory of that individual then defines the trajectory of the cohort boundary.   
+In the EBT, the cohort (or sub-domain) boundaries are defined by a series of time points where one cohort is ended, and another is initialised. As the patch ages, the width of all cohorts varies, as they are transported up along the size spectrum (see figure). It is helpful to think of these boundaries as representing individuals that germinated exactly at the patch age defining the cohort boundary. The growth trajectory of that individual then defines the trajectory of the cohort boundary.   
 
 In the derivation of the original EBT, equations were given for tracking the size of cohort boundaries, but these were not essential for the numerical approximation of systems dynamics. However, it is possible to approximate the entire system by only following the cohort boundaries.  
 
 ### Size
 
-*Definition:* $m_i(x, a_0, a) = m_0 + \int_{a_0}^{a} g(x,m_i(x, a_0, a^\prime),a^\prime) \, \rm{d}a^\prime$
+From equation  $\ref{eq:size}$, the size of boundary points develops as 
 
-*Numerical technique:* Step with ODE stepper.
+\begin{equation} \label{eq:boundSize} m_i(x, a_0, a) = m_0 + \int_{a_0}^{a} g(x,m_i(x, a_0, a^\prime),a^\prime) \, \rm{d}a^\prime.\end{equation}
+
+*Numerical technique:* Equation $\ref{eq:boundSize}$ can be expressed as an initial-value ODE problem (IVP) and solved using an ODE stepper:
+$$\frac{dy}{dt} = g(x,y,t),$$
+$$ y(0) = m_0.$$
 
 ### Survival
+From equation  $\ref{eq:survivalIndividual}$, the survival of the individuals at the boundary individuals is   
+ 
+\begin{equation} \label{eq:boundSurv} S_{\rm I} (x, a_0, a) =  \pi_1 (x^\prime,m_0, a_0)  \exp\left(- \int_{a_0}^{a} d(x,m_i(x, a_0 ,a^\prime), a^\prime) \, {\rm d} a^\prime \right).\end{equation}
 
-*Definition:* $S_{\rm I} (x, a_0, a) = \exp\left(- \int_{a_0}^{a} d(x,m_i(x, a_0 ,a^\prime), a^\prime\right) \, {\rm d} a^\prime.$
+*Numerical technique:* To solve equations $\ref{eq:boundSurv}$ we solve the IVP problem using an ODE stepper:
+$$\frac{dy}{dt} = d(x,m_i(a^\prime), a^\prime ),$$
+$$ y(0) = \pi_1 (x^\prime,m_0, a_0) .$$
 
-*Numerical technique:* Calculate integral within brackets with ODE stepper.
+Survival is then 
+$$ S_{\rm I} (x, a_0, a) = \pi_1 (x^\prime,m_0, a_0)  \exp\left(- y(a) \right)$$
 
 ### Density of individuals
 
-Obtained by [integrating along characteristics - see Appendix](#IntegrationAlongCharacteristics)
+The density of individuals at the boundary can be solved by integrating along characteristics ([see Appendix for details](#IntegrationAlongCharacteristics)) to give: 
 
-*Definition:*
-\begin{equation} \begin{array}{ll}  n(x, m, a) & =n(x,m_0 ,a_0) \times \\
+\begin{equation} \label{eq:boundN} \begin{array}{ll}  n(x, m, a) & =n(x,m_0 ,a_0) \times \\
 & \exp \left(-\int _{a_0}^{a} \left[\frac{\partial g(x,m(x, a_0, a^\prime),a^\prime)}{\partial m} +d(x,m(x, a_0, a^\prime),a^\prime)\right] {\rm d}a^\prime \right)\end{array} \end{equation}
 
 where
 \begin{equation} n(x,m_0 ,a_0)  = \left\{ \begin{array}{ll}   \frac{y_x}{ g(x,m_0, a_0) }  & \textrm{if } g(x,m_0, a_0) \geq 0 \\
 0 & \textrm{otherwise.}  \end{array} \right. \end{equation}
 
-*Numerical technique:* Calculate integral within brackets with ODE stepper and combine with $n(x,m_0 ,a_0)$, which is calculated when the individual is first introduced.
+*Numerical technique:* To solve eq $\ref{eq:boundN}$ we need to solve the IVP
+$$\frac{dy}{dt} = \frac{\partial g(x,m_i(a^\prime)a^\prime)}{\partial m} +d(x,m_i(a^\prime),a^\prime),$$
+$$\frac{dy}{dt} = \frac{\partial g(x,m_i(a^\prime), }{\partial m} +d(x,m_i(a^\prime),a^\prime),$$
+$$ y(0) = 0.$$
+
+In addition, it is necessary to record the initial density $n(x,m_0 ,a_0)$ at the point when the individual was born. Density is then given by
+
+$$n(x,m_0 ,a_0) =n(x,m_0 ,a_0)\exp(-y(a)).$$
 
 ### Seed production
 
-*Definition:*  Let $\tilde{R}(x, a_0, a)$ be the number of offspring produced by an individual arriving in a patch of age $a_0$ up to time $a$. Then $\tilde{R}(x, a_0, s)$ is
-\begin{equation}\begin{array}{ll}\tilde{R}(x, a_0, a) =\pi_1 (x,m_0, a_0) \int_{a_0}^{a}  &\pi_0f(x, m(x, a_0, a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime,\\\end{array}\end{equation}
+The lifetime seed production of boundary individuals  is caluclated accroding to eq $\ref{eq:tildeR}$ as
+\begin{equation}\label{eq:boundR}\begin{array}{ll}\tilde{R}(x, a_0, \infty) = \int_{a_0}^{\infty}  &\pi_0 \, f(x, m_i(x, a_0, a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime,\\\end{array}\end{equation}
 where $S_{\rm I} $ is individual survival (defined above) and
-$S_{\rm P} (a_0,a) = \exp\left(-\int_{a_0}^{a} \gamma(a^\prime) \, {\rm d} a^\prime \right)$ is the probability of a patch remaining undisturbed to this point.
+$S_{\rm P}$ is calculated as in eq. $\ref{eq:survivalPatch}$. 
 
-To scale up seed production for the metapopulation need to integrate across all possible seed-arrival times:
-\begin{equation} R(x) = \int_0^{\infty}  p(a) \, \tilde{R}(x, a,  \infty) \, {\rm d}a. \end{equation}
+*Numerical technique:* To solve equation $\ref{eq:boundR}$ we need solve the IVP problem using an ODE stepper:
+$$\frac{dy}{dt} = \pi_0 \,f(x, m_i(x, a_0, a^\prime), a^\prime)\times \, S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime),$$
+$$ y(0) = 0.$$
 
-(TODO: Align this equation with earlier one. )
+### Invasion fitness
 
+To scale up seed production for the metapopulation need to integrate eq. $\ref{eq:boundR}$ across all possible seed-arrival times (as defined in eq $\ref{eq:InvFit}):
+\begin{equation} R(x) = \int_0^{\infty}  p(a) \, \tilde{R}(x, a, \infty) \, {\rm d}a. \end{equation}
 
+*Numerical technique:*  Note that we have individual's introduced at a series of patch ages, and an estimate for $\tilde{R}(x, a, \infty)$ for each of these (see eq. $\ref{eq:boundR}$). These points can then be integrated using a quadrature routine, e.g.  
+
+### Environmental feedback
+
+The estimated density function is used to calculate the amount of shading on each individual from other individuals in the patch (eq $\ref{eq:light}$). In turn, this effects resource supply rates, growth and mortality.
+
+<!-- 
 ## Approximating dynamics of internal cohorts 
 
 The original EBT, derived by de Roos (1997, 1988), proceeded by approximating what . 
@@ -286,7 +328,7 @@ is calculated by integrating a function $\Phi \left(m',m\right)$, giving the com
 Errors in the EBT approximation to $n$ can arise from two sources: (i) poor spacing of cohorts in the size dimension, and (ii) when stepping cohorts through time. Error of the latter type is effectively controlled using a suitable ODE solver and is not considered further here. However, there is no existing method to control error arising from poor spacing of cohorts. Poor cohort spacing introduces error both because the equations governing cohort dynamics are only accurate up to second order (Table 4-1), and because any integrals over the size distribution (e.g. total offspring production, competitive effect) may be poorly resolved.
 
 [See derivations in appendix](#EBTerrorEstimate)
-
+ -->
 # Appendices
 
 ## Derivation of PDE describing age-structured dynamics {#pdeDeriv-age}
