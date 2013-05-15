@@ -4,3 +4,4 @@ tests/valgrind.txt
 tests/valgrind.supp
 
 doc/EBT.pdf
+doc/.include.tex.swp
