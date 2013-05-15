@@ -1,7 +1,7 @@
 all: EBT.pdf
 
 EBT.pdf: EBT.md
-	pandoc $< -V geometry:margin=1in -o $@
+	pandoc $<  --include-in-header=include.tex -V linkcolor:black -o $@
 
 clean:
 	rm -f EBT.pdf
