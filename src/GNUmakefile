@@ -1,4 +1,5 @@
-SOURCES_MODEL  = strategy.cpp control.cpp parameters.cpp disturbance.cpp \
+SOURCES_MODEL  = strategy.cpp control.cpp parameters.cpp \
+	disturbance.cpp environment.cpp \
 	plant.cpp cohort_discrete.cpp plant_spline.cpp plant_approx.cpp \
 	species.cpp cohort_top.cpp
 SOURCES_SPLINE = spline.cpp adaptive_spline.cpp adaptive_spline_r.cpp \
