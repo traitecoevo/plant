@@ -92,7 +92,7 @@ R\left(x^\prime,x\right)=\int _0^{\infty }p\left(a\right)\tilde{R}\left(x^\prime
 \end{equation}
 where $\tilde{R}\left(x^\prime,a_0,a \right)$ is the expected number of dispersing offspring produced by a single disperser arriving in a patch of age $a_0$ up until age $a$ (Gyllenberg \& Metz 2001; Metz \& Gyllenberg 2001). $\tilde{R}\left(x^\prime,a,\infty\right)$ is calculated by integrating an individual's fecundity over the expected lifetime the patch, taking into account competitive shading from residents with traits $x$, the individual's probability of surviving, and its traits via the equation:
 
-\begin{equation} \label{eq:tildeR} \begin{array}{ll}\tilde{R}(x^\prime, a_0, a) =\int_{a_0}^{a}  &\pi_0f(x^\prime, m(x^\prime, a_0, a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x^\prime, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime.\\\end{array}\end{equation}
+\begin{equation} \label{eq:tildeR} \tilde{R}(x^\prime, a_0, a) =\int_{a_0}^{a}  \pi_0f(x^\prime, m(x^\prime, a_0, a^\prime), a^\prime) \, S_{\rm I} (x^\prime, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime.\end{equation}
 
 Here,
 \begin{equation} \label{eq:size} m(x^\prime, a_0, a) = m_0 + \int_{a_0}^{a} g(x^\prime, m(x^\prime, a_0, a^\prime),a^\prime) \, \rm{d}a^\prime \end{equation}
