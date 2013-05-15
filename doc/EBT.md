@@ -1,10 +1,17 @@
-%  Ecological and evolutionary analysis of size-structured metapopulations using the escalator boxcar train
-Daniel Falster and Rich FitzJohn
+%  Ecological and evolutionary analysis of size-structured metapopulations using the Escalator Boxcar Train
+% Daniel Falster and Rich FitzJohn
 
-A system is physiologically or size structured whenever the basic rates of individuals (growth, mortality, reproduction) vary as functions of their size. These rates may also vary through environment, which can include feedbacks dependent on the current population state (e.g. density dependence).  Theory exists for tracing the development of a size- structured based on a partial differential equation (PDE) describing changes in the size distribution of individuals at any given time (describing the density function of individuals, rather than location of specific individuals). PSPs are formulated such that spatial distribution is neglected; only large populations are considered. Consequently the dynamics are entirely deterministic. These assumptions ensure similar individuals experience a homogeneous environment and are thus treated equally, and that inherently stochastic processes such as mortality can be reliably approximated by a deterministic description [makes use of the law of large numbers]. Individuals enter at the lower size class according to the rate of offspring production. The continuous nature of the system, with appropriate feedbacks, then ensures a dynamical solution to evolving size-structure including the problem of self-thinning. The dynamics of the population is given by the cumulative actions of its individuals.
+# To do
 
+- Table of units, symbols, subscripts
+- Add equations for germination limit
+- clean up text at start
+- formula for EBT cohorts
+- formula for error in EBT
 
 # System dynamics
+
+A system is physiologically or size structured whenever the basic rates of individuals (growth, mortality, reproduction) vary as functions of their size. These rates may also vary through environment, which can include feedbacks dependent on the current population state (e.g. density dependence).  Theory exists for tracing the development of a size- structured based on a partial differential equation (PDE) describing changes in the size distribution of individuals at any given time (describing the density function of individuals, rather than location of specific individuals). PSPs are formulated such that spatial distribution is neglected; only large populations are considered. Consequently the dynamics are entirely deterministic. These assumptions ensure similar individuals experience a homogeneous environment and are thus treated equally, and that inherently stochastic processes such as mortality can be reliably approximated by a deterministic description [makes use of the law of large numbers]. Individuals enter at the lower size class according to the rate of offspring production. The continuous nature of the system, with appropriate feedbacks, then ensures a dynamical solution to evolving size-structure including the problem of self-thinning. The dynamics of the population is given by the cumulative actions of its individuals.
 
 ## Patch- and size-structured population dynamics
 
@@ -14,7 +21,7 @@ Consider a population living in a large area of habitat where:
 - Individuals compete for resources within patches, but the spatial scale of competitive interaction means interactions among individuals in adjacent patches are negligible;
 - There is high connectivity via dispersal between all patches in the habitat, allowing empty patches to be quickly re-colonised.
 
-Such a population is typically referred to as a metapopulation. Assuming pacthes are large, and there are many of them, the dynamics of this metapopulation can be captured deterministically using two PDEs (Kohyama 1993; deRoos 1997). Together these PDEs account for the combined influences of size-dependent variation in an individual's vital rates and disturbances on the size distribution of individuals. Below we outline equations suitable for modelling the equilibrium behaviour of such metapopulations.
+Such a system can be modelled as a metapopulation (sometimes called metacommunity for multiple species). Assuming patches are large, and there are many of them, the dynamics of the metapopulation can be captured deterministically using two PDEs (Kohyama 1993; deRoos 1997). Together these PDEs account for the combined influences of size-dependent variation in an individual's vital rates and disturbances on the size distribution of individuals. Below we outline equations suitable for modelling the equilibrium behaviour of such metapopulations.
 
 The first PDE accounts for the effects of disturbances on the distribution of patch ages (defined as time since last disturbance) in the landscape (Von Foerster 1959; McKendrick 1926). 
 
@@ -83,7 +90,7 @@ Let $R\left(x^\prime,x\right)$ be the basic reproduction ratio of individuals wi
 \begin{equation} \label{eq:InvFit}
 R\left(x^\prime,x\right)=\int _0^{\infty }p\left(a\right)\tilde{R}\left(x^\prime,a, \infty \right)\; {\rm d}a ,
 \end{equation}
-where $\tilde{R}\left(x^\prime,a_0,a \right)$ is the expected number of dispersing offspring produced by a single disperser arriving in a patch of age $a_0$ up until time $a$ (Gyllenberg \& Metz 2001; Metz \& Gyllenberg 2001). $\tilde{R}\left(x^\prime,a,\infty\right)$ is calculated by integrating an individual's fecundity over the expected lifetime the patch, taking into account competitive shading from residents with traits $x$, the individual's probability of surviving, and its traits:
+where $\tilde{R}\left(x^\prime,a_0,a \right)$ is the expected number of dispersing offspring produced by a single disperser arriving in a patch of age $a_0$ up until age $a$ (Gyllenberg \& Metz 2001; Metz \& Gyllenberg 2001). $\tilde{R}\left(x^\prime,a,\infty\right)$ is calculated by integrating an individual's fecundity over the expected lifetime the patch, taking into account competitive shading from residents with traits $x$, the individual's probability of surviving, and its traits via the equation:
 
 \begin{equation} \label{eq:tildeR} \begin{array}{ll}\tilde{R}(x^\prime, a_0, a) =\int_{a_0}^{a}  &\pi_0f(x^\prime, m(x^\prime, a_0, a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x^\prime, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime.\\\end{array}\end{equation}
 
@@ -115,8 +122,10 @@ while the average  value of $\phi$ for plants size $m$ is
 
  When calculating average mortality rate, a choice must be made as to whether mortality due patch disturbance is included. Non-disturbance mortality is obtained by setting $\phi(x,m, a) = d(x,m,a)$, while total mortality due to growth processes and disturbance is obtained by setting $\phi(x,m, a) = d(x,m,a)+ \gamma(a)\Phi(x).$)
 
-(TODO: check this next section)
-One might be interested in the frequency distribution of values as well as means. What we really want is the quartile function giving $Pr(\phi(m,a,t) < \phi_0)$.....rest commented out for now... <!-- The quartile function corresponds to the inverse of the cumulative distribution function. Even though we have a distn of $\phi$ wrt to $a$, I don't know whether this can be converted to a cdf. Therefore, use a resampling approach to obtain quartile. 
+(TODO: check this next section
+One might be interested in the frequency distribution of values as well as means. What we really want is the quartile function giving $Pr(\phi(m,a,t) < \phi_0)$.....rest commented out for now... 
+
+<!-- The quartile function corresponds to the inverse of the cumulative distribution function. Even though we have a distn of $\phi$ wrt to $a$, I don't know whether this can be converted to a cdf. Therefore, use a resampling approach to obtain quartile. 
 \begin{enumerate}
 	\item Interpolate to get a distn of $p(a)  n(m,a,t)$ and $\phi(m,a,t)$ with respect to a (this step also needed for mean above) 
 	\item Using Von Nueman Rejection Algorithm, randomly sample individuals from the probability distribution given by $f = p(a) \; n(m,a,t)$ [Generate 2D uniform numbers in range [$(0, max(f)), 0, max(a))$]. Using a spline fitted to true values of $a \& f$, estimate $f$ for the randomly generated $a$ values -> accept all samples where $f_{rand} < f_{spline}$]
@@ -126,23 +135,23 @@ One might be interested in the frequency distribution of values as well as means
 
 # Approximating system dynamics using the escalator boxcar train (EBT)
 
-The EBT solves the PDE describing development of $n(x,m,a)$ (Eq $\ref{eq:PDE}$)by approximating the density function by a collection of cohorts spanning the size spectrum (de Roos 1988, 1997). Following a disturbance, a series of cohorts are introduced into each patch. These cohorts are then transported along the characteristics of Eq $\ref{eq:PDE}$ according to the individual-level growth function. (Characteristics are curves along which Eq $\ref{eq:PDE}$  becomes an ordinary differential equation (ODE); biologically, these are the growth trajectories of individuals, provided they do not die). The numerical technique consists of approximating changes to the number of individuals within each cohort by a system of closed-form linear ODEs. Eq $\ref{eq:PDE}$ is thereby reduced to a family of ODEs, which can be stepped using an appropriate ODE solver with an adaptive step size (Press 1995).
+The EBT solves the PDE describing development of $n(x,m,a)$ (Eq $\ref{eq:PDE}$) by approximating the density function with a collection of cohorts spanning the size spectrum (de Roos 1988, 1997). Following a disturbance, a series of cohorts are introduced into each patch. These cohorts are then transported along the characteristics of Eq $\ref{eq:PDE}$ according to the individual-level growth function. (Characteristics are curves along which Eq $\ref{eq:PDE}$  becomes an ordinary differential equation (ODE); biologically, these are the growth trajectories of individuals, provided they do not die). The numerical technique consists of approximating changes to the number of individuals within each cohort by a system of closed-form linear ODEs. Eq $\ref{eq:PDE}$ is thereby reduced to a family of ODEs, which can be stepped using an appropriate ODE solver with an adaptive step size (Press 1995).
 
-Below we consider two alternative implementations of the EBT. Both require that we introduce a series of cohorts into a patch, and that these be transported along the characterstics of the Eq $\ref{eq:PDE}$ (figure).
+Below we consider two alternative implementations of the EBT. Both require that we introduce a series of cohorts into a patch, and that these be transported along the characterstics of the Eq $\ref{eq:PDE}$ (see figure).
 
 ![Cohorts in the EBT](EBT.png)
 
-Let $\Omega = \left[m_0,m_+ \right) $ represent the entire state-space attainable by any individual and let the interior of $\Omega $ be subdivided into $k$ sub-domains  $\Omega_i(a) = \left[m_{i=1}(a),m_i(a) \right) $ , with $i=1,\dots, k$ and $m_0 < m_1<	\ldots<m_k = m_+$. If we allow these sub-domains to be transported through time along the characteristics of Eq $\ref{eq:PDE}$ , they will be closed to transport processes across their upper and lower boundaries.
+Let $\Omega = \left[m_0,m_+ \right) $ represent the entire state-space attainable by any individual and let the interior of $\Omega $ be subdivided into $k$ sub-domains  $$\Omega_i(a) = \left[m_{i=1}(a),m_i(a) \right) $$ , with $i=1,\dots, k$ and $m_0 < m_1<	\ldots<m_k = m_+$. If we allow these sub-domains to be transported through time along the characteristics of Eq $\ref{eq:PDE}$ , they will be closed to transport processes across their upper and lower boundaries.
 
 ## Approximation based on modelling of cohort boundaries
 
-In the EBT, the cohort (or sub-domain) boundaries are defined by a series of time points where one cohort is ended, and another is initialised. As the patch ages, the width of all cohorts varies, as they are transported up along the size spectrum (see figure). It is helpful to think of these boundaries as representing individuals that germinated exactly at the patch age defining the cohort boundary. The growth trajectory of that individual then defines the trajectory of the cohort boundary.   
+In the EBT, the cohort (or sub-domain) boundaries are defined by a series of time points where one cohort is ended, and another is initialised. As the patch ages, the width of all cohorts varies, as they are transported up along the size spectrum (see figure). It is helpful to think of these boundaries as representing individuals that germinated exactly at the age defining the cohort boundary. The growth trajectory of that individual then defines the trajectory of the cohort boundary.   
 
 In the derivation of the original EBT, equations were given for tracking the size of cohort boundaries, but these were not essential for the numerical approximation of systems dynamics. However, it is possible to approximate the entire system by only following the cohort boundaries.  
 
 ### Size
 
-From equation  $\ref{eq:size}$, the size of boundary points develops as 
+From equation  $\ref{eq:size}$, the boundary develops as 
 
 \begin{equation} \label{eq:boundSize} m_i(x, a_0, a) = m_0 + \int_{a_0}^{a} g(x,m_i(x, a_0, a^\prime),a^\prime) \, \rm{d}a^\prime.\end{equation}
 
@@ -155,42 +164,41 @@ From equation  $\ref{eq:survivalIndividual}$, the survival of the individuals at
  
 \begin{equation} \label{eq:boundSurv} S_{\rm I} (x, a_0, a) =  \pi_1 (x^\prime,m_0, a_0)  \exp\left(- \int_{a_0}^{a} d(x,m_i(x, a_0 ,a^\prime), a^\prime) \, {\rm d} a^\prime \right).\end{equation}
 
-*Numerical technique:* To solve equations $\ref{eq:boundSurv}$ we solve the IVP problem using an ODE stepper:
+*Numerical technique:* To solve equations $\ref{eq:boundSurv}$ we solve the IVP problem:
 $$\frac{dy}{dt} = d(x,m_i(a^\prime), a^\prime ),$$
-$$ y(0) = \pi_1 (x^\prime,m_0, a_0) .$$
+$$ y(0) = - \ln\left(\pi_1 (x^\prime,m_0, a_0)\right) .$$
 
 Survival is then 
-$$ S_{\rm I} (x, a_0, a) = \pi_1 (x^\prime,m_0, a_0)  \exp\left(- y(a) \right)$$
+$$ S_{\rm I} (x, a_0, a) = \exp\left(- y(a) \right).$$
 
 ### Density of individuals
 
 The density of individuals at the boundary can be solved by integrating along characteristics ([see Appendix for details](#IntegrationAlongCharacteristics)) to give: 
 
 \begin{equation} \label{eq:boundN} \begin{array}{ll}  n(x, m, a) & =n(x,m_0 ,a_0) \times \\
-& \exp \left(-\int _{a_0}^{a} \left[\frac{\partial g(x,m(x, a_0, a^\prime),a^\prime)}{\partial m} +d(x,m(x, a_0, a^\prime),a^\prime)\right] {\rm d}a^\prime \right)\end{array} \end{equation}
+& \exp \left(-\int _{a_0}^{a} \left[\frac{\partial g(x,m(x, a_0, a^\prime),a^\prime)}{\partial m} +d(x,m(x, a_0, a^\prime),a^\prime)\right] {\rm d}a^\prime \right),\end{array} \end{equation}
 
 where
 \begin{equation} n(x,m_0 ,a_0)  = \left\{ \begin{array}{ll}   \frac{y_x}{ g(x,m_0, a_0) }  & \textrm{if } g(x,m_0, a_0) \geq 0 \\
 0 & \textrm{otherwise.}  \end{array} \right. \end{equation}
 
-*Numerical technique:* To solve eq $\ref{eq:boundN}$ we need to solve the IVP
-$$\frac{dy}{dt} = \frac{\partial g(x,m_i(a^\prime)a^\prime)}{\partial m} +d(x,m_i(a^\prime),a^\prime),$$
+*Numerical technique:* To solve eq $\ref{eq:boundN}$ we need to solve the IVP:
 $$\frac{dy}{dt} = \frac{\partial g(x,m_i(a^\prime), }{\partial m} +d(x,m_i(a^\prime),a^\prime),$$
-$$ y(0) = 0.$$
+$$ y(0) = -\ln\left(n(x,m_0 ,a_0)\right).$$
 
-In addition, it is necessary to record the initial density $n(x,m_0 ,a_0)$ at the point when the individual was born. Density is then given by
+Density is then given by
 
-$$n(x,m_0 ,a_0) =n(x,m_0 ,a_0)\exp(-y(a)).$$
+$$n(x,m_0 ,a_0) =\exp(-y(a)).$$
 
 ### Seed production
 
 The lifetime seed production of boundary individuals  is caluclated accroding to eq $\ref{eq:tildeR}$ as
-\begin{equation}\label{eq:boundR}\begin{array}{ll}\tilde{R}(x, a_0, \infty) = \int_{a_0}^{\infty}  &\pi_0 \, f(x, m_i(x, a_0, a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime,\\\end{array}\end{equation}
+\begin{equation}\label{eq:boundR}\begin{array}{ll}\tilde{R}(x, a_0, \infty) = \int_{a_0}^{\infty}  &\pi_0 \, f(x, m_i( a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime,\\\end{array}\end{equation}
 where $S_{\rm I} $ is individual survival (defined above) and
 $S_{\rm P}$ is calculated as in eq. $\ref{eq:survivalPatch}$. 
 
-*Numerical technique:* To solve equation $\ref{eq:boundR}$ we need solve the IVP problem using an ODE stepper:
-$$\frac{dy}{dt} = \pi_0 \,f(x, m_i(x, a_0, a^\prime), a^\prime)\times \, S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime),$$
+*Numerical technique:* To solve equation $\ref{eq:boundR}$ we need solve the IVP:
+$$\frac{dy}{dt} = \pi_0 \,f(x, m_i(a^\prime), a^\prime) \, S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime),$$
 $$ y(0) = 0.$$
 
 ### Invasion fitness
@@ -204,7 +212,7 @@ To scale up seed production for the metapopulation need to integrate eq. $\ref{e
 
 The estimated density function is used to calculate the amount of shading on each individual from other individuals in the patch (eq $\ref{eq:light}$). In turn, this effects resource supply rates, growth and mortality.
 
-<!-- 
+
 ## Approximating dynamics of internal cohorts 
 
 The original EBT, derived by de Roos (1997, 1988), proceeded by approximating what . 
@@ -254,8 +262,8 @@ The density function $n(x,m,a$ within each sub-domain can also be estimated from
 \begin{equation} n_i \left( x,m,a \right) \approx \frac{\lambda_i}{m_i-m_{i-1}} . \end{equation}
 
 [$(i =2,\dots .,k)$]
-### Seed production
 
+### Seed production
 (needs work)
 
 *Definition:*  Let $\tilde{R}(x, a_1, a_2, a)$ be the number of offspring produced up to age $a$ by individuals within a cohort born between $a_1$ and $a_2$. Then
@@ -329,7 +337,7 @@ is calculated by integrating a function $\Phi \left(m',m\right)$, giving the com
 Errors in the EBT approximation to $n$ can arise from two sources: (i) poor spacing of cohorts in the size dimension, and (ii) when stepping cohorts through time. Error of the latter type is effectively controlled using a suitable ODE solver and is not considered further here. However, there is no existing method to control error arising from poor spacing of cohorts. Poor cohort spacing introduces error both because the equations governing cohort dynamics are only accurate up to second order (Table 4-1), and because any integrals over the size distribution (e.g. total offspring production, competitive effect) may be poorly resolved.
 
 [See derivations in appendix](#EBTerrorEstimate)
- -->
+
 # Appendices
 
 ## Derivation of PDE describing age-structured dynamics {#pdeDeriv-age}
