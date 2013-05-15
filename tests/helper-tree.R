@@ -26,6 +26,9 @@ if ( !exists("Spline") ) {
   Strategy    <- tree_module$Strategy
   Control     <- tree_module$Control
   Parameters  <- tree_module$Parameters
+
+  Disturbance <- tree_module$Disturbance
+  
   PlantSpline <- tree_module$PlantSpline # poorly named...
 
   Plant          <- tree_module$Plant

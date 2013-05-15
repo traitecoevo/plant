@@ -15,6 +15,8 @@
 #include "parameters.h"
 #include "control.h"
 
+#include "disturbance.h"
+
 #include "plant.h"
 #include "cohort_discrete.h"
 #include "plant_spline.h"
@@ -126,6 +128,12 @@ RCPP_MODULE(tree) {
     .property("strategies",   &model::Parameters::r_get_strategies)
     .method("add_strategy",   &model::Parameters::add_strategy)
     .field("control",         &model::Parameters::control)
+    ;
+
+  Rcpp::class_<model::Disturbance>("Disturbance")
+    .constructor<double>()
+    .method("survival_probability",
+	    &model::Disturbance::survival_probability)
     ;
 
   Rcpp::class_<model::Plant>("Plant")
