@@ -13,11 +13,12 @@ Disturbance::Disturbance(double mean_disturbance_interval)
     p0(shape*pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape)) {
 }
 
-double Disturbance::survival_probability(double time_start, double time) {
+double Disturbance::survival_probability(double time_start,
+					 double time) const {
   return survival0(time) / survival0(time_start);
 }
 
-double Disturbance::survival0(double time) {
+double Disturbance::survival0(double time) const {
   return exp(-scale * pow(time, shape));
 }
 
