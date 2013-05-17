@@ -134,6 +134,7 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<model::Disturbance>("Disturbance")
+    .constructor()
     .constructor<double>()
     .method("survival_probability",
 	    &model::Disturbance::survival_probability)

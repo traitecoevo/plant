@@ -13,14 +13,17 @@ namespace model {
 class Disturbance {
 public:
   typedef util::PtrWrapper<Disturbance> ptr;
+  // TODO: 2nd contructor would be better if this was util::Lookup?
+  Disturbance();
   Disturbance(double mean_disturbance_interval);
   double survival_probability(double time_start, double time) const;
 private:
   double survival0(double time) const;
+  void set_mean_disturbance_interval(double x);
 
   const double shape;
-  const double scale;
-  const double p0;
+  double scale;
+  double p0;
 };
 
 }
