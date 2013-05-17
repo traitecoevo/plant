@@ -26,7 +26,6 @@ public:
   typedef util::PtrWrapper<Parameters> ptr;
   // Construction
   Parameters();
-  void reset();
 
   // Querying
   size_t size() const;
@@ -49,7 +48,7 @@ public:
 
 private:
   void do_build_lookup();
-
+  void reset();
 };
 
 }

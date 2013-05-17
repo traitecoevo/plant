@@ -23,7 +23,7 @@ private:
   void reset();
   void set_parameters_post_hook();
 
-  const double shape;
+  double shape;
   double mean_disturbance_interval;
   double scale;
   double p0;

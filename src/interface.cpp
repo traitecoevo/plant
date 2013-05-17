@@ -131,6 +131,8 @@ RCPP_MODULE(tree) {
     .property("strategies",   &model::Parameters::r_get_strategies)
     .method("add_strategy",   &model::Parameters::add_strategy)
     .field("control",         &model::Parameters::control)
+    .field("disturbance_regime",
+	   &model::Parameters::disturbance_regime)
     ;
 
   Rcpp::class_<model::Disturbance>("Disturbance")
