@@ -6,6 +6,7 @@
 
 #include "lookup.h"
 #include "strategy.h"
+#include "disturbance.h"
 #include "control.h"
 
 // NOTE: Most of the interface decisions here are around interaction
@@ -36,7 +37,7 @@ public:
   void add_strategy(Strategy s);
 
   // Data -- public for now (TODO).
-  double mean_disturbance_interval;
+  Disturbance disturbance_regime;
   double c_ext;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2, I think?) [TODO]
   double Pi_0;       // Probability of survival during dispersal

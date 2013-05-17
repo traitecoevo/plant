@@ -10,13 +10,12 @@ expect_that(p$size, equals(0))
 ## And these are the defaults:
 expected <- list(Pi_0=0.25,
                  c_ext=0.5,
-                 mean_disturbance_interval=30.0,
                  n_patches=10,
                  patch_area=10.0)
 expect_that(p$parameters, is_identical_to(expected))
 
 ## Set a parameter and check that it is actually set
-new.p <- list(mean_disturbance_interval=20.0)
+new.p <- list(patch_area=20.0)
 expected.s <- modifyList(expected, new.p)
 p$set_parameters(new.p)
 expect_that(p$parameters, is_identical_to(expected.s))

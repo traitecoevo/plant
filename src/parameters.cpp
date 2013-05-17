@@ -9,8 +9,6 @@ Parameters::Parameters() {
 }
 
 void Parameters::reset() {
-  // Mean disturbance interval
-  mean_disturbance_interval = 30.0;
   // Light extinction coefficient
   c_ext = 0.5;
   // Patch area (m^2?)
@@ -44,8 +42,6 @@ Rcpp::List Parameters::r_get_strategies() {
 }
 
 void Parameters::do_build_lookup() {
-  lookup_table["mean_disturbance_interval"] =
-    &mean_disturbance_interval;
   lookup_table["c_ext"]      = &c_ext;
   lookup_table["patch_area"] = &patch_area;
   lookup_table["Pi_0"]       = &Pi_0;
