@@ -9,9 +9,13 @@ yy <- target(xx)
 
 ## Basic splines:
 s <- new(Spline)
+expect_that(s$min, equals(Inf))
+expect_that(s$max, equals(-Inf))
+
 s$init(xx, yy)
 expect_that(s$xy,
             is_identical_to(cbind(xx, yy, deparse.level=0)))
+expect_that(c(s$min, s$max), is_identical_to(range(xx)))
 
 ## Test data:
 xx.cmp <- seq(min(xx), max(xx), length=2*length(xx))

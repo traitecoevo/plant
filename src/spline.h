@@ -9,10 +9,13 @@
 
 #include <Rcpp.h>
 
+#include "util.h"
+
 namespace spline {
 
 class Spline {
 public:
+  typedef util::PtrWrapper<Spline> ptr;
   Spline();
   ~Spline();
   Spline(const Spline& x);
@@ -25,6 +28,9 @@ public:
 
   double eval(double u) const;
   size_t size() const;
+
+  double min() const;
+  double max() const;
 
   Rcpp::NumericVector r_get_x() const;
   Rcpp::NumericVector r_get_y() const;

@@ -42,6 +42,8 @@ RCPP_MODULE(tree) {
     .property("y",    &spline::Spline::r_get_y)
     .property("xy",   &spline::Spline::r_get_xy)
     .property("size", &spline::Spline::size)
+    .property("min",  &spline::Spline::min)
+    .property("max",  &spline::Spline::max)
     ;
 
   Rcpp::class_<spline::AdaptiveSpline>("AdaptiveSpline")
