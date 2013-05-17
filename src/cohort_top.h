@@ -14,9 +14,7 @@ public:
   CohortTop(Strategy s);
   CohortTop(Strategy *s);
 
-  // TODO: See design.md (search: compute_vars_phys_surv)
-  void compute_vars_phys_surv(const Environment& environment, 
-			      double survival_patch);
+  void compute_vars_phys(const Environment& environment);
   void compute_initial_conditions(const Environment& environment,
 				  double seed_input);
 
@@ -46,7 +44,7 @@ private:
   double seeds_survival_weighted;
   double seeds_survival_weighted_rate;
 
-  double age_at_birth;
+  double time_of_birth;
 
   static const int ode_dimension = 4;
 };

@@ -76,8 +76,10 @@ expect_that(dgdm2, equals(dgdm.accurate))
 
 ## Then, start comparing ODE rates.
 dydt <- plant$ode_rates
-patch.survival <- 0.9
-coh$compute_vars_phys_surv(env, patch.survival)
+coh$compute_vars_phys(env)
+
+env$age <- 10
+patch.survival <- env$patch_survival(0)
 
 expect_that(coh$ode_rates,
             equals(c(dydt[1:2],

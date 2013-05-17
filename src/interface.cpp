@@ -189,8 +189,8 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::CohortTop>("CohortTop")
     .constructor<model::Strategy>()
     .derives<model::Plant>("Plant")
-    .method("compute_vars_phys_surv",
-	    &model::CohortTop::compute_vars_phys_surv)
+    .method("compute_vars_phys",
+	    &model::CohortTop::compute_vars_phys)
     .method("compute_initial_conditions",
 	    &model::CohortTop::compute_initial_conditions)
     .method("growth_rate_gradient",

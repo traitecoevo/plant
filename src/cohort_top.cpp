@@ -8,7 +8,8 @@ CohortTop::CohortTop(Strategy s) :
   density(0),
   density_rate(0),
   seeds_survival_weighted(0),
-  seeds_survival_weighted_rate(0) {
+  seeds_survival_weighted_rate(0),
+  time_of_birth(0) {
 }
 
 CohortTop::CohortTop(Strategy *s) :
@@ -16,19 +17,20 @@ CohortTop::CohortTop(Strategy *s) :
   density(0),
   density_rate(0),
   seeds_survival_weighted(0),
-  seeds_survival_weighted_rate(0) {
+  seeds_survival_weighted_rate(0),
+  time_of_birth(0) {
 }
 
 // TODO: See design.md (search: compute_vars_phys_surv) for the
 // issue around the name here.
-void CohortTop::compute_vars_phys_surv(const Environment& environment,
-				       double survival_patch) {
-  compute_vars_phys(environment);
+void CohortTop::compute_vars_phys(const Environment& environment) {
+  Plant::compute_vars_phys(environment);
 
   // Defined on p. 7 at the moment.
   density_rate = growth_rate_gradient(environment) + mortality_rate();
 
   // Defined on p 7, too.
+  const double survival_patch = environment.patch_survival(time_of_birth);
   seeds_survival_weighted_rate =
     fecundity_rate() * survival_probability() * survival_patch;
 }
@@ -60,6 +62,7 @@ bool CohortTop::died() {
 // defined on p 7 at the moment.
 void CohortTop::compute_initial_conditions(const Environment& environment,
 					   double seed_input) {
+  time_of_birth = environment.get_age();
   set_mortality(-log(germination_probability(environment)));
   const double g = mass_leaf_rate();
   density = g > 0 ? (seed_input / g) : 0.0;
@@ -127,7 +130,7 @@ double CohortTop::growth_rate_gradient(const Environment& environment) const {
 double CohortTop::growth_rate_given_mass(double mass_leaf,
 					 const Environment& environment) {
   set_mass_leaf(mass_leaf);
-  compute_vars_phys(environment);
+  Plant::compute_vars_phys(environment);
   return mass_leaf_rate();
 }
 
