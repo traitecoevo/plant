@@ -134,8 +134,8 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<model::Disturbance>("Disturbance")
+    .derives<util::Lookup>("Lookup")
     .constructor()
-    .constructor<double>()
     .method("survival_probability",
 	    &model::Disturbance::survival_probability)
     ;

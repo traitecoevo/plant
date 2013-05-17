@@ -3,7 +3,7 @@ source("helper-tree.R")
 context("Environment")
 
 ctrl <- new(Control)
-disturbance <- new(Disturbance, 30)
+disturbance <- new(Disturbance)
 e <- new(Environment, disturbance, ctrl)
 
 ## At this point, we should have full canopy openness, partly because

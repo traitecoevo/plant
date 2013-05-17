@@ -4,17 +4,10 @@
 
 namespace model {
 
-// This should be rewritten to more closely use R's actual Weibull
-// functions.
-
 Disturbance::Disturbance()
   : shape(2.0) {
-  set_mean_disturbance_interval(30.0);
-}
-
-Disturbance::Disturbance(double mean_disturbance_interval)
-  : shape(2.0) {
-  set_mean_disturbance_interval(mean_disturbance_interval);
+  reset();
+  set_parameters_post_hook();
 }
 
 double Disturbance::survival_probability(double time_start,
@@ -26,8 +19,18 @@ double Disturbance::survival0(double time) const {
   return exp(-scale * pow(time, shape));
 }
 
-void Disturbance::set_mean_disturbance_interval(double x) {
-  scale = pow(R::gammafn(1.0/shape)/shape/x, shape);
+void Disturbance::do_build_lookup() {
+  lookup_table["mean_disturbance_interval"] = &mean_disturbance_interval;
+}
+
+void Disturbance::reset() {
+  mean_disturbance_interval = 30.0;
+}
+
+// TODO: This (and survival0) should be rewritten to more closely use
+// R's actual Weibull functions.
+void Disturbance::set_parameters_post_hook() {
+  scale = pow(R::gammafn(1.0/shape)/shape/mean_disturbance_interval, shape);
   p0 = shape*pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);
 }
 
