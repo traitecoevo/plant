@@ -19,6 +19,7 @@ public:
   Spline();
   ~Spline();
   Spline(const Spline& x);
+  Spline& operator=(Spline other);
 
   void init(std::vector<double> x_, std::vector<double> y_);
   void init_self();

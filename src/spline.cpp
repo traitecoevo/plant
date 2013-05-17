@@ -28,6 +28,16 @@ Spline::Spline(const Spline& obj) : x(obj.x), y(obj.y) {
     init_self();
 }
 
+Spline& Spline::operator=(Spline other) {
+  x = other.x;
+  y = other.y;
+  acc = NULL;
+  spline = NULL;
+  if (x.size() > 0)
+    init_self();
+  return *this;
+}
+
 // Build a spline out of the vectors 'x' and 'y'.  
 // TODO: This might be nicer if we did this with iterators, or with a
 // template?
