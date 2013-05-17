@@ -24,4 +24,7 @@ private:
 };
 
 }
+
+RCPP_EXPOSED_CLASS(model::Disturbance)
+
 #endif

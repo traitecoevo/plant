@@ -28,6 +28,7 @@ if ( !exists("Spline") ) {
   Parameters  <- tree_module$Parameters
 
   Disturbance <- tree_module$Disturbance
+  Environment <- tree_module$Environment
   
   PlantSpline <- tree_module$PlantSpline # poorly named...
 

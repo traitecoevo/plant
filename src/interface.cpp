@@ -16,6 +16,7 @@
 #include "control.h"
 
 #include "disturbance.h"
+#include "environment.h"
 
 #include "plant.h"
 #include "cohort_discrete.h"
@@ -151,7 +152,6 @@ RCPP_MODULE(tree) {
     .method("died",                 &model::Plant::r_died)
     .property("survival_probability",  &model::Plant::survival_probability)
     .property("control",            &model::Plant::control)
-
     // R specific access
     .property("strategy",           &model::Plant::r_get_strategy)
     .property("vars_size",          &model::Plant::r_get_vars_size)
@@ -213,19 +213,34 @@ RCPP_MODULE(tree) {
   Rcpp::class_< model::Species<model::Plant> >("Species")
     .constructor<model::Strategy>()
     .derives<model::SpeciesBase>("SpeciesBase")
-    .method("[[", &model::Species<model::Plant>::r_at);
+    .method("[[", &model::Species<model::Plant>::r_at)
     ;
 
   Rcpp::class_< model::Species<model::CohortDiscrete> >("SpeciesC")
     .constructor<model::Strategy>()
     .derives<model::SpeciesBase>("SpeciesBase")
-    .method("[[", &model::Species<model::CohortDiscrete>::r_at);
+    .method("[[", &model::Species<model::CohortDiscrete>::r_at)
     ;
 
   Rcpp::class_< model::Species<model::CohortTop> >("SpeciesCT")
     .constructor<model::Strategy>()
     .derives<model::SpeciesBase>("SpeciesBase")
-    .method("[[", &model::Species<model::CohortTop>::r_at);
+    .method("[[", &model::Species<model::CohortTop>::r_at)
+    ;
+
+
+  Rcpp::class_<model::Environment>("Environment")
+    .constructor<model::Disturbance, model::Control>()
+    .method("canopy_openness", &model::Environment::canopy_openness)
+    .method("patch_survival",  &model::Environment::patch_survival)
+    .property("light_environment",
+	      &model::Environment::get_light_environment,
+	      &model::Environment::set_light_environment)
+    .property("disturbance_regime",
+	      &model::Environment::get_disturbance_regime)
+    .property("age",
+	      &model::Environment::get_age,
+	      &model::Environment::set_age)
     ;
 
   Rcpp::class_<model::PatchBase>("PatchBase")
