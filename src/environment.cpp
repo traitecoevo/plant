@@ -32,6 +32,12 @@ double Environment::patch_survival(double age_at_birth) const {
   return disturbance_regime.survival_probability(age_at_birth, age);
 }
 
+// Reset the environment.
+void Environment::clear() {
+  age = 0.0;
+  light_environment.clear();
+}
+
 // TODO: If I'm just going to get and set, should these just be public
 // data?  What is the advantage here?  Is anything actually being
 // encapsulated?

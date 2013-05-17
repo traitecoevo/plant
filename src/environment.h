@@ -11,12 +11,12 @@ namespace model {
 
 class Environment {
 public:
-  // TODO: clear method (invoke from Patch::clear)
   Environment(Parameters p);
   double canopy_openness(double height) const;
   void compute_light_environment(util::DFunctor *canopy_openness,
 				 double height_max);
   double patch_survival(double age_at_birth) const;
+  void clear();
 
   spline::Spline get_light_environment() const;
   void set_light_environment(const spline::Spline env);

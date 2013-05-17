@@ -424,10 +424,10 @@ std::vector<int> Patch<Individual>::r_n_individuals() const {
 
 template <class Individual>
 void Patch<Individual>::clear() {
-  environment.set_age(0.0);
   for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     sp->clear();
+  environment.clear();
   ode_solver.reset();
 }
 
