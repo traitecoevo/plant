@@ -16,13 +16,13 @@ public:
   PlantApprox(Strategy  s, PlantSpline  ps);
   PlantApprox(Strategy *s, PlantSpline *ps);
 
-  void compute_vars_phys(spline::Spline *env);
+  void compute_vars_phys(const Environment& env);
 
   // * ODE interface
   ode::iter ode_rates(ode::iter it) const;
 
-  // * R interface:
-  void r_compute_vars_phys(spline::Spline env);
+  // * R interface
+  void r_compute_vars_phys_spline(const Environment& env);
 
 private:
   bool large_plant_do_exact() const;

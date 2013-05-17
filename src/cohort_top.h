@@ -15,8 +15,9 @@ public:
   CohortTop(Strategy *s);
 
   // TODO: See design.md (search: compute_vars_phys_surv)
-  void compute_vars_phys_surv(spline::Spline *env, double survival_patch);
-  void compute_initial_conditions(spline::Spline *env,
+  void compute_vars_phys_surv(const Environment& environment, 
+			      double survival_patch);
+  void compute_initial_conditions(const Environment& environment,
 				  double seed_input);
 
   double leaf_area_above(double z) const;
@@ -30,17 +31,15 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
   // * R interface
-  void r_compute_vars_phys_surv(spline::Spline env,
-				double survival_patch);
-  void r_compute_initial_conditions(spline::Spline env,
-				    double seed_input);
-  double r_growth_rate_gradient(spline::Spline env) const;
-  double r_growth_rate_given_mass(double mass_leaf,
-				  spline::Spline env);
+  // TODO: Exposed primarily for testing.
+  double r_growth_rate_gradient(const Environment& environment) const;
+  double r_growth_rate_given_mass(double mass_leaf, 
+				  const Environment& environment);
 
 private:
-  double growth_rate_gradient(spline::Spline *env) const;
-  double growth_rate_given_mass(double mass_leaf, spline::Spline *env);
+  double growth_rate_gradient(const Environment& environment) const;
+  double growth_rate_given_mass(double mass_leaf, 
+				const Environment& environment);
 
   double density;
   double density_rate;

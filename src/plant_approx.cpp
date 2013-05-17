@@ -12,9 +12,9 @@ PlantApprox::PlantApprox(Strategy *s, PlantSpline *ps)
     plant_spline(ps) {
 }
 
-void PlantApprox::compute_vars_phys(spline::Spline *env) {
+void PlantApprox::compute_vars_phys(const Environment& environment) {
   if ( large_plant_do_exact() )
-    Plant::compute_vars_phys(env);
+    Plant::compute_vars_phys(environment);
 }
 
 ode::iter PlantApprox::ode_rates(ode::iter it) const {
@@ -24,9 +24,8 @@ ode::iter PlantApprox::ode_rates(ode::iter it) const {
     return plant_spline->ode_rates(mass_leaf(), it);
 }
 
-void PlantApprox::r_compute_vars_phys(spline::Spline env) {
-  plant_spline->compute_vars_phys(&env);
-  compute_vars_phys(&env);
+void PlantApprox::r_compute_vars_phys_spline(const Environment& environment) {
+  plant_spline->compute_vars_phys(environment);
 }
 
 bool PlantApprox::large_plant_do_exact() const {

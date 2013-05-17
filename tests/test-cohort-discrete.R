@@ -50,12 +50,8 @@ expect_that(sapply(hh, cohort1$leaf_area_above),
 expect_that(sapply(hh, cohort2$leaf_area_above),
             is_identical_to(2L*cmp))
 
-## Same light environment as test-plant.R:
-light.env <- function(x, hmax)
-  exp(x/(max(hmax)*2)) - 1 + (1 - (exp(.5) - 1))/2
-ee <- light.env(hh, max(hh))
-env <- new(Spline)
-env$init(hh, ee)
+env <- test.environment(plant$height)
+light.env <- attr(env, "light.env")
 
 plant$compute_vars_phys(env)
 cohort0$compute_vars_phys(env)
@@ -78,20 +74,18 @@ derivs <- function(t, y, pars) {
 }
 
 ## Make a bigger light environment, so the plant has room to grow
-env2 <- new(Spline)
-hh2 <- seq(0, pars.s$hmat * 1.2, length=300)
-yy2 <- light.env(hh2, max(hh2))
-env2$init(hh2, yy2)
+env <- test.environment(plant$height)
+light.env <- attr(env, "light.env")
 
 plant$set_mass_leaf(1)
 cohort0$set_mass_leaf(1)
 cohort1$set_mass_leaf(1)
 cohort2$set_mass_leaf(1)
 
-obj.p <- new(OdeR, derivs, new.env(), list(plant=plant,   light.env=env2))
-obj.0 <- new(OdeR, derivs, new.env(), list(plant=cohort0, light.env=env2))
-obj.1 <- new(OdeR, derivs, new.env(), list(plant=cohort1, light.env=env2))
-obj.2 <- new(OdeR, derivs, new.env(), list(plant=cohort2, light.env=env2))
+obj.p <- new(OdeR, derivs, new.env(), list(plant=plant,   light.env=env))
+obj.0 <- new(OdeR, derivs, new.env(), list(plant=cohort0, light.env=env))
+obj.1 <- new(OdeR, derivs, new.env(), list(plant=cohort1, light.env=env))
+obj.2 <- new(OdeR, derivs, new.env(), list(plant=cohort2, light.env=env))
 
 t0 <- 0.0
 y0 <- plant$ode_values

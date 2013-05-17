@@ -70,14 +70,8 @@ expect_that(size.p[["mass_root"]],
 expect_that(size.p[["mass_total"]],
             equals(cmp$TotalMass(cmp$traits, a)))
 
-## Make a pretend light environment over the plant height, slightly
-## concave up, whatever.
-hh <- seq(0, h, length=101)
-light.env <- function(x)
-  exp(x/(h*2)) - 1 + (1 - (exp(.5) - 1))/2
-ee <- light.env(hh)
-env <- new(Spline)
-env$init(hh, ee)
+env <- test.environment(h)
+light.env <- attr(env, "light.env") # underlying function
 
 ## The R model computes A_lf * leaf_area * Y * c_bio, wheras we just
 ## compute A_lf; will have to correct some numbers.
@@ -166,10 +160,9 @@ derivs <- function(t, y, pars) {
 }
 
 ## Make a bigger light environment, so the plant has room to grow
-env2 <- new(Spline)
-hh2 <- seq(0, pars.s$hmat * 1.2, length=300)
-yy2 <- light.env(hh2)
-env2$init(hh2, yy2)
+env2 <- test.environment(pars.s$hmat * 1.2, 300)
+p$compute_vars_phys(env2)
+p.phys <- p$vars_phys
 
 ## Check the derivative calculations are correct
 y <- c(pi, 0, 0)

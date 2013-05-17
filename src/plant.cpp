@@ -110,9 +110,9 @@ double Plant::leaf_area_above(double z) const {
 // * Mass production
 // [eqn 12-19,21] Update physiological variables given the current
 // light environment (and given the current set of size variables).
-void Plant::compute_vars_phys(spline::Spline *env) {
+void Plant::compute_vars_phys(const Environment& environment) {
   // [eqn 12] Gross annual CO2 assimilation
-  vars.assimilation = compute_assimilation(env);
+  vars.assimilation = compute_assimilation(environment);
 
   // [eqn 13] Total maintenance respiration
   vars.respiration = compute_respiration();
@@ -184,8 +184,8 @@ bool Plant::died() {
 // mass leaf (so this is actually the germination probability of a
 // plant that happens to be the current size).  This might be
 // something to change.
-double Plant::germination_probability(spline::Spline *env) {
-  compute_vars_phys(env);
+double Plant::germination_probability(const Environment& environment) {
+  compute_vars_phys(environment);
   if ( vars.net_production > 0 ) {
     const double tmp = vars.leaf_area * strategy->c_s0 / vars.net_production;
     return 1 / (tmp * tmp + 1.0);
@@ -321,9 +321,9 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 // 
 // TODO: This version is completely naive.  Better to provide an
 // already working integrator.
-double Plant::compute_assimilation(spline::Spline *env) const {
-  FunctorBind1<Plant, spline::Spline*,
-	       &Plant::compute_assimilation_x> fun(this, env);
+double Plant::compute_assimilation(const Environment& environment) const {
+  FunctorBind1<Plant, const Environment&,
+	       &Plant::compute_assimilation_x> fun(this, environment);
   const double tol = control().plant_assimilation_tol;
   const int max_iterations = control().plant_assimilation_iterations;
   util::Integrator integrator(tol, tol, max_iterations);
@@ -336,11 +336,12 @@ double Plant::compute_assimilation(spline::Spline *env) const {
 // `compute_assimilation` above; it is the term within the integral in
 // [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
 // where `z` is height.
-double Plant::compute_assimilation_x(double x, spline::Spline *env) const {
+double Plant::compute_assimilation_x(double x, 
+				     const Environment& environment) const {
   if ( control().plant_assimilation_over_distribution )
-    return assimilation_leaf(env->eval(Qp(x)));
+    return assimilation_leaf(environment.canopy_openness(Qp(x)));
   else
-    return assimilation_leaf(env->eval(x)) * q(x);
+    return assimilation_leaf(environment.canopy_openness(x)) * q(x);
 }
 
 // [Appendix S6] Per-leaf photosynthetic rate.
@@ -454,14 +455,6 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 			       _["leaf_fraction"]=vars.leaf_fraction,
 			       _["growth_rate"]=vars.growth_rate,
 			       _["mortality_rate"]=vars.mortality_rate);
-}
-
-void Plant::r_compute_vars_phys(spline::Spline env) {
-  compute_vars_phys(&env);
-}
-
-double Plant::r_germination_probability(spline::Spline env) {
-  return germination_probability(&env);
 }
 
 bool Plant::r_died() {

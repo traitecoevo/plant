@@ -32,14 +32,13 @@ expect_that(approx$vars_phys, is_identical_to(plant$vars_phys))
 ## Generate a light environment:
 last <- function(x) x[[length(x)]]
 hmax <- last(plant.spline$plants)$height * 1.1
-hh <- seq(0, hmax, length=101)
-light.env <- function(x, hmax)
-  exp(x/(max(hmax)*2)) - 1 + (1 - (exp(.5) - 1))/2
-ee <- light.env(hh, max(hh))
-env <- new(Spline)
-env$init(hh, ee)
+env <- test.environment(hmax * 1.1)
 
 plant$compute_vars_phys(env)
+## Update the underlying spline (a controlling class would normally do
+## this).
+approx$compute_vars_phys_spline(env)
+## Then perhaps update the physiology for this individual.
 approx$compute_vars_phys(env)
 plant.spline$compute_vars_phys(env)
 

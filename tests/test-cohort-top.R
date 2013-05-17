@@ -10,10 +10,8 @@ plant <- new(Plant, s)
 coh <- new(CohortTop, s)
 
 ## Set up cohort with empty light environment
-h <- seq(0, 2 * plant$height, length=10)
-h <- seq(0, 20, length=10)
-env <- new(Spline)
-env$init(h, rep(1.0, length(h)))
+env <- test.environment(2 * plant$height,
+                        light.env=function(x) rep(1, length(x)))
 
 ## Initial conditions:
 seed.input <- 1

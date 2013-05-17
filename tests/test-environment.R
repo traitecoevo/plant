@@ -2,8 +2,7 @@ source("helper-tree.R")
 
 context("Environment")
 
-p <- new(Parameters)
-e <- new(Environment, p)
+e <- new(Environment, new(Parameters))
 
 ## At this point, we should have full canopy openness, partly because
 ## the spline is just not constructed.

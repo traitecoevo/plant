@@ -36,11 +36,10 @@ public:
   Strategy* get_strategy() const;
 
   // Used by species & upstream
-  void compute_vars_phys(spline::Spline *env);
+  void compute_vars_phys(const Environment& environment);
   ode::iter ode_rates(double m, ode::iter it) const;
 
   // Used by R
-  void r_compute_vars_phys(spline::Spline env);
   std::vector<double> r_ode_rates(double m) const;
   Rcpp::List r_get_plants() const;
   spline::MultiSpline r_get_plants_approx() const;

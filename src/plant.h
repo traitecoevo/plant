@@ -4,6 +4,7 @@
 
 #include <Rcpp.h>
 
+#include "environment.h"
 #include "ode_target.h"
 #include "integrator.h"
 #include "strategy.h"
@@ -30,16 +31,14 @@ public:
   virtual double mortality_probability() const = 0;
   virtual double survival_probability() const = 0;
   virtual double leaf_area_above(double z) const = 0;
-  virtual void compute_vars_phys(spline::Spline *env) = 0;
-  virtual double germination_probability(spline::Spline *env) = 0;
+  virtual void compute_vars_phys(const Environment& environment) = 0;
+  virtual double germination_probability(const Environment& environment) = 0;
   virtual int offspring() = 0;
   virtual bool died() = 0;
   // * R interface
   virtual Strategy r_get_strategy() const = 0;
   virtual Rcpp::NumericVector r_get_vars_size() const = 0;
   virtual Rcpp::NumericVector r_get_vars_phys() const = 0;
-  virtual void r_compute_vars_phys(spline::Spline env) = 0;
-  virtual double r_germination_probability(spline::Spline env) = 0;
   virtual bool r_died() = 0;
 };
 
@@ -81,13 +80,13 @@ public:
 
   // * Mass production
   // [eqn 12-19,21] Update physiological variables
-  void compute_vars_phys(spline::Spline *env);
+  void compute_vars_phys(const Environment& environment);
 
   // * Births and deaths
   int offspring();
   bool died();
   // [eqn 20] Survival of seedlings during germination
-  double germination_probability(spline::Spline *env);
+  double germination_probability(const Environment& environment);
 
   // * Access the Control parameter.
   const Control& control() const;
@@ -105,7 +104,6 @@ public:
   Strategy r_get_strategy() const;
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
-  void r_compute_vars_phys(spline::Spline env);
   double r_germination_probability(spline::Spline env);
   bool r_died();
 
@@ -124,9 +122,9 @@ private:
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
-  double compute_assimilation(spline::Spline *env) const;
+  double compute_assimilation(const Environment& environment) const;
   // Used internally, corresponding to the inner term in [eqn 12]
-  double compute_assimilation_x(double x, spline::Spline *env) const;
+  double compute_assimilation_x(double x, const Environment& environment) const;
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
   // [eqn 13] Total maintenance respiration

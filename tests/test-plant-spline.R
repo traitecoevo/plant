@@ -20,15 +20,9 @@ mass.leaf <- seq(plant$mass_leaf, plant.spline$mass_leaf_max,
 expect_that(sapply(plant.spline$plants, function(x) x$mass_leaf),
             equals(mass.leaf))
 
-## Same light environment as test-plant.R:
 last <- function(x) x[[length(x)]]
 hmax <- last(plant.spline$plants)$height
-hh <- seq(0, hmax, length=101)
-light.env <- function(x, hmax)
-  exp(x/(max(hmax)*2)) - 1 + (1 - (exp(.5) - 1))/2
-ee <- light.env(hh, max(hh))
-env <- new(Spline)
-env$init(hh, ee)
+env <- test.environment(hmax)
 
 ## Get all the plants to estimate their physiological variables:
 plant.spline$compute_vars_phys(env)

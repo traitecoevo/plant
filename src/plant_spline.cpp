@@ -25,10 +25,10 @@ Strategy* PlantSpline::get_strategy() const {
   return strategy.get();
 }
 
-void PlantSpline::compute_vars_phys(spline::Spline *env) {
+void PlantSpline::compute_vars_phys(const Environment& environment) {
   for ( std::vector<Plant>::iterator p = plants.begin();
 	p != plants.end(); p++ )
-    p->compute_vars_phys(env);
+    p->compute_vars_phys(environment);
   build_plants_approx();
 }
 
@@ -41,11 +41,6 @@ ode::iter PlantSpline::ode_rates(double m, ode::iter it) const {
   for ( size_t i = 0; i < ode_size(); i++ )
     *it++ = plants_approx.eval(m, i);
   return it;
-}
-
-// * R interface
-void PlantSpline::r_compute_vars_phys(spline::Spline env) {
-  compute_vars_phys(&env);
 }
 
 // TODO: A trick here is that we don't actually compute heaps of the

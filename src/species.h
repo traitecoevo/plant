@@ -7,7 +7,7 @@
 #include <Rcpp.h>
 
 #include "ode_target.h"
-#include "spline.h"
+#include "environment.h"
 #include "strategy.h"
 #include "cohort_discrete.h" // for a specialisation
 #include "cohort_top.h"      // for a specialisation
@@ -21,10 +21,10 @@ public:
   virtual size_t size() const = 0;
   virtual double height_max() const = 0;
   virtual double leaf_area_above(double height) const = 0;
-  virtual void r_compute_vars_phys(spline::Spline light_environment) = 0;
+  virtual void compute_vars_phys(const Environment& environment) = 0;
   virtual void add_seeds(int n) = 0;
-  virtual double
-  r_germination_probability(spline::Spline light_environment) = 0;
+  virtual double germination_probability(const Environment&
+					 environment) const = 0;
   virtual void clear() = 0;
   // R-specific wrappers
   virtual std::vector<double> r_get_mass_leaf() const = 0;
@@ -47,9 +47,9 @@ public:
   size_t size() const;
   double height_max() const;
   double leaf_area_above(double height) const;
-  void compute_vars_phys(spline::Spline *light_environment);
+  void compute_vars_phys(const Environment& environment);
   void add_seeds(int n);
-  double germination_probability(spline::Spline *light_environment) const;
+  double germination_probability(const Environment& environment) const;
   void clear();
 
   // * ODE interface
@@ -64,8 +64,7 @@ public:
   Rcpp::List r_get_plants() const;
   Individual r_at(size_t idx) const;
   int r_n_individuals() const;
-  void r_compute_vars_phys(spline::Spline light_environment);
-  double r_germination_probability(spline::Spline light_environment);
+  void r_compute_vars_phys(const Environment& environment);
 
 private:
   void initialise();
@@ -162,10 +161,10 @@ double Species<Individual>::leaf_area_above(double height) const {
 }
 
 template <class Individual>
-void Species<Individual>::compute_vars_phys(spline::Spline *light_environment) {
+void Species<Individual>::compute_vars_phys(const Environment& environment) {
   for ( plants_iterator it = plants.begin();
 	it != plants.end(); it++ )
-    it->compute_vars_phys(light_environment);
+    it->compute_vars_phys(environment);
 }
 
 template <class Individual>
@@ -266,21 +265,9 @@ int Species<Individual>::r_n_individuals() const {
 template<> int Species<CohortDiscrete>::r_n_individuals() const;
 
 template <class Individual>
-void Species<Individual>::r_compute_vars_phys(spline::Spline 
-					      light_environment) {
-  compute_vars_phys(&light_environment);
-}
-
-template <class Individual>
-double Species<Individual>::r_germination_probability(spline::Spline 
-						      light_environment) {
-  return germination_probability(&light_environment);
-}
-
-template <class Individual>
-double Species<Individual>::germination_probability(spline::Spline *light_environment) const {
+double Species<Individual>::germination_probability(const Environment& environment) const {
   Plant s(seed);
-  return s.germination_probability(light_environment);
+  return s.germination_probability(environment);
 }
 
 template <class Individual>

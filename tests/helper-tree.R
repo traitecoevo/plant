@@ -88,6 +88,23 @@ is_less_than <- function(value) {
     expectation(actual < value, paste("is not less than", value))
 }
 
+## This makes a pretend light environment over the plant height,
+## slightly concave up, whatever.
+test.environment <- function(height, n=101, light.env=NULL) {
+  hh <- seq(0, height, length=n)
+  if (is.null(light.env))
+    light.env <- function(x)
+      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
+  ee <- light.env(hh)
+  env <- new(Spline)
+  env$init(hh, ee)
+
+  ret <- new(Environment, new(Parameters))
+  ret$light_environment <- env
+  attr(ret, "light.env") <- light.env
+  ret
+}
+
 
 ## This is here to stop a really weird bug (not our fault(?)) around
 ## finalisers.

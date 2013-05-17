@@ -40,13 +40,7 @@ expect_that(sp$plants[[1]]$vars_size,
 expect_that(sp[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
 
-## Same light environment as test-plant:
-hh <- seq(0, sp$height_max, length=101)
-light.env <- function(x, hmax)
-  exp(x/(hmax*2)) - 1 + (1 - (exp(.5) - 1))/2
-ee <- light.env(hh, max(hh))
-env <- new(Spline)
-env$init(hh, ee)
+env <- test.environment(sp$height_max)
 
 sp$compute_vars_phys(env)
 cmp$compute_vars_phys(env)

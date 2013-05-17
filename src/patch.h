@@ -205,10 +205,8 @@ std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
   const double p_dispersal = parameters->Pi_0;
   for ( size_t i = 0; i < seeds.size(); i++ ) {
     if ( seeds[i] > 0 ) {
-      // TODO: Temporary...
-      spline::Spline light_environment = environment.get_light_environment();
       const double p = p_dispersal *
-	species[i].germination_probability(&light_environment);
+	species[i].germination_probability(environment);
       seeds[i] = p > 0 ? (int)Rf_rbinom(seeds[i], p) : 0.0;
     }
   }
@@ -333,11 +331,9 @@ void Patch<Individual>::compute_light_environment() {
 // physiological variables are updated.
 template <class Individual>
 void Patch<Individual>::compute_vars_phys() {
-  // TODO: Temporary...
-  spline::Spline light_environment = environment.get_light_environment();
   for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
-    sp->compute_vars_phys(&light_environment);
+    sp->compute_vars_phys(environment);
 }
 
 // * R interface

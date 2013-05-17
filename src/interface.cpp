@@ -149,8 +149,8 @@ RCPP_MODULE(tree) {
     .property("mass_leaf",          &model::Plant::mass_leaf)
     .property("height",             &model::Plant::get_height)
     .method("leaf_area_above",      &model::Plant::leaf_area_above)
-    .method("compute_vars_phys",    &model::Plant::r_compute_vars_phys)
-    .method("germination_probability", &model::Plant::r_germination_probability)
+    .method("compute_vars_phys",    &model::Plant::compute_vars_phys)
+    .method("germination_probability", &model::Plant::germination_probability)
     .method("offspring",            &model::Plant::offspring)
     .method("died",                 &model::Plant::r_died)
     .property("survival_probability",  &model::Plant::survival_probability)
@@ -164,7 +164,7 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::PlantSpline>("PlantSpline")
     .constructor<model::Strategy,double,int>()
     .property("mass_leaf_max",   &model::PlantSpline::mass_leaf_max)
-    .method("compute_vars_phys", &model::PlantSpline::r_compute_vars_phys)
+    .method("compute_vars_phys", &model::PlantSpline::compute_vars_phys)
     .method("ode_rates",         &model::PlantSpline::r_ode_rates)
     .property("plants",          &model::PlantSpline::r_get_plants)
     .property("plants_approx",   &model::PlantSpline::r_get_plants_approx)
@@ -182,15 +182,17 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::PlantApprox>("PlantApprox")
     .derives<model::Plant>("Plant")
     .constructor<model::Strategy, model::PlantSpline>()
+    .method("compute_vars_phys_spline",
+	    &model::PlantApprox::r_compute_vars_phys_spline)
     ;
 
   Rcpp::class_<model::CohortTop>("CohortTop")
     .constructor<model::Strategy>()
     .derives<model::Plant>("Plant")
     .method("compute_vars_phys_surv",
-	    &model::CohortTop::r_compute_vars_phys_surv)
+	    &model::CohortTop::compute_vars_phys_surv)
     .method("compute_initial_conditions",
-	    &model::CohortTop::r_compute_initial_conditions)
+	    &model::CohortTop::compute_initial_conditions)
     .method("growth_rate_gradient",
 	    &model::CohortTop::r_growth_rate_gradient)
     .method("growth_rate_given_mass",
@@ -202,10 +204,10 @@ RCPP_MODULE(tree) {
     .property("size",          &model::SpeciesBase::size)
     .property("height_max",    &model::SpeciesBase::height_max)
     .method("leaf_area_above", &model::SpeciesBase::leaf_area_above)
-    .method("compute_vars_phys", &model::SpeciesBase::r_compute_vars_phys)
+    .method("compute_vars_phys", &model::SpeciesBase::compute_vars_phys)
     .method("add_seeds",       &model::SpeciesBase::add_seeds)
     .method("germination_probability", 
-            &model::SpeciesBase::r_germination_probability)
+            &model::SpeciesBase::germination_probability)
     .method("clear",           &model::SpeciesBase::clear)
     .property("mass_leaf",     &model::SpeciesBase::r_get_mass_leaf)
     .method("set_mass_leaf",   &model::SpeciesBase::r_set_mass_leaf)

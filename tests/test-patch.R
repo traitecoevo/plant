@@ -47,18 +47,18 @@ expect_that(plants[[1]]$vars_size,
 
 ## Compute the light environment
 patch$compute_light_environment()
-env <- patch$environment$light_environment
+env <- patch$environment
 
 ## And compare that with the manually computed light environment
 target <- function(x) sapply(x, patch$canopy_openness)
-xx.eval <- env$xy[,1]
-expect_that(env$xy[,2],
+xx.eval <- env$light_environment$xy[,1]
+expect_that(env$light_environment$xy[,2],
             is_identical_to(target(xx.eval)))
 
 ## And then check that the error is under control
 xx.mid <- (xx.eval[-1] + xx.eval[-length(xx.eval)]) / 2
 yy.mid <- target(xx.mid)
-zz.mid <- env$eval(xx.mid)
+zz.mid <- env$light_environment$eval(xx.mid)
 expect_that(zz.mid, equals(yy.mid, tolerance=2e-8))
 
 err <- pmax(abs(zz.mid - yy.mid), abs(1 - zz.mid / yy.mid))
@@ -136,7 +136,7 @@ expect_that(patch$n_individuals == 2 && patch$age < 15,
 ## stochastic, this may give false positives sometimes.
 seed <- new(Plant, p[[1]])
 pr.cmp <- p$parameters[["Pi_0"]] *
-  seed$germination_probability(patch$environment$light_environment)
+  seed$germination_probability(patch$environment)
 
 set.seed(1)
 n <- 100000

@@ -21,12 +21,12 @@ CohortTop::CohortTop(Strategy *s) :
 
 // TODO: See design.md (search: compute_vars_phys_surv) for the
 // issue around the name here.
-void CohortTop::compute_vars_phys_surv(spline::Spline *env,
+void CohortTop::compute_vars_phys_surv(const Environment& environment,
 				       double survival_patch) {
-  compute_vars_phys(env);
+  compute_vars_phys(environment);
 
   // Defined on p. 7 at the moment.
-  density_rate = growth_rate_gradient(env) + mortality_rate();
+  density_rate = growth_rate_gradient(environment) + mortality_rate();
 
   // Defined on p 7, too.
   seeds_survival_weighted_rate =
@@ -58,9 +58,9 @@ bool CohortTop::died() {
 //
 // NOTE: The initial condition for density is also a bit tricky, and
 // defined on p 7 at the moment.
-void CohortTop::compute_initial_conditions(spline::Spline *env,
+void CohortTop::compute_initial_conditions(const Environment& environment,
 					   double seed_input) {
-  set_mortality(-log(germination_probability(env)));
+  set_mortality(-log(germination_probability(environment)));
   const double g = mass_leaf_rate();
   density = g > 0 ? (seed_input / g) : 0.0;
 }
@@ -94,30 +94,22 @@ ode::iter CohortTop::ode_rates(ode::iter it) const {
   return it;
 }
 
-// * R interface
-void CohortTop::r_compute_vars_phys_surv(spline::Spline env,
-					 double survival_patch) {
-  compute_vars_phys_surv(&env, survival_patch);
+double CohortTop::r_growth_rate_gradient(const Environment& environment) 
+  const {
+  return growth_rate_gradient(environment);
 }
-void CohortTop::r_compute_initial_conditions(spline::Spline env,
-					     double seed_input) {
-  compute_initial_conditions(&env, seed_input);
-}
-double CohortTop::r_growth_rate_gradient(spline::Spline env) const {
-  return growth_rate_gradient(&env);
-}
-double CohortTop::r_growth_rate_given_mass(double mass_leaf,
-					   spline::Spline env) {
-  return growth_rate_given_mass(mass_leaf, &env);
+double CohortTop::r_growth_rate_given_mass(double mass_leaf, 
+					   const Environment& environment) {
+  return growth_rate_given_mass(mass_leaf, environment);
 }
 
 // This is the gradient of mass_leaf_rate with respect to mass_leaf.
 // It is needed for computing the derivative (wrt time) of the density
 // of individuals.
-double CohortTop::growth_rate_gradient(spline::Spline *env) const {
+double CohortTop::growth_rate_gradient(const Environment& environment) const {
   CohortTop tmp = *this;
-  FunctorBind2<CohortTop, spline::Spline*,
-	       &CohortTop::growth_rate_given_mass> fun(&tmp, env);
+  FunctorBind2<CohortTop, const Environment&,
+	       &CohortTop::growth_rate_given_mass> fun(&tmp, environment);
 
   const double eps = control().cohort_gradient_eps;
   double grad;
@@ -133,9 +125,9 @@ double CohortTop::growth_rate_gradient(spline::Spline *env) const {
 
 // This exists only because it is needed by growth_rate_gradient.
 double CohortTop::growth_rate_given_mass(double mass_leaf,
-					 spline::Spline *env) {
+					 const Environment& environment) {
   set_mass_leaf(mass_leaf);
-  compute_vars_phys(env);
+  compute_vars_phys(environment);
   return mass_leaf_rate();
 }
 
