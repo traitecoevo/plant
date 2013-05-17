@@ -231,7 +231,6 @@ RCPP_MODULE(tree) {
     .method("[[", &model::Species<model::CohortTop>::r_at)
     ;
 
-
   Rcpp::class_<model::Environment>("Environment")
     .constructor<model::Disturbance, model::Control>()
     .method("canopy_openness", &model::Environment::canopy_openness)
@@ -253,8 +252,7 @@ RCPP_MODULE(tree) {
     .method("canopy_openness",    &model::PatchBase::r_canopy_openness)
     .method("compute_light_environment",
 	    &model::PatchBase::r_compute_light_environment)
-    .property("light_environment",
-	      &model::PatchBase::r_light_environment)
+    .property("environment",      &model::PatchBase::r_environment)
     .method("compute_vars_phys",  &model::PatchBase::r_compute_vars_phys)
     .property("age",              &model::PatchBase::r_age)
     .method("germination",        &model::PatchBase::r_germination)

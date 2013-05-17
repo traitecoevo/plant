@@ -12,6 +12,8 @@ namespace model {
 
 class Environment {
 public:
+  // TODO: Allow (require?) initialisation from Parameters
+  // TODO: clear method (invoke from Patch::clear)
   Environment(Disturbance disturbance_regime,
 	      Control control);
   double canopy_openness(double height) const;

@@ -29,7 +29,7 @@ public:
   virtual double r_age() const = 0;
   virtual std::vector<int> r_n_individuals() const = 0;
   virtual double r_height_max() const = 0;
-  virtual spline::Spline r_light_environment() const = 0;
+  virtual Environment r_environment() const = 0;
   virtual double r_canopy_openness(double height) = 0;
   virtual void r_compute_light_environment() = 0;
   virtual void r_compute_vars_phys() = 0;
@@ -82,9 +82,9 @@ public:
   void r_add_seedlings(std::vector<int> seeds);
   void clear();
   // Other interrogation
-  double r_age() const {return age;}
+  double r_age() const {return environment.get_age();}
   std::vector<int> r_n_individuals() const;
-  spline::Spline r_light_environment() const;
+  Environment r_environment() const;
   void r_step();
   void r_step_stochastic();
   double r_height_max() const { return height_max(); }
@@ -109,9 +109,8 @@ private:
   std::vector<int> germination(std::vector<int> seeds);
 
   Parameters::ptr parameters;
-  double age;
 
-  spline::Spline light_environment;
+  Environment environment;
 
   std::vector< Species<Individual> > species;
   ode::Solver<Patch> ode_solver;
@@ -125,7 +124,7 @@ private:
 template <class Individual>
 Patch<Individual>::Patch(Parameters p)
   : parameters(p),
-    age(0.0),
+    environment(parameters->disturbance_regime, parameters->control),
     ode_solver(this) {
   initialise();
 }
@@ -133,7 +132,7 @@ Patch<Individual>::Patch(Parameters p)
 template <class Individual>
 Patch<Individual>::Patch(Parameters *p)
   : parameters(p),
-    age(0.0),
+    environment(parameters->disturbance_regime, parameters->control),
     ode_solver(this) {
   initialise();
 }
@@ -148,9 +147,9 @@ template <class Individual>
 void Patch<Individual>::step_deterministic() {
   std::vector<double> y(ode_size());
   ode_values(y.begin());
-  ode_solver.set_state(y, age);
+  ode_solver.set_state(y, environment.get_age());
   ode_solver.step();
-  age = ode_solver.get_time();
+  environment.set_age(ode_solver.get_time());
 }
 
 // Note that this will change when we are working with a
@@ -206,7 +205,9 @@ std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
   const double p_dispersal = parameters->Pi_0;
   for ( size_t i = 0; i < seeds.size(); i++ ) {
     if ( seeds[i] > 0 ) {
-      const double p = p_dispersal * 
+      // TODO: Temporary...
+      spline::Spline light_environment = environment.get_light_environment();
+      const double p = p_dispersal *
 	species[i].germination_probability(&light_environment);
       seeds[i] = p > 0 ? (int)Rf_rbinom(seeds[i], p) : 0.0;
     }
@@ -325,14 +326,15 @@ double Patch<Individual>::canopy_openness(double height) {
 template <class Individual>
 void Patch<Individual>::compute_light_environment() {
   util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
-  spline::AdaptiveSpline generator(&fun);
-  light_environment = generator.construct_spline(0, height_max());
+  environment.compute_light_environment(&fun, height_max());
 }
 
 // Given the light environment, "apply" it to every species so that
 // physiological variables are updated.
 template <class Individual>
 void Patch<Individual>::compute_vars_phys() {
+  // TODO: Temporary...
+  spline::Spline light_environment = environment.get_light_environment();
   for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     sp->compute_vars_phys(&light_environment);
@@ -357,8 +359,8 @@ Rcpp::List Patch<Individual>::r_get_species() const {
 }
 
 template <class Individual>
-spline::Spline Patch<Individual>::r_light_environment() const {
-  return light_environment;
+Environment Patch<Individual>::r_environment() const {
+  return environment;
 }
 
 // In contrast with add_seeds(), we must build the light environment
@@ -422,7 +424,7 @@ std::vector<int> Patch<Individual>::r_n_individuals() const {
 
 template <class Individual>
 void Patch<Individual>::clear() {
-  age = 0.0;
+  environment.set_age(0.0);
   for ( species_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     sp->clear();

@@ -47,7 +47,7 @@ expect_that(plants[[1]]$vars_size,
 
 ## Compute the light environment
 patch$compute_light_environment()
-env <- patch$light_environment
+env <- patch$environment$light_environment
 
 ## And compare that with the manually computed light environment
 target <- function(x) sapply(x, patch$canopy_openness)
@@ -136,7 +136,7 @@ expect_that(patch$n_individuals == 2 && patch$age < 15,
 ## stochastic, this may give false positives sometimes.
 seed <- new(Plant, p[[1]])
 pr.cmp <- p$parameters[["Pi_0"]] *
-  seed$germination_probability(patch$light_environment)
+  seed$germination_probability(patch$environment$light_environment)
 
 set.seed(1)
 n <- 100000
