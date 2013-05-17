@@ -27,7 +27,7 @@ expect_that(yy.C, equals(yy.cmp, tolerance=3e-6))
 expect_that(ss$x, equals(xx))
 expect_that(ss$y, equals(yy))
 
-ss$reset()
+ss$clear()
 
 for ( i in seq_along(xx) )
   ss$add_point(xx[[i]], yy[i,])

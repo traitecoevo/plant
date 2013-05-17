@@ -65,7 +65,7 @@ void Spline::add_point(double xi, double yi) {
 }
 
 // Remove all the contents, being ready to be refilled.
-void Spline::reset() {
+void Spline::clear() {
   x.clear();
   y.clear();
   gsl_free_spline();

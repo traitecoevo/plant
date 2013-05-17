@@ -107,7 +107,7 @@ void PlantSpline::initialise(double mass_leaf_max, int n_plants) {
 // NOTE: An alternative way would be to clear out the y values only
 // (an update_y method, taking an index?).  Could avoid some copying.
 void PlantSpline::build_plants_approx() {
-  plants_approx.reset();
+  plants_approx.clear();
 
   std::vector<double> ode_rates_p(plants.begin()->ode_size());
 

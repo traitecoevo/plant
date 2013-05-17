@@ -25,10 +25,10 @@ void MultiSpline::add_point(double xi, std::vector<double> yi) {
     splines[i].add_point(xi, yi[i]);
 }
 
-void MultiSpline::reset() {
+void MultiSpline::clear() {
   for ( std::vector<Spline>::iterator si = splines.begin();
 	si != splines.end(); si++ )
-    si->reset();
+    si->clear();
 }
 
 double MultiSpline::eval(double u, size_t i) const {

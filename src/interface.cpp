@@ -58,7 +58,7 @@ RCPP_MODULE(tree) {
     .method("init",      &spline::MultiSpline::r_init)
     .method("init_self", &spline::MultiSpline::init_self)
     .method("add_point", &spline::MultiSpline::r_add_point)
-    .method("reset",     &spline::MultiSpline::reset)
+    .method("clear",     &spline::MultiSpline::clear)
     .method("eval",      &spline::MultiSpline::r_eval)
     .method("eval_1",    &spline::MultiSpline::r_eval_1)
     .method("eval_r",    &spline::MultiSpline::r_eval_r)

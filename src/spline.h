@@ -25,7 +25,7 @@ public:
   void init_self();
 
   void add_point(double xi, double yi);
-  void reset();
+  void clear();
 
   double eval(double u) const;
   size_t size() const;
