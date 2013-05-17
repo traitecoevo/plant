@@ -2,9 +2,8 @@ source("helper-tree.R")
 
 context("Environment")
 
-ctrl <- new(Control)
-disturbance <- new(Disturbance)
-e <- new(Environment, disturbance, ctrl)
+p <- new(Parameters)
+e <- new(Environment, p)
 
 ## At this point, we should have full canopy openness, partly because
 ## the spline is just not constructed.
@@ -35,6 +34,8 @@ expect_that(sapply(hmid, e$light_environment$eval),
 expect_that(e$age, is_identical_to(0.0))
 expect_that(e$patch_survival(e$age), is_identical_to(1.0))
 
+
+disturbance <- new(Disturbance)
 e$age <- 10
 expect_that(e$patch_survival(0),
             is_identical_to(disturbance$survival_probability(0, e$age)))

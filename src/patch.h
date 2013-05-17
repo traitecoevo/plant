@@ -124,7 +124,7 @@ private:
 template <class Individual>
 Patch<Individual>::Patch(Parameters p)
   : parameters(p),
-    environment(parameters->disturbance_regime, parameters->control),
+    environment(*parameters.get()),
     ode_solver(this) {
   initialise();
 }
@@ -132,7 +132,7 @@ Patch<Individual>::Patch(Parameters p)
 template <class Individual>
 Patch<Individual>::Patch(Parameters *p)
   : parameters(p),
-    environment(parameters->disturbance_regime, parameters->control),
+    environment(*parameters.get()),
     ode_solver(this) {
   initialise();
 }

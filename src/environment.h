@@ -2,20 +2,17 @@
 #ifndef TREE_ENVIRONMENT_H_
 #define TREE_ENVIRONMENT_H_
 
+#include "parameters.h"
 #include "spline.h"
-#include "disturbance.h"
 #include "util.h"
 #include "functor.h"
-#include "control.h"
 
 namespace model {
 
 class Environment {
 public:
-  // TODO: Allow (require?) initialisation from Parameters
   // TODO: clear method (invoke from Patch::clear)
-  Environment(Disturbance disturbance_regime,
-	      Control control);
+  Environment(Parameters p);
   double canopy_openness(double height) const;
   void compute_light_environment(util::DFunctor *canopy_openness,
 				 double height_max);
@@ -23,8 +20,6 @@ public:
 
   spline::Spline get_light_environment() const;
   void set_light_environment(const spline::Spline env);
-
-  Disturbance get_disturbance_regime() const;
 
   double get_age() const;
   void set_age(double x);

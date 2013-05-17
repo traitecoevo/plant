@@ -4,10 +4,9 @@
 
 namespace model {
 
-Environment::Environment(Disturbance disturbance_regime,
-			 Control control)
-  : disturbance_regime(disturbance_regime),
-    control(control),
+Environment::Environment(Parameters p)
+  : disturbance_regime(p.disturbance_regime),
+    control(p.control),
     age(0.0) {
 }
 
@@ -33,15 +32,14 @@ double Environment::patch_survival(double age_at_birth) const {
   return disturbance_regime.survival_probability(age_at_birth, age);
 }
 
+// TODO: If I'm just going to get and set, should these just be public
+// data?  What is the advantage here?  Is anything actually being
+// encapsulated?
 spline::Spline Environment::get_light_environment() const {
   return light_environment;
 }
 void Environment::set_light_environment(const spline::Spline env) {
   light_environment = env;
-}
-
-Disturbance Environment::get_disturbance_regime() const {
-  return disturbance_regime;
 }
 
 double Environment::get_age() const {

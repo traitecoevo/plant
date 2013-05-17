@@ -232,14 +232,12 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<model::Environment>("Environment")
-    .constructor<model::Disturbance, model::Control>()
+    .constructor<model::Parameters>()
     .method("canopy_openness", &model::Environment::canopy_openness)
     .method("patch_survival",  &model::Environment::patch_survival)
     .property("light_environment",
 	      &model::Environment::get_light_environment,
 	      &model::Environment::set_light_environment)
-    .property("disturbance_regime",
-	      &model::Environment::get_disturbance_regime)
     .property("age",
 	      &model::Environment::get_age,
 	      &model::Environment::set_age)
