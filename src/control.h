@@ -26,6 +26,10 @@ public:
   bool   cohort_gradient_richardson;
   int    cohort_gradient_richardson_depth;
 
+  double environment_light_tol;
+  int    environment_light_nbase;
+  int    environment_light_max_depth;
+
 private:
   double _plant_assimilation_over_distribution;
   double _plant_assimilation_iterations;
@@ -34,6 +38,9 @@ private:
 
   double _cohort_gradient_richardson;
   double _cohort_gradient_richardson_depth;
+
+  double _environment_light_nbase;
+  double _environment_light_max_depth;
 
   void do_build_lookup();
   void reset();

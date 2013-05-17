@@ -23,6 +23,10 @@ void Control::reset() {
   cohort_gradient_eps = 1e-6;
   _cohort_gradient_richardson = static_cast<double>(false);
   _cohort_gradient_richardson_depth = static_cast<double>(4);
+
+  environment_light_tol = 1e-6;
+  _environment_light_nbase = static_cast<double>(17);
+  _environment_light_max_depth = static_cast<double>(16);
 }
 
 void Control::do_build_lookup() {
@@ -42,8 +46,15 @@ void Control::do_build_lookup() {
     &cohort_gradient_eps;
   lookup_table["cohort_gradient_richardson"] =
     &_cohort_gradient_richardson;
-  lookup_table["cohort_gradient_richardson_depth"]=
+  lookup_table["cohort_gradient_richardson_depth"] =
     &_cohort_gradient_richardson_depth;
+
+  lookup_table["environment_light_tol"] =
+    &environment_light_tol;
+  lookup_table["environment_light_nbase"] =
+    &_environment_light_nbase;
+  lookup_table["environment_light_max_depth"] =
+    &_environment_light_max_depth;
 }
 
 void Control::set_parameters_post_hook() {
@@ -58,6 +69,11 @@ void Control::set_parameters_post_hook() {
   cohort_gradient_richardson = _cohort_gradient_richardson != 0.0;
   cohort_gradient_richardson_depth =
     static_cast<int>(_cohort_gradient_richardson_depth);
+
+  environment_light_nbase =
+    static_cast<int>(_environment_light_nbase);
+  environment_light_max_depth =
+    static_cast<int>(_environment_light_max_depth);
 }
 
 }
