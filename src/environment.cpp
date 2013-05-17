@@ -19,6 +19,10 @@ double Environment::canopy_openness(double height) const {
 void Environment::compute_light_environment(util::DFunctor *canopy_openness,
 					    double height_max) {
   spline::AdaptiveSpline generator(canopy_openness);
+  generator.set_control(control.environment_light_tol,
+			control.environment_light_tol,
+			control.environment_light_nbase,
+			control.environment_light_max_depth);
   set_light_environment(generator.construct_spline(0, height_max));
 }
 
