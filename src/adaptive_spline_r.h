@@ -25,6 +25,7 @@ namespace test {
 
 Spline test_adaptive_spline(SEXP fun, SEXP env,
 			    double a, double b);
+Spline test_adaptive_spline_generator(SEXP fun, SEXP env);
 
 }
 

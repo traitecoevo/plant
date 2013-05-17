@@ -1,33 +1,13 @@
-#include <Rcpp.h>
 #include "adaptive_spline.h"
-
-#include <gsl/gsl_nan.h>
-
-#include "util.h"
 
 namespace spline {
 
-// Constructor that sets things to sensible defaults.  The bounds are
-// impossible, and the target function is NULL, both of which will
-// prevent construction of the spline without calling `set_bounds()`
-// and `set_targets()`.  Setting the control parameters (via
-// `set_control`) is optional, and the bounds should be reasonable for
-// many uses.
-AdaptiveSpline::AdaptiveSpline() 
-  : Spline(), atol(1e-6), rtol(1e-6), nbase(17), max_depth(16) {
-}
-
-// TODO: Some translation here with R and GSL infinities might be
-// useful.
-void AdaptiveSpline::set_bounds(double a_, double b_) {
-  a = a_;
-  b = b_;
-  check_bounds();
-}
-
-void AdaptiveSpline::set_target(util::DFunctor *target_) {
-  target = target_;
-}
+// Constructor that sets things to sensible defaults.  Setting the
+// control parameters (via `set_control`) is optional, and the values
+// here should be reasonable for many uses.
+AdaptiveSpline::AdaptiveSpline(util::DFunctor *target)
+  : target(target),
+    atol(1e-6), rtol(1e-6), nbase(17), max_depth(16) {}
 
 // Set *all* the control parameters.
 // 
@@ -43,48 +23,55 @@ void AdaptiveSpline::set_control(double atol_, double rtol_,
   max_depth = max_depth_;
 }
 
-// This goes through and adaptively builds the spline.
-bool AdaptiveSpline::construct_spline() {
-  if ( target == NULL )
-    Rf_error("Target function not set");
-  check_bounds();
-  reset();
+// Evaluate the underlying function (double -> double).
+double AdaptiveSpline::eval_target(double x) const {
+  return (*target)(x);
+}
 
+// Adaptively refine a spline that spans from a to b so that the
+// midpoints of evaluated points have sufficiently low error.
+Spline AdaptiveSpline::construct_spline(double a, double b) {
+  check_bounds(a, b);
   dx = (b - a) / (nbase - 1);
   dxmin = dx / pow(2, max_depth);
+
+  xx.clear();
+  yy.clear();
+  zz.clear();
 
   double xi = a;
   for ( int i = 0; i < nbase; i++, xi += dx ) {
     xx.push_back(xi);
-    yy.push_back((*target)(xi));
+    yy.push_back(eval_target(xi));
     zz.push_back(i > 0);
   }
+
   compute_spline();
 
   bool flag = true;
   while ( flag )
     flag = refine();
-  return !flag; // will always be true, as failure causes error...
+
+  return spline;
 }
 
-// Takes the contents of the 'xx' and 'yy' arrays and computes a
-// (non-adaptive) spline with them.
+// Given our current set of x/y points, construct the spline.  This is
+// the only function that actually modifies the spline object.
 void AdaptiveSpline::compute_spline() {
-  const size_t n = xx.size();
-  x.resize(n);
-  y.resize(n);
-  std::copy(xx.begin(), xx.end(), x.begin());
-  std::copy(yy.begin(), yy.end(), y.begin());
-  init_self();
+  std::vector<double> x(xx.begin(), xx.end());
+  std::vector<double> y(yy.begin(), yy.end());
+  spline.init(x, y);
 }
 
 // Refine the spline by adding points in all intervals (xx[i-1],
-// xx[i]) where z[i] is true.
+// xx[i]) where z[i] is true, and check to see if this new point has
+// sufficiently good error that this interval needs no further
+// refinement.
 bool AdaptiveSpline::refine() {
   dx /= 2;
 
   if ( dx < dxmin )
-    Rf_error("Spline as refined as currently possible");
+    ::Rf_error("Spline as refined as currently possible");
 
   bool flag = false;
   
@@ -93,8 +80,8 @@ bool AdaptiveSpline::refine() {
   for ( ; xi != xx.end(); ++xi, ++yi, ++zi ) {
     if ( *zi ) {
       const double x_mid = *xi - dx;
-      const double y_mid = (*target)(x_mid);
-      const double p_mid = eval(x_mid);
+      const double y_mid = eval_target(x_mid);
+      const double p_mid = spline.eval(x_mid);
 
       // Always insert the new points.
       xx.insert(xi, x_mid);
@@ -119,6 +106,13 @@ bool AdaptiveSpline::refine() {
   return flag;
 }
 
+void AdaptiveSpline::check_bounds(double a, double b) {
+  if ( a >= b )
+    ::Rf_error("Impossible bounds");
+  if ( !util::is_finite(a) || !util::is_finite(b) )
+    ::Rf_error("Infinite bounds");
+}
+
 // Determines if difference between predicted and true values falls
 // within error bounds.
 bool AdaptiveSpline::check_err(double y_true, double y_pred) const {
@@ -127,19 +121,5 @@ bool AdaptiveSpline::check_err(double y_true, double y_pred) const {
   return err_abs < atol || err_rel < rtol;
 }
 
-// Get everything cleaned up.
-void AdaptiveSpline::reset() {
-  Spline::reset();
-  zz.clear();
-  xx.clear();
-  yy.clear();
-}
-
-void AdaptiveSpline::check_bounds() {
-  if ( a >= b )
-    Rf_error("Impossible bounds");
-  if ( !util::is_finite(a) || !util::is_finite(b) )
-    Rf_error("Infinite bounds");
-}
 
 }

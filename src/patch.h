@@ -111,7 +111,7 @@ private:
   Parameters::ptr parameters;
   double age;
 
-  spline::AdaptiveSpline light_environment;
+  spline::Spline light_environment;
 
   std::vector< Species<Individual> > species;
   ode::Solver<Patch> ode_solver;
@@ -324,12 +324,9 @@ double Patch<Individual>::canopy_openness(double height) {
 // species.
 template <class Individual>
 void Patch<Individual>::compute_light_environment() {
-  // Naive version -- push out to to body of class
   util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
-  light_environment.set_bounds(0, height_max());
-  light_environment.set_target(&fun);
-  // TODO: should be construct(&fun, 0, height())
-  light_environment.construct_spline();
+  spline::AdaptiveSpline generator(&fun);
+  light_environment = generator.construct_spline(0, height_max());
 }
 
 // Given the light environment, "apply" it to every species so that

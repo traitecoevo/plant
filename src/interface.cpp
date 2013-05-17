@@ -47,9 +47,9 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<spline::AdaptiveSpline>("AdaptiveSpline")
-    .constructor()
-    .derives<spline::Spline>("Spline")
     .method("construct_spline", &spline::AdaptiveSpline::construct_spline)
+    .method("set_control",      &spline::AdaptiveSpline::set_control)
+    .method("eval_target",      &spline::AdaptiveSpline::eval_target)
     ;
 
   Rcpp::class_<spline::MultiSpline>("MultiSpline")
