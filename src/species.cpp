@@ -29,6 +29,25 @@ int Species<CohortDiscrete>::r_n_individuals() const {
   return n;
 }
 
+template<>
+double Species<CohortTop>::leaf_area_above(double height) const {
+  std::vector<double> x, y;
+  for (plants_const_iterator it = plants.begin();
+       it != plants.end(); it++ ) {
+    const double a = it->leaf_area_above(height);
+    if (a > 0) {
+      // TODO: Here, it would be nice to abstract away the size
+      // dimension, rather than use mass_leaf directly.
+      x.push_back(it->mass_leaf());
+      y.push_back(a);
+    } else {
+      break;
+    }
+  }
+
+  return util::trapezium(x, y);
+}
+
 template <>
 void Species<CohortTop>::compute_vars_phys(const Environment& environment) {
   for ( plants_iterator it = plants.begin();

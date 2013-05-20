@@ -18,6 +18,7 @@ public:
   void compute_initial_conditions(const Environment& environment);
 
   double leaf_area_above(double z) const;
+
   int offspring();
   bool died();
 

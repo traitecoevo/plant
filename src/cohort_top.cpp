@@ -35,6 +35,8 @@ void CohortTop::compute_vars_phys(const Environment& environment) {
     fecundity_rate() * survival_probability() * survival_patch;
 }
 
+// TODO: Not sure if this should happen here, of we should treat this
+// as the *individual* leaf area above?
 double CohortTop::leaf_area_above(double z) const {
   return density * Plant::leaf_area_above(z);
 }

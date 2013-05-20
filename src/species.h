@@ -159,6 +159,8 @@ double Species<Individual>::leaf_area_above(double height) const {
   }
   return tot;
 }
+template <>
+double Species<CohortTop>::leaf_area_above(double height) const;
 
 template <class Individual>
 void Species<Individual>::compute_vars_phys(const Environment& environment) {
