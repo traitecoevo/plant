@@ -15,8 +15,7 @@ public:
   CohortTop(Strategy *s);
 
   void compute_vars_phys(const Environment& environment);
-  void compute_initial_conditions(const Environment& environment,
-				  double seed_rain);
+  void compute_initial_conditions(const Environment& environment);
 
   double leaf_area_above(double z) const;
   int offspring();

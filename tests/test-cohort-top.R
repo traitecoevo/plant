@@ -12,10 +12,10 @@ coh <- new(CohortTop, s)
 ## Set up cohort with empty light environment
 env <- test.environment(2 * plant$height,
                         light.env=function(x) rep(1, length(x)))
+env$seed_rain <- new(SeedRain, 1.0)
 
 ## Initial conditions:
-seed.input <- 1
-coh$compute_initial_conditions(env, seed.input)
+coh$compute_initial_conditions(env)
 
 ## Different ode size to plant
 expect_that(coh$ode_size, equals(4))
@@ -27,7 +27,7 @@ p.germ <- plant$germination_probability(env)
 y <- plant$ode_values
 g <- plant$vars_phys[["growth_rate"]]
 expect_that(coh$ode_values,
-            equals(c(y[1], -log(p.germ), y[3], seed.input/g)))
+            equals(c(y[1], -log(p.germ), y[3], env$seed_rain_rate()/g)))
 
 ## First, need to compute the gradient of growth rate with respect to
 ## leaf mass.  This check can be removed once everything seems to be

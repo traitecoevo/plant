@@ -60,11 +60,11 @@ bool CohortTop::died() {
 //
 // NOTE: The initial condition for density is also a bit tricky, and
 // defined on p 7 at the moment.
-void CohortTop::compute_initial_conditions(const Environment& environment,
-					   double seed_rain) {
+void CohortTop::compute_initial_conditions(const Environment& environment) {
   time_of_birth = environment.get_age();
   set_mortality(-log(germination_probability(environment)));
   const double g = mass_leaf_rate();
+  const double seed_rain = environment.seed_rain_rate();
   density = g > 0 ? (seed_rain / g) : 0.0;
 }
 
