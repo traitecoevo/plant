@@ -5,7 +5,6 @@
 #include "ode_target.h"
 #include "strategy.h"
 #include "plant.h"
-#include "disturbance.h"
 
 namespace model {
 

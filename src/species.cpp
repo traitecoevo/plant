@@ -65,7 +65,7 @@ void Species<CohortTop>::compute_vars_phys(const Environment& environment) {
   for ( plants_iterator it = plants.begin();
 	it != plants.end(); it++ )
     it->compute_vars_phys(environment);
-  seed.compute_vars_phys(environment);
+  seed.compute_initial_conditions(environment);
 }
 
 }
