@@ -291,6 +291,54 @@ it because it's a virtual function.  At this point, I've called it
 `compute_vars_phys_surv`, as it's really both physiology and
 survival.  This will hopefully change.
 
+##### Initial conditions
+
+*This section should probably evolve with the documentation in EBT.md*
+
+There are a series of cohorts -- these are at masses $m_1, m_2, ...,
+m_n$ for $n$ cohorts.  However, to compute things over the
+distribution of cohorts (such as light with equation eq:light), we
+also need a "pretend" cohort $m_0$, which always has the seed mass
+(i.e., it can never grow).  To compute the *density* of this cohort,
+we will need to compute its growth rate: equation eq:boundN (&
+following eqn).
+
+At the moment, cohorts are set up with:
+  * `mass_leaf` = leaf mass at birth, given growth model
+  * `fecundity` = 0 (trivial)
+  * `mortality` = $-log(\Pr({\rm germination}))$ (i.e., probability of
+    dying will be 1 minus probability of germination.
+  * `density`   = $y_x / g$, where $y_x$ is the seed rain (set by
+    environment?) and $g$ is the growth rate of a seed in the current
+    environment.  Or 0 if $g \le 0$.
+
+So, who looks after the seed rain?  It never changes during a
+simulation run, depends most strongly on the Species, but is something
+that isn't really "Strategy".  It feels like it *should* go into the
+Environment (partly because that's the other argument to
+`CohortTop::initialise`) but it is not ever used by the stochastic
+version (but then neither is things like `births()` and `deaths()`
+that `CohortTop` inherits from `Plant`.
+
+One way to think about this is *where would we set the seed rain*.
+We're likely to do something like:
+
+> "run this simulation with Parameters 'p' and seed rain 'x'"
+
+So, it probably ends up in the Parameters vector at some point.  That
+makes sense because we spoke about having a seed rain vector there
+anyway.
+
+**Except**, that we actually add strategies to the parameter vector by
+pushing them back.  This *feels* more like an environmental thing.
+So, have the environment containing a vector of seed rain; this is
+much like the vectors that we were using for seed in/out for patches
+(and perhaps we could repurpose this for same).
+
+1. Probably subclass the core plant bits out from the dispersal stuff
+at some point.  This is hard with `Species` needing to use them
+though.
+
 #### Implementation notes
 
 At the moment, this is implemented by inheriting from Plant, as we
