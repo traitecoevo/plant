@@ -145,10 +145,11 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::SeedRain>("SeedRain")
     .constructor< std::vector<double> >()
-    .method("get",   &model::SeedRain::operator())
-    .method("set",   &model::SeedRain::set)
-    .method("first", &model::SeedRain::first)
-    .method("next",  &model::SeedRain::next)
+    .property("size", &model::SeedRain::size)
+    .method("get",    &model::SeedRain::operator())
+    .method("set",    &model::SeedRain::set)
+    .method("first",  &model::SeedRain::first)
+    .method("next",   &model::SeedRain::next)
     ;
 
   Rcpp::class_<model::Plant>("Plant")

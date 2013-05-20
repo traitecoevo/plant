@@ -4,6 +4,9 @@ context("Seed Rain")
 
 x <- c(.1, .2, .3)
 rain <- new(SeedRain, x)
+
+expect_that(rain$size, equals(length(x)))
+
 rain$first()
 expect_that(rain$get(), is_identical_to(x[[1]])) # 1/3
 rain$"next"()

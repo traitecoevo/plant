@@ -16,6 +16,10 @@ SeedRain::SeedRain(std::vector<double> seed_rain)
     curr_idx(0) {
 }
 
+size_t SeedRain::size() const {
+  return seed_rain.size();
+}
+
 double SeedRain::operator()() const {
   if (curr_idx >= seed_rain.size())
     ::Rf_error("Requested rain out of bounds");
@@ -30,7 +34,7 @@ void SeedRain::next() {
 }
 
 void SeedRain::set(std::vector<double> x) {
-  util::check_length(x.size(), seed_rain.size());
+  util::check_length(x.size(), size());
   seed_rain = x;
 }
 

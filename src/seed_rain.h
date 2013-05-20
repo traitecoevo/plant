@@ -19,6 +19,7 @@ public:
   SeedRain(int n);
   SeedRain(std::vector<double> seed_rain);
 
+  size_t size() const;
   double operator()() const;
 
   void first();
