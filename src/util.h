@@ -119,8 +119,20 @@ std::vector<int> rbinom_multiple(std::vector<int>::iterator it,
 Rcpp::IntegerMatrix to_rcpp_matrix(std::vector< std::vector<int> > x);
 std::vector< std::vector<int> > from_rcpp_matrix(Rcpp::IntegerMatrix x);
 
-// Integration via the trapezium rule
-double trapezium(std::vector<double> x, std::vector<double> y);
+// Integration via the trapezium rule, for any containers that
+// implement the basics of iteration (const_iterator, begin, size)
+template <typename ContainerX, typename ContainerY>
+double trapezium(const ContainerX& x, const ContainerY& y) {
+  util::check_length(y.size(), x.size());
+  if (x.size() < 2)
+    ::Rf_error("Need at least two points for the trapezium rule");
+  typename ContainerX::const_iterator x0 = x.begin(), x1 = x.begin() + 1;
+  typename ContainerY::const_iterator y0 = y.begin(), y1 = y.begin() + 1;
+  double tot = 0.0;
+  while (x1 != x.end())
+    tot += (*x1++ - *x0++) * (*y1++ + *y0++);
+  return tot * 0.5;
+}
 
 template <typename T>
 std::string string_from_address(T *x) {
