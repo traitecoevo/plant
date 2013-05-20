@@ -43,9 +43,9 @@ expect_that(e$patch_survival(2),
 
 rain.blank <- e$seed_rain
 expect_that(rain.blank$get(), throws_error())
-expect_that(e$seed_rain_rate(), throws_error())
+expect_that(e$seed_rain_rate, throws_error())
 
 x <- c(.1, .2)
 rain <- new(SeedRain, x)
 e$seed_rain <- rain
-expect_that(e$seed_rain_rate(), is_identical_to(x[[1]]))
+expect_that(e$seed_rain_rate, is_identical_to(x[[1]]))

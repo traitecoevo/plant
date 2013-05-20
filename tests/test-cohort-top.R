@@ -27,7 +27,7 @@ p.germ <- plant$germination_probability(env)
 y <- plant$ode_values
 g <- plant$vars_phys[["growth_rate"]]
 expect_that(coh$ode_values,
-            equals(c(y[1], -log(p.germ), y[3], env$seed_rain_rate()/g)))
+            equals(c(y[1], -log(p.germ), y[3], env$seed_rain_rate/g)))
 
 ## First, need to compute the gradient of growth rate with respect to
 ## leaf mass.  This check can be removed once everything seems to be

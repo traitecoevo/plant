@@ -246,7 +246,7 @@ RCPP_MODULE(tree) {
     .constructor<model::Parameters>()
     .method("canopy_openness", &model::Environment::canopy_openness)
     .method("patch_survival",  &model::Environment::patch_survival)
-    .method("seed_rain_rate",  &model::Environment::seed_rain_rate)
+    .property("seed_rain_rate",  &model::Environment::seed_rain_rate)
     .property("light_environment",
 	      &model::Environment::get_light_environment,
 	      &model::Environment::set_light_environment)
