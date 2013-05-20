@@ -16,6 +16,7 @@
 #include "control.h"
 
 #include "disturbance.h"
+#include "seed_rain.h"
 #include "environment.h"
 
 #include "plant.h"
@@ -140,6 +141,15 @@ RCPP_MODULE(tree) {
     .constructor()
     .method("survival_probability",
 	    &model::Disturbance::survival_probability)
+    ;
+
+  Rcpp::class_<model::SeedRain>("SeedRain")
+    .constructor<int>()
+    .constructor< std::vector<double> >()
+    .method("get",   &model::SeedRain::operator())
+    .method("set",   &model::SeedRain::set)
+    .method("first", &model::SeedRain::first)
+    .method("next",  &model::SeedRain::next)
     ;
 
   Rcpp::class_<model::Plant>("Plant")
