@@ -247,12 +247,16 @@ RCPP_MODULE(tree) {
     .constructor<model::Parameters>()
     .method("canopy_openness", &model::Environment::canopy_openness)
     .method("patch_survival",  &model::Environment::patch_survival)
+    .method("seed_rain_rate",  &model::Environment::seed_rain_rate)
     .property("light_environment",
 	      &model::Environment::get_light_environment,
 	      &model::Environment::set_light_environment)
     .property("age",
 	      &model::Environment::get_age,
 	      &model::Environment::set_age)
+    .property("seed_rain",
+	      &model::Environment::get_seed_rain,
+	      &model::Environment::set_seed_rain)
     ;
 
   Rcpp::class_<model::PatchBase>("PatchBase")

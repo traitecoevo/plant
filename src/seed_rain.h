@@ -3,6 +3,7 @@
 #define TREE_SEED_RAIN_H_
 
 #include <vector>
+#include <Rcpp.h>
 
 namespace model {
 
@@ -14,6 +15,7 @@ namespace model {
 
 class SeedRain {
 public:
+  SeedRain();
   SeedRain(int n);
   SeedRain(std::vector<double> seed_rain);
 
@@ -30,5 +32,7 @@ private:
 };
 
 }
+
+RCPP_EXPOSED_CLASS(model::SeedRain)
 
 #endif

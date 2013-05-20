@@ -38,6 +38,10 @@ void Environment::clear() {
   light_environment.clear();
 }
 
+double Environment::seed_rain_rate() const {
+  return seed_rain();
+}
+
 // TODO: If I'm just going to get and set, should these just be public
 // data?  What is the advantage here?  Is anything actually being
 // encapsulated?
@@ -54,5 +58,14 @@ double Environment::get_age() const {
 void Environment::set_age(double x) {
   age = x;
 }
+
+SeedRain Environment::get_seed_rain() const {
+  return seed_rain;
+}
+
+void Environment::set_seed_rain(SeedRain x) {
+  seed_rain = x;
+}
+
 
 }

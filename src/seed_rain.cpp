@@ -5,6 +5,11 @@
 
 namespace model {
 
+// Empty seed rain
+SeedRain::SeedRain()
+  : curr_idx(0) {
+}
+
 // Initialse seed rain to be zero to start off with
 SeedRain::SeedRain(int n)
   : seed_rain(n, 0.0),

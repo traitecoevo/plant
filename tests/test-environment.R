@@ -33,10 +33,20 @@ expect_that(sapply(hmid, e$light_environment$eval),
 expect_that(e$age, is_identical_to(0.0))
 expect_that(e$patch_survival(e$age), is_identical_to(1.0))
 
-
 disturbance <- new(Disturbance)
 e$age <- 10
 expect_that(e$patch_survival(0),
             is_identical_to(disturbance$survival_probability(0, e$age)))
 expect_that(e$patch_survival(2),
             is_identical_to(disturbance$survival_probability(2, e$age)))
+
+
+rain.blank <- e$seed_rain
+expect_that(rain.blank$get(), throws_error())
+expect_that(e$seed_rain_rate(), throws_error())
+
+rain <- new(SeedRain, 2)
+x <- c(.1, .2)
+rain$set(x)
+e$seed_rain <- rain
+expect_that(e$seed_rain_rate(), is_identical_to(x[[1]]))
