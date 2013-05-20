@@ -26,5 +26,8 @@ seed <- new(Plant, s)
 expect_that(sp$germination_probability(env),
             is_identical_to(seed$germination_probability(env)))
 
+## Not sure if this is actually desirable at present:
+expect_that(sp$leaf_area_above(0), equals(0))
+
 rm(sp)
 gc()

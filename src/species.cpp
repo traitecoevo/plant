@@ -29,20 +29,32 @@ int Species<CohortDiscrete>::r_n_individuals() const {
   return n;
 }
 
-template<>
+// TODO: This will fall foul of all sorts of corner cases,
+// unfortunately.  We should always make sure that at least two points
+// are included (this should always be the case now), but we probably
+// don't want to include the seed unless we need the point because it
+// is falls within the canopy of the species.  However, we do need to
+// include one zero individual *or* the boundary cohort.
+//
+// TODO: it might actually be easier to work directly with the
+// trapezium rule here.
+template <>
 double Species<CohortTop>::leaf_area_above(double height) const {
   std::vector<double> x, y;
+  bool done = false;
   for (plants_const_iterator it = plants.begin();
        it != plants.end(); it++ ) {
-    const double a = it->leaf_area_above(height);
-    if (a > 0) {
-      // TODO: Here, it would be nice to abstract away the size
-      // dimension, rather than use mass_leaf directly.
-      x.push_back(it->mass_leaf());
-      y.push_back(a);
-    } else {
+    // TODO: Here, it would be nice to abstract away the size
+    // dimension, rather than use mass_leaf directly.
+    x.push_back(it->mass_leaf());
+    y.push_back(it->leaf_area_above(height));
+    if (done)
       break;
-    }
+    done = x.back() == 0;
+  }
+  if (!done) {
+    x.push_back(seed.mass_leaf());
+    y.push_back(seed.leaf_area_above(height));
   }
 
   return util::trapezium(x, y);
