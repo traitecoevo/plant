@@ -8,12 +8,14 @@ cmp <- new(Plant, s)
 sp <- new(SpeciesCT, s)
 
 ## Note that this initialises with a special base cohort always.
-expect_that(sp$size, equals(1))
-expect_that(sp$n_individuals, equals(1))
+expect_that(sp$size, equals(0))
+expect_that(sp$n_individuals, equals(0))
 expect_that(sp$height_max, is_identical_to(cmp$height))
 
 env <- test.environment(cmp$height * 10)
+env$seed_rain <- new(SeedRain, 1)
 
+sp$add_seeds(1)
 sp$compute_vars_phys(env)
 cmp$compute_vars_phys(env)
 

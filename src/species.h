@@ -166,6 +166,8 @@ void Species<Individual>::compute_vars_phys(const Environment& environment) {
 	it != plants.end(); it++ )
     it->compute_vars_phys(environment);
 }
+template <>
+void Species<CohortTop>::compute_vars_phys(const Environment& environment);
 
 template <class Individual>
 void Species<Individual>::add_seeds(int n) {
@@ -211,7 +213,6 @@ ode::iter Species<Individual>::ode_rates(ode::iter it) const {
     it = p->ode_rates(it);
   return it;
 }
-template <> ode::iter Species<CohortTop>::ode_rates(ode::iter it) const;
 
 // * R interface
 template <class Individual>
@@ -272,7 +273,6 @@ double Species<Individual>::germination_probability(const Environment& environme
 
 template <class Individual>
 void Species<Individual>::initialise() {}
-template <> void Species<CohortTop>::initialise();
 
 }
 

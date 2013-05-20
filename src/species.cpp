@@ -30,26 +30,11 @@ int Species<CohortDiscrete>::r_n_individuals() const {
 }
 
 template <>
-ode::iter Species<CohortTop>::ode_rates(ode::iter it) const {
-  // This is the base case.
-  for ( plants_const_iterator p = plants.begin();
-	p != plants.end(); p++ )
-    it = p->ode_rates(it);
-
-  // Then tweak the boundary conditions.
-  const int n = plants.back().ode_size();
-  std::fill(it - n, it, 0.0);
-
-  return it;
-}
-
-template <>
-void Species<CohortTop>::initialise() {
-  add_seeds(1);
-  // TODO: Something like this will be needed, but I've not decided
-  // what it will look like...
-  // Environment env(*parameters.get());
-  // compute_vars_phys(env);
+void Species<CohortTop>::compute_vars_phys(const Environment& environment) {
+  for ( plants_iterator it = plants.begin();
+	it != plants.end(); it++ )
+    it->compute_vars_phys(environment);
+  seed.compute_vars_phys(environment);
 }
 
 }
