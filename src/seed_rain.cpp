@@ -10,12 +10,6 @@ SeedRain::SeedRain()
   : curr_idx(0) {
 }
 
-// Initialse seed rain to be zero to start off with
-SeedRain::SeedRain(int n)
-  : seed_rain(n, 0.0),
-    curr_idx(0) {
-}
-
 // Unless given an initial vector, in which case start with that.
 SeedRain::SeedRain(std::vector<double> seed_rain)
   : seed_rain(seed_rain),

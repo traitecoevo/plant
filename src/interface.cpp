@@ -144,7 +144,6 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<model::SeedRain>("SeedRain")
-    .constructor<int>()
     .constructor< std::vector<double> >()
     .method("get",   &model::SeedRain::operator())
     .method("set",   &model::SeedRain::set)

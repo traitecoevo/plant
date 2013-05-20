@@ -45,8 +45,7 @@ rain.blank <- e$seed_rain
 expect_that(rain.blank$get(), throws_error())
 expect_that(e$seed_rain_rate(), throws_error())
 
-rain <- new(SeedRain, 2)
 x <- c(.1, .2)
-rain$set(x)
+rain <- new(SeedRain, x)
 e$seed_rain <- rain
 expect_that(e$seed_rain_rate(), is_identical_to(x[[1]]))
