@@ -16,7 +16,7 @@ public:
 
   void compute_vars_phys(const Environment& environment);
   void compute_initial_conditions(const Environment& environment,
-				  double seed_input);
+				  double seed_rain);
 
   double leaf_area_above(double z) const;
   int offspring();
