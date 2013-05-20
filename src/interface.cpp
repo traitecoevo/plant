@@ -346,4 +346,5 @@ RCPP_MODULE(tree) {
   // Useful functions
   Rcpp::function("set_sane_gsl_error_handling",
 		 &util::set_sane_gsl_error_handling);
+  Rcpp::function("trapezium", &util::trapezium);
 }

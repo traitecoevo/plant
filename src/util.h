@@ -119,6 +119,9 @@ std::vector<int> rbinom_multiple(std::vector<int>::iterator it,
 Rcpp::IntegerMatrix to_rcpp_matrix(std::vector< std::vector<int> > x);
 std::vector< std::vector<int> > from_rcpp_matrix(Rcpp::IntegerMatrix x);
 
+// Integration via the trapezium rule
+double trapezium(std::vector<double> x, std::vector<double> y);
+
 template <typename T>
 std::string string_from_address(T *x) {
   std::stringstream ss;

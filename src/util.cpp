@@ -87,6 +87,18 @@ std::vector< std::vector<int> > from_rcpp_matrix(Rcpp::IntegerMatrix x) {
   return ret;
 }
 
+double trapezium(std::vector<double> x, std::vector<double> y) {
+  util::check_length(y.size(), x.size());
+  if (x.size() < 2)
+    ::Rf_error("Need at least two points for the trapezium rule");
+  std::vector<double>::iterator x0 = x.begin(), y0 = y.begin();
+  std::vector<double>::iterator x1 = x0 + 1,    y1 = y0 + 1;
+  double tot = 0.0;
+  while (x1 != x.end())
+    tot += (*x1++ - *x0++) * (*y1++ + *y0++);
+  return tot * 0.5;
+}
+
 namespace test {
 std::vector<double> test_sum_double(std::vector<double> a,
 				    std::vector<double> b) {

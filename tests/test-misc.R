@@ -76,3 +76,10 @@ library(numDeriv)
 method.args <- list(d=1e-6, eps=1e-6)
 expect_that(tree_module$test_gradient_richardson(x, 1e-6, 4L, pars),
             is_identical_to(grad(f, x, method.args=method.args)))
+
+n <- 20
+set.seed(1)
+xx <- sort(runif(n))
+yy <- runif(n)
+expect_that(tree_module$trapezium(xx, yy),
+            equals(sum((xx[-1] - xx[-n]) * (yy[-1] + yy[-n])) / 2))
