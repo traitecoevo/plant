@@ -24,7 +24,20 @@ void check_dimensions(size_t recieved_rows, size_t recieved_cols,
 		      size_t expected_rows, size_t expected_cols);
 
 // Based on C++11's is_sorted
-template <class ForwardIterator> 
+template <class ForwardIterator>
+bool is_sorted(ForwardIterator first, ForwardIterator last) {
+  if (first == last)
+    return true;
+
+  ForwardIterator next = first;
+  while (++next != last) {
+    if (*next < *first)
+      return false;
+    ++first;
+  }
+  return true;
+}
+template <class ForwardIterator>
 bool is_decreasing(ForwardIterator first, ForwardIterator last) {
   if ( first == last ) 
     return true;
