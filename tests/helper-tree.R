@@ -40,6 +40,8 @@ if ( !exists("Spline") ) {
   ## Slightly different to the other Individuals...
   CohortTop      <- tree_module$CohortTop
 
+  CohortSchedule <- tree_module$CohortSchedule
+
   Species <- tree_module$Species
   SpeciesC <- tree_module$SpeciesC
   SpeciesCT <- tree_module$SpeciesCT

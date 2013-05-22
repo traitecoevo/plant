@@ -25,6 +25,7 @@
 #include "plant_approx.h"
 
 #include "cohort_top.h"
+#include "cohort_schedule.h"
 
 #include "patch.h"
 
@@ -207,6 +208,22 @@ RCPP_MODULE(tree) {
 	    &model::CohortTop::r_growth_rate_gradient)
     .method("growth_rate_given_mass",
 	    &model::CohortTop::r_growth_rate_given_mass)
+    ;
+
+  Rcpp::class_<model::CohortSchedule>("CohortSchedule")
+    .constructor<size_t>()
+    .property("size",      &model::CohortSchedule::size)
+    .method("clear_times", &model::CohortSchedule::clear_times)
+    .method("set_times",   &model::CohortSchedule::set_times)
+    .method("times",       &model::CohortSchedule::times)
+    .method("reset",       &model::CohortSchedule::reset)
+    .method("next_event",  &model::CohortSchedule::next_event)
+    .property("next_time", &model::CohortSchedule::next_time)
+    ;
+  Rcpp::class_<model::CohortSchedule::Event>("CohortScheduleEvent")
+    .constructor<double,int>()
+    .field("cohort", &model::CohortSchedule::Event::cohort)
+    .field("time",   &model::CohortSchedule::Event::time)
     ;
 
   Rcpp::class_<model::SpeciesBase>("SpeciesBase")
