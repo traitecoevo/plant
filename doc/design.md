@@ -543,6 +543,65 @@ computed and germination tested.  For Species, there is no
 for consistency with `Patch`, but I think `add_seeds` is possibly
 clearer.
 
+### Patches for EBT/individual based
+
+Probably we will have a merge/split with patches -- there is a lot of
+shared code.
+
+* both
+  - `step()`
+  - `initialise()` (if kept?)
+  - `height_max()`
+  - `canopy_openness()`
+  - `compute_light_environment()`
+  - `compute_vars_phys()`
+* stochastic only
+  - `step_deterministic()/step_stochastic()`
+  - `births()/deaths()`
+  - `add_seeds()/add_seedlings()` (possibly different interfaces?)
+  - `germination()`
+* ebt only
+  - `set_seed_rain()` (possibly?)
+  - any code related to cohort timing/next step, etc.
+  - mutant rerunning code (possibly?)
+
+The big hassle will be that there will end up with some duplication of
+exports for the interface code.
+
+This is complicated by the fact that we have inheritance and
+templating going on, interacting with the desire to export these via
+Rcpp (which need concrete instances).  Inheriting off teplated classes
+is a bit tricky for me:
+
+```
+template <class Individual>
+class PatchStochastic : public PatchBase<Individual> {
+  ...
+};
+```
+
+won't work --
+  http://stackoverflow.com/questions/3277812/c-template-class-inheriting-another-template-class-with-a-template-specified-i
+This will make the rest of the code really ugly.  The issue here is
+apparently "The main reason C++ cannot assume anything here is that
+the base template can be specialized for a type later"
+  http://stackoverflow.com/questions/11405/gcc-problem-using-a-member-of-a-base-class-that-depends-on-a-template-argument
+
+This all suggests some fairly bad design problem.  I suspect that the
+class is trying to do too much.  For now, I might just have to
+duplicate the code in Patch for EBT and work back to sort it out
+later.  A bit of a wart, but I'm not seeing a really obvious solution
+here.
+
+I feel that there's a core of code in there that both bits need, and
+then there is a way of actually interacting with the Species within
+the patch that will vary depending on how we use it (as such,
+inheritance is probably inappropriate because we'll treat the objects
+totally differently).  There may be a compositional way of doing this,
+but I don't know how to do this following an open/closed model
+(especially without exposing much of what is going on in Species).
+It's possible that we can do this with passing back iterators or something?
+
 ### Disturbance
 
 Patches have a disturbance regime.  The model that the original (EBT)
