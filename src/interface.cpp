@@ -241,8 +241,8 @@ RCPP_MODULE(tree) {
     .method("germination_probability", 
             &model::SpeciesBase::germination_probability)
     .method("clear",           &model::SpeciesBase::clear)
-    .property("mass_leaf",     &model::SpeciesBase::r_get_mass_leaf)
-    .method("set_mass_leaf",   &model::SpeciesBase::r_set_mass_leaf)
+    .property("height",        &model::SpeciesBase::r_height,
+	      &model::SpeciesBase::r_set_height)
     .property("plants",        &model::SpeciesBase::r_get_plants)
     .property("n_individuals", &model::SpeciesBase::r_n_individuals)
     ;

@@ -21,13 +21,14 @@ expect_that(sp[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
 expect_that(length(sp$plants), equals(1))
 
-cmp$set_mass_leaf(pi)
+h0 <- 10
+cmp$height <- h0
 
-expect_that(sp$set_mass_leaf(numeric(0)),
+expect_that(sp$height <- numeric(0),
             throws_error())
-expect_that(sp$set_mass_leaf(c(pi, pi),),
+expect_that(sp$height <- c(h0, h0),
             throws_error())
-sp$set_mass_leaf(pi)
+sp$height <- h0
 
 expect_that(sp[[1]]$vars_size,
             is_identical_to(cmp$vars_size))

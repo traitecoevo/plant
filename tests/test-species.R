@@ -27,13 +27,16 @@ expect_that(sp[[1]]$vars_size,
 expect_that(sp[[2]]$vars_size,
             throws_error())
 
-cmp$set_mass_leaf(pi)
+## Height to set things to.
+h0 <- 10
 
-expect_that(sp$set_mass_leaf(numeric(0)),
+cmp$height <- h0
+
+expect_that(sp$height <- numeric(0),
             throws_error())
-expect_that(sp$set_mass_leaf(c(pi, pi),),
+expect_that(sp$height <- c(h0, h0),
             throws_error())
-sp$set_mass_leaf(pi)
+sp$height <- h0
 
 expect_that(sp$plants[[1]]$vars_size,
             is_identical_to(cmp$vars_size))
@@ -51,7 +54,6 @@ expect_that(sp$plants[[1]]$vars_phys,
 seed <- new(Plant, s)
 expect_that(sp$germination_probability(env),
             is_identical_to(seed$germination_probability(env)))
-
 
 rm(sp)
 gc()

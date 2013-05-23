@@ -29,6 +29,8 @@ public:
   // R-specific wrappers
   virtual std::vector<double> r_get_mass_leaf() const = 0;
   virtual void r_set_mass_leaf(std::vector<double> x) = 0;
+  virtual std::vector<double> r_height() const = 0;
+  virtual void r_set_height(std::vector<double> x) = 0;
   virtual Rcpp::List r_get_plants() const = 0;
   virtual int r_n_individuals() const = 0;
 };
@@ -61,6 +63,8 @@ public:
   // * R interface
   std::vector<double> r_get_mass_leaf() const;
   void r_set_mass_leaf(std::vector<double> x);
+  std::vector<double> r_height() const;
+  void r_set_height(std::vector<double> x);
   Rcpp::List r_get_plants() const;
   Individual r_at(size_t idx) const;
   int r_n_individuals() const;
@@ -240,6 +244,29 @@ void Species<Individual>::r_set_mass_leaf(std::vector<double> x) {
   plants_iterator p = plants.begin();
   while ( p != plants.end() ) {
     p->set_mass_leaf(*it++);
+    p++;
+  }
+}
+
+template <class Individual>
+std::vector<double> Species<Individual>::r_height() const { 
+  std::vector<double> ret;
+  plants_const_iterator p = plants.begin(); 
+  while ( p != plants.end() )
+    ret.push_back((p++)->height());
+  return ret;
+}
+
+// NOTE: Roll back on error is not possible here at present.
+template <class Individual>
+void Species<Individual>::r_set_height(std::vector<double> x) {
+  util::check_length(x.size(), size());
+  if ( !util::is_decreasing(x.begin(), x.end()) )
+    Rf_error("height must be decreasing (ties allowed)");
+  std::vector<double>::iterator it = x.begin();
+  plants_iterator p = plants.begin();
+  while ( p != plants.end() ) {
+    p->set_height(*it++);
     p++;
   }
 }
