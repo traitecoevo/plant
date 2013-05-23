@@ -43,39 +43,37 @@ p <- new(Plant, s)
 expect_that(p$strategy$parameters,
             is_identical_to(pars.s))
 
-## Set the leaf mass to something (here pi)
-p$set_mass_leaf(pi)
+## Set the height to something (here 10)
+h0 <- 10
+p$height <- h0
 
 size.p <- p$vars_size
 
-## Daniel's is done in terms of height, so start there:
-h <- size.p[["height"]]
-a <- size.p[["leaf_area"]]
-expect_that(cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h)),
-            equals(pi))
+## Temporary check of the mass_leaf / height translation
+m0 <- size.p[["mass_leaf"]]
+expect_that(p$height_given_mass_leaf(m0), equals(h0))
+expect_that(p$mass_leaf_given_height(h0), equals(m0))
+expect_that(p$mass_leaf_given_height(p$height_given_mass_leaf(m0)),
+            equals(m0))
 
-expect_that(p$height_given_mass_leaf(pi), equals(h))
-expect_that(p$mass_leaf_given_height(h), equals(pi))
-expect_that(p$mass_leaf_given_height(p$height_given_mass_leaf(pi)),
-            equals(pi))
-
-expect_that(size.p[["leaf_area"]],
-            equals(cmp$LeafArea(h)))
 expect_that(size.p[["height"]],
-            equals(cmp$Height(a)))
-expect_that(size.p[["mass_leaf"]], equals(pi))
+            equals(h0))
+expect_that(size.p[["leaf_area"]],
+            equals(cmp$LeafArea(h0)))
+expect_that(size.p[["mass_leaf"]],
+            equals(cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0))))
 expect_that(size.p[["mass_sapwood"]],
-            equals(cmp$SapwoodMass(cmp$traits$rho, a, h)))
+            equals(cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
 expect_that(size.p[["mass_bark"]],
-            equals(cmp$BarkMass(cmp$traits$rho, a, h)))
+            equals(cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
 expect_that(size.p[["mass_heartwood"]],
-            equals(cmp$HeartwoodMass(cmp$traits$rho, a)))
+            equals(cmp$HeartwoodMass(cmp$traits$rho, cmp$LeafArea(h0))))
 expect_that(size.p[["mass_root"]],
-            equals(cmp$RootMass(a)))
+            equals(cmp$RootMass(cmp$LeafArea(h0))))
 expect_that(size.p[["mass_total"]],
-            equals(cmp$TotalMass(cmp$traits, a)))
+            equals(cmp$TotalMass(cmp$traits, cmp$LeafArea(h0))))
 
-env <- test.environment(h)
+env <- test.environment(h0)
 light.env <- attr(env, "light.env") # underlying function
 
 ## The R model computes A_lf * leaf_area * Y * c_bio, wheras we just
@@ -87,48 +85,48 @@ p$compute_vars_phys(env)
 p.phys <- p$vars_phys
 
 ## 1. Assimilation:
-cmp.assimilation.plant <- cmp$assimilation.plant(h, light.env)
+cmp.assimilation.plant <- cmp$assimilation.plant(h0, light.env)
 expect_that(p.phys[["assimilation"]],
             equals(cmp.assimilation.plant / cmp.const))
 
 ## 2. Respiration:
-cmp.respiration <- cmp$respiration.given.height(cmp$traits, h)
+cmp.respiration <- cmp$respiration.given.height(cmp$traits, h0)
 expect_that(p.phys[["respiration"]],
             equals(cmp.respiration / cmp.const))
 
 ## 3. Turnover:
-cmp.turnover <- cmp$turnover.given.height(cmp$traits, h)
+cmp.turnover <- cmp$turnover.given.height(cmp$traits, h0)
 expect_that(p.phys[["turnover"]],
             equals(cmp.turnover))
 
 ## 4. Net production:
-cmp.net.production <- cmp$net.production(cmp$traits, h, light.env)
+cmp.net.production <- cmp$net.production(cmp$traits, h0, light.env)
 expect_that(p.phys[["net_production"]],
             equals(cmp.net.production, tolerance=1e-7))
 
 ## 5. Reproduction fraction
 cmp.reproduction.fraction <-
-  cmp$ReproductiveAllocation(cmp$traits$hmat,h)
+  cmp$ReproductiveAllocation(cmp$traits$hmat,h0)
 expect_that(p.phys[["reproduction_fraction"]],
             equals(cmp.reproduction.fraction))
 
 ## 6. Fecundity rate
-cmp.fecundity.rate <- cmp$fecundity.rate(cmp$traits, h, light.env)
+cmp.fecundity.rate <- cmp$fecundity.rate(cmp$traits, h0, light.env)
 expect_that(p.phys[["fecundity_rate"]],
             equals(cmp.fecundity.rate, tolerance=1e-7))
 
 ## 7. Fraction of whole plant (mass) growth that is leaf.
-cmp.leaf.fraction <- cmp$leaf.fraction(cmp$traits, h)
+cmp.leaf.fraction <- cmp$leaf.fraction(cmp$traits, h0)
 expect_that(p.phys[["leaf_fraction"]],
             equals(cmp.leaf.fraction))
 
 ## 8. Growth rate for leaf mass
-cmp.growth.rate <- cmp$growth.rate(cmp$traits, h, light.env)
+cmp.growth.rate <- cmp$growth.rate(cmp$traits, h0, light.env)
 expect_that(p.phys[["growth_rate"]],
             equals(cmp.growth.rate, tolerance=1e-7))
 
 ## 9. Mortality rate
-cmp.mortality.rate <- cmp$mortality.rate(cmp$traits, h, light.env)
+cmp.mortality.rate <- cmp$mortality.rate(cmp$traits, h0, light.env)
 expect_that(p.phys[["mortality_rate"]],
             equals(cmp.mortality.rate))
 
@@ -170,7 +168,8 @@ p$compute_vars_phys(env2)
 p.phys <- p$vars_phys
 
 ## Check the derivative calculations are correct
-y <- c(pi, 0, 0)
+m0 <- p$mass_leaf_given_height(h0)
+y <- c(m0, 0, 0)
 pars.derivs <- list(plant=p, light.env=env2)
 tmp <- derivs(t, y, pars.derivs)
 p.derivs <- p.phys[c("growth_rate", "mortality_rate", "fecundity_rate")]
@@ -194,7 +193,7 @@ cmp.run <- unname(rk(y, tt, derivs.d, pars.derivs,
                      atol=1)[-1,-1])
 
 expect_that(t(obj$run(tt, y)),
-            equals(cmp.run))
+            equals(cmp.run, tolerance=1e-7))
 
 ## Delete the plant -- should not crash.
 rm(p)

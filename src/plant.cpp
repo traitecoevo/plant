@@ -102,7 +102,7 @@ double Plant::height() const {
 }
 
 void Plant::set_height(double height_) {
-  ::Rf_error("Not yet implemented\n");
+  set_mass_leaf(mass_leaf_given_height(height_));
 }
 
 // * Competitive environment

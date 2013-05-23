@@ -19,10 +19,11 @@ expect_that(cohort0$n_individuals, equals(1))
 expect_that(cohort1$n_individuals, equals(1))
 expect_that(cohort2$n_individuals, equals(2))
 
-plant$set_mass_leaf(pi)
-cohort0$set_mass_leaf(pi)
-cohort1$set_mass_leaf(pi)
-cohort2$set_mass_leaf(pi)
+h0 <- 10
+plant$height <- h0
+cohort0$height <- h0
+cohort1$height <- h0
+cohort2$height <- h0
 
 expect_that(cohort0$vars_size, is_identical_to(plant$vars_size))
 expect_that(cohort1$vars_size, is_identical_to(plant$vars_size))

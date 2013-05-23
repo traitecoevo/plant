@@ -17,16 +17,18 @@ expect_that(approx$vars_size, is_identical_to(plant$vars_size))
 
 expect_that(approx$ode_size, equals(3))
 
-plant$set_mass_leaf(pi)
-approx$set_mass_leaf(pi)
+h0 <- 10
+plant$height <- h0
+approx$height <- h0
 
 expect_that(approx$mass_leaf, is_identical_to(plant$mass_leaf))
 expect_that(approx$vars_size, is_identical_to(plant$vars_size))
 
 expect_that(approx$vars_phys, is_identical_to(plant$vars_phys))
 
-plant$ode_values_set(c(pi, .1, .2))
-approx$ode_values_set(c(pi, .1, .2))
+m0 <- plant$mass_leaf_given_height(h0)
+plant$ode_values_set(c(m0, .1, .2))
+approx$ode_values_set(c(m0, .1, .2))
 expect_that(approx$vars_phys, is_identical_to(plant$vars_phys))
 
 ## Generate a light environment:
@@ -82,7 +84,7 @@ f.p <- function(obj, y) {
 }
 
 ##      Size, death, birth
-y1 <- c(pi,   0.3,   1.5)
+y1 <- c(m0,   0.3,   1.5)
 nrep <- 100
 set.seed(1)
 d.p <- replicate(nrep, f.p(plant, y1))
