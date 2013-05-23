@@ -54,6 +54,11 @@ a <- size.p[["leaf_area"]]
 expect_that(cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h)),
             equals(pi))
 
+expect_that(p$height_given_mass_leaf(pi), equals(h))
+expect_that(p$mass_leaf_given_height(h), equals(pi))
+expect_that(p$mass_leaf_given_height(p$height_given_mass_leaf(pi)),
+            equals(pi))
+
 expect_that(size.p[["leaf_area"]],
             equals(cmp$LeafArea(h)))
 expect_that(size.p[["height"]],

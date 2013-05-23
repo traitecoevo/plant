@@ -172,6 +172,9 @@ RCPP_MODULE(tree) {
     .property("strategy",           &model::Plant::r_get_strategy)
     .property("vars_size",          &model::Plant::r_get_vars_size)
     .property("vars_phys",          &model::Plant::r_get_vars_phys)
+    // Temporary functions
+    .method("height_given_mass_leaf", &model::Plant::height_given_mass_leaf)
+    .method("mass_leaf_given_height", &model::Plant::mass_leaf_given_height)
     ;
 
   Rcpp::class_<model::PlantSpline>("PlantSpline")

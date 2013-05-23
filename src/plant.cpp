@@ -466,6 +466,14 @@ bool Plant::r_died() {
   return died();
 }
 
+double Plant::height_given_mass_leaf(double mass_leaf_) const {
+  return strategy->a1 * pow(mass_leaf_ / strategy->lma, strategy->B1);
+}
+
+double Plant::mass_leaf_given_height(double height_) const {
+  return strategy->lma * pow(height_ / strategy->a1, 1/strategy->B1);
+}
+
 namespace test {
 
 bool test_plant(Strategy s, bool copy, bool ptr) {

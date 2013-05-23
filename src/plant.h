@@ -109,6 +109,10 @@ public:
   double r_germination_probability(spline::Spline env);
   bool r_died();
 
+  // Temporary functions.
+  double height_given_mass_leaf(double mass_leaf_) const;
+  double mass_leaf_given_height(double height_) const;
+
 private:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
