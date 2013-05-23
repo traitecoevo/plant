@@ -6,23 +6,21 @@ s <- new(Strategy)
 
 plant <- new(Plant, s)
 n.spline <- 50
-mass.leaf.max <- 5
-plant.spline <- new(PlantSpline, s, mass.leaf.max, n.spline)
+height.max <- 10
+plant.spline <- new(PlantSpline, s, height.max, n.spline)
 
 ## Expected leaf mass:
-expect_that(plant.spline$mass_leaf_max,
-            is_identical_to(mass.leaf.max))
+expect_that(plant.spline$height_max,
+            is_identical_to(height.max))
 
-mass.leaf <- seq(plant$mass_leaf, plant.spline$mass_leaf_max,
-                 length=n.spline)
+height <- seq(plant$height, plant.spline$height_max,
+              length=n.spline)
 
 ## Check that the plants are correctly spaced:
-expect_that(sapply(plant.spline$plants, function(x) x$mass_leaf),
-            equals(mass.leaf))
+expect_that(sapply(plant.spline$plants, function(x) x$height),
+            equals(height))
 
-last <- function(x) x[[length(x)]]
-hmax <- last(plant.spline$plants)$height
-env <- test.environment(hmax)
+env <- test.environment(height.max)
 
 ## Get all the plants to estimate their physiological variables:
 plant.spline$compute_vars_phys(env)
@@ -43,21 +41,21 @@ expect_that(t(sapply(plants, function(x) x$ode_rates)),
             is_identical_to(spline$y))
 
 ## And check against a manual solution:
-f <- function(m, env, plant) {
-  plant$set_mass_leaf(m)
+f <- function(h, env, plant) {
+  plant$height <- h
   plant$compute_vars_phys(env)
   plant$ode_rates
 }
 
 expect_that(spline$y,
-            equals(t(sapply(mass.leaf, f, env, plant))))
+            equals(t(sapply(height, f, env, plant))))
 
 ## Now, let's see how this responds to getting rates for intermediate
 ## values:
-m <- (mass.leaf[-length(mass.leaf)] + mass.leaf[-1])/2
+hmid <- (height[-length(height)] + height[-1])/2
 
-rates.exact  <- t(sapply(m, f, env, plant))
-rates.spline <- spline$eval(m)
+rates.exact  <- t(sapply(hmid, f, env, plant))
+rates.spline <- spline$eval(hmid)
 
 ## This is not that exact, because the splines are poorly estimated.
 ## However, this is the sort of thing we could build a spline up on at
@@ -66,9 +64,14 @@ rates.spline <- spline$eval(m)
 expect_that(rates.spline,
             equals(rates.exact, tolerance=2e-3))
 
-expect_that(t(sapply(spline$x, function(m) plant.spline$ode_rates(m))),
-            is_identical_to(spline$y))
-expect_that(t(sapply(m, function(m) plant.spline$ode_rates(m))),
-            is_identical_to(rates.spline))
-expect_that(plant.spline$ode_rates(plant.spline$mass_leaf_max + 1e-8),
+## TODO: Temporary until ode basis changes...
+mass <- sapply(height, plant$mass_leaf_given_height)
+mmid <- sapply(hmid, plant$mass_leaf_given_height)
+
+expect_that(t(sapply(mass, function(m) plant.spline$ode_rates(m))),
+            equals(spline$y))
+expect_that(t(sapply(mmid, function(m) plant.spline$ode_rates(m))),
+            equals(rates.spline))
+
+expect_that(plant.spline$ode_rates(plant$mass_leaf_given_height(plant.spline$height_max) + 1e-8),
             throws_error())

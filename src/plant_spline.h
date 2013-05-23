@@ -28,11 +28,11 @@ namespace model {
 class PlantSpline {
 public:
   typedef util::PtrWrapper<PlantSpline> ptr;
-  PlantSpline(Strategy  s, double mass_leaf_max, int n_plants);
-  PlantSpline(Strategy *s, double mass_leaf_max, int n_plants);
+  PlantSpline(Strategy  s, double height_max, int n_plants);
+  PlantSpline(Strategy *s, double height_max, int n_plants);
 
   // Used by plant_approx (just friend instead?)
-  double mass_leaf_max() const;
+  double height_max() const;
   Strategy* get_strategy() const;
 
   // Used by species & upstream
@@ -47,12 +47,12 @@ public:
 
 private:
   size_t ode_size() const;
-  void initialise(double mass_leaf_max, int n_plants);
+  void initialise(double height_max, int n_plants);
   void build_plants_approx();
 
   Strategy::ptr strategy;
   Plant seed;
-  std::vector<double> mass_leaf;
+  std::vector<double> height;
   std::vector<Plant> plants;
   spline::MultiSpline plants_approx;
 };

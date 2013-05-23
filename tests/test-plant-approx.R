@@ -6,13 +6,13 @@ s <- new(Strategy)
 
 plant <- new(Plant, s)
 n.spline <- 50
-mass.leaf.max <- 5
-plant.spline <- new(PlantSpline, s, mass.leaf.max, n.spline)
+height.max <- 10
+plant.spline <- new(PlantSpline, s, height.max, n.spline)
 
 approx <- new(PlantApprox, s, plant.spline)
 plant <- new(Plant, s)
 
-expect_that(approx$mass_leaf, is_identical_to(plant$mass_leaf))
+expect_that(approx$height,    is_identical_to(plant$height))
 expect_that(approx$vars_size, is_identical_to(plant$vars_size))
 
 expect_that(approx$ode_size, equals(3))
@@ -32,9 +32,7 @@ approx$ode_values_set(c(m0, .1, .2))
 expect_that(approx$vars_phys, is_identical_to(plant$vars_phys))
 
 ## Generate a light environment:
-last <- function(x) x[[length(x)]]
-hmax <- last(plant.spline$plants)$height * 1.1
-env <- test.environment(hmax * 1.1)
+env <- test.environment(height.max * 1.1)
 
 plant$compute_vars_phys(env)
 ## Update the underlying spline (a controlling class would normally do
@@ -56,18 +54,10 @@ expect_that(approx$ode_rates,
             is_identical_to(plant.spline$ode_rates(plant$mass_leaf)))
 
 ## Now, outside of the range of plants:
-h.large <- hmax / 1.1 * 1.05
-f <- function(x) {
-  m <- plant$mass_leaf
-  on.exit(plant$set_mass_leaf(m))
-  plant$set_mass_leaf(x)
-  plant$height - h.large
-}
+h.large <- height.max * 1.05
+plant$height <- h.large
+approx$height <- h.large
 
-m <- uniroot(f, c(plant$mass_leaf, mass.leaf.max * 2))$root
-
-plant$set_mass_leaf(m)
-approx$set_mass_leaf(m)
 expect_that(approx$vars_size, is_identical_to(plant$vars_size))
 
 plant$compute_vars_phys(env)

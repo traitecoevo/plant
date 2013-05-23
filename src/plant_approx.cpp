@@ -29,7 +29,7 @@ void PlantApprox::r_compute_vars_phys_spline(const Environment& environment) {
 }
 
 bool PlantApprox::large_plant_do_exact() const {
-  return mass_leaf() > plant_spline->mass_leaf_max();
+  return height() > plant_spline->height_max();
 }
 
 }

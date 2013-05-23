@@ -179,7 +179,7 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::PlantSpline>("PlantSpline")
     .constructor<model::Strategy,double,int>()
-    .property("mass_leaf_max",   &model::PlantSpline::mass_leaf_max)
+    .property("height_max",   &model::PlantSpline::height_max)
     .method("compute_vars_phys", &model::PlantSpline::compute_vars_phys)
     .method("ode_rates",         &model::PlantSpline::r_ode_rates)
     .property("plants",          &model::PlantSpline::r_get_plants)
