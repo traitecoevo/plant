@@ -477,35 +477,35 @@ double Plant::mass_leaf_given_height(double height_) const {
 namespace test {
 
 bool test_plant(Strategy s, bool copy, bool ptr) {
-  double mass1 = 1.0;
-  double mass2 = 2.0;
+  double height1 = 1.0;
+  double height2 = 2.0;
   bool ok;
 
   // There is a huge amount of duplication here, but it's largely
   // unavoidable without missing out on doing what I want to do.
   if ( ptr ) {
     Plant p1(&s);
-    p1.set_mass_leaf(mass1);
+    p1.set_height(height1);
 
     if ( copy ) {
       Plant p2(p1);
       ok = p1 == p2;
     } else {
       Plant p2(&s);
-      p2.set_mass_leaf(mass2);
+      p2.set_height(height2);
       p2 = p1;
       ok = p1 == p2;
     }
   } else {
     Plant p1(s);
-    p1.set_mass_leaf(mass1);
+    p1.set_height(height1);
 
     if ( copy ) {
       Plant p2(p1);
       ok = p1 == p2;
     } else {
       Plant p2(s);
-      p2.set_mass_leaf(mass2);
+      p2.set_height(height2);
       p2 = p1;
       ok = p1 == p2;
     }
