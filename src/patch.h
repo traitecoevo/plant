@@ -22,8 +22,6 @@ public:
   virtual size_t size() const = 0;
   virtual void r_add_seeds(std::vector<int> seeds) = 0;
   virtual void r_add_seedlings(std::vector<int> seeds) = 0;
-  virtual Rcpp::List r_get_mass_leaf() const = 0;
-  virtual void r_set_mass_leaf(Rcpp::List x) = 0;
   virtual Rcpp::List r_height() const = 0;
   virtual void r_set_height(Rcpp::List x) = 0;
   virtual Rcpp::List r_get_species() const = 0;
@@ -73,9 +71,6 @@ public:
 
   // * R interface.
 
-  // Leaf mass:
-  Rcpp::List r_get_mass_leaf() const;
-  void r_set_mass_leaf(Rcpp::List x);
   // Height (plant size)
   Rcpp::List r_height() const;
   void r_set_height(Rcpp::List x);
@@ -396,22 +391,6 @@ template <class Individual>
 std::vector<int> Patch<Individual>::r_germination(std::vector<int> seeds) {
   util::check_length(seeds.size(), size());
   return germination(seeds);
-}
-
-template <class Individual>
-Rcpp::List Patch<Individual>::r_get_mass_leaf() const {
-  Rcpp::List ret;
-  for ( species_const_iterator sp = species.begin();
-	sp != species.end(); sp++ )
-    ret.push_back(Rcpp::wrap(sp->r_get_mass_leaf()));
-  return ret;
-}
-
-template <class Individual>
-void Patch<Individual>::r_set_mass_leaf(Rcpp::List x) {
-  util::check_length(x.size(), size());
-  for ( size_t i = 0; i < size(); i++ )
-    species[i].r_set_mass_leaf(x[i]);
 }
 
 template <class Individual>

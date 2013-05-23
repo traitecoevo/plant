@@ -27,8 +27,6 @@ public:
 					 environment) const = 0;
   virtual void clear() = 0;
   // R-specific wrappers
-  virtual std::vector<double> r_get_mass_leaf() const = 0;
-  virtual void r_set_mass_leaf(std::vector<double> x) = 0;
   virtual std::vector<double> r_height() const = 0;
   virtual void r_set_height(std::vector<double> x) = 0;
   virtual Rcpp::List r_get_plants() const = 0;
@@ -61,8 +59,6 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
   // * R interface
-  std::vector<double> r_get_mass_leaf() const;
-  void r_set_mass_leaf(std::vector<double> x);
   std::vector<double> r_height() const;
   void r_set_height(std::vector<double> x);
   Rcpp::List r_get_plants() const;
@@ -223,29 +219,6 @@ Individual Species<Individual>::r_at(size_t idx) const {
   plants_const_iterator p = plants.begin();
   std::advance(p, util::check_bounds_r(idx, size()));
   return *p;
-}
-
-template <class Individual>
-std::vector<double> Species<Individual>::r_get_mass_leaf() const { 
-  std::vector<double> ret;
-  plants_const_iterator p = plants.begin(); 
-  while ( p != plants.end() )
-    ret.push_back((p++)->mass_leaf());
-  return ret;
-}
-
-// NOTE: Roll back on error is not possible here at present.
-template <class Individual>
-void Species<Individual>::r_set_mass_leaf(std::vector<double> x) {
-  util::check_length(x.size(), size());
-  if ( !util::is_decreasing(x.begin(), x.end()) )
-    Rf_error("mass_leaf must be decreasing (ties allowed)");
-  std::vector<double>::iterator it = x.begin();
-  plants_iterator p = plants.begin();
-  while ( p != plants.end() ) {
-    p->set_mass_leaf(*it++);
-    p++;
-  }
 }
 
 template <class Individual>
