@@ -24,8 +24,8 @@ public:
   virtual void clear() = 0;
   virtual void r_step() = 0;
   virtual void r_step_stochastic() = 0;
-  virtual Rcpp::List r_get_mass_leaf() const = 0;
-  virtual void r_set_mass_leaf(Rcpp::List x) = 0;
+  virtual Rcpp::List r_height() const = 0;
+  virtual void r_set_height(Rcpp::List x) = 0;
 };
 
 template <class Individual> 
@@ -64,8 +64,8 @@ public:
   void clear();
   void r_step();
   void r_step_stochastic();
-  Rcpp::List r_get_mass_leaf() const;
-  void r_set_mass_leaf(Rcpp::List x);
+  Rcpp::List r_height() const;
+  void r_set_height(Rcpp::List x);
 
 private:
   void initialise();
@@ -131,19 +131,19 @@ void Metacommunity<Individual>::step_stochastic() {
 }
 
 template <class Individual>
-Rcpp::List Metacommunity<Individual>::r_get_mass_leaf() const {
+Rcpp::List Metacommunity<Individual>::r_height() const {
   Rcpp::List ret;
   for ( patch_const_iterator patch = patches.begin();
 	patch != patches.end(); patch++ )
-    ret.push_back(Rcpp::wrap(patch->r_get_mass_leaf()));
+    ret.push_back(Rcpp::wrap(patch->r_height()));
   return ret;
 }
 
 template <class Individual>
-void Metacommunity<Individual>::r_set_mass_leaf(Rcpp::List x) {
+void Metacommunity<Individual>::r_set_height(Rcpp::List x) {
   util::check_length(x.size(), size());
   for ( size_t i = 0; i < size(); i++ )
-    patches[i].r_set_mass_leaf(x[i]);
+    patches[i].r_set_height(x[i]);
 }
 
 template <class Individual>
