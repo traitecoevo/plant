@@ -158,7 +158,9 @@ RCPP_MODULE(tree) {
     .derives<ode::OdeTarget>("OdeTarget")
     .method("set_mass_leaf",        &model::Plant::set_mass_leaf)
     .property("mass_leaf",          &model::Plant::mass_leaf)
-    .property("height",             &model::Plant::get_height)
+    .property("height",
+	      &model::Plant::height,
+	      &model::Plant::set_height)
     .method("leaf_area_above",      &model::Plant::leaf_area_above)
     .method("compute_vars_phys",    &model::Plant::compute_vars_phys)
     .method("germination_probability", &model::Plant::germination_probability)

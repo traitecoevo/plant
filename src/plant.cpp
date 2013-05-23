@@ -78,10 +78,6 @@ bool Plant::internals::operator==(const Plant::internals &rhs) {
   return ret;
 }
 
-double Plant::get_height() const {
-  return vars.height;
-}
-
 // [eqn 1-8] Update size variables given an input leaf mass
 // 
 // NOTE: Only recomputes size variables if the mass is actually
@@ -99,6 +95,14 @@ void Plant::set_mass_leaf(double mass_leaf_) {
 // If we can set it, we can get it
 double Plant::mass_leaf() const {
   return vars.mass_leaf;
+}
+
+double Plant::height() const {
+  return vars.height;
+}
+
+void Plant::set_height(double height_) {
+  ::Rf_error("Not yet implemented\n");
 }
 
 // * Competitive environment

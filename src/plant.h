@@ -19,6 +19,8 @@ public:
   // * "Key" variables.
   virtual double mass_leaf() const = 0;
   virtual void set_mass_leaf(double mass_leaf_) = 0;
+  virtual double height() const = 0;
+  virtual void set_height(double height_) = 0;
   virtual double mass_leaf_rate() const = 0;
   virtual double mortality() const = 0;
   virtual void set_mortality(double x) = 0;
@@ -27,7 +29,6 @@ public:
   virtual void set_fecundity(double x) = 0;
   virtual double fecundity_rate() const = 0;
   // * The rest
-  virtual double get_height() const = 0;
   virtual double mortality_probability() const = 0;
   virtual double survival_probability() const = 0;
   virtual double leaf_area_above(double z) const = 0;
@@ -59,6 +60,10 @@ public:
   // void set_mass_leaf(); -- see above.
   double mass_leaf_rate() const; // this is "growth rate"
 
+  // * Individual size
+  double height() const;
+  void set_height(double height_);
+
   double mortality() const;
   void set_mortality(double x);
   double mortality_rate() const;
@@ -70,9 +75,6 @@ public:
   // These are derived from mortality() -- see design.md.
   double mortality_probability() const;
   double survival_probability() const;
-
-  // Also need access to height.
-  double get_height() const;
 
   // * Competitive environment
   // [      ] Leaf area (not fraction) above height `z`

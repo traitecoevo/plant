@@ -136,10 +136,7 @@ size_t Species<Individual>::size() const {
 // tall as a seed.
 template <class Individual>
 double Species<Individual>::height_max() const {
-  if ( size() == 0 )
-    return seed.get_height();
-  else
-    return plants.begin()->get_height();
+  return size() == 0 ? seed.height() : plants.begin()->height();
 }
 
 // Because of plants are always ordered from largest to smallest, we
