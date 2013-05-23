@@ -37,9 +37,10 @@ expect_that(patch[[1]][[1]]$vars_size,
 expect_that(patch$height_max,
             is_identical_to(cmp$height))
 
-cmp$set_mass_leaf(pi)
-patch$set_mass_leaf(list(pi))
-expect_that(patch$mass_leaf, is_identical_to(list(pi)))
+h0 <- 10
+cmp$height <- h0
+patch$height <- list(h0)
+expect_that(patch$height, is_identical_to(list(h0)))
 
 plants <- patch[[1]]$plants
 expect_that(plants[[1]]$vars_size,
@@ -78,7 +79,8 @@ expect_that(patch$n_individuals, equals(1))
 expect_that(patch$ode_size,      equals(3))
 
 y <- patch$ode_values
-expect_that(y, is_identical_to(c(pi, 0, 0)))
+m0 <- cmp$mass_leaf_given_height(h0)
+expect_that(y, equals(c(m0, 0, 0)))
 dydt <- patch$ode_rates
 
 cmp.dydt <- unname(cmp$vars_phys[c("growth_rate", "mortality_rate",

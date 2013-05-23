@@ -295,8 +295,8 @@ RCPP_MODULE(tree) {
     .property("species",          &model::PatchBase::r_get_species)
     .method("add_seeds",          &model::PatchBase::r_add_seeds)
     .method("add_seedlings",      &model::PatchBase::r_add_seedlings)
-    .property("mass_leaf",        &model::PatchBase::r_get_mass_leaf)
-    .method("set_mass_leaf",      &model::PatchBase::r_set_mass_leaf)
+    .property("height",           &model::PatchBase::r_height,
+	      &model::PatchBase::r_set_height)
     .property("n_individuals",    &model::PatchBase::r_n_individuals)
     .method("clear",              &model::PatchBase::clear)
     .method("step",               &model::PatchBase::r_step)

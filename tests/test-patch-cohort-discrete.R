@@ -79,7 +79,7 @@ patch.c$add_seedlings(1)
 ## accumulate results.
 run <- function(patch, n, age, res=NULL) {
   collect <- function()
-    list(list(patch$age, patch$n_individuals, patch$mass_leaf))
+    list(list(patch$age, patch$n_individuals, patch$height))
   if ( is.null(res) )
     res <- collect()
   while ( patch$n_individuals <= n && patch$age <= age ) {
