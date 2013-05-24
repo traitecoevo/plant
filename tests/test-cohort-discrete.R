@@ -78,10 +78,11 @@ derivs <- function(t, y, pars) {
 env <- test.environment(plant$height)
 light.env <- attr(env, "light.env")
 
-plant$set_mass_leaf(1)
-cohort0$set_mass_leaf(1)
-cohort1$set_mass_leaf(1)
-cohort2$set_mass_leaf(1)
+h0 <- 10
+plant$height <- h0
+cohort0$height <- h0
+cohort1$height <- h0
+cohort2$height <- h0
 
 obj.p <- new(OdeR, derivs, new.env(), list(plant=plant,   light.env=env))
 obj.0 <- new(OdeR, derivs, new.env(), list(plant=cohort0, light.env=env))
