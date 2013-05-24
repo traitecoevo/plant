@@ -17,12 +17,9 @@ class PlantBase : public ode::OdeTarget {
 public:
   virtual ~PlantBase() {};
   // * "Key" variables.
-  virtual double mass_leaf() const = 0;
-  virtual void set_mass_leaf(double mass_leaf_) = 0;
   virtual double height() const = 0;
   virtual void set_height(double height_) = 0;
   virtual double height_rate() const = 0;
-  virtual double mass_leaf_rate() const = 0;
   virtual double mortality() const = 0;
   virtual void set_mortality(double x) = 0;
   virtual double mortality_rate() const = 0;
@@ -54,12 +51,6 @@ public:
 
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
-  void set_mass_leaf(double mass_leaf_);
-
-  // Accessors to the key variables / rates.
-  double mass_leaf() const;
-  // void set_mass_leaf(); -- see above.
-  double mass_leaf_rate() const; // this is "growth rate"
 
   // * Individual size
   double height() const;

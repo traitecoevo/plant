@@ -80,31 +80,22 @@ bool Plant::internals::operator==(const Plant::internals &rhs) {
   return ret;
 }
 
+double Plant::height() const {
+  return vars.height;
+}
+
 // [eqn 1-8] Update size variables given an input leaf mass
-// 
+//
 // NOTE: Only recomputes size variables if the mass is actually
 // different.  This is totally safe if nothing else sets either
 // mass_leaf or any size variable except this method.  This will help
 // save quite a bit of calculation time and book-keeping down the
 // track.
-void Plant::set_mass_leaf(double mass_leaf_) {
-  if ( mass_leaf_ <= 0.0 )
-    Rf_error("mass_leaf must be positive (given %2.5f)", mass_leaf_);
-  if ( mass_leaf_ != mass_leaf() )
-    compute_vars_size(mass_leaf_);
-}
-
-// If we can set it, we can get it
-double Plant::mass_leaf() const {
-  return vars.mass_leaf;
-}
-
-double Plant::height() const {
-  return vars.height;
-}
-
 void Plant::set_height(double height_) {
-  set_mass_leaf(mass_leaf_given_height(height_));
+  if (height_ < 0.0)
+    Rf_error("height must be positive (given %2.5f)", height_);
+  if (height_ != height())
+    compute_vars_size(mass_leaf_given_height(height_));
 }
 
 double Plant::height_rate() const {
@@ -248,11 +239,6 @@ ode::iter Plant::ode_rates(ode::iter it) const {
 // These methods protected partly because they require that
 // compute_vars_phys to be run before these will give sensible
 // answers.
-
-double Plant::mass_leaf_rate() const {
-  return vars.mass_leaf_growth_rate;
-}
-
 double Plant::mortality() const {
   return vars.mortality;
 }
