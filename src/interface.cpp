@@ -156,8 +156,6 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::Plant>("Plant")
     .constructor<model::Strategy>()
     .derives<ode::OdeTarget>("OdeTarget")
-    .method("set_mass_leaf",        &model::Plant::set_mass_leaf)
-    .property("mass_leaf",          &model::Plant::mass_leaf)
     .property("height",
 	      &model::Plant::height,
 	      &model::Plant::set_height)
