@@ -460,8 +460,6 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 			       vars.reproduction_fraction,
 			       _["fecundity_rate"]=vars.fecundity_rate,
 			       _["leaf_fraction"]=vars.leaf_fraction,
-			       _["mass_leaf_growth_rate"]=
-			       vars.mass_leaf_growth_rate,
 			       _["height_growth_rate"]=
 			       vars.height_growth_rate,
 			       _["mortality_rate"]=vars.mortality_rate);
