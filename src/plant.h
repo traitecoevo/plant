@@ -147,7 +147,9 @@ private:
   // Update a number of constants within the model.  This is a work in
   // progress.
   static double mass_leaf_seed(Strategy *s);
-  double compute_mass_total(double m_);
+  static double height_seed(Strategy *s);
+  double compute_mass_total(double x);
+  double compute_mass_total_height(double h);
 
   // To simplify my life, I'm making a small internal-only class that
   // contains some implementation details here.  This is going to

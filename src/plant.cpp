@@ -6,12 +6,12 @@ namespace model {
 
 Plant::Plant(Strategy s)
   : strategy(s) {
-  set_mass_leaf(strategy->mass_leaf_0);
+  set_height(strategy->height_0);
 }
 
 Plant::Plant(Strategy *s)
   : strategy(s) {
-  set_mass_leaf(strategy->mass_leaf_0);
+  set_height(strategy->height_0);
 }
 
 // TODO: Value of 0.0 not ideal, but allows more easy comparison.
@@ -430,9 +430,35 @@ double Plant::mass_leaf_seed(Strategy *s) {
   return root.root(&fun, DBL_MIN, mass_seed);
 }
 
+// NOTE: static method
+double Plant::height_seed(Strategy *s) {
+  Plant p(s);
+  const double mass_seed = s->s;
+  const double
+    h0 = p.height_given_mass_leaf(DBL_MIN),
+    h1 = p.height_given_mass_leaf(mass_seed);
+
+  // Functor computing total mass of a seed with height h, minus the
+  // target seed mass.
+  util::FunctorRoot<Plant, &Plant::compute_mass_total_height>
+    fun(&p, mass_seed);
+
+  const double tol = p.control().plant_seed_tol;
+  const int max_iterations = p.control().plant_seed_iterations;
+  util::RootFinder root(tol, tol, max_iterations);
+
+  return root.root(&fun, h0, h1);
+}
+
 // NOTE: This is used only by mass_leaf_seed.
 double Plant::compute_mass_total(double x) {
   set_mass_leaf(x);
+  return vars.mass_total;
+}
+
+// NOTE: This is used only by height_seed.
+double Plant::compute_mass_total_height(double h) {
+  set_height(h);
   return vars.mass_total;
 }
 
@@ -440,7 +466,7 @@ double Plant::compute_mass_total(double x) {
 void Plant::prepare_strategy(Strategy *s) {
   s->eta_c = 1 - 2/(1 + s->eta) + 1/(1 + 2*s->eta);
   s->k_l = s->a4 * pow(s->lma, -s->B4);
-  s->mass_leaf_0 = mass_leaf_seed(s);
+  s->height_0 = height_seed(s);
 }
 
 // * R interface

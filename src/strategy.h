@@ -74,8 +74,8 @@ private:
   // Coefficient for dry mass production in mortality function
   double c_d3;
 
-  // Leaf mass of a seed
-  double mass_leaf_0;
+  // Height of a (germinated) seed
+  double height_0;
 
   // These things are really not to be used by anything, but are all
   // harmless (except for reset, actually).  They're used in
