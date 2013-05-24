@@ -29,5 +29,7 @@ expect_that(sp$germination_probability(env),
 ## Not sure if this is actually desirable at present:
 expect_that(sp$leaf_area_above(0), equals(0))
 
+## TODO: Need a test for leaf_area_above() with non-empty species.
+
 rm(sp)
 gc()

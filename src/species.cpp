@@ -43,17 +43,17 @@ double Species<CohortTop>::leaf_area_above(double height) const {
   std::vector<double> x, y;
   bool done = false;
   for (plants_const_iterator it = plants.begin();
-       it != plants.end(); it++ ) {
+       it != plants.end(); it++) {
     // TODO: Here, it would be nice to abstract away the size
-    // dimension, rather than use mass_leaf directly.
-    x.push_back(it->mass_leaf());
+    // dimension, rather than use height directly.
+    x.push_back(it->height());
     y.push_back(it->leaf_area_above(height));
     if (done)
       break;
     done = x.back() == 0;
   }
   if (!done) {
-    x.push_back(seed.mass_leaf());
+    x.push_back(seed.height());
     y.push_back(seed.leaf_area_above(height));
   }
 
