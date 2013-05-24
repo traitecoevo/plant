@@ -34,7 +34,8 @@ Plant::internals::internals()
     reproduction_fraction(0.0),
     fecundity_rate(0.0),
     leaf_fraction(0.0),
-    growth_rate(0.0),
+    mass_leaf_growth_rate(0.0),
+    height_growth_rate(0.0),
     mortality_rate(0.0),
     // But these should be zero
     mortality(0.0),
@@ -68,7 +69,8 @@ bool Plant::internals::operator==(const Plant::internals &rhs) {
     && reproduction_fraction == rhs.reproduction_fraction
     && fecundity_rate == rhs.fecundity_rate
     && leaf_fraction  == rhs.leaf_fraction
-    && growth_rate    == rhs.growth_rate
+    && mass_leaf_growth_rate == rhs.mass_leaf_growth_rate
+    && height_growth_rate == rhs.height_growth_rate
     && mortality_rate == rhs.mortality_rate
     // // ...and "other" members...
     && fecundity      == rhs.fecundity
@@ -105,6 +107,10 @@ void Plant::set_height(double height_) {
   set_mass_leaf(mass_leaf_given_height(height_));
 }
 
+double Plant::height_rate() const {
+  return vars.height_growth_rate;
+}
+
 // * Competitive environment
 // [      ] Leaf area (not fraction) above height `z`
 double Plant::leaf_area_above(double z) const {
@@ -135,27 +141,34 @@ void Plant::compute_vars_phys(const Environment& environment) {
 
   if ( vars.net_production > 0 ) {
     // [eqn 16] - Fraction of whole plant growth that is leaf
-    const double rf = compute_reproduction_fraction();
-    vars.reproduction_fraction = rf;
+    vars.reproduction_fraction = compute_reproduction_fraction();
 
     // [eqn 17] - Rate of offspring production
     // 
     // NOTE: In EBT, was multiplied by Pi_0 (survival during
     // dispersal), but we do not here.
-    vars.fecundity_rate = vars.net_production * rf /
-      (strategy->c_acc * strategy->s);
+    vars.fecundity_rate = vars.net_production *
+      vars.reproduction_fraction / (strategy->c_acc * strategy->s);
 
     // [eqn 18] - Fraction of mass growth in leaves
     vars.leaf_fraction = compute_leaf_fraction();
 
+    // TODO: move into compute_growth_rate?
+
     // [eqn 19] - Growth rate in leaf mass
-    vars.growth_rate = vars.net_production * (1 - rf) *
-      vars.leaf_fraction;
+    vars.mass_leaf_growth_rate = vars.net_production *
+      (1 - vars.reproduction_fraction) * vars.leaf_fraction;
+
+    vars.height_growth_rate =
+      strategy->a1 * strategy->B1 *
+      pow(vars.mass_leaf, strategy->B1 - 1) * vars.mass_leaf_growth_rate /
+      strategy->lma;
   } else {
     vars.reproduction_fraction = 0.0;
     vars.fecundity_rate        = 0.0;
     vars.leaf_fraction         = 0.0;
-    vars.growth_rate           = 0.0;
+    vars.mass_leaf_growth_rate = 0.0;
+    vars.height_growth_rate    = 0.0;
   }
 
   // [eqn 21] - Instantaneous mortality rate
@@ -237,7 +250,7 @@ ode::iter Plant::ode_rates(ode::iter it) const {
 // answers.
 
 double Plant::mass_leaf_rate() const {
-  return vars.growth_rate;
+  return vars.mass_leaf_growth_rate;
 }
 
 double Plant::mortality() const {
@@ -457,7 +470,10 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 			       vars.reproduction_fraction,
 			       _["fecundity_rate"]=vars.fecundity_rate,
 			       _["leaf_fraction"]=vars.leaf_fraction,
-			       _["growth_rate"]=vars.growth_rate,
+			       _["mass_leaf_growth_rate"]=
+			       vars.mass_leaf_growth_rate,
+			       _["height_growth_rate"]=
+			       vars.height_growth_rate,
 			       _["mortality_rate"]=vars.mortality_rate);
 }
 

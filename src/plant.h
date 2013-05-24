@@ -21,6 +21,7 @@ public:
   virtual void set_mass_leaf(double mass_leaf_) = 0;
   virtual double height() const = 0;
   virtual void set_height(double height_) = 0;
+  virtual double height_rate() const = 0;
   virtual double mass_leaf_rate() const = 0;
   virtual double mortality() const = 0;
   virtual void set_mortality(double x) = 0;
@@ -63,6 +64,7 @@ public:
   // * Individual size
   double height() const;
   void set_height(double height_);
+  double height_rate() const;
 
   double mortality() const;
   void set_mortality(double x);
@@ -174,7 +176,8 @@ private:
     double reproduction_fraction; // [eqn 16]
     double fecundity_rate; // [eqn 17] Rate of offspring production
     double leaf_fraction;  // [eqn 18] Fraction of mass growth that is leaves
-    double growth_rate;    // [eqn 19] Growth rate in leaf mass
+    double mass_leaf_growth_rate; // [eqn 19] Growth rate in leaf mass
+    double height_growth_rate;    // [doc/details.md]
     // * Mortality
     double mortality_rate; // [eqn 21]
     // * Variables

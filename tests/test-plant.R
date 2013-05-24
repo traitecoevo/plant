@@ -122,7 +122,7 @@ expect_that(p.phys[["leaf_fraction"]],
 
 ## 8. Growth rate for leaf mass
 cmp.growth.rate <- cmp$growth.rate(cmp$traits, h0, light.env)
-expect_that(p.phys[["growth_rate"]],
+expect_that(p.phys[["mass_leaf_growth_rate"]],
             equals(cmp.growth.rate, tolerance=1e-7))
 
 ## 9. Mortality rate
@@ -172,7 +172,8 @@ m0 <- p$mass_leaf_given_height(h0)
 y <- c(m0, 0, 0)
 pars.derivs <- list(plant=p, light.env=env2)
 tmp <- derivs(t, y, pars.derivs)
-p.derivs <- p.phys[c("growth_rate", "mortality_rate", "fecundity_rate")]
+p.derivs <- p.phys[c("mass_leaf_growth_rate",
+                     "mortality_rate", "fecundity_rate")]
 expect_that(tmp,
             equals(unname(p.derivs), tolerance=2e-8))
 

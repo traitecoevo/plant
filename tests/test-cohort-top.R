@@ -25,7 +25,7 @@ plant$compute_vars_phys(env)
 p.germ <- plant$germination_probability(env)
 
 y <- plant$ode_values
-g <- plant$vars_phys[["growth_rate"]]
+g <- plant$vars_phys[["mass_leaf_growth_rate"]]
 expect_that(coh$ode_values,
             equals(c(y[1], -log(p.germ), y[3], env$seed_rain_rate/g)))
 
@@ -36,7 +36,7 @@ p2 <- new(Plant, s)
 growth.rate.given.mass <- function(mass_leaf, p, env) {
   p$set_mass_leaf(mass_leaf)
   p$compute_vars_phys(env)
-  p$vars_phys[["growth_rate"]]
+  p$vars_phys[["mass_leaf_growth_rate"]]
 }
 
 grad.forward <- function(f, x, dx, ...) {
@@ -45,7 +45,7 @@ grad.forward <- function(f, x, dx, ...) {
 
 ## Quick sanity check:
 expect_that(growth.rate.given.mass(plant$mass_leaf, p2, env),
-            equals(plant$vars_phys[["growth_rate"]]))
+            equals(plant$vars_phys[["mass_leaf_growth_rate"]]))
 
 ctrl <- coh$control
 method.args <- list(d=ctrl$parameters$cohort_gradient_eps,
