@@ -49,13 +49,6 @@ p$height <- h0
 
 size.p <- p$vars_size
 
-## Temporary check of the mass_leaf / height translation
-m0 <- size.p[["mass_leaf"]]
-expect_that(p$height_given_mass_leaf(m0), equals(h0))
-expect_that(p$mass_leaf_given_height(h0), equals(m0))
-expect_that(p$mass_leaf_given_height(p$height_given_mass_leaf(m0)),
-            equals(m0))
-
 expect_that(size.p[["height"]],
             equals(h0))
 expect_that(size.p[["leaf_area"]],
