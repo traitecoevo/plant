@@ -65,7 +65,7 @@ dHdt<-function(traits, h, env){dHdA(LeafArea(h))*dAdMt(traits, LeafArea(h))*Prod
 dMldA<-function(lma,A){A*0+lma}
 dMsdA<-function(rho, A){rho/p.theta*etac(p.eta)*(Height(A)+A*dHdA(A))}
 dMbdA<-function(rho, A){p.b*dMsdA(rho,A)}
-dMhdA<-function(rho, A){rho*p.a2*p.B2*A^(p.B2-1)}
+dMhdA<-function(rho, A){rho*etac(p.eta)*p.a2*p.B2*A^(p.B2-1)}
 dMrdA<-function(A){A*0+p.a3}
 dMtdA<-function(traits,A){dMldA(traits$lma, A) + dMbdA(traits$rho,A) + dMsdA(traits$rho,A) + dMhdA(traits$rho,A) + dMrdA(A)}
 dAdMt<-function(traits, A){1/dMtdA(traits, A)}
