@@ -211,8 +211,6 @@ RCPP_MODULE(tree) {
 	    &model::CohortTop::compute_initial_conditions)
     .method("growth_rate_gradient",
 	    &model::CohortTop::r_growth_rate_gradient)
-    .method("growth_rate_given_mass",
-	    &model::CohortTop::r_growth_rate_given_mass)
     ;
 
   Rcpp::class_<model::CohortSchedule>("CohortSchedule")

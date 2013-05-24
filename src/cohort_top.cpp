@@ -99,47 +99,32 @@ ode::iter CohortTop::ode_rates(ode::iter it) const {
   return it;
 }
 
-double CohortTop::r_growth_rate_gradient(const Environment& environment) 
+double CohortTop::r_growth_rate_gradient(const Environment& environment)
   const {
   return growth_rate_gradient(environment);
 }
-double CohortTop::r_growth_rate_given_mass(double mass_leaf, 
-					   const Environment& environment) {
-  return growth_rate_given_mass(mass_leaf, environment);
-}
-double CohortTop::r_growth_rate_given_height(double height,
-					     const Environment& environment) {
-  return growth_rate_given_height(height, environment);
-}
 
-// This is the gradient of mass_leaf_rate with respect to mass_leaf.
-// It is needed for computing the derivative (wrt time) of the density
-// of individuals.
+// This is the gradient of height_rate with respect to height.  It is
+// needed for computing the derivative (wrt time) of the density of
+// individuals.
 double CohortTop::growth_rate_gradient(const Environment& environment) const {
   CohortTop tmp = *this;
   FunctorBind2<CohortTop, const Environment&,
-	       &CohortTop::growth_rate_given_mass> fun(&tmp, environment);
+	       &CohortTop::growth_rate_given_height> fun(&tmp, environment);
 
   const double eps = control().cohort_gradient_eps;
   double grad;
   if (control().cohort_gradient_richardson) {
     const int r = control().cohort_gradient_richardson_depth;
-    grad = util::gradient_richardson(&fun, mass_leaf(), eps, r);
+    grad = util::gradient_richardson(&fun, height(), eps, r);
   } else {
-    grad = util::gradient_fd_forward(&fun, mass_leaf(),
-				     eps, mass_leaf_rate());
+    grad = util::gradient_fd_forward(&fun, height(),
+				     eps, height_rate());
   }
   return grad;
 }
 
 // This exists only because it is needed by growth_rate_gradient.
-double CohortTop::growth_rate_given_mass(double mass_leaf,
-					 const Environment& environment) {
-  set_mass_leaf(mass_leaf);
-  Plant::compute_vars_phys(environment);
-  return mass_leaf_rate();
-}
-
 double CohortTop::growth_rate_given_height(double height,
 					   const Environment& environment) {
   set_height(height);

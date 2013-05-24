@@ -29,16 +29,10 @@ g <- plant$vars_phys[["height_growth_rate"]]
 expect_that(coh$ode_values,
             equals(c(y[1], -log(p.germ), y[3], env$seed_rain_rate/g)))
 
-## First, need to compute the gradient of growth rate with respect to
-## leaf mass.  This check can be removed once everything seems to be
-## working as it uses mostly internal code.
+## First, need to compute the gradient of height growth rate with
+## respect to height.  This check can be removed once everything seems
+## to be working as it uses mostly internal code.
 p2 <- new(Plant, s)
-growth.rate.given.mass <- function(mass_leaf, p, env) {
-  p$set_mass_leaf(mass_leaf)
-  p$compute_vars_phys(env)
-  p$vars_phys[["mass_leaf_growth_rate"]]
-}
-
 growth.rate.given.height <- function(height, p, env) {
   p$height <- height
   p$compute_vars_phys(env)
@@ -50,18 +44,19 @@ grad.forward <- function(f, x, dx, ...) {
 }
 
 ## Quick sanity check:
-expect_that(growth.rate.given.mass(plant$mass_leaf, p2, env),
-            equals(plant$vars_phys[["mass_leaf_growth_rate"]]))
+expect_that(growth.rate.given.height(plant$height, p2, env),
+            equals(plant$vars_phys[["height_growth_rate"]]))
 
+## With height:
 ctrl <- coh$control
 method.args <- list(d=ctrl$parameters$cohort_gradient_eps,
                     eps=ctrl$parameters$cohort_gradient_eps)
-dgdm.accurate <- grad(growth.rate.given.mass, plant$mass_leaf,
+dgdm.accurate <- grad(growth.rate.given.height, plant$height,
                       p=p2, env=env, method.args=method.args)
-dgdm.simple <- grad(growth.rate.given.mass, plant$mass_leaf,
+dgdm.simple <- grad(growth.rate.given.height, plant$height,
                     "simple", method.args=method.args,
                     p=p2, env=env)
-dgdm.forward <- grad.forward(growth.rate.given.mass, plant$mass_leaf,
+dgdm.forward <- grad.forward(growth.rate.given.height, plant$height,
                              method.args$eps, p=p2, env=env)
 
 dgdm <- coh$growth_rate_gradient(env)

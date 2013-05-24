@@ -30,15 +30,9 @@ public:
   // * R interface
   // TODO: Exposed primarily for testing.
   double r_growth_rate_gradient(const Environment& environment) const;
-  double r_growth_rate_given_mass(double mass_leaf, 
-				  const Environment& environment);
-  double r_growth_rate_given_height(double height,
-				    const Environment& environment);
 
 private:
   double growth_rate_gradient(const Environment& environment) const;
-  double growth_rate_given_mass(double mass_leaf, 
-				const Environment& environment);
   double growth_rate_given_height(double height,
 				  const Environment& environment);
 
