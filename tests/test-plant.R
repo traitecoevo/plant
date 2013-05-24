@@ -148,14 +148,10 @@ seed <- new(Plant, s)
 expect_that(seed$vars_size[["mass_total"]],
             equals(pars.s$s, tolerance=1e-7))
 
-## Check that the height at birth is correct (this happens to be how
-## the R version computes size).  This is actually quite inaccurate,
-## but I think that's just some instability creeping in from the
-## different ways that the values involved are computed.
+## Check that the height at birth is correct.  These answers are
+## actually quite different, which could come from the root finding?
 expect_that(seed$height,
             equals(cmp$height.at.birth(cmp$traits), tolerance=1e-4))
-expect_that(seed$mass_leaf,
-            equals(cmp$leaf.mass.at.birth(cmp$traits), tolerance=1e-4))
 
 ## Then, check the germination probabilities in the current light
 ## environment:

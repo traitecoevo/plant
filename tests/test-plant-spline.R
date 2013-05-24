@@ -64,14 +64,10 @@ rates.spline <- spline$eval(hmid)
 expect_that(rates.spline,
             equals(rates.exact, tolerance=2e-3))
 
-## TODO: Temporary until ode basis changes...
-mass <- sapply(height, plant$mass_leaf_given_height)
-mmid <- sapply(hmid, plant$mass_leaf_given_height)
-
-expect_that(t(sapply(mass, function(m) plant.spline$ode_rates(m))),
+expect_that(t(sapply(height, function(h) plant.spline$ode_rates(h))),
             equals(spline$y))
-expect_that(t(sapply(mmid, function(m) plant.spline$ode_rates(m))),
+expect_that(t(sapply(hmid, function(h) plant.spline$ode_rates(h))),
             equals(rates.spline))
 
-expect_that(plant.spline$ode_rates(plant$mass_leaf_given_height(plant.spline$height_max) + 1e-8),
+expect_that(plant.spline$ode_rates(plant.spline$height_max + 1e-8),
             throws_error())

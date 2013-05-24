@@ -21,7 +21,7 @@ h0 <- 10
 plant$height <- h0
 approx$height <- h0
 
-expect_that(approx$mass_leaf, is_identical_to(plant$mass_leaf))
+expect_that(approx$height,    is_identical_to(plant$height))
 expect_that(approx$vars_size, is_identical_to(plant$vars_size))
 
 expect_that(approx$vars_phys, is_identical_to(plant$vars_phys))
@@ -47,10 +47,11 @@ expect_that(all(approx$vars_phys == 0.0), is_true())
 expect_that(approx$ode_values, is_identical_to(plant$ode_values))
 
 ## Check against the plant spline....
-expect_that(plant.spline$ode_rates(plant$mass_leaf),
-            equals(plant$ode_rates, tolerance=1e-5))
+expect_that(plant.spline$ode_rates(plant$height),
+            equals(plant$ode_rates))
+## This one does not work?
 expect_that(approx$ode_rates,
-            is_identical_to(plant.spline$ode_rates(plant$mass_leaf)))
+            is_identical_to(plant.spline$ode_rates(plant$height)))
 
 ## Now, outside of the range of plants:
 h.large <- height.max * 1.05

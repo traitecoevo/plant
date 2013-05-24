@@ -37,10 +37,10 @@ public:
 
   // Used by species & upstream
   void compute_vars_phys(const Environment& environment);
-  ode::iter ode_rates(double m, ode::iter it) const;
+  ode::iter ode_rates(double height, ode::iter it) const;
 
   // Used by R
-  std::vector<double> r_ode_rates(double m) const;
+  std::vector<double> r_ode_rates(double height) const;
   Rcpp::List r_get_plants() const;
   spline::MultiSpline r_get_plants_approx() const;
   Rcpp::NumericVector r_get_vars_phys(double m) const;

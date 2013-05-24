@@ -21,7 +21,7 @@ ode::iter PlantApprox::ode_rates(ode::iter it) const {
   if ( large_plant_do_exact() )
     return Plant::ode_rates(it);
   else
-    return plant_spline->ode_rates(mass_leaf(), it);
+    return plant_spline->ode_rates(height(), it);
 }
 
 void PlantApprox::r_compute_vars_phys_spline(const Environment& environment) {
