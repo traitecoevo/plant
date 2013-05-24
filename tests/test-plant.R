@@ -151,7 +151,7 @@ derivs <- function(t, y, pars) {
   plant <- pars$plant
   light.env <- pars$light.env
   
-  plant$ode_values_set(y)
+  plant$ode_values <- y
   plant$compute_vars_phys(light.env)
   plant$ode_rates
 }

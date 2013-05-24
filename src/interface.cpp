@@ -87,8 +87,8 @@ RCPP_MODULE(tree) {
   Rcpp::class_<ode::OdeTarget>("OdeTarget")
     .method("derivs",         &ode::OdeTarget::r_derivs)
     .property("ode_size",     &ode::OdeTarget::ode_size)
-    .method("ode_values_set", &ode::OdeTarget::r_ode_values_set)
-    .property("ode_values",   &ode::OdeTarget::r_ode_values)
+    .property("ode_values",   &ode::OdeTarget::r_ode_values,
+	      &ode::OdeTarget::r_ode_values_set)
     .property("ode_rates",    &ode::OdeTarget::r_ode_rates)
     ;
 
@@ -107,7 +107,8 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<util::Lookup>("Lookup")
-    // No constructor, because class contains pure virtual method.
+    // NOTE: Parameters not set through .property because they can set
+    // just a subset through this, which is poor semantics for '<-'.
     .property("parameters",   &util::Lookup::get_parameters)
     .method("set_parameters", &util::Lookup::set_parameters)
     ;

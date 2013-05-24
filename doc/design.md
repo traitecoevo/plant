@@ -1079,3 +1079,8 @@ There are a couple of things weird about mortality:
 
 We only really need to use `survival_probability`, so I might remove
 the `mortality_probability` case.
+
+## Consistency of get/set
+All get/set pairs should be done with Rcpp's .property
+
+`ode_values_set` -> `set_ode_values`

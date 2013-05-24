@@ -26,8 +26,8 @@ expect_that(approx$vars_size, is_identical_to(plant$vars_size))
 
 expect_that(approx$vars_phys, is_identical_to(plant$vars_phys))
 
-plant$ode_values_set(c(h0, .1, .2))
-approx$ode_values_set(c(h0, .1, .2))
+plant$ode_values <- c(h0, .1, .2)
+approx$ode_values <- c(h0, .1, .2)
 expect_that(approx$vars_phys, is_identical_to(plant$vars_phys))
 
 ## Generate a light environment:
@@ -69,7 +69,7 @@ expect_that(approx$ode_rates, is_identical_to(plant$ode_rates))
 expect_that(plant.spline$ode_rates(m), throws_error())
 
 f.p <- function(obj, y) {
-  obj$ode_values_set(y)
+  obj$ode_values <- y
   obj$died()
 }
 
@@ -82,10 +82,10 @@ set.seed(1)
 d.a <- replicate(nrep, f.p(approx, y1))
 expect_that(d.a, is_identical_to(d.p))
 
-plant$ode_values_set(y1)
+plant$ode_values <- y1
 expect_that(plant$offspring(), equals(y1[3] %/% 1))
 expect_that(plant$ode_values[3], equals(y1[3] %% 1))
-approx$ode_values_set(y1)
+approx$ode_values <- y1
 expect_that(approx$offspring(), equals(y1[3] %/% 1))
 expect_that(approx$ode_values[3], equals(y1[3] %% 1))
 
