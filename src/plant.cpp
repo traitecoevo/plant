@@ -415,22 +415,6 @@ double Plant::compute_leaf_fraction() const {
 }
 
 // NOTE: static method
-double Plant::mass_leaf_seed(Strategy *s) {
-  Plant p(s);
-  const double mass_seed = s->s;
-
-  // Functor computing total mass of a seed with mass m, minus the
-  // target seed mass.
-  util::FunctorRoot<Plant, &Plant::compute_mass_total> fun(&p, mass_seed);
-
-  const double tol = p.control().plant_seed_tol;
-  const int max_iterations = p.control().plant_seed_iterations;
-  util::RootFinder root(tol, tol, max_iterations);
-
-  return root.root(&fun, DBL_MIN, mass_seed);
-}
-
-// NOTE: static method
 double Plant::height_seed(Strategy *s) {
   Plant p(s);
   const double mass_seed = s->s;
@@ -440,7 +424,7 @@ double Plant::height_seed(Strategy *s) {
 
   // Functor computing total mass of a seed with height h, minus the
   // target seed mass.
-  util::FunctorRoot<Plant, &Plant::compute_mass_total_height>
+  util::FunctorRoot<Plant, &Plant::mass_total_given_height>
     fun(&p, mass_seed);
 
   const double tol = p.control().plant_seed_tol;
@@ -450,14 +434,8 @@ double Plant::height_seed(Strategy *s) {
   return root.root(&fun, h0, h1);
 }
 
-// NOTE: This is used only by mass_leaf_seed.
-double Plant::compute_mass_total(double x) {
-  set_mass_leaf(x);
-  return vars.mass_total;
-}
-
 // NOTE: This is used only by height_seed.
-double Plant::compute_mass_total_height(double h) {
+double Plant::mass_total_given_height(double h) {
   set_height(h);
   return vars.mass_total;
 }
