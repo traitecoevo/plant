@@ -161,7 +161,7 @@ void Plant::compute_vars_phys(const Environment& environment) {
 
     vars.height_growth_rate =
       strategy->a1 * strategy->B1 *
-      pow(vars.mass_leaf, strategy->B1 - 1) * vars.mass_leaf_growth_rate /
+      pow(vars.leaf_area, strategy->B1 - 1) * vars.mass_leaf_growth_rate /
       strategy->lma;
   } else {
     vars.reproduction_fraction = 0.0;
