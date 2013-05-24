@@ -86,16 +86,15 @@ double Plant::height() const {
 
 // [eqn 1-8] Update size variables given an input leaf mass
 //
-// NOTE: Only recomputes size variables if the mass is actually
-// different.  This is totally safe if nothing else sets either
-// mass_leaf or any size variable except this method.  This will help
-// save quite a bit of calculation time and book-keeping down the
-// track.
+// NOTE: Only recomputes size variables if the height is actually
+// different.  This is totally safe if nothing else sets either height
+// or any size variable except this method.  This could help save
+// quite a bit of calculation time and book-keeping down the track.
 void Plant::set_height(double height_) {
   if (height_ < 0.0)
     Rf_error("height must be positive (given %2.5f)", height_);
   if (height_ != height())
-    compute_vars_size(mass_leaf_given_height(height_));
+    compute_vars_size(height_);
 }
 
 double Plant::height_rate() const {
@@ -188,10 +187,10 @@ bool Plant::died() {
 
 // [eqn 20] Survival of seedlings during germination
 //
-// NOTE: This does not check/enforce that mass_leaf is set to the seed
-// mass leaf (so this is actually the germination probability of a
-// plant that happens to be the current size).  This might be
-// something to change.
+// NOTE: This does not check/enforce that height is set to the seed
+// height (so this is actually the germination probability of a plant
+// that happens to be the current size).  This might be something to
+// change.
 double Plant::germination_probability(const Environment& environment) {
   compute_vars_phys(environment);
   if ( vars.net_production > 0 ) {
@@ -272,13 +271,16 @@ double Plant::survival_probability() const {
 
 // * Individual size
 // [eqn 1-8] Update size variables to a new leaf mass.
-void Plant::compute_vars_size(double mass_leaf_) {
-  // [eqn 1] Leaf mass
-  vars.mass_leaf = mass_leaf_;
-  // [eqn 2] Leaf area
-  vars.leaf_area = vars.mass_leaf / strategy->lma;
-  // [eqn 3] Height
-  vars.height = strategy->a1*pow(vars.leaf_area, strategy->B1);
+void Plant::compute_vars_size(double height_) {
+  // First 3 differ from paper; working height->mass, not mass->height.
+  // [eqn 3] height
+  vars.height = height_;
+  // [eqn 2] leaf_area (inverse of [eqn 3])
+  vars.leaf_area = pow(vars.height / strategy->a1, 1 / strategy->B1);
+  // [eqn 1] mass_leaf (inverse of [eqn 2])
+  vars.mass_leaf = vars.leaf_area * strategy->lma;
+
+  // These are identical to paper.
   // [eqn 4] Mass of sapwood
   vars.mass_sapwood =   strategy->rho / strategy->theta *
     strategy->a1 * strategy->eta_c * pow(vars.leaf_area, 1 + strategy->B1);
@@ -470,12 +472,9 @@ bool Plant::r_died() {
   return died();
 }
 
+// This is useful for finding the seed height.
 double Plant::height_given_mass_leaf(double mass_leaf_) const {
   return strategy->a1 * pow(mass_leaf_ / strategy->lma, strategy->B1);
-}
-
-double Plant::mass_leaf_given_height(double height_) const {
-  return strategy->lma * pow(height_ / strategy->a1, 1/strategy->B1);
 }
 
 namespace test {
