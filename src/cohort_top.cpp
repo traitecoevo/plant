@@ -52,7 +52,7 @@ bool CohortTop::died() {
 }
 
 // NOTE: germination_probability() will cause all physiological
-// variables to be updated, so mass_leaf_rate() becomes valid so long
+// variables to be updated, so height_rate() becomes valid so long
 // as it is used afterwards.  This is something that can be improved,
 // as that feels a bit fragile.
 //
@@ -65,7 +65,7 @@ bool CohortTop::died() {
 void CohortTop::compute_initial_conditions(const Environment& environment) {
   time_of_birth = environment.get_age();
   set_mortality(-log(germination_probability(environment)));
-  const double g = mass_leaf_rate();
+  const double g = height_rate();
   const double seed_rain = environment.seed_rain_rate();
   density = g > 0 ? (seed_rain / g) : 0.0;
 }
@@ -76,7 +76,7 @@ size_t CohortTop::ode_size() const {
 }
 
 ode::iter_const CohortTop::ode_values_set(ode::iter_const it) {
-  set_mass_leaf(*it++);
+  set_height(*it++);
   set_mortality(*it++);
   seeds_survival_weighted = *it++;
   density = *it++;
@@ -84,7 +84,7 @@ ode::iter_const CohortTop::ode_values_set(ode::iter_const it) {
 }
 
 ode::iter CohortTop::ode_values(ode::iter it) const {
-  *it++ = mass_leaf();
+  *it++ = height();
   *it++ = mortality();
   *it++ = seeds_survival_weighted;
   *it++ = density;
@@ -92,7 +92,7 @@ ode::iter CohortTop::ode_values(ode::iter it) const {
 }
 
 ode::iter CohortTop::ode_rates(ode::iter it) const {
-  *it++ = mass_leaf_rate();
+  *it++ = height_rate();
   *it++ = mortality_rate();
   *it++ = seeds_survival_weighted_rate;
   *it++ = density_rate;
@@ -106,6 +106,10 @@ double CohortTop::r_growth_rate_gradient(const Environment& environment)
 double CohortTop::r_growth_rate_given_mass(double mass_leaf, 
 					   const Environment& environment) {
   return growth_rate_given_mass(mass_leaf, environment);
+}
+double CohortTop::r_growth_rate_given_height(double height,
+					     const Environment& environment) {
+  return growth_rate_given_height(height, environment);
 }
 
 // This is the gradient of mass_leaf_rate with respect to mass_leaf.
@@ -134,6 +138,13 @@ double CohortTop::growth_rate_given_mass(double mass_leaf,
   set_mass_leaf(mass_leaf);
   Plant::compute_vars_phys(environment);
   return mass_leaf_rate();
+}
+
+double CohortTop::growth_rate_given_height(double height,
+					   const Environment& environment) {
+  set_height(height);
+  Plant::compute_vars_phys(environment);
+  return height_rate();
 }
 
 }

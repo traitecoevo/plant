@@ -179,11 +179,10 @@ p$compute_vars_phys(env2)
 p.phys <- p$vars_phys
 
 ## Check the derivative calculations are correct
-m0 <- p$mass_leaf_given_height(h0)
-y <- c(m0, 0, 0)
+y <- c(h0, 0, 0)
 pars.derivs <- list(plant=p, light.env=env2)
 tmp <- derivs(t, y, pars.derivs)
-p.derivs <- p.phys[c("mass_leaf_growth_rate",
+p.derivs <- p.phys[c("height_growth_rate",
                      "mortality_rate", "fecundity_rate")]
 expect_that(tmp,
             equals(unname(p.derivs), tolerance=2e-8))

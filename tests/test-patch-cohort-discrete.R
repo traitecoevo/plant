@@ -146,24 +146,36 @@ expect_that(m2.c[j.c],
 ## Then in a much more complicated fashion, check that the slope of
 ## the interpolated population size is not different than the line y =
 ## x (i.e., intercept 0, slope 1).
+if (FALSE) {
+  plot(t.p[j.p], n.p[j.p], type="o")
+  lines(t.c[j.c], n.c[j.c], type="o", col="red", pch=19, cex=.5)
+}
+
 nn.p <- spline(t.p[j.p], n.p[j.p], xout=t.c[j.c])$y
 nn.c <- n.c[j.c]
-fit <- coef(summary(lm(log(nn.p) ~ log(nn.c))))
-expect_that(fit[1,"Estimate"] + c(-2, 2) * fit[1,"Std. Error"],
+
+fit <- lm(log(nn.p) ~ log(nn.c))
+pars <- coef(summary(fit))
+if (FALSE) {
+  plot(log(nn.p) ~ log(nn.c))
+  abline(0, 1)
+  abline(fit, col="red")
+}
+
+err <- 4
+expect_that(pars[1,"Estimate"] + c(-1, 1) * err * pars[1,"Std. Error"],
             contains(0))
-expect_that(fit[2,"Estimate"] + c(-2, 2) * fit[2,"Std. Error"],
+expect_that(pars[2,"Estimate"] + c(-1, 1) * err * pars[2,"Std. Error"],
             contains(1))
 
 ## This plots the results, which are interesting enough now.
+if (FALSE) {
+  plot(m1.p ~ t.p, log="y", type="o", cex=.5, pch=19)
+  lines(m2.p ~ t.p, lty=2)
 
-## plot(m1.p ~ t.p, log="y", type="o", cex=.5, pch=19)
-## lines(m2.p ~ t.p, lty=2)
+  lines(m1.c ~ t.c, type="o", cex=.5, pch=19, col="#FF000077")
+  lines(m2.c ~ t.c, lty=2, col="#FF000077")
 
-## lines(m1.c ~ t.c, type="o", cex=.5, pch=19, col="#FF000077")
-## lines(m2.c ~ t.c, lty=2, col="#FF000077")
-
-## plot(n.p ~ t.p, type="s", log="y")
-## lines(n.c ~ t.c, type="s", col="#FF000077")
-
-## dt <- diff(t)
-## plot(t[-length(t)], dt, type="s", log="y")
+  plot(n.p ~ t.p, type="s", log="y")
+  lines(n.c ~ t.c, type="s", col="#FF000077")
+}

@@ -97,7 +97,7 @@ void Strategy::reset() {
   c_d3    = 20.0;
 
   // Will get computed properly by Plant.
-  mass_leaf_0 = NA_REAL;
+  height_0    = NA_REAL;
 
   eta_c = NA_REAL;
   k_l = NA_REAL;
@@ -139,7 +139,7 @@ void Strategy::do_build_lookup() {
   lookup_table["c_d3"]   = &c_d3;
 
   // It might be nice to flag some variables as readonly, that way we
-  // could return mass_leaf_0, etc_c, and k_l.
+  // could return height_0, etc_c, and k_l.
 }
 
 void Strategy::set_parameters_post_hook() {

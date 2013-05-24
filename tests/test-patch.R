@@ -79,11 +79,10 @@ expect_that(patch$n_individuals, equals(1))
 expect_that(patch$ode_size,      equals(3))
 
 y <- patch$ode_values
-m0 <- cmp$mass_leaf_given_height(h0)
-expect_that(y, equals(c(m0, 0, 0)))
+expect_that(y, equals(c(h0, 0, 0)))
 dydt <- patch$ode_rates
 
-cmp.dydt <- unname(cmp$vars_phys[c("mass_leaf_growth_rate",
+cmp.dydt <- unname(cmp$vars_phys[c("height_growth_rate",
                                    "mortality_rate", "fecundity_rate")])
 expect_that(dydt, is_identical_to(cmp.dydt))
 

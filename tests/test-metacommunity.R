@@ -55,10 +55,8 @@ expect_that(sys$derivs(sys$age, sys$ode_values),
 expect_that(sys[[idx]]$derivs(sys[[idx]]$age, sys[[idx]]$ode_values),
             is_identical_to(patch$derivs(patch$age, patch$ode_values)))
 
-cmp <- new(Plant, p[[1]])
-h0 <- cmp$height_given_mass_leaf(y[[1]])
 expect_that(sys$height,
-            is_identical_to(rep(list(list(h0)), sys$size)))
+            equals(rep(list(list(y[[1]])), sys$size)))
 
 ## Check dispersal:
 

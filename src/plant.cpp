@@ -223,21 +223,21 @@ size_t Plant::ode_size() const {
 }
 
 ode::iter_const Plant::ode_values_set(ode::iter_const it) {
-  set_mass_leaf(*it++);
+  set_height(*it++);
   set_mortality(*it++);
   set_fecundity(*it++);
   return it;
 }
 
 ode::iter Plant::ode_values(ode::iter it) const {
-  *it++ = mass_leaf();
+  *it++ = height();
   *it++ = mortality();
   *it++ = fecundity();
   return it;
 }
 
 ode::iter Plant::ode_rates(ode::iter it) const {
-  *it++ = mass_leaf_rate();
+  *it++ = height_rate();
   *it++ = mortality_rate();
   *it++ = fecundity_rate();
   return it;
