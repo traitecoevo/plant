@@ -49,21 +49,67 @@ fecundity.rate <- function(traits, h, env) {
   f
 }
 
+## See detail.md for the derivation of this.
+##
+## This verison is more explicit than the version in the C++ code for
+## didactic purposes and because
 leaf.fraction <- function(traits, h) {
-  a <- LeafArea(h)
-  1/(1.0 + p.a3/traits$lma +
-     (traits$rho / p.theta * p.a1 * etac(p.eta) * (1.0 +p.b) *
-      (1.0+p.B1) * a^p.B1 / traits$lma +
-      traits$rho * p.a2 * etac(p.eta) * p.B2 * a^(p.B2-1) / traits$lma))
+  rho <- traits$rho
+  phi <- traits$lma
+  etac <- etac(p.eta)
+  ml <- LeafMass(traits$lma, LeafArea(h))
+
+  dms.dml <- rho * etac * p.a1 * (p.B1 + 1) / (p.theta * phi) *
+    (ml / phi)^p.B1
+  dmb.dml <- p.b * dms.dml
+  dmh.dml <- rho * etac * p.a2 * p.B2 / ml * (ml / phi)^p.B2
+  dmr.dml <- p.a3 / phi
+  denom <- 1 + dms.dml + dmb.dml + dmh.dml + dmr.dml
+  1 / denom
 }
 
-growth.rate <- function(traits, h, env) {
+## This is not used, but should be the same as
+##   dAdMt(traits, LeafArea(h))
+## but a little more explicitly.
+da.dmt <- function(traits, h) {
+  rho <- traits$rho
+  phi <- traits$lma
+  etac <- etac(p.eta)
+  w <- LeafArea(h)
+
+  dml.dw <- phi
+  dms.dw <- rho * etac / p.theta * p.a1 * (p.B1 + 1) * w^p.B1
+  dmb.dw <- p.b * dms.dw
+  dmh.dw <- rho * etac * p.a2 * p.B2 * w ^ (p.B2 - 1) # differs
+  dmr.dw <- p.a3
+  denom <- dml.dw + dms.dw + dmb.dw + dmh.dw + dmr.dw
+  1 / denom
+}
+
+mass.leaf.growth.rate <- function(traits, h, env) {
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
   l <- leaf.fraction(traits, h)
   g <- (1 - r) * p * l
   g[p < 0] <- 0
   g
+}
+
+## Based on Daniel's code for computing dh/da.
+height.growth.rate <- function(traits, h, env) {
+  a <- LeafArea(h)
+  r <- ReproductiveAllocation(traits$hmat, h)
+  p <- net.production(traits, h, env)
+  g <- dHdA(a) * dAdMt(traits, a) * p * (1-r)
+  g[p < 0] <- 0
+  g
+}
+
+## Based on the above function, same algorithm as used in C++ version.
+height.growth.rate.via.mass.leaf <- function(traits, h, env) {
+  dmdt <- mass.leaf.growth.rate(traits, h, env)
+  a <- LeafArea(h)
+  p.a1 * p.B1 * (a)^(p.B1 - 1) * dmdt / traits$lma
 }
 
 p.c_d0 <- 0.520393415085166

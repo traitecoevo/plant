@@ -121,9 +121,20 @@ expect_that(p.phys[["leaf_fraction"]],
             equals(cmp.leaf.fraction))
 
 ## 8. Growth rate for leaf mass
-cmp.growth.rate <- cmp$growth.rate(cmp$traits, h0, light.env)
+cmp.mass.leaf.growth.rate <-
+  cmp$mass.leaf.growth.rate(cmp$traits, h0, light.env)
 expect_that(p.phys[["mass_leaf_growth_rate"]],
-            equals(cmp.growth.rate, tolerance=1e-7))
+            equals(cmp.mass.leaf.growth.rate, tolerance=1e-7))
+
+## 8b. Growth rate for height
+cmp.height.growth.rate <- cmp$height.growth.rate(cmp$traits, h0, light.env)
+expect_that(p.phys[["height_growth_rate"]],
+            equals(cmp.height.growth.rate, tolerance=1e-7))
+
+cmp.height.growth.rate <-
+  cmp$height.growth.rate.via.mass.leaf(cmp$traits, h0, light.env)
+expect_that(p.phys[["height_growth_rate"]],
+            equals(cmp.height.growth.rate, tolerance=1e-7))
 
 ## 9. Mortality rate
 cmp.mortality.rate <- cmp$mortality.rate(cmp$traits, h0, light.env)
