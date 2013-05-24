@@ -1,6 +1,6 @@
-all: EBT.pdf
+all: EBT.pdf details.pdf
 
-EBT.pdf: EBT.md
+%.pdf: %.md
 	pandoc $<  --include-in-header=include.tex -V linkcolor:black -o $@
 
 clean:
