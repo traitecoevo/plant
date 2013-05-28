@@ -151,7 +151,6 @@ void Patch<Individual>::step_deterministic() {
   ode_values(y.begin());
   ode_solver.set_state(y, environment.get_age());
   ode_solver.step();
-  environment.set_age(ode_solver.get_time());
 }
 
 // Note that this will change when we are working with a
@@ -219,7 +218,7 @@ std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
 template <class Individual>
 void Patch<Individual>::derivs(double time,
 			       ode::iter_const y, ode::iter dydt) {
-  // environment.age = time; // TODO
+  environment.set_age(time);
   ode_values_set(y);
   ode_rates(dydt);
 }

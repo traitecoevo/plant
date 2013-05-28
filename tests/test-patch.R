@@ -129,7 +129,7 @@ while ( patch$n_individuals == 1 && patch$age < 15.0 ) {
   patch$step_deterministic()
   patch$step_stochastic()
 }
-expect_that(patch$n_individuals == 2 && patch$age < 15,
+expect_that(patch$n_individuals == 2 && patch$age > 0 && patch$age < 15,
             is_true())
 
 ## Check that the germination numbers look correct, by comparing fit
