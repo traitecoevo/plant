@@ -13,12 +13,15 @@ public:
   EBT(Parameters  p);
   EBT(Parameters *p);
 
+  void step();
+
   Patch<CohortTop> r_patch() const;
 
 private:
   Patch<CohortTop> patch;
-  // ode::Solver<Patch <CohortTop> > ode_solver;
+  ode::Solver<Patch <CohortTop> > ode_solver;
   CohortSchedule schedule;
+  double time;
 };
 
 }
