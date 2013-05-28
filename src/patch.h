@@ -102,6 +102,7 @@ private:
   double height_max() const;
 
   // [eqn 11] Canopy openness at `height`
+  double leaf_area_above(double height) const;
   double canopy_openness(double height);
 
   void compute_light_environment();
@@ -295,13 +296,20 @@ double Patch<Individual>::height_max() const {
 // Probably using Boost and a proper and robust way of binding
 // functions would save hassle here.
 template <class Individual>
-double Patch<Individual>::canopy_openness(double height) {
+double Patch<Individual>::leaf_area_above(double height) const {
   double tot = 0.0;
   for ( species_const_iterator sp = species.begin();
 	sp != species.end(); sp++ )
     tot += sp->leaf_area_above(height);
+  return tot;
+}
+template <class Individual>
+double Patch<Individual>::canopy_openness(double height) {
   // NOTE: patch_area does not appear in the EBT model formulation.
-  return exp(-parameters->c_ext * tot / parameters->patch_area);
+  // TODO: specialise this, or fix patch_area in the EBT so it does
+  // not matter.
+  return exp(-parameters->c_ext * leaf_area_above(height) /
+	     parameters->patch_area);
 }
 
 // Create the spline the characterises the light environment.
