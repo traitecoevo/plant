@@ -289,6 +289,7 @@ RCPP_MODULE(tree) {
     .method("germination",        &model::PatchBase::r_germination)
     .property("species",          &model::PatchBase::r_get_species)
     .method("add_seeds",          &model::PatchBase::r_add_seeds)
+    .method("add_seedling",       &model::PatchBase::r_add_seedling)
     .method("add_seedlings",      &model::PatchBase::r_add_seedlings)
     .property("height",           &model::PatchBase::r_height,
 	      &model::PatchBase::r_set_height)

@@ -22,6 +22,7 @@ public:
   virtual void r_step_stochastic() = 0;
   virtual size_t size() const = 0;
   virtual void r_add_seeds(std::vector<int> seeds) = 0;
+  virtual void r_add_seedling(size_t species_index) = 0;
   virtual void r_add_seedlings(std::vector<int> seeds) = 0;
   virtual Rcpp::List r_height() const = 0;
   virtual void r_set_height(Rcpp::List x) = 0;
@@ -61,6 +62,7 @@ public:
   // Number of species
   size_t size() const;
   void add_seeds(std::vector<int> seeds);
+  void add_seedling(size_t species_index);
   void add_seedlings(std::vector<int> seeds);
 
   // * ODE interface.
@@ -77,9 +79,10 @@ public:
   void r_set_height(Rcpp::List x);
   // Access container
   Rcpp::List r_get_species() const;
-  Species<Individual> r_at(size_t idx) const;
+  Species<Individual> r_at(size_t species_index) const;
   // Modify container
   void r_add_seeds(std::vector<int> seeds);
+  void r_add_seedling(size_t species_index);
   void r_add_seedlings(std::vector<int> seeds);
   void clear();
   // Other interrogation
@@ -183,6 +186,11 @@ template <class Individual>
 void Patch<Individual>::add_seeds(std::vector<int> seeds) {
   seeds = germination(seeds);
   add_seedlings(seeds);
+}
+
+template <class Individual>
+void Patch<Individual>::add_seedling(size_t species_index) {
+  species[species_index].add_seeds(1);
 }
 
 template <class Individual>
@@ -336,8 +344,8 @@ void Patch<Individual>::compute_vars_phys() {
 // Actually public functions for interrogating & modifying
 
 template <class Individual>
-Species<Individual> Patch<Individual>::r_at(size_t idx) const {
-  return species.at(util::check_bounds_r(idx, size()));
+Species<Individual> Patch<Individual>::r_at(size_t species_index) const {
+  return species.at(util::check_bounds_r(species_index, size()));
 }
 
 template <class Individual>
@@ -361,6 +369,11 @@ void Patch<Individual>::r_add_seeds(std::vector<int> seeds) {
   util::check_length(seeds.size(), size());
   compute_light_environment();
   add_seeds(seeds);
+}
+
+template <class Individual>
+void Patch<Individual>::r_add_seedling(size_t species_index) {
+  add_seedling(util::check_bounds_r(species_index, size()));
 }
 
 template <class Individual>
