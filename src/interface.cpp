@@ -30,6 +30,7 @@
 #include "patch.h"
 
 #include "metacommunity.h"
+#include "ebt.h"
 
 #include "functor.h"
 #include "find_root.h"
@@ -310,6 +311,12 @@ RCPP_MODULE(tree) {
     .method("[[", &model::Patch<model::CohortDiscrete>::r_at)
     ;
 
+  Rcpp::class_< model::Patch<model::CohortTop> >("PatchCohortTop")
+    .constructor<model::Parameters>()
+    .derives<model::PatchBase>("PatchBase")
+    .method("[[", &model::Patch<model::CohortTop>::r_at)
+    ;
+
   Rcpp::class_<model::MetacommunityBase>("MetacommunityBase")
     .derives<ode::OdeTarget>("OdeTarget")
     .property("size",    &model::MetacommunityBase::size)
@@ -339,6 +346,11 @@ RCPP_MODULE(tree) {
     .constructor<model::Parameters>()
     .derives<model::MetacommunityBase>("MetacommunityBase")
     .method("[[", &model::Metacommunity<model::CohortDiscrete>::r_at)
+    ;
+
+  Rcpp::class_<model::EBT>("EBT")
+    .constructor<model::Parameters>()
+    .property("patch", &model::EBT::r_patch)
     ;
 
   // Testing functions

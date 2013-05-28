@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "ode_target.h"
+#include "ode_solver.h"
 #include "adaptive_spline.h"
 #include "parameters.h"
 #include "species.h"
@@ -217,6 +218,7 @@ std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
 template <class Individual>
 void Patch<Individual>::derivs(double time,
 			       ode::iter_const y, ode::iter dydt) {
+  // environment.age = time; // TODO
   ode_values_set(y);
   ode_rates(dydt);
 }
@@ -420,5 +422,6 @@ void Patch<Individual>::clear() {
 // real), rather than RCPP_EXPOSED_CLASS.
 RCPP_EXPOSED_CLASS_NODECL(model::Patch<model::Plant>)
 RCPP_EXPOSED_CLASS_NODECL(model::Patch<model::CohortDiscrete>)
+RCPP_EXPOSED_CLASS_NODECL(model::Patch<model::CohortTop>)
 
 #endif
