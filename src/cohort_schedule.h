@@ -29,9 +29,10 @@ private:
   events_iterator next;
 };
 
-// I'm using int here over size_t in cohort because I want to use
-// NA_INTEGER for an impossible cohort.  Rcpp converts size_t ->
+// NOTE: I'm using int here over size_t in cohort because I want to
+// use NA_INTEGER for an impossible cohort.  Rcpp converts size_t ->
 // numeric, though NA_REAL won't stick as a NA value there either.
+// This causes a few casts in code.
 class CohortSchedule::Event {
 public:
   Event(double time, int cohort) : time(time), cohort(cohort) {}

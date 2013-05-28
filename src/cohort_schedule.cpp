@@ -13,11 +13,13 @@ size_t CohortSchedule::size() const {
   return events.size();
 }
 
+// NOTE: See note in cohort_schedule.h:CohortSchedule::Event for why
+// the cast is needed here.
 void CohortSchedule::clear_times(size_t cohort) {
   const size_t cohort_base_0 = util::check_bounds_r(cohort, n_cohort_types);
   events_iterator e = events.begin();
   while (e != events.end()) {
-    if (e->cohort == cohort_base_0)
+    if (e->cohort == static_cast<int>(cohort_base_0))
       e = events.erase(e);
     else
       ++e;
@@ -40,7 +42,7 @@ std::vector<double> CohortSchedule::times(size_t cohort) const {
   const size_t cohort_base_0 = util::check_bounds_r(cohort, n_cohort_types);
   std::vector<double> ret;
   for (events_const_iterator e = events.begin(); e != events.end(); e++)
-    if (e->cohort == cohort_base_0)
+    if (e->cohort == static_cast<int>(cohort_base_0))
       ret.push_back(e->time);
   return ret;
 }
