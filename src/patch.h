@@ -223,11 +223,7 @@ void Patch<Individual>::derivs(double time,
 
 template <class Individual>
 size_t Patch<Individual>::ode_size() const {
-  size_t ret = 0;
-  for ( species_const_iterator sp = species.begin();
-	sp != species.end(); sp++ )
-    ret += sp->ode_size();
-  return ret;
+  return ode::ode_size(species.begin(), species.end());
 }
 
 // NOTE: In theory, this is only necessary if no variables have
@@ -239,30 +235,20 @@ size_t Patch<Individual>::ode_size() const {
 // environment.
 template <class Individual>
 ode::iter_const Patch<Individual>::ode_values_set(ode::iter_const it) {
-  for ( species_iterator sp = species.begin();
-	sp != species.end(); sp++ )
-    it = sp->ode_values_set(it);
-
+  it = ode::ode_values_set(species.begin(), species.end(), it);
   compute_light_environment();
   compute_vars_phys();
-
   return it;
 }
 
 template <class Individual>
 ode::iter Patch<Individual>::ode_values(ode::iter it) const {
-  for ( species_const_iterator sp = species.begin(); 
-	sp != species.end(); sp++ )
-    it = sp->ode_values(it);
-  return it;
+  return ode::ode_values(species.begin(), species.end(), it);
 }
 
 template <class Individual>
 ode::iter Patch<Individual>::ode_rates(ode::iter it) const {
-  for ( species_const_iterator sp = species.begin(); 
-	sp != species.end(); sp++ )
-    it = sp->ode_rates(it);
-  return it;
+  return ode::ode_rates(species.begin(), species.end(), it);
 }
 
 // * Private functions

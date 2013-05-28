@@ -194,35 +194,22 @@ void Metacommunity<Individual>::derivs(double time, ode::iter_const y,
 
 template <class Individual>
 size_t Metacommunity<Individual>::ode_size() const {
-  size_t ret = 0;
-  for ( patch_const_iterator patch = patches.begin();
-	patch != patches.end(); patch++ )
-    ret += patch->ode_size();
-  return ret;
+  return ode::ode_size(patches.begin(), patches.end());
 }
 
 template <class Individual>
 ode::iter_const Metacommunity<Individual>::ode_values_set(ode::iter_const it) {
-  for ( patch_iterator patch = patches.begin();
-	patch != patches.end(); patch++ )
-    it = patch->ode_values_set(it);
-  return it;
+  return ode::ode_values_set(patches.begin(), patches.end(), it);
 }
 
 template <class Individual>
 ode::iter Metacommunity<Individual>::ode_values(ode::iter it) const {
-  for ( patch_const_iterator patch = patches.begin();
-	patch != patches.end(); patch++ )
-    it = patch->ode_values(it);
-  return it;
+  return ode::ode_values(patches.begin(), patches.end(), it);
 }
 
 template <class Individual>
 ode::iter Metacommunity<Individual>::ode_rates(ode::iter it) const {
-  for ( patch_const_iterator patch = patches.begin();
-	patch != patches.end(); patch++ )
-    it = patch->ode_rates(it);
-  return it;
+  return ode::ode_rates(patches.begin(), patches.end(), it);
 }
 
 template <class Individual>

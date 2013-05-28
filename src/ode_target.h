@@ -25,6 +25,44 @@ public:
   std::vector<double> r_ode_rates() const;
 };
 
+template <typename TargetIterator>
+size_t ode_size(TargetIterator first, TargetIterator last) {
+  size_t ret = 0;
+  while (first != last) {
+    ret += first->ode_size();
+    first++;
+  }
+  return ret;
+}
+
+template <typename TargetIterator>
+iter_const ode_values_set(TargetIterator first, TargetIterator last,
+			  iter_const it) {
+  while (first != last) {
+    it = first->ode_values_set(it);
+    first++;
+  }
+  return it;
+}
+
+template <typename TargetIterator>
+iter ode_values(TargetIterator first, TargetIterator last, iter it) {
+  while (first != last) {
+    it = first->ode_values(it);
+    first++;
+  }
+  return it;
+}
+
+template <typename TargetIterator>
+iter ode_rates(TargetIterator first, TargetIterator last, iter it) {
+  while (first != last) {
+    it = first->ode_rates(it);
+    first++;
+  }
+  return it;
+}
+
 }
 
 

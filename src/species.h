@@ -191,26 +191,17 @@ size_t Species<Individual>::ode_size() const {
 
 template <class Individual>
 ode::iter_const Species<Individual>::ode_values_set(ode::iter_const it) {
-  for ( plants_iterator p = plants.begin();
-	p != plants.end(); p++ )
-    it = p->ode_values_set(it);
-  return it;
+  return ode::ode_values_set(plants.begin(), plants.end(), it);
 }
 
 template <class Individual>
 ode::iter Species<Individual>::ode_values(ode::iter it) const {
-  for ( plants_const_iterator p = plants.begin();
-	p != plants.end(); p++ )
-    it = p->ode_values(it);
-  return it;
+  return ode::ode_values(plants.begin(), plants.end(), it);
 }
 
 template <class Individual>
 ode::iter Species<Individual>::ode_rates(ode::iter it) const {
-  for ( plants_const_iterator p = plants.begin();
-	p != plants.end(); p++ )
-    it = p->ode_rates(it);
-  return it;
+  return ode::ode_rates(plants.begin(), plants.end(), it);
 }
 
 // * R interface
