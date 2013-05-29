@@ -65,6 +65,10 @@ double CohortSchedule::next_time() const {
   return next_event().time;
 }
 
+size_t CohortSchedule::remaining() const {
+  return queue.size();
+}
+
 // * R interface
 void CohortSchedule::r_clear_times(size_t cohort_index) {
   clear_times(util::check_bounds_r(cohort_index, n_cohort_types));
