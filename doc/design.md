@@ -1080,6 +1080,21 @@ There are a couple of things weird about mortality:
 We only really need to use `survival_probability`, so I might remove
 the `mortality_probability` case.
 
+## Time
+
+There is some consistency around the use of "time" in the model.
+
+* The whole simulation has a single time axis.  This will start at
+  zero and increase as the simulation runs.  Think of a calendar year,
+  perhaps.  This is *the* time.
+* A patch might need to know the time that it was born.  However,
+  because I've not yet sorted out how disturbance will work in the
+  stochastic version, this is not yet done.
+* Individual `CohortTop` plants need to know when they are born *in
+  the system time*.  This is done automatically by the
+  `compute_initial_conditions`, which takes the system time from the
+  environment.
+
 ## Consistency of get/set
 All get/set pairs should be done with Rcpp's .property
 

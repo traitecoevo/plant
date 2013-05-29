@@ -28,7 +28,7 @@ public:
   virtual void r_set_height(Rcpp::List x) = 0;
   virtual Rcpp::List r_get_species() const = 0;
   virtual void clear() = 0;
-  virtual double r_age() const = 0;
+  virtual double r_time() const = 0;
   virtual std::vector<int> r_n_individuals() const = 0;
   virtual double r_height_max() const = 0;
   virtual Environment r_environment() const = 0;
@@ -86,7 +86,7 @@ public:
   void r_add_seedlings(std::vector<int> seeds);
   void clear();
   // Other interrogation
-  double r_age() const {return environment.get_age();}
+  double r_time() const {return environment.get_time();}
   std::vector<int> r_n_individuals() const;
   Environment r_environment() const;
   void r_step();
@@ -152,7 +152,7 @@ template <class Individual>
 void Patch<Individual>::step_deterministic() {
   std::vector<double> y(ode_size());
   ode_values(y.begin());
-  ode_solver.set_state(y, environment.get_age());
+  ode_solver.set_state(y, environment.get_time());
   ode_solver.step();
 }
 
@@ -226,7 +226,7 @@ std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
 template <class Individual>
 void Patch<Individual>::derivs(double time,
 			       ode::iter_const y, ode::iter dydt) {
-  environment.set_age(time);
+  environment.set_time(time);
   ode_values_set(y);
   ode_rates(dydt);
 }

@@ -16,7 +16,7 @@ public:
   double canopy_openness(double height) const;
   void compute_light_environment(util::DFunctor *canopy_openness,
 				 double height_max);
-  double patch_survival(double age_at_birth) const;
+  double patch_survival(double time_at_birth) const;
   void clear();
 
   // NOTE: Interface here will change
@@ -25,8 +25,8 @@ public:
   spline::Spline get_light_environment() const;
   void set_light_environment(const spline::Spline env);
 
-  double get_age() const;
-  void set_age(double x);
+  double get_time() const;
+  void set_time(double x);
 
   SeedRain get_seed_rain() const;
   void set_seed_rain(SeedRain x);
@@ -36,7 +36,7 @@ private:
   Disturbance disturbance_regime;
   SeedRain seed_rain;
   Control control;
-  double age;
+  double time;
 };
 
 }

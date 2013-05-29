@@ -11,8 +11,8 @@ expect_that(sys$size, equals(p$parameters$n_patches))
 n <- matrix(0, p$size, sys$size)
 expect_that(sys$n_individuals, equals(n))
 
-## Age of system should be zero
-expect_that(sys$age, equals(0.0))
+## System time should be zero.
+expect_that(sys$time, equals(0.0))
 
 ## and we should have no ode variables:
 expect_that(sys$ode_size, equals(0))
@@ -48,12 +48,12 @@ patch$add_seedlings(1)
 expect_that(sys$ode_values,
             is_identical_to(rep(patch$ode_values, sys$size)))
 
-expect_that(sys$derivs(sys$age, sys$ode_values),
-            is_identical_to(rep(patch$derivs(patch$age, patch$ode_values),
+expect_that(sys$derivs(sys$time, sys$ode_values),
+            is_identical_to(rep(patch$derivs(patch$time, patch$ode_values),
                                 sys$size)))
 
-expect_that(sys[[idx]]$derivs(sys[[idx]]$age, sys[[idx]]$ode_values),
-            is_identical_to(patch$derivs(patch$age, patch$ode_values)))
+expect_that(sys[[idx]]$derivs(sys[[idx]]$time, sys[[idx]]$ode_values),
+            is_identical_to(patch$derivs(patch$time, patch$ode_values)))
 
 expect_that(sys$height,
             equals(rep(list(list(y[[1]])), sys$size)))

@@ -10,7 +10,7 @@ namespace model {
 class MetacommunityBase : public ode::OdeTarget {
 public:
   virtual size_t size() const = 0;
-  virtual double r_age() const = 0;
+  virtual double r_time() const = 0;
   virtual void step() = 0;
   virtual void step_deterministic() = 0;
   virtual void step_stochastic() = 0;
@@ -36,7 +36,7 @@ public:
   
   // * Simple interrogation:
   size_t size() const;
-  double r_age()  const;
+  double r_time() const;
 
   // * Main simulation control
   void step();
@@ -74,7 +74,7 @@ private:
   
   Parameters::ptr parameters;
   std::vector< Patch<Individual> > patches;
-  double age;
+  double time;
   ode::Solver< Metacommunity > ode_solver;
 
   typedef typename std::vector< Patch<Individual> >::iterator 
@@ -86,7 +86,7 @@ private:
 template <class Individual>
 Metacommunity<Individual>::Metacommunity(Parameters p)
   : parameters(p),
-    age(0.0),
+    time(0.0),
     ode_solver(this) {
   initialise();
 }
@@ -94,7 +94,7 @@ Metacommunity<Individual>::Metacommunity(Parameters p)
 template <class Individual>
 Metacommunity<Individual>::Metacommunity(Parameters *p)
   : parameters(p),
-    age(0.0),
+    time(0.0),
     ode_solver(this) {
   initialise();
 }
@@ -105,8 +105,8 @@ size_t Metacommunity<Individual>::size() const {
 }
 
 template <class Individual>
-double Metacommunity<Individual>::r_age() const {
-  return age;
+double Metacommunity<Individual>::r_time() const {
+  return time;
 }
 
 template <class Individual>
@@ -119,9 +119,9 @@ template <class Individual>
 void Metacommunity<Individual>::step_deterministic() {
   std::vector<double> y(ode_size());
   ode_values(y.begin());
-  ode_solver.set_state(y, age);
+  ode_solver.set_state(y, time);
   ode_solver.step();
-  age = ode_solver.get_time();
+  time = ode_solver.get_time();
 }
 
 template <class Individual>
@@ -255,7 +255,7 @@ Rcpp::IntegerMatrix Metacommunity<Individual>::r_n_individuals() const {
 
 template <class Individual>
 void Metacommunity<Individual>::clear() {
-  age = 0.0;
+  time = 0.0;
   for ( patch_iterator patch = patches.begin();
 	patch != patches.end(); patch++ )
     patch->clear();

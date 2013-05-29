@@ -7,7 +7,7 @@ namespace model {
 Environment::Environment(Parameters p)
   : disturbance_regime(p.disturbance_regime),
     control(p.control),
-    age(0.0) {
+    time(0.0) {
 }
 
 double Environment::canopy_openness(double height) const {
@@ -25,16 +25,16 @@ void Environment::compute_light_environment(util::DFunctor *canopy_openness,
   set_light_environment(generator.construct_spline(0, height_max));
 }
 
-// Computes the probability of survival from age_at_birth to age,
-// probably by conditioning survival over [0,age] on survival over
-// [0,age_at_birth].
-double Environment::patch_survival(double age_at_birth) const {
-  return disturbance_regime.survival_probability(age_at_birth, age);
+// Computes the probability of survival from time_at_birth to time,
+// probably by conditioning survival over [0,time] on survival over
+// [0,time_at_birth].
+double Environment::patch_survival(double time_at_birth) const {
+  return disturbance_regime.survival_probability(time_at_birth, time);
 }
 
 // Reset the environment.
 void Environment::clear() {
-  age = 0.0;
+  time = 0.0;
   light_environment.clear();
 }
 
@@ -52,11 +52,11 @@ void Environment::set_light_environment(const spline::Spline env) {
   light_environment = env;
 }
 
-double Environment::get_age() const {
-  return age;
+double Environment::get_time() const {
+  return time;
 }
-void Environment::set_age(double x) {
-  age = x;
+void Environment::set_time(double x) {
+  time = x;
 }
 
 SeedRain Environment::get_seed_rain() const {

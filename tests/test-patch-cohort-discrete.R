@@ -49,9 +49,9 @@ expect_that(patch.c$n_individuals, equals(2))
 ## Now, grow this pair of seeds deterministically for a bit.
 f <- function(patch, t) {
   res <- list()
-  while ( patch$age < t ) {
+  while ( patch$time < t ) {
     patch$step_deterministic()
-    res <- c(res, list(c(patch$age, patch$ode_values)))
+    res <- c(res, list(c(patch$time, patch$ode_values)))
   }
   do.call(rbind, res)
 }
@@ -75,14 +75,14 @@ patch.c$clear()
 patch.p$add_seedlings(1)
 patch.c$add_seedlings(1)
 
-## Function to run a patch up to a population size or age, and
+## Function to run a patch up to a population size or time, and
 ## accumulate results.
-run <- function(patch, n, age, res=NULL) {
+run <- function(patch, n, time, res=NULL) {
   collect <- function()
-    list(list(patch$age, patch$n_individuals, patch$height))
+    list(list(patch$time, patch$n_individuals, patch$height))
   if ( is.null(res) )
     res <- collect()
-  while ( patch$n_individuals <= n && patch$age <= age ) {
+  while ( patch$n_individuals <= n && patch$time <= time ) {
     patch$step()
     res <- c(res, collect())
   }

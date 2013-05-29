@@ -134,11 +134,11 @@ patch$clear()
 patch$add_seedlings(1)
 
 set.seed(1)
-while ( patch$n_individuals == 1 && patch$age < 15.0 ) {
+while ( patch$n_individuals == 1 && patch$time < 15.0 ) {
   patch$step_deterministic()
   patch$step_stochastic()
 }
-expect_that(patch$n_individuals == 2 && patch$age > 0 && patch$age < 15,
+expect_that(patch$n_individuals == 2 && patch$time > 0 && patch$time < 15,
             is_true())
 
 ## Check that the germination numbers look correct, by comparing fit

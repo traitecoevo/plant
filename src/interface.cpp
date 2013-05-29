@@ -271,9 +271,9 @@ RCPP_MODULE(tree) {
     .property("light_environment",
 	      &model::Environment::get_light_environment,
 	      &model::Environment::set_light_environment)
-    .property("age",
-	      &model::Environment::get_age,
-	      &model::Environment::set_age)
+    .property("time",
+	      &model::Environment::get_time,
+	      &model::Environment::set_time)
     .property("seed_rain",
 	      &model::Environment::get_seed_rain,
 	      &model::Environment::set_seed_rain)
@@ -288,7 +288,7 @@ RCPP_MODULE(tree) {
 	    &model::PatchBase::r_compute_light_environment)
     .property("environment",      &model::PatchBase::r_environment)
     .method("compute_vars_phys",  &model::PatchBase::r_compute_vars_phys)
-    .property("age",              &model::PatchBase::r_age)
+    .property("time",             &model::PatchBase::r_time)
     .method("germination",        &model::PatchBase::r_germination)
     .property("species",          &model::PatchBase::r_get_species)
     .method("add_seeds",          &model::PatchBase::r_add_seeds)
@@ -324,7 +324,7 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::MetacommunityBase>("MetacommunityBase")
     .derives<ode::OdeTarget>("OdeTarget")
     .property("size",    &model::MetacommunityBase::size)
-    .property("age",     &model::MetacommunityBase::r_age)
+    .property("time",    &model::MetacommunityBase::r_time)
     .method("step",      &model::MetacommunityBase::r_step)
     .method("step_deterministic",
       	    &model::MetacommunityBase::step_deterministic)
