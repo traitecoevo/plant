@@ -25,8 +25,24 @@ void EBT::step() {
   time = ode_solver.get_time();
 }
 
+void EBT::run_next() {
+  const CohortSchedule::Event e = schedule.next_event();
+  if (e.time == R_PosInf)
+    ::Rf_error("Already reached end of schedule");
+  ode_solver.advance(e.time);
+  patch.add_seedling(e.cohort);
+}
+
 Patch<CohortTop> EBT::r_patch() const {
   return patch;
+}
+
+CohortSchedule EBT::r_cohort_schedule() const {
+  return schedule;
+}
+
+void EBT::r_set_cohort_schedule(CohortSchedule x) {
+  schedule = x;
 }
 
 }

@@ -14,8 +14,11 @@ public:
   EBT(Parameters *p);
 
   void step();
+  void run_next();
 
   Patch<CohortTop> r_patch() const;
+  CohortSchedule r_cohort_schedule() const;
+  void r_set_cohort_schedule(CohortSchedule x);
 
 private:
   Patch<CohortTop> patch;

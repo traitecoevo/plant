@@ -354,6 +354,8 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::EBT>("EBT")
     .constructor<model::Parameters>()
     .property("patch", &model::EBT::r_patch)
+    .property("cohort_schedule", &model::EBT::r_cohort_schedule,
+	      &model::EBT::r_set_cohort_schedule)
     ;
 
   // Testing functions
