@@ -4,12 +4,18 @@
 
 #include <Rcpp.h>
 
+// NOTE: This needs copy/assignment constructors just because we need
+// to copy the "next" pointer (though at present this i just done.  An
+// alternative way of doing this would be for reset() to dump things
+// into a Queue that we pop off?
 namespace model {
 
 class CohortSchedule {
 public:
   class Event;
   CohortSchedule(size_t n_cohort_types);
+  CohortSchedule(const CohortSchedule &other);
+  CohortSchedule& operator=(CohortSchedule other);
   size_t size() const;
 
   void clear_times(size_t cohort);
@@ -18,6 +24,9 @@ public:
   void reset();
   Event next_event();
   double next_time() const;
+
+  void advance(size_t n);
+  size_t position() const;
 
 private:
   void add_time(double times, size_t cohort);

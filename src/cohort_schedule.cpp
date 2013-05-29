@@ -9,6 +9,20 @@ CohortSchedule::CohortSchedule(size_t n_cohort_types)
   reset();
 }
 
+CohortSchedule::CohortSchedule(const CohortSchedule &other)
+  : n_cohort_types(other.n_cohort_types),
+    events(other.events) {
+  reset(); // TODO: zero for now -- should update position...
+  advance(other.position());
+}
+
+CohortSchedule& CohortSchedule::operator=(CohortSchedule other) {
+  n_cohort_types = other.n_cohort_types;
+  events = other.events;
+  reset();
+  return *this;
+}
+
 size_t CohortSchedule::size() const {
   return events.size();
 }
@@ -68,6 +82,19 @@ void CohortSchedule::add_time(double time, size_t cohort) {
   while (next != events.end() && time > next->time)
     next++;
   next = events.insert(next, e);
+}
+
+void CohortSchedule::advance(size_t n) {
+  while (n-- > 0)
+    next++;
+}
+
+size_t CohortSchedule::position() const {
+  events_const_iterator it = events.begin();
+  size_t index = 0;
+  while (it != next && it != events.end())
+    index++;
+  return index;
 }
 
 }
