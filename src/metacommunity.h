@@ -9,6 +9,7 @@ namespace model {
 
 class MetacommunityBase : public ode::OdeTarget {
 public:
+  virtual ~MetacommunityBase() {};
   virtual size_t size() const = 0;
   virtual double r_time() const = 0;
   virtual void step() = 0;
@@ -49,9 +50,8 @@ public:
   void add_seeds(std::vector<int> seeds);
 
   // * ODE interface
-  void derivs(double time, ode::iter_const y, ode::iter dydt);
   size_t ode_size() const;
-  ode::iter_const ode_values_set(ode::iter_const it);
+  ode::iter_const set_ode_values(double time, ode::iter_const it);
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
@@ -186,20 +186,14 @@ Metacommunity<Individual>::disperse(std::vector<int> seeds) const {
 
 // * ODE interace.
 template <class Individual>
-void Metacommunity<Individual>::derivs(double time, ode::iter_const y,
-				       ode::iter dydt) {
-  ode_values_set(y);
-  ode_rates(dydt);
-}
-
-template <class Individual>
 size_t Metacommunity<Individual>::ode_size() const {
   return ode::ode_size(patches.begin(), patches.end());
 }
 
 template <class Individual>
-ode::iter_const Metacommunity<Individual>::ode_values_set(ode::iter_const it) {
-  return ode::ode_values_set(patches.begin(), patches.end(), it);
+ode::iter_const Metacommunity<Individual>::set_ode_values(double time,
+							  ode::iter_const it) {
+  return ode::set_ode_values(patches.begin(), patches.end(), time, it);
 }
 
 template <class Individual>

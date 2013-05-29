@@ -5,7 +5,8 @@
 namespace ode {
 
 void OdeTarget::derivs(double time, iter_const y, iter dydt) {
-  Rf_error("derivs method not implemented");
+  set_ode_values(time, y);
+  ode_rates(dydt);
 }
 
 std::vector<double> OdeTarget::r_derivs(double time, 
@@ -16,9 +17,9 @@ std::vector<double> OdeTarget::r_derivs(double time,
   return dydt;
 }
 
-void OdeTarget::r_ode_values_set(std::vector<double> y) {
+void OdeTarget::r_set_ode_values(double time, std::vector<double> y) {
   util::check_length(y.size(), ode_size());
-  ode_values_set(y.begin());
+  set_ode_values(time, y.begin());
 }
 std::vector<double> OdeTarget::r_ode_values() const {
   std::vector<double> ret(ode_size());

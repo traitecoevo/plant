@@ -69,7 +69,7 @@ derivs <- function(t, y, pars) {
   plant <- pars$plant
   light.env <- pars$light.env
   
-  plant$ode_values <- y
+  plant$set_ode_values(t, y)
   plant$compute_vars_phys(light.env)
   plant$ode_rates
 }
@@ -124,13 +124,15 @@ expect_that(cohort2$n_individuals, equals(10))
 cohort2$n_individuals <- 2
 
 f.p <- function(obj, y) {
-  obj$ode_values <- y
+  t <- 0.0 # arbitrary, ignored.
+  obj$set_ode_values(t, y)
   obj$died()
 }
 
 f.c <- function(obj, y) {
   n <- obj$n_individuals
-  obj$ode_values <- y
+  t <- 0.0 # arbitrary, ignored.
+  obj$set_ode_values(t, y)
   ret <- obj$died()
   ret <- c(ret, obj$n_individuals)
   obj$n_individuals <- n

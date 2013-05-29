@@ -14,13 +14,13 @@ public:
   virtual ~OdeTarget() {}
 
   virtual void derivs(double time, iter_const y, iter dydt);
-  virtual iter_const ode_values_set(iter_const it) = 0;
+  virtual iter_const set_ode_values(double time, iter_const it) = 0;
   virtual iter       ode_values(iter it) const = 0;
   virtual iter       ode_rates(iter it)  const = 0;
   virtual size_t     ode_size() const = 0;
 
   std::vector<double> r_derivs(double time, std::vector<double> y);
-  void r_ode_values_set(std::vector<double> y);
+  void r_set_ode_values(double time, std::vector<double> y);
   std::vector<double> r_ode_values() const;
   std::vector<double> r_ode_rates() const;
 };
@@ -36,10 +36,10 @@ size_t ode_size(TargetIterator first, TargetIterator last) {
 }
 
 template <typename TargetIterator>
-iter_const ode_values_set(TargetIterator first, TargetIterator last,
-			  iter_const it) {
+iter_const set_ode_values(TargetIterator first, TargetIterator last,
+			  double time, iter_const it) {
   while (first != last) {
-    it = first->ode_values_set(it);
+    it = first->set_ode_values(time, it);
     first++;
   }
   return it;

@@ -88,8 +88,8 @@ RCPP_MODULE(tree) {
   Rcpp::class_<ode::OdeTarget>("OdeTarget")
     .method("derivs",         &ode::OdeTarget::r_derivs)
     .property("ode_size",     &ode::OdeTarget::ode_size)
-    .property("ode_values",   &ode::OdeTarget::r_ode_values,
-	      &ode::OdeTarget::r_ode_values_set)
+    .property("ode_values",   &ode::OdeTarget::r_ode_values)
+    .method("set_ode_values", &ode::OdeTarget::r_set_ode_values)
     .property("ode_rates",    &ode::OdeTarget::r_ode_rates)
     ;
 

@@ -212,7 +212,7 @@ size_t Plant::ode_size() const {
   return ode_dimension; 
 }
 
-ode::iter_const Plant::ode_values_set(ode::iter_const it) {
+ode::iter_const Plant::set_ode_values(double time, ode::iter_const it) {
   set_height(*it++);
   set_mortality(*it++);
   set_fecundity(*it++);

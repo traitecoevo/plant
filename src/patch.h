@@ -66,9 +66,8 @@ public:
   void add_seedlings(std::vector<int> seeds);
 
   // * ODE interface.
-  void derivs(double time, ode::iter_const y, ode::iter dydt);
   size_t ode_size() const;
-  ode::iter_const ode_values_set(ode::iter_const it);
+  ode::iter_const set_ode_values(double time, ode::iter_const it);
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
 
@@ -224,28 +223,22 @@ std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
 
 // * ODE interface
 template <class Individual>
-void Patch<Individual>::derivs(double time,
-			       ode::iter_const y, ode::iter dydt) {
-  environment.set_time(time);
-  ode_values_set(y);
-  ode_rates(dydt);
-}
-
-template <class Individual>
 size_t Patch<Individual>::ode_size() const {
   return ode::ode_size(species.begin(), species.end());
 }
 
-// NOTE: In theory, this is only necessary if no variables have
-// changed.  This will often be the case on the first call (because of
-// the way that derivs() and ode_set_values works, we take the values
-// from the model, set them in the ODE solver, then try to re-set them
-// in the model.  Obviously on the first use nothing has changed so we
-// should not bother doing anything hard like computing the light
-// environment.
+// NOTE: In theory, recomputing the light environment and
+// physiological variables is only necessary if no input variables
+// have changed.  This will often be the case on the first call
+// (because of the way that derivs() and ode_set_values works, we take
+// the values from the model, set them in the ODE solver, then try to
+// re-set them in the model.  Importantly, on the first stage of any
+// step, nothing has changed because we did get_state -> set_state.
 template <class Individual>
-ode::iter_const Patch<Individual>::ode_values_set(ode::iter_const it) {
-  it = ode::ode_values_set(species.begin(), species.end(), it);
+ode::iter_const Patch<Individual>::set_ode_values(double time,
+						  ode::iter_const it) {
+  it = ode::set_ode_values(species.begin(), species.end(), time, it);
+  environment.set_time(time);
   compute_light_environment();
   compute_vars_phys();
   return it;

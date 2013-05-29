@@ -150,8 +150,8 @@ expect_that(seed$germination_probability(env),
 derivs <- function(t, y, pars) {
   plant <- pars$plant
   light.env <- pars$light.env
-  
-  plant$ode_values <- y
+
+  plant$set_ode_values(t, y)
   plant$compute_vars_phys(light.env)
   plant$ode_rates
 }
@@ -162,6 +162,7 @@ p$compute_vars_phys(env2)
 p.phys <- p$vars_phys
 
 ## Check the derivative calculations are correct
+t <- 0.0 # arbitrary, ignored
 y <- c(h0, 0, 0)
 pars.derivs <- list(plant=p, light.env=env2)
 tmp <- derivs(t, y, pars.derivs)
