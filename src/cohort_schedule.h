@@ -14,28 +14,32 @@ class CohortSchedule {
 public:
   class Event;
   CohortSchedule(size_t n_cohort_types);
-  CohortSchedule(const CohortSchedule &other);
-  CohortSchedule& operator=(CohortSchedule other);
   size_t size() const;
+  size_t types() const;
 
-  void clear_times(size_t cohort);
-  void set_times(std::vector<double> times, size_t cohort);
-  std::vector<double> times(size_t cohort) const;
+  void clear_times(size_t cohort_index);
+  void set_times(std::vector<double> times, size_t cohort_index);
+  std::vector<double> times(size_t cohort_index) const;
   void reset();
-  Event next_event();
+  void pop();
+  Event next_event() const;
   double next_time() const;
 
-  void advance(size_t n);
-  size_t position() const;
+  // * R interface:
+  void r_clear_times(size_t cohort_index);
+  void r_set_times(std::vector<double> times, size_t cohort_index);
+  std::vector<double> r_times(size_t cohort_index) const;
 
 private:
-  void add_time(double times, size_t cohort);
+  typedef std::list<Event>::iterator events_iterator;
+  typedef std::list<Event>::const_iterator events_const_iterator;
+
+  events_iterator add_time(double times, size_t cohort_index,
+			   events_iterator it);
 
   size_t n_cohort_types;
   std::list<Event> events;
-  typedef std::list<Event>::iterator events_iterator;
-  typedef std::list<Event>::const_iterator events_const_iterator;
-  events_iterator next;
+  std::list<Event> queue;
 };
 
 // NOTE: I'm using int here over size_t in cohort because I want to

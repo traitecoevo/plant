@@ -9,92 +9,88 @@ CohortSchedule::CohortSchedule(size_t n_cohort_types)
   reset();
 }
 
-CohortSchedule::CohortSchedule(const CohortSchedule &other)
-  : n_cohort_types(other.n_cohort_types),
-    events(other.events) {
-  reset(); // TODO: zero for now -- should update position...
-  advance(other.position());
-}
-
-CohortSchedule& CohortSchedule::operator=(CohortSchedule other) {
-  n_cohort_types = other.n_cohort_types;
-  events = other.events;
-  reset();
-  return *this;
-}
-
 size_t CohortSchedule::size() const {
   return events.size();
 }
 
+size_t CohortSchedule::types() const {
+  return n_cohort_types;
+}
+
 // NOTE: See note in cohort_schedule.h:CohortSchedule::Event for why
 // the cast is needed here.
-void CohortSchedule::clear_times(size_t cohort) {
-  const size_t cohort_base_0 = util::check_bounds_r(cohort, n_cohort_types);
+void CohortSchedule::clear_times(size_t cohort_index) {
   events_iterator e = events.begin();
   while (e != events.end()) {
-    if (e->cohort == static_cast<int>(cohort_base_0))
+    if (e->cohort == static_cast<int>(cohort_index))
       e = events.erase(e);
     else
       ++e;
   }
-}
-
-void CohortSchedule::set_times(std::vector<double> times, size_t cohort) {
-  if (!util::is_sorted(times.begin(), times.end()))
-    ::Rf_error("Times must be sorted (increasing)");
-  clear_times(cohort);
-  reset();
-  const size_t cohort_base_0 = util::check_bounds_r(cohort, n_cohort_types);
-  for (std::vector<double>::const_iterator it = times.begin();
-       it != times.end(); it++)
-    add_time(*it, cohort_base_0);
   reset();
 }
 
-std::vector<double> CohortSchedule::times(size_t cohort) const {
-  const size_t cohort_base_0 = util::check_bounds_r(cohort, n_cohort_types);
+void CohortSchedule::set_times(std::vector<double> times,
+			       size_t cohort_index) {
+  clear_times(cohort_index);
+  events_iterator e = events.begin();
+  for (std::vector<double>::const_iterator t = times.begin();
+       t != times.end(); t++)
+    e = add_time(*t, cohort_index, e);
+  reset();
+}
+
+std::vector<double> CohortSchedule::times(size_t cohort_index) const {
   std::vector<double> ret;
   for (events_const_iterator e = events.begin(); e != events.end(); e++)
-    if (e->cohort == static_cast<int>(cohort_base_0))
+    if (e->cohort == static_cast<int>(cohort_index))
       ret.push_back(e->time);
   return ret;
 }
 
 void CohortSchedule::reset() {
-  next = events.begin();
+  queue = events;
 }
 
-CohortSchedule::Event CohortSchedule::next_event() {
-  if (next == events.end())
-    return CohortSchedule::Event::blank();
-  else
-    return *next++;
+void CohortSchedule::pop() {
+  if (!queue.empty())
+    queue.pop_front();
+}
+
+CohortSchedule::Event CohortSchedule::next_event() const {
+  return queue.empty() ? CohortSchedule::Event::blank() : queue.front();
 }
 
 double CohortSchedule::next_time() const {
-  return next == events.end() ?
-    CohortSchedule::Event::blank().time : next->time;
+  return next_event().time;
 }
 
-void CohortSchedule::add_time(double time, size_t cohort) {
-  Event e(time, cohort);
-  while (next != events.end() && time > next->time)
-    next++;
-  next = events.insert(next, e);
+// * R interface
+void CohortSchedule::r_clear_times(size_t cohort_index) {
+  clear_times(util::check_bounds_r(cohort_index, n_cohort_types));
 }
 
-void CohortSchedule::advance(size_t n) {
-  while (n-- > 0)
-    next++;
+void CohortSchedule::r_set_times(std::vector<double> times,
+				 size_t cohort_index) {
+  if (!util::is_sorted(times.begin(), times.end()))
+    ::Rf_error("Times must be sorted (increasing)");
+  set_times(times, util::check_bounds_r(cohort_index, n_cohort_types));
 }
 
-size_t CohortSchedule::position() const {
-  events_const_iterator it = events.begin();
-  size_t index = 0;
-  while (it != next && it != events.end())
-    index++;
-  return index;
+std::vector<double> CohortSchedule::r_times(size_t cohort_index) const {
+  return times(util::check_bounds_r(cohort_index, n_cohort_types));
+}
+
+// * Private methods
+CohortSchedule::events_iterator
+CohortSchedule::add_time(double time, size_t cohort_index,
+			 events_iterator it) {
+  Event e(time, cohort_index);
+  it = events.begin();
+  while (it != events.end() && time > it->time)
+    it++;
+  it = events.insert(it, e);
+  return it;
 }
 
 }
