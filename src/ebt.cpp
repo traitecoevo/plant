@@ -5,32 +5,33 @@ namespace model {
 EBT::EBT(Parameters p)
   : patch(p),
     ode_solver(&patch),
-    schedule(p.size()),
-    time(0.0) {
+    schedule(patch.size()) {
 }
 
 EBT::EBT(Parameters *p)
   : patch(p),
     ode_solver(&patch),
-    schedule(p->size()),
-    time(0.0) {
+    schedule(patch.size()) {
 }
 
 void EBT::step() {
   std::vector<double> y(patch.ode_size());
   patch.ode_values(y.begin());
-  ode_solver.set_state(y, time);
+  ode_solver.set_state(y, get_time());
   ode_solver.step();
-  // or get this from environment?
-  time = ode_solver.get_time();
 }
 
 void EBT::run_next() {
-  const CohortSchedule::Event e = schedule.next_event();
-  if (e.time == R_PosInf)
+  if (schedule.remaining() == 0)
     ::Rf_error("Already reached end of schedule");
+  const CohortSchedule::Event e = schedule.next_event();
   ode_solver.advance(e.time);
   patch.add_seedling(e.cohort);
+  schedule.pop();
+}
+
+double EBT::get_time() const {
+  return ode_solver.get_time();
 }
 
 Patch<CohortTop> EBT::r_patch() const {
@@ -42,6 +43,7 @@ CohortSchedule EBT::r_cohort_schedule() const {
 }
 
 void EBT::r_set_cohort_schedule(CohortSchedule x) {
+  util::check_length(x.types(), patch.size());
   schedule = x;
 }
 

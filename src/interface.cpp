@@ -357,6 +357,8 @@ RCPP_MODULE(tree) {
     .property("patch", &model::EBT::r_patch)
     .property("cohort_schedule", &model::EBT::r_cohort_schedule,
 	      &model::EBT::r_set_cohort_schedule)
+    .property("time", &model::EBT::get_time)
+    .method("run_next", &model::EBT::run_next)
     ;
 
   // Testing functions

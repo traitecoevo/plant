@@ -16,6 +16,8 @@ public:
   void step();
   void run_next();
 
+  double get_time() const;
+
   Patch<CohortTop> r_patch() const;
   CohortSchedule r_cohort_schedule() const;
   void r_set_cohort_schedule(CohortSchedule x);
@@ -24,7 +26,6 @@ private:
   Patch<CohortTop> patch;
   ode::Solver<Patch <CohortTop> > ode_solver;
   CohortSchedule schedule;
-  double time;
 };
 
 }

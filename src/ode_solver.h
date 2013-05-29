@@ -59,7 +59,8 @@ private:
 
 template <class Problem>
 Solver<Problem>::Solver(Problem *problem_) 
-  : problem(problem_), 
+  : problem(problem_),
+    time(0.0),
     stepper(problem_) {
   reset();
 }
@@ -168,8 +169,8 @@ void Solver<Problem>::step() {
 // using it...
 template <class Problem>
 void Solver<Problem>::advance(double time_max_) {
-  if ( time_max_ <= time )
-    Rf_error("time_max must be greater than time");
+  if ( time_max_ < time )
+    Rf_error("time_max must be greater than (or equal to) current time");
   time_max = time_max_;
   while ( time < time_max )
     step();

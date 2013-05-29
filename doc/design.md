@@ -1095,7 +1095,37 @@ There is some consistency around the use of "time" in the model.
   `compute_initial_conditions`, which takes the system time from the
   environment.
 
+The logistics of this aren't totally horrible, but they're not great
+either.
+
+`derivs()` will set `time`, because that's needed for the calculations
+to work.  This works really well for the `EBT`, which sets the age
+correctly in the single `Patch`, which is actually in that `Patch`'s
+`Environment`.
+
+But for the `Metacommunity`, we don't use `derivs` -- instead we're
+going to go through and do `ode_values_set`/`ode_values`.
+
+The "proper" solution to this is probably to redo `ode_values_set` so
+that it takes both the iterator and time, and then rewrite `derivs` to
+put it into `OdeTarget`.  Classes can then disable derivs (e.g. by
+declaring it private?) if they can't do it.  That applies to `Plant`
+and `Species`.
+
 ## Consistency of get/set
 All get/set pairs should be done with Rcpp's .property
 
 `ode_values_set` -> `set_ode_values`
+
+## Time and odes
+
+I'm probably going to have to set the time soon -- the ODE stepper
+needs to be able to do this?  We need time information for disturbance
+in the ODE step.  That happens through the derivs() function.  For the
+EBT this will be easy, with one time horizon.  But for the stochastic
+version, we'll need to be careful.  We may want to have "time" as the
+entire system time and keep track of the time the patch was born so we
+just work with differences.
+
+This is currently broken in Metacommunity -- this should happen during
+`ode_values_set`, I suspect.  Alternatively have an `ode_time_set`?
