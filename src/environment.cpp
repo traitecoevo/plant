@@ -6,6 +6,7 @@ namespace model {
 
 Environment::Environment(Parameters p)
   : disturbance_regime(p.disturbance_regime),
+    seed_rain(p.size()),
     control(p.control),
     time(0.0) {
 }

@@ -30,6 +30,7 @@ if ( !exists("Spline") ) {
   Disturbance <- tree_module$Disturbance
   SeedRain    <- tree_module$SeedRain
   Environment <- tree_module$Environment
+  seed_rain   <- tree_module$seed_rain
   
   PlantSpline <- tree_module$PlantSpline # poorly named...
 

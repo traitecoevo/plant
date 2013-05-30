@@ -5,14 +5,9 @@
 
 namespace model {
 
-// Empty seed rain
-SeedRain::SeedRain()
-  : curr_idx(0) {
-}
-
-// Unless given an initial vector, in which case start with that.
-SeedRain::SeedRain(std::vector<double> seed_rain)
-  : seed_rain(seed_rain),
+// Empty seed rain -- all species initialised to have zero seed rain.
+SeedRain::SeedRain(size_t n_species)
+  : seed_rain(n_species, 0.0),
     curr_idx(0) {
 }
 
@@ -33,9 +28,18 @@ void SeedRain::next() {
   curr_idx++;
 }
 
-void SeedRain::set(std::vector<double> x) {
+std::vector<double> SeedRain::get_seed_rain() const {
+  return seed_rain;
+}
+void SeedRain::set_seed_rain(std::vector<double> x) {
   util::check_length(x.size(), size());
   seed_rain = x;
+}
+
+SeedRain seed_rain(std::vector<double> x) {
+  SeedRain rain(x.size());
+  rain.set_seed_rain(x);
+  return rain;
 }
 
 }
