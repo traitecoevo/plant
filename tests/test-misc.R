@@ -83,3 +83,5 @@ xx <- sort(runif(n))
 yy <- runif(n)
 expect_that(tree_module$trapezium(xx, yy),
             equals(sum((xx[-1] - xx[-n]) * (yy[-1] + yy[-n])) / 2))
+expect_that(tree_module$trapezium(c(1, 1), c(1, 2)),
+            is_identical_to(0.0))
