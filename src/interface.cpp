@@ -213,7 +213,7 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::CohortSchedule>("CohortSchedule")
     .constructor<size_t>()
     .property("size",       &model::CohortSchedule::size)
-    .property("types",      &model::CohortSchedule::types)
+    .property("n_species",  &model::CohortSchedule::get_n_species)
     .method("clear_times",  &model::CohortSchedule::r_clear_times)
     .method("set_times",    &model::CohortSchedule::r_set_times)
     .method("times",        &model::CohortSchedule::r_times)

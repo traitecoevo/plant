@@ -2,11 +2,11 @@ source("helper-tree.R")
 
 context("CohortSchedule")
 
-n.types <- 2
-sched <- new(CohortSchedule, n.types)
+n.species <- 2
+sched <- new(CohortSchedule, n.species)
 
 expect_that(sched$size, equals(0))
-expect_that(sched$types, equals(n.types))
+expect_that(sched$n_species, equals(n.species))
 expect_that(sched$remaining, equals(0))
 
 ## Check empty event:
@@ -24,7 +24,7 @@ t1 <- sort(t1)
 t2 <- sort(t2)
 ## Index out of bounds
 expect_that(sched$set_times(t1, 0), throws_error())
-expect_that(sched$set_times(t1, n.types + 1), throws_error())
+expect_that(sched$set_times(t1, n.species + 1), throws_error())
 
 ## This will work fine though.
 sched$set_times(t1, 1)

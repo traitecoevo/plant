@@ -13,13 +13,13 @@ namespace model {
 class CohortSchedule {
 public:
   class Event;
-  CohortSchedule(size_t n_cohort_types);
+  CohortSchedule(size_t n_species);
   size_t size() const;
-  size_t types() const;
+  size_t get_n_species() const;
 
-  void clear_times(size_t cohort_index);
-  void set_times(std::vector<double> times, size_t cohort_index);
-  std::vector<double> times(size_t cohort_index) const;
+  void clear_times(size_t species_index);
+  void set_times(std::vector<double> times, size_t species_index);
+  std::vector<double> times(size_t species_index) const;
   void reset();
   void pop();
   Event next_event() const;
@@ -27,18 +27,18 @@ public:
   size_t remaining() const;
 
   // * R interface:
-  void r_clear_times(size_t cohort_index);
-  void r_set_times(std::vector<double> times, size_t cohort_index);
-  std::vector<double> r_times(size_t cohort_index) const;
+  void r_clear_times(size_t species_index);
+  void r_set_times(std::vector<double> times, size_t species_index);
+  std::vector<double> r_times(size_t species_index) const;
 
 private:
   typedef std::list<Event>::iterator events_iterator;
   typedef std::list<Event>::const_iterator events_const_iterator;
 
-  events_iterator add_time(double times, size_t cohort_index,
+  events_iterator add_time(double times, size_t species_index,
 			   events_iterator it);
 
-  size_t n_cohort_types;
+  size_t n_species;
   std::list<Event> events;
   std::list<Event> queue;
 };

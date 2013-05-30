@@ -43,7 +43,7 @@ CohortSchedule EBT::r_cohort_schedule() const {
 }
 
 void EBT::r_set_cohort_schedule(CohortSchedule x) {
-  util::check_length(x.types(), patch.size());
+  util::check_length(x.get_n_species(), patch.size());
   schedule = x;
 }
 

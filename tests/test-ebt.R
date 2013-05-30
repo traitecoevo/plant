@@ -16,7 +16,7 @@ expect_that(sched$next_time, equals(Inf))
 
 ## If the schedule is for the wrong number of species, it should cause
 ## an error...
-expect_that(ebt$cohort_schedule <- new(CohortSchedule, sched$types + 1),
+expect_that(ebt$cohort_schedule <- new(CohortSchedule, sched$n.species + 1),
             throws_error())
 
 t <- seq(0, 10, length=11)
