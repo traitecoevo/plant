@@ -404,12 +404,26 @@ std::vector<int> Patch<Individual>::r_germination(std::vector<int> seeds) {
 // NOTE: For now, I'm re-initialising after setting seed rain, and I'm
 // refusing to set the seed rain on a population that has already got
 // going (which will have a nonzero ode_size()).
+//
+// TODO: The compute_vars_phys() really should be done by
+// initialise(), but *only* for the Patch<CohortTop>, I think.  I'm
+// leaving it here because for practical purposes, this should be OK
+// (the default seed rain is zero and with a zero rain, the default
+// ode values for the seed will be OK).  However that is not the sort
+// of thing that we should have to rely on.  But things might change,
+// especially once CohortMean is written, so let's stick with this for
+// now.
+//
+// Ideally, what is being done by compute_vars_phys here (really
+// computing the *initial conditions*) could be done by a more
+// explicitly named function, and could be done via initialise().
 template <class Individual>
 void Patch<Individual>::r_set_seed_rain(SeedRain x) {
   if (ode_size() > 0)
     ::Rf_error("Setting seed rain on already-initialsed Patch ill-defined");
   environment.set_seed_rain(x);
   initialise();
+  compute_vars_phys();
 }
 
 template <class Individual>

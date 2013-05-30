@@ -705,6 +705,11 @@ time dt, the expected number of seeds that arrive is then Poisson
 distributed with mean ri * dt for the ith species.  We can just take a
 draw of that many seeds and add them to the seed input from dispersal.
 
+#### Issues around this:
+
+A number of issues around setting the seed rain and the resulting
+recalculation in `patch.h`.
+
 ## Parameters
 
 We need a pointer to all the parameters that we can use to seed new
