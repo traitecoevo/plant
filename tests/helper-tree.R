@@ -48,6 +48,7 @@ if ( !exists("Spline") ) {
 
   Patch  <- tree_module$Patch
   PatchC <- tree_module$PatchC
+  PatchCohortTop <- tree_module$PatchCohortTop
 
   Metacommunity <- tree_module$Metacommunity
   MetacommunityC <- tree_module$MetacommunityC
