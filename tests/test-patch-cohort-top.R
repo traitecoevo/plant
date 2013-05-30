@@ -12,8 +12,29 @@ cmp <- new(Plant, p[[1]])
 patch.p <- new(Patch,  p)
 patch.c <- new(PatchCohortTop, p)
 
+expect_that(patch.p$height_max, is_identical_to(cmp$height))
+expect_that(patch.c$height_max, is_identical_to(cmp$height))
+
+expect_that(patch.p$size, equals(1))
+expect_that(patch.p$ode_size, equals(0))
+
+r <- pi/2
+patch.c$set_seed_rain(seed_rain(r))
+expect_that(patch.c$environment$seed_rain$seed_rain,
+            is_identical_to(r))
+
+## This should not work, because we can't set environment from within
+## patch.
+expect_that(patch.c$environment$seed_rain <- seed_rain(r * 2),
+            throws_error())
+
+
 patch.c$add_seedling(1)
-patch.c$ode_size
+patch.p$add_seedling(1)
+expect_that(patch.c$ode_size, equals(4))
+
+expect_that(patch.c$set_seed_rain(seed_rain(1.0)),
+            throws_error())
 
 y <- patch.c$ode_values
 ## This gives a "requested rain out of bounds", which is probably the

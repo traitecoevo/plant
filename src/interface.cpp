@@ -303,6 +303,7 @@ RCPP_MODULE(tree) {
     .method("step",               &model::PatchBase::r_step)
     .method("step_deterministic", &model::PatchBase::step_deterministic)
     .method("step_stochastic",    &model::PatchBase::r_step_stochastic)
+    .method("set_seed_rain",      &model::PatchBase::r_set_seed_rain)
     ;
 
   Rcpp::class_< model::Patch<model::Plant> >("Patch")
