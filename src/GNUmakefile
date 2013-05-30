@@ -1,7 +1,7 @@
 SOURCES_MODEL  = strategy.cpp control.cpp parameters.cpp \
 	disturbance.cpp seed_rain.cpp environment.cpp \
 	plant.cpp cohort_discrete.cpp plant_spline.cpp plant_approx.cpp \
-	species.cpp cohort_top.cpp \
+	species.cpp patch.cpp cohort_top.cpp \
 	cohort_schedule.cpp ebt.cpp
 SOURCES_SPLINE = spline.cpp adaptive_spline.cpp adaptive_spline_r.cpp \
 	multi_spline.cpp

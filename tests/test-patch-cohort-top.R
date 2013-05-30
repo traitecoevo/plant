@@ -17,6 +17,7 @@ expect_that(patch.c$height_max, is_identical_to(cmp$height))
 
 expect_that(patch.p$size, equals(1))
 expect_that(patch.p$ode_size, equals(0))
+expect_that(patch.c$time, equals(0))
 
 r <- pi/2
 patch.c$set_seed_rain(seed_rain(r))
@@ -28,8 +29,12 @@ expect_that(patch.c$environment$seed_rain$seed_rain,
 expect_that(patch.c$environment$seed_rain <- seed_rain(r * 2),
             throws_error())
 
-## This is required right now, I *think*.
-## patch.c$compute_vars_phys()
+## At this point, doing this should fail -- with only one individual
+## the light environment is not defined.  At the same time, we should
+## probably recover more gracefully and agree that it is also an empty
+## light environment.
+expect_that(patch.c$compute_light_environment(),
+            throws_error())
 
 patch.c$add_seedling(1)
 patch.p$add_seedling(1)
@@ -47,11 +52,15 @@ expect_that(patch.c$ode_values,
 expect_that(patch.c$ode_rates,
             is_identical_to(cmp$ode_rates))
 
-## This gives a "requested rain out of bounds", which is probably the
-## cause of the EBT error -- nice.
-##
-## So, update to get the seed rain initialised, and we're probably
-## sorted.
-##
-## I'm still a bit confused though, as to why this crashes the ebt...
-## patch.c$set_ode_values(0, y)
+y <- patch.c$ode_values
+patch.c$set_ode_values(0, y)
+expect_that(patch.c$ode_values, is_identical_to(y))
+
+## NOTE: These should be identical, but are merely equal...
+expect_that(patch.c$derivs(0, y),
+            equals(cmp$ode_rates))
+
+patch.c$step()
+
+rm(patch.c)
+gc()

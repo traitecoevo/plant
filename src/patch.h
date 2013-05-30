@@ -148,6 +148,7 @@ void Patch<Individual>::step() {
   step_deterministic();
   step_stochastic();
 }
+template <> void Patch<CohortTop>::step();
 
 template <class Individual>
 void Patch<Individual>::step_deterministic() {
