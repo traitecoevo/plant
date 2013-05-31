@@ -1143,3 +1143,10 @@ the EBT, when there is a single cohort at the same size as the seed
 mass, the light environment will be empty, because there is no actual
 individuals (like the limit 1/n, n->inf).  However, in the individual
 based model, a single seed will cause self shading.
+
+## Terminology on log-transformed ODE variables
+
+For both density and survival, the thing that we are integrating is in
+the exponent of the thing that we want.  Survival because of the
+poisson process, density because who knows?  This does suggest the use
+for something to hide this process, perhaps?
