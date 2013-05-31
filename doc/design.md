@@ -1134,3 +1134,12 @@ just work with differences.
 
 This is currently broken in Metacommunity -- this should happen during
 `ode_values_set`, I suspect.  Alternatively have an `ode_time_set`?
+
+## Light environment differences
+
+For `Species<CohortTop>` and `Species<Plant>`, light environment
+differs because of self-shading in the case of n=1.  Specifically, in
+the EBT, when there is a single cohort at the same size as the seed
+mass, the light environment will be empty, because there is no actual
+individuals (like the limit 1/n, n->inf).  However, in the individual
+based model, a single seed will cause self shading.
