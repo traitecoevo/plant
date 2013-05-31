@@ -29,34 +29,40 @@ int Species<CohortDiscrete>::r_n_individuals() const {
   return n;
 }
 
-// TODO: This will fall foul of all sorts of corner cases,
-// unfortunately.  We should always make sure that at least two points
-// are included (this should always be the case now), but we probably
-// don't want to include the seed unless we need the point because it
-// is falls within the canopy of the species.  However, we do need to
-// include one zero individual *or* the boundary cohort.
+// NOTE: This is quite a bit trickier than the Plant case.  We have to
+// integrate over the end points of the distribution, counting a
+// non-existant seed as the left-most point.  So, with at least one
+// cohort in the population, the integral is defined.
 //
-// TODO: it might actually be easier to work directly with the
-// trapezium rule here.
+// NOTE: In contrast with the Plant version, we stop *after* including
+// a y point that is zero, which might be the boundary cohort.  In
+// addition, we always need to include at least two points.
+//
+// NOTE: This is further complicated by the fact that plants are
+// stored largest to smallest.  If we used a vector to store x/y
+// values we'd have to push_back(), and the resulting integral would
+// be *negative* (because the x values would be decreasing).  Using a
+// list allows pushing to the front.
+//
+// NOTE: In the cases where there is no individuals, we return 0 for
+// all heights.  The integral is not defined, but an empty light
+// environment seems appropriate.
 template <>
 double Species<CohortTop>::leaf_area_above(double height) const {
-  std::vector<double> x, y;
-  bool done = false;
+  if (size() == 0 || height_max() < height)
+    return(0.0);
+  std::list<double> x, y;
   for (plants_const_iterator it = plants.begin();
        it != plants.end(); it++) {
-    // TODO: Here, it would be nice to abstract away the size
-    // dimension, rather than use height directly.
-    x.push_back(it->height());
-    y.push_back(it->leaf_area_above(height));
-    if (done)
+    x.push_front(it->height());
+    y.push_front(it->leaf_area_above(height));
+    if (y.front() == 0)
       break;
-    done = x.back() == 0;
   }
-  if (!done) {
-    x.push_back(seed.height());
-    y.push_back(seed.leaf_area_above(height));
+  if (y.front() > 0 || y.size() < 2) {
+    x.push_front(seed.height());
+    y.push_front(seed.leaf_area_above(height));
   }
-
   return util::trapezium(x, y);
 }
 
