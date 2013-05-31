@@ -75,7 +75,7 @@ size_t CohortTop::ode_size() const {
   return ode_dimension;
 }
 
-ode::iter_const CohortTop::ode_values_set(ode::iter_const it) {
+ode::iter_const CohortTop::set_ode_values(double time, ode::iter_const it) {
   set_height(*it++);
   set_mortality(*it++);
   seeds_survival_weighted = *it++;
