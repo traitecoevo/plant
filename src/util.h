@@ -139,8 +139,10 @@ double trapezium(const ContainerX& x, const ContainerY& y) {
   util::check_length(y.size(), x.size());
   if (x.size() < 2)
     ::Rf_error("Need at least two points for the trapezium rule");
-  typename ContainerX::const_iterator x0 = x.begin(), x1 = x.begin() + 1;
-  typename ContainerY::const_iterator y0 = y.begin(), y1 = y.begin() + 1;
+  typename ContainerX::const_iterator x0 = x.begin(), x1 = x.begin();
+  x1++;
+  typename ContainerY::const_iterator y0 = y.begin(), y1 = y.begin();
+  y1++;
   double tot = 0.0;
   while (x1 != x.end())
     tot += (*x1++ - *x0++) * (*y1++ + *y0++);
