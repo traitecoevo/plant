@@ -1150,3 +1150,32 @@ For both density and survival, the thing that we are integrating is in
 the exponent of the thing that we want.  Survival because of the
 poisson process, density because who knows?  This does suggest the use
 for something to hide this process, perhaps?
+
+## Rework some of the wrappers
+
+We can have things like:
+
+```
+double z_get(Foo *foo) { return foo->get_z(); }
+```
+
+should use this for cases where we just want to do sanitising
+arguments, sorting out the RNG, or passing pointers (for whichever of
+those remain).
+
+For templated methods, this should work with the base type pointer:
+
+```
+void Patch_step_stochastic(PatchBase *obj) {
+  RNGScope scope;
+  obj->step_stochastic();
+}
+void Patch_add_seedling(PatchBase *obj, size_t species_index) {
+  obj->add_seedling(util::r_check_bounds(species_index, obj->size()));
+}
+```
+
+This won't help for things that are accessing private elements (e.g.,
+`Plant::r_get_vars_size()`) though.
+
+Not sure if this would actually simplfy things at all.
