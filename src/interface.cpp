@@ -286,6 +286,7 @@ RCPP_MODULE(tree) {
     .property("size",             &model::PatchBase::size)
     .property("height_max",       &model::PatchBase::r_height_max)
     .method("canopy_openness",    &model::PatchBase::r_canopy_openness)
+    .method("leaf_area_above",    &model::PatchBase::r_leaf_area_above)
     .method("compute_light_environment",
 	    &model::PatchBase::r_compute_light_environment)
     .property("environment",      &model::PatchBase::r_environment)

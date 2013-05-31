@@ -33,6 +33,7 @@ public:
   virtual double r_height_max() const = 0;
   virtual Environment r_environment() const = 0;
   virtual double r_canopy_openness(double height) = 0;
+  virtual double r_leaf_area_above(double height) const = 0;
   virtual void r_compute_light_environment() = 0;
   virtual void r_compute_vars_phys() = 0;
   virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
@@ -93,6 +94,8 @@ public:
   void r_step_stochastic();
   double r_height_max() const { return height_max(); }
   double r_canopy_openness(double height) {return canopy_openness(height);}
+  double r_leaf_area_above(double height) const
+  {return leaf_area_above(height);}
   // Wrappers for testing
   void r_compute_light_environment() {compute_light_environment();}
   void r_compute_vars_phys() {compute_vars_phys();}
