@@ -47,4 +47,9 @@ void EBT::r_set_cohort_schedule(CohortSchedule x) {
   schedule = x;
 }
 
+void EBT::r_set_seed_rain(SeedRain x) {
+  patch.r_set_seed_rain(x);
+}
+
+
 }

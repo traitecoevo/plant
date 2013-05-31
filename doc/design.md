@@ -1179,3 +1179,7 @@ This won't help for things that are accessing private elements (e.g.,
 `Plant::r_get_vars_size()`) though.
 
 Not sure if this would actually simplfy things at all.
+
+## Get/set consistency
+
+Seed rain can be set, but not got, for Patch and EBT.  Sensible?

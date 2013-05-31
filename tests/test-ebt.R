@@ -7,8 +7,10 @@ p$add_strategy(new(Strategy))
 
 ebt <- new(EBT, p)
 
-patch <- ebt$patch
-expect_that(inherits(patch, "Rcpp_PatchCohortTop"), is_true())
+expect_that(inherits(ebt$patch, "Rcpp_PatchCohortTop"), is_true())
+
+r <- pi/2
+ebt$set_seed_rain(seed_rain(r))
 
 sched <- ebt$cohort_schedule
 expect_that(sched$size, equals(0))
@@ -24,6 +26,17 @@ sched$set_times(t, 1)
 ebt$cohort_schedule <- sched
 
 expect_that(ebt$time, equals(0.0))
+
+## This will fail:
+ebt$patch$n_individuals
+ebt$run_next()
+expect_that(ebt$cohort_schedule$remaining, equals(length(t) - 1))
+## This should be 4
+ebt$patch$ode_size
+
+## This will now fail:
+## ebt$run_next()
+## Failure is in CohortTop::set_ode_values still.
 
 rm(ebt)
 gc()

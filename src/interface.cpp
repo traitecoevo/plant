@@ -363,6 +363,7 @@ RCPP_MODULE(tree) {
 	      &model::EBT::r_set_cohort_schedule)
     .property("time", &model::EBT::get_time)
     .method("run_next", &model::EBT::run_next)
+    .method("set_seed_rain", &model::EBT::r_set_seed_rain)
     ;
 
   // Testing functions
