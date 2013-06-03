@@ -14,19 +14,12 @@ EBT::EBT(Parameters *p)
     schedule(patch.size()) {
 }
 
-void EBT::step() {
-  std::vector<double> y(patch.ode_size());
-  patch.ode_values(y.begin());
-  ode_solver.set_state(y, get_time());
-  ode_solver.step();
-}
-
 void EBT::run_next() {
   if (schedule.remaining() == 0)
     ::Rf_error("Already reached end of schedule");
   const CohortSchedule::Event e = schedule.next_event();
-  ode_solver.advance(e.time);
-  patch.add_seedling(e.cohort);
+  advance(e.time);
+  add_seedling(e.cohort);
   schedule.pop();
 }
 
@@ -49,6 +42,22 @@ void EBT::r_set_cohort_schedule(CohortSchedule x) {
 
 void EBT::r_set_seed_rain(SeedRain x) {
   patch.r_set_seed_rain(x);
+}
+
+void EBT::add_seedling(size_t species_index) {
+  patch.add_seedling(species_index);
+}
+
+void EBT::advance(double time) {
+  if (time > get_time() && ode_solver.get_size() != patch.ode_size())
+    refresh_ode_state();
+  ode_solver.advance(time);
+}
+
+void EBT::refresh_ode_state() {
+  std::vector<double> y(patch.ode_size());
+  patch.ode_values(y.begin());
+  ode_solver.set_state(y, get_time());
 }
 
 

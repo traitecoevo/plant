@@ -13,7 +13,6 @@ public:
   EBT(Parameters  p);
   EBT(Parameters *p);
 
-  void step();
   void run_next();
 
   double get_time() const;
@@ -24,6 +23,10 @@ public:
   void r_set_seed_rain(SeedRain x);
 
 private:
+  void add_seedling(size_t species_index);
+  void advance(double time);
+  void refresh_ode_state();
+
   Patch<CohortTop> patch;
   ode::Solver<Patch <CohortTop> > ode_solver;
   CohortSchedule schedule;
