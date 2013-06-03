@@ -155,6 +155,11 @@ void Patch<Individual>::step() {
 }
 template <> void Patch<CohortTop>::step();
 
+// TODO: Given how the metacommunity needs to interact with the
+// population, this seems wrong.  Not sure how best to deal with that
+// though.  Not allowing direct stepping of a patch seems not very
+// clever either.  OTOH, this means that *neither* of the Patch::step_
+// methods should be directly used by any C++ function...
 template <class Individual>
 void Patch<Individual>::step_deterministic() {
   std::vector<double> y(ode_size());

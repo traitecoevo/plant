@@ -265,6 +265,8 @@ RCPP_MODULE(tree) {
     .method("[[", &model::Species<model::CohortTop>::r_at)
     ;
 
+  // TODO: How many of these should actually be r_ methods?  Looking
+  // at all the get/set .property methods, actually...
   Rcpp::class_<model::Environment>("Environment")
     .constructor<model::Parameters>()
     .method("canopy_openness", &model::Environment::canopy_openness)

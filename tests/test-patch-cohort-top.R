@@ -19,6 +19,8 @@ test_that("Initial patch strcture is sensible", {
   expect_that(patch.c$time, equals(0))
 })
 
+## NOTE: This actually causes the initial conditions to be computed.
+## TODO: Push compute_vars_phys() inside of initialse() within Patch.
 r <- pi/2
 patch.c$seed_rain <- seed_rain(r)
 expect_that(patch.c$seed_rain$seed_rain,
