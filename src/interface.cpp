@@ -304,7 +304,8 @@ RCPP_MODULE(tree) {
     .method("step",               &model::PatchBase::r_step)
     .method("step_deterministic", &model::PatchBase::step_deterministic)
     .method("step_stochastic",    &model::PatchBase::r_step_stochastic)
-    .method("set_seed_rain",      &model::PatchBase::r_set_seed_rain)
+    .property("seed_rain",        &model::PatchBase::r_get_seed_rain,
+	      &model::PatchBase::r_set_seed_rain)
     ;
 
   Rcpp::class_< model::Patch<model::Plant> >("Patch")
@@ -363,7 +364,8 @@ RCPP_MODULE(tree) {
 	      &model::EBT::r_set_cohort_schedule)
     .property("time", &model::EBT::get_time)
     .method("run_next", &model::EBT::run_next)
-    .method("set_seed_rain", &model::EBT::r_set_seed_rain)
+    .property("seed_rain", &model::EBT::r_get_seed_rain,
+	      &model::EBT::r_set_seed_rain)
     ;
 
   // Testing functions

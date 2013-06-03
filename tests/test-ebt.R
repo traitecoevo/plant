@@ -10,7 +10,7 @@ ebt <- new(EBT, p)
 expect_that(inherits(ebt$patch, "Rcpp_PatchCohortTop"), is_true())
 
 r <- pi/2
-ebt$set_seed_rain(seed_rain(r))
+ebt$seed_rain <- seed_rain(r)
 
 sched <- ebt$cohort_schedule
 test_that("Empty CohortSchedule", {

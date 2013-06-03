@@ -20,6 +20,7 @@ public:
   Patch<CohortTop> r_patch() const;
   CohortSchedule r_cohort_schedule() const;
   void r_set_cohort_schedule(CohortSchedule x);
+  SeedRain r_get_seed_rain() const;
   void r_set_seed_rain(SeedRain x);
 
 private:

@@ -20,7 +20,9 @@ test_that("Initial patch strcture is sensible", {
 })
 
 r <- pi/2
-patch.c$set_seed_rain(seed_rain(r))
+patch.c$seed_rain <- seed_rain(r)
+expect_that(patch.c$seed_rain$seed_rain,
+            is_identical_to(r))
 expect_that(patch.c$environment$seed_rain$seed_rain,
             is_identical_to(r))
 
@@ -41,7 +43,7 @@ expect_that(patch.c$ode_size, equals(4))
 
 ## Now that we've got started, we should not be able to set the seed
 ## rain:
-expect_that(patch.c$set_seed_rain(seed_rain(1.0)),
+expect_that(patch.c$seed_rain <- seed_rain(1.0),
             throws_error())
 
 cmp$compute_initial_conditions(patch.c$environment)

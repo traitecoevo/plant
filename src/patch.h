@@ -37,6 +37,7 @@ public:
   virtual void r_compute_light_environment() = 0;
   virtual void r_compute_vars_phys() = 0;
   virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
+  virtual SeedRain r_get_seed_rain() const = 0;
   virtual void r_set_seed_rain(SeedRain x) = 0;
 };
 
@@ -100,6 +101,7 @@ public:
   void r_compute_light_environment() {compute_light_environment();}
   void r_compute_vars_phys() {compute_vars_phys();}
   std::vector<int> r_germination(std::vector<int> seeds);
+  SeedRain r_get_seed_rain() const;
   void r_set_seed_rain(SeedRain x);
   
 private:
@@ -398,6 +400,11 @@ template <class Individual>
 std::vector<int> Patch<Individual>::r_germination(std::vector<int> seeds) {
   util::check_length(seeds.size(), size());
   return germination(seeds);
+}
+
+template <class Individual>
+SeedRain Patch<Individual>::r_get_seed_rain() const {
+  return environment.get_seed_rain();
 }
 
 // TODO: When this is set, we should recompute everything.  It really

@@ -40,6 +40,9 @@ void EBT::r_set_cohort_schedule(CohortSchedule x) {
   schedule = x;
 }
 
+SeedRain EBT::r_get_seed_rain() const {
+  return patch.r_get_seed_rain();
+}
 void EBT::r_set_seed_rain(SeedRain x) {
   patch.r_set_seed_rain(x);
 }
