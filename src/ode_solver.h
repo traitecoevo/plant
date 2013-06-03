@@ -14,7 +14,7 @@ namespace ode {
 template <class Problem>
 class Solver {
 public:
-  Solver(Problem *problem_);
+  Solver(Problem *problem);
 
   void set_state(std::vector<double> y_, double t_);
   std::vector<double> get_state() const { return y; }
@@ -25,6 +25,8 @@ public:
   void advance(double time_max_);
 
   void reset();
+
+  size_t get_size() const;
   
   std::vector<double> r_derivs();
   Rcpp::NumericMatrix r_run(std::vector<double> times, 
@@ -57,11 +59,15 @@ private:
   Step<Problem> stepper;
 };
 
+// NOTE I'm setting the initial problem size to 0 here.  In fact, an
+// object of class OdeTarget could quite happily initialse completely
+// here.
 template <class Problem>
-Solver<Problem>::Solver(Problem *problem_) 
-  : problem(problem_),
+Solver<Problem>::Solver(Problem *problem)
+  : problem(problem),
+    size(0),
     time(0.0),
-    stepper(problem_) {
+    stepper(problem) {
   reset();
 }
 
@@ -239,6 +245,11 @@ void Solver<Problem>::reset() {
   step_size_last = 1e-6; // See ode.md
   time_max = DBL_MAX;    // or infinite?
   stepper.reset();
+}
+
+template <class Problem>
+size_t Solver<Problem>::get_size() const {
+  return size;
 }
 
 template <class Problem>
