@@ -656,6 +656,12 @@ I'm unsure of where to put this.  Two ways seem most obvious:
    what the next stopping time is.
 2. The EBT will look after the times.  I'm going to go with that.
 
+### CohortSchedule
+
+There is an issue here -- the last time that we run for needs to
+introduce a cohort, but we don't actually want to do that.  So I might
+need to be more creative about how this works...
+
 ### More on dispersal
 
 I might try and do dispersal through a map object with the pointer to
