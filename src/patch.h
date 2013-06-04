@@ -17,21 +17,25 @@ namespace model {
 class PatchBase : public ode::OdeTarget {
 public:
   virtual ~PatchBase() {};
-  virtual void r_step() = 0;
-  virtual void step_deterministic() = 0;
-  virtual void r_step_stochastic() = 0;
+  std::vector<int> births();
+  void deaths();
   virtual size_t size() const = 0;
-  virtual void r_add_seeds(std::vector<int> seeds) = 0;
-  virtual void r_add_seedling(size_t species_index) = 0;
-  virtual void r_add_seedlings(std::vector<int> seeds) = 0;
   virtual Rcpp::List r_height() const = 0;
   virtual void r_set_height(Rcpp::List x) = 0;
   virtual Rcpp::List r_get_species() const = 0;
+  // r_at not here because it depends on type.
+  virtual void r_add_seeds(std::vector<int> seeds) = 0;
+  virtual void r_add_seedling(size_t species_index) = 0;
+  virtual void r_add_seedlings(std::vector<int> seeds) = 0;
   virtual void clear() = 0;
   virtual double r_time() const = 0;
   virtual std::vector<int> r_n_individuals() const = 0;
-  virtual double r_height_max() const = 0;
   virtual Environment r_environment() const = 0;
+  virtual void r_step() = 0;
+  virtual void r_step_deterministic() = 0;
+  virtual void r_step_stochastic() = 0;
+  virtual void r_run_deterministic(double time) = 0;
+  virtual double r_height_max() const = 0;
   virtual double r_canopy_openness(double height) = 0;
   virtual double r_leaf_area_above(double height) const = 0;
   virtual void r_compute_light_environment() = 0;
@@ -46,16 +50,6 @@ class Patch : public PatchBase {
 public:
   Patch(Parameters p);
   Patch(Parameters *p);
-
-  // * Methods used from Metacommunity:
-  // Advance the system through one complete time step.
-  void step();
-  // Advance the system through one time step deterministically
-  // (plant growth, physiological accounting)
-  void step_deterministic();
-  // Advance the system through the stochastic life cycle stages
-  // (producing seeds and dying).
-  void step_stochastic();
 
   // * Lower level functions
   std::vector<int> births();
@@ -92,14 +86,22 @@ public:
   std::vector<int> r_n_individuals() const;
   Environment r_environment() const;
   void r_step();
+  void r_step_deterministic();
   void r_step_stochastic();
+  void r_run_deterministic(double time);
+  // All of these just export hidden functions.  Perhaps they should
+  // not be hidden in the first place?  TODO: should not be inline
+  // methods though.
   double r_height_max() const { return height_max(); }
   double r_canopy_openness(double height) {return canopy_openness(height);}
   double r_leaf_area_above(double height) const
   {return leaf_area_above(height);}
   // Wrappers for testing
+  // TODO: should be update_environment()?  Perhaps?  And should the
+  // compute_vars_phys happen at the same time?
   void r_compute_light_environment() {compute_light_environment();}
   void r_compute_vars_phys() {compute_vars_phys();}
+  // TODO: The germination is special to the IBM, the seed rain to EBT.
   std::vector<int> r_germination(std::vector<int> seeds);
   SeedRain r_get_seed_rain() const;
   void r_set_seed_rain(SeedRain x);
@@ -149,19 +151,14 @@ Patch<Individual>::Patch(Parameters *p)
 }
 
 template <class Individual>
-void Patch<Individual>::step() {
-  step_deterministic();
-  step_stochastic();
+void Patch<Individual>::r_step() {
+  r_step_deterministic();
+  r_step_stochastic();
 }
-template <> void Patch<CohortTop>::step();
+template <> void Patch<CohortTop>::r_step();
 
-// TODO: Given how the metacommunity needs to interact with the
-// population, this seems wrong.  Not sure how best to deal with that
-// though.  Not allowing direct stepping of a patch seems not very
-// clever either.  OTOH, this means that *neither* of the Patch::step_
-// methods should be directly used by any C++ function...
 template <class Individual>
-void Patch<Individual>::step_deterministic() {
+void Patch<Individual>::r_step_deterministic() {
   ode_solver.set_state_from_problem(environment.get_time());
   ode_solver.step();
 }
@@ -170,9 +167,16 @@ void Patch<Individual>::step_deterministic() {
 // metapopulation.  In particular, this will get called in two pieces,
 // with the seed output collected up for general dispersal.
 template <class Individual>
-void Patch<Individual>::step_stochastic() {
+void Patch<Individual>::r_step_stochastic() {
+  Rcpp::RNGScope scope;
   deaths();
   add_seeds(births());
+}
+
+template <class Individual>
+void Patch<Individual>::r_run_deterministic(double time) {
+  ode_solver.set_state_from_problem(environment.get_time());
+  ode_solver.advance(time);
 }
 
 template <class Individual>
@@ -384,18 +388,6 @@ template <class Individual>
 void Patch<Individual>::r_add_seedlings(std::vector<int> seeds) {
   util::check_length(seeds.size(), size());
   add_seedlings(seeds);
-}
-
-template <class Individual>
-void Patch<Individual>::r_step() {
-  Rcpp::RNGScope scope;
-  step();
-}
-
-template <class Individual>
-void Patch<Individual>::r_step_stochastic() {
-  Rcpp::RNGScope scope;
-  step_stochastic();
 }
 
 // Wrapper functions for testing

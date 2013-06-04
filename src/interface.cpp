@@ -304,7 +304,7 @@ RCPP_MODULE(tree) {
     .property("n_individuals",    &model::PatchBase::r_n_individuals)
     .method("clear",              &model::PatchBase::clear)
     .method("step",               &model::PatchBase::r_step)
-    .method("step_deterministic", &model::PatchBase::step_deterministic)
+    .method("step_deterministic", &model::PatchBase::r_step_deterministic)
     .method("step_stochastic",    &model::PatchBase::r_step_stochastic)
     .property("seed_rain",        &model::PatchBase::r_get_seed_rain,
 	      &model::PatchBase::r_set_seed_rain)

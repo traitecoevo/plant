@@ -3,8 +3,8 @@
 namespace model {
 
 template <>
-void Patch<CohortTop>::step() {
-  step_deterministic();
+void Patch<CohortTop>::r_step() {
+  r_step_deterministic();
 }
 
 }
