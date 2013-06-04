@@ -117,9 +117,7 @@ void Metacommunity<Individual>::step() {
 
 template <class Individual>
 void Metacommunity<Individual>::step_deterministic() {
-  std::vector<double> y(ode_size());
-  ode_values(y.begin());
-  ode_solver.set_state(y, time);
+  ode_solver.set_state_from_problem(time);
   ode_solver.step();
   time = ode_solver.get_time();
 }

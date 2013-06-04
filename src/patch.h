@@ -162,9 +162,7 @@ template <> void Patch<CohortTop>::step();
 // methods should be directly used by any C++ function...
 template <class Individual>
 void Patch<Individual>::step_deterministic() {
-  std::vector<double> y(ode_size());
-  ode_values(y.begin());
-  ode_solver.set_state(y, environment.get_time());
+  ode_solver.set_state_from_problem(environment.get_time());
   ode_solver.step();
 }
 

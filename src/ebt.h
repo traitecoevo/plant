@@ -26,7 +26,6 @@ public:
 private:
   void add_seedling(size_t species_index);
   void advance(double time);
-  void refresh_ode_state();
 
   Patch<CohortTop> patch;
   ode::Solver<Patch <CohortTop> > ode_solver;
