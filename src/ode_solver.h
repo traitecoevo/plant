@@ -68,7 +68,6 @@ template <class Problem>
 Solver<Problem>::Solver(Problem *problem)
   : problem(problem),
     size(0),
-    time(0.0),
     stepper(problem) {
   reset();
 }
@@ -249,8 +248,11 @@ std::vector<double> Solver<Problem>::r_derivs() {
   return dydt;
 }
 
+// TODO: If size is set to zero here (and not in the initialiser) odd
+// things happen.  Could be worth chasing up.
 template <class Problem>
 void Solver<Problem>::reset() {
+  time = 0;
   count = 0;
   failed_steps = 0;
   step_size_last = 1e-6; // See ode.md
