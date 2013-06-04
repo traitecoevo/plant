@@ -20,6 +20,8 @@ public:
   std::vector<double> get_state() const { return y; }
   double get_time() const { return time; }
 
+  void set_state_from_problem(double time);
+
   void step();
   void step_fixed(double step_size);
   void advance(double time_max_);
@@ -76,6 +78,15 @@ void Solver<Problem>::set_state(std::vector<double> y_, double t_) {
   y    = y_;
   time = t_;
   resize(y.size());
+}
+
+// TODO: Not sure, but we might be able to use get_time here too;
+// think about if that should be added to the OdeTarget class?
+template <class Problem>
+void Solver<Problem>::set_state_from_problem(double time) {
+  std::vector<double> y(problem->ode_size());
+  problem->ode_values(y.begin());
+  set_state(y, time);
 }
 
 // TODO: In contrast with GSL, this would make more sense as
