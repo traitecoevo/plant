@@ -88,10 +88,38 @@ while (patch.c$time < 25) {
 
 ## TODO: This is not really a test, but we need to look at this and
 ## see if it makes any sense at all.
-if (FALSE) {
+if (interactive()) {
   plot(t, h, type="l")
   plot(patch.c$environment$light_environment$xy, type="l")
 }
+
+patch.c$clear()
+## TODO: This is currently masking a bug (uncomment to reveal:
+## difference is in wrong direction).
+patch.c$seed_rain <- patch.c$seed_rain
+patch.c$add_seedling(1)
+tt <- seq(0, 25, length=26)
+hh <- patch.c$height[[1]]
+for (ti in tt[-1]) {
+  patch.c$run_deterministic(ti)
+  hh <- c(hh, patch.c$height[[1]])
+}
+
+if (interactive()) {
+  plot(t, h, type="l")
+  points(tt, hh)
+}
+
+expect_that(hh, equals(spline(t, h, xout=tt)$y, tolerance=1e-7))
+
+test_that("run_deterministic OK at end of sequence", {
+  expect_that(patch.c$time, is_identical_to(tt[[length(tt)]]))
+  patch.c$run_deterministic(tt[[length(tt)]])
+  expect_that(patch.c$time, is_identical_to(tt[[length(tt)]]))
+  expect_that(patch.c$run_deterministic(tt[[length(tt)]] - 1e-8),
+              throws_error())
+})
+
 
 if (FALSE) {
   ## Add a cohort every '1'.
@@ -119,6 +147,8 @@ if (FALSE) {
   h <- t(sapply(h, function(x) c(x, rep(NA, n-length(x)))))
   matplot(t, h, type="l", col="black", lty=1)
 }
+
+
 
 rm(patch.c)
 gc()
