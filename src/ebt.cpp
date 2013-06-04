@@ -27,6 +27,16 @@ double EBT::get_time() const {
   return ode_solver.get_time();
 }
 
+// NOTE: ode_solver.reset() will set time within the solver to zero.
+// However, there is no other current way of setting the time within
+// the solver.  It might be better to add a set_time method within
+// ode::Solver, and then here do explicitly ode_solver.set_time(0)?
+void EBT::reset() {
+  patch.clear();
+  schedule.reset();
+  ode_solver.reset();
+}
+
 Patch<CohortTop> EBT::r_patch() const {
   return patch;
 }

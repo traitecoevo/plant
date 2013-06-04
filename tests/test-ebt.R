@@ -50,5 +50,13 @@ test_that("EBT ran successfully", {
   expect_that(ebt$patch$ode_size, equals(4*2))
 })
 
+ebt$reset()
+test_that("EBT reset successful", {
+  expect_that(ebt$time, equals(0))
+  expect_that(ebt$patch$time, equals(0))
+  expect_that(ebt$patch$ode_size, equals(0))
+  expect_that(ebt$patch$n_individuals, equals(0))
+})
+
 rm(ebt)
 gc()

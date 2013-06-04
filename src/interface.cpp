@@ -366,6 +366,7 @@ RCPP_MODULE(tree) {
     .property("cohort_schedule", &model::EBT::r_cohort_schedule,
 	      &model::EBT::r_set_cohort_schedule)
     .property("time", &model::EBT::get_time)
+    .method("reset", &model::EBT::reset)
     .method("run_next", &model::EBT::run_next)
     .property("seed_rain", &model::EBT::r_get_seed_rain,
 	      &model::EBT::r_set_seed_rain)

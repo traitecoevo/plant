@@ -16,6 +16,7 @@ public:
   void run_next();
 
   double get_time() const;
+  void reset();
 
   Patch<CohortTop> r_patch() const;
   CohortSchedule r_cohort_schedule() const;
