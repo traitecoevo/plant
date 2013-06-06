@@ -5,8 +5,16 @@ namespace ode {
 
 namespace test {
 
-Lorenz::Lorenz(double sigma, double R, double b) :
-  sigma(sigma), R(R), b(b), solver(this) {}
+Lorenz::Lorenz(double sigma, double R, double b)
+  : sigma(sigma),
+    R(R),
+    b(b),
+    solver(this) {
+}
+
+size_t Lorenz::size() const {
+  return ode_dimension;
+}
 
 void Lorenz::derivs(double time, 
 		    std::vector<double>::const_iterator y,
@@ -20,6 +28,31 @@ void Lorenz::derivs(double time,
   *dydt++ = -b * y2 + y0 * y1;
 }
 
+void Lorenz::set_ode_state(std::vector<double> y, double t) {
+  solver.reset();
+  solver.set_state(y, t);
+}
+
+std::vector<double> Lorenz::ode_state() const {
+  return solver.get_state();
+}
+
+double Lorenz::get_time() const {
+  return solver.get_time();
+}
+
+void Lorenz::step() {
+  solver.step();
+}
+
+void Lorenz::step_fixed(double step_size) {
+  solver.step_fixed(step_size);
+}
+
+void Lorenz::advance(double time_max) {
+  solver.advance(time_max);
+}
+
 // This is something that can move up to a different level, as it's
 // just straight up boilerplate.
 std::vector<double> Lorenz::r_derivs(double time,
@@ -28,6 +61,11 @@ std::vector<double> Lorenz::r_derivs(double time,
   std::vector<double> dydt(size());
   derivs(time, y.begin(), dydt.begin());
   return dydt;
+}
+
+Rcpp::NumericMatrix Lorenz::r_run(std::vector<double> times,
+				  std::vector<double> y) {
+  return solver.r_run(times, y);
 }
 
 }

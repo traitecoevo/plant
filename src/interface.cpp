@@ -76,13 +76,13 @@ RCPP_MODULE(tree) {
     .method("derivs",     &ode::test::Lorenz::r_derivs)
     .property("size",     &ode::test::Lorenz::size)
     // ODE solving
-    .method("set_state",  &ode::test::Lorenz::ode_set_state)
-    .property("state",    &ode::test::Lorenz::ode_get_state)
-    .property("time",     &ode::test::Lorenz::ode_get_time)
-    .method("step",       &ode::test::Lorenz::ode_step)
-    .method("step_fixed", &ode::test::Lorenz::ode_step_fixed)
-    .method("advance",    &ode::test::Lorenz::ode_advance)
-    .method("run",        &ode::test::Lorenz::ode_r_run)
+    .method("set_state",  &ode::test::Lorenz::set_ode_state)
+    .property("state",    &ode::test::Lorenz::ode_state)
+    .property("time",     &ode::test::Lorenz::get_time)
+    .method("step",       &ode::test::Lorenz::step)
+    .method("step_fixed", &ode::test::Lorenz::step_fixed)
+    .method("advance",    &ode::test::Lorenz::advance)
+    .method("run",        &ode::test::Lorenz::r_run)
     ;
 
   Rcpp::class_<ode::OdeTarget>("OdeTarget")

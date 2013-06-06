@@ -14,43 +14,28 @@ namespace test {
 class Lorenz {
 public:
   Lorenz(double sigma, double R, double b);
+  size_t size() const;
   void derivs(double time,
 	      std::vector<double>::const_iterator y,
 	      std::vector<double>::iterator dydt);
-  size_t size() const { return 3; }
+
+  void set_ode_state(std::vector<double> y, double t);
+  std::vector<double> ode_state() const;
+  double get_time() const;
+  void step();
+  void step_fixed(double step_size);
+  void advance(double time_max);
   
+  // * R interface
   std::vector<double> r_derivs(double time, 
 			       std::vector<double> y);
-
-  // These are going to be tedious to expose, but in this case we're
-  // really not trying to do any abstraction at all.
-  void ode_set_state(std::vector<double> y, double t) {
-    solver.reset();
-    solver.set_state(y, t);
-  }
-  std::vector<double> ode_get_state() const {
-    return solver.get_state();
-  }
-  double ode_get_time() const {
-    return solver.get_time();
-  }
-  void ode_step() {
-    solver.step();
-  }
-  void ode_step_fixed(double step_size) { 
-    solver.step_fixed(step_size); 
-  }
-  void ode_advance(double time_max) {
-    solver.advance(time_max);
-  }
-  Rcpp::NumericMatrix ode_r_run(std::vector<double> times, 
-				std::vector<double> y) {
-    return solver.r_run(times, y);
-  }
+  Rcpp::NumericMatrix r_run(std::vector<double> times,
+			    std::vector<double> y);
 
 private:
   const double sigma, R, b;
   Solver<Lorenz> solver;
+  static const int ode_dimension = 3;
 };
 
 }
