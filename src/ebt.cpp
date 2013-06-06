@@ -62,8 +62,7 @@ void EBT::add_seedling(size_t species_index) {
 }
 
 void EBT::advance(double time) {
-  if (time > get_time() && ode_solver.get_size() != patch.ode_size())
-    ode_solver.set_state_from_problem(get_time());
+  ode_solver.set_state_from_problem(get_time());
   ode_solver.advance(time);
 }
 
