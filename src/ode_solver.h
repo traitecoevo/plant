@@ -197,11 +197,12 @@ Rcpp::NumericMatrix Solver<Problem>::r_run(std::vector<double> times,
 					   std::vector<double> y_) {
   std::vector<double>::iterator t = times.begin();
 
+  // This sets the initial step size to be small.
+  reset();
+
   // This makes `y` contains mutable state, and `size` contain current
   // problem dimension.
   set_state(y_, *t++);
-  // This sets the initial step size to be small.
-  reset();
 
   Rcpp::NumericMatrix ret((int)size, (int)times.size()-1);
   Rcpp::NumericMatrix::iterator out = ret.begin();
@@ -248,8 +249,9 @@ std::vector<double> Solver<Problem>::r_derivs() {
   return dydt;
 }
 
-// TODO: If size is set to zero here (and not in the initialiser) odd
-// things happen.  Could be worth chasing up.
+// NOTE: This resets *everything* to basically a recreated object.
+//
+// TODO: Work out how to deal with control parameters here.
 template <class Problem>
 void Solver<Problem>::reset() {
   time = 0;
@@ -257,6 +259,8 @@ void Solver<Problem>::reset() {
   failed_steps = 0;
   step_size_last = 1e-6; // See ode.md
   time_max = DBL_MAX;    // or infinite?
+  size = 0;
+  resize(size);
   stepper.reset();
 }
 
