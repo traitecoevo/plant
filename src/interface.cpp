@@ -95,16 +95,16 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<ode::OdeR>("OdeR")
     .constructor<SEXP,SEXP,SEXP>()
-    .method("derivs",     &ode::OdeR::r_derivs)
     .property("size",     &ode::OdeR::size)
     // ODE solving
-    .method("set_state",  &ode::OdeR::ode_set_state)
-    .property("state",    &ode::OdeR::ode_get_state)
-    .property("time",     &ode::OdeR::ode_get_time)
-    .method("step",       &ode::OdeR::ode_step)
-    .method("step_fixed", &ode::OdeR::ode_step_fixed)
-    .method("advance",    &ode::OdeR::ode_advance)
-    .method("run",        &ode::OdeR::ode_r_run)
+    .method("set_state",  &ode::OdeR::set_ode_state)
+    .property("state",    &ode::OdeR::ode_state)
+    .property("time",     &ode::OdeR::get_time)
+    .method("step",       &ode::OdeR::step)
+    .method("step_fixed", &ode::OdeR::step_fixed)
+    .method("advance",    &ode::OdeR::advance)
+    .method("derivs",     &ode::OdeR::r_derivs)
+    .method("run",        &ode::OdeR::r_run)
     ;
 
   Rcpp::class_<util::Lookup>("Lookup")
