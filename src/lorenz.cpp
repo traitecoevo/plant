@@ -49,6 +49,10 @@ void Lorenz::step_fixed(double step_size) {
   solver.step_fixed(step_size);
 }
 
+void Lorenz::step_to(double time) {
+  solver.step_to(time);
+}
+
 void Lorenz::advance(double time_max) {
   solver.advance(time_max);
 }

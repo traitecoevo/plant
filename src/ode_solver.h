@@ -26,6 +26,8 @@ public:
   void step_fixed(double step_size);
   void advance(double time_max_);
 
+  void step_to(double time_max_);
+
   void reset();
 
   size_t get_size() const;
@@ -189,6 +191,15 @@ void Solver<Problem>::advance(double time_max_) {
   time_max = time_max_;
   while ( time < time_max )
     step();
+}
+
+template <class Problem>
+void Solver<Problem>::step_to(double time_max_) {
+  time_max = time_max_;
+  problem->derivs(time, y.begin(), dydt_in.begin());
+  stepper.step(time, time_max - time, y, yerr, dydt_in, dydt_out);
+  count++;
+  time = time_max;
 }
 
 template <class Problem>

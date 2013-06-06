@@ -52,6 +52,10 @@ void OdeR::step_fixed(double step_size) {
   solver.step_fixed(step_size);
 }
 
+void OdeR::step_to(double time) {
+  solver.step_to(time);
+}
+
 void OdeR::advance(double time_max) {
   solver.advance(time_max);
 }

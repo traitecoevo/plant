@@ -1189,3 +1189,10 @@ Not sure if this would actually simplfy things at all.
 ## Get/set consistency
 
 Seed rain can be set, but not got, for Patch and EBT.  Sensible?
+
+## Fixed step size
+
+At the moment, there is one generic "step" method for the OdeSolver
+that really does "one adaptive step of whatever size we feel like".
+We need some way of doing a series of fixed points in time.  `step_to`
+does this for now, but it feels like a stop-gap solution.

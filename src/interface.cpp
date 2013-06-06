@@ -81,6 +81,7 @@ RCPP_MODULE(tree) {
     .property("time",     &ode::test::Lorenz::get_time)
     .method("step",       &ode::test::Lorenz::step)
     .method("step_fixed", &ode::test::Lorenz::step_fixed)
+    .method("step_to",    &ode::test::Lorenz::step_to)
     .method("advance",    &ode::test::Lorenz::advance)
     .method("run",        &ode::test::Lorenz::r_run)
     ;
@@ -102,6 +103,7 @@ RCPP_MODULE(tree) {
     .property("time",     &ode::OdeR::get_time)
     .method("step",       &ode::OdeR::step)
     .method("step_fixed", &ode::OdeR::step_fixed)
+    .method("step_to",    &ode::OdeR::step_to)
     .method("advance",    &ode::OdeR::advance)
     .method("derivs",     &ode::OdeR::r_derivs)
     .method("run",        &ode::OdeR::r_run)

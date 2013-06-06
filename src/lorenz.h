@@ -24,6 +24,7 @@ public:
   double get_time() const;
   void step();
   void step_fixed(double step_size);
+  void step_to(double time);
   void advance(double time_max);
   
   // * R interface

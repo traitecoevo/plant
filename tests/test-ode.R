@@ -65,6 +65,16 @@ ans.d <- rk(y, tt, derivs.lorenz.d, pars,
 
 expect_that(ans, equals(unname(ans.d), tolerance=1e-11))
 
+y0 <- lo$state
+t0 <- lo$time
+t1 <- t0 + 0.001
+lo$step_to(t1)
+expect_that(lo$time, is_identical_to(t1))
+y1 <- lo$state
+lo$set_state(y0, t0)
+lo$advance(t1)
+expect_that(lo$state, equals(y1))
+
 ## With the R Ode verison:
 
 obj <- new(OdeR, derivs.lorenz, new.env(), pars)
