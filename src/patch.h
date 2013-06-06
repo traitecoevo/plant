@@ -270,7 +270,6 @@ ode::iter Patch<Individual>::ode_rates(ode::iter it) const {
 }
 
 // * Private functions
-// Sets the strategy for each species
 template <class Individual>
 void Patch<Individual>::initialise() {
   species.clear();
@@ -282,6 +281,8 @@ void Patch<Individual>::initialise() {
     Species<Individual> s(&(*it)); // (iterator -> object -> pointer)
     species.push_back(s);
   }
+
+  compute_light_environment();
 }
 
 // Number of species
