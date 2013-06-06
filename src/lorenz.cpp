@@ -41,6 +41,10 @@ double Lorenz::get_time() const {
   return solver.get_time();
 }
 
+std::vector<double> Lorenz::get_times() const {
+  return solver.get_times();
+}
+
 void Lorenz::step() {
   solver.step();
 }

@@ -17,8 +17,9 @@ public:
   Solver(Problem *problem);
 
   void set_state(std::vector<double> y_, double t_);
-  std::vector<double> get_state() const { return y; }
-  double get_time() const { return time; }
+  std::vector<double> get_state() const;
+  double get_time() const;
+  std::vector<double> get_times() const;
 
   void set_state_from_problem(double time);
 
@@ -47,6 +48,7 @@ private:
 
   double time;     // Current time
   double time_max; // Time we will not go past
+  std::vector<double> times; // Vector of previous times.
 
   std::vector<double> y;        // Vector of current problem state
   std::vector<double> yerr;     // Vector of error estimates
@@ -75,9 +77,26 @@ Solver<Problem>::Solver(Problem *problem)
 
 template <class Problem>
 void Solver<Problem>::set_state(std::vector<double> y_, double t_) {
+  times.clear();
   y    = y_;
   time = t_;
+  times.push_back(time);
   resize(y.size());
+}
+
+template <class Problem>
+std::vector<double> Solver<Problem>::get_state() const {
+  return y;
+}
+
+template <class Problem>
+double Solver<Problem>::get_time() const {
+  return time;
+}
+
+template <class Problem>
+std::vector<double> Solver<Problem>::get_times() const {
+  return times;
 }
 
 // TODO: Not sure, but we might be able to use get_time here too;
@@ -176,6 +195,7 @@ void Solver<Problem>::step() {
       	time += step_size;
       	step_size_last = step_size_next;
       }
+      times.push_back(time);
 
       return;
     }
@@ -200,6 +220,7 @@ void Solver<Problem>::step_to(double time_max_) {
   stepper.step(time, time_max - time, y, yerr, dydt_in, dydt_out);
   count++;
   time = time_max;
+  times.push_back(time);
 }
 
 template <class Problem>
@@ -249,6 +270,7 @@ void Solver<Problem>::step_fixed(double step_size) {
     count++;
     step_size_last = step_size_next;
     time += step_size;
+    times.push_back(time);
   }
 }
 
@@ -258,6 +280,7 @@ void Solver<Problem>::step_fixed(double step_size) {
 template <class Problem>
 void Solver<Problem>::reset() {
   time = 0;
+  times.clear();
   count = 0;
   failed_steps = 0;
   step_size_last = 1e-6; // See ode.md

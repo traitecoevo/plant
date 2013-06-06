@@ -18,6 +18,7 @@ public:
   void set_ode_state(std::vector<double> y, double time);
   std::vector<double> ode_state() const;
   double get_time() const;
+  std::vector<double> get_times() const;
 
   void step();
   void step_fixed(double step_size);

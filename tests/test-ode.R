@@ -63,18 +63,21 @@ expect_that(nrow(ans), equals(length(tt)-1))
 ans.d <- rk(y, tt, derivs.lorenz.d, pars,
             method=rkMethod("rk45ck"))[-1,-1,drop=FALSE]
 
+expect_that(length(lo$times), is_greater_than(nrow(ans)))
+
 expect_that(ans, equals(unname(ans.d), tolerance=1e-11))
 
-y0 <- lo$state
-t0 <- lo$time
-t1 <- t0 + 0.001
-lo$step_to(t1)
-expect_that(lo$time, is_identical_to(t1))
-y1 <- lo$state
-lo$set_state(y0, t0)
-lo$advance(t1)
-expect_that(lo$state, equals(y1))
-
+local({
+  y0 <- lo$state
+  t0 <- lo$time
+  t1 <- t0 + 0.001
+  lo$step_to(t1)
+  expect_that(lo$time, is_identical_to(t1))
+  y1 <- lo$state
+  lo$set_state(y0, t0)
+  lo$advance(t1)
+  expect_that(lo$state, equals(y1))
+})
 ## With the R Ode verison:
 
 obj <- new(OdeR, derivs.lorenz, new.env(), pars)

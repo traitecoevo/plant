@@ -44,6 +44,10 @@ double OdeR::get_time() const {
   return solver.get_time();
 }
 
+std::vector<double> OdeR::get_times() const {
+  return solver.get_times();
+}
+
 void OdeR::step() {
   solver.step();
 }
