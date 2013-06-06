@@ -30,7 +30,6 @@ public:
 
   size_t get_size() const;
   
-  std::vector<double> r_derivs();
   Rcpp::NumericMatrix r_run(std::vector<double> times, 
 			    std::vector<double> y_);
   
@@ -240,13 +239,6 @@ void Solver<Problem>::step_fixed(double step_size) {
     step_size_last = step_size_next;
     time += step_size;
   }
-}
-
-template <class Problem>
-std::vector<double> Solver<Problem>::r_derivs() {
-  std::vector<double> dydt(size);
-  problem->derivs(time, y.begin(), dydt.begin());
-  return dydt;
 }
 
 // NOTE: This resets *everything* to basically a recreated object.
