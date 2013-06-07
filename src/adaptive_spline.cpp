@@ -7,7 +7,11 @@ namespace spline {
 // here should be reasonable for many uses.
 AdaptiveSpline::AdaptiveSpline(util::DFunctor *target)
   : target(target),
-    atol(1e-6), rtol(1e-6), nbase(17), max_depth(16) {}
+    atol(1e-6),
+    rtol(1e-6),
+    nbase(17),
+    max_depth(16) {
+}
 
 // Set *all* the control parameters.
 // 
