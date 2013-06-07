@@ -149,9 +149,7 @@ void Solver<Problem>::step() {
   problem->derivs(time, y.begin(), dydt_in.begin());
 
   while ( true ) {
-    // TODO: This allows negative step direction.  Worth it?
-    final_step = ((time_remaining >= 0.0 && step_size > time_remaining) || 
-		  (time_remaining <  0.0 && step_size < time_remaining));
+    final_step = step_size > time_remaining;
     if ( final_step )
       step_size = time_remaining;
     stepper.step(time, step_size, y, yerr, dydt_in, dydt_out);
