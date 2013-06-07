@@ -5,8 +5,8 @@
 namespace model {
 
 Disturbance::Disturbance()
-  : shape(2.0) {
-  reset();
+  : shape(2.0),
+    mean_disturbance_interval(30) {
   set_parameters_post_hook();
 }
 
@@ -21,10 +21,6 @@ double Disturbance::survival0(double time) const {
 
 void Disturbance::do_build_lookup() {
   lookup_table["mean_disturbance_interval"] = &mean_disturbance_interval;
-}
-
-void Disturbance::reset() {
-  mean_disturbance_interval = 30.0;
 }
 
 // TODO: This (and survival0) should be rewritten to more closely use
