@@ -28,7 +28,6 @@ public:
   ode::iter       ode_rates(ode::iter it)  const;
 
   // * R interface
-  // TODO: Exposed primarily for testing.
   double r_growth_rate_gradient(const Environment& environment) const;
 
 private:

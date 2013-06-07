@@ -909,6 +909,12 @@ ret_type Class::r_method() const {
 }
 ```
 
+### Testing methods
+
+These all want looking at at some point:
+
+* `CohortTop::r_growth_rate_gradient`
+
 ## Method consistency
 
 Unresolved issues around:
