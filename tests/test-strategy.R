@@ -59,8 +59,11 @@ expect_that(s$set_parameters(new2), throws_error())
 ## And have the list remain unchanged and valid
 expect_that(s$parameters, equals(modifyList(expected, new1)))
 
-## TODO: error on not the first argument would not satisfy that
-## property.
+## Check that even if some elements are unknown, known parameters are
+## not changed.
+new3 <- list(Y=0.9, unknown_key=1, hmat=12)
+expect_that(s$set_parameters(new3), throws_error())
+expect_that(s$parameters, equals(modifyList(expected, new1)))
 
 ## Empty list should be accepted and leave things unchanged.
 obj <- s$parameters

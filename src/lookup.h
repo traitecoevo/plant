@@ -57,6 +57,7 @@ public:
   Lookup();
   Rcpp::List get_parameters();
   void set_parameters(Rcpp::List x);
+  bool has_key(std::string key) const;
   virtual ~Lookup() {}
 
 protected:
@@ -68,6 +69,7 @@ protected:
 private:
   void build_lookup();
   double* lookup(std::string key) const;
+  void check_keys(std::vector<std::string> keys) const;
   Lookup* addr; // used to detect copy and trigger lookup table rebuild
 };
 

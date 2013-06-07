@@ -18,11 +18,18 @@ void Lookup::set_parameters(Rcpp::List x) {
     return;
   build_lookup();
   std::vector<std::string> names = x.names();
+  check_keys(names);
+
   for ( int i = 0; i < x.size(); i++ ) {
     double *tmp = lookup(names[(size_t)i]);
     *tmp = Rcpp::as<double>(x[i]);
   }
   set_parameters_post_hook();
+}
+
+bool Lookup::has_key(std::string key) const {
+  lookup_type::const_iterator it = lookup_table.find(key);
+  return it != lookup_table.end();
 }
 
 void Lookup::build_lookup() {
@@ -37,6 +44,15 @@ double* Lookup::lookup(std::string key) const {
   if ( it == lookup_table.end() )
     Rf_error("Key %s not found", key.c_str());
   return it->second;
+}
+
+void Lookup::check_keys(std::vector<std::string> keys) const {
+  std::vector<std::string>::const_iterator key = keys.begin();
+  while (key != keys.end()) {
+    if (!has_key(*key))
+      ::Rf_error("Key %s not found", key->c_str());
+    key++;
+  }
 }
 
 }

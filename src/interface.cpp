@@ -118,6 +118,7 @@ RCPP_MODULE(tree) {
     // just a subset through this, which is poor semantics for '<-'.
     .property("parameters",   &util::Lookup::get_parameters)
     .method("set_parameters", &util::Lookup::set_parameters)
+    .method("has_key",        &util::Lookup::has_key)
     ;
 
   Rcpp::class_<model::Strategy>("Strategy")
