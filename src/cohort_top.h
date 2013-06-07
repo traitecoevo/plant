@@ -47,9 +47,6 @@ private:
 
 // Painfully copied from Plant, but because we need a non-const
 // version.
-//
-// TODO: Might be a solution here.
-// http://stackoverflow.com/questions/14926482/const-and-non-const-template-specialization
 template <class T, class T2, double (T::*target)(double, T2)>
 class FunctorBind2 : public util::DFunctor {
 public:

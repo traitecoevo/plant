@@ -321,8 +321,6 @@ double Patch<Individual>::leaf_area_above(double height) const {
 template <class Individual>
 double Patch<Individual>::canopy_openness(double height) {
   // NOTE: patch_area does not appear in the EBT model formulation.
-  // TODO: specialise this, or fix patch_area in the EBT so it does
-  // not matter.
   return exp(-parameters->c_ext * leaf_area_above(height) /
 	     parameters->patch_area);
 }
@@ -427,16 +425,11 @@ SeedRain Patch<Individual>::r_get_seed_rain() const {
   return environment.get_seed_rain();
 }
 
-// TODO: When this is set, we should recompute everything.  It really
-// seems that perhaps this should only be settable when there are no
-// individuals?  Even with that restriction, there is some calculation
-// required for the seed element of Patch<CohortTop>, I think.
-//
 // NOTE: For now, I'm re-initialising after setting seed rain, and I'm
 // refusing to set the seed rain on a population that has already got
 // going (which will have a nonzero ode_size()).
 //
-// TODO: The compute_vars_phys() really should be done by
+// NOTE: The compute_vars_phys() really should be done by
 // initialise(), but *only* for the Patch<CohortTop>, I think.  I'm
 // leaving it here because for practical purposes, this should be OK
 // (the default seed rain is zero and with a zero rain, the default

@@ -15,14 +15,6 @@ SOURCES = $(SOURCES_MODEL) $(SOURCES_SPLINE) $(SOURCES_ODE) \
 
 TARGETS = tree.so
 
-# TODO: To work around issues of dependencies, we can use 
-#    R CMD COMPILE $(FILE)
-# as the .cpp->.o rule, and I can then have files depend on each
-# other, and on other files.
-#
-# However, this still uses an internal rule set for determining if the
-# file needs recompilation, so we'd need a rm -f $(FILE).o first.
-
 all: $(TARGETS)
 
 tree.so: $(SOURCES)

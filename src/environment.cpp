@@ -43,9 +43,6 @@ double Environment::seed_rain_rate() const {
   return seed_rain();
 }
 
-// TODO: If I'm just going to get and set, should these just be public
-// data?  What is the advantage here?  Is anything actually being
-// encapsulated?
 spline::Spline Environment::get_light_environment() const {
   return light_environment;
 }

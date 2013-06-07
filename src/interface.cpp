@@ -271,8 +271,6 @@ RCPP_MODULE(tree) {
     .method("[[", &model::Species<model::CohortTop>::r_at)
     ;
 
-  // TODO: How many of these should actually be r_ methods?  Looking
-  // at all the get/set .property methods, actually...
   Rcpp::class_<model::Environment>("Environment")
     .constructor<model::Parameters>()
     .method("canopy_openness", &model::Environment::canopy_openness)
@@ -344,7 +342,6 @@ RCPP_MODULE(tree) {
       	    &model::MetacommunityBase::step_deterministic)
     .method("step_stochastic",
       	    &model::MetacommunityBase::r_step_stochastic)
-    // TODO: births & deaths?
     .method("clear",      &model::MetacommunityBase::clear)
     .method("add_seedlings", &model::MetacommunityBase::r_add_seedlings)
     .method("disperse", &model::MetacommunityBase::r_disperse)

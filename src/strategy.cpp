@@ -38,7 +38,6 @@ void Strategy::reset() {
   b      = 0.17;
 
   // * Production
-  // TODO: Missing A0?  [But did it actually do anything?]
   // Leaf nitrogen per area (= Plant::v) [kg / m2]
   n_area = 1.87e-3;
   // Ratio of leaf dark respiration to leaf nitrogen mass
@@ -79,15 +78,6 @@ void Strategy::reset() {
   // Parameter for seedling survival
   c_s0    = 0.1;
   // Baseline for intrinsic mortality
-  // TODO: In the paper this is given as 0.52 only.
-  // TODO: the 608 here looks a lot like rho
-  // TODO: Previously (in the EBT version) this read as
-  //   c_d0 = 0.01 / exp(-c_d1 * 608.0);
-  // this looks like the c_d0 * exp(c_d1 * rho)
-  // but that was done again in the calculations.
-  // this *does* work out to being close to 0.52, and I've put that
-  // number down here so that we stay fairly comparable to the
-  // previous version
   c_d0    = 0.520393415085166;
   // Coefficient for wood density in mortality function
   c_d1    = 0.0065;

@@ -35,10 +35,10 @@ public:
   // Setting
   void add_strategy(Strategy s);
 
-  // Data -- public for now (TODO).
+  // Data -- public for now (see github issue #17).
   Disturbance disturbance_regime;
   double c_ext;      // Light extinction coefficient
-  double patch_area; // Size of the patch (m^2, I think?) [TODO]
+  double patch_area; // Size of the patch (m^2)
   double Pi_0;       // Probability of survival during dispersal
   double n_patches;  // Number of patches in the metacommunity
   std::vector<Strategy> strategies;

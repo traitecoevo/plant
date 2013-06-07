@@ -14,9 +14,6 @@ Plant::Plant(Strategy *s)
   set_height(strategy->height_0);
 }
 
-// TODO: Value of 0.0 not ideal, but allows more easy comparison.
-// A value of NA_REAL would be better, but this requires that '=='
-// won't work sensibly on freshly-produced plants.
 Plant::internals::internals() 
   : mass_leaf(NA_REAL),
     leaf_area(NA_REAL),
@@ -26,7 +23,7 @@ Plant::internals::internals()
     mass_heartwood(NA_REAL),
     mass_root(NA_REAL),
     mass_total(NA_REAL),
-    // TODO: Not sure about these being zero
+    // NOTE: Zero to allow '==' to work on new plants
     assimilation(0.0),
     respiration(0.0),
     turnover(0.0),
@@ -143,12 +140,11 @@ void Plant::compute_vars_phys(const Environment& environment) {
     // [eqn 18] - Fraction of mass growth in leaves
     vars.leaf_fraction = compute_leaf_fraction();
 
-    // TODO: move into compute_growth_rate?
-
     // [eqn 19] - Growth rate in leaf mass
     vars.mass_leaf_growth_rate = vars.net_production *
       (1 - vars.reproduction_fraction) * vars.leaf_fraction;
 
+    // [      ] - see doc/details.md
     vars.height_growth_rate =
       strategy->a1 * strategy->B1 *
       pow(vars.leaf_area, strategy->B1 - 1) * vars.mass_leaf_growth_rate /
@@ -322,10 +318,8 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 
 // [eqn 12] Gross annual CO2 assimilation
 // 
-// NOTE: In contrast with EBT, we do not normalise by Y*c_bio.
-// 
-// TODO: This version is completely naive.  Better to provide an
-// already working integrator.
+// NOTE: In contrast with Daniel's implementation (but following
+// Falster 2012), we do not normalise by Y*c_bio here.
 double Plant::compute_assimilation(const Environment& environment) const {
   FunctorBind1<Plant, const Environment&,
 	       &Plant::compute_assimilation_x> fun(this, environment);

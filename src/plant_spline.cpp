@@ -32,9 +32,6 @@ void PlantSpline::compute_vars_phys(const Environment& environment) {
   build_plants_approx();
 }
 
-// TODO: This would be a bit nicer if the iterator control was in
-// the MultiSpline, but that requires learning about
-// ForwardIterator, etc.
 ode::iter PlantSpline::ode_rates(double height, ode::iter it) const {
   if ( height > height_max() )
     ::Rf_error("Requested plant too large");
@@ -43,9 +40,6 @@ ode::iter PlantSpline::ode_rates(double height, ode::iter it) const {
   return it;
 }
 
-// TODO: A trick here is that we don't actually compute heaps of the
-// useful stuff that things like r_get_vars_phys actually wants.  At
-// the moment I'll probably just punt on it and return NA instead.
 Rcpp::NumericVector PlantSpline::r_get_vars_phys(double m) const {
   Rcpp::NumericVector ret = seed.r_get_vars_phys();
   for ( size_t i = 0; i < ret.size(); i++ )

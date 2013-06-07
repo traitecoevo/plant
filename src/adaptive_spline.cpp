@@ -14,11 +14,6 @@ AdaptiveSpline::AdaptiveSpline(util::DFunctor *target)
 }
 
 // Set *all* the control parameters.
-// 
-// TODO: This could be refined, as currently this requires that all
-// are known to be set well.  It's not like there is any checking on
-// these (positivity, etc).  Could make nbase and max_depth be
-// unsigned integers?  Or could write a series of get/set.
 void AdaptiveSpline::set_control(double atol_, double rtol_, 
 				 int nbase_, int max_depth_) {
   atol = atol_;

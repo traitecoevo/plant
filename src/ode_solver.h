@@ -107,17 +107,12 @@ void Solver<Problem>::set_state_from_problem() {
   set_state(y, problem->get_time());
 }
 
-// TODO: In contrast with GSL, this would make more sense as
-// "step()".
-// 
 // After `stepper.step()`, the GSL checks to see if the step succeeded
 // (some steppers look like they fail for non-user function error),
 // and the divides the step size by 2.  If it fails with `EFAULT` or
 // `EBADFUNC`, then it aborts.  The only place that errors are
 // actually checked in the user function, and the two errors that
 // cause abort are the only two that should be thrown there.
-// 
-// TODO: What are we planning on doing with count?  failed_steps?
 // 
 // There are several different logical step sizes:
 // 
@@ -292,8 +287,6 @@ void Solver<Problem>::step_fixed(double step_size) {
 }
 
 // NOTE: This resets *everything* to basically a recreated object.
-//
-// TODO: Work out how to deal with control parameters here.
 template <class Problem>
 void Solver<Problem>::reset() {
   time = 0;

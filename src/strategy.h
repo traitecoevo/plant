@@ -18,9 +18,6 @@ public:
   Strategy();
   Strategy(Rcpp::List x);
 
-  // This will be accessed by a number of things.
-  // TODO: evaluate if this should be public.  Probably better in
-  // constructor?
   Control control;
 
   // All the rest of the class can be accessed only by Plant.

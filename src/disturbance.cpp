@@ -23,8 +23,6 @@ void Disturbance::do_build_lookup() {
   lookup_table["mean_disturbance_interval"] = &mean_disturbance_interval;
 }
 
-// TODO: This (and survival0) should be rewritten to more closely use
-// R's actual Weibull functions.
 void Disturbance::set_parameters_post_hook() {
   scale = pow(R::gammafn(1.0/shape)/shape/mean_disturbance_interval, shape);
   p0 = shape*pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);

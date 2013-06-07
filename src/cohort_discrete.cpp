@@ -15,14 +15,14 @@ CohortDiscrete::CohortDiscrete(Strategy *s)
 CohortDiscrete::CohortDiscrete(Strategy s, int n_individuals)
   : Plant(s),
     n_individuals(n_individuals) {
-  if ( n_individuals < 1 ) // TODO: replace with throw
+  if (n_individuals < 1)
     ::Rf_error("Cannot create a cohort with less than 1 individual");
 }
 
 CohortDiscrete::CohortDiscrete(Strategy *s, int n_individuals)
   : Plant(s),
     n_individuals(n_individuals) {
-  if ( n_individuals < 1 ) // TODO: replace with throw
+  if (n_individuals < 1)
     ::Rf_error("Cannot create a cohort with less than 1 individual");
 }
 

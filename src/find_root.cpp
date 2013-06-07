@@ -11,12 +11,9 @@ RootFinder::RootFinder(double atol, double rtol, int max_iterations)
 }
 
 RootFinder::~RootFinder() {
-  // clean up
   gsl_root_fsolver_free(solver);
 }
 
-// TODO: make sure naming and structure is consistent with the
-// integrate wrapper, which is basically doing the same thing.
 double RootFinder::root(DFunctor *f, 
 			double x_min, double x_max) {
   F.params = (void*)(f);
