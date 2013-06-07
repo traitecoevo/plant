@@ -28,6 +28,7 @@ public:
   void advance(double time_max_);
 
   void step_to(double time_max_);
+  void advance_fixed(std::vector<double> times);
 
   void reset();
 
@@ -221,6 +222,26 @@ void Solver<Problem>::step_to(double time_max_) {
   count++;
   time = time_max;
   times.push_back(time);
+}
+
+// NOTE: We take a vector of times {t_0, t_1, ...}.  This vector
+// *must* contain a starting time, but can otherwise be empty.  We
+// will step exactly to t_1, then to t_2 up to the end point.  No step
+// size adjustments will be done.  This is used in the EBT.
+//
+// NOTE: Careful here: exact floating point comparison in determining
+// that we're starting from the right place.  However, because we take
+// care to return and add end points exactly, this should actually be
+// the correct move.
+template <class Problem>
+void Solver<Problem>::advance_fixed(std::vector<double> times) {
+  if (times.size() < 1)
+    ::Rf_error("'times' must be vector of at least length 1");
+  std::vector<double>::const_iterator t = times.begin();
+  if (*t++ != times.front())
+    ::Rf_error("First element in 'times' must be same as current time");
+  while (t != times.end())
+    step_to(*t++);
 }
 
 template <class Problem>

@@ -67,17 +67,28 @@ expect_that(length(lo$times), is_greater_than(nrow(ans)))
 
 expect_that(ans, equals(unname(ans.d), tolerance=1e-11))
 
-local({
-  y0 <- lo$state
-  t0 <- lo$time
-  t1 <- t0 + 0.001
-  lo$step_to(t1)
-  expect_that(lo$time, is_identical_to(t1))
-  y1 <- lo$state
-  lo$set_state(y0, t0)
-  lo$advance(t1)
-  expect_that(lo$state, equals(y1))
-})
+y.curr <- lo$state
+t.curr <- lo$time
+t.next <- t.curr + 0.001
+lo$step_to(t.next)
+expect_that(lo$time, is_identical_to(t.next))
+y.next <- lo$state
+lo$set_state(y.curr, t.curr)
+lo$advance(t.next)
+expect_that(lo$state, equals(y.next))
+
+## Rerun the analysis so that we can check the fixed spacing code:
+ans <- t(lo$run(tt, y))
+## At shis point, the steps vary so that they're slighty more tightly
+## spaced at first, and relax down to being the same as the sample
+## frequency.
+t.steps <- lo$times
+
+lo$set_state(y, t0)
+lo$advance_fixed(t.steps)
+expect_that(lo$time, is_identical_to(t.steps[[length(t.steps)]]))
+expect_that(lo$state, is_identical_to(ans[nrow(ans),]))
+
 ## With the R Ode verison:
 
 obj <- new(OdeR, derivs.lorenz, new.env(), pars)
@@ -124,3 +135,16 @@ ans.d <- rk(y, tt, derivs.lorenz.d, pars,
             method=rkMethod("rk45ck"))[-1,-1,drop=FALSE]
 
 expect_that(ans, equals(unname(ans.d), tolerance=1e-11))
+
+t.steps <- obj$times
+obj$set_state(y, t0)
+obj$advance_fixed(t.steps)
+expect_that(obj$time, is_identical_to(t.steps[[length(t.steps)]]))
+expect_that(obj$state, is_identical_to(ans[nrow(ans),]))
+expect_that(obj$times, is_identical_to(t.steps))
+
+## Check that we are actually rewriting the time steps:
+t.steps2 <- obj$times[1:10]
+obj$set_state(y, t0)
+obj$advance_fixed(t.steps2)
+expect_that(obj$times, is_identical_to(t.steps2))

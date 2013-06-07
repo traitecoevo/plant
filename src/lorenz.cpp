@@ -61,6 +61,10 @@ void Lorenz::advance(double time_max) {
   solver.advance(time_max);
 }
 
+void Lorenz::advance_fixed(std::vector<double> times) {
+  solver.advance_fixed(times);
+}
+
 // This is something that can move up to a different level, as it's
 // just straight up boilerplate.
 std::vector<double> Lorenz::r_derivs(double time,

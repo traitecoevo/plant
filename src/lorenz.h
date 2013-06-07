@@ -27,6 +27,7 @@ public:
   void step_fixed(double step_size);
   void step_to(double time);
   void advance(double time_max);
+  void advance_fixed(std::vector<double> times);
   
   // * R interface
   std::vector<double> r_derivs(double time, 

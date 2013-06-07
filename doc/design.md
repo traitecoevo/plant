@@ -1196,3 +1196,17 @@ At the moment, there is one generic "step" method for the OdeSolver
 that really does "one adaptive step of whatever size we feel like".
 We need some way of doing a series of fixed points in time.  `step_to`
 does this for now, but it feels like a stop-gap solution.
+
+There are several modes that I want to do:
+
+* `step()` - take a step of whatever feels appropriate.  This will be
+  adaptive (always?)
+* `advance(double t)` - take a series of steps up to some given time
+  `t`.  We will land exactly on `t`, but will take any number of
+  adaptive steps to get there.
+* `step_to(double t)` - take a step up to some given time `t`.  This
+  *never* checks the error for the step.
+* `advance_fixed(std::vector<double> t)` - take a series of steps over
+  a fixed and given schedule.
+
+The method `step_fixed` can probably disappear?

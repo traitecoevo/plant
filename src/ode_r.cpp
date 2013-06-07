@@ -64,6 +64,10 @@ void OdeR::advance(double time_max) {
   solver.advance(time_max);
 }
 
+void OdeR::advance_fixed(std::vector<double> times) {
+  solver.advance_fixed(times);
+}
+
 // * R interface
 std::vector<double> OdeR::r_derivs(double time, std::vector<double> y) {
   set_ode_state(y, time);
