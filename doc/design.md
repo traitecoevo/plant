@@ -283,14 +283,6 @@ Computing the initial survival needs to be done as a cohort is added.
 It is not necessary as it is *created* though, and initial survival is
 set to 1 on creation.
 
-There is a real ugliness in this at the moment: to compute the seed
-output, we need to know the *patch* survival.  This is something that
-we never need to know for the individual-based model.  This means that
-`compute_vars_phys` needs its signature updated, but we can't overload
-it because it's a virtual function.  At this point, I've called it
-`compute_vars_phys_surv`, as it's really both physiology and
-survival.  This will hopefully change.
-
 ##### Initial conditions
 
 *This section should probably evolve with the documentation in EBT.md*
@@ -355,9 +347,6 @@ need to include a cohort that is exactly at the seed mass and does not
 grow -- essentially we need a bottom cohort that does not change.
 Ideally the plant does not need to know about this at all, so we
 really want to do this at the level of the species.
-
-This affects only `compute_vars_phys_surv`, really, and the
-derivatives calculations.  We just don't want to 
 
 The trick in all of this is that to compute the boundary condition
 $n(x, m_0, a_0)$, we need to know $g(x, m_0, a_0)$.
@@ -502,8 +491,6 @@ Some of the bits in `Species` aren't going to be wanted for
 
 * The `leaf_area_above` calculation needs to be done carefully (but
   see `CohortDiscrete` for how that can be done simply).
-* The `compute_vars_phys` calculations needs to be done via
-  `compute_vars_phys_surv`, passing in the patch survival.
 * `births` and `deaths` are just not really possible, nor do they make
   sense -- this is probably the biggest ugliness.
 * `add_seeds` may need some care because of issues around getting the

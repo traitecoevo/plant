@@ -21,8 +21,6 @@ CohortTop::CohortTop(Strategy *s) :
   time_of_birth(0) {
 }
 
-// TODO: See design.md (search: compute_vars_phys_surv) for the
-// issue around the name here.
 void CohortTop::compute_vars_phys(const Environment& environment) {
   Plant::compute_vars_phys(environment);
 
