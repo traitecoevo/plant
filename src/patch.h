@@ -89,19 +89,13 @@ public:
   void r_step_deterministic();
   void r_step_stochastic();
   void r_run_deterministic(double time);
-  // All of these just export hidden functions.  Perhaps they should
-  // not be hidden in the first place?  TODO: should not be inline
-  // methods though.
-  double r_height_max() const { return height_max(); }
-  double r_canopy_openness(double height) {return canopy_openness(height);}
-  double r_leaf_area_above(double height) const
-  {return leaf_area_above(height);}
-  // Wrappers for testing
-  // TODO: should be update_environment()?  Perhaps?  And should the
-  // compute_vars_phys happen at the same time?
-  void r_compute_light_environment() {compute_light_environment();}
-  void r_compute_vars_phys() {compute_vars_phys();}
-  // TODO: The germination is special to the IBM, the seed rain to EBT.
+  // Wrappers around private methods for use from R
+  double r_height_max() const;
+  double r_canopy_openness(double height);
+  double r_leaf_area_above(double height) const;
+  void r_compute_light_environment();
+  void r_compute_vars_phys();
+  // NOTE: germination is special to the IBM, seed_rain to the EBT.
   std::vector<int> r_germination(std::vector<int> seeds);
   SeedRain r_get_seed_rain() const;
   void r_set_seed_rain(SeedRain x);
@@ -397,6 +391,31 @@ void Patch<Individual>::r_add_seedlings(std::vector<int> seeds) {
 }
 
 // Wrapper functions for testing
+template <class Individual>
+double Patch<Individual>::r_height_max() const {
+  return height_max();
+}
+
+template <class Individual>
+double Patch<Individual>::r_canopy_openness(double height) {
+  return canopy_openness(height);
+}
+
+template <class Individual>
+double Patch<Individual>::r_leaf_area_above(double height) const {
+  return leaf_area_above(height);
+}
+
+template <class Individual>
+void Patch<Individual>::r_compute_light_environment() {
+  compute_light_environment();
+}
+
+template <class Individual>
+void Patch<Individual>::r_compute_vars_phys() {
+  compute_vars_phys();
+}
+
 template <class Individual>
 std::vector<int> Patch<Individual>::r_germination(std::vector<int> seeds) {
   util::check_length(seeds.size(), size());

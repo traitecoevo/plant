@@ -949,6 +949,15 @@ ret_type Class::r_method() const {
 These all want looking at at some point:
 
 * `CohortTop::r_growth_rate_gradient`
+* `Patch::r_height_max`
+* `Patch::r_canopy_openness`
+* `Patch::leaf_area_above`
+* `Patch::r_compute_light_environment`
+* `Patch::r_compute_vars_phys`
+* `Patch::r_germination`
+
+In particular, `compute_light_environment` + `compute_vars_phys` might
+belong *together* for a `Patch`?
 
 ## Method consistency
 
