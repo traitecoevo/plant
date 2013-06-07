@@ -4,9 +4,9 @@ namespace spline {
 
 // On contruction, make sure that `acc` and `spline` are NULL, as
 // we'll use these values to determine if memory needs clearing.
-Spline::Spline() {
-  acc    = NULL;
-  spline = NULL;
+Spline::Spline()
+  : acc(NULL),
+    spline(NULL) {
 }
 
 // On cleanup, remove memory allocated for the GSL support.
@@ -21,20 +21,21 @@ Spline::~Spline() {
 // and `spline` would avoid this, but require more careful inspection
 // of what GSL is storing (and dependence on the underlying
 // implementation).
-Spline::Spline(const Spline& obj) : x(obj.x), y(obj.y) {
-  acc = NULL;
-  spline = NULL;
-  if ( x.size() > 0 )
+Spline::Spline(const Spline& obj)
+  : x(obj.x),
+    y(obj.y),
+    acc(NULL),
+    spline(NULL) {
+  if (x.size() > 0)
     init_self();
 }
 
 Spline& Spline::operator=(Spline other) {
-  x = other.x;
-  y = other.y;
-  acc = NULL;
-  spline = NULL;
-  if (x.size() > 0)
-    init_self();
+  using std::swap;
+  swap(x,      other.x);
+  swap(y,      other.y);
+  swap(acc,    other.acc);
+  swap(spline, other.spline);
   return *this;
 }
 
