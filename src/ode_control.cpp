@@ -11,7 +11,7 @@ OdeControl::OdeControl()
     eps_rel(1e-8), // hopefully sane default
     a_y(1.0),      // tune step size based on changes in y...
     a_dydt(0.0),   // ...but not based on changes in dydt
-    step_size_shrank_(false) {
+    last_step_size_shrank(false) {
 }
 
 void OdeControl::set_eps_abs(double x) {
@@ -59,7 +59,7 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
     if (r < 0.2)
       r = 0.2;
     step_size *= r;
-    step_size_shrank_ = true;
+    last_step_size_shrank = true;
   } else if ( rmax < 0.5 ) {
     // increase step, no more than factor of 5
     double r = S / pow (rmax, 1.0 / (ord + 1.0));
@@ -68,10 +68,10 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
     if ( r < 1.0 ) // Don't allow any decrease caused by S<1
       r = 1.0;
     step_size *= r;
-    step_size_shrank_ = false;
+    last_step_size_shrank = false;
   } else { 
     // otherwise no change to the size
-    step_size_shrank_ = false;
+    last_step_size_shrank = false;
   }
 
   return step_size;
@@ -86,7 +86,7 @@ double OdeControl::errlevel(double y, double dydt, double h) {
 }
 
 bool OdeControl::step_size_shrank() const {
-  return step_size_shrank_;
+  return last_step_size_shrank;
 }
 
 }

@@ -27,7 +27,7 @@ public:
   bool step_size_shrank() const;
 private:
   double eps_abs, eps_rel, a_y, a_dydt;
-  bool step_size_shrank_; // TODO: inconsistent name.
+  bool last_step_size_shrank;
 };
 
 }
