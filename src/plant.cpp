@@ -387,19 +387,21 @@ double Plant::compute_reproduction_fraction() const {
 				     (1.0 - vars.height/strategy->hmat)));
 }
 
-// [eqn 18] Fraction of mass growth that is leaves
-// 
-// TODO: This could do with documenting properly and tidying.
-//
-// NOTE: The EBT version actually computed 1/leaf_fraction (modifying
-// growth rate calculation accordingly).  Possibly more stable?
+// [eqn 18] Fraction of mass growth that is leaves (see doc/details.md
+// for derivation).
 double Plant::compute_leaf_fraction() const {
   const Strategy *s = strategy.get(); // for brevity.
-  return 1.0/(1.0 + s->a3/s->lma +
-	      (s->rho / s->theta * s->a1 * s->eta_c * (1.0 +s->b) *
-	       (1.0+s->B1) * pow(vars.leaf_area, s->B1) / s->lma +
-	       s->rho * s->a2 * s->eta_c * s->B2 *
-	       pow(vars.leaf_area, s->B2-1) / s->lma));
+  return 1.0/(// d m_l / d m_l
+	      1.0 +
+	      // d m_s / d m_l + d m_b / d m_l:
+	      (1.0 + s->b) *
+	      s->rho * s->eta_c * s->a1 / (s->theta * s->lma) *
+	      (s->B1 + 1.0) * pow(vars.leaf_area, s->B1) +
+	      // d m_h / d m_l:
+	      s->rho * s->eta_c * s->a2 / vars.mass_leaf *
+	      s->B2 * pow(vars.leaf_area, s->B2) +
+	      // d m_r / d m_l:
+	      s->a3 / s->lma);
 }
 
 // NOTE: static method

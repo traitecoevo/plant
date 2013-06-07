@@ -128,6 +128,18 @@ b \frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1+1)
 \frac{\alpha_3}{\phi}
 $$
 
+$$
+1 +
+% d m_s / d m_l + d m_b / d m_l
+(1 + b) \frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1+1)
+\left(\frac{m_l}{\phi}\right)^{\beta_1} +
+% d m_h / d m_l
+\frac{\rho\eta_c\alpha_2}{m_l}\beta_2
+\left(\frac{m_l}{\phi}\right)^{\beta_2} +
+% d m_r / d m_l
+\frac{\alpha_3}{\phi}
+$$
+
 Repeating this with the version in the R verison, working in terms of
 leaf area.
 $$
