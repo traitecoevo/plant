@@ -46,11 +46,13 @@ bool CohortDiscrete::died() {
   return n_individuals == 0;
 }
 
-int CohortDiscrete::r_n_individuals() const {
+int CohortDiscrete::get_n_individuals() const {
   return n_individuals;
 }
 
-void CohortDiscrete::r_set_n_individuals(int n) {
+void CohortDiscrete::set_n_individuals(int n) {
+  if (n < 1)
+    ::Rf_error("n must be positive");
   n_individuals = n;
 }
 

@@ -15,7 +15,7 @@ template <>
 void Species<CohortDiscrete>::add_seeds(int n) {
   if ( n > 0 ) {
     CohortDiscrete p = seed;
-    p.r_set_n_individuals(n); // TODO: Temporary
+    p.set_n_individuals(n);
     plants.push_back(p);
   }
 }
@@ -25,7 +25,7 @@ int Species<CohortDiscrete>::r_n_individuals() const {
   int n = 0;
   for ( plants_const_iterator it = plants.begin();
 	it != plants.end(); it++ )
-    n += it->r_n_individuals();
+    n += it->get_n_individuals();
   return n;
 }
 

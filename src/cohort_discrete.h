@@ -20,8 +20,8 @@ public:
   bool died();
 
   // * R interface
-  int r_n_individuals() const;
-  void r_set_n_individuals(int n);
+  int get_n_individuals() const;
+  void set_n_individuals(int n);
 
 private:
   int n_individuals;

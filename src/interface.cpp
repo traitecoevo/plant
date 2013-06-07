@@ -196,8 +196,8 @@ RCPP_MODULE(tree) {
     .constructor<model::Strategy>()
     .constructor<model::Strategy, int>()
     .property("n_individuals", 
-	      &model::CohortDiscrete::r_n_individuals,
-	      &model::CohortDiscrete::r_set_n_individuals)
+	      &model::CohortDiscrete::get_n_individuals,
+	      &model::CohortDiscrete::set_n_individuals)
     ;
 
   Rcpp::class_<model::PlantApprox>("PlantApprox")
