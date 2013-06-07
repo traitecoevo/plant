@@ -6,12 +6,12 @@
 
 namespace ode {
 
-OdeControl::OdeControl() {
-  eps_abs = 1e-8; // hopefully sane default
-  eps_rel = 1e-8; // hopefully sane default
-  a_y    = 1.0;   // tune off changes in y
-  a_dydt = 0.0;   // but not off changes in dydt
-  step_size_shrank_ = false;
+OdeControl::OdeControl()
+  : eps_abs(1e-8), // hopefully sane default
+    eps_rel(1e-8), // hopefully sane default
+    a_y(1.0),      // tune step size based on changes in y...
+    a_dydt(0.0),   // ...but not based on changes in dydt
+    step_size_shrank_(false) {
 }
 
 void OdeControl::set_eps_abs(double x) {
@@ -38,8 +38,6 @@ void OdeControl::set_a_dydt(double x) {
   a_dydt = x;
 }
 
-// This did used to signal decrease, increase or no change, but let's
-// find out how that worked before doing that.
 double OdeControl::adjust_step_size(size_t dim, unsigned int ord, 
 				    double step_size,
 				    const std::vector<double> &y,
@@ -49,14 +47,7 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
   const double S = 0.9;
 
   for ( size_t i = 0; i < dim; i++ ) {
-    // TODO: This is the same as that computed by errlevel(), but
-    // without the check?
-    //   const double D0 = errlevel(*y++, *dydt++, h);
-    // Could pull that out into an inline function, but I doubt the
-    // check costs that much.
-    const double D0 =
-      eps_rel * (a_y*fabs(y[i]) + a_dydt*fabs(step_size * dydt[i])) +
-      eps_abs;
+    const double D0 = errlevel(y[i], dydt[i], step_size);
     const double r = fabs(yerr[i]) / fabs(D0);
     rmax = std::max(r, rmax);
   }
@@ -68,7 +59,6 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
     if (r < 0.2)
       r = 0.2;
     step_size *= r;
-    // or std::max(0.2, S / pow(rmax, 1.0 / ord));
     step_size_shrank_ = true;
   } else if ( rmax < 0.5 ) {
     // increase step, no more than factor of 5
