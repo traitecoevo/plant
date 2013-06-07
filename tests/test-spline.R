@@ -11,6 +11,7 @@ yy <- target(xx)
 s <- new(Spline)
 expect_that(s$min, equals(Inf))
 expect_that(s$max, equals(-Inf))
+expect_that(s$eval(1), throws_error());
 
 s$init(xx, yy)
 expect_that(s$xy,

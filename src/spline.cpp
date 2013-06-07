@@ -38,12 +38,10 @@ Spline& Spline::operator=(Spline other) {
   return *this;
 }
 
-// Build a spline out of the vectors 'x' and 'y'.  
-// TODO: This might be nicer if we did this with iterators, or with a
-// template?
+// Build a spline out of the vectors 'x' and 'y'.
 void Spline::init(std::vector<double> x_, std::vector<double> y_) {
-  x      = x_;
-  y      = y_;
+  x = x_;
+  y = y_;
   init_self();
 }
 
@@ -72,8 +70,9 @@ void Spline::clear() {
 }
 
 // Compute the value of the spline at point `x=u`
-// TODO: this will crash if called before `init`.
 double Spline::eval(double u) const {
+  if (spline == NULL)
+    ::Rf_error("Spline not initialised -- cannot evaluate");
   return gsl_spline_eval(spline, u, acc);
 }
 
