@@ -13,10 +13,11 @@ void set_sane_gsl_error_handling();
 
 template <typename T>
 bool is_finite(T x) {
-  // TODO: Get the finite check in here!
-  // Rf_warning("Requesting finite check, but not yet implemented");
+  ::Rf_warning("Requesting finite check; not implemented for this type");
   return true;
 }
+template <>
+bool is_finite(double x);
 
 size_t check_bounds_r(size_t idx, size_t size);
 void check_length(size_t received, size_t expected);
