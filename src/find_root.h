@@ -10,8 +10,6 @@
 
 namespace util {
 
-// TODO: not totally clear what the best name is here for the class.
-// Should be a noun (as is Spline, Solver, etc).
 class RootFinder {
 public:
   RootFinder(double atol, double rtol, int max_iterations);
@@ -19,11 +17,11 @@ public:
   double root(DFunctor *f, double x_min, double x_max);
 
 private:
-  // Prevent copying and assignment
-  // RootFinder(const RootFinder other&);
-  // RootFinder& operator=(const RootFinder rhs=);
+  // Prevent copying and assignment to prevent issues with gsl
+  // pointers (see Spline for proper solution).
+  RootFinder(const RootFinder& other);
+  RootFinder& operator=(RootFinder other);
 
-  // TODO: Here, and elsewhere, these are abbreviations.
   double atol, rtol;
   int max_iterations;
   int iterations;

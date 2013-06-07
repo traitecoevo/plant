@@ -7,10 +7,6 @@
 
 namespace util {
 
-// What is the pattern for use?  It seems that setting this up with
-// some parameters (tolerances, bounds, etc) means we can then pass it
-// around.  Use it as 
-//    obj
 class Integrator {
 public:
   Integrator(double atol, double rtol, size_t max_iterations);
@@ -18,11 +14,11 @@ public:
   double integrate(DFunctor *f, double x_min, double x_max);
   
 private:
-  // Prevent copying by declaring these private with no definition.
-  //Integrator(const Integrator &other);
-  //Integrator& operator=(const Integrator &rhs);
+  // Prevent copying and assignment to prevent issues with gsl
+  // pointers (see Spline for proper solution).
+  Integrator(const Integrator &other);
+  Integrator& operator=(Integrator other);
 
-  // TODO: atol/rtol are used throughout, but are abbreviations.
   double atol, rtol;
   size_t max_iterations;
 
