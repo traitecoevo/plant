@@ -11,7 +11,7 @@ class MetacommunityBase : public ode::OdeTarget {
 public:
   virtual ~MetacommunityBase() {};
   virtual size_t size() const = 0;
-  virtual double r_time() const = 0;
+  virtual double get_time() const = 0;
   virtual void step() = 0;
   virtual void step_deterministic() = 0;
   virtual void step_stochastic() = 0;
@@ -37,7 +37,7 @@ public:
   
   // * Simple interrogation:
   size_t size() const;
-  double r_time() const;
+  double get_time() const;
 
   // * Main simulation control
   void step();
@@ -105,7 +105,7 @@ size_t Metacommunity<Individual>::size() const {
 }
 
 template <class Individual>
-double Metacommunity<Individual>::r_time() const {
+double Metacommunity<Individual>::get_time() const {
   return time;
 }
 
@@ -117,7 +117,7 @@ void Metacommunity<Individual>::step() {
 
 template <class Individual>
 void Metacommunity<Individual>::step_deterministic() {
-  ode_solver.set_state_from_problem(time);
+  ode_solver.set_state_from_problem();
   ode_solver.step();
   time = ode_solver.get_time();
 }

@@ -20,6 +20,7 @@ public:
   std::vector<int> births();
   void deaths();
   virtual size_t size() const = 0;
+  virtual double get_time() const = 0;
   virtual Rcpp::List r_height() const = 0;
   virtual void r_set_height(Rcpp::List x) = 0;
   virtual Rcpp::List r_get_species() const = 0;
@@ -28,7 +29,6 @@ public:
   virtual void r_add_seedling(size_t species_index) = 0;
   virtual void r_add_seedlings(std::vector<int> seeds) = 0;
   virtual void clear() = 0;
-  virtual double r_time() const = 0;
   virtual std::vector<int> r_n_individuals() const = 0;
   virtual Environment r_environment() const = 0;
   virtual void r_step() = 0;
@@ -67,6 +67,7 @@ public:
   ode::iter_const set_ode_values(double time, ode::iter_const it);
   ode::iter       ode_values(ode::iter it) const;
   ode::iter       ode_rates(ode::iter it)  const;
+  double get_time() const;
 
   // * R interface.
 
@@ -82,7 +83,6 @@ public:
   void r_add_seedlings(std::vector<int> seeds);
   void clear();
   // Other interrogation
-  double r_time() const {return environment.get_time();}
   std::vector<int> r_n_individuals() const;
   Environment r_environment() const;
   void r_step();
@@ -159,7 +159,7 @@ template <> void Patch<CohortTop>::r_step();
 
 template <class Individual>
 void Patch<Individual>::r_step_deterministic() {
-  ode_solver.set_state_from_problem(environment.get_time());
+  ode_solver.set_state_from_problem();
   ode_solver.step();
 }
 
@@ -175,7 +175,7 @@ void Patch<Individual>::r_step_stochastic() {
 
 template <class Individual>
 void Patch<Individual>::r_run_deterministic(double time) {
-  ode_solver.set_state_from_problem(environment.get_time());
+  ode_solver.set_state_from_problem();
   ode_solver.advance(time);
 }
 
@@ -267,6 +267,11 @@ ode::iter Patch<Individual>::ode_values(ode::iter it) const {
 template <class Individual>
 ode::iter Patch<Individual>::ode_rates(ode::iter it) const {
   return ode::ode_rates(species.begin(), species.end(), it);
+}
+
+template <class Individual>
+double Patch<Individual>::get_time() const {
+  return environment.get_time();
 }
 
 // * Private functions
