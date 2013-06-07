@@ -865,6 +865,38 @@ This has ended up being a very simple interface to GSL routines, and I
 think that I'll use this as a model for the other utilities where
 possible.
 
+The remaining unexposed control parameter is the quadrature rule.  At
+the moment to guard against singularities I'm using `qags` (which is
+the same as Rmath).
+
+If we don't have a singularity, we can use a potentially faster
+algorithm:
+
+```
+gsl_integration_qag(&target_data, x_min, x_max,
+                    atol, rtol, max_iterations,
+                    GSL_INTEG_GAUSS15, workspace,
+                    &result, &last_error);
+```
+
+Within this, we can tweak the rules further:
+```
+  GSL_INTEG_GAUSS15
+  GSL_INTEG_GAUSS21
+  GSL_INTEG_GAUSS31
+  GSL_INTEG_GAUSS41
+  GSL_INTEG_GAUSS51
+  GSL_INTEG_GAUSS61
+```
+corresponding to the 15, 21, 31, 41, 51 and 61 point
+Gauss-Kronrod rules.  The higher-order rules give better accuracy
+for smooth functions, while lower-order rules save time when the
+function contains local difficulties, such as discontinuities.
+
+However, a quick substitution suggests that this is not a major time
+sink (but didn't do the actual profiling that would reveal this for
+sure).
+
 ### Root finder
 
 This is needed only for the initial seed size calculation, which

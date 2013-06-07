@@ -14,46 +14,16 @@ Integrator::~Integrator() {
   gsl_integration_workspace_free(workspace);
 }
 
-// TODO: setting `key` to different values gives different integration
-// rules:
-//   GSL_INTEG_GAUSS15
-//   GSL_INTEG_GAUSS21
-//   GSL_INTEG_GAUSS31
-//   GSL_INTEG_GAUSS41
-//   GSL_INTEG_GAUSS51
-//   GSL_INTEG_GAUSS61
-// corresponding to the 15, 21, 31, 41, 51 and 61 point
-// Gauss-Kronrod rules.  The higher-order rules give better accuracy
-// for smooth functions, while lower-order rules save time when the
-// function contains local difficulties, such as discontinuities.
-// 
-// Might be worth tweaking this.  It can probably be sorted out at the
-// construction phase with the other control parameters.  It might be
-// possible to do some `Lookup`-like control for use from within R,
-// but only if it is also straightforward to change from C++.
+// NOTE: We do not do anything with the return status, as GSL will
+// already throw an error for us if the integration fails.  It does
+// not appear to be possible to report the number of iterations used.
 double Integrator::integrate(DFunctor *f, double x_min, double x_max) {
   target_data.params = f;
-  double result;
-
-  // Not sure if we have a singularity, but we'll want to swich
-  // between these two algorithms if we do.
-  // gsl_integration_qag(&target_data, x_min, x_max, 
-  // 		      atol, rtol, max_iterations,
-  // 		      GSL_INTEG_GAUSS15, workspace, 
-  // 		      &result, &last_error);
-  // In Rmath, we were using Rdqags, which should be the same
-  // algorithm as qags.
-  // 
-  // However, we generally know the points in advance for the problems
-  // that I've been having -- they are one of the end points.
-
+  double result = 0.0;
   gsl_integration_qags(&target_data, x_min, x_max, 
 		       atol, rtol, max_iterations,
 		       workspace, 
 		       &result, &last_error);
-  // We do not do anything with the return status, as GSL will already
-  // throw an error for us if the integration fails.  It does not
-  // appear to be possible to report the number of iterations used.
   return result;
 }
 
