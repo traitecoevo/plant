@@ -33,12 +33,11 @@ double RootFinder::root(DFunctor *f,
     x_max = gsl_root_fsolver_x_upper(solver);
     status = gsl_root_test_interval(x_min, x_max, atol, rtol);
   } while (status == GSL_CONTINUE && iterations < max_iterations);
-
   last_error = x_max - x_min;
 
-  // TODO: Detect false convergence and throw.
-  // Rprintf("Converged with status %d in %d iterations (err: %2.5f)\n", 
-  // 	  status, iterations, last_error);
+  if (status != GSL_SUCCESS)
+    ::Rf_error("RootFinder failure: status %d in %d iterations (err: %2.5f)\n",
+	       status, iterations, last_error);
 
   return r;
 }

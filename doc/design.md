@@ -871,6 +871,9 @@ This is needed only for the initial seed size calculation, which
 itself is carried out only at the beginning of a simulation.  So
 doesn't need to be anything too crazy.
 
+TODO: test case where root finding fails.  Perhaps on function that
+does not contain root, or which convergence is too slow?
+
 # Filenames and conventions
 
 ## Variable naming
