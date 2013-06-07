@@ -484,6 +484,8 @@ void Patch<Individual>::clear() {
   ode_solver.reset();
 }
 
+SEXP patch(Rcpp::CppClass individual, Parameters p);
+
 }
 
 // NOTE: I've not chased up why, but I apparently need to use

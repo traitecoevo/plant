@@ -265,6 +265,8 @@ double Species<Individual>::germination_probability(const Environment& environme
 template <class Individual>
 void Species<Individual>::initialise() {}
 
+SEXP species(Rcpp::CppClass individual, Strategy s);
+
 }
 
 // NOTE: I've not chased up why, but I apparently need to use

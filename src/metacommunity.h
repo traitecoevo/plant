@@ -273,6 +273,11 @@ void Metacommunity<Individual>::initialise() {
   patches.resize(parameters->n_patches, p);
 }
 
+SEXP metacommunity(Rcpp::CppClass individual, Parameters p);
+
 }
+
+RCPP_EXPOSED_CLASS_NODECL(model::Metacommunity<model::Plant>)
+RCPP_EXPOSED_CLASS_NODECL(model::Metacommunity<model::CohortDiscrete>)
 
 #endif

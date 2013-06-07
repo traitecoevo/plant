@@ -55,6 +55,10 @@ if ( !exists("Spline") ) {
   MetacommunityC <- tree_module$MetacommunityC
 
   EBT <- tree_module$EBT
+
+  patch <- tree_module$patch
+  species <- tree_module$species
+  metacommunity <- tree_module$metacommunity
 }
 
 source("../R/falster.R", chdir=TRUE)

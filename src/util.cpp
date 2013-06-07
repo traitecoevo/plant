@@ -92,6 +92,19 @@ std::vector< std::vector<int> > from_rcpp_matrix(Rcpp::IntegerMatrix x) {
   return ret;
 }
 
+// Remove the part saying "Rcpp_" at the beginning so that "Foo" and
+// "Rcpp_Foo" end up with the same value.
+std::string rcpp_class_demangle(std::string x) {
+  size_t pos = x.find("Rcpp_");
+  if (pos != std::string::npos) {
+    if (pos != 0)
+      ::Rf_error("Cannot determine Rcpp class name");
+    else
+      x = x.substr(5);
+  }
+  return x;
+}
+
 namespace test {
 std::vector<double> test_sum_double(std::vector<double> a,
 				    std::vector<double> b) {

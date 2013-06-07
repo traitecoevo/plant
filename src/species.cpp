@@ -74,4 +74,23 @@ void Species<CohortTop>::compute_vars_phys(const Environment& environment) {
   seed.compute_initial_conditions(environment);
 }
 
+SEXP species(Rcpp::CppClass individual, Strategy s) {
+  std::string individual_type =
+    util::rcpp_class_demangle(Rcpp::as<std::string>(individual));
+  SEXP ret = R_NilValue;
+  if (individual_type == "Plant") {
+    Species<Plant> obj(s);
+    ret = Rcpp::wrap(obj);
+  } else if (individual_type == "CohortDiscrete") {
+    Species<CohortDiscrete> obj(s);
+    ret = Rcpp::wrap(obj);
+  } else if (individual_type == "CohortTop") {
+    Species<CohortTop> obj(s);
+    ret = Rcpp::wrap(obj);
+  } else {
+    ::Rf_error("Cannot make Species of %s", individual_type.c_str());
+  }
+  return ret;
+}
+
 }

@@ -165,6 +165,8 @@ std::vector<T> sum(std::vector<T> a, const std::vector<T> b) {
   return c;
 }
 
+std::string rcpp_class_demangle(std::string x);
+
 namespace test {
 std::vector<double> test_sum_double(std::vector<double> a,
 				    std::vector<double> b);
