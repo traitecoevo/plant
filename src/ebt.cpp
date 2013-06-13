@@ -32,7 +32,7 @@ double EBT::get_time() const {
 // the solver.  It might be better to add a set_time method within
 // ode::Solver, and then here do explicitly ode_solver.set_time(0)?
 void EBT::reset() {
-  patch.clear();
+  patch.reset();
   schedule.reset();
   ode_solver.reset();
 }

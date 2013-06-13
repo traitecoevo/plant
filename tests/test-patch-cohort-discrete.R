@@ -31,8 +31,8 @@ expect_that(class(plants.p[[1]]),
             equals("Rcpp_Plant", check.attr=FALSE))
 
 ## Then clear both 
-patch.p$clear()
-patch.c$clear()
+patch.p$reset()
+patch.c$reset()
 
 ## Add a *pair* of seeds.
 patch.p$add_seedlings(2)
@@ -70,8 +70,8 @@ expect_that(patch.p$n_individuals, equals(5))
 expect_that(patch.c$n_individuals, equals(5))
 
 ## Clean up and start again.
-patch.p$clear()
-patch.c$clear()
+patch.p$reset()
+patch.c$reset()
 patch.p$add_seedlings(1)
 patch.c$add_seedlings(1)
 

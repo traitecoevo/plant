@@ -121,7 +121,7 @@ expect_that(t(obj$run(tt, y)),
 
 
 ## Check a single individual added via add_seedling:
-patch$clear()
+patch$reset()
 expect_that(patch$n_individuals, equals(0))
 expect_that(patch$add_seedling(patch$size() + 1), throws_error())
 expect_that(patch$add_seedling(0), throws_error())
@@ -130,7 +130,7 @@ expect_that(patch$n_individuals, equals(1))
 
 ## Reset so that we are starting from the "correct" starting point for
 ## a single individual.
-patch$clear()
+patch$reset()
 patch$add_seedlings(1)
 
 set.seed(1)

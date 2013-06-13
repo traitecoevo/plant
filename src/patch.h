@@ -28,7 +28,7 @@ public:
   virtual void r_add_seeds(std::vector<int> seeds) = 0;
   virtual void r_add_seedling(size_t species_index) = 0;
   virtual void r_add_seedlings(std::vector<int> seeds) = 0;
-  virtual void clear() = 0;
+  virtual void reset() = 0;
   virtual std::vector<int> r_n_individuals() const = 0;
   virtual Environment r_environment() const = 0;
   virtual void r_step() = 0;
@@ -81,7 +81,7 @@ public:
   void r_add_seeds(std::vector<int> seeds);
   void r_add_seedling(size_t species_index);
   void r_add_seedlings(std::vector<int> seeds);
-  void clear();
+  void reset();
   // Other interrogation
   std::vector<int> r_n_individuals() const;
   Environment r_environment() const;
@@ -271,17 +271,12 @@ double Patch<Individual>::get_time() const {
 // * Private functions
 template <class Individual>
 void Patch<Individual>::initialise() {
-  species.clear();
-
-  // This feels really ugly.
-  for ( std::vector<Strategy>::iterator 
-	  it = parameters->strategies.begin();
-	it != parameters->strategies.end(); it++ ) {
-    Species<Individual> s(&(*it)); // (iterator -> object -> pointer)
+  species.clear(); // TODO: should not be needed?
+  for (size_t i = 0; i < parameters->strategies.size(); i++) {
+    Species<Individual> s(&parameters->strategies[i]);
     species.push_back(s);
   }
-
-  compute_light_environment();
+  reset();
 }
 
 // Number of species
@@ -447,7 +442,6 @@ void Patch<Individual>::r_set_seed_rain(SeedRain x) {
     ::Rf_error("Setting seed rain on already-initialsed Patch ill-defined");
   environment.set_seed_rain(x);
   initialise();
-  compute_vars_phys();
 }
 
 template <class Individual>
@@ -476,12 +470,18 @@ std::vector<int> Patch<Individual>::r_n_individuals() const {
 }
 
 template <class Individual>
-void Patch<Individual>::clear() {
-  for ( species_iterator sp = species.begin();
-	sp != species.end(); sp++ )
+void Patch<Individual>::reset() {
+  for (species_iterator sp = species.begin();
+       sp != species.end(); sp++)
     sp->clear();
   environment.clear();
+  // TODO: This should only be done if we're running the patch as a
+  // standalone thing?  Perhaps have something else run the Patch from
+  // the R side and just drop the ode_solver member from Patch
+  // entirely.
   ode_solver.reset();
+  compute_light_environment();
+  compute_vars_phys();
 }
 
 SEXP patch(Rcpp::CppClass individual, Parameters p);

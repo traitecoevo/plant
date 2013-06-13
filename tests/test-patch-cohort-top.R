@@ -20,7 +20,6 @@ test_that("Initial patch strcture is sensible", {
 })
 
 ## NOTE: This actually causes the initial conditions to be computed.
-## TODO: Push compute_vars_phys() inside of initialse() within Patch.
 r <- pi/2
 patch.c$seed_rain <- seed_rain(r)
 expect_that(patch.c$seed_rain$seed_rain,
@@ -68,7 +67,7 @@ patch.c$add_seedling(1)
 expect_that(patch.c$ode_size,
             equals(cmp$ode_size * patch.c$n_individuals))
 
-patch.c$clear()
+patch.c$reset()
 test_that("clear was successful", {
   expect_that(patch.c$n_individuals, equals(0))
   expect_that(patch.c$ode_size, equals(0))
@@ -93,10 +92,7 @@ if (interactive()) {
   plot(patch.c$environment$light_environment$xy, type="l")
 }
 
-patch.c$clear()
-## TODO: This is currently masking a bug (uncomment to reveal:
-## difference is in wrong direction).
-patch.c$seed_rain <- patch.c$seed_rain
+patch.c$reset()
 patch.c$add_seedling(1)
 tt <- seq(0, 25, length=26)
 hh <- patch.c$height[[1]]
@@ -119,36 +115,6 @@ test_that("run_deterministic OK at end of sequence", {
   expect_that(patch.c$run_deterministic(tt[[length(tt)]] - 1e-8),
               throws_error())
 })
-
-
-if (FALSE) {
-  ## Add a cohort every '1'.
-  dt <- 1
-  t.next <- 1
-  patch.c$clear()
-  patch.c$add_seedling(1)
-  t <- patch.c$time
-  h <- list(patch.c$height[[1]])
-
-  ## This is quite a bit slower than Daniel's version!  Probably much of
-  ## that is coming from things like the adaptive light refinement and
-  ## he integration for computing photosynthesis.
-  while (patch.c$time < 20) {
-    patch.c$step()
-    if (patch.c$time > t.next) {
-      patch.c$add_seedling(1)
-      t.next <- t.next + dt
-    }
-    t <- c(t, patch.c$time)
-    h <- c(h, list(patch.c$height[[1]]))
-  }
-
-  n <- length(h[[length(h)]])
-  h <- t(sapply(h, function(x) c(x, rep(NA, n-length(x)))))
-  matplot(t, h, type="l", col="black", lty=1)
-}
-
-
 
 rm(patch.c)
 gc()

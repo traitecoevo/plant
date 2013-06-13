@@ -307,7 +307,7 @@ RCPP_MODULE(tree) {
     .property("height",           &model::PatchBase::r_height,
 	      &model::PatchBase::r_set_height)
     .property("n_individuals",    &model::PatchBase::r_n_individuals)
-    .method("clear",              &model::PatchBase::clear)
+    .method("reset",              &model::PatchBase::reset)
     .method("step",               &model::PatchBase::r_step)
     .method("step_deterministic", &model::PatchBase::r_step_deterministic)
     .method("step_stochastic",    &model::PatchBase::r_step_stochastic)

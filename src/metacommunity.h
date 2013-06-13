@@ -250,7 +250,7 @@ void Metacommunity<Individual>::clear() {
   time = 0.0;
   for ( patch_iterator patch = patches.begin();
 	patch != patches.end(); patch++ )
-    patch->clear();
+    patch->reset();
   ode_solver.reset();
 }
 
