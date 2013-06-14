@@ -1,5 +1,10 @@
 ## Emacs please make this a -*- mode: Makefile; -*-
 
+## For a package, just do this:
+## PKG_LIBS = `$(R_HOME)/bin/Rscript -e "Rcpp:::LdFlags()"`
+## And drop the RCPP_CPPFLAGS line.
+
+
 RCPP_CPPFLAGS=$(shell R --slave -e 'Rcpp:::CxxFlags()')
 RCPP_LDFLAGS=$(shell R --slave -e 'Rcpp:::LdFlags()')
 PKG_CPPFLAGS=$(RCPP_CPPFLAGS) -Wall -ansi -pedantic

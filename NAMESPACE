@@ -1,0 +1,5 @@
+import(Rcpp)
+useDynLib(tree)
+
+## For now, just dump everything.  We'll sort this later.
+exportPattern("^[[:alpha:]]+")
