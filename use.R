@@ -1,6 +1,4 @@
-## Soon this should be tidied up as we move to a package or
-## something.
-source("tests/helper-tree.R", chdir=TRUE)
+library(tree)
 
 ## Start by simulating just one patch with one species and seed it
 ## with one individual.
@@ -12,24 +10,24 @@ p$set_parameters(list(patch_area=100.0))
 ## patch <- new(Patch, p)
 patch <- new(PatchC, p)
 
-run <- function(patch, t.max, n.max, clear=TRUE) {
-  if (clear) {
-    patch$clear()
+run <- function(patch, t.max, n.max, reset=TRUE) {
+  if (reset) {
+    patch$reset()
     patch$add_seedlings(1)
   }
 
   tt <- numeric(0)
-  mm <- list()
+  hh <- list()
 
-  while (patch$age < t.max && patch$n_individuals < n.max) {
+  while (patch$time < t.max && patch$n_individuals < n.max) {
     patch$step()
-    tt <- c(tt, patch$age)
-    mm <- c(mm, patch$mass_leaf)
+    tt <- c(tt, patch$time)
+    hh <- c(hh, patch$height)
     cat(sprintf("%2.5f: %d / %d\n",
-                patch$age, patch$ode_size/3, patch$n_individuals))
+                patch$time, patch$ode_size/3, patch$n_individuals))
   }
 
-  list(t=tt, n=sapply(mm, length), m=mm)
+  list(t=tt, n=sapply(hh, length), h=hh)
 }
 
 ## This basically won't complete with 80,000 individuals using a plain
@@ -59,5 +57,5 @@ set.seed(1)
 res <- run(patch, 40, 150000)
 
 plot(res$t, res$n, type="s")
-plot(rep(res$t, res$n), unlist(res$m), log="y", pch=".",
+plot(rep(res$t, res$n), unlist(res$h), log="y", pch=".",
      xlab="", ylab="Leaf mass")
