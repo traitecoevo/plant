@@ -19,7 +19,7 @@ make.disturbance <- function(site.mean) {
     p0 * Pi(age)
   weight <- function(time.start, time)
     Pi(time)/ Pi(time.start)
-  
+
   list(site.mean=site.mean, psi=psi, lam=lam, p0=p0,
        rate=rate, freq=freq, Pi=Pi, weight=weight)
 }

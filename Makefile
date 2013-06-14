@@ -7,4 +7,4 @@ clean:
 	make -C src clean
 
 test: all
-	make -C tests test
+	make -C inst/tests test

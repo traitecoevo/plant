@@ -2,7 +2,7 @@ source("helper-tree.R")
 
 context("Plant")
 
-cmp <- make.falster()
+cmp <- make.reference()
 pars.cmp <- cmp$get_parameters()
 
 s <- new(Strategy)
@@ -195,7 +195,7 @@ rm(p)
 gc()
 
 ## Test copy and assignment on standalone and non-standalone plants
-expect_that(tree_module$test_plant(s, FALSE, FALSE), is_true())
-expect_that(tree_module$test_plant(s, TRUE,  FALSE), is_true())
-expect_that(tree_module$test_plant(s, FALSE, TRUE),  is_true())
-expect_that(tree_module$test_plant(s, TRUE,  TRUE),  is_true())
+expect_that(test_plant(s, FALSE, FALSE), is_true())
+expect_that(test_plant(s, TRUE,  FALSE), is_true())
+expect_that(test_plant(s, FALSE, TRUE),  is_true())
+expect_that(test_plant(s, TRUE,  TRUE),  is_true())

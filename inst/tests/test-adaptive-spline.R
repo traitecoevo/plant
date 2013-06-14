@@ -4,7 +4,7 @@ context("AdaptiveSpline")
 
 target <- function(x) sin(2*x)
 r <- c(0, 2*pi)
-a <- tree_module$test_adaptive_spline(target, new.env(), r[1], r[2])
+a <- test_adaptive_spline(target, new.env(), r[1], r[2])
 
 expect_that(nrow(a$xy), equals(241))
 

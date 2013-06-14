@@ -9,7 +9,7 @@ xx <- c(x.min, 2, x.max)
 f <- with(as.list(pars), function(x) a*x*x + b*x + c)
 
 ## Functor evaluates correctly?
-expect_that(tree_module$test_functor(xx, pars),
+expect_that(test_functor(xx, pars),
             equals(f(xx)))
 
 ## Find root correctly?
@@ -22,17 +22,17 @@ f.root <- tmp[tmp > x.min & tmp < x.max]
 ## quick sanity check.
 expect_that(length(f.root), equals(1))
 
-expect_that(tree_module$test_find_root(pars, x.min, x.max),
+expect_that(test_find_root(pars, x.min, x.max),
             equals(f.root, tolerance=1e-5))
 
 ## Root finding to particular value
 value <- 10.0
 f.value <- uniroot(function(x) f(x) - value, c(x.min, x.max))$root
-expect_that(tree_module$test_find_value(pars, value, x.min, x.max),
+expect_that(test_find_value(pars, value, x.min, x.max),
             equals(f.value, tolerance=1e-5))
 
 ## What happens if we're out of range?
-expect_that(tree_module$test_find_value(pars, value, x.min, x.min+1),
+expect_that(test_find_value(pars, value, x.min, x.min+1),
             throws_error())
 
 ## Integration works?
@@ -42,21 +42,21 @@ expect_that(tree_module$test_find_value(pars, value, x.min, x.min+1),
 f.int <- diff(with(as.list(pars), function(x)
                    a/3*x^3 + b/2*x^2 + c*x)(c(x.min, x.max)))
 
-expect_that(tree_module$test_integrator(pars, 0, 5),
+expect_that(test_integrator(pars, 0, 5),
             equals(f.int))
 
 set.seed(1)
 a <- runif(10)
 b <- runif(length(a))
-expect_that(tree_module$test_sum_double(a, b), is_identical_to(a + b))
+expect_that(test_sum_double(a, b), is_identical_to(a + b))
 
 a <- as.integer(a * 10)
 b <- as.integer(b * 10)
-expect_that(tree_module$test_sum_int(a, b), is_identical_to(a + b))
+expect_that(test_sum_int(a, b), is_identical_to(a + b))
 
-expect_that(tree_module$test_to_rcpp_matrix(list(a, b)),
+expect_that(test_to_rcpp_matrix(list(a, b)),
             is_identical_to(cbind(a, b, deparse.level=0)))
-expect_that(tree_module$test_from_rcpp_matrix(cbind(a, b)),
+expect_that(test_from_rcpp_matrix(cbind(a, b)),
             is_identical_to(list(a, b)))
 
 ## Test the simple finite differencing gradient function.
@@ -67,21 +67,21 @@ gradient.fd.centre <- function(f, x, dx)
 
 dx <- 0.001
 x <- 1
-expect_that(tree_module$test_gradient(x, dx, FALSE, pars),
+expect_that(test_gradient(x, dx, FALSE, pars),
             is_identical_to(gradient.fd.forward(f, x, dx)))
-expect_that(tree_module$test_gradient(x, dx, TRUE, pars),
+expect_that(test_gradient(x, dx, TRUE, pars),
             is_identical_to(gradient.fd.centre(f, x, dx)))
 
 library(numDeriv)
 method.args <- list(d=1e-6, eps=1e-6)
-expect_that(tree_module$test_gradient_richardson(x, 1e-6, 4L, pars),
+expect_that(test_gradient_richardson(x, 1e-6, 4L, pars),
             is_identical_to(grad(f, x, method.args=method.args)))
 
 n <- 20
 set.seed(1)
 xx <- sort(runif(n))
 yy <- runif(n)
-expect_that(tree_module$trapezium(xx, yy),
+expect_that(trapezium(xx, yy),
             equals(sum((xx[-1] - xx[-n]) * (yy[-1] + yy[-n])) / 2))
-expect_that(tree_module$trapezium(c(1, 1), c(1, 2)),
+expect_that(trapezium(c(1, 1), c(1, 2)),
             is_identical_to(0.0))

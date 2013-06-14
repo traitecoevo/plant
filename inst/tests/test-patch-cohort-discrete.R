@@ -30,7 +30,7 @@ expect_that(class(patch.c[[1]][[1]]),
 expect_that(class(plants.p[[1]]),
             equals("Rcpp_Plant", check.attr=FALSE))
 
-## Then clear both 
+## Then clear both
 patch.p$reset()
 patch.c$reset()
 

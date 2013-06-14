@@ -38,7 +38,7 @@ x <- c(cmp$height, sp$height)
 y <- c(cmp$leaf_area_above(h), sp[[1]]$leaf_area_above(h))
 
 expect_that(sp$leaf_area_above(h),
-            is_identical_to(tree_module$trapezium(x, y)))
+            is_identical_to(trapezium(x, y)))
 
 
 rm(sp)

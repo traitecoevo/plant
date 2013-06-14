@@ -68,7 +68,7 @@ expect_that(cohort2$vars_phys, is_identical_to(plant$vars_phys))
 derivs <- function(t, y, pars) {
   plant <- pars$plant
   light.env <- pars$light.env
-  
+
   plant$set_ode_values(t, y)
   plant$compute_vars_phys(light.env)
   plant$ode_rates

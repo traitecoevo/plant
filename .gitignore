@@ -1,7 +1,7 @@
 src/tree.so.dSYM
 
-tests/valgrind.txt
-tests/valgrind.supp
+inst/tests/valgrind.txt
+inst/tests/valgrind.supp
 
 doc/EBT.pdf
 doc/details.pdf

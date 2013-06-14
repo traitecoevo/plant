@@ -57,4 +57,3 @@ expect_that(sp$germination_probability(env),
 
 rm(sp)
 gc()
-
