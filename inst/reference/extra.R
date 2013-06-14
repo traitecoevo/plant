@@ -120,7 +120,7 @@ p.c_s0 <- 0.1
 
 mortality.rate <- function(traits, h, env) {
   p <- net.production(traits, h, env)
-  a <- LeafArea(h)  
+  a <- LeafArea(h)
   p.c_d0 * exp(-p.c_d1 * traits$rho) +
     p.c_d2 * exp(-p.c_d3 * p / a)
 }
