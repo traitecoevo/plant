@@ -5,11 +5,17 @@ Date: 2013-06-14
 Author: Richard G. FitzJohn and Daniel S. Falster
 Maintainer: Richard G. FitzJohn <rich.fitzjohn@gmail.com>
 Description: Implements EBT (Falster et al. 2010) and an individual
-  based model.
+    based model.
 License: GPL (>=2)
-Depends: methods
-Imports: Rcpp (>= 0.10.3)
+Depends:
+    methods
+Imports:
+    Rcpp (>= 0.10.3)
 SystemRequirements: gsl (>= 1.12)
-Suggests: testthat
+Suggests:
+    testthat
 LinkingTo: Rcpp
 RcppModules: tree
+Collate:
+    'reference.R'
+    'zzz.R'
