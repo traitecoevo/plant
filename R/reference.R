@@ -8,7 +8,9 @@
 ##' @title Reference Growth Model
 ##' @return An object with a number of methods (accessed with
 ##' \code{$}).  These will hopefully be documented at some point.
-##' @author Daniel S. Falster (extra code and porting by Rich FitzJohn)
+##' @author Daniel S. Falster (extra code and porting by Rich
+##' FitzJohn)
+##' @export
 make.reference <- function() {
   path <- system.file("reference", package="tree")
 

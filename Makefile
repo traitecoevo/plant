@@ -8,3 +8,7 @@ clean:
 
 test: all
 	make -C inst/tests test
+
+document: all
+	@mkdir -p man
+	Rscript -e "library(methods); devtools::document()"
