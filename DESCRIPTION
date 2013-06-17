@@ -7,7 +7,9 @@ Maintainer: Richard G. FitzJohn <rich.fitzjohn@gmail.com>
 Description: Implements EBT (Falster et al. 2010) and an individual
   based model.
 License: GPL (>=2)
-Depends: methods, Rcpp (>= 0.10.3)
+Depends: methods
+Imports: Rcpp (>= 0.10.3)
+SystemRequirements: gsl (>= 1.12)
 Suggests: testthat
 LinkingTo: Rcpp
 RcppModules: tree
