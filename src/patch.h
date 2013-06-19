@@ -140,7 +140,7 @@ template <class Individual>
 Patch<Individual>::Patch(Parameters *p)
   : parameters(p),
     environment(*parameters.get()),
-    ode_solver(this) {
+    ode_solver(this, parameters->control.ode_control) {
   initialise();
 }
 

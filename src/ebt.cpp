@@ -4,13 +4,13 @@ namespace model {
 
 EBT::EBT(Parameters p)
   : patch(p),
-    ode_solver(&patch),
+    ode_solver(&patch, p.control.ode_control),
     schedule(patch.size()) {
 }
 
 EBT::EBT(Parameters *p)
   : patch(p),
-    ode_solver(&patch),
+    ode_solver(&patch, p->control.ode_control),
     schedule(patch.size()) {
 }
 

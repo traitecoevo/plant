@@ -87,7 +87,7 @@ template <class Individual>
 Metacommunity<Individual>::Metacommunity(Parameters p)
   : parameters(p),
     time(0.0),
-    ode_solver(this) {
+    ode_solver(this, parameters->control.ode_control) {
   initialise();
 }
 
@@ -95,7 +95,7 @@ template <class Individual>
 Metacommunity<Individual>::Metacommunity(Parameters *p)
   : parameters(p),
     time(0.0),
-    ode_solver(this) {
+    ode_solver(this, parameters->control.ode_control) {
   initialise();
 }
 
