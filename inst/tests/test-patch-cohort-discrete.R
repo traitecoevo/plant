@@ -166,9 +166,9 @@ if (FALSE) {
 ## levels that require quite a large number of standard deviations.
 ## Probably we should be looking at predicted intervals, instead.
 expect_that(abs(pars[1,"Estimate"] - 0) / pars[1, "Std. Error"],
-            is_less_than(6))
+            is_less_than(10))
 expect_that(abs(pars[2,"Estimate"] - 1) / pars[2, "Std. Error"],
-            is_less_than(6))
+            is_less_than(10))
 
 ## This plots the results, which are interesting enough now.
 if (FALSE) {

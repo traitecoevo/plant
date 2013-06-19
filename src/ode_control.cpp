@@ -50,6 +50,8 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
       r = 0.2;
     step_size *= r;
     last_step_size_shrank = true;
+    if (step_size < step_size_min)
+      step_size = step_size_min;
   } else if ( rmax < 0.5 ) {
     // increase step, no more than factor of 5
     double r = S / pow (rmax, 1.0 / (ord + 1.0));
@@ -58,6 +60,8 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
     if ( r < 1.0 ) // Don't allow any decrease caused by S<1
       r = 1.0;
     step_size *= r;
+    if (step_size > step_size_max)
+      step_size = step_size_max;
     last_step_size_shrank = false;
   } else { 
     // otherwise no change to the size
