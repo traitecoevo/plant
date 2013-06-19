@@ -38,7 +38,14 @@ public:
   double ode_tol_y;
   double ode_tol_dydt;
 
+  ode::OdeControl ode_control;
+
 private:
+  void do_build_lookup();
+  void reset();
+  void set_parameters_post_hook();
+  ode::OdeControl make_ode_control();
+
   double _plant_assimilation_over_distribution;
   double _plant_assimilation_iterations;
 
@@ -49,13 +56,7 @@ private:
 
   double _environment_light_nbase;
   double _environment_light_max_depth;
-
-  void do_build_lookup();
-  void reset();
-  void set_parameters_post_hook();
 };
-
-ode::OdeControl make_ode_control(const Control &control);
 
 }
 

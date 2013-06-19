@@ -120,7 +120,6 @@ private:
   Environment environment;
 
   std::vector< Species<Individual> > species;
-  ode::OdeControl ode_control;
   ode::Solver<Patch> ode_solver;
 
   typedef typename std::vector< Species<Individual> >::iterator 
@@ -133,8 +132,7 @@ template <class Individual>
 Patch<Individual>::Patch(Parameters p)
   : parameters(p),
     environment(*parameters.get()),
-    ode_control(make_ode_control(parameters->control)),
-    ode_solver(this, ode_control) {
+    ode_solver(this, parameters->control.ode_control) {
   initialise();
 }
 
