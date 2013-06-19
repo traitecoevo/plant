@@ -30,6 +30,13 @@ public:
   int    environment_light_nbase;
   int    environment_light_max_depth;
 
+  double ode_step_size_min;
+  double ode_step_size_max;
+  double ode_tol_rel;
+  double ode_tol_abs;
+  double ode_tol_y;
+  double ode_tol_dydt;
+
 private:
   double _plant_assimilation_over_distribution;
   double _plant_assimilation_iterations;

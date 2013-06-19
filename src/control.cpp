@@ -27,6 +27,14 @@ void Control::reset() {
   environment_light_tol = 1e-6;
   _environment_light_nbase = static_cast<double>(17);
   _environment_light_max_depth = static_cast<double>(16);
+
+  ode_step_size_min = 1e-6;
+  ode_step_size_max = 1e-1;
+  ode_tol_rel       = 1e-6;
+  ode_tol_abs       = 1e-6;
+  ode_tol_y         = 1.0;
+  ode_tol_dydt      = 0.0;
+  // TODO: Also no_steps_max?
 }
 
 void Control::do_build_lookup() {
@@ -55,6 +63,19 @@ void Control::do_build_lookup() {
     &_environment_light_nbase;
   lookup_table["environment_light_max_depth"] =
     &_environment_light_max_depth;
+
+  lookup_table["ode_step_size_min"] =
+    &ode_step_size_min;
+  lookup_table["ode_step_size_max"] =
+    &ode_step_size_max;
+  lookup_table["ode_tol_rel"] =
+    &ode_tol_rel;
+  lookup_table["ode_tol_abs"] =
+    &ode_tol_abs;
+  lookup_table["ode_tol_y"] =
+    &ode_tol_y;
+  lookup_table["ode_tol_dydt"] =
+    &ode_tol_dydt;
 }
 
 void Control::set_parameters_post_hook() {
