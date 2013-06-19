@@ -7,35 +7,25 @@
 namespace ode {
 
 OdeControl::OdeControl()
-  : eps_abs(1e-8), // hopefully sane default
-    eps_rel(1e-8), // hopefully sane default
+  : tol_abs(1e-8), // hopefully sane default
+    tol_rel(1e-8), // hopefully sane default
     a_y(1.0),      // tune step size based on changes in y...
     a_dydt(0.0),   // ...but not based on changes in dydt
+    step_size_min(1e-8), // hopefully sane default
+    step_size_max(1),    // should be inf?
     last_step_size_shrank(false) {
 }
 
-void OdeControl::set_eps_abs(double x) {
-  if ( x < 0 )
-    Rf_error("eps_abs is negative");
-  eps_abs = x;
-}
-
-void OdeControl::set_eps_rel(double x) {
-  if ( x < 0 )
-    Rf_error("eps_rel is negative");
-  eps_rel = x;
-}
-
-void OdeControl::set_a_y(double x) {
-  if ( x < 0 )
-    Rf_error("a_y is negative");
-  a_y = x;
-}
-
-void OdeControl::set_a_dydt(double x) {
-  if ( x < 0 )
-    Rf_error("a_dydt is negative");
-  a_dydt = x;
+OdeControl::OdeControl(double tol_abs, double tol_rel,
+		       double a_y, double a_dydt,
+		       double step_size_min, double step_size_max)
+  : tol_abs(tol_abs),
+    tol_rel(tol_rel),
+    a_y(a_y),
+    a_dydt(a_dydt),
+    step_size_min(step_size_min),
+    step_size_max(step_size_max),
+    last_step_size_shrank(false) {
 }
 
 double OdeControl::adjust_step_size(size_t dim, unsigned int ord, 
@@ -78,8 +68,8 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
 }
 
 double OdeControl::errlevel(double y, double dydt, double h) {
-  const double errlev = eps_rel * (a_y    * fabs(y       )  + 
-				   a_dydt * fabs(h * dydt)) + eps_abs;
+  const double errlev = tol_rel * (a_y    * fabs(y       )  +
+				   a_dydt * fabs(h * dydt)) + tol_abs;
   if ( errlev <= 0.0 )
     Rf_error("errlev <= zero");
   return errlev;

@@ -13,10 +13,9 @@ namespace ode {
 class OdeControl {
 public:
   OdeControl();
-  void set_eps_abs(double x);
-  void set_eps_rel(double x);
-  void set_a_y(double x);
-  void set_a_dydt(double x);
+  OdeControl(double tol_abs, double tol_rel,
+	     double a_y, double a_dydt,
+	     double step_size_min, double step_size_max);
 
   double adjust_step_size(size_t dim, unsigned int ord, double step_size,
 			  const std::vector<double> &y,
@@ -26,7 +25,8 @@ public:
 
   bool step_size_shrank() const;
 private:
-  double eps_abs, eps_rel, a_y, a_dydt;
+  double tol_abs, tol_rel, a_y, a_dydt;
+  double step_size_min, step_size_max;
   bool last_step_size_shrank;
 };
 

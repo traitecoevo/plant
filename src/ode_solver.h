@@ -56,9 +56,8 @@ private:
   std::vector<double> dydt_in;  // Vector of dydt at beginning of step
   std::vector<double> dydt_out; // Vector of dydt during step
 
-  // Control parameters
-  double step_size_min, step_size_max;
-  int    no_steps_max;
+  // Control parameter (TODO: not yet used)
+  int no_steps_max;
 
   // Used internally.
   OdeControl control;
