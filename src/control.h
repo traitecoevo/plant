@@ -6,6 +6,7 @@
 
 #include "lookup.h"
 #include "util.h"
+#include "ode_control.h"
 
 namespace model {
 
@@ -53,6 +54,8 @@ private:
   void reset();
   void set_parameters_post_hook();
 };
+
+ode::OdeControl make_ode_control(const Control &control);
 
 }
 

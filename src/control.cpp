@@ -97,4 +97,22 @@ void Control::set_parameters_post_hook() {
     static_cast<int>(_environment_light_max_depth);
 }
 
+// NOTE: Not sure if this is the best way of doing this.  The problem
+// is that we'll need to create these control objects fairly often,
+// and the current interface seems a bit error-prone and repetitive.
+// So, this means that we can do something like
+//   ode::OdeControl obj = make_ode_control(control);
+// and have all the fields filled in appropriately.  During
+// construction (e.g., Patch) this will look like
+//   ode_control(make_ode_control(parameters->control))
+ode::OdeControl make_ode_control(const Control &control) {
+  ode::OdeControl ret(control.ode_tol_rel,
+		      control.ode_tol_abs,
+		      control.ode_tol_y,
+		      control.ode_tol_dydt,
+		      control.ode_step_size_min,
+		      control.ode_step_size_max);
+  return ret;
+}
+
 }
