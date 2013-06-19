@@ -15,6 +15,7 @@ template <class Problem>
 class Solver {
 public:
   Solver(Problem *problem);
+  Solver(Problem *problem, OdeControl control);
 
   void set_state(std::vector<double> y_, double t_);
   std::vector<double> get_state() const;
@@ -38,9 +39,9 @@ public:
 			    std::vector<double> y_);
   
 private:
-  Problem *problem;
-
   void resize(size_t size_);
+
+  Problem *problem;
 
   size_t size;           // Problem dimension
   int count;             // Number of steps since reset
@@ -56,10 +57,6 @@ private:
   std::vector<double> dydt_in;  // Vector of dydt at beginning of step
   std::vector<double> dydt_out; // Vector of dydt during step
 
-  // Control parameter (TODO: not yet used)
-  int no_steps_max;
-
-  // Used internally.
   OdeControl control;
   Step<Problem> stepper;
 };
@@ -71,6 +68,15 @@ template <class Problem>
 Solver<Problem>::Solver(Problem *problem)
   : problem(problem),
     size(0),
+    stepper(problem) {
+  reset();
+}
+
+template <class Problem>
+Solver<Problem>::Solver(Problem *problem, OdeControl control)
+  : problem(problem),
+    size(0),
+    control(control),
     stepper(problem) {
   reset();
 }
