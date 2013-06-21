@@ -54,3 +54,9 @@ test.environment <- function(height, n=101, light.env=NULL) {
   attr(ret, "light.env") <- light.env
   ret
 }
+
+## This is here to stop a weird problem with class finalisation.  A
+## fairly harmless error message at this point, but hopefully not
+## something that will stick around.  Seems related to
+## https://stat.ethz.ch/pipermail/r-devel/2011-December/062917.html
+gc()
