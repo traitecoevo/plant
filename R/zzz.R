@@ -1,6 +1,3 @@
-## Load the Rcpp module.  Automatically added to a load hook, so no
-## need to add via .onLoad().
-## These lines get processed by Roxygen
 ##' @useDynLib tree
 ##' @import Rcpp
 ##' @import methods
@@ -56,5 +53,7 @@
 ##' @export test_to_rcpp_matrix
 ##' @export trapezium
 
-## and this will then load the Rcpp module.
-loadModule("tree", TRUE)
+.onLoad <- function(libname, pkgname){
+  loadRcppModules()
+  set_sane_gsl_error_handling()
+}

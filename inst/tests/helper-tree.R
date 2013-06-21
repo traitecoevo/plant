@@ -1,6 +1,5 @@
 library(tree)
 library(testthat)
-set_sane_gsl_error_handling()
 options(warn=1)
 
 ## New expect_that helper functions; test that a number is in a range,
