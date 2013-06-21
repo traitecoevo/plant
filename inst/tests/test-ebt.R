@@ -7,6 +7,9 @@ p$add_strategy(new(Strategy))
 
 ebt <- new(EBT, p)
 
+## Check that the underlying Patch really is a Patch<CohortTop>, not
+## one of the other Patch types (which would just fail miserably below
+## here, if they even compile).
 expect_that(inherits(ebt$patch, "Rcpp_PatchCohortTop"), is_true())
 
 r <- pi/2
@@ -20,36 +23,40 @@ test_that("Empty CohortSchedule", {
 
 ## If the schedule is for the wrong number of species, it should cause
 ## an error...
-expect_that(ebt$cohort_schedule <- new(CohortSchedule, sched$n.species + 1),
-            throws_error())
+sched2 <- new(CohortSchedule, sched$n_species + 1)
+expect_that(ebt$cohort_schedule <- sched2, throws_error())
 
+## Build a schedule for 11 introductions from t=0 to t=5
 t <- seq(0, 5, length=11)
 sched$set_times(t, 1)
 ebt$cohort_schedule <- sched
 
+## Before starting, check that the EBT is actually empty
 test_that("EBT starts empty", {
   expect_that(ebt$time, equals(0.0))
   expect_that(ebt$patch$ode_size, equals(0))
 })
 
+## Check that we can advance through and add the cohort at time zero.
 ebt$patch$n_individuals
 ebt$run_next()
 
 test_that("EBT adds cohort successfully", {
   expect_that(ebt$cohort_schedule$remaining, equals(length(t) - 1))
-  expect_that(ebt$time, equals(0.0))
+  expect_that(ebt$time, equals(t[1]))
   expect_that(ebt$patch$ode_size, equals(4))
 })
 
-## Run up to the introduction of cohort 2:
+## Continue up to the introduction of cohort 2 (this will actually
+## advance time)
 ebt$run_next()
-
 test_that("EBT ran successfully", {
   expect_that(ebt$cohort_schedule$remaining, equals(length(t) - 2))
   expect_that(ebt$time, equals(t[2]))
   expect_that(ebt$patch$ode_size, equals(4*2))
 })
 
+## Reset everything
 ebt$reset()
 test_that("EBT reset successful", {
   expect_that(ebt$time, equals(0))
@@ -59,8 +66,8 @@ test_that("EBT reset successful", {
 })
 ebt$seed_rain <- seed_rain(r)
 
-## Run the whole schedule, and compare with a Patch run manually.
-## TODO: This is really very slow at the moment...
+## Run the whole schedule using a Patch<CohortTop>, manually moving
+## things along the schedule.
 patch <- new(PatchCohortTop, p)
 patch$seed_rain <- ebt$seed_rain
 species.index <- 1
@@ -77,11 +84,12 @@ while (sched$remaining > 0) {
 n <- length(hh.p[[length(hh.p)]])
 hh.p <- t(sapply(hh.p, function(x) c(x, rep(NA, n-length(x)))))
 
-## Currently reset
-## ebt <- new(EBT, p)
-## ebt$seed_rain <- seed_rain(r)
-## sched$reset()
-## ebt$cohort_schedule <- sched
+test_that("Run looks successful", {
+  expect_that(n, equals(length(t)))
+  expect_that(all(diag(hh.p) == new(Plant, p[[1]])$height), is_true())
+})
+
+## Run the whole schedule using the EBT.
 ebt$reset()
 ebt$seed_rain <- seed_rain(r)
 tt.e <- hh.e <- NULL
@@ -94,7 +102,9 @@ repeat {
 n <- length(hh.e[[length(hh.e)]])
 hh.e <- t(sapply(hh.e, function(x) c(x, rep(NA, n-length(x)))))
 
-## However, *this* works:
+expect_that(hh.e, is_identical_to(hh.e))
+
+## Then, check that resetting the cohort allows rerunning easily:
 ebt$reset()
 ebt$seed_rain <- ebt$seed_rain
 tt.e2 <- hh.e2 <- NULL
@@ -107,13 +117,8 @@ repeat {
 n <- length(hh.e2[[length(hh.e2)]])
 hh.e2 <- t(sapply(hh.e2, function(x) c(x, rep(NA, n-length(x)))))
 
-expect_that(hh.e, equals(hh.e2))
-expect_that(hh.p, equals(hh.e2))
+expect_that(hh.e, is_identical_to(hh.e2))
 
-## So - unlikely to be caused by the seeds (which are regenerated) or
-## the environment (which is regenerated).  Not sure.  *Could* be
-## something to do with the step size calculations.  Or the estimated
-## slope?
 if (interactive()) {
   matplot(tt.p, hh.p, type="o", col="black", pch=1, lty=1)
   matpoints(tt.e, hh.e, col="red", cex=.5, pch=1, type="o", lty=1)
