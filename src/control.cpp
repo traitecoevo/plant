@@ -4,7 +4,6 @@ namespace model {
 
 Control::Control() {
   reset();
-  set_parameters_post_hook();
 }
 
 Control::Control(Rcpp::List x) {
@@ -13,20 +12,20 @@ Control::Control(Rcpp::List x) {
 }
 
 void Control::reset() {
-  _plant_assimilation_over_distribution = static_cast<double>(false);
+  plant_assimilation_over_distribution = false;
   plant_assimilation_tol = 1e-6;
-  _plant_assimilation_iterations = static_cast<double>(1000);
+  plant_assimilation_iterations = 1000;
 
   plant_seed_tol = 1e-6;
-  _plant_seed_iterations = static_cast<double>(1000);
+  plant_seed_iterations = 1000;
 
   cohort_gradient_eps = 1e-6;
-  _cohort_gradient_richardson = static_cast<double>(false);
-  _cohort_gradient_richardson_depth = static_cast<double>(4);
+  cohort_gradient_richardson = false;
+  cohort_gradient_richardson_depth = 4;
 
   environment_light_tol = 1e-6;
-  _environment_light_nbase = static_cast<double>(17);
-  _environment_light_max_depth = static_cast<double>(16);
+  environment_light_nbase = 17;
+  environment_light_max_depth = 16;
 
   ode_step_size_min = 1e-6;
   ode_step_size_max = 1e-1;
@@ -35,6 +34,29 @@ void Control::reset() {
   ode_tol_y         = 1.0;
   ode_tol_dydt      = 0.0;
   // TODO: Also no_steps_max?
+
+  // Then set the values for the lookup table, based on these (this is
+  // basically the inverse of set_parameters_post_hook())
+  _plant_assimilation_over_distribution =
+    static_cast<double>(plant_assimilation_over_distribution);
+  _plant_assimilation_iterations =
+    static_cast<double>(plant_assimilation_iterations);
+
+  _plant_seed_iterations =
+    static_cast<double>(plant_seed_iterations);
+
+  _cohort_gradient_richardson =
+    static_cast<double>(cohort_gradient_richardson);
+  _cohort_gradient_richardson_depth =
+    static_cast<double>(cohort_gradient_richardson_depth);
+
+  _environment_light_nbase =
+    static_cast<double>(environment_light_nbase);
+  _environment_light_max_depth =
+    static_cast<double>(environment_light_max_depth);
+
+  // Like set_parameters_post_hook(), rebuild the ODE control, too.
+  ode_control = make_ode_control();
 }
 
 void Control::do_build_lookup() {

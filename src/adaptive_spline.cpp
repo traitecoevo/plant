@@ -9,6 +9,8 @@ AdaptiveSpline::AdaptiveSpline(util::DFunctor *target)
   : target(target),
     atol(1e-6),
     rtol(1e-6),
+    dx(NA_REAL),
+    dxmin(NA_REAL),
     nbase(17),
     max_depth(16) {
 }

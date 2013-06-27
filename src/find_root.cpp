@@ -5,7 +5,11 @@
 namespace util {
 
 RootFinder::RootFinder(double atol, double rtol, int max_iterations)
-  : atol(atol), rtol(rtol), max_iterations(max_iterations) {
+  : atol(atol),
+    rtol(rtol),
+    max_iterations(max_iterations),
+    iterations(0),
+    last_error(NA_REAL) {
   F.function = &helper_functor;
   solver = gsl_root_fsolver_alloc(gsl_root_fsolver_brent);
 }
