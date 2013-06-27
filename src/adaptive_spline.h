@@ -22,7 +22,7 @@ private:
   bool refine();
 
   bool check_err(double y_true, double y_pred) const;
-  void check_bounds(double a, double b);
+  static void check_bounds(double a, double b);
 
   util::DFunctor *target;
 

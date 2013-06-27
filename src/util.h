@@ -157,8 +157,9 @@ std::string string_from_address(T *x) {
   return ss.str();
 }
 
+// This computes the sum of vectors a and b, so c[i] = a[i] + b[i].
 template <typename T>
-std::vector<T> sum(std::vector<T> a, const std::vector<T> b) {
+std::vector<T> sum(const std::vector<T> &a, const std::vector<T> &b) {
   std::vector<T> c(a.size());
   std::transform(a.begin(), a.end(),
 		 b.begin(), c.begin(), std::plus<T>());

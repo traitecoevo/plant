@@ -47,7 +47,7 @@ public:
   Plant(Strategy *s);
 
   // Equivalence operator
-  bool operator==(const Plant &rhs);
+  bool operator==(const Plant &rhs) const;
 
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
@@ -143,7 +143,7 @@ private:
   class internals {
   public:
     internals();
-    bool operator==(const Plant::internals &rhs);
+    bool operator==(const Plant::internals &rhs) const;
     // * Individual size
     // Mass of leaves.  This is the core independent variable
     double mass_leaf;      // [eqn 1]

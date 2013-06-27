@@ -73,7 +73,7 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
   return step_size;
 }
 
-double OdeControl::errlevel(double y, double dydt, double h) {
+double OdeControl::errlevel(double y, double dydt, double h) const {
   const double errlev = tol_rel * (a_y    * fabs(y       )  +
 				   a_dydt * fabs(h * dydt)) + tol_abs;
   if ( errlev <= 0.0 )

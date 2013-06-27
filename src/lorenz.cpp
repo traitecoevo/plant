@@ -18,7 +18,7 @@ size_t Lorenz::size() const {
 
 void Lorenz::derivs(double time, 
 		    std::vector<double>::const_iterator y,
-		    std::vector<double>::iterator dydt) {
+		    std::vector<double>::iterator dydt) const {
   const double y0 = *y++;
   const double y1 = *y++;
   const double y2 = *y++;

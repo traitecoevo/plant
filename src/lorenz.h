@@ -17,7 +17,7 @@ public:
   size_t size() const;
   void derivs(double time,
 	      std::vector<double>::const_iterator y,
-	      std::vector<double>::iterator dydt);
+	      std::vector<double>::iterator dydt) const;
 
   void set_ode_state(std::vector<double> y, double t);
   std::vector<double> ode_state() const;

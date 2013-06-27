@@ -20,11 +20,11 @@ double RootFinder::root(DFunctor *f,
   gsl_root_fsolver_set(solver, &F, x_min, x_max);
   iterations = 0;
 
-  int status;
+  int status = GSL_CONTINUE;
   double r;
   do {
     iterations++;
-    status = gsl_root_fsolver_iterate(solver);
+    gsl_root_fsolver_iterate(solver);
     r = gsl_root_fsolver_root(solver);
     x_min = gsl_root_fsolver_x_lower(solver);
     x_max = gsl_root_fsolver_x_upper(solver);

@@ -21,7 +21,7 @@ public:
 			  const std::vector<double> &y,
 			  const std::vector<double> &yerr,
 			  const std::vector<double> &yp);
-  double errlevel(double y, double dydt, double step_size);
+  double errlevel(double y, double dydt, double step_size) const;
 
   bool step_size_shrank() const;
 private:

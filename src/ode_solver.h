@@ -138,9 +138,7 @@ template <class Problem>
 void Solver<Problem>::step() {
   const double time_orig = time, time_remaining = time_max - time;
   double step_size = step_size_last;
-  // Does this appear to be the last step before reaching `time_max`?
-  bool final_step = false;
-  
+
   // Save y in case of failure in a step (recall that stepper.step
   // changes 'y')
   const std::vector<double> y_orig = y;
@@ -149,7 +147,8 @@ void Solver<Problem>::step() {
   problem->derivs(time, y.begin(), dydt_in.begin());
 
   while ( true ) {
-    final_step = step_size > time_remaining;
+    // Does this appear to be the last step before reaching `time_max`?
+    const bool final_step = step_size > time_remaining;
     if ( final_step )
       step_size = time_remaining;
     stepper.step(time, step_size, y, yerr, dydt_in, dydt_out);

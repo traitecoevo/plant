@@ -41,13 +41,13 @@ Plant::internals::internals()
 // NOTE: This is essentially only used for testing.
 // NOTE: The semantics around comparing Strategy are ill-defined for
 // the standalone case.
-bool Plant::operator==(const Plant &rhs) {
+bool Plant::operator==(const Plant &rhs) const {
   if ( strategy.standalone() && strategy.get() == rhs.strategy.get() )
     Rf_warning("This is going to end badly.");
   return strategy == rhs.strategy && vars == rhs.vars;
 }
 
-bool Plant::internals::operator==(const Plant::internals &rhs) {
+bool Plant::internals::operator==(const Plant::internals &rhs) const {
   const bool ret = true
     // Size members...
     && mass_leaf      == rhs.mass_leaf
