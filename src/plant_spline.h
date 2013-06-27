@@ -33,7 +33,6 @@ public:
 
   // Used by plant_approx (just friend instead?)
   double height_max() const;
-  Strategy* get_strategy() const;
 
   // Used by species & upstream
   void compute_vars_phys(const Environment& environment);

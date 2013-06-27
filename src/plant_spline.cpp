@@ -21,10 +21,6 @@ double PlantSpline::height_max() const {
   return height.back();
 }
 
-Strategy* PlantSpline::get_strategy() const {
-  return strategy.get();
-}
-
 void PlantSpline::compute_vars_phys(const Environment& environment) {
   for (std::vector<Plant>::iterator p = plants.begin();
        p != plants.end(); ++p)
