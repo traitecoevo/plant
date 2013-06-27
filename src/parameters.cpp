@@ -35,8 +35,8 @@ Strategy Parameters::r_at(size_t idx) {
 
 Rcpp::List Parameters::r_get_strategies() {
   Rcpp::List ret;
-  for ( std::vector<Strategy>::iterator it = strategies.begin();
-	it != strategies.end(); it++ )
+  for (std::vector<Strategy>::iterator it = strategies.begin();
+       it != strategies.end(); ++it)
     ret.push_back(Rcpp::wrap(*it));
   return ret;
 }

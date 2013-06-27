@@ -15,8 +15,8 @@ void MultiSpline::init(std::vector<double>   x,
 }
 
 void MultiSpline::init_self() {
-  for ( std::vector<Spline>::iterator si = splines.begin();
-	si != splines.end(); si++ )
+  for (std::vector<Spline>::iterator si = splines.begin();
+       si != splines.end(); ++si)
     si->init_self();
 }
 
@@ -26,8 +26,8 @@ void MultiSpline::add_point(double xi, std::vector<double> yi) {
 }
 
 void MultiSpline::clear() {
-  for ( std::vector<Spline>::iterator si = splines.begin();
-	si != splines.end(); si++ )
+  for (std::vector<Spline>::iterator si = splines.begin();
+       si != splines.end(); ++si)
     si->clear();
 }
 
@@ -38,8 +38,8 @@ double MultiSpline::eval(double u, size_t i) const {
 std::vector<double> MultiSpline::eval(double u) const {
   std::vector<double> ret;
   ret.reserve(dim());
-  for ( std::vector<Spline>::const_iterator si = splines.begin();
-	si != splines.end(); si++ )
+  for (std::vector<Spline>::const_iterator si = splines.begin();
+       si != splines.end(); ++si)
     ret.push_back(si->eval(u));
   return ret;
 }

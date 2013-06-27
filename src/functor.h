@@ -39,6 +39,7 @@ namespace test {
 class Quadratic {
 public:
   Quadratic(double a, double b, double c): a(a), b(b), c(c) {}
+  // Can be const, except that find_root.cpp needs it not to be.
   double mytarget(double x) { return (a * x + b) * x + c; }
 private:
   const double a, b, c;

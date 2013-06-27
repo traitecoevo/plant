@@ -18,7 +18,7 @@ std::vector<double> test_functor(std::vector<double> x,
   Functor<Quadratic, &Quadratic::mytarget> fun(&obj);
   
   std::vector<double> ret;
-  for ( std::vector<double>::iterator it = x.begin(); it != x.end(); it++ )
+  for (std::vector<double>::iterator it = x.begin(); it != x.end(); ++it)
     ret.push_back(fun(*it));
   
   return ret;

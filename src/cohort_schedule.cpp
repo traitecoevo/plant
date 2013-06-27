@@ -35,14 +35,14 @@ void CohortSchedule::set_times(std::vector<double> times,
   clear_times(species_index);
   events_iterator e = events.begin();
   for (std::vector<double>::const_iterator t = times.begin();
-       t != times.end(); t++)
+       t != times.end(); ++t)
     e = add_time(*t, species_index, e);
   reset();
 }
 
 std::vector<double> CohortSchedule::times(size_t species_index) const {
   std::vector<double> ret;
-  for (events_const_iterator e = events.begin(); e != events.end(); e++)
+  for (events_const_iterator e = events.begin(); e != events.end(); ++e)
     if (e->cohort == static_cast<int>(species_index))
       ret.push_back(e->time);
   return ret;

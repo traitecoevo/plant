@@ -26,8 +26,8 @@ Strategy* PlantSpline::get_strategy() const {
 }
 
 void PlantSpline::compute_vars_phys(const Environment& environment) {
-  for ( std::vector<Plant>::iterator p = plants.begin();
-	p != plants.end(); p++ )
+  for (std::vector<Plant>::iterator p = plants.begin();
+       p != plants.end(); ++p)
     p->compute_vars_phys(environment);
   build_plants_approx();
 }
@@ -55,8 +55,8 @@ std::vector<double> PlantSpline::r_ode_rates(double height) const {
 
 Rcpp::List PlantSpline::r_get_plants() const {
   Rcpp::List ret;
-  for ( std::vector<Plant>::const_iterator p = plants.begin();
-	p != plants.end(); p++ )
+  for (std::vector<Plant>::const_iterator p = plants.begin();
+       p != plants.end(); ++p)
     ret.push_back(*p);
   return ret;
 }
@@ -83,8 +83,8 @@ void PlantSpline::initialise(double height_max, int n_plants) {
 
   Plant p(seed);
   plants.clear(); // defensive, as only used in constructors.
-  for ( std::vector<double>::iterator h = height.begin();
-	h != height.end(); h++ ) {
+  for (std::vector<double>::iterator h = height.begin();
+       h != height.end(); ++h) {
     p.set_height(*h);
     plants.push_back(p);
   }

@@ -65,7 +65,7 @@ std::vector<int> rbinom_multiple(std::vector<int>::iterator it,
     const int k = (int)R::rbinom(*it, p);
     *it -= k;
     ret.push_back(k);
-    it++;
+    ++it;
   }
   return ret;
 }
@@ -134,8 +134,8 @@ Rcpp::IntegerMatrix test_to_rcpp_matrix(Rcpp::List x) {
 Rcpp::List test_from_rcpp_matrix(Rcpp::IntegerMatrix x) {
   std::vector< std::vector<int> > res = from_rcpp_matrix(x);
   Rcpp::List ret;
-  for ( std::vector< std::vector<int> >::iterator it = res.begin();
-	it != res.end(); it++ )
+  for (std::vector< std::vector<int> >::iterator it = res.begin();
+       it != res.end(); ++it)
     ret.push_back(Rcpp::wrap(*it));
   return ret;
 }

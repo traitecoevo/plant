@@ -8,7 +8,7 @@ Rcpp::List Lookup::get_parameters() {
   build_lookup();
   Rcpp::List ret;
   for ( lookup_type::const_iterator it = lookup_table.begin();
-	it != lookup_table.end(); it++ )
+	it != lookup_table.end(); ++it )
     ret[it->first] = *(it->second);
   return ret;
 }
@@ -51,7 +51,7 @@ void Lookup::check_keys(std::vector<std::string> keys) const {
   while (key != keys.end()) {
     if (!has_key(*key))
       ::Rf_error("Key %s not found", key->c_str());
-    key++;
+    ++key;
   }
 }
 
