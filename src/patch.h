@@ -335,9 +335,12 @@ void Patch<Individual>::compute_light_environment() {
 // physiological variables are updated.
 template <class Individual>
 void Patch<Individual>::compute_vars_phys() {
-  for ( species_iterator sp = species.begin();
-	sp != species.end(); sp++ )
+  int species_index = 0;
+  for (species_iterator sp = species.begin();
+       sp != species.end(); sp++) {
+    environment.set_seed_rain_index(species_index++);
     sp->compute_vars_phys(environment);
+  }
 }
 
 // * R interface
