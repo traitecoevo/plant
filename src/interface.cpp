@@ -333,7 +333,7 @@ RCPP_MODULE(tree) {
       	    &model::MetacommunityBase::step_deterministic)
     .method("step_stochastic",
       	    &model::MetacommunityBase::r_step_stochastic)
-    .method("clear",      &model::MetacommunityBase::clear)
+    .method("reset",      &model::MetacommunityBase::reset)
     .method("add_seedlings", &model::MetacommunityBase::r_add_seedlings)
     .method("disperse", &model::MetacommunityBase::r_disperse)
     .property("n_individuals", &model::MetacommunityBase::r_n_individuals)

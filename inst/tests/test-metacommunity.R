@@ -32,7 +32,7 @@ y <- new(Plant, p[[1]])$ode_values
 expect_that(sys$ode_values, is_identical_to(sys[[idx]]$ode_values))
 expect_that(sys$ode_values, is_identical_to(y))
 
-sys$clear()
+sys$reset()
 n[idx] <- 0
 expect_that(sys$n_individuals, equals(n))
 n[] <- 1

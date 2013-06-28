@@ -22,7 +22,7 @@ public:
   virtual void r_add_seedlings(Rcpp::IntegerMatrix seeds) = 0;
   virtual Rcpp::IntegerMatrix r_disperse(std::vector<int> seeds) const = 0;
   virtual Rcpp::IntegerMatrix r_n_individuals() const = 0;
-  virtual void clear() = 0;
+  virtual void reset() = 0;
   virtual void r_step() = 0;
   virtual void r_step_stochastic() = 0;
   virtual Rcpp::List r_height() const = 0;
@@ -61,7 +61,7 @@ public:
   void r_add_seedlings(Rcpp::IntegerMatrix seeds);
   Rcpp::IntegerMatrix r_disperse(std::vector<int> seeds) const;
   Rcpp::IntegerMatrix r_n_individuals() const;
-  void clear();
+  void reset();
   void r_step();
   void r_step_stochastic();
   Rcpp::List r_height() const;
@@ -104,6 +104,7 @@ size_t Metacommunity<Individual>::size() const {
   return patches.size();
 }
 
+// TODO: Should this always just return ode_solver.get_time()?
 template <class Individual>
 double Metacommunity<Individual>::get_time() const {
   return time;
@@ -131,8 +132,8 @@ void Metacommunity<Individual>::step_stochastic() {
 template <class Individual>
 Rcpp::List Metacommunity<Individual>::r_height() const {
   Rcpp::List ret;
-  for ( patch_const_iterator patch = patches.begin();
-	patch != patches.end(); patch++ )
+  for (patch_const_iterator patch = patches.begin();
+       patch != patches.end(); ++patch)
     ret.push_back(Rcpp::wrap(patch->r_height()));
   return ret;
 }
@@ -147,16 +148,16 @@ void Metacommunity<Individual>::r_set_height(Rcpp::List x) {
 template <class Individual>
 std::vector<int> Metacommunity<Individual>::births() {
   std::vector<int> n(size(), 0);
-  for ( patch_iterator patch = patches.begin();
-	patch != patches.end(); patch++ )
+  for (patch_iterator patch = patches.begin();
+       patch != patches.end(); ++patch)
     n = util::sum(n, patch->births());
   return n;
 }
 
 template <class Individual>
 void Metacommunity<Individual>::deaths() {
-  for ( patch_iterator patch = patches.begin();
-	patch != patches.end(); patch++ )
+  for (patch_iterator patch = patches.begin();
+       patch != patches.end(); ++patch)
     patch->deaths();
 }
 
@@ -212,8 +213,8 @@ Patch<Individual> Metacommunity<Individual>::r_at(size_t idx) const {
 template <class Individual>
 Rcpp::List Metacommunity<Individual>::r_get_patches() const {
   Rcpp::List ret;
-  for ( patch_const_iterator patch = patches.begin();
-	patch != patches.end(); patch++ )
+  for (patch_const_iterator patch = patches.begin();
+       patch != patches.end(); ++patch)
     ret.push_back(Rcpp::wrap(*patch));
   return ret;
 }
@@ -239,17 +240,17 @@ Metacommunity<Individual>::r_disperse(std::vector<int> seeds) const {
 template <class Individual>
 Rcpp::IntegerMatrix Metacommunity<Individual>::r_n_individuals() const {
   std::vector< std::vector<int> > n;
-  for ( patch_const_iterator patch = patches.begin();
-	patch != patches.end(); patch++ )
+  for (patch_const_iterator patch = patches.begin();
+       patch != patches.end(); ++patch)
     n.push_back(patch->r_n_individuals());
   return util::to_rcpp_matrix(n);
 }
 
 template <class Individual>
-void Metacommunity<Individual>::clear() {
+void Metacommunity<Individual>::reset() {
   time = 0.0;
-  for ( patch_iterator patch = patches.begin();
-	patch != patches.end(); patch++ )
+  for (patch_iterator patch = patches.begin();
+       patch != patches.end(); ++patch)
     patch->reset();
   ode_solver.reset();
 }
@@ -268,9 +269,11 @@ void Metacommunity<Individual>::r_step_stochastic() {
 
 template <class Individual>
 void Metacommunity<Individual>::initialise() {
-  patches.clear();
+  patches.clear(); // TODO: should not be needed? (see Patch::initialise)
+  // All patches are identical on creation.
   Patch<Individual> p(parameters.get());
   patches.resize(parameters->n_patches, p);
+  reset();
 }
 
 SEXP metacommunity(Rcpp::CppClass individual, Parameters p);
