@@ -67,8 +67,6 @@ public:
   void r_compute_vars_phys(const Environment& environment);
 
 private:
-  void initialise();
-
   Strategy::ptr strategy;
   Individual seed;
   std::list<Individual> plants;
@@ -81,14 +79,12 @@ template <class Individual>
 Species<Individual>::Species(Strategy s)
   : strategy(s),
     seed(strategy.get()) {
-  initialise();
 }
 
 template <class Individual>
 Species<Individual>::Species(Strategy *s)
   : strategy(s),
     seed(strategy.get()) {
-  initialise();
 }
 
 // Compute the number of offspring that will be born by asking all
@@ -180,7 +176,6 @@ template <> void Species<CohortDiscrete>::add_seeds(int n);
 template <class Individual>
 void Species<Individual>::clear() {
   plants.clear();
-  initialise();
 }
 
 // * ODE interface
@@ -261,9 +256,6 @@ double Species<Individual>::germination_probability(const Environment& environme
   Plant s(seed);
   return s.germination_probability(environment);
 }
-
-template <class Individual>
-void Species<Individual>::initialise() {}
 
 SEXP species(Rcpp::CppClass individual, Strategy s);
 
