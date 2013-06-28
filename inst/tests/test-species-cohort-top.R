@@ -13,7 +13,7 @@ expect_that(sp$n_individuals, equals(0))
 expect_that(sp$height_max, is_identical_to(cmp$height))
 
 env <- test.environment(cmp$height * 10)
-env$seed_rain <- seed_rain(1.0)
+env$seed_rain <- 1.0
 
 ## Causes initial conditions to be estimated:
 sp$compute_vars_phys(env)

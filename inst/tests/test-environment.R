@@ -45,6 +45,10 @@ rain.blank <- e$seed_rain
 expect_that(rain.blank$get(), throws_error())
 expect_that(e$seed_rain_rate, throws_error())
 
+e <- test.environment(1, n.strategies=2)
+expect_that(e$seed_rain <- 1,        throws_error())
+expect_that(e$seed_rain <- c(1,2,3), throws_error())
+expect_that(e$seed_rain, equals(c(0, 0)))
 x <- c(.1, .2)
-e$seed_rain <- seed_rain(x)
+e$seed_rain <- x
 expect_that(e$seed_rain_rate, is_identical_to(x[[1]]))

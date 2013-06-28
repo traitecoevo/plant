@@ -6,7 +6,7 @@ namespace model {
 
 Environment::Environment(Parameters p)
   : disturbance_regime(p.disturbance_regime),
-    seed_rain(p.size()),
+    seed_rain(p.size(), 0.0),
     control(p.control),
     time(0.0) {
 }
@@ -23,7 +23,7 @@ void Environment::compute_light_environment(util::DFunctor *canopy_openness,
 			control.environment_light_tol,
 			control.environment_light_nbase,
 			control.environment_light_max_depth);
-  set_light_environment(generator.construct_spline(0, height_max));
+  light_environment = generator.construct_spline(0, height_max);
 }
 
 // Computes the probability of survival from time_at_birth to time,
@@ -40,14 +40,9 @@ void Environment::clear() {
 }
 
 double Environment::seed_rain_rate() const {
-  return seed_rain();
-}
-
-spline::Spline Environment::get_light_environment() const {
-  return light_environment;
-}
-void Environment::set_light_environment(const spline::Spline env) {
-  light_environment = env;
+  if (seed_rain.size() == 0)
+    ::Rf_error("Requested rain out of bounds");
+  return seed_rain[0];
 }
 
 double Environment::get_time() const {
@@ -57,11 +52,20 @@ void Environment::set_time(double x) {
   time = x;
 }
 
-SeedRain Environment::get_seed_rain() const {
+// * R interface
+spline::Spline Environment::r_get_light_environment() const {
+  return light_environment;
+}
+void Environment::r_set_light_environment(const spline::Spline env) {
+  light_environment = env;
+}
+
+std::vector<double> Environment::r_get_seed_rain() const {
   return seed_rain;
 }
 
-void Environment::set_seed_rain(SeedRain x) {
+void Environment::r_set_seed_rain(std::vector<double> x) {
+  util::check_length(x.size(), seed_rain.size());
   seed_rain = x;
 }
 

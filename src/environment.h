@@ -6,7 +6,6 @@
 #include "spline.h"
 #include "util.h"
 #include "functor.h"
-#include "seed_rain.h"
 
 namespace model {
 
@@ -22,19 +21,20 @@ public:
   // NOTE: Interface here will change
   double seed_rain_rate() const;
 
-  spline::Spline get_light_environment() const;
-  void set_light_environment(const spline::Spline env);
-
   double get_time() const;
   void set_time(double x);
 
-  SeedRain get_seed_rain() const;
-  void set_seed_rain(SeedRain x);
+  // * R interface
+  std::vector<double> r_get_seed_rain() const;
+  void r_set_seed_rain(std::vector<double> x);
+
+  spline::Spline r_get_light_environment() const;
+  void r_set_light_environment(const spline::Spline env);
 
 private:
   spline::Spline light_environment;
   Disturbance disturbance_regime;
-  SeedRain seed_rain;
+  std::vector<double> seed_rain;
   Control control;
   double time;
 };

@@ -21,15 +21,15 @@ test_that("Initial patch strcture is sensible", {
 
 ## NOTE: This actually causes the initial conditions to be computed.
 r <- pi/2
-patch.c$seed_rain <- seed_rain(r)
-expect_that(patch.c$seed_rain$seed_rain,
+patch.c$seed_rain <- r
+expect_that(patch.c$seed_rain,
             is_identical_to(r))
-expect_that(patch.c$environment$seed_rain$seed_rain,
+expect_that(patch.c$environment$seed_rain,
             is_identical_to(r))
 
 ## This should not work, because we can't set environment from within
 ## patch.
-expect_that(patch.c$environment$seed_rain <- seed_rain(r * 2),
+expect_that(patch.c$environment$seed_rain <- r * 2,
             throws_error())
 
 ## At this point, doing this should fail -- with only one individual
@@ -44,7 +44,7 @@ expect_that(patch.c$ode_size, equals(4))
 
 ## Now that we've got started, we should not be able to set the seed
 ## rain:
-expect_that(patch.c$seed_rain <- seed_rain(1.0),
+expect_that(patch.c$seed_rain <- 1.0,
             throws_error())
 
 cmp$compute_initial_conditions(patch.c$environment)

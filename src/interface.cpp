@@ -16,7 +16,6 @@
 #include "control.h"
 
 #include "disturbance.h"
-#include "seed_rain.h"
 #include "environment.h"
 
 #include "plant.h"
@@ -153,17 +152,6 @@ RCPP_MODULE(tree) {
 	    &model::Disturbance::survival_probability)
     ;
 
-  Rcpp::class_<model::SeedRain>("SeedRain")
-    .constructor< size_t >()
-    .property("size", &model::SeedRain::size)
-    .method("get",    &model::SeedRain::operator())
-    .property("seed_rain", &model::SeedRain::get_seed_rain,
-	      &model::SeedRain::set_seed_rain)
-    .method("first",  &model::SeedRain::first)
-    .method("next",   &model::SeedRain::next)
-    ;
-  Rcpp::function("seed_rain", &model::seed_rain);
-
   Rcpp::class_<model::Plant>("Plant")
     .constructor<model::Strategy>()
     .derives<ode::OdeTarget>("OdeTarget")
@@ -277,15 +265,15 @@ RCPP_MODULE(tree) {
     .method("canopy_openness", &model::Environment::canopy_openness)
     .method("patch_survival",  &model::Environment::patch_survival)
     .property("seed_rain_rate",  &model::Environment::seed_rain_rate)
-    .property("light_environment",
-	      &model::Environment::get_light_environment,
-	      &model::Environment::set_light_environment)
     .property("time",
 	      &model::Environment::get_time,
 	      &model::Environment::set_time)
+    .property("light_environment",
+	      &model::Environment::r_get_light_environment,
+	      &model::Environment::r_set_light_environment)
     .property("seed_rain",
-	      &model::Environment::get_seed_rain,
-	      &model::Environment::set_seed_rain)
+	      &model::Environment::r_get_seed_rain,
+	      &model::Environment::r_set_seed_rain)
     ;
 
   Rcpp::class_<model::PatchBase>("PatchBase")

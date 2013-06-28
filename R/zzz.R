@@ -26,7 +26,6 @@
 ##' @export Plant
 ##' @export PlantApprox
 ##' @export PlantSpline
-##' @export SeedRain
 ##' @export Species
 ##' @export SpeciesBase
 ##' @export SpeciesC
@@ -36,7 +35,6 @@
 ##' @export make.reference
 ##' @export metacommunity
 ##' @export patch
-##' @export seed_rain
 ##' @export set_sane_gsl_error_handling
 ##' @export species
 ##' @export test_adaptive_spline

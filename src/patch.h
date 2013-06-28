@@ -41,8 +41,8 @@ public:
   virtual void r_compute_light_environment() = 0;
   virtual void r_compute_vars_phys() = 0;
   virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
-  virtual SeedRain r_get_seed_rain() const = 0;
-  virtual void r_set_seed_rain(SeedRain x) = 0;
+  virtual std::vector<double> r_get_seed_rain() const = 0;
+  virtual void r_set_seed_rain(std::vector<double> x) = 0;
 };
 
 template <class Individual>
@@ -97,8 +97,8 @@ public:
   void r_compute_vars_phys();
   // NOTE: germination is special to the IBM, seed_rain to the EBT.
   std::vector<int> r_germination(std::vector<int> seeds);
-  SeedRain r_get_seed_rain() const;
-  void r_set_seed_rain(SeedRain x);
+  std::vector<double> r_get_seed_rain() const;
+  void r_set_seed_rain(std::vector<double> x);
   
 private:
   void initialise();
@@ -416,8 +416,8 @@ std::vector<int> Patch<Individual>::r_germination(std::vector<int> seeds) {
 }
 
 template <class Individual>
-SeedRain Patch<Individual>::r_get_seed_rain() const {
-  return environment.get_seed_rain();
+std::vector<double> Patch<Individual>::r_get_seed_rain() const {
+  return environment.r_get_seed_rain();
 }
 
 // NOTE: For now, I'm re-initialising after setting seed rain, and I'm
@@ -437,10 +437,10 @@ SeedRain Patch<Individual>::r_get_seed_rain() const {
 // computing the *initial conditions*) could be done by a more
 // explicitly named function, and could be done via initialise().
 template <class Individual>
-void Patch<Individual>::r_set_seed_rain(SeedRain x) {
+void Patch<Individual>::r_set_seed_rain(std::vector<double> x) {
   if (ode_size() > 0)
     ::Rf_error("Setting seed rain on already-initialsed Patch ill-defined");
-  environment.set_seed_rain(x);
+  environment.r_set_seed_rain(x);
   initialise();
 }
 

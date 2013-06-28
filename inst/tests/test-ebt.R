@@ -13,7 +13,7 @@ ebt <- new(EBT, p)
 expect_that(inherits(ebt$patch, "Rcpp_PatchCohortTop"), is_true())
 
 r <- pi/2
-ebt$seed_rain <- seed_rain(r)
+ebt$seed_rain <- r
 
 sched <- ebt$cohort_schedule
 test_that("Empty CohortSchedule", {
@@ -64,7 +64,7 @@ test_that("EBT reset successful", {
   expect_that(ebt$patch$ode_size, equals(0))
   expect_that(ebt$patch$n_individuals, equals(0))
 })
-ebt$seed_rain <- seed_rain(r)
+ebt$seed_rain <- r
 
 ## Run the whole schedule using a Patch<CohortTop>, manually moving
 ## things along the schedule.
@@ -91,7 +91,7 @@ test_that("Run looks successful", {
 
 ## Run the whole schedule using the EBT.
 ebt$reset()
-ebt$seed_rain <- seed_rain(r)
+ebt$seed_rain <- r
 tt.e <- hh.e <- NULL
 repeat {
   if (inherits(try(ebt$run_next(), silent=TRUE), "try-error"))
