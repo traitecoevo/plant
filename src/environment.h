@@ -20,6 +20,7 @@ public:
 
   // NOTE: Interface here will change
   double seed_rain_rate() const;
+  void set_seed_rain_index(size_t x);
 
   double get_time() const;
   void set_time(double x);
@@ -31,10 +32,13 @@ public:
   spline::Spline r_get_light_environment() const;
   void r_set_light_environment(const spline::Spline env);
 
+  void r_set_seed_rain_index(size_t x);
+
 private:
   spline::Spline light_environment;
   Disturbance disturbance_regime;
   std::vector<double> seed_rain;
+  size_t seed_rain_index;
   Control control;
   double time;
 };

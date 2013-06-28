@@ -52,3 +52,8 @@ expect_that(e$seed_rain, equals(c(0, 0)))
 x <- c(.1, .2)
 e$seed_rain <- x
 expect_that(e$seed_rain_rate, is_identical_to(x[[1]]))
+e$set_seed_rain_index(1)
+expect_that(e$seed_rain_rate, is_identical_to(x[[1]]))
+e$set_seed_rain_index(2)
+expect_that(e$seed_rain_rate, is_identical_to(x[[2]]))
+expect_that(e$set_seed_rain_index(3), throws_error())

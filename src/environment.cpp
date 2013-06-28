@@ -7,6 +7,7 @@ namespace model {
 Environment::Environment(Parameters p)
   : disturbance_regime(p.disturbance_regime),
     seed_rain(p.size(), 0.0),
+    seed_rain_index(0),
     control(p.control),
     time(0.0) {
 }
@@ -41,8 +42,8 @@ void Environment::clear() {
 
 double Environment::seed_rain_rate() const {
   if (seed_rain.size() == 0)
-    ::Rf_error("Requested rain out of bounds");
-  return seed_rain[0];
+    ::Rf_error("Cannot get seed rain for empty environment");
+  return seed_rain[seed_rain_index];
 }
 
 double Environment::get_time() const {
@@ -50,6 +51,10 @@ double Environment::get_time() const {
 }
 void Environment::set_time(double x) {
   time = x;
+}
+
+void Environment::set_seed_rain_index(size_t x) {
+  seed_rain_index = x;
 }
 
 // * R interface
@@ -67,6 +72,10 @@ std::vector<double> Environment::r_get_seed_rain() const {
 void Environment::r_set_seed_rain(std::vector<double> x) {
   util::check_length(x.size(), seed_rain.size());
   seed_rain = x;
+}
+
+void Environment::r_set_seed_rain_index(size_t x) {
+  set_seed_rain_index(util::check_bounds_r(x, seed_rain.size()));
 }
 
 

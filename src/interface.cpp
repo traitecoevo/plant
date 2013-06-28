@@ -274,6 +274,8 @@ RCPP_MODULE(tree) {
     .property("seed_rain",
 	      &model::Environment::r_get_seed_rain,
 	      &model::Environment::r_set_seed_rain)
+    .method("set_seed_rain_index",
+	    &model::Environment::r_set_seed_rain_index)
     ;
 
   Rcpp::class_<model::PatchBase>("PatchBase")
