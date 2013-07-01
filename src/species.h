@@ -176,6 +176,10 @@ template <> void Species<CohortDiscrete>::add_seeds(int n);
 template <class Individual>
 void Species<Individual>::clear() {
   plants.clear();
+  // Reset the seed to a blank seed too (relevant for CohortTop,
+  // potentially).
+  Individual seed_new(strategy.get());
+  seed = seed_new;
 }
 
 // * ODE interface
