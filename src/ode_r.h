@@ -27,6 +27,8 @@ public:
   void advance(double time_max);
   void advance_fixed(std::vector<double> times);
 
+  void reset();
+
   // * R interface
   std::vector<double> r_derivs(double time, std::vector<double> y);
   Rcpp::NumericMatrix r_run(std::vector<double> times,

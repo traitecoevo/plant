@@ -121,6 +121,7 @@ expect_that(obj$time, is_greater_than(t0))
 expect_that(identical(obj$state, y), is_false())
 
 ## Run:
+obj$reset()
 obj$set_state(y, t0)
 obj$advance(tt[2])
 expect_that(obj$time, is_identical_to(tt[2]))
@@ -137,6 +138,7 @@ ans.d <- rk(y, tt, derivs.lorenz.d, pars,
 expect_that(ans, equals(unname(ans.d), tolerance=1e-11))
 
 t.steps <- obj$times
+obj$reset()
 obj$set_state(y, t0)
 obj$advance_fixed(t.steps)
 expect_that(obj$time, is_identical_to(t.steps[[length(t.steps)]]))

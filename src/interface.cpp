@@ -109,6 +109,7 @@ RCPP_MODULE(tree) {
     .method("step_to",       &ode::OdeR::step_to)
     .method("advance",       &ode::OdeR::advance)
     .method("advance_fixed", &ode::OdeR::advance_fixed)
+    .method("reset",         &ode::OdeR::reset)
     .method("derivs",        &ode::OdeR::r_derivs)
     .method("run",           &ode::OdeR::r_run)
     .property("control",     &ode::OdeR::r_control)

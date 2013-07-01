@@ -39,7 +39,6 @@ void OdeR::derivs(double time, iter_const y, iter dydt) {
 }
 
 void OdeR::set_ode_state(std::vector<double> y, double time) {
-  solver.reset(); // reset step sizes, etc.
   solver.set_state(y, time);
 }
 
@@ -73,6 +72,10 @@ void OdeR::advance(double time_max) {
 
 void OdeR::advance_fixed(std::vector<double> times) {
   solver.advance_fixed(times);
+}
+
+void OdeR::reset() {
+  solver.reset();
 }
 
 // * R interface
