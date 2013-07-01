@@ -1,7 +1,5 @@
 #include "environment.h"
 
-#include "adaptive_spline.h"
-
 namespace model {
 
 Environment::Environment(Parameters p)
@@ -9,7 +7,11 @@ Environment::Environment(Parameters p)
     seed_rain(p.size(), 0.0),
     seed_rain_index(0),
     control(p.control),
-    time(0.0) {
+    time(0.0),
+    light_environment_generator(control.environment_light_tol,
+				control.environment_light_tol,
+				control.environment_light_nbase,
+				control.environment_light_max_depth) {
 }
 
 double Environment::canopy_openness(double height) const {
@@ -19,12 +21,9 @@ double Environment::canopy_openness(double height) const {
 
 void Environment::compute_light_environment(util::DFunctor *canopy_openness,
 					    double height_max) {
-  spline::AdaptiveSpline generator(canopy_openness);
-  generator.set_control(control.environment_light_tol,
-			control.environment_light_tol,
-			control.environment_light_nbase,
-			control.environment_light_max_depth);
-  light_environment = generator.construct_spline(0, height_max);
+  light_environment =
+    light_environment_generator.construct_spline(canopy_openness,
+						 0, height_max);
 }
 
 // Computes the probability of survival from time_at_birth to time,

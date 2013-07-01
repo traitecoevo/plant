@@ -12,11 +12,9 @@ namespace spline {
 
 class AdaptiveSpline {
 public:
-  AdaptiveSpline(util::DFunctor *target);
-  void set_control(double atol_, double rtol_,
-		   int nbase_, int max_depth_);
+  AdaptiveSpline(double atol, double rtol, int nbase, int max_depth);
   double eval_target(double x) const;
-  Spline construct_spline(double a, double b);
+  Spline construct_spline(util::DFunctor *target_, double a, double b);
 private:
   void compute_spline();
   bool refine();
@@ -27,8 +25,9 @@ private:
   util::DFunctor *target;
 
   // Control parameters:
-  double atol, rtol, dx, dxmin;
+  double atol, rtol;
   int nbase, max_depth;
+  double dx, dxmin;
 
   // In contrast to the Spline's x and y, which are vectors, these are
   // lists so that we can easily add points in the middle of them.

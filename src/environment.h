@@ -6,6 +6,7 @@
 #include "spline.h"
 #include "util.h"
 #include "functor.h"
+#include "adaptive_spline.h"
 
 namespace model {
 
@@ -41,6 +42,7 @@ private:
   size_t seed_rain_index;
   Control control;
   double time;
+  spline::AdaptiveSpline light_environment_generator;
 };
 
 }

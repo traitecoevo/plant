@@ -2,26 +2,15 @@
 
 namespace spline {
 
-// Constructor that sets things to sensible defaults.  Setting the
-// control parameters (via `set_control`) is optional, and the values
-// here should be reasonable for many uses.
-AdaptiveSpline::AdaptiveSpline(util::DFunctor *target)
-  : target(target),
-    atol(1e-6),
-    rtol(1e-6),
+AdaptiveSpline::AdaptiveSpline(double atol, double rtol,
+			       int nbase, int max_depth)
+  : target(NULL),
+    atol(atol),
+    rtol(rtol),
+    nbase(nbase),
+    max_depth(max_depth),
     dx(NA_REAL),
-    dxmin(NA_REAL),
-    nbase(17),
-    max_depth(16) {
-}
-
-// Set *all* the control parameters.
-void AdaptiveSpline::set_control(double atol_, double rtol_, 
-				 int nbase_, int max_depth_) {
-  atol = atol_;
-  rtol = rtol_;
-  nbase = nbase_;
-  max_depth = max_depth_;
+    dxmin(NA_REAL) {
 }
 
 // Evaluate the underlying function (double -> double).
@@ -31,7 +20,9 @@ double AdaptiveSpline::eval_target(double x) const {
 
 // Adaptively refine a spline that spans from a to b so that the
 // midpoints of evaluated points have sufficiently low error.
-Spline AdaptiveSpline::construct_spline(double a, double b) {
+Spline AdaptiveSpline::construct_spline(util::DFunctor *target_,
+					double a, double b) {
+  target = target_;
   check_bounds(a, b);
   dx = (b - a) / (nbase - 1);
   dxmin = dx / pow(2, max_depth);

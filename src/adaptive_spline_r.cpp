@@ -9,8 +9,11 @@ Spline test_adaptive_spline(SEXP fun, SEXP env,
   RFunctionWrapper obj(fun, env);
   util::Functor<RFunctionWrapper, &RFunctionWrapper::target>
     target(&obj);
-  AdaptiveSpline generator(&target);
-  Spline spline = generator.construct_spline(a, b);
+  // Hopefully sensible defaults:
+  const double atol = 1e-6, rtol = 1e-6;
+  const int nbase = 17, max_depth = 16;
+  AdaptiveSpline generator(atol, rtol, nbase, max_depth);
+  Spline spline = generator.construct_spline(&target, a, b);
   return spline;
 }
 
