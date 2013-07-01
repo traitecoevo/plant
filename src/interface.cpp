@@ -49,12 +49,6 @@ RCPP_MODULE(tree) {
     .property("max",  &spline::Spline::max)
     ;
 
-  Rcpp::class_<spline::AdaptiveSpline>("AdaptiveSpline")
-    .method("construct_spline", &spline::AdaptiveSpline::construct_spline)
-    .method("set_control",      &spline::AdaptiveSpline::set_control)
-    .method("eval_target",      &spline::AdaptiveSpline::eval_target)
-    ;
-
   Rcpp::class_<spline::MultiSpline>("MultiSpline")
     .constructor<int>()
     .method("init",      &spline::MultiSpline::r_init)

@@ -1,7 +1,6 @@
 ##' @useDynLib tree
 ##' @import Rcpp
 ##' @import methods
-##' @export AdaptiveSpline
 ##' @export CohortDiscrete
 ##' @export CohortSchedule
 ##' @export CohortScheduleEvent
