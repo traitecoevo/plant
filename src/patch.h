@@ -230,7 +230,7 @@ double Patch<Individual>::get_time() const {
 // * Private functions
 template <class Individual>
 void Patch<Individual>::initialise() {
-  species.clear(); // TODO: should not be needed?
+  species.clear(); // (should never be needed?)
   for (size_t i = 0; i < parameters->strategies.size(); i++) {
     Species<Individual> s(&parameters->strategies[i]);
     species.push_back(s);
@@ -382,26 +382,14 @@ std::vector<double> Patch<Individual>::r_get_seed_rain() const {
   return environment.r_get_seed_rain();
 }
 
-// NOTE: For now, I'm re-initialising after setting seed rain, and I'm
-// refusing to set the seed rain on a population that has already got
-// going (which will have a nonzero ode_size()).
-//
-// NOTE: The compute_vars_phys() really should be done by
-// initialise(), but *only* for the Patch<CohortTop>, I think.  I'm
-// leaving it here because for practical purposes, this should be OK
-// (the default seed rain is zero and with a zero rain, the default
-// ode values for the seed will be OK).  However that is not the sort
-// of thing that we should have to rely on.  But things might change,
-// especially once CohortMean is written, so let's stick with this for
-// now.
-//
-// Ideally, what is being done by compute_vars_phys here (really
-// computing the *initial conditions*) could be done by a more
-// explicitly named function, and could be done via initialise().
+// I'm re-initialising after setting seed rain (because it changes the
+// initial/boundary conditions for the EBT version of the model) and
+// similarly I'm refusing to set the seed rain on a population that
+// has already got going (which will have a nonzero ode_size()).
 template <class Individual>
 void Patch<Individual>::r_set_seed_rain(std::vector<double> x) {
   if (ode_size() > 0)
-    ::Rf_error("Setting seed rain on already-initialsed Patch ill-defined");
+    ::Rf_error("Setting seed_rain on already-initialsed Patch not allowed");
   environment.r_set_seed_rain(x);
   initialise();
 }
