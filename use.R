@@ -5,39 +5,40 @@ library(tree)
 
 p <- new(Parameters)
 p$add_strategy(new(Strategy))
-p$set_parameters(list(patch_area=100.0))
+p$set_parameters(list(patch_area=100.0, n_patches=1))
 
-## patch <- new(Patch, p)
-patch <- new(PatchC, p)
+sys <- new(MetacommunityC, p)
 
-run <- function(patch, t.max, n.max, reset=TRUE) {
+run <- function(sys, t.max, n.max, reset=TRUE) {
   if (reset) {
-    patch$reset()
-    patch$add_seedlings(1)
+    sys$reset()
+    sys$add_seedlings(matrix(1, 1, 1))
   }
 
   tt <- numeric(0)
   hh <- list()
 
-  while (patch$time < t.max && patch$n_individuals < n.max) {
-    patch$step()
-    tt <- c(tt, patch$time)
-    hh <- c(hh, patch$height)
+  while (sys$time < t.max && sys$n_individuals < n.max) {
+    sys$step()
+    tt <- c(tt, sys$time)
+    hh <- c(hh, sys$height[[1]]) # patch1
     cat(sprintf("%2.5f: %d / %d\n",
-                patch$time, patch$ode_size/3, patch$n_individuals))
+                sys$time, sys$ode_size/3, sys$n_individuals))
   }
 
   list(t=tt, n=sapply(hh, length), h=hh)
 }
 
 ## This basically won't complete with 80,000 individuals using a plain
-## Patch<Plant>; it grinds to a halt eventually.  Surprisingly, our
-## memory usage is not that high, with max memory usage not too bad.
-## Looks like we're more limited by time than space.
+## Metacommunity<Plant>; it grinds to a halt eventually.
+## Surprisingly, our memory usage is not that high, with max memory
+## usage not too bad.  Looks like we're more limited by time than
+## space.
 
 ## step_deterministic is taking almost all of the time, and
 ## unsurprisingly this is through Solver::step() and eventually
-## Patch<Plant>::derivs, and in turn Patch<Plant>::ode_values_set.
+## Metacommunity<Plant>::derivs, and in turn
+## Metacommunity<Plant>::ode_values_set.
 
 ## Within this, compute_vars_phys takes about 53% of the time while
 ## construct_spline takes 45%.  The remaining 2% looks to be involved
@@ -54,7 +55,7 @@ run <- function(patch, t.max, n.max, reset=TRUE) {
 ## The spline construction time is basically all sunk into
 ## Plant::leaf_area_above()
 set.seed(1)
-res <- run(patch, 40, 150000)
+res <- run(sys, 40, 150000)
 
 plot(res$t, res$n, type="s")
 plot(rep(res$t, res$n), unlist(res$h), log="y", pch=".",
