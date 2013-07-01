@@ -13,12 +13,12 @@ expected <- list(
   environment_light_max_depth= as.numeric(16),
   environment_light_nbase = as.numeric(17),
   environment_light_tol = 1e-6,
+  ode_a_dydt = 0.0,
+  ode_a_y = 1.0,
   ode_step_size_max = 1e-1,
   ode_step_size_min = 1e-6,
   ode_tol_abs = 1e-6,
-  ode_tol_dydt = 0.0,
   ode_tol_rel = 1e-6,
-  ode_tol_y = 1.0,
   plant_assimilation_iterations = as.numeric(1000L),
   plant_assimilation_over_distribution = as.numeric(FALSE),
   plant_assimilation_tol = as.numeric(1e-6),
@@ -32,19 +32,14 @@ expect_that(sort(names(obj)),
 expect_that(obj[keys], is_identical_to(expected[keys]))
 
 ## This just checks that we can pull the ode control parameter out.
-## Currently we can't actually work with it.
 expect_that(ctrl$ode_control, is_a("Rcpp_OdeControl"))
 
 ## Check that the ODE control object has the expected parameters
-obj.ode <- ctrl$ode_control$parameters
-expected.ode <- list(a_dydt=expected$ode_tol_dydt,
-                     a_y=expected$ode_tol_y,
-                     step_size_max=expected$ode_step_size_max,
-                     step_size_min=expected$ode_step_size_min,
-                     tol_abs=expected$ode_tol_abs,
-                     tol_rel=expected$ode_tol_rel)
-
+expected.ode <- expected[grep("^ode_", names(expected), value=TRUE)]
+names(expected.ode) <- sub("^ode_", "", names(expected.ode))
 keys.ode <- sort(names(expected.ode))
+
+obj.ode <- ctrl$ode_control$parameters
 expect_that(sort(names(obj.ode)),
             is_identical_to(sort(names(expected.ode))))
 expect_that(obj.ode[keys.ode], is_identical_to(expected.ode[keys.ode]))

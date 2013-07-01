@@ -38,8 +38,8 @@ public:
   double ode_step_size_max;
   double ode_tol_rel;
   double ode_tol_abs;
-  double ode_tol_y;
-  double ode_tol_dydt;
+  double ode_a_y;
+  double ode_a_dydt;
 
   ode::OdeControl ode_control;
 
