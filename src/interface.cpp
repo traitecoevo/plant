@@ -131,6 +131,11 @@ RCPP_MODULE(tree) {
     .derives<util::Lookup>("Lookup")
     .constructor()
     .constructor<Rcpp::List>()
+    .property("ode_control", &model::Control::r_ode_control)
+    ;
+
+  Rcpp::class_<ode::OdeControl>("OdeControl")
+    .constructor()
     ;
 
   Rcpp::class_<model::Parameters>("Parameters")

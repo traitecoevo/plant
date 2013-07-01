@@ -2,6 +2,7 @@
 #ifndef TREE_ODE_CONTROL_H_
 #define TREE_ODE_CONTROL_H_
 
+#include <Rcpp.h>
 #include <vector>
 
 // There is also a "scaled" control type which has a vector of scaling
@@ -31,5 +32,7 @@ private:
 };
 
 }
+
+RCPP_EXPOSED_CLASS(ode::OdeControl)
 
 #endif

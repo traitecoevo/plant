@@ -16,6 +16,9 @@ public:
   Control();
   Control(Rcpp::List x);
 
+  // * R interface
+  ode::OdeControl r_ode_control() const;
+
   bool   plant_assimilation_over_distribution;
   double plant_assimilation_tol;
   int    plant_assimilation_iterations;

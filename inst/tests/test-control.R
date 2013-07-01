@@ -30,3 +30,7 @@ keys <- sort(names(expected))
 expect_that(sort(names(obj)),
             is_identical_to(sort(names(expected))))
 expect_that(obj[keys], is_identical_to(expected[keys]))
+
+## This just checks that we can pull the ode control parameter out.
+## Currently we can't actually work with it.
+expect_that(ctrl$ode_control, is_a("Rcpp_OdeControl"))

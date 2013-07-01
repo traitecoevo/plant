@@ -11,6 +11,12 @@ Control::Control(Rcpp::List x) {
   set_parameters(x);
 }
 
+// * R interface
+ode::OdeControl Control::r_ode_control() const {
+  return ode_control;
+}
+
+// * Private methods
 void Control::reset() {
   plant_assimilation_over_distribution = false;
   plant_assimilation_tol = 1e-6;
