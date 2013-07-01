@@ -85,4 +85,13 @@ bool OdeControl::step_size_shrank() const {
   return last_step_size_shrank;
 }
 
+void OdeControl::do_build_lookup() {
+  lookup_table["tol_abs"]       = &tol_abs;
+  lookup_table["tol_rel"]       = &tol_rel;
+  lookup_table["a_y"]           = &a_y;
+  lookup_table["a_dydt"]        = &a_dydt;
+  lookup_table["step_size_min"] = &step_size_min;
+  lookup_table["step_size_max"] = &step_size_max;
+}
+
 }

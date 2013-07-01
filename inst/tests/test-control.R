@@ -34,3 +34,17 @@ expect_that(obj[keys], is_identical_to(expected[keys]))
 ## This just checks that we can pull the ode control parameter out.
 ## Currently we can't actually work with it.
 expect_that(ctrl$ode_control, is_a("Rcpp_OdeControl"))
+
+## Check that the ODE control object has the expected parameters
+obj.ode <- ctrl$ode_control$parameters
+expected.ode <- list(a_dydt=expected$ode_tol_dydt,
+                     a_y=expected$ode_tol_y,
+                     step_size_max=expected$ode_step_size_max,
+                     step_size_min=expected$ode_step_size_min,
+                     tol_abs=expected$ode_tol_abs,
+                     tol_rel=expected$ode_tol_rel)
+
+keys.ode <- sort(names(expected.ode))
+expect_that(sort(names(obj.ode)),
+            is_identical_to(sort(names(expected.ode))))
+expect_that(obj.ode[keys.ode], is_identical_to(expected.ode[keys.ode]))

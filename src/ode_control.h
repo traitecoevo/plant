@@ -4,6 +4,7 @@
 
 #include <Rcpp.h>
 #include <vector>
+#include "lookup.h"
 
 // There is also a "scaled" control type which has a vector of scaling
 // parameters along the model parameters; this could be added very
@@ -11,7 +12,7 @@
 
 namespace ode {
 
-class OdeControl {
+class OdeControl : public util::Lookup {
 public:
   OdeControl();
   OdeControl(double tol_abs, double tol_rel,
@@ -26,6 +27,7 @@ public:
 
   bool step_size_shrank() const;
 private:
+  void do_build_lookup();
   double tol_abs, tol_rel, a_y, a_dydt;
   double step_size_min, step_size_max;
   bool last_step_size_shrank;
