@@ -9,6 +9,13 @@ OdeR::OdeR(SEXP fun, SEXP env, SEXP pars)
     solver(this) {
 }
 
+OdeR::OdeR(SEXP fun, SEXP env, SEXP pars, OdeControl control)
+  : fun(fun),
+    env(env),
+    pars(pars),
+    solver(this, control) {
+}
+
 size_t OdeR::size() const {
   return solver.get_size();
 }
@@ -79,6 +86,10 @@ std::vector<double> OdeR::r_derivs(double time, std::vector<double> y) {
 Rcpp::NumericMatrix OdeR::r_run(std::vector<double> times,
 				      std::vector<double> y) {
   return solver.r_run(times, y);
+}
+
+OdeControl OdeR::r_control() const {
+  return solver.r_control();
 }
 
 // * Private methods

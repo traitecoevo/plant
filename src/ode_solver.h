@@ -37,6 +37,7 @@ public:
   
   Rcpp::NumericMatrix r_run(std::vector<double> times, 
 			    std::vector<double> y_);
+  OdeControl r_control() const;
   
 private:
   void resize(size_t size_);
@@ -263,6 +264,10 @@ Rcpp::NumericMatrix Solver<Problem>::r_run(std::vector<double> times,
   return ret;
 }
 
+template <class Problem>
+OdeControl Solver<Problem>::r_control() const {
+  return control;
+}
 
 // Note that this could push us past time_max!
 template <class Problem>

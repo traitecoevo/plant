@@ -148,3 +148,22 @@ t.steps2 <- obj$times[1:10]
 obj$set_state(y, t0)
 obj$advance_fixed(t.steps2)
 expect_that(obj$times, is_identical_to(t.steps2))
+
+## And again, with control parameters:
+ctrl <- new(Control)
+ctrl.ode <- ctrl$ode_control
+obj.ctrl <- new(OdeR, derivs.lorenz, new.env(), pars, ctrl.ode)
+
+## This will be improved by not() in the next testthat.
+differ <- !identical(obj$control$parameters,
+                     obj.ctrl$control$parameters)
+expect_that(differ, is_true())
+
+## Run to make sure we've not broken anything obvious:
+obj.ctrl$set_state(y, t0)
+obj.ctrl$advance(tt[2])
+expect_that(obj.ctrl$time, is_identical_to(tt[2]))
+y.cmp <- obj.ctrl$state
+
+ans <- t(obj.ctrl$run(tt, y))
+expect_that(ans[1,], is_identical_to(y.cmp))

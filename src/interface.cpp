@@ -97,6 +97,7 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<ode::OdeR>("OdeR")
     .constructor<SEXP,SEXP,SEXP>()
+    .constructor<SEXP,SEXP,SEXP,ode::OdeControl>()
     .property("size",        &ode::OdeR::size)
     // ODE solving
     .method("set_state",     &ode::OdeR::set_ode_state)
@@ -110,6 +111,7 @@ RCPP_MODULE(tree) {
     .method("advance_fixed", &ode::OdeR::advance_fixed)
     .method("derivs",        &ode::OdeR::r_derivs)
     .method("run",           &ode::OdeR::r_run)
+    .property("control",     &ode::OdeR::r_control)
     ;
 
   Rcpp::class_<util::Lookup>("Lookup")

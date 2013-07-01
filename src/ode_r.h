@@ -12,6 +12,7 @@ namespace ode {
 class OdeR {
 public:
   OdeR(SEXP fun, SEXP env, SEXP pars);
+  OdeR(SEXP fun, SEXP env, SEXP pars, OdeControl control);
   size_t size() const;
   void derivs(double time, iter_const y, iter dydt);
 
@@ -30,7 +31,7 @@ public:
   std::vector<double> r_derivs(double time, std::vector<double> y);
   Rcpp::NumericMatrix r_run(std::vector<double> times,
 			    std::vector<double> y);
-
+  OdeControl r_control() const;
 
 private:
   SEXP target(double time, SEXP y);
