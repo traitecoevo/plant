@@ -197,12 +197,6 @@ double Plant::germination_probability(const Environment& environment) {
   }
 }
 
-// * Access the Control parameter
-// NOTE: This might change!
-const Control& Plant::control() const {
-  return strategy->control;
-}
-
 // * ODE interface
 size_t Plant::ode_size() const { 
   return ode_dimension; 
@@ -229,11 +223,6 @@ ode::iter Plant::ode_rates(ode::iter it) const {
   return it;
 }
 
-// * Protected methods
-
-// These methods protected partly because they require that
-// compute_vars_phys to be run before these will give sensible
-// answers.
 double Plant::mortality() const {
   return vars.mortality;
 }
@@ -261,6 +250,16 @@ double Plant::mortality_probability() const {
 }
 double Plant::survival_probability() const {
   return exp(-mortality());
+}
+
+// * Access the Control parameter (protected)
+//
+// This exists only so that I know that nothing will change the
+// control parameters by only being able to access a const reference
+// (it's shared with everything else that shares the strategy).  It
+// also saves a little ugly looking referencing.
+const Control& Plant::control() const {
+  return strategy->control;
 }
 
 // * Private methods

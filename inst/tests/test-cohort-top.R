@@ -49,7 +49,7 @@ expect_that(growth.rate.given.height(plant$height, p2, env),
             equals(plant$vars_phys[["height_growth_rate"]]))
 
 ## With height:
-ctrl <- coh$control
+ctrl <- s$control
 method.args <- list(d=ctrl$parameters$cohort_gradient_eps,
                     eps=ctrl$parameters$cohort_gradient_eps)
 dgdm.accurate <- grad(growth.rate.given.height, plant$height,

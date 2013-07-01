@@ -83,9 +83,6 @@ public:
   // [eqn 20] Survival of seedlings during germination
   double germination_probability(const Environment& environment);
 
-  // * Access the Control parameter.
-  const Control& control() const;
-
   // * ODE interface
   size_t ode_size() const;
   ode::iter_const set_ode_values(double time, ode::iter_const it);
@@ -101,6 +98,10 @@ public:
   Rcpp::NumericVector r_get_vars_phys() const;
   double r_germination_probability(spline::Spline env);
   bool r_died();
+
+  // * Access the Control parameter (who needs this?)
+protected:
+  const Control& control() const;
 
 private:
   // * Individual size
