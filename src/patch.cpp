@@ -2,11 +2,6 @@
 
 namespace model {
 
-template <>
-void Patch<CohortTop>::r_step() {
-  r_step_deterministic();
-}
-
 SEXP patch(Rcpp::CppClass individual, Parameters p) {
   std::string individual_type =
     util::rcpp_class_demangle(Rcpp::as<std::string>(individual));

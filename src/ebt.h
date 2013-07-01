@@ -4,7 +4,7 @@
 
 #include "patch.h"
 #include "cohort_schedule.h"
-// #include "ode_solver.h"
+#include "ode_solver.h"
 
 namespace model {
 

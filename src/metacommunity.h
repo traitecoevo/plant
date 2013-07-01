@@ -4,6 +4,7 @@
 
 #include <Rcpp.h>
 #include "patch.h"
+#include "ode_solver.h"
 
 namespace model {
 

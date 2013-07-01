@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "ode_target.h"
-#include "ode_solver.h"
 #include "adaptive_spline.h"
 #include "parameters.h"
 #include "species.h"
@@ -31,10 +30,6 @@ public:
   virtual void reset() = 0;
   virtual std::vector<int> r_n_individuals() const = 0;
   virtual Environment r_environment() const = 0;
-  virtual void r_step() = 0;
-  virtual void r_step_deterministic() = 0;
-  virtual void r_step_stochastic() = 0;
-  virtual void r_run_deterministic(double time) = 0;
   virtual double r_height_max() const = 0;
   virtual double r_canopy_openness(double height) = 0;
   virtual double r_leaf_area_above(double height) const = 0;
@@ -85,10 +80,6 @@ public:
   // Other interrogation
   std::vector<int> r_n_individuals() const;
   Environment r_environment() const;
-  void r_step();
-  void r_step_deterministic();
-  void r_step_stochastic();
-  void r_run_deterministic(double time);
   // Wrappers around private methods for use from R
   double r_height_max() const;
   double r_canopy_openness(double height);
@@ -120,7 +111,6 @@ private:
   Environment environment;
 
   std::vector< Species<Individual> > species;
-  ode::Solver<Patch> ode_solver;
 
   typedef typename std::vector< Species<Individual> >::iterator 
   species_iterator;
@@ -131,46 +121,15 @@ private:
 template <class Individual>
 Patch<Individual>::Patch(Parameters p)
   : parameters(p),
-    environment(*parameters.get()),
-    ode_solver(this, parameters->control.ode_control) {
+    environment(*parameters.get()) {
   initialise();
 }
 
 template <class Individual>
 Patch<Individual>::Patch(Parameters *p)
   : parameters(p),
-    environment(*parameters.get()),
-    ode_solver(this, parameters->control.ode_control) {
+    environment(*parameters.get()) {
   initialise();
-}
-
-template <class Individual>
-void Patch<Individual>::r_step() {
-  r_step_deterministic();
-  r_step_stochastic();
-}
-template <> void Patch<CohortTop>::r_step();
-
-template <class Individual>
-void Patch<Individual>::r_step_deterministic() {
-  ode_solver.set_state_from_problem();
-  ode_solver.step();
-}
-
-// Note that this will change when we are working with a
-// metapopulation.  In particular, this will get called in two pieces,
-// with the seed output collected up for general dispersal.
-template <class Individual>
-void Patch<Individual>::r_step_stochastic() {
-  Rcpp::RNGScope scope;
-  deaths();
-  add_seeds(births());
-}
-
-template <class Individual>
-void Patch<Individual>::r_run_deterministic(double time) {
-  ode_solver.set_state_from_problem();
-  ode_solver.advance(time);
 }
 
 template <class Individual>
@@ -478,11 +437,6 @@ void Patch<Individual>::reset() {
        sp != species.end(); sp++)
     sp->clear();
   environment.clear();
-  // TODO: This should only be done if we're running the patch as a
-  // standalone thing?  Perhaps have something else run the Patch from
-  // the R side and just drop the ode_solver member from Patch
-  // entirely.
-  ode_solver.reset();
   compute_light_environment();
   compute_vars_phys();
 }
