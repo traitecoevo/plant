@@ -17,8 +17,8 @@ namespace model {
 class PatchBase : public ode::OdeTarget {
 public:
   virtual ~PatchBase() {};
-  std::vector<int> births();
-  void deaths();
+  virtual std::vector<int> births() = 0;
+  virtual void deaths() = 0;
   virtual size_t size() const = 0;
   virtual double get_time() const = 0;
   virtual Rcpp::List r_height() const = 0;

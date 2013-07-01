@@ -289,6 +289,8 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::PatchBase>("PatchBase")
     .derives<ode::OdeTarget>("OdeTarget")
+    .method("births",             &model::PatchBase::births)
+    .method("deaths",             &model::PatchBase::deaths)
     .property("size",             &model::PatchBase::size)
     .property("time",             &model::PatchBase::get_time)
     .property("height_max",       &model::PatchBase::r_height_max)
@@ -307,10 +309,10 @@ RCPP_MODULE(tree) {
 	      &model::PatchBase::r_set_height)
     .property("n_individuals",    &model::PatchBase::r_n_individuals)
     .method("reset",              &model::PatchBase::reset)
-    .method("step",               &model::PatchBase::r_step)
-    .method("step_deterministic", &model::PatchBase::r_step_deterministic)
-    .method("step_stochastic",    &model::PatchBase::r_step_stochastic)
-    .method("run_deterministic",  &model::PatchBase::r_run_deterministic)
+    //.method("step",               &model::PatchBase::r_step)
+    //.method("step_deterministic", &model::PatchBase::r_step_deterministic)
+    //.method("step_stochastic",    &model::PatchBase::r_step_stochastic)
+    //.method("run_deterministic",  &model::PatchBase::r_run_deterministic)
     .property("seed_rain",        &model::PatchBase::r_get_seed_rain,
 	      &model::PatchBase::r_set_seed_rain)
     ;

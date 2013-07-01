@@ -88,37 +88,33 @@ expect_that(dydt, is_identical_to(cmp.dydt))
 
 expect_that(patch$derivs(0.0, y), is_identical_to(dydt))
 
-patch$step_deterministic()
+solver <- solver.from.odetarget(patch, p$control$ode_control)
+
+expect_that(solver$derivs(patch$time, patch$ode_values),
+            is_identical_to(dydt))
+
+solver$step()
 y.new <- patch$ode_values
 expect_that(all(y.new > y), is_true())
 
-## Now, wrap up the plant as a new derivatives function:
-derivs <- function(t, y, pars)
-  pars$derivs(t, y)
-
+## Compare running with the main OdeR solver and one from deSolve
+## (why?)
 tt <- seq(0, 15, length=51)
-obj <- new(OdeR, derivs, new.env(), patch)
-expect_that(obj$derivs(0.0, y),
-            is_identical_to(dydt))
 
 library(deSolve)
-derivs.d <- function(...)
-  list(derivs(...))
+derivs.d <- function(t, y, pars)
+  list(pars$derivs(t, y))
+
+## Note that this is twice as slow as the deSolve rk method!  Some of
+## this (perhaps 20%) is due to overhead with the R->C->R->C
+## convoluted calls, especially with the interactions with S4 methods.
+## The rest is probably tied up with the extra parameter set that we
+## always do with the GSL ode solver.
 cmp.run <- unname(rk(y, tt, derivs.d, patch,
                      method=rkMethod("rk45ck"), hini=1e-8, rtol=1e-8,
                      atol=1e-8)[-1,-1])
-
-## TODO: This is quite slow (0.1s).  This is about 20% slower than the
-## rk45ck in deSolve (0.08s), so given the overhead involved in going
-## to and from R, there is some serious room for improvement in the
-## ODE solver.  This probably should not be too surprising as it's
-## based on GSL, and that is meant to be fairly slow.
-##
-## It actually looks like some of the overhead could be coming from
-## the R<->C communication?  Time will tell.
-expect_that(t(obj$run(tt, y)),
+expect_that(t(solver$run(tt, y)),
             equals(cmp.run))
-
 
 ## Check a single individual added via add_seedling:
 patch$reset()
@@ -132,14 +128,27 @@ expect_that(patch$n_individuals, equals(1))
 ## a single individual.
 patch$reset()
 patch$add_seedlings(1)
+solver$reset()
+solver$set_state(patch$ode_values, patch$time)
+
+## Helper function to move through the stochastic parts of the life
+## cycle (deaths and births)
+step.stochastic <- function(patch) {
+  patch$deaths()
+  patch$add_seeds(patch$births())
+}
 
 set.seed(1)
-while ( patch$n_individuals == 1 && patch$time < 15.0 ) {
-  patch$step_deterministic()
-  patch$step_stochastic()
+while (patch$n_individuals == 1 && patch$time < 15.0) {
+  solver$step()
+  step.stochastic(patch)
+  solver$set_state(patch$ode_values, patch$time)
 }
-expect_that(patch$n_individuals == 2 && patch$time > 0 && patch$time < 15,
-            is_true())
+
+test_that("Patch growth matched expectation", {
+  expect_that(patch$n_individuals, equals(2))
+  expect_that(patch$time, is_within_interval(0.0, 15.0))
+})
 
 ## Check that the germination numbers look correct, by comparing fit
 ## to a binomial distribution with the appropriate parameters.  Being

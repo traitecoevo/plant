@@ -62,7 +62,8 @@ expect_that(patch.c$ode_values, is_identical_to(y))
 expect_that(patch.c$derivs(0, y),
             equals(cmp$ode_rates))
 
-patch.c$step()
+solver <- solver.from.odetarget(patch.c, p$control$ode_control)
+solver$step()
 patch.c$add_seedling(1)
 expect_that(patch.c$ode_size,
             equals(cmp$ode_size * patch.c$n_individuals))
@@ -80,7 +81,7 @@ patch.c$add_seedling(1)
 h <- patch.c$height[[1]]
 
 while (patch.c$time < 25) {
-  patch.c$step()
+  solver$step()
   t <- c(t, patch.c$time)
   h <- c(h, patch.c$height[[1]])
 }
@@ -94,10 +95,12 @@ if (interactive()) {
 
 patch.c$reset()
 patch.c$add_seedling(1)
+solver <- solver.from.odetarget(patch.c, p$control$ode_control)
+
 tt <- seq(0, 25, length=26)
 hh <- patch.c$height[[1]]
 for (ti in tt[-1]) {
-  patch.c$run_deterministic(ti)
+  solver$advance(ti)
   hh <- c(hh, patch.c$height[[1]])
 }
 
@@ -108,11 +111,11 @@ if (interactive()) {
 
 expect_that(hh, equals(spline(t, h, xout=tt)$y, tolerance=1e-7))
 
-test_that("run_deterministic OK at end of sequence", {
+test_that("OK at end of sequence", {
   expect_that(patch.c$time, is_identical_to(tt[[length(tt)]]))
-  patch.c$run_deterministic(tt[[length(tt)]])
+  solver$advance(tt[[length(tt)]])
   expect_that(patch.c$time, is_identical_to(tt[[length(tt)]]))
-  expect_that(patch.c$run_deterministic(tt[[length(tt)]] - 1e-8),
+  expect_that(solver$advance(tt[[length(tt)]] - 1e-8),
               throws_error())
 })
 

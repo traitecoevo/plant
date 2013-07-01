@@ -46,18 +46,18 @@ expect_that(patch.c$ode_size, equals(3))
 expect_that(patch.p$n_individuals, equals(2))
 expect_that(patch.c$n_individuals, equals(2))
 
-## Now, grow this pair of seeds deterministically for a bit.
-f <- function(patch, t) {
+f <- function(patch, t, ode.control) {
+  solver <- solver.from.odetarget(patch, ode.control)
   res <- list()
-  while ( patch$time < t ) {
-    patch$step_deterministic()
+  while (patch$time < t) {
+    solver$step()
     res <- c(res, list(c(patch$time, patch$ode_values)))
   }
   do.call(rbind, res)
 }
 
-res.p <- f(patch.p, 10)
-res.c <- f(patch.c, 10)
+res.p <- f(patch.p, 10, p$control$ode_control)
+res.c <- f(patch.c, 10, p$control$ode_control)
 
 expect_that(res.p[,1:4], equals(res.c[,1:4]))
 expect_that(res.p[,5:7], equals(res.p[,2:4]))
@@ -77,22 +77,30 @@ patch.c$add_seedlings(1)
 
 ## Function to run a patch up to a population size or time, and
 ## accumulate results.
-run <- function(patch, n, time, res=NULL) {
-  collect <- function()
+run <- function(patch, n, time, ode.control, res=NULL) {
+  collect <- function(patch)
     list(list(patch$time, patch$n_individuals, patch$height))
-  if ( is.null(res) )
-    res <- collect()
-  while ( patch$n_individuals <= n && patch$time <= time ) {
-    patch$step()
-    res <- c(res, collect())
+  step.stochastic <- function(patch) {
+    patch$deaths()
+    patch$add_seeds(patch$births())
+  }
+  solver <- solver.from.odetarget(patch, ode.control)
+
+  if (is.null(res))
+    res <- collect(patch)
+  while (patch$n_individuals <= n && patch$time <= time) {
+    solver$step()
+    step.stochastic(patch)
+    solver$set_state(patch$ode_values, patch$time)
+    res <- c(res, collect(patch))
   }
   res
 }
 
 set.seed(1)
-res.p <- run(patch.p, 1, 15)
+res.p <- run(patch.p, 1, 15, p$control$ode_control)
 set.seed(1)
-res.c <- run(patch.c, 1, 15)
+res.c <- run(patch.c, 1, 15, p$control$ode_control)
 
 ## Getting odd error here that goes away eventually.  Possible that we
 ## have a memory issue.
@@ -103,9 +111,9 @@ expect_that(res.p, equals(res.c))
 ## stochastically diverge once at least one cohort has more than one
 ## individual in it (see design.md).
 set.seed(1)
-res.p <- run(patch.p, 1000, 100, res.p)
+res.p <- run(patch.p, 1000, 100, p$control$ode_control, res.p)
 set.seed(1)
-res.c <- run(patch.c, 1000, 100, res.c)
+res.c <- run(patch.c, 1000, 100, p$control$ode_control, res.c)
 
 nth <- function(x, n, strict=TRUE) if (strict) x[[n]] else x[n]
 first  <- function(x, strict=TRUE) nth(x, 1, strict)

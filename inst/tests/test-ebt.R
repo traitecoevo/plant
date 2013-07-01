@@ -74,9 +74,11 @@ species.index <- 1
 sched$reset()
 ## Advance to time 't', then add species.
 tt.p <- hh.p <- NULL
+solver <- solver.from.odetarget(patch, p$control$ode_control)
 while (sched$remaining > 0) {
-  patch$run_deterministic(sched$next_time)
+  solver$advance(sched$next_time)
   patch$add_seedling(species.index)
+  solver$set_state(patch$ode_values, patch$time)
   sched$pop()
   tt.p <- c(tt.p, patch$time)
   hh.p <- c(hh.p, list(patch$height[[species.index]]))
