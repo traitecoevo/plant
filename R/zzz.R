@@ -51,6 +51,9 @@
 ##' @export trapezium
 
 .onLoad <- function(libname, pkgname){
-  loadRcppModules()
+  ## loadRcppModules() # this breaks devtools
+  ## But the line below causes CHECK to fail because it can't find
+  ## set_sane_gsl_error_handling.
+  loadModule("tree", TRUE)
   set_sane_gsl_error_handling()
 }
