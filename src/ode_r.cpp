@@ -20,7 +20,7 @@ size_t OdeR::size() const {
   return solver.get_size();
 }
 
-void OdeR::derivs(double time, iter_const y, iter dydt) {
+void OdeR::derivs(double time, iterator_const y, iterator dydt) {
   SEXP y_r;
   PROTECT(y_r = Rf_allocVector(REALSXP, (int)size()));
   std::copy(y, y + (int)size(), REAL(y_r));

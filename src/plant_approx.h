@@ -19,7 +19,7 @@ public:
   void compute_vars_phys(const Environment& env);
 
   // * ODE interface
-  ode::iter ode_rates(ode::iter it) const;
+  ode::iterator ode_rates(ode::iterator it) const;
 
   // * R interface
   void r_compute_vars_phys_spline(const Environment& env);

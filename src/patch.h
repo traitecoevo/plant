@@ -59,9 +59,9 @@ public:
 
   // * ODE interface.
   size_t ode_size() const;
-  ode::iter_const set_ode_values(double time, ode::iter_const it);
-  ode::iter       ode_values(ode::iter it) const;
-  ode::iter       ode_rates(ode::iter it)  const;
+  ode::iterator_const set_ode_values(double time, ode::iterator_const it);
+  ode::iterator       ode_values(ode::iterator it) const;
+  ode::iterator       ode_rates(ode::iterator it)  const;
   double get_time() const;
 
   // * R interface.
@@ -203,8 +203,9 @@ size_t Patch<Individual>::ode_size() const {
 // re-set them in the model.  Importantly, on the first stage of any
 // step, nothing has changed because we did get_state -> set_state.
 template <class Individual>
-ode::iter_const Patch<Individual>::set_ode_values(double time,
-						  ode::iter_const it) {
+ode::iterator_const
+Patch<Individual>::set_ode_values(double time,
+				  ode::iterator_const it) {
   it = ode::set_ode_values(species.begin(), species.end(), time, it);
   environment.set_time(time);
   compute_light_environment();
@@ -213,12 +214,12 @@ ode::iter_const Patch<Individual>::set_ode_values(double time,
 }
 
 template <class Individual>
-ode::iter Patch<Individual>::ode_values(ode::iter it) const {
+ode::iterator Patch<Individual>::ode_values(ode::iterator it) const {
   return ode::ode_values(species.begin(), species.end(), it);
 }
 
 template <class Individual>
-ode::iter Patch<Individual>::ode_rates(ode::iter it) const {
+ode::iterator Patch<Individual>::ode_rates(ode::iterator it) const {
   return ode::ode_rates(species.begin(), species.end(), it);
 }
 

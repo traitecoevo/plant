@@ -202,21 +202,22 @@ size_t Plant::ode_size() const {
   return ode_dimension; 
 }
 
-ode::iter_const Plant::set_ode_values(double time, ode::iter_const it) {
+ode::iterator_const Plant::set_ode_values(double time,
+					  ode::iterator_const it) {
   set_height(*it++);
   set_mortality(*it++);
   set_fecundity(*it++);
   return it;
 }
 
-ode::iter Plant::ode_values(ode::iter it) const {
+ode::iterator Plant::ode_values(ode::iterator it) const {
   *it++ = height();
   *it++ = mortality();
   *it++ = fecundity();
   return it;
 }
 
-ode::iter Plant::ode_rates(ode::iter it) const {
+ode::iterator Plant::ode_rates(ode::iterator it) const {
   *it++ = height_rate();
   *it++ = mortality_rate();
   *it++ = fecundity_rate();

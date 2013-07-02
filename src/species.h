@@ -54,9 +54,9 @@ public:
 
   // * ODE interface
   size_t ode_size() const;
-  ode::iter_const set_ode_values(double time, ode::iter_const it);
-  ode::iter       ode_values(ode::iter it) const;
-  ode::iter       ode_rates(ode::iter it)  const;
+  ode::iterator_const set_ode_values(double time, ode::iterator_const it);
+  ode::iterator       ode_values(ode::iterator it) const;
+  ode::iterator       ode_rates(ode::iterator it)  const;
 
   // * R interface
   std::vector<double> r_height() const;
@@ -189,18 +189,19 @@ size_t Species<Individual>::ode_size() const {
 }
 
 template <class Individual>
-ode::iter_const Species<Individual>::set_ode_values(double time,
-						    ode::iter_const it) {
+ode::iterator_const
+Species<Individual>::set_ode_values(double time,
+				    ode::iterator_const it) {
   return ode::set_ode_values(plants.begin(), plants.end(), time, it);
 }
 
 template <class Individual>
-ode::iter Species<Individual>::ode_values(ode::iter it) const {
+ode::iterator Species<Individual>::ode_values(ode::iterator it) const {
   return ode::ode_values(plants.begin(), plants.end(), it);
 }
 
 template <class Individual>
-ode::iter Species<Individual>::ode_rates(ode::iter it) const {
+ode::iterator Species<Individual>::ode_rates(ode::iterator it) const {
   return ode::ode_rates(plants.begin(), plants.end(), it);
 }
 

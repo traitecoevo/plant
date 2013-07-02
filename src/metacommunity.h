@@ -52,9 +52,9 @@ public:
 
   // * ODE interface
   size_t ode_size() const;
-  ode::iter_const set_ode_values(double time, ode::iter_const it);
-  ode::iter       ode_values(ode::iter it) const;
-  ode::iter       ode_rates(ode::iter it)  const;
+  ode::iterator_const set_ode_values(double time, ode::iterator_const it);
+  ode::iterator       ode_values(ode::iterator it) const;
+  ode::iterator       ode_rates(ode::iterator it)  const;
 
   // * R interface
   Patch<Individual> r_at(size_t idx) const;
@@ -191,18 +191,21 @@ size_t Metacommunity<Individual>::ode_size() const {
 }
 
 template <class Individual>
-ode::iter_const Metacommunity<Individual>::set_ode_values(double time,
-							  ode::iter_const it) {
+ode::iterator_const
+Metacommunity<Individual>::set_ode_values(double time,
+					  ode::iterator_const it) {
   return ode::set_ode_values(patches.begin(), patches.end(), time, it);
 }
 
 template <class Individual>
-ode::iter Metacommunity<Individual>::ode_values(ode::iter it) const {
+ode::iterator
+Metacommunity<Individual>::ode_values(ode::iterator it) const {
   return ode::ode_values(patches.begin(), patches.end(), it);
 }
 
 template <class Individual>
-ode::iter Metacommunity<Individual>::ode_rates(ode::iter it) const {
+ode::iterator
+Metacommunity<Individual>::ode_rates(ode::iterator it) const {
   return ode::ode_rates(patches.begin(), patches.end(), it);
 }
 

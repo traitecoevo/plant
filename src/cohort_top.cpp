@@ -74,7 +74,8 @@ size_t CohortTop::ode_size() const {
   return ode_dimension;
 }
 
-ode::iter_const CohortTop::set_ode_values(double time, ode::iter_const it) {
+ode::iterator_const CohortTop::set_ode_values(double time,
+					      ode::iterator_const it) {
   set_height(*it++);
   set_mortality(*it++);
   seeds_survival_weighted = *it++;
@@ -82,7 +83,7 @@ ode::iter_const CohortTop::set_ode_values(double time, ode::iter_const it) {
   return it;
 }
 
-ode::iter CohortTop::ode_values(ode::iter it) const {
+ode::iterator CohortTop::ode_values(ode::iterator it) const {
   *it++ = height();
   *it++ = mortality();
   *it++ = seeds_survival_weighted;
@@ -90,7 +91,7 @@ ode::iter CohortTop::ode_values(ode::iter it) const {
   return it;
 }
 
-ode::iter CohortTop::ode_rates(ode::iter it) const {
+ode::iterator CohortTop::ode_rates(ode::iterator it) const {
   *it++ = height_rate();
   *it++ = mortality_rate();
   *it++ = seeds_survival_weighted_rate;

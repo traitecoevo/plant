@@ -20,7 +20,7 @@ public:
 	    std::vector<double> &dydt_out);
   void reset();
   unsigned int order();
-  void derivs(double time, iter_const y, iter dydt);
+  void derivs(double time, iterator_const y, iterator dydt);
 
   // Private soon, but not right now (will be once these are never
   // instantiated directly).
@@ -146,7 +146,7 @@ unsigned int Step<Problem>::order() {
 }
 
 template <class Problem>
-void Step<Problem>::derivs(double time, iter_const y, iter dydt) {
+void Step<Problem>::derivs(double time, iterator_const y, iterator dydt) {
   problem->derivs(time, y, dydt);
 }
 

@@ -4,7 +4,7 @@
 
 namespace ode {
 
-void OdeTarget::derivs(double time, iter_const y, iter dydt) {
+void OdeTarget::derivs(double time, iterator_const y, iterator dydt) {
   set_ode_values(time, y);
   ode_rates(dydt);
 }

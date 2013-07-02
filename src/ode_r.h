@@ -14,7 +14,7 @@ public:
   OdeR(SEXP fun, SEXP env, SEXP pars);
   OdeR(SEXP fun, SEXP env, SEXP pars, OdeControl control);
   size_t size() const;
-  void derivs(double time, iter_const y, iter dydt);
+  void derivs(double time, iterator_const y, iterator dydt);
 
   void set_ode_state(std::vector<double> y, double time);
   std::vector<double> ode_state() const;

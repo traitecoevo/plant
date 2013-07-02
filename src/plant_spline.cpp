@@ -28,7 +28,7 @@ void PlantSpline::compute_vars_phys(const Environment& environment) {
   build_plants_approx();
 }
 
-ode::iter PlantSpline::ode_rates(double height, ode::iter it) const {
+ode::iterator PlantSpline::ode_rates(double height, ode::iterator it) const {
   if ( height > height_max() )
     ::Rf_error("Requested plant too large");
   for ( size_t i = 0; i < ode_size(); i++ )

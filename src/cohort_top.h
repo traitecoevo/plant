@@ -23,9 +23,9 @@ public:
 
   // * ODE interface
   size_t ode_size() const;
-  ode::iter_const set_ode_values(double time, ode::iter_const it);
-  ode::iter       ode_values(ode::iter it) const;
-  ode::iter       ode_rates(ode::iter it)  const;
+  ode::iterator_const set_ode_values(double time, ode::iterator_const it);
+  ode::iterator       ode_values(ode::iterator it) const;
+  ode::iterator       ode_rates(ode::iterator it)  const;
 
   // * R interface
   double r_growth_rate_gradient(const Environment& environment) const;

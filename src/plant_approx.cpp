@@ -17,7 +17,7 @@ void PlantApprox::compute_vars_phys(const Environment& environment) {
     Plant::compute_vars_phys(environment);
 }
 
-ode::iter PlantApprox::ode_rates(ode::iter it) const {
+ode::iterator PlantApprox::ode_rates(ode::iterator it) const {
   if ( large_plant_do_exact() )
     return Plant::ode_rates(it);
   else

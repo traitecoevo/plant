@@ -36,7 +36,7 @@ public:
 
   // Used by species & upstream
   void compute_vars_phys(const Environment& environment);
-  ode::iter ode_rates(double height, ode::iter it) const;
+  ode::iterator ode_rates(double height, ode::iterator it) const;
 
   // Used by R
   std::vector<double> r_ode_rates(double height) const;
