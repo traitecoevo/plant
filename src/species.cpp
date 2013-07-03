@@ -13,7 +13,7 @@ namespace model {
 // to inline, but I don't know.
 template <>
 void Species<CohortDiscrete>::add_seeds(int n) {
-  if ( n > 0 ) {
+  if (n > 0) {
     CohortDiscrete p = seed;
     p.set_n_individuals(n);
     plants.push_back(p);
@@ -23,8 +23,8 @@ void Species<CohortDiscrete>::add_seeds(int n) {
 template <>
 int Species<CohortDiscrete>::r_n_individuals() const {
   int n = 0;
-  for ( plants_const_iterator it = plants.begin();
-	it != plants.end(); it++ )
+  for (plants_const_iterator it = plants.begin();
+       it != plants.end(); ++it)
     n += it->get_n_individuals();
   return n;
 }
@@ -34,36 +34,56 @@ int Species<CohortDiscrete>::r_n_individuals() const {
 // non-existant seed as the left-most point.  So, with at least one
 // cohort in the population, the integral is defined.
 //
-// NOTE: In contrast with the Plant version, we stop *after* including
-// a y point that is zero, which might be the boundary cohort.  In
-// addition, we always need to include at least two points.
+// NOTE: The CohortTop::leaf_area_above() calculation takes into
+// account the different densities of different cohorts, so that is
+// automatically included in this calculation.  It's possible that it
+// makes more sense for the density to be included *within* the
+// calculation here, however?
 //
-// NOTE: This is further complicated by the fact that plants are
-// stored largest to smallest.  If we used a vector to store x/y
-// values we'd have to push_back(), and the resulting integral would
-// be *negative* (because the x values would be decreasing).  Using a
-// list allows pushing to the front.
+// NOTE: This is simply performing numerical integration, via the
+// trapezium rule, of the leaf_area_above with respect to plant
+// height.  You'd think that this would be nicer to do in terms of a
+// call to an external trapezium integration function, but building
+// and discarding the intermediate storage ends up being a nontrivial
+// cost.  A more general iterator version might be possible, but with
+// the fiddliness around the boundary conditions that won't likely be
+// useful.
 //
 // NOTE: In the cases where there is no individuals, we return 0 for
 // all heights.  The integral is not defined, but an empty light
 // environment seems appropriate.
+//
+// NOTE: A similar early-exit condition to the Plant version is used;
+// once the lower bound of the trazpeium is zero, we stop including
+// individuals.  Working with the boundary cohort is tricky here,
+// because we might need to include that, too: always in the case of a
+// single cohort (needed to be the second half of the trapezium) and
+// also needed if the last looked at plant was still contributing to
+// the integral).
 template <>
 double Species<CohortTop>::leaf_area_above(double height) const {
   if (size() == 0 || height_max() < height)
-    return(0.0);
-  std::list<double> x, y;
-  for (plants_const_iterator it = plants.begin();
-       it != plants.end(); it++) {
-    x.push_front(it->height());
-    y.push_front(it->leaf_area_above(height));
-    if (y.front() == 0)
+    return 0.0;
+  double tot = 0.0;
+  plants_const_iterator it = plants.begin();
+  double h1 = it->height(), f_h1 = it->leaf_area_above(height);
+
+  for (++it; it != plants.end(); ++it) {
+    const double h0 = it->height(), f_h0 = it->leaf_area_above(height);
+    tot += (h1 - h0) * (f_h1 + f_h0);
+    // Upper point moves for next time:
+    h1   = h0;
+    f_h1 = f_h0;
+    if (f_h0 == 0)
       break;
   }
-  if (y.front() > 0 || y.size() < 2) {
-    x.push_front(seed.height());
-    y.push_front(seed.leaf_area_above(height));
+
+  if (size() == 1 || f_h1 > 0) {
+    const double h0 = seed.height(), f_h0 = seed.leaf_area_above(height);
+    tot += (h1 - h0) * (f_h1 + f_h0);
   }
-  return util::trapezium(x, y);
+
+  return tot / 2;
 }
 
 template <>
