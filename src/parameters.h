@@ -35,6 +35,10 @@ public:
   // Setting
   void add_strategy(Strategy s);
 
+  // Additional control parameters:
+  const Control& get_control() const;
+  void set_control(Control x);
+
   // Data -- public for now (see github issue #17).
   Disturbance disturbance_regime;
   double c_ext;      // Light extinction coefficient
@@ -49,6 +53,9 @@ public:
 private:
   void do_build_lookup();
   void reset();
+
+  typedef std::vector<Strategy>::iterator strategy_iterator;
+  typedef std::vector<Strategy>::const_iterator strategy_const_iterator;
 };
 
 }

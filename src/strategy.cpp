@@ -13,6 +13,14 @@ Strategy::Strategy(Rcpp::List x) {
   set_parameters(x);
 }
 
+void Strategy::set_control(Control x) {
+  control = x;
+}
+
+Control Strategy::r_control() const {
+  return control;
+}
+
 void Strategy::reset() {
   // * Core traits
   lma  = 0.1978791;

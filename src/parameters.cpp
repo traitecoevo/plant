@@ -26,7 +26,19 @@ size_t Parameters::size() const {
 }
 
 void Parameters::add_strategy(Strategy s) {
+  s.set_control(control);
   strategies.push_back(s);
+}
+
+const Control& Parameters::get_control() const {
+  return control;
+}
+
+void Parameters::set_control(Control x) {
+  control = x;
+  for (strategy_iterator it = strategies.begin();
+       it != strategies.end(); ++it)
+    it->set_control(control);
 }
 
 Strategy Parameters::r_at(size_t idx) {
@@ -35,7 +47,7 @@ Strategy Parameters::r_at(size_t idx) {
 
 Rcpp::List Parameters::r_get_strategies() {
   Rcpp::List ret;
-  for (std::vector<Strategy>::iterator it = strategies.begin();
+  for (strategy_iterator it = strategies.begin();
        it != strategies.end(); ++it)
     ret.push_back(Rcpp::wrap(*it));
   return ret;

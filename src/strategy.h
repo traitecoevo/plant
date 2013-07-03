@@ -18,7 +18,10 @@ public:
   Strategy();
   Strategy(Rcpp::List x);
 
-  Control control;
+  // Parameters needs to be able to set our control properties:
+  void set_control(Control x);
+  // And R will want to query it:
+  Control r_control() const;
 
   // All the rest of the class can be accessed only by Plant.
   friend class Plant;
@@ -73,6 +76,8 @@ private:
 
   // Height of a (germinated) seed
   double height_0;
+
+  Control control;
 
   // These things are really not to be used by anything, but are all
   // harmless (except for reset, actually).  They're used in

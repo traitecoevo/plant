@@ -146,6 +146,22 @@ expect_that(seed$germination_probability(env),
             equals(cmp$germination.probability(cmp$traits, light.env),
                    tolerance=1e-5))
 
+## Check with different control parameters.
+## TODO: This is really awkward.
+ctrl <- s$control
+ctrl$set_parameters(list(plant_assimilation_over_distribution=TRUE))
+s$control <- ctrl
+p2 <- new(Plant, s)
+p2$height <- p$height
+
+p2$compute_vars_phys(env)
+p2.phys <- p2$vars_phys
+test_that("Assimilation over distribution works", {
+  expect_that(p2.phys, equals(p.phys))
+  ## Will be simplifable by devtools::not()
+  expect_that(identical(p2.phys, p.phys), is_false())
+})
+
 ## Grow the plant in a constant environment
 derivs <- function(t, y, pars) {
   plant <- pars$plant

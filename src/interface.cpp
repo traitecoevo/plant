@@ -121,7 +121,8 @@ RCPP_MODULE(tree) {
     .derives<util::Lookup>("Lookup")
     .constructor()
     .constructor<Rcpp::List>()
-    .field("control", &model::Strategy::control)
+    .property("control", &model::Strategy::r_control,
+	      &model::Strategy::set_control)
     ;
 
   Rcpp::class_<model::Control>("Control")
