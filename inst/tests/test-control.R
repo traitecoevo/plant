@@ -28,12 +28,16 @@ expected <- list(
   )
 
 keys <- sort(names(expected))
-expect_that(sort(names(obj)),
-            is_identical_to(sort(names(expected))))
-expect_that(obj[keys], is_identical_to(expected[keys]))
+test_that("Control keys are as expected", {
+  expect_that(sort(names(obj)),
+              is_identical_to(sort(names(expected))))
+  expect_that(obj[keys], is_identical_to(expected[keys]))
+})
 
 ## This just checks that we can pull the ode control parameter out.
-expect_that(ctrl$ode_control, is_a("Rcpp_OdeControl"))
+test_that("We can pull ode_control out correctly", {
+  expect_that(ctrl$ode_control, is_a("Rcpp_OdeControl"))
+})
 
 ## Check that the ODE control object has the expected parameters
 expected.ode <- expected[grep("^ode_", names(expected), value=TRUE)]
@@ -41,6 +45,8 @@ names(expected.ode) <- sub("^ode_", "", names(expected.ode))
 keys.ode <- sort(names(expected.ode))
 
 obj.ode <- ctrl$ode_control$parameters
-expect_that(sort(names(obj.ode)),
-            is_identical_to(sort(names(expected.ode))))
-expect_that(obj.ode[keys.ode], is_identical_to(expected.ode[keys.ode]))
+test_that("ode_control's keys are as expected", {
+  expect_that(sort(names(obj.ode)),
+              is_identical_to(sort(names(expected.ode))))
+  expect_that(obj.ode[keys.ode], is_identical_to(expected.ode[keys.ode]))
+})

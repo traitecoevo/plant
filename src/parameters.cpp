@@ -45,6 +45,10 @@ void Parameters::set_control(Control x) {
     it->set_control(control);
 }
 
+void Parameters::set_control_parameters(Rcpp::List x) {
+  control.set_parameters(x);
+}
+
 Strategy Parameters::r_at(size_t idx) {
   return strategies.at(util::check_bounds_r(idx, size()));
 }

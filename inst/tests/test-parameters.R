@@ -67,6 +67,11 @@ ctrl$set_parameters(list(cohort_gradient_richardson=TRUE))
 p$control <- ctrl
 expect_that(p$control$parameters, is_identical_to(ctrl$parameters))
 
+ctrl.extra <- list(plant_seed_tol=1)
+p$set_control_parameters(ctrl.extra)
+expect_that(p$control$parameters,
+            is_identical_to(modifyList(ctrl$parameters, ctrl.extra)))
+
 dist <- new(Disturbance)
 expect_that(p$disturbance_regime$parameters,
             is_identical_to(dist$parameters))

@@ -41,6 +41,8 @@ public:
   const Control& get_control() const;
   void set_control(Control x);
 
+  void set_control_parameters(Rcpp::List x);
+
   // Data -- public for now (see github issue #17).
   Disturbance disturbance_regime;
   double c_ext;      // Light extinction coefficient
