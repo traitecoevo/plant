@@ -33,6 +33,7 @@ public:
   double environment_light_tol;
   int    environment_light_nbase;
   int    environment_light_max_depth;
+  bool   environment_light_rescale_usually;
 
   double ode_step_size_min;
   double ode_step_size_max;
@@ -59,6 +60,7 @@ private:
 
   double _environment_light_nbase;
   double _environment_light_max_depth;
+  double _environment_light_rescale_usually;
 };
 
 }

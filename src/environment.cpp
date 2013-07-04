@@ -29,20 +29,15 @@ void Environment::compute_light_environment(util::DFunctor *f_canopy_openness,
 void Environment::scale_light_environment(util::DFunctor *f_canopy_openness,
 					  double height_max) {
   std::vector<double> x = light_environment.get_x();
-  std::vector<double> y;
-  y.reserve(x.size());
+  light_environment.clear();
   const double r = height_max / x.back();
-  for (std::vector<double>::iterator xi = x.begin();
-       xi != x.end(); ++xi) {
-    *xi *= r;
-    y.push_back((*f_canopy_openness)(*xi));
+  for (size_t i = 0; i < x.size() - 1; ++i) {
+    const double xi = x[i] * r;
+    light_environment.add_point(xi, (*f_canopy_openness)(xi));
   }
-  if (!util::identical(x.back(), height_max)) {
-    ::Rf_warning("Can't rely on this it seems");
-    x.back() = height_max;
-    y.back() = (*f_canopy_openness)(height_max);
-  }
-  light_environment.init(x, y);
+  light_environment.add_point(height_max,
+			      (*f_canopy_openness)(height_max));
+  light_environment.init_self();
 }
 
 // Computes the probability of survival from time_at_birth to time,

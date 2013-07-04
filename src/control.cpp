@@ -32,6 +32,7 @@ void Control::reset() {
   environment_light_tol = 1e-6;
   environment_light_nbase = 17;
   environment_light_max_depth = 16;
+  environment_light_rescale_usually = false;
 
   ode_step_size_min = 1e-6;
   ode_step_size_max = 1e-1;
@@ -60,6 +61,8 @@ void Control::reset() {
     static_cast<double>(environment_light_nbase);
   _environment_light_max_depth =
     static_cast<double>(environment_light_max_depth);
+  _environment_light_rescale_usually =
+    static_cast<bool>(environment_light_rescale_usually);
 
   // Like set_parameters_post_hook(), rebuild the ODE control, too.
   ode_control = make_ode_control();
@@ -91,6 +94,8 @@ void Control::do_build_lookup() {
     &_environment_light_nbase;
   lookup_table["environment_light_max_depth"] =
     &_environment_light_max_depth;
+  lookup_table["environment_light_rescale_usually"] =
+    &_environment_light_rescale_usually;
 
   lookup_table["ode_step_size_min"] =
     &ode_step_size_min;
@@ -123,6 +128,8 @@ void Control::set_parameters_post_hook() {
     static_cast<int>(_environment_light_nbase);
   environment_light_max_depth =
     static_cast<int>(_environment_light_max_depth);
+  environment_light_rescale_usually =
+    static_cast<bool>(_environment_light_rescale_usually);
 
   ode_control = make_ode_control();
 }

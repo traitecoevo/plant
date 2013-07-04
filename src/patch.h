@@ -159,12 +159,14 @@ void Patch<Individual>::add_seeds(std::vector<int> seeds) {
 template <class Individual>
 void Patch<Individual>::add_seedling(size_t species_index) {
   species[species_index].add_seeds(1);
+  compute_light_environment();
 }
 
 template <class Individual>
 void Patch<Individual>::add_seedlings(std::vector<int> seeds) {
   for (size_t i = 0; i < seeds.size(); ++i)
     species[i].add_seeds(seeds[i]);
+  compute_light_environment();
 }
 
 // There are two components to seed survival:
@@ -209,7 +211,10 @@ Patch<Individual>::set_ode_values(double time,
 				  ode::iterator_const it) {
   it = ode::set_ode_values(species.begin(), species.end(), time, it);
   environment.set_time(time);
-  compute_light_environment();
+  if (parameters->control.environment_light_rescale_usually)
+    scale_light_environment();
+  else
+    compute_light_environment();
   compute_vars_phys();
   return it;
 }
@@ -334,7 +339,9 @@ Environment Patch<Individual>::r_environment() const {
 }
 
 // In contrast with add_seeds(), we must build the light environment
-// in case it has not yet been constructed.
+// in case it has not yet been constructed (when would this be the
+// case?).  The post-intruduction light environment is computed via
+// add_seeds() -> add_seedlings() -> compute_light_environment().
 template <class Individual>
 void Patch<Individual>::r_add_seeds(std::vector<int> seeds) {
   util::check_length(seeds.size(), size());
