@@ -150,6 +150,30 @@ test_that("Patch growth matched expectation", {
   expect_that(patch$time, is_within_interval(0.0, 15.0))
 })
 
+env1 <- patch$environment$light_environment
+h <- patch$height
+r <- 1.1
+h[] <- lapply(h, function(x) x * r)
+
+## Setting new heights will cause the light environment to be scaled
+## (but not recalculated by default).
+patch$height <- h
+env2 <- patch$environment$light_environment
+
+test_that("Light environment is scaled", {
+  expect_that(nrow(env2), is_identical_to(nrow(env1)))
+  expect_that(range(env2$xy[,1]), is_identical_to(c(0, max(unlist(h)))))
+  expect_that(env2$xy[,1], equals(env1$xy[,1] * r))
+  expect_that(sapply(env2$xy[,1], patch$canopy_openness),
+              is_identical_to(env2$xy[,2]))
+})
+
+patch$compute_light_environment()
+env3 <- patch$environment$light_environment
+test_that("Recomputed light environment would be different", {
+  expect_that(nrow(env3$xy), is_greater_than(nrow(env2$xy)))
+})
+
 ## Check that the germination numbers look correct, by comparing fit
 ## to a binomial distribution with the appropriate parameters.  Being
 ## stochastic, this may give false positives sometimes.

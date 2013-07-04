@@ -102,6 +102,7 @@ private:
   double canopy_openness(double height);
 
   void compute_light_environment();
+  void scale_light_environment();
   void compute_vars_phys();
 
   std::vector<int> germination(std::vector<int> seeds);
@@ -291,6 +292,12 @@ void Patch<Individual>::compute_light_environment() {
   environment.compute_light_environment(&fun, height_max());
 }
 
+template <class Individual>
+void Patch<Individual>::scale_light_environment() {
+  util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
+  environment.scale_light_environment(&fun, height_max());
+}
+
 // Given the light environment, "apply" it to every species so that
 // physiological variables are updated.
 template <class Individual>
@@ -409,6 +416,7 @@ void Patch<Individual>::r_set_height(Rcpp::List x) {
   util::check_length(static_cast<size_t>(x.size()), size());
   for (size_t i = 0; i < size(); ++i)
     species[i].r_set_height(x[static_cast<int>(i)]);
+  scale_light_environment();
 }
 
 template <class Individual>

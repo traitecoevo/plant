@@ -16,6 +16,8 @@ public:
   double canopy_openness(double height) const;
   void compute_light_environment(util::DFunctor *f_canopy_openness,
 				 double height_max);
+  void scale_light_environment(util::DFunctor *f_canopy_openness,
+			       double height_max);
   double patch_survival(double time_at_birth) const;
   void clear();
 
