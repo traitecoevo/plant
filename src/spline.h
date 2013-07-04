@@ -33,8 +33,10 @@ public:
   double min() const;
   double max() const;
 
-  Rcpp::NumericVector r_get_x() const;
-  Rcpp::NumericVector r_get_y() const;
+  std::vector<double> get_x() const;
+  std::vector<double> get_y() const;
+
+  // * R interface
   Rcpp::NumericMatrix r_get_xy() const;
   std::vector<double> r_eval(std::vector<double> u) const;
 

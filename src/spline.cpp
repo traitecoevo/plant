@@ -93,14 +93,12 @@ double Spline::max() const {
   return size() > 0 ? x.back() : R_NegInf;
 }
 
-Rcpp::NumericVector Spline::r_get_x() const {
-  Rcpp::NumericVector ret(x.begin(), x.end());
-  return ret;
+std::vector<double> Spline::get_x() const {
+  return x;
 }
 
-Rcpp::NumericVector Spline::r_get_y() const {
-  Rcpp::NumericVector ret(y.begin(), y.end());
-  return ret;
+std::vector<double> Spline::get_y() const {
+  return y;
 }
 
 // Get the (x,y) pairs in the spline as a two-column matrix

@@ -68,15 +68,20 @@ void MultiSpline::r_add_point(double xi, std::vector<double> yi) {
   add_point(xi, yi);
 }
 
-Rcpp::NumericVector MultiSpline::r_get_x() const {
-  return splines.begin()->r_get_x();
+std::vector<double> MultiSpline::get_x() const {
+  return splines.begin()->get_x();
 }
 
 Rcpp::NumericMatrix MultiSpline::r_get_y() const {
   Rcpp::NumericMatrix ret(static_cast<int>(size()),
 			  static_cast<int>(dim()));
-  for (size_t i = 0; i < dim(); ++i)
-    ret(Rcpp::_, static_cast<int>(i)) = splines[i].r_get_y();
+  for (size_t i = 0; i < dim(); ++i) {
+    // NOTE: This involves more copying than necessary (see
+    // ode_solver.h:Solver::r_run for a better solution).
+    std::vector<double> yi = splines[i].get_y();
+    Rcpp::NumericVector yi_r(yi.begin(), yi.end());
+    ret(Rcpp::_, static_cast<int>(i)) = yi_r;
+  }
   return ret;
 }
 
