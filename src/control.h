@@ -21,14 +21,14 @@ public:
 
   bool   plant_assimilation_over_distribution;
   double plant_assimilation_tol;
-  int    plant_assimilation_iterations;
+  size_t plant_assimilation_iterations;
 
   double plant_seed_tol;
   int    plant_seed_iterations;
 
   double cohort_gradient_eps;
   bool   cohort_gradient_richardson;
-  int    cohort_gradient_richardson_depth;
+  size_t cohort_gradient_richardson_depth;
 
   double environment_light_tol;
   int    environment_light_nbase;

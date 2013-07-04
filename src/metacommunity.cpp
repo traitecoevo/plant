@@ -2,6 +2,9 @@
 
 namespace model {
 
+MetacommunityBase::~MetacommunityBase() {
+}
+
 SEXP metacommunity(Rcpp::CppClass individual, Parameters p) {
   std::string individual_type =
     util::rcpp_class_demangle(Rcpp::as<std::string>(individual));

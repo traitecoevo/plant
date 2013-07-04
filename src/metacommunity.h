@@ -10,7 +10,7 @@ namespace model {
 
 class MetacommunityBase : public ode::OdeTarget {
 public:
-  virtual ~MetacommunityBase() {};
+  virtual ~MetacommunityBase();
   virtual size_t size() const = 0;
   virtual double get_time() const = 0;
   virtual void step() = 0;
@@ -52,7 +52,7 @@ public:
 
   // * ODE interface
   size_t ode_size() const;
-  ode::iterator_const set_ode_values(double time, ode::iterator_const it);
+  ode::iterator_const set_ode_values(double time_, ode::iterator_const it);
   ode::iterator       ode_values(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it)  const;
 
@@ -141,9 +141,9 @@ Rcpp::List Metacommunity<Individual>::r_height() const {
 
 template <class Individual>
 void Metacommunity<Individual>::r_set_height(Rcpp::List x) {
-  util::check_length(x.size(), size());
-  for ( size_t i = 0; i < size(); i++ )
-    patches[i].r_set_height(x[i]);
+  util::check_length(static_cast<size_t>(x.size()), size());
+  for (size_t i = 0; i < size(); ++i)
+    patches[i].r_set_height(x[static_cast<int>(i)]);
 }
 
 template <class Individual>
@@ -165,7 +165,7 @@ void Metacommunity<Individual>::deaths() {
 template <class Individual>
 void Metacommunity<Individual>::add_seeds(std::vector<int> seeds) {
   std::vector< std::vector<int> > seeds_dispersed = disperse(seeds);
-  for ( size_t i = 0; i < size(); i++ )
+  for (size_t i = 0; i < size(); ++i)
     patches[i].add_seeds(seeds_dispersed[i]);
 }
 
@@ -176,7 +176,7 @@ template <class Individual>
 std::vector< std::vector<int> >
 Metacommunity<Individual>::disperse(std::vector<int> seeds) const {
   std::vector< std::vector<int> > ret;
-  for ( size_t i = 0; i < size(); i++ ) {
+  for (size_t i = 0; i < size(); ++i) {
     const double p = 1.0/(size() - i);
     ret.push_back(util::rbinom_multiple(seeds.begin(), seeds.end(), p));
   }
@@ -192,9 +192,9 @@ size_t Metacommunity<Individual>::ode_size() const {
 
 template <class Individual>
 ode::iterator_const
-Metacommunity<Individual>::set_ode_values(double time,
+Metacommunity<Individual>::set_ode_values(double time_,
 					  ode::iterator_const it) {
-  return ode::set_ode_values(patches.begin(), patches.end(), time, it);
+  return ode::set_ode_values(patches.begin(), patches.end(), time_, it);
 }
 
 template <class Individual>
@@ -226,10 +226,14 @@ Rcpp::List Metacommunity<Individual>::r_get_patches() const {
 // Each column is a patch, each row a species.
 template <class Individual>
 void Metacommunity<Individual>::r_add_seedlings(Rcpp::IntegerMatrix seeds) {
-  util::check_dimensions(seeds.ncol(), seeds.nrow(),
-			 size(),       n_species());
+  const size_t
+    nr = static_cast<size_t>(seeds.nrow()),
+    nc = static_cast<size_t>(seeds.ncol());
+
+  util::check_dimensions(nr,          nc,
+			 n_species(), size());
   std::vector< std::vector<int> > seeds_m = util::from_rcpp_matrix(seeds);
-  for ( size_t i = 0; i < size(); i++ )
+  for (size_t i = 0; i < size(); ++i)
     patches[i].add_seedlings(seeds_m[i]);
 }
 

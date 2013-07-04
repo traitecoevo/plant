@@ -6,6 +6,9 @@
 // appropriate size at the back of the vector.
 namespace model {
 
+SpeciesBase::~SpeciesBase() {
+}
+
 // This is a bit of a hassle, but a full specialisation will be
 // compiled directly so cannot go into the header file (or it breaks
 // the One Definition Rule).  We could get around this by inlining,
@@ -74,7 +77,7 @@ double Species<CohortTop>::leaf_area_above(double height) const {
     // Upper point moves for next time:
     h1   = h0;
     f_h1 = f_h0;
-    if (f_h0 == 0)
+    if (h0 < height)
       break;
   }
 
@@ -88,8 +91,8 @@ double Species<CohortTop>::leaf_area_above(double height) const {
 
 template <>
 void Species<CohortTop>::compute_vars_phys(const Environment& environment) {
-  for ( plants_iterator it = plants.begin();
-	it != plants.end(); it++ )
+  for (plants_iterator it = plants.begin();
+       it != plants.end(); ++it)
     it->compute_vars_phys(environment);
   seed.compute_initial_conditions(environment);
 }

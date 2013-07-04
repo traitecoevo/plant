@@ -13,7 +13,7 @@ namespace test {
 
 class Lorenz {
 public:
-  Lorenz(double sigma, double R, double b);
+  Lorenz(double sigma_, double R_, double b_);
   size_t size() const;
   void derivs(double time,
 	      std::vector<double>::const_iterator y,

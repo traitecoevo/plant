@@ -17,7 +17,7 @@ namespace model {
 
 class SpeciesBase : public ode::OdeTarget {
 public:
-  virtual ~SpeciesBase() {};
+  virtual ~SpeciesBase();
   virtual size_t size() const = 0;
   virtual double height_max() const = 0;
   virtual double leaf_area_above(double height) const = 0;
@@ -96,8 +96,8 @@ Species<Individual>::Species(Strategy *s)
 template <class Individual>
 int Species<Individual>::births() {
   int born = 0;
-  for ( plants_iterator it = plants.begin();
-	it != plants.end(); it++ )
+  for (plants_iterator it = plants.begin();
+       it != plants.end(); ++it)
     born += it->offspring();
   return born;
 }
@@ -108,8 +108,8 @@ template <class Individual>
 int Species<Individual>::deaths() {
   int died = 0;
   plants_iterator it = plants.begin();
-  while ( it != plants.end() ) {
-    if ( it->died() ) {
+  while (it != plants.end()) {
+    if (it->died()) {
       died++;
       it = plants.erase(it); // will advance iterator
     } else {
@@ -142,8 +142,8 @@ double Species<Individual>::height_max() const {
 template <class Individual>
 double Species<Individual>::leaf_area_above(double height) const {
   double tot = 0.0;
-  for ( plants_const_iterator it = plants.begin();
-	it != plants.end(); it++ ) {
+  for (plants_const_iterator it = plants.begin();
+       it != plants.end(); ++it) {
     const double a = it->leaf_area_above(height);
     if (a > 0)
       tot += a;
@@ -157,8 +157,8 @@ double Species<CohortTop>::leaf_area_above(double height) const;
 
 template <class Individual>
 void Species<Individual>::compute_vars_phys(const Environment& environment) {
-  for ( plants_iterator it = plants.begin();
-	it != plants.end(); it++ )
+  for (plants_iterator it = plants.begin();
+       it != plants.end(); ++it)
     it->compute_vars_phys(environment);
 }
 template <>
@@ -166,7 +166,7 @@ void Species<CohortTop>::compute_vars_phys(const Environment& environment);
 
 template <class Individual>
 void Species<Individual>::add_seeds(int n) {
-  for ( ; n > 0; n-- )
+  for (; n > 0; n--)
     plants.push_back(seed);
 }
 
@@ -217,7 +217,7 @@ template <class Individual>
 std::vector<double> Species<Individual>::r_height() const { 
   std::vector<double> ret;
   plants_const_iterator p = plants.begin(); 
-  while ( p != plants.end() )
+  while (p != plants.end())
     ret.push_back((p++)->height());
   return ret;
 }
@@ -226,11 +226,11 @@ std::vector<double> Species<Individual>::r_height() const {
 template <class Individual>
 void Species<Individual>::r_set_height(std::vector<double> x) {
   util::check_length(x.size(), size());
-  if ( !util::is_decreasing(x.begin(), x.end()) )
+  if (!util::is_decreasing(x.begin(), x.end()))
     Rf_error("height must be decreasing (ties allowed)");
   std::vector<double>::iterator it = x.begin();
   plants_iterator p = plants.begin();
-  while ( p != plants.end() ) {
+  while (p != plants.end()) {
     p->set_height(*it++);
     p++;
   }
@@ -239,8 +239,8 @@ void Species<Individual>::r_set_height(std::vector<double> x) {
 template <class Individual>
 Rcpp::List Species<Individual>::r_get_plants() const {
   Rcpp::List ret;
-  for ( plants_const_iterator it = plants.begin();
-	it != plants.end(); it++ )
+  for (plants_const_iterator it = plants.begin();
+       it != plants.end(); ++it)
     ret.push_back(Rcpp::wrap(*it));
   return ret;
 }
@@ -252,7 +252,7 @@ Rcpp::List Species<Individual>::r_get_plants() const {
 // this is never called for speed).
 template <class Individual>
 int Species<Individual>::r_n_individuals() const {
-  return (int)plants.size();
+  return static_cast<int>(plants.size());
 }
 template<> int Species<CohortDiscrete>::r_n_individuals() const;
 

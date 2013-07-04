@@ -4,10 +4,10 @@
 
 namespace util {
 
-RootFinder::RootFinder(double atol, double rtol, int max_iterations)
-  : atol(atol),
-    rtol(rtol),
-    max_iterations(max_iterations),
+RootFinder::RootFinder(double atol_, double rtol_, int max_iterations_)
+  : atol(atol_),
+    rtol(rtol_),
+    max_iterations(max_iterations_),
     iterations(0),
     last_error(NA_REAL) {
   F.function = &helper_functor;
@@ -20,7 +20,7 @@ RootFinder::~RootFinder() {
 
 double RootFinder::root(DFunctor *f, 
 			double x_min, double x_max) {
-  F.params = (void*)(f);
+  F.params = static_cast<void*>(f);
   gsl_root_fsolver_set(solver, &F, x_min, x_max);
   iterations = 0;
 

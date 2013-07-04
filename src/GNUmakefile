@@ -23,3 +23,5 @@ tree.so: $(SOURCES)
 clean:
 	rm -f *.o *.so
 	rm -rf tree.so.dSYM
+
+.PHONY: all clean

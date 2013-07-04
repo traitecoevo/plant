@@ -2,17 +2,17 @@
 
 namespace ode {
 
-OdeR::OdeR(SEXP fun, SEXP env, SEXP pars)
-  : fun(fun),
-    env(env),
-    pars(pars),
+OdeR::OdeR(SEXP fun_, SEXP env_, SEXP pars_)
+  : fun(fun_),
+    env(env_),
+    pars(pars_),
     solver(this) {
 }
 
-OdeR::OdeR(SEXP fun, SEXP env, SEXP pars, OdeControl control)
-  : fun(fun),
-    env(env),
-    pars(pars),
+OdeR::OdeR(SEXP fun_, SEXP env_, SEXP pars_, OdeControl control)
+  : fun(fun_),
+    env(env_),
+    pars(pars_),
     solver(this, control) {
 }
 
@@ -22,8 +22,8 @@ size_t OdeR::size() const {
 
 void OdeR::derivs(double time, iterator_const y, iterator dydt) {
   SEXP y_r;
-  PROTECT(y_r = Rf_allocVector(REALSXP, (int)size()));
-  std::copy(y, y + (int)size(), REAL(y_r));
+  PROTECT(y_r = Rf_allocVector(REALSXP, static_cast<int>(size())));
+  std::copy(y, y + static_cast<int>(size()), REAL(y_r));
 
   // 2. Slot for output
   SEXP dydt_r;

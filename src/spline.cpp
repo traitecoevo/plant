@@ -108,9 +108,9 @@ Rcpp::NumericVector Spline::r_get_y() const {
 // cast my way out of it.
 Rcpp::NumericMatrix Spline::r_get_xy() const {
   const size_t n = x.size();
-  Rcpp::NumericMatrix ret(n, 2);
+  Rcpp::NumericMatrix ret(static_cast<int>(n), 2);
 
-  for ( size_t i = 0; i < n; i++ ) {
+  for (size_t i = 0; i < n; ++i) {
     ret(i,0) = x[i];
     ret(i,1) = y[i];
   }
@@ -123,7 +123,7 @@ Rcpp::NumericMatrix Spline::r_get_xy() const {
 std::vector<double> Spline::r_eval(std::vector<double> u) const {
   const size_t n = u.size();
   std::vector<double> ret(n);
-  for ( size_t i = 0; i < n; i++ )
+  for (size_t i = 0; i < n; ++i)
     ret[i] = eval(u[i]);
   return ret;
 }
@@ -131,14 +131,14 @@ std::vector<double> Spline::r_eval(std::vector<double> u) const {
 // Helper functions to cleanup GSL memory if it looks like it can be
 // cleaned up.
 void Spline::gsl_free_spline() {
-  if ( spline != NULL ) {
+  if (spline != NULL) {
     gsl_spline_free(spline);
     spline = NULL;
   }
 }
 
 void Spline::gsl_free_acc() {
-  if ( acc != NULL ) {
+  if (acc != NULL) {
     gsl_interp_accel_free(acc);
     acc = NULL;
   }

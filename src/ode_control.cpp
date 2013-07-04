@@ -16,15 +16,15 @@ OdeControl::OdeControl()
     last_step_size_shrank(false) {
 }
 
-OdeControl::OdeControl(double tol_abs, double tol_rel,
-		       double a_y, double a_dydt,
-		       double step_size_min, double step_size_max)
-  : tol_abs(tol_abs),
-    tol_rel(tol_rel),
-    a_y(a_y),
-    a_dydt(a_dydt),
-    step_size_min(step_size_min),
-    step_size_max(step_size_max),
+OdeControl::OdeControl(double tol_abs_, double tol_rel_,
+		       double a_y_, double a_dydt_,
+		       double step_size_min_, double step_size_max_)
+  : tol_abs(tol_abs_),
+    tol_rel(tol_rel_),
+    a_y(a_y_),
+    a_dydt(a_dydt_),
+    step_size_min(step_size_min_),
+    step_size_max(step_size_max_),
     last_step_size_shrank(false) {
 }
 
@@ -36,13 +36,13 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
   double rmax = DBL_MIN;
   const double S = 0.9;
 
-  for ( size_t i = 0; i < dim; i++ ) {
+  for (size_t i = 0; i < dim; i++) {
     const double D0 = errlevel(y[i], dydt[i], step_size);
     const double r = fabs(yerr[i]) / fabs(D0);
     rmax = std::max(r, rmax);
   }
 
-  if ( rmax > 1.1 ) {
+  if (rmax > 1.1) {
     // decrease step, no more than factor of 5, but a fraction S more
     // than scaling suggests (for better accuracy).
     double r = S / pow(rmax, 1.0 / ord);
@@ -54,12 +54,12 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
       ::Rf_error("Step size became too small");
       step_size = step_size_min; // NOTE: won't get here
     }
-  } else if ( rmax < 0.5 ) {
+  } else if (rmax < 0.5) {
     // increase step, no more than factor of 5
     double r = S / pow (rmax, 1.0 / (ord + 1.0));
-    if ( r > 5.0 )
+    if (r > 5.0)
       r = 5.0;
-    if ( r < 1.0 ) // Don't allow any decrease caused by S<1
+    if (r < 1.0) // Don't allow any decrease caused by S<1
       r = 1.0;
     step_size *= r;
     if (step_size > step_size_max)
@@ -76,8 +76,8 @@ double OdeControl::adjust_step_size(size_t dim, unsigned int ord,
 double OdeControl::errlevel(double y, double dydt, double h) const {
   const double errlev = tol_rel * (a_y    * fabs(y       )  +
 				   a_dydt * fabs(h * dydt)) + tol_abs;
-  if ( errlev <= 0.0 )
-    Rf_error("errlev <= zero");
+  if (errlev <= 0.0)
+    ::Rf_error("errlev <= zero");
   return errlev;
 }
 

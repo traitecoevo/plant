@@ -3,14 +3,14 @@
 
 namespace spline {
 
-MultiSpline::MultiSpline(int n) : splines(n) {
-  if ( n <= 0 )
-    Rf_error("Must have at least one response");
+MultiSpline::MultiSpline(size_t n) : splines(n) {
+  if (n == 0)
+    ::Rf_error("Must have at least one response");
 }
 
 void MultiSpline::init(std::vector<double>   x, 
 	  std::vector< std::vector<double> > y) {
-  for ( size_t i = 0; i < dim(); i++ )
+  for (size_t i = 0; i < dim(); ++i)
     splines[i].init(x, y[i]);
 }
 
@@ -21,7 +21,7 @@ void MultiSpline::init_self() {
 }
 
 void MultiSpline::add_point(double xi, std::vector<double> yi) {
-  for ( size_t i = 0; i < dim(); i++ )
+  for (size_t i = 0; i < dim(); ++i)
     splines[i].add_point(xi, yi[i]);
 }
 
@@ -52,11 +52,11 @@ size_t MultiSpline::dim() const {
 }
 
 void MultiSpline::r_init(std::vector<double> x, Rcpp::NumericMatrix y) {
-  util::check_length(y.ncol(), dim());
-  util::check_length(y.nrow(), x.size());
+  util::check_length(static_cast<size_t>(y.ncol()), dim());
+  util::check_length(static_cast<size_t>(y.nrow()), x.size());
   std::vector< std::vector<double> > yy;
-  for ( size_t i = 0; i < dim(); i++ ) {
-    Rcpp::NumericVector yi = y(Rcpp::_, i);
+  for (size_t i = 0; i < dim(); ++i) {
+    Rcpp::NumericVector yi = y(Rcpp::_, static_cast<int>(i));
     std::vector<double> yiv(yi.begin(), yi.end());
     yy.push_back(yiv);
   }
@@ -73,16 +73,18 @@ Rcpp::NumericVector MultiSpline::r_get_x() const {
 }
 
 Rcpp::NumericMatrix MultiSpline::r_get_y() const {
-  Rcpp::NumericMatrix ret(size(), dim());
-  for ( size_t i = 0; i < dim(); i++ )
-    ret(Rcpp::_, i) = splines[i].r_get_y();
+  Rcpp::NumericMatrix ret(static_cast<int>(size()),
+			  static_cast<int>(dim()));
+  for (size_t i = 0; i < dim(); ++i)
+    ret(Rcpp::_, static_cast<int>(i)) = splines[i].r_get_y();
   return ret;
 }
 
 Rcpp::NumericMatrix MultiSpline::r_eval(std::vector<double> u) const {
-  Rcpp::NumericMatrix ret(u.size(), dim());
-  for ( size_t i = 0; i < dim(); i++ )
-    for ( size_t j = 0; j < u.size(); j++ )
+  Rcpp::NumericMatrix ret(static_cast<int>(u.size()),
+			  static_cast<int>(dim()));
+  for (size_t i = 0; i < dim(); ++i)
+    for (size_t j = 0; j < u.size(); ++j)
       ret(j,i) = eval(u[j], i);
   return ret;
 }

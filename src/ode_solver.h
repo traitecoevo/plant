@@ -8,14 +8,15 @@
 
 #include "ode_control.h"
 #include "ode_step.h"
+#include "util.h"
 
 namespace ode {
 
 template <class Problem>
 class Solver {
 public:
-  Solver(Problem *problem);
-  Solver(Problem *problem, OdeControl control);
+  Solver(Problem *problem_);
+  Solver(Problem *problem_, OdeControl control_);
 
   void set_state(std::vector<double> y_, double t_);
   std::vector<double> get_state() const;
@@ -51,7 +52,7 @@ private:
 
   double time;     // Current time
   double time_max; // Time we will not go past
-  std::vector<double> times; // Vector of previous times.
+  std::vector<double> prev_times; // Vector of previous times.
 
   std::vector<double> y;        // Vector of current problem state
   std::vector<double> yerr;     // Vector of error estimates
@@ -66,28 +67,28 @@ private:
 // object of class OdeTarget could quite happily initialse completely
 // here.
 template <class Problem>
-Solver<Problem>::Solver(Problem *problem)
-  : problem(problem),
+Solver<Problem>::Solver(Problem *problem_)
+  : problem(problem_),
     size(0),
-    stepper(problem) {
+    stepper(problem_) {
   reset();
 }
 
 template <class Problem>
-Solver<Problem>::Solver(Problem *problem, OdeControl control)
-  : problem(problem),
+Solver<Problem>::Solver(Problem *problem_, OdeControl control_)
+  : problem(problem_),
     size(0),
-    control(control),
+    control(control_),
     stepper(problem) {
   reset();
 }
 
 template <class Problem>
 void Solver<Problem>::set_state(std::vector<double> y_, double t_) {
-  times.clear();
+  prev_times.clear();
   y    = y_;
   time = t_;
-  times.push_back(time);
+  prev_times.push_back(time);
   resize(y.size());
 }
 
@@ -103,14 +104,14 @@ double Solver<Problem>::get_time() const {
 
 template <class Problem>
 std::vector<double> Solver<Problem>::get_times() const {
-  return times;
+  return prev_times;
 }
 
 template <class Problem>
 void Solver<Problem>::set_state_from_problem() {
-  std::vector<double> y(problem->ode_size());
-  problem->ode_values(y.begin());
-  set_state(y, problem->get_time());
+  std::vector<double> vars(problem->ode_size());
+  problem->ode_values(vars.begin());
+  set_state(vars, problem->get_time());
 }
 
 // After `stepper.step()`, the GSL checks to see if the step succeeded
@@ -147,10 +148,10 @@ void Solver<Problem>::step() {
   // Compute the derivatives at the beginning.
   problem->derivs(time, y.begin(), dydt_in.begin());
 
-  while ( true ) {
+  while (true) {
     // Does this appear to be the last step before reaching `time_max`?
     const bool final_step = step_size > time_remaining;
-    if ( final_step )
+    if (final_step)
       step_size = time_remaining;
     stepper.step(time, step_size, y, yerr, dydt_in, dydt_out);
 
@@ -159,14 +160,13 @@ void Solver<Problem>::step() {
       control.adjust_step_size(size, stepper.order(), step_size,
 			       y, yerr, dydt_out);
     
-    if ( control.step_size_shrank() ) {
+    if (control.step_size_shrank()) {
       // GSL checks that the step size is actually decreased.
       // Probably we can do this by comparing against hmin?  There are
       // probably loops that this will not catch, but require that
       // hmin << t
       const double time_next = time + step_size_next;
-      if ( fabs(step_size_next) < fabs(step_size) && 
-	   time_next != time_orig ) {
+      if (step_size_next < step_size && time_next > time_orig) {
 	// Step was decreased. Undo step (resetting the state y and
 	// time), and try again with the new step_size.
 	y         = y_orig;
@@ -176,7 +176,7 @@ void Solver<Problem>::step() {
       } else {
 	// We've reached limits of machine accuracy in differences of
 	// step sizes or time (or both).
-	Rf_error("Cannot achive the desired accuracy");
+	::Rf_error("Cannot achive the desired accuracy");
       }
     } else {
       // We have successfully taken a step and will return.  Update
@@ -186,13 +186,13 @@ void Solver<Problem>::step() {
       // Suggest step size for next time-step. Change of step size is not
       //  suggested in the final step, because that step can be very
       //  small compared to previous step, to reach time_max. 
-      if ( final_step )  {
+      if (final_step) {
       	time = time_max;
       } else {
       	time += step_size;
       	step_size_last = step_size_next;
       }
-      times.push_back(time);
+      prev_times.push_back(time);
 
       return;
     }
@@ -203,10 +203,10 @@ void Solver<Problem>::step() {
 // using it...
 template <class Problem>
 void Solver<Problem>::advance(double time_max_) {
-  if ( time_max_ < time )
-    Rf_error("time_max must be greater than (or equal to) current time");
+  if (time_max_ < time)
+    ::Rf_error("time_max must be greater than (or equal to) current time");
   time_max = time_max_;
-  while ( time < time_max )
+  while (time < time_max)
     step();
 }
 
@@ -217,7 +217,7 @@ void Solver<Problem>::step_to(double time_max_) {
   stepper.step(time, time_max - time, y, yerr, dydt_in, dydt_out);
   count++;
   time = time_max;
-  times.push_back(time);
+  prev_times.push_back(time);
 }
 
 // NOTE: We take a vector of times {t_0, t_1, ...}.  This vector
@@ -234,7 +234,7 @@ void Solver<Problem>::advance_fixed(std::vector<double> times) {
   if (times.size() < 1)
     ::Rf_error("'times' must be vector of at least length 1");
   std::vector<double>::const_iterator t = times.begin();
-  if (*t++ != times.front())
+  if (!util::identical(*t++, times.front()))
     ::Rf_error("First element in 'times' must be same as current time");
   while (t != times.end())
     step_to(*t++);
@@ -252,10 +252,11 @@ Rcpp::NumericMatrix Solver<Problem>::r_run(std::vector<double> times,
   // problem dimension.
   set_state(y_, *t++);
 
-  Rcpp::NumericMatrix ret((int)size, (int)times.size()-1);
+  Rcpp::NumericMatrix ret(static_cast<int>(size),
+			  static_cast<int>(times.size())-1);
   Rcpp::NumericMatrix::iterator out = ret.begin();
 
-  while ( t != times.end() ) {
+  while (t != times.end()) {
     advance(*t++);
     std::copy(y.begin(), y.end(), out);
     out += size;
@@ -284,14 +285,14 @@ void Solver<Problem>::step_fixed(double step_size) {
     control.adjust_step_size(size, stepper.order(), step_size, 
 			     y, yerr, dydt_out);
 
-  if ( control.step_size_shrank() ) {
+  if (control.step_size_shrank()) {
     failed_steps++;
     y = y0;
   } else {
     count++;
     step_size_last = step_size_next;
     time += step_size;
-    times.push_back(time);
+    prev_times.push_back(time);
   }
 }
 
@@ -299,7 +300,7 @@ void Solver<Problem>::step_fixed(double step_size) {
 template <class Problem>
 void Solver<Problem>::reset() {
   time = 0;
-  times.clear();
+  prev_times.clear();
   count = 0;
   failed_steps = 0;
   step_size_last = 1e-6; // See ode.md

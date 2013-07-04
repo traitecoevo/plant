@@ -5,10 +5,10 @@ namespace ode {
 
 namespace test {
 
-Lorenz::Lorenz(double sigma, double R, double b)
-  : sigma(sigma),
-    R(R),
-    b(b),
+Lorenz::Lorenz(double sigma_, double R_, double b_)
+  : sigma(sigma_),
+    R(R_),
+    b(b_),
     solver(this) {
 }
 
@@ -16,14 +16,14 @@ size_t Lorenz::size() const {
   return ode_dimension;
 }
 
-void Lorenz::derivs(double time, 
+void Lorenz::derivs(double /* unused: time */,
 		    std::vector<double>::const_iterator y,
 		    std::vector<double>::iterator dydt) const {
   const double y0 = *y++;
   const double y1 = *y++;
   const double y2 = *y++;
   
-  *dydt++ = sigma * ( y1 - y0 );
+  *dydt++ = sigma * (y1 - y0);
   *dydt++ = R * y0 - y1 - y0 * y2;
   *dydt++ = -b * y2 + y0 * y1;
 }

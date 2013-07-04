@@ -15,9 +15,9 @@ namespace ode {
 class OdeControl : public util::Lookup {
 public:
   OdeControl();
-  OdeControl(double tol_abs, double tol_rel,
-	     double a_y, double a_dydt,
-	     double step_size_min, double step_size_max);
+  OdeControl(double tol_abs_, double tol_rel_,
+	     double a_y_, double a_dydt_,
+	     double step_size_min_, double step_size_max_);
 
   double adjust_step_size(size_t dim, unsigned int ord, double step_size,
 			  const std::vector<double> &y,

@@ -3,22 +3,22 @@
 
 namespace model {
 
-PlantSpline::PlantSpline(Strategy s, double height_max, int n_plants)
+PlantSpline::PlantSpline(Strategy s, double height_max_, size_t n_plants)
   : strategy(s),
     seed(strategy.get()),
     plants_approx(ode_size()) {
-  initialise(height_max, n_plants);
+  initialise(height_max_, n_plants);
 }
 
-PlantSpline::PlantSpline(Strategy *s, double height_max, int n_plants)
+PlantSpline::PlantSpline(Strategy *s, double height_max_, size_t n_plants)
   : strategy(s),
     seed(strategy.get()),
     plants_approx(ode_size()) {
-  initialise(height_max, n_plants);
+  initialise(height_max_, n_plants);
 }
 
 double PlantSpline::height_max() const {
-  return height.back();
+  return heights.back();
 }
 
 void PlantSpline::compute_vars_phys(const Environment& environment) {
@@ -29,16 +29,17 @@ void PlantSpline::compute_vars_phys(const Environment& environment) {
 }
 
 ode::iterator PlantSpline::ode_rates(double height, ode::iterator it) const {
-  if ( height > height_max() )
+  if (height > height_max())
     ::Rf_error("Requested plant too large");
-  for ( size_t i = 0; i < ode_size(); i++ )
+  for (size_t i = 0; i < ode_size(); ++i)
     *it++ = plants_approx.eval(height, i);
   return it;
 }
 
-Rcpp::NumericVector PlantSpline::r_get_vars_phys(double m) const {
+Rcpp::NumericVector PlantSpline::r_get_vars_phys() const {
   Rcpp::NumericVector ret = seed.r_get_vars_phys();
-  for ( size_t i = 0; i < ret.size(); i++ )
+  // NOTE: int, not size_t, for Rcpp
+  for (int i = 0; i < ret.size(); ++i)
     ret[i] = NA_REAL;
   return ret;
 }
@@ -71,16 +72,16 @@ size_t PlantSpline::ode_size() const {
 // asymptotically approaches zero, so there is no value truely large
 // enough.  Better to have the really large plants done analytically
 // anyway.
-void PlantSpline::initialise(double height_max, int n_plants) {
-  if ( n_plants < 5 )
+void PlantSpline::initialise(double height_max_, size_t n_plants) {
+  if (n_plants < 5)
     ::Rf_error("Need at least 5 plants");
 
-  height = util::seq_len(seed.height(), height_max, n_plants);
+  heights = util::seq_len(seed.height(), height_max_, n_plants);
 
   Plant p(seed);
   plants.clear(); // defensive, as only used in constructors.
-  for (std::vector<double>::iterator h = height.begin();
-       h != height.end(); ++h) {
+  for (std::vector<double>::iterator h = heights.begin();
+       h != heights.end(); ++h) {
     p.set_height(*h);
     plants.push_back(p);
   }
@@ -96,10 +97,10 @@ void PlantSpline::build_plants_approx() {
 
   std::vector<double> ode_rates_p(plants.begin()->ode_size());
 
-  std::vector<double>::const_iterator h = height.begin();
+  std::vector<double>::const_iterator h = heights.begin();
   std::vector<Plant>::iterator p = plants.begin();
 
-  while ( p != plants.end() ) {
+  while (p != plants.end()) {
     p->ode_rates(ode_rates_p.begin());
     plants_approx.add_point(*h, ode_rates_p);
     ++p;

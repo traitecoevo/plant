@@ -9,14 +9,12 @@
 
 namespace util {
 
+void handler_pass_to_R(const char *reason,
+                       const char *file,
+                       int line,
+                       int gsl_errno);
 void set_sane_gsl_error_handling();
 
-template <typename T>
-bool is_finite(T x) {
-  ::Rf_warning("Requesting finite check; not implemented for this type");
-  return true;
-}
-template <>
 bool is_finite(double x);
 
 size_t check_bounds_r(size_t idx, size_t size);
@@ -40,12 +38,12 @@ bool is_sorted(ForwardIterator first, ForwardIterator last) {
 }
 template <class ForwardIterator>
 bool is_decreasing(ForwardIterator first, ForwardIterator last) {
-  if ( first == last ) 
+  if (first == last)
     return true;
 
   ForwardIterator next = first;
-  while ( ++next != last ) {
-    if ( *next > *first )
+  while (++next != last) {
+    if (*next > *first)
       return false;
     ++first;
   }
@@ -102,7 +100,7 @@ public:
     return *this;
   }
   ~PtrWrapper() {
-    if ( owner )
+    if (owner)
       delete ptr;
   }
   // See http://stackoverflow.com/a/4421719/1798863
@@ -124,7 +122,23 @@ private:
   T *ptr;
 };
 
-std::vector<double> seq_len(double from, double to, int len);
+std::vector<double> seq_len(double from, double to, size_t len);
+
+bool identical(double a, double b);
+// Use this to be explicit when a potentially unsafe floating point
+// equality test is being made.  I've disabled the clang warnings
+// around this use, while other places warnings will still occur.
+inline
+bool identical(double a, double b) {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
+  return a == b;
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
+}
 
 std::vector<int> rbinom_multiple(std::vector<int>::iterator it,
 				 std::vector<int>::iterator end,

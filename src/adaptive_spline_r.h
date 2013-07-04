@@ -13,7 +13,7 @@ namespace spline {
 // namespace, I think.
 class RFunctionWrapper {
 public:
-  RFunctionWrapper(SEXP fun, SEXP env) : fun(fun), env(env) {}
+  RFunctionWrapper(SEXP fun_, SEXP env_) : fun(fun_), env(env_) {}
   double target(double x) {
     return REAL(Rf_eval(Rf_lang2(fun, Rf_ScalarReal(x)), env))[0];
   }

@@ -36,7 +36,17 @@
 #include "integrator.h"
 #include "gradient.h"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+// These I have no control over because they're Rcpp issues.
+#pragma clang diagnostic ignored "-Wglobal-constructors"
+#pragma clang diagnostic ignored "-Wexit-time-destructors"
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#endif
 RCPP_MODULE(tree) {
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
   Rcpp::class_<spline::Spline>("Spline")
     .constructor()
     .method("init",   &spline::Spline::init)
@@ -225,8 +235,9 @@ RCPP_MODULE(tree) {
     ;
   Rcpp::class_<model::CohortSchedule::Event>("CohortScheduleEvent")
     .constructor<double,int>()
-    .field("cohort", &model::CohortSchedule::Event::cohort)
-    .field("time",   &model::CohortSchedule::Event::time)
+    .property("cohort", &model::CohortSchedule::Event::r_cohort,
+	      &model::CohortSchedule::Event::r_set_cohort)
+    .field("time",      &model::CohortSchedule::Event::time)
     ;
 
   Rcpp::class_<model::SpeciesBase>("SpeciesBase")

@@ -4,8 +4,8 @@
 
 namespace model {
 
-CohortSchedule::CohortSchedule(size_t n_species)
-  : n_species(n_species) {
+CohortSchedule::CohortSchedule(size_t n_species_)
+  : n_species(n_species_) {
   reset();
 }
 
@@ -22,7 +22,7 @@ size_t CohortSchedule::get_n_species() const {
 void CohortSchedule::clear_times(size_t species_index) {
   events_iterator e = events.begin();
   while (e != events.end()) {
-    if (e->cohort == static_cast<int>(species_index))
+    if (e->cohort == species_index)
       e = events.erase(e);
     else
       ++e;
@@ -30,12 +30,12 @@ void CohortSchedule::clear_times(size_t species_index) {
   reset();
 }
 
-void CohortSchedule::set_times(std::vector<double> times,
+void CohortSchedule::set_times(std::vector<double> times_,
 			       size_t species_index) {
   clear_times(species_index);
   events_iterator e = events.begin();
-  for (std::vector<double>::const_iterator t = times.begin();
-       t != times.end(); ++t)
+  for (std::vector<double>::const_iterator t = times_.begin();
+       t != times_.end(); ++t)
     e = add_time(*t, species_index, e);
   reset();
 }
@@ -43,7 +43,7 @@ void CohortSchedule::set_times(std::vector<double> times,
 std::vector<double> CohortSchedule::times(size_t species_index) const {
   std::vector<double> ret;
   for (events_const_iterator e = events.begin(); e != events.end(); ++e)
-    if (e->cohort == static_cast<int>(species_index))
+    if (e->cohort == species_index)
       ret.push_back(e->time);
   return ret;
 }
@@ -74,11 +74,11 @@ void CohortSchedule::r_clear_times(size_t species_index) {
   clear_times(util::check_bounds_r(species_index, n_species));
 }
 
-void CohortSchedule::r_set_times(std::vector<double> times,
+void CohortSchedule::r_set_times(std::vector<double> times_,
 				 size_t species_index) {
-  if (!util::is_sorted(times.begin(), times.end()))
+  if (!util::is_sorted(times_.begin(), times_.end()))
     ::Rf_error("Times must be sorted (increasing)");
-  set_times(times, util::check_bounds_r(species_index, n_species));
+  set_times(times_, util::check_bounds_r(species_index, n_species));
 }
 
 std::vector<double> CohortSchedule::r_times(size_t species_index) const {

@@ -46,21 +46,21 @@ double gradient_fd_centre(DFunctor *f, double x, double dx) {
 //	 value of m by one each until m equals r-1
 //
 //-------------------------------------------------------------------------
-double gradient_richardson(DFunctor *f, double x, double d, int r) {
-  const int v = 2; // this value is required by scheme (above)
+double gradient_richardson(DFunctor *f, double x, double d, size_t r) {
+  const size_t v = 2; // this value is required by scheme (above)
   const double zero_tol = sqrt(DOUBLE_EPS)/7e-7;
 
   // Initial offset (see above).
   double h = fabs(d * x) + d * (fabs(x) < zero_tol);
 
   std::vector<double> a;
-  for (int i = 0; i < r; i++, h /= v)
+  for (size_t i = 0; i < r; i++, h /= v)
     a.push_back(((*f)(x + h) - (*f)(x - h))/(2*h));
 
-  for (int m = 1; m < r; m++) {
+  for (size_t m = 1; m < r; ++m) {
     const double four_m = pow(4.0, m);
     std::vector<double> a_next;
-    for (int i = 0; i < r - m; i++)
+    for (size_t i = 0; i < r - m; ++i)
       a_next.push_back((a[i+1]*four_m - a[i])/(four_m - 1));
     a = a_next;
   }
@@ -79,7 +79,7 @@ double test_gradient(double x, double dx, bool centre,
     gradient_fd_forward(&fun, x, dx);
 }
 
-double test_gradient_richardson(double x, double d, int r,
+double test_gradient_richardson(double x, double d, size_t r,
 				std::vector<double> pars) {
   util::check_length(pars.size(), 3);
   Quadratic obj(pars[0], pars[1], pars[2]);

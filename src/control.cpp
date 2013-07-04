@@ -110,14 +110,14 @@ void Control::set_parameters_post_hook() {
   plant_assimilation_over_distribution =
     _plant_assimilation_over_distribution != 0.0;
   plant_assimilation_iterations =
-    static_cast<int>(_plant_assimilation_iterations);
+    static_cast<size_t>(_plant_assimilation_iterations);
 
   plant_seed_iterations =
     static_cast<int>(_plant_seed_iterations);
 
   cohort_gradient_richardson = _cohort_gradient_richardson != 0.0;
   cohort_gradient_richardson_depth =
-    static_cast<int>(_cohort_gradient_richardson_depth);
+    static_cast<size_t>(_cohort_gradient_richardson_depth);
 
   environment_light_nbase =
     static_cast<int>(_environment_light_nbase);

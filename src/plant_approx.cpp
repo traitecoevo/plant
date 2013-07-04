@@ -13,12 +13,12 @@ PlantApprox::PlantApprox(Strategy *s, PlantSpline *ps)
 }
 
 void PlantApprox::compute_vars_phys(const Environment& environment) {
-  if ( large_plant_do_exact() )
+  if (large_plant_do_exact())
     Plant::compute_vars_phys(environment);
 }
 
 ode::iterator PlantApprox::ode_rates(ode::iterator it) const {
-  if ( large_plant_do_exact() )
+  if (large_plant_do_exact())
     return Plant::ode_rates(it);
   else
     return plant_spline->ode_rates(height(), it);

@@ -2,6 +2,9 @@
 
 namespace model {
 
+PatchBase::~PatchBase() {
+}
+
 SEXP patch(Rcpp::CppClass individual, Parameters p) {
   std::string individual_type =
     util::rcpp_class_demangle(Rcpp::as<std::string>(individual));

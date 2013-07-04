@@ -4,6 +4,9 @@
 
 namespace model {
 
+PlantBase::~PlantBase() {
+}
+
 Plant::Plant(Strategy s)
   : strategy(s) {
   set_height(strategy->height_0);
@@ -42,12 +45,19 @@ Plant::internals::internals()
 // NOTE: The semantics around comparing Strategy are ill-defined for
 // the standalone case.
 bool Plant::operator==(const Plant &rhs) const {
-  if ( strategy.standalone() && strategy.get() == rhs.strategy.get() )
-    Rf_warning("This is going to end badly.");
+  if (strategy.standalone() && strategy.get() == rhs.strategy.get())
+    ::Rf_warning("This is going to end badly.");
   return strategy == rhs.strategy && vars == rhs.vars;
 }
 
 bool Plant::internals::operator==(const Plant::internals &rhs) const {
+  // Don't warn about '==' between floats here -- we *want* identical
+  // comparisons for the way this method is used (are objects
+  // absolutely identical).
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wfloat-equal"
+#endif
   const bool ret = true
     // Size members...
     && mass_leaf      == rhs.mass_leaf
@@ -72,8 +82,10 @@ bool Plant::internals::operator==(const Plant::internals &rhs) const {
     // // ...and "other" members...
     && fecundity      == rhs.fecundity
     && mortality      == rhs.mortality
-    ;  
-
+    ;
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
   return ret;
 }
 
@@ -87,10 +99,12 @@ double Plant::height() const {
 // different.  This is totally safe if nothing else sets either height
 // or any size variable except this method.  This could help save
 // quite a bit of calculation time and book-keeping down the track.
+// If we're off because of a floating point difference, the worst that
+// happens is that we recompute the variables again.
 void Plant::set_height(double height_) {
   if (height_ < 0.0)
-    Rf_error("height must be positive (given %2.5f)", height_);
-  if (height_ != height())
+    ::Rf_error("height must be positive (given %2.5f)", height_);
+  if (!util::identical(height_, height()))
     compute_vars_size(height_);
 }
 
@@ -101,6 +115,8 @@ double Plant::height_rate() const {
 // * Competitive environment
 // [      ] Leaf area (not fraction) above height `z`
 double Plant::leaf_area_above(double z) const {
+  if (z < 0.0)
+    ::Rf_error("Negative heights do not make sense");
   return vars.leaf_area * Q(z);
 }
 
@@ -126,7 +142,7 @@ void Plant::compute_vars_phys(const Environment& environment) {
     strategy->c_bio * strategy->Y * (vars.assimilation - vars.respiration);
   vars.net_production = net_primary_production - vars.turnover;
 
-  if ( vars.net_production > 0 ) {
+  if (vars.net_production > 0) {
     // [eqn 16] - Fraction of whole plant growth that is leaf
     vars.reproduction_fraction = compute_reproduction_fraction();
 
@@ -170,9 +186,9 @@ void Plant::compute_vars_phys(const Environment& environment) {
 // * Births and deaths
 int Plant::offspring() {
   double born = 0;
-  if ( vars.fecundity > 1 )
+  if (vars.fecundity > 1)
     vars.fecundity = modf(vars.fecundity, &born);
-  return (int)born;
+  return static_cast<int>(born);
 }
 
 bool Plant::died() {
@@ -189,7 +205,7 @@ bool Plant::died() {
 // change.
 double Plant::germination_probability(const Environment& environment) {
   compute_vars_phys(environment);
-  if ( vars.net_production > 0 ) {
+  if (vars.net_production > 0) {
     const double tmp = vars.leaf_area * strategy->c_s0 / vars.net_production;
     return 1 / (tmp * tmp + 1.0);
   } else {
@@ -202,7 +218,7 @@ size_t Plant::ode_size() const {
   return ode_dimension; 
 }
 
-ode::iterator_const Plant::set_ode_values(double time,
+ode::iterator_const Plant::set_ode_values(double /* unused: time */,
 					  ode::iterator_const it) {
   set_height(*it++);
   set_mortality(*it++);
@@ -304,7 +320,7 @@ double Plant::q(double z) const {
 // [eqn 10] ... Fraction of leaf area above height 'z' for an
 //              individual of height 'height'
 double Plant::Q(double z) const {
-  if ( z > vars.height )
+  if (z > vars.height)
     return 0.0;
   const double tmp = 1.0-pow(z / vars.height, strategy->eta);
   return tmp * tmp;
@@ -324,7 +340,7 @@ double Plant::compute_assimilation(const Environment& environment) const {
   FunctorBind1<Plant, const Environment&,
 	       &Plant::compute_assimilation_x> fun(this, environment);
   const double tol = control().plant_assimilation_tol;
-  const int max_iterations = control().plant_assimilation_iterations;
+  const size_t max_iterations = control().plant_assimilation_iterations;
   util::Integrator integrator(tol, tol, max_iterations);
   const double x_max = control().plant_assimilation_over_distribution ?
     1 : vars.height;
@@ -337,7 +353,7 @@ double Plant::compute_assimilation(const Environment& environment) const {
 // where `z` is height.
 double Plant::compute_assimilation_x(double x, 
 				     const Environment& environment) const {
-  if ( control().plant_assimilation_over_distribution )
+  if (control().plant_assimilation_over_distribution)
     return assimilation_leaf(environment.canopy_openness(Qp(x)));
   else
     return assimilation_leaf(environment.canopy_openness(x)) * q(x);
@@ -482,11 +498,11 @@ bool test_plant(Strategy s, bool copy, bool ptr) {
 
   // There is a huge amount of duplication here, but it's largely
   // unavoidable without missing out on doing what I want to do.
-  if ( ptr ) {
+  if (ptr) {
     Plant p1(&s);
     p1.set_height(height1);
 
-    if ( copy ) {
+    if (copy) {
       Plant p2(p1);
       ok = p1 == p2;
     } else {
@@ -499,7 +515,7 @@ bool test_plant(Strategy s, bool copy, bool ptr) {
     Plant p1(s);
     p1.set_height(height1);
 
-    if ( copy ) {
+    if (copy) {
       Plant p2(p1);
       ok = p1 == p2;
     } else {

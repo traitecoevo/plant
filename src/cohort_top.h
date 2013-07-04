@@ -32,7 +32,7 @@ public:
 
 private:
   double growth_rate_gradient(const Environment& environment) const;
-  double growth_rate_given_height(double height,
+  double growth_rate_given_height(double height_,
 				  const Environment& environment);
 
   double density;
@@ -50,7 +50,7 @@ private:
 template <class T, class T2, double (T::*target)(double, T2)>
 class FunctorBind2 : public util::DFunctor {
 public:
-  FunctorBind2(T *obj, T2 arg2) : obj(obj), arg2(arg2) {}
+  FunctorBind2(T *obj_, T2 arg2_) : obj(obj_), arg2(arg2_) {}
   virtual double operator()(double x) {
     return (obj->*target)(x, arg2);
   }

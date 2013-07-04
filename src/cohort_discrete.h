@@ -12,8 +12,8 @@ class CohortDiscrete : public Plant {
 public:
   CohortDiscrete(Strategy  s);
   CohortDiscrete(Strategy *s);
-  CohortDiscrete(Strategy  s, int n_individuals);
-  CohortDiscrete(Strategy *s, int n_individuals);
+  CohortDiscrete(Strategy  s, int n_individuals_);
+  CohortDiscrete(Strategy *s, int n_individuals_);
 
   double leaf_area_above(double z) const;
   int offspring();

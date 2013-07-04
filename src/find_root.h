@@ -12,7 +12,7 @@ namespace util {
 
 class RootFinder {
 public:
-  RootFinder(double atol, double rtol, int max_iterations);
+  RootFinder(double atol_, double rtol_, int max_iterations_);
   ~RootFinder();
   double root(DFunctor *f, double x_min, double x_max);
 
@@ -55,7 +55,7 @@ private:
 template <class T, double(T::*target)(double)>
 class FunctorRoot : public DFunctor {
 public:
-  FunctorRoot(T *obj, double value) : obj(obj), value(value) {}
+  FunctorRoot(T *obj_, double value_) : obj(obj_), value(value_) {}
   virtual double operator()(double x) {
     return (obj->*target)(x) - value;
   }

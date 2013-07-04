@@ -15,7 +15,7 @@ namespace model {
 // not get repeated.
 class PatchBase : public ode::OdeTarget {
 public:
-  virtual ~PatchBase() {};
+  virtual ~PatchBase();
   virtual std::vector<int> births() = 0;
   virtual void deaths() = 0;
   virtual size_t size() const = 0;
@@ -134,8 +134,8 @@ Patch<Individual>::Patch(Parameters *p)
 
 template <class Individual>
 void Patch<Individual>::deaths() {
-  for ( species_iterator sp = species.begin();
-	sp != species.end(); sp++ )
+  for (species_iterator sp = species.begin();
+       sp != species.end(); ++sp)
     sp->deaths();
 }
 
@@ -143,8 +143,8 @@ template <class Individual>
 std::vector<int> Patch<Individual>::births() {
   std::vector<int> ret(size(), 0);
   std::vector<int>::iterator n = ret.begin();
-  for ( species_iterator sp = species.begin();
-	sp != species.end(); sp++ )
+  for (species_iterator sp = species.begin();
+       sp != species.end(); ++sp)
     *n = sp->births();
   return ret;
 }
@@ -162,7 +162,7 @@ void Patch<Individual>::add_seedling(size_t species_index) {
 
 template <class Individual>
 void Patch<Individual>::add_seedlings(std::vector<int> seeds) {
-  for ( size_t i = 0; i < seeds.size(); i++ )
+  for (size_t i = 0; i < seeds.size(); ++i)
     species[i].add_seeds(seeds[i]);
 }
 
@@ -179,11 +179,11 @@ void Patch<Individual>::add_seedlings(std::vector<int> seeds) {
 template <class Individual>
 std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
   const double p_dispersal = parameters->Pi_0;
-  for ( size_t i = 0; i < seeds.size(); i++ ) {
-    if ( seeds[i] > 0 ) {
+  for (size_t i = 0; i < seeds.size(); ++i) {
+    if (seeds[i] > 0) {
       const double p = p_dispersal *
 	species[i].germination_probability(environment);
-      seeds[i] = p > 0 ? (int)Rf_rbinom(seeds[i], p) : 0.0;
+      seeds[i] = p > 0 ? static_cast<int>(Rf_rbinom(seeds[i], p)) : 0.0;
     }
   }
   return seeds;
@@ -232,7 +232,7 @@ double Patch<Individual>::get_time() const {
 template <class Individual>
 void Patch<Individual>::initialise() {
   species.clear(); // (should never be needed?)
-  for (size_t i = 0; i < parameters->strategies.size(); i++) {
+  for (size_t i = 0; i < parameters->strategies.size(); ++i) {
     Species<Individual> s(&parameters->strategies[i]);
     species.push_back(s);
   }
@@ -253,8 +253,8 @@ size_t Patch<Individual>::size() const {
 template <class Individual>
 double Patch<Individual>::height_max() const {
   double ret = 0.0;
-  for ( species_const_iterator sp = species.begin();
-	sp != species.end(); sp++ )
+  for (species_const_iterator sp = species.begin();
+       sp != species.end(); ++sp)
     ret = std::max(ret, sp->height_max());
   return ret;
 }
@@ -268,8 +268,8 @@ double Patch<Individual>::height_max() const {
 template <class Individual>
 double Patch<Individual>::leaf_area_above(double height) const {
   double tot = 0.0;
-  for ( species_const_iterator sp = species.begin();
-	sp != species.end(); sp++ )
+  for (species_const_iterator sp = species.begin();
+       sp != species.end(); ++sp)
     tot += sp->leaf_area_above(height);
   return tot;
 }
@@ -295,9 +295,9 @@ void Patch<Individual>::compute_light_environment() {
 // physiological variables are updated.
 template <class Individual>
 void Patch<Individual>::compute_vars_phys() {
-  int species_index = 0;
+  size_t species_index = 0;
   for (species_iterator sp = species.begin();
-       sp != species.end(); sp++) {
+       sp != species.end(); ++sp) {
     environment.set_seed_rain_index(species_index++);
     sp->compute_vars_phys(environment);
   }
@@ -315,8 +315,8 @@ Species<Individual> Patch<Individual>::r_at(size_t species_index) const {
 template <class Individual>
 Rcpp::List Patch<Individual>::r_get_species() const {
   Rcpp::List ret;
-  for ( species_const_iterator sp = species.begin();
-	sp != species.end(); sp++ )
+  for (species_const_iterator sp = species.begin();
+       sp != species.end(); ++sp)
     ret.push_back(Rcpp::wrap(*sp));
   return ret;
 }
@@ -398,24 +398,24 @@ void Patch<Individual>::r_set_seed_rain(std::vector<double> x) {
 template <class Individual>
 Rcpp::List Patch<Individual>::r_height() const {
   Rcpp::List ret;
-  for ( species_const_iterator sp = species.begin();
-	sp != species.end(); sp++ )
+  for (species_const_iterator sp = species.begin();
+       sp != species.end(); ++sp)
     ret.push_back(Rcpp::wrap(sp->r_height()));
   return ret;
 }
 
 template <class Individual>
 void Patch<Individual>::r_set_height(Rcpp::List x) {
-  util::check_length(x.size(), size());
-  for ( size_t i = 0; i < size(); i++ )
-    species[i].r_set_height(x[i]);
+  util::check_length(static_cast<size_t>(x.size()), size());
+  for (size_t i = 0; i < size(); ++i)
+    species[i].r_set_height(x[static_cast<int>(i)]);
 }
 
 template <class Individual>
 std::vector<int> Patch<Individual>::r_n_individuals() const {
   std::vector<int> n;
-  for ( species_const_iterator sp = species.begin();
-	sp != species.end(); sp++ )
+  for (species_const_iterator sp = species.begin();
+       sp != species.end(); ++sp)
     n.push_back(sp->r_n_individuals());
   return n;
 }
@@ -423,7 +423,7 @@ std::vector<int> Patch<Individual>::r_n_individuals() const {
 template <class Individual>
 void Patch<Individual>::reset() {
   for (species_iterator sp = species.begin();
-       sp != species.end(); sp++)
+       sp != species.end(); ++sp)
     sp->clear();
   environment.clear();
   compute_light_environment();

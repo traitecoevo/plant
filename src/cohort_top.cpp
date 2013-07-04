@@ -27,7 +27,7 @@ void CohortTop::compute_vars_phys(const Environment& environment) {
   // EBT.md{eq:boundN}, see Numerical technique.
   density_rate = growth_rate_gradient(environment) + mortality_rate();
 
-  // EBT.md{eq:boundSurv}, see Numreical technique
+  // EBT.md{eq:boundSurv}, see Numerical technique
   const double survival_patch = environment.patch_survival(time_of_birth);
   seeds_survival_weighted_rate =
     fecundity_rate() * survival_probability() * survival_patch;
@@ -74,7 +74,7 @@ size_t CohortTop::ode_size() const {
   return ode_dimension;
 }
 
-ode::iterator_const CohortTop::set_ode_values(double time,
+ode::iterator_const CohortTop::set_ode_values(double /* unused: time */,
 					      ode::iterator_const it) {
   set_height(*it++);
   set_mortality(*it++);
@@ -115,7 +115,7 @@ double CohortTop::growth_rate_gradient(const Environment& environment) const {
   const double eps = control().cohort_gradient_eps;
   double grad;
   if (control().cohort_gradient_richardson) {
-    const int r = control().cohort_gradient_richardson_depth;
+    const size_t r = control().cohort_gradient_richardson_depth;
     grad = util::gradient_richardson(&fun, height(), eps, r);
   } else {
     grad = util::gradient_fd_forward(&fun, height(),
@@ -125,9 +125,9 @@ double CohortTop::growth_rate_gradient(const Environment& environment) const {
 }
 
 // This exists only because it is needed by growth_rate_gradient.
-double CohortTop::growth_rate_given_height(double height,
+double CohortTop::growth_rate_given_height(double height_,
 					   const Environment& environment) {
-  set_height(height);
+  set_height(height_);
   Plant::compute_vars_phys(environment);
   return height_rate();
 }

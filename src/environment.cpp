@@ -19,10 +19,10 @@ double Environment::canopy_openness(double height) const {
   return within_canopy ? light_environment.eval(height) : 1.0;
 }
 
-void Environment::compute_light_environment(util::DFunctor *canopy_openness,
+void Environment::compute_light_environment(util::DFunctor *f_canopy_openness,
 					    double height_max) {
   light_environment =
-    light_environment_generator.construct_spline(canopy_openness,
+    light_environment_generator.construct_spline(f_canopy_openness,
 						 0, height_max);
 }
 

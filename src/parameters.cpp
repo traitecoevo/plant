@@ -18,6 +18,10 @@ void Parameters::reset() {
   // Number of patches
   n_patches = 10;
 
+  // Then set the values for the lookup table, based on these (this is
+  // basically the inverse of set_parameters_post_hook())
+  _n_patches = static_cast<double>(n_patches);
+
   strategies.clear();
 }
 
@@ -57,7 +61,11 @@ void Parameters::do_build_lookup() {
   lookup_table["c_ext"]      = &c_ext;
   lookup_table["patch_area"] = &patch_area;
   lookup_table["Pi_0"]       = &Pi_0;
-  lookup_table["n_patches"]  = &n_patches;
+  lookup_table["n_patches"]  = &_n_patches;
+}
+
+void Parameters::set_parameters_post_hook() {
+  n_patches = static_cast<size_t>(_n_patches);
 }
 
 }

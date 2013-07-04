@@ -13,12 +13,12 @@ namespace model {
 class CohortSchedule {
 public:
   class Event;
-  CohortSchedule(size_t n_species);
+  CohortSchedule(size_t n_species_);
   size_t size() const;
   size_t get_n_species() const;
 
   void clear_times(size_t species_index);
-  void set_times(std::vector<double> times, size_t species_index);
+  void set_times(std::vector<double> times_, size_t species_index);
   std::vector<double> times(size_t species_index) const;
   void reset();
   void pop();
@@ -28,7 +28,7 @@ public:
 
   // * R interface:
   void r_clear_times(size_t species_index);
-  void r_set_times(std::vector<double> times, size_t species_index);
+  void r_set_times(std::vector<double> times_, size_t species_index);
   std::vector<double> r_times(size_t species_index) const;
 
 private:
@@ -43,22 +43,26 @@ private:
   std::list<Event> queue;
 };
 
-// NOTE: I'm using int here over size_t in cohort because I want to
-// use NA_INTEGER for an impossible cohort.  Rcpp converts size_t ->
-// numeric, though NA_REAL won't stick as a NA value there either.
-// This causes a few casts in code.
+// NOTE: The r_cohort()/r_set_cohort() functions are here because I
+// want to use NA_INTEGER for an impossible cohort.  Rcpp converts
+// size_t -> numeric, though NA_REAL won't stick as a NA value there
+// either.  This approach isolates the ugly casts to this class, and
+// means if I change the behaviour I can just do it here.
 class CohortSchedule::Event {
 public:
-  Event(double time, int cohort) : time(time), cohort(cohort) {}
+  Event(double time_, size_t cohort_) : time(time_), cohort(cohort_) {}
   static Event blank() {
-    Event e(R_PosInf, NA_INTEGER);
+    Event e(R_PosInf, static_cast<size_t>(NA_INTEGER));
     return e;
   }
+  int r_cohort() const {return static_cast<int>(cohort);}
+  void r_set_cohort(int x) {cohort = static_cast<size_t>(x);}
+
   // Better than providing an index to a cohort could be to provide an
   // iterator to the underlying cohorts.  This could be templated to
   // provide a list of different times for different things?
   double time;
-  int cohort;
+  size_t cohort;
 };
 
 }

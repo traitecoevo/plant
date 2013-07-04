@@ -1,8 +1,10 @@
 PKG = $(shell Rscript -e "writeLines(system.file(package='tree'))")
 
 all:
-	make -C doc
 	make -C src
+
+doc:
+	make -C doc
 
 clean:
 	make -C doc clean
@@ -17,7 +19,9 @@ document: all
 
 RSRC = $(shell find ./R)
 
-install: all ${RSRC}
+install: ${PKG}
+
+${PKG}: all ${RSRC}
 	R CMD INSTALL --no-test-load .
 
-${PKG}: install
+.PHONY: all doc clean test install

@@ -11,8 +11,8 @@ namespace ode {
 
 class OdeR {
 public:
-  OdeR(SEXP fun, SEXP env, SEXP pars);
-  OdeR(SEXP fun, SEXP env, SEXP pars, OdeControl control);
+  OdeR(SEXP fun_, SEXP env_, SEXP pars_);
+  OdeR(SEXP fun_, SEXP env_, SEXP pars_, OdeControl control);
   size_t size() const;
   void derivs(double time, iterator_const y, iterator dydt);
 

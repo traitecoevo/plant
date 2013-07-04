@@ -12,16 +12,16 @@ CohortDiscrete::CohortDiscrete(Strategy *s)
     n_individuals(1) {
 }
 
-CohortDiscrete::CohortDiscrete(Strategy s, int n_individuals)
+CohortDiscrete::CohortDiscrete(Strategy s, int n_individuals_)
   : Plant(s),
-    n_individuals(n_individuals) {
+    n_individuals(n_individuals_) {
   if (n_individuals < 1)
     ::Rf_error("Cannot create a cohort with less than 1 individual");
 }
 
-CohortDiscrete::CohortDiscrete(Strategy *s, int n_individuals)
+CohortDiscrete::CohortDiscrete(Strategy *s, int n_individuals_)
   : Plant(s),
-    n_individuals(n_individuals) {
+    n_individuals(n_individuals_) {
   if (n_individuals < 1)
     ::Rf_error("Cannot create a cohort with less than 1 individual");
 }
@@ -36,13 +36,13 @@ int CohortDiscrete::offspring() {
 
 bool CohortDiscrete::died() {
   const double p_died = mortality_probability();
-  if ( n_individuals > 1 )
+  if (n_individuals > 1)
     n_individuals -= Rf_rbinom(n_individuals, p_died);
-  else if ( n_individuals == 1 ) // ensures same RNG behaviour as Plant
+  else if (n_individuals == 1) // ensures same RNG behaviour as Plant
     n_individuals = unif_rand() < p_died ? 0 : 1;
   set_mortality(0.0);
-  if ( n_individuals < 0 )
-    Rf_error("Somehow we have negative individuals!");
+  if (n_individuals < 0)
+    ::Rf_error("Somehow we have negative individuals!");
   return n_individuals == 0;
 }
 

@@ -8,7 +8,7 @@ namespace spline {
 
 class MultiSpline {
 public:
-  MultiSpline(int n);
+  MultiSpline(size_t n);
 
   void init(std::vector<double> x, 
 	    std::vector< std::vector<double> > y);

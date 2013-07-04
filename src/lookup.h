@@ -64,7 +64,7 @@ protected:
   typedef std::map<std::string, double*> lookup_type;
   lookup_type lookup_table;
   virtual void do_build_lookup() = 0;
-  virtual void set_parameters_post_hook() {}
+  virtual void set_parameters_post_hook();
 
 private:
   void build_lookup();

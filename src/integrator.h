@@ -9,7 +9,7 @@ namespace util {
 
 class Integrator {
 public:
-  Integrator(double atol, double rtol, size_t max_iterations);
+  Integrator(double atol_, double rtol_, size_t max_iterations_);
   ~Integrator();
   double integrate(DFunctor *f, double x_min, double x_max);
   

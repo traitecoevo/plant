@@ -2,13 +2,13 @@
 
 namespace spline {
 
-AdaptiveSpline::AdaptiveSpline(double atol, double rtol,
-			       int nbase, int max_depth)
+AdaptiveSpline::AdaptiveSpline(double atol_, double rtol_,
+			       int nbase_, int max_depth_)
   : target(NULL),
-    atol(atol),
-    rtol(rtol),
-    nbase(nbase),
-    max_depth(max_depth),
+    atol(atol_),
+    rtol(rtol_),
+    nbase(nbase_),
+    max_depth(max_depth_),
     dx(NA_REAL),
     dxmin(NA_REAL) {
 }
@@ -32,7 +32,7 @@ Spline AdaptiveSpline::construct_spline(util::DFunctor *target_,
   zz.clear();
 
   double xi = a;
-  for ( int i = 0; i < nbase; i++, xi += dx ) {
+  for (int i = 0; i < nbase; i++, xi += dx) {
     xx.push_back(xi);
     yy.push_back(eval_target(xi));
     zz.push_back(i > 0);
@@ -41,7 +41,7 @@ Spline AdaptiveSpline::construct_spline(util::DFunctor *target_,
   compute_spline();
 
   bool flag = true;
-  while ( flag )
+  while (flag)
     flag = refine();
 
   return spline;
@@ -62,15 +62,15 @@ void AdaptiveSpline::compute_spline() {
 bool AdaptiveSpline::refine() {
   dx /= 2;
 
-  if ( dx < dxmin )
+  if (dx < dxmin)
     ::Rf_error("Spline as refined as currently possible");
 
   bool flag = false;
   
   std::list<double>::iterator xi = xx.begin(), yi = yy.begin();
   std::list<bool>::iterator zi = zz.begin();
-  for ( ; xi != xx.end(); ++xi, ++yi, ++zi ) {
-    if ( *zi ) {
+  for (; xi != xx.end(); ++xi, ++yi, ++zi) {
+    if (*zi) {
       const double x_mid = *xi - dx;
       const double y_mid = eval_target(x_mid);
       const double p_mid = spline.eval(x_mid);
@@ -99,9 +99,9 @@ bool AdaptiveSpline::refine() {
 }
 
 void AdaptiveSpline::check_bounds(double a, double b) {
-  if ( a >= b )
+  if (a >= b)
     ::Rf_error("Impossible bounds");
-  if ( !util::is_finite(a) || !util::is_finite(b) )
+  if (!util::is_finite(a) || !util::is_finite(b))
     ::Rf_error("Infinite bounds");
 }
 

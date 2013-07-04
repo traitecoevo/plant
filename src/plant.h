@@ -15,7 +15,7 @@ namespace model {
 
 class PlantBase : public ode::OdeTarget {
 public:
-  virtual ~PlantBase() {};
+  virtual ~PlantBase();
   // * "Key" variables.
   virtual double height() const = 0;
   virtual void set_height(double height_) = 0;
@@ -195,7 +195,7 @@ bool test_plant(Strategy s, bool copy, bool ptr);
 template <class T, class T2, double (T::*target)(double, T2) const>
 class FunctorBind1 : public util::DFunctor {
 public:
-  FunctorBind1(const T *obj, T2 arg2) : obj(obj), arg2(arg2) {}
+  FunctorBind1(const T *obj_, T2 arg2_) : obj(obj_), arg2(arg2_) {}
   virtual double operator()(double x) {
     return (obj->*target)(x, arg2);
   }

@@ -4,10 +4,10 @@
 
 namespace util {
 
-Integrator::Integrator(double atol, double rtol, size_t max_iterations) 
-  : atol(atol),
-    rtol(rtol),
-    max_iterations(max_iterations),
+Integrator::Integrator(double atol_, double rtol_, size_t max_iterations_)
+  : atol(atol_),
+    rtol(rtol_),
+    max_iterations(max_iterations_),
     last_error(NA_REAL) {
   target_data.function = &helper_functor;
   workspace = gsl_integration_workspace_alloc(max_iterations);

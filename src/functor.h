@@ -14,12 +14,13 @@ namespace util {
 class DFunctor {
 public:
   virtual double operator()(double) = 0;
+  virtual ~DFunctor();
 };
 
 template <class T, double (T::*target)(double)> 
 class Functor : public DFunctor {
 public:
-  Functor(T *obj) : obj(obj) {}
+  Functor(T *obj_) : obj(obj_) {}
   virtual double operator()(double x) {
     return (obj->*target)(x);
   }
@@ -38,7 +39,7 @@ namespace test {
 
 class Quadratic {
 public:
-  Quadratic(double a, double b, double c): a(a), b(b), c(c) {}
+  Quadratic(double a_, double b_, double c_): a(a_), b(b_), c(c_) {}
   // Can be const, except that find_root.cpp needs it not to be.
   double mytarget(double x) { return (a * x + b) * x + c; }
 private:

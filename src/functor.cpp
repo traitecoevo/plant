@@ -4,6 +4,9 @@
 
 namespace util {
 
+DFunctor::~DFunctor() {
+}
+
 double helper_functor(double x, void *data) {
   DFunctor *f = static_cast<DFunctor *>(data);
   return (*f)(x);

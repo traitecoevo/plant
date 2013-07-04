@@ -19,6 +19,8 @@
 // the lookup class, but will be converted to an int on use.
 // Non-integer values will be accepted silently but this conversion
 // will happen.  Not ideal, but not the end of the world.
+//
+// TODO: See better solution in Control.
 namespace model {
 
 class Parameters : public util::Lookup {
@@ -44,7 +46,7 @@ public:
   double c_ext;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2)
   double Pi_0;       // Probability of survival during dispersal
-  double n_patches;  // Number of patches in the metacommunity
+  size_t n_patches;  // Number of patches in the metacommunity
   std::vector<Strategy> strategies;
 
   // Algorithm control.
@@ -52,7 +54,10 @@ public:
 
 private:
   void do_build_lookup();
+  void set_parameters_post_hook();
   void reset();
+
+  double _n_patches;
 
   typedef std::vector<Strategy>::iterator strategy_iterator;
   typedef std::vector<Strategy>::const_iterator strategy_const_iterator;
