@@ -17,6 +17,7 @@ class Spline {
 public:
   typedef util::PtrWrapper<Spline> ptr;
   Spline();
+  Spline(bool is_akima_);
   ~Spline();
   Spline(const Spline& x);
   Spline& operator=(Spline other);
@@ -44,11 +45,12 @@ protected:
   std::vector<double> x, y;
 
 private:
-  gsl_interp_accel *acc;
-  gsl_spline *spline;  
-
   void gsl_free_spline();
   void gsl_free_acc();
+
+  gsl_interp_accel *acc;
+  gsl_spline *spline;
+  bool is_akima;
 };
 
 }

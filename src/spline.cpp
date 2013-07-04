@@ -6,7 +6,14 @@ namespace spline {
 // we'll use these values to determine if memory needs clearing.
 Spline::Spline()
   : acc(NULL),
-    spline(NULL) {
+    spline(NULL),
+    is_akima(false) {
+}
+
+Spline::Spline(bool is_akima_)
+  : acc(NULL),
+    spline(NULL),
+    is_akima(is_akima_) {
 }
 
 // On cleanup, remove memory allocated for the GSL support.
@@ -25,17 +32,19 @@ Spline::Spline(const Spline& obj)
   : x(obj.x),
     y(obj.y),
     acc(NULL),
-    spline(NULL) {
+    spline(NULL),
+    is_akima(obj.is_akima) {
   if (x.size() > 0)
     init_self();
 }
 
 Spline& Spline::operator=(Spline other) {
   using std::swap;
-  swap(x,      other.x);
-  swap(y,      other.y);
-  swap(acc,    other.acc);
-  swap(spline, other.spline);
+  swap(x,        other.x);
+  swap(y,        other.y);
+  swap(acc,      other.acc);
+  swap(spline,   other.spline);
+  swap(is_akima, other.is_akima);
   return *this;
 }
 
@@ -51,8 +60,12 @@ void Spline::init_self() {
   const size_t n = x.size();
   gsl_free_spline();
   gsl_free_acc();
-  acc    = gsl_interp_accel_alloc();
-  spline = gsl_spline_alloc(gsl_interp_cspline, n);
+  acc = gsl_interp_accel_alloc();
+  if (is_akima) {
+    spline = gsl_spline_alloc(gsl_interp_akima, n);
+  } else {
+    spline = gsl_spline_alloc(gsl_interp_cspline, n);
+  }
   gsl_spline_init(spline, &x.front(), &y.front(), n);  
 }
 
