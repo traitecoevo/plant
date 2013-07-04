@@ -28,7 +28,7 @@ OdeControl::OdeControl(double tol_abs_, double tol_rel_,
     last_step_size_shrank(false) {
 }
 
-double OdeControl::adjust_step_size(size_t dim, unsigned int ord, 
+double OdeControl::adjust_step_size(size_t dim, size_t ord,
 				    double step_size,
 				    const std::vector<double> &y,
 				    const std::vector<double> &yerr,

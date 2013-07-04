@@ -19,7 +19,9 @@ public:
 	    const std::vector<double> &dydt_in,
 	    std::vector<double> &dydt_out);
   void reset();
-  unsigned int order();
+  size_t order() const;
+  bool can_use_dydt_in() const;
+  bool first_same_as_last() const;
   void derivs(double time, iterator_const y, iterator dydt);
 
   // Private soon, but not right now (will be once these are never
@@ -140,9 +142,21 @@ void Step<Problem>::reset() {
 }
 
 template <class Problem>
-unsigned int Step<Problem>::order() {
+size_t Step<Problem>::order() const {
   // In GSL, comment says "FIXME: should this be 4?"
   return 5;
+}
+
+template <class Problem>
+bool Step<Problem>::can_use_dydt_in() const {
+  return true;
+}
+
+// This implies can_use_dydt_in -- so this is first_same_as_last AND
+// can_use_dydt_in.
+template <class Problem>
+bool Step<Problem>::first_same_as_last() const {
+  return true;
 }
 
 template <class Problem>

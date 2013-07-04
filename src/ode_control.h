@@ -19,7 +19,7 @@ public:
 	     double a_y_, double a_dydt_,
 	     double step_size_min_, double step_size_max_);
 
-  double adjust_step_size(size_t dim, unsigned int ord, double step_size,
+  double adjust_step_size(size_t dim, size_t ord, double step_size,
 			  const std::vector<double> &y,
 			  const std::vector<double> &yerr,
 			  const std::vector<double> &yp);

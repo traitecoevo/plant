@@ -42,6 +42,8 @@ public:
   
 private:
   void resize(size_t size_);
+  void setup_dydt_in();
+  void save_dydt_out_as_in();
 
   Problem *problem;
 
@@ -58,6 +60,9 @@ private:
   std::vector<double> yerr;     // Vector of error estimates
   std::vector<double> dydt_in;  // Vector of dydt at beginning of step
   std::vector<double> dydt_out; // Vector of dydt during step
+
+  // NOTE: Ideas around this may change.
+  bool dydt_in_is_clean;
 
   OdeControl control;
   Step<Problem> stepper;
@@ -90,6 +95,7 @@ void Solver<Problem>::set_state(std::vector<double> y_, double t_) {
   time = t_;
   prev_times.push_back(time);
   resize(y.size());
+  dydt_in_is_clean = false;
 }
 
 template <class Problem>
@@ -112,6 +118,8 @@ void Solver<Problem>::set_state_from_problem() {
   std::vector<double> vars(problem->ode_size());
   problem->ode_values(vars.begin());
   set_state(vars, problem->get_time());
+  problem->ode_rates(dydt_in.begin());
+  dydt_in_is_clean = true;
 }
 
 // After `stepper.step()`, the GSL checks to see if the step succeeded
@@ -146,7 +154,7 @@ void Solver<Problem>::step() {
   const std::vector<double> y_orig = y;
 
   // Compute the derivatives at the beginning.
-  problem->derivs(time, y.begin(), dydt_in.begin());
+  setup_dydt_in();
 
   while (true) {
     // Does this appear to be the last step before reaching `time_max`?
@@ -193,6 +201,7 @@ void Solver<Problem>::step() {
       	step_size_last = step_size_next;
       }
       prev_times.push_back(time);
+      save_dydt_out_as_in();
 
       return;
     }
@@ -210,11 +219,15 @@ void Solver<Problem>::advance(double time_max_) {
     step();
 }
 
+// This takes a step up to time "time_max_", regardless of what the
+// error says.  There is duplication here with step_fixed()?
 template <class Problem>
 void Solver<Problem>::step_to(double time_max_) {
   time_max = time_max_;
-  problem->derivs(time, y.begin(), dydt_in.begin());
+  setup_dydt_in();
   stepper.step(time, time_max - time, y, yerr, dydt_in, dydt_out);
+  save_dydt_out_as_in();
+
   count++;
   time = time_max;
   prev_times.push_back(time);
@@ -277,8 +290,7 @@ void Solver<Problem>::step_fixed(double step_size) {
   std::vector<double> y0 = y;
 
   // Compute the derivatives at the beginning.
-  problem->derivs(time, y.begin(), dydt_in.begin());
-
+  setup_dydt_in();
   stepper.step(time, step_size, y, yerr, dydt_in, dydt_out);
   
   const double step_size_next =
@@ -293,6 +305,7 @@ void Solver<Problem>::step_fixed(double step_size) {
     step_size_last = step_size_next;
     time += step_size;
     prev_times.push_back(time);
+    save_dydt_out_as_in();
   }
 }
 
@@ -306,6 +319,7 @@ void Solver<Problem>::reset() {
   step_size_last = 1e-6; // See ode.md
   time_max = DBL_MAX;    // or infinite?
   size = 0;
+  dydt_in_is_clean = false;
   resize(size);
   stepper.reset();
 }
@@ -322,6 +336,24 @@ void Solver<Problem>::resize(size_t size_) {
   dydt_in.resize(size);
   dydt_out.resize(size);
   stepper.resize(size);
+}
+
+template <class Problem>
+void Solver<Problem>::setup_dydt_in() {
+  if (stepper.can_use_dydt_in() && !dydt_in_is_clean) {
+    problem->derivs(time, y.begin(), dydt_in.begin());
+    dydt_in_is_clean = true;
+  }
+}
+
+template <class Problem>
+void Solver<Problem>::save_dydt_out_as_in() {
+  if (stepper.first_same_as_last()) {
+    dydt_in = dydt_out;
+    dydt_in_is_clean = true;
+  } else {
+    dydt_in_is_clean = false;
+  }
 }
 
 }
