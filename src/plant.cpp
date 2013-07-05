@@ -50,42 +50,35 @@ bool Plant::operator==(const Plant &rhs) const {
   return strategy == rhs.strategy && vars == rhs.vars;
 }
 
+// NOTE: Using identical to compare between floats here -- we *want*
+// identical comparisons for the way this method is used (are objects
+// absolutely identical?).
 bool Plant::internals::operator==(const Plant::internals &rhs) const {
-  // Don't warn about '==' between floats here -- we *want* identical
-  // comparisons for the way this method is used (are objects
-  // absolutely identical).
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wfloat-equal"
-#endif
   const bool ret = true
     // Size members...
-    && mass_leaf      == rhs.mass_leaf
-    && leaf_area      == rhs.leaf_area
-    && height         == rhs.height
-    && mass_sapwood   == rhs.mass_sapwood
-    && mass_bark      == rhs.mass_bark
-    && mass_heartwood == rhs.mass_heartwood
-    && mass_root      == rhs.mass_root
-    && mass_total     == rhs.mass_total
-    // // ...physiological members...
-    && assimilation   == rhs.assimilation
-    && respiration    == rhs.respiration
-    && turnover       == rhs.turnover
-    && net_production == rhs.net_production
-    && reproduction_fraction == rhs.reproduction_fraction
-    && fecundity_rate == rhs.fecundity_rate
-    && leaf_fraction  == rhs.leaf_fraction
-    && mass_leaf_growth_rate == rhs.mass_leaf_growth_rate
-    && height_growth_rate == rhs.height_growth_rate
-    && mortality_rate == rhs.mortality_rate
-    // // ...and "other" members...
-    && fecundity      == rhs.fecundity
-    && mortality      == rhs.mortality
+    && util::identical(mass_leaf,         rhs.mass_leaf)
+    && util::identical(leaf_area,         rhs.leaf_area)
+    && util::identical(height,            rhs.height)
+    && util::identical(mass_sapwood,      rhs.mass_sapwood)
+    && util::identical(mass_bark,         rhs.mass_bark)
+    && util::identical(mass_heartwood,    rhs.mass_heartwood)
+    && util::identical(mass_root,         rhs.mass_root)
+    && util::identical(mass_total,        rhs.mass_total)
+    // ...physiological members...
+    && util::identical(assimilation,      rhs.assimilation)
+    && util::identical(respiration,       rhs.respiration)
+    && util::identical(turnover,          rhs.turnover)
+    && util::identical(net_production,    rhs.net_production)
+    && util::identical(reproduction_fraction,    rhs.reproduction_fraction)
+    && util::identical(fecundity_rate,    rhs.fecundity_rate)
+    && util::identical(leaf_fraction,     rhs.leaf_fraction)
+    && util::identical(mass_leaf_growth_rate,    rhs.mass_leaf_growth_rate)
+    && util::identical(height_growth_rate,       rhs.height_growth_rate)
+    && util::identical(mortality_rate,    rhs.mortality_rate)
+    // ...and "other" members...
+    && util::identical(fecundity,         rhs.fecundity)
+    && util::identical(mortality,         rhs.mortality)
     ;
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
   return ret;
 }
 
