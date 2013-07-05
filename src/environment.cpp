@@ -11,7 +11,8 @@ Environment::Environment(Parameters p)
     light_environment_generator(control.environment_light_tol,
 				control.environment_light_tol,
 				control.environment_light_nbase,
-				control.environment_light_max_depth) {
+				control.environment_light_max_depth,
+				control.environment_light_akima) {
 }
 
 double Environment::canopy_openness(double height) const {

@@ -12,7 +12,9 @@ namespace spline {
 
 class AdaptiveSpline {
 public:
-  AdaptiveSpline(double atol_, double rtol_, int nbase_, int max_depth_);
+  AdaptiveSpline(double atol_, double rtol_,
+		 int nbase_, int max_depth_,
+		 bool akima_spline);
   double eval_target(double x) const;
   Spline construct_spline(util::DFunctor *target_, double a, double b);
 private:

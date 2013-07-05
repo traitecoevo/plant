@@ -3,14 +3,16 @@
 namespace spline {
 
 AdaptiveSpline::AdaptiveSpline(double atol_, double rtol_,
-			       int nbase_, int max_depth_)
+			       int nbase_, int max_depth_,
+			       bool akima_spline)
   : target(NULL),
     atol(atol_),
     rtol(rtol_),
     nbase(nbase_),
     max_depth(max_depth_),
     dx(NA_REAL),
-    dxmin(NA_REAL) {
+    dxmin(NA_REAL),
+    spline(akima_spline) {
 }
 
 // Evaluate the underlying function (double -> double).

@@ -13,6 +13,7 @@ expected <- list(
   environment_light_max_depth= as.numeric(16),
   environment_light_nbase = as.numeric(17),
   environment_light_tol = 1e-6,
+  environment_light_akima = as.numeric(FALSE),
   environment_light_rescale_usually = as.numeric(FALSE),
   ode_a_dydt = 0.0,
   ode_a_y = 1.0,
