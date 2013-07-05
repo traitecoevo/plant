@@ -40,13 +40,12 @@ const Control& Parameters::get_control() const {
 
 void Parameters::set_control(Control x) {
   control = x;
-  for (strategy_iterator it = strategies.begin();
-       it != strategies.end(); ++it)
-    it->set_control(control);
+  push_control_to_strategies();
 }
 
 void Parameters::set_control_parameters(Rcpp::List x) {
   control.set_parameters(x);
+  push_control_to_strategies();
 }
 
 Strategy Parameters::r_at(size_t idx) {
@@ -70,6 +69,12 @@ void Parameters::do_build_lookup() {
 
 void Parameters::set_parameters_post_hook() {
   n_patches = static_cast<size_t>(_n_patches);
+}
+
+void Parameters::push_control_to_strategies() {
+  for (strategy_iterator it = strategies.begin();
+       it != strategies.end(); ++it)
+    it->set_control(control);
 }
 
 }

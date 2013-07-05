@@ -71,6 +71,11 @@ ctrl.extra <- list(plant_seed_tol=1)
 p$set_control_parameters(ctrl.extra)
 expect_that(p$control$parameters,
             is_identical_to(modifyList(ctrl$parameters, ctrl.extra)))
+test_that("Control parameters propogate to strategies", {
+  expect_that(p[[1]]$control$parameters[["plant_seed_tol"]],
+              equals(ctrl.extra[["plant_seed_tol"]]))
+})
+
 
 dist <- new(Disturbance)
 expect_that(p$disturbance_regime$parameters,

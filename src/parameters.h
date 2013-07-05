@@ -58,6 +58,7 @@ private:
   void do_build_lookup();
   void set_parameters_post_hook();
   void reset();
+  void push_control_to_strategies();
 
   double _n_patches;
 
