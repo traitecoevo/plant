@@ -186,7 +186,7 @@ std::vector<int> Patch<Individual>::germination(std::vector<int> seeds) {
     if (seeds[i] > 0) {
       const double p = p_dispersal *
 	species[i].germination_probability(environment);
-      seeds[i] = p > 0 ? static_cast<int>(Rf_rbinom(seeds[i], p)) : 0.0;
+      seeds[i] = p > 0 ? static_cast<int>(Rf_rbinom(seeds[i], p)) : 0;
     }
   }
   return seeds;

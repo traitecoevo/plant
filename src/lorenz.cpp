@@ -1,5 +1,5 @@
 #include "util.h"
-#include "Lorenz.h"
+#include "lorenz.h"
 
 namespace ode {
 
