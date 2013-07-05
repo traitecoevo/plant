@@ -49,6 +49,7 @@ RCPP_MODULE(tree) {
 #endif
   Rcpp::class_<spline::Spline>("Spline")
     .constructor()
+    .constructor<bool>()
     .method("init",   &spline::Spline::init)
     .method("eval",   &spline::Spline::r_eval)
     .property("x",    &spline::Spline::get_x)
