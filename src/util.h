@@ -9,10 +9,18 @@
 
 namespace util {
 
+// This is the same check as in R_ext/Error.h (R 3.0.1) so we should
+// agree here.
+#if defined(__GNUC__) && __GNUC__ >= 4
+#define NORETURN __attribute__((noreturn))
+#else
+#define NORETURN
+#endif
+
 void handler_pass_to_R(const char *reason,
                        const char *file,
                        int line,
-                       int gsl_errno);
+                       int gsl_errno) NORETURN;
 void set_sane_gsl_error_handling();
 
 bool is_finite(double x);

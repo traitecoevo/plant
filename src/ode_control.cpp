@@ -51,8 +51,8 @@ double OdeControl::adjust_step_size(size_t dim, size_t ord,
     step_size *= r;
     last_step_size_shrank = true;
     if (step_size < step_size_min) {
+      step_size = step_size_min;
       ::Rf_error("Step size became too small");
-      step_size = step_size_min; // NOTE: won't get here
     }
   } else if (rmax < 0.5) {
     // increase step, no more than factor of 5

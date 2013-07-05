@@ -18,6 +18,8 @@ public:
 
   double leaf_area_above(double z) const;
 
+  // NOTE: I'd rather just make these private to disable, but that
+  // conflicts with Rcpp's inheritance model.
   int offspring();
   bool died();
 
