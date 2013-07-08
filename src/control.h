@@ -22,6 +22,7 @@ public:
   bool   plant_assimilation_over_distribution;
   double plant_assimilation_tol;
   size_t plant_assimilation_iterations;
+  int    plant_assimilation_rule;
 
   double plant_seed_tol;
   int    plant_seed_iterations;
@@ -53,6 +54,7 @@ private:
 
   double _plant_assimilation_over_distribution;
   double _plant_assimilation_iterations;
+  double _plant_assimilation_rule;
 
   double _plant_seed_iterations;
 
