@@ -31,6 +31,7 @@
 ##' @export SpeciesCT
 ##' @export Spline
 ##' @export Strategy
+##' @export integrator_gsl_rule
 ##' @export make.reference
 ##' @export metacommunity
 ##' @export patch

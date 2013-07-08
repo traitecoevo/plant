@@ -36,14 +36,36 @@ expect_that(test_find_value(pars, value, x.min, x.min+1),
             throws_error())
 
 ## Integration works?
-## integrate(f, 0, 5)$value
 
-## Analytically
-f.int <- diff(with(as.list(pars), function(x)
-                   a/3*x^3 + b/2*x^2 + c*x)(c(x.min, x.max)))
+test_that("GSL integration rule translation correct", {
+  expect_that(integrator_gsl_rule("QAGS"), equals(-1))
+  expect_that(integrator_gsl_rule("GAUSS15"), equals(1))
+  expect_that(integrator_gsl_rule("GAUSS21"), equals(2))
+  expect_that(integrator_gsl_rule("GAUSS31"), equals(3))
+  expect_that(integrator_gsl_rule("GAUSS41"), equals(4))
+  expect_that(integrator_gsl_rule("GAUSS51"), equals(5))
+  expect_that(integrator_gsl_rule("GAUSS61"), equals(6))
+  expect_that(integrator_gsl_rule("nonexistant"), throws_error())
+})
 
-expect_that(test_integrator(pars, 0, 5),
-            equals(f.int))
+test_that("Integration works", {
+  f <- function(rule)
+    test_integrator(pars, x.min, x.max, rule)
+  f.int <- diff(with(as.list(pars), function(x)
+                     a/3*x^3 + b/2*x^2 + c*x)(c(x.min, x.max)))
+
+  expect_that(f("QAGS"),    equals(f.int))
+  expect_that(f("GAUSS15"), equals(f.int))
+  expect_that(f("GAUSS21"), equals(f.int))
+  expect_that(f("GAUSS31"), equals(f.int))
+  expect_that(f("GAUSS41"), equals(f.int))
+  expect_that(f("GAUSS51"), equals(f.int))
+  expect_that(f("GAUSS61"), equals(f.int))
+  expect_that(f("nonexistant"), throws_error())
+  ## Different algorithms differ in answer slightly (not all do!)
+  expect_that(f("QAGS")    != f("GAUSS15"), is_true())
+  expect_that(f("GAUSS51") != f("GAUSS15"), is_true())
+})
 
 set.seed(1)
 a <- runif(10)

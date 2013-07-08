@@ -334,7 +334,8 @@ double Plant::compute_assimilation(const Environment& environment) const {
 	       &Plant::compute_assimilation_x> fun(this, environment);
   const double tol = control().plant_assimilation_tol;
   const size_t max_iterations = control().plant_assimilation_iterations;
-  util::Integrator integrator(tol, tol, max_iterations);
+  util::Integrator integrator(tol, tol, max_iterations,
+			      GSL_INTEG_GAUSS21);
   const double x_max = control().plant_assimilation_over_distribution ?
     1 : vars.height;
   return vars.leaf_area * integrator.integrate(&fun, 0.0, x_max);
