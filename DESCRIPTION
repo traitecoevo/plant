@@ -15,7 +15,3 @@ Suggests:
     testthat
 LinkingTo: Rcpp
 RcppModules: tree
-Collate:
-    'reference.R'
-    'zzz.R'
-    'ebt-support.R'
