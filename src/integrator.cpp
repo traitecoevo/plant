@@ -20,6 +20,30 @@ Integrator::~Integrator() {
   gsl_integration_workspace_free(workspace);
 }
 
+Integrator::Integrator(const Integrator& other)
+  : atol(other.atol),
+    rtol(other.rtol),
+    max_iterations(other.max_iterations),
+    quadrature_rule(other.quadrature_rule),
+    with_singularities(other.with_singularities),
+    last_error(other.last_error) {
+  target_data.function = &helper_functor;
+  workspace = gsl_integration_workspace_alloc(max_iterations);
+}
+
+Integrator& Integrator::operator=(Integrator other) {
+  using std::swap;
+  swap(atol,               other.atol);
+  swap(rtol,               other.rtol);
+  swap(max_iterations,     other.max_iterations);
+  swap(quadrature_rule,    other.quadrature_rule);
+  swap(with_singularities, other.with_singularities);
+  swap(last_error,         other.last_error);
+  swap(workspace,          other.workspace);
+  swap(target_data,        other.target_data);
+  return *this;
+}
+
 // NOTE: We do not do anything with the return status, as GSL will
 // already throw an error for us if the integration fails.  It does
 // not appear to be possible to report the number of iterations used.
