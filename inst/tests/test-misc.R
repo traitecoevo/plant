@@ -38,6 +38,7 @@ expect_that(test_find_value(pars, value, x.min, x.min+1),
 ## Integration works?
 
 test_that("GSL integration rule translation correct", {
+  ## From string -> key
   expect_that(integrator_gsl_rule("QAGS"), equals(-1))
   expect_that(integrator_gsl_rule("GAUSS15"), equals(1))
   expect_that(integrator_gsl_rule("GAUSS21"), equals(2))
@@ -46,6 +47,16 @@ test_that("GSL integration rule translation correct", {
   expect_that(integrator_gsl_rule("GAUSS51"), equals(5))
   expect_that(integrator_gsl_rule("GAUSS61"), equals(6))
   expect_that(integrator_gsl_rule("nonexistant"), throws_error())
+
+  ## and from key -> string
+  expect_that(integrator_gsl_rule_name(-1), equals("QAGS"))
+  expect_that(integrator_gsl_rule_name( 1), equals("GAUSS15"))
+  expect_that(integrator_gsl_rule_name( 2), equals("GAUSS21"))
+  expect_that(integrator_gsl_rule_name( 3), equals("GAUSS31"))
+  expect_that(integrator_gsl_rule_name( 4), equals("GAUSS41"))
+  expect_that(integrator_gsl_rule_name( 5), equals("GAUSS51"))
+  expect_that(integrator_gsl_rule_name( 6), equals("GAUSS61"))
+  expect_that(integrator_gsl_rule_name( 7), throws_error())
 })
 
 test_that("Integration works", {

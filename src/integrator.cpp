@@ -40,18 +40,39 @@ double Integrator::integrate(DFunctor *f, double x_min, double x_max) {
   return result;
 }
 
-// NOTE: Static function:
 int Integrator::gsl_rule(std::string rule) {
-  int ret = 0;
-  if      (rule == "GAUSS15") ret = GSL_INTEG_GAUSS15;
-  else if (rule == "GAUSS21") ret = GSL_INTEG_GAUSS21;
-  else if (rule == "GAUSS31") ret = GSL_INTEG_GAUSS31;
-  else if (rule == "GAUSS41") ret = GSL_INTEG_GAUSS41;
-  else if (rule == "GAUSS51") ret = GSL_INTEG_GAUSS51;
-  else if (rule == "GAUSS61") ret = GSL_INTEG_GAUSS61;
-  else if (rule == "QAGS")    ret = -1; // NOTE: hack
-  else ::Rf_error("Unknown rule");
-  return ret;
+  const rules_type rules = gsl_rule_table();
+  rules_type::const_iterator it = rules.find(rule);
+  if (it == rules.end())
+    ::Rf_error("Unknown rule");
+  return it->second;
+}
+
+std::string Integrator::gsl_rule_name(int rule) {
+  const rules_type rules = gsl_rule_table();
+  rules_type::const_iterator it = rules.begin();
+  while (it != rules.end()) {
+    if (it->second == rule)
+      return it->first;
+    ++it;
+  }
+  ::Rf_error("Unknown rule");
+}
+
+// I don't see why this is necessary -- it only matters for the method
+// declaration, and the declaration for 'rules' and within the class
+// definition pass without error.
+typedef std::map<std::string, int> rules_type;
+rules_type Integrator::gsl_rule_table() {
+  rules_type rules;
+  rules["GAUSS15"] = GSL_INTEG_GAUSS15;
+  rules["GAUSS21"] = GSL_INTEG_GAUSS21;
+  rules["GAUSS31"] = GSL_INTEG_GAUSS31;
+  rules["GAUSS41"] = GSL_INTEG_GAUSS41;
+  rules["GAUSS51"] = GSL_INTEG_GAUSS51;
+  rules["GAUSS61"] = GSL_INTEG_GAUSS61;
+  rules["QAGS"]    = -1;
+  return rules;
 }
 
 namespace test {

@@ -32,6 +32,7 @@
 ##' @export Spline
 ##' @export Strategy
 ##' @export integrator_gsl_rule
+##' @export integrator_gsl_rule_name
 ##' @export make.reference
 ##' @export metacommunity
 ##' @export patch

@@ -411,4 +411,6 @@ RCPP_MODULE(tree) {
 		 &util::trapezium< std::vector<double>, std::vector<double> >);
   Rcpp::function("integrator_gsl_rule",
 		 &util::Integrator::gsl_rule);
+  Rcpp::function("integrator_gsl_rule_name",
+		 &util::Integrator::gsl_rule_name);
 }

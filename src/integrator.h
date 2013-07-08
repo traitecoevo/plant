@@ -4,6 +4,7 @@
 
 #include <gsl/gsl_integration.h>
 #include "functor.h"
+#include <map>
 
 namespace util {
 
@@ -13,13 +14,18 @@ public:
 	     int quadrature_rule);
   ~Integrator();
   double integrate(DFunctor *f, double x_min, double x_max);
+
   static int gsl_rule(std::string rule);
+  static std::string gsl_rule_name(int rule);
   
 private:
   // Prevent copying and assignment to prevent issues with gsl
   // pointers (see Spline for proper solution).
   Integrator(const Integrator &other);
   Integrator& operator=(Integrator other);
+
+  typedef std::map<std::string, int> rules_type;
+  static rules_type gsl_rule_table();
 
   double atol, rtol;
   size_t max_iterations;
