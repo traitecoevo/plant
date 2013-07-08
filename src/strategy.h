@@ -9,6 +9,7 @@
 
 #include "lookup.h"
 #include "util.h"
+#include "integrator.h"
 
 namespace model {
 
@@ -78,6 +79,9 @@ private:
   double height_0;
 
   Control control;
+
+  // See issue #15's comments for commentary on this member:
+  util::Integrator integrator;
 
   // These things are really not to be used by anything, but are all
   // harmless (except for reset, actually).  They're used in

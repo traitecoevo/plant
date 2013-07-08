@@ -118,7 +118,7 @@ private:
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
-  double compute_assimilation(const Environment& environment) const;
+  double compute_assimilation(const Environment& environment);
   // Used internally, corresponding to the inner term in [eqn 12]
   double compute_assimilation_x(double x, const Environment& environment) const;
   // [Appendix S6] Per-leaf photosynthetic rate.

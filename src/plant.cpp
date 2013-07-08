@@ -329,16 +329,13 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 // 
 // NOTE: In contrast with Daniel's implementation (but following
 // Falster 2012), we do not normalise by Y*c_bio here.
-double Plant::compute_assimilation(const Environment& environment) const {
+double Plant::compute_assimilation(const Environment& environment) {
   FunctorBind1<Plant, const Environment&,
 	       &Plant::compute_assimilation_x> fun(this, environment);
-  const double tol = control().plant_assimilation_tol;
-  const size_t max_iterations = control().plant_assimilation_iterations;
-  const int rule = control().plant_assimilation_rule;
-  util::Integrator integrator(tol, tol, max_iterations, rule);
   const double x_max = control().plant_assimilation_over_distribution ?
     1 : vars.height;
-  return vars.leaf_area * integrator.integrate(&fun, 0.0, x_max);
+  return vars.leaf_area *
+    strategy->integrator.integrate(&fun, 0.0, x_max);
 }
 
 // This is used in the calculation of assimilation by
