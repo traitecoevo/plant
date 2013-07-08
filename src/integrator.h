@@ -6,6 +6,9 @@
 #include "functor.h"
 #include <map>
 
+#define TREE_GSL_INTEG_QAGS        -1
+#define TREE_GSL_INTEG_NONADAPTIVE -2
+
 namespace util {
 
 class Integrator {
@@ -29,7 +32,7 @@ private:
   double atol, rtol;
   size_t max_iterations;
   int quadrature_rule;
-  bool with_singularities;
+  bool with_singularities, nonadaptive;
 
   double last_error;
 

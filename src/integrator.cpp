@@ -10,7 +10,8 @@ Integrator::Integrator(double atol_, double rtol_,
     rtol(rtol_),
     max_iterations(max_iterations_),
     quadrature_rule(quadrature_rule_),
-    with_singularities(quadrature_rule < 0),
+    with_singularities(quadrature_rule == TREE_GSL_INTEG_QAGS),
+    nonadaptive(quadrature_rule == TREE_GSL_INTEG_NONADAPTIVE),
     last_error(NA_REAL) {
   target_data.function = &helper_functor;
   workspace = gsl_integration_workspace_alloc(max_iterations);
@@ -26,6 +27,7 @@ Integrator::Integrator(const Integrator& other)
     max_iterations(other.max_iterations),
     quadrature_rule(other.quadrature_rule),
     with_singularities(other.with_singularities),
+    nonadaptive(other.nonadaptive),
     last_error(other.last_error) {
   target_data.function = &helper_functor;
   workspace = gsl_integration_workspace_alloc(max_iterations);
@@ -38,6 +40,7 @@ Integrator& Integrator::operator=(Integrator other) {
   swap(max_iterations,     other.max_iterations);
   swap(quadrature_rule,    other.quadrature_rule);
   swap(with_singularities, other.with_singularities);
+  swap(nonadaptive,        other.nonadaptive);
   swap(last_error,         other.last_error);
   swap(workspace,          other.workspace);
   swap(target_data,        other.target_data);
@@ -55,6 +58,11 @@ double Integrator::integrate(DFunctor *f, double x_min, double x_max) {
 			 atol, rtol, max_iterations,
 			 workspace,
 			 &result, &last_error);
+  } else if (nonadaptive) {
+    size_t n_eval;
+    gsl_integration_qng(&target_data, x_min, x_max,
+			atol, rtol,
+			&result, &last_error, &n_eval);
   } else {
     gsl_integration_qag(&target_data, x_min, x_max,
 			atol, rtol, max_iterations, quadrature_rule,
@@ -96,6 +104,7 @@ rules_type Integrator::gsl_rule_table() {
   rules["GAUSS51"] = GSL_INTEG_GAUSS51;
   rules["GAUSS61"] = GSL_INTEG_GAUSS61;
   rules["QAGS"]    = -1;
+  rules["NONADAPTIVE"] = -2;
   return rules;
 }
 
