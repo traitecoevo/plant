@@ -76,3 +76,17 @@ test_that("Control parameters propogate to strategies", {
   expect_that(p[[1]]$control$parameters[["plant_seed_tol"]],
               equals(ctrl.extra[["plant_seed_tol"]]))
 })
+
+test_that("Seed rain is correct length", {
+  expect_that(length(p$seed_rain), equals(p$size))
+  expect_that(p$seed_rain, is_identical_to(rep(0.0, p$size)))
+})
+
+test_that("Seed rain setting works as expected", {
+  expect_that(p$seed_rain <- numeric(0), throws_error())
+  expect_that(p$seed_rain <- 1,          throws_error())
+  expect_that(p$seed_rain <- rep(1, 3),  throws_error())
+  r <- runif(2)
+  p$seed_rain <- r
+  expect_that(p$seed_rain, is_identical_to(r))
+})

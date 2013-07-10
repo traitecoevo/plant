@@ -25,6 +25,7 @@ void Parameters::reset() {
   _n_patches = static_cast<double>(n_patches);
 
   strategies.clear();
+  seed_rain.clear();
 }
 
 size_t Parameters::size() const {
@@ -34,6 +35,7 @@ size_t Parameters::size() const {
 void Parameters::add_strategy(Strategy s) {
   s.set_control(control);
   strategies.push_back(s);
+  seed_rain.push_back(0.0);
 }
 
 const Control& Parameters::get_control() const {
@@ -60,6 +62,15 @@ Rcpp::List Parameters::r_get_strategies() {
        it != strategies.end(); ++it)
     ret.push_back(Rcpp::wrap(*it));
   return ret;
+}
+
+std::vector<double> Parameters::r_seed_rain() const {
+  return seed_rain;
+}
+
+void Parameters::r_set_seed_rain(std::vector<double> x) {
+  util::check_length(x.size(), size());
+  seed_rain = x;
 }
 
 void Parameters::do_build_lookup() {

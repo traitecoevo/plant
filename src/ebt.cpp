@@ -50,13 +50,6 @@ void EBT::r_set_cohort_schedule(CohortSchedule x) {
   schedule = x;
 }
 
-std::vector<double> EBT::r_get_seed_rain() const {
-  return patch.r_get_seed_rain();
-}
-void EBT::r_set_seed_rain(std::vector<double> x) {
-  patch.r_set_seed_rain(x);
-}
-
 void EBT::add_seedling(size_t species_index) {
   patch.add_seedling(species_index);
 }

@@ -158,6 +158,8 @@ RCPP_MODULE(tree) {
     .field("control",         &model::Parameters::control)
     .method("set_control_parameters",
 	    &model::Parameters::set_control_parameters)
+    .property("seed_rain",    &model::Parameters::r_seed_rain,
+	      &model::Parameters::r_set_seed_rain)
     ;
 
   Rcpp::class_<model::Disturbance>("Disturbance")
@@ -277,8 +279,8 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::Environment>("Environment")
     .constructor<model::Parameters>()
-    .method("canopy_openness", &model::Environment::canopy_openness)
-    .method("patch_survival",  &model::Environment::patch_survival)
+    .method("canopy_openness",   &model::Environment::canopy_openness)
+    .method("patch_survival",    &model::Environment::patch_survival)
     .property("seed_rain_rate",  &model::Environment::seed_rain_rate)
     .property("time",
 	      &model::Environment::get_time,
@@ -286,9 +288,7 @@ RCPP_MODULE(tree) {
     .property("light_environment",
 	      &model::Environment::r_get_light_environment,
 	      &model::Environment::r_set_light_environment)
-    .property("seed_rain",
-	      &model::Environment::r_get_seed_rain,
-	      &model::Environment::r_set_seed_rain)
+    .property("seed_rain",       &model::Environment::r_get_seed_rain)
     .method("set_seed_rain_index",
 	    &model::Environment::r_set_seed_rain_index)
     ;
@@ -315,8 +315,6 @@ RCPP_MODULE(tree) {
 	      &model::PatchBase::r_set_height)
     .property("n_individuals",    &model::PatchBase::r_n_individuals)
     .method("reset",              &model::PatchBase::reset)
-    .property("seed_rain",        &model::PatchBase::r_get_seed_rain,
-	      &model::PatchBase::r_set_seed_rain)
     ;
 
   Rcpp::class_< model::Patch<model::Plant> >("Patch")
@@ -375,8 +373,6 @@ RCPP_MODULE(tree) {
     .property("time", &model::EBT::get_time)
     .method("reset", &model::EBT::reset)
     .method("run_next", &model::EBT::run_next)
-    .property("seed_rain", &model::EBT::r_get_seed_rain,
-	      &model::EBT::r_set_seed_rain)
     ;
 
   // Template helper functions

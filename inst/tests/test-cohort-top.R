@@ -11,8 +11,8 @@ coh <- new(CohortTop, s)
 
 ## Set up cohort with empty light environment
 env <- test.environment(2 * plant$height,
-                        light.env=function(x) rep(1, length(x)))
-env$seed_rain <- 1.0
+                        light.env=function(x) rep(1, length(x)),
+                        seed.rain=1.0)
 
 ## Initial conditions:
 coh$compute_initial_conditions(env)

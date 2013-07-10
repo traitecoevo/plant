@@ -4,7 +4,7 @@ namespace model {
 
 Environment::Environment(Parameters p)
   : disturbance_regime(p.mean_disturbance_interval),
-    seed_rain(p.size(), 0.0),
+    seed_rain(p.seed_rain),
     seed_rain_index(0),
     control(p.control),
     time(0.0),
@@ -81,11 +81,6 @@ void Environment::r_set_light_environment(const spline::Spline env) {
 
 std::vector<double> Environment::r_get_seed_rain() const {
   return seed_rain;
-}
-
-void Environment::r_set_seed_rain(std::vector<double> x) {
-  util::check_length(x.size(), seed_rain.size());
-  seed_rain = x;
 }
 
 void Environment::r_set_seed_rain_index(size_t x) {

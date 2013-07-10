@@ -4,6 +4,7 @@ context("Patch [CohortTop]")
 
 p <- new(Parameters)
 p$add_strategy(new(Strategy))
+p$seed_rain <- pi/2
 
 ## An individual CohortTop that will be the same in terms of strategy
 ## (and initial mass).
@@ -19,19 +20,6 @@ test_that("Initial patch strcture is sensible", {
   expect_that(patch.c$time, equals(0))
 })
 
-## NOTE: This actually causes the initial conditions to be computed.
-r <- pi/2
-patch.c$seed_rain <- r
-expect_that(patch.c$seed_rain,
-            is_identical_to(r))
-expect_that(patch.c$environment$seed_rain,
-            is_identical_to(r))
-
-## This should not work, because we can't set environment from within
-## patch.
-expect_that(patch.c$environment$seed_rain <- r * 2,
-            throws_error())
-
 ## At this point, doing this should fail -- with only one individual
 ## the light environment is not defined.  At the same time, we should
 ## probably recover more gracefully and agree that it is also an empty
@@ -41,11 +29,6 @@ expect_that(patch.c$leaf_area_above(0), is_identical_to(0))
 
 patch.c$add_seedling(1)
 expect_that(patch.c$ode_size, equals(4))
-
-## Now that we've got started, we should not be able to set the seed
-## rain:
-expect_that(patch.c$seed_rain <- 1.0,
-            throws_error())
 
 cmp$compute_initial_conditions(patch.c$environment)
 

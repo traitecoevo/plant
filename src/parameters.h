@@ -34,7 +34,6 @@ public:
   // Additional control parameters:
   const Control& get_control() const;
   void set_control(Control x);
-
   void set_control_parameters(Rcpp::List x);
 
   // Data -- public for now (see github issue #17).
@@ -44,9 +43,14 @@ public:
   size_t n_patches;  // Number of patches in the metacommunity
   double mean_disturbance_interval; // Eponymous, in years.
   std::vector<Strategy> strategies;
+  std::vector<double> seed_rain;
 
   // Algorithm control.
   Control control;
+
+  // * R interface
+  std::vector<double> r_seed_rain() const;
+  void r_set_seed_rain(std::vector<double> x);
 
 private:
   void do_build_lookup();

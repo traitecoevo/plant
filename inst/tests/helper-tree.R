@@ -41,7 +41,9 @@ is_less_than <- function(value) {
 ## This makes a pretend light environment over the plant height,
 ## slightly concave up, whatever.
 test.environment <- function(height, n=101, light.env=NULL,
-                             n.strategies=1) {
+                             n.strategies=1, seed.rain=0) {
+  if (length(seed.rain) == 1)
+    seed.rain <- rep(seed.rain, n.strategies)
   hh <- seq(0, height, length=n)
   if (is.null(light.env))
     light.env <- function(x)
@@ -53,6 +55,7 @@ test.environment <- function(height, n=101, light.env=NULL,
   parameters <- new(Parameters)
   for (i in seq_len(n.strategies))
     parameters$add_strategy(new(Strategy))
+  parameters$seed_rain <- seed.rain
 
   ret <- new(Environment, parameters)
   ret$light_environment <- env
