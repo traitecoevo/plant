@@ -24,17 +24,14 @@ make.disturbance <- function(site.mean) {
        rate=rate, freq=freq, Pi=Pi, weight=weight)
 }
 
-obj <- new(Disturbance)
+m <- 30.0
+obj <- new(Disturbance, m)
 
-expected <- list(mean_disturbance_interval=30.0)
-expect_that(obj$parameters, is_identical_to(expected))
+test_that("Object has correct parameter", {
+  expect_that(obj$mean_interval, is_identical_to(m))
+})
 
-new.p <- list(mean_disturbance_interval=20.0)
-obj$set_parameters(new.p)
-expect_that(obj$parameters,
-            is_identical_to(modifyList(expected, new.p)))
-
-disturbance <- make.disturbance(obj$parameters$mean_disturbance_interval)
+disturbance <- make.disturbance(obj$mean_interval)
 
 tt <- seq(0, 100, length=101)
 expect_that(sapply(tt, function(t) obj$survival_probability(0, t)),

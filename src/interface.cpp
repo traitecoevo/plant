@@ -158,15 +158,13 @@ RCPP_MODULE(tree) {
     .field("control",         &model::Parameters::control)
     .method("set_control_parameters",
 	    &model::Parameters::set_control_parameters)
-    .field("disturbance_regime",
-	   &model::Parameters::disturbance_regime)
     ;
 
   Rcpp::class_<model::Disturbance>("Disturbance")
-    .derives<util::Lookup>("Lookup")
-    .constructor()
+    .constructor<double>()
     .method("survival_probability",
 	    &model::Disturbance::survival_probability)
+    .property("mean_interval", &model::Disturbance::r_mean_interval);
     ;
 
   Rcpp::class_<model::Plant>("Plant")

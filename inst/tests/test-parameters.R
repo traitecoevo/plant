@@ -10,6 +10,7 @@ expect_that(p$size, equals(0))
 ## And these are the defaults:
 expected <- list(Pi_0=0.25,
                  c_ext=0.5,
+                 mean_disturbance_interval=30.0,
                  n_patches=10,
                  patch_area=10.0)
 expect_that(p$parameters, is_identical_to(expected))
@@ -75,12 +76,3 @@ test_that("Control parameters propogate to strategies", {
   expect_that(p[[1]]$control$parameters[["plant_seed_tol"]],
               equals(ctrl.extra[["plant_seed_tol"]]))
 })
-
-
-dist <- new(Disturbance)
-expect_that(p$disturbance_regime$parameters,
-            is_identical_to(dist$parameters))
-dist$set_parameters(list(mean_disturbance_interval=20))
-p$disturbance_regime <- dist
-expect_that(p$disturbance_regime$parameters,
-            is_identical_to(dist$parameters))

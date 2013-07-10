@@ -33,7 +33,7 @@ expect_that(sapply(hmid, e$light_environment$eval),
 expect_that(e$time, is_identical_to(0.0))
 expect_that(e$patch_survival(e$time), is_identical_to(1.0))
 
-disturbance <- new(Disturbance)
+disturbance <- new(Disturbance, 30.0)
 e$time <- 10
 expect_that(e$patch_survival(0),
             is_identical_to(disturbance$survival_probability(0, e$time)))

@@ -15,12 +15,6 @@
 // parameters.  As such, it might change quite a bit as the model
 // evolves.
 
-// NOTE: The parameter n_patches is stored as a double for use with
-// the lookup class, but will be converted to an int on use.
-// Non-integer values will be accepted silently but this conversion
-// will happen.  Not ideal, but not the end of the world.
-//
-// TODO: See better solution in Control.
 namespace model {
 
 class Parameters : public util::Lookup {
@@ -44,11 +38,11 @@ public:
   void set_control_parameters(Rcpp::List x);
 
   // Data -- public for now (see github issue #17).
-  Disturbance disturbance_regime;
   double c_ext;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2)
   double Pi_0;       // Probability of survival during dispersal
   size_t n_patches;  // Number of patches in the metacommunity
+  double mean_disturbance_interval; // Eponymous, in years.
   std::vector<Strategy> strategies;
 
   // Algorithm control.

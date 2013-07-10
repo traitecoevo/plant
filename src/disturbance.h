@@ -3,7 +3,6 @@
 #define TREE_DISTURBANCE_H_
 
 #include "util.h"
-#include "lookup.h"
 
 namespace model {
 
@@ -11,19 +10,16 @@ namespace model {
 // exponential waiting times, something with an ODE, or something that
 // depends on the state.
 
-class Disturbance : public util::Lookup {
+class Disturbance {
 public:
-  Disturbance();
+  Disturbance(double mean_interval_);
   double survival_probability(double time_start, double time) const;
+  double r_mean_interval() const;
 private:
   double survival0(double time) const;
 
-  // Lookup related things:
-  void do_build_lookup();
-  void set_parameters_post_hook();
-
   double shape;
-  double mean_disturbance_interval;
+  double mean_interval;
   double scale;
   double p0;
 };
