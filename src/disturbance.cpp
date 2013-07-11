@@ -16,6 +16,10 @@ double Disturbance::survival_probability(double time_start,
   return survival0(time) / survival0(time_start);
 }
 
+double Disturbance::density(double time) const {
+  return p0 * survival0(time);
+}
+
 double Disturbance::r_mean_interval() const {
   return mean_interval;
 }

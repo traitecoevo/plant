@@ -166,6 +166,7 @@ RCPP_MODULE(tree) {
     .constructor<double>()
     .method("survival_probability",
 	    &model::Disturbance::survival_probability)
+    .method("density",         &model::Disturbance::density)
     .property("mean_interval", &model::Disturbance::r_mean_interval);
     ;
 

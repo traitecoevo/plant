@@ -34,8 +34,12 @@ test_that("Object has correct parameter", {
 disturbance <- make.disturbance(obj$mean_interval)
 
 tt <- seq(0, 100, length=101)
-expect_that(sapply(tt, function(t) obj$survival_probability(0, t)),
-            equals(disturbance$weight(0, tt)))
+test_that("Disturbance calculations are expected", {
+  expect_that(sapply(tt, function(t) obj$survival_probability(0, t)),
+              equals(disturbance$weight(0, tt)))
+  expect_that(sapply(tt, function(t) obj$density(t)),
+              equals(disturbance$freq(tt)))
+})
 
 ## Now, look at the rest of the issues.
 
