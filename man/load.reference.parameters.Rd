@@ -1,0 +1,61 @@
+\name{load.reference.parameters}
+\alias{load.reference.parameters}
+\alias{save.reference.parameters}
+\title{Load and Save Reference Model Parameters}
+\usage{
+  load.reference.parameters(path)
+
+  save.reference.parameters(p, path)
+}
+\arguments{
+  \item{path}{The path (absolute, or relative to the
+  working directory) to the directory containing files
+  "Stoch.txt" and "params.m" (or, in the case of
+  \code{save.reference parameters}, the directory that
+  \emph{will} contain those files).}
+
+  \item{p}{A \code{\link{Parameters}} object.}
+}
+\value{
+  \code{load.reference.parameters} returns
+  \code{\link{Parameters}} object.
+
+  \code{save.reference.parameters} returns nothing - called
+  for it's side effect.
+}
+\description{
+  Load and save parameters from the reference model
+  (falster-traitdiversity).
+}
+\details{
+  These functions allow loading of the reference data set.
+  They are known to work with version d649534 of
+  falster-traitdiversity (and will not work with any
+  earlier version).
+
+  The main constraint that must be satisfied on the
+  tree->reference implementation is that \emph{only} lma
+  and hmat may vary.  All other strategy will be checked to
+  ensure that they are identical across strategies.
+
+  The reference implementation expects the core traits on a
+  log scale, and also `mean_disturbance_interval`.  We do
+  this translation immediately on reading and writing the
+  objects, so that all traits are on a natural scale within
+  the R code.
+
+  These functions are inverses of each other:
+  \code{save.reference.parameters(load.reference.parameters(path),
+  path)} should leave the directory \code{path} unchanged,
+  aside from possible changes in precision due to
+  read/writing numbers.
+}
+\author{
+  Rich FitzJohn
+}
+\seealso{
+  \code{\link{load.reference.output}}, which loads the
+  result of running falster-traitdiversity on a set of
+  parameters.
+}
+
