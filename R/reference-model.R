@@ -58,9 +58,17 @@ save.reference.parameters <- function(p, path)
 ##' "res" that has the actual output files.
 ##' @return A list with components:
 ##' \item{stand}{Not sure!}
-##' \item{patch_age}{Not sure!}
+##' \item{patch_age}{\code{data.frame} with columns \code{age} (age in
+##' years), \code{density} (density of patches of that age),
+##' \code{gamma} (parameter of the disturbance function).  After that
+##' are columns \code{add.cohort.1}, \code{add.cohort.2}, etc, which
+##' are logical vectors indicating if a cohort for a strategy was
+##' added at that time point.}
 ##' \item{seed_rain_out}{Vector of output seed rain, one entry per
 ##' strategy/species}
+##' \item{light_env}{Light environment as one matrix per time point.
+##' Each matrix has columns \code{h} (height) and
+##' \code{canopy.openness}.  These are always 50 rows long.}
 ##' \item{popn}{A list of lists, one per strategy.  Each strategy's
 ##' list has components:
 ##' \describe{
@@ -103,8 +111,31 @@ load.reference.output <- function(path) {
   if (!isTRUE(all.equal(popn$strategy[, "X_start"], p$seed_rain)))
     stop("Input and output seed_rain appear to vary")
 
+  ## Extract the output seed rain from strategy, and drop the rest of
+  ## the strategy element, as it is just input parameters.
   popn$seed_rain_out <- popn$strategy[, "X_end"]
   popn <- popn[names(popn) != "strategy"]
+
+  ## Process the patch_age element to separate out the
+  ## age/density/disturbance part (as a data.frame) and the light
+  ## environment part (as a list of matrices)
+  tmp <- popn$patch_age
+  i.h <- grep("^H[0-9]+$", colnames(tmp))
+  i.e <- grep("^E[0-9]+$", colnames(tmp))
+  light.env <- lapply(seq_len(nrow(tmp)), function(i)
+                      cbind(h=unname(tmp[i, i.h]),
+                            canopy.openness=unname(tmp[i, i.e])))
+
+  ## Alternatively, but possibly more confusingly:
+  ## n.steps <- nrow(tmp)
+  ## n.heights <- length(i.e)
+  ## array(tmp[,c(i.h, i.e)], c(n.steps, n.heights, 2),
+  ##              dimnames=list(step=NULL, height=NULL,
+  ##                c("height", "canopy.openness")))
+
+  popn$patch_age <- data.frame(age=tmp[, "%Age"],
+                               density=tmp[, "p(a,t)"],
+                               gamma=tmp[, "gamma(a)"])
 
   ## Load a single strategy object, with index 'idx':
   load.strategy <- function(idx) {
@@ -117,6 +148,13 @@ load.reference.output <- function(path) {
   }
   popn$strategies <- lapply(seq(0, length.out=p$size), load.strategy)
   popn$parameters <- p
+
+  ## Add the cohort introduction information to "age":
+  introduction <- sapply(popn$strategies, function(x)
+                         diff(c(0, x$popn[,"NoCohorts"])) == 1)
+  colnames(introduction) <- sprintf("add.cohort.%d",
+                                    seq_along(popn$strategies))
+  popn$patch_age <- cbind(popn$patch_age, introduction)
 
   popn
 }

@@ -12,8 +12,17 @@
 }
 \value{
   A list with components: \item{stand}{Not sure!}
-  \item{patch_age}{Not sure!} \item{seed_rain_out}{Vector
-  of output seed rain, one entry per strategy/species}
+  \item{patch_age}{\code{data.frame} with columns
+  \code{age} (age in years), \code{density} (density of
+  patches of that age), \code{gamma} (parameter of the
+  disturbance function).  After that are columns
+  \code{add.cohort.1}, \code{add.cohort.2}, etc, which are
+  logical vectors indicating if a cohort for a strategy was
+  added at that time point.} \item{seed_rain_out}{Vector of
+  output seed rain, one entry per strategy/species}
+  \item{light_env}{Light environment as one matrix per time
+  point. Each matrix has columns \code{h} (height) and
+  \code{canopy.openness}.  These are always 50 rows long.}
   \item{popn}{A list of lists, one per strategy.  Each
   strategy's list has components: \describe{ \item{age}{Not
   sure!} \item{coh_m}{Not sure!} \item{coh_n}{Not sure!}
