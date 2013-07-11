@@ -5,7 +5,8 @@
 namespace model {
 
 CohortSchedule::CohortSchedule(size_t n_species_)
-  : n_species(n_species_) {
+  : n_species(n_species_),
+    max_time(R_PosInf) {
   reset();
 }
 
@@ -53,12 +54,14 @@ void CohortSchedule::reset() {
 }
 
 void CohortSchedule::pop() {
-  if (!queue.empty())
-    queue.pop_front();
+  if (queue.empty())
+    ::Rf_error("Attempt to pop empty queue");
+  queue.pop_front();
 }
 
 CohortSchedule::Event CohortSchedule::next_event() const {
-  return queue.empty() ? CohortSchedule::Event::blank() : queue.front();
+  return queue.empty() ?
+    CohortSchedule::Event::blank(max_time) : queue.front();
 }
 
 double CohortSchedule::next_time() const {
@@ -78,11 +81,27 @@ void CohortSchedule::r_set_times(std::vector<double> times_,
 				 size_t species_index) {
   if (!util::is_sorted(times_.begin(), times_.end()))
     ::Rf_error("Times must be sorted (increasing)");
+  if (times_.front() < 0)
+    ::Rf_error("First time must nonnegative");
+  if (times_.back() > max_time)
+    ::Rf_error("Times cannot be greater than max_time");
   set_times(times_, util::check_bounds_r(species_index, n_species));
 }
 
 std::vector<double> CohortSchedule::r_times(size_t species_index) const {
   return times(util::check_bounds_r(species_index, n_species));
+}
+
+double CohortSchedule::r_max_time() const {
+  return max_time;
+}
+
+void CohortSchedule::r_set_max_time(double x) {
+  if (x < 0)
+    ::Rf_error("max_time must be nonnegative");
+  if (x < events.back().time)
+    ::Rf_error("max_time must be at least the final scheduled time");
+  max_time = x;
 }
 
 // * Private methods

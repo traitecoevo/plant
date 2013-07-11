@@ -236,6 +236,8 @@ RCPP_MODULE(tree) {
     .property("next_event", &model::CohortSchedule::next_event)
     .property("next_time",  &model::CohortSchedule::next_time)
     .property("remaining",  &model::CohortSchedule::remaining)
+    .property("max_time",   &model::CohortSchedule::r_max_time,
+	      &model::CohortSchedule::r_set_max_time)
     ;
   Rcpp::class_<model::CohortSchedule::Event>("CohortScheduleEvent")
     .constructor<double,int>()
