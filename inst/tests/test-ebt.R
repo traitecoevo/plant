@@ -79,8 +79,6 @@ test_that("EBT reset successful", {
 ## Run the whole schedule using a Patch<CohortTop>, manually moving
 ## things along the schedule.
 
-## TODO: check that solver$advance(Inf) will fail!
-
 patch <- new(PatchCohortTop, p)
 sched$reset()
 
@@ -92,7 +90,7 @@ while (sched$remaining > 0) {
   e <- sched$next_event
   if (!identical(patch$time, e$time_introduction))
     stop("Something terrible has happened")
-  patch$add_seedling(e$cohort)
+  patch$add_seedling(e$species_index)
 
   ## Harvest statistics at start of step
   tt.0.p <- c(tt.0.p, patch$time)

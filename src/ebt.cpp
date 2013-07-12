@@ -18,7 +18,7 @@ void EBT::run_next() {
   const CohortSchedule::Event e = schedule.next_event();
   if (!util::identical(get_time(), e.time_introduction()))
     ::Rf_error("Start time not what was expected");
-  add_seedling(e.cohort);
+  add_seedling(e.species_index);
   advance(e.time_end());
   schedule.pop(); // or do at next_event()?  Only matters on error.
 }

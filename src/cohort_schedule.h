@@ -49,15 +49,12 @@ private:
 
 class CohortSchedule::Event {
 public:
-  Event(double introduction, size_t cohort_) : cohort(cohort_) {
+  Event(double introduction, size_t species_index_)
+    : species_index(species_index_) {
     times.push_back(introduction);
   }
-  static Event blank(double time_) {
-    Event e(time_, util::base_1_to_0<int,size_t>(NA_INTEGER));
-    return e;
-  }
-  int r_cohort() const {
-    return util::base_0_to_1<size_t,int>(cohort);
+  int r_species_index() const {
+    return util::base_0_to_1<size_t,int>(species_index);
   }
   std::vector<double> r_times() const {
     std::vector<double> ret(times.begin(), times.end());
@@ -70,7 +67,7 @@ public:
     return times.back();
   }
 
-  size_t cohort;
+  size_t species_index;
   std::list<double> times;
 };
 

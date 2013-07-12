@@ -51,7 +51,7 @@ drain.schedule <- function(sched) {
   cmp <- matrix(nrow=sched$size, ncol=5)
   for (i in seq_len(sched$size)) {
     e <- sched$next_event
-    cmp[i,] <- c(e$cohort,
+    cmp[i,] <- c(e$species_index,
                  e$time_introduction,
                  e$times,
                  e$time_end)
@@ -87,11 +87,11 @@ test_that("Schedule contains correct information (two species)", {
   cmp <- drain.schedule(sched)
 
   ## Come up with the big list (2nd argument ensures stable sort)
-  tmp <- rbind(data.frame(cohort=1, time=t1),
-               data.frame(cohort=2, time=t2))
-  tmp <- tmp[order(tmp$t, -tmp$cohort),]
+  tmp <- rbind(data.frame(species_index=1, time=t1),
+               data.frame(species_index=2, time=t2))
+  tmp <- tmp[order(tmp$t, -tmp$species_index),]
 
-  expect_that(cmp[,1], equals(tmp$cohort))
+  expect_that(cmp[,1], equals(tmp$species_index))
   expect_that(cmp[,2], equals(tmp$time))
   expect_that(cmp[,3], equals(tmp$time))
   expect_that(cmp[,4], equals(c(tmp$time[-1], max.t)))

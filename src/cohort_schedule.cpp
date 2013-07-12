@@ -23,7 +23,7 @@ size_t CohortSchedule::get_n_species() const {
 void CohortSchedule::clear_times(size_t species_index) {
   events_iterator e = events.begin();
   while (e != events.end()) {
-    if (e->cohort == species_index)
+    if (e->species_index == species_index)
       e = events.erase(e);
     else
       ++e;
@@ -44,7 +44,7 @@ void CohortSchedule::set_times(std::vector<double> times_,
 std::vector<double> CohortSchedule::times(size_t species_index) const {
   std::vector<double> ret;
   for (events_const_iterator e = events.begin(); e != events.end(); ++e)
-    if (e->cohort == species_index)
+    if (e->species_index == species_index)
       ret.push_back(e->time_introduction());
   return ret;
 }
