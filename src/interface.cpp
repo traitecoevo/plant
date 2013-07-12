@@ -242,7 +242,9 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::CohortSchedule::Event>("CohortScheduleEvent")
     .constructor<double,int>()
     .property("cohort", &model::CohortSchedule::Event::r_cohort)
-    .field("time",      &model::CohortSchedule::Event::time)
+    .property("times",  &model::CohortSchedule::Event::r_times)
+    .property("time_introduction",
+	      &model::CohortSchedule::Event::time_introduction)
     ;
 
   Rcpp::class_<model::SpeciesBase>("SpeciesBase")

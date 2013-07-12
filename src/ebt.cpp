@@ -17,12 +17,13 @@ EBT::EBT(Parameters *p)
 void EBT::run_next() {
   const bool events_remaining = schedule.remaining() > 0;
   const CohortSchedule::Event e = schedule.next_event();
+  const double next_time = e.time_introduction();
   const bool done = !events_remaining &&
-    (!util::is_finite(e.time) || get_time() >= e.time);
+    (!util::is_finite(next_time) || get_time() >= next_time);
   if (done)
     ::Rf_error("Already reached end of schedule");
 
-  advance(e.time);
+  advance(next_time);
   if (events_remaining) {
     add_seedling(e.cohort);
     schedule.pop();

@@ -9,6 +9,9 @@
 // to copy the "next" pointer (though at present this i just done.  An
 // alternative way of doing this would be for reset() to dump things
 // into a Queue that we pop off?
+
+// The "times" methods (set_times, times) refer to the *introduction*
+// times.
 namespace model {
 
 class CohortSchedule {
@@ -49,7 +52,9 @@ private:
 
 class CohortSchedule::Event {
 public:
-  Event(double time_, size_t cohort_) : time(time_), cohort(cohort_) {}
+  Event(double introduction, size_t cohort_) : cohort(cohort_) {
+    times.push_back(introduction);
+  }
   static Event blank(double time_) {
     Event e(time_, util::base_1_to_0<int,size_t>(NA_INTEGER));
     return e;
@@ -57,12 +62,16 @@ public:
   int r_cohort() const {
     return util::base_0_to_1<size_t,int>(cohort);
   }
+  std::vector<double> r_times() const {
+    std::vector<double> ret(times.begin(), times.end());
+    return ret;
+  }
+  double time_introduction() const {
+    return times.front();
+  }
 
-  // Better than providing an index to a cohort could be to provide an
-  // iterator to the underlying cohorts.  This could be templated to
-  // provide a list of different times for different things?
-  double time;
   size_t cohort;
+  std::list<double> times;
 };
 
 }

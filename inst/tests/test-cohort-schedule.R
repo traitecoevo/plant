@@ -15,7 +15,7 @@ test_that("Empty CohortSchedule looks correct", {
 ## Check empty event:
 test_that("Empty event looks correct", {
   e <- sched$next_event
-  expect_that(e$time, is_identical_to(Inf))
+  expect_that(e$time_introduction, is_identical_to(Inf))
   expect_that(e$cohort, is_identical_to(NA_integer_))
 })
 
@@ -47,13 +47,13 @@ test_that("Can set cohort times", {
 })
 
 e <- sched$next_event
-expect_that(e$time, is_identical_to(t1[[1]]))
+expect_that(e$time_introduction, is_identical_to(t1[[1]]))
 
 cmp <- c()
 sched$reset()
 for (i in seq_len(length(t1) + 1)) {
   e <- sched$next_event
-  cmp <- c(cmp, e$time)
+  cmp <- c(cmp, e$time_introduction)
   if (sched$remaining > 0)
     sched$pop()
 }
@@ -81,7 +81,7 @@ cmp.time   <- numeric(0)
 sched$reset()
 for (i in seq_len(length(t1) + length(t2) + 1)) {
   e <- sched$next_event
-  cmp.time <- c(cmp.time, e$time)
+  cmp.time <- c(cmp.time, e$time_introduction)
   cmp.cohort <- c(cmp.cohort, e$cohort)
   if (sched$remaining > 0)
     sched$pop()

@@ -45,7 +45,7 @@ std::vector<double> CohortSchedule::times(size_t species_index) const {
   std::vector<double> ret;
   for (events_const_iterator e = events.begin(); e != events.end(); ++e)
     if (e->cohort == species_index)
-      ret.push_back(e->time);
+      ret.push_back(e->time_introduction());
   return ret;
 }
 
@@ -65,7 +65,7 @@ CohortSchedule::Event CohortSchedule::next_event() const {
 }
 
 double CohortSchedule::next_time() const {
-  return next_event().time;
+  return next_event().time_introduction();
 }
 
 size_t CohortSchedule::remaining() const {
@@ -99,7 +99,7 @@ double CohortSchedule::r_max_time() const {
 void CohortSchedule::r_set_max_time(double x) {
   if (x < 0)
     ::Rf_error("max_time must be nonnegative");
-  if (x < events.back().time)
+  if (x < events.back().time_introduction())
     ::Rf_error("max_time must be at least the final scheduled time");
   max_time = x;
 }
@@ -110,7 +110,7 @@ CohortSchedule::add_time(double time, size_t species_index,
 			 events_iterator it) {
   Event e(time, species_index);
   it = events.begin();
-  while (it != events.end() && time > it->time)
+  while (it != events.end() && time > it->time_introduction())
     it++;
   it = events.insert(it, e);
   return it;
