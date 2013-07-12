@@ -10,6 +10,9 @@
 // introduction time of zero.  This is only enforced in that the model
 // will just refuse to run if started with the incorrect time.
 
+// TODO: CohortSchedule should possibly require a max_time to be set
+// before it is used?
+
 namespace model {
 
 class CohortSchedule {
@@ -26,6 +29,7 @@ public:
   void pop();
   Event next_event() const;
   size_t remaining() const;
+  bool fixed_times() const;
 
   // * R interface:
   void r_clear_times(size_t species_index);
@@ -33,6 +37,9 @@ public:
   std::vector<double> r_times(size_t species_index) const;
   double r_max_time() const;
   void r_set_max_time(double x);
+  std::vector<double> r_ode_times() const;
+  void r_set_ode_times(std::vector<double> x);
+  void r_clear_ode_times();
 
 private:
   typedef std::list<Event>::iterator events_iterator;
@@ -40,11 +47,13 @@ private:
 
   events_iterator add_time(double times, size_t species_index,
 			   events_iterator it);
+  void distribute_ode_times();
 
   size_t n_species;
   std::list<Event> events;
   std::list<Event> queue;
   double max_time;
+  std::vector<double> ode_times;
 };
 
 class CohortSchedule::Event {

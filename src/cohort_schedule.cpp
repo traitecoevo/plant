@@ -51,13 +51,37 @@ std::vector<double> CohortSchedule::times(size_t species_index) const {
 
 void CohortSchedule::reset() {
   queue = events;
+
+  // NOTE: this is updating elements in *queue*, not in events; the
+  // events only ever have a single element in times.
   events_iterator e = queue.begin();
   while (e != queue.end()) {
     events_iterator e_next = e;
-    e_next++;
+    ++e_next;
     e->times.push_back(e_next == queue.end() ?
 		       max_time : e_next->time_introduction());
     e = e_next;
+  }
+
+  if (fixed_times())
+    distribute_ode_times();
+}
+
+void CohortSchedule::distribute_ode_times() {
+  events_iterator e = queue.begin();
+  std::vector<double>::const_iterator t = ode_times.begin();
+  while (e != queue.end()) {
+    std::list<double>::iterator at = e->times.begin();
+    ++at; // Insert *after* first time
+    while (t != ode_times.end() && *t < e->time_end()) {
+      // The condition here excludes times that exactly match one of
+      // the time boundaries (we'll be stopping there anyway).
+      if (!util::identical(*t, e->time_introduction()) &&
+	  !util::identical(*t, e->time_end()))
+	e->times.insert(at, *t);
+      ++t;
+    }
+    ++e;
   }
 }
 
@@ -75,6 +99,10 @@ CohortSchedule::Event CohortSchedule::next_event() const {
 
 size_t CohortSchedule::remaining() const {
   return queue.size();
+}
+
+bool CohortSchedule::fixed_times() const {
+  return ode_times.size() > 0;
 }
 
 // * R interface
@@ -109,6 +137,29 @@ void CohortSchedule::r_set_max_time(double x) {
   max_time = x;
 }
 
+std::vector<double> CohortSchedule::r_ode_times() const {
+  return ode_times;
+}
+
+void CohortSchedule::r_set_ode_times(std::vector<double> x) {
+  if (x.size() < 2)
+    ::Rf_error("Need at least two times");
+  if (!util::identical(x.front(), 0.0))
+    ::Rf_error("First time must be exactly zero");
+  if (util::is_finite(max_time) && !util::identical(x.back(), max_time))
+    ::Rf_error("Last time must be exactly max_time");
+  if (!util::is_sorted(x.begin(), x.end()))
+    ::Rf_error("ode_times must be sorted");
+  ode_times = x;
+  if (!util::is_finite(max_time))
+    max_time = ode_times.back();
+  reset();
+}
+
+void CohortSchedule::r_clear_ode_times() {
+  ode_times.clear();
+}
+
 // * Private methods
 CohortSchedule::events_iterator
 CohortSchedule::add_time(double time, size_t species_index,
@@ -116,7 +167,7 @@ CohortSchedule::add_time(double time, size_t species_index,
   Event e(time, species_index);
   it = events.begin();
   while (it != events.end() && time > it->time_introduction())
-    it++;
+    ++it;
   it = events.insert(it, e);
   return it;
 }

@@ -71,6 +71,10 @@ solver.from.odetarget <- function(obj, ode.control) {
   solver
 }
 
+first <- function(x) x[[1]]
+second <- function(x) x[[2]]
+last  <- function(x) x[[length(x)]]
+
 ## This is here to stop a weird problem with class finalisation.  A
 ## fairly harmless error message at this point, but hopefully not
 ## something that will stick around.  Seems related to

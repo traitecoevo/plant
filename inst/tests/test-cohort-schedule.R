@@ -6,16 +6,18 @@ n.species <- 2
 sched <- new(CohortSchedule, n.species)
 
 test_that("Empty CohortSchedule looks correct", {
-  expect_that(sched$size, equals(0))
-  expect_that(sched$n_species, equals(n.species))
-  expect_that(sched$remaining, equals(0))
-  expect_that(sched$max_time, equals(Inf))
-  expect_that(sched$next_event, throws_error())
+  expect_that(sched$size,        equals(0))
+  expect_that(sched$n_species,   equals(n.species))
+  expect_that(sched$remaining,   equals(0))
+  expect_that(sched$max_time,    equals(Inf))
+  expect_that(sched$next_event,  throws_error())
+  expect_that(sched$fixed_times, is_false())
+  expect_that(sched$ode_times,   equals(numeric(0)))
 })
 
 set.seed(1)
-t1 <- runif(10)
-t2 <- runif(12)
+t1 <- c(0.0, runif(10))
+t2 <- c(0.0, runif(12))
 
 ## Times not sorted
 test_that("Unsorted times cause error", {
@@ -41,21 +43,29 @@ test_that("Can set cohort times", {
 })
 
 test_that("Schedule looks correctly set up", {
-  expect_that(sched$times(1), equals(t1))
-  expect_that(sched$next_event$time_introduction,
-              is_identical_to(t1[[1]]))
+  species.index <- 1
+  expect_that(sched$times(species.index), equals(t1))
+  expect_that(sched$fixed_times, is_false())
+  e <- sched$next_event
+  expect_that(e$time_introduction,   is_identical_to(t1[[1]]))
+  expect_that(e$species_index,       equals(species.index))
 })
 
 drain.schedule <- function(sched) {
   sched$reset()
-  cmp <- matrix(nrow=sched$size, ncol=5)
+  cmp <- vector("list", sched$size)
   for (i in seq_len(sched$size)) {
     e <- sched$next_event
-    cmp[i,] <- c(e$species_index,
-                 e$time_introduction,
-                 e$times,
-                 e$time_end)
+    cmp[[i]] <- c(e$species_index,
+                  e$time_introduction,
+                  e$times,
+                  e$time_end)
     sched$pop()
+  }
+  if (!sched$fixed_times) {
+    if (!all(sapply(cmp, length) == 5))
+      stop("Expected exactly five elements for each schedule")
+    cmp <- do.call(rbind, cmp)
   }
   cmp
 }
@@ -80,22 +90,23 @@ test_that("Schedule correctly set up with two species", {
 })
 
 ## Force a max_time for this run through:
-max.t <- max(c(t1, t2) + 2)
+max.t <- max.t <- max(c(t1, t2)) + mean(diff(sort(c(t1, t2))))
 sched$max_time <- max.t
+
+## Come up with the expected times (2nd argument ensures stable sort)
+expected <- rbind(data.frame(species_index=1, start=t1),
+                  data.frame(species_index=2, start=t2))
+expected <- expected[order(expected$start, -expected$species_index),]
+expected$end <- c(expected$start[-1], max.t)
 
 test_that("Schedule contains correct information (two species)", {
   cmp <- drain.schedule(sched)
 
-  ## Come up with the big list (2nd argument ensures stable sort)
-  tmp <- rbind(data.frame(species_index=1, time=t1),
-               data.frame(species_index=2, time=t2))
-  tmp <- tmp[order(tmp$t, -tmp$species_index),]
-
-  expect_that(cmp[,1], equals(tmp$species_index))
-  expect_that(cmp[,2], equals(tmp$time))
-  expect_that(cmp[,3], equals(tmp$time))
-  expect_that(cmp[,4], equals(c(tmp$time[-1], max.t)))
-  expect_that(cmp[,5], equals(c(tmp$time[-1], max.t)))
+  expect_that(cmp[,1], equals(expected$species_index))
+  expect_that(cmp[,2], equals(expected$start))
+  expect_that(cmp[,3], equals(expected$start))
+  expect_that(cmp[,4], equals(expected$end))
+  expect_that(cmp[,5], equals(expected$end))
 })
 
 ## Check that we behave sensibly at the end:
@@ -107,9 +118,12 @@ test_that("Schedule ends gracefully", {
               is_identical_to(min(c(t1, t2))))
 })
 
-test_that("Resettting the times replaces them", {
-  sched$set_times(t1 * 2, 1)
-  expect_that(sched$times(1), equals(2*t1))
+test_that("Resetting the times replaces them", {
+  t1.new <- t1 * .9
+  sched$set_times(t1.new, 1)
+  expect_that(sched$times(1), equals(t1.new))
+  sched$set_times(t1, 1)
+  expect_that(sched$times(1), equals(t1))
 })
 
 test_that("Setting max time behaves sensibly", {
@@ -120,4 +134,71 @@ test_that("Setting max time behaves sensibly", {
   sched$max_time <- max(t1)
   ## Now this will fail
   expect_that(sched$set_times(t1 * 2, 1), throws_error())
+  sched$max_time <- max.t
+})
+
+## Fixed times.  First set some impossible cases:
+test_that("Malformed ode_times objects are rejected", {
+  ## Too few values:
+  expect_that(sched$ode_times <- numeric(0), throws_error())
+  expect_that(sched$ode_times <- c(0.0),     throws_error())
+  ## Does not start at 0
+  expect_that(sched$ode_times <- c(1, 2, 3), throws_error())
+  ## Does not finish at time_max
+  expect_that(sched$ode_times <- c(0.0, 2, 3), throws_error())
+  ## Is not sorted:
+  expect_that(sched$ode_times <- sched$max_time * c(0, .5, .3, 1),
+              throws_error())
+  ## ...and check that none of these caused the times to be set
+  expect_that(sched$fixed_times, is_false())
+  expect_that(sched$ode_times,   equals(numeric(0)))
+})
+
+## So, now, manually get the times set up.  For a real challenge, we
+## should add some more exact hits in here.  Building the expected
+## times in R is hard enough!
+t.ode <- seq(0, max.t, length=14)
+idx <- findInterval(t.ode, c(expected$start, max.t), TRUE)
+tmp <- unname(t(apply(expected[c("start", "end")], 1, unlist)))
+
+expected.ode <- lapply(seq_len(nrow(expected)), function(i)
+                       c(tmp[i,1],
+                         setdiff(t.ode[idx == i], tmp[i,]),
+                         tmp[i,2]))
+
+## New schedule because setting and resetting may have changed cohort
+## order.
+sched <- new(CohortSchedule, n.species)
+sched$set_times(t1, 1L)
+sched$set_times(t2, 2L)
+sched$max_time <- max.t
+sched$ode_times <- t.ode
+
+test_that("Times were set correctly", {
+  expect_that(sched$fixed_times, is_true())
+  expect_that(sched$ode_times,   is_identical_to(t.ode))
+
+  cmp <- drain.schedule(sched)
+
+  expect_that(sapply(cmp, first),  equals(expected$species_index))
+  expect_that(sapply(cmp, second), equals(expected$start))
+  expect_that(sapply(cmp, last),   equals(expected$end))
+
+  expect_that(lapply(cmp, function(x) x[3:(length(x) - 1)]),
+              equals(expected.ode))
+})
+
+## check we can clear times:
+sched$clear_ode_times()
+test_that("Times were cleared", {
+  expect_that(sched$fixed_times, is_false())
+  expect_that(sched$ode_times,   equals(numeric(0)))
+})
+
+sched$max_time <- Inf
+sched$ode_times <- t.ode
+test_that("Times were set correctly", {
+  expect_that(sched$fixed_times, is_true())
+  expect_that(sched$ode_times,   is_identical_to(t.ode))
+  expect_that(sched$max_time,    is_identical_to(max(t.ode)))
 })

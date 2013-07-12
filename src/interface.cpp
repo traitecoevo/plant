@@ -235,14 +235,20 @@ RCPP_MODULE(tree) {
     .method("pop",          &model::CohortSchedule::pop)
     .property("next_event", &model::CohortSchedule::next_event)
     .property("remaining",  &model::CohortSchedule::remaining)
+    .property("fixed_times",&model::CohortSchedule::fixed_times)
     .property("max_time",   &model::CohortSchedule::r_max_time,
 	      &model::CohortSchedule::r_set_max_time)
+    .property("ode_times",  &model::CohortSchedule::r_ode_times,
+	      &model::CohortSchedule::r_set_ode_times)
+    .method("clear_ode_times",
+	    &model::CohortSchedule::r_clear_ode_times)
     ;
   Rcpp::class_<model::CohortSchedule::Event>("CohortScheduleEvent")
     .constructor<double,int>()
     .property("species_index",
 	      &model::CohortSchedule::Event::r_species_index)
-    .property("times",  &model::CohortSchedule::Event::r_times)
+    .property("times",
+	      &model::CohortSchedule::Event::r_times)
     .property("time_introduction",
 	      &model::CohortSchedule::Event::time_introduction)
     .property("time_end",
