@@ -18,8 +18,12 @@ void EBT::run_next() {
   const CohortSchedule::Event e = schedule.next_event();
   if (!util::identical(get_time(), e.time_introduction()))
     ::Rf_error("Start time not what was expected");
-  add_seedling(e.species_index);
-  advance(e.time_end());
+  patch.add_seedling(e.species_index);
+  ode_solver.set_state_from_problem();
+  if (schedule.fixed_times())
+    ode_solver.advance_fixed(e.times);
+  else
+    ode_solver.advance(e.time_end());
   schedule.pop(); // or do at next_event()?  Only matters on error.
 }
 
@@ -50,15 +54,6 @@ void EBT::r_set_cohort_schedule(CohortSchedule x) {
     ::Rf_error("Cannot set schedule without resetting first");
   util::check_length(x.get_n_species(), patch.size());
   schedule = x;
-}
-
-void EBT::add_seedling(size_t species_index) {
-  patch.add_seedling(species_index);
-}
-
-void EBT::advance(double time) {
-  ode_solver.set_state_from_problem();
-  ode_solver.advance(time);
 }
 
 }

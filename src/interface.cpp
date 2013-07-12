@@ -247,8 +247,8 @@ RCPP_MODULE(tree) {
     .constructor<double,int>()
     .property("species_index",
 	      &model::CohortSchedule::Event::r_species_index)
-    .property("times",
-	      &model::CohortSchedule::Event::r_times)
+    .field_readonly("times",
+		    &model::CohortSchedule::Event::times)
     .property("time_introduction",
 	      &model::CohortSchedule::Event::time_introduction)
     .property("time_end",

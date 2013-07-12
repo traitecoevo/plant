@@ -65,10 +65,6 @@ public:
   int r_species_index() const {
     return util::base_0_to_1<size_t,int>(species_index);
   }
-  std::vector<double> r_times() const {
-    std::vector<double> ret(times.begin(), times.end());
-    return ret;
-  }
   double time_introduction() const {
     return times.front();
   }
@@ -77,7 +73,7 @@ public:
   }
 
   size_t species_index;
-  std::list<double> times;
+  std::vector<double> times;
 };
 
 }

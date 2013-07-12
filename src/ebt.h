@@ -23,9 +23,6 @@ public:
   void r_set_cohort_schedule(CohortSchedule x);
 
 private:
-  void add_seedling(size_t species_index);
-  void advance(double time);
-
   Patch<CohortTop> patch;
   ode::Solver<Patch <CohortTop> > ode_solver;
   CohortSchedule schedule;

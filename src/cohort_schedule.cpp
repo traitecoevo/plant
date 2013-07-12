@@ -67,20 +67,28 @@ void CohortSchedule::reset() {
     distribute_ode_times();
 }
 
+// NOTE: Using vector here is inefficient, but we need a vector in the
+// end.  This would not matter if we added to event and didn't do this
+// each reset, but I don't imagine that this is a big cost in
+// practical cases.
 void CohortSchedule::distribute_ode_times() {
   events_iterator e = queue.begin();
   std::vector<double>::const_iterator t = ode_times.begin();
   while (e != queue.end()) {
-    std::list<double>::iterator at = e->times.begin();
-    ++at; // Insert *after* first time
+    std::vector<double> extra;
     while (t != ode_times.end() && *t < e->time_end()) {
       // The condition here excludes times that exactly match one of
       // the time boundaries (we'll be stopping there anyway).
       if (!util::identical(*t, e->time_introduction()) &&
 	  !util::identical(*t, e->time_end()))
-	e->times.insert(at, *t);
+	extra.push_back(*t);
       ++t;
     }
+    if (extra.size() > 0) {
+      std::vector<double>::iterator at = ++e->times.begin();
+      e->times.insert(at, extra.begin(), extra.end());
+    }
+
     ++e;
   }
 }
