@@ -234,7 +234,6 @@ RCPP_MODULE(tree) {
     .method("reset",        &model::CohortSchedule::reset)
     .method("pop",          &model::CohortSchedule::pop)
     .property("next_event", &model::CohortSchedule::next_event)
-    .property("next_time",  &model::CohortSchedule::next_time)
     .property("remaining",  &model::CohortSchedule::remaining)
     .property("max_time",   &model::CohortSchedule::r_max_time,
 	      &model::CohortSchedule::r_set_max_time)

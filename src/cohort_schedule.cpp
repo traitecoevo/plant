@@ -73,10 +73,6 @@ CohortSchedule::Event CohortSchedule::next_event() const {
   return queue.front();
 }
 
-double CohortSchedule::next_time() const {
-  return next_event().time_introduction();
-}
-
 size_t CohortSchedule::remaining() const {
   return queue.size();
 }

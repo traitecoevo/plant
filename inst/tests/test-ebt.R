@@ -16,7 +16,7 @@ expect_that(inherits(ebt$patch, "Rcpp_PatchCohortTop"), is_true())
 sched <- ebt$cohort_schedule
 test_that("Empty CohortSchedule", {
   expect_that(sched$size, equals(0))
-  expect_that(sched$next_time, throws_error())
+  expect_that(sched$next_event, throws_error())
 })
 
 ## If the schedule is for the wrong number of species, it should cause

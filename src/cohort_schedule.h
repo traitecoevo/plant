@@ -25,7 +25,6 @@ public:
   void reset();
   void pop();
   Event next_event() const;
-  double next_time() const;
   size_t remaining() const;
 
   // * R interface:

@@ -100,11 +100,11 @@ test_that("Schedule contains correct information (two species)", {
 
 ## Check that we behave sensibly at the end:
 test_that("Schedule ends gracefully", {
-  expect_that(sched$next_time, throws_error())
   expect_that(sched$next_event, throws_error())
   expect_that(sched$max_time, equals(max.t))
   sched$reset()
-  expect_that(sched$next_time, is_identical_to(min(c(t1, t2))))
+  expect_that(sched$next_event$time_introduction,
+              is_identical_to(min(c(t1, t2))))
 })
 
 test_that("Resettting the times replaces them", {
