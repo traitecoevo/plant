@@ -44,7 +44,6 @@ void check_dimensions(size_t received_rows, size_t received_cols,
 	       expected_cols, received_cols);
 }
 
-
 std::vector<double> seq_len(double from, double to, size_t len) {
   std::vector<double> ret;
   ret.reserve(len);

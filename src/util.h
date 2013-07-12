@@ -30,6 +30,30 @@ void check_length(size_t received, size_t expected);
 void check_dimensions(size_t recieved_rows, size_t recieved_cols,
 		      size_t expected_rows, size_t expected_cols);
 
+// Rcpp converts size_t -> numeric, and I want to be able to preserve
+// NA values while doing base 0 to base 1 index conversion (and v.v.).
+// This should take the guesswork and remembering out, and should keep
+// NA values preserved.
+template <class T>
+T base_1_to_0(T x) {
+  return x - 1;
+}
+
+template <class T>
+T base_0_to_1(T x) {
+  return x + 1;
+}
+
+template <class T_from, class T_to>
+T_to base_1_to_0(T_from x) {
+  return static_cast<T_to>(base_1_to_0<T_from>(x));
+}
+
+template <class T_from, class T_to>
+T_to base_0_to_1(T_from x) {
+  return static_cast<T_to>(base_0_to_1<T_from>(x));
+}
+
 // Based on C++11's is_sorted
 template <class ForwardIterator>
 bool is_sorted(ForwardIterator first, ForwardIterator last) {

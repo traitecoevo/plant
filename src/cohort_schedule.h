@@ -3,6 +3,7 @@
 #define TREE_COHORT_SCHEDULE_H_
 
 #include <Rcpp.h>
+#include "util.h"
 
 // NOTE: This needs copy/assignment constructors just because we need
 // to copy the "next" pointer (though at present this i just done.  An
@@ -46,26 +47,16 @@ private:
   double max_time;
 };
 
-// NOTE: The r_cohort()/r_set_cohort() functions are here because I
-// want to use NA_INTEGER for an impossible cohort.  Rcpp converts
-// size_t -> numeric, though NA_REAL won't stick as a NA value there
-// either.  This approach isolates the ugly casts to this class, and
-// means if I change the behaviour I can just do it here.  Note we
-// also add 1 so that we move to base-1 indexing.
 class CohortSchedule::Event {
 public:
   Event(double time_, size_t cohort_) : time(time_), cohort(cohort_) {}
   static Event blank(double time_) {
-    Event e(time_, static_cast<size_t>(NA_INTEGER));
+    Event e(time_, util::base_1_to_0<int,size_t>(NA_INTEGER));
     return e;
   }
   int r_cohort() const {
-    int ret = static_cast<int>(cohort);
-    if (ret != NA_INTEGER)
-      ret++;
-    return ret;
+    return util::base_0_to_1<size_t,int>(cohort);
   }
-  void r_set_cohort(int x) {cohort = static_cast<size_t>(x);}
 
   // Better than providing an index to a cohort could be to provide an
   // iterator to the underlying cohorts.  This could be templated to
