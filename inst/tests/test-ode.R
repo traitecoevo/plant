@@ -169,3 +169,9 @@ y.cmp <- obj.ctrl$state
 
 ans <- t(obj.ctrl$run(tt, y))
 expect_that(ans[1,], is_identical_to(y.cmp))
+
+test_that("Infinite times cause errors, rather than infinite loops", {
+  expect_that(obj$advance(Inf), throws_error())
+  expect_that(obj$step_to(Inf), throws_error())
+  expect_that(obj$step_fixed(Inf), throws_error())
+})

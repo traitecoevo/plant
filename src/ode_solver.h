@@ -44,6 +44,7 @@ private:
   void resize(size_t size_);
   void setup_dydt_in();
   void save_dydt_out_as_in();
+  void set_time_max(double time_max_);
 
   Problem *problem;
 
@@ -214,7 +215,7 @@ template <class Problem>
 void Solver<Problem>::advance(double time_max_) {
   if (time_max_ < time)
     ::Rf_error("time_max must be greater than (or equal to) current time");
-  time_max = time_max_;
+  set_time_max(time_max_);
   while (time < time_max)
     step();
 }
@@ -223,7 +224,7 @@ void Solver<Problem>::advance(double time_max_) {
 // error says.  There is duplication here with step_fixed()?
 template <class Problem>
 void Solver<Problem>::step_to(double time_max_) {
-  time_max = time_max_;
+  set_time_max(time_max_);
   setup_dydt_in();
   stepper.step(time, time_max - time, y, yerr, dydt_in, dydt_out);
   save_dydt_out_as_in();
@@ -283,9 +284,11 @@ OdeControl Solver<Problem>::r_control() const {
   return control;
 }
 
-// Note that this could push us past time_max!
 template <class Problem>
 void Solver<Problem>::step_fixed(double step_size) {
+  if (time + step_size > time_max)
+    ::Rf_error("step would push us past time_max");
+
   // Save y in case of failure in the step
   std::vector<double> y0 = y;
 
@@ -317,7 +320,7 @@ void Solver<Problem>::reset() {
   count = 0;
   failed_steps = 0;
   step_size_last = 1e-6; // See ode.md
-  time_max = DBL_MAX;    // or infinite?
+  time_max = R_PosInf;   // but never allow setting to this value
   size = 0;
   dydt_in_is_clean = false;
   resize(size);
@@ -354,6 +357,13 @@ void Solver<Problem>::save_dydt_out_as_in() {
   } else {
     dydt_in_is_clean = false;
   }
+}
+
+template <class Problem>
+void Solver<Problem>::set_time_max(double time_max_) {
+  if (!util::is_finite(time_max_))
+    ::Rf_error("time_max must be finite!");
+  time_max = time_max_;
 }
 
 }
