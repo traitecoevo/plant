@@ -15,19 +15,12 @@ EBT::EBT(Parameters *p)
 }
 
 void EBT::run_next() {
-  const bool events_remaining = schedule.remaining() > 0;
   const CohortSchedule::Event e = schedule.next_event();
-  const double next_time = e.time_introduction();
-  const bool done = !events_remaining &&
-    (!util::is_finite(next_time) || get_time() >= next_time);
-  if (done)
-    ::Rf_error("Already reached end of schedule");
-
-  advance(next_time);
-  if (events_remaining) {
-    add_seedling(e.cohort);
-    schedule.pop();
-  }
+  if (!util::identical(get_time(), e.time_introduction()))
+    ::Rf_error("Start time not what was expected");
+  add_seedling(e.cohort);
+  advance(e.time_end());
+  schedule.pop(); // or do at next_event()?  Only matters on error.
 }
 
 double EBT::get_time() const {
@@ -53,6 +46,8 @@ CohortSchedule EBT::r_cohort_schedule() const {
 }
 
 void EBT::r_set_cohort_schedule(CohortSchedule x) {
+  if (patch.ode_size() > 0)
+    ::Rf_error("Cannot set schedule without resetting first");
   util::check_length(x.get_n_species(), patch.size());
   schedule = x;
 }

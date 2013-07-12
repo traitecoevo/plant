@@ -245,6 +245,8 @@ RCPP_MODULE(tree) {
     .property("times",  &model::CohortSchedule::Event::r_times)
     .property("time_introduction",
 	      &model::CohortSchedule::Event::time_introduction)
+    .property("time_end",
+	      &model::CohortSchedule::Event::time_end)
     ;
 
   Rcpp::class_<model::SpeciesBase>("SpeciesBase")

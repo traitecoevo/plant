@@ -51,6 +51,14 @@ std::vector<double> CohortSchedule::times(size_t species_index) const {
 
 void CohortSchedule::reset() {
   queue = events;
+  events_iterator e = queue.begin();
+  while (e != queue.end()) {
+    events_iterator e_next = e;
+    e_next++;
+    e->times.push_back(e_next == queue.end() ?
+		       max_time : e_next->time_introduction());
+    e = e_next;
+  }
 }
 
 void CohortSchedule::pop() {
@@ -60,8 +68,9 @@ void CohortSchedule::pop() {
 }
 
 CohortSchedule::Event CohortSchedule::next_event() const {
-  return queue.empty() ?
-    CohortSchedule::Event::blank(max_time) : queue.front();
+  if (queue.empty())
+    ::Rf_error("All events completed");
+  return queue.front();
 }
 
 double CohortSchedule::next_time() const {

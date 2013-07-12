@@ -16,7 +16,7 @@ expect_that(inherits(ebt$patch, "Rcpp_PatchCohortTop"), is_true())
 sched <- ebt$cohort_schedule
 test_that("Empty CohortSchedule", {
   expect_that(sched$size, equals(0))
-  expect_that(sched$next_time, equals(Inf))
+  expect_that(sched$next_time, throws_error())
 })
 
 ## If the schedule is for the wrong number of species, it should cause
@@ -27,97 +27,136 @@ expect_that(ebt$cohort_schedule <- sched2, throws_error())
 ## Build a schedule for 11 introductions from t=0 to t=5
 t <- seq(0, 5, length=11)
 sched$set_times(t, 1)
+sched$max_time <- 5.5 # a bit further?
 ebt$cohort_schedule <- sched
+
+## Will be helpful for checking that things worked:
+times <- data.frame(start=t, end=c(t[-1], sched$max_time))
 
 ## Before starting, check that the EBT is actually empty
 test_that("EBT starts empty", {
-  expect_that(ebt$time, equals(0.0))
-  expect_that(ebt$patch$ode_size, equals(0))
+  expect_that(ebt$time,                equals(0.0))
+  expect_that(ebt$patch$time,          equals(0.0))
+  expect_that(ebt$patch$ode_size,      equals(0))
+  expect_that(ebt$patch$n_individuals, equals(0))
 })
 
 ## Check that we can advance through and add the cohort at time zero.
-ebt$patch$n_individuals
 ebt$run_next()
-
 test_that("EBT adds cohort successfully", {
   expect_that(ebt$cohort_schedule$remaining, equals(length(t) - 1))
-  expect_that(ebt$time, equals(t[1]))
+  ## Note that this is the *second* time; the time of the next
+  ## introduction, and the end time of the first introduction.
+  expect_that(ebt$time, is_identical_to(times$end[1]))
+  expect_that(ebt$time, is_identical_to(times$start[2]))
   expect_that(ebt$patch$ode_size, equals(4))
 })
 
-## Continue up to the introduction of cohort 2 (this will actually
-## advance time)
+test_that("Trying to set schedule for partly run ebt fails", {
+  expect_that(ebt$cohort_schedule <- sched, throws_error())
+})
+
+## Introduce the second cohort:
 ebt$run_next()
 test_that("EBT ran successfully", {
-  expect_that(ebt$cohort_schedule$remaining, equals(length(t) - 2))
-  expect_that(ebt$time, equals(t[2]))
-  expect_that(ebt$patch$ode_size, equals(4*2))
+  expect_that(ebt$cohort_schedule$remaining,
+              equals(length(t) - 2))
+  expect_that(ebt$time, is_identical_to(times$end[2]))
+  expect_that(ebt$time, is_identical_to(times$start[3]))
+  expect_that(ebt$patch$ode_size, equals(4 * 2))
 })
 
 ## Reset everything
 ebt$reset()
 test_that("EBT reset successful", {
-  expect_that(ebt$time, equals(0))
-  expect_that(ebt$patch$time, equals(0))
-  expect_that(ebt$patch$ode_size, equals(0))
+  expect_that(ebt$time,                equals(0.0))
+  expect_that(ebt$patch$time,          equals(0.0))
+  expect_that(ebt$patch$ode_size,      equals(0))
   expect_that(ebt$patch$n_individuals, equals(0))
+  expect_that(ebt$cohort_schedule$remaining, equals(length(t)))
 })
 
 ## Run the whole schedule using a Patch<CohortTop>, manually moving
 ## things along the schedule.
+
+## TODO: check that solver$advance(Inf) will fail!
+
 patch <- new(PatchCohortTop, p)
-species.index <- 1
 sched$reset()
-## Advance to time 't', then add species.
-tt.p <- hh.p <- NULL
+
+species.index <- 1 # for getting state out.
+
+tt.0.p <- hh.0.p <- tt.1.p <- hh.1.p <- NULL
 solver <- solver.from.odetarget(patch, p$control$ode_control)
 while (sched$remaining > 0) {
-  solver$advance(sched$next_time)
-  patch$add_seedling(species.index)
+  e <- sched$next_event
+  if (!identical(patch$time, e$time_introduction))
+    stop("Something terrible has happened")
+  patch$add_seedling(e$cohort)
+
+  ## Harvest statistics at start of step
+  tt.0.p <- c(tt.0.p, patch$time)
+  hh.0.p <- c(hh.0.p, list(patch$height[[species.index]]))
+
+  ## Advance the solution
   solver$set_state(patch$ode_values, patch$time)
+  solver$advance(e$time_end)
   sched$pop()
-  tt.p <- c(tt.p, patch$time)
-  hh.p <- c(hh.p, list(patch$height[[species.index]]))
+
+  ## Harvest statistics and end of step
+  tt.1.p <- c(tt.1.p, patch$time)
+  hh.1.p <- c(hh.1.p, list(patch$height[[species.index]]))
 }
-n <- length(hh.p[[length(hh.p)]])
-hh.p <- t(sapply(hh.p, function(x) c(x, rep(NA, n-length(x)))))
+
+list.to.matrix <- function(x) {
+  n <- max(sapply(x, length))
+  t(sapply(x, function(i) c(i, rep(NA, n-length(i)))))
+}
+
+hh.0.p <- list.to.matrix(hh.0.p)
+hh.1.p <- list.to.matrix(hh.1.p)
 
 test_that("Run looks successful", {
-  expect_that(n, equals(length(t)))
-  expect_that(all(diag(hh.p) == new(Plant, p[[1]])$height), is_true())
+  expect_that(nrow(hh.0.p), equals(length(t)))
+  ## Start point is the leaf plant height:
+  expect_that(diag(hh.0.p),
+              equals(rep(new(Plant, p[[1]])$height, length(t))))
 })
 
-## Run the whole schedule using the EBT.
+## Next, Run the whole schedule using the EBT.
 ebt$reset()
-tt.e <- hh.e <- NULL
-repeat {
-  if (inherits(try(ebt$run_next(), silent=TRUE), "try-error"))
-    break
-  tt.e <- c(tt.e, ebt$time)
-  hh.e <- c(hh.e, list(ebt$patch$height[[species.index]]))
+tt.1.e <- hh.1.e <- NULL
+while (ebt$cohort_schedule$remaining > 0) {
+  ebt$run_next()
+  tt.1.e <- c(tt.1.e, ebt$time)
+  hh.1.e <- c(hh.1.e, list(ebt$patch$height[[species.index]]))
 }
-n <- length(hh.e[[length(hh.e)]])
-hh.e <- t(sapply(hh.e, function(x) c(x, rep(NA, n-length(x)))))
+hh.1.e <- list.to.matrix(hh.1.e)
 
-expect_that(hh.e, is_identical_to(hh.e))
+## I'm actually quite surprised that the objects aren't identical.
+## I've left the tolerance super strict here.
+test_that("EBT and Patch agree", {
+  expect_that(tt.1.e, is_identical_to(tt.1.p))
+  expect_that(hh.1.e, equals(hh.1.p, tolerance=1e-12))
+})
 
 ## Then, check that resetting the cohort allows rerunning easily:
 ebt$reset()
-tt.e2 <- hh.e2 <- NULL
-repeat {
-  if (inherits(try(ebt$run_next(), silent=TRUE), "try-error"))
-    break
-  tt.e2 <- c(tt.e2, ebt$time)
-  hh.e2 <- c(hh.e2, list(ebt$patch$height[[species.index]]))
+tt.2.e <- hh.2.e <- NULL
+while (ebt$cohort_schedule$remaining > 0) {
+  ebt$run_next()
+  tt.2.e <- c(tt.2.e, ebt$time)
+  hh.2.e <- c(hh.2.e, list(ebt$patch$height[[species.index]]))
 }
-n <- length(hh.e2[[length(hh.e2)]])
-hh.e2 <- t(sapply(hh.e2, function(x) c(x, rep(NA, n-length(x)))))
+hh.2.e <- list.to.matrix(hh.2.e)
 
-expect_that(hh.e, is_identical_to(hh.e2))
+test_that("EBT can be rerun successfully", {
+  expect_that(hh.1.e, is_identical_to(hh.2.e))
+})
 
 if (interactive()) {
-  matplot(tt.p, hh.p, type="o", col="black", pch=1, lty=1)
-  matpoints(tt.e, hh.e, col="red", cex=.5, pch=1, type="o", lty=1)
+  matplot(tt.1.p, hh.1.p, type="o", col="black", pch=1, lty=1)
+  matpoints(tt.1.e, hh.1.e, col="red", cex=.5, pch=1, type="o", lty=1)
 }
 
 rm(ebt)

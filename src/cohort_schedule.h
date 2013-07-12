@@ -5,13 +5,11 @@
 #include <Rcpp.h>
 #include "util.h"
 
-// NOTE: This needs copy/assignment constructors just because we need
-// to copy the "next" pointer (though at present this i just done.  An
-// alternative way of doing this would be for reset() to dump things
-// into a Queue that we pop off?
-
 // The "times" methods (set_times, times) refer to the *introduction*
-// times.
+// times.  As such, this really needs that at least one species has an
+// introduction time of zero.  This is only enforced in that the model
+// will just refuse to run if started with the incorrect time.
+
 namespace model {
 
 class CohortSchedule {
@@ -68,6 +66,9 @@ public:
   }
   double time_introduction() const {
     return times.front();
+  }
+  double time_end() const {
+    return times.back();
   }
 
   size_t cohort;
