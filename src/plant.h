@@ -106,7 +106,7 @@ protected:
 private:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
-  void compute_vars_size(double mass_leaf_);
+  void compute_vars_size(double height_);
 
   // * Competitive environment
   // [eqn  9] Probability density of leaf area at height `z`
