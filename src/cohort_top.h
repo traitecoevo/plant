@@ -37,8 +37,8 @@ private:
   double growth_rate_given_height(double height_,
 				  const Environment& environment);
 
-  double density;
-  double density_rate;
+  double log_density;
+  double log_density_rate;
   double seeds_survival_weighted;
   double seeds_survival_weighted_rate;
 

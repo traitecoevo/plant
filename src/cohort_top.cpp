@@ -5,8 +5,8 @@ namespace model {
 
 CohortTop::CohortTop(Strategy s) :
   Plant(s),
-  density(0),
-  density_rate(0),
+  log_density(R_NegInf),
+  log_density_rate(0),
   seeds_survival_weighted(0),
   seeds_survival_weighted_rate(0),
   time_of_birth(0) {
@@ -14,8 +14,8 @@ CohortTop::CohortTop(Strategy s) :
 
 CohortTop::CohortTop(Strategy *s) :
   Plant(s),
-  density(0),
-  density_rate(0),
+  log_density(R_NegInf),
+  log_density_rate(0),
   seeds_survival_weighted(0),
   seeds_survival_weighted_rate(0),
   time_of_birth(0) {
@@ -25,7 +25,7 @@ void CohortTop::compute_vars_phys(const Environment& environment) {
   Plant::compute_vars_phys(environment);
 
   // EBT.md{eq:boundN}, see Numerical technique.
-  density_rate = growth_rate_gradient(environment) + mortality_rate();
+  log_density_rate = growth_rate_gradient(environment) + mortality_rate();
 
   // EBT.md{eq:boundSurv}, see Numerical technique
   const double survival_patch = environment.patch_survival(time_of_birth);
@@ -35,7 +35,7 @@ void CohortTop::compute_vars_phys(const Environment& environment) {
 
 double CohortTop::leaf_area_above(double z) const {
   // EBT.md{eq:boundN}, and following section.
-  return exp(-density) * Plant::leaf_area_above(z);
+  return exp(-log_density) * Plant::leaf_area_above(z);
 }
 
 int CohortTop::offspring() {
@@ -57,7 +57,7 @@ bool CohortTop::died() {
 // condition is -log(germination_probability) in the documentation
 // that Daniel is working out.
 //
-// NOTE: The initial condition for density is also a bit tricky, and
+// NOTE: The initial condition for log_density is also a bit tricky, and
 // defined on p 7 at the moment.
 void CohortTop::compute_initial_conditions(const Environment& environment) {
   time_of_birth = environment.get_time();
@@ -66,7 +66,7 @@ void CohortTop::compute_initial_conditions(const Environment& environment) {
   // EBT.md{eq:boundN}
   const double g = height_rate();
   const double seed_rain = environment.seed_rain_rate();
-  density = -log(g > 0 ? seed_rain / g : 0.0);
+  log_density = -log(g > 0 ? seed_rain / g : 0.0);
 }
 
 // * ODE interface
@@ -79,7 +79,7 @@ ode::iterator_const CohortTop::set_ode_values(double /* unused: time */,
   set_height(*it++);
   set_mortality(*it++);
   seeds_survival_weighted = *it++;
-  density = *it++;
+  log_density = *it++;
   return it;
 }
 
@@ -87,7 +87,7 @@ ode::iterator CohortTop::ode_values(ode::iterator it) const {
   *it++ = height();
   *it++ = mortality();
   *it++ = seeds_survival_weighted;
-  *it++ = density;
+  *it++ = log_density;
   return it;
 }
 
@@ -95,7 +95,7 @@ ode::iterator CohortTop::ode_rates(ode::iterator it) const {
   *it++ = height_rate();
   *it++ = mortality_rate();
   *it++ = seeds_survival_weighted_rate;
-  *it++ = density_rate;
+  *it++ = log_density_rate;
   return it;
 }
 
@@ -105,7 +105,7 @@ double CohortTop::r_growth_rate_gradient(const Environment& environment)
 }
 
 // This is the gradient of height_rate with respect to height.  It is
-// needed for computing the derivative (wrt time) of the density of
+// needed for computing the derivative (wrt time) of the log_density of
 // individuals.
 double CohortTop::growth_rate_gradient(const Environment& environment) const {
   CohortTop tmp = *this;
