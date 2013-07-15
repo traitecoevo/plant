@@ -134,7 +134,7 @@ load.reference.output <- function(path) {
   ##              dimnames=list(step=NULL, height=NULL,
   ##                c("height", "canopy.openness")))
 
-  popn$patch_age <- data.frame(age=tmp[, "%Age"],
+  popn$patch_age <- data.frame(age=tmp[, "Age"],
                                density=tmp[, "p(a,t)"],
                                gamma=tmp[, "gamma(a)"])
 
@@ -148,6 +148,7 @@ load.reference.output <- function(path) {
     ret
   }
   popn$strategies <- lapply(seq(0, length.out=p$size), load.strategy)
+  popn$light.env  <- light.env
   popn$parameters <- p
 
   ## Add the cohort introduction information to "age":
@@ -309,14 +310,13 @@ write.reference.parameters <- function(obj, path) {
   traits <- obj$traits
   seed.rain <- obj$seed.rain
   n <- nrow(traits)
-  tmp <- c(`%T`=0, NumRes=n, c(t(log10(traits))), seed.rain)
+  tmp <- c(T=0, NumRes=n, c(t(log10(traits))), seed.rain)
   names(tmp)[seq(3, length=n*4)] <-
     sprintf("y%d", seq(0, length=n*4))
   names(tmp)[seq(3+n*4, length.out=n)] <-
     sprintf("p%d", seq(0, length=n))
-  write.table(data.frame(t(tmp), check.names=FALSE),
-              file.path(path, "Stoch.txt"), sep="\t", row.names=FALSE,
-              quote=FALSE)
+  write.tsv.matrix(data.frame(t(tmp), check.names=FALSE),
+                   file.path(path, "Stoch.txt"))
 }
 
 ## Read in the files "params.m" and "Stoch.txt" as a temporary
@@ -425,8 +425,10 @@ rename <- function(obj, tr) {
 read.tsv.matrix <- function(filename, with.header=FALSE) {
   con <- file(filename, "rt")
   on.exit(close(con))
-  if (with.header)
+  if (with.header) {
     h <- scan(con, nlines=1, quiet=TRUE, what=character())
+    h[[1]] <- sub("^%", "", h[[1]])
+  }
 
   d1 <- scan(con, nlines=1, quiet=TRUE, sep="")
   d2 <- scan(con, quiet=TRUE, sep="")
@@ -437,4 +439,10 @@ read.tsv.matrix <- function(filename, with.header=FALSE) {
 
   m[is.nan(m)] <- NA
   m
+}
+
+write.tsv.matrix <- function(x, file) {
+  if (substr(names(x)[[1]], 1, 1) != "%")
+    names(x)[[1]] <- paste0("%", names(x)[[1]])
+  write.table(x, file, sep="\t", row.names=FALSE, quote=FALSE)
 }
