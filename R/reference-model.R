@@ -103,12 +103,13 @@ load.reference.output <- function(path) {
   ## Check that the output is plausible given input parameters:
   traits.input <- t(sapply(p$strategies, function(x)
                            unlist(x$parameters[reference.traits.names()])))
-  traits.output <- popn$strategy[, sprintf("Tr%d", 0:3)]
+  traits.output <- popn$strategy[, sprintf("Tr%d", 0:3), drop=FALSE]
   ok <- isTRUE(all.equal(unname(traits.input), unname(traits.output),
                          tolerance=1e-5))
   if (!ok)
     stop("Input and output traits appear to vary")
-  if (!isTRUE(all.equal(popn$strategy[, "X_start"], p$seed_rain)))
+  if (!isTRUE(all.equal(unname(popn$strategy[, "X_start"]),
+                        unname(p$seed_rain))))
     stop("Input and output seed_rain appear to vary")
 
   ## Extract the output seed rain from strategy, and drop the rest of
