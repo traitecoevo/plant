@@ -24,10 +24,10 @@ test_that("Empty CohortSchedule", {
 sched2 <- new(CohortSchedule, sched$n_species + 1)
 expect_that(ebt$cohort_schedule <- sched2, throws_error())
 
-## Build a schedule for 11 introductions from t=0 to t=5
-t <- seq(0, 5, length=11)
+## Build a schedule for 14 introductions from t=0 to t=5
+t <- seq(0, 5, length=14)
 sched$set_times(t, 1)
-sched$max_time <- 5.5 # a bit further?
+sched$max_time <- max(t) + diff(t)[[1]]
 ebt$cohort_schedule <- sched
 
 ## Will be helpful for checking that things worked:
@@ -84,7 +84,7 @@ sched$reset()
 
 species.index <- 1 # for getting state out.
 
-tt.0.p <- hh.0.p <- tt.1.p <- hh.1.p <- NULL
+tt.p.start <- hh.p.start <- tt.p.end <- hh.p.end <- NULL
 solver <- solver.from.odetarget(patch, p$control$ode_control)
 while (sched$remaining > 0) {
   e <- sched$next_event
@@ -93,8 +93,8 @@ while (sched$remaining > 0) {
   patch$add_seedling(e$species_index)
 
   ## Harvest statistics at start of step
-  tt.0.p <- c(tt.0.p, patch$time)
-  hh.0.p <- c(hh.0.p, list(patch$height[[species.index]]))
+  tt.p.start <- c(tt.p.start, patch$time)
+  hh.p.start <- c(hh.p.start, list(patch$height[[species.index]]))
 
   ## Advance the solution
   solver$set_state(patch$ode_values, patch$time)
@@ -102,8 +102,8 @@ while (sched$remaining > 0) {
   sched$pop()
 
   ## Harvest statistics and end of step
-  tt.1.p <- c(tt.1.p, patch$time)
-  hh.1.p <- c(hh.1.p, list(patch$height[[species.index]]))
+  tt.p.end <- c(tt.p.end, patch$time)
+  hh.p.end <- c(hh.p.end, list(patch$height[[species.index]]))
 }
 
 list.to.matrix <- function(x) {
@@ -111,49 +111,71 @@ list.to.matrix <- function(x) {
   t(sapply(x, function(i) c(i, rep(NA, n-length(i)))))
 }
 
-hh.0.p <- list.to.matrix(hh.0.p)
-hh.1.p <- list.to.matrix(hh.1.p)
+hh.p.start <- list.to.matrix(hh.p.start)
+hh.p.end <- list.to.matrix(hh.p.end)
 
 test_that("Run looks successful", {
-  expect_that(nrow(hh.0.p), equals(length(t)))
+  expect_that(nrow(hh.p.start), equals(length(t)))
   ## Start point is the leaf plant height:
-  expect_that(diag(hh.0.p),
+  expect_that(diag(hh.p.start),
               equals(rep(new(Plant, p[[1]])$height, length(t))))
 })
 
-## Next, Run the whole schedule using the EBT.
-ebt$reset()
-tt.1.e <- hh.1.e <- NULL
-while (ebt$cohort_schedule$remaining > 0) {
-  ebt$run_next()
-  tt.1.e <- c(tt.1.e, ebt$time)
-  hh.1.e <- c(hh.1.e, list(ebt$patch$height[[species.index]]))
+run.ebt <- function(ebt) {
+  tt <- hh <- NULL
+  ebt$reset()
+  while (ebt$cohort_schedule$remaining > 0) {
+    ebt$run_next()
+    tt <- c(tt, ebt$time)
+    hh <- c(hh, list(ebt$patch$height[[species.index]]))
+  }
+  hh <- list.to.matrix(hh)
+  list(t=tt, h=hh)
 }
-hh.1.e <- list.to.matrix(hh.1.e)
+
+## Next, Run the whole schedule using the EBT.
+res.e.1 <- run.ebt(ebt)
 
 ## I'm actually quite surprised that the objects aren't identical.
 ## I've left the tolerance super strict here.
 test_that("EBT and Patch agree", {
-  expect_that(tt.1.e, is_identical_to(tt.1.p))
-  expect_that(hh.1.e, equals(hh.1.p, tolerance=1e-12))
+  expect_that(res.e.1$t, is_identical_to(tt.p.end))
+  expect_that(res.e.1$h, equals(hh.p.end, tolerance=1e-11))
 })
 
 ## Then, check that resetting the cohort allows rerunning easily:
 ebt$reset()
-tt.2.e <- hh.2.e <- NULL
-while (ebt$cohort_schedule$remaining > 0) {
-  ebt$run_next()
-  tt.2.e <- c(tt.2.e, ebt$time)
-  hh.2.e <- c(hh.2.e, list(ebt$patch$height[[species.index]]))
-}
-hh.2.e <- list.to.matrix(hh.2.e)
-
+res.e.2 <- run.ebt(ebt)
 test_that("EBT can be rerun successfully", {
-  expect_that(hh.1.e, is_identical_to(hh.2.e))
+  expect_that(res.e.2, is_identical_to(res.e.1))
+})
+
+## Pull the times out of the EBT and set them in the schedule:
+sched <- ebt$cohort_schedule
+sched$ode_times <- ebt$ode_times
+ebt$reset() # must reset
+ebt$cohort_schedule <- sched
+
+## So; this does not actually produce *exactly* the same output, which
+## is very surprising.  It's definitely "close enough" but not exactly
+## the same (and differs to right around the same order as the patch
+## vs ebt case).  I suspect that this might come from the difference
+## between stepping to a point (requiring calculating the step size)
+## and the stepping a particular step size (requiring calculating the
+## final time).
+res.e.3 <- run.ebt(ebt)
+test_that("EBT with fixed times agrees", {
+  expect_that(res.e.3, equals(res.e.1, tolerance=1e-12))
+})
+
+ebt$reset()
+res.e.4 <- run.ebt(ebt)
+test_that("EBT can be rerun successfully with fixed times", {
+  expect_that(res.e.4, is_identical_to(res.e.3))
 })
 
 if (interactive()) {
-  matplot(tt.1.p, hh.1.p, type="o", col="black", pch=1, lty=1)
+  matplot(tt.p.end, hh.p.end, type="o", col="black", pch=1, lty=1)
   matpoints(tt.1.e, hh.1.e, col="red", cex=.5, pch=1, type="o", lty=1)
 }
 

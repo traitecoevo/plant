@@ -90,7 +90,6 @@ expect_that(lo$time, is_identical_to(t.steps[[length(t.steps)]]))
 expect_that(lo$state, is_identical_to(ans[nrow(ans),]))
 
 ## With the R Ode verison:
-
 obj <- new(OdeR, derivs.lorenz, new.env(), pars)
 
 expect_that(obj$derivs(t0, y),
@@ -115,6 +114,7 @@ expect_that(obj$state, equals(cmp, tolerance=1e-14))
 expect_that(obj$time, is_identical_to(t0+dt))
 
 ## Variable step:
+obj$reset()
 obj$set_state(y, t0)
 obj$step()
 expect_that(obj$time, is_greater_than(t0))
@@ -147,6 +147,7 @@ expect_that(obj$times, is_identical_to(t.steps))
 
 ## Check that we are actually rewriting the time steps:
 t.steps2 <- obj$times[1:10]
+obj$reset()
 obj$set_state(y, t0)
 obj$advance_fixed(t.steps2)
 expect_that(obj$times, is_identical_to(t.steps2))

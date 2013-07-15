@@ -71,6 +71,15 @@ void CohortSchedule::reset() {
 // end.  This would not matter if we added to event and didn't do this
 // each reset, but I don't imagine that this is a big cost in
 // practical cases.
+//
+// NOTE: It should be the case that there are exactly two times in
+// e->times on entry, which means that we could always just construct
+// a new vector with the start time, the times in 'extra' and the end
+// time, purely by pushing on the end.  Ignoring this, it does mean
+// that the inefficiency of using vector (over list) is confined to a
+// copy of a single element, which won't be as bad as using an
+// underlying list and converting to vector when passing back to the
+// ode solver.
 void CohortSchedule::distribute_ode_times() {
   events_iterator e = queue.begin();
   std::vector<double>::const_iterator t = ode_times.begin();

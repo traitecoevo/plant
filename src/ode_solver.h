@@ -89,12 +89,19 @@ Solver<Problem>::Solver(Problem *problem_, OdeControl control_)
   reset();
 }
 
+// The error condition here is to ensure that the prev_times vector
+// makes sense.  If the incoming time is different to the last time
+// that we were at, the problem should be reset before continuing
+// (which will clear `prev_times`).  Not sure if this is the right way
+// to work with this.
 template <class Problem>
 void Solver<Problem>::set_state(std::vector<double> y_, double t_) {
-  prev_times.clear();
+  if (prev_times.size() > 0 && !util::identical(prev_times.back(), t_))
+    ::Rf_error("Time does not match previous. Reset solver first.");
   y    = y_;
   time = t_;
-  prev_times.push_back(time);
+  if (prev_times.empty()) // only if first time (avoids duplicate times)
+    prev_times.push_back(time);
   resize(y.size());
   dydt_in_is_clean = false;
 }

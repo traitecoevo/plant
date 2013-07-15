@@ -21,6 +21,7 @@ public:
   Patch<CohortTop> r_patch() const;
   CohortSchedule r_cohort_schedule() const;
   void r_set_cohort_schedule(CohortSchedule x);
+  std::vector<double> r_ode_times() const;
 
 private:
   Patch<CohortTop> patch;

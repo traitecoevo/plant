@@ -379,12 +379,13 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::EBT>("EBT")
     .constructor<model::Parameters>()
-    .property("patch", &model::EBT::r_patch)
+    .property("patch",           &model::EBT::r_patch)
     .property("cohort_schedule", &model::EBT::r_cohort_schedule,
 	      &model::EBT::r_set_cohort_schedule)
-    .property("time", &model::EBT::get_time)
-    .method("reset", &model::EBT::reset)
-    .method("run_next", &model::EBT::run_next)
+    .property("time",            &model::EBT::get_time)
+    .method("reset",             &model::EBT::reset)
+    .method("run_next",          &model::EBT::run_next)
+    .property("ode_times",       &model::EBT::r_ode_times)
     ;
 
   // Template helper functions

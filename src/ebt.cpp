@@ -56,4 +56,8 @@ void EBT::r_set_cohort_schedule(CohortSchedule x) {
   schedule = x;
 }
 
+std::vector<double> EBT::r_ode_times() const {
+  return ode_solver.get_times();
+}
+
 }
