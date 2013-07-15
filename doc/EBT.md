@@ -190,18 +190,18 @@ Density is then given by
 
 $$n(x,m_0 ,a_0) =\exp(-y(a)).$$
 
-*Test case:* In cases where the environment is constant and time-independent (i.e $g(x,m(x, a_0, a^\prime) = \textrm{const}$, $d(x,m(x, a_0, a^\prime) = \textrm{const}$  for all $a_0, a^\prime)$),  it is possible to further simplify eq \ref{eq:boundN} to:
+*Test case:* In cases where the environment is constant and time-independent (i.e $g(x,m,a) = g(x,m)$, $d(x,m,a) = d(x,m)$  for all $a_0, a^\prime)$),  it is possible to further simplify eq \ref{eq:boundN} to:
 
 \begin{equation}\label{eq:boundN3}
 n(x,m,a)=\frac{y_x(a_0)}{ g(x,m^\prime, \cdot) } \exp \bigg(-\int _{m_{0} }^{m}\frac{d(x , m^\prime, \cdot ) }{g(x, m^\prime, \cdot)} \, \textrm{d}m^\prime \bigg). \end{equation}
-(for a proof, see \cite{de_roos_gentle_1997} page 153). Unless the density of incoming seeds is constant, then it is also necessary to know $a_0$ - the origin of the characteristic for individuals of size $m$ at ago $a$ - to model their density.
+(for a proof, see \cite{de_roos_gentle_1997} page 153). In our implementation, the incoming seed rain is constant, i.e. $y_x(a_0) = y_x$.
 
 Note also, that the integral on the RHS of $\ref{eq:boundN3}$ is simply the survival of individuals from $a_0 \rightarrow a$, i.e.
 \begin{equation} \exp \bigg(-\int _{m_{0} }^{m}\frac{d(x, m^\prime, \cdot)}{g(x, m^\prime, \cdot)}  \textrm{d} m^\prime \bigg) = \exp \bigg(-\int _{a_{0} }^{a}d(x, m(a^\prime), \cdot) \textrm{d}{a^\prime} \bigg) = S_{\rm I} (x, a_0, a).\end{equation}
 
 Thus,
 \begin{equation}\label{eq:boundN4}
-n(x,m,a)=\frac{y_x(a_0)}{ g(x,m^\prime, \cdot) } S_{\rm I} (x, a_0, a). \end{equation}
+n(x,m,a)=\frac{y_x}{ g(x,m^\prime, \cdot) } S_{\rm I} (x, a_0, a). \end{equation}
 For some functions of $g$ and $d$, equation $\ref{eq:boundN4}$ might yield an analytical solution to density.
 
 ### Seed production
