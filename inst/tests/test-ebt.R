@@ -36,6 +36,7 @@ times <- data.frame(start=t, end=c(t[-1], sched$max_time))
 ## Before starting, check that the EBT is actually empty
 test_that("EBT starts empty", {
   expect_that(ebt$time,                equals(0.0))
+  expect_that(ebt$ode_size,            equals(0))
   expect_that(ebt$patch$time,          equals(0.0))
   expect_that(ebt$patch$ode_size,      equals(0))
   expect_that(ebt$patch$n_individuals, equals(0))
@@ -49,6 +50,7 @@ test_that("EBT adds cohort successfully", {
   ## introduction, and the end time of the first introduction.
   expect_that(ebt$time, is_identical_to(times$end[1]))
   expect_that(ebt$time, is_identical_to(times$start[2]))
+  expect_that(ebt$ode_size,       equals(4))
   expect_that(ebt$patch$ode_size, equals(4))
 })
 
@@ -63,6 +65,7 @@ test_that("EBT ran successfully", {
               equals(length(t) - 2))
   expect_that(ebt$time, is_identical_to(times$end[2]))
   expect_that(ebt$time, is_identical_to(times$start[3]))
+  expect_that(ebt$ode_size,       equals(4 * 2))
   expect_that(ebt$patch$ode_size, equals(4 * 2))
 })
 
@@ -70,6 +73,7 @@ test_that("EBT ran successfully", {
 ebt$reset()
 test_that("EBT reset successful", {
   expect_that(ebt$time,                equals(0.0))
+  expect_that(ebt$ode_size,            equals(0))
   expect_that(ebt$patch$time,          equals(0.0))
   expect_that(ebt$patch$ode_size,      equals(0))
   expect_that(ebt$patch$n_individuals, equals(0))
@@ -78,7 +82,6 @@ test_that("EBT reset successful", {
 
 ## Run the whole schedule using a Patch<CohortTop>, manually moving
 ## things along the schedule.
-
 patch <- new(PatchCohortTop, p)
 sched$reset()
 
@@ -141,6 +144,10 @@ res.e.1 <- run.ebt(ebt)
 test_that("EBT and Patch agree", {
   expect_that(res.e.1$t, is_identical_to(tt.p.end))
   expect_that(res.e.1$h, equals(hh.p.end, tolerance=1e-11))
+  expect_that(ebt$ode_values,
+              equals(patch$ode_values, tolerance=1e-9))
+  expect_that(ebt$ode_rates,
+              equals(patch$ode_rates,  tolerance=1e-9))
 })
 
 ## Then, check that resetting the cohort allows rerunning easily:

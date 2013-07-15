@@ -41,6 +41,24 @@ void EBT::reset() {
   ode_solver.reset();
 }
 
+// * Ode interface.
+size_t EBT::ode_size() const {
+  return patch.ode_size();
+}
+
+ode::iterator_const EBT::set_ode_values(double time,
+					ode::iterator_const it) {
+  return patch.set_ode_values(time, it);
+}
+
+ode::iterator EBT::ode_values(ode::iterator it) const {
+  return patch.ode_values(it);
+}
+
+ode::iterator EBT::ode_rates(ode::iterator it) const {
+  return patch.ode_rates(it);
+}
+
 Patch<CohortTop> EBT::r_patch() const {
   return patch;
 }

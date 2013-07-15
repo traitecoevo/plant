@@ -378,6 +378,7 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<model::EBT>("EBT")
+    .derives<ode::OdeTarget>("OdeTarget")
     .constructor<model::Parameters>()
     .property("patch",           &model::EBT::r_patch)
     .property("cohort_schedule", &model::EBT::r_cohort_schedule,
