@@ -38,6 +38,16 @@ is_less_than <- function(value) {
     expectation(actual < value, paste("is not less than", value))
 }
 
+has_hash <- function(hash, algo="sha1", ...) {
+  require(digest, quietly=TRUE)
+  function(actual) {
+    hash.actual <- digest(actual, algo, ...)
+    expectation(identical(hash.actual, hash),
+                sprintf("object hashes to %s, not %s as expected",
+                        hash.actual, hash))
+  }
+}
+
 ## This makes a pretend light environment over the plant height,
 ## slightly concave up, whatever.
 test.environment <- function(height, n=101, light.env=NULL,
