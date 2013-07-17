@@ -179,12 +179,12 @@ The density of individuals at the boundary can be solved by integrating along ch
 & \exp \left(-\int _{a_0}^{a} \left[\frac{\partial g(x,m(x, a_0, a^\prime),a^\prime)}{\partial m} +d(x,m(x, a_0, a^\prime),a^\prime)\right] {\rm d}a^\prime \right),\end{array} \end{equation}
 
 where
-\begin{equation} \label{eq:boundN2}  n(x,m_0 ,a_0)  = \left\{ \begin{array}{ll}   \frac{y_x}{ g(x,m_0, a_0) }  & \textrm{if } g(x,m_0, a_0) \geq 0 \\
+\begin{equation} \label{eq:boundN2}  n(x,m_0 ,a_0)  = \left\{ \begin{array}{ll}   \frac{y_x  \pi_1 (x^\prime,m_0, a_0) }{ g(x,m_0, a_0) }  & \textrm{if } g(x,m_0, a_0) > 0 \\
 0 & \textrm{otherwise.}  \end{array} \right. \end{equation}
 
 *Numerical technique:* To solve eq $\ref{eq:boundN}$ we need to solve the IVP:
 $$\frac{dy}{dt} = \frac{\partial g(x,m_i(a^\prime), }{\partial m} +d(x,m_i(a^\prime),a^\prime),$$
-$$ y(0) = -\ln\left(n(x,m_0 ,a_0)\right).$$
+$$ y(0) = -\ln\left(n(x,m_0 ,a_0) \, \pi_1 (x^\prime,m_0, a_0) \right).$$
 
 Density is then given by
 
