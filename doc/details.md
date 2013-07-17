@@ -185,3 +185,23 @@ $$
 \frac{\ud m_r}{\ud \omega} =
 \frac{\ud}{\ud \omega}\left[\alpha_3 \omega\right] = \alpha_3
 $$
+
+Other useful derivatives:
+
+Because
+$$
+h = \alpha_1 \left(\frac{m_l}{\phi}\right)^{\beta_1}
+\qquad
+m_l = \phi\left(\frac{h}{\alpha_1}\right)^{1/\beta_1}
+$$
+
+we have
+
+$$
+\frac{\ud h}{\ud m_l} = \frac{\alpha_1 \beta_1}{\phi}
+\left(\frac{m_l}{\phi}\right)^{\beta_1 - 1}
+\qquad
+\frac{\ud m_l}{\ud h} =
+\frac{\phi}{\alpha_1 \beta_1}\left(\frac{h}{\alpha_1}\right)^
+{\frac{1}{\beta_1} - 1}
+$$
