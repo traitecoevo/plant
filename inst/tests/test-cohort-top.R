@@ -52,18 +52,32 @@ expect_that(growth.rate.given.height(plant$height, p2, env),
 ctrl <- s$control
 method.args <- list(d=ctrl$parameters$cohort_gradient_eps,
                     eps=ctrl$parameters$cohort_gradient_eps)
-dgdm.accurate <- grad(growth.rate.given.height, plant$height,
+dgdh.accurate <- grad(growth.rate.given.height, plant$height,
                       p=p2, env=env, method.args=method.args)
-dgdm.simple <- grad(growth.rate.given.height, plant$height,
+dgdh.simple <- grad(growth.rate.given.height, plant$height,
                     "simple", method.args=method.args,
                     p=p2, env=env)
-dgdm.forward <- grad.forward(growth.rate.given.height, plant$height,
+dgdh.forward <- grad.forward(growth.rate.given.height, plant$height,
                              method.args$eps, p=p2, env=env)
 
-dgdm <- coh$growth_rate_gradient(env)
-expect_that(dgdm, is_identical_to(dgdm.forward))
-expect_that(dgdm, equals(dgdm.simple))
-expect_that(dgdm, equals(dgdm.accurate, tolerance=0.002))
+dgdh <- coh$growth_rate_gradient(env)
+expect_that(dgdh, is_identical_to(dgdh.forward))
+expect_that(dgdh, equals(dgdh.simple))
+expect_that(dgdh, equals(dgdh.accurate, tolerance=0.002))
+
+## Not necessary (and not run as part of the tests), but it's nice to
+## see how this actually lines up with the data:
+if (interactive()) {
+  hh <- seq(plant$height*.5, plant$height*1.5, length=101)
+  gr <- sapply(hh, growth.rate.given.height, p2, env)
+  p2$height <- plant$height
+  h.focus <- plant$height
+  g.focus <- growth.rate.given.height(plant$height, p2, env)
+  plot(gr ~ hh, xlab="Height", ylab="Growth rate")
+  points(g.focus ~ h.focus, col="red", pch=19)
+  ## Intercept by solving y = m*x + c for c => (c = y - m * x).
+  abline(g.focus - dgdh * plant$height, dgdh)
+}
 
 ## Check with Richardson extrapolation (requires making a whole new
 ## Cohort object, as the Control slot is readonly).
@@ -71,10 +85,10 @@ ctrl$set_parameters(list(cohort_gradient_richardson=1))
 s2 <- new(Strategy)
 s2$control <- ctrl
 c2 <- new(CohortTop, s2)
-dgdm2 <- c2$growth_rate_gradient(env)
-expect_that(dgdm2, equals(dgdm.forward, tolerance=0.002))
-expect_that(dgdm2, equals(dgdm.simple, tolerance=0.002))
-expect_that(dgdm2, equals(dgdm.accurate))
+dgdh2 <- c2$growth_rate_gradient(env)
+expect_that(dgdh2, equals(dgdh.forward, tolerance=0.002))
+expect_that(dgdh2, equals(dgdh.simple, tolerance=0.002))
+expect_that(dgdh2, equals(dgdh.accurate))
 
 ## Then, start comparing ODE rates.
 dydt <- plant$ode_rates
@@ -86,7 +100,7 @@ patch.survival <- env$patch_survival(0)
 expect_that(coh$ode_rates,
             equals(c(dydt[1:2],
                      dydt[3] * patch.survival * coh$survival_probability,
-                     dydt[2] + dgdm)))
+                     dydt[2] + dgdh)))
 
 ## Delete to make sure we don't crash on cleanup
 rm(coh)
