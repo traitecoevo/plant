@@ -24,8 +24,10 @@ CohortTop::CohortTop(Strategy *s) :
 void CohortTop::compute_vars_phys(const Environment& environment) {
   Plant::compute_vars_phys(environment);
 
+  // [eqn 22] Density per unit area of individuals with size 'h'.
   // EBT.md{eq:boundN}, see Numerical technique.
-  log_density_rate = growth_rate_gradient(environment) + mortality_rate();
+  // details.md, for details on translation from mass_leaf to height.
+  log_density_rate = -growth_rate_gradient(environment) - mortality_rate();
 
   // EBT.md{eq:boundSurv}, see Numerical technique
   const double survival_patch = environment.patch_survival(time_of_birth);
@@ -35,7 +37,7 @@ void CohortTop::compute_vars_phys(const Environment& environment) {
 
 double CohortTop::leaf_area_above(double z) const {
   // EBT.md{eq:boundN}, and following section.
-  return exp(-log_density) * Plant::leaf_area_above(z);
+  return exp(log_density) * Plant::leaf_area_above(z);
 }
 
 int CohortTop::offspring() {
@@ -61,12 +63,13 @@ bool CohortTop::died() {
 // defined on p 7 at the moment.
 void CohortTop::compute_initial_conditions(const Environment& environment) {
   time_of_birth = environment.get_time();
+  const double pr_germ = germination_probability(environment);
   // EBT.md{eq:boundSurv}
-  set_mortality(-log(germination_probability(environment)));
+  set_mortality(-log(pr_germ));
   // EBT.md{eq:boundN}
   const double g = height_rate();
   const double seed_rain = environment.seed_rain_rate();
-  log_density = -log(g > 0 ? seed_rain / g : 0.0);
+  log_density = log(g > 0 ? seed_rain * pr_germ / g : 0.0);
 }
 
 // * ODE interface

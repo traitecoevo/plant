@@ -28,7 +28,7 @@ y <- plant$ode_values
 g <- plant$vars_phys[["height_growth_rate"]]
 expect_that(coh$ode_values,
             equals(c(y[1], -log(p.germ), y[3],
-                     -log(env$seed_rain_rate/g))))
+                     log(p.germ * env$seed_rain_rate/g))))
 
 ## First, need to compute the gradient of height growth rate with
 ## respect to height.  This check can be removed once everything seems
@@ -100,7 +100,7 @@ patch.survival <- env$patch_survival(0)
 expect_that(coh$ode_rates,
             equals(c(dydt[1:2],
                      dydt[3] * patch.survival * coh$survival_probability,
-                     dydt[2] + dgdh)))
+                     -dydt[2] - dgdh)))
 
 ## Delete to make sure we don't crash on cleanup
 rm(coh)

@@ -147,7 +147,7 @@ test_that("EBT and Patch agree", {
   expect_that(ebt$ode_values,
               equals(patch$ode_values, tolerance=1e-9))
   expect_that(ebt$ode_rates,
-              equals(patch$ode_rates,  tolerance=1e-9))
+              equals(patch$ode_rates,  tolerance=1e-8))
 })
 
 ## Then, check that resetting the cohort allows rerunning easily:
