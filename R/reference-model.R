@@ -72,18 +72,19 @@ save.reference.parameters <- function(p, path)
 ##' \item{popn}{A list of lists, one per strategy.  Each strategy's
 ##' list has components:
 ##' \describe{
-##'   \item{age}{Not sure!}
-##'   \item{coh_m}{Not sure!}
-##'   \item{coh_n}{Not sure!}
-##'   \item{coh_r}{Not sure!}
-##'   \item{bound_m}{Not sure!}
-##'   \item{bound_s}{Not sure!}
-##'   \item{bound_n}{Not sure!}
-##'   \item{bound_r}{Not sure!}
-##'   \item{d_bound_m}{Not sure!}
-##'   \item{d_bound_s}{Not sure!}
-##'   \item{d_bound_r}{Not sure!}
-##'   \item{popn}{Not sure!}
+##'   \item{age}{Age of the cohort at a given point in time.}
+##'   \item{coh_m}{Leaf mass of the mean individual of a cohort}
+##'   \item{coh_n}{Mean density (leaf mass, see eqn 22)}
+##'   \item{coh_r}{Mean seed production}
+##'   \item{bound_m}{Leaf mass of the boundary individual of a cohort}
+##'   \item{bound_s}{Boundary seed production}
+##'   \item{bound_n}{Boundary density (leaf mass, see eqn 22)}
+##'   \item{bound_r}{Boundary seed production}
+##'   \item{d_bound_m}{Time derivative of \code{bound_m}}
+##'   \item{d_bound_s}{Time derivative of \code{bound_s}}
+##'   \item{d_bound_r}{time derivative of \code{bound_r}}
+##'   \item{popn}{Matrix of physiological/demographic summary
+##'      statistics, one row per time.}
 ##' }}
 ##' \item{parameters}{A \code{\link{Parameters}} object}
 ##' @author Rich FitzJohn
