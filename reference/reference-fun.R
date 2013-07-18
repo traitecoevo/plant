@@ -44,10 +44,15 @@ tidyup.reference <- function(output, strategy) {
   rates$height <-
     rates$mass.leaf * dhdml(values$mass.leaf, strategy)
 
+  i.schedule <- grep("^add.cohort.[0-9]+$", names(output$patch_age))
+  schedule <- as.matrix(output$patch_age[i.schedule])
+  dimnames(schedule) <- NULL
+
   list(time=output$patch_age$age,
        values=values,
        rates=rates,
-       light.env=output$light.env)
+       light.env=output$light.env,
+       schedule=schedule)
 }
 
 ## Conversion functions.  Where should these go so that they are
@@ -99,10 +104,12 @@ run.ebt <- function(ebt) {
     rates  <- matrix(ebt$ode_rates,  4)
     rownames(values) <- rownames(rates) <-
       c("height", "mortality", "seeds", "log.density")
+    light.env <- ebt$patch$environment$light_environment$xy
+    colnames(light.env) <- c("height", "canopy.openness")
     list(time=ebt$time,
          values=values,
          rates=rates,
-         light.env=ebt$patch$environment$light_environment$xy)
+         light.env=light.env)
   }
   combine <- function(res) {
     time <- sapply(res, "[[", "time")
@@ -111,9 +118,11 @@ run.ebt <- function(ebt) {
     rates  <- lapply(res, "[[", "rates")
     vars <- rownames(values[[1]])
     values <- lapply(vars, function(v)
-                     pad.matrix(lapply(values, function(x) x[v,])))
+                     pad.matrix(lapply(values, function(x)
+                                       unname(x[v,]))))
     rates <- lapply(vars, function(v)
-                    pad.matrix(lapply(rates, function(x) x[v,])))
+                    pad.matrix(lapply(rates, function(x)
+                                      unname(x[v,]))))
     names(values) <- names(rates) <- vars
 
     light.env <- lapply(res, "[[", "light.env")
@@ -141,17 +150,15 @@ pad.matrix <- function(x) {
 }
 
 ## Resample the reference output down to a given set of times:
-resample.reference <- function(ref, t.new) {
-  t.old <- ref$time
-  if (!all(t.new %in% t.old))
-    stop("Cannot resample without nested times")
-  idx <- match(t.new, t.old)
+resample.reference <- function(ref) {
+  idx <- c(which(apply(ref$schedule, 1, any))[-1], nrow(ref$schedule))
   sample <- function(y.old)
     y.old[idx,,drop=FALSE]
-  list(time  = t.new,
-       values= lapply(ref$values, sample),
-       rates = lapply(ref$rates,  sample),
-       light.env = ref$light.env[idx])
+  ret <- list(time  = ref$time[idx],
+              values= lapply(ref$values, sample),
+              rates = lapply(ref$rates,  sample),
+              light.env = ref$light.env[idx])
+  remove.boundary.cohort(ret)
 }
 
 rescale.reference <- function(ref, t.new) {
@@ -159,7 +166,6 @@ rescale.reference <- function(ref, t.new) {
   scale <- function(y.old) {
     nok <- length(na.omit(y.old))
     t.min <- t.old[!is.na(y.old)][1]
-    # if (sum(is.na(y.old)) > 30) browser()
     if (nok < 2)
       ret <- numeric(0)
     else if (length(na.omit(y.old)) < 3)
@@ -170,7 +176,53 @@ rescale.reference <- function(ref, t.new) {
   }
   f <- function(m)
     apply(m, 2, scale)
-  list(time  = t.new,
-       values= lapply(ref$values, f),
-       rates = lapply(ref$rates,  f))
+  ret <- list(time  = t.new,
+              values= lapply(ref$values, f),
+              rates = lapply(ref$rates,  f))
+  remove.boundary.cohort(ret)
+}
+
+remove.boundary.cohort <- function(ref) {
+  ## Do we always drop the last two columns?  It might depend on if a
+  ## cohort is introduced.
+  f <- function(m) {
+    if (is.null(m))
+      return(m)
+    n <- nrow(m)
+    if (ncol(m) != n + 2)
+      stop("Unexpected size for output matrix")
+    m <- m[,-(n + 1:2)]
+    m[cbind(1:(n-1), 2:n)] <- NA
+    m
+  }
+
+  ref$values <- lapply(ref$values, f)
+  ref$rates  <- lapply(ref$rates,  f)
+  ref
+}
+
+## We expect to see 'evolve' in the directory pointed at by
+## PATH_EVOLVE:
+##   1. exists
+##   2. contains the 'evolve' program in src
+##   3. has the correct git hash
+##
+## This is a bit of a fragile hack around the fact that nobody will
+## actually have this installed globally on their system (in PATH or
+## something).  Once falster-traitdiversity is opened up on github, we
+## could just download it into tree's installed directory as needed.
+locate.evolve <- function() {
+  path.evolve <- Sys.getenv("PATH_EVOLVE")
+  path.evolve.cmd <- file.path(path.evolve, "src")
+  if (!(file.exists(path.evolve) &&
+        file.exists(file.path(path.evolve.cmd, "evolve"))))
+    stop("Could not find 'evolve': expected in ", path.evolve.cmd)
+
+  ## Executed in a subshell, so no risk of changing directory.
+  evolve.version <-
+    system(sprintf("(cd %s && git rev-parse HEAD)", path.evolve),
+           intern=TRUE)
+  if (evolve.version != "5b54f9245aa5afaff990580518b219c2924ab7b0")
+    warning("'evolve' version has changed")
+  path.evolve.cmd
 }

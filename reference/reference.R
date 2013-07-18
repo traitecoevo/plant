@@ -8,9 +8,9 @@ p$seed_rain <- 1.1
 p$set_parameters(list(patch_area=1.0)) # See issue #13
 
 path <- "ref-single"
-## Evolve path hard coded to my machine for now.
-## Running with version: d649534d6d92fd7343a57c9d26d51eec8e155f2d
-path.evolve <- "~/Documents/Projects/veg/falster-traitdiversity/src"
+path.evolve <- locate.evolve()
+
+## Run falster-traitdiversity
 run.reference(path, p, path.evolve=path.evolve, verbose=FALSE)
 
 ## Load all the reference output:
@@ -26,10 +26,15 @@ test_that("Output contains correct parameters", {
 ## former, but most commonly fails because of the latter.
 test_that("Output is as expected (harsh test)", {
   expect_that(output[names(output) != "parameters"],
-              has_hash("055af115ee5e17fceb8dad0ea337e9a7a528aecb"))
+              has_hash("f6d22a6383273d99491feacb78cee2eb113f4186"))
 })
 
-ref <- tidyup.reference(output, p[[1]])
+## The reference output exists at a superset of times that our output
+## exists at, because it is sampled at every ODE step (whereas we only
+## collect values at cohort introductions).  So, subsample the
+## reference output to the times that our output corresponds to.
+ref.full <- tidyup.reference(output, p[[1]])
+ref.sub  <- resample.reference(ref.full)
 
 ## 1: Disturbance:
 ## TODO: What to check about gamma?
@@ -75,135 +80,96 @@ ebt$cohort_schedule <- sched
 ## Do the run
 res.1 <- run.ebt(ebt)
 
-## Now, do a little post-processing.
+## Now, do a little post-processing, adding on variables that we want
+## to compare with the reference output.
 res.1$values$mass.leaf <-
   translate(res.1$values$height, height.to.mass.leaf, p[[1]])
 res.1$values$density <- exp(res.1$values$log.density)
 res.1$values$density.mass.leaf <-
   res.1$values$density * dhdml(res.1$values$mass.leaf, p[[1]])
 res.1$values$survival <- exp(-res.1$values$mortality)
+## These are scaled differently:
+##
+## NOTE: I think I'm actually in favour of running this with the Pi_0
+## *not* calculated through in the CohortTop, because it can't
+## possibly know that number.  We just need to make sure that we deal
+## with it later.  So during post-processing make sure that
+## calculation happens.
+res.1$values$seeds <- res.1$values$seeds * p$parameters$Pi_0
 
-## Good; these look about the same
-matplot(res.1$time, res.1$values$height, type="l", col="black", lty=1,
-        xlab="Time", ylab="Leaf mass")
-matlines(ref$time,  ref$values$height,   type="l", col="grey", lty=1)
+## Start the comparisons:
 
-## Plot the top cohort:
-plot(res.1$time, res.1$values$height[,1], type="l",
-     xlab="Time", ylab="Leaf mass")
-lines(ref$time,  ref$values$height[,1],   col="grey")
+show.comparison <- function(res, ref.full, ref.sub, v) {
+  if (interactive()) {
+    matplot(res$time, res[[v]], type="l", col="black", lty=1,
+            xlab="Time", ylab=paste(v, collapse=": "))
+    matlines(ref.full$time, ref.full[[v]], type="l", col="red", lty=2)
+    matlines(ref.sub$time, ref.sub[[v]], type="l", col="blue", lty=2)
+  }
+}
 
-ref.sub <- resample.reference(ref, res.1$time)
+## a. Height vs time
+show.comparison(res.1, ref.full, ref.sub, c("values", "height"))
 
-## Difference and relative difference are actually quite good (about
-## 1e-3 for relative difference).
-plot(res.1$time,
-     res.1$values$height[,1] - ref.sub$values$height[,1],
-     xlab="Time", ylab="Difference in height")
-plot(res.1$time,
-     (res.1$values$height[,1] - ref.sub$values$height[,1]) /
-     res.1$values$height[,1],
-     xlab="Time", ylab="Relative difference in height")
-
-## Expect agreement of the top cohort to .2%
+## The top few cohorts should really agree (0.02%, but the overall
+## matrix of results differs by a little more [0.2%])
 expect_that(res.1$values$height[,1],
             equals(ref.sub$values$height[,1], tolerance=0.0002))
+expect_that(res.1$values$height,
+            equals(ref.sub$values$height, tolerance=0.002))
 
-## Then, deal with the fact that we have a different set of data
-## reporting, missing some values.  These should all be brand new
-## cohorts.  It might be a good idea to rip these out during
-## processing, or add them in in my version.
-m <- ref.sub$values$height
-m <- m[,-c(ncol(m), ncol(m)-1)]
-i <- which(is.na(res.1$values$height) & !is.na(m))
-expect_that(length(unique(m[i])), equals(1))
-expect_that(unique(m[i]),
-            equals(new(CohortTop, p[[1]])$height))
-m[i] <- NA
+## b. Mortality
+show.comparison(res.1, ref.full, ref.sub, c("values", "mortality"))
 
-## Top cohorts should agree strongly, the others less so.
-expect_that(res.1$values$height[,1:10],
-            equals(m[,1:10], tolerance=0.001))
-expect_that(res.1$values$height, equals(m, tolerance=0.02))
+## Top cohorts should agree fairly strongly, the others less so.  We
+## disagree here to about 3%.
+expect_that(res.1$values$mortality[,1:10],
+            equals(ref.sub$values$mortality[,1:10], tolerance=0.005))
+expect_that(res.1$values$mortality,
+            equals(ref.sub$values$mortality, tolerance=0.03))
 
-## Mortalities look different, even for the top cohort.  So probably
-## some work to do here.
-matplot(res.1$time, res.1$values$mortality, type="l", col="black", lty=1,
-        xlab="Time", ylab="Mortality")
-matlines(ref$time,  ref$values$mortality,   type="l", col="grey", lty=1)
+## When translated into survival (which is what actually matters for
+## the model) the disagreement is much better.
+show.comparison(res.1, ref.full, ref.sub, c("values", "survival"))
+expect_that(res.1$values$survival[,1:10],
+            equals(ref.sub$values$survival[,1:10], tolerance=0.001))
+expect_that(res.1$values$survival,
+            equals(ref.sub$values$survival, tolerance=0.005))
 
-## here is the mortality variable for the top cohort.  We're starting
-## at the same point, but growing at quite a different rate.
-plot(res.1$time, res.1$values$mortality[,1], type="l")
-lines(ref$time,  ref$values$mortality[,1],   col="grey")
+## c. Seed output (weighted by survival)
 
-## This makes me wonder if we're actually looking at different light
-## environments [checked -- not the case]
-plot(res.1$time,
-     (res.1$values$mortality[,1] - ref.sub$values$mortality[,1]) /
-     res.1$values$mortality[,1],
-     xlab="Time", ylab="Relative difference in mortality")
-plot(res.1$time,
-     abs(res.1$values$mortality[,1] - ref.sub$values$mortality[,1]) /
-     res.1$values$mortality[,1],
-     xlab="Time", ylab="Relative difference in mortality", log="xy")
+## NOTE: I'm not sure I'm happy about this; we look a bit off here;
+## the top cohort is a little overproductive, and the bottom cohorts
+## are appear depressed.
+show.comparison(res.1, ref.full, ref.sub, c("values", "seeds"))
 
-## Seed output:
-## These look like they might be scaled incorrectly in my case.
-matplot(res.1$time, res.1$values$seeds, type="l", col="black", lty=1,
-        xlab="Time", ylab="Seeds")
-matlines(ref$time,  ref$values$seeds,   type="l", col="grey", lty=1)
+## Agree to within 1%
+expect_that(res.1$values$seeds,
+            equals(ref.sub$values$seeds, tolerance=0.01))
 
-## ...but the difference is larger than that.  .75 looks possibly
-## related to probability of survival during dispersal.
-plot(res.1$time,
-     (res.1$values$seeds[,1] - ref.sub$values$seeds[,1]) /
-     res.1$values$seeds[,1],
-     xlab="Time", ylab="Relative difference in seeds")
+## d. Density
 
-## Appling that fix brings this right down to about the right point,
-## with a consistent bias, but low enough that it doesn't monsterously
-## bother me.  The wavy line part is caused by a similar shape in the
-## size plot.  The rest of the bias could be anything.
-##
-## I think I'm actually in favour of running this with the Pi_0 *not*
-## calculated through in the CohortTop, because it can't possibly know
-## that number.  We just need to make sure that we deal with it
-## later.  So during post-processing make sure that calculation
-## happens.
-plot(res.1$time,
-     (res.1$values$seeds[,1]*.25 - ref.sub$values$seeds[,1]) /
-     res.1$values$seeds[,1]*.25,
-     xlab="Time", ylab="Relative difference in seeds")
+## For density, we still are not sure how to translate between the two
+## different units.  Because everything else agrees, it follows that
+## these should be OK.
 
-## Density:
-matplot(res.1$time, res.1$values$log.density, type="l", col="black", lty=1,
-        xlab="Time", ylab="Log density")
-matlines(ref$time,  ref$values$log.density,   type="l", col="grey", lty=1)
+## 3. Light environments
 
-matplot(res.1$time, res.1$values$density, type="l", col="black", lty=1,
-        xlab="Time", ylab="Density")
-matlines(ref$time,  ref$values$density,   type="l", col="grey", lty=1)
+## These are slightly tricky in that they need rescaling too.
+tr.light.env <- function(a, b)
+  cbind(height=b[,"height"],
+        canopy.openness=spline(a[,"height"], a[,"canopy.openness"],
+          xout=b[,"height"])$y)
 
-idx <- 50
-plot(res.1$values$log.density[idx,])
-plot(ref.sub$values$log.density[idx,])
+f <- function(i)
+  tr.light.env(res.1$light.env[[i]], ref.sub$light.env[[i]])
+res.1.light.env.stretched <- lapply(seq_along(res.1$light.env), f)
 
-## These look ok
-plot(output$strategies[[1]]$bound_n[60,])
-plot(log(output$strategies[[1]]$bound_n[60,]))
-plot(log(ref$values$density.mass.leaf[60,]))
-plot(log(ref.sub$values$density.mass.leaf[50,]))
-
-plot(ref.sub$values$density.mass.leaf[50,1:50] /
-     exp(res.1$values$density[50,1:50]))
-
-plot(ref.sub$values$density.mass.leaf[50,1:50] /
-     exp(res.1$values$density[50,1:50]), log="xy")
-## This is not related to the difference in form
-r <- unname(dmldh(res.1$values$height[50,1:50], p[[1]]))
-
-## These actually all look really good.
-idx <- 98
-plot(ref.sub$light.env[[idx]])
-lines(res.1$light.env[[idx]])
+## The tolerance varies with length of time; we do get progressively
+## worse as differences accumulate:
+expect_that(res.1.light.env.stretched[1:10],
+            equals(ref.sub$light.env[1:10]))
+expect_that(res.1.light.env.stretched[30:40],
+            equals(ref.sub$light.env[30:40], tolerance=1e-5))
+expect_that(res.1.light.env.stretched,
+            equals(ref.sub$light.env, tolerance=0.02))
