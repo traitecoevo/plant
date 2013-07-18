@@ -21,7 +21,7 @@
   added at that time point.} \item{seed_rain_out}{Vector of
   output seed rain, one entry per strategy/species}
   \item{light_env}{Light environment as one matrix per time
-  point. Each matrix has columns \code{h} (height) and
+  point. Each matrix has columns \code{height} (height) and
   \code{canopy.openness}.  These are always 50 rows long.}
   \item{popn}{A list of lists, one per strategy.  Each
   strategy's list has components: \describe{ \item{age}{Not

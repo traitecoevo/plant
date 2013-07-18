@@ -67,7 +67,7 @@ save.reference.parameters <- function(p, path)
 ##' \item{seed_rain_out}{Vector of output seed rain, one entry per
 ##' strategy/species}
 ##' \item{light_env}{Light environment as one matrix per time point.
-##' Each matrix has columns \code{h} (height) and
+##' Each matrix has columns \code{height} (height) and
 ##' \code{canopy.openness}.  These are always 50 rows long.}
 ##' \item{popn}{A list of lists, one per strategy.  Each strategy's
 ##' list has components:
@@ -124,7 +124,7 @@ load.reference.output <- function(path) {
   i.h <- grep("^H[0-9]+$", colnames(tmp))
   i.e <- grep("^E[0-9]+$", colnames(tmp))
   light.env <- lapply(seq_len(nrow(tmp)), function(i)
-                      cbind(h=unname(tmp[i, i.h]),
+                      cbind(height=unname(tmp[i, i.h]),
                             canopy.openness=unname(tmp[i, i.e])))
 
   ## Alternatively, but possibly more confusingly:
