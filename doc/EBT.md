@@ -139,7 +139,7 @@ The EBT solves the PDE describing development of $n(x,m,a)$ (Eq $\ref{eq:PDE}$) 
 
 Below we consider two alternative implementations of the EBT. Both require that we introduce a series of cohorts into a patch, and that these be transported along the characterstics of the Eq $\ref{eq:PDE}$ (see figure).
 
-![Cohorts in the EBT](EBT.png)
+![Cohorts in the EBT](figs/EBT.png)
 
 Let $\Omega = \left[m_0,m_+ \right) $ represent the entire state-space attainable by any individual and let the interior of $\Omega $ be subdivided into $k$ sub-domains  $$\Omega_i(a) = \left[m_{i=1}(a),m_i(a) \right) $$ , with $i=1,\dots, k$ and $m_0 < m_1<	\ldots<m_k = m_+$. If we allow these sub-domains to be transported through time along the characteristics of Eq $\ref{eq:PDE}$ , they will be closed to transport processes across their upper and lower boundaries.
 
