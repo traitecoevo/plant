@@ -3,7 +3,6 @@ src/tree.so.dSYM
 inst/tests/valgrind.txt
 inst/tests/valgrind.supp
 
-doc/EBT.pdf
-doc/details.pdf
+doc/*.pdf
 
 reference/ref-single
