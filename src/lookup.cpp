@@ -17,8 +17,9 @@ void Lookup::set_parameters(Rcpp::List x) {
   if (x.size() == 0)
     return;
   build_lookup();
-  std::vector<std::string> names = x.names();
+  const std::vector<std::string> names = x.names();
   check_keys(names);
+  validate_parameters(x);
 
   for (int i = 0; i < x.size(); ++i) {
     double *tmp = lookup(names[static_cast<size_t>(i)]);
@@ -34,6 +35,11 @@ bool Lookup::has_key(std::string key) const {
 
 // Default hook is to do nothing.
 void Lookup::set_parameters_post_hook() {
+}
+
+// Default check is always true
+bool Lookup::validate_parameters(Rcpp::List /* unused: x */) const {
+  return true;
 }
 
 void Lookup::build_lookup() {

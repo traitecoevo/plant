@@ -65,6 +65,7 @@ protected:
   lookup_type lookup_table;
   virtual void do_build_lookup() = 0;
   virtual void set_parameters_post_hook();
+  virtual bool validate_parameters(Rcpp::List x) const;
 
 private:
   void build_lookup();

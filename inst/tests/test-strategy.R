@@ -80,3 +80,12 @@ expect_that(s$control$parameters, is_identical_to(ctrl$parameters))
 ctrl$set_parameters(list(cohort_gradient_richardson=TRUE))
 s$control <- ctrl
 expect_that(s$control$parameters, is_identical_to(ctrl$parameters))
+
+## Negative parameters should cause failure:
+test_that("Negative parameters can't be set", {
+  new.err <- list(lma=-1e-7)
+  expect_that(new(Strategy, new.err), throws_error())
+  old <- s$parameters
+  expect_that(s$set_parameters(new.err), throws_error())
+  expect_that(s$parameters, is_identical_to(old))
+})

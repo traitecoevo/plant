@@ -90,6 +90,7 @@ private:
   void do_build_lookup();
   void reset();
   void set_parameters_post_hook();
+  bool validate_parameters(Rcpp::List x) const;
 };
 
 }

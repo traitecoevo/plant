@@ -157,4 +157,17 @@ void Strategy::set_parameters_post_hook() {
   Plant::prepare_strategy(this);
 }
 
+// Check that all parameters are non-negative (zeros are OK, even
+// though they will cause some problems).
+bool Strategy::validate_parameters(Rcpp::List x) const {
+  const std::vector<std::string> names = x.names();
+  for (int i = 0; i < x.size(); ++i) {
+    double tmp = Rcpp::as<double>(x[i]);
+    if (tmp < 0)
+      ::Rf_error("Parameter %s must be non-negative\n",
+		 names[static_cast<size_t>(i)].c_str());
+  }
+  return true;
+}
+
 }
