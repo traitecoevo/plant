@@ -18,7 +18,8 @@ public:
 				 double height_max);
   void rescale_light_environment(util::DFunctor *f_canopy_openness,
 				 double height_max);
-  double patch_survival(double time_at_birth) const;
+  double patch_survival() const;
+  double patch_survival_conditional(double time_at_birth) const;
   void clear();
 
   // NOTE: Interface here will change

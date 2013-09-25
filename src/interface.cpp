@@ -277,7 +277,9 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::Environment>("Environment")
     .constructor<model::Parameters>()
     .method("canopy_openness",   &model::Environment::canopy_openness)
-    .method("patch_survival",    &model::Environment::patch_survival)
+    .property("patch_survival",  &model::Environment::patch_survival)
+    .method("patch_survival_conditional",
+	    &model::Environment::patch_survival_conditional)
     .property("seed_rain_rate",  &model::Environment::seed_rain_rate)
     .property("time",
 	      &model::Environment::get_time,

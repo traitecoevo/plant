@@ -95,7 +95,7 @@ dydt <- plant$ode_rates
 coh$compute_vars_phys(env)
 
 env$time <- 10
-patch.survival <- env$patch_survival(0)
+patch.survival <- env$patch_survival
 
 expect_that(coh$ode_rates,
             equals(c(dydt[1:2],

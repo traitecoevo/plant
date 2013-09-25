@@ -45,7 +45,7 @@ private:
   double seeds_survival_weighted;
   double seeds_survival_weighted_rate;
 
-  double time_of_birth;
+  double pr_patch_survival_at_birth;
 
   static const int ode_dimension = 4;
 };

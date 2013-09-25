@@ -45,10 +45,15 @@ void Environment::rescale_light_environment(util::DFunctor *f_canopy_openness,
   light_environment.init_self();
 }
 
-// Computes the probability of survival from time_at_birth to time,
-// probably by conditioning survival over [0,time] on survival over
+// Computes the probability of survival from 0 to time.
+double Environment::patch_survival() const {
+  return disturbance_regime.pr_survival(time);
+}
+
+// Computes the probability of survival from time_at_birth to time, by
+// conditioning survival over [0,time] on survival over
 // [0,time_at_birth].
-double Environment::patch_survival(double time_at_birth) const {
+double Environment::patch_survival_conditional(double time_at_birth) const {
   return disturbance_regime.pr_survival_conditional(time, time_at_birth);
 }
 

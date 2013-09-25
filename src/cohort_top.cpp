@@ -10,7 +10,7 @@ CohortTop::CohortTop(Strategy s) :
   log_density_rate(0),
   seeds_survival_weighted(0),
   seeds_survival_weighted_rate(0),
-  time_of_birth(0) {
+  pr_patch_survival_at_birth(1) {
 }
 
 CohortTop::CohortTop(Strategy *s) :
@@ -19,7 +19,7 @@ CohortTop::CohortTop(Strategy *s) :
   log_density_rate(0),
   seeds_survival_weighted(0),
   seeds_survival_weighted_rate(0),
-  time_of_birth(0) {
+  pr_patch_survival_at_birth(1) {
 }
 
 void CohortTop::compute_vars_phys(const Environment& environment) {
@@ -33,9 +33,10 @@ void CohortTop::compute_vars_phys(const Environment& environment) {
     - mortality_rate();
 
   // EBT.md{eq:boundSurv}, see Numerical technique
-  const double survival_patch = environment.patch_survival(time_of_birth);
+  const double survival_patch = environment.patch_survival();
   seeds_survival_weighted_rate =
-    fecundity_rate() * survival_probability() * survival_patch;
+    fecundity_rate() * survival_probability() *
+    survival_patch / pr_patch_survival_at_birth;
 }
 
 double CohortTop::leaf_area_above(double z) const {
@@ -65,7 +66,7 @@ bool CohortTop::died() {
 // NOTE: The initial condition for log_density is also a bit tricky, and
 // defined on p 7 at the moment.
 void CohortTop::compute_initial_conditions(const Environment& environment) {
-  time_of_birth = environment.get_time();
+  pr_patch_survival_at_birth = environment.patch_survival();
   const double pr_germ = germination_probability(environment);
   // EBT.md{eq:boundSurv}
   set_mortality(-log(pr_germ));
