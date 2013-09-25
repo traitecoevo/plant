@@ -49,7 +49,7 @@ void Environment::rescale_light_environment(util::DFunctor *f_canopy_openness,
 // probably by conditioning survival over [0,time] on survival over
 // [0,time_at_birth].
 double Environment::patch_survival(double time_at_birth) const {
-  return disturbance_regime.survival_probability(time_at_birth, time);
+  return disturbance_regime.pr_survival_conditional(time, time_at_birth);
 }
 
 // Reset the environment.

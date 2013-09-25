@@ -36,9 +36,9 @@ expect_that(e$patch_survival(e$time), is_identical_to(1.0))
 disturbance <- new(Disturbance, 30.0)
 e$time <- 10
 expect_that(e$patch_survival(0),
-            is_identical_to(disturbance$survival_probability(0, e$time)))
+            is_identical_to(disturbance$pr_survival_conditional(e$time, 0)))
 expect_that(e$patch_survival(2),
-            is_identical_to(disturbance$survival_probability(2, e$time)))
+            is_identical_to(disturbance$pr_survival_conditional(e$time, 2)))
 
 
 rain.blank <- e$seed_rain

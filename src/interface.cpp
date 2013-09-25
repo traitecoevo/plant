@@ -151,9 +151,10 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<model::Disturbance>("Disturbance")
     .constructor<double>()
-    .method("survival_probability",
-	    &model::Disturbance::survival_probability)
     .method("density",         &model::Disturbance::density)
+    .method("pr_survival",     &model::Disturbance::pr_survival)
+    .method("pr_survival_conditional",
+	    &model::Disturbance::pr_survival_conditional)
     .property("mean_interval", &model::Disturbance::r_mean_interval);
     ;
 

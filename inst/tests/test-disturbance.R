@@ -35,8 +35,19 @@ disturbance <- make.disturbance(obj$mean_interval)
 
 tt <- seq(0, 100, length=101)
 test_that("Disturbance calculations are expected", {
-  expect_that(sapply(tt, function(t) obj$survival_probability(0, t)),
-              equals(disturbance$weight(0, tt)))
+  p.t <- sapply(tt, function(t) obj$pr_survival(t))
+  expect_that(p.t, equals(disturbance$Pi(tt)))
+
+  t.start <- 5
+  p.t2 <- sapply(tt, function(t) obj$pr_survival_conditional(t, t.start))
+  expect_that(p.t2, equals(disturbance$weight(t.start, tt)))
+
+  ## Check of the conditional distribution approach:
+  expect_that(p.t2,
+              equals(p.t / obj$pr_survival(t.start)))
+
+  expect_that(sapply(tt, function(t) obj$pr_survival_conditional(t, 0)),
+              equals(p.t))
   expect_that(sapply(tt, function(t) obj$density(t)),
               equals(disturbance$freq(tt)))
 })

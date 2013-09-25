@@ -11,21 +11,27 @@ Disturbance::Disturbance(double mean_interval_)
   p0 = shape*pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);
 }
 
-double Disturbance::survival_probability(double time_start,
-					 double time) const {
-  return survival0(time) / survival0(time_start);
-}
-
 double Disturbance::density(double time) const {
-  return p0 * survival0(time);
+  return p0 * pr_survival(time);
 }
 
 double Disturbance::r_mean_interval() const {
   return mean_interval;
 }
 
-double Disturbance::survival0(double time) const {
+// This is the probability that a patch survives from time 0 to time
+// 'time'.
+double Disturbance::pr_survival(double time) const {
   return exp(-scale * pow(time, shape));
 }
+
+// This is the conditional probability of surviving to 'time', given
+// that we were alive at 'time_start'.  It was used in the original
+// EBT implementation.
+double Disturbance::pr_survival_conditional(double time,
+					    double time_start) const {
+  return pr_survival(time) / pr_survival(time_start);
+}
+
 
 }

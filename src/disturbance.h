@@ -13,12 +13,12 @@ namespace model {
 class Disturbance {
 public:
   Disturbance(double mean_interval_);
-  double survival_probability(double time_start, double time) const;
   double density(double time) const;
   double r_mean_interval() const;
-private:
-  double survival0(double time) const;
+  double pr_survival(double time) const;
+  double pr_survival_conditional(double time, double time_start) const;
 
+private:
   double shape;
   double mean_interval;
   double scale;
