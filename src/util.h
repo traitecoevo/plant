@@ -200,6 +200,9 @@ std::vector<int> rbinom_multiple(std::vector<int>::iterator it,
 Rcpp::IntegerMatrix to_rcpp_matrix(std::vector< std::vector<int> > x);
 std::vector< std::vector<int> > from_rcpp_matrix(Rcpp::IntegerMatrix x);
 
+Rcpp::NumericMatrix to_rcpp_matrix(std::vector< std::vector<double> > x);
+std::vector< std::vector<double> > from_rcpp_matrix(Rcpp::NumericMatrix x);
+
 // Integration via the trapezium rule, for any containers that
 // implement the basics of iteration (const_iterator, begin, size)
 template <typename ContainerX, typename ContainerY>
@@ -240,8 +243,11 @@ std::vector<double> test_sum_double(std::vector<double> a,
 				    std::vector<double> b);
 std::vector<int> test_sum_int(std::vector<int> a,
 			      std::vector<int> b);
-Rcpp::IntegerMatrix test_to_rcpp_matrix(Rcpp::List x);
-Rcpp::List test_from_rcpp_matrix(Rcpp::IntegerMatrix x);
+Rcpp::IntegerMatrix test_to_rcpp_integer_matrix(Rcpp::List x);
+Rcpp::List test_from_rcpp_integer_matrix(Rcpp::IntegerMatrix x);
+
+Rcpp::NumericMatrix test_to_rcpp_numeric_matrix(Rcpp::List x);
+Rcpp::List test_from_rcpp_numeric_matrix(Rcpp::NumericMatrix x);
 }
 
 }

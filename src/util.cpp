@@ -91,6 +91,29 @@ std::vector< std::vector<int> > from_rcpp_matrix(Rcpp::IntegerMatrix x) {
   return ret;
 }
 
+// Given a vector-of-vectors, copy the vector x[i] into the ith
+// *column* of an Rcpp matrix.
+Rcpp::NumericMatrix to_rcpp_matrix(std::vector< std::vector<double> > x) {
+  const size_t n = x.size();
+  Rcpp::NumericMatrix ret(static_cast<int>(x.begin()->size()),
+			  static_cast<int>(n));
+  Rcpp::NumericMatrix::iterator it = ret.begin();
+  for (size_t i = 0; i < n; ++i)
+    it = std::copy(x[i].begin(), x[i].end(), it);
+  return ret;
+}
+
+// Unpack a matrix column-by-column into a vector of vectors.
+std::vector< std::vector<double> > from_rcpp_matrix(Rcpp::NumericMatrix x) {
+  std::vector< std::vector<double> > ret;
+  for (int i = 0; i < x.ncol(); ++i) {
+    Rcpp::NumericMatrix::Column x_col_i = x(Rcpp::_, i);
+    std::vector<double> xi(x_col_i.begin(), x_col_i.end());
+    ret.push_back(xi);
+  }
+  return ret;
+}
+
 // Remove the part saying "Rcpp_" at the beginning so that "Foo" and
 // "Rcpp_Foo" end up with the same value.
 std::string rcpp_class_demangle(std::string x) {
@@ -117,7 +140,7 @@ std::vector<int> test_sum_int(std::vector<int> a,
   return sum(a, b);
 }
 
-Rcpp::IntegerMatrix test_to_rcpp_matrix(Rcpp::List x) {
+Rcpp::IntegerMatrix test_to_rcpp_integer_matrix(Rcpp::List x) {
   if (x.size() == 0)
     ::Rf_error("Must give positive size 'x'");
   std::vector< std::vector<int> > tmp;
@@ -129,10 +152,31 @@ Rcpp::IntegerMatrix test_to_rcpp_matrix(Rcpp::List x) {
   return to_rcpp_matrix(tmp);
 }
 
-Rcpp::List test_from_rcpp_matrix(Rcpp::IntegerMatrix x) {
+Rcpp::List test_from_rcpp_integer_matrix(Rcpp::IntegerMatrix x) {
   std::vector< std::vector<int> > res = from_rcpp_matrix(x);
   Rcpp::List ret;
   for (std::vector< std::vector<int> >::iterator it = res.begin();
+       it != res.end(); ++it)
+    ret.push_back(Rcpp::wrap(*it));
+  return ret;
+}
+
+Rcpp::NumericMatrix test_to_rcpp_numeric_matrix(Rcpp::List x) {
+  if (x.size() == 0)
+    ::Rf_error("Must give positive size 'x'");
+  std::vector< std::vector<double> > tmp;
+  for (int i = 0; i < x.size(); ++i)
+    tmp.push_back(Rcpp::as< std::vector<double> >(x[i]));
+  const size_t n = tmp.begin()->size();
+  for (size_t i = 0; i < tmp.size(); ++i)
+    check_length(tmp[i].size(), n);
+  return to_rcpp_matrix(tmp);
+}
+
+Rcpp::List test_from_rcpp_numeric_matrix(Rcpp::NumericMatrix x) {
+  std::vector< std::vector<double> > res = from_rcpp_matrix(x);
+  Rcpp::List ret;
+  for (std::vector< std::vector<double> >::iterator it = res.begin();
        it != res.end(); ++it)
     ret.push_back(Rcpp::wrap(*it));
   return ret;

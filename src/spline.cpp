@@ -121,18 +121,11 @@ std::vector<double> Spline::get_y() const {
 }
 
 // Get the (x,y) pairs in the spline as a two-column matrix
-// NOTE: line 2 `ret(n, 2)` causes an error, but I don't see how to
-// cast my way out of it.
 Rcpp::NumericMatrix Spline::r_get_xy() const {
-  const size_t n = x.size();
-  Rcpp::NumericMatrix ret(static_cast<int>(n), 2);
-
-  for (size_t i = 0; i < n; ++i) {
-    ret(i,0) = x[i];
-    ret(i,1) = y[i];
-  }
-  
-  return ret;
+  std::vector< std::vector<double> > xy;
+  xy.push_back(x);
+  xy.push_back(y);
+  return util::to_rcpp_matrix(xy);
 }
 
 // Compute the value of the spline at a vector of points `x=u`,

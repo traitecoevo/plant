@@ -414,10 +414,14 @@ RCPP_MODULE(tree) {
 		 &model::test::compute_assimilation_spline);
   Rcpp::function("test_sum_double", &util::test::test_sum_double);
   Rcpp::function("test_sum_int",    &util::test::test_sum_int);
-  Rcpp::function("test_to_rcpp_matrix",
-		 &util::test::test_to_rcpp_matrix);
-  Rcpp::function("test_from_rcpp_matrix",
-		 &util::test::test_from_rcpp_matrix);
+  Rcpp::function("test_to_rcpp_integer_matrix",
+		 &util::test::test_to_rcpp_integer_matrix);
+  Rcpp::function("test_from_rcpp_integer_matrix",
+		 &util::test::test_from_rcpp_integer_matrix);
+  Rcpp::function("test_to_rcpp_numeric_matrix",
+		 &util::test::test_to_rcpp_numeric_matrix);
+  Rcpp::function("test_from_rcpp_numeric_matrix",
+		 &util::test::test_from_rcpp_numeric_matrix);
   Rcpp::function("test_gradient",   &util::test::test_gradient);
   Rcpp::function("test_gradient_richardson",
 		 &util::test::test_gradient_richardson);

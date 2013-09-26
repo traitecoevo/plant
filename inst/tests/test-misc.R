@@ -45,13 +45,18 @@ a <- runif(10)
 b <- runif(length(a))
 expect_that(test_sum_double(a, b), is_identical_to(a + b))
 
+expect_that(test_to_rcpp_numeric_matrix(list(a, b)),
+            is_identical_to(cbind(a, b, deparse.level=0)))
+expect_that(test_from_rcpp_numeric_matrix(cbind(a, b)),
+            is_identical_to(list(a, b)))
+
 a <- as.integer(a * 10)
 b <- as.integer(b * 10)
 expect_that(test_sum_int(a, b), is_identical_to(a + b))
 
-expect_that(test_to_rcpp_matrix(list(a, b)),
+expect_that(test_to_rcpp_integer_matrix(list(a, b)),
             is_identical_to(cbind(a, b, deparse.level=0)))
-expect_that(test_from_rcpp_matrix(cbind(a, b)),
+expect_that(test_from_rcpp_integer_matrix(cbind(a, b)),
             is_identical_to(list(a, b)))
 
 ## Test the simple finite differencing gradient function.
