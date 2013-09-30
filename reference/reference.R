@@ -173,3 +173,23 @@ expect_that(res.1.light.env.stretched[30:40],
             equals(ref.sub$light.env[30:40], tolerance=1e-5))
 expect_that(res.1.light.env.stretched,
             equals(ref.sub$light.env, tolerance=0.02))
+
+## 4. Overall fitness
+fitness.ref <- unname(output$seed_rain_out)
+
+## We need both cohort introduction times, and patch weights.  At the
+## moment, this is a bit of a hack.
+a <- sched$times(1)
+
+## Here are the patch weights, for patches born at times 'a'.
+d <- new(Disturbance, p$parameters[["mean_disturbance_interval"]])
+pa <- sapply(a, function(ai) d$density(ai))
+
+## Here is the total seed production -- this is per capita so we
+## multiply by the incoming seed rain.
+seeds <- res.1$values$seeds[nrow(res.1$values$seeds),]
+fitness.res <- trapezium(a, pa * seeds) * p$seed_rain
+
+## These do differ a bit, but that's OK given how differently they are
+## calculated.
+expect_that(fitness.res, equals(fitness.ref, tolerance=0.01))
