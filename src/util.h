@@ -172,6 +172,16 @@ bool identical(double a, double b) {
 #endif
 }
 
+// http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
+template<class T>
+bool almost_equal(T x, T y, int ulp) {
+  // the machine epsilon has to be scaled to the magnitude of the larger value
+  // and multiplied by the desired precision in ULPs (units in the last place)
+  return std::abs(x - y) <=   std::numeric_limits<T>::epsilon()
+    * std::max(std::abs(x), std::abs(y))
+    * ulp;
+}
+
 std::vector<int> rbinom_multiple(std::vector<int>::iterator it,
 				 std::vector<int>::iterator end,
 				 double p);

@@ -96,8 +96,10 @@ Solver<Problem>::Solver(Problem *problem_, OdeControl control_)
 // to work with this.
 template <class Problem>
 void Solver<Problem>::set_state(std::vector<double> y_, double t_) {
-  if (prev_times.size() > 0 && !util::identical(prev_times.back(), t_))
-    ::Rf_error("Time does not match previous. Reset solver first.");
+  const bool accuracy = 2; // d.p. of accuracy - see util.h
+  if (prev_times.size() > 0 &&
+      !util::almost_equal(prev_times.back(), t_, accuracy))
+    ::Rf_error("Time does not match previous (delta=%2.5e). Reset solver first.", prev_times.back() - t_);
   y    = y_;
   time = t_;
   if (prev_times.empty()) // only if first time (avoids duplicate times)
