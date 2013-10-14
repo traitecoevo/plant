@@ -73,6 +73,8 @@ double Species<CohortTop>::leaf_area_above(double height) const {
 
   for (++it; it != plants.end(); ++it) {
     const double h0 = it->height(), f_h0 = it->leaf_area_above(height);
+    if (!util::is_finite(f_h0))
+      ::Rf_error("Detected non-finite contribution");
     tot += (h1 - h0) * (f_h1 + f_h0);
     // Upper point moves for next time:
     h1   = h0;
