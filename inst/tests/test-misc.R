@@ -101,13 +101,17 @@ gradient.fd.forward <- function(f, x, dx)
   (f(x + dx) - f(x)) / dx
 gradient.fd.centre <- function(f, x, dx)
   (f(x + dx/2) - f(x - dx/2)) / dx
+gradient.fd.backward <- function(f, x, dx)
+  (f(x - dx) - f(x)) / (-dx)
 
 dx <- 0.001
 x <- 1
-expect_that(test_gradient(x, dx, FALSE, pars),
+expect_that(test_gradient(x, dx, 1, pars),
             is_identical_to(gradient.fd.forward(f, x, dx)))
-expect_that(test_gradient(x, dx, TRUE, pars),
+expect_that(test_gradient(x, dx, 0, pars),
             is_identical_to(gradient.fd.centre(f, x, dx)))
+expect_that(test_gradient(x, dx, -1, pars),
+            is_identical_to(gradient.fd.backward(f, x, dx)))
 
 library(numDeriv)
 method.args <- list(d=1e-6, eps=1e-6)

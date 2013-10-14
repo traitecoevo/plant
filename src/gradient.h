@@ -9,10 +9,12 @@ namespace util {
 double gradient_fd_forward(DFunctor *f, double x, double dx, double fx);
 double gradient_fd_forward(DFunctor *f, double x, double dx);
 double gradient_fd_centre(DFunctor *f, double x, double dx);
+double gradient_fd_backward(DFunctor *f, double x, double dx, double fx);
+double gradient_fd_backward(DFunctor *f, double x, double dx);
 double gradient_richardson(DFunctor *f, double x, double d, size_t r);
 
 namespace test {
-double test_gradient(double x, double dx, bool centre,
+double test_gradient(double x, double dx, int type,
 		     std::vector<double> pars);
 double test_gradient_richardson(double x, double d, size_t r,
 				std::vector<double> pars);
