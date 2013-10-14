@@ -63,6 +63,7 @@ public:
   void r_set_height(std::vector<double> x);
   Rcpp::List r_get_plants() const;
   Individual r_at(size_t idx) const;
+  Individual r_seed() const;
   int r_n_individuals() const;
   void r_compute_vars_phys(const Environment& environment);
 
@@ -211,6 +212,11 @@ Individual Species<Individual>::r_at(size_t idx) const {
   plants_const_iterator p = plants.begin();
   std::advance(p, util::check_bounds_r(idx, size()));
   return *p;
+}
+
+template <class Individual>
+Individual Species<Individual>::r_seed() const {
+  return seed;
 }
 
 template <class Individual>

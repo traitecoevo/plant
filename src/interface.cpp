@@ -275,18 +275,21 @@ RCPP_MODULE(tree) {
     .constructor<model::Strategy>()
     .derives<model::SpeciesBase>("SpeciesBase")
     .method("[[", &model::Species<model::Plant>::r_at)
+    .property("seed", &model::Species<model::Plant>::r_seed)
     ;
 
   Rcpp::class_< model::Species<model::CohortDiscrete> >("SpeciesC")
     .constructor<model::Strategy>()
     .derives<model::SpeciesBase>("SpeciesBase")
     .method("[[", &model::Species<model::CohortDiscrete>::r_at)
+    .property("seed", &model::Species<model::CohortDiscrete>::r_seed)
     ;
 
   Rcpp::class_< model::Species<model::CohortTop> >("SpeciesCT")
     .constructor<model::Strategy>()
     .derives<model::SpeciesBase>("SpeciesBase")
     .method("[[", &model::Species<model::CohortTop>::r_at)
+    .property("seed", &model::Species<model::CohortTop>::r_seed)
     ;
 
   Rcpp::class_<model::Environment>("Environment")
