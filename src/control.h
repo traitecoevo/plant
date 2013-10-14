@@ -28,6 +28,7 @@ public:
   int    plant_seed_iterations;
 
   double cohort_gradient_eps;
+  int    cohort_gradient_direction;
   bool   cohort_gradient_richardson;
   size_t cohort_gradient_richardson_depth;
 
@@ -58,6 +59,7 @@ private:
 
   double _plant_seed_iterations;
 
+  double _cohort_gradient_direction;
   double _cohort_gradient_richardson;
   double _cohort_gradient_richardson_depth;
 

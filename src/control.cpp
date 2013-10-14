@@ -28,6 +28,7 @@ void Control::reset() {
   plant_seed_iterations = 1000;
 
   cohort_gradient_eps = 1e-6;
+  cohort_gradient_direction = 1;
   cohort_gradient_richardson = false;
   cohort_gradient_richardson_depth = 4;
 
@@ -57,6 +58,8 @@ void Control::reset() {
   _plant_seed_iterations =
     static_cast<double>(plant_seed_iterations);
 
+  _cohort_gradient_direction =
+    static_cast<double>(cohort_gradient_direction);
   _cohort_gradient_richardson =
     static_cast<double>(cohort_gradient_richardson);
   _cohort_gradient_richardson_depth =
@@ -92,6 +95,8 @@ void Control::do_build_lookup() {
 
   lookup_table["cohort_gradient_eps"] = 
     &cohort_gradient_eps;
+  lookup_table["cohort_gradient_direction"] =
+    &_cohort_gradient_direction;
   lookup_table["cohort_gradient_richardson"] =
     &_cohort_gradient_richardson;
   lookup_table["cohort_gradient_richardson_depth"] =
@@ -133,6 +138,8 @@ void Control::set_parameters_post_hook() {
   plant_seed_iterations =
     static_cast<int>(_plant_seed_iterations);
 
+  cohort_gradient_direction =
+    static_cast<int>(_cohort_gradient_direction);
   cohort_gradient_richardson = _cohort_gradient_richardson != 0.0;
   cohort_gradient_richardson_depth =
     static_cast<size_t>(_cohort_gradient_richardson_depth);

@@ -8,6 +8,7 @@ obj <- ctrl$parameters
 
 expected <- list(
   cohort_gradient_eps = 1e-6,
+  cohort_gradient_direction = as.numeric(1L),
   cohort_gradient_richardson = as.numeric(FALSE),
   cohort_gradient_richardson_depth = as.numeric(4L),
   environment_light_max_depth= as.numeric(16),

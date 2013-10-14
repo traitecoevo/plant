@@ -120,9 +120,12 @@ double CohortTop::growth_rate_gradient(const Environment& environment) const {
   if (control().cohort_gradient_richardson) {
     const size_t r = control().cohort_gradient_richardson_depth;
     grad = util::gradient_richardson(&fun, height(), eps, r);
-  } else {
+  } else if (control().cohort_gradient_direction > 0) {
     grad = util::gradient_fd_forward(&fun, height(),
 				     eps, height_rate());
+  } else {
+    grad = util::gradient_fd_backward(&fun, height(),
+				      eps, height_rate());
   }
   return grad;
 }
