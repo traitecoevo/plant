@@ -21,7 +21,6 @@ public:
   double integrate_with_intervals(util::DFunctor *f,
 				  intervals_type intervals);
 
-  // TODO: last_area inconsistent with QK::get_last_result()
   double get_last_area()       const {return area;}
   double get_last_error()      const {return error;}
   size_t get_last_iterations() const {return iteration;}

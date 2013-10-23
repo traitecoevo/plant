@@ -13,10 +13,10 @@ public:
   double integrate(util::DFunctor *f, double a, double b);
 
   // These are super simple, so inline:
-  double get_last_result()     const {return last_result;    }
-  double get_last_error()      const {return last_error;     }
-  double get_last_result_abs() const {return last_result_abs;}
-  double get_last_result_asc() const {return last_result_asc;}
+  double get_last_area()     const {return last_result;    }
+  double get_last_error()    const {return last_error;     }
+  double get_last_area_abs() const {return last_result_abs;}
+  double get_last_area_asc() const {return last_result_asc;}
 
   // * R interface
   double r_integrate(util::RFunctionWrapper fun, double a, double b);

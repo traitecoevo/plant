@@ -37,15 +37,15 @@ test_that("Integration agrees with R on simple problem", {
   expect_that(int.61$last_error,         equals(error.R))
 
   ## These should all be different.
-  expect_that(identical(int.15$last_result, int.21$last_result),
+  expect_that(identical(int.15$last_area, int.21$last_area),
               is_false())
-  expect_that(identical(int.21$last_result, int.31$last_result),
+  expect_that(identical(int.21$last_area, int.31$last_area),
               is_false())
-  expect_that(identical(int.31$last_result, int.41$last_result),
+  expect_that(identical(int.31$last_area, int.41$last_area),
               is_false())
-  expect_that(identical(int.41$last_result, int.51$last_result),
+  expect_that(identical(int.41$last_area, int.51$last_area),
               is_false())
-  expect_that(identical(int.51$last_result, int.61$last_result),
+  expect_that(identical(int.51$last_area, int.61$last_area),
               is_false())
 
 })

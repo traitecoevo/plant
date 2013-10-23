@@ -91,8 +91,8 @@ bool QAG::initialise(util::DFunctor *f, double a, double b) {
   area  = p.area;
   error = p.error;
   // More information from the last integration:
-  const double resabs = q.get_last_result_abs();
-  const double resasc = q.get_last_result_asc();
+  const double resabs = q.get_last_area_abs();
+  const double resasc = q.get_last_area_asc();
   // Limits for checking against:
   const double tolerance = std::max(epsabs, epsrel * std::abs(area));
   const double round_off =
@@ -127,11 +127,11 @@ bool QAG::refine(util::DFunctor *f) {
   // Integrate lhs:
   const internal::workspace::point p1 = do_integrate(f, a1, b1);
   const double area1 = p1.area, error1 = p1.error;
-  const double resasc1 = q.get_last_result_asc();
+  const double resasc1 = q.get_last_area_asc();
   // Integrate rhs:
   const internal::workspace::point p2 = do_integrate(f, a2, b2);
   const double area2 = p2.area, error2 = p2.error;
-  const double resasc2 = q.get_last_result_asc();
+  const double resasc2 = q.get_last_area_asc();
 
   const double area12 = area1 + area2;
   const double error12 = error1 + error2;
