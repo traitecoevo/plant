@@ -392,6 +392,11 @@ RCPP_MODULE(tree) {
     .property("ode_times",       &model::EBT::r_ode_times)
     ;
 
+  Rcpp::class_<util::RFunctionWrapper>("RFunctionWrapper")
+    .constructor<SEXP, SEXP>()
+    .method("target", &util::RFunctionWrapper::target)
+    ;
+
   // Template helper functions
   Rcpp::function("species",       &model::species);
   Rcpp::function("patch",         &model::patch);

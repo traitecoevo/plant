@@ -12,6 +12,18 @@ double helper_functor(double x, void *data) {
   return (*f)(x);
 }
 
+RFunctionWrapper::RFunctionWrapper(SEXP fun_, SEXP env_)
+  : fun(fun_), env(env_) {
+}
+
+double RFunctionWrapper::target(double x) {
+  return REAL(Rf_eval(Rf_lang2(fun, Rf_ScalarReal(x)), env))[0];
+}
+
+double RFunctionWrapper::operator()(double x) {
+  return target(x);
+}
+
 namespace test {
 
 std::vector<double> test_functor(std::vector<double> x, 

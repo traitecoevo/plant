@@ -25,6 +25,7 @@
 ##' @export Plant
 ##' @export PlantApprox
 ##' @export PlantSpline
+##' @export RFunctionWrapper
 ##' @export Species
 ##' @export SpeciesBase
 ##' @export SpeciesC

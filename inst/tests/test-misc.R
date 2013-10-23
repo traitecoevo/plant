@@ -12,6 +12,11 @@ f <- with(as.list(pars), function(x) a*x*x + b*x + c)
 expect_that(test_functor(xx, pars),
             equals(f(xx)))
 
+## Test with RFunctionWrapper:
+f.wrapped <- new(RFunctionWrapper, f, new.env())
+expect_that(sapply(xx, function(x) f.wrapped$target(x)),
+            is_identical_to(f(xx)))
+
 ## Find root correctly?
 ## uniroot(f, c(x.min, x.max))$root
 

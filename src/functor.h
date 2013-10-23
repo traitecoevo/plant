@@ -6,6 +6,7 @@
 // reluctant to depend on boost because it's so massive.
 
 #include <vector> // for test_functor
+#include <Rcpp.h> // for SEXP
 
 namespace util {
 
@@ -34,6 +35,16 @@ private:
 // and the "data" parameter as the pointer to the functor object.
 double helper_functor(double x, void *data);
 
+// This is a wrapper for creating a functor from an R function.
+class RFunctionWrapper : public DFunctor {
+public:
+  RFunctionWrapper(SEXP fun_, SEXP env_);
+  double target(double x);
+  double operator()(double x);
+private:
+  SEXP fun, env;
+};
+
 // This is used for testing in a couple of places.
 namespace test {
 
@@ -51,5 +62,7 @@ std::vector<double> test_functor(std::vector<double> x,
 }
 
 }
+
+RCPP_EXPOSED_CLASS(util::RFunctionWrapper)
 
 #endif
