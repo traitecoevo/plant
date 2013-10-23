@@ -6,7 +6,6 @@
 
 #include "environment.h"
 #include "ode_target.h"
-#include "integrator.h"
 #include "strategy.h"
 #include "spline.h"
 #include "functor.h"

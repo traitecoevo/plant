@@ -4,29 +4,29 @@
 namespace model {
 
 Strategy::Strategy()
-  : integrator(control.plant_assimilation_tol,
-	       control.plant_assimilation_tol,
+  : integrator(control.plant_assimilation_rule,
 	       control.plant_assimilation_iterations,
-	       control.plant_assimilation_rule) {
+	       control.plant_assimilation_tol,
+	       control.plant_assimilation_tol) {
   reset();
   set_parameters_post_hook();
 }
 
 Strategy::Strategy(Rcpp::List x)
-  : integrator(control.plant_assimilation_tol,
-	       control.plant_assimilation_tol,
+  : integrator(control.plant_assimilation_rule,
 	       control.plant_assimilation_iterations,
-	       control.plant_assimilation_rule) {
+	       control.plant_assimilation_tol,
+	       control.plant_assimilation_tol) {
   reset();
   set_parameters(x);
 }
 
 void Strategy::set_control(Control x) {
   control = x;
-  util::Integrator new_integrator(control.plant_assimilation_tol,
-				  control.plant_assimilation_tol,
+  integration::QAG new_integrator(control.plant_assimilation_rule,
 				  control.plant_assimilation_iterations,
-				  control.plant_assimilation_rule);
+				  control.plant_assimilation_tol,
+				  control.plant_assimilation_tol);
   integrator = new_integrator;
 }
 

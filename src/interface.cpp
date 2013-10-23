@@ -33,7 +33,6 @@
 
 #include "functor.h"
 #include "find_root.h"
-#include "integrator.h"
 #include "quadrature.h"
 #include "integration.h"
 #include "gradient.h"
@@ -428,7 +427,6 @@ RCPP_MODULE(tree) {
   Rcpp::function("test_functor",    &util::test::test_functor);
   Rcpp::function("test_find_root",  &util::test::test_find_root);
   Rcpp::function("test_find_value", &util::test::test_find_value);
-  Rcpp::function("test_integrator", &util::test::test_integrator);
   Rcpp::function("test_adaptive_spline", 
 		 &spline::test::test_adaptive_spline);
   Rcpp::function("test_plant",      &model::test::test_plant);
@@ -447,8 +445,4 @@ RCPP_MODULE(tree) {
 		 &util::set_sane_gsl_error_handling);
   Rcpp::function("trapezium", 
 		 &util::trapezium< std::vector<double>, std::vector<double> >);
-  Rcpp::function("integrator_gsl_rule",
-		 &util::Integrator::gsl_rule);
-  Rcpp::function("integrator_gsl_rule_name",
-		 &util::Integrator::gsl_rule_name);
 }

@@ -1,5 +1,4 @@
 #include "control.h"
-#include "integrator.h"
 
 namespace model {
 
@@ -22,7 +21,7 @@ void Control::reset() {
   plant_assimilation_over_distribution = false;
   plant_assimilation_tol = 1e-6;
   plant_assimilation_iterations = 1000;
-  plant_assimilation_rule = util::Integrator::gsl_rule("GAUSS21");
+  plant_assimilation_rule = 21;
 
   plant_seed_tol = 1e-6;
   plant_seed_iterations = 1000;
@@ -133,7 +132,7 @@ void Control::set_parameters_post_hook() {
   plant_assimilation_iterations =
     static_cast<size_t>(_plant_assimilation_iterations);
   plant_assimilation_rule =
-    static_cast<int>(_plant_assimilation_rule);
+    static_cast<size_t>(_plant_assimilation_rule);
 
   plant_seed_iterations =
     static_cast<int>(_plant_seed_iterations);

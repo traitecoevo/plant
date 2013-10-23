@@ -34,8 +34,6 @@
 ##' @export SpeciesCT
 ##' @export Spline
 ##' @export Strategy
-##' @export integrator_gsl_rule
-##' @export integrator_gsl_rule_name
 ##' @export make.reference
 ##' @export metacommunity
 ##' @export patch
@@ -48,7 +46,6 @@
 ##' @export test_functor
 ##' @export test_gradient
 ##' @export test_gradient_richardson
-##' @export test_integrator
 ##' @export test_plant
 ##' @export test_sum_double
 ##' @export test_sum_int
