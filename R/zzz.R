@@ -25,6 +25,7 @@
 ##' @export Plant
 ##' @export PlantApprox
 ##' @export PlantSpline
+##' @export QAG
 ##' @export QK
 ##' @export RFunctionWrapper
 ##' @export Species

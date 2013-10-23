@@ -35,6 +35,7 @@
 #include "find_root.h"
 #include "integrator.h"
 #include "quadrature.h"
+#include "integration.h"
 #include "gradient.h"
 
 #ifdef __clang__
@@ -405,6 +406,14 @@ RCPP_MODULE(tree) {
     .property("last_error",      &integration::QK::get_last_error)
     .property("last_result_abs", &integration::QK::get_last_result_abs)
     .property("last_result_asc", &integration::QK::get_last_result_asc)
+    ;
+
+  Rcpp::class_<integration::QAG>("QAG")
+    .constructor<size_t, size_t, double, double>()
+    .method("integrate",         &integration::QAG::r_integrate)
+    .property("last_area",       &integration::QAG::get_last_area)
+    .property("last_error",      &integration::QAG::get_last_error)
+    .property("last_iterations", &integration::QAG::get_last_iterations)
     ;
 
   // Template helper functions
