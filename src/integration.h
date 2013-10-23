@@ -15,16 +15,23 @@ namespace integration {
 // Gaussian.  Does not handle infinite intervals or singularities.
 class QAG {
 public:
+  typedef std::vector< std::vector<double> > intervals_type;
   QAG(size_t rule, size_t max_iterations, double atol, double rtol);
   double integrate(util::DFunctor *f, double a, double b);
+  double integrate_with_intervals(util::DFunctor *f,
+				  intervals_type intervals);
 
   // TODO: last_area inconsistent with QK::get_last_result()
   double get_last_area()       const {return area;}
   double get_last_error()      const {return error;}
   size_t get_last_iterations() const {return iteration;}
+  intervals_type get_last_intervals() const;
 
   // * R interface
   double r_integrate(util::RFunctionWrapper fun, double a, double b);
+  double r_integrate_with_intervals(util::RFunctionWrapper fun,
+				    Rcpp::List intervals);
+  Rcpp::List r_get_last_intervals() const;
 
 private:
   internal::workspace::point do_integrate(util::DFunctor *f,

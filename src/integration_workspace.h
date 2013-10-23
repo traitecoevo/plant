@@ -3,6 +3,7 @@
 #define TREE_INTEGRATION_WORKSPACE_H_
 
 #include <list>
+#include <vector>
 
 namespace integration {
 namespace internal {
@@ -34,10 +35,12 @@ public:
   double total_area() const;
   double total_error() const;
 
-  void insert_forward(point el);
-  void insert_backward(point el);
+  void push_back(point el);
+  std::vector< std::vector<double> > get_intervals() const;
 
 private:
+  void insert_forward(point el);
+  void insert_backward(point el);
   void drop_worst();
   points_iter search_forward(double error);
   points_iter search_backward(double error);

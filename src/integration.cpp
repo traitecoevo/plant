@@ -34,9 +34,49 @@ double QAG::integrate(util::DFunctor *f, double a, double b) {
   return area;
 }
 
+double QAG::integrate_with_intervals(util::DFunctor *f,
+				     intervals_type intervals) {
+  std::vector<double>::const_iterator
+    a     = intervals[0].begin(),
+    b     = intervals[1].begin(),
+    a_end = intervals[0].end();
+  w.clear();
+  while (a != a_end) {
+    w.push_back(do_integrate(f, *a, *b));
+    ++a;
+    ++b;
+  }
+  area  = w.total_area();
+  error = w.total_error();
+  return area;
+}
+
+QAG::intervals_type QAG::get_last_intervals() const {
+  return w.get_intervals();
+}
+
+Rcpp::List QAG::r_get_last_intervals() const {
+  intervals_type tmp = get_last_intervals();
+  return Rcpp::List::create(Rcpp::_["a"] = tmp[0],
+			    Rcpp::_["b"] = tmp[1]);
+}
+
 // * R interface
 double QAG::r_integrate(util::RFunctionWrapper fun, double a, double b) {
   return integrate(&fun, a, b);
+}
+
+double QAG::r_integrate_with_intervals(util::RFunctionWrapper fun,
+				       Rcpp::List intervals) {
+  util::check_length(static_cast<size_t>(intervals.size()), 2);
+  intervals_type tmp;
+  tmp.push_back(Rcpp::as< std::vector<double> >(intervals[0]));
+  tmp.push_back(Rcpp::as< std::vector<double> >(intervals[1]));
+
+  if (tmp[0].size() != tmp[1].size())
+    ::Rf_error("Intervals must have the same length");
+
+  return integrate_with_intervals(&fun, tmp);
 }
 
 internal::workspace::point QAG::do_integrate(util::DFunctor *f,
@@ -59,7 +99,7 @@ bool QAG::initialise(util::DFunctor *f, double a, double b) {
     50 * std::numeric_limits<double>::epsilon() * resabs;
 
   w.clear();
-  w.insert_forward(p);
+  w.push_back(p);
 
   roundoff_type1 = 0;
   roundoff_type2 = 0;

@@ -35,12 +35,28 @@ double workspace::total_error() const {
   return tot;
 }
 
+void workspace::push_back(point el) {
+  points.push_back(el);
+}
+
 void workspace::insert_forward(point el) {
   points.insert(search_forward(el.error), el);
 }
 
 void workspace::insert_backward(point el) {
   points.insert(search_backward(el.error), el);
+}
+
+std::vector< std::vector<double> > workspace::get_intervals() const {
+  std::vector<double> a, b;
+  for (points_const_iter p = points.begin(); p != points.end(); ++p) {
+    a.push_back(p->a);
+    b.push_back(p->b);
+  }
+  std::vector< std::vector<double> > ret;
+  ret.push_back(a);
+  ret.push_back(b);
+  return ret;
 }
 
 void workspace::drop_worst() {

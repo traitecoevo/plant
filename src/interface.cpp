@@ -411,9 +411,12 @@ RCPP_MODULE(tree) {
   Rcpp::class_<integration::QAG>("QAG")
     .constructor<size_t, size_t, double, double>()
     .method("integrate",         &integration::QAG::r_integrate)
+    .method("integrate_with_intervals",
+	    &integration::QAG::r_integrate_with_intervals)
     .property("last_area",       &integration::QAG::get_last_area)
     .property("last_error",      &integration::QAG::get_last_error)
     .property("last_iterations", &integration::QAG::get_last_iterations)
+    .property("last_intervals",  &integration::QAG::get_last_intervals)
     ;
 
   // Template helper functions
