@@ -34,6 +34,7 @@
 #include "functor.h"
 #include "find_root.h"
 #include "integrator.h"
+#include "quadrature.h"
 #include "gradient.h"
 
 #ifdef __clang__
@@ -395,6 +396,15 @@ RCPP_MODULE(tree) {
   Rcpp::class_<util::RFunctionWrapper>("RFunctionWrapper")
     .constructor<SEXP, SEXP>()
     .method("target", &util::RFunctionWrapper::target)
+    ;
+
+  Rcpp::class_<integration::QK>("QK")
+    .constructor<size_t>()
+    .method("integrate",         &integration::QK::r_integrate)
+    .property("last_result",     &integration::QK::get_last_result)
+    .property("last_error",      &integration::QK::get_last_error)
+    .property("last_result_abs", &integration::QK::get_last_result_abs)
+    .property("last_result_asc", &integration::QK::get_last_result_asc)
     ;
 
   // Template helper functions
