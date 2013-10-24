@@ -98,7 +98,7 @@ private:
   double canopy_openness(double height);
 
   void compute_light_environment();
-  void scale_light_environment();
+  void rescale_light_environment();
   void compute_vars_phys();
 
   std::vector<int> germination(std::vector<int> seeds);
@@ -208,7 +208,7 @@ Patch<Individual>::set_ode_values(double time,
   it = ode::set_ode_values(species.begin(), species.end(), time, it);
   environment.set_time(time);
   if (parameters->control.environment_light_rescale_usually)
-    scale_light_environment();
+    rescale_light_environment();
   else
     compute_light_environment();
   compute_vars_phys();
@@ -294,9 +294,9 @@ void Patch<Individual>::compute_light_environment() {
 }
 
 template <class Individual>
-void Patch<Individual>::scale_light_environment() {
+void Patch<Individual>::rescale_light_environment() {
   util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
-  environment.scale_light_environment(&fun, height_max());
+  environment.rescale_light_environment(&fun, height_max());
 }
 
 // Given the light environment, "apply" it to every species so that
@@ -402,7 +402,11 @@ void Patch<Individual>::r_set_height(Rcpp::List x) {
   util::check_length(static_cast<size_t>(x.size()), size());
   for (size_t i = 0; i < size(); ++i)
     species[i].r_set_height(x[static_cast<int>(i)]);
-  scale_light_environment();
+
+  if (parameters->control.environment_light_rescale_usually)
+    rescale_light_environment();
+  else
+    compute_light_environment();
 }
 
 template <class Individual>

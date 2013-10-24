@@ -27,17 +27,21 @@ void Environment::compute_light_environment(util::DFunctor *f_canopy_openness,
 						 0, height_max);
 }
 
-void Environment::scale_light_environment(util::DFunctor *f_canopy_openness,
-					  double height_max) {
-  std::vector<double> x = light_environment.get_x();
+void Environment::rescale_light_environment(util::DFunctor *f_canopy_openness,
+					    double height_max) {
+  std::vector<double> h = light_environment.get_x();
+  const double min = light_environment.min(),
+    max_old = light_environment.max();
   light_environment.clear();
-  const double r = height_max / x.back();
-  for (size_t i = 0; i < x.size() - 1; ++i) {
-    const double xi = x[i] * r;
-    light_environment.add_point(xi, (*f_canopy_openness)(xi));
+
+  util::rescale(h.begin(), h.end(), min, max_old, min, height_max);
+  h[h.size() - 1] = height_max; // avoid round-off issues
+
+  for (std::vector<double>::const_iterator hi = h.begin();
+       hi != h.end(); ++hi) {
+    light_environment.add_point(*hi, (*f_canopy_openness)(*hi));
   }
-  light_environment.add_point(height_max,
-			      (*f_canopy_openness)(height_max));
+
   light_environment.init_self();
 }
 

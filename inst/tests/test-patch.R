@@ -150,26 +150,36 @@ test_that("Patch growth matched expectation", {
   expect_that(patch$time, is_within_interval(0.0, 15.0))
 })
 
-env1 <- patch$environment$light_environment
-h <- patch$height
+## Test the patch rescaling when changing height:
+ctrl.new <- list(environment_light_rescale_usually=TRUE)
+p$set_control_parameters(ctrl.new)
+patch.scale <- new(Patch, p)
+patch.scale$add_seedlings(1)
+patch.scale$add_seedlings(1)
+patch.scale$set_ode_values(patch$time, patch$ode_values)
+patch.scale$compute_light_environment()
+
+## Then, add new plants and force a rescale of the light environment
+env1 <- patch.scale$environment$light_environment
+h <- patch.scale$height
 r <- 1.1
 h[] <- lapply(h, function(x) x * r)
 
 ## Setting new heights will cause the light environment to be scaled
 ## (but not recalculated by default).
-patch$height <- h
-env2 <- patch$environment$light_environment
+patch.scale$height <- h
+env2 <- patch.scale$environment$light_environment
 
 test_that("Light environment is scaled", {
   expect_that(nrow(env2), is_identical_to(nrow(env1)))
   expect_that(range(env2$xy[,1]), is_identical_to(c(0, max(unlist(h)))))
   expect_that(env2$xy[,1], equals(env1$xy[,1] * r))
-  expect_that(sapply(env2$xy[,1], patch$canopy_openness),
+  expect_that(sapply(env2$xy[,1], patch.scale$canopy_openness),
               is_identical_to(env2$xy[,2]))
 })
 
-patch$compute_light_environment()
-env3 <- patch$environment$light_environment
+patch.scale$compute_light_environment()
+env3 <- patch.scale$environment$light_environment
 test_that("Recomputed light environment would be different", {
   expect_that(nrow(env3$xy), is_greater_than(nrow(env2$xy)))
 })

@@ -1,4 +1,5 @@
 #include "integration_workspace.h"
+#include "util.h"
 
 #include <algorithm> // min_element, max_element
 
@@ -93,14 +94,10 @@ intervals_type rescale_intervals(intervals_type x,
   const double
     min_old = *std::min_element(a.begin(), a.end()),
     max_old = *std::max_element(b.begin(), b.end());
-  const double scale = (max - min) / (max_old - min_old);
-  std::vector<double>::iterator ai = a.begin(), bi = b.begin();
-  while (ai != a.end()) {
-    *ai = (*ai - min_old) * scale + min;
-    *bi = (*bi - min_old) * scale + min;
-    ++ai;
-    ++bi;
-  }
+
+  util::rescale(a.begin(), a.end(), min_old, max_old, min, max);
+  util::rescale(b.begin(), b.end(), min_old, max_old, min, max);
+
   intervals_type ret;
   ret.push_back(a);
   ret.push_back(b);

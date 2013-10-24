@@ -30,6 +30,17 @@ void check_length(size_t received, size_t expected);
 void check_dimensions(size_t recieved_rows, size_t recieved_cols,
 		      size_t expected_rows, size_t expected_cols);
 
+template <class ForwardIterator>
+void rescale(ForwardIterator first, ForwardIterator last,
+	     double min_old, double max_old,
+	     double min_new, double max_new) {
+  const double scale = (max_new - min_new) / (max_old - min_old);
+  while (first != last) {
+    *first = min_new + (*first - min_old) * scale;
+    ++first;
+  }
+}
+
 // Rcpp converts size_t -> numeric, and I want to be able to preserve
 // NA values while doing base 0 to base 1 index conversion (and v.v.).
 // This should take the guesswork and remembering out, and should keep
