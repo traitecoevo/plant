@@ -98,7 +98,7 @@ compare.parameters <- function(p1, p2)
                    tree:::reference.from.parameters(p2)))
 
 ## Collect all variables at each cohort introduction.
-run.ebt <- function(ebt) {
+run.ebt <- function(ebt, max.t=Inf) {
   collect <- function() {
     values <- matrix(ebt$ode_values, 4)
     rates  <- matrix(ebt$ode_rates,  4)
@@ -136,7 +136,7 @@ run.ebt <- function(ebt) {
   res <- list()
   ebt$reset()
 
-  while (ebt$cohort_schedule$remaining > 0) {
+  while (ebt$cohort_schedule$remaining > 0 && ebt$time < max.t) {
     ebt$run_next()
     res <- c(res, list(collect()))
   }
