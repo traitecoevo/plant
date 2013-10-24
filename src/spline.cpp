@@ -90,6 +90,12 @@ double Spline::eval(double u) const {
   return gsl_spline_eval(spline, u, acc);
 }
 
+double Spline::deriv(double u) const {
+  if (spline == NULL)
+    ::Rf_error("Spline not initialised -- cannot evaluate");
+  return gsl_spline_eval_deriv(spline, u, acc);
+}
+
 // Return the number of (x,y) pairs contained in the spline.
 size_t Spline::size() const {
   return x.size();
@@ -136,6 +142,14 @@ std::vector<double> Spline::r_eval(std::vector<double> u) const {
   std::vector<double> ret(n);
   for (size_t i = 0; i < n; ++i)
     ret[i] = eval(u[i]);
+  return ret;
+}
+
+std::vector<double> Spline::r_deriv(std::vector<double> u) const {
+  const size_t n = u.size();
+  std::vector<double> ret(n);
+  for (size_t i = 0; i < n; ++i)
+    ret[i] = deriv(u[i]);
   return ret;
 }
 

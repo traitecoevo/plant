@@ -29,6 +29,7 @@ public:
   void clear();
 
   double eval(double u) const;
+  double deriv(double u) const;
   size_t size() const;
 
   double min() const;
@@ -40,6 +41,7 @@ public:
   // * R interface
   Rcpp::NumericMatrix r_get_xy() const;
   std::vector<double> r_eval(std::vector<double> u) const;
+  std::vector<double> r_deriv(std::vector<double> u) const;
 
 protected:
   std::vector<double> x, y;

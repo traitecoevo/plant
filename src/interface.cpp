@@ -53,6 +53,7 @@ RCPP_MODULE(tree) {
     .constructor<bool>()
     .method("init",   &spline::Spline::init)
     .method("eval",   &spline::Spline::r_eval)
+    .method("deriv",  &spline::Spline::r_deriv)
     .property("x",    &spline::Spline::get_x)
     .property("y",    &spline::Spline::get_y)
     .property("xy",   &spline::Spline::r_get_xy)

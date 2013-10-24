@@ -36,6 +36,11 @@ test_that("Splines are accurate enough", {
   expect_that(yy.C, equals(yy.cmp, tolerance=1e-6))
 })
 
+test_that("Spline derivatives are correct", {
+  cmp.deriv <- splinefun(xx, yy)(xx.cmp, deriv=1L)
+  expect_that(s$deriv(xx.cmp), equals(cmp.deriv, tolerance=1e-5))
+})
+
 ## Akima splines:
 a <- new(Spline, TRUE)
 test_that("Empty Akima splines behave sensibly", {
