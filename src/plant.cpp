@@ -339,8 +339,9 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 // NOTE: In contrast with Daniel's implementation (but following
 // Falster 2012), we do not normalise by Y*c_bio here.
 double Plant::compute_assimilation(const Environment& environment) {
-  FunctorBind1<Plant, const Environment&,
-	       &Plant::compute_assimilation_x> fun(this, environment);
+  util::FunctorBind1<Plant, const Environment&,
+		     &Plant::compute_assimilation_x>
+    fun(this, environment);
   const bool over_distribution =
     control().plant_assimilation_over_distribution;
   const double x_min = 0, x_max = over_distribution ? 1 : vars.height;
@@ -477,8 +478,11 @@ double Plant::mass_total_given_height(double h) {
 //
 // which is shorter and probably a little faster.  Really not sure
 // what is best.
+//
+// NOTE: That because of my shitty functor design, this *can't* be
+// const, even though it really is...
 double Plant::assimilation_given_height(double h,
-					const Environment &environment) const {
+					const Environment &environment) {
   Plant cpy = *this;
   cpy.set_height(h);
   return cpy.compute_assimilation(environment);

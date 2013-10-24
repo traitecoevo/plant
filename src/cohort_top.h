@@ -50,20 +50,6 @@ private:
   static const int ode_dimension = 4;
 };
 
-// Painfully copied from Plant, but because we need a non-const
-// version.
-template <class T, class T2, double (T::*target)(double, T2)>
-class FunctorBind2 : public util::DFunctor {
-public:
-  FunctorBind2(T *obj_, T2 arg2_) : obj(obj_), arg2(arg2_) {}
-  virtual double operator()(double x) {
-    return (obj->*target)(x, arg2);
-  }
-private:
-  T* obj;
-  T2 arg2;
-};
-
 }
 
 RCPP_EXPOSED_CLASS(model::CohortTop)

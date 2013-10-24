@@ -45,6 +45,41 @@ private:
   SEXP fun, env;
 };
 
+// To prepare for the integration in `compute_assimilation` we need to
+// convert the function `compute_assimilation_x(double, util::Spline*)
+// to take just a double as an argument.  Boost has the ability to
+// bind arguments which would be nice here, but we're avoiding
+// depending on that for the time being.
+//
+// This binds the second argument, assuming a const method.  All a bit
+// of a hack, but it does seem to work correctly.
+template <class T, class T2, double (T::*target)(double, T2) const>
+class FunctorBind1 : public util::DFunctor {
+public:
+  FunctorBind1(const T *obj_, T2 arg2_) : obj(obj_), arg2(arg2_) {}
+  virtual double operator()(double x) {
+    return (obj->*target)(x, arg2);
+  }
+
+private:
+  const T* obj;
+  T2 arg2;
+};
+
+// Painfully copied from Plant, but because we need a non-const
+// version.
+template <class T, class T2, double (T::*target)(double, T2)>
+class FunctorBind2 : public util::DFunctor {
+public:
+  FunctorBind2(T *obj_, T2 arg2_) : obj(obj_), arg2(arg2_) {}
+  virtual double operator()(double x) {
+    return (obj->*target)(x, arg2);
+  }
+private:
+  T* obj;
+  T2 arg2;
+};
+
 // This is used for testing in a couple of places.
 namespace test {
 

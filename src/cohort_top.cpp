@@ -1,5 +1,6 @@
 #include "cohort_top.h"
 #include "gradient.h"
+#include "functor.h"
 
 namespace model {
 
@@ -122,8 +123,9 @@ double CohortTop::growth_rate_gradient(const Environment& environment,
 				       intervals) const {
   CohortTop tmp = *this;
   tmp.set_integration_intervals(intervals);
-  FunctorBind2<CohortTop, const Environment&,
-	       &CohortTop::growth_rate_given_height> fun(&tmp, environment);
+  util::FunctorBind2<CohortTop, const Environment&,
+		     &CohortTop::growth_rate_given_height>
+    fun(&tmp, environment);
 
   const double eps = control().cohort_gradient_eps;
   double grad;

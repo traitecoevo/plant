@@ -35,7 +35,7 @@ public:
   virtual bool died() = 0;
   virtual double
   assimilation_given_height(double h,
-			    const Environment &environment) const = 0;
+			    const Environment &environment) = 0;
   // * R interface
   virtual Strategy r_get_strategy() const = 0;
   virtual Rcpp::NumericVector r_get_vars_size() const = 0;
@@ -95,7 +95,7 @@ public:
   static void prepare_strategy(Strategy *s);
 
   double assimilation_given_height(double h,
-				   const Environment &environment) const;
+				   const Environment &environment);
 
   // * R interface
   Strategy r_get_strategy() const;
@@ -190,28 +190,6 @@ private:
 namespace test {
 bool test_plant(Strategy s, bool copy, bool ptr);
 }
-
-
-// To prepare for the integration in `compute_assimilation` we need to
-// convert the function `compute_assimilation_x(double, util::Spline*)
-// to take just a double as an argument.  Boost has the ability to
-// bind arguments which would be nice here, but we're avoiding
-// depending on that for the time being.
-// 
-// This binds the second argument, assuming a const method.  All a bit
-// of a hack, but it does seem to work correctly.
-template <class T, class T2, double (T::*target)(double, T2) const>
-class FunctorBind1 : public util::DFunctor {
-public:
-  FunctorBind1(const T *obj_, T2 arg2_) : obj(obj_), arg2(arg2_) {}
-  virtual double operator()(double x) {
-    return (obj->*target)(x, arg2);
-  }
-  
-private:
-  const T* obj;
-  T2 arg2;
-};
 
 }
 
