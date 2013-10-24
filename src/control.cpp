@@ -22,6 +22,7 @@ void Control::reset() {
   plant_assimilation_tol = 1e-6;
   plant_assimilation_iterations = 1000;
   plant_assimilation_rule = 21;
+  plant_assimilation_reuse_intervals = true;
 
   plant_seed_tol = 1e-6;
   plant_seed_iterations = 1000;
@@ -53,6 +54,8 @@ void Control::reset() {
     static_cast<double>(plant_assimilation_iterations);
   _plant_assimilation_rule =
     static_cast<double>(plant_assimilation_rule);
+  _plant_assimilation_reuse_intervals =
+    static_cast<double>(plant_assimilation_reuse_intervals);
 
   _plant_seed_iterations =
     static_cast<double>(plant_seed_iterations);
@@ -86,6 +89,8 @@ void Control::do_build_lookup() {
     &_plant_assimilation_iterations;
   lookup_table["plant_assimilation_rule"] =
     &_plant_assimilation_rule;
+  lookup_table["plant_assimilation_reuse_intervals"] =
+    &_plant_assimilation_reuse_intervals;
 
   lookup_table["plant_seed_tol"] =
     &plant_seed_tol;
@@ -133,6 +138,8 @@ void Control::set_parameters_post_hook() {
     static_cast<size_t>(_plant_assimilation_iterations);
   plant_assimilation_rule =
     static_cast<size_t>(_plant_assimilation_rule);
+  plant_assimilation_reuse_intervals =
+    _plant_assimilation_reuse_intervals != 0.0;
 
   plant_seed_iterations =
     static_cast<int>(_plant_seed_iterations);

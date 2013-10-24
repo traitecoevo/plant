@@ -272,6 +272,15 @@ const Control& Plant::control() const {
   return strategy->control;
 }
 
+// This is all fairly unfortunate.  Perhaps it will change later?
+integration::intervals_type Plant::get_last_integration_intervals() const {
+  return strategy->integrator.get_last_intervals();
+}
+
+void Plant::set_integration_intervals(integration::intervals_type x) {
+  integration_intervals = x;
+}
+
 // * Private methods
 
 // * Individual size
@@ -332,10 +341,32 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 double Plant::compute_assimilation(const Environment& environment) {
   FunctorBind1<Plant, const Environment&,
 	       &Plant::compute_assimilation_x> fun(this, environment);
-  const double x_max = control().plant_assimilation_over_distribution ?
-    1 : vars.height;
-  return vars.leaf_area *
-    strategy->integrator.integrate(&fun, 0.0, x_max);
+  const bool over_distribution =
+    control().plant_assimilation_over_distribution;
+  const double x_min = 0, x_max = over_distribution ? 1 : vars.height;
+  double A = 0.0;
+
+  // This whole section exists only because of working around
+  // CohortTop, where we want to recompute the photosynthetic integral
+  // using the same grid that we refined onto before.  This would
+  // probably be heaps more efficient if we worked with references or
+  // iterators and avoided the copying that is going on here.
+  // Conceptually, this probably belongs in its own function.
+  if (control().plant_assimilation_reuse_intervals &&
+      integration_intervals.size() == 2) {
+    if (over_distribution) {
+      A = strategy->integrator.integrate_with_intervals(&fun,
+							integration_intervals);
+    } else {
+      // In theory we might not have to to scale if we're doing
+      // backward differencing.
+      A = strategy->integrator.integrate_with_intervals(&fun,
+							integration::internal::rescale_intervals(integration_intervals, x_min, x_max));
+    }
+  } else {
+    A = strategy->integrator.integrate(&fun, x_min, x_max);
+  }
+  return vars.leaf_area * A;
 }
 
 // This is used in the calculation of assimilation by

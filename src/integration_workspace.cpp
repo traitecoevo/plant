@@ -1,5 +1,7 @@
 #include "integration_workspace.h"
 
+#include <algorithm> // min_element, max_element
+
 namespace integration {
 namespace internal {
 void workspace::clear() {
@@ -47,13 +49,13 @@ void workspace::insert_backward(point el) {
   points.insert(search_backward(el.error), el);
 }
 
-std::vector< std::vector<double> > workspace::get_intervals() const {
+intervals_type workspace::get_intervals() const {
   std::vector<double> a, b;
   for (points_const_iter p = points.begin(); p != points.end(); ++p) {
     a.push_back(p->a);
     b.push_back(p->b);
   }
-  std::vector< std::vector<double> > ret;
+  intervals_type ret;
   ret.push_back(a);
   ret.push_back(b);
   return ret;
@@ -83,5 +85,27 @@ workspace::points_iter workspace::search_backward(double error) {
   } while (p != points.begin() && p->error < error);
   return ++p;
 }
+
+
+intervals_type rescale_intervals(intervals_type x,
+				 double min, double max) {
+  std::vector<double> a = x[0], b = x[1];
+  const double
+    min_old = *std::min_element(a.begin(), a.end()),
+    max_old = *std::max_element(b.begin(), b.end());
+  const double scale = (max - min) / (max_old - min_old);
+  std::vector<double>::iterator ai = a.begin(), bi = b.begin();
+  while (ai != a.end()) {
+    *ai = (*ai - min_old) * scale + min;
+    *bi = (*bi - min_old) * scale + min;
+    ++ai;
+    ++bi;
+  }
+  intervals_type ret;
+  ret.push_back(a);
+  ret.push_back(b);
+  return ret;
+}
+
 }
 }

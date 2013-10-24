@@ -15,7 +15,6 @@ namespace integration {
 // Gaussian.  Does not handle infinite intervals or singularities.
 class QAG {
 public:
-  typedef std::vector< std::vector<double> > intervals_type;
   QAG(size_t rule, size_t max_iterations, double atol, double rtol);
   double integrate(util::DFunctor *f, double a, double b);
   double integrate_with_intervals(util::DFunctor *f,

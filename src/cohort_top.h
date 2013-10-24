@@ -30,12 +30,13 @@ public:
   ode::iterator       ode_rates(ode::iterator it)  const;
 
   // * R interface
-  double r_growth_rate_gradient(const Environment& environment) const;
+  double r_growth_rate_gradient(const Environment& environment);
   double r_growth_rate_given_height(double height_,
 				    const Environment& environment);
 
 private:
-  double growth_rate_gradient(const Environment& environment) const;
+  double growth_rate_gradient(const Environment& environment,
+			      integration::intervals_type intervals) const;
   double growth_rate_given_height(double height_,
 				  const Environment& environment);
 

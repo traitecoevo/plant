@@ -101,6 +101,8 @@ public:
   // * Access the Control parameter (who needs this?)
 protected:
   const Control& control() const;
+  integration::intervals_type get_last_integration_intervals() const;
+  void set_integration_intervals(integration::intervals_type x);
 
 private:
   // * Individual size
@@ -174,6 +176,7 @@ private:
 
   Strategy::ptr strategy;
   internals vars;
+  integration::intervals_type integration_intervals;
 
   static const int ode_dimension = 3;
 };

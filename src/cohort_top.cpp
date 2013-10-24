@@ -27,7 +27,9 @@ void CohortTop::compute_vars_phys(const Environment& environment) {
   // [eqn 22] Density per unit area of individuals with size 'h'.
   // EBT.md{eq:boundN}, see Numerical technique.
   // details.md, for details on translation from mass_leaf to height.
-  log_density_rate = -growth_rate_gradient(environment) - mortality_rate();
+  log_density_rate =
+    - growth_rate_gradient(environment, get_last_integration_intervals())
+    - mortality_rate();
 
   // EBT.md{eq:boundSurv}, see Numerical technique
   const double survival_patch = environment.patch_survival(time_of_birth);
@@ -102,9 +104,9 @@ ode::iterator CohortTop::ode_rates(ode::iterator it) const {
   return it;
 }
 
-double CohortTop::r_growth_rate_gradient(const Environment& environment)
-  const {
-  return growth_rate_gradient(environment);
+double CohortTop::r_growth_rate_gradient(const Environment& environment) {
+  Plant::compute_vars_phys(environment);
+  return growth_rate_gradient(environment, get_last_integration_intervals());
 }
 double
 CohortTop::r_growth_rate_given_height(double height_,
@@ -115,8 +117,11 @@ CohortTop::r_growth_rate_given_height(double height_,
 // This is the gradient of height_rate with respect to height.  It is
 // needed for computing the derivative (wrt time) of the log_density of
 // individuals.
-double CohortTop::growth_rate_gradient(const Environment& environment) const {
+double CohortTop::growth_rate_gradient(const Environment& environment,
+				       integration::intervals_type
+				       intervals) const {
   CohortTop tmp = *this;
+  tmp.set_integration_intervals(intervals);
   FunctorBind2<CohortTop, const Environment&,
 	       &CohortTop::growth_rate_given_height> fun(&tmp, environment);
 

@@ -6,6 +6,9 @@
 #include <vector>
 
 namespace integration {
+
+typedef std::vector< std::vector<double> > intervals_type;
+
 namespace internal {
 
 // These are used to simplify the book-keeping in the integrator, but
@@ -36,7 +39,7 @@ public:
   double total_error() const;
 
   void push_back(point el);
-  std::vector< std::vector<double> > get_intervals() const;
+  intervals_type get_intervals() const;
 
 private:
   void insert_forward(point el);
@@ -47,7 +50,8 @@ private:
   std::list<point> points;
 };
 
-
+intervals_type rescale_intervals(intervals_type x,
+				 double min, double max);
 }
 }
 

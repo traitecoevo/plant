@@ -25,6 +25,7 @@ expected <- list(
   plant_assimilation_iterations = as.numeric(1000L),
   plant_assimilation_rule = as.numeric(21),
   plant_assimilation_over_distribution = as.numeric(FALSE),
+  plant_assimilation_reuse_intervals = as.numeric(TRUE),
   plant_assimilation_tol = as.numeric(1e-6),
   plant_seed_iterations = as.numeric(1000L),
   plant_seed_tol = as.numeric(1e-6)

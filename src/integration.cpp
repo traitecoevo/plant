@@ -36,7 +36,7 @@ double QAG::integrate(util::DFunctor *f, double a, double b) {
 
 double QAG::integrate_with_intervals(util::DFunctor *f,
 				     intervals_type intervals) {
-  std::vector<double>::const_iterator
+    std::vector<double>::const_iterator
     a     = intervals[0].begin(),
     b     = intervals[1].begin(),
     a_end = intervals[0].end();
@@ -51,7 +51,7 @@ double QAG::integrate_with_intervals(util::DFunctor *f,
   return area;
 }
 
-QAG::intervals_type QAG::get_last_intervals() const {
+intervals_type QAG::get_last_intervals() const {
   return w.get_intervals();
 }
 
