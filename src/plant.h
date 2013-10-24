@@ -33,6 +33,9 @@ public:
   virtual double germination_probability(const Environment& environment) = 0;
   virtual int offspring() = 0;
   virtual bool died() = 0;
+  virtual double
+  assimilation_given_height(double h,
+			    const Environment &environment) const = 0;
   // * R interface
   virtual Strategy r_get_strategy() const = 0;
   virtual Rcpp::NumericVector r_get_vars_size() const = 0;
@@ -90,6 +93,9 @@ public:
 
   // * Set constants within Strategy
   static void prepare_strategy(Strategy *s);
+
+  double assimilation_given_height(double h,
+				   const Environment &environment) const;
 
   // * R interface
   Strategy r_get_strategy() const;

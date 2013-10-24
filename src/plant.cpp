@@ -462,12 +462,35 @@ double Plant::mass_total_given_height(double h) {
   return vars.mass_total;
 }
 
+// TODO: We can either do this in a non-modifying way with a copy of
+// Plant:
+//
+//     Plant cpy = *this;
+//     cpy.set_height(h);
+//     return compute_assimilation(environment);
+//
+// in which this case this can be a const method, which seems safer,
+// or we can do it in a way that modifies the underlying object:
+//
+//    set_height(h);
+//    return compute_assimilation(environment);
+//
+// which is shorter and probably a little faster.  Really not sure
+// what is best.
+double Plant::assimilation_given_height(double h,
+					const Environment &environment) const {
+  Plant cpy = *this;
+  cpy.set_height(h);
+  return cpy.compute_assimilation(environment);
+}
+
 // NOTE: static method.
 void Plant::prepare_strategy(Strategy *s) {
   s->eta_c = 1 - 2/(1 + s->eta) + 1/(1 + 2*s->eta);
   s->k_l = s->a4 * pow(s->lma, -s->B4);
   s->height_0 = height_seed(s);
 }
+
 
 // * R interface
 Strategy Plant::r_get_strategy() const {

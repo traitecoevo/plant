@@ -206,6 +206,26 @@ cmp.run <- unname(rk(y, tt, derivs.d, pars.derivs,
 expect_that(t(obj$run(tt, y)),
             equals(cmp.run, tolerance=1e-7))
 
+## Then, test the one-shot assimilation function.
+test_that("One shot assimilation function works", {
+  s$control <- new(Control)
+  p.cmp <- new(Plant, s)
+
+  set.seed(1)
+  hh <- runif(10, 1, 10)
+  aa <- sapply(hh, function(h) p.cmp$assimilation_given_height(h, env))
+  aa.R <- sapply(hh, function(h) cmp$assimilation.plant(h, light.env))/
+    cmp.const
+
+  foo <- function(h, p, env) {
+    p$height <- h
+    p$compute_vars_phys(env)
+    p$vars_phys[["assimilation"]]
+  }
+  expect_that(aa, is_identical_to(sapply(hh, foo, p, env)))
+  expect_that(aa, equals(aa.R))
+})
+
 ## Delete the plant -- should not crash.
 rm(p)
 gc()

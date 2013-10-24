@@ -183,6 +183,8 @@ RCPP_MODULE(tree) {
     .method("offspring",            &model::Plant::offspring)
     .method("died",                 &model::Plant::r_died)
     .property("survival_probability",  &model::Plant::survival_probability)
+    .method("assimilation_given_height",
+	    &model::Plant::assimilation_given_height)
     // R specific access
     .property("strategy",           &model::Plant::r_get_strategy)
     .property("vars_size",          &model::Plant::r_get_vars_size)
