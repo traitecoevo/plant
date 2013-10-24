@@ -31,6 +31,8 @@ public:
 
   // * R interface
   double r_growth_rate_gradient(const Environment& environment) const;
+  double r_growth_rate_given_height(double height_,
+				    const Environment& environment);
 
 private:
   double growth_rate_gradient(const Environment& environment) const;

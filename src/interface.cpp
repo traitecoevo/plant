@@ -223,6 +223,8 @@ RCPP_MODULE(tree) {
 	    &model::CohortTop::compute_initial_conditions)
     .method("growth_rate_gradient",
 	    &model::CohortTop::r_growth_rate_gradient)
+    .method("growth_rate_given_height",
+	    &model::CohortTop::r_growth_rate_given_height)
     ;
 
   Rcpp::class_<model::CohortSchedule>("CohortSchedule")

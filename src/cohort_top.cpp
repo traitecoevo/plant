@@ -106,6 +106,11 @@ double CohortTop::r_growth_rate_gradient(const Environment& environment)
   const {
   return growth_rate_gradient(environment);
 }
+double
+CohortTop::r_growth_rate_given_height(double height_,
+				      const Environment& environment) {
+  return growth_rate_given_height(height_, environment);
+}
 
 // This is the gradient of height_rate with respect to height.  It is
 // needed for computing the derivative (wrt time) of the log_density of
