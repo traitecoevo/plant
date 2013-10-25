@@ -93,6 +93,12 @@ public:
 
   // * Set constants within Strategy
   static void prepare_strategy(Strategy *s);
+  static void compute_assimilation_spline(Strategy *s,
+					  double hmin, double hmax,
+					  const Environment &environment);
+  static void rescale_assimilation_spline(Strategy *s,
+					  double hmin, double hmax,
+					  const Environment &environment);
 
   double assimilation_given_height(double h,
 				   const Environment &environment);

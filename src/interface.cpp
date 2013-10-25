@@ -275,6 +275,12 @@ RCPP_MODULE(tree) {
 	      &model::SpeciesBase::r_set_height)
     .property("plants",        &model::SpeciesBase::r_get_plants)
     .property("n_individuals", &model::SpeciesBase::r_n_individuals)
+    .method("compute_assimilation_spline",
+	    &model::SpeciesBase::compute_assimilation_spline)
+    .method("rescale_assimilation_spline",
+	    &model::SpeciesBase::rescale_assimilation_spline)
+    .property("assimilation_spline",
+	      &model::SpeciesBase::r_assimilation_spline)
     ;
 
   Rcpp::class_< model::Species<model::Plant> >("Species")

@@ -10,6 +10,7 @@
 #include "lookup.h"
 #include "util.h"
 #include "integration.h"
+#include "spline.h"
 
 namespace model {
 
@@ -22,7 +23,11 @@ public:
   // Parameters needs to be able to set our control properties:
   void set_control(Control x);
   // And R will want to query it:
+  const Control& get_control() const;
   Control r_control() const;
+
+  // Get the spline, where it exists.
+  spline::Spline r_assimilation_spline() const;
 
   // All the rest of the class can be accessed only by Plant.
   friend class Plant;
@@ -82,6 +87,10 @@ private:
 
   // See issue #15's comments for commentary on this member:
   integration::QAG integrator;
+  // This is optionally used
+  spline::Spline assimilation_spline;
+
+  double assimilation_spline_lookup(double h) const;
 
   // These things are really not to be used by anything, but are all
   // harmless (except for reset, actually).  They're used in

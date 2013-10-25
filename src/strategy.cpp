@@ -30,8 +30,16 @@ void Strategy::set_control(Control x) {
   integrator = new_integrator;
 }
 
+const Control& Strategy::get_control() const {
+  return control;
+}
+
 Control Strategy::r_control() const {
   return control;
+}
+
+spline::Spline Strategy::r_assimilation_spline() const {
+  return assimilation_spline;
 }
 
 void Strategy::reset() {

@@ -55,5 +55,13 @@ seed <- new(Plant, s)
 expect_that(sp$germination_probability(env),
             is_identical_to(seed$germination_probability(env)))
 
+## Bizarrely, this includes about 100 points; more than I'd have
+## thought, and not sure why.  Could be the error in assimilation
+## calculation?  Could just be that we're being a bit enthusiastic
+## about error checking...
+sp$compute_assimilation_spline(env)
+tmp <- sp$assimilation_spline
+xy <- tmp$xy
+
 rm(sp)
 gc()

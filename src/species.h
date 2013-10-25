@@ -12,6 +12,8 @@
 #include "cohort_discrete.h" // for a specialisation
 #include "cohort_top.h"      // for a specialisation
 #include "util.h"            // is_decreasing, check_length
+#include "spline.h"
+#include "adaptive_spline.h"
 
 namespace model {
 
@@ -26,11 +28,14 @@ public:
   virtual double germination_probability(const Environment&
 					 environment) const = 0;
   virtual void clear() = 0;
+  virtual void compute_assimilation_spline(const Environment& environment) = 0;
+  virtual void rescale_assimilation_spline(const Environment& environment) = 0;
   // R-specific wrappers
   virtual std::vector<double> r_height() const = 0;
   virtual void r_set_height(std::vector<double> x) = 0;
   virtual Rcpp::List r_get_plants() const = 0;
   virtual int r_n_individuals() const = 0;
+  virtual spline::Spline r_assimilation_spline() const = 0;
 };
 
 template <class Individual>
@@ -51,6 +56,8 @@ public:
   void add_seeds(int n);
   double germination_probability(const Environment& environment) const;
   void clear();
+  void compute_assimilation_spline(const Environment& environment);
+  void rescale_assimilation_spline(const Environment& environment);
 
   // * ODE interface
   size_t ode_size() const;
@@ -65,9 +72,12 @@ public:
   Individual r_at(size_t idx) const;
   Individual r_seed() const;
   int r_n_individuals() const;
-  void r_compute_vars_phys(const Environment& environment);
+  spline::Spline r_assimilation_spline() const;
 
 private:
+  // See Plant for a similar construction
+  const Control& control() const {return strategy->get_control();}
+
   Strategy::ptr strategy;
   Individual seed;
   std::list<Individual> plants;
@@ -262,9 +272,36 @@ int Species<Individual>::r_n_individuals() const {
 }
 template<> int Species<CohortDiscrete>::r_n_individuals() const;
 
+
+// There is some ugliness here; we need to make sure that the spline
+// is not constructed with zero gap between min and max plant sizes,
+// so we need to add some epsilon to this.  That is in turn duplicated
+// between compute_assimilation_spline and
+// rescale_assimilation_spline, for now at least.
+template <class Individual>
+void Species<Individual>::compute_assimilation_spline(const Environment &environment) {
+  const double eps = control().cohort_gradient_eps;
+  const double hmin = seed.height() - eps, hmax = height_max() + eps;
+  Plant::compute_assimilation_spline(strategy.get(), hmin, hmax,
+				     environment);
+}
+
+template <class Individual>
+void Species<Individual>::rescale_assimilation_spline(const Environment &environment) {
+  const double eps = control().cohort_gradient_eps;
+  const double hmin = seed.height() - eps, hmax = height_max() + eps;
+  Plant::rescale_assimilation_spline(strategy.get(), hmin, hmax,
+				     environment);
+}
+
+template <class Individual>
+spline::Spline Species<Individual>::r_assimilation_spline() const {
+  return strategy->r_assimilation_spline();
+}
+
 template <class Individual>
 double Species<Individual>::germination_probability(const Environment& environment) const {
-  Plant s(seed);
+  Individual s(seed);
   return s.germination_probability(environment);
 }
 

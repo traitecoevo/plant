@@ -123,5 +123,36 @@ test_that("Leaf area sensible with two cohorts", {
               equals(cmp(h.top * .8, sp)))
 })
 
+hh <- sp$height
+hh[1] <- 10
+sp$height <- hh
+env <- test.environment(max(hh), seed.rain=1.0)
+sp$compute_assimilation_spline(env)
+tmp <- sp$assimilation_spline
+
+h.sp <- tmp$x
+h.sp.mid <- (h.sp[-1] + h.sp[-length(h.sp)]) / 2
+a.sp <- tmp$y
+
+pl <- new(Plant, s)
+a.pl <- sapply(h.sp, function(h) pl$assimilation_given_height(h, env))
+expect_that(a.pl, is_identical_to(a.sp))
+
+a.sp.mid <- tmp$eval(h.sp.mid)
+a.pl.mid <- sapply(h.sp.mid, function(h)
+                   pl$assimilation_given_height(h, env))
+
+## OK; this is surprising because we're seeing step changes even
+## though we apparently never subdvide.  The oscillation at the end is
+## probably OK given the general scaling of the solution though.
+## These might just be where the level of detail has changed though.
+## It does look like the error estimate might be wrong though -- we're
+## going bonkers at the bottom end; I should be happy if *either*
+## absolute or relative error are satisfied, but it looks like I might
+## be driving *both* down?
+## plot(a.sp.mid, a.pl.mid)
+## plot(a.sp.mid, a.pl.mid - a.sp.mid)
+## plot(h.sp.mid, a.pl.mid - a.sp.mid)
+
 rm(sp)
 gc()

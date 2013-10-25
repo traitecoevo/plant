@@ -495,6 +495,44 @@ void Plant::prepare_strategy(Strategy *s) {
   s->height_0 = height_seed(s);
 }
 
+// NOTE: static method
+void Plant::compute_assimilation_spline(Strategy *s,
+					double hmin, double hmax,
+					const Environment &environment) {
+  // For now, using the same parameters as the light environment.
+  // There is no real reason that these would be reasonable though...
+  spline::AdaptiveSpline generator(s->control.environment_light_tol,
+				   s->control.environment_light_tol,
+				   s->control.environment_light_nbase,
+				   s->control.environment_light_max_depth,
+				   s->control.environment_light_akima);
+
+  Plant p(s);
+  util::FunctorBind2<Plant, const Environment&,
+		     &Plant::assimilation_given_height>
+    fun(&p, environment);
+  s->assimilation_spline = generator.construct_spline(&fun, hmin, hmax);
+}
+
+void Plant::rescale_assimilation_spline(Strategy *s,
+					double hmin, double hmax,
+					const Environment &environment) {
+  const double
+    hmin_old = s->assimilation_spline.min(),
+    hmax_old = s->assimilation_spline.max();
+  std::vector<double> h = s->assimilation_spline.get_x();
+  util::rescale(h.begin(), h.end(), hmin_old, hmax_old, hmin, hmax);
+  h[h.size() - 1] = hmax; // avoid round-off issues
+
+  s->assimilation_spline.clear();
+  Plant p(s);
+  for (std::vector<double>::const_iterator hi = h.begin();
+       hi != h.end(); ++hi) {
+    const double ai = p.assimilation_given_height(*hi, environment);
+    s->assimilation_spline.add_point(*hi, ai);
+  }
+  s->assimilation_spline.init_self();
+}
 
 // * R interface
 Strategy Plant::r_get_strategy() const {
