@@ -3,7 +3,6 @@
 #include "spline.h"
 #include "adaptive_spline.h"
 #include "adaptive_spline_r.h"
-#include "multi_spline.h"
 
 #include "ode_target.h"
 #include "lorenz.h"
@@ -20,8 +19,6 @@
 
 #include "plant.h"
 #include "cohort_discrete.h"
-#include "plant_spline.h"
-#include "plant_approx.h"
 
 #include "cohort_top.h"
 #include "cohort_schedule.h"
@@ -60,21 +57,6 @@ RCPP_MODULE(tree) {
     .property("size", &spline::Spline::size)
     .property("min",  &spline::Spline::min)
     .property("max",  &spline::Spline::max)
-    ;
-
-  Rcpp::class_<spline::MultiSpline>("MultiSpline")
-    .constructor<int>()
-    .method("init",      &spline::MultiSpline::r_init)
-    .method("init_self", &spline::MultiSpline::init_self)
-    .method("add_point", &spline::MultiSpline::r_add_point)
-    .method("clear",     &spline::MultiSpline::clear)
-    .method("eval",      &spline::MultiSpline::r_eval)
-    .method("eval_1",    &spline::MultiSpline::r_eval_1)
-    .method("eval_r",    &spline::MultiSpline::r_eval_r)
-    .property("x",       &spline::MultiSpline::get_x)
-    .property("y",       &spline::MultiSpline::r_get_y)
-    .property("size",    &spline::MultiSpline::size)
-    .property("dim",     &spline::MultiSpline::dim)
     ;
 
   Rcpp::class_<ode::test::Lorenz>("Lorenz")
@@ -195,15 +177,6 @@ RCPP_MODULE(tree) {
     .property("vars_phys",          &model::Plant::r_get_vars_phys)
     ;
 
-  Rcpp::class_<model::PlantSpline>("PlantSpline")
-    .constructor<model::Strategy,double,int>()
-    .property("height_max",   &model::PlantSpline::height_max)
-    .method("compute_vars_phys", &model::PlantSpline::compute_vars_phys)
-    .method("ode_rates",         &model::PlantSpline::r_ode_rates)
-    .property("plants",          &model::PlantSpline::r_get_plants)
-    .property("plants_approx",   &model::PlantSpline::r_get_plants_approx)
-    ;
-
   Rcpp::class_<model::CohortDiscrete>("CohortDiscrete")
     .derives<model::Plant>("Plant")
     .constructor<model::Strategy>()
@@ -211,13 +184,6 @@ RCPP_MODULE(tree) {
     .property("n_individuals", 
 	      &model::CohortDiscrete::get_n_individuals,
 	      &model::CohortDiscrete::set_n_individuals)
-    ;
-
-  Rcpp::class_<model::PlantApprox>("PlantApprox")
-    .derives<model::Plant>("Plant")
-    .constructor<model::Strategy, model::PlantSpline>()
-    .method("compute_vars_phys_spline",
-	    &model::PlantApprox::r_compute_vars_phys_spline)
     ;
 
   Rcpp::class_<model::CohortTop>("CohortTop")

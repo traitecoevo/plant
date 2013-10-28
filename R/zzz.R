@@ -14,7 +14,6 @@
 ##' @export Metacommunity
 ##' @export MetacommunityBase
 ##' @export MetacommunityC
-##' @export MultiSpline
 ##' @export OdeR
 ##' @export OdeTarget
 ##' @export Parameters
@@ -23,8 +22,6 @@
 ##' @export PatchC
 ##' @export PatchCohortTop
 ##' @export Plant
-##' @export PlantApprox
-##' @export PlantSpline
 ##' @export QAG
 ##' @export QK
 ##' @export RFunctionWrapper
