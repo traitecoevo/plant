@@ -34,6 +34,7 @@
 ##' @export SpeciesCT
 ##' @export Spline
 ##' @export Strategy
+##' @export compute_assimilation_spline
 ##' @export make.reference
 ##' @export metacommunity
 ##' @export patch

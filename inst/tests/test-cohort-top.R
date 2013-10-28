@@ -102,6 +102,55 @@ expect_that(coh$ode_rates,
                      dydt[3] * patch.survival * coh$survival_probability,
                      -dydt[2] - dgdh)))
 
+test_that("Approximate assimilation works", {
+  ctrl.full <- new(Control)
+  ctrl.full$set_parameters(list(cohort_gradient_richardson=1))
+  s.full <- new(Strategy)
+  s.full$control <- ctrl.full
+
+  ctrl.approx <- new(Control)
+  ctrl.approx$set_parameters(list(plant_assimilation_approximate_use=TRUE))
+  s.approx <- new(Strategy)
+  s.approx$control <- ctrl.approx
+
+  assim <- compute_assimilation_spline(s.approx, plant$height,
+                                       env$light_environment$max, env)
+  expect_that(assim$max, is_identical_to(env$light_environment$max))
+  s.approx$assimilation_spline <- assim
+
+  ## Then set this within the strategy so that it would be available to
+  ## a plant.
+  c.full   <- new(CohortTop, s.full)
+  c.approx <- new(CohortTop, s.approx)
+
+  env$time <- 0
+  c.full$compute_initial_conditions(env)
+  c.approx$compute_initial_conditions(env)
+
+  env$time <- 10
+  h <- (plant$height + env$light_environment$max) / 2
+  c.full$height <- h
+  c.approx$height <- h
+
+  c.full$compute_vars_phys(env)
+  c.approx$compute_vars_phys(env)
+
+  ## Size should be exactly the same:
+  expect_that(c.approx$vars_size, is_identical_to(c.full$vars_size))
+
+  ## Expect that the physiological variables will be similar, but not
+  ## exactly the same.
+  expect_that(c.approx$vars_phys, equals(c.full$vars_phys))
+  expect_that(identical(c.approx$vars_phys, equals(c.full$vars_phys)),
+              is_false())
+
+  r.full <- c.full$ode_rates
+  r.approx <- c.approx$ode_rates
+  expect_that(r.full[1:3], equals(r.approx[1:3]))
+  expect_that(r.full[4],   equals(r.approx[4], tolerance=1e-6))
+})
+
+
 ## Delete to make sure we don't crash on cleanup
 rm(coh)
 gc()

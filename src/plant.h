@@ -131,6 +131,7 @@ private:
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
+  double assimilation(const Environment& environment);
   double compute_assimilation(const Environment& environment);
   // Used internally, corresponding to the inner term in [eqn 12]
   double compute_assimilation_x(double x, const Environment& environment) const;
@@ -195,6 +196,9 @@ private:
 
 namespace test {
 bool test_plant(Strategy s, bool copy, bool ptr);
+spline::Spline compute_assimilation_spline(Strategy s,
+					   double hmin, double hmax,
+					   const Environment &environment);
 }
 
 }

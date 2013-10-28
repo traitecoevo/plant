@@ -28,6 +28,7 @@ public:
 
   // Get the spline, where it exists.
   spline::Spline r_assimilation_spline() const;
+  void r_set_assimilation_spline(spline::Spline x);
 
   // All the rest of the class can be accessed only by Plant.
   friend class Plant;

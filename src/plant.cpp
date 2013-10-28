@@ -118,7 +118,7 @@ double Plant::leaf_area_above(double z) const {
 // light environment (and given the current set of size variables).
 void Plant::compute_vars_phys(const Environment& environment) {
   // [eqn 12] Gross annual CO2 assimilation
-  vars.assimilation = compute_assimilation(environment);
+  vars.assimilation = assimilation(environment);
 
   // [eqn 13] Total maintenance respiration
   vars.respiration = compute_respiration();
@@ -338,6 +338,11 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 // 
 // NOTE: In contrast with Daniel's implementation (but following
 // Falster 2012), we do not normalise by Y*c_bio here.
+double Plant::assimilation(const Environment& environment) {
+  return control().plant_assimilation_approximate_use ?
+    strategy->assimilation_spline_lookup(height()) :
+    compute_assimilation(environment);
+}
 double Plant::compute_assimilation(const Environment& environment) {
   util::FunctorBind1<Plant, const Environment&,
 		     &Plant::compute_assimilation_x>
@@ -611,6 +616,13 @@ bool test_plant(Strategy s, bool copy, bool ptr) {
     }
   }
   return ok;
+}
+
+spline::Spline compute_assimilation_spline(Strategy s,
+					   double hmin, double hmax,
+					   const Environment &environment) {
+  Plant::compute_assimilation_spline(&s, hmin, hmax, environment);
+  return s.r_assimilation_spline();
 }
 
 }

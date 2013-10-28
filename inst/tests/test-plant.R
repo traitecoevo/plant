@@ -226,6 +226,35 @@ test_that("One shot assimilation function works", {
   expect_that(aa, equals(aa.R))
 })
 
+test_that("Approximate assimilation works", {
+  ctrl <- new(Control)
+  ctrl$set_parameters(list(plant_assimilation_approximate_use=TRUE))
+  s2 <- new(Strategy)
+  s2$control <- ctrl
+
+  assim <- compute_assimilation_spline(s2, seed$height, h0, env)
+  expect_that(assim$max, is_identical_to(h0))
+
+  ## Then set this within the strategy so that it would be available to
+  ## a plant.
+  s2$assimilation_spline <- assim
+  p2 <- new(Plant, s2)
+
+  p2$height <- p$height
+
+  p$compute_vars_phys(env)
+  p2$compute_vars_phys(env)
+
+  expect_that(p2$vars_size, is_identical_to(p$vars_size))
+
+  ## Expect that the physiological variables will be similar, but not
+  ## exactly the same.
+  expect_that(p2$vars_phys, equals(p$vars_phys))
+  expect_that(identical(p2$vars_phys, equals(p$vars_phys)), is_false())
+  expect_that(p2$ode_rates, equals(p$ode_rates))
+})
+
+
 ## Delete the plant -- should not crash.
 rm(p)
 gc()

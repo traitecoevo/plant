@@ -41,6 +41,9 @@ Control Strategy::r_control() const {
 spline::Spline Strategy::r_assimilation_spline() const {
   return assimilation_spline;
 }
+void Strategy::r_set_assimilation_spline(spline::Spline x) {
+  assimilation_spline = x;
+}
 
 void Strategy::reset() {
   // * Core traits
@@ -120,6 +123,10 @@ void Strategy::reset() {
 
   eta_c = NA_REAL;
   k_l = NA_REAL;
+}
+
+double Strategy::assimilation_spline_lookup(double h) const {
+  return assimilation_spline.eval(h);
 }
 
 void Strategy::do_build_lookup() {

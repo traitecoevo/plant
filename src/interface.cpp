@@ -136,6 +136,9 @@ RCPP_MODULE(tree) {
     .constructor<Rcpp::List>()
     .property("control", &model::Strategy::r_control,
 	      &model::Strategy::set_control)
+    .property("assimilation_spline",
+	      &model::Strategy::r_assimilation_spline,
+	      &model::Strategy::r_set_assimilation_spline)
     ;
 
   Rcpp::class_<model::Control>("Control")
@@ -441,6 +444,8 @@ RCPP_MODULE(tree) {
   Rcpp::function("test_adaptive_spline", 
 		 &spline::test::test_adaptive_spline);
   Rcpp::function("test_plant",      &model::test::test_plant);
+  Rcpp::function("compute_assimilation_spline",
+		 &model::test::compute_assimilation_spline);
   Rcpp::function("test_sum_double", &util::test::test_sum_double);
   Rcpp::function("test_sum_int",    &util::test::test_sum_int);
   Rcpp::function("test_to_rcpp_matrix",
