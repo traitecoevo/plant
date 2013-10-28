@@ -33,8 +33,13 @@ Spline AdaptiveSpline::construct_spline(util::DFunctor *target_,
   yy.clear();
   zz.clear();
 
-  double xi = a;
-  for (int i = 0; i < nbase; i++, xi += dx) {
+  // TODO: If we template seq_len better, we can avoid a copy.  But
+  // using seq_len here guarantees that the first and last element are
+  // *exactly* 'a' and 'b'.
+  // TODO: Why is nbase not size_t?
+  std::vector<double> tmp = util::seq_len(a, b, static_cast<size_t>(nbase));
+  for (size_t i = 0; i < static_cast<size_t>(nbase); i++) {
+    const double xi = tmp[i];
     xx.push_back(xi);
     yy.push_back(eval_target(xi));
     zz.push_back(i > 0);
