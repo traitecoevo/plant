@@ -154,5 +154,44 @@ a.pl.mid <- sapply(h.sp.mid, function(h)
 ## plot(a.sp.mid, a.pl.mid - a.sp.mid)
 ## plot(h.sp.mid, a.pl.mid - a.sp.mid)
 
+test_that("Approximately computed assimilation matches full computation", {
+  ctrl.full <- new(Control,
+                   list(cohort_gradient_richardson=TRUE))
+  s.full <- new(Strategy)
+  s.full$control <- ctrl.full
+  sp.full <- new(SpeciesCT, s.full)
+
+  ctrl.approx <- new(Control,
+                     list(plant_assimilation_approximate_use=TRUE))
+  s.approx <- new(Strategy)
+  s.approx$control <- ctrl.approx
+  sp.approx <- new(SpeciesCT, s.approx)
+
+  sp.full$compute_vars_phys(env)
+  sp.approx$compute_vars_phys(env)
+
+  sp.approx$add_seeds(3)
+  sp.full$add_seeds(3)
+
+  sp.approx$height <- sp$height
+  sp.full$height <- sp$height
+
+  sp.approx$compute_vars_phys(env)
+  sp.full$compute_vars_phys(env)
+
+  expect_that(sp.approx$ode_values, equals(sp.full$ode_values))
+
+  ## The rates should be equal, but not identical, to the fully computed
+  ## rates.
+  ## OK, these are actually quite different, but that's because the ODE
+  ## values are also quite different, including for the seed.
+  r.approx <- matrix(sp.approx$ode_rates, 4)
+  r.full   <- matrix(sp.full$ode_rates,   4)
+
+  expect_that(r.approx[1:3,], equals(r.full[1:3,], tolerance=2e-7))
+  expect_that(r.approx[4,],   equals(r.full[4,],   tolerance=0.0008))
+  expect_that(identical(r.full, r.approx), is_false())
+})
+
 rm(sp)
 gc()

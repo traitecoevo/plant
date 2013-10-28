@@ -63,5 +63,30 @@ sp$compute_assimilation_spline(env)
 tmp <- sp$assimilation_spline
 xy <- tmp$xy
 
+## Test approximate plant:
+
+ctrl <- new(Control,
+            list(plant_assimilation_approximate_use=TRUE))
+s.approx <- new(Strategy)
+s.approx$control <- ctrl
+sp.approx <- new(Species, s.approx)
+
+sp.approx$add_seeds(1)
+sp.approx$height <- sp$height
+
+## Spline is empty on initialisation
+expect_that(sp.approx$assimilation_spline$size, equals(0))
+
+sp.approx$compute_vars_phys(env)
+
+## Check that we did compute the spline:
+expect_that(sp.approx$assimilation_spline$xy, is_identical_to(tmp$xy))
+
+## The rates should be equal, but not identical, to the fully computed
+## rates.
+expect_that(sp.approx$ode_rates, equals(sp$ode_rates))
+expect_that(identical(sp.approx$ode_rates, sp$ode_rates),
+            is_false())
+
 rm(sp)
 gc()

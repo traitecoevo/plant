@@ -93,6 +93,8 @@ double Species<CohortTop>::leaf_area_above(double height) const {
 
 template <>
 void Species<CohortTop>::compute_vars_phys(const Environment& environment) {
+  if (control().plant_assimilation_approximate_use)
+    compute_assimilation_spline(environment);
   for (plants_iterator it = plants.begin();
        it != plants.end(); ++it)
     it->compute_vars_phys(environment);
