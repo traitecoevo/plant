@@ -25,6 +25,13 @@ public:
   size_t plant_assimilation_rule;
   bool   plant_assimilation_reuse_intervals;
 
+  bool   plant_assimilation_approximate_use;
+  double plant_assimilation_approximate_tol;
+  int    plant_assimilation_approximate_nbase;
+  int    plant_assimilation_approximate_max_depth;
+  bool   plant_assimilation_approximate_akima;
+  bool   plant_assimilation_approximate_rescale_usually;
+
   double plant_seed_tol;
   int    plant_seed_iterations;
 
@@ -58,6 +65,12 @@ private:
   double _plant_assimilation_iterations;
   double _plant_assimilation_rule;
   double _plant_assimilation_reuse_intervals;
+
+  double _plant_assimilation_approximate_use;
+  double _plant_assimilation_approximate_nbase;
+  double _plant_assimilation_approximate_max_depth;
+  double _plant_assimilation_approximate_akima;
+  double _plant_assimilation_approximate_rescale_usually;
 
   double _plant_seed_iterations;
 

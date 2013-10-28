@@ -499,14 +499,12 @@ void Plant::prepare_strategy(Strategy *s) {
 void Plant::compute_assimilation_spline(Strategy *s,
 					double hmin, double hmax,
 					const Environment &environment) {
-  // For now, using the same parameters as the light environment.
-  // There is no real reason that these would be reasonable though...
-  spline::AdaptiveSpline generator(s->control.environment_light_tol,
-				   s->control.environment_light_tol,
-				   s->control.environment_light_nbase,
-				   s->control.environment_light_max_depth,
-				   s->control.environment_light_akima);
-
+  spline::AdaptiveSpline
+    generator(s->control.plant_assimilation_approximate_tol,
+	      s->control.plant_assimilation_approximate_tol,
+	      s->control.plant_assimilation_approximate_nbase,
+	      s->control.plant_assimilation_approximate_max_depth,
+	      s->control.plant_assimilation_approximate_akima);
   Plant p(s);
   util::FunctorBind2<Plant, const Environment&,
 		     &Plant::assimilation_given_height>

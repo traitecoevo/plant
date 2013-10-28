@@ -24,6 +24,13 @@ void Control::reset() {
   plant_assimilation_rule = 21;
   plant_assimilation_reuse_intervals = true;
 
+  plant_assimilation_approximate_use = false;
+  plant_assimilation_approximate_tol = 1e-6;
+  plant_assimilation_approximate_nbase = 17;
+  plant_assimilation_approximate_max_depth = 16;
+  plant_assimilation_approximate_akima = false;
+  plant_assimilation_approximate_rescale_usually = false;
+
   plant_seed_tol = 1e-6;
   plant_seed_iterations = 1000;
 
@@ -56,6 +63,17 @@ void Control::reset() {
     static_cast<double>(plant_assimilation_rule);
   _plant_assimilation_reuse_intervals =
     static_cast<double>(plant_assimilation_reuse_intervals);
+
+  _plant_assimilation_approximate_use =
+    static_cast<bool>(plant_assimilation_approximate_use);
+  _plant_assimilation_approximate_nbase =
+    static_cast<double>(plant_assimilation_approximate_nbase);
+  _plant_assimilation_approximate_max_depth =
+    static_cast<double>(plant_assimilation_approximate_max_depth);
+  _plant_assimilation_approximate_akima =
+    static_cast<bool>(plant_assimilation_approximate_akima);
+  _plant_assimilation_approximate_rescale_usually =
+    static_cast<bool>(plant_assimilation_approximate_rescale_usually);
 
   _plant_seed_iterations =
     static_cast<double>(plant_seed_iterations);
@@ -91,6 +109,19 @@ void Control::do_build_lookup() {
     &_plant_assimilation_rule;
   lookup_table["plant_assimilation_reuse_intervals"] =
     &_plant_assimilation_reuse_intervals;
+
+  lookup_table["plant_assimilation_approximate_use"] =
+    &_plant_assimilation_approximate_use;
+  lookup_table["plant_assimilation_approximate_tol"] =
+    &plant_assimilation_approximate_tol;
+  lookup_table["plant_assimilation_approximate_nbase"] =
+    &_plant_assimilation_approximate_nbase;
+  lookup_table["plant_assimilation_approximate_max_depth"] =
+    &_plant_assimilation_approximate_max_depth;
+  lookup_table["plant_assimilation_approximate_akima"] =
+    &_plant_assimilation_approximate_akima;
+  lookup_table["plant_assimilation_approximate_rescale_usually"] =
+    &_plant_assimilation_approximate_rescale_usually;
 
   lookup_table["plant_seed_tol"] =
     &plant_seed_tol;
@@ -140,6 +171,17 @@ void Control::set_parameters_post_hook() {
     static_cast<size_t>(_plant_assimilation_rule);
   plant_assimilation_reuse_intervals =
     _plant_assimilation_reuse_intervals != 0.0;
+
+  plant_assimilation_approximate_use =
+    static_cast<bool>(_plant_assimilation_approximate_use);
+  plant_assimilation_approximate_nbase =
+    static_cast<int>(_plant_assimilation_approximate_nbase);
+  plant_assimilation_approximate_max_depth =
+    static_cast<int>(_plant_assimilation_approximate_max_depth);
+  plant_assimilation_approximate_akima =
+    static_cast<bool>(_plant_assimilation_approximate_akima);
+  plant_assimilation_approximate_rescale_usually =
+    static_cast<bool>(_plant_assimilation_approximate_rescale_usually);
 
   plant_seed_iterations =
     static_cast<int>(_plant_seed_iterations);
