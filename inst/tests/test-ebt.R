@@ -8,6 +8,13 @@ p$seed_rain <- pi/2
 
 ebt <- new(EBT, p)
 
+test_that("Parameters can be pulled from EBT", {
+  p.cmp <- ebt$parameters
+  expect_that(p.cmp$size, is_identical_to(p$size))
+  expect_that(p.cmp$parameters, is_identical_to(p$parameters))
+  expect_that(p.cmp[[1]]$parameters, is_identical_to(p[[1]]$parameters))
+})
+
 ## Check that the underlying Patch really is a Patch<CohortTop>, not
 ## one of the other Patch types (which would just fail miserably below
 ## here, if they even compile).

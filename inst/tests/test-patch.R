@@ -11,6 +11,13 @@ cmp <- new(Plant, p[[1]])
 
 patch <- new(Patch, p)
 
+test_that("Parameters can be pulled from Patch", {
+  p.cmp <- patch$parameters
+  expect_that(p.cmp$size, is_identical_to(p$size))
+  expect_that(p.cmp$parameters, is_identical_to(p$parameters))
+  expect_that(p.cmp[[1]]$parameters, is_identical_to(p[[1]]$parameters))
+})
+
 expect_that(patch$size, equals(p$size))
 
 ## We've not added any seeds yet, so the only species should have no

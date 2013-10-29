@@ -36,6 +36,7 @@ public:
   virtual void r_compute_light_environment() = 0;
   virtual void r_compute_vars_phys() = 0;
   virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
+  virtual Parameters r_parameters() const = 0;
 };
 
 template <class Individual>
@@ -86,6 +87,7 @@ public:
   void r_compute_vars_phys();
   // NOTE: germination is special to the Metacommunity
   std::vector<int> r_germination(std::vector<int> seeds);
+  Parameters r_parameters() const;
   
 private:
   void initialise();
@@ -386,6 +388,11 @@ template <class Individual>
 std::vector<int> Patch<Individual>::r_germination(std::vector<int> seeds) {
   util::check_length(seeds.size(), size());
   return germination(seeds);
+}
+
+template <class Individual>
+Parameters Patch<Individual>::r_parameters() const {
+  return *parameters.get();
 }
 
 template <class Individual>

@@ -78,4 +78,8 @@ std::vector<double> EBT::r_ode_times() const {
   return ode_solver.get_times();
 }
 
+Parameters EBT::r_parameters() const {
+  return patch.r_parameters();
+}
+
 }

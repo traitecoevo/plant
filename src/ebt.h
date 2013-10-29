@@ -29,6 +29,7 @@ public:
   CohortSchedule r_cohort_schedule() const;
   void r_set_cohort_schedule(CohortSchedule x);
   std::vector<double> r_ode_times() const;
+  Parameters r_parameters() const;
 
 private:
   Patch<CohortTop> patch;

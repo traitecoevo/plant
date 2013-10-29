@@ -314,6 +314,8 @@ RCPP_MODULE(tree) {
 	      &model::PatchBase::r_set_height)
     .property("n_individuals",    &model::PatchBase::r_n_individuals)
     .method("reset",              &model::PatchBase::reset)
+    .property("parameters",
+	      &model::PatchBase::r_parameters)
     ;
 
   Rcpp::class_< model::Patch<model::Plant> >("Patch")
@@ -374,6 +376,7 @@ RCPP_MODULE(tree) {
     .method("reset",             &model::EBT::reset)
     .method("run_next",          &model::EBT::run_next)
     .property("ode_times",       &model::EBT::r_ode_times)
+    .property("parameters",      &model::EBT::r_parameters)
     ;
 
   Rcpp::class_<util::RFunctionWrapper>("RFunctionWrapper")
