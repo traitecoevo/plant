@@ -56,4 +56,22 @@ void CohortDiscrete::set_n_individuals(int n) {
   n_individuals = n;
 }
 
+size_t CohortDiscrete::state_size() const {
+  return ode_size() + 1;
+}
+
+CohortDiscrete::state::iterator
+CohortDiscrete::get_state(CohortDiscrete::state::iterator it) const {
+  it = Plant::get_state(it);
+  *it++ = static_cast<double>(n_individuals);
+  return it;
+}
+
+CohortDiscrete::state::const_iterator
+CohortDiscrete::set_state(CohortDiscrete::state::const_iterator it) {
+  it = Plant::set_state(it);
+  n_individuals = static_cast<int>(*it++);
+  return it;
+}
+
 }

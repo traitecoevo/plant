@@ -33,6 +33,7 @@
 #include "quadrature.h"
 #include "integration.h"
 #include "gradient.h"
+#include "state.h"
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -176,6 +177,11 @@ RCPP_MODULE(tree) {
     .property("strategy",           &model::Plant::r_get_strategy)
     .property("vars_size",          &model::Plant::r_get_vars_size)
     .property("vars_phys",          &model::Plant::r_get_vars_phys)
+    // State
+    .property("state_size",         &model::Plant::state_size)
+    .property("state",
+	      &util::r_get_state<model::Plant>,
+	      &util::r_set_state<model::Plant>);
     ;
 
   Rcpp::class_<model::CohortDiscrete>("CohortDiscrete")

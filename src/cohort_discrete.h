@@ -23,6 +23,10 @@ public:
   int get_n_individuals() const;
   void set_n_individuals(int n);
 
+  size_t state_size() const;
+  state::iterator       get_state(state::iterator       it) const;
+  state::const_iterator set_state(state::const_iterator it);
+
 private:
   int n_individuals;
 };

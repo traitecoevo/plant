@@ -116,6 +116,24 @@ CohortTop::r_growth_rate_given_height(double height_,
   return growth_rate_given_height(height_, environment);
 }
 
+size_t CohortTop::state_size() const {
+  return ode_size() + 1;
+}
+
+CohortTop::state::iterator
+CohortTop::get_state(CohortTop::state::iterator it) const {
+  it = ode_values(it);
+  *it++ = pr_patch_survival_at_birth;
+  return it;
+}
+
+CohortTop::state::const_iterator
+CohortTop::set_state(CohortTop::state::const_iterator it) {
+  it = set_ode_values(0 /* unused - time */, it);
+  pr_patch_survival_at_birth = *it++;
+  return it;
+}
+
 // This is the gradient of height_rate with respect to height.  It is
 // needed for computing the derivative (wrt time) of the log_density of
 // individuals.

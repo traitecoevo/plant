@@ -574,6 +574,17 @@ bool Plant::r_died() {
   return died();
 }
 
+size_t Plant::state_size() const {
+  return ode_size();
+}
+Plant::state::iterator Plant::get_state(Plant::state::iterator it) const {
+  return ode_values(it);
+}
+Plant::state::const_iterator
+Plant::set_state(Plant::state::const_iterator it) {
+  return set_ode_values(0 /* unused - time */, it);
+}
+
 // This is useful for finding the seed height.
 double Plant::height_given_mass_leaf(double mass_leaf_) const {
   return strategy->a1 * pow(mass_leaf_ / strategy->lma, strategy->B1);

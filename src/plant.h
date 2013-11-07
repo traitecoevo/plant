@@ -14,6 +14,8 @@ namespace model {
 
 class PlantBase : public ode::OdeTarget {
 public:
+  typedef std::vector<double> state;
+
   virtual ~PlantBase();
   // * "Key" variables.
   virtual double height() const = 0;
@@ -41,6 +43,10 @@ public:
   virtual Rcpp::NumericVector r_get_vars_size() const = 0;
   virtual Rcpp::NumericVector r_get_vars_phys() const = 0;
   virtual bool r_died() = 0;
+
+  virtual size_t state_size() const = 0;
+  virtual state::iterator get_state(state::iterator it) const = 0;
+  virtual state::const_iterator set_state(state::const_iterator it) = 0;
 };
 
 class Plant : public PlantBase {
@@ -109,6 +115,10 @@ public:
   Rcpp::NumericVector r_get_vars_phys() const;
   double r_germination_probability(spline::Spline env);
   bool r_died();
+
+  size_t state_size() const;
+  state::iterator       get_state(state::iterator       it) const;
+  state::const_iterator set_state(state::const_iterator it);
 
   // * Access the Control parameter (who needs this?)
 protected:

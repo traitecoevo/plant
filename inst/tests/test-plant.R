@@ -146,6 +146,35 @@ expect_that(seed$germination_probability(env),
             equals(cmp$germination.probability(cmp$traits, light.env),
                    tolerance=1e-5))
 
+## Check ode state get/set:
+test_that("ODE state has known order", {
+  vals <- p$ode_values
+  expect_that(length(vals), equals(3))
+  expect_that(vals[[1]], is_identical_to(p$height))
+
+  p2 <- new(Plant, p$strategy)
+  vals[2:3] <- runif(2)
+  p2$set_ode_values(NA, vals)
+  expect_that(p2$ode_values, is_identical_to(vals))
+  expect_that(vals[[1]], is_identical_to(p2$height))
+  expect_that(vals[[2]], equals(-log(p2$survival_probability)))
+})
+
+test_that("System state get/set works", {
+  expect_that(p$state_size, equals(3))
+  vals <- p$state
+  expect_that(vals, is_identical_to(p$ode_values))
+
+  vals2 <- vals + runif(3)
+  p2 <- new(Plant, p$strategy)
+  p2$state <- vals2
+  expect_that(p2$state, is_identical_to(vals2))
+  expect_that(p2$state, is_identical_to(p2$ode_values))
+
+  expect_that(p2$state <- c(vals, 1), throws_error())
+  expect_that(p2$state <- vals[1:2],  throws_error())
+})
+
 ## Check with different control parameters.
 ## TODO: This is really awkward.
 ctrl <- s$control

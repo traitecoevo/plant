@@ -30,6 +30,25 @@ expect_that(coh$ode_values,
             equals(c(y[1], -log(p.germ), y[3],
                      log(p.germ * env$seed_rain_rate/g))))
 
+test_that("State get/set works", {
+  c2 <- new(CohortTop, s)
+  c2$compute_initial_conditions(env) # time = 0, pr_surv = 1
+  expect_that(c2$state_size, equals(5))
+  expect_that(c2$state, is_identical_to(c(c2$ode_values, 1)))
+
+  env$time <- 10
+  c2$compute_initial_conditions(env) # time > 0, pr_surv < 1
+  expect_that(c2$state, is_identical_to(c(c2$ode_values, env$patch_survival)))
+
+  x <- c2$state + runif(5)
+  c2$state <- x
+  expect_that(c2$state, is_identical_to(x))
+  expect_that(c2$state, is_identical_to(c(c2$ode_values, x[5])))
+
+  expect_that(c2$state <- x[-1],   throws_error())
+  expect_that(c2$state <- c(x, 1), throws_error())
+})
+
 ## First, need to compute the gradient of height growth rate with
 ## respect to height.  This check can be removed once everything seems
 ## to be working as it uses mostly internal code.

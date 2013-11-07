@@ -116,6 +116,31 @@ expect_that(cohort0$offspring(), is_identical_to(0L))
 expect_that(cohort1$offspring(), is_identical_to(0L))
 expect_that(cohort2$offspring(), is_identical_to(0L))
 
+test_that("System state get/set works", {
+  vals.p <- plant$state
+  vals.0 <- cohort0$state
+  vals.1 <- cohort1$state
+  vals.2 <- cohort2$state
+
+  expect_that(cohort0$state_size, equals(4))
+  expect_that(vals.p, is_identical_to(plant$ode_values))
+  expect_that(vals.0, is_identical_to(c(cohort0$ode_values, 1)))
+  expect_that(vals.1, is_identical_to(c(cohort1$ode_values, 1)))
+  expect_that(vals.2, is_identical_to(c(cohort1$ode_values, 2)))
+
+  expect_that(cohort0$state, is_identical_to(cohort1$state))
+
+  x <- cohort0$ode_values + runif(3)
+  expect_that(cohort0$state <- x,          throws_error())
+  expect_that(cohort0$state <- c(x, 1, 2), throws_error())
+
+  n <- cohort0$n_individuals + 1
+  cohort0$state <- c(x, n)
+  expect_that(cohort0$state, is_identical_to(c(x, n)))
+
+  cohort0$state <- cohort1$state
+})
+
 y1 <- res.p[,ncol(res.p)]
 y1[2] <- 0.3
 

@@ -33,6 +33,9 @@ public:
   double r_growth_rate_gradient(const Environment& environment);
   double r_growth_rate_given_height(double height_,
 				    const Environment& environment);
+  size_t state_size() const;
+  state::iterator       get_state(state::iterator       it) const;
+  state::const_iterator set_state(state::const_iterator it);
 
 private:
   double growth_rate_gradient(const Environment& environment,
