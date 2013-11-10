@@ -181,7 +181,7 @@ RCPP_MODULE(tree) {
     .property("state_size",         &model::Plant::state_size)
     .property("state",
 	      &util::r_get_state<model::Plant>,
-	      &util::r_set_state<model::Plant>);
+	      &util::r_set_state<model::Plant>)
     ;
 
   Rcpp::class_<model::CohortDiscrete>("CohortDiscrete")
@@ -257,6 +257,11 @@ RCPP_MODULE(tree) {
 	    &model::SpeciesBase::rescale_assimilation_spline)
     .property("assimilation_spline",
 	      &model::SpeciesBase::r_assimilation_spline)
+    .property("state",
+	      &model::SpeciesBase::r_get_state,
+	      &model::SpeciesBase::r_set_state)
+    .method("force_state",
+	    &model::SpeciesBase::r_force_state)
     ;
 
   Rcpp::class_< model::Species<model::Plant> >("Species")

@@ -63,6 +63,39 @@ sp$compute_assimilation_spline(env)
 tmp <- sp$assimilation_spline
 xy <- tmp$xy
 
+## OK, repeat this for Species<CohortDiscrete> and Species<CohortTop>
+## and we're done.  For those, remember to tweak the environment times
+## and number of indivuduals.
+test_that("State get/set works", {
+  sp2 <- new(Species, s)
+  state <- sp2$state
+  expect_that(state, is_a("matrix"))
+  expect_that(state, equals(matrix(0.0, 3, 0)))
+
+  for (i in 1:4)
+    sp2$add_seeds(1)
+  sp2$height <- sort(runif(sp2$size), decreasing=TRUE)
+
+  cmp <- rbind(sp2$height, matrix(0, 2, sp2$size))
+  expect_that(sp2$state, is_identical_to(cmp))
+
+  tmp <- matrix(sp2$ode_values, nrow=3)
+  tmp[2:3,] <- runif(length(tmp[2:3,]))
+  sp2$set_ode_values(0, tmp)
+  expect_that(sp2$state, is_identical_to(tmp))
+
+  tmp <- tmp + runif(length(tmp))
+  tmp[1,] <- sort(tmp[1,], decreasing=TRUE)
+  sp2$state <- tmp
+  expect_that(sp2$state, is_identical_to(tmp))
+
+  sp2$force_state(tmp[,1:2])
+  expect_that(sp2$state, is_identical_to(tmp[,1:2]))
+
+  sp2$force_state(tmp[,2:4])
+  expect_that(sp2$state, is_identical_to(tmp[,2:4]))
+})
+
 ## Test approximate plant:
 
 ctrl <- new(Control,

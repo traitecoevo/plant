@@ -14,11 +14,13 @@
 #include "util.h"            // is_decreasing, check_length
 #include "spline.h"
 #include "adaptive_spline.h"
+#include "state.h"           // get_state, set_state
 
 namespace model {
 
 class SpeciesBase : public ode::OdeTarget {
 public:
+  typedef std::vector<double> state;
   virtual ~SpeciesBase();
   virtual size_t size() const = 0;
   virtual double height_max() const = 0;
@@ -36,6 +38,12 @@ public:
   virtual Rcpp::List r_get_plants() const = 0;
   virtual int r_n_individuals() const = 0;
   virtual spline::Spline r_assimilation_spline() const = 0;
+  // Still thinking about these...
+  virtual state::iterator       get_state(state::iterator it) const = 0;
+  virtual state::const_iterator set_state(state::const_iterator it) = 0;
+  virtual Rcpp::NumericMatrix r_get_state() const = 0;
+  virtual void r_set_state(Rcpp::NumericMatrix x) = 0;
+  virtual void r_force_state(Rcpp::NumericMatrix x) = 0;
 };
 
 template <class Individual>
@@ -73,6 +81,13 @@ public:
   Individual r_seed() const;
   int r_n_individuals() const;
   spline::Spline r_assimilation_spline() const;
+
+  // State
+  state::iterator get_state(state::iterator it) const;
+  state::const_iterator set_state(state::const_iterator it);
+  Rcpp::NumericMatrix r_get_state() const;
+  void r_set_state(Rcpp::NumericMatrix x);
+  void r_force_state(Rcpp::NumericMatrix x);
 
 private:
   // See Plant for a similar construction
@@ -276,6 +291,64 @@ int Species<Individual>::r_n_individuals() const {
 }
 template<> int Species<CohortDiscrete>::r_n_individuals() const;
 
+template <class Individual>
+SpeciesBase::state::iterator
+Species<Individual>::get_state(SpeciesBase::state::iterator it) const {
+  plants_const_iterator first = plants.begin(), last = plants.end();
+  while (first != last) {
+    it = first->get_state(it);
+    ++first;
+  }
+  return it;
+}
+
+template <class Individual>
+SpeciesBase::state::const_iterator
+Species<Individual>::set_state(SpeciesBase::state::const_iterator it) {
+  plants_iterator first = plants.begin(), last = plants.end();
+  while (first != last) {
+    it = first->set_state(it);
+    ++first;
+  }
+  return it;
+}
+
+template <class Individual>
+Rcpp::NumericMatrix Species<Individual>::r_get_state() const {
+  state tmp(size() * seed.state_size());
+  get_state(tmp.begin());
+
+  Rcpp::NumericMatrix ret(static_cast<int>(seed.state_size()),
+			  static_cast<int>(size()));
+  std::copy(tmp.begin(), tmp.end(), ret.begin());
+
+  return ret;
+}
+
+template <class Individual>
+void Species<Individual>::r_set_state(Rcpp::NumericMatrix x) {
+  util::check_dimensions(static_cast<size_t>(x.nrow()),
+			 static_cast<size_t>(x.ncol()),
+			 seed.state_size(), size());
+  typename Species<Individual>::state tmp(x.begin(), x.end());
+  set_state(tmp.begin());
+}
+
+// TODO: this does not check that the resulting state is sensible (in
+// particular the monotonic check).  That should probably be added.
+template <class Individual>
+void Species<Individual>::r_force_state(Rcpp::NumericMatrix x) {
+  const size_t n = static_cast<size_t>(x.ncol());
+  plants.clear();
+  for (size_t i = 0; i < n; ++i)
+    add_seeds(1);
+  r_set_state(x);
+}
+
+// Special to Species<CohortTop>
+template<> Rcpp::NumericMatrix Species<CohortTop>::r_get_state() const;
+template<> void Species<CohortTop>::r_set_state(Rcpp::NumericMatrix x);
+template<> void Species<CohortTop>::r_force_state(Rcpp::NumericMatrix x);
 
 // There is some ugliness here; we need to make sure that the spline
 // is not constructed with zero gap between min and max plant sizes,
@@ -310,6 +383,7 @@ double Species<Individual>::germination_probability(const Environment& environme
 }
 
 SEXP species(Rcpp::CppClass individual, Strategy s);
+
 
 }
 

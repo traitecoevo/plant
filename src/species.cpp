@@ -101,6 +101,44 @@ void Species<CohortTop>::compute_vars_phys(const Environment& environment) {
   seed.compute_initial_conditions(environment);
 }
 
+template <>
+Rcpp::NumericMatrix Species<CohortTop>::r_get_state() const {
+  const size_t nc = size() + 1, nr = seed.state_size();
+  // Extra +1 here for the seed.
+  state tmp(nc * nr);
+  state::iterator it = get_state(tmp.begin());
+  seed.get_state(it);
+
+  Rcpp::NumericMatrix ret(static_cast<int>(nr),
+			  static_cast<int>(nc));
+  std::copy(tmp.begin(), tmp.end(), ret.begin());
+
+  return ret;
+}
+
+template <>
+void Species<CohortTop>::r_set_state(Rcpp::NumericMatrix x) {
+  util::check_dimensions(static_cast<size_t>(x.nrow()),
+			 static_cast<size_t>(x.ncol()),
+			 seed.state_size(), size() + 1); // + seed
+  state tmp(x.begin(), x.end());
+  state::const_iterator it = set_state(tmp.begin());
+  seed.set_state(it);
+}
+
+// TODO: this does not check that the resulting state is sensible (in
+// particular the monotonic check).  That should probably be added.
+template <>
+void Species<CohortTop>::r_force_state(Rcpp::NumericMatrix x) {
+  if (x.ncol() == 0)
+    ::Rf_error("Boundary condition for seeds must always be given");
+  const size_t n = static_cast<size_t>(x.ncol() - 1);
+  plants.clear();
+  for (size_t i = 0; i < n; ++i)
+    add_seeds(1);
+  r_set_state(x);
+}
+
 SEXP species(Rcpp::CppClass individual, Strategy s) {
   std::string individual_type =
     util::rcpp_class_demangle(Rcpp::as<std::string>(individual));

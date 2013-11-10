@@ -2,8 +2,6 @@
 #ifndef TREE_STATE_H_
 #define TREE_STATE_H_
 
-#include "plant.h"
-
 namespace util {
 
 // Little utility for loading state in Plants, etc (used in

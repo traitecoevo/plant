@@ -193,5 +193,59 @@ test_that("Approximately computed assimilation matches full computation", {
   expect_that(identical(r.full, r.approx), is_false())
 })
 
+test_that("State get/set works", {
+  set.seed(1)
+  sp2 <- new(SpeciesCT, s)
+  env$time <- 0
+  sp2$compute_vars_phys(env)
+
+  seed <- new(CohortTop, s)
+  seed$compute_initial_conditions(env)
+
+  state <- sp2$state
+  expect_that(state, is_a("matrix"))
+  expect_that(state, is_identical_to(cbind(seed$state)))
+
+  ## First few just check that the expected behaviour with the initial
+  ## conditions work.
+  sp2$add_seeds(1)
+  sp2$height <- h.top * 0.5
+  state <- cbind(state, state)
+  state[1,1] <- sp2$height
+  expect_that(sp2$state, is_identical_to(state))
+
+  env$time <- 10
+  sp2$compute_vars_phys(env)
+  seed$compute_initial_conditions(env)
+  state[,2] <- seed$state
+  expect_that(sp2$state, is_identical_to(state))
+
+  sp2$add_seeds(1)
+  env$time <- 20
+  sp2$compute_vars_phys(env)
+  seed$compute_initial_conditions(env)
+  state <- cbind(state, seed$state)
+  expect_that(sp2$state, is_identical_to(state))
+
+  ## Then set some values and check that they stick:
+  state[1,1:2] <- sort(runif(2), decreasing=TRUE)
+  state[2:5,] <- runif(4 * ncol(state))
+  sp2$state <- state
+  expect_that(sp2$state, is_identical_to(state))
+
+  ## Check that we can't set invalid states:
+  expect_that(sp2$state <- state[,1:2],             throws_error())
+  expect_that(sp2$state <- cbind(state[,1], state), throws_error())
+  expect_that(sp2$state <- state[1:4,],             throws_error())
+  expect_that(sp2$state <- rbind(state[1,], state), throws_error())
+
+  ## Then look at forcing state:
+  state <- cbind(state[,1], state)
+  state[1,-ncol(state)] <- sort(runif(ncol(state)-1), decreasing=TRUE)
+  sp2$force_state(state)
+  expect_that(sp2$state,      is_identical_to(state))
+  expect_that(sp2$seed$state, is_identical_to(state[,ncol(state)]))
+})
+
 rm(sp)
 gc()
