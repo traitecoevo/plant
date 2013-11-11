@@ -38,6 +38,7 @@ public:
   virtual Rcpp::List r_get_plants() const = 0;
   virtual int r_n_individuals() const = 0;
   virtual spline::Spline r_assimilation_spline() const = 0;
+  virtual Strategy r_strategy() const = 0;
   // Still thinking about these...
   virtual state::iterator       get_state(state::iterator it) const = 0;
   virtual state::const_iterator set_state(state::const_iterator it) = 0;
@@ -81,6 +82,7 @@ public:
   Individual r_seed() const;
   int r_n_individuals() const;
   spline::Spline r_assimilation_spline() const;
+  Strategy r_strategy() const;
 
   // State
   state::iterator get_state(state::iterator it) const;
@@ -374,6 +376,11 @@ void Species<Individual>::rescale_assimilation_spline(const Environment &environ
 template <class Individual>
 spline::Spline Species<Individual>::r_assimilation_spline() const {
   return strategy->r_assimilation_spline();
+}
+
+template <class Individual>
+Strategy Species<Individual>::r_strategy() const {
+  return *strategy.get();
 }
 
 template <class Individual>

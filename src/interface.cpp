@@ -260,6 +260,8 @@ RCPP_MODULE(tree) {
 	    &model::SpeciesBase::rescale_assimilation_spline)
     .property("assimilation_spline",
 	      &model::SpeciesBase::r_assimilation_spline)
+    .property("strategy",
+	      &model::SpeciesBase::r_strategy)
     .property("state",
 	      &model::SpeciesBase::r_get_state,
 	      &model::SpeciesBase::r_set_state)

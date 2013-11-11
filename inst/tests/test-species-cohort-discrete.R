@@ -47,7 +47,7 @@ expect_that(sp$germination_probability(env),
 
 test_that("State get/set works", {
   set.seed(1)
-  sp2 <- new(SpeciesC, s)
+  sp2 <- new(SpeciesC, sp$strategy)
   state <- sp2$state
   expect_that(state, is_a("matrix"))
   expect_that(state, equals(matrix(0.0, 4, 0)))

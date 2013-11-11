@@ -195,7 +195,7 @@ test_that("Approximately computed assimilation matches full computation", {
 
 test_that("State get/set works", {
   set.seed(1)
-  sp2 <- new(SpeciesCT, s)
+  sp2 <- new(SpeciesCT, sp$strategy)
   env$time <- 0
   sp2$compute_vars_phys(env)
 

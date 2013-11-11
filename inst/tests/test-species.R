@@ -67,7 +67,7 @@ xy <- tmp$xy
 ## and we're done.  For those, remember to tweak the environment times
 ## and number of indivuduals.
 test_that("State get/set works", {
-  sp2 <- new(Species, s)
+  sp2 <- new(Species, sp$strategy)
   state <- sp2$state
   expect_that(state, is_a("matrix"))
   expect_that(state, equals(matrix(0.0, 3, 0)))
