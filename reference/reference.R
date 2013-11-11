@@ -55,7 +55,7 @@ test_that("Output disturbance calculations match", {
 ctrl.new <- list()
 ctrl.new$environment_light_rescale_usually <- TRUE
 ctrl.new$environment_light_tol <- 1e-4
-ctrl.new$plant_assimilation_rule <- integrator_gsl_rule("GAUSS21")
+ctrl.new$plant_assimilation_rule <- 21
 ctrl.new$plant_assimilation_over_distribution <- FALSE
 ctrl.new$plant_assimilation_tol <- 1e-4
 ctrl.new$ode_tol_rel <- 1e-4
