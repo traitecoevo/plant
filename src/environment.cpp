@@ -96,5 +96,20 @@ void Environment::r_set_seed_rain_index(size_t x) {
   set_seed_rain_index(util::check_bounds_r(x, seed_rain.size()));
 }
 
+// The only *variable* in Enironment is the time.
+//
+// - seed_rain and disturbance are set by Parameters
+// - light_environment follows from the patch
+//
+// However, because of control.rescale_light_environment, we might not
+// always get the same light environment.
+Rcpp::List Environment::r_get_state() const {
+  return Rcpp::List::create(Rcpp::_["time"] = time);
+}
+
+void Environment::r_set_state(Rcpp::List x) {
+  time = Rcpp::as<double>(x["time"]);
+}
+
 
 }

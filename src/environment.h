@@ -38,6 +38,9 @@ public:
 
   void r_set_seed_rain_index(size_t x);
 
+  Rcpp::List r_get_state() const;
+  void r_set_state(Rcpp::List x);
+
 private:
   spline::Spline light_environment;
   Disturbance disturbance_regime;

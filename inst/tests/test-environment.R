@@ -55,3 +55,13 @@ e$set_seed_rain_index(2)
 expect_that(e$seed_rain_rate, is_identical_to(x[[2]]))
 expect_that(e$set_seed_rain_index(0), throws_error())
 expect_that(e$set_seed_rain_index(3), throws_error())
+
+test_that("Environment state works", {
+  expect_that(e$state, is_identical_to(list(time=e$time)))
+
+  state.new <- list(runif(1))
+  expect_that(e$state <- state.new, throws_error())
+  names(state.new) <- "time"
+  e$state <- state.new
+  expect_that(e$state, is_identical_to(state.new))
+})
