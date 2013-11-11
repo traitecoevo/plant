@@ -40,6 +40,8 @@ public:
   std::vector<double> r_ode_times() const;
   void r_set_ode_times(std::vector<double> x);
   void r_clear_ode_times();
+  Rcpp::List r_get_state() const;
+  void r_set_state(Rcpp::List x);
 
 private:
   typedef std::list<Event>::iterator events_iterator;

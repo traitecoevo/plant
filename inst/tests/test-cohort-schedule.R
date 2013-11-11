@@ -202,3 +202,44 @@ test_that("Times were set correctly", {
   expect_that(sched$ode_times,   is_identical_to(t.ode))
   expect_that(sched$max_time,    is_identical_to(max(t.ode)))
 })
+
+test_that("State get/set works correctly", {
+  sched$reset()
+  state <- sched$state
+  # lapply(seq_len(sched$n_species), function(i) sched$times(i)))
+  expect_that(state$times, is_identical_to(list(t1, t2)))
+  expect_that(state$ode_times, is_identical_to(t.ode))
+  expect_that(state$remaining, equals(sched$size))
+
+  for (i in 1:10)
+    sched$pop()
+  state <- sched$state
+  expect_that(state$times, is_identical_to(list(t1, t2)))
+  expect_that(state$ode_times, is_identical_to(t.ode))
+  expect_that(state$remaining, equals(sched$remaining))
+
+  sched2 <- new(CohortSchedule, n.species)
+  sched2$state <- state
+  expect_that(sched2$state, is_identical_to(state))
+  expect_that(sched2$remaining, is_identical_to(sched$remaining))
+
+  ## Repeat without ode times:
+  sched$clear_ode_times()
+  sched$reset()
+  state <- sched$state
+  expect_that(state$times, is_identical_to(list(t1, t2)))
+  expect_that(state$ode_times, equals(numeric(0)))
+  expect_that(state$remaining, equals(sched$size))
+
+  for (i in 1:10)
+    sched$pop()
+  state <- sched$state
+  expect_that(state$times, is_identical_to(list(t1, t2)))
+  expect_that(state$ode_times, is_identical_to(numeric(0)))
+  expect_that(state$remaining, equals(sched$remaining))
+
+  sched2 <- new(CohortSchedule, n.species)
+  sched2$state <- state
+  expect_that(sched2$state, is_identical_to(state))
+  expect_that(sched2$remaining, is_identical_to(sched$remaining))
+})

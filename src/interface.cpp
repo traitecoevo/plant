@@ -224,6 +224,9 @@ RCPP_MODULE(tree) {
 	      &model::CohortSchedule::r_set_ode_times)
     .method("clear_ode_times",
 	    &model::CohortSchedule::r_clear_ode_times)
+    .property("state",
+	      &model::CohortSchedule::r_get_state,
+	      &model::CohortSchedule::r_set_state)
     ;
   Rcpp::class_<model::CohortSchedule::Event>("CohortScheduleEvent")
     .constructor<double,int>()

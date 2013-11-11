@@ -177,6 +177,30 @@ void CohortSchedule::r_clear_ode_times() {
   ode_times.clear();
 }
 
+Rcpp::List CohortSchedule::r_get_state() const {
+  Rcpp::List times_;
+  for (size_t i = 0; i < n_species; ++i)
+    times_.push_back(times(i));
+  return Rcpp::List::create(Rcpp::_["times"]     = times_,
+			    Rcpp::_["ode_times"] = ode_times,
+			    Rcpp::_["remaining"] = remaining());
+}
+
+void CohortSchedule::r_set_state(Rcpp::List x) {
+  Rcpp::List times_ = x["times"];
+  std::vector<double> ode_times_ = x["ode_times"];
+  size_t remaining_ = Rcpp::as<size_t>(x["remaining"]);
+  util::check_length(static_cast<size_t>(times_.size()), n_species);
+  Rcpp::List::iterator it = times_.begin();
+  for (size_t i = 0; i < n_species; ++i)
+    set_times(*it++, i);
+  if (!ode_times_.empty())
+    r_set_ode_times(ode_times_);
+  // Then advance the schedule to put it back in the same place:
+  while (remaining() > remaining_)
+    pop();
+}
+
 // * Private methods
 CohortSchedule::events_iterator
 CohortSchedule::add_time(double time, size_t species_index,
