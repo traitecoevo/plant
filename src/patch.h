@@ -20,6 +20,7 @@ public:
   virtual void deaths() = 0;
   virtual size_t size() const = 0;
   virtual double get_time() const = 0;
+  virtual void set_time(double x) = 0;
   virtual Rcpp::List r_height() const = 0;
   virtual void r_set_height(Rcpp::List x) = 0;
   virtual Rcpp::List r_get_species() const = 0;
@@ -37,6 +38,10 @@ public:
   virtual void r_compute_vars_phys() = 0;
   virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
   virtual Parameters r_parameters() const = 0;
+  // Still thinking about these
+  virtual Rcpp::List r_get_state() const = 0;
+  virtual void r_set_state(Rcpp::List x) = 0;
+  virtual void r_force_state(Rcpp::List x) = 0;
 };
 
 template <class Individual>
@@ -62,6 +67,7 @@ public:
   ode::iterator       ode_values(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it)  const;
   double get_time() const;
+  void set_time(double x);
 
   // * R interface.
 
@@ -88,6 +94,10 @@ public:
   // NOTE: germination is special to the Metacommunity
   std::vector<int> r_germination(std::vector<int> seeds);
   Parameters r_parameters() const;
+  // Still thinking about these
+  Rcpp::List r_get_state() const;
+  void r_set_state(Rcpp::List x);
+  void r_force_state(Rcpp::List x);
   
 private:
   void initialise();
@@ -104,6 +114,8 @@ private:
   void compute_vars_phys();
 
   std::vector<int> germination(std::vector<int> seeds);
+
+  void set_state(Rcpp::List x, bool force);
 
   Parameters::ptr parameters;
 
@@ -230,6 +242,10 @@ ode::iterator Patch<Individual>::ode_rates(ode::iterator it) const {
 template <class Individual>
 double Patch<Individual>::get_time() const {
   return environment.get_time();
+}
+template <class Individual>
+void Patch<Individual>::set_time(double x) {
+  environment.set_time(x);
 }
 
 // * Private functions
@@ -393,6 +409,45 @@ std::vector<int> Patch<Individual>::r_germination(std::vector<int> seeds) {
 template <class Individual>
 Parameters Patch<Individual>::r_parameters() const {
   return *parameters.get();
+}
+
+template <class Individual>
+Rcpp::List Patch<Individual>::r_get_state() const {
+  Rcpp::List species_state;
+  for (species_const_iterator sp = species.begin();
+       sp != species.end(); ++sp)
+    species_state.push_back(sp->r_get_state());
+  Rcpp::List environment_state = environment.r_get_state();
+  return Rcpp::List::create(Rcpp::_["species"]     = species_state,
+			    Rcpp::_["environment"] = environment_state);
+}
+
+template <class Individual>
+void Patch<Individual>::r_set_state(Rcpp::List x) {
+  set_state(x, false);
+}
+
+template <class Individual>
+void Patch<Individual>::r_force_state(Rcpp::List x) {
+  set_state(x, true);
+}
+
+template <class Individual>
+void Patch<Individual>::set_state(Rcpp::List x, bool force) {
+  const Rcpp::List species_state = x["species"];
+  util::check_length(static_cast<size_t>(species_state.size()), size());
+  environment.r_set_state(x["environment"]);
+  Rcpp::List::const_iterator it = species_state.begin();
+  for (species_iterator sp = species.begin();
+       sp != species.end(); ++sp) {
+    if (force)
+      sp->r_force_state(*it);
+    else
+      sp->r_set_state(*it);
+    ++it;
+  }
+  compute_light_environment();
+  compute_vars_phys();
 }
 
 template <class Individual>

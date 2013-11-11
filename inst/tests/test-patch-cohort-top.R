@@ -4,6 +4,7 @@ context("Patch [CohortTop]")
 
 p <- new(Parameters)
 p$add_strategy(new(Strategy))
+p$set_parameters(list(patch_area=1.0)) # See issue #13
 p$seed_rain <- pi/2
 
 ## An individual CohortTop that will be the same in terms of strategy
@@ -101,6 +102,37 @@ test_that("OK at end of sequence", {
   expect_that(solver$advance(tt[[length(tt)]] - 1e-8),
               throws_error())
 })
+
+test_that("State get/set works", {
+  patch.c$reset()
+  patch.c$add_seedling(1)
+  ode.control <- p$control$ode_control
+  ode.control$set_parameters(list(step_size_min = 1e-4))
+  solver <- solver.from.odetarget(patch.c, ode.control)
+  while (patch.c$time < 5) {
+    solver$step()
+    if (patch.c$time > patch.c$n_individuals) {
+      patch.c$add_seedling(1)
+      solver <- solver.from.odetarget(patch.c, ode.control)
+    }
+  }
+  patch.c$compute_vars_phys() # require because we just added seed
+  state <- patch.c$state
+
+  patch2 <- new(PatchCohortTop, patch.c$parameters)
+  expect_that(patch2$state <- state, throws_error())
+  patch2$force_state(state)
+  expect_that(patch2$state, is_identical_to(state))
+
+  ## Check some things that depend on state make sense:
+  expect_that(patch2$environment$light_environment$xy,
+              is_identical_to(patch.c$environment$light_environment$xy))
+  expect_that(patch2$time, is_identical_to(patch.c$time))
+  expect_that(patch2$ode_values, is_identical_to(patch.c$ode_values))
+  expect_that(patch2$height, is_identical_to(patch.c$height))
+  expect_that(patch2$ode_rates, is_identical_to(patch.c$ode_rates))
+})
+
 
 rm(patch.c)
 gc()

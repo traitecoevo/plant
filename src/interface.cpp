@@ -311,7 +311,8 @@ RCPP_MODULE(tree) {
     .method("births",             &model::PatchBase::births)
     .method("deaths",             &model::PatchBase::deaths)
     .property("size",             &model::PatchBase::size)
-    .property("time",             &model::PatchBase::get_time)
+    .property("time",             &model::PatchBase::get_time,
+	      &model::PatchBase::set_time)
     .property("height_max",       &model::PatchBase::r_height_max)
     .method("canopy_openness",    &model::PatchBase::r_canopy_openness)
     .method("leaf_area_above",    &model::PatchBase::r_leaf_area_above)
@@ -330,6 +331,11 @@ RCPP_MODULE(tree) {
     .method("reset",              &model::PatchBase::reset)
     .property("parameters",
 	      &model::PatchBase::r_parameters)
+    .property("state",
+	      &model::PatchBase::r_get_state,
+	      &model::PatchBase::r_set_state)
+    .method("force_state",
+	    &model::PatchBase::r_force_state)
     ;
 
   Rcpp::class_< model::Patch<model::Plant> >("Patch")

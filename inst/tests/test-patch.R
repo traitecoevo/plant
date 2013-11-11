@@ -204,5 +204,56 @@ tmp <- replicate(100, patch$germination(n))
 test <- suppressWarnings(ks.test(tmp, pbinom, n, pr.cmp))
 expect_that(test$p.value, is_greater_than(1/5))
 
+test_that("State get/set works", {
+  patch2 <- new(Patch, p)
+  env <- patch2$environment
+  state <- patch2$state
+
+  state.cmp <- list(species=list(new(Species, p[[1]])$state),
+                    environment=env$state)
+  expect_that(state, is_identical_to(state.cmp))
+
+  ## Add a bunch of seedlings:
+  set.seed(1)
+  n <- 10
+  for (i in seq_len(n))
+    patch2$add_seedlings(1)
+  h <- sort(runif(n, seed$height, 15), decreasing=TRUE)
+  t <- runif(1)
+
+  patch2$height <- list(h)
+  patch2$time   <- t
+
+  state <- patch2$state
+  state.cmp <- list(species=list(patch2[[1]]$state),
+                    environment=patch2$environment$state)
+  expect_that(state, is_identical_to(state.cmp))
+
+  state$species[[1]][2:3,] <- runif(n * 2)
+  patch2$state <- state
+
+  ## Check that this forces the light environment to be built:
+  patch3 <- new(Patch, patch2$parameters)
+  patch3$force_state(state)
+  expect_that(patch3$state, is_identical_to(state))
+  expect_that(patch3$environment$light_environment$xy,
+              is_identical_to(patch2$environment$light_environment$xy))
+
+  ## Check some invalid states fail:
+  expect_that(patch2$state <- list(), throws_error())
+  expect_that(patch2$state <- unname(state), throws_error())
+  expect_that(patch2$state <- state[1], throws_error())
+  expect_that(patch2$state <- state[2], throws_error())
+  state.broken <- state
+  state.broken$species[[1]] <- state.broken$species[[1]][,-4]
+  expect_that(patch2$state <- state.broken, throws_error())
+
+  ## Second check with completely different state (redundant?)
+  patch3$force_state(patch$state)
+  expect_that(patch3$state, is_identical_to(patch$state))
+  expect_that(patch3$environment$light_environment$xy,
+              is_identical_to(patch$environment$light_environment$xy))
+})
+
 rm(patch)
 gc()
