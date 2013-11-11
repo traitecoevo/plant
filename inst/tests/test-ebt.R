@@ -131,10 +131,10 @@ test_that("Run looks successful", {
               equals(rep(new(Plant, p[[1]])$height, length(t))))
 })
 
-run.ebt <- function(ebt) {
+run.ebt <- function(ebt, t.max=Inf) {
   tt <- hh <- NULL
   ebt$reset()
-  while (ebt$cohort_schedule$remaining > 0) {
+  while (ebt$cohort_schedule$remaining > 0 && ebt$time < t.max) {
     ebt$run_next()
     tt <- c(tt, ebt$time)
     hh <- c(hh, list(ebt$patch$height[[species.index]]))
@@ -192,6 +192,27 @@ if (interactive()) {
   matplot(tt.p.end, hh.p.end, type="o", col="black", pch=1, lty=1)
   matpoints(tt.1.e, hh.1.e, col="red", cex=.5, pch=1, type="o", lty=1)
 }
+
+## TODO: This is a fairly inadequate set of tests; none of the failure
+## conditions are tested, and it's undefined what will happen if we
+## set a cohort schedule that leaves us between introduction points.
+test_that("State get/set works", {
+  ## Next, try and partly run the EBT, grab its state and push it into a
+  ## second copy.
+  ebt$reset()
+  tmp <- run.ebt(ebt, sched$max_time / 2)
+  state <- ebt$state
+
+  ebt2 <- new(EBT, ebt$parameters)
+  ebt2$state <- state
+
+  expect_that(ebt2$state, equals(ebt$state))
+  ## Emergent things:
+  expect_that(ebt2$patch$environment$light_environment$xy,
+              equals(ebt$patch$environment$light_environment$xy))
+  expect_that(ebt2$ode_values, equals(ebt$ode_values))
+  expect_that(ebt2$ode_rates,  equals(ebt$ode_rates))
+})
 
 rm(ebt)
 gc()

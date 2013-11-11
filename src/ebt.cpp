@@ -82,4 +82,18 @@ Parameters EBT::r_parameters() const {
   return patch.r_parameters();
 }
 
+Rcpp::List EBT::r_get_state() const {
+  return Rcpp::List::create(Rcpp::_["patch"]    = patch.r_get_state(),
+			    Rcpp::_["schedule"] = schedule.r_get_state());
+}
+
+// Note that we use force here because when using this we are
+// generally happy about changing the dimensions.
+void EBT::r_set_state(Rcpp::List x) {
+  Rcpp::List patch_state = x["patch"],
+    schedule_state = x["schedule"];
+  patch.r_force_state(patch_state);
+  schedule.r_set_state(schedule_state);
+}
+
 }

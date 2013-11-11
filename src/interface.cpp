@@ -400,6 +400,8 @@ RCPP_MODULE(tree) {
     .method("run_next",          &model::EBT::run_next)
     .property("ode_times",       &model::EBT::r_ode_times)
     .property("parameters",      &model::EBT::r_parameters)
+    .property("state",           &model::EBT::r_get_state,
+	      &model::EBT::r_set_state)
     ;
 
   Rcpp::class_<util::RFunctionWrapper>("RFunctionWrapper")

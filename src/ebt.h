@@ -31,6 +31,9 @@ public:
   std::vector<double> r_ode_times() const;
   Parameters r_parameters() const;
 
+  Rcpp::List r_get_state() const;
+  void r_set_state(Rcpp::List x);
+
 private:
   Patch<CohortTop> patch;
   ode::Solver<Patch <CohortTop> > ode_solver;
