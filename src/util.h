@@ -220,6 +220,23 @@ double trapezium(const ContainerX& x, const ContainerY& y) {
   return tot * 0.5;
 }
 
+template <typename ContainerX, typename ContainerY>
+std::vector<double> trapezium_vector(const ContainerX& x,
+				     const ContainerY& y) {
+  util::check_length(y.size(), x.size());
+  if (x.size() < 2)
+    ::Rf_error("Need at least two points for the trapezium rule");
+  typename ContainerX::const_iterator x0 = x.begin(), x1 = x.begin();
+  x1++;
+  typename ContainerY::const_iterator y0 = y.begin(), y1 = y.begin();
+  y1++;
+  std::vector<double> ret;
+  ret.reserve(x.size());
+  while (x1 != x.end())
+    ret.push_back(0.5 * (*x1++ - *x0++) * (*y1++ + *y0++));
+  return ret;
+}
+
 template <typename T>
 std::string string_from_address(T *x) {
   std::stringstream ss;
@@ -237,6 +254,13 @@ std::vector<T> sum(const std::vector<T> &a, const std::vector<T> &b) {
 }
 
 std::string rcpp_class_demangle(std::string x);
+
+// The basic idea here is that we consider the three points
+//   {(x1, y1), (x2, y2), (x3, y3)}
+// and we want to know how much the middle point is contributing to
+// the integral.
+std::vector<double> local_error_integration(const std::vector<double>& x,
+					    const std::vector<double>& y);
 
 namespace test {
 std::vector<double> test_sum_double(std::vector<double> a,

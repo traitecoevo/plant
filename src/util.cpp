@@ -127,6 +127,43 @@ std::string rcpp_class_demangle(std::string x) {
   return x;
 }
 
+// The basic idea here is that we consider the three points
+//   {(x1, y1), (x2, y2), (x3, y3)}
+// and we want to know how much the middle point is contributing to
+// the integral.
+//
+// Because this is normalised against the total error, this could be
+// really really badly behaved when this goes towards zero.
+std::vector<double> local_error_integration(const std::vector<double>& x,
+					    const std::vector<double>& y) {
+  std::vector<double> ret;
+  check_length(x.size(), y.size());
+
+  if (x.size() < 3) {
+    for (size_t i = 0; i < x.size(); ++i)
+      ret.push_back(NA_REAL);
+  } else {
+    ret.push_back(NA_REAL);
+    // First, go through and compute integrals over the fine grid:
+    std::vector<double> a = trapezium_vector(x, y);
+    // Compute the total area under the curve.
+    const double tot = std::abs(std::accumulate(a.begin(), a.end(), 0.0));
+
+    std::vector<double>::const_iterator a1 = a.begin(),
+      x1 = x.begin(), y1 = y.begin();
+    std::vector<double>::const_iterator a2 = a1+1, x3 = x1+2, y3 = y1+2;
+    while (x3 != x.end()) {
+      const double a123 = *a1++ + *a2++;
+      const double a1_3  = 0.5 * (*y1++ + *y3++) * (*x3++ - *x1++);
+      const double err_abs = std::abs(    a1_3 - a123) / tot;
+      const double err_rel = std::abs(1 - a1_3 / a123);
+      ret.push_back(std::min(err_abs, err_rel));
+    }
+    ret.push_back(NA_REAL);
+  }
+  return ret;
+}
+
 namespace test {
 std::vector<double> test_sum_double(std::vector<double> a,
 				    std::vector<double> b) {
