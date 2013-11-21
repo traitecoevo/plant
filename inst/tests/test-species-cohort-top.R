@@ -257,6 +257,10 @@ test_that("State get/set works", {
   sp2$force_state(state)
   expect_that(sp2$state,      is_identical_to(state))
   expect_that(sp2$seed$state, is_identical_to(state[,ncol(state)]))
+
+  ## Check that the seeds calculation is correct.
+  expect_that(sp2$seeds,
+              is_identical_to(state[3,-ncol(state)]))
 })
 
 rm(sp)

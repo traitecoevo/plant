@@ -25,6 +25,7 @@ public:
   virtual size_t size() const = 0;
   virtual double height_max() const = 0;
   virtual double leaf_area_above(double height) const = 0;
+  virtual std::vector<double> seeds() const = 0;
   virtual void compute_vars_phys(const Environment& environment) = 0;
   virtual void add_seeds(int n) = 0;
   virtual double germination_probability(const Environment&
@@ -64,6 +65,7 @@ public:
   size_t size() const;
   double height_max() const;
   double leaf_area_above(double height) const;
+  std::vector<double> seeds() const;
   void compute_vars_phys(const Environment& environment);
   void add_seeds(int n);
   double germination_probability(const Environment& environment) const;
@@ -189,6 +191,16 @@ double Species<Individual>::leaf_area_above(double height) const {
 }
 template <>
 double Species<CohortTop>::leaf_area_above(double height) const;
+
+template <class Individual>
+std::vector<double> Species<Individual>::seeds() const {
+  std::vector<double> ret;
+  for (plants_const_iterator it = plants.begin();
+       it != plants.end(); ++it) {
+    ret.push_back(it->fecundity());
+  }
+  return ret;
+}
 
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.

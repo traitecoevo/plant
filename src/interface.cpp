@@ -165,6 +165,7 @@ RCPP_MODULE(tree) {
     .property("height",
 	      &model::Plant::height,
 	      &model::Plant::set_height)
+    .property("fecundity",          &model::Plant::fecundity)
     .property("leaf_area",          &model::Plant::leaf_area)
     .method("leaf_area_above",      &model::Plant::leaf_area_above)
     .method("compute_vars_phys",    &model::Plant::compute_vars_phys)
@@ -246,6 +247,7 @@ RCPP_MODULE(tree) {
     .property("size",          &model::SpeciesBase::size)
     .property("height_max",    &model::SpeciesBase::height_max)
     .method("leaf_area_above", &model::SpeciesBase::leaf_area_above)
+    .property("seeds",         &model::SpeciesBase::seeds)
     .method("compute_vars_phys", &model::SpeciesBase::compute_vars_phys)
     .method("add_seeds",       &model::SpeciesBase::add_seeds)
     .method("germination_probability", 

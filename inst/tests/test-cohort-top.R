@@ -47,6 +47,8 @@ test_that("State get/set works", {
 
   expect_that(c2$state <- x[-1],   throws_error())
   expect_that(c2$state <- c(x, 1), throws_error())
+
+  expect_that(c2$fecundity, is_identical_to(x[[3]]))
 })
 
 expect_that(coh$leaf_area,

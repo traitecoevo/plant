@@ -50,6 +50,10 @@ double CohortTop::leaf_area() const {
   return density * Plant::leaf_area();
 }
 
+double CohortTop::fecundity() const {
+  return seeds_survival_weighted;
+}
+
 int CohortTop::offspring() {
   ::Rf_error("Cannot use offspring() in CohortTop");
   // return 0; // unreachable because Rf_error is noreturn (3.0.1)
