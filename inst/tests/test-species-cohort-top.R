@@ -129,6 +129,12 @@ test_that("Total leaf area calculations are correct", {
               is_identical_to(cmp.leaf.area))
 })
 
+test_that("Leaf area error calculations are correct", {
+  cmp <- local_error_integration(sp$height, sp$leaf_area)
+  expect_that(sp$leaf_area_error,
+              is_identical_to(cmp))
+})
+
 hh <- sp$height
 hh[1] <- 10
 sp$height <- hh

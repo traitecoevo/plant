@@ -289,6 +289,8 @@ RCPP_MODULE(tree) {
     .derives<model::SpeciesBase>("SpeciesBase")
     .method("[[", &model::Species<model::CohortTop>::r_at)
     .property("seed", &model::Species<model::CohortTop>::r_seed)
+    .property("leaf_area_error",
+	      &model::Species<model::CohortTop>::leaf_area_error)
     ;
 
   Rcpp::class_<model::Environment>("Environment")

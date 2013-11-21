@@ -32,6 +32,8 @@ public:
   virtual void clear() = 0;
   virtual void compute_assimilation_spline(const Environment& environment) = 0;
   virtual void rescale_assimilation_spline(const Environment& environment) = 0;
+  // Leaf area error estimation
+  virtual std::vector<double> leaf_area_error() const = 0;
   // R-specific wrappers
   virtual std::vector<double> r_height() const = 0;
   virtual void r_set_height(std::vector<double> x) = 0;
@@ -68,6 +70,9 @@ public:
   void clear();
   void compute_assimilation_spline(const Environment& environment);
   void rescale_assimilation_spline(const Environment& environment);
+
+  // * Leaf area error estimation, used by EBT
+  std::vector<double> leaf_area_error() const;
 
   // * ODE interface
   size_t ode_size() const;
@@ -373,6 +378,13 @@ void Species<Individual>::rescale_assimilation_spline(const Environment &environ
   const double hmin = seed.height() - eps, hmax = height_max() + eps;
   Plant::rescale_assimilation_spline(strategy.get(), hmin, hmax,
 				     environment);
+}
+
+// This doesn't really make any sense for anything other than
+// Species<CohortTop>, but the functions are here anyway...
+template <class Individual>
+std::vector<double> Species<Individual>::leaf_area_error() const {
+  return util::local_error_integration(r_height(), r_leaf_area());
 }
 
 template <class Individual>
