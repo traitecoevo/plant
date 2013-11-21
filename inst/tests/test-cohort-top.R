@@ -49,6 +49,10 @@ test_that("State get/set works", {
   expect_that(c2$state <- c(x, 1), throws_error())
 })
 
+expect_that(coh$leaf_area,
+            equals(exp(coh$state[[4]]) *
+                   coh$vars_size[["leaf_area"]]))
+
 ## First, need to compute the gradient of height growth rate with
 ## respect to height.  This check can be removed once everything seems
 ## to be working as it uses mostly internal code.

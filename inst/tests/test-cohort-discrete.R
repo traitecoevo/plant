@@ -63,6 +63,10 @@ expect_that(cohort0$vars_phys, is_identical_to(plant$vars_phys))
 expect_that(cohort1$vars_phys, is_identical_to(plant$vars_phys))
 expect_that(cohort2$vars_phys, is_identical_to(plant$vars_phys))
 
+expect_that(cohort0$leaf_area, is_identical_to(plant$leaf_area))
+expect_that(cohort1$leaf_area, is_identical_to(plant$leaf_area))
+expect_that(cohort2$leaf_area, is_identical_to(2L*plant$leaf_area))
+
 ## Grow the plants for a bit so that we can test the offspring
 ## calculations.
 derivs <- function(t, y, pars) {

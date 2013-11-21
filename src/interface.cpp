@@ -165,6 +165,7 @@ RCPP_MODULE(tree) {
     .property("height",
 	      &model::Plant::height,
 	      &model::Plant::set_height)
+    .property("leaf_area",          &model::Plant::leaf_area)
     .method("leaf_area_above",      &model::Plant::leaf_area_above)
     .method("compute_vars_phys",    &model::Plant::compute_vars_phys)
     .method("germination_probability", &model::Plant::germination_probability)

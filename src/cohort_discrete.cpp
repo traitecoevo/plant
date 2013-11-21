@@ -26,6 +26,10 @@ CohortDiscrete::CohortDiscrete(Strategy *s, int n_individuals_)
     ::Rf_error("Cannot create a cohort with less than 1 individual");
 }
 
+double CohortDiscrete::leaf_area() const {
+  return n_individuals * Plant::leaf_area();
+}
+
 double CohortDiscrete::leaf_area_above(double z) const {
   return n_individuals * Plant::leaf_area_above(z);
 }
