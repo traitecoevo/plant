@@ -39,6 +39,7 @@ public:
   virtual int r_n_individuals() const = 0;
   virtual spline::Spline r_assimilation_spline() const = 0;
   virtual Strategy r_strategy() const = 0;
+  virtual std::vector<double> r_leaf_area() const = 0;
   // Still thinking about these...
   virtual state::iterator       get_state(state::iterator it) const = 0;
   virtual state::const_iterator set_state(state::const_iterator it) = 0;
@@ -83,6 +84,7 @@ public:
   int r_n_individuals() const;
   spline::Spline r_assimilation_spline() const;
   Strategy r_strategy() const;
+  std::vector<double> r_leaf_area() const;
 
   // State
   state::iterator get_state(state::iterator it) const;
@@ -381,6 +383,15 @@ spline::Spline Species<Individual>::r_assimilation_spline() const {
 template <class Individual>
 Strategy Species<Individual>::r_strategy() const {
   return *strategy.get();
+}
+
+template <class Individual>
+std::vector<double> Species<Individual>::r_leaf_area() const {
+  std::vector<double> ret;
+  plants_const_iterator p = plants.begin();
+  while (p != plants.end())
+    ret.push_back((p++)->leaf_area());
+  return ret;
 }
 
 template <class Individual>
