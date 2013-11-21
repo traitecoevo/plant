@@ -4,6 +4,7 @@
 #define TREE_ODE_STEP_H_
 
 #include <vector>
+#include <cstddef>
 #include "ode_target.h"
 
 namespace ode {

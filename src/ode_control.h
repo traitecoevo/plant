@@ -4,6 +4,7 @@
 
 #include <Rcpp.h>
 #include <vector>
+#include <cstddef>
 #include "lookup.h"
 
 // There is also a "scaled" control type which has a vector of scaling

@@ -4,6 +4,7 @@
 
 #include <Rcpp.h>
 #include <vector>
+#include <cstddef>
 
 #include "ode_solver.h"
 

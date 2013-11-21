@@ -3,6 +3,7 @@
 #define TREE_LORENZ_H_
 
 #include <vector>
+#include <cstddef>
 #include <Rcpp.h>
 
 #include "ode_solver.h"

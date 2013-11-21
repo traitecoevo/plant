@@ -3,6 +3,7 @@
 #define TREE_SPLINE_H_
 
 #include <vector>
+#include <cstddef>
 
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>

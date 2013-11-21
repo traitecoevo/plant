@@ -3,6 +3,7 @@
 #define TREE_PATCH_H_
 
 #include <vector>
+#include <cstddef>
 
 #include "ode_target.h"
 #include "adaptive_spline.h"

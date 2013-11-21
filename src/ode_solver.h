@@ -4,6 +4,7 @@
 
 #include <Rcpp.h>
 #include <vector>
+#include <cstddef>
 #include <cmath> // fabs
 
 #include "ode_control.h"
