@@ -165,6 +165,8 @@ RCPP_MODULE(tree) {
     .property("height",
 	      &model::Plant::height,
 	      &model::Plant::set_height)
+    .property("fecundity",          &model::Plant::fecundity)
+    .property("leaf_area",          &model::Plant::leaf_area)
     .method("leaf_area_above",      &model::Plant::leaf_area_above)
     .method("compute_vars_phys",    &model::Plant::compute_vars_phys)
     .method("germination_probability", &model::Plant::germination_probability)
@@ -245,6 +247,7 @@ RCPP_MODULE(tree) {
     .property("size",          &model::SpeciesBase::size)
     .property("height_max",    &model::SpeciesBase::height_max)
     .method("leaf_area_above", &model::SpeciesBase::leaf_area_above)
+    .property("seeds",         &model::SpeciesBase::seeds)
     .method("compute_vars_phys", &model::SpeciesBase::compute_vars_phys)
     .method("add_seeds",       &model::SpeciesBase::add_seeds)
     .method("germination_probability", 
@@ -260,8 +263,8 @@ RCPP_MODULE(tree) {
 	    &model::SpeciesBase::rescale_assimilation_spline)
     .property("assimilation_spline",
 	      &model::SpeciesBase::r_assimilation_spline)
-    .property("strategy",
-	      &model::SpeciesBase::r_strategy)
+    .property("strategy",      &model::SpeciesBase::r_strategy)
+    .property("leaf_area",     &model::SpeciesBase::r_leaf_area)
     .property("state",
 	      &model::SpeciesBase::r_get_state,
 	      &model::SpeciesBase::r_set_state)
@@ -288,6 +291,8 @@ RCPP_MODULE(tree) {
     .derives<model::SpeciesBase>("SpeciesBase")
     .method("[[", &model::Species<model::CohortTop>::r_at)
     .property("seed", &model::Species<model::CohortTop>::r_seed)
+    .property("leaf_area_error",
+	      &model::Species<model::CohortTop>::leaf_area_error)
     ;
 
   Rcpp::class_<model::Environment>("Environment")
@@ -402,6 +407,8 @@ RCPP_MODULE(tree) {
     .method("run_next",          &model::EBT::run_next)
     .property("ode_times",       &model::EBT::r_ode_times)
     .property("parameters",      &model::EBT::r_parameters)
+    .method("times",             &model::EBT::r_times)
+    .method("set_times",         &model::EBT::r_set_times)
     .property("state",           &model::EBT::r_get_state,
 	      &model::EBT::r_set_state)
     ;
@@ -464,4 +471,9 @@ RCPP_MODULE(tree) {
 		 &util::set_sane_gsl_error_handling);
   Rcpp::function("trapezium", 
 		 &util::trapezium< std::vector<double>, std::vector<double> >);
+  Rcpp::function("trapezium_vector",
+		 &util::trapezium_vector< std::vector<double>,
+		 std::vector<double> >);
+  Rcpp::function("local_error_integration",
+		 &util::local_error_integration);
 }

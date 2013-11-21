@@ -31,6 +31,7 @@
 ##' @export SpeciesCT
 ##' @export Spline
 ##' @export Strategy
+##' @export local_error_integration
 ##' @export compute_assimilation_spline
 ##' @export make.reference
 ##' @export metacommunity
@@ -51,6 +52,7 @@
 ##' @export test_to_rcpp_integer_matrix
 ##' @export test_to_rcpp_numeric_matrix
 ##' @export trapezium
+##' @export trapezium_vector
 
 .onLoad <- function(libname, pkgname){
   ## loadRcppModules() # this breaks devtools

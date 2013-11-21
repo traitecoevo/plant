@@ -25,6 +25,7 @@ public:
   virtual size_t size() const = 0;
   virtual double height_max() const = 0;
   virtual double leaf_area_above(double height) const = 0;
+  virtual std::vector<double> seeds() const = 0;
   virtual void compute_vars_phys(const Environment& environment) = 0;
   virtual void add_seeds(int n) = 0;
   virtual double germination_probability(const Environment&
@@ -32,6 +33,8 @@ public:
   virtual void clear() = 0;
   virtual void compute_assimilation_spline(const Environment& environment) = 0;
   virtual void rescale_assimilation_spline(const Environment& environment) = 0;
+  // Leaf area error estimation
+  virtual std::vector<double> leaf_area_error() const = 0;
   // R-specific wrappers
   virtual std::vector<double> r_height() const = 0;
   virtual void r_set_height(std::vector<double> x) = 0;
@@ -39,6 +42,7 @@ public:
   virtual int r_n_individuals() const = 0;
   virtual spline::Spline r_assimilation_spline() const = 0;
   virtual Strategy r_strategy() const = 0;
+  virtual std::vector<double> r_leaf_area() const = 0;
   // Still thinking about these...
   virtual state::iterator       get_state(state::iterator it) const = 0;
   virtual state::const_iterator set_state(state::const_iterator it) = 0;
@@ -61,12 +65,16 @@ public:
   size_t size() const;
   double height_max() const;
   double leaf_area_above(double height) const;
+  std::vector<double> seeds() const;
   void compute_vars_phys(const Environment& environment);
   void add_seeds(int n);
   double germination_probability(const Environment& environment) const;
   void clear();
   void compute_assimilation_spline(const Environment& environment);
   void rescale_assimilation_spline(const Environment& environment);
+
+  // * Leaf area error estimation, used by EBT
+  std::vector<double> leaf_area_error() const;
 
   // * ODE interface
   size_t ode_size() const;
@@ -83,6 +91,7 @@ public:
   int r_n_individuals() const;
   spline::Spline r_assimilation_spline() const;
   Strategy r_strategy() const;
+  std::vector<double> r_leaf_area() const;
 
   // State
   state::iterator get_state(state::iterator it) const;
@@ -182,6 +191,16 @@ double Species<Individual>::leaf_area_above(double height) const {
 }
 template <>
 double Species<CohortTop>::leaf_area_above(double height) const;
+
+template <class Individual>
+std::vector<double> Species<Individual>::seeds() const {
+  std::vector<double> ret;
+  for (plants_const_iterator it = plants.begin();
+       it != plants.end(); ++it) {
+    ret.push_back(it->fecundity());
+  }
+  return ret;
+}
 
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
@@ -373,6 +392,13 @@ void Species<Individual>::rescale_assimilation_spline(const Environment &environ
 				     environment);
 }
 
+// This doesn't really make any sense for anything other than
+// Species<CohortTop>, but the functions are here anyway...
+template <class Individual>
+std::vector<double> Species<Individual>::leaf_area_error() const {
+  return util::local_error_integration(r_height(), r_leaf_area());
+}
+
 template <class Individual>
 spline::Spline Species<Individual>::r_assimilation_spline() const {
   return strategy->r_assimilation_spline();
@@ -381,6 +407,15 @@ spline::Spline Species<Individual>::r_assimilation_spline() const {
 template <class Individual>
 Strategy Species<Individual>::r_strategy() const {
   return *strategy.get();
+}
+
+template <class Individual>
+std::vector<double> Species<Individual>::r_leaf_area() const {
+  std::vector<double> ret;
+  plants_const_iterator p = plants.begin();
+  while (p != plants.end())
+    ret.push_back((p++)->leaf_area());
+  return ret;
 }
 
 template <class Individual>

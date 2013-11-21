@@ -82,6 +82,15 @@ Parameters EBT::r_parameters() const {
   return patch.r_parameters();
 }
 
+std::vector<double> EBT::r_times(size_t species_index) const {
+  return schedule.r_times(species_index);
+}
+void EBT::r_set_times(std::vector<double> times, size_t species_index) {
+  if (patch.ode_size() > 0)
+    ::Rf_error("Cannot set schedule without resetting first");
+  schedule.r_set_times(times, species_index);
+}
+
 Rcpp::List EBT::r_get_state() const {
   return Rcpp::List::create(Rcpp::_["patch"]    = patch.r_get_state(),
 			    Rcpp::_["schedule"] = schedule.r_get_state());

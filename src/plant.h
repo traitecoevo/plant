@@ -30,6 +30,7 @@ public:
   // * The rest
   virtual double mortality_probability() const = 0;
   virtual double survival_probability() const = 0;
+  virtual double leaf_area() const = 0;
   virtual double leaf_area_above(double z) const = 0;
   virtual void compute_vars_phys(const Environment& environment) = 0;
   virtual double germination_probability(const Environment& environment) = 0;
@@ -43,6 +44,7 @@ public:
   virtual Rcpp::NumericVector r_get_vars_size() const = 0;
   virtual Rcpp::NumericVector r_get_vars_phys() const = 0;
   virtual bool r_died() = 0;
+  // Going to need this in a few places, from the look of it.
 
   virtual size_t state_size() const = 0;
   virtual state::iterator get_state(state::iterator it) const = 0;
@@ -78,6 +80,7 @@ public:
   double survival_probability() const;
 
   // * Competitive environment
+  double leaf_area() const;
   // [      ] Leaf area (not fraction) above height `z`
   double leaf_area_above(double z) const;
 

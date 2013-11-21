@@ -8,6 +8,7 @@ CohortTop::CohortTop(Strategy s) :
   Plant(s),
   log_density(R_NegInf),
   log_density_rate(0),
+  density(0),
   seeds_survival_weighted(0),
   seeds_survival_weighted_rate(0),
   pr_patch_survival_at_birth(1) {
@@ -17,6 +18,7 @@ CohortTop::CohortTop(Strategy *s) :
   Plant(s),
   log_density(R_NegInf),
   log_density_rate(0),
+  density(0),
   seeds_survival_weighted(0),
   seeds_survival_weighted_rate(0),
   pr_patch_survival_at_birth(1) {
@@ -41,7 +43,15 @@ void CohortTop::compute_vars_phys(const Environment& environment) {
 
 double CohortTop::leaf_area_above(double z) const {
   // EBT.md{eq:boundN}, and following section.
-  return exp(log_density) * Plant::leaf_area_above(z);
+  return density * Plant::leaf_area_above(z);
+}
+
+double CohortTop::leaf_area() const {
+  return density * Plant::leaf_area();
+}
+
+double CohortTop::fecundity() const {
+  return seeds_survival_weighted;
 }
 
 int CohortTop::offspring() {
@@ -74,6 +84,7 @@ void CohortTop::compute_initial_conditions(const Environment& environment) {
   const double g = height_rate();
   const double seed_rain = environment.seed_rain_rate();
   log_density = log(g > 0 ? seed_rain * pr_germ / g : 0.0);
+  density     = exp(log_density);
 }
 
 // * ODE interface
@@ -87,6 +98,7 @@ ode::iterator_const CohortTop::set_ode_values(double /* unused: time */,
   set_mortality(*it++);
   seeds_survival_weighted = *it++;
   log_density = *it++;
+  density = exp(log_density);
   return it;
 }
 

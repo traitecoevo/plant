@@ -106,6 +106,10 @@ double Plant::height_rate() const {
 }
 
 // * Competitive environment
+double Plant::leaf_area() const {
+  return vars.leaf_area;
+}
+
 // [      ] Leaf area (not fraction) above height `z`
 double Plant::leaf_area_above(double z) const {
   if (z < 0.0)

@@ -15,6 +15,7 @@ public:
   CohortDiscrete(Strategy  s, int n_individuals_);
   CohortDiscrete(Strategy *s, int n_individuals_);
 
+  double leaf_area() const;
   double leaf_area_above(double z) const;
   int offspring();
   bool died();

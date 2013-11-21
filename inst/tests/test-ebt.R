@@ -37,6 +37,8 @@ sched$set_times(t, 1)
 sched$max_time <- max(t) + diff(t)[[1]]
 ebt$cohort_schedule <- sched
 
+expect_that(sched$times(1), is_identical_to(ebt$times(1)))
+
 ## Will be helpful for checking that things worked:
 times <- data.frame(start=t, end=c(t[-1], sched$max_time))
 
@@ -188,11 +190,6 @@ test_that("EBT can be rerun successfully with fixed times", {
   expect_that(res.e.4, is_identical_to(res.e.3))
 })
 
-if (interactive()) {
-  matplot(tt.p.end, hh.p.end, type="o", col="black", pch=1, lty=1)
-  matpoints(tt.1.e, hh.1.e, col="red", cex=.5, pch=1, type="o", lty=1)
-}
-
 ## TODO: This is a fairly inadequate set of tests; none of the failure
 ## conditions are tested, and it's undefined what will happen if we
 ## set a cohort schedule that leaves us between introduction points.
@@ -212,6 +209,23 @@ test_that("State get/set works", {
               equals(ebt$patch$environment$light_environment$xy))
   expect_that(ebt2$ode_values, equals(ebt$ode_values))
   expect_that(ebt2$ode_rates,  equals(ebt$ode_rates))
+  # TODO: This needs implementing; requires get/set of the ODE solver
+  # state.
+  # expect_that(ebt2$time,       equals(ebt$time))
+})
+
+test_that("Can set times directly", {
+  ebt$reset()
+  times <- ebt$times(1)
+  times2 <- sort(c(times, 0.5*(times[-1] + times[-length(times)])))
+  ebt$set_times(times2, 1)
+  expect_that(ebt$times(1), is_identical_to(times2))
+  expect_that(ebt$cohort_schedule$times(1), is_identical_to(times2))
+  ebt$run_next()
+  expect_that(ebt$set_times(times, 1), throws_error())
+  ebt$reset()
+  ebt$set_times(times, 1)
+  expect_that(ebt$times(1), is_identical_to(times))
 })
 
 rm(ebt)

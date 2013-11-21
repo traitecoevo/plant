@@ -17,6 +17,8 @@ public:
   void compute_initial_conditions(const Environment& environment);
 
   double leaf_area_above(double z) const;
+  double leaf_area() const;
+  double fecundity() const;
 
   // NOTE: I'd rather just make these private to disable, but that
   // conflicts with Rcpp's inheritance model.
@@ -45,6 +47,7 @@ private:
 
   double log_density;
   double log_density_rate;
+  double density;
   double seeds_survival_weighted;
   double seeds_survival_weighted_rate;
 

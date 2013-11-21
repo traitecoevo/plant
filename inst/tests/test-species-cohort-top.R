@@ -123,6 +123,18 @@ test_that("Leaf area sensible with two cohorts", {
               equals(cmp(h.top * .8, sp)))
 })
 
+test_that("Total leaf area calculations are correct", {
+  cmp.leaf.area <- sapply(seq_len(sp$size), function(i) sp[[i]]$leaf_area)
+  expect_that(sp$leaf_area,
+              is_identical_to(cmp.leaf.area))
+})
+
+test_that("Leaf area error calculations are correct", {
+  cmp <- local_error_integration(sp$height, sp$leaf_area)
+  expect_that(sp$leaf_area_error,
+              is_identical_to(cmp))
+})
+
 hh <- sp$height
 hh[1] <- 10
 sp$height <- hh
@@ -245,6 +257,10 @@ test_that("State get/set works", {
   sp2$force_state(state)
   expect_that(sp2$state,      is_identical_to(state))
   expect_that(sp2$seed$state, is_identical_to(state[,ncol(state)]))
+
+  ## Check that the seeds calculation is correct.
+  expect_that(sp2$seeds,
+              is_identical_to(state[3,-ncol(state)]))
 })
 
 rm(sp)
