@@ -372,7 +372,7 @@ void Solver<Problem>::save_dydt_out_as_in() {
 template <class Problem>
 void Solver<Problem>::set_time_max(double time_max_) {
   if (!util::is_finite(time_max_))
-    ::Rf_error("time_max must be finite!");
+    ::Rf_error("time_max must be finite! (was setting %2.5f)", time_max_);
   time_max = time_max_;
 }
 
