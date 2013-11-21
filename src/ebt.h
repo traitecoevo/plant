@@ -30,6 +30,8 @@ public:
   void r_set_cohort_schedule(CohortSchedule x);
   std::vector<double> r_ode_times() const;
   Parameters r_parameters() const;
+  std::vector<double> r_times(size_t species_index) const;
+  void r_set_times(std::vector<double> times, size_t species_index);
 
   Rcpp::List r_get_state() const;
   void r_set_state(Rcpp::List x);

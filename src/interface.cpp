@@ -402,6 +402,8 @@ RCPP_MODULE(tree) {
     .method("run_next",          &model::EBT::run_next)
     .property("ode_times",       &model::EBT::r_ode_times)
     .property("parameters",      &model::EBT::r_parameters)
+    .method("times",             &model::EBT::r_times)
+    .method("set_times",         &model::EBT::r_set_times)
     .property("state",           &model::EBT::r_get_state,
 	      &model::EBT::r_set_state)
     ;
