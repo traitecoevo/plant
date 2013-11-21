@@ -23,10 +23,9 @@ public:
 
 private:
   void initialise(size_t rule);
-  double rescale_error(double err, double result_abs,
-		       double result_asc) const;
-
-  double eval(util::DFunctor *f, double x) {return (*f)(x);}
+  static double rescale_error(double err, double result_abs,
+			      double result_asc);
+  static double eval(util::DFunctor *f, double x) {return (*f)(x);}
 
   double last_result;
   double last_result_abs;

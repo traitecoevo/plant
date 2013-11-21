@@ -75,7 +75,7 @@ double QK::integrate(util::DFunctor *f, double a, double b) {
 }
 
 double QK::rescale_error(double err, double result_abs,
-			 double result_asc) const {
+			 double result_asc) {
   err = std::abs(err);
 
   if (result_asc > 0 && err > 0) {

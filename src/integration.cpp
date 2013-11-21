@@ -165,7 +165,7 @@ bool QAG::refine(util::DFunctor *f) {
 }
 
 bool QAG::subinterval_too_small(double a1, double mid,
-				double b2) const {
+				double b2) {
   const double e = std::numeric_limits<double>::epsilon();
   const double u = std::numeric_limits<double>::min();
   const double tmp = (1 + 100 * e) * (std::abs(mid) + 1000 * u);

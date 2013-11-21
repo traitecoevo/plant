@@ -36,7 +36,7 @@ private:
 					  double a, double b);
   bool initialise(util::DFunctor *f, double a, double b);
   bool refine(util::DFunctor *f);
-  bool subinterval_too_small(double a1, double mid, double b2) const;
+  static bool subinterval_too_small(double a1, double mid, double b2);
 
   QK q;
   internal::workspace w;
