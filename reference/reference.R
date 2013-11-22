@@ -24,7 +24,7 @@ test_that("Output contains correct parameters", {
 ## output, or when we process it differently with
 ## `load.reference.output()`.  It's mostly here to guard against the
 ## former, but most commonly fails because of the latter.
-test_that("Output is as expected (harsh test)", {
+test_that("Output is as expected (strict test)", {
   expect_that(output[names(output) != "parameters"],
               has_hash("f6d22a6383273d99491feacb78cee2eb113f4186"))
 })
@@ -43,7 +43,7 @@ age <- output$patch_age
 test_that("Output disturbance calculations match", {
   ## tree version:
   d <- new(Disturbance, p$parameters[["mean_disturbance_interval"]])
-  f.survival <- Vectorize(function(x) d$survival_probability(0, x))
+  f.survival <- Vectorize(function(x) d$pr_survival(x))
   f.density  <- Vectorize(function(x) d$density(x))
 
   scal <- integrate(f.survival, 0, Inf)$value
@@ -52,16 +52,7 @@ test_that("Output disturbance calculations match", {
 })
 
 ## Now, run tree with same parameters, but relaxed control parameters:
-ctrl.new <- list()
-ctrl.new$environment_light_rescale_usually <- TRUE
-ctrl.new$environment_light_tol <- 1e-4
-ctrl.new$plant_assimilation_rule <- 21
-ctrl.new$plant_assimilation_over_distribution <- FALSE
-ctrl.new$plant_assimilation_tol <- 1e-4
-ctrl.new$ode_tol_rel <- 1e-4
-ctrl.new$ode_tol_abs <- 1e-4
-ctrl.new$ode_step_size_max <- 5
-p$set_control_parameters(ctrl.new)
+p$set_control_parameters(fast.control())
 
 ## Build a cohort schedule from the EBT's schedule:
 sched <- new(CohortSchedule, p$size)
@@ -177,19 +168,21 @@ expect_that(res.1.light.env.stretched,
 ## 4. Overall fitness
 fitness.ref <- unname(output$seed_rain_out)
 
-## We need both cohort introduction times, and patch weights.  At the
-## moment, this is a bit of a hack.
-a <- sched$times(1)
+fitness.R <- function(ebt) {
+  a <- ebt$cohort_schedule$times(1)
+  d <- ebt$patch$disturbance_regime
+  pa <- sapply(a, function(ai) d$density(ai))
+  seeds <- ebt$patch$species[[1]]$seeds
+  trapezium(a, pa * seeds)
+}
 
-## Here are the patch weights, for patches born at times 'a'.
-d <- new(Disturbance, p$parameters[["mean_disturbance_interval"]])
-pa <- sapply(a, function(ai) d$density(ai))
-
-## Here is the total seed production -- this is per capita so we
-## multiply by the incoming seed rain.
-seeds <- res.1$values$seeds[nrow(res.1$values$seeds),]
-fitness.res <- trapezium(a, pa * seeds) * p$seed_rain
+w.R <- fitness.R(ebt)
+w.C <- fitness(ebt$patch$species[[1]],
+               ebt$times(1),
+               ebt$patch$disturbance_regime)
+expect_that(w.R, equals(w.C))
 
 ## These do differ a bit, but that's OK given how differently they are
 ## calculated.
-expect_that(fitness.res, equals(fitness.ref, tolerance=0.01))
+expect_that(w.R * p$parameters[["Pi_0"]] * p$seed_rain,
+            equals(fitness.ref, tolerance=0.01))

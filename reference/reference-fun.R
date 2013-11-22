@@ -222,7 +222,7 @@ locate.evolve <- function() {
   evolve.version <-
     system(sprintf("(cd %s && git rev-parse HEAD)", path.evolve),
            intern=TRUE)
-  if (evolve.version != "5b54f9245aa5afaff990580518b219c2924ab7b0")
+  if (evolve.version != "6e63e505f37827303346f44c5886715bd080fd2c")
     warning("'evolve' version has changed")
   path.evolve.cmd
 }
