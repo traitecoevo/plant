@@ -14,6 +14,13 @@ EBT::EBT(Parameters *p)
     schedule(patch.size()) {
 }
 
+void EBT::run() {
+  reset();
+  while (schedule.remaining() > 0) {
+    run_next();
+  }
+}
+
 void EBT::run_next() {
   const CohortSchedule::Event e = schedule.next_event();
   if (!util::identical(get_time(), e.time_introduction()))

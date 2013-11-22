@@ -13,6 +13,7 @@ public:
   EBT(Parameters  p);
   EBT(Parameters *p);
 
+  void run();
   void run_next();
 
   double get_time() const;

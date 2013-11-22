@@ -408,6 +408,7 @@ RCPP_MODULE(tree) {
 	      &model::EBT::r_set_cohort_schedule)
     .property("time",            &model::EBT::get_time)
     .method("reset",             &model::EBT::reset)
+    .method("run",               &model::EBT::run)
     .method("run_next",          &model::EBT::run_next)
     .property("ode_times",       &model::EBT::r_ode_times)
     .property("parameters",      &model::EBT::r_parameters)
@@ -480,4 +481,6 @@ RCPP_MODULE(tree) {
 		 std::vector<double> >);
   Rcpp::function("local_error_integration",
 		 &util::local_error_integration);
+  Rcpp::function("fitness",
+		 &model::fitness);
 }
