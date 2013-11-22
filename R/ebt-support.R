@@ -44,3 +44,46 @@ cohort.introduction.times <- function(max.time, multiplier=0.2,
   }
   times
 }
+
+##' Parameters for running the simulations more quickly (but less
+##' accurately) than the defaults.  Used in a number of places.
+##'
+##' @title Fast Control Defaults
+##' @return A `list` of values to be passed into
+##' \code{Control$set_parameters}
+##' @author Rich FitzJohn
+##' @export
+fast.control <- function() {
+  ctrl <- list()
+  ctrl$environment_light_rescale_usually <- TRUE
+  ctrl$environment_light_tol <- 1e-4
+  ctrl$plant_assimilation_rule <- 21
+  ctrl$plant_assimilation_over_distribution <- FALSE
+  ctrl$plant_assimilation_tol <- 1e-4
+  ctrl$ode_tol_rel <- 1e-4
+  ctrl$ode_tol_abs <- 1e-4
+  ctrl$ode_step_size_max <- 5
+  ctrl$cohort_gradient_direction <- -1
+  ctrl$cohort_gradient_richardson <- FALSE
+  ctrl
+}
+
+##' Generate a default schedule of cohort introduction times.  At
+##' present this is just linear from 0..max.t.
+##'
+##' Note that this is basically useless for practical purposes, but
+##' will merge with \code{cohort.introduction.times} at some point.
+##'
+##' @title Simple Linear Cohort Schedule
+##' @param nt Number of cohorts to introduce
+##' @param max.t Time that the simulation stops at
+##' @return A \code{CohortSchedule} object
+##' @author Rich FitzJohn
+##' @export
+default.schedule <- function(nt, max.t) {
+  times <- seq(0, max.t, length=nt + 1)[-(nt + 1)]
+  sched <- new(CohortSchedule, 1)
+  sched$set_times(times, 1)
+  sched$max_time <- max.t
+  sched
+}

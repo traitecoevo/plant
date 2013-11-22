@@ -1,0 +1,19 @@
+\name{fast.control}
+\alias{fast.control}
+\title{Fast Control Defaults}
+\usage{
+  fast.control()
+}
+\value{
+  A `list` of values to be passed into
+  \code{Control$set_parameters}
+}
+\description{
+  Parameters for running the simulations more quickly (but
+  less accurately) than the defaults.  Used in a number of
+  places.
+}
+\author{
+  Rich FitzJohn
+}
+
