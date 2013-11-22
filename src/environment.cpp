@@ -80,6 +80,10 @@ void Environment::set_seed_rain_index(size_t x) {
   seed_rain_index = x;
 }
 
+const Disturbance& Environment::get_disturbance_regime() const {
+  return disturbance_regime;
+}
+
 // * R interface
 spline::Spline Environment::r_get_light_environment() const {
   return light_environment;

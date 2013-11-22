@@ -302,6 +302,8 @@ RCPP_MODULE(tree) {
     .method("patch_survival_conditional",
 	    &model::Environment::patch_survival_conditional)
     .property("seed_rain_rate",  &model::Environment::seed_rain_rate)
+    .property("disturbance_regime",
+	      &model::Environment::get_disturbance_regime)
     .property("time",
 	      &model::Environment::get_time,
 	      &model::Environment::set_time)
@@ -323,6 +325,8 @@ RCPP_MODULE(tree) {
     .property("size",             &model::PatchBase::size)
     .property("time",             &model::PatchBase::get_time,
 	      &model::PatchBase::set_time)
+    .property("disturbance_regime",
+	      &model::PatchBase::get_disturbance_regime)
     .property("height_max",       &model::PatchBase::r_height_max)
     .method("canopy_openness",    &model::PatchBase::r_canopy_openness)
     .method("leaf_area_above",    &model::PatchBase::r_leaf_area_above)

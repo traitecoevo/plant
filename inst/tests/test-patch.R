@@ -255,5 +255,7 @@ test_that("State get/set works", {
               is_identical_to(patch$environment$light_environment$xy))
 })
 
+expect_that(patch$disturbance_regime, is_a("Rcpp_Disturbance"))
+
 rm(patch)
 gc()

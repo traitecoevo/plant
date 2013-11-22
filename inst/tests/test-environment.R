@@ -65,3 +65,6 @@ test_that("Environment state works", {
   e$state <- state.new
   expect_that(e$state, is_identical_to(state.new))
 })
+
+## Check that this works:
+expect_that(e$disturbance_regime, is_a("Rcpp_Disturbance"))

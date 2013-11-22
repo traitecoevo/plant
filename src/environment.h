@@ -26,6 +26,8 @@ public:
   double seed_rain_rate() const;
   void set_seed_rain_index(size_t x);
 
+  const Disturbance& get_disturbance_regime() const;
+
   double get_time() const;
   void set_time(double x);
 

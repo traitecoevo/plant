@@ -22,6 +22,7 @@ public:
   virtual size_t size() const = 0;
   virtual double get_time() const = 0;
   virtual void set_time(double x) = 0;
+  virtual const Disturbance& get_disturbance_regime() const = 0;
   virtual Rcpp::List r_height() const = 0;
   virtual void r_set_height(Rcpp::List x) = 0;
   virtual Rcpp::List r_get_species() const = 0;
@@ -69,6 +70,8 @@ public:
   ode::iterator       ode_rates(ode::iterator it)  const;
   double get_time() const;
   void set_time(double x);
+
+  const Disturbance& get_disturbance_regime() const;
 
   // * R interface.
 
@@ -247,6 +250,11 @@ double Patch<Individual>::get_time() const {
 template <class Individual>
 void Patch<Individual>::set_time(double x) {
   environment.set_time(x);
+}
+
+template <class Individual>
+const Disturbance& Patch<Individual>::get_disturbance_regime() const {
+  return environment.get_disturbance_regime();
 }
 
 // * Private functions
