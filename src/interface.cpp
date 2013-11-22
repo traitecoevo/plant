@@ -410,6 +410,8 @@ RCPP_MODULE(tree) {
     .method("reset",             &model::EBT::reset)
     .method("run",               &model::EBT::run)
     .method("run_next",          &model::EBT::run_next)
+    .property("fitness",         &model::EBT::fitness)
+    .property("fitness_raw",     &model::EBT::fitness_raw)
     .property("ode_times",       &model::EBT::r_ode_times)
     .property("parameters",      &model::EBT::r_parameters)
     .method("times",             &model::EBT::r_times)

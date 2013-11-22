@@ -80,6 +80,7 @@ public:
   void r_set_height(Rcpp::List x);
   // Access container
   Rcpp::List r_get_species() const;
+  const Species<Individual>& at(size_t species_index) const;
   Species<Individual> r_at(size_t species_index) const;
   // Modify container
   void r_add_seeds(std::vector<int> seeds);
@@ -341,6 +342,10 @@ void Patch<Individual>::compute_vars_phys() {
 // * R interface
 
 // Actually public functions for interrogating & modifying
+template <class Individual>
+const Species<Individual>& Patch<Individual>::at(size_t species_index) const {
+  return species.at(species_index);
+}
 
 template <class Individual>
 Species<Individual> Patch<Individual>::r_at(size_t species_index) const {

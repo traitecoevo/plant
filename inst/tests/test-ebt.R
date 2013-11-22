@@ -258,6 +258,9 @@ fitness.R <- function(ebt) {
 }
 
 expect_that(w, equals(fitness.R(ebt)))
+expect_that(ebt$fitness_raw, is_identical_to(w))
+expect_that(ebt$fitness,
+            equals(w * p$parameters[["Pi_0"]] * p$seed_rain))
 
 rm(ebt)
 gc()

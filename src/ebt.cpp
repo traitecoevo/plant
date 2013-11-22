@@ -3,14 +3,16 @@
 namespace model {
 
 EBT::EBT(Parameters p)
-  : patch(p),
-    ode_solver(&patch, p.control.ode_control),
+  : parameters(p),
+    patch(*parameters.get()),
+    ode_solver(&patch, parameters->control.ode_control),
     schedule(patch.size()) {
 }
 
 EBT::EBT(Parameters *p)
-  : patch(p),
-    ode_solver(&patch, p->control.ode_control),
+  : parameters(p),
+    patch(*parameters.get()),
+    ode_solver(&patch, parameters->control.ode_control),
     schedule(patch.size()) {
 }
 
@@ -33,6 +35,27 @@ void EBT::run_next() {
     ode_solver.advance(e.time_end());
   schedule.pop(); // or do at next_event()?  Only matters on error.
 }
+
+std::vector<double> EBT::fitness() const {
+  std::vector<double> w = fitness_raw();
+  const size_t n_spp = patch.size();
+  const double Pi_0 = parameters->Pi_0;
+  for (size_t i = 0; i < n_spp; ++i) {
+    w[i] *= Pi_0 * parameters->seed_rain[i];
+  }
+  return w;
+}
+
+std::vector<double> EBT::fitness_raw() const {
+  const size_t n_spp = patch.size();
+  std::vector<double> w;
+  const Disturbance& d = patch.get_disturbance_regime();
+  for (size_t i = 0; i < n_spp; ++i) {
+    w.push_back(model::fitness(patch.at(i), schedule.times(i), d));
+  }
+  return w;
+}
+
 
 double EBT::get_time() const {
   return ode_solver.get_time();
@@ -86,7 +109,7 @@ std::vector<double> EBT::r_ode_times() const {
 }
 
 Parameters EBT::r_parameters() const {
-  return patch.r_parameters();
+  return *parameters.get();
 }
 
 std::vector<double> EBT::r_times(size_t species_index) const {

@@ -15,6 +15,8 @@ public:
 
   void run();
   void run_next();
+  std::vector<double> fitness() const;
+  std::vector<double> fitness_raw() const;
 
   double get_time() const;
   void reset();
@@ -38,6 +40,7 @@ public:
   void r_set_state(Rcpp::List x);
 
 private:
+  Parameters::ptr parameters;
   Patch<CohortTop> patch;
   ode::Solver<Patch <CohortTop> > ode_solver;
   CohortSchedule schedule;
