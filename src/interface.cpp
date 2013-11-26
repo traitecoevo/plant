@@ -404,8 +404,9 @@ RCPP_MODULE(tree) {
     .derives<ode::OdeTarget>("OdeTarget")
     .constructor<model::Parameters>()
     .method("fitness",           &model::EBT::r_fitness)
-    .method("fitness_error",     &model::EBT::r_fitness_error)
     .property("fitnesses",       &model::EBT::fitnesses)
+    .method("fitness_error",     &model::EBT::r_fitness_error)
+    .method("leaf_area_error",   &model::EBT::r_leaf_area_error)
     .property("patch",           &model::EBT::r_patch)
     .property("cohort_schedule", &model::EBT::r_cohort_schedule,
 	      &model::EBT::r_set_cohort_schedule)

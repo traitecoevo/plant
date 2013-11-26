@@ -18,8 +18,9 @@ public:
 
   // * Fitness calculation
   double fitness(size_t species_index) const;
-  std::vector<double> fitness_error(size_t species_index) const;
   std::vector<double> fitnesses() const;
+  std::vector<double> fitness_error(size_t species_index) const;
+  std::vector<double> leaf_area_error(size_t species_index) const;
 
   double get_time() const;
   void reset();
@@ -33,6 +34,7 @@ public:
   // * R interface
   double r_fitness(size_t species_index) const;
   std::vector<double> r_fitness_error(size_t species_index) const;
+  std::vector<double> r_leaf_area_error(size_t species_index) const;
   Patch<CohortTop> r_patch() const;
   CohortSchedule r_cohort_schedule() const;
   void r_set_cohort_schedule(CohortSchedule x);

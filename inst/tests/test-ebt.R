@@ -252,6 +252,12 @@ test_that("Fitness & error calculations correct", {
   expect_that(ebt$fitness(1), equals(fitness.R(ebt)))
   expect_that(ebt$fitnesses, equals(fitness.R(ebt)))
   expect_that(ebt$fitness_error(1), equals(fitness.R(ebt, error=TRUE)))
+
+  expect_that(ebt$fitness(0), throws_error())
+  expect_that(ebt$fitness(2), throws_error())
+
+  expect_that(ebt$leaf_area_error(1),
+              is_identical_to(ebt$patch$species[[1]]$leaf_area_error))
 })
 
 rm(ebt)

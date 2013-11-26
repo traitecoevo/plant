@@ -53,6 +53,10 @@ double EBT::fitness(size_t species_index) const {
 			 fitness_cohort(species_index));
 }
 
+std::vector<double> EBT::leaf_area_error(size_t species_index) const {
+  return patch.at(species_index).leaf_area_error();
+}
+
 std::vector<double> EBT::fitness_error(size_t species_index) const {
   return util::local_error_integration(schedule.times(species_index),
 				       fitness_cohort(species_index));
@@ -105,6 +109,10 @@ double EBT::r_fitness(size_t species_index) const {
 
 std::vector<double> EBT::r_fitness_error(size_t species_index) const {
   return fitness_error(util::check_bounds_r(species_index, patch.size()));
+}
+
+std::vector<double> EBT::r_leaf_area_error(size_t species_index) const {
+  return leaf_area_error(util::check_bounds_r(species_index, patch.size()));
 }
 
 Patch<CohortTop> EBT::r_patch() const {
