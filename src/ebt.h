@@ -15,8 +15,11 @@ public:
 
   void run();
   void run_next();
-  std::vector<double> fitness() const;
-  std::vector<double> fitness_raw() const;
+
+  // * Fitness calculation
+  double fitness(size_t species_index) const;
+  std::vector<double> fitness_error(size_t species_index) const;
+  std::vector<double> fitnesses() const;
 
   double get_time() const;
   void reset();
@@ -28,6 +31,8 @@ public:
   ode::iterator       ode_rates(ode::iterator it)  const;
 
   // * R interface
+  double r_fitness(size_t species_index) const;
+  std::vector<double> r_fitness_error(size_t species_index) const;
   Patch<CohortTop> r_patch() const;
   CohortSchedule r_cohort_schedule() const;
   void r_set_cohort_schedule(CohortSchedule x);
@@ -40,6 +45,8 @@ public:
   void r_set_state(Rcpp::List x);
 
 private:
+  std::vector<double> fitness_cohort(size_t species_index) const;
+
   Parameters::ptr parameters;
   Patch<CohortTop> patch;
   ode::Solver<Patch <CohortTop> > ode_solver;

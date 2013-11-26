@@ -126,29 +126,6 @@ void Species<CohortTop>::r_set_state(Rcpp::NumericMatrix x) {
   seed.set_state(it);
 }
 
-// Here is the *per capita, pre dispersal* fitness calculation; we
-// take the integral
-//   Integrate[p(a) f(a), {a, 0, Inf}]
-// where 'a' is the age of cohort birth, and f(a) is the fecundity of
-// a cohort at time 'a', taking into account patch survival and
-// individual survival, and p(a) is the density of patches of age
-// 'a'.
-//
-// Note that what we will often want is the *total, post dispersal*;
-// to get this multiply through by the incoming seed rain and by the
-// survival during dispersal (Parameters::Pi_0).
-double fitness(const Species<CohortTop>& species,
-	       const std::vector<double>& times,
-	       const Disturbance& disturbance_regime) {
-  // We don't know the birth times at the level of species, which is
-  // awkward.
-  util::check_length(species.size(), times.size());
-  std::vector<double> seeds = species.seeds();
-  for (size_t i = 0; i < seeds.size(); ++i)
-    seeds[i] *= disturbance_regime.density(times[i]);
-  return util::trapezium(times, seeds);
-}
-
 // TODO: this does not check that the resulting state is sensible (in
 // particular the monotonic check).  That should probably be added.
 template <>

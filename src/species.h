@@ -424,17 +424,6 @@ double Species<Individual>::germination_probability(const Environment& environme
   return s.germination_probability(environment);
 }
 
-// NOTE: The (a?) problem with this function is that it needs a bunch
-// of different things that are only available in different places;
-// EBT::cohort_schedule contains the times, EBT::Patch::Environment
-// contains the disturbance regime (which we need for the patch
-// densities).  And it only makes sense to run this for a
-// Species<CohortTop>; the calculations just don't make any sense for
-// the individual based model!
-double fitness(const Species<CohortTop>& species,
-	       const std::vector<double>& times,
-	       const Disturbance& disturbance_regime);
-
 SEXP species(Rcpp::CppClass individual, Strategy s);
 
 

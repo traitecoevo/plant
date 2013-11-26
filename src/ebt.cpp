@@ -36,26 +36,34 @@ void EBT::run_next() {
   schedule.pop(); // or do at next_event()?  Only matters on error.
 }
 
-std::vector<double> EBT::fitness() const {
-  std::vector<double> w = fitness_raw();
-  const size_t n_spp = patch.size();
-  const double Pi_0 = parameters->Pi_0;
-  for (size_t i = 0; i < n_spp; ++i) {
-    w[i] *= Pi_0 * parameters->seed_rain[i];
-  }
-  return w;
+// * Fitness calculations
+std::vector<double> EBT::fitness_cohort(size_t species_index) const {
+  const std::vector<double> times = schedule.times(species_index);
+  const Disturbance& disturbance_regime = patch.get_disturbance_regime();
+  const double scale =
+    parameters->Pi_0 * parameters->seed_rain[species_index];
+  std::vector<double> seeds = patch.at(species_index).seeds();
+  for (size_t i = 0; i < seeds.size(); ++i)
+    seeds[i] *= disturbance_regime.density(times[i]) * scale;
+  return seeds;
 }
 
-std::vector<double> EBT::fitness_raw() const {
-  const size_t n_spp = patch.size();
+double EBT::fitness(size_t species_index) const {
+  return util::trapezium(schedule.times(species_index),
+			 fitness_cohort(species_index));
+}
+
+std::vector<double> EBT::fitness_error(size_t species_index) const {
+  return util::local_error_integration(schedule.times(species_index),
+				       fitness_cohort(species_index));
+}
+
+std::vector<double> EBT::fitnesses() const {
   std::vector<double> w;
-  const Disturbance& d = patch.get_disturbance_regime();
-  for (size_t i = 0; i < n_spp; ++i) {
-    w.push_back(model::fitness(patch.at(i), schedule.times(i), d));
-  }
+  for (size_t i = 0; i < patch.size(); ++i)
+    w.push_back(fitness(i));
   return w;
 }
-
 
 double EBT::get_time() const {
   return ode_solver.get_time();
@@ -87,6 +95,16 @@ ode::iterator EBT::ode_values(ode::iterator it) const {
 
 ode::iterator EBT::ode_rates(ode::iterator it) const {
   return patch.ode_rates(it);
+}
+
+// * R interface
+
+double EBT::r_fitness(size_t species_index) const {
+  return fitness(util::check_bounds_r(species_index, patch.size()));
+}
+
+std::vector<double> EBT::r_fitness_error(size_t species_index) const {
+  return fitness_error(util::check_bounds_r(species_index, patch.size()));
 }
 
 Patch<CohortTop> EBT::r_patch() const {

@@ -228,39 +228,31 @@ test_that("Can set times directly", {
   expect_that(ebt$times(1), is_identical_to(times))
 })
 
-rm(ebt)
-gc()
+test_that("Fitness & error calculations correct", {
+  p <- new(Parameters)
+  p$add_strategy(new(Strategy))
+  p$set_control_parameters(fast.control())
+  p$set_parameters(list(patch_area=1.0))   # See issue #13
+  p$seed_rain <- 1.1
+  ebt <- new(EBT, p)
+  ebt$reset()
+  ebt$cohort_schedule <- default.schedule(30, 104)
+  ebt$run()
 
-## This is really a property of Species<CohortTop>, but because
-## computing this requires the EBT to run, the test goes here.
-p <- new(Parameters)
-p$add_strategy(new(Strategy))
-p$set_control_parameters(fast.control())
-p$set_parameters(list(patch_area=1.0))   # See issue #13
-p$seed_rain <- 1.1
-ebt <- new(EBT, p)
-ebt$reset()
-ebt$cohort_schedule <- default.schedule(30, 104)
-ebt$run()
+  fitness.R <- function(ebt, error=FALSE) {
+    a <- ebt$cohort_schedule$times(1)
+    d <- ebt$patch$disturbance_regime
+    pa <- sapply(a, function(ai) d$density(ai))
+    p <- ebt$parameters
+    scale <- p$parameters[["Pi_0"]] * p$seed_rain
+    seeds <- pa * ebt$patch$species[[1]]$seeds * scale
+    if (error) local_error_integration(a, seeds) else trapezium(a, seeds)
+  }
 
-## Note that this does not account for dispersal or seed rain: we
-## actually need to multiply through by
-## p$parameters[["Pi_0"]] * p$seed_rain
-w <- fitness(ebt$patch$species[[1]], ebt$times(1),
-             ebt$patch$disturbance_regime)
-
-fitness.R <- function(ebt) {
-  a <- ebt$cohort_schedule$times(1)
-  d <- ebt$patch$disturbance_regime
-  pa <- sapply(a, function(ai) d$density(ai))
-  seeds <- ebt$patch$species[[1]]$seeds
-  trapezium(a, pa * seeds)
-}
-
-expect_that(w, equals(fitness.R(ebt)))
-expect_that(ebt$fitness_raw, is_identical_to(w))
-expect_that(ebt$fitness,
-            equals(w * p$parameters[["Pi_0"]] * p$seed_rain))
+  expect_that(ebt$fitness(1), equals(fitness.R(ebt)))
+  expect_that(ebt$fitnesses, equals(fitness.R(ebt)))
+  expect_that(ebt$fitness_error(1), equals(fitness.R(ebt, error=TRUE)))
+})
 
 rm(ebt)
 gc()

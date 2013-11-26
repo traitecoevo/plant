@@ -32,7 +32,6 @@
 ##' @export Spline
 ##' @export Strategy
 ##' @export compute_assimilation_spline
-##' @export fitness
 ##' @export local_error_integration
 ##' @export make.reference
 ##' @export metacommunity

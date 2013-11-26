@@ -403,6 +403,9 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::EBT>("EBT")
     .derives<ode::OdeTarget>("OdeTarget")
     .constructor<model::Parameters>()
+    .method("fitness",           &model::EBT::r_fitness)
+    .method("fitness_error",     &model::EBT::r_fitness_error)
+    .property("fitnesses",       &model::EBT::fitnesses)
     .property("patch",           &model::EBT::r_patch)
     .property("cohort_schedule", &model::EBT::r_cohort_schedule,
 	      &model::EBT::r_set_cohort_schedule)
@@ -410,8 +413,6 @@ RCPP_MODULE(tree) {
     .method("reset",             &model::EBT::reset)
     .method("run",               &model::EBT::run)
     .method("run_next",          &model::EBT::run_next)
-    .property("fitness",         &model::EBT::fitness)
-    .property("fitness_raw",     &model::EBT::fitness_raw)
     .property("ode_times",       &model::EBT::r_ode_times)
     .property("parameters",      &model::EBT::r_parameters)
     .method("times",             &model::EBT::r_times)
@@ -483,6 +484,4 @@ RCPP_MODULE(tree) {
 		 std::vector<double> >);
   Rcpp::function("local_error_integration",
 		 &util::local_error_integration);
-  Rcpp::function("fitness",
-		 &model::fitness);
 }
