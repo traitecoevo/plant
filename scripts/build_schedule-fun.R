@@ -1,7 +1,14 @@
-build.schedule <- function(p, nsteps, n.t, t.max, eps,
+schedule.from.times <- function(times) {
+  sched <- new(CohortSchedule, 1)
+  sched$set_times(times[-length(times)], 1)
+  sched$max_time <- last(times)
+  sched
+}
+
+build.schedule <- function(p, nsteps, times, eps,
                            progress=FALSE, verbose=FALSE) {
   ebt <- new(EBT, p)
-  ebt$cohort_schedule <- default.schedule(n.t, t.max)
+  ebt$cohort_schedule <- schedule.from.times(times)
   times <- ebt$cohort_schedule$times(1)
 
   history <- list()
@@ -54,10 +61,10 @@ split.times <- function(times, i) {
 }
 
 ## Will probably update these so that n.t *or* times can be given
-build.schedule.fitness <- function(p, nsteps, n.t, t.max, cores=1,
+build.schedule.fitness <- function(p, nsteps, times, cores=1,
                                    progress=FALSE, verbose=FALSE) {
   ebt <- new(EBT, p)
-  ebt$cohort_schedule <- default.schedule(n.t, t.max)
+  ebt$cohort_schedule <- schedule.from.times(times)
   times <- ebt$cohort_schedule$times(1)
 
   w <- run.with.times(times, ebt)

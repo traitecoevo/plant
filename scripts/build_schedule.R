@@ -1,11 +1,6 @@
 ## TODO: approximate assimilation is not working due to spline
 ## refining failure.
 
-## TODO: Think about what function of dt/t looks like (it is
-## approximately log-linear, excluding the first cohorts) and work out
-## how to quickly jump approximately to the right shape.  Dig out the
-## heuristic from Daniel's code a second time.
-
 ## TODO: Think about if we converge to the same place with both
 ## approaches!
 
@@ -24,17 +19,27 @@ p$seed_rain <- 1.1                       # Whatever
 p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
-times <- build.schedule(p, 20, 30, 104, 1e-3,
-                        progress=TRUE, verbose=TRUE)
+t.linear <- seq(0, 104, length=31)
+t.default <- cohort.introduction.times(104)
 
-## Look at the error at the last step:
-res <- attr(times, "progress")
-suppressWarnings(plot(last(res)$err$total, type="o", log="y"))
-abline(h=1e-3)
+times.linear <- build.schedule(p, 20, t.linear, 1e-3,
+                               progress=TRUE, verbose=TRUE)
+times.default <- build.schedule(p, 20, t.default, 1e-3,
+                                progress=TRUE, verbose=TRUE)
 
 ## Next, look at what an "optimal" schedule would look like from the
-## point of only fitness looks like.
-times.w <- run.cached(build.schedule.fitness(p, 200, 30, 104, 4,
-                                             progress=TRUE,
-                                             verbose=TRUE),
-                      "schedule.fitness.rds")
+## point of only fitness looks like.  We'll aim for a schedule of 250
+## total points:
+n.total <- 250
+n.linear <- n.total - length(t.linear)
+n.default <- n.total - length(t.default)
+times.w.linear <-
+  run.cached(build.schedule.fitness(p, n.linear, t.linear, 4,
+                                    progress=TRUE,
+                                    verbose=TRUE),
+             "times.w.linear.rds")
+times.w.default <-
+  run.cached(build.schedule.fitness(p, n.default, t.default, 4,
+                                    progress=TRUE,
+                                    verbose=TRUE),
+             "times.w.default.rds")
