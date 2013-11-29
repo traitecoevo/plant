@@ -177,12 +177,9 @@ fitness.R <- function(ebt) {
 }
 
 w.R <- fitness.R(ebt)
-w.C <- fitness(ebt$patch$species[[1]],
-               ebt$times(1),
-               ebt$patch$disturbance_regime)
-expect_that(w.R, equals(w.C))
+w.C <- ebt$fitness(1)
+expect_that(w.R * p$parameters[["Pi_0"]] * p$seed_rain, equals(w.C))
 
 ## These do differ a bit, but that's OK given how differently they are
 ## calculated.
-expect_that(w.R * p$parameters[["Pi_0"]] * p$seed_rain,
-            equals(fitness.ref, tolerance=0.01))
+expect_that(w.C, equals(fitness.ref, tolerance=0.01))
