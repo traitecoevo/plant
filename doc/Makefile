@@ -11,8 +11,8 @@ Growth_model_pars.md: Growth_model_pars.csv
 figs/fitnesslandscape/plot.pdf: figs/fitnesslandscape/fitnesslandscape.r
 	Rscript $<
 
-%.pdf: %.md
-	pandoc $<  --include-in-header=include.tex -V linkcolor:black -o $@
+%.pdf: %.md include.tex
+	pandoc $< --toc --template=include.tex --variable fontsize=12pt --latex-engine=xelatex -o $@
 
 clean:
 	rm -f *.pdf
