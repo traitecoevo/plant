@@ -110,7 +110,7 @@ load.reference.output <- function(path) {
   if (!ok)
     stop("Input and output traits appear to vary")
   if (!isTRUE(all.equal(unname(popn$strategy[, "X_start"]),
-                        unname(p$seed_rain))))
+                        unname(p$seed_rain), tolerance=1e-5)))
     stop("Input and output seed_rain appear to vary")
 
   ## Extract the output seed rain from strategy, and drop the rest of
