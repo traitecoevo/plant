@@ -335,21 +335,6 @@ m_0 & \textrm{otherwise}  \end{array} \right. \end{equation}
 
 *Numerical technique:* NA, use exact.
 
-## Integration techniques
-( To review  - converting integrals to ODEs)
-
-See Apepndix - expressing any integral as ODE IVP problem.
-
-Integration of seed production over the boundary cohorts and over photosynthesis is over leaf area is achieved using the trapezoidal rule:
-\begin{equation}\int_{x_1}^{x_{n}}f(x)dx \approx 0.5 \sum_{i=0}^{i=N-1} \bigg[ \left(f(x_{i}) + f(x_{i+1})\right)\left( x_{i+1}- x_{i}\right)\bigg].\end{equation}
-For regularly spaced intervals we have the simplified version
-\begin{equation}\int_{x_1}^{x_{n}}f(x)dx \approx \Delta x \bigg[0.5 f_{0}+f_2+\ldots+ f_{N-1}+0.5 f_{N}\bigg] .\end{equation}
-
-Total photosynthesis is calculated by integrating assimilation over the leaf area of the plant using the simplified trapezoidal rule for regularly spaced intervals. The formula for total photosynthesis for a plant size $m$ as described in the model is given by
-\begin{equation} \frac{m}{\phi}  \int_{0}^{h(m)}A(I(z)) \, l\left(\frac{z}{h(m)}\right) \, dz,\end{equation}
-where $x\in [0,1]$ is the relative height in the canopy (1 gives top) and $l(x)$ is the density of leaf area at height $x$. However, rather than integrating this function directly, we can reformulate it to give an integral directly over leaf area, so that computational effort is spent on resolving changes in light availability with height, rather than resolving the shape of the leaf area distribution itself. To achieve this we require the integral of $l(x)$: $L(x) = 1-x^{\eta}(2-x^{\eta})$ for $0\leq x\leq1$,  which gives the cumulative fraction of leaf area above height $x$, and its inverse function,  $L^{-1}(u) = (1-\sqrt{u})^{\frac1{\eta}}$, which gives the relative height $x$ which has a fraction $u$ of total leaf area above it. Substituting into the above integral for total photosynthesis, we obtain
-\begin{equation} \frac{m}{\phi}  \int_{0}^1A\big(I(h(m)L^{-1}(u))\big) \, du.\end{equation}
-
 ## Controlling error in the EBT
 
 Errors in the EBT approximation to $n$ can arise from two sources: (i) poor spacing of cohorts in the size dimension, and (ii) when stepping cohorts through time. Error of the latter type is effectively controlled using a suitable ODE solver and is not considered further here. However, there is no existing method to control error arising from poor spacing of cohorts. Poor cohort spacing introduces error both because the equations governing cohort dynamics are only accurate up to second order (Table 4-1), and because any integrals over the size distribution (e.g. total offspring production, competitive effect) may be poorly resolved.
@@ -517,3 +502,17 @@ There exist different techniques for numerically integrating a function  \cite{p
 Second class includes ODE problems, but worth noting that ODE methods can be applied to any integral, as
 \begin{equation}I=\int_{a}^{b}f(x) \; {\rm d}x\end{equation}
 is equivalent to solving for the value $I\equiv y(b)$ the differential equation $\frac{dy}{dx}=f(x)$ with boundary  condition $y(a)=0.$ \cite{press_numerical_1995}.
+
+
+## Changing base variables for integrations
+
+Total photosynthesis is calculated by integrating assimilation over the leaf area of the plant using the simplified trapezoidal rule for regularly spaced intervals. The formula for total photosynthesis for a plant size $m$ as described in the model is given by
+\begin{equation} \frac{m}{\phi}  \int_{0}^{h(m)}A(I(z)) \, l\left(\frac{z}{h(m)}\right) \, dz,\end{equation}
+where $x\in [0,1]$ is the relative height in the canopy (1 gives top) and $l(x)$ is the density of leaf area at height $x$. However, rather than integrating this function directly, we can reformulate it to give an integral directly over leaf area, so that computational effort is spent on resolving changes in light availability with height, rather than resolving the shape of the leaf area distribution itself. To achieve this we require the integral of $l(x)$: $L(x) = 1-x^{\eta}(2-x^{\eta})$ for $0\leq x\leq1$,  which gives the cumulative fraction of leaf area above height $x$, and its inverse function,  $L^{-1}(u) = (1-\sqrt{u})^{\frac1{\eta}}$, which gives the relative height $x$ which has a fraction $u$ of total leaf area above it. Substituting into the above integral for total photosynthesis, we obtain
+\begin{equation} \frac{m}{\phi}  \int_{0}^1A\big(I(h(m)L^{-1}(u))\big) \, du.\end{equation}
+
+The formula for trapezoidal integration with unevenly grid is:
+\begin{equation}\int_{x_1}^{x_{n}}f(x)dx \approx 0.5 \sum_{i=0}^{i=N-1} \bigg[ \left(f(x_{i}) + f(x_{i+1})\right)\left( x_{i+1}- x_{i}\right)\bigg].\end{equation}
+
+For regularly spaced intervals we have the simplified version
+\begin{equation}\int_{x_1}^{x_{n}}f(x)dx \approx \Delta x \bigg[0.5 f_{0}+f_2+\ldots+ f_{N-1}+0.5 f_{N}\bigg] .\end{equation}
