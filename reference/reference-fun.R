@@ -99,6 +99,10 @@ compare.parameters <- function(p1, p2)
 
 ## Collect all variables at each cohort introduction.
 run.ebt <- function(ebt, max.t=Inf) {
+  pad.matrix <- function(x) {
+    n <- max(sapply(x, length))
+    t(sapply(x, function(i) c(i, rep(NA, n-length(i)))))
+  }
   collect <- function() {
     values <- matrix(ebt$ode_values, 4)
     rates  <- matrix(ebt$ode_rates,  4)
@@ -142,11 +146,6 @@ run.ebt <- function(ebt, max.t=Inf) {
   }
 
   combine(res)
-}
-
-pad.matrix <- function(x) {
-  n <- max(sapply(x, length))
-  t(sapply(x, function(i) c(i, rep(NA, n-length(i)))))
 }
 
 ## Resample the reference output down to a given set of times:
