@@ -240,7 +240,9 @@ To scale up seed production for the metapopulation need to integrate Eq. $\ref{e
 
 ### Environmental feedback
 
-The estimated density function is used to calculate the amount of shading on each individual from other individuals in the patch (Eq. $\ref{eq:light}$). In turn, this effects resource supply rates, growth and mortality.
+The estimated density function  (Eq. \ref{eq:boundN4}) is used to calculate the amount of shading on each individual from other individuals in the patch, as described in Eq. \ref{eq:light}.
+
+*Numerical technique:*  $E(z,a)$ is estimated by integrating  eq. \ref{eq:light} using the numerical estimate for $n(x,m,a)$ obtained from Eq. \ref{eq:boundN4} via trapezoidal rule with uneven grid (Eq. \ref{trap_uneven}), taking the cohort boundaries as the knots in the integration.
 
 ## Second method for approximating $n(x,m,a)$: based on modelling dynamics within cohorts
 
@@ -277,7 +279,7 @@ with $\mu_i$ estimated by integrating this quantity with an ODE stepper. The app
 
 *Numerical technique:* The EBT technique solves the PDE by approximating the changing size distribution $n(x,m,a)$ with a series of point masses with position and amplitude given by $\lambda_i$ and $\mu_i$. If we let $\delta(z)$ be a function for a point mass of size 1 localised at $z=0$, then
 
-\begin{equation} n(x,m,a) \approx = \sum_{i=1}^{k} \lambda_i(a) \; \delta(m-\mu_i(a)). \end{equation}
+\begin{equation} \label{eq:n_delta}  n(x,m,a) \approx = \sum_{i=1}^{k} \lambda_i(a) \; \delta(m-\mu_i(a)). \end{equation}
 
 The density function $n(x,m,a)$ within each sub-domain can also be estimated from its first moment using a discontinuous, piecewise-linear function:
 
@@ -334,6 +336,17 @@ m_0 & \textrm{otherwise}  \end{array} \right. \end{equation}
 m_0 & \textrm{otherwise}  \end{array} \right. \end{equation}
 
 *Numerical technique:* NA, use exact.
+
+### Environmental feedback
+
+The estimated density function (Eq. \ref{eq:n_delta}) is used to calculate the amount of shading on each individual from other individuals in the patch, as described in Eq. \ref{eq:light}.
+
+*Numerical technique:*  The approximation of  $n(x,m,a)$ by a series of delta peaks  in Eq. \ref {eq:n_delta} allows integration in Eq. \ref{eq:light} to be approximated as a sum over cohorts:
+
+\begin{equation} \label{eq:light_deltasum}
+E(z,a) = \exp \left(-c_{ext}  \sum_{n=1}^{N} \sum_{\Omega_i} \phi(\mu_{n,i}) \, L(z, h(\mu_{n,i})) \lambda_{n,i} \right), \end{equation}
+
+where $\mu_{n,i}, \lambda_{n,i}$ are the average size and number of individuals within the i$^{th}$ cohort of species $n$ (Eqs. \ref{eq:mu}, \label{eq:lambda} respectively).
 
 ## Controlling error in the EBT
 
@@ -512,7 +525,7 @@ where $x\in [0,1]$ is the relative height in the canopy (1 gives top) and $l(x)$
 \begin{equation} \frac{m}{\phi}  \int_{0}^1A\big(I(h(m)L^{-1}(u))\big) \, du.\end{equation}
 
 The formula for trapezoidal integration with unevenly grid is:
-\begin{equation}\int_{x_1}^{x_{n}}f(x)dx \approx 0.5 \sum_{i=0}^{i=N-1} \bigg[ \left(f(x_{i}) + f(x_{i+1})\right)\left( x_{i+1}- x_{i}\right)\bigg].\end{equation}
+\begin{equation} \label{trap_uneven} \int_{x_1}^{x_{n}}f(x)dx \approx 0.5 \sum_{i=0}^{i=N-1} \bigg[ \left(f(x_{i}) + f(x_{i+1})\right)\left( x_{i+1}- x_{i}\right)\bigg].\end{equation}
 
 For regularly spaced intervals we have the simplified version
-\begin{equation}\int_{x_1}^{x_{n}}f(x)dx \approx \Delta x \bigg[0.5 f_{0}+f_2+\ldots+ f_{N-1}+0.5 f_{N}\bigg] .\end{equation}
+\begin{equation} \label{trap_even} \int_{x_1}^{x_{n}}f(x)dx \approx \Delta x \bigg[0.5 f_{0}+f_2+\ldots+ f_{N-1}+0.5 f_{N}\bigg] .\end{equation}
