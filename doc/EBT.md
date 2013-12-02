@@ -1,5 +1,5 @@
 %  Ecological and evolutionary analysis of size-structured metapopulations using the Escalator Boxcar Train
-% Daniel Falster and Rich FitzJohn
+% Daniel Falster; Rich FitzJohn
 
 # To do
 
@@ -8,6 +8,8 @@
 - clean up text at start
 - formula for EBT cohorts
 - formula for error in EBT
+
+\newpage
 
 # System dynamics
 
@@ -133,6 +135,22 @@ One might be interested in the frequency distribution of values as well as means
 	\item calculate quartiles empirically based on observed distns
 \end{enumerate} -->
 
+## Converting density from one size unit to another
+
+Population density is explicitly modelled in relation to a given size unit (Eq  $\ref{eq:PDE}$). But what if we want to express density in relation to another size unit? A relation between the two can be derived by noting that the total number of individuals within a given size range must be equal. So let's say density is expressed in units of size $m$, but we want density in units of size $h$. First we require a one-to-one function which h for a given $m$: $h = \hat{h}(m)$. Then the following must hold
+\begin{equation} \label{eq:n_conversion} \int_{m_1}^{m_2} n(x,m,a) \; \textrm{d}m =  \int_{\hat{h}(m_1)}^{\hat{h}(m_2)} n^\prime(x,m,a) \; \textrm{d}h  \end{equation}
+
+For very small size intervals, this equation is equivalent to
+\begin{equation} \left(m_2- m_1 \right) \; n(x,m_1,a) = \left( \hat{h}(m_2) - \hat{h}(m_1)\right) \; n^\prime(x, \hat{h}(m_1),a). \end{equation}
+
+Rearranging gives
+\begin{equation}  n^\prime(x, \hat{h}(m_1),a) = n(x, m_1,a) \; \frac{m_2- m_1}{\hat{h}(m_2) - \hat{h}(m_1)}  \end{equation}
+
+Noting that the second term on the RHS is simply the definition of $\frac{\delta m}{\delta h}$ evaluated at $m_1$, we have
+\begin{equation} \label{eq:n_conversion2} n^\prime(x, h, a) = n(x, m,a) \; \frac{\delta m}{\delta h}. \end{equation}
+
+\newpage
+
 # Approximating system dynamics using the escalator boxcar train (EBT)
 
 The EBT solves the PDE describing development of $n(x,m,a)$ (Eq $\ref{eq:PDE}$) by approximating the density function with a collection of cohorts spanning the size spectrum (de Roos 1988, 1997). Following a disturbance, a series of cohorts are introduced into each patch. These cohorts are then transported along the characteristics of Eq $\ref{eq:PDE}$ according to the individual-level growth function. (Characteristics are curves along which Eq $\ref{eq:PDE}$  becomes an ordinary differential equation (ODE); biologically, these are the growth trajectories of individuals, provided they do not die). The numerical technique consists of approximating changes to the number of individuals within each cohort by a system of closed-form linear ODEs. Eq $\ref{eq:PDE}$ is thereby reduced to a family of ODEs, which can be stepped using an appropriate ODE solver with an adaptive step size (Press 1995).
@@ -204,7 +222,7 @@ For some functions of $g$ and $d$, equation $\ref{eq:boundN4}$ might yield an an
 
 ### Seed production
 
-The lifetime seed production of boundary individuals  is caluclated accroding to eq $\ref{eq:tildeR}$ as
+The lifetime seed production of boundary individuals  is calculated according to eq $\ref{eq:tildeR}$ as
 \begin{equation}\label{eq:boundR}\begin{array}{ll}\tilde{R}(x, a_0, \infty) = \int_{a_0}^{\infty}  &\pi_0 \, f(x, m_i( a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime,\\\end{array}\end{equation}
 where $S_{\rm I} $ is individual survival (defined above) and
 $S_{\rm P}$ is calculated as in eq. $\ref{eq:survivalPatch}$.
@@ -350,6 +368,8 @@ Errors in the EBT approximation to $n$ can arise from two sources: (i) poor spac
 
 [See derivations in appendix](#EBTerrorEstimate)
 
+\newpage
+
 # Appendices
 
 ## Derivation of PDE describing age-structured dynamics {#pdeDeriv-age}
@@ -391,6 +411,8 @@ Substituting into $\int_{0}^{x} p(a)\,{\rm d}a =q$, we obtain
 $$q=  p(0) \int_{0}^{x} \Pi(a) \, {\rm d}a = \frac{\int_{0}^{x} \Pi(a) \, {\rm d}a}{\int_{0}^{x} \Pi(a)\,{\rm d}a + \frac{\Pi(x)}{\gamma(x)}}$$
 $$\Rightarrow  \frac{\Pi(x)}{\gamma(x)} = \frac{1-q}{q} \int_{0}^{x} \Pi(a) \, {\rm d}a.$$
 Thus by monitoring $\Pi(x), \gamma(x),  \int_{0}^{x} \Pi(a) \, {\rm d}a$ we can evaluate when a sufficient range of the patch age distribution has been incorporated.
+
+\newpage
 
 ## Derivation of PDE describing size-structured dynamics {#pdeDeriv-size}
 
@@ -439,6 +461,8 @@ Rearranging and taking the limits as $\Delta a, \Delta m_1, \Delta m_2 \to 0$ yi
 \begin{equation}\begin{array}{ll} \frac{\partial }{\partial t} n(m_1,m_2,a)=&-\frac{\partial }{\partial m_1} (g(m_1,m_2,a) \; n(m_1,m_2,a)) -\frac{\partial }{\partial m_2} (g(m_1,m_2,a) \; n(m_1,m_2,a))
 \\&-d (m_1,m_2,a) \; n(m_1,m_2,a).\end{array}\end{equation}
 
+\newpage
+
 ## Exact solutions: Integration along characteristics {#IntegrationAlongCharacteristics}
 
 Characteristics are the projections of an individual's trajectory in i-space and time, provided they do not die. By integrating along characteristics, the PDE can be solved to yield the a general solution for the density of individuals with time of birth $t_{b} > 0$:
@@ -467,6 +491,8 @@ Note that $m(t) = m_{0} + \int_{t_{b}}^{t} g(m(\tau))\,{\rm d}\tau$ and $dm(t) =
 The term in the integral gives the lifetime seed production of a single individual.  At demographic equilibrium $R =  B(x, n, E_c,t_{b})$ (seed rain = seed production), so
 \begin{equation} \int_{t_{b}}^{t_{max}} f(m(t), E_{c}) \; S(m(t)) \, dt =1\end{equation}.
 
+\newpage
+
 ## Method for deriving cohort approximations in the EBT {#DeriveEBTapproximation}
 
 Given a function $\phi  \left( m \right) $, the integral $\int_{m_{i-1}}^{m_i}\phi  \left( m \right) n \left( x,m,a \right) \; {\rm d}m $ can be approximated by first Taylor expanding $\phi  \left( m \right) $ around $\mu_i$. Substituting into the integral, we obtain
@@ -491,6 +517,8 @@ with an estimate for the truncation error of Eq. $\ref{eq:taylor2}$ given by the
 	\epsilon_i = 0.5 \phi''(\mu_i)\int_{m_{i-1}}^{m_i} (m-\mu_i)^2n(x,m, a) \; {\rm d}m.
 \end{equation}
 
+\newpage
+
 ## Expressing integrals as an ODE {#writeIntegralAsOdeIvp}
 
 There exist different techniques for numerically integrating a function  \cite{press_numerical_1995}. Adaptive techniques are of particular interest because they allow resolution to increased only where it is needed, thereby greatly reducing the amount of computational effort required for given accuracy. Most adaptive integration techniques fall into two broad groups:
@@ -502,6 +530,7 @@ Second class includes ODE problems, but worth noting that ODE methods can be app
 \begin{equation}I=\int_{a}^{b}f(x) \; {\rm d}x\end{equation}
 is equivalent to solving for the value $I\equiv y(b)$ the differential equation $\frac{dy}{dx}=f(x)$ with boundary  condition $y(a)=0.$ \cite{press_numerical_1995}.
 
+\newpage
 
 ## Technique for controlling error in EBT approximation via spacing of cohorts {#EBTerrorEstimate}
 
@@ -582,6 +611,3 @@ The ability of Eq. (B4) to estimate error in $\frac{{\rm d}}{{\rm d}a} \Theta _{
 .                            (B5)
 
 Using finely resolved data from Figure 4-2, we fitted splines to  and $n\left(x,m,a\right)$ and used these as estimates for the true solutions to $n$ and$\phi $. We then generated randomly size cohorts, placed these onto the splines, and calculated approximate and true error according to Eqs. (B4) and (B5). We found that the error estimate given by Eq. (B4) was tightly related to the true error (Figure 4-7). Importantly, the error estimate scaled linearly with true error. However, because of the approximation made going from Eq. (B3) to Eq. (B4), estimated error was 17.2 times greater than true error, on average.
-
-
-
