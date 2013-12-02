@@ -137,7 +137,7 @@ One might be interested in the frequency distribution of values as well as means
 
 ## Converting density from one size unit to another
 
-Population density is explicitly modelled in relation to a given size unit (Eq  $\ref{eq:PDE}$). But what if we want to express density in relation to another size unit? A relation between the two can be derived by noting that the total number of individuals within a given size range must be equal. So let's say density is expressed in units of size $m$, but we want density in units of size $h$. First we require a one-to-one function which h for a given $m$: $h = \hat{h}(m)$. Then the following must hold
+Population density is explicitly modelled in relation to a given size unit (Eq. $\ref{eq:PDE}$). But what if we want to express density in relation to another size unit? A relation between the two can be derived by noting that the total number of individuals within a given size range must be equal. So let's say density is expressed in units of size $m$, but we want density in units of size $h$. First we require a one-to-one function which h for a given $m$: $h = \hat{h}(m)$. Then the following must hold
 \begin{equation} \label{eq:n_conversion} \int_{m_1}^{m_2} n(x,m,a) \; \textrm{d}m =  \int_{\hat{h}(m_1)}^{\hat{h}(m_2)} n^\prime(x,m,a) \; \textrm{d}h  \end{equation}
 
 For very small size intervals, this equation is equivalent to
@@ -153,15 +153,15 @@ Noting that the second term on the RHS is simply the definition of $\frac{\delta
 
 # Approximating system dynamics using the escalator boxcar train (EBT)
 
-The EBT solves the PDE describing development of $n(x,m,a)$ (Eq $\ref{eq:PDE}$) by approximating the density function with a collection of cohorts spanning the size spectrum (de Roos 1988, 1997). Following a disturbance, a series of cohorts are introduced into each patch. These cohorts are then transported along the characteristics of Eq $\ref{eq:PDE}$ according to the individual-level growth function. (Characteristics are curves along which Eq $\ref{eq:PDE}$  becomes an ordinary differential equation (ODE); biologically, these are the growth trajectories of individuals, provided they do not die). The numerical technique consists of approximating changes to the number of individuals within each cohort by a system of closed-form linear ODEs. Eq $\ref{eq:PDE}$ is thereby reduced to a family of ODEs, which can be stepped using an appropriate ODE solver with an adaptive step size (Press 1995).
+The EBT solves the PDE describing development of $n(x,m,a)$ (Eq. $\ref{eq:PDE}$) by approximating the density function with a collection of cohorts spanning the size spectrum (de Roos 1988, 1997). Following a disturbance, a series of cohorts are introduced into each patch. These cohorts are then transported along the characteristics of Eq. $\ref{eq:PDE}$ according to the individual-level growth function. (Characteristics are curves along which Eq. $\ref{eq:PDE}$  becomes an ordinary differential equation (ODE); biologically, these are the growth trajectories of individuals, provided they do not die). The numerical technique consists of approximating changes to the number of individuals within each cohort by a system of closed-form linear ODEs. Eq. $\ref{eq:PDE}$ is thereby reduced to a family of ODEs, which can be stepped using an appropriate ODE solver with an adaptive step size (Press 1995).
 
-Below we consider two alternative implementations of the EBT. Both require that we introduce a series of cohorts into a patch, and that these be transported along the characterstics of the Eq $\ref{eq:PDE}$ (see figure).
+Below we consider two alternative implementations of the EBT. Both require that we introduce a series of cohorts into a patch, and that these be transported along the characterstics of the Eq. $\ref{eq:PDE}$ (see figure).
 
 ![Cohorts in the EBT](figs/EBT.png)
 
-Let $\Omega = \left[m_0,m_+ \right) $ represent the entire state-space attainable by any individual and let the interior of $\Omega $ be subdivided into $k$ sub-domains  $$\Omega_i(a) = \left[m_{i=1}(a),m_i(a) \right) $$ , with $i=1,\dots, k$ and $m_0 < m_1<	\ldots<m_k = m_+$. If we allow these sub-domains to be transported through time along the characteristics of Eq $\ref{eq:PDE}$ , they will be closed to transport processes across their upper and lower boundaries.
+Let $\Omega = \left[m_0,m_+ \right) $ represent the entire state-space attainable by any individual and let the interior of $\Omega $ be subdivided into $k$ sub-domains  $$\Omega_i(a) = \left[m_{i=1}(a),m_i(a) \right) $$ , with $i=1,\dots, k$ and $m_0 < m_1<	\ldots<m_k = m_+$. If we allow these sub-domains to be transported through time along the characteristics of Eq. $\ref{eq:PDE}$ , they will be closed to transport processes across their upper and lower boundaries.
 
-## Approximation based on modelling of cohort boundaries
+## First method for approximating $n(x,m,a)$, based on modelling of cohort boundaries
 
 In the EBT, the cohort (or sub-domain) boundaries are defined by a series of time points where one cohort is ended, and another is initialised. As the patch ages, the width of all cohorts varies, as they are transported up along the size spectrum (see figure). It is helpful to think of these boundaries as representing individuals that germinated exactly at the age defining the cohort boundary. The growth trajectory of that individual then defines the trajectory of the cohort boundary.
 
@@ -200,7 +200,7 @@ where
 \begin{equation} \label{eq:boundN2}  n(x,m_0 ,a_0)  = \left\{ \begin{array}{ll}   \frac{y_x  \pi_1 (x^\prime,m_0, a_0) }{ g(x,m_0, a_0) }  & \textrm{if } g(x,m_0, a_0) > 0 \\
 0 & \textrm{otherwise.}  \end{array} \right. \end{equation}
 
-*Numerical technique:* To solve eq $\ref{eq:boundN}$ we need to solve the IVP:
+*Numerical technique:* To solve Eq. $\ref{eq:boundN}$ we need to solve the IVP:
 $$\frac{dy}{dt} = \frac{\partial g(x,m_i(a^\prime), }{\partial m} +d(x,m_i(a^\prime),a^\prime),$$
 $$ y(0) = -\ln\left(n(x,m_0 ,a_0) \, \pi_1 (x^\prime,m_0, a_0) \right).$$
 
@@ -208,7 +208,7 @@ Density is then given by
 
 $$n(x,m_0 ,a_0) =\exp(-y(a)).$$
 
-*Test case:* In cases where the environment and seed rain are constant and time-independent (i.e $g(x,m,a) = g(x,m)$, $d(x,m,a) = d(x,m)$  for all $a_0, a^\prime$),  it is possible to further simplify eq \ref{eq:boundN} to:
+*Test case:* In cases where the environment and seed rain are constant and time-independent (i.e $g(x,m,a) = g(x,m)$, $d(x,m,a) = d(x,m)$  for all $a_0, a^\prime$),  it is possible to further simplify Eq. \ref{eq:boundN} to:
 
 \begin{equation}\label{eq:boundN3}
 n(x,m,a)=\frac{y_x}{ g(x,m) } \exp \bigg(-\int _{m_{0} }^{m}\frac{d(x , m^\prime) }{g(x, m^\prime)} \, \textrm{d}m^\prime \bigg). \end{equation}
@@ -222,106 +222,100 @@ For some functions of $g$ and $d$, equation $\ref{eq:boundN4}$ might yield an an
 
 ### Seed production
 
-The lifetime seed production of boundary individuals  is calculated according to eq $\ref{eq:tildeR}$ as
-\begin{equation}\label{eq:boundR}\begin{array}{ll}\tilde{R}(x, a_0, \infty) = \int_{a_0}^{\infty}  &\pi_0 \, f(x, m_i( a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime,\\\end{array}\end{equation}
+The lifetime seed production of boundary individuals  is calculated according to Eq. $\ref{eq:tildeR}$ as
+\begin{equation}\begin{array}{ll}\tilde{R}(x, a_0, \infty) = \int_{a_0}^{\infty}  &\pi_0 \, f(x, m_i( a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime,\\\end{array}\end{equation}
 where $S_{\rm I} $ is individual survival (defined above) and
-$S_{\rm P}$ is calculated as in eq. $\ref{eq:survivalPatch}$.
+$S_{\rm P}$ is calculated as in Eq. $\ref{eq:survivalPatch}$.
 
-*Numerical technique:* To solve equation $\ref{eq:boundR}$ we need solve the IVP:
+*Numerical technique:* To solve equation \ref{eq:tildeR} we need solve the IVP:
 $$\frac{dy}{dt} = \pi_0 \,f(x, m_i(a^\prime), a^\prime) \, S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime),$$
 $$ y(0) = 0.$$
 
 ### Invasion fitness
 
-To scale up seed production for the metapopulation need to integrate eq. $\ref{eq:boundR}$ across all possible seed-arrival times (as defined in eq $\ref{eq:InvFit}):
+To scale up seed production for the metapopulation need to integrate Eq. $\ref{eq:boundR}$ across all possible seed-arrival times (as defined in Eq. \ref{eq:InvFit}):
 \begin{equation} R(x) = \int_0^{\infty}  p(a) \, \tilde{R}(x, a, \infty) \, {\rm d}a. \end{equation}
 
-*Numerical technique:*  Note that we have individual's introduced at a series of patch ages, and an estimate for $\tilde{R}(x, a, \infty)$ for each of these (see eq. $\ref{eq:boundR}$). These points can then be integrated using a quadrature routine, e.g.
+*Numerical technique:*  Note that we have individual's introduced at a series of patch ages, and an estimate for $\tilde{R}(x, a, \infty)$ for each of these (see Eq. $\ref{eq:boundR}$). These points can then be integrated using a quadrature routine, e.g.
 
 ### Environmental feedback
 
-The estimated density function is used to calculate the amount of shading on each individual from other individuals in the patch (eq $\ref{eq:light}$). In turn, this effects resource supply rates, growth and mortality.
+The estimated density function is used to calculate the amount of shading on each individual from other individuals in the patch (Eq. $\ref{eq:light}$). In turn, this effects resource supply rates, growth and mortality.
 
+## Second method for approximating $n(x,m,a)$: based on modelling dynamics within cohorts
 
-## Approximating dynamics of internal cohorts
+The original EBT, derived by de Roos (1997, 1988), proceeded by approximating the first and second moments of the density distribution $n \left( x,m,a \right) $ within sub-domains $\Omega_i$, represented by $\lambda_i$ and $\mu_i$, these being the total number and mean size of individuals within $\Omega_i$ respectively.
 
-The original EBT, derived by de Roos (1997, 1988), proceeded by approximating what .
-The first and second moments of the density distribution $n \left( x,m,a \right) $ within each sub-domain, represented by $\lambda_i$ and $\mu_i$, give the total number and mean size of individuals within $\Omega_i$ respectively.
-
-Under this assumption, the rates of change $\frac{\rm d} {{\rm d}a} \lambda_i$ and $\frac{\rm d} {{\rm d}a} \mu_i$ can be approximated given by two ODEs, which can be approximated by first-order closed-form solutions. These approximations form the centrepiece of the EBT, and are derived as follows.
-
-
-Substituting $\phi $ for the appropriate combinations of growth and mortality functions leads to the approximations for $\frac{\rm d} {{\rm d} a} \lambda_i$ and $\frac{\rm d} {{\rm d}a} \mu_i$ given below.  [methods in appendix](#DeriveEBTapproximation).
-
+Under this assumption, the rates of change $\frac{\rm d} {{\rm d}a} \lambda_i$ and $\frac{\rm d} {{\rm d}a} \mu_i$ can be approximated given by two ODEs, which can be approximated by first-order closed-form solutions. These approximations form the centrepiece of the original EBT, and are derived as follows.
 
 ### First moment: Number of individuals
 
 *Definition:*
-\begin{equation}  \lambda_i = \int_{\Omega_i} n(x,m,a) \; {\rm d}m \end{equation}
+\begin{equation} \label{eq:lambda}  \lambda_i = \int_{\Omega_i} n(x,m,a) \; {\rm d}m \end{equation}
 
-\begin{equation} \frac{{\rm d} }{{\rm d}a} \lambda_i = -\int_{\Omega_i} d(x,m,E) \; n(x,m,a) \; {\rm d}m \end{equation}
+\begin{equation} \label{eq:dlambda} \frac{{\rm d} }{{\rm d}a} \lambda_i = -\int_{\Omega_i} d(x,m,E) \; n(x,m,a) \; {\rm d}m \end{equation}
 
 *Numerical technique:* The rate of change in $\lambda_i $ is approximated by
-$\frac{{\rm d} }{{\rm d}a} \lambda_i =  d(x,\mu_i,E) \lambda_i $, and $\lambda_i $ estimated by integrating this quantity with an ODE stepper.
+
+\begin{equation} \label{eq:dlambda_approx} \frac{{\rm d} }{{\rm d}a} \lambda_i =  d(x,\mu_i,E) \lambda_i \end{equation}, with $\lambda_i $ estimated by integrating this quantity with an ODE stepper. The approximation for \ref{eq:dlambda_approx} is only accurate to second order (for details on derivation see [appendix](#DeriveEBTapproximation)).
 
 ### Second moment: Average size
 
 *Definition:*
-\begin{equation}  \mu_i = \frac1{\lambda_i}\int_{\Omega_i} m \; n(x,m,a) \; {\rm d}m  \end{equation}
+\begin{equation}  \label{eq:mu} \mu_i = \frac1{\lambda_i}\int_{\Omega_i} m \; n(x,m,a) \; {\rm d}m  \end{equation}
 
-\begin{equation} \frac{{\rm d} }{{\rm d}a} \mu_i = \frac1{\lambda_i} \int_{\Omega_i} \left[ g(x,m,E) - ( m-\mu_i ) d(x,m,a) \right] n(x,m,a) \; {\rm d}m  \end{equation}
+\begin{equation} \label{eq:dmu} \frac{{\rm d} }{{\rm d}a} \mu_i = \frac1{\lambda_i} \int_{\Omega_i} \left[ g(x,m,E) - ( m-\mu_i ) d(x,m,a) \right] n(x,m,a) \; {\rm d}m  \end{equation}
 
 *Numerical technique:* The rate of change in $\mu_i$ is approximated by
-\begin{equation}  \frac{{\rm d} }{{\rm d}a} \mu_i =  g(x,\mu_i,E), \end{equation}
+\begin{equation}  \label{eq:dmu_approx} \frac{{\rm d} }{{\rm d}a} \mu_i =  g(x,\mu_i,E), \end{equation}
 
-with $\mu_i$ estimated by integrating this quantity with an ODE stepper
+with $\mu_i$ estimated by integrating this quantity with an ODE stepper. The approximation for \ref{eq:dmu_approx} is only accurate to second order (for details on derivation see [appendix](#DeriveEBTapproximation)).
 
 ### Density of individuals
 
 *Definition:* $n(x,m,a) $ for $m \in \Omega_i$
 
-*Numerical technique:* see section above.
-
-
-The EBT technique solves the PDE by approximating the changing size distribution $n(x,m,a)$ with a series of point masses with position and amplitude given by $\lambda_i$ and $\mu_i$. If we let $\delta(z)$ be a function for a point mass of size 1 localised at $z=0$, then
+*Numerical technique:* The EBT technique solves the PDE by approximating the changing size distribution $n(x,m,a)$ with a series of point masses with position and amplitude given by $\lambda_i$ and $\mu_i$. If we let $\delta(z)$ be a function for a point mass of size 1 localised at $z=0$, then
 
 \begin{equation} n(x,m,a) \approx = \sum_{i=1}^{k} \lambda_i(a) \; \delta(m-\mu_i(a)). \end{equation}
 
-The density function $n(x,m,a$ within each sub-domain can also be estimated from its first moment using a discontinuous, piecewise-linear function:
+The density function $n(x,m,a)$ within each sub-domain can also be estimated from its first moment using a discontinuous, piecewise-linear function:
 
-\begin{equation} n_i \left( x,m,a \right) \approx \frac{\lambda_i}{m_i-m_{i-1}} . \end{equation}
+\begin{equation} n_i \left( x,m,a \right) \approx \frac{\lambda_i}{m_i-m_{i-1}}, \end{equation}
 
-[$(i =2,\dots .,k)$]
+although this requires that the position of the cohort boundaries are also known (see previous section for equations).
 
 ### Seed production
-(needs work)
+The lifetime seed production of individuals located at the cohort boundary is calculated according to Eq. $\ref{eq:tildeR}$ as
+\begin{equation}\label{eq:boundR}\begin{array}{ll}\tilde{R}(x, a_0, \infty) = \int_{a_0}^{\infty}  &\pi_0 \, f(x, m_i( a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime,\\\end{array}\end{equation}
+where $S_{\rm I} $ is individual survival (defined above) and
+$S_{\rm P}$ is calculated as in Eq. $\ref{eq:survivalPatch}$. Using the EBT approximation, the total number of sees produced within a cohort including individuals born in the interval $(a_1, a_2)$ and up to age $a$ is given by
 
-*Definition:*  Let $\tilde{R}(x, a_1, a_2, a)$ be the number of offspring produced up to age $a$ by individuals within a cohort born between $a_1$ and $a_2$. Then
-\begin{equation} \tilde{R}(x, a_1, a_2, a) = \int_{a_1}^{a}  f(x, mu(x, a^\prime), a^\prime) \lambda(x, a^\prime) \; {\rm d}a^\prime  \end{equation}
-(TODO: This is approximation. Exact is double integral. Where is patch survival?)
+\begin{equation} \int_{a_1}^{a_2} \tilde{R}(x, a_0, a) \; {\rm d}a_0 = f(x, \mu(x, a^\prime), a^\prime) \lambda(x, a^\prime) S_{\rm P} (a_0,a^\prime) \; {\rm d}a^\prime.  \end{equation}
 
+Thus the total number of seeds produced by individuals within the cohort is given by
 
-To scale up seed production for the metapopulation need to integrate across all possible seed-arrival times:
+\begin{equation} \label{eq:cohR} \int_{a_1}^{\infty}  \int_{a_1}^{a_2} \tilde{R}(x, a_0, a) \; {\rm d}a_0 {\rm d}a = \int_{a_1}^{\infty} f(x, \mu(x, a^\prime), a^\prime) \lambda(x, a^\prime) \, S_{\rm P} (a_1,a^\prime).\end{equation}
 
-\begin{equation} R(x) = \int_0^{\infty}  p(a) \, \tilde{R}(x, a, \infty) \, {\rm d}a. \end{equation}
+*Numerical technique:* To solve equation $\ref{eq:cohR}$ we need solve the IVP:
+$$\frac{dy}{dt} = f(x, \mu(x, a^\prime), a^\prime) \lambda(x, a^\prime) S_{\rm P} (a_1,a^\prime),$$
+$$ y(a_1) = 0.$$
 
-(TODO: Align this equation with earlier one. )
-
-## Approximating dynamics of the boundary cohort
+### Dynamics of the boundary cohort
 
 A slightly modified set of equations is needed to track the moments of the smallest cohort, whose lower bound is fixed at $m_0 $. Specifically, a new quantity$\Pi $, representing the total accumulated mass within this boundary cohort, is monitored in place of the second moment, which would otherwise be undefined whenever $\lambda _i=0$. Our approximations for the boundary cohort differ slightly to those of de Roos (1997, 1988) in that we Taylor expand around the centre of mass for the cohort instead of the lower boundary. Because relative growth rates often decline quickly with increasing size, use of lower boundary can overestimate the growth rate of the cohort.
 
-### Number of individuals
+#### Number of individuals
 
 *Definition:*
 \begin{equation} \lambda_1 = \int_{\Omega_1} n(x,m,a) \; {\rm d}m \end{equation}
 
 \begin{equation} \frac{{\rm d} }{{\rm d}a} \lambda_1 = y_x \pi_0 \pi_1(x,m_0, a) - \int_{\Omega_1} d(x,m,a) \; n(x,m,a) \; {\rm d}m  \end{equation}
-
 (TODO: I $\pi_0$ in right place here? Should appear in seed production, not inflow).
+
 *Numerical technique:* $\frac{{\rm d} }{{\rm d}a} \lambda_1 = y_x - d(x,\mu_1,a) \lambda_1 $
 
-### new biomass
+#### New mass
 
 *Definition:* $\Pi_1 = \int_{\Omega_1} (m-m_0) \; n(x,m,a) \; {\rm d}m $
 
@@ -330,7 +324,7 @@ A slightly modified set of equations is needed to track the moments of the small
 *Numerical technique:* $\frac{{\rm d} }{{\rm d}a} \Pi_1 =
  g(x,\mu_1,a) \lambda_1 - \Pi_1  d(x,\mu_1,a)$
 
-### Average size
+#### Average size
 
 *Definition:*
 \begin{equation}  \mu_1 = \left\{ \begin{array}{ll} \frac1{\lambda_i}\int_{\Omega_i} m \; n(x,m,a) \; {\rm d}m   & \textrm{if } \lambda_1 > 0 \\
@@ -356,17 +350,11 @@ Total photosynthesis is calculated by integrating assimilation over the leaf are
 where $x\in [0,1]$ is the relative height in the canopy (1 gives top) and $l(x)$ is the density of leaf area at height $x$. However, rather than integrating this function directly, we can reformulate it to give an integral directly over leaf area, so that computational effort is spent on resolving changes in light availability with height, rather than resolving the shape of the leaf area distribution itself. To achieve this we require the integral of $l(x)$: $L(x) = 1-x^{\eta}(2-x^{\eta})$ for $0\leq x\leq1$,  which gives the cumulative fraction of leaf area above height $x$, and its inverse function,  $L^{-1}(u) = (1-\sqrt{u})^{\frac1{\eta}}$, which gives the relative height $x$ which has a fraction $u$ of total leaf area above it. Substituting into the above integral for total photosynthesis, we obtain
 \begin{equation} \frac{m}{\phi}  \int_{0}^1A\big(I(h(m)L^{-1}(u))\big) \, du.\end{equation}
 
-## Environment feedback
-
-
-is calculated by integrating a function $\Phi \left(m',m\right)$, giving the competitive effect of individuals size $m'$ on the resources available to the focal individual of size$m$, over the size distribution:
-
-
-## controlling error in EBT
+## Controlling error in the EBT
 
 Errors in the EBT approximation to $n$ can arise from two sources: (i) poor spacing of cohorts in the size dimension, and (ii) when stepping cohorts through time. Error of the latter type is effectively controlled using a suitable ODE solver and is not considered further here. However, there is no existing method to control error arising from poor spacing of cohorts. Poor cohort spacing introduces error both because the equations governing cohort dynamics are only accurate up to second order (Table 4-1), and because any integrals over the size distribution (e.g. total offspring production, competitive effect) may be poorly resolved.
 
-[See derivations in appendix](#EBTerrorEstimate)
+TODO: describe approaches used.
 
 \newpage
 
@@ -470,14 +458,14 @@ Characteristics are the projections of an individual's trajectory in i-space and
 n(m,t)=n(m_0 , t_b) \exp \bigg(-\int _{t_b}^{t} \left[\frac{\partial g(m(\theta ),E(\theta ))}{\partial m} +d(m(\theta ),E(\theta ))\right] d\theta \bigg)
 \end{equation}
 
-This states that the density $n$ at a specific time is a product of density at the origin adjusted for changes through development and mortality. Using the second boundary condition above, $n(m_{0} ,t_{g})$ can be replaced by $B(x, n, E,t_{b}) / g(m_{0} ,E(t_{b}))$. Note that density decreases through time because of mortality (as per typical survival equation), but that growth also contributes to changes in density. If growth is slowing with size, (i.e. $\frac{\partial g(m(\theta ),E(\theta ))}{\partial m}  <0$), then density increases because the characteristics converge on one another. Eq \ref{eq:n1} can be solved (numerically or analytically) to give density with full ecological feedback and in changing environemnts. \\
+This states that the density $n$ at a specific time is a product of density at the origin adjusted for changes through development and mortality. Using the second boundary condition above, $n(m_{0} ,t_{g})$ can be replaced by $B(x, n, E,t_{b}) / g(m_{0} ,E(t_{b}))$. Note that density decreases through time because of mortality (as per typical survival equation), but that growth also contributes to changes in density. If growth is slowing with size, (i.e. $\frac{\partial g(m(\theta ),E(\theta ))}{\partial m}  <0$), then density increases because the characteristics converge on one another. Eq. \ref{eq:n1} can be solved (numerically or analytically) to give density with full ecological feedback and in changing environemnts. \\
 
-In cases where the environment is constant and time-independent ($E(t)=E_c$), it is possible to further simplify eq \ref{eq:n1} to give (see \cite{de_roos_gentle_1997} page 153 for proof):
+In cases where the environment is constant and time-independent ($E(t)=E_c$), it is possible to further simplify Eq. \ref{eq:n1} to give (see \cite{de_roos_gentle_1997} page 153 for proof):
 
 \begin{equation}\label{eq:n2}
 n(m,t)=\frac{B(x, n, E_c,t_{b})}{g(m,E_{c} )} \exp \bigg(-\int _{m_{b} }^{m}\frac{d(\xi ,E_{c} )}{g(\xi ,E_{c} )}  d\xi \bigg). \end{equation}
 
-Equation \ref{eq:n2} can be used to obtain in cases where environment is constant, either externally imposed in which case an analytic solution may be possible or when eq \ref{eq:PDE-app} is at equilibrium $\bigg(\frac{\partial n(m, t)}{\partial t} =0\bigg)$. It is necessary to know the origin of the characteristic for individuals of size $m$ at time $t$ to model their density.
+Equation \ref{eq:n2} can be used to obtain in cases where environment is constant, either externally imposed in which case an analytic solution may be possible or when Eq. \ref{eq:PDE-app} is at equilibrium $\bigg(\frac{\partial n(m, t)}{\partial t} =0\bigg)$. It is necessary to know the origin of the characteristic for individuals of size $m$ at time $t$ to model their density.
 
 To this end, it is useful to specify a function $\tau(m ,m_{b}, Ec )$ for the age of an individual of size $m$ such that $t_{b} =t-\tau (m,m_{b} ,E_{c} )$.  Note also, $\exp \bigg(-\int _{m_{b} }^{m}\frac{d(\xi ,E_{c} )}{g(\xi ,E_{c} )}  d\xi \bigg)$ is equal to the overall survival to size $m$, i.e.
 \begin{equation}S(m(t))= \exp \bigg(-\int _{m_{b} }^{m}\frac{d(\xi ,E_{c} )}{g(\xi ,E_{c} )}  d\xi \bigg) = \exp \bigg(-\int _{t_{b} }^{t}d(m(\tau) ,E_{c} ) \; {\rm d}\tau \bigg).\end{equation}
