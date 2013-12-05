@@ -206,6 +206,8 @@ test_that("Approximately computed assimilation matches full computation", {
 })
 
 test_that("State get/set works", {
+  str <- c("height", "log.mortality", "seeds", "log.density",
+           "pr.survival.birth")
   set.seed(1)
   sp2 <- new(SpeciesCT, sp$strategy)
   env$time <- 0
@@ -216,7 +218,8 @@ test_that("State get/set works", {
 
   state <- sp2$state
   expect_that(state, is_a("matrix"))
-  expect_that(state, is_identical_to(cbind(seed$state)))
+  expect_that(state,
+              is_identical_to(cbind(structure(seed$state, names=str))))
 
   ## First few just check that the expected behaviour with the initial
   ## conditions work.
@@ -255,8 +258,9 @@ test_that("State get/set works", {
   state <- cbind(state[,1], state)
   state[1,-ncol(state)] <- sort(runif(ncol(state)-1), decreasing=TRUE)
   sp2$force_state(state)
-  expect_that(sp2$state,      is_identical_to(state))
-  expect_that(sp2$seed$state, is_identical_to(state[,ncol(state)]))
+  expect_that(sp2$state, is_identical_to(state))
+  expect_that(sp2$seed$state,
+              is_identical_to(unname(state[,ncol(state)])))
 
   ## Check that the seeds calculation is correct.
   expect_that(sp2$seeds,

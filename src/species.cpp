@@ -112,6 +112,11 @@ Rcpp::NumericMatrix Species<CohortTop>::r_get_state() const {
   Rcpp::NumericMatrix ret(static_cast<int>(nr),
 			  static_cast<int>(nc));
   std::copy(tmp.begin(), tmp.end(), ret.begin());
+  Rcpp::CharacterVector rownames =
+    Rcpp::CharacterVector::create("height", "log.mortality",
+				  "seeds", "log.density",
+				  "pr.survival.birth");
+  ret.attr("dimnames") = Rcpp::List::create(rownames, R_NilValue);
 
   return ret;
 }
