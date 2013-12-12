@@ -37,6 +37,9 @@ void EBT::run_next() {
 }
 
 // * Fitness calculations
+std::vector<double> EBT::r_fitness_cohort(size_t species_index) const {
+  return fitness_cohort(util::check_bounds_r(species_index, patch.size()));
+}
 std::vector<double> EBT::fitness_cohort(size_t species_index) const {
   const std::vector<double> times = schedule.times(species_index);
   const Disturbance& disturbance_regime = patch.get_disturbance_regime();

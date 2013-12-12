@@ -408,6 +408,7 @@ RCPP_MODULE(tree) {
     .method("fitness",           &model::EBT::r_fitness)
     .property("fitnesses",       &model::EBT::fitnesses)
     .method("fitness_error",     &model::EBT::r_fitness_error)
+    .method("fitness_cohort",    &model::EBT::r_fitness_cohort)
     .method("leaf_area_error",   &model::EBT::r_leaf_area_error)
     .property("patch",           &model::EBT::r_patch)
     .property("cohort_schedule", &model::EBT::r_cohort_schedule,

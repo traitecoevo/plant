@@ -19,6 +19,7 @@ public:
   // * Fitness calculation
   double fitness(size_t species_index) const;
   std::vector<double> fitnesses() const;
+  std::vector<double> r_fitness_cohort(size_t species_index) const;
   std::vector<double> fitness_error(size_t species_index) const;
   std::vector<double> leaf_area_error(size_t species_index) const;
 
