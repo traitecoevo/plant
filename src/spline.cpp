@@ -50,6 +50,7 @@ Spline& Spline::operator=(Spline other) {
 
 // Build a spline out of the vectors 'x' and 'y'.
 void Spline::init(std::vector<double> x_, std::vector<double> y_) {
+  util::check_length(y_.size(), x_.size());
   x = x_;
   y = y_;
   init_self();
@@ -66,7 +67,7 @@ void Spline::init_self() {
   } else {
     spline = gsl_spline_alloc(gsl_interp_cspline, n);
   }
-  gsl_spline_init(spline, &x.front(), &y.front(), n);  
+  gsl_spline_init(spline, &x.front(), &y.front(), n);
 }
 
 // Support for adding points in turn (assumes monotonic increasing in

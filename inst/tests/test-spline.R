@@ -24,6 +24,11 @@ test_that("Empty cubic splines behave sensibly", {
   expect_that(s$eval(1), throws_error());
 })
 
+test_that("Splines require sensible data", {
+  expect_that(s$init(c(1, 2, 3), 1), throws_error())
+  expect_that(s$init(numeric(0), numeric(0)), throws_error())
+})
+
 test_that("Spline contains correct data", {
   s$init(xx, yy)
   expect_that(s$xy,
