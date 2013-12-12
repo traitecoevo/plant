@@ -212,9 +212,9 @@ double trapezium(const ContainerX& x, const ContainerY& y) {
   if (x.size() < 2)
     ::Rf_error("Need at least two points for the trapezium rule");
   typename ContainerX::const_iterator x0 = x.begin(), x1 = x.begin();
-  x1++;
+  ++x1;
   typename ContainerY::const_iterator y0 = y.begin(), y1 = y.begin();
-  y1++;
+  ++y1;
   double tot = 0.0;
   while (x1 != x.end())
     tot += (*x1++ - *x0++) * (*y1++ + *y0++);
@@ -228,9 +228,9 @@ std::vector<double> trapezium_vector(const ContainerX& x,
   if (x.size() < 2)
     ::Rf_error("Need at least two points for the trapezium rule");
   typename ContainerX::const_iterator x0 = x.begin(), x1 = x.begin();
-  x1++;
+  ++x1;
   typename ContainerY::const_iterator y0 = y.begin(), y1 = y.begin();
-  y1++;
+  ++y1;
   std::vector<double> ret;
   ret.reserve(x.size());
   while (x1 != x.end())
