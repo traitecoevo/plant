@@ -43,6 +43,8 @@ public:
   virtual spline::Spline r_assimilation_spline() const = 0;
   virtual Strategy r_strategy() const = 0;
   virtual std::vector<double> r_leaf_area() const = 0;
+  virtual Rcpp::NumericMatrix r_get_vars_size() const = 0;
+  virtual Rcpp::NumericMatrix r_get_vars_phys() const = 0;
   // Still thinking about these...
   virtual state::iterator       get_state(state::iterator it) const = 0;
   virtual state::const_iterator set_state(state::const_iterator it) = 0;
@@ -92,6 +94,8 @@ public:
   spline::Spline r_assimilation_spline() const;
   Strategy r_strategy() const;
   std::vector<double> r_leaf_area() const;
+  Rcpp::NumericMatrix r_get_vars_size() const;
+  Rcpp::NumericMatrix r_get_vars_phys() const;
 
   // State
   state::iterator get_state(state::iterator it) const;
@@ -415,6 +419,40 @@ std::vector<double> Species<Individual>::r_leaf_area() const {
   plants_const_iterator p = plants.begin();
   while (p != plants.end())
     ret.push_back((p++)->leaf_area());
+  return ret;
+}
+
+template <class Individual>
+Rcpp::NumericMatrix Species<Individual>::r_get_vars_size() const {
+  Rcpp::NumericVector tmp = seed.r_get_vars_size();
+  Rcpp::NumericMatrix ret(static_cast<int>(tmp.size()),
+			  static_cast<int>(size()));
+
+  plants_const_iterator p = plants.begin();
+  for (int i = 0; i < ret.ncol(); ++i) {
+    ret(Rcpp::_,i) = p->r_get_vars_size();
+    ++p;
+  }
+
+  Rcpp::CharacterVector names = tmp.names();
+  ret.attr("dimnames") = Rcpp::List::create(names, R_NilValue);
+  return ret;
+}
+
+template <class Individual>
+Rcpp::NumericMatrix Species<Individual>::r_get_vars_phys() const {
+  Rcpp::NumericVector tmp = seed.r_get_vars_phys();
+  Rcpp::NumericMatrix ret(static_cast<int>(tmp.size()),
+			  static_cast<int>(size()));
+
+  plants_const_iterator p = plants.begin();
+  for (int i = 0; i < ret.ncol(); ++i) {
+    ret(Rcpp::_,i) = p->r_get_vars_phys();
+    ++p;
+  }
+
+  Rcpp::CharacterVector names = tmp.names();
+  ret.attr("dimnames") = Rcpp::List::create(names, R_NilValue);
   return ret;
 }
 

@@ -265,6 +265,8 @@ RCPP_MODULE(tree) {
 	      &model::SpeciesBase::r_assimilation_spline)
     .property("strategy",      &model::SpeciesBase::r_strategy)
     .property("leaf_area",     &model::SpeciesBase::r_leaf_area)
+    .property("vars_size",     &model::SpeciesBase::r_get_vars_size)
+    .property("vars_phys",     &model::SpeciesBase::r_get_vars_phys)
     .property("state",
 	      &model::SpeciesBase::r_get_state,
 	      &model::SpeciesBase::r_set_state)

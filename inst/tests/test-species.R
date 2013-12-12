@@ -96,6 +96,57 @@ test_that("State get/set works", {
   expect_that(sp2$state, is_identical_to(tmp[,2:4]))
 })
 
+test_that("Size extraction works", {
+  sp2 <- new(Species, sp$strategy)
+  seed <- sp2$seed
+
+  expect_that(sp2$vars_size, is_a("matrix"))
+  expect_that(nrow(sp2$vars_size), equals(length(seed$vars_size)))
+  expect_that(ncol(sp2$vars_size), equals(0))
+  expect_that(rownames(sp2$vars_size), equals(names(seed$vars_size)))
+
+  ## Add four plants with random sizes.
+  for (i in 1:4)
+    sp2$add_seeds(1)
+  sp2$height <- sort(runif(sp2$size), decreasing=TRUE)
+
+  expect_that(sp2$vars_size, is_a("matrix"))
+  expect_that(nrow(sp2$vars_size), equals(length(seed$vars_size)))
+  expect_that(ncol(sp2$vars_size), equals(sp2$size))
+  expect_that(rownames(sp2$vars_size), equals(names(seed$vars_size)))
+
+  ## Compare the actual values with manually extracting them from the
+  ## plants.
+  cmp <- sapply(sp2$plants, function(p) p$vars_size)
+  expect_that(sp2$vars_size, is_identical_to(cmp))
+})
+
+test_that("Physiological variable extraction works", {
+  sp2 <- new(Species, sp$strategy)
+  seed <- sp2$seed
+
+  expect_that(sp2$vars_phys, is_a("matrix"))
+  expect_that(nrow(sp2$vars_phys), equals(length(seed$vars_phys)))
+  expect_that(ncol(sp2$vars_phys), equals(0))
+  expect_that(rownames(sp2$vars_phys), equals(names(seed$vars_phys)))
+
+  ## Add four plants with random sizes.
+  for (i in 1:4)
+    sp2$add_seeds(1)
+  sp2$height <- sort(runif(sp2$size), decreasing=TRUE)
+  sp2$compute_vars_phys(env)
+
+  expect_that(sp2$vars_phys, is_a("matrix"))
+  expect_that(nrow(sp2$vars_phys), equals(length(seed$vars_phys)))
+  expect_that(ncol(sp2$vars_phys), equals(sp2$size))
+  expect_that(rownames(sp2$vars_phys), equals(names(seed$vars_phys)))
+
+  ## Compare the actual values with manually extracting them from the
+  ## plants.
+  cmp <- sapply(sp2$plants, function(p) p$vars_phys)
+  expect_that(sp2$vars_phys, is_identical_to(cmp))
+})
+
 ## Test approximate plant:
 
 ctrl <- new(Control,
