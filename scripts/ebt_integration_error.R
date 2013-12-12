@@ -20,10 +20,6 @@
 ## With richardson: ................ 41 -- fails differently?
 library(tree)
 
-## This has a useful "run.ebt" function that will save some
-## book-keeping.  The resample/rescaling will help, too.
-source("../reference/reference-fun.R")
-
 ## Misc functions for setting up times:
 cohort.introduction.times <- function(max.time, multiplier=0.2,
                                       min.step.size=1e-05,
@@ -83,18 +79,21 @@ p$set_control_parameters(ctrl.new)
 sched <- new(CohortSchedule, p$size)
 sched$set_times(insert.time(18, tt.1), 1)
 sched$max_time <- max(t.max)
+
 ebt <- new(EBT, p)
 ebt$cohort_schedule <- sched
-res <- run.ebt(ebt)
-patch.f <- ebt$patch
-vars.f <- get.vars(patch.f)
+while (ebt$cohort_schedule$remaining > 0)
+  ebt$run_next()
 t.f <- ebt$time
 
 ## Now, rerun up to the time where failure *will* occur (avoids doing
 ## a partial step).
 ebt <- new(EBT, p)
 ebt$cohort_schedule <- sched
-res <- run.ebt(ebt, t.f)
+while (ebt$cohort_schedule$remaining > 0 && ebt$time < t.f)
+  ebt$run_next()
+
+## Now, start poking about
 patch <- ebt$patch
 
 cur.v <- as.data.frame(t(matrix(patch$ode_values, 4)))

@@ -146,6 +146,12 @@ load.reference.output <- function(path) {
                   read.tsv.matrix(file.path(path.output, sprintf(fmt, x)),
                                   x == "popn"))
     names(ret) <- reference.output.files()
+    for (i in seq_along(ret)[-1]) { # skip $popn
+      x <- ret[[i]]
+      if (!all(is.na(x[,ncol(x)])))
+        stop("Unexpected non-NA input in final column")
+      ret[[i]] <- x[,-ncol(x)]
+    }
     ret
   }
   popn$strategies <- lapply(seq(0, length.out=p$size), load.strategy)
@@ -153,11 +159,17 @@ load.reference.output <- function(path) {
   popn$parameters <- p
 
   ## Add the cohort introduction information to "age":
-  introduction <- sapply(popn$strategies, function(x)
-                         diff(c(0, x$popn[,"NoCohorts"])) == 1)
-  colnames(introduction) <- sprintf("add.cohort.%d",
-                                    seq_along(popn$strategies))
-  popn$patch_age <- cbind(popn$patch_age, introduction)
+  ##
+  ## NOTE: x$popn[,"NoCohorts"] turns out not to be correct with
+  ## respect to the boundaries.  It is correct for the mean cohorts
+  ## though (so I guess this is basically a fencepost error).
+  ## Manually pull out counts for both this way:
+  introduction <- function(y)
+    diff(c(0, rowSums(!is.na(y)))) > 0
+  popn$introduction.bound <- sapply(popn$strategies, function(x)
+                                    introduction(x$bound_m))
+  popn$introduction.mean <- sapply(popn$strategies, function(x)
+                                   introduction(x$coh_m))
 
   popn
 }
@@ -180,6 +192,7 @@ load.reference.output <- function(path) {
 ##' @param verbose Logical indicating if the model output should be
 ##' printed (TRUE by default).
 ##' @author Rich FitzJohn
+##' @rdname run.reference
 ##' @export
 run.reference <- function(path, p=NULL, path.evolve=NULL, verbose=TRUE) {
   if (is.null(path.evolve)) {
@@ -208,6 +221,35 @@ run.reference <- function(path, p=NULL, path.evolve=NULL, verbose=TRUE) {
   system(sprintf("%s -f .", program),
          ignore.stdout=!verbose, ignore.stderr=!verbose)
 }
+
+## We expect to see 'evolve' in the directory pointed at by
+## PATH_EVOLVE:
+##   1. exists
+##   2. contains the 'evolve' program in src
+##   3. has the correct git hash
+##
+## This is a bit of a fragile hack around the fact that nobody will
+## actually have this installed globally on their system (in PATH or
+## something).  Once falster-traitdiversity is opened up on github, we
+## could just download it into tree's installed directory as needed.
+##' @export
+##' @rdname run.reference
+locate.evolve <- function() {
+  path.evolve <- Sys.getenv("PATH_EVOLVE")
+  path.evolve.cmd <- file.path(path.evolve, "src")
+  if (!(file.exists(path.evolve) &&
+        file.exists(file.path(path.evolve.cmd, "evolve"))))
+    stop("Could not find 'evolve': expected in ", path.evolve.cmd)
+
+  ## Executed in a subshell, so no risk of changing directory.
+  evolve.version <-
+    system(sprintf("(cd %s && git rev-parse HEAD)", path.evolve),
+           intern=TRUE)
+  if (evolve.version != "6e63e505f37827303346f44c5886715bd080fd2c")
+    warning("'evolve' version has changed")
+  path.evolve.cmd
+}
+
 
 ## Below here are internal functions
 
@@ -264,6 +306,10 @@ reference.from.parameters <- function(p) {
        traits=traits,
        seed.rain=seed.rain)
 }
+
+reference.compare.parameters <- function(p1, p2)
+  isTRUE(all.equal(reference.from.parameters(p1),
+                   reference.from.parameters(p2)))
 
 ## Generate a Parameters object from the temporary transfer object (a
 ## small list).
@@ -446,4 +492,122 @@ write.tsv.matrix <- function(x, file) {
   if (substr(names(x)[[1]], 1, 1) != "%")
     names(x)[[1]] <- paste0("%", names(x)[[1]])
   write.table(x, file, sep="\t", row.names=FALSE, quote=FALSE)
+}
+
+##' @export
+##' @param output Reference output from \code{load.reference.output}
+##' @rdname load.reference.parameters
+tidyup.reference.output <- function(output) {
+  ## First element is time - that's easy to get.
+  time <- output$patch_age$age
+  ## The light environment is also fairly easy to get.
+  light.env <- output$light.env
+
+  output$patch_age$pr.surv <-
+    output$patch_age$density / output$patch_age$density[[1]]
+
+  ## The things we *really* want are height, log.mortality, seeds,
+  ## log.density (*height*) and pr.survival.birth, to match the output
+  ## of tree.
+  f <- function(i) {
+    x <- output$strategies[[i]]
+    p <- output$parameters
+    strategy <- p[[i]]
+
+    values <- list(mass.leaf         = x$bound_m,
+                   survival          = x$bound_s,
+                   seeds             = x$bound_r,
+                   density.mass.leaf = x$bound_n)
+
+    ## Extracting the per-cohort birth probability of survival is
+    ## tricky.
+    pr.surv.birth <- output$patch_age$pr.surv[output$introduction.bound[,i]]
+    if (length(pr.surv.birth) != ncol(values$mass.leaf))
+      stop("Unexpected dimension sizes")
+    tmp <- array(rep(pr.surv.birth, each=nrow(values$mass.leaf)),
+                 dim(values$mass.leaf))
+    tmp[is.na(values$mass.leaf)] <- NA
+    values$pr.survival.birth <- tmp
+
+    values$log.mortality <- -log(values$survival)
+    values$height <- mass.leaf.to.height(values$mass.leaf, strategy)
+    ## Log density of *height* - see EBT.md, eq:n_conversion2.
+    ##
+    ## I have an awful feeling that we set the initial conditions
+    ## differently between implementations though.  In tree, it is set
+    ## to
+    ##   seed_rain * pr_germ / (dh/dt)
+    ## but I'm not sure what it's set to in faster-traitdiversity.
+    values$log.density <- log(values$density.mass.leaf *
+                              dmldh(values$height, strategy))
+
+    values$seeds <- values$seeds / p$parameters$Pi_0
+
+    v <- c("height", "log.mortality", "seeds", "log.density",
+           "pr.survival.birth")
+    ret <- aperm(list.to.array(values[v]), c(3, 1, 2))
+  }
+
+  species <- lapply(seq_along(output$strategies), f)
+
+  list(time=time, species=species, light.env=light.env,
+       schedule=output$introduction.bound)
+}
+
+##' @export
+##' @param output Reference output from \code{tidyup.reference.output}
+##' @rdname load.reference.parameters
+resample.reference.output <- function(output) {
+  idx <- c(which(apply(output$schedule, 1, any)), nrow(output$schedule))
+  ## Subset:
+  output$time      <- output$time[idx]
+  output$species   <- lapply(output$species, function(x) x[,idx,,drop=FALSE])
+  output$light.env <- output$light.env[idx]
+  output$schedule  <- NULL
+  output
+}
+
+##' @export
+##' @param output Reference output from \code{tidyup.reference.output}
+##' @rdname load.reference.parameters
+schedule.from.reference <- function(output) {
+  n <- length(output$species)
+  sched <- new(CohortSchedule, n)
+  for (i in seq_len(n))
+    sched$set_times(output$time[output$schedule[,i]], i)
+  sched$max_time <- max(output$time)
+  sched$ode_times <- output$time
+  sched
+}
+
+## Utilities used -- these need documenting and testing, probably.
+## Conversion functions.  Where should these go so that they are
+## fairly efficient to use?  Going through Plant is slow for these.
+mass.leaf.to.height <- function(mass.leaf, strategy) {
+  pars <- strategy$parameters
+  a1 <- pars$a1
+  B1 <- pars$B1
+  lma <- pars$lma
+  a1 * (mass.leaf / lma) ^ B1
+}
+height.to.mass.leaf <- function(height, strategy) {
+  pars <- strategy$parameters
+  a1 <- pars$a1
+  B1 <- pars$B1
+  lma <- pars$lma
+  (height / a1) ^ (1 / B1) * lma
+}
+dhdml <- function(mass.leaf, strategy) {
+  pars <- strategy$parameters
+  a1 <- pars$a1
+  B1 <- pars$B1
+  lma <- pars$lma
+  a1 * B1 / lma * (mass.leaf / lma) ^ (B1 - 1)
+}
+dmldh <- function(h, strategy) {
+  pars <- strategy$parameters
+  a1 <- pars$a1
+  B1 <- pars$B1
+  lma <- pars$lma
+  lma / (a1 * B1) * (h / a1) ^ (1 / B1 - 1)
 }

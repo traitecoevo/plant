@@ -215,12 +215,6 @@ With richardson: &hellip;&hellip;&hellip;&hellip;&hellip;. 41 &ndash; fails diff
 <pre><code>## Loading required package: Rcpp
 </code></pre>
 
-<p>This has a useful &ldquo;run.ebt&rdquo; function that will save some
-book-keeping.  The resample/rescaling will help, too.</p>
-
-<pre><code class="r">source(&quot;../reference/reference-fun.R&quot;)
-</code></pre>
-
 <p>Misc functions for setting up times:</p>
 
 <pre><code class="r">cohort.introduction.times &lt;- function(max.time, multiplier=0.2,
@@ -288,17 +282,17 @@ p$set_control_parameters(ctrl.new)
 sched &lt;- new(CohortSchedule, p$size)
 sched$set_times(insert.time(18, tt.1), 1)
 sched$max_time &lt;- max(t.max)
+
 ebt &lt;- new(EBT, p)
 ebt$cohort_schedule &lt;- sched
-res &lt;- run.ebt(ebt)
+while (ebt$cohort_schedule$remaining &gt; 0)
+  ebt$run_next()
 </code></pre>
 
 <pre><code>## Error: Detected non-finite contribution
 </code></pre>
 
-<pre><code class="r">patch.f &lt;- ebt$patch
-vars.f &lt;- get.vars(patch.f)
-t.f &lt;- ebt$time
+<pre><code class="r">t.f &lt;- ebt$time
 </code></pre>
 
 <p>Now, rerun up to the time where failure <em>will</em> occur (avoids doing
@@ -306,8 +300,13 @@ a partial step).</p>
 
 <pre><code class="r">ebt &lt;- new(EBT, p)
 ebt$cohort_schedule &lt;- sched
-res &lt;- run.ebt(ebt, t.f)
-patch &lt;- ebt$patch
+while (ebt$cohort_schedule$remaining &gt; 0 &amp;&amp; ebt$time &lt; t.f)
+  ebt$run_next()
+</code></pre>
+
+<p>Now, start poking about</p>
+
+<pre><code class="r">patch &lt;- ebt$patch
 
 cur.v &lt;- as.data.frame(t(matrix(patch$ode_values, 4)))
 cur.r &lt;- as.data.frame(t(matrix(patch$ode_rates, 4)))

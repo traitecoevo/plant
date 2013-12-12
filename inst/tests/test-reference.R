@@ -24,10 +24,6 @@ test_that("Read/write of reference objects doesn't alter them", {
 
 ## 3: Try pulling into a tree object:
 obj.tree <- tree:::parameters.from.reference(obj)
-compare.parameters <- function(p1, p2)
-  isTRUE(all.equal(tree:::reference.from.parameters(p1),
-                   tree:::reference.from.parameters(p2)))
-
 test_that("Conversion to tree object doesn't alter parameters", {
   expect_that(tree:::reference.from.parameters(obj.tree),
               equals(obj))
@@ -39,7 +35,7 @@ save.reference.parameters(obj, path.cmp)
 obj.cmp <- load.reference.parameters(path.cmp)
 
 test_that("Complete save/load doesn't alter parameters", {
-  expect_that(compare.parameters(obj.cmp, obj),
+  expect_that(tree:::reference.compare.parameters(obj.cmp, obj),
               is_true())
 })
 
@@ -74,7 +70,7 @@ save.reference.parameters(p, path.cmp)
 
 p.cmp <- load.reference.parameters(path.cmp)
 test_that("Complete save/load doesn't alter parameters", {
-  expect_that(compare.parameters(p.cmp, p),
+  expect_that(tree:::reference.compare.parameters(p.cmp, p),
               is_true())
 })
 
@@ -86,7 +82,8 @@ if (FALSE) {
 
   output <- load.reference.output(path.cmp)
   test_that("Output contains correct parameters", {
-    expect_that(compare.parameters(output$parameters, p), is_true())
+    expect_that(tree:::reference.compare.parameters(output$parameters, p),
+                is_true())
   })
 
   ## This is a bit mean, but checks that the output is what we expect.

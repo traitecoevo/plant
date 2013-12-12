@@ -1,3 +1,5 @@
+last <- tree:::last # import this
+
 schedule.from.times <- function(times) {
   sched <- new(CohortSchedule, 1)
   sched$set_times(times[-length(times)], 1)
@@ -103,16 +105,11 @@ build.schedule.refine <- function(times, w, ebt, cores=1,
 }
 
 run.with.times <- function(times, ebt) {
-  idx <- 1
   ebt$reset()
-  ebt$set_times(times, idx)
+  ebt$set_times(times, 1L)
   ebt$run()
-  ebt$fitness(idx)
+  ebt$fitness(1L)
 }
-
-## Generally useful function...
-last <- function(x)
-  x[[length(x)]]
 
 ## Ocassionally useful...
 pad.matrix <- function(x) {

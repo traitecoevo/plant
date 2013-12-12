@@ -1,10 +1,9 @@
 library(tree)
 
-## This has a useful "run.ebt" function that will save some
-## book-keeping.  The resample/rescaling will help, too.
-source("../reference/reference-fun.R")
-
 ## Some functions for exploring introduction times.
+##
+## This is similar to tree::cohort.introduction.times(), but does not
+## do the `2^floor(log2())` transformation.
 cohort.introduction.times <- function(max.time, multiplier=0.2,
                                       min.step.size=1e-05,
                                       max.step.size=2) {
@@ -33,34 +32,16 @@ insert.time <- function(i, x) {
 }
 
 run.with.times <- function(times, ebt) {
-  sched <- new(CohortSchedule, 1)
-  sched$set_times(times, 1)
-  sched$max_time <- max(times)
   ebt$reset()
-  ebt$cohort_schedule <- sched
-  run.ebt(ebt)
+  ebt$set_times(times, 1L)
+  ebt$run()
+  ebt$fitness(1L)
 }
 
 ## This should really move into tree
-calculate.fitness <- function(ebt, res=NULL, integrate=TRUE) {
-  a <- ebt$cohort_schedule$times(1)
-  p <- ebt$parameters
-  d <- new(Disturbance, p$parameters[["mean_disturbance_interval"]])
-  pa <- sapply(a, function(ai) d$density(ai))
-  Pi_0 <- p$parameters[["Pi_0"]]
-  if (is.null(res)) {
-    # TODO: provide proper way of getting this out; won't work at all
-    # for a multi-species system.
-    seeds <- matrix(ebt$ode_values, 4)[3,] * Pi_0
-  } else {
-    seeds <- res$values$seeds[nrow(res$values$seeds),] * Pi_0
-    if (length(seeds) != length(pa))
-      stop("Incompatible output")
-  }
-  if (integrate)
-    trapezium(a, pa * seeds) * p$seed_rain
-  else
-    cbind(a, pa * seeds * p$seed_rain)
+cohort.fitness <- function(ebt) {
+  cbind(t=ebt$cohort_schedule$times(1),
+        seeds=ebt$fitness_cohort(1))
 }
 
 p <- new(Parameters)
@@ -92,14 +73,9 @@ tt.1 <- cohort.introduction.times(104)
 tt.2 <- interleave(tt.1)
 tt.3 <- interleave(tt.2)
 
-res.1 <- run.with.times(tt.1, ebt)
-w.1 <- calculate.fitness(ebt)
-
-res.2 <- run.with.times(tt.2, ebt)
-w.2 <- calculate.fitness(ebt)
-
-res.3 <- run.with.times(tt.3, ebt)
-w.3 <- calculate.fitness(ebt)
+w.1 <- run.with.times(tt.1, ebt)
+w.2 <- run.with.times(tt.2, ebt)
+w.3 <- run.with.times(tt.3, ebt)
 
 ## Fitness increases as time is cohorts are introduced more finely,
 ## though at a potentially saturating rate.  We're doing lots more
@@ -114,10 +90,8 @@ c(w.1, w.2, w.3)
 
 ## By brute force, split cohorts along the time course and see how we
 ## do; that might give some clue:
-run.with.insert <- function(i, t, ebt) {
-  res <- run.with.times(insert.time(i, t), ebt)
-  calculate.fitness(ebt)
-}
+run.with.insert <- function(i, t, ebt)
+  run.with.times(insert.time(i, t), ebt)
 
 ## This takes a little while because we're re-running the entire
 ## simulation (about 3 minutes).  This would be a bit easier to do if
@@ -144,7 +118,7 @@ plot(tm.1, dw.1, xlab="Cohort insertion time",
 ## The reason for the change in total fitness is how we compute the
 ## contribution to fitness.  Pulling apart the fitness calculations
 ## above to get the per-cohort contributions:
-tmp <- calculate.fitness(ebt, integrate=FALSE)
+tmp <- cohort.fitness(ebt)
 
 ## And plotting this with the position (vertical line) of the most
 ## influential cohort introduction time.  Dashed vertical lines are
@@ -170,9 +144,16 @@ abline(v=tm.1[order(abs(dw.1), decreasing=TRUE)[2:6]],
 abline(v=tm.1[which.max(abs(dw.1))], col="red")
 
 ## 3: What is it about this point that is important?
-res.0 <- run.with.times(tt.1, ebt)
 idx <- which.max(abs(dw.1))
-res.cmp <- run.with.times(insert.time(idx, tt.1), ebt)
+
+sched <- new(CohortSchedule, 1)
+sched$max_time <- max(tt.1)
+sched$set_times(tt.1, 1)
+
+res.0 <- run.ebt.collect(ebt$parameters, sched)
+
+sched$set_times(insert.time(idx, tt.1), 1)
+res.cmp <- run.ebt.collect(ebt$parameters, sched)
 
 ## Confirm where the new cohort is (at idx)
 identical(res.0$times, res.cmp$times[-idx])

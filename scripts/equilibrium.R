@@ -5,7 +5,6 @@ library(parallel)
 ## actually do this very often, because we'll rely on stochastic
 ## assembly to do this for us.
 source("build_schedule-fun.R")
-source("../reference/reference-fun.R")
 
 p <- new(Parameters)
 p$add_strategy(new(Strategy))

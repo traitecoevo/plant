@@ -87,3 +87,62 @@ default.schedule <- function(nt, max.t) {
   sched$max_time <- max.t
   sched
 }
+
+##' Run the EBT model, given a Parameters and CohortSchedule
+##'
+##' This is mostly a simple wrapper around some of the EBT functions.
+##' Not sure if this is how we will generally want to do this.
+##' Consider this function liable to change.
+##'
+##' @title Run the EBT, Collecting Output
+##' @param p A Parameters object
+##' @param sched A CohortSchedule Object
+##' @export
+##' @author Rich FitzJohn
+run.ebt.collect <- function(p, sched) {
+  get.state <- function(ebt)
+    list(time=ebt$time,
+         species=ebt$state$patch$species,
+         light.env=get.light.env(ebt))
+
+  ebt <- new(EBT, p)
+  ebt$cohort_schedule <- sched
+  res <- list(get.state(ebt))
+
+  while (ebt$cohort_schedule$remaining > 0) {
+    ebt$run_next()
+    st <- get.state(ebt)
+    if (st$time > last(res)$time) {
+      res <- c(res, list(st))
+    } else {
+      res[[length(res)]] <- st
+    }
+  }
+  pad.list.to.array <- tree:::pad.list.to.array
+
+  time <- sapply(res, "[[", "time")
+  light.env <- lapply(res, "[[", "light.env")
+  ## The aperm() here means that dimensions are
+  ## [variable,time,cohort], so that taking species[[1]]["height",,]
+  ## gives a matrix that has time down rows and cohorts across columns
+  ## (so is therefore plottable with matplot)
+  species <- lapply(res, "[[", "species")
+  species <- lapply(seq_along(species[[1]]), function(i)
+                    aperm(pad.list.to.array(lapply(species, "[[", i)),
+                          c(1, 3, 2)))
+  ## Drop the boundary condition; we do this mostly because it cannot
+  ## be compared against the reference output, which does not contain
+  ## this.  This does have the nice property of giving a non-square
+  ## matrix, so the difference between time and cohort becomes a
+  ## little more obvious.
+  species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
+
+  list(time=time, species=species, light.env=light.env,
+       fitness=ebt$fitnesses)
+}
+
+get.light.env <- function(ebt) {
+  light.env <- ebt$patch$environment$light_environment$xy
+  colnames(light.env) <- c("height", "canopy.openness")
+  light.env
+}

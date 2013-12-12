@@ -1,9 +1,12 @@
 \name{run.reference}
+\alias{locate.evolve}
 \alias{run.reference}
 \title{Run Reference Model}
 \usage{
   run.reference(path, p = NULL, path.evolve = NULL,
     verbose = TRUE)
+
+  locate.evolve()
 }
 \arguments{
   \item{path}{Path to directory containing parameter files

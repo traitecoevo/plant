@@ -1,11 +1,20 @@
 \name{load.reference.parameters}
 \alias{load.reference.parameters}
+\alias{resample.reference.output}
 \alias{save.reference.parameters}
+\alias{schedule.from.reference}
+\alias{tidyup.reference.output}
 \title{Load and Save Reference Model Parameters}
 \usage{
   load.reference.parameters(path)
 
   save.reference.parameters(p, path)
+
+  tidyup.reference.output(output)
+
+  resample.reference.output(output)
+
+  schedule.from.reference(output)
 }
 \arguments{
   \item{path}{The path (absolute, or relative to the
@@ -15,6 +24,15 @@
   \emph{will} contain those files).}
 
   \item{p}{A \code{\link{Parameters}} object.}
+
+  \item{output}{Reference output from
+  \code{load.reference.output}}
+
+  \item{output}{Reference output from
+  \code{tidyup.reference.output}}
+
+  \item{output}{Reference output from
+  \code{tidyup.reference.output}}
 }
 \value{
   \code{load.reference.parameters} returns
