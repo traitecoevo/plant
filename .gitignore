@@ -6,3 +6,4 @@ inst/tests/valgrind.supp
 doc/*.pdf
 
 reference/ref-single
+reference/ref-double
