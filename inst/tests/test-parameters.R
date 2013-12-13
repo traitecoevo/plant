@@ -79,7 +79,7 @@ test_that("Control parameters propogate to strategies", {
 
 test_that("Seed rain is correct length", {
   expect_that(length(p$seed_rain), equals(p$size))
-  expect_that(p$seed_rain, is_identical_to(rep(0.0, p$size)))
+  expect_that(p$seed_rain, is_identical_to(rep(1.0, p$size)))
 })
 
 test_that("Seed rain setting works as expected", {

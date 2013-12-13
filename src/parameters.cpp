@@ -36,7 +36,7 @@ size_t Parameters::size() const {
 void Parameters::add_strategy(Strategy s) {
   s.set_control(control);
   strategies.push_back(s);
-  seed_rain.push_back(0.0);
+  seed_rain.push_back(1.0);
   is_resident.push_back(true);
 }
 
