@@ -255,7 +255,59 @@ test_that("State get/set works", {
               is_identical_to(patch$environment$light_environment$xy))
 })
 
+
 expect_that(patch$disturbance_regime, is_a("Rcpp_Disturbance"))
+
+test_that("Non-resident individuals do not contribute to environment", {
+  s1 <- new(Strategy, list(lma=0.06))
+  s2 <- new(Strategy, list(lma=0.20))
+
+  set.seed(1)
+  h <- list(sort(runif(15, 1, 20), decreasing=TRUE),
+            sort(runif(18, 1, 20), decreasing=TRUE))
+
+  p <- new(Parameters)
+  p$add_strategy(s1)
+  p$add_strategy(s2)
+  expect_that(p$is_resident, is_identical_to(rep(TRUE, 2)))
+
+  p1 <- new(Parameters)
+  p1$add_strategy(s1)
+
+  p2 <- new(Parameters)
+  p2$add_strategy(s2)
+
+  setup <- function(p, h) {
+    patch <- new(Patch, p)
+    for (i in seq_along(h))
+      for (j in seq_along(h[[i]]))
+        patch$add_seedling(i)
+    patch$height <- h
+    patch
+  }
+
+  patch.both <- setup(p, h)
+  patch.1 <- setup(p1, h[1])
+  patch.2 <- setup(p2, h[2])
+
+  p$is_resident <- c(TRUE, FALSE) # Both species, but 1 as resident
+  patch.1.mut <- setup(p, h)
+
+  p$is_resident <- c(FALSE, TRUE) # Both species but 2 as resident
+  patch.2.mut <- setup(p, h)
+
+  expect_that(patch.1$height_max,
+              is_identical_to(patch.1.mut$height_max))
+  expect_that(patch.2$height_max,
+              is_identical_to(patch.2.mut$height_max))
+
+  light.env <- function(patch)
+    patch$environment$light_environment$xy
+  expect_that(light.env(patch.1),
+              is_identical_to(light.env(patch.1.mut)))
+  expect_that(light.env(patch.2),
+              is_identical_to(light.env(patch.2.mut)))
+})
 
 rm(patch)
 gc()

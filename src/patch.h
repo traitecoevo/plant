@@ -280,12 +280,22 @@ size_t Patch<Individual>::size() const {
 // Patches with no species have height 0.
 // Patches with no individuals have the height of the tallest seedling
 // of all species.
+//
+// Only resident species are counted.
 template <class Individual>
 double Patch<Individual>::height_max() const {
   double ret = 0.0;
-  for (species_const_iterator sp = species.begin();
-       sp != species.end(); ++sp)
-    ret = std::max(ret, sp->height_max());
+
+  species_const_iterator sp = species.begin(), last = species.end();
+  std::vector<bool>::const_iterator
+    resident = parameters->is_resident.begin();
+  while (sp != last) {
+    if (*resident)
+      ret = std::max(ret, sp->height_max());
+    ++sp;
+    ++resident;
+  }
+
   return ret;
 }
 
@@ -298,9 +308,16 @@ double Patch<Individual>::height_max() const {
 template <class Individual>
 double Patch<Individual>::leaf_area_above(double height) const {
   double tot = 0.0;
-  for (species_const_iterator sp = species.begin();
-       sp != species.end(); ++sp)
-    tot += sp->leaf_area_above(height);
+  species_const_iterator sp = species.begin(), last = species.end();
+  std::vector<bool>::const_iterator
+    resident = parameters->is_resident.begin();
+
+  while (sp != last) {
+    if (*resident)
+      tot += sp->leaf_area_above(height);
+    ++sp;
+    ++resident;
+  }
   return tot;
 }
 template <class Individual>
