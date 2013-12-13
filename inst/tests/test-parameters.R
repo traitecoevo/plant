@@ -104,3 +104,10 @@ test_that("Resident flag setting works as expected", {
   p$is_resident <- r
   expect_that(p$is_resident, is_identical_to(r))
 })
+
+test_that("Can directly add mutant strategies", {
+  r <- p$is_resident
+  p$add_strategy_mutant(new(Strategy))
+  expect_that(p$is_resident,
+              is_identical_to(c(r, FALSE)))
+})

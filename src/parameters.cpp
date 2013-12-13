@@ -40,6 +40,11 @@ void Parameters::add_strategy(Strategy s) {
   is_resident.push_back(true);
 }
 
+void Parameters::add_strategy_mutant(Strategy s) {
+  add_strategy(s);
+  is_resident[size() - 1] = false;
+}
+
 const Control& Parameters::get_control() const {
   return control;
 }

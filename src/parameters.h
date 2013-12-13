@@ -30,6 +30,7 @@ public:
 
   // Setting
   void add_strategy(Strategy s);
+  void add_strategy_mutant(Strategy s);
 
   // Additional control parameters:
   const Control& get_control() const;

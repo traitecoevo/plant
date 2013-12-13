@@ -144,6 +144,8 @@ RCPP_MODULE(tree) {
     .method("[[",             &model::Parameters::r_at)
     .property("strategies",   &model::Parameters::r_get_strategies)
     .method("add_strategy",   &model::Parameters::add_strategy)
+    .method("add_strategy_mutant",
+	    &model::Parameters::add_strategy_mutant)
     .field("control",         &model::Parameters::control)
     .method("set_control_parameters",
 	    &model::Parameters::set_control_parameters)
