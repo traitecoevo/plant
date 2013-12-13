@@ -159,9 +159,7 @@ void Plant::compute_vars_phys(const Environment& environment) {
       (1 - vars.reproduction_fraction) * vars.leaf_fraction;
 
     // [      ] - see doc/details.md
-    vars.height_growth_rate =
-      strategy->a1 * strategy->B1 *
-      pow(vars.leaf_area, strategy->B1 - 1) * vars.mass_leaf_growth_rate /
+    vars.height_growth_rate = dheight_dleaf_area() * vars.mass_leaf_growth_rate /
       strategy->lma;
   } else {
     vars.reproduction_fraction = 0.0;
@@ -448,6 +446,12 @@ double Plant::compute_leaf_fraction() const {
 	      s->a3 / s->lma);
 }
 
+double Plant::dheight_dleaf_area() const {
+  return strategy->a1 * strategy->B1 *
+  pow(vars.leaf_area, strategy->B1 - 1);
+}
+
+
 // NOTE: static method
 double Plant::height_seed(Strategy *s) {
   Plant p(s);
@@ -573,7 +577,9 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 			       _["leaf_fraction"]=vars.leaf_fraction,
 			       _["height_growth_rate"]=
 			       vars.height_growth_rate,
-			       _["mortality_rate"]=vars.mortality_rate);
+			       _["mortality_rate"]=vars.mortality_rate,
+             _["dheight_dleaf_area"]=dheight_dleaf_area()
+             );
 }
 
 bool Plant::r_died() {

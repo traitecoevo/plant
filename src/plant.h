@@ -158,6 +158,8 @@ private:
   double compute_reproduction_fraction() const;
   // [eqn 18] Fraction of mass growth that is leaves
   double compute_leaf_fraction() const;
+  // change in height per change in leaf area
+  double dheight_dleaf_area() const;
 
   // Update a number of constants within the model.  This is a work in
   // progress.

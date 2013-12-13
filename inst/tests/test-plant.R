@@ -131,6 +131,11 @@ cmp.mortality.rate <- cmp$mortality.rate(cmp$traits, h0, light.env)
 expect_that(p.phys[["mortality_rate"]],
             equals(cmp.mortality.rate))
 
+## 10. Archietcural layout
+cmp.dheight_dleaf_area <- cmp$dHdA(cmp$LeafArea(h0))
+expect_that(p.phys[["dheight_dleaf_area"]],
+            equals(cmp.dheight_dleaf_area))
+
 ## Seed stuff:
 seed <- new(Plant, s)
 
