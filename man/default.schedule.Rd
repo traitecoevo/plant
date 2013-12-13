@@ -19,7 +19,7 @@
 \details{
   Note that this is basically useless for practical
   purposes, but will merge with
-  \code{cohort.introduction.times} at some point.
+  \code{\link{cohort.introduction.times}} at some point.
 }
 \author{
   Rich FitzJohn

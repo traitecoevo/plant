@@ -8,8 +8,6 @@
 library(tree)
 library(parallel)
 
-source("build_schedule-fun.R")
-
 ## Same set up as `splitting_cohorts.R`:
 p <- new(Parameters)
 p$add_strategy(new(Strategy))
@@ -32,14 +30,12 @@ n.total <- 250
 n.linear <- n.total - length(t.linear)
 n.default <- n.total - length(t.default)
 times.w.linear <-
-  run.cached(build.schedule.fitness(p, n.linear, t.linear, 4,
-                                    progress=TRUE,
-                                    verbose=TRUE),
+  run.cached(build.schedule.fitness(p, n.linear, t.linear,
+                                    progress=TRUE, verbose=TRUE),
              "times.w.linear.rds")
 times.w.default <-
-  run.cached(build.schedule.fitness(p, n.default, t.default, 4,
-                                    progress=TRUE,
-                                    verbose=TRUE),
+  run.cached(build.schedule.fitness(p, n.default, t.default,,
+                                    progress=TRUE, verbose=TRUE),
              "times.w.default.rds")
 
 ## These look like they're grinding away and constantly increasing

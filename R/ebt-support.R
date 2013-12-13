@@ -72,7 +72,8 @@ fast.control <- function() {
 ##' present this is just linear from 0..max.t.
 ##'
 ##' Note that this is basically useless for practical purposes, but
-##' will merge with \code{cohort.introduction.times} at some point.
+##' will merge with \code{\link{cohort.introduction.times}} at some
+##' point.
 ##'
 ##' @title Simple Linear Cohort Schedule
 ##' @param nt Number of cohorts to introduce
@@ -81,10 +82,25 @@ fast.control <- function() {
 ##' @author Rich FitzJohn
 ##' @export
 default.schedule <- function(nt, max.t) {
-  times <- seq(0, max.t, length=nt + 1)[-(nt + 1)]
+  schedule.from.times(seq(0, max.t, length.out=nt + 1))
+}
+
+##' Generate a CohortSchedule object from a series of times.  The last
+##' time is ommited but will be set as the \code{$max_time}.
+##'
+##' Only works for a single species at the moment.
+##'
+##' @title Create CohortSchedule From Vector of Times
+##' @param times A numeric vector of increasing times
+##' @return A \code{\link{CohortSchedule}} object.
+##' @author Rich FitzJohn
+##' @export
+schedule.from.times <- function(times) {
+  if (any(diff(times) <= 0.0))
+    stop("Times must be strictly increasing")
   sched <- new(CohortSchedule, 1)
-  sched$set_times(times, 1)
-  sched$max_time <- max.t
+  sched$set_times(times[-length(times)], 1)
+  sched$max_time <- last(times)
   sched
 }
 

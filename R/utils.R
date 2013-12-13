@@ -27,3 +27,26 @@ pad.list.to.array <- function(x)
 
 last <- function(x)
   x[[length(x)]]
+
+##' Runs an expression and caches the result in a file.  Very basic,
+##' no checks.
+##'
+##' @title Run and Cache an Expression
+##' @param expr An expression to be evaluated
+##' @param filename A filename to store the result (will be saved via
+##' \code{\link{saveRDS}}
+##' @param regenerate Logical value indicating if results should be
+##' regenerated.
+##' @return The result of evaluating \code{expr}, possibly loaded from
+##' \code{filename} rather than being rerun.
+##' @author Rich FitzJohn
+##' @export
+run.cached <- function(expr, filename, regenerate=FALSE) {
+  if (file.exists(filename) && !regenerate) {
+    res <- readRDS(filename)
+  } else {
+    res <- eval.parent(substitute(expr))
+    saveRDS(res, filename)
+  }
+  res
+}
