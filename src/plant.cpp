@@ -423,7 +423,7 @@ double Plant::compute_turnover() const {
     vars.mass_root * strategy->k_r;
 }
 
-// [eqn 16] Fraction of whole plan growth that is leaf
+// [eqn 16] Fraction of production allocated to reproduction
 double Plant::compute_reproduction_fraction() const {
   return strategy->c_r1 / (1.0 + exp(strategy->c_r2 *
 				     (1.0 - vars.height/strategy->hmat)));
