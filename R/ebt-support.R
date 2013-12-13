@@ -162,3 +162,19 @@ get.light.env <- function(ebt) {
   colnames(light.env) <- c("height", "canopy.openness")
   light.env
 }
+
+##' Run the EBT, returning the EBT object for interrogation
+##'
+##' This is the simplest way of using the EBT, probably.
+##' @title Run EBT
+##' @param p Parameters object
+##' @param sched CohortSchedule object
+##' @return A \code{EBT} object.
+##' @author Rich FitzJohn
+##' @export
+run.ebt <- function(p, sched) {
+  ebt <- new(EBT, p)
+  ebt$cohort_schedule <- sched
+  ebt$run()
+  ebt
+}
