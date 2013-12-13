@@ -25,6 +25,12 @@ pad.matrix <- function(x) {
 pad.list.to.array <- function(x)
   list.to.array(pad.matrix(x))
 
+##' Get last element from an object
+##'
+##' @title Get Last Element
+##' @param x An object that can be subset with \code{[[}
+##' @author Rich FitzJohn
+##' @export
 last <- function(x)
   x[[length(x)]]
 
