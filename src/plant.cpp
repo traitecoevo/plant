@@ -17,7 +17,7 @@ Plant::Plant(Strategy *s)
   set_height(strategy->height_0);
 }
 
-Plant::internals::internals() 
+Plant::internals::internals()
   : mass_leaf(NA_REAL),
     leaf_area(NA_REAL),
     height(NA_REAL),
@@ -127,15 +127,15 @@ void Plant::compute_vars_phys(const Environment& environment) {
   // [eqn 13] Total maintenance respiration
   vars.respiration = compute_respiration();
 
-  // [eqn 14] Total turnover 
+  // [eqn 14] Total turnover
   vars.turnover = compute_turnover();
 
   // [eqn 15] Net production
-  // 
+  //
   // NOTE: Translation of variable names from the EBT.  our
   // `net_primary_production` is EBT's N, our `net_production` is
   // EBT's P.
-  const double net_primary_production = 
+  const double net_primary_production =
     strategy->c_bio * strategy->Y * (vars.assimilation - vars.respiration);
   vars.net_production = net_primary_production - vars.turnover;
 
@@ -144,7 +144,7 @@ void Plant::compute_vars_phys(const Environment& environment) {
     vars.reproduction_fraction = compute_reproduction_fraction();
 
     // [eqn 17] - Rate of offspring production
-    // 
+    //
     // NOTE: In EBT, was multiplied by Pi_0 (survival during
     // dispersal), but we do not here.
     vars.fecundity_rate = vars.net_production *
@@ -174,9 +174,9 @@ void Plant::compute_vars_phys(const Environment& environment) {
   //
   // Composed of a wood density effect (term involving c_d0) and a
   // growth effect (term involving c_d2)
-  vars.mortality_rate = 
+  vars.mortality_rate =
     strategy->c_d0 * exp(-strategy->c_d1 * strategy->rho) +
-    strategy->c_d2 * exp(-strategy->c_d3 * 
+    strategy->c_d2 * exp(-strategy->c_d3 *
 			 vars.net_production / vars.leaf_area);
 }
 
@@ -211,8 +211,8 @@ double Plant::germination_probability(const Environment& environment) {
 }
 
 // * ODE interface
-size_t Plant::ode_size() const { 
-  return ode_dimension; 
+size_t Plant::ode_size() const {
+  return ode_dimension;
 }
 
 ode::iterator_const Plant::set_ode_values(double /* unused: time */,
@@ -311,7 +311,7 @@ void Plant::compute_vars_size(double height_) {
   vars.mass_root = strategy->a3 * vars.leaf_area;
   // [eqn 8] Total mass
   vars.mass_total =
-    vars.mass_leaf + vars.mass_sapwood + vars.mass_bark + 
+    vars.mass_leaf + vars.mass_sapwood + vars.mass_bark +
     vars.mass_heartwood + vars.mass_root;
 }
 
@@ -339,7 +339,7 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 }
 
 // [eqn 12] Gross annual CO2 assimilation
-// 
+//
 // NOTE: In contrast with Daniel's implementation (but following
 // Falster 2012), we do not normalise by Y*c_bio here.
 double Plant::assimilation(const Environment& environment) {
@@ -383,7 +383,7 @@ double Plant::compute_assimilation(const Environment& environment) {
 // `compute_assimilation` above; it is the term within the integral in
 // [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
 // where `z` is height.
-double Plant::compute_assimilation_x(double x, 
+double Plant::compute_assimilation_x(double x,
 				     const Environment& environment) const {
   if (control().plant_assimilation_over_distribution)
     return assimilation_leaf(environment.canopy_openness(Qp(x)));
@@ -398,7 +398,7 @@ double Plant::assimilation_leaf(double x) const {
 }
 
 // [eqn 13] Total maintenance respiration
-// 
+//
 // (NOTE that there is a reparametrisation here relative to the paper
 // -- c_Rb is defined (new) as 2*c_Rs, wheras the paper assumes a
 // fixed multiplication by 2)
@@ -413,7 +413,7 @@ double Plant::compute_respiration() const {
 }
 
 // [eqn 14] Total turnover
-// 
+//
 // (NOTE: `k_l` is (a_4*\phi)^{b_4} in [eqn 14], and is computed by
 // `prepare_strategy`).
 double Plant::compute_turnover() const {
