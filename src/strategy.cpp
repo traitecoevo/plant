@@ -45,6 +45,10 @@ void Strategy::r_set_assimilation_spline(spline::Spline x) {
   assimilation_spline = x;
 }
 
+Strategy Strategy::r_clone() const {
+  return *this;
+}
+
 void Strategy::reset() {
   // * Core traits
   lma  = 0.1978791;

@@ -30,6 +30,8 @@ public:
   spline::Spline r_assimilation_spline() const;
   void r_set_assimilation_spline(spline::Spline x);
 
+  Strategy r_clone() const;
+
   // All the rest of the class can be accessed only by Plant.
   friend class Plant;
 

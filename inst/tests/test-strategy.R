@@ -89,3 +89,17 @@ test_that("Negative parameters can't be set", {
   expect_that(s$set_parameters(new.err), throws_error())
   expect_that(s$parameters, is_identical_to(old))
 })
+
+test_that("Cloning a Strategy works", {
+  s1 <- new(Strategy)
+  s1$set_parameters(list(lma=1))
+  s2 <- s1$clone()
+  s2$set_parameters(list(lma=2))
+
+  s1.p <- s1$parameters
+  s2.p <- s2$parameters
+  expect_that(s1.p[names(s1.p) != "lma"],
+              is_identical_to(s2.p[names(s2.p) != "lma"]))
+  expect_that(s1.p$lma, equals(1))
+  expect_that(s2.p$lma, equals(2))
+})
