@@ -111,3 +111,17 @@ test_that("Can directly add mutant strategies", {
   expect_that(p$is_resident,
               is_identical_to(c(r, FALSE)))
 })
+
+test_that("Cloning a Parameters works", {
+  p1 <- new(Parameters)
+  p1$set_parameters(list(c_ext=1))
+  p2 <- p1$clone()
+  p2$set_parameters(list(c_ext=2))
+
+  p1.p <- p1$parameters
+  p2.p <- p2$parameters
+  expect_that(p1.p[names(p1.p) != "c_ext"],
+              is_identical_to(p2.p[names(p2.p) != "c_ext"]))
+  expect_that(p1.p$c_ext, equals(1))
+  expect_that(p2.p$c_ext, equals(2))
+})

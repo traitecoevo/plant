@@ -149,6 +149,7 @@ RCPP_MODULE(tree) {
     .field("control",         &model::Parameters::control)
     .method("set_control_parameters",
 	    &model::Parameters::set_control_parameters)
+    .method("clone",          &model::Parameters::r_clone)
     .property("seed_rain",    &model::Parameters::r_seed_rain,
 	      &model::Parameters::r_set_seed_rain)
     .property("is_resident",    &model::Parameters::r_is_resident,

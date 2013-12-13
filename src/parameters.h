@@ -37,6 +37,8 @@ public:
   void set_control(Control x);
   void set_control_parameters(Rcpp::List x);
 
+  Parameters r_clone() const;
+
   // Data -- public for now (see github issue #17).
   double c_ext;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2)

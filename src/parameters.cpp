@@ -59,6 +59,10 @@ void Parameters::set_control_parameters(Rcpp::List x) {
   push_control_to_strategies();
 }
 
+Parameters Parameters::r_clone() const {
+  return *this;
+}
+
 Strategy Parameters::r_at(size_t idx) {
   return strategies.at(util::check_bounds_r(idx, size()));
 }
