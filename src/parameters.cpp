@@ -26,6 +26,7 @@ void Parameters::reset() {
 
   strategies.clear();
   seed_rain.clear();
+  is_resident.clear();
 }
 
 size_t Parameters::size() const {
@@ -36,6 +37,7 @@ void Parameters::add_strategy(Strategy s) {
   s.set_control(control);
   strategies.push_back(s);
   seed_rain.push_back(0.0);
+  is_resident.push_back(true);
 }
 
 const Control& Parameters::get_control() const {
@@ -71,6 +73,15 @@ std::vector<double> Parameters::r_seed_rain() const {
 void Parameters::r_set_seed_rain(std::vector<double> x) {
   util::check_length(x.size(), size());
   seed_rain = x;
+}
+
+std::vector<bool> Parameters::r_is_resident() const {
+  return is_resident;
+}
+
+void Parameters::r_set_is_resident(std::vector<bool> x) {
+  util::check_length(x.size(), size());
+  is_resident = x;
 }
 
 void Parameters::do_build_lookup() {

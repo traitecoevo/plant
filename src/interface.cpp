@@ -149,6 +149,8 @@ RCPP_MODULE(tree) {
 	    &model::Parameters::set_control_parameters)
     .property("seed_rain",    &model::Parameters::r_seed_rain,
 	      &model::Parameters::r_set_seed_rain)
+    .property("is_resident",    &model::Parameters::r_is_resident,
+	      &model::Parameters::r_set_is_resident)
     ;
 
   Rcpp::class_<model::Disturbance>("Disturbance")

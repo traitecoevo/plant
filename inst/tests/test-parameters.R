@@ -90,3 +90,17 @@ test_that("Seed rain setting works as expected", {
   p$seed_rain <- r
   expect_that(p$seed_rain, is_identical_to(r))
 })
+
+test_that("Resident flag is correct length", {
+  expect_that(length(p$is_resident), equals(p$size))
+  expect_that(p$is_resident, is_identical_to(rep(TRUE, p$size)))
+})
+
+test_that("Resident flag setting works as expected", {
+  expect_that(p$is_resident <- logical(0),   throws_error())
+  expect_that(p$is_resident <- TRUE,         throws_error())
+  expect_that(p$is_resident <- rep(TRUE, 3), throws_error())
+  r <- c(FALSE, TRUE)
+  p$is_resident <- r
+  expect_that(p$is_resident, is_identical_to(r))
+})

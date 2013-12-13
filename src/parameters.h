@@ -44,6 +44,7 @@ public:
   double mean_disturbance_interval; // Eponymous, in years.
   std::vector<Strategy> strategies;
   std::vector<double> seed_rain;
+  std::vector<bool>   is_resident;
 
   // Algorithm control.
   Control control;
@@ -51,6 +52,9 @@ public:
   // * R interface
   std::vector<double> r_seed_rain() const;
   void r_set_seed_rain(std::vector<double> x);
+
+  std::vector<bool> r_is_resident() const;
+  void r_set_is_resident(std::vector<bool> x);
 
 private:
   void do_build_lookup();
