@@ -15,8 +15,10 @@ p$seed_rain <- 505.55407
 p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
+## TODO: It looks to me that that max.t is ending up at 100, which is
+## suboptimal, here.
 max.t <- 104
-times <- build.schedule(p, 20, cohort.introduction.times(max.t), 1e-3,
+times <- build.schedule(p, 20, cohort.introduction.times(max.t), 1e-2,
                         progress=FALSE, verbose=TRUE)
 
 ## Once the schedule building is improved, we'll fix it so that this
@@ -48,13 +50,11 @@ sched$ode_times <- ode.times
 ebt.with.mutants <- run.ebt(p.with.mutants, sched)
 w.with.mutants <- ebt.with.mutants$fitnesses
 
-## This is not working...
-## lma.v <- sapply(seq_len(p.with.mutants$size),
-##                 function(x) p.with.mutants[[i]]$parameters[["lma"]])
-lma.v <- c(lma, lma, log.seq(lma * 0.1, lma * 1.2, length.out=11))
+lma.v <- sapply(seq_len(p.with.mutants$size),
+                function(i) p.with.mutants[[i]]$parameters[["lma"]])
 
-plot(lma.v[-(1:2)], w.with.mutants[-(1:2)])
+plot(lma.v[-(1:2)], w.with.mutants[-(1:2)], log="y")
 points(lma.v[[1]], w.with.mutants[[1]] / p$seed_rain[[1]],
        col="red", pch=19)
-points(lma.v[[1]], w.with.mutants[[1]] / p$seed_rain[[1]],
+points(lma.v[[1]], w.with.mutants[[2]],
        col="blue", pch=19, cex=.5)

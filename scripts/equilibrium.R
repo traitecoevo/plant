@@ -4,8 +4,6 @@ library(parallel)
 ## Try to establish what the equilubrium seed rain is.  We won't
 ## actually do this very often, because we'll rely on stochastic
 ## assembly to do this for us.
-source("build_schedule-fun.R")
-
 p <- new(Parameters)
 p$add_strategy(new(Strategy))
 p$seed_rain <- 1.1                       # Starting rain.
@@ -19,6 +17,10 @@ res <- list(seeds.in  = p$seed_rain,
             times     = as.numeric(times))
 
 history <- list(res)
+
+## Once we have the cohort merging working, we could use the previous
+## iteration's schedule here, I think.  Plus do a savage cull before
+## starting?
 
 ## This has the risk of the cohort refinement creating variation in
 ## the final fitness that will prevent this stabilising.
