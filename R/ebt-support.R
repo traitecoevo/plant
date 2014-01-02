@@ -55,6 +55,7 @@ cohort.introduction.times <- function(max.time, multiplier=0.2,
 ##' @export
 fast.control <- function() {
   ctrl <- list()
+  ctrl$plant_assimilation_adaptive <- FALSE
   ctrl$environment_light_rescale_usually <- TRUE
   ctrl$environment_light_tol <- 1e-4
   ctrl$plant_assimilation_rule <- 21
