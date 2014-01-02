@@ -103,6 +103,8 @@ private:
   void reset();
   void set_parameters_post_hook();
   bool validate_parameters(Rcpp::List x) const;
+
+  static integration::QAG integrator_from_control(const Control& control);
 };
 
 }
