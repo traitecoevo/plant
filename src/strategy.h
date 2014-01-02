@@ -31,6 +31,9 @@ public:
   void r_set_assimilation_spline(spline::Spline x);
 
   Strategy r_clone() const;
+  // Not sure about the need to allow this to be accessed, but needed
+  // for a test.
+  integration::QAG r_integrator() const {return integrator;}
 
   // All the rest of the class can be accessed only by Plant.
   friend class Plant;

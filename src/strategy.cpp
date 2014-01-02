@@ -181,11 +181,16 @@ bool Strategy::validate_parameters(Rcpp::List x) const {
 
 // Static method:
 integration::QAG Strategy::integrator_from_control(const Control& control) {
-  integration::QAG ret(control.plant_assimilation_rule,
-		       control.plant_assimilation_iterations,
-		       control.plant_assimilation_tol,
-		       control.plant_assimilation_tol);
-  return ret;
+  if (control.plant_assimilation_adaptive) {
+    integration::QAG ret(control.plant_assimilation_rule,
+			 control.plant_assimilation_iterations,
+			 control.plant_assimilation_tol,
+			 control.plant_assimilation_tol);
+    return ret;
+  } else {
+    integration::QAG ret(control.plant_assimilation_rule);
+    return ret;
+  }
 }
 
 }

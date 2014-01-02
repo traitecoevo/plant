@@ -65,4 +65,6 @@ private:
 
 }
 
+RCPP_EXPOSED_CLASS(integration::QAG)
+
 #endif

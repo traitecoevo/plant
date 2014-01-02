@@ -286,6 +286,26 @@ test_that("Approximate assimilation works", {
   expect_that(p2$ode_rates, equals(p$ode_rates))
 })
 
+test_that("Non-adaptive assimilation integration works", {
+  # A new Strategy object that is identical to previous one, but uses
+  # non-adaptive integration:
+  ctrl <- new(Control, list(plant_assimilation_adaptive=FALSE))
+  s.f <- s$clone()
+  s.f$control <- ctrl
+
+  p.a <- new(Plant, s)
+  p.f <- new(Plant, s.f)
+
+  ## Make the plants more interesting size:
+  p.a$height <- 10
+  p.f$height <- 10
+
+  p.a$compute_vars_phys(env)
+  p.f$compute_vars_phys(env)
+
+  expect_that(p.a$strategy$integrator$is_adaptive, is_true())
+  expect_that(p.f$strategy$integrator$is_adaptive, is_false())
+})
 
 ## Delete the plant -- should not crash.
 rm(p)

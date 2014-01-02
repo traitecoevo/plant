@@ -122,6 +122,7 @@ RCPP_MODULE(tree) {
     .property("assimilation_spline",
 	      &model::Strategy::r_assimilation_spline,
 	      &model::Strategy::r_set_assimilation_spline)
+    .property("integrator", &model::Strategy::r_integrator)
     .method("clone", &model::Strategy::r_clone)
     ;
 
