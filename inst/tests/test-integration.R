@@ -157,3 +157,22 @@ test_that("Remembering intervals works", {
   expect_that(ans.redo, is_identical_to(ans.15))
   expect_that(err.redo, equals(err.15))
 })
+
+test_that("Non-adaptive integration works", {
+  max.iterations <- 100
+  eps <- .Machine$double.eps^0.25
+
+  for (rule in c(15, 61)) {
+    int.a <- new(QAG, rule, max.iterations, eps, eps)
+    int.f <- new(QAG, rule)
+    int.q <- new(QK,  rule)
+
+    ans.a <- int.a$integrate(g, a, b)
+    ans.f <- int.f$integrate(g, a, b)
+    ans.q <- int.q$integrate(g, a, b)
+
+    expect_that(ans.f, is_identical_to(ans.q))
+    expect_that(int.f$last_error,
+                is_identical_to(int.q$last_error))
+  }
+})

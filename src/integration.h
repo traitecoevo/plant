@@ -13,9 +13,14 @@ namespace integration {
 
 // This is the "QAG" algorithm from QUADPACK -- quadrature, adaptive,
 // Gaussian.  Does not handle infinite intervals or singularities.
+//
+// The second constructor (size_t) will make a non-adaptive integrator
+// that uses the given rule.  This may broaden soon to allow evenly
+// spaced points via the trapezium rule, etc.
 class QAG {
 public:
   QAG(size_t rule, size_t max_iterations, double atol, double rtol);
+  QAG(size_t rule);
   double integrate(util::DFunctor *f, double a, double b);
   double integrate_with_intervals(util::DFunctor *f,
 				  intervals_type intervals);
@@ -32,11 +37,15 @@ public:
   Rcpp::List r_get_last_intervals() const;
 
 private:
+  double integrate_adaptive(util::DFunctor *f, double a, double b);
+  double integrate_fixed(util::DFunctor *f, double a, double b);
   internal::workspace::point do_integrate(util::DFunctor *f,
 					  double a, double b);
   bool initialise(util::DFunctor *f, double a, double b);
   bool refine(util::DFunctor *f);
   static bool subinterval_too_small(double a1, double mid, double b2);
+
+  bool adaptive;
 
   QK q;
   internal::workspace w;

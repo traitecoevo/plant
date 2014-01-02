@@ -4,7 +4,8 @@
 namespace integration {
 
 QAG::QAG(size_t rule, size_t max_iterations, double atol, double rtol)
-  : q(rule),
+  : adaptive(true),
+    q(rule),
     limit(max_iterations),
     epsabs(atol),
     epsrel(rtol),
@@ -15,7 +16,24 @@ QAG::QAG(size_t rule, size_t max_iterations, double atol, double rtol)
     roundoff_type2(0) {
 }
 
+QAG::QAG(size_t rule)
+  : adaptive(false),
+    q(rule),
+    limit(1),
+    epsabs(NA_REAL),
+    epsrel(NA_REAL),
+    area(NA_REAL),
+    error(NA_REAL),
+    iteration(0),
+    roundoff_type1(0),
+    roundoff_type2(0) {
+}
+
 double QAG::integrate(util::DFunctor *f, double a, double b) {
+  return adaptive ? integrate_adaptive(f, a, b) : integrate_fixed(f, a, b);
+}
+
+double QAG::integrate_adaptive(util::DFunctor *f, double a, double b) {
   bool success = initialise(f, a, b);
   while (!success && iteration < limit) {
     success = refine(f);
@@ -31,6 +49,12 @@ double QAG::integrate(util::DFunctor *f, double a, double b) {
 
   area = w.total_area();
 
+  return area;
+}
+
+double QAG::integrate_fixed(util::DFunctor *f, double a, double b) {
+  area  = q.integrate(f, a, b);
+  error = q.get_last_error();
   return area;
 }
 

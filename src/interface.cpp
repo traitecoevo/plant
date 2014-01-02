@@ -447,6 +447,7 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<integration::QAG>("QAG")
     .constructor<size_t, size_t, double, double>()
+    .constructor<size_t>()
     .method("integrate",         &integration::QAG::r_integrate)
     .method("integrate_with_intervals",
 	    &integration::QAG::r_integrate_with_intervals)
