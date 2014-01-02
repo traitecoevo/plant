@@ -16,15 +16,24 @@ p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
 ## TODO: It looks to me that that max.t is ending up at 100, which is
-## suboptimal, here.
+## suboptimal, here.  It might be that the maximum time is really 104,
+## but I might just be wrong.
 max.t <- 104
 times <- build.schedule(p, 20, cohort.introduction.times(max.t), 1e-2,
                         progress=FALSE, verbose=TRUE)
 
 ## Once the schedule building is improved, we'll fix it so that this
-## is not required.
+## is not required.  We should return a list with all the required
+## bits I think.
+
+## Running this takes about 2.9s; that increases to about 6.5s if the
+## adaptive integration is used (see below).
 ebt <- run.ebt(p, schedule.from.times(times))
 ode.times <- ebt$ode_times
+
+p.a <- p$clone()
+p.a$set_control_parameters(list(plant_assimilation_adaptive=TRUE))
+system.time(ebt <- run.ebt(p.a, schedule.from.times(times)))
 
 ## Now, let's get a view of the fitness landscape with respect to one
 ## parameter.
@@ -47,6 +56,9 @@ sched$ode_times <- ode.times
 
 ## And run, producing only fitnesses.  The resident fitness should be
 ## unchanged here.
+##
+## Unfortunately this is very slow!  We probably need to think
+## carefully about how to speed this up.
 ebt.with.mutants <- run.ebt(p.with.mutants, sched)
 w.with.mutants <- ebt.with.mutants$fitnesses
 
