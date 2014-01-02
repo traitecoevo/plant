@@ -18,6 +18,8 @@ ode::OdeControl Control::r_ode_control() const {
 
 // * Private methods
 void Control::reset() {
+  plant_assimilation_adaptive = true;
+
   plant_assimilation_over_distribution = false;
   plant_assimilation_tol = 1e-6;
   plant_assimilation_iterations = 1000;
@@ -55,6 +57,9 @@ void Control::reset() {
 
   // Then set the values for the lookup table, based on these (this is
   // basically the inverse of set_parameters_post_hook())
+  _plant_assimilation_adaptive =
+    static_cast<double>(plant_assimilation_adaptive);
+
   _plant_assimilation_over_distribution =
     static_cast<double>(plant_assimilation_over_distribution);
   _plant_assimilation_iterations =
@@ -99,6 +104,9 @@ void Control::reset() {
 }
 
 void Control::do_build_lookup() {
+  lookup_table["plant_assimilation_adaptive"] =
+    &_plant_assimilation_adaptive;
+
   lookup_table["plant_assimilation_over_distribution"] =
     &_plant_assimilation_over_distribution;
   lookup_table["plant_assimilation_tol"] =
@@ -163,6 +171,9 @@ void Control::do_build_lookup() {
 }
 
 void Control::set_parameters_post_hook() {
+  plant_assimilation_adaptive =
+    _plant_assimilation_adaptive != 0.0;
+
   plant_assimilation_over_distribution =
     _plant_assimilation_over_distribution != 0.0;
   plant_assimilation_iterations =

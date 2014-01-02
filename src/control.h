@@ -19,6 +19,8 @@ public:
   // * R interface
   ode::OdeControl r_ode_control() const;
 
+  bool   plant_assimilation_adaptive;
+
   bool   plant_assimilation_over_distribution;
   double plant_assimilation_tol;
   size_t plant_assimilation_iterations;
@@ -60,6 +62,8 @@ private:
   void reset();
   void set_parameters_post_hook();
   ode::OdeControl make_ode_control();
+
+  double _plant_assimilation_adaptive;
 
   double _plant_assimilation_over_distribution;
   double _plant_assimilation_iterations;

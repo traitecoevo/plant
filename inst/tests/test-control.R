@@ -22,6 +22,7 @@ expected <- list(
   ode_step_size_min = 1e-6,
   ode_tol_abs = 1e-6,
   ode_tol_rel = 1e-6,
+  plant_assimilation_adaptive = as.numeric(TRUE),
   plant_assimilation_iterations = as.numeric(1000L),
   plant_assimilation_rule = as.numeric(21),
   plant_assimilation_over_distribution = as.numeric(FALSE),
