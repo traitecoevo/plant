@@ -167,6 +167,9 @@ test_that("Non-adaptive integration works", {
     int.f <- new(QAG, rule)
     int.q <- new(QK,  rule)
 
+    expect_that(int.a$is_adaptive, is_true())
+    expect_that(int.f$is_adaptive, is_false())
+
     ans.a <- int.a$integrate(g, a, b)
     ans.f <- int.f$integrate(g, a, b)
     ans.q <- int.q$integrate(g, a, b)

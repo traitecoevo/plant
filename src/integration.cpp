@@ -60,7 +60,9 @@ double QAG::integrate_fixed(util::DFunctor *f, double a, double b) {
 
 double QAG::integrate_with_intervals(util::DFunctor *f,
 				     intervals_type intervals) {
-    std::vector<double>::const_iterator
+  if (!adaptive)
+    ::Rf_error("This really does not make any sense...");
+  std::vector<double>::const_iterator
     a     = intervals[0].begin(),
     b     = intervals[1].begin(),
     a_end = intervals[0].end();

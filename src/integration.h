@@ -30,6 +30,8 @@ public:
   size_t get_last_iterations() const {return iteration;}
   intervals_type get_last_intervals() const;
 
+  bool is_adaptive() const {return adaptive;}
+
   // * R interface
   double r_integrate(util::RFunctionWrapper fun, double a, double b);
   double r_integrate_with_intervals(util::RFunctionWrapper fun,

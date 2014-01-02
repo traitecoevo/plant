@@ -455,6 +455,7 @@ RCPP_MODULE(tree) {
     .property("last_error",      &integration::QAG::get_last_error)
     .property("last_iterations", &integration::QAG::get_last_iterations)
     .property("last_intervals",  &integration::QAG::get_last_intervals)
+    .property("is_adaptive",     &integration::QAG::is_adaptive)
     ;
 
   // Template helper functions
