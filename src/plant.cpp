@@ -362,7 +362,8 @@ double Plant::compute_assimilation(const Environment& environment) {
   // probably be heaps more efficient if we worked with references or
   // iterators and avoided the copying that is going on here.
   // Conceptually, this probably belongs in its own function.
-  if (control().plant_assimilation_reuse_intervals &&
+  if (control().plant_assimilation_adaptive &&
+      control().plant_assimilation_reuse_intervals &&
       integration_intervals.size() == 2) {
     if (over_distribution) {
       A = strategy->integrator.integrate_with_intervals(&fun,
