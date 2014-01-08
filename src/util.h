@@ -10,18 +10,10 @@
 
 namespace util {
 
-// This is the same check as in R_ext/Error.h (R 3.0.1) so we should
-// agree here.
-#if defined(__GNUC__) && __GNUC__ >= 4
-#define NORETURN __attribute__((noreturn))
-#else
-#define NORETURN
-#endif
-
 void handler_pass_to_R(const char *reason,
                        const char *file,
                        int line,
-                       int gsl_errno) NORETURN;
+                       int gsl_errno);
 void set_sane_gsl_error_handling();
 
 bool is_finite(double x);
@@ -210,7 +202,7 @@ template <typename ContainerX, typename ContainerY>
 double trapezium(const ContainerX& x, const ContainerY& y) {
   util::check_length(y.size(), x.size());
   if (x.size() < 2)
-    ::Rf_error("Need at least two points for the trapezium rule");
+    Rcpp::stop("Need at least two points for the trapezium rule");
   typename ContainerX::const_iterator x0 = x.begin(), x1 = x.begin();
   ++x1;
   typename ContainerY::const_iterator y0 = y.begin(), y1 = y.begin();
@@ -226,7 +218,7 @@ std::vector<double> trapezium_vector(const ContainerX& x,
 				     const ContainerY& y) {
   util::check_length(y.size(), x.size());
   if (x.size() < 2)
-    ::Rf_error("Need at least two points for the trapezium rule");
+    Rcpp::stop("Need at least two points for the trapezium rule");
   typename ContainerX::const_iterator x0 = x.begin(), x1 = x.begin();
   ++x1;
   typename ContainerY::const_iterator y0 = y.begin(), y1 = y.begin();
@@ -262,6 +254,14 @@ std::string rcpp_class_demangle(std::string x);
 // the integral.
 std::vector<double> local_error_integration(const std::vector<double>& x,
 					    const std::vector<double>& y);
+
+template<typename T>
+std::string to_string(T x) {
+  std::ostringstream o;
+  if (!(o << x))
+    Rcpp::stop("String conversion failure");
+  return o.str();
+}
 
 namespace test {
 std::vector<double> test_sum_double(std::vector<double> a,

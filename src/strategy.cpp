@@ -173,8 +173,8 @@ bool Strategy::validate_parameters(Rcpp::List x) const {
   for (int i = 0; i < x.size(); ++i) {
     double tmp = Rcpp::as<double>(x[i]);
     if (tmp < 0)
-      ::Rf_error("Parameter %s must be non-negative\n",
-		 names[static_cast<size_t>(i)].c_str());
+      Rcpp::stop("Parameter " + names[static_cast<size_t>(i)] +
+		 " must be non-negative");
   }
   return true;
 }

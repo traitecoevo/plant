@@ -74,7 +74,7 @@ double Species<CohortTop>::leaf_area_above(double height) const {
   for (++it; it != plants.end(); ++it) {
     const double h0 = it->height(), f_h0 = it->leaf_area_above(height);
     if (!util::is_finite(f_h0))
-      ::Rf_error("Detected non-finite contribution");
+      Rcpp::stop("Detected non-finite contribution");
     tot += (h1 - h0) * (f_h1 + f_h0);
     // Upper point moves for next time:
     h1   = h0;
@@ -136,7 +136,7 @@ void Species<CohortTop>::r_set_state(Rcpp::NumericMatrix x) {
 template <>
 void Species<CohortTop>::r_force_state(Rcpp::NumericMatrix x) {
   if (x.ncol() == 0)
-    ::Rf_error("Boundary condition for seeds must always be given");
+    Rcpp::stop("Boundary condition for seeds must always be given");
   const size_t n = static_cast<size_t>(x.ncol() - 1);
   plants.clear();
   for (size_t i = 0; i < n; ++i)
@@ -158,7 +158,7 @@ SEXP species(Rcpp::CppClass individual, Strategy s) {
     Species<CohortTop> obj(s);
     ret = Rcpp::wrap(obj);
   } else {
-    ::Rf_error("Cannot make Species of %s", individual_type.c_str());
+    Rcpp::stop("Cannot make Species of " + individual_type);
   }
   return ret;
 }

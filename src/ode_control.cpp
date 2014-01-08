@@ -1,6 +1,5 @@
 #include "ode_control.h"
 
-#include <Rcpp.h>    // Rf_error
 #include <algorithm> // std::max
 #include <cmath>     // fabs
 
@@ -52,7 +51,7 @@ double OdeControl::adjust_step_size(size_t dim, size_t ord,
     last_step_size_shrank = true;
     if (step_size < step_size_min) {
       step_size = step_size_min;
-      ::Rf_error("Step size became too small");
+      Rcpp::stop("Step size became too small");
     }
   } else if (rmax < 0.5) {
     // increase step, no more than factor of 5
@@ -77,7 +76,7 @@ double OdeControl::errlevel(double y, double dydt, double h) const {
   const double errlev = tol_rel * (a_y    * fabs(y       )  +
 				   a_dydt * fabs(h * dydt)) + tol_abs;
   if (errlev <= 0.0)
-    ::Rf_error("errlev <= zero");
+    Rcpp::stop("errlev <= zero");
   return errlev;
 }
 

@@ -19,7 +19,7 @@ SEXP patch(Rcpp::CppClass individual, Parameters p) {
     Patch<CohortTop> obj(p);
     ret = Rcpp::wrap(obj);
   } else {
-    ::Rf_error("Cannot make Patch of %s", individual_type.c_str());
+    Rcpp::stop("Cannot make Patch of " + individual_type);
   }
   return ret;
 }

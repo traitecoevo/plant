@@ -160,7 +160,7 @@ void QK::initialise(size_t rule) {
     std::copy(QK61::wg,  QK61::wg  + ng,  wg.begin());
     std::copy(QK61::wgk, QK61::wgk + n,  wgk.begin());
   } else {
-    ::Rf_error("Unknown rule %d", static_cast<int>(rule));
+    Rcpp::stop("Unknown rule %d");
   }
   fv1.resize(n);
   fv2.resize(n);

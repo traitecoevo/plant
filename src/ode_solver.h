@@ -98,9 +98,14 @@ Solver<Problem>::Solver(Problem *problem_, OdeControl control_)
 template <class Problem>
 void Solver<Problem>::set_state(std::vector<double> y_, double t_) {
   const bool accuracy = 2; // d.p. of accuracy - see util.h
+
   if (prev_times.size() > 0 &&
-      !util::almost_equal(prev_times.back(), t_, accuracy))
-    ::Rf_error("Time does not match previous (delta=%2.5e). Reset solver first.", prev_times.back() - t_);
+      !util::almost_equal(prev_times.back(), t_, accuracy)) {
+    Rcpp::stop("Time does not match previous (delta = " +
+	       util::to_string(prev_times.back() - t_) +
+	       "). Reset solver first.");
+  }
+
   y    = y_;
   time = t_;
   if (prev_times.empty()) // only if first time (avoids duplicate times)
@@ -195,7 +200,7 @@ void Solver<Problem>::step() {
       } else {
 	// We've reached limits of machine accuracy in differences of
 	// step sizes or time (or both).
-	::Rf_error("Cannot achive the desired accuracy");
+	Rcpp::stop("Cannot achive the desired accuracy");
       }
     } else {
       // We have successfully taken a step and will return.  Update
@@ -224,7 +229,7 @@ void Solver<Problem>::step() {
 template <class Problem>
 void Solver<Problem>::advance(double time_max_) {
   if (time_max_ < time)
-    ::Rf_error("time_max must be greater than (or equal to) current time");
+    Rcpp::stop("time_max must be greater than (or equal to) current time");
   set_time_max(time_max_);
   while (time < time_max)
     step();
@@ -256,10 +261,10 @@ void Solver<Problem>::step_to(double time_max_) {
 template <class Problem>
 void Solver<Problem>::advance_fixed(std::vector<double> times) {
   if (times.size() < 1)
-    ::Rf_error("'times' must be vector of at least length 1");
+    Rcpp::stop("'times' must be vector of at least length 1");
   std::vector<double>::const_iterator t = times.begin();
   if (!util::identical(*t++, times.front()))
-    ::Rf_error("First element in 'times' must be same as current time");
+    Rcpp::stop("First element in 'times' must be same as current time");
   while (t != times.end())
     step_to(*t++);
 }
@@ -297,7 +302,7 @@ OdeControl Solver<Problem>::r_control() const {
 template <class Problem>
 void Solver<Problem>::step_fixed(double step_size) {
   if (time + step_size > time_max)
-    ::Rf_error("step would push us past time_max");
+    Rcpp::stop("step would push us past time_max");
 
   // Save y in case of failure in the step
   std::vector<double> y0 = y;
@@ -372,7 +377,7 @@ void Solver<Problem>::save_dydt_out_as_in() {
 template <class Problem>
 void Solver<Problem>::set_time_max(double time_max_) {
   if (!util::is_finite(time_max_))
-    ::Rf_error("time_max must be finite! (was setting %2.5f)", time_max_);
+    Rcpp::stop("time_max must be finite!");
   time_max = time_max_;
 }
 

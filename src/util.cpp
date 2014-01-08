@@ -3,12 +3,14 @@
 
 namespace util {
 
-// See Rcpp-exports for alternative to Rf_error
 void handler_pass_to_R(const char *reason,
                        const char *file,
                        int line,
                        int gsl_errno) {
-  ::Rf_error("GSLERROR: %s: %s:%d [%d]", reason, file, line, gsl_errno);
+  std::ostringstream o;
+  o << "GSLERROR: " << reason << ": " <<  file << ":" << line <<
+    " [" << util::to_string(gsl_errno) << "]";
+  Rcpp::stop(o.str());
 }
 
 void set_sane_gsl_error_handling() {
@@ -22,26 +24,32 @@ bool is_finite(double x) {
 size_t check_bounds_r(size_t idx, size_t size) {
   // We don't check size < 0 or idx < 0, as not possible with size_t
   if (size == 0)
-    ::Rf_error("Index %d out of bounds: container is empty", idx);
+    Rcpp::stop("Index " + util::to_string(idx) +
+	       " out of bounds: container is empty");
   else if (idx < 1 || idx > size)
-    ::Rf_error("Index %d out of bounds: must be in [1,%d]", idx, size);
+    Rcpp::stop("Index " + util::to_string(idx) +
+	       " out of bounds: must be in [1," +
+	       util::to_string(size) + "]");
   return idx - 1;
 }
 
 void check_length(size_t received, size_t expected) {
   if (expected != received)
-    ::Rf_error("Incorrect length input; expected %d, received %d\n",
-	       expected, received);
+    Rcpp::stop("Incorrect length input; expected " +
+	       util::to_string(expected) + ", received " +
+	       util::to_string(received));
 }
 
 void check_dimensions(size_t received_rows, size_t received_cols,
 		      size_t expected_rows, size_t expected_cols) {
   if (expected_rows != received_rows)
-    ::Rf_error("Incorrect number of rows; expected %d, received %d\n",
-	       expected_rows, received_rows);
+    Rcpp::stop("Incorrect number of rows; expected " +
+	       util::to_string(expected_rows) + ", received " +
+	       util::to_string(received_rows));
   if (expected_cols != received_cols)
-    ::Rf_error("Incorrect number of columns; expected %d, received %d\n",
-	       expected_cols, received_cols);
+    Rcpp::stop("Incorrect number of columns; expected " +
+	       util::to_string(expected_cols) + ", received " +
+	       util::to_string(received_cols));
 }
 
 std::vector<double> seq_len(double from, double to, size_t len) {
@@ -120,7 +128,7 @@ std::string rcpp_class_demangle(std::string x) {
   size_t pos = x.find("Rcpp_");
   if (pos != std::string::npos) {
     if (pos != 0)
-      ::Rf_error("Cannot determine Rcpp class name");
+      Rcpp::stop("Cannot determine Rcpp class name");
     else
       x = x.substr(5);
   }
@@ -179,7 +187,7 @@ std::vector<int> test_sum_int(std::vector<int> a,
 
 Rcpp::IntegerMatrix test_to_rcpp_integer_matrix(Rcpp::List x) {
   if (x.size() == 0)
-    ::Rf_error("Must give positive size 'x'");
+    Rcpp::stop("Must give positive size 'x'");
   std::vector< std::vector<int> > tmp;
   for (int i = 0; i < x.size(); ++i)
     tmp.push_back(Rcpp::as< std::vector<int> >(x[i]));
@@ -200,7 +208,7 @@ Rcpp::List test_from_rcpp_integer_matrix(Rcpp::IntegerMatrix x) {
 
 Rcpp::NumericMatrix test_to_rcpp_numeric_matrix(Rcpp::List x) {
   if (x.size() == 0)
-    ::Rf_error("Must give positive size 'x'");
+    Rcpp::stop("Must give positive size 'x'");
   std::vector< std::vector<double> > tmp;
   for (int i = 0; i < x.size(); ++i)
     tmp.push_back(Rcpp::as< std::vector<double> >(x[i]));

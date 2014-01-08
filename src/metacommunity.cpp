@@ -16,8 +16,7 @@ SEXP metacommunity(Rcpp::CppClass individual, Parameters p) {
     Metacommunity<CohortDiscrete> obj(p);
     ret = Rcpp::wrap(obj);
   } else {
-    ::Rf_error("Cannot make Metacommunity of %s",
-	       individual_type.c_str());
+    Rcpp::stop("Cannot make Metacommunity of " + individual_type);
   }
   return ret;
 }

@@ -16,14 +16,14 @@ CohortDiscrete::CohortDiscrete(Strategy s, int n_individuals_)
   : Plant(s),
     n_individuals(n_individuals_) {
   if (n_individuals < 1)
-    ::Rf_error("Cannot create a cohort with less than 1 individual");
+    Rcpp::stop("Cannot create a cohort with less than 1 individual");
 }
 
 CohortDiscrete::CohortDiscrete(Strategy *s, int n_individuals_)
   : Plant(s),
     n_individuals(n_individuals_) {
   if (n_individuals < 1)
-    ::Rf_error("Cannot create a cohort with less than 1 individual");
+    Rcpp::stop("Cannot create a cohort with less than 1 individual");
 }
 
 double CohortDiscrete::leaf_area() const {
@@ -46,7 +46,7 @@ bool CohortDiscrete::died() {
     n_individuals = unif_rand() < p_died ? 0 : 1;
   set_mortality(0.0);
   if (n_individuals < 0)
-    ::Rf_error("Somehow we have negative individuals!");
+    Rcpp::stop("Somehow we have negative individuals!");
   return n_individuals == 0;
 }
 
@@ -56,7 +56,7 @@ int CohortDiscrete::get_n_individuals() const {
 
 void CohortDiscrete::set_n_individuals(int n) {
   if (n < 1)
-    ::Rf_error("n must be positive");
+    Rcpp::stop("n must be positive");
   n_individuals = n;
 }
 

@@ -287,7 +287,7 @@ template <class Individual>
 void Species<Individual>::r_set_height(std::vector<double> x) {
   util::check_length(x.size(), size());
   if (!util::is_decreasing(x.begin(), x.end()))
-    Rf_error("height must be decreasing (ties allowed)");
+    Rcpp::stop("height must be decreasing (ties allowed)");
   std::vector<double>::iterator it = x.begin();
   plants_iterator p = plants.begin();
   while (p != plants.end()) {

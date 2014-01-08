@@ -26,7 +26,7 @@ void EBT::run() {
 void EBT::run_next() {
   const CohortSchedule::Event e = schedule.next_event();
   if (!util::identical(get_time(), e.time_introduction()))
-    ::Rf_error("Start time not what was expected");
+    Rcpp::stop("Start time not what was expected");
   patch.add_seedling(e.species_index);
   ode_solver.set_state_from_problem();
   if (schedule.fixed_times())
@@ -128,7 +128,7 @@ CohortSchedule EBT::r_cohort_schedule() const {
 
 void EBT::r_set_cohort_schedule(CohortSchedule x) {
   if (patch.ode_size() > 0)
-    ::Rf_error("Cannot set schedule without resetting first");
+    Rcpp::stop("Cannot set schedule without resetting first");
   util::check_length(x.get_n_species(), patch.size());
   schedule = x;
 }
@@ -146,7 +146,7 @@ std::vector<double> EBT::r_times(size_t species_index) const {
 }
 void EBT::r_set_times(std::vector<double> times, size_t species_index) {
   if (patch.ode_size() > 0)
-    ::Rf_error("Cannot set schedule without resetting first");
+    Rcpp::stop("Cannot set schedule without resetting first");
   schedule.r_set_times(times, species_index);
 }
 

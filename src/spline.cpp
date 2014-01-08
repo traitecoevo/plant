@@ -87,13 +87,13 @@ void Spline::clear() {
 // Compute the value of the spline at point `x=u`
 double Spline::eval(double u) const {
   if (spline == NULL)
-    ::Rf_error("Spline not initialised -- cannot evaluate");
+    Rcpp::stop("Spline not initialised -- cannot evaluate");
   return gsl_spline_eval(spline, u, acc);
 }
 
 double Spline::deriv(double u) const {
   if (spline == NULL)
-    ::Rf_error("Spline not initialised -- cannot evaluate");
+    Rcpp::stop("Spline not initialised -- cannot evaluate");
   return gsl_spline_eval_deriv(spline, u, acc);
 }
 

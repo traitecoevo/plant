@@ -65,7 +65,7 @@ void Environment::clear() {
 
 double Environment::seed_rain_rate() const {
   if (seed_rain.empty())
-    ::Rf_error("Cannot get seed rain for empty environment");
+    Rcpp::stop("Cannot get seed rain for empty environment");
   return seed_rain[seed_rain_index];
 }
 

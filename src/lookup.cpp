@@ -52,7 +52,7 @@ void Lookup::build_lookup() {
 double* Lookup::lookup(std::string key) const {
   lookup_type::const_iterator it = lookup_table.find(key);
   if (it == lookup_table.end())
-    ::Rf_error("Key %s not found", key.c_str());
+    Rcpp::stop("Key " + key + " not found");
   return it->second;
 }
 
@@ -60,7 +60,7 @@ void Lookup::check_keys(std::vector<std::string> keys) const {
   std::vector<std::string>::const_iterator key = keys.begin();
   while (key != keys.end()) {
     if (!has_key(*key))
-      ::Rf_error("Key %s not found", key->c_str());
+      Rcpp::stop("Key " + *key + " not found");
     ++key;
   }
 }

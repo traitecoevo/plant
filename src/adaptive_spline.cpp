@@ -70,7 +70,7 @@ bool AdaptiveSpline::refine() {
   dx /= 2;
 
   if (dx < dxmin)
-    ::Rf_error("Spline as refined as currently possible");
+    Rcpp::stop("Spline as refined as currently possible");
 
   bool flag = false;
   
@@ -107,9 +107,9 @@ bool AdaptiveSpline::refine() {
 
 void AdaptiveSpline::check_bounds(double a, double b) {
   if (a >= b)
-    ::Rf_error("Impossible bounds");
+    Rcpp::stop("Impossible bounds");
   if (!util::is_finite(a) || !util::is_finite(b))
-    ::Rf_error("Infinite bounds");
+    Rcpp::stop("Infinite bounds");
 }
 
 // Determines if difference between predicted and true values falls

@@ -37,8 +37,10 @@ double RootFinder::root(DFunctor *f,
   last_error = x_max - x_min;
 
   if (status != GSL_SUCCESS)
-    ::Rf_error("RootFinder failure: status %d in %d iterations (err: %2.5f)\n",
-	       status, iterations, last_error);
+    Rcpp::stop("RootFinder failure: status " +
+	       util::to_string(status) + " in " +
+	       util::to_string(iterations) + " (err: " +
+	       util::to_string(last_error) + ")");
 
   return r;
 }

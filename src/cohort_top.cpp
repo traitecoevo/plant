@@ -55,13 +55,13 @@ double CohortTop::fecundity() const {
 }
 
 int CohortTop::offspring() {
-  ::Rf_error("Cannot use offspring() in CohortTop");
-  // return 0; // unreachable because Rf_error is noreturn (3.0.1)
+  Rcpp::stop("Cannot use offspring() in CohortTop");
+  return 0;
 }
 
 bool CohortTop::died() {
-  ::Rf_error("Cannot use died() in CohortTop");
-  // return false; // unreachable because Rf_error is noreturn (3.0.1)
+  Rcpp::stop("Cannot use died() in CohortTop");
+  return false;
 }
 
 // NOTE: germination_probability() will cause all physiological

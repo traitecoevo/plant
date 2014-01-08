@@ -42,9 +42,9 @@ double QAG::integrate_adaptive(util::DFunctor *f, double a, double b) {
 
   if (!success) {
     if (iteration == limit)
-      ::Rf_error("Maximum number of subdivisions reached");
+      Rcpp::stop("Maximum number of subdivisions reached");
     else
-      ::Rf_error("Could not integrate function");
+      Rcpp::stop("Could not integrate function");
   }
 
   area = w.total_area();
@@ -61,7 +61,7 @@ double QAG::integrate_fixed(util::DFunctor *f, double a, double b) {
 double QAG::integrate_with_intervals(util::DFunctor *f,
 				     intervals_type intervals) {
   if (!adaptive)
-    ::Rf_error("This really does not make any sense...");
+    Rcpp::stop("This really does not make any sense...");
   std::vector<double>::const_iterator
     a     = intervals[0].begin(),
     b     = intervals[1].begin(),
@@ -100,7 +100,7 @@ double QAG::r_integrate_with_intervals(util::RFunctionWrapper fun,
   tmp.push_back(Rcpp::as< std::vector<double> >(intervals[1]));
 
   if (tmp[0].size() != tmp[1].size())
-    ::Rf_error("Intervals must have the same length");
+    Rcpp::stop("Intervals must have the same length");
 
   return integrate_with_intervals(&fun, tmp);
 }
@@ -134,12 +134,12 @@ bool QAG::initialise(util::DFunctor *f, double a, double b) {
 
   // Check that we can procede:
   if (error < round_off && error > tolerance) {
-    ::Rf_error("cannot reach tolerance because of roundoff error");
+    Rcpp::stop("cannot reach tolerance because of roundoff error");
   } else if ((error <= tolerance && !util::identical(error, resasc)) ||
 	     util::identical(error, 0.0)) {
     success = true;
   } else if (limit == 1) {
-    ::Rf_error("Need more than one iteration to achive requested accuracy");
+    Rcpp::stop("Need more than one iteration to achive requested accuracy");
   }
 
   return success;
@@ -180,9 +180,9 @@ bool QAG::refine(util::DFunctor *f) {
   // Check if we have a problem
   if (error > tolerance) {
     if (roundoff_type1 >= 6 || roundoff_type2 >= 20)
-      ::Rf_error("roundoff error prevents tolerance from being achieved");
+      Rcpp::stop("roundoff error prevents tolerance from being achieved");
     if (subinterval_too_small(a1, a2, b2))
-      ::Rf_error("bad integrand behavior found in the integration interval");
+      Rcpp::stop("bad integrand behavior found in the integration interval");
   }
 
   w.update(p1, p2);

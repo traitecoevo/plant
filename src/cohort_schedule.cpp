@@ -104,13 +104,13 @@ void CohortSchedule::distribute_ode_times() {
 
 void CohortSchedule::pop() {
   if (queue.empty())
-    ::Rf_error("Attempt to pop empty queue");
+    Rcpp::stop("Attempt to pop empty queue");
   queue.pop_front();
 }
 
 CohortSchedule::Event CohortSchedule::next_event() const {
   if (queue.empty())
-    ::Rf_error("All events completed");
+    Rcpp::stop("All events completed");
   return queue.front();
 }
 
@@ -130,11 +130,11 @@ void CohortSchedule::r_clear_times(size_t species_index) {
 void CohortSchedule::r_set_times(std::vector<double> times_,
 				 size_t species_index) {
   if (!util::is_sorted(times_.begin(), times_.end()))
-    ::Rf_error("Times must be sorted (increasing)");
+    Rcpp::stop("Times must be sorted (increasing)");
   if (times_.front() < 0)
-    ::Rf_error("First time must nonnegative");
+    Rcpp::stop("First time must nonnegative");
   if (times_.back() > max_time)
-    ::Rf_error("Times cannot be greater than max_time");
+    Rcpp::stop("Times cannot be greater than max_time");
   set_times(times_, util::check_bounds_r(species_index, n_species));
 }
 
@@ -148,9 +148,9 @@ double CohortSchedule::r_max_time() const {
 
 void CohortSchedule::r_set_max_time(double x) {
   if (x < 0)
-    ::Rf_error("max_time must be nonnegative");
+    Rcpp::stop("max_time must be nonnegative");
   if (x < events.back().time_introduction())
-    ::Rf_error("max_time must be at least the final scheduled time");
+    Rcpp::stop("max_time must be at least the final scheduled time");
   max_time = x;
 }
 
@@ -160,13 +160,13 @@ std::vector<double> CohortSchedule::r_ode_times() const {
 
 void CohortSchedule::r_set_ode_times(std::vector<double> x) {
   if (x.size() < 2)
-    ::Rf_error("Need at least two times");
+    Rcpp::stop("Need at least two times");
   if (!util::identical(x.front(), 0.0))
-    ::Rf_error("First time must be exactly zero");
+    Rcpp::stop("First time must be exactly zero");
   if (util::is_finite(max_time) && !util::identical(x.back(), max_time))
-    ::Rf_error("Last time must be exactly max_time");
+    Rcpp::stop("Last time must be exactly max_time");
   if (!util::is_sorted(x.begin(), x.end()))
-    ::Rf_error("ode_times must be sorted");
+    Rcpp::stop("ode_times must be sorted");
   ode_times = x;
   if (!util::is_finite(max_time))
     max_time = ode_times.back();

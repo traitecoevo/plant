@@ -96,7 +96,8 @@ double Plant::height() const {
 // happens is that we recompute the variables again.
 void Plant::set_height(double height_) {
   if (height_ < 0.0)
-    ::Rf_error("height must be positive (given %2.5f)", height_);
+    Rcpp::stop("height must be positive (given " +
+	       util::to_string(height_) + ")");
   if (!util::identical(height_, height()))
     compute_vars_size(height_);
 }
@@ -113,7 +114,7 @@ double Plant::leaf_area() const {
 // [      ] Leaf area (not fraction) above height `z`
 double Plant::leaf_area_above(double z) const {
   if (z < 0.0)
-    ::Rf_error("Negative heights do not make sense");
+    Rcpp::stop("Negative heights do not make sense");
   return vars.leaf_area * Q(z);
 }
 
