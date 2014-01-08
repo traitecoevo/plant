@@ -16,10 +16,9 @@ p$seed_rain <- 1.1
 p$set_control_parameters(fast.control())
 
 path <- "ref-single"
-path.evolve <- locate.evolve()
 
 ## Run falster-traitdiversity
-run.reference(path, p, path.evolve=path.evolve, verbose=FALSE)
+run.reference(path, p, verbose=FALSE)
 
 ## Load all the reference output:
 output <- load.reference.output(path)

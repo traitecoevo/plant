@@ -26,10 +26,9 @@ p$set_control_parameters(fast.control())
 p$set_parameters(list(patch_area=1.0)) # See issue #13
 
 path <- "ref-double"
-path.evolve <- locate.evolve()
 
 ## Run falster-traitdiversity
-run.reference(path, p, path.evolve=path.evolve, verbose=FALSE)
+run.reference(path, p, verbose=FALSE)
 
 output <- load.reference.output(path)
 test_that("Output contains correct parameters", {

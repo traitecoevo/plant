@@ -1,12 +1,18 @@
 \name{run.reference}
-\alias{locate.evolve}
+\alias{evolve.is.installed}
+\alias{install.evolve}
 \alias{run.reference}
+\alias{uninstall.evolve}
 \title{Run Reference Model}
 \usage{
-  run.reference(path, p = NULL, path.evolve = NULL,
-    verbose = TRUE)
+  run.reference(path, p = NULL, verbose = TRUE,
+    evolve = NULL)
 
-  locate.evolve()
+  install.evolve(reinstall = TRUE, verbose = FALSE)
+
+  uninstall.evolve()
+
+  evolve.is.installed()
 }
 \arguments{
   \item{path}{Path to directory containing parameter files
@@ -18,12 +24,12 @@
   (equivalent to "run model on these parameters in this
   directory")}
 
-  \item{path.evolve}{Path to the "evolve" program.  If not
-  specified, "evolve" is assumed to the in the
-  \code{PATH}.}
-
   \item{verbose}{Logical indicating if the model output
   should be printed (TRUE by default).}
+
+  \item{evolve}{Path to the "evolve" program.  If not
+  specified, "evolve" is assumed to be installed within
+  tree by \code{install.evolve}}
 }
 \description{
   Run the reference model, falster-traitdiversity

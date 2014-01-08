@@ -187,20 +187,19 @@ load.reference.output <- function(path) {
 ##' @param p Optional \code{\link{Parameters}} object that will be
 ##' written to \code{path} before running model (equivalent to "run
 ##' model on these parameters in this directory")
-##' @param path.evolve Path to the "evolve" program.  If not
-##' specified, "evolve" is assumed to the in the \code{PATH}.
 ##' @param verbose Logical indicating if the model output should be
 ##' printed (TRUE by default).
+##' @param evolve Path to the "evolve" program.  If not specified,
+##' "evolve" is assumed to be installed within tree by
+##' \code{install.evolve}
 ##' @author Rich FitzJohn
 ##' @rdname run.reference
 ##' @export
-run.reference <- function(path, p=NULL, path.evolve=NULL, verbose=TRUE) {
-  if (is.null(path.evolve)) {
-    program <- "evolve"
-  } else {
-    if (length(path.evolve) != 1)
-      stop("Expected scalar path to the evolve program")
-    program <- file.path(normalizePath(path.evolve), "evolve")
+run.reference <- function(path, p=NULL, verbose=TRUE, evolve=NULL) {
+  if (is.null(evolve)) {
+    if (!evolve.is.installed())
+      stop("'evolve' not installed - run install.evolve() first")
+    evolve <- file.path(path.evolve.dir(), "evolve")
   }
 
   if (is.null(p)) {
@@ -218,38 +217,48 @@ run.reference <- function(path, p=NULL, path.evolve=NULL, verbose=TRUE) {
   owd <- setwd(path)
   on.exit(setwd(owd))
 
-  system(sprintf("%s -f .", program),
+  system(sprintf("%s -f .", evolve),
          ignore.stdout=!verbose, ignore.stderr=!verbose)
 }
 
-## We expect to see 'evolve' in the directory pointed at by
-## PATH_EVOLVE:
-##   1. exists
-##   2. contains the 'evolve' program in src
-##   3. has the correct git hash
-##
-## This is a bit of a fragile hack around the fact that nobody will
-## actually have this installed globally on their system (in PATH or
-## something).  Once falster-traitdiversity is opened up on github, we
-## could just download it into tree's installed directory as needed.
 ##' @export
 ##' @rdname run.reference
-locate.evolve <- function() {
-  path.evolve <- Sys.getenv("PATH_EVOLVE")
-  path.evolve.cmd <- file.path(path.evolve, "src")
-  if (!(file.exists(path.evolve) &&
-        file.exists(file.path(path.evolve.cmd, "evolve"))))
-    stop("Could not find 'evolve': expected in ", path.evolve.cmd)
+install.evolve <- function(reinstall=TRUE, verbose=FALSE) {
+  path <- path.evolve.dir()
+  if (file.exists(path)) {
+    if (reinstall)
+      uninstall.evolve()
+    else
+      return(invisible(FALSE))
+  }
 
-  ## Executed in a subshell, so no risk of changing directory.
-  evolve.version <-
-    system(sprintf("(cd %s && git rev-parse HEAD)", path.evolve),
-           intern=TRUE)
-  if (evolve.version != "6e63e505f37827303346f44c5886715bd080fd2c")
-    warning("'evolve' version has changed")
-  path.evolve.cmd
+  url <- "git@github.com:dfalster/Falster-TraitDiversity.git"
+  hash <- "6e63e505f37827303346f44c5886715bd080fd2c"
+  intern <- !verbose
+
+  system(paste("git clone", url, path), intern=intern)
+  system(sprintf(paste("git --git-dir=%s/.git --work-tree=%s",
+                       "checkout -b tree_version %s"),
+                 path, path, hash), intern=intern)
+  system(sprintf("cd %s/src && make", path), intern=intern)
+  file.copy(file.path(path, "src", "evolve"), path)
+
+  invisible(TRUE)
 }
 
+##' @export
+##' @rdname run.reference
+uninstall.evolve <- function() {
+  unlink(path.evolve.dir(), recursive=TRUE)
+}
+
+##' @export
+##' @rdname run.reference
+evolve.is.installed <- function()
+  file.exists(file.path(path.evolve.dir(), "evolve"))
+
+path.evolve.dir <- function()
+  file.path(path.package("tree"), "falster-traitdiversity")
 
 ## Below here are internal functions
 

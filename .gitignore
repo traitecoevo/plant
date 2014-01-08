@@ -2,6 +2,8 @@ src/tree.so.dSYM
 
 inst/tests/valgrind.txt
 inst/tests/valgrind.supp
+inst/tests/.SKIP_REFERENCE_TESTS
+inst/tests/reference-test
 
 doc/*.pdf
 
