@@ -23,8 +23,8 @@ double Environment::canopy_openness(double height) const {
 void Environment::compute_light_environment(util::DFunctor *f_canopy_openness,
 					    double height_max) {
   light_environment =
-    light_environment_generator.construct_spline(f_canopy_openness,
-						 0, height_max);
+    light_environment_generator.construct(f_canopy_openness,
+					  0, height_max);
 }
 
 void Environment::rescale_light_environment(util::DFunctor *f_canopy_openness,
@@ -42,7 +42,7 @@ void Environment::rescale_light_environment(util::DFunctor *f_canopy_openness,
     light_environment.add_point(*hi, (*f_canopy_openness)(*hi));
   }
 
-  light_environment.init_self();
+  light_environment.initialise();
 }
 
 // Computes the probability of survival from 0 to time.
@@ -85,10 +85,10 @@ const Disturbance& Environment::get_disturbance_regime() const {
 }
 
 // * R interface
-spline::Spline Environment::r_get_light_environment() const {
+interpolator::Interpolator Environment::r_get_light_environment() const {
   return light_environment;
 }
-void Environment::r_set_light_environment(const spline::Spline env) {
+void Environment::r_set_light_environment(const interpolator::Interpolator env) {
   light_environment = env;
 }
 

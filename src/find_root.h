@@ -18,7 +18,7 @@ public:
 
 private:
   // Prevent copying and assignment to prevent issues with gsl
-  // pointers (see Spline for proper solution).
+  // pointers (see Interpolator for proper solution).
   RootFinder(const RootFinder& other);
   RootFinder& operator=(RootFinder other);
 

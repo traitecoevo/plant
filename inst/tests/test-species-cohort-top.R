@@ -139,8 +139,8 @@ hh <- sp$height
 hh[1] <- 10
 sp$height <- hh
 env <- test.environment(max(hh), seed.rain=1.0)
-sp$compute_assimilation_spline(env)
-tmp <- sp$assimilation_spline
+sp$compute_assimilation_fn(env)
+tmp <- sp$assimilation_fn
 
 h.sp <- tmp$x
 h.sp.mid <- (h.sp[-1] + h.sp[-length(h.sp)]) / 2

@@ -1,8 +1,7 @@
 #include <Rcpp.h>
 
-#include "spline.h"
-#include "adaptive_spline.h"
-#include "adaptive_spline_r.h"
+#include "interpolator.h"
+#include "adaptive_interpolator.h"
 
 #include "ode_target.h"
 #include "lorenz.h"
@@ -46,19 +45,19 @@ RCPP_MODULE(tree) {
 #ifdef __clang__
 #pragma clang diagnostic pop
 #endif
-  Rcpp::class_<spline::Spline>("Spline")
+  Rcpp::class_<interpolator::Interpolator>("Interpolator")
     .constructor()
     .constructor<bool,bool>()
-    .property("type", &spline::Spline::type)
-    .method("init",   &spline::Spline::init)
-    .method("eval",   &spline::Spline::r_eval)
-    .method("deriv",  &spline::Spline::r_deriv)
-    .property("x",    &spline::Spline::get_x)
-    .property("y",    &spline::Spline::get_y)
-    .property("xy",   &spline::Spline::r_get_xy)
-    .property("size", &spline::Spline::size)
-    .property("min",  &spline::Spline::min)
-    .property("max",  &spline::Spline::max)
+    .property("type",     &interpolator::Interpolator::type)
+    .method("init",       &interpolator::Interpolator::init)
+    .method("eval",       &interpolator::Interpolator::r_eval)
+    .method("deriv",      &interpolator::Interpolator::r_deriv)
+    .property("x",        &interpolator::Interpolator::get_x)
+    .property("y",        &interpolator::Interpolator::get_y)
+    .property("xy",       &interpolator::Interpolator::r_get_xy)
+    .property("size",     &interpolator::Interpolator::size)
+    .property("min",      &interpolator::Interpolator::min)
+    .property("max",      &interpolator::Interpolator::max)
     ;
 
   Rcpp::class_<ode::test::Lorenz>("Lorenz")
@@ -120,9 +119,9 @@ RCPP_MODULE(tree) {
     .constructor<Rcpp::List>()
     .property("control", &model::Strategy::r_control,
 	      &model::Strategy::set_control)
-    .property("assimilation_spline",
-	      &model::Strategy::r_assimilation_spline,
-	      &model::Strategy::r_set_assimilation_spline)
+    .property("assimilation_fn",
+	      &model::Strategy::r_assimilation_fn,
+	      &model::Strategy::r_set_assimilation_fn)
     .property("integrator", &model::Strategy::r_integrator)
     .method("clone", &model::Strategy::r_clone)
     ;
@@ -265,12 +264,12 @@ RCPP_MODULE(tree) {
 	      &model::SpeciesBase::r_set_height)
     .property("plants",        &model::SpeciesBase::r_get_plants)
     .property("n_individuals", &model::SpeciesBase::r_n_individuals)
-    .method("compute_assimilation_spline",
-	    &model::SpeciesBase::compute_assimilation_spline)
-    .method("rescale_assimilation_spline",
-	    &model::SpeciesBase::rescale_assimilation_spline)
-    .property("assimilation_spline",
-	      &model::SpeciesBase::r_assimilation_spline)
+    .method("compute_assimilation_fn",
+	    &model::SpeciesBase::compute_assimilation_fn)
+    .method("rescale_assimilation_fn",
+	    &model::SpeciesBase::rescale_assimilation_fn)
+    .property("assimilation_fn",
+	      &model::SpeciesBase::r_assimilation_fn)
     .property("strategy",      &model::SpeciesBase::r_strategy)
     .property("leaf_area",     &model::SpeciesBase::r_leaf_area)
     .property("vars_size",     &model::SpeciesBase::r_get_vars_size)
@@ -469,11 +468,11 @@ RCPP_MODULE(tree) {
   Rcpp::function("test_functor",    &util::test::test_functor);
   Rcpp::function("test_find_root",  &util::test::test_find_root);
   Rcpp::function("test_find_value", &util::test::test_find_value);
-  Rcpp::function("test_adaptive_spline", 
-		 &spline::test::test_adaptive_spline);
+  Rcpp::function("test_adaptive_interpolator",
+		 &interpolator::test::test_adaptive_interpolator);
   Rcpp::function("test_plant",      &model::test::test_plant);
-  Rcpp::function("compute_assimilation_spline",
-		 &model::test::compute_assimilation_spline);
+  Rcpp::function("compute_assimilation_fn",
+		 &model::test::compute_assimilation_fn);
   Rcpp::function("test_sum_double", &util::test::test_sum_double);
   Rcpp::function("test_sum_int",    &util::test::test_sum_int);
   Rcpp::function("test_to_rcpp_integer_matrix",

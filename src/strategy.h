@@ -10,7 +10,7 @@
 #include "lookup.h"
 #include "util.h"
 #include "integration.h"
-#include "spline.h"
+#include "interpolator.h"
 
 namespace model {
 
@@ -26,9 +26,9 @@ public:
   const Control& get_control() const;
   Control r_control() const;
 
-  // Get the spline, where it exists.
-  spline::Spline r_assimilation_spline() const;
-  void r_set_assimilation_spline(spline::Spline x);
+  // Get the interpolator, where it exists.
+  interpolator::Interpolator r_assimilation_fn() const;
+  void r_set_assimilation_fn(interpolator::Interpolator x);
 
   Strategy r_clone() const;
   // Not sure about the need to allow this to be accessed, but needed
@@ -94,9 +94,9 @@ private:
   // See issue #15's comments for commentary on this member:
   integration::QAG integrator;
   // This is optionally used
-  spline::Spline assimilation_spline;
+  interpolator::Interpolator assimilation_fn;
 
-  double assimilation_spline_lookup(double h) const;
+  double assimilation_fn_lookup(double h) const;
 
   // These things are really not to be used by anything, but are all
   // harmless (except for reset, actually).  They're used in

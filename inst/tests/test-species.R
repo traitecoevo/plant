@@ -59,8 +59,8 @@ expect_that(sp$germination_probability(env),
 ## thought, and not sure why.  Could be the error in assimilation
 ## calculation?  Could just be that we're being a bit enthusiastic
 ## about error checking...
-sp$compute_assimilation_spline(env)
-tmp <- sp$assimilation_spline
+sp$compute_assimilation_fn(env)
+tmp <- sp$assimilation_fn
 xy <- tmp$xy
 
 ## OK, repeat this for Species<CohortDiscrete> and Species<CohortTop>
@@ -159,12 +159,12 @@ sp.approx$add_seeds(1)
 sp.approx$height <- sp$height
 
 ## Spline is empty on initialisation
-expect_that(sp.approx$assimilation_spline$size, equals(0))
+expect_that(sp.approx$assimilation_fn$size, equals(0))
 
 sp.approx$compute_vars_phys(env)
 
 ## Check that we did compute the spline:
-expect_that(sp.approx$assimilation_spline$xy, is_identical_to(tmp$xy))
+expect_that(sp.approx$assimilation_fn$xy, is_identical_to(tmp$xy))
 
 ## The rates should be equal, but not identical, to the fully computed
 ## rates.

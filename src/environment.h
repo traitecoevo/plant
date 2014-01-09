@@ -3,10 +3,10 @@
 #define TREE_ENVIRONMENT_H_
 
 #include "parameters.h"
-#include "spline.h"
+#include "interpolator.h"
 #include "util.h"
 #include "functor.h"
-#include "adaptive_spline.h"
+#include "adaptive_interpolator.h"
 
 namespace model {
 
@@ -35,8 +35,8 @@ public:
   std::vector<double> r_get_seed_rain() const;
   void r_set_seed_rain(std::vector<double> x);
 
-  spline::Spline r_get_light_environment() const;
-  void r_set_light_environment(const spline::Spline env);
+  interpolator::Interpolator r_get_light_environment() const;
+  void r_set_light_environment(const interpolator::Interpolator env);
 
   void r_set_seed_rain_index(size_t x);
 
@@ -44,13 +44,13 @@ public:
   void r_set_state(Rcpp::List x);
 
 private:
-  spline::Spline light_environment;
+  interpolator::Interpolator light_environment;
   Disturbance disturbance_regime;
   std::vector<double> seed_rain;
   size_t seed_rain_index;
   Control control;
   double time;
-  spline::AdaptiveSpline light_environment_generator;
+  interpolator::AdaptiveInterpolator light_environment_generator;
 };
 
 }

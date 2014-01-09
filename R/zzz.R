@@ -1,6 +1,7 @@
 ##' @useDynLib tree
 ##' @import Rcpp
 ##' @import methods
+
 ##' @export CohortDiscrete
 ##' @export CohortSchedule
 ##' @export CohortScheduleEvent
@@ -9,6 +10,7 @@
 ##' @export Disturbance
 ##' @export EBT
 ##' @export Environment
+##' @export Interpolator
 ##' @export Lookup
 ##' @export Lorenz
 ##' @export Metacommunity
@@ -29,16 +31,15 @@
 ##' @export SpeciesBase
 ##' @export SpeciesC
 ##' @export SpeciesCT
-##' @export Spline
 ##' @export Strategy
-##' @export compute_assimilation_spline
+##' @export compute_assimilation_fn
 ##' @export local_error_integration
 ##' @export make.reference
 ##' @export metacommunity
 ##' @export patch
 ##' @export set_sane_gsl_error_handling
 ##' @export species
-##' @export test_adaptive_spline
+##' @export test_adaptive_interpolator
 ##' @export test_find_root
 ##' @export test_find_value
 ##' @export test_from_rcpp_integer_matrix

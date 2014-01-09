@@ -1,12 +1,12 @@
 source("helper-tree.R")
 
-context("AdaptiveSpline")
+context("AdaptiveInterpolator")
 
 target <- function(x) sin(2*x)
 r <- c(0, 2*pi)
-s <- test_adaptive_spline(target, new.env(), r[1], r[2], FALSE)
+s <- test_adaptive_interpolator(target, new.env(), r[1], r[2], FALSE)
 
-test_that("Spline is the size expected", {
+test_that("Interpolator is the size expected", {
   expect_that(s$size, equals(241))
   expect_that(nrow(s$xy), equals(s$size))
 })
@@ -29,9 +29,9 @@ test_that("Tolerance is as expected", {
 
 source("helper-tree.R")
 
-a <- test_adaptive_spline(target, new.env(), r[1], r[2], TRUE)
+a <- test_adaptive_interpolator(target, new.env(), r[1], r[2], TRUE)
 
-test_that("Spline is the size expected", {
+test_that("Interpolator is the size expected", {
   expect_that(a$size, equals(505))
   expect_that(nrow(a$xy), equals(a$size))
 })

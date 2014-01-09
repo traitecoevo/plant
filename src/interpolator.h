@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef TREE_SPLINE_H_
-#define TREE_SPLINE_H_
+#ifndef TREE_INTERPOLATOR_H_
+#define TREE_INTERPOLATOR_H_
 
 #include <vector>
 #include <cstddef>
@@ -17,22 +17,21 @@
 
 #include "util.h"
 
-namespace spline {
+namespace interpolator {
 
-class Spline {
+class Interpolator {
 public:
-  typedef util::PtrWrapper<Spline> ptr;
-  Spline();
-  Spline(bool is_akima, bool is_linear);
-  ~Spline();
-  Spline(const Spline& x);
-  Spline& operator=(Spline other);
+  Interpolator();
+  Interpolator(bool is_akima, bool is_linear);
+  ~Interpolator();
+  Interpolator(const Interpolator& other);
+  Interpolator& operator=(Interpolator other);
 
   std::string type() const;
 
   void init(const std::vector<double>& x_,
 	    const std::vector<double>& y_);
-  void init_self();
+  void initialise();
 
   void add_point(double xi, double yi);
   void clear();
@@ -70,6 +69,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(spline::Spline)
+RCPP_EXPOSED_CLASS(interpolator::Interpolator)
 
 #endif

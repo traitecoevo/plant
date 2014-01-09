@@ -28,11 +28,11 @@ Control Strategy::r_control() const {
   return control;
 }
 
-spline::Spline Strategy::r_assimilation_spline() const {
-  return assimilation_spline;
+interpolator::Interpolator Strategy::r_assimilation_fn() const {
+  return assimilation_fn;
 }
-void Strategy::r_set_assimilation_spline(spline::Spline x) {
-  assimilation_spline = x;
+void Strategy::r_set_assimilation_fn(interpolator::Interpolator x) {
+  assimilation_fn = x;
 }
 
 Strategy Strategy::r_clone() const {
@@ -119,8 +119,8 @@ void Strategy::reset() {
   k_l = NA_REAL;
 }
 
-double Strategy::assimilation_spline_lookup(double h) const {
-  return assimilation_spline.eval(h);
+double Strategy::assimilation_fn_lookup(double h) const {
+  return assimilation_fn.eval(h);
 }
 
 void Strategy::do_build_lookup() {

@@ -345,7 +345,7 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 // Falster 2012), we do not normalise by Y*c_bio here.
 double Plant::assimilation(const Environment& environment) {
   return control().plant_assimilation_approximate_use ?
-    strategy->assimilation_spline_lookup(height()) :
+    strategy->assimilation_fn_lookup(height()) :
     compute_assimilation(environment);
 }
 double Plant::compute_assimilation(const Environment& environment) {
@@ -507,10 +507,10 @@ void Plant::prepare_strategy(Strategy *s) {
 }
 
 // NOTE: static method
-void Plant::compute_assimilation_spline(Strategy *s,
-					double hmin, double hmax,
-					const Environment &environment) {
-  spline::AdaptiveSpline
+void Plant::compute_assimilation_fn(Strategy *s,
+				    double hmin, double hmax,
+				    const Environment &environment) {
+  interpolator::AdaptiveInterpolator
     generator(s->control.plant_assimilation_approximate_tol,
 	      s->control.plant_assimilation_approximate_tol,
 	      s->control.plant_assimilation_approximate_nbase,
@@ -520,27 +520,27 @@ void Plant::compute_assimilation_spline(Strategy *s,
   util::FunctorBind2<Plant, const Environment&,
 		     &Plant::assimilation_given_height>
     fun(&p, environment);
-  s->assimilation_spline = generator.construct_spline(&fun, hmin, hmax);
+  s->assimilation_fn = generator.construct(&fun, hmin, hmax);
 }
 
-void Plant::rescale_assimilation_spline(Strategy *s,
-					double hmin, double hmax,
-					const Environment &environment) {
+void Plant::rescale_assimilation_fn(Strategy *s,
+				    double hmin, double hmax,
+				    const Environment &environment) {
   const double
-    hmin_old = s->assimilation_spline.min(),
-    hmax_old = s->assimilation_spline.max();
-  std::vector<double> h = s->assimilation_spline.get_x();
+    hmin_old = s->assimilation_fn.min(),
+    hmax_old = s->assimilation_fn.max();
+  std::vector<double> h = s->assimilation_fn.get_x();
   util::rescale(h.begin(), h.end(), hmin_old, hmax_old, hmin, hmax);
   h[h.size() - 1] = hmax; // avoid round-off issues
 
-  s->assimilation_spline.clear();
+  s->assimilation_fn.clear();
   Plant p(s);
   for (std::vector<double>::const_iterator hi = h.begin();
        hi != h.end(); ++hi) {
     const double ai = p.assimilation_given_height(*hi, environment);
-    s->assimilation_spline.add_point(*hi, ai);
+    s->assimilation_fn.add_point(*hi, ai);
   }
-  s->assimilation_spline.init_self();
+  s->assimilation_fn.initialise();
 }
 
 // * R interface
@@ -635,11 +635,11 @@ bool test_plant(Strategy s, bool copy, bool ptr) {
   return ok;
 }
 
-spline::Spline compute_assimilation_spline(Strategy s,
-					   double hmin, double hmax,
-					   const Environment &environment) {
-  Plant::compute_assimilation_spline(&s, hmin, hmax, environment);
-  return s.r_assimilation_spline();
+interpolator::Interpolator
+compute_assimilation_fn(Strategy s, double hmin, double hmax,
+			const Environment &environment) {
+  Plant::compute_assimilation_fn(&s, hmin, hmax, environment);
+  return s.r_assimilation_fn();
 }
 
 }

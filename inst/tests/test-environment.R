@@ -18,7 +18,7 @@ hh <- seq(0, 10, length=101)
 light.env <- function(x)
   exp(x/(max(hh)*2)) - 1 + (1 - (exp(.5) - 1))/2
 ee <- light.env(hh)
-env <- new(Spline)
+env <- new(Interpolator)
 env$init(hh, ee)
 
 ## And set it

@@ -7,7 +7,7 @@
 #include "environment.h"
 #include "ode_target.h"
 #include "strategy.h"
-#include "spline.h"
+#include "interpolator.h"
 #include "functor.h"
 
 namespace model {
@@ -102,12 +102,12 @@ public:
 
   // * Set constants within Strategy
   static void prepare_strategy(Strategy *s);
-  static void compute_assimilation_spline(Strategy *s,
-					  double hmin, double hmax,
-					  const Environment &environment);
-  static void rescale_assimilation_spline(Strategy *s,
-					  double hmin, double hmax,
-					  const Environment &environment);
+  static void compute_assimilation_fn(Strategy *s,
+				      double hmin, double hmax,
+				      const Environment &environment);
+  static void rescale_assimilation_fn(Strategy *s,
+				      double hmin, double hmax,
+				      const Environment &environment);
 
   double assimilation_given_height(double h,
 				   const Environment &environment);
@@ -116,7 +116,7 @@ public:
   Strategy r_get_strategy() const;
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
-  double r_germination_probability(spline::Spline env);
+  double r_germination_probability(interpolator::Interpolator env);
   bool r_died();
 
   size_t state_size() const;
@@ -209,9 +209,9 @@ private:
 
 namespace test {
 bool test_plant(Strategy s, bool copy, bool ptr);
-spline::Spline compute_assimilation_spline(Strategy s,
-					   double hmin, double hmax,
-					   const Environment &environment);
+interpolator::Interpolator
+compute_assimilation_fn(Strategy s, double hmin, double hmax,
+			const Environment &environment);
 }
 
 }

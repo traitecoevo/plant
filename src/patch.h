@@ -6,7 +6,7 @@
 #include <cstddef>
 
 #include "ode_target.h"
-#include "adaptive_spline.h"
+#include "adaptive_interpolator.h"
 #include "parameters.h"
 #include "species.h"
 
@@ -327,7 +327,7 @@ double Patch<Individual>::canopy_openness(double height) {
 	     parameters->patch_area);
 }
 
-// Create the spline the characterises the light environment.
+// Create the function the characterises the light environment.
 //
 // This needs to be done at least to the height of a seed of the
 // tallest species or the height of the tallest individual over all

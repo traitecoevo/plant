@@ -59,7 +59,7 @@ test.environment <- function(height, n=101, light.env=NULL,
     light.env <- function(x)
       exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
   ee <- light.env(hh)
-  env <- new(Spline)
+  env <- new(Interpolator)
   env$init(hh, ee)
 
   parameters <- new(Parameters)

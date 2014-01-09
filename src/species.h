@@ -12,8 +12,8 @@
 #include "cohort_discrete.h" // for a specialisation
 #include "cohort_top.h"      // for a specialisation
 #include "util.h"            // is_decreasing, check_length
-#include "spline.h"
-#include "adaptive_spline.h"
+#include "interpolator.h"
+#include "adaptive_interpolator.h"
 #include "state.h"           // get_state, set_state
 
 namespace model {
@@ -31,8 +31,8 @@ public:
   virtual double germination_probability(const Environment&
 					 environment) const = 0;
   virtual void clear() = 0;
-  virtual void compute_assimilation_spline(const Environment& environment) = 0;
-  virtual void rescale_assimilation_spline(const Environment& environment) = 0;
+  virtual void compute_assimilation_fn(const Environment& environment) = 0;
+  virtual void rescale_assimilation_fn(const Environment& environment) = 0;
   // Leaf area error estimation
   virtual std::vector<double> leaf_area_error() const = 0;
   // R-specific wrappers
@@ -40,7 +40,7 @@ public:
   virtual void r_set_height(std::vector<double> x) = 0;
   virtual Rcpp::List r_get_plants() const = 0;
   virtual int r_n_individuals() const = 0;
-  virtual spline::Spline r_assimilation_spline() const = 0;
+  virtual interpolator::Interpolator r_assimilation_fn() const = 0;
   virtual Strategy r_strategy() const = 0;
   virtual std::vector<double> r_leaf_area() const = 0;
   virtual Rcpp::NumericMatrix r_get_vars_size() const = 0;
@@ -72,8 +72,8 @@ public:
   void add_seeds(int n);
   double germination_probability(const Environment& environment) const;
   void clear();
-  void compute_assimilation_spline(const Environment& environment);
-  void rescale_assimilation_spline(const Environment& environment);
+  void compute_assimilation_fn(const Environment& environment);
+  void rescale_assimilation_fn(const Environment& environment);
 
   // * Leaf area error estimation, used by EBT
   std::vector<double> leaf_area_error() const;
@@ -91,7 +91,7 @@ public:
   Individual r_at(size_t idx) const;
   Individual r_seed() const;
   int r_n_individuals() const;
-  spline::Spline r_assimilation_spline() const;
+  interpolator::Interpolator r_assimilation_fn() const;
   Strategy r_strategy() const;
   std::vector<double> r_leaf_area() const;
   Rcpp::NumericMatrix r_get_vars_size() const;
@@ -211,7 +211,7 @@ std::vector<double> Species<Individual>::seeds() const {
 template <class Individual>
 void Species<Individual>::compute_vars_phys(const Environment& environment) {
   if (control().plant_assimilation_approximate_use)
-    compute_assimilation_spline(environment);
+    compute_assimilation_fn(environment);
   for (plants_iterator it = plants.begin();
        it != plants.end(); ++it)
     it->compute_vars_phys(environment);
@@ -375,25 +375,25 @@ template<> Rcpp::NumericMatrix Species<CohortTop>::r_get_state() const;
 template<> void Species<CohortTop>::r_set_state(Rcpp::NumericMatrix x);
 template<> void Species<CohortTop>::r_force_state(Rcpp::NumericMatrix x);
 
-// There is some ugliness here; we need to make sure that the spline
-// is not constructed with zero gap between min and max plant sizes,
-// so we need to add some epsilon to this.  That is in turn duplicated
-// between compute_assimilation_spline and
-// rescale_assimilation_spline, for now at least.
+// There is some ugliness here; we need to make sure that the smoothed
+// unction is not constructed with zero gap between min and max plant
+// sizes, so we need to add some epsilon to this.  That is in turn
+// duplicated between compute_assimilation_fn and
+// rescale_assimilation_fn, for now at least.
 template <class Individual>
-void Species<Individual>::compute_assimilation_spline(const Environment &environment) {
+void Species<Individual>::compute_assimilation_fn(const Environment &environment) {
   const double eps = control().cohort_gradient_eps;
   const double hmin = seed.height() - eps, hmax = height_max() + eps;
-  Plant::compute_assimilation_spline(strategy.get(), hmin, hmax,
+  Plant::compute_assimilation_fn(strategy.get(), hmin, hmax,
 				     environment);
 }
 
 template <class Individual>
-void Species<Individual>::rescale_assimilation_spline(const Environment &environment) {
+void Species<Individual>::rescale_assimilation_fn(const Environment &environment) {
   const double eps = control().cohort_gradient_eps;
   const double hmin = seed.height() - eps, hmax = height_max() + eps;
-  Plant::rescale_assimilation_spline(strategy.get(), hmin, hmax,
-				     environment);
+  Plant::rescale_assimilation_fn(strategy.get(), hmin, hmax,
+				 environment);
 }
 
 // This doesn't really make any sense for anything other than
@@ -404,8 +404,8 @@ std::vector<double> Species<Individual>::leaf_area_error() const {
 }
 
 template <class Individual>
-spline::Spline Species<Individual>::r_assimilation_spline() const {
-  return strategy->r_assimilation_spline();
+interpolator::Interpolator Species<Individual>::r_assimilation_fn() const {
+  return strategy->r_assimilation_fn();
 }
 
 template <class Individual>

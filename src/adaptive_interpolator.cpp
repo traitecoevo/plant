@@ -1,10 +1,10 @@
-#include "adaptive_spline.h"
+#include "adaptive_interpolator.h"
 
-namespace spline {
+namespace interpolator {
 
-AdaptiveSpline::AdaptiveSpline(double atol_, double rtol_,
-			       int nbase_, int max_depth_,
-			       bool akima_spline)
+AdaptiveInterpolator::AdaptiveInterpolator(double atol_, double rtol_,
+					   int nbase_, int max_depth_,
+					   bool akima)
   : target(NULL),
     atol(atol_),
     rtol(rtol_),
@@ -12,18 +12,18 @@ AdaptiveSpline::AdaptiveSpline(double atol_, double rtol_,
     max_depth(max_depth_),
     dx(NA_REAL),
     dxmin(NA_REAL),
-    spline(akima_spline, false) {
+    interpolator(akima, false) {
 }
 
 // Evaluate the underlying function (double -> double).
-double AdaptiveSpline::eval_target(double x) const {
+double AdaptiveInterpolator::eval_target(double x) const {
   return (*target)(x);
 }
 
-// Adaptively refine a spline that spans from a to b so that the
+// Adaptively refine a interpolator that spans from a to b so that the
 // midpoints of evaluated points have sufficiently low error.
-Spline AdaptiveSpline::construct_spline(util::DFunctor *target_,
-					double a, double b) {
+Interpolator AdaptiveInterpolator::construct(util::DFunctor *target_,
+					     double a, double b) {
   target = target_;
   check_bounds(a, b);
   dx = (b - a) / (nbase - 1);
@@ -45,42 +45,43 @@ Spline AdaptiveSpline::construct_spline(util::DFunctor *target_,
     zz.push_back(i > 0);
   }
 
-  compute_spline();
+  compute();
 
   bool flag = true;
   while (flag)
     flag = refine();
 
-  return spline;
+  return interpolator;
 }
 
-// Given our current set of x/y points, construct the spline.  This is
-// the only function that actually modifies the spline object.
-void AdaptiveSpline::compute_spline() {
+// Given our current set of x/y points, construct the interpolated
+// fucntion.  This is the only function that actually modifies the
+// interpolator object.
+void AdaptiveInterpolator::compute() {
   std::vector<double> x(xx.begin(), xx.end());
   std::vector<double> y(yy.begin(), yy.end());
-  spline.init(x, y);
+  interpolator.init(x, y);
 }
 
-// Refine the spline by adding points in all intervals (xx[i-1],
-// xx[i]) where z[i] is true, and check to see if this new point has
-// sufficiently good error that this interval needs no further
-// refinement.
-bool AdaptiveSpline::refine() {
+// Refine the interpolated function by adding points in all intervals
+// (xx[i-1], xx[i]) where z[i] is true, and check to see if this new
+// point has sufficiently good error that this interval needs no
+// further refinement.
+bool AdaptiveInterpolator::refine() {
   dx /= 2;
 
   if (dx < dxmin)
-    Rcpp::stop("Spline as refined as currently possible");
+    Rcpp::stop("Interpolated function as refined as currently possible");
 
   bool flag = false;
-  
+
   std::list<double>::iterator xi = xx.begin(), yi = yy.begin();
   std::list<bool>::iterator zi = zz.begin();
   for (; xi != xx.end(); ++xi, ++yi, ++zi) {
     if (*zi) {
       const double x_mid = *xi - dx;
       const double y_mid = eval_target(x_mid);
-      const double p_mid = spline.eval(x_mid);
+      const double p_mid = interpolator.eval(x_mid);
 
       // Always insert the new points.
       xx.insert(xi, x_mid);
@@ -99,13 +100,13 @@ bool AdaptiveSpline::refine() {
     }
   }
 
-  // Recompute spline to use new points added during refinement.
-  compute_spline();
+  // Recompute interpolator to use new points added during refinement.
+  compute();
 
   return flag;
 }
 
-void AdaptiveSpline::check_bounds(double a, double b) {
+void AdaptiveInterpolator::check_bounds(double a, double b) {
   if (a >= b)
     Rcpp::stop("Impossible bounds");
   if (!util::is_finite(a) || !util::is_finite(b))
@@ -114,11 +115,26 @@ void AdaptiveSpline::check_bounds(double a, double b) {
 
 // Determines if difference between predicted and true values falls
 // within error bounds.
-bool AdaptiveSpline::check_err(double y_true, double y_pred) const {
+bool AdaptiveInterpolator::check_err(double y_true, double y_pred) const {
   const double err_abs = fabs(y_true - y_pred);
   const double err_rel = fabs(1 - y_pred / y_true);
   return err_abs < atol || err_rel < rtol;
 }
 
+namespace test {
+
+Interpolator test_adaptive_interpolator(SEXP fun, SEXP env,
+					double a, double b,
+					bool akima) {
+  util::RFunctionWrapper obj(fun, env);
+  // Hopefully sensible defaults:
+  const double atol = 1e-6, rtol = 1e-6;
+  const int nbase = 17, max_depth = 16;
+  AdaptiveInterpolator generator(atol, rtol, nbase, max_depth,
+				 akima);
+  return generator.construct(&obj, a, b);
+}
+
+}
 
 }

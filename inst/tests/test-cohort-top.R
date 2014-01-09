@@ -138,10 +138,10 @@ test_that("Approximate assimilation works", {
   s.approx <- new(Strategy)
   s.approx$control <- ctrl.approx
 
-  assim <- compute_assimilation_spline(s.approx, plant$height,
-                                       env$light_environment$max, env)
+  assim <- compute_assimilation_fn(s.approx, plant$height,
+                                   env$light_environment$max, env)
   expect_that(assim$max, is_identical_to(env$light_environment$max))
-  s.approx$assimilation_spline <- assim
+  s.approx$assimilation_fn <- assim
 
   ## Then set this within the strategy so that it would be available to
   ## a plant.

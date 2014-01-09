@@ -1,6 +1,6 @@
 source("helper-tree.R")
 
-context("Spline")
+context("Interpolator")
 
 target <- function(x) sin(2*x)
 
@@ -17,7 +17,7 @@ test_that("Test data is sensible", {
 })
 
 ## Basic cubic splines:
-s <- new(Spline, FALSE, FALSE)
+s <- new(Interpolator, FALSE, FALSE)
 test_that("Empty cubic splines behave sensibly", {
   expect_that(s$min, equals(Inf))
   expect_that(s$max, equals(-Inf))
@@ -49,7 +49,7 @@ test_that("Spline derivatives are correct", {
 })
 
 ## Akima splines:
-a <- new(Spline, TRUE, FALSE)
+a <- new(Interpolator, TRUE, FALSE)
 test_that("Empty Akima splines behave sensibly", {
   expect_that(a$min, equals(Inf))
   expect_that(a$max, equals(-Inf))
@@ -73,7 +73,7 @@ test_that("Akima splines are accurate enough", {
 })
 
 ## Linear interpolation
-l <- new(Spline, FALSE, TRUE)
+l <- new(Interpolator, FALSE, TRUE)
 test_that("Empty linear interpolation behave sensibly", {
   expect_that(l$min, equals(Inf))
   expect_that(l$max, equals(-Inf))
