@@ -15,6 +15,7 @@ expected <- list(
   environment_light_nbase = as.numeric(17),
   environment_light_tol = 1e-6,
   environment_light_akima = as.numeric(FALSE),
+  environment_light_linear = as.numeric(FALSE),
   environment_light_rescale_usually = as.numeric(FALSE),
   ode_a_dydt = 0.0,
   ode_a_y = 1.0,
@@ -33,6 +34,7 @@ expected <- list(
   plant_assimilation_approximate_nbase = as.numeric(17),
   plant_assimilation_approximate_tol = 1e-6,
   plant_assimilation_approximate_akima = as.numeric(FALSE),
+  plant_assimilation_approximate_linear = as.numeric(FALSE),
   plant_assimilation_approximate_rescale_usually = as.numeric(FALSE),
   plant_seed_iterations = as.numeric(1000L),
   plant_seed_tol = as.numeric(1e-6)

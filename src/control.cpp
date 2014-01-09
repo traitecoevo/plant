@@ -31,6 +31,7 @@ void Control::reset() {
   plant_assimilation_approximate_nbase = 17;
   plant_assimilation_approximate_max_depth = 16;
   plant_assimilation_approximate_akima = false;
+  plant_assimilation_approximate_linear = false;
   plant_assimilation_approximate_rescale_usually = false;
 
   plant_seed_tol = 1e-6;
@@ -45,6 +46,7 @@ void Control::reset() {
   environment_light_nbase = 17;
   environment_light_max_depth = 16;
   environment_light_akima = false;
+  environment_light_linear = false;
   environment_light_rescale_usually = false;
 
   ode_step_size_min = 1e-6;
@@ -77,6 +79,8 @@ void Control::reset() {
     static_cast<double>(plant_assimilation_approximate_max_depth);
   _plant_assimilation_approximate_akima =
     static_cast<bool>(plant_assimilation_approximate_akima);
+  _plant_assimilation_approximate_linear =
+    static_cast<bool>(plant_assimilation_approximate_linear);
   _plant_assimilation_approximate_rescale_usually =
     static_cast<bool>(plant_assimilation_approximate_rescale_usually);
 
@@ -96,6 +100,8 @@ void Control::reset() {
     static_cast<double>(environment_light_max_depth);
   _environment_light_akima =
     static_cast<bool>(environment_light_akima);
+  _environment_light_linear =
+    static_cast<bool>(environment_light_linear);
   _environment_light_rescale_usually =
     static_cast<bool>(environment_light_rescale_usually);
 
@@ -128,6 +134,8 @@ void Control::do_build_lookup() {
     &_plant_assimilation_approximate_max_depth;
   lookup_table["plant_assimilation_approximate_akima"] =
     &_plant_assimilation_approximate_akima;
+  lookup_table["plant_assimilation_approximate_linear"] =
+    &_plant_assimilation_approximate_linear;
   lookup_table["plant_assimilation_approximate_rescale_usually"] =
     &_plant_assimilation_approximate_rescale_usually;
 
@@ -153,6 +161,8 @@ void Control::do_build_lookup() {
     &_environment_light_max_depth;
   lookup_table["environment_light_akima"] =
     &_environment_light_akima;
+  lookup_table["environment_light_linear"] =
+    &_environment_light_linear;
   lookup_table["environment_light_rescale_usually"] =
     &_environment_light_rescale_usually;
 
@@ -191,6 +201,8 @@ void Control::set_parameters_post_hook() {
     static_cast<int>(_plant_assimilation_approximate_max_depth);
   plant_assimilation_approximate_akima =
     static_cast<bool>(_plant_assimilation_approximate_akima);
+  plant_assimilation_approximate_linear =
+    static_cast<bool>(_plant_assimilation_approximate_linear);
   plant_assimilation_approximate_rescale_usually =
     static_cast<bool>(_plant_assimilation_approximate_rescale_usually);
 
@@ -209,6 +221,8 @@ void Control::set_parameters_post_hook() {
     static_cast<int>(_environment_light_max_depth);
   environment_light_akima =
     static_cast<bool>(_environment_light_akima);
+  environment_light_linear =
+    static_cast<bool>(_environment_light_linear);
   environment_light_rescale_usually =
     static_cast<bool>(_environment_light_rescale_usually);
 

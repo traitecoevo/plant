@@ -32,6 +32,7 @@ public:
   int    plant_assimilation_approximate_nbase;
   int    plant_assimilation_approximate_max_depth;
   bool   plant_assimilation_approximate_akima;
+  bool   plant_assimilation_approximate_linear;
   bool   plant_assimilation_approximate_rescale_usually;
 
   double plant_seed_tol;
@@ -46,6 +47,7 @@ public:
   int    environment_light_nbase;
   int    environment_light_max_depth;
   bool   environment_light_akima;
+  bool   environment_light_linear;
   bool   environment_light_rescale_usually;
 
   double ode_step_size_min;
@@ -74,6 +76,7 @@ private:
   double _plant_assimilation_approximate_nbase;
   double _plant_assimilation_approximate_max_depth;
   double _plant_assimilation_approximate_akima;
+  double _plant_assimilation_approximate_linear;
   double _plant_assimilation_approximate_rescale_usually;
 
   double _plant_seed_iterations;
@@ -85,6 +88,7 @@ private:
   double _environment_light_nbase;
   double _environment_light_max_depth;
   double _environment_light_akima;
+  double _environment_light_linear;
   double _environment_light_rescale_usually;
 };
 
