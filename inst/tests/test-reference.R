@@ -1,6 +1,13 @@
 source("helper-tree.R")
 
-if (evolve.is.installed() && !file.exists(".SKIP_REFERENCE_TESTS")) {
+skip <- file.exists(".SKIP_REFERENCE_TESTS")
+
+## This is basically a test of if we're running in Rich's computer.
+if (!skip && !evolve.is.installed() &&
+    file.exists("~/.falster-traitdiversity_path"))
+  install.evolve()
+
+if (!skip && evolve.is.installed()) {
   context("Reference model: run and load")
 
   p <- new(Parameters)

@@ -223,7 +223,8 @@ run.reference <- function(path, p=NULL, verbose=TRUE, evolve=NULL) {
 
 ##' @export
 ##' @rdname run.reference
-install.evolve <- function(reinstall=TRUE, verbose=FALSE) {
+install.evolve <- function(reinstall=FALSE, verbose=FALSE,
+                           url=NULL) {
   path <- path.evolve.dir()
   if (file.exists(path)) {
     if (reinstall)
@@ -232,7 +233,12 @@ install.evolve <- function(reinstall=TRUE, verbose=FALSE) {
       return(invisible(FALSE))
   }
 
-  url <- "git@github.com:dfalster/Falster-TraitDiversity.git"
+  if (is.null(url)) {
+    if (file.exists("~/.falster-traitdiversity_path"))
+      url <- readLines("~/.falster-traitdiversity_path")
+    else
+      url <- "git@github.com:dfalster/Falster-TraitDiversity.git"
+  }
   hash <- "6e63e505f37827303346f44c5886715bd080fd2c"
   intern <- !verbose
 
