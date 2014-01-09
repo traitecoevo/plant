@@ -515,7 +515,8 @@ void Plant::compute_assimilation_fn(Strategy *s,
 	      s->control.plant_assimilation_approximate_tol,
 	      s->control.plant_assimilation_approximate_nbase,
 	      s->control.plant_assimilation_approximate_max_depth,
-	      s->control.plant_assimilation_approximate_akima);
+	      s->control.plant_assimilation_approximate_akima,
+	      s->control.plant_assimilation_approximate_linear);
   Plant p(s);
   util::FunctorBind2<Plant, const Environment&,
 		     &Plant::assimilation_given_height>

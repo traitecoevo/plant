@@ -14,7 +14,7 @@ class AdaptiveInterpolator {
 public:
   AdaptiveInterpolator(double atol_, double rtol_,
 		       int nbase_, int max_depth_,
-		       bool akima);
+		       bool akima, bool linear);
   double eval_target(double x) const;
   Interpolator construct(util::DFunctor *target_, double a, double b);
 private:
@@ -43,7 +43,7 @@ private:
 namespace test {
 Interpolator test_adaptive_interpolator(SEXP fun, SEXP env,
 					double a, double b,
-					bool akima_interpolator);
+					bool akima, bool linear);
 }
 
 }

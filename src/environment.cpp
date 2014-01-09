@@ -12,7 +12,8 @@ Environment::Environment(Parameters p)
 				control.environment_light_tol,
 				control.environment_light_nbase,
 				control.environment_light_max_depth,
-				control.environment_light_akima) {
+				control.environment_light_akima,
+				control.environment_light_linear) {
 }
 
 double Environment::canopy_openness(double height) const {

@@ -4,7 +4,8 @@ context("AdaptiveInterpolator")
 
 target <- function(x) sin(2*x)
 r <- c(0, 2*pi)
-s <- test_adaptive_interpolator(target, new.env(), r[1], r[2], FALSE)
+s <- test_adaptive_interpolator(target, new.env(), r[1], r[2],
+                                FALSE, FALSE)
 
 test_that("Interpolator is the size expected", {
   expect_that(s$size, equals(241))
@@ -26,10 +27,8 @@ test_that("Tolerance is as expected", {
 })
 
 ## And again with Akima splines:
-
-source("helper-tree.R")
-
-a <- test_adaptive_interpolator(target, new.env(), r[1], r[2], TRUE)
+a <- test_adaptive_interpolator(target, new.env(), r[1], r[2],
+                                TRUE, FALSE)
 
 test_that("Interpolator is the size expected", {
   expect_that(a$size, equals(505))
@@ -50,4 +49,28 @@ test_that("Tolerance is as expected", {
   expect_that(zz.mid, equals(yy.mid, tolerance=6e-7))
   err <- pmax(abs(zz.mid - yy.mid), abs(1 - zz.mid / yy.mid))
   expect_that(all(err < 4e-5), is_true())
+})
+
+## And again with linear interpolation:
+l <- test_adaptive_interpolator(target, new.env(), r[1], r[2],
+                                FALSE, TRUE)
+
+test_that("Interpolator is the size expected", {
+  expect_that(l$size, equals(10449))
+  expect_that(nrow(l$xy), equals(l$size))
+})
+
+xx.eval <- l$xy[,1]
+test_that("Evaluated points are exactly known", {
+  expect_that(l$xy[,2], is_identical_to(target(xx.eval)))
+})
+
+test_that("Tolerance is as expected", {
+  xx.mid <- (xx.eval[-1] + xx.eval[-length(xx.eval)]) / 2
+  yy.mid <- target(xx.mid)
+  zz.mid <- l$eval(xx.mid)
+
+  expect_that(zz.mid, equals(yy.mid, tolerance=6e-7))
+  err <- pmax(abs(zz.mid - yy.mid), abs(1 - zz.mid / yy.mid))
+  expect_that(all(err < 2e-5), is_true())
 })

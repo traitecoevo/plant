@@ -4,7 +4,7 @@ namespace interpolator {
 
 AdaptiveInterpolator::AdaptiveInterpolator(double atol_, double rtol_,
 					   int nbase_, int max_depth_,
-					   bool akima)
+					   bool akima, bool linear)
   : target(NULL),
     atol(atol_),
     rtol(rtol_),
@@ -12,7 +12,7 @@ AdaptiveInterpolator::AdaptiveInterpolator(double atol_, double rtol_,
     max_depth(max_depth_),
     dx(NA_REAL),
     dxmin(NA_REAL),
-    interpolator(akima, false) {
+    interpolator(akima, linear) {
 }
 
 // Evaluate the underlying function (double -> double).
@@ -125,13 +125,13 @@ namespace test {
 
 Interpolator test_adaptive_interpolator(SEXP fun, SEXP env,
 					double a, double b,
-					bool akima) {
+					bool akima, bool linear) {
   util::RFunctionWrapper obj(fun, env);
   // Hopefully sensible defaults:
   const double atol = 1e-6, rtol = 1e-6;
   const int nbase = 17, max_depth = 16;
   AdaptiveInterpolator generator(atol, rtol, nbase, max_depth,
-				 akima);
+				 akima, linear);
   return generator.construct(&obj, a, b);
 }
 

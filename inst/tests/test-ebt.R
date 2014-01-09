@@ -228,6 +228,8 @@ test_that("Can set times directly", {
   expect_that(ebt$times(1), is_identical_to(times))
 })
 
+gc() # hide the "signalCondition" Rcpp issue
+
 test_that("Fitness & error calculations correct", {
   p <- new(Parameters)
   p$add_strategy(new(Strategy))
