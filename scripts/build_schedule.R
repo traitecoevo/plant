@@ -34,7 +34,7 @@ times.w.linear <-
                                     progress=TRUE, verbose=TRUE),
              "times.w.linear.rds")
 times.w.default <-
-  run.cached(build.schedule.fitness(p, n.default, t.default,,
+  run.cached(build.schedule.fitness(p, n.default, t.default,
                                     progress=TRUE, verbose=TRUE),
              "times.w.default.rds")
 
@@ -44,5 +44,11 @@ times.w.default <-
 w.linear  <- sapply(attr(times.w.linear,  "progress")[-1], "[[", "w")
 w.default <- sapply(attr(times.w.default, "progress")[-1], "[[", "w")
 
-plot(w.default, type="l")
-lines(w.linear[seq(to=length(w.linear), length=length(w.default))])
+w.linear.cmp <- w.linear[seq(to=length(w.linear), length=length(w.default))]
+
+matplot(cbind(w.default, w.linear.cmp),
+        type="o", col=c("red", "blue"), pch=19, cex=.3, lty=1)
+
+matplot(cbind(w.default, w.linear.cmp),
+        ylim=c(max(w.default)-1, max(w.default)),
+        type="o", col=c("red", "blue"), pch=19, cex=.3, lty=1)
