@@ -12,7 +12,7 @@ AdaptiveSpline::AdaptiveSpline(double atol_, double rtol_,
     max_depth(max_depth_),
     dx(NA_REAL),
     dxmin(NA_REAL),
-    spline(akima_spline) {
+    spline(akima_spline, false) {
 }
 
 // Evaluate the underlying function (double -> double).

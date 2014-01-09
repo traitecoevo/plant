@@ -3,7 +3,6 @@
 #define TREE_UTIL_H_
 
 #include <Rcpp.h>
-#include <gsl/gsl_nan.h>
 #include <vector>
 #include <cstddef>
 #include <sstream> // std::stringstream

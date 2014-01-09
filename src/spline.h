@@ -5,6 +5,11 @@
 #include <vector>
 #include <cstddef>
 
+// Help for GSL -- see:
+// https://www.gnu.org/software/gsl/manual/html_node/Inline-functions.html
+#define HAVE_INLINE
+// Could cause some platform non-independence.
+
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
 
@@ -18,12 +23,15 @@ class Spline {
 public:
   typedef util::PtrWrapper<Spline> ptr;
   Spline();
-  Spline(bool is_akima_);
+  Spline(bool is_akima, bool is_linear);
   ~Spline();
   Spline(const Spline& x);
   Spline& operator=(Spline other);
 
-  void init(std::vector<double> x_, std::vector<double> y_);
+  std::string type() const;
+
+  void init(const std::vector<double>& x_,
+	    const std::vector<double>& y_);
   void init_self();
 
   void add_point(double xi, double yi);
@@ -44,16 +52,20 @@ public:
   std::vector<double> r_eval(std::vector<double> u) const;
   std::vector<double> r_deriv(std::vector<double> u) const;
 
-protected:
-  std::vector<double> x, y;
-
 private:
-  void gsl_free_spline();
-  void gsl_free_acc();
+  void gsl_free_interp();
+  void gsl_free_interp_accel();
+  void check_initialised() const;
 
-  gsl_interp_accel *acc;
-  gsl_spline *spline;
-  bool is_akima;
+  static const gsl_interp_type*
+  select_interpolation_type(bool is_akima, bool is_linear);
+  static const double *
+  ref(const std::vector<double>& x) {return &x.front();}
+
+  std::vector<double> x, y;
+  gsl_interp_type const *interpolation_type;
+  gsl_interp            *interp;
+  gsl_interp_accel      *interp_accel;
 };
 
 }
