@@ -35,13 +35,14 @@ cohort.introduction.times <- function(max.time, multiplier=0.2,
                                       max.step.size=2.0) {
   if (min.step.size <= 0)
     stop("The minimum step size must be greater than zero")
-  times <- numeric(0)
-  dt <- time <- 0
+  dt <- time <- times <- 0
   while (time <= max.time) {
-    times <- c(times, time)
     dt <- 2^floor(log2(time * multiplier))
     time <- time + max(min(dt, max.step.size), min.step.size)
+    times <- c(times, time)
   }
+  # Trucate last time to max.time; it may have overshot.
+  last(times) <- max.time
   times
 }
 

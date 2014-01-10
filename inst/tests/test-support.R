@@ -21,3 +21,18 @@ test_that("default.schedule behaves correctly", {
   expect_that(sched$times(1), equals(seq(0, pi, length=101)[-101]))
   expect_that(sched$max_time, is_identical_to(pi))
 })
+
+test_that("cohort.introduction.times behaves correctly", {
+  set.seed(1)
+  max.t <- 100 + runif(1)
+  min.step.size <- 1e-5
+  max.step.size <- 2.0
+  times <- cohort.introduction.times(max.t)
+
+  expect_that(first(times), is_identical_to(0))
+  expect_that(last(times),  is_identical_to(max.t))
+
+  eps <- .Machine$double.eps
+  expect_that(max(diff(times)), is_at_most(max.step.size  + eps))
+  expect_that(min(diff(times)), is_at_least(min.step.size - eps))
+})
