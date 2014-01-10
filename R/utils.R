@@ -26,13 +26,29 @@ pad.list.to.array <- function(x)
   list.to.array(pad.matrix(x))
 
 ##' Get last element from an object
-##'
 ##' @title Get Last Element
 ##' @param x An object that can be subset with \code{[[}
 ##' @author Rich FitzJohn
 ##' @export
 last <- function(x)
   x[[length(x)]]
+##' @rdname last
+##' @export
+`last<-` <- function(x, value) {
+  x[[length(x)]] <- value
+  x
+}
+
+##' ##' @rdname last
+##' @export
+first <- function(x)
+  x[[1]]
+##' @rdname last
+##' @export
+`first<-` <- function(x, value) {
+  x[[1]] <- value
+  x
+}
 
 ##' Runs an expression and caches the result in a file.  Very basic,
 ##' no checks.

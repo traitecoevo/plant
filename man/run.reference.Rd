@@ -8,7 +8,8 @@
   run.reference(path, p = NULL, verbose = TRUE,
     evolve = NULL)
 
-  install.evolve(reinstall = TRUE, verbose = FALSE)
+  install.evolve(reinstall = FALSE, verbose = FALSE,
+    url = NULL)
 
   uninstall.evolve()
 

@@ -38,6 +38,16 @@ is_less_than <- function(value) {
     expectation(actual < value, paste("is not less than", value))
 }
 
+is_at_most <- function(value) {
+  function(actual)
+    expectation(actual <= value, paste("is greater than", value))
+}
+
+is_at_least <- function(value) {
+  function(actual)
+    expectation(actual >= value, paste("is less than", value))
+}
+
 has_hash <- function(hash, algo="sha1", ...) {
   require(digest, quietly=TRUE)
   function(actual) {
