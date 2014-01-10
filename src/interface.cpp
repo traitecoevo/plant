@@ -197,7 +197,7 @@ RCPP_MODULE(tree) {
     .derives<model::Plant>("Plant")
     .constructor<model::Strategy>()
     .constructor<model::Strategy, int>()
-    .property("n_individuals", 
+    .property("n_individuals",
 	      &model::CohortDiscrete::get_n_individuals,
 	      &model::CohortDiscrete::set_n_individuals)
     ;
@@ -257,7 +257,7 @@ RCPP_MODULE(tree) {
     .property("seeds",         &model::SpeciesBase::seeds)
     .method("compute_vars_phys", &model::SpeciesBase::compute_vars_phys)
     .method("add_seeds",       &model::SpeciesBase::add_seeds)
-    .method("germination_probability", 
+    .method("germination_probability",
             &model::SpeciesBase::germination_probability)
     .method("clear",           &model::SpeciesBase::clear)
     .property("height",        &model::SpeciesBase::r_height,
@@ -490,7 +490,7 @@ RCPP_MODULE(tree) {
   // Useful functions
   Rcpp::function("set_sane_gsl_error_handling",
 		 &util::set_sane_gsl_error_handling);
-  Rcpp::function("trapezium", 
+  Rcpp::function("trapezium",
 		 &util::trapezium< std::vector<double>, std::vector<double> >);
   Rcpp::function("trapezium_vector",
 		 &util::trapezium_vector< std::vector<double>,
