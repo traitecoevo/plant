@@ -1,243 +1,192 @@
 library(tree)
 library(parallel)
 
-## Try to establish what the equilubrium seed rain is.  We won't
-## actually do this very often, because we'll rely on stochastic
-## assembly to do this for us.
+## Try to establish what the equilubrium seed rain is.
 p <- new(Parameters)
 p$add_strategy(new(Strategy))
 p$seed_rain <- 1.1                       # Starting rain.
 p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
-## TODO: Still have the issue that the times created here don't appear
-##   to reach 104 (that might actually account for some of the
-##   difference with the reference model?)
-times <- build.schedule(p, 20, cohort.introduction.times(104), 1e-3,
-                        progress=TRUE, verbose=TRUE)
-res <- list(seeds.in  = p$seed_rain,
-            seeds.out = last(attr(times, "progress"))$w,
-            times     = as.numeric(times))
+times0 <- cohort.introduction.times(104)
 
-history <- list(res)
-
-approach <- t(sapply(history, function(x)
-                     x[c("seeds.in", "seeds.out")]))
-colnames(approach) <- c("in", "out")
-
-## Once we have the cohort merging working, we could use the previous
-## iteration's schedule here, I think.  Plus do a savage cull before
-## starting?
-
-## Iterate the seed rain in/out until we somewhat stabilise.  Oddly
-## with the switch to a
-for (i in seq_len(5)) {
-  p$seed_rain <- last(history)$seeds.out
-  times <- build.schedule(p, 20, cohort.introduction.times(104), 1e-3,
-                          progress=TRUE, verbose=TRUE)
-  res <- list(seeds.in  = p$seed_rain,
-              seeds.out = last(attr(times, "progress"))$w,
-              times     = as.numeric(times))
-  history <- c(history, list(res))
-  message(sprintf("*** %d: %2.5f (%2.5f)", i,
-                  res$seeds.out, res$seeds.out - res$seeds.in))
+run <- function(seed_rain.in, p, times) {
+  p$seed_rain <- seed_rain.in
+  run.ebt(p, schedule.from.times(times))$fitness(1)
 }
+
+run.new.schedule <- function(w, p, times, build.args=list()) {
+  p$seed_rain <- w
+  build.args <- modifyList(list(nsteps=20, eps=1e-3, verbose=FALSE),
+                           build.args)
+  res <- build.schedule(p, times, build.args$nsteps, build.args$eps,
+                        progress=FALSE, verbose=build.args$verbose)
+  attr(res, "seed_rain")[,"out"]
+}
+
+## # 1: Approach to equilibrium:
+res <- equilibrium.seed.rain(p, times0, 10, progress=TRUE,
+                             build.args=list(verbose=TRUE))
+w.hat <- unname(res[["seed_rain"]][,"out"])
+
+## Plot the approach:
+approach <- t(sapply(attr(res, "progress"), "[[", "seed_rain"))
+
+## From a distance, these both hone in nicely on the equilibrium, and
+## rapidly, too.
+r <- range(approach)
+plot(approach, type="n", las=1, xlim=r, ylim=r)
+abline(0, 1, lty=2, col="grey")
+cobweb(approach, pch=19, cex=.5, type="o")
+
+## Zoom in on the last few points:
+r <- w.hat + c(-1, 1) * 0.03
+plot(approach, type="n", las=1, xlim=r, ylim=r)
+abline(0, 1, lty=2, col="grey")
+cobweb(approach, pch=19, cex=.5, type="o")
+
+## # 2: Near the equilibrium point:
 
 ## Then, in the vinicity of the root we should look at what the curve
 ## actually looks like, without adaptive refinement.
-f <- function(w, p, times) {
-  p$seed_rain <- w
-  ebt <- new(EBT, p)
-  ebt$cohort_schedule <- schedule.from.times(times)
-  ebt$run()
-  ebt$fitness(1)
-}
-
-w.hat <- last(history)[["seeds.out"]]
-times <- last(history)[["times"]]
 dw <- 2 # range of input to vary (plus and minus this many seeds)
+seed_rain.in  <- seq(w.hat - dw, w.hat + dw, length=31)
 
-seeds.in <- seq(w.hat - dw, w.hat + dw, length=31)
-seeds.out <- unlist(mclapply(seeds.in, f, p, times))
+## Sanity and time check
+times1 <- res$times
+system.time(delta <- run(w.hat, p, times1) - w.hat)
+delta # should be very close to zero
 
-fit <- lm(seeds.out ~ seeds.in)
+seed_rain.in  <- seq(w.hat - dw, w.hat + dw, length=31)
+seed_rain.out <- unlist(mclapply(seed_rain.in, run, p, times1))
 
-## Here is input seeds vs output seeds; this function *should* be
-## smooth.
-plot(seeds.in, seeds.out, xlab="Incoming seed rain",
+fit <- lm(seed_rain.out ~ seed_rain.in)
+
+## Here is input seeds vs output seeds:
+plot(seed_rain.in, seed_rain.out, xlab="Incoming seed rain",
      ylab="Outgoing seed rain", las=1)
-abline(0, 1)
+abline(0, 1, lty=2, col="grey")
 abline(fit, lty=2)
+cobweb(approach)
 
-## TODO: This shows that we're off by a bit because of not including the
-## last time.  Gah.  Need to go through and sort times out soon.
-##
-##   points(approach)
-##
-## TODO: Once that's worked out, add the approach points on here.
-
-########################################
-
-## Rerun, but allowing adaptive integration during the calculation:
-p.adaptive <- p$clone()
-p.adaptive$set_control_parameters(list(plant_assimilation_adaptive=TRUE))
-
-## This runs quite a bit slower:
-system.time(f(w.hat, p,          times)) #  9.1s
-system.time(f(w.hat, p.adaptive, times)) # 18.5s
-
-seeds.out.adaptive <- unlist(mclapply(seeds.in, f, p.adaptive, times))
-fit.adaptive <- lm(seeds.out.adaptive ~ seeds.in)
-
-matplot(cbind(seeds.in,  seeds.in),
-        cbind(seeds.out, seeds.out.adaptive),
-        xlab="Incoming seed rain", ylab="Outgoing seed rain",
-        las=1, pch=1, col=c("black", "red"))
-abline(0, 1)
-abline(fit,          lty=2)
-abline(fit.adaptive, lty=2, col="red")
-
-## This might be easier to see in terms of residuals:
-
-matplot(seeds.in,
-        cbind(resid(fit), resid(fit.adaptive)),
-        xlab="Incoming seed rain", ylab="Residual seed rain",
-        las=1, pch=1, col=c("black", "red"))
-abline(h=0, v=w.hat)
-
-########################################
-
-## Rerun, using a more fine-scale error control, especially around the
-## assimilation calculation, but keeping the non-adaptive
-## integration.
-p.fine <- p$clone()
-p.fine$set_control_parameters(list(plant_assimilation_tol=1e-6,
-                                   ode_tol_rel=1e-6,
-                                   ode_tol_abs=1e-6))
-
-## This runs quite a bit slower:
-system.time(f(w.hat, p,      times)) #  9.1s
-system.time(f(w.hat, p.fine, times)) # 46.0s
-
-seeds.out.fine <- unlist(mclapply(seeds.in, f, p.fine, times))
-
-matplot(seeds.in,
-        cbind(seeds.out, seeds.out.adaptive, seeds.out.fine),
-        xlab="Incoming seed rain", ylab="Outgoing seed rain",
-        las=1, pch=1, col=c("black", "red", "blue"))
-abline(0, 1)
-abline(fit,          lty=2)
-abline(fit.adaptive, lty=2, col="red")
-abline(fit.fine,     lty=2, col="blue")
-
-fit.fine     <- lm(seeds.out.fine     ~ seeds.in)
-matplot(seeds.in,
-        cbind(resid(fit), resid(fit.adaptive), resid(fit.fine)),
-        xlab="Incoming seed rain", ylab="Residual seed rain",
-        las=1, pch=1, col=c("black", "red", "blue"))
-abline(h=0, v=w.hat)
-
-########################################
-
-## TODO: Rerun, but allowing the cohort schedule to be built during
-## the approach.
-
-########################################
-
-## Compare with falster-traitdiversity.  This is a bit more
-## complicated because the cohort refinement is going on as well
-## (whereas above we are using the same spacings).  So we don't really
-## have comparable levels of "noise".
-if (!evolve.is.installed())
-  install.evolve()
-
-get.fitness.reference <- function(path)
+## # 2: Compare with the reference model
+get.seed_rain.out.reference <- function(path)
   unname(load.reference.output(path)$seed_rain_out)
 
-## Because of slight differences, we don't equilibrate in the same
-## place, so need to home in on the right spot again:
-path <- "ref-equilibrium"
-p$seed_rain <- 1.1
-run.reference(path, p, verbose=FALSE)
-res <- list(seeds.in  = p$seed_rain,
-            seeds.out = get.fitness.reference(path))
+equilibrium.seed.rain.reference <- function(p, nsteps, path,
+                                            progress=FALSE,
+                                            verbose=TRUE) {
+  if (!evolve.is.installed())
+    install.evolve()
 
-history.ref <- list(res)
-for (i in seq_len(5)) {
-  p$seed_rain <- last(history.ref)$seeds.out
-  run.reference(path, p, verbose=FALSE)
-  res <- list(seeds.in  = p$seed_rain,
-              seeds.out = get.fitness.reference(path))
-  history.ref <- c(history.ref, list(res))
-  message(sprintf("*** %d: %2.5f (%2.5f)", i,
-                  res$seeds.out, res$seeds.out - res$seeds.in))
+  history <- list()
+  for (i in seq_len(nsteps)) {
+    run.reference(path, p, verbose=FALSE)
+    res <- list(seed_rain=cbind("in"=p$seed_rain,
+                  "out"=get.seed_rain.out.reference(path)))
+    history <- c(history, list(res))
+    seed_rain <- res[["seed_rain"]]
+    change <- seed_rain[,"out"] - seed_rain[,"in"]
+
+    p$seed_rain <- seed_rain[,"out"]
+    if (verbose)
+      message(sprintf("*** %d: %2.5f -> %2.5f (delta = %2.5f)", i,
+                      seed_rain[,"in"], seed_rain[,"out"], change))
+  }
+
+  if (progress)
+    attr(res, "progress") <- history
+  res
 }
 
-w.hat.ref <- last(history.ref)[["seeds.out"]]
-f.ref <- function(w, p) {
+run.reference <- function(w, p, path) {
   p$seed_rain <- w
-  run.reference(path, p, verbose=FALSE)
-  get.fitness.reference(path)
+  tree::run.reference(path, p, verbose=FALSE)
+  get.seed_rain.out.reference(path)
 }
+
+p$seed_rain <- 1.1
+path.r <- "ref-equilibrium"
+res.r <- equilibrium.seed.rain.reference(p, 10, path.r, progress=TRUE)
+
+w.hat.r <- unname(res.r[["seed_rain"]][,"out"])
+approach.r <- t(sapply(attr(res.r, "progress"), "[[", "seed_rain"))
+
+cols <- c(t="black", r="red")
+
+r <- range(approach, approach.r)
+plot(approach, type="n", las=1, xlim=r, ylim=r)
+abline(0, 1, lty=2, col="grey")
+cobweb(approach,   pch=19, cex=.5, type="o", col=cols[["t"]])
+cobweb(approach.r, pch=19, cex=.5, type="o", col=cols[["r"]])
+
+m <- (w.hat + w.hat.r)/2
+d <- abs(w.hat - w.hat.r)
+r <- m + c(-1, 1) * d * 1.1
+plot(approach, type="n", las=1, xlim=r, ylim=r)
+abline(0, 1, lty=2, col="grey")
+cobweb(approach,   pch=19, cex=.5, type="o", col=cols[["t"]])
+cobweb(approach.r, pch=19, cex=.5, type="o", col=cols[["r"]])
+
 
 ## Note that this *cannot* be run with mclapply because it's all done
 ## through filesystem access and system calls.
-seeds.in.ref <- seq(w.hat.ref - dw, w.hat.ref + dw, length=31)
-seeds.out.ref <- sapply(seeds.in.ref, f.ref, p)
+seed_rain.in.r <- seq(w.hat.r - dw, w.hat.r + dw,
+                      length=length(seed_rain.in))
+seed_rain.out.r <- sapply(seed_rain.in.r, run.reference, p, path.r)
 
-fit.ref <- lm(seeds.out.ref ~ seeds.in.ref)
+fit.r <- lm(seed_rain.out.r ~ seed_rain.in.r)
 
-plot(seeds.in.ref, seeds.out.ref)
+plot(seed_rain.in.r, seed_rain.out.r)
 abline(0, 1)
-abline(fit.ref, lty=2)
+abline(fit.r, lty=2)
 
 ## Compared against tree:
-matplot(cbind(seeds.in,  seeds.in,           seeds.in.ref),
-        cbind(seeds.out, seeds.out.adaptive, seeds.out.ref),
+matplot(cbind(seed_rain.in,  seed_rain.in.r),
+        cbind(seed_rain.out, seed_rain.out.r),
         xlab="Incoming seed rain", ylab="Outgoing seed rain",
-        las=1, pch=1, col=c("black", "red", "green4"))
+        las=1, pch=1, col=cols)
 abline(0, 1)
-abline(fit,          lty=2)
-abline(fit.adaptive, lty=2, col="red")
-abline(fit.ref,      lty=2, col="green4")
+abline(fit,   lty=2, col=cols[["t"]])
+abline(fit.r, lty=2, col=cols[["r"]])
 
-matplot(cbind(seeds.in,   seeds.in,            seeds.in.ref),
-        cbind(resid(fit), resid(fit.adaptive), resid(fit.ref)),
+matplot(cbind(seed_rain.in, seed_rain.in.r),
+        cbind(resid(fit),   resid(fit.r)),
         xlab="Incoming seed rain", ylab="Residual seed rain",
-        las=1, pch=1, col=c("black", "red", "green4"))
-abline(h=0, v=w.hat)
+        las=1, pch=1, col=cols)
+abline(h=0, v=c(w.hat, w.hat.r))
 
-########################################
+## TODO: This is a concern -- and different to what I was seeing
+## before, I think.  Cohort refinement is off, but something is up.
+matplot(cbind(seed_rain.in, seed_rain.in.r),
+        cbind(resid(fit),   resid(fit.r)),
+        xlab="Incoming seed rain", ylab="Residual seed rain",
+        las=1, pch=1, col=cols, ylim=range(resid(fit)))
+abline(h=0, v=c(w.hat, w.hat.r))
 
-## Next, run a far more extensive range of incoming seed rain:
-seeds.in.wide <- seq(1, max(w.hat, w.hat.ref) + 10, length=51)
-## Without changing the cohort spacing (might not be very clever)
-## (also note that these are going to be run with the "fine" times,
-## not the base times).
-seeds.out.wide <- unlist(mclapply(seeds.in.wide, f, p, times))
-seeds.out.wide.ref <- sapply(seeds.in.wide, f.ref, p)
+## # Global function shape
+seed_rain.in.global <- seq(1, w.hat + 10, length=51)
 
-matplot(seeds.in.wide, cbind(seeds.out.wide, seeds.out.wide.ref),
-        las=1, type="l", col=c("black", "blue"), lty=1,
+seed_rain.out.global <-
+  unlist(mclapply(seed_rain.in.global, run.new.schedule, p, times0))
+seed_rain.out.global.a <-
+  unlist(lapply(seed_rain.in.global, run.reference, p, path.r))
+
+matplot(seed_rain.in.global,
+        cbind(seed_rain.out.global, seed_rain.out.global.r),
+        las=1, type="l", col=cols, lty=1,
         xlab="Incoming seed rain", ylab="Outgoing seed rain")
-abline(0, 1, col="darkgrey")
-abline(fit,          lty=2)
-abline(fit.adaptive, lty=2, col="red")
-abline(fit.ref,      lty=2, col="green4")
-
-matplot(seeds.in.wide, cbind(seeds.out.wide, seeds.out.wide.ref),
-        las=1, type="l", col=c("black", "blue"), lty=1, asp=1,
-        xlab="Incoming seed rain", ylab="Outgoing seed rain")
-abline(0, 1, col="darkgrey")
-abline(fit,          lty=2)
-abline(fit.adaptive, lty=2, col="red")
-abline(fit.ref,      lty=2, col="green4")
+abline(0, 1, lty=2, col="grey")
+abline(fit,   lty=2, col=cols[["t"]])
+abline(fit.a, lty=2, col=cols[["a"]])
+cobweb(approach,   col=cols[["t"]])
+cobweb(approach.a, col=cols[["a"]])
 
 ## TODO: Review the list of control parameters and see which are
 ## causing the problems.
 
 ## TODO: There is still some major-ish instability in the lhs of the
-## graph.  The might give some clues about where the remaining
+## global plot.  The might give some clues about where the remaining
 ## problems are.
 
 ## TODO: See how cohort refinement interacts with the code above

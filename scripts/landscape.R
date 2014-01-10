@@ -15,11 +15,8 @@ p$seed_rain <- 505.55407
 p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
-## TODO: It looks to me that that max.t is ending up at 100, which is
-## suboptimal, here.  It might be that the maximum time is really 104,
-## but I might just be wrong.
-max.t <- 104
-times <- build.schedule(p, 20, cohort.introduction.times(max.t), 1e-2,
+times0 <- cohort.introduction.times(104)
+times <- build.schedule(p, times0, 20, 1e-2,
                         progress=FALSE, verbose=TRUE)
 
 ## Once the schedule building is improved, we'll fix it so that this

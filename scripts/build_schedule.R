@@ -5,6 +5,10 @@
 ## approaches!
 
 ## TODO: Cohort merging needs implementing (?)
+
+## TODO: See how this now behaves without adaptive integration.  It's
+## possible that we can force this down below 1e-3 fairly easily.
+
 library(tree)
 library(parallel)
 
@@ -18,9 +22,9 @@ p$set_control_parameters(fast.control()) # A bit faster
 t.linear <- seq(0, 104, length=31)
 t.default <- cohort.introduction.times(104)
 
-times.linear <- build.schedule(p, 20, t.linear, 1e-3,
+times.linear <- build.schedule(p, t.linear, 20, 1e-3,
                                progress=TRUE, verbose=TRUE)
-times.default <- build.schedule(p, 20, t.default, 1e-3,
+times.default <- build.schedule(p, t.default, 20, 1e-3,
                                 progress=TRUE, verbose=TRUE)
 
 ## Next, look at what an "optimal" schedule would look like from the
@@ -29,12 +33,14 @@ times.default <- build.schedule(p, 20, t.default, 1e-3,
 n.total <- 250
 n.linear <- n.total - length(t.linear)
 n.default <- n.total - length(t.default)
+
+n.linear <- n.default <- 10
 times.w.linear <-
-  run.cached(build.schedule.fitness(p, n.linear, t.linear,
+  run.cached(build.schedule.fitness(p, t.linear, n.linear,
                                     progress=TRUE, verbose=TRUE),
              "times.w.linear.rds")
 times.w.default <-
-  run.cached(build.schedule.fitness(p, n.default, t.default,
+  run.cached(build.schedule.fitness(p, t.default, n.default,
                                     progress=TRUE, verbose=TRUE),
              "times.w.default.rds")
 

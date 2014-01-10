@@ -2,16 +2,16 @@
 \alias{build.schedule}
 \title{Build Cohort Schedule}
 \usage{
-  build.schedule(p, nsteps, times, eps, progress = FALSE,
+  build.schedule(p, times, nsteps, eps, progress = FALSE,
     verbose = FALSE)
 }
 \arguments{
   \item{p}{Parameters object}
 
+  \item{times}{Vector of times to start from}
+
   \item{nsteps}{Number of rounds of refinements to go
   through}
-
-  \item{times}{Vector of times to start from}
 
   \item{eps}{Numerical tolerance indicating where cohorts
   are refined enough.}

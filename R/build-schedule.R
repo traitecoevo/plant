@@ -6,8 +6,8 @@
 ##'
 ##' @title Build Cohort Schedule
 ##' @param p Parameters object
-##' @param nsteps Number of rounds of refinements to go through
 ##' @param times Vector of times to start from
+##' @param nsteps Number of rounds of refinements to go through
 ##' @param eps Numerical tolerance indicating where cohorts are
 ##' refined enough.
 ##' @param progress Save progress with the returned times?
@@ -15,7 +15,7 @@
 ##' @return A vector of times
 ##' @author Rich FitzJohn
 ##' @export
-build.schedule <- function(p, nsteps, times, eps,
+build.schedule <- function(p, times, nsteps, eps,
                            progress=FALSE, verbose=FALSE) {
   ## This gets the leaf area error out at each cohort introduction;
   ## that's the error criterion we care about.
@@ -35,27 +35,36 @@ build.schedule <- function(p, nsteps, times, eps,
     list(lai=err.lai, w=err.w, total=total)
   }
 
+  max.time <- last(times)
   ebt <- new(EBT, p)
   ebt$cohort_schedule <- schedule.from.times(times)
-  times <- ebt$cohort_schedule$times(1)
+  times.intro <- ebt$cohort_schedule$times(1) # max.time dropped
 
   history <- list()
   for (i in seq_len(nsteps)) {
-    err <- run.with.lai(times, ebt)
+    err <- run.with.lai(times.intro, ebt)
     split <- err$total > eps
-    times.new <- split.times(times, split)
+
     if (progress)
-      history <- c(history, list(list(times=times, split=which(split),
-                                      err=err, w=ebt$fitness(1))))
-    times <- times.new
+      history <- c(history, list(list(times=c(times.intro, max.time),
+                                      split=which(split), err=err)))
+
+    ## Prepare for the next iteration:
+    times.intro <- split.times(times.intro, split)
+    times       <- c(times.intro, max.time)
+    attr(times, "seed_rain") <- cbind("in" =p$seed_rain,
+                                      "out"=ebt$fitnesses)
+
     if (!any(split, na.rm=TRUE))
       break
     if (verbose)
       message(sprintf("%d: Splitting %d times (%d)",
                       i, sum(split), length(times)))
   }
+
   if (progress)
     attr(times, "progress") <- history
+
   times
 }
 
@@ -68,14 +77,14 @@ build.schedule <- function(p, nsteps, times, eps,
 ##'
 ##' @title Build Schedule From Fitness Changes
 ##' @param p Parameters object
-##' @param nsteps Number of new cohorts to add
 ##' @param times Vector of times to start from
+##' @param nsteps Number of new cohorts to add
 ##' @param progress Save progress with the returned times?
 ##' @param verbose Print information about progress as we go?
 ##' @return Numeric vector of times
 ##' @author Rich FitzJohn
 ##' @export
-build.schedule.fitness <- function(p, nsteps, times,
+build.schedule.fitness <- function(p, times, nsteps,
                                    progress=FALSE, verbose=FALSE) {
   build.schedule.refine <- function(times, w, ebt, cores=1,
                                     verbose=FALSE) {
@@ -93,7 +102,8 @@ build.schedule.fitness <- function(p, nsteps, times,
       message(sprintf("Inserting time at %2.5f [%d]; fitness = %2.5f",
                       mean(times[j:(j+1)]), j, res[j]))
 
-    list(times=insert.time(j, times), idx=j+1, w=res[j])
+    list(times=insert.time(j, times), idx=j+1,
+         seed_rain=cbind("in"=p$seed_rain, "out"=ebt$fitnesses))
   }
   run.with.times <- function(times, ebt) {
     ebt$reset()
@@ -107,16 +117,18 @@ build.schedule.fitness <- function(p, nsteps, times,
   times <- ebt$cohort_schedule$times(1)
 
   w <- run.with.times(times, ebt)
-  obj <- list(times=times, w=w)
+  obj <- list(times=times,
+              seed_rain=cbind("in"=p$seed_rain, "out"=ebt$fitnesses))
   history <- list(list(obj))
 
   for (i in seq_len(nsteps)) {
-    obj <- build.schedule.refine(obj$times, obj$w, ebt,
-                                 verbose=verbose)
+    obj <- build.schedule.refine(obj$times, obj$seed_rain[,"out"],
+                                 ebt, verbose=verbose)
     history <- c(history, list(obj))
   }
 
   times <- obj$times
+  attr(times, "seed_rain") <- obj$seed_rain
   if (progress)
     attr(times, "progress") <- history
   times

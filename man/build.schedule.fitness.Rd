@@ -2,15 +2,15 @@
 \alias{build.schedule.fitness}
 \title{Build Schedule From Fitness Changes}
 \usage{
-  build.schedule.fitness(p, nsteps, times,
+  build.schedule.fitness(p, times, nsteps,
     progress = FALSE, verbose = FALSE)
 }
 \arguments{
   \item{p}{Parameters object}
 
-  \item{nsteps}{Number of new cohorts to add}
-
   \item{times}{Vector of times to start from}
+
+  \item{nsteps}{Number of new cohorts to add}
 
   \item{progress}{Save progress with the returned times?}
 

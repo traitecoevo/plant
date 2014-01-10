@@ -72,3 +72,16 @@ run.cached <- function(expr, filename, regenerate=FALSE) {
   }
   res
 }
+
+##' Add points and lines for a cobweb plot showing convergence to an
+##' equilibrium.
+##'
+##' Assumed (unchecked) that there are two columns corresponding to
+##' "from" and "to.
+##' @title Cobweb Plot
+##' @param m Two column matrix
+##' @param ... Additional parameters passed to \code{lines}
+##' @author Rich FitzJohn
+##' @export
+cobweb <- function(m, ...)
+  lines(rep(m[,1], each=2), c(t(m)), ...)
