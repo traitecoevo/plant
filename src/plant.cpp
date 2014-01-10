@@ -577,8 +577,19 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 			       _["leaf_fraction"]=vars.leaf_fraction,
 			       _["height_growth_rate"]=
 			       vars.height_growth_rate,
-			       _["mortality_rate"]=vars.mortality_rate,
-             _["dheight_dleaf_area"]=dheight_dleaf_area()
+			       _["mortality_rate"]=vars.mortality_rate
+             );
+}
+
+Rcpp::NumericVector Plant::r_get_vars_growth_decomp() const {
+  using namespace Rcpp;
+  return NumericVector::create(_["height_growth_rate"]=
+             vars.height_growth_rate,
+             _["dheight_dleaf_area"]=dheight_dleaf_area(),
+             _["dleaf_area_dleaf_mass"]=1/strategy->lma,
+             _["leaf_fraction"]=vars.leaf_fraction,
+             _["growth_fraction"]=1-vars.reproduction_fraction,
+             _["net_production"]=vars.net_production
              );
 }
 

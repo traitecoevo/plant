@@ -116,6 +116,8 @@ public:
   Strategy r_get_strategy() const;
   Rcpp::NumericVector r_get_vars_size() const;
   Rcpp::NumericVector r_get_vars_phys() const;
+  Rcpp::NumericVector r_get_vars_growth_decomp() const;
+
   double r_germination_probability(interpolator::Interpolator env);
   bool r_died();
 

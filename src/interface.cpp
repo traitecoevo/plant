@@ -186,6 +186,7 @@ RCPP_MODULE(tree) {
     .property("strategy",           &model::Plant::r_get_strategy)
     .property("vars_size",          &model::Plant::r_get_vars_size)
     .property("vars_phys",          &model::Plant::r_get_vars_phys)
+    .property("vars_growth_decomp", &model::Plant::r_get_vars_growth_decomp)
     // State
     .property("state_size",         &model::Plant::state_size)
     .property("state",

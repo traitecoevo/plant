@@ -79,6 +79,7 @@ cmp.const <- pars.s$Y * pars.s$c_bio
 ## Compute the physiological variables and retreive them.
 p$compute_vars_phys(env)
 p.phys <- p$vars_phys
+p.growth_decomp <- p$vars_growth_decomp
 
 ## 1. Assimilation:
 cmp.assimilation.plant <- cmp$assimilation.plant(h0, light.env)
@@ -133,8 +134,13 @@ expect_that(p.phys[["mortality_rate"]],
 
 ## 10. Archietcural layout
 cmp.dheight_dleaf_area <- cmp$dHdA(cmp$LeafArea(h0))
-expect_that(p.phys[["dheight_dleaf_area"]],
+expect_that(p.growth_decomp[["dheight_dleaf_area"]],
             equals(cmp.dheight_dleaf_area))
+
+## Check that height decomposition multiplies out to give right answer
+expect_that(p.growth_decomp[["height_growth_rate"]],
+            equals(
+              prod(p.growth_decomp[c("dheight_dleaf_area","dleaf_area_dleaf_mass","leaf_fraction","growth_fraction","net_production")]), tolerance=1e-7))
 
 ## Seed stuff:
 seed <- new(Plant, s)
