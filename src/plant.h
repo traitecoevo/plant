@@ -162,6 +162,14 @@ private:
   double compute_leaf_fraction() const;
   // change in height per change in leaf area
   double dheight_dleaf_area() const;
+  // Mass of stem needed for new unit mass leaf, d m_s / d m_l
+  double dmass_sapwood_dmass_leaf() const;
+  // Mass of bark needed for new unit mass leaf, d m_b / d m_l
+  double dmass_bark_dmass_leaf() const;
+  // Mass of root needed for new unit mass leaf, d m_r / d m_l
+  double dmass_root_dmass_leaf() const;
+  // Mass of heartwood needed for new unit mass leaf, d m_h / d m_l
+  double dmass_heartwood_dmass_leaf() const;
 
   // Update a number of constants within the model.  This is a work in
   // progress.

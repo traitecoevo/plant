@@ -432,18 +432,36 @@ double Plant::compute_reproduction_fraction() const {
 // [eqn 18] Fraction of mass growth that is leaves (see doc/details.md
 // for derivation).
 double Plant::compute_leaf_fraction() const {
+  return 1.0/(
+	      1.0
+        + dmass_sapwood_dmass_leaf()
+        + dmass_bark_dmass_leaf()
+        + dmass_root_dmass_leaf()
+        + dmass_heartwood_dmass_leaf());
+}
+
+// Mass of stem needed for new unit mass leaf, d m_s / d m_l
+double Plant::dmass_sapwood_dmass_leaf() const {
   const Strategy *s = strategy.get(); // for brevity.
-  return 1.0/(// d m_l / d m_l
-	      1.0 +
-	      // d m_s / d m_l + d m_b / d m_l:
-	      (1.0 + s->b) *
-	      s->rho * s->eta_c * s->a1 / (s->theta * s->lma) *
-	      (s->B1 + 1.0) * pow(vars.leaf_area, s->B1) +
-	      // d m_h / d m_l:
-	      s->rho * s->eta_c * s->a2 / vars.mass_leaf *
-	      s->B2 * pow(vars.leaf_area, s->B2) +
-	      // d m_r / d m_l:
-	      s->a3 / s->lma);
+  return s->rho * s->eta_c * s->a1 / (s->theta * s->lma) *
+        (s->B1 + 1.0) * pow(vars.leaf_area, s->B1);
+}
+
+// Mass of bark needed for new unit mass leaf, d m_b / d m_l
+double Plant::dmass_bark_dmass_leaf() const {
+  return strategy->b * dmass_sapwood_dmass_leaf();
+}
+
+// Mass of root needed for new unit mass leaf, d m_r / d m_l
+double Plant::dmass_root_dmass_leaf() const {
+  return strategy->a3 / strategy->lma;
+}
+
+// Mass of heartwood needed for new unit mass leaf, d m_h / d m_l
+double Plant::dmass_heartwood_dmass_leaf() const {
+  const Strategy *s = strategy.get(); // for brevity.
+  return s->rho * s->eta_c * s->a2 / vars.mass_leaf *
+        s->B2 * pow(vars.leaf_area, s->B2);
 }
 
 double Plant::dheight_dleaf_area() const {
@@ -589,7 +607,11 @@ Rcpp::NumericVector Plant::r_get_vars_growth_decomp() const {
              _["dleaf_area_dleaf_mass"]=1/strategy->lma,
              _["leaf_fraction"]=vars.leaf_fraction,
              _["growth_fraction"]=1-vars.reproduction_fraction,
-             _["net_production"]=vars.net_production
+             _["net_production"]=vars.net_production,
+             _["dmass_sapwood_dmass_leaf"]=dmass_sapwood_dmass_leaf(),
+             _["dmass_bark_dmass_leaf"]=dmass_bark_dmass_leaf(),
+             _["dmass_root_dmass_leaf"]=dmass_root_dmass_leaf(),
+             _["dmass_heartwood_dmass_leaf"]=dmass_heartwood_dmass_leaf()
              );
 }
 

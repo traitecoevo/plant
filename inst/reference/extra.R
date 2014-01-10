@@ -54,18 +54,38 @@ fecundity.rate <- function(traits, h, env) {
 ## This verison is more explicit than the version in the C++ code for
 ## didactic purposes and because
 leaf.fraction <- function(traits, h) {
+  1 / (1 + sapwood.per.leaf.mass(traits, h)
+    + bark.per.leaf.mass(traits, h)
+    + heartwood.per.leaf.mass(traits, h)
+    + root.per.leaf.mass(traits, h))
+}
+
+sapwood.per.leaf.mass <- function(traits, h){
   rho <- traits$rho
   phi <- traits$lma
   etac <- etac(p.eta)
   ml <- LeafMass(traits$lma, LeafArea(h))
 
-  dms.dml <- rho * etac * p.a1 * (p.B1 + 1) / (p.theta * phi) *
+  rho * etac * p.a1 * (p.B1 + 1) / (p.theta * phi) *
     (ml / phi)^p.B1
-  dmb.dml <- p.b * dms.dml
-  dmh.dml <- rho * etac * p.a2 * p.B2 / ml * (ml / phi)^p.B2
-  dmr.dml <- p.a3 / phi
-  denom <- 1 + dms.dml + dmb.dml + dmh.dml + dmr.dml
-  1 / denom
+}
+
+bark.per.leaf.mass <- function(traits, h){
+  p.b * sapwood.per.leaf.mass(traits, h)
+}
+
+heartwood.per.leaf.mass <- function(traits, h){
+  rho <- traits$rho
+  phi <- traits$lma
+  etac <- etac(p.eta)
+  ml <- LeafMass(traits$lma, LeafArea(h))
+
+  rho * etac * p.a2 * p.B2 / ml * (ml / phi)^p.B2
+}
+
+root.per.leaf.mass <- function(traits, h){
+  phi <- traits$lma
+  p.a3 / phi
 }
 
 ## This is not used, but should be the same as

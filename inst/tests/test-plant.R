@@ -137,6 +137,26 @@ cmp.dheight_dleaf_area <- cmp$dHdA(cmp$LeafArea(h0))
 expect_that(p.growth_decomp[["dheight_dleaf_area"]],
             equals(cmp.dheight_dleaf_area))
 
+## 11. Sapwood mass per leaf mass
+cmp.dmass_sapwood_dmass_leaf <- cmp$sapwood.per.leaf.mass(cmp$traits, h0)
+expect_that(p.growth_decomp[["dmass_sapwood_dmass_leaf"]],
+            equals(cmp.dmass_sapwood_dmass_leaf))
+
+## 12. Bark mass per leaf mass
+cmp.dmass_bark_dmass_leaf <- cmp$bark.per.leaf.mass(cmp$traits, h0)
+expect_that(p.growth_decomp[["dmass_bark_dmass_leaf"]],
+            equals(cmp.dmass_bark_dmass_leaf))
+
+## 12. Root mass per leaf mass
+cmp.dmass_root_dmass_leaf <- cmp$root.per.leaf.mass(cmp$traits, h0)
+expect_that(p.growth_decomp[["dmass_root_dmass_leaf"]],
+            equals(cmp.dmass_root_dmass_leaf))
+
+## 12. Heartwood mass per leaf mass
+cmp.dmass_heartwood_dmass_leaf <- cmp$heartwood.per.leaf.mass(cmp$traits, h0)
+expect_that(p.growth_decomp[["dmass_heartwood_dmass_leaf"]],
+            equals(cmp.dmass_heartwood_dmass_leaf))
+
 ## Check that height decomposition multiplies out to give right answer
 expect_that(p.growth_decomp[["height_growth_rate"]],
             equals(
