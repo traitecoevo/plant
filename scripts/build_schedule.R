@@ -19,12 +19,16 @@ p$seed_rain <- 1.1                       # Whatever
 p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
-t.linear <- seq(0, 104, length=31)
-t.default <- cohort.introduction.times(104)
+t.max <- 104
+t.linear <- seq(0, t.max, length=31)
+t.default <- cohort.introduction.times(t.max)
 
-times.linear <- build.schedule(p, t.linear, 20, 1e-3,
+sched.linear  <- schedule.from.times(t.linear,  p$size)
+sched.default <- schedule.from.times(t.default, p$size)
+
+times.linear <- build.schedule(p, sched.linear, 20, 1e-3,
                                progress=TRUE, verbose=TRUE)
-times.default <- build.schedule(p, t.default, 20, 1e-3,
+times.default <- build.schedule(p, sched.default, 20, 1e-3,
                                 progress=TRUE, verbose=TRUE)
 
 ## Next, look at what an "optimal" schedule would look like from the
@@ -69,10 +73,14 @@ p2$seed_rain <- c(1.1, 2.1)               # Whatever
 p2$set_parameters(list(patch_area=1.0))   # See issue #13
 p2$set_control_parameters(fast.control()) # A bit faster
 
-t.linear <- seq(0, 104, length=31)
-t.default <- cohort.introduction.times(104)
+t.max <- 104
+t.linear <- seq(0, t.max, length=31)
+t.default <- cohort.introduction.times(t.max)
 
-times.linear <- build.schedule(p2, t.linear, 20, 1e-3,
+sched.linear  <- schedule.from.times(t.linear,  p2$size)
+sched.default <- schedule.from.times(t.default, p2$size)
+
+times.linear <- build.schedule(p2, sched.linear, 20, 1e-3,
                                progress=TRUE, verbose=TRUE)
-times.default <- build.schedule(p2, t.default, 20, 1e-3,
+times.default <- build.schedule(p2, sched.default, 20, 1e-3,
                                 progress=TRUE, verbose=TRUE)

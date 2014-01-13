@@ -9,23 +9,24 @@ p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
 times0 <- cohort.introduction.times(104)
+schedule0 <- schedule.from.times(times0)
 
-run <- function(seed_rain.in, p, times) {
+run <- function(seed_rain.in, p, schedule) {
   p$seed_rain <- seed_rain.in
-  run.ebt(p, schedule.from.times(times))$fitness(1)
+  run.ebt(p, schedule)$fitnesses
 }
 
-run.new.schedule <- function(w, p, times, build.args=list()) {
+run.new.schedule <- function(w, p, schedule, build.args=list()) {
   p$seed_rain <- w
   build.args <- modifyList(list(nsteps=20, eps=1e-3, verbose=FALSE),
                            build.args)
-  res <- build.schedule(p, times, build.args$nsteps, build.args$eps,
+  res <- build.schedule(p, schedule, build.args$nsteps, build.args$eps,
                         progress=FALSE, verbose=build.args$verbose)
   attr(res, "seed_rain")[,"out"]
 }
 
 ## # 1: Approach to equilibrium:
-res <- equilibrium.seed.rain(p, times0, 10, progress=TRUE,
+res <- equilibrium.seed.rain(p, schedule0, 10, progress=TRUE,
                              build.args=list(verbose=TRUE))
 w.hat <- unname(res[["seed_rain"]][,"out"])
 
@@ -53,12 +54,12 @@ dw <- 2 # range of input to vary (plus and minus this many seeds)
 seed_rain.in  <- seq(w.hat - dw, w.hat + dw, length=31)
 
 ## Sanity and time check
-times1 <- res$times
-system.time(delta <- run(w.hat, p, times1) - w.hat)
+schedule1 <- schedule.from.times(res$times)
+system.time(delta <- run(w.hat, p, schedule1) - w.hat)
 delta # should be very close to zero
 
 seed_rain.in  <- seq(w.hat - dw, w.hat + dw, length=31)
-seed_rain.out <- unlist(mclapply(seed_rain.in, run, p, times1))
+seed_rain.out <- unlist(mclapply(seed_rain.in, run, p, schedule1))
 
 fit <- lm(seed_rain.out ~ seed_rain.in)
 
@@ -168,7 +169,7 @@ abline(h=0, v=c(w.hat, w.hat.r))
 seed_rain.in.global <- seq(1, w.hat + 10, length=51)
 
 seed_rain.out.global <-
-  unlist(mclapply(seed_rain.in.global, run.new.schedule, p, times0))
+  unlist(mclapply(seed_rain.in.global, run.new.schedule, p, schedule0))
 seed_rain.out.global.a <-
   unlist(lapply(seed_rain.in.global, run.reference, p, path.r))
 

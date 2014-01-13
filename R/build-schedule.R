@@ -15,14 +15,13 @@
 ##' @return A vector of times
 ##' @author Rich FitzJohn
 ##' @export
-build.schedule <- function(p, times, nsteps, eps,
+build.schedule <- function(p, schedule, nsteps, eps,
                            progress=FALSE, verbose=FALSE) {
-  run.with.lai <- function(times, p) {
+  run.with.lai <- function(schedule, p) {
     ebt <- new(EBT, p)
-    sched$all_times <- times
-    ebt$cohort_schedule <- sched
+    ebt$cohort_schedule <- schedule
 
-    err.lai <- rep(list(NULL), n.spp)
+    err.lai <- rep(list(NULL), p$size)
     while (ebt$cohort_schedule$remaining > 0) { # TODO: ebt$complete()
       e <- ebt$run_next()
       idx <- e$species_index
@@ -32,42 +31,36 @@ build.schedule <- function(p, times, nsteps, eps,
 
     err.lai <- lapply(err.lai, function(x)
                       do.call(rbind, pad.matrix(x)))
-    err.w <- lapply(seq_len(n.spp), function(idx)
+    err.w <- lapply(seq_len(p$size), function(idx)
                     ebt$fitness_error(idx))
     f <- function(m)
       suppressWarnings(apply(m, 2, max, na.rm=TRUE))
-    total <- lapply(seq_len(n.spp), function(idx)
+    total <- lapply(seq_len(p$size), function(idx)
                     f(rbind(err.lai[[idx]], err.w[[idx]])))
 
-    list(fitness=ebt$fitnesses, lai=err.lai, w=err.w, total=total)
+    list(fitness=ebt$fitnesses,
+         err=list(lai=err.lai, w=err.w, total=total))
   }
-
-  n.spp <- p$size
-  sched <- schedule.from.times(times, n.spp)
-  times.intro <- sched$all_times
-  max.time <- last(times)
 
   history <- list()
 
-  update.times <- function(times)
-    lapply(times, function(t) c(t, max.time))
-
   for (i in seq_len(nsteps)) {
-    err <- run.with.lai(times.intro, p)
-    split <- lapply(err$total, function(x) x > eps)
+    res <- run.with.lai(schedule, p)
+    split <- lapply(res$err$total, function(x) x > eps)
+
+    times <- schedule$all_times
+    attr(times, "seed_rain") <- cbind("in" =p$seed_rain,
+                                      "out"=res[["fitness"]])
 
     if (progress)
-      history <- c(history, list(list(times=update.times(times.intro),
+      history <- c(history, list(list(times=times,
                                       split=lapply(split, which),
-                                      err=err)))
+                                      err=res$err)))
 
     ## Prepare for the next iteration:
-    for (idx in seq_len(n.spp))
-      times.intro[[idx]] <- split.times(times.intro[[idx]], split[[idx]])
-    times <- update.times(times.intro)
-
-    attr(times, "seed_rain") <- cbind("in" =p$seed_rain,
-                                      "out"=err$fitness)
+    for (idx in seq_len(p$size))
+      schedule$set_times(split.times(schedule$times(idx), split[[idx]]),
+                         idx)
 
     if (!any(unlist(split), na.rm=TRUE))
       break
