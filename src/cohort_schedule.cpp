@@ -201,6 +201,24 @@ void CohortSchedule::r_set_state(Rcpp::List x) {
     pop();
 }
 
+Rcpp::List CohortSchedule::r_all_times() const {
+  Rcpp::List times_;
+  for (size_t i = 0; i < n_species; ++i)
+    times_.push_back(times(i));
+  return times_;
+}
+
+void CohortSchedule::r_set_all_times(Rcpp::List x) {
+  // Ensure that we can get all the times out:
+  std::vector< std::vector<double> > new_times;
+  for (Rcpp::List::iterator el = x.begin(); el != x.end(); ++el)
+    new_times.push_back(Rcpp::as< std::vector<double> >(*el));
+  util::check_length(new_times.size(), n_species);
+  for (size_t i = 0; i < n_species; ++i)
+    set_times(new_times[i], i);
+}
+
+
 // * Private methods
 CohortSchedule::events_iterator
 CohortSchedule::add_time(double time, size_t species_index,

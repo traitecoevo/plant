@@ -137,6 +137,22 @@ test_that("Setting max time behaves sensibly", {
   sched$max_time <- max.t
 })
 
+test_that("Bulk get/set of times works", {
+  n <- 3
+  sched <- new(CohortSchedule, n)
+
+  set.seed(1)
+  t.new <- lapply(seq_len(n), function(...) sort(runif(rpois(1, 10))))
+  sched$all_times <- t.new
+  expect_that(sched$all_times, is_identical_to(t.new))
+
+  expect_that(sched$all_times <- t.new[1], throws_error())
+  expect_that(sched$all_times <- t.new[[1]], throws_error())
+  expect_that(sched$all_times <- t.new[c(1, seq_len(n))], throws_error())
+  ## Unfortunately, this does not throw.
+  ## expect_that(sched$all_times <- seq_len(n), throws_error())
+})
+
 ## Fixed times.  First set some impossible cases:
 test_that("Malformed ode_times objects are rejected", {
   ## Too few values:

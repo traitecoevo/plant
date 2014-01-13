@@ -9,6 +9,7 @@ test_that("schedule.from.times works", {
   expect_that(sched$size, equals(length(tt) - 1))
   expect_that(sched$times(1), is_identical_to(tt[-length(tt)]))
   expect_that(sched$max_time, is_identical_to(tt[ length(tt)]))
+  expect_that(sched$all_times, is_identical_to(list(tt[-length(tt)])))
 
   expect_that(schedule.from.times(rev(tt)), throws_error())
   expect_that(schedule.from.times(c(tt[[1]], tt)), throws_error())
@@ -21,6 +22,8 @@ test_that("schedule.from.times works", {
   for (i in seq_len(n))
     expect_that(sched$times(i), is_identical_to(tt[-length(tt)]))
   expect_that(sched$max_time, is_identical_to(tt[ length(tt)]))
+  expect_that(sched$all_times,
+              is_identical_to(rep(list(tt[-length(tt)]), n)))
 })
 
 test_that("default.schedule behaves correctly", {

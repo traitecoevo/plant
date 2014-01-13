@@ -42,6 +42,8 @@ public:
   void r_clear_ode_times();
   Rcpp::List r_get_state() const;
   void r_set_state(Rcpp::List x);
+  Rcpp::List r_all_times() const;
+  void r_set_all_times(Rcpp::List x);
 
 private:
   typedef std::list<Event>::iterator events_iterator;

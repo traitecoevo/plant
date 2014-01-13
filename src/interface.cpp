@@ -237,6 +237,9 @@ RCPP_MODULE(tree) {
     .property("state",
 	      &model::CohortSchedule::r_get_state,
 	      &model::CohortSchedule::r_set_state)
+    .property("all_times",
+              &model::CohortSchedule::r_all_times,
+              &model::CohortSchedule::r_set_all_times)
     ;
   Rcpp::class_<model::CohortSchedule::Event>("CohortScheduleEvent")
     .constructor<double,int>()
