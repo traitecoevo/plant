@@ -12,6 +12,7 @@ test_that("schedule.from.times works", {
 
   expect_that(schedule.from.times(rev(tt)), throws_error())
   expect_that(schedule.from.times(c(tt[[1]], tt)), throws_error())
+  expect_that(schedule.from.times(1), throws_error())
 })
 
 test_that("default.schedule behaves correctly", {

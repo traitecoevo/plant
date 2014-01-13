@@ -100,6 +100,8 @@ default.schedule <- function(nt, max.t) {
 schedule.from.times <- function(times) {
   if (any(diff(times) <= 0.0))
     stop("Times must be strictly increasing")
+  if (length(times) < 2)
+    stop("Need at least two times (one introduction and max time)")
   sched <- new(CohortSchedule, 1)
   sched$set_times(times[-length(times)], 1)
   sched$max_time <- last(times)
