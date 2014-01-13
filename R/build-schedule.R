@@ -2,7 +2,7 @@
 ## This will change in future.  It also really only works for a single
 ## species at present.
 
-##' Build an appropriately refined schedule for a single species.
+##' Build an appropriately refined schedule.
 ##'
 ##' @title Build Cohort Schedule
 ##' @param p Parameters object
@@ -17,49 +17,65 @@
 ##' @export
 build.schedule <- function(p, times, nsteps, eps,
                            progress=FALSE, verbose=FALSE) {
-  ## This gets the leaf area error out at each cohort introduction;
-  ## that's the error criterion we care about.
-  run.with.lai <- function(times, ebt) {
-    idx <- 1
-    ebt$reset()
-    ebt$set_times(times, idx)
-    err.lai <- list()
-    while (ebt$cohort_schedule$remaining > 0) {
-      ebt$run_next()
-      err.lai <- c(err.lai, list(ebt$leaf_area_error(idx)))
-    }
-    err.lai <- do.call(rbind, pad.matrix(err.lai))
-    err.w <- ebt$fitness_error(idx)
-    total <- suppressWarnings(apply(rbind(err.lai, err.w), 2, max, na.rm=TRUE))
+  run.with.lai <- function(times, p) {
+    ebt <- new(EBT, p)
+    sched$all_times <- times
+    ebt$cohort_schedule <- sched
 
-    list(lai=err.lai, w=err.w, total=total)
+    err.lai <- rep(list(NULL), n.spp)
+    while (ebt$cohort_schedule$remaining > 0) { # TODO: ebt$complete()
+      e <- ebt$run_next()
+      idx <- e$species_index
+      err.lai[[idx]] <-
+        c(err.lai[[idx]], list(ebt$leaf_area_error(idx)))
+    }
+
+    err.lai <- lapply(err.lai, function(x)
+                      do.call(rbind, pad.matrix(x)))
+    err.w <- lapply(seq_len(n.spp), function(idx)
+                    ebt$fitness_error(idx))
+    f <- function(m)
+      suppressWarnings(apply(m, 2, max, na.rm=TRUE))
+    total <- lapply(seq_len(n.spp), function(idx)
+                    f(rbind(err.lai[[idx]], err.w[[idx]])))
+
+    list(fitness=ebt$fitnesses, lai=err.lai, w=err.w, total=total)
   }
 
+  n.spp <- p$size
+  sched <- schedule.from.times(times, n.spp)
+  times.intro <- sched$all_times
   max.time <- last(times)
-  ebt <- new(EBT, p)
-  ebt$cohort_schedule <- schedule.from.times(times)
-  times.intro <- ebt$cohort_schedule$times(1) # max.time dropped
 
   history <- list()
+
+  update.times <- function(times)
+    lapply(times, function(t) c(t, max.time))
+
   for (i in seq_len(nsteps)) {
-    err <- run.with.lai(times.intro, ebt)
-    split <- err$total > eps
+    err <- run.with.lai(times.intro, p)
+    split <- lapply(err$total, function(x) x > eps)
 
     if (progress)
-      history <- c(history, list(list(times=c(times.intro, max.time),
-                                      split=which(split), err=err)))
+      history <- c(history, list(list(times=update.times(times.intro),
+                                      split=lapply(split, which),
+                                      err=err)))
 
     ## Prepare for the next iteration:
-    times.intro <- split.times(times.intro, split)
-    times       <- c(times.intro, max.time)
-    attr(times, "seed_rain") <- cbind("in" =p$seed_rain,
-                                      "out"=ebt$fitnesses)
+    for (idx in seq_len(n.spp))
+      times.intro[[idx]] <- split.times(times.intro[[idx]], split[[idx]])
+    times <- update.times(times.intro)
 
-    if (!any(split, na.rm=TRUE))
+    attr(times, "seed_rain") <- cbind("in" =p$seed_rain,
+                                      "out"=err$fitness)
+
+    if (!any(unlist(split), na.rm=TRUE))
       break
     if (verbose)
-      message(sprintf("%d: Splitting %d times (%d)",
-                      i, sum(split), length(times)))
+      message(sprintf("%d: Splitting {%s} times (%s)",
+                      i,
+                      paste(sapply(split, sum),    collapse=","),
+                      paste(sapply(split, length), collapse=",")))
   }
 
   if (progress)

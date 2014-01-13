@@ -58,3 +58,21 @@ matplot(cbind(w.default, w.linear.cmp),
 matplot(cbind(w.default, w.linear.cmp),
         ylim=c(max(w.default)-1, max(w.default)),
         type="o", col=c("red", "blue"), pch=19, cex=.3, lty=1)
+
+rm(p)
+
+## For two species:
+p2 <- new(Parameters)
+p2$add_strategy(new(Strategy, list(lma=0.0648406, hmat=26.3098)))
+p2$add_strategy(new(Strategy, list(lma=0.1977910, hmat=27.8790)))
+p2$seed_rain <- c(1.1, 2.1)               # Whatever
+p2$set_parameters(list(patch_area=1.0))   # See issue #13
+p2$set_control_parameters(fast.control()) # A bit faster
+
+t.linear <- seq(0, 104, length=31)
+t.default <- cohort.introduction.times(104)
+
+times.linear <- build.schedule(p2, t.linear, 20, 1e-3,
+                               progress=TRUE, verbose=TRUE)
+times.default <- build.schedule(p2, t.default, 20, 1e-3,
+                                progress=TRUE, verbose=TRUE)
