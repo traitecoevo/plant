@@ -131,6 +131,8 @@ void CohortSchedule::r_set_times(std::vector<double> times_,
 				 size_t species_index) {
   if (!util::is_sorted(times_.begin(), times_.end()))
     Rcpp::stop("Times must be sorted (increasing)");
+  if (times_.size() == 0)
+    Rcpp::stop("Need at least one time");
   if (times_.front() < 0)
     Rcpp::stop("First time must nonnegative");
   if (times_.back() > max_time)
