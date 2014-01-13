@@ -240,6 +240,7 @@ RCPP_MODULE(tree) {
     .property("all_times",
               &model::CohortSchedule::r_all_times,
               &model::CohortSchedule::r_set_all_times)
+    .method("copy",         &model::CohortSchedule::r_copy)
     ;
   Rcpp::class_<model::CohortSchedule::Event>("CohortScheduleEvent")
     .constructor<double,int>()

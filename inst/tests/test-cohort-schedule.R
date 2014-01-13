@@ -129,12 +129,34 @@ test_that("Resetting the times replaces them", {
 test_that("Setting max time behaves sensibly", {
   sched <- new(CohortSchedule, 2)
   sched$set_times(t1, 1)
-  expect_that(sched$max_time <- 0.5, throws_error())
+
+  last.event <- function(x) {
+    x <- x$copy()
+    while (x$remaining > 1)
+      x$pop()
+    x$next_event
+  }
+
+  ## Before setting max_time, the finishing time will be Inf:
+  e <- last.event(sched)
+  expect_that(e$time_introduction, equals(last(t1)))
+  expect_that(e$time_end,          equals(Inf))
+
+  ## Set max_time to something stupid:
+  expect_that(sched$max_time <- 0.5,            throws_error())
   expect_that(sched$max_time <- max(t1) - 1e-8, throws_error())
-  sched$max_time <- max(t1)
+
+  ## And to something sensible:
+  max.t <- max(t1) + 0.1
+  sched$max_time <- max.t
+
+  ## Make sure that the last event has been modified:
+  e <- last.event(sched)
+  expect_that(e$time_introduction, equals(last(t1)))
+  expect_that(e$time_end,          equals(max.t))
+
   ## Now this will fail
   expect_that(sched$set_times(t1 * 2, 1), throws_error())
-  sched$max_time <- max.t
 })
 
 test_that("Bulk get/set of times works", {

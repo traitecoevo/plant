@@ -154,6 +154,7 @@ void CohortSchedule::r_set_max_time(double x) {
   if (x < events.back().time_introduction())
     Rcpp::stop("max_time must be at least the final scheduled time");
   max_time = x;
+  reset();
 }
 
 std::vector<double> CohortSchedule::r_ode_times() const {
@@ -218,6 +219,10 @@ void CohortSchedule::r_set_all_times(Rcpp::List x) {
   util::check_length(new_times.size(), n_species);
   for (size_t i = 0; i < n_species; ++i)
     set_times(new_times[i], i);
+}
+
+CohortSchedule CohortSchedule::r_copy() const {
+  return *this;
 }
 
 
