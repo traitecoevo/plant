@@ -23,7 +23,7 @@ void EBT::run() {
   }
 }
 
-void EBT::run_next() {
+CohortSchedule::Event EBT::run_next() {
   const CohortSchedule::Event e = schedule.next_event();
   if (!util::identical(get_time(), e.time_introduction()))
     Rcpp::stop("Start time not what was expected");
@@ -34,6 +34,7 @@ void EBT::run_next() {
   else
     ode_solver.advance(e.time_end());
   schedule.pop(); // or do at next_event()?  Only matters on error.
+  return e;
 }
 
 // * Fitness calculations
