@@ -13,6 +13,14 @@ test_that("schedule.from.times works", {
   expect_that(schedule.from.times(rev(tt)), throws_error())
   expect_that(schedule.from.times(c(tt[[1]], tt)), throws_error())
   expect_that(schedule.from.times(1), throws_error())
+
+  n <- 3
+  sched <- schedule.from.times(tt, n)
+  expect_that(sched$n_species, equals(n))
+  expect_that(sched$size, equals(n * (length(tt) - 1)))
+  for (i in seq_len(n))
+    expect_that(sched$times(i), is_identical_to(tt[-length(tt)]))
+  expect_that(sched$max_time, is_identical_to(tt[ length(tt)]))
 })
 
 test_that("default.schedule behaves correctly", {

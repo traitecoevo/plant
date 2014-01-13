@@ -97,13 +97,14 @@ default.schedule <- function(nt, max.t) {
 ##' @return A \code{\link{CohortSchedule}} object.
 ##' @author Rich FitzJohn
 ##' @export
-schedule.from.times <- function(times) {
+schedule.from.times <- function(times, n=1L) {
   if (any(diff(times) <= 0.0))
     stop("Times must be strictly increasing")
   if (length(times) < 2)
     stop("Need at least two times (one introduction and max time)")
-  sched <- new(CohortSchedule, 1)
-  sched$set_times(times[-length(times)], 1)
+  sched <- new(CohortSchedule, n)
+  for (i in seq_len(n))
+    sched$set_times(times[-length(times)], i)
   sched$max_time <- last(times)
   sched
 }
