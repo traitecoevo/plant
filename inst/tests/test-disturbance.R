@@ -7,9 +7,9 @@ make.disturbance <- function(site.mean) {
   pow <- function(a, b) a^b
   psi <- 2.0
   ## solve lam as function of site average patch age
-  lam <- pow(gamma(1.0/psi)/psi/site.mean, psi);
+  lam <- pow(gamma(1.0/psi)/psi/site.mean, psi)
   ## solve for density age zero
-  p0 <- psi*pow(lam, 1.0/psi)/gamma(1.0/psi);
+  p0 <- psi*pow(lam, 1.0/psi)/gamma(1.0/psi)
 
   Pi <- function(age)
     exp(-lam*pow(age, psi))
@@ -19,9 +19,11 @@ make.disturbance <- function(site.mean) {
     p0 * Pi(age)
   weight <- function(time.start, time)
     Pi(time)/ Pi(time.start)
+  cdf <- function(p)
+    pow(log(p) / -lam, 1/psi)
 
   list(site.mean=site.mean, psi=psi, lam=lam, p0=p0,
-       rate=rate, freq=freq, Pi=Pi, weight=weight)
+       rate=rate, freq=freq, Pi=Pi, weight=weight, cdf=cdf)
 }
 
 m <- 30.0
@@ -50,6 +52,9 @@ test_that("Disturbance calculations are expected", {
               equals(p.t))
   expect_that(sapply(tt, function(t) obj$density(t)),
               equals(disturbance$freq(tt)))
+
+  expect_that(disturbance$cdf(p.t), equals(tt))
+  expect_that(sapply(p.t, function(p) obj$cdf(p)), equals(tt))
 })
 
 ## Now, look at the rest of the issues.

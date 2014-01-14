@@ -163,7 +163,8 @@ RCPP_MODULE(tree) {
     .method("pr_survival",     &model::Disturbance::pr_survival)
     .method("pr_survival_conditional",
 	    &model::Disturbance::pr_survival_conditional)
-    .property("mean_interval", &model::Disturbance::r_mean_interval);
+    .method("cdf",             &model::Disturbance::cdf)
+    .property("mean_interval", &model::Disturbance::r_mean_interval)
     ;
 
   Rcpp::class_<model::Plant>("Plant")

@@ -33,5 +33,9 @@ double Disturbance::pr_survival_conditional(double time,
   return pr_survival(time) / pr_survival(time_start);
 }
 
+// Cumulative density function: this is the inverse of pr_survival
+double Disturbance::cdf(double p) const {
+  return pow(log(p) / -scale, 1/shape);
+}
 
 }
