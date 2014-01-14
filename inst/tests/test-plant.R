@@ -321,7 +321,7 @@ test_that("Non-adaptive assimilation integration works", {
   # A new Strategy object that is identical to previous one, but uses
   # non-adaptive integration:
   ctrl <- new(Control, list(plant_assimilation_adaptive=FALSE))
-  s.f <- s$clone()
+  s.f <- s$copy()
   s.f$control <- ctrl
 
   p.a <- new(Plant, s)

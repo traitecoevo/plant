@@ -112,10 +112,10 @@ test_that("Can directly add mutant strategies", {
               is_identical_to(c(r, FALSE)))
 })
 
-test_that("Cloning a Parameters works", {
+test_that("Copying a Parameters works", {
   p1 <- new(Parameters)
   p1$set_parameters(list(c_ext=1))
-  p2 <- p1$clone()
+  p2 <- p1$copy()
   p2$set_parameters(list(c_ext=2))
 
   p1.p <- p1$parameters

@@ -59,7 +59,7 @@ void Parameters::set_control_parameters(Rcpp::List x) {
   push_control_to_strategies();
 }
 
-Parameters Parameters::r_clone() const {
+Parameters Parameters::r_copy() const {
   return *this;
 }
 

@@ -111,7 +111,7 @@ equilibrium.seed.rain.reference <- function(p, nsteps, path,
 }
 
 run.reference <- function(w, p, path) {
-  p <- p$clone()
+  p <- p$copy()
   p$seed_rain <- w
   tree::run.reference(path, p, verbose=FALSE)
   get.seed_rain.out.reference(path)

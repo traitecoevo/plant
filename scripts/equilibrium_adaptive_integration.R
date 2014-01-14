@@ -13,7 +13,7 @@ p.n$set_control_parameters(fast.control()) # A bit faster
 
 ## And a set that is identical except for the adaptive assimilation is
 ## turned on:
-p.a <- p.n$clone()
+p.a <- p.n$copy()
 p.a$set_control_parameters(list(plant_assimilation_adaptive=TRUE))
 
 ## And a seed set of cohort introduction times for schedule building.

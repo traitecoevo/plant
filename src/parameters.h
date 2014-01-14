@@ -37,7 +37,7 @@ public:
   void set_control(Control x);
   void set_control_parameters(Rcpp::List x);
 
-  Parameters r_clone() const;
+  Parameters r_copy() const;
 
   // Data -- public for now (see github issue #17).
   double c_ext;      // Light extinction coefficient

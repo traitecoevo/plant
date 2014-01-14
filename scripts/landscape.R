@@ -28,7 +28,7 @@ times <- build.schedule(p, times0, 20, 1e-2,
 ebt <- run.ebt(p, schedule.from.times(times))
 ode.times <- ebt$ode_times
 
-p.a <- p$clone()
+p.a <- p$copy()
 p.a$set_control_parameters(list(plant_assimilation_adaptive=TRUE))
 system.time(ebt <- run.ebt(p.a, schedule.from.times(times)))
 
@@ -38,7 +38,7 @@ lma <- p[[1]]$parameters[["lma"]]
 
 ## Add the mutants; they will all be introduced with a seed rain of 1,
 ## though they will not influence the environent at all.
-p.with.mutants <- p$clone()
+p.with.mutants <- p$copy()
 ## Add the resident as a check...
 p.with.mutants$add_strategy_mutant(new(Strategy, list(lma=lma)))
 ## ...and a vector of new lmas:

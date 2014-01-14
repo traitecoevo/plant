@@ -35,7 +35,7 @@ void Strategy::r_set_assimilation_fn(interpolator::Interpolator x) {
   assimilation_fn = x;
 }
 
-Strategy Strategy::r_clone() const {
+Strategy Strategy::r_copy() const {
   return *this;
 }
 

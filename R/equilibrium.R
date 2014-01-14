@@ -35,7 +35,7 @@ equilibrium.seed.rain <- function(p, schedule, nsteps,
                                   build.args=list(),
                                   large.seed_rain.change=10,
                                   progress=FALSE, verbose=TRUE) {
-  p <- p$clone() # don't modify what we're given
+  p <- p$copy() # don't modify what we're given
 
   times.default <- schedule$all_times
   build.args <- modifyList(list(nsteps=20, eps=1e-3, verbose=TRUE),

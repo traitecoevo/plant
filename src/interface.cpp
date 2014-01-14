@@ -123,7 +123,7 @@ RCPP_MODULE(tree) {
 	      &model::Strategy::r_assimilation_fn,
 	      &model::Strategy::r_set_assimilation_fn)
     .property("integrator", &model::Strategy::r_integrator)
-    .method("clone", &model::Strategy::r_clone)
+    .method("copy", &model::Strategy::r_copy)
     ;
 
   Rcpp::class_<model::Control>("Control")
@@ -150,7 +150,7 @@ RCPP_MODULE(tree) {
     .field("control",         &model::Parameters::control)
     .method("set_control_parameters",
 	    &model::Parameters::set_control_parameters)
-    .method("clone",          &model::Parameters::r_clone)
+    .method("copy",           &model::Parameters::r_copy)
     .property("seed_rain",    &model::Parameters::r_seed_rain,
 	      &model::Parameters::r_set_seed_rain)
     .property("is_resident",    &model::Parameters::r_is_resident,

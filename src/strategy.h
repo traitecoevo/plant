@@ -30,7 +30,7 @@ public:
   interpolator::Interpolator r_assimilation_fn() const;
   void r_set_assimilation_fn(interpolator::Interpolator x);
 
-  Strategy r_clone() const;
+  Strategy r_copy() const;
   // Not sure about the need to allow this to be accessed, but needed
   // for a test.
   integration::QAG r_integrator() const {return integrator;}
