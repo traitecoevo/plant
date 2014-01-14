@@ -629,3 +629,15 @@ dmldh <- function(h, strategy) {
   lma <- pars$lma
   lma / (a1 * B1) * (h / a1) ^ (1 / B1 - 1)
 }
+
+## Disturbance cumulative probability of survival; used for working
+## out how long to run the simulation for.  This is of unknown origin
+## within the falster-traitdiversity, but is the value that
+## corresponds to
+##   2.633*a_mean /3.0*4.0;
+## within src/base/ebt/site.cpp, site::solve_patchage_dist()
+##
+## It's here so that we can do
+##   disturbance$cdf(tree:::refrence.pr.survival.eps)
+## and get a running time that agrees with falster-traitdiversity.
+reference.pr.survival.eps <- 6.25302620663814e-05

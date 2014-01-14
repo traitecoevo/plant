@@ -67,3 +67,20 @@ scale <- with(disturbance, lam^(-1/psi))
 shape <- disturbance$psi
 expect_that(pweibull(tt, shape, scale, FALSE),
             equals(disturbance$weight(0, tt)))
+
+test_that("Reference survival eps gives correct running time", {
+  ## From falster-traitdiversity: src/base/ebt/site.cpp,
+  ## site::solve_patchage_dist():
+  f1 <- function(mean)
+    2.633*mean/3.0*4.0
+
+  ## Wrapper for getting same out of our disturbance class:
+  f2 <- function(mean)
+    new(Disturbance, mean)$cdf(tree:::reference.pr.survival.eps)
+
+  age <- seq(1, 200, length.out=101)
+  y1 <- f1(age)
+  y2 <- sapply(age, f2)
+
+  expect_that(y1, equals(y2))
+})
