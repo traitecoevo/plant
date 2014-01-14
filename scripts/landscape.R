@@ -15,7 +15,8 @@ p$seed_rain <- 505.55407
 p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
-times0 <- cohort.introduction.times(104)
+t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
+times0 <- cohort.introduction.times(t.max)
 times <- build.schedule(p, times0, 20, 1e-2,
                         progress=FALSE, verbose=TRUE)
 

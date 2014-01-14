@@ -17,7 +17,8 @@ p.a <- p.n$copy()
 p.a$set_control_parameters(list(plant_assimilation_adaptive=TRUE))
 
 ## And a seed set of cohort introduction times for schedule building.
-times0 <- cohort.introduction.times(104)
+t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
+times0 <- cohort.introduction.times(t.max)
 
 ## Functions to run the model with an input seed rain, parameter set
 ## and times.  The second one will take the times as the seed point to

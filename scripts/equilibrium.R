@@ -8,7 +8,8 @@ p$seed_rain <- 1.1                       # Starting rain.
 p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
-times0 <- cohort.introduction.times(104)
+t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
+times0 <- cohort.introduction.times(t.max)
 schedule0 <- schedule.from.times(times0)
 
 run <- function(seed_rain.in, p, schedule) {
@@ -194,7 +195,7 @@ p$seed_rain <- c(1.1, 1.1)               # Starting rain.
 p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
-times0 <- cohort.introduction.times(104)
+times0 <- cohort.introduction.times(t.max)
 schedule0 <- schedule.from.times(times0, 2L)
 
 res <- equilibrium.seed.rain(p, schedule0, 10,

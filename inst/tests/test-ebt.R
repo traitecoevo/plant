@@ -236,9 +236,11 @@ test_that("Fitness & error calculations correct", {
   p$set_control_parameters(fast.control())
   p$set_parameters(list(patch_area=1.0))   # See issue #13
   p$seed_rain <- 1.1
+  t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
+
   ebt <- new(EBT, p)
   ebt$reset()
-  ebt$cohort_schedule <- default.schedule(30, 104)
+  ebt$cohort_schedule <- default.schedule(30, t.max)
   ebt$run()
 
   fitness.R <- function(ebt, error=FALSE) {

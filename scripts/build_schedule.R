@@ -19,7 +19,7 @@ p$seed_rain <- 1.1                       # Whatever
 p$set_parameters(list(patch_area=1.0))   # See issue #13
 p$set_control_parameters(fast.control()) # A bit faster
 
-t.max <- 104
+t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
 t.linear <- seq(0, t.max, length=31)
 t.default <- cohort.introduction.times(t.max)
 
@@ -72,10 +72,6 @@ p2$add_strategy(new(Strategy, list(lma=0.1977910, hmat=27.8790)))
 p2$seed_rain <- c(1.1, 2.1)               # Whatever
 p2$set_parameters(list(patch_area=1.0))   # See issue #13
 p2$set_control_parameters(fast.control()) # A bit faster
-
-t.max <- 104
-t.linear <- seq(0, t.max, length=31)
-t.default <- cohort.introduction.times(t.max)
 
 sched.linear  <- schedule.from.times(t.linear,  p2$size)
 sched.default <- schedule.from.times(t.default, p2$size)

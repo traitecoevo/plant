@@ -69,7 +69,8 @@ ebt <- new(EBT, p)
 ## # 1. The fitness calculation depends on the cohort spacing
 
 ## Three progressively more closely spaced times:
-tt.1 <- cohort.introduction.times(104)
+t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
+tt.1 <- cohort.introduction.times(t.max)
 tt.2 <- interleave(tt.1)
 tt.3 <- interleave(tt.2)
 
