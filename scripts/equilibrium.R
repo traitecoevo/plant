@@ -78,7 +78,7 @@ plot(seed_rain.in, resid(fit),
         las=1, pch=1)
 abline(h=0, v=w.hat)
 
-## # 2: Compare with the reference model
+## # 3: Compare with the reference model
 get.seed_rain.out.reference <- function(path)
   unname(load.reference.output(path)$seed_rain_out)
 
@@ -167,7 +167,7 @@ matplot(cbind(seed_rain.in, seed_rain.in.r),
         las=1, pch=1, col=cols)
 abline(h=0, v=c(w.hat, w.hat.r))
 
-## # Global function shape
+## # 4. Global function shape
 seed_rain.in.global <- seq(1, max(approach, approach.r),
                            length.out=51)
 
@@ -185,6 +185,35 @@ abline(fit,   lty=2, col=cols[["t"]])
 abline(fit.r, lty=2, col=cols[["r"]])
 cobweb(approach,   col=cols[["t"]], lty=3)
 cobweb(approach.r, col=cols[["r"]], lty=3)
+
+## # 5. Multiple species at once:
+p <- new(Parameters)
+p$add_strategy(new(Strategy, list(lma=0.0648406, hmat=26.3098)))
+p$add_strategy(new(Strategy, list(lma=0.1977910, hmat=27.8790)))
+p$seed_rain <- c(1.1, 1.1)               # Starting rain.
+p$set_parameters(list(patch_area=1.0))   # See issue #13
+p$set_control_parameters(fast.control()) # A bit faster
+
+times0 <- cohort.introduction.times(104)
+schedule0 <- schedule.from.times(times0, 2L)
+
+res <- equilibrium.seed.rain(p, schedule0, 10,
+                             build.args=list(verbose=TRUE),
+                             progress=TRUE, verbose=TRUE)
+w.hat <- res[["seed_rain"]][,"out"]
+
+progress.seed_rain <- lapply(attr(res, "progress"), "[[", "seed_rain")
+approach <- lapply(seq_len(p$size), function(i)
+                   t(sapply(progress.seed_rain, function(x) x[i,])))
+
+## From a distance, these both hone in nicely on the equilibrium, and
+## rapidly, too.
+r <- range(unlist(approach))
+plot(approach[[1]], type="n", las=1, xlim=r, ylim=r)
+abline(0, 1, lty=2, col="grey")
+cols <- c("black", "red")
+for (i in seq_along(approach))
+  cobweb(approach[[i]], pch=19, cex=.5, type="o", col=cols[[i]])
 
 ## TODO: Review the list of control parameters and see which are
 ## causing the problems.

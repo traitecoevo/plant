@@ -58,10 +58,11 @@ equilibrium.seed.rain <- function(p, schedule, nsteps,
     if (any(abs(change) > large.seed_rain.change))
       schedule$all_times <- times.default
 
-    ## TODO: update for > 1 strategy.
     if (verbose)
-      message(sprintf("*** %d: %2.5f -> %2.5f (delta = %2.5f)", i,
-                      seed_rain[,"in"], seed_rain[,"out"], change))
+      message(sprintf("*** %d: {%s} -> {%s{ (delta = {%s})", i,
+                      paste(prettyNum(seed_rain[,"in"]), collapse=","),
+                      paste(prettyNum(seed_rain[,"out"]), collapse=","),
+                      paste(prettyNum(change), collapse=",")))
   }
 
   if (progress)
