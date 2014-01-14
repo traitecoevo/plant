@@ -64,7 +64,7 @@ if (!skip && evolve.is.installed()) {
 
   test_that("Output disturbance calculations match", {
     ## tree version:
-    d <- new(Disturbance, p$parameters[["mean_disturbance_interval"]])
+    d <- p$disturbance
     f.survival <- Vectorize(function(x) d$pr_survival(x))
     f.density  <- Vectorize(function(x) d$density(x))
 

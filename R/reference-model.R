@@ -306,8 +306,9 @@ reference.from.parameters <- function(p) {
   names(params) <- reference.params.names()
 
   ## These come from the overall simulation parameters:
-  in.parameters <- c("c_ext", "Pi_0", "mean_disturbance_interval")
+  in.parameters <- c("c_ext", "Pi_0")
   params[in.parameters] <- p$parameters[in.parameters]
+  params$mean_disturbance_interval <- p$disturbance$mean_interval
 
   ## Core traits:
   traits <- t(sapply(p$strategies, function(x)
@@ -334,11 +335,13 @@ parameters.from.reference <- function(obj) {
   traits <- obj$traits
   seed.rain <- obj$seed.rain
 
-  in.parameters <- c("c_ext", "Pi_0", "mean_disturbance_interval")
+  in.parameters <- c("c_ext", "Pi_0")
   p <- new(Parameters)
   p$set_parameters(params[in.parameters])
+  p$disturbance <- new(Disturbance, params[["mean_disturbance_interval"]])
 
-  common <- params[setdiff(names(params), in.parameters)]
+  common <- params[setdiff(names(params),
+                           c(in.parameters, "mean_disturbance_interval"))]
   for (i in seq_len(nrow(traits)))
     p$add_strategy(new(Strategy, modifyList(as.list(traits[i,]), common)))
 

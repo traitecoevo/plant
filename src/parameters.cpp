@@ -4,7 +4,8 @@
 
 namespace model {
 
-Parameters::Parameters() {
+Parameters::Parameters()
+  : disturbance(30.0) { // 30 years default disturbance interval
   reset();
 }
 
@@ -17,8 +18,6 @@ void Parameters::reset() {
   Pi_0 = 0.25;
   // Number of patches
   n_patches = 10;
-  // Mean disturbance interval in years
-  mean_disturbance_interval = 30.0;
 
   // Then set the values for the lookup table, based on these (this is
   // basically the inverse of set_parameters_post_hook())
@@ -98,8 +97,6 @@ void Parameters::do_build_lookup() {
   lookup_table["patch_area"] = &patch_area;
   lookup_table["Pi_0"]       = &Pi_0;
   lookup_table["n_patches"]  = &_n_patches;
-  lookup_table["mean_disturbance_interval"] =
-    &mean_disturbance_interval;
 }
 
 void Parameters::set_parameters_post_hook() {

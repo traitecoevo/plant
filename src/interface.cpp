@@ -148,6 +148,7 @@ RCPP_MODULE(tree) {
     .method("add_strategy_mutant",
 	    &model::Parameters::add_strategy_mutant)
     .field("control",         &model::Parameters::control)
+    .field("disturbance",     &model::Parameters::disturbance)
     .method("set_control_parameters",
 	    &model::Parameters::set_control_parameters)
     .method("copy",           &model::Parameters::r_copy)

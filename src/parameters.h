@@ -44,10 +44,12 @@ public:
   double patch_area; // Size of the patch (m^2)
   double Pi_0;       // Probability of survival during dispersal
   size_t n_patches;  // Number of patches in the metacommunity
-  double mean_disturbance_interval; // Eponymous, in years.
   std::vector<Strategy> strategies;
   std::vector<double> seed_rain;
   std::vector<bool>   is_resident;
+
+  // Disturbance regime.
+  Disturbance disturbance;
 
   // Algorithm control.
   Control control;

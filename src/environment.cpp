@@ -3,7 +3,7 @@
 namespace model {
 
 Environment::Environment(Parameters p)
-  : disturbance_regime(p.mean_disturbance_interval),
+  : disturbance_regime(p.disturbance),
     seed_rain(p.seed_rain),
     seed_rain_index(0),
     control(p.control),
