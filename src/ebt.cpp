@@ -18,7 +18,7 @@ EBT::EBT(Parameters *p)
 
 void EBT::run() {
   reset();
-  while (schedule.remaining() > 0) {
+  while (!complete()) {
     run_next();
   }
 }
@@ -85,6 +85,10 @@ void EBT::reset() {
   patch.reset();
   schedule.reset();
   ode_solver.reset();
+}
+
+bool EBT::complete() const {
+  return schedule.remaining() == 0;
 }
 
 // * Ode interface.

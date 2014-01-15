@@ -130,7 +130,7 @@ run.ebt.collect <- function(p, sched) {
   ebt$cohort_schedule <- sched
   res <- list(get.state(ebt))
 
-  while (ebt$cohort_schedule$remaining > 0) {
+  while (!ebt$complete) {
     ebt$run_next()
     st <- get.state(ebt)
     if (st$time > last(res)$time) {

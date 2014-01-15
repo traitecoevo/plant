@@ -55,6 +55,7 @@ test_that("EBT starts empty", {
 ebt$run_next()
 test_that("EBT adds cohort successfully", {
   expect_that(ebt$cohort_schedule$remaining, equals(length(t) - 1))
+  expect_that(ebt$complete, is_false())
   ## Note that this is the *second* time; the time of the next
   ## introduction, and the end time of the first introduction.
   expect_that(ebt$time, is_identical_to(times$end[1]))
@@ -72,6 +73,7 @@ ebt$run_next()
 test_that("EBT ran successfully", {
   expect_that(ebt$cohort_schedule$remaining,
               equals(length(t) - 2))
+  expect_that(ebt$complete, is_false())
   expect_that(ebt$time, is_identical_to(times$end[2]))
   expect_that(ebt$time, is_identical_to(times$start[3]))
   expect_that(ebt$ode_size,       equals(4 * 2))
@@ -136,7 +138,7 @@ test_that("Run looks successful", {
 run.ebt <- function(ebt, t.max=Inf) {
   tt <- hh <- NULL
   ebt$reset()
-  while (ebt$cohort_schedule$remaining > 0 && ebt$time < t.max) {
+  while (!ebt$complete > 0 && ebt$time < t.max) {
     ebt$run_next()
     tt <- c(tt, ebt$time)
     hh <- c(hh, list(ebt$patch$height[[species.index]]))

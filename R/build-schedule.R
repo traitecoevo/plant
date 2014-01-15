@@ -22,7 +22,7 @@ build.schedule <- function(p, schedule, nsteps, eps,
     ebt$cohort_schedule <- schedule
 
     err.lai <- rep(list(NULL), p$size)
-    while (ebt$cohort_schedule$remaining > 0) { # TODO: ebt$complete()
+    while (!ebt$complete) {
       e <- ebt$run_next()
       idx <- e$species_index
       err.lai[[idx]] <-

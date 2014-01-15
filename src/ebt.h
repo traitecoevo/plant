@@ -25,6 +25,7 @@ public:
 
   double get_time() const;
   void reset();
+  bool complete() const;
 
   // * ODE interface
   size_t ode_size() const;
