@@ -240,12 +240,16 @@ install.evolve <- function(reinstall=FALSE, verbose=FALSE,
       url <- "git@github.com:dfalster/Falster-TraitDiversity.git"
   }
   hash <- "6e63e505f37827303346f44c5886715bd080fd2c"
+  hash.fix <- "30be50f0edaa79785e4e8d9bf20c0fb9a879cabf"
   intern <- !verbose
 
   system(paste("git clone", url, path), intern=intern)
   system(sprintf(paste("git --git-dir=%s/.git --work-tree=%s",
                        "checkout -b tree_version %s"),
                  path, path, hash), intern=intern)
+  system(sprintf(paste("git --git-dir=%s/.git --work-tree=%s",
+                       "cherry-pick %s"),
+                 path, path, hash.fix), intern=intern)
   system(sprintf("cd %s/src && make", path), intern=intern)
   file.copy(file.path(path, "src", "evolve"), path)
 
