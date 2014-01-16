@@ -2,18 +2,17 @@
 \alias{equilibrium.seed.rain}
 \title{Determine Equilibrium Seed Rain}
 \usage{
-  equilibrium.seed.rain(p, times, nsteps,
+  equilibrium.seed.rain(p, schedule, nsteps,
     build.args = list(), large.seed_rain.change = 10,
     progress = FALSE, verbose = TRUE)
 }
 \arguments{
   \item{p}{Parameters object}
 
-  \item{nsteps}{Number of iterations of the algorithm}
+  \item{schedule}{Schedule to run EBT with.  Will be
+  modified with the final set of times.}
 
-  \item{times}{Vector of times to seed the cohort schedule
-  with (they will be computed with
-  \code{\link{build.schedule}}}
+  \item{nsteps}{Number of iterations of the algorithm}
 
   \item{build.args}{Arguments to be passed through to
   \code{\link{build.schedule}}, as a list.}

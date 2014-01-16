@@ -6,13 +6,13 @@
 ##'
 ##' @title Build Cohort Schedule
 ##' @param p Parameters object
-##' @param times Vector of times to start from
+##' @param schedule A CohortSchedule, with a schedule to start from
 ##' @param nsteps Number of rounds of refinements to go through
 ##' @param eps Numerical tolerance indicating where cohorts are
 ##' refined enough.
 ##' @param progress Save progress with the returned times?
 ##' @param verbose Print information about progress as we go?
-##' @return A vector of times
+##' @return A CohortSchedule object
 ##' @author Rich FitzJohn
 ##' @export
 build.schedule <- function(p, schedule, nsteps, eps,
@@ -42,20 +42,21 @@ build.schedule <- function(p, schedule, nsteps, eps,
          err=list(lai=err.lai, w=err.w, total=total))
   }
 
+  ## Don't modify what we're given:
+  schedule <- schedule$copy()
+
   history <- list()
 
   for (i in seq_len(nsteps)) {
     res <- run.with.lai(schedule, p)
+    seed_rain <- cbind("in"=p$seed_rain, "out"=res[["fitness"]])
     split <- lapply(res$err$total, function(x) x > eps)
 
-    times <- schedule$all_times
-    attr(times, "seed_rain") <- cbind("in" =p$seed_rain,
-                                      "out"=res[["fitness"]])
-
     if (progress)
-      history <- c(history, list(list(times=times,
+      history <- c(history, list(list(schedule=schedule$copy(),
                                       split=lapply(split, which),
-                                      err=res$err)))
+                                      err=res$err,
+                                      seed_rain=seed_rain)))
 
     ## Prepare for the next iteration:
     for (idx in seq_len(p$size))
@@ -72,9 +73,10 @@ build.schedule <- function(p, schedule, nsteps, eps,
   }
 
   if (progress)
-    attr(times, "progress") <- history
+    attr(schedule, "progress") <- history
+  attr(schedule, "seed_rain") <- seed_rain
 
-  times
+  schedule
 }
 
 ##' Build a schedule of cohort times by iteratively finding the

@@ -2,7 +2,7 @@
 \alias{schedule.from.times}
 \title{Create CohortSchedule From Vector of Times}
 \usage{
-  schedule.from.times(times)
+  schedule.from.times(times, n = 1L)
 }
 \arguments{
   \item{times}{A numeric vector of increasing times}

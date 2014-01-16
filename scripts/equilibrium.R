@@ -23,13 +23,19 @@ run.new.schedule <- function(w, p, schedule, build.args=list()) {
                            build.args)
   res <- build.schedule(p, schedule, build.args$nsteps, build.args$eps,
                         progress=FALSE, verbose=build.args$verbose)
-  attr(res, "seed_rain")[,"out"]
+  unname(attr(res, "seed_rain")[,"out"])
 }
 
 ## # 1: Approach to equilibrium:
 res <- equilibrium.seed.rain(p, schedule0, 10, progress=TRUE,
                              build.args=list(verbose=TRUE))
-w.hat <- unname(res[["seed_rain"]][,"out"])
+w.hat <- unname(res[["seed_rain"]][,"in"])
+schedule1 <- res[["schedule"]]$copy()
+
+## Sanity and time check
+system.time(delta <- run(w.hat, p, schedule1) -
+            unname(res[["seed_rain"]][,"out"]))
+delta
 
 ## Plot the approach:
 approach <- t(sapply(attr(res, "progress"), "[[", "seed_rain"))
@@ -47,18 +53,18 @@ plot(approach, type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
 cobweb(approach, pch=19, cex=.5, type="o")
 
+## Zoom in on the last few points to see where the insability kicks
+## in:
+r <- w.hat + c(-1, 1) * 0.0000003
+plot(approach, type="n", las=1, xlim=r, ylim=r)
+abline(0, 1, lty=2, col="grey")
+cobweb(approach, pch=19, cex=.5, type="o")
+
 ## # 2: Near the equilibrium point:
 
 ## Then, in the vinicity of the root we should look at what the curve
 ## actually looks like, without adaptive refinement.
 dw <- 2 # range of input to vary (plus and minus this many seeds)
-seed_rain.in  <- seq(w.hat - dw, w.hat + dw, length=31)
-
-## Sanity and time check
-schedule1 <- res$schedule$copy()
-system.time(delta <- run(w.hat, p, schedule1) - w.hat)
-delta # should be very close to zero
-
 seed_rain.in  <- seq(w.hat - dw, w.hat + dw, length=31)
 seed_rain.out <- unlist(mclapply(seed_rain.in, run, p, schedule1))
 
@@ -71,9 +77,7 @@ abline(0, 1, lty=2, col="grey")
 abline(fit, lty=2)
 cobweb(approach)
 
-## TODO: This is a concern -- and different to what I was seeing
-## before, I think.  Cohort refinement is off, but something is up;
-## there is a step change in fitness here to track down.
+## See instability.R for more exploration of this:
 plot(seed_rain.in, resid(fit),
         xlab="Incoming seed rain", ylab="Residual seed rain",
         las=1, pch=1)
@@ -215,6 +219,8 @@ abline(0, 1, lty=2, col="grey")
 cols <- c("black", "red")
 for (i in seq_along(approach))
   cobweb(approach[[i]], pch=19, cex=.5, type="o", col=cols[[i]])
+
+## TODO: Add the reference approach here too.
 
 ## TODO: Review the list of control parameters and see which are
 ## causing the problems.

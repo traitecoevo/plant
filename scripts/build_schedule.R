@@ -23,45 +23,48 @@ t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
 t.linear <- seq(0, t.max, length=31)
 t.default <- cohort.introduction.times(t.max)
 
-sched.linear  <- schedule.from.times(t.linear,  p$size)
-sched.default <- schedule.from.times(t.default, p$size)
+sched.linear0  <- schedule.from.times(t.linear,  p$size)
+sched.default0 <- schedule.from.times(t.default, p$size)
 
-times.linear <- build.schedule(p, sched.linear, 20, 1e-3,
+sched.linear <- build.schedule(p, sched.linear0, 20, 1e-3,
                                progress=TRUE, verbose=TRUE)
-times.default <- build.schedule(p, sched.default, 20, 1e-3,
+times.default <- build.schedule(p, sched.default0, 20, 1e-3,
                                 progress=TRUE, verbose=TRUE)
 
-## Next, look at what an "optimal" schedule would look like from the
-## point of only fitness looks like.  We'll aim for a schedule of 250
-## total points (this is about 32 hours work, embarassingly enough).
-n.total <- 250
-n.linear <- n.total - length(t.linear)
-n.default <- n.total - length(t.default)
+## This part needs work, but is not a high priority at the moment:
+if (FALSE) {
+  ## Next, look at what an "optimal" schedule would look like from the
+  ## point of only fitness looks like.  We'll aim for a schedule of 250
+  ## total points (this is about 32 hours work, embarassingly enough).
+  n.total <- 250
+  n.linear <- n.total - length(t.linear)
+  n.default <- n.total - length(t.default)
 
-n.linear <- n.default <- 10
-times.w.linear <-
-  run.cached(build.schedule.fitness(p, t.linear, n.linear,
-                                    progress=TRUE, verbose=TRUE),
-             "times.w.linear.rds")
-times.w.default <-
-  run.cached(build.schedule.fitness(p, t.default, n.default,
-                                    progress=TRUE, verbose=TRUE),
-             "times.w.default.rds")
+  n.linear <- n.default <- 10
+  times.w.linear <-
+    run.cached(build.schedule.fitness(p, t.linear, n.linear,
+                                      progress=TRUE, verbose=TRUE),
+               "times.w.linear.rds")
+  times.w.default <-
+    run.cached(build.schedule.fitness(p, t.default, n.default,
+                                      progress=TRUE, verbose=TRUE),
+               "times.w.default.rds")
 
-## These look like they're grinding away and constantly increasing
-## fitness.  I wonder if this is because of errors propagating up from
-## lower level calculations?
-w.linear  <- sapply(attr(times.w.linear,  "progress")[-1], "[[", "w")
-w.default <- sapply(attr(times.w.default, "progress")[-1], "[[", "w")
+  ## These look like they're grinding away and constantly increasing
+  ## fitness.  I wonder if this is because of errors propagating up from
+  ## lower level calculations?
+  w.linear  <- sapply(attr(times.w.linear,  "progress")[-1], "[[", "w")
+  w.default <- sapply(attr(times.w.default, "progress")[-1], "[[", "w")
 
-w.linear.cmp <- w.linear[seq(to=length(w.linear), length=length(w.default))]
+  w.linear.cmp <- w.linear[seq(to=length(w.linear), length=length(w.default))]
 
-matplot(cbind(w.default, w.linear.cmp),
-        type="o", col=c("red", "blue"), pch=19, cex=.3, lty=1)
+  matplot(cbind(w.default, w.linear.cmp),
+          type="o", col=c("red", "blue"), pch=19, cex=.3, lty=1)
 
-matplot(cbind(w.default, w.linear.cmp),
-        ylim=c(max(w.default)-1, max(w.default)),
-        type="o", col=c("red", "blue"), pch=19, cex=.3, lty=1)
+  matplot(cbind(w.default, w.linear.cmp),
+          ylim=c(max(w.default)-1, max(w.default)),
+          type="o", col=c("red", "blue"), pch=19, cex=.3, lty=1)
+}
 
 rm(p)
 
@@ -73,10 +76,10 @@ p2$seed_rain <- c(1.1, 2.1)               # Whatever
 p2$set_parameters(list(patch_area=1.0))   # See issue #13
 p2$set_control_parameters(fast.control()) # A bit faster
 
-sched.linear  <- schedule.from.times(t.linear,  p2$size)
-sched.default <- schedule.from.times(t.default, p2$size)
+sched.linear0  <- schedule.from.times(t.linear,  p2$size)
+sched.default0 <- schedule.from.times(t.default, p2$size)
 
-times.linear <- build.schedule(p2, sched.linear, 20, 1e-3,
+sched.linear <- build.schedule(p2, sched.linear0, 20, 1e-3,
                                progress=TRUE, verbose=TRUE)
-times.default <- build.schedule(p2, sched.default, 20, 1e-3,
+sched.default <- build.schedule(p2, sched.default0, 20, 1e-3,
                                 progress=TRUE, verbose=TRUE)

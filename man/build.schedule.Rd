@@ -2,13 +2,14 @@
 \alias{build.schedule}
 \title{Build Cohort Schedule}
 \usage{
-  build.schedule(p, times, nsteps, eps, progress = FALSE,
-    verbose = FALSE)
+  build.schedule(p, schedule, nsteps, eps,
+    progress = FALSE, verbose = FALSE)
 }
 \arguments{
   \item{p}{Parameters object}
 
-  \item{times}{Vector of times to start from}
+  \item{schedule}{A CohortSchedule, with a schedule to
+  start from}
 
   \item{nsteps}{Number of rounds of refinements to go
   through}
@@ -22,11 +23,10 @@
   go?}
 }
 \value{
-  A vector of times
+  A CohortSchedule object
 }
 \description{
-  Build an appropriately refined schedule for a single
-  species.
+  Build an appropriately refined schedule.
 }
 \author{
   Rich FitzJohn

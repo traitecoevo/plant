@@ -36,8 +36,9 @@ equilibrium.seed.rain <- function(p, schedule, nsteps,
                                   large.seed_rain.change=10,
                                   progress=FALSE, verbose=TRUE) {
   p <- p$copy() # don't modify what we're given
+  schedule <- schedule$copy()
+  schedule.default <- schedule$copy()
 
-  times.default <- schedule$all_times
   build.args <- modifyList(list(nsteps=20, eps=1e-3, verbose=TRUE),
                            build.args)
   build <- function(schedule)
@@ -47,8 +48,8 @@ equilibrium.seed.rain <- function(p, schedule, nsteps,
   ## NOTE: The schedule of times here only gets larger.
   history <- list()
   for (i in seq_len(nsteps)) {
-    times <- build(schedule)
-    res <- list(seed_rain = attr(times, "seed_rain", exact=TRUE),
+    schedule <- build(schedule)
+    res <- list(seed_rain = attr(schedule, "seed_rain", exact=TRUE),
                 schedule  = schedule$copy())
     history <- c(history, list(res))
     seed_rain <- res[["seed_rain"]]
@@ -56,10 +57,10 @@ equilibrium.seed.rain <- function(p, schedule, nsteps,
 
     p$seed_rain <- seed_rain[,"out"]
     if (any(abs(change) > large.seed_rain.change))
-      schedule$all_times <- times.default
+      schedule <- schedule.default$copy()
 
     if (verbose)
-      message(sprintf("*** %d: {%s} -> {%s{ (delta = {%s})", i,
+      message(sprintf("*** %d: {%s} -> {%s} (delta = {%s})", i,
                       paste(prettyNum(seed_rain[,"in"]), collapse=","),
                       paste(prettyNum(seed_rain[,"out"]), collapse=","),
                       paste(prettyNum(change), collapse=",")))
@@ -67,5 +68,6 @@ equilibrium.seed.rain <- function(p, schedule, nsteps,
 
   if (progress)
     attr(res, "progress") <- history
+  attr(res, "schedule") <- schedule
   res
 }
