@@ -37,7 +37,7 @@ if (!skip && evolve.is.installed()) {
   ## former, but most commonly fails because of the latter.
   test_that("Output is as expected (strict test)", {
     expect_that(output[names(output) != "parameters"],
-                has_hash("d832943c6809ac7417ae9ab4bf7b57d4eb9940b2"))
+                has_hash("34d8333b78b53353235582488b584339ede28de7"))
   })
 
   ## The reference output exists at a superset of times that our output
@@ -85,7 +85,7 @@ if (!skip && evolve.is.installed()) {
   ## matrix of results differs by a little more [0.2%])
   expect_that(res$species[[1]]["height",,1],
               equals(ref.sub$species[[1]]["height",,1],
-                     tolerance=0.0002))
+                     tolerance=0.0003))
 
   ## This will work fairly well, but there are definitely differences:
   expect_that(res$species[[1]]["height",,],
