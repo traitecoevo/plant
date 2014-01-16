@@ -27,6 +27,8 @@ public:
   size_t size() const;
   Strategy r_at(size_t idx);
   Rcpp::List r_get_strategies();
+  size_t n_residents() const;
+  size_t n_mutants() const;
 
   // Setting
   void add_strategy(Strategy s);

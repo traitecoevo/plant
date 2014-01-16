@@ -6,6 +6,8 @@ p <- new(Parameters)
 
 ## Must start empty
 expect_that(p$size, equals(0))
+expect_that(p$n_residents, equals(0))
+expect_that(p$n_mutants,   equals(0))
 
 ## And these are the defaults:
 expected <- list(Pi_0=0.25,
@@ -32,6 +34,8 @@ expect_that(p[[10]], throws_error())
 
 ## Add a (default) strategy:
 p$add_strategy(new(Strategy))
+expect_that(p$n_residents, equals(1))
+expect_that(p$n_mutants,   equals(0))
 
 expect_that(p$size, equals(1))
 ## Should not have changed any parameters
@@ -103,6 +107,7 @@ test_that("Resident flag setting works as expected", {
   r <- c(FALSE, TRUE)
   p$is_resident <- r
   expect_that(p$is_resident, is_identical_to(r))
+  p$is_resident <- c(TRUE, TRUE)
 })
 
 test_that("Can directly add mutant strategies", {
@@ -110,6 +115,8 @@ test_that("Can directly add mutant strategies", {
   p$add_strategy_mutant(new(Strategy))
   expect_that(p$is_resident,
               is_identical_to(c(r, FALSE)))
+  expect_that(p$n_residents, equals(2))
+  expect_that(p$n_mutants,   equals(1))
 })
 
 test_that("Copying a Parameters works", {

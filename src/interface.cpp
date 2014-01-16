@@ -142,6 +142,8 @@ RCPP_MODULE(tree) {
     .constructor()
     .derives<util::Lookup>("Lookup")
     .property("size",         &model::Parameters::size)
+    .property("n_residents",  &model::Parameters::n_residents)
+    .property("n_mutants",    &model::Parameters::n_mutants)
     .method("[[",             &model::Parameters::r_at)
     .property("strategies",   &model::Parameters::r_get_strategies)
     .method("add_strategy",   &model::Parameters::add_strategy)

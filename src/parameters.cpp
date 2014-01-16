@@ -32,6 +32,15 @@ size_t Parameters::size() const {
   return strategies.size();
 }
 
+size_t Parameters::n_residents() const {
+  return static_cast<size_t>
+    (std::count(is_resident.begin(), is_resident.end(), true));
+}
+
+size_t Parameters::n_mutants() const {
+  return size() - n_residents();
+}
+
 void Parameters::add_strategy(Strategy s) {
   s.set_control(control);
   strategies.push_back(s);
