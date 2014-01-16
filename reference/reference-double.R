@@ -1,4 +1,6 @@
 source(system.file("tests/helper-tree.R", package="tree")) # has_hash
+if (!evolve.is.installed())
+  install.evolve()
 
 show.comparison <- function(res, ref, v, i=1) {
   if (interactive()) {

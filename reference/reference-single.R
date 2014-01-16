@@ -1,5 +1,7 @@
 ## As with reference.R, but for the simpler case of a single species.
 source(system.file("tests/helper-tree.R", package="tree"))
+if (!evolve.is.installed())
+  install.evolve()
 
 ## Simple plotting
 show.comparison <- function(res, ref, v, i=1) {
