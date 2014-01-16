@@ -6,6 +6,9 @@ p <- new(Parameters)
 p$add_strategy(new(Strategy))
 p$seed_rain <- pi/2
 
+expect_that(ebt <- new(EBT, p), throws_error())
+
+p$set_parameters(list(patch_area=1.0))
 ebt <- new(EBT, p)
 
 test_that("Parameters can be pulled from EBT", {
@@ -154,9 +157,9 @@ res.e.1 <- run.ebt(ebt)
 ## I've left the tolerance super strict here.
 test_that("EBT and Patch agree", {
   expect_that(res.e.1$t, is_identical_to(tt.p.end))
-  expect_that(res.e.1$h, equals(hh.p.end, tolerance=1e-11))
+  expect_that(res.e.1$h, equals(hh.p.end, tolerance=3e-11))
   expect_that(ebt$ode_values,
-              equals(patch$ode_values, tolerance=1e-9))
+              equals(patch$ode_values, tolerance=2e-9))
   expect_that(ebt$ode_rates,
               equals(patch$ode_rates,  tolerance=1e-8))
 })
@@ -183,7 +186,7 @@ ebt$cohort_schedule <- sched
 ## final time).
 res.e.3 <- run.ebt(ebt)
 test_that("EBT with fixed times agrees", {
-  expect_that(res.e.3, equals(res.e.1, tolerance=1e-12))
+  expect_that(res.e.3, equals(res.e.1, tolerance=2e-12))
 })
 
 ebt$reset()

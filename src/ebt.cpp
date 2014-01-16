@@ -7,6 +7,8 @@ EBT::EBT(Parameters p)
     patch(*parameters.get()),
     ode_solver(&patch, parameters->control.ode_control),
     schedule(patch.size()) {
+  if (!util::identical(parameters->patch_area, 1.0))
+    Rcpp::stop("Patch area must be exactly 1 for the EBT");
 }
 
 EBT::EBT(Parameters *p)
@@ -14,6 +16,8 @@ EBT::EBT(Parameters *p)
     patch(*parameters.get()),
     ode_solver(&patch, parameters->control.ode_control),
     schedule(patch.size()) {
+  if (!util::identical(parameters->patch_area, 1.0))
+    Rcpp::stop("Patch area must be exactly 1 for the EBT");
 }
 
 void EBT::run() {
