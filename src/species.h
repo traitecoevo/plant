@@ -264,7 +264,7 @@ ode::iterator Species<Individual>::ode_rates(ode::iterator it) const {
 template <class Individual>
 Individual Species<Individual>::r_at(size_t idx) const {
   plants_const_iterator p = plants.begin();
-  std::advance(p, util::check_bounds_r(idx, size()));
+  std::advance(p, static_cast<int>(util::check_bounds_r(idx, size())));
   return *p;
 }
 
