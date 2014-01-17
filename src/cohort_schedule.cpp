@@ -18,6 +18,15 @@ size_t CohortSchedule::get_n_species() const {
   return n_species;
 }
 
+CohortSchedule CohortSchedule::expand(size_t n_extra,
+                                      std::vector<double> times) {
+  CohortSchedule ret = *this;
+  ret.n_species += n_extra;
+  for (size_t i = n_species; i < ret.n_species; ++i)
+    ret.set_times(times, i);
+  return ret;
+}
+
 // NOTE: See note in cohort_schedule.h:CohortSchedule::Event for why
 // the cast is needed here.
 void CohortSchedule::clear_times(size_t species_index) {

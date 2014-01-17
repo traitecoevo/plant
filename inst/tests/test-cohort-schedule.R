@@ -281,3 +281,28 @@ test_that("State get/set works correctly", {
   expect_that(sched2$state, is_identical_to(state))
   expect_that(sched2$remaining, is_identical_to(sched$remaining))
 })
+
+test_that("Can expand CohortSchedule", {
+  sched <- new(CohortSchedule, 1)
+  max.t <- 10
+  times1 <- sort(runif(10))
+  sched$max_time <- max.t
+  sched$set_times(times1, 1)
+
+  expect_that(sched$n_species, equals(1))
+  expect_that(sched$max_time, is_identical_to(max.t))
+  expect_that(sched$times(1), is_identical_to(times1))
+
+  times2 <- sort(runif(20))
+  sched3 <- sched$expand(2, times2) # expand by two species:
+  expect_that(sched3$n_species, equals(3))
+  expect_that(sched3$max_time, is_identical_to(max.t))
+  expect_that(sched3$times(1), is_identical_to(times1))
+  expect_that(sched3$times(2), is_identical_to(times2))
+  expect_that(sched3$times(3), is_identical_to(times2))
+
+  # Schedules are independent:
+  sched3$max_time <- 2 * max.t
+  expect_that(sched$max_time,  is_identical_to(max.t))
+  expect_that(sched3$max_time, is_identical_to(2 * max.t))
+})

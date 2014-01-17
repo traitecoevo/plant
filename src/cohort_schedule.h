@@ -21,6 +21,7 @@ public:
   CohortSchedule(size_t n_species_);
   size_t size() const;
   size_t get_n_species() const;
+  CohortSchedule expand(size_t n_extra, std::vector<double> times);
 
   void clear_times(size_t species_index);
   void set_times(std::vector<double> times_, size_t species_index);

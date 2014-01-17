@@ -224,6 +224,7 @@ RCPP_MODULE(tree) {
     .constructor<size_t>()
     .property("size",       &model::CohortSchedule::size)
     .property("n_species",  &model::CohortSchedule::get_n_species)
+    .method("expand",       &model::CohortSchedule::expand)
     .method("clear_times",  &model::CohortSchedule::r_clear_times)
     .method("set_times",    &model::CohortSchedule::r_set_times)
     .method("times",        &model::CohortSchedule::r_times)
