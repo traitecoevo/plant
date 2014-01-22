@@ -57,19 +57,8 @@ p2 <- setup.parameters(rbind(traits, traits.new), c(rain.in, rain.in.new),
                        p0)
 schedule2 <- setup.schedule(c(times, times.new), t.max)
 
-## This is really going bonkers on cohort refinement -- way more than
-## I'd have thought given that the individuals are coming in at such a
-## low frequency.  The two traits that we did put in are basically the
-## same as the focal individual but they get refined down to
-## incredible levels (almost 600 individuals).
-##
-## The extra times are turning up in a weird pulse around 20.
-schedule2.2 <- build.schedule(p2, schedule2, 20, 1e-3, progress=FALSE,
+schedule2.2 <- build.schedule(p2, schedule2, 1, 1e-3, progress=FALSE,
                               verbose=TRUE)
 
 times2 <- schedule2.2$all_times
-## The fact that seed rain has been driven down to 1e-7 really
-## suggests that the cohort refinement code just needs adjusting.  We
-## simply do not need the precision when things are that bad.  At the
-## same time it suggests why the refinement code has bailed.
 rain.out2 <- unname(attr(schedule2.2, "seed_rain", exact=TRUE)[,"out"])
