@@ -34,8 +34,8 @@ public:
   virtual std::vector<int> r_n_individuals() const = 0;
   virtual Environment r_environment() const = 0;
   virtual double r_height_max() const = 0;
-  virtual double r_canopy_openness(double height) = 0;
-  virtual double r_leaf_area_above(double height) const = 0;
+  virtual double leaf_area_above(double height) const = 0;
+  virtual double canopy_openness(double height) = 0;
   virtual void r_compute_light_environment() = 0;
   virtual void r_compute_vars_phys() = 0;
   virtual std::vector<int> r_germination(std::vector<int> seeds) = 0;
@@ -62,6 +62,10 @@ public:
   void add_seeds(std::vector<int> seeds);
   void add_seedling(size_t species_index);
   void add_seedlings(std::vector<int> seeds);
+
+  // [eqn 11] Canopy openness at `height`
+  double leaf_area_above(double height) const;
+  double canopy_openness(double height);
 
   // * ODE interface.
   size_t ode_size() const;
@@ -92,8 +96,6 @@ public:
   Environment r_environment() const;
   // Wrappers around private methods for use from R
   double r_height_max() const;
-  double r_canopy_openness(double height);
-  double r_leaf_area_above(double height) const;
   void r_compute_light_environment();
   void r_compute_vars_phys();
   // NOTE: germination is special to the Metacommunity
@@ -109,10 +111,6 @@ private:
 
   // Maximum height for any species in the Patch
   double height_max() const;
-
-  // [eqn 11] Canopy openness at `height`
-  double leaf_area_above(double height) const;
-  double canopy_openness(double height);
 
   void compute_light_environment();
   void rescale_light_environment();
@@ -409,16 +407,6 @@ void Patch<Individual>::r_add_seedlings(std::vector<int> seeds) {
 template <class Individual>
 double Patch<Individual>::r_height_max() const {
   return height_max();
-}
-
-template <class Individual>
-double Patch<Individual>::r_canopy_openness(double height) {
-  return canopy_openness(height);
-}
-
-template <class Individual>
-double Patch<Individual>::r_leaf_area_above(double height) const {
-  return leaf_area_above(height);
 }
 
 template <class Individual>

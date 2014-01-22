@@ -252,7 +252,8 @@ std::string rcpp_class_demangle(std::string x);
 // and we want to know how much the middle point is contributing to
 // the integral.
 std::vector<double> local_error_integration(const std::vector<double>& x,
-					    const std::vector<double>& y);
+					    const std::vector<double>& y,
+					    double scal);
 
 template<typename T>
 std::string to_string(T x) {

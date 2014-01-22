@@ -62,12 +62,21 @@ double EBT::fitness(size_t species_index) const {
 }
 
 std::vector<double> EBT::leaf_area_error(size_t species_index) const {
-  return patch.at(species_index).leaf_area_error();
+  // NOTE: Possibly wasteful, but at the moment we only return these
+  // one at a time, so maybe not.
+  const double tot_leaf_area  = patch.leaf_area_above(0.0);
+  return patch.at(species_index).leaf_area_error(tot_leaf_area);
 }
 
 std::vector<double> EBT::fitness_error(size_t species_index) const {
+  // NOTE: Possibly wasteful, possibly nbd.  If we grab all fitness at
+  // once, then we should only compute this scaling factor once.
+  double tot_seed_out = 0.0;
+  for (size_t i = 0; i < patch.size(); ++i)
+    tot_seed_out += fitness(i);
   return util::local_error_integration(schedule.times(species_index),
-				       fitness_cohort(species_index));
+				       fitness_cohort(species_index),
+				       tot_seed_out);
 }
 
 std::vector<double> EBT::fitnesses() const {

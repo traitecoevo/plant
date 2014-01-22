@@ -186,7 +186,7 @@ ebt$cohort_schedule <- sched
 ## final time).
 res.e.3 <- run.ebt(ebt)
 test_that("EBT with fixed times agrees", {
-  expect_that(res.e.3, equals(res.e.1, tolerance=2e-12))
+  expect_that(res.e.3, equals(res.e.1, tolerance=4e-12))
 })
 
 ebt$reset()
@@ -255,18 +255,22 @@ test_that("Fitness & error calculations correct", {
     p <- ebt$parameters
     scale <- p$parameters[["Pi_0"]] * p$seed_rain
     seeds <- pa * ebt$patch$species[[1]]$seeds * scale
-    if (error) local_error_integration(a, seeds) else trapezium(a, seeds)
+    total <- trapezium(a, seeds)
+    if (error) local_error_integration(a, seeds, total) else total
   }
 
   expect_that(ebt$fitness(1), equals(fitness.R(ebt)))
   expect_that(ebt$fitnesses, equals(fitness.R(ebt)))
-  expect_that(ebt$fitness_error(1), equals(fitness.R(ebt, error=TRUE)))
+  expect_that(ebt$fitness_error(1),
+              equals(fitness.R(ebt, error=TRUE)))
 
   expect_that(ebt$fitness(0), throws_error())
   expect_that(ebt$fitness(2), throws_error())
 
+  lae.cmp <-
+    ebt$patch$species[[1]]$leaf_area_error(ebt$patch$leaf_area_above(0))
   expect_that(ebt$leaf_area_error(1),
-              is_identical_to(ebt$patch$species[[1]]$leaf_area_error))
+              is_identical_to(lae.cmp))
 })
 
 rm(ebt)

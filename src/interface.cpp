@@ -310,8 +310,8 @@ RCPP_MODULE(tree) {
     .derives<model::SpeciesBase>("SpeciesBase")
     .method("[[", &model::Species<model::CohortTop>::r_at)
     .property("seed", &model::Species<model::CohortTop>::r_seed)
-    .property("leaf_area_error",
-	      &model::Species<model::CohortTop>::leaf_area_error)
+    .method("leaf_area_error",
+	    &model::Species<model::CohortTop>::leaf_area_error)
     ;
 
   Rcpp::class_<model::Environment>("Environment")
@@ -347,8 +347,8 @@ RCPP_MODULE(tree) {
     .property("disturbance_regime",
 	      &model::PatchBase::get_disturbance_regime)
     .property("height_max",       &model::PatchBase::r_height_max)
-    .method("canopy_openness",    &model::PatchBase::r_canopy_openness)
-    .method("leaf_area_above",    &model::PatchBase::r_leaf_area_above)
+    .method("canopy_openness",    &model::PatchBase::canopy_openness)
+    .method("leaf_area_above",    &model::PatchBase::leaf_area_above)
     .method("compute_light_environment",
 	    &model::PatchBase::r_compute_light_environment)
     .property("environment",      &model::PatchBase::r_environment)

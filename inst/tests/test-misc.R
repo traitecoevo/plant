@@ -103,30 +103,27 @@ test_that("Trapezium local error estimate is correct", {
            (y[i1] + y[i2])*(x[i2] - x[i1]))
     y1.coarse <-
       0.5*((y[i0] + y[i2])*(x[i2] - x[i0]))
-    tot <- abs(trapezium(x, y))
-    y1.fine   <- y1.fine / tot
-    y1.coarse <- y1.coarse / tot
 
-    err.abs <- abs(    y1.coarse - y1.fine)
-    err.rel <- abs(1 - y1.coarse / y1.fine)
-    err.rel[is.nan(err.rel)] <- Inf
-    c(NA, pmin(err.abs, err.rel), NA)
+    c(NA, abs(y1.coarse - y1.fine), NA)
   }
 
   ## Some data:
   set.seed(1)
   xx <- sort(runif(100, 0, 6*pi))
-  yy <- sin(xx) + 1
+  yy <- 6*(sin(xx) + 1)
+  tot <- abs(trapezium(xx, yy))
 
-  expect_that(local_error_integration(xx, yy),
+  expect_that(local_error_integration(xx, yy, 1),
               equals(local.error.integration(xx, yy)))
+  expect_that(local_error_integration(xx, yy, tot),
+              equals(local.error.integration(xx, yy)/tot))
 
-  expect_that(local_error_integration(numeric(0), numeric(0)),
+  expect_that(local_error_integration(numeric(0), numeric(0), tot),
               equals(numeric(0)))
-  expect_that(local_error_integration(xx[1], yy[1]),
+  expect_that(local_error_integration(xx[1], yy[1], tot),
               equals(NA_real_))
-  expect_that(local_error_integration(xx[1:2], yy[1:2]),
+  expect_that(local_error_integration(xx[1:2], yy[1:2], tot),
               equals(c(NA_real_, NA_real_)))
-  expect_that(local_error_integration(xx[1:2], yy[1:3]),
+  expect_that(local_error_integration(xx[1:2], yy[1:3], tot),
               throws_error())
 })

@@ -143,7 +143,8 @@ std::string rcpp_class_demangle(std::string x) {
 // Because this is normalised against the total error, this could be
 // really really badly behaved when this goes towards zero.
 std::vector<double> local_error_integration(const std::vector<double>& x,
-					    const std::vector<double>& y) {
+					    const std::vector<double>& y,
+					    double scal) {
   std::vector<double> ret;
   check_length(x.size(), y.size());
 
@@ -152,20 +153,14 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
       ret.push_back(NA_REAL);
   } else {
     ret.push_back(NA_REAL);
-    // First, go through and compute integrals over the fine grid:
     std::vector<double> a = trapezium_vector(x, y);
-    // Compute the total area under the curve.
-    const double tot = std::abs(std::accumulate(a.begin(), a.end(), 0.0));
-
     std::vector<double>::const_iterator a1 = a.begin(),
       x1 = x.begin(), y1 = y.begin();
     std::vector<double>::const_iterator a2 = a1+1, x3 = x1+2, y3 = y1+2;
     while (x3 != x.end()) {
       const double a123 = *a1++ + *a2++;
       const double a1_3  = 0.5 * (*y1++ + *y3++) * (*x3++ - *x1++);
-      const double err_abs = std::abs(    a1_3 - a123) / tot;
-      const double err_rel = std::abs(1 - a1_3 / a123);
-      ret.push_back(std::min(err_abs, err_rel));
+      ret.push_back(std::abs(a1_3 - a123) / scal);
     }
     ret.push_back(NA_REAL);
   }
