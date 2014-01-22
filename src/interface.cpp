@@ -141,6 +141,7 @@ RCPP_MODULE(tree) {
   Rcpp::class_<model::Parameters>("Parameters")
     .constructor()
     .derives<util::Lookup>("Lookup")
+    .method("clear",          &model::Parameters::clear)
     .property("size",         &model::Parameters::size)
     .property("n_residents",  &model::Parameters::n_residents)
     .property("n_mutants",    &model::Parameters::n_mutants)

@@ -23,6 +23,10 @@ void Parameters::reset() {
   // basically the inverse of set_parameters_post_hook())
   _n_patches = static_cast<double>(n_patches);
 
+  clear();
+}
+
+void Parameters::clear() {
   strategies.clear();
   seed_rain.clear();
   is_resident.clear();

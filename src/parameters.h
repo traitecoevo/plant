@@ -23,6 +23,8 @@ public:
   // Construction
   Parameters();
 
+  void clear();
+
   // Querying
   size_t size() const;
   Strategy r_at(size_t idx);

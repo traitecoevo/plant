@@ -132,3 +132,19 @@ test_that("Copying a Parameters works", {
   expect_that(p1.p$c_ext, equals(1))
   expect_that(p2.p$c_ext, equals(2))
 })
+
+test_that("Clearing strategies works", {
+  p1 <- new(Parameters)
+  p1$set_parameters(list(c_ext=1))
+  p1$set_control_parameters(list(plant_seed_tol=1))
+  p1$add_strategy(new(Strategy))
+
+  p2 <- p1$copy()
+  p2$clear()
+
+  expect_that(p2$parameters,
+              is_identical_to(p1$parameters))
+  expect_that(p2$control$parameters,
+              is_identical_to(p1$control$parameters))
+  expect_that(p2$size, equals(0))
+})
