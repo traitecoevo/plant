@@ -6,6 +6,15 @@ library(mvtnorm)
 
 source("assembly-fun.R")
 
+p0 <- new(Parameters)
+p0$set_parameters(list(patch_area=1.0))
+p0$set_control_parameters(fast.control())
+t.max <- p0$disturbance$cdf(tree:::reference.pr.survival.eps)
+times0 <- cohort.introduction.times(t.max)
+
+seed_rain0    <- 1e-3 # rain for new arrivals
+seed_rain.eps <- 1e-4 # below which, consider species extinct
+
 bounds <- rbind(lma=10^c(-2.5, 1.5),
                 hmat=c(0.1,100))
 colnames(bounds) <- c("lower", "upper")
@@ -14,51 +23,27 @@ colnames(bounds) <- c("lower", "upper")
 p <- 0.001
 vcv <- diag(2) * p * as.numeric(diff(t(log(bounds))))
 
-new.phenotypes <- make.new.phenotypes(2, vcv, 1, bounds)
+mean.n.mutants    <- 2
+mean.n.immigrants <- 1
 
-## set.seed(1)
-## traits  <- rbind(rowMeans(bounds))
-## repeat {
-##   plot(traits, xlim=bounds[1,], ylim=bounds[2,], log="xy")
-##   traits.new <- f(traits, rep(1, nrow(traits)))
-##   points(traits.new, col="blue", cex=.5, pch=19)
-##   traits <- rbind(traits, traits.new)
-## }
+new.phenotypes <- make.new.phenotypes(mean.n.mutants, vcv,
+                                      mean.n.immigrants, bounds)
+births <- make.births(new.phenotypes, seed_rain0, times0)
+deaths <- make.deaths(seed_rain.eps)
+run <- make.run(p0, t.max)
 
-p0 <- new(Parameters)
-p0$set_parameters(list(patch_area=1.0))
-p0$set_control_parameters(fast.control())
-t.max <- p0$disturbance$cdf(tree:::reference.pr.survival.eps)
-times0 <- cohort.introduction.times(t.max)
+sys <- list(traits=cbind(lma=0.1978791, hmat=16.5958691),
+            seed_rain=505.55407,
+            times=list(times0))
 
-rain.intro <- 1e-3 # rain for new arrivals
-rain.eps   <- 1e-4 # below which, extinct
-
-traits <- cbind(lma=0.1978791, hmat=16.5958691)
-rain.in <- 505.55407
-p <- setup.parameters(traits, rain.in, p0)
-
-## Build a schedule for the first trait:
-schedule0 <- schedule.from.times(times0, 1)
-schedule <- build.schedule(p, schedule0, 20, 1e-3, progress=FALSE,
-                           verbose=TRUE)
-
-times <- schedule$all_times
-rain.out <- unname(attr(schedule, "seed_rain", exact=TRUE)[,"out"])
-
-## Still have to drop the things that don't make it at this step.
-set.seed(1)
-traits.new  <- new.phenotypes(traits, rain.out)
-n.new       <- nrow(traits.new)
-rain.in.new <- rep(rain.intro, n.new)
-times.new   <- rep(list(times0), n.new)
-
-p2 <- setup.parameters(rbind(traits, traits.new), c(rain.in, rain.in.new),
-                       p0)
-schedule2 <- setup.schedule(c(times, times.new), t.max)
-
-schedule2.2 <- build.schedule(p2, schedule2, 1, 1e-3, progress=FALSE,
-                              verbose=TRUE)
-
-times2 <- schedule2.2$all_times
-rain.out2 <- unname(attr(schedule2.2, "seed_rain", exact=TRUE)[,"out"])
+## Here goes.  This will run indefinitely, so kill it once the
+## community has stabilised.
+res <- list(list(sys))
+repeat {
+  message(sprintf("*** Step %d:", length(res)))
+  print(cbind(sys$traits, rain=sys$seed_rain))
+  sys <- run(sys)
+  sys <- deaths(sys)
+  sys <- births(sys)
+  res <- c(res, list(sys))
+}
