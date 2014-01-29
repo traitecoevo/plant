@@ -52,8 +52,10 @@ private:
   std::vector<double> fitness_cohort(size_t species_index) const;
 
   Parameters::ptr parameters;
+protected: // for now, at least (see EBTMutantRunner)
   Patch<CohortTop> patch;
-  ode::Solver<Patch <CohortTop> > ode_solver;
+private:
+  ode::Solver<EBT> ode_solver;
   CohortSchedule schedule;
 };
 

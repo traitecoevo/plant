@@ -27,6 +27,7 @@
 
 #include "metacommunity.h"
 #include "ebt.h"
+#include "ebt_mutant_runner.h"
 
 #include "functor.h"
 #include "find_root.h"
@@ -63,9 +64,7 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<interpolator::FakeLightEnvironment>("FakeLightEnvironment")
     .constructor<std::vector<double>, Rcpp::List>()
-    .method("set_time",  &interpolator::FakeLightEnvironment::set_time)
-    .property("current", &interpolator::FakeLightEnvironment::get_current)
-    .method("merge",     &interpolator::FakeLightEnvironment::merge)
+    .method("get",  &interpolator::FakeLightEnvironment::operator())
     ;
 
   Rcpp::class_<ode::test::Lorenz>("Lorenz")
@@ -450,6 +449,11 @@ RCPP_MODULE(tree) {
     .method("set_times",         &model::EBT::r_set_times)
     .property("state",           &model::EBT::r_get_state,
 	      &model::EBT::r_set_state)
+    ;
+
+  Rcpp::class_<model::EBTMutantRunner>("EBTMutantRunner")
+    .derives<model::EBT>("EBT")
+    .constructor<model::Parameters, interpolator::FakeLightEnvironment>()
     ;
 
   Rcpp::class_<util::RFunctionWrapper>("RFunctionWrapper")

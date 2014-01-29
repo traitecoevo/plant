@@ -23,29 +23,21 @@ public:
 		       std::vector<Interpolator> splines_);
   FakeLightEnvironment(std::vector<double> times_,
 		       Rcpp::List splines_);
-  void set_time(double t);
+  Interpolator operator()(double t);
 
-  double eval(double u)  const {return current.eval(u);}
-  double deriv(double u) const {return current.deriv(u);}
-  double min()           const {return current.min();}
-  double max()           const {return current.max();}
-
-  Interpolator get_current() const {return current;}
-
+private:
+  void initialise();
   Interpolator merge(double t,
 		     double t0, const Interpolator& s0,
 		     double t1, const Interpolator& s1) const;
 
-private:
-  void initialise();
-
   std::vector<double> times;
   std::vector<Interpolator> splines;
-  double time;
   double time_max;
-  Interpolator current;
 };
 
 }
+
+RCPP_EXPOSED_CLASS(interpolator::FakeLightEnvironment)
 
 #endif

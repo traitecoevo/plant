@@ -225,12 +225,10 @@ Patch<Individual>::set_ode_values(double time,
 				  ode::iterator_const it) {
   it = ode::set_ode_values(species.begin(), species.end(), time, it);
   environment.set_time(time);
-  if (!parameters->control.environment_light_skip) {
-    if (parameters->control.environment_light_rescale_usually)
-      rescale_light_environment();
-    else
-      compute_light_environment();
-  }
+  if (parameters->control.environment_light_rescale_usually)
+    rescale_light_environment();
+  else
+    compute_light_environment();
   compute_vars_phys();
   return it;
 }
@@ -340,14 +338,18 @@ double Patch<Individual>::canopy_openness(double height) {
 // species.
 template <class Individual>
 void Patch<Individual>::compute_light_environment() {
-  util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
-  environment.compute_light_environment(&fun, height_max());
+  if (!parameters->control.environment_light_skip) {
+    util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
+    environment.compute_light_environment(&fun, height_max());
+  }
 }
 
 template <class Individual>
 void Patch<Individual>::rescale_light_environment() {
-  util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
-  environment.rescale_light_environment(&fun, height_max());
+  if (!parameters->control.environment_light_skip) {
+    util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
+    environment.rescale_light_environment(&fun, height_max());
+  }
 }
 
 // Given the light environment, "apply" it to every species so that

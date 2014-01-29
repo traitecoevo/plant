@@ -9,6 +9,7 @@
 ##' @export Control
 ##' @export Disturbance
 ##' @export EBT
+##' @export EBTMutantRunner
 ##' @export Environment
 ##' @export FakeLightEnvironment
 ##' @export Interpolator

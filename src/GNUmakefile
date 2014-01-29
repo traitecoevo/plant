@@ -2,7 +2,8 @@ SOURCES_MODEL  = strategy.cpp control.cpp parameters.cpp \
 	disturbance.cpp environment.cpp \
 	plant.cpp cohort_discrete.cpp  \
 	species.cpp patch.cpp cohort_top.cpp \
-	cohort_schedule.cpp ebt.cpp metacommunity.cpp
+	cohort_schedule.cpp ebt.cpp ebt_mutant_runner.cpp \
+	metacommunity.cpp
 SOURCES_INTERPOLATOR = interpolator.cpp adaptive_interpolator.cpp \
 	fake_light_environment.cpp
 SOURCES_INTEGRATION = quadrature.cpp quadrature_rules.cpp \

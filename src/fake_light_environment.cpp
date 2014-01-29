@@ -4,16 +4,32 @@ namespace interpolator {
 
 FakeLightEnvironment::FakeLightEnvironment(std::vector<double> times_,
 					   std::vector<Interpolator> splines_)
-  : times(times_), splines(splines_), time(0) {
+  : times(times_), splines(splines_) {
   initialise();
 }
 
 FakeLightEnvironment::FakeLightEnvironment(std::vector<double> times_,
 					   Rcpp::List splines_)
-  : times(times_), time(0) {
+  : times(times_) {
   for (int i = 0; i < splines_.size(); ++i)
     splines.push_back(Rcpp::as<Interpolator>(splines_[i]));
   initialise();
+}
+
+Interpolator FakeLightEnvironment::operator()(double t) {
+  if (t < 0)
+    Rcpp::stop("Can't set negative time");
+  if (t > time_max)
+    Rcpp::stop("Time exceeds maximum");
+
+  std::vector<double>::const_iterator it1 =
+    std::lower_bound(times.begin(), times.end(), t);
+  std::vector<double>::const_iterator
+    it0 = it1 == times.begin() ? it1 : it1 - 1;
+
+  return merge(t,
+	       *it0, splines[static_cast<size_t>(it0 - times.begin())],
+	       *it1, splines[static_cast<size_t>(it1 - times.begin())]);
 }
 
 void FakeLightEnvironment::initialise() {
@@ -25,24 +41,6 @@ void FakeLightEnvironment::initialise() {
   if (!util::is_sorted(times.begin(), times.end()))
     Rcpp::stop("Times must be sorted");
   time_max = times.back();
-  set_time(0);
-}
-
-void FakeLightEnvironment::set_time(double t) {
-  if (t < 0)
-    Rcpp::stop("Can't set negative time");
-  if (t > time_max)
-    Rcpp::stop("Time exceeds maximum");
-  time = t;
-
-  std::vector<double>::const_iterator it1 =
-    std::lower_bound(times.begin(), times.end(), t);
-  std::vector<double>::const_iterator
-    it0 = it1 == times.begin() ? it1 : it1 - 1;
-
-  current = merge(time,
-		  *it0, splines[static_cast<size_t>(it0 - times.begin())],
-		  *it1, splines[static_cast<size_t>(it1 - times.begin())]);
 }
 
 Interpolator
