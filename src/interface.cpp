@@ -459,11 +459,13 @@ RCPP_MODULE(tree) {
 
   Rcpp::class_<integration::QK>("QK")
     .constructor<size_t>()
-    .method("integrate",       &integration::QK::r_integrate)
-    .property("last_area",     &integration::QK::get_last_area)
-    .property("last_error",    &integration::QK::get_last_error)
-    .property("last_area_abs", &integration::QK::get_last_area_abs)
-    .property("last_area_asc", &integration::QK::get_last_area_asc)
+    .method("integrate",         &integration::QK::r_integrate)
+    .property("last_area",       &integration::QK::get_last_area)
+    .property("last_error",      &integration::QK::get_last_error)
+    .property("last_area_abs",   &integration::QK::get_last_area_abs)
+    .property("last_area_asc",   &integration::QK::get_last_area_asc)
+    .method("integrate_vector_x",&integration::QK::integrate_vector_x)
+    .method("integrate_vector",  &integration::QK::integrate_vector)
     ;
 
   Rcpp::class_<integration::QAG>("QAG")

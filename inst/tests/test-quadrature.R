@@ -55,3 +55,41 @@ test_that("Cannot make non-existent rules", {
   expect_that(new(QK, 100), throws_error())
   expect_that(new(QK, NA),  throws_error())
 })
+
+test_that("Vectorised interface to integration works", {
+  int.15 <- new(QK, 15)
+  x <- int.15$integrate_vector_x(a, b)
+  expect_that(int.15$integrate_vector(f(x), a, b),
+              is_identical_to(int.15$integrate(g, a, b)))
+
+  int.21 <- new(QK, 21)
+  x <- int.21$integrate_vector_x(a, b)
+  expect_that(int.21$integrate_vector(f(x), a, b),
+              is_identical_to(int.21$integrate(g, a, b)))
+
+  int.31 <- new(QK, 31)
+  x <- int.31$integrate_vector_x(a, b)
+  expect_that(int.31$integrate_vector(f(x), a, b),
+              is_identical_to(int.31$integrate(g, a, b)))
+
+  int.41 <- new(QK, 41)
+  x <- int.41$integrate_vector_x(a, b)
+  expect_that(int.41$integrate_vector(f(x), a, b),
+              is_identical_to(int.41$integrate(g, a, b)))
+
+  int.51 <- new(QK, 51)
+  x <- int.51$integrate_vector_x(a, b)
+  expect_that(int.51$integrate_vector(f(x), a, b),
+              is_identical_to(int.51$integrate(g, a, b)))
+
+  int.61 <- new(QK, 61)
+  x <- int.61$integrate_vector_x(a, b)
+  expect_that(int.61$integrate_vector(f(x), a, b),
+              is_identical_to(int.61$integrate(g, a, b)))
+
+  ## Safe from wrong-length arguments.
+  expect_that(int.61$integrate_vector(f(x)[-1], a, b),
+              throws_error())
+  expect_that(int.61$integrate_vector(c(1, f(x)), a, b),
+              throws_error())
+})

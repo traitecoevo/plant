@@ -12,6 +12,10 @@ public:
   QK(size_t rule);
   double integrate(util::DFunctor *f, double a, double b);
 
+  std::vector<double> integrate_vector_x(double a, double b) const;
+  double integrate_vector(const std::vector<double>& y,
+			  double a, double b);
+
   // These are super simple, so inline:
   double get_last_area()     const {return last_result;    }
   double get_last_error()    const {return last_error;     }
