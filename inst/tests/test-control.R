@@ -17,6 +17,7 @@ expected <- list(
   environment_light_akima = as.numeric(FALSE),
   environment_light_linear = as.numeric(FALSE),
   environment_light_rescale_usually = as.numeric(FALSE),
+  environment_light_skip = as.numeric(FALSE),
   ode_a_dydt = 0.0,
   ode_a_y = 1.0,
   ode_step_size_max = 1e-1,

@@ -49,6 +49,7 @@ public:
   bool   environment_light_akima;
   bool   environment_light_linear;
   bool   environment_light_rescale_usually;
+  bool   environment_light_skip;
 
   double ode_step_size_min;
   double ode_step_size_max;
@@ -90,6 +91,7 @@ private:
   double _environment_light_akima;
   double _environment_light_linear;
   double _environment_light_rescale_usually;
+  double _environment_light_skip;
 };
 
 }

@@ -224,10 +224,12 @@ Patch<Individual>::set_ode_values(double time,
 				  ode::iterator_const it) {
   it = ode::set_ode_values(species.begin(), species.end(), time, it);
   environment.set_time(time);
-  if (parameters->control.environment_light_rescale_usually)
-    rescale_light_environment();
-  else
-    compute_light_environment();
+  if (!parameters->control.environment_light_skip) {
+    if (parameters->control.environment_light_rescale_usually)
+      rescale_light_environment();
+    else
+      compute_light_environment();
+  }
   compute_vars_phys();
   return it;
 }

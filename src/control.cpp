@@ -48,6 +48,7 @@ void Control::reset() {
   environment_light_akima = false;
   environment_light_linear = false;
   environment_light_rescale_usually = false;
+  environment_light_skip = false;
 
   ode_step_size_min = 1e-6;
   ode_step_size_max = 1e-1;
@@ -104,6 +105,8 @@ void Control::reset() {
     static_cast<bool>(environment_light_linear);
   _environment_light_rescale_usually =
     static_cast<bool>(environment_light_rescale_usually);
+  _environment_light_skip =
+    static_cast<bool>(environment_light_skip);
 
   // Like set_parameters_post_hook(), rebuild the ODE control, too.
   ode_control = make_ode_control();
@@ -165,6 +168,8 @@ void Control::do_build_lookup() {
     &_environment_light_linear;
   lookup_table["environment_light_rescale_usually"] =
     &_environment_light_rescale_usually;
+  lookup_table["environment_light_skip"] =
+    &_environment_light_skip;
 
   lookup_table["ode_step_size_min"] =
     &ode_step_size_min;
@@ -225,6 +230,8 @@ void Control::set_parameters_post_hook() {
     static_cast<bool>(_environment_light_linear);
   environment_light_rescale_usually =
     static_cast<bool>(_environment_light_rescale_usually);
+  environment_light_skip =
+    static_cast<bool>(_environment_light_skip);
 
   ode_control = make_ode_control();
 }
