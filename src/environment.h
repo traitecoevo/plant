@@ -31,12 +31,12 @@ public:
   double get_time() const;
   void set_time(double x);
 
+  interpolator::Interpolator get_light_environment() const;
+  void set_light_environment(const interpolator::Interpolator env);
+
   // * R interface
   std::vector<double> r_get_seed_rain() const;
   void r_set_seed_rain(std::vector<double> x);
-
-  interpolator::Interpolator r_get_light_environment() const;
-  void r_set_light_environment(const interpolator::Interpolator env);
 
   void r_set_seed_rain_index(size_t x);
 

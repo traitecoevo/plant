@@ -336,8 +336,8 @@ RCPP_MODULE(tree) {
 	      &model::Environment::get_time,
 	      &model::Environment::set_time)
     .property("light_environment",
-	      &model::Environment::r_get_light_environment,
-	      &model::Environment::r_set_light_environment)
+	      &model::Environment::get_light_environment,
+	      &model::Environment::set_light_environment)
     .property("seed_rain",       &model::Environment::r_get_seed_rain)
     .method("set_seed_rain_index",
 	    &model::Environment::r_set_seed_rain_index)

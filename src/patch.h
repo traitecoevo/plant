@@ -76,6 +76,7 @@ public:
   void set_time(double x);
 
   const Disturbance& get_disturbance_regime() const;
+  void set_light_environment(const interpolator::Interpolator& x);
 
   // * R interface.
 
@@ -258,6 +259,11 @@ const Disturbance& Patch<Individual>::get_disturbance_regime() const {
   return environment.get_disturbance_regime();
 }
 
+template <class Individual>
+void Patch<Individual>::set_light_environment(const
+					      interpolator::Interpolator& x){
+  environment.set_light_environment(x);
+}
 // * Private functions
 template <class Individual>
 void Patch<Individual>::initialise() {

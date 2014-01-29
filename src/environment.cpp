@@ -85,14 +85,14 @@ const Disturbance& Environment::get_disturbance_regime() const {
   return disturbance_regime;
 }
 
-// * R interface
-interpolator::Interpolator Environment::r_get_light_environment() const {
+interpolator::Interpolator Environment::get_light_environment() const {
   return light_environment;
 }
-void Environment::r_set_light_environment(const interpolator::Interpolator env) {
+void Environment::set_light_environment(const interpolator::Interpolator env) {
   light_environment = env;
 }
 
+// * R interface
 std::vector<double> Environment::r_get_seed_rain() const {
   return seed_rain;
 }
