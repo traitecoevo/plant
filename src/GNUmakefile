@@ -3,7 +3,8 @@ SOURCES_MODEL  = strategy.cpp control.cpp parameters.cpp \
 	plant.cpp cohort_discrete.cpp  \
 	species.cpp patch.cpp cohort_top.cpp \
 	cohort_schedule.cpp ebt.cpp metacommunity.cpp
-SOURCES_INTERPOLATOR = interpolator.cpp adaptive_interpolator.cpp
+SOURCES_INTERPOLATOR = interpolator.cpp adaptive_interpolator.cpp \
+	fake_light_environment.cpp
 SOURCES_INTEGRATION = quadrature.cpp quadrature_rules.cpp \
 	integration.cpp integration_workspace.cpp
 SOURCES_ODE    = ode_target.cpp ode_control.cpp lorenz.cpp ode_r.cpp

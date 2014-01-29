@@ -10,6 +10,7 @@
 ##' @export Disturbance
 ##' @export EBT
 ##' @export Environment
+##' @export FakeLightEnvironment
 ##' @export Interpolator
 ##' @export Lookup
 ##' @export Lorenz

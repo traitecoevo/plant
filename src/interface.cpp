@@ -2,6 +2,7 @@
 
 #include "interpolator.h"
 #include "adaptive_interpolator.h"
+#include "fake_light_environment.h"
 
 #include "ode_target.h"
 #include "lorenz.h"
@@ -58,6 +59,13 @@ RCPP_MODULE(tree) {
     .property("size",     &interpolator::Interpolator::size)
     .property("min",      &interpolator::Interpolator::min)
     .property("max",      &interpolator::Interpolator::max)
+    ;
+
+  Rcpp::class_<interpolator::FakeLightEnvironment>("FakeLightEnvironment")
+    .constructor<std::vector<double>, Rcpp::List>()
+    .method("set_time",  &interpolator::FakeLightEnvironment::set_time)
+    .property("current", &interpolator::FakeLightEnvironment::get_current)
+    .method("merge",     &interpolator::FakeLightEnvironment::merge)
     ;
 
   Rcpp::class_<ode::test::Lorenz>("Lorenz")
