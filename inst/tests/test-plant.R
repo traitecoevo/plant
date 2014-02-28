@@ -191,6 +191,16 @@ cmp.dbasal_area_dt <- cmp$dbasal_area_dt(cmp$traits, h0, light.env)
 expect_that(p.growth_decomp[["dbasal_area_dt"]],
             equals(cmp.dbasal_area_dt, tolerance=1e-7))
 
+## 18. change in basal diam per basal area
+cmp.dbasal_diam_dbasal_area <- cmp$dbasal_diam_dbasal_area(cmp$basal_area(h0))
+expect_that(p.growth_decomp[["dbasal_diam_dbasal_area"]],
+            equals(cmp.dbasal_diam_dbasal_area, tolerance=1e-7))
+
+## 18. basal diam growth rate
+cmp.dbasal_diam_dt <- cmp$dbasal_diam_dt(cmp$traits, h0, light.env)
+expect_that(p.growth_decomp[["dbasal_diam_dt"]],
+            equals(cmp.dbasal_diam_dt, tolerance=1e-7))
+
 ## Check that height decomposition multiplies out to give right answer
 expect_that(p.growth_decomp[["height_growth_rate"]],
             equals(

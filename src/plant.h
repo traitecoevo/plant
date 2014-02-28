@@ -180,6 +180,10 @@ private:
   double dheartwood_area_dt() const;
   // Growth rate of stem basal per unit time
   double dbasal_area_dt() const;
+  // Growth rate of basal dimater per unit basal area
+  double dbasal_diam_dbasal_area() const;
+  // Growth rate of basal dimaterper unit time
+  double dbasal_diam_dt() const;
 
   // Sapwood area
   double sapwood_area() const;

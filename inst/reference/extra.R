@@ -149,9 +149,19 @@ dheartwood_area_dt <- function(traits, h, env){
   0*LeafArea(h)/p.theta
 }
 
-## heartwood area growth rate
+## basal area growth rate
 dbasal_area_dt <- function(traits, h, env){
   dheartwood_area_dt(traits, h, env) + dsapwood_area_dt(traits, h, env) + dbark_area_dt(traits, h, env)
+}
+
+## change in basal diameter per basal area
+dbasal_diam_dbasal_area <- function(basal_area){
+  sqrt(pi/basal_area)
+}
+
+## basal diameter growth rate
+dbasal_diam_dt <- function(traits, h, env){
+ dbasal_diam_dbasal_area(basal_area(h)) * dbasal_area_dt(traits, h, env)
 }
 
 ## basal area
