@@ -24,6 +24,7 @@ Plant::internals::internals()
     mass_sapwood(NA_REAL),
     mass_bark(NA_REAL),
     mass_heartwood(NA_REAL),
+    area_heartwood(NA_REAL),
     mass_root(NA_REAL),
     mass_total(NA_REAL),
     // NOTE: Zero to allow '==' to work on new plants
@@ -62,6 +63,7 @@ bool Plant::internals::operator==(const Plant::internals &rhs) const {
     && util::identical(mass_sapwood,      rhs.mass_sapwood)
     && util::identical(mass_bark,         rhs.mass_bark)
     && util::identical(mass_heartwood,    rhs.mass_heartwood)
+    && util::identical(area_heartwood,    rhs.area_heartwood)
     && util::identical(mass_root,         rhs.mass_root)
     && util::identical(mass_total,        rhs.mass_total)
     // ...physiological members...
@@ -306,6 +308,7 @@ void Plant::compute_vars_size(double height_) {
   // [eqn 6] Mass of heartwood
   vars.mass_heartwood = strategy->rho * strategy->eta_c * strategy->a2 *
     pow(vars.leaf_area, strategy->B2);
+  vars.area_heartwood = 0;
   // [eqn 7] Mass of (fine) roots
   vars.mass_root = strategy->a3 * vars.leaf_area;
   // [eqn 8] Total mass
@@ -439,6 +442,27 @@ double Plant::compute_leaf_fraction() const {
         + dmass_root_dmass_leaf()
         + dmass_heartwood_dmass_leaf());
 }
+
+// Sapwood area
+double Plant::sapwood_area() const {
+  return vars.leaf_area / strategy->theta;
+}
+
+// Bark area
+double Plant::bark_area() const {
+  return strategy->b * sapwood_area();
+}
+
+// heartwood area
+double Plant::heartwood_area() const {
+  return vars.area_heartwood;
+}
+
+// basal area
+double Plant::basal_area() const {
+  return heartwood_area() + bark_area() + sapwood_area();
+}
+
 
 // Mass of stem needed for new unit mass leaf, d m_s / d m_l
 double Plant::dmass_sapwood_dmass_leaf() const {
@@ -605,7 +629,12 @@ Rcpp::NumericVector Plant::r_get_vars_size() const {
 			       _["mass_root"]=vars.mass_root,
 			       _["mass_total"]=vars.mass_total,
 			       _["height"]=vars.height,
-			       _["leaf_area"]=vars.leaf_area);
+			       _["leaf_area"]=vars.leaf_area,
+             _["area_sapwood"]= sapwood_area(),
+             _["area_bark"]= bark_area(),
+             _["area_heartwood"]= vars.area_heartwood,
+             _["area_basal"]= basal_area()
+             );
 }
 
 Rcpp::NumericVector Plant::r_get_vars_phys() const {

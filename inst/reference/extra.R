@@ -154,6 +154,25 @@ dbasal_area_dt <- function(traits, h, env){
   dheartwood_area_dt(traits, h, env) + dsapwood_area_dt(traits, h, env) + dbark_area_dt(traits, h, env)
 }
 
+## basal area
+basal_area <- function(h){
+  sapwood_area(h) + bark_area(h) + heartwood_area(h)
+}
+
+## heartwood area
+heartwood_area <- function(h){
+  0
+}
+
+## sapwood area
+sapwood_area <- function(h){
+  LeafArea(h) / p.theta
+}
+
+## bark area
+bark_area <- function(h){
+  p.b * LeafArea(h) / p.theta
+}
 
 ## Based on the above function, same algorithm as used in C++ version.
 height.growth.rate.via.mass.leaf <- function(traits, h, env) {

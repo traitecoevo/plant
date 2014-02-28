@@ -181,6 +181,15 @@ private:
   // Growth rate of stem basal per unit time
   double dbasal_area_dt() const;
 
+  // Sapwood area
+  double sapwood_area() const;
+  // Bark area
+  double bark_area() const;
+  // heartwood area
+  double heartwood_area() const;
+  // basal area
+  double basal_area() const;
+
   // Update a number of constants within the model.  This is a work in
   // progress.
   static double height_seed(Strategy *s);
@@ -203,6 +212,7 @@ private:
     double mass_sapwood;   // [eqn 4]
     double mass_bark;      // [eqn 5]
     double mass_heartwood; // [eqn 6]
+    double area_heartwood;
     double mass_root;      // [eqn 7] (fine roots)
     double mass_total;     // [eqn 8]
     // * Mass production

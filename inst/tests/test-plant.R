@@ -65,9 +65,18 @@ expect_that(size.p[["mass_root"]],
             equals(cmp$RootMass(cmp$LeafArea(h0))))
 expect_that(size.p[["mass_total"]],
             equals(cmp$TotalMass(cmp$traits, cmp$LeafArea(h0))))
+expect_that(size.p[["area_bark"]],
+            equals(cmp$bark_area(h0)))
+expect_that(size.p[["area_sapwood"]],
+            equals(cmp$sapwood_area(h0)))
+expect_that(size.p[["area_heartwood"]],
+            equals(cmp$heartwood_area(h0)))
+expect_that(size.p[["area_basal"]],
+            equals(cmp$basal_area(h0)))
 
 expect_that(p$height, is_identical_to(size.p[["height"]]))
 expect_that(p$leaf_area, is_identical_to(size.p[["leaf_area"]]))
+
 
 env <- test.environment(h0)
 light.env <- attr(env, "light.env") # underlying function
