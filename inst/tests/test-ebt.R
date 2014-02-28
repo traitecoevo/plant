@@ -273,5 +273,17 @@ test_that("Fitness & error calculations correct", {
               is_identical_to(lae.cmp))
 })
 
+test_that("Can create empty EBT", {
+  source("helper-tree.R")
+  p <- new(Parameters)
+  p$set_parameters(list(patch_area=1.0))
+  ebt <- new(EBT, p)
+
+  ## Check light environment is empty:
+  env <- ebt$patch$environment
+  expect_that(env$light_environment$size, equals(0))
+  expect_that(env$canopy_openness(0), equals(1.0))
+})
+
 rm(ebt)
 gc()

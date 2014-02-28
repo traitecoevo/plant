@@ -339,8 +339,10 @@ double Patch<Individual>::canopy_openness(double height) {
 template <class Individual>
 void Patch<Individual>::compute_light_environment() {
   if (!parameters->control.environment_light_skip) {
-    util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
-    environment.compute_light_environment(&fun, height_max());
+    if (parameters->n_residents() > 0) {
+      util::Functor<Patch, &Patch<Individual>::canopy_openness> fun(this);
+      environment.compute_light_environment(&fun, height_max());
+    }
   }
 }
 
