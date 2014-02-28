@@ -469,6 +469,31 @@ double Plant::dheight_dleaf_area() const {
   pow(vars.leaf_area, strategy->B1 - 1);
 }
 
+// Growth rate of leaf area per unit time
+double Plant::dleaf_area_dt() const {
+  return vars.mass_leaf_growth_rate / strategy->lma;;
+}
+
+// Growth rate of spawood area at base per unit time
+double Plant::dsapwood_area_dt() const {
+  return dleaf_area_dt() / strategy->theta;
+}
+
+// Growth rate of bark area at base per unit time
+double Plant::dbark_area_dt() const {
+    return strategy->b * dsapwood_area_dt();
+}
+
+// Growth rate of heartwood area at base per unit time
+double Plant::dheartwood_area_dt() const {
+    double ks =0; //turnover rate of spawood.
+    return ks * vars.leaf_area /  strategy->theta;
+}
+
+// Growth rate of stem basal area per unit time
+double Plant::dbasal_area_dt() const {
+    return dsapwood_area_dt() + dbark_area_dt() + dheartwood_area_dt();
+}
 
 // NOTE: static method
 double Plant::height_seed(Strategy *s) {
@@ -611,7 +636,12 @@ Rcpp::NumericVector Plant::r_get_vars_growth_decomp() const {
              _["dmass_sapwood_dmass_leaf"]=dmass_sapwood_dmass_leaf(),
              _["dmass_bark_dmass_leaf"]=dmass_bark_dmass_leaf(),
              _["dmass_root_dmass_leaf"]=dmass_root_dmass_leaf(),
-             _["dmass_heartwood_dmass_leaf"]=dmass_heartwood_dmass_leaf()
+             _["dmass_heartwood_dmass_leaf"]=dmass_heartwood_dmass_leaf(),
+             _["dleaf_area_dt"]=dleaf_area_dt(),
+             _["dsapwood_area_dt"]=dsapwood_area_dt(),
+             _["dbark_area_dt"]=dbark_area_dt(),
+             _["dheartwood_area_dt"]=dheartwood_area_dt(),
+             _["dbasal_area_dt"]=dbasal_area_dt()
              );
 }
 

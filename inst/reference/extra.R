@@ -125,6 +125,36 @@ height.growth.rate <- function(traits, h, env) {
   g
 }
 
+dleaf_area_dt <- function(traits, h, env){
+  a <- LeafArea(h)
+  r <- ReproductiveAllocation(traits$hmat, h)
+  p <- net.production(traits, h, env)
+  g <- dAdMt(traits, a) * p * (1-r)
+  g[p < 0] <- 0
+  g
+}
+
+## sapwood area growth rate
+dsapwood_area_dt <- function(traits, h, env){
+  dleaf_area_dt(traits, h, env)/p.theta
+}
+
+## bark area growth rate
+dbark_area_dt <- function(traits, h, env){
+ p.b*dleaf_area_dt(traits, h, env)/p.theta
+}
+
+## heartwood area growth rate
+dheartwood_area_dt <- function(traits, h, env){
+  0*LeafArea(h)/p.theta
+}
+
+## heartwood area growth rate
+dbasal_area_dt <- function(traits, h, env){
+  dheartwood_area_dt(traits, h, env) + dsapwood_area_dt(traits, h, env) + dbark_area_dt(traits, h, env)
+}
+
+
 ## Based on the above function, same algorithm as used in C++ version.
 height.growth.rate.via.mass.leaf <- function(traits, h, env) {
   dmdt <- mass.leaf.growth.rate(traits, h, env)

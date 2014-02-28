@@ -170,6 +170,16 @@ private:
   double dmass_root_dmass_leaf() const;
   // Mass of heartwood needed for new unit mass leaf, d m_h / d m_l
   double dmass_heartwood_dmass_leaf() const;
+  // Growth rate of leaf area per unit time
+  double dleaf_area_dt() const;
+  // Growth rate of spawood area at base per unit time
+  double dsapwood_area_dt() const;
+  // Growth rate of bark area at base per unit time
+  double dbark_area_dt() const;
+  // Growth rate of heartwood area at base per unit time
+  double dheartwood_area_dt() const;
+  // Growth rate of stem basal per unit time
+  double dbasal_area_dt() const;
 
   // Update a number of constants within the model.  This is a work in
   // progress.

@@ -157,6 +157,31 @@ cmp.dmass_heartwood_dmass_leaf <- cmp$heartwood.per.leaf.mass(cmp$traits, h0)
 expect_that(p.growth_decomp[["dmass_heartwood_dmass_leaf"]],
             equals(cmp.dmass_heartwood_dmass_leaf))
 
+## 13. Leaf area growth rate
+cmp.dleaf_area_dt <- cmp$dleaf_area_dt(cmp$traits, h0, light.env)
+expect_that(p.growth_decomp[["dleaf_area_dt"]],
+            equals(cmp.dleaf_area_dt, tolerance=1e-7))
+
+## 14. sapwood area growth rate
+cmp.dsapwood_area_dt <- cmp$dsapwood_area_dt(cmp$traits, h0, light.env)
+expect_that(p.growth_decomp[["dsapwood_area_dt"]],
+            equals(cmp.dsapwood_area_dt, tolerance=1e-7))
+
+## 15. bark area growth rate
+cmp.dbark_area_dt <- cmp$dbark_area_dt(cmp$traits, h0, light.env)
+expect_that(p.growth_decomp[["dbark_area_dt"]],
+            equals(cmp.dbark_area_dt, tolerance=1e-7))
+
+## 16. heartwood area growth rate
+cmp.dheartwood_area_dt <- cmp$dheartwood_area_dt(cmp$traits, h0, light.env)
+expect_that(p.growth_decomp[["dheartwood_area_dt"]],
+            equals(cmp.dheartwood_area_dt, tolerance=1e-7))
+
+## 17. basal area growth rate
+cmp.dbasal_area_dt <- cmp$dbasal_area_dt(cmp$traits, h0, light.env)
+expect_that(p.growth_decomp[["dbasal_area_dt"]],
+            equals(cmp.dbasal_area_dt, tolerance=1e-7))
+
 ## Check that height decomposition multiplies out to give right answer
 expect_that(p.growth_decomp[["height_growth_rate"]],
             equals(
