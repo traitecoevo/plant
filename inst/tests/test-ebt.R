@@ -138,7 +138,7 @@ test_that("Run looks successful", {
               equals(rep(new(Plant, p[[1]])$height, length(t))))
 })
 
-run.ebt <- function(ebt, t.max=Inf) {
+run.ebt.test <- function(ebt, t.max=Inf) {
   tt <- hh <- NULL
   ebt$reset()
   while (!ebt$complete > 0 && ebt$time < t.max) {
@@ -151,7 +151,7 @@ run.ebt <- function(ebt, t.max=Inf) {
 }
 
 ## Next, Run the whole schedule using the EBT.
-res.e.1 <- run.ebt(ebt)
+res.e.1 <- run.ebt.test(ebt)
 
 ## I'm actually quite surprised that the objects aren't identical.
 ## I've left the tolerance super strict here.
@@ -166,7 +166,7 @@ test_that("EBT and Patch agree", {
 
 ## Then, check that resetting the cohort allows rerunning easily:
 ebt$reset()
-res.e.2 <- run.ebt(ebt)
+res.e.2 <- run.ebt.test(ebt)
 test_that("EBT can be rerun successfully", {
   expect_that(res.e.2, is_identical_to(res.e.1))
 })
@@ -184,13 +184,13 @@ ebt$cohort_schedule <- sched
 ## between stepping to a point (requiring calculating the step size)
 ## and the stepping a particular step size (requiring calculating the
 ## final time).
-res.e.3 <- run.ebt(ebt)
+res.e.3 <- run.ebt.test(ebt)
 test_that("EBT with fixed times agrees", {
   expect_that(res.e.3, equals(res.e.1, tolerance=4e-12))
 })
 
 ebt$reset()
-res.e.4 <- run.ebt(ebt)
+res.e.4 <- run.ebt.test(ebt)
 test_that("EBT can be rerun successfully with fixed times", {
   expect_that(res.e.4, is_identical_to(res.e.3))
 })
@@ -202,7 +202,7 @@ test_that("State get/set works", {
   ## Next, try and partly run the EBT, grab its state and push it into a
   ## second copy.
   ebt$reset()
-  tmp <- run.ebt(ebt, sched$max_time / 2)
+  tmp <- run.ebt.test(ebt, sched$max_time / 2)
   state <- ebt$state
 
   ebt2 <- new(EBT, ebt$parameters)
@@ -274,10 +274,28 @@ test_that("Fitness & error calculations correct", {
 })
 
 test_that("Can create empty EBT", {
-  source("helper-tree.R")
   p <- new(Parameters)
   p$set_parameters(list(patch_area=1.0))
   ebt <- new(EBT, p)
+
+  ## Check light environment is empty:
+  env <- ebt$patch$environment
+  expect_that(env$light_environment$size, equals(0))
+  expect_that(env$canopy_openness(0), equals(1.0))
+})
+
+test_that("Can create empty EBT with mutants", {
+  p <- new(Parameters)
+  p$set_parameters(list(patch_area=1.0))   # See issue #13
+  p$set_control_parameters(fast.control()) # A bit faster
+  p$add_strategy_mutant(new(Strategy, list(lma=0.1)))
+
+  t.max <- 10
+  times0 <- cohort.introduction.times(t.max)
+  schedule0 <- schedule.from.times(times0, 1L)
+
+  ebt <- run.ebt(p, schedule0)
+  expect_that(ebt$time, equals(t.max))
 
   ## Check light environment is empty:
   env <- ebt$patch$environment
