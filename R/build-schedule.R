@@ -23,10 +23,11 @@ build.schedule <- function(p, schedule, nsteps, eps,
 
     err.lai <- rep(list(NULL), p$size)
     while (!ebt$complete) {
-      e <- ebt$run_next()
-      idx <- e$species_index
-      err.lai[[idx]] <-
-        c(err.lai[[idx]], list(ebt$leaf_area_error(idx)))
+      added <- ebt$run_next()
+      for (idx in added) {
+        err.lai[[idx]] <-
+          c(err.lai[[idx]], list(ebt$leaf_area_error(idx)))
+      }
     }
 
     err.lai <- lapply(err.lai, function(x)

@@ -170,16 +170,22 @@ void Patch<Individual>::add_seeds(std::vector<int> seeds) {
   add_seedlings(seeds);
 }
 
+// TODO: We should only be recomputing the light environment for the
+// points that are below the height of the seedling -- not the entire
+// light environment!
 template <class Individual>
 void Patch<Individual>::add_seedling(size_t species_index) {
   species[species_index].add_seeds(1);
-  compute_light_environment();
+  if (parameters->is_resident[species_index]) {
+    compute_light_environment();
+  }
 }
 
 template <class Individual>
 void Patch<Individual>::add_seedlings(std::vector<int> seeds) {
   for (size_t i = 0; i < seeds.size(); ++i)
     species[i].add_seeds(seeds[i]);
+  // TODO: Should skip if no residents are added.
   compute_light_environment();
 }
 

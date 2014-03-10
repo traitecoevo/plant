@@ -27,18 +27,42 @@ void EBT::run() {
   }
 }
 
-CohortSchedule::Event EBT::run_next() {
-  const CohortSchedule::Event e = schedule.next_event();
-  if (!util::identical(get_time(), e.time_introduction()))
-    Rcpp::stop("Start time not what was expected");
-  patch.add_seedling(e.species_index);
+// TODO: The return value here is a bit of a hack for
+// build.schedule().  It would be nice to fix this.  One alternative
+// would be to update the CohortSchedule to naturally deal with the
+// case of multiple introductions per time.  The other would be to say
+// how many events we skipped over perhaps.  This will do for now
+// though.
+std::vector<int> EBT::run_next() {
+  std::vector<int> ret;
+  const double t0 = get_time();
+  CohortSchedule::Event e = schedule.next_event();
+  while (true) {
+    if (!util::identical(t0, e.time_introduction()))
+      Rcpp::stop("Start time not what was expected");
+    ret.push_back(e.r_species_index());
+    // TODO: This causes the light environment to be computed multiple
+    // times when multiple residents are added.  The environment is
+    // not recomputed when mutants are added though.
+    //
+    // The other option would be to create a new vector and pass that
+    // through to EBT::add_seedlings().
+    patch.add_seedling(e.species_index);
+    schedule.pop();
+    if (e.time_end() > t0) {
+      break;
+    } else {
+      e = schedule.next_event();
+    }
+  }
+
   ode_solver.set_state_from_problem();
   if (schedule.fixed_times())
     ode_solver.advance_fixed(e.times);
   else
     ode_solver.advance(e.time_end());
-  schedule.pop(); // or do at next_event()?  Only matters on error.
-  return e;
+
+  return ret;
 }
 
 // * Fitness calculations

@@ -14,7 +14,7 @@ public:
   EBT(Parameters *p);
 
   void run();
-  CohortSchedule::Event run_next();
+  std::vector<int> run_next();
 
   // * Fitness calculation
   double fitness(size_t species_index) const;
