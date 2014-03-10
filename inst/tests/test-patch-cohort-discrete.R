@@ -26,9 +26,9 @@ plants.p <- patch.p[[1]]$plants
 
 expect_that(length(patch.c[[1]][[1]]), equals(1))
 expect_that(class(patch.c[[1]][[1]]),
-            equals("Rcpp_CohortDiscrete", check.attr=FALSE))
+            equals("Rcpp_CohortDiscrete", check.attributes=FALSE))
 expect_that(class(plants.p[[1]]),
-            equals("Rcpp_Plant", check.attr=FALSE))
+            equals("Rcpp_Plant", check.attributes=FALSE))
 
 ## Then clear both
 patch.p$reset()
