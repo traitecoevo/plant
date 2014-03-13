@@ -94,6 +94,7 @@ default.schedule <- function(nt, max.t) {
 ##'
 ##' @title Create CohortSchedule From Vector of Times
 ##' @param times A numeric vector of increasing times
+##' @param n The number of species.
 ##' @return A \code{\link{CohortSchedule}} object.
 ##' @author Rich FitzJohn
 ##' @export
