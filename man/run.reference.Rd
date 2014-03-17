@@ -5,15 +5,13 @@
 \alias{uninstall.evolve}
 \title{Run Reference Model}
 \usage{
-  run.reference(path, p = NULL, verbose = TRUE,
-    evolve = NULL)
+run.reference(path, p = NULL, verbose = TRUE, evolve = NULL)
 
-  install.evolve(reinstall = FALSE, verbose = FALSE,
-    url = NULL)
+install.evolve(reinstall = FALSE, verbose = FALSE, url = NULL)
 
-  uninstall.evolve()
+uninstall.evolve()
 
-  evolve.is.installed()
+evolve.is.installed()
 }
 \arguments{
   \item{path}{Path to directory containing parameter files
@@ -33,14 +31,14 @@
   tree by \code{install.evolve}}
 }
 \description{
-  Run the reference model, falster-traitdiversity
+Run the reference model, falster-traitdiversity
 }
 \details{
-  This function is known to work with version d649534 of
-  falster-traitdiversity (and will not work with any
-  earlier version).
+This function is known to work with version d649534 of
+falster-traitdiversity (and will not work with any earlier
+version).
 }
 \author{
-  Rich FitzJohn
+Rich FitzJohn
 }
 

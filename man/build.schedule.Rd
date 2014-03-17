@@ -2,8 +2,7 @@
 \alias{build.schedule}
 \title{Build Cohort Schedule}
 \usage{
-  build.schedule(p, schedule, nsteps, eps,
-    progress = FALSE, verbose = FALSE)
+build.schedule(p, schedule, nsteps, eps, progress = FALSE, verbose = FALSE)
 }
 \arguments{
   \item{p}{Parameters object}
@@ -23,12 +22,12 @@
   go?}
 }
 \value{
-  A CohortSchedule object
+A CohortSchedule object
 }
 \description{
-  Build an appropriately refined schedule.
+Build an appropriately refined schedule.
 }
 \author{
-  Rich FitzJohn
+Rich FitzJohn
 }
 

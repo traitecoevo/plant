@@ -5,23 +5,23 @@
 \alias{last<-}
 \title{Get Last Element}
 \usage{
-  last(x)
+last(x)
 
-  last(x, value) <- value
+last(x) <- value
 
-  first(x)
+first(x)
 
-  first(x, value) <- value
+first(x) <- value
 }
 \arguments{
   \item{x}{An object that can be subset with \code{[[}}
 }
 \description{
-  Get last element from an object
+Get last element from an object
 
-  ##'
+##'
 }
 \author{
-  Rich FitzJohn
+Rich FitzJohn
 }
 

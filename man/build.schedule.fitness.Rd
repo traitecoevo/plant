@@ -2,8 +2,7 @@
 \alias{build.schedule.fitness}
 \title{Build Schedule From Fitness Changes}
 \usage{
-  build.schedule.fitness(p, times, nsteps,
-    progress = FALSE, verbose = FALSE)
+build.schedule.fitness(p, times, nsteps, progress = FALSE, verbose = FALSE)
 }
 \arguments{
   \item{p}{Parameters object}
@@ -18,18 +17,18 @@
   go?}
 }
 \value{
-  Numeric vector of times
+Numeric vector of times
 }
 \description{
-  Build a schedule of cohort times by iteratively finding
-  the position that causes the greatest change in fitness.
-  In contrast with \code{\link{build.schedule}}, this is
-  not really designed for use in real analyses, but instead
-  to confirm that the schedules work as expected.  It is
-  \emph{extremely slow} because every step requires
-  introducing a cohort between every pair of cohorts.
+Build a schedule of cohort times by iteratively finding the
+position that causes the greatest change in fitness.  In
+contrast with \code{\link{build.schedule}}, this is not
+really designed for use in real analyses, but instead to
+confirm that the schedules work as expected.  It is
+\emph{extremely slow} because every step requires
+introducing a cohort between every pair of cohorts.
 }
 \author{
-  Rich FitzJohn
+Rich FitzJohn
 }
 

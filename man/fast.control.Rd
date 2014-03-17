@@ -2,18 +2,18 @@
 \alias{fast.control}
 \title{Fast Control Defaults}
 \usage{
-  fast.control()
+fast.control()
 }
 \value{
-  A `list` of values to be passed into
-  \code{Control$set_parameters}
+A `list` of values to be passed into
+\code{Control$set_parameters}
 }
 \description{
-  Parameters for running the simulations more quickly (but
-  less accurately) than the defaults.  Used in a number of
-  places.
+Parameters for running the simulations more quickly (but
+less accurately) than the defaults.  Used in a number of
+places.
 }
 \author{
-  Rich FitzJohn
+Rich FitzJohn
 }
 
