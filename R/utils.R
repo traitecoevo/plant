@@ -85,3 +85,17 @@ run.cached <- function(expr, filename, regenerate=FALSE) {
 ##' @export
 cobweb <- function(m, ...)
   lines(rep(m[,1], each=2), c(t(m)), ...)
+
+##' Sequence in log space
+##'
+##' Unlike the billions of options for \code{seq}, only
+##' \code{length.out} is supported here, and both \code{from} and
+##' \code{to} must be provided.
+##' @title Sequence in Log Space
+##' @param from Starting point
+##' @param to Ending point
+##' @param length.out Number of points to generate
+##' @author Rich FitzJohn
+##' @export
+seq_log <- function(from, to, length.out)
+  exp(seq(log(from), log(to), length.out=length.out))

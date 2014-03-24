@@ -1,5 +1,4 @@
 library(tree)
-source("landscape2-fun.R")
 
 p <- new(Parameters)
 p$add_strategy(new(Strategy, list(lma=0.0648406)))
@@ -38,12 +37,12 @@ cmp - 1 # This should be about zero, plus or minus 1e-5 or so.
 # Mutant LMA values, in increasing numbers, to test how the time
 # requirements scale with the number of strategies.  Should be
 # sublinear.
-lma.2  <- seq.log(0.03, 0.8, 2)
-lma.4  <- seq.log(0.03, 0.8, 4)
-lma.8  <- seq.log(0.03, 0.8, 8)
-lma.16 <- seq.log(0.03, 0.8, 16)
-lma.32 <- seq.log(0.03, 0.8, 32)
-lma.64 <- seq.log(0.03, 0.8, 64)
+lma.2  <- seq_log(0.03, 0.8, 2)
+lma.4  <- seq_log(0.03, 0.8, 4)
+lma.8  <- seq_log(0.03, 0.8, 8)
+lma.16 <- seq_log(0.03, 0.8, 16)
+lma.32 <- seq_log(0.03, 0.8, 32)
+lma.64 <- seq_log(0.03, 0.8, 64)
 
 (t.2  <- system.time(w.2  <- landscape(lma.2,  p, schedule)))
 (t.4  <- system.time(w.4  <- landscape(lma.4,  p, schedule)))
