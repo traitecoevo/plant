@@ -47,3 +47,18 @@ repeat {
   sys <- births(sys)
   res <- c(res, list(sys))
 }
+
+saveRDS(res, "assembly.rds")
+
+## Analyse the assembly data:
+res <- readRDS("assembly.rds")
+sapply(last(res)$times, length)
+lapply(res, "[[", "traits")
+ctraits <- lapply(res, "[[", "traits")
+
+lma <- lapply(ctraits, function(x) x[,"lma"])
+hmat <- lapply(ctraits, function(x) x[,"hmat"])
+
+plot(rep(seq_along(lma), sapply(lma, length)), unlist(lma))
+plot(rep(seq_along(lma), sapply(lma, length)), unlist(lma), log="y")
+plot(rep(seq_along(hmat), sapply(hmat, length)), unlist(hmat), log="y")

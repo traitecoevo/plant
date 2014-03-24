@@ -9,3 +9,5 @@ doc/*.pdf
 
 reference/ref-single
 reference/ref-double
+
+scripts/*.rds
