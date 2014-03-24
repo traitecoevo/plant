@@ -1,24 +1,3 @@
-# This bit is way uglier than needed; need to expand out a schedule to
-# include mutants.
-expand.schedule <- function(schedule, n.mutant) {
-  n.resident <- schedule$n_species
-  ret <- new(CohortSchedule, n.resident + n.mutant)
-  ret$max_time <- schedule$max_time
-
-  ## Copy residents over:
-  for (i in seq_len(n.resident))
-    ret$set_times(schedule$times(i), i)
-
-  ## Introduce mutants at all unique times:
-  times.mutant <- unique(sort(unlist(schedule$all_times)))
-  for (i in seq_len(n.mutant))
-    ret$set_times(times.mutant, n.resident + i)
-
-  ret$ode_times <- schedule$ode_times
-
-  ret
-}
-
 seq.log <- function(from, to, length.out)
   exp(seq(log(from), log(to), length.out=length.out))
 

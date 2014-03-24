@@ -187,3 +187,37 @@ run.ebt <- function(p, sched) {
   ebt$run()
   ebt
 }
+
+# This bit is way uglier than needed; need to expand out a schedule to
+# include mutants.
+
+##' Expand schedule to include mutants.  All mutants get the same
+##' schedule, equal to all the unique times that any resident was
+##' introduced.  This results in more work than is really needed, but
+##' should be reasonable most of the time.
+##'
+##' May change...
+##' @title Expand Cohort Schedule to Include Mutants
+##' @param schedule A \code{CohortSchedule} object, set up for the
+##' residents.
+##' @param n.mutant Number of mutant schedules to generate
+##' @author Rich FitzJohn
+##' @export
+expand.schedule <- function(schedule, n.mutant) {
+  n.resident <- schedule$n_species
+  ret <- new(CohortSchedule, n.resident + n.mutant)
+  ret$max_time <- schedule$max_time
+
+  ## Copy residents over:
+  for (i in seq_len(n.resident))
+    ret$set_times(schedule$times(i), i)
+
+  ## Introduce mutants at all unique times:
+  times.mutant <- unique(sort(unlist(schedule$all_times)))
+  for (i in seq_len(n.mutant))
+    ret$set_times(times.mutant, n.resident + i)
+
+  ret$ode_times <- schedule$ode_times
+
+  ret
+}

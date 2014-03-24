@@ -1,0 +1,25 @@
+\name{expand.schedule}
+\alias{expand.schedule}
+\title{Expand Cohort Schedule to Include Mutants}
+\usage{
+expand.schedule(schedule, n.mutant)
+}
+\arguments{
+  \item{schedule}{A \code{CohortSchedule} object, set up
+  for the residents.}
+
+  \item{n.mutant}{Number of mutant schedules to generate}
+}
+\description{
+Expand schedule to include mutants.  All mutants get the
+same schedule, equal to all the unique times that any
+resident was introduced.  This results in more work than is
+really needed, but should be reasonable most of the time.
+}
+\details{
+May change...
+}
+\author{
+Rich FitzJohn
+}
+
