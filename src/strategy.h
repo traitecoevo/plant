@@ -112,6 +112,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(model::Strategy)
+RCPP_EXPOSED_CLASS_NODECL(model::Strategy)
 
 #endif

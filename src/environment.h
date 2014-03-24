@@ -55,6 +55,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(model::Environment)
+RCPP_EXPOSED_CLASS_NODECL(model::Environment)
 
 #endif

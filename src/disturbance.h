@@ -28,6 +28,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(model::Disturbance)
+RCPP_EXPOSED_CLASS_NODECL(model::Disturbance)
 
 #endif

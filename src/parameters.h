@@ -79,6 +79,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(model::Parameters)
+RCPP_EXPOSED_CLASS_NODECL(model::Parameters)
 
 #endif

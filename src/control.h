@@ -96,6 +96,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(model::Control)
+RCPP_EXPOSED_CLASS_NODECL(model::Control)
 
 #endif

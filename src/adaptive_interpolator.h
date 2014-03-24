@@ -48,6 +48,6 @@ Interpolator test_adaptive_interpolator(SEXP fun, SEXP env,
 
 }
 
-RCPP_EXPOSED_CLASS(interpolator::AdaptiveInterpolator)
+RCPP_EXPOSED_CLASS_NODECL(interpolator::AdaptiveInterpolator)
 
 #endif

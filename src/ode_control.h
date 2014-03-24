@@ -36,6 +36,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(ode::OdeControl)
+RCPP_EXPOSED_CLASS_NODECL(ode::OdeControl)
 
 #endif

@@ -84,7 +84,7 @@ public:
 
 }
 
-RCPP_EXPOSED_CLASS(model::CohortSchedule)
-RCPP_EXPOSED_CLASS(model::CohortSchedule::Event)
+RCPP_EXPOSED_CLASS_NODECL(model::CohortSchedule)
+RCPP_EXPOSED_CLASS_NODECL(model::CohortSchedule::Event)
 
 #endif

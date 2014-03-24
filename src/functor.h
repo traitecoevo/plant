@@ -98,6 +98,6 @@ std::vector<double> test_functor(std::vector<double> x,
 
 }
 
-RCPP_EXPOSED_CLASS(util::RFunctionWrapper)
+RCPP_EXPOSED_CLASS_NODECL(util::RFunctionWrapper)
 
 #endif

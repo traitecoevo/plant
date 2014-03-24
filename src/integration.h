@@ -65,6 +65,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(integration::QAG)
+RCPP_EXPOSED_CLASS_NODECL(integration::QAG)
 
 #endif

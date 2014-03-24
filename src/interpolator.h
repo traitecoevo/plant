@@ -69,6 +69,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(interpolator::Interpolator)
+RCPP_EXPOSED_CLASS_NODECL(interpolator::Interpolator)
 
 #endif

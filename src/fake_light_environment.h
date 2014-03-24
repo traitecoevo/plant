@@ -38,6 +38,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(interpolator::FakeLightEnvironment)
+RCPP_EXPOSED_CLASS_NODECL(interpolator::FakeLightEnvironment)
 
 #endif

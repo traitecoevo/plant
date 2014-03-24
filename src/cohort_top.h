@@ -58,6 +58,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(model::CohortTop)
+RCPP_EXPOSED_CLASS_NODECL(model::CohortTop)
 
 #endif

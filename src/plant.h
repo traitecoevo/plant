@@ -238,6 +238,6 @@ compute_assimilation_fn(Strategy s, double hmin, double hmax,
 
 }
 
-RCPP_EXPOSED_CLASS(model::Plant)
+RCPP_EXPOSED_CLASS_NODECL(model::Plant)
 
 #endif

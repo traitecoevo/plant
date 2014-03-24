@@ -34,6 +34,6 @@ private:
 
 }
 
-RCPP_EXPOSED_CLASS(model::CohortDiscrete)
+RCPP_EXPOSED_CLASS_NODECL(model::CohortDiscrete)
 
 #endif
