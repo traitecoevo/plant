@@ -168,8 +168,6 @@ private:
   double dmass_bark_dmass_leaf() const;
   // Mass of root needed for new unit mass leaf, d m_r / d m_l
   double dmass_root_dmass_leaf() const;
-  // Mass of heartwood needed for new unit mass leaf, d m_h / d m_l
-  double dmass_heartwood_dmass_leaf() const;
   // Growth rate of leaf area per unit time
   double dleaf_area_dt() const;
   // Growth rate of spawood area at base per unit time
@@ -197,7 +195,7 @@ private:
   // Update a number of constants within the model.  This is a work in
   // progress.
   static double height_seed(Strategy *s);
-  double mass_total_given_height(double h);
+  double mass_live_given_height(double h);
   double height_given_mass_leaf(double mass_leaf_) const;
 
   // To simplify my life, I'm making a small internal-only class that
@@ -218,7 +216,7 @@ private:
     double mass_heartwood; // [eqn 6]
     double area_heartwood;
     double mass_root;      // [eqn 7] (fine roots)
-    double mass_total;     // [eqn 8]
+    double mass_live;      // [eqn 8]
     // * Mass production
     double assimilation;   // [eqn 12] Gross annual CO2 assimilation
     double respiration;    // [eqn 13] Total maintenance respiration

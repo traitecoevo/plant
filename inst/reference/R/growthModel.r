@@ -16,23 +16,21 @@ RootMass<-function(A){p.a3*A}
 SapwoodMass<-function(rho, A,h){rho/p.theta*etac(p.eta)*A*h}
 etac<-function(eta){1-2/(1+eta)+1/(1+2*eta)}
 BarkMass<-function(rho, A,h){p.b*SapwoodMass(A,h, rho)}
-HeartwoodMass<-function(rho, A){rho*etac(p.eta)*p.a2*A^p.B2}
 Diameter<-function(rho, stemMass){(stemMass/rho/p.a5)^(1/p.B5)}
-TotalMass<-function(traits, A){
+LiveMass<-function(traits, A){
   ml =LeafMass(traits$lma, A)
   ms =SapwoodMass(traits$rho,A,Height(A))
-  mb =BarkMass(traits$rho,A,Height(A)) 
+  mb =BarkMass(traits$rho,A,Height(A))
   mr =RootMass(A)
-  mh= HeartwoodMass(traits$rho,A)
-  return(ml+ms+mb+mr+mh)
+  return(ml+ms+mb+mr)
   }
 
 #SOLVE HEIGHT FOR GIVEN MASS
 Height.mt<- function(traits, mt){  
   #returns mass for given height
-  TotalMass.wrap<-function(x, traits,mt){TotalMass(traits, LeafArea(x))-mt}
+  LiveMass.wrap<-function(x, traits,mt){LiveMass(traits, LeafArea(x))-mt}
   y<-0*mt;
-  for(i in 1:length(mt)){y[i]<-uniroot(TotalMass.wrap, c(0, 50), traits=traits, mt=mt[i])$root}
+  for(i in 1:length(mt)){y[i]<-uniroot(LiveMass.wrap, c(0, 50), traits=traits, mt=mt[i])$root}
   return(y)}
   
 #OPTIMISE GROWTH RATE WRT TRAIT: 1 = LMA, 2= WOOD DENSITY
@@ -65,16 +63,14 @@ dHdt<-function(traits, h, env){dHdA(LeafArea(h))*dAdMt(traits, LeafArea(h))*Prod
 dMldA<-function(lma,A){A*0+lma}
 dMsdA<-function(rho, A){rho/p.theta*etac(p.eta)*(Height(A)+A*dHdA(A))}
 dMbdA<-function(rho, A){p.b*dMsdA(rho,A)}
-dMhdA<-function(rho, A){rho*etac(p.eta)*p.a2*p.B2*A^(p.B2-1)}
 dMrdA<-function(A){A*0+p.a3}
-dMtdA<-function(traits,A){dMldA(traits$lma, A) + dMbdA(traits$rho,A) + dMsdA(traits$rho,A) + dMhdA(traits$rho,A) + dMrdA(A)}
+dMtdA<-function(traits,A){dMldA(traits$lma, A) + dMbdA(traits$rho,A) + dMsdA(traits$rho,A) + dMrdA(A)}
 dAdMt<-function(traits, A){1/dMtdA(traits, A)}
 
 #MARGINAL COST OF HEIGHT GROWTH
 dMldH<-function(lma,h){ A=LeafArea(h); dMldA(lma,A)/dHdA(A)}
 dMsdH<-function(rho,h){ A=LeafArea(h); dMsdA(rho,A)/dHdA(A)}
 dMbdH<-function(rho,h){ A=LeafArea(h); dMbdA(rho,A)/dHdA(A)}
-dMhdH<-function(rho,h){ A=LeafArea(h); dMhdA(rho,A)/dHdA(A)}
 dMrdH<-function(h){ A=LeafArea(h); dMrdA(A)/dHdA(A)}
 
 #reproductive allocation
@@ -117,6 +113,6 @@ Turnover <-function(traits, ml, ms, mb,  mr){
   Turnover.leaf(traits$lma, ml) + Turnover.sapwood(ms) + Turnover.bark(mb) + Turnover.root(mr)
   }
 Turnover.leaf <-function(LMA, ml){(p.a4*LMA^-p.B4)*ml}
-Turnover.sapwood <-function(ms){0}
+Turnover.sapwood <-function(ms){p.k_s*ms}
 Turnover.bark <-function(mb){p.k_b*mb}
 Turnover.root <-function(mr){p.k_r*mr}

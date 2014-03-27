@@ -145,8 +145,9 @@ step.stochastic <- function(patch) {
   patch$add_seeds(patch$births())
 }
 
+enough.time <- 30
 set.seed(1)
-while (patch$n_individuals == 1 && patch$time < 15.0) {
+while (patch$n_individuals == 1 && patch$time < enough.time) {
   solver$step()
   step.stochastic(patch)
   solver$set_state(patch$ode_values, patch$time)
@@ -154,7 +155,7 @@ while (patch$n_individuals == 1 && patch$time < 15.0) {
 
 test_that("Patch growth matched expectation", {
   expect_that(patch$n_individuals, equals(2))
-  expect_that(patch$time, is_within_interval(0.0, 15.0))
+  expect_that(patch$time, is_within_interval(0.0, enough.time))
 })
 
 ## Test the patch rescaling when changing height:

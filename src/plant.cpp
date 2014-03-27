@@ -26,7 +26,7 @@ Plant::internals::internals()
     mass_heartwood(NA_REAL),
     area_heartwood(NA_REAL),
     mass_root(NA_REAL),
-    mass_total(NA_REAL),
+    mass_live(NA_REAL),
     // NOTE: Zero to allow '==' to work on new plants
     assimilation(0.0),
     respiration(0.0),
@@ -65,7 +65,7 @@ bool Plant::internals::operator==(const Plant::internals &rhs) const {
     && util::identical(mass_heartwood,    rhs.mass_heartwood)
     && util::identical(area_heartwood,    rhs.area_heartwood)
     && util::identical(mass_root,         rhs.mass_root)
-    && util::identical(mass_total,        rhs.mass_total)
+    && util::identical(mass_live,         rhs.mass_live)
     // ...physiological members...
     && util::identical(assimilation,      rhs.assimilation)
     && util::identical(respiration,       rhs.respiration)
@@ -305,16 +305,14 @@ void Plant::compute_vars_size(double height_) {
     strategy->a1 * strategy->eta_c * pow(vars.leaf_area, 1 + strategy->B1);
   // [eqn 5] Mass of bark
   vars.mass_bark = strategy->b * vars.mass_sapwood;
-  // [eqn 6] Mass of heartwood
-  vars.mass_heartwood = strategy->rho * strategy->eta_c * strategy->a2 *
-    pow(vars.leaf_area, strategy->B2);
+  // Mass of heartwood
+  vars.mass_heartwood = 0;
   vars.area_heartwood = 0;
   // [eqn 7] Mass of (fine) roots
   vars.mass_root = strategy->a3 * vars.leaf_area;
   // [eqn 8] Total mass
-  vars.mass_total =
-    vars.mass_leaf + vars.mass_sapwood + vars.mass_bark +
-    vars.mass_heartwood + vars.mass_root;
+  vars.mass_live =
+    vars.mass_leaf + vars.mass_sapwood + vars.mass_bark + vars.mass_root;
 }
 
 
@@ -423,6 +421,7 @@ double Plant::compute_turnover() const {
   return
     vars.mass_leaf * strategy->k_l  +
     vars.mass_bark * strategy->k_b  +
+    vars.mass_sapwood * strategy->k_s +
     vars.mass_root * strategy->k_r;
 }
 
@@ -439,8 +438,7 @@ double Plant::compute_leaf_fraction() const {
 	      1.0
         + dmass_sapwood_dmass_leaf()
         + dmass_bark_dmass_leaf()
-        + dmass_root_dmass_leaf()
-        + dmass_heartwood_dmass_leaf());
+        + dmass_root_dmass_leaf());
 }
 
 // Sapwood area
@@ -481,13 +479,6 @@ double Plant::dmass_root_dmass_leaf() const {
   return strategy->a3 / strategy->lma;
 }
 
-// Mass of heartwood needed for new unit mass leaf, d m_h / d m_l
-double Plant::dmass_heartwood_dmass_leaf() const {
-  const Strategy *s = strategy.get(); // for brevity.
-  return s->rho * s->eta_c * s->a2 / vars.mass_leaf *
-        s->B2 * pow(vars.leaf_area, s->B2);
-}
-
 double Plant::dheight_dleaf_area() const {
   return strategy->a1 * strategy->B1 *
   pow(vars.leaf_area, strategy->B1 - 1);
@@ -510,8 +501,7 @@ double Plant::dbark_area_dt() const {
 
 // Growth rate of heartwood area at base per unit time
 double Plant::dheartwood_area_dt() const {
-    double ks =0; //turnover rate of spawood.
-    return ks * vars.leaf_area /  strategy->theta;
+    return strategy->k_s * vars.leaf_area /  strategy->theta;
 }
 
 // Growth rate of stem basal area per unit time
@@ -540,7 +530,7 @@ double Plant::height_seed(Strategy *s) {
 
   // Functor computing total mass of a seed with height h, minus the
   // target seed mass.
-  util::FunctorRoot<Plant, &Plant::mass_total_given_height>
+  util::FunctorRoot<Plant, &Plant::mass_live_given_height>
     fun(&p, mass_seed);
 
   const double tol = p.control().plant_seed_tol;
@@ -551,9 +541,9 @@ double Plant::height_seed(Strategy *s) {
 }
 
 // NOTE: This is used only by height_seed.
-double Plant::mass_total_given_height(double h) {
+double Plant::mass_live_given_height(double h) {
   set_height(h);
-  return vars.mass_total;
+  return vars.mass_live;
 }
 
 // TODO: We can either do this in a non-modifying way with a copy of
@@ -638,7 +628,7 @@ Rcpp::NumericVector Plant::r_get_vars_size() const {
 			       _["mass_bark"]=vars.mass_bark,
 			       _["mass_heartwood"]=vars.mass_heartwood,
 			       _["mass_root"]=vars.mass_root,
-			       _["mass_total"]=vars.mass_total,
+			       _["mass_live"]=vars.mass_live,
 			       _["height"]=vars.height,
 			       _["leaf_area"]=vars.leaf_area,
              _["area_sapwood"]= sapwood_area(),
@@ -676,7 +666,6 @@ Rcpp::NumericVector Plant::r_get_vars_growth_decomp() const {
              _["dmass_sapwood_dmass_leaf"]=dmass_sapwood_dmass_leaf(),
              _["dmass_bark_dmass_leaf"]=dmass_bark_dmass_leaf(),
              _["dmass_root_dmass_leaf"]=dmass_root_dmass_leaf(),
-             _["dmass_heartwood_dmass_leaf"]=dmass_heartwood_dmass_leaf(),
              _["dleaf_area_dt"]=dleaf_area_dt(),
              _["dsapwood_area_dt"]=dsapwood_area_dt(),
              _["dbark_area_dt"]=dbark_area_dt(),

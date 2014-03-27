@@ -31,7 +31,7 @@ make.reference <- function() {
   ## name in the C++ version.
   vars <- c("eta", "theta", "a1", "B1", "a2", "B2", "a3", "b",
             "n_area", "c_Rl", "c_Rr", "c_Rs", "c_Rb", "Y",
-            "c_bio", "a4", "B4", "k_b", "k_r", "c_p1", "c_p2",
+            "c_bio", "a4", "B4", "k_b", "k_s","k_r", "c_p1", "c_p2",
             "c_acc", "c_d0", "c_d1", "c_d2", "c_d3", "c_s0",
             "c_r1", "c_r2")
   get.pars <- function() {

@@ -86,6 +86,8 @@ void Strategy::reset() {
   B4     = 1.71;
   // Bark turnover
   k_b    = 0.2;
+  // Sapwood turnover
+  k_s    = 0.2;
   // Root turnover
   k_r    = 1.0;
   // Parameters of the hyperbola for annual LRC
@@ -146,6 +148,7 @@ void Strategy::do_build_lookup() {
   lookup_table["c_Rb"]   = &c_Rb;
   lookup_table["c_Rr"]   = &c_Rr;
   lookup_table["k_b"]    = &k_b;
+  lookup_table["k_s"]    = &k_s;
   lookup_table["k_r"]    = &k_r;
   lookup_table["Y"]      = &Y;
   lookup_table["c_bio"]  = &c_bio;

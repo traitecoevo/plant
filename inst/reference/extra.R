@@ -56,7 +56,6 @@ fecundity.rate <- function(traits, h, env) {
 leaf.fraction <- function(traits, h) {
   1 / (1 + sapwood.per.leaf.mass(traits, h)
     + bark.per.leaf.mass(traits, h)
-    + heartwood.per.leaf.mass(traits, h)
     + root.per.leaf.mass(traits, h))
 }
 
@@ -102,7 +101,7 @@ da.dmt <- function(traits, h) {
   dmb.dw <- p.b * dms.dw
   dmh.dw <- rho * etac * p.a2 * p.B2 * w ^ (p.B2 - 1) # differs
   dmr.dw <- p.a3
-  denom <- dml.dw + dms.dw + dmb.dw + dmh.dw + dmr.dw
+  denom <- dml.dw + dms.dw + dmb.dw + dmr.dw
   1 / denom
 }
 
@@ -146,7 +145,7 @@ dbark_area_dt <- function(traits, h, env){
 
 ## heartwood area growth rate
 dheartwood_area_dt <- function(traits, h, env){
-  0*LeafArea(h)/p.theta
+  p.k_s*LeafArea(h)/p.theta
 }
 
 ## basal area growth rate
@@ -211,7 +210,7 @@ height.at.birth <- function(traits) {
   hmin <- 1e-16
   hmax <- 1
   f <- function(h)
-    TotalMass(traits, LeafArea(h)) - traits$s
+    LiveMass(traits, LeafArea(h)) - traits$s
   uniroot(f, c(hmin, hmax))$root
 }
 

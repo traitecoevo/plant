@@ -47,6 +47,7 @@ p.c_bio= 12E-3/0.49;
 #turnover
 p.k_b = 0.2;
 p.k_r = 1.0;
+p.k_s = 0.2;
 
 #REPRODUCTION
 p.c_r1=1;

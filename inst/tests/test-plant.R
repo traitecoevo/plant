@@ -59,12 +59,10 @@ expect_that(size.p[["mass_sapwood"]],
             equals(cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
 expect_that(size.p[["mass_bark"]],
             equals(cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
-expect_that(size.p[["mass_heartwood"]],
-            equals(cmp$HeartwoodMass(cmp$traits$rho, cmp$LeafArea(h0))))
 expect_that(size.p[["mass_root"]],
             equals(cmp$RootMass(cmp$LeafArea(h0))))
-expect_that(size.p[["mass_total"]],
-            equals(cmp$TotalMass(cmp$traits, cmp$LeafArea(h0))))
+expect_that(size.p[["mass_live"]],
+            equals(cmp$LiveMass(cmp$traits, cmp$LeafArea(h0))))
 expect_that(size.p[["area_bark"]],
             equals(cmp$bark_area(h0)))
 expect_that(size.p[["area_sapwood"]],
@@ -161,11 +159,6 @@ cmp.dmass_root_dmass_leaf <- cmp$root.per.leaf.mass(cmp$traits, h0)
 expect_that(p.growth_decomp[["dmass_root_dmass_leaf"]],
             equals(cmp.dmass_root_dmass_leaf))
 
-## 12. Heartwood mass per leaf mass
-cmp.dmass_heartwood_dmass_leaf <- cmp$heartwood.per.leaf.mass(cmp$traits, h0)
-expect_that(p.growth_decomp[["dmass_heartwood_dmass_leaf"]],
-            equals(cmp.dmass_heartwood_dmass_leaf))
-
 ## 13. Leaf area growth rate
 cmp.dleaf_area_dt <- cmp$dleaf_area_dt(cmp$traits, h0, light.env)
 expect_that(p.growth_decomp[["dleaf_area_dt"]],
@@ -210,7 +203,7 @@ expect_that(p.growth_decomp[["height_growth_rate"]],
 seed <- new(Plant, s)
 
 ## Check that our root-finding succeeded and the leaf mass is correct:
-expect_that(seed$vars_size[["mass_total"]],
+expect_that(seed$vars_size[["mass_live"]],
             equals(pars.s$s, tolerance=1e-7))
 
 ## Check that the height at birth is correct.  These answers are

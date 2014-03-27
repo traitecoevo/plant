@@ -61,8 +61,8 @@ private:
   double Y;
   // Conversion factor
   double c_bio;
-  // Leaf, bark and root turnover rates
-  double k_l, k_b, k_r;
+  // Leaf, bark sapwood, and root turnover rates
+  double k_l, k_b, k_s, k_r;
   // Leaf productivity parameters  - only used when no N reallocation
   double c_p1, c_p2;
 

@@ -186,7 +186,7 @@ ebt$cohort_schedule <- sched
 ## final time).
 res.e.3 <- run.ebt.test(ebt)
 test_that("EBT with fixed times agrees", {
-  expect_that(res.e.3, equals(res.e.1, tolerance=4e-12))
+  expect_that(res.e.3, equals(res.e.1, tolerance=1e-10))
 })
 
 ebt$reset()

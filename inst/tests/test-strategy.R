@@ -35,6 +35,7 @@ expected <- list(
   hmat   = 16.5958691,
   k_b    = 0.2,
   k_r    = 1,
+  k_s     =0.2,
   lma    = 0.1978791,
   n_area = 0.00187,
   rho    = 608,
