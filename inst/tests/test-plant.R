@@ -233,7 +233,7 @@ expect_that(seed$germination_probability(env),
 ## Check ode state get/set:
 test_that("ODE state has known order", {
   vals <- p$ode_values
-  expect_that(length(vals), equals(3))
+  expect_that(length(vals), equals(5))
   expect_that(vals[[1]], is_identical_to(p$height))
 
   p2 <- new(Plant, p$strategy)
@@ -245,11 +245,11 @@ test_that("ODE state has known order", {
 })
 
 test_that("System state get/set works", {
-  expect_that(p$state_size, equals(3))
+  expect_that(p$state_size, equals(5))
   vals <- p$state
   expect_that(vals, is_identical_to(p$ode_values))
 
-  vals2 <- vals + runif(3)
+  vals2 <- vals + runif(5)
   p2 <- new(Plant, p$strategy)
   p2$state <- vals2
   expect_that(p2$state, is_identical_to(vals2))
@@ -289,14 +289,15 @@ derivs <- function(t, y, pars) {
 env2 <- test.environment(pars.s$hmat * 1.2, 300)
 p$compute_vars_phys(env2)
 p.phys <- p$vars_phys
+p.growth_decomp <- p$vars_growth_decomp
 
 ## Check the derivative calculations are correct
 t <- 0.0 # arbitrary, ignored
-y <- c(h0, 0, 0)
+y <- c(h0, 0, 0, 0,0)
 pars.derivs <- list(plant=p, light.env=env2)
 tmp <- derivs(t, y, pars.derivs)
-p.derivs <- p.phys[c("height_growth_rate",
-                     "mortality_rate", "fecundity_rate")]
+p.derivs <- c(p.phys[c("height_growth_rate",
+                     "mortality_rate", "fecundity_rate")],  p.growth_decomp[c("dheartwood_area_dt","dheartwood_mass_dt")] )
 expect_that(tmp,
             equals(unname(p.derivs), tolerance=2e-8))
 
@@ -354,6 +355,8 @@ test_that("Approximate assimilation works", {
   p2 <- new(Plant, s2)
 
   p2$height <- p$height
+  p2$heartwood_area <-  p$heartwood_area
+  p2$heartwood_mass <-  p$heartwood_mass
 
   p$compute_vars_phys(env)
   p2$compute_vars_phys(env)

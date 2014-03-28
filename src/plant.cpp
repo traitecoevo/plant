@@ -690,6 +690,7 @@ Rcpp::NumericVector Plant::r_get_vars_growth_decomp() const {
              _["dsapwood_area_dt"]=dsapwood_area_dt(),
              _["dbark_area_dt"]=dbark_area_dt(),
              _["dheartwood_area_dt"]=dheartwood_area_dt(),
+             _["dheartwood_mass_dt"]=sapwood_turnover(),
              _["dbasal_area_dt"]=dbasal_area_dt(),
              _["dbasal_diam_dbasal_area"]=dbasal_diam_dbasal_area(),
              _["dbasal_diam_dt"]=dbasal_diam_dt()

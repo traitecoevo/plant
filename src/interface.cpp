@@ -187,6 +187,10 @@ RCPP_MODULE(tree) {
     .property("heartwood_area",
           &model::Plant::heartwood_area,
           &model::Plant::set_area_heartwood)
+    .property("heartwood_mass",
+          &model::Plant::mass_heartwood,
+          &model::Plant::set_mass_heartwood)
+
     .property("fecundity",          &model::Plant::fecundity)
     .property("leaf_area",          &model::Plant::leaf_area)
     .method("leaf_area_above",      &model::Plant::leaf_area_above)
