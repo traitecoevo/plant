@@ -244,7 +244,7 @@ private:
   internals vars;
   integration::intervals_type integration_intervals;
 
-  static const int ode_dimension = 3;
+  static const int ode_dimension = 5;
 };
 
 namespace test {

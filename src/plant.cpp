@@ -221,6 +221,8 @@ ode::iterator_const Plant::set_ode_values(double /* unused: time */,
   set_height(*it++);
   set_mortality(*it++);
   set_fecundity(*it++);
+  set_area_heartwood(*it++);
+  set_mass_heartwood(*it++);
   return it;
 }
 
@@ -228,6 +230,8 @@ ode::iterator Plant::ode_values(ode::iterator it) const {
   *it++ = height();
   *it++ = mortality();
   *it++ = fecundity();
+  *it++ = heartwood_area();
+  *it++ = mass_heartwood();
   return it;
 }
 
@@ -235,6 +239,8 @@ ode::iterator Plant::ode_rates(ode::iterator it) const {
   *it++ = height_rate();
   *it++ = mortality_rate();
   *it++ = fecundity_rate();
+  *it++ = dheartwood_area_dt();
+  *it++ = sapwood_turnover();
   return it;
 }
 
