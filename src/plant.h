@@ -75,6 +75,16 @@ public:
   void set_fecundity(double x);
   double fecundity_rate() const;
 
+  double heartwood_area() const;
+  void set_area_heartwood(double x);
+  double dheartwood_area_dt() const;
+
+  double mass_heartwood() const;
+  void set_mass_heartwood(double x);
+  double sapwood_turnover() const;   // Sapwood turnover
+
+
+
   // These are derived from mortality() -- see design.md.
   double mortality_probability() const;
   double survival_probability() const;
@@ -174,8 +184,6 @@ private:
   double dsapwood_area_dt() const;
   // Growth rate of bark area at base per unit time
   double dbark_area_dt() const;
-  // Growth rate of heartwood area at base per unit time
-  double dheartwood_area_dt() const;
   // Growth rate of stem basal per unit time
   double dbasal_area_dt() const;
   // Growth rate of basal dimater per unit basal area
@@ -187,8 +195,6 @@ private:
   double sapwood_area() const;
   // Bark area
   double bark_area() const;
-  // heartwood area
-  double heartwood_area() const;
   // basal area
   double basal_area() const;
 

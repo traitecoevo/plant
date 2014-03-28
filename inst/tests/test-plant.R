@@ -67,14 +67,27 @@ expect_that(size.p[["area_bark"]],
             equals(cmp$bark_area(h0)))
 expect_that(size.p[["area_sapwood"]],
             equals(cmp$sapwood_area(h0)))
-expect_that(size.p[["area_heartwood"]],
-            equals(cmp$heartwood_area(h0)))
 expect_that(size.p[["area_basal"]],
             equals(cmp$basal_area(h0)))
-
 expect_that(p$height, is_identical_to(size.p[["height"]]))
 expect_that(p$leaf_area, is_identical_to(size.p[["leaf_area"]]))
 
+## check heartwood area function
+
+## Expect zero unless it has been set otherwise
+expect_that(size.p[["area_heartwood"]],
+            equals(0))
+HA0 <- 1E-3
+p$heartwood_area <- HA0
+size.p <- p$vars_size
+expect_that(size.p[["area_heartwood"]],
+            equals(HA0))
+expect_that(size.p[["area_basal"]],
+            equals(cmp$basal_area(h0) + HA0))
+# set heartwood back at zero for subsequent tests
+p$heartwood_area <- 0
+
+## Light environment
 
 env <- test.environment(h0)
 light.env <- attr(env, "light.env") # underlying function

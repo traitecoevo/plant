@@ -23,8 +23,8 @@ Plant::internals::internals()
     height(NA_REAL),
     mass_sapwood(NA_REAL),
     mass_bark(NA_REAL),
-    mass_heartwood(NA_REAL),
-    area_heartwood(NA_REAL),
+    mass_heartwood(0),
+    area_heartwood(0),
     mass_root(NA_REAL),
     mass_live(NA_REAL),
     // NOTE: Zero to allow '==' to work on new plants
@@ -258,6 +258,19 @@ double Plant::fecundity_rate() const {
   return vars.fecundity_rate;
 }
 
+void Plant::set_area_heartwood(double x) {
+  vars.area_heartwood = x;
+}
+
+double Plant::mass_heartwood() const {
+  return vars.mass_heartwood;
+}
+
+void Plant::set_mass_heartwood(double x) {
+  vars.mass_heartwood = x;
+}
+
+
 // This one is a bit different, as it converts from the mean of the
 // poisson process (on [0,Inf)) to a probability (on [0,1]).
 double Plant::mortality_probability() const {
@@ -305,9 +318,6 @@ void Plant::compute_vars_size(double height_) {
     strategy->a1 * strategy->eta_c * pow(vars.leaf_area, 1 + strategy->B1);
   // [eqn 5] Mass of bark
   vars.mass_bark = strategy->b * vars.mass_sapwood;
-  // Mass of heartwood
-  vars.mass_heartwood = 0;
-  vars.area_heartwood = 0;
   // [eqn 7] Mass of (fine) roots
   vars.mass_root = strategy->a3 * vars.leaf_area;
   // [eqn 8] Total mass
@@ -421,8 +431,12 @@ double Plant::compute_turnover() const {
   return
     vars.mass_leaf * strategy->k_l  +
     vars.mass_bark * strategy->k_b  +
-    vars.mass_sapwood * strategy->k_s +
+    sapwood_turnover() +
     vars.mass_root * strategy->k_r;
+}
+
+double Plant::sapwood_turnover() const {
+  return vars.mass_sapwood * strategy->k_s;
 }
 
 // [eqn 16] Fraction of production allocated to reproduction
@@ -501,7 +515,7 @@ double Plant::dbark_area_dt() const {
 
 // Growth rate of heartwood area at base per unit time
 double Plant::dheartwood_area_dt() const {
-    return strategy->k_s * vars.leaf_area /  strategy->theta;
+    return strategy->k_s * sapwood_area();
 }
 
 // Growth rate of stem basal area per unit time
