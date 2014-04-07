@@ -40,7 +40,8 @@ build.schedule <- function(p, schedule, nsteps, eps,
                     f(rbind(err.lai[[idx]], err.w[[idx]])))
 
     list(fitness=ebt$fitnesses,
-         err=list(lai=err.lai, w=err.w, total=total))
+         err=list(lai=err.lai, w=err.w, total=total),
+         ebt=ebt)
   }
 
   ## Don't modify what we're given:
@@ -76,6 +77,7 @@ build.schedule <- function(p, schedule, nsteps, eps,
   if (progress)
     attr(schedule, "progress") <- history
   attr(schedule, "seed_rain") <- seed_rain
+  attr(schedule, "ebt") <- res$ebt
 
   schedule
 }
