@@ -82,15 +82,18 @@ expect_that(plants[[1]]$vars_phys,
             equals(cmp$vars_phys))
 
 ## One species, one individual
+ode_size_plant <- new(Plant,new(Strategy))$ode_size
+
 expect_that(patch$n_individuals, equals(1))
-expect_that(patch$ode_size,      equals(3))
+expect_that(patch$ode_size,      equals(ode_size_plant))
 
 y <- patch$ode_values
-expect_that(y, equals(c(h0, 0, 0)))
+expect_that(y, equals(c(h0, 0, 0,0,0)))
 dydt <- patch$ode_rates
 
-cmp.dydt <- unname(cmp$vars_phys[c("height_growth_rate",
-                                   "mortality_rate", "fecundity_rate")])
+cmp.dydt <- unname(c(cmp$vars_phys[c("height_growth_rate",
+                                   "mortality_rate", "fecundity_rate")],
+                    cmp$vars_growth_decomp[c("dheartwood_area_dt","dheartwood_mass_dt")]))
 expect_that(dydt, is_identical_to(cmp.dydt))
 
 expect_that(patch$derivs(0.0, y), is_identical_to(dydt))

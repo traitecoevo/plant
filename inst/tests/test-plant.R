@@ -245,11 +245,11 @@ test_that("ODE state has known order", {
 })
 
 test_that("System state get/set works", {
-  expect_that(p$state_size, equals(5))
+  expect_that(p$state_size, equals(p$ode_size))
   vals <- p$state
   expect_that(vals, is_identical_to(p$ode_values))
 
-  vals2 <- vals + runif(5)
+  vals2 <- vals + runif(p$ode_size)
   p2 <- new(Plant, p$strategy)
   p2$state <- vals2
   expect_that(p2$state, is_identical_to(vals2))

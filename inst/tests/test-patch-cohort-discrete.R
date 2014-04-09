@@ -38,10 +38,11 @@ patch.c$reset()
 patch.p$add_seedlings(2)
 patch.c$add_seedlings(2)
 
-## And expect that the size of the system is 6 with no cohorts, and 3
+## And expect that the size of the system with no cohorts is double size
 ## with cohorts.
-expect_that(patch.p$ode_size, equals(6))
-expect_that(patch.c$ode_size, equals(3))
+ode_size_plant <- new(Plant,new(Strategy))$ode_size
+expect_that(patch.p$ode_size, equals(2*ode_size_plant))
+expect_that(patch.c$ode_size, equals(ode_size_plant))
 ## but the number of individuals is 2 in both cases:
 expect_that(patch.p$n_individuals, equals(2))
 expect_that(patch.c$n_individuals, equals(2))
@@ -60,7 +61,7 @@ res.p <- f(patch.p, 10, p$control$ode_control)
 res.c <- f(patch.c, 10, p$control$ode_control)
 
 expect_that(res.p[,1:4], equals(res.c[,1:4]))
-expect_that(res.p[,5:7], equals(res.p[,2:4]))
+expect_that(res.p[,ode_size_plant+(2:4)], equals(res.p[,2:4]))
 
 ## Add another 3 seeds.
 patch.p$add_seedlings(3)
