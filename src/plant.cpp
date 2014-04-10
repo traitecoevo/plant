@@ -649,6 +649,7 @@ Rcpp::NumericVector Plant::r_get_vars_size() const {
 			       _["mass_heartwood"]=vars.mass_heartwood,
 			       _["mass_root"]=vars.mass_root,
 			       _["mass_live"]=vars.mass_live,
+             _["mass_total"]=vars.mass_live+vars.mass_heartwood,
 			       _["height"]=vars.height,
 			       _["leaf_area"]=vars.leaf_area,
              _["area_sapwood"]= sapwood_area(),
