@@ -130,6 +130,7 @@ public:
 
   double r_germination_probability(interpolator::Interpolator env);
   bool r_died();
+  Plant r_copy() const;
 
   size_t state_size() const;
   state::iterator       get_state(state::iterator       it) const;

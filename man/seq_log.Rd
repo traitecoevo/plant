@@ -1,0 +1,25 @@
+\name{seq_log}
+\alias{seq_log}
+\title{Sequence in Log Space}
+\usage{
+seq_log(from, to, length.out)
+}
+\arguments{
+  \item{from}{Starting point}
+
+  \item{to}{Ending point}
+
+  \item{length.out}{Number of points to generate}
+}
+\description{
+Sequence in log space
+}
+\details{
+Unlike the billions of options for \code{seq}, only
+\code{length.out} is supported here, and both \code{from}
+and \code{to} must be provided.
+}
+\author{
+Rich FitzJohn
+}
+

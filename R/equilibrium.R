@@ -49,6 +49,7 @@ equilibrium.seed.rain <- function(p, schedule, nsteps,
   history <- list()
   for (i in seq_len(nsteps)) {
     schedule <- build(schedule)
+    ebt.last <- attr(schedule, "ebt")
     res <- list(seed_rain = attr(schedule, "seed_rain", exact=TRUE),
                 schedule  = schedule$copy())
     history <- c(history, list(res))
@@ -69,5 +70,6 @@ equilibrium.seed.rain <- function(p, schedule, nsteps,
   if (progress)
     attr(res, "progress") <- history
   attr(res, "schedule") <- schedule
+  attr(res, "ebt") <- ebt.last
   res
 }

@@ -35,6 +35,7 @@ public:
   Rcpp::NumericMatrix r_run(std::vector<double> times,
 			    std::vector<double> y);
   OdeControl r_control() const;
+  SEXP r_pars() const;
 
 private:
   SEXP target(double time, SEXP y);

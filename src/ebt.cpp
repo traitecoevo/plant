@@ -49,7 +49,7 @@ std::vector<int> EBT::run_next() {
     // through to EBT::add_seedlings().
     patch.add_seedling(e.species_index);
     schedule.pop();
-    if (e.time_end() > t0) {
+    if (e.time_end() > t0 || complete()) {
       break;
     } else {
       e = schedule.next_event();
