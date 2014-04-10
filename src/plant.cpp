@@ -650,6 +650,10 @@ bool Plant::r_died() {
   return died();
 }
 
+Plant Plant::r_copy() const {
+  return *this;
+}
+
 size_t Plant::state_size() const {
   return ode_size();
 }

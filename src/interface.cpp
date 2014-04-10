@@ -205,6 +205,7 @@ RCPP_MODULE(tree) {
     .property("state",
 	      &util::r_get_state<model::Plant>,
 	      &util::r_set_state<model::Plant>)
+    .method("copy",                 &model::Plant::r_copy)
     ;
 
   Rcpp::class_<model::CohortDiscrete>("CohortDiscrete")
