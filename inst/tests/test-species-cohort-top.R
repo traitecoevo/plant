@@ -205,8 +205,8 @@ test_that("Approximately computed assimilation matches full computation", {
   r.approx <- matrix(sp.approx$ode_rates, 4)
   r.full   <- matrix(sp.full$ode_rates,   4)
 
-  expect_that(r.approx[1:3,], equals(r.full[1:3,], tolerance=2e-7))
-  expect_that(r.approx[4,],   equals(r.full[4,],   tolerance=0.0008))
+  expect_that(r.approx[1:3,], equals(r.full[1:3,], tolerance=5e-7))
+  expect_that(r.approx[4,],   equals(r.full[4,],   tolerance=0.001))
   expect_that(identical(r.full, r.approx), is_false())
 })
 

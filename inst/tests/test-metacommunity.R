@@ -17,12 +17,14 @@ expect_that(sys$time, equals(0.0))
 ## and we should have no ode variables:
 expect_that(sys$ode_size, equals(0))
 
+plant <- new(Plant,new(Strategy))
+
 ## Put a single individual in the 3rd patch:
 idx <- 3
 n[idx] <- 1
 sys$add_seedlings(n)
 expect_that(sys$n_individuals, equals(n))
-expect_that(sys$ode_size, equals(sum(n)*3))
+expect_that(sys$ode_size, equals(sum(n)*plant$ode_size))
 
 expect_that(sys[[idx]]$n_individuals, equals(1)) # 1 individual
 expect_that(sys[[idx]]$size, equals(p$size))     # 1 species

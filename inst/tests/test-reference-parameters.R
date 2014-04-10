@@ -1,5 +1,10 @@
 source("helper-tree.R")
 
+skip <- file.exists(".SKIP_REFERENCE_TESTS")
+
+## This is basically a test of if we're running in Rich's computer.
+if (!skip) {
+
 context("Reference Model Parameters")
 
 ## Path with some example parameter files:
@@ -92,4 +97,5 @@ if (FALSE) {
     expect_that(digest(output[names(output) != "parameters"], "sha1"),
                 is_identical_to("725c32f87efa820f031e7c56f9564f024bc1d876"))
   })
+}
 }

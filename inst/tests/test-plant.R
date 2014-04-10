@@ -59,15 +59,35 @@ expect_that(size.p[["mass_sapwood"]],
             equals(cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
 expect_that(size.p[["mass_bark"]],
             equals(cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
-expect_that(size.p[["mass_heartwood"]],
-            equals(cmp$HeartwoodMass(cmp$traits$rho, cmp$LeafArea(h0))))
 expect_that(size.p[["mass_root"]],
             equals(cmp$RootMass(cmp$LeafArea(h0))))
-expect_that(size.p[["mass_total"]],
-            equals(cmp$TotalMass(cmp$traits, cmp$LeafArea(h0))))
-
+expect_that(size.p[["mass_live"]],
+            equals(cmp$LiveMass(cmp$traits, cmp$LeafArea(h0))))
+expect_that(size.p[["area_bark"]],
+            equals(cmp$bark_area(h0)))
+expect_that(size.p[["area_sapwood"]],
+            equals(cmp$sapwood_area(h0)))
+expect_that(size.p[["area_basal"]],
+            equals(cmp$basal_area(h0)))
 expect_that(p$height, is_identical_to(size.p[["height"]]))
 expect_that(p$leaf_area, is_identical_to(size.p[["leaf_area"]]))
+
+## check heartwood area function
+
+## Expect zero unless it has been set otherwise
+expect_that(size.p[["area_heartwood"]],
+            equals(0))
+HA0 <- 1E-3
+p$heartwood_area <- HA0
+size.p <- p$vars_size
+expect_that(size.p[["area_heartwood"]],
+            equals(HA0))
+expect_that(size.p[["area_basal"]],
+            equals(cmp$basal_area(h0) + HA0))
+# set heartwood back at zero for subsequent tests
+p$heartwood_area <- 0
+
+## Light environment
 
 env <- test.environment(h0)
 light.env <- attr(env, "light.env") # underlying function
@@ -152,11 +172,6 @@ cmp.dmass_root_dmass_leaf <- cmp$root.per.leaf.mass(cmp$traits, h0)
 expect_that(p.growth_decomp[["dmass_root_dmass_leaf"]],
             equals(cmp.dmass_root_dmass_leaf))
 
-## 12. Heartwood mass per leaf mass
-cmp.dmass_heartwood_dmass_leaf <- cmp$heartwood.per.leaf.mass(cmp$traits, h0)
-expect_that(p.growth_decomp[["dmass_heartwood_dmass_leaf"]],
-            equals(cmp.dmass_heartwood_dmass_leaf))
-
 ## 13. Leaf area growth rate
 cmp.dleaf_area_dt <- cmp$dleaf_area_dt(cmp$traits, h0, light.env)
 expect_that(p.growth_decomp[["dleaf_area_dt"]],
@@ -182,6 +197,16 @@ cmp.dbasal_area_dt <- cmp$dbasal_area_dt(cmp$traits, h0, light.env)
 expect_that(p.growth_decomp[["dbasal_area_dt"]],
             equals(cmp.dbasal_area_dt, tolerance=1e-7))
 
+## 18. change in basal diam per basal area
+cmp.dbasal_diam_dbasal_area <- cmp$dbasal_diam_dbasal_area(cmp$basal_area(h0))
+expect_that(p.growth_decomp[["dbasal_diam_dbasal_area"]],
+            equals(cmp.dbasal_diam_dbasal_area, tolerance=1e-7))
+
+## 18. basal diam growth rate
+cmp.dbasal_diam_dt <- cmp$dbasal_diam_dt(cmp$traits, h0, light.env)
+expect_that(p.growth_decomp[["dbasal_diam_dt"]],
+            equals(cmp.dbasal_diam_dt, tolerance=1e-7))
+
 ## Check that height decomposition multiplies out to give right answer
 expect_that(p.growth_decomp[["height_growth_rate"]],
             equals(
@@ -191,7 +216,7 @@ expect_that(p.growth_decomp[["height_growth_rate"]],
 seed <- new(Plant, s)
 
 ## Check that our root-finding succeeded and the leaf mass is correct:
-expect_that(seed$vars_size[["mass_total"]],
+expect_that(seed$vars_size[["mass_live"]],
             equals(pars.s$s, tolerance=1e-7))
 
 ## Check that the height at birth is correct.  These answers are
@@ -208,7 +233,7 @@ expect_that(seed$germination_probability(env),
 ## Check ode state get/set:
 test_that("ODE state has known order", {
   vals <- p$ode_values
-  expect_that(length(vals), equals(3))
+  expect_that(length(vals), equals(5))
   expect_that(vals[[1]], is_identical_to(p$height))
 
   p2 <- new(Plant, p$strategy)
@@ -220,11 +245,11 @@ test_that("ODE state has known order", {
 })
 
 test_that("System state get/set works", {
-  expect_that(p$state_size, equals(3))
+  expect_that(p$state_size, equals(p$ode_size))
   vals <- p$state
   expect_that(vals, is_identical_to(p$ode_values))
 
-  vals2 <- vals + runif(3)
+  vals2 <- vals + runif(p$ode_size)
   p2 <- new(Plant, p$strategy)
   p2$state <- vals2
   expect_that(p2$state, is_identical_to(vals2))
@@ -264,14 +289,15 @@ derivs <- function(t, y, pars) {
 env2 <- test.environment(pars.s$hmat * 1.2, 300)
 p$compute_vars_phys(env2)
 p.phys <- p$vars_phys
+p.growth_decomp <- p$vars_growth_decomp
 
 ## Check the derivative calculations are correct
 t <- 0.0 # arbitrary, ignored
-y <- c(h0, 0, 0)
+y <- c(h0, 0, 0, 0,0)
 pars.derivs <- list(plant=p, light.env=env2)
 tmp <- derivs(t, y, pars.derivs)
-p.derivs <- p.phys[c("height_growth_rate",
-                     "mortality_rate", "fecundity_rate")]
+p.derivs <- c(p.phys[c("height_growth_rate",
+                     "mortality_rate", "fecundity_rate")],  p.growth_decomp[c("dheartwood_area_dt","dheartwood_mass_dt")] )
 expect_that(tmp,
             equals(unname(p.derivs), tolerance=2e-8))
 
@@ -329,6 +355,8 @@ test_that("Approximate assimilation works", {
   p2 <- new(Plant, s2)
 
   p2$height <- p$height
+  p2$heartwood_area <-  p$heartwood_area
+  p2$heartwood_mass <-  p$heartwood_mass
 
   p$compute_vars_phys(env)
   p2$compute_vars_phys(env)
