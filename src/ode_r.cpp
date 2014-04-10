@@ -95,6 +95,10 @@ OdeControl OdeR::r_control() const {
   return solver.r_control();
 }
 
+SEXP OdeR::r_pars() const {
+  return pars;
+}
+
 // * Private methods
 SEXP OdeR::target(double time, SEXP y) {
   return Rf_eval(Rf_lang4(fun, Rf_ScalarReal(time), y, pars), env);

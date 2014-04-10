@@ -92,6 +92,8 @@ expect_that(lo$state, is_identical_to(ans[nrow(ans),]))
 ## With the R Ode verison:
 obj <- new(OdeR, derivs.lorenz, new.env(), pars)
 
+expect_that(obj$pars, is_identical_to(pars))
+
 expect_that(obj$derivs(t0, y),
             is_identical_to(derivs.lorenz(t0, y, pars)))
 

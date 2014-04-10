@@ -110,6 +110,7 @@ RCPP_MODULE(tree) {
     .method("derivs",        &ode::OdeR::r_derivs)
     .method("run",           &ode::OdeR::r_run)
     .property("control",     &ode::OdeR::r_control)
+    .property("pars",        &ode::OdeR::r_pars)
     ;
 
   Rcpp::class_<util::Lookup>("Lookup")
