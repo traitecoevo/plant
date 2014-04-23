@@ -91,6 +91,6 @@ for lma in np.logspace(np.log(0.03), np.log(0.8), 64, base=np.e)[5:-5]:
 #     fs[i] = fitnesses[k]
 # figure()
 # loglog()
-# plot(all_fit[5:-5], all_fit[5:-5],'w')
-# imshow(fs/np.mean(fs, axis=1, keepdims=True),
-#        extent=(0.03, 0.8, max(fitnesses.keys()), min(fitnesses.keys())))
+# scatter(lmas_res, lmas_res, [20*log10(seed_rains[l]) for l in lmas_res], 'w', edgecolors='none')
+# imshow((fs-1.)/np.max(fs, axis=1, keepdims=True), extent=(0.03, 0.8, max(fitnesses.keys()), min(fitnesses.keys())))
+# colorbar()

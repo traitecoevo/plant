@@ -92,11 +92,12 @@ for lma in np.logspace(np.log(0.03), np.log(0.8), 64, base=np.e)[5:-5]:
 # # Prepare results and plot
 # all_fit = np.logspace(np.log(0.03), np.log(0.8), 64, base=np.e)
 # fs = np.zeros((len(fitnesses), len(fitnesses.values()[0])))
+# lmas = seed_rains.keys()
 # for i, k in enumerate(sort(fitnesses.keys())):
 #     fs[i] = fitnesses[k]
 # figure()
 # loglog()
-# plot(all_fit[5:-5], all_fit[5:-5],'w')
-# plot((fixed_lma, fixed_lma), (all_fit[5], all_fit[-5]),'w')
-# imshow((fs-1)/np.max((fs-1), axis=1, keepdims=True),
-#        extent=(0.03, 0.8, max(fitnesses.keys()), min(fitnesses.keys())))
+# scatter(lmas, lmas, [20*log10(seed_rains[l][0]) for l in lmas], 'w', edgecolors='none')
+# scatter(fixed_lma*np.ones_like(lmas), lmas, [20*log10(seed_rains[l][1]) for l in lmas], 'w', edgecolors='none')
+# imshow((fs-1)/np.max(fs, axis=1, keepdims=True), extent=(0.03, 0.8, max(fitnesses.keys()), min(fitnesses.keys())))
+# colorbar()
