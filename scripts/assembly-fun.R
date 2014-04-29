@@ -45,14 +45,17 @@ make.immigration <- function(n.immigrants, bounds) {
 ## (Parameters and CohortSchedule).  This is going to become
 ## particularly apparent when it comes time to pull delete
 ## strategies.
-setup.parameters <- function(traits, seed_rain, p0) {
+setup.parameters <- function(traits, seed_rain, p0, strategy=new(Strategy)) {
   p <- p0$copy()
-  for (i in seq_len(nrow(traits)))
-    p$add_strategy(new(Strategy, as.list(traits[i,])))
+  for (i in seq_len(nrow(traits))){
+    new.strategy <- strategy$copy()
+    new.strategy$set_parameters(as.list(traits[i,]))
+    p$add_strategy(new.strategy)
+  }
   p$seed_rain <- seed_rain
-
   p
 }
+
 
 setup.schedule <- function(times, max.t) {
   schedule <- new(CohortSchedule, length(times))
@@ -85,13 +88,13 @@ drop.strategies.schedule <- function(schedule, drop) {
   ret
 }
 
-make.run <- function(p0, max.t, build.args=list()) {
+make.run <- function(p0, max.t, build.args=list(), strategy=new(Strategy)) {
   build.args <- modifyList(list(nsteps=10, eps=1e-3, verbose=TRUE),
                            build.args)
   force(p0)
   force(max.t)
   function(sys) {
-    p <- setup.parameters(sys[["traits"]], sys[["seed_rain"]], p0)
+    p <- setup.parameters(sys[["traits"]], sys[["seed_rain"]], p0, strategy)
     schedule <- setup.schedule(sys[["times"]], max.t)
 
     res <- build.schedule(p, schedule, build.args$nsteps, build.args$eps,
