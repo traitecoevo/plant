@@ -75,6 +75,16 @@ public:
   void set_fecundity(double x);
   double fecundity_rate() const;
 
+  double heartwood_area() const;
+  void set_area_heartwood(double x);
+  double dheartwood_area_dt() const;
+
+  double mass_heartwood() const;
+  void set_mass_heartwood(double x);
+  double sapwood_turnover() const;   // Sapwood turnover
+
+
+
   // These are derived from mortality() -- see design.md.
   double mortality_probability() const;
   double survival_probability() const;
@@ -169,23 +179,30 @@ private:
   double dmass_bark_dmass_leaf() const;
   // Mass of root needed for new unit mass leaf, d m_r / d m_l
   double dmass_root_dmass_leaf() const;
-  // Mass of heartwood needed for new unit mass leaf, d m_h / d m_l
-  double dmass_heartwood_dmass_leaf() const;
   // Growth rate of leaf area per unit time
   double dleaf_area_dt() const;
   // Growth rate of spawood area at base per unit time
   double dsapwood_area_dt() const;
   // Growth rate of bark area at base per unit time
   double dbark_area_dt() const;
-  // Growth rate of heartwood area at base per unit time
-  double dheartwood_area_dt() const;
   // Growth rate of stem basal per unit time
   double dbasal_area_dt() const;
+  // Growth rate of basal dimater per unit basal area
+  double dbasal_diam_dbasal_area() const;
+  // Growth rate of basal dimaterper unit time
+  double dbasal_diam_dt() const;
+
+  // Sapwood area
+  double sapwood_area() const;
+  // Bark area
+  double bark_area() const;
+  // basal area
+  double basal_area() const;
 
   // Update a number of constants within the model.  This is a work in
   // progress.
   static double height_seed(Strategy *s);
-  double mass_total_given_height(double h);
+  double mass_live_given_height(double h);
   double height_given_mass_leaf(double mass_leaf_) const;
 
   // To simplify my life, I'm making a small internal-only class that
@@ -204,8 +221,9 @@ private:
     double mass_sapwood;   // [eqn 4]
     double mass_bark;      // [eqn 5]
     double mass_heartwood; // [eqn 6]
+    double area_heartwood;
     double mass_root;      // [eqn 7] (fine roots)
-    double mass_total;     // [eqn 8]
+    double mass_live;      // [eqn 8]
     // * Mass production
     double assimilation;   // [eqn 12] Gross annual CO2 assimilation
     double respiration;    // [eqn 13] Total maintenance respiration
@@ -227,7 +245,7 @@ private:
   internals vars;
   integration::intervals_type integration_intervals;
 
-  static const int ode_dimension = 3;
+  static const int ode_dimension = 5;
 };
 
 namespace test {

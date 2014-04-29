@@ -5,6 +5,7 @@ context("Species [Plant]")
 
 s <- new(Strategy)
 cmp <- new(Plant, s)
+ode_size_plant <- cmp$ode_size
 
 sp <- new(Species, s)
 expect_that(sp$size, equals(0))
@@ -14,7 +15,7 @@ expect_that(sp$height_max, is_identical_to(cmp$height))
 sp$add_seeds(1)
 expect_that(sp$size, equals(1))
 expect_that(sp$n_individuals, equals(1))
-expect_that(sp$ode_size, equals(3))
+expect_that(sp$ode_size, equals(ode_size_plant))
 
 plants <- sp$plants
 expect_that(length(plants), equals(1))
@@ -70,16 +71,16 @@ test_that("State get/set works", {
   sp2 <- new(Species, sp$strategy)
   state <- sp2$state
   expect_that(state, is_a("matrix"))
-  expect_that(state, equals(matrix(0.0, 3, 0)))
+  expect_that(state, equals(matrix(0.0, ode_size_plant, 0)))
 
   for (i in 1:4)
     sp2$add_seeds(1)
   sp2$height <- sort(runif(sp2$size), decreasing=TRUE)
 
-  cmp <- rbind(sp2$height, matrix(0, 2, sp2$size))
+  cmp <- rbind(sp2$height, matrix(0, 4, sp2$size))
   expect_that(sp2$state, is_identical_to(cmp))
 
-  tmp <- matrix(sp2$ode_values, nrow=3)
+  tmp <- matrix(sp2$ode_values, nrow=ode_size_plant)
   tmp[2:3,] <- runif(length(tmp[2:3,]))
   sp2$set_ode_values(0, tmp)
   expect_that(sp2$state, is_identical_to(tmp))

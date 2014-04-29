@@ -126,7 +126,7 @@ test_that("System state get/set works", {
   vals.1 <- cohort1$state
   vals.2 <- cohort2$state
 
-  expect_that(cohort0$state_size, equals(4))
+  expect_that(cohort0$state_size, equals(plant$ode_size+1))
   expect_that(vals.p, is_identical_to(plant$ode_values))
   expect_that(vals.0, is_identical_to(c(cohort0$ode_values, 1)))
   expect_that(vals.1, is_identical_to(c(cohort1$ode_values, 1)))
@@ -134,7 +134,7 @@ test_that("System state get/set works", {
 
   expect_that(cohort0$state, is_identical_to(cohort1$state))
 
-  x <- cohort0$ode_values + runif(3)
+  x <- cohort0$ode_values + runif(plant$ode_size)
   expect_that(cohort0$state <- x,          throws_error())
   expect_that(cohort0$state <- c(x, 1, 2), throws_error())
 

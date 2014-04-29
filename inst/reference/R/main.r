@@ -97,7 +97,7 @@ dMrdA(10)
 (RootMass(10.01)-RootMass(10))/0.01
 
 dMtdA(traits, 10)
-(TotalMass(traits, 10.001)-TotalMass(traits, 10))/0.001
+(LiveMass(traits, 10.001)-LiveMass(traits, 10))/0.001
 
 
 Production(traits, 10, 1,1)
