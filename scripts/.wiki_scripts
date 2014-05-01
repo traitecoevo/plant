@@ -3,4 +3,5 @@ equilibrium.R
 instability.R
 landscape.R
 landscape2.R
+light_env_interpolation.R
 splitting_cohorts.R

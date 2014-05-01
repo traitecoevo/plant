@@ -1,6 +1,5 @@
-source("helper-tree.R")
-
-context("EBTMutantRunner")
+library(tree)
+library(testthat)
 
 p <- new(Parameters)
 p$add_strategy(new(Strategy))
