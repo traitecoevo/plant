@@ -80,6 +80,7 @@ sched <- new(CohortSchedule, p$size)
 sched$set_times(insert.time(18, tt.1), 1)
 sched$max_time <- max(t.max)
 
+##+ error=TRUE
 ebt <- new(EBT, p)
 ebt$cohort_schedule <- sched
 while (ebt$cohort_schedule$remaining > 0)
@@ -101,27 +102,33 @@ cur.r <- as.data.frame(t(matrix(patch$ode_rates, 4)))
 names(cur.v) <- names(cur.r) <- c("height", "mort", "fec", "density")
 
 ## The rate of change of density is really bad.
+##+ rate_of_change_density
 plot(cur.r$density)
 
 ## OK, this is the point that is going to cause me trouble.
+##+ rate_of_change_density_trouble
 plot(cur.r$density ~ cur.v$height)
 abline(v=3.35)
 
 ## But there is no sign of the trouble here, so I think that we're in
 ## a good spot.
+##+ density_vs_height
 plot(cur.v$density ~ cur.v$height)
 abline(v=3.35)
 
+##+ density_vs_height_exp
 plot(exp(cur.v$density) ~ cur.v$height)
 abline(v=3.35)
 
 ## The height growth rate doesn't suggest much going on, which is odd
 ## because the gradient of this (wrt height) is part of the
 ## calculation of the rate of change of density.
+##+ height_vs_height
 plot(cur.r$height ~ cur.v$height)
 abline(v=3.35)
 
 ## Nor does the mortality rate (the other half of the calculation)
+##+ mort_vs_height
 plot(cur.r$mort ~ cur.v$height)
 abline(v=3.35)
 
@@ -129,6 +136,7 @@ plants <- patch[[1]]$plants
 env <- patch$environment
 
 ## Here we are; this totally fails at the right point:
+##+ point_of_failure
 foo.g <- sapply(plants, function(p) p$growth_rate_gradient(env))
 foo.h <- sapply(plants, function(p) p$height)
 plot(foo.g ~ foo.h)
@@ -142,9 +150,11 @@ h <- plant$height
 
 ## While this looks well behaved, it's right on the edge of a small
 ## bit of very highly sampled light environment.
+##+ point_of_failure_light_environment
 plot(env$light_environment$xy, type="o", col="grey")
 abline(v=3.35)
 
+##+ point_of_failure_light_environment_zoom
 plot(env$light_environment$xy, type="o", col="grey",
      xlim=c(2, 4), ylim=c(0.19, 0.21))
 abline(v=3.35)
@@ -186,10 +196,12 @@ control <- p$control$parameters
                             control$cohort_gradient_eps,
                             control$cohort_gradient_richardson_depth))
 
+##+ height_height_spline
 plot(cur.r$height ~ cur.v$height)
 abline(v=3.35)
 fit <- splinefun(cur.v$height, cur.r$height)
 
+##+ height_height_spline_2
 plot(cur.v$height, cur.r$height)
 curve(fit, add=TRUE, col="red")
 fit(h, 1)
@@ -217,6 +229,7 @@ yy <- sapply(hh, f)
 ## step in the calculation.  My guess is that is coming from a
 ## difference in how we compute the assimilation using the adaptive
 ## integration routine.
+##+ actual_point_of_failure
 plot(yy ~ hh)
 abline(v=h + c(-eps, 0, eps))
 
@@ -230,6 +243,7 @@ make.g <- function(plant, env) {
 
 ## Bingo.  So, we need to be able to get and set parameters on exactly
 ## how the integration works.
+##+ actual_point_of_failure_exact
 aa <- sapply(hh, make.g(plants[[idx]], env))
 plot(aa ~ hh)
 abline(v=h + c(-eps, 0, eps))
@@ -300,4 +314,5 @@ env.s$init(env.h, env.o)
 e2$light_environment <- env.s
 
 ## Here is the problem:
+##+ reproducible
 pl$growth_rate_gradient(e2)

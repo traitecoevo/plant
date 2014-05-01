@@ -1,3 +1,9 @@
 ref-equilibrium
 times.w.default.rds
 times.w.linear.rds
+
+figure/
+cache/
+
+ebt_integration_error.Rmd
+ebt_integration_error.md
