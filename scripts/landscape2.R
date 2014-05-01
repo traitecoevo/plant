@@ -58,12 +58,16 @@ tt <- c(t.2[["elapsed"]],
         t.32[["elapsed"]],
         t.64[["elapsed"]])
 n <- 2^seq_along(tt)
+
+##+ time_per_mutant
 plot(n, tt / n, log="x")
 
+##+ fitness_landscape
 plot(w.64 ~ lma.64, type="l", log="x")
 abline(v=lma.res, lty=3, col="grey")
 
 # Fitness of the mutants in an empty landscape:
 w.empty <- landscape.empty(lma.16, p, schedule)
 
+##+ fitness_landscape_empty
 plot(w.empty ~ lma.16, log="x")
