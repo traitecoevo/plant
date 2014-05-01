@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh
 
 WIKI_DIR=../wiki
 FIGURE_DIR="figure"
