@@ -81,6 +81,7 @@ w.with.mutants <- ebt.with.mutants$fitnesses
 lma.v <- sapply(seq_len(p.with.mutants$size),
                 function(i) p.with.mutants[[i]]$parameters[["lma"]])
 
+##+ fitness_landscape
 plot(lma.v[-(1:2)], w.with.mutants[-(1:2)], log="y")
 points(lma.v[[1]], w.with.mutants[[1]] / p$seed_rain[[1]],
        col="red", pch=19)
