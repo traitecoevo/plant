@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 
 WIKI_DIR=../wiki
 FIGURE_DIR="figure"
@@ -47,7 +47,7 @@ while read S; do
     # persist in the wiki.  Perhaps better would be to use rsync with
     # some pattern matching, but we need to hit the 'git rm' at some
     # point.
-    git $GIT_WIKI rm -f --quiet --ignore-unmatch -- "$FIGURE_DIR/$S_BASE_*"
+    git $GIT_WIKI rm -f --quiet --ignore-unmatch -- "$FIGURE_DIR/${S_BASE}_*"
 
     # That *might* have deleted the wiki figure directory:
     mkdir -p $WIKI_DIR/$FIGURE_DIR
