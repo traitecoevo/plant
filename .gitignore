@@ -12,3 +12,5 @@ reference/ref-double
 
 scripts/*.rds
 output
+
+wiki/
