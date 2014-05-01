@@ -64,8 +64,6 @@ ctrl.new$cohort_gradient_direction <- -1
 ctrl.new$cohort_gradient_richardson <- FALSE
 p$set_control_parameters(ctrl.new)
 
-ebt <- new(EBT, p)
-
 ## # 1. The fitness calculation depends on the cohort spacing
 
 ## Three progressively more closely spaced times:
@@ -73,6 +71,9 @@ t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
 tt.1 <- cohort.introduction.times(t.max)
 tt.2 <- interleave(tt.1)
 tt.3 <- interleave(tt.2)
+
+ebt <- new(EBT, p)
+ebt$cohort_schedule$max_time <- t.max
 
 w.1 <- run.with.times(tt.1, ebt)
 w.2 <- run.with.times(tt.2, ebt)
@@ -99,6 +100,7 @@ run.with.insert <- function(i, t, ebt)
 ## we could easily restart the entire simulation because we could just
 ## to that for the point just before the new introduction.  See issue
 ## #40.
+##+ cache=TRUE
 i <- seq_len(length(tt.1) - 1)
 res <- sapply(i, run.with.insert, tt.1, ebt)
 
@@ -110,9 +112,12 @@ res <- sapply(i, run.with.insert, tt.1, ebt)
 dw.1 <- res - w.1
 tm.1 <- (tt.1[-1] + tt.1[-length(tt.1)])/2
 
+##+ fitness_difference_by_index
 plot(dw.1, xlab="Cohort insertion point", ylab="Fitness difference")
+##+ fitness_difference_by_time
 plot(tm.1, dw.1, xlab="Cohort insertion time",
      ylab="Fitness difference")
+##+ fitness_difference_by_time_log
 plot(tm.1, dw.1, xlab="Cohort insertion time",
      ylab="Fitness difference", log="x")
 
@@ -125,6 +130,7 @@ tmp <- cohort.fitness(ebt)
 ## influential cohort introduction time.  Dashed vertical lines are
 ## the 5 next most important splits, from darkest (2nd most important)
 ## to lightest (6th most important).
+##+ fitness_difference_most_influential
 plot(tmp[-1,], log="x", las=1,
      xlab="Introduction time", ylab="Fitness contribution")
 abline(v=tm.1[order(abs(dw.1), decreasing=TRUE)[2:6]],
@@ -137,6 +143,7 @@ abline(v=tm.1[which.max(abs(dw.1))], col="red")
 
 ## Here is the same figure on a non-log basis, covering the important
 ## range of times.
+##+ fitness_difference_most_influential_non_log
 r <- range(tm.1[order(abs(dw.1), decreasing=TRUE)[1:6]])
 plot(tmp[-1,], las=1, xlim=r,
      xlab="Introduction time", ylab="Fitness contribution")
@@ -181,26 +188,34 @@ all.equal(env.0[idx:(idx2 - 1)],
 ## After this point, the version with the additional cohort has
 ## *greater* canopy openness at the bottom of the light environment
 ## (so below 10m tall, there is more light getting through).
+##+ env_5
 show.env(idx2 + 5)
 
 ## This becomes a wedge, with another possible round of recruitment,
 ## causing a second drop in light at about 3m:
+##+ env_9
 show.env(idx2 + 9)
 
 ## By the time a similar wedge starts appearing in the first version,
 ## the wedge in the new verion has steepend dramatically -- now the
 ## light environment is lower for very small heights than for medium
 ## heights:
+##+ env_12
 show.env(idx2 + 12)
 
 ## Then, the light environment at the forest floor equalises for the
 ## two versions, but the position of the wedge varies between runs:
+##+ env_15
 show.env(idx2 + 15)
 
 ## that difference persists:
+##+ env_20
 show.env(idx2 + 20)
+##+ env_30
 show.env(idx2 + 30)
+##+ env_40
 show.env(idx2 + 40)
 
 ## The final light environment is fairly similar though
+##+ env_final
 show.env(length(env.0))
