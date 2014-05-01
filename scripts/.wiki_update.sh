@@ -23,8 +23,7 @@ fi
 if [[ -d $FIGURE_DIR &&
       -n "$(find $FIGURE_DIR -maxdepth 1 -name '*unnamed*' -print -quit)" ]]
 then
-    echo "Error: Unnamed figure chunks found"
-    exit 1
+    echo "Warning: Unnamed figure chunks found"
 fi
 
 # I'm not sure if this is ideal.  Could be over cautious, given we
@@ -37,6 +36,8 @@ then
     exit 1
 fi
 
+# One option here would be to do nothing unless the local scripts and
+# the wiki'd version are different (compare the .md files).
 while read S; do
     S_BASE="${S%.*}"
 
