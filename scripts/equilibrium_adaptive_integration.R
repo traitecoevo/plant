@@ -17,7 +17,7 @@ p.a <- p.n$copy()
 p.a$set_control_parameters(list(plant_assimilation_adaptive=TRUE))
 
 ## And a seed set of cohort introduction times for schedule building.
-t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
+t.max <- p.n$disturbance$cdf(tree:::reference.pr.survival.eps)
 times0 <- cohort.introduction.times(t.max)
 
 ## Functions to run the model with an input seed rain, parameter set
@@ -28,6 +28,7 @@ run <- function(seed_rain.in, p, times) {
   run.ebt(p, schedule.from.times(times))$fitness(1)
 }
 
+## TODO: This needs updating to run with schedules, not with times.
 run.new.schedule <- function(w, p, times, build.args=list()) {
   p$seed_rain <- w
   build.args <- modifyList(list(nsteps=20, eps=1e-3, verbose=FALSE),
@@ -51,6 +52,7 @@ w.hat <- unname(res.n[["seed_rain"]][,"out"])
 
 ## From a distance, these both hone in nicely on the equilibrium, and
 ## rapidly, too.
+##+ approach
 r <- range(approach.n, approach.a)
 plot(approach.n, type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
@@ -60,6 +62,7 @@ cobweb(approach.a, col=cols[["a"]], pch=19, cex=.5, type="o")
 ## Here is the painful lack of convergence for the
 ## with-adaptive-integration case (red); it's converging to a *region*
 ## but moving essentially stochastically within that region.
+##+ approach_detail
 r <- w.hat + c(-1, 1) * 0.5
 plot(approach.n, type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
@@ -80,6 +83,7 @@ seed_rain.out.a <- unlist(mclapply(seed_rain.in, run, p.a, times1))
 fit.n <- lm(seed_rain.out.n ~ seed_rain.in)
 fit.a <- lm(seed_rain.out.a ~ seed_rain.in)
 
+##+ seeds_in_seeds_out
 matplot(seed_rain.in, cbind(seed_rain.out.n, seed_rain.out.a),
         xlab="Incoming seed rain", ylab="Outgoing seed rain",
         las=1, pch=1, col=cols)
@@ -97,6 +101,7 @@ seed_rain.out.global.n <-
 seed_rain.out.global.a <-
   unlist(mclapply(seed_rain.in.global, run.new.schedule, p.a, times0))
 
+##+ approach_global
 matplot(seed_rain.in.global,
         cbind(seed_rain.out.global.n, seed_rain.out.global.a),
         las=1, type="l", col=cols, lty=1,
