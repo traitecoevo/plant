@@ -1,4 +1,5 @@
 ebt_integration_error.R
+equilibrium.R
 landscape.R
 landscape2.R
 splitting_cohorts.R

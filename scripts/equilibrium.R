@@ -42,12 +42,14 @@ approach <- t(sapply(attr(res, "progress"), "[[", "seed_rain"))
 
 ## From a distance, these both hone in nicely on the equilibrium, and
 ## rapidly, too.
+##+ equilibrium_approach
 r <- range(approach)
 plot(approach, type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
 cobweb(approach, pch=19, cex=.5, type="o")
 
 ## Zoom in on the last few points:
+##+ equilibrium_approach_detail
 r <- w.hat + c(-1, 1) * 0.03
 plot(approach, type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
@@ -55,6 +57,7 @@ cobweb(approach, pch=19, cex=.5, type="o")
 
 ## Zoom in on the last few points to see where the insability kicks
 ## in:
+##+ equilibrium_approach_wow_such_detail
 r <- w.hat + c(-1, 1) * 0.0000003
 plot(approach, type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
@@ -71,6 +74,7 @@ seed_rain.out <- unlist(mclapply(seed_rain.in, run, p, schedule1))
 fit <- lm(seed_rain.out ~ seed_rain.in)
 
 ## Here is input seeds vs output seeds:
+##+ seeds_in_seeds_out
 plot(seed_rain.in, seed_rain.out, xlab="Incoming seed rain",
      ylab="Outgoing seed rain", las=1)
 abline(0, 1, lty=2, col="grey")
@@ -78,6 +82,7 @@ abline(fit, lty=2)
 cobweb(approach)
 
 ## See instability.R for more exploration of this:
+##+ seeds_in_seeds_out_instability
 plot(seed_rain.in, resid(fit),
         xlab="Incoming seed rain", ylab="Residual seed rain",
         las=1, pch=1)
@@ -131,12 +136,15 @@ approach.r <- t(sapply(attr(res.r, "progress"), "[[", "seed_rain"))
 
 cols <- c(t="black", r="red")
 
+##+ approach_reference
 r <- range(approach, approach.r)
 plot(approach, type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
 cobweb(approach,   pch=19, cex=.5, type="o", col=cols[["t"]])
 cobweb(approach.r, pch=19, cex=.5, type="o", col=cols[["r"]])
+legend("bottomright", c("tree", "reference"), col=cols, lty=1)
 
+##+ approach_reference_detail
 m <- (w.hat + w.hat.r)/2
 d <- abs(w.hat - w.hat.r)
 r <- m + c(-1, 1) * d * 1.1
@@ -144,6 +152,7 @@ plot(approach, type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
 cobweb(approach,   pch=19, cex=.5, type="o", col=cols[["t"]])
 cobweb(approach.r, pch=19, cex=.5, type="o", col=cols[["r"]])
+legend("bottomright", c("tree", "reference"), col=cols, lty=1)
 
 ## Note that this *cannot* be run with mclapply because it's all done
 ## through filesystem access and system calls.
@@ -153,11 +162,13 @@ seed_rain.out.r <- sapply(seed_rain.in.r, run.reference, p, path.r)
 
 fit.r <- lm(seed_rain.out.r ~ seed_rain.in.r)
 
+##+ seeds_in_seeds_out_reference
 plot(seed_rain.in.r, seed_rain.out.r)
 abline(0, 1)
 abline(fit.r, lty=2)
 
 ## Compared against tree:
+##+ seeds_in_seeds_out_reference_tree
 matplot(cbind(seed_rain.in,  seed_rain.in.r),
         cbind(seed_rain.out, seed_rain.out.r),
         xlab="Incoming seed rain", ylab="Outgoing seed rain",
@@ -165,22 +176,27 @@ matplot(cbind(seed_rain.in,  seed_rain.in.r),
 abline(0, 1)
 abline(fit,   lty=2, col=cols[["t"]])
 abline(fit.r, lty=2, col=cols[["r"]])
+legend("bottomleft", c("tree", "reference"), col=cols, lty=1)
 
+##+ seeds_in_seeds_out_instability_reference_tree
 matplot(cbind(seed_rain.in, seed_rain.in.r),
         cbind(resid(fit),   resid(fit.r)),
         xlab="Incoming seed rain", ylab="Residual seed rain",
         las=1, pch=1, col=cols)
 abline(h=0, v=c(w.hat, w.hat.r))
+legend("bottomleft", c("tree", "reference"), col=cols, lty=1)
 
 ## # 4. Global function shape
 seed_rain.in.global <- seq(1, max(approach, approach.r),
                            length.out=51)
 
+##+ cache=TRUE
 seed_rain.out.global <-
   unlist(mclapply(seed_rain.in.global, run.new.schedule, p, schedule0))
 seed_rain.out.global.r <-
   unlist(lapply(seed_rain.in.global, run.reference, p, path.r))
 
+##+ seeds_in_seeds_out_global
 matplot(seed_rain.in.global,
         cbind(seed_rain.out.global, seed_rain.out.global.r),
         las=1, type="l", col=cols, lty=1,
@@ -213,6 +229,7 @@ approach <- lapply(seq_len(p$size), function(i)
 
 ## From a distance, these both hone in nicely on the equilibrium, and
 ## rapidly, too.
+##+ approach_two_species
 r <- range(unlist(approach))
 plot(approach[[1]], type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
