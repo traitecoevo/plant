@@ -58,7 +58,8 @@ while read S; do
     cp $FIGURE_DIR/${S_BASE}_* $WIKI_DIR/$FIGURE_DIR/
 
     # And add it to git:
-    git $GIT_WIKI add ${S_BASE}.md "$FIGURE_DIR/${S_BASE}_*"
+    git $GIT_WIKI add ${S_BASE}.md
+    git $GIT_WIKI add --ignore-errors "$FIGURE_DIR/${S_BASE}_*"
 done < .wiki_scripts
 
 if git $GIT_WIKI status --porcelain --untracked-files=no | grep --quiet '^[A-Z]'
