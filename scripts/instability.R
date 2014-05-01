@@ -85,6 +85,7 @@ fit5 <- lm(seed_rain.out5 ~ seed_rain.in)
 cols <- c("black", "red", "blue", "green4", "purple")
 
 ## Here is input seeds vs output seeds:
+##+ seeds_in_seeds_out
 matplot(seed_rain.in,
         cbind(seed_rain.out,  seed_rain.out2, seed_rain.out3,
               seed_rain.out4, seed_rain.out5),
@@ -104,6 +105,7 @@ abline(fit5, lty=2, col=cols[5])
 ## assimilation integration order and the light environment
 ## sensitivity did worse than just increasing the light environment
 ## sensitivity.
+##+ seeds_in_seeds_out_residual
 matplot(seed_rain.in,
         cbind(resid(fit), resid(fit2), resid(fit3), resid(fit4), resid(fit5)),
         xlab="Incoming seed rain", ylab="Residual seed rain",
@@ -118,8 +120,14 @@ abline(h=0, v=w.hat)
 ## EBT::fitness_cohort (for which we'll need to tweak ebt.collect).
 
 ## It's easy to grab the points that differ most:
+##+ seeds_in_seeds_out_biggest_difference
 i <- which.max(abs(diff(seed_rain.out)))
 j <- i + 1
+matplot(seed_rain.in,
+        cbind(resid(fit), resid(fit2), resid(fit3), resid(fit4), resid(fit5)),
+        xlab="Incoming seed rain", ylab="Residual seed rain",
+        las=1, pch=1, col=cols, type="o", lty=1, cex=.5)
+abline(h=0, v=w.hat)
 points(seed_rain.in[c(i,j)], resid(fit)[c(i, j)], pch=19)
 
 res.i <- run.collect(seed_rain.in[[i]], p, schedule1)
