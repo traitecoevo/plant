@@ -12,6 +12,6 @@ Depends:
     Rcpp (>= 0.10.3)
 SystemRequirements: gsl (>= 1.12)
 Suggests:
-    testthat
+    testthat, numDeriv, deSolve, digest
 LinkingTo: Rcpp
 RcppModules: tree
