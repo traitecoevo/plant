@@ -175,10 +175,22 @@ void Plant::compute_vars_phys(const Environment& environment) {
   //
   // Composed of a wood density effect (term involving c_d0) and a
   // growth effect (term involving c_d2)
-  vars.mortality_rate =
-    strategy->c_d0 * exp(-strategy->c_d1 * strategy->rho) +
-    strategy->c_d2 * exp(-strategy->c_d3 *
-			 vars.net_production / vars.leaf_area);
+  //
+  // NOTE: When plants are extremely inviable, the rate of change in
+  // mortality can be Inf, because net production is negative, leaf
+  // area is small and so we get exp(big number).  However, most of
+  // the time that happens we should get infinite mortality variable
+  // levels and the rate of change won't matter.  It is possible that
+  // we will need to trim this to some large finite value, but for
+  // now, just checking that the actual mortality rate is finite.
+  if (vars.mortality < R_PosInf) {
+    vars.mortality_rate =
+      strategy->c_d0 * exp(-strategy->c_d1 * strategy->rho) +
+      strategy->c_d2 * exp(-strategy->c_d3 *
+                           vars.net_production / vars.leaf_area);
+  } else {
+    vars.mortality_rate = 0.0;
+  }
 }
 
 // * Births and deaths

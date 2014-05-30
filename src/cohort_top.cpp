@@ -83,7 +83,8 @@ void CohortTop::compute_initial_conditions(const Environment& environment) {
   // EBT.md{eq:boundN}
   const double g = height_rate();
   const double seed_rain = environment.seed_rain_rate();
-  log_density = log(g > 0 ? seed_rain * pr_germ / g : 0.0);
+  // NOTE: log(0.0) -> -Inf, which should behave fine.
+  log_density = g > 0 ? log(seed_rain * pr_germ / g) : log(0.0);
   density     = exp(log_density);
 }
 
