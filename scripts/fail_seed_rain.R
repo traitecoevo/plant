@@ -44,14 +44,30 @@ schedule <- new(CohortSchedule, p$size)
 schedule$max_time <- max.t
 schedule$all_times <- sys[["times"]]
 
+ebt <- new(EBT, p$copy())
+ebt$cohort_schedule <- schedule$copy()
+patch <- ebt$patch
+for (i in 9:1)
+patch$add_seedling(i)
+
+patch[[1]]$seeds
+patch[[1]][[1]]$fecundity
+
+m <- matrix(patch$ode_values, 4)
+rownames(m) <- c("height", "mortality", "fecundity", "log_density")
+
+r <- matrix(patch$ode_rates, 4)
+dimnames(r) <- dimnames(m)
+
+ebt <- new(EBT, p$copy())
+ebt$cohort_schedule <- schedule$copy()
+ebt$run_next()
+ebt$fitness_cohort(1)
+
+## Then actually do the run:
 ## From 1230d606039ef4eede10235f8fe4e0536c7699f8 and before, this will
 ## fail:
 build.args <- list(nsteps=10, eps=1e-3, verbose=TRUE)
 res <- build.schedule(p, schedule, build.args$nsteps, build.args$eps,
                       progress=FALSE, verbose=build.args$verbose)
 rain.out <- unname(attr(res, "seed_rain", exact=TRUE)[,"out"])  #NaNs
-
-# from  `mutation`
-weights <- rain.out
-n =1
-sample(length(weights), n, replace=TRUE, prob=weights) #fails

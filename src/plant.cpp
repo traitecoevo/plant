@@ -183,14 +183,11 @@ void Plant::compute_vars_phys(const Environment& environment) {
   // levels and the rate of change won't matter.  It is possible that
   // we will need to trim this to some large finite value, but for
   // now, just checking that the actual mortality rate is finite.
-  if (vars.mortality < R_PosInf) {
-    vars.mortality_rate =
-      strategy->c_d0 * exp(-strategy->c_d1 * strategy->rho) +
-      strategy->c_d2 * exp(-strategy->c_d3 *
-                           vars.net_production / vars.leaf_area);
-  } else {
-    vars.mortality_rate = 0.0;
-  }
+  vars.mortality_rate =
+    strategy->c_d0 * exp(-strategy->c_d1 * strategy->rho) +
+    strategy->c_d2 * exp(-strategy->c_d3 *
+			 vars.net_production / vars.leaf_area);
+  trim_rates();
 }
 
 // * Births and deaths
@@ -315,6 +312,12 @@ integration::intervals_type Plant::get_last_integration_intervals() const {
 
 void Plant::set_integration_intervals(integration::intervals_type x) {
   integration_intervals = x;
+}
+
+void Plant::trim_rates() {
+  if (!R_FINITE(vars.mortality)) {
+    vars.mortality_rate = 0.0;
+  }
 }
 
 // * Private methods

@@ -86,6 +86,11 @@ void CohortTop::compute_initial_conditions(const Environment& environment) {
   // NOTE: log(0.0) -> -Inf, which should behave fine.
   log_density = g > 0 ? log(seed_rain * pr_germ / g) : log(0.0);
   density     = exp(log_density);
+
+  // Need to check that the rates are valid after setting the
+  // mortality value here (can go to -Inf and that requires squashing
+  // the rate to zero).
+  trim_rates();
 }
 
 // * ODE interface
@@ -180,6 +185,13 @@ double CohortTop::growth_rate_given_height(double height_,
   set_height(height_);
   Plant::compute_vars_phys(environment);
   return height_rate();
+}
+
+void CohortTop::trim_rates() {
+  Plant::trim_rates();
+  if (!R_FINITE(log_density)) {
+    log_density_rate = 0.0;
+  }
 }
 
 }

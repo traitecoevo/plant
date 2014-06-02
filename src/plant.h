@@ -49,6 +49,8 @@ public:
   virtual size_t state_size() const = 0;
   virtual state::iterator get_state(state::iterator it) const = 0;
   virtual state::const_iterator set_state(state::const_iterator it) = 0;
+protected:
+  virtual void trim_rates() = 0;
 };
 
 class Plant : public PlantBase {
@@ -141,6 +143,7 @@ protected:
   const Control& control() const;
   integration::intervals_type get_last_integration_intervals() const;
   void set_integration_intervals(integration::intervals_type x);
+  void trim_rates();
 
 private:
   // * Individual size

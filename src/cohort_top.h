@@ -44,6 +44,7 @@ private:
 			      integration::intervals_type intervals) const;
   double growth_rate_given_height(double height_,
 				  const Environment& environment);
+  void trim_rates();
 
   double log_density;
   double log_density_rate;
