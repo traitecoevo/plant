@@ -217,6 +217,16 @@ expand.schedule <- function(schedule, n.mutant) {
   for (i in seq_len(n.mutant))
     ret$set_times(times.mutant, n.resident + i)
 
+  if (length(schedule$ode_times) == 0) {
+    ## Basically, we want to step on the same times that the real EBT
+    ## did.  To do that we need to get times out of the EBT.  If you
+    ## have the ebt instance handy, just do this:
+    ##   schedule$ode_times <- ebt$times
+    ## If you ran build.schedule you can get the ebt by doing
+    ##   attr(res, "ebt")
+    ## where "res" is the result of running build.schedule.
+    stop("Please add ode_times from your last ebt run")
+  }
   ret$ode_times <- schedule$ode_times
 
   ret
