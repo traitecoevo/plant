@@ -34,7 +34,8 @@
 equilibrium.seed.rain <- function(p, schedule, nsteps,
                                   build.args=list(),
                                   large.seed_rain.change=10,
-                                  progress=FALSE, verbose=TRUE) {
+                                  progress=FALSE, verbose=TRUE,
+                                  eps=0) {
   p <- p$copy() # don't modify what we're given
   schedule <- schedule$copy()
   schedule.default <- schedule$copy()
@@ -57,18 +58,29 @@ equilibrium.seed.rain <- function(p, schedule, nsteps,
     change <- seed_rain[,"out"] - seed_rain[,"in"]
 
     p$seed_rain <- seed_rain[,"out"]
-    if (any(abs(change) > large.seed_rain.change))
+    if (any(abs(change) > large.seed_rain.change)) {
       schedule <- schedule.default$copy()
+    }
 
-    if (verbose)
+    if (verbose) {
       message(sprintf("*** %d: {%s} -> {%s} (delta = {%s})", i,
                       paste(prettyNum(seed_rain[,"in"]), collapse=","),
                       paste(prettyNum(seed_rain[,"out"]), collapse=","),
                       paste(prettyNum(change), collapse=",")))
+    }
+
+    if (eps > 0 && abs(change) < eps) {
+      if (verbose) {
+        message(sprintf("Reached target accuracy (delta %2.5e < %2.5e eps)",
+                        abs(change), eps))
+      }
+      break
+    }
   }
 
-  if (progress)
+  if (progress) {
     attr(res, "progress") <- history
+  }
   attr(res, "schedule") <- schedule
   attr(res, "ebt") <- ebt.last
   res
