@@ -232,14 +232,15 @@ expand.schedule <- function(schedule, n.mutant) {
   ret
 }
 
-##' Construct a fitness landscape.  Currently only works in the LMA
+##' Construct a fitness landscape.  Currently only works in one
 ##' dimension, and with all other parameters set to their defaults,
-##' and at predefined LMA values only rather than adaptively (i.e.,
-##' not actually useful yet).
+##' and at predefined values only rather than adaptively (i.e., not
+##' actually useful yet).
 ##'
 ##' Will change...
 ##' @title Fitness Landscape
-##' @param lma Vector of lma values to compute mutant fitness
+##' @param trait Name of the single trait to change
+##' @param values Vector of trait values to compute mutant fitness
 ##' @param p Parameters object.  Needs to contain residents with their
 ##' incoming seed rain.
 ##' @param schedule Schedule of times for the residents.
@@ -248,29 +249,33 @@ expand.schedule <- function(schedule, n.mutant) {
 ##' production per capita.
 ##' @author Rich FitzJohn
 ##' @export
-landscape <- function(lma, p, schedule) {
+landscape <- function(trait, values, p, schedule) {
   p.with.mutants <- p$copy()
-  for (i in lma)
-    p.with.mutants$add_strategy_mutant(new(Strategy, list(lma=i)))
-  schedule.with.mutants <- expand.schedule(schedule, length(lma))
+  for (i in values) {
+    l <- structure(list(i), names=trait)
+    p.with.mutants$add_strategy_mutant(new(Strategy, l))
+  }
+  schedule.with.mutants <- expand.schedule(schedule, length(values))
   ebt.with.mutants <- run.ebt(p.with.mutants, schedule.with.mutants)
   w.with.mutants <- ebt.with.mutants$fitnesses
   w.with.mutants[-seq_len(p$size)]
 }
 
+## TODO: Need to support variant strategy here and above.
 ##' @rdname landscape
 ##' @export
-landscape.empty <- function(lma, p, schedule) {
+landscape.empty <- function(trait, values, p, schedule) {
   p.empty <- p$copy()
   p.empty$clear()
-  for (i in lma)
-    p.empty$add_strategy_mutant(new(Strategy, list(lma=i)))
-
-  schedule.empty <- new(CohortSchedule, length(lma))
+  for (i in values) {
+    l <- structure(list(i), names=trait)
+    p.empty$add_strategy_mutant(new(Strategy, l))
+  }
+  schedule.empty <- new(CohortSchedule, length(values))
   schedule.empty$max_time  <- schedule$max_time
   schedule.empty$ode_times <- schedule$ode_times
   schedule.empty$all_times <-
-    rep(list(unique(sort(unlist(schedule$all_times)))), length(lma))
+    rep(list(unique(sort(unlist(schedule$all_times)))), length(values))
   ebt.empty <- run.ebt(p.empty, schedule.empty)
   ebt.empty$fitnesses
 }
