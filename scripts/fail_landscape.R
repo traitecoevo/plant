@@ -47,3 +47,7 @@ rain.out/ sys[["seed_rain"]]
 
 schedule$ode_times <- attr(res, "ebt")$ode_times
 landscape("lma",  sys[["traits"]][,"lma"], p, schedule)
+
+# works when we pass in strategy
+landscape("lma",  sys[["traits"]][,"lma"], p, schedule, strategy)
+

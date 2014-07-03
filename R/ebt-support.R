@@ -249,11 +249,13 @@ expand.schedule <- function(schedule, n.mutant) {
 ##' production per capita.
 ##' @author Rich FitzJohn
 ##' @export
-landscape <- function(trait, values, p, schedule) {
+landscape <- function(trait, values, p, schedule, strategy=new(Strategy)) {
   p.with.mutants <- p$copy()
+
   for (i in values) {
-    l <- structure(list(i), names=trait)
-    p.with.mutants$add_strategy_mutant(new(Strategy, l))
+    new.strategy <- strategy$copy()
+    new.strategy$set_parameters(structure(list(i), names=trait))
+    p.with.mutants$add_strategy(new.strategy)
   }
   schedule.with.mutants <- expand.schedule(schedule, length(values))
   ebt.with.mutants <- run.ebt(p.with.mutants, schedule.with.mutants)
@@ -264,12 +266,13 @@ landscape <- function(trait, values, p, schedule) {
 ## TODO: Need to support variant strategy here and above.
 ##' @rdname landscape
 ##' @export
-landscape.empty <- function(trait, values, p, schedule) {
+landscape.empty <- function(trait, values, p, schedule, strategy=new(Strategy)) {
   p.empty <- p$copy()
   p.empty$clear()
   for (i in values) {
-    l <- structure(list(i), names=trait)
-    p.empty$add_strategy_mutant(new(Strategy, l))
+    new.strategy <- strategy$copy()
+    new.strategy$set_parameters(structure(list(i), names=trait))
+    p.empty$add_strategy(new.strategy)
   }
   schedule.empty <- new(CohortSchedule, length(values))
   schedule.empty$max_time  <- schedule$max_time
