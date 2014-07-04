@@ -56,6 +56,18 @@ void Control::reset() {
   ode_tol_abs       = 1e-6;
   ode_a_y           = 1.0;
   ode_a_dydt        = 0.0;
+
+  schedule_nsteps   = 20;
+  schedule_eps      = 1e-3;
+  schedule_progress = false;
+  schedule_verbose  = false;
+
+  equilibrium_nsteps   = 10;
+  equilibrium_eps      = 1e-5;
+  equilibrium_large_seed_rain_change = 10;
+  equilibrium_progress = false;
+  equilibrium_verbose  = true;
+
   // TODO: Also no_steps_max?
 
   // Then set the values for the lookup table, based on these (this is
@@ -108,6 +120,20 @@ void Control::reset() {
   _environment_light_skip =
     static_cast<bool>(environment_light_skip);
 
+  _schedule_nsteps =
+    static_cast<double>(schedule_nsteps);
+  _schedule_progress =
+    static_cast<double>(schedule_progress);
+  _schedule_verbose =
+    static_cast<double>(schedule_verbose);
+
+  _equilibrium_nsteps =
+    static_cast<double>(equilibrium_nsteps);
+  _equilibrium_progress =
+    static_cast<double>(equilibrium_progress);
+  _equilibrium_verbose =
+    static_cast<double>(equilibrium_verbose);
+
   // Like set_parameters_post_hook(), rebuild the ODE control, too.
   ode_control = make_ode_control();
 }
@@ -147,7 +173,7 @@ void Control::do_build_lookup() {
   lookup_table["plant_seed_iterations"] =
     &_plant_seed_iterations;
 
-  lookup_table["cohort_gradient_eps"] = 
+  lookup_table["cohort_gradient_eps"] =
     &cohort_gradient_eps;
   lookup_table["cohort_gradient_direction"] =
     &_cohort_gradient_direction;
@@ -183,6 +209,26 @@ void Control::do_build_lookup() {
     &ode_a_y;
   lookup_table["ode_a_dydt"] =
     &ode_a_dydt;
+
+  lookup_table["schedule_nsteps"] =
+    &_schedule_nsteps;
+  lookup_table["schedule_eps"] =
+    &schedule_eps;
+  lookup_table["schedule_progress"] =
+    &_schedule_progress;
+  lookup_table["schedule_verbose"] =
+    &_schedule_verbose;
+
+  lookup_table["equilibrium_nsteps"] =
+    &_equilibrium_nsteps;
+  lookup_table["equilibrium_eps"] =
+    &equilibrium_eps;
+  lookup_table["equilibrium_large_seed_rain_change"] =
+    &equilibrium_large_seed_rain_change;
+  lookup_table["equilibrium_progress"] =
+    &_equilibrium_progress;
+  lookup_table["equilibrium_verbose"] =
+    &_equilibrium_verbose;
 }
 
 void Control::set_parameters_post_hook() {
@@ -232,6 +278,20 @@ void Control::set_parameters_post_hook() {
     static_cast<bool>(_environment_light_rescale_usually);
   environment_light_skip =
     static_cast<bool>(_environment_light_skip);
+
+  schedule_nsteps =
+    static_cast<int>(_schedule_nsteps);
+  schedule_progress =
+    static_cast<int>(_schedule_progress);
+  schedule_verbose =
+    static_cast<int>(_schedule_verbose);
+
+  equilibrium_nsteps =
+    static_cast<int>(_equilibrium_nsteps);
+  equilibrium_progress =
+    static_cast<int>(_equilibrium_progress);
+  equilibrium_verbose =
+    static_cast<int>(_equilibrium_verbose);
 
   ode_control = make_ode_control();
 }

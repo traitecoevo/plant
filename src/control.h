@@ -58,6 +58,17 @@ public:
   double ode_a_y;
   double ode_a_dydt;
 
+  int    schedule_nsteps;
+  double schedule_eps;
+  bool   schedule_progress;
+  bool   schedule_verbose;
+
+  int    equilibrium_nsteps;
+  double equilibrium_eps;
+  double equilibrium_large_seed_rain_change;
+  bool   equilibrium_progress;
+  bool   equilibrium_verbose;
+
   ode::OdeControl ode_control;
 
 private:
@@ -92,6 +103,14 @@ private:
   double _environment_light_linear;
   double _environment_light_rescale_usually;
   double _environment_light_skip;
+
+  double _schedule_nsteps;
+  double _schedule_progress;
+  double _schedule_verbose;
+
+  double _equilibrium_nsteps;
+  double _equilibrium_progress;
+  double _equilibrium_verbose;
 };
 
 }

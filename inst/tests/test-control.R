@@ -38,7 +38,18 @@ expected <- list(
   plant_assimilation_approximate_linear = as.numeric(FALSE),
   plant_assimilation_approximate_rescale_usually = as.numeric(FALSE),
   plant_seed_iterations = as.numeric(1000L),
-  plant_seed_tol = as.numeric(1e-6)
+  plant_seed_tol = as.numeric(1e-6),
+
+  schedule_nsteps   = as.numeric(20L),
+  schedule_eps      = 1e-3,
+  schedule_progress = as.numeric(FALSE),
+  schedule_verbose  = as.numeric(FALSE),
+
+  equilibrium_nsteps   = as.numeric(10L),
+  equilibrium_eps      = 1e-5,
+  equilibrium_large_seed_rain_change = 10.0,
+  equilibrium_progress = as.numeric(FALSE),
+  equilibrium_verbose  = as.numeric(TRUE)
   )
 
 keys <- sort(names(expected))
