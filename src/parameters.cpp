@@ -105,6 +105,13 @@ void Parameters::r_set_is_resident(std::vector<bool> x) {
   is_resident = x;
 }
 
+Strategy Parameters::r_strategy_default() const {
+  return strategy_default;
+}
+void Parameters::r_set_strategy_default(Strategy s) {
+  strategy_default = s;
+}
+
 void Parameters::do_build_lookup() {
   lookup_table["c_ext"]      = &c_ext;
   lookup_table["patch_area"] = &patch_area;

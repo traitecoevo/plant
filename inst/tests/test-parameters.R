@@ -17,6 +17,9 @@ expected <- list(Pi_0=0.25,
 expect_that(p$parameters, is_identical_to(expected))
 expect_that(p$disturbance$mean_interval, is_identical_to(30.0))
 
+expect_that(p$strategy_default$parameters,
+            is_identical_to(new(Strategy)$parameters))
+
 ## Set a parameter and check that it is actually set
 new.p <- list(patch_area=20.0)
 expected.s <- modifyList(expected, new.p)
@@ -147,4 +150,17 @@ test_that("Clearing strategies works", {
   expect_that(p2$control$parameters,
               is_identical_to(p1$control$parameters))
   expect_that(p2$size, equals(0))
+})
+
+test_that("Can add a default strategy", {
+  s0 <- new(Strategy)
+  s <- new(Strategy, list(lma=2))
+  expect_that(s$parameters, not(equals(s0$parameters)))
+
+  p <- new(Parameters)
+  expect_that(p$strategy_default$parameters, equals(s0$parameters))
+  p$strategy_default <- s
+  expect_that(p$strategy_default$parameters, equals(s$parameters))
+  p2 <- p$copy()
+  expect_that(p2$strategy_default$parameters, equals(s$parameters))
 })

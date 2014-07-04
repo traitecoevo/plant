@@ -58,12 +58,18 @@ public:
   // Algorithm control.
   Control control;
 
+  // Default strategy.
+  Strategy strategy_default;
+
   // * R interface
   std::vector<double> r_seed_rain() const;
   void r_set_seed_rain(std::vector<double> x);
 
   std::vector<bool> r_is_resident() const;
   void r_set_is_resident(std::vector<bool> x);
+
+  Strategy r_strategy_default() const;
+  void r_set_strategy_default(Strategy s);
 
 private:
   void do_build_lookup();
