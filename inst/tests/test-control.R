@@ -44,6 +44,10 @@ expected <- list(
   schedule_eps      = 1e-3,
   schedule_progress = as.numeric(FALSE),
   schedule_verbose  = as.numeric(FALSE),
+  schedule_default_patch_survival = 6.25302620663814e-05,
+  schedule_default_multipler     = 0.2,
+  schedule_default_min_step_size = 1e-5,
+  schedule_default_max_step_size = 2.0,
 
   equilibrium_nsteps   = as.numeric(10L),
   equilibrium_eps      = 1e-5,

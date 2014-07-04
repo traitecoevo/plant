@@ -61,6 +61,12 @@ void Control::reset() {
   schedule_eps      = 1e-3;
   schedule_progress = false;
   schedule_verbose  = false;
+  // These are designed to agree with Daniel's implementation of the
+  // model.
+  schedule_default_patch_survival = 6.25302620663814e-05;
+  schedule_default_multipler     = 0.2;
+  schedule_default_min_step_size = 1e-5;
+  schedule_default_max_step_size = 2.0;
 
   equilibrium_nsteps   = 10;
   equilibrium_eps      = 1e-5;
@@ -218,6 +224,14 @@ void Control::do_build_lookup() {
     &_schedule_progress;
   lookup_table["schedule_verbose"] =
     &_schedule_verbose;
+  lookup_table["schedule_default_patch_survival"] =
+    &schedule_default_patch_survival;
+  lookup_table["schedule_default_multipler"] =
+    &schedule_default_multipler;
+  lookup_table["schedule_default_min_step_size"] =
+    &schedule_default_min_step_size;
+  lookup_table["schedule_default_max_step_size"] =
+    &schedule_default_max_step_size;
 
   lookup_table["equilibrium_nsteps"] =
     &_equilibrium_nsteps;
