@@ -6,7 +6,8 @@ namespace model {
 
 CohortSchedule::CohortSchedule(size_t n_species_)
   : n_species(n_species_),
-    max_time(R_PosInf) {
+    max_time(R_PosInf),
+    use_ode_times(false) {
   reset();
 }
 
@@ -72,8 +73,9 @@ void CohortSchedule::reset() {
     e = e_next;
   }
 
-  if (fixed_times())
+  if (use_ode_times) {
     distribute_ode_times();
+  }
 }
 
 // NOTE: Using vector here is inefficient, but we need a vector in the
@@ -127,10 +129,6 @@ size_t CohortSchedule::remaining() const {
   return queue.size();
 }
 
-bool CohortSchedule::fixed_times() const {
-  return ode_times.size() > 0;
-}
-
 // * R interface
 void CohortSchedule::r_clear_times(size_t species_index) {
   clear_times(util::check_bounds_r(species_index, n_species));
@@ -180,13 +178,32 @@ void CohortSchedule::r_set_ode_times(std::vector<double> x) {
   if (!util::is_sorted(x.begin(), x.end()))
     Rcpp::stop("ode_times must be sorted");
   ode_times = x;
-  if (!util::is_finite(max_time))
+  if (!util::is_finite(max_time)) {
     max_time = ode_times.back();
+  }
   reset();
 }
 
 void CohortSchedule::r_clear_ode_times() {
   ode_times.clear();
+  use_ode_times = false;
+  // This will pull the ode times out of the events if they were set.
+  reset();
+}
+
+bool CohortSchedule::r_use_ode_times() const {
+  return use_ode_times;
+}
+
+void CohortSchedule::r_set_use_ode_times(bool x) {
+  if (x) { // Check that we have some times before enabling.
+    if (ode_times.size() > 2) {
+      use_ode_times = true;
+    }
+  } else { // Can always disable
+    use_ode_times = false;
+  }
+  reset();
 }
 
 Rcpp::List CohortSchedule::r_get_state() const {

@@ -30,7 +30,6 @@ public:
   void pop();
   Event next_event() const;
   size_t remaining() const;
-  bool fixed_times() const;
 
   // * R interface:
   void r_clear_times(size_t species_index);
@@ -41,6 +40,8 @@ public:
   std::vector<double> r_ode_times() const;
   void r_set_ode_times(std::vector<double> x);
   void r_clear_ode_times();
+  bool r_use_ode_times() const;
+  void r_set_use_ode_times(bool x);
   Rcpp::List r_get_state() const;
   void r_set_state(Rcpp::List x);
   Rcpp::List r_all_times() const;
@@ -60,6 +61,7 @@ private:
   std::list<Event> queue;
   double max_time;
   std::vector<double> ode_times;
+  bool use_ode_times;
 };
 
 class CohortSchedule::Event {

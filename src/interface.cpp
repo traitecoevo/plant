@@ -252,13 +252,15 @@ RCPP_MODULE(tree) {
     .method("pop",          &model::CohortSchedule::pop)
     .property("next_event", &model::CohortSchedule::next_event)
     .property("remaining",  &model::CohortSchedule::remaining)
-    .property("fixed_times",&model::CohortSchedule::fixed_times)
     .property("max_time",   &model::CohortSchedule::r_max_time,
 	      &model::CohortSchedule::r_set_max_time)
     .property("ode_times",  &model::CohortSchedule::r_ode_times,
 	      &model::CohortSchedule::r_set_ode_times)
     .method("clear_ode_times",
 	    &model::CohortSchedule::r_clear_ode_times)
+    .property("use_ode_times",
+	      &model::CohortSchedule::r_use_ode_times,
+	      &model::CohortSchedule::r_set_use_ode_times)
     .property("state",
 	      &model::CohortSchedule::r_get_state,
 	      &model::CohortSchedule::r_set_state)

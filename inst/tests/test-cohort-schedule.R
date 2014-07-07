@@ -11,7 +11,7 @@ test_that("Empty CohortSchedule looks correct", {
   expect_that(sched$remaining,   equals(0))
   expect_that(sched$max_time,    equals(Inf))
   expect_that(sched$next_event,  throws_error())
-  expect_that(sched$fixed_times, is_false())
+  expect_that(sched$use_ode_times, is_false())
   expect_that(sched$ode_times,   equals(numeric(0)))
 })
 
@@ -45,7 +45,7 @@ test_that("Can set cohort times", {
 test_that("Schedule looks correctly set up", {
   species.index <- 1
   expect_that(sched$times(species.index), equals(t1))
-  expect_that(sched$fixed_times, is_false())
+  expect_that(sched$use_ode_times, is_false())
   e <- sched$next_event
   expect_that(e$time_introduction,   is_identical_to(t1[[1]]))
   expect_that(e$species_index,       equals(species.index))
@@ -62,7 +62,7 @@ drain.schedule <- function(sched) {
                   e$time_end)
     sched$pop()
   }
-  if (!sched$fixed_times) {
+  if (!sched$use_ode_times) {
     if (!all(sapply(cmp, length) == 5))
       stop("Expected exactly five elements for each schedule")
     cmp <- do.call(rbind, cmp)
@@ -188,7 +188,7 @@ test_that("Malformed ode_times objects are rejected", {
   expect_that(sched$ode_times <- sched$max_time * c(0, .5, .3, 1),
               throws_error())
   ## ...and check that none of these caused the times to be set
-  expect_that(sched$fixed_times, is_false())
+  expect_that(sched$use_ode_times, is_false())
   expect_that(sched$ode_times,   equals(numeric(0)))
 })
 
@@ -213,8 +213,10 @@ sched$max_time <- max.t
 sched$ode_times <- t.ode
 
 test_that("Times were set correctly", {
-  expect_that(sched$fixed_times, is_true())
+  expect_that(sched$use_ode_times, is_false())
   expect_that(sched$ode_times,   is_identical_to(t.ode))
+  sched$use_ode_times <- TRUE
+  expect_that(sched$use_ode_times, is_true())
 
   cmp <- drain.schedule(sched)
 
@@ -229,14 +231,14 @@ test_that("Times were set correctly", {
 ## check we can clear times:
 sched$clear_ode_times()
 test_that("Times were cleared", {
-  expect_that(sched$fixed_times, is_false())
+  expect_that(sched$use_ode_times, is_false())
   expect_that(sched$ode_times,   equals(numeric(0)))
 })
 
 sched$max_time <- Inf
 sched$ode_times <- t.ode
 test_that("Times were set correctly", {
-  expect_that(sched$fixed_times, is_true())
+  expect_that(sched$use_ode_times, is_false())
   expect_that(sched$ode_times,   is_identical_to(t.ode))
   expect_that(sched$max_time,    is_identical_to(max(t.ode)))
 })

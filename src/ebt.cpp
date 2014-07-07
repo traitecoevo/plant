@@ -37,6 +37,8 @@ std::vector<int> EBT::run_next() {
   std::vector<int> ret;
   const double t0 = get_time();
   CohortSchedule::Event e = schedule.next_event();
+  // TODO: Not ideal (using an "r_" function).
+  const bool use_ode_times = schedule.r_use_ode_times();
   while (true) {
     if (!util::identical(t0, e.time_introduction()))
       Rcpp::stop("Start time not what was expected");
@@ -57,10 +59,12 @@ std::vector<int> EBT::run_next() {
   }
 
   ode_solver.set_state_from_problem();
-  if (schedule.fixed_times())
+
+  if (use_ode_times) {
     ode_solver.advance_fixed(e.times);
-  else
+  } else {
     ode_solver.advance(e.time_end());
+  }
 
   return ret;
 }
