@@ -1,7 +1,6 @@
 ## Towards evolutionary assembly.
 library(tree)
 library(assertthat)
-library(lhs)
 library(mvtnorm)
 
 source("assembly-fun.R")
@@ -26,11 +25,11 @@ vcv <- diag(2) * p * as.numeric(diff(t(log(bounds))))
 mean.n.mutants    <- 2
 mean.n.immigrants <- 1
 
-new.phenotypes <- make.new.phenotypes(mean.n.mutants, vcv,
+new.phenotypes <- make_new_phenotypes(mean.n.mutants, vcv,
                                       mean.n.immigrants, bounds)
-births <- make.births(new.phenotypes, seed_rain0, times0)
-deaths <- make.deaths(seed_rain.eps)
-run <- make.run(p0, t.max)
+births <- make_births(new.phenotypes, seed_rain0, times0)
+deaths <- make_deaths(seed_rain.eps)
+run <- make_run(p0, t.max)
 
 sys <- list(traits=cbind(lma=0.1978791, hmat=16.5958691),
             seed_rain=505.55407,

@@ -2,9 +2,9 @@ library(tree)
 
 ## Some functions for exploring introduction times.
 ##
-## This is similar to tree::cohort.introduction.times(), but does not
+## This is similar to tree::cohort_introduction_times(), but does not
 ## do the `2^floor(log2())` transformation.
-cohort.introduction.times <- function(max.time, multiplier=0.2,
+cohort_introduction_times <- function(max.time, multiplier=0.2,
                                       min.step.size=1e-05,
                                       max.step.size=2) {
   if (min.step.size <= 0)
@@ -26,12 +26,12 @@ interleave <- function(x) {
   c(rbind(x, xp))[-2*n]
 }
 
-insert.time <- function(i, x) {
+insert_time <- function(i, x) {
   j <- seq_len(i)
   c(x[j], (x[i] + x[i+1])/2, x[-j])
 }
 
-run.with.times <- function(times, ebt) {
+run_with_times <- function(times, ebt) {
   ebt$reset()
   ebt$set_times(times, 1L)
   ebt$run()
@@ -39,7 +39,7 @@ run.with.times <- function(times, ebt) {
 }
 
 ## This should really move into tree
-cohort.fitness <- function(ebt) {
+cohort_fitness <- function(ebt) {
   cbind(t=ebt$cohort_schedule$times(1),
         seeds=ebt$fitness_cohort(1))
 }
@@ -68,16 +68,16 @@ p$set_control_parameters(ctrl.new)
 
 ## Three progressively more closely spaced times:
 t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
-tt.1 <- cohort.introduction.times(t.max)
+tt.1 <- cohort_introduction_times(t.max)
 tt.2 <- interleave(tt.1)
 tt.3 <- interleave(tt.2)
 
 ebt <- new(EBT, p)
 ebt$cohort_schedule$max_time <- t.max
 
-w.1 <- run.with.times(tt.1, ebt)
-w.2 <- run.with.times(tt.2, ebt)
-w.3 <- run.with.times(tt.3, ebt)
+w.1 <- run_with_times(tt.1, ebt)
+w.2 <- run_with_times(tt.2, ebt)
+w.3 <- run_with_times(tt.3, ebt)
 
 ## Fitness increases as time is cohorts are introduced more finely,
 ## though at a potentially saturating rate.  We're doing lots more
@@ -93,7 +93,7 @@ c(w.1, w.2, w.3)
 ## By brute force, split cohorts along the time course and see how we
 ## do; that might give some clue:
 run.with.insert <- function(i, t, ebt)
-  run.with.times(insert.time(i, t), ebt)
+  run_with_times(insert_time(i, t), ebt)
 
 ## This takes a little while because we're re-running the entire
 ## simulation (about 3 minutes).  This would be a bit easier to do if
@@ -124,7 +124,7 @@ plot(tm.1, dw.1, xlab="Cohort insertion time",
 ## The reason for the change in total fitness is how we compute the
 ## contribution to fitness.  Pulling apart the fitness calculations
 ## above to get the per-cohort contributions:
-tmp <- cohort.fitness(ebt)
+tmp <- cohort_fitness(ebt)
 
 ## And plotting this with the position (vertical line) of the most
 ## influential cohort introduction time.  Dashed vertical lines are
@@ -160,7 +160,7 @@ sched$set_times(tt.1, 1)
 
 res.0 <- run.ebt.collect(ebt$parameters, sched)
 
-sched$set_times(insert.time(idx, tt.1), 1)
+sched$set_times(insert_time(idx, tt.1), 1)
 res.cmp <- run.ebt.collect(ebt$parameters, sched)
 
 ## Confirm where the new cohort is (at idx)

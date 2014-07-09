@@ -1,10 +1,4 @@
-##' Determine the equilibrium seed rain for a single strategy
-##'
-##' Currently set up for just a single strategy; mostly because
-##' build.schedule() only works with a single strategy, but less
-##' importantly because the printing will not work gracefully with
-##' multiple strategy.  None of these are difficult to deal with
-##' though.
+##' Determine the equilibrium seed rain for a set of strategies.
 ##'
 ##' This does not use any clever root finding algorithm to try and
 ##' speed up convergence, but simply iterates the solver.  Something
@@ -13,75 +7,71 @@
 ##'
 ##' @title Determine Equilibrium Seed Rain
 ##' @param p Parameters object
-##' @param schedule Schedule to run EBT with.  Will be modified with
-##' the final set of times.
-##' @param nsteps Number of iterations of the algorithm
-##' @param build.args Arguments to be passed through to
-##' \code{\link{build.schedule}}, as a list.
-##' @param large.seed_rain.change A change in seed rain "large enough" to
-##' trigger recalculation of the cohort schedule.  If the change is
-##' less than this value then we start the schedule search from the
-##' previous schedule.
-##' @param progress Return information on the convergence along with
-##' the output?
-##' @param verbose Be verbose about how the search is going?
-##' @return A list with elements \code{seed.in} (input seed rain on
-##' last iteration), \code{seed.out} (output seed rain on last
-##' iteration) and \code{times} (vector of cohort times, with the
-##' final element being the stopping time).
+##' @param schedule Schedule to run EBT with, or \code{NULL} for a
+##' default schedule (should generally be a reasonable choice as it's
+##' only the starting seed for the usual schedule building with
+##' \code{\link{build_schedule}}).
 ##' @author Rich FitzJohn
 ##' @export
-equilibrium.seed.rain <- function(p, schedule, nsteps,
-                                  build.args=list(),
-                                  large.seed_rain.change=10,
-                                  progress=FALSE, verbose=TRUE,
-                                  eps=0) {
+equilibrium_seed_rain <- function(p, schedule=NULL) {
   p <- p$copy() # don't modify what we're given
-  schedule <- schedule$copy()
-  schedule.default <- schedule$copy()
+  schedule <- schedule_or_null(schedule, p)
+  ## Might revert back to default periodically.
+  schedule_default <- schedule$copy()
 
-  build.args <- modifyList(list(nsteps=20, eps=1e-3, verbose=TRUE),
-                           build.args)
-  build <- function(schedule)
-    build.schedule(p, schedule, build.args$nsteps, build.args$eps,
-                   progress=FALSE, verbose=build.args$verbose)
-
-  ## NOTE: The schedule of times here only gets larger.
+  control <- p$control$parameters
+  eps <- control$equilibrium_eps
+  progress <- control$equilibrium_progress
+  large_seed_rain_change <- control$equilibrium_large_seed_rain_change
   history <- list()
-  for (i in seq_len(nsteps)) {
-    schedule <- build(schedule)
-    ebt.last <- attr(schedule, "ebt")
+  for (i in seq_len(control$equilibrium_nsteps)) {
+    schedule <- build_schedule(p, schedule)
     res <- list(seed_rain = attr(schedule, "seed_rain", exact=TRUE),
                 schedule  = schedule$copy())
-    history <- c(history, list(res))
     seed_rain <- res[["seed_rain"]]
     change <- seed_rain[,"out"] - seed_rain[,"in"]
 
-    p$seed_rain <- seed_rain[,"out"]
-    if (any(abs(change) > large.seed_rain.change)) {
-      schedule <- schedule.default$copy()
+    if (progress) {
+      history <- c(history, list(res))
     }
 
-    if (verbose) {
+    p$seed_rain <- seed_rain[,"out"]
+    if (any(abs(change) > large_seed_rain_change)) {
+      schedule <- schedule_default$copy()
+    }
+
+    if (control$equilibrium_verbose) {
       message(sprintf("*** %d: {%s} -> {%s} (delta = {%s})", i,
                       paste(prettyNum(seed_rain[,"in"]), collapse=","),
                       paste(prettyNum(seed_rain[,"out"]), collapse=","),
                       paste(prettyNum(change), collapse=",")))
     }
 
-    if (eps > 0 && abs(change) < eps) {
-      if (verbose) {
+    if (eps > 0 && all(abs(change) < eps)) {
+      if (control$equilibrium_verbose) {
         message(sprintf("Reached target accuracy (delta %2.5e < %2.5e eps)",
-                        abs(change), eps))
+                        max(abs(change)), eps))
       }
       break
     }
   }
-
   if (progress) {
     attr(res, "progress") <- history
   }
   attr(res, "schedule") <- schedule
-  attr(res, "ebt") <- ebt.last
   res
+}
+
+##' Control parameters for \code{\link{equilibrium_seed_rain}} that
+##' make progress noisier.  This is just a convenience function.
+##'
+##' @title Noisy Parameters for Equilibrium Finding
+##' @export
+##' @examples
+##' p <- new(Parameters)
+##' p$set_control_parameters(equilibrium_verbose())
+equilibrium_verbose <- function() {
+  list(schedule_verbose=TRUE,
+       equilibrium_verbose=TRUE,
+       equilibrium_progress=TRUE)
 }

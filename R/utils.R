@@ -1,4 +1,4 @@
-list.to.array <- function(x) {
+list_to_array <- function(x) {
   if (length(unique(lapply(x, dim))) > 1)
     stop("More than one dimension")
 
@@ -11,7 +11,7 @@ list.to.array <- function(x) {
         dimnames=c(dimnames2(x[[1]]), list(names(x))))
 }
 
-pad.matrix <- function(x) {
+pad_matrix <- function(x) {
   if (is.matrix(x[[1]])) {
     nc <- max(sapply(x, ncol))
     nr <- nrow(x[[1]])
@@ -22,8 +22,9 @@ pad.matrix <- function(x) {
   }
 }
 
-pad.list.to.array <- function(x)
-  list.to.array(pad.matrix(x))
+pad_list_to_array <- function(x) {
+  list_to_array(pad_matrix(x))
+}
 
 ##' Get last element from an object
 ##' @title Get Last Element
@@ -63,7 +64,7 @@ first <- function(x)
 ##' \code{filename} rather than being rerun.
 ##' @author Rich FitzJohn
 ##' @export
-run.cached <- function(expr, filename, regenerate=FALSE) {
+run_cached <- function(expr, filename, regenerate=FALSE) {
   if (file.exists(filename) && !regenerate) {
     res <- readRDS(filename)
   } else {
@@ -83,8 +84,9 @@ run.cached <- function(expr, filename, regenerate=FALSE) {
 ##' @param ... Additional parameters passed to \code{lines}
 ##' @author Rich FitzJohn
 ##' @export
-cobweb <- function(m, ...)
+cobweb <- function(m, ...) {
   lines(rep(m[,1], each=2), c(t(m)), ...)
+}
 
 ##' Sequence in log space
 ##'
@@ -97,5 +99,6 @@ cobweb <- function(m, ...)
 ##' @param length.out Number of points to generate
 ##' @author Rich FitzJohn
 ##' @export
-seq_log <- function(from, to, length.out)
+seq_log <- function(from, to, length.out) {
   exp(seq(log(from), log(to), length.out=length.out))
+}

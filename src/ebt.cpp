@@ -28,7 +28,7 @@ void EBT::run() {
 }
 
 // TODO: The return value here is a bit of a hack for
-// build.schedule().  It would be nice to fix this.  One alternative
+// build_schedule().  It would be nice to fix this.  One alternative
 // would be to update the CohortSchedule to naturally deal with the
 // case of multiple introductions per time.  The other would be to say
 // how many events we skipped over perhaps.  This will do for now

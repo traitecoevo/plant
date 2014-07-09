@@ -290,6 +290,8 @@ test_that("Can create empty EBT with mutants", {
   p$set_control_parameters(fast.control()) # A bit faster
   p$add_strategy_mutant(new(Strategy, list(lma=0.1)))
 
+
+
   t.max <- 10
   times0 <- cohort.introduction.times(t.max)
   schedule0 <- schedule.from.times(times0, 1L)

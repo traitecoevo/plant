@@ -199,6 +199,8 @@ void CohortSchedule::r_set_use_ode_times(bool x) {
   if (x) { // Check that we have some times before enabling.
     if (ode_times.size() > 2) {
       use_ode_times = true;
+    } else {
+      Rcpp::stop("No times stored in object");
     }
   } else { // Can always disable
     use_ode_times = false;

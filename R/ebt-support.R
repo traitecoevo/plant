@@ -17,32 +17,32 @@
 ##' get very large, requiring more ODE steps.
 ##'
 ##' @title Generate Default Cohort Introduction Times
-##' @param max.time Time to generate introduction times up to (the
-##' last introduction time will be at least \code{max.time}).
+##' @param max_time Time to generate introduction times up to (the
+##' last introduction time will be at least \code{max_time}).
 ##' @param multiplier The rate of increase of step size with time.
 ##' The greater the number the faster step size will increase.
-##' @param min.step.size The smallest gap between introduction times
+##' @param min_step_size The smallest gap between introduction times
 ##' (must be greater than zero, and will be the first introduction
 ##' time).
-##' @param max.step.size The largest gap between introduction times
+##' @param max_step_size The largest gap between introduction times
 ##' (may be infinite).
 ##' @return Vector of introduction times.
 ##' @export
 ##' @author Rich FitzJohn, adapted from original C++ code by Daniel
 ##' S. Falster.
-cohort.introduction.times <- function(max.time, multiplier=0.2,
-                                      min.step.size=1e-5,
-                                      max.step.size=2.0) {
-  if (min.step.size <= 0)
+cohort_introduction_times <- function(max_time, multiplier=0.2,
+                                      min_step_size=1e-5,
+                                      max_step_size=2.0) {
+  if (min_step_size <= 0)
     stop("The minimum step size must be greater than zero")
   dt <- time <- times <- 0
-  while (time <= max.time) {
+  while (time <= max_time) {
     dt <- 2^floor(log2(time * multiplier))
-    time <- time + max(min(dt, max.step.size), min.step.size)
+    time <- time + max(min(dt, max_step_size), min_step_size)
     times <- c(times, time)
   }
-  # Trucate last time to max.time; it may have overshot.
-  last(times) <- max.time
+  # Trucate last time to max_time; it may have overshot.
+  last(times) <- max_time
   times
 }
 
@@ -54,7 +54,7 @@ cohort.introduction.times <- function(max.time, multiplier=0.2,
 ##' \code{Control$set_parameters}
 ##' @author Rich FitzJohn
 ##' @export
-fast.control <- function() {
+fast_control <- function() {
   ctrl <- list()
   ctrl$plant_assimilation_adaptive <- FALSE
   ctrl$environment_light_rescale_usually <- TRUE
@@ -70,46 +70,6 @@ fast.control <- function() {
   ctrl
 }
 
-##' Generate a default schedule of cohort introduction times.  At
-##' present this is just linear from 0..max.t.
-##'
-##' Note that this is basically useless for practical purposes, but
-##' will merge with \code{\link{cohort.introduction.times}} at some
-##' point.
-##'
-##' @title Simple Linear Cohort Schedule
-##' @param nt Number of cohorts to introduce
-##' @param max.t Time that the simulation stops at
-##' @return A \code{CohortSchedule} object
-##' @author Rich FitzJohn
-##' @export
-default.schedule <- function(nt, max.t) {
-  schedule.from.times(seq(0, max.t, length.out=nt + 1))
-}
-
-##' Generate a CohortSchedule object from a series of times.  The last
-##' time is ommited but will be set as the \code{$max_time}.
-##'
-##' Only works for a single species at the moment.
-##'
-##' @title Create CohortSchedule From Vector of Times
-##' @param times A numeric vector of increasing times
-##' @param n The number of species.
-##' @return A \code{\link{CohortSchedule}} object.
-##' @author Rich FitzJohn
-##' @export
-schedule.from.times <- function(times, n=1L) {
-  if (any(diff(times) <= 0.0))
-    stop("Times must be strictly increasing")
-  if (length(times) < 2)
-    stop("Need at least two times (one introduction and max time)")
-  sched <- new(CohortSchedule, n)
-  for (i in seq_len(n))
-    sched$set_times(times[-length(times)], i)
-  sched$max_time <- last(times)
-  sched
-}
-
 ##' Run the EBT model, given a Parameters and CohortSchedule
 ##'
 ##' This is mostly a simple wrapper around some of the EBT functions.
@@ -121,36 +81,36 @@ schedule.from.times <- function(times, n=1L) {
 ##' @param sched A CohortSchedule Object
 ##' @export
 ##' @author Rich FitzJohn
-run.ebt.collect <- function(p, sched) {
-  get.state <- function(ebt)
+run_ebt_collect <- function(p, sched) {
+  get_state <- function(ebt) {
     list(time=ebt$time,
          species=ebt$state$patch$species,
-         light.env=get.light.env(ebt))
+         light_env=get_light_env(ebt))
+  }
 
   ebt <- new(EBT, p)
   ebt$cohort_schedule <- sched
-  res <- list(get.state(ebt))
+  res <- list(get_state(ebt))
 
   while (!ebt$complete) {
     ebt$run_next()
-    st <- get.state(ebt)
+    st <- get_state(ebt)
     if (st$time > last(res)$time) {
       res <- c(res, list(st))
     } else {
       res[[length(res)]] <- st
     }
   }
-  pad.list.to.array <- tree:::pad.list.to.array
 
   time <- sapply(res, "[[", "time")
-  light.env <- lapply(res, "[[", "light.env")
+  light_env <- lapply(res, "[[", "light_env")
   ## The aperm() here means that dimensions are
   ## [variable,time,cohort], so that taking species[[1]]["height",,]
   ## gives a matrix that has time down rows and cohorts across columns
   ## (so is therefore plottable with matplot)
   species <- lapply(res, "[[", "species")
   species <- lapply(seq_along(species[[1]]), function(i)
-                    aperm(pad.list.to.array(lapply(species, "[[", i)),
+                    aperm(pad_list_to_array(lapply(species, "[[", i)),
                           c(1, 3, 2)))
   ## Drop the boundary condition; we do this mostly because it cannot
   ## be compared against the reference output, which does not contain
@@ -160,16 +120,16 @@ run.ebt.collect <- function(p, sched) {
   species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
 
   ## TODO: add fitness_cohort here:
-  ##   fitness.cohort <-
+  ##   fitness_cohort <-
   ##     lapply(seq_len(p$size), function(i) ebt$fitness_cohort(i))
-  list(time=time, species=species, light.env=light.env,
+  list(time=time, species=species, light_env=light_env,
        fitness=ebt$fitnesses)
 }
 
-get.light.env <- function(ebt) {
-  light.env <- ebt$patch$environment$light_environment$xy
-  colnames(light.env) <- c("height", "canopy.openness")
-  light.env
+get_light_env <- function(ebt) {
+  light_env <- ebt$patch$environment$light_environment$xy
+  colnames(light_env) <- c("height", "canopy_openness")
+  light_env
 }
 
 ##' Run the EBT, returning the EBT object for interrogation
@@ -181,104 +141,9 @@ get.light.env <- function(ebt) {
 ##' @return A \code{EBT} object.
 ##' @author Rich FitzJohn
 ##' @export
-run.ebt <- function(p, sched) {
+run_ebt <- function(p, sched) {
   ebt <- new(EBT, p)
   ebt$cohort_schedule <- sched
   ebt$run()
   ebt
-}
-
-# This bit is way uglier than needed; need to expand out a schedule to
-# include mutants.
-
-##' Expand schedule to include mutants.  All mutants get the same
-##' schedule, equal to all the unique times that any resident was
-##' introduced.  This results in more work than is really needed, but
-##' should be reasonable most of the time.
-##'
-##' May change...
-##' @title Expand Cohort Schedule to Include Mutants
-##' @param schedule A \code{CohortSchedule} object, set up for the
-##' residents.
-##' @param n.mutant Number of mutant schedules to generate
-##' @author Rich FitzJohn
-##' @export
-expand.schedule <- function(schedule, n.mutant) {
-  n.resident <- schedule$n_species
-  ret <- new(CohortSchedule, n.resident + n.mutant)
-  ret$max_time <- schedule$max_time
-
-  ## Copy residents over:
-  for (i in seq_len(n.resident))
-    ret$set_times(schedule$times(i), i)
-
-  ## Introduce mutants at all unique times:
-  times.mutant <- unique(sort(unlist(schedule$all_times)))
-  for (i in seq_len(n.mutant))
-    ret$set_times(times.mutant, n.resident + i)
-
-  if (length(schedule$ode_times) == 0) {
-    ## Basically, we want to step on the same times that the real EBT
-    ## did.  To do that we need to get times out of the EBT.  If you
-    ## have the ebt instance handy, just do this:
-    ##   schedule$ode_times <- ebt$times
-    ## If you ran build.schedule you can get the ebt by doing
-    ##   attr(res, "ebt")
-    ## where "res" is the result of running build.schedule.
-    stop("Please add ode_times from your last ebt run")
-  }
-  ret$ode_times <- schedule$ode_times
-
-  ret
-}
-
-##' Construct a fitness landscape.  Currently only works in one
-##' dimension, and with all other parameters set to their defaults,
-##' and at predefined values only rather than adaptively (i.e., not
-##' actually useful yet).
-##'
-##' Will change...
-##' @title Fitness Landscape
-##' @param trait Name of the single trait to change
-##' @param values Vector of trait values to compute mutant fitness
-##' @param p Parameters object.  Needs to contain residents with their
-##' incoming seed rain.
-##' @param schedule Schedule of times for the residents.
-##' @return Vector with the output seed rain.  Mutants have an
-##' arbitrary seed rain of zero, so this is the rate of seed
-##' production per capita.
-##' @author Rich FitzJohn
-##' @export
-landscape <- function(trait, values, p, schedule, strategy=new(Strategy)) {
-  p.with.mutants <- p$copy()
-
-  for (i in values) {
-    new.strategy <- strategy$copy()
-    new.strategy$set_parameters(structure(list(i), names=trait))
-    p.with.mutants$add_strategy(new.strategy)
-  }
-  schedule.with.mutants <- expand.schedule(schedule, length(values))
-  ebt.with.mutants <- run.ebt(p.with.mutants, schedule.with.mutants)
-  w.with.mutants <- ebt.with.mutants$fitnesses
-  w.with.mutants[-seq_len(p$size)]
-}
-
-## TODO: Need to support variant strategy here and above.
-##' @rdname landscape
-##' @export
-landscape.empty <- function(trait, values, p, schedule, strategy=new(Strategy)) {
-  p.empty <- p$copy()
-  p.empty$clear()
-  for (i in values) {
-    new.strategy <- strategy$copy()
-    new.strategy$set_parameters(structure(list(i), names=trait))
-    p.empty$add_strategy(new.strategy)
-  }
-  schedule.empty <- new(CohortSchedule, length(values))
-  schedule.empty$max_time  <- schedule$max_time
-  schedule.empty$ode_times <- schedule$ode_times
-  schedule.empty$all_times <-
-    rep(list(unique(sort(unlist(schedule$all_times)))), length(values))
-  ebt.empty <- run.ebt(p.empty, schedule.empty)
-  ebt.empty$fitnesses
 }
