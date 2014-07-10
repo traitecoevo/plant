@@ -1,6 +1,5 @@
 image: drone/tree
 
-
 # In contrast with usual, we're not going through travis tool for this
 # package: there's no way that we can have it pass all the tests.
 # Instead I want to install it and then do a bunch of stuff with it.
