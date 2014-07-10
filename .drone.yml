@@ -1,0 +1,10 @@
+image: drone/tree
+
+# In contrast with usual, we're not going through travis tool for this
+# package: there's no way that we can have it pass all the tests.
+# Instead I want to install it and then do a bunch of stuff with it.
+# For now, I'll be happy if we can just install and run the tests.
+script:
+  - sudo travis-tool.sh install_deps
+  - make install
+  - make test
