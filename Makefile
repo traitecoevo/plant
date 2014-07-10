@@ -1,5 +1,3 @@
-PKG = $(shell Rscript -e "writeLines(system.file(package='tree'))")
-
 all:
 	make -C src
 
@@ -10,7 +8,7 @@ clean:
 	make -C doc clean
 	make -C src clean
 
-test: ${PKG}
+test:
 	make -C inst/tests test
 
 # I dislike devtools' use of the Collate field (which causes problems
@@ -22,9 +20,7 @@ document: all
 
 RSRC = $(shell find ./R)
 
-install: ${PKG}
-
-${PKG}: all ${RSRC}
-	R CMD INSTALL --no-test-load .
+install:
+	R CMD INSTALL .
 
 .PHONY: all doc clean test install
