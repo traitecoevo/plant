@@ -83,7 +83,7 @@ test.environment <- function(height, n=101, light.env=NULL,
   ret
 }
 
-solver.from.odetarget <- function(obj, ode.control) {
+solver_from_ode_target <- function(obj, ode.control) {
   derivs <- function(t, y, pars)
     pars$derivs(t, y)
   solver <- new(OdeR, derivs, new.env(), obj, ode.control)

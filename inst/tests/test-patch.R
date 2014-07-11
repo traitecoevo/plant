@@ -98,7 +98,7 @@ expect_that(dydt, is_identical_to(cmp.dydt))
 
 expect_that(patch$derivs(0.0, y), is_identical_to(dydt))
 
-solver <- solver.from.odetarget(patch, p$control$ode_control)
+solver <- solver_from_ode_target(patch, p$control$ode_control)
 
 expect_that(solver$derivs(patch$time, patch$ode_values),
             is_identical_to(dydt))

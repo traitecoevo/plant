@@ -48,7 +48,7 @@ expect_that(patch.p$n_individuals, equals(2))
 expect_that(patch.c$n_individuals, equals(2))
 
 f <- function(patch, t, ode.control) {
-  solver <- solver.from.odetarget(patch, ode.control)
+  solver <- solver_from_ode_target(patch, ode.control)
   res <- list()
   while (patch$time < t) {
     solver$step()
@@ -85,7 +85,7 @@ run <- function(patch, n, time, ode.control, res=NULL) {
     patch$deaths()
     patch$add_seeds(patch$births())
   }
-  solver <- solver.from.odetarget(patch, ode.control)
+  solver <- solver_from_ode_target(patch, ode.control)
 
   if (is.null(res))
     res <- collect(patch)

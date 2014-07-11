@@ -12,10 +12,10 @@ p$set_parameters(list(patch_area=1.0))
 ebt <- new(EBT, p)
 
 test_that("Parameters can be pulled from EBT", {
-  p.cmp <- ebt$parameters
-  expect_that(p.cmp$size, is_identical_to(p$size))
-  expect_that(p.cmp$parameters, is_identical_to(p$parameters))
-  expect_that(p.cmp[[1]]$parameters, is_identical_to(p[[1]]$parameters))
+  p_cmp <- ebt$parameters
+  expect_that(p_cmp$size, is_identical_to(p$size))
+  expect_that(p_cmp$parameters, is_identical_to(p$parameters))
+  expect_that(p_cmp[[1]]$parameters, is_identical_to(p[[1]]$parameters))
 })
 
 ## Check that the underlying Patch really is a Patch<CohortTop>, not
@@ -99,10 +99,10 @@ test_that("EBT reset successful", {
 patch <- new(PatchCohortTop, p)
 sched$reset()
 
-species.index <- 1 # for getting state out.
+species_index <- 1 # for getting state out.
 
-tt.p.start <- hh.p.start <- tt.p.end <- hh.p.end <- NULL
-solver <- solver.from.odetarget(patch, p$control$ode_control)
+tt_p_start <- hh_p_start <- tt_p_end <- hh_p_end <- NULL
+solver <- solver_from_ode_target(patch, p$control$ode_control)
 while (sched$remaining > 0) {
   e <- sched$next_event
   if (!identical(patch$time, e$time_introduction))
@@ -110,8 +110,8 @@ while (sched$remaining > 0) {
   patch$add_seedling(e$species_index)
 
   ## Harvest statistics at start of step
-  tt.p.start <- c(tt.p.start, patch$time)
-  hh.p.start <- c(hh.p.start, list(patch$height[[species.index]]))
+  tt_p_start <- c(tt_p_start, patch$time)
+  hh_p_start <- c(hh_p_start, list(patch$height[[species_index]]))
 
   ## Advance the solution
   solver$set_state(patch$ode_values, patch$time)
@@ -119,45 +119,45 @@ while (sched$remaining > 0) {
   sched$pop()
 
   ## Harvest statistics and end of step
-  tt.p.end <- c(tt.p.end, patch$time)
-  hh.p.end <- c(hh.p.end, list(patch$height[[species.index]]))
+  tt_p_end <- c(tt_p_end, patch$time)
+  hh_p_end <- c(hh_p_end, list(patch$height[[species_index]]))
 }
 
-list.to.matrix <- function(x) {
+list_to_matrix <- function(x) {
   n <- max(sapply(x, length))
   t(sapply(x, function(i) c(i, rep(NA, n-length(i)))))
 }
 
-hh.p.start <- list.to.matrix(hh.p.start)
-hh.p.end <- list.to.matrix(hh.p.end)
+hh_p_start <- list_to_matrix(hh_p_start)
+hh_p_end <- list_to_matrix(hh_p_end)
 
 test_that("Run looks successful", {
-  expect_that(nrow(hh.p.start), equals(length(t)))
+  expect_that(nrow(hh_p_start), equals(length(t)))
   ## Start point is the leaf plant height:
-  expect_that(diag(hh.p.start),
+  expect_that(diag(hh_p_start),
               equals(rep(new(Plant, p[[1]])$height, length(t))))
 })
 
-run.ebt.test <- function(ebt, t.max=Inf) {
+run_ebt_test <- function(ebt, t_max=Inf) {
   tt <- hh <- NULL
   ebt$reset()
-  while (!ebt$complete > 0 && ebt$time < t.max) {
+  while (!ebt$complete > 0 && ebt$time < t_max) {
     ebt$run_next()
     tt <- c(tt, ebt$time)
-    hh <- c(hh, list(ebt$patch$height[[species.index]]))
+    hh <- c(hh, list(ebt$patch$height[[species_index]]))
   }
-  hh <- list.to.matrix(hh)
+  hh <- list_to_matrix(hh)
   list(t=tt, h=hh)
 }
 
 ## Next, Run the whole schedule using the EBT.
-res.e.1 <- run.ebt.test(ebt)
+res_e_1 <- run_ebt_test(ebt)
 
 ## I'm actually quite surprised that the objects aren't identical.
 ## I've left the tolerance super strict here.
 test_that("EBT and Patch agree", {
-  expect_that(res.e.1$t, is_identical_to(tt.p.end))
-  expect_that(res.e.1$h, equals(hh.p.end, tolerance=3e-11))
+  expect_that(res_e_1$t, is_identical_to(tt_p_end))
+  expect_that(res_e_1$h, equals(hh_p_end, tolerance=3e-11))
   expect_that(ebt$ode_values,
               equals(patch$ode_values, tolerance=2e-9))
   expect_that(ebt$ode_rates,
@@ -166,9 +166,9 @@ test_that("EBT and Patch agree", {
 
 ## Then, check that resetting the cohort allows rerunning easily:
 ebt$reset()
-res.e.2 <- run.ebt.test(ebt)
+res_e_2 <- run_ebt_test(ebt)
 test_that("EBT can be rerun successfully", {
-  expect_that(res.e.2, is_identical_to(res.e.1))
+  expect_that(res_e_2, is_identical_to(res_e_1))
 })
 
 ## Pull the times out of the EBT and set them in the schedule:
@@ -184,15 +184,15 @@ ebt$cohort_schedule <- sched
 ## between stepping to a point (requiring calculating the step size)
 ## and the stepping a particular step size (requiring calculating the
 ## final time).
-res.e.3 <- run.ebt.test(ebt)
+res_e_3 <- run_ebt_test(ebt)
 test_that("EBT with fixed times agrees", {
-  expect_that(res.e.3, equals(res.e.1, tolerance=1e-10))
+  expect_that(res_e_3, equals(res_e_1, tolerance=1e-10))
 })
 
 ebt$reset()
-res.e.4 <- run.ebt.test(ebt)
+res_e_4 <- run_ebt_test(ebt)
 test_that("EBT can be rerun successfully with fixed times", {
-  expect_that(res.e.4, is_identical_to(res.e.3))
+  expect_that(res_e_4, is_identical_to(res_e_3))
 })
 
 ## TODO: This is a fairly inadequate set of tests; none of the failure
@@ -202,7 +202,7 @@ test_that("State get/set works", {
   ## Next, try and partly run the EBT, grab its state and push it into a
   ## second copy.
   ebt$reset()
-  tmp <- run.ebt.test(ebt, sched$max_time / 2)
+  tmp <- run_ebt_test(ebt, sched$max_time / 2)
   state <- ebt$state
 
   ebt2 <- new(EBT, ebt$parameters)
@@ -238,14 +238,13 @@ gc() # hide the "signalCondition" Rcpp issue
 test_that("Fitness & error calculations correct", {
   p <- new(Parameters)
   p$add_strategy(new(Strategy))
-  p$set_control_parameters(fast.control())
+  p$set_control_parameters(fast_control())
   p$set_parameters(list(patch_area=1.0))   # See issue #13
   p$seed_rain <- 1.1
-  t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
 
   ebt <- new(EBT, p)
   ebt$reset()
-  ebt$cohort_schedule <- default.schedule(30, t.max)
+  ebt$cohort_schedule <- default_cohort_schedule(p)
   ebt$run()
 
   fitness.R <- function(ebt, error=FALSE) {
@@ -287,17 +286,14 @@ test_that("Can create empty EBT", {
 test_that("Can create empty EBT with mutants", {
   p <- new(Parameters)
   p$set_parameters(list(patch_area=1.0))   # See issue #13
-  p$set_control_parameters(fast.control()) # A bit faster
+  p$set_control_parameters(fast_control()) # A bit faster
   p$add_strategy_mutant(new(Strategy, list(lma=0.1)))
 
+  t_max <- 10
+  schedule0 <- default_cohort_schedule(p, t_max)
 
-
-  t.max <- 10
-  times0 <- cohort.introduction.times(t.max)
-  schedule0 <- schedule.from.times(times0, 1L)
-
-  ebt <- run.ebt(p, schedule0)
-  expect_that(ebt$time, equals(t.max))
+  ebt <- run_ebt(p, schedule0)
+  expect_that(ebt$time, equals(t_max))
 
   ## Check light environment is empty:
   env <- ebt$patch$environment

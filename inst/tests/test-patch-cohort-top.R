@@ -46,7 +46,7 @@ expect_that(patch.c$ode_values, is_identical_to(y))
 expect_that(patch.c$derivs(0, y),
             equals(cmp$ode_rates))
 
-solver <- solver.from.odetarget(patch.c, p$control$ode_control)
+solver <- solver_from_ode_target(patch.c, p$control$ode_control)
 solver$step()
 patch.c$add_seedling(1)
 expect_that(patch.c$ode_size,
@@ -79,7 +79,7 @@ if (interactive()) {
 
 patch.c$reset()
 patch.c$add_seedling(1)
-solver <- solver.from.odetarget(patch.c, p$control$ode_control)
+solver <- solver_from_ode_target(patch.c, p$control$ode_control)
 
 tt <- seq(0, 25, length=26)
 hh <- patch.c$height[[1]]
@@ -108,12 +108,12 @@ test_that("State get/set works", {
   patch.c$add_seedling(1)
   ode.control <- p$control$ode_control
   ode.control$set_parameters(list(step_size_min = 1e-4))
-  solver <- solver.from.odetarget(patch.c, ode.control)
+  solver <- solver_from_ode_target(patch.c, ode.control)
   while (patch.c$time < 5) {
     solver$step()
     if (patch.c$time > patch.c$n_individuals) {
       patch.c$add_seedling(1)
-      solver <- solver.from.odetarget(patch.c, ode.control)
+      solver <- solver_from_ode_target(patch.c, ode.control)
     }
   }
   patch.c$compute_vars_phys() # require because we just added seed

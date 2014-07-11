@@ -112,11 +112,17 @@ build_schedule <- function(p, schedule=NULL) {
 ##'
 ##' @title Generate Default Cohort Schedule
 ##' @param p A Parameters object
+##' @param t_max Maximum time to run schedule for.  If omitted (the
+##' usual case) then time proceeds until there is a "very small"
+##' chance that the patch is still extant, based on the control
+##' parameter \code{schedule_default_patch_survival}.
 ##' @author Rich FitzJohn
 ##' @export
-default_cohort_schedule <- function(p) {
-  patch_survival <- p$control$parameters$schedule_default_patch_survival
-  t_max <- p$disturbance$cdf(patch_survival)
+default_cohort_schedule <- function(p, t_max=NULL) {
+  if (is.null(t_max)) {
+    patch_survival <- p$control$parameters$schedule_default_patch_survival
+    t_max <- p$disturbance$cdf(patch_survival)
+  }
   times <- cohort_introduction_times(t_max)
   if (length(times) < 2) {
     stop("Did not generate at least two times, surprisingly")

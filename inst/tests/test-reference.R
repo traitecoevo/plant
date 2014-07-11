@@ -2,6 +2,11 @@ source("helper-tree.R")
 
 skip <- file.exists(".SKIP_REFERENCE_TESTS")
 
+## Disabling these tests for now: we've diverged in physiological
+## model and in the number of parameters.  I will support putting
+## these back together at some point, but for now leaving things be.
+skip <- TRUE
+
 ## This is basically a test of if we're running in Rich's computer.
 if (!skip && !evolve.is.installed() &&
     file.exists("~/.falster-traitdiversity_path"))

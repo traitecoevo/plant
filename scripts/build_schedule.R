@@ -6,7 +6,7 @@ p <- new(Parameters)
 p$add_strategy(new(Strategy))
 p$seed_rain <- 1.1                       # Whatever
 p$set_parameters(list(patch_area=1.0))   # See issue #13
-p$set_control_parameters(fast.control()) # A bit faster
+p$set_control_parameters(fast_control()) # A bit faster
 
 ## Useful for now, given the idea is to see how schedules are built:
 p$set_control_parameters(list(schedule_verbose=TRUE))
@@ -26,7 +26,7 @@ p2$add_strategy(new(Strategy, list(lma=0.0648406, hmat=26.3098)))
 p2$add_strategy(new(Strategy, list(lma=0.1977910, hmat=27.8790)))
 p2$seed_rain <- c(1.1, 2.1)               # Whatever
 p2$set_parameters(list(patch_area=1.0))   # See issue #13
-p2$set_control_parameters(fast.control()) # A bit faster
+p2$set_control_parameters(fast_control()) # A bit faster
 p2$set_control_parameters(list(schedule_verbose=TRUE))
 
 sched2_default <- build_schedule(p2)

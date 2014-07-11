@@ -3,10 +3,15 @@
 \alias{default_cohort_schedule}
 \title{Generate Default Cohort Schedule}
 \usage{
-default_cohort_schedule(p)
+default_cohort_schedule(p, t_max = NULL)
 }
 \arguments{
 \item{p}{A Parameters object}
+
+\item{t_max}{Maximum time to run schedule for.  If omitted (the
+usual case) then time proceeds until there is a "very small"
+chance that the patch is still extant, based on the control
+parameter \code{schedule_default_patch_survival}.}
 }
 \description{
 Generate default cohort schedule.  This has times compressed

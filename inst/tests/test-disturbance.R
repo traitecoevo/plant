@@ -75,8 +75,11 @@ test_that("Reference survival eps gives correct running time", {
     2.633*mean/3.0*4.0
 
   ## Wrapper for getting same out of our disturbance class:
-  f2 <- function(mean)
-    new(Disturbance, mean)$cdf(tree:::reference.pr.survival.eps)
+  p <- new(Parameters)
+  eps <- p$control$parameters$schedule_default_patch_survival
+  f2 <- function(mean) {
+    new(Disturbance, mean)$cdf(eps)
+  }
 
   age <- seq(1, 200, length.out=101)
   y1 <- f1(age)
