@@ -10,7 +10,7 @@ p <- new(Parameters)
 p$add_strategy(new(Strategy))
 p$seed_rain <- 505.55407
 p$set_parameters(list(patch_area=1.0))   # See issue #13
-p$set_control_parameters(fast.control()) # A bit faster
+p$set_control_parameters(fast_control()) # A bit faster
 p$set_control_parameters(list(schedule_verbose=TRUE))
 
 schedule <- build_schedule(p)
@@ -39,7 +39,7 @@ schedule_with_mutants <- expand_schedule(schedule, p_with_mutants$n_mutants)
 ## unchanged here.
 ##
 ## Unfortunately this is very slow!
-ebt_with_mutants <- run.ebt(p_with_mutants, schedule_with_mutants)
+ebt_with_mutants <- run_ebt(p_with_mutants, schedule_with_mutants)
 w_with_mutants <- ebt_with_mutants$fitnesses
 
 lma_v <- sapply(seq_len(p_with_mutants$size),

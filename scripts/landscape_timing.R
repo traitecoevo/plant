@@ -5,7 +5,7 @@ p$add_strategy(new(Strategy, list(lma=0.0648406)))
 p$add_strategy(new(Strategy, list(lma=0.1977910)))
 p$seed_rain <- c(1.1, 1.1)               # Starting rain.
 p$set_parameters(list(patch_area=1.0))   # See issue #13
-p$set_control_parameters(fast.control()) # A bit faster
+p$set_control_parameters(fast_control()) # A bit faster
 p$set_control_parameters(equilibrium_verbose())
 
 ## Work out what the equilibrium seed rain is.  This takes a while!  If
@@ -61,7 +61,7 @@ plot(w_64 ~ lma_64, type="l", log="x")
 abline(v=lma_res, lty=3, col="grey")
 
 # Fitness of the mutants in an empty landscape:
-w_empty <- landscape_empty(lma_16, p, schedule)
+w_empty <- landscape_empty("lma", lma_16, p, schedule)
 
 ##+ fitness_landscape_empty
 plot(w_empty ~ lma_16, log="x")

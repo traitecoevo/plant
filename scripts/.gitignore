@@ -11,10 +11,10 @@ equilibrium.Rmd
 equilibrium.md
 instability.Rmd
 instability.md
-landscape.Rmd
-landscape.md
-landscape2.Rmd
-landscape2.md
+landscape_manual.Rmd
+landscape_manual.md
+landscape_timing.Rmd
+landscape_timing.md
 light_env_interpolation.Rmd
 light_env_interpolation.md
 splitting_cohorts.Rmd
