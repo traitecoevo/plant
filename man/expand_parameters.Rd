@@ -3,7 +3,7 @@
 \alias{expand_parameters}
 \title{Expand Parameters to Include Mutants}
 \usage{
-expand_parameters(trait, values, p)
+expand_parameters(trait, values, p, mutant = TRUE)
 }
 \arguments{
 \item{trait}{Name of the single trait to change}
@@ -11,6 +11,9 @@ expand_parameters(trait, values, p)
 \item{values}{Vector of trait values for the mutants}
 
 \item{p}{Parameters object}
+
+\item{mutant}{Are these mutant strategies? (Default: yes they
+are).}
 }
 \description{
 Expand parameters to include mutants.  All mutants are built off

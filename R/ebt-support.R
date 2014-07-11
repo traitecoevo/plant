@@ -145,5 +145,6 @@ run_ebt <- function(p, sched) {
   ebt <- new(EBT, p)
   ebt$cohort_schedule <- sched
   ebt$run()
+  ebt$update_ode_times()
   ebt
 }

@@ -463,6 +463,7 @@ RCPP_MODULE(tree) {
     .method("set_times",         &model::EBT::r_set_times)
     .property("state",           &model::EBT::r_get_state,
 	      &model::EBT::r_set_state)
+    .method("update_ode_times",  &model::EBT::r_update_ode_times)
     ;
 
   Rcpp::class_<model::EBTMutantRunner>("EBTMutantRunner")

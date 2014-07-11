@@ -44,6 +44,7 @@ public:
   Parameters r_parameters() const;
   std::vector<double> r_times(size_t species_index) const;
   void r_set_times(std::vector<double> times, size_t species_index);
+  void r_update_ode_times();
 
   Rcpp::List r_get_state() const;
   void r_set_state(Rcpp::List x);

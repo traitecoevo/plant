@@ -196,6 +196,10 @@ void EBT::r_set_times(std::vector<double> times, size_t species_index) {
   schedule.r_set_times(times, species_index);
 }
 
+void EBT::r_update_ode_times() {
+  schedule.r_set_ode_times(r_ode_times());
+}
+
 Rcpp::List EBT::r_get_state() const {
   return Rcpp::List::create(Rcpp::_["patch"]    = patch.r_get_state(),
 			    Rcpp::_["schedule"] = schedule.r_get_state());

@@ -102,18 +102,24 @@ expand_schedule <- function(schedule, n_mutant) {
 ##' @param trait Name of the single trait to change
 ##' @param values Vector of trait values for the mutants
 ##' @param p Parameters object
+##' @param mutant Are these mutant strategies? (Default: yes they
+##' are).
 ##' @author Rich FitzJohn
 ##' @export
-expand_parameters <- function(trait, values, p) {
-  p_with_mutants <- p$copy()
+expand_parameters <- function(trait, values, p, mutant=TRUE) {
+  p <- p$copy()
   strategy <- p$strategy_default$copy()
 
   ## TODO: Generalise this out (easy)
   for (i in values) {
     new_strategy <- strategy$copy()
     new_strategy$set_parameters(structure(list(i), names=trait))
-    p_with_mutants$add_strategy_mutant(new_strategy)
+    if (mutant) {
+      p$add_strategy_mutant(new_strategy)
+    } else {
+      p$add_strategy(new_strategy)
+    }
   }
 
-  p_with_mutants
+  p
 }
