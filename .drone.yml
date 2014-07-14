@@ -8,3 +8,10 @@ script:
   - sudo travis-tool.sh install_deps
   - make install
   - make test
+
+notification:
+  - room: ecologymq
+  - token: {{hipchat_token}}
+  - on_started: true
+  - on_success: true
+  - on_failure: true
