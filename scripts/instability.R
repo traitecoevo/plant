@@ -10,17 +10,17 @@ p <- new(Parameters)
 p$add_strategy(new(Strategy))
 p$seed_rain <- 1.1                       # Starting rain.
 p$set_parameters(list(patch_area=1.0))   # See issue #13
-p$set_control_parameters(fast.control()) # A bit faster
+p$set_control_parameters(fast_control()) # A bit faster
 p$set_control_parameters(equilibrium_verbose())
 
 run <- function(seed_rain_in, p, schedule) {
   p$seed_rain <- seed_rain_in
-  run.ebt(p, schedule)$fitnesses
+  run_ebt(p, schedule)$fitnesses
 }
 
 run_collect <- function(seed_rain_in, p, schedule) {
   p$seed_rain <- seed_rain_in
-  run.ebt.collect(p, schedule)
+  run_ebt_collect(p, schedule)
 }
 
 run_new_schedule <- function(w, p, schedule=NULL) {

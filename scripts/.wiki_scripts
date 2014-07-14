@@ -1,10 +1,8 @@
+equilibrium.R
+instability.R
 landscape_manual.R
 landscape_timing.R
 splitting_cohorts.R
 
 # ebt_integration_error.R
-# equilibrium.R
-# instability.R
-# landscape2.R
 # light_env_interpolation.R
-# splitting_cohorts.R

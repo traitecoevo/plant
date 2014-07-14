@@ -11,8 +11,8 @@ script:
 
 notify:
   hipchat:
-    - room: ecologymq
-    - token: {{hipchat_token}}
-    - on_started: true
-    - on_success: true
-    - on_failure: true
+    room: {{hipchatRoom}}
+    token: {{hipchatToken}}
+    on_started: true
+    on_success: true
+    on_failure: true

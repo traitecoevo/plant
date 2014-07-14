@@ -6,12 +6,12 @@ p <- new(Parameters)
 p$add_strategy(new(Strategy, list(lma=0.08)))
 p$seed_rain <- 1.1                       # Starting rain.
 p$set_parameters(list(patch_area=1.0))   # See issue #13
-p$set_control_parameters(fast.control()) # A bit faster
+p$set_control_parameters(fast_control()) # A bit faster
 p$set_control_parameters(equilibrium_verbose())
 
 run <- function(seed_rain_in, p, schedule) {
   p$seed_rain <- seed_rain_in
-  run.ebt(p, schedule)$fitnesses
+  run_ebt(p, schedule)$fitnesses
 }
 
 run_new_schedule <- function(w, p, schedule=NULL) {
@@ -103,10 +103,8 @@ p$add_strategy(new(Strategy, list(lma=0.08)))
 p$add_strategy(new(Strategy, list(lma=0.15)))
 p$seed_rain <- c(1.1, 1.1)               # Starting rain.
 p$set_parameters(list(patch_area=1.0))   # See issue #13
-p$set_control_parameters(fast.control()) # A bit faster
-p$set_control_parameters(list(schedule_verbose=TRUE,
-                              equilibrium_verbose=TRUE,
-                              equilibrium_progress=TRUE))
+p$set_control_parameters(fast_control()) # A bit faster
+p$set_control_parameters(equilibrium_verbose())
 
 res <- equilibrium_seed_rain(p)
 w_hat <- res[["seed_rain"]][,"out"]
