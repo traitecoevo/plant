@@ -1,5 +1,7 @@
 # TREE model
 
+[![Build Status](http://acropora.bio.mq.edu.au:8080//github.com/richfitz/tree/status.svg?branch=master)](http://acropora.bio.mq.edu.au:8080//github.com/richfitz/tree)
+
  - TRait Eco-Evolutionary model?
  - TRait Evolutionary Ecology model?
  - Trait Ecosystem Ecology model?
