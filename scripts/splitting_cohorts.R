@@ -50,39 +50,28 @@ p$add_strategy(new(Strategy))
 p$seed_rain <- 1.1
 p$set_parameters(list(patch_area=1.0)) # See issue #13
 
-## Relatively quick control settings:
-ctrl.new <- list()
-ctrl.new$environment_light_rescale_usually <- TRUE
-ctrl.new$environment_light_tol <- 1e-4
-ctrl.new$plant_assimilation_rule <- 21
-ctrl.new$plant_assimilation_over_distribution <- FALSE
-ctrl.new$plant_assimilation_tol <- 1e-4
-ctrl.new$ode_tol_rel <- 1e-4
-ctrl.new$ode_tol_abs <- 1e-4
-ctrl.new$ode_step_size_max <- 5
-ctrl.new$cohort_gradient_direction <- -1
-ctrl.new$cohort_gradient_richardson <- FALSE
-p$set_control_parameters(ctrl.new)
+p$set_control_parameters(fast_control())
 
 ## # 1. The fitness calculation depends on the cohort spacing
 
 ## Three progressively more closely spaced times:
-t.max <- p$disturbance$cdf(tree:::reference.pr.survival.eps)
-tt.1 <- cohort_introduction_times(t.max)
-tt.2 <- interleave(tt.1)
-tt.3 <- interleave(tt.2)
+eps <- p$control$parameters$schedule_default_patch_survival
+t_max <- p$disturbance$cdf(eps)
+tt_1 <- cohort_introduction_times(t_max)
+tt_2 <- interleave(tt_1)
+tt_3 <- interleave(tt_2)
 
 ebt <- new(EBT, p)
-ebt$cohort_schedule$max_time <- t.max
+ebt$cohort_schedule$max_time <- t_max
 
-w.1 <- run_with_times(tt.1, ebt)
-w.2 <- run_with_times(tt.2, ebt)
-w.3 <- run_with_times(tt.3, ebt)
+w_1 <- run_with_times(tt_1, ebt)
+w_2 <- run_with_times(tt_2, ebt)
+w_3 <- run_with_times(tt_3, ebt)
 
 ## Fitness increases as time is cohorts are introduced more finely,
 ## though at a potentially saturating rate.  We're doing lots more
 ## work at the more refined end though!
-c(w.1, w.2, w.3)
+c(w_1, w_2, w_3)
 
 ## # 2: Where is this difference coming from?
 
@@ -92,8 +81,9 @@ c(w.1, w.2, w.3)
 
 ## By brute force, split cohorts along the time course and see how we
 ## do; that might give some clue:
-run.with.insert <- function(i, t, ebt)
+run_with_insert <- function(i, t, ebt) {
   run_with_times(insert_time(i, t), ebt)
+}
 
 ## This takes a little while because we're re-running the entire
 ## simulation (about 3 minutes).  This would be a bit easier to do if
@@ -101,24 +91,24 @@ run.with.insert <- function(i, t, ebt)
 ## to that for the point just before the new introduction.  See issue
 ## #40.
 ##+ cache=TRUE
-i <- seq_len(length(tt.1) - 1)
-res <- sapply(i, run.with.insert, tt.1, ebt)
+i <- seq_len(length(tt_1) - 1)
+res <- sapply(i, run_with_insert, tt_1, ebt)
 
 ## This is really interesting; refining most cohorts does not change
 ## anything, but there is a little period around the 47th cohort where
 ## it makes a massive difference, increasing fitness by about 30,
 ## which is most of the difference that we saw between the refined and
 ## non-refined sets (total increase from doubling resolution is 52)
-dw.1 <- res - w.1
-tm.1 <- (tt.1[-1] + tt.1[-length(tt.1)])/2
+dw_1 <- res - w_1
+tm_1 <- (tt_1[-1] + tt_1[-length(tt_1)])/2
 
 ##+ fitness_difference_by_index
-plot(dw.1, xlab="Cohort insertion point", ylab="Fitness difference")
+plot(dw_1, xlab="Cohort insertion point", ylab="Fitness difference")
 ##+ fitness_difference_by_time
-plot(tm.1, dw.1, xlab="Cohort insertion time",
+plot(tm_1, dw_1, xlab="Cohort insertion time",
      ylab="Fitness difference")
 ##+ fitness_difference_by_time_log
-plot(tm.1, dw.1, xlab="Cohort insertion time",
+plot(tm_1, dw_1, xlab="Cohort insertion time",
      ylab="Fitness difference", log="x")
 
 ## The reason for the change in total fitness is how we compute the
@@ -133,9 +123,9 @@ tmp <- cohort_fitness(ebt)
 ##+ fitness_difference_most_influential
 plot(tmp[-1,], log="x", las=1,
      xlab="Introduction time", ylab="Fitness contribution")
-abline(v=tm.1[order(abs(dw.1), decreasing=TRUE)[2:6]],
+abline(v=tm_1[order(abs(dw_1), decreasing=TRUE)[2:6]],
        col=grey.colors(5), lty=2)
-abline(v=tm.1[which.max(abs(dw.1))], col="red")
+abline(v=tm_1[which.max(abs(dw_1))], col="red")
 
 ## Characterising the decrease in fitness seems to be the important
 ## step, especially as the derivative of fitness with time increases
@@ -144,78 +134,58 @@ abline(v=tm.1[which.max(abs(dw.1))], col="red")
 ## Here is the same figure on a non-log basis, covering the important
 ## range of times.
 ##+ fitness_difference_most_influential_non_log
-r <- range(tm.1[order(abs(dw.1), decreasing=TRUE)[1:6]])
+r <- range(tm_1[order(abs(dw_1), decreasing=TRUE)[1:6]])
 plot(tmp[-1,], las=1, xlim=r,
      xlab="Introduction time", ylab="Fitness contribution")
-abline(v=tm.1[order(abs(dw.1), decreasing=TRUE)[2:6]],
+abline(v=tm_1[order(abs(dw_1), decreasing=TRUE)[2:6]],
        col=grey.colors(5), lty=2)
-abline(v=tm.1[which.max(abs(dw.1))], col="red")
+abline(v=tm_1[which.max(abs(dw_1))], col="red")
 
 ## 3: What is it about this point that is important?
-idx <- which.max(abs(dw.1))
+idx <- which.max(abs(dw_1))
 
 sched <- new(CohortSchedule, 1)
-sched$max_time <- max(tt.1)
-sched$set_times(tt.1, 1)
+sched$max_time <- max(tt_1)
+sched$set_times(tt_1, 1)
 
-res.0 <- run.ebt.collect(ebt$parameters, sched)
+res_0 <- run_ebt_collect(ebt$parameters, sched)
 
-sched$set_times(insert_time(idx, tt.1), 1)
-res.cmp <- run.ebt.collect(ebt$parameters, sched)
+sched$set_times(insert_time(idx, tt_1), 1)
+res_cmp <- run_ebt_collect(ebt$parameters, sched)
 
 ## Confirm where the new cohort is (at idx)
-identical(res.0$times, res.cmp$times[-idx])
+identical(res_0$times, res_cmp$times[-idx])
 
 ## Look at the light environments over time
-env.0   <- res.0$light.env
-env.cmp <- res.cmp$light.env[-idx]
+env_0   <- res_0$light_env
+env_cmp <- res_cmp$light_env[-idx]
 
-show.env <- function(i) {
-  plot(env.0[[i]], type="o")
-  lines(env.cmp[[i]], col="red", type="o", cex=.5, lty=2)
+show_env <- function(i) {
+  plot(env_0[[i]], type="o")
+  lines(env_cmp[[i]], col="red", type="o", cex=.5, lty=2)
 }
 
 ## These give basically the same light environment until 74 -- at this
 ## point they even have the same dimensions:
-n <- cbind(sapply(env.0, nrow),
-           sapply(env.cmp, nrow))
+n <- cbind(sapply(env_0, nrow),
+           sapply(env_cmp, nrow))
 idx2 <- which(n[,1] != n[,2])[1]
 
-## Differences by this point are fairly small
-all.equal(env.0[idx:(idx2 - 1)],
-          env.cmp[idx:(idx2 - 1)], tolerance=1e-4)
+## The light environments are basically the same looking the whole way
+## through here, though refined quite differently:
 
-## After this point, the version with the additional cohort has
-## *greater* canopy openness at the bottom of the light environment
-## (so below 10m tall, there is more light getting through).
 ##+ env_5
-show.env(idx2 + 5)
-
-## This becomes a wedge, with another possible round of recruitment,
-## causing a second drop in light at about 3m:
-##+ env_9
-show.env(idx2 + 9)
-
-## By the time a similar wedge starts appearing in the first version,
-## the wedge in the new verion has steepend dramatically -- now the
-## light environment is lower for very small heights than for medium
-## heights:
-##+ env_12
-show.env(idx2 + 12)
-
-## Then, the light environment at the forest floor equalises for the
-## two versions, but the position of the wedge varies between runs:
+show_env(idx2 + 5)
+##+ env_10
+show_env(idx2 + 10)
 ##+ env_15
-show.env(idx2 + 15)
-
+show_env(idx2 + 15)
 ## that difference persists:
 ##+ env_20
-show.env(idx2 + 20)
+show_env(idx2 + 20)
 ##+ env_30
-show.env(idx2 + 30)
+show_env(idx2 + 30)
 ##+ env_40
-show.env(idx2 + 40)
-
-## The final light environment is fairly similar though
+show_env(idx2 + 40)
 ##+ env_final
-show.env(length(env.0))
+show_env(length(env_0))
