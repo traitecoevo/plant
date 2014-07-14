@@ -1,4 +1,4 @@
-#!/usr/bin/env Rscript --verbose
+#!/usr/bin/env Rscript
 library(methods)
 library(testthat)
 
