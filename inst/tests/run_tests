@@ -1,15 +1,19 @@
-#!/usr/bin/env Rscript
+#!/usr/bin/env Rscript --verbose
 library(methods)
 library(testthat)
 
 ## This little function seems like either an ommision in testthat, or
 ## we're using the package the wrong way (well, I'm definitely using
-## it the wrong way)
+## it the wrong way).
+##
+## It seems like just throwing should be sufficient to set the error
+## status, but it appears not.  So there's an explicit call to q().
 test_dir <- function(...) {
   res <- testthat::test_dir(...)
   if (any(res$failed > 0)) {
-    stop(sprintf("Some tests failed (%d/%d)",
-                 sum(res$failed), sum(res$nb)))
+    message(sprintf("Some tests failed (%d/%d)",
+                    sum(res$failed), sum(res$nb)))
+    q("no", status=1)
   } else {
     message(sprintf("%d tests passed successfully", sum(res$nb)))
   }
