@@ -1,0 +1,21 @@
+#!/usr/bin/env Rscript
+library(methods)
+library(testthat)
+
+## This little function seems like either an ommision in testthat, or
+## we're using the package the wrong way (well, I'm definitely using
+## it the wrong way)
+test_dir <- function(...) {
+  res <- testthat::test_dir(...)
+  if (any(res$failed > 0)) {
+    stop(sprintf("Some tests failed (%d/%d)",
+                 sum(res$failed), sum(res$nb)))
+  } else {
+    message(sprintf("%d tests passed successfully", sum(res$nb)))
+  }
+  invisible(res)
+}
+
+if (!interactive()) {
+  test_dir(".")
+}

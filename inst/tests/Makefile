@@ -1,7 +1,5 @@
-RUN_TESTS="library(methods); library(testthat); test_dir('.')"
-
 test:
-	Rscript -e $(RUN_TESTS)
+	./run_tests
 
 # Basic command line
 VALGRIND=valgrind
@@ -14,11 +12,11 @@ VALGRIND_OPTS=--suppressions=valgrind.supp  --dsymutil=yes
 
 test_valgrind: valgrind.supp
 	R -d '${VALGRIND} ${VALGRIND_OPTS}' \
-		--slave --vanilla -e $(RUN_TESTS)
+		--slave --vanilla run_tests
 
 test_valgrind_leak: valgrind.supp
 	R -d '${VALGRIND} ${VALGRIND_LEAK} ${VALGRIND_OPTS}' \
-		--slave --vanilla -e $(RUN_TESTS)
+		--slave --vanilla run_tests
 
 # Generate the suppressions file 'valgrind.supp'
 #
