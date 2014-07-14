@@ -9,9 +9,10 @@ script:
   - make install
   - make test
 
-notification:
-  - room: ecologymq
-  - token: {{hipchat_token}}
-  - on_started: true
-  - on_success: true
-  - on_failure: true
+notify:
+  hipchat:
+    - room: ecologymq
+    - token: {{hipchat_token}}
+    - on_started: true
+    - on_success: true
+    - on_failure: true
