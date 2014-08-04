@@ -37,7 +37,6 @@ make_mutation <- function(n_mutants, vcv) {
       i <- sample(length(weights), n, replace=TRUE, prob=weights)
       m <- exp(log(traits[i,,drop=FALSE]) + rmvnorm(n, sigma=vcv))
     }
-    colnames(m) <- rownames(bounds)
     m
   }
 }

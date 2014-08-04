@@ -6,7 +6,7 @@
 \usage{
 landscape(trait, values, p, schedule = NULL)
 
-landscape_empty(trait, values, p, schedule)
+landscape_empty(trait, values, p, schedule = NULL)
 }
 \arguments{
 \item{trait}{Name of the single trait to change}

@@ -35,20 +35,24 @@ landscape <- function(trait, values, p, schedule=NULL) {
 ## TODO: Need to support variant strategy here and above.
 ##' @rdname landscape
 ##' @export
-landscape_empty <- function(trait, values, p, schedule) {
+landscape_empty <- function(trait, values, p, schedule=NULL) {
   p_empty <- p$copy()
   p_empty$clear()
   p_empty <- expand_parameters(trait, values, p_empty)
 
-  ## Build an appropriate schedule:
-  schedule_empty <- new(CohortSchedule, length(values))
-  schedule_empty$max_time  <- schedule$max_time
-  schedule_empty$all_times <-
-    rep(list(unique(sort(unlist(schedule$all_times)))), p_empty$size)
-  schedule_empty$ode_times <- schedule$ode_times
-  ## We'll only use these if use_ode_times was set to TRUE in the
-  ## original schedule...
-  schedule_empty$use_ode_times <- schedule$use_ode_times
+  if (is.null(schedule)) {
+    schedule_empty <- default_cohort_schedule(p_empty)
+  } else {
+    ## Build an appropriate schedule:
+    schedule_empty <- new(CohortSchedule, length(values))
+    schedule_empty$max_time  <- schedule$max_time
+    schedule_empty$all_times <-
+      rep(list(unique(sort(unlist(schedule$all_times)))), p_empty$size)
+    schedule_empty$ode_times <- schedule$ode_times
+    ## We'll only use these if use_ode_times was set to TRUE in the
+    ## original schedule...
+    schedule_empty$use_ode_times <- schedule$use_ode_times
+  }
 
   ebt_empty <- run_ebt(p_empty, schedule_empty)
   ebt_empty$fitnesses
