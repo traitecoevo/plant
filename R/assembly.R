@@ -45,16 +45,22 @@ carrying_capacity <- function(trait, values, p, seed_rain=1,
 ##'
 ##' @title Compute Region of Positive Fitnes
 ##' @param trait Name of the trait (e.g., \code{"lma"})
-##' @param value Initial value - must have positive fitness itself!
 ##' @param p Parameters object to use.  Importantly, the
 ##' \code{strategy_default} element gets used here.
+##' @param value Initial value - must have positive fitness itself!
+##' If not given, then the value from the default strategy within
+##' \code{p} is used.
 ##' @param log_scale Is the parameter naturally on a log scale?  If
 ##' so, this will greatly speed things up.
 ##' @param dx Amount to step the trait.  If \code{log_scale} is
 ##' \code{TRUE}, this is on a log scale.
 ##' @export
 ##' @author Rich FitzJohn
-viable_fitness <- function(trait, value, p, log_scale=TRUE, dx=1) {
+viable_fitness <- function(trait, p, value=NULL,
+                           log_scale=TRUE, dx=1) {
+  if (is.null(value)) {
+    value <- p$strategy_default$parameters[[trait]]
+  }
   if (log_scale) {
     f <- function(x) {
       max_growth_rate(trait, exp(x), p)
