@@ -139,7 +139,7 @@ Symbol: $E(z, a)$
 
 Units: Dimensionless (0 to 1)
 
-Determination: $E = \exp\left(-c_\textrm{ext} \int_0^\infty Q(z, h(m_l)) \;\omega (x, m_l)  \;n(x, m_l,a) \; \textrm{d}m_l \right) $
+Determination: $E = \exp\left(-c_\textrm{ext} \int_0^\infty Q(z, h(m_l)) \;\omega (x, m_l)  \;n(x, m_l,a) \; \textrm{d}m_l \right)$
 
 Equation: 11
 
@@ -252,7 +252,7 @@ Symbol: $d(x, m_\textrm{l}, E(\cdot, a))$
 Units: yr$^{-1}$
 
 
-Determination: $d = c_{\textrm{d}0}\exp\left(-c_{\textrm{d}1}\rho\right) + c_{\textrm{d}2} \exp\left(-c_{\textrm{d}3} \frac{P(x, m_l, E(\cdot, a))}{\omega(x, m_l)} \right) $
+Determination: $d = c_{\textrm{d}0}\exp\left(-c_{\textrm{d}1}\rho\right) + c_{\textrm{d}2} \exp\left(-c_{\textrm{d}3} \frac{P(x, m_l, E(\cdot, a))}{\omega(x, m_l)} \right)$
 
 Equation: 21
 
@@ -266,7 +266,7 @@ Units: kg$^{-1} m$^{-2}$
 
 Determination:
 
-$\frac{\partial}{\partial a} n(x, m_\textrm{l}, a) =  - d(x, m_l, E(\cdot, a))\;n(x, m_l,a) - \frac{\partial}{\partial m_l}  \left[ g(x, m_l, E(\cdot, a))\;n(x, m_l,a) \right] $
+$\frac{\partial}{\partial a} n(x, m_\textrm{l}, a) =  - d(x, m_l, E(\cdot, a))\;n(x, m_l,a) - \frac{\partial}{\partial m_l}  \left[ g(x, m_l, E(\cdot, a))\;n(x, m_l,a) \right]$
 
 $ n(x, m_\textrm{l}, 0) = 0$
 
@@ -284,7 +284,7 @@ Symbol: $p(a)$
 
 Units: yr$^{-1}$
 
-Determination: $p= \frac{1}{\hat a} \exp\left(- \frac{\pi}{4} \left(\frac{a}{\hat a }\right)^2 \right) $
+Determination: $p= \frac{1}{\hat a} \exp\left(- \frac{\pi}{4} \left(\frac{a}{\hat a }\right)^2 \right)$
 
 Equation: 23
 

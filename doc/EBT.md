@@ -103,16 +103,16 @@ and
 
 \begin{equation} \label{eq:survivalIndividual} S_{\rm I} (x^\prime, a_0, a) = \pi_1 (x^\prime,m_0, a_0) \, \exp\left(- \int_{a_0}^{a} d(x,m_i(x^\prime, a_0 ,a^\prime), a^\prime) \, {\rm d} a^\prime \right) \end{equation}
 
-are the size $m$ and survival $S_{\rm I} $ of dispersers that arrived in a patch of age $a_0$ at age $a$, while
+are the size $m$ and survival $S_{\rm I}$ of dispersers that arrived in a patch of age $a_0$ at age $a$, while
 
 \begin{equation} \label{eq:survivalPatch} S_{\rm P} (a_0,a) = \exp\left(-\int_{a_0}^{a} \gamma(a^\prime) \, {\rm d} a^\prime \right) \end{equation}
 gives the probability that the patch remains undisturbed from $a_0$ to $a$.
 
-The notational complexity required for a general, non-linear solution might obscure an otherwise simple point: Eqs. $\ref{eq:size}$ - $\ref{eq:survivalPatch}$ are simply integrals of the growth and mortality functions, $\frac{{\rm d}}{{\rm d}a} m =g\left(x^\prime,m,a\right)$ and $\frac{{\rm d}}{{\rm d}a} S_{\rm I} =d\left(x^\prime,m,a\right) \; {\rm \; }S_{\rm I} $, with initial conditions $m\left(x^\prime,0,0\right)=m_0 $ and $S_{\rm I} \left(x^\prime,0,0\right)= \pi_1 (x^\prime,m_0, a_0) $, the survival through germination.
+The notational complexity required for a general, non-linear solution might obscure an otherwise simple point: Eqs. $\ref{eq:size}$ - \ref{eq:survivalPatch} are simply integrals of the growth and mortality functions, $\frac{\rm d}{{\rm d}a} m =g\left(x^\prime,m,a\right)$ and $\frac{\rm d}{{\rm d}a} S_{\rm I} =d\left(x^\prime,m,a\right) \; {\rm \; }S_{\rm I}$, with initial conditions $m\left(x^\prime,0,0\right)=m_0$ and $S_{\rm I} \left(x^\prime,0,0\right)= \pi_1 (x^\prime,m_0, a_0)$, the survival through germination.
 
 ## Emergent properties of resident community
 
-Summary statistics of the metapopulation are obtained by integrating over the density distribution, weighting by patch abundance $p(a) $. Firstly, the total number of individuals in the metapopulation is given by
+Summary statistics of the metapopulation are obtained by integrating over the density distribution, weighting by patch abundance $p(a)$. Firstly, the total number of individuals in the metapopulation is given by
 \begin{equation}\hat{n}(x) = \int_{0}^{\infty} \int_{0}^{\infty}p(a) \; n(x,m,a) \, {\rm d}a \, {\rm d}m,\end{equation}
 and the average density of plants size $m$ by
 \begin{equation}\bar{n}(x,m) = \int_{0}^{\infty}p(a) \; n(x,m,a) \, {\rm d}a.\end{equation}
@@ -159,7 +159,7 @@ Below we consider two alternative implementations of the EBT. Both require that 
 
 ![Cohorts in the EBT](figs/EBT.png)
 
-Let $\Omega = \left[m_0,m_+ \right) $ represent the entire state-space attainable by any individual and let the interior of $\Omega $ be subdivided into $k$ sub-domains  $$\Omega_i(a) = \left[m_{i=1}(a),m_i(a) \right) $$ , with $i=1,\dots, k$ and $m_0 < m_1<	\ldots<m_k = m_+$. If we allow these sub-domains to be transported through time along the characteristics of Eq. $\ref{eq:PDE}$ , they will be closed to transport processes across their upper and lower boundaries.
+Let $\Omega = \left[m_0,m_+ \right)$ represent the entire state-space attainable by any individual and let the interior of $\Omega$ be subdivided into $k$ sub-domains  $$\Omega_i(a) = \left[m_{i=1}(a),m_i(a) \right) $$ , with $i=1,\dots, k$ and $m_0 < m_1<	\ldots<m_k = m_+$. If we allow these sub-domains to be transported through time along the characteristics of Eq. $\ref{eq:PDE}$ , they will be closed to transport processes across their upper and lower boundaries.
 
 ## First method for approximating $n(x,m,a)$, based on modelling of cohort boundaries
 
@@ -224,7 +224,7 @@ For some functions of $g$ and $d$, equation $\ref{eq:boundN4}$ might yield an an
 
 The lifetime seed production of boundary individuals  is calculated according to Eq. $\ref{eq:tildeR}$ as
 \begin{equation}\begin{array}{ll}\tilde{R}(x, a_0, \infty) = \int_{a_0}^{\infty}  &\pi_0 \, f(x, m_i( a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime,\\\end{array}\end{equation}
-where $S_{\rm I} $ is individual survival (defined above) and
+where $S_{\rm I}$ is individual survival (defined above) and
 $S_{\rm P}$ is calculated as in Eq. $\ref{eq:survivalPatch}$.
 
 *Numerical technique:* To solve equation \ref{eq:tildeR} we need solve the IVP:
@@ -246,7 +246,7 @@ The estimated density function  (Eq. \ref{eq:boundN4}) is used to calculate the 
 
 ## Second method for approximating $n(x,m,a)$: based on modelling dynamics within cohorts
 
-The original EBT, derived by de Roos (1997, 1988), proceeded by approximating the first and second moments of the density distribution $n \left( x,m,a \right) $ within sub-domains $\Omega_i$, represented by $\lambda_i$ and $\mu_i$, these being the total number and mean size of individuals within $\Omega_i$ respectively.
+The original EBT, derived by de Roos (1997, 1988), proceeded by approximating the first and second moments of the density distribution $n \left( x,m,a \right)$ within sub-domains $\Omega_i$, represented by $\lambda_i$ and $\mu_i$, these being the total number and mean size of individuals within $\Omega_i$ respectively.
 
 Under this assumption, the rates of change $\frac{\rm d} {{\rm d}a} \lambda_i$ and $\frac{\rm d} {{\rm d}a} \mu_i$ can be approximated given by two ODEs, which can be approximated by first-order closed-form solutions. These approximations form the centrepiece of the original EBT, and are derived as follows.
 
@@ -257,9 +257,9 @@ Under this assumption, the rates of change $\frac{\rm d} {{\rm d}a} \lambda_i$ a
 
 \begin{equation} \label{eq:dlambda} \frac{{\rm d} }{{\rm d}a} \lambda_i = -\int_{\Omega_i} d(x,m,E) \; n(x,m,a) \; {\rm d}m \end{equation}
 
-*Numerical technique:* The rate of change in $\lambda_i $ is approximated by
+*Numerical technique:* The rate of change in $\lambda_i$ is approximated by
 
-\begin{equation} \label{eq:dlambda_approx} \frac{{\rm d} }{{\rm d}a} \lambda_i =  d(x,\mu_i,E) \lambda_i \end{equation}, with $\lambda_i $ estimated by integrating this quantity with an ODE stepper. The approximation for \ref{eq:dlambda_approx} is only accurate to second order (for details on derivation see [appendix](#DeriveEBTapproximation)).
+\begin{equation} \label{eq:dlambda_approx} \frac{{\rm d} }{{\rm d}a} \lambda_i =  d(x,\mu_i,E) \lambda_i \end{equation}, with $\lambda_i$ estimated by integrating this quantity with an ODE stepper. The approximation for \ref{eq:dlambda_approx} is only accurate to second order (for details on derivation see [appendix](#DeriveEBTapproximation)).
 
 ### Second moment: Average size
 
@@ -275,7 +275,7 @@ with $\mu_i$ estimated by integrating this quantity with an ODE stepper. The app
 
 ### Density of individuals
 
-*Definition:* $n(x,m,a) $ for $m \in \Omega_i$
+*Definition:* $n(x,m,a)$ for $m \in \Omega_i$
 
 *Numerical technique:* The EBT technique solves the PDE by approximating the changing size distribution $n(x,m,a)$ with a series of point masses with position and amplitude given by $\lambda_i$ and $\mu_i$. If we let $\delta(z)$ be a function for a point mass of size 1 localised at $z=0$, then
 
@@ -290,7 +290,7 @@ although this requires that the position of the cohort boundaries are also known
 ### Seed production
 The lifetime seed production of individuals located at the cohort boundary is calculated according to Eq. $\ref{eq:tildeR}$ as
 \begin{equation}\label{eq:boundR}\begin{array}{ll}\tilde{R}(x, a_0, \infty) = \int_{a_0}^{\infty}  &\pi_0 \, f(x, m_i( a^\prime), a^\prime)\times\\ \, &S_{\rm I} (x, a_0, a^\prime) \, S_{\rm P} (a_0,a^\prime)  {\rm d} a^\prime,\\\end{array}\end{equation}
-where $S_{\rm I} $ is individual survival (defined above) and
+where $S_{\rm I}$ is individual survival (defined above) and
 $S_{\rm P}$ is calculated as in Eq. $\ref{eq:survivalPatch}$. Using the EBT approximation, the total number of sees produced within a cohort including individuals born in the interval $(a_1, a_2)$ and up to age $a$ is given by
 
 \begin{equation} \int_{a_1}^{a_2} \tilde{R}(x, a_0, a) \; {\rm d}a_0 = f(x, \mu(x, a^\prime), a^\prime) \lambda(x, a^\prime) S_{\rm P} (a_0,a^\prime) \; {\rm d}a^\prime.  \end{equation}
@@ -305,7 +305,7 @@ $$ y(a_1) = 0.$$
 
 ### Dynamics of the boundary cohort
 
-A slightly modified set of equations is needed to track the moments of the smallest cohort, whose lower bound is fixed at $m_0 $. Specifically, a new quantity$\Pi $, representing the total accumulated mass within this boundary cohort, is monitored in place of the second moment, which would otherwise be undefined whenever $\lambda _i=0$. Our approximations for the boundary cohort differ slightly to those of de Roos (1997, 1988) in that we Taylor expand around the centre of mass for the cohort instead of the lower boundary. Because relative growth rates often decline quickly with increasing size, use of lower boundary can overestimate the growth rate of the cohort.
+A slightly modified set of equations is needed to track the moments of the smallest cohort, whose lower bound is fixed at $m_0$. Specifically, a new quantity $\Pi$, representing the total accumulated mass within this boundary cohort, is monitored in place of the second moment, which would otherwise be undefined whenever $\lambda _i=0$. Our approximations for the boundary cohort differ slightly to those of de Roos (1997, 1988) in that we Taylor expand around the centre of mass for the cohort instead of the lower boundary. Because relative growth rates often decline quickly with increasing size, use of lower boundary can overestimate the growth rate of the cohort.
 
 #### Number of individuals
 
@@ -315,13 +315,13 @@ A slightly modified set of equations is needed to track the moments of the small
 \begin{equation} \frac{{\rm d} }{{\rm d}a} \lambda_1 = y_x \pi_0 \pi_1(x,m_0, a) - \int_{\Omega_1} d(x,m,a) \; n(x,m,a) \; {\rm d}m  \end{equation}
 (TODO: I $\pi_0$ in right place here? Should appear in seed production, not inflow).
 
-*Numerical technique:* $\frac{{\rm d} }{{\rm d}a} \lambda_1 = y_x - d(x,\mu_1,a) \lambda_1 $
+*Numerical technique:* $\frac{{\rm d} }{{\rm d}a} \lambda_1 = y_x - d(x,\mu_1,a) \lambda_1$
 
 #### New mass
 
-*Definition:* $\Pi_1 = \int_{\Omega_1} (m-m_0) \; n(x,m,a) \; {\rm d}m $
+*Definition:* $\Pi_1 = \int_{\Omega_1} (m-m_0) \; n(x,m,a) \; {\rm d}m$
 
-*Exact:* $\frac{{\rm d} }{{\rm d}a} \Pi_1 = \int_{\Omega_1} \left[ g(x,m,E) - ( m-\mu0) d(x,m,a) \right] n(x,m,a) \; {\rm d}m  $
+*Exact:* $\frac{{\rm d} }{{\rm d}a} \Pi_1 = \int_{\Omega_1} \left[ g(x,m,E) - ( m-\mu0) d(x,m,a) \right] n(x,m,a) \; {\rm d}m$
 
 *Numerical technique:* $\frac{{\rm d} }{{\rm d}a} \Pi_1 =
  g(x,\mu_1,a) \lambda_1 - \Pi_1  d(x,\mu_1,a)$
@@ -481,7 +481,7 @@ The term in the integral gives the lifetime seed production of a single individu
 
 ## Method for deriving cohort approximations in the EBT {#DeriveEBTapproximation}
 
-Given a function $\phi  \left( m \right) $, the integral $\int_{m_{i-1}}^{m_i}\phi  \left( m \right) n \left( x,m,a \right) \; {\rm d}m $ can be approximated by first Taylor expanding $\phi  \left( m \right) $ around $\mu_i$. Substituting into the integral, we obtain
+Given a function $\phi  \left( m \right)$, the integral $\int_{m_{i-1}}^{m_i}\phi  \left( m \right) n \left( x,m,a \right) \; {\rm d}m$ can be approximated by first Taylor expanding $\phi  \left( m \right)$ around $\mu_i$. Substituting into the integral, we obtain
 
 \begin{equation} \label{eq:taylor1}
 	\begin{array}{l}
