@@ -1,3 +1,5 @@
+## Functions *related* to assembly, but not actually doing it.
+
 ##' Compute max growth rate of a given set of values for a trait.
 ##' This is the log of per-capita seed production (i.e., fitness).
 ##'

@@ -500,11 +500,6 @@ RCPP_MODULE(tree) {
     .property("is_adaptive",     &integration::QAG::is_adaptive)
     ;
 
-  // Template helper functions
-  Rcpp::function("species",       &model::species);
-  Rcpp::function("patch",         &model::patch);
-  Rcpp::function("metacommunity", &model::metacommunity);
-
   // Testing functions
   Rcpp::function("test_functor",    &util::test::test_functor);
   Rcpp::function("test_find_root",  &util::test::test_find_root);

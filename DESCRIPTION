@@ -15,3 +15,4 @@ Suggests:
     testthat, numDeriv, deSolve, digest
 LinkingTo: Rcpp
 RcppModules: tree
+Imports: R6, assertthat, parallel, lhs

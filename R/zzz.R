@@ -37,10 +37,7 @@
 ##' @export compute_assimilation_fn
 ##' @export local_error_integration
 ##' @export make.reference
-##' @export metacommunity
-##' @export patch
 ##' @export set_sane_gsl_error_handling
-##' @export species
 ##' @export test_adaptive_interpolator
 ##' @export test_find_root
 ##' @export test_find_value

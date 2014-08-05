@@ -3,15 +3,17 @@
 \alias{viable_fitness}
 \title{Compute Region of Positive Fitnes}
 \usage{
-viable_fitness(trait, value, p, log_scale = TRUE, dx = 1)
+viable_fitness(trait, p, value = NULL, log_scale = TRUE, dx = 1)
 }
 \arguments{
 \item{trait}{Name of the trait (e.g., \code{"lma"})}
 
-\item{value}{Initial value - must have positive fitness itself!}
-
 \item{p}{Parameters object to use.  Importantly, the
 \code{strategy_default} element gets used here.}
+
+\item{value}{Initial value - must have positive fitness itself!
+If not given, then the value from the default strategy within
+\code{p} is used.}
 
 \item{log_scale}{Is the parameter naturally on a log scale?  If
 so, this will greatly speed things up.}

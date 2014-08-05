@@ -102,3 +102,16 @@ cobweb <- function(m, ...) {
 seq_log <- function(from, to, length.out) {
   exp(seq(log(from), log(to), length.out=length.out))
 }
+
+collect <- function(k, x, empty=list(), each=identity, after=identity,
+                    loop=sapply) {
+  if (length(x) == 0) {
+    empty
+  } else {
+    after(loop(x, function(el) each(el[[k]])))
+  }
+}
+
+rbind_list <- function(x) {
+  do.call(rbind, as.list(x))
+}

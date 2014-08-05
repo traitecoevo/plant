@@ -1,4 +1,6 @@
-## Towards evolutionary assembly.
+## Towards evolutionary assembly.  This is going to get a series of
+## rewrites as I try and move the best bits of the assembly into a
+## reusable form.  For now at least, we
 library(tree)
 library(assertthat)
 library(mvtnorm)
@@ -7,9 +9,7 @@ source("assembly-fun.R")
 
 p0 <- new(Parameters)
 p0$set_parameters(list(patch_area=1.0))
-p0$set_control_parameters(fast.control())
-t.max <- p0$disturbance$cdf(tree:::reference.pr.survival.eps)
-times0 <- cohort.introduction.times(t.max)
+p0$set_control_parameters(fast_control())
 
 seed_rain0    <- 1e-3 # rain for new arrivals
 seed_rain.eps <- 1e-4 # below which, consider species extinct

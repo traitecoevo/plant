@@ -11,6 +11,9 @@
 ## For now, we have gaussian mutation of existing phenotypes (given a
 ## mutantal VCV), plus "uniform" sampling from the current trait space
 ## (using latin hypercube sampling).
+
+## The best place to put this code might be Revolve, actually.
+
 make_new_phenotypes <- function(n_mutants, vcv, n_immigrants, bounds) {
   mutation    <- make_mutation(n_mutants, vcv)
   immigration <- make_immigration(n_immigrants, bounds)

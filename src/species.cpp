@@ -144,23 +144,4 @@ void Species<CohortTop>::r_force_state(Rcpp::NumericMatrix x) {
   r_set_state(x);
 }
 
-SEXP species(Rcpp::CppClass individual, Strategy s) {
-  std::string individual_type =
-    util::rcpp_class_demangle(Rcpp::as<std::string>(individual));
-  SEXP ret = R_NilValue;
-  if (individual_type == "Plant") {
-    Species<Plant> obj(s);
-    ret = Rcpp::wrap(obj);
-  } else if (individual_type == "CohortDiscrete") {
-    Species<CohortDiscrete> obj(s);
-    ret = Rcpp::wrap(obj);
-  } else if (individual_type == "CohortTop") {
-    Species<CohortTop> obj(s);
-    ret = Rcpp::wrap(obj);
-  } else {
-    Rcpp::stop("Cannot make Species of " + individual_type);
-  }
-  return ret;
-}
-
 }
