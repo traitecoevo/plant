@@ -1,63 +1,24 @@
-## Towards evolutionary assembly.  This is going to get a series of
-## rewrites as I try and move the best bits of the assembly into a
-## reusable form.  For now at least, we
 library(tree)
-library(assertthat)
-library(mvtnorm)
-
-source("assembly-fun.R")
 
 p0 <- new(Parameters)
 p0$set_parameters(list(patch_area=1.0))
 p0$set_control_parameters(fast_control())
+p0$set_control_parameters(list(schedule_verbose=TRUE))
 
-seed_rain0    <- 1e-3 # rain for new arrivals
-seed_rain.eps <- 1e-4 # below which, consider species extinct
-
-bounds <- rbind(lma=10^c(-2.5, 1.5),
-                hmat=c(0.1,100))
+bounds_lma  <- c(0.02403344, 5.09598667)
+bounds <- rbind(lma=bounds_lma)
 colnames(bounds) <- c("lower", "upper")
 
-## VCV that explores fraction p of the bounds.
-p <- 0.001
-vcv <- diag(2) * p * as.numeric(diff(t(log(bounds))))
+sys0 <- community(p0, seed_rain_initial=1e-3)
+obj <- assembler_stochastic(sys0, bounds)
+set.seed(1)
+obj$step()
+obj$step()
+## obj$step()
 
-mean.n.mutants    <- 2
-mean.n.immigrants <- 1
+sys <- obj$get_community()
+sys$to_parameters()
+sys$to_schedule()
+f <- sys$make_landscape()
 
-new.phenotypes <- make_new_phenotypes(mean.n.mutants, vcv,
-                                      mean.n.immigrants, bounds)
-births <- make_births(new.phenotypes, seed_rain0, times0)
-deaths <- make_deaths(seed_rain.eps)
-run <- make_run(p0, t.max)
-
-sys <- list(traits=cbind(lma=0.1978791, hmat=16.5958691),
-            seed_rain=505.55407,
-            times=list(times0))
-
-## Here goes.  This will run indefinitely, so kill it once the
-## community has stabilised.
-res <- list(list(sys))
-repeat {
-  message(sprintf("*** Step %d:", length(res)))
-  print(cbind(sys$traits, rain=sys$seed_rain))
-  sys <- run(sys)
-  sys <- deaths(sys)
-  sys <- births(sys)
-  res <- c(res, list(sys))
-}
-
-saveRDS(res, "assembly.rds")
-
-## Analyse the assembly data:
-res <- readRDS("assembly.rds")
-sapply(last(res)$times, length)
-lapply(res, "[[", "traits")
-ctraits <- lapply(res, "[[", "traits")
-
-lma <- lapply(ctraits, function(x) x[,"lma"])
-hmat <- lapply(ctraits, function(x) x[,"hmat"])
-
-plot(rep(seq_along(lma), sapply(lma, length)), unlist(lma))
-plot(rep(seq_along(lma), sapply(lma, length)), unlist(lma), log="y")
-plot(rep(seq_along(hmat), sapply(hmat, length)), unlist(hmat), log="y")
+m <- sys$traits(TRUE)
