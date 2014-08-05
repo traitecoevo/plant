@@ -234,5 +234,36 @@ where the elements of the Jacobian are given by
 
 In practice, the selection gradient (eq \ref{eq:SelecGrad}) and its Jacobian (eqs \ref{eq:SelecGrad-Jacobian2} \& \ref{eq:SelecGrad-Jacobian2}) are calculated numerically, for example using the finite difference method.
 
+# Appendices
+
+## Derivative of seed production at demographic equilibrium
+
+When calculating the selection gradient we are faced with the question of whether to use the derivative of relative seed production, $R$, of the fitness $f$ ($=\log R$). The purpose of this note is to show that at demographic equilibrium ($i.e. R(x)=1$) these two quantities are not only sign-equivalent but identical:
+
+\begin{equation} \begin{split}\label{eq:dRdx}
+	\frac{ \textrm{d}}{ \textrm{d} x} f(x) & = \frac{ \textrm{d}}{ \textrm{d} x} \log(R(x))\\
+	&=  \frac{ 1}{R(x)} \frac{ \textrm{d}}{ \textrm{d} x} R(x) \\
+	& =\frac{ \textrm{d}}{ \textrm{d} x} R(x).\\
+\end{split}
+\end{equation}
+
+## Calculating a derivative for log-scaled x values
+
+Ordinarily a derivative is calculated numerically (via finite differencing) as
+
+\begin{equation} \label{eq:dfdx}
+	\frac{ \textrm{d} f}{ \textrm{d} x}  = \frac{f(x+0.5 \Delta x) - f(x-0.5 \Delta x)}{\Delta x}.
+\end{equation}
+
+However, if x is log-normally distributed, use of eq. \ref{eq:dfdx} can be problematic because different values of $\Delta x$ are required across the range of x. In that case, we may want to instead calculate the derivative of $f$ with respect to log-scaled values of $x$. Let $z = \log(x)$ and $g = f(\exp(z))$. Then
+
+\begin{equation} \begin{split} \label{eq:dfdx_log}
+	\frac{ \textrm{d}g}{ \textrm{d} z} & = \frac{g(z + 0.5 \Delta z) - f(z -0.5 \Delta z)}{\Delta z} \\
+	& = \frac{f(x \exp(0.5 \Delta z))  - f( x \exp(-0.5 \Delta z))}{\Delta z}\\
+\end{split}
+\end{equation}
+
+
+
 
 # References

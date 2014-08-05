@@ -140,3 +140,130 @@ positive <- function(f, x, dx, lower=-Inf, upper=Inf, eps=1e-3) {
                    tol=eps)$root
   c(lower, upper)
 }
+
+#' Solve for equilbrium community with given values of specified trait
+#'
+#' Find seed rain and cohort schedule for equilbrium community with
+#' given traits. This is point at which each resident seed returns
+#' on average a single seed.
+#' @param trait name of trait
+#' @param values vector of trait values for community
+#' @param p Parameters object to use.  Importantly, the
+#' \code{strategy_default} element gets used here.
+#' @param seed_rain=NULL vector of initial seed rains for community
+#' @param verbose=TRUE prints details to screen
+#' @author Daniel Falster
+#' @export
+get_equilibrium_community <- function(trait, values, p, seed_rain = NULL, verbose = TRUE) {
+    p <- p$copy()
+    p$clear()
+    if (verbose)
+        p$set_control_parameters(equilibrium_verbose())
+    p <- expand_parameters(trait, values, p, FALSE)
+    if (!is.null(seed_rain)) {
+        if (length(values) != length(seed_rain))
+            stop("incorrect vector lengths")
+        p$seed_rain <- seed_rain
+    }
+    res <- equilibrium_seed_rain(p)
+    p$seed_rain <- mean(res$seed_rain)
+    list(p = p, schedule = res$schedule)
+}
+
+#' Find evolutionary attractor for single species and trait.
+#'
+#' Find evolutionary attractor for single species and trait.
+#' This is point at which selection gradient equals zero.
+#' Currently solved using \code{uniroot}
+#' @param trait name of trait
+#' @param interval  a vector containing the end-points of the
+#' interval to be searched for the root.
+#' @param p Parameters object to use.  Importantly, the
+#' \code{strategy_default} element gets used here.
+#' @param tol=1e-4 the desired accuracy (convergence tolerance).
+#' @param ... set verbpse=TRUE for verbose output, seed_rain=value
+#' gives starting values when solving for demographic equilibrium
+#' @author Daniel Falster
+#' @export
+#' @return Same as \code{uniroot} function: A list with at least
+#' four components:
+#' ‘root’ and ‘f.root’ give the location of the root and the
+#' value of the function evaluated at that point. ‘iter’ and
+#' ‘estim.prec’ give the number of iterations
+find_singularity_1D <- function(trait, interval, p, tol = 1e-04, ...) {
+
+    f <- function(x) selection_gradient(trait, x, p, ...)
+    root <- uniroot(f, interval, tol = tol)
+}
+
+#' Returns selection gradient in single species communities
+#' at a range of trait values.
+#'
+#' Returns selection gradient in single species communities
+#' at a range of trait values. This is derivative of fitness
+#' with respect to trait value. The algorithm first solves
+#' for the demographic attractor, using \code{seed_rain} as
+#' a starting value.
+#' @param trait name of trait.
+#' @param values vector of trait values.
+#' @param p Parameters object to use.  Importantly, the
+#' \code{strategy_default} element gets used here.
+#' @param dx=1e-4 Interval over which derivative is calculated
+#' @param log_scale=TRUE Determines whether derivative is taken
+#' with respect to raw or log-transformed x values. The latter
+#' is useful when x is log-normally distributed.
+#' @param seed_rain=NULL (optional) Starting values for seed rain
+#' when solving for demographic euqilibrium
+#' @param verbose=TRUE (optional) Print values to screen
+#' @author Daniel Falster
+#' @export
+#' @seealso selection_gradient1
+#' @return a vector of values with same length as \code{values}.
+selection_gradient <- function(trait, values, p, dx = 1e-04, log_scale = TRUE, seed_rain = NULL,
+    verbose = TRUE) {
+    N <- length(values)
+    ret <- rep(NA, N)
+    for (i in seq_len(N)) ret[i] <- selection_gradient1(trait, values[i], p, dx,
+        log_scale, seed_rain, verbose)
+    ret
+}
+
+#' Returns selection gradient in a single-species community
+#' with given trait value
+#'
+#' Returns selection gradient in a single-species community
+#' with given trait value. This is derivative of fitness
+#' with respect to trait value. The algorithm first solves
+#' for the demographic attractor, using \code{seed_rain} as
+#' a starting value.
+#' @param trait name of trait
+#' @param value value of trait where derivative is calculated
+#' @param p Parameters object to use.  Importantly, the
+#' \code{strategy_default} element gets used here.
+#' @param dx=1e-4 Interval over which derivative is calculated
+#' @param log_scale=TRUE Determines whether derivative is taken
+#' with respect to raw or log-transformed x values. The latter
+#' is useful when x is log-normally distributed.
+#' @param seed_rain=NULL (optional) Starting values for seed rain
+#' when solving for demographic euqilibrium
+#' @param verbose=TRUE (optional) Print values to screen
+#' @author Daniel Falster
+#' @export
+#' @seealso selection_gradient
+#' @return a single value. The equilibirum seed rain is included as
+#' an attribute.
+selection_gradient1 <- function(trait, value, p, dx = 1e-04, log_scale = TRUE, seed_rain = NULL,
+    verbose = TRUE) {
+
+    if (verbose)
+        message(sprintf("Calculating selection gradient for %s = %f", trait, value))
+    res <- get_equilibrium_community(trait, value, p, seed_rain = seed_rain, verbose = verbose)
+
+    f <- function(x) landscape(trait, x, res$p, res$schedule)
+    ret <- gradient_fd(f, value, dx, log_scale)
+    attr(ret, "seed_rain") <- res$p$seed_rain
+
+    if (verbose)
+        message(sprintf("selection gradient = %f", ret))
+    ret
+}

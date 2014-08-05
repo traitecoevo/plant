@@ -115,3 +115,29 @@ collect <- function(k, x, empty=list(), each=identity, after=identity,
 rbind_list <- function(x) {
   do.call(rbind, as.list(x))
 }
+
+#' Calculate the gradient of a function by numerical approximation
+#'
+#' The function ‘gradient_fd’ calculates a numerical approximation
+#' of the first derivative of ‘func’ at the point ‘x’ using finite
+#' differencing. It is assumed ‘func’ is a scalar value function.
+#' @param func a function with a scalar real result
+#' @param  x a real scalar or vector argument to func, indicating
+#' the point(s) at which the gradient is to be calculated.
+#' @param  dx Interval over which derivative is calculated
+#' @param  log_scale=TRUE Determines whether derivative is taken
+#' with respect to raw or log-transformed x values. The latter is
+#' equiavlent to taking the derivative of a function
+#' \code{g(f(exp(x)))} with respect to log x and is useful when
+#' x is log-normally distributed.
+#' @author Daniel Falster
+#' @export
+gradient_fd <- function(func, x, dx, log_scale=FALSE) {
+  if (!log_scale) {
+    xx <- x + c(-1, 1) * dx/2
+  } else {
+    xx <- x * exp(c(-1, 1) * dx/2)
+  }
+  yy <- func(xx)
+  (yy[[2]] - yy[[1]]) / dx
+}
