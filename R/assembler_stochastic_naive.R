@@ -9,7 +9,7 @@ make_births_stochastic_naive <- function(n_mutants, vcv, n_immigrants, bounds) {
         break
       }
     }
-    sys$add_traits(new_traits)
+    new_traits
   }
 }
 

@@ -144,8 +144,10 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
   run <- function() {
     if (size() > 0) {
       p <- to_parameters()
-      ## TODO: Check for non-NA seed rain here, or you get very
+      ## Check for non-NA seed rain here, or you get very
       ## cryptic error.
+      if(any(is.na(p$seed_rain)))
+        stop("NA in seed rain")
       res <- build_schedule(p, to_schedule(p))
       seed_rain_out <- unname(attr(res, "seed_rain", exact=TRUE)[,"out"])
       set_seed_rain(seed_rain_out)
@@ -216,12 +218,16 @@ community <- function(...) {
   births <- function(must_grow=FALSE) {
     births_sys(community, must_grow)
   }
-  step <- function() {
-    deaths()
-    births()
+  add <- function(new_traits){
     ## This is where a pre-flight check of mutant fitness would go,
     ## easy if we have the fitness landscapes coming out of the
     ## previous step.
+      community$add_traits(new_traits)
+  }
+  step <- function() {
+    deaths()
+    new_traits <- births()
+    add(new_traits)
     community$run()
     append()
   }
@@ -237,6 +243,7 @@ community <- function(...) {
                 initialize=initialize,
                 deaths=deaths,
                 births=births,
+                add=add,
                 step=step,
                 nsteps=nsteps,
                 get_community=function() community,
