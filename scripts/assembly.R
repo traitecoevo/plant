@@ -12,8 +12,8 @@ colnames(bounds) <- c("lower", "upper")
 sys0 <- community(p0, seed_rain_initial=1e-3)
 obj <- assembler_stochastic_naive(sys0, bounds)
 set.seed(1)
-for(i in 1:7)
-	obj$step()
+
+obj$nsteps(7)
 
 sys <- obj$get_community()
 sys$to_parameters()

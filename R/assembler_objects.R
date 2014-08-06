@@ -228,12 +228,17 @@ community <- function(...) {
   append <- function() {
     history <<- c(history, list(community$get_sys()))
   }
+  nsteps <- function(n){
+    for(i in seq_len(n))
+      step()
+  }
   R6::R6Class("assembler",
               public=list(
                 initialize=initialize,
                 deaths=deaths,
                 births=births,
                 step=step,
+                nsteps=nsteps,
                 get_community=function() community,
                 get_history=function() history
                 ),
