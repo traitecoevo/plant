@@ -1,7 +1,7 @@
 ## Support functions:
-make_births <- function(n_mutants, vcv, n_immigrants, bounds) {
-  mutation    <- make_mutation(n_mutants, vcv)
-  immigration <- make_immigration(n_immigrants, bounds)
+make_births_stochastic_naive <- function(n_mutants, vcv, n_immigrants, bounds) {
+  mutation    <- make_mutation_stochastic_naive(n_mutants, vcv)
+  immigration <- make_immigration_stochastic_naive(n_immigrants, bounds)
   function(sys, must_grow=FALSE) {
     repeat {
       new_traits <- rbind(mutation(sys), immigration())
@@ -19,8 +19,7 @@ make_births <- function(n_mutants, vcv, n_immigrants, bounds) {
 
 ## Mutation: Draw (on average) n_mutants from the population with a
 ## mutational variance of vcv on the log scale.
-##' @export
-make_mutation <- function(n_mutants, vcv) {
+make_mutation_stochastic_naive <- function(n_mutants, vcv) {
   n_traits <- ncol(vcv)
   blank <- matrix(nrow=0, ncol=n_traits)
   function(sys) {
@@ -31,16 +30,15 @@ make_mutation <- function(n_mutants, vcv) {
     if (n == 0) {
       return(blank)
     }
-    traits <- sys$traits()
+    traits <- sys$traits(TRUE)
     weights <- sys$seed_rain()
     i <- sample(length(weights), n, replace=TRUE, prob=weights)
-    unname(exp(log(traits[i,,drop=FALSE]) + rmvnorm(n, sigma=vcv)))
+    unname(exp(log(traits[i,,drop=FALSE]) + mvtnorm::rmvnorm(n, sigma=vcv)))
   }
 }
 
 ## Immigration: Same from the bounds, in log space.
-##' @export
-make_immigration <- function(n_immigrants, bounds) {
+make_immigration_stochastic_naive <- function(n_immigrants, bounds) {
   lower <- log(bounds[,1])
   range <- log(bounds[,2]) - lower
   n_traits <- nrow(bounds)
@@ -57,9 +55,8 @@ make_immigration <- function(n_immigrants, bounds) {
   }
 }
 
-## Deaths:
-##' @export
-make_deaths <- function(eps) {
+## Deaths
+make_deaths_stochastic_naive <- function(eps) {
   function(sys) {
     sys$drop(sys$seed_rain() < eps)
   }
