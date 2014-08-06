@@ -208,6 +208,7 @@ community <- function(...) {
     community <<- community0
     births_sys <<- births_sys
     deaths_sys <<- deaths_sys
+    history <<- list(community$get_sys())
   }
   deaths <- function() {
     deaths_sys(community)
@@ -222,6 +223,10 @@ community <- function(...) {
     ## easy if we have the fitness landscapes coming out of the
     ## previous step.
     community$run()
+    append()
+  }
+  append <- function() {
+    history <<- c(history, list(community$get_sys()))
   }
   R6::R6Class("assembler",
               public=list(
@@ -229,12 +234,15 @@ community <- function(...) {
                 deaths=deaths,
                 births=births,
                 step=step,
-                get_community=function() community
+                get_community=function() community,
+                get_history=function() history
                 ),
               private=list(
                 community=NULL,
                 births_sys=NULL,
-                deaths_sys=NULL
+                deaths_sys=NULL,
+                history=NULL,
+                append=append
                 ))
 })
 ##' @export

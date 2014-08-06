@@ -12,7 +12,7 @@ colnames(bounds) <- c("lower", "upper")
 sys0 <- community(p0, seed_rain_initial=1e-3)
 obj <- assembler_stochastic_naive(sys0, bounds)
 set.seed(1)
-for(i in 1:5)
+for(i in 1:7)
 	obj$step()
 
 sys <- obj$get_community()
@@ -21,3 +21,11 @@ sys$to_schedule()
 f <- sys$make_landscape()
 
 m <- sys$traits(TRUE)
+
+h <- obj$get_history()
+
+extract_traits <- function(x){
+	tree:::collect("traits", x, empty=NULL, loop=lapply, each=unlist, after=tree:::rbind_list)
+	}
+
+lapply(h,extract_traits)
