@@ -37,7 +37,8 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
 ## existing class bit-by-bit.  Getting around this with local
 ## functions.
 .R6_community <- local({
-  initialize <- function(p0, trait_names, ..., seed_rain_initial=1e-3, sys0=NULL) {
+  initialize <- function(p0, trait_names, ...,
+                         seed_rain_initial=1e-3, sys0=NULL) {
     parameters <<- p0$copy()
     seed_rain_initial <<- seed_rain_initial
     if (!is.null(sys)) {
@@ -206,11 +207,14 @@ community <- function(...) {
 ##
 ##
 .R6_assembler <- local({
-  initialize <- function(community0, births_sys, deaths_sys) {
+  initialize <- function(community0, births_sys, deaths_sys,
+                         filename=NULL) {
     community <<- community0
     births_sys <<- births_sys
     deaths_sys <<- deaths_sys
-    history <<- list(community$get_sys())
+    history <<- list()
+    filename <<- filename
+    append()
   }
   deaths <- function() {
     deaths_sys(community)
@@ -226,10 +230,13 @@ community <- function(...) {
       R_new <- seed_production(to_add)
       to_add  <- to_add[R_new > 1,,drop=FALSE]
     }
-    if(nrow(to_add) > 0)
+    if (nrow(to_add) > 0) {
       community$add_traits(to_add)
+    }
   }
   step <- function() {
+    message(sprintf("*** Assembler: step %d, (%d strategies)",
+                    length(history), community$size()))
     deaths()
     new_traits <- births()
     add(new_traits)
@@ -237,11 +244,20 @@ community <- function(...) {
     append()
   }
   append <- function() {
+    ## base::append(history, community$get_sys())
     history <<- c(history, list(community$get_sys()))
+    if (!is.null(filename)) {
+      ok <- try(saveRDS(history, filename))
+      if (inherits(ok, "try-error")) {
+        warning("History saving has failed",
+                immediate.=TRUE, call.=FALSE)
+      }
+    }
   }
   run_nsteps <- function(n){
-    for(i in seq_len(n))
+    for(i in seq_len(n)) {
       step()
+    }
   }
   R6::R6Class("assembler",
               public=list(
@@ -259,6 +275,7 @@ community <- function(...) {
                 births_sys=NULL,
                 deaths_sys=NULL,
                 history=NULL,
+                filename=NULL,
                 append=append
                 ))
 })

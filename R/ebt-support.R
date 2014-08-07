@@ -148,3 +148,18 @@ run_ebt <- function(p, sched) {
   ebt$update_ode_times()
   ebt
 }
+
+##' Hopefully sensible set of parameters for use with the EBT.  Turns
+##' accuracy down a bunch, makes it noisy.
+##' @title Sensible, fast (ish) EBT parameters
+##' @author Rich FitzJohn
+##' @export
+ebt_base_parameters <- function() {
+  p <- new(Parameters)
+  p$set_parameters(list(patch_area=1.0))
+  p$set_control_parameters(fast_control())
+  p$set_control_parameters(equilibrium_verbose())
+  ## This makes a big difference and speeds things up a bunch:
+  p$set_control_parameters(list(schedule_eps=0.005))
+  p
+}
