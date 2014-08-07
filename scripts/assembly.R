@@ -7,23 +7,31 @@ p0$set_control_parameters(list(schedule_verbose=TRUE))
 
 sys0 <- community(p0, "lma", seed_rain_initial=1e-3)
 
-x <- max_fitness(sys0$trait_names, sys0$to_parameters(), bounds=c(0.01, 10))
+# Find point of maximum fitness
+x <- tree:::max_fitness(sys0$trait_names, sys0$to_parameters(), bounds=c(0.01, 10))
 
-#learn boundaries
+# Learn boundaries
 bounds <- tree:::viable_fitness(sys0$trait_names, sys0$to_parameters(), bounds=c(0.01, 10))
+
+# Make assembler
 obj <- assembler_stochastic_naive(sys0, bounds)
+
+# Run assembler
 set.seed(1)
 obj$run_nsteps(7)
 
+# Find 1D ESS
+root <- find_singularity_1D(sys0$trait_names, interval = c(0.075, 0.085), p = sys0$to_parameters(), tol = 1e-04)
+
+# Extract useful stuff
 sys <- obj$get_community()
 sys$to_parameters()
 sys$to_schedule()
 f <- sys$make_landscape()
-
 m <- sys$traits(TRUE)
-
 h <- obj$get_history()
 
+# Extract stuff from history
 extract_traits <- function(x){
 	tree:::collect("traits", x, empty=NULL, loop=lapply, each=unlist, after=tree:::rbind_list)
 	}
