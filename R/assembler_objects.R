@@ -56,7 +56,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     sys <<- sys0
     trait_names <<- trait_names
     if(length(trait_names) > 1)
-       stop("Donesn''t yet support multiple traits")
+       stop("Doesn't yet support multiple traits")
   }
   size <- function() {
     length(sys)

@@ -10,7 +10,7 @@ p$set_control_parameters(equilibrium_verbose())
 
 ## Find the viable range for lma for the default parameters:
 trait <- "lma"
-r <- tree:::viable_fitness(trait, p)
+r <- tree:::viable_fitness(trait, p, bounds=c(1E-5, 1E3), log_scale=TRUE)
 
 ## Construct a fitness landscape across this region showing it is the
 ## right set of bounds:

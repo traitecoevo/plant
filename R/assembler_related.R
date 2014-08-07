@@ -47,6 +47,7 @@ carrying_capacity <- function(trait, values, p, seed_rain=1,
 ##'
 ##' @title Compute Region of Positive Fitnes
 ##' @param trait Name of the trait (e.g., \code{"lma"})
+##' @param bounds 2D vector specifing range within which to search
 ##' @param p Parameters object to use.  Importantly, the
 ##' \code{strategy_default} element gets used here.
 ##' @param value Initial value - must have positive fitness itself!
@@ -58,21 +59,31 @@ carrying_capacity <- function(trait, values, p, seed_rain=1,
 ##' \code{TRUE}, this is on a log scale.
 ##' @export
 ##' @author Rich FitzJohn
-viable_fitness <- function(trait, p, value=NULL,
+viable_fitness <- function(trait, p, bounds=NULL, value=NULL,
                            log_scale=TRUE, dx=1) {
+  if(length(trait) > 1)
+    stop("Doesn't yet support multiple traits")
   if (is.null(value)) {
     value <- p$strategy_default$parameters[[trait]]
   }
+  if (is.null(bounds)) {
+    if (log_scale)
+      bounds <- c(1E-5, 1E3)
+    else
+      bounds <- c(-Inf, Inf)
+  }
+  if(value > bounds[2] || value < bounds[1])
+    stop("Value does not lie within bounds")
   if (log_scale) {
     f <- function(x) {
       max_growth_rate(trait, exp(x), p)
     }
-    exp(positive(f, log(value), dx))
+    exp(positive(f, log(value), dx, lower=log(bounds[1]), upper=log(bounds[2])))
   } else {
     f <- function(x) {
       max_growth_rate(trait, x, p)
     }
-    positive(f, value, dx)
+    positive(f, value, dx, lower=bounds[1], upper=bounds[2])
   }
 }
 
@@ -101,30 +112,32 @@ positive_bracket <- function(f, x, dx, lower=-Inf, upper=Inf) {
   dL <- dU <- dx
 
   bracket <- function(x, dx, bound) {
+    cleanup <- function(x, x_next, fx, fx_next) {
+      if (dx < 0) {
+        x <- c(x_next, x)
+        fx <- c(fx_next, fx)
+      } else {
+        x <- c(x, x_next)
+        fx <- c(fx, fx_next)
+      }
+      list(x=x, fx=fx)
+    }
+    hit_bounds <- FALSE
     repeat {
       x_next <- x + dx
-      if (dx < 0 && x_next < bound) {
-        stop("Too low")
-      } else if (dx > 0 && x_next > bound) {
-        stop("Too high")
+      if ((dx < 0 && x_next < bound) || (dx > 0 && x_next > bound)) {
+        x_next <- bound
+        hit_bounds <- TRUE
       }
       fx_next <- f(x_next)
-      if (fx_next < 0) {
-        if (dx < 0) {
-          x <- c(x_next, x)
-          fx <- c(fx_next, fx)
-        } else {
-          x <- c(x, x_next)
-          fx <- c(fx, fx_next)
-        }
-        break
+      if (fx_next < 0 || hit_bounds) {
+        return(cleanup(x, x_next, fx, fx_next))
       } else {
         x <- x_next
         fx <- fx_next
         dx <- dx * factor
       }
     }
-    list(x=x, fx=fx)
   }
 
   list(lower=bracket(x, -dx, lower), upper=bracket(x, dx, upper))
@@ -132,12 +145,26 @@ positive_bracket <- function(f, x, dx, lower=-Inf, upper=Inf) {
 
 positive <- function(f, x, dx, lower=-Inf, upper=Inf, eps=1e-3) {
   b <- positive_bracket(f, x, dx, lower, upper)
-  lower <- uniroot(f, b$lower$x,
+
+  # Find lower root. If no root exists within that range, take
+  # lower bound
+  if(prod(b$lower$fx[1:2]) < 0){
+        lower <- uniroot(f, b$lower$x,
                    f.lower=b$lower$fx[[1]], f.upper=b$lower$fx[[2]],
                    tol=eps)$root
-  upper <- uniroot(f, b$upper$x,
+  } else {
+    lower <- b$lower$x[[1]]
+  }
+  # Find upper root. If no root exists within that range, take
+  # upper bound
+  if(prod(b$upper$fx[1:2]) < 0){
+    upper <- uniroot(f, b$upper$x,
                    f.lower=b$upper$fx[[1]], f.upper=b$upper$fx[[2]],
                    tol=eps)$root
+  } else {
+    upper <- b$upper$x[[2]]
+  }
+
   c(lower, upper)
 }
 
