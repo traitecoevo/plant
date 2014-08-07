@@ -37,7 +37,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
 ## existing class bit-by-bit.  Getting around this with local
 ## functions.
 .R6_community <- local({
-  initialize <- function(p0, ..., seed_rain_initial=1e-3, sys0=NULL) {
+  initialize <- function(p0, trait_names, ..., seed_rain_initial=1e-3, sys0=NULL) {
     parameters <<- p0$copy()
     seed_rain_initial <<- seed_rain_initial
     if (!is.null(sys)) {
@@ -53,6 +53,9 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       stop("All elements must be species")
     }
     sys <<- sys0
+    trait_names <<- trait_names
+    if(length(trait_names) > 1)
+       stop("Donesn''t yet support multiple traits")
   }
   size <- function() {
     length(sys)
@@ -130,7 +133,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       existing <- traits(TRUE)
       assertthat::assert_that(ncol(x) == ncol(existing))
       assertthat::assert_that(identical(colnames(x),
-                                        colnames(existing)))
+                                        trait_names))
     }
     n <- nrow(x)
     if (n > 0) {
@@ -161,16 +164,12 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
   }
   make_landscape <- function() {
     if (is.null(last_p) || is.null(last_schedule)) {
-      stop("Didn't find p/schedule from previous run")
+      return(NULL)
     }
     p <- last_p$copy()
     schedule <- last_schedule$copy()
-    trait <- colnames(traits(TRUE))
-    if (length(trait) != 1) {
-      stop("Landscape only works with one trait")
-    }
     function(x) {
-      landscape(trait, x, p, schedule)
+      landscape(trait_names, x, p, schedule)
     }
   }
   R6::R6Class("community",
@@ -179,8 +178,9 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 get_sys=function() sys,
                 size=size,
                 drop=drop,
-                add_traits=add_traits,
+                trait_names=NULL,
                 traits=traits,
+                add_traits=add_traits,
                 seed_rain=seed_rain,
                 ## Functions generating useful things
                 to_parameters=to_parameters,
@@ -219,10 +219,15 @@ community <- function(...) {
     births_sys(community, must_grow)
   }
   add <- function(new_traits){
-    ## This is where a pre-flight check of mutant fitness would go,
-    ## easy if we have the fitness landscapes coming out of the
-    ## previous step.
-      community$add_traits(new_traits)
+    to_add <- new_traits
+    # check seed production of new mutants if possible
+    seed_production <- community$make_landscape()
+    if (!is.null(seed_production)){
+      R_new <- seed_production(to_add)
+      to_add  <- to_add[R_new > 1,,drop=FALSE]
+    }
+    if(nrow(to_add) > 0)
+      community$add_traits(to_add)
   }
   step <- function() {
     deaths()
@@ -234,7 +239,7 @@ community <- function(...) {
   append <- function() {
     history <<- c(history, list(community$get_sys()))
   }
-  nsteps <- function(n){
+  run_nsteps <- function(n){
     for(i in seq_len(n))
       step()
   }
@@ -245,7 +250,7 @@ community <- function(...) {
                 births=births,
                 add=add,
                 step=step,
-                nsteps=nsteps,
+                run_nsteps=run_nsteps,
                 get_community=function() community,
                 get_history=function() history
                 ),

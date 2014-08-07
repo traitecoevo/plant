@@ -9,11 +9,12 @@ bounds_lma  <- c(0.01, 10)
 bounds <- rbind(lma=bounds_lma)
 colnames(bounds) <- c("lower", "upper")
 
-sys0 <- community(p0, seed_rain_initial=1e-3)
+sys0 <- community(p0, "lma", seed_rain_initial=1e-3)
 obj <- assembler_stochastic_naive(sys0, bounds)
 set.seed(1)
 
-obj$nsteps(7)
+obj$run_nsteps(7)
+
 
 sys <- obj$get_community()
 sys$to_parameters()
