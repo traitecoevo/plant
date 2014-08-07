@@ -298,3 +298,34 @@ selection_gradient1 <- function(trait, value, p, dx = 1e-04, log_scale = TRUE, s
         message(sprintf("selection gradient = %f", ret))
     ret
 }
+
+##' Find point of maximum fitness in empty landscape
+##' within specified range.
+##'
+##' @title Find point of maximum fitness within some range.
+##' @param trait Name of the trait (e.g., \code{"lma"})
+##' @param bounds 2D vector specifing range within which to search
+##' @param p Parameters object to use.  Importantly, the
+##' \code{strategy_default} element gets used here.
+##' @param log_scale Is the parameter naturally on a log scale?  If
+##' so, this will greatly speed things up.
+##' @export
+##' @author Daniel Falster, Rich FitzJohn
+max_fitness <- function(trait, p, bounds=NULL,
+                           log_scale=TRUE) {
+  if(length(trait) > 1)
+    stop("Doesn't yet support multiple traits")
+  if (log_scale) {
+    if (is.null(bounds))
+      bounds <- c(1E-5, 1E3)
+    f <- function(x) max_growth_rate(trait, exp(x), p)
+  } else {
+    if (is.null(bounds))
+      bounds <- c(-Inf, Inf)
+    f <- function(x) max_growth_rate(trait, x, p)
+  }
+  out <- optimise(f, interval = bounds, maximum = TRUE, tol = 1E-3)
+  if (log_scale)
+    out$maximum <- exp(out$maximum)
+  out
+}
