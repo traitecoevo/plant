@@ -266,27 +266,3 @@ community <- function(...) {
 assembler <- function(...) {
   .R6_assembler$new(...)
 }
-
-## Then a specialised version of this based around some simple ideas
-## of stochastic assembly.  This takes relatively few arguments --
-## bounds is the only required one really.
-.R6_assembler_stochastic_naive <- local({
-  initialize <- function(community0,
-                         bounds, n_mutants=1L, n_immigrants=1L, vcv=NULL,
-                         vcv_p=0.001,
-                         seed_rain_eps=1e-3) {
-    community <<- community0
-    if (is.null(vcv)) {
-      vcv <- vcv_p * diag(nrow(bounds)) * as.numeric(diff(t(log(bounds))))
-    }
-    births_sys <<- make_births_stochastic_naive(n_mutants, vcv, n_immigrants, bounds)
-    deaths_sys <<- make_deaths_stochastic_naive(seed_rain_eps)
-  }
-  R6::R6Class("assembler_stochastic_naive",
-              inherit=.R6_assembler,
-              public=list(initialize=initialize))
-})
-##' @export
-assembler_stochastic_naive <- function(...) {
-  .R6_assembler_stochastic_naive$new(...)
-}
