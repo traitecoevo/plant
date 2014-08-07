@@ -78,13 +78,17 @@ viable_fitness <- function(trait, p, bounds=NULL, value=NULL,
     f <- function(x) {
       max_growth_rate(trait, exp(x), p)
     }
-    exp(positive(f, log(value), dx, lower=log(bounds[1]), upper=log(bounds[2])))
+    out <- exp(positive(f, log(value), dx, lower=log(bounds[1]), upper=log(bounds[2])))
   } else {
     f <- function(x) {
       max_growth_rate(trait, x, p)
     }
-    positive(f, value, dx, lower=bounds[1], upper=bounds[2])
+    out <- positive(f, value, dx, lower=bounds[1], upper=bounds[2])
   }
+  bounds <- rbind(x=out)
+  colnames(bounds) <- c("lower", "upper")
+  rownames(bounds) <- trait
+  bounds
 }
 
 carrying_capacity1 <- function(trait, value, p, seed_rain=1) {

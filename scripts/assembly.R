@@ -5,11 +5,16 @@ p0$set_parameters(list(patch_area=1.0))
 p0$set_control_parameters(fast_control())
 p0$set_control_parameters(list(schedule_verbose=TRUE))
 
-bounds_lma  <- c(0.01, 10)
+
+
+sys0 <- community(p0, "lma", seed_rain_initial=1e-3)
+
+#learn boundaries
+bounds <- tree:::viable_fitness(sys0$trait_names, sys0$to_parameters(), bounds=c(0.01, 10))
+
 bounds <- rbind(lma=bounds_lma)
 colnames(bounds) <- c("lower", "upper")
 
-sys0 <- community(p0, "lma", seed_rain_initial=1e-3)
 obj <- assembler_stochastic_naive(sys0, bounds)
 set.seed(1)
 
