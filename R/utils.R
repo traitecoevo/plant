@@ -141,3 +141,8 @@ gradient_fd <- function(func, x, dx, log_scale=FALSE) {
   yy <- func(xx)
   (yy[[2]] - yy[[1]]) / dx
 }
+
+##' @export
+git_sha <- function() {
+  system("git rev-parse --short HEAD", intern=TRUE)
+}
