@@ -52,6 +52,4 @@ Interpolator run_adaptive_interpolator(Rcpp::Function fun,
 
 }
 
-RCPP_EXPOSED_CLASS_NODECL(interpolator::AdaptiveInterpolator)
-
 #endif
