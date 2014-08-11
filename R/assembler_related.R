@@ -67,10 +67,11 @@ viable_fitness <- function(trait, p, bounds=NULL, value=NULL,
     value <- p$strategy_default$parameters[[trait]]
   }
   if (is.null(bounds)) {
-    if (log_scale)
-      bounds <- c(1E-5, 1E3)
-    else
+    if (log_scale) {
+      bounds <- c(1e-5, 1e3)
+    } else {
       bounds <- c(-Inf, Inf)
+    }
   }
   if(value > bounds[2] || value < bounds[1])
     stop("Value does not lie within bounds")
@@ -117,6 +118,11 @@ positive_bracket <- function(f, x, dx, lower=-Inf, upper=Inf) {
 
   bracket <- function(x, dx, bound) {
     cleanup <- function(x, x_next, fx, fx_next) {
+      ## This is *approximately* what uniroot will do anyway.  We'll
+      ## get a usable negative number.
+      if (fx_next == -Inf) {
+        fx_next <- .Machine$double.xmin/2
+      }
       if (dx < 0) {
         x <- c(x_next, x)
         fx <- c(fx_next, fx)

@@ -205,13 +205,15 @@ community <- function(...) {
 
 ## Then the highest level for now: the assembler:
 ##
-##
+## "bounds" does nothing here, but we'll use it in a few places.
+## Later we'll want to sanitise it a bit.
 .R6_assembler <- local({
   initialize <- function(community0, births_sys, deaths_sys,
-                         filename=NULL) {
+                         bounds=NULL, filename=NULL) {
     community <<- community0
     births_sys <<- births_sys
     deaths_sys <<- deaths_sys
+    bounds <<- bounds
     history <<- list()
     filename <<- filename
     append()
@@ -262,6 +264,7 @@ community <- function(...) {
   R6::R6Class("assembler",
               public=list(
                 initialize=initialize,
+                bounds=NULL,
                 deaths=deaths,
                 births=births,
                 add=add,

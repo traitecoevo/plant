@@ -4,14 +4,24 @@ assembler_stochastic_naive <- function(community0,
                                        n_immigrants=1L,
                                        vcv=NULL, vcv_p=0.001,
                                        seed_rain_eps=1e-3,
+                                       compute_viable_fitness=FALSE,
                                        filename=NULL) {
   if (is.null(vcv)) {
     vcv <- vcv_p * diag(nrow(bounds)) * as.numeric(diff(t(log(bounds))))
   }
   births_sys <- make_births_stochastic_naive(n_mutants, vcv,
                                              n_immigrants, bounds)
+  if (compute_viable_fitness) {
+    message("Computing viable bounds")
+    if (nrow(bounds) != 1) {
+      stop("This is not going to work with multiple traits yet")
+    }
+    bounds <- viable_fitness(community0$trait_names,
+                             community0$to_parameters(),
+                             bounds=drop(bounds))
+  }
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
-  assembler(community0, births_sys, deaths_sys, filename)
+  assembler(community0, births_sys, deaths_sys, bounds, filename)
 }
 
 ## Support functions:
