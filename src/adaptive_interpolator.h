@@ -41,9 +41,13 @@ private:
 };
 
 namespace test {
-Interpolator test_adaptive_interpolator(SEXP fun, SEXP env,
+Interpolator test_adaptive_interpolator(Rcpp::Function fun,
 					double a, double b,
 					bool akima, bool linear);
+Interpolator run_adaptive_interpolator(Rcpp::Function fun,
+				       double a, double b,
+				       double tol,
+				       int nbase, int max_depth);
 }
 
 }

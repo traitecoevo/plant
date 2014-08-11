@@ -38,11 +38,11 @@ double helper_functor(double x, void *data);
 // This is a wrapper for creating a functor from an R function.
 class RFunctionWrapper : public DFunctor {
 public:
-  RFunctionWrapper(SEXP fun_, SEXP env_);
+  RFunctionWrapper(Rcpp::Function fun_);
   double target(double x);
   double operator()(double x);
 private:
-  SEXP fun, env;
+  Rcpp::Function fun;
 };
 
 // To prepare for the integration in `compute_assimilation` we need to

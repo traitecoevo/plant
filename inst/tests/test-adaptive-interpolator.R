@@ -4,7 +4,7 @@ context("AdaptiveInterpolator")
 
 target <- function(x) sin(2*x)
 r <- c(0, 2*pi)
-s <- test_adaptive_interpolator(target, new.env(), r[1], r[2],
+s <- test_adaptive_interpolator(target, r[1], r[2],
                                 FALSE, FALSE)
 
 test_that("Interpolator is the size expected", {
@@ -27,7 +27,7 @@ test_that("Tolerance is as expected", {
 })
 
 ## And again with Akima splines:
-a <- test_adaptive_interpolator(target, new.env(), r[1], r[2],
+a <- test_adaptive_interpolator(target, r[1], r[2],
                                 TRUE, FALSE)
 
 test_that("Interpolator is the size expected", {
@@ -52,7 +52,7 @@ test_that("Tolerance is as expected", {
 })
 
 ## And again with linear interpolation:
-l <- test_adaptive_interpolator(target, new.env(), r[1], r[2],
+l <- test_adaptive_interpolator(target, r[1], r[2],
                                 FALSE, TRUE)
 
 test_that("Interpolator is the size expected", {

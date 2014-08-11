@@ -12,12 +12,12 @@ double helper_functor(double x, void *data) {
   return (*f)(x);
 }
 
-RFunctionWrapper::RFunctionWrapper(SEXP fun_, SEXP env_)
-  : fun(fun_), env(env_) {
+RFunctionWrapper::RFunctionWrapper(Rcpp::Function fun_)
+  : fun(fun_) {
 }
 
 double RFunctionWrapper::target(double x) {
-  return REAL(Rf_eval(Rf_lang2(fun, Rf_ScalarReal(x)), env))[0];
+  return Rcpp::as<double>(fun(Rcpp::wrap(x)));
 }
 
 double RFunctionWrapper::operator()(double x) {

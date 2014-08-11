@@ -3,7 +3,7 @@ source("helper-tree.R")
 context("Quadrature")
 
 f <- function(x) sin(x)
-g <- new(RFunctionWrapper, f, new.env())
+g <- new(RFunctionWrapper, f)
 
 a <- 0
 b <- 1

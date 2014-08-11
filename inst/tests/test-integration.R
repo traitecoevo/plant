@@ -4,7 +4,7 @@ context("Adaptive Quadrature (QAG)")
 
 ## First, on a simple function:
 f <- function(x) sin(x)
-g <- new(RFunctionWrapper, f, new.env())
+g <- new(RFunctionWrapper, f)
 
 a <- 0
 b <- 1
@@ -62,7 +62,7 @@ test_that("Integration agrees with R on simple problem", {
 ## On a more complicated problem where subdivisions are required:
 
 f <- function(x) 2^sin(sqrt(x))
-g <- new(RFunctionWrapper, f, new.env())
+g <- new(RFunctionWrapper, f)
 a <- 0
 b <- 50
 

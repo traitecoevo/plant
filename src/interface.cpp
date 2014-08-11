@@ -472,7 +472,7 @@ RCPP_MODULE(tree) {
     ;
 
   Rcpp::class_<util::RFunctionWrapper>("RFunctionWrapper")
-    .constructor<SEXP, SEXP>()
+    .constructor<Rcpp::Function>()
     .method("target", &util::RFunctionWrapper::target)
     ;
 
@@ -506,6 +506,8 @@ RCPP_MODULE(tree) {
   Rcpp::function("test_find_value", &util::test::test_find_value);
   Rcpp::function("test_adaptive_interpolator",
 		 &interpolator::test::test_adaptive_interpolator);
+  Rcpp::function("run_adaptive_interpolator",
+		 &interpolator::test::run_adaptive_interpolator);
   Rcpp::function("test_plant",      &model::test::test_plant);
   Rcpp::function("compute_assimilation_fn",
 		 &model::test::compute_assimilation_fn);

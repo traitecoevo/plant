@@ -13,7 +13,7 @@ expect_that(test_functor(xx, pars),
             equals(f(xx)))
 
 ## Test with RFunctionWrapper:
-f.wrapped <- new(RFunctionWrapper, f, new.env())
+f.wrapped <- new(RFunctionWrapper, f)
 expect_that(sapply(xx, function(x) f.wrapped$target(x)),
             is_identical_to(f(xx)))
 

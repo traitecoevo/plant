@@ -123,13 +123,26 @@ bool AdaptiveInterpolator::check_err(double y_true, double y_pred) const {
 
 namespace test {
 
-Interpolator test_adaptive_interpolator(SEXP fun, SEXP env,
+Interpolator test_adaptive_interpolator(Rcpp::Function fun,
 					double a, double b,
 					bool akima, bool linear) {
-  util::RFunctionWrapper obj(fun, env);
+  util::RFunctionWrapper obj(fun);
   // Hopefully sensible defaults:
   const double atol = 1e-6, rtol = 1e-6;
   const int nbase = 17, max_depth = 16;
+  AdaptiveInterpolator generator(atol, rtol, nbase, max_depth,
+				 akima, linear);
+  return generator.construct(&obj, a, b);
+}
+
+// Just exposing some control parameters:
+Interpolator run_adaptive_interpolator(Rcpp::Function fun,
+				       double a, double b,
+				       double tol,
+				       int nbase, int max_depth) {
+  util::RFunctionWrapper obj(fun);
+  const double atol = tol, rtol = tol;
+  const bool akima = false, linear = false;
   AdaptiveInterpolator generator(atol, rtol, nbase, max_depth,
 				 akima, linear);
   return generator.construct(&obj, a, b);
