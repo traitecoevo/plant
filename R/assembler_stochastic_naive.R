@@ -25,17 +25,18 @@ assembler_stochastic_naive <- function(community0,
 }
 
 ## Support functions:
-make_births_stochastic_naive <- function(n_mutants, vcv, n_immigrants, bounds) {
+make_births_stochastic_naive <- function(n_mutants, vcv, n_immigrants, bounds, check_positive=TRUE) {
   mutation    <- make_mutation_stochastic_naive(n_mutants, vcv)
   immigration <- make_immigration_stochastic_naive(n_immigrants, bounds)
-  function(sys, must_grow=FALSE) {
-    repeat {
-      new_traits <- rbind(mutation(sys), immigration())
-      if (nrow(new_traits) > 0 || !must_grow) {
-        break
-      }
+  function(sys) {
+    to_add <- rbind(mutation(sys), immigration())
+    # check seed production of new mutants if possible
+    seed_production <- sys$make_landscape()
+    if (check_positive  && !is.null(seed_production)){
+      R_new <- seed_production(to_add)
+      to_add  <- to_add[R_new > 1,,drop=FALSE]
     }
-    new_traits
+    to_add
   }
 }
 

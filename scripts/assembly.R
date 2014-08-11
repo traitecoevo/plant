@@ -10,11 +10,8 @@ sys0 <- community(p0, "lma", seed_rain_initial=1e-3)
 # Find point of maximum fitness
 x <- tree:::max_fitness(sys0$trait_names, sys0$to_parameters(), bounds=c(0.01, 10))
 
-# Learn boundaries
-bounds <- tree:::viable_fitness(sys0$trait_names, sys0$to_parameters(), bounds=c(0.01, 10))
-
 # Make assembler
-obj <- assembler_stochastic_naive(sys0, bounds)
+obj <- assembler_stochastic_naive(sys0, bounds=c(0.01, 10),compute_viable_fitness)
 
 # Run assembler
 set.seed(1)

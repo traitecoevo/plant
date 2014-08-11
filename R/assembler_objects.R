@@ -163,6 +163,26 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       last_schedule <<- NULL
     }
   }
+
+  run_to_equilibrium <- function() {
+  if (size() > 0) {
+    p <- to_parameters()
+    ## Check for non-NA seed rain here, or you get very
+    ## cryptic error.
+    if(any(is.na(p$seed_rain)))
+      stop("NA in seed rain")
+
+    res <- equilibrium_seed_rain(p)
+    set_seed_rain(rowMeans(res$seed_rain))
+    set_schedule_times(res$schedule)
+    last_p <<- p
+    last_schedule <<- res$schedule
+  } else {
+    last_p <<- NULL
+    last_schedule <<- NULL
+  }
+}
+
   make_landscape <- function() {
     if (is.null(last_p) || is.null(last_schedule)) {
       return(NULL)
@@ -190,7 +210,9 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 ## Fuctions that modify things:
                 set_seed_rain=set_seed_rain,
                 set_schedule_times=set_schedule_times,
-                run=run),
+                run=run,
+                run_to_equilibrium=run_to_equilibrium
+                ),
               private=list(
                 sys=NULL,
                 parameters=NULL,
@@ -221,28 +243,34 @@ community <- function(...) {
   deaths <- function() {
     deaths_sys(community)
   }
-  births <- function(must_grow=FALSE) {
-    births_sys(community, must_grow)
-  }
-  add <- function(new_traits){
-    to_add <- new_traits
-    # check seed production of new mutants if possible
-    seed_production <- community$make_landscape()
-    if (!is.null(seed_production)){
-      R_new <- seed_production(to_add)
-      to_add  <- to_add[R_new > 1,,drop=FALSE]
-    }
+  births <- function() {
+    to_add <- births_sys(community)
+
     if (nrow(to_add) > 0) {
       community$add_traits(to_add)
     }
   }
-  step <- function() {
+  step <- function(type="single") {
+    f <- switch(type,
+      single=step_single,
+      to_equilibrium=step_to_equilibrium,
+      stop("unknown type ", type))
+    f()
+  }
+  step_single <- function() {
     message(sprintf("*** Assembler: step %d, (%d strategies)",
                     length(history), community$size()))
     deaths()
-    new_traits <- births()
-    add(new_traits)
+    births()
     community$run()
+    append()
+  }
+  step_to_equilibrium <- function() {
+    message(sprintf("*** Assembler: step %d, (%d strategies)",
+                    length(history), community$size()))
+    deaths()
+    births()
+    community$run_to_equilibrium()
     append()
   }
   append <- function() {
@@ -255,19 +283,21 @@ community <- function(...) {
       }
     }
   }
-  run_nsteps <- function(n){
+  run_nsteps <- function(n, type="single") {
     for(i in seq_len(n)) {
-      step()
+       step(type)
     }
   }
+
   R6::R6Class("assembler",
               public=list(
                 initialize=initialize,
                 bounds=NULL,
                 deaths=deaths,
                 births=births,
-                add=add,
                 step=step,
+                step_single=step_single,
+                step_to_equilibrium=step_to_equilibrium,
                 run_nsteps=run_nsteps,
                 get_community=function() community,
                 get_history=function() history

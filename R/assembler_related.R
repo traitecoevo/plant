@@ -102,7 +102,7 @@ carrying_capacity1 <- function(trait, value, p, seed_rain=1) {
     schedule <- default_cohort_schedule(p)
   }
   res <- equilibrium_seed_rain(p)
-  mean(res$seed_rain)
+  rowMeans(res$seed_rain)
 }
 
 positive_bracket <- function(f, x, dx, lower=-Inf, upper=Inf) {
