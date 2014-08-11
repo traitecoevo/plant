@@ -1,11 +1,12 @@
 ##' @export
 assembler_stochastic_naive <- function(community0,
-                                       bounds, n_mutants=1L,
+                                       n_mutants=1L,
                                        n_immigrants=1L,
                                        vcv=NULL, vcv_p=0.001,
                                        seed_rain_eps=1e-3,
                                        compute_viable_fitness=FALSE,
                                        filename=NULL) {
+  bounds <- community0$bounds
   if (is.null(vcv)) {
     vcv <- vcv_p * diag(nrow(bounds)) * as.numeric(diff(t(log(bounds))))
   }
@@ -21,7 +22,7 @@ assembler_stochastic_naive <- function(community0,
                              bounds=drop(bounds))
   }
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
-  assembler(community0, births_sys, deaths_sys, bounds, filename)
+  assembler(community0, births_sys, deaths_sys, filename)
 }
 
 ## Support functions:

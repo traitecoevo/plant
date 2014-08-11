@@ -5,13 +5,15 @@ p0$set_parameters(list(patch_area=1.0))
 p0$set_control_parameters(fast_control())
 p0$set_control_parameters(list(schedule_verbose=TRUE))
 
-sys0 <- community(p0, "lma", seed_rain_initial=1e-3)
+sys0 <- community(p0, "lma", seed_rain_initial=1e-3,
+                  bounds=rbind(lma=c(0.01, 10)))
 
 # Find point of maximum fitness
-x <- tree:::max_fitness(sys0$trait_names, sys0$to_parameters(), bounds=c(0.01, 10))
+x <- tree:::max_fitness(sys0$trait_names, sys0$to_parameters(),
+                        sys0$bounds)
 
 # Make assembler
-obj <- assembler_stochastic_naive(sys0, bounds=c(0.01, 10),compute_viable_fitness)
+obj <- assembler_stochastic_naive(sys0, compute_viable_fitness=TRUE)
 
 # Run assembler
 set.seed(1)

@@ -317,13 +317,13 @@ selection_gradient1 <- function(trait, value, p, dx = 1e-04, log_scale = TRUE, s
 ##' so, this will greatly speed things up.
 ##' @export
 ##' @author Daniel Falster, Rich FitzJohn
-max_fitness <- function(trait, p, bounds=NULL,
-                           log_scale=TRUE) {
+max_fitness <- function(trait, p, bounds=NULL, log_scale=TRUE) {
   if(length(trait) > 1)
     stop("Doesn't yet support multiple traits")
   if (log_scale) {
-    if (is.null(bounds))
-      bounds <- c(1E-5, 1E3)
+    if (is.null(bounds)) {
+      bounds <- c(1e-5, 1e3)
+    }
     f <- function(x) max_growth_rate(trait, exp(x), p)
   } else {
     if (is.null(bounds))

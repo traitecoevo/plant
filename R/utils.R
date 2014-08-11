@@ -146,3 +146,43 @@ gradient_fd <- function(func, x, dx, log_scale=FALSE) {
 git_sha <- function() {
   system("git rev-parse --short HEAD", intern=TRUE)
 }
+
+splinefun_log <- function(x, y, ...) {
+  f <- splinefun(log(x), y, ...)
+  function(x) {
+    f(log(x))
+  }
+}
+
+## Really simple rejection sampling, assuming:
+##   1. univariate function
+##   2. uniform approximation to f is a reasonable upper bound
+##   3. that f_max > f for all x
+rejection_sample <- function(n, f, bounds, f_max=NULL, log_space=TRUE) {
+  rejection_sample_iter <- function() {
+    x <- runif(n, bounds[[1]], bounds[[2]])
+    fx <- f(x)
+    keep <- fx / f_max
+    x[runif(n) < keep]
+  }
+
+  if (log_space) {
+    bounds <- log(bounds)
+    f_orig <- f
+    f <- function(x) f_orig(exp(x))
+  }
+
+  ## Hard coded, and possibly not very clever:
+  if (is.null(f_max)) {
+    f_max <- max(f(seq(bounds[[1]], bounds[[2]], length.out=501))) * 1.2
+  }
+  res <- numeric(0)
+  while (length(res) < n) {
+    res <- c(res, rejection_sample_iter())
+  }
+  res <- res[seq_len(n)]
+  if (log_space) {
+    res <- exp(res)
+  }
+  res
+}

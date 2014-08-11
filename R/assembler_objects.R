@@ -37,7 +37,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
 ## existing class bit-by-bit.  Getting around this with local
 ## functions.
 .R6_community <- local({
-  initialize <- function(p0, trait_names, ...,
+  initialize <- function(p0, trait_names, ..., bounds=NULL,
                          seed_rain_initial=1e-3, sys0=NULL) {
     parameters <<- p0$copy()
     seed_rain_initial <<- seed_rain_initial
@@ -55,8 +55,23 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     }
     sys <<- sys0
     trait_names <<- trait_names
-    if(length(trait_names) > 1)
-       stop("Doesn't yet support multiple traits")
+    if (length(trait_names) > 1) {
+      stop("Doesn't yet support multiple traits")
+    }
+    if (is.null(bounds)) {
+      n <- length(trait_names)
+      b <- cbind(lower=rep(-Inf, n), upper=rep(Inf, n))
+      rownames(b) <- trait_names
+      bounds <<- bounds
+    } else {
+      if (nrow(bounds) != length(trait_names)) {
+        stop("Incorrect size bounds")
+      }
+      if (ncol(bounds) != 2) {
+        stop("Bounds must have two columns")
+      }
+      bounds <<- bounds
+    }
   }
   size <- function() {
     length(sys)
@@ -145,14 +160,22 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       sys <<- append(sys, tmp)
     }
   }
-  run <- function() {
+  run <- function(compute_schedule=TRUE) {
     if (size() > 0) {
       p <- to_parameters()
       ## Check for non-NA seed rain here, or you get very
       ## cryptic error.
       if(any(is.na(p$seed_rain)))
         stop("NA in seed rain")
-      res <- build_schedule(p, to_schedule(p))
+      if (compute_schedule) {
+        res <- build_schedule(p, to_schedule(p))
+      } else {
+        ## Bit of fakery here to generate ode times
+        message("Recomputing ode times")
+        ebt <- run_ebt(p, to_schedule(p))
+        res <- ebt$cohort_schedule$copy()
+        attr(res, "seed_rain") <- cbind(out=ebt$fitnesses)
+      }
       seed_rain_out <- unname(attr(res, "seed_rain", exact=TRUE)[,"out"])
       set_seed_rain(seed_rain_out)
       set_schedule_times(res)
@@ -165,23 +188,23 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
   }
 
   run_to_equilibrium <- function() {
-  if (size() > 0) {
-    p <- to_parameters()
-    ## Check for non-NA seed rain here, or you get very
-    ## cryptic error.
-    if(any(is.na(p$seed_rain)))
-      stop("NA in seed rain")
+    if (size() > 0) {
+      p <- to_parameters()
+      ## Check for non-NA seed rain here, or you get very
+      ## cryptic error.
+      if(any(is.na(p$seed_rain)))
+        stop("NA in seed rain")
 
-    res <- equilibrium_seed_rain(p)
-    set_seed_rain(rowMeans(res$seed_rain))
-    set_schedule_times(res$schedule)
-    last_p <<- p
-    last_schedule <<- res$schedule
-  } else {
-    last_p <<- NULL
-    last_schedule <<- NULL
+      res <- equilibrium_seed_rain(p)
+      set_seed_rain(rowMeans(res$seed_rain))
+      set_schedule_times(res$schedule)
+      last_p <<- p
+      last_schedule <<- res$schedule
+    } else {
+      last_p <<- NULL
+      last_schedule <<- NULL
+    }
   }
-}
 
   make_landscape <- function() {
     if (is.null(last_p) || is.null(last_schedule)) {
@@ -201,6 +224,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 drop=drop,
                 trait_names=NULL,
                 traits=traits,
+                bounds=NULL,
                 add_traits=add_traits,
                 seed_rain=seed_rain,
                 ## Functions generating useful things
@@ -226,16 +250,12 @@ community <- function(...) {
 }
 
 ## Then the highest level for now: the assembler:
-##
-## "bounds" does nothing here, but we'll use it in a few places.
-## Later we'll want to sanitise it a bit.
 .R6_assembler <- local({
   initialize <- function(community0, births_sys, deaths_sys,
-                         bounds=NULL, filename=NULL) {
+                         filename=NULL) {
     community <<- community0
     births_sys <<- births_sys
     deaths_sys <<- deaths_sys
-    bounds <<- bounds
     history <<- list()
     filename <<- filename
     append()
@@ -292,7 +312,6 @@ community <- function(...) {
   R6::R6Class("assembler",
               public=list(
                 initialize=initialize,
-                bounds=NULL,
                 deaths=deaths,
                 births=births,
                 step=step,
@@ -314,4 +333,32 @@ community <- function(...) {
 ##' @export
 assembler <- function(...) {
   .R6_assembler$new(...)
+}
+
+## This is a hack for now.  To make this work more smoothly, we want
+## to save some additional parameters (e.g., trait_names) out with the
+## community.
+restore_community <- function(x, p0, bounds=NULL, recompute=TRUE) {
+  if (!all(sapply(x, inherits, "assembly_species"))) {
+    stop("Not all elements are assembly_species")
+  }
+  if (length(x) == 0) {
+    stop("Can't restore empty community")
+  }
+  trait_names <- names(x[[1]]$traits)
+  if (!all(sapply(x[-1], function(el)
+                  identical(names(el$traits), trait_names)))) {
+    stop("Traits vary across species")
+  }
+  p <- p0$copy()
+  p$clear()
+  sys0 <- community(p, trait_names)
+  sys0$private$sys <- x
+  if (recompute) {
+    sys0$run(FALSE)
+  }
+  ## TODO: Need to update bounds here, but that really wants to have
+  ## the bounds checked.  Far better to write them out in the file at
+  ## the same time, really!
+  sys0
 }
