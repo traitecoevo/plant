@@ -245,7 +245,7 @@ community <- function(...) {
   }
   append <- function() {
     ## base::append(history, community$get_sys())
-    history <<- c(history, list(community$get_sys()))
+    history <<- c(history, community$get_sys())
     if (!is.null(filename)) {
       ok <- try(saveRDS(history, filename))
       if (inherits(ok, "try-error")) {
