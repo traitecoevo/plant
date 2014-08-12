@@ -7,11 +7,12 @@ assembler_stochastic_naive <- function(community0,
                                        compute_viable_fitness=FALSE,
                                        filename=NULL) {
   bounds <- community0$bounds
+  ## This is probably not a good idea and is causing some problems
+  ## because we are having problems with recomputing bounds (below).
+  ## Better would be to tidy this up on entry.
   if (is.null(vcv)) {
     vcv <- vcv_p * diag(nrow(bounds)) * as.numeric(diff(t(log(bounds))))
   }
-  births_sys <- make_births_stochastic_naive(n_mutants, vcv,
-                                             n_immigrants, bounds)
   if (compute_viable_fitness) {
     message("Computing viable bounds")
     if (nrow(bounds) != 1) {
@@ -20,7 +21,11 @@ assembler_stochastic_naive <- function(community0,
     bounds <- viable_fitness(community0$trait_names,
                              community0$to_parameters(),
                              bounds=drop(bounds))
+    community0$bounds <- bounds
   }
+  ## This makes the immigrants come from the good (viable) bounds
+  births_sys <- make_births_stochastic_naive(n_mutants, vcv,
+                                             n_immigrants, bounds)
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
   assembler(community0, births_sys, deaths_sys, filename)
 }

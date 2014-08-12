@@ -41,7 +41,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                          seed_rain_initial=1e-3, sys0=NULL) {
     parameters <<- p0$copy()
     seed_rain_initial <<- seed_rain_initial
-    if (!is.null(sys)) {
+    if (!is.null(sys0)) {
       if (length(...) > 0) {
         stop("Don't provide extra things with sys0")
       }
@@ -50,7 +50,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     }
     ## TODO: Check that all elements are species, and that they have
     ## the same set of variable traits.
-    if (!all(sapply(sys0, function(x) inherits, "species"))) {
+    if (!all(sapply(sys0, inherits, "species"))) {
       stop("All elements must be species")
     }
     sys <<- sys0

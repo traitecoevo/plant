@@ -48,7 +48,7 @@ fitness_landscape_grid <- function(community, n=50,
   m
 }
 
-fitness_landscape_approximate <- function(sys, n=50L) {
-  xy <- fitness_landscape_grid(sys, n)
+fitness_landscape_approximate <- function(community, n=50L) {
+  xy <- fitness_landscape_grid(community, n)
   splinefun_log(xy[,1], xy[,2])
 }
