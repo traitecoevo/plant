@@ -176,6 +176,9 @@ rejection_sample <- function(n, f, bounds, f_max=NULL, log_space=TRUE) {
   if (is.null(f_max)) {
     f_max <- max(f(seq(bounds[[1]], bounds[[2]], length.out=501))) * 1.2
   }
+  if (f_max < 0) {
+    stop("No positive values present/detected")
+  }
   res <- numeric(0)
   while (length(res) < n) {
     res <- c(res, rejection_sample_iter())

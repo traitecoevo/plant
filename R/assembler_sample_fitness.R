@@ -3,17 +3,10 @@ assembler_sample_positive <- function(community0,
                                       seed_rain_eps=1e-3,
                                       compute_viable_fitness=FALSE,
                                       filename=NULL) {
-  births_sys <- make_births_sample_positive(n_sample)
-  ## TODO: Move into the core assembly algorithm.
   if (compute_viable_fitness) {
-    message("Computing viable bounds")
-    if (nrow(bounds) != 1) {
-      stop("This is not going to work with multiple traits yet")
-    }
-    bounds <- viable_fitness(community0$trait_names,
-                             community0$to_parameters(),
-                             bounds=drop(bounds))
+    community0$set_viable_bounds()
   }
+  births_sys <- make_births_sample_positive(n_sample)
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
   assembler(community0, births_sys, deaths_sys, filename)
 }
@@ -35,6 +28,9 @@ fitness_landscape_grid <- function(community, n=50,
     stop("Expected a community object")
   }
   bounds <- community$bounds
+  if (nrow(bounds) != 1) {
+    stop("Only working for one trait at the moment")
+  }
   if (log_space) {
     x <- seq_log(bounds[[1]], bounds[[2]], n)
   } else {
@@ -45,7 +41,7 @@ fitness_landscape_grid <- function(community, n=50,
   if (finite_only) {
     m <- m[is.finite(m[,2]),,drop=FALSE]
   }
-  m
+  cbind(m)
 }
 
 fitness_landscape_approximate <- function(community, n=50L) {

@@ -131,6 +131,14 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       sys[[i]]$cohort_schedule_times <<- value$times(i)
     }
   }
+  set_viable_bounds <- function() {
+    message("Computing viable bounds")
+    if (nrow(bounds) != 1) {
+      stop("This is not going to work with multiple traits yet")
+    }
+    bounds <<- viable_fitness(trait_names, to_parameters(),
+                              bounds=base::drop(bounds))
+  }
   drop <- function(which) {
     if (is.logical(which)) {
       if (length(which) != size()) {
@@ -230,6 +238,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 ## Functions generating useful things
                 to_parameters=to_parameters,
                 to_schedule=to_schedule,
+                set_viable_bounds=set_viable_bounds,
                 make_landscape=make_landscape,
                 ## Fuctions that modify things:
                 set_seed_rain=set_seed_rain,

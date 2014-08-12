@@ -6,26 +6,18 @@ assembler_stochastic_naive <- function(community0,
                                        seed_rain_eps=1e-3,
                                        compute_viable_fitness=FALSE,
                                        filename=NULL) {
-  bounds <- community0$bounds
   ## This is probably not a good idea and is causing some problems
   ## because we are having problems with recomputing bounds (below).
   ## Better would be to tidy this up on entry.
   if (is.null(vcv)) {
-    vcv <- vcv_p * diag(nrow(bounds)) * as.numeric(diff(t(log(bounds))))
+    vcv <- mutational_vcv_proportion(community0$bounds, vcv_p)
   }
   if (compute_viable_fitness) {
-    message("Computing viable bounds")
-    if (nrow(bounds) != 1) {
-      stop("This is not going to work with multiple traits yet")
-    }
-    bounds <- viable_fitness(community0$trait_names,
-                             community0$to_parameters(),
-                             bounds=drop(bounds))
-    community0$bounds <- bounds
+    community0$set_viable_bounds()
   }
   ## This makes the immigrants come from the good (viable) bounds
   births_sys <- make_births_stochastic_naive(n_mutants, vcv,
-                                             n_immigrants, bounds)
+                                             n_immigrants, community0$bounds)
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
   assembler(community0, births_sys, deaths_sys, filename)
 }
@@ -93,4 +85,8 @@ make_deaths_stochastic_naive <- function(eps) {
   function(sys) {
     sys$drop(sys$seed_rain() < eps)
   }
+}
+
+mutational_vcv_proportion <- function(bounds, p=0.001) {
+  p * diag(nrow(bounds)) * as.numeric(diff(t(log(bounds))))
 }
