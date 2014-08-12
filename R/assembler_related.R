@@ -227,9 +227,11 @@ get_equilibrium_community <- function(trait, values, p, seed_rain = NULL, verbos
 #' value of the function evaluated at that point. ‘iter’ and
 #' ‘estim.prec’ give the number of iterations
 find_singularity_1D <- function(trait, interval, p, tol = 1e-04, ...) {
-
-    f <- function(x) selection_gradient(trait, x, p, ...)
-    root <- uniroot(f, interval, tol = tol)
+    f <- function(x) selection_gradient1(trait, x, p, ...)
+    # Note for Rich: when integrating into the community, rename
+    # elements here, or return everything except location as an attribute.
+    # Ideally this will return a species object.
+    uniroot(f, interval, tol = tol)
 }
 
 #' Returns selection gradient in single species communities
@@ -258,9 +260,15 @@ find_singularity_1D <- function(trait, interval, p, tol = 1e-04, ...) {
 selection_gradient <- function(trait, values, p, dx = 1e-04, log_scale = TRUE, seed_rain = NULL,
     verbose = TRUE) {
     N <- length(values)
-    ret <- rep(NA, N)
-    for (i in seq_len(N)) ret[i] <- selection_gradient1(trait, values[i], p, dx,
-        log_scale, seed_rain, verbose)
+    ret <- rep(NA_real_, N)
+    ret_seed_rain <- rep(NA_real_, N)
+    for (i in seq_len(N)) {
+      tmp <- selection_gradient1(trait, values[i], p, dx,
+                                    log_scale, seed_rain, verbose)
+      ret[i] <- as.numeric(tmp) # to drop the attribute
+      ret_seed_rain[i] <- attr(tmp, "seed_rain")
+    }
+    attr(ret, "seed_rain") <- ret_seed_rain
     ret
 }
 
