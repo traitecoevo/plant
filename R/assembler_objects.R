@@ -213,16 +213,22 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       last_schedule <<- NULL
     }
   }
-
   make_landscape <- function() {
-    if (is.null(last_p) || is.null(last_schedule)) {
-      return(NULL)
+    if (!is.null(last_p) && !is.null(last_schedule)) {
+      p <- last_p$copy()
+      schedule <- last_schedule$copy()
+      f <- function(x) {
+        landscape(trait_names, x, p, schedule)
+      }
+    } else if (size() == 0) {
+      p <- to_parameters()
+      f <- function(x) {
+        landscape_empty(trait_names, x, p)
+      }
+    } else {
+      f <- NULL
     }
-    p <- last_p$copy()
-    schedule <- last_schedule$copy()
-    function(x) {
-      landscape(trait_names, x, p, schedule)
-    }
+    f
   }
   R6::R6Class("community",
               public=list(

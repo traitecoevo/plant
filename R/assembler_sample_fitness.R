@@ -37,6 +37,9 @@ fitness_landscape_grid <- function(community, n=50,
     x <- seq(bounds[[1]], bounds[[2]], length.out=n)
   }
   mutant_seed_rain <- community$make_landscape()
+  if (is.null(mutant_seed_rain)) {
+    stop("Constructing fitness landscape failed")
+  }
   m <- cbind(trait=x, fitness=log(mutant_seed_rain(x)))
   if (finite_only) {
     m <- m[is.finite(m[,2]),,drop=FALSE]
