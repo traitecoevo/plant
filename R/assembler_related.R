@@ -79,7 +79,8 @@ viable_fitness <- function(trait, p, bounds=NULL, value=NULL,
     f <- function(x) {
       max_growth_rate(trait, exp(x), p)
     }
-    out <- exp(positive(f, log(value), dx, lower=log(bounds[1]), upper=log(bounds[2])))
+    out <- exp(positive(f, log(value), dx,
+                        lower=log(bounds[1]), upper=log(bounds[2])))
   } else {
     f <- function(x) {
       max_growth_rate(trait, x, p)
@@ -118,11 +119,6 @@ positive_bracket <- function(f, x, dx, lower=-Inf, upper=Inf) {
 
   bracket <- function(x, dx, bound) {
     cleanup <- function(x, x_next, fx, fx_next) {
-      ## This is *approximately* what uniroot will do anyway.  We'll
-      ## get a usable negative number.
-      if (fx_next == -Inf) {
-        fx_next <- .Machine$double.xmin/2
-      }
       if (dx < 0) {
         x <- c(x_next, x)
         fx <- c(fx_next, fx)
@@ -159,9 +155,12 @@ positive <- function(f, x, dx, lower=-Inf, upper=Inf, eps=1e-3) {
   # Find lower root. If no root exists within that range, take
   # lower bound
   if(prod(b$lower$fx[1:2]) < 0){
-        lower <- uniroot(f, b$lower$x,
-                   f.lower=b$lower$fx[[1]], f.upper=b$lower$fx[[2]],
-                   tol=eps)$root
+    ## The suppressWarnings here is about conversion from -Inf to a
+    ## very small number.
+    lower <- suppressWarnings(uniroot(f, b$lower$x,
+                                      f.lower=b$lower$fx[[1]],
+                                      f.upper=b$lower$fx[[2]],
+                                      tol=eps)$root)
   } else {
     lower <- b$lower$x[[1]]
   }
