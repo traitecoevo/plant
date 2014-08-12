@@ -298,17 +298,17 @@ community <- function(...) {
   step_single <- function() {
     message(sprintf("*** Assembler: step %d, (%d strategies)",
                     length(history), community$size()))
-    deaths()
     births()
     community$run()
+    deaths()
     append()
   }
   step_to_equilibrium <- function() {
     message(sprintf("*** Assembler: step %d, (%d strategies)",
                     length(history), community$size()))
-    deaths()
     births()
     community$run_to_equilibrium()
+    deaths()
     append()
   }
   append <- function() {
