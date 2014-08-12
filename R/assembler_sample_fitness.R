@@ -1,3 +1,4 @@
+##' @export
 assembler_sample_positive <- function(community0,
                                       n_sample=1L,
                                       seed_rain_eps=1e-3,
@@ -13,10 +14,10 @@ assembler_sample_positive <- function(community0,
 
 make_births_sample_positive <- function(n) {
   function(sys) {
-    ## This will fail on the first step, because
-    ## fitness_landscape_approximate does not work.
     f <- fitness_landscape_approximate(sys)
-    rejection_sample(n, f, sys$bounds)
+    ret <- cbind(rejection_sample(n, f, sys$bounds))
+    colnames(ret) <- sys$trait_names
+    ret
   }
 }
 

@@ -280,7 +280,6 @@ community <- function(...) {
   }
   births <- function() {
     to_add <- births_sys(community)
-
     if (nrow(to_add) > 0) {
       community$add_traits(to_add)
     }
