@@ -230,6 +230,9 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     }
     f
   }
+  store_sys_attribute <- function(value, name) {
+    attr(sys, name) <<- value
+  }
   R6::R6Class("community",
               public=list(
                 initialize=initialize,
@@ -250,8 +253,9 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 set_seed_rain=set_seed_rain,
                 set_schedule_times=set_schedule_times,
                 run=run,
-                run_to_equilibrium=run_to_equilibrium
-                ),
+                run_to_equilibrium=run_to_equilibrium,
+                ## This is a hack for now:
+                store_sys_attribute=store_sys_attribute),
               private=list(
                 sys=NULL,
                 parameters=NULL,

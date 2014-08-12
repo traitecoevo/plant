@@ -17,6 +17,12 @@ make_births_sample_positive <- function(n) {
     f <- fitness_landscape_approximate(sys)
     ret <- cbind(rejection_sample(n, f, sys$bounds))
     colnames(ret) <- sys$trait_names
+
+    ## Store the landscape within the system object.  This is a bit of
+    ## a hack for now.
+    sys$store_sys_attribute(f, "landscape")
+    landscape_points <- with(environment(f), data.frame(trait=x, w=y))
+    sys$store_sys_attribute(landscape_points, "landscape_points")
     ret
   }
 }
