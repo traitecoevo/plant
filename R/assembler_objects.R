@@ -353,8 +353,8 @@ community <- function(...) {
     }
   }
   step <- function(type="single") {
-    message(sprintf("*** Assembler: step %d, (%d strategies)",
-                    length(history), community$size()))
+    message(sprintf("*** Assembler: step %d, (%d strategies), %s",
+                    length(history), community$size(), type))
     births()
     run_model(type)
     deaths()
