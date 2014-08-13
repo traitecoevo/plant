@@ -1,3 +1,5 @@
+## TODO: rename assembly_species -> species.
+
 ## The simplest thing is a species.  It has up to three elements:
 ##
 ## traits: a (named) list of species traits
@@ -42,7 +44,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     parameters <<- p0$copy()
     seed_rain_initial <<- seed_rain_initial
     if (!is.null(sys0)) {
-      if (length(...) > 0) {
+      if (length(list(...)) > 0) {
         stop("Don't provide extra things with sys0")
       }
     } else {
@@ -50,7 +52,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     }
     ## TODO: Check that all elements are species, and that they have
     ## the same set of variable traits.
-    if (!all(sapply(sys0, inherits, "species"))) {
+    if (!all(sapply(sys0, inherits, "assembly_species"))) {
       stop("All elements must be species")
     }
     sys <<- sys0
@@ -98,6 +100,17 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     }
     p$seed_rain <- seed_rain()
     p
+  }
+  copy <- function(keep_parameters=FALSE) {
+    ret <- .R6_community$new(parameters$copy(), trait_names,
+                             bounds=bounds,
+                             seed_rain_initial=seed_rain_initial,
+                             sys0=sys)
+    if (!keep_parameters) {
+      ## Because modules are not load/save safe.
+      ret$private$parameters <- NULL
+    }
+    ret
   }
   to_schedule <- function(value, p=to_parameters()) {
     schedule <- default_cohort_schedule(p)
@@ -237,7 +250,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
               # portable=FALSE, # for R6 > CRAN
               public=list(
                 initialize=initialize,
-                get_sys=function() sys,
+                copy=copy,
                 size=size,
                 drop=drop,
                 trait_names=NULL,
@@ -313,7 +326,7 @@ community <- function(...) {
     append()
   }
   append <- function() {
-    history <<- c(history, list(community$get_sys()))
+    history <<- c(history, list(community$copy()))
     if (!is.null(filename)) {
       ok <- try(saveRDS(history, filename))
       if (inherits(ok, "try-error")) {
@@ -355,30 +368,21 @@ assembler <- function(...) {
   .R6_assembler$new(...)
 }
 
-## This is a hack for now.  To make this work more smoothly, we want
-## to save some additional parameters (e.g., trait_names) out with the
-## community.
-restore_community <- function(x, p0, bounds=NULL, recompute=TRUE) {
-  if (!all(sapply(x, inherits, "assembly_species"))) {
-    stop("Not all elements are assembly_species")
+restore_community <- function(x, p, recompute=TRUE) {
+  if (!inherits(x, "community")) {
+    stop("Expected x to be a community object")
   }
-  if (length(x) == 0) {
-    stop("Can't restore empty community")
+  if (!inherits(p, "Rcpp_Parameters")) {
+    stop("Expected p to be a Parameters object")
   }
-  trait_names <- names(x[[1]]$traits)
-  if (!all(sapply(x[-1], function(el)
-                  identical(names(el$traits), trait_names)))) {
-    stop("Traits vary across species")
-  }
-  p <- p0$copy()
-  p$clear()
-  sys0 <- community(p, trait_names)
-  sys0$private$sys <- x
+  x$private$parameters <- p$copy()
   if (recompute) {
-    sys0$run(FALSE)
+    x$run(FALSE)
   }
-  ## TODO: Need to update bounds here, but that really wants to have
-  ## the bounds checked.  Far better to write them out in the file at
-  ## the same time, really!
-  sys0
+}
+
+restore_saved_history <- function(x, p, recompute=FALSE) {
+  for (i in x) {
+    restore_community(i, p, recompute)
+  }
 }
