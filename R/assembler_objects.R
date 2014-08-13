@@ -234,6 +234,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     attr(sys, name) <<- value
   }
   R6::R6Class("community",
+              # portable=FALSE, # for R6 > CRAN
               public=list(
                 initialize=initialize,
                 get_sys=function() sys,
@@ -328,6 +329,7 @@ community <- function(...) {
   }
 
   R6::R6Class("assembler",
+              # portable=FALSE, # for R6 > CRAN
               public=list(
                 initialize=initialize,
                 deaths=deaths,
