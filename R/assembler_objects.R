@@ -362,17 +362,24 @@ community <- function(...) {
   }
   append <- function() {
     history <<- c(history, list(community$serialise()))
-    if (!is.null(filename)) {
-      ok <- try(saveRDS(history, filename))
-      if (inherits(ok, "try-error")) {
-        warning("History saving has failed",
-                immediate.=TRUE, call.=FALSE)
-      }
-    }
+    save_to_file()
   }
   run_nsteps <- function(n, type="single") {
     for(i in seq_len(n)) {
        step(type)
+    }
+  }
+  save_to_file <- function(must_work=FALSE) {
+    if (!is.null(filename)) {
+      if (must_work) {
+        saveRDS(history, filename)
+      } else {
+        ok <- try(saveRDS(history, filename))
+        if (inherits(ok, "try-error")) {
+          warning("History saving has failed",
+                  immediate.=TRUE, call.=FALSE)
+        }
+      }
     }
   }
 
@@ -386,7 +393,8 @@ community <- function(...) {
                 run_model=run_model,
                 run_nsteps=run_nsteps,
                 get_community=function() community,
-                get_history=function() history
+                get_history=function() history,
+                save_to_file=save_to_file
                 ),
               private=list(
                 community=NULL,
