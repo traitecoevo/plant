@@ -81,6 +81,7 @@ make_deaths_stochastic_naive <- function(eps) {
   }
 }
 
+##' @export
 mutational_vcv_proportion <- function(x, p=0.001) {
   if (inherits(x, "community")) {
     bounds <- x$bounds

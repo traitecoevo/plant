@@ -41,3 +41,9 @@ abline(v=sys0$traits(TRUE), h=0, col="red")
 sys0 <- community(p0, "lma", bounds=max_bounds)
 obj <- assembler_sample_positive(sys0, compute_viable_fitness=TRUE,
                                  jump_to_attractor=TRUE)
+
+vcv <- mutational_vcv_proportion(max_bounds, 0.001)
+sys0 <- community(p0, "lma", bounds=max_bounds)
+obj <- assembler_stochastic_naive(sys0, vcv,
+                                  compute_viable_fitness=TRUE,
+                                  jump_to_attractor=TRUE)
