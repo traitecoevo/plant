@@ -30,8 +30,7 @@ make_births_stochastic_naive <- function(n_mutants, vcv, n_immigrants, bounds, c
     to_add <- rbind(mutation(sys), immigration())
     # check seed production of new mutants if possible
     seed_production <- sys$make_landscape()
-    if (check_positive && !is.null(seed_production) &&
-        nrow(to_add) > 0) {
+    if (check_positive && nrow(to_add) > 0) {
       R_new <- seed_production(to_add)
       to_add  <- to_add[R_new > 1,,drop=FALSE]
     }

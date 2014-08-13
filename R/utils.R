@@ -103,6 +103,14 @@ seq_log <- function(from, to, length.out) {
   exp(seq(log(from), log(to), length.out=length.out))
 }
 
+##' @export
+##' @param r range (i.e., c(from, to)
+##' @rdname seq_log
+seq_log_range <- function(r, n) {
+  seq_log(r[[1]], r[[2]], n)
+}
+
+
 collect <- function(k, x, empty=list(), each=identity, after=identity,
                     loop=sapply) {
   if (length(x) == 0) {
@@ -188,4 +196,16 @@ rejection_sample <- function(n, f, bounds, f_max=NULL, log_space=TRUE) {
     res <- exp(res)
   }
   res
+}
+
+## This does all sorts of nasty, but will be useful for development
+## from R without the hellish reload cycle of Rcpp modules.  Using
+## ':::' will then *not* work.
+reload_r <- function(path=.TREE_PATH) {
+  files <- dir(file.path(path, "R"), pattern=glob2rx("*.R"),
+               full=TRUE)
+  for (f in files) {
+    source(f, local=FALSE)
+  }
+  invisible(TRUE)
 }

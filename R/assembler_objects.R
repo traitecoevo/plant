@@ -1,5 +1,3 @@
-## TODO: rename assembly_species -> species.
-
 ## The simplest thing is a species.  It has up to three elements:
 ##
 ## traits: a (named) list of species traits
@@ -12,7 +10,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
   ret <- list(traits=traits,
               seed_rain=seed_rain,
               cohort_schedule_times=cohort_schedule_times)
-  class(ret) <- "assembly_species"
+  class(ret) <- "species"
   ret
 }
 
@@ -50,13 +48,8 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     } else {
       sys0 <- list(...)
     }
-    ## TODO: Check that all elements are species, and that they have
-    ## the same set of variable traits.
-    if (!all(sapply(sys0, inherits, "assembly_species"))) {
-      stop("All elements must be species")
-    }
-    sys <<- sys0
     trait_names <<- trait_names
+    add_species(sys0)
     if (length(trait_names) > 1) {
       stop("Doesn't yet support multiple traits")
     }
@@ -101,16 +94,11 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     p$seed_rain <- seed_rain()
     p
   }
-  copy <- function(keep_parameters=FALSE) {
-    ret <- .R6_community$new(parameters$copy(), trait_names,
-                             bounds=bounds,
-                             seed_rain_initial=seed_rain_initial,
-                             sys0=sys)
-    if (!keep_parameters) {
-      ## Because modules are not load/save safe.
-      ret$private$parameters <- NULL
-    }
-    ret
+  copy <- function() {
+    .R6_community$new(parameters$copy(), trait_names,
+                      bounds=bounds,
+                      seed_rain_initial=seed_rain_initial,
+                      sys0=sys)
   }
   to_schedule <- function(value, p=to_parameters()) {
     schedule <- default_cohort_schedule(p)
@@ -149,6 +137,9 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     if (nrow(bounds) != 1) {
       stop("This is not going to work with multiple traits yet")
     }
+    if (size() > 0) {
+      warning("You probably don't want to run this on an existing community")
+    }
     bounds <<- viable_fitness(trait_names, to_parameters(),
                               bounds=base::drop(bounds))
   }
@@ -165,10 +156,13 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     sys <<- sys[keep]
   }
   add_traits <- function(x) {
+    if (length(trait_names) == 1 && !is.matrix(x)) {
+      x <- cbind(x, deparse.level=0)
+      colnames(x) <- trait_names
+    }
     assertthat::assert_that(is.matrix(x))
-    if (size() > 0) {
-      existing <- traits(TRUE)
-      assertthat::assert_that(ncol(x) == ncol(existing))
+    assertthat::assert_that(ncol(x) == length(trait_names))
+    if (!is.null(colnames(x))) {
       assertthat::assert_that(identical(colnames(x),
                                         trait_names))
     }
@@ -178,8 +172,17 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       for (i in seq_len(nrow(x))) {
         tmp[[i]] <- species(as.list(x[i,]), seed_rain_initial)
       }
-      sys <<- append(sys, tmp)
+      add_species(tmp)
     }
+  }
+  add_species <- function(x) {
+    ## TODO: check that the trait names are OK
+    if (inherits(x, "species")) {
+      x <- list(x)
+    } else if (!all(sapply(x, inherits, "species"))) {
+      stop("All elements must be an species")
+    }
+    sys <<- append(sys, x)
   }
   run <- function(compute_schedule=TRUE) {
     if (size() > 0) {
@@ -200,10 +203,8 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       seed_rain_out <- unname(attr(res, "seed_rain", exact=TRUE)[,"out"])
       set_seed_rain(seed_rain_out)
       set_schedule_times(res)
-      last_p <<- p
       last_schedule <<- res
     } else {
-      last_p <<- NULL
       last_schedule <<- NULL
     }
   }
@@ -219,32 +220,45 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       res <- equilibrium_seed_rain(p)
       set_seed_rain(rowMeans(res$seed_rain))
       set_schedule_times(res$schedule)
-      last_p <<- p
       last_schedule <<- res$schedule
     } else {
-      last_p <<- NULL
       last_schedule <<- NULL
     }
   }
-  make_landscape <- function() {
-    if (!is.null(last_p) && !is.null(last_schedule)) {
-      p <- last_p$copy()
-      schedule <- last_schedule$copy()
-      f <- function(x) {
-        landscape(trait_names, x, p, schedule)
-      }
-    } else if (size() == 0) {
-      p <- to_parameters()
+  make_landscape <- function(force=TRUE) {
+    p <- to_parameters()
+    if (size() == 0) {
       f <- function(x) {
         landscape_empty(trait_names, x, p)
       }
     } else {
-      f <- NULL
+      if (is.null(last_schedule)) {
+        if (force) {
+          run(FALSE)
+        } else {
+          stop("Rerun with force=TRUE to enable make_landscape")
+        }
+      }
+      schedule <- last_schedule$copy()
+      f <- function(x) {
+        landscape(trait_names, x, p, schedule)
+      }
     }
     f
   }
   store_sys_attribute <- function(value, name) {
     attr(sys, name) <<- value
+  }
+  ## This is used in serialisation to avoid saving things that are
+  ## very slow to load.  Basically we save all the data members except
+  ## for parameters and last_schedule
+  serialise <- function() {
+    ret <- list(sys=sys,
+                trait_names=trait_names,
+                bounds=bounds,
+                seed_rain_initial=seed_rain_initial)
+    class(ret) <- "community_serialised"
+    ret
   }
   R6::R6Class("community",
               # portable=FALSE, # for R6 > CRAN
@@ -257,6 +271,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 traits=traits,
                 bounds=NULL,
                 add_traits=add_traits,
+                add_species=add_species,
                 seed_rain=seed_rain,
                 ## Functions generating useful things
                 to_parameters=to_parameters,
@@ -268,15 +283,15 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 set_schedule_times=set_schedule_times,
                 run=run,
                 run_to_equilibrium=run_to_equilibrium,
+                serialise=serialise,
                 ## This is a hack for now:
                 store_sys_attribute=store_sys_attribute),
               private=list(
                 sys=NULL,
                 parameters=NULL,
                 seed_rain_initial=NA_real_,
-                last_p=NULL,
                 last_schedule=NULL))
-})
+  })
 ##' @export
 community <- function(...) {
   .R6_community$new(...)
@@ -286,7 +301,7 @@ community <- function(...) {
 .R6_assembler <- local({
   initialize <- function(community0, births_sys, deaths_sys,
                          filename=NULL) {
-    community <<- community0
+    community <<- community0$copy()
     births_sys <<- births_sys
     deaths_sys <<- deaths_sys
     history <<- list()
@@ -302,31 +317,25 @@ community <- function(...) {
       community$add_traits(to_add)
     }
   }
+  run_model <- function(type="single") {
+    if (type == "single") {
+      community$run()
+    } else if (type == "to_equilibrium") {
+      community$run_to_equilibrium()
+    } else {
+      stop("unknown type ", type)
+    }
+  }
   step <- function(type="single") {
-    f <- switch(type,
-      single=step_single,
-      to_equilibrium=step_to_equilibrium,
-      stop("unknown type ", type))
-    f()
-  }
-  step_single <- function() {
     message(sprintf("*** Assembler: step %d, (%d strategies)",
                     length(history), community$size()))
     births()
-    community$run()
-    deaths()
-    append()
-  }
-  step_to_equilibrium <- function() {
-    message(sprintf("*** Assembler: step %d, (%d strategies)",
-                    length(history), community$size()))
-    births()
-    community$run_to_equilibrium()
+    run_model(type)
     deaths()
     append()
   }
   append <- function() {
-    history <<- c(history, list(community$copy()))
+    history <<- c(history, list(community$serialise()))
     if (!is.null(filename)) {
       ok <- try(saveRDS(history, filename))
       if (inherits(ok, "try-error")) {
@@ -348,8 +357,7 @@ community <- function(...) {
                 deaths=deaths,
                 births=births,
                 step=step,
-                step_single=step_single,
-                step_to_equilibrium=step_to_equilibrium,
+                run_model=run_model,
                 run_nsteps=run_nsteps,
                 get_community=function() community,
                 get_history=function() history
@@ -368,21 +376,26 @@ assembler <- function(...) {
   .R6_assembler$new(...)
 }
 
-restore_community <- function(x, p, recompute=TRUE) {
-  if (!inherits(x, "community")) {
-    stop("Expected x to be a community object")
-  }
+restore_community <- function(x, p, recompute=FALSE) {
   if (!inherits(p, "Rcpp_Parameters")) {
     stop("Expected p to be a Parameters object")
   }
-  x$private$parameters <- p$copy()
+  if (inherits(x, "community")) {
+    x <- x$copy()
+    x$private$parameters <- p$copy()
+  } else if (inherits(x, "community_serialised")) {
+    x <- community(p$copy(), sys0=x$sys,
+                   trait_names=x$trait_names, bounds=x$bounds,
+                   seed_rain_initial=x$seed_rain_initial)
+  } else {
+    stop("Expected x to be a community or community_serialised object")
+  }
   if (recompute) {
     x$run(FALSE)
   }
+  x
 }
 
-restore_saved_history <- function(x, p, recompute=FALSE) {
-  for (i in x) {
-    restore_community(i, p, recompute)
-  }
+restore_history <- function(x, p, recompute=FALSE) {
+  lapply(x, restore_community, p, recompute)
 }

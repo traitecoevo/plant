@@ -30,7 +30,8 @@ make_births_sample_positive <- function(n) {
 ## Quickly compute a spline function with n points based on the
 ## fitness function:
 fitness_landscape_grid <- function(community, n=50,
-                                   finite_only=TRUE, log_space=TRUE) {
+                                   finite_only=TRUE, log_space=TRUE,
+                                   force=TRUE) {
   if (!inherits(community, "community")) {
     stop("Expected a community object")
   }
@@ -43,7 +44,7 @@ fitness_landscape_grid <- function(community, n=50,
   } else {
     x <- seq(bounds[[1]], bounds[[2]], length.out=n)
   }
-  mutant_seed_rain <- community$make_landscape()
+  mutant_seed_rain <- community$make_landscape(force)
   if (is.null(mutant_seed_rain)) {
     stop("Constructing fitness landscape failed")
   }
@@ -54,7 +55,9 @@ fitness_landscape_grid <- function(community, n=50,
   cbind(m)
 }
 
-fitness_landscape_approximate <- function(community, n=50L) {
-  xy <- fitness_landscape_grid(community, n)
+fitness_landscape_approximate <- function(community, n=50L,
+                                          log_space=TRUE, force=TRUE) {
+  xy <- fitness_landscape_grid(community, n, log_space=log_space,
+                               force=force)
   splinefun_log(xy[,1], xy[,2])
 }
