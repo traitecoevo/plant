@@ -4,15 +4,15 @@
 \title{Compute Region of Positive Fitnes}
 \usage{
 viable_fitness(trait, p, bounds = NULL, value = NULL, log_scale = TRUE,
-  dx = 1)
+  dx = 1, find_max_if_negative = TRUE)
 }
 \arguments{
 \item{trait}{Name of the trait (e.g., \code{"lma"})}
 
-\item{bounds}{2D vector specifing range within which to search}
-
 \item{p}{Parameters object to use.  Importantly, the
 \code{strategy_default} element gets used here.}
+
+\item{bounds}{2D vector specifing range within which to search}
 
 \item{value}{Initial value - must have positive fitness itself!
 If not given, then the value from the default strategy within
@@ -23,6 +23,9 @@ so, this will greatly speed things up.}
 
 \item{dx}{Amount to step the trait.  If \code{log_scale} is
 \code{TRUE}, this is on a log scale.}
+
+\item{find_max_if_negative}{If the starting value has negative
+fitness, should we search for the maximum value?}
 }
 \description{
 Compute region of positive fitness.  This will be the values where

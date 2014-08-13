@@ -3,11 +3,12 @@ assembler_sample_positive <- function(community0,
                                       n_sample=1L,
                                       seed_rain_eps=1e-3,
                                       compute_viable_fitness=TRUE,
+                                      jump_to_attractor=FALSE,
                                       filename=NULL) {
   births_sys <- make_births_sample_positive(n_sample)
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
   assembler(community0, births_sys, deaths_sys, filename,
-            compute_viable_fitness)
+            compute_viable_fitness, jump_to_attractor)
 }
 
 make_births_sample_positive <- function(n) {
@@ -56,6 +57,7 @@ fitness_landscape_grid <- function(community, n=50,
   cbind(m)
 }
 
+##' @export
 fitness_landscape_approximate <- function(community, n=50L,
                                           log_space=TRUE, force=TRUE,
                                           bounds=NULL) {

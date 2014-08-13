@@ -25,24 +25,19 @@ tmp <- readRDS(filename)
 f <- tmp[[1]]$landscape_approximate
 lma <- tree:::seq_log_range(tmp[[1]]$bounds, 200)
 plot(lma, f(lma), log="x", type="l")
-foo <- tree:::restore_history(tmp, p0)
-foo$landscape_approximate
+h <- tree:::restore_history(tmp, p0)
 
 ## Starting again...
 sys0 <- community(p0, "lma", bounds=max_bounds)
-obj <- assembler_sample_positive(sys0, compute_viable_fitness=TRUE)
+sys0$set_viable_bounds()
+sys0$jump_to_attractor()
+f <- fitness_landscape_approximate(sys0)
 
-# solve for 1D ESS
-# todo: should this be a function within assembler? Could then save result directly in community, icnluding seed rain
-root <- find_singularity_1D(sys0$trait_names, interval = obj$get_community()$bounds, p = sys0$to_parameters(), tol = 1e-03)
-root <- list(root= 0.07989016, f.root=-0.02790277, iter=16, estim.prec=5e-05)
+lma <- seq_log_range(sys0$bounds, 400)
+plot(lma, f(lma), type="l", log="x")
+abline(v=sys0$traits(TRUE), h=0, col="red")
 
-#run landscape and check for positive areas
-
-# Run assembler using above solution as starting point
-
-set.seed(1)
-sys1 <- community(p0, "lma", seed_rain_initial=1e-3, bounds=obj$get_community()$bounds)
-sys1$add_traits(rbind(lma=root$root))
-obj2 <- assembler_sample_positive(sys1, bounds <- obj$get_community()$bounds, compute_viable_fitness=FALSE)
-obj2$step("to_equilibrium") # This not working
+## And again, using an argument to the assembler:
+sys0 <- community(p0, "lma", bounds=max_bounds)
+obj <- assembler_sample_positive(sys0, compute_viable_fitness=TRUE,
+                                 jump_to_attractor=TRUE)

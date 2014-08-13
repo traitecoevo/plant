@@ -210,20 +210,19 @@ positive <- function(f, x, dx, lower=-Inf, upper=Inf, eps=1e-3) {
 #' @param verbose=TRUE prints details to screen
 #' @author Daniel Falster
 #' @export
-get_equilibrium_community <- function(trait, values, p, seed_rain = NULL, verbose = TRUE) {
-    p <- p$copy()
-    p$clear()
-    if (verbose)
-        p$set_control_parameters(equilibrium_verbose())
-    p <- expand_parameters(trait, values, p, FALSE)
-    if (!is.null(seed_rain)) {
-        if (length(values) != length(seed_rain))
-            stop("incorrect vector lengths")
-        p$seed_rain <- seed_rain
+get_equilibrium_community <- function(trait, values, p, seed_rain=NULL) {
+  p <- p$copy()
+  p$clear()
+  p <- expand_parameters(trait, values, p, FALSE)
+  if (!is.null(seed_rain)) {
+    if (length(values) != length(seed_rain)) {
+      stop("incorrect vector lengths")
     }
-    res <- equilibrium_seed_rain(p)
-    p$seed_rain <- mean(res$seed_rain)
-    list(p = p, schedule = res$schedule)
+    p$seed_rain <- seed_rain
+  }
+  res <- equilibrium_seed_rain(p)
+  p$seed_rain <- mean(res$seed_rain)
+  list(p=p, schedule=res$schedule)
 }
 
 #' Find evolutionary attractor for single species and trait.
@@ -241,17 +240,14 @@ get_equilibrium_community <- function(trait, values, p, seed_rain = NULL, verbos
 #' gives starting values when solving for demographic equilibrium
 #' @author Daniel Falster
 #' @export
-#' @return Same as \code{uniroot} function: A list with at least
-#' four components:
-#' ‘root’ and ‘f.root’ give the location of the root and the
-#' value of the function evaluated at that point. ‘iter’ and
-#' ‘estim.prec’ give the number of iterations
-find_singularity_1D <- function(trait, interval, p, tol = 1e-04, ...) {
-    f <- function(x) selection_gradient1(trait, x, p, ...)
-    # Note for Rich: when integrating into the community, rename
-    # elements here, or return everything except location as an attribute.
-    # Ideally this will return a species object.
-    uniroot(f, interval, tol = tol)
+#' @return A species object, with trait, seed rain and cohort schedule
+#' information.
+find_singularity_1D <- function(trait, interval, p, tol = 1e-03, ...) {
+  f <- function(x) selection_gradient1(trait, x, p, ...)
+  res <- uniroot(f, interval, tol = tol)
+  species(structure(list(res$root), names=trait),
+          seed_rain=attr(res$f.root, "seed_rain"),
+          cohort_schedule_times=attr(res$f.root, "schedule")$times(1))
 }
 
 #' Returns selection gradient in single species communities
@@ -277,8 +273,9 @@ find_singularity_1D <- function(trait, interval, p, tol = 1e-04, ...) {
 #' @export
 #' @seealso selection_gradient1
 #' @return a vector of values with same length as \code{values}.
-selection_gradient <- function(trait, values, p, dx = 1e-04, log_scale = TRUE, seed_rain = NULL,
-    verbose = TRUE) {
+selection_gradient <- function(trait, values, p, dx=1e-04,
+                               log_scale=TRUE, seed_rain=NULL,
+                               verbose=TRUE) {
     N <- length(values)
     ret <- rep(NA_real_, N)
     ret_seed_rain <- rep(NA_real_, N)
@@ -316,20 +313,24 @@ selection_gradient <- function(trait, values, p, dx = 1e-04, log_scale = TRUE, s
 #' @seealso selection_gradient
 #' @return a single value. The equilibirum seed rain is included as
 #' an attribute.
-selection_gradient1 <- function(trait, value, p, dx = 1e-04, log_scale = TRUE, seed_rain = NULL,
-    verbose = TRUE) {
+selection_gradient1 <- function(trait, value, p, dx=1e-04,
+                                log_scale=TRUE, seed_rain=NULL,
+                                verbose=TRUE) {
 
-    if (verbose)
-        message(sprintf("Calculating selection gradient for %s = %f", trait, value))
-    res <- get_equilibrium_community(trait, value, p, seed_rain = seed_rain, verbose = verbose)
+  if (verbose) {
+    message(sprintf("Calculating selection gradient for %s = %f",
+                    trait, value))
+  }
+  res <- get_equilibrium_community(trait, value, p, seed_rain=seed_rain)
 
-    f <- function(x) landscape(trait, x, res$p, res$schedule)
-    ret <- gradient_fd(f, value, dx, log_scale)
-    attr(ret, "seed_rain") <- res$p$seed_rain
-
-    if (verbose)
-        message(sprintf("selection gradient = %f", ret))
-    ret
+  f <- function(x) landscape(trait, x, res$p, res$schedule)
+  ret <- gradient_fd(f, value, dx, log_scale)
+  if (verbose) {
+    message(sprintf("\t...selection gradient = %f", ret))
+  }
+  attr(ret, "seed_rain") <- res$p$seed_rain
+  attr(ret, "schedule") <- res$schedule$copy()
+  ret
 }
 
 ##' Find point of maximum fitness in empty landscape

@@ -3,8 +3,7 @@
 \alias{get_equilibrium_community}
 \title{Solve for equilbrium community with given values of specified trait}
 \usage{
-get_equilibrium_community(trait, values, p, seed_rain = NULL,
-  verbose = TRUE)
+get_equilibrium_community(trait, values, p, seed_rain = NULL)
 }
 \arguments{
 \item{trait}{name of trait}

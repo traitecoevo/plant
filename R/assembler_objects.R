@@ -145,6 +145,16 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                               find_max_if_negative=find_max_if_negative)
     invisible(!is.null(bounds))
   }
+  jump_to_attractor <- function(tol=1e-3) {
+    message("Finding 1D attractor")
+    if (size() > 0) {
+      stop("Only possible if the community is empty")
+    } else if (!is.null(bounds)) {
+      sp <- find_singularity_1D(trait_names, bounds,
+                                to_parameters(), tol=tol)
+      add_species(sp)
+    }
+  }
   drop <- function(which) {
     if (is.logical(which)) {
       if (length(which) != size()) {
@@ -277,6 +287,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 to_parameters=to_parameters,
                 to_schedule=to_schedule,
                 set_viable_bounds=set_viable_bounds,
+                jump_to_attractor=jump_to_attractor,
                 make_landscape=make_landscape,
                 ## Fuctions that modify things:
                 set_seed_rain=set_seed_rain,
@@ -300,7 +311,9 @@ community <- function(...) {
 ## Then the highest level for now: the assembler:
 .R6_assembler <- local({
   initialize <- function(community0, births_sys, deaths_sys,
-                         filename=NULL, compute_viable_fitness=TRUE) {
+                         filename=NULL,
+                         compute_viable_fitness=TRUE,
+                         jump_to_attractor=FALSE) {
     community <<- community0$copy()
     births_sys <<- births_sys
     deaths_sys <<- deaths_sys
@@ -310,6 +323,10 @@ community <- function(...) {
       community$set_viable_bounds()
     }
     append()
+    if (jump_to_attractor) {
+      community$jump_to_attractor()
+      append()
+    }
   }
   deaths <- function() {
     deaths_sys(community)

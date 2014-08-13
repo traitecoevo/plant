@@ -3,7 +3,7 @@
 \alias{find_singularity_1D}
 \title{Find evolutionary attractor for single species and trait.}
 \usage{
-find_singularity_1D(trait, interval, p, tol = 1e-04, ...)
+find_singularity_1D(trait, interval, p, tol = 0.001, ...)
 }
 \arguments{
 \item{trait}{name of trait}
@@ -20,11 +20,8 @@ interval to be searched for the root.}
 gives starting values when solving for demographic equilibrium}
 }
 \value{
-Same as \code{uniroot} function: A list with at least
-four components:
-‘root’ and ‘f.root’ give the location of the root and the
-value of the function evaluated at that point. ‘iter’ and
-‘estim.prec’ give the number of iterations
+A species object, with trait, seed rain and cohort schedule
+information.
 }
 \description{
 Find evolutionary attractor for single species and trait.
