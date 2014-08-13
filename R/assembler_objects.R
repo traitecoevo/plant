@@ -166,6 +166,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       stop("Invalid index")
     }
     sys <<- sys[keep]
+    invisible(which)
   }
   add_traits <- function(x) {
     if (length(trait_names) == 1 && !is.matrix(x)) {
@@ -329,7 +330,14 @@ community <- function(...) {
     }
   }
   deaths <- function() {
-    deaths_sys(community)
+    died <- deaths_sys(community)
+    someone_died <- any(died)
+    if (someone_died) {
+      ## TODO: Ideally here we'd just filter out the dead species.
+      ## This should always work though, at the cost of an extra run
+      ## of the ebt.
+      community$private$last_schedule <- NULL
+    }
   }
   births <- function() {
     to_add <- births_sys(community)
