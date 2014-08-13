@@ -13,7 +13,7 @@ assembler_stochastic_naive <- function(community0,
     vcv <- mutational_vcv_proportion(community0$bounds, vcv_p)
   }
   if (compute_viable_fitness) {
-    community0$set_viable_bounds()
+    ok <- community0$set_viable_bounds()
   }
   ## This makes the immigrants come from the good (viable) bounds
   births_sys <- make_births_stochastic_naive(n_mutants, vcv,

@@ -5,7 +5,7 @@ assembler_sample_positive <- function(community0,
                                       compute_viable_fitness=FALSE,
                                       filename=NULL) {
   if (compute_viable_fitness) {
-    community0$set_viable_bounds()
+    ok <- community0$set_viable_bounds()
   }
   births_sys <- make_births_sample_positive(n_sample)
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)

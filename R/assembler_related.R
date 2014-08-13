@@ -47,9 +47,9 @@ carrying_capacity <- function(trait, values, p, seed_rain=1,
 ##'
 ##' @title Compute Region of Positive Fitnes
 ##' @param trait Name of the trait (e.g., \code{"lma"})
-##' @param bounds 2D vector specifing range within which to search
 ##' @param p Parameters object to use.  Importantly, the
 ##' \code{strategy_default} element gets used here.
+##' @param bounds 2D vector specifing range within which to search
 ##' @param value Initial value - must have positive fitness itself!
 ##' If not given, then the value from the default strategy within
 ##' \code{p} is used.
@@ -57,15 +57,17 @@ carrying_capacity <- function(trait, values, p, seed_rain=1,
 ##' so, this will greatly speed things up.
 ##' @param dx Amount to step the trait.  If \code{log_scale} is
 ##' \code{TRUE}, this is on a log scale.
+##' @param find_max_if_negative If the starting value has negative
+##' fitness, should we search for the maximum value?
 ##' @export
 ##' @author Rich FitzJohn
 viable_fitness <- function(trait, p, bounds=NULL, value=NULL,
-                           log_scale=TRUE, dx=1) {
-  if(length(trait) > 1)
+                           log_scale=TRUE, dx=1,
+                           find_max_if_negative=TRUE) {
+  if (length(trait) > 1) {
     stop("Doesn't yet support multiple traits")
-  if (is.null(value)) {
-    value <- p$strategy_default$parameters[[trait]]
   }
+  ## These will not generally be very good:
   if (is.null(bounds)) {
     if (log_scale) {
       bounds <- c(1e-5, 1e3)
@@ -73,8 +75,26 @@ viable_fitness <- function(trait, p, bounds=NULL, value=NULL,
       bounds <- c(-Inf, Inf)
     }
   }
-  if(value > bounds[2] || value < bounds[1])
+  if (is.null(value)) {
+    value <- p$strategy_default$parameters[[trait]]
+  }
+
+  if (value > bounds[2] || value < bounds[1]) {
     stop("Value does not lie within bounds")
+  }
+  w <- max_growth_rate(trait, value, p)
+  if (w < 0) {
+    if (find_max_if_negative) {
+      message("Starting value had negative fitness, looking for max")
+      value <- max_fitness(trait, p, bounds, log_scale)
+      w <- attr(value, "fitness")
+      message(sprintf("\t...found max fitness at %2.5f (w=%2.5f)", value, w))
+    }
+    if (w < 0) {
+      return(NULL)
+    }
+  }
+
   if (log_scale) {
     f <- function(x) {
       max_growth_rate(trait, exp(x), p)
@@ -325,20 +345,21 @@ selection_gradient1 <- function(trait, value, p, dx = 1e-04, log_scale = TRUE, s
 ##' @export
 ##' @author Daniel Falster, Rich FitzJohn
 max_fitness <- function(trait, p, bounds=NULL, log_scale=TRUE) {
-  if(length(trait) > 1)
+  if(length(trait) > 1) {
     stop("Doesn't yet support multiple traits")
+  }
+  ## These are unlikely to be very good in general.  Bounds must be
+  ## finite.
+  if (is.null(bounds)) {
+    bounds <- c(1e-5, 1e3)
+  }
   if (log_scale) {
-    if (is.null(bounds)) {
-      bounds <- c(1e-5, 1e3)
-    }
+    bounds <- log(bounds)
     f <- function(x) max_growth_rate(trait, exp(x), p)
   } else {
-    if (is.null(bounds))
-      bounds <- c(-Inf, Inf)
     f <- function(x) max_growth_rate(trait, x, p)
   }
-  out <- optimise(f, interval = bounds, maximum = TRUE, tol = 1E-3)
-  if (log_scale)
-    out$maximum <- exp(out$maximum)
-  out
+  out <- optimise(f, interval=bounds, maximum=TRUE, tol=1e-3)
+  structure(if (log_scale) exp(out$maximum) else out$maximum,
+            fitness=out$objective)
 }

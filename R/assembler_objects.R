@@ -132,7 +132,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       sys[[i]]$cohort_schedule_times <<- value$times(i)
     }
   }
-  set_viable_bounds <- function() {
+  set_viable_bounds <- function(find_max_if_negative=TRUE) {
     message("Computing viable bounds")
     if (nrow(bounds) != 1) {
       stop("This is not going to work with multiple traits yet")
@@ -140,8 +140,14 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     if (size() > 0) {
       warning("You probably don't want to run this on an existing community")
     }
-    bounds <<- viable_fitness(trait_names, to_parameters(),
-                              bounds=base::drop(bounds))
+    r <- viable_fitness(trait_names, to_parameters(),
+                        bounds=base::drop(bounds),
+                        find_max_if_negative=find_max_if_negative)
+    ok <- !is.null(r)
+    if (ok) {
+      bounds <<- r
+    }
+    invisible(ok)
   }
   drop <- function(which) {
     if (is.logical(which)) {
