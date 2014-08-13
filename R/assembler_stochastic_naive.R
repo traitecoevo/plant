@@ -1,36 +1,24 @@
 ##' @export
-assembler_stochastic_naive <- function(community0,
-                                       n_mutants=1L,
-                                       n_immigrants=1L,
-                                       vcv=NULL, vcv_p=0.001,
+assembler_stochastic_naive <- function(community0, vcv,
+                                       n_mutants=1L, n_immigrants=1L,
                                        seed_rain_eps=1e-3,
-                                       compute_viable_fitness=FALSE,
+                                       compute_viable_fitness=TRUE,
                                        filename=NULL) {
-  ## This is probably not a good idea and is causing some problems
-  ## because we are having problems with recomputing bounds (below).
-  ## Better would be to tidy this up on entry.
-  if (is.null(vcv)) {
-    vcv <- mutational_vcv_proportion(community0$bounds, vcv_p)
-  }
-  if (compute_viable_fitness) {
-    ok <- community0$set_viable_bounds()
-  }
-  ## This makes the immigrants come from the good (viable) bounds
-  births_sys <- make_births_stochastic_naive(n_mutants, vcv,
-                                             n_immigrants, community0$bounds)
+  births_sys <- make_births_stochastic_naive(n_mutants, vcv, n_immigrants)
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
-  assembler(community0, births_sys, deaths_sys, filename)
+  assembler(community0, births_sys, deaths_sys, filename,
+            compute_viable_fitness)
 }
 
 ## Support functions:
-make_births_stochastic_naive <- function(n_mutants, vcv, n_immigrants, bounds, check_positive=TRUE) {
+make_births_stochastic_naive <- function(n_mutants, vcv, n_immigrants,
+                                         check_positive=TRUE) {
   mutation    <- make_mutation_stochastic_naive(n_mutants, vcv)
-  immigration <- make_immigration_stochastic_naive(n_immigrants, bounds)
+  immigration <- make_immigration_stochastic_naive(n_immigrants)
   function(sys) {
-    to_add <- rbind(mutation(sys), immigration())
-    # check seed production of new mutants if possible
-    seed_production <- sys$make_landscape()
+    to_add <- rbind(mutation(sys), immigration(sys))
     if (check_positive && nrow(to_add) > 0) {
+      seed_production <- sys$make_landscape()
       R_new <- seed_production(to_add)
       to_add  <- to_add[R_new > 1,,drop=FALSE]
     }
@@ -63,20 +51,25 @@ make_mutation_stochastic_naive <- function(n_mutants, vcv) {
 }
 
 ## Immigration: Same from the bounds, in log space.
-make_immigration_stochastic_naive <- function(n_immigrants, bounds) {
-  lower <- log(bounds[,1])
-  range <- log(bounds[,2]) - lower
-  n_traits <- nrow(bounds)
-  function() {
-    n <- rpois(1, n_immigrants)
-    if (n == 0) {
-      m <- matrix(nrow=0, ncol=n_traits)
+make_immigration_stochastic_naive <- function(n_immigrants) {
+  function(sys) {
+    bounds <- sys$bounds
+    n_traits <- length(sys$trait_names)
+    if (is.null(bounds)) {
+      ret <- matrix(nrow=0, ncol=n_traits)
     } else {
-      u <- t(lhs::randomLHS(n, n_traits))
-      m <- exp(t(lower + range * u))
+      lower <- log(bounds[,1])
+      range <- log(bounds[,2]) - lower
+      n <- rpois(1, n_immigrants)
+      if (n == 0) {
+        ret <- matrix(nrow=0, ncol=n_traits)
+      } else {
+        u <- t(lhs::randomLHS(n, n_traits))
+        ret <- exp(t(lower + range * u))
+      }
     }
-    colnames(m) <- rownames(bounds)
-    m
+    colnames(ret) <- sys$trait_names
+    ret
   }
 }
 
@@ -87,6 +80,11 @@ make_deaths_stochastic_naive <- function(eps) {
   }
 }
 
-mutational_vcv_proportion <- function(bounds, p=0.001) {
+mutational_vcv_proportion <- function(x, p=0.001) {
+  if (inherits(x, "community")) {
+    bounds <- x$bounds
+  } else {
+    bounds <- x
+  }
   p * diag(nrow(bounds)) * as.numeric(diff(t(log(bounds))))
 }

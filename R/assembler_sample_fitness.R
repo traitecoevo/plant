@@ -2,27 +2,26 @@
 assembler_sample_positive <- function(community0,
                                       n_sample=1L,
                                       seed_rain_eps=1e-3,
-                                      compute_viable_fitness=FALSE,
+                                      compute_viable_fitness=TRUE,
                                       filename=NULL) {
-  if (compute_viable_fitness) {
-    ok <- community0$set_viable_bounds()
-  }
   births_sys <- make_births_sample_positive(n_sample)
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
-  assembler(community0, births_sys, deaths_sys, filename)
+  assembler(community0, births_sys, deaths_sys, filename,
+            compute_viable_fitness)
 }
 
 make_births_sample_positive <- function(n) {
   function(sys) {
-    f <- fitness_landscape_approximate(sys)
-    ret <- cbind(rejection_sample(n, f, sys$bounds))
-    colnames(ret) <- sys$trait_names
-
-    ## Store the landscape within the system object.  This is a bit of
-    ## a hack for now.
-    sys$store_sys_attribute(f, "landscape")
-    landscape_points <- with(environment(f), data.frame(trait=x, w=y))
-    sys$store_sys_attribute(landscape_points, "landscape_points")
+    if (is.null(sys$bounds)) {
+      ## No viable region
+      ret <- matrix(nrow=0, ncol=1)
+      colnames(ret) <- sys$trait_names
+    } else {
+      f <- fitness_landscape_approximate(sys)
+      ret <- cbind(rejection_sample(n, f, sys$bounds))
+      colnames(ret) <- sys$trait_names
+      attr(ret, "landscape_approximate") <- f
+    }
     ret
   }
 }
@@ -31,11 +30,13 @@ make_births_sample_positive <- function(n) {
 ## fitness function:
 fitness_landscape_grid <- function(community, n=50,
                                    finite_only=TRUE, log_space=TRUE,
-                                   force=TRUE) {
+                                   force=TRUE, bounds=NULL) {
   if (!inherits(community, "community")) {
     stop("Expected a community object")
   }
-  bounds <- community$bounds
+  if (is.null(bounds)) {
+    bounds <- community$bounds
+  }
   if (nrow(bounds) != 1) {
     stop("Only working for one trait at the moment")
   }
@@ -56,8 +57,9 @@ fitness_landscape_grid <- function(community, n=50,
 }
 
 fitness_landscape_approximate <- function(community, n=50L,
-                                          log_space=TRUE, force=TRUE) {
+                                          log_space=TRUE, force=TRUE,
+                                          bounds=NULL) {
   xy <- fitness_landscape_grid(community, n, log_space=log_space,
-                               force=force)
+                               force=force, bounds=bounds)
   splinefun_log(xy[,1], xy[,2])
 }

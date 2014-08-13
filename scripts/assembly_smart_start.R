@@ -4,28 +4,32 @@ p0 <- new(Parameters)
 p0$set_parameters(list(patch_area=1.0))
 p0$set_control_parameters(fast_control())
 p0$set_control_parameters(list(schedule_verbose=TRUE))
+p0$disturbance <- new(Disturbance, 10)
 
 max_bounds <- rbind(lma=c(0.01, 10))
 
 # Set parameters of ecological model
 
-sys0 <- community(p0, "lma", seed_rain_initial=1e-3,
-                  bounds=max_bounds)
+## Get a community started, and take one step:
+sys0 <- community(p0, "lma", bounds=max_bounds)
+obj <- assembler_sample_positive(sys0)
+obj$step()
 
-# Find point of maximum fitness
-# Todo: should this be a function of community?
-# only need to do this is default value for trait has neg fitness
-# Function has problems when bounds are too extreme. Use bracketing
-# to isolate where peak is?
-max_fit <- tree:::max_fitness(sys0$trait_names, sys0$to_parameters(),
-                        sys0$bounds)
+## Do we have an approximate landscape for the empty community?
+obj$get_history()[[1]]
 
+## Check the load/save cycle:
+filename <- "test_restore.rds"
+saveRDS(obj$get_history(), filename)
+tmp <- readRDS(filename)
+f <- tmp[[1]]$landscape_approximate
+lma <- tree:::seq_log_range(tmp[[1]]$bounds, 200)
+plot(lma, f(lma), log="x", type="l")
+foo <- tree:::restore_history(tmp, p0)
+foo$landscape_approximate
 
-
-if(max_fit$objective < 0)
-	stop("Finished: No region of positive fitness exists")
-
-
+## Starting again...
+sys0 <- community(p0, "lma", bounds=max_bounds)
 obj <- assembler_sample_positive(sys0, compute_viable_fitness=TRUE)
 
 # solve for 1D ESS

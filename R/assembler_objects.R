@@ -140,14 +140,10 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     if (size() > 0) {
       warning("You probably don't want to run this on an existing community")
     }
-    r <- viable_fitness(trait_names, to_parameters(),
-                        bounds=base::drop(bounds),
-                        find_max_if_negative=find_max_if_negative)
-    ok <- !is.null(r)
-    if (ok) {
-      bounds <<- r
-    }
-    invisible(ok)
+    bounds <<- viable_fitness(trait_names, to_parameters(),
+                              bounds=base::drop(bounds),
+                              find_max_if_negative=find_max_if_negative)
+    invisible(!is.null(bounds))
   }
   drop <- function(which) {
     if (is.logical(which)) {
@@ -252,9 +248,6 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     }
     f
   }
-  store_sys_attribute <- function(value, name) {
-    attr(sys, name) <<- value
-  }
   ## This is used in serialisation to avoid saving things that are
   ## very slow to load.  Basically we save all the data members except
   ## for parameters and last_schedule
@@ -262,7 +255,8 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     ret <- list(sys=sys,
                 trait_names=trait_names,
                 bounds=bounds,
-                seed_rain_initial=seed_rain_initial)
+                seed_rain_initial=seed_rain_initial,
+                landscape_approximate=landscape_approximate)
     class(ret) <- "community_serialised"
     ret
   }
@@ -291,7 +285,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 run_to_equilibrium=run_to_equilibrium,
                 serialise=serialise,
                 ## This is a hack for now:
-                store_sys_attribute=store_sys_attribute),
+                landscape_approximate=NULL),
               private=list(
                 sys=NULL,
                 parameters=NULL,
@@ -306,12 +300,15 @@ community <- function(...) {
 ## Then the highest level for now: the assembler:
 .R6_assembler <- local({
   initialize <- function(community0, births_sys, deaths_sys,
-                         filename=NULL) {
+                         filename=NULL, compute_viable_fitness=TRUE) {
     community <<- community0$copy()
     births_sys <<- births_sys
     deaths_sys <<- deaths_sys
     history <<- list()
     filename <<- filename
+    if (compute_viable_fitness) {
+      community$set_viable_bounds()
+    }
     append()
   }
   deaths <- function() {
@@ -319,6 +316,12 @@ community <- function(...) {
   }
   births <- function() {
     to_add <- births_sys(community)
+    ## The birth function might generate a landscape: if so, it
+    ## corresponds to the *previous* community, so we'll want to save
+    ## that back.
+    if (!is.null(f <- attr(to_add, "landscape_approximate"))) {
+      history[[length(history)]]$landscape_approximate <<- f
+    }
     if (nrow(to_add) > 0) {
       community$add_traits(to_add)
     }
@@ -387,19 +390,20 @@ restore_community <- function(x, p, recompute=FALSE) {
     stop("Expected p to be a Parameters object")
   }
   if (inherits(x, "community")) {
-    x <- x$copy()
-    x$private$parameters <- p$copy()
+    ret <- x$copy()
+    ret$private$parameters <- p$copy()
   } else if (inherits(x, "community_serialised")) {
-    x <- community(p$copy(), sys0=x$sys,
-                   trait_names=x$trait_names, bounds=x$bounds,
-                   seed_rain_initial=x$seed_rain_initial)
+    ret <- community(p$copy(), sys0=x$sys,
+                     trait_names=x$trait_names, bounds=x$bounds,
+                     seed_rain_initial=x$seed_rain_initial)
+    ret$landscape_approximate <- x$landscape_approximate
   } else {
     stop("Expected x to be a community or community_serialised object")
   }
   if (recompute) {
-    x$run(FALSE)
+    ret$run(FALSE)
   }
-  x
+  ret
 }
 
 restore_history <- function(x, p, recompute=FALSE) {
