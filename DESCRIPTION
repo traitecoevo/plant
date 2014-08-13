@@ -8,13 +8,15 @@ Description: Implements EBT (Falster et al. 2010) and an individual
     based model.
 License: GPL (>=2)
 Depends:
-    methods,
+    methods
+Imports:
     Rcpp (>= 0.10.3),
     R6,
-    assertthat
+    assertthat,
+    parallel,
+    lhs
 SystemRequirements: gsl (>= 1.12)
 Suggests:
     testthat, numDeriv, deSolve, digest
 LinkingTo: Rcpp
 RcppModules: tree
-Imports: R6, assertthat, parallel, lhs
