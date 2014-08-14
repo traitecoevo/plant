@@ -452,6 +452,7 @@ assembler <- function(...) {
   .R6_assembler$new(...)
 }
 
+##' @export
 restore_community <- function(x, p, recompute=FALSE) {
   if (!inherits(p, "Rcpp_Parameters")) {
     stop("Expected p to be a Parameters object")
@@ -473,6 +474,37 @@ restore_community <- function(x, p, recompute=FALSE) {
   ret
 }
 
+##' @export
 restore_history <- function(x, p, recompute=FALSE) {
   lapply(x, restore_community, p, recompute)
+}
+
+##' @export
+add_approximate_landscape <- function(community) {
+  if (!inherits(community, "community")) {
+    stop("Expected a community object")
+  }
+  if (is.null(community$landscape_approximate)) {
+    community$landscape_approximate <-
+      fitness_landscape_approximate(community)
+  }
+}
+
+##' @export
+add_approximate_landscapes <- function(h, p, filename=NULL,
+                                       write_each=TRUE) {
+  for (i in seq_along(h)) {
+    message(sprintf("Updating history %d/%d", i, length(h)))
+    x <- restore_community(h[[i]], p)
+    add_approximate_landscape(x)
+    h[[i]] <- x$serialise()
+    if (!is.null(filename) && write_each) {
+      saveRDS(h, filename)
+    }
+  }
+  if (!is.null(filename)) {
+    saveRDS(h, filename)
+  }
+
+  h
 }
