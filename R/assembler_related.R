@@ -123,6 +123,7 @@ carrying_capacity1 <- function(trait, value, p, seed_rain=1) {
     schedule <- default_cohort_schedule(p)
   }
   res <- equilibrium_seed_rain(p)
+  warning("Please fix seed rain mean", immediate.=TRUE)
   rowMeans(res$seed_rain)
 }
 
@@ -221,7 +222,9 @@ get_equilibrium_community <- function(trait, values, p, seed_rain=NULL) {
     p$seed_rain <- seed_rain
   }
   res <- equilibrium_seed_rain(p)
-  p$seed_rain <- mean(res$seed_rain)
+  ## Take the *final*, not the mean value: this is important for
+  ## assembly.  TODO: make this change elsewhere too.
+  p$seed_rain <- unname(res$seed_rain[,"out"])
   list(p=p, schedule=res$schedule)
 }
 

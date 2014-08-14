@@ -43,9 +43,10 @@ sys0 <- community(p, "lma", bounds=max_bounds)
 
 vcv <- mutational_vcv_proportion(max_bounds, 0.001)
 obj_sample <- assembler_sample_positive(sys0)
-obj_sample$run_nsteps(20)
-obj_sample$run_nsteps(20, "to_equilibrium")
+obj_sample$private$done
 
-obj_naive <- assembler_stochastic_naive(sys0, vcv)
+obj_sample$run_nsteps(20)
+
+obj_naive <- assembler_stochastic_naive(sys0, vcv,
+                                        run_type="to_equilibrium")
 obj_naive$run_nsteps(20)
-obj_naive$run_nsteps(20, "to_equilibrium")

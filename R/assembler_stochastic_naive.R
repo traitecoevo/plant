@@ -1,14 +1,10 @@
 ##' @export
 assembler_stochastic_naive <- function(community0, vcv,
                                        n_mutants=1L, n_immigrants=1L,
-                                       seed_rain_eps=1e-3,
-                                       compute_viable_fitness=TRUE,
-                                       jump_to_attractor=FALSE,
-                                       filename=NULL) {
+                                       seed_rain_eps=1e-3, ...) {
   births_sys <- make_births_stochastic_naive(n_mutants, vcv, n_immigrants)
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
-  assembler(community0, births_sys, deaths_sys, filename,
-            compute_viable_fitness, jump_to_attractor)
+  assembler(community0, births_sys, deaths_sys, ...)
 }
 
 ## Support functions:

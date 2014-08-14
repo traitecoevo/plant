@@ -1,14 +1,9 @@
 ##' @export
-assembler_sample_positive <- function(community0,
-                                      n_sample=1L,
-                                      seed_rain_eps=1e-3,
-                                      compute_viable_fitness=TRUE,
-                                      jump_to_attractor=FALSE,
-                                      filename=NULL) {
+assembler_sample_positive <- function(community0, n_sample=1L,
+                                      seed_rain_eps=1e-3, ...) {
   births_sys <- make_births_sample_positive(n_sample)
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
-  assembler(community0, births_sys, deaths_sys, filename,
-            compute_viable_fitness, jump_to_attractor)
+  assembler(community0, births_sys, deaths_sys, ...)
 }
 
 make_births_sample_positive <- function(n) {
@@ -22,6 +17,7 @@ make_births_sample_positive <- function(n) {
       ret <- cbind(rejection_sample(n, f, sys$bounds))
       colnames(ret) <- sys$trait_names
       attr(ret, "landscape_approximate") <- f
+      attr(ret, "done") <- nrow(ret) == 0
     }
     ret
   }

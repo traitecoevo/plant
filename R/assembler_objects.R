@@ -118,6 +118,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     for (i in seq_len(n)) {
       sys[[i]]$seed_rain <<- value[[i]]
     }
+    clear_cached_data()
   }
   set_schedule_times <- function(value) {
     if (!inherits(value, "Rcpp_CohortSchedule")) {
@@ -131,6 +132,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     for (i in seq_len(n)) {
       sys[[i]]$cohort_schedule_times <<- value$times(i)
     }
+    clear_cached_data()
   }
   set_viable_bounds <- function(find_max_if_negative=TRUE) {
     message("Computing viable bounds")
@@ -143,6 +145,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     bounds <<- viable_fitness(trait_names, to_parameters(),
                               bounds=base::drop(bounds),
                               find_max_if_negative=find_max_if_negative)
+    clear_cached_data()
     invisible(!is.null(bounds))
   }
   jump_to_attractor <- function(tol=1e-3) {
@@ -165,7 +168,10 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     } else { # should handle integers some time
       stop("Invalid index")
     }
-    sys <<- sys[keep]
+    if (!all(keep)) {
+      sys <<- sys[keep]
+      clear_cached_data()
+    }
     invisible(which)
   }
   add_traits <- function(x) {
@@ -196,6 +202,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       stop("All elements must be an species")
     }
     sys <<- append(sys, x)
+    clear_cached_data()
   }
   run <- function(compute_schedule=TRUE) {
     if (size() > 0) {
@@ -271,6 +278,14 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     class(ret) <- "community_serialised"
     ret
   }
+
+  ## Drop things that depend on the structure of the community not
+  ## changing.
+  clear_cached_data <- function() {
+    last_schedule <<- NULL
+    landscape_approximate <<- NULL
+  }
+
   R6::R6Class("community",
               # portable=FALSE, # for R6 > CRAN
               public=list(
@@ -296,6 +311,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 run=run,
                 run_to_equilibrium=run_to_equilibrium,
                 serialise=serialise,
+                clear_cached_data=clear_cached_data,
                 ## This is a hack for now:
                 landscape_approximate=NULL),
               private=list(
@@ -310,18 +326,28 @@ community <- function(...) {
 }
 
 ## Then the highest level for now: the assembler:
+##
+## TODO: Nailing the termination criterion here is hard.  We want to
+## terminate when:
+##   bounds are NULL
+##   no positive fitness in birth *and* we're running to equilibrium
+## There will be other conditions soon, such as not much change in the
+## community.
 .R6_assembler <- local({
   initialize <- function(community0, births_sys, deaths_sys,
                          filename=NULL,
                          compute_viable_fitness=TRUE,
-                         jump_to_attractor=FALSE) {
+                         jump_to_attractor=FALSE,
+                         run_type="single") {
     community <<- community0$copy()
     births_sys <<- births_sys
     deaths_sys <<- deaths_sys
     history <<- list()
     filename <<- filename
+    run_type <<- match.arg(run_type, c("single", "to_equilibrium"))
     if (compute_viable_fitness) {
       community$set_viable_bounds()
+      done <<- is.null(community$bounds)
     }
     append()
     if (jump_to_attractor) {
@@ -330,14 +356,7 @@ community <- function(...) {
     }
   }
   deaths <- function() {
-    died <- deaths_sys(community)
-    someone_died <- any(died)
-    if (someone_died) {
-      ## TODO: Ideally here we'd just filter out the dead species.
-      ## This should always work though, at the cost of an extra run
-      ## of the ebt.
-      community$private$last_schedule <- NULL
-    }
+    deaths_sys(community)
   }
   births <- function() {
     to_add <- births_sys(community)
@@ -350,23 +369,32 @@ community <- function(...) {
     if (nrow(to_add) > 0) {
       community$add_traits(to_add)
     }
+    ## This is a bit ugly: we only really want to respond to no births
+    ## with being done if we are running to equilibrium.  If we're
+    ## using the simple step, there is no way of finishing here
+    ## unless we look to a limited amount of change in the commuity
+    ## since last step.
+    if (has_attr(to_add, "done")) {
+      done <<- run_type == "to_equilibrium" && attr(to_add, "done")
+    }
   }
-  run_model <- function(type="single") {
-    if (type == "single") {
+  run_model <- function() {
+    if (run_type == "single") {
       community$run()
     } else if (type == "to_equilibrium") {
       community$run_to_equilibrium()
     } else {
+      ## Should not get here now.
       stop("unknown type ", type)
     }
   }
-  step <- function(type="single") {
+  step <- function() {
     message(sprintf("*** Assembler: step %d, (%d strategies), %s",
-                    length(history), community$size(), type))
-    births()
-    run_model(type)
-    deaths()
-    append()
+                    length(history), community$size(), run_type))
+    if (!done) births()
+    if (!done) run_model()
+    if (!done) deaths()
+    if (!done) append()
   }
   append <- function() {
     history <<- c(history, list(community$serialise()))
@@ -374,7 +402,11 @@ community <- function(...) {
   }
   run_nsteps <- function(n, type="single") {
     for(i in seq_len(n)) {
-       step(type)
+      if (done) {
+        message(sprintf("Assembly completed after %d steps", i))
+        break
+      }
+      step()
     }
   }
   save_to_file <- function(must_work=FALSE) {
@@ -410,6 +442,8 @@ community <- function(...) {
                 deaths_sys=NULL,
                 history=NULL,
                 filename=NULL,
+                done=FALSE,
+                run_type="single",
                 append=append
                 ))
 })

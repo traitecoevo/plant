@@ -166,7 +166,8 @@ splinefun_log <- function(x, y, ...) {
 ##   1. univariate function
 ##   2. uniform approximation to f is a reasonable upper bound
 ##   3. that f_max > f for all x
-rejection_sample <- function(n, f, bounds, f_max=NULL, log_space=TRUE) {
+rejection_sample <- function(n, f, bounds, f_max=NULL, log_space=TRUE,
+                             action_nopositive=message) {
   rejection_sample_iter <- function() {
     x <- runif(n, bounds[[1]], bounds[[2]])
     fx <- f(x)
@@ -184,16 +185,17 @@ rejection_sample <- function(n, f, bounds, f_max=NULL, log_space=TRUE) {
   if (is.null(f_max)) {
     f_max <- max(f(seq(bounds[[1]], bounds[[2]], length.out=501))) * 1.2
   }
-  if (f_max < 0) {
-    stop("No positive values present/detected")
-  }
   res <- numeric(0)
-  while (length(res) < n) {
-    res <- c(res, rejection_sample_iter())
-  }
-  res <- res[seq_len(n)]
-  if (log_space) {
-    res <- exp(res)
+  if (f_max <= 0) {
+    action_nopositive("No positive values found")
+  } else {
+    while (length(res) < n) {
+      res <- c(res, rejection_sample_iter())
+    }
+    res <- res[seq_len(n)]
+    if (log_space) {
+      res <- exp(res)
+    }
   }
   res
 }
@@ -208,4 +210,8 @@ reload_r <- function(path=.TREE_PATH) {
     source(f, local=FALSE)
   }
   invisible(TRUE)
+}
+
+has_attr <- function(x, which, exact=TRUE) {
+  !is.null(attr(x, which, exact))
 }

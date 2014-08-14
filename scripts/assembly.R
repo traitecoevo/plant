@@ -7,11 +7,13 @@ p0$set_parameters(list(patch_area=1.0))
 p0$set_control_parameters(fast_control())
 p0$set_control_parameters(list(schedule_verbose=TRUE))
 p0$strategy_default <- new(Strategy, list(lma=10))
-p0$disturbance <- new(Disturbance, 1)
+p0$disturbance <- new(Disturbance, 7)
+
+max_bounds <- rbind(lma=c(0.01, 10))
 
 reload_r()
 sys0 <- community(p0, "lma", seed_rain_initial=1e-3,
-                  bounds=rbind(lma=c(0.01, 10)))
+                  bounds=max_bounds)
 ok <- sys0$set_viable_bounds(find_max_if_negative=TRUE)
 
 f <- fitness_landscape_approximate(sys0)
@@ -31,7 +33,12 @@ x <- tree:::max_fitness(sys0$trait_names, sys0$to_parameters(),
 
 
 # Make assembler
-obj <- assembler_stochastic_naive(sys0, compute_viable_fitness=TRUE)
+mutational_vcv_proportion <- tree:::mutational_vcv_proportion
+vcv <- mutational_vcv_proportion(max_bounds, 0.001)
+
+sys0 <- community(p0, "lma", seed_rain_initial=1e-3,
+                  bounds=max_bounds)
+obj <- assembler_stochastic_naive(sys0, vcv)
 
 # Run assembler
 set.seed(1)
