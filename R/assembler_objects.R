@@ -268,13 +268,18 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
   }
   ## This is used in serialisation to avoid saving things that are
   ## very slow to load.  Basically we save all the data members except
-  ## for parameters and last_schedule
+  ## for parameters and last_schedule.
+  ##
+  ## I'm dumping the parameters out here, though this costs about 12kb
+  ## of memory to save.  It's going to end up duplicated over every
+  ## community within an assembly.
   serialise <- function() {
     ret <- list(sys=sys,
                 trait_names=trait_names,
                 bounds=bounds,
                 seed_rain_initial=seed_rain_initial,
                 landscape_approximate=landscape_approximate)
+    attr(ret, "parameters") <- serialise_parameters(parameters)
     class(ret) <- "community_serialised"
     ret
   }
@@ -453,15 +458,25 @@ assembler <- function(...) {
 }
 
 ##' @export
-restore_community <- function(x, p, recompute=FALSE) {
-  if (!inherits(p, "Rcpp_Parameters")) {
-    stop("Expected p to be a Parameters object")
+restore_community <- function(x, p=NULL, recompute=FALSE) {
+  if (has_attr(x, "parameters")) {
+    if (!is.null(p)) {
+      warning("Ignoring given set of parameters")
+    }
+    p <- unserialise_parameters(attr(x, "parameters"))
+  } else {
+    if (!inherits(p, "Rcpp_Parameters")) {
+      stop("Expected p to be a Parameters object")
+    }
+    warning("Please resave this data set with parameters")
+    p <- p$copy()
   }
+  ## OK, what is the use case in the first clause?  That makes no sense.
   if (inherits(x, "community")) {
     ret <- x$copy()
-    ret$private$parameters <- p$copy()
+    ret$private$parameters <- p
   } else if (inherits(x, "community_serialised")) {
-    ret <- community(p$copy(), sys0=x$sys,
+    ret <- community(p, sys0=x$sys,
                      trait_names=x$trait_names, bounds=x$bounds,
                      seed_rain_initial=x$seed_rain_initial)
     ret$landscape_approximate <- x$landscape_approximate
@@ -475,7 +490,7 @@ restore_community <- function(x, p, recompute=FALSE) {
 }
 
 ##' @export
-restore_history <- function(x, p, recompute=FALSE) {
+restore_history <- function(x, p=NULL, recompute=FALSE) {
   lapply(x, restore_community, p, recompute)
 }
 

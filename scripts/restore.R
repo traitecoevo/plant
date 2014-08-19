@@ -39,3 +39,7 @@ tmp1 <- readRDS("restore.rds.1")
 tmp2 <- readRDS("restore.rds.2")
 all.equal(sapply(tmp1, function(x) x$landscape_approximate(lma)), w)
 all.equal(sapply(tmp2, function(x) x$landscape_approximate(lma)), w)
+
+## Super fast on the way back through, because history is already
+## there.
+h1 <- add_approximate_landscapes(h1, p0)

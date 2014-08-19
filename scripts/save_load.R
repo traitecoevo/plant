@@ -36,12 +36,9 @@ sys0$serialise()
 ## Dump this into a file and reload.
 filename <- "test_restore.rds"
 saveRDS(sys0$serialise(), filename)
-obj <- restore_community(readRDS(filename), p0, FALSE)
+obj <- restore_community(readRDS(filename))
 ## when computing the fitness landscape, ode times will be computed
 ## automatically.
-f <- fitness_landscape_approximate(obj)
-
-obj <- restore_community(dat, p0, TRUE)
 f <- fitness_landscape_approximate(obj)
 
 lma <- seq_log_range(obj$bounds, 400)
@@ -56,7 +53,7 @@ obj$run_nsteps(5)
 ## Save the history to a file:
 saveRDS(obj$get_history(), filename)
 ## Reload the history:
-h0 <- restore_history(readRDS(filename), p0, FALSE)
+h0 <- restore_history(readRDS(filename), recompute=FALSE)
 
 x <- h0[[6]]
 x$private$last_schedule # NULL
