@@ -119,11 +119,8 @@ run_ebt_collect <- function(p, sched) {
   ## little more obvious.
   species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
 
-  ## TODO: add fitness_cohort here:
-  ##   fitness_cohort <-
-  ##     lapply(seq_len(p$size), function(i) ebt$fitness_cohort(i))
   list(time=time, species=species, light_env=light_env,
-       fitness=ebt$fitnesses)
+       seed_rain=ebt$seed_rains)
 }
 
 get_light_env <- function(ebt) {

@@ -218,7 +218,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
         message("Recomputing ode times")
         ebt <- run_ebt(p, to_schedule(p))
         res <- ebt$cohort_schedule$copy()
-        attr(res, "seed_rain") <- cbind(out=ebt$fitnesses)
+        attr(res, "seed_rain") <- cbind(out=ebt$seed_rains)
       }
       seed_rain_out <- unname(attr(res, "seed_rain", exact=TRUE)[,"out"])
       set_seed_rain(seed_rain_out)
@@ -245,23 +245,21 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
       last_schedule <<- NULL
     }
   }
-  make_landscape <- function(force=TRUE) {
+  make_landscape <- function(raw_seed_rain=FALSE) {
     p <- to_parameters()
     if (size() == 0) {
       f <- function(x) {
-        landscape_empty(trait_names, x, p)
+        landscape_empty(trait_names, x, p,
+                        raw_seed_rain=raw_seed_rain)
       }
     } else {
       if (is.null(last_schedule)) {
-        if (force) {
-          run(FALSE)
-        } else {
-          stop("Rerun with force=TRUE to enable make_landscape")
-        }
+        run(FALSE)
       }
       schedule <- last_schedule$copy()
       f <- function(x) {
-        landscape(trait_names, x, p, schedule)
+        landscape(trait_names, x, p, schedule,
+                  raw_seed_rain=raw_seed_rain)
       }
     }
     f

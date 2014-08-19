@@ -9,7 +9,7 @@ p_n <- new(Parameters)
 p_n$add_strategy(new(Strategy))
 p_n$seed_rain <- 1.1                       # Starting rain.
 p_n$set_parameters(list(patch_area=1.0))   # See issue #13
-p_n$set_control_parameters(fast.control()) # A bit faster
+p_n$set_control_parameters(fast_control()) # A bit faster
 p_n$set_control_parameters(equilibrium_verbose())
 
 ## And a set that is identical except for the adaptive assimilation is
@@ -19,7 +19,7 @@ p_a$set_control_parameters(list(plant_assimilation_adaptive=TRUE))
 
 run <- function(seed_rain_in, p, schedule) {
   p$seed_rain <- seed_rain_in
-  run.ebt(p, schedule)$fitnesses
+  run_ebt(p, schedule)$seed_rains
 }
 
 run_new_schedule <- function(w, p, schedule=NULL) {
@@ -36,7 +36,7 @@ approach_n <- t(sapply(attr(res_n, "progress"), "[[", "seed_rain"))
 approach_a <- t(sapply(attr(res_a, "progress"), "[[", "seed_rain"))
 
 cols <- c(n="black", a="red")
-w_hat <- unname(res_n[["seed_rain"]][,"out"])
+seed_rain_eq <- unname(res_n[["seed_rain"]][,"out"])
 
 ## From a distance, these both hone in nicely on the equilibrium, and
 ## rapidly, too.
@@ -51,7 +51,7 @@ cobweb(approach_a, col=cols[["a"]], pch=19, cex=.5, type="o")
 ## with-adaptive-integration case (red); it's converging to a *region*
 ## but moving essentially stochastically within that region.
 ##+ approach_detail
-r <- w_hat + c(-1, 1) * 0.5
+r <- seed_rain_eq + c(-1, 1) * 0.5
 plot(approach_n, type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
 cobweb(approach_n, col=cols[["n"]], pch=19, cex=.5, type="o")
@@ -61,8 +61,8 @@ cobweb(approach_a, col=cols[["a"]], pch=19, cex=.5, type="o")
 
 ## Then, in the vinicity of the root we should look at what the curve
 ## actually looks like, without adaptive refinement.
-dw <- 2 # range of input to vary (plus and minus this many seeds)
-seed_rain_in  <- seq(w_hat - dw, w_hat + dw, length=31)
+dr <- 2 # range of input to vary (plus and minus this many seeds)
+seed_rain_in  <- seq(seed_rain_eq - dr, seed_rain_eq + dr, length=31)
 
 schedule1 <- res_n$schedule
 seed_rain_out_n <- unlist(mclapply(seed_rain_in, run, p_n, schedule1))
@@ -82,7 +82,7 @@ cobweb(approach_n, col=cols[["n"]])
 cobweb(approach_a, col=cols[["a"]])
 
 ## # 3: Global function shape
-seed_rain_in_global <- seq(1, w_hat + 10, length=51)
+seed_rain_in_global <- seq(1, seed_rain_eq + 10, length=51)
 
 seed_rain_out_global_n <-
   unlist(mclapply(seed_rain_in_global, run_new_schedule, p_n))

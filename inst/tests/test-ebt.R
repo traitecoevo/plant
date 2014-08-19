@@ -235,7 +235,7 @@ test_that("Can set times directly", {
 
 gc() # hide the "signalCondition" Rcpp issue
 
-test_that("Fitness & error calculations correct", {
+test_that("Seed rain & error calculations correct", {
   p <- new(Parameters)
   p$add_strategy(new(Strategy))
   p$set_control_parameters(fast_control())
@@ -247,7 +247,7 @@ test_that("Fitness & error calculations correct", {
   ebt$cohort_schedule <- default_cohort_schedule(p)
   ebt$run()
 
-  fitness.R <- function(ebt, error=FALSE) {
+  seed_rain.R <- function(ebt, error=FALSE) {
     a <- ebt$cohort_schedule$times(1)
     d <- ebt$patch$disturbance_regime
     pa <- sapply(a, function(ai) d$density(ai))
@@ -258,13 +258,13 @@ test_that("Fitness & error calculations correct", {
     if (error) local_error_integration(a, seeds, total) else total
   }
 
-  expect_that(ebt$fitness(1), equals(fitness.R(ebt)))
-  expect_that(ebt$fitnesses, equals(fitness.R(ebt)))
-  expect_that(ebt$fitness_error(1),
-              equals(fitness.R(ebt, error=TRUE)))
+  expect_that(ebt$seed_rain(1), equals(seed_rain.R(ebt)))
+  expect_that(ebt$seed_rains, equals(seed_rain.R(ebt)))
+  expect_that(ebt$seed_rain_error(1),
+              equals(seed_rain.R(ebt, error=TRUE)))
 
-  expect_that(ebt$fitness(0), throws_error())
-  expect_that(ebt$fitness(2), throws_error())
+  expect_that(ebt$seed_rain(0), throws_error())
+  expect_that(ebt$seed_rain(2), throws_error())
 
   lae.cmp <-
     ebt$patch$species[[1]]$leaf_area_error(ebt$patch$leaf_area_above(0))

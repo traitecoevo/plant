@@ -69,11 +69,11 @@ std::vector<int> EBT::run_next() {
   return ret;
 }
 
-// * Fitness calculations
-std::vector<double> EBT::r_fitness_cohort(size_t species_index) const {
-  return fitness_cohort(util::check_bounds_r(species_index, patch.size()));
+// * Seed rain calculations
+std::vector<double> EBT::r_seed_rain_cohort(size_t species_index) const {
+  return seed_rain_cohort(util::check_bounds_r(species_index, patch.size()));
 }
-std::vector<double> EBT::fitness_cohort(size_t species_index) const {
+std::vector<double> EBT::seed_rain_cohort(size_t species_index) const {
   const std::vector<double> times = schedule.times(species_index);
   const Disturbance& disturbance_regime = patch.get_disturbance_regime();
   const double scale =
@@ -84,9 +84,9 @@ std::vector<double> EBT::fitness_cohort(size_t species_index) const {
   return seeds;
 }
 
-double EBT::fitness(size_t species_index) const {
+double EBT::seed_rain(size_t species_index) const {
   return util::trapezium(schedule.times(species_index),
-			 fitness_cohort(species_index));
+			 seed_rain_cohort(species_index));
 }
 
 std::vector<double> EBT::leaf_area_error(size_t species_index) const {
@@ -96,21 +96,21 @@ std::vector<double> EBT::leaf_area_error(size_t species_index) const {
   return patch.at(species_index).leaf_area_error(tot_leaf_area);
 }
 
-std::vector<double> EBT::fitness_error(size_t species_index) const {
-  // NOTE: Possibly wasteful, possibly nbd.  If we grab all fitness at
+std::vector<double> EBT::seed_rain_error(size_t species_index) const {
+  // NOTE: Possibly wasteful, possibly nbd.  If we grab all seed_rain at
   // once, then we should only compute this scaling factor once.
   double tot_seed_out = 0.0;
   for (size_t i = 0; i < patch.size(); ++i)
-    tot_seed_out += fitness(i);
+    tot_seed_out += seed_rain(i);
   return util::local_error_integration(schedule.times(species_index),
-				       fitness_cohort(species_index),
+				       seed_rain_cohort(species_index),
 				       tot_seed_out);
 }
 
-std::vector<double> EBT::fitnesses() const {
+std::vector<double> EBT::seed_rains() const {
   std::vector<double> w;
   for (size_t i = 0; i < patch.size(); ++i)
-    w.push_back(fitness(i));
+    w.push_back(seed_rain(i));
   return w;
 }
 
@@ -152,12 +152,12 @@ ode::iterator EBT::ode_rates(ode::iterator it) const {
 
 // * R interface
 
-double EBT::r_fitness(size_t species_index) const {
-  return fitness(util::check_bounds_r(species_index, patch.size()));
+double EBT::r_seed_rain(size_t species_index) const {
+  return seed_rain(util::check_bounds_r(species_index, patch.size()));
 }
 
-std::vector<double> EBT::r_fitness_error(size_t species_index) const {
-  return fitness_error(util::check_bounds_r(species_index, patch.size()));
+std::vector<double> EBT::r_seed_rain_error(size_t species_index) const {
+  return seed_rain_error(util::check_bounds_r(species_index, patch.size()));
 }
 
 std::vector<double> EBT::r_leaf_area_error(size_t species_index) const {

@@ -1,12 +1,9 @@
 library(tree)
 
-p <- new(Parameters)
+p <- ebt_base_parameters()
 p$add_strategy(new(Strategy, list(lma=0.0648406)))
 p$add_strategy(new(Strategy, list(lma=0.1977910)))
 p$seed_rain <- c(1.1, 1.1)               # Starting rain.
-p$set_parameters(list(patch_area=1.0))   # See issue #13
-p$set_control_parameters(fast_control()) # A bit faster
-p$set_control_parameters(equilibrium_verbose())
 
 ## Work out what the equilibrium seed rain is.  This takes a while!  If
 ## using the second set of seed_rain values this should converge
@@ -24,7 +21,7 @@ lma_res <- sapply(seq_len(p$size), function(i) p[[i]]$parameters$lma)
 ## OK, good to reasonable accuracy; the seed rain values should be
 ## close enough to 1.
 cmp <- landscape("lma", lma_res, p, schedule)
-cmp - 1 # This should be about zero, plus or minus 1e-5 or so.
+cmp # This should be about zero, plus or minus 1e-5 or so.
 
 # Mutant LMA values, in increasing numbers, to test how the time
 # requirements scale with the number of strategies.  Should be
@@ -52,7 +49,8 @@ tt <- c(t_2[["elapsed"]],
 n <- 2^seq_along(tt)
 
 ## This is largely OK, but the increased per-mutant time is
-## concerning:
+## concerning (might be due to running other things at the same time
+## though)
 ##+ time_per_mutant
 plot(n, tt / n, log="x")
 

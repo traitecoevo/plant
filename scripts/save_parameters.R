@@ -6,7 +6,8 @@
 ## Case getting the community load/save working.
 library(tree)
 
-ebt_base_parameters <- tree:::ebt_base_parameters
+serialise_parameters <- tree:::serialise_parameters
+unserialise_parameters <- tree:::unserialise_parameters
 
 ## From the successional diversity project:
 assembler_lma_parameters <- function(time_disturbance, slope) {

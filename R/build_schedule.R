@@ -30,20 +30,20 @@ build_schedule <- function(p, schedule=NULL) {
 
     err_lai <- lapply(err_lai, function(x)
                       do.call(rbind, pad_matrix(x)))
-    err_w <- lapply(seq_len(p$size), function(idx)
-                    ebt$fitness_error(idx))
+    err_seed_rain <- lapply(seq_len(p$size), function(idx)
+                            ebt$seed_rain_error(idx))
     f <- function(m)
       suppressWarnings(apply(m, 2, max, na.rm=TRUE))
     total <- lapply(seq_len(p$size), function(idx)
-                    f(rbind(err_lai[[idx]], err_w[[idx]])))
+                    f(rbind(err_lai[[idx]], err_seed_rain[[idx]])))
 
     ## We'll often want the exact ode times that were used: this
     ## gathers them up, but does *not* set it up that they will be
     ## necessarily used.
     schedule$ode_times <- ebt$ode_times
 
-    list(fitness=ebt$fitnesses,
-         err=list(lai=err_lai, w=err_w, total=total))
+    list(seed_rain=ebt$seed_rains,
+         err=list(lai=err_lai, seed_rain=err_seed_rain, total=total))
   }
   split_times <- function(times, i) {
     ## Upwind splitting scheme only, which means that we will never
@@ -66,7 +66,7 @@ build_schedule <- function(p, schedule=NULL) {
 
   for (i in seq_len(control$schedule_nsteps)) {
     res <- run_with_lai(schedule, p)
-    seed_rain <- cbind("in"=p$seed_rain, "out"=res[["fitness"]])
+    seed_rain <- cbind("in"=p$seed_rain, "out"=res[["seed_rain"]])
     split <- lapply(res$err$total, function(x) x > eps)
 
     ## TODO: I'm really not sure why we'd save the history.  There is
@@ -149,13 +149,13 @@ schedule_or_null <- function(schedule, p) {
 }
 
 ##' Build a schedule of cohort times by iteratively finding the
-##' position that causes the greatest change in fitness.  In contrast
+##' position that causes the greatest change in seed_rain.  In contrast
 ##' with \code{\link{build_schedule}}, this is not really designed for
 ##' use in real analyses, but instead to confirm that the schedules
 ##' work as expected.  It is \emph{extremely slow} because every step
 ##' requires introducing a cohort between every pair of cohorts.
 ##'
-##' @title Build Schedule From Fitness Changes
+##' @title Build Schedule From Seed Rain Changes
 ##' @param p Parameters object
 ##' @param times Vector of times to start from
 ##' @param nsteps Number of new cohorts to add
@@ -164,7 +164,7 @@ schedule_or_null <- function(schedule, p) {
 ##' @return Numeric vector of times
 ##' @author Rich FitzJohn
 ##' @export
-build_schedule_fitness <- function(p, schedule=NULL) {
+build_schedule_seed_rain <- function(p, schedule=NULL) {
   build_schedule_refine <- function(times, w, ebt, cores=1,
                                     verbose=FALSE) {
     run_with_insert <- function(i)
@@ -178,17 +178,17 @@ build_schedule_fitness <- function(p, schedule=NULL) {
                            mc.cores=cores))
     j <- which.max(abs(res - w))
     if (verbose)
-      message(sprintf("Inserting time at %2.5f [%d]; fitness = %2.5f",
+      message(sprintf("Inserting time at %2.5f [%d]; seed_rain = %2.5f",
                       mean(times[j:(j+1)]), j, res[j]))
 
     list(times=insert_time(j, times), idx=j+1,
-         seed_rain=cbind("in"=p$seed_rain, "out"=ebt$fitnesses))
+         seed_rain=cbind("in"=p$seed_rain, "out"=ebt$seed_rains))
   }
   run_with_times <- function(times, ebt) {
     ebt$reset()
     ebt$set_times(times, 1L)
     ebt$run()
-    ebt$fitness(1L)
+    ebt$seed_rain(1L)
   }
 
   schedule <- schedule_or_null(schedule, p)
@@ -203,7 +203,7 @@ build_schedule_fitness <- function(p, schedule=NULL) {
 
   w <- run_with_times(times, ebt)
   obj <- list(times=times,
-              seed_rain=cbind("in"=p$seed_rain, "out"=ebt$fitnesses))
+              seed_rain=cbind("in"=p$seed_rain, "out"=ebt$seed_rains))
   history <- list(list(obj))
 
   for (i in seq_len(control$schedule_nsteps)) {

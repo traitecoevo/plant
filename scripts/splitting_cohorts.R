@@ -35,13 +35,13 @@ run_with_times <- function(times, ebt) {
   ebt$reset()
   ebt$set_times(times, 1L)
   ebt$run()
-  ebt$fitness(1L)
+  ebt$seed_rain(1L)
 }
 
 ## This should really move into tree
-cohort_fitness <- function(ebt) {
+cohort_seed_rain <- function(ebt) {
   cbind(t=ebt$cohort_schedule$times(1),
-        seeds=ebt$fitness_cohort(1))
+        seeds=ebt$seed_rain_cohort(1))
 }
 
 p <- new(Parameters)
@@ -52,7 +52,7 @@ p$set_parameters(list(patch_area=1.0)) # See issue #13
 
 p$set_control_parameters(fast_control())
 
-## # 1. The fitness calculation depends on the cohort spacing
+## # 1. The seed rain calculation depends on the cohort spacing
 
 ## Three progressively more closely spaced times:
 eps <- p$control$parameters$schedule_default_patch_survival
@@ -64,14 +64,14 @@ tt_3 <- interleave(tt_2)
 ebt <- new(EBT, p)
 ebt$cohort_schedule$max_time <- t_max
 
-w_1 <- run_with_times(tt_1, ebt)
-w_2 <- run_with_times(tt_2, ebt)
-w_3 <- run_with_times(tt_3, ebt)
+sr_1 <- run_with_times(tt_1, ebt)
+sr_2 <- run_with_times(tt_2, ebt)
+sr_3 <- run_with_times(tt_3, ebt)
 
-## Fitness increases as time is cohorts are introduced more finely,
+## Seed rain increases as time is cohorts are introduced more finely,
 ## though at a potentially saturating rate.  We're doing lots more
 ## work at the more refined end though!
-c(w_1, w_2, w_3)
+c(sr_1, sr_2, sr_3)
 
 ## # 2: Where is this difference coming from?
 
@@ -96,53 +96,53 @@ res <- sapply(i, run_with_insert, tt_1, ebt)
 
 ## This is really interesting; refining most cohorts does not change
 ## anything, but there is a little period around the 47th cohort where
-## it makes a massive difference, increasing fitness by about 30,
+## it makes a massive difference, increasing seed rain by about 30,
 ## which is most of the difference that we saw between the refined and
 ## non-refined sets (total increase from doubling resolution is 52)
-dw_1 <- res - w_1
+dsr_1 <- res - sr_1
 tm_1 <- (tt_1[-1] + tt_1[-length(tt_1)])/2
 
-##+ fitness_difference_by_index
-plot(dw_1, xlab="Cohort insertion point", ylab="Fitness difference")
-##+ fitness_difference_by_time
-plot(tm_1, dw_1, xlab="Cohort insertion time",
-     ylab="Fitness difference")
-##+ fitness_difference_by_time_log
-plot(tm_1, dw_1, xlab="Cohort insertion time",
-     ylab="Fitness difference", log="x")
+##+ seed_rain_difference_by_index
+plot(dsr_1, xlab="Cohort insertion point", ylab="Seed rain difference")
+##+ seed_rain_difference_by_time
+plot(tm_1, dsr_1, xlab="Cohort insertion time",
+     ylab="Seed rain difference")
+##+ seed_rain_difference_by_time_log
+plot(tm_1, dsr_1, xlab="Cohort insertion time",
+     ylab="Seed rain difference", log="x")
 
-## The reason for the change in total fitness is how we compute the
-## contribution to fitness.  Pulling apart the fitness calculations
+## The reason for the change in total seed rain is how we compute the
+## contribution to seed rain.  Pulling apart the seed rain calculations
 ## above to get the per-cohort contributions:
-tmp <- cohort_fitness(ebt)
+tmp <- cohort_seed_rain(ebt)
 
 ## And plotting this with the position (vertical line) of the most
 ## influential cohort introduction time.  Dashed vertical lines are
 ## the 5 next most important splits, from darkest (2nd most important)
 ## to lightest (6th most important).
-##+ fitness_difference_most_influential
+##+ seed_rain_difference_most_influential
 plot(tmp[-1,], log="x", las=1,
-     xlab="Introduction time", ylab="Fitness contribution")
-abline(v=tm_1[order(abs(dw_1), decreasing=TRUE)[2:6]],
+     xlab="Introduction time", ylab="Seed rain contribution")
+abline(v=tm_1[order(abs(dsr_1), decreasing=TRUE)[2:6]],
        col=grey.colors(5), lty=2)
-abline(v=tm_1[which.max(abs(dw_1))], col="red")
+abline(v=tm_1[which.max(abs(dsr_1))], col="red")
 
-## Characterising the decrease in fitness seems to be the important
-## step, especially as the derivative of fitness with time increases
+## Characterising the decrease in seed rain seems to be the important
+## step, especially as the derivative of seed rain with time increases
 ## and as
 
 ## Here is the same figure on a non-log basis, covering the important
 ## range of times.
-##+ fitness_difference_most_influential_non_log
-r <- range(tm_1[order(abs(dw_1), decreasing=TRUE)[1:6]])
+##+ seed_rain_difference_most_influential_non_log
+r <- range(tm_1[order(abs(dsr_1), decreasing=TRUE)[1:6]])
 plot(tmp[-1,], las=1, xlim=r,
-     xlab="Introduction time", ylab="Fitness contribution")
-abline(v=tm_1[order(abs(dw_1), decreasing=TRUE)[2:6]],
+     xlab="Introduction time", ylab="Seed rain contribution")
+abline(v=tm_1[order(abs(dsr_1), decreasing=TRUE)[2:6]],
        col=grey.colors(5), lty=2)
-abline(v=tm_1[which.max(abs(dw_1))], col="red")
+abline(v=tm_1[which.max(abs(dsr_1))], col="red")
 
 ## 3: What is it about this point that is important?
-idx <- which.max(abs(dw_1))
+idx <- which.max(abs(dsr_1))
 
 sched <- new(CohortSchedule, 1)
 sched$max_time <- max(tt_1)

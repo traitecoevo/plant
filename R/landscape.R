@@ -10,12 +10,17 @@
 ##' @param p Parameters object.  Needs to contain residents with their
 ##' incoming seed rain.
 ##' @param schedule Schedule of times for the residents.
+##' @param raw_seed_rain Should the raw (per capita) seed rain values
+##' be returned, rather than converting to our measure of fitness (log
+##' per capita seed rain, being the instantaneous rate of population
+##' increase).
 ##' @return Vector with the output seed rain.  Mutants have an
 ##' arbitrary seed rain of zero, so this is the rate of seed
 ##' production per capita.
 ##' @author Rich FitzJohn
 ##' @export
-landscape <- function(trait, values, p, schedule=NULL) {
+landscape <- function(trait, values, p, schedule=NULL,
+                      raw_seed_rain=FALSE) {
   if (is.null(schedule)) {
     schedule <- build_schedule(p)
   }
@@ -28,14 +33,19 @@ landscape <- function(trait, values, p, schedule=NULL) {
 
   schedule_with_mutants <- expand_schedule(schedule, length(values))
   ebt_with_mutants <- run_ebt(p_with_mutants, schedule_with_mutants)
-  w_with_mutants <- ebt_with_mutants$fitnesses
-  w_with_mutants[-seq_len(p$size)]
+  seed_rain <- ebt_with_mutants$seed_rains[-seq_len(p$size)]
+  if (raw_seed_rain) {
+    seed_rain
+  } else {
+    log(seed_rain) # i.e., fitness
+  }
 }
 
 ## TODO: Need to support variant strategy here and above.
 ##' @rdname landscape
 ##' @export
-landscape_empty <- function(trait, values, p, schedule=NULL) {
+landscape_empty <- function(trait, values, p, schedule=NULL,
+                            raw_seed_rain=FALSE) {
   p_empty <- p$copy()
   p_empty$clear()
   p_empty <- expand_parameters(trait, values, p_empty)
@@ -55,7 +65,12 @@ landscape_empty <- function(trait, values, p, schedule=NULL) {
   }
 
   ebt_empty <- run_ebt(p_empty, schedule_empty)
-  ebt_empty$fitnesses
+  seed_rain <- ebt_empty$seed_rains
+  if (raw_seed_rain) {
+    seed_rain
+  } else {
+    log(seed_rain)
+  }
 }
 
 ##' Expand schedule to include mutants.  All mutants get the same

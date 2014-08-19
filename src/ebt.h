@@ -16,11 +16,11 @@ public:
   void run();
   std::vector<int> run_next();
 
-  // * Fitness calculation
-  double fitness(size_t species_index) const;
-  std::vector<double> fitnesses() const;
-  std::vector<double> r_fitness_cohort(size_t species_index) const;
-  std::vector<double> fitness_error(size_t species_index) const;
+  // * Output total seed rain calculation (not per capita)
+  double seed_rain(size_t species_index) const;
+  std::vector<double> seed_rains() const;
+  std::vector<double> r_seed_rain_cohort(size_t species_index) const;
+  std::vector<double> seed_rain_error(size_t species_index) const;
   std::vector<double> leaf_area_error(size_t species_index) const;
 
   double get_time() const;
@@ -34,8 +34,8 @@ public:
   ode::iterator       ode_rates(ode::iterator it)  const;
 
   // * R interface
-  double r_fitness(size_t species_index) const;
-  std::vector<double> r_fitness_error(size_t species_index) const;
+  double r_seed_rain(size_t species_index) const;
+  std::vector<double> r_seed_rain_error(size_t species_index) const;
   std::vector<double> r_leaf_area_error(size_t species_index) const;
   Patch<CohortTop> r_patch() const;
   CohortSchedule r_cohort_schedule() const;
@@ -50,7 +50,7 @@ public:
   void r_set_state(Rcpp::List x);
 
 private:
-  std::vector<double> fitness_cohort(size_t species_index) const;
+  std::vector<double> seed_rain_cohort(size_t species_index) const;
 
   Parameters::ptr parameters;
 protected: // for now, at least (see EBTMutantRunner)

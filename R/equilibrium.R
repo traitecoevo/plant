@@ -14,6 +14,9 @@
 ##' @author Rich FitzJohn
 ##' @export
 equilibrium_seed_rain <- function(p, schedule=NULL) {
+  if (p$size == 0) {
+    stop("Need at least one species")
+  }
   p <- p$copy() # don't modify what we're given
   schedule <- schedule_or_null(schedule, p)
   ## Might revert back to default periodically.

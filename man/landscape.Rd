@@ -4,9 +4,9 @@
 \alias{landscape_empty}
 \title{Fitness Landscape}
 \usage{
-landscape(trait, values, p, schedule = NULL)
+landscape(trait, values, p, schedule = NULL, raw_seed_rain = FALSE)
 
-landscape_empty(trait, values, p, schedule = NULL)
+landscape_empty(trait, values, p, schedule = NULL, raw_seed_rain = TRUE)
 }
 \arguments{
 \item{trait}{Name of the single trait to change}
@@ -17,6 +17,11 @@ landscape_empty(trait, values, p, schedule = NULL)
 incoming seed rain.}
 
 \item{schedule}{Schedule of times for the residents.}
+
+\item{raw_seed_rain}{Should the raw (per capita) seed rain values
+be returned, rather than converting to our measure of fitness (log
+per capita seed rain, being the instantaneous rate of population
+increase).}
 }
 \value{
 Vector with the output seed rain.  Mutants have an

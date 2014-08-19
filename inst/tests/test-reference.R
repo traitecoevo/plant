@@ -153,6 +153,6 @@ if (!skip && evolve.is.installed()) {
   ##
   ## These do differ a bit, but that's OK given how differently they are
   ## calculated.
-  expect_that(res$fitness,
+  expect_that(res$seed_rain,
               equals(unname(output$seed_rain_out), tolerance=0.01))
 }

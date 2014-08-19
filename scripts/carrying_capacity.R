@@ -3,10 +3,7 @@
 library(tree)
 library(parallel)
 
-p <- new(Parameters)
-p$set_parameters(list(patch_area=1.0))   # See issue #13
-p$set_control_parameters(fast_control()) # A bit faster
-p$set_control_parameters(equilibrium_verbose())
+p <- ebt_base_parameters()
 
 ## Find the viable range for lma for the default parameters:
 trait <- "lma"

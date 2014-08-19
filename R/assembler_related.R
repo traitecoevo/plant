@@ -14,7 +14,7 @@
 ##' @author Rich FitzJohn
 ##' @export
 max_growth_rate <- function(trait, values, p, schedule=NULL) {
-  log(landscape_empty(trait, values, p, schedule))
+  landscape_empty(trait, values, p, schedule)
 }
 
 ##' Compute the carrying capacity (equilibrium per-capita seed

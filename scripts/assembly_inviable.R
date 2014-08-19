@@ -50,3 +50,4 @@ obj_sample$run_nsteps(20)
 obj_naive <- assembler_stochastic_naive(sys0, vcv,
                                         run_type="to_equilibrium")
 obj_naive$run_nsteps(20)
+obj_naive$private$done

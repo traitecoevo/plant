@@ -25,7 +25,7 @@ tmp <- readRDS(filename)
 f <- tmp[[1]]$landscape_approximate
 lma <- tree:::seq_log_range(tmp[[1]]$bounds, 200)
 plot(lma, f(lma), log="x", type="l")
-h <- tree:::restore_history(tmp, p0)
+h <- tree:::restore_history(tmp)
 
 ## Starting again...
 sys0 <- community(p0, "lma", bounds=max_bounds)

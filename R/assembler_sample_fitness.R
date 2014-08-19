@@ -27,7 +27,7 @@ make_births_sample_positive <- function(n) {
 ## fitness function:
 fitness_landscape_grid <- function(community, n=50,
                                    finite_only=TRUE, log_space=TRUE,
-                                   force=TRUE, bounds=NULL) {
+                                   bounds=NULL) {
   if (!inherits(community, "community")) {
     stop("Expected a community object")
   }
@@ -42,11 +42,8 @@ fitness_landscape_grid <- function(community, n=50,
   } else {
     x <- seq(bounds[[1]], bounds[[2]], length.out=n)
   }
-  mutant_seed_rain <- community$make_landscape(force)
-  if (is.null(mutant_seed_rain)) {
-    stop("Constructing fitness landscape failed")
-  }
-  m <- cbind(trait=x, fitness=log(mutant_seed_rain(x)))
+  mutant_fitness <- community$make_landscape()
+  m <- cbind(trait=x, fitness=mutant_fitness(x))
   if (finite_only) {
     m <- m[is.finite(m[,2]),,drop=FALSE]
   }
@@ -55,9 +52,9 @@ fitness_landscape_grid <- function(community, n=50,
 
 ##' @export
 fitness_landscape_approximate <- function(community, n=50L,
-                                          log_space=TRUE, force=TRUE,
+                                          log_space=TRUE,
                                           bounds=NULL) {
   xy <- fitness_landscape_grid(community, n, log_space=log_space,
-                               force=force, bounds=bounds)
+                               bounds=bounds)
   splinefun_log(xy[,1], xy[,2])
 }
