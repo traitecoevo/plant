@@ -153,9 +153,13 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
     if (size() > 0) {
       stop("Only possible if the community is empty")
     } else if (!is.null(bounds)) {
-      sp <- find_singularity_1D(trait_names, bounds,
-                                to_parameters(), tol=tol)
-      add_species(sp)
+      sp <- try(find_singularity_1D(trait_names, bounds,
+                                    to_parameters(), tol=tol))
+      if (inherits(sp, "try-error")) {
+        message("Failed to find attractor: bounds may not be wide enough")
+      } else {
+        add_species(sp)
+      }
     }
   }
   drop <- function(which) {
@@ -384,11 +388,11 @@ community <- function(...) {
   run_model <- function() {
     if (run_type == "single") {
       community$run()
-    } else if (type == "to_equilibrium") {
+    } else if (run_type == "to_equilibrium") {
       community$run_to_equilibrium()
     } else {
       ## Should not get here now.
-      stop("unknown type ", type)
+      stop("unknown type ", run_type)
     }
   }
   step <- function() {

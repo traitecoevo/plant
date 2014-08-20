@@ -17,7 +17,6 @@
 mkdir -p inst/git
 if [ -d ".git" ]
 then
-    # Perhaps also indicate if the working directory is clean?
     git rev-parse HEAD > inst/git/sha
     git status -s > inst/git/status
 fi

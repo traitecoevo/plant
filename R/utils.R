@@ -126,16 +126,16 @@ rbind_list <- function(x) {
 
 #' Calculate the gradient of a function by numerical approximation
 #'
-#' The function ‘gradient_fd’ calculates a numerical approximation
-#' of the first derivative of ‘func’ at the point ‘x’ using finite
-#' differencing. It is assumed ‘func’ is a scalar value function.
+#' The function \code{gradient_fd} calculates a numerical approximation
+#' of the first derivative of \code{func} at the point \code{x} using finite
+#' differencing. It is assumed \code{func} is a scalar value function.
 #' @param func a function with a scalar real result
 #' @param  x a real scalar or vector argument to func, indicating
 #' the point(s) at which the gradient is to be calculated.
 #' @param  dx Interval over which derivative is calculated
 #' @param  log_scale=TRUE Determines whether derivative is taken
 #' with respect to raw or log-transformed x values. The latter is
-#' equiavlent to taking the derivative of a function
+#' equivalent to taking the derivative of a function
 #' \code{g(f(exp(x)))} with respect to log x and is useful when
 #' x is log-normally distributed.
 #' @author Daniel Falster
@@ -155,17 +155,18 @@ git_sha <- function(package=.packageName) {
     filename <- system.file(path, package=package)
     if (filename == "") character(0) else readLines(filename)
   }
-  parse_status <- function(x) {
-    cbind(index=substr(x, 1, 1),
-          work=substr(x, 2, 2),
-          path=substr(x, 4, nchar(x)))
-  }
   sha    <- read_system_file_if_exists("git/sha")
   status <- read_system_file_if_exists("git/status")
   if (length(status) > 0) {
-    attr(sha, "status") <- parse_status(status)
+    attr(sha, "status") <- parse_git_status(status)
   }
   sha
+}
+
+parse_git_status <- function(x) {
+  cbind(index=substr(x, 1, 1),
+        work=substr(x, 2, 2),
+        path=substr(x, 4, nchar(x)))
 }
 
 splinefun_log <- function(x, y, ...) {
