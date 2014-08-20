@@ -14,3 +14,5 @@ scripts/*.rds
 output
 
 wiki/
+
+inst/git

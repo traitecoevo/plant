@@ -150,9 +150,22 @@ gradient_fd <- function(func, x, dx, log_scale=FALSE) {
   (yy[[2]] - yy[[1]]) / dx
 }
 
-##' @export
-git_sha <- function() {
-  system("git rev-parse --short HEAD", intern=TRUE)
+git_sha <- function(package=.packageName) {
+  read_system_file_if_exists <- function(path) {
+    filename <- system.file(path, package=package)
+    if (filename == "") character(0) else readLines(filename)
+  }
+  parse_status <- function(x) {
+    cbind(index=substr(x, 1, 1),
+          work=substr(x, 2, 2),
+          path=substr(x, 4, nchar(x)))
+  }
+  sha    <- read_system_file_if_exists("git/sha")
+  status <- read_system_file_if_exists("git/status")
+  if (length(status) > 0) {
+    attr(sha, "status") <- parse_status(status)
+  }
+  sha
 }
 
 splinefun_log <- function(x, y, ...) {
