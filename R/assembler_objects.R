@@ -6,7 +6,9 @@
 ##   introductions
 ##' @export
 species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
-  ## TODO: check traits are named.
+  if (!is.list(traits) || is.null(names(traits))) {
+    stop("Must be a named list of traits")
+  }
   ret <- list(traits=traits,
               seed_rain=seed_rain,
               cohort_schedule_times=cohort_schedule_times)
@@ -524,4 +526,20 @@ add_approximate_landscapes <- function(h, p, filename=NULL,
   }
 
   h
+}
+
+##' @export
+make_community <- function(traits, seed_rain, p, ...) {
+  if (!is.matrix(traits)) {
+    stop("Traits must be a matrix")
+  }
+  if (is.null(colnames(traits))) {
+    stop("traits must be named (columns)")
+  }
+  if (nrow(traits) != length(seed_rain)) {
+    stop("Incompatible traits and seed_rain")
+  }
+  spp <- lapply(seq_along(seed_rain), function(i)
+                species(as.list(traits[i,]), seed_rain[i]))
+  community(p, colnames(traits), sys0=spp)
 }
