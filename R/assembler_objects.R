@@ -296,7 +296,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
   }
 
   R6::R6Class("community",
-              # portable=FALSE, # for R6 > CRAN
+              portable=FALSE,
               public=list(
                 initialize=initialize,
                 copy=copy,
@@ -433,7 +433,7 @@ community <- function(...) {
   }
 
   R6::R6Class("assembler",
-              # portable=FALSE, # for R6 > CRAN
+              portable=FALSE,
               public=list(
                 initialize=initialize,
                 deaths=deaths,

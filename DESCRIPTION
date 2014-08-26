@@ -11,7 +11,7 @@ Depends:
     methods
 Imports:
     Rcpp (>= 0.10.3),
-    R6,
+    R6 (>= 2.0),
     assertthat,
     parallel,
     lhs
