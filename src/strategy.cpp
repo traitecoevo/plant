@@ -40,14 +40,21 @@ Strategy Strategy::r_copy() const {
 }
 
 void Strategy::reset() {
-  // * Core traits
-  lma  = 0.1978791;
-  rho  = 608;
-  hmat = 16.5958691;
-  s    = 3.8e-5;
+  // * Core traits - default values
+  lma_0  = 0.1978791;  // leaf mas per area
+  rho_0  = 608;        // wood density
+  hmat_0 = 16.5958691; // Height at maturation
+  s_0    = 3.8e-5;  // Seed size
+  n_area_0 = 1.87e-3; // Leaf nitrogen per area (= Plant::v) [kg / m2]
+
+  // * To start with set actiual values to default
+  lma    = lma_0;
+  rho    = rho_0;
+  hmat   = hmat_0;
+  s      = s_0;
+  n_area = n_area_0;
 
   // * Individual allometry
-
   // Canopy shape parameter (extra calculation here later)
   eta = 12;
   // ratio leaf area to sapwood area
@@ -55,17 +62,12 @@ void Strategy::reset() {
   // Height - leaf mass scaling
   a1     = 5.44;
   B1     = 0.306;
-  // Leaf area - stem volume scaling
-  a2     = 6.67e-5;
-  B2      = 1.75;
   // Root - leaf scaling
   a3     = 0.07;
   // Ratio of bark area : sapwood area
   b      = 0.17;
 
   // * Production
-  // Leaf nitrogen per area (= Plant::v) [kg / m2]
-  n_area = 1.87e-3;
   // Ratio of leaf dark respiration to leaf nitrogen mass
   // [mol CO2 / kgN / yr] (6.66e-4 * (365*24*60*60))
   c_Rl   = 2.1e4;
@@ -106,7 +108,7 @@ void Strategy::reset() {
   // Parameter for seedling survival
   c_s0    = 0.1;
   // Baseline for intrinsic mortality
-  c_d0    = 0.520393415085166;
+  c_d0    = 0.01;
   // Coefficient for wood density in mortality function
   c_d1    = 0.0065;
   // Baseline rate for growth-related mortality
@@ -134,8 +136,6 @@ void Strategy::do_build_lookup() {
   lookup_table["theta"]  = &theta;
   lookup_table["a1"]     = &a1;
   lookup_table["B1"]     = &B1;
-  lookup_table["a2"]     = &a2;
-  lookup_table["B2"]     = &B2;
   lookup_table["a3"]     = &a3;
   lookup_table["b"]      = &b;
   lookup_table["a4"]     = &a4;

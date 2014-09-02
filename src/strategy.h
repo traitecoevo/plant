@@ -40,7 +40,10 @@ public:
 
 private:
   // * Core traits
-  double lma, rho, hmat, s;
+  double lma, rho, hmat, s, n_area;
+
+  // * Deafult values for core traits
+  double lma_0, rho_0, hmat_0, s_0, n_area_0;
 
   // * Individual allometry
   // Canopy shape parameters
@@ -48,13 +51,11 @@ private:
   // Leaf area per sapwood area
   double theta;
   // Empirical constants for scaling relationships
-  double a1, B1, a2, B2, a3, a4, B4;
+  double a1, B1, a3, a4, B4;
   // Bark area per sapwood area
   double b;
-  
+
   // * Production
-  // Leaf nitrogen per area
-  double n_area;
   // Respiration constants
   double c_Rs, c_Rb, c_Rr, c_Rl;
   // Yield = carbon fixed in tissue per carbon assimilated;

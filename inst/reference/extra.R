@@ -73,37 +73,11 @@ bark.per.leaf.mass <- function(traits, h){
   p.b * sapwood.per.leaf.mass(traits, h)
 }
 
-heartwood.per.leaf.mass <- function(traits, h){
-  rho <- traits$rho
-  phi <- traits$lma
-  etac <- etac(p.eta)
-  ml <- LeafMass(traits$lma, LeafArea(h))
-
-  rho * etac * p.a2 * p.B2 / ml * (ml / phi)^p.B2
-}
-
 root.per.leaf.mass <- function(traits, h){
   phi <- traits$lma
   p.a3 / phi
 }
 
-## This is not used, but should be the same as
-##   dAdMt(traits, LeafArea(h))
-## but a little more explicitly.
-da.dmt <- function(traits, h) {
-  rho <- traits$rho
-  phi <- traits$lma
-  etac <- etac(p.eta)
-  w <- LeafArea(h)
-
-  dml.dw <- phi
-  dms.dw <- rho * etac / p.theta * p.a1 * (p.B1 + 1) * w^p.B1
-  dmb.dw <- p.b * dms.dw
-  dmh.dw <- rho * etac * p.a2 * p.B2 * w ^ (p.B2 - 1) # differs
-  dmr.dw <- p.a3
-  denom <- dml.dw + dms.dw + dmb.dw + dmr.dw
-  1 / denom
-}
 
 mass.leaf.growth.rate <- function(traits, h, env) {
   r <- ReproductiveAllocation(traits$hmat, h)

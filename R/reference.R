@@ -29,7 +29,7 @@ make.reference <- function() {
   ## Function to return current values of parameters.
   ## All parameters can be translated as x -> p.x, where 'x' is the
   ## name in the C++ version.
-  vars <- c("eta", "theta", "a1", "B1", "a2", "B2", "a3", "b",
+  vars <- c("eta", "theta", "a1", "B1", "a3", "b",
             "n_area", "c_Rl", "c_Rr", "c_Rs", "c_Rb", "Y",
             "c_bio", "a4", "B4", "k_b", "k_s","k_r", "c_p1", "c_p2",
             "c_acc", "c_d0", "c_d1", "c_d2", "c_d3", "c_s0",
