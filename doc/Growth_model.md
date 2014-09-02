@@ -1,4 +1,5 @@
 \newcommand{\ud}{\mathrm{d}}
+\newcommand{\tm}{\textrm}
 
 # Equations
 
@@ -12,10 +13,14 @@ Symbol: $\varphi$
 
 Units: kg m$^{-2}$
 
+Description: Mass cost for constructing a unit of leaf area
+
 ### Stem tissue density
 Symbol: $\rho$
 
 Units: kg m$^{-3}$
+
+Description: Mass cost for constructing a unit of stem volume
 
 ### Height at maturation
 
@@ -23,11 +28,15 @@ Symbol: $h_m$
 
 Units: m
 
+Description: Height at which plants allocate 50% of surplus energy to reproduction.
+
 ### Seed size
 
 Symbol: $s$
 
 Units: kg
+
+Description: Mass of individual seeds dispersing from parent.
 
 ## Individual size
 
@@ -37,83 +46,328 @@ Symbol: $h(x, a)$
 
 Units: m
 
-Determination: Plant height is obtained by solving the IVP with initial conditions: $h(x, a) = h_0$, and with rates of change: $\frac{\textrm{d}h}{\textrm{d}t} = g(x, h(x, a))$. Thus, $h(x, a) = h_0 + \int_{0}^{a} g(x, h(x, a^\prime)) \, \rm{d}a^\prime$. The initial plant height at germination, $h_{0}$ is obtained by finding a value that satisfies the equation $s=m_\textrm{t}(x, h)$.
+Description: Height of plant with traits $x$ at and age $a$. Height is the key size variable tracked during plant growth. With exception of any variable combination involving heartwood area or heartwood mass, the remaining size metrics are tied directly to height, so knowing height means you also know the other variables.
+
+Determination: Plants begin with initial height at germination $h_{0}$, obtained by finding a value that satisfies the equation
+\begin{equation} s = m_\tm{t}(x, h_0(x)). \end{equation}
+
+Height growth rate $g(x, h(x, a^\prime))$ is calculated as
+
+\begin{equation} \label{eq:dhdt}
+g = \frac{\textrm{d}h}{\textrm{d}t}=\frac{\textrm{d}h}{\textrm{d}a_\textrm{l}}
+\times \frac{\textrm{d}a_\textrm{l}}{\textrm{d}m_\textrm{t}}
+\times \frac{\textrm{d}m_\textrm{t}}{\textrm{d}B}
+\times \strut\frac{\textrm{d}B}{\textrm{d}t}.
+ \end{equation}
+
+Each element on the RHS of eq. \ref{eq:dhdt} is also a function of current traits and height. Height at given age is then obtained by integrating eq. \ref{eq:dhdt} with the initial conditions:
+\begin{equation} h(x, 0) = h_0(x), \end{equation}
+such that
+\begin{equation} h(x, a) = h_0(x) + \int_{0}^{a} g(x, h(x, a^\prime)) \, \rm{d}a^\prime. \end{equation}
 
 ### Leaf area
 
-Symbol: $a_\textrm{l}(x, h)$
+Symbol: $a_\tm{l}(h)$
 
 Units: m$^2$
 
-Determination: $a_\textrm{l}=\alpha_1 \, h^{\beta_1}$, $\frac{\textrm{d}h}{\textrm{d}a_\textrm{l}}= -\beta_1\big(\frac{a_\textrm{l}}{\alpha_1}\big)^{-(\beta_1+1)}$
+Description: Total leaf area of plant with traits $x$ and height $h$
 
+Determination: Leaf area is calculated directly from plant height as
+\begin{equation} a_\tm{l} = \alpha_1 \, h^{\beta_1}. \end{equation}
+
+Useful derivatives: The growth rate of leaf area is given by
+\begin{equation} \label{eq:dhdt}
+\frac{\textrm{d}a_\textrm{l}}{\textrm{d}t} = \frac{\textrm{d}h}{\textrm{d}a_\textrm{l}}
+\times \frac{\textrm{d}a_\textrm{l}}{\textrm{d}m_\textrm{t}}
+\times \frac{\textrm{d}m_\textrm{t}}{\textrm{d}B}
+\times \frac{\textrm{d}B}{\textrm{d}t}
+ \end{equation}
+
+To solve equation \ref{eq:dhdt} , the following derivative is also required:
+
+\begin{equation} \frac{\ud h}{\ud a_\tm{l}} = -\beta_1\big(\frac{a_\tm{l}}{\alpha_1}\big)^{-(\beta_1 + 1)}. \end{equation}
 
 ### Area of sapwood
 
-Symbol: $a_{ss}(x, a_\textrm{l})$
+Symbol: $a_{ss}(x, a_\tm{l})$
 
-Units: kg
+Units: $m^2$
 
-Determination: $a_\textrm{ss}=\theta^{-1} \, a_\textrm{l}$, $\frac{\textrm{d}a_\textrm{ss}}{\textrm{d}t} =\theta^{-1} \, \frac{\textrm{d}a_\textrm{l}}{\textrm{d}t}$
+Description: Area of live sapwood in stem at base of a plant with traits $x$ and leaf area $a_\tm{l}$.
+
+Determination: Sapwood area is assumed to be in functional balance with leaf area (i.e. the pipe model), such that:
+\begin{equation} a_\tm{ss} = \theta^{-1} \, a_\tm{l}. \end{equation}
+
+Useful derivatives:
+\begin{equation} \frac{\ud a_\tm{ss}}{\ud a_\tm{l}} = \theta^{-1} \end{equation}
+
+\begin{equation} \frac{\ud a_\tm{ss}}{\ud t} = \theta^{-1} \, \frac{\ud a_\tm{l}}{\ud t} \end{equation}
 
 ### Mass of sapwood
 
-Symbol: $m_{ss}(x, a_\textrm{l})$
+Symbol: $m_{ss}(x, h)$
 
 Units: kg
 
-Determination: $m_\textrm{sb}=\theta^{-1} \, \rho \, \eta_c \, a_\textrm{l} \, h$, $\frac{\textrm{d}m_\textrm{s}}{\textrm{d}a_\textrm{l}}=\theta^{-1}\, \rho\, \eta_c\, \big( h + a_\textrm{l}\, \frac{\textrm{d}h}{\textrm{d}a_\textrm{l}} \big)$
+Description: Total mass of sapwood in a plant with traits $x$ and height $h$.
+
+Determination: Calculated from leaf area and height, by XXXX.
+
+\begin{equation} m_\tm{ss} = \theta^{-1} \, \rho \, \eta_c \, a_\tm{l}(x,h) \, h \end{equation}
+
+Useful derivatives:
+\begin{equation} \frac{\ud m_\tm{ss}}{\ud a_\tm{l}} = \theta^{-1} \, \rho \, \eta_c \, \big( h + a_\tm{l} \, \frac{\ud h}{\ud a_\tm{l}} \big) \end{equation}
 
 ### Area of bark
 
-Symbol: $a_{sb}(x, a_\textrm{l})$
+Symbol: $a_{sb}(x, a_\tm{l})$
 
 Units: kg
 
-Determination: $a_\textrm{sb}= b \, \theta^{-1} \, a_\textrm{l}$, $\frac{\textrm{d}a_\textrm{sb}}{\textrm{d}t} =b \, \theta^{-1} \, \frac{\textrm{d}a_\textrm{l}}{\textrm{d}t}$
+Description: Area of live bark area in stem at base of a plant with traits $x$ and leaf area $a_\tm{l}$.
+
+Determination: Bark cross-sectional area is treated analogously to sapwood area. We assume a constant ratio $b$ between bark and sapwood area so that:
+
+\begin{equation} a_\tm{sb} = b \, \theta^{-1} \, a_\tm{l} \end{equation}
+
+Useful derivatives:
+\begin{equation} \frac{\ud a_\tm{sb}}{\ud t} = b \, \theta^{-1} \, \frac{\ud a_\tm{l}}{\ud t} \end{equation}
+
+\begin{equation} \frac{\textrm{d}a_\textrm{sb}}{\textrm{d}t}=b \, \theta^{-1} \, \frac{\textrm{d}a_\textrm{l}}{\textrm{d}t} \end{equation}
+
 
 ### Mass of bark
 
-Symbol: $m_{sb}(x, a_\textrm{l})$
+Symbol: $m_{sb}(x, a_\tm{l})$
 
 Units: kg
 
-Determination: $m_\textrm{sb}=\theta^{-1} \, \rho \, \eta_c \, a_\textrm{l} \, h$, $\frac{\textrm{d}m_\textrm{sb}}{\textrm{d}a_\textrm{l}}=\theta^{-1}\, \rho\, \eta_c\, \big( h + a_\textrm{l}\, \frac{\textrm{d}h}{\textrm{d}a_\textrm{l}} \big)$
+Description: Total mass of bark in a plant with traits $x$ and height $h$.
+
+Determination: As for $m_{ss}$, calculated from leaf area and height such that:
+\begin{equation} m_\tm{sb} = \theta^{-1} \, \rho \, \eta_c \, a_\tm{l} \, h \end{equation}
+
+Useful derivatives:
+\begin{equation} \frac{\ud m_\tm{sb}}{\ud a_\tm{l}} = \theta^{-1} \, \rho \, \eta_c \, \big( h + a_\tm{l} \, \frac{\ud h}{\ud a_\tm{l}} \big) \end{equation}
+
+\begin{equation} \frac{\textrm{d}m_\textrm{b}}{\textrm{d}a_\textrm{l}}=b \, \theta^{-1} \, \rho \, \eta_c\big( h + a_\textrm{l} \, \frac{\textrm{d}h}{\textrm{d}A} \big) \end{equation}
 
 ### Area of heartwood
 
-Symbol: $a_\textrm{sh}(x, a)$
+Symbol: $a_\tm{sh}(x, h, a)$
 
 Units: kg
 
-Determination: Area of heartwood is obtained by solving the IVP with initial conditions: $a_\textrm{sh} =0$, and  rates of change
-$\frac{\textrm{d}a_\textrm{sh}}{\textrm{d}t}=k_\textrm{s} \, a_\textrm{ss}$. Thus, $a_\textrm{sh}=\int_0^t \frac{\textrm{d}a_\textrm{sh}}{\textrm{d}t}(t^\prime) \, dt^\prime$.
+Description: Area of dead sapwood in stem at base of a plant with traits $x$, height $h$ and age $a$.
+
+Determination: Heartwood area is created by the turnover of sapwood. As such area of heartwood is obtained by integrating the IVP with initial conditions:
+\begin{equation} a_\tm{sh} = 0, \end{equation}
+and rates of change
+\begin{equation} \frac{\ud a_\tm{sh}}{\ud t} = k_\tm{s} \, a_\tm{ss}(x, a_\tm{l}(h)). \end{equation}
+Thus,
+\begin{equation} a_\tm{sh} = \int_0^t \frac{\ud a_\tm{sh}}{\ud t}(t^\prime) \, dt^\prime. \end{equation}
 
 ### Mass of heartwood
 
-Symbol: $m_\textrm{sh}(x, a)$
+Symbol: $m_\tm{sh}(x, h, a)$
 
 Units: kg
 
-Determination: Mass  of heartwood is obtained by solving the IVP with initial conditions: $m_\textrm{sh} =0$, and  rates of change $\frac{\textrm{d}m_\textrm{sh}}{\textrm{d}t}=k_\textrm{s} \, m_\textrm{ss}$. Thus, $m_\textrm{sh}=\int_0^t \frac{\textrm{d}m_\textrm{sh}}{\textrm{d}t}(t^\prime) \, dt^\prime$
+Description: Mass of dead sapwood in stem for a plant with traits $x$, height $h$ and age $a$.
+
+Determination: Heartwood mass is created by the turnover of sapwood. As such mass of heartwood is obtained by integrating the IVP with initial conditions:
+\begin{equation} m_\tm{sh} = 0, \end{equation}
+and rates of change
+\begin{equation} \frac{\ud m_\tm{sh}}{\ud t} = k_\tm{s} \, m_\tm{ss}(x,h). \end{equation}
+Thus,
+\begin{equation} m_\tm{sh} = \int_0^t \frac{\ud m_\tm{sh}}{\ud t}(t^\prime) \, dt^\prime. \end{equation}
 
 ### Mass of fine roots
 
-Symbol: $m_\textrm{r}(x, a_\textrm{l})$
+Symbol: $m_\tm{r}(x, a_\tm{l})$
 
 Units: kg
 
-Determination: $m_\textrm{r} = \alpha_3 a_\textrm{l}(x, h)$, $\frac{\textrm{d}m_\textrm{r}}{\textrm{d}a_\textrm{l}}= \alpha_3$
+Description: Mass of fine roots on a plant with traits $x$ and leaf area $a_l$.
 
-### Total mass
+Determination: root mass is assumed to be in functional balance with leaf area (i.e. the pipe model), such that:
+\begin{equation} m_\tm{r} = \alpha_3 a_\tm{l}(h) \end{equation}
 
-Symbol: $m_\textrm{t}(x, h)$
+Useful derivatives:
+\begin{equation} \frac{\ud m_\tm{r}}{\ud a_\tm{l}} = \alpha_3 \end{equation}
+\begin{equation} \frac{\ud m_\tm{r}}{\ud t} = \alpha_3 \frac{\ud a_\tm{l}}{\ud t} \end{equation}
+
+### Total live mass
+
+Symbol: $m_\tm{t}(x, h, a)$
 
 Units: kg
 
-Determination: $m_\textrm{t} = m_\textrm{l}+m_\textrm{ss}+m_\textrm{sb}+m_\textrm{sh}+m_\textrm{r}$
+Description: Total mass of live tissue on a plant with traits $x$ and height $h$.
 
-## Competitive environment
+Determination: Calculated from sum of mass in leaves, sapwood, bark and root.
+
+\begin{equation} m_\tm{t} = m_\tm{l} + m_\tm{ss} + m_\tm{sb} + m_\tm{r} \end{equation}
+
+## Mass production
+
+All rates are per plant.
+
+### Net production
+
+Symbol: $\frac{\textrm{d}B}{\textrm{d}t}(x, h, E)$
+
+Units: kg yr$^{-1}$
+
+Description: Rate of biomass production, after replacing parts lost via turnover, for plant with traits $x$, height $h$ and growing in environment $E$.
+
+Determination: Calculated as the difference between income (photosynthesis) and losses (respiration and turnover):
+\begin{equation} \frac{\textrm{d}B}{\textrm{d}t} = \underbrace{\strut c_{\tm{bio}} Y}_\textrm{yield} \big(\underbrace{\strut \, A_\tm{p}\left(x, h, E_a\right)}_\textrm{photosynthesis} - \underbrace{\strut \, R(x, h)}_\textrm{respiration}\big) - \underbrace{\strut T(x, h)}_\textrm{turnover}. \end{equation}
+
+### Total photosynthesis (= gross primary production)
+
+Symbol: $A_\tm{p}(x, h_\tm{l}, E)$
+
+Units: mol yr$^{-1}$
+
+Description:
+
+Determination: Calculated by integrating assimilation per unit leaf area over the plant:
+
+\begin{equation} A_\tm{p} = a_\tm{l}(h) \int_0^{h} A(x, E_a(z)) \, q(z, h) \; \ud z \end{equation}
+
+### Photosynthesis per leaf area
+
+Symbol: $A(x, E)$
+
+Units: mol yr$^{-1}$
+
+Description: $A(x, E)$ is the gross annual CO2 assimilation per unit leaf area at canopy openness $E$ for a leaf with traits $x$.
+
+Determination: Calculated by using the approximation, which was derived by integrating instantaneous rates of assimilation (described by a rectangular hyperbola) over the diurnal solar cycles throughout the year:
+
+\begin{equation} A = \frac{c_\tm{p1}}{c_\tm{p2}+ E} \end{equation}
+
+### Maintenance respiration
+
+Symbol: $R(x, h)$
+
+Units: mol yr$^{-1}$
+
+Description:
+
+Determination: Calculated from sum of respiration in leaves, sapwood, bark and root. Leaf respiration is calculated per unit area, while sapwood and bark respiration are calculated per unit volume.
+
+\begin{equation} R = c_\tm{R,l} \, a_\tm{l} + c_\tm{R,ss} \, \frac{m_\tm{ss}}{\rho} + c_\tm{R,sb} \, \frac{m_\tm{sb}}{\rho}  +  c_\tm{R,r} \, m_\tm{r} \end{equation}
+
+### Leaf respiration rate
+
+Symbol: $c_\tm{R,l}$
+
+Units: mol m$^{-2}$ yr$^{-1}$
+
+Description: Rate of leaf respiration per unit leaf area.
+
+Determination: Assumed proportional to leaf N.
+
+\begin{equation} c_\tm{R,l} = XXX .\end{equation}
+
+
+### Total turnover
+
+Symbol: $T(x, h)$
+
+Units: kg yr$^{-1}$
+
+Description:
+
+Determination:
+\begin{equation} T = \sum_\textrm{i=l,ss,sb,r}{k_i \, m_i} \end{equation}
+
+### Leaf turnover rate
+
+Symbol: $k_\tm{l}$
+
+Units: yr$^{-1}$
+
+Description: Rate at which leaf mass dies and is lost.
+
+Determination: Assumed proportional to leaf mass per area, as per scaling relationship observed in large datasets:
+
+\begin{equation} k_\tm{l} = \alpha_4 \phi^{\beta_4} \end{equation}
+
+### Sapwood turnover rate
+
+Symbol: $k_\tm{ss}$
+
+Units: yr$^{-1}$
+
+Description: Rate at which sapwood mass dies and becomes heartwood.
+
+### Bark turnover rate
+
+Symbol: $k_\tm{sb}$
+
+Units: yr$^{-1}$
+
+Description: Rate at which bark mass dies and is lost.
+
+Determination: Set to be same as sapwood turnover rate
+\begin{equation} k_\tm{sb} = k_\tm{ss} \end{equation}
+
+### Root turnover rate
+
+Symbol: $k_\tm{r}$
+
+Units: yr$^{-1}$
+
+Description: Rate at which root mass dies and is lost.
+
+### Reproductive allocation
+
+Symbol: $r(x, h)$
+
+Units: Dimensionless (0 to 1)
+
+Determination: Fraction of surplus production ($allocated to reproduction
+
+Determination:
+\begin{equation} r = c_{\tm{r}, 1}\left(1 + \exp\left(c_{\tm{r}, 2} \left(1-\frac{h(x, m_l)}{h_m}\right)\right)\right)^{-1} \end{equation}
+
+### Leaf deployment rate
+Symbol: $\frac{\ud a_\tm{l}}{\ud m_\tm{t}} (x, h)$
+
+Units: Dimensionless (0 to 1)
+
+Determination: $\textrm{d}a_\textrm{l} / \textrm{d}m_\textrm{t}$ accounts for the cost of deploying a unit of leaf area, including construction of the leaf itself and various support structures. As such, $\textrm{d}a_\textrm{l} / \textrm{d}m_\textrm{t}$ can itself be decomposed into a sum of construction costs per unit leaf area:
+
+\begin{equation} \label{eq:daldmt}
+\frac{\textrm{d}a_\textrm{l}}{\textrm{d}m_\textrm{t}}
+= \big(\phi
+ + \frac{\textrm{d}m_\textrm{s}}{\textrm{d}a_\textrm{l}} + \frac{\textrm{d}m_\textrm{b}}{\textrm{d}a_\textrm{l}} + \frac{\textrm{d}m_\textrm{r}}{\textrm{d}a_\textrm{l}}\big)^{-1}.
+ \end{equation}
+
+### Fraction of production allocated to growth
+
+Symbol: $\frac{\textrm{d}m_\textrm{t}}{\textrm{d}B}$
+
+Units: Dimensionless (0 to 1)
+
+Determination:
+\begin{equation} \frac{\textrm{d}m_\textrm{t}}{\textrm{d}B} = 1- r(x, h) \end{equation}
+
+### Fecundity
+
+Symbol: $f(x, h, E)$
+
+Units: yr$^{-1}$
+
+Description: Rate of offspring production for plant with traits $x$, height $h$ and growing in environment $E$.
+
+Determination:
+\begin{equation} f = \frac{r(x, h) \;\frac{\textrm{d}B}{\textrm{d}t}(x, h, E)}{c_{\tm{acc}}s} \end{equation}
+if $\frac{\textrm{d}B}{\textrm{d}t}(x, h_0(x), E)>0$, otherwise 0
 
 ### Probability density of leaf area at height z for an individual of height h
 
@@ -121,259 +375,103 @@ Symbol: $q(z, h)$
 
 Units: m$^{-1}$
 
-Determination: $q = 2\eta(1-z^\eta h^{-\eta}) z^{\eta-1} h^{-\eta}$ if $z \leq h$, otherwise 0.
+Description: Fraction of plant's leaf area at height $z$, for plant of height $h$.
 
-### Fraction of leaf area above height z for an individual of height h
-
-Symbol: $Q(z, h)$
-
-Units: Dimensionless (0 to 1)
-
-Determination: $Q = \int_z^h q(z^\prime,h) \; \textrm{d}z^\prime$ if $z \leq h$, otherwise 0.
-
-Equation: 10
-
-### Canopy openness at height z in a patch of age a
-
-Symbol: $E(z, a)$
-
-Units: Dimensionless (0 to 1)
-
-Determination: $E = \exp\left(-c_\textrm{ext} \int_0^\infty Q(z, h(m_l)) \;a_\textrm{l}(x, h)  \;n(x,h,a) \; \textrm{d}m_l \right)$
-
-Equation: 11
-
-## Mass production
-
-All rates are per plant.
-
-### Gross annual CO2 assimilation
-
-Symbol: $A(x,h_\textrm{l}, E(\cdot,a))$
-
-Units: mol yr$^{-1}$
-
-Determination: $A =a_\textrm{l}(x, h) \int_0^{h(m_l)} A_{\textrm{lf}}(A_0 \upsilon,E(z,a)) \; q(z, h(m_l)) \; \textrm{d} z$
-
-Equation: 12
-
-$A_{\textrm{lf}}(A_0\upsilon,E(z,a))$ is the gross annual CO2 assimilation per unit leaf area at canopy openness $E(z, a)$ for a leaf with maximum capacity $A0\upsilon$, determined by integrating instantaneous rates of assimilation (described by a rectangular hyperbola) over the diurnal solar cycles throughout the year.
-
-### Total maintenance respiration
-
-Symbol: $R(x,h})$
-
-Units: mol yr$^{-1}$
-
-Determination: $R = a_\textrm{l}(x, h) \upsilon c_\textrm{R,l} + \frac{m_s(x,h) + 2 m_b(x,h)}{\rho}  c_\textrm{R,s} +m_r(x, h)  c_\textrm{R,l}$
-
-Equation: 13
-
-### Total turnover
-
-Symbol: $T(x,h)$
-
-Units: kg yr$^{-1}$
-
-Determination: $T=m_l\alpha_4 \phi^{\beta_4} + m_b(x, m_l) k_b +m_r(x,m_l)k_r$
-
-Equation: 14
-
-### Net production
-
-Symbol: $P(x, h,E(\cdot, a))$
-
-Units: kg yr$^{-1}$
-
-Determination: $P = c_{\textrm{bio}}Y \left[ A\left(x,h,E(\cdot, a)\right) - R(x,h)\right]-T(x,h)$
-
-Equation: 15
-
-### Fraction of production allocated to reproduction
-
-Symbol: $r(x,h)$
-
-Units: Dimensionless (0 to 1)
-
-Determination: $r = c_{\textrm{r},1}\left(1+\exp\left(c_{\textrm{r},2} \left(1-\frac{h(x,m_l)}{h_m}\right)\right)\right)^{-1}$
-
-Equation: 16
-
-### Rate of offspring production
-
-Symbol: $f(x, h, E(\cdot ,a))$
-
-Units: yr$^{-1}$
-
-Determination: $f = \frac{r(x,h) \;P(x,h,E(\cdot, a))}{c_{\textrm{acc}}s}$ if $P(x,m_{\textrm{l},0},E(\cdot, a))>0$, otherwise 0
-
-Equation: 17
-
-
-### Fraction of whole-plant growth that is leaf
-
-Symbol: $\frac{\textrm{d}m_l}{\textrm{d}m_t} (x, m_l)$
-
-Units: Dimensionless (0 to 1)
-
-Determination: $\frac{\textrm{d}m_l}{\textrm{d}m_t} =  \frac{ 1}{1+  \frac{\textrm{d}m_s}{\textrm{d}m_l} (x, m_l) +  \frac{\textrm{d}m_b}{\textrm{d}m_l} (x, m_l) +  \frac{\textrm{d}m_h}{\textrm{d}m_l} (x, m_l)+  \frac{\textrm{d}m_r}{\textrm{d}m_l} (x, m_l)}$
-
-Equation: 18
-
-Notes: The derivatives on the right-hand side of eqn 18 can be calculated directly from eqn 4–7. For solutions see Appendix S2.
-
-### Growth rate in leaf mass
-
-Symbol: $g(x,h,E(\cdot ,a))$
-
-Units: kg yr$^{-1}$
-
-Determination:  $g =(1-r(x, m_l)) \; P(x, m_l, E(\cdot, a)) \; \frac{\textrm{d}m_l}{\textrm{d}m_t} (x, m_l)$ if $P(x,m_{\textrm{l},0},E(\cdot, a)) > 0$, otherwise 0.
-
-Equation: 19
+Determination:
+\begin{equation} q = 2\eta(1-z^\eta h^{-\eta}) z^{\eta-1} h^{-\eta} \end{equation}
+if $z \leq h$, otherwise 0.
 
 ## Mortality
 
 ### Survival of seedlings during germination
 
-Symbol: $\Pi_1(x, m_{\textrm{l},0}, E(\cdot, a))$
+Symbol: $\Pi_1(x, m_{\tm{l}, 0}, E)$
 
 Units: Dimensionless (0 to 1)
 
-Determination: $\Pi_1 = \left(1+ \left(\frac{c^2_{\textrm{s},0}}{\frac{P(x, m_{\textrm{l},0} E(\cdot, a))}{a_\textrm{l}(x, h_0)}} \right)^{2} \right)^{-1}$ if $P(x,m_{\textrm{l},0},E(\cdot, a)) > 0$, otherwise 0
-
-Equation: 20
-
-### Instantaneous mortality rate
-
-Symbol: $d(x, h, E(\cdot, a))$
-
-
-Units: yr$^{-1}$
-
-
-Determination: $d = c_{\textrm{d}0}\exp\left(-c_{\textrm{d}1}\rho\right) + c_{\textrm{d}2} \exp\left(-c_{\textrm{d}3} \frac{P(x, m_l, E(\cdot, a))}{a_\textrm{l}(x, h)} \right)$
-
-Equation: 21
-
-### Development of size distribution within patches
-
-### Density per ground area of individuals with traits x and size h in a patch of age a
-
-Symbol: $n(x,h, a)$
-
-Units: kg$^{-1} m$^{-2}$
+Description: Gives probability of plant suriving germination. Is a function of biomass growth rate for seedlings, such that seedlings unable to grow die.
 
 Determination:
+\begin{equation} \Pi_1 = \left(1 + \left(\frac{c^2_{\tm{s}, 0}}{\frac{\frac{\textrm{d}B}{\textrm{d}t}(x, h_0(x), E)}{a_\tm{l}(x, h_0(x))}} \right)^{2} \right)^{-1} \end{equation}
+if $\frac{\textrm{d}B}{\textrm{d}t}(x, h_0(x), E) > 0$, otherwise 0
 
-$\frac{\partial}{\partial a} n(x,h, a) =  - d(x, m_l, E(\cdot, a))\;n(x,h,a) - \frac{\partial}{\partial m_l}  \left[ g(x, m_l, E(\cdot, a))\;n(x,h,a) \right]$
+### Mortality rate
 
-$ n(x,h, 0) = 0$
-
-$n(x, h_0, a) =  \frac{pi_1(x, m_{\textrm{l},0}, E(\cdot, a))}{ g(x, m_{\textrm{l},0}, E(\cdot, a))} \int_0^\infty p(\tau) \int_0^\infty \Pi_0  f(x, m_l,  E(\cdot, \tau))\;n(x, h, \tau)\;\textrm{d}h \textrm{d}\tau$
-
-if $P(x,m_{\textrm{l},0},E(\cdot, a)) > 0$, otherwise 0
-
-Equation: 22
-
-## Metapopulation dynamics
-
-### Probability density of patch age a in the metapopulation
-
-Symbol: $p(a)$
+Symbol: $d_\tm{t}(x, h, E)$
 
 Units: yr$^{-1}$
 
-Determination: $p= \frac{1}{\hat a} \exp\left(- \frac{\pi}{4} \left(\frac{a}{\hat a }\right)^2 \right)$
+Description: Instantaneous mortality rate for a plant with traits $x$, height $h$ and growing in environment $E$. Given as sum of growth-dependent and growth-independent hazards.
 
-Equation: 23
+Determination:
+\begin{equation} d_\tm{t} = d_\tm{i}(x, h) + d_\tm{d}(x, h, E) \end{equation}
 
-Notes: $\hat a$ is the mean interval between disturbances. The probability of patch disturbance is assumed to increase linearly with patch age, and can be expressed as a function of mean disturbance interval, $\gamma(a) = \pi \frac{a}{2\hat a^2}$. For more details see Appendix S1.
+### Growth-independent mortality rate
 
-### Emergent properties of vegetation
+Symbol: $d_\tm{i}(x, h)$
 
-Averages over all patches in the metapopulation, calculated as inline image, where K(a) is the considered vegetation property at patch age a.
+Units: yr$^{-1}$
 
-### Average height of leaf area
+Description: Mortality rate for a plant with traits $x$ and height $h$ due to growth-independent factors.
 
-Symbol: $H(a)$
+Determination:
+\begin{equation} d_\tm{i} = c_{\ud 0}\exp\left(-c_{\ud 1}\rho\right) \end{equation}
 
-Units: m
+### Growth-dependent mortality rate
 
-Determination: $H = \frac{1}{L(a)} \int_0^\infty \int_0^\infty a_\textrm{l}(x, h) q(z, h(x,m_l)) n(x, h, a)  \;\textrm{d}h \textrm{d}z$
+Symbol: $d_\tm{d}(x, h)$
 
-Equation: 24
+Units: yr$^{-1}$
 
-### Leaf-area index
+Description: Mortality rate for a plant with traits $x$, height $h$ and growing in environment $E$ due to growth-dependent factors.
 
-Symbol: $L(a)$
+Determination:
+\begin{equation} d_\tm{d} = c_{\ud 2} \exp\left(-c_{\ud 3} \frac{\frac{\textrm{d}B}{\textrm{d}t}(x, h, E)}{a_\tm{l}(h)} \right) \end{equation}
 
-Units: Dimensionless
-
-Determination: $L = \int_0^\infty a_\textrm{l}(x, h) n(x, h, a)  \;\textrm{d}h$
-
-Equation: 25
-
-### Net primary production
-
-Symbol: $N(a)$
-
-Units: kg m$^{-2}$ yr$^{-1}$
-
-Determination: $N =c_{\textrm{bio}}Y  \int_0^\infty \left[ A\left(x,h,E(\cdot, a)\right) - R(x,h)\right] n(x, h, a)  \;\textrm{d}h$
-
-Equation: 26
-
-### Biomass density
-
-Symbol: $B(a)$
-
-Units: kg m$^{-2}$
-
-Determination: $B = \int_0^\infty m_\textrm{t}(h) n(x, h, a)  \;\textrm{d}h$
+\newpage
 
 # Appendix 1: Moving from leaf mass to height as key variable
 
 The focus on leaf mass as the key variable in @falster_influence_2011 is fairly arbitrary.
 Instead, consider a change of variables to use "height" as the key
-size variable.  This is useful because we need to know about plant
+size variable. This is useful because we need to know about plant
 height elsewhere, and it's a common measuring stick that is fairly
 independent of the key traits.
 
 To convert from leaf mass ($m_l$) to height ($h$), use equations 3 and
 4 in @falster_influence_2011:
 
-$$
+\begin{equation}
 h = \alpha_1 \left(\frac{m_l}{\phi}\right)^{\beta_1}
-$$
+ \end{equation}
 
 where $\phi$ is the leaf mass per unit area (\textsc{lma}) and
 $\alpha_1$ and $\beta_1$ are scaling parameters relating leaf area
 ($m_l/\phi$) to height.
 
 What we need for the main calculations is the derivative of height $h$
-with respect to time.  Because $m_l$ is a function of time, we have
+with respect to time. Because $m_l$ is a function of time, we have
 
-$$
+\begin{equation}
 \frac{\ud h}{\ud t} = \frac{\ud}{\ud t}[m_l(t)]
 \frac{\alpha_1 \beta_1}{\phi} \left(\frac{m_l(t)}{\phi}\right)^{\beta_1 - 1}
-$$
+ \end{equation}
 
 where $\frac{\ud}{\ud t}[m_l(t)]$ comes from equation 19:
 
-$$
+\begin{equation}
 \frac{\ud}{\ud t}[m_l(t)] = (1 - r)P\frac{\ud m_l}{\ud m_t}
-$$
+ \end{equation}
 
 where $P$ is total production, $r$ is allocation to reproduction and
 $\ud m_l/\ud m_t$ is the fraction of whole plant growth that is leaf.
 
 So overall, we have
 
-$$
+\begin{equation}
 \frac{\ud h}{\ud t} =
 \frac{\ud m_t}{\ud t} \frac{\ud m_l}{\ud m_t} \frac{\ud h}{\ud m_l}
-$$
+ \end{equation}
 
 ---
 
@@ -383,21 +481,21 @@ R version of the growth model.
 
 From equation (18) we have
 
-$$
+\begin{equation}
 \frac{\ud m_l}{\ud m_t} =
 \frac{1}{1 +
 	\frac{\ud m_s}{\ud m_l} +
 	\frac{\ud m_b}{\ud m_l} +
 	\frac{\ud m_h}{\ud m_l} +
 	\frac{\ud m_r}{\ud m_l}}
-$$
+ \end{equation}
 
 (because $m_t = m_l + m_s + m_b + mh + m_r$, and $\ud m_l/\ud m_t = 1
 /(\ud m_t / \ud m_l)$).
 
 Using appendix S2 of Falster et al. (2010).
 
-$$
+\begin{equation}
 \frac{\ud m_s}{\ud m_l} = \frac{\ud}{\ud m_l}\left[
 \frac{\rho \eta_c}{\theta} \omega(m_l) h(m_l)\right] =
 \frac{\ud}{\ud m_l}\left[
@@ -408,18 +506,18 @@ $$
 \alpha_1\left(\frac{m_l}{\phi}\right)^{\beta_1 + 1}\right] =
 % r n / t (m/p) a (m/p) ^ b
 % D[r n / t (m/p) a (m/p) ^ b, m] // Simplify
-\frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1+1)
+\frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1 + 1)
 \left(\frac{m_l}{\phi}\right)^{\beta_1}
-$$
+ \end{equation}
 and
-$$
+\begin{equation}
 \frac{\ud m_b}{\ud m_l} = \frac{\ud}{\ud m_l}[b m_s] =
 b \frac{\ud m_s}{\ud m_l} =
-b \frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1+1)
+b \frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1 + 1)
 \left(\frac{m_l}{\phi}\right)^{\beta_1}
-$$
+ \end{equation}
 and
-$$
+\begin{equation}
 \frac{\ud m_h}{\ud m_l} =
 \frac{\ud}{\ud m_l}\left[
 \rho\eta_c\alpha_2 \omega(m_l)^{\beta_2}
@@ -433,47 +531,47 @@ $$
 % D[r n a (m / p)^b, m] // Simplify
 \frac{\rho\eta_c\alpha_2}{m_l}\beta_2
 \left(\frac{m_l}{\phi}\right)^{\beta_2}
-$$
+ \end{equation}
 and
-$$
+\begin{equation}
 \frac{\ud m_r}{\ud m_l} =
 \frac{\ud}{\ud m_l}\left[\alpha_3 \omega(m_l)\right] =
 \frac{\ud}{\ud m_l}\left[\alpha_3 \frac{m_l}{\phi}\right] =
 \frac{\alpha_3}{\phi}
-$$
+ \end{equation}
 
 So, the denomininator of $\ud m_l / \ud m_t$ looks like:
 
-$$
+\begin{equation}
 1 +
 % d m_s / d m_l
-\frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1+1)
+\frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1 + 1)
 \left(\frac{m_l}{\phi}\right)^{\beta_1} +
 % d m_b / d m_l
-b \frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1+1)
+b \frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1 + 1)
 \left(\frac{m_l}{\phi}\right)^{\beta_1} +
 % d m_h / d m_l
 \frac{\rho\eta_c\alpha_2}{m_l}\beta_2
 \left(\frac{m_l}{\phi}\right)^{\beta_2} +
 % d m_r / d m_l
 \frac{\alpha_3}{\phi}
-$$
+ \end{equation}
 
-$$
+\begin{equation}
 1 +
 % d m_s / d m_l + d m_b / d m_l
-(1 + b) \frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1+1)
+(1 + b) \frac{\rho \eta_c}{\theta\phi}\alpha_1(\beta_1 + 1)
 \left(\frac{m_l}{\phi}\right)^{\beta_1} +
 % d m_h / d m_l
 \frac{\rho\eta_c\alpha_2}{m_l}\beta_2
 \left(\frac{m_l}{\phi}\right)^{\beta_2} +
 % d m_r / d m_l
 \frac{\alpha_3}{\phi}
-$$
+ \end{equation}
 
 Repeating this with the version in the R verison, working in terms of
 leaf area.
-$$
+\begin{equation}
 \frac{\ud \omega}{\ud m_t} =
 \frac{1}{
 	\frac{\ud m_l}{\ud \omega} +
@@ -481,60 +579,60 @@ $$
 	\frac{\ud m_b}{\ud \omega} +
 	\frac{\ud m_h}{\ud \omega} +
 	\frac{\ud m_r}{\ud \omega}}
-$$
+ \end{equation}
 
-$$
+\begin{equation}
 \frac{\ud m_l}{\ud \omega} =
 \frac{\ud}{\ud \omega}\left[\omega\phi\right] =
 \phi
-$$
+ \end{equation}
 and
-$$
+\begin{equation}
 \frac{\ud m_s}{\ud \omega} =
 \frac{\ud}{\ud \omega}\left[
 \frac{\rho \eta_c}{\theta} \omega h(\omega)\right] =
 \frac{\ud}{\ud \omega}\left[
-\frac{\rho \eta_c}{\theta} \alpha_1 \omega^{\beta_1+1}\right] =
-\frac{\rho \eta_c}{\theta}\alpha_1(\beta_1+1)\omega^{\beta_1}
-$$
+\frac{\rho \eta_c}{\theta} \alpha_1 \omega^{\beta_1 + 1}\right] =
+\frac{\rho \eta_c}{\theta}\alpha_1(\beta_1 + 1)\omega^{\beta_1}
+ \end{equation}
 and
-$$
+\begin{equation}
 \frac{\ud m_b}{\ud \omega} =
 \frac{\ud}{\ud \omega}\left[b m_s\right] =
 b \frac{\ud m_s}{\ud \omega} =
-b \frac{\rho \eta_c}{\theta}\alpha_1(\beta_1+1)\omega^{\beta_1}
-$$
+b \frac{\rho \eta_c}{\theta}\alpha_1(\beta_1 + 1)\omega^{\beta_1}
+ \end{equation}
 and
-$$
+\begin{equation}
 \frac{\ud m_h}{\ud \omega} =
 \frac{\ud}{\ud \omega}\left[\rho\eta_c\alpha_2 \omega^{\beta_2}
 \right] =
 \rho\eta_c\alpha_2\beta_2\omega^{\beta_2 - 1}
-$$
+ \end{equation}
 and
-$$
+\begin{equation}
 \frac{\ud m_r}{\ud \omega} =
 \frac{\ud}{\ud \omega}\left[\alpha_3 \omega\right] = \alpha_3
-$$
+ \end{equation}
 
 Other useful derivatives:
 
 Because
-$$
+\begin{equation}
 h = \alpha_1 \left(\frac{m_l}{\phi}\right)^{\beta_1}
 \qquad
 m_l = \phi\left(\frac{h}{\alpha_1}\right)^{1/\beta_1}
-$$
+ \end{equation}
 
 we have
 
-$$
+\begin{equation}
 \frac{\ud h}{\ud m_l} = \frac{\alpha_1 \beta_1}{\phi}
 \left(\frac{m_l}{\phi}\right)^{\beta_1 - 1}
 \qquad
 \frac{\ud m_l}{\ud h} =
 \frac{\phi}{\alpha_1 \beta_1}\left(\frac{h}{\alpha_1}\right)^
 {\frac{1}{\beta_1} - 1}
-$$
+ \end{equation}
 
 # References
