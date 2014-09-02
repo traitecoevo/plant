@@ -1,6 +1,13 @@
 \newcommand{\ud}{\mathrm{d}}
 \newcommand{\tm}{\textrm}
 
+```{r, results="hide", echo=FALSE, message=FALSE}
+library(methods)
+library(tree)
+s <- new(Strategy)
+tree_p <- s$parameters
+```
+
 # Equations
 
 For the sake of brevity, dependencies of functions are shown only in the Symbol column. The variable $x$ refers to a vector of four traits that are varied in the model: $x = (\phi, \rho, h_m, s)$. Subscripts for size variables are: l = leaves, s = sapwood, b = bark and phloem, h = heartwood, r = fine roots. All mass measurements are in terms of dry mass.
@@ -15,12 +22,25 @@ Units: kg m$^{-2}$
 
 Description: Mass cost for constructing a unit of leaf area
 
+Default value: $\varepsilon$ = `r tree_p[["lma"]]`
+
 ### Stem tissue density
 Symbol: $\rho$
 
 Units: kg m$^{-3}$
 
 Description: Mass cost for constructing a unit of stem volume
+
+Default value: $\rho$ = `r tree_p[["rho"]]`
+
+### Leaf nitrogen content
+Symbol: $N$
+
+Units: kg m$^{-2}$
+
+Description: leaf nitrogen per unit leaf area
+
+Default value: $N$ = `r tree_p[["n_area"]]`
 
 ### Height at maturation
 
@@ -30,6 +50,8 @@ Units: m
 
 Description: Height at which plants allocate 50% of surplus energy to reproduction.
 
+Default value: $h_m$ = `r tree_p[["hmat"]]`
+
 ### Seed size
 
 Symbol: $s$
@@ -37,6 +59,8 @@ Symbol: $s$
 Units: kg
 
 Description: Mass of individual seeds dispersing from parent.
+
+Default value: $s$ = `r tree_p[["s"]]`
 
 ## Individual size
 
@@ -88,6 +112,8 @@ To solve equation \ref{eq:dhdt} , the following derivative is also required:
 
 \begin{equation} \frac{\ud h}{\ud a_\tm{l}} = -\beta_1\big(\frac{a_\tm{l}}{\alpha_1}\big)^{-(\beta_1 + 1)}. \end{equation}
 
+Parameter values: $\alpha_1$ = `r tree_p[["a1"]]`, $\beta_1$ = `r tree_p[["B1"]]`
+
 ### Area of sapwood
 
 Symbol: $a_{ss}(x, a_\tm{l})$
@@ -104,6 +130,8 @@ Useful derivatives:
 
 \begin{equation} \frac{\ud a_\tm{ss}}{\ud t} = \theta^{-1} \, \frac{\ud a_\tm{l}}{\ud t} \end{equation}
 
+Parameter values: $\theta$ = `r tree_p[["theta"]]`
+
 ### Mass of sapwood
 
 Symbol: $m_{ss}(x, h)$
@@ -118,6 +146,8 @@ Determination: Calculated from leaf area and height, by XXXX.
 
 Useful derivatives:
 \begin{equation} \frac{\ud m_\tm{ss}}{\ud a_\tm{l}} = \theta^{-1} \, \rho \, \eta_c \, \big( h + a_\tm{l} \, \frac{\ud h}{\ud a_\tm{l}} \big) \end{equation}
+
+Parameter values: $\eta$ = `r tree_p[["eta"]]`
 
 ### Area of bark
 
@@ -136,6 +166,7 @@ Useful derivatives:
 
 \begin{equation} \frac{\textrm{d}a_\textrm{sb}}{\textrm{d}t}=b \, \theta^{-1} \, \frac{\textrm{d}a_\textrm{l}}{\textrm{d}t} \end{equation}
 
+Parameter values: $\eta$ = `r tree_p[["b"]]`
 
 ### Mass of bark
 
@@ -168,6 +199,8 @@ and rates of change
 Thus,
 \begin{equation} a_\tm{sh} = \int_0^t \frac{\ud a_\tm{sh}}{\ud t}(t^\prime) \, dt^\prime. \end{equation}
 
+Parameter values: $k_\tm{s}$ = `r tree_p[["k_s"]]`
+
 ### Mass of heartwood
 
 Symbol: $m_\tm{sh}(x, h, a)$
@@ -198,6 +231,8 @@ Useful derivatives:
 \begin{equation} \frac{\ud m_\tm{r}}{\ud a_\tm{l}} = \alpha_3 \end{equation}
 \begin{equation} \frac{\ud m_\tm{r}}{\ud t} = \alpha_3 \frac{\ud a_\tm{l}}{\ud t} \end{equation}
 
+Parameter values: $\alpha_3$ = `r tree_p[["a3"]]`
+
 ### Total live mass
 
 Symbol: $m_\tm{t}(x, h, a)$
@@ -225,6 +260,8 @@ Description: Rate of biomass production, after replacing parts lost via turnover
 Determination: Calculated as the difference between income (photosynthesis) and losses (respiration and turnover):
 \begin{equation} \frac{\textrm{d}B}{\textrm{d}t} = \underbrace{\strut c_{\tm{bio}} Y}_\textrm{yield} \big(\underbrace{\strut \, A_\tm{p}\left(x, h, E_a\right)}_\textrm{photosynthesis} - \underbrace{\strut \, R(x, h)}_\textrm{respiration}\big) - \underbrace{\strut T(x, h)}_\textrm{turnover}. \end{equation}
 
+Parameter values: $c_{\tm{bio}}$ = `r tree_p[["c_bio"]]`, $Y$ = `r tree_p[["Y"]]`
+
 ### Total photosynthesis (= gross primary production)
 
 Symbol: $A_\tm{p}(x, h_\tm{l}, E)$
@@ -249,6 +286,8 @@ Determination: Calculated by using the approximation, which was derived by integ
 
 \begin{equation} A = \frac{c_\tm{p1}}{c_\tm{p2}+ E} \end{equation}
 
+Parameter values: $c_\tm{p2}$ = `r tree_p[["c_p1"]]`, $c_\tm{p2}$ = `r tree_p[["c_p2"]]`
+
 ### Maintenance respiration
 
 Symbol: $R(x, h)$
@@ -259,20 +298,9 @@ Description:
 
 Determination: Calculated from sum of respiration in leaves, sapwood, bark and root. Leaf respiration is calculated per unit area, while sapwood and bark respiration are calculated per unit volume.
 
-\begin{equation} R = c_\tm{R,l} \, a_\tm{l} + c_\tm{R,ss} \, \frac{m_\tm{ss}}{\rho} + c_\tm{R,sb} \, \frac{m_\tm{sb}}{\rho}  +  c_\tm{R,r} \, m_\tm{r} \end{equation}
+\begin{equation} R = c_\tm{R,l} \, N \, a_\tm{l} + c_\tm{R,ss} \, \frac{m_\tm{ss}}{\rho} + c_\tm{R,sb} \, \frac{m_\tm{sb}}{\rho}  +  c_\tm{R,r} \, m_\tm{r} \end{equation}
 
-### Leaf respiration rate
-
-Symbol: $c_\tm{R,l}$
-
-Units: mol m$^{-2}$ yr$^{-1}$
-
-Description: Rate of leaf respiration per unit leaf area.
-
-Determination: Assumed proportional to leaf N.
-
-\begin{equation} c_\tm{R,l} = XXX .\end{equation}
-
+Parameter values: $c_\tm{R,l}$ = `r tree_p[["c_Rl"]]` mol CO2 / kgN / yr, $c_\tm{R,ss}$ = `r tree_p[["c_Rs"]]` mol CO2 / m3 / yr, $c_\tm{R,sb}$ = `r tree_p[["c_Rb"]]` mol CO2 / m3 / yr, $c_\tm{R,r}$ = `r tree_p[["c_Rr"]]` mol CO2 / kg / yr.
 
 ### Total turnover
 
@@ -297,6 +325,8 @@ Determination: Assumed proportional to leaf mass per area, as per scaling relati
 
 \begin{equation} k_\tm{l} = \alpha_4 \phi^{\beta_4} \end{equation}
 
+Parameter values: $\alpha_4$ = `r tree_p[["a4"]]`, $\beta_4$ = `r tree_p[["B4"]]`,
+
 ### Sapwood turnover rate
 
 Symbol: $k_\tm{ss}$
@@ -304,6 +334,8 @@ Symbol: $k_\tm{ss}$
 Units: yr$^{-1}$
 
 Description: Rate at which sapwood mass dies and becomes heartwood.
+
+Parameter values: $k_\tm{ss}$ = `r tree_p[["k_s"]]`,
 
 ### Bark turnover rate
 
@@ -316,6 +348,8 @@ Description: Rate at which bark mass dies and is lost.
 Determination: Set to be same as sapwood turnover rate
 \begin{equation} k_\tm{sb} = k_\tm{ss} \end{equation}
 
+Parameter values: $k_\tm{sb}$ = `r tree_p[["k_b"]]`,
+
 ### Root turnover rate
 
 Symbol: $k_\tm{r}$
@@ -323,6 +357,8 @@ Symbol: $k_\tm{r}$
 Units: yr$^{-1}$
 
 Description: Rate at which root mass dies and is lost.
+
+Parameter values: $k_\tm{r}$ = `r tree_p[["k_r"]]`,
 
 ### Reproductive allocation
 
@@ -334,6 +370,8 @@ Determination: Fraction of surplus production ($allocated to reproduction
 
 Determination:
 \begin{equation} r = c_{\tm{r}, 1}\left(1 + \exp\left(c_{\tm{r}, 2} \left(1-\frac{h(x, m_l)}{h_m}\right)\right)\right)^{-1} \end{equation}
+
+Parameter values: $c_{\tm{r}, 1}$ = `r tree_p[["c_r1"]]`, $c_{\tm{r}, 2}$ = `r tree_p[["c_r2"]]`
 
 ### Leaf deployment rate
 Symbol: $\frac{\ud a_\tm{l}}{\ud m_\tm{t}} (x, h)$
@@ -369,6 +407,8 @@ Determination:
 \begin{equation} f = \frac{r(x, h) \;\frac{\textrm{d}B}{\textrm{d}t}(x, h, E)}{c_{\tm{acc}}s} \end{equation}
 if $\frac{\textrm{d}B}{\textrm{d}t}(x, h_0(x), E)>0$, otherwise 0
 
+Parameter values: $c_{\tm{acc}}$ = `r tree_p[["c_acc"]]`
+
 ### Probability density of leaf area at height z for an individual of height h
 
 Symbol: $q(z, h)$
@@ -395,6 +435,8 @@ Determination:
 \begin{equation} \Pi_1 = \left(1 + \left(\frac{c^2_{\tm{s}, 0}}{\frac{\frac{\textrm{d}B}{\textrm{d}t}(x, h_0(x), E)}{a_\tm{l}(x, h_0(x))}} \right)^{2} \right)^{-1} \end{equation}
 if $\frac{\textrm{d}B}{\textrm{d}t}(x, h_0(x), E) > 0$, otherwise 0
 
+Parameter values: $c_{\tm{s}, 0}$ = `r tree_p[["c_s0"]]`
+
 ### Mortality rate
 
 Symbol: $d_\tm{t}(x, h, E)$
@@ -417,6 +459,8 @@ Description: Mortality rate for a plant with traits $x$ and height $h$ due to gr
 Determination:
 \begin{equation} d_\tm{i} = c_{\ud 0}\exp\left(-c_{\ud 1}\rho\right) \end{equation}
 
+Parameter values: $c_{\ud 0}$ = `r tree_p[["c_d0"]]`, $c_{\ud 1}$ = `r tree_p[["c_d1"]]`
+
 ### Growth-dependent mortality rate
 
 Symbol: $d_\tm{d}(x, h)$
@@ -427,6 +471,8 @@ Description: Mortality rate for a plant with traits $x$, height $h$ and growing 
 
 Determination:
 \begin{equation} d_\tm{d} = c_{\ud 2} \exp\left(-c_{\ud 3} \frac{\frac{\textrm{d}B}{\textrm{d}t}(x, h, E)}{a_\tm{l}(h)} \right) \end{equation}
+
+Parameter values: $c_{\ud 2}$ = `r tree_p[["c_d2"]]`, $c_{\ud 3}$ = `r tree_p[["c_d3"]]`
 
 \newpage
 
