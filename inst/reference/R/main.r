@@ -31,8 +31,8 @@ plotReproductiveAllocation(traits, seqLog(1, 40, 100))
 
 plotDMtdt(traits, seqLog(0.01, 20, 100), 0.8)
 
-#LMA GROWTH RATE 
-p.a4=2.86E-2*0.5;
+#LMA GROWTH RATE
+p.a4=0.4565855*0.5;
 X<-seqLog(0.005, 0.2, 100)
 X<-seqLog(0.05, 1, 100)
 plotTraitvHeightGrowth(X,traits, h=0.25, env=seq(0.1,1,0.1), option=1)
@@ -105,7 +105,7 @@ Production(traits, 10, 1,1)
 #plot change in marginal cost against height
 seqLog(0.2, 40, 100)
 plot(dAdMt(traits, 10)
-     
+
 #Next steps
 - compare numbers for production to matlab [error check - incorporates alls functions used thus far]
 - convert m to h / ml

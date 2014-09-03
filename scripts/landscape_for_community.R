@@ -3,8 +3,7 @@ library(tree)
 ## This comes from our current set of biological explorations:
 assembler_lma_parameters <- function(time_disturbance, slope) {
   model <- list(c_r1=0.5, c_r2=0,
-                B4=slope,
-                a4=10^(0.1369 + slope*-0.9819))
+                B4=slope)
   p <- tree:::ebt_base_parameters()
   p$strategy_default <- new(Strategy, model)
   p$disturbance <- new(Disturbance, time_disturbance)

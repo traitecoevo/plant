@@ -84,7 +84,7 @@ void Strategy::reset() {
   // (12E-3 / 0.49)
   c_bio  = 2.45e-2;
   // Leaf turnover - LMA scaling
-  a4     = 0.0286;
+  a4     =  0.4565855;
   B4     = 1.71;
   // Bark turnover
   k_b    = 0.2;

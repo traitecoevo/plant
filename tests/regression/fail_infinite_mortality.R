@@ -10,8 +10,7 @@ p0$set_control_parameters(list(schedule_verbose=TRUE))
 
 s <- new(Strategy, list(c_r1=0.5,
                         c_r2=0,
-                        B4=slope,
-                        a4=10^(0.1369 + slope*-0.9819)))
+                        B4=slope))
 p0$strategy_default <- s
 
 sys <- list()

@@ -3,7 +3,7 @@
 #Coding guidlines
 # -arguments-> give in order: traits, size, env
 
-#returns vector from lo to hi with multiplication steps of incr. Used for making ticks to a log-scaled axis 
+#returns vector from lo to hi with multiplication steps of incr. Used for making ticks to a log-scaled axis
 seqLog <- function(from, to, n,base=10){base^(seq(log(from,base),log(to,base),length.out=n))}
 
 
@@ -16,7 +16,6 @@ RootMass<-function(A){p.a3*A}
 SapwoodMass<-function(rho, A,h){rho/p.theta*etac(p.eta)*A*h}
 etac<-function(eta){1-2/(1+eta)+1/(1+2*eta)}
 BarkMass<-function(rho, A,h){p.b*SapwoodMass(A,h, rho)}
-Diameter<-function(rho, stemMass){(stemMass/rho/p.a5)^(1/p.B5)}
 LiveMass<-function(traits, A){
   ml =LeafMass(traits$lma, A)
   ms =SapwoodMass(traits$rho,A,Height(A))
@@ -26,18 +25,18 @@ LiveMass<-function(traits, A){
   }
 
 #SOLVE HEIGHT FOR GIVEN MASS
-Height.mt<- function(traits, mt){  
+Height.mt<- function(traits, mt){
   #returns mass for given height
   LiveMass.wrap<-function(x, traits,mt){LiveMass(traits, LeafArea(x))-mt}
   y<-0*mt;
   for(i in 1:length(mt)){y[i]<-uniroot(LiveMass.wrap, c(0, 50), traits=traits, mt=mt[i])$root}
   return(y)}
-  
+
 #OPTIMISE GROWTH RATE WRT TRAIT: 1 = LMA, 2= WOOD DENSITY
 optForGrowth<-function(traits, h, env, Range, option=1){
   if(length(h)>1){cat("error, h must length 1");}
   if(length(env)>1){cat("error, env must length 1");}
-  
+
   #wrapper function to pass to optimise
   dHdt.wrap<-function(x, traits, h, env, option){
     if(option==1){  traits$lma<-x; XLAB = "LMA (kg/m2)";}
@@ -50,7 +49,7 @@ optForGrowth<-function(traits, h, env, Range, option=1){
 #CALCULATE WPLCP
 WPLCP<-function(traits, h){
   if(length(h)>1){cat("error, h must length 1");}
-  
+
   #wrapper function to pass to optimise
   production.wrap<-function(x, traits, h){Production(traits, h, env=x)}
   return(  uniroot(production.wrap, c(0, 1), traits=traits, h=h)$root)
@@ -78,14 +77,14 @@ ReproductiveAllocation <-function(hmat,h){p.c_r1/(1+exp(p.c_r2*(1-h/hmat)))}
 
 #production functions
 dMtdt<-function(traits, h, env){
-  Production(traits, h, env)*(1-ReproductiveAllocation(traits$hmat,h)) 
+  Production(traits, h, env)*(1-ReproductiveAllocation(traits$hmat,h))
 }
 
 Production <-function(traits, h, env, print=0){
   A = LeafArea(h)
   ms =SapwoodMass(traits$rho,A,h)
-  mb =BarkMass(traits$rho,A,h) 
-  mr =RootMass(A) 
+  mb =BarkMass(traits$rho,A,h)
+  mr =RootMass(A)
   Production.detail(traits, A, ms, mb,  mr, env, print)
   }
 
@@ -112,7 +111,7 @@ Respiration.root <-function(mr){p.Y*p.c_bio * p.c_Rr*mr}
 Turnover <-function(traits, ml, ms, mb,  mr){
   Turnover.leaf(traits$lma, ml) + Turnover.sapwood(ms) + Turnover.bark(mb) + Turnover.root(mr)
   }
-Turnover.leaf <-function(LMA, ml){(p.a4*LMA^-p.B4)*ml}
+Turnover.leaf <-function(LMA, ml){(p.a4*(LMA/0.1978791)^-p.B4)*ml}
 Turnover.sapwood <-function(ms){p.k_s*ms}
 Turnover.bark <-function(mb){p.k_b*mb}
 Turnover.root <-function(mr){p.k_r*mr}

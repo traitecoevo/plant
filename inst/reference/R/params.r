@@ -16,12 +16,8 @@ p.B1=0.306;
 p.a3=0.07;
 
 #scaling of leaf turnover(/yr) to LMA
-p.a4=2.86E-2*0.5;  #TROPICAL RATe
+p.a4=0.4565855*0.5;  #TROPICAL RATe
 p.B4=1.71;
-
-#diameter - total mass scaling
-p.a5= 27.46;
-p.B5 = 2.745;
 
 p.b = 0.17;
 

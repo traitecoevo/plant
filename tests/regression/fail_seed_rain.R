@@ -13,8 +13,7 @@ p0$disturbance <- new(Disturbance, disturbance)
 
 s <- new(Strategy, list(c_r1=0.5,
                         c_r2=0,
-                        B4=slope,
-                        a4=10^(0.1369 + slope*-0.9819)))
+                        B4=slope))
 
 ## These parameters were pulled from the case in which this issue was
 ## found.

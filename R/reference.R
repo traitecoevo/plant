@@ -23,7 +23,7 @@ make.reference <- function() {
   e$traits$lma <- 0.1978791
   e$traits$hmat <- 16.5958691
   e$p.c_bio <- 2.45e-2
-  e$p.a4 <- 0.0286
+  e$p.a4 <- 0.4565855
   e$p.theta <- 4669
 
   ## Function to return current values of parameters.

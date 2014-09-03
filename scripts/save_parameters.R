@@ -14,9 +14,7 @@ assembler_lma_parameters <- function(time_disturbance, slope) {
   ## Specialised parameters:
   model <- list(c_r1=0.5,
                 c_r2=0,
-                B4=slope,
-                ## keeps mean centered at global mean:
-                a4=10^(0.1369 + slope*-0.9819))
+                B4=slope)
   ## Build up a parameters object from all of that
   p <- ebt_base_parameters()
   p$strategy_default <- new(Strategy, model)

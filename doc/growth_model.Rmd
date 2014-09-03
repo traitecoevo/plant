@@ -323,9 +323,10 @@ Description: Rate at which leaf mass dies and is lost.
 
 Determination: Assumed proportional to leaf mass per area, as per scaling relationship observed in large datasets:
 
-\begin{equation} k_\tm{l} = \alpha_4 \phi^{\beta_4} \end{equation}
+\begin{equation} k_\tm{l} = \alpha_4 \left(\frac{\phi}{\phi_0}\right)^{-\beta_4} \end{equation}
 
-Parameter values: $\alpha_4$ = `r tree_p[["a4"]]`, $\beta_4$ = `r tree_p[["B4"]]`,
+The relationship is centred around lma of $\phi_0$. Thus  $\alpha_4$ is the leaf turnover rate for a leaf with $\phi = \phi_0$.
+Parameter values: $\alpha_4$ = `r tree_p[["a4"]]`, $\beta_4$ = `r tree_p[["B4"]]`, $\phi_0$ = `r tree_p[["lma"]]`
 
 ### Sapwood turnover rate
 
