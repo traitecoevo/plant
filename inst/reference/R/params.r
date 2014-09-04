@@ -16,7 +16,7 @@ p.B1=0.306;
 p.a3=0.07;
 
 #scaling of leaf turnover(/yr) to LMA
-p.a4=0.4565855*0.5;  #TROPICAL RATe
+p.k_l0=0.4565855*0.5;  #TROPICAL RATe
 p.B4=1.71;
 
 p.b = 0.17;

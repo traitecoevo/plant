@@ -609,7 +609,7 @@ double Plant::assimilation_given_height(double h,
 // NOTE: static method.
 void Plant::prepare_strategy(Strategy *s) {
   s->eta_c = 1 - 2/(1 + s->eta) + 1/(1 + 2*s->eta);
-  s->k_l = s->a4 * pow(s->lma/s->lma_0, -s->B4);
+  s->k_l = s->k_l0 * pow(s->lma/s->lma_0, -s->B4);
   s->height_0 = height_seed(s);
 }
 

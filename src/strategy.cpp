@@ -84,7 +84,7 @@ void Strategy::reset() {
   // (12E-3 / 0.49)
   c_bio  = 2.45e-2;
   // Leaf turnover - LMA scaling
-  a4     =  0.4565855;
+  k_l0   =  0.4565855;
   B4     = 1.71;
   // Bark turnover
   k_b    = 0.2;
@@ -138,7 +138,7 @@ void Strategy::do_build_lookup() {
   lookup_table["B1"]     = &B1;
   lookup_table["a3"]     = &a3;
   lookup_table["b"]      = &b;
-  lookup_table["a4"]     = &a4;
+  lookup_table["k_l0"]     = &k_l0;
   lookup_table["B4"]     = &B4;
   lookup_table["n_area"] = &n_area;
   lookup_table["c_p1"]   = &c_p1;
