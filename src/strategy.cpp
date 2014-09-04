@@ -112,6 +112,8 @@ void Strategy::reset() {
   c_d0    = 0.01;
   // Coefficient for wood density in mortality function
   c_d1    = 0.0;
+  // Coefficient for height density in mortality function
+  B6    = 0.0;
   // Baseline rate for growth-related mortality
   c_d2    = 5.5;
   // Risk coefficient for dry mass production (per area)
@@ -161,6 +163,7 @@ void Strategy::do_build_lookup() {
   lookup_table["c_s0"]   = &c_s0;
   lookup_table["c_d0"]   = &c_d0;
   lookup_table["c_d1"]   = &c_d1;
+  lookup_table["B6"]   = &B6;
   lookup_table["c_d2"]   = &c_d2;
   lookup_table["c_d3"]   = &c_d3;
 

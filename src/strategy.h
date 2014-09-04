@@ -82,6 +82,8 @@ private:
   double c_d0;
   // Coeffcieint for wood density in mortality function
   double c_d1;
+  // Coeffcieint for height in mortality function
+  double B6;
   // Baseline for growth mortality rate
   double c_d2;
   // Coefficient for dry mass production in mortality function

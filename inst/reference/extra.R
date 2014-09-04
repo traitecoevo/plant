@@ -166,6 +166,7 @@ height.growth.rate.via.mass.leaf <- function(traits, h, env) {
 
 p.c_d0 <- 0.01
 p.c_d1 <- 0.0
+p.B6 <- 0
 p.c_d2 <- 5.5
 p.c_d3 <- 20.0
 p.c_s0 <- 0.1
@@ -173,7 +174,7 @@ p.c_s0 <- 0.1
 mortality.rate <- function(traits, h, env) {
   p <- net.production(traits, h, env)
   a <- LeafArea(h)
-  p.c_d0 * exp(-p.c_d1 * (traits$rho-608)) +
+  p.c_d0 * exp(-p.c_d1 * (traits$rho-608) *h^p.B6) +
     p.c_d2 * exp(-p.c_d3 * p / a)
 }
 

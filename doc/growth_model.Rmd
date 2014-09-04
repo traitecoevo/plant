@@ -459,12 +459,12 @@ Symbol: $d_\tm{i}(x, h)$
 
 Units: yr$^{-1}$
 
-Description: Mortality rate for a plant with traits $x$ and height $h$ due to growth-independent factors.
+Description: Mortality rate for a plant with traits $x$ and height $h$ due to growth-independent factors. Set to potentially vary with wood density and height. Setting $-c_{\ud 1}>0$ means species with lower wood density have higher mortality.  Setting $\beta_6=0$ means effect varies with wood density but is independent of $h$, which is equivalent to the model in @falster_influence_2011 when $-c_{\ud 1} = 6.5E-3$. When $\beta_6 >0$ the effect of low wood density increases with height.
 
 Determination:
-\begin{equation} d_\tm{i} = c_{\ud 0}\exp\left(-c_{\ud 1}(\rho - \rho_0)\right) \end{equation}
+\begin{equation} d_\tm{i} = c_{\ud 0}\exp\left(-c_{\ud 1}(\rho - \rho_0)h^{\beta_6} \right) \end{equation}
 
-Parameter values: $c_{\ud 0}$ = `r tree_p[["c_d0"]]`, $c_{\ud 1}$ = `r tree_p[["c_d1"]]`
+Parameter values: $c_{\ud 0}$ = `r tree_p[["c_d0"]]`, $c_{\ud 1}$ = `r tree_p[["c_d1"]]`, $\beta_6$ = `r tree_p[["B6"]]`
 
 ### Growth-dependent mortality rate
 
