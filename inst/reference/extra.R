@@ -165,7 +165,7 @@ height.growth.rate.via.mass.leaf <- function(traits, h, env) {
 }
 
 p.c_d0 <- 0.01
-p.c_d1 <- 0.0065
+p.c_d1 <- 0.0
 p.c_d2 <- 5.5
 p.c_d3 <- 20.0
 p.c_s0 <- 0.1

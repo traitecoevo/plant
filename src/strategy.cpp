@@ -111,7 +111,7 @@ void Strategy::reset() {
   // Baseline for intrinsic mortality
   c_d0    = 0.01;
   // Coefficient for wood density in mortality function
-  c_d1    = 0.0065;
+  c_d1    = 0.0;
   // Baseline rate for growth-related mortality
   c_d2    = 5.5;
   // Risk coefficient for dry mass production (per area)
