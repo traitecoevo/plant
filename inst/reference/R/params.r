@@ -19,6 +19,10 @@ p.a3=0.07;
 p.k_l0=0.4565855*0.5;  #TROPICAL RATe
 p.B4=1.71;
 
+#scaling of stem turnover(/yr) to wood desnity
+p.k_s0 = 0.2;
+p.B5=0;
+
 p.b = 0.17;
 
 #nitrogen concentrations & photosynthesis
@@ -39,7 +43,6 @@ p.c_bio= 12E-3/0.49;
 #turnover
 p.k_b = 0.2;
 p.k_r = 1.0;
-p.k_s = 0.2;
 
 #REPRODUCTION
 p.c_r1=1;

@@ -9,6 +9,7 @@ obj <- s$parameters
 expected <- list(
   B1     = 0.306,
   B4     = 1.71,
+  B5     = 0,
   Y      = 0.7,
   a1     = 5.44,
   a3     = 0.07,
@@ -33,7 +34,7 @@ expected <- list(
   k_b    = 0.2,
   k_l0   = 0.4565855,
   k_r    = 1,
-  k_s     =0.2,
+  k_s0   = 0.2,
   lma    = 0.1978791,
   n_area = 0.00187,
   rho    = 608,

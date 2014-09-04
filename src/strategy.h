@@ -51,7 +51,7 @@ private:
   // Leaf area per sapwood area
   double theta;
   // Empirical constants for scaling relationships
-  double a1, B1, a3, k_l0, B4;
+  double a1, B1, a3, k_l0, B4, k_s0, B5;
   // Bark area per sapwood area
   double b;
 

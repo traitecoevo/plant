@@ -119,7 +119,7 @@ dbark_area_dt <- function(traits, h, env){
 
 ## heartwood area growth rate
 dheartwood_area_dt <- function(traits, h, env){
-  p.k_s*LeafArea(h)/p.theta
+  p.k_s0*LeafArea(h)/p.theta
 }
 
 ## basal area growth rate

@@ -89,7 +89,8 @@ void Strategy::reset() {
   // Bark turnover
   k_b    = 0.2;
   // Sapwood turnover
-  k_s    = 0.2;
+  k_s0    = 0.2;
+  B5      = 0;
   // Root turnover
   k_r    = 1.0;
   // Parameters of the hyperbola for annual LRC
@@ -121,6 +122,7 @@ void Strategy::reset() {
 
   eta_c = NA_REAL;
   k_l = NA_REAL;
+  k_s = NA_REAL;
 }
 
 double Strategy::assimilation_fn_lookup(double h) const {
@@ -138,8 +140,10 @@ void Strategy::do_build_lookup() {
   lookup_table["B1"]     = &B1;
   lookup_table["a3"]     = &a3;
   lookup_table["b"]      = &b;
-  lookup_table["k_l0"]     = &k_l0;
+  lookup_table["k_l0"]   = &k_l0;
   lookup_table["B4"]     = &B4;
+  lookup_table["k_s0"]   = &k_s0;
+  lookup_table["B5"]     = &B5;
   lookup_table["n_area"] = &n_area;
   lookup_table["c_p1"]   = &c_p1;
   lookup_table["c_p2"]   = &c_p2;
@@ -148,7 +152,6 @@ void Strategy::do_build_lookup() {
   lookup_table["c_Rb"]   = &c_Rb;
   lookup_table["c_Rr"]   = &c_Rr;
   lookup_table["k_b"]    = &k_b;
-  lookup_table["k_s"]    = &k_s;
   lookup_table["k_r"]    = &k_r;
   lookup_table["Y"]      = &Y;
   lookup_table["c_bio"]  = &c_bio;

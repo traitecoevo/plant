@@ -199,7 +199,7 @@ and rates of change
 Thus,
 \begin{equation} a_\tm{sh} = \int_0^t \frac{\ud a_\tm{sh}}{\ud t}(t^\prime) \, dt^\prime. \end{equation}
 
-Parameter values: $k_\tm{s}$ = `r tree_p[["k_s"]]`
+Parameter values: $k_\tm{s}$ = `r tree_p[["k_s0"]]`
 
 ### Mass of heartwood
 
@@ -334,9 +334,13 @@ Symbol: $k_\tm{ss}$
 
 Units: yr$^{-1}$
 
-Description: Rate at which sapwood mass dies and becomes heartwood.
+Description: Rate at which sapwood mass dies and becomes heartwood. Relationship below allows for this value to be set
 
-Parameter values: $k_\tm{ss}$ = `r tree_p[["k_s"]]`,
+\begin{equation} k_\tm{ss} = k_\tm{s0} \left(\frac{\rho}{\rho_0}\right)^{-\beta_5} \end{equation}
+
+The relationship is centred around wood density of $\phi_0$. Thus  $k_\tm{s0}$ is the leaf turnover rate for a sapwood with $\rho = \rho_0$. Setting $\beta_5=0$ should recover the previous model, where tunrover was independent of wood density.
+
+Parameter values: $k_\tm{s0}$ = `r tree_p[["a5"]]`, $\beta_5$ = `r tree_p[["B5"]]`, $\rho_0$ = `r tree_p[["rho"]]`
 
 ### Bark turnover rate
 

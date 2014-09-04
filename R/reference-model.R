@@ -285,7 +285,7 @@ path.evolve.dir <- function()
 reference.params.names <- function()
   c("eta", "theta", "b", "a1", "B1", "a3",
     "k_l0", "B4", "n_area", "c_p1", "c_p2", "c_Rl", "c_Rs", "c_Rb",
-    "c_Rr", "k_b", "k_s", "k_r", "Y", "c_bio", "c_acc", "c_r1", "c_r2",
+    "c_Rr", "k_b", "k_s0", "k_r", "Y", "c_bio", "c_acc", "c_r1", "c_r2",
     "c_ext", "Pi_0", "c_d0", "c_d1", "c_d2", "c_d3", "s",
     "rho", "c_s0", "mean_disturbance_interval")
 reference.traits.names <- function()

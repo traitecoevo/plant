@@ -457,7 +457,7 @@ double Plant::compute_turnover() const {
 }
 
 double Plant::sapwood_turnover() const {
-  return vars.mass_sapwood * strategy->k_s;
+  return vars.mass_sapwood * strategy->k_s0;
 }
 
 // [eqn 16] Fraction of production allocated to reproduction
@@ -536,7 +536,7 @@ double Plant::dbark_area_dt() const {
 
 // Growth rate of heartwood area at base per unit time
 double Plant::dheartwood_area_dt() const {
-    return strategy->k_s * sapwood_area();
+    return strategy->k_s0 * sapwood_area();
 }
 
 // Growth rate of stem basal area per unit time
@@ -610,6 +610,7 @@ double Plant::assimilation_given_height(double h,
 void Plant::prepare_strategy(Strategy *s) {
   s->eta_c = 1 - 2/(1 + s->eta) + 1/(1 + 2*s->eta);
   s->k_l = s->k_l0 * pow(s->lma/s->lma_0, -s->B4);
+  s->k_s = s->k_s0 * pow(s->rho/s->rho_0, -s->B5);
   s->height_0 = height_seed(s);
 }
 

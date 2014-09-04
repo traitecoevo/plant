@@ -52,7 +52,7 @@ private:
 };
 
 template <class Problem>
-Step<Problem>::Step(Problem *problem_) : problem(problem_) { 
+Step<Problem>::Step(Problem *problem_) : problem(problem_) {
 }
 
 template <class Problem>
@@ -113,7 +113,7 @@ void Step<Problem>::step(double time, double step_size,
 
   // k6 step and final sum
   derivs(time + ah[4] * h, ytmp.begin(), k6.begin());
-  
+
   for (size_t i = 0; i < size; ++i) {
     // GSL does this in two steps, but not sure why.
     const double d_i = c1 * k1[i] + c3 * k3[i] + c4 * k4[i] + c6 * k6[i];
@@ -177,12 +177,12 @@ const double Step<Problem>::b3[] = { 3.0 / 40.0, 9.0 / 40.0 };
 template <class Problem>
 const double Step<Problem>::b4[] = { 0.3, -0.9, 1.2 };
 template <class Problem>
-const double Step<Problem>::b5[] = { 
+const double Step<Problem>::b5[] = {
   -11.0 / 54.0, 2.5, -70.0 / 27.0, 35.0 / 27.0 };
 
 template <class Problem>
-const double Step<Problem>::b6[] = { 
-  1631.0 / 55296.0, 175.0 / 512.0, 575.0 / 13824.0, 
+const double Step<Problem>::b6[] = {
+  1631.0 / 55296.0, 175.0 / 512.0, 575.0 / 13824.0,
   44275.0 / 110592.0, 253.0 / 4096.0 };
 
 template <class Problem>
@@ -195,7 +195,7 @@ template <class Problem>
 const double Step<Problem>::c6 = 512.0 / 1771.0;
 
 template <class Problem>
-const double Step<Problem>::ec[] = { 
+const double Step<Problem>::ec[] = {
   0.0, 37.0 / 378.0 - 2825.0 / 27648.0, 0.0,
   250.0 / 621.0 - 18575.0 / 48384.0,
   125.0 / 594.0 - 13525.0 / 55296.0,

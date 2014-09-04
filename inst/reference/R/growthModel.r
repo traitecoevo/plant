@@ -112,6 +112,6 @@ Turnover <-function(traits, ml, ms, mb,  mr){
   Turnover.leaf(traits$lma, ml) + Turnover.sapwood(ms) + Turnover.bark(mb) + Turnover.root(mr)
   }
 Turnover.leaf <-function(LMA, ml){(p.k_l0*(LMA/0.1978791)^-p.B4)*ml}
-Turnover.sapwood <-function(ms){p.k_s*ms}
+Turnover.sapwood <-function(ms){p.k_s0*ms}
 Turnover.bark <-function(mb){p.k_b*mb}
 Turnover.root <-function(mr){p.k_r*mr}
