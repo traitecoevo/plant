@@ -53,6 +53,8 @@
 ##' @export test_to_rcpp_numeric_matrix
 ##' @export trapezium
 ##' @export trapezium_vector
+##' @export mortality_growth_independent
+##' @export mortality_growth_dependent
 
 .onLoad <- function(libname, pkgname){
   ## loadRcppModules() # this breaks devtools

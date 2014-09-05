@@ -500,6 +500,12 @@ RCPP_MODULE(tree) {
     .property("is_adaptive",     &integration::QAG::is_adaptive)
     ;
 
+  //
+  Rcpp::function("mortality_growth_independent",
+               &model::Plant::mortality_growth_independent);
+  Rcpp::function("mortality_growth_dependent",
+               &model::Plant::mortality_growth_dependent);
+
   // Testing functions
   Rcpp::function("test_functor",    &util::test::test_functor);
   Rcpp::function("test_find_root",  &util::test::test_find_root);

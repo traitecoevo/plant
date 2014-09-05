@@ -85,7 +85,12 @@ public:
   void set_mass_heartwood(double x);
   double sapwood_turnover() const;   // Sapwood turnover
 
-
+  // Mortality functions
+  // Declared as static method so it can be accessed and queried externally
+  static double mortality_growth_independent(double d0, double d1, double rho, double rho_0,
+  double height, double B6);
+  static double mortality_growth_dependent(double d2, double d3, double
+  productivity);
 
   // These are derived from mortality() -- see design.md.
   double mortality_probability() const;

@@ -184,12 +184,24 @@ void Plant::compute_vars_phys(const Environment& environment) {
   // we will need to trim this to some large finite value, but for
   // now, just checking that the actual mortality rate is finite.
   vars.mortality_rate =
-    strategy->c_d0 * exp(-strategy->c_d1 * (strategy->rho - strategy->rho_0) *
-      pow(vars.height, strategy->B6)) +
-    strategy->c_d2 * exp(-strategy->c_d3 *
-			 vars.net_production / vars.leaf_area);
-  trim_rates();
+    mortality_growth_independent(strategy->c_d0, strategy->c_d1,
+      strategy->rho, strategy->rho_0,
+      vars.height, strategy->B6) +
+    mortality_growth_dependent(strategy->c_d2, strategy->c_d3,
+      vars.net_production / vars.leaf_area);
+    trim_rates();
 }
+
+double Plant::mortality_growth_independent(double d0, double d1, double rho, double rho_0,
+  double height, double B6) {
+  return(d0 * exp(-d1 * (rho - rho_0) * pow(height, B6)));
+}
+
+double Plant::mortality_growth_dependent(double d2, double d3, double
+  productivity) {
+  return(d2 * exp(-d3 * productivity));
+}
+
 
 // * Births and deaths
 int Plant::offspring() {
