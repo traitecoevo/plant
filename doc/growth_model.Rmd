@@ -1,3 +1,6 @@
+% Description of plant physiological model
+% Daniel Falster
+
 \newcommand{\ud}{\mathrm{d}}
 \newcommand{\tm}{\textrm}
 
@@ -166,7 +169,7 @@ Useful derivatives:
 
 \begin{equation} \frac{\textrm{d}a_\textrm{sb}}{\textrm{d}t}=b \, \theta^{-1} \, \frac{\textrm{d}a_\textrm{l}}{\textrm{d}t} \end{equation}
 
-Parameter values: $\eta$ = `r tree_p[["b"]]`
+Parameter values: $b$ = `r tree_p[["b"]]`
 
 ### Mass of bark
 
@@ -323,10 +326,10 @@ Description: Rate at which leaf mass dies and is lost.
 
 Determination: Assumed proportional to leaf mass per area, as per scaling relationship observed in large datasets:
 
-\begin{equation} k_\tm{l} = \alpha_4 \left(\frac{\phi}{\phi_0}\right)^{-\beta_4} \end{equation}
+\begin{equation} k_\tm{l} = k_\tm{l0} \left(\frac{\phi}{\phi_0}\right)^{-\beta_4} \end{equation}
 
-The relationship is centred around lma of $\phi_0$. Thus  $\alpha_4$ is the leaf turnover rate for a leaf with $\phi = \phi_0$.
-Parameter values: $\alpha_4$ = `r tree_p[["a4"]]`, $\beta_4$ = `r tree_p[["B4"]]`, $\phi_0$ = `r tree_p[["lma"]]`
+The relationship is centred around lma of $\phi_0$. Thus  $k_\tm{l0}$ is the leaf turnover rate for a leaf with $\phi = \phi_0$.
+Parameter values: $k_\tm{l0}$ = `r tree_p[["a4"]]`, $\beta_4$ = `r tree_p[["B4"]]`, $\phi_0$ = `r tree_p[["lma"]]`
 
 ### Sapwood turnover rate
 
