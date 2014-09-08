@@ -15,14 +15,14 @@ the point(s) at which the gradient is to be calculated.}
 
 \item{log_scale=TRUE}{Determines whether derivative is taken
 with respect to raw or log-transformed x values. The latter is
-equiavlent to taking the derivative of a function
+equivalent to taking the derivative of a function
 \code{g(f(exp(x)))} with respect to log x and is useful when
 x is log-normally distributed.}
 }
 \description{
-The function ‘gradient_fd’ calculates a numerical approximation
-of the first derivative of ‘func’ at the point ‘x’ using finite
-differencing. It is assumed ‘func’ is a scalar value function.
+The function \code{gradient_fd} calculates a numerical approximation
+of the first derivative of \code{func} at the point \code{x} using finite
+differencing. It is assumed \code{func} is a scalar value function.
 }
 \author{
 Daniel Falster

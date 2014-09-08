@@ -185,7 +185,7 @@ rejection_sample <- function(n, f, bounds, f_max=NULL, log_space=TRUE,
   rejection_sample_iter <- function() {
     x <- runif(n, bounds[[1]], bounds[[2]])
     fx <- f(x)
-    keep <- fx / f_max
+    keep <- fx / f_max # if fx > fmax, should throw
     x[runif(n) < keep]
   }
 
@@ -195,7 +195,9 @@ rejection_sample <- function(n, f, bounds, f_max=NULL, log_space=TRUE,
     f <- function(x) f_orig(exp(x))
   }
 
-  ## Hard coded, and possibly not very clever:
+  ## Hard coded, and possibly not very clever.  Better would be to run
+  ## a quick optimise from this point, given the bounds.  But the
+  ## little factor of 1.2 should hopefully help.
   if (is.null(f_max)) {
     f_max <- max(f(seq(bounds[[1]], bounds[[2]], length.out=501))) * 1.2
   }
