@@ -17,6 +17,6 @@ Imports:
     lhs
 SystemRequirements: gsl (>= 1.12)
 Suggests:
-    testthat, numDeriv, deSolve, digest
+    testthat, numDeriv, deSolve, digest, siefecor
 LinkingTo: Rcpp
 RcppModules: tree
