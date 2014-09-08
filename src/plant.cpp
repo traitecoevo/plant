@@ -194,7 +194,7 @@ void Plant::compute_vars_phys(const Environment& environment) {
 
 double Plant::mortality_growth_independent(double d0, double d1, double rho, double rho_0,
   double height, double B6) {
-  return(d0 * exp(-d1 * (rho - rho_0) * pow(height, B6)));
+  return(d0 * pow(rho/rho_0, -d1)* pow(height, B6) );
 }
 
 double Plant::mortality_growth_dependent(double d2, double d3, double
