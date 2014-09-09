@@ -49,7 +49,7 @@ obj <- assembler_stochastic_naive(sys0, vcv)
 obj$run_nsteps(5)
 
 ## Save the history to a file:
-saveRDS(obj$get_history(), filename)
+saveRDS(obj$history, filename)
 ## Reload the history:
 h0 <- restore_history(readRDS(filename), recompute=FALSE)
 

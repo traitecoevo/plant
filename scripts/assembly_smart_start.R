@@ -16,11 +16,11 @@ obj <- assembler_sample_positive(sys0)
 obj$step()
 
 ## Do we have an approximate landscape for the empty community?
-obj$get_history()[[1]]
+obj$history[[1]]
 
 ## Check the load/save cycle:
 filename <- "test_restore.rds"
-saveRDS(obj$get_history(), filename)
+saveRDS(obj$history, filename)
 tmp <- readRDS(filename)
 f <- tmp[[1]]$landscape_approximate
 lma <- tree:::seq_log_range(tmp[[1]]$bounds, 200)

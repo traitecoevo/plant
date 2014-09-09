@@ -442,14 +442,13 @@ community <- function(...) {
                 run_model=run_model,
                 run_nsteps=run_nsteps,
                 get_community=function() community,
-                get_history=function() history,
-                save_to_file=save_to_file
+                save_to_file=save_to_file,
+                history=NULL
                 ),
               private=list(
                 community=NULL,
                 births_sys=NULL,
                 deaths_sys=NULL,
-                history=NULL,
                 filename=NULL,
                 done=FALSE,
                 run_type="single",

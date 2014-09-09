@@ -19,7 +19,7 @@ set.seed(1)
 obj$run_nsteps(5)
 
 filename_save1 <- paste0(filename, ".1")
-h1 <- add_approximate_landscapes(obj$get_history(), p0, filename_save1)
+h1 <- add_approximate_landscapes(obj$history, p0, filename_save1)
 
 ## Here are the landscapes over time:
 lma <- seq_log_range(h1[[1]]$bounds, 400)
