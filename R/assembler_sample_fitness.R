@@ -1,7 +1,9 @@
 ##' @export
 assembler_sample_positive <- function(community0, n_sample=1L,
-                                      seed_rain_eps=1e-3, ...) {
-  births_sys <- make_births_sample_positive(n_sample)
+                                      seed_rain_eps=1e-3,
+                                      approximate_type="naive",
+                                      ...) {
+  births_sys <- make_births_sample_positive(n_sample, approximate_type)
   deaths_sys <- make_deaths_stochastic_naive(seed_rain_eps)
   assembler(community0, births_sys, deaths_sys, ...)
 }
