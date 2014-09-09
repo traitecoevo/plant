@@ -30,6 +30,10 @@ vcv <- mutational_vcv_proportion(max_bounds, 0.001)
 
 sys0 <- community(p0, "lma", seed_rain_initial=1e-3,
                   bounds=max_bounds)
+
+obj_n <- assembler_sample_positive(sys0, "naive")
+obj_g <- assembler_sample_positive(sys0, "gp")
+
 obj <- assembler_stochastic_naive(sys0, vcv)
 
 # Run assembler

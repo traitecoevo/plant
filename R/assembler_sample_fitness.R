@@ -6,14 +6,15 @@ assembler_sample_positive <- function(community0, n_sample=1L,
   assembler(community0, births_sys, deaths_sys, ...)
 }
 
-make_births_sample_positive <- function(n) {
+make_births_sample_positive <- function(n, approximate_type="naive") {
+  approximate_type <- match.args(approximate_type, c("naive", "gp"))
   function(sys) {
     if (is.null(sys$bounds)) {
       ## No viable region
       ret <- matrix(nrow=0, ncol=1)
       colnames(ret) <- sys$trait_names
     } else {
-      f <- fitness_landscape_approximate(sys)
+      f <- fitness_landscape_approximate(sys, approximate_type)
       ret <- cbind(rejection_sample(n, f, sys$bounds))
       colnames(ret) <- sys$trait_names
       attr(ret, "landscape_approximate") <- f
