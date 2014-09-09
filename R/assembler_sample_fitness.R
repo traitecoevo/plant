@@ -9,7 +9,7 @@ assembler_sample_positive <- function(community0, n_sample=1L,
 }
 
 make_births_sample_positive <- function(n, approximate_type="naive") {
-  approximate_type <- match.args(approximate_type, c("naive", "gp"))
+  approximate_type <- match.arg(approximate_type, c("naive", "gp"))
   function(sys) {
     if (is.null(sys$bounds)) {
       ## No viable region
