@@ -20,6 +20,9 @@ w = m.fitness(lma)
 # gets annoying.
 w = m.fitness_approximate(lma)
 
+# Once that's been generated then subsequent approximate fitness
+# calculations are fast.
+#
 # Generate a series of 50 points to estimate fitness for:
 lma2 = m.grid(50)
 # And compute the fitness
@@ -47,6 +50,6 @@ m.set_residents(lma, seed_rain, True)
 # Force generation of the approximate landscape:
 m.setup_fitness_approximate()
 # As before:
+m.fitness_approximate([1])
 gp = m.gp
 gp.predict(0)
-m.fitness_approximate([1])
