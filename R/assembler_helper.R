@@ -15,7 +15,8 @@
 ##' bounds
 ##' @author Rich FitzJohn
 ##' @export
-assembler_helper <- function(sys0, births="naive", ..., vcv_p=0.001) {
+assembler_helper <- function(sys0, births="naive", ...,
+                             vcv_p=0.001, approximate_type="naive") {
   births <- match.arg(births, c("naive", "sampling"))
   if (births == "naive") {
     ## The mutational vcv needs to depend in the incoming bounds,
@@ -23,7 +24,8 @@ assembler_helper <- function(sys0, births="naive", ..., vcv_p=0.001) {
     vcv <- mutational_vcv_proportion(sys0$bounds, vcv_p)
     assembler_stochastic_naive(sys0, vcv, ...)
   } else if (births == "sampling") {
-    assembler_sample_positive(sys0, ...)
+    assembler_sample_positive(sys0, approximate_type=approximate_type,
+                              ...)
   } else {
     stop("Unknown births type ", births)
   }

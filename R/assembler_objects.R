@@ -347,22 +347,32 @@ community <- function(...) {
                          filename=NULL,
                          compute_viable_fitness=TRUE,
                          jump_to_attractor=FALSE,
-                         run_type="single") {
+                         run_type="single",
+                         prev=NULL) {
     community <<- community0$copy()
     births_sys <<- births_sys
     deaths_sys <<- deaths_sys
     history <<- list()
     filename <<- filename
     run_type <<- match.arg(run_type, c("single", "to_equilibrium"))
-    if (compute_viable_fitness) {
-      community$set_viable_bounds()
-      done <<- is.null(community$bounds)
-    }
-    append()
-    if (jump_to_attractor) {
-      community$jump_to_attractor()
+    if (is.null(prev)) {
+      if (compute_viable_fitness) {
+        community$set_viable_bounds()
+      }
       append()
+      if (jump_to_attractor) {
+        community$jump_to_attractor()
+        append()
+      }
+    } else {
+      message("Restoring previous community and history")
+      if (inherits(prev, "assembler")) {
+        prev <- prev$history
+      }
+      history <<- prev
+      community <<- restore_community(last(history), recompute=TRUE)
     }
+    done <<- is.null(community$bounds)
   }
   deaths <- function() {
     deaths_sys(community)
@@ -435,6 +445,7 @@ community <- function(...) {
   R6::R6Class("assembler",
               portable=FALSE,
               public=list(
+                nsteps=function() length(history) - 1L,
                 initialize=initialize,
                 deaths=deaths,
                 births=births,
