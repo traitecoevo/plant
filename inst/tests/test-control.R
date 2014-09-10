@@ -49,7 +49,7 @@ expected <- list(
   schedule_default_min_step_size = 1e-5,
   schedule_default_max_step_size = 2.0,
 
-  equilibrium_nsteps   = as.numeric(10L),
+  equilibrium_nsteps   = as.numeric(20L),
   equilibrium_eps      = 1e-5,
   equilibrium_large_seed_rain_change = 10.0,
   equilibrium_progress = as.numeric(FALSE),
