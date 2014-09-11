@@ -282,7 +282,8 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 trait_names=trait_names,
                 bounds=bounds,
                 seed_rain_initial=seed_rain_initial,
-                landscape_approximate=landscape_approximate)
+                landscape_approximate=
+                serialise_landscape_approximate(landscape_approximate))
     attr(ret, "parameters") <- serialise_parameters(parameters)
     class(ret) <- "community_serialised"
     ret
@@ -293,6 +294,13 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
   clear_cached_data <- function() {
     last_schedule <<- NULL
     landscape_approximate <<- NULL
+  }
+
+  add_approximate_landscape <- function(..., regenerate=FALSE) {
+    if (regenerate || is.null(landscape_approximate)) {
+      landscape_approximate <<-
+        fitness_landscape_approximate(self, ...)
+    }
   }
 
   R6::R6Class("community",
@@ -321,6 +329,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 run_to_equilibrium=run_to_equilibrium,
                 serialise=serialise,
                 clear_cached_data=clear_cached_data,
+                add_approximate_landscape=add_approximate_landscape,
                 ## This is a hack for now:
                 landscape_approximate=NULL),
               private=list(
@@ -381,13 +390,20 @@ community <- function(...) {
     to_add <- births_sys(community)
     ## The birth function might generate a landscape: if so, it
     ## corresponds to the *previous* community, so we'll want to save
-    ## that back.
-    if (!is.null(f <- attr(to_add, "landscape_approximate"))) {
-      history[[length(history)]]$landscape_approximate <<- f
+    ## that into the history.  We do that first, because once we
+    ## actually go ahead and add the species to the community that
+    ## will invalidate the approximate landscape.
+    if (!is.null(community$landscape_approximate)) {
+      history[[length(history)]]$landscape_approximate <<-
+        serialise_landscape_approximate(community$landscape_approximate)
     }
+
+    ## Now we add things:
     if (nrow(to_add) > 0) {
       community$add_traits(to_add)
     }
+    ## (community$landscape_approximate is going to be NULL now)
+
     ## This is a bit ugly: we only really want to respond to no births
     ## with being done if we are running to equilibrium.  If we're
     ## using the simple step, there is no way of finishing here
@@ -472,20 +488,8 @@ assembler <- function(...) {
 }
 
 ##' @export
-restore_community <- function(x, p=NULL, recompute=FALSE) {
-  if (has_attr(x, "parameters")) {
-    if (!is.null(p)) {
-      warning("Ignoring given set of parameters")
-    }
-    p <- unserialise_parameters(attr(x, "parameters"))
-  } else {
-    if (!inherits(p, "Rcpp_Parameters")) {
-      stop("Expected p to be a Parameters object")
-    }
-    warning("Please resave this data set with parameters")
-    p <- p$copy()
-  }
-  ## OK, what is the use case in the first clause?  That makes no sense.
+restore_community <- function(x, recompute=FALSE) {
+  p <- unserialise_parameters(attr(x, "parameters"))
   if (inherits(x, "community")) {
     ret <- x$copy()
     ret$private$parameters <- p
@@ -493,7 +497,8 @@ restore_community <- function(x, p=NULL, recompute=FALSE) {
     ret <- community(p, sys0=x$sys,
                      trait_names=x$trait_names, bounds=x$bounds,
                      seed_rain_initial=x$seed_rain_initial)
-    ret$landscape_approximate <- x$landscape_approximate
+    ret$landscape_approximate <-
+      restore_landscape_approximate(x$landscape_approximate)
   } else {
     stop("Expected x to be a community or community_serialised object")
   }
@@ -513,19 +518,18 @@ add_approximate_landscape <- function(community) {
   if (!inherits(community, "community")) {
     stop("Expected a community object")
   }
-  if (is.null(community$landscape_approximate)) {
-    community$landscape_approximate <-
-      fitness_landscape_approximate(community)
-  }
+  .Deprecated("There's a method of community to use instead")
+  community$add_approximate_landscape()
 }
 
 ##' @export
-add_approximate_landscapes <- function(h, p, filename=NULL,
+add_approximate_landscapes <- function(h, p, ...,
+                                       filename=NULL,
                                        write_each=TRUE) {
   for (i in seq_along(h)) {
     message(sprintf("Updating history %d/%d", i, length(h)))
     x <- restore_community(h[[i]], p)
-    add_approximate_landscape(x)
+    x$add_approximate_landscape(...)
     h[[i]] <- x$serialise()
     if (!is.null(filename) && write_each) {
       saveRDS(h, filename)

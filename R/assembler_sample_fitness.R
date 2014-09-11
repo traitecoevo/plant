@@ -16,10 +16,9 @@ make_births_sample_positive <- function(n, approximate_type="naive") {
       ret <- matrix(nrow=0, ncol=1)
       colnames(ret) <- sys$trait_names
     } else {
-      f <- fitness_landscape_approximate(sys, approximate_type)
-      ret <- cbind(rejection_sample(n, f, sys$bounds))
+      sys$add_approximate_landscape(approximate_type)
+      ret <- cbind(rejection_sample(n, sys$landscape_approximate, sys$bounds))
       colnames(ret) <- sys$trait_names
-      attr(ret, "landscape_approximate") <- f
       attr(ret, "done") <- nrow(ret) == 0
     }
     ret
@@ -57,6 +56,39 @@ fitness_landscape_grid <- function(community, n=50,
 ## all the options, and to return a function if we're replacing the
 ## spline version.  Then work out how to nicely switch between the
 ## different approaches.
+fitness_landscape_gp <- function(community,
+                                 n_initial=20, n_final=50,
+                                 n_each=5, n_predict=500,
+                                 log_space=TRUE,
+                                 bounds=NULL,
+                                 lower_limit=NULL) {
+  loadNamespace("siefecor") # makes this optional
+  if (!inherits(community, "community")) {
+    stop("Expected a community object")
+  }
+  if (is.null(bounds)) {
+    bounds <- community$bounds
+  }
+  if (nrow(bounds) != 1) {
+    stop("Only working for one trait at the moment")
+  }
+
+  mutant_fitness <- community$make_landscape()
+  if (log_space) {
+    objective <- function(x) {
+      mutant_fitness(exp(x))
+    }
+    bounds <- log(bounds)
+  } else {
+    objective <- mutant_fitness
+  }
+  cost <- siefecor::make_cost_var_scaled_capped(scal=10, mu_max=0.0)
+  x <- cbind(seq(bounds[[1]], bounds[[2]], length.out=n_predict))
+  src <- siefecor::data_source$new(x, objective,
+                                   lower_limit=lower_limit,
+                                   verbose=TRUE)
+  siefecor::interp1d(src, n_initial, n_final, n_each, cost=cost)
+}
 
 ## This should basically be enough.  Need to work out how to tidy up
 ## all the options, and to return a function if we're replacing the
@@ -93,12 +125,12 @@ fitness_landscape_approximate_gp <- function(community,
   src <- siefecor::data_source$new(x, objective,
                                    lower_limit=lower_limit,
                                    verbose=TRUE)
-  res <- siefecor::interp1d(src, n_initial, n_final, n_each, cost=cost)
+  gp <- siefecor::interp1d(src, n_initial, n_final, n_each, cost=cost)
   function(x) {
     if (!is.matrix(x)) {
       x <- matrix(x, ncol=1)
     }
-    res$predict(log(x))
+    gp$predict(log(x))
   }
 }
 
@@ -114,8 +146,27 @@ fitness_landscape_approximate_naive <- function(community, n=50L,
 ##' @export
 fitness_landscape_approximate <- function(community, type="naive",
                                           ...) {
-  switch(match.arg(type, c("naive", "gp")),
-         naive=fitness_landscape_approximate_naive(community, ...),
-         gp=fitness_landscape_approximate_gp(community, ...),
-         stop("Can't get here"))
+  ret <- switch(match.arg(type, c("naive", "gp")),
+                naive=fitness_landscape_approximate_naive(community, ...),
+                gp=fitness_landscape_approximate_gp(community, ...),
+                stop("Can't get here"))
+  attr(ret, "type") <- type
+  ret
+}
+
+## This is all unpleasant, but necessary for dealing with the GP
+## objects that don't (yet) serialise politely.
+serialise_landscape_approximate <- function(x) {
+  if (identical(attr(x, "type"), "gp")) {
+    ## This is a bit gross:
+    attr(x, "gp") <- environment(x)$gp$save()
+  }
+  x
+}
+restore_landscape_approximate <- function(x) {
+  if (identical(attr(x, "type"), "gp")) {
+    environment(x)$gp <- siefecor:::gpreg_restore(attr(x, "gp"))
+    attr(x, "gp") <- NULL
+  }
+  x
 }
