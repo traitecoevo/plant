@@ -3,7 +3,8 @@
 \alias{assembler_helper}
 \title{Assembler Helper}
 \usage{
-assembler_helper(sys0, births = "naive", ..., vcv_p = 0.001)
+assembler_helper(sys0, births = "naive", ..., vcv_p = 0.001,
+  approximate_type = "naive")
 }
 \arguments{
 \item{sys0}{Initial state of the system}

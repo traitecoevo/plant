@@ -282,8 +282,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
                 trait_names=trait_names,
                 bounds=bounds,
                 seed_rain_initial=seed_rain_initial,
-                landscape_approximate=
-                serialise_landscape_approximate(landscape_approximate))
+                landscape_approximate=landscape_approximate)
     attr(ret, "parameters") <- serialise_parameters(parameters)
     class(ret) <- "community_serialised"
     ret
@@ -298,8 +297,7 @@ species <- function(traits, seed_rain=1, cohort_schedule_times=NULL) {
 
   add_approximate_landscape <- function(..., regenerate=FALSE) {
     if (regenerate || is.null(landscape_approximate)) {
-      landscape_approximate <<-
-        fitness_landscape_approximate(self, ...)
+      landscape_approximate <<- tree:::landscape_approximate(self, ...)
     }
   }
 
@@ -395,7 +393,7 @@ community <- function(...) {
     ## will invalidate the approximate landscape.
     if (!is.null(community$landscape_approximate)) {
       history[[length(history)]]$landscape_approximate <<-
-        serialise_landscape_approximate(community$landscape_approximate)
+        community$landscape_approximate
     }
 
     ## Now we add things:
@@ -444,6 +442,14 @@ community <- function(...) {
       step()
     }
   }
+
+  add_final_landscape <- function(...) {
+    if (is.null(community$landscape_approximate)) {
+      community$add_approximate_landscape(...)
+      history[[length(history)]] <- community$serialise()
+    }
+  }
+
   save_to_file <- function(must_work=FALSE) {
     if (!is.null(filename)) {
       if (must_work) {
@@ -469,6 +475,7 @@ community <- function(...) {
                 run_model=run_model,
                 run_nsteps=run_nsteps,
                 get_community=function() community,
+                add_final_landscape=add_final_landscape,
                 save_to_file=save_to_file,
                 history=NULL
                 ),
@@ -497,8 +504,7 @@ restore_community <- function(x, recompute=FALSE) {
     ret <- community(p, sys0=x$sys,
                      trait_names=x$trait_names, bounds=x$bounds,
                      seed_rain_initial=x$seed_rain_initial)
-    ret$landscape_approximate <-
-      restore_landscape_approximate(x$landscape_approximate)
+    ret$landscape_approximate$restore()
   } else {
     stop("Expected x to be a community or community_serialised object")
   }
