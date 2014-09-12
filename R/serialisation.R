@@ -1,6 +1,7 @@
 ## Because we work mostly with things that are just pointers to data
 ## structures, serialisation is hard, and currently unsolved.  These
 ## are hacks to get things working for now.
+##' @export
 serialise_parameters <- function(p) {
   if (p$size > 0) {
     stop("Only working for empty parameters right now")
@@ -15,6 +16,7 @@ serialise_parameters <- function(p) {
   ret
 }
 
+##' @export
 unserialise_parameters <- function(obj) {
   if (!inherits(obj, "parameters_serialised")) {
     stop("Expected a serialised parameters object")

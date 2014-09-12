@@ -127,16 +127,3 @@ test_that("Trapezium local error estimate is correct", {
   expect_that(local_error_integration(xx[1:2], yy[1:3], tot),
               throws_error())
 })
-
-
-## Numerical derivative in utils.R
-test_that("Dinite differencing is correct", {
-
-  f <- sin
-  g <- function(x) f(exp(x))
-
-  expect_that(gradient_fd(f, 1, 1e-4, FALSE),
-    equals(numDeriv::grad(f, 1)))
-  expect_that(gradient_fd(f, 1, 1e-4, TRUE),
-    equals(numDeriv::grad(g, 0)))
-})

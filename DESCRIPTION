@@ -11,12 +11,9 @@ Depends:
     methods
 Imports:
     Rcpp (>= 0.10.3),
-    R6 (>= 2.0),
-    assertthat,
-    parallel,
-    lhs
+    parallel
 SystemRequirements: gsl (>= 1.12)
 Suggests:
-    testthat, numDeriv, deSolve, digest, siefecor
+    testthat, numDeriv, deSolve, digest
 LinkingTo: Rcpp
 RcppModules: tree
