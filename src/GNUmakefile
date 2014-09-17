@@ -11,7 +11,7 @@ SOURCES_INTEGRATION = quadrature.cpp quadrature_rules.cpp \
 SOURCES_ODE    = ode_target.cpp ode_control.cpp lorenz.cpp ode_r.cpp
 SOURCES_R      = interface.cpp
 SOURCES_UTIL   = util.cpp lookup.cpp find_root.cpp functor.cpp \
-	gradient.cpp
+	gradient.cpp RcppExports.cpp
 
 SOURCES = $(SOURCES_MODEL) \
 	$(SOURCES_INTERPOLATOR) $(SOURCES_INTEGRATION) \
