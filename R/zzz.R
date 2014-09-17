@@ -37,7 +37,6 @@
 ##' @export compute_assimilation_fn
 ##' @export local_error_integration
 ##' @export make.reference
-##' @export set_sane_gsl_error_handling
 ##' @export test_adaptive_interpolator
 ##' @export test_find_root
 ##' @export test_find_value
@@ -58,8 +57,6 @@
 
 .onLoad <- function(libname, pkgname){
   ## loadRcppModules() # this breaks devtools
-  ## But the line below causes CHECK to fail because it can't find
-  ## set_sane_gsl_error_handling.
   loadModule("tree", TRUE)
   set_sane_gsl_error_handling()
 }

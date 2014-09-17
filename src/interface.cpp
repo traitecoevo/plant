@@ -532,8 +532,6 @@ RCPP_MODULE(tree) {
 		 &util::test::test_gradient_richardson);
 
   // Useful functions
-  Rcpp::function("set_sane_gsl_error_handling",
-		 &util::set_sane_gsl_error_handling);
   Rcpp::function("trapezium",
 		 &util::trapezium< std::vector<double>, std::vector<double> >);
   Rcpp::function("trapezium_vector",
@@ -541,4 +539,9 @@ RCPP_MODULE(tree) {
 		 std::vector<double> >);
   Rcpp::function("local_error_integration",
 		 &util::local_error_integration);
+}
+
+// [[Rcpp::export]]
+void set_sane_gsl_error_handling() {
+  gsl_set_error_handler(&util::handler_pass_to_R);
 }

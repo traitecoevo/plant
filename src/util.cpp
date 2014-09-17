@@ -13,10 +13,6 @@ void handler_pass_to_R(const char *reason,
   Rcpp::stop(o.str());
 }
 
-void set_sane_gsl_error_handling() {
-  gsl_set_error_handler(&handler_pass_to_R);
-}
-
 bool is_finite(double x) {
   return R_FINITE(x);
 }

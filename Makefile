@@ -18,6 +18,9 @@ test-regression:
 scripts:
 	make -C scripts
 
+attributes:
+	Rscript -e "Rcpp::compileAttributes()"
+
 # I dislike devtools' use of the Collate field (which causes problems
 # for rapidly adding new code) so I'm disabling it this way:
 DEVTOOLS_DOCUMENT=devtools::document(roclets=c('namespace', 'rd'))
