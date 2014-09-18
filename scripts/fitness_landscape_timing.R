@@ -26,6 +26,9 @@ cmp # This should be about zero, plus or minus 1e-5 or so.
 # Mutant LMA values, in increasing numbers, to test how the time
 # requirements scale with the number of strategies.  Should be
 # sublinear.
+seq_log <- function(from, to, length.out) {
+  exp(seq(log(from), log(to), length.out=length.out))
+}
 lma_2  <- seq_log(0.03, 0.8, 2)
 lma_4  <- seq_log(0.03, 0.8, 4)
 lma_8  <- seq_log(0.03, 0.8, 8)
