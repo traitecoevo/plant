@@ -1,8 +1,7 @@
-carrying_capacity.R
 equilibrium.R
 instability.R
-landscape_manual.R
-landscape_timing.R
+fitness_landscape_manual.R
+fitness_landscape_timing.R
 splitting_cohorts.R
 
 # ebt_integration_error.R

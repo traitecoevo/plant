@@ -19,8 +19,8 @@
 ##' production per capita.
 ##' @author Rich FitzJohn
 ##' @export
-landscape <- function(trait, values, p, schedule=NULL,
-                      raw_seed_rain=FALSE) {
+fitness_landscape <- function(trait, values, p, schedule=NULL,
+                              raw_seed_rain=FALSE) {
   if (is.null(schedule)) {
     schedule <- build_schedule(p)
   }
@@ -42,10 +42,10 @@ landscape <- function(trait, values, p, schedule=NULL,
 }
 
 ## TODO: Need to support variant strategy here and above.
-##' @rdname landscape
+##' @rdname fitness_landscape
 ##' @export
-landscape_empty <- function(trait, values, p, schedule=NULL,
-                            raw_seed_rain=FALSE) {
+fitness_landscape_empty <- function(trait, values, p, schedule=NULL,
+                                    raw_seed_rain=FALSE) {
   p_empty <- p$copy()
   p_empty$clear()
   p_empty <- expand_parameters(trait, values, p_empty)

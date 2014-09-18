@@ -20,7 +20,7 @@ lma_res <- sapply(seq_len(p$size), function(i) p[[i]]$parameters$lma)
 
 ## OK, good to reasonable accuracy; the seed rain values should be
 ## close enough to 1.
-cmp <- landscape("lma", lma_res, p, schedule)
+cmp <- fitness_landscape("lma", lma_res, p, schedule)
 cmp # This should be about zero, plus or minus 1e-5 or so.
 
 # Mutant LMA values, in increasing numbers, to test how the time
@@ -33,12 +33,12 @@ lma_16 <- seq_log(0.03, 0.8, 16)
 lma_32 <- seq_log(0.03, 0.8, 32)
 lma_64 <- seq_log(0.03, 0.8, 64)
 
-(t_2  <- system.time(w_2  <- landscape("lma", lma_2,  p, schedule)))
-(t_4  <- system.time(w_4  <- landscape("lma", lma_4,  p, schedule)))
-(t_8  <- system.time(w_8  <- landscape("lma", lma_8,  p, schedule)))
-(t_16 <- system.time(w_16 <- landscape("lma", lma_16, p, schedule)))
-(t_32 <- system.time(w_32 <- landscape("lma", lma_32, p, schedule)))
-(t_64 <- system.time(w_64 <- landscape("lma", lma_64, p, schedule)))
+(t_2  <- system.time(w_2  <- fitness_landscape("lma", lma_2,  p, schedule)))
+(t_4  <- system.time(w_4  <- fitness_landscape("lma", lma_4,  p, schedule)))
+(t_8  <- system.time(w_8  <- fitness_landscape("lma", lma_8,  p, schedule)))
+(t_16 <- system.time(w_16 <- fitness_landscape("lma", lma_16, p, schedule)))
+(t_32 <- system.time(w_32 <- fitness_landscape("lma", lma_32, p, schedule)))
+(t_64 <- system.time(w_64 <- fitness_landscape("lma", lma_64, p, schedule)))
 
 tt <- c(t_2[["elapsed"]],
         t_4[["elapsed"]],
@@ -59,7 +59,7 @@ plot(w_64 ~ lma_64, type="l", log="x")
 abline(v=lma_res, lty=3, col="grey")
 
 # Fitness of the mutants in an empty landscape:
-w_empty <- landscape_empty("lma", lma_16, p, schedule)
+w_empty <- fitness_landscape_empty("lma", lma_16, p, schedule)
 
 ##+ fitness_landscape_empty
 plot(w_empty ~ lma_16, log="x")

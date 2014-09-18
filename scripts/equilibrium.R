@@ -60,7 +60,7 @@ cobweb(approach, pch=19, cex=.5, type="o")
 dr <- 2 # range of input to vary (plus and minus this many seeds)
 seed_rain_in <- seq(seed_rain_eq - dr,
                     seed_rain_eq + dr, length=31)
-seed_rain_out <- unlist(mclapply(seed_rain_eq, run, p, schedule1))
+seed_rain_out <- unlist(mclapply(seed_rain_in, run, p, schedule1))
 
 fit <- lm(seed_rain_out ~ seed_rain_in)
 

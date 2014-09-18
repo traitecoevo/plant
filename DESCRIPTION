@@ -14,6 +14,9 @@ Imports:
     parallel
 SystemRequirements: gsl (>= 1.12)
 Suggests:
-    testthat, numDeriv, deSolve, digest
+    testthat,
+    numDeriv,
+    deSolve,
+    digest
 LinkingTo: Rcpp
 RcppModules: tree

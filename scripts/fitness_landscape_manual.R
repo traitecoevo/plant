@@ -1,5 +1,5 @@
 ## Manually construct a simple fitness landscape.  Does not actually
-## use the tree::landscape function.
+## use the tree::fitness_landscape function.
 library(tree)
 
 ## Starting rain here is close to the equilibrium from
