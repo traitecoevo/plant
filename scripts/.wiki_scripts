@@ -1,4 +1,5 @@
 equilibrium.R
+equilibrium_slow_approach.R
 instability.R
 fitness_landscape_manual.R
 fitness_landscape_timing.R
