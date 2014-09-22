@@ -89,17 +89,19 @@ equilibrium <- function(p, schedule=NULL) {
 ## something that approaches 1/x for x -> Inf and 0 for x -> 0, and is
 ## monotonic.  With those conditions, I think we'll stay away from the
 ## trivial root iff it is unstable.
+##
+## Also need to get the true zero value done better here; should
+## use same flag that indicates that 
 make_target <- function(f) {
   force(f)
   function(x, ...) {
-    neg <- x < 0
-    if (all(neg)) {
+    pos <- x > 0
+    if (!any(pos)) {
       rep(0.0, length(x))
     } else {
-      x[neg] <- 0.0
+      x[!pos] <- 0.0
       res <- f(x, ...)
       ret <- rep(0, length(x))
-      pos <- !neg
       ret[pos] <- log(res[pos,"out"] / res[pos,"in"])
       ret
     }
@@ -107,10 +109,23 @@ make_target <- function(f) {
 }
 
 make_target_ode <- function(f) {
-  force(f)
   g <- make_target(f)
   function(x) {
     g(x) * pmax(x, 0.0)
+  }
+}
+
+make_target2 <- function(f, allow_zero) {
+  g <- make_target(f)
+  force(allow_zero)
+  function(x) {
+    if (length(x) != length(allow_zero)) {
+      stop("unexpected length")
+    }
+    x[x == 0 & allow_zero] <- 1e-10
+    res <- g(x)
+    res[allow_zero] <- res[allow_zero] * pmax(x[allow_zero], 0.0)
+    res
   }
 }
 

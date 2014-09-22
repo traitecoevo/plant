@@ -61,3 +61,14 @@ sol3 <- nleqslv(p3$seed_rain, make_target(f3), global="none", control=control)
 
 ## This gets tangled, then jumps to (0,0)
 sol3_m <- multiroot(make_target(f3), p3$seed_rain, positive=TRUE)
+
+## # Hail Mary idea:
+
+## If we've introduced a mutant, we've already checked that it has
+## positive fitness so we can exclude the zero solution for it.
+allow_zero <- c(TRUE, FALSE)
+g3 <- make_target2(f3, allow_zero)
+g3(p3$seed_rain)
+
+sol3 <- nleqslv(p3$seed_rain, g3, global="none", control=control)
+sol3_m <- multiroot(g3, p3$seed_rain, positive=TRUE)
