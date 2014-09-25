@@ -78,3 +78,143 @@ equilibrium_verbose <- function() {
        equilibrium_verbose=TRUE,
        equilibrium_progress=TRUE)
 }
+
+
+## TODO: This is not yet used in the equlibrium search above, but it
+## should be.
+make_equilibrium_runner <- function(p, schedule_default=NULL,
+                                    schedule_initial=NULL) {
+  drop_schedule <- function(x) {
+    attr(x, "schedule") <- NULL
+    x
+  }
+  pretty_collapse <- function(x, digits=3, collapse=", ") {
+    paste(prettyNum(x, digits=digits), collapse=collapse)
+  }
+  p <- p$copy()
+  schedule_default <- schedule_or_null(schedule_default, p)
+
+  control <- p$control$parameters
+  large_seed_rain_change <- control$equilibrium_large_seed_rain_change
+  progress <- control$equilibrium_progress
+
+  if (is.null(schedule_initial)) {
+    last_schedule <- schedule_default$copy()
+  } else {
+    last_schedule <- schedule_initial$copy()
+  }
+  i <- 1L
+  last <- NULL
+  history <- NULL
+
+  function(seed_rain_in,
+           force_new_schedule=FALSE, force_old_schedule=FALSE) {
+    p$seed_rain <- seed_rain_in
+    if (force_old_schedule) {
+      schedule <- last_schedule
+    } else {
+      if (force_new_schedule ||
+          any(abs(seed_rain_in - p$seed_rain) > large_seed_rain_change)) {
+        schedule <- schedule_default$copy()
+      } else {
+        schedule <- last_schedule$copy()
+      }
+      schedule <- build_schedule(p, schedule)
+    }
+    last_schedule <<- schedule
+
+    ans <- attr(schedule, "seed_rain", exact=TRUE)
+    last <<- list(seed_rain=drop_schedule(ans),
+                  schedule=schedule$copy())
+    if (progress) {
+      history <<- c(history, list(last))
+    }
+
+    if (control$equilibrium_verbose) {
+      message(sprintf("*** %d: {%s} -> {%s} (delta = {%s})", i,
+                      pretty_collapse(ans[,"in"]),
+                      pretty_collapse(ans[,"out"]),
+                      pretty_collapse(ans[,"out"] - ans[,"in"])))
+    }
+    i <<- i + 1L
+
+    attr(ans, "schedule") <- schedule$copy()
+    ans
+  }
+}
+
+equilibrium_runner_cleanup <- function(runner) {
+  e <- environment(runner)
+  res <- e$last
+  attr(res, "progress") <- e$history
+  res
+}
+
+equilibrium_seed_rain_iterate <- function(p, schedule_default=NULL,
+                                          schedule_initial=NULL) {
+  runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
+
+  control <- p$control$parameters
+  eps <- control$equilibrium_eps
+  seed_rain <- p$seed_rain
+
+  for (i in seq_len(control$equilibrium_nsteps)) {
+    ans <- runner(seed_rain)
+    seed_rain <- ans[,"out"]
+    change <- ans[,"out"] - ans[,"in"]
+    if (eps > 0 && all(abs(change) < eps)) {
+      if (control$equilibrium_verbose) {
+        message(sprintf("Reached target accuracy (delta %2.5e < %2.5e eps)",
+                        max(abs(change)), eps))
+      }
+      break
+    }
+  }
+
+  equilibrium_runner_cleanup(runner)
+}
+
+equilibrium_seed_rain_nleqslv <- function(p, keep, schedule_default=NULL,
+                                          schedule_initial=NULL) {
+  keep <- recycle_simple(keep, sys$size())
+
+  runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
+  target <- equilibrium_seed_rain_nleqslv_target(runner, keep)
+
+  tol <- p$control$parameters$equilibrium_eps
+  maxit <- p$control$parameters$equilibrium_nsteps
+  control <- list(xtol=tol, ftol=tol, maxit=maxit)
+  sol <- nleqslv(p$seed_rain, target, global="none", control=control)
+
+  if (sol$termcd > 2 || sol$termcd < 0) {
+    msg <- sprintf("Equilibrium search has likely failed: code=%d, msg: %s",
+                   sol$termcd, sol$message)
+    warning(msg, immediate.=TRUE)
+  }
+
+  res <- equilibrium_runner_cleanup(runner)
+  attr(res, "sol") <- sol
+  res
+}
+
+equilibrium_seed_rain_nleqslv_target <- function(runner, keep) {
+  eps <- 1e-10
+  force(runner)
+  force(keep)
+  function(x, ...) {
+    ## Avoid negative seed rains:
+    x[x < eps & keep] <- eps
+    x[x < 0.0] <- 0.0
+    xout <- unname(runner(x)[,"out"])
+
+    xout[keep] <- log(xout[keep] / x[keep])
+    i <- !keep & x > 0
+    xout[i] <- log(xout[i] / x[i]) * x[i]
+    ## !keep & x <= 0 will now  be zero
+    if (any(xout[!keep & x <= 0] != 0.0)) {
+      warning("This is not expected", immediate.=TRUE)
+    }
+    xout
+  }
+
+}

@@ -119,3 +119,12 @@ reload_r <- function(path=.TREE_PATH) {
   }
   invisible(TRUE)
 }
+
+recycle_simple <- function(x, n) {
+  if (length(x) == 1) {
+    x <- rep(x, length=n)
+  } else if (length(x) != n) {
+    stop("Length must be 1 or ", n)
+  }
+  x
+}
