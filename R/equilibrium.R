@@ -78,6 +78,13 @@ equilibrium_verbose <- function() {
        equilibrium_verbose=TRUE,
        equilibrium_progress=TRUE)
 }
+##' @export
+##' @rdname equilibrium_verbose
+equilibrium_quiet <- function() {
+  list(schedule_verbose=FALSE,
+       equilibrium_verbose=FALSE,
+       equilibrium_progress=FALSE)
+}
 
 
 ## TODO: This is not yet used in the equlibrium search above, but it
