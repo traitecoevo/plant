@@ -88,8 +88,8 @@ make_equilibrium_runner <- function(p, schedule_default=NULL,
     attr(x, "schedule") <- NULL
     x
   }
-  pretty_collapse <- function(x, digits=3, collapse=", ") {
-    paste(prettyNum(x, digits=digits), collapse=collapse)
+  pretty_collapse <- function(x, collapse=", ") {
+    paste(prettyNum(x), collapse=collapse)
   }
   p <- p$copy()
   schedule_default <- schedule_or_null(schedule_default, p)
@@ -174,21 +174,37 @@ equilibrium_seed_rain_iterate <- function(p, schedule_default=NULL,
   equilibrium_runner_cleanup(runner)
 }
 
-equilibrium_seed_rain_nleqslv <- function(p, keep, schedule_default=NULL,
-                                          schedule_initial=NULL) {
-  keep <- recycle_simple(keep, p$size())
+equilibrium_seed_rain_solve <- function(p, keep, schedule_default=NULL,
+                                        schedule_initial=NULL,
+                                        method="nleqslv") {
+  keep <- recycle_simple(keep, p$size)
 
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
-  target <- equilibrium_seed_rain_nleqslv_target(runner, keep)
+  target <- equilibrium_seed_rain_solve_target(runner, keep)
 
   tol <- p$control$parameters$equilibrium_eps
   maxit <- p$control$parameters$equilibrium_nsteps
-  control <- list(xtol=tol, ftol=tol, maxit=maxit)
-  sol <- nleqslv(p$seed_rain, target, global="none", control=control)
 
-  if (sol$termcd > 2 || sol$termcd < 0) {
-    msg <- sprintf("Equilibrium search has likely failed: code=%d, msg: %s",
-                   sol$termcd, sol$message)
+  msg <- NULL
+  if (method == "nleqslv") {
+    control <- list(xtol=tol, ftol=tol, maxit=maxit)
+    sol <- nleqslv::nleqslv(p$seed_rain, target, global="none",
+                            control=control)
+    if (sol$termcd > 2 || sol$termcd < 0) {
+      msg <- sprintf("Equilibrium search has likely failed: code=%d, msg: %s",
+                     sol$termcd, sol$message)
+    }
+  } else if (method == "dfsane") {
+    control <- list(tol=tol, maxit=maxit)
+    sol <- BB::dfsane(p$seed_rain, target, control=control, quiet=TRUE)
+    if (sol$convergence != 0) {
+      msg <- sprintf("Equilibrium search has likely failed: code=%d, msg: %s",
+                     sol$convergence, sol$message)
+    }
+  } else {
+    stop("Unknown method ", method)
+  }
+  if (!is.null(msg)) {
     warning(msg, immediate.=TRUE)
   }
 
@@ -197,7 +213,7 @@ equilibrium_seed_rain_nleqslv <- function(p, keep, schedule_default=NULL,
   res
 }
 
-equilibrium_seed_rain_nleqslv_target <- function(runner, keep) {
+equilibrium_seed_rain_solve_target <- function(runner, keep) {
   eps <- 1e-10
   force(runner)
   force(keep)

@@ -17,6 +17,8 @@ Suggests:
     testthat,
     numDeriv,
     deSolve,
-    digest
+    digest,
+    nleqslv,
+    BB
 LinkingTo: Rcpp
 RcppModules: tree
