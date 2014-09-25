@@ -176,7 +176,7 @@ equilibrium_seed_rain_iterate <- function(p, schedule_default=NULL,
 
 equilibrium_seed_rain_nleqslv <- function(p, keep, schedule_default=NULL,
                                           schedule_initial=NULL) {
-  keep <- recycle_simple(keep, sys$size())
+  keep <- recycle_simple(keep, p$size())
 
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
   target <- equilibrium_seed_rain_nleqslv_target(runner, keep)
