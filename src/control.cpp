@@ -73,6 +73,7 @@ void Control::reset() {
   equilibrium_large_seed_rain_change = 10;
   equilibrium_progress = false;
   equilibrium_verbose  = true;
+  equilibrium_solver   = 1; // TODO: This is a hack
 
   // TODO: Also no_steps_max?
 
@@ -139,6 +140,8 @@ void Control::reset() {
     static_cast<double>(equilibrium_progress);
   _equilibrium_verbose =
     static_cast<double>(equilibrium_verbose);
+  _equilibrium_solver =
+    static_cast<double>(equilibrium_solver);
 
   // Like set_parameters_post_hook(), rebuild the ODE control, too.
   ode_control = make_ode_control();
@@ -243,6 +246,8 @@ void Control::do_build_lookup() {
     &_equilibrium_progress;
   lookup_table["equilibrium_verbose"] =
     &_equilibrium_verbose;
+  lookup_table["equilibrium_solver"] =
+    &_equilibrium_solver;
 }
 
 void Control::set_parameters_post_hook() {
@@ -303,9 +308,11 @@ void Control::set_parameters_post_hook() {
   equilibrium_nsteps =
     static_cast<int>(_equilibrium_nsteps);
   equilibrium_progress =
-    static_cast<int>(_equilibrium_progress);
+    static_cast<bool>(_equilibrium_progress);
   equilibrium_verbose =
-    static_cast<int>(_equilibrium_verbose);
+    static_cast<bool>(_equilibrium_verbose);
+  equilibrium_solver =
+    static_cast<int>(_equilibrium_solver);
 
   ode_control = make_ode_control();
 }

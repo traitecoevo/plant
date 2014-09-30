@@ -54,6 +54,7 @@ expected <- list(
   equilibrium_large_seed_rain_change = 10.0,
   equilibrium_progress = as.numeric(FALSE),
   equilibrium_verbose  = as.numeric(TRUE)
+  equilibrium_solver  = as.numeric(1L)
   )
 
 keys <- sort(names(expected))

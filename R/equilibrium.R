@@ -94,10 +94,11 @@ equilibrium_runner_cleanup <- function(runner) {
 }
 
 equilibrium_seed_rain2 <- function(p, schedule_default=NULL,
-                                   schedule_initial=NULL,
-                                   solver="iteration",
-                                   keep=TRUE) {
-  solver <- match.arg(solver, c("iteration", "nleqslv", "dfsane"))
+                                   schedule_initial=NULL, keep=TRUE) {
+  solver <- get_equilibrium_solver(p)
+  if (p$control$parameters$equilibrium_verbose) {
+    message("Solving seed rain using ", solver)
+  }
   if (solver == "iteration") {
     equilibrium_seed_rain_iteration(p, schedule_default, schedule_initial)
   } else {
@@ -231,4 +232,29 @@ equilibrium_seed_rain_solve_target <- function(runner, keep) {
     }
     xout
   }
+}
+
+equilibrium_solvers <- function() {
+  c("iteration", "nleqslv", "dfsane")
+}
+
+equilibrium_solver_name <- function(i) {
+  equilibrium_solvers()[[i]]
+}
+equilibrium_solver_code <- function(name) {
+  i <- match(name, equilibrium_solvers())
+  if (is.na(i)) {
+    stop("Solver not found")
+  }
+  i
+}
+
+##' @export
+set_equilibrium_solver <- function(name, p) {
+  code <- equilibrium_solver_code(name)
+  p$set_control_parameters(list(equilibrium_solver=code))
+}
+##' @export
+get_equilibrium_solver <- function(p) {
+  equilibrium_solver_name(p$control$parameters$equilibrium_solver)
 }

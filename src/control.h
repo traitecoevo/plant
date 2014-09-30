@@ -72,6 +72,7 @@ public:
   double equilibrium_large_seed_rain_change;
   bool   equilibrium_progress;
   bool   equilibrium_verbose;
+  int    equilibrium_solver;
 
   ode::OdeControl ode_control;
 
@@ -115,6 +116,7 @@ private:
   double _equilibrium_nsteps;
   double _equilibrium_progress;
   double _equilibrium_verbose;
+  double _equilibrium_solver;
 };
 
 }
