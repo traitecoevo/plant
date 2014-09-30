@@ -86,9 +86,71 @@ equilibrium_quiet <- function() {
        equilibrium_progress=FALSE)
 }
 
+equilibrium_runner_cleanup <- function(runner) {
+  e <- environment(runner)
+  res <- e$last
+  attr(res, "progress") <- e$history
+  res
+}
 
-## TODO: This is not yet used in the equlibrium search above, but it
-## should be.
+equilibrium_seed_rain2 <- function(p, schedule_default=NULL,
+                                   schedule_initial=NULL,
+                                   solver="iteration",
+                                   keep=TRUE) {
+  solver <- match.arg(solver, c("iteration", "nleqslv", "dfsane"))
+  if (solver == "iteration") {
+    equilibrium_seed_rain_iteration(p, schedule_default, schedule_initial)
+  } else {
+    equilibrium_seed_rain_solve(p, schedule_default, schedule_initial,
+                                solver, keep)
+
+  }
+}
+
+equilibrium_seed_rain_iteration <- function(p, schedule_default=NULL,
+                                            schedule_initial=NULL) {
+  runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
+
+  control <- p$control$parameters
+  eps <- control$equilibrium_eps
+  seed_rain <- p$seed_rain
+
+  for (i in seq_len(control$equilibrium_nsteps)) {
+    ans <- runner(seed_rain)
+    seed_rain <- ans[,"out"]
+    change <- ans[,"out"] - ans[,"in"]
+    if (eps > 0 && all(abs(change) < eps)) {
+      if (control$equilibrium_verbose) {
+        message(sprintf("Reached target accuracy (delta %2.5e < %2.5e eps)",
+                        max(abs(change)), eps))
+      }
+      break
+    }
+  }
+
+  equilibrium_runner_cleanup(runner)
+}
+
+equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
+                                        schedule_initial=NULL,
+                                        solver="nleqslv",
+                                        keep=TRUE) {
+  keep <- recycle_simple(keep, p$size)
+
+  runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
+  target <- equilibrium_seed_rain_solve_target(runner, keep)
+
+  tol <- p$control$parameters$equilibrium_eps
+  maxit <- p$control$parameters$equilibrium_nsteps
+  ## TODO: eventually this should take solver from the control
+  ## parameters?
+  sol <- nlsolve(p$seed_rain, target, tol=tol, maxit=maxit, solver=solver)
+  res <- equilibrium_runner_cleanup(runner)
+  attr(res, "sol") <- sol
+  res
+}
+
+## This stuff is way uglier than it really should be.
 make_equilibrium_runner <- function(p, schedule_default=NULL,
                                     schedule_initial=NULL) {
   drop_schedule <- function(x) {
@@ -150,76 +212,6 @@ make_equilibrium_runner <- function(p, schedule_default=NULL,
   }
 }
 
-equilibrium_runner_cleanup <- function(runner) {
-  e <- environment(runner)
-  res <- e$last
-  attr(res, "progress") <- e$history
-  res
-}
-
-equilibrium_seed_rain_iterate <- function(p, schedule_default=NULL,
-                                          schedule_initial=NULL) {
-  runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
-
-  control <- p$control$parameters
-  eps <- control$equilibrium_eps
-  seed_rain <- p$seed_rain
-
-  for (i in seq_len(control$equilibrium_nsteps)) {
-    ans <- runner(seed_rain)
-    seed_rain <- ans[,"out"]
-    change <- ans[,"out"] - ans[,"in"]
-    if (eps > 0 && all(abs(change) < eps)) {
-      if (control$equilibrium_verbose) {
-        message(sprintf("Reached target accuracy (delta %2.5e < %2.5e eps)",
-                        max(abs(change)), eps))
-      }
-      break
-    }
-  }
-
-  equilibrium_runner_cleanup(runner)
-}
-
-equilibrium_seed_rain_solve <- function(p, keep, schedule_default=NULL,
-                                        schedule_initial=NULL,
-                                        method="nleqslv") {
-  keep <- recycle_simple(keep, p$size)
-
-  runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
-  target <- equilibrium_seed_rain_solve_target(runner, keep)
-
-  tol <- p$control$parameters$equilibrium_eps
-  maxit <- p$control$parameters$equilibrium_nsteps
-
-  msg <- NULL
-  if (method == "nleqslv") {
-    control <- list(xtol=tol, ftol=tol, maxit=maxit)
-    sol <- nleqslv::nleqslv(p$seed_rain, target, global="none",
-                            control=control)
-    if (sol$termcd > 2 || sol$termcd < 0) {
-      msg <- sprintf("Equilibrium search has likely failed: code=%d, msg: %s",
-                     sol$termcd, sol$message)
-    }
-  } else if (method == "dfsane") {
-    control <- list(tol=tol, maxit=maxit)
-    sol <- BB::dfsane(p$seed_rain, target, control=control, quiet=TRUE)
-    if (sol$convergence != 0) {
-      msg <- sprintf("Equilibrium search has likely failed: code=%d, msg: %s",
-                     sol$convergence, sol$message)
-    }
-  } else {
-    stop("Unknown method ", method)
-  }
-  if (!is.null(msg)) {
-    warning(msg, immediate.=TRUE)
-  }
-
-  res <- equilibrium_runner_cleanup(runner)
-  attr(res, "sol") <- sol
-  res
-}
-
 equilibrium_seed_rain_solve_target <- function(runner, keep) {
   eps <- 1e-10
   force(runner)
@@ -239,5 +231,4 @@ equilibrium_seed_rain_solve_target <- function(runner, keep) {
     }
     xout
   }
-
 }
