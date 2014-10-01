@@ -94,7 +94,7 @@ equilibrium_runner_cleanup <- function(runner) {
 }
 
 equilibrium_seed_rain2 <- function(p, schedule_default=NULL,
-                                   schedule_initial=NULL, keep=TRUE) {
+                                   schedule_initial=NULL) {
   solver <- get_equilibrium_solver(p)
   if (p$control$parameters$equilibrium_verbose) {
     message("Solving seed rain using ", solver)
@@ -102,8 +102,8 @@ equilibrium_seed_rain2 <- function(p, schedule_default=NULL,
   if (solver == "iteration") {
     equilibrium_seed_rain_iteration(p, schedule_default, schedule_initial)
   } else {
-    equilibrium_seed_rain_solve(p, schedule_default, schedule_initial,
-                                solver, keep)
+    equilibrium_seed_rain_solve_robust(p, schedule_default, schedule_initial,
+                                       solver)
 
   }
 }
@@ -134,21 +134,55 @@ equilibrium_seed_rain_iteration <- function(p, schedule_default=NULL,
 
 equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
                                         schedule_initial=NULL,
-                                        solver="nleqslv",
-                                        keep=TRUE) {
-  keep <- recycle_simple(keep, p$size)
-
+                                        solver="nleqslv") {
+  seed_rain <- p$seed_rain
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
+  ans <- runner(seed_rain)
+  keep <- unname(ans[,"out"]) > 0.0
   target <- equilibrium_seed_rain_solve_target(runner, keep)
 
   tol <- p$control$parameters$equilibrium_eps
   maxit <- p$control$parameters$equilibrium_nsteps
-  ## TODO: eventually this should take solver from the control
-  ## parameters?
   sol <- nlsolve(p$seed_rain, target, tol=tol, maxit=maxit, solver=solver)
   res <- equilibrium_runner_cleanup(runner)
   attr(res, "sol") <- sol
   res
+}
+
+equilibrium_seed_rain_solve_robust <- function(p,
+                                               schedule_default=NULL,
+                                               schedule_initial=NULL,
+                                               solver="nleqslv") {
+  verbose <- p$control$parameters$equilibrium_verbose
+  message_verbose <- function(...) {
+    if (verbose) {
+      message(...)
+    }
+  }
+
+  fit <- try(equilibrium_seed_rain_solve(p, schedule_default,
+                                         schedule_initial,
+                                         solver))
+  if (failed(fit)) {
+    message_verbose("Falling back on iteration")
+    fit <- equilibrium_seed_rain_iteration(p, schedule_default,
+                                           schedule_initial)
+
+    message_verbose("Trying again with the solver")
+    p2 <- p$copy()
+    p2$seed_rain <- unname(fit$seed_rain[,"out"])
+    fit2 <- try(equilibrium_seed_rain_solve(p2, schedule_default,
+                                            fit$schedule,
+                                            solver))
+
+    if (failed(fit2)) {
+      message_verbose("Solver failed again: using iteration version")
+    } else {
+      fit <- fit2
+      message_verbose("Solver worked on second attempt")
+    }
+  }
+  fit
 }
 
 ## This stuff is way uglier than it really should be.
@@ -179,12 +213,13 @@ make_equilibrium_runner <- function(p, schedule_default=NULL,
 
   function(seed_rain_in,
            force_new_schedule=FALSE, force_old_schedule=FALSE) {
+    seed_rain_last <- p$seed_rain
     p$seed_rain <- seed_rain_in
     if (force_old_schedule) {
       schedule <- last_schedule
     } else {
       if (force_new_schedule ||
-          any(abs(seed_rain_in - p$seed_rain) > large_seed_rain_change)) {
+          any(abs(seed_rain_in - seed_rain_last) > large_seed_rain_change)) {
         schedule <- schedule_default$copy()
       } else {
         schedule <- last_schedule$copy()

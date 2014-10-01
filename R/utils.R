@@ -151,8 +151,9 @@ nlsolve <- function(x, fn, tol=1e-6, maxit=100, solver="nleqslv") {
   }
 
   if (attr(res, "failed")) {
-    warning(sprintf("Solver has likely failed: code=%d, msg: %s",
-                    sol$termcd, sol$message), immediate.=TRUE)
+    stop(sprintf("Solver has likely failed: code=%d, msg: %s",
+                 attr(res, "code"), attr(res, "message")),
+         immediate.=TRUE)
   }
 
   res
@@ -193,4 +194,8 @@ nlsolve_dfsane_attr <- function(sol) {
        message=sol$message,
        failed=sol$convergence != 0,
        solver="dfsane")
+}
+
+failed <- function(x) {
+  inherits(x, "try-error")
 }
