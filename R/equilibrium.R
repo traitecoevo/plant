@@ -138,7 +138,7 @@ equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
   seed_rain <- p$seed_rain
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
   ans <- runner(seed_rain)
-  keep <- unname(ans[,"out"]) > 0.0
+  keep <- unname(ans[,"out"] >= ans[,"in"])
   target <- equilibrium_seed_rain_solve_target(runner, keep)
 
   tol <- p$control$parameters$equilibrium_eps
