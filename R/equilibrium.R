@@ -119,11 +119,12 @@ equilibrium_seed_rain_iteration <- function(p, schedule_default=NULL,
   for (i in seq_len(control$equilibrium_nsteps)) {
     ans <- runner(seed_rain)
     seed_rain <- ans[,"out"]
-    change <- ans[,"out"] - ans[,"in"]
-    if (eps > 0 && all(abs(change) < eps)) {
+    achange <- ans[,"out"] - ans[,"in"]
+    rchange <- 1 - ans[,"out"] / ans[,"in"]
+    if (eps > 0 && all(abs(achange) < eps | abs(rchange) < eps)) {
       if (control$equilibrium_verbose) {
-        message(sprintf("Reached target accuracy (delta %2.5e < %2.5e eps)",
-                        max(abs(change)), eps))
+        fmt <- "Reached target accuracy (delta %2.5e, %2.5e < %2.5e eps)"
+        message(sprintf(fmt, max(abs(achange)), max(abs(rchange)), eps))
       }
       break
     }
