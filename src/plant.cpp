@@ -151,7 +151,9 @@ void Plant::compute_vars_phys(const Environment& environment) {
     // NOTE: In EBT, was multiplied by Pi_0 (survival during
     // dispersal), but we do not here.
     vars.fecundity_rate = vars.net_production *
-      vars.reproduction_fraction / (strategy->c_acc * strategy->s);
+      vars.reproduction_fraction / (strategy->s + strategy->c_acc * pow(strategy->
+        s/strategy->
+        s_0, strategy->B7));
 
     // [eqn 18] - Fraction of mass growth in leaves
     vars.leaf_fraction = compute_leaf_fraction();

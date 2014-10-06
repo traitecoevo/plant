@@ -412,10 +412,10 @@ Units: yr$^{-1}$
 Description: Rate of offspring production for plant with traits $x$, height $h$ and growing in environment $E$.
 
 Determination:
-\begin{equation} f = \frac{r(x, h) \;\frac{\textrm{d}B}{\textrm{d}t}(x, h, E)}{c_{\tm{acc}}s} \end{equation}
+\begin{equation} f = \frac{r(x, h) \;\frac{\textrm{d}B}{\textrm{d}t}(x, h, E)}{s + c_{\tm{acc}} \left(\frac{s}{s_0}\right)^{B7}} \end{equation}
 if $\frac{\textrm{d}B}{\textrm{d}t}(x, h_0(x), E)>0$, otherwise 0
 
-Parameter values: $c_{\tm{acc}}$ = `r tree_p[["c_acc"]]`
+Parameter values: $c_{\tm{acc}}$ = `r tree_p[["c_acc"]]`, $B_7$ = `r tree_p[["B7"]]`
 
 ### Probability density of leaf area at height z for an individual of height h
 

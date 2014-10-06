@@ -98,8 +98,12 @@ void Strategy::reset() {
   c_p2   = 0.19;
 
   // * Seed production
-  // Accessory cost of reproduction - multiplication factor
-  c_acc  = 4.0;
+  // Accessory cost of reproduction, kg for seed
+  // with mass s_0
+  c_acc  = 3.0*s_0;
+  // Scaling of seed accessory costs with seed mass
+  B7     = 1.0;
+
   // Maximum alloction to reproduction
   c_r1   = 1.0;
   // Size range across which individuals mature
@@ -158,12 +162,13 @@ void Strategy::do_build_lookup() {
   lookup_table["Y"]      = &Y;
   lookup_table["c_bio"]  = &c_bio;
   lookup_table["c_acc"]  = &c_acc;
+  lookup_table["B7"]     = &B7;
   lookup_table["c_r1"]   = &c_r1;
   lookup_table["c_r2"]   = &c_r2;
   lookup_table["c_s0"]   = &c_s0;
   lookup_table["c_d0"]   = &c_d0;
   lookup_table["c_d1"]   = &c_d1;
-  lookup_table["B6"]   = &B6;
+  lookup_table["B6"]     = &B6;
   lookup_table["c_d2"]   = &c_d2;
   lookup_table["c_d3"]   = &c_d3;
 

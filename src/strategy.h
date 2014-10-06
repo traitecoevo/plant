@@ -70,6 +70,8 @@ private:
   // * Seed production
   // Accessory cost of reproduction - multiplication factor
   double c_acc;
+  // Scaling of seed accessory costs with seed mass
+  double B7;
   // Proportion production alloctaed to reproduction
   double c_r1;
   // Size range across which individuals mature
