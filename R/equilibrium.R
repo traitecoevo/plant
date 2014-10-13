@@ -86,10 +86,11 @@ equilibrium_quiet <- function() {
        equilibrium_progress=FALSE)
 }
 
-equilibrium_runner_cleanup <- function(runner) {
+equilibrium_runner_cleanup <- function(runner, converged=TRUE) {
   e <- environment(runner)
   res <- e$last
   attr(res, "progress") <- e$history
+  attr(res, "converged") <- converged
   res
 }
 
@@ -121,7 +122,8 @@ equilibrium_seed_rain_iteration <- function(p, schedule_default=NULL,
     seed_rain <- ans[,"out"]
     achange <- ans[,"out"] - ans[,"in"]
     rchange <- 1 - ans[,"out"] / ans[,"in"]
-    if (eps > 0 && all(abs(achange) < eps | abs(rchange) < eps)) {
+    converged <- eps > 0 && all(abs(achange) < eps | abs(rchange) < eps)
+    if (converged) {
       if (control$equilibrium_verbose) {
         fmt <- "Reached target accuracy (delta %2.5e, %2.5e < %2.5e eps)"
         message(sprintf(fmt, max(abs(achange)), max(abs(rchange)), eps))
@@ -130,7 +132,7 @@ equilibrium_seed_rain_iteration <- function(p, schedule_default=NULL,
     }
   }
 
-  equilibrium_runner_cleanup(runner)
+  equilibrium_runner_cleanup(runner, converged)
 }
 
 equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
