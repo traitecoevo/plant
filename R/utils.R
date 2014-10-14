@@ -199,3 +199,46 @@ nlsolve_dfsane_attr <- function(sol) {
 failed <- function(x) {
   inherits(x, "try-error")
 }
+
+## Parallel version of Richardson extrapolation that will take
+## advantage of tree's preference for computing multiple mutants at
+## once.  Not yet set up to also do multiple x points at once.
+##
+## Defaults are set to match numDeriv::grad.
+##' @export
+gradient <- function(f, x,
+                     eps=1e-4, d=0.0001, r=4, v=2,
+                     zero_tol=sqrt(.Machine$double.eps/7e-7)) {
+  ## This is not actually hard to relax, I just don't need that right
+  ## now.  The big things are:
+  ##   - recycle d appopriately
+  ##   - x_up, x_down are matrices and are rbound/cbound together and
+  ##     we require that from f
+  ##   - once y is computed everything is the same.
+  if (length(x) != 1) {
+    stop("Requires scalar x")
+  }
+  ## Initial offset:
+  h0 <- abs(d * x) + eps * (abs(x) < zero_tol)
+  h <- h0 / (v^(seq_len(r) - 1))
+  x_up   <- x + h
+  x_down <- x - h
+
+  ## This is the bit I'm trying to get: *all* the x points are
+  ## computed at once.
+  y <- matrix(f(c(x_up, x_down)), r, 2)
+
+  ## Then bookkeeping galore.
+  a <- (y[,1] - y[,2]) / (2 * h)
+  m <- 1L
+  while (m < r) {
+    four_m <- 4 ^ m
+    a_next <- numeric(r - m)
+    for (i in seq_along(a_next)) {
+      a_next[i] <- (a[i + 1L] * four_m - a[i])/(four_m - 1.0)
+    }
+    a <- a_next
+    m <- m + 1L
+  }
+  a
+}
