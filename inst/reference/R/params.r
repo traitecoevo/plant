@@ -47,4 +47,5 @@ p.k_r = 1.0;
 #REPRODUCTION
 p.c_r1=1;
 p.c_r2=50;
-p.c_acc=4;
+p.c_acc=3*3.8e-5;
+p.B7=1;

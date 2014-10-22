@@ -44,7 +44,7 @@ net.production <- function(traits, h, env) {
 fecundity.rate <- function(traits, h, env) {
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
-  f <- r * p / (p.c_acc * traits$s)
+  f <- r * p / (p.c_acc + traits$s)
   f[p < 0] <- 0
   f
 }
