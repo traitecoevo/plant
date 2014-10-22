@@ -128,11 +128,12 @@ expand_schedule <- function(schedule, n_mutant) {
 expand_parameters <- function(trait, values, p, mutant=TRUE) {
   p <- p$copy()
   strategy <- p$strategy_default$copy()
+  values <- sanitise_traits(trait, values)
 
   ## TODO: Generalise this out (easy)
-  for (i in values) {
+  for (i in seq_len(nrow(values))) {
     new_strategy <- strategy$copy()
-    new_strategy$set_parameters(structure(list(i), names=trait))
+    new_strategy$set_parameters(as.list(values[i,]))
     if (mutant) {
       p$add_strategy_mutant(new_strategy)
     } else {
@@ -141,4 +142,20 @@ expand_parameters <- function(trait, values, p, mutant=TRUE) {
   }
 
   p
+}
+
+sanitise_traits <- function(trait, values) {
+  ## This needs special treatment:
+  if (!is.matrix(values)) {
+    if (length(trait) == 1L) {
+      values <- matrix(values, ncol=1)
+    } else {
+      stop("values must be a matrix")
+    }
+  }
+  if (ncol(values) != length(trait)) {
+    stop(sprintf("values must have %d columns", ncol(values)))
+  }
+  colnames(values) <- trait
+  values
 }
