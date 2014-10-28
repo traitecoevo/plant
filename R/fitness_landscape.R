@@ -31,7 +31,8 @@ fitness_landscape <- function(trait, values, p, schedule=NULL,
   schedule$use_ode_times <- TRUE
   p_with_mutants <- expand_parameters(trait, values, p)
 
-  schedule_with_mutants <- expand_schedule(schedule, length(values))
+  schedule_with_mutants <- expand_schedule(schedule,
+                                           p_with_mutants$n_mutants)
   ebt_with_mutants <- run_ebt(p_with_mutants, schedule_with_mutants)
   seed_rain <- ebt_with_mutants$seed_rains[-seq_len(p$size)]
   if (raw_seed_rain) {
@@ -154,7 +155,7 @@ sanitise_traits <- function(trait, values) {
     }
   }
   if (ncol(values) != length(trait)) {
-    stop(sprintf("values must have %d columns", ncol(values)))
+    stop(sprintf("values must have %d columns", length(trait)))
   }
   colnames(values) <- trait
   values
