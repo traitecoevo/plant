@@ -19,6 +19,7 @@ Suggests:
     deSolve,
     digest,
     nleqslv,
-    BB
+    BB,
+    rootSolve
 LinkingTo: Rcpp
 RcppModules: tree
