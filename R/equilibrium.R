@@ -296,3 +296,42 @@ set_equilibrium_solver <- function(name, p) {
 get_equilibrium_solver <- function(p) {
   equilibrium_solver_name(p$control$parameters$equilibrium_solver)
 }
+
+##' Check low-abundance strategies for viability.
+##'
+##' @title Check low-abundance strategies for viability
+##' @param p A Parameters object
+##' @param eps_test \emph{Relative} value to use for determining what
+##' "low abundance" means.  Species that have a seed rain of less than
+##' \code{eps_test * max(p$seed_rain)} will be tested.  By default
+##' this is 1 100th of the maximum seed rain.
+##' @param eps A value close to zero to test viability at.
+##' @export
+check_inviable <- function(p, eps_test=1e-2, eps=1e-3) {
+  seed_rain <- p$seed_rain
+  eq <- make_equilibrium_runner(p)
+  res <- eq(seed_rain)
+
+  test <- which(res[,"out"] < res[,"in"] &
+                seed_rain < max(seed_rain) * eps_test)
+  test <- test[order(seed_rain[test])]
+
+  drop <- logical(length(seed_rain))
+  ret <- res
+
+  for (i in test) {
+    message("Testing species ", i)
+    x <- ret[,"out"]
+    x[i] <- eps
+    res <- eq(x)
+    if (diff(res[i,]) < 0) {
+      message("\t...removing")
+      drop[i] <- TRUE
+      ret[i,"out"] <- 0.0
+      ret <- res
+    }
+  }
+
+  attr(ret, "drop") <- drop
+  ret
+}
