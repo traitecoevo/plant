@@ -158,5 +158,6 @@ sanitise_traits <- function(trait, values) {
     stop(sprintf("values must have %d columns", length(trait)))
   }
   colnames(values) <- trait
+  rownames(values) <- NULL
   values
 }
