@@ -277,19 +277,33 @@ equilibrium_seed_rain_solve_target <- function(runner, keep) {
 
 equilibrium_seed_rain_runsteady <- function(p, schedule_default=NULL,
                                             schedule_initial=NULL) {
-  ode_tol <- 1e-2
+  control <- p$control$parameters
   eps <- control$equilibrium_eps
+  eps_extinct <- control$equilibrium_extinct_seed_rain
+  ode_tol <- control$equilibrium_runsteady_tol
+
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
-  f <- make_target_runsteady(f)
+  f <- make_target_runsteady(runner, eps_extinct)
   ans <- rootSolve::runsteady(p$seed_rain, func=f, parms=NULL, mf=22,
                               rtol=ode_tol, atol=ode_tol, stol=eps)
   equilibrium_runner_cleanup(runner, attr(ans, "steady"))
 }
 
-make_target_runsteady <- function(f) {
+## We want
+##
+##   dN / dt = (exp(m) - 1) N
+##
+## Where m is fitness.  Because exp(m) = out / in
+##
+##   dN / dt = (out / in - 1) N
+##   dN / dt = out - in
+##
+## which is raw seed rain.
+make_target_runsteady <- function(f, eps) {
   force(f)
+  force(eps)
   function(t, x, ...) {
-    pos <- x > 0
+    pos <- x >= eps & x > 0
     if (!any(pos)) {
       ret <- rep(0.0, length(x))
     } else {
@@ -304,7 +318,7 @@ make_target_runsteady <- function(f) {
 
 
 equilibrium_solvers <- function() {
-  c("iteration", "nleqslv", "dfsane")
+  c("iteration", "nleqslv", "runsteady")
 }
 
 equilibrium_solver_name <- function(i) {
@@ -332,13 +346,14 @@ get_equilibrium_solver <- function(p) {
 ##'
 ##' @title Check low-abundance strategies for viability
 ##' @param p A Parameters object
-##' @param eps_test \emph{Relative} value to use for determining what
-##' "low abundance" means.  Species that have a seed rain of less than
-##' \code{eps_test * max(p$seed_rain)} will be tested.  By default
-##' this is 1 100th of the maximum seed rain.
-##' @param eps A value close to zero to test viability at.
 ##' @export
-check_inviable <- function(p, eps_test=1e-2, eps=1e-3) {
+check_inviable <- function(p) {
+  ## eps_test: *Relative* value to use for determining what
+  ## "low abundance" means.  Species that have a seed rain of less than
+  ## `eps_test * max(p$seed_rain)` will be tested.  By default
+  ##' this is 1 100th of the maximum seed rain.
+  eps <- p$control$parameters$equilibrium_extinct_seed_rain
+  eps_test <- p$control$parameters$equilibrium_inviable_test
   seed_rain <- p$seed_rain
   eq <- make_equilibrium_runner(p)
   res <- eq(seed_rain)

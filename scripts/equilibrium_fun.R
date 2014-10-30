@@ -1,5 +1,5 @@
 make_equilibrium_runner <- tree:::make_equilibrium_runner
-equilibrium <- tree:::equilibrium_seed_rain_iterate
+equilibrium <- tree:::equilibrium_seed_rain_iteration
 
 ## This is a wrapper for nleqslv() to deal with negative seed rains.
 ## I'm going to treat everything with zero seed rain as not being

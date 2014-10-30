@@ -74,8 +74,9 @@ void Control::reset() {
   equilibrium_progress = false;
   equilibrium_verbose  = true;
   equilibrium_solver   = 1; // TODO: This is a hack
-
-  // TODO: Also no_steps_max?
+  equilibrium_extinct_seed_rain = 1e-3;
+  equilibrium_runsteady_tol = 1e-2;
+  equilibrium_inviable_test_eps = 1e-2;
 
   // Then set the values for the lookup table, based on these (this is
   // basically the inverse of set_parameters_post_hook())
@@ -248,6 +249,12 @@ void Control::do_build_lookup() {
     &_equilibrium_verbose;
   lookup_table["equilibrium_solver"] =
     &_equilibrium_solver;
+  lookup_table["equilibrium_extinct_seed_rain"] =
+    &equilibrium_extinct_seed_rain;
+  lookup_table["equilibrium_runsteady_tol"] =
+    &equilibrium_runsteady_tol;
+  lookup_table["equilibrium_inviable_test_eps"] =
+    &equilibrium_inviable_test_eps;
 }
 
 void Control::set_parameters_post_hook() {

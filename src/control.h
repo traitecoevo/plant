@@ -73,6 +73,9 @@ public:
   bool   equilibrium_progress;
   bool   equilibrium_verbose;
   int    equilibrium_solver;
+  double equilibrium_extinct_seed_rain;
+  double equilibrium_runsteady_tol;
+  double equilibrium_inviable_test_eps;
 
   ode::OdeControl ode_control;
 
