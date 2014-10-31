@@ -280,10 +280,12 @@ equilibrium_seed_rain_runsteady <- function(p, schedule_default=NULL,
   control <- p$control$parameters
   eps <- control$equilibrium_eps
   ode_tol <- control$equilibrium_runsteady_tol
+  logN <- TRUE # for now, always work with d (log N) / dt
 
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
-  f <- make_target_runsteady(runner)
-  ans <- rootSolve::runsteady(p$seed_rain, func=f, parms=NULL, mf=22,
+  f <- make_target_runsteady(runner, logN)
+  x0 <- if (logN) log(p$seed_rain) else p$seed_rain
+  ans <- rootSolve::runsteady(x0, func=f, parms=NULL, mf=22,
                               rtol=ode_tol, atol=ode_tol, stol=eps)
   equilibrium_runner_cleanup(runner, attr(ans, "steady"))
 }
@@ -298,10 +300,14 @@ equilibrium_seed_rain_runsteady <- function(p, schedule_default=NULL,
 ##   dN / dt = out - in
 ##
 ## which is raw seed rain.
-make_target_runsteady <- function(f) {
+make_target_runsteady <- function(f, logN=FALSE) {
   force(f)
+  force(logN)
   eps <- 1e-10
   function(t, x, ...) {
+    if (logN) {
+      x <- exp(x)
+    }
     pos <- x > eps
     if (!any(pos)) {
       ret <- rep(0.0, length(x))
@@ -309,12 +315,15 @@ make_target_runsteady <- function(f) {
       x[!pos] <- 0.0
       res <- f(x)
       ret <- rep(0, length(x))
-      ret[pos] <- unname(res[pos,"out"] - res[pos,"in"])
+      if (logN) {
+        ret[pos] <- unname(res[pos,"out"] / res[pos,"in"]) - 1.0
+      } else {
+        ret[pos] <- unname(res[pos,"out"] - res[pos,"in"])
+      }
     }
     list(ret)
   }
 }
-
 
 equilibrium_solvers <- function() {
   c("iteration", "nleqslv", "runsteady")
