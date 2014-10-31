@@ -279,11 +279,10 @@ equilibrium_seed_rain_runsteady <- function(p, schedule_default=NULL,
                                             schedule_initial=NULL) {
   control <- p$control$parameters
   eps <- control$equilibrium_eps
-  eps_extinct <- control$equilibrium_extinct_seed_rain
   ode_tol <- control$equilibrium_runsteady_tol
 
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
-  f <- make_target_runsteady(runner, eps_extinct)
+  f <- make_target_runsteady(runner)
   ans <- rootSolve::runsteady(p$seed_rain, func=f, parms=NULL, mf=22,
                               rtol=ode_tol, atol=ode_tol, stol=eps)
   equilibrium_runner_cleanup(runner, attr(ans, "steady"))
@@ -299,11 +298,11 @@ equilibrium_seed_rain_runsteady <- function(p, schedule_default=NULL,
 ##   dN / dt = out - in
 ##
 ## which is raw seed rain.
-make_target_runsteady <- function(f, eps) {
+make_target_runsteady <- function(f) {
   force(f)
-  force(eps)
+  eps <- 1e-10
   function(t, x, ...) {
-    pos <- x >= eps & x > 0
+    pos <- x > eps
     if (!any(pos)) {
       ret <- rep(0.0, length(x))
     } else {
