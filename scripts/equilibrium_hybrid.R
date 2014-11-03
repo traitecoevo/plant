@@ -1,13 +1,12 @@
 library(tree)
-library(rootSolve)
 library(tree.assembly)
 
 make_pars <- function(pars, time_disturbance) {
   p <- ebt_base_parameters()
-  p$set_control_parameters(list(equilibrium_nsteps=20,
+  p$set_control_parameters(list(equilibrium_nsteps=300,
                                 equilibrium_eps=1e-3,
                                 equilibrium_progress=TRUE))
-  set_equilibrium_solver("runsteady", p)
+  set_equilibrium_solver("hybrid", p)
   p$strategy_default <- new(Strategy, pars)
   p$disturbance <- new(Disturbance, time_disturbance)
   p
@@ -33,8 +32,9 @@ path <- "../../successional_diversity/analysis/experiments/output/lma_grid/simul
 d <- readRDS(file.path(path, "32.rds"))
 sys <- restore_community(d[[6]])
 p <- sys$to_parameters()
-set_equilibrium_solver("runsteady", p)
-p$set_control_parameters(list(equilibrium_eps=1e-3))
+set_equilibrium_solver("hybrid", p)
+p$set_control_parameters(list(equilibrium_eps=1e-3,
+                              equilibrium_nsteps=300))
 
 res <- check_inviable(p)
 

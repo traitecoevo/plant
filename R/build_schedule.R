@@ -60,7 +60,7 @@ build_schedule <- function(p, schedule=NULL) {
 
   control <- p$control$parameters
   eps <- control$schedule_eps
-  progress <- control$schedule_progress
+  progress <- as.logical(control$schedule_progress)
 
   history <- list()
 

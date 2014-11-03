@@ -107,9 +107,53 @@ equilibrium_seed_rain2 <- function(p, schedule_default=NULL,
                                        solver)
   } else if (solver == "runsteady") {
     equilibrium_seed_rain_runsteady(p, schedule_default, schedule_initial)
+  } else if (solver == "hybrid") {
+    equilibrium_seed_rain_hybrid(p, schedule_default, schedule_initial)
   } else {
     stop("Unknown solver ", solver)
   }
+}
+
+equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
+                                         schedule_initial=NULL) {
+  p <- p$copy()
+  control <- p$control$parameters
+  if (control$equilibrium_nsteps < 300) {
+    p$set_control_parameters(list(equilibrium_nsteps=300))
+  }
+  solver <- "nleqslv"
+
+  ans_it <- equilibrium_seed_rain_iteration(p, schedule_default,
+                                            schedule_initial)
+  p$seed_rain <- ans_it$seed_rain[,"out"]
+  if (!isTRUE(attr(ans_it, "converged"))) {
+    message("Iteration approach did not succeed: this may end badly")
+  }
+
+  ans_sol <- try(equilibrium_seed_rain_solve_simple(p, schedule_default,
+                                                    ans_it$schedule,
+                                                    solver))
+  if (inherits(ans_sol, "try-error") || !isTRUE(attr(ans_sol, "converged"))) {
+    ret <- ans_it
+  } else {
+    ret <- ans_sol
+    if (any(ans_sol$seed_rain[,"out"] == 0.0)) {
+      message("Checking species driven to extinction")
+      ## Add these species back at extremely low density and make sure
+      ## that this looks like a legit extinction.
+      y_in <- ans_sol$seed_rain[,"out"]
+      i <- y_in <= 0.0
+      y_in[i] <- control$equilibrium_extinct_seed_rain
+      p2 <- p$copy()
+      p2$seed_rain <- y_in
+      y_out <- run_ebt(p2, ans_sol$schedule)$seed_rains
+      if (any(y_out[i] > y_in[i])) {
+        message("Solver drove viable species extinct: rejecting")
+        ret <- ans_it
+      }
+    }
+  }
+  ret
 }
 
 equilibrium_seed_rain_iteration <- function(p, schedule_default=NULL,
@@ -140,12 +184,35 @@ equilibrium_seed_rain_iteration <- function(p, schedule_default=NULL,
 
 equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
                                         schedule_initial=NULL,
-                                        solver="nleqslv") {
+                                        solver="nleqslv",
+                                        try_keep=TRUE) {
   seed_rain <- p$seed_rain
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
-  ans <- runner(seed_rain)
-  keep <- unname(ans[,"out"] >= ans[,"in"])
+  if (try_keep) {
+    ans <- runner(seed_rain)
+    keep <- unname(ans[,"out"] >= ans[,"in"])
+  } else {
+    keep <- rep(FALSE, p$size)
+  }
   target <- equilibrium_seed_rain_solve_target(runner, keep)
+
+  tol <- p$control$parameters$equilibrium_eps
+  maxit <- p$control$parameters$equilibrium_nsteps
+  sol <- nlsolve(p$seed_rain, target, tol=tol, maxit=maxit, solver=solver)
+  res <- equilibrium_runner_cleanup(runner)
+  attr(res, "sol") <- sol
+  res
+}
+
+## Simple version of the solve function that does not try any clever
+## business with 'keep'.  As such it's only good when close to the
+## true root.
+equilibrium_seed_rain_solve_simple <- function(p, schedule_default=NULL,
+                                               schedule_initial=NULL,
+                                               solver="nleqslv") {
+  seed_rain <- p$seed_rain
+  runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
+  target <- equilibrium_seed_rain_solve_target_simple(runner)
 
   tol <- p$control$parameters$equilibrium_eps
   maxit <- p$control$parameters$equilibrium_nsteps
@@ -218,11 +285,13 @@ make_equilibrium_runner <- function(p, schedule_default=NULL,
   history <- NULL
 
   function(seed_rain_in,
-           force_new_schedule=FALSE, force_old_schedule=FALSE) {
+           force_new_schedule=FALSE, force_old_schedule=FALSE,
+           t=NULL) {
     seed_rain_last <- p$seed_rain
     p$seed_rain <- seed_rain_in
     if (force_old_schedule) {
       schedule <- last_schedule
+      stop("This does not work!") # run
     } else {
       if (force_new_schedule ||
           any(abs(seed_rain_in - seed_rain_last) > large_seed_rain_change)) {
@@ -236,9 +305,11 @@ make_equilibrium_runner <- function(p, schedule_default=NULL,
 
     ans <- attr(schedule, "seed_rain", exact=TRUE)
     last <<- list(seed_rain=drop_schedule(ans),
-                  schedule=schedule$copy())
+                  schedule=schedule$copy(),
+                  t=t)
+
     if (progress) {
-      history <<- c(history, list(last))
+      history <<- c(history, list(last[c("seed_rain", "t")]))
     }
 
     if (control$equilibrium_verbose) {
@@ -272,6 +343,24 @@ equilibrium_seed_rain_solve_target <- function(runner, keep) {
       warning("This is not expected", immediate.=TRUE)
     }
     xout
+  }
+}
+
+## Simplified version of the ODE solver target:
+equilibrium_seed_rain_solve_target_simple <- function(runner) {
+  eps <- 1e-10
+  force(runner)
+  function(x, ...) {
+    pos <- x > eps
+    if (!any(pos)) {
+      ret <- rep(0.0, length(x))
+    } else {
+      x[!pos] <- 0.0
+      res <- runner(x)
+      ret <- rep(0, length(x))
+      ret[pos] <- unname(res[pos,"out"] - res[pos,"in"])
+    }
+    ret
   }
 }
 
@@ -313,7 +402,7 @@ make_target_runsteady <- function(f, logN=FALSE) {
       ret <- rep(0.0, length(x))
     } else {
       x[!pos] <- 0.0
-      res <- f(x)
+      res <- f(x, t=t)
       ret <- rep(0, length(x))
       if (logN) {
         ret[pos] <- unname(res[pos,"out"] / res[pos,"in"]) - 1.0
@@ -326,7 +415,7 @@ make_target_runsteady <- function(f, logN=FALSE) {
 }
 
 equilibrium_solvers <- function() {
-  c("iteration", "nleqslv", "runsteady")
+  c("iteration", "nleqslv", "runsteady", "hybrid")
 }
 
 equilibrium_solver_name <- function(i) {
@@ -363,6 +452,7 @@ check_inviable <- function(p) {
   eps <- p$control$parameters$equilibrium_extinct_seed_rain
   eps_test <- p$control$parameters$equilibrium_inviable_test
   seed_rain <- p$seed_rain
+  ## TODO: This should take and pass in the cohort schedule here.
   eq <- make_equilibrium_runner(p)
   res <- eq(seed_rain)
 
