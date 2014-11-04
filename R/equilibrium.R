@@ -118,10 +118,10 @@ equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
                                          schedule_initial=NULL) {
   p <- p$copy()
   control <- p$control$parameters
-  if (control$equilibrium_nsteps < 300) {
-    p$set_control_parameters(list(equilibrium_nsteps=300))
-  }
+  ## Things to help with the solver.
   solver <- "nleqslv"
+  try_keep <- TRUE
+  logN <- TRUE
 
   ans_it <- equilibrium_seed_rain_iteration(p, schedule_default,
                                             schedule_initial)
@@ -130,9 +130,10 @@ equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
     message("Iteration approach did not succeed: this may end badly")
   }
 
-  ans_sol <- try(equilibrium_seed_rain_solve_simple(p, schedule_default,
-                                                    ans_it$schedule,
-                                                    solver))
+  ans_sol <- try(equilibrium_seed_rain_solve(p, schedule_default,
+                                             ans_it$schedule,
+                                             solver, try_keep, logN))
+
   if (inherits(ans_sol, "try-error") || !isTRUE(attr(ans_sol, "converged"))) {
     ret <- ans_it
   } else {
@@ -185,20 +186,25 @@ equilibrium_seed_rain_iteration <- function(p, schedule_default=NULL,
 equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
                                         schedule_initial=NULL,
                                         solver="nleqslv",
-                                        try_keep=TRUE) {
+                                        try_keep=TRUE,
+                                        logN=FALSE) {
   seed_rain <- p$seed_rain
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
   if (try_keep) {
     ans <- runner(seed_rain)
     keep <- unname(ans[,"out"] >= ans[,"in"])
+    message("Keeping species: ", paste(which(keep), collapse=", "))
   } else {
     keep <- rep(FALSE, p$size)
   }
-  target <- equilibrium_seed_rain_solve_target(runner, keep)
+  target <- equilibrium_seed_rain_solve_target(runner, keep, logN)
 
   tol <- p$control$parameters$equilibrium_eps
-  maxit <- p$control$parameters$equilibrium_nsteps
-  sol <- nlsolve(p$seed_rain, target, tol=tol, maxit=maxit, solver=solver)
+  ## NOTE: Hard coded minimum of 100 steps here.
+  maxit <- max(100,
+               p$control$parameters$equilibrium_nsteps)
+  x0 <- if (logN) log(p$seed_rain) else p$seed_rain
+  sol <- nlsolve(x0, target, tol=tol, maxit=maxit, solver=solver)
   res <- equilibrium_runner_cleanup(runner)
   attr(res, "sol") <- sol
   res
@@ -210,17 +216,38 @@ equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
 equilibrium_seed_rain_solve_simple <- function(p, schedule_default=NULL,
                                                schedule_initial=NULL,
                                                solver="nleqslv") {
-  seed_rain <- p$seed_rain
+  browser()
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
   target <- equilibrium_seed_rain_solve_target_simple(runner)
 
   tol <- p$control$parameters$equilibrium_eps
   maxit <- p$control$parameters$equilibrium_nsteps
   sol <- nlsolve(p$seed_rain, target, tol=tol, maxit=maxit, solver=solver)
+  tmp <- nleqslv::nleqslv(p$seed_rain, target)
+
   res <- equilibrium_runner_cleanup(runner)
   attr(res, "sol") <- sol
   res
 }
+
+## Simple version of the solve function that does not try any clever
+## business with 'keep'.  As such it's only good when close to the
+## true root.
+equilibrium_seed_rain_solve_log <- function(p, schedule_default=NULL,
+                                            schedule_initial=NULL,
+                                            solver="nleqslv") {
+  runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
+  target <- equilibrium_seed_rain_solve_target_log(runner)
+
+  tol <- p$control$parameters$equilibrium_eps
+  maxit <- p$control$parameters$equilibrium_nsteps
+  sol <- nlsolve(log(p$seed_rain), target, tol=tol, maxit=maxit, solver=solver)
+  res <- equilibrium_runner_cleanup(runner)
+  attr(res, "sol") <- sol
+  res
+}
+
+
 
 equilibrium_seed_rain_solve_robust <- function(p,
                                                schedule_default=NULL,
@@ -325,19 +352,24 @@ make_equilibrium_runner <- function(p, schedule_default=NULL,
   }
 }
 
-equilibrium_seed_rain_solve_target <- function(runner, keep) {
+equilibrium_seed_rain_solve_target <- function(runner, keep, logN) {
   eps <- 1e-10
   force(runner)
   force(keep)
+  force(logN)
   function(x, ...) {
+    if (logN) {
+      x <- exp(x)
+    }
     ## Avoid negative seed rains:
     x[x < eps & keep] <- eps
     x[x < 0.0] <- 0.0
     xout <- unname(runner(x)[,"out"])
 
-    xout[keep] <- log(xout[keep] / x[keep])
+    xout[keep] <- xout[keep] / x[keep] - 1.0
     i <- !keep & x > 0
-    xout[i] <- log(xout[i] / x[i]) * x[i]
+    xout[i] <- xout[i] - x[i]
+
     ## !keep & x <= 0 will now  be zero
     if (any(xout[!keep & x <= 0] != 0.0)) {
       warning("This is not expected", immediate.=TRUE)
@@ -353,13 +385,30 @@ equilibrium_seed_rain_solve_target_simple <- function(runner) {
   function(x, ...) {
     pos <- x > eps
     if (!any(pos)) {
-      ret <- rep(0.0, length(x))
-    } else {
-      x[!pos] <- 0.0
-      res <- runner(x)
-      ret <- rep(0, length(x))
-      ret[pos] <- unname(res[pos,"out"] - res[pos,"in"])
+      message("All species extinct?")
     }
+    x[!pos] <- 0.0
+    res <- runner(x)
+    ret <- rep(0, length(x))
+    ret[pos] <- unname(res[pos,"out"] - res[pos,"in"])
+    ret
+  }
+}
+
+## Simplified version of the ODE solver target:
+equilibrium_seed_rain_solve_target_log <- function(runner) {
+  eps <- 1e-10
+  force(runner)
+  function(lx, ...) {
+    x <- exp(lx)
+    pos <- x > eps
+    if (!any(pos)) {
+      message("All species extinct?")
+    }
+    x[!pos] <- 0.0
+    res <- runner(x)
+    ret <- rep(0, length(x))
+    ret[pos] <- unname(res[pos,"out"] - res[pos,"in"])
     ret
   }
 }
@@ -399,16 +448,15 @@ make_target_runsteady <- function(f, logN=FALSE) {
     }
     pos <- x > eps
     if (!any(pos)) {
-      ret <- rep(0.0, length(x))
+      message("All species extinct?")
+    }
+    x[!pos] <- 0.0
+    res <- f(x, t=t)
+    ret <- rep(0, length(x))
+    if (logN) {
+      ret[pos] <- unname(res[pos,"out"] / res[pos,"in"]) - 1.0
     } else {
-      x[!pos] <- 0.0
-      res <- f(x, t=t)
-      ret <- rep(0, length(x))
-      if (logN) {
-        ret[pos] <- unname(res[pos,"out"] / res[pos,"in"]) - 1.0
-      } else {
-        ret[pos] <- unname(res[pos,"out"] - res[pos,"in"])
-      }
+      ret[pos] <- unname(res[pos,"out"] - res[pos,"in"])
     }
     list(ret)
   }

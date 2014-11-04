@@ -3,7 +3,7 @@ library(tree.assembly)
 
 make_pars <- function(pars, time_disturbance) {
   p <- ebt_base_parameters()
-  p$set_control_parameters(list(equilibrium_nsteps=300,
+  p$set_control_parameters(list(equilibrium_nsteps=50,
                                 equilibrium_eps=1e-3,
                                 equilibrium_progress=TRUE))
   set_equilibrium_solver("hybrid", p)
@@ -47,4 +47,7 @@ for (i in keep) {
 }
 p2$seed_rain <- res[keep, "out"]
 
+options(error=recover)
+p2$set_control_parameters(list(equilibrium_nsteps=10)) # too low, but ok
+set_equilibrium_solver("hybrid", p2)
 res <- tree:::equilibrium_seed_rain2(p2)
