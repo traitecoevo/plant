@@ -215,7 +215,9 @@ equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
   } else {
     keep <- rep(FALSE, p$size)
   }
-  target <- equilibrium_seed_rain_solve_target(runner, keep, logN)
+  max_seed_rain <- pmax(seed_rain * 100, 10000)
+  target <- equilibrium_seed_rain_solve_target(runner, keep, logN,
+                                               max_seed_rain)
 
   tol <- p$control$parameters$equilibrium_eps
   ## NOTE: Hard coded minimum of 100 steps here.
@@ -370,9 +372,9 @@ make_equilibrium_runner <- function(p, schedule_default=NULL,
   }
 }
 
-equilibrium_seed_rain_solve_target <- function(runner, keep, logN) {
+equilibrium_seed_rain_solve_target <- function(runner, keep, logN,
+                                               max_seed_rain) {
   eps <- 1e-10
-  max <- 10000
   force(runner)
   force(keep)
   force(logN)
@@ -386,9 +388,13 @@ equilibrium_seed_rain_solve_target <- function(runner, keep, logN) {
     if (!any(x > 0)) {
       message("All species extinct?")
     }
-    if (any(x > max)) {
-      message("Truncating seed rain of species ", which(x > max))
-      x[x > max] <- max
+    too_high <- x > max_seed_rain
+    if (any(too_high)) {
+      message("Truncating seed rain of species ", which(too_high))
+      if (length(max_seed_rain) == 1L) {
+        max_seed_rain <- rep(max_seed_rain, length.out=length(x))
+      }
+      x[too_high] <- max_seed_rain[too_high]
     }
     xout <- unname(runner(x)[,"out"])
 
