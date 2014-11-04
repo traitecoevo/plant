@@ -372,6 +372,7 @@ make_equilibrium_runner <- function(p, schedule_default=NULL,
 
 equilibrium_seed_rain_solve_target <- function(runner, keep, logN) {
   eps <- 1e-10
+  max <- 10000
   force(runner)
   force(keep)
   force(logN)
@@ -384,6 +385,10 @@ equilibrium_seed_rain_solve_target <- function(runner, keep, logN) {
     x[x < eps & !keep] <- 0.0
     if (!any(x > 0)) {
       message("All species extinct?")
+    }
+    if (any(x > max)) {
+      message("Truncating seed rain of species ", which(x > max))
+      x[x > max] <- max
     }
     xout <- unname(runner(x)[,"out"])
 
