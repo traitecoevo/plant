@@ -114,6 +114,13 @@ equilibrium_seed_rain2 <- function(p, schedule_default=NULL,
   }
 }
 
+## The idea is to use rounds of iteration to try and push the
+## system into the basin of attraction of the stable equilibrium.  The
+## final approach is slow so use a root-finding approach there.
+## However, if we are *not* in the basin of attraction the root finder
+## will happily select zero seed rains for species that are not
+## zeros.  So after running a round with the solver, check any species
+## that were zeroed to make sure they're really dead.
 equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
                                          schedule_initial=NULL) {
   p <- p$copy()
@@ -122,39 +129,50 @@ equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
   solver <- "nleqslv"
   try_keep <- TRUE
   logN <- TRUE
+  ## Overal control:
+  attempts <- 5L
 
-  ans_it <- equilibrium_seed_rain_iteration(p, schedule_default,
-                                            schedule_initial)
-  p$seed_rain <- ans_it$seed_rain[,"out"]
-  if (!isTRUE(attr(ans_it, "converged"))) {
-    message("Iteration approach did not succeed: this may end badly")
-  }
+  for (i in seq_len(attempts)) {
+    ans_it <- equilibrium_seed_rain_iteration(p, schedule_default,
+                                              schedule_initial)
+    p$seed_rain <- ans_it$seed_rain[,"out"]
+    converged_it <- isTRUE(attr(ans_it, "converged"))
 
-  ans_sol <- try(equilibrium_seed_rain_solve(p, schedule_default,
-                                             ans_it$schedule,
-                                             solver, try_keep, logN))
+    message(sprintf("Iteration %d %s",
+                    i, if (converged_it) "converged" else "did not converge"))
 
-  if (inherits(ans_sol, "try-error") || !isTRUE(attr(ans_sol, "converged"))) {
-    ret <- ans_it
-  } else {
-    ret <- ans_sol
-    if (any(ans_sol$seed_rain[,"out"] == 0.0)) {
-      message("Checking species driven to extinction")
-      ## Add these species back at extremely low density and make sure
-      ## that this looks like a legit extinction.
-      y_in <- ans_sol$seed_rain[,"out"]
-      i <- y_in <= 0.0
-      y_in[i] <- control$equilibrium_extinct_seed_rain
-      p2 <- p$copy()
-      p2$seed_rain <- y_in
-      y_out <- run_ebt(p2, ans_sol$schedule)$seed_rains
-      if (any(y_out[i] > y_in[i])) {
-        message("Solver drove viable species extinct: rejecting")
-        ret <- ans_it
+    ans_sol <- try(equilibrium_seed_rain_solve(p, schedule_default,
+                                               ans_it$schedule,
+                                               solver,
+                                               try_keep, logN))
+
+    converged_sol <- isTRUE(attr(ans_sol, "converged"))
+    message(sprintf("Solve %d %s",
+                    i, if (converged_sol) "converged" else "did not converge"))
+
+    if (converged_sol) {
+      if (any(ans_sol$seed_rain[,"out"] == 0.0)) {
+        message("Checking species driven to extinction")
+        ## Add these species back at extremely low density and make sure
+        ## that this looks like a legit extinction.
+        y_in <- ans_sol$seed_rain[,"out"]
+        i <- y_in <= 0.0
+        y_in[i] <- control$equilibrium_extinct_seed_rain
+        p2 <- p$copy()
+        p2$seed_rain <- y_in
+        y_out <- run_ebt(p2, ans_sol$schedule)$seed_rains
+        if (any(y_out[i] > y_in[i])) {
+          message("Solver drove viable species extinct: rejecting")
+          next
+        }
       }
+      message("Accepting solution via solver")
+      return(ans_sol)
     }
   }
-  ret
+
+  message("Repeated rounds failed to find optimum")
+  ans_it
 }
 
 equilibrium_seed_rain_iteration <- function(p, schedule_default=NULL,
@@ -363,7 +381,10 @@ equilibrium_seed_rain_solve_target <- function(runner, keep, logN) {
     }
     ## Avoid negative seed rains:
     x[x < eps & keep] <- eps
-    x[x < 0.0] <- 0.0
+    x[x < eps & !keep] <- 0.0
+    if (!any(x > 0)) {
+      message("All species extinct?")
+    }
     xout <- unname(runner(x)[,"out"])
 
     xout[keep] <- xout[keep] / x[keep] - 1.0
