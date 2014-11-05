@@ -76,10 +76,9 @@ expect_that(test_gradient(x, dx, 0, pars),
 expect_that(test_gradient(x, dx, -1, pars),
             is_identical_to(gradient.fd.backward(f, x, dx)))
 
-library(numDeriv)
 method.args <- list(d=1e-6, eps=1e-6)
 expect_that(test_gradient_richardson(x, 1e-6, 4L, pars),
-            is_identical_to(grad(f, x, method.args=method.args)))
+            is_identical_to(numDeriv::grad(f, x, method.args=method.args)))
 
 n <- 20
 set.seed(1)

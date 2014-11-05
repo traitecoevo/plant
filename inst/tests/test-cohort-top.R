@@ -1,5 +1,4 @@
 source("helper-tree.R")
-library(numDeriv)
 
 context("CohortTop")
 
@@ -77,11 +76,11 @@ expect_that(growth.rate.given.height(plant$height, p2, env),
 ctrl <- s$control
 method.args <- list(d=ctrl$parameters$cohort_gradient_eps,
                     eps=ctrl$parameters$cohort_gradient_eps)
-dgdh.accurate <- grad(growth.rate.given.height, plant$height,
-                      p=p2, env=env, method.args=method.args)
-dgdh.simple <- grad(growth.rate.given.height, plant$height,
-                    "simple", method.args=method.args,
-                    p=p2, env=env)
+dgdh.accurate <- numDeriv::grad(growth.rate.given.height, plant$height,
+                                p=p2, env=env, method.args=method.args)
+dgdh.simple <- numDeriv::grad(growth.rate.given.height, plant$height,
+                              "simple", method.args=method.args,
+                              p=p2, env=env)
 dgdh.forward <- grad.forward(growth.rate.given.height, plant$height,
                              method.args$eps, p=p2, env=env)
 
