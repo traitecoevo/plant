@@ -3,17 +3,10 @@
 \alias{check_inviable}
 \title{Check low-abundance strategies for viability}
 \usage{
-check_inviable(p, eps_test = 0.01, eps = 0.001)
+check_inviable(p)
 }
 \arguments{
 \item{p}{A Parameters object}
-
-\item{eps_test}{\emph{Relative} value to use for determining what
-"low abundance" means.  Species that have a seed rain of less than
-\code{eps_test * max(p$seed_rain)} will be tested.  By default
-this is 1 100th of the maximum seed rain.}
-
-\item{eps}{A value close to zero to test viability at.}
 }
 \description{
 Check low-abundance strategies for viability.
