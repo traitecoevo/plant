@@ -218,12 +218,30 @@ equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
   max_seed_rain <- pmax(seed_rain * 100, 10000)
   target <- equilibrium_seed_rain_solve_target(runner, keep, logN,
                                                max_seed_rain)
+  x0 <- if (logN) log(p$seed_rain) else p$seed_rain
+
+  ## Eew:
+  min_seed_rain <- environment(target)$eps
+
+  to_drop <- seed_rain < min_seed_rain
+  if (any(to_drop)) {
+    i_keep <- which(!to_drop)
+    message(sprintf("Species %s %s gone extinct: excluding from search",
+                    paste(which(to_drop), collapse=" & "),
+                    if (sum(to_drop) == 1) "has" else "have"))
+    target_full <- target
+    target <- function(x) {
+      x_full <- rep(if (logN) -Inf else 0, length(x0))
+      x_full[i_keep] <- x
+      target_full(x_full)[i_keep]
+    }
+    x0 <- x0[i_keep]
+  }
 
   tol <- p$control$parameters$equilibrium_eps
   ## NOTE: Hard coded minimum of 100 steps here.
   maxit <- max(100,
                p$control$parameters$equilibrium_nsteps)
-  x0 <- if (logN) log(p$seed_rain) else p$seed_rain
   sol <- nlsolve(x0, target, tol=tol, maxit=maxit, solver=solver)
   res <- equilibrium_runner_cleanup(runner)
   attr(res, "sol") <- sol
@@ -236,7 +254,6 @@ equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
 equilibrium_seed_rain_solve_simple <- function(p, schedule_default=NULL,
                                                schedule_initial=NULL,
                                                solver="nleqslv") {
-  browser()
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
   target <- equilibrium_seed_rain_solve_target_simple(runner)
 
@@ -374,6 +391,8 @@ make_equilibrium_runner <- function(p, schedule_default=NULL,
 
 equilibrium_seed_rain_solve_target <- function(runner, keep, logN,
                                                max_seed_rain) {
+  ## NOTE: If 'eps' is changed, then equilibrium_seed_rain_solve needs
+  ## updating.  Current situation is not ideal.
   eps <- 1e-10
   force(runner)
   force(keep)
