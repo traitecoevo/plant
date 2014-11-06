@@ -543,8 +543,10 @@ get_equilibrium_solver <- function(p) {
 ##'
 ##' @title Check low-abundance strategies for viability
 ##' @param p A Parameters object
+##' @param schedule_default Schedule to use by default
+##' @param schedule_initial Schedule to start from
 ##' @export
-check_inviable <- function(p) {
+check_inviable <- function(p, schedule_default=NULL, schedule_initial=NULL) {
   ## eps_test: *Relative* value to use for determining what
   ## "low abundance" means.  Species that have a seed rain of less than
   ## `eps_test * max(p$seed_rain)` will be tested.  By default
@@ -553,7 +555,7 @@ check_inviable <- function(p) {
   eps_test <- p$control$parameters$equilibrium_inviable_test
   seed_rain <- p$seed_rain
   ## TODO: This should take and pass in the cohort schedule here.
-  eq <- make_equilibrium_runner(p)
+  eq <- make_equilibrium_runner(p, schedule_default, schedule_initial)
   res <- eq(seed_rain)
 
   test <- which(res[,"out"] < res[,"in"] &

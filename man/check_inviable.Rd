@@ -3,10 +3,14 @@
 \alias{check_inviable}
 \title{Check low-abundance strategies for viability}
 \usage{
-check_inviable(p)
+check_inviable(p, schedule_default = NULL, schedule_initial = NULL)
 }
 \arguments{
 \item{p}{A Parameters object}
+
+\item{schedule_default}{Schedule to use by default}
+
+\item{schedule_initial}{Schedule to start from}
 }
 \description{
 Check low-abundance strategies for viability.
