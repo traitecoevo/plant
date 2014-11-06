@@ -202,3 +202,25 @@ slope_info <- function(f, x, ...) {
   obj <- bates_watts_D(f, x, ...)
   list(x=x, fx=obj$f0, gr=obj$D[seq_along(x)], H=hessian_D(obj))
 }
+
+##' @export
+taylor2 <- function(obj) {
+  if (!all(c("x", "fx", "gr", "H") %in% names(obj))) {
+    stop("Invalid input")
+  }
+  x  <- obj$x
+  fx <- obj$fx
+  gr <- obj$gr
+  H  <- obj$H
+  len <- length(x)
+  stopifnot(length(fx) == 1)
+  stopifnot(length(gr) == len)
+  stopifnot(is.matrix(H) && ncol(H) == len && nrow(H) == len)
+  function(a) {
+    if (length(a) != len) {
+      stop("Expected input of length ", len)
+    }
+    v <- a - x
+    drop(fx + gr %*% v + (v %*% H %*% v)/2)
+  }
+}
