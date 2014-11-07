@@ -76,6 +76,9 @@ public:
   double equilibrium_extinct_seed_rain;
   double equilibrium_runsteady_tol;
   double equilibrium_inviable_test_eps;
+  int    equilibrium_nattempts;
+  bool   equilibrium_solver_logN;
+  bool   equilibrium_solver_try_keep;
 
   ode::OdeControl ode_control;
 
@@ -120,6 +123,9 @@ private:
   double _equilibrium_progress;
   double _equilibrium_verbose;
   double _equilibrium_solver;
+  double _equilibrium_nattempts;
+  double _equilibrium_solver_logN;
+  double _equilibrium_solver_try_keep;
 };
 
 }

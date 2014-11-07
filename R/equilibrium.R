@@ -125,14 +125,13 @@ equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
                                          schedule_initial=NULL) {
   p <- p$copy()
   control <- p$control$parameters
-  ## Things to help with the solver.
-  solver <- "nleqslv"
-  try_keep <- TRUE
-  logN <- TRUE
-  ## Overal control:
-  attempts <- 5L
+
+  attempts <- as.integer(control$equilibrium_nattempts)
+  try_keep <- as.logical(control$equilibrium_solver_try_keep)
+  logN <- as.logical(control$equilibrium_solver_logN)
+
   ## Then expand this out so that we can try alternating solvers
-  solver <- rep(solver, length.out=attempts)
+  solver <- rep(c("nleqslv", "dfsane"), length.out=attempts)
 
   for (i in seq_len(attempts)) {
     ans_it <- equilibrium_seed_rain_iteration(p, schedule_default,

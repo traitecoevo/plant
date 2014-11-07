@@ -77,6 +77,9 @@ void Control::reset() {
   equilibrium_extinct_seed_rain = 1e-3;
   equilibrium_runsteady_tol = 1e-2;
   equilibrium_inviable_test_eps = 1e-2;
+  equilibrium_nattempts = 5;
+  equilibrium_solver_logN = true;
+  equilibrium_solver_try_keep = true;
 
   // Then set the values for the lookup table, based on these (this is
   // basically the inverse of set_parameters_post_hook())
@@ -143,6 +146,12 @@ void Control::reset() {
     static_cast<double>(equilibrium_verbose);
   _equilibrium_solver =
     static_cast<double>(equilibrium_solver);
+  _equilibrium_nattempts =
+    static_cast<double>(equilibrium_nattempts);
+  _equilibrium_solver_logN =
+    static_cast<double>(equilibrium_solver_logN);
+  _equilibrium_solver_try_keep =
+    static_cast<double>(equilibrium_solver_try_keep);
 
   // Like set_parameters_post_hook(), rebuild the ODE control, too.
   ode_control = make_ode_control();
@@ -255,6 +264,12 @@ void Control::do_build_lookup() {
     &equilibrium_runsteady_tol;
   lookup_table["equilibrium_inviable_test_eps"] =
     &equilibrium_inviable_test_eps;
+  lookup_table["equilibrium_nattempts"] =
+    &_equilibrium_nattempts;
+  lookup_table["equilibrium_solver_logN"] =
+    &_equilibrium_solver_logN;
+  lookup_table["equilibrium_solver_try_keep"] =
+    &_equilibrium_solver_try_keep;
 }
 
 void Control::set_parameters_post_hook() {
@@ -320,6 +335,12 @@ void Control::set_parameters_post_hook() {
     static_cast<bool>(_equilibrium_verbose);
   equilibrium_solver =
     static_cast<int>(_equilibrium_solver);
+  equilibrium_nattempts =
+    static_cast<int>(_equilibrium_nattempts);
+  equilibrium_solver_logN =
+    static_cast<int>(_equilibrium_solver_logN);
+  equilibrium_solver_try_keep =
+    static_cast<int>(_equilibrium_solver_try_keep);
 
   ode_control = make_ode_control();
 }

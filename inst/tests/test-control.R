@@ -57,13 +57,15 @@ expected <- list(
   equilibrium_solver  = as.numeric(1L),
   equilibrium_extinct_seed_rain = 1e-3,
   equilibrium_runsteady_tol = 1e-2,
-  equilibrium_inviable_test_eps = 1e-2
+  equilibrium_inviable_test_eps = 1e-2,
+  equilibrium_nattempts   = as.numeric(5L),
+  equilibrium_solver_logN = as.numeric(TRUE),
+  equilibrium_solver_try_keep = as.numeric(TRUE)
   )
 
 keys <- sort(names(expected))
 test_that("Control keys are as expected", {
-  expect_that(sort(names(obj)),
-              is_identical_to(sort(names(expected))))
+  expect_that(sort(names(obj)), is_identical_to(keys))
   expect_that(obj[keys], is_identical_to(expected[keys]))
 })
 
