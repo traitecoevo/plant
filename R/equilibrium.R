@@ -208,37 +208,43 @@ equilibrium_seed_rain_solve <- function(p, schedule_default=NULL,
                                         solver="nleqslv",
                                         try_keep=TRUE,
                                         logN=FALSE) {
+  message("eq> Solving seed rain using ", solver)
   seed_rain <- p$seed_rain
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
-  if (try_keep) {
-    ans <- runner(seed_rain)
-    keep <- unname(ans[,"out"] >= ans[,"in"])
-    message("Keeping species: ", paste(which(keep), collapse=", "))
-  } else {
-    keep <- rep(FALSE, p$size)
-  }
-  max_seed_rain <- pmax(seed_rain * 100, 10000)
-  target <- equilibrium_seed_rain_solve_target(runner, keep, logN,
-                                               max_seed_rain)
-  x0 <- if (logN) log(p$seed_rain) else p$seed_rain
 
-  ## Eew:
-  min_seed_rain <- environment(target)$eps
-
+  ## First, we exclude species that have seed rains below some minimum
+  ## level.
+  min_seed_rain <- 1e-10
   to_drop <- seed_rain < min_seed_rain
   if (any(to_drop)) {
     i_keep <- which(!to_drop)
-    message(sprintf("Species %s %s gone extinct: excluding from search",
+    message(sprintf("eq> Species %s %s gone extinct: excluding from search",
                     paste(which(to_drop), collapse=" & "),
                     if (sum(to_drop) == 1) "has" else "have"))
-    target_full <- target
-    target <- function(x) {
-      x_full <- rep(if (logN) -Inf else 0, length(x0))
+    seed_rain_full <- seed_rain
+    seed_rain <- seed_rain_full[i_keep]
+
+    runner_full <- runner
+    runner <- function(x) {
+      x_full <- rep(0, length(seed_rain_full))
       x_full[i_keep] <- x
-      target_full(x_full)[i_keep]
+      runner_full(x_full)[i_keep,,drop=FALSE]
     }
-    x0 <- x0[i_keep]
   }
+
+  ## Then see if any species should be retained:
+  if (try_keep) {
+    ans <- runner(seed_rain)
+    keep <- unname(ans[,"out"] >= ans[,"in"])
+    message("eq> Keeping species: ", paste(which(!to_drop)[keep], collapse=", "))
+  } else {
+    keep <- rep(FALSE, p$size)
+  }
+
+  max_seed_rain <- pmax(seed_rain * 100, 10000)
+  target <- equilibrium_seed_rain_solve_target(runner, keep, logN,
+                                               max_seed_rain)
+  x0 <- if (logN) log(seed_rain) else seed_rain
 
   tol <- p$control$parameters$equilibrium_eps
   ## NOTE: Hard coded minimum of 100 steps here.
