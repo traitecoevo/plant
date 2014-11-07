@@ -478,12 +478,15 @@ equilibrium_seed_rain_runsteady <- function(p, schedule_default=NULL,
   eps <- control$equilibrium_eps
   ode_tol <- control$equilibrium_runsteady_tol
   logN <- TRUE # for now, always work with d (log N) / dt
+  maxit <- max(100,
+               p$control$parameters$equilibrium_nsteps)
 
   runner <- make_equilibrium_runner(p, schedule_default, schedule_initial)
   f <- make_target_runsteady(runner, logN)
   x0 <- if (logN) log(p$seed_rain) else p$seed_rain
   ans <- rootSolve::runsteady(x0, func=f, parms=NULL, mf=22,
-                              rtol=ode_tol, atol=ode_tol, stol=eps)
+                              rtol=ode_tol, atol=ode_tol, stol=eps,
+                              maxsteps=maxit)
   equilibrium_runner_cleanup(runner, attr(ans, "steady"))
 }
 
