@@ -131,6 +131,8 @@ equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
   logN <- TRUE
   ## Overal control:
   attempts <- 5L
+  ## Then expand this out so that we can try alternating solvers
+  solver <- rep(solver, length.out=attempts)
 
   for (i in seq_len(attempts)) {
     ans_it <- equilibrium_seed_rain_iteration(p, schedule_default,
@@ -143,7 +145,7 @@ equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
 
     ans_sol <- try(equilibrium_seed_rain_solve(p, schedule_default,
                                                ans_it$schedule,
-                                               solver,
+                                               solver[[i]],
                                                try_keep, logN))
 
     converged_sol <- isTRUE(attr(ans_sol, "converged"))
