@@ -44,7 +44,7 @@ equilibrium_seed_rain <- function(p, schedule=NULL) {
     }
 
     if (control$equilibrium_verbose) {
-      message(sprintf("*** %d: {%s} -> {%s} (delta = {%s})", i,
+      message(sprintf("eq> %d: {%s} -> {%s} (delta = {%s})", i,
                       paste(prettyNum(seed_rain[,"in"]), collapse=","),
                       paste(prettyNum(seed_rain[,"out"]), collapse=","),
                       paste(prettyNum(change), collapse=",")))
@@ -52,7 +52,7 @@ equilibrium_seed_rain <- function(p, schedule=NULL) {
 
     if (eps > 0 && all(abs(change) < eps)) {
       if (control$equilibrium_verbose) {
-        message(sprintf("Reached target accuracy (delta %2.5e < %2.5e eps)",
+        message(sprintf("eq> Reached target accuracy (delta %2.5e < %2.5e eps)",
                         max(abs(change)), eps))
       }
       break
@@ -98,7 +98,7 @@ equilibrium_seed_rain2 <- function(p, schedule_default=NULL,
                                    schedule_initial=NULL) {
   solver <- get_equilibrium_solver(p)
   if (p$control$parameters$equilibrium_verbose) {
-    message("Solving seed rain using ", solver)
+    message("eq> Solving seed rain using ", solver)
   }
   if (solver == "iteration") {
     equilibrium_seed_rain_iteration(p, schedule_default, schedule_initial)
@@ -140,7 +140,7 @@ equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
     p$seed_rain <- ans_it$seed_rain[,"out"]
     converged_it <- isTRUE(attr(ans_it, "converged"))
 
-    message(sprintf("Iteration %d %s",
+    message(sprintf("eq> Iteration %d %s",
                     i, if (converged_it) "converged" else "did not converge"))
 
     ans_sol <- try(equilibrium_seed_rain_solve(p, schedule_default,
@@ -149,12 +149,12 @@ equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
                                                try_keep, logN))
 
     converged_sol <- isTRUE(attr(ans_sol, "converged"))
-    message(sprintf("Solve %d %s",
+    message(sprintf("eq> Solve %d %s",
                     i, if (converged_sol) "converged" else "did not converge"))
 
     if (converged_sol) {
       if (any(ans_sol$seed_rain[,"out"] == 0.0)) {
-        message("Checking species driven to extinction")
+        message("eq> Checking species driven to extinction")
         ## Add these species back at extremely low density and make sure
         ## that this looks like a legit extinction.
         y_in <- ans_sol$seed_rain[,"out"]
@@ -164,16 +164,16 @@ equilibrium_seed_rain_hybrid <- function(p, schedule_default=NULL,
         p2$seed_rain <- y_in
         y_out <- run_ebt(p2, ans_sol$schedule)$seed_rains
         if (any(y_out[i] > y_in[i])) {
-          message("Solver drove viable species extinct: rejecting")
+          message("eq> Solver drove viable species extinct: rejecting")
           next
         }
       }
-      message("Accepting solution via solver")
+      message("eq> Accepting solution via solver")
       return(ans_sol)
     }
   }
 
-  message("Repeated rounds failed to find optimum")
+  message("eq> Repeated rounds failed to find optimum")
   ans_it
 }
 
@@ -193,7 +193,7 @@ equilibrium_seed_rain_iteration <- function(p, schedule_default=NULL,
     converged <- eps > 0 && all(abs(achange) < eps | abs(rchange) < eps)
     if (converged) {
       if (control$equilibrium_verbose) {
-        fmt <- "Reached target accuracy (delta %2.5e, %2.5e < %2.5e eps)"
+        fmt <- "eq> Reached target accuracy (delta %2.5e, %2.5e < %2.5e eps)"
         message(sprintf(fmt, max(abs(achange)), max(abs(rchange)), eps))
       }
       break
@@ -309,11 +309,11 @@ equilibrium_seed_rain_solve_robust <- function(p,
                                          schedule_initial,
                                          solver))
   if (failed(fit)) {
-    message_verbose("Falling back on iteration")
+    message_verbose("eq> Falling back on iteration")
     fit <- equilibrium_seed_rain_iteration(p, schedule_default,
                                            schedule_initial)
 
-    message_verbose("Trying again with the solver")
+    message_verbose("eq> Trying again with the solver")
     p2 <- p$copy()
     p2$seed_rain <- unname(fit$seed_rain[,"out"])
     fit2 <- try(equilibrium_seed_rain_solve(p2, schedule_default,
@@ -321,10 +321,10 @@ equilibrium_seed_rain_solve_robust <- function(p,
                                             solver))
 
     if (failed(fit2)) {
-      message_verbose("Solver failed again: using iteration version")
+      message_verbose("eq> Solver failed again: using iteration version")
     } else {
       fit <- fit2
-      message_verbose("Solver worked on second attempt")
+      message_verbose("eq> Solver worked on second attempt")
     }
   }
   fit
@@ -385,7 +385,7 @@ make_equilibrium_runner <- function(p, schedule_default=NULL,
     }
 
     if (control$equilibrium_verbose) {
-      message(sprintf("*** %d: {%s} -> {%s} (delta = {%s})", i,
+      message(sprintf("eq> %d: {%s} -> {%s} (delta = {%s})", i,
                       pretty_collapse(ans[,"in"]),
                       pretty_collapse(ans[,"out"]),
                       pretty_collapse(ans[,"out"] - ans[,"in"])))
@@ -413,11 +413,11 @@ equilibrium_seed_rain_solve_target <- function(runner, keep, logN,
     x[x < eps & keep] <- eps
     x[x < eps & !keep] <- 0.0
     if (!any(x > 0)) {
-      message("All species extinct?")
+      message("eq> All species extinct?")
     }
     too_high <- x > max_seed_rain
     if (any(too_high)) {
-      message("Truncating seed rain of species ",
+      message("eq> Truncating seed rain of species ",
               paste(which(too_high), collapse=", "))
       if (length(max_seed_rain) == 1L) {
         max_seed_rain <- rep(max_seed_rain, length.out=length(x))
@@ -445,7 +445,7 @@ equilibrium_seed_rain_solve_target_simple <- function(runner) {
   function(x, ...) {
     pos <- x > eps
     if (!any(pos)) {
-      message("All species extinct?")
+      message("eq> All species extinct?")
     }
     x[!pos] <- 0.0
     res <- runner(x)
@@ -463,7 +463,7 @@ equilibrium_seed_rain_solve_target_log <- function(runner) {
     x <- exp(lx)
     pos <- x > eps
     if (!any(pos)) {
-      message("All species extinct?")
+      message("eq> All species extinct?")
     }
     x[!pos] <- 0.0
     res <- runner(x)
@@ -508,7 +508,7 @@ make_target_runsteady <- function(f, logN=FALSE) {
     }
     pos <- x > eps
     if (!any(pos)) {
-      message("All species extinct?")
+      message("eq> All species extinct?")
     }
     x[!pos] <- 0.0
     res <- f(x, t=t)
@@ -574,12 +574,12 @@ check_inviable <- function(p, schedule_default=NULL, schedule_initial=NULL) {
   ret <- res
 
   for (i in test) {
-    message("Testing species ", i)
+    message("check_inviable> Testing species ", i)
     x <- ret[,"out"]
     x[i] <- eps
     res <- eq(x)
     if (diff(res[i,]) < 0) {
-      message("\t...removing")
+      message("check_inviable>\t...removing")
       drop[i] <- TRUE
       ret[i,"out"] <- 0.0
       ret <- res

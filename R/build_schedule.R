@@ -90,7 +90,7 @@ build_schedule <- function(p, schedule=NULL) {
       break
     }
     if (control$schedule_verbose) {
-      message(sprintf("%d: Splitting {%s} times (%s)",
+      message(sprintf("schedule> %d: Splitting {%s} times (%s)",
                       i,
                       paste(sapply(split, sum),    collapse=","),
                       paste(sapply(split, length), collapse=",")))
@@ -178,7 +178,7 @@ build_schedule_seed_rain <- function(p, schedule=NULL) {
                            mc.cores=cores))
     j <- which.max(abs(res - w))
     if (verbose)
-      message(sprintf("Inserting time at %2.5f [%d]; seed_rain = %2.5f",
+      message(sprintf("schedule> Inserting time at %2.5f [%d]; seed_rain = %2.5f",
                       mean(times[j:(j+1)]), j, res[j]))
 
     list(times=insert_time(j, times), idx=j+1,
