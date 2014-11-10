@@ -208,9 +208,9 @@ expect_that(p.growth_decomp[["dbasal_diam_dt"]],
             equals(cmp.dbasal_diam_dt, tolerance=1e-7))
 
 ## Check that height decomposition multiplies out to give right answer
-expect_that(p.growth_decomp[["height_growth_rate"]],
+expect_that(p.phys[["height_growth_rate"]],
             equals(
-              prod(p.growth_decomp[c("dheight_dleaf_area","dleaf_area_dleaf_mass","leaf_fraction","growth_fraction","net_production")]), tolerance=1e-7))
+              prod(p.growth_decomp[c("dheight_dleaf_area","dleaf_area_dleaf_mass","growth_fraction")], p.phys[c("leaf_fraction","net_production")]), tolerance=1e-7))
 
 ## Seed stuff:
 seed <- new(Plant, s)

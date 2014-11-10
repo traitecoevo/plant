@@ -674,19 +674,22 @@ Strategy Plant::r_get_strategy() const {
 
 Rcpp::NumericVector Plant::r_get_vars_size() const {
   using namespace Rcpp;
-  return NumericVector::create(_["mass_leaf"]=vars.mass_leaf,
+  return NumericVector::create(
+             _["mass_leaf"]=vars.mass_leaf,
 			       _["mass_sapwood"]=vars.mass_sapwood,
 			       _["mass_bark"]=vars.mass_bark,
 			       _["mass_heartwood"]=vars.mass_heartwood,
 			       _["mass_root"]=vars.mass_root,
 			       _["mass_live"]=vars.mass_live,
              _["mass_total"]=vars.mass_live+vars.mass_heartwood,
+             _["mass_above_ground"]=vars.mass_live+vars.mass_heartwood - vars.mass_root,
 			       _["height"]=vars.height,
 			       _["leaf_area"]=vars.leaf_area,
              _["area_sapwood"]= sapwood_area(),
              _["area_bark"]= bark_area(),
              _["area_heartwood"]= vars.area_heartwood,
-             _["area_basal"]= basal_area()
+             _["area_basal"]= basal_area(),
+             _["diameter"]= pow(4*basal_area()/M_PI,0.5)
              );
 }
 
@@ -708,13 +711,10 @@ Rcpp::NumericVector Plant::r_get_vars_phys() const {
 
 Rcpp::NumericVector Plant::r_get_vars_growth_decomp() const {
   using namespace Rcpp;
-  return NumericVector::create(_["height_growth_rate"]=
-             vars.height_growth_rate,
+  return NumericVector::create(
              _["dheight_dleaf_area"]=dheight_dleaf_area(),
              _["dleaf_area_dleaf_mass"]=1/strategy->lma,
-             _["leaf_fraction"]=vars.leaf_fraction,
              _["growth_fraction"]=1-vars.reproduction_fraction,
-             _["net_production"]=vars.net_production,
              _["dmass_sapwood_dmass_leaf"]=dmass_sapwood_dmass_leaf(),
              _["dmass_bark_dmass_leaf"]=dmass_bark_dmass_leaf(),
              _["dmass_root_dmass_leaf"]=dmass_root_dmass_leaf(),
@@ -725,7 +725,13 @@ Rcpp::NumericVector Plant::r_get_vars_growth_decomp() const {
              _["dheartwood_mass_dt"]=sapwood_turnover(),
              _["dbasal_area_dt"]=dbasal_area_dt(),
              _["dbasal_diam_dbasal_area"]=dbasal_diam_dbasal_area(),
-             _["dbasal_diam_dt"]=dbasal_diam_dt()
+             _["dbasal_diam_dt"]=dbasal_diam_dt(),
+             _["dmass_leaf_dt"]=vars.mass_leaf_growth_rate,
+             _["dmass_root_dt"]=vars.mass_leaf_growth_rate*dmass_root_dmass_leaf(),
+             _["dmass_live_dt"]=(1-vars.reproduction_fraction)*vars.net_production,
+             _["dmass_total_dt"]=(1-vars.reproduction_fraction)*vars.net_production + sapwood_turnover(),
+             _["dmass_above_ground_dt"]=(1-vars.reproduction_fraction)*vars.net_production
+                            + sapwood_turnover() - vars.mass_leaf_growth_rate*dmass_root_dmass_leaf()
              );
 }
 
