@@ -87,7 +87,12 @@ equilibrium_quiet <- function() {
 }
 
 equilibrium_runner_cleanup <- function(runner, converged=TRUE) {
+  ## This is super gross.
   e <- environment(runner)
+  if (is.function(e$runner_full)) {
+    runner <- e$runner_full
+    e <- environment(runner)
+  }
   res <- e$last
   attr(res, "progress") <- e$history
   attr(res, "converged") <- converged
