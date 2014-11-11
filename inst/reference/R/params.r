@@ -49,3 +49,10 @@ p.c_r1=1;
 p.c_r2=50;
 p.c_acc=3*3.8e-5;
 p.B7=1;
+
+# Default trait values
+p.lma_0=0.1978791  		# leaf mas per area
+p.rho_0  = 608 			# wood density
+p.hmat_0 = 16.5958691; 	# height at maturation
+p.s_0    = 3.8e-5;  	# seed size
+p.n_area_0 = 1.87e-3	# nitrogen per area

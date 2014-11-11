@@ -33,14 +33,19 @@ expected <- list(
   c_s0   = 0.1,
   eta    = 12,
   hmat   = 16.5958691,
+  hmat_0 = 16.5958691,
   k_b    = 0.2,
   k_l0   = 0.4565855,
   k_r    = 1,
   k_s0   = 0.2,
   lma    = 0.1978791,
+  lma_0  = 0.1978791,
   n_area = 0.00187,
+  n_area_0 = 1.87e-3,
   rho    = 608,
+  rho_0  = 608,
   s      = 3.8e-5,
+  s_0    = 3.8e-5,
   theta  = 4669)
 
 keys <- sort(names(expected))

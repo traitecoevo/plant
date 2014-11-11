@@ -171,6 +171,11 @@ void Strategy::do_build_lookup() {
   lookup_table["B6"]     = &B6;
   lookup_table["c_d2"]   = &c_d2;
   lookup_table["c_d3"]   = &c_d3;
+  lookup_table["lma_0"]  = &lma_0;
+  lookup_table["rho_0"]  = &rho_0;
+  lookup_table["hmat_0"] = &hmat_0;
+  lookup_table["s_0"]    = &s_0;
+  lookup_table["n_area_0"]= &n_area_0;
 
   // It might be nice to flag some variables as readonly, that way we
   // could return height_0, etc_c, and k_l.

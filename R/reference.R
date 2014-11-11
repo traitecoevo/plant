@@ -33,7 +33,7 @@ make.reference <- function() {
             "n_area", "c_Rl", "c_Rr", "c_Rs", "c_Rb", "Y",
             "c_bio", "k_l0", "B4", "k_b", "k_s0", "B5", "k_r", "c_p1", "c_p2",
             "c_acc", "B7", "c_d0", "c_d1", "B6", "c_d2", "c_d3", "c_s0",
-            "c_r1", "c_r2")
+            "c_r1", "c_r2", "lma_0", "rho_0", "hmat_0", "s_0",  "n_area_0")
   get.pars <- function() {
     vars.traits <- list(lma=e$traits$lma, rho=e$traits$rho,
                         hmat=e$traits$hmat, s=e$traits$s)
