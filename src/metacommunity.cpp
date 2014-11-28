@@ -1,4 +1,4 @@
-#include "metacommunity.h"
+#include <tree/metacommunity.h>
 
 namespace model {
 

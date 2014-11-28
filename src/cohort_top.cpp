@@ -1,6 +1,6 @@
-#include "cohort_top.h"
-#include "gradient.h"
-#include "functor.h"
+#include <tree/cohort_top.h>
+#include <tree/gradient.h>
+#include <tree/functor.h>
 
 namespace model {
 

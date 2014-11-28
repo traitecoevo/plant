@@ -1,4 +1,4 @@
-#include "cohort_discrete.h"
+#include <tree/cohort_discrete.h>
 
 namespace model {
 

@@ -1,6 +1,6 @@
-#include "util.h"   // check_bounds_r
+#include <tree/util.h>   // check_bounds_r
 
-#include "parameters.h"
+#include <tree/parameters.h>
 
 namespace model {
 

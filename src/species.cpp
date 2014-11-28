@@ -1,6 +1,5 @@
-#include "species.h"
-
-#include "cohort_discrete.h"
+#include <tree/species.h>
+#include <tree/cohort_discrete.h>
 
 // Specialisation for CohortDiscrete, where we add a cohort of the
 // appropriate size at the back of the vector.

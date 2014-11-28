@@ -1,5 +1,5 @@
-#include "gradient.h"
-#include "util.h"
+#include <tree/gradient.h>
+#include <tree/util.h>
 
 namespace util {
 

@@ -1,6 +1,6 @@
 #include <Rcpp.h>
-#include "ode_target.h"
-#include "util.h"
+#include <tree/ode_target.h>
+#include <tree/util.h>
 
 namespace ode {
 

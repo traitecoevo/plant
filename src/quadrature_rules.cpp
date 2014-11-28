@@ -1,4 +1,4 @@
-#include "quadrature_rules.h"
+#include <tree/quadrature_rules.h>
 
 namespace integration {
 

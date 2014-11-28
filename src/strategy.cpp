@@ -1,5 +1,5 @@
-#include "strategy.h"
-#include "plant.h" // for Plant::prepare_strategy;
+#include <tree/strategy.h>
+#include <tree/plant.h> // for Plant::prepare_strategy;
 
 namespace model {
 

@@ -1,4 +1,4 @@
-#include "ode_control.h"
+#include <tree/ode_control.h>
 
 #include <algorithm> // std::max
 #include <cmath>     // fabs
