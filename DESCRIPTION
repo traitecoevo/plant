@@ -1,0 +1,16 @@
+Package: tree2
+Title: Rewrite of TREE
+Version: 0.1
+Authors.R: "Rich FitzJohn <rich.fitzjohn@gmail.com> [aut, cre]"
+Description: Tree things.
+Depends:
+    R (>= 3.1.1)
+License: GPL-2
+LazyData: true
+LinkingTo: Rcpp, BH
+Imports:
+    Rcpp,
+    R6
+Suggests:
+    testthat,
+    deSolve

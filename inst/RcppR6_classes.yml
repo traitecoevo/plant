@@ -1,0 +1,31 @@
+Lorenz:
+  name_cpp: "ode::test::Lorenz"
+  forward_declare: true
+  constructor:
+    args: [sigma: double, R: double, b: double]
+  active:
+    size: {type: size_t, access: member}
+    ode_values: 
+      type: "std::vector<double>"
+      access: member
+      name_cpp: ode_values
+      name_cpp_set: set_ode_values
+    ode_rates: 
+      type: "std::vector<double>"
+      access: member
+      name_cpp: r_ode_rates
+    pars: 
+      type: "Rcpp::NumericVector"
+      access: member
+      name_cpp: r_get_pars
+
+OdeSystem:
+  name_cpp: "ode::OdeSystem<T>"
+  templates:
+    parameters: T
+    concrete:
+      - ["Lorenz": "ode::test::Lorenz"]
+  constructor:
+    args: [obj: T]
+  active:
+    obj: {type: T, access: field}
