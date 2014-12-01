@@ -25,15 +25,43 @@ Lorenz__pars__get <- function(obj_) {
     .Call('tree2_Lorenz__pars__get', PACKAGE = 'tree2', obj_)
 }
 
-OdeRunner___Lorenz__ctor <- function(obj) {
-    .Call('tree2_OdeRunner___Lorenz__ctor', PACKAGE = 'tree2', obj)
+OdeSystem___Lorenz__ctor <- function(obj, abs_tol, rel_tol) {
+    .Call('tree2_OdeSystem___Lorenz__ctor', PACKAGE = 'tree2', obj, abs_tol, rel_tol)
 }
 
-OdeRunner___Lorenz__obj__get <- function(obj_) {
-    .Call('tree2_OdeRunner___Lorenz__obj__get', PACKAGE = 'tree2', obj_)
+OdeSystem___Lorenz__do_step <- function(obj_, dt) {
+    invisible(.Call('tree2_OdeSystem___Lorenz__do_step', PACKAGE = 'tree2', obj_, dt))
 }
 
-OdeRunner___Lorenz__obj__set <- function(obj_, value) {
-    invisible(.Call('tree2_OdeRunner___Lorenz__obj__set', PACKAGE = 'tree2', obj_, value))
+OdeSystem___Lorenz__try_step <- function(obj_, dt) {
+    .Call('tree2_OdeSystem___Lorenz__try_step', PACKAGE = 'tree2', obj_, dt)
+}
+
+OdeSystem___Lorenz__advance <- function(obj_, t, dt) {
+    invisible(.Call('tree2_OdeSystem___Lorenz__advance', PACKAGE = 'tree2', obj_, t, dt))
+}
+
+OdeSystem___Lorenz__advance_save <- function(obj_, t, dt) {
+    .Call('tree2_OdeSystem___Lorenz__advance_save', PACKAGE = 'tree2', obj_, t, dt)
+}
+
+OdeSystem___Lorenz__obj__get <- function(obj_) {
+    .Call('tree2_OdeSystem___Lorenz__obj__get', PACKAGE = 'tree2', obj_)
+}
+
+OdeSystem___Lorenz__t__get <- function(obj_) {
+    .Call('tree2_OdeSystem___Lorenz__t__get', PACKAGE = 'tree2', obj_)
+}
+
+OdeSystem___Lorenz__t__set <- function(obj_, value) {
+    invisible(.Call('tree2_OdeSystem___Lorenz__t__set', PACKAGE = 'tree2', obj_, value))
+}
+
+OdeSystem___Lorenz__y__get <- function(obj_) {
+    .Call('tree2_OdeSystem___Lorenz__y__get', PACKAGE = 'tree2', obj_)
+}
+
+OdeSystem___Lorenz__y__set <- function(obj_, value) {
+    invisible(.Call('tree2_OdeSystem___Lorenz__y__set', PACKAGE = 'tree2', obj_, value))
 }
 

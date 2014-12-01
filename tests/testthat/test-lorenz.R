@@ -14,6 +14,12 @@ if (interactive()) {
 ##
 ## Probably need something to check that the state of the system has
 ## actually changed.
+##
+## Exploit the FSAL
+## http://headmyshoulder.github.io/odeint-v2/doc/boost_numeric_odeint/odeint_in_detail/steppers.html
+##
+## Also exploit the fact that we know dydt on the way in: there's a
+## method for that!
 
 context("Lorenz (basic ODE)")
 
@@ -68,4 +74,18 @@ test_that("Ode runner behaves", {
   ## Unchanged:
   expect_identical(lo$ode_values, y)
   expect_identical(sys$obj$ode_values, y)
+
+  ## OK, what I've not done yet is shown that we can make this step
+  ## *correctly*, deal with time stepping issues, or use a given
+  ## schedule.  All these things need doing.
+  sys$do_step(0.001)
+  sys$obj$ode_values
+  sys$y
+  sys$try_step(1)
+
+  sys$advance(1, 0.01)
+  sys$y
+
+  res <- sys$advance_save(10, 0.001)
+  ## pairs(t(res), panel=lines)
 })

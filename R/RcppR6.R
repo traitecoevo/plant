@@ -49,33 +49,59 @@ NULL
                 }))
 
 
-OdeRunner <- function(T) {
+OdeSystem <- function(T) {
   type <- c(T)
-  valid <- list("OdeRunner<Lorenz>"="Lorenz")
-  constructors <- list("OdeRunner<Lorenz>"=`OdeRunner<Lorenz>`)
+  valid <- list("OdeSystem<Lorenz>"="Lorenz")
+  constructors <- list("OdeSystem<Lorenz>"=`OdeSystem<Lorenz>`)
   constructors[[check_type(type, valid)]]
 }
-.R6_OdeRunner <- R6::R6Class("OdeRunner")
+.R6_OdeSystem <- R6::R6Class("OdeSystem")
 
 
-`OdeRunner<Lorenz>` <- function(obj) {
-  OdeRunner___Lorenz__ctor(obj)
+`OdeSystem<Lorenz>` <- function(obj, abs_tol=1e-8, rel_tol=1e-8) {
+  OdeSystem___Lorenz__ctor(obj, abs_tol, rel_tol)
 }
-.R6_OdeRunner___Lorenz <-
-  R6::R6Class("OdeRunner<Lorenz>",
+.R6_OdeSystem___Lorenz <-
+  R6::R6Class("OdeSystem<Lorenz>",
               portable=TRUE,
-              inherit=.R6_OdeRunner,
+              inherit=.R6_OdeSystem,
               public=list(
                 .ptr=NULL,
                 initialize = function(ptr) {
                   self$.ptr <- ptr
+                },
+                do_step = function(dt) {
+                  OdeSystem___Lorenz__do_step(self, dt)
+                },
+                try_step = function(dt) {
+                  OdeSystem___Lorenz__try_step(self, dt)
+                },
+                advance = function(t, dt) {
+                  OdeSystem___Lorenz__advance(self, t, dt)
+                },
+                advance_save = function(t, dt) {
+                  OdeSystem___Lorenz__advance_save(self, t, dt)
                 }),
               active=list(
                 obj = function(value) {
                   if (missing(value)) {
-                    OdeRunner___Lorenz__obj__get(self)
+                    OdeSystem___Lorenz__obj__get(self)
                   } else {
-                    OdeRunner___Lorenz__obj__set(self, value)
+                    stop("OdeSystem<Lorenz>$obj is read-only")
+                  }
+                },
+                t = function(value) {
+                  if (missing(value)) {
+                    OdeSystem___Lorenz__t__get(self)
+                  } else {
+                    OdeSystem___Lorenz__t__set(self, value)
+                  }
+                },
+                y = function(value) {
+                  if (missing(value)) {
+                    OdeSystem___Lorenz__y__get(self)
+                  } else {
+                    OdeSystem___Lorenz__y__set(self, value)
                   }
                 }))
 

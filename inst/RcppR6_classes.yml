@@ -26,6 +26,21 @@ OdeSystem:
     concrete:
       - ["Lorenz": "ode::test::Lorenz"]
   constructor:
-    args: [obj: T]
+    args: [obj: T, abs_tol: double=1e-8, rel_tol: double=1e-8]
+  methods:
+    do_step:
+      args: [dt: double]
+      return_type: void
+    try_step:
+      args: [dt: double]
+      return_type: bool
+    advance:
+      args: [t: double, dt: double]
+      return_type: void
+    advance_save:
+      args: [t: double, dt: double]
+      return_type: "ode::state_saver<std::vector<double> >"
   active:
-    obj: {type: T, access: field}
+    obj: {type: T, access: member, name_cpp: get_obj}
+    t: {type: double, access: field}
+    y: {type: "std::vector<double>", access: field}

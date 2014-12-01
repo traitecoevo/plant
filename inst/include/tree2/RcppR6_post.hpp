@@ -12,9 +12,9 @@ template <> inline std::string   class_name_r<ode::test::Lorenz >() {return "Lor
 template <> inline std::string   package_name<ode::test::Lorenz >() {return "tree2";}
 template <> inline std::string generator_name<ode::test::Lorenz >() {return ".R6_Lorenz";}
 
-template <> inline std::string   class_name_r<ode::OdeSystem<ode::test::Lorenz> >() {return "OdeRunner<Lorenz>";}
+template <> inline std::string   class_name_r<ode::OdeSystem<ode::test::Lorenz> >() {return "OdeSystem<Lorenz>";}
 template <> inline std::string   package_name<ode::OdeSystem<ode::test::Lorenz> >() {return "tree2";}
-template <> inline std::string generator_name<ode::OdeSystem<ode::test::Lorenz> >() {return ".R6_OdeRunner___Lorenz";}
+template <> inline std::string generator_name<ode::OdeSystem<ode::test::Lorenz> >() {return ".R6_OdeSystem___Lorenz";}
 }
 }
 }

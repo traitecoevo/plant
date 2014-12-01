@@ -31,15 +31,45 @@ Rcpp::NumericVector Lorenz__pars__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> o
 
 
 // [[Rcpp::export]]
-ode::OdeSystem<ode::test::Lorenz> OdeRunner___Lorenz__ctor(ode::test::Lorenz obj) {
-  return ode::OdeSystem<ode::test::Lorenz>(obj);
+ode::OdeSystem<ode::test::Lorenz> OdeSystem___Lorenz__ctor(ode::test::Lorenz obj, double abs_tol, double rel_tol) {
+  return ode::OdeSystem<ode::test::Lorenz>(obj, abs_tol, rel_tol);
 }
 // [[Rcpp::export]]
-ode::test::Lorenz OdeRunner___Lorenz__obj__get(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_) {
-  return obj_->obj;
+void OdeSystem___Lorenz__do_step(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, double dt) {
+  obj_->do_step(dt);
 }
 // [[Rcpp::export]]
-void OdeRunner___Lorenz__obj__set(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, ode::test::Lorenz value) {
-  obj_->obj = value;
+bool OdeSystem___Lorenz__try_step(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, double dt) {
+  return obj_->try_step(dt);
+}
+// [[Rcpp::export]]
+void OdeSystem___Lorenz__advance(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, double t, double dt) {
+  obj_->advance(t, dt);
+}
+// [[Rcpp::export]]
+ode::state_saver<std::vector<double> > OdeSystem___Lorenz__advance_save(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, double t, double dt) {
+  return obj_->advance_save(t, dt);
+}
+// [[Rcpp::export]]
+ode::test::Lorenz OdeSystem___Lorenz__obj__get(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_) {
+  return obj_->get_obj();
+}
+
+// [[Rcpp::export]]
+double OdeSystem___Lorenz__t__get(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_) {
+  return obj_->t;
+}
+// [[Rcpp::export]]
+void OdeSystem___Lorenz__t__set(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, double value) {
+  obj_->t = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> OdeSystem___Lorenz__y__get(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_) {
+  return obj_->y;
+}
+// [[Rcpp::export]]
+void OdeSystem___Lorenz__y__set(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, std::vector<double> value) {
+  obj_->y = value;
 }
 
