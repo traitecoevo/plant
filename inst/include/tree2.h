@@ -4,6 +4,11 @@
 
 #include <tree2/ode_bits.h>
 
+// This one needs including because I don't know how to forward
+// declare a class within a class.  Could be simple, but I don't want
+// to try to work it out.
+#include <tree2/cohort_schedule.h>
+
 // Include this early on.  It can be either after classes have been
 // declared (but before Rcpp has been loaded) or first.  This file will
 // attempt to provide declarations for the classes and namespaces that

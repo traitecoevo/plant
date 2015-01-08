@@ -73,3 +73,28 @@ void OdeSystem___Lorenz__y__set(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::
   obj_->y = value;
 }
 
+
+// [[Rcpp::export]]
+tree2::CohortSchedule::Event CohortScheduleEvent__ctor(double introduction, size_t species_index) {
+  return tree2::CohortSchedule::Event(introduction, species_index);
+}
+// [[Rcpp::export]]
+size_t CohortScheduleEvent__species_index__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> obj_) {
+  return obj_->r_species_index();
+}
+
+// [[Rcpp::export]]
+std::vector<double> CohortScheduleEvent__times__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> obj_) {
+  return obj_->times;
+}
+
+// [[Rcpp::export]]
+double CohortScheduleEvent__time_introduction__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> obj_) {
+  return obj_->time_introduction();
+}
+
+// [[Rcpp::export]]
+double CohortScheduleEvent__time_end__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> obj_) {
+  return obj_->time_end();
+}
+

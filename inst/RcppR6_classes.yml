@@ -44,3 +44,13 @@ OdeSystem:
     obj: {type: T, access: member, name_cpp: get_obj}
     t: {type: double, access: field}
     y: {type: "std::vector<double>", access: field}
+
+CohortScheduleEvent:
+  name_cpp: "tree2::CohortSchedule::Event"
+  constructor:
+    args: [introduction: double, species_index: size_t]
+  active:
+    species_index: {type: size_t, access: member, name_cpp: r_species_index}
+    times: {type: "std::vector<double>", access: field, readonly: true}
+    time_introduction: {type: double, access: member}
+    time_end: {type: double, access: member}

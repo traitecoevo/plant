@@ -105,6 +105,49 @@ OdeSystem <- function(T) {
                   }
                 }))
 
+
+`CohortScheduleEvent` <- function(introduction, species_index) {
+  CohortScheduleEvent__ctor(introduction, species_index)
+}
+.R6_CohortScheduleEvent <-
+  R6::R6Class("CohortScheduleEvent",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                }),
+              active=list(
+                species_index = function(value) {
+                  if (missing(value)) {
+                    CohortScheduleEvent__species_index__get(self)
+                  } else {
+                    stop("CohortScheduleEvent$species_index is read-only")
+                  }
+                },
+                times = function(value) {
+                  if (missing(value)) {
+                    CohortScheduleEvent__times__get(self)
+                  } else {
+                    stop("CohortScheduleEvent$times is read-only")
+                  }
+                },
+                time_introduction = function(value) {
+                  if (missing(value)) {
+                    CohortScheduleEvent__time_introduction__get(self)
+                  } else {
+                    stop("CohortScheduleEvent$time_introduction is read-only")
+                  }
+                },
+                time_end = function(value) {
+                  if (missing(value)) {
+                    CohortScheduleEvent__time_end__get(self)
+                  } else {
+                    stop("CohortScheduleEvent$time_end is read-only")
+                  }
+                }))
+
 ## This section of code is only included where templated classes are
 ## included.  Don't rely on the approach taken here, as it may change
 ## soon.

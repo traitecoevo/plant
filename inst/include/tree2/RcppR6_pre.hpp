@@ -25,6 +25,9 @@ template <> ode::test::Lorenz as(SEXP);
 
 template <> SEXP wrap(const ode::OdeSystem<ode::test::Lorenz>&);
 template <> ode::OdeSystem<ode::test::Lorenz> as(SEXP);
+
+template <> SEXP wrap(const tree2::CohortSchedule::Event&);
+template <> tree2::CohortSchedule::Event as(SEXP);
 }
 
 #endif

@@ -65,3 +65,23 @@ OdeSystem___Lorenz__y__set <- function(obj_, value) {
     invisible(.Call('tree2_OdeSystem___Lorenz__y__set', PACKAGE = 'tree2', obj_, value))
 }
 
+CohortScheduleEvent__ctor <- function(introduction, species_index) {
+    .Call('tree2_CohortScheduleEvent__ctor', PACKAGE = 'tree2', introduction, species_index)
+}
+
+CohortScheduleEvent__species_index__get <- function(obj_) {
+    .Call('tree2_CohortScheduleEvent__species_index__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortScheduleEvent__times__get <- function(obj_) {
+    .Call('tree2_CohortScheduleEvent__times__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortScheduleEvent__time_introduction__get <- function(obj_) {
+    .Call('tree2_CohortScheduleEvent__time_introduction__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortScheduleEvent__time_end__get <- function(obj_) {
+    .Call('tree2_CohortScheduleEvent__time_end__get', PACKAGE = 'tree2', obj_)
+}
+

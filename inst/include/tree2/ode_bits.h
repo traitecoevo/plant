@@ -50,6 +50,9 @@ namespace ode {
 // for all three functions.  Just assume they work and template magic
 // will take care of the rest!
 
+// TODO: Should this actually store a copy or should it store a reference?
+// Might be best to have this be a subclass of OdeSystem and work with
+// a reference, I think.
 template <typename T>
 class OdeRunner {
 public:
@@ -104,8 +107,6 @@ public:
     stepper_controlled(boost::numeric::odeint::make_controlled<stepper_basic_type>(abs_tol, rel_tol)),
     runner(OdeRunner<T>(obj_)),
     y(obj_.ode_values()) {
-    //using boost::numeric::odeint::make_controlled;
-    //stepper_controlled = make_controlled(abs_tol, rel_tol, stepper_basic);
   }
 
   // Stepping:
@@ -139,7 +140,7 @@ public:
   stepper_basic_type stepper_basic;
   stepper_type stepper_controlled;
   OdeRunner<T> runner;
-  double t;
+  double t; // What is this doing here?
   state_type y;
 };
 
