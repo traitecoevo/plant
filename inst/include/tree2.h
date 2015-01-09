@@ -21,6 +21,7 @@ SEXP wrap(const ode::state_saver<std::vector<double> >&);
 }
 
 #include <tree2/control.h>
+#include <tree2/strategy.h>
 
 // Anything after this point is OK to include Rcpp.h.  This is
 // probably where the meat of the included material goes if your

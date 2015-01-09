@@ -89,3 +89,7 @@ Control__ctor <- function() {
     .Call('tree2_Control__ctor', PACKAGE = 'tree2')
 }
 
+Strategy__ctor <- function() {
+    .Call('tree2_Strategy__ctor', PACKAGE = 'tree2')
+}
+

@@ -334,3 +334,17 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Strategy__ctor
+SEXP Strategy__ctor();
+RcppExport SEXP tree2_Strategy__ctor() {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        SEXP __result = Strategy__ctor();
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}

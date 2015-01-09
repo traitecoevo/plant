@@ -163,6 +163,21 @@ Control <- function(..., values=list(...)) {
   ret
 }
 
+##' Strategy parameters that tune various aspects of the biological model.
+##' @title Strategy parameters
+##' @param ...,values Values to initialise the struct with (either as
+##' variadic arguments, or as a list, but not both).
+##' @export
+Strategy <- function(..., values=list(...)) {
+  ret <- Strategy__ctor()
+  if (length(err <- setdiff(names(values), names(ret))) > 0L) {
+    stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
+  }
+  to_set <- intersect(names(values), names(ret))
+  ret[to_set] <- values[to_set]
+  ret
+}
+
 ## This section of code is only included where templated classes are
 ## included.  Don't rely on the approach taken here, as it may change
 ## soon.

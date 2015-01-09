@@ -23,6 +23,10 @@ template <> inline std::string generator_name<tree2::CohortSchedule::Event >() {
 template <> inline std::string   class_name_r<tree2::Control >() {return "Control";}
 template <> inline std::string   package_name<tree2::Control >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Control >() {return "";}
+
+template <> inline std::string   class_name_r<tree2::Strategy >() {return "Strategy";}
+template <> inline std::string   package_name<tree2::Strategy >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Strategy >() {return "";}
 }
 }
 }
@@ -183,6 +187,105 @@ template <> inline tree2::Control as(SEXP x) {
   ret.equilibrium_nattempts = Rcpp::as<int>(xl["equilibrium_nattempts"]);
   ret.equilibrium_solver_logN = Rcpp::as<bool>(xl["equilibrium_solver_logN"]);
   ret.equilibrium_solver_try_keep = Rcpp::as<bool>(xl["equilibrium_solver_try_keep"]);
+  return ret;
+}
+
+template <> inline SEXP wrap(const tree2::Strategy& x) {
+  Rcpp::List ret;
+  ret["lma"] = Rcpp::wrap(x.lma);
+  ret["rho"] = Rcpp::wrap(x.rho);
+  ret["hmat"] = Rcpp::wrap(x.hmat);
+  ret["s"] = Rcpp::wrap(x.s);
+  ret["n_area"] = Rcpp::wrap(x.n_area);
+  ret["lma_0"] = Rcpp::wrap(x.lma_0);
+  ret["rho_0"] = Rcpp::wrap(x.rho_0);
+  ret["hmat_0"] = Rcpp::wrap(x.hmat_0);
+  ret["s_0"] = Rcpp::wrap(x.s_0);
+  ret["n_area_0"] = Rcpp::wrap(x.n_area_0);
+  ret["eta"] = Rcpp::wrap(x.eta);
+  ret["theta"] = Rcpp::wrap(x.theta);
+  ret["a1"] = Rcpp::wrap(x.a1);
+  ret["B1"] = Rcpp::wrap(x.B1);
+  ret["a3"] = Rcpp::wrap(x.a3);
+  ret["k_l0"] = Rcpp::wrap(x.k_l0);
+  ret["B4"] = Rcpp::wrap(x.B4);
+  ret["k_s0"] = Rcpp::wrap(x.k_s0);
+  ret["B5"] = Rcpp::wrap(x.B5);
+  ret["b"] = Rcpp::wrap(x.b);
+  ret["c_Rs"] = Rcpp::wrap(x.c_Rs);
+  ret["c_Rb"] = Rcpp::wrap(x.c_Rb);
+  ret["c_Rr"] = Rcpp::wrap(x.c_Rr);
+  ret["c_Rl"] = Rcpp::wrap(x.c_Rl);
+  ret["Y"] = Rcpp::wrap(x.Y);
+  ret["c_bio"] = Rcpp::wrap(x.c_bio);
+  ret["k_b"] = Rcpp::wrap(x.k_b);
+  ret["k_r"] = Rcpp::wrap(x.k_r);
+  ret["c_p1"] = Rcpp::wrap(x.c_p1);
+  ret["c_p2"] = Rcpp::wrap(x.c_p2);
+  ret["c_acc"] = Rcpp::wrap(x.c_acc);
+  ret["B7"] = Rcpp::wrap(x.B7);
+  ret["c_r1"] = Rcpp::wrap(x.c_r1);
+  ret["c_r2"] = Rcpp::wrap(x.c_r2);
+  ret["c_s0"] = Rcpp::wrap(x.c_s0);
+  ret["c_d0"] = Rcpp::wrap(x.c_d0);
+  ret["c_d1"] = Rcpp::wrap(x.c_d1);
+  ret["B6"] = Rcpp::wrap(x.B6);
+  ret["c_d2"] = Rcpp::wrap(x.c_d2);
+  ret["c_d3"] = Rcpp::wrap(x.c_d3);
+  ret["control"] = Rcpp::wrap(x.control);
+  ret.attr("class") = "Strategy";
+  return ret;
+}
+template <> inline tree2::Strategy as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::Strategy>(x)) {
+    Rcpp::stop("Expected an object of type Strategy");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  tree2::Strategy ret;
+  Rcpp::List xl(x);
+  ret.lma = Rcpp::as<double>(xl["lma"]);
+  ret.rho = Rcpp::as<double>(xl["rho"]);
+  ret.hmat = Rcpp::as<double>(xl["hmat"]);
+  ret.s = Rcpp::as<double>(xl["s"]);
+  ret.n_area = Rcpp::as<double>(xl["n_area"]);
+  ret.lma_0 = Rcpp::as<double>(xl["lma_0"]);
+  ret.rho_0 = Rcpp::as<double>(xl["rho_0"]);
+  ret.hmat_0 = Rcpp::as<double>(xl["hmat_0"]);
+  ret.s_0 = Rcpp::as<double>(xl["s_0"]);
+  ret.n_area_0 = Rcpp::as<double>(xl["n_area_0"]);
+  ret.eta = Rcpp::as<double>(xl["eta"]);
+  ret.theta = Rcpp::as<double>(xl["theta"]);
+  ret.a1 = Rcpp::as<double>(xl["a1"]);
+  ret.B1 = Rcpp::as<double>(xl["B1"]);
+  ret.a3 = Rcpp::as<double>(xl["a3"]);
+  ret.k_l0 = Rcpp::as<double>(xl["k_l0"]);
+  ret.B4 = Rcpp::as<double>(xl["B4"]);
+  ret.k_s0 = Rcpp::as<double>(xl["k_s0"]);
+  ret.B5 = Rcpp::as<double>(xl["B5"]);
+  ret.b = Rcpp::as<double>(xl["b"]);
+  ret.c_Rs = Rcpp::as<double>(xl["c_Rs"]);
+  ret.c_Rb = Rcpp::as<double>(xl["c_Rb"]);
+  ret.c_Rr = Rcpp::as<double>(xl["c_Rr"]);
+  ret.c_Rl = Rcpp::as<double>(xl["c_Rl"]);
+  ret.Y = Rcpp::as<double>(xl["Y"]);
+  ret.c_bio = Rcpp::as<double>(xl["c_bio"]);
+  ret.k_b = Rcpp::as<double>(xl["k_b"]);
+  ret.k_r = Rcpp::as<double>(xl["k_r"]);
+  ret.c_p1 = Rcpp::as<double>(xl["c_p1"]);
+  ret.c_p2 = Rcpp::as<double>(xl["c_p2"]);
+  ret.c_acc = Rcpp::as<double>(xl["c_acc"]);
+  ret.B7 = Rcpp::as<double>(xl["B7"]);
+  ret.c_r1 = Rcpp::as<double>(xl["c_r1"]);
+  ret.c_r2 = Rcpp::as<double>(xl["c_r2"]);
+  ret.c_s0 = Rcpp::as<double>(xl["c_s0"]);
+  ret.c_d0 = Rcpp::as<double>(xl["c_d0"]);
+  ret.c_d1 = Rcpp::as<double>(xl["c_d1"]);
+  ret.B6 = Rcpp::as<double>(xl["B6"]);
+  ret.c_d2 = Rcpp::as<double>(xl["c_d2"]);
+  ret.c_d3 = Rcpp::as<double>(xl["c_d3"]);
+  ret.control = Rcpp::as<tree2::Control>(xl["control"]);
   return ret;
 }
 }

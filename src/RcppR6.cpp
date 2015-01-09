@@ -103,3 +103,8 @@ double CohortScheduleEvent__time_end__get(tree2::RcppR6::RcppR6<tree2::CohortSch
 SEXP Control__ctor() {
   return Rcpp::wrap(tree2::Control());
 }
+
+// [[Rcpp::export]]
+SEXP Strategy__ctor() {
+  return Rcpp::wrap(tree2::Strategy());
+}

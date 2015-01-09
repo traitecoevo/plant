@@ -2,7 +2,7 @@
 #ifndef TREE2_CONTROL_H_
 #define TREE2_CONTROL_H_
 
-#include <RcppCommon.h> // for NA_REAL
+#include <stddef.h> // size_t
 
 // The `Control` object holds all the non-biological control
 // parameters.  These might get templated against different ways of
