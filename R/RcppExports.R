@@ -85,3 +85,7 @@ CohortScheduleEvent__time_end__get <- function(obj_) {
     .Call('tree2_CohortScheduleEvent__time_end__get', PACKAGE = 'tree2', obj_)
 }
 
+Control__ctor <- function() {
+    .Call('tree2_Control__ctor', PACKAGE = 'tree2')
+}
+

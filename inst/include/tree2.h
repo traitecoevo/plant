@@ -20,6 +20,8 @@ namespace Rcpp {
 SEXP wrap(const ode::state_saver<std::vector<double> >&);
 }
 
+#include <tree2/control.h>
+
 // Anything after this point is OK to include Rcpp.h.  This is
 // probably where the meat of the included material goes if your
 // classes directly use Rcpp types.  Otherwise you can just declare

@@ -98,3 +98,8 @@ double CohortScheduleEvent__time_end__get(tree2::RcppR6::RcppR6<tree2::CohortSch
   return obj_->time_end();
 }
 
+
+// [[Rcpp::export]]
+SEXP Control__ctor() {
+  return Rcpp::wrap(tree2::Control());
+}

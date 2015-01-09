@@ -320,3 +320,17 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Control__ctor
+SEXP Control__ctor();
+RcppExport SEXP tree2_Control__ctor() {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        SEXP __result = Control__ctor();
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}

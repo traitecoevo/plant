@@ -13,6 +13,7 @@ template <typename T> class RcppR6;
 
 namespace ode { namespace test { class Lorenz; } }
 
+namespace tree2 { struct Control; }
 
 namespace Rcpp {
 template <typename T> SEXP wrap(const tree2::RcppR6::RcppR6<T>&);
@@ -28,6 +29,9 @@ template <> ode::OdeSystem<ode::test::Lorenz> as(SEXP);
 
 template <> SEXP wrap(const tree2::CohortSchedule::Event&);
 template <> tree2::CohortSchedule::Event as(SEXP);
+
+template <> SEXP wrap(const tree2::Control&);
+template <> tree2::Control as(SEXP);
 }
 
 #endif

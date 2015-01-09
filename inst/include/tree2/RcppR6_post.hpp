@@ -19,6 +19,10 @@ template <> inline std::string generator_name<ode::OdeSystem<ode::test::Lorenz> 
 template <> inline std::string   class_name_r<tree2::CohortSchedule::Event >() {return "CohortScheduleEvent";}
 template <> inline std::string   package_name<tree2::CohortSchedule::Event >() {return "tree2";}
 template <> inline std::string generator_name<tree2::CohortSchedule::Event >() {return ".R6_CohortScheduleEvent";}
+
+template <> inline std::string   class_name_r<tree2::Control >() {return "Control";}
+template <> inline std::string   package_name<tree2::Control >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Control >() {return "";}
 }
 }
 }
@@ -59,6 +63,127 @@ template <> inline SEXP wrap(const tree2::CohortSchedule::Event& x) {
 }
 template <> inline tree2::CohortSchedule::Event as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event>(x));
+}
+
+template <> inline SEXP wrap(const tree2::Control& x) {
+  Rcpp::List ret;
+  ret["plant_assimilation_adaptive"] = Rcpp::wrap(x.plant_assimilation_adaptive);
+  ret["plant_assimilation_over_distribution"] = Rcpp::wrap(x.plant_assimilation_over_distribution);
+  ret["plant_assimilation_tol"] = Rcpp::wrap(x.plant_assimilation_tol);
+  ret["plant_assimilation_iterations"] = Rcpp::wrap(x.plant_assimilation_iterations);
+  ret["plant_assimilation_rule"] = Rcpp::wrap(x.plant_assimilation_rule);
+  ret["plant_assimilation_reuse_intervals"] = Rcpp::wrap(x.plant_assimilation_reuse_intervals);
+  ret["plant_assimilation_approximate_use"] = Rcpp::wrap(x.plant_assimilation_approximate_use);
+  ret["plant_assimilation_approximate_tol"] = Rcpp::wrap(x.plant_assimilation_approximate_tol);
+  ret["plant_assimilation_approximate_nbase"] = Rcpp::wrap(x.plant_assimilation_approximate_nbase);
+  ret["plant_assimilation_approximate_max_depth"] = Rcpp::wrap(x.plant_assimilation_approximate_max_depth);
+  ret["plant_assimilation_approximate_akima"] = Rcpp::wrap(x.plant_assimilation_approximate_akima);
+  ret["plant_assimilation_approximate_linear"] = Rcpp::wrap(x.plant_assimilation_approximate_linear);
+  ret["plant_assimilation_approximate_rescale_usually"] = Rcpp::wrap(x.plant_assimilation_approximate_rescale_usually);
+  ret["plant_seed_tol"] = Rcpp::wrap(x.plant_seed_tol);
+  ret["plant_seed_iterations"] = Rcpp::wrap(x.plant_seed_iterations);
+  ret["cohort_gradient_eps"] = Rcpp::wrap(x.cohort_gradient_eps);
+  ret["cohort_gradient_direction"] = Rcpp::wrap(x.cohort_gradient_direction);
+  ret["cohort_gradient_richardson"] = Rcpp::wrap(x.cohort_gradient_richardson);
+  ret["cohort_gradient_richardson_depth"] = Rcpp::wrap(x.cohort_gradient_richardson_depth);
+  ret["environment_light_tol"] = Rcpp::wrap(x.environment_light_tol);
+  ret["environment_light_nbase"] = Rcpp::wrap(x.environment_light_nbase);
+  ret["environment_light_max_depth"] = Rcpp::wrap(x.environment_light_max_depth);
+  ret["environment_light_akima"] = Rcpp::wrap(x.environment_light_akima);
+  ret["environment_light_linear"] = Rcpp::wrap(x.environment_light_linear);
+  ret["environment_light_rescale_usually"] = Rcpp::wrap(x.environment_light_rescale_usually);
+  ret["environment_light_skip"] = Rcpp::wrap(x.environment_light_skip);
+  ret["ode_step_size_min"] = Rcpp::wrap(x.ode_step_size_min);
+  ret["ode_step_size_max"] = Rcpp::wrap(x.ode_step_size_max);
+  ret["ode_tol_rel"] = Rcpp::wrap(x.ode_tol_rel);
+  ret["ode_tol_abs"] = Rcpp::wrap(x.ode_tol_abs);
+  ret["ode_a_y"] = Rcpp::wrap(x.ode_a_y);
+  ret["ode_a_dydt"] = Rcpp::wrap(x.ode_a_dydt);
+  ret["schedule_nsteps"] = Rcpp::wrap(x.schedule_nsteps);
+  ret["schedule_eps"] = Rcpp::wrap(x.schedule_eps);
+  ret["schedule_progress"] = Rcpp::wrap(x.schedule_progress);
+  ret["schedule_verbose"] = Rcpp::wrap(x.schedule_verbose);
+  ret["schedule_default_patch_survival"] = Rcpp::wrap(x.schedule_default_patch_survival);
+  ret["schedule_default_multipler"] = Rcpp::wrap(x.schedule_default_multipler);
+  ret["schedule_default_min_step_size"] = Rcpp::wrap(x.schedule_default_min_step_size);
+  ret["schedule_default_max_step_size"] = Rcpp::wrap(x.schedule_default_max_step_size);
+  ret["equilibrium_nsteps"] = Rcpp::wrap(x.equilibrium_nsteps);
+  ret["equilibrium_eps"] = Rcpp::wrap(x.equilibrium_eps);
+  ret["equilibrium_large_seed_rain_change"] = Rcpp::wrap(x.equilibrium_large_seed_rain_change);
+  ret["equilibrium_progress"] = Rcpp::wrap(x.equilibrium_progress);
+  ret["equilibrium_verbose"] = Rcpp::wrap(x.equilibrium_verbose);
+  ret["equilibrium_solver"] = Rcpp::wrap(x.equilibrium_solver);
+  ret["equilibrium_extinct_seed_rain"] = Rcpp::wrap(x.equilibrium_extinct_seed_rain);
+  ret["equilibrium_runsteady_tol"] = Rcpp::wrap(x.equilibrium_runsteady_tol);
+  ret["equilibrium_inviable_test_eps"] = Rcpp::wrap(x.equilibrium_inviable_test_eps);
+  ret["equilibrium_nattempts"] = Rcpp::wrap(x.equilibrium_nattempts);
+  ret["equilibrium_solver_logN"] = Rcpp::wrap(x.equilibrium_solver_logN);
+  ret["equilibrium_solver_try_keep"] = Rcpp::wrap(x.equilibrium_solver_try_keep);
+  ret.attr("class") = "Control";
+  return ret;
+}
+template <> inline tree2::Control as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::Control>(x)) {
+    Rcpp::stop("Expected an object of type Control");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  tree2::Control ret;
+  Rcpp::List xl(x);
+  ret.plant_assimilation_adaptive = Rcpp::as<bool>(xl["plant_assimilation_adaptive"]);
+  ret.plant_assimilation_over_distribution = Rcpp::as<bool>(xl["plant_assimilation_over_distribution"]);
+  ret.plant_assimilation_tol = Rcpp::as<double>(xl["plant_assimilation_tol"]);
+  ret.plant_assimilation_iterations = Rcpp::as<size_t>(xl["plant_assimilation_iterations"]);
+  ret.plant_assimilation_rule = Rcpp::as<size_t>(xl["plant_assimilation_rule"]);
+  ret.plant_assimilation_reuse_intervals = Rcpp::as<bool>(xl["plant_assimilation_reuse_intervals"]);
+  ret.plant_assimilation_approximate_use = Rcpp::as<bool>(xl["plant_assimilation_approximate_use"]);
+  ret.plant_assimilation_approximate_tol = Rcpp::as<double>(xl["plant_assimilation_approximate_tol"]);
+  ret.plant_assimilation_approximate_nbase = Rcpp::as<int>(xl["plant_assimilation_approximate_nbase"]);
+  ret.plant_assimilation_approximate_max_depth = Rcpp::as<int>(xl["plant_assimilation_approximate_max_depth"]);
+  ret.plant_assimilation_approximate_akima = Rcpp::as<bool>(xl["plant_assimilation_approximate_akima"]);
+  ret.plant_assimilation_approximate_linear = Rcpp::as<bool>(xl["plant_assimilation_approximate_linear"]);
+  ret.plant_assimilation_approximate_rescale_usually = Rcpp::as<bool>(xl["plant_assimilation_approximate_rescale_usually"]);
+  ret.plant_seed_tol = Rcpp::as<double>(xl["plant_seed_tol"]);
+  ret.plant_seed_iterations = Rcpp::as<int>(xl["plant_seed_iterations"]);
+  ret.cohort_gradient_eps = Rcpp::as<double>(xl["cohort_gradient_eps"]);
+  ret.cohort_gradient_direction = Rcpp::as<int>(xl["cohort_gradient_direction"]);
+  ret.cohort_gradient_richardson = Rcpp::as<bool>(xl["cohort_gradient_richardson"]);
+  ret.cohort_gradient_richardson_depth = Rcpp::as<size_t>(xl["cohort_gradient_richardson_depth"]);
+  ret.environment_light_tol = Rcpp::as<double>(xl["environment_light_tol"]);
+  ret.environment_light_nbase = Rcpp::as<int>(xl["environment_light_nbase"]);
+  ret.environment_light_max_depth = Rcpp::as<int>(xl["environment_light_max_depth"]);
+  ret.environment_light_akima = Rcpp::as<bool>(xl["environment_light_akima"]);
+  ret.environment_light_linear = Rcpp::as<bool>(xl["environment_light_linear"]);
+  ret.environment_light_rescale_usually = Rcpp::as<bool>(xl["environment_light_rescale_usually"]);
+  ret.environment_light_skip = Rcpp::as<bool>(xl["environment_light_skip"]);
+  ret.ode_step_size_min = Rcpp::as<double>(xl["ode_step_size_min"]);
+  ret.ode_step_size_max = Rcpp::as<double>(xl["ode_step_size_max"]);
+  ret.ode_tol_rel = Rcpp::as<double>(xl["ode_tol_rel"]);
+  ret.ode_tol_abs = Rcpp::as<double>(xl["ode_tol_abs"]);
+  ret.ode_a_y = Rcpp::as<double>(xl["ode_a_y"]);
+  ret.ode_a_dydt = Rcpp::as<double>(xl["ode_a_dydt"]);
+  ret.schedule_nsteps = Rcpp::as<int>(xl["schedule_nsteps"]);
+  ret.schedule_eps = Rcpp::as<double>(xl["schedule_eps"]);
+  ret.schedule_progress = Rcpp::as<bool>(xl["schedule_progress"]);
+  ret.schedule_verbose = Rcpp::as<bool>(xl["schedule_verbose"]);
+  ret.schedule_default_patch_survival = Rcpp::as<double>(xl["schedule_default_patch_survival"]);
+  ret.schedule_default_multipler = Rcpp::as<double>(xl["schedule_default_multipler"]);
+  ret.schedule_default_min_step_size = Rcpp::as<double>(xl["schedule_default_min_step_size"]);
+  ret.schedule_default_max_step_size = Rcpp::as<double>(xl["schedule_default_max_step_size"]);
+  ret.equilibrium_nsteps = Rcpp::as<int>(xl["equilibrium_nsteps"]);
+  ret.equilibrium_eps = Rcpp::as<double>(xl["equilibrium_eps"]);
+  ret.equilibrium_large_seed_rain_change = Rcpp::as<double>(xl["equilibrium_large_seed_rain_change"]);
+  ret.equilibrium_progress = Rcpp::as<bool>(xl["equilibrium_progress"]);
+  ret.equilibrium_verbose = Rcpp::as<bool>(xl["equilibrium_verbose"]);
+  ret.equilibrium_solver = Rcpp::as<int>(xl["equilibrium_solver"]);
+  ret.equilibrium_extinct_seed_rain = Rcpp::as<double>(xl["equilibrium_extinct_seed_rain"]);
+  ret.equilibrium_runsteady_tol = Rcpp::as<double>(xl["equilibrium_runsteady_tol"]);
+  ret.equilibrium_inviable_test_eps = Rcpp::as<double>(xl["equilibrium_inviable_test_eps"]);
+  ret.equilibrium_nattempts = Rcpp::as<int>(xl["equilibrium_nattempts"]);
+  ret.equilibrium_solver_logN = Rcpp::as<bool>(xl["equilibrium_solver_logN"]);
+  ret.equilibrium_solver_try_keep = Rcpp::as<bool>(xl["equilibrium_solver_try_keep"]);
+  return ret;
 }
 }
 

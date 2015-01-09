@@ -5,16 +5,16 @@ Lorenz:
     args: [sigma: double, R: double, b: double]
   active:
     size: {type: size_t, access: member}
-    ode_values: 
+    ode_values:
       type: "std::vector<double>"
       access: member
       name_cpp: ode_values
       name_cpp_set: set_ode_values
-    ode_rates: 
+    ode_rates:
       type: "std::vector<double>"
       access: member
       name_cpp: r_ode_rates
-    pars: 
+    pars:
       type: "Rcpp::NumericVector"
       access: member
       name_cpp: r_get_pars
@@ -54,3 +54,66 @@ CohortScheduleEvent:
     times: {type: "std::vector<double>", access: field, readonly: true}
     time_introduction: {type: double, access: member}
     time_end: {type: double, access: member}
+
+Control:
+  forward_declare: struct
+  name_cpp: "tree2::Control"
+  roxygen: |
+    Control parameters that tune various aspects of the numerical solvers.
+    @title Control parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - plant_assimilation_adaptive: bool
+    - plant_assimilation_over_distribution: bool
+    - plant_assimilation_tol: double
+    - plant_assimilation_iterations: size_t
+    - plant_assimilation_rule: size_t
+    - plant_assimilation_reuse_intervals: bool
+    - plant_assimilation_approximate_use: bool
+    - plant_assimilation_approximate_tol: double
+    - plant_assimilation_approximate_nbase: int
+    - plant_assimilation_approximate_max_depth: int
+    - plant_assimilation_approximate_akima: bool
+    - plant_assimilation_approximate_linear: bool
+    - plant_assimilation_approximate_rescale_usually: bool
+    - plant_seed_tol: double
+    - plant_seed_iterations: int
+    - cohort_gradient_eps: double
+    - cohort_gradient_direction: int
+    - cohort_gradient_richardson: bool
+    - cohort_gradient_richardson_depth: size_t
+    - environment_light_tol: double
+    - environment_light_nbase: int
+    - environment_light_max_depth: int
+    - environment_light_akima: bool
+    - environment_light_linear: bool
+    - environment_light_rescale_usually: bool
+    - environment_light_skip: bool
+    - ode_step_size_min: double
+    - ode_step_size_max: double
+    - ode_tol_rel: double
+    - ode_tol_abs: double
+    - ode_a_y: double
+    - ode_a_dydt: double
+    - schedule_nsteps: int
+    - schedule_eps: double
+    - schedule_progress: bool
+    - schedule_verbose: bool
+    - schedule_default_patch_survival: double
+    - schedule_default_multipler: double
+    - schedule_default_min_step_size: double
+    - schedule_default_max_step_size: double
+    - equilibrium_nsteps: int
+    - equilibrium_eps: double
+    - equilibrium_large_seed_rain_change: double
+    - equilibrium_progress: bool
+    - equilibrium_verbose: bool
+    - equilibrium_solver: int
+    - equilibrium_extinct_seed_rain: double
+    - equilibrium_runsteady_tol: double
+    - equilibrium_inviable_test_eps: double
+    - equilibrium_nattempts: int
+    - equilibrium_solver_logN: bool
+    - equilibrium_solver_try_keep: bool
