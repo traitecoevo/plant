@@ -41,6 +41,17 @@ size_t check_bounds_r(size_t idx, size_t size) {
   return idx - 1;
 }
 
+std::vector<double> seq_len(double from, double to, size_t len) {
+  std::vector<double> ret;
+  ret.reserve(len);
+  const double dx = (to - from) / (len - 1);
+  double x = from;
+  for (size_t i = 0; i < len; ++i, x += dx)
+    ret.push_back(x);
+  ret.back() = to; // Protect against rounding errors.
+  return ret;
+}
+
 void stop(const std::string& msg) {
   Rcpp::stop(msg);
 }

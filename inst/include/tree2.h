@@ -28,6 +28,7 @@ SEXP wrap(const ode::state_saver<std::vector<double> >&);
 #include <tree2/qk.h>
 #include <tree2/qag.h>
 #include <tree2/interpolator.h>
+#include <tree2/adaptive_interpolator.h>
 
 // Anything after this point is OK to include Rcpp.h.  This is
 // probably where the meat of the included material goes if your
@@ -36,7 +37,6 @@ SEXP wrap(const ode::state_saver<std::vector<double> >&);
 
 #include <Rcpp.h>
 #include <tree2/lorenz.h>
-
 
 // This line can safely be the last line in the file, but may go any
 // point after RcppR6_pre.hpp is included.

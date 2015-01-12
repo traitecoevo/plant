@@ -22,6 +22,8 @@ size_t check_bounds_r(size_t idx, size_t size);
 void check_dimensions(size_t recieved_rows, size_t recieved_cols,
                       size_t expected_rows, size_t expected_cols);
 
+std::vector<double> seq_len(double from, double to, size_t len);
+
 // Use this to be explicit when a potentially unsafe floating point
 // equality test is being made.  I've disabled the clang warnings
 // around this use, while other places warnings will still occur.
