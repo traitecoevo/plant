@@ -136,12 +136,12 @@ size_t CohortSchedule::remaining() const {
 }
 
 // * R interface
-void CohortSchedule::r_clear_times(util::count species_index) {
+void CohortSchedule::r_clear_times(util::index species_index) {
   clear_times(species_index.check_bounds(n_species));
 }
 
 void CohortSchedule::r_set_times(std::vector<double> times_,
-				 util::count species_index) {
+				 util::index species_index) {
   if (!util::is_sorted(times_.begin(), times_.end())) {
     Rcpp::stop("Times must be sorted (increasing)");
   }
@@ -157,7 +157,7 @@ void CohortSchedule::r_set_times(std::vector<double> times_,
   set_times(times_, species_index.check_bounds(n_species));
 }
 
-std::vector<double> CohortSchedule::r_times(util::count species_index) const {
+std::vector<double> CohortSchedule::r_times(util::index species_index) const {
   return times(species_index.check_bounds(n_species));
 }
 

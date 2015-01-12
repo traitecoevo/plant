@@ -2,7 +2,7 @@
 #include <Rcpp.h>
 namespace util {
 
-size_t count::check_bounds(size_t size) {
+size_t index::check_bounds(size_t size) {
   // We don't check size < 0 or x < 0, as not possible with size_t
   if (size == 0) {
     Rcpp::stop("Index " + util::to_string(x + 1) +
@@ -43,10 +43,10 @@ size_t check_bounds_r(size_t idx, size_t size) {
 }
 
 namespace Rcpp {
-template <> SEXP wrap(const util::count& x) {
+template <> SEXP wrap(const util::index& x) {
   return Rcpp::wrap(util::base_0_to_1<size_t, int>(x.x));
 }
-template <> util::count as(SEXP x) {
+template <> util::index as(SEXP x) {
   const int ix(Rcpp::as<int>(x));
   // TODO: Might need to let NA values through still...
   if (ix <= 0) {

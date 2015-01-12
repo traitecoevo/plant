@@ -8,9 +8,8 @@
 
 namespace util {
 
-// Strictly this should be *index* not *count*.
-struct count {
-  count(size_t x_) : x(x_) {}
+struct index {
+  index(size_t x_) : x(x_) {}
   size_t check_bounds(size_t size);
   size_t x;
   operator size_t() {return x;}
@@ -114,8 +113,8 @@ std::string to_string(T x) {
 }
 
 namespace Rcpp {
-template <> SEXP wrap(const util::count&);
-template <> util::count as(SEXP);
+template <> SEXP wrap(const util::index&);
+template <> util::index as(SEXP);
 }
 
 #endif

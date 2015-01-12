@@ -13,7 +13,7 @@
 #include <tree2/RcppR6_pre.hpp>
 
 // TODO: Merge all these together into another _pre file I think.
-// There are also custom as/wrap things in util (util::count).
+// There are also custom as/wrap things in util (util::index).
 // Extra shit:
 namespace Rcpp {
 SEXP wrap(const ode::state_saver<std::vector<double> >&);

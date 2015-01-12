@@ -75,15 +75,15 @@ void OdeSystem___Lorenz__y__set(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::
 
 
 // [[Rcpp::export]]
-tree2::CohortScheduleEvent CohortScheduleEvent__ctor(double introduction, util::count species_index) {
+tree2::CohortScheduleEvent CohortScheduleEvent__ctor(double introduction, util::index species_index) {
   return tree2::CohortScheduleEvent(introduction, species_index);
 }
 // [[Rcpp::export]]
-util::count CohortScheduleEvent__species_index__get(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_) {
+util::index CohortScheduleEvent__species_index__get(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_) {
   return obj_->species_index;
 }
 // [[Rcpp::export]]
-void CohortScheduleEvent__species_index__set(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_, util::count value) {
+void CohortScheduleEvent__species_index__set(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_, util::index value) {
   obj_->species_index = value;
 }
 
@@ -117,7 +117,7 @@ tree2::CohortSchedule CohortSchedule__expand(tree2::RcppR6::RcppR6<tree2::Cohort
   return obj_->expand(n_extra, times);
 }
 // [[Rcpp::export]]
-void CohortSchedule__clear_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, util::count species_index) {
+void CohortSchedule__clear_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, util::index species_index) {
   obj_->clear_times(species_index);
 }
 // [[Rcpp::export]]
@@ -125,11 +125,11 @@ void CohortSchedule__clear_ode_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule
   obj_->r_clear_ode_times();
 }
 // [[Rcpp::export]]
-void CohortSchedule__set_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, std::vector<double> times, util::count species_index) {
+void CohortSchedule__set_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, std::vector<double> times, util::index species_index) {
   obj_->r_set_times(times, species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> CohortSchedule__times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, util::count species_index) {
+std::vector<double> CohortSchedule__times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, util::index species_index) {
   return obj_->r_times(species_index);
 }
 // [[Rcpp::export]]

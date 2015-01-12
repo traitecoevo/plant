@@ -49,9 +49,9 @@ CohortScheduleEvent:
   forward_declare: true
   name_cpp: "tree2::CohortScheduleEvent"
   constructor:
-    args: [introduction: double, species_index: "util::count"]
+    args: [introduction: double, species_index: "util::index"]
   active:
-    species_index: {type: "util::count", access: field, name_cpp: species_index}
+    species_index: {type: "util::index", access: field, name_cpp: species_index}
     times: {type: "std::vector<double>", access: field, readonly: true}
     time_introduction: {type: double, access: member}
     time_end: {type: double, access: member}
@@ -81,18 +81,18 @@ CohortSchedule:
       args: [n_extra: size_t, times: "std::vector<double>"]
     clear_times:
       return_type: void
-      args: [species_index: "util::count"]
+      args: [species_index: "util::index"]
     clear_ode_times:
       return_type: void
       name_cpp: r_clear_ode_times
     set_times:
       return_type: void
       name_cpp: r_set_times
-      args: [times: "std::vector<double>", species_index: "util::count"]
+      args: [times: "std::vector<double>", species_index: "util::index"]
     times:
       return_type: "std::vector<double>"
       name_cpp: r_times
-      args: [species_index: "util::count"]
+      args: [species_index: "util::index"]
     reset:
       return_type: void
     pop:

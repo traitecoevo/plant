@@ -56,9 +56,9 @@ public:
   size_t remaining() const;
 
   // * R interface:
-  void r_clear_times(util::count species_index);
-  std::vector<double> r_times(util::count species_index) const;
-  void r_set_times(std::vector<double> times_, util::count species_index);
+  void r_clear_times(util::index species_index);
+  std::vector<double> r_times(util::index species_index) const;
+  void r_set_times(std::vector<double> times_, util::index species_index);
   double r_max_time() const;
   void r_set_max_time(double x);
   std::vector<double> r_ode_times() const;
