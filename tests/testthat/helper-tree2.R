@@ -50,3 +50,30 @@ is_at_least <- function(value) {
     expectation(actual >= value, paste("is less than", value))
   }
 }
+
+## This makes a pretend light environment over the plant height,
+## slightly concave up, whatever.
+test_environment <- function(height, n=101, light_env=NULL,
+                             n_strategies=1, seed_rain=0) {
+  if (length(seed_rain) == 1) {
+    seed_rain <- rep(seed_rain, length.out=n_strategies)
+  }
+  hh <- seq(0, height, length=n)
+  if (is.null(light_env)) {
+    light_env <- function(x) {
+      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
+    }
+  }
+  ee <- light_env(hh)
+  env <- Interpolator()
+  env$init(hh, ee)
+
+  parameters <- Parameters()
+  parameters$strategies <- rep(list(Strategy()), n_strategies)
+  parameters$seed_rain <- seed_rain
+
+  ret <- Environment(parameters)
+  ret$light_environment <- env
+  attr(ret, "light_env") <- light_env
+  ret
+}

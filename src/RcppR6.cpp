@@ -368,3 +368,61 @@ double Interpolator__max__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> 
   return obj_->max();
 }
 
+
+// [[Rcpp::export]]
+tree2::Environment Environment__ctor(tree2::Parameters p) {
+  return tree2::Environment(p);
+}
+// [[Rcpp::export]]
+double Environment__canopy_openness(tree2::RcppR6::RcppR6<tree2::Environment> obj_, double height) {
+  return obj_->canopy_openness(height);
+}
+// [[Rcpp::export]]
+double Environment__patch_survival_conditional(tree2::RcppR6::RcppR6<tree2::Environment> obj_, double time_at_birth) {
+  return obj_->patch_survival_conditional(time_at_birth);
+}
+// [[Rcpp::export]]
+void Environment__clear(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
+  obj_->clear();
+}
+// [[Rcpp::export]]
+void Environment__set_seed_rain_index(tree2::RcppR6::RcppR6<tree2::Environment> obj_, util::index x) {
+  obj_->r_set_seed_rain_index(x);
+}
+// [[Rcpp::export]]
+double Environment__patch_survival__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
+  return obj_->patch_survival();
+}
+
+// [[Rcpp::export]]
+double Environment__seed_rain_rate__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
+  return obj_->seed_rain_rate();
+}
+
+// [[Rcpp::export]]
+tree2::Disturbance Environment__disturbance_regime__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
+  return obj_->disturbance_regime;
+}
+// [[Rcpp::export]]
+void Environment__disturbance_regime__set(tree2::RcppR6::RcppR6<tree2::Environment> obj_, tree2::Disturbance value) {
+  obj_->disturbance_regime = value;
+}
+
+// [[Rcpp::export]]
+double Environment__time__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
+  return obj_->time;
+}
+// [[Rcpp::export]]
+void Environment__time__set(tree2::RcppR6::RcppR6<tree2::Environment> obj_, double value) {
+  obj_->time = value;
+}
+
+// [[Rcpp::export]]
+interpolator::Interpolator Environment__light_environment__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
+  return obj_->light_environment;
+}
+// [[Rcpp::export]]
+void Environment__light_environment__set(tree2::RcppR6::RcppR6<tree2::Environment> obj_, interpolator::Interpolator value) {
+  obj_->light_environment = value;
+}
+

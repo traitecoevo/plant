@@ -516,6 +516,70 @@ Parameters <- function(..., values=list(...)) {
                   }
                 }))
 
+##' Environment object
+##' @param p A Parameters object
+##' @export
+`Environment` <- function(p) {
+  Environment__ctor(p)
+}
+.R6_Environment <-
+  R6::R6Class("Environment",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                canopy_openness = function(height) {
+                  Environment__canopy_openness(self, height)
+                },
+                patch_survival_conditional = function(time_at_birth) {
+                  Environment__patch_survival_conditional(self, time_at_birth)
+                },
+                clear = function() {
+                  Environment__clear(self)
+                },
+                set_seed_rain_index = function(x) {
+                  Environment__set_seed_rain_index(self, x)
+                }),
+              active=list(
+                patch_survival = function(value) {
+                  if (missing(value)) {
+                    Environment__patch_survival__get(self)
+                  } else {
+                    stop("Environment$patch_survival is read-only")
+                  }
+                },
+                seed_rain_rate = function(value) {
+                  if (missing(value)) {
+                    Environment__seed_rain_rate__get(self)
+                  } else {
+                    stop("Environment$seed_rain_rate is read-only")
+                  }
+                },
+                disturbance_regime = function(value) {
+                  if (missing(value)) {
+                    Environment__disturbance_regime__get(self)
+                  } else {
+                    Environment__disturbance_regime__set(self, value)
+                  }
+                },
+                time = function(value) {
+                  if (missing(value)) {
+                    Environment__time__get(self)
+                  } else {
+                    Environment__time__set(self, value)
+                  }
+                },
+                light_environment = function(value) {
+                  if (missing(value)) {
+                    Environment__light_environment__get(self)
+                  } else {
+                    Environment__light_environment__set(self, value)
+                  }
+                }))
+
 ## This section of code is only included where templated classes are
 ## included.  Don't rely on the approach taken here, as it may change
 ## soon.

@@ -1221,6 +1221,192 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Environment__ctor
+tree2::Environment Environment__ctor(tree2::Parameters p);
+RcppExport SEXP tree2_Environment__ctor(SEXP pSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::Parameters >::type p(pSEXP );
+        tree2::Environment __result = Environment__ctor(p);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Environment__canopy_openness
+double Environment__canopy_openness(tree2::RcppR6::RcppR6<tree2::Environment> obj_, double height);
+RcppExport SEXP tree2_Environment__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< double >::type height(heightSEXP );
+        double __result = Environment__canopy_openness(obj_, height);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Environment__patch_survival_conditional
+double Environment__patch_survival_conditional(tree2::RcppR6::RcppR6<tree2::Environment> obj_, double time_at_birth);
+RcppExport SEXP tree2_Environment__patch_survival_conditional(SEXP obj_SEXP, SEXP time_at_birthSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< double >::type time_at_birth(time_at_birthSEXP );
+        double __result = Environment__patch_survival_conditional(obj_, time_at_birth);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Environment__clear
+void Environment__clear(tree2::RcppR6::RcppR6<tree2::Environment> obj_);
+RcppExport SEXP tree2_Environment__clear(SEXP obj_SEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        Environment__clear(obj_);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// Environment__set_seed_rain_index
+void Environment__set_seed_rain_index(tree2::RcppR6::RcppR6<tree2::Environment> obj_, util::index x);
+RcppExport SEXP tree2_Environment__set_seed_rain_index(SEXP obj_SEXP, SEXP xSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< util::index >::type x(xSEXP );
+        Environment__set_seed_rain_index(obj_, x);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// Environment__patch_survival__get
+double Environment__patch_survival__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_);
+RcppExport SEXP tree2_Environment__patch_survival__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        double __result = Environment__patch_survival__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Environment__seed_rain_rate__get
+double Environment__seed_rain_rate__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_);
+RcppExport SEXP tree2_Environment__seed_rain_rate__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        double __result = Environment__seed_rain_rate__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Environment__disturbance_regime__get
+tree2::Disturbance Environment__disturbance_regime__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_);
+RcppExport SEXP tree2_Environment__disturbance_regime__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        tree2::Disturbance __result = Environment__disturbance_regime__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Environment__disturbance_regime__set
+void Environment__disturbance_regime__set(tree2::RcppR6::RcppR6<tree2::Environment> obj_, tree2::Disturbance value);
+RcppExport SEXP tree2_Environment__disturbance_regime__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::Disturbance >::type value(valueSEXP );
+        Environment__disturbance_regime__set(obj_, value);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// Environment__time__get
+double Environment__time__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_);
+RcppExport SEXP tree2_Environment__time__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        double __result = Environment__time__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Environment__time__set
+void Environment__time__set(tree2::RcppR6::RcppR6<tree2::Environment> obj_, double value);
+RcppExport SEXP tree2_Environment__time__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< double >::type value(valueSEXP );
+        Environment__time__set(obj_, value);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// Environment__light_environment__get
+interpolator::Interpolator Environment__light_environment__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_);
+RcppExport SEXP tree2_Environment__light_environment__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        interpolator::Interpolator __result = Environment__light_environment__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Environment__light_environment__set
+void Environment__light_environment__set(tree2::RcppR6::RcppR6<tree2::Environment> obj_, interpolator::Interpolator value);
+RcppExport SEXP tree2_Environment__light_environment__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< interpolator::Interpolator >::type value(valueSEXP );
+        Environment__light_environment__set(obj_, value);
+    }
+    return R_NilValue;
+END_RCPP
+}
 // set_sane_gsl_error_handling
 void set_sane_gsl_error_handling();
 RcppExport SEXP tree2_set_sane_gsl_error_handling() {

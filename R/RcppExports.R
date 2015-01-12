@@ -325,6 +325,58 @@ Interpolator__max__get <- function(obj_) {
     .Call('tree2_Interpolator__max__get', PACKAGE = 'tree2', obj_)
 }
 
+Environment__ctor <- function(p) {
+    .Call('tree2_Environment__ctor', PACKAGE = 'tree2', p)
+}
+
+Environment__canopy_openness <- function(obj_, height) {
+    .Call('tree2_Environment__canopy_openness', PACKAGE = 'tree2', obj_, height)
+}
+
+Environment__patch_survival_conditional <- function(obj_, time_at_birth) {
+    .Call('tree2_Environment__patch_survival_conditional', PACKAGE = 'tree2', obj_, time_at_birth)
+}
+
+Environment__clear <- function(obj_) {
+    invisible(.Call('tree2_Environment__clear', PACKAGE = 'tree2', obj_))
+}
+
+Environment__set_seed_rain_index <- function(obj_, x) {
+    invisible(.Call('tree2_Environment__set_seed_rain_index', PACKAGE = 'tree2', obj_, x))
+}
+
+Environment__patch_survival__get <- function(obj_) {
+    .Call('tree2_Environment__patch_survival__get', PACKAGE = 'tree2', obj_)
+}
+
+Environment__seed_rain_rate__get <- function(obj_) {
+    .Call('tree2_Environment__seed_rain_rate__get', PACKAGE = 'tree2', obj_)
+}
+
+Environment__disturbance_regime__get <- function(obj_) {
+    .Call('tree2_Environment__disturbance_regime__get', PACKAGE = 'tree2', obj_)
+}
+
+Environment__disturbance_regime__set <- function(obj_, value) {
+    invisible(.Call('tree2_Environment__disturbance_regime__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Environment__time__get <- function(obj_) {
+    .Call('tree2_Environment__time__get', PACKAGE = 'tree2', obj_)
+}
+
+Environment__time__set <- function(obj_, value) {
+    invisible(.Call('tree2_Environment__time__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Environment__light_environment__get <- function(obj_) {
+    .Call('tree2_Environment__light_environment__get', PACKAGE = 'tree2', obj_)
+}
+
+Environment__light_environment__set <- function(obj_, value) {
+    invisible(.Call('tree2_Environment__light_environment__set', PACKAGE = 'tree2', obj_, value))
+}
+
 set_sane_gsl_error_handling <- function() {
     invisible(.Call('tree2_set_sane_gsl_error_handling', PACKAGE = 'tree2'))
 }

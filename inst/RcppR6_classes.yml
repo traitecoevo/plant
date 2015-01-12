@@ -339,3 +339,32 @@ Interpolator:
     size: {type: size_t, access: member}
     min: {type: double, access: member}
     max: {type: double, access: member}
+
+Environment:
+  forward_declare: true
+  name_cpp: "tree2::Environment"
+  constructor:
+    args: [p: "tree2::Parameters"]
+    roxygen: |
+      Environment object
+      @param p A Parameters object
+      @export
+  methods:
+    canopy_openness:
+      args: [height: double]
+      return_type: double
+    patch_survival_conditional:
+      args: [time_at_birth: double]
+      return_type: double
+    clear:
+      return_type: void
+    set_seed_rain_index:
+      args: [x: "util::index"]
+      return_type: void
+      name_cpp: r_set_seed_rain_index
+  active:
+    patch_survival: {type: double, access: member}
+    seed_rain_rate: {type: double, access: member}
+    disturbance_regime: {type: "tree2::Disturbance", access: field}
+    time: {type: double, access: field}
+    light_environment: {type: "interpolator::Interpolator", access: field}
