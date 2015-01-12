@@ -57,6 +57,50 @@ CohortScheduleEvent:
     time_end: {type: double, access: member}
     species_index_raw: {type: "size_t", access: member, name_cpp: species_index_raw}
 
+CohortSchedule:
+  forward_declare: true
+  name_cpp: "tree2::CohortSchedule"
+  constructor:
+    roxygen: |
+      Schedule of cohort introduction times
+      @param n_species number of species
+      @export
+    args: [n_species: size_t]
+  active:
+    size: {type: size_t, access: member}
+    n_species: {type: size_t, access: member, name_cpp: get_n_species}
+    next_event: {type: "tree2::CohortScheduleEvent", access: member}
+    remaining: {type: size_t, access: member}
+    max_time: {type: double, access: member, name_cpp: r_max_time, name_cpp_set: r_set_max_time}
+    ode_times: {type: "std::vector<double>", access: member, name_cpp: r_ode_times, name_cpp_set: r_set_ode_times}
+    use_ode_times: {type: bool, access: member, name_cpp: r_use_ode_times, name_cpp_set: r_set_use_ode_times}
+    all_times: {type: SEXP, access: member, name_cpp: r_all_times, name_cpp_set: r_set_all_times}
+  methods:
+    expand:
+      return_type: "tree2::CohortSchedule"
+      args: [n_extra: size_t, times: "std::vector<double>"]
+    clear_times:
+      return_type: void
+      args: [species_index: "util::count"]
+    clear_ode_times:
+      return_type: void
+      name_cpp: r_clear_ode_times
+    set_times:
+      return_type: void
+      name_cpp: r_set_times
+      args: [times: "std::vector<double>", species_index: "util::count"]
+    times:
+      return_type: "std::vector<double>"
+      name_cpp: r_times
+      args: [species_index: "util::count"]
+    reset:
+      return_type: void
+    pop:
+      return_type: void
+    copy:
+      return_type: "tree2::CohortSchedule"
+      name_cpp: r_copy
+
 Disturbance:
   name_cpp: "tree2::Disturbance"
   forward_declare: true

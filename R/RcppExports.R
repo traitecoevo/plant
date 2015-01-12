@@ -93,6 +93,90 @@ CohortScheduleEvent__species_index_raw__get <- function(obj_) {
     .Call('tree2_CohortScheduleEvent__species_index_raw__get', PACKAGE = 'tree2', obj_)
 }
 
+CohortSchedule__ctor <- function(n_species) {
+    .Call('tree2_CohortSchedule__ctor', PACKAGE = 'tree2', n_species)
+}
+
+CohortSchedule__expand <- function(obj_, n_extra, times) {
+    .Call('tree2_CohortSchedule__expand', PACKAGE = 'tree2', obj_, n_extra, times)
+}
+
+CohortSchedule__clear_times <- function(obj_, species_index) {
+    invisible(.Call('tree2_CohortSchedule__clear_times', PACKAGE = 'tree2', obj_, species_index))
+}
+
+CohortSchedule__clear_ode_times <- function(obj_) {
+    invisible(.Call('tree2_CohortSchedule__clear_ode_times', PACKAGE = 'tree2', obj_))
+}
+
+CohortSchedule__set_times <- function(obj_, times, species_index) {
+    invisible(.Call('tree2_CohortSchedule__set_times', PACKAGE = 'tree2', obj_, times, species_index))
+}
+
+CohortSchedule__times <- function(obj_, species_index) {
+    .Call('tree2_CohortSchedule__times', PACKAGE = 'tree2', obj_, species_index)
+}
+
+CohortSchedule__reset <- function(obj_) {
+    invisible(.Call('tree2_CohortSchedule__reset', PACKAGE = 'tree2', obj_))
+}
+
+CohortSchedule__pop <- function(obj_) {
+    invisible(.Call('tree2_CohortSchedule__pop', PACKAGE = 'tree2', obj_))
+}
+
+CohortSchedule__copy <- function(obj_) {
+    .Call('tree2_CohortSchedule__copy', PACKAGE = 'tree2', obj_)
+}
+
+CohortSchedule__size__get <- function(obj_) {
+    .Call('tree2_CohortSchedule__size__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortSchedule__n_species__get <- function(obj_) {
+    .Call('tree2_CohortSchedule__n_species__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortSchedule__next_event__get <- function(obj_) {
+    .Call('tree2_CohortSchedule__next_event__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortSchedule__remaining__get <- function(obj_) {
+    .Call('tree2_CohortSchedule__remaining__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortSchedule__max_time__get <- function(obj_) {
+    .Call('tree2_CohortSchedule__max_time__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortSchedule__max_time__set <- function(obj_, value) {
+    invisible(.Call('tree2_CohortSchedule__max_time__set', PACKAGE = 'tree2', obj_, value))
+}
+
+CohortSchedule__ode_times__get <- function(obj_) {
+    .Call('tree2_CohortSchedule__ode_times__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortSchedule__ode_times__set <- function(obj_, value) {
+    invisible(.Call('tree2_CohortSchedule__ode_times__set', PACKAGE = 'tree2', obj_, value))
+}
+
+CohortSchedule__use_ode_times__get <- function(obj_) {
+    .Call('tree2_CohortSchedule__use_ode_times__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortSchedule__use_ode_times__set <- function(obj_, value) {
+    invisible(.Call('tree2_CohortSchedule__use_ode_times__set', PACKAGE = 'tree2', obj_, value))
+}
+
+CohortSchedule__all_times__get <- function(obj_) {
+    .Call('tree2_CohortSchedule__all_times__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortSchedule__all_times__set <- function(obj_, value) {
+    invisible(.Call('tree2_CohortSchedule__all_times__set', PACKAGE = 'tree2', obj_, value))
+}
+
 Disturbance__ctor <- function(mean_interval) {
     .Call('tree2_Disturbance__ctor', PACKAGE = 'tree2', mean_interval)
 }

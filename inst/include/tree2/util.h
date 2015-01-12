@@ -8,6 +8,14 @@
 
 namespace util {
 
+// Strictly this should be *index* not *count*.
+struct count {
+  count(size_t x_) : x(x_) {}
+  size_t check_bounds(size_t size);
+  size_t x;
+  operator size_t() {return x;}
+};
+
 bool is_finite(double x);
 
 void check_length(size_t received, size_t expected);
@@ -63,12 +71,6 @@ template <class T_from, class T_to>
 T_to base_0_to_1(T_from x) {
   return static_cast<T_to>(base_0_to_1<T_from>(x));
 }
-
-struct count {
-  count(size_t x_) : x(x_) {}
-  size_t x;
-  operator size_t() {return x;}
-};
 
 // Based on C++11's is_sorted
 template <class ForwardIterator>

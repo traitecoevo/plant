@@ -2,7 +2,7 @@
 #ifndef TREE_COHORT_SCHEDULE_H_
 #define TREE_COHORT_SCHEDULE_H_
 
-#include <Rcpp.h>
+#include <RcppCommon.h>
 #include <tree2/util.h>
 
 // The "times" methods (set_times, times) refer to the *introduction*
@@ -56,9 +56,9 @@ public:
   size_t remaining() const;
 
   // * R interface:
-  void r_clear_times(size_t species_index);
-  void r_set_times(std::vector<double> times_, size_t species_index);
-  std::vector<double> r_times(size_t species_index) const;
+  void r_clear_times(util::count species_index);
+  std::vector<double> r_times(util::count species_index) const;
+  void r_set_times(std::vector<double> times_, util::count species_index);
   double r_max_time() const;
   void r_set_max_time(double x);
   std::vector<double> r_ode_times() const;
@@ -66,12 +66,8 @@ public:
   void r_clear_ode_times();
   bool r_use_ode_times() const;
   void r_set_use_ode_times(bool x);
-  // TODO: swap Rcpp::List out for SEXP so that we can drop the Rcpp.h
-  // and include this file earlier.
-  Rcpp::List r_get_state() const;
-  void r_set_state(Rcpp::List x);
-  Rcpp::List r_all_times() const;
-  void r_set_all_times(Rcpp::List x);
+  SEXP r_all_times() const;
+  void r_set_all_times(SEXP x);
   CohortSchedule r_copy() const;
 
 private:

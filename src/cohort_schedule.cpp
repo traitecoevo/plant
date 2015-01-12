@@ -1,5 +1,6 @@
 #include <tree2/cohort_schedule.h>
 #include <tree2/util.h>
+#include <Rcpp.h>
 
 namespace tree2 {
 
@@ -28,8 +29,6 @@ CohortSchedule CohortSchedule::expand(size_t n_extra,
   return ret;
 }
 
-// NOTE: See note in cohort_schedule.h:CohortSchedule::Event for why
-// the cast is needed here.
 void CohortSchedule::clear_times(size_t species_index) {
   events_iterator e = events.begin();
   while (e != events.end()) {
@@ -125,7 +124,7 @@ void CohortSchedule::pop() {
   queue.pop_front();
 }
 
-CohortSchedule::Event CohortSchedule::next_event() const {
+CohortScheduleEvent CohortSchedule::next_event() const {
   if (queue.empty()) {
     Rcpp::stop("All events completed");
   }
@@ -137,12 +136,12 @@ size_t CohortSchedule::remaining() const {
 }
 
 // * R interface
-void CohortSchedule::r_clear_times(size_t species_index) {
-  clear_times(util::check_bounds_r(species_index, n_species));
+void CohortSchedule::r_clear_times(util::count species_index) {
+  clear_times(species_index.check_bounds(n_species));
 }
 
 void CohortSchedule::r_set_times(std::vector<double> times_,
-				 size_t species_index) {
+				 util::count species_index) {
   if (!util::is_sorted(times_.begin(), times_.end())) {
     Rcpp::stop("Times must be sorted (increasing)");
   }
@@ -155,11 +154,11 @@ void CohortSchedule::r_set_times(std::vector<double> times_,
   if (times_.back() > max_time) {
     Rcpp::stop("Times cannot be greater than max_time");
   }
-  set_times(times_, util::check_bounds_r(species_index, n_species));
+  set_times(times_, species_index.check_bounds(n_species));
 }
 
-std::vector<double> CohortSchedule::r_times(size_t species_index) const {
-  return times(util::check_bounds_r(species_index, n_species));
+std::vector<double> CohortSchedule::r_times(util::count species_index) const {
+  return times(species_index.check_bounds(n_species));
 }
 
 double CohortSchedule::r_max_time() const {
@@ -226,47 +225,20 @@ void CohortSchedule::r_set_use_ode_times(bool x) {
   reset();
 }
 
-Rcpp::List CohortSchedule::r_get_state() const {
+SEXP CohortSchedule::r_all_times() const {
   Rcpp::List times_;
   for (size_t i = 0; i < n_species; ++i) {
     times_.push_back(times(i));
   }
-  return Rcpp::List::create(Rcpp::_["times"]     = times_,
-			    Rcpp::_["ode_times"] = ode_times,
-			    Rcpp::_["remaining"] = remaining());
+  return Rcpp::wrap(times_);
 }
 
-void CohortSchedule::r_set_state(Rcpp::List x) {
-  Rcpp::List times_ = x["times"];
-  std::vector<double> ode_times_ = x["ode_times"];
-  size_t remaining_ = Rcpp::as<size_t>(x["remaining"]);
-  util::check_length(static_cast<size_t>(times_.size()), n_species);
-  Rcpp::List::iterator it = times_.begin();
-  for (size_t i = 0; i < n_species; ++i) {
-    set_times(*it++, i);
-  }
-  if (!ode_times_.empty()) {
-    r_set_ode_times(ode_times_);
-  }
-  // Then advance the schedule to put it back in the same place:
-  while (remaining() > remaining_) {
-    pop();
-  }
-}
-
-Rcpp::List CohortSchedule::r_all_times() const {
-  Rcpp::List times_;
-  for (size_t i = 0; i < n_species; ++i) {
-    times_.push_back(times(i));
-  }
-  return times_;
-}
-
-void CohortSchedule::r_set_all_times(Rcpp::List x) {
+void CohortSchedule::r_set_all_times(SEXP rx) {
+  Rcpp::List x(Rcpp::as<Rcpp::List>(rx));
   // Ensure that we can get all the times out:
   std::vector< std::vector<double> > new_times;
   for (Rcpp::List::iterator el = x.begin(); el != x.end(); ++el) {
-    new_times.push_back(Rcpp::as< std::vector<double> >(*el));
+    new_times.push_back(Rcpp::as<std::vector<double> >(*el));
   }
   util::check_length(new_times.size(), n_species);
   for (size_t i = 0; i < n_species; ++i) {

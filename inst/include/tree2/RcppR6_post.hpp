@@ -20,6 +20,10 @@ template <> inline std::string   class_name_r<tree2::CohortScheduleEvent >() {re
 template <> inline std::string   package_name<tree2::CohortScheduleEvent >() {return "tree2";}
 template <> inline std::string generator_name<tree2::CohortScheduleEvent >() {return ".R6_CohortScheduleEvent";}
 
+template <> inline std::string   class_name_r<tree2::CohortSchedule >() {return "CohortSchedule";}
+template <> inline std::string   package_name<tree2::CohortSchedule >() {return "tree2";}
+template <> inline std::string generator_name<tree2::CohortSchedule >() {return ".R6_CohortSchedule";}
+
 template <> inline std::string   class_name_r<tree2::Disturbance >() {return "Disturbance";}
 template <> inline std::string   package_name<tree2::Disturbance >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Disturbance >() {return ".R6_Disturbance";}
@@ -75,6 +79,13 @@ template <> inline SEXP wrap(const tree2::CohortScheduleEvent& x) {
 }
 template <> inline tree2::CohortScheduleEvent as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent>(x));
+}
+
+template <> inline SEXP wrap(const tree2::CohortSchedule& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::CohortSchedule>(x));
+}
+template <> inline tree2::CohortSchedule as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::CohortSchedule>(x));
 }
 
 template <> inline SEXP wrap(const tree2::Disturbance& x) {

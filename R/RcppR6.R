@@ -155,6 +155,103 @@ OdeSystem <- function(T) {
                   }
                 }))
 
+##' Schedule of cohort introduction times
+##' @param n_species number of species
+##' @export
+`CohortSchedule` <- function(n_species) {
+  CohortSchedule__ctor(n_species)
+}
+.R6_CohortSchedule <-
+  R6::R6Class("CohortSchedule",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                expand = function(n_extra, times) {
+                  CohortSchedule__expand(self, n_extra, times)
+                },
+                clear_times = function(species_index) {
+                  CohortSchedule__clear_times(self, species_index)
+                },
+                clear_ode_times = function() {
+                  CohortSchedule__clear_ode_times(self)
+                },
+                set_times = function(times, species_index) {
+                  CohortSchedule__set_times(self, times, species_index)
+                },
+                times = function(species_index) {
+                  CohortSchedule__times(self, species_index)
+                },
+                reset = function() {
+                  CohortSchedule__reset(self)
+                },
+                pop = function() {
+                  CohortSchedule__pop(self)
+                },
+                copy = function() {
+                  CohortSchedule__copy(self)
+                }),
+              active=list(
+                size = function(value) {
+                  if (missing(value)) {
+                    CohortSchedule__size__get(self)
+                  } else {
+                    stop("CohortSchedule$size is read-only")
+                  }
+                },
+                n_species = function(value) {
+                  if (missing(value)) {
+                    CohortSchedule__n_species__get(self)
+                  } else {
+                    stop("CohortSchedule$n_species is read-only")
+                  }
+                },
+                next_event = function(value) {
+                  if (missing(value)) {
+                    CohortSchedule__next_event__get(self)
+                  } else {
+                    stop("CohortSchedule$next_event is read-only")
+                  }
+                },
+                remaining = function(value) {
+                  if (missing(value)) {
+                    CohortSchedule__remaining__get(self)
+                  } else {
+                    stop("CohortSchedule$remaining is read-only")
+                  }
+                },
+                max_time = function(value) {
+                  if (missing(value)) {
+                    CohortSchedule__max_time__get(self)
+                  } else {
+                    CohortSchedule__max_time__set(self, value)
+                  }
+                },
+                ode_times = function(value) {
+                  if (missing(value)) {
+                    CohortSchedule__ode_times__get(self)
+                  } else {
+                    CohortSchedule__ode_times__set(self, value)
+                  }
+                },
+                use_ode_times = function(value) {
+                  if (missing(value)) {
+                    CohortSchedule__use_ode_times__get(self)
+                  } else {
+                    CohortSchedule__use_ode_times__set(self, value)
+                  }
+                },
+                all_times = function(value) {
+                  if (missing(value)) {
+                    CohortSchedule__all_times__get(self)
+                  } else {
+                    CohortSchedule__all_times__set(self, value)
+                  }
+                }))
+
 ##' Disturbance control object
 ##' @param mean_interval Mean disturbance interval in years
 ##' @export

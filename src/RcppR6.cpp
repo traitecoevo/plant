@@ -109,6 +109,99 @@ size_t CohortScheduleEvent__species_index_raw__get(tree2::RcppR6::RcppR6<tree2::
 
 
 // [[Rcpp::export]]
+tree2::CohortSchedule CohortSchedule__ctor(size_t n_species) {
+  return tree2::CohortSchedule(n_species);
+}
+// [[Rcpp::export]]
+tree2::CohortSchedule CohortSchedule__expand(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, size_t n_extra, std::vector<double> times) {
+  return obj_->expand(n_extra, times);
+}
+// [[Rcpp::export]]
+void CohortSchedule__clear_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, util::count species_index) {
+  obj_->clear_times(species_index);
+}
+// [[Rcpp::export]]
+void CohortSchedule__clear_ode_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  obj_->r_clear_ode_times();
+}
+// [[Rcpp::export]]
+void CohortSchedule__set_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, std::vector<double> times, util::count species_index) {
+  obj_->r_set_times(times, species_index);
+}
+// [[Rcpp::export]]
+std::vector<double> CohortSchedule__times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, util::count species_index) {
+  return obj_->r_times(species_index);
+}
+// [[Rcpp::export]]
+void CohortSchedule__reset(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  obj_->reset();
+}
+// [[Rcpp::export]]
+void CohortSchedule__pop(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  obj_->pop();
+}
+// [[Rcpp::export]]
+tree2::CohortSchedule CohortSchedule__copy(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  return obj_->r_copy();
+}
+// [[Rcpp::export]]
+size_t CohortSchedule__size__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  return obj_->size();
+}
+
+// [[Rcpp::export]]
+size_t CohortSchedule__n_species__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  return obj_->get_n_species();
+}
+
+// [[Rcpp::export]]
+tree2::CohortScheduleEvent CohortSchedule__next_event__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  return obj_->next_event();
+}
+
+// [[Rcpp::export]]
+size_t CohortSchedule__remaining__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  return obj_->remaining();
+}
+
+// [[Rcpp::export]]
+double CohortSchedule__max_time__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  return obj_->r_max_time();
+}
+// [[Rcpp::export]]
+void CohortSchedule__max_time__set(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, double value) {
+  obj_->r_set_max_time(value);
+}
+
+// [[Rcpp::export]]
+std::vector<double> CohortSchedule__ode_times__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  return obj_->r_ode_times();
+}
+// [[Rcpp::export]]
+void CohortSchedule__ode_times__set(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, std::vector<double> value) {
+  obj_->r_set_ode_times(value);
+}
+
+// [[Rcpp::export]]
+bool CohortSchedule__use_ode_times__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  return obj_->r_use_ode_times();
+}
+// [[Rcpp::export]]
+void CohortSchedule__use_ode_times__set(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, bool value) {
+  obj_->r_set_use_ode_times(value);
+}
+
+// [[Rcpp::export]]
+SEXP CohortSchedule__all_times__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
+  return obj_->r_all_times();
+}
+// [[Rcpp::export]]
+void CohortSchedule__all_times__set(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, SEXP value) {
+  obj_->r_set_all_times(value);
+}
+
+
+// [[Rcpp::export]]
 tree2::Disturbance Disturbance__ctor(double mean_interval) {
   return tree2::Disturbance(mean_interval);
 }

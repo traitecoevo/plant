@@ -14,6 +14,7 @@ template <typename T> class RcppR6;
 namespace ode { namespace test { class Lorenz; } }
 
 namespace tree2 { class CohortScheduleEvent; }
+namespace tree2 { class CohortSchedule; }
 namespace tree2 { class Disturbance; }
 namespace tree2 { struct Control; }
 namespace tree2 { struct Strategy; }
@@ -33,6 +34,9 @@ template <> ode::OdeSystem<ode::test::Lorenz> as(SEXP);
 
 template <> SEXP wrap(const tree2::CohortScheduleEvent&);
 template <> tree2::CohortScheduleEvent as(SEXP);
+
+template <> SEXP wrap(const tree2::CohortSchedule&);
+template <> tree2::CohortSchedule as(SEXP);
 
 template <> SEXP wrap(const tree2::Disturbance&);
 template <> tree2::Disturbance as(SEXP);
