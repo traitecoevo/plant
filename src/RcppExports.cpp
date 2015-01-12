@@ -443,3 +443,17 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Parameters__ctor
+SEXP Parameters__ctor();
+RcppExport SEXP tree2_Parameters__ctor() {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        SEXP __result = Parameters__ctor();
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}

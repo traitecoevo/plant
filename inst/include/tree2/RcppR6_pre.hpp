@@ -16,6 +16,7 @@ namespace ode { namespace test { class Lorenz; } }
 namespace tree2 { class Disturbance; }
 namespace tree2 { struct Control; }
 namespace tree2 { struct Strategy; }
+namespace tree2 { struct Parameters; }
 
 namespace Rcpp {
 template <typename T> SEXP wrap(const tree2::RcppR6::RcppR6<T>&);
@@ -40,6 +41,9 @@ template <> tree2::Control as(SEXP);
 
 template <> SEXP wrap(const tree2::Strategy&);
 template <> tree2::Strategy as(SEXP);
+
+template <> SEXP wrap(const tree2::Parameters&);
+template <> tree2::Parameters as(SEXP);
 }
 
 #endif

@@ -117,3 +117,7 @@ Strategy__ctor <- function() {
     .Call('tree2_Strategy__ctor', PACKAGE = 'tree2')
 }
 
+Parameters__ctor <- function() {
+    .Call('tree2_Parameters__ctor', PACKAGE = 'tree2')
+}
+

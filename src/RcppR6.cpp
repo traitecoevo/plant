@@ -134,3 +134,8 @@ SEXP Control__ctor() {
 SEXP Strategy__ctor() {
   return Rcpp::wrap(tree2::Strategy());
 }
+
+// [[Rcpp::export]]
+SEXP Parameters__ctor() {
+  return Rcpp::wrap(tree2::Parameters());
+}

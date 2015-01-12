@@ -2,6 +2,7 @@
 
 export(Control)
 export(Disturbance)
+export(Parameters)
 export(Strategy)
 importFrom(R6,R6Class)
 importFrom(Rcpp,evalCpp)

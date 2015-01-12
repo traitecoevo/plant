@@ -198,3 +198,24 @@ Strategy:
     - c_d3: double
     #    - height_0: double
     - control: "tree2::Control"
+
+Parameters:
+  forward_declare: struct
+  name_cpp: "tree2::Parameters"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - c_ext: double
+    - patch_area: double
+    - Pi_0: double
+    - n_patches: size_t
+    - strategies: "std::vector<tree2::Strategy>"
+    - seed_rain: "std::vector<double>"
+    - is_resident: "std::vector<bool>"
+    - disturbance: "tree2::Disturbance"
+    - control: "tree2::Control"
+    - strategy_default: "tree2::Strategy"
