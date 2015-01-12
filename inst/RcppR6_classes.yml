@@ -290,3 +290,24 @@ QK:
     last_error: {type: double, access: member, name_cpp: get_last_error}
     last_area_abs: {type: double, access: member, name_cpp: get_last_area_abs}
     last_area_asc: {type: double, access: member, name_cpp: get_last_area_asc}
+
+QAG:
+  forward_declare: true
+  name_cpp: "quadrature::QAG"
+  constructor:
+    args: [rule: size_t, max_iterations: size_t, atol: double, rtol: double]
+  methods:
+    integrate:
+      return_type: double
+      name_cpp: r_integrate
+      args: [f: SEXP, a: double, b: double]
+    integrate_with_intervals:
+      return_type: double
+      name_cpp: r_integrate_with_intervals
+      args: [f: SEXP, intervals: SEXP]
+  active:
+    last_area: {type: double, access: member, name_cpp: get_last_area}
+    last_error: {type: double, access: member, name_cpp: get_last_error}
+    last_iterations: {type: size_t, access: member, name_cpp: get_last_iterations}
+    last_intervals: {type: "quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
+    is_adaptive: {type: bool, access: member}

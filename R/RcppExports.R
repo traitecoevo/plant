@@ -245,3 +245,35 @@ QK__last_area_asc__get <- function(obj_) {
     .Call('tree2_QK__last_area_asc__get', PACKAGE = 'tree2', obj_)
 }
 
+QAG__ctor <- function(rule, max_iterations, atol, rtol) {
+    .Call('tree2_QAG__ctor', PACKAGE = 'tree2', rule, max_iterations, atol, rtol)
+}
+
+QAG__integrate <- function(obj_, f, a, b) {
+    .Call('tree2_QAG__integrate', PACKAGE = 'tree2', obj_, f, a, b)
+}
+
+QAG__integrate_with_intervals <- function(obj_, f, intervals) {
+    .Call('tree2_QAG__integrate_with_intervals', PACKAGE = 'tree2', obj_, f, intervals)
+}
+
+QAG__last_area__get <- function(obj_) {
+    .Call('tree2_QAG__last_area__get', PACKAGE = 'tree2', obj_)
+}
+
+QAG__last_error__get <- function(obj_) {
+    .Call('tree2_QAG__last_error__get', PACKAGE = 'tree2', obj_)
+}
+
+QAG__last_iterations__get <- function(obj_) {
+    .Call('tree2_QAG__last_iterations__get', PACKAGE = 'tree2', obj_)
+}
+
+QAG__last_intervals__get <- function(obj_) {
+    .Call('tree2_QAG__last_intervals__get', PACKAGE = 'tree2', obj_)
+}
+
+QAG__is_adaptive__get <- function(obj_) {
+    .Call('tree2_QAG__is_adaptive__get', PACKAGE = 'tree2', obj_)
+}
+

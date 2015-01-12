@@ -110,6 +110,19 @@ std::string to_string(T x) {
   return o.str();
 }
 
+void stop(const std::string&);
+
+template <class ForwardIterator>
+void rescale(ForwardIterator first, ForwardIterator last,
+             double min_old, double max_old,
+             double min_new, double max_new) {
+  const double scale = (max_new - min_new) / (max_old - min_old);
+  while (first != last) {
+    *first = min_new + (*first - min_old) * scale;
+    ++first;
+  }
+}
+
 }
 
 namespace Rcpp {

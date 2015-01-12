@@ -40,6 +40,10 @@ size_t check_bounds_r(size_t idx, size_t size) {
   return idx - 1;
 }
 
+void stop(const std::string& msg) {
+  Rcpp::stop(msg);
+}
+
 }
 
 namespace Rcpp {

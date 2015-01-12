@@ -278,3 +278,41 @@ double QK__last_area_asc__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_) {
   return obj_->get_last_area_asc();
 }
 
+
+// [[Rcpp::export]]
+quadrature::QAG QAG__ctor(size_t rule, size_t max_iterations, double atol, double rtol) {
+  return quadrature::QAG(rule, max_iterations, atol, rtol);
+}
+// [[Rcpp::export]]
+double QAG__integrate(tree2::RcppR6::RcppR6<quadrature::QAG> obj_, SEXP f, double a, double b) {
+  return obj_->r_integrate(f, a, b);
+}
+// [[Rcpp::export]]
+double QAG__integrate_with_intervals(tree2::RcppR6::RcppR6<quadrature::QAG> obj_, SEXP f, SEXP intervals) {
+  return obj_->r_integrate_with_intervals(f, intervals);
+}
+// [[Rcpp::export]]
+double QAG__last_area__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
+  return obj_->get_last_area();
+}
+
+// [[Rcpp::export]]
+double QAG__last_error__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
+  return obj_->get_last_error();
+}
+
+// [[Rcpp::export]]
+size_t QAG__last_iterations__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
+  return obj_->get_last_iterations();
+}
+
+// [[Rcpp::export]]
+quadrature::intervals_type QAG__last_intervals__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
+  return obj_->get_last_intervals();
+}
+
+// [[Rcpp::export]]
+bool QAG__is_adaptive__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
+  return obj_->is_adaptive();
+}
+

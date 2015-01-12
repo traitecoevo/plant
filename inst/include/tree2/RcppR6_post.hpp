@@ -43,6 +43,10 @@ template <> inline std::string generator_name<tree2::Parameters >() {return "";}
 template <> inline std::string   class_name_r<quadrature::QK >() {return "QK";}
 template <> inline std::string   package_name<quadrature::QK >() {return "tree2";}
 template <> inline std::string generator_name<quadrature::QK >() {return ".R6_QK";}
+
+template <> inline std::string   class_name_r<quadrature::QAG >() {return "QAG";}
+template <> inline std::string   package_name<quadrature::QAG >() {return "tree2";}
+template <> inline std::string generator_name<quadrature::QAG >() {return ".R6_QAG";}
 }
 }
 }
@@ -464,6 +468,13 @@ template <> inline SEXP wrap(const quadrature::QK& x) {
 }
 template <> inline quadrature::QK as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<quadrature::QK>(x));
+}
+
+template <> inline SEXP wrap(const quadrature::QAG& x) {
+  return wrap(tree2::RcppR6::RcppR6<quadrature::QAG>(x));
+}
+template <> inline quadrature::QAG as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<quadrature::QAG>(x));
 }
 }
 

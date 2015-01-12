@@ -386,6 +386,62 @@ Parameters <- function(..., values=list(...)) {
                   }
                 }))
 
+
+`QAG` <- function(rule, max_iterations, atol, rtol) {
+  QAG__ctor(rule, max_iterations, atol, rtol)
+}
+.R6_QAG <-
+  R6::R6Class("QAG",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                integrate = function(f, a, b) {
+                  QAG__integrate(self, f, a, b)
+                },
+                integrate_with_intervals = function(f, intervals) {
+                  QAG__integrate_with_intervals(self, f, intervals)
+                }),
+              active=list(
+                last_area = function(value) {
+                  if (missing(value)) {
+                    QAG__last_area__get(self)
+                  } else {
+                    stop("QAG$last_area is read-only")
+                  }
+                },
+                last_error = function(value) {
+                  if (missing(value)) {
+                    QAG__last_error__get(self)
+                  } else {
+                    stop("QAG$last_error is read-only")
+                  }
+                },
+                last_iterations = function(value) {
+                  if (missing(value)) {
+                    QAG__last_iterations__get(self)
+                  } else {
+                    stop("QAG$last_iterations is read-only")
+                  }
+                },
+                last_intervals = function(value) {
+                  if (missing(value)) {
+                    QAG__last_intervals__get(self)
+                  } else {
+                    stop("QAG$last_intervals is read-only")
+                  }
+                },
+                is_adaptive = function(value) {
+                  if (missing(value)) {
+                    QAG__is_adaptive__get(self)
+                  } else {
+                    stop("QAG$is_adaptive is read-only")
+                  }
+                }))
+
 ## This section of code is only included where templated classes are
 ## included.  Don't rely on the approach taken here, as it may change
 ## soon.

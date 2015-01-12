@@ -911,3 +911,131 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// QAG__ctor
+quadrature::QAG QAG__ctor(size_t rule, size_t max_iterations, double atol, double rtol);
+RcppExport SEXP tree2_QAG__ctor(SEXP ruleSEXP, SEXP max_iterationsSEXP, SEXP atolSEXP, SEXP rtolSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< size_t >::type rule(ruleSEXP );
+        Rcpp::traits::input_parameter< size_t >::type max_iterations(max_iterationsSEXP );
+        Rcpp::traits::input_parameter< double >::type atol(atolSEXP );
+        Rcpp::traits::input_parameter< double >::type rtol(rtolSEXP );
+        quadrature::QAG __result = QAG__ctor(rule, max_iterations, atol, rtol);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QAG__integrate
+double QAG__integrate(tree2::RcppR6::RcppR6<quadrature::QAG> obj_, SEXP f, double a, double b);
+RcppExport SEXP tree2_QAG__integrate(SEXP obj_SEXP, SEXP fSEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QAG> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< SEXP >::type f(fSEXP );
+        Rcpp::traits::input_parameter< double >::type a(aSEXP );
+        Rcpp::traits::input_parameter< double >::type b(bSEXP );
+        double __result = QAG__integrate(obj_, f, a, b);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QAG__integrate_with_intervals
+double QAG__integrate_with_intervals(tree2::RcppR6::RcppR6<quadrature::QAG> obj_, SEXP f, SEXP intervals);
+RcppExport SEXP tree2_QAG__integrate_with_intervals(SEXP obj_SEXP, SEXP fSEXP, SEXP intervalsSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QAG> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< SEXP >::type f(fSEXP );
+        Rcpp::traits::input_parameter< SEXP >::type intervals(intervalsSEXP );
+        double __result = QAG__integrate_with_intervals(obj_, f, intervals);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QAG__last_area__get
+double QAG__last_area__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_);
+RcppExport SEXP tree2_QAG__last_area__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QAG> >::type obj_(obj_SEXP );
+        double __result = QAG__last_area__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QAG__last_error__get
+double QAG__last_error__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_);
+RcppExport SEXP tree2_QAG__last_error__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QAG> >::type obj_(obj_SEXP );
+        double __result = QAG__last_error__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QAG__last_iterations__get
+size_t QAG__last_iterations__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_);
+RcppExport SEXP tree2_QAG__last_iterations__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QAG> >::type obj_(obj_SEXP );
+        size_t __result = QAG__last_iterations__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QAG__last_intervals__get
+quadrature::intervals_type QAG__last_intervals__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_);
+RcppExport SEXP tree2_QAG__last_intervals__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QAG> >::type obj_(obj_SEXP );
+        quadrature::intervals_type __result = QAG__last_intervals__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QAG__is_adaptive__get
+bool QAG__is_adaptive__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_);
+RcppExport SEXP tree2_QAG__is_adaptive__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QAG> >::type obj_(obj_SEXP );
+        bool __result = QAG__is_adaptive__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
