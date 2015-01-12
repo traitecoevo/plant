@@ -245,15 +245,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // CohortScheduleEvent__ctor
-tree2::CohortSchedule::Event CohortScheduleEvent__ctor(double introduction, size_t species_index);
+tree2::CohortScheduleEvent CohortScheduleEvent__ctor(double introduction, util::count species_index);
 RcppExport SEXP tree2_CohortScheduleEvent__ctor(SEXP introductionSEXP, SEXP species_indexSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< double >::type introduction(introductionSEXP );
-        Rcpp::traits::input_parameter< size_t >::type species_index(species_indexSEXP );
-        tree2::CohortSchedule::Event __result = CohortScheduleEvent__ctor(introduction, species_index);
+        Rcpp::traits::input_parameter< util::count >::type species_index(species_indexSEXP );
+        tree2::CohortScheduleEvent __result = CohortScheduleEvent__ctor(introduction, species_index);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -261,28 +261,41 @@ BEGIN_RCPP
 END_RCPP
 }
 // CohortScheduleEvent__species_index__get
-size_t CohortScheduleEvent__species_index__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> obj_);
+util::count CohortScheduleEvent__species_index__get(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_);
 RcppExport SEXP tree2_CohortScheduleEvent__species_index__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> >::type obj_(obj_SEXP );
-        size_t __result = CohortScheduleEvent__species_index__get(obj_);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> >::type obj_(obj_SEXP );
+        util::count __result = CohortScheduleEvent__species_index__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
+// CohortScheduleEvent__species_index__set
+void CohortScheduleEvent__species_index__set(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_, util::count value);
+RcppExport SEXP tree2_CohortScheduleEvent__species_index__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< util::count >::type value(valueSEXP );
+        CohortScheduleEvent__species_index__set(obj_, value);
+    }
+    return R_NilValue;
+END_RCPP
+}
 // CohortScheduleEvent__times__get
-std::vector<double> CohortScheduleEvent__times__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> obj_);
+std::vector<double> CohortScheduleEvent__times__get(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_);
 RcppExport SEXP tree2_CohortScheduleEvent__times__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> >::type obj_(obj_SEXP );
         std::vector<double> __result = CohortScheduleEvent__times__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
@@ -291,13 +304,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // CohortScheduleEvent__time_introduction__get
-double CohortScheduleEvent__time_introduction__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> obj_);
+double CohortScheduleEvent__time_introduction__get(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_);
 RcppExport SEXP tree2_CohortScheduleEvent__time_introduction__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> >::type obj_(obj_SEXP );
         double __result = CohortScheduleEvent__time_introduction__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
@@ -306,14 +319,29 @@ BEGIN_RCPP
 END_RCPP
 }
 // CohortScheduleEvent__time_end__get
-double CohortScheduleEvent__time_end__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> obj_);
+double CohortScheduleEvent__time_end__get(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_);
 RcppExport SEXP tree2_CohortScheduleEvent__time_end__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::CohortSchedule::Event> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> >::type obj_(obj_SEXP );
         double __result = CohortScheduleEvent__time_end__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// CohortScheduleEvent__species_index_raw__get
+size_t CohortScheduleEvent__species_index_raw__get(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_);
+RcppExport SEXP tree2_CohortScheduleEvent__species_index_raw__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> >::type obj_(obj_SEXP );
+        size_t __result = CohortScheduleEvent__species_index_raw__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

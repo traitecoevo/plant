@@ -73,6 +73,10 @@ CohortScheduleEvent__species_index__get <- function(obj_) {
     .Call('tree2_CohortScheduleEvent__species_index__get', PACKAGE = 'tree2', obj_)
 }
 
+CohortScheduleEvent__species_index__set <- function(obj_, value) {
+    invisible(.Call('tree2_CohortScheduleEvent__species_index__set', PACKAGE = 'tree2', obj_, value))
+}
+
 CohortScheduleEvent__times__get <- function(obj_) {
     .Call('tree2_CohortScheduleEvent__times__get', PACKAGE = 'tree2', obj_)
 }
@@ -83,6 +87,10 @@ CohortScheduleEvent__time_introduction__get <- function(obj_) {
 
 CohortScheduleEvent__time_end__get <- function(obj_) {
     .Call('tree2_CohortScheduleEvent__time_end__get', PACKAGE = 'tree2', obj_)
+}
+
+CohortScheduleEvent__species_index_raw__get <- function(obj_) {
+    .Call('tree2_CohortScheduleEvent__species_index_raw__get', PACKAGE = 'tree2', obj_)
 }
 
 Disturbance__ctor <- function(mean_interval) {

@@ -4,10 +4,7 @@
 
 #include <tree2/ode_bits.h>
 
-// This one needs including because I don't know how to forward
-// declare a class within a class.  Could be simple, but I don't want
-// to try to work it out.
-#include <tree2/cohort_schedule.h>
+#include <tree2/util.h>
 
 // Include this early on.  It can be either after classes have been
 // declared (but before Rcpp has been loaded) or first.  This file will
@@ -15,6 +12,8 @@
 // you use, but this might be fragile.
 #include <tree2/RcppR6_pre.hpp>
 
+// TODO: Merge all these together into another _pre file I think.
+// There are also custom as/wrap things in util (util::count).
 // Extra shit:
 namespace Rcpp {
 SEXP wrap(const ode::state_saver<std::vector<double> >&);
@@ -32,6 +31,8 @@ SEXP wrap(const ode::state_saver<std::vector<double> >&);
 
 #include <Rcpp.h>
 #include <tree2/lorenz.h>
+
+#include <tree2/cohort_schedule.h>
 
 // This line can safely be the last line in the file, but may go any
 // point after RcppR6_pre.hpp is included.

@@ -1,6 +1,5 @@
 #include <tree2/util.h>
 #include <Rcpp.h>
-
 namespace util {
 
 void check_length(size_t received, size_t expected) {
@@ -28,4 +27,13 @@ size_t check_bounds_r(size_t idx, size_t size) {
   return idx - 1;
 }
 
+}
+
+namespace Rcpp {
+template <> SEXP wrap(const util::count& x) {
+  return Rcpp::wrap(util::base_0_to_1<size_t, int>(x.x));
+}
+template <> util::count as(SEXP x) {
+  return util::base_1_to_0<int, size_t>(Rcpp::as<int>(x));
+}
 }

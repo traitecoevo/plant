@@ -4,6 +4,7 @@
 
 #include <stddef.h> // size_t
 #include <sstream>  // std::stringstream
+#include <RcppCommon.h>
 
 namespace util {
 
@@ -63,6 +64,12 @@ T_to base_0_to_1(T_from x) {
   return static_cast<T_to>(base_0_to_1<T_from>(x));
 }
 
+struct count {
+  count(size_t x_) : x(x_) {}
+  size_t x;
+  operator size_t() {return x;}
+};
+
 // Based on C++11's is_sorted
 template <class ForwardIterator>
 bool is_sorted(ForwardIterator first, ForwardIterator last) {
@@ -102,6 +109,11 @@ std::string to_string(T x) {
   return o.str();
 }
 
+}
+
+namespace Rcpp {
+template <> SEXP wrap(const util::count&);
+template <> util::count as(SEXP);
 }
 
 #endif

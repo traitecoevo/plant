@@ -15,9 +15,33 @@
 
 namespace tree2 {
 
+// This could be done via a list object, but I think this is OK for
+// now.  The main reason for keeping this as a separate class is it
+// only makes sense to have a nontrivial constructor, and that's not
+// yet supported for RcppR6 lists.
+class CohortScheduleEvent {
+public:
+  CohortScheduleEvent(double introduction, size_t species_index_)
+    : species_index(species_index_) {
+    times.push_back(introduction);
+  }
+  size_t species_index_raw() const {
+    return species_index;
+  }
+  double time_introduction() const {
+    return times.front();
+  }
+  double time_end() const {
+    return times.back();
+  }
+
+  size_t species_index;
+  std::vector<double> times;
+};
+
 class CohortSchedule {
 public:
-  class Event;
+  typedef CohortScheduleEvent Event;
   CohortSchedule(size_t n_species_);
   size_t size() const;
   size_t get_n_species() const;
@@ -42,6 +66,8 @@ public:
   void r_clear_ode_times();
   bool r_use_ode_times() const;
   void r_set_use_ode_times(bool x);
+  // TODO: swap Rcpp::List out for SEXP so that we can drop the Rcpp.h
+  // and include this file earlier.
   Rcpp::List r_get_state() const;
   void r_set_state(Rcpp::List x);
   Rcpp::List r_all_times() const;
@@ -62,26 +88,6 @@ private:
   double max_time;
   std::vector<double> ode_times;
   bool use_ode_times;
-};
-
-class CohortSchedule::Event {
-public:
-  Event(double introduction, size_t species_index_)
-    : species_index(species_index_) {
-    times.push_back(introduction);
-  }
-  int r_species_index() const {
-    return util::base_0_to_1<size_t,int>(species_index);
-  }
-  double time_introduction() const {
-    return times.front();
-  }
-  double time_end() const {
-    return times.back();
-  }
-
-  size_t species_index;
-  std::vector<double> times;
 };
 
 }

@@ -123,7 +123,7 @@ OdeSystem <- function(T) {
                   if (missing(value)) {
                     CohortScheduleEvent__species_index__get(self)
                   } else {
-                    stop("CohortScheduleEvent$species_index is read-only")
+                    CohortScheduleEvent__species_index__set(self, value)
                   }
                 },
                 times = function(value) {
@@ -145,6 +145,13 @@ OdeSystem <- function(T) {
                     CohortScheduleEvent__time_end__get(self)
                   } else {
                     stop("CohortScheduleEvent$time_end is read-only")
+                  }
+                },
+                species_index_raw = function(value) {
+                  if (missing(value)) {
+                    CohortScheduleEvent__species_index_raw__get(self)
+                  } else {
+                    stop("CohortScheduleEvent$species_index_raw is read-only")
                   }
                 }))
 
