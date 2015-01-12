@@ -39,6 +39,10 @@ template <> inline std::string generator_name<tree2::Strategy >() {return "";}
 template <> inline std::string   class_name_r<tree2::Parameters >() {return "Parameters";}
 template <> inline std::string   package_name<tree2::Parameters >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Parameters >() {return "";}
+
+template <> inline std::string   class_name_r<quadrature::QK >() {return "QK";}
+template <> inline std::string   package_name<quadrature::QK >() {return "tree2";}
+template <> inline std::string generator_name<quadrature::QK >() {return ".R6_QK";}
 }
 }
 }
@@ -453,6 +457,13 @@ template <> inline tree2::Parameters as(SEXP x) {
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<tree2::Strategy >(xl["strategy_default"]);
   return ret;
+}
+
+template <> inline SEXP wrap(const quadrature::QK& x) {
+  return wrap(tree2::RcppR6::RcppR6<quadrature::QK>(x));
+}
+template <> inline quadrature::QK as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<quadrature::QK>(x));
 }
 }
 

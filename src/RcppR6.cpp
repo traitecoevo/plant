@@ -241,3 +241,40 @@ SEXP Strategy__ctor() {
 SEXP Parameters__ctor() {
   return Rcpp::wrap(tree2::Parameters());
 }
+
+// [[Rcpp::export]]
+quadrature::QK QK__ctor(size_t rule) {
+  return quadrature::QK(rule);
+}
+// [[Rcpp::export]]
+double QK__integrate(tree2::RcppR6::RcppR6<quadrature::QK> obj_, SEXP f, double a, double b) {
+  return obj_->r_integrate(f, a, b);
+}
+// [[Rcpp::export]]
+std::vector<double> QK__integrate_vector_x(tree2::RcppR6::RcppR6<quadrature::QK> obj_, double a, double b) {
+  return obj_->integrate_vector_x(a, b);
+}
+// [[Rcpp::export]]
+double QK__integrate_vector(tree2::RcppR6::RcppR6<quadrature::QK> obj_, std::vector<double> y, double a, double b) {
+  return obj_->integrate_vector(y, a, b);
+}
+// [[Rcpp::export]]
+double QK__last_area__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_) {
+  return obj_->get_last_area();
+}
+
+// [[Rcpp::export]]
+double QK__last_error__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_) {
+  return obj_->get_last_error();
+}
+
+// [[Rcpp::export]]
+double QK__last_area_abs__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_) {
+  return obj_->get_last_area_abs();
+}
+
+// [[Rcpp::export]]
+double QK__last_area_asc__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_) {
+  return obj_->get_last_area_asc();
+}
+

@@ -213,3 +213,35 @@ Parameters__ctor <- function() {
     .Call('tree2_Parameters__ctor', PACKAGE = 'tree2')
 }
 
+QK__ctor <- function(rule) {
+    .Call('tree2_QK__ctor', PACKAGE = 'tree2', rule)
+}
+
+QK__integrate <- function(obj_, f, a, b) {
+    .Call('tree2_QK__integrate', PACKAGE = 'tree2', obj_, f, a, b)
+}
+
+QK__integrate_vector_x <- function(obj_, a, b) {
+    .Call('tree2_QK__integrate_vector_x', PACKAGE = 'tree2', obj_, a, b)
+}
+
+QK__integrate_vector <- function(obj_, y, a, b) {
+    .Call('tree2_QK__integrate_vector', PACKAGE = 'tree2', obj_, y, a, b)
+}
+
+QK__last_area__get <- function(obj_) {
+    .Call('tree2_QK__last_area__get', PACKAGE = 'tree2', obj_)
+}
+
+QK__last_error__get <- function(obj_) {
+    .Call('tree2_QK__last_error__get', PACKAGE = 'tree2', obj_)
+}
+
+QK__last_area_abs__get <- function(obj_) {
+    .Call('tree2_QK__last_area_abs__get', PACKAGE = 'tree2', obj_)
+}
+
+QK__last_area_asc__get <- function(obj_) {
+    .Call('tree2_QK__last_area_asc__get', PACKAGE = 'tree2', obj_)
+}
+

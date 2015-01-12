@@ -333,6 +333,59 @@ Parameters <- function(..., values=list(...)) {
   ret
 }
 
+##' Gauss-Kronrod Quadrature
+##' @param rule Degree of the rule; valid sizes are 15, 21, 31, 41, 51, 61.
+`QK` <- function(rule) {
+  QK__ctor(rule)
+}
+.R6_QK <-
+  R6::R6Class("QK",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                integrate = function(f, a, b) {
+                  QK__integrate(self, f, a, b)
+                },
+                integrate_vector_x = function(a, b) {
+                  QK__integrate_vector_x(self, a, b)
+                },
+                integrate_vector = function(y, a, b) {
+                  QK__integrate_vector(self, y, a, b)
+                }),
+              active=list(
+                last_area = function(value) {
+                  if (missing(value)) {
+                    QK__last_area__get(self)
+                  } else {
+                    stop("QK$last_area is read-only")
+                  }
+                },
+                last_error = function(value) {
+                  if (missing(value)) {
+                    QK__last_error__get(self)
+                  } else {
+                    stop("QK$last_error is read-only")
+                  }
+                },
+                last_area_abs = function(value) {
+                  if (missing(value)) {
+                    QK__last_area_abs__get(self)
+                  } else {
+                    stop("QK$last_area_abs is read-only")
+                  }
+                },
+                last_area_asc = function(value) {
+                  if (missing(value)) {
+                    QK__last_area_asc__get(self)
+                  } else {
+                    stop("QK$last_area_asc is read-only")
+                  }
+                }))
+
 ## This section of code is only included where templated classes are
 ## included.  Don't rely on the approach taken here, as it may change
 ## soon.

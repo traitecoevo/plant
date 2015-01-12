@@ -265,3 +265,28 @@ Parameters:
     - disturbance: "tree2::Disturbance"
     - control: "tree2::Control"
     - strategy_default: "tree2::Strategy"
+
+QK:
+  forward_declare: true
+  name_cpp: "quadrature::QK"
+  constructor:
+    roxygen: |
+      Gauss-Kronrod Quadrature
+      @param rule Degree of the rule; valid sizes are 15, 21, 31, 41, 51, 61.
+    args: [rule: size_t]
+  methods:
+    integrate:
+      name_cpp: r_integrate
+      args: [f: SEXP, a: double, b: double]
+      return_type: double
+    integrate_vector_x:
+      args: [a: double, b: double]
+      return_type: "std::vector<double>"
+    integrate_vector:
+      args: [y: "std::vector<double>", a: double, b: double]
+      return_type: double
+  active:
+    last_area: {type: double, access: member, name_cpp: get_last_area}
+    last_error: {type: double, access: member, name_cpp: get_last_error}
+    last_area_abs: {type: double, access: member, name_cpp: get_last_area_abs}
+    last_area_asc: {type: double, access: member, name_cpp: get_last_area_asc}

@@ -783,3 +783,131 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// QK__ctor
+quadrature::QK QK__ctor(size_t rule);
+RcppExport SEXP tree2_QK__ctor(SEXP ruleSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< size_t >::type rule(ruleSEXP );
+        quadrature::QK __result = QK__ctor(rule);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QK__integrate
+double QK__integrate(tree2::RcppR6::RcppR6<quadrature::QK> obj_, SEXP f, double a, double b);
+RcppExport SEXP tree2_QK__integrate(SEXP obj_SEXP, SEXP fSEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QK> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< SEXP >::type f(fSEXP );
+        Rcpp::traits::input_parameter< double >::type a(aSEXP );
+        Rcpp::traits::input_parameter< double >::type b(bSEXP );
+        double __result = QK__integrate(obj_, f, a, b);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QK__integrate_vector_x
+std::vector<double> QK__integrate_vector_x(tree2::RcppR6::RcppR6<quadrature::QK> obj_, double a, double b);
+RcppExport SEXP tree2_QK__integrate_vector_x(SEXP obj_SEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QK> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< double >::type a(aSEXP );
+        Rcpp::traits::input_parameter< double >::type b(bSEXP );
+        std::vector<double> __result = QK__integrate_vector_x(obj_, a, b);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QK__integrate_vector
+double QK__integrate_vector(tree2::RcppR6::RcppR6<quadrature::QK> obj_, std::vector<double> y, double a, double b);
+RcppExport SEXP tree2_QK__integrate_vector(SEXP obj_SEXP, SEXP ySEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QK> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP );
+        Rcpp::traits::input_parameter< double >::type a(aSEXP );
+        Rcpp::traits::input_parameter< double >::type b(bSEXP );
+        double __result = QK__integrate_vector(obj_, y, a, b);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QK__last_area__get
+double QK__last_area__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_);
+RcppExport SEXP tree2_QK__last_area__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QK> >::type obj_(obj_SEXP );
+        double __result = QK__last_area__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QK__last_error__get
+double QK__last_error__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_);
+RcppExport SEXP tree2_QK__last_error__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QK> >::type obj_(obj_SEXP );
+        double __result = QK__last_error__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QK__last_area_abs__get
+double QK__last_area_abs__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_);
+RcppExport SEXP tree2_QK__last_area_abs__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QK> >::type obj_(obj_SEXP );
+        double __result = QK__last_area_abs__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// QK__last_area_asc__get
+double QK__last_area_asc__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_);
+RcppExport SEXP tree2_QK__last_area_asc__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<quadrature::QK> >::type obj_(obj_SEXP );
+        double __result = QK__last_area_asc__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}

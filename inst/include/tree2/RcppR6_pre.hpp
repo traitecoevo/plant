@@ -19,6 +19,7 @@ namespace tree2 { class Disturbance; }
 namespace tree2 { struct Control; }
 namespace tree2 { struct Strategy; }
 namespace tree2 { struct Parameters; }
+namespace quadrature { class QK; }
 
 namespace Rcpp {
 template <typename T> SEXP wrap(const tree2::RcppR6::RcppR6<T>&);
@@ -49,6 +50,9 @@ template <> tree2::Strategy as(SEXP);
 
 template <> SEXP wrap(const tree2::Parameters&);
 template <> tree2::Parameters as(SEXP);
+
+template <> SEXP wrap(const quadrature::QK&);
+template <> quadrature::QK as(SEXP);
 }
 
 #endif
