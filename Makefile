@@ -1,7 +1,10 @@
 PACKAGE := $(shell grep '^Package:' DESCRIPTION | sed -E 's/^Package:[[:space:]]+//')
 
 all:
-	Rscript -e 'devtools::compile_dll()'
+# This is probably The Right Way to do this:
+#	Rscript -e 'devtools::compile_dll()'
+# but will overzealosuly compile everything.
+	cd src; R CMD SHLIB *.cpp -o ${PACKAGE}.so
 
 test:
 	Rscript -e 'library(methods); devtools::test()'

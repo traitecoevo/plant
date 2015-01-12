@@ -320,6 +320,101 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Disturbance__ctor
+tree2::Disturbance Disturbance__ctor(double mean_interval);
+RcppExport SEXP tree2_Disturbance__ctor(SEXP mean_intervalSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< double >::type mean_interval(mean_intervalSEXP );
+        tree2::Disturbance __result = Disturbance__ctor(mean_interval);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Disturbance__density
+double Disturbance__density(tree2::RcppR6::RcppR6<tree2::Disturbance> obj_, double time);
+RcppExport SEXP tree2_Disturbance__density(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Disturbance> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< double >::type time(timeSEXP );
+        double __result = Disturbance__density(obj_, time);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Disturbance__pr_survival
+double Disturbance__pr_survival(tree2::RcppR6::RcppR6<tree2::Disturbance> obj_, double time);
+RcppExport SEXP tree2_Disturbance__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Disturbance> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< double >::type time(timeSEXP );
+        double __result = Disturbance__pr_survival(obj_, time);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Disturbance__pr_survival_conditional
+double Disturbance__pr_survival_conditional(tree2::RcppR6::RcppR6<tree2::Disturbance> obj_, double time, double time_start);
+RcppExport SEXP tree2_Disturbance__pr_survival_conditional(SEXP obj_SEXP, SEXP timeSEXP, SEXP time_startSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Disturbance> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< double >::type time(timeSEXP );
+        Rcpp::traits::input_parameter< double >::type time_start(time_startSEXP );
+        double __result = Disturbance__pr_survival_conditional(obj_, time, time_start);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Disturbance__cdf
+double Disturbance__cdf(tree2::RcppR6::RcppR6<tree2::Disturbance> obj_, double time);
+RcppExport SEXP tree2_Disturbance__cdf(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Disturbance> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< double >::type time(timeSEXP );
+        double __result = Disturbance__cdf(obj_, time);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Disturbance__mean_interval__get
+double Disturbance__mean_interval__get(tree2::RcppR6::RcppR6<tree2::Disturbance> obj_);
+RcppExport SEXP tree2_Disturbance__mean_interval__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Disturbance> >::type obj_(obj_SEXP );
+        double __result = Disturbance__mean_interval__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // Control__ctor
 SEXP Control__ctor();
 RcppExport SEXP tree2_Control__ctor() {

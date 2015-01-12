@@ -148,6 +148,42 @@ OdeSystem <- function(T) {
                   }
                 }))
 
+##' Disturbance control object
+##' @param mean_interval Mean disturbance interval in years
+##' @export
+`Disturbance` <- function(mean_interval) {
+  Disturbance__ctor(mean_interval)
+}
+.R6_Disturbance <-
+  R6::R6Class("Disturbance",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                density = function(time) {
+                  Disturbance__density(self, time)
+                },
+                pr_survival = function(time) {
+                  Disturbance__pr_survival(self, time)
+                },
+                pr_survival_conditional = function(time, time_start) {
+                  Disturbance__pr_survival_conditional(self, time, time_start)
+                },
+                cdf = function(time) {
+                  Disturbance__cdf(self, time)
+                }),
+              active=list(
+                mean_interval = function(value) {
+                  if (missing(value)) {
+                    Disturbance__mean_interval__get(self)
+                  } else {
+                    stop("Disturbance$mean_interval is read-only")
+                  }
+                }))
+
 ##' Control parameters that tune various aspects of the numerical solvers.
 ##' @title Control parameters
 ##' @param ...,values Values to initialise the struct with (either as

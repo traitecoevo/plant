@@ -100,6 +100,32 @@ double CohortScheduleEvent__time_end__get(tree2::RcppR6::RcppR6<tree2::CohortSch
 
 
 // [[Rcpp::export]]
+tree2::Disturbance Disturbance__ctor(double mean_interval) {
+  return tree2::Disturbance(mean_interval);
+}
+// [[Rcpp::export]]
+double Disturbance__density(tree2::RcppR6::RcppR6<tree2::Disturbance> obj_, double time) {
+  return obj_->density(time);
+}
+// [[Rcpp::export]]
+double Disturbance__pr_survival(tree2::RcppR6::RcppR6<tree2::Disturbance> obj_, double time) {
+  return obj_->pr_survival(time);
+}
+// [[Rcpp::export]]
+double Disturbance__pr_survival_conditional(tree2::RcppR6::RcppR6<tree2::Disturbance> obj_, double time, double time_start) {
+  return obj_->pr_survival_conditional(time, time_start);
+}
+// [[Rcpp::export]]
+double Disturbance__cdf(tree2::RcppR6::RcppR6<tree2::Disturbance> obj_, double time) {
+  return obj_->cdf(time);
+}
+// [[Rcpp::export]]
+double Disturbance__mean_interval__get(tree2::RcppR6::RcppR6<tree2::Disturbance> obj_) {
+  return obj_->r_mean_interval();
+}
+
+
+// [[Rcpp::export]]
 SEXP Control__ctor() {
   return Rcpp::wrap(tree2::Control());
 }

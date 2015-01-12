@@ -85,6 +85,30 @@ CohortScheduleEvent__time_end__get <- function(obj_) {
     .Call('tree2_CohortScheduleEvent__time_end__get', PACKAGE = 'tree2', obj_)
 }
 
+Disturbance__ctor <- function(mean_interval) {
+    .Call('tree2_Disturbance__ctor', PACKAGE = 'tree2', mean_interval)
+}
+
+Disturbance__density <- function(obj_, time) {
+    .Call('tree2_Disturbance__density', PACKAGE = 'tree2', obj_, time)
+}
+
+Disturbance__pr_survival <- function(obj_, time) {
+    .Call('tree2_Disturbance__pr_survival', PACKAGE = 'tree2', obj_, time)
+}
+
+Disturbance__pr_survival_conditional <- function(obj_, time, time_start) {
+    .Call('tree2_Disturbance__pr_survival_conditional', PACKAGE = 'tree2', obj_, time, time_start)
+}
+
+Disturbance__cdf <- function(obj_, time) {
+    .Call('tree2_Disturbance__cdf', PACKAGE = 'tree2', obj_, time)
+}
+
+Disturbance__mean_interval__get <- function(obj_) {
+    .Call('tree2_Disturbance__mean_interval__get', PACKAGE = 'tree2', obj_)
+}
+
 Control__ctor <- function() {
     .Call('tree2_Control__ctor', PACKAGE = 'tree2')
 }

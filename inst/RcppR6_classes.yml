@@ -55,6 +55,31 @@ CohortScheduleEvent:
     time_introduction: {type: double, access: member}
     time_end: {type: double, access: member}
 
+Disturbance:
+  name_cpp: "tree2::Disturbance"
+  forward_declare: true
+  constructor:
+    roxygen: |
+      Disturbance control object
+      @param mean_interval Mean disturbance interval in years
+      @export
+    args: [mean_interval: double]
+  methods:
+    density:
+      args: [time: double]
+      return_type: double
+    pr_survival:
+      args: [time: double]
+      return_type: double
+    pr_survival_conditional:
+      args: [time: double, time_start: double]
+      return_type: double
+    cdf:
+      args: [time: double]
+      return_type: double
+  active:
+    mean_interval: {type: double, access: member, name_cpp: r_mean_interval}
+
 Control:
   forward_declare: struct
   name_cpp: "tree2::Control"
