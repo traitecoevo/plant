@@ -311,3 +311,31 @@ QAG:
     last_iterations: {type: size_t, access: member, name_cpp: get_last_iterations}
     last_intervals: {type: "quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
     is_adaptive: {type: bool, access: member}
+
+Interpolator:
+  forward_declare: true
+  name_cpp: "interpolator::Interpolator"
+  constructor:
+    roxygen: |
+      Spline interpolation
+      @export
+  methods:
+    init:
+      return_type: void
+      args: [x: "const std::vector<double>&", y: "const std::vector<double>&"]
+    eval:
+      return_type: "std::vector<double>"
+      args: [x: "std::vector<double>"]
+      name_cpp: r_eval
+    deriv:
+      return_type: "std::vector<double>"
+      args: [x: "std::vector<double>"]
+      name_cpp: r_deriv
+  active:
+    type: {type: "std::string", access: member}
+    x: {type: "std::vector<double>", access: member, name_cpp: get_x}
+    y: {type: "std::vector<double>", access: member, name_cpp: get_y}
+    xy: {type: SEXP, access: member, name_cpp: r_get_xy}
+    size: {type: size_t, access: member}
+    min: {type: double, access: member}
+    max: {type: double, access: member}

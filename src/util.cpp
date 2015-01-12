@@ -1,4 +1,5 @@
 #include <tree2/util.h>
+#include <gsl/gsl_errno.h>
 #include <Rcpp.h>
 namespace util {
 
@@ -44,6 +45,16 @@ void stop(const std::string& msg) {
   Rcpp::stop(msg);
 }
 
+void handler_pass_to_R(const char *reason,
+                       const char *file,
+                       int line,
+                       int gsl_errno) {
+  std::ostringstream o;
+  o << "GSLERROR: " << reason << ": " <<  file << ":" << line <<
+    " [" << util::to_string(gsl_errno) << "]";
+  Rcpp::stop(o.str());
+}
+
 }
 
 namespace Rcpp {
@@ -58,4 +69,10 @@ template <> util::index as(SEXP x) {
   }
   return util::base_1_to_0<int, size_t>(ix);
 }
+}
+
+// NOTE: Possibly wants moving?
+// [[Rcpp::export]]
+void set_sane_gsl_error_handling() {
+  gsl_set_error_handler(&util::handler_pass_to_R);
 }

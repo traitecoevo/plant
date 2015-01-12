@@ -3,6 +3,7 @@
 export(CohortSchedule)
 export(Control)
 export(Disturbance)
+export(Interpolator)
 export(Parameters)
 export(Strategy)
 importFrom(R6,R6Class)

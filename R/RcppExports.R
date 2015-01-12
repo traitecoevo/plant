@@ -277,3 +277,51 @@ QAG__is_adaptive__get <- function(obj_) {
     .Call('tree2_QAG__is_adaptive__get', PACKAGE = 'tree2', obj_)
 }
 
+Interpolator__ctor <- function() {
+    .Call('tree2_Interpolator__ctor', PACKAGE = 'tree2')
+}
+
+Interpolator__init <- function(obj_, x, y) {
+    invisible(.Call('tree2_Interpolator__init', PACKAGE = 'tree2', obj_, x, y))
+}
+
+Interpolator__eval <- function(obj_, x) {
+    .Call('tree2_Interpolator__eval', PACKAGE = 'tree2', obj_, x)
+}
+
+Interpolator__deriv <- function(obj_, x) {
+    .Call('tree2_Interpolator__deriv', PACKAGE = 'tree2', obj_, x)
+}
+
+Interpolator__type__get <- function(obj_) {
+    .Call('tree2_Interpolator__type__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator__x__get <- function(obj_) {
+    .Call('tree2_Interpolator__x__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator__y__get <- function(obj_) {
+    .Call('tree2_Interpolator__y__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator__xy__get <- function(obj_) {
+    .Call('tree2_Interpolator__xy__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator__size__get <- function(obj_) {
+    .Call('tree2_Interpolator__size__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator__min__get <- function(obj_) {
+    .Call('tree2_Interpolator__min__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator__max__get <- function(obj_) {
+    .Call('tree2_Interpolator__max__get', PACKAGE = 'tree2', obj_)
+}
+
+set_sane_gsl_error_handling <- function() {
+    invisible(.Call('tree2_set_sane_gsl_error_handling', PACKAGE = 'tree2'))
+}
+

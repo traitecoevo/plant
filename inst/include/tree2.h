@@ -27,6 +27,7 @@ SEXP wrap(const ode::state_saver<std::vector<double> >&);
 
 #include <tree2/qk.h>
 #include <tree2/qag.h>
+#include <tree2/interpolator.h>
 
 // Anything after this point is OK to include Rcpp.h.  This is
 // probably where the meat of the included material goes if your

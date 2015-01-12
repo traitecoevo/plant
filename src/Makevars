@@ -1,2 +1,8 @@
 ## -*- makefile -*-
-PKG_CPPFLAGS += -I../inst/include/
+
+GSL_CONFIG=gsl-config
+GSL_CFLAGS=`$(GSL_CONFIG) --cflags`
+GSL_LIBS=`$(GSL_CONFIG) --libs`
+
+PKG_CPPFLAGS += -I../inst/include/ $(GSL_CFLAGS)
+PKG_LIBS += $(GSL_LIBS)

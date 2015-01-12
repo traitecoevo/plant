@@ -123,11 +123,17 @@ void rescale(ForwardIterator first, ForwardIterator last,
   }
 }
 
+void handler_pass_to_R(const char *reason,
+                       const char *file,
+                       int line,
+                       int gsl_errno);
 }
 
 namespace Rcpp {
 template <> SEXP wrap(const util::index&);
 template <> util::index as(SEXP);
 }
+
+void set_sane_gsl_error_handling();
 
 #endif

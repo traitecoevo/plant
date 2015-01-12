@@ -316,3 +316,55 @@ bool QAG__is_adaptive__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
   return obj_->is_adaptive();
 }
 
+
+// [[Rcpp::export]]
+interpolator::Interpolator Interpolator__ctor() {
+  return interpolator::Interpolator();
+}
+// [[Rcpp::export]]
+void Interpolator__init(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_, const std::vector<double>& x, const std::vector<double>& y) {
+  obj_->init(x, y);
+}
+// [[Rcpp::export]]
+std::vector<double> Interpolator__eval(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_, std::vector<double> x) {
+  return obj_->r_eval(x);
+}
+// [[Rcpp::export]]
+std::vector<double> Interpolator__deriv(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_, std::vector<double> x) {
+  return obj_->r_deriv(x);
+}
+// [[Rcpp::export]]
+std::string Interpolator__type__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+  return obj_->type();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Interpolator__x__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+  return obj_->get_x();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Interpolator__y__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+  return obj_->get_y();
+}
+
+// [[Rcpp::export]]
+SEXP Interpolator__xy__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+  return obj_->r_get_xy();
+}
+
+// [[Rcpp::export]]
+size_t Interpolator__size__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+  return obj_->size();
+}
+
+// [[Rcpp::export]]
+double Interpolator__min__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+  return obj_->min();
+}
+
+// [[Rcpp::export]]
+double Interpolator__max__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+  return obj_->max();
+}
+

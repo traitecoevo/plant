@@ -47,6 +47,10 @@ template <> inline std::string generator_name<quadrature::QK >() {return ".R6_QK
 template <> inline std::string   class_name_r<quadrature::QAG >() {return "QAG";}
 template <> inline std::string   package_name<quadrature::QAG >() {return "tree2";}
 template <> inline std::string generator_name<quadrature::QAG >() {return ".R6_QAG";}
+
+template <> inline std::string   class_name_r<interpolator::Interpolator >() {return "Interpolator";}
+template <> inline std::string   package_name<interpolator::Interpolator >() {return "tree2";}
+template <> inline std::string generator_name<interpolator::Interpolator >() {return ".R6_Interpolator";}
 }
 }
 }
@@ -475,6 +479,13 @@ template <> inline SEXP wrap(const quadrature::QAG& x) {
 }
 template <> inline quadrature::QAG as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<quadrature::QAG>(x));
+}
+
+template <> inline SEXP wrap(const interpolator::Interpolator& x) {
+  return wrap(tree2::RcppR6::RcppR6<interpolator::Interpolator>(x));
+}
+template <> inline interpolator::Interpolator as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<interpolator::Interpolator>(x));
 }
 }
 

@@ -442,6 +442,80 @@ Parameters <- function(..., values=list(...)) {
                   }
                 }))
 
+##' Spline interpolation
+##' @export
+`Interpolator` <- function() {
+  Interpolator__ctor()
+}
+.R6_Interpolator <-
+  R6::R6Class("Interpolator",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                init = function(x, y) {
+                  Interpolator__init(self, x, y)
+                },
+                eval = function(x) {
+                  Interpolator__eval(self, x)
+                },
+                deriv = function(x) {
+                  Interpolator__deriv(self, x)
+                }),
+              active=list(
+                type = function(value) {
+                  if (missing(value)) {
+                    Interpolator__type__get(self)
+                  } else {
+                    stop("Interpolator$type is read-only")
+                  }
+                },
+                x = function(value) {
+                  if (missing(value)) {
+                    Interpolator__x__get(self)
+                  } else {
+                    stop("Interpolator$x is read-only")
+                  }
+                },
+                y = function(value) {
+                  if (missing(value)) {
+                    Interpolator__y__get(self)
+                  } else {
+                    stop("Interpolator$y is read-only")
+                  }
+                },
+                xy = function(value) {
+                  if (missing(value)) {
+                    Interpolator__xy__get(self)
+                  } else {
+                    stop("Interpolator$xy is read-only")
+                  }
+                },
+                size = function(value) {
+                  if (missing(value)) {
+                    Interpolator__size__get(self)
+                  } else {
+                    stop("Interpolator$size is read-only")
+                  }
+                },
+                min = function(value) {
+                  if (missing(value)) {
+                    Interpolator__min__get(self)
+                  } else {
+                    stop("Interpolator$min is read-only")
+                  }
+                },
+                max = function(value) {
+                  if (missing(value)) {
+                    Interpolator__max__get(self)
+                  } else {
+                    stop("Interpolator$max is read-only")
+                  }
+                }))
+
 ## This section of code is only included where templated classes are
 ## included.  Don't rely on the approach taken here, as it may change
 ## soon.
