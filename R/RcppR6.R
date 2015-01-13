@@ -580,6 +580,110 @@ Parameters <- function(..., values=list(...)) {
                   }
                 }))
 
+
+`Plant` <- function(strategy) {
+  Plant__ctor(strategy)
+}
+.R6_Plant <-
+  R6::R6Class("Plant",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                leaf_area_above = function(h) {
+                  Plant__leaf_area_above(self, h)
+                },
+                compute_vars_phys = function(environment) {
+                  Plant__compute_vars_phys(self, environment)
+                },
+                germination_probability = function(environment) {
+                  Plant__germination_probability(self, environment)
+                },
+                copy = function() {
+                  Plant__copy(self)
+                }),
+              active=list(
+                height = function(value) {
+                  if (missing(value)) {
+                    Plant__height__get(self)
+                  } else {
+                    Plant__height__set(self, value)
+                  }
+                },
+                mortality = function(value) {
+                  if (missing(value)) {
+                    Plant__mortality__get(self)
+                  } else {
+                    Plant__mortality__set(self, value)
+                  }
+                },
+                fecundity = function(value) {
+                  if (missing(value)) {
+                    Plant__fecundity__get(self)
+                  } else {
+                    Plant__fecundity__set(self, value)
+                  }
+                },
+                heartwood_area = function(value) {
+                  if (missing(value)) {
+                    Plant__heartwood_area__get(self)
+                  } else {
+                    Plant__heartwood_area__set(self, value)
+                  }
+                },
+                heartwood_mass = function(value) {
+                  if (missing(value)) {
+                    Plant__heartwood_mass__get(self)
+                  } else {
+                    Plant__heartwood_mass__set(self, value)
+                  }
+                },
+                leaf_area = function(value) {
+                  if (missing(value)) {
+                    Plant__leaf_area__get(self)
+                  } else {
+                    stop("Plant$leaf_area is read-only")
+                  }
+                },
+                survival_probability = function(value) {
+                  if (missing(value)) {
+                    Plant__survival_probability__get(self)
+                  } else {
+                    stop("Plant$survival_probability is read-only")
+                  }
+                },
+                strategy = function(value) {
+                  if (missing(value)) {
+                    Plant__strategy__get(self)
+                  } else {
+                    stop("Plant$strategy is read-only")
+                  }
+                },
+                vars_size = function(value) {
+                  if (missing(value)) {
+                    Plant__vars_size__get(self)
+                  } else {
+                    stop("Plant$vars_size is read-only")
+                  }
+                },
+                vars_phys = function(value) {
+                  if (missing(value)) {
+                    Plant__vars_phys__get(self)
+                  } else {
+                    stop("Plant$vars_phys is read-only")
+                  }
+                },
+                vars_growth = function(value) {
+                  if (missing(value)) {
+                    Plant__vars_growth__get(self)
+                  } else {
+                    stop("Plant$vars_growth is read-only")
+                  }
+                }))
+
 ## This section of code is only included where templated classes are
 ## included.  Don't rely on the approach taken here, as it may change
 ## soon.

@@ -5,6 +5,14 @@ test_adaptive_interpolator <- function(f, a, b) {
     .Call('tree2_test_adaptive_interpolator', PACKAGE = 'tree2', f, a, b)
 }
 
+mortality_growth_independent <- function(d0, d1, rho, rho_0, height, B6) {
+    .Call('tree2_mortality_growth_independent', PACKAGE = 'tree2', d0, d1, rho, rho_0, height, B6)
+}
+
+mortality_growth_dependent <- function(d2, d3, productivity) {
+    .Call('tree2_mortality_growth_dependent', PACKAGE = 'tree2', d2, d3, productivity)
+}
+
 Lorenz__ctor <- function(sigma, R, b) {
     .Call('tree2_Lorenz__ctor', PACKAGE = 'tree2', sigma, R, b)
 }
@@ -375,6 +383,90 @@ Environment__light_environment__get <- function(obj_) {
 
 Environment__light_environment__set <- function(obj_, value) {
     invisible(.Call('tree2_Environment__light_environment__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Plant__ctor <- function(strategy) {
+    .Call('tree2_Plant__ctor', PACKAGE = 'tree2', strategy)
+}
+
+Plant__leaf_area_above <- function(obj_, h) {
+    .Call('tree2_Plant__leaf_area_above', PACKAGE = 'tree2', obj_, h)
+}
+
+Plant__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('tree2_Plant__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
+}
+
+Plant__germination_probability <- function(obj_, environment) {
+    invisible(.Call('tree2_Plant__germination_probability', PACKAGE = 'tree2', obj_, environment))
+}
+
+Plant__copy <- function(obj_) {
+    .Call('tree2_Plant__copy', PACKAGE = 'tree2', obj_)
+}
+
+Plant__height__get <- function(obj_) {
+    .Call('tree2_Plant__height__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__height__set <- function(obj_, value) {
+    invisible(.Call('tree2_Plant__height__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Plant__mortality__get <- function(obj_) {
+    .Call('tree2_Plant__mortality__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__mortality__set <- function(obj_, value) {
+    invisible(.Call('tree2_Plant__mortality__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Plant__fecundity__get <- function(obj_) {
+    .Call('tree2_Plant__fecundity__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__fecundity__set <- function(obj_, value) {
+    invisible(.Call('tree2_Plant__fecundity__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Plant__heartwood_area__get <- function(obj_) {
+    .Call('tree2_Plant__heartwood_area__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__heartwood_area__set <- function(obj_, value) {
+    invisible(.Call('tree2_Plant__heartwood_area__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Plant__heartwood_mass__get <- function(obj_) {
+    .Call('tree2_Plant__heartwood_mass__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__heartwood_mass__set <- function(obj_, value) {
+    invisible(.Call('tree2_Plant__heartwood_mass__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Plant__leaf_area__get <- function(obj_) {
+    .Call('tree2_Plant__leaf_area__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__survival_probability__get <- function(obj_) {
+    .Call('tree2_Plant__survival_probability__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__strategy__get <- function(obj_) {
+    .Call('tree2_Plant__strategy__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__vars_size__get <- function(obj_) {
+    .Call('tree2_Plant__vars_size__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__vars_phys__get <- function(obj_) {
+    .Call('tree2_Plant__vars_phys__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__vars_growth__get <- function(obj_) {
+    .Call('tree2_Plant__vars_growth__get', PACKAGE = 'tree2', obj_)
 }
 
 set_sane_gsl_error_handling <- function() {

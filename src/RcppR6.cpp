@@ -426,3 +426,99 @@ void Environment__light_environment__set(tree2::RcppR6::RcppR6<tree2::Environmen
   obj_->light_environment = value;
 }
 
+
+// [[Rcpp::export]]
+tree2::Plant Plant__ctor(tree2::Strategy strategy) {
+  return tree2::make_plant(strategy);
+}
+// [[Rcpp::export]]
+double Plant__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double h) {
+  return obj_->leaf_area_above(h);
+}
+// [[Rcpp::export]]
+void Plant__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment) {
+  obj_->compute_vars_phys(environment);
+}
+// [[Rcpp::export]]
+void Plant__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment) {
+  obj_->germination_probability(environment);
+}
+// [[Rcpp::export]]
+tree2::Plant Plant__copy(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->r_copy();
+}
+// [[Rcpp::export]]
+double Plant__height__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->height();
+}
+// [[Rcpp::export]]
+void Plant__height__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+  obj_->set_height(value);
+}
+
+// [[Rcpp::export]]
+double Plant__mortality__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->mortality();
+}
+// [[Rcpp::export]]
+void Plant__mortality__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+  obj_->set_mortality(value);
+}
+
+// [[Rcpp::export]]
+double Plant__fecundity__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->fecundity();
+}
+// [[Rcpp::export]]
+void Plant__fecundity__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+  obj_->set_fecundity(value);
+}
+
+// [[Rcpp::export]]
+double Plant__heartwood_area__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->heartwood_area();
+}
+// [[Rcpp::export]]
+void Plant__heartwood_area__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+  obj_->set_heartwood_area(value);
+}
+
+// [[Rcpp::export]]
+double Plant__heartwood_mass__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->heartwood_mass();
+}
+// [[Rcpp::export]]
+void Plant__heartwood_mass__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+  obj_->set_heartwood_mass(value);
+}
+
+// [[Rcpp::export]]
+double Plant__leaf_area__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->leaf_area();
+}
+
+// [[Rcpp::export]]
+double Plant__survival_probability__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->survival_probability();
+}
+
+// [[Rcpp::export]]
+tree2::Strategy Plant__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->r_get_strategy();
+}
+
+// [[Rcpp::export]]
+SEXP Plant__vars_size__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->r_get_vars_size();
+}
+
+// [[Rcpp::export]]
+SEXP Plant__vars_phys__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->r_get_vars_phys();
+}
+
+// [[Rcpp::export]]
+SEXP Plant__vars_growth__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->r_get_vars_growth();
+}
+

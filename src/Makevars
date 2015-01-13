@@ -1,5 +1,7 @@
 ## -*- makefile -*-
 
+#CXX_STD=CXX11
+
 GSL_CONFIG=gsl-config
 GSL_CFLAGS=`$(GSL_CONFIG) --cflags`
 GSL_LIBS=`$(GSL_CONFIG) --libs`
