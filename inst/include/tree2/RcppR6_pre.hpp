@@ -23,6 +23,7 @@ namespace quadrature { class QK; }
 namespace quadrature { class QAG; }
 namespace interpolator { class Interpolator; }
 namespace tree2 { class Environment; }
+namespace tree2 { class Plant; }
 
 namespace Rcpp {
 template <typename T> SEXP wrap(const tree2::RcppR6::RcppR6<T>&);
@@ -65,6 +66,9 @@ template <> interpolator::Interpolator as(SEXP);
 
 template <> SEXP wrap(const tree2::Environment&);
 template <> tree2::Environment as(SEXP);
+
+template <> SEXP wrap(const tree2::Plant&);
+template <> tree2::Plant as(SEXP);
 }
 
 #endif

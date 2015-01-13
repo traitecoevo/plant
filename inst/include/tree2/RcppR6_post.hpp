@@ -55,6 +55,10 @@ template <> inline std::string generator_name<interpolator::Interpolator >() {re
 template <> inline std::string   class_name_r<tree2::Environment >() {return "Environment";}
 template <> inline std::string   package_name<tree2::Environment >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Environment >() {return ".R6_Environment";}
+
+template <> inline std::string   class_name_r<tree2::Plant >() {return "Plant";}
+template <> inline std::string   package_name<tree2::Plant >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Plant >() {return ".R6_Plant";}
 }
 }
 }
@@ -497,6 +501,13 @@ template <> inline SEXP wrap(const tree2::Environment& x) {
 }
 template <> inline tree2::Environment as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::Environment>(x));
+}
+
+template <> inline SEXP wrap(const tree2::Plant& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Plant>(x));
+}
+template <> inline tree2::Plant as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Plant>(x));
 }
 }
 

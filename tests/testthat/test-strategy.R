@@ -58,3 +58,33 @@ test_that("Defaults", {
   expect_that(sort(names(s)), is_identical_to(keys))
   expect_that(unclass(s)[keys], is_identical_to(expected[keys]))
 })
+
+test_that("Strategy parameters agree with reference model", {
+  cmp <- make_reference_plant()
+  cmp_pars <- cmp$get_parameters()
+
+  s <- Strategy()
+
+  ## Expect that all parameters in the R version are found in the C++
+  ## version.
+  expect_that(all(names(cmp_pars) %in% names(s)), is_true())
+
+  ## And v.v., except for a few additions:
+  extra <- "control"
+  common <- setdiff(names(s), extra)
+  expect_that(all(extra %in% names(s)), is_true())
+  expect_that(all(common %in% names(cmp_pars)),
+              is_true())
+
+  ## The C++ version should have no NA values by this point.
+  expect_that(any(sapply(s[common], is.na)),
+              is_false())
+
+  ## And neither should the R version.
+  expect_that(any(sapply(cmp_pars, is.na)),
+              is_false())
+
+  ## And demand that all parameters agree.
+  expect_that(s[names(cmp_pars)],
+              is_identical_to(cmp_pars))
+})
