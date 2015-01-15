@@ -186,3 +186,27 @@ test_that("Reference comparison", {
               equals(
                 prod(p_growth[c("dheight_dleaf_area","dleaf_area_dleaf_mass","growth_fraction")], p_phys[c("leaf_fraction","net_production")]), tolerance=1e-7))
 })
+
+test_that("Seed bits", {
+  ## Seed stuff:
+  s <- Strategy()
+  seed <- Plant(s)
+  env <- test_environment(10) # high enough
+  light_env <- attr(env, "light_env") # underlying function
+
+  ## Check that our root-finding succeeded and the leaf mass is correct:
+  expect_that(seed$vars_size[["mass_live"]],
+              equals(s$s, tolerance=1e-7))
+
+  ## Check that the height at birth is correct.  These answers are
+  ## actually quite different, which could come from the root finding?
+  cmp <- make_reference_plant()
+  expect_that(seed$height,
+              equals(cmp$height.at.birth(cmp$traits), tolerance=1e-4))
+
+  ## Then, check the germination probabilities in the current light
+  ## environment:
+  expect_that(seed$germination_probability(env),
+              equals(cmp$germination.probability(cmp$traits, light_env),
+                     tolerance=1e-5))
+})

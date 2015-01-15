@@ -440,8 +440,8 @@ void Plant__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tr
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-void Plant__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment) {
-  obj_->germination_probability(environment);
+double Plant__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment) {
+  return obj_->germination_probability(environment);
 }
 // [[Rcpp::export]]
 tree2::Plant Plant__copy(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {

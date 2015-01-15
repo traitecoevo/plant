@@ -398,7 +398,7 @@ Plant__compute_vars_phys <- function(obj_, environment) {
 }
 
 Plant__germination_probability <- function(obj_, environment) {
-    invisible(.Call('tree2_Plant__germination_probability', PACKAGE = 'tree2', obj_, environment))
+    .Call('tree2_Plant__germination_probability', PACKAGE = 'tree2', obj_, environment)
 }
 
 Plant__copy <- function(obj_) {

@@ -13,11 +13,12 @@ namespace internals {
 // TODO: Need to get both relative and absolute tolerance here I
 // think, but I forget how I usually do that.  Not a biggie really.
 struct uniroot_tol {
-  uniroot_tol(double tol_) : tol(tol_) {}
-  double tol;
-  bool operator()(double min, double max) {
-    return std::abs(min - max) < tol;
+  uniroot_tol(double atol_, double rtol_) : atol(atol_), rtol(rtol_) {}
+  bool operator()(double a, double b) {
+    return std::abs(a - b) < atol + rtol * std::min(std::abs(a), std::abs(b));
   }
+  double atol;
+  double rtol;
 };
 }
 
@@ -27,7 +28,7 @@ double uniroot(Function f, double min, double max, double tol,
                size_t max_iterations) {
   using boost::math::tools::bisect;
   std::pair<double, double> root = bisect(f, min, max,
-                                          internals::uniroot_tol(tol),
+                                          internals::uniroot_tol(tol, tol),
                                           max_iterations);
   // TODO: probably should check here that we didn't exhaust the
   // number of steps we may take (i.e. max_iterations was not too bad).

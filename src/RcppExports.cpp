@@ -1489,16 +1489,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // Plant__germination_probability
-void Plant__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment);
+double Plant__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment);
 RcppExport SEXP tree2_Plant__germination_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
+    SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< const tree2::Environment& >::type environment(environmentSEXP );
-        Plant__germination_probability(obj_, environment);
+        double __result = Plant__germination_probability(obj_, environment);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
-    return R_NilValue;
+    UNPROTECT(1);
+    return __sexp_result;
 END_RCPP
 }
 // Plant__copy

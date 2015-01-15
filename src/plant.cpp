@@ -1,5 +1,6 @@
 #include <tree2/plant.h>
 #include <tree2/qag.h>
+#include <tree2/uniroot.h>
 #include <Rcpp.h>
 #include <functional>
 
@@ -214,7 +215,7 @@ void Plant::prepare_strategy(Strategy_ptr s) {
   s->k_l = s->k_l0 * pow(s->lma/s->lma_0, -s->B4);
   s->k_s = s->k_s0 * pow(s->rho/s->rho_0, -s->B5);
   // NOTE: Also precomputing, though less trivial
-  // s->height_0 = height_seed(s);
+  s->height_0 = height_seed(s);
 }
 
 // * R interface
@@ -582,24 +583,25 @@ double Plant::dbasal_diam_dt() const {
 
 
 // NOTE: static method
-double Plant::height_seed(Strategy_ptr /* s */) {
-  // Plant p(s);
-  // const double mass_seed = s->s;
-  // const double
-  //   h0 = p.height_given_mass_leaf(DBL_MIN),
-  //   h1 = p.height_given_mass_leaf(mass_seed);
+// The aim is to find a plant height that gives the correct seed mass.
+double Plant::height_seed(Strategy_ptr s) {
+  Plant p(s);
+  const double seed_mass = p.strategy->s;
 
-  // // Functor computing total mass of a seed with height h, minus the
-  // // target seed mass.
-  // util::FunctorRoot<Plant, &Plant::mass_live_given_height>
-  //   fun(&p, mass_seed);
+  // TODO: I don't think these are actually correct bounds; we would
+  // actually want height given *total* mass.  This is probably why
+  // this breaks with obscure parameter values.
+  const double
+    h0 = p.height_given_mass_leaf(DBL_MIN),
+    h1 = p.height_given_mass_leaf(seed_mass);
+  const double tol = p.control().plant_seed_tol;
+  const int max_iterations = p.control().plant_seed_iterations;
 
-  // const double tol = p.control().plant_seed_tol;
-  // const int max_iterations = p.control().plant_seed_iterations;
-  // util::RootFinder root(tol, tol, max_iterations);
+  auto target = [=] (double x) mutable -> double {
+    return p.mass_live_given_height(x) - seed_mass;
+  };
 
-  // return root.root(&fun, h0, h1);
-  return 1.0;
+  return util::uniroot(target, h0, h1, tol, max_iterations);
 }
 
 // NOTE: This is used only by height_seed.
@@ -607,7 +609,6 @@ double Plant::mass_live_given_height(double h) {
   set_height(h);
   return vars.mass_live;
 }
-
 
 // This is useful for finding the seed height.
 double Plant::height_given_mass_leaf(double mass_leaf_) const {

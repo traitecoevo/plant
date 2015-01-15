@@ -39,7 +39,7 @@ test_that("Defaults", {
     plant_assimilation_approximate_linear = FALSE,
     plant_assimilation_approximate_rescale_usually = FALSE,
     plant_seed_iterations = 1000L,
-    plant_seed_tol = 1e-6,
+    plant_seed_tol = 1e-8, # 1e-6, Had to change this...
 
     schedule_nsteps   = 20L,
     schedule_eps      = 1e-3,

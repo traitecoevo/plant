@@ -19,7 +19,7 @@ Control::Control() {
   plant_assimilation_approximate_linear = false;
   plant_assimilation_approximate_rescale_usually = false;
 
-  plant_seed_tol = 1e-6;
+  plant_seed_tol = 1e-8;
   plant_seed_iterations = 1000;
 
   cohort_gradient_eps = 1e-6;

@@ -400,7 +400,7 @@ Plant:
       return_type: void
     germination_probability:
       args: [environment: "const tree2::Environment&"]
-      return_type: void
+      return_type: double
     copy:
       return_type: "tree2::Plant"
       name_cpp: r_copy
