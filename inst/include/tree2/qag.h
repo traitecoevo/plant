@@ -13,6 +13,7 @@ namespace quadrature {
 // Gaussian.  Does not handle infinite intervals or singularities.
 class QAG {
 public:
+  QAG(); // need a default constructor.
   QAG(size_t rule, size_t max_iterations, double atol, double rtol);
 
   template <typename Function>

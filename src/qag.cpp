@@ -5,6 +5,9 @@
 
 namespace quadrature {
 
+// Default construction using delegating constructors:
+QAG::QAG() : QAG(15, 1, NA_REAL, NA_REAL) {}
+
 QAG::QAG(size_t rule, size_t max_iterations, double atol, double rtol)
   : adaptive(max_iterations > 1),
     q(rule),

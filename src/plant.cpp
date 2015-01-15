@@ -207,6 +207,8 @@ double Plant::germination_probability(const Environment& environment) {
 
 // NOTE: static method.
 void Plant::prepare_strategy(Strategy_ptr s) {
+  // Set up the integrator.
+  s->control.initialize();
   // NOTE: this precomputes something to save a very small amount of time
   s->eta_c = 1 - 2/(1 + s->eta) + 1/(1 + 2*s->eta);
   // NOTE: These are straight up hyper parametrisation.  k_l0, lma_0
@@ -386,19 +388,7 @@ double Plant::compute_assimilation(const Environment& environment) {
   // const bool over_distribution = control().plant_assimilation_over_distribution;
   // const double x_min = 0, x_max = over_distribution ? 1 : vars.height;
   double A = 0.0;
-
-  // This integrator will be stored in the control object in future, I
-  // think.  Alternatively it will be in the environment or Strategy.
-  // Previously it was in Strategy.  Control probably makes the most
-  // sense though, and can be done easily enough.
-  //
-  // It will need a hook, but I think that can be done with
-  // Strategy::prepare, which seems like it'd be be cleverest way of
-  // ensuring it's always legit.
-  quadrature::QAG integrator(control().plant_assimilation_rule,
-                             control().plant_assimilation_iterations,
-                             control().plant_assimilation_tol,
-                             control().plant_assimilation_tol);
+  quadrature::QAG integrator(control().integrator);
 
   // I should probably use std::function here to store the return
   // value, then we can use the same integrate command easily enough.

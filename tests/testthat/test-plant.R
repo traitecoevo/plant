@@ -210,3 +210,51 @@ test_that("Seed bits", {
               equals(cmp$germination.probability(cmp$traits, light_env),
                      tolerance=1e-5))
 })
+
+## TODO: Missing here: all the plant growing stuff.  Move that
+## elsewhere.
+
+test_that("Assimilation over distribution", {
+  s1 <- Strategy()
+  p1 <- Plant(s1)
+
+  c2 <- Control(plant_assimilation_over_distribution=TRUE)
+  s2 <- Strategy(control=c2)
+  p2 <- Plant(s2)
+
+  p1$height <- 10.0
+  p2$height <- p1$height
+  env <- test_environment(p1$height)
+
+  p1$compute_vars_phys(env)
+  p2$compute_vars_phys(env)
+  p1_phys <- p1$vars_phys
+  p2_phys <- p2$vars_phys
+
+  ## Result is similar but not identical:
+  expect_that(p2_phys, equals(p1_phys))
+  expect_that(p2_phys, not(is_identical_to(p1_phys)))
+})
+
+test_that("Non-adaptive assimilation integration works", {
+  s1 <- Strategy()
+  p1 <- Plant(s1)
+
+  c2 <- Control(plant_assimilation_adaptive=FALSE)
+  s2 <- Strategy(control=c2)
+  p2 <- Plant(s2)
+
+  p1$height <- 10.0
+  p2$height <- p1$height
+  env <- test_environment(p1$height)
+
+  p1$compute_vars_phys(env)
+  p2$compute_vars_phys(env)
+  p1_phys <- p1$vars_phys
+  p2_phys <- p2$vars_phys
+
+  ## Result is similar but not identical:
+  expect_that(p2_phys[["assimilation"]],
+              equals(p1_phys[["assimilation"]], tolerance=1e-3))
+  expect_that(p2_phys, not(is_identical_to(p1_phys)))
+})

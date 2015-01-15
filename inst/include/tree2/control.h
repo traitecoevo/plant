@@ -2,7 +2,7 @@
 #ifndef TREE2_CONTROL_H_
 #define TREE2_CONTROL_H_
 
-#include <stddef.h> // size_t
+#include <tree2/qag.h>
 
 // The `Control` object holds all the non-biological control
 // parameters.  These might get templated against different ways of
@@ -20,6 +20,8 @@ namespace tree2 {
 
 struct Control {
   Control();
+  void initialize();
+
   bool   plant_assimilation_adaptive;
 
   bool   plant_assimilation_over_distribution;
@@ -80,6 +82,9 @@ struct Control {
   int    equilibrium_nattempts;
   bool   equilibrium_solver_logN;
   bool   equilibrium_solver_try_keep;
+
+  // Things derived from this:
+  quadrature::QAG integrator;
 };
 
 }
