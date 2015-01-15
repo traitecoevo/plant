@@ -45,6 +45,7 @@ double Plant::mortality_rate() const {
 }
 void Plant::set_mortality(double x) {
   vars.mortality = x;
+  // this is where the trim_rates code should probably go.
 }
 
 double Plant::fecundity() const {
@@ -308,8 +309,7 @@ const Control& Plant::control() const {
 // TODO: Given these are unchecked get/set pairs, replace with direct
 // access to the member I think.
 quadrature::intervals_type Plant::get_last_integration_intervals() const {
-  // return strategy->integrator.get_last_intervals();
-  return quadrature::intervals_type();
+  return strategy->control.integrator.get_last_intervals();
 }
 void Plant::set_integration_intervals(quadrature::intervals_type x) {
   integration_intervals = x;

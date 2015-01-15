@@ -528,6 +528,18 @@ tree2::Cohort<tree2::Plant> Cohort__ctor(tree2::Strategy strategy) {
   return tree2::make_cohort<tree2::Plant>(strategy);
 }
 // [[Rcpp::export]]
+double Cohort__growth_rate_gradient(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, const tree2::Environment& environment) {
+  return obj_->r_growth_rate_gradient(environment);
+}
+// [[Rcpp::export]]
+void Cohort__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, const tree2::Environment& environment) {
+  obj_->compute_vars_phys(environment);
+}
+// [[Rcpp::export]]
+void Cohort__compute_initial_conditions(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, const tree2::Environment& environment) {
+  obj_->compute_initial_conditions(environment);
+}
+// [[Rcpp::export]]
 tree2::Plant Cohort__plant__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
   return obj_->plant;
 }

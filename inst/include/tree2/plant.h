@@ -103,7 +103,6 @@ public:
   // TODO: Ripe for a tidy up.
   const Control& control() const;
 
-  // protected:
   quadrature::intervals_type get_last_integration_intervals() const;
   void set_integration_intervals(quadrature::intervals_type x);
 

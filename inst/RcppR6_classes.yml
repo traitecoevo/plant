@@ -414,3 +414,14 @@ Cohort:
     args: [strategy: "tree2::Strategy"]
   active:
     plant: {type: "tree2::Plant", access: field, readonly: true}
+  methods:
+    growth_rate_gradient:
+      return_type: double
+      name_cpp: "r_growth_rate_gradient"
+      args: [environment: "const tree2::Environment&"]
+    compute_vars_phys:
+      return_type: void
+      args: [environment: "const tree2::Environment&"]
+    compute_initial_conditions:
+      return_type: void
+      args: [environment: "const tree2::Environment&"]

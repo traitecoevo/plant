@@ -696,6 +696,15 @@ Parameters <- function(..., values=list(...)) {
                 .ptr=NULL,
                 initialize = function(ptr) {
                   self$.ptr <- ptr
+                },
+                growth_rate_gradient = function(environment) {
+                  Cohort__growth_rate_gradient(self, environment)
+                },
+                compute_vars_phys = function(environment) {
+                  Cohort__compute_vars_phys(self, environment)
+                },
+                compute_initial_conditions = function(environment) {
+                  Cohort__compute_initial_conditions(self, environment)
                 }),
               active=list(
                 plant = function(value) {

@@ -481,6 +481,18 @@ Cohort__ctor <- function(strategy) {
     .Call('tree2_Cohort__ctor', PACKAGE = 'tree2', strategy)
 }
 
+Cohort__growth_rate_gradient <- function(obj_, environment) {
+    .Call('tree2_Cohort__growth_rate_gradient', PACKAGE = 'tree2', obj_, environment)
+}
+
+Cohort__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('tree2_Cohort__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
+}
+
+Cohort__compute_initial_conditions <- function(obj_, environment) {
+    invisible(.Call('tree2_Cohort__compute_initial_conditions', PACKAGE = 'tree2', obj_, environment))
+}
+
 Cohort__plant__get <- function(obj_) {
     .Call('tree2_Cohort__plant__get', PACKAGE = 'tree2', obj_)
 }

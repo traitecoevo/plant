@@ -1801,6 +1801,48 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Cohort__growth_rate_gradient
+double Cohort__growth_rate_gradient(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, const tree2::Environment& environment);
+RcppExport SEXP tree2_Cohort__growth_rate_gradient(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< const tree2::Environment& >::type environment(environmentSEXP );
+        double __result = Cohort__growth_rate_gradient(obj_, environment);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Cohort__compute_vars_phys
+void Cohort__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, const tree2::Environment& environment);
+RcppExport SEXP tree2_Cohort__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< const tree2::Environment& >::type environment(environmentSEXP );
+        Cohort__compute_vars_phys(obj_, environment);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// Cohort__compute_initial_conditions
+void Cohort__compute_initial_conditions(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, const tree2::Environment& environment);
+RcppExport SEXP tree2_Cohort__compute_initial_conditions(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< const tree2::Environment& >::type environment(environmentSEXP );
+        Cohort__compute_initial_conditions(obj_, environment);
+    }
+    return R_NilValue;
+END_RCPP
+}
 // Cohort__plant__get
 tree2::Plant Cohort__plant__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_);
 RcppExport SEXP tree2_Cohort__plant__get(SEXP obj_SEXP) {
