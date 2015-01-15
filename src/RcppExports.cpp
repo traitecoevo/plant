@@ -23,6 +23,43 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// test_gradient_fd1
+double test_gradient_fd1(Rcpp::Function f, double x, double dx, int direction, double fx = NA_REAL);
+RcppExport SEXP tree2_test_gradient_fd1(SEXP fSEXP, SEXP xSEXP, SEXP dxSEXP, SEXP directionSEXP, SEXP fxSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP );
+        Rcpp::traits::input_parameter< double >::type x(xSEXP );
+        Rcpp::traits::input_parameter< double >::type dx(dxSEXP );
+        Rcpp::traits::input_parameter< int >::type direction(directionSEXP );
+        Rcpp::traits::input_parameter< double >::type fx(fxSEXP );
+        double __result = test_gradient_fd1(f, x, dx, direction, fx);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// test_gradient_richardson
+double test_gradient_richardson(Rcpp::Function f, double x, double d, size_t r);
+RcppExport SEXP tree2_test_gradient_richardson(SEXP fSEXP, SEXP xSEXP, SEXP dSEXP, SEXP rSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP );
+        Rcpp::traits::input_parameter< double >::type x(xSEXP );
+        Rcpp::traits::input_parameter< double >::type d(dSEXP );
+        Rcpp::traits::input_parameter< size_t >::type r(rSEXP );
+        double __result = test_gradient_richardson(f, x, d, r);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // mortality_growth_independent
 double mortality_growth_independent(double d0, double d1, double rho, double rho_0, double height, double B6);
 RcppExport SEXP tree2_mortality_growth_independent(SEXP d0SEXP, SEXP d1SEXP, SEXP rhoSEXP, SEXP rho_0SEXP, SEXP heightSEXP, SEXP B6SEXP) {

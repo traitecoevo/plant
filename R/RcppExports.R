@@ -5,6 +5,14 @@ test_adaptive_interpolator <- function(f, a, b) {
     .Call('tree2_test_adaptive_interpolator', PACKAGE = 'tree2', f, a, b)
 }
 
+test_gradient_fd1 <- function(f, x, dx, direction, fx = NA_real_) {
+    .Call('tree2_test_gradient_fd1', PACKAGE = 'tree2', f, x, dx, direction, fx)
+}
+
+test_gradient_richardson <- function(f, x, d, r) {
+    .Call('tree2_test_gradient_richardson', PACKAGE = 'tree2', f, x, d, r)
+}
+
 mortality_growth_independent <- function(d0, d1, rho, rho_0, height, B6) {
     .Call('tree2_mortality_growth_independent', PACKAGE = 'tree2', d0, d1, rho, rho_0, height, B6)
 }

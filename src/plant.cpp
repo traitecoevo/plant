@@ -582,7 +582,7 @@ double Plant::height_seed(Strategy_ptr s) {
   // actually want height given *total* mass.  This is probably why
   // this breaks with obscure parameter values.
   const double
-    h0 = p.height_given_mass_leaf(DBL_MIN),
+    h0 = p.height_given_mass_leaf(std::numeric_limits<double>::min()),
     h1 = p.height_given_mass_leaf(seed_mass);
   const double tol = p.control().plant_seed_tol;
   const int max_iterations = p.control().plant_seed_iterations;
