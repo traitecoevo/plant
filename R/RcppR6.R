@@ -684,6 +684,28 @@ Parameters <- function(..., values=list(...)) {
                   }
                 }))
 
+
+`Cohort` <- function(strategy) {
+  Cohort__ctor(strategy)
+}
+.R6_Cohort <-
+  R6::R6Class("Cohort",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                }),
+              active=list(
+                plant = function(value) {
+                  if (missing(value)) {
+                    Cohort__plant__get(self)
+                  } else {
+                    stop("Cohort$plant is read-only")
+                  }
+                }))
+
 ## This section of code is only included where templated classes are
 ## included.  Don't rely on the approach taken here, as it may change
 ## soon.

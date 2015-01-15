@@ -6,6 +6,14 @@
 
 #include <tree2/util.h>
 
+// RcppR6 isn't going to do a good job of forward declaring these, so
+// I'll need to.
+
+namespace tree2 {
+template <typename T>
+class Cohort;
+}
+
 // Include this early on.  It can be either after classes have been
 // declared (but before Rcpp has been loaded) or first.  This file will
 // attempt to provide declarations for the classes and namespaces that
@@ -34,6 +42,7 @@ SEXP wrap(const ode::state_saver<std::vector<double> >&);
 
 // Getting more serious down here.
 #include <tree2/plant.h>
+#include <tree2/cohort.h>
 
 // Anything after this point is OK to include Rcpp.h.  This is
 // probably where the meat of the included material goes if your

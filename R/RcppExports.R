@@ -477,6 +477,14 @@ Plant__vars_growth__get <- function(obj_) {
     .Call('tree2_Plant__vars_growth__get', PACKAGE = 'tree2', obj_)
 }
 
+Cohort__ctor <- function(strategy) {
+    .Call('tree2_Cohort__ctor', PACKAGE = 'tree2', strategy)
+}
+
+Cohort__plant__get <- function(obj_) {
+    .Call('tree2_Cohort__plant__get', PACKAGE = 'tree2', obj_)
+}
+
 test_uniroot <- function(f, min, max) {
     .Call('tree2_test_uniroot', PACKAGE = 'tree2', f, min, max)
 }

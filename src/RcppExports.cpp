@@ -1786,6 +1786,36 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Cohort__ctor
+tree2::Cohort<tree2::Plant> Cohort__ctor(tree2::Strategy strategy);
+RcppExport SEXP tree2_Cohort__ctor(SEXP strategySEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::Strategy >::type strategy(strategySEXP );
+        tree2::Cohort<tree2::Plant> __result = Cohort__ctor(strategy);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Cohort__plant__get
+tree2::Plant Cohort__plant__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_);
+RcppExport SEXP tree2_Cohort__plant__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > >::type obj_(obj_SEXP );
+        tree2::Plant __result = Cohort__plant__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // test_uniroot
 double test_uniroot(Rcpp::Function f, double min, double max);
 RcppExport SEXP tree2_test_uniroot(SEXP fSEXP, SEXP minSEXP, SEXP maxSEXP) {

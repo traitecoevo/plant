@@ -522,3 +522,13 @@ SEXP Plant__vars_growth__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
   return obj_->r_get_vars_growth();
 }
 
+
+// [[Rcpp::export]]
+tree2::Cohort<tree2::Plant> Cohort__ctor(tree2::Strategy strategy) {
+  return tree2::make_cohort<tree2::Plant>(strategy);
+}
+// [[Rcpp::export]]
+tree2::Plant Cohort__plant__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
+  return obj_->plant;
+}
+

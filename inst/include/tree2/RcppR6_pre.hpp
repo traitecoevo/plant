@@ -69,6 +69,9 @@ template <> tree2::Environment as(SEXP);
 
 template <> SEXP wrap(const tree2::Plant&);
 template <> tree2::Plant as(SEXP);
+
+template <> SEXP wrap(const tree2::Cohort<tree2::Plant>&);
+template <> tree2::Cohort<tree2::Plant> as(SEXP);
 }
 
 #endif

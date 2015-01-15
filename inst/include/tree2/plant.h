@@ -15,6 +15,7 @@ typedef std::shared_ptr<Strategy> Strategy_ptr;
 
 class Plant {
 public:
+  typedef Strategy_ptr strategy_type;
   Plant(Strategy_ptr s);
 
   // * Individual size
@@ -223,6 +224,7 @@ private:
   static const int ode_dimension = 5;
 };
 
+Strategy_ptr make_strategy_ptr(Strategy s);
 Plant make_plant(Strategy s);
 
 }

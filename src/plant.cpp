@@ -630,10 +630,14 @@ Plant::internals::internals()
     fecundity(0.0) {
 }
 
-Plant make_plant(Strategy s) {
+Strategy_ptr make_strategy_ptr(Strategy s) {
   Strategy_ptr sp = std::make_shared<Strategy>(s);
   Plant::prepare_strategy(sp);
-  return Plant(sp);
+  return sp;
+}
+
+Plant make_plant(Strategy s) {
+  return Plant(make_strategy_ptr(s));
 }
 
 }
