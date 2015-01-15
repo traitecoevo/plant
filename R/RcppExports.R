@@ -469,6 +469,10 @@ Plant__vars_growth__get <- function(obj_) {
     .Call('tree2_Plant__vars_growth__get', PACKAGE = 'tree2', obj_)
 }
 
+test_uniroot <- function(f, min, max) {
+    .Call('tree2_test_uniroot', PACKAGE = 'tree2', f, min, max)
+}
+
 set_sane_gsl_error_handling <- function() {
     invisible(.Call('tree2_set_sane_gsl_error_handling', PACKAGE = 'tree2'))
 }

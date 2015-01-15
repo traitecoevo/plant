@@ -1746,6 +1746,23 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// test_uniroot
+double test_uniroot(Rcpp::Function f, double min, double max);
+RcppExport SEXP tree2_test_uniroot(SEXP fSEXP, SEXP minSEXP, SEXP maxSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP );
+        Rcpp::traits::input_parameter< double >::type min(minSEXP );
+        Rcpp::traits::input_parameter< double >::type max(maxSEXP );
+        double __result = test_uniroot(f, min, max);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // set_sane_gsl_error_handling
 void set_sane_gsl_error_handling();
 RcppExport SEXP tree2_set_sane_gsl_error_handling() {

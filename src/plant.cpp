@@ -382,8 +382,8 @@ double Plant::assimilation(const Environment& environment) {
 }
 
 double Plant::compute_assimilation(const Environment& environment) {
-  const bool over_distribution = control().plant_assimilation_over_distribution;
-  const double x_min = 0, x_max = over_distribution ? 1 : vars.height;
+  // const bool over_distribution = control().plant_assimilation_over_distribution;
+  // const double x_min = 0, x_max = over_distribution ? 1 : vars.height;
   double A = 0.0;
 
   // This integrator will be stored in the control object in future, I
