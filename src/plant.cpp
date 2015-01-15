@@ -1,5 +1,7 @@
 #include <tree2/plant.h>
+#include <tree2/qag.h>
 #include <Rcpp.h>
+#include <functional>
 
 namespace tree2 {
 
@@ -379,14 +381,37 @@ double Plant::assimilation(const Environment& environment) {
   return compute_assimilation(environment);
 }
 
-double Plant::compute_assimilation(const Environment& /*environment*/) {
-  // util::FunctorBind1<Plant, const Environment&,
-  //                    &Plant::compute_assimilation_x>
-  //   fun(this, environment);
-  // const bool over_distribution =
-  //   control().plant_assimilation_over_distribution;
-  // const double x_min = 0, x_max = over_distribution ? 1 : vars.height;
+double Plant::compute_assimilation(const Environment& environment) {
+  const bool over_distribution = control().plant_assimilation_over_distribution;
+  const double x_min = 0, x_max = over_distribution ? 1 : vars.height;
   double A = 0.0;
+
+  // This integrator will be stored in the control object in future, I
+  // think.  Alternatively it will be in the environment or Strategy.
+  // Previously it was in Strategy.  Control probably makes the most
+  // sense though, and can be done easily enough.
+  //
+  // It will need a hook, but I think that can be done with
+  // Strategy::prepare, which seems like it'd be be cleverest way of
+  // ensuring it's always legit.
+  quadrature::QAG integrator(control().plant_assimilation_rule,
+                             control().plant_assimilation_iterations,
+                             control().plant_assimilation_tol,
+                             control().plant_assimilation_tol);
+
+  // I should probably use std::function here to store the return
+  // value, then we can use the same integrate command easily enough.
+  if (control().plant_assimilation_over_distribution) {
+    auto f = [=] (double x) -> double {
+      return compute_assimilation_h(x, environment);
+    };
+    A = integrator.integrate(f, 0.0, vars.height);
+  } else {
+    auto f = [=] (double x) -> double {
+      return compute_assimilation_p(x, environment);
+    };
+    A = integrator.integrate(f, 0.0, 1.0);
+  }
 
   // This whole section exists only because of working around
   // CohortTop, where we want to recompute the photosynthetic integral
@@ -418,10 +443,21 @@ double Plant::compute_assimilation(const Environment& /*environment*/) {
 // where `z` is height.
 double Plant::compute_assimilation_x(double x,
                                      const Environment& environment) const {
-  if (control().plant_assimilation_over_distribution)
-    return assimilation_leaf(environment.canopy_openness(Qp(x)));
-  else
-    return assimilation_leaf(environment.canopy_openness(x)) * q(x);
+  if (control().plant_assimilation_over_distribution) {
+    return compute_assimilation_p(x, environment);
+  } else {
+    return compute_assimilation_h(x, environment);
+  }
+}
+
+double Plant::compute_assimilation_h(double h,
+                                     const Environment& environment) const {
+  return assimilation_leaf(environment.canopy_openness(h)) * q(h);
+}
+
+double Plant::compute_assimilation_p(double p,
+                                     const Environment& environment) const {
+  return assimilation_leaf(environment.canopy_openness(Qp(p)));
 }
 
 // [Appendix S6] Per-leaf photosynthetic rate.

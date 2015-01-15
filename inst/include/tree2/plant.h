@@ -127,6 +127,8 @@ private:
   double compute_assimilation(const Environment& environment);
   // Used internally, corresponding to the inner term in [eqn 12]
   double compute_assimilation_x(double x, const Environment& environment) const;
+  double compute_assimilation_h(double h, const Environment& environment) const;
+  double compute_assimilation_p(double p, const Environment& environment) const;
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
   // [eqn 13] Total maintenance respiration

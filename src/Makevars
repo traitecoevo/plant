@@ -1,10 +1,11 @@
 ## -*- makefile -*-
 
-#CXX_STD=CXX11
+# In theory, this should be sufficient, but this causes compilation to
+# fail for me on Yosemite:
+# CXX_STD = CXX11
 
-GSL_CONFIG=gsl-config
-GSL_CFLAGS=`$(GSL_CONFIG) --cflags`
-GSL_LIBS=`$(GSL_CONFIG) --libs`
+GSL_CFLAGS=`gsl-config --cflags`
+GSL_LIBS=`gsl-config --libs`
 
-PKG_CPPFLAGS += -I../inst/include/ $(GSL_CFLAGS)
+PKG_CPPFLAGS += -I../inst/include/ $(GSL_CFLAGS) --std=c++11
 PKG_LIBS += $(GSL_LIBS)
