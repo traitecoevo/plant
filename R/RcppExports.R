@@ -505,3 +505,15 @@ set_sane_gsl_error_handling <- function() {
     invisible(.Call('tree2_set_sane_gsl_error_handling', PACKAGE = 'tree2'))
 }
 
+trapezium <- function(x, y) {
+    .Call('tree2_trapezium', PACKAGE = 'tree2', x, y)
+}
+
+trapezium_vector <- function(x, y) {
+    .Call('tree2_trapezium_vector', PACKAGE = 'tree2', x, y)
+}
+
+local_error_integration <- function(x, y, scal) {
+    .Call('tree2_local_error_integration', PACKAGE = 'tree2', x, y, scal)
+}
+

@@ -1886,3 +1886,52 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// trapezium
+double trapezium(const std::vector<double>& x, const std::vector<double>& y);
+RcppExport SEXP tree2_trapezium(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< const std::vector<double>& >::type x(xSEXP );
+        Rcpp::traits::input_parameter< const std::vector<double>& >::type y(ySEXP );
+        double __result = trapezium(x, y);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// trapezium_vector
+std::vector<double> trapezium_vector(const std::vector<double>& x, const std::vector<double>& y);
+RcppExport SEXP tree2_trapezium_vector(SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< const std::vector<double>& >::type x(xSEXP );
+        Rcpp::traits::input_parameter< const std::vector<double>& >::type y(ySEXP );
+        std::vector<double> __result = trapezium_vector(x, y);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// local_error_integration
+std::vector<double> local_error_integration(const std::vector<double>& x, const std::vector<double>& y, double scal);
+RcppExport SEXP tree2_local_error_integration(SEXP xSEXP, SEXP ySEXP, SEXP scalSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< const std::vector<double>& >::type x(xSEXP );
+        Rcpp::traits::input_parameter< const std::vector<double>& >::type y(ySEXP );
+        Rcpp::traits::input_parameter< double >::type scal(scalSEXP );
+        std::vector<double> __result = local_error_integration(x, y, scal);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}

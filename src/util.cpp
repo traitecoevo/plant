@@ -66,6 +66,38 @@ void handler_pass_to_R(const char *reason,
   Rcpp::stop(o.str());
 }
 
+// The basic idea here is that we consider the three points
+//   {(x1, y1), (x2, y2), (x3, y3)}
+// and we want to know how much the middle point is contributing to
+// the integral.
+//
+// Because this is normalised against the total error, this could be
+// really really badly behaved when this goes towards zero.
+std::vector<double> local_error_integration(const std::vector<double>& x,
+                                            const std::vector<double>& y,
+                                            double scal) {
+  std::vector<double> ret;
+  check_length(x.size(), y.size());
+
+  if (x.size() < 3) {
+    for (size_t i = 0; i < x.size(); ++i)
+      ret.push_back(NA_REAL);
+  } else {
+    ret.push_back(NA_REAL);
+    std::vector<double> a = trapezium_vector(x, y);
+    std::vector<double>::const_iterator a1 = a.begin(),
+      x1 = x.begin(), y1 = y.begin();
+    std::vector<double>::const_iterator a2 = a1+1, x3 = x1+2, y3 = y1+2;
+    while (x3 != x.end()) {
+      const double a123 = *a1++ + *a2++;
+      const double a1_3  = 0.5 * (*y1++ + *y3++) * (*x3++ - *x1++);
+      ret.push_back(std::abs(a1_3 - a123) / scal);
+    }
+    ret.push_back(NA_REAL);
+  }
+  return ret;
+}
+
 }
 
 namespace Rcpp {
@@ -86,4 +118,23 @@ template <> util::index as(SEXP x) {
 // [[Rcpp::export]]
 void set_sane_gsl_error_handling() {
   gsl_set_error_handler(&util::handler_pass_to_R);
+}
+
+// [[Rcpp::export]]
+double trapezium(const std::vector<double>& x,
+                 const std::vector<double>& y) {
+  return util::trapezium(x, y);
+}
+
+// [[Rcpp::export]]
+std::vector<double> trapezium_vector(const std::vector<double>& x,
+                                     const std::vector<double>& y) {
+  return util::trapezium_vector(x, y);
+}
+
+// [[Rcpp::export]]
+std::vector<double> local_error_integration(const std::vector<double>& x,
+                                            const std::vector<double>& y,
+                                            double scal) {
+  return util::local_error_integration(x, y, scal);
 }
