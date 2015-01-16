@@ -565,6 +565,54 @@ Species__leaf_area_error__get <- function(obj_) {
     .Call('tree2_Species__leaf_area_error__get', PACKAGE = 'tree2', obj_)
 }
 
+Patch__ctor <- function(parameters) {
+    .Call('tree2_Patch__ctor', PACKAGE = 'tree2', parameters)
+}
+
+Patch__leaf_area_above <- function(obj_, height) {
+    .Call('tree2_Patch__leaf_area_above', PACKAGE = 'tree2', obj_, height)
+}
+
+Patch__canopy_openness <- function(obj_, height) {
+    .Call('tree2_Patch__canopy_openness', PACKAGE = 'tree2', obj_, height)
+}
+
+Patch__add_seed <- function(obj_, species_index) {
+    invisible(.Call('tree2_Patch__add_seed', PACKAGE = 'tree2', obj_, species_index))
+}
+
+Patch__compute_light_environment <- function(obj_) {
+    invisible(.Call('tree2_Patch__compute_light_environment', PACKAGE = 'tree2', obj_))
+}
+
+Patch__compute_vars_phys <- function(obj_) {
+    invisible(.Call('tree2_Patch__compute_vars_phys', PACKAGE = 'tree2', obj_))
+}
+
+Patch__reset <- function(obj_) {
+    invisible(.Call('tree2_Patch__reset', PACKAGE = 'tree2', obj_))
+}
+
+Patch__size__get <- function(obj_) {
+    .Call('tree2_Patch__size__get', PACKAGE = 'tree2', obj_)
+}
+
+Patch__height_max__get <- function(obj_) {
+    .Call('tree2_Patch__height_max__get', PACKAGE = 'tree2', obj_)
+}
+
+Patch__parameters__get <- function(obj_) {
+    .Call('tree2_Patch__parameters__get', PACKAGE = 'tree2', obj_)
+}
+
+Patch__environment__get <- function(obj_) {
+    .Call('tree2_Patch__environment__get', PACKAGE = 'tree2', obj_)
+}
+
+Patch__species__get <- function(obj_) {
+    .Call('tree2_Patch__species__get', PACKAGE = 'tree2', obj_)
+}
+
 test_uniroot <- function(f, min, max) {
     .Call('tree2_test_uniroot', PACKAGE = 'tree2', f, min, max)
 }

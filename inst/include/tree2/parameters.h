@@ -40,7 +40,7 @@ struct Parameters {
   size_t size() const;
   size_t n_residents() const;
   size_t n_mutants() const;
-  bool validate() const;
+  void validate() const;
 };
 
 }

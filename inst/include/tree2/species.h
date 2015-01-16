@@ -53,6 +53,7 @@ private:
   const Control& control() const {return strategy->get_control();}
   strategy_ptr_type strategy;
   cohort_type seed;
+  // TODO: this should really say cohorts, rather than plants.
   std::vector<cohort_type> plants;
 
   typedef typename std::vector<cohort_type>::iterator plants_iterator;

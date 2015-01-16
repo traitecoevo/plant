@@ -811,6 +811,74 @@ Parameters <- function(..., values=list(...)) {
                   }
                 }))
 
+
+`Patch` <- function(parameters) {
+  Patch__ctor(parameters)
+}
+.R6_Patch <-
+  R6::R6Class("Patch",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                leaf_area_above = function(height) {
+                  Patch__leaf_area_above(self, height)
+                },
+                canopy_openness = function(height) {
+                  Patch__canopy_openness(self, height)
+                },
+                add_seed = function(species_index) {
+                  Patch__add_seed(self, species_index)
+                },
+                compute_light_environment = function() {
+                  Patch__compute_light_environment(self)
+                },
+                compute_vars_phys = function() {
+                  Patch__compute_vars_phys(self)
+                },
+                reset = function() {
+                  Patch__reset(self)
+                }),
+              active=list(
+                size = function(value) {
+                  if (missing(value)) {
+                    Patch__size__get(self)
+                  } else {
+                    stop("Patch$size is read-only")
+                  }
+                },
+                height_max = function(value) {
+                  if (missing(value)) {
+                    Patch__height_max__get(self)
+                  } else {
+                    stop("Patch$height_max is read-only")
+                  }
+                },
+                parameters = function(value) {
+                  if (missing(value)) {
+                    Patch__parameters__get(self)
+                  } else {
+                    stop("Patch$parameters is read-only")
+                  }
+                },
+                environment = function(value) {
+                  if (missing(value)) {
+                    Patch__environment__get(self)
+                  } else {
+                    stop("Patch$environment is read-only")
+                  }
+                },
+                species = function(value) {
+                  if (missing(value)) {
+                    Patch__species__get(self)
+                  } else {
+                    stop("Patch$species is read-only")
+                  }
+                }))
+
 ## This section of code is only included where templated classes are
 ## included.  Don't rely on the approach taken here, as it may change
 ## soon.

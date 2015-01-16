@@ -622,3 +622,57 @@ std::vector<double> Species__leaf_area_error__get(tree2::RcppR6::RcppR6<tree2::S
   return obj_->r_leaf_area_error();
 }
 
+
+// [[Rcpp::export]]
+tree2::Patch<tree2::Cohort<tree2::Plant> > Patch__ctor(tree2::Parameters parameters) {
+  return tree2::Patch<tree2::Cohort<tree2::Plant> >(parameters);
+}
+// [[Rcpp::export]]
+double Patch__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, double height) {
+  return obj_->leaf_area_above(height);
+}
+// [[Rcpp::export]]
+double Patch__canopy_openness(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, double height) {
+  return obj_->canopy_openness(height);
+}
+// [[Rcpp::export]]
+void Patch__add_seed(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, util::index species_index) {
+  obj_->r_add_seed(species_index);
+}
+// [[Rcpp::export]]
+void Patch__compute_light_environment(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  obj_->r_compute_light_environment();
+}
+// [[Rcpp::export]]
+void Patch__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  obj_->r_compute_vars_phys();
+}
+// [[Rcpp::export]]
+void Patch__reset(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  obj_->reset();
+}
+// [[Rcpp::export]]
+size_t Patch__size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->size();
+}
+
+// [[Rcpp::export]]
+double Patch__height_max__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->height_max();
+}
+
+// [[Rcpp::export]]
+tree2::Parameters Patch__parameters__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->r_parameters();
+}
+
+// [[Rcpp::export]]
+tree2::Environment Patch__environment__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->r_environment();
+}
+
+// [[Rcpp::export]]
+std::vector<tree2::Species<tree2::Cohort<tree2::Plant> > > Patch__species__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->r_species();
+}
+

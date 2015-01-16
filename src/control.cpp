@@ -11,6 +11,7 @@ Control::Control() : integrator(15, 1, 0, 0) {
   plant_assimilation_rule = 21;
   plant_assimilation_reuse_intervals = true;
 
+  // all of this can be deleted?
   plant_assimilation_approximate_use = false;
   plant_assimilation_approximate_tol = 1e-6;
   plant_assimilation_approximate_nbase = 17;
@@ -30,10 +31,10 @@ Control::Control() : integrator(15, 1, 0, 0) {
   environment_light_tol = 1e-6;
   environment_light_nbase = 17;
   environment_light_max_depth = 16;
-  environment_light_akima = false;
-  environment_light_linear = false;
+  environment_light_akima = false; // can be deleted?
+  environment_light_linear = false; // can be deleted?
   environment_light_rescale_usually = false;
-  environment_light_skip = false;
+  environment_light_skip = false; // can be deleted?
 
   ode_step_size_min = 1e-6;
   ode_step_size_max = 1e-1;

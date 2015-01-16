@@ -25,13 +25,15 @@ size_t Parameters::n_mutants() const {
   return size() - n_residents();
 }
 
-bool Parameters::validate() const {
+// TODO: make this return *this? so that we can do something like
+//   parameters(p.validate())
+// within initialisation lists?
+void Parameters::validate() const {
   const size_t len = size();
   const bool ok = seed_rain.size() == len && is_resident.size() == len;
   if (!ok) {
-    Rcpp::stop("Inconsistent lengths");
+    Rcpp::stop("Inconsistent lengths (strategies, seed_rain, is_resident)");
   }
-  return ok;
 }
 
 }

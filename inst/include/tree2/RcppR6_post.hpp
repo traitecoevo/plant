@@ -67,6 +67,10 @@ template <> inline std::string generator_name<tree2::Cohort<tree2::Plant> >() {r
 template <> inline std::string   class_name_r<tree2::Species<tree2::Cohort<tree2::Plant> > >() {return "Species";}
 template <> inline std::string   package_name<tree2::Species<tree2::Cohort<tree2::Plant> > >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Species<tree2::Cohort<tree2::Plant> > >() {return ".R6_Species";}
+
+template <> inline std::string   class_name_r<tree2::Patch<tree2::Cohort<tree2::Plant> > >() {return "Patch";}
+template <> inline std::string   package_name<tree2::Patch<tree2::Cohort<tree2::Plant> > >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Patch<tree2::Cohort<tree2::Plant> > >() {return ".R6_Patch";}
 }
 }
 }
@@ -530,6 +534,13 @@ template <> inline SEXP wrap(const tree2::Species<tree2::Cohort<tree2::Plant> >&
 }
 template <> inline tree2::Species<tree2::Cohort<tree2::Plant> > as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > >(x));
+}
+
+template <> inline SEXP wrap(const tree2::Patch<tree2::Cohort<tree2::Plant> >& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > >(x));
+}
+template <> inline tree2::Patch<tree2::Cohort<tree2::Plant> > as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > >(x));
 }
 }
 
