@@ -414,7 +414,12 @@ Cohort:
     args: [strategy: "tree2::Strategy"]
   active:
     plant: {type: "tree2::Plant", access: field, readonly: true}
+    height: {type: double, access: member}
+    leaf_area: {type: double, access: member}
   methods:
+    leaf_area_above:
+      return_type: double
+      args: [height: double]
     growth_rate_gradient:
       return_type: double
       name_cpp: "r_growth_rate_gradient"
@@ -425,3 +430,33 @@ Cohort:
     compute_initial_conditions:
       return_type: void
       args: [environment: "const tree2::Environment&"]
+
+# For now, also not templated
+Species:
+  forward_declare: false
+  name_cpp: "tree2::Species<tree2::Cohort<tree2::Plant> >"
+  constructor:
+    args: [strategy: "tree2::Strategy"]
+  active:
+    size: {type: size_t, access: member}
+    seed: {type: "tree2::Cohort<tree2::Plant>", access: member, name_cpp: r_seed}
+    height_max: {type: double, access: member, readonly: true}
+    height: {type: "std::vector<double>", access: member, name_cpp: r_height, name_cpp_set: r_set_height}
+    plants: {type: "std::vector<tree2::Cohort<tree2::Plant> >", access: member, name_cpp: r_plants}
+    leaf_area: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area}
+    leaf_area_error: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area_error}
+  methods:
+    clear:
+      return_type: void
+    compute_vars_phys:
+      return_type: void
+      args: [environment: "const tree2::Environment&"]
+    leaf_area_above:
+      return_type: double
+      args: [height: double]
+    add_seed:
+      return_type: void
+    plant_at:
+      return_type: "tree2::Cohort<tree2::Plant>"
+      args: [index: "util::index"]
+      name_cpp: r_plant_at

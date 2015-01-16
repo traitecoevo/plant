@@ -697,6 +697,9 @@ Parameters <- function(..., values=list(...)) {
                 initialize = function(ptr) {
                   self$.ptr <- ptr
                 },
+                leaf_area_above = function(height) {
+                  Cohort__leaf_area_above(self, height)
+                },
                 growth_rate_gradient = function(environment) {
                   Cohort__growth_rate_gradient(self, environment)
                 },
@@ -712,6 +715,99 @@ Parameters <- function(..., values=list(...)) {
                     Cohort__plant__get(self)
                   } else {
                     stop("Cohort$plant is read-only")
+                  }
+                },
+                height = function(value) {
+                  if (missing(value)) {
+                    Cohort__height__get(self)
+                  } else {
+                    stop("Cohort$height is read-only")
+                  }
+                },
+                leaf_area = function(value) {
+                  if (missing(value)) {
+                    Cohort__leaf_area__get(self)
+                  } else {
+                    stop("Cohort$leaf_area is read-only")
+                  }
+                }))
+
+
+`Species` <- function(strategy) {
+  Species__ctor(strategy)
+}
+.R6_Species <-
+  R6::R6Class("Species",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                clear = function() {
+                  Species__clear(self)
+                },
+                compute_vars_phys = function(environment) {
+                  Species__compute_vars_phys(self, environment)
+                },
+                leaf_area_above = function(height) {
+                  Species__leaf_area_above(self, height)
+                },
+                add_seed = function() {
+                  Species__add_seed(self)
+                },
+                plant_at = function(index) {
+                  Species__plant_at(self, index)
+                }),
+              active=list(
+                size = function(value) {
+                  if (missing(value)) {
+                    Species__size__get(self)
+                  } else {
+                    stop("Species$size is read-only")
+                  }
+                },
+                seed = function(value) {
+                  if (missing(value)) {
+                    Species__seed__get(self)
+                  } else {
+                    stop("Species$seed is read-only")
+                  }
+                },
+                height_max = function(value) {
+                  if (missing(value)) {
+                    Species__height_max__get(self)
+                  } else {
+                    stop("Species$height_max is read-only")
+                  }
+                },
+                height = function(value) {
+                  if (missing(value)) {
+                    Species__height__get(self)
+                  } else {
+                    Species__height__set(self, value)
+                  }
+                },
+                plants = function(value) {
+                  if (missing(value)) {
+                    Species__plants__get(self)
+                  } else {
+                    stop("Species$plants is read-only")
+                  }
+                },
+                leaf_area = function(value) {
+                  if (missing(value)) {
+                    Species__leaf_area__get(self)
+                  } else {
+                    stop("Species$leaf_area is read-only")
+                  }
+                },
+                leaf_area_error = function(value) {
+                  if (missing(value)) {
+                    Species__leaf_area_error__get(self)
+                  } else {
+                    stop("Species$leaf_area_error is read-only")
                   }
                 }))
 

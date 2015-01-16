@@ -19,8 +19,9 @@ public:
   // * R interface (testing only, really)
   double r_growth_rate_gradient(const Environment& environment);
 
-  // This is probably needed:
-  // double leaf_area_above(double z) const;
+  double height() const {return plant.height();}
+  double leaf_area_above(double z) const;
+  double leaf_area() const;
 
   T plant;
 
@@ -143,6 +144,16 @@ template <typename T>
 double Cohort<T>::r_growth_rate_gradient(const Environment& environment) {
   plant.compute_vars_phys(environment);
   return growth_rate_gradient(environment);
+}
+
+template <typename T>
+double Cohort<T>::leaf_area_above(double height_) const {
+  return density * plant.leaf_area_above(height_);
+}
+
+template <typename T>
+double Cohort<T>::leaf_area() const {
+  return density * plant.leaf_area();
 }
 
 template <typename T>

@@ -27,4 +27,7 @@ check: build
 	@rm -f `ls -1tr ${PACKAGE}*gz | tail -n1`
 	@rm -rf ${PACKAGE}.Rcheck
 
+clean:
+	rm -f src/*.o src/*.so
+
 .PHONY: all doc clean test install

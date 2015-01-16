@@ -4,6 +4,8 @@ if (interactive()) {
   source("helper-tree2.R")
 }
 
+context("Trapezium integration")
+
 test_that("Trapezium rule works", {
   n <- 20
   set.seed(1)

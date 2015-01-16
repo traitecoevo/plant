@@ -80,8 +80,9 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
   check_length(x.size(), y.size());
 
   if (x.size() < 3) {
-    for (size_t i = 0; i < x.size(); ++i)
+    for (size_t i = 0; i < x.size(); ++i) {
       ret.push_back(NA_REAL);
+    }
   } else {
     ret.push_back(NA_REAL);
     std::vector<double> a = trapezium_vector(x, y);

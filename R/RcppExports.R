@@ -481,6 +481,10 @@ Cohort__ctor <- function(strategy) {
     .Call('tree2_Cohort__ctor', PACKAGE = 'tree2', strategy)
 }
 
+Cohort__leaf_area_above <- function(obj_, height) {
+    .Call('tree2_Cohort__leaf_area_above', PACKAGE = 'tree2', obj_, height)
+}
+
 Cohort__growth_rate_gradient <- function(obj_, environment) {
     .Call('tree2_Cohort__growth_rate_gradient', PACKAGE = 'tree2', obj_, environment)
 }
@@ -495,6 +499,70 @@ Cohort__compute_initial_conditions <- function(obj_, environment) {
 
 Cohort__plant__get <- function(obj_) {
     .Call('tree2_Cohort__plant__get', PACKAGE = 'tree2', obj_)
+}
+
+Cohort__height__get <- function(obj_) {
+    .Call('tree2_Cohort__height__get', PACKAGE = 'tree2', obj_)
+}
+
+Cohort__leaf_area__get <- function(obj_) {
+    .Call('tree2_Cohort__leaf_area__get', PACKAGE = 'tree2', obj_)
+}
+
+Species__ctor <- function(strategy) {
+    .Call('tree2_Species__ctor', PACKAGE = 'tree2', strategy)
+}
+
+Species__clear <- function(obj_) {
+    invisible(.Call('tree2_Species__clear', PACKAGE = 'tree2', obj_))
+}
+
+Species__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('tree2_Species__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
+}
+
+Species__leaf_area_above <- function(obj_, height) {
+    .Call('tree2_Species__leaf_area_above', PACKAGE = 'tree2', obj_, height)
+}
+
+Species__add_seed <- function(obj_) {
+    invisible(.Call('tree2_Species__add_seed', PACKAGE = 'tree2', obj_))
+}
+
+Species__plant_at <- function(obj_, index) {
+    .Call('tree2_Species__plant_at', PACKAGE = 'tree2', obj_, index)
+}
+
+Species__size__get <- function(obj_) {
+    .Call('tree2_Species__size__get', PACKAGE = 'tree2', obj_)
+}
+
+Species__seed__get <- function(obj_) {
+    .Call('tree2_Species__seed__get', PACKAGE = 'tree2', obj_)
+}
+
+Species__height_max__get <- function(obj_) {
+    .Call('tree2_Species__height_max__get', PACKAGE = 'tree2', obj_)
+}
+
+Species__height__get <- function(obj_) {
+    .Call('tree2_Species__height__get', PACKAGE = 'tree2', obj_)
+}
+
+Species__height__set <- function(obj_, value) {
+    invisible(.Call('tree2_Species__height__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Species__plants__get <- function(obj_) {
+    .Call('tree2_Species__plants__get', PACKAGE = 'tree2', obj_)
+}
+
+Species__leaf_area__get <- function(obj_) {
+    .Call('tree2_Species__leaf_area__get', PACKAGE = 'tree2', obj_)
+}
+
+Species__leaf_area_error__get <- function(obj_) {
+    .Call('tree2_Species__leaf_area_error__get', PACKAGE = 'tree2', obj_)
 }
 
 test_uniroot <- function(f, min, max) {
