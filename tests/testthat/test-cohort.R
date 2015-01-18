@@ -6,7 +6,10 @@ if (interactive()) {
 
 context("Cohort")
 
-test_that("Creation", {
+## TODO: This is all just ported over from tree1 and needs splitting
+## into units.
+
+test_that("Ported from tree1", {
   s <- Strategy()
 
   plant <- Plant(s)
@@ -86,3 +89,49 @@ test_that("Creation", {
 ## TODO: Not done yet:
 ##   * Check that the initial conditions are actually correct
 ##   * Check that the rates computed are actually correct
+
+test_that("ODE interface", {
+  s <- Strategy()
+  plant <- Plant(s)
+  cohort <- Cohort(s)
+  env <- test_environment(2 * plant$height,
+                          light_env=function(x) rep(1, length(x)),
+                          seed_rain=1.0)
+
+  cohort$compute_initial_conditions(env)
+  plant$compute_vars_phys(env)
+
+  ## Different ode size to Plant, but that's not tested here (TODO)
+  expect_that(cohort$ode_size, equals(4))
+
+  expect_that(cohort$plant$vars_size, is_identical_to(plant$vars_size))
+  expect_that(cohort$plant$vars_phys, is_identical_to(plant$vars_phys))
+
+  ## Set up plant too:
+  pr_germ <- plant$germination_probability(env)
+
+  y <- plant$ode_values
+  g <- plant$vars_phys[["height_growth_rate"]]
+
+  ## Ode *values*:
+  cmp <- c(plant$height,
+           -log(pr_germ),
+           0.0, # fecundity
+           log(pr_germ * env$seed_rain_rate / g))
+  expect_that(cohort$ode_values, equals(cmp))
+
+  ## Ode *rates*:
+  env$time <- 10
+  cohort$compute_vars_phys(env)
+  patch_survival <- env$patch_survival
+
+  rates <- plant$vars_phys
+
+  cmp <- c(rates[["height_growth_rate"]],
+           rates[["mortality_rate"]],
+           ## This is different to the approach in tree1?
+           rates[["fecundity_rate"]] *
+             patch_survival * cohort$plant$survival_probability,
+           -rates[["mortality_rate"]] - cohort$growth_rate_gradient(env))
+  expect_that(cohort$ode_rates, equals(cmp))
+})

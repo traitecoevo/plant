@@ -730,6 +730,27 @@ Parameters <- function(..., values=list(...)) {
                   } else {
                     stop("Cohort$leaf_area is read-only")
                   }
+                },
+                ode_size = function(value) {
+                  if (missing(value)) {
+                    Cohort__ode_size__get(self)
+                  } else {
+                    stop("Cohort$ode_size is read-only")
+                  }
+                },
+                ode_values = function(value) {
+                  if (missing(value)) {
+                    Cohort__ode_values__get(self)
+                  } else {
+                    Cohort__ode_values__set(self, value)
+                  }
+                },
+                ode_rates = function(value) {
+                  if (missing(value)) {
+                    Cohort__ode_rates__get(self)
+                  } else {
+                    stop("Cohort$ode_rates is read-only")
+                  }
                 }))
 
 

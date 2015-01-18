@@ -509,6 +509,22 @@ Cohort__leaf_area__get <- function(obj_) {
     .Call('tree2_Cohort__leaf_area__get', PACKAGE = 'tree2', obj_)
 }
 
+Cohort__ode_size__get <- function(obj_) {
+    .Call('tree2_Cohort__ode_size__get', PACKAGE = 'tree2', obj_)
+}
+
+Cohort__ode_values__get <- function(obj_) {
+    .Call('tree2_Cohort__ode_values__get', PACKAGE = 'tree2', obj_)
+}
+
+Cohort__ode_values__set <- function(obj_, value) {
+    invisible(.Call('tree2_Cohort__ode_values__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Cohort__ode_rates__get <- function(obj_) {
+    .Call('tree2_Cohort__ode_rates__get', PACKAGE = 'tree2', obj_)
+}
+
 Species__ctor <- function(strategy) {
     .Call('tree2_Species__ctor', PACKAGE = 'tree2', strategy)
 }

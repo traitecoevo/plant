@@ -416,6 +416,9 @@ Cohort:
     plant: {type: "tree2::Plant", access: field, readonly: true}
     height: {type: double, access: member}
     leaf_area: {type: double, access: member}
+    ode_size: {type: size_t, access: member}
+    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::set_ode_values"}
+    ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:
     leaf_area_above:
       return_type: double

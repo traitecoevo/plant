@@ -558,6 +558,25 @@ double Cohort__leaf_area__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> 
   return obj_->leaf_area();
 }
 
+// [[Rcpp::export]]
+size_t Cohort__ode_size__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
+  return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
+ode::state_type Cohort__ode_values__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
+  return ode::r_ode_values(*obj_);
+}
+// [[Rcpp::export]]
+void Cohort__ode_values__set(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, ode::state_type value) {
+  ode::set_ode_values(*obj_, value);
+}
+
+// [[Rcpp::export]]
+ode::state_type Cohort__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
+  return ode::r_ode_rates(*obj_);
+}
+
 
 // [[Rcpp::export]]
 tree2::Species<tree2::Cohort<tree2::Plant> > Species__ctor(tree2::Strategy strategy) {

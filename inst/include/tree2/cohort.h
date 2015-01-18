@@ -4,6 +4,7 @@
 
 #include <tree2/environment.h>
 #include <tree2/gradient.h>
+#include <tree2/ode_interface.h>
 
 namespace tree2 {
 
@@ -22,6 +23,23 @@ public:
   double height() const {return plant.height();}
   double leaf_area_above(double z) const;
   double leaf_area() const;
+
+  void set_log_density(double x) {
+    log_density = x;
+    density = exp(log_density);
+  }
+
+  // ODE interface.
+  // TODO: This does *not* include the extra calculations added to
+  // Plant for heartwood size; need to discuss further with @dfalster.
+  //
+  // NOTE: We are a time-independent model here so no need to pass
+  // time in as an argument.  All the bits involving time are taken
+  // care of by Environment for us.
+  static size_t ode_size() {return 4;}
+  ode::const_iterator set_ode_values(ode::const_iterator it);
+  ode::iterator       ode_values(ode::iterator it) const;
+  ode::iterator       ode_rates(ode::iterator it) const;
 
   T plant;
 
@@ -89,8 +107,7 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
   const double g = plant.height_rate();
   const double seed_rain = environment.seed_rain_rate();
   // NOTE: log(0.0) -> -Inf, which should behave fine.
-  log_density = g > 0 ? log(seed_rain * pr_germ / g) : log(0.0);
-  density     = exp(log_density);
+  set_log_density(g > 0 ? log(seed_rain * pr_germ / g) : log(0.0));
 
   // Need to check that the rates are valid after setting the
   // mortality value here (can go to -Inf and that requires squashing
@@ -98,6 +115,7 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
   // trim_rates();
   plant.trim_rates();
   if (!R_FINITE(log_density)) {
+    // Can do this at the same time that we do set_log_density, I think.
     log_density_rate = 0.0;
   }
 }
@@ -154,6 +172,33 @@ double Cohort<T>::leaf_area_above(double height_) const {
 template <typename T>
 double Cohort<T>::leaf_area() const {
   return density * plant.leaf_area();
+}
+
+// ODE interface -- note that the don't care about time in the cohort;
+// only Patch and above does.
+template <typename T>
+ode::const_iterator Cohort<T>::set_ode_values(ode::const_iterator it) {
+  plant.set_height(*it++);
+  plant.set_mortality(*it++);
+  seeds_survival_weighted = *it++;
+  set_log_density(*it++);
+  return it;
+}
+template <typename T>
+ode::iterator Cohort<T>::ode_values(ode::iterator it) const {
+  *it++ = plant.height();
+  *it++ = plant.mortality();
+  *it++ = seeds_survival_weighted;
+  *it++ = log_density;
+  return it;
+}
+template <typename T>
+ode::iterator Cohort<T>::ode_rates(ode::iterator it) const {
+  *it++ = plant.height_rate();
+  *it++ = plant.mortality_rate();
+  *it++ = seeds_survival_weighted_rate;
+  *it++ = log_density_rate;
+  return it;
 }
 
 template <typename T>
