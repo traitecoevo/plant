@@ -38,6 +38,15 @@ public:
   double leaf_area_above(double height) const;
   double canopy_openness(double height) const;
 
+  void add_seed(size_t species_index);
+  void add_seeds(const std::vector<size_t>& species_index);
+
+  // * ODE interface
+  size_t ode_size() const;
+  ode::const_iterator set_ode_values(ode::const_iterator it, double time);
+  ode::iterator       ode_values(ode::iterator it) const;
+  ode::iterator       ode_rates(ode::iterator it) const;
+
   // * R interface
   // Data accessors:
   Parameters r_parameters() const {return parameters;}
@@ -51,7 +60,6 @@ public:
   void r_compute_vars_phys() {compute_vars_phys();}
 
 private:
-  void add_seed(size_t index);
   void compute_light_environment();
   void rescale_light_environment();
   void compute_vars_phys();
@@ -72,6 +80,16 @@ Patch<T>::Patch(Parameters p)
     species.push_back(Species<T>(s));
   }
   reset();
+}
+
+template <typename T>
+void Patch<T>::reset() {
+  for (auto& s : species) {
+    s.clear();
+  }
+  environment.clear();
+  compute_light_environment();
+  compute_vars_phys();
 }
 
 // TODO: use this https://github.com/klmr/cpp11-range for ranged loops:
@@ -132,11 +150,7 @@ void Patch<T>::compute_vars_phys() {
 
 // TODO: We should only be recomputing the light environment for the
 // points that are below the height of the seedling -- not the entire
-// light environment!
-//
-// TODO: Might be worth resurrecting the add_seedlings function, which
-// will bulk add seedlings.  Otherwise the light environment gets
-// recomputed after each time here, which is wasteful.
+// light environment; probably worth just doing a rescale there?
 template <typename T>
 void Patch<T>::add_seed(size_t species_index) {
   species[species_index].add_seed();
@@ -146,15 +160,46 @@ void Patch<T>::add_seed(size_t species_index) {
 }
 
 template <typename T>
-void Patch<T>::reset() {
-  for (auto& s : species) {
-    s.clear();
+void Patch<T>::add_seeds(const std::vector<size_t>& species_index) {
+  bool recompute = false;
+  for (size_t i : species_index) {
+    species[i].add_seed();
+    recompute = recompute || parameters.is_resident[i];
   }
-  environment.clear();
-  compute_light_environment();
-  compute_vars_phys();
+  if (recompute) {
+    compute_light_environment();
+  }
 }
 
+// ODE interface
+template <typename T>
+size_t Patch<T>::ode_size() const {
+  return ode::ode_size(species.begin(), species.end());
+}
+
+template <typename T>
+ode::const_iterator Patch<T>::set_ode_values(ode::const_iterator it,
+                                             double time) {
+  it = ode::set_ode_values(species.begin(), species.end(), it);
+  environment.time = time;
+  if (parameters.control.environment_light_rescale_usually) {
+    rescale_light_environment();
+  } else {
+    compute_light_environment();
+  }
+  compute_vars_phys();
+  return it;
+}
+
+template <typename T>
+ode::iterator Patch<T>::ode_values(ode::iterator it) const {
+  return ode::ode_values(species.begin(), species.end(), it);
+}
+
+template <typename T>
+ode::iterator Patch<T>::ode_rates(ode::iterator it) const {
+  return ode::ode_rates(species.begin(), species.end(), it);
+}
 
 }
 

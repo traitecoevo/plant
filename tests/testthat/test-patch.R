@@ -4,6 +4,8 @@ if (interactive()) {
   source("helper-tree2.R")
 }
 
+## TODO: Test add_seeds(vector<double>)
+
 context("Patch")
 
 test_that("Basics", {
@@ -20,13 +22,16 @@ test_that("Basics", {
   expect_that(patch$parameters, equals(p))
 
   expect_that(patch$environment, is_a("Environment"))
+  expect_that(patch$environment$time, is_identical_to(0.0))
+
   expect_that(length(patch$species), equals(1))
   expect_that(patch$species[[1]], is_a("Species"))
 
-  ## At this point, doing this should fail -- with only one individual
-  ## the light environment is not defined.  At the same time, we should
-  ## probably recover more gracefully and agree that it is also an empty
-  ## light environment.
+  expect_that(patch$ode_size, equals(0))
+  expect_that(patch$ode_values, is_identical_to(numeric(0)))
+  expect_that(patch$ode_rates,  is_identical_to(numeric(0)))
+
+  ## Empty light environment:
   patch$compute_light_environment()
   expect_that(patch$leaf_area_above(0), is_identical_to(0))
 
@@ -34,23 +39,23 @@ test_that("Basics", {
   expect_that(patch$add_seed(2), throws_error("out of bounds"))
 
   patch$add_seed(1)
-  ## expect_that(patch$ode_size, equals(4))
+  expect_that(patch$ode_size, equals(4))
 
   ## Then pull this out:
   cmp$compute_initial_conditions(patch$environment)
 
-  ## expect_that(patch$ode_values,
-  ##             is_identical_to(cmp$ode_values))
-  ## expect_that(patch$ode_rates,
-  ##             is_identical_to(cmp$ode_rates))
+  expect_that(patch$ode_values,
+              is_identical_to(cmp$ode_values))
+  expect_that(patch$ode_rates,
+              is_identical_to(cmp$ode_rates))
 
-  ## y <- patch$ode_values
-  ## patch$set_ode_values(0, y)
-  ## expect_that(patch$ode_values, is_identical_to(y))
+  y <- patch$ode_values
+  patch$set_ode_values(y, 0)
+  expect_that(patch$ode_values, is_identical_to(y))
 
   ## NOTE: These should be identical, but are merely equal...
-  ## expect_that(patch$derivs(0, y),
-  ##             equals(cmp$ode_rates))
+  expect_that(patch$derivs(y, 0),
+              equals(cmp$ode_rates))
 
   ## solver <- solver_from_ode_target(patch, p$control$ode_control)
   ## solver$step()
@@ -59,11 +64,10 @@ test_that("Basics", {
   ##             equals(cmp$ode_size * patch$n_individuals))
 
   patch$reset()
-  ## expect_that(patch$n_individuals, equals(0))
-  ## expect_that(patch$ode_size, equals(0))
-  ## expect_that(patch$time, equals(0))
+  expect_that(patch$ode_size, equals(0))
+  expect_that(patch$environment$time, is_identical_to(0.0))
 
-  ## t <- patch$time # do via environment only?
+  t <- patch$environment$time # do via environment only?
 
   ## patch$add_seed(1)
   ## h <- patch$height[[1]]

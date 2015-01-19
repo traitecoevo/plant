@@ -883,6 +883,12 @@ Parameters <- function(..., values=list(...)) {
                 },
                 reset = function() {
                   Patch__reset(self)
+                },
+                set_ode_values = function(values, time) {
+                  Patch__set_ode_values(self, values, time)
+                },
+                derivs = function(y, time) {
+                  Patch__derivs(self, y, time)
                 }),
               active=list(
                 size = function(value) {
@@ -918,6 +924,27 @@ Parameters <- function(..., values=list(...)) {
                     Patch__species__get(self)
                   } else {
                     stop("Patch$species is read-only")
+                  }
+                },
+                ode_size = function(value) {
+                  if (missing(value)) {
+                    Patch__ode_size__get(self)
+                  } else {
+                    stop("Patch$ode_size is read-only")
+                  }
+                },
+                ode_values = function(value) {
+                  if (missing(value)) {
+                    Patch__ode_values__get(self)
+                  } else {
+                    stop("Patch$ode_values is read-only")
+                  }
+                },
+                ode_rates = function(value) {
+                  if (missing(value)) {
+                    Patch__ode_rates__get(self)
+                  } else {
+                    stop("Patch$ode_rates is read-only")
                   }
                 }))
 

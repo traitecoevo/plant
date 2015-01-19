@@ -625,6 +625,14 @@ Patch__reset <- function(obj_) {
     invisible(.Call('tree2_Patch__reset', PACKAGE = 'tree2', obj_))
 }
 
+Patch__set_ode_values <- function(obj_, values, time) {
+    invisible(.Call('tree2_Patch__set_ode_values', PACKAGE = 'tree2', obj_, values, time))
+}
+
+Patch__derivs <- function(obj_, y, time) {
+    .Call('tree2_Patch__derivs', PACKAGE = 'tree2', obj_, y, time)
+}
+
 Patch__size__get <- function(obj_) {
     .Call('tree2_Patch__size__get', PACKAGE = 'tree2', obj_)
 }
@@ -643,6 +651,18 @@ Patch__environment__get <- function(obj_) {
 
 Patch__species__get <- function(obj_) {
     .Call('tree2_Patch__species__get', PACKAGE = 'tree2', obj_)
+}
+
+Patch__ode_size__get <- function(obj_) {
+    .Call('tree2_Patch__ode_size__get', PACKAGE = 'tree2', obj_)
+}
+
+Patch__ode_values__get <- function(obj_) {
+    .Call('tree2_Patch__ode_values__get', PACKAGE = 'tree2', obj_)
+}
+
+Patch__ode_rates__get <- function(obj_) {
+    .Call('tree2_Patch__ode_rates__get', PACKAGE = 'tree2', obj_)
 }
 
 test_uniroot <- function(f, min, max) {

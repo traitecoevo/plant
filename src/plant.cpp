@@ -198,6 +198,10 @@ void Plant::compute_vars_phys(const Environment& environment) {
 // change.
 double Plant::germination_probability(const Environment& environment) {
   compute_vars_phys(environment);
+  return germination_probability();
+}
+
+double Plant::germination_probability() const {
   if (vars.net_production > 0) {
     const double tmp = vars.leaf_area * strategy->c_s0 / vars.net_production;
     return 1 / (tmp * tmp + 1.0);

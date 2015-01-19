@@ -690,6 +690,14 @@ void Patch__reset(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant>
   obj_->reset();
 }
 // [[Rcpp::export]]
+void Patch__set_ode_values(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, ode::state_type values, double time) {
+  ode::set_ode_values(*obj_, values, time);
+}
+// [[Rcpp::export]]
+ode::state_type Patch__derivs(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, const ode::state_type& y, double time) {
+  return ode::r_derivs(*obj_, y, time);
+}
+// [[Rcpp::export]]
 size_t Patch__size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
   return obj_->size();
 }
@@ -712,5 +720,20 @@ tree2::Environment Patch__environment__get(tree2::RcppR6::RcppR6<tree2::Patch<tr
 // [[Rcpp::export]]
 std::vector<tree2::Species<tree2::Cohort<tree2::Plant> > > Patch__species__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
   return obj_->r_species();
+}
+
+// [[Rcpp::export]]
+size_t Patch__ode_size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
+ode::state_type Patch__ode_values__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return ode::r_ode_values(*obj_);
+}
+
+// [[Rcpp::export]]
+ode::state_type Patch__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return ode::r_ode_rates(*obj_);
 }
 

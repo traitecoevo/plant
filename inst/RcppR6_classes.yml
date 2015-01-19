@@ -479,6 +479,10 @@ Patch:
     parameters: {type: "tree2::Parameters", access: member, name_cpp: r_parameters}
     environment: {type: "tree2::Environment", access: member, name_cpp: r_environment}
     species: {type: "std::vector<tree2::Species<tree2::Cohort<tree2::Plant> > >", access: member, name_cpp: r_species}
+    ## ODE interface:
+    ode_size: {type: size_t, access: member}
+    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values"}
+    ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:
     leaf_area_above: {return_type: double, args: [height: double]}
     canopy_openness: {return_type: double, args: [height: double]}
@@ -495,3 +499,16 @@ Patch:
     # TODO: Not 100% sure this is needed from R:
     reset:
       return_type: void
+    # Because we now care about time, we need to make sure that the
+    # setter function passes time along, so can't be done via the
+    # active binding (unlike Species, Cohort, etc).
+    set_ode_values:
+      return_type: void
+      access: function
+      name_cpp: "ode::set_ode_values"
+      args: [values: "ode::state_type", time: double]
+    derivs:
+      return_type: "ode::state_type"
+      access: function
+      name_cpp: "ode::r_derivs"
+      args: [y: "const ode::state_type&", time: double]

@@ -86,11 +86,6 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
     survival_patch / pr_patch_survival_at_birth;
 }
 
-// NOTE: germination_probability() will cause all physiological
-// variables to be updated, so height_rate() becomes valid so long as
-// it is used *after* germination_probability().  This is something
-// that can be improved, as that feels a bit fragile.
-//
 // NOTE: There will be a discussion of why the mortality rate initial
 // condition is -log(germination_probability) in the documentation
 // that Daniel is working out.
@@ -99,8 +94,10 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
 // defined on p 7 at the moment.
 template <typename T>
 void Cohort<T>::compute_initial_conditions(const Environment& environment) {
+  compute_vars_phys(environment);
+
   pr_patch_survival_at_birth = environment.patch_survival();
-  const double pr_germ = plant.germination_probability(environment);
+  const double pr_germ = plant.germination_probability();
   // EBT.md{eq:boundSurv}
   plant.set_mortality(-log(pr_germ));
   // EBT.md{eq:boundN}

@@ -122,7 +122,6 @@ test_that("ODE interface", {
 
   ## Ode *rates*:
   env$time <- 10
-  cohort$compute_vars_phys(env)
   patch_survival <- env$patch_survival
 
   rates <- plant$vars_phys
