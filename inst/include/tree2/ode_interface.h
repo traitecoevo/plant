@@ -40,6 +40,48 @@ void ode_rates(const T& obj, state_type& dydt) {
   obj.ode_rates(dydt.begin());
 }
 
+// The recursive interface
+template <typename ForwardIterator>
+size_t ode_size(ForwardIterator first, ForwardIterator last) {
+  size_t ret = 0;
+  while (first != last) {
+    ret += first->ode_size();
+    ++first;
+  }
+  return ret;
+}
+
+// Version without time
+template <typename ForwardIterator>
+const_iterator set_ode_values(ForwardIterator first, ForwardIterator last,
+                              const_iterator it) {
+  while (first != last) {
+    it = first->set_ode_values(it);
+    ++first;
+  }
+  return it;
+}
+
+template <typename ForwardIterator>
+iterator ode_values(ForwardIterator first, ForwardIterator last,
+                    iterator it) {
+  while (first != last) {
+    it = first->ode_values(it);
+    ++first;
+  }
+  return it;
+}
+
+template <typename ForwardIterator>
+iterator ode_rates(ForwardIterator first, ForwardIterator last,
+                   iterator it) {
+  while (first != last) {
+    it = first->ode_rates(it);
+    ++first;
+  }
+  return it;
+}
+
 // These out-of-place versions are useful for interfacing with R.
 template <typename T>
 state_type r_ode_values(const T& obj) {

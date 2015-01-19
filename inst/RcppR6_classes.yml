@@ -448,6 +448,10 @@ Species:
     plants: {type: "std::vector<tree2::Cohort<tree2::Plant> >", access: member, name_cpp: r_plants}
     leaf_area: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area}
     leaf_area_error: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area_error}
+    ## ODE interface:
+    ode_size: {type: size_t, access: member}
+    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::set_ode_values"}
+    ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:
     clear:
       return_type: void

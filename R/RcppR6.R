@@ -830,6 +830,27 @@ Parameters <- function(..., values=list(...)) {
                   } else {
                     stop("Species$leaf_area_error is read-only")
                   }
+                },
+                ode_size = function(value) {
+                  if (missing(value)) {
+                    Species__ode_size__get(self)
+                  } else {
+                    stop("Species$ode_size is read-only")
+                  }
+                },
+                ode_values = function(value) {
+                  if (missing(value)) {
+                    Species__ode_values__get(self)
+                  } else {
+                    Species__ode_values__set(self, value)
+                  }
+                },
+                ode_rates = function(value) {
+                  if (missing(value)) {
+                    Species__ode_rates__get(self)
+                  } else {
+                    stop("Species$ode_rates is read-only")
+                  }
                 }))
 
 

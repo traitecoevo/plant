@@ -641,6 +641,25 @@ std::vector<double> Species__leaf_area_error__get(tree2::RcppR6::RcppR6<tree2::S
   return obj_->r_leaf_area_error();
 }
 
+// [[Rcpp::export]]
+size_t Species__ode_size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
+ode::state_type Species__ode_values__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return ode::r_ode_values(*obj_);
+}
+// [[Rcpp::export]]
+void Species__ode_values__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, ode::state_type value) {
+  ode::set_ode_values(*obj_, value);
+}
+
+// [[Rcpp::export]]
+ode::state_type Species__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return ode::r_ode_rates(*obj_);
+}
+
 
 // [[Rcpp::export]]
 tree2::Patch<tree2::Cohort<tree2::Plant> > Patch__ctor(tree2::Parameters parameters) {

@@ -35,6 +35,15 @@ public:
   double leaf_area_above(double height) const;
   void compute_vars_phys(const Environment& environment);
 
+  // * ODE interface
+  // NOTE: We are a time-independent model here so no need to pass
+  // time in as an argument.  All the bits involving time are taken
+  // care of by Environment for us.
+  size_t ode_size() const;
+  ode::const_iterator set_ode_values(ode::const_iterator it);
+  ode::iterator       ode_values(ode::iterator it) const;
+  ode::iterator       ode_rates(ode::iterator it) const;
+
   // * R interface
   std::vector<double> r_height() const;
   void r_set_height(std::vector<double> height);
@@ -161,6 +170,27 @@ void Species<T>::compute_vars_phys(const Environment& environment) {
   }
   seed.compute_initial_conditions(environment);
 }
+
+template <typename T>
+size_t Species<T>::ode_size() const {
+  return size() * T::ode_size();
+}
+
+template <typename T>
+ode::const_iterator Species<T>::set_ode_values(ode::const_iterator it) {
+  return ode::set_ode_values(plants.begin(), plants.end(), it);
+}
+
+template <typename T>
+ode::iterator Species<T>::ode_values(ode::iterator it) const {
+  return ode::ode_values(plants.begin(), plants.end(), it);
+}
+
+template <typename T>
+ode::iterator Species<T>::ode_rates(ode::iterator it) const {
+  return ode::ode_rates(plants.begin(), plants.end(), it);
+}
+
 
 template <typename T>
 std::vector<double> Species<T>::r_height() const {

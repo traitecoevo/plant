@@ -581,6 +581,22 @@ Species__leaf_area_error__get <- function(obj_) {
     .Call('tree2_Species__leaf_area_error__get', PACKAGE = 'tree2', obj_)
 }
 
+Species__ode_size__get <- function(obj_) {
+    .Call('tree2_Species__ode_size__get', PACKAGE = 'tree2', obj_)
+}
+
+Species__ode_values__get <- function(obj_) {
+    .Call('tree2_Species__ode_values__get', PACKAGE = 'tree2', obj_)
+}
+
+Species__ode_values__set <- function(obj_, value) {
+    invisible(.Call('tree2_Species__ode_values__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Species__ode_rates__get <- function(obj_) {
+    .Call('tree2_Species__ode_rates__get', PACKAGE = 'tree2', obj_)
+}
+
 Patch__ctor <- function(parameters) {
     .Call('tree2_Patch__ctor', PACKAGE = 'tree2', parameters)
 }
