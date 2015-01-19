@@ -34,6 +34,7 @@ public:
   double height_max() const;
   double leaf_area_above(double height) const;
   void compute_vars_phys(const Environment& environment);
+  std::vector<double> seeds() const;
 
   // * ODE interface
   // NOTE: We are a time-independent model here so no need to pass
@@ -162,13 +163,20 @@ double Species<T>::leaf_area_above(double height) const {
 // through the ode stepper.
 template <typename T>
 void Species<T>::compute_vars_phys(const Environment& environment) {
-  // for (auto& p : plants) {
-  //   p.compute_vars_phys(environment);
-  // }
-  for (plants_iterator it = plants.begin(); it != plants.end(); ++it) {
-    it->compute_vars_phys(environment);
+  for (auto& p : plants) {
+    p.compute_vars_phys(environment);
   }
   seed.compute_initial_conditions(environment);
+}
+
+template <typename T>
+std::vector<double> Species<T>::seeds() const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (auto& p : plants) {
+    ret.push_back(p.fecundity());
+  }
+  return ret;
 }
 
 template <typename T>

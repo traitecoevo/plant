@@ -416,6 +416,7 @@ Cohort:
     plant: {type: "tree2::Plant", access: field, readonly: true}
     height: {type: double, access: member}
     leaf_area: {type: double, access: member}
+    fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::set_ode_values"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
@@ -446,6 +447,7 @@ Species:
     height_max: {type: double, access: member, readonly: true}
     height: {type: "std::vector<double>", access: member, name_cpp: r_height, name_cpp_set: r_set_height}
     plants: {type: "std::vector<tree2::Cohort<tree2::Plant> >", access: member, name_cpp: r_plants}
+    seeds: {type: "std::vector<double>", access: member}
     leaf_area: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area}
     leaf_area_error: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area_error}
     ## ODE interface:
@@ -512,3 +514,50 @@ Patch:
       access: function
       name_cpp: "ode::r_derivs"
       args: [y: "const ode::state_type&", time: double]
+
+EBT:
+  forward_declare: false
+  name_cpp: "tree2::EBT<tree2::Plant>"
+  constructor:
+    args: [parameters: "tree2::Parameters"]
+  methods:
+    run:
+      return_type: void
+    run_next:
+      return_type: "std::vector<util::index>"
+      name_cpp: r_run_next
+    reset:
+      return_type: void
+    seed_rain:
+      args: [species_index: "util::index"]
+      return_type: double
+      name_cpp: r_seed_rain
+    seed_rain_error:
+      args: [species_index: "util::index"]
+      return_type: "std::vector<double>"
+      name_cpp: r_seed_rain_error
+    seed_rain_cohort:
+      args: [species_index: "util::index"]
+      return_type: "std::vector<double>"
+      name_cpp: r_seed_rain_cohort
+    leaf_area_error:
+      args: [species_index: "util::index"]
+      return_type: "std::vector<double>"
+      name_cpp: r_leaf_area_error
+    # times
+    # set_times
+  active:
+    complete: {type: bool, access: member}
+    time: {type: double, access: member}
+    seed_rains: {type: "std::vector<double>", access: member}
+    parameters: {type: "tree2::Parameters", access: member, name_cpp: r_parameters}
+    patch:
+      type: "tree2::Patch<tree2::Cohort<tree2::Plant> >"
+      access: member
+      name_cpp: r_patch
+    cohort_schedule:
+      type: "tree2::CohortSchedule"
+      access: member
+      name_cpp: r_cohort_schedule
+      name_cpp_set: r_set_cohort_schedule
+    # ode_times

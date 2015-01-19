@@ -15,6 +15,15 @@ struct index {
   operator size_t() {return x;}
 };
 
+inline std::vector<index> index_vector(const std::vector<size_t> x) {
+  std::vector<index> ret;
+  ret.reserve(x.size());
+  for (size_t i : x) {
+    ret.push_back(i);
+  }
+  return ret;
+}
+
 bool is_finite(double x);
 
 void check_length(size_t received, size_t expected);

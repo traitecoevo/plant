@@ -12,7 +12,7 @@ namespace tree2 {
 template <typename T> class Cohort;
 template <typename T> class Species;
 template <typename T> class Patch;
-// template <typename T> class EBT;
+template <typename T> class EBT;
 }
 
 // Include this early on.  It can be either after classes have been
@@ -49,7 +49,7 @@ SEXP wrap(const ode::state_saver<std::vector<double> >&);
 #include <tree2/cohort.h>
 #include <tree2/species.h>
 #include <tree2/patch.h>
-// #include <tree2/ebt.h>
+#include <tree2/ebt.h>
 
 // Anything after this point is OK to include Rcpp.h.  This is
 // probably where the meat of the included material goes if your

@@ -5,25 +5,14 @@
 #include <tree2/parameters.h>
 #include <tree2/species.h>
 
-// EBT uses:
-//   .size
-//   .add_seedling(int)
-//   .get_disturbance_regime() (!) // used in seed_rain_cohort
-//   .at // also in seed_rain_cohort -- probably needs work there...
-//   OK .leaf_area_above(double)
-//   .leaf_area_error(int)
-//   .reset // hmm...
-//   .{various ode functions}
-//   // access cohort_schedule (will do via Parameters now?)
-//   .seed_rains (all of them)
-//   .set_times (schedule crap)
-
 namespace tree2 {
 
 template <typename T>
 class Patch {
 public:
-  typedef T cohort_type;
+  // This is actually a lie at the moment I think...
+  // typedef T plant_type;
+  // typedef Cohort<plant_type> cohort_type;
   Patch(Parameters p);
 
   size_t size() const {return species.size();}
@@ -41,6 +30,13 @@ public:
   void add_seed(size_t species_index);
   void add_seeds(const std::vector<size_t>& species_index);
 
+  const Species<T>& at(size_t species_index) const {
+    return species[species_index];
+  }
+  const Disturbance& disturbance_regime() const {
+    return environment.disturbance_regime;
+  }
+
   // * ODE interface
   size_t ode_size() const;
   ode::const_iterator set_ode_values(ode::const_iterator it, double time);
@@ -52,10 +48,15 @@ public:
   Parameters r_parameters() const {return parameters;}
   Environment r_environment() const {return environment;}
   std::vector<Species<T> > r_species() const {return species;}
+  std::vector<double> r_leaf_area_error(size_t species_index) const;
 
   void r_add_seed(util::index species_index) {
     add_seed(species_index.check_bounds(size()));
   }
+  Species<T> r_at(util::index species_index) const {
+    at(species_index.check_bounds(size()));
+  }
+  // These are only here because they wrap private functions.
   void r_compute_light_environment() {compute_light_environment();}
   void r_compute_vars_phys() {compute_vars_phys();}
 
@@ -122,6 +123,11 @@ double Patch<T>::canopy_openness(double height) const {
   // really we should require that it is 1.0, or drop it entirely.
   return exp(-parameters.c_ext * leaf_area_above(height) /
              parameters.patch_area);
+}
+
+template <typename T>
+std::vector<double> Patch<T>::r_leaf_area_error(size_t species_index) const {
+  return species[species_index].r_leaf_area_error();
 }
 
 template <typename T>

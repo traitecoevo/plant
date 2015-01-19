@@ -78,6 +78,9 @@ template <> tree2::Species<tree2::Cohort<tree2::Plant> > as(SEXP);
 
 template <> SEXP wrap(const tree2::Patch<tree2::Cohort<tree2::Plant> >&);
 template <> tree2::Patch<tree2::Cohort<tree2::Plant> > as(SEXP);
+
+template <> SEXP wrap(const tree2::EBT<tree2::Plant>&);
+template <> tree2::EBT<tree2::Plant> as(SEXP);
 }
 
 #endif

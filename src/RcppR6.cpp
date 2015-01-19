@@ -559,6 +559,11 @@ double Cohort__leaf_area__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> 
 }
 
 // [[Rcpp::export]]
+double Cohort__fecundity__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
+  return obj_->fecundity();
+}
+
+// [[Rcpp::export]]
 size_t Cohort__ode_size__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
   return obj_->ode_size();
 }
@@ -629,6 +634,11 @@ void Species__height__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tre
 // [[Rcpp::export]]
 std::vector<tree2::Cohort<tree2::Plant> > Species__plants__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
   return obj_->r_plants();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Species__seeds__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->seeds();
 }
 
 // [[Rcpp::export]]
@@ -735,5 +745,72 @@ ode::state_type Patch__ode_values__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2:
 // [[Rcpp::export]]
 ode::state_type Patch__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
   return ode::r_ode_rates(*obj_);
+}
+
+
+// [[Rcpp::export]]
+tree2::EBT<tree2::Plant> EBT__ctor(tree2::Parameters parameters) {
+  return tree2::EBT<tree2::Plant>(parameters);
+}
+// [[Rcpp::export]]
+void EBT__run(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  obj_->run();
+}
+// [[Rcpp::export]]
+std::vector<util::index> EBT__run_next(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->r_run_next();
+}
+// [[Rcpp::export]]
+void EBT__reset(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  obj_->reset();
+}
+// [[Rcpp::export]]
+double EBT__seed_rain(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, util::index species_index) {
+  return obj_->r_seed_rain(species_index);
+}
+// [[Rcpp::export]]
+std::vector<double> EBT__seed_rain_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, util::index species_index) {
+  return obj_->r_seed_rain_error(species_index);
+}
+// [[Rcpp::export]]
+std::vector<double> EBT__seed_rain_cohort(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, util::index species_index) {
+  return obj_->r_seed_rain_cohort(species_index);
+}
+// [[Rcpp::export]]
+std::vector<double> EBT__leaf_area_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, util::index species_index) {
+  return obj_->r_leaf_area_error(species_index);
+}
+// [[Rcpp::export]]
+bool EBT__complete__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->complete();
+}
+
+// [[Rcpp::export]]
+double EBT__time__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->time();
+}
+
+// [[Rcpp::export]]
+std::vector<double> EBT__seed_rains__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->seed_rains();
+}
+
+// [[Rcpp::export]]
+tree2::Parameters EBT__parameters__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->r_parameters();
+}
+
+// [[Rcpp::export]]
+tree2::Patch<tree2::Cohort<tree2::Plant> > EBT__patch__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->r_patch();
+}
+
+// [[Rcpp::export]]
+tree2::CohortSchedule EBT__cohort_schedule__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->r_cohort_schedule();
+}
+// [[Rcpp::export]]
+void EBT__cohort_schedule__set(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::CohortSchedule value) {
+  obj_->r_set_cohort_schedule(value);
 }
 

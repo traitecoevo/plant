@@ -120,6 +120,8 @@ test_that("ODE interface", {
            log(pr_germ * env$seed_rain_rate / g))
   expect_that(cohort$ode_values, equals(cmp))
 
+  expect_that(cohort$fecundity, is_identical_to(0.0));
+
   ## Ode *rates*:
   env$time <- 10
   patch_survival <- env$patch_survival

@@ -21,9 +21,7 @@ namespace test {
 // variables and disbuse them across the system in a really weird
 // way.
 //
-// This is why having the iterator bits was very important.  But I
-// think it's a mistake to have these be the primary way that things
-// are set.
+// This is why having the iterator bits was very important.
 
 class Lorenz {
 public:
@@ -35,7 +33,6 @@ public:
   std::vector<double> ode_values() const { return state; }
   void set_ode_values(const std::vector<double>& y) {
     util::check_length(y.size(), size());
-    // Rprintf("%2.5f, %2.5f, %2.5f\n", y[0], y[1], y[2]);
     state = y;
   }
   void ode_rates(std::vector<double>& dydt) {

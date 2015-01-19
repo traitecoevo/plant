@@ -23,6 +23,7 @@ public:
   double height() const {return plant.height();}
   double leaf_area_above(double z) const;
   double leaf_area() const;
+  double fecundity() const {return seeds_survival_weighted;}
 
   void set_log_density(double x) {
     log_density = x;

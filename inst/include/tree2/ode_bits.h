@@ -135,7 +135,7 @@ public:
   // anywhere near up-to-date.
   // Might be better to work with a reference here perhaps?
   // Or optionally update as we go?
-  T get_obj() { return runner.obj; }
+  const T& get_obj() { return runner.obj; }
 
   stepper_basic_type stepper_basic;
   stepper_type stepper_controlled;

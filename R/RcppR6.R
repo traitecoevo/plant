@@ -731,6 +731,13 @@ Parameters <- function(..., values=list(...)) {
                     stop("Cohort$leaf_area is read-only")
                   }
                 },
+                fecundity = function(value) {
+                  if (missing(value)) {
+                    Cohort__fecundity__get(self)
+                  } else {
+                    stop("Cohort$fecundity is read-only")
+                  }
+                },
                 ode_size = function(value) {
                   if (missing(value)) {
                     Cohort__ode_size__get(self)
@@ -815,6 +822,13 @@ Parameters <- function(..., values=list(...)) {
                     Species__plants__get(self)
                   } else {
                     stop("Species$plants is read-only")
+                  }
+                },
+                seeds = function(value) {
+                  if (missing(value)) {
+                    Species__seeds__get(self)
+                  } else {
+                    stop("Species$seeds is read-only")
                   }
                 },
                 leaf_area = function(value) {
@@ -945,6 +959,84 @@ Parameters <- function(..., values=list(...)) {
                     Patch__ode_rates__get(self)
                   } else {
                     stop("Patch$ode_rates is read-only")
+                  }
+                }))
+
+
+`EBT` <- function(parameters) {
+  EBT__ctor(parameters)
+}
+.R6_EBT <-
+  R6::R6Class("EBT",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                run = function() {
+                  EBT__run(self)
+                },
+                run_next = function() {
+                  EBT__run_next(self)
+                },
+                reset = function() {
+                  EBT__reset(self)
+                },
+                seed_rain = function(species_index) {
+                  EBT__seed_rain(self, species_index)
+                },
+                seed_rain_error = function(species_index) {
+                  EBT__seed_rain_error(self, species_index)
+                },
+                seed_rain_cohort = function(species_index) {
+                  EBT__seed_rain_cohort(self, species_index)
+                },
+                leaf_area_error = function(species_index) {
+                  EBT__leaf_area_error(self, species_index)
+                }),
+              active=list(
+                complete = function(value) {
+                  if (missing(value)) {
+                    EBT__complete__get(self)
+                  } else {
+                    stop("EBT$complete is read-only")
+                  }
+                },
+                time = function(value) {
+                  if (missing(value)) {
+                    EBT__time__get(self)
+                  } else {
+                    stop("EBT$time is read-only")
+                  }
+                },
+                seed_rains = function(value) {
+                  if (missing(value)) {
+                    EBT__seed_rains__get(self)
+                  } else {
+                    stop("EBT$seed_rains is read-only")
+                  }
+                },
+                parameters = function(value) {
+                  if (missing(value)) {
+                    EBT__parameters__get(self)
+                  } else {
+                    stop("EBT$parameters is read-only")
+                  }
+                },
+                patch = function(value) {
+                  if (missing(value)) {
+                    EBT__patch__get(self)
+                  } else {
+                    stop("EBT$patch is read-only")
+                  }
+                },
+                cohort_schedule = function(value) {
+                  if (missing(value)) {
+                    EBT__cohort_schedule__get(self)
+                  } else {
+                    EBT__cohort_schedule__set(self, value)
                   }
                 }))
 

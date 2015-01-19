@@ -509,6 +509,10 @@ Cohort__leaf_area__get <- function(obj_) {
     .Call('tree2_Cohort__leaf_area__get', PACKAGE = 'tree2', obj_)
 }
 
+Cohort__fecundity__get <- function(obj_) {
+    .Call('tree2_Cohort__fecundity__get', PACKAGE = 'tree2', obj_)
+}
+
 Cohort__ode_size__get <- function(obj_) {
     .Call('tree2_Cohort__ode_size__get', PACKAGE = 'tree2', obj_)
 }
@@ -571,6 +575,10 @@ Species__height__set <- function(obj_, value) {
 
 Species__plants__get <- function(obj_) {
     .Call('tree2_Species__plants__get', PACKAGE = 'tree2', obj_)
+}
+
+Species__seeds__get <- function(obj_) {
+    .Call('tree2_Species__seeds__get', PACKAGE = 'tree2', obj_)
 }
 
 Species__leaf_area__get <- function(obj_) {
@@ -663,6 +671,66 @@ Patch__ode_values__get <- function(obj_) {
 
 Patch__ode_rates__get <- function(obj_) {
     .Call('tree2_Patch__ode_rates__get', PACKAGE = 'tree2', obj_)
+}
+
+EBT__ctor <- function(parameters) {
+    .Call('tree2_EBT__ctor', PACKAGE = 'tree2', parameters)
+}
+
+EBT__run <- function(obj_) {
+    invisible(.Call('tree2_EBT__run', PACKAGE = 'tree2', obj_))
+}
+
+EBT__run_next <- function(obj_) {
+    .Call('tree2_EBT__run_next', PACKAGE = 'tree2', obj_)
+}
+
+EBT__reset <- function(obj_) {
+    invisible(.Call('tree2_EBT__reset', PACKAGE = 'tree2', obj_))
+}
+
+EBT__seed_rain <- function(obj_, species_index) {
+    .Call('tree2_EBT__seed_rain', PACKAGE = 'tree2', obj_, species_index)
+}
+
+EBT__seed_rain_error <- function(obj_, species_index) {
+    .Call('tree2_EBT__seed_rain_error', PACKAGE = 'tree2', obj_, species_index)
+}
+
+EBT__seed_rain_cohort <- function(obj_, species_index) {
+    .Call('tree2_EBT__seed_rain_cohort', PACKAGE = 'tree2', obj_, species_index)
+}
+
+EBT__leaf_area_error <- function(obj_, species_index) {
+    .Call('tree2_EBT__leaf_area_error', PACKAGE = 'tree2', obj_, species_index)
+}
+
+EBT__complete__get <- function(obj_) {
+    .Call('tree2_EBT__complete__get', PACKAGE = 'tree2', obj_)
+}
+
+EBT__time__get <- function(obj_) {
+    .Call('tree2_EBT__time__get', PACKAGE = 'tree2', obj_)
+}
+
+EBT__seed_rains__get <- function(obj_) {
+    .Call('tree2_EBT__seed_rains__get', PACKAGE = 'tree2', obj_)
+}
+
+EBT__parameters__get <- function(obj_) {
+    .Call('tree2_EBT__parameters__get', PACKAGE = 'tree2', obj_)
+}
+
+EBT__patch__get <- function(obj_) {
+    .Call('tree2_EBT__patch__get', PACKAGE = 'tree2', obj_)
+}
+
+EBT__cohort_schedule__get <- function(obj_) {
+    .Call('tree2_EBT__cohort_schedule__get', PACKAGE = 'tree2', obj_)
+}
+
+EBT__cohort_schedule__set <- function(obj_, value) {
+    invisible(.Call('tree2_EBT__cohort_schedule__set', PACKAGE = 'tree2', obj_, value))
 }
 
 test_uniroot <- function(f, min, max) {
