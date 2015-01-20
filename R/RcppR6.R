@@ -19,11 +19,18 @@ NULL
                   self$.ptr <- ptr
                 }),
               active=list(
-                size = function(value) {
+                ode_size = function(value) {
                   if (missing(value)) {
-                    Lorenz__size__get(self)
+                    Lorenz__ode_size__get(self)
                   } else {
-                    stop("Lorenz$size is read-only")
+                    stop("Lorenz$ode_size is read-only")
+                  }
+                },
+                ode_time = function(value) {
+                  if (missing(value)) {
+                    Lorenz__ode_time__get(self)
+                  } else {
+                    stop("Lorenz$ode_time is read-only")
                   }
                 },
                 ode_values = function(value) {
@@ -49,59 +56,66 @@ NULL
                 }))
 
 
-OdeSystem <- function(T) {
+OdeRunner <- function(T) {
   type <- c(T)
-  valid <- list("OdeSystem<Lorenz>"="Lorenz")
-  constructors <- list("OdeSystem<Lorenz>"=`OdeSystem<Lorenz>`)
+  valid <- list("OdeRunner<Lorenz>"="Lorenz")
+  constructors <- list("OdeRunner<Lorenz>"=`OdeRunner<Lorenz>`)
   constructors[[check_type(type, valid)]]
 }
-.R6_OdeSystem <- R6::R6Class("OdeSystem")
+.R6_OdeRunner <- R6::R6Class("OdeRunner")
 
 
-`OdeSystem<Lorenz>` <- function(obj, abs_tol=1e-8, rel_tol=1e-8) {
-  OdeSystem___Lorenz__ctor(obj, abs_tol, rel_tol)
+`OdeRunner<Lorenz>` <- function(obj, control=OdeControl()) {
+  OdeRunner___Lorenz__ctor(obj, control)
 }
-.R6_OdeSystem___Lorenz <-
-  R6::R6Class("OdeSystem<Lorenz>",
+.R6_OdeRunner___Lorenz <-
+  R6::R6Class("OdeRunner<Lorenz>",
               portable=TRUE,
-              inherit=.R6_OdeSystem,
+              inherit=.R6_OdeRunner,
               public=list(
                 .ptr=NULL,
                 initialize = function(ptr) {
                   self$.ptr <- ptr
                 },
-                do_step = function(dt) {
-                  OdeSystem___Lorenz__do_step(self, dt)
+                advance = function(time) {
+                  OdeRunner___Lorenz__advance(self, time)
                 },
-                try_step = function(dt) {
-                  OdeSystem___Lorenz__try_step(self, dt)
+                advance_fixed = function(time) {
+                  OdeRunner___Lorenz__advance_fixed(self, time)
                 },
-                advance = function(t, dt) {
-                  OdeSystem___Lorenz__advance(self, t, dt)
+                step = function() {
+                  OdeRunner___Lorenz__step(self)
                 },
-                advance_save = function(t, dt) {
-                  OdeSystem___Lorenz__advance_save(self, t, dt)
+                step_to = function(time) {
+                  OdeRunner___Lorenz__step_to(self, time)
                 }),
               active=list(
-                obj = function(value) {
+                time = function(value) {
                   if (missing(value)) {
-                    OdeSystem___Lorenz__obj__get(self)
+                    OdeRunner___Lorenz__time__get(self)
                   } else {
-                    stop("OdeSystem<Lorenz>$obj is read-only")
+                    stop("OdeRunner<Lorenz>$time is read-only")
                   }
                 },
-                t = function(value) {
+                state = function(value) {
                   if (missing(value)) {
-                    OdeSystem___Lorenz__t__get(self)
+                    OdeRunner___Lorenz__state__get(self)
                   } else {
-                    OdeSystem___Lorenz__t__set(self, value)
+                    stop("OdeRunner<Lorenz>$state is read-only")
                   }
                 },
-                y = function(value) {
+                times = function(value) {
                   if (missing(value)) {
-                    OdeSystem___Lorenz__y__get(self)
+                    OdeRunner___Lorenz__times__get(self)
                   } else {
-                    OdeSystem___Lorenz__y__set(self, value)
+                    stop("OdeRunner<Lorenz>$times is read-only")
+                  }
+                },
+                object = function(value) {
+                  if (missing(value)) {
+                    OdeRunner___Lorenz__object__get(self)
+                  } else {
+                    stop("OdeRunner<Lorenz>$object is read-only")
                   }
                 }))
 
@@ -295,6 +309,21 @@ OdeSystem <- function(T) {
 ##' @export
 Control <- function(..., values=list(...)) {
   ret <- Control__ctor()
+  if (length(err <- setdiff(names(values), names(ret))) > 0L) {
+    stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
+  }
+  to_set <- intersect(names(values), names(ret))
+  ret[to_set] <- values[to_set]
+  ret
+}
+
+##' Control parameters for the ode system
+##' @title ODE Control parameters
+##' @param ...,values Values to initialise the struct with (either as
+##' variadic arguments, or as a list, but not both).
+##' @export
+OdeControl <- function(..., values=list(...)) {
+  ret <- OdeControl__ctor()
   if (length(err <- setdiff(names(values), names(ret))) > 0L) {
     stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
   }
@@ -745,6 +774,13 @@ Parameters <- function(..., values=list(...)) {
                     stop("Cohort$ode_size is read-only")
                   }
                 },
+                ode_time = function(value) {
+                  if (missing(value)) {
+                    Cohort__ode_time__get(self)
+                  } else {
+                    stop("Cohort$ode_time is read-only")
+                  }
+                },
                 ode_values = function(value) {
                   if (missing(value)) {
                     Cohort__ode_values__get(self)
@@ -852,6 +888,13 @@ Parameters <- function(..., values=list(...)) {
                     stop("Species$ode_size is read-only")
                   }
                 },
+                ode_time = function(value) {
+                  if (missing(value)) {
+                    Species__ode_time__get(self)
+                  } else {
+                    stop("Species$ode_time is read-only")
+                  }
+                },
                 ode_values = function(value) {
                   if (missing(value)) {
                     Species__ode_values__get(self)
@@ -945,6 +988,13 @@ Parameters <- function(..., values=list(...)) {
                     Patch__ode_size__get(self)
                   } else {
                     stop("Patch$ode_size is read-only")
+                  }
+                },
+                ode_time = function(value) {
+                  if (missing(value)) {
+                    Patch__ode_time__get(self)
+                  } else {
+                    stop("Patch$ode_time is read-only")
                   }
                 },
                 ode_values = function(value) {

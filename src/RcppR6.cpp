@@ -6,71 +6,73 @@ ode::test::Lorenz Lorenz__ctor(double sigma, double R, double b) {
   return ode::test::Lorenz(sigma, R, b);
 }
 // [[Rcpp::export]]
-size_t Lorenz__size__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
-  return obj_->size();
+size_t Lorenz__ode_size__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
+  return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Lorenz__ode_values__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
-  return obj_->ode_values();
-}
-// [[Rcpp::export]]
-void Lorenz__ode_values__set(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_, std::vector<double> value) {
-  obj_->set_ode_values(value);
+double Lorenz__ode_time__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
+  return ode::r_ode_time(*obj_);
 }
 
 // [[Rcpp::export]]
-std::vector<double> Lorenz__ode_rates__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
-  return obj_->r_ode_rates();
+ode::state_type Lorenz__ode_values__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
+  return ode::r_ode_values(*obj_);
+}
+// [[Rcpp::export]]
+void Lorenz__ode_values__set(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_, ode::state_type value) {
+  ode::r_set_ode_values(*obj_, value);
 }
 
 // [[Rcpp::export]]
-Rcpp::NumericVector Lorenz__pars__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
-  return obj_->r_get_pars();
+ode::state_type Lorenz__ode_rates__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
+  return ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+std::vector<double> Lorenz__pars__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
+  return obj_->pars();
 }
 
 
 // [[Rcpp::export]]
-ode::OdeSystem<ode::test::Lorenz> OdeSystem___Lorenz__ctor(ode::test::Lorenz obj, double abs_tol, double rel_tol) {
-  return ode::OdeSystem<ode::test::Lorenz>(obj, abs_tol, rel_tol);
+ode::Runner<ode::test::Lorenz> OdeRunner___Lorenz__ctor(ode::test::Lorenz obj, ode::OdeControl control) {
+  return ode::Runner<ode::test::Lorenz>(obj, control);
 }
 // [[Rcpp::export]]
-void OdeSystem___Lorenz__do_step(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, double dt) {
-  obj_->do_step(dt);
+void OdeRunner___Lorenz__advance(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_, double time) {
+  obj_->advance(time);
 }
 // [[Rcpp::export]]
-bool OdeSystem___Lorenz__try_step(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, double dt) {
-  return obj_->try_step(dt);
+void OdeRunner___Lorenz__advance_fixed(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_, std::vector<double> time) {
+  obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
-void OdeSystem___Lorenz__advance(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, double t, double dt) {
-  obj_->advance(t, dt);
+void OdeRunner___Lorenz__step(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+  obj_->step();
 }
 // [[Rcpp::export]]
-ode::state_saver<std::vector<double> > OdeSystem___Lorenz__advance_save(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, double t, double dt) {
-  return obj_->advance_save(t, dt);
+void OdeRunner___Lorenz__step_to(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_, double time) {
+  obj_->step_to(time);
 }
 // [[Rcpp::export]]
-ode::test::Lorenz OdeSystem___Lorenz__obj__get(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_) {
-  return obj_->get_obj();
-}
-
-// [[Rcpp::export]]
-double OdeSystem___Lorenz__t__get(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_) {
-  return obj_->t;
-}
-// [[Rcpp::export]]
-void OdeSystem___Lorenz__t__set(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, double value) {
-  obj_->t = value;
+double OdeRunner___Lorenz__time__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+  return obj_->time();
 }
 
 // [[Rcpp::export]]
-std::vector<double> OdeSystem___Lorenz__y__get(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_) {
-  return obj_->y;
+ode::state_type OdeRunner___Lorenz__state__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+  return obj_->state();
 }
+
 // [[Rcpp::export]]
-void OdeSystem___Lorenz__y__set(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> > obj_, std::vector<double> value) {
-  obj_->y = value;
+std::vector<double> OdeRunner___Lorenz__times__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+  return obj_->times();
+}
+
+// [[Rcpp::export]]
+ode::test::Lorenz OdeRunner___Lorenz__object__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+  return obj_->object();
 }
 
 
@@ -230,6 +232,11 @@ double Disturbance__mean_interval__get(tree2::RcppR6::RcppR6<tree2::Disturbance>
 // [[Rcpp::export]]
 SEXP Control__ctor() {
   return Rcpp::wrap(tree2::Control());
+}
+
+// [[Rcpp::export]]
+SEXP OdeControl__ctor() {
+  return Rcpp::wrap(ode::OdeControl());
 }
 
 // [[Rcpp::export]]
@@ -569,12 +576,17 @@ size_t Cohort__ode_size__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> >
 }
 
 // [[Rcpp::export]]
+double Cohort__ode_time__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
+  return ode::r_ode_time(*obj_);
+}
+
+// [[Rcpp::export]]
 ode::state_type Cohort__ode_values__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
   return ode::r_ode_values(*obj_);
 }
 // [[Rcpp::export]]
 void Cohort__ode_values__set(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, ode::state_type value) {
-  ode::set_ode_values(*obj_, value);
+  ode::r_set_ode_values(*obj_, value);
 }
 
 // [[Rcpp::export]]
@@ -657,12 +669,17 @@ size_t Species__ode_size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort
 }
 
 // [[Rcpp::export]]
+double Species__ode_time__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return ode::r_ode_time(*obj_);
+}
+
+// [[Rcpp::export]]
 ode::state_type Species__ode_values__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
   return ode::r_ode_values(*obj_);
 }
 // [[Rcpp::export]]
 void Species__ode_values__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, ode::state_type value) {
-  ode::set_ode_values(*obj_, value);
+  ode::r_set_ode_values(*obj_, value);
 }
 
 // [[Rcpp::export]]
@@ -701,7 +718,7 @@ void Patch__reset(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant>
 }
 // [[Rcpp::export]]
 void Patch__set_ode_values(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, ode::state_type values, double time) {
-  ode::set_ode_values(*obj_, values, time);
+  ode::r_set_ode_values(*obj_, values, time);
 }
 // [[Rcpp::export]]
 ode::state_type Patch__derivs(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, const ode::state_type& y, double time) {
@@ -735,6 +752,11 @@ std::vector<tree2::Species<tree2::Cohort<tree2::Plant> > > Patch__species__get(t
 // [[Rcpp::export]]
 size_t Patch__ode_size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
   return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
+double Patch__ode_time__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return ode::r_ode_time(*obj_);
 }
 
 // [[Rcpp::export]]

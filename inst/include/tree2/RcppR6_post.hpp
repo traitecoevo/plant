@@ -12,9 +12,9 @@ template <> inline std::string   class_name_r<ode::test::Lorenz >() {return "Lor
 template <> inline std::string   package_name<ode::test::Lorenz >() {return "tree2";}
 template <> inline std::string generator_name<ode::test::Lorenz >() {return ".R6_Lorenz";}
 
-template <> inline std::string   class_name_r<ode::OdeSystem<ode::test::Lorenz> >() {return "OdeSystem<Lorenz>";}
-template <> inline std::string   package_name<ode::OdeSystem<ode::test::Lorenz> >() {return "tree2";}
-template <> inline std::string generator_name<ode::OdeSystem<ode::test::Lorenz> >() {return ".R6_OdeSystem___Lorenz";}
+template <> inline std::string   class_name_r<ode::Runner<ode::test::Lorenz> >() {return "OdeRunner<Lorenz>";}
+template <> inline std::string   package_name<ode::Runner<ode::test::Lorenz> >() {return "tree2";}
+template <> inline std::string generator_name<ode::Runner<ode::test::Lorenz> >() {return ".R6_OdeRunner___Lorenz";}
 
 template <> inline std::string   class_name_r<tree2::CohortScheduleEvent >() {return "CohortScheduleEvent";}
 template <> inline std::string   package_name<tree2::CohortScheduleEvent >() {return "tree2";}
@@ -31,6 +31,10 @@ template <> inline std::string generator_name<tree2::Disturbance >() {return ".R
 template <> inline std::string   class_name_r<tree2::Control >() {return "Control";}
 template <> inline std::string   package_name<tree2::Control >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Control >() {return "";}
+
+template <> inline std::string   class_name_r<ode::OdeControl >() {return "OdeControl";}
+template <> inline std::string   package_name<ode::OdeControl >() {return "tree2";}
+template <> inline std::string generator_name<ode::OdeControl >() {return "";}
 
 template <> inline std::string   class_name_r<tree2::Strategy >() {return "Strategy";}
 template <> inline std::string   package_name<tree2::Strategy >() {return "tree2";}
@@ -103,11 +107,11 @@ template <> inline ode::test::Lorenz as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<ode::test::Lorenz>(x));
 }
 
-template <> inline SEXP wrap(const ode::OdeSystem<ode::test::Lorenz>& x) {
-  return wrap(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> >(x));
+template <> inline SEXP wrap(const ode::Runner<ode::test::Lorenz>& x) {
+  return wrap(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> >(x));
 }
-template <> inline ode::OdeSystem<ode::test::Lorenz> as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<ode::OdeSystem<ode::test::Lorenz> >(x));
+template <> inline ode::Runner<ode::test::Lorenz> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> >(x));
 }
 
 template <> inline SEXP wrap(const tree2::CohortScheduleEvent& x) {
@@ -301,6 +305,44 @@ template <> inline tree2::Control as(SEXP x) {
   ret.equilibrium_solver_logN = Rcpp::as<bool >(xl["equilibrium_solver_logN"]);
   // ret.equilibrium_solver_try_keep = Rcpp::as<decltype(retequilibrium_solver_try_keep) >(xl["equilibrium_solver_try_keep"]);
   ret.equilibrium_solver_try_keep = Rcpp::as<bool >(xl["equilibrium_solver_try_keep"]);
+  return ret;
+}
+
+template <> inline SEXP wrap(const ode::OdeControl& x) {
+  Rcpp::List ret;
+  ret["tol_abs"] = Rcpp::wrap(x.tol_abs);
+  ret["tol_rel"] = Rcpp::wrap(x.tol_rel);
+  ret["a_y"] = Rcpp::wrap(x.a_y);
+  ret["a_dydt"] = Rcpp::wrap(x.a_dydt);
+  ret["step_size_min"] = Rcpp::wrap(x.step_size_min);
+  ret["step_size_max"] = Rcpp::wrap(x.step_size_max);
+  ret["step_size_initial"] = Rcpp::wrap(x.step_size_initial);
+  ret.attr("class") = "OdeControl";
+  return ret;
+}
+template <> inline ode::OdeControl as(SEXP x) {
+  if (!tree2::RcppR6::is<ode::OdeControl >(x)) {
+    Rcpp::stop("Expected an object of type OdeControl");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  ode::OdeControl ret;
+  Rcpp::List xl(x);
+  // ret.tol_abs = Rcpp::as<decltype(rettol_abs) >(xl["tol_abs"]);
+  ret.tol_abs = Rcpp::as<double >(xl["tol_abs"]);
+  // ret.tol_rel = Rcpp::as<decltype(rettol_rel) >(xl["tol_rel"]);
+  ret.tol_rel = Rcpp::as<double >(xl["tol_rel"]);
+  // ret.a_y = Rcpp::as<decltype(reta_y) >(xl["a_y"]);
+  ret.a_y = Rcpp::as<double >(xl["a_y"]);
+  // ret.a_dydt = Rcpp::as<decltype(reta_dydt) >(xl["a_dydt"]);
+  ret.a_dydt = Rcpp::as<double >(xl["a_dydt"]);
+  // ret.step_size_min = Rcpp::as<decltype(retstep_size_min) >(xl["step_size_min"]);
+  ret.step_size_min = Rcpp::as<double >(xl["step_size_min"]);
+  // ret.step_size_max = Rcpp::as<decltype(retstep_size_max) >(xl["step_size_max"]);
+  ret.step_size_max = Rcpp::as<double >(xl["step_size_max"]);
+  // ret.step_size_initial = Rcpp::as<decltype(retstep_size_initial) >(xl["step_size_initial"]);
+  ret.step_size_initial = Rcpp::as<double >(xl["step_size_initial"]);
   return ret;
 }
 

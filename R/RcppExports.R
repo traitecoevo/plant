@@ -25,8 +25,12 @@ Lorenz__ctor <- function(sigma, R, b) {
     .Call('tree2_Lorenz__ctor', PACKAGE = 'tree2', sigma, R, b)
 }
 
-Lorenz__size__get <- function(obj_) {
-    .Call('tree2_Lorenz__size__get', PACKAGE = 'tree2', obj_)
+Lorenz__ode_size__get <- function(obj_) {
+    .Call('tree2_Lorenz__ode_size__get', PACKAGE = 'tree2', obj_)
+}
+
+Lorenz__ode_time__get <- function(obj_) {
+    .Call('tree2_Lorenz__ode_time__get', PACKAGE = 'tree2', obj_)
 }
 
 Lorenz__ode_values__get <- function(obj_) {
@@ -45,44 +49,40 @@ Lorenz__pars__get <- function(obj_) {
     .Call('tree2_Lorenz__pars__get', PACKAGE = 'tree2', obj_)
 }
 
-OdeSystem___Lorenz__ctor <- function(obj, abs_tol, rel_tol) {
-    .Call('tree2_OdeSystem___Lorenz__ctor', PACKAGE = 'tree2', obj, abs_tol, rel_tol)
+OdeRunner___Lorenz__ctor <- function(obj, control) {
+    .Call('tree2_OdeRunner___Lorenz__ctor', PACKAGE = 'tree2', obj, control)
 }
 
-OdeSystem___Lorenz__do_step <- function(obj_, dt) {
-    invisible(.Call('tree2_OdeSystem___Lorenz__do_step', PACKAGE = 'tree2', obj_, dt))
+OdeRunner___Lorenz__advance <- function(obj_, time) {
+    invisible(.Call('tree2_OdeRunner___Lorenz__advance', PACKAGE = 'tree2', obj_, time))
 }
 
-OdeSystem___Lorenz__try_step <- function(obj_, dt) {
-    .Call('tree2_OdeSystem___Lorenz__try_step', PACKAGE = 'tree2', obj_, dt)
+OdeRunner___Lorenz__advance_fixed <- function(obj_, time) {
+    invisible(.Call('tree2_OdeRunner___Lorenz__advance_fixed', PACKAGE = 'tree2', obj_, time))
 }
 
-OdeSystem___Lorenz__advance <- function(obj_, t, dt) {
-    invisible(.Call('tree2_OdeSystem___Lorenz__advance', PACKAGE = 'tree2', obj_, t, dt))
+OdeRunner___Lorenz__step <- function(obj_) {
+    invisible(.Call('tree2_OdeRunner___Lorenz__step', PACKAGE = 'tree2', obj_))
 }
 
-OdeSystem___Lorenz__advance_save <- function(obj_, t, dt) {
-    .Call('tree2_OdeSystem___Lorenz__advance_save', PACKAGE = 'tree2', obj_, t, dt)
+OdeRunner___Lorenz__step_to <- function(obj_, time) {
+    invisible(.Call('tree2_OdeRunner___Lorenz__step_to', PACKAGE = 'tree2', obj_, time))
 }
 
-OdeSystem___Lorenz__obj__get <- function(obj_) {
-    .Call('tree2_OdeSystem___Lorenz__obj__get', PACKAGE = 'tree2', obj_)
+OdeRunner___Lorenz__time__get <- function(obj_) {
+    .Call('tree2_OdeRunner___Lorenz__time__get', PACKAGE = 'tree2', obj_)
 }
 
-OdeSystem___Lorenz__t__get <- function(obj_) {
-    .Call('tree2_OdeSystem___Lorenz__t__get', PACKAGE = 'tree2', obj_)
+OdeRunner___Lorenz__state__get <- function(obj_) {
+    .Call('tree2_OdeRunner___Lorenz__state__get', PACKAGE = 'tree2', obj_)
 }
 
-OdeSystem___Lorenz__t__set <- function(obj_, value) {
-    invisible(.Call('tree2_OdeSystem___Lorenz__t__set', PACKAGE = 'tree2', obj_, value))
+OdeRunner___Lorenz__times__get <- function(obj_) {
+    .Call('tree2_OdeRunner___Lorenz__times__get', PACKAGE = 'tree2', obj_)
 }
 
-OdeSystem___Lorenz__y__get <- function(obj_) {
-    .Call('tree2_OdeSystem___Lorenz__y__get', PACKAGE = 'tree2', obj_)
-}
-
-OdeSystem___Lorenz__y__set <- function(obj_, value) {
-    invisible(.Call('tree2_OdeSystem___Lorenz__y__set', PACKAGE = 'tree2', obj_, value))
+OdeRunner___Lorenz__object__get <- function(obj_) {
+    .Call('tree2_OdeRunner___Lorenz__object__get', PACKAGE = 'tree2', obj_)
 }
 
 CohortScheduleEvent__ctor <- function(introduction, species_index) {
@@ -223,6 +223,10 @@ Disturbance__mean_interval__get <- function(obj_) {
 
 Control__ctor <- function() {
     .Call('tree2_Control__ctor', PACKAGE = 'tree2')
+}
+
+OdeControl__ctor <- function() {
+    .Call('tree2_OdeControl__ctor', PACKAGE = 'tree2')
 }
 
 Strategy__ctor <- function() {
@@ -517,6 +521,10 @@ Cohort__ode_size__get <- function(obj_) {
     .Call('tree2_Cohort__ode_size__get', PACKAGE = 'tree2', obj_)
 }
 
+Cohort__ode_time__get <- function(obj_) {
+    .Call('tree2_Cohort__ode_time__get', PACKAGE = 'tree2', obj_)
+}
+
 Cohort__ode_values__get <- function(obj_) {
     .Call('tree2_Cohort__ode_values__get', PACKAGE = 'tree2', obj_)
 }
@@ -593,6 +601,10 @@ Species__ode_size__get <- function(obj_) {
     .Call('tree2_Species__ode_size__get', PACKAGE = 'tree2', obj_)
 }
 
+Species__ode_time__get <- function(obj_) {
+    .Call('tree2_Species__ode_time__get', PACKAGE = 'tree2', obj_)
+}
+
 Species__ode_values__get <- function(obj_) {
     .Call('tree2_Species__ode_values__get', PACKAGE = 'tree2', obj_)
 }
@@ -663,6 +675,10 @@ Patch__species__get <- function(obj_) {
 
 Patch__ode_size__get <- function(obj_) {
     .Call('tree2_Patch__ode_size__get', PACKAGE = 'tree2', obj_)
+}
+
+Patch__ode_time__get <- function(obj_) {
+    .Call('tree2_Patch__ode_time__get', PACKAGE = 'tree2', obj_)
 }
 
 Patch__ode_values__get <- function(obj_) {

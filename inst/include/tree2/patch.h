@@ -39,6 +39,7 @@ public:
 
   // * ODE interface
   size_t ode_size() const;
+  double ode_time() const;
   ode::const_iterator set_ode_values(ode::const_iterator it, double time);
   ode::iterator       ode_values(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
@@ -181,6 +182,11 @@ void Patch<T>::add_seeds(const std::vector<size_t>& species_index) {
 template <typename T>
 size_t Patch<T>::ode_size() const {
   return ode::ode_size(species.begin(), species.end());
+}
+
+template <typename T>
+double Patch<T>::ode_time() const {
+  return environment.time;
 }
 
 template <typename T>

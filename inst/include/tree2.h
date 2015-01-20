@@ -2,9 +2,6 @@
 #ifndef _TREE2_H_
 #define _TREE2_H_
 
-#include <tree2/ode_bits.h>
-#include <tree2/util.h>
-
 // RcppR6 isn't going to do a good job of forward declaring these, so
 // I'll need to.
 
@@ -14,6 +11,11 @@ template <typename T> class Species;
 template <typename T> class Patch;
 template <typename T> class EBT;
 }
+namespace ode {
+template <typename T> class Runner;
+}
+
+#include <tree2/util.h>
 
 // Include this early on.  It can be either after classes have been
 // declared (but before Rcpp has been loaded) or first.  This file will
@@ -21,28 +23,26 @@ template <typename T> class EBT;
 // you use, but this might be fragile.
 #include <tree2/RcppR6_pre.hpp>
 
-// TODO: Merge all these together into another _pre file I think.
-// There are also custom as/wrap things in util (util::index).
-// Extra shit:
-namespace Rcpp {
-SEXP wrap(const ode::state_saver<std::vector<double> >&);
-}
-
 // Hmm - I think we can actually include Rcpp here by this point
 // anyway.  No big loss.
-
-#include <tree2/control.h>
-#include <tree2/strategy.h>
-#include <tree2/disturbance.h>
-#include <tree2/parameters.h>
-#include <tree2/cohort_schedule.h>
 
 #include <tree2/qk.h>
 #include <tree2/qag.h>
 #include <tree2/interpolator.h>
 #include <tree2/adaptive_interpolator.h>
 
+#include <tree2/ode_control.h>
+#include <tree2/ode_step.h>
+#include <tree2/ode_solver.h>
+#include <tree2/ode_runner.h>
+
+#include <tree2/disturbance.h>
 #include <tree2/environment.h>
+
+#include <tree2/control.h>
+#include <tree2/strategy.h>
+#include <tree2/parameters.h>
+#include <tree2/cohort_schedule.h>
 
 // Getting more serious down here.
 #include <tree2/plant.h>
@@ -63,13 +63,5 @@ SEXP wrap(const ode::state_saver<std::vector<double> >&);
 // point after RcppR6_pre.hpp is included.
 #include <tree2/RcppR6_post.hpp>
 #include <tree2/util_rcpp.h>
-
-namespace Rcpp {
-inline SEXP wrap(const ode::state_saver<std::vector<double> >& x) {
-  Rcpp::NumericMatrix m(util::to_rcpp_matrix(x.y));
-  m.attr("t") = x.t;
-  return m;
-}
-}
 
 #endif

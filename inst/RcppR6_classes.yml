@@ -4,46 +4,30 @@ Lorenz:
   constructor:
     args: [sigma: double, R: double, b: double]
   active:
-    size: {type: size_t, access: member}
-    ode_values:
-      type: "std::vector<double>"
-      access: member
-      name_cpp: ode_values
-      name_cpp_set: set_ode_values
-    ode_rates:
-      type: "std::vector<double>"
-      access: member
-      name_cpp: r_ode_rates
-    pars:
-      type: "Rcpp::NumericVector"
-      access: member
-      name_cpp: r_get_pars
+    ode_size: {type: size_t, access: member}
+    ode_time: {type: double, access: function, name_cpp: "ode::r_ode_time"}
+    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::r_set_ode_values"}
+    ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
+    pars: {type: "std::vector<double>", access: member}
 
-OdeSystem:
-  name_cpp: "ode::OdeSystem<T>"
+OdeRunner:
+  name_cpp: "ode::Runner<T>"
   templates:
     parameters: T
     concrete:
       - ["Lorenz": "ode::test::Lorenz"]
   constructor:
-    args: [obj: T, abs_tol: double=1e-8, rel_tol: double=1e-8]
-  methods:
-    do_step:
-      args: [dt: double]
-      return_type: void
-    try_step:
-      args: [dt: double]
-      return_type: bool
-    advance:
-      args: [t: double, dt: double]
-      return_type: void
-    advance_save:
-      args: [t: double, dt: double]
-      return_type: "ode::state_saver<std::vector<double> >"
+    args: [obj: T, control: "ode::OdeControl=OdeControl()"]
   active:
-    obj: {type: T, access: member, name_cpp: get_obj}
-    t: {type: double, access: field}
-    y: {type: "std::vector<double>", access: field}
+    time: {type: double, access: member}
+    state: {type: "ode::state_type", access: member}
+    times: {type: "std::vector<double>", access: member}
+    object: {type: T, access: member}
+  methods:
+    advance: {return_type: void, args: [time: double]}
+    advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
+    step: {return_type: void}
+    step_to: {return_type: void, args: [time: double]}
 
 CohortScheduleEvent:
   forward_declare: true
@@ -188,6 +172,24 @@ Control:
     - equilibrium_nattempts: int
     - equilibrium_solver_logN: bool
     - equilibrium_solver_try_keep: bool
+
+OdeControl:
+  forward_declare: struct
+  name_cpp: "ode::OdeControl"
+  roxygen: |
+    Control parameters for the ode system
+    @title ODE Control parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - tol_abs: double
+    - tol_rel: double
+    - a_y: double
+    - a_dydt: double
+    - step_size_min: double
+    - step_size_max: double
+    - step_size_initial: double
 
 Strategy:
   forward_declare: struct
@@ -418,7 +420,8 @@ Cohort:
     leaf_area: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
-    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::set_ode_values"}
+    ode_time: {type: double, access: function, name_cpp: "ode::r_ode_time"}
+    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::r_set_ode_values"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:
     leaf_area_above:
@@ -452,7 +455,8 @@ Species:
     leaf_area_error: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area_error}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::set_ode_values"}
+    ode_time: {type: double, access: function, name_cpp: "ode::r_ode_time"}
+    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::r_set_ode_values"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:
     clear:
@@ -483,6 +487,7 @@ Patch:
     species: {type: "std::vector<tree2::Species<tree2::Cohort<tree2::Plant> > >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
+    ode_time: {type: double, access: function, name_cpp: "ode::r_ode_time"}
     ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:
@@ -507,7 +512,7 @@ Patch:
     set_ode_values:
       return_type: void
       access: function
-      name_cpp: "ode::set_ode_values"
+      name_cpp: "ode::r_set_ode_values"
       args: [values: "ode::state_type", time: double]
     derivs:
       return_type: "ode::state_type"

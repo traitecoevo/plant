@@ -2,65 +2,63 @@
 #ifndef TREE_LORENZ_H_
 #define TREE_LORENZ_H_
 
-#include <Rcpp.h>
-#include <tree2/ode_bits.h>
+#include <tree2/ode_interface.h>
 #include <tree2/util.h> // check_length
 
 namespace ode {
 
 namespace test {
 
-// What I'm going to do is to conform to the same requirements that
-// rodeint uses, but without the parameters requirement (at least for
-// now).
+// This is meant to be a simple test case for the ODE solver.  We
+// mimick a class that has some nontrivial internal state (this
+// doesn't of course, but we pretend that it does).
 //
-//   derivs: (const const T& y, T& dydt, const double t)
-//
-// The complication I had before was that the nested nature of the
-// problem caused some issues: so we want to take a bunch of state
-// variables and disbuse them across the system in a really weird
-// way.
-//
-// This is why having the iterator bits was very important.
-
+// Probably what I should test at some point is that a *collection*
+// of these works as expected.
 class Lorenz {
 public:
   Lorenz(double sigma_, double R_, double b_)
-    : sigma(sigma_), R(R_), b(b_), state(ode_dimension) {}
-  static size_t size() { return ode_dimension; }
-  
-  // These are the big ones:
-  std::vector<double> ode_values() const { return state; }
-  void set_ode_values(const std::vector<double>& y) {
-    util::check_length(y.size(), size());
-    state = y;
-  }
-  void ode_rates(std::vector<double>& dydt) {
-    const double y0 = state[0];
-    const double y1 = state[1];
-    const double y2 = state[2];
-    dydt[0] = sigma * (y1 - y0);
-    dydt[1] = R * y0 - y1 - y0 * y2;
-    dydt[2] = -b * y2 + y0 * y1;
+    : sigma(sigma_), R(R_), b(b_),
+      y0(0.0), y1(0.0), y2(0.0),
+      dy0dt(0.0), dy1dt(0.0), dy2dt(0.0) {
   }
 
-  // Then some stuff for the R interface:
-  Rcpp::NumericVector r_get_pars() {
-    using namespace Rcpp;
-    return NumericVector::create(_["sigma"] = sigma,
-                                 _["R"] = R,
-                                 _["b"] = b);
+  // ODE interface.
+  size_t ode_size() const {return ode_dimension;}
+  ode::const_iterator set_ode_values(ode::const_iterator it) {
+    y0 = *it++;
+    y1 = *it++;
+    y2 = *it++;
+    dy0dt = sigma * (y1 - y0);
+    dy1dt = R * y0 - y1 - y0 * y2;
+    dy2dt = -b * y2 + y0 * y1;
+    return it;
   }
-  std::vector<double> r_ode_rates() {
-    std::vector<double> dydt(ode_dimension);
-    ode_rates(dydt);
-    return dydt;
+  ode::iterator ode_values(ode::iterator it) const {
+    *it++ = y0;
+    *it++ = y1;
+    *it++ = y2;
+    return it;
+  }
+  ode::iterator ode_rates(ode::iterator it) const {
+    *it++ = dy0dt;
+    *it++ = dy1dt;
+    *it++ = dy2dt;
+    return it;
+  }
+  std::vector<double> pars() const {
+    std::vector<double> ret;
+    ret.push_back(sigma);
+    ret.push_back(R);
+    ret.push_back(b);
+    return ret;
   }
 
 private:
   static const int ode_dimension = 3;
   double sigma, R, b;
-  std::vector<double> state;
+  double y0, y1, y2;
+  double dy0dt, dy1dt, dy2dt;
 };
 
 }

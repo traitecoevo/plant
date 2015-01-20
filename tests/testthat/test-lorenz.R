@@ -4,23 +4,6 @@ if (interactive()) {
   source("helper-tree2.R")
 }
 
-## What I need to provide here is a way to set up a list of
-## non-interacting Lorenz attractors with something controlling them.
-## http://headmyshoulder.github.io/odeint-v2/doc/boost_numeric_odeint/tutorial/self_expanding_lattices.html
-##
-## Once everything is set up, might be worth trying an adams bashfoth
-## approach.  That doesn't work perfectly with resizing, but could
-## save a lot of effort?
-##
-## Probably need something to check that the state of the system has
-## actually changed.
-##
-## Exploit the FSAL
-## http://headmyshoulder.github.io/odeint-v2/doc/boost_numeric_odeint/odeint_in_detail/steppers.html
-##
-## Also exploit the fact that we know dydt on the way in: there's a
-## method for that!
-
 context("Lorenz (basic ODE)")
 
 library(deSolve)
@@ -47,45 +30,65 @@ test_that("Basic Lorenz object works", {
 
   lo <- Lorenz(pars[[1]], pars[[2]], pars[[3]])
   ## Check that everything is sane to start off:
-  expect_equal(lo$size, 3)
-  expect_identical(lo$pars, pars)
+  expect_equal(lo$ode_size, 3)
+  expect_identical(lo$pars, unname(pars))
   expect_identical(lo$ode_values, rep(0.0, 3))
   expect_identical(lo$ode_rates, derivs_lorenz(lo$ode_values, pars))
+  expect_identical(lo$ode_time, 0.0)
 
   ## Then set the state:
   lo$ode_values <- y
   expect_identical(lo$ode_values, y)
   expect_identical(lo$ode_rates, derivs_lorenz(y, pars))
+
+  y2 <- runif(3)
+  lo$ode_values <- y2
+  expect_identical(lo$ode_values, y2)
+  expect_identical(lo$ode_rates, derivs_lorenz(y2, pars))
 })
 
 ## Then, get the ode runner working.
 test_that("Ode runner behaves", {
   pars <- c(sigma=10.0, R=28.0, b=8.0 / 3.0)
-  y <- c(21, 21, 21)
+  y <- rep(21, 3)
   lo <- Lorenz(pars[[1]], pars[[2]], pars[[3]])
   lo$ode_values <- y
+  derivs_lorenz(y, pars)
   
-  sys <- OdeSystem("Lorenz")(lo)
-  lo2 <- sys$obj
-  expect_identical(lo2$ode_values, lo$ode_values)
-  y2 <- runif(3)
-  lo2$ode_values <- y2
-  expect_identical(lo2$ode_values, y2)
-  ## Unchanged:
-  expect_identical(lo$ode_values, y)
-  expect_identical(sys$obj$ode_values, y)
+  sys <- OdeRunner("Lorenz")(lo)
+  expect_that(sys, is_a("OdeRunner"))
 
-  ## OK, what I've not done yet is shown that we can make this step
-  ## *correctly*, deal with time stepping issues, or use a given
-  ## schedule.  All these things need doing.
-  sys$do_step(0.001)
-  sys$obj$ode_values
-  sys$y
-  sys$try_step(1)
+  expect_that(sys$time,  is_identical_to(0.0))
+  expect_that(sys$state, is_identical_to(y))
+  expect_that(sys$times, is_identical_to(0.0))
+  expect_that(sys$object, is_a("Lorenz"))
 
-  sys$advance(1, 0.01)
-  sys$y
+  lo2 <- sys$object
 
-  res <- sys$advance_save(10, 0.001)
-  ## pairs(t(res), panel=lines)
+  sys$step()
+  expect_that(sys$time, is_more_than(0.0))
+  expect_that(all(sys$state != y), is_true())
+  expect_that(sys$object$ode_values, is_identical_to(sys$state))
+  expect_that(lo2$ode_values, is_identical_to(y))
+
+  t1 <- 1.0
+  sys$advance(t1)
+
+  ## State has changed:
+  expect_that(all(sys$state != y), is_true())
+  ## But not in these objects:
+  expect_that(lo$ode_values,  is_identical_to(y))
+  expect_that(lo2$ode_values, is_identical_to(y))
+
+  times <- sys$times
+  expect_that(first(times), is_identical_to(0.0))
+  expect_that(last(times),  is_identical_to(t1))
+  ## Object does not store time:
+  expect_that(sys$object$ode_time, is_identical_to(0.0))
+
+  ## Run it again:
+  sys2 <- OdeRunner("Lorenz")(lo)
+  sys2$advance_fixed(times)
+  expect_that(sys2$times, is_identical_to(times))
+  expect_that(sys2$state, equals(sys$state, tolerance=1e-13))
 })

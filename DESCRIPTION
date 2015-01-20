@@ -13,4 +13,5 @@ Imports:
     R6
 Suggests:
     testthat,
-    deSolve
+    deSolve,
+    numDeriv

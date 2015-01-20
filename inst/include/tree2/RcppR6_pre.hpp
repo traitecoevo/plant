@@ -17,6 +17,7 @@ namespace tree2 { class CohortScheduleEvent; }
 namespace tree2 { class CohortSchedule; }
 namespace tree2 { class Disturbance; }
 namespace tree2 { struct Control; }
+namespace ode { struct OdeControl; }
 namespace tree2 { struct Strategy; }
 namespace tree2 { struct Parameters; }
 namespace quadrature { class QK; }
@@ -34,8 +35,8 @@ template <typename T> class Exporter<tree2::RcppR6::RcppR6<T> >;
 template <> SEXP wrap(const ode::test::Lorenz&);
 template <> ode::test::Lorenz as(SEXP);
 
-template <> SEXP wrap(const ode::OdeSystem<ode::test::Lorenz>&);
-template <> ode::OdeSystem<ode::test::Lorenz> as(SEXP);
+template <> SEXP wrap(const ode::Runner<ode::test::Lorenz>&);
+template <> ode::Runner<ode::test::Lorenz> as(SEXP);
 
 template <> SEXP wrap(const tree2::CohortScheduleEvent&);
 template <> tree2::CohortScheduleEvent as(SEXP);
@@ -48,6 +49,9 @@ template <> tree2::Disturbance as(SEXP);
 
 template <> SEXP wrap(const tree2::Control&);
 template <> tree2::Control as(SEXP);
+
+template <> SEXP wrap(const ode::OdeControl&);
+template <> ode::OdeControl as(SEXP);
 
 template <> SEXP wrap(const tree2::Strategy&);
 template <> tree2::Strategy as(SEXP);
