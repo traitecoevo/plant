@@ -4,6 +4,7 @@
 
 #include <tree2/ode_solver.h>
 
+namespace tree2 {
 namespace ode {
 
 // This is a little wrapper class that is meant to simplify the
@@ -28,6 +29,7 @@ public:
   Solver<T> solver;
 };
 
+}
 }
 
 #endif

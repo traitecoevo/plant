@@ -1,5 +1,6 @@
 #include <tree2/qk_rules.h>
 
+namespace tree2 {
 namespace quadrature {
 
 // * QK15:
@@ -373,4 +374,5 @@ const double QK61::wgk[31] = {
   0.051494729429451567558340433647099
 };
 
+}
 }

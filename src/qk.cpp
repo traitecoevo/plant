@@ -4,6 +4,7 @@
 #include <tree2/util.h> // check_length
 #include <tree2/util_post_rcpp.h> // RFunctionWrapper
 
+namespace tree2 {
 namespace quadrature {
 
 QK::QK(size_t rule)
@@ -195,4 +196,5 @@ void QK::initialise(size_t rule) {
   fv2.resize(n);
 }
 
+}
 }

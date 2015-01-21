@@ -4,8 +4,8 @@
 
 #include <tree2/ode_interface.h>
 
+namespace tree2 {
 namespace ode {
-
 namespace test {
 
 // This is meant to be a simple test case for the ODE solver.  We
@@ -61,7 +61,7 @@ private:
 };
 
 }
-
+}
 }
 
 #endif

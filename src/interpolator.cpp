@@ -1,8 +1,9 @@
 #include <tree2/interpolator.h>
 #include <tree2/util.h>
-#include <tree2/util_rcpp.h> // to_rcpp_matrix
+#include <tree2/util_post_rcpp.h> // to_rcpp_matrix
 #include <Rcpp.h>
 
+namespace tree2 {
 namespace interpolator {
 
 // On contruction, make sure that `interp_accel` and `interp` are
@@ -195,4 +196,5 @@ Interpolator::select_interpolation_type(bool is_linear) {
   return NULL;
 }
 
+}
 }

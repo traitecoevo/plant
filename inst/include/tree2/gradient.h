@@ -5,6 +5,7 @@
 #include <vector>
 #include <cmath>
 
+namespace tree2 {
 namespace util {
 
 // A. One-shot
@@ -117,6 +118,7 @@ double gradient_richardson(Function f, double x, double d, size_t r) {
   return a.front();
 }
 
+}
 }
 
 #endif

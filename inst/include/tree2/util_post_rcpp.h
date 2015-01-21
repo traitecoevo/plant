@@ -7,6 +7,7 @@
 
 #include <Rcpp.h>
 
+namespace tree2 {
 namespace util {
 
 struct RFunctionWrapper {
@@ -17,6 +18,9 @@ struct RFunctionWrapper {
   Rcpp::Function f;
 };
 
+Rcpp::NumericMatrix to_rcpp_matrix(std::vector< std::vector<double> > x);
+
+}
 }
 
 #endif

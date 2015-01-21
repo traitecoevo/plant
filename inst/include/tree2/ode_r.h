@@ -6,6 +6,7 @@
 #include <tree2/util.h>
 #include <Rcpp.h>
 
+namespace tree2 {
 namespace ode {
 namespace test {
 
@@ -59,6 +60,7 @@ private:
   double time;
 };
 
+}
 }
 }
 

@@ -11,19 +11,19 @@ template <typename T> class RcppR6;
 }
 }
 
-namespace ode { namespace test { class Lorenz; } }
-namespace ode { namespace test { class OdeR; } }
+namespace tree2 { namespace ode { namespace test { class Lorenz; } } }
+namespace tree2 { namespace ode { namespace test { class OdeR; } } }
 
 namespace tree2 { class CohortScheduleEvent; }
 namespace tree2 { class CohortSchedule; }
 namespace tree2 { class Disturbance; }
 namespace tree2 { struct Control; }
-namespace ode { struct OdeControl; }
+namespace tree2 { namespace ode { struct OdeControl; } }
 namespace tree2 { struct Strategy; }
 namespace tree2 { struct Parameters; }
-namespace quadrature { class QK; }
-namespace quadrature { class QAG; }
-namespace interpolator { class Interpolator; }
+namespace tree2 { namespace quadrature { class QK; } }
+namespace tree2 { namespace quadrature { class QAG; } }
+namespace tree2 { namespace interpolator { class Interpolator; } }
 namespace tree2 { class Environment; }
 namespace tree2 { class Plant; }
 
@@ -33,17 +33,17 @@ namespace traits {
 template <typename T> class Exporter<tree2::RcppR6::RcppR6<T> >;
 }
 
-template <> SEXP wrap(const ode::test::Lorenz&);
-template <> ode::test::Lorenz as(SEXP);
+template <> SEXP wrap(const tree2::ode::test::Lorenz&);
+template <> tree2::ode::test::Lorenz as(SEXP);
 
-template <> SEXP wrap(const ode::test::OdeR&);
-template <> ode::test::OdeR as(SEXP);
+template <> SEXP wrap(const tree2::ode::test::OdeR&);
+template <> tree2::ode::test::OdeR as(SEXP);
 
-template <> SEXP wrap(const ode::Runner<ode::test::Lorenz>&);
-template <> ode::Runner<ode::test::Lorenz> as(SEXP);
+template <> SEXP wrap(const tree2::ode::Runner<tree2::ode::test::Lorenz>&);
+template <> tree2::ode::Runner<tree2::ode::test::Lorenz> as(SEXP);
 
-template <> SEXP wrap(const ode::Runner<ode::test::OdeR>&);
-template <> ode::Runner<ode::test::OdeR> as(SEXP);
+template <> SEXP wrap(const tree2::ode::Runner<tree2::ode::test::OdeR>&);
+template <> tree2::ode::Runner<tree2::ode::test::OdeR> as(SEXP);
 
 template <> SEXP wrap(const tree2::CohortScheduleEvent&);
 template <> tree2::CohortScheduleEvent as(SEXP);
@@ -57,8 +57,8 @@ template <> tree2::Disturbance as(SEXP);
 template <> SEXP wrap(const tree2::Control&);
 template <> tree2::Control as(SEXP);
 
-template <> SEXP wrap(const ode::OdeControl&);
-template <> ode::OdeControl as(SEXP);
+template <> SEXP wrap(const tree2::ode::OdeControl&);
+template <> tree2::ode::OdeControl as(SEXP);
 
 template <> SEXP wrap(const tree2::Strategy&);
 template <> tree2::Strategy as(SEXP);
@@ -66,14 +66,14 @@ template <> tree2::Strategy as(SEXP);
 template <> SEXP wrap(const tree2::Parameters&);
 template <> tree2::Parameters as(SEXP);
 
-template <> SEXP wrap(const quadrature::QK&);
-template <> quadrature::QK as(SEXP);
+template <> SEXP wrap(const tree2::quadrature::QK&);
+template <> tree2::quadrature::QK as(SEXP);
 
-template <> SEXP wrap(const quadrature::QAG&);
-template <> quadrature::QAG as(SEXP);
+template <> SEXP wrap(const tree2::quadrature::QAG&);
+template <> tree2::quadrature::QAG as(SEXP);
 
-template <> SEXP wrap(const interpolator::Interpolator&);
-template <> interpolator::Interpolator as(SEXP);
+template <> SEXP wrap(const tree2::interpolator::Interpolator&);
+template <> tree2::interpolator::Interpolator as(SEXP);
 
 template <> SEXP wrap(const tree2::Environment&);
 template <> tree2::Environment as(SEXP);

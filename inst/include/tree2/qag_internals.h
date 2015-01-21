@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 
+namespace tree2 {
 namespace quadrature {
 typedef std::vector<std::vector<double> > intervals_type;
 
@@ -46,6 +47,7 @@ private:
 
 intervals_type rescale_intervals(intervals_type x, double min, double max);
 
+}
 }
 }
 

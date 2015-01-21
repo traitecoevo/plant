@@ -10,9 +10,9 @@ template <typename T> class Cohort;
 template <typename T> class Species;
 template <typename T> class Patch;
 template <typename T> class EBT;
-}
 namespace ode {
 template <typename T> class Runner;
+}
 }
 
 #include <tree2/util.h>
@@ -63,6 +63,6 @@ template <typename T> class Runner;
 // This line can safely be the last line in the file, but may go any
 // point after RcppR6_pre.hpp is included.
 #include <tree2/RcppR6_post.hpp>
-#include <tree2/util_rcpp.h>
+#include <tree2/util_post_rcpp.h>
 
 #endif

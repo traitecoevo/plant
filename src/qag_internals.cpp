@@ -3,6 +3,7 @@
 
 #include <algorithm> // min_element, max_element
 
+namespace tree2 {
 namespace quadrature {
 namespace internal {
 void workspace::clear() {
@@ -105,5 +106,6 @@ intervals_type rescale_intervals(intervals_type x,
   return ret;
 }
 
+}
 }
 }

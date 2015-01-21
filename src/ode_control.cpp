@@ -1,6 +1,7 @@
 #include <tree2/ode_control.h>
 #include <tree2/util.h>
 
+namespace tree2 {
 namespace ode {
 
 OdeControl::OdeControl() : OdeControl(1e-8, 1e-8, 1.0, 0.0,
@@ -81,4 +82,5 @@ bool OdeControl::step_size_shrank() const {
   return last_step_size_shrank;
 }
 
+}
 }

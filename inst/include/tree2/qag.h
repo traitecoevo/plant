@@ -7,6 +7,7 @@
 #include <tree2/util.h> // util::stop
 #include <RcppCommon.h>
 
+namespace tree2 {
 namespace quadrature {
 
 // This is the "QAG" algorithm from QUADPACK -- quadrature, adaptive,
@@ -207,6 +208,7 @@ bool QAG::refine(Function f) {
   return error <= tolerance;
 }
 
+}
 }
 
 #endif

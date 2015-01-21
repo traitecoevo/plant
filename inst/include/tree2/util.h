@@ -6,6 +6,7 @@
 #include <sstream>  // std::stringstream
 #include <RcppCommon.h>
 
+namespace tree2 {
 namespace util {
 
 struct index {
@@ -184,10 +185,11 @@ void handler_pass_to_R(const char *reason,
                        int line,
                        int gsl_errno);
 }
+}
 
 namespace Rcpp {
-template <> SEXP wrap(const util::index&);
-template <> util::index as(SEXP);
+template <> SEXP wrap(const tree2::util::index&);
+template <> tree2::util::index as(SEXP);
 }
 
 void set_sane_gsl_error_handling();

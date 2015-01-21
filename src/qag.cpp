@@ -3,6 +3,7 @@
 #include <tree2/util_post_rcpp.h>
 #include <Rcpp.h>
 
+namespace tree2 {
 namespace quadrature {
 
 // Default construction using delegating constructors:
@@ -61,4 +62,5 @@ bool QAG::subinterval_too_small(double a1, double mid,
   return std::abs(a1) <= tmp && std::abs(b2) <= tmp;
 }
 
+}
 }

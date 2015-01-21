@@ -6,6 +6,7 @@
 #include <cmath> // std::abs
 #include <RcppCommon.h> // SEXP
 
+namespace tree2 {
 namespace quadrature {
 
 // Gauss-Kronrod Quadrature -- ported from GSL
@@ -111,6 +112,7 @@ double QK::integrate(Function f, double a, double b) {
   return last_result;
 }
 
+}
 }
 
 #endif

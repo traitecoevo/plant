@@ -13,6 +13,7 @@
 #include <gsl/gsl_errno.h>
 #include <gsl/gsl_spline.h>
 
+namespace tree2 {
 namespace interpolator {
 
 class Interpolator {
@@ -63,6 +64,7 @@ private:
   gsl_interp_accel      *interp_accel;
 };
 
+}
 }
 
 #endif

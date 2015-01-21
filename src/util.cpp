@@ -1,6 +1,8 @@
 #include <tree2/util.h>
 #include <gsl/gsl_errno.h>
 #include <Rcpp.h>
+
+namespace tree2 {
 namespace util {
 
 size_t index::check_bounds(size_t size) {
@@ -100,42 +102,43 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
 }
 
 }
+}
 
 namespace Rcpp {
-template <> SEXP wrap(const util::index& x) {
-  return Rcpp::wrap(util::base_0_to_1<size_t, int>(x.x));
+template <> SEXP wrap(const tree2::util::index& x) {
+  return Rcpp::wrap(tree2::util::base_0_to_1<size_t, int>(x.x));
 }
-template <> util::index as(SEXP x) {
+template <> tree2::util::index as(SEXP x) {
   const int ix(Rcpp::as<int>(x));
   // TODO: Might need to let NA values through still...
   if (ix <= 0) {
     Rcpp::stop("Invalid value for index (must be >= 1)");
   }
-  return util::base_1_to_0<int, size_t>(ix);
+  return tree2::util::base_1_to_0<int, size_t>(ix);
 }
 }
 
 // NOTE: Possibly wants moving?
 // [[Rcpp::export]]
 void set_sane_gsl_error_handling() {
-  gsl_set_error_handler(&util::handler_pass_to_R);
+  gsl_set_error_handler(&tree2::util::handler_pass_to_R);
 }
 
 // [[Rcpp::export]]
 double trapezium(const std::vector<double>& x,
                  const std::vector<double>& y) {
-  return util::trapezium(x, y);
+  return tree2::util::trapezium(x, y);
 }
 
 // [[Rcpp::export]]
 std::vector<double> trapezium_vector(const std::vector<double>& x,
                                      const std::vector<double>& y) {
-  return util::trapezium_vector(x, y);
+  return tree2::util::trapezium_vector(x, y);
 }
 
 // [[Rcpp::export]]
 std::vector<double> local_error_integration(const std::vector<double>& x,
                                             const std::vector<double>& y,
                                             double scal) {
-  return util::local_error_integration(x, y, scal);
+  return tree2::util::local_error_integration(x, y, scal);
 }

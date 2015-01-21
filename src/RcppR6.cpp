@@ -2,143 +2,143 @@
 #include <tree2.h>
 
 // [[Rcpp::export]]
-ode::test::Lorenz Lorenz__ctor(double sigma, double R, double b) {
-  return ode::test::Lorenz(sigma, R, b);
+tree2::ode::test::Lorenz Lorenz__ctor(double sigma, double R, double b) {
+  return tree2::ode::test::Lorenz(sigma, R, b);
 }
 // [[Rcpp::export]]
-size_t Lorenz__ode_size__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
+size_t Lorenz__ode_size__get(tree2::RcppR6::RcppR6<tree2::ode::test::Lorenz> obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-ode::state_type Lorenz__ode_state__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
-  return ode::r_ode_state(*obj_);
+tree2::ode::state_type Lorenz__ode_state__get(tree2::RcppR6::RcppR6<tree2::ode::test::Lorenz> obj_) {
+  return tree2::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Lorenz__ode_state__set(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_, ode::state_type value) {
-  ode::r_set_ode_state(*obj_, value);
-}
-
-// [[Rcpp::export]]
-ode::state_type Lorenz__ode_rates__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
-  return ode::r_ode_rates(*obj_);
+void Lorenz__ode_state__set(tree2::RcppR6::RcppR6<tree2::ode::test::Lorenz> obj_, tree2::ode::state_type value) {
+  tree2::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-std::vector<double> Lorenz__pars__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
+tree2::ode::state_type Lorenz__ode_rates__get(tree2::RcppR6::RcppR6<tree2::ode::test::Lorenz> obj_) {
+  return tree2::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+std::vector<double> Lorenz__pars__get(tree2::RcppR6::RcppR6<tree2::ode::test::Lorenz> obj_) {
   return obj_->pars();
 }
 
 
 // [[Rcpp::export]]
-ode::test::OdeR OdeR__ctor(Rcpp::Function derivs, Rcpp::Function state, double time) {
-  return ode::test::OdeR(derivs, state, time);
+tree2::ode::test::OdeR OdeR__ctor(Rcpp::Function derivs, Rcpp::Function state, double time) {
+  return tree2::ode::test::OdeR(derivs, state, time);
 }
 // [[Rcpp::export]]
-void OdeR__update_state(tree2::RcppR6::RcppR6<ode::test::OdeR> obj_) {
+void OdeR__update_state(tree2::RcppR6::RcppR6<tree2::ode::test::OdeR> obj_) {
   obj_->update_state();
 }
 
 // [[Rcpp::export]]
-ode::Runner<ode::test::Lorenz> OdeRunner___Lorenz__ctor(ode::test::Lorenz obj, ode::OdeControl control) {
-  return ode::Runner<ode::test::Lorenz>(obj, control);
+tree2::ode::Runner<tree2::ode::test::Lorenz> OdeRunner___Lorenz__ctor(tree2::ode::test::Lorenz obj, tree2::ode::OdeControl control) {
+  return tree2::ode::Runner<tree2::ode::test::Lorenz>(obj, control);
 }
 // [[Rcpp::export]]
-void OdeRunner___Lorenz__advance(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_, double time) {
+void OdeRunner___Lorenz__advance(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_, double time) {
   obj_->advance(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___Lorenz__advance_fixed(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_, std::vector<double> time) {
+void OdeRunner___Lorenz__advance_fixed(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_, std::vector<double> time) {
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___Lorenz__step(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+void OdeRunner___Lorenz__step(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_) {
   obj_->step();
 }
 // [[Rcpp::export]]
-void OdeRunner___Lorenz__step_to(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_, double time) {
+void OdeRunner___Lorenz__step_to(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_, double time) {
   obj_->step_to(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___Lorenz__set_state_from_system(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+void OdeRunner___Lorenz__set_state_from_system(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_) {
   obj_->set_state_from_system();
 }
 // [[Rcpp::export]]
-double OdeRunner___Lorenz__time__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+double OdeRunner___Lorenz__time__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-ode::state_type OdeRunner___Lorenz__state__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+tree2::ode::state_type OdeRunner___Lorenz__state__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_) {
   return obj_->state();
 }
 
 // [[Rcpp::export]]
-std::vector<double> OdeRunner___Lorenz__times__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+std::vector<double> OdeRunner___Lorenz__times__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_) {
   return obj_->times();
 }
 
 // [[Rcpp::export]]
-ode::test::Lorenz OdeRunner___Lorenz__object__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+tree2::ode::test::Lorenz OdeRunner___Lorenz__object__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_) {
   return obj_->object();
 }
 
 
 // [[Rcpp::export]]
-ode::Runner<ode::test::OdeR> OdeRunner___OdeR__ctor(ode::test::OdeR obj, ode::OdeControl control) {
-  return ode::Runner<ode::test::OdeR>(obj, control);
+tree2::ode::Runner<tree2::ode::test::OdeR> OdeRunner___OdeR__ctor(tree2::ode::test::OdeR obj, tree2::ode::OdeControl control) {
+  return tree2::ode::Runner<tree2::ode::test::OdeR>(obj, control);
 }
 // [[Rcpp::export]]
-void OdeRunner___OdeR__advance(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_, double time) {
+void OdeRunner___OdeR__advance(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_, double time) {
   obj_->advance(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___OdeR__advance_fixed(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_, std::vector<double> time) {
+void OdeRunner___OdeR__advance_fixed(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_, std::vector<double> time) {
   obj_->advance_fixed(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___OdeR__step(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+void OdeRunner___OdeR__step(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_) {
   obj_->step();
 }
 // [[Rcpp::export]]
-void OdeRunner___OdeR__step_to(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_, double time) {
+void OdeRunner___OdeR__step_to(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_, double time) {
   obj_->step_to(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___OdeR__set_state_from_system(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+void OdeRunner___OdeR__set_state_from_system(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_) {
   obj_->set_state_from_system();
 }
 // [[Rcpp::export]]
-double OdeRunner___OdeR__time__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+double OdeRunner___OdeR__time__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-ode::state_type OdeRunner___OdeR__state__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+tree2::ode::state_type OdeRunner___OdeR__state__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_) {
   return obj_->state();
 }
 
 // [[Rcpp::export]]
-std::vector<double> OdeRunner___OdeR__times__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+std::vector<double> OdeRunner___OdeR__times__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_) {
   return obj_->times();
 }
 
 // [[Rcpp::export]]
-ode::test::OdeR OdeRunner___OdeR__object__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+tree2::ode::test::OdeR OdeRunner___OdeR__object__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_) {
   return obj_->object();
 }
 
 
 // [[Rcpp::export]]
-tree2::CohortScheduleEvent CohortScheduleEvent__ctor(double introduction, util::index species_index) {
+tree2::CohortScheduleEvent CohortScheduleEvent__ctor(double introduction, tree2::util::index species_index) {
   return tree2::CohortScheduleEvent(introduction, species_index);
 }
 // [[Rcpp::export]]
-util::index CohortScheduleEvent__species_index__get(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_) {
+tree2::util::index CohortScheduleEvent__species_index__get(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_) {
   return obj_->species_index;
 }
 // [[Rcpp::export]]
-void CohortScheduleEvent__species_index__set(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_, util::index value) {
+void CohortScheduleEvent__species_index__set(tree2::RcppR6::RcppR6<tree2::CohortScheduleEvent> obj_, tree2::util::index value) {
   obj_->species_index = value;
 }
 
@@ -172,7 +172,7 @@ tree2::CohortSchedule CohortSchedule__expand(tree2::RcppR6::RcppR6<tree2::Cohort
   return obj_->expand(n_extra, times);
 }
 // [[Rcpp::export]]
-void CohortSchedule__clear_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, util::index species_index) {
+void CohortSchedule__clear_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, tree2::util::index species_index) {
   obj_->clear_times(species_index);
 }
 // [[Rcpp::export]]
@@ -180,11 +180,11 @@ void CohortSchedule__clear_ode_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule
   obj_->r_clear_ode_times();
 }
 // [[Rcpp::export]]
-void CohortSchedule__set_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, std::vector<double> times, util::index species_index) {
+void CohortSchedule__set_times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, std::vector<double> times, tree2::util::index species_index) {
   obj_->r_set_times(times, species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> CohortSchedule__times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, util::index species_index) {
+std::vector<double> CohortSchedule__times(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, tree2::util::index species_index) {
   return obj_->r_times(species_index);
 }
 // [[Rcpp::export]]
@@ -289,7 +289,7 @@ SEXP Control__ctor() {
 
 // [[Rcpp::export]]
 SEXP OdeControl__ctor() {
-  return Rcpp::wrap(ode::OdeControl());
+  return Rcpp::wrap(tree2::ode::OdeControl());
 }
 
 // [[Rcpp::export]]
@@ -303,128 +303,128 @@ SEXP Parameters__ctor() {
 }
 
 // [[Rcpp::export]]
-quadrature::QK QK__ctor(size_t rule) {
-  return quadrature::QK(rule);
+tree2::quadrature::QK QK__ctor(size_t rule) {
+  return tree2::quadrature::QK(rule);
 }
 // [[Rcpp::export]]
-double QK__integrate(tree2::RcppR6::RcppR6<quadrature::QK> obj_, SEXP f, double a, double b) {
+double QK__integrate(tree2::RcppR6::RcppR6<tree2::quadrature::QK> obj_, SEXP f, double a, double b) {
   return obj_->r_integrate(f, a, b);
 }
 // [[Rcpp::export]]
-std::vector<double> QK__integrate_vector_x(tree2::RcppR6::RcppR6<quadrature::QK> obj_, double a, double b) {
+std::vector<double> QK__integrate_vector_x(tree2::RcppR6::RcppR6<tree2::quadrature::QK> obj_, double a, double b) {
   return obj_->integrate_vector_x(a, b);
 }
 // [[Rcpp::export]]
-double QK__integrate_vector(tree2::RcppR6::RcppR6<quadrature::QK> obj_, std::vector<double> y, double a, double b) {
+double QK__integrate_vector(tree2::RcppR6::RcppR6<tree2::quadrature::QK> obj_, std::vector<double> y, double a, double b) {
   return obj_->integrate_vector(y, a, b);
 }
 // [[Rcpp::export]]
-double QK__last_area__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_) {
+double QK__last_area__get(tree2::RcppR6::RcppR6<tree2::quadrature::QK> obj_) {
   return obj_->get_last_area();
 }
 
 // [[Rcpp::export]]
-double QK__last_error__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_) {
+double QK__last_error__get(tree2::RcppR6::RcppR6<tree2::quadrature::QK> obj_) {
   return obj_->get_last_error();
 }
 
 // [[Rcpp::export]]
-double QK__last_area_abs__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_) {
+double QK__last_area_abs__get(tree2::RcppR6::RcppR6<tree2::quadrature::QK> obj_) {
   return obj_->get_last_area_abs();
 }
 
 // [[Rcpp::export]]
-double QK__last_area_asc__get(tree2::RcppR6::RcppR6<quadrature::QK> obj_) {
+double QK__last_area_asc__get(tree2::RcppR6::RcppR6<tree2::quadrature::QK> obj_) {
   return obj_->get_last_area_asc();
 }
 
 
 // [[Rcpp::export]]
-quadrature::QAG QAG__ctor(size_t rule, size_t max_iterations, double atol, double rtol) {
-  return quadrature::QAG(rule, max_iterations, atol, rtol);
+tree2::quadrature::QAG QAG__ctor(size_t rule, size_t max_iterations, double atol, double rtol) {
+  return tree2::quadrature::QAG(rule, max_iterations, atol, rtol);
 }
 // [[Rcpp::export]]
-double QAG__integrate(tree2::RcppR6::RcppR6<quadrature::QAG> obj_, SEXP f, double a, double b) {
+double QAG__integrate(tree2::RcppR6::RcppR6<tree2::quadrature::QAG> obj_, SEXP f, double a, double b) {
   return obj_->r_integrate(f, a, b);
 }
 // [[Rcpp::export]]
-double QAG__integrate_with_intervals(tree2::RcppR6::RcppR6<quadrature::QAG> obj_, SEXP f, SEXP intervals) {
+double QAG__integrate_with_intervals(tree2::RcppR6::RcppR6<tree2::quadrature::QAG> obj_, SEXP f, SEXP intervals) {
   return obj_->r_integrate_with_intervals(f, intervals);
 }
 // [[Rcpp::export]]
-double QAG__last_area__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
+double QAG__last_area__get(tree2::RcppR6::RcppR6<tree2::quadrature::QAG> obj_) {
   return obj_->get_last_area();
 }
 
 // [[Rcpp::export]]
-double QAG__last_error__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
+double QAG__last_error__get(tree2::RcppR6::RcppR6<tree2::quadrature::QAG> obj_) {
   return obj_->get_last_error();
 }
 
 // [[Rcpp::export]]
-size_t QAG__last_iterations__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
+size_t QAG__last_iterations__get(tree2::RcppR6::RcppR6<tree2::quadrature::QAG> obj_) {
   return obj_->get_last_iterations();
 }
 
 // [[Rcpp::export]]
-quadrature::intervals_type QAG__last_intervals__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
+tree2::quadrature::intervals_type QAG__last_intervals__get(tree2::RcppR6::RcppR6<tree2::quadrature::QAG> obj_) {
   return obj_->get_last_intervals();
 }
 
 // [[Rcpp::export]]
-bool QAG__is_adaptive__get(tree2::RcppR6::RcppR6<quadrature::QAG> obj_) {
+bool QAG__is_adaptive__get(tree2::RcppR6::RcppR6<tree2::quadrature::QAG> obj_) {
   return obj_->is_adaptive();
 }
 
 
 // [[Rcpp::export]]
-interpolator::Interpolator Interpolator__ctor() {
-  return interpolator::Interpolator();
+tree2::interpolator::Interpolator Interpolator__ctor() {
+  return tree2::interpolator::Interpolator();
 }
 // [[Rcpp::export]]
-void Interpolator__init(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_, const std::vector<double>& x, const std::vector<double>& y) {
+void Interpolator__init(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator> obj_, const std::vector<double>& x, const std::vector<double>& y) {
   obj_->init(x, y);
 }
 // [[Rcpp::export]]
-std::vector<double> Interpolator__eval(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_, std::vector<double> x) {
+std::vector<double> Interpolator__eval(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator> obj_, std::vector<double> x) {
   return obj_->r_eval(x);
 }
 // [[Rcpp::export]]
-std::vector<double> Interpolator__deriv(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_, std::vector<double> x) {
+std::vector<double> Interpolator__deriv(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator> obj_, std::vector<double> x) {
   return obj_->r_deriv(x);
 }
 // [[Rcpp::export]]
-std::string Interpolator__type__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+std::string Interpolator__type__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator> obj_) {
   return obj_->type();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Interpolator__x__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+std::vector<double> Interpolator__x__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator> obj_) {
   return obj_->get_x();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Interpolator__y__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+std::vector<double> Interpolator__y__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator> obj_) {
   return obj_->get_y();
 }
 
 // [[Rcpp::export]]
-SEXP Interpolator__xy__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+SEXP Interpolator__xy__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator> obj_) {
   return obj_->r_get_xy();
 }
 
 // [[Rcpp::export]]
-size_t Interpolator__size__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+size_t Interpolator__size__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator> obj_) {
   return obj_->size();
 }
 
 // [[Rcpp::export]]
-double Interpolator__min__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+double Interpolator__min__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator> obj_) {
   return obj_->min();
 }
 
 // [[Rcpp::export]]
-double Interpolator__max__get(tree2::RcppR6::RcppR6<interpolator::Interpolator> obj_) {
+double Interpolator__max__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator> obj_) {
   return obj_->max();
 }
 
@@ -446,7 +446,7 @@ void Environment__clear(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
-void Environment__set_seed_rain_index(tree2::RcppR6::RcppR6<tree2::Environment> obj_, util::index x) {
+void Environment__set_seed_rain_index(tree2::RcppR6::RcppR6<tree2::Environment> obj_, tree2::util::index x) {
   obj_->r_set_seed_rain_index(x);
 }
 // [[Rcpp::export]]
@@ -478,11 +478,11 @@ void Environment__time__set(tree2::RcppR6::RcppR6<tree2::Environment> obj_, doub
 }
 
 // [[Rcpp::export]]
-interpolator::Interpolator Environment__light_environment__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
+tree2::interpolator::Interpolator Environment__light_environment__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
   return obj_->light_environment;
 }
 // [[Rcpp::export]]
-void Environment__light_environment__set(tree2::RcppR6::RcppR6<tree2::Environment> obj_, interpolator::Interpolator value) {
+void Environment__light_environment__set(tree2::RcppR6::RcppR6<tree2::Environment> obj_, tree2::interpolator::Interpolator value) {
   obj_->light_environment = value;
 }
 
@@ -629,17 +629,17 @@ size_t Cohort__ode_size__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> >
 }
 
 // [[Rcpp::export]]
-ode::state_type Cohort__ode_state__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
-  return ode::r_ode_state(*obj_);
+tree2::ode::state_type Cohort__ode_state__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
+  return tree2::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Cohort__ode_state__set(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, ode::state_type value) {
-  ode::r_set_ode_state(*obj_, value);
+void Cohort__ode_state__set(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, tree2::ode::state_type value) {
+  tree2::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-ode::state_type Cohort__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
-  return ode::r_ode_rates(*obj_);
+tree2::ode::state_type Cohort__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
+  return tree2::ode::r_ode_rates(*obj_);
 }
 
 
@@ -664,7 +664,7 @@ void Species__add_seed(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2:
   obj_->add_seed();
 }
 // [[Rcpp::export]]
-tree2::Cohort<tree2::Plant> Species__plant_at(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, util::index index) {
+tree2::Cohort<tree2::Plant> Species__plant_at(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, tree2::util::index index) {
   return obj_->r_plant_at(index);
 }
 // [[Rcpp::export]]
@@ -717,17 +717,17 @@ size_t Species__ode_size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort
 }
 
 // [[Rcpp::export]]
-ode::state_type Species__ode_state__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
-  return ode::r_ode_state(*obj_);
+tree2::ode::state_type Species__ode_state__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return tree2::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Species__ode_state__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, ode::state_type value) {
-  ode::r_set_ode_state(*obj_, value);
+void Species__ode_state__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, tree2::ode::state_type value) {
+  tree2::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-ode::state_type Species__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
-  return ode::r_ode_rates(*obj_);
+tree2::ode::state_type Species__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return tree2::ode::r_ode_rates(*obj_);
 }
 
 
@@ -744,7 +744,7 @@ double Patch__canopy_openness(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<t
   return obj_->canopy_openness(height);
 }
 // [[Rcpp::export]]
-void Patch__add_seed(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, util::index species_index) {
+void Patch__add_seed(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, tree2::util::index species_index) {
   obj_->r_add_seed(species_index);
 }
 // [[Rcpp::export]]
@@ -760,12 +760,12 @@ void Patch__reset(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant>
   obj_->reset();
 }
 // [[Rcpp::export]]
-void Patch__set_ode_state(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, ode::state_type values, double time) {
-  ode::r_set_ode_state(*obj_, values, time);
+void Patch__set_ode_state(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, tree2::ode::state_type values, double time) {
+  tree2::ode::r_set_ode_state(*obj_, values, time);
 }
 // [[Rcpp::export]]
-ode::state_type Patch__derivs(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, const ode::state_type& y, double time) {
-  return ode::r_derivs(*obj_, y, time);
+tree2::ode::state_type Patch__derivs(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, const tree2::ode::state_type& y, double time) {
+  return tree2::ode::r_derivs(*obj_, y, time);
 }
 // [[Rcpp::export]]
 double Patch__time__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
@@ -804,17 +804,17 @@ size_t Patch__ode_size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tre
 
 // [[Rcpp::export]]
 double Patch__ode_time__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
-  return ode::r_ode_time(*obj_);
+  return tree2::ode::r_ode_time(*obj_);
 }
 
 // [[Rcpp::export]]
-ode::state_type Patch__ode_state__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
-  return ode::r_ode_state(*obj_);
+tree2::ode::state_type Patch__ode_state__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return tree2::ode::r_ode_state(*obj_);
 }
 
 // [[Rcpp::export]]
-ode::state_type Patch__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
-  return ode::r_ode_rates(*obj_);
+tree2::ode::state_type Patch__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return tree2::ode::r_ode_rates(*obj_);
 }
 
 
@@ -827,7 +827,7 @@ void EBT__run(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
   obj_->run();
 }
 // [[Rcpp::export]]
-std::vector<util::index> EBT__run_next(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+std::vector<tree2::util::index> EBT__run_next(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
   return obj_->r_run_next();
 }
 // [[Rcpp::export]]
@@ -835,19 +835,19 @@ void EBT__reset(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
   obj_->reset();
 }
 // [[Rcpp::export]]
-double EBT__seed_rain(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, util::index species_index) {
+double EBT__seed_rain(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index) {
   return obj_->r_seed_rain(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT__seed_rain_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, util::index species_index) {
+std::vector<double> EBT__seed_rain_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index) {
   return obj_->r_seed_rain_error(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT__seed_rain_cohort(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, util::index species_index) {
+std::vector<double> EBT__seed_rain_cohort(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index) {
   return obj_->r_seed_rain_cohort(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT__leaf_area_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, util::index species_index) {
+std::vector<double> EBT__leaf_area_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index) {
   return obj_->r_leaf_area_error(species_index);
 }
 // [[Rcpp::export]]

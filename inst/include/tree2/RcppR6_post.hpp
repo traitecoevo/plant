@@ -8,21 +8,21 @@
 namespace tree2 {
 namespace RcppR6 {
 namespace traits {
-template <> inline std::string   class_name_r<ode::test::Lorenz >() {return "Lorenz";}
-template <> inline std::string   package_name<ode::test::Lorenz >() {return "tree2";}
-template <> inline std::string generator_name<ode::test::Lorenz >() {return ".R6_Lorenz";}
+template <> inline std::string   class_name_r<tree2::ode::test::Lorenz >() {return "Lorenz";}
+template <> inline std::string   package_name<tree2::ode::test::Lorenz >() {return "tree2";}
+template <> inline std::string generator_name<tree2::ode::test::Lorenz >() {return ".R6_Lorenz";}
 
-template <> inline std::string   class_name_r<ode::test::OdeR >() {return "OdeR";}
-template <> inline std::string   package_name<ode::test::OdeR >() {return "tree2";}
-template <> inline std::string generator_name<ode::test::OdeR >() {return ".R6_OdeR";}
+template <> inline std::string   class_name_r<tree2::ode::test::OdeR >() {return "OdeR";}
+template <> inline std::string   package_name<tree2::ode::test::OdeR >() {return "tree2";}
+template <> inline std::string generator_name<tree2::ode::test::OdeR >() {return ".R6_OdeR";}
 
-template <> inline std::string   class_name_r<ode::Runner<ode::test::Lorenz> >() {return "OdeRunner<Lorenz>";}
-template <> inline std::string   package_name<ode::Runner<ode::test::Lorenz> >() {return "tree2";}
-template <> inline std::string generator_name<ode::Runner<ode::test::Lorenz> >() {return ".R6_OdeRunner___Lorenz";}
+template <> inline std::string   class_name_r<tree2::ode::Runner<tree2::ode::test::Lorenz> >() {return "OdeRunner<Lorenz>";}
+template <> inline std::string   package_name<tree2::ode::Runner<tree2::ode::test::Lorenz> >() {return "tree2";}
+template <> inline std::string generator_name<tree2::ode::Runner<tree2::ode::test::Lorenz> >() {return ".R6_OdeRunner___Lorenz";}
 
-template <> inline std::string   class_name_r<ode::Runner<ode::test::OdeR> >() {return "OdeRunner<OdeR>";}
-template <> inline std::string   package_name<ode::Runner<ode::test::OdeR> >() {return "tree2";}
-template <> inline std::string generator_name<ode::Runner<ode::test::OdeR> >() {return ".R6_OdeRunner___OdeR";}
+template <> inline std::string   class_name_r<tree2::ode::Runner<tree2::ode::test::OdeR> >() {return "OdeRunner<OdeR>";}
+template <> inline std::string   package_name<tree2::ode::Runner<tree2::ode::test::OdeR> >() {return "tree2";}
+template <> inline std::string generator_name<tree2::ode::Runner<tree2::ode::test::OdeR> >() {return ".R6_OdeRunner___OdeR";}
 
 template <> inline std::string   class_name_r<tree2::CohortScheduleEvent >() {return "CohortScheduleEvent";}
 template <> inline std::string   package_name<tree2::CohortScheduleEvent >() {return "tree2";}
@@ -40,9 +40,9 @@ template <> inline std::string   class_name_r<tree2::Control >() {return "Contro
 template <> inline std::string   package_name<tree2::Control >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Control >() {return "";}
 
-template <> inline std::string   class_name_r<ode::OdeControl >() {return "OdeControl";}
-template <> inline std::string   package_name<ode::OdeControl >() {return "tree2";}
-template <> inline std::string generator_name<ode::OdeControl >() {return "";}
+template <> inline std::string   class_name_r<tree2::ode::OdeControl >() {return "OdeControl";}
+template <> inline std::string   package_name<tree2::ode::OdeControl >() {return "tree2";}
+template <> inline std::string generator_name<tree2::ode::OdeControl >() {return "";}
 
 template <> inline std::string   class_name_r<tree2::Strategy >() {return "Strategy";}
 template <> inline std::string   package_name<tree2::Strategy >() {return "tree2";}
@@ -52,17 +52,17 @@ template <> inline std::string   class_name_r<tree2::Parameters >() {return "Par
 template <> inline std::string   package_name<tree2::Parameters >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Parameters >() {return "";}
 
-template <> inline std::string   class_name_r<quadrature::QK >() {return "QK";}
-template <> inline std::string   package_name<quadrature::QK >() {return "tree2";}
-template <> inline std::string generator_name<quadrature::QK >() {return ".R6_QK";}
+template <> inline std::string   class_name_r<tree2::quadrature::QK >() {return "QK";}
+template <> inline std::string   package_name<tree2::quadrature::QK >() {return "tree2";}
+template <> inline std::string generator_name<tree2::quadrature::QK >() {return ".R6_QK";}
 
-template <> inline std::string   class_name_r<quadrature::QAG >() {return "QAG";}
-template <> inline std::string   package_name<quadrature::QAG >() {return "tree2";}
-template <> inline std::string generator_name<quadrature::QAG >() {return ".R6_QAG";}
+template <> inline std::string   class_name_r<tree2::quadrature::QAG >() {return "QAG";}
+template <> inline std::string   package_name<tree2::quadrature::QAG >() {return "tree2";}
+template <> inline std::string generator_name<tree2::quadrature::QAG >() {return ".R6_QAG";}
 
-template <> inline std::string   class_name_r<interpolator::Interpolator >() {return "Interpolator";}
-template <> inline std::string   package_name<interpolator::Interpolator >() {return "tree2";}
-template <> inline std::string generator_name<interpolator::Interpolator >() {return ".R6_Interpolator";}
+template <> inline std::string   class_name_r<tree2::interpolator::Interpolator >() {return "Interpolator";}
+template <> inline std::string   package_name<tree2::interpolator::Interpolator >() {return "tree2";}
+template <> inline std::string generator_name<tree2::interpolator::Interpolator >() {return ".R6_Interpolator";}
 
 template <> inline std::string   class_name_r<tree2::Environment >() {return "Environment";}
 template <> inline std::string   package_name<tree2::Environment >() {return "tree2";}
@@ -108,32 +108,32 @@ private:
 };
 }
 
-template <> inline SEXP wrap(const ode::test::Lorenz& x) {
-  return wrap(tree2::RcppR6::RcppR6<ode::test::Lorenz>(x));
+template <> inline SEXP wrap(const tree2::ode::test::Lorenz& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::ode::test::Lorenz>(x));
 }
-template <> inline ode::test::Lorenz as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<ode::test::Lorenz>(x));
-}
-
-template <> inline SEXP wrap(const ode::test::OdeR& x) {
-  return wrap(tree2::RcppR6::RcppR6<ode::test::OdeR>(x));
-}
-template <> inline ode::test::OdeR as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<ode::test::OdeR>(x));
+template <> inline tree2::ode::test::Lorenz as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::ode::test::Lorenz>(x));
 }
 
-template <> inline SEXP wrap(const ode::Runner<ode::test::Lorenz>& x) {
-  return wrap(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> >(x));
+template <> inline SEXP wrap(const tree2::ode::test::OdeR& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::ode::test::OdeR>(x));
 }
-template <> inline ode::Runner<ode::test::Lorenz> as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> >(x));
+template <> inline tree2::ode::test::OdeR as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::ode::test::OdeR>(x));
 }
 
-template <> inline SEXP wrap(const ode::Runner<ode::test::OdeR>& x) {
-  return wrap(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> >(x));
+template <> inline SEXP wrap(const tree2::ode::Runner<tree2::ode::test::Lorenz>& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> >(x));
 }
-template <> inline ode::Runner<ode::test::OdeR> as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> >(x));
+template <> inline tree2::ode::Runner<tree2::ode::test::Lorenz> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> >(x));
+}
+
+template <> inline SEXP wrap(const tree2::ode::Runner<tree2::ode::test::OdeR>& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> >(x));
+}
+template <> inline tree2::ode::Runner<tree2::ode::test::OdeR> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> >(x));
 }
 
 template <> inline SEXP wrap(const tree2::CohortScheduleEvent& x) {
@@ -333,7 +333,7 @@ template <> inline tree2::Control as(SEXP x) {
   return ret;
 }
 
-template <> inline SEXP wrap(const ode::OdeControl& x) {
+template <> inline SEXP wrap(const tree2::ode::OdeControl& x) {
   Rcpp::List ret;
   ret["tol_abs"] = Rcpp::wrap(x.tol_abs);
   ret["tol_rel"] = Rcpp::wrap(x.tol_rel);
@@ -345,14 +345,14 @@ template <> inline SEXP wrap(const ode::OdeControl& x) {
   ret.attr("class") = "OdeControl";
   return ret;
 }
-template <> inline ode::OdeControl as(SEXP x) {
-  if (!tree2::RcppR6::is<ode::OdeControl >(x)) {
+template <> inline tree2::ode::OdeControl as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::ode::OdeControl >(x)) {
     Rcpp::stop("Expected an object of type OdeControl");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  ode::OdeControl ret;
+  tree2::ode::OdeControl ret;
   Rcpp::List xl(x);
   // ret.tol_abs = Rcpp::as<decltype(rettol_abs) >(xl["tol_abs"]);
   ret.tol_abs = Rcpp::as<double >(xl["tol_abs"]);
@@ -558,25 +558,25 @@ template <> inline tree2::Parameters as(SEXP x) {
   return ret;
 }
 
-template <> inline SEXP wrap(const quadrature::QK& x) {
-  return wrap(tree2::RcppR6::RcppR6<quadrature::QK>(x));
+template <> inline SEXP wrap(const tree2::quadrature::QK& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::quadrature::QK>(x));
 }
-template <> inline quadrature::QK as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<quadrature::QK>(x));
-}
-
-template <> inline SEXP wrap(const quadrature::QAG& x) {
-  return wrap(tree2::RcppR6::RcppR6<quadrature::QAG>(x));
-}
-template <> inline quadrature::QAG as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<quadrature::QAG>(x));
+template <> inline tree2::quadrature::QK as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::quadrature::QK>(x));
 }
 
-template <> inline SEXP wrap(const interpolator::Interpolator& x) {
-  return wrap(tree2::RcppR6::RcppR6<interpolator::Interpolator>(x));
+template <> inline SEXP wrap(const tree2::quadrature::QAG& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::quadrature::QAG>(x));
 }
-template <> inline interpolator::Interpolator as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<interpolator::Interpolator>(x));
+template <> inline tree2::quadrature::QAG as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::quadrature::QAG>(x));
+}
+
+template <> inline SEXP wrap(const tree2::interpolator::Interpolator& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator>(x));
+}
+template <> inline tree2::interpolator::Interpolator as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator>(x));
 }
 
 template <> inline SEXP wrap(const tree2::Environment& x) {

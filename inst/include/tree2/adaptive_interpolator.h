@@ -6,6 +6,7 @@
 #include <tree2/interpolator.h>
 #include <tree2/util.h> // util::stop, util::seq_len
 
+namespace tree2 {
 namespace interpolator {
 
 class AdaptiveInterpolator {
@@ -125,9 +126,7 @@ bool AdaptiveInterpolator::refine(Function target) {
   return flag;
 }
 
-
-
-
+}
 }
 
 #endif

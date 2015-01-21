@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <tree2/ode_interface.h>
 
+namespace tree2 {
 namespace ode {
 
 template <class System>
@@ -169,6 +170,7 @@ const double Step<System>::ec[] = {
   125.0 / 594.0 - 13525.0 / 55296.0,
   -277.0 / 14336.0, 512.0 / 1771.0 - 0.25 };
 
+}
 }
 
 #endif

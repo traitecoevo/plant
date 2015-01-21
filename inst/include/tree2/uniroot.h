@@ -7,6 +7,7 @@
 
 #include <boost/math/tools/roots.hpp>
 
+namespace tree2 {
 namespace util {
 
 namespace internals {
@@ -35,6 +36,7 @@ double uniroot(Function f, double min, double max, double tol,
   return (root.first + root.second) / 2.0;
 }
 
+}
 }
 
 #endif

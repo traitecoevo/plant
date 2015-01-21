@@ -2,6 +2,7 @@
 #ifndef TREE_ODE_INTERFACE_H_
 #define TREE_ODE_INTERFACE_H_
 
+namespace tree2 {
 namespace ode {
 
 // These are utilities designed to make it more pleasant to work with
@@ -145,6 +146,7 @@ state_type r_ode_rates(const T& obj) {
   return dydt;
 }
 
+}
 }
 
 #endif

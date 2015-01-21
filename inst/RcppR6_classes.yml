@@ -1,16 +1,16 @@
 Lorenz:
-  name_cpp: "ode::test::Lorenz"
+  name_cpp: "tree2::ode::test::Lorenz"
   forward_declare: true
   constructor:
     args: [sigma: double, R: double, b: double]
   active:
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_state", name_cpp_set: "ode::r_set_ode_state"}
-    ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
+    ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
+    ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
     pars: {type: "std::vector<double>", access: member}
 
 OdeR:
-  name_cpp: "ode::test::OdeR"
+  name_cpp: "tree2::ode::test::OdeR"
   forward_declare: true
   constructor:
     args: [derivs: "Rcpp::Function", state: "Rcpp::Function", time: double]
@@ -18,17 +18,17 @@ OdeR:
     update_state: {return_type: void}
 
 OdeRunner:
-  name_cpp: "ode::Runner<T>"
+  name_cpp: "tree2::ode::Runner<T>"
   templates:
     parameters: T
     concrete:
-      - ["Lorenz": "ode::test::Lorenz"]
-      - ["OdeR":   "ode::test::OdeR"]
+      - ["Lorenz": "tree2::ode::test::Lorenz"]
+      - ["OdeR":   "tree2::ode::test::OdeR"]
   constructor:
-    args: [obj: T, control: "ode::OdeControl=OdeControl()"]
+    args: [obj: T, control: "tree2::ode::OdeControl=OdeControl()"]
   active:
     time: {type: double, access: member}
-    state: {type: "ode::state_type", access: member}
+    state: {type: "tree2::ode::state_type", access: member}
     times: {type: "std::vector<double>", access: member}
     object: {type: T, access: member}
   methods:
@@ -42,9 +42,9 @@ CohortScheduleEvent:
   forward_declare: true
   name_cpp: "tree2::CohortScheduleEvent"
   constructor:
-    args: [introduction: double, species_index: "util::index"]
+    args: [introduction: double, species_index: "tree2::util::index"]
   active:
-    species_index: {type: "util::index", access: field, name_cpp: species_index}
+    species_index: {type: "tree2::util::index", access: field, name_cpp: species_index}
     times: {type: "std::vector<double>", access: field, readonly: true}
     time_introduction: {type: double, access: member}
     time_end: {type: double, access: member}
@@ -74,18 +74,18 @@ CohortSchedule:
       args: [n_extra: size_t, times: "std::vector<double>"]
     clear_times:
       return_type: void
-      args: [species_index: "util::index"]
+      args: [species_index: "tree2::util::index"]
     clear_ode_times:
       return_type: void
       name_cpp: r_clear_ode_times
     set_times:
       return_type: void
       name_cpp: r_set_times
-      args: [times: "std::vector<double>", species_index: "util::index"]
+      args: [times: "std::vector<double>", species_index: "tree2::util::index"]
     times:
       return_type: "std::vector<double>"
       name_cpp: r_times
-      args: [species_index: "util::index"]
+      args: [species_index: "tree2::util::index"]
     reset:
       return_type: void
     pop:
@@ -185,7 +185,7 @@ Control:
 
 OdeControl:
   forward_declare: struct
-  name_cpp: "ode::OdeControl"
+  name_cpp: "tree2::ode::OdeControl"
   roxygen: |
     Control parameters for the ode system
     @title ODE Control parameters
@@ -280,7 +280,7 @@ Parameters:
 
 QK:
   forward_declare: true
-  name_cpp: "quadrature::QK"
+  name_cpp: "tree2::quadrature::QK"
   constructor:
     roxygen: |
       Gauss-Kronrod Quadrature
@@ -305,7 +305,7 @@ QK:
 
 QAG:
   forward_declare: true
-  name_cpp: "quadrature::QAG"
+  name_cpp: "tree2::quadrature::QAG"
   constructor:
     args: [rule: size_t, max_iterations: size_t, atol: double, rtol: double]
   methods:
@@ -321,12 +321,12 @@ QAG:
     last_area: {type: double, access: member, name_cpp: get_last_area}
     last_error: {type: double, access: member, name_cpp: get_last_error}
     last_iterations: {type: size_t, access: member, name_cpp: get_last_iterations}
-    last_intervals: {type: "quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
+    last_intervals: {type: "tree2::quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
     is_adaptive: {type: bool, access: member}
 
 Interpolator:
   forward_declare: true
-  name_cpp: "interpolator::Interpolator"
+  name_cpp: "tree2::interpolator::Interpolator"
   constructor:
     roxygen: |
       Spline interpolation
@@ -371,7 +371,7 @@ Environment:
     clear:
       return_type: void
     set_seed_rain_index:
-      args: [x: "util::index"]
+      args: [x: "tree2::util::index"]
       return_type: void
       name_cpp: r_set_seed_rain_index
   active:
@@ -379,7 +379,7 @@ Environment:
     seed_rain_rate: {type: double, access: member}
     disturbance_regime: {type: "tree2::Disturbance", access: field}
     time: {type: double, access: field}
-    light_environment: {type: "interpolator::Interpolator", access: field}
+    light_environment: {type: "tree2::interpolator::Interpolator", access: field}
 
 Plant:
   forward_declare: true
@@ -430,8 +430,8 @@ Cohort:
     leaf_area: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_state", name_cpp_set: "ode::r_set_ode_state"}
-    ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
+    ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
+    ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
   methods:
     leaf_area_above:
       return_type: double
@@ -464,8 +464,8 @@ Species:
     leaf_area_error: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area_error}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_state", name_cpp_set: "ode::r_set_ode_state"}
-    ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
+    ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
+    ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
   methods:
     clear:
       return_type: void
@@ -479,7 +479,7 @@ Species:
       return_type: void
     plant_at:
       return_type: "tree2::Cohort<tree2::Plant>"
-      args: [index: "util::index"]
+      args: [index: "tree2::util::index"]
       name_cpp: r_plant_at
 
 Patch:
@@ -496,15 +496,15 @@ Patch:
     species: {type: "std::vector<tree2::Species<tree2::Cohort<tree2::Plant> > >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_time: {type: double, access: function, name_cpp: "ode::r_ode_time"}
-    ode_state: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_state"}
-    ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
+    ode_time: {type: double, access: function, name_cpp: "tree2::ode::r_ode_time"}
+    ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state"}
+    ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
   methods:
     leaf_area_above: {return_type: double, args: [height: double]}
     canopy_openness: {return_type: double, args: [height: double]}
     add_seed:
       return_type: void
-      args: [species_index: "util::index"]
+      args: [species_index: "tree2::util::index"]
       name_cpp: r_add_seed
     compute_light_environment:
       return_type: void
@@ -521,13 +521,13 @@ Patch:
     set_ode_state:
       return_type: void
       access: function
-      name_cpp: "ode::r_set_ode_state"
-      args: [values: "ode::state_type", time: double]
+      name_cpp: "tree2::ode::r_set_ode_state"
+      args: [values: "tree2::ode::state_type", time: double]
     derivs:
-      return_type: "ode::state_type"
+      return_type: "tree2::ode::state_type"
       access: function
-      name_cpp: "ode::r_derivs"
-      args: [y: "const ode::state_type&", time: double]
+      name_cpp: "tree2::ode::r_derivs"
+      args: [y: "const tree2::ode::state_type&", time: double]
 
 EBT:
   forward_declare: false
@@ -538,24 +538,24 @@ EBT:
     run:
       return_type: void
     run_next:
-      return_type: "std::vector<util::index>"
+      return_type: "std::vector<tree2::util::index>"
       name_cpp: r_run_next
     reset:
       return_type: void
     seed_rain:
-      args: [species_index: "util::index"]
+      args: [species_index: "tree2::util::index"]
       return_type: double
       name_cpp: r_seed_rain
     seed_rain_error:
-      args: [species_index: "util::index"]
+      args: [species_index: "tree2::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_seed_rain_error
     seed_rain_cohort:
-      args: [species_index: "util::index"]
+      args: [species_index: "tree2::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_seed_rain_cohort
     leaf_area_error:
-      args: [species_index: "util::index"]
+      args: [species_index: "tree2::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_leaf_area_error
     # times

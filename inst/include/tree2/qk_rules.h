@@ -4,6 +4,7 @@
 
 #include <stddef.h>
 
+namespace tree2 {
 namespace quadrature {
 
 struct QK15 {
@@ -54,6 +55,7 @@ struct QK61 {
   static const double wgk[31]; // weights of the 61-point kronrod rule
 };
 
+}
 }
 
 #endif

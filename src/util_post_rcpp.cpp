@@ -1,5 +1,6 @@
-#include <tree2/util_rcpp.h>
+#include <tree2/util_post_rcpp.h>
 
+namespace tree2 {
 namespace util {
 
 // Given a vector-of-vectors, copy the vector x[i] into the ith
@@ -14,4 +15,5 @@ Rcpp::NumericMatrix to_rcpp_matrix(std::vector< std::vector<double> > x) {
   return ret;
 }
 
+}
 }

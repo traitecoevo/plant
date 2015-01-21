@@ -6,15 +6,17 @@
 // [[Rcpp::export]]
 double test_gradient_fd1(Rcpp::Function f, double x, double dx,
                          int direction, double fx=NA_REAL) {
-  if (util::is_finite(fx)) {
-    return util::gradient_fd(util::RFunctionWrapper(f), x, dx, fx, direction);
+  using namespace tree2::util;
+  if (is_finite(fx)) {
+    return gradient_fd(RFunctionWrapper(f), x, dx, fx, direction);
   } else {
-    return util::gradient_fd(util::RFunctionWrapper(f), x, dx, direction);
+    return gradient_fd(RFunctionWrapper(f), x, dx, direction);
   }
 }
 
 // [[Rcpp::export]]
 double test_gradient_richardson(Rcpp::Function f, double x, double d,
                                 size_t r) {
-  return util::gradient_richardson(util::RFunctionWrapper(f), x, d, r);
+  using namespace tree2::util;
+  return gradient_richardson(RFunctionWrapper(f), x, d, r);
 }

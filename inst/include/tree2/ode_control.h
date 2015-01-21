@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstddef>
 
+namespace tree2 {
 namespace ode {
 
 struct OdeControl {
@@ -27,6 +28,7 @@ struct OdeControl {
   bool last_step_size_shrank;
 };
 
+}
 }
 
 #endif

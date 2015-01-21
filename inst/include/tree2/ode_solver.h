@@ -11,6 +11,7 @@
 #include <vector>
 #include <cstddef>
 
+namespace tree2 {
 namespace ode {
 
 template <class System>
@@ -275,6 +276,7 @@ void Solver<System>::set_time_max(double time_max_) {
   time_max = time_max_;
 }
 
+}
 }
 
 #endif
