@@ -41,8 +41,8 @@ public:
   // * ODE interface
   size_t ode_size() const;
   double ode_time() const;
-  ode::const_iterator set_ode_values(ode::const_iterator it, double time);
-  ode::iterator       ode_values(ode::iterator it) const;
+  ode::const_iterator set_ode_state(ode::const_iterator it, double time);
+  ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
 
   // * R interface
@@ -191,9 +191,9 @@ double Patch<T>::ode_time() const {
 }
 
 template <typename T>
-ode::const_iterator Patch<T>::set_ode_values(ode::const_iterator it,
-                                             double time) {
-  it = ode::set_ode_values(species.begin(), species.end(), it);
+ode::const_iterator Patch<T>::set_ode_state(ode::const_iterator it,
+                                            double time) {
+  it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
   if (parameters.control.environment_light_rescale_usually) {
     rescale_light_environment();
@@ -205,8 +205,8 @@ ode::const_iterator Patch<T>::set_ode_values(ode::const_iterator it,
 }
 
 template <typename T>
-ode::iterator Patch<T>::ode_values(ode::iterator it) const {
-  return ode::ode_values(species.begin(), species.end(), it);
+ode::iterator Patch<T>::ode_state(ode::iterator it) const {
+  return ode::ode_state(species.begin(), species.end(), it);
 }
 
 template <typename T>

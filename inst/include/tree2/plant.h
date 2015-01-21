@@ -74,8 +74,8 @@ public:
   // look into how I am going to drive this.  It's hard to do this
   // with dealing with envionment.
   // static size_t ode_size() {return ode_dimension;}
-  // ode::iterator_const set_ode_values(double time, ode::iterator_const it);
-  // ode::iterator       ode_values(ode::iterator it) const;
+  // ode::iterator_const set_ode_state(double time, ode::iterator_const it);
+  // ode::iterator       ode_state(ode::iterator it) const;
   // ode::iterator       ode_rates(ode::iterator it)  const;
 
   // * Set constants within Strategy

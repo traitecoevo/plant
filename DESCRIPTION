@@ -1,8 +1,8 @@
 Package: tree2
 Title: TRait Evolutionary Ecology: model of competition and growth
 Version: 0.2
-Authors@R: c("Rich FitzJohn <rich.fitzjohn@gmail.com> [aut, cre]",
-             "Daniel Falster <daniel.falster@mq.edu.au> [aut, cre]")
+Author: Richard G. FitzJohn and Daniel S. Falster
+Maintainer: Richard G. FitzJohn <rich.fitzjohn@gmail.com>
 Description: Implements EBT (Falster et al. 2010) and an individual
     based model.
 Depends:

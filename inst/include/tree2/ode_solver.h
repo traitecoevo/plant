@@ -13,32 +13,32 @@
 
 namespace ode {
 
-template <class Problem>
+template <class System>
 class Solver {
 public:
-  Solver(const Problem& problem, OdeControl control_);
-  void reset(const Problem& problem);
-  void set_state_from_problem(const Problem& problem);
+  Solver(const System& system, OdeControl control_);
+  void reset(const System& system);
+  void set_state_from_system(const System& system);
 
   state_type get_state() const {return y;}
   double get_time() const {return time;}
   std::vector<double> get_times() const {return prev_times;}
 
-  void advance(Problem& problem, double time_max_);
-  void advance_fixed(Problem& problem, const std::vector<double>& times);
+  void advance(System& system, double time_max_);
+  void advance_fixed(System& system, const std::vector<double>& times);
 
-  void step(Problem& problem);
-  void step_to(Problem& problem, double time_max_);
+  void step(System& system);
+  void step_to(System& system, double time_max_);
 
 private:
   void resize(size_t size_);
-  void setup_dydt_in(Problem& problem);
+  void setup_dydt_in(System& system);
   void save_dydt_out_as_in();
   void set_time(double t);
   void set_time_max(double time_max_);
 
   OdeControl control;
-  Step<Problem> stepper;
+  Step<System> stepper;
 
   double step_size_last; // Size of last successful step (or suggestion)
 
@@ -46,7 +46,7 @@ private:
   double time_max; // Time we will not go past
   std::vector<double> prev_times; // Vector of previous times.
 
-  state_type y;        // Vector of current problem state
+  state_type y;        // Vector of current system state
   state_type yerr;     // Vector of error estimates
   state_type dydt_in;  // Vector of dydt at beginning of step
   state_type dydt_out; // Vector of dydt during step
@@ -56,37 +56,37 @@ private:
 
 };
 
-// NOTE I'm setting the initial problem size to 0 here, but some
-// problems are self-initialising.
-template <class Problem>
-Solver<Problem>::Solver(const Problem& problem, OdeControl control_)
+// NOTE I'm setting the initial system size to 0 here, but some
+// systems are self-initialising.
+template <class System>
+Solver<System>::Solver(const System& system, OdeControl control_)
   : control(control_) {
-  reset(problem);
+  reset(system);
 }
 
 // NOTE: This resets *everything* to basically a recreated object.
-template <class Problem>
-void Solver<Problem>::reset(const Problem& problem) {
+template <class System>
+void Solver<System>::reset(const System& system) {
   prev_times.clear();
   step_size_last = control.step_size_initial;
   time_max = std::numeric_limits<double>::infinity();
-  set_state_from_problem(problem);
+  set_state_from_system(system);
 }
 
-template <class Problem>
-void Solver<Problem>::set_state_from_problem(const Problem& problem) {
-  set_time(ode::ode_time(problem));
-  resize(problem.ode_size());
-  problem.ode_values(y.begin());
-  problem.ode_rates(dydt_in.begin());
+template <class System>
+void Solver<System>::set_state_from_system(const System& system) {
+  set_time(ode::ode_time(system));
+  resize(system.ode_size());
+  system.ode_state(y.begin());
+  system.ode_rates(dydt_in.begin());
   dydt_in_is_clean = true;
 }
 
-template <class Problem>
-void Solver<Problem>::advance(Problem& problem, double time_max_) {
+template <class System>
+void Solver<System>::advance(System& system, double time_max_) {
   set_time_max(time_max_);
   while (time < time_max) {
-    step(problem);
+    step(system);
   }
 }
 
@@ -102,9 +102,9 @@ void Solver<Problem>::advance(Problem& problem, double time_max_) {
 //
 // TODO: This used to check that the first element of `times` is the
 // same as the current time, but it did that incorrectly.
-template <class Problem>
-void Solver<Problem>::advance_fixed(Problem& problem,
-                                    const std::vector<double>& times) {
+template <class System>
+void Solver<System>::advance_fixed(System& system,
+                                   const std::vector<double>& times) {
   if (times.empty()) {
     util::stop("'times' must be vector of at least length 1");
   }
@@ -113,7 +113,7 @@ void Solver<Problem>::advance_fixed(Problem& problem,
     util::stop("First element in 'times' must be same as current time");
   }
   while (t != times.end()) {
-    step_to(problem, *t++);
+    step_to(system, *t++);
   }
 }
 
@@ -138,8 +138,8 @@ void Solver<Problem>::advance_fixed(Problem& problem,
 //
 // 3. step_size_next: The size of the proposed next step (or retry of
 //    the current step).
-template <class Problem>
-void Solver<Problem>::step(Problem& problem) {
+template <class System>
+void Solver<System>::step(System& system) {
   const double time_orig = time, time_remaining = time_max - time;
   double step_size = step_size_last;
 
@@ -149,7 +149,7 @@ void Solver<Problem>::step(Problem& problem) {
   const size_t size = y.size();
 
   // Compute the derivatives at the beginning.
-  setup_dydt_in(problem);
+  setup_dydt_in(system);
 
   while (true) {
     // Does this appear to be the last step before reaching `time_max`?
@@ -157,7 +157,7 @@ void Solver<Problem>::step(Problem& problem) {
     if (final_step) {
       step_size = time_remaining;
     }
-    stepper.step(problem, time, step_size, y, yerr, dydt_in, dydt_out);
+    stepper.step(system, time, step_size, y, yerr, dydt_in, dydt_out);
 
     const double step_size_next =
       control.adjust_step_size(size, stepper.order(), step_size,
@@ -203,19 +203,19 @@ void Solver<Problem>::step(Problem& problem) {
 
 // This takes a step up to time "time_max_", regardless of what the
 // integration error says.  This is used by advance_fixed
-template <class Problem>
-void Solver<Problem>::step_to(Problem& problem, double time_max_) {
+template <class System>
+void Solver<System>::step_to(System& system, double time_max_) {
   set_time_max(time_max_);
-  setup_dydt_in(problem);
-  stepper.step(problem, time, time_max - time, y, yerr, dydt_in, dydt_out);
+  setup_dydt_in(system);
+  stepper.step(system, time, time_max - time, y, yerr, dydt_in, dydt_out);
   save_dydt_out_as_in();
 
   time = time_max;
   prev_times.push_back(time);
 }
 
-template <class Problem>
-void Solver<Problem>::resize(size_t size_) {
+template <class System>
+void Solver<System>::resize(size_t size_) {
   y.resize(size_);
   yerr.resize(size_);
   dydt_in.resize(size_);
@@ -228,20 +228,20 @@ void Solver<Problem>::resize(size_t size_) {
 // where we ask what 'y' is in the model, and if it's the same then we
 // use the existing rates, otherwise we apply our y.  For now, this
 // should be correct, but comes at a cost of an extra evaluation.
-template <class Problem>
-void Solver<Problem>::setup_dydt_in(Problem& problem) {
+template <class System>
+void Solver<System>::setup_dydt_in(System& system) {
   if (stepper.can_use_dydt_in() && !dydt_in_is_clean) {
     // TODO: Not clear that this is the right thing here; should just
     // be able to look up the correct dydt rates because we've already
     // set state?
-    //   problem.ode_rates(dydt_in.begin());
-    ode::derivs(problem, y, dydt_in, time);
+    //   system.ode_rates(dydt_in.begin());
+    ode::derivs(system, y, dydt_in, time);
     dydt_in_is_clean = true;
   }
 }
 
-template <class Problem>
-void Solver<Problem>::save_dydt_out_as_in() {
+template <class System>
+void Solver<System>::save_dydt_out_as_in() {
   if (stepper.first_same_as_last()) {
     dydt_in = dydt_out;
     dydt_in_is_clean = true;
@@ -250,8 +250,8 @@ void Solver<Problem>::save_dydt_out_as_in() {
   }
 }
 
-template <typename Problem>
-void Solver<Problem>::set_time(double t) {
+template <typename System>
+void Solver<System>::set_time(double t) {
   // TODO: Do with accuracy 2 and util::almost_equal
   if (prev_times.size() > 0 && !util::identical(prev_times.back(), t)) {
     util::stop("Time does not match previous (delta = " +
@@ -264,8 +264,8 @@ void Solver<Problem>::set_time(double t) {
   }
 }
 
-template <class Problem>
-void Solver<Problem>::set_time_max(double time_max_) {
+template <class System>
+void Solver<System>::set_time_max(double time_max_) {
   if (!util::is_finite(time_max_)) {
     util::stop("time_max must be finite!");
   }

@@ -5,7 +5,7 @@ Lorenz:
     args: [sigma: double, R: double, b: double]
   active:
     ode_size: {type: size_t, access: member}
-    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::r_set_ode_values"}
+    ode_state: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_state", name_cpp_set: "ode::r_set_ode_state"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
     pars: {type: "std::vector<double>", access: member}
 
@@ -36,7 +36,7 @@ OdeRunner:
     advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
     step: {return_type: void}
     step_to: {return_type: void, args: [time: double]}
-    set_state_from_problem: {return_type: void}
+    set_state_from_system: {return_type: void}
 
 CohortScheduleEvent:
   forward_declare: true
@@ -430,7 +430,7 @@ Cohort:
     leaf_area: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
-    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::r_set_ode_values"}
+    ode_state: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_state", name_cpp_set: "ode::r_set_ode_state"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:
     leaf_area_above:
@@ -464,7 +464,7 @@ Species:
     leaf_area_error: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area_error}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::r_set_ode_values"}
+    ode_state: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_state", name_cpp_set: "ode::r_set_ode_state"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:
     clear:
@@ -497,7 +497,7 @@ Patch:
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "ode::r_ode_time"}
-    ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values"}
+    ode_state: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_state"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:
     leaf_area_above: {return_type: double, args: [height: double]}
@@ -518,10 +518,10 @@ Patch:
     # Because we now care about time, we need to make sure that the
     # setter function passes time along, so can't be done via the
     # active binding (unlike Species, Cohort, etc).
-    set_ode_values:
+    set_ode_state:
       return_type: void
       access: function
-      name_cpp: "ode::r_set_ode_values"
+      name_cpp: "ode::r_set_ode_state"
       args: [values: "ode::state_type", time: double]
     derivs:
       return_type: "ode::state_type"

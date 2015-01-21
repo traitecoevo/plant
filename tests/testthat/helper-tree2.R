@@ -80,14 +80,14 @@ test_environment <- function(height, n=101, light_env=NULL,
 
 test_ode_make_system <- function(obj) {
   make_derivs <- function(obj) {
-    if (is.null(obj$set_ode_values)) {
+    if (is.null(obj$set_ode_state)) {
       function(y, t) {
-        obj$ode_values <- y
+        obj$ode_state <- y
         obj$ode_rates
       }
     } else {
       function(y, t) {
-        obj$set_ode_values(y, t)
+        obj$set_ode_state(y, t)
         obj$ode_rates
       }
     }
@@ -95,7 +95,7 @@ test_ode_make_system <- function(obj) {
   ## Hmm, this is causing all sorts of trouble...
   make_state <- function(obj) {
     function() {
-      obj$ode_values
+      obj$ode_state
     }
   }
   time <- if (is.null(obj$time)) 0.0 else obj$time

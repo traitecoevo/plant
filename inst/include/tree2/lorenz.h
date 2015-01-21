@@ -24,7 +24,7 @@ public:
 
   // ODE interface.
   size_t ode_size() const {return ode_dimension;}
-  ode::const_iterator set_ode_values(ode::const_iterator it) {
+  ode::const_iterator set_ode_state(ode::const_iterator it) {
     y0 = *it++;
     y1 = *it++;
     y2 = *it++;
@@ -33,7 +33,7 @@ public:
     dy2dt = -b * y2 + y0 * y1;
     return it;
   }
-  ode::iterator ode_values(ode::iterator it) const {
+  ode::iterator ode_state(ode::iterator it) const {
     *it++ = y0;
     *it++ = y1;
     *it++ = y2;

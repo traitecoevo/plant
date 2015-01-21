@@ -32,20 +32,20 @@ test_that("Basic Lorenz object works", {
   ## Check that everything is sane to start off:
   expect_that(lo$ode_size, equals(3))
   expect_that(lo$pars, is_identical_to(unname(pars)))
-  expect_that(lo$ode_values, is_identical_to(rep(0.0, 3)))
+  expect_that(lo$ode_state, is_identical_to(rep(0.0, 3)))
   expect_that(lo$ode_rates,
-              is_identical_to(derivs_lorenz(lo$ode_values, pars)))
+              is_identical_to(derivs_lorenz(lo$ode_state, pars)))
   expect_that(lo$ode_time, is_null())
 
   ## Then set the state:
-  lo$ode_values <- y
-  expect_that(lo$ode_values, is_identical_to(y))
+  lo$ode_state <- y
+  expect_that(lo$ode_state, is_identical_to(y))
   expect_that(lo$ode_rates, is_identical_to(derivs_lorenz(y, pars)))
 
   y2 <- runif(3)
-  lo$ode_values <- y2
-  expect_that(lo$ode_values, is_identical_to(y2))
-  expect_that(lo$ode_rates,  is_identical_to(derivs_lorenz(y2, pars)))
+  lo$ode_state <- y2
+  expect_that(lo$ode_state, is_identical_to(y2))
+  expect_that(lo$ode_rates, is_identical_to(derivs_lorenz(y2, pars)))
 })
 
 ## Then, get the ode runner working.
@@ -53,7 +53,7 @@ test_that("Ode runner behaves", {
   pars <- c(sigma=10.0, R=28.0, b=8.0 / 3.0)
   y <- rep(21, 3)
   lo <- Lorenz(pars[[1]], pars[[2]], pars[[3]])
-  lo$ode_values <- y
+  lo$ode_state <- y
   derivs_lorenz(y, pars)
   
   sys <- OdeRunner("Lorenz")(lo)
@@ -70,8 +70,8 @@ test_that("Ode runner behaves", {
   sys$step()
   expect_that(sys$time, is_more_than(0.0))
   expect_that(all(sys$state != y), is_true())
-  expect_that(sys$object$ode_values, is_identical_to(sys$state))
-  expect_that(lo2$ode_values, is_identical_to(y))
+  expect_that(sys$object$ode_state, is_identical_to(sys$state))
+  expect_that(lo2$ode_state, is_identical_to(y))
 
   t1 <- 1.0
   sys$advance(t1)
@@ -79,8 +79,8 @@ test_that("Ode runner behaves", {
   ## State has changed:
   expect_that(all(sys$state != y), is_true())
   ## But not in these objects:
-  expect_that(lo$ode_values,  is_identical_to(y))
-  expect_that(lo2$ode_values, is_identical_to(y))
+  expect_that(lo$ode_state,  is_identical_to(y))
+  expect_that(lo2$ode_state, is_identical_to(y))
 
   times <- sys$times
   expect_that(first(times), is_identical_to(0.0))
@@ -99,7 +99,7 @@ test_that("OdeR interface", {
   pars <- c(sigma=10.0, R=28.0, b=8.0 / 3.0)
   y <- rep(21, 3)
   lo <- Lorenz(pars[[1]], pars[[2]], pars[[3]])
-  lo$ode_values <- c(21, 21, 21)
+  lo$ode_state <- c(21, 21, 21)
 
   sys <- test_ode_make_system(lo)
   expect_that(sys, is_a("OdeR"))
@@ -118,10 +118,10 @@ test_that("OdeR interface", {
   expect_that(sol$state, is_identical_to(sol2$state))
 
   ## This *has* updated the original values.
-  expect_that(lo$ode_values, is_identical_to(sol2$state))
+  expect_that(lo$ode_state, is_identical_to(sol2$state))
 
-  lo$ode_values <- y
-  expect_that(lo$ode_values, not(is_identical_to(sol2$state)))
-  expect_that(sol2$set_state_from_problem(),
+  lo$ode_state <- y
+  expect_that(lo$ode_state, not(is_identical_to(sol2$state)))
+  expect_that(sol2$set_state_from_system(),
               throws_error("Time does not match previous"))
 })

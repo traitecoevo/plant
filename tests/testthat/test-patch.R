@@ -28,8 +28,8 @@ test_that("Basics", {
   expect_that(patch$species[[1]], is_a("Species"))
 
   expect_that(patch$ode_size, equals(0))
-  expect_that(patch$ode_values, is_identical_to(numeric(0)))
-  expect_that(patch$ode_rates,  is_identical_to(numeric(0)))
+  expect_that(patch$ode_state, is_identical_to(numeric(0)))
+  expect_that(patch$ode_rates, is_identical_to(numeric(0)))
 
   ## Empty light environment:
   patch$compute_light_environment()
@@ -44,14 +44,14 @@ test_that("Basics", {
   ## Then pull this out:
   cmp$compute_initial_conditions(patch$environment)
 
-  expect_that(patch$ode_values,
-              is_identical_to(cmp$ode_values))
+  expect_that(patch$ode_state,
+              is_identical_to(cmp$ode_state))
   expect_that(patch$ode_rates,
               is_identical_to(cmp$ode_rates))
 
-  y <- patch$ode_values
-  patch$set_ode_values(y, 0)
-  expect_that(patch$ode_values, is_identical_to(y))
+  y <- patch$ode_state
+  patch$set_ode_state(y, 0)
+  expect_that(patch$ode_state, is_identical_to(y))
 
   ## NOTE: These should be identical, but are merely equal...
   expect_that(patch$derivs(y, 0),
@@ -135,7 +135,7 @@ test_that("Basics", {
   ##   expect_that(patch2$environment$light_environment$xy,
   ##               is_identical_to(patch$environment$light_environment$xy))
   ##   expect_that(patch2$time, is_identical_to(patch$time))
-  ##   expect_that(patch2$ode_values, is_identical_to(patch$ode_values))
+  ##   expect_that(patch2$ode_state, is_identical_to(patch$ode_state))
   ##   expect_that(patch2$height, is_identical_to(patch$height))
   ##   expect_that(patch2$ode_rates, is_identical_to(patch$ode_rates))
   ## })

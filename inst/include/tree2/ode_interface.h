@@ -35,20 +35,20 @@ size_t ode_size(ForwardIterator first, ForwardIterator last) {
 }
 
 template <typename ForwardIterator>
-const_iterator set_ode_values(ForwardIterator first, ForwardIterator last,
-                              const_iterator it) {
+const_iterator set_ode_state(ForwardIterator first, ForwardIterator last,
+                             const_iterator it) {
   while (first != last) {
-    it = first->set_ode_values(it);
+    it = first->set_ode_state(it);
     ++first;
   }
   return it;
 }
 
 template <typename ForwardIterator>
-iterator ode_values(ForwardIterator first, ForwardIterator last,
-                    iterator it) {
+iterator ode_state(ForwardIterator first, ForwardIterator last,
+                   iterator it) {
   while (first != last) {
-    it = first->ode_values(it);
+    it = first->ode_state(it);
     ++first;
   }
   return it;
@@ -79,21 +79,21 @@ ode_time(const T& /* obj */) {
 namespace internal {
 template <typename T>
 typename std::enable_if<needs_time<T>::value, void>::type
-set_ode_values(T& obj, const state_type& y, double time) {
-  obj.set_ode_values(y.begin(), time);
+set_ode_state(T& obj, const state_type& y, double time) {
+  obj.set_ode_state(y.begin(), time);
 }
 
 template <typename T>
 typename std::enable_if<!needs_time<T>::value, void>::type
-set_ode_values(T& obj, const state_type& y, double /* time */) {
-  obj.set_ode_values(y.begin());
+set_ode_state(T& obj, const state_type& y, double /* time */) {
+  obj.set_ode_state(y.begin());
 }
 }
 
 template <typename T>
 void derivs(T& obj, const state_type& y, state_type& dydt,
-	     const double time) {
-  internal::set_ode_values(obj, y, time);
+            const double time) {
+  internal::set_ode_state(obj, y, time);
   obj.ode_rates(dydt.begin());
 }
 
@@ -107,16 +107,16 @@ state_type r_derivs(T& obj, const state_type& y, const double time) {
 // These out-of-place versions are useful for interfacing with R.
 template <typename T>
 typename std::enable_if<needs_time<T>::value, void>::type
-r_set_ode_values(T& obj, const state_type& y, double time) {
+r_set_ode_state(T& obj, const state_type& y, double time) {
   util::check_length(y.size(), obj.ode_size());
-  obj.set_ode_values(y.begin(), time);
+  obj.set_ode_state(y.begin(), time);
 }
 
 template <typename T>
 typename std::enable_if<!needs_time<T>::value, void>::type
-r_set_ode_values(T& obj, const state_type& y) {
+r_set_ode_state(T& obj, const state_type& y) {
   util::check_length(y.size(), obj.ode_size());
-  obj.set_ode_values(y.begin());
+  obj.set_ode_state(y.begin());
 }
 
 template <typename T>
@@ -132,9 +132,9 @@ r_ode_time(const T& /* obj */) {
 }
 
 template <typename T>
-state_type r_ode_values(const T& obj) {
+state_type r_ode_state(const T& obj) {
   state_type values(obj.ode_size());
-  obj.ode_values(values.begin());
+  obj.ode_state(values.begin());
   return values;
 }
 
@@ -144,7 +144,6 @@ state_type r_ode_rates(const T& obj) {
   obj.ode_rates(dydt.begin());
   return dydt;
 }
-
 
 }
 

@@ -33,13 +33,13 @@ public:
   }
   double ode_size() const {return y.size();}
   double ode_time() const {return time;}
-  ode::const_iterator set_ode_values(ode::const_iterator it, double time_) {
+  ode::const_iterator set_ode_state(ode::const_iterator it, double time_) {
     std::copy_n(it, ode_size(), y.begin());
     time = time_;
     update_dydt();
     return it + ode_size();
   }
-  ode::iterator ode_values(ode::iterator it) const {
+  ode::iterator ode_state(ode::iterator it) const {
     return std::copy_n(y.begin(), ode_size(), it);
   }
   ode::iterator ode_rates(ode::iterator it) const {

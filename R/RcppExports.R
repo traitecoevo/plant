@@ -29,12 +29,12 @@ Lorenz__ode_size__get <- function(obj_) {
     .Call('tree2_Lorenz__ode_size__get', PACKAGE = 'tree2', obj_)
 }
 
-Lorenz__ode_values__get <- function(obj_) {
-    .Call('tree2_Lorenz__ode_values__get', PACKAGE = 'tree2', obj_)
+Lorenz__ode_state__get <- function(obj_) {
+    .Call('tree2_Lorenz__ode_state__get', PACKAGE = 'tree2', obj_)
 }
 
-Lorenz__ode_values__set <- function(obj_, value) {
-    invisible(.Call('tree2_Lorenz__ode_values__set', PACKAGE = 'tree2', obj_, value))
+Lorenz__ode_state__set <- function(obj_, value) {
+    invisible(.Call('tree2_Lorenz__ode_state__set', PACKAGE = 'tree2', obj_, value))
 }
 
 Lorenz__ode_rates__get <- function(obj_) {
@@ -73,8 +73,8 @@ OdeRunner___Lorenz__step_to <- function(obj_, time) {
     invisible(.Call('tree2_OdeRunner___Lorenz__step_to', PACKAGE = 'tree2', obj_, time))
 }
 
-OdeRunner___Lorenz__set_state_from_problem <- function(obj_) {
-    invisible(.Call('tree2_OdeRunner___Lorenz__set_state_from_problem', PACKAGE = 'tree2', obj_))
+OdeRunner___Lorenz__set_state_from_system <- function(obj_) {
+    invisible(.Call('tree2_OdeRunner___Lorenz__set_state_from_system', PACKAGE = 'tree2', obj_))
 }
 
 OdeRunner___Lorenz__time__get <- function(obj_) {
@@ -113,8 +113,8 @@ OdeRunner___OdeR__step_to <- function(obj_, time) {
     invisible(.Call('tree2_OdeRunner___OdeR__step_to', PACKAGE = 'tree2', obj_, time))
 }
 
-OdeRunner___OdeR__set_state_from_problem <- function(obj_) {
-    invisible(.Call('tree2_OdeRunner___OdeR__set_state_from_problem', PACKAGE = 'tree2', obj_))
+OdeRunner___OdeR__set_state_from_system <- function(obj_) {
+    invisible(.Call('tree2_OdeRunner___OdeR__set_state_from_system', PACKAGE = 'tree2', obj_))
 }
 
 OdeRunner___OdeR__time__get <- function(obj_) {
@@ -569,12 +569,12 @@ Cohort__ode_size__get <- function(obj_) {
     .Call('tree2_Cohort__ode_size__get', PACKAGE = 'tree2', obj_)
 }
 
-Cohort__ode_values__get <- function(obj_) {
-    .Call('tree2_Cohort__ode_values__get', PACKAGE = 'tree2', obj_)
+Cohort__ode_state__get <- function(obj_) {
+    .Call('tree2_Cohort__ode_state__get', PACKAGE = 'tree2', obj_)
 }
 
-Cohort__ode_values__set <- function(obj_, value) {
-    invisible(.Call('tree2_Cohort__ode_values__set', PACKAGE = 'tree2', obj_, value))
+Cohort__ode_state__set <- function(obj_, value) {
+    invisible(.Call('tree2_Cohort__ode_state__set', PACKAGE = 'tree2', obj_, value))
 }
 
 Cohort__ode_rates__get <- function(obj_) {
@@ -645,12 +645,12 @@ Species__ode_size__get <- function(obj_) {
     .Call('tree2_Species__ode_size__get', PACKAGE = 'tree2', obj_)
 }
 
-Species__ode_values__get <- function(obj_) {
-    .Call('tree2_Species__ode_values__get', PACKAGE = 'tree2', obj_)
+Species__ode_state__get <- function(obj_) {
+    .Call('tree2_Species__ode_state__get', PACKAGE = 'tree2', obj_)
 }
 
-Species__ode_values__set <- function(obj_, value) {
-    invisible(.Call('tree2_Species__ode_values__set', PACKAGE = 'tree2', obj_, value))
+Species__ode_state__set <- function(obj_, value) {
+    invisible(.Call('tree2_Species__ode_state__set', PACKAGE = 'tree2', obj_, value))
 }
 
 Species__ode_rates__get <- function(obj_) {
@@ -685,8 +685,8 @@ Patch__reset <- function(obj_) {
     invisible(.Call('tree2_Patch__reset', PACKAGE = 'tree2', obj_))
 }
 
-Patch__set_ode_values <- function(obj_, values, time) {
-    invisible(.Call('tree2_Patch__set_ode_values', PACKAGE = 'tree2', obj_, values, time))
+Patch__set_ode_state <- function(obj_, values, time) {
+    invisible(.Call('tree2_Patch__set_ode_state', PACKAGE = 'tree2', obj_, values, time))
 }
 
 Patch__derivs <- function(obj_, y, time) {
@@ -725,8 +725,8 @@ Patch__ode_time__get <- function(obj_) {
     .Call('tree2_Patch__ode_time__get', PACKAGE = 'tree2', obj_)
 }
 
-Patch__ode_values__get <- function(obj_) {
-    .Call('tree2_Patch__ode_values__get', PACKAGE = 'tree2', obj_)
+Patch__ode_state__get <- function(obj_) {
+    .Call('tree2_Patch__ode_state__get', PACKAGE = 'tree2', obj_)
 }
 
 Patch__ode_rates__get <- function(obj_) {

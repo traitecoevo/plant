@@ -174,7 +174,7 @@ test_that("Ported from tree1", {
 ##   ## Emergent things:
 ##   expect_that(ebt2$patch$environment$light_environment$xy,
 ##               equals(ebt$patch$environment$light_environment$xy))
-##   expect_that(ebt2$ode_values, equals(ebt$ode_values))
+##   expect_that(ebt2$ode_state, equals(ebt$ode_state))
 ##   expect_that(ebt2$ode_rates,  equals(ebt$ode_rates))
 ##   # TODO: This needs implementing; requires get/set of the ODE solver
 ##   # state.

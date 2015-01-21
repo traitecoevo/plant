@@ -11,12 +11,12 @@ size_t Lorenz__ode_size__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
 }
 
 // [[Rcpp::export]]
-ode::state_type Lorenz__ode_values__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
-  return ode::r_ode_values(*obj_);
+ode::state_type Lorenz__ode_state__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
+  return ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Lorenz__ode_values__set(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_, ode::state_type value) {
-  ode::r_set_ode_values(*obj_, value);
+void Lorenz__ode_state__set(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_, ode::state_type value) {
+  ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
@@ -60,8 +60,8 @@ void OdeRunner___Lorenz__step_to(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lo
   obj_->step_to(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___Lorenz__set_state_from_problem(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
-  obj_->set_state_from_problem();
+void OdeRunner___Lorenz__set_state_from_system(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+  obj_->set_state_from_system();
 }
 // [[Rcpp::export]]
 double OdeRunner___Lorenz__time__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
@@ -105,8 +105,8 @@ void OdeRunner___OdeR__step_to(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR
   obj_->step_to(time);
 }
 // [[Rcpp::export]]
-void OdeRunner___OdeR__set_state_from_problem(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
-  obj_->set_state_from_problem();
+void OdeRunner___OdeR__set_state_from_system(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+  obj_->set_state_from_system();
 }
 // [[Rcpp::export]]
 double OdeRunner___OdeR__time__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
@@ -629,12 +629,12 @@ size_t Cohort__ode_size__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> >
 }
 
 // [[Rcpp::export]]
-ode::state_type Cohort__ode_values__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
-  return ode::r_ode_values(*obj_);
+ode::state_type Cohort__ode_state__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
+  return ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Cohort__ode_values__set(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, ode::state_type value) {
-  ode::r_set_ode_values(*obj_, value);
+void Cohort__ode_state__set(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, ode::state_type value) {
+  ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
@@ -717,12 +717,12 @@ size_t Species__ode_size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort
 }
 
 // [[Rcpp::export]]
-ode::state_type Species__ode_values__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
-  return ode::r_ode_values(*obj_);
+ode::state_type Species__ode_state__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Species__ode_values__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, ode::state_type value) {
-  ode::r_set_ode_values(*obj_, value);
+void Species__ode_state__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, ode::state_type value) {
+  ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
@@ -760,8 +760,8 @@ void Patch__reset(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant>
   obj_->reset();
 }
 // [[Rcpp::export]]
-void Patch__set_ode_values(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, ode::state_type values, double time) {
-  ode::r_set_ode_values(*obj_, values, time);
+void Patch__set_ode_state(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, ode::state_type values, double time) {
+  ode::r_set_ode_state(*obj_, values, time);
 }
 // [[Rcpp::export]]
 ode::state_type Patch__derivs(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, const ode::state_type& y, double time) {
@@ -808,8 +808,8 @@ double Patch__ode_time__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tre
 }
 
 // [[Rcpp::export]]
-ode::state_type Patch__ode_values__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
-  return ode::r_ode_values(*obj_);
+ode::state_type Patch__ode_state__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return ode::r_ode_state(*obj_);
 }
 
 // [[Rcpp::export]]

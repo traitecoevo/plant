@@ -26,11 +26,11 @@ NULL
                     stop("Lorenz$ode_size is read-only")
                   }
                 },
-                ode_values = function(value) {
+                ode_state = function(value) {
                   if (missing(value)) {
-                    Lorenz__ode_values__get(self)
+                    Lorenz__ode_state__get(self)
                   } else {
-                    Lorenz__ode_values__set(self, value)
+                    Lorenz__ode_state__set(self, value)
                   }
                 },
                 ode_rates = function(value) {
@@ -100,8 +100,8 @@ OdeRunner <- function(T) {
                 step_to = function(time) {
                   OdeRunner___Lorenz__step_to(self, time)
                 },
-                set_state_from_problem = function() {
-                  OdeRunner___Lorenz__set_state_from_problem(self)
+                set_state_from_system = function() {
+                  OdeRunner___Lorenz__set_state_from_system(self)
                 }),
               active=list(
                 time = function(value) {
@@ -158,8 +158,8 @@ OdeRunner <- function(T) {
                 step_to = function(time) {
                   OdeRunner___OdeR__step_to(self, time)
                 },
-                set_state_from_problem = function() {
-                  OdeRunner___OdeR__set_state_from_problem(self)
+                set_state_from_system = function() {
+                  OdeRunner___OdeR__set_state_from_system(self)
                 }),
               active=list(
                 time = function(value) {
@@ -846,11 +846,11 @@ Parameters <- function(..., values=list(...)) {
                     stop("Cohort$ode_size is read-only")
                   }
                 },
-                ode_values = function(value) {
+                ode_state = function(value) {
                   if (missing(value)) {
-                    Cohort__ode_values__get(self)
+                    Cohort__ode_state__get(self)
                   } else {
-                    Cohort__ode_values__set(self, value)
+                    Cohort__ode_state__set(self, value)
                   }
                 },
                 ode_rates = function(value) {
@@ -953,11 +953,11 @@ Parameters <- function(..., values=list(...)) {
                     stop("Species$ode_size is read-only")
                   }
                 },
-                ode_values = function(value) {
+                ode_state = function(value) {
                   if (missing(value)) {
-                    Species__ode_values__get(self)
+                    Species__ode_state__get(self)
                   } else {
-                    Species__ode_values__set(self, value)
+                    Species__ode_state__set(self, value)
                   }
                 },
                 ode_rates = function(value) {
@@ -999,8 +999,8 @@ Parameters <- function(..., values=list(...)) {
                 reset = function() {
                   Patch__reset(self)
                 },
-                set_ode_values = function(values, time) {
-                  Patch__set_ode_values(self, values, time)
+                set_ode_state = function(values, time) {
+                  Patch__set_ode_state(self, values, time)
                 },
                 derivs = function(y, time) {
                   Patch__derivs(self, y, time)
@@ -1062,11 +1062,11 @@ Parameters <- function(..., values=list(...)) {
                     stop("Patch$ode_time is read-only")
                   }
                 },
-                ode_values = function(value) {
+                ode_state = function(value) {
                   if (missing(value)) {
-                    Patch__ode_values__get(self)
+                    Patch__ode_state__get(self)
                   } else {
-                    stop("Patch$ode_values is read-only")
+                    stop("Patch$ode_state is read-only")
                   }
                 },
                 ode_rates = function(value) {

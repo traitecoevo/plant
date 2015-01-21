@@ -38,8 +38,8 @@ public:
   // time in as an argument.  All the bits involving time are taken
   // care of by Environment for us.
   static size_t ode_size() {return 4;}
-  ode::const_iterator set_ode_values(ode::const_iterator it);
-  ode::iterator       ode_values(ode::iterator it) const;
+  ode::const_iterator set_ode_state(ode::const_iterator it);
+  ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
 
   T plant;
@@ -175,7 +175,7 @@ double Cohort<T>::leaf_area() const {
 // ODE interface -- note that the don't care about time in the cohort;
 // only Patch and above does.
 template <typename T>
-ode::const_iterator Cohort<T>::set_ode_values(ode::const_iterator it) {
+ode::const_iterator Cohort<T>::set_ode_state(ode::const_iterator it) {
   plant.set_height(*it++);
   plant.set_mortality(*it++);
   seeds_survival_weighted = *it++;
@@ -183,7 +183,7 @@ ode::const_iterator Cohort<T>::set_ode_values(ode::const_iterator it) {
   return it;
 }
 template <typename T>
-ode::iterator Cohort<T>::ode_values(ode::iterator it) const {
+ode::iterator Cohort<T>::ode_state(ode::iterator it) const {
   *it++ = plant.height();
   *it++ = plant.mortality();
   *it++ = seeds_survival_weighted;

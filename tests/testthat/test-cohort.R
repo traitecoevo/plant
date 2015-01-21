@@ -110,7 +110,7 @@ test_that("ODE interface", {
   ## Set up plant too:
   pr_germ <- plant$germination_probability(env)
 
-  y <- plant$ode_values
+  y <- plant$ode_state
   g <- plant$vars_phys[["height_growth_rate"]]
 
   ## Ode *values*:
@@ -118,7 +118,7 @@ test_that("ODE interface", {
            -log(pr_germ),
            0.0, # fecundity
            log(pr_germ * env$seed_rain_rate / g))
-  expect_that(cohort$ode_values, equals(cmp))
+  expect_that(cohort$ode_state, equals(cmp))
 
   expect_that(cohort$fecundity, is_identical_to(0.0));
 

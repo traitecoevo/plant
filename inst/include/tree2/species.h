@@ -41,8 +41,8 @@ public:
   // time in as an argument.  All the bits involving time are taken
   // care of by Environment for us.
   size_t ode_size() const;
-  ode::const_iterator set_ode_values(ode::const_iterator it);
-  ode::iterator       ode_values(ode::iterator it) const;
+  ode::const_iterator set_ode_state(ode::const_iterator it);
+  ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
 
   // * R interface
@@ -185,13 +185,13 @@ size_t Species<T>::ode_size() const {
 }
 
 template <typename T>
-ode::const_iterator Species<T>::set_ode_values(ode::const_iterator it) {
-  return ode::set_ode_values(plants.begin(), plants.end(), it);
+ode::const_iterator Species<T>::set_ode_state(ode::const_iterator it) {
+  return ode::set_ode_state(plants.begin(), plants.end(), it);
 }
 
 template <typename T>
-ode::iterator Species<T>::ode_values(ode::iterator it) const {
-  return ode::ode_values(plants.begin(), plants.end(), it);
+ode::iterator Species<T>::ode_state(ode::iterator it) const {
+  return ode::ode_state(plants.begin(), plants.end(), it);
 }
 
 template <typename T>

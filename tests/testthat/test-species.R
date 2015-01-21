@@ -29,7 +29,7 @@ test_that("Basics", {
   expect_that(sp$leaf_area, is_identical_to(numeric(0)))
   expect_that(sp$leaf_area_error, is_identical_to(numeric(0)))
   expect_that(sp$ode_size, equals(0))
-  expect_that(sp$ode_values, is_identical_to(numeric(0)))
+  expect_that(sp$ode_state, is_identical_to(numeric(0)))
   expect_that(sp$ode_rates, is_identical_to(numeric(0)))
 
   ## Causes initial conditions to be estimated:
@@ -39,8 +39,8 @@ test_that("Basics", {
   ## Internal and test seed report same values:
   expect_that(sp$seed$vars_phys,
               is_identical_to(seed$vars_phys))
-  expect_that(sp$seed$ode_values,
-              is_identical_to(seed$ode_values))
+  expect_that(sp$seed$ode_state,
+              is_identical_to(seed$ode_state))
 
   sp$add_seed()
   expect_that(sp$size, equals(1))
@@ -131,10 +131,10 @@ test_that("Leaf area sensible with one cohort", {
   expect_that(sp$leaf_area_above(h_top * .5),
               equals(cmp_leaf_area_above(h_top * .5, sp)))
 
-  ode_values <- sp$ode_values
+  ode_state <- sp$ode_state
   p <- sp$plant_at(1)
-  expect_that(length(ode_values), equals(4))
-  expect_that(ode_values, is_identical_to(p$ode_values))
+  expect_that(length(ode_state), equals(4))
+  expect_that(ode_state, is_identical_to(p$ode_state))
 })
 
 test_that("Leaf area sensible with two cohorts", {
@@ -156,11 +156,11 @@ test_that("Leaf area sensible with two cohorts", {
   expect_that(sp$leaf_area_above(h_top * .8),
               equals(cmp_leaf_area_above(h_top * .8, sp)))
 
-  ode_values <- sp$ode_values
+  ode_state <- sp$ode_state
   plants <- sp$plants
-  expect_that(length(ode_values), equals(4 * sp$size))
-  expect_that(ode_values,
-              is_identical_to(unlist(lapply(plants, function(p) p$ode_values))))
+  expect_that(length(ode_state), equals(4 * sp$size))
+  expect_that(ode_state,
+              is_identical_to(unlist(lapply(plants, function(p) p$ode_state))))
 })
 
 test_that("Leaf area sensible with three cohorts", {
@@ -192,9 +192,9 @@ test_that("Leaf area sensible with three cohorts", {
   expect_that(sp$leaf_area_error,
               is_identical_to(cmp))
 
-  ode_values <- sp$ode_values
+  ode_state <- sp$ode_state
   plants <- sp$plants
-  expect_that(length(ode_values), equals(4 * sp$size))
-  expect_that(ode_values,
-              is_identical_to(unlist(lapply(plants, function(p) p$ode_values))))
+  expect_that(length(ode_state), equals(4 * sp$size))
+  expect_that(ode_state,
+              is_identical_to(unlist(lapply(plants, function(p) p$ode_state))))
 })
