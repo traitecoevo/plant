@@ -30,9 +30,8 @@ size_t Parameters::n_mutants() const {
 // within initialisation lists?
 void Parameters::validate() const {
   const size_t len = size();
-  const bool ok = seed_rain.size() == len && is_resident.size() == len;
-  if (!ok) {
-    Rcpp::stop("Inconsistent lengths (strategies, seed_rain, is_resident)");
+  if (!(seed_rain.size() == len && is_resident.size() == len)) {
+    util::stop("Inconsistent lengths (strategies, seed_rain, is_resident)");
   }
 }
 

@@ -4,6 +4,7 @@
 
 #include <tree2/control.h>
 #include <tree2/strategy.h>
+#include <tree2/cohort_schedule.h>
 #include <vector>
 
 // TODO: I will possibly move out the "Patch" parameters out into

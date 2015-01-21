@@ -3,7 +3,7 @@
 #define TREE_EBT_H_
 
 #include <tree2/patch.h>
-#include <tree2/cohort_schedule.h> // may move to Parameters?
+#include <tree2/cohort_schedule.h>
 #include <tree2/ode_solver.h>
 
 namespace tree2 {
@@ -185,6 +185,7 @@ void EBT<T>::r_set_cohort_schedule(CohortSchedule x) {
   }
   util::check_length(x.get_n_species(), patch.size());
   cohort_schedule = x;
+  // TODO: Also set the times into Parameters...
 }
 
 template <typename T>
@@ -207,7 +208,6 @@ std::vector<double> EBT<T>::seed_rain_cohort(size_t species_index) const {
   }
   return seeds;
 }
-
 
 }
 

@@ -330,28 +330,3 @@ test_that("Can expand CohortSchedule", {
   expect_that(sched$max_time,  is_identical_to(max_t))
   expect_that(sched3$max_time, is_identical_to(2 * max_t))
 })
-
-test_that("Default times", {
-  ## This is the original function, from tree1:
-  cmp_cohort_introduction_times <- function(max_time, multiplier=0.2,
-                                            min_step_size=1e-5,
-                                            max_step_size=2.0) {
-    if (min_step_size <= 0)
-      stop("The minimum step size must be greater than zero")
-    dt <- time <- times <- 0
-    while (time <= max_time) {
-      dt <- 2^floor(log2(time * multiplier))
-      time <- time + max(min(dt, max_step_size), min_step_size)
-      times <- c(times, time)
-    }
-    # Trucate last time to max_time; it may have overshot.
-    last(times) <- max_time
-    times
-  }
-
-  t1 <- 10.123
-  tt <- cohort_schedule_default_times(t1)
-  expect_that(tt[[1]], is_identical_to(0.0))
-  expect_that(last(tt), is_identical_to(t1))
-  expect_that(tt, equals(cmp_cohort_introduction_times(t1)))
-})

@@ -64,5 +64,6 @@ template <typename T> class Runner;
 // point after RcppR6_pre.hpp is included.
 #include <tree2/RcppR6_post.hpp>
 #include <tree2/util_post_rcpp.h>
+#include <tree2/tree_utils.h>
 
 #endif

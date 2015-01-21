@@ -4,6 +4,7 @@
 
 #include <RcppCommon.h>
 #include <tree2/util.h>
+#include <tree2/control.h>
 
 // The "times" methods (set_times, times) refer to the *introduction*
 // times.  As such, this really needs that at least one species has an
@@ -85,8 +86,6 @@ private:
   std::vector<double> ode_times;
   bool use_ode_times;
 };
-
-std::vector<double> default_cohort_schedule_times();
 
 }
 
