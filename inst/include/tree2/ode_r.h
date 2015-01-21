@@ -18,8 +18,17 @@ namespace test {
 // We simulate stored state in much the same way as Lorenz does.
 class OdeR {
 public:
-  OdeR(Rcpp::Function derivs_, std::vector<double> y_, double time_)
-    : derivs(derivs_), y(y_), dydt(y.size()), time(time_) {
+  OdeR(Rcpp::Function derivs_, Rcpp::Function state_, double time_)
+    : derivs(derivs_), state(state_), time(time_) {
+    update_state();
+  }
+  void update_state() {
+    state_type res = Rcpp::as<state_type>(state());
+    if (y.size() != res.size()) {
+      y.resize(res.size());
+      dydt.resize(res.size());
+    }
+    std::copy(res.begin(), res.end(), y.begin());
     update_dydt();
   }
   double ode_size() const {return y.size();}
@@ -44,6 +53,7 @@ private:
     std::copy(res.begin(), res.end(), dydt.begin());
   }
   Rcpp::Function derivs;
+  Rcpp::Function state;
   state_type y;
   state_type dydt;
   double time;

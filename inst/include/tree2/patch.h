@@ -15,8 +15,9 @@ public:
   // typedef Cohort<plant_type> cohort_type;
   Patch(Parameters p);
 
-  size_t size() const {return species.size();}
   void reset();
+  size_t size() const {return species.size();}
+  double time() const {return environment.time;}
 
   // Not sure how I tended to add seeds/seedlings to these?  I might
   // not have really, outside of the main model.  Wait and see...
@@ -186,7 +187,7 @@ size_t Patch<T>::ode_size() const {
 
 template <typename T>
 double Patch<T>::ode_time() const {
-  return environment.time;
+  return time();
 }
 
 template <typename T>

@@ -36,6 +36,7 @@ Control::Control() : integrator(15, 1, 0, 0) {
   environment_light_rescale_usually = false;
   environment_light_skip = false; // can be deleted?
 
+  ode_step_size_initial = 1e-6;
   ode_step_size_min = 1e-6;
   ode_step_size_max = 1e-1;
   ode_tol_rel       = 1e-6;

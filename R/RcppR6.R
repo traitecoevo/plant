@@ -49,8 +49,8 @@ NULL
                 }))
 
 
-`OdeR` <- function(derivs, y, time) {
-  OdeR__ctor(derivs, y, time)
+`OdeR` <- function(derivs, state, time) {
+  OdeR__ctor(derivs, state, time)
 }
 .R6_OdeR <-
   R6::R6Class("OdeR",
@@ -60,6 +60,9 @@ NULL
                 .ptr=NULL,
                 initialize = function(ptr) {
                   self$.ptr <- ptr
+                },
+                update_state = function() {
+                  OdeR__update_state(self)
                 }),
               active=list())
 
@@ -96,6 +99,9 @@ OdeRunner <- function(T) {
                 },
                 step_to = function(time) {
                   OdeRunner___Lorenz__step_to(self, time)
+                },
+                set_state_from_problem = function() {
+                  OdeRunner___Lorenz__set_state_from_problem(self)
                 }),
               active=list(
                 time = function(value) {
@@ -151,6 +157,9 @@ OdeRunner <- function(T) {
                 },
                 step_to = function(time) {
                   OdeRunner___OdeR__step_to(self, time)
+                },
+                set_state_from_problem = function() {
+                  OdeRunner___OdeR__set_state_from_problem(self)
                 }),
               active=list(
                 time = function(value) {
@@ -997,6 +1006,13 @@ Parameters <- function(..., values=list(...)) {
                   Patch__derivs(self, y, time)
                 }),
               active=list(
+                time = function(value) {
+                  if (missing(value)) {
+                    Patch__time__get(self)
+                  } else {
+                    stop("Patch$time is read-only")
+                  }
+                },
                 size = function(value) {
                   if (missing(value)) {
                     Patch__size__get(self)
@@ -1136,6 +1152,13 @@ Parameters <- function(..., values=list(...)) {
                     EBT__cohort_schedule__get(self)
                   } else {
                     EBT__cohort_schedule__set(self, value)
+                  }
+                },
+                ode_times = function(value) {
+                  if (missing(value)) {
+                    EBT__ode_times__get(self)
+                  } else {
+                    stop("EBT$ode_times is read-only")
                   }
                 }))
 

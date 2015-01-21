@@ -132,7 +132,7 @@ double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
   // that's used in only one script.  It's a change that can be easily
   // made later though.
   Cohort<T> tmp = *this;
-  auto fun = [=] (double h) mutable -> double {
+  auto fun = [&] (double h) mutable -> double {
     return tmp.growth_rate_given_height(h, environment);
   };
 

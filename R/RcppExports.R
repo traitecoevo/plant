@@ -45,8 +45,12 @@ Lorenz__pars__get <- function(obj_) {
     .Call('tree2_Lorenz__pars__get', PACKAGE = 'tree2', obj_)
 }
 
-OdeR__ctor <- function(derivs, y, time) {
-    .Call('tree2_OdeR__ctor', PACKAGE = 'tree2', derivs, y, time)
+OdeR__ctor <- function(derivs, state, time) {
+    .Call('tree2_OdeR__ctor', PACKAGE = 'tree2', derivs, state, time)
+}
+
+OdeR__update_state <- function(obj_) {
+    invisible(.Call('tree2_OdeR__update_state', PACKAGE = 'tree2', obj_))
 }
 
 OdeRunner___Lorenz__ctor <- function(obj, control) {
@@ -67,6 +71,10 @@ OdeRunner___Lorenz__step <- function(obj_) {
 
 OdeRunner___Lorenz__step_to <- function(obj_, time) {
     invisible(.Call('tree2_OdeRunner___Lorenz__step_to', PACKAGE = 'tree2', obj_, time))
+}
+
+OdeRunner___Lorenz__set_state_from_problem <- function(obj_) {
+    invisible(.Call('tree2_OdeRunner___Lorenz__set_state_from_problem', PACKAGE = 'tree2', obj_))
 }
 
 OdeRunner___Lorenz__time__get <- function(obj_) {
@@ -103,6 +111,10 @@ OdeRunner___OdeR__step <- function(obj_) {
 
 OdeRunner___OdeR__step_to <- function(obj_, time) {
     invisible(.Call('tree2_OdeRunner___OdeR__step_to', PACKAGE = 'tree2', obj_, time))
+}
+
+OdeRunner___OdeR__set_state_from_problem <- function(obj_) {
+    invisible(.Call('tree2_OdeRunner___OdeR__set_state_from_problem', PACKAGE = 'tree2', obj_))
 }
 
 OdeRunner___OdeR__time__get <- function(obj_) {
@@ -681,6 +693,10 @@ Patch__derivs <- function(obj_, y, time) {
     .Call('tree2_Patch__derivs', PACKAGE = 'tree2', obj_, y, time)
 }
 
+Patch__time__get <- function(obj_) {
+    .Call('tree2_Patch__time__get', PACKAGE = 'tree2', obj_)
+}
+
 Patch__size__get <- function(obj_) {
     .Call('tree2_Patch__size__get', PACKAGE = 'tree2', obj_)
 }
@@ -775,6 +791,10 @@ EBT__cohort_schedule__get <- function(obj_) {
 
 EBT__cohort_schedule__set <- function(obj_, value) {
     invisible(.Call('tree2_EBT__cohort_schedule__set', PACKAGE = 'tree2', obj_, value))
+}
+
+EBT__ode_times__get <- function(obj_) {
+    .Call('tree2_EBT__ode_times__get', PACKAGE = 'tree2', obj_)
 }
 
 test_uniroot <- function(f, min, max) {

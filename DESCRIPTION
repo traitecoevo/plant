@@ -1,8 +1,10 @@
 Package: tree2
-Title: Rewrite of TREE
-Version: 0.1
-Authors.R: "Rich FitzJohn <rich.fitzjohn@gmail.com> [aut, cre]"
-Description: Tree things.
+Title: TRait Evolutionary Ecology: model of competition and growth
+Version: 0.2
+Authors@R: c("Rich FitzJohn <rich.fitzjohn@gmail.com> [aut, cre]",
+             "Daniel Falster <daniel.falster@mq.edu.au> [aut, cre]")
+Description: Implements EBT (Falster et al. 2010) and an individual
+    based model.
 Depends:
     R (>= 3.1.0)
 License: GPL-2

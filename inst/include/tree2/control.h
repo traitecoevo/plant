@@ -3,6 +3,7 @@
 #define TREE2_CONTROL_H_
 
 #include <tree2/qag.h>
+#include <tree2/ode_control.h>
 
 // The `Control` object holds all the non-biological control
 // parameters.  These might get templated against different ways of
@@ -30,6 +31,7 @@ struct Control {
   size_t plant_assimilation_rule;
   bool   plant_assimilation_reuse_intervals;
 
+  // All of these can go I think...
   bool   plant_assimilation_approximate_use;
   double plant_assimilation_approximate_tol;
   int    plant_assimilation_approximate_nbase;
@@ -54,6 +56,7 @@ struct Control {
   bool   environment_light_rescale_usually;
   bool   environment_light_skip;
 
+  double ode_step_size_initial;
   double ode_step_size_min;
   double ode_step_size_max;
   double ode_tol_rel;
@@ -86,6 +89,16 @@ struct Control {
   // Things derived from this:
   quadrature::QAG integrator;
 };
+
+inline ode::OdeControl make_ode_control(const Control& control) {
+  return ode::OdeControl(control.ode_tol_abs,
+                         control.ode_tol_rel,
+                         control.ode_a_y,
+                         control.ode_a_dydt,
+                         control.ode_step_size_min,
+                         control.ode_step_size_max,
+                         control.ode_step_size_initial);
+}
 
 }
 

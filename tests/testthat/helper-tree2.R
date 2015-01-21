@@ -92,8 +92,14 @@ test_ode_make_system <- function(obj) {
       }
     }
   }
+  ## Hmm, this is causing all sorts of trouble...
+  make_state <- function(obj) {
+    function() {
+      obj$ode_values
+    }
+  }
   time <- if (is.null(obj$time)) 0.0 else obj$time
-  sys <- OdeR(make_derivs(obj), obj$ode_values, time)
+  sys <- OdeR(make_derivs(obj), make_state(obj), time)
 }
 
 test_ode_make_solver <- function(sys) {

@@ -14,6 +14,7 @@ public:
   Runner(T obj_, OdeControl control) : obj(obj_), solver(obj, control) {}
   double time() const {return solver.get_time();}
   state_type state() const {return solver.get_state();}
+  void set_state_from_problem() {solver.set_state_from_problem(obj);}
   std::vector<double> times() const {return solver.get_times();}
   T object() const {return obj;}
   void advance(double time) {solver.advance(obj, time);}

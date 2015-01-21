@@ -13,7 +13,9 @@ OdeR:
   name_cpp: "ode::test::OdeR"
   forward_declare: true
   constructor:
-    args: [derivs: "Rcpp::Function", y: "std::vector<double>", time: double]
+    args: [derivs: "Rcpp::Function", state: "Rcpp::Function", time: double]
+  methods:
+    update_state: {return_type: void}
 
 OdeRunner:
   name_cpp: "ode::Runner<T>"
@@ -34,6 +36,7 @@ OdeRunner:
     advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
     step: {return_type: void}
     step_to: {return_type: void, args: [time: double]}
+    set_state_from_problem: {return_type: void}
 
 CohortScheduleEvent:
   forward_declare: true
@@ -152,6 +155,7 @@ Control:
     - environment_light_linear: bool
     - environment_light_rescale_usually: bool
     - environment_light_skip: bool
+    - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
     - ode_tol_rel: double
@@ -484,6 +488,7 @@ Patch:
   constructor:
     args: [parameters: "tree2::Parameters"]
   active:
+    time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
     parameters: {type: "tree2::Parameters", access: member, name_cpp: r_parameters}
@@ -569,4 +574,7 @@ EBT:
       access: member
       name_cpp: r_cohort_schedule
       name_cpp_set: r_set_cohort_schedule
-    # ode_times
+    ode_times:
+      type: "std::vector<double>"
+      access: member
+      name_cpp: r_ode_times

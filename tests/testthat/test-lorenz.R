@@ -30,21 +30,22 @@ test_that("Basic Lorenz object works", {
 
   lo <- Lorenz(pars[[1]], pars[[2]], pars[[3]])
   ## Check that everything is sane to start off:
-  expect_equal(lo$ode_size, 3)
-  expect_identical(lo$pars, unname(pars))
-  expect_identical(lo$ode_values, rep(0.0, 3))
-  expect_identical(lo$ode_rates, derivs_lorenz(lo$ode_values, pars))
-  expect_identical(lo$ode_time, 0.0)
+  expect_that(lo$ode_size, equals(3))
+  expect_that(lo$pars, is_identical_to(unname(pars)))
+  expect_that(lo$ode_values, is_identical_to(rep(0.0, 3)))
+  expect_that(lo$ode_rates,
+              is_identical_to(derivs_lorenz(lo$ode_values, pars)))
+  expect_that(lo$ode_time, is_null())
 
   ## Then set the state:
   lo$ode_values <- y
-  expect_identical(lo$ode_values, y)
-  expect_identical(lo$ode_rates, derivs_lorenz(y, pars))
+  expect_that(lo$ode_values, is_identical_to(y))
+  expect_that(lo$ode_rates, is_identical_to(derivs_lorenz(y, pars)))
 
   y2 <- runif(3)
   lo$ode_values <- y2
-  expect_identical(lo$ode_values, y2)
-  expect_identical(lo$ode_rates, derivs_lorenz(y2, pars))
+  expect_that(lo$ode_values, is_identical_to(y2))
+  expect_that(lo$ode_rates,  is_identical_to(derivs_lorenz(y2, pars)))
 })
 
 ## Then, get the ode runner working.
@@ -85,7 +86,7 @@ test_that("Ode runner behaves", {
   expect_that(first(times), is_identical_to(0.0))
   expect_that(last(times),  is_identical_to(t1))
   ## Object does not store time:
-  expect_that(sys$object$ode_time, is_identical_to(0.0))
+  expect_that(sys$object$ode_time, is_null())
 
   ## Run it again:
   sys2 <- OdeRunner("Lorenz")(lo)
@@ -115,4 +116,12 @@ test_that("OdeR interface", {
   sol2$advance(pi)
   expect_that(sol$times, is_identical_to(sol2$times))
   expect_that(sol$state, is_identical_to(sol2$state))
+
+  ## This *has* updated the original values.
+  expect_that(lo$ode_values, is_identical_to(sol2$state))
+
+  lo$ode_values <- y
+  expect_that(lo$ode_values, not(is_identical_to(sol2$state)))
+  expect_that(sol2$set_state_from_problem(),
+              throws_error("Time does not match previous"))
 })

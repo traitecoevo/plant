@@ -188,20 +188,32 @@ BEGIN_RCPP
 END_RCPP
 }
 // OdeR__ctor
-ode::test::OdeR OdeR__ctor(Rcpp::Function derivs, std::vector<double> y, double time);
-RcppExport SEXP tree2_OdeR__ctor(SEXP derivsSEXP, SEXP ySEXP, SEXP timeSEXP) {
+ode::test::OdeR OdeR__ctor(Rcpp::Function derivs, Rcpp::Function state, double time);
+RcppExport SEXP tree2_OdeR__ctor(SEXP derivsSEXP, SEXP stateSEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< Rcpp::Function >::type derivs(derivsSEXP );
-        Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP );
+        Rcpp::traits::input_parameter< Rcpp::Function >::type state(stateSEXP );
         Rcpp::traits::input_parameter< double >::type time(timeSEXP );
-        ode::test::OdeR __result = OdeR__ctor(derivs, y, time);
+        ode::test::OdeR __result = OdeR__ctor(derivs, state, time);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
+END_RCPP
+}
+// OdeR__update_state
+void OdeR__update_state(tree2::RcppR6::RcppR6<ode::test::OdeR> obj_);
+RcppExport SEXP tree2_OdeR__update_state(SEXP obj_SEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<ode::test::OdeR> >::type obj_(obj_SEXP );
+        OdeR__update_state(obj_);
+    }
+    return R_NilValue;
 END_RCPP
 }
 // OdeRunner___Lorenz__ctor
@@ -267,6 +279,18 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type time(timeSEXP );
         OdeRunner___Lorenz__step_to(obj_, time);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// OdeRunner___Lorenz__set_state_from_problem
+void OdeRunner___Lorenz__set_state_from_problem(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_);
+RcppExport SEXP tree2_OdeRunner___Lorenz__set_state_from_problem(SEXP obj_SEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > >::type obj_(obj_SEXP );
+        OdeRunner___Lorenz__set_state_from_problem(obj_);
     }
     return R_NilValue;
 END_RCPP
@@ -394,6 +418,18 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type time(timeSEXP );
         OdeRunner___OdeR__step_to(obj_, time);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// OdeRunner___OdeR__set_state_from_problem
+void OdeRunner___OdeR__set_state_from_problem(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_);
+RcppExport SEXP tree2_OdeRunner___OdeR__set_state_from_problem(SEXP obj_SEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > >::type obj_(obj_SEXP );
+        OdeRunner___OdeR__set_state_from_problem(obj_);
     }
     return R_NilValue;
 END_RCPP
@@ -2516,6 +2552,21 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Patch__time__get
+double Patch__time__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_);
+RcppExport SEXP tree2_Patch__time__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > >::type obj_(obj_SEXP );
+        double __result = Patch__time__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // Patch__size__get
 size_t Patch__size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_);
 RcppExport SEXP tree2_Patch__size__get(SEXP obj_SEXP) {
@@ -2870,6 +2921,21 @@ BEGIN_RCPP
         EBT__cohort_schedule__set(obj_, value);
     }
     return R_NilValue;
+END_RCPP
+}
+// EBT__ode_times__get
+std::vector<double> EBT__ode_times__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_);
+RcppExport SEXP tree2_EBT__ode_times__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > >::type obj_(obj_SEXP );
+        std::vector<double> __result = EBT__ode_times__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
 END_RCPP
 }
 // test_uniroot

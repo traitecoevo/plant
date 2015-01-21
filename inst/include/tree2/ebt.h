@@ -4,6 +4,7 @@
 
 #include <tree2/patch.h>
 #include <tree2/cohort_schedule.h> // may move to Parameters?
+#include <tree2/ode_solver.h>
 
 namespace tree2 {
 
@@ -12,6 +13,7 @@ class EBT {
 public:
   typedef T plant_type;
   typedef Cohort<plant_type> cohort_type;
+  typedef Patch<cohort_type> patch_type;
   EBT(Parameters p);
 
   void run();
@@ -28,11 +30,12 @@ public:
   // * R interface
   std::vector<util::index> r_run_next();
   Parameters r_parameters() const {return parameters;}
-  Patch<cohort_type>  r_patch() const {return patch;}
+  patch_type r_patch()      const {return patch;}
   double              r_seed_rain(util::index species_index) const;
   std::vector<double> r_seed_rain_cohort(util::index species_index) const;
   std::vector<double> r_seed_rain_error(util::index species_index) const;
   std::vector<double> r_leaf_area_error(util::index species_index) const;
+  std::vector<double> r_ode_times() const;
 
   CohortSchedule r_cohort_schedule() const {return cohort_schedule;}
   void r_set_cohort_schedule(CohortSchedule x);
@@ -42,15 +45,17 @@ private:
   std::vector<double> seed_rain_cohort(size_t species_index) const;
 
   Parameters parameters;
-  Patch<cohort_type> patch;
+  patch_type patch;
   CohortSchedule cohort_schedule;
+  ode::Solver<patch_type> solver;
 };
 
 template <typename T>
 EBT<T>::EBT(Parameters p)
   : parameters(p),
     patch(parameters),
-    cohort_schedule(patch.size()) {
+    cohort_schedule(patch.size()),
+    solver(patch, make_ode_control(p.control)) {
   parameters.validate();
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::stop("Patch area must be exactly 1 for the EBT");
@@ -85,30 +90,24 @@ std::vector<size_t> EBT<T>::run_next() {
   }
   patch.add_seeds(ret);
 
-  // Before running this bit we'll need to resize the problem; there
-  // are tools to do that in odeint.
-  //
-  // This next bit requires the ODE infrastructure exists:
-  // TODO: Not ideal (using an "r_" function).
-  // const bool use_ode_times = cohort_schedule.r_use_ode_times();
-  // ode_solver.set_state_from_problem();
-  // if (use_ode_times) {
-  //   ode_solver.advance_fixed(e.times);
-  // } else {
-  //   ode_solver.advance(e.time_end());
-  // }
+  // TODO: Using r_ function -- fix at some point...
+  const bool use_ode_times = cohort_schedule.r_use_ode_times();
+  solver.set_state_from_problem(patch);
+  if (use_ode_times) {
+    solver.advance_fixed(patch, e.times);
+  } else {
+    solver.advance(patch, e.time_end());
+  }
 
   return ret;
 }
 
 template <typename T>
 double EBT<T>::time() const {
-  // TODO: previously we had `ode_solver.get_time()`
-  // return patch.environment.time;
-  return 0.0;
+  return solver.get_time();// TODO: ?patch.environment.time;
 }
 
-// NOTE: ode_solver.reset() will set time within the solver to zero.
+// NOTE: solver.reset() will set time within the solver to zero.
 // However, there is no other current way of setting the time within
 // the solver.  It might be better to add a set_time method within
 // ode::Solver, and then here do explicitly ode_solver.set_time(0)?
@@ -116,7 +115,7 @@ template <typename T>
 void EBT<T>::reset() {
   patch.reset();
   cohort_schedule.reset();
-  // ode_solver.reset(); // TODO:
+  solver.reset(patch);
 }
 
 template <typename T>
@@ -172,6 +171,11 @@ std::vector<double> EBT<T>::r_leaf_area_error(util::index species_index) const {
   // const double tot_leaf_area  = patch.leaf_area_above(0.0);
   const size_t idx = species_index.check_bounds(patch.size());
   return patch.r_leaf_area_error(idx);
+}
+
+template <typename T>
+std::vector<double> EBT<T>::r_ode_times() const {
+  return solver.get_times();
 }
 
 template <typename T>

@@ -185,6 +185,7 @@ template <> inline SEXP wrap(const tree2::Control& x) {
   ret["environment_light_linear"] = Rcpp::wrap(x.environment_light_linear);
   ret["environment_light_rescale_usually"] = Rcpp::wrap(x.environment_light_rescale_usually);
   ret["environment_light_skip"] = Rcpp::wrap(x.environment_light_skip);
+  ret["ode_step_size_initial"] = Rcpp::wrap(x.ode_step_size_initial);
   ret["ode_step_size_min"] = Rcpp::wrap(x.ode_step_size_min);
   ret["ode_step_size_max"] = Rcpp::wrap(x.ode_step_size_max);
   ret["ode_tol_rel"] = Rcpp::wrap(x.ode_tol_rel);
@@ -275,6 +276,8 @@ template <> inline tree2::Control as(SEXP x) {
   ret.environment_light_rescale_usually = Rcpp::as<bool >(xl["environment_light_rescale_usually"]);
   // ret.environment_light_skip = Rcpp::as<decltype(retenvironment_light_skip) >(xl["environment_light_skip"]);
   ret.environment_light_skip = Rcpp::as<bool >(xl["environment_light_skip"]);
+  // ret.ode_step_size_initial = Rcpp::as<decltype(retode_step_size_initial) >(xl["ode_step_size_initial"]);
+  ret.ode_step_size_initial = Rcpp::as<double >(xl["ode_step_size_initial"]);
   // ret.ode_step_size_min = Rcpp::as<decltype(retode_step_size_min) >(xl["ode_step_size_min"]);
   ret.ode_step_size_min = Rcpp::as<double >(xl["ode_step_size_min"]);
   // ret.ode_step_size_max = Rcpp::as<decltype(retode_step_size_max) >(xl["ode_step_size_max"]);

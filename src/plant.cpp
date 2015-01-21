@@ -397,12 +397,12 @@ double Plant::compute_assimilation(const Environment& environment) {
   // I should probably use std::function here to store the return
   // value, then we can use the same integrate command easily enough.
   if (control().plant_assimilation_over_distribution) {
-    auto f = [=] (double x) -> double {
+    auto f = [&] (double x) -> double {
       return compute_assimilation_h(x, environment);
     };
     A = integrator.integrate(f, 0.0, vars.height);
   } else {
-    auto f = [=] (double x) -> double {
+    auto f = [&] (double x) -> double {
       return compute_assimilation_p(x, environment);
     };
     A = integrator.integrate(f, 0.0, 1.0);
@@ -591,7 +591,7 @@ double Plant::height_seed(Strategy_ptr s) {
   const double tol = p.control().plant_seed_tol;
   const int max_iterations = p.control().plant_seed_iterations;
 
-  auto target = [=] (double x) mutable -> double {
+  auto target = [&] (double x) mutable -> double {
     return p.mass_live_given_height(x) - seed_mass;
   };
 

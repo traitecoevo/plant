@@ -31,8 +31,12 @@ std::vector<double> Lorenz__pars__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> o
 
 
 // [[Rcpp::export]]
-ode::test::OdeR OdeR__ctor(Rcpp::Function derivs, std::vector<double> y, double time) {
-  return ode::test::OdeR(derivs, y, time);
+ode::test::OdeR OdeR__ctor(Rcpp::Function derivs, Rcpp::Function state, double time) {
+  return ode::test::OdeR(derivs, state, time);
+}
+// [[Rcpp::export]]
+void OdeR__update_state(tree2::RcppR6::RcppR6<ode::test::OdeR> obj_) {
+  obj_->update_state();
 }
 
 // [[Rcpp::export]]
@@ -54,6 +58,10 @@ void OdeRunner___Lorenz__step(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Loren
 // [[Rcpp::export]]
 void OdeRunner___Lorenz__step_to(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_, double time) {
   obj_->step_to(time);
+}
+// [[Rcpp::export]]
+void OdeRunner___Lorenz__set_state_from_problem(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+  obj_->set_state_from_problem();
 }
 // [[Rcpp::export]]
 double OdeRunner___Lorenz__time__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
@@ -95,6 +103,10 @@ void OdeRunner___OdeR__step(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> >
 // [[Rcpp::export]]
 void OdeRunner___OdeR__step_to(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_, double time) {
   obj_->step_to(time);
+}
+// [[Rcpp::export]]
+void OdeRunner___OdeR__set_state_from_problem(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+  obj_->set_state_from_problem();
 }
 // [[Rcpp::export]]
 double OdeRunner___OdeR__time__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
@@ -756,6 +768,11 @@ ode::state_type Patch__derivs(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<t
   return ode::r_derivs(*obj_, y, time);
 }
 // [[Rcpp::export]]
+double Patch__time__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->time();
+}
+
+// [[Rcpp::export]]
 size_t Patch__size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_) {
   return obj_->size();
 }
@@ -865,5 +882,10 @@ tree2::CohortSchedule EBT__cohort_schedule__get(tree2::RcppR6::RcppR6<tree2::EBT
 // [[Rcpp::export]]
 void EBT__cohort_schedule__set(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::CohortSchedule value) {
   obj_->r_set_cohort_schedule(value);
+}
+
+// [[Rcpp::export]]
+std::vector<double> EBT__ode_times__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->r_ode_times();
 }
 
