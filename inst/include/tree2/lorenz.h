@@ -3,7 +3,7 @@
 #define TREE_LORENZ_H_
 
 #include <tree2/ode_interface.h>
-#include <tree2/util.h> // check_length
+#include <tree2/util.h>
 
 namespace ode {
 

@@ -77,3 +77,25 @@ test_environment <- function(height, n=101, light_env=NULL,
   attr(ret, "light_env") <- light_env
   ret
 }
+
+test_ode_make_system <- function(obj) {
+  make_derivs <- function(obj) {
+    if (is.null(obj$set_ode_values)) {
+      function(y, t) {
+        obj$ode_values <- y
+        obj$ode_rates
+      }
+    } else {
+      function(y, t) {
+        obj$set_ode_values(y, t)
+        obj$ode_rates
+      }
+    }
+  }
+  time <- if (is.null(obj$time)) 0.0 else obj$time
+  sys <- OdeR(make_derivs(obj), obj$ode_values, time)
+}
+
+test_ode_make_solver <- function(sys) {
+  OdeRunner(class(sys)[[1]])(sys)
+}

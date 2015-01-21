@@ -11,11 +11,6 @@ size_t Lorenz__ode_size__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
 }
 
 // [[Rcpp::export]]
-double Lorenz__ode_time__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
-  return ode::r_ode_time(*obj_);
-}
-
-// [[Rcpp::export]]
 ode::state_type Lorenz__ode_values__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> obj_) {
   return ode::r_ode_values(*obj_);
 }
@@ -34,6 +29,11 @@ std::vector<double> Lorenz__pars__get(tree2::RcppR6::RcppR6<ode::test::Lorenz> o
   return obj_->pars();
 }
 
+
+// [[Rcpp::export]]
+ode::test::OdeR OdeR__ctor(Rcpp::Function derivs, std::vector<double> y, double time) {
+  return ode::test::OdeR(derivs, y, time);
+}
 
 // [[Rcpp::export]]
 ode::Runner<ode::test::Lorenz> OdeRunner___Lorenz__ctor(ode::test::Lorenz obj, ode::OdeControl control) {
@@ -72,6 +72,47 @@ std::vector<double> OdeRunner___Lorenz__times__get(tree2::RcppR6::RcppR6<ode::Ru
 
 // [[Rcpp::export]]
 ode::test::Lorenz OdeRunner___Lorenz__object__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> > obj_) {
+  return obj_->object();
+}
+
+
+// [[Rcpp::export]]
+ode::Runner<ode::test::OdeR> OdeRunner___OdeR__ctor(ode::test::OdeR obj, ode::OdeControl control) {
+  return ode::Runner<ode::test::OdeR>(obj, control);
+}
+// [[Rcpp::export]]
+void OdeRunner___OdeR__advance(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_, double time) {
+  obj_->advance(time);
+}
+// [[Rcpp::export]]
+void OdeRunner___OdeR__advance_fixed(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_, std::vector<double> time) {
+  obj_->advance_fixed(time);
+}
+// [[Rcpp::export]]
+void OdeRunner___OdeR__step(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+  obj_->step();
+}
+// [[Rcpp::export]]
+void OdeRunner___OdeR__step_to(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_, double time) {
+  obj_->step_to(time);
+}
+// [[Rcpp::export]]
+double OdeRunner___OdeR__time__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+  return obj_->time();
+}
+
+// [[Rcpp::export]]
+ode::state_type OdeRunner___OdeR__state__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+  return obj_->state();
+}
+
+// [[Rcpp::export]]
+std::vector<double> OdeRunner___OdeR__times__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
+  return obj_->times();
+}
+
+// [[Rcpp::export]]
+ode::test::OdeR OdeRunner___OdeR__object__get(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> > obj_) {
   return obj_->object();
 }
 
@@ -576,11 +617,6 @@ size_t Cohort__ode_size__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> >
 }
 
 // [[Rcpp::export]]
-double Cohort__ode_time__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
-  return ode::r_ode_time(*obj_);
-}
-
-// [[Rcpp::export]]
 ode::state_type Cohort__ode_values__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
   return ode::r_ode_values(*obj_);
 }
@@ -666,11 +702,6 @@ std::vector<double> Species__leaf_area_error__get(tree2::RcppR6::RcppR6<tree2::S
 // [[Rcpp::export]]
 size_t Species__ode_size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
   return obj_->ode_size();
-}
-
-// [[Rcpp::export]]
-double Species__ode_time__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
-  return ode::r_ode_time(*obj_);
 }
 
 // [[Rcpp::export]]

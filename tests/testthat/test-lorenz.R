@@ -57,6 +57,7 @@ test_that("Ode runner behaves", {
   
   sys <- OdeRunner("Lorenz")(lo)
   expect_that(sys, is_a("OdeRunner"))
+  expect_that(sys, is_a("OdeRunner<Lorenz>"))
 
   expect_that(sys$time,  is_identical_to(0.0))
   expect_that(sys$state, is_identical_to(y))
@@ -91,4 +92,27 @@ test_that("Ode runner behaves", {
   sys2$advance_fixed(times)
   expect_that(sys2$times, is_identical_to(times))
   expect_that(sys2$state, equals(sys$state, tolerance=1e-13))
+})
+
+test_that("OdeR interface", {
+  pars <- c(sigma=10.0, R=28.0, b=8.0 / 3.0)
+  y <- rep(21, 3)
+  lo <- Lorenz(pars[[1]], pars[[2]], pars[[3]])
+  lo$ode_values <- c(21, 21, 21)
+
+  sys <- test_ode_make_system(lo)
+  expect_that(sys, is_a("OdeR"))
+  sol <- test_ode_make_solver(sys)
+  expect_that(sol, is_a("OdeRunner"))
+  expect_that(sol, is_a("OdeRunner<OdeR>"))
+
+  expect_that(sol$state, is_identical_to(y))
+  expect_that(sol$time,  is_identical_to(0.0))
+
+  sol2 <- OdeRunner("Lorenz")(lo)
+
+  sol$advance(pi)
+  sol2$advance(pi)
+  expect_that(sol$times, is_identical_to(sol2$times))
+  expect_that(sol$state, is_identical_to(sol2$state))
 })

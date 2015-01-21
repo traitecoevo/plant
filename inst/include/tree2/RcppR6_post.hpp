@@ -12,9 +12,17 @@ template <> inline std::string   class_name_r<ode::test::Lorenz >() {return "Lor
 template <> inline std::string   package_name<ode::test::Lorenz >() {return "tree2";}
 template <> inline std::string generator_name<ode::test::Lorenz >() {return ".R6_Lorenz";}
 
+template <> inline std::string   class_name_r<ode::test::OdeR >() {return "OdeR";}
+template <> inline std::string   package_name<ode::test::OdeR >() {return "tree2";}
+template <> inline std::string generator_name<ode::test::OdeR >() {return ".R6_OdeR";}
+
 template <> inline std::string   class_name_r<ode::Runner<ode::test::Lorenz> >() {return "OdeRunner<Lorenz>";}
 template <> inline std::string   package_name<ode::Runner<ode::test::Lorenz> >() {return "tree2";}
 template <> inline std::string generator_name<ode::Runner<ode::test::Lorenz> >() {return ".R6_OdeRunner___Lorenz";}
+
+template <> inline std::string   class_name_r<ode::Runner<ode::test::OdeR> >() {return "OdeRunner<OdeR>";}
+template <> inline std::string   package_name<ode::Runner<ode::test::OdeR> >() {return "tree2";}
+template <> inline std::string generator_name<ode::Runner<ode::test::OdeR> >() {return ".R6_OdeRunner___OdeR";}
 
 template <> inline std::string   class_name_r<tree2::CohortScheduleEvent >() {return "CohortScheduleEvent";}
 template <> inline std::string   package_name<tree2::CohortScheduleEvent >() {return "tree2";}
@@ -107,11 +115,25 @@ template <> inline ode::test::Lorenz as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<ode::test::Lorenz>(x));
 }
 
+template <> inline SEXP wrap(const ode::test::OdeR& x) {
+  return wrap(tree2::RcppR6::RcppR6<ode::test::OdeR>(x));
+}
+template <> inline ode::test::OdeR as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<ode::test::OdeR>(x));
+}
+
 template <> inline SEXP wrap(const ode::Runner<ode::test::Lorenz>& x) {
   return wrap(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> >(x));
 }
 template <> inline ode::Runner<ode::test::Lorenz> as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<ode::Runner<ode::test::Lorenz> >(x));
+}
+
+template <> inline SEXP wrap(const ode::Runner<ode::test::OdeR>& x) {
+  return wrap(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> >(x));
+}
+template <> inline ode::Runner<ode::test::OdeR> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<ode::Runner<ode::test::OdeR> >(x));
 }
 
 template <> inline SEXP wrap(const tree2::CohortScheduleEvent& x) {

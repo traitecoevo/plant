@@ -34,7 +34,6 @@ size_t ode_size(ForwardIterator first, ForwardIterator last) {
   return ret;
 }
 
-// Version without time
 template <typename ForwardIterator>
 const_iterator set_ode_values(ForwardIterator first, ForwardIterator last,
                               const_iterator it) {

@@ -5,10 +5,15 @@ Lorenz:
     args: [sigma: double, R: double, b: double]
   active:
     ode_size: {type: size_t, access: member}
-    ode_time: {type: double, access: function, name_cpp: "ode::r_ode_time"}
     ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::r_set_ode_values"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
     pars: {type: "std::vector<double>", access: member}
+
+OdeR:
+  name_cpp: "ode::test::OdeR"
+  forward_declare: true
+  constructor:
+    args: [derivs: "Rcpp::Function", y: "std::vector<double>", time: double]
 
 OdeRunner:
   name_cpp: "ode::Runner<T>"
@@ -16,6 +21,7 @@ OdeRunner:
     parameters: T
     concrete:
       - ["Lorenz": "ode::test::Lorenz"]
+      - ["OdeR":   "ode::test::OdeR"]
   constructor:
     args: [obj: T, control: "ode::OdeControl=OdeControl()"]
   active:
@@ -420,7 +426,6 @@ Cohort:
     leaf_area: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
-    ode_time: {type: double, access: function, name_cpp: "ode::r_ode_time"}
     ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::r_set_ode_values"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:
@@ -455,7 +460,6 @@ Species:
     leaf_area_error: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area_error}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_time: {type: double, access: function, name_cpp: "ode::r_ode_time"}
     ode_values: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_values", name_cpp_set: "ode::r_set_ode_values"}
     ode_rates: {type: "ode::state_type", access: function, name_cpp: "ode::r_ode_rates"}
   methods:

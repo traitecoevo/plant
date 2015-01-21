@@ -26,13 +26,6 @@ NULL
                     stop("Lorenz$ode_size is read-only")
                   }
                 },
-                ode_time = function(value) {
-                  if (missing(value)) {
-                    Lorenz__ode_time__get(self)
-                  } else {
-                    stop("Lorenz$ode_time is read-only")
-                  }
-                },
                 ode_values = function(value) {
                   if (missing(value)) {
                     Lorenz__ode_values__get(self)
@@ -56,10 +49,25 @@ NULL
                 }))
 
 
+`OdeR` <- function(derivs, y, time) {
+  OdeR__ctor(derivs, y, time)
+}
+.R6_OdeR <-
+  R6::R6Class("OdeR",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                }),
+              active=list())
+
+
 OdeRunner <- function(T) {
   type <- c(T)
-  valid <- list("OdeRunner<Lorenz>"="Lorenz")
-  constructors <- list("OdeRunner<Lorenz>"=`OdeRunner<Lorenz>`)
+  valid <- list("OdeRunner<Lorenz>"="Lorenz", "OdeRunner<OdeR>"="OdeR")
+  constructors <- list("OdeRunner<Lorenz>"=`OdeRunner<Lorenz>`, "OdeRunner<OdeR>"=`OdeRunner<OdeR>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_OdeRunner <- R6::R6Class("OdeRunner")
@@ -116,6 +124,61 @@ OdeRunner <- function(T) {
                     OdeRunner___Lorenz__object__get(self)
                   } else {
                     stop("OdeRunner<Lorenz>$object is read-only")
+                  }
+                }))
+
+
+`OdeRunner<OdeR>` <- function(obj, control=OdeControl()) {
+  OdeRunner___OdeR__ctor(obj, control)
+}
+.R6_OdeRunner___OdeR <-
+  R6::R6Class("OdeRunner<OdeR>",
+              portable=TRUE,
+              inherit=.R6_OdeRunner,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                advance = function(time) {
+                  OdeRunner___OdeR__advance(self, time)
+                },
+                advance_fixed = function(time) {
+                  OdeRunner___OdeR__advance_fixed(self, time)
+                },
+                step = function() {
+                  OdeRunner___OdeR__step(self)
+                },
+                step_to = function(time) {
+                  OdeRunner___OdeR__step_to(self, time)
+                }),
+              active=list(
+                time = function(value) {
+                  if (missing(value)) {
+                    OdeRunner___OdeR__time__get(self)
+                  } else {
+                    stop("OdeRunner<OdeR>$time is read-only")
+                  }
+                },
+                state = function(value) {
+                  if (missing(value)) {
+                    OdeRunner___OdeR__state__get(self)
+                  } else {
+                    stop("OdeRunner<OdeR>$state is read-only")
+                  }
+                },
+                times = function(value) {
+                  if (missing(value)) {
+                    OdeRunner___OdeR__times__get(self)
+                  } else {
+                    stop("OdeRunner<OdeR>$times is read-only")
+                  }
+                },
+                object = function(value) {
+                  if (missing(value)) {
+                    OdeRunner___OdeR__object__get(self)
+                  } else {
+                    stop("OdeRunner<OdeR>$object is read-only")
                   }
                 }))
 
@@ -774,13 +837,6 @@ Parameters <- function(..., values=list(...)) {
                     stop("Cohort$ode_size is read-only")
                   }
                 },
-                ode_time = function(value) {
-                  if (missing(value)) {
-                    Cohort__ode_time__get(self)
-                  } else {
-                    stop("Cohort$ode_time is read-only")
-                  }
-                },
                 ode_values = function(value) {
                   if (missing(value)) {
                     Cohort__ode_values__get(self)
@@ -886,13 +942,6 @@ Parameters <- function(..., values=list(...)) {
                     Species__ode_size__get(self)
                   } else {
                     stop("Species$ode_size is read-only")
-                  }
-                },
-                ode_time = function(value) {
-                  if (missing(value)) {
-                    Species__ode_time__get(self)
-                  } else {
-                    stop("Species$ode_time is read-only")
                   }
                 },
                 ode_values = function(value) {

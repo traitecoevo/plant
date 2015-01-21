@@ -58,6 +58,7 @@ template <typename T> class Runner;
 
 #include <Rcpp.h>
 #include <tree2/lorenz.h>
+#include <tree2/ode_r.h>
 
 // This line can safely be the last line in the file, but may go any
 // point after RcppR6_pre.hpp is included.

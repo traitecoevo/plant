@@ -12,6 +12,7 @@ template <typename T> class RcppR6;
 }
 
 namespace ode { namespace test { class Lorenz; } }
+namespace ode { namespace test { class OdeR; } }
 
 namespace tree2 { class CohortScheduleEvent; }
 namespace tree2 { class CohortSchedule; }
@@ -35,8 +36,14 @@ template <typename T> class Exporter<tree2::RcppR6::RcppR6<T> >;
 template <> SEXP wrap(const ode::test::Lorenz&);
 template <> ode::test::Lorenz as(SEXP);
 
+template <> SEXP wrap(const ode::test::OdeR&);
+template <> ode::test::OdeR as(SEXP);
+
 template <> SEXP wrap(const ode::Runner<ode::test::Lorenz>&);
 template <> ode::Runner<ode::test::Lorenz> as(SEXP);
+
+template <> SEXP wrap(const ode::Runner<ode::test::OdeR>&);
+template <> ode::Runner<ode::test::OdeR> as(SEXP);
 
 template <> SEXP wrap(const tree2::CohortScheduleEvent&);
 template <> tree2::CohortScheduleEvent as(SEXP);

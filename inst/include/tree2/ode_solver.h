@@ -18,6 +18,7 @@ class Solver {
 public:
   Solver(const Problem& problem, OdeControl control_);
   void reset(const Problem& problem);
+  void set_state_from_problem(const Problem& problem);
 
   state_type get_state() const {return y;}
   double get_time() const {return time;}
@@ -69,12 +70,11 @@ void Solver<Problem>::reset(const Problem& problem) {
   prev_times.clear();
   step_size_last = control.step_size_initial;
   time_max = std::numeric_limits<double>::infinity();
+  set_state_from_problem(problem);
+}
 
-  // TODO: Argh - this needs doing; previously I had get_time(), which
-  // did patch.environment.get_time() (currently
-  // patch.environment.time), so that's not too bad.  Will be a nice
-  // place to put the traits bits too, as time-less models can just
-  // zero time.
+template <class Problem>
+void Solver<Problem>::set_state_from_problem(const Problem& problem) {
   set_time(ode::ode_time(problem));
   resize(problem.ode_size());
   problem.ode_values(y.begin());
