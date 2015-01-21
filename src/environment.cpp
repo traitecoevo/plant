@@ -7,10 +7,7 @@ Environment::Environment(Parameters p)
     disturbance_regime(p.disturbance_mean_interval),
     seed_rain(p.seed_rain),
     seed_rain_index(0),
-    light_environment_generator(p.control.environment_light_tol,
-				p.control.environment_light_tol,
-				p.control.environment_light_nbase,
-				p.control.environment_light_max_depth) {
+    light_environment_generator(make_interpolator(p.control)) {
 }
 
 double Environment::canopy_openness(double height) const {

@@ -63,6 +63,16 @@ void Environment::rescale_light_environment(Function f_canopy_openness,
   light_environment.initialise();
 }
 
+inline interpolator::AdaptiveInterpolator
+make_interpolator(const Control& control) {
+  using namespace interpolator;
+  return AdaptiveInterpolator(control.environment_light_tol,
+                              control.environment_light_tol,
+                              control.environment_light_nbase,
+                              control.environment_light_max_depth);
+}
+
+
 }
 
 #endif
