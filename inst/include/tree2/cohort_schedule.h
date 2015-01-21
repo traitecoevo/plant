@@ -86,6 +86,8 @@ private:
   bool use_ode_times;
 };
 
+std::vector<double> default_cohort_schedule_times();
+
 }
 
 #endif

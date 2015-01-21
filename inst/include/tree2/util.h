@@ -172,6 +172,11 @@ std::vector<double> trapezium_vector(const ContainerX& x,
   return ret;
 }
 
+template <typename T>
+T clamp(T x, T min_val, T max_val) {
+  return std::max(std::min(x, max_val), min_val);
+}
+
 // The basic idea here is that we consider the three points
 //   {(x1, y1), (x2, y2), (x3, y3)}
 // and we want to know how much the middle point is contributing to

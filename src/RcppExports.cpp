@@ -23,6 +23,24 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// cohort_schedule_default_times
+std::vector<double> cohort_schedule_default_times(double max_time, double multiplier = 0.2, double min_step_size = 1e-5, double max_step_size = 2.0);
+RcppExport SEXP tree2_cohort_schedule_default_times(SEXP max_timeSEXP, SEXP multiplierSEXP, SEXP min_step_sizeSEXP, SEXP max_step_sizeSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< double >::type max_time(max_timeSEXP );
+        Rcpp::traits::input_parameter< double >::type multiplier(multiplierSEXP );
+        Rcpp::traits::input_parameter< double >::type min_step_size(min_step_sizeSEXP );
+        Rcpp::traits::input_parameter< double >::type max_step_size(max_step_sizeSEXP );
+        std::vector<double> __result = cohort_schedule_default_times(max_time, multiplier, min_step_size, max_step_size);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // test_gradient_fd1
 double test_gradient_fd1(Rcpp::Function f, double x, double dx, int direction, double fx = NA_REAL);
 RcppExport SEXP tree2_test_gradient_fd1(SEXP fSEXP, SEXP xSEXP, SEXP dxSEXP, SEXP directionSEXP, SEXP fxSEXP) {
