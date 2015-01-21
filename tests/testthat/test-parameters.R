@@ -20,7 +20,7 @@ test_that("Creation & defaults", {
                    patch_area=1.0) # NOTE: Different to tree 0.1
 
   expect_that(p[names(expected)], is_identical_to(expected))
-  expect_that(p$disturbance$mean_interval, is_identical_to(30.0))
+  expect_that(p$disturbance_mean_interval, is_identical_to(30.0))
 
   expect_that(p$strategy_default, equals(Strategy()))
 })

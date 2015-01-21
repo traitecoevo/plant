@@ -4,7 +4,7 @@ namespace tree2 {
 
 Environment::Environment(Parameters p)
   : time(0.0),
-    disturbance_regime(p.disturbance),
+    disturbance_regime(p.disturbance_mean_interval),
     seed_rain(p.seed_rain),
     seed_rain_index(0),
     light_environment_generator(p.control.environment_light_tol,

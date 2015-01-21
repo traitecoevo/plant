@@ -9,7 +9,7 @@ Parameters::Parameters()
     patch_area(1.0),
     Pi_0(0.25),
     n_patches(1),
-    disturbance(30) { // 30 years default disturbance interval
+    disturbance_mean_interval(30) {
 }
 
 size_t Parameters::size() const {

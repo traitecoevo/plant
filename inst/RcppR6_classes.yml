@@ -271,10 +271,10 @@ Parameters:
     - patch_area: double
     - Pi_0: double
     - n_patches: size_t
+    - disturbance_mean_interval: double
     - strategies: "std::vector<tree2::Strategy>"
     - seed_rain: "std::vector<double>"
     - is_resident: "std::vector<bool>"
-    - disturbance: "tree2::Disturbance"
     - control: "tree2::Control"
     - strategy_default: "tree2::Strategy"
 
