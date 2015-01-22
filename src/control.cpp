@@ -11,15 +11,6 @@ Control::Control() : integrator(15, 1, 0, 0) {
   plant_assimilation_rule = 21;
   plant_assimilation_reuse_intervals = true;
 
-  // all of this can be deleted?
-  plant_assimilation_approximate_use = false;
-  plant_assimilation_approximate_tol = 1e-6;
-  plant_assimilation_approximate_nbase = 17;
-  plant_assimilation_approximate_max_depth = 16;
-  plant_assimilation_approximate_akima = false;
-  plant_assimilation_approximate_linear = false;
-  plant_assimilation_approximate_rescale_usually = false;
-
   plant_seed_tol = 1e-8;
   plant_seed_iterations = 1000;
 
@@ -31,10 +22,7 @@ Control::Control() : integrator(15, 1, 0, 0) {
   environment_light_tol = 1e-6;
   environment_light_nbase = 17;
   environment_light_max_depth = 16;
-  environment_light_akima = false; // can be deleted?
-  environment_light_linear = false; // can be deleted?
   environment_light_rescale_usually = false;
-  environment_light_skip = false; // can be deleted?
 
   ode_step_size_initial = 1e-6;
   ode_step_size_min = 1e-6;
@@ -57,7 +45,7 @@ Control::Control() : integrator(15, 1, 0, 0) {
   equilibrium_large_seed_rain_change = 10;
   equilibrium_progress = false;
   equilibrium_verbose  = true;
-  equilibrium_solver   = 1; // TODO: This is a hack
+  equilibrium_solver_name = "iteration";
   equilibrium_extinct_seed_rain = 1e-3;
   equilibrium_runsteady_tol = 1e-2;
   equilibrium_inviable_test_eps = 1e-2;

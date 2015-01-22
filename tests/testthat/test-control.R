@@ -12,13 +12,10 @@ test_that("Defaults", {
     cohort_gradient_direction = 1L,
     cohort_gradient_richardson = FALSE,
     cohort_gradient_richardson_depth = 4, # size_t, so not int
-    environment_light_max_depth= 16L,
-    environment_light_nbase = 17L,
+    environment_light_max_depth= 16, # size_t
+    environment_light_nbase = 17, # size_t
     environment_light_tol = 1e-6,
-    environment_light_akima = FALSE,
-    environment_light_linear = FALSE,
     environment_light_rescale_usually = FALSE,
-    environment_light_skip = FALSE,
     ode_a_dydt = 0.0,
     ode_a_y = 1.0,
     ode_step_size_initial = 1e-6,
@@ -32,32 +29,25 @@ test_that("Defaults", {
     plant_assimilation_over_distribution = FALSE,
     plant_assimilation_reuse_intervals = TRUE,
     plant_assimilation_tol = 1e-6,
-    plant_assimilation_approximate_use = FALSE,
-    plant_assimilation_approximate_max_depth= 16L,
-    plant_assimilation_approximate_nbase = 17L,
-    plant_assimilation_approximate_tol = 1e-6,
-    plant_assimilation_approximate_akima = FALSE,
-    plant_assimilation_approximate_linear = FALSE,
-    plant_assimilation_approximate_rescale_usually = FALSE,
-    plant_seed_iterations = 1000L,
+    plant_seed_iterations = 1000, # size_t
     plant_seed_tol = 1e-8, # 1e-6, Had to change this...
 
-    schedule_nsteps   = 20L,
+    schedule_nsteps   = 20, # size_t
     schedule_eps      = 1e-3,
     schedule_progress = FALSE,
     schedule_verbose  = FALSE,
     schedule_patch_survival = 6.25302620663814e-05,
 
-    equilibrium_nsteps   = 20L,
+    equilibrium_nsteps   = 20, # size_t
     equilibrium_eps      = 1e-5,
     equilibrium_large_seed_rain_change = 10.0,
     equilibrium_progress = FALSE,
     equilibrium_verbose  = TRUE,
-    equilibrium_solver  = 1L,
+    equilibrium_solver_name = "iteration",
     equilibrium_extinct_seed_rain = 1e-3,
     equilibrium_runsteady_tol = 1e-2,
     equilibrium_inviable_test_eps = 1e-2,
-    equilibrium_nattempts   = 5L,
+    equilibrium_nattempts   = 5, # size_t
     equilibrium_solver_logN = TRUE,
     equilibrium_solver_try_keep = TRUE)
 

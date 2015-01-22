@@ -589,7 +589,7 @@ double Plant::height_seed(Strategy_ptr s) {
     h0 = p.height_given_mass_leaf(std::numeric_limits<double>::min()),
     h1 = p.height_given_mass_leaf(seed_mass);
   const double tol = p.control().plant_seed_tol;
-  const int max_iterations = p.control().plant_seed_iterations;
+  const size_t max_iterations = p.control().plant_seed_iterations;
 
   auto target = [&] (double x) mutable -> double {
     return p.mass_live_given_height(x) - seed_mass;

@@ -12,7 +12,7 @@ namespace interpolator {
 class AdaptiveInterpolator {
 public:
   AdaptiveInterpolator(double atol_, double rtol_,
-                       int nbase_, int max_depth_)
+                       size_t nbase_, size_t max_depth_)
   : atol(atol_),
     rtol(rtol_),
     nbase(nbase_),
@@ -34,7 +34,7 @@ private:
 
   // Control parameters:
   double atol, rtol;
-  int nbase, max_depth;
+  size_t nbase, max_depth;
   double dx, dxmin;
 
   // In contrast to the Interpolator's x and y, which are vectors, these are
@@ -52,7 +52,7 @@ template <typename Function>
 Interpolator AdaptiveInterpolator::construct(Function target,
                                              double a, double b) {
   check_bounds(a, b);
-  dx = (b - a) / (nbase - 1);
+  dx = (b - a) / (static_cast<int>(nbase) - 1);
   dxmin = dx / pow(2, max_depth);
 
   xx.clear();
@@ -62,9 +62,8 @@ Interpolator AdaptiveInterpolator::construct(Function target,
   // TODO: If we template seq_len better, we can avoid a copy.  But
   // using seq_len here guarantees that the first and last element are
   // *exactly* 'a' and 'b'.
-  // TODO: Why is nbase not size_t?
-  std::vector<double> tmp = util::seq_len(a, b, static_cast<size_t>(nbase));
-  for (size_t i = 0; i < static_cast<size_t>(nbase); i++) {
+  std::vector<double> tmp = util::seq_len(a, b, nbase);
+  for (size_t i = 0; i < nbase; i++) {
     const double xi = tmp[i];
     xx.push_back(xi);
     yy.push_back(target(xi));

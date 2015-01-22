@@ -4,6 +4,7 @@
 
 #include <tree2/qag.h>
 #include <tree2/ode_control.h>
+#include <string>
 
 // The `Control` object holds all the non-biological control
 // parameters.  These might get templated against different ways of
@@ -17,6 +18,10 @@
 // Because Control is essentially a dumb set of parameters that has no
 // real functionality, we don't export it as a reference class, but
 // instead use RcppR6's "list" export ability.
+//
+// TODO: Eventually I need to make sure that the numbers here are
+// reasonable, and probably shepherd the translation from int to
+// size_t.
 namespace tree2 {
 
 struct Control {
@@ -31,17 +36,8 @@ struct Control {
   size_t plant_assimilation_rule;
   bool   plant_assimilation_reuse_intervals;
 
-  // All of these can go I think...
-  bool   plant_assimilation_approximate_use;
-  double plant_assimilation_approximate_tol;
-  int    plant_assimilation_approximate_nbase;
-  int    plant_assimilation_approximate_max_depth;
-  bool   plant_assimilation_approximate_akima;
-  bool   plant_assimilation_approximate_linear;
-  bool   plant_assimilation_approximate_rescale_usually;
-
   double plant_seed_tol;
-  int    plant_seed_iterations;
+  size_t plant_seed_iterations;
 
   double cohort_gradient_eps;
   int    cohort_gradient_direction;
@@ -49,12 +45,9 @@ struct Control {
   size_t cohort_gradient_richardson_depth;
 
   double environment_light_tol;
-  int    environment_light_nbase;
-  int    environment_light_max_depth;
-  bool   environment_light_akima;
-  bool   environment_light_linear;
+  size_t environment_light_nbase;
+  size_t environment_light_max_depth;
   bool   environment_light_rescale_usually;
-  bool   environment_light_skip;
 
   double ode_step_size_initial;
   double ode_step_size_min;
@@ -64,22 +57,22 @@ struct Control {
   double ode_a_y;
   double ode_a_dydt;
 
-  int    schedule_nsteps;
+  size_t schedule_nsteps;
   double schedule_eps;
   bool   schedule_progress;
   bool   schedule_verbose;
   double schedule_patch_survival;
 
-  int    equilibrium_nsteps;
+  size_t equilibrium_nsteps;
   double equilibrium_eps;
   double equilibrium_large_seed_rain_change;
   bool   equilibrium_progress;
   bool   equilibrium_verbose;
-  int    equilibrium_solver;
+  std::string equilibrium_solver_name;
   double equilibrium_extinct_seed_rain;
   double equilibrium_runsteady_tol;
   double equilibrium_inviable_test_eps;
-  int    equilibrium_nattempts;
+  size_t equilibrium_nattempts;
   bool   equilibrium_solver_logN;
   bool   equilibrium_solver_try_keep;
 

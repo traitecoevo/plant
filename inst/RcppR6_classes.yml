@@ -135,13 +135,6 @@ Control:
     - plant_assimilation_iterations: size_t
     - plant_assimilation_rule: size_t
     - plant_assimilation_reuse_intervals: bool
-    - plant_assimilation_approximate_use: bool
-    - plant_assimilation_approximate_tol: double
-    - plant_assimilation_approximate_nbase: int
-    - plant_assimilation_approximate_max_depth: int
-    - plant_assimilation_approximate_akima: bool
-    - plant_assimilation_approximate_linear: bool
-    - plant_assimilation_approximate_rescale_usually: bool
     - plant_seed_tol: double
     - plant_seed_iterations: int
     - cohort_gradient_eps: double
@@ -149,12 +142,9 @@ Control:
     - cohort_gradient_richardson: bool
     - cohort_gradient_richardson_depth: size_t
     - environment_light_tol: double
-    - environment_light_nbase: int
-    - environment_light_max_depth: int
-    - environment_light_akima: bool
-    - environment_light_linear: bool
+    - environment_light_nbase: size_t
+    - environment_light_max_depth: size_t
     - environment_light_rescale_usually: bool
-    - environment_light_skip: bool
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -162,17 +152,17 @@ Control:
     - ode_tol_abs: double
     - ode_a_y: double
     - ode_a_dydt: double
-    - schedule_nsteps: int
+    - schedule_nsteps: size_t
     - schedule_eps: double
     - schedule_progress: bool
     - schedule_verbose: bool
     - schedule_patch_survival: double
-    - equilibrium_nsteps: int
+    - equilibrium_nsteps: size_t
     - equilibrium_eps: double
     - equilibrium_large_seed_rain_change: double
     - equilibrium_progress: bool
     - equilibrium_verbose: bool
-    - equilibrium_solver: int
+    - equilibrium_solver_name: "std::string"
     - equilibrium_extinct_seed_rain: double
     - equilibrium_runsteady_tol: double
     - equilibrium_inviable_test_eps: double
