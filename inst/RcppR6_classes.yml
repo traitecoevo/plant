@@ -64,7 +64,7 @@ CohortSchedule:
     n_species: {type: size_t, access: member, name_cpp: get_n_species}
     next_event: {type: "tree2::CohortScheduleEvent", access: member}
     remaining: {type: size_t, access: member}
-    max_time: {type: double, access: member, name_cpp: r_max_time, name_cpp_set: r_set_max_time}
+    max_time: {type: double, access: member, name_cpp: get_max_time, name_cpp_set: r_set_max_time}
     ode_times: {type: "std::vector<double>", access: member, name_cpp: r_ode_times, name_cpp_set: r_set_ode_times}
     use_ode_times: {type: bool, access: member, name_cpp: r_use_ode_times, name_cpp_set: r_set_use_ode_times}
     all_times: {type: SEXP, access: member, name_cpp: r_all_times, name_cpp_set: r_set_all_times}
@@ -570,3 +570,7 @@ EBT:
       type: "std::vector<double>"
       access: member
       name_cpp: r_ode_times
+    state:
+      type: "Rcpp::List"
+      access: function
+      name_cpp: "tree2::get_state"

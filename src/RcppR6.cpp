@@ -221,7 +221,7 @@ size_t CohortSchedule__remaining__get(tree2::RcppR6::RcppR6<tree2::CohortSchedul
 
 // [[Rcpp::export]]
 double CohortSchedule__max_time__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
-  return obj_->r_max_time();
+  return obj_->get_max_time();
 }
 // [[Rcpp::export]]
 void CohortSchedule__max_time__set(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, double value) {
@@ -896,5 +896,10 @@ void EBT__cohort_schedule__set(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > 
 // [[Rcpp::export]]
 std::vector<double> EBT__ode_times__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
   return obj_->r_ode_times();
+}
+
+// [[Rcpp::export]]
+Rcpp::List EBT__state__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return tree2::get_state(*obj_);
 }
 

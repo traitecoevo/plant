@@ -5,6 +5,7 @@
 #include <tree2/patch.h>
 #include <tree2/cohort_schedule.h>
 #include <tree2/ode_solver.h>
+#include <tree2/ebt_utils.h>
 
 namespace tree2 {
 
@@ -30,7 +31,7 @@ public:
   // * R interface
   std::vector<util::index> r_run_next();
   Parameters r_parameters() const {return parameters;}
-  patch_type r_patch()      const {return patch;}
+  const patch_type&   r_patch() const {return patch;}
   double              r_seed_rain(util::index species_index) const;
   std::vector<double> r_seed_rain_cohort(util::index species_index) const;
   std::vector<double> r_seed_rain_error(util::index species_index) const;
@@ -54,7 +55,7 @@ template <typename T>
 EBT<T>::EBT(Parameters p)
   : parameters(p),
     patch(parameters),
-    cohort_schedule(patch.size()),
+    cohort_schedule(make_cohort_schedule(parameters)),
     solver(patch, make_ode_control(p.control)) {
   parameters.validate();
   if (!util::identical(parameters.patch_area, 1.0)) {
@@ -185,7 +186,11 @@ void EBT<T>::r_set_cohort_schedule(CohortSchedule x) {
   }
   util::check_length(x.get_n_species(), patch.size());
   cohort_schedule = x;
-  // TODO: Also set the times into Parameters...
+
+  // Update these here so that extracting Parameters would give the
+  // new schedule, this making Parameters sufficient.
+  parameters.cohort_schedule_max_time = cohort_schedule.get_max_time();
+  parameters.cohort_schedule_times = cohort_schedule.get_times();
 }
 
 template <typename T>

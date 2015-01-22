@@ -4,7 +4,6 @@
 
 #include <RcppCommon.h>
 #include <tree2/util.h>
-#include <tree2/control.h>
 
 // The "times" methods (set_times, times) refer to the *introduction*
 // times.  As such, this really needs that at least one species has an
@@ -49,19 +48,21 @@ public:
   CohortSchedule expand(size_t n_extra, std::vector<double> times);
 
   void clear_times(size_t species_index);
-  void set_times(std::vector<double> times_, size_t species_index);
-  void set_times(std::vector<std::vector<double> >);
+  void set_times(const std::vector<double>& times_, size_t species_index);
+  void set_times(const std::vector<std::vector<double> >& times);
   std::vector<double> times(size_t species_index) const;
   void reset();
   void pop();
   Event next_event() const;
   size_t remaining() const;
 
+  double get_max_time() const;
+  std::vector<std::vector<double> > get_times() const;
+
   // * R interface:
   void r_clear_times(util::index species_index);
   std::vector<double> r_times(util::index species_index) const;
   void r_set_times(std::vector<double> times_, util::index species_index);
-  double r_max_time() const;
   void r_set_max_time(double x);
   std::vector<double> r_ode_times() const;
   void r_set_ode_times(std::vector<double> x);

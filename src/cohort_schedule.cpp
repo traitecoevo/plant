@@ -44,7 +44,19 @@ void CohortSchedule::clear_times(size_t species_index) {
   reset();
 }
 
-void CohortSchedule::set_times(std::vector<double> times_,
+double CohortSchedule::get_max_time() const {
+  return max_time;
+}
+
+std::vector<std::vector<double> > CohortSchedule::get_times() const {
+  std::vector<std::vector<double> > ret;
+  for (size_t i = 0; i < n_species; ++i) {
+    ret.push_back(times(i));
+  }
+  return ret;
+}
+
+void CohortSchedule::set_times(const std::vector<double>& times_,
 			       size_t species_index) {
   clear_times(species_index);
   events_iterator e = events.begin();
@@ -55,10 +67,10 @@ void CohortSchedule::set_times(std::vector<double> times_,
   reset();
 }
 
-void CohortSchedule::set_times(std::vector<std::vector<double> > times) {
-  util::check_length(times.size(), n_species);
+void CohortSchedule::set_times(const std::vector<std::vector<double> >& times_) {
+  util::check_length(times_.size(), n_species);
   for (size_t i = 0; i < size(); ++i) {
-    set_times(times[i], i);
+    set_times(times_[i], i);
   }
 }
 
@@ -171,10 +183,6 @@ std::vector<double> CohortSchedule::r_times(util::index species_index) const {
   return times(species_index.check_bounds(n_species));
 }
 
-double CohortSchedule::r_max_time() const {
-  return max_time;
-}
-
 void CohortSchedule::r_set_max_time(double x) {
   if (x < 0) {
     Rcpp::stop("max_time must be nonnegative");
@@ -240,11 +248,7 @@ void CohortSchedule::r_set_use_ode_times(bool x) {
 }
 
 SEXP CohortSchedule::r_all_times() const {
-  Rcpp::List times_;
-  for (size_t i = 0; i < n_species; ++i) {
-    times_.push_back(times(i));
-  }
-  return Rcpp::wrap(times_);
+  return Rcpp::wrap(get_times());
 }
 
 void CohortSchedule::r_set_all_times(SEXP rx) {

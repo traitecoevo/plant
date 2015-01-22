@@ -23,6 +23,66 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// cohort_schedule_times_default
+std::vector<double> cohort_schedule_times_default(double max_time);
+RcppExport SEXP tree2_cohort_schedule_times_default(SEXP max_timeSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< double >::type max_time(max_timeSEXP );
+        std::vector<double> __result = cohort_schedule_times_default(max_time);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// r_cohort_schedule_max_time_default
+double r_cohort_schedule_max_time_default(const tree2::Parameters& p);
+RcppExport SEXP tree2_r_cohort_schedule_max_time_default(SEXP pSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
+        double __result = r_cohort_schedule_max_time_default(p);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// r_cohort_schedule_default
+tree2::CohortSchedule r_cohort_schedule_default(const tree2::Parameters& p);
+RcppExport SEXP tree2_r_cohort_schedule_default(SEXP pSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
+        tree2::CohortSchedule __result = r_cohort_schedule_default(p);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// r_make_cohort_schedule
+tree2::CohortSchedule r_make_cohort_schedule(const tree2::Parameters& p);
+RcppExport SEXP tree2_r_make_cohort_schedule(SEXP pSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
+        tree2::CohortSchedule __result = r_make_cohort_schedule(p);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // test_gradient_fd1
 double test_gradient_fd1(Rcpp::Function f, double x, double dx, int direction, double fx = NA_REAL);
 RcppExport SEXP tree2_test_gradient_fd1(SEXP fSEXP, SEXP xSEXP, SEXP dxSEXP, SEXP directionSEXP, SEXP fxSEXP) {
@@ -2953,60 +3013,15 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// cohort_schedule_times_default
-std::vector<double> cohort_schedule_times_default(double max_time);
-RcppExport SEXP tree2_cohort_schedule_times_default(SEXP max_timeSEXP) {
+// EBT__state__get
+Rcpp::List EBT__state__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_);
+RcppExport SEXP tree2_EBT__state__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< double >::type max_time(max_timeSEXP );
-        std::vector<double> __result = cohort_schedule_times_default(max_time);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// r_cohort_schedule_max_time_default
-double r_cohort_schedule_max_time_default(const tree2::Parameters& p);
-RcppExport SEXP tree2_r_cohort_schedule_max_time_default(SEXP pSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
-        double __result = r_cohort_schedule_max_time_default(p);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// r_cohort_schedule_default
-tree2::CohortSchedule r_cohort_schedule_default(const tree2::Parameters& p);
-RcppExport SEXP tree2_r_cohort_schedule_default(SEXP pSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
-        tree2::CohortSchedule __result = r_cohort_schedule_default(p);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// r_make_cohort_schedule
-tree2::CohortSchedule r_make_cohort_schedule(const tree2::Parameters& p);
-RcppExport SEXP tree2_r_make_cohort_schedule(SEXP pSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
-        tree2::CohortSchedule __result = r_make_cohort_schedule(p);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > >::type obj_(obj_SEXP );
+        Rcpp::List __result = EBT__state__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

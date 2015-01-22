@@ -6,11 +6,11 @@
 // to need to import Rcpp.h I think.  That means being careful about
 // where we stick this in tree.h
 
-// TODO: This file cannot be directly included because it does not
-// correctly set up all its dependencies.
-
 #include <vector>
 #include <tree2/util.h>
+#include <tree2/environment.h>
+#include <tree2/ode_interface.h>
+#include <tree2/cohort.h>
 
 namespace tree2 {
 
@@ -45,10 +45,9 @@ public:
   // * R interface
   std::vector<double> r_height() const;
   void r_set_height(std::vector<double> height);
-  cohort_type r_seed() const {return seed;}
+  const cohort_type& r_seed() const {return seed;}
   std::vector<cohort_type> r_plants() const {return plants;}
-  // NOTE: I'm in two minds as to whether this is worth exporting.
-  cohort_type r_plant_at(util::index idx) const {
+  const cohort_type& r_plant_at(util::index idx) const {
     return plants[idx.check_bounds(size())];
   }
 

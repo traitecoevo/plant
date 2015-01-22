@@ -157,6 +157,41 @@ test_that("Ported from tree1", {
   expect_that(res_e_4, is_identical_to(res_e_3))
 })
 
+test_that("", {
+  p <- Parameters(strategies=list(Strategy()),
+                  seed_rain=pi/2,
+                  is_resident=TRUE)
+  ebt <- EBT(p)
+
+  ## Then set a cohort schedule:
+  ## Build a schedule for 14 introductions from t=0 to t=5
+  sched <- ebt$cohort_schedule
+  t <- seq(0, 5, length=14)
+  sched$set_times(t, 1)
+  sched$max_time <- max(t) + diff(t)[[1]]
+  ebt$cohort_schedule <- sched
+
+  p2 <- ebt$parameters
+  expect_that(p2$cohort_schedule_max_time,
+              is_identical_to(sched$max_time))
+  expect_that(p2$cohort_schedule_times,
+              is_identical_to(sched$all_times))
+
+  sched2 <- make_cohort_schedule(p2)
+  expect_that(sched2$max_time,
+              is_identical_to(sched$max_time))
+  ## TODO: This is a bug -- and I really don't see why this is wrong.
+  ## expect_that(sched2$all_times,
+  ##             is_identical_to(sched$all_times))
+
+  ## TODO: Also a bug:
+  ebt2 <- EBT(p2)
+  expect_that(ebt2$cohort_schedule$max_time,
+              is_identical_to(sched$max_time))
+  ## expect_that(ebt2$cohort_schedule$all_times,
+  ##             is_identical_to(sched$all_times))
+})
+
 ## ## TODO: This is a fairly inadequate set of tests; none of the failure
 ## ## conditions are tested, and it's undefined what will happen if we
 ## ## set a cohort schedule that leaves us between introduction points.

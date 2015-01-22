@@ -1,4 +1,4 @@
-#include <tree2/tree_utils.h>
+#include <tree2/ebt_utils.h>
 #include <tree2.h>
 
 namespace tree2 {
@@ -39,8 +39,7 @@ CohortSchedule cohort_schedule_default(const Parameters& p) {
 
 // NOTE: can't be a const reference because of validation, which might
 // set defaults within p.
-CohortSchedule make_cohort_schedule(Parameters p) {
-  p.validate();
+CohortSchedule make_cohort_schedule(const Parameters& p) {
   CohortSchedule ret(p.size());
   ret.r_set_max_time(p.cohort_schedule_max_time);
   ret.set_times(p.cohort_schedule_times);

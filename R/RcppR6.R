@@ -1160,6 +1160,13 @@ Parameters <- function(..., values=list(...)) {
                   } else {
                     stop("EBT$ode_times is read-only")
                   }
+                },
+                state = function(value) {
+                  if (missing(value)) {
+                    EBT__state__get(self)
+                  } else {
+                    stop("EBT$state is read-only")
+                  }
                 }))
 
 ## This section of code is only included where templated classes are

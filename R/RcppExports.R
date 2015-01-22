@@ -5,6 +5,52 @@ test_adaptive_interpolator <- function(f, a, b) {
     .Call('tree2_test_adaptive_interpolator', PACKAGE = 'tree2', f, a, b)
 }
 
+#' Generate a suitable set of default cohort introduction times,
+#' biased so that introductions are more closely packed at the
+#' beginning of time, become increasingly spread out.
+#'
+#' The reason for the stepped distribution is to keep step sizes as
+#' series of doublings.  Doing this limits the range of possible
+#' introduction times from an infinite set of possible values to a
+#' very limited subset of values (based on combinations of 1, 0.5,
+#' 0.25, 0.125 etc).  The reason for doing this is to minimise the
+#' number of unique introduction times across all species. The ODE
+#' stepper needs to stop at each point where a cohort is introduced.
+#' If each species was selecting a bunch of points that was
+#' essentially unique (compared to those selected for all other
+#' species), the number of unique cohort introductions times could
+#' get very large, requiring more ODE steps.
+#'
+#' @title Generate Default Cohort Introduction Times
+#' @param max_time Time to generate introduction times up to (the
+#' last introduction time will be at least \code{max_time}).
+#' @param multiplier The rate of increase of step size with time.
+#' The greater the number the faster step size will increase.
+#' @param min_step_size The smallest gap between introduction times
+#' (must be greater than zero, and will be the first introduction
+#' time).
+#' @param max_step_size The largest gap between introduction times
+#' (may be infinite).
+#' @return Vector of introduction times.
+#' @export
+#' @author Rich FitzJohn, adapted from original C++ code by Daniel
+#' S. Falster.
+cohort_schedule_times_default <- function(max_time) {
+    .Call('tree2_cohort_schedule_times_default', PACKAGE = 'tree2', max_time)
+}
+
+cohort_schedule_max_time_default <- function(p) {
+    .Call('tree2_r_cohort_schedule_max_time_default', PACKAGE = 'tree2', p)
+}
+
+cohort_schedule_default <- function(p) {
+    .Call('tree2_r_cohort_schedule_default', PACKAGE = 'tree2', p)
+}
+
+make_cohort_schedule <- function(p) {
+    .Call('tree2_r_make_cohort_schedule', PACKAGE = 'tree2', p)
+}
+
 test_gradient_fd1 <- function(f, x, dx, direction, fx = NA_real_) {
     .Call('tree2_test_gradient_fd1', PACKAGE = 'tree2', f, x, dx, direction, fx)
 }
@@ -801,50 +847,8 @@ EBT__ode_times__get <- function(obj_) {
     .Call('tree2_EBT__ode_times__get', PACKAGE = 'tree2', obj_)
 }
 
-#' Generate a suitable set of default cohort introduction times,
-#' biased so that introductions are more closely packed at the
-#' beginning of time, become increasingly spread out.
-#'
-#' The reason for the stepped distribution is to keep step sizes as
-#' series of doublings.  Doing this limits the range of possible
-#' introduction times from an infinite set of possible values to a
-#' very limited subset of values (based on combinations of 1, 0.5,
-#' 0.25, 0.125 etc).  The reason for doing this is to minimise the
-#' number of unique introduction times across all species. The ODE
-#' stepper needs to stop at each point where a cohort is introduced.
-#' If each species was selecting a bunch of points that was
-#' essentially unique (compared to those selected for all other
-#' species), the number of unique cohort introductions times could
-#' get very large, requiring more ODE steps.
-#'
-#' @title Generate Default Cohort Introduction Times
-#' @param max_time Time to generate introduction times up to (the
-#' last introduction time will be at least \code{max_time}).
-#' @param multiplier The rate of increase of step size with time.
-#' The greater the number the faster step size will increase.
-#' @param min_step_size The smallest gap between introduction times
-#' (must be greater than zero, and will be the first introduction
-#' time).
-#' @param max_step_size The largest gap between introduction times
-#' (may be infinite).
-#' @return Vector of introduction times.
-#' @export
-#' @author Rich FitzJohn, adapted from original C++ code by Daniel
-#' S. Falster.
-cohort_schedule_times_default <- function(max_time) {
-    .Call('tree2_cohort_schedule_times_default', PACKAGE = 'tree2', max_time)
-}
-
-cohort_schedule_max_time_default <- function(p) {
-    .Call('tree2_r_cohort_schedule_max_time_default', PACKAGE = 'tree2', p)
-}
-
-cohort_schedule_default <- function(p) {
-    .Call('tree2_r_cohort_schedule_default', PACKAGE = 'tree2', p)
-}
-
-make_cohort_schedule <- function(p) {
-    .Call('tree2_r_make_cohort_schedule', PACKAGE = 'tree2', p)
+EBT__state__get <- function(obj_) {
+    .Call('tree2_EBT__state__get', PACKAGE = 'tree2', obj_)
 }
 
 test_uniroot <- function(f, min, max) {

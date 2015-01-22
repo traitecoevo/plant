@@ -73,3 +73,50 @@ ebt_base_parameters <- function() {
   ctrl$schedule_eps=0.005
   Parameters(patch_area=1.0, control=ctrl)
 }
+
+##' Run the EBT model, given a Parameters and CohortSchedule
+##'
+##' This is mostly a simple wrapper around some of the EBT functions.
+##' Not sure if this is how we will generally want to do this.
+##' Consider this function liable to change.
+##'
+##' @title Run the EBT, Collecting Output
+##' @param p A Parameters object
+##' @param sched A CohortSchedule Object
+##' @author Rich FitzJohn
+run_ebt_collect <- function(p) {
+  get_state <- function(ebt) {
+    light_env <- ebt$patch$environment$light_environment$xy
+    colnames(light_env) <- c("height", "canopy_openness")
+    list(time=ebt$time, species=ebt$state, light_env=light_env)
+  }
+
+  ebt <- EBT(p)
+  res <- list(get_state(ebt))
+
+  while (!ebt$complete) {
+    ebt$run_next()
+    st <- get_state(ebt)
+    res <- c(res, list(st))
+  }
+
+  time <- sapply(res, "[[", "time")
+  light_env <- lapply(res, "[[", "light_env")
+  species <- lapply(res, "[[", "species")
+  ## The aperm() here means that dimensions are
+  ## [variable,time,cohort], so that taking species[[1]]["height",,]
+  ## gives a matrix that has time down rows and cohorts across columns
+  ## (so is therefore plottable with matplot)
+  species <- lapply(seq_along(species[[1]]), function(i)
+                    aperm(pad_list_to_array(lapply(species, "[[", i)),
+                          c(1, 3, 2)))
+  ## Drop the boundary condition; we do this mostly because it cannot
+  ## be compared against the reference output, which does not contain
+  ## this.  This does have the nice property of giving a non-square
+  ## matrix, so the difference between time and cohort becomes a
+  ## little more obvious.
+  species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
+
+  list(time=time, species=species, light_env=light_env)
+  ## seed_rain=ebt$seed_rains)
+}
