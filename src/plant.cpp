@@ -377,46 +377,31 @@ double Plant::assimilation(const Environment& environment) {
 }
 
 double Plant::compute_assimilation(const Environment& environment) {
-  // const bool over_distribution = control().plant_assimilation_over_distribution;
-  // const double x_min = 0, x_max = over_distribution ? 1 : vars.height;
-  double A = 0.0;
-  quadrature::QAG integrator(control().integrator);
+  const bool over_distribution = control().plant_assimilation_over_distribution;
+  const double x_min = 0.0, x_max = over_distribution ? 1.0 : vars.height;
+  const bool reuse_intervals = false;
 
-  // I should probably use std::function here to store the return
-  // value, then we can use the same integrate command easily enough.
-  if (control().plant_assimilation_over_distribution) {
-    auto f = [&] (double x) -> double {
-      return compute_assimilation_h(x, environment);
-    };
-    A = integrator.integrate(f, 0.0, vars.height);
-  } else {
-    auto f = [&] (double x) -> double {
+  double A = 0.0;
+  quadrature::QAG& integrator(strategy->integrator());
+
+  std::function<double(double)> f;
+  if (over_distribution) {
+    f = [&] (double x) -> double {
       return compute_assimilation_p(x, environment);
     };
-    A = integrator.integrate(f, 0.0, 1.0);
+  } else {
+    f = [&] (double x) -> double {
+      return compute_assimilation_h(x, environment);
+    };
   }
 
-  // This whole section exists only because of working around
-  // CohortTop, where we want to recompute the photosynthetic integral
-  // using the same grid that we refined onto before.  This would
-  // probably be heaps more efficient if we worked with references or
-  // iterators and avoided the copying that is going on here.
-  // Conceptually, this probably belongs in its own function.
-  // if (control().plant_assimilation_adaptive &&
-  //     control().plant_assimilation_reuse_intervals &&
-  //     integration_intervals.size() == 2) {
-  //   if (over_distribution) {
-  //     A = strategy->integrator.integrate_with_intervals(&fun,
-  //                                                       integration_intervals);
-  //   } else {
-  //     // In theory we might not have to to scale if we're doing
-  //     // backward differencing.
-  //     A = strategy->integrator.integrate_with_intervals(&fun,
-  //                                                       quadrature::internal::rescale_intervals(integration_intervals, x_min, x_max));
-  //   }
-  // } else {
-  //   A = strategy->integrator.integrate(&fun, x_min, x_max);
-  // }
+  if (reuse_intervals) {
+    A = integrator.integrate_with_intervals(f,
+					    integrator.get_last_intervals());
+  } else {
+    A = integrator.integrate(f, x_min, x_max);
+  }
+
   return vars.leaf_area * A;
 }
 

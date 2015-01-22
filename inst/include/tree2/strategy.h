@@ -9,7 +9,7 @@ namespace tree2 {
 struct Strategy {
 public:
   Strategy();
-
+  quadrature::QAG& integrator() {return control.integrator;}
   // Every Strategy needs a set of Control objects -- these govern
   // things to do with how numerical calculations are performed,
   // rather than the biological control that this class has.

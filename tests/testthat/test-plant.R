@@ -237,10 +237,13 @@ test_that("Assimilation over distribution", {
 })
 
 test_that("Non-adaptive assimilation integration works", {
-  s1 <- Strategy()
+  c1 <- Control(plant_assimilation_adaptive=TRUE,
+                plant_assimilation_over_distribution=TRUE)
+  s1 <- Strategy(control=c1)
   p1 <- Plant(s1)
 
-  c2 <- Control(plant_assimilation_adaptive=FALSE)
+  c2 <- Control(plant_assimilation_adaptive=FALSE,
+                plant_assimilation_over_distribution=TRUE)
   s2 <- Strategy(control=c2)
   p2 <- Plant(s2)
 
