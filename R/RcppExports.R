@@ -285,6 +285,10 @@ Parameters__ctor <- function() {
     .Call('tree2_Parameters__ctor', PACKAGE = 'tree2')
 }
 
+Parameters__vdor <- function(obj) {
+    .Call('tree2_Parameters__vdor', PACKAGE = 'tree2', obj)
+}
+
 QK__ctor <- function(rule) {
     .Call('tree2_QK__ctor', PACKAGE = 'tree2', rule)
 }
@@ -827,16 +831,20 @@ EBT__ode_times__get <- function(obj_) {
 #' @export
 #' @author Rich FitzJohn, adapted from original C++ code by Daniel
 #' S. Falster.
-cohort_schedule_default_times <- function(max_time) {
-    .Call('tree2_cohort_schedule_default_times', PACKAGE = 'tree2', max_time)
+cohort_schedule_times_default <- function(max_time) {
+    .Call('tree2_cohort_schedule_times_default', PACKAGE = 'tree2', max_time)
 }
 
-cohort_schedule_default_max_time <- function(p) {
-    .Call('tree2_r_cohort_schedule_default_max_time', PACKAGE = 'tree2', p)
+cohort_schedule_max_time_default <- function(p) {
+    .Call('tree2_r_cohort_schedule_max_time_default', PACKAGE = 'tree2', p)
 }
 
 cohort_schedule_default <- function(p) {
     .Call('tree2_r_cohort_schedule_default', PACKAGE = 'tree2', p)
+}
+
+make_cohort_schedule <- function(p) {
+    .Call('tree2_r_make_cohort_schedule', PACKAGE = 'tree2', p)
 }
 
 test_uniroot <- function(f, min, max) {

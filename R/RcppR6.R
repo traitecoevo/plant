@@ -431,7 +431,7 @@ Parameters <- function(..., values=list(...)) {
   }
   to_set <- intersect(names(values), names(ret))
   ret[to_set] <- values[to_set]
-  ret
+  Parameters__vdor(ret)
 }
 
 ##' Gauss-Kronrod Quadrature

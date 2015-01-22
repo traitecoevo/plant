@@ -85,7 +85,7 @@ test_that("Reference survival eps gives correct running time", {
 
   ## Wrapper for getting same out of our disturbance class:
   ctrl <- Control()
-  eps <- ctrl$schedule_default_patch_survival
+  eps <- ctrl$schedule_patch_survival
   f2 <- function(mean) {
     Disturbance(mean)$cdf(eps)
   }

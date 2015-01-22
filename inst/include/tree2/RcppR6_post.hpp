@@ -196,10 +196,7 @@ template <> inline SEXP wrap(const tree2::Control& x) {
   ret["schedule_eps"] = Rcpp::wrap(x.schedule_eps);
   ret["schedule_progress"] = Rcpp::wrap(x.schedule_progress);
   ret["schedule_verbose"] = Rcpp::wrap(x.schedule_verbose);
-  ret["schedule_default_patch_survival"] = Rcpp::wrap(x.schedule_default_patch_survival);
-  ret["schedule_default_multipler"] = Rcpp::wrap(x.schedule_default_multipler);
-  ret["schedule_default_min_step_size"] = Rcpp::wrap(x.schedule_default_min_step_size);
-  ret["schedule_default_max_step_size"] = Rcpp::wrap(x.schedule_default_max_step_size);
+  ret["schedule_patch_survival"] = Rcpp::wrap(x.schedule_patch_survival);
   ret["equilibrium_nsteps"] = Rcpp::wrap(x.equilibrium_nsteps);
   ret["equilibrium_eps"] = Rcpp::wrap(x.equilibrium_eps);
   ret["equilibrium_large_seed_rain_change"] = Rcpp::wrap(x.equilibrium_large_seed_rain_change);
@@ -298,14 +295,8 @@ template <> inline tree2::Control as(SEXP x) {
   ret.schedule_progress = Rcpp::as<bool >(xl["schedule_progress"]);
   // ret.schedule_verbose = Rcpp::as<decltype(retschedule_verbose) >(xl["schedule_verbose"]);
   ret.schedule_verbose = Rcpp::as<bool >(xl["schedule_verbose"]);
-  // ret.schedule_default_patch_survival = Rcpp::as<decltype(retschedule_default_patch_survival) >(xl["schedule_default_patch_survival"]);
-  ret.schedule_default_patch_survival = Rcpp::as<double >(xl["schedule_default_patch_survival"]);
-  // ret.schedule_default_multipler = Rcpp::as<decltype(retschedule_default_multipler) >(xl["schedule_default_multipler"]);
-  ret.schedule_default_multipler = Rcpp::as<double >(xl["schedule_default_multipler"]);
-  // ret.schedule_default_min_step_size = Rcpp::as<decltype(retschedule_default_min_step_size) >(xl["schedule_default_min_step_size"]);
-  ret.schedule_default_min_step_size = Rcpp::as<double >(xl["schedule_default_min_step_size"]);
-  // ret.schedule_default_max_step_size = Rcpp::as<decltype(retschedule_default_max_step_size) >(xl["schedule_default_max_step_size"]);
-  ret.schedule_default_max_step_size = Rcpp::as<double >(xl["schedule_default_max_step_size"]);
+  // ret.schedule_patch_survival = Rcpp::as<decltype(retschedule_patch_survival) >(xl["schedule_patch_survival"]);
+  ret.schedule_patch_survival = Rcpp::as<double >(xl["schedule_patch_survival"]);
   // ret.equilibrium_nsteps = Rcpp::as<decltype(retequilibrium_nsteps) >(xl["equilibrium_nsteps"]);
   ret.equilibrium_nsteps = Rcpp::as<int >(xl["equilibrium_nsteps"]);
   // ret.equilibrium_eps = Rcpp::as<decltype(retequilibrium_eps) >(xl["equilibrium_eps"]);
@@ -523,6 +514,10 @@ template <> inline SEXP wrap(const tree2::Parameters& x) {
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
+  ret["cohort_schedule_max_time"] = Rcpp::wrap(x.cohort_schedule_max_time);
+  ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
+  ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
+  ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
   ret.attr("class") = "Parameters";
   return ret;
 }
@@ -555,6 +550,15 @@ template <> inline tree2::Parameters as(SEXP x) {
   ret.control = Rcpp::as<tree2::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<tree2::Strategy >(xl["strategy_default"]);
+  // ret.cohort_schedule_max_time = Rcpp::as<decltype(retcohort_schedule_max_time) >(xl["cohort_schedule_max_time"]);
+  ret.cohort_schedule_max_time = Rcpp::as<double >(xl["cohort_schedule_max_time"]);
+  // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
+  ret.cohort_schedule_times_default = Rcpp::as<std::vector<double> >(xl["cohort_schedule_times_default"]);
+  // ret.cohort_schedule_times = Rcpp::as<decltype(retcohort_schedule_times) >(xl["cohort_schedule_times"]);
+  ret.cohort_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["cohort_schedule_times"]);
+  // ret.cohort_schedule_ode_times = Rcpp::as<decltype(retcohort_schedule_ode_times) >(xl["cohort_schedule_ode_times"]);
+  ret.cohort_schedule_ode_times = Rcpp::as<std::vector<double> >(xl["cohort_schedule_ode_times"]);
+  ret.validate();
   return ret;
 }
 

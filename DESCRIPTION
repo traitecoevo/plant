@@ -16,4 +16,5 @@ Imports:
 Suggests:
     testthat,
     deSolve,
-    numDeriv
+    numDeriv,
+    RcppR6 (>= 0.2)

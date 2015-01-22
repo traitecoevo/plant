@@ -7,9 +7,10 @@
 
 namespace tree2 {
 
-std::vector<double> cohort_schedule_default_times(double max_time);
-double cohort_schedule_default_max_time(const Parameters& p);
+std::vector<double> cohort_schedule_times_default(double max_time);
+double cohort_schedule_max_time_default(const Parameters& p);
 CohortSchedule cohort_schedule_default(const Parameters& p);
+CohortSchedule make_cohort_schedule(Parameters p);
 
 }
 

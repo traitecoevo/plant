@@ -48,12 +48,9 @@ Control::Control() : integrator(15, 1, 0, 0) {
   schedule_eps      = 1e-3;
   schedule_progress = false;
   schedule_verbose  = false;
-  // These are designed to agree with Daniel's implementation of the
-  // model.
-  schedule_default_patch_survival = 6.25302620663814e-05;
-  schedule_default_multipler     = 0.2;
-  schedule_default_min_step_size = 1e-5;
-  schedule_default_max_step_size = 2.0;
+  // This odd number is designed to agree with Daniel's implementation
+  // of the model.
+  schedule_patch_survival = 6.25302620663814e-05;
 
   equilibrium_nsteps   = 20;
   equilibrium_eps      = 1e-5;

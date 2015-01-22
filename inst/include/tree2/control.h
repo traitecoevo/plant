@@ -68,10 +68,7 @@ struct Control {
   double schedule_eps;
   bool   schedule_progress;
   bool   schedule_verbose;
-  double schedule_default_patch_survival;
-  double schedule_default_multipler;
-  double schedule_default_min_step_size;
-  double schedule_default_max_step_size;
+  double schedule_patch_survival;
 
   int    equilibrium_nsteps;
   double equilibrium_eps;

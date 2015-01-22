@@ -166,10 +166,7 @@ Control:
     - schedule_eps: double
     - schedule_progress: bool
     - schedule_verbose: bool
-    - schedule_default_patch_survival: double
-    - schedule_default_multipler: double
-    - schedule_default_min_step_size: double
-    - schedule_default_max_step_size: double
+    - schedule_patch_survival: double
     - equilibrium_nsteps: int
     - equilibrium_eps: double
     - equilibrium_large_seed_rain_change: double
@@ -266,6 +263,7 @@ Parameters:
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
+  validator_cpp: validate
   list:
     - c_ext: double
     - patch_area: double
@@ -277,6 +275,10 @@ Parameters:
     - is_resident: "std::vector<bool>"
     - control: "tree2::Control"
     - strategy_default: "tree2::Strategy"
+    - cohort_schedule_max_time: double
+    - cohort_schedule_times_default: "std::vector<double>"
+    - cohort_schedule_times: "std::vector<std::vector<double> >"
+    - cohort_schedule_ode_times: "std::vector<double>"
 
 QK:
   forward_declare: true

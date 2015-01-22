@@ -3,7 +3,7 @@
 
 namespace tree2 {
 
-std::vector<double> cohort_schedule_default_times(double max_time) {
+std::vector<double> cohort_schedule_times_default(double max_time) {
   const double multiplier=0.2, min_step_size=1e-5, max_step_size=2.0;
   if (min_step_size <= 0) {
     util::stop("The minimum step size must be greater than zero");
@@ -16,25 +16,41 @@ std::vector<double> cohort_schedule_default_times(double max_time) {
     time += util::clamp(dt, min_step_size, max_step_size);
     times.push_back(time);
   }
-  times.back() = max_time;
+  // Drop the last time; that's not going to be needed:
+  times.resize(times.size() - 1);
   return times;
 }
 
-double cohort_schedule_default_max_time(const Parameters& p) {
+double cohort_schedule_max_time_default(const Parameters& p) {
   Disturbance d(p.disturbance_mean_interval);
-  return d.cdf(p.control.schedule_default_patch_survival);
+  return d.cdf(p.control.schedule_patch_survival);
 }
 
 CohortSchedule cohort_schedule_default(const Parameters& p) {
-  const double max_time = cohort_schedule_default_max_time(p);
+  const double max_time = cohort_schedule_max_time_default(p);
   CohortSchedule schedule(0);
   schedule.r_set_max_time(max_time);
-  std::vector<double> times = cohort_schedule_default_times(max_time);
-  if (times.size() < 2) {
-    util::stop("Did not generate at least two times, surprisingly");
+  std::vector<double> times = cohort_schedule_times_default(max_time);
+  if (times.size() < 1) {
+    util::stop("Did not generate any times, surprisingly");
   }
-  times.resize(times.size() - 1);
   return schedule.expand(p.size(), times);
+}
+
+// TODO: can't be a const reference because of validation/cohort setup
+// TODO: would be better with a set-all-times function.
+CohortSchedule make_cohort_schedule(Parameters p) {
+  p.validate();
+  CohortSchedule ret(p.size());
+  ret.r_set_max_time(p.cohort_schedule_max_time);
+  for (size_t i = 0; i < ret.size(); ++i) {
+    ret.set_times(p.cohort_schedule_times[i], i);
+  }
+  // TODO: Allow setting empty ode times within CohortSchedule...
+  if (!p.cohort_schedule_ode_times.empty()) {
+    ret.r_set_ode_times(p.cohort_schedule_ode_times);
+  }
+  return ret;
 }
 
 }
@@ -71,21 +87,26 @@ CohortSchedule cohort_schedule_default(const Parameters& p) {
 //' S. Falster.
 // [[Rcpp::export]]
 std::vector<double>
-cohort_schedule_default_times(double max_time) {
-  return tree2::cohort_schedule_default_times(max_time);
+cohort_schedule_times_default(double max_time) {
+  return tree2::cohort_schedule_times_default(max_time);
 }
 
 // These two have the slighty odd export to prevent argument dependent
 // lookup, which renders the version in tree2:: a candidate.  It might
 // be better to have RcppExports refer to
-// ::cohort_schedule_default_max_time, but that's not how it's
+// ::cohort_schedule_max_time_default, but that's not how it's
 // implemented.
-// [[Rcpp::export(cohort_schedule_default_max_time)]]
-double r_cohort_schedule_default_max_time(const tree2::Parameters& p) {
-  return tree2::cohort_schedule_default_max_time(p);
+// [[Rcpp::export(cohort_schedule_max_time_default)]]
+double r_cohort_schedule_max_time_default(const tree2::Parameters& p) {
+  return tree2::cohort_schedule_max_time_default(p);
 }
 
 // [[Rcpp::export(cohort_schedule_default)]]
 tree2::CohortSchedule r_cohort_schedule_default(const tree2::Parameters& p) {
   return tree2::cohort_schedule_default(p);
+}
+
+// [[Rcpp::export(make_cohort_schedule)]]
+tree2::CohortSchedule r_make_cohort_schedule(const tree2::Parameters& p) {
+  return tree2::make_cohort_schedule(p);
 }

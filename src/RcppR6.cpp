@@ -287,20 +287,29 @@ SEXP Control__ctor() {
   return Rcpp::wrap(tree2::Control());
 }
 
+
 // [[Rcpp::export]]
 SEXP OdeControl__ctor() {
   return Rcpp::wrap(tree2::ode::OdeControl());
 }
+
 
 // [[Rcpp::export]]
 SEXP Strategy__ctor() {
   return Rcpp::wrap(tree2::Strategy());
 }
 
+
 // [[Rcpp::export]]
 SEXP Parameters__ctor() {
   return Rcpp::wrap(tree2::Parameters());
 }
+
+// [[Rcpp::export]]
+SEXP Parameters__vdor(SEXP obj) {
+  return Rcpp::wrap(Rcpp::as<tree2::Parameters>(obj));
+}
+
 
 // [[Rcpp::export]]
 tree2::quadrature::QK QK__ctor(size_t rule) {

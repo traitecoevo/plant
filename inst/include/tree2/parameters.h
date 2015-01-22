@@ -37,11 +37,19 @@ struct Parameters {
   // Default strategy.
   Strategy strategy_default;
 
+  // Cohort information.
+  double cohort_schedule_max_time;
+  std::vector<double> cohort_schedule_times_default;
+  std::vector<std::vector<double> > cohort_schedule_times;
+  std::vector<double> cohort_schedule_ode_times;
+
   // Some little query functions for use on the C side:
   size_t size() const;
   size_t n_residents() const;
   size_t n_mutants() const;
-  void validate() const;
+  void validate();
+private:
+  void setup_cohort_schedule();
 };
 
 }

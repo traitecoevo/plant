@@ -71,6 +71,7 @@ test_environment <- function(height, n=101, light_env=NULL,
   parameters <- Parameters()
   parameters$strategies <- rep(list(Strategy()), n_strategies)
   parameters$seed_rain <- seed_rain
+  parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- Environment(parameters)
   ret$light_environment <- env
