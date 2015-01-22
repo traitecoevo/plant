@@ -50,14 +50,14 @@ bool identical(double a, double b) {
 }
 
 // http://en.cppreference.com/w/cpp/types/numeric_limits/epsilon
-// template<class T>
-// bool almost_equal(T x, T y, int ulp) {
-//   // the machine epsilon has to be scaled to the magnitude of the larger value
-//   // and multiplied by the desired precision in ULPs (units in the last place)
-//   return std::abs(x - y) <=   std::numeric_limits<T>::epsilon()
-//     * std::max(std::abs(x), std::abs(y))
-//     * ulp;
-// }
+template<class T>
+bool almost_equal(T x, T y, int ulp) {
+  // the machine epsilon has to be scaled to the magnitude of the larger value
+  // and multiplied by the desired precision in ULPs (units in the last place)
+  return std::abs(x - y) <=   std::numeric_limits<T>::epsilon()
+    * std::max(std::abs(x), std::abs(y))
+    * ulp;
+}
 
 // Rcpp converts size_t -> numeric, and I want to be able to preserve
 // NA values while doing base 0 to base 1 index conversion (and v.v.).

@@ -100,9 +100,6 @@ void Solver<System>::advance(System& system, double time_max_) {
 // that we're starting from the right place.  However, because we take
 // care to return and add end points exactly, this should actually be
 // the correct move.
-//
-// TODO: This used to check that the first element of `times` is the
-// same as the current time, but it did that incorrectly.
 template <class System>
 void Solver<System>::advance_fixed(System& system,
                                    const std::vector<double>& times) {
@@ -231,7 +228,7 @@ void Solver<System>::resize(size_t size_) {
 // should be correct, but comes at a cost of an extra evaluation.
 template <class System>
 void Solver<System>::setup_dydt_in(System& system) {
-  if (stepper.can_use_dydt_in() && !dydt_in_is_clean) {
+  if (stepper.can_use_dydt_in && !dydt_in_is_clean) {
     // TODO: Not clear that this is the right thing here; should just
     // be able to look up the correct dydt rates because we've already
     // set state?
@@ -243,7 +240,7 @@ void Solver<System>::setup_dydt_in(System& system) {
 
 template <class System>
 void Solver<System>::save_dydt_out_as_in() {
-  if (stepper.first_same_as_last()) {
+  if (stepper.first_same_as_last) {
     dydt_in = dydt_out;
     dydt_in_is_clean = true;
   } else {
@@ -253,8 +250,9 @@ void Solver<System>::save_dydt_out_as_in() {
 
 template <typename System>
 void Solver<System>::set_time(double t) {
-  // TODO: Do with accuracy 2 and util::almost_equal
-  if (prev_times.size() > 0 && !util::identical(prev_times.back(), t)) {
+  const int ulp = 2; // units in the last place (accuracy)
+  if (prev_times.size() > 0 &&
+      !util::almost_equal(prev_times.back(), t, ulp)) {
     util::stop("Time does not match previous (delta = " +
 	       util::to_string(prev_times.back() - t) +
 	       "). Reset solver first.");

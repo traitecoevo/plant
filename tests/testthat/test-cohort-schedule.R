@@ -237,9 +237,10 @@ test_that("ode_times", {
   sched$set_times(t2, 2L)
   sched$max_time <- max_t
 
+  sched$ode_times <- numeric(0)
+  expect_that(sched$ode_times, is_identical_to(numeric(0)))
+
   ## Too few values:
-  expect_that(sched$ode_times <- numeric(0),
-              throws_error("Need at least two times"))
   expect_that(sched$ode_times <- c(0.0),
               throws_error("Need at least two times"))
   ## Does not start at 0

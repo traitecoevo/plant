@@ -11,8 +11,6 @@ namespace tree2 {
 namespace util {
 
 namespace internals {
-// TODO: Need to get both relative and absolute tolerance here I
-// think, but I forget how I usually do that.  Not a biggie really.
 struct uniroot_tol {
   uniroot_tol(double atol_, double rtol_) : atol(atol_), rtol(rtol_) {}
   bool operator()(double a, double b) {

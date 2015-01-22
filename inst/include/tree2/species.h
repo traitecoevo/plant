@@ -6,9 +6,6 @@
 // to need to import Rcpp.h I think.  That means being careful about
 // where we stick this in tree.h
 
-// TODO: Go through and normalise strategy_type and
-// strategy_ptr_type.
-
 // TODO: This file cannot be directly included because it does not
 // correctly set up all its dependencies.
 
@@ -23,8 +20,8 @@ template <typename T>
 class Species {
 public:
   typedef T cohort_type;
-  typedef typename cohort_type::strategy_type strategy_ptr_type;
-  typedef typename strategy_ptr_type::element_type strategy_type;
+  typedef typename cohort_type::strategy_type     strategy_type;
+  typedef typename cohort_type::strategy_ptr_type strategy_ptr_type;
   Species(strategy_type s);
 
   size_t size() const;

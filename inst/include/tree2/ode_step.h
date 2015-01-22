@@ -20,18 +20,14 @@ public:
 	    state_type &yerr,
 	    const state_type &dydt_in,
 	    state_type &dydt_out);
-  // This might change definition...
   void derivs(System& system,
               const state_type& y, state_type& dydt, double t) {
-    // TODO: check that system.size() equals size...
     return ode::derivs(system, y, dydt, t);
   }
 
-  // static const bool can_use_dydt_in = true;
-  // static const bool first_same_as_last = true;
   // These are defined in rkck_type
-  static bool can_use_dydt_in() {return true;}
-  static bool first_same_as_last() {return true;}
+  static const bool can_use_dydt_in = true;
+  static const bool first_same_as_last = true;
 
 private:
   // Intermediate storage, representing state (was GSL rkck_state_t)

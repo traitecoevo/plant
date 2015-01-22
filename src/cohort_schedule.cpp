@@ -55,6 +55,13 @@ void CohortSchedule::set_times(std::vector<double> times_,
   reset();
 }
 
+void CohortSchedule::set_times(std::vector<std::vector<double> > times) {
+  util::check_length(times.size(), n_species);
+  for (size_t i = 0; i < size(); ++i) {
+    set_times(times[i], i);
+  }
+}
+
 std::vector<double> CohortSchedule::times(size_t species_index) const {
   std::vector<double> ret;
   for (events_const_iterator e = events.begin(); e != events.end(); ++e) {
@@ -184,23 +191,27 @@ std::vector<double> CohortSchedule::r_ode_times() const {
 }
 
 void CohortSchedule::r_set_ode_times(std::vector<double> x) {
-  if (x.size() < 2) {
-    Rcpp::stop("Need at least two times");
+  if (x.empty()) {
+    r_clear_ode_times();
+  } else {
+    if (x.size() < 2) {
+      Rcpp::stop("Need at least two times");
+    }
+    if (!util::identical(x.front(), 0.0)) {
+      Rcpp::stop("First time must be exactly zero");
+    }
+    if (util::is_finite(max_time) && !util::identical(x.back(), max_time)) {
+      Rcpp::stop("Last time must be exactly max_time");
+    }
+    if (!util::is_sorted(x.begin(), x.end())) {
+      Rcpp::stop("ode_times must be sorted");
+    }
+    ode_times = x;
+    if (!util::is_finite(max_time)) {
+      max_time = ode_times.back();
+    }
+    reset();
   }
-  if (!util::identical(x.front(), 0.0)) {
-    Rcpp::stop("First time must be exactly zero");
-  }
-  if (util::is_finite(max_time) && !util::identical(x.back(), max_time)) {
-    Rcpp::stop("Last time must be exactly max_time");
-  }
-  if (!util::is_sorted(x.begin(), x.end())) {
-    Rcpp::stop("ode_times must be sorted");
-  }
-  ode_times = x;
-  if (!util::is_finite(max_time)) {
-    max_time = ode_times.back();
-  }
-  reset();
 }
 
 void CohortSchedule::r_clear_ode_times() {

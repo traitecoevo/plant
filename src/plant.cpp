@@ -6,7 +6,7 @@
 
 namespace tree2 {
 
-Plant::Plant(Strategy_ptr s)
+Plant::Plant(strategy_ptr_type s)
   : strategy(s) {
   set_height(strategy->height_0);
 }
@@ -211,7 +211,7 @@ double Plant::germination_probability() const {
 }
 
 // NOTE: static method.
-void Plant::prepare_strategy(Strategy_ptr s) {
+void Plant::prepare_strategy(strategy_ptr_type s) {
   // Set up the integrator.
   s->control.initialize();
   // NOTE: this precomputes something to save a very small amount of time
@@ -226,7 +226,7 @@ void Plant::prepare_strategy(Strategy_ptr s) {
 }
 
 // * R interface
-Strategy Plant::r_get_strategy() const {
+Plant::strategy_type Plant::r_get_strategy() const {
   return *strategy.get();
 }
 
@@ -305,18 +305,6 @@ Plant Plant::r_copy() const {
 // also saves a little ugly looking referencing.
 const Control& Plant::control() const {
   return strategy->control;
-}
-
-// This is required so that the cohort calculations can use the exact
-// same intervals for integration.  I might shift this into the
-// Strategy or something though.  Not sure.
-// TODO: Given these are unchecked get/set pairs, replace with direct
-// access to the member I think.
-quadrature::intervals_type Plant::get_last_integration_intervals() const {
-  return strategy->control.integrator.get_last_intervals();
-}
-void Plant::set_integration_intervals(quadrature::intervals_type x) {
-  integration_intervals = x;
 }
 
 // This is used to stop rates getting out of control.
@@ -525,7 +513,7 @@ double Plant::basal_area() const {
 
 // Mass of stem needed for new unit mass leaf, d m_s / d m_l
 double Plant::dmass_sapwood_dmass_leaf() const {
-  const Strategy *s = strategy.get(); // for brevity.
+  const strategy_type *s = strategy.get(); // for brevity.
   return s->rho * s->eta_c * s->a1 / (s->theta * s->lma) *
         (s->B1 + 1.0) * pow(vars.leaf_area, s->B1);
 }
@@ -578,7 +566,7 @@ double Plant::dbasal_diam_dt() const {
 
 // NOTE: static method
 // The aim is to find a plant height that gives the correct seed mass.
-double Plant::height_seed(Strategy_ptr s) {
+double Plant::height_seed(strategy_ptr_type s) {
   Plant p(s);
   const double seed_mass = p.strategy->s;
 
@@ -634,13 +622,13 @@ Plant::internals::internals()
     fecundity(0.0) {
 }
 
-Strategy_ptr make_strategy_ptr(Strategy s) {
-  Strategy_ptr sp = std::make_shared<Strategy>(s);
+Plant::strategy_ptr_type make_strategy_ptr(Plant::strategy_type s) {
+  Plant::strategy_ptr_type sp = std::make_shared<Plant::strategy_type>(s);
   Plant::prepare_strategy(sp);
   return sp;
 }
 
-Plant make_plant(Strategy s) {
+Plant make_plant(Plant::strategy_type s) {
   return Plant(make_strategy_ptr(s));
 }
 

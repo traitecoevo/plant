@@ -11,12 +11,11 @@
 
 namespace tree2 {
 
-typedef std::shared_ptr<Strategy> Strategy_ptr;
-
 class Plant {
 public:
-  typedef Strategy_ptr strategy_type;
-  Plant(Strategy_ptr s);
+  typedef Strategy                       strategy_type;
+  typedef std::shared_ptr<strategy_type> strategy_ptr_type;
+  Plant(strategy_ptr_type s);
 
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
@@ -79,33 +78,18 @@ public:
   // ode::iterator       ode_rates(ode::iterator it)  const;
 
   // * Set constants within Strategy
-  static void prepare_strategy(Strategy_ptr s);
-  static double height_seed(Strategy_ptr s);
-
-  // static void compute_assimilation_fn(Strategy_ptr s,
-  //       			      double hmin, double hmax,
-  //       			      const Environment &environment);
-  // static void rescale_assimilation_fn(Strategy_ptr s,
-  //       			      double hmin, double hmax,
-  //       			      const Environment &environment);
-  // double assimilation_given_height(double h,
-  //       			   const Environment &environment);
+  static void prepare_strategy(strategy_ptr_type s);
+  static double height_seed(strategy_ptr_type s);
 
   // * R interface
-  Strategy r_get_strategy() const;
+  strategy_type r_get_strategy() const;
   SEXP r_get_vars_size() const;
   SEXP r_get_vars_phys() const;
   SEXP r_get_vars_growth() const;
 
   Plant r_copy() const;
 
-  // This is a bit weird, but can stick around for now -- read only
-  // access to the control object.
-  // TODO: Ripe for a tidy up.
   const Control& control() const;
-
-  quadrature::intervals_type get_last_integration_intervals() const;
-  void set_integration_intervals(quadrature::intervals_type x);
 
   void trim_rates();
 
@@ -211,9 +195,8 @@ private:
     double fecundity;
   };
 
-  Strategy_ptr strategy;
+  strategy_ptr_type strategy;
   internals vars;
-  quadrature::intervals_type integration_intervals;
 
   // The ode dimensions are:
   // 1. Height
@@ -224,8 +207,8 @@ private:
   static const int ode_dimension = 5;
 };
 
-Strategy_ptr make_strategy_ptr(Strategy s);
-Plant make_plant(Strategy s);
+Plant::strategy_ptr_type make_strategy_ptr(Plant::strategy_type s);
+Plant make_plant(Plant::strategy_type s);
 
 }
 

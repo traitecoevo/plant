@@ -37,19 +37,14 @@ CohortSchedule cohort_schedule_default(const Parameters& p) {
   return schedule.expand(p.size(), times);
 }
 
-// TODO: can't be a const reference because of validation/cohort setup
-// TODO: would be better with a set-all-times function.
+// NOTE: can't be a const reference because of validation, which might
+// set defaults within p.
 CohortSchedule make_cohort_schedule(Parameters p) {
   p.validate();
   CohortSchedule ret(p.size());
   ret.r_set_max_time(p.cohort_schedule_max_time);
-  for (size_t i = 0; i < ret.size(); ++i) {
-    ret.set_times(p.cohort_schedule_times[i], i);
-  }
-  // TODO: Allow setting empty ode times within CohortSchedule...
-  if (!p.cohort_schedule_ode_times.empty()) {
-    ret.r_set_ode_times(p.cohort_schedule_ode_times);
-  }
+  ret.set_times(p.cohort_schedule_times);
+  ret.r_set_ode_times(p.cohort_schedule_ode_times);
   return ret;
 }
 

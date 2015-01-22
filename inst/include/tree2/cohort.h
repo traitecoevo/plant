@@ -11,8 +11,9 @@ namespace tree2 {
 template <typename T>
 class Cohort {
 public:
-  typedef typename T::strategy_type strategy_type;
-  Cohort(strategy_type s);
+  typedef typename T::strategy_type     strategy_type;
+  typedef typename T::strategy_ptr_type strategy_ptr_type;
+  Cohort(strategy_ptr_type s);
 
   void compute_vars_phys(const Environment& environment);
   void compute_initial_conditions(const Environment& environment);
@@ -59,7 +60,7 @@ private:
 };
 
 template <typename T>
-Cohort<T>::Cohort(strategy_type s)
+Cohort<T>::Cohort(strategy_ptr_type s)
   : plant(s),
     log_density(R_NegInf),
     log_density_rate(0),
@@ -125,12 +126,25 @@ double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
   // the control object that the plant has anyway, so that will all
   // work pretty nicely.  The code in Plant::compute_assimilation to
   // make use of this has not yet been written though.
+
+  // First:
+  //   intervals = plant.get_integration_intervals();
+  //   tmp.set_integration_intervals(intervals);
+  // So, what we really need to do is set a flag within tmp.plant that
+  // integration should reuse last intervals.  The intervals are
+  // stored in Strategy->integrator.  But the actual integration
+  // function will need to make a copy of them before running the
+  // integration because otherwise they'll be buggered up.
   //
+  // My inclination is to do this with an default argument:
+  //   compute_vars_phys(environment, reuse_intervals=false);
+
   // TODO: There's no need to play around with cohorts here; could
   // work natively with a Plant object.  We'll lose the ability,
   // later, to easily get access to growth_rate_given_height, but
   // that's used in only one script.  It's a change that can be easily
   // made later though.
+
   Cohort<T> tmp = *this;
   auto fun = [&] (double h) mutable -> double {
     return tmp.growth_rate_given_height(h, environment);
@@ -200,7 +214,7 @@ ode::iterator Cohort<T>::ode_rates(ode::iterator it) const {
 }
 
 template <typename T>
-Cohort<T> make_cohort(typename Cohort<T>::strategy_type::element_type s) {
+Cohort<T> make_cohort(typename Cohort<T>::strategy_type s) {
   return Cohort<T>(make_strategy_ptr(s));
 }
 

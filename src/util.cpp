@@ -110,7 +110,6 @@ template <> SEXP wrap(const tree2::util::index& x) {
 }
 template <> tree2::util::index as(SEXP x) {
   const int ix(Rcpp::as<int>(x));
-  // TODO: Might need to let NA values through still...
   if (ix <= 0) {
     Rcpp::stop("Invalid value for index (must be >= 1)");
   }

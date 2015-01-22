@@ -50,6 +50,7 @@ public:
 
   void clear_times(size_t species_index);
   void set_times(std::vector<double> times_, size_t species_index);
+  void set_times(std::vector<std::vector<double> >);
   std::vector<double> times(size_t species_index) const;
   void reset();
   void pop();
