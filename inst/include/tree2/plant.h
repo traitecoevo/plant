@@ -74,6 +74,8 @@ public:
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
+  // Optional, but useful
+  static std::vector<std::string> ode_names();
 
   // * Set constants within Strategy
   static void prepare_strategy(strategy_ptr_type s);

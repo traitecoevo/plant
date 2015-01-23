@@ -46,6 +46,9 @@ template <> tree2::ode::Runner<tree2::ode::test::Lorenz> as(SEXP);
 template <> SEXP wrap(const tree2::ode::Runner<tree2::ode::test::OdeR>&);
 template <> tree2::ode::Runner<tree2::ode::test::OdeR> as(SEXP);
 
+template <> SEXP wrap(const tree2::ode::Runner<tree2::tools::PlantRunner>&);
+template <> tree2::ode::Runner<tree2::tools::PlantRunner> as(SEXP);
+
 template <> SEXP wrap(const tree2::CohortScheduleEvent&);
 template <> tree2::CohortScheduleEvent as(SEXP);
 

@@ -286,4 +286,8 @@ test_that("Ode interface", {
   state_new <- c(p$height * 2, runif(p$ode_size - 1L))
   p$ode_state <- state_new
   expect_that(p$ode_state, is_identical_to(state_new))
+
+  expect_that(p$ode_names,
+              is_identical_to(c("height", "mortality", "fecundity",
+                                "heartwood_area", "heartwood_mass")))
 })

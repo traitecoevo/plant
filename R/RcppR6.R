@@ -69,8 +69,8 @@ NULL
 
 OdeRunner <- function(T) {
   type <- c(T)
-  valid <- list("OdeRunner<Lorenz>"="Lorenz", "OdeRunner<OdeR>"="OdeR")
-  constructors <- list("OdeRunner<Lorenz>"=`OdeRunner<Lorenz>`, "OdeRunner<OdeR>"=`OdeRunner<OdeR>`)
+  valid <- list("OdeRunner<Lorenz>"="Lorenz", "OdeRunner<OdeR>"="OdeR", "OdeRunner<PlantRunner>"="PlantRunner")
+  constructors <- list("OdeRunner<Lorenz>"=`OdeRunner<Lorenz>`, "OdeRunner<OdeR>"=`OdeRunner<OdeR>`, "OdeRunner<PlantRunner>"=`OdeRunner<PlantRunner>`)
   constructors[[check_type(type, valid)]]
 }
 .R6_OdeRunner <- R6::R6Class("OdeRunner")
@@ -188,6 +188,64 @@ OdeRunner <- function(T) {
                     OdeRunner___OdeR__object__get(self)
                   } else {
                     stop("OdeRunner<OdeR>$object is read-only")
+                  }
+                }))
+
+
+`OdeRunner<PlantRunner>` <- function(obj, control=OdeControl()) {
+  OdeRunner___PlantRunner__ctor(obj, control)
+}
+.R6_OdeRunner___PlantRunner <-
+  R6::R6Class("OdeRunner<PlantRunner>",
+              portable=TRUE,
+              inherit=.R6_OdeRunner,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                advance = function(time) {
+                  OdeRunner___PlantRunner__advance(self, time)
+                },
+                advance_fixed = function(time) {
+                  OdeRunner___PlantRunner__advance_fixed(self, time)
+                },
+                step = function() {
+                  OdeRunner___PlantRunner__step(self)
+                },
+                step_to = function(time) {
+                  OdeRunner___PlantRunner__step_to(self, time)
+                },
+                set_state_from_system = function() {
+                  OdeRunner___PlantRunner__set_state_from_system(self)
+                }),
+              active=list(
+                time = function(value) {
+                  if (missing(value)) {
+                    OdeRunner___PlantRunner__time__get(self)
+                  } else {
+                    stop("OdeRunner<PlantRunner>$time is read-only")
+                  }
+                },
+                state = function(value) {
+                  if (missing(value)) {
+                    OdeRunner___PlantRunner__state__get(self)
+                  } else {
+                    stop("OdeRunner<PlantRunner>$state is read-only")
+                  }
+                },
+                times = function(value) {
+                  if (missing(value)) {
+                    OdeRunner___PlantRunner__times__get(self)
+                  } else {
+                    stop("OdeRunner<PlantRunner>$times is read-only")
+                  }
+                },
+                object = function(value) {
+                  if (missing(value)) {
+                    OdeRunner___PlantRunner__object__get(self)
+                  } else {
+                    stop("OdeRunner<PlantRunner>$object is read-only")
                   }
                 }))
 
@@ -803,6 +861,13 @@ Parameters <- function(..., values=list(...)) {
                     Plant__ode_rates__get(self)
                   } else {
                     stop("Plant$ode_rates is read-only")
+                  }
+                },
+                ode_names = function(value) {
+                  if (missing(value)) {
+                    Plant__ode_names__get(self)
+                  } else {
+                    stop("Plant$ode_names is read-only")
                   }
                 }))
 

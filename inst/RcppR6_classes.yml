@@ -24,6 +24,7 @@ OdeRunner:
     concrete:
       - ["Lorenz": "tree2::ode::test::Lorenz"]
       - ["OdeR":   "tree2::ode::test::OdeR"]
+      - ["PlantRunner": "tree2::tools::PlantRunner"]
   constructor:
     args: [obj: T, control: "tree2::ode::OdeControl=OdeControl()"]
   active:
@@ -398,6 +399,7 @@ Plant:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
     ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
+    ode_names: {type: "std::vector<std::string>", access: member}
   methods:
     leaf_area_above:
       args: [h: double]

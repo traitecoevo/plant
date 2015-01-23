@@ -554,6 +554,145 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// OdeRunner___PlantRunner__ctor
+tree2::ode::Runner<tree2::tools::PlantRunner> OdeRunner___PlantRunner__ctor(tree2::tools::PlantRunner obj, tree2::ode::OdeControl control);
+RcppExport SEXP tree2_OdeRunner___PlantRunner__ctor(SEXP objSEXP, SEXP controlSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::tools::PlantRunner >::type obj(objSEXP );
+        Rcpp::traits::input_parameter< tree2::ode::OdeControl >::type control(controlSEXP );
+        tree2::ode::Runner<tree2::tools::PlantRunner> __result = OdeRunner___PlantRunner__ctor(obj, control);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// OdeRunner___PlantRunner__advance
+void OdeRunner___PlantRunner__advance(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_, double time);
+RcppExport SEXP tree2_OdeRunner___PlantRunner__advance(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< double >::type time(timeSEXP );
+        OdeRunner___PlantRunner__advance(obj_, time);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// OdeRunner___PlantRunner__advance_fixed
+void OdeRunner___PlantRunner__advance_fixed(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_, std::vector<double> time);
+RcppExport SEXP tree2_OdeRunner___PlantRunner__advance_fixed(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP );
+        OdeRunner___PlantRunner__advance_fixed(obj_, time);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// OdeRunner___PlantRunner__step
+void OdeRunner___PlantRunner__step(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_);
+RcppExport SEXP tree2_OdeRunner___PlantRunner__step(SEXP obj_SEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > >::type obj_(obj_SEXP );
+        OdeRunner___PlantRunner__step(obj_);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// OdeRunner___PlantRunner__step_to
+void OdeRunner___PlantRunner__step_to(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_, double time);
+RcppExport SEXP tree2_OdeRunner___PlantRunner__step_to(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< double >::type time(timeSEXP );
+        OdeRunner___PlantRunner__step_to(obj_, time);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// OdeRunner___PlantRunner__set_state_from_system
+void OdeRunner___PlantRunner__set_state_from_system(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_);
+RcppExport SEXP tree2_OdeRunner___PlantRunner__set_state_from_system(SEXP obj_SEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > >::type obj_(obj_SEXP );
+        OdeRunner___PlantRunner__set_state_from_system(obj_);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// OdeRunner___PlantRunner__time__get
+double OdeRunner___PlantRunner__time__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_);
+RcppExport SEXP tree2_OdeRunner___PlantRunner__time__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > >::type obj_(obj_SEXP );
+        double __result = OdeRunner___PlantRunner__time__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// OdeRunner___PlantRunner__state__get
+tree2::ode::state_type OdeRunner___PlantRunner__state__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_);
+RcppExport SEXP tree2_OdeRunner___PlantRunner__state__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > >::type obj_(obj_SEXP );
+        tree2::ode::state_type __result = OdeRunner___PlantRunner__state__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// OdeRunner___PlantRunner__times__get
+std::vector<double> OdeRunner___PlantRunner__times__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_);
+RcppExport SEXP tree2_OdeRunner___PlantRunner__times__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > >::type obj_(obj_SEXP );
+        std::vector<double> __result = OdeRunner___PlantRunner__times__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// OdeRunner___PlantRunner__object__get
+tree2::tools::PlantRunner OdeRunner___PlantRunner__object__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_);
+RcppExport SEXP tree2_OdeRunner___PlantRunner__object__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > >::type obj_(obj_SEXP );
+        tree2::tools::PlantRunner __result = OdeRunner___PlantRunner__object__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // CohortScheduleEvent__ctor
 tree2::CohortScheduleEvent CohortScheduleEvent__ctor(double introduction, tree2::util::index species_index);
 RcppExport SEXP tree2_CohortScheduleEvent__ctor(SEXP introductionSEXP, SEXP species_indexSEXP) {
@@ -2086,6 +2225,21 @@ BEGIN_RCPP
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
         tree2::ode::state_type __result = Plant__ode_rates__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Plant__ode_names__get
+std::vector<std::string> Plant__ode_names__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
+RcppExport SEXP tree2_Plant__ode_names__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
+        std::vector<std::string> __result = Plant__ode_names__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

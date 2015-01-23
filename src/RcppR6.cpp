@@ -130,6 +130,51 @@ tree2::ode::test::OdeR OdeRunner___OdeR__object__get(tree2::RcppR6::RcppR6<tree2
 
 
 // [[Rcpp::export]]
+tree2::ode::Runner<tree2::tools::PlantRunner> OdeRunner___PlantRunner__ctor(tree2::tools::PlantRunner obj, tree2::ode::OdeControl control) {
+  return tree2::ode::Runner<tree2::tools::PlantRunner>(obj, control);
+}
+// [[Rcpp::export]]
+void OdeRunner___PlantRunner__advance(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_, double time) {
+  obj_->advance(time);
+}
+// [[Rcpp::export]]
+void OdeRunner___PlantRunner__advance_fixed(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_, std::vector<double> time) {
+  obj_->advance_fixed(time);
+}
+// [[Rcpp::export]]
+void OdeRunner___PlantRunner__step(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_) {
+  obj_->step();
+}
+// [[Rcpp::export]]
+void OdeRunner___PlantRunner__step_to(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_, double time) {
+  obj_->step_to(time);
+}
+// [[Rcpp::export]]
+void OdeRunner___PlantRunner__set_state_from_system(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_) {
+  obj_->set_state_from_system();
+}
+// [[Rcpp::export]]
+double OdeRunner___PlantRunner__time__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_) {
+  return obj_->time();
+}
+
+// [[Rcpp::export]]
+tree2::ode::state_type OdeRunner___PlantRunner__state__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_) {
+  return obj_->state();
+}
+
+// [[Rcpp::export]]
+std::vector<double> OdeRunner___PlantRunner__times__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_) {
+  return obj_->times();
+}
+
+// [[Rcpp::export]]
+tree2::tools::PlantRunner OdeRunner___PlantRunner__object__get(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_) {
+  return obj_->object();
+}
+
+
+// [[Rcpp::export]]
 tree2::CohortScheduleEvent CohortScheduleEvent__ctor(double introduction, tree2::util::index species_index) {
   return tree2::CohortScheduleEvent(introduction, species_index);
 }
@@ -608,6 +653,11 @@ void Plant__ode_state__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, tree2::ode:
 // [[Rcpp::export]]
 tree2::ode::state_type Plant__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
   return tree2::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+std::vector<std::string> Plant__ode_names__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->ode_names();
 }
 
 

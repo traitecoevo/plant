@@ -237,6 +237,11 @@ ode::iterator Plant::ode_rates(ode::iterator it) const {
   return it;
 }
 
+std::vector<std::string> Plant::ode_names() {
+  return std::vector<std::string>({"height", "mortality", "fecundity",
+	"heartwood_area", "heartwood_mass"});
+}
+
 // NOTE: static method.
 void Plant::prepare_strategy(strategy_ptr_type s) {
   // Set up the integrator.

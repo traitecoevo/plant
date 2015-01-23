@@ -179,6 +179,46 @@ OdeRunner___OdeR__object__get <- function(obj_) {
     .Call('tree2_OdeRunner___OdeR__object__get', PACKAGE = 'tree2', obj_)
 }
 
+OdeRunner___PlantRunner__ctor <- function(obj, control) {
+    .Call('tree2_OdeRunner___PlantRunner__ctor', PACKAGE = 'tree2', obj, control)
+}
+
+OdeRunner___PlantRunner__advance <- function(obj_, time) {
+    invisible(.Call('tree2_OdeRunner___PlantRunner__advance', PACKAGE = 'tree2', obj_, time))
+}
+
+OdeRunner___PlantRunner__advance_fixed <- function(obj_, time) {
+    invisible(.Call('tree2_OdeRunner___PlantRunner__advance_fixed', PACKAGE = 'tree2', obj_, time))
+}
+
+OdeRunner___PlantRunner__step <- function(obj_) {
+    invisible(.Call('tree2_OdeRunner___PlantRunner__step', PACKAGE = 'tree2', obj_))
+}
+
+OdeRunner___PlantRunner__step_to <- function(obj_, time) {
+    invisible(.Call('tree2_OdeRunner___PlantRunner__step_to', PACKAGE = 'tree2', obj_, time))
+}
+
+OdeRunner___PlantRunner__set_state_from_system <- function(obj_) {
+    invisible(.Call('tree2_OdeRunner___PlantRunner__set_state_from_system', PACKAGE = 'tree2', obj_))
+}
+
+OdeRunner___PlantRunner__time__get <- function(obj_) {
+    .Call('tree2_OdeRunner___PlantRunner__time__get', PACKAGE = 'tree2', obj_)
+}
+
+OdeRunner___PlantRunner__state__get <- function(obj_) {
+    .Call('tree2_OdeRunner___PlantRunner__state__get', PACKAGE = 'tree2', obj_)
+}
+
+OdeRunner___PlantRunner__times__get <- function(obj_) {
+    .Call('tree2_OdeRunner___PlantRunner__times__get', PACKAGE = 'tree2', obj_)
+}
+
+OdeRunner___PlantRunner__object__get <- function(obj_) {
+    .Call('tree2_OdeRunner___PlantRunner__object__get', PACKAGE = 'tree2', obj_)
+}
+
 CohortScheduleEvent__ctor <- function(introduction, species_index) {
     .Call('tree2_CohortScheduleEvent__ctor', PACKAGE = 'tree2', introduction, species_index)
 }
@@ -593,6 +633,10 @@ Plant__ode_state__set <- function(obj_, value) {
 
 Plant__ode_rates__get <- function(obj_) {
     .Call('tree2_Plant__ode_rates__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__ode_names__get <- function(obj_) {
+    .Call('tree2_Plant__ode_names__get', PACKAGE = 'tree2', obj_)
 }
 
 Cohort__ctor <- function(strategy) {
