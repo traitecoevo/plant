@@ -7,6 +7,7 @@
 #include <tree2/strategy.h>
 #include <tree2/qag_internals.h> // quadrature::intervals_type
 #include <tree2/environment.h>
+#include <tree2/ode_interface.h>
 #include <RcppCommon.h>
 
 namespace tree2 {
@@ -69,13 +70,10 @@ public:
   double germination_probability(const Environment& environment);
 
   // * ODE interface
-  // TODO: This bit is currently not implemented because I need to
-  // look into how I am going to drive this.  It's hard to do this
-  // with dealing with envionment.
-  // static size_t ode_size() {return ode_dimension;}
-  // ode::iterator_const set_ode_state(double time, ode::iterator_const it);
-  // ode::iterator       ode_state(ode::iterator it) const;
-  // ode::iterator       ode_rates(ode::iterator it)  const;
+  static size_t ode_size() {return 5;}
+  ode::const_iterator set_ode_state(ode::const_iterator it);
+  ode::iterator       ode_state(ode::iterator it) const;
+  ode::iterator       ode_rates(ode::iterator it) const;
 
   // * Set constants within Strategy
   static void prepare_strategy(strategy_ptr_type s);

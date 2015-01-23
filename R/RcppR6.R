@@ -783,6 +783,27 @@ Parameters <- function(..., values=list(...)) {
                   } else {
                     stop("Plant$vars_growth is read-only")
                   }
+                },
+                ode_size = function(value) {
+                  if (missing(value)) {
+                    Plant__ode_size__get(self)
+                  } else {
+                    stop("Plant$ode_size is read-only")
+                  }
+                },
+                ode_state = function(value) {
+                  if (missing(value)) {
+                    Plant__ode_state__get(self)
+                  } else {
+                    Plant__ode_state__set(self, value)
+                  }
+                },
+                ode_rates = function(value) {
+                  if (missing(value)) {
+                    Plant__ode_rates__get(self)
+                  } else {
+                    stop("Plant$ode_rates is read-only")
+                  }
                 }))
 
 

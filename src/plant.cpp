@@ -210,6 +210,33 @@ double Plant::germination_probability() const {
   }
 }
 
+// ODE interface -- note that the don't care about time in the plant;
+// only Patch and above does.
+ode::const_iterator Plant::set_ode_state(ode::const_iterator it) {
+  set_height(*it++);
+  set_mortality(*it++);
+  set_fecundity(*it++);
+  set_heartwood_area(*it++);
+  set_heartwood_mass(*it++);
+  return it;
+}
+ode::iterator Plant::ode_state(ode::iterator it) const {
+  *it++ = height();
+  *it++ = mortality();
+  *it++ = fecundity();
+  *it++ = heartwood_area();
+  *it++ = heartwood_mass();
+  return it;
+}
+ode::iterator Plant::ode_rates(ode::iterator it) const {
+  *it++ = height_rate();
+  *it++ = mortality_rate();
+  *it++ = fecundity_rate();
+  *it++ = heartwood_area_rate();
+  *it++ = heartwood_mass_rate();
+  return it;
+}
+
 // NOTE: static method.
 void Plant::prepare_strategy(strategy_ptr_type s) {
   // Set up the integrator.

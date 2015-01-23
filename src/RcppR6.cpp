@@ -591,6 +591,25 @@ SEXP Plant__vars_growth__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
   return obj_->r_get_vars_growth();
 }
 
+// [[Rcpp::export]]
+size_t Plant__ode_size__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
+tree2::ode::state_type Plant__ode_state__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return tree2::ode::r_ode_state(*obj_);
+}
+// [[Rcpp::export]]
+void Plant__ode_state__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, tree2::ode::state_type value) {
+  tree2::ode::r_set_ode_state(*obj_, value);
+}
+
+// [[Rcpp::export]]
+tree2::ode::state_type Plant__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return tree2::ode::r_ode_rates(*obj_);
+}
+
 
 // [[Rcpp::export]]
 tree2::Cohort<tree2::Plant> Cohort__ctor(tree2::Strategy strategy) {

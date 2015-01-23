@@ -11,6 +11,7 @@ namespace tree2 {
 template <typename T>
 class Cohort {
 public:
+  typedef T plant_type;
   typedef typename T::strategy_type     strategy_type;
   typedef typename T::strategy_ptr_type strategy_ptr_type;
   Cohort(strategy_ptr_type s);
@@ -43,7 +44,7 @@ public:
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
 
-  T plant;
+  plant_type plant;
 
 private:
   // This is the gradient of growth rate with respect to height:

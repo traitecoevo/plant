@@ -2034,6 +2034,64 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Plant__ode_size__get
+size_t Plant__ode_size__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
+RcppExport SEXP tree2_Plant__ode_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
+        size_t __result = Plant__ode_size__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Plant__ode_state__get
+tree2::ode::state_type Plant__ode_state__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
+RcppExport SEXP tree2_Plant__ode_state__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
+        tree2::ode::state_type __result = Plant__ode_state__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Plant__ode_state__set
+void Plant__ode_state__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, tree2::ode::state_type value);
+RcppExport SEXP tree2_Plant__ode_state__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::ode::state_type >::type value(valueSEXP );
+        Plant__ode_state__set(obj_, value);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// Plant__ode_rates__get
+tree2::ode::state_type Plant__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
+RcppExport SEXP tree2_Plant__ode_rates__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
+        tree2::ode::state_type __result = Plant__ode_rates__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // Cohort__ctor
 tree2::Cohort<tree2::Plant> Cohort__ctor(tree2::Strategy strategy);
 RcppExport SEXP tree2_Cohort__ctor(SEXP strategySEXP) {

@@ -395,6 +395,9 @@ Plant:
     vars_size: {type: SEXP, access: member, name_cpp: r_get_vars_size}
     vars_phys: {type: SEXP, access: member, name_cpp: r_get_vars_phys}
     vars_growth: {type: SEXP, access: member, name_cpp: r_get_vars_growth}
+    ode_size: {type: size_t, access: member}
+    ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
+    ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
   methods:
     leaf_area_above:
       args: [h: double]

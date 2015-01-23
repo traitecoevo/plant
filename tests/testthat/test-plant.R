@@ -261,3 +261,29 @@ test_that("Non-adaptive assimilation integration works", {
               equals(p1_phys[["assimilation"]], tolerance=1e-3))
   expect_that(p2_phys, not(is_identical_to(p1_phys)))
 })
+
+test_that("Ode interface", {
+  p <- Plant(Strategy())
+  expect_that(p$ode_size, equals(5))
+  expect_that(p$ode_state,
+              equals(c(p$height, p$mortality, p$fecundity,
+                       p$heartwood_area, p$heartwood_mass)))
+
+  env <- test_environment(p$height * 10)
+  p$compute_vars_phys(env)
+  expect_that(p$ode_state,
+              equals(c(p$height, p$mortality, p$fecundity,
+                       p$heartwood_area, p$heartwood_mass)))
+  phys <- as.list(p$vars_phys)
+  growth <- as.list(p$vars_growth)
+  expect_that(p$ode_rates,
+              equals(c(phys$height_growth_rate,
+                       phys$mortality_rate,
+                       phys$fecundity_rate,
+                       growth$dheartwood_area_dt,
+                       growth$dheartwood_mass_dt)))
+
+  state_new <- c(p$height * 2, runif(p$ode_size - 1L))
+  p$ode_state <- state_new
+  expect_that(p$ode_state, is_identical_to(state_new))
+})

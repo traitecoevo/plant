@@ -579,6 +579,22 @@ Plant__vars_growth__get <- function(obj_) {
     .Call('tree2_Plant__vars_growth__get', PACKAGE = 'tree2', obj_)
 }
 
+Plant__ode_size__get <- function(obj_) {
+    .Call('tree2_Plant__ode_size__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__ode_state__get <- function(obj_) {
+    .Call('tree2_Plant__ode_state__get', PACKAGE = 'tree2', obj_)
+}
+
+Plant__ode_state__set <- function(obj_, value) {
+    invisible(.Call('tree2_Plant__ode_state__set', PACKAGE = 'tree2', obj_, value))
+}
+
+Plant__ode_rates__get <- function(obj_) {
+    .Call('tree2_Plant__ode_rates__get', PACKAGE = 'tree2', obj_)
+}
+
 Cohort__ctor <- function(strategy) {
     .Call('tree2_Cohort__ctor', PACKAGE = 'tree2', strategy)
 }
