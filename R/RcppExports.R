@@ -867,6 +867,18 @@ EBT__state__get <- function(obj_) {
     .Call('tree2_EBT__state__get', PACKAGE = 'tree2', obj_)
 }
 
+PlantRunner__ctor <- function(plant, environment) {
+    .Call('tree2_PlantRunner__ctor', PACKAGE = 'tree2', plant, environment)
+}
+
+PlantRunner__plant__get <- function(obj_) {
+    .Call('tree2_PlantRunner__plant__get', PACKAGE = 'tree2', obj_)
+}
+
+PlantRunner__plant__set <- function(obj_, value) {
+    invisible(.Call('tree2_PlantRunner__plant__set', PACKAGE = 'tree2', obj_, value))
+}
+
 test_uniroot <- function(f, min, max) {
     .Call('tree2_test_uniroot', PACKAGE = 'tree2', f, min, max)
 }

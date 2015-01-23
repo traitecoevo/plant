@@ -51,6 +51,8 @@ template <typename T> class Runner;
 #include <tree2/patch.h>
 #include <tree2/ebt.h>
 
+#include <tree2/plant_runner.h>
+
 // Anything after this point is OK to include Rcpp.h.  This is
 // probably where the meat of the included material goes if your
 // classes directly use Rcpp types.  Otherwise you can just declare

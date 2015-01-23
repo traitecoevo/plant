@@ -922,3 +922,17 @@ Rcpp::List EBT__state__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_
   return tree2::get_state(*obj_);
 }
 
+
+// [[Rcpp::export]]
+tree2::tools::PlantRunner PlantRunner__ctor(tree2::Plant plant, tree2::Environment environment) {
+  return tree2::tools::PlantRunner(plant, environment);
+}
+// [[Rcpp::export]]
+tree2::Plant PlantRunner__plant__get(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner> obj_) {
+  return obj_->plant;
+}
+// [[Rcpp::export]]
+void PlantRunner__plant__set(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner> obj_, tree2::Plant value) {
+  obj_->plant = value;
+}
+

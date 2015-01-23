@@ -3086,6 +3086,50 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// PlantRunner__ctor
+tree2::tools::PlantRunner PlantRunner__ctor(tree2::Plant plant, tree2::Environment environment);
+RcppExport SEXP tree2_PlantRunner__ctor(SEXP plantSEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::Plant >::type plant(plantSEXP );
+        Rcpp::traits::input_parameter< tree2::Environment >::type environment(environmentSEXP );
+        tree2::tools::PlantRunner __result = PlantRunner__ctor(plant, environment);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// PlantRunner__plant__get
+tree2::Plant PlantRunner__plant__get(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner> obj_);
+RcppExport SEXP tree2_PlantRunner__plant__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::tools::PlantRunner> >::type obj_(obj_SEXP );
+        tree2::Plant __result = PlantRunner__plant__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// PlantRunner__plant__set
+void PlantRunner__plant__set(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner> obj_, tree2::Plant value);
+RcppExport SEXP tree2_PlantRunner__plant__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::tools::PlantRunner> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::Plant >::type value(valueSEXP );
+        PlantRunner__plant__set(obj_, value);
+    }
+    return R_NilValue;
+END_RCPP
+}
 // test_uniroot
 double test_uniroot(Rcpp::Function f, double min, double max);
 RcppExport SEXP tree2_test_uniroot(SEXP fSEXP, SEXP minSEXP, SEXP maxSEXP) {

@@ -87,6 +87,10 @@ template <> inline std::string generator_name<tree2::Patch<tree2::Cohort<tree2::
 template <> inline std::string   class_name_r<tree2::EBT<tree2::Plant> >() {return "EBT";}
 template <> inline std::string   package_name<tree2::EBT<tree2::Plant> >() {return "tree2";}
 template <> inline std::string generator_name<tree2::EBT<tree2::Plant> >() {return ".R6_EBT";}
+
+template <> inline std::string   class_name_r<tree2::tools::PlantRunner >() {return "PlantRunner";}
+template <> inline std::string   package_name<tree2::tools::PlantRunner >() {return "tree2";}
+template <> inline std::string generator_name<tree2::tools::PlantRunner >() {return ".R6_PlantRunner";}
 }
 }
 }
@@ -593,6 +597,13 @@ template <> inline SEXP wrap(const tree2::EBT<tree2::Plant>& x) {
 }
 template <> inline tree2::EBT<tree2::Plant> as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> >(x));
+}
+
+template <> inline SEXP wrap(const tree2::tools::PlantRunner& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner>(x));
+}
+template <> inline tree2::tools::PlantRunner as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner>(x));
 }
 }
 

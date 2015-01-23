@@ -26,6 +26,7 @@ namespace tree2 { namespace quadrature { class QAG; } }
 namespace tree2 { namespace interpolator { class Interpolator; } }
 namespace tree2 { class Environment; }
 namespace tree2 { class Plant; }
+namespace tree2 { namespace tools { struct PlantRunner; } }
 
 namespace Rcpp {
 template <typename T> SEXP wrap(const tree2::RcppR6::RcppR6<T>&);
@@ -92,6 +93,9 @@ template <> tree2::Patch<tree2::Cohort<tree2::Plant> > as(SEXP);
 
 template <> SEXP wrap(const tree2::EBT<tree2::Plant>&);
 template <> tree2::EBT<tree2::Plant> as(SEXP);
+
+template <> SEXP wrap(const tree2::tools::PlantRunner&);
+template <> tree2::tools::PlantRunner as(SEXP);
 }
 
 #endif

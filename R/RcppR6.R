@@ -1190,6 +1190,28 @@ Parameters <- function(..., values=list(...)) {
                   }
                 }))
 
+
+`PlantRunner` <- function(plant, environment) {
+  PlantRunner__ctor(plant, environment)
+}
+.R6_PlantRunner <-
+  R6::R6Class("PlantRunner",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                }),
+              active=list(
+                plant = function(value) {
+                  if (missing(value)) {
+                    PlantRunner__plant__get(self)
+                  } else {
+                    PlantRunner__plant__set(self, value)
+                  }
+                }))
+
 ## This section of code is only included where templated classes are
 ## included.  Don't rely on the approach taken here, as it may change
 ## soon.

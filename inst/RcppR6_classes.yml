@@ -577,3 +577,11 @@ EBT:
       type: "Rcpp::List"
       access: function
       name_cpp: "tree2::get_state"
+
+PlantRunner:
+  name_cpp: "tree2::tools::PlantRunner"
+  forward_declare: struct
+  constructor:
+    args: [plant: "tree2::Plant", environment: "tree2::Environment"]
+  active:
+    plant: {access: field, type: "tree2::Plant"}
