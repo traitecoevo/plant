@@ -118,9 +118,10 @@ double Plant::leaf_area_above(double z) const {
 // * Mass production
 // [eqn 12-19,21] Update physiological variables given the current
 // light environment (and given the current set of size variables).
-void Plant::compute_vars_phys(const Environment& environment) {
+void Plant::compute_vars_phys(const Environment& environment,
+			      bool reuse_intervals) {
   // [eqn 12] Gross annual CO2 assimilation
-  vars.assimilation = assimilation(environment);
+  vars.assimilation = assimilation(environment, reuse_intervals);
 
   // [eqn 13] Total maintenance respiration
   vars.respiration = compute_respiration();
@@ -404,14 +405,10 @@ double Plant::Qp(double x) const { // x in [0,1], unchecked.
 //
 // NOTE: In contrast with Daniel's implementation (but following
 // Falster 2012), we do not normalise by Y*c_bio here.
-double Plant::assimilation(const Environment& environment) {
-  return compute_assimilation(environment);
-}
-
-double Plant::compute_assimilation(const Environment& environment) {
+double Plant::assimilation(const Environment& environment,
+			   bool reuse_intervals) {
   const bool over_distribution = control().plant_assimilation_over_distribution;
   const double x_min = 0.0, x_max = over_distribution ? 1.0 : vars.height;
-  const bool reuse_intervals = false;
 
   double A = 0.0;
   quadrature::QAG& integrator(strategy->integrator());
@@ -427,9 +424,8 @@ double Plant::compute_assimilation(const Environment& environment) {
     };
   }
 
-  if (reuse_intervals) {
-    A = integrator.integrate_with_intervals(f,
-					    integrator.get_last_intervals());
+  if (control().plant_assimilation_adaptive && reuse_intervals) {
+    A = integrator.integrate_with_last_intervals(f, x_min, x_max);
   } else {
     A = integrator.integrate(f, x_min, x_max);
   }

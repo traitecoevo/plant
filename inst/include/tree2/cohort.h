@@ -49,8 +49,6 @@ public:
 private:
   // This is the gradient of growth rate with respect to height:
   double growth_rate_gradient(const Environment& environment) const;
-  double growth_rate_given_height(double height_,
-                                  const Environment& environment);
 
   double log_density;
   double log_density_rate;
@@ -78,6 +76,8 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
   // [eqn 22] Density per unit area of individuals with size 'h'.
   // EBT.md{eq:boundN}, see Numerical technique.
   // details.md, for details on translation from mass_leaf to height.
+  // NOTE: This must be called *after* compute_vars_phys, but given we
+  // need mortality_rate() that's always going to be the case.
   log_density_rate =
     - growth_rate_gradient(environment)
     - plant.mortality_rate();
@@ -122,57 +122,28 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
 
 template <typename T>
 double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
-  // TODO: What needs to happen here is that we set tmp.plant to use
-  // previously stored integration intervals.  They will be found in
-  // the control object that the plant has anyway, so that will all
-  // work pretty nicely.  The code in Plant::compute_assimilation to
-  // make use of this has not yet been written though.
-
-  // First:
-  //   intervals = plant.get_integration_intervals();
-  //   tmp.set_integration_intervals(intervals);
-  // So, what we really need to do is set a flag within tmp.plant that
-  // integration should reuse last intervals.  The intervals are
-  // stored in Strategy->integrator.  But the actual integration
-  // function will need to make a copy of them before running the
-  // integration because otherwise they'll be buggered up.
-  //
-  // My inclination is to do this with an default argument:
-  //   compute_vars_phys(environment, reuse_intervals=false);
-
-  // TODO: There's no need to play around with cohorts here; could
-  // work natively with a Plant object.  We'll lose the ability,
-  // later, to easily get access to growth_rate_given_height, but
-  // that's used in only one script.  It's a change that can be easily
-  // made later though.
-
-  Cohort<T> tmp = *this;
+  T p = plant;
   auto fun = [&] (double h) mutable -> double {
-    return tmp.growth_rate_given_height(h, environment);
+    return growth_rate_given_height(p, h, environment);
   };
 
   const Control& control = plant.control();
   const double eps = control.cohort_gradient_eps;
   if (control.cohort_gradient_richardson) {
-    const size_t r = control.cohort_gradient_richardson_depth;
-    return util::gradient_richardson(fun, plant.height(), eps, r);
+    return util::gradient_richardson(fun, plant.height(), eps,
+				     control.cohort_gradient_richardson_depth);
   } else {
     return util::gradient_fd(fun, plant.height(), eps, plant.height_rate(),
                              control.cohort_gradient_direction);
   }
 }
 
-// This exists only because it is needed by growth_rate_gradient.
-template <typename T>
-double Cohort<T>::growth_rate_given_height(double height_,
-                                           const Environment& environment) {
-  plant.set_height(height_);
-  plant.compute_vars_phys(environment);
-  return plant.height_rate();
-}
-
 template <typename T>
 double Cohort<T>::r_growth_rate_gradient(const Environment& environment) {
+  // We need to compute the physiological variables here, first, so
+  // that reusing intervals works as expected.  This would ordinarily
+  // be taken care of because of the calling order of
+  // compute_vars_phys / growth_rate_gradient.
   plant.compute_vars_phys(environment);
   return growth_rate_gradient(environment);
 }
@@ -217,6 +188,14 @@ ode::iterator Cohort<T>::ode_rates(ode::iterator it) const {
 template <typename T>
 Cohort<T> make_cohort(typename Cohort<T>::strategy_type s) {
   return Cohort<T>(make_strategy_ptr(s));
+}
+
+template <typename T>
+double growth_rate_given_height(T& plant, double height,
+				const Environment& environment) {
+  plant.set_height(height);
+  plant.compute_vars_phys(environment, true);
+  return plant.height_rate();
 }
 
 }

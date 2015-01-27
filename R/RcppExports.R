@@ -431,6 +431,10 @@ QAG__integrate_with_intervals <- function(obj_, f, intervals) {
     .Call('tree2_QAG__integrate_with_intervals', PACKAGE = 'tree2', obj_, f, intervals)
 }
 
+QAG__integrate_with_last_intervals <- function(obj_, f, a, b) {
+    .Call('tree2_QAG__integrate_with_last_intervals', PACKAGE = 'tree2', obj_, f, a, b)
+}
+
 QAG__last_area__get <- function(obj_) {
     .Call('tree2_QAG__last_area__get', PACKAGE = 'tree2', obj_)
 }

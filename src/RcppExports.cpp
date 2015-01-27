@@ -1484,6 +1484,24 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// QAG__integrate_with_last_intervals
+double QAG__integrate_with_last_intervals(tree2::RcppR6::RcppR6<tree2::quadrature::QAG> obj_, SEXP f, double a, double b);
+RcppExport SEXP tree2_QAG__integrate_with_last_intervals(SEXP obj_SEXP, SEXP fSEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::quadrature::QAG> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< SEXP >::type f(fSEXP );
+        Rcpp::traits::input_parameter< double >::type a(aSEXP );
+        Rcpp::traits::input_parameter< double >::type b(bSEXP );
+        double __result = QAG__integrate_with_last_intervals(obj_, f, a, b);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // QAG__last_area__get
 double QAG__last_area__get(tree2::RcppR6::RcppR6<tree2::quadrature::QAG> obj_);
 RcppExport SEXP tree2_QAG__last_area__get(SEXP obj_SEXP) {

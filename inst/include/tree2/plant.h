@@ -62,7 +62,8 @@ public:
 
   // * Mass production
   // [eqn 12-19,21] Update physiological variables
-  void compute_vars_phys(const Environment& environment);
+  void compute_vars_phys(const Environment& environment, bool
+			 reuse_intervals=false);
 
   // * Births and deaths
   // [eqn 20] Survival of seedlings during germination
@@ -111,8 +112,7 @@ private:
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
-  double assimilation(const Environment& environment);
-  double compute_assimilation(const Environment& environment);
+  double assimilation(const Environment& environment, bool reuse_intervals);
   // Used internally, corresponding to the inner term in [eqn 12]
   double compute_assimilation_x(double x, const Environment& environment) const;
   double compute_assimilation_h(double h, const Environment& environment) const;

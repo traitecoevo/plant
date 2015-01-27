@@ -311,6 +311,10 @@ QAG:
       return_type: double
       name_cpp: r_integrate_with_intervals
       args: [f: SEXP, intervals: SEXP]
+    integrate_with_last_intervals:
+      return_type: double
+      name_cpp: r_integrate_with_last_intervals
+      args: [f: SEXP, a: double, b: double]
   active:
     last_area: {type: double, access: member, name_cpp: get_last_area}
     last_error: {type: double, access: member, name_cpp: get_last_error}

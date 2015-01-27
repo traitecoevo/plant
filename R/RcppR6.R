@@ -572,6 +572,9 @@ Parameters <- function(..., values=list(...)) {
                 },
                 integrate_with_intervals = function(f, intervals) {
                   QAG__integrate_with_intervals(self, f, intervals)
+                },
+                integrate_with_last_intervals = function(f, a, b) {
+                  QAG__integrate_with_last_intervals(self, f, a, b)
                 }),
               active=list(
                 last_area = function(value) {

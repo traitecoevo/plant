@@ -5,7 +5,7 @@
 #include <tree2/qk.h>
 #include <tree2/qag_internals.h>
 #include <tree2/util.h> // util::stop
-#include <RcppCommon.h>
+#include <RcppCommon.h> // SEXP
 
 namespace tree2 {
 namespace quadrature {
@@ -21,6 +21,8 @@ public:
   double integrate(Function f, double a, double b);
   template <typename Function>
   double integrate_with_intervals(Function f, intervals_type intervals);
+  template <typename Function>
+  double integrate_with_last_intervals(Function f, double a, double b);
 
   double get_last_area()       const {return area;}
   double get_last_error()      const {return error;}
@@ -33,6 +35,7 @@ public:
   // implementation in qag.cpp.
   double r_integrate(SEXP f, double a, double b);
   double r_integrate_with_intervals(SEXP f, SEXP intervals);
+  double r_integrate_with_last_intervals(SEXP f, double a, double b);
   SEXP r_get_last_intervals() const;
 
 private:
@@ -103,6 +106,7 @@ double QAG::integrate_with_intervals(Function f,
   if (!adaptive) {
     util::stop("This really does not make any sense...");
   }
+
   std::vector<double>::const_iterator
     a     = intervals[0].begin(),
     b     = intervals[1].begin(),
@@ -116,6 +120,18 @@ double QAG::integrate_with_intervals(Function f,
   area  = w.total_area();
   error = w.total_error();
   return area;
+}
+
+template <typename Function>
+double QAG::integrate_with_last_intervals(Function f,
+                                          double a, double b) {
+  intervals_type intervals = w.get_intervals();
+  if (intervals[0].empty()) {
+    util::stop("No stored intervals to use");
+  }
+  intervals_type intervals_scaled =
+    internal::rescale_intervals(intervals, a, b);
+  return integrate_with_intervals(f, intervals_scaled);
 }
 
 template <typename Function>

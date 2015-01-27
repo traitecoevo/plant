@@ -54,6 +54,11 @@ double QAG::r_integrate_with_intervals(SEXP f, SEXP intervals) {
   return integrate_with_intervals(fw, tmp);
 }
 
+double QAG::r_integrate_with_last_intervals(SEXP f, double a, double b) {
+  util::RFunctionWrapper fw(Rcpp::as<Rcpp::Function>(f));
+  return integrate_with_last_intervals(fw, a, b);
+}
+
 bool QAG::subinterval_too_small(double a1, double mid,
                                 double b2) {
   const double e = std::numeric_limits<double>::epsilon();

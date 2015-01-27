@@ -46,6 +46,7 @@ private:
 };
 
 intervals_type rescale_intervals(intervals_type x, double min, double max);
+void print_intervals(intervals_type x);
 
 }
 }
