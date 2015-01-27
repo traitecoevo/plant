@@ -54,7 +54,6 @@ private:
 
   // NOTE: Ideas around this may change.
   bool dydt_in_is_clean;
-
 };
 
 // NOTE I'm setting the initial system size to 0 here, but some

@@ -119,6 +119,10 @@ OdeRunner___Lorenz__step_to <- function(obj_, time) {
     invisible(.Call('tree2_OdeRunner___Lorenz__step_to', PACKAGE = 'tree2', obj_, time))
 }
 
+OdeRunner___Lorenz__set_state <- function(obj_, y, time) {
+    invisible(.Call('tree2_OdeRunner___Lorenz__set_state', PACKAGE = 'tree2', obj_, y, time))
+}
+
 OdeRunner___Lorenz__set_state_from_system <- function(obj_) {
     invisible(.Call('tree2_OdeRunner___Lorenz__set_state_from_system', PACKAGE = 'tree2', obj_))
 }
@@ -159,6 +163,10 @@ OdeRunner___OdeR__step_to <- function(obj_, time) {
     invisible(.Call('tree2_OdeRunner___OdeR__step_to', PACKAGE = 'tree2', obj_, time))
 }
 
+OdeRunner___OdeR__set_state <- function(obj_, y, time) {
+    invisible(.Call('tree2_OdeRunner___OdeR__set_state', PACKAGE = 'tree2', obj_, y, time))
+}
+
 OdeRunner___OdeR__set_state_from_system <- function(obj_) {
     invisible(.Call('tree2_OdeRunner___OdeR__set_state_from_system', PACKAGE = 'tree2', obj_))
 }
@@ -197,6 +205,10 @@ OdeRunner___PlantRunner__step <- function(obj_) {
 
 OdeRunner___PlantRunner__step_to <- function(obj_, time) {
     invisible(.Call('tree2_OdeRunner___PlantRunner__step_to', PACKAGE = 'tree2', obj_, time))
+}
+
+OdeRunner___PlantRunner__set_state <- function(obj_, y, time) {
+    invisible(.Call('tree2_OdeRunner___PlantRunner__set_state', PACKAGE = 'tree2', obj_, y, time))
 }
 
 OdeRunner___PlantRunner__set_state_from_system <- function(obj_) {
@@ -921,6 +933,10 @@ PlantRunner__plant__get <- function(obj_) {
 
 PlantRunner__plant__set <- function(obj_, value) {
     invisible(.Call('tree2_PlantRunner__plant__set', PACKAGE = 'tree2', obj_, value))
+}
+
+oderunner_plant_size <- function(obj) {
+    .Call('tree2_oderunner_plant_size', PACKAGE = 'tree2', obj)
 }
 
 test_uniroot <- function(f, min, max) {

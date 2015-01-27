@@ -60,6 +60,10 @@ void OdeRunner___Lorenz__step_to(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2:
   obj_->step_to(time);
 }
 // [[Rcpp::export]]
+void OdeRunner___Lorenz__set_state(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_, tree2::ode::state_type y, double time) {
+  obj_->set_state(y, time);
+}
+// [[Rcpp::export]]
 void OdeRunner___Lorenz__set_state_from_system(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::Lorenz> > obj_) {
   obj_->set_state_from_system();
 }
@@ -105,6 +109,10 @@ void OdeRunner___OdeR__step_to(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::o
   obj_->step_to(time);
 }
 // [[Rcpp::export]]
+void OdeRunner___OdeR__set_state(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_, tree2::ode::state_type y, double time) {
+  obj_->set_state(y, time);
+}
+// [[Rcpp::export]]
 void OdeRunner___OdeR__set_state_from_system(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::ode::test::OdeR> > obj_) {
   obj_->set_state_from_system();
 }
@@ -148,6 +156,10 @@ void OdeRunner___PlantRunner__step(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree
 // [[Rcpp::export]]
 void OdeRunner___PlantRunner__step_to(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_, double time) {
   obj_->step_to(time);
+}
+// [[Rcpp::export]]
+void OdeRunner___PlantRunner__set_state(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_, tree2::ode::state_type y, double time) {
+  obj_->set_state(y, time);
 }
 // [[Rcpp::export]]
 void OdeRunner___PlantRunner__set_state_from_system(tree2::RcppR6::RcppR6<tree2::ode::Runner<tree2::tools::PlantRunner> > obj_) {

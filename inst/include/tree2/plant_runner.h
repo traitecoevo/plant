@@ -14,8 +14,10 @@ struct PlantRunner {
     plant.compute_vars_phys(environment);
   }
   static size_t ode_size() {return Plant::ode_size();}
-  ode::const_iterator set_ode_state(ode::const_iterator it) {
+  double ode_time() const {return environment.time;}
+  ode::const_iterator set_ode_state(ode::const_iterator it, double time) {
     it = plant.set_ode_state(it);
+    environment.time = time;
     plant.compute_vars_phys(environment);
     return it;
   }

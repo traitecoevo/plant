@@ -37,6 +37,7 @@ OdeRunner:
     advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
     step: {return_type: void}
     step_to: {return_type: void, args: [time: double]}
+    set_state: {return_type: void, args: [y: "tree2::ode::state_type", time: double]}
     set_state_from_system: {return_type: void}
 
 CohortScheduleEvent:

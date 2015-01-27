@@ -100,6 +100,9 @@ OdeRunner <- function(T) {
                 step_to = function(time) {
                   OdeRunner___Lorenz__step_to(self, time)
                 },
+                set_state = function(y, time) {
+                  OdeRunner___Lorenz__set_state(self, y, time)
+                },
                 set_state_from_system = function() {
                   OdeRunner___Lorenz__set_state_from_system(self)
                 }),
@@ -158,6 +161,9 @@ OdeRunner <- function(T) {
                 step_to = function(time) {
                   OdeRunner___OdeR__step_to(self, time)
                 },
+                set_state = function(y, time) {
+                  OdeRunner___OdeR__set_state(self, y, time)
+                },
                 set_state_from_system = function() {
                   OdeRunner___OdeR__set_state_from_system(self)
                 }),
@@ -215,6 +221,9 @@ OdeRunner <- function(T) {
                 },
                 step_to = function(time) {
                   OdeRunner___PlantRunner__step_to(self, time)
+                },
+                set_state = function(y, time) {
+                  OdeRunner___PlantRunner__set_state(self, y, time)
                 },
                 set_state_from_system = function() {
                   OdeRunner___PlantRunner__set_state_from_system(self)
