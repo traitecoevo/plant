@@ -381,6 +381,10 @@ Plant:
   constructor:
     name_cpp: "tree2::make_plant"
     args: [strategy: "tree2::Strategy"]
+    roxygen: |
+      Plant object
+      @param strategy A \code{Strategy} object
+      @export
   active:
     height: {type: double, access: member, name_cpp: height, name_cpp_set: set_height}
     # Possibly these four should be read-only?

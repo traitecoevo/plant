@@ -5,21 +5,23 @@
 ##'
 ##' @title Grow plant to given size
 ##' @param plant A \code{Plant} object.
-##' @param env An \code{Environment} object.
+##' @param sizes A vector of sizes to grow the plant to
 ##' @param size_name The name of the size variable within
 ##' \code{Plant$vars_phys} (e.g., height).
+##' @param env An \code{Environment} object.
 ##' @param time_max Time to run the ODE out for -- only exists to
 ##' prevent an infinite loop (say, on an unreachable size).
 ##' @return A list with elements \code{time} (the time that a given
 ##' size was reached), \code{state} (the \emph{ode state} at these
 ##' times, as a matrix) and \code{plant} a list of plants grown to the
-##' appropriate size.
+##' appropriate size.  Note that if only a single size is given,
+##' a list of length 1 is returned.
 ##' @export
-grow_plant_to_size <- function(plant, sizes, env, size_name, time_max=Inf) {
-  obj <- grow_plant_bracket(plant, sizes, env, size_name, time_max)
+grow_plant_to_size <- function(plant, sizes, size_name, env, time_max=Inf) {
+  obj <- grow_plant_bracket(plant, sizes, size_name, env, time_max)
   res <- lapply(seq_along(sizes), function(i)
-         grow_plant_bisect(obj$runner, sizes[[i]], size_name,
-                           obj$t0[[i]], obj$t1[[i]], obj$y0[i,]))
+                grow_plant_bisect(obj$runner, sizes[[i]], size_name,
+                                  obj$t0[[i]], obj$t1[[i]], obj$y0[i,]))
   state <- t(sapply(res, "[[", "state"))
   colnames(state) <- colnames(obj$state)
   list(time=sapply(res, "[[", "time"),
@@ -27,7 +29,7 @@ grow_plant_to_size <- function(plant, sizes, env, size_name, time_max=Inf) {
        plant=lapply(res, "[[", "plant"))
 }
 
-grow_plant_bracket <- function(plant, sizes, env, size_name,
+grow_plant_bracket <- function(plant, sizes, size_name, env,
                                time_max=Inf) {
   if (length(sizes) == 0L || is.unsorted(sizes)) {
     stop("sizes must be non-empty and sorted")
@@ -57,7 +59,8 @@ grow_plant_bracket <- function(plant, sizes, env, size_name,
   t <- sapply(state, "[[", "time")
   m <- t(sapply(state, "[[", "state"))
   colnames(m) <- runner$object$plant$ode_names
-  list(t0=t[j], t1=t[j + 1L], y0=m[j,], y1=m[j + 1L,],
+  list(t0=t[j], t1=t[j + 1L],
+       y0=m[j,,drop=FALSE], y1=m[j + 1L,,drop=FALSE],
        time=t, state=m, index=j, runner=runner)
 }
 

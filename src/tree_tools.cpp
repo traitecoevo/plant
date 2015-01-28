@@ -41,19 +41,28 @@ SEXP oderunner_plant_size(const tree2::ode::Runner<tree2::tools::PlantRunner>& o
   return obj.obj.plant.r_get_vars_size();
 }
 
+//' Create a light environment where light levels are constant down
+//' the canopy.
+//'
+//' @title Create fixed light environment
+//' @param canopy_openness Index of canopy openness (on 0,1)
+//' @param height_max Maximum height.  The default (150) should be big
+//' enough for most uses.
+//' @export
+//' @author Rich FitzJohn
 // [[Rcpp::export]]
 tree2::Environment fixed_environment(double canopy_openness,
 				     double height_max=150.0) {
   return tree2::tools::fixed_environment(canopy_openness, height_max);
 }
 
-
+//' Compute the whole plant light compensation point for a single
+//' plant.
+//' @title Whole plant light compensation point
+//' @param p A \code{Plant}, with strategy, height, etc set.
+//' @export
+//' @author Rich FitzJohn
 // [[Rcpp::export]]
 double lcp_whole_plant(tree2::Plant p) {
   return tree2::tools::lcp_whole_plant(p);
 }
-
-// // [--[Rcpp::export(lcp_whole_plant)]]
-// double r_lcp_whole_plant(tree2::Plant p) {
-//   return tree2::tools::lcp_whole_plant(p);
-// }

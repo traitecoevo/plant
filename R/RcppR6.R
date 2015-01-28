@@ -748,7 +748,9 @@ Parameters <- function(..., values=list(...)) {
                   }
                 }))
 
-
+##' Plant object
+##' @param strategy A \code{Strategy} object
+##' @export
 `Plant` <- function(strategy) {
   Plant__ctor(strategy)
 }

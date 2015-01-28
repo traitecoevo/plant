@@ -939,10 +939,25 @@ oderunner_plant_size <- function(obj) {
     .Call('tree2_oderunner_plant_size', PACKAGE = 'tree2', obj)
 }
 
+#' Create a light environment where light levels are constant down
+#' the canopy.
+#'
+#' @title Create fixed light environment
+#' @param canopy_openness Index of canopy openness (on 0,1)
+#' @param height_max Maximum height.  The default (150) should be big
+#' enough for most uses.
+#' @export
+#' @author Rich FitzJohn
 fixed_environment <- function(canopy_openness, height_max = 150.0) {
     .Call('tree2_fixed_environment', PACKAGE = 'tree2', canopy_openness, height_max)
 }
 
+#' Compute the whole plant light compensation point for a single
+#' plant.
+#' @title Whole plant light compensation point
+#' @param p A \code{Plant}, with strategy, height, etc set.
+#' @export
+#' @author Rich FitzJohn
 lcp_whole_plant <- function(p) {
     .Call('tree2_lcp_whole_plant', PACKAGE = 'tree2', p)
 }

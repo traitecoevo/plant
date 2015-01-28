@@ -15,6 +15,7 @@ strategy_list <- function(x, trait_name, strategy=Strategy()) {
 }
 
 ##' @rdname strategy_list
+##' @export
 plant_list <- function(x, trait_name, strategy=Strategy()) {
   lapply(strategy_list(x, trait_name, strategy), Plant)
 }
