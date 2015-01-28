@@ -46,3 +46,25 @@ pad_matrix <- function(x) {
 pad_list_to_array <- function(x) {
   list_to_array(pad_matrix(x))
 }
+
+##' Sequence in log space
+##'
+##' Unlike the billions of options for \code{seq}, only
+##' \code{length.out} is supported here, and both \code{from} and
+##' \code{to} must be provided.
+##' @title Sequence in Log Space
+##' @param from Starting point
+##' @param to Ending point
+##' @param length.out Number of points to generate
+##' @author Rich FitzJohn
+##' @export
+seq_log <- function(from, to, length.out) {
+  exp(seq(log(from), log(to), length.out=length.out))
+}
+
+##' @export
+##' @param r range (i.e., c(from, to)
+##' @rdname seq_log
+seq_log_range <- function(r, length.out) {
+  seq_log(r[[1]], r[[2]], length.out)
+}
