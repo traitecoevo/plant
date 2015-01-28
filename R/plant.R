@@ -8,15 +8,15 @@
 ##' @param env An \code{Environment} object.
 ##' @param size_name The name of the size variable within
 ##' \code{Plant$vars_phys} (e.g., height).
-##' @param max_time Time to run the ODE out for -- only exists to
+##' @param time_max Time to run the ODE out for -- only exists to
 ##' prevent an infinite loop (say, on an unreachable size).
 ##' @return A list with elements \code{time} (the time that a given
 ##' size was reached), \code{state} (the \emph{ode state} at these
 ##' times, as a matrix) and \code{plant} a list of plants grown to the
 ##' appropriate size.
 ##' @export
-grow_plant_to_size <- function(plant, sizes, env, size_name) {
-  obj <- grow_plant_bracket(plant, sizes, env, size_name)
+grow_plant_to_size <- function(plant, sizes, env, size_name, time_max=Inf) {
+  obj <- grow_plant_bracket(plant, sizes, env, size_name, time_max)
   res <- lapply(seq_along(sizes), function(i)
          grow_plant_bisect(obj$runner, sizes[[i]], size_name,
                            obj$t0[[i]], obj$t1[[i]], obj$y0[i,]))
@@ -28,7 +28,7 @@ grow_plant_to_size <- function(plant, sizes, env, size_name) {
 }
 
 grow_plant_bracket <- function(plant, sizes, env, size_name,
-                               max_time=Inf) {
+                               time_max=Inf) {
   if (length(sizes) == 0L || is.unsorted(sizes)) {
     stop("sizes must be non-empty and sorted")
   }
@@ -49,8 +49,8 @@ grow_plant_bracket <- function(plant, sizes, env, size_name,
       j[[i]] <- length(state) - 1L
       i <- i + 1L
     }
-    if (runner$time > max_time) {
-      stop("Time exceeded max_time")
+    if (runner$time > time_max) {
+      stop("Time exceeded time_max")
     }
   }
 

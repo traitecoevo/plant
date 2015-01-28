@@ -87,6 +87,9 @@ public:
   SEXP r_get_vars_phys() const;
   SEXP r_get_vars_growth() const;
 
+  // * Used by tools:
+  double net_production() const {return vars.net_production;}
+
   Plant r_copy() const;
 
   const Control& control() const;

@@ -3341,6 +3341,37 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// fixed_environment
+tree2::Environment fixed_environment(double canopy_openness, double height_max = 150.0);
+RcppExport SEXP tree2_fixed_environment(SEXP canopy_opennessSEXP, SEXP height_maxSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< double >::type canopy_openness(canopy_opennessSEXP );
+        Rcpp::traits::input_parameter< double >::type height_max(height_maxSEXP );
+        tree2::Environment __result = fixed_environment(canopy_openness, height_max);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// lcp_whole_plant
+double lcp_whole_plant(tree2::Plant p);
+RcppExport SEXP tree2_lcp_whole_plant(SEXP pSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::Plant >::type p(pSEXP );
+        double __result = lcp_whole_plant(p);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // test_uniroot
 double test_uniroot(Rcpp::Function f, double min, double max);
 RcppExport SEXP tree2_test_uniroot(SEXP fSEXP, SEXP minSEXP, SEXP maxSEXP) {

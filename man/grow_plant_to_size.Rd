@@ -3,7 +3,7 @@
 \alias{grow_plant_to_size}
 \title{Grow plant to given size}
 \usage{
-grow_plant_to_size(plant, sizes, env, size_name)
+grow_plant_to_size(plant, sizes, env, size_name, time_max = Inf)
 }
 \arguments{
 \item{plant}{A \code{Plant} object.}
@@ -13,7 +13,7 @@ grow_plant_to_size(plant, sizes, env, size_name)
 \item{size_name}{The name of the size variable within
 \code{Plant$vars_phys} (e.g., height).}
 
-\item{max_time}{Time to run the ODE out for -- only exists to
+\item{time_max}{Time to run the ODE out for -- only exists to
 prevent an infinite loop (say, on an unreachable size).}
 }
 \value{

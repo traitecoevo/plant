@@ -939,6 +939,14 @@ oderunner_plant_size <- function(obj) {
     .Call('tree2_oderunner_plant_size', PACKAGE = 'tree2', obj)
 }
 
+fixed_environment <- function(canopy_openness, height_max = 150.0) {
+    .Call('tree2_fixed_environment', PACKAGE = 'tree2', canopy_openness, height_max)
+}
+
+lcp_whole_plant <- function(p) {
+    .Call('tree2_lcp_whole_plant', PACKAGE = 'tree2', p)
+}
+
 test_uniroot <- function(f, min, max) {
     .Call('tree2_test_uniroot', PACKAGE = 'tree2', f, min, max)
 }

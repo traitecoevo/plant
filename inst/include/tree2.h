@@ -67,5 +67,6 @@ template <typename T> class Runner;
 #include <tree2/RcppR6_post.hpp>
 #include <tree2/util_post_rcpp.h>
 #include <tree2/tree_utils.h>
+#include <tree2/tree_tools.h>
 
 #endif
