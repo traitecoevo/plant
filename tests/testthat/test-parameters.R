@@ -75,3 +75,32 @@ test_that("Nontrivial creation", {
   expect_that(p$cohort_schedule_times,
               is_identical_to(list(tt)))
 })
+
+test_that("Parameters overwrites Strategy control", {
+  ctrl <- ctrl_s <- ctrl_p <- Control()
+  ## set these just as markers:
+  ctrl_s$schedule_eps <- 1
+  ctrl_p$schedule_eps <- 2
+
+  s <- Strategy(control=ctrl_s)
+  expect_that(s$control, is_identical_to(ctrl_s))
+  expect_that(s$control, not(is_identical_to(ctrl_p)))
+
+  p <- Parameters(control=ctrl_p)
+  expect_that(p$control, not(is_identical_to(ctrl_s)))
+  expect_that(p$control, is_identical_to(ctrl_p))
+
+  p$strategies <- list(s)
+  p$seed_rain <- 1
+  p$is_resident <- TRUE
+  ## Pass though to force validation:
+  tmp <- Patch(p)$parameters
+  expect_that(tmp$control, is_identical_to(ctrl_p))
+  expect_that(tmp$strategies[[1]]$control, is_identical_to(ctrl_p))
+
+  ## In one shot:
+  p2 <- Parameters(control=ctrl_p, strategies=list(s), seed_rain=1,
+                   is_resident=TRUE)
+  expect_that(p2$control, is_identical_to(ctrl_p))
+  expect_that(p2$strategies[[1]]$control, is_identical_to(ctrl_p))
+})

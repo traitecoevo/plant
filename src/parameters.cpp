@@ -39,6 +39,10 @@ void Parameters::validate() {
   if (cohort_schedule_times.size() != n_spp) {
     util::stop("Incorrect length cohort_schedule_times");
   }
+  // Overwrite all strategy control objects:
+  for (auto& s : strategies) {
+    s.control = control;
+  }
 }
 
 // Separating this out just because it's a bit crap:
