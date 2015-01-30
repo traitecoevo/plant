@@ -179,7 +179,6 @@ template <> inline SEXP wrap(const tree2::Control& x) {
   ret["plant_assimilation_tol"] = Rcpp::wrap(x.plant_assimilation_tol);
   ret["plant_assimilation_iterations"] = Rcpp::wrap(x.plant_assimilation_iterations);
   ret["plant_assimilation_rule"] = Rcpp::wrap(x.plant_assimilation_rule);
-  ret["plant_assimilation_reuse_intervals"] = Rcpp::wrap(x.plant_assimilation_reuse_intervals);
   ret["plant_seed_tol"] = Rcpp::wrap(x.plant_seed_tol);
   ret["plant_seed_iterations"] = Rcpp::wrap(x.plant_seed_iterations);
   ret["cohort_gradient_eps"] = Rcpp::wrap(x.cohort_gradient_eps);
@@ -236,8 +235,6 @@ template <> inline tree2::Control as(SEXP x) {
   ret.plant_assimilation_iterations = Rcpp::as<size_t >(xl["plant_assimilation_iterations"]);
   // ret.plant_assimilation_rule = Rcpp::as<decltype(retplant_assimilation_rule) >(xl["plant_assimilation_rule"]);
   ret.plant_assimilation_rule = Rcpp::as<size_t >(xl["plant_assimilation_rule"]);
-  // ret.plant_assimilation_reuse_intervals = Rcpp::as<decltype(retplant_assimilation_reuse_intervals) >(xl["plant_assimilation_reuse_intervals"]);
-  ret.plant_assimilation_reuse_intervals = Rcpp::as<bool >(xl["plant_assimilation_reuse_intervals"]);
   // ret.plant_seed_tol = Rcpp::as<decltype(retplant_seed_tol) >(xl["plant_seed_tol"]);
   ret.plant_seed_tol = Rcpp::as<double >(xl["plant_seed_tol"]);
   // ret.plant_seed_iterations = Rcpp::as<decltype(retplant_seed_iterations) >(xl["plant_seed_iterations"]);

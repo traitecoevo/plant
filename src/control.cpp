@@ -9,7 +9,6 @@ Control::Control() : integrator(15, 1, 0, 0) {
   plant_assimilation_tol = 1e-6;
   plant_assimilation_iterations = 1000;
   plant_assimilation_rule = 21;
-  plant_assimilation_reuse_intervals = true;
 
   plant_seed_tol = 1e-8;
   plant_seed_iterations = 1000;

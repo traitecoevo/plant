@@ -34,7 +34,6 @@ struct Control {
   double plant_assimilation_tol;
   size_t plant_assimilation_iterations;
   size_t plant_assimilation_rule;
-  bool   plant_assimilation_reuse_intervals;
 
   double plant_seed_tol;
   size_t plant_seed_iterations;

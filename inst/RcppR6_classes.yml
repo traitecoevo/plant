@@ -136,7 +136,6 @@ Control:
     - plant_assimilation_tol: double
     - plant_assimilation_iterations: size_t
     - plant_assimilation_rule: size_t
-    - plant_assimilation_reuse_intervals: bool
     - plant_seed_tol: double
     - plant_seed_iterations: int
     - cohort_gradient_eps: double

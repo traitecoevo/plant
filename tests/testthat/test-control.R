@@ -27,7 +27,6 @@ test_that("Defaults", {
     plant_assimilation_iterations = 1000, # size_t so not int
     plant_assimilation_rule = 21, # size_t so not int
     plant_assimilation_over_distribution = FALSE,
-    plant_assimilation_reuse_intervals = TRUE,
     plant_assimilation_tol = 1e-6,
     plant_seed_iterations = 1000, # size_t
     plant_seed_tol = 1e-8, # 1e-6, Had to change this...
