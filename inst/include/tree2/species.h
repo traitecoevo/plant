@@ -43,8 +43,8 @@ public:
   ode::iterator       ode_rates(ode::iterator it) const;
 
   // * R interface
-  std::vector<double> r_height() const;
-  void r_set_height(std::vector<double> height);
+  std::vector<double> r_heights() const;
+  void r_set_heights(std::vector<double> heights);
   const cohort_type& r_seed() const {return seed;}
   std::vector<cohort_type> r_plants() const {return plants;}
   const cohort_type& r_plant_at(util::index idx) const {
@@ -52,8 +52,8 @@ public:
   }
 
   // These are used to determine the degree of cohort refinement.
-  std::vector<double> r_leaf_area() const;
-  std::vector<double> r_leaf_area_error() const;
+  std::vector<double> r_leaf_areas() const;
+  std::vector<double> r_leaf_areas_error() const;
 
 private:
   const Control& control() const {return strategy->get_control();}
@@ -197,7 +197,7 @@ ode::iterator Species<T>::ode_rates(ode::iterator it) const {
 
 
 template <typename T>
-std::vector<double> Species<T>::r_height() const {
+std::vector<double> Species<T>::r_heights() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (plants_const_iterator it = plants.begin();
@@ -208,19 +208,19 @@ std::vector<double> Species<T>::r_height() const {
 }
 
 template <typename T>
-void Species<T>::r_set_height(std::vector<double> height) {
-  util::check_length(height.size(), size());
-  if (!util::is_decreasing(height.begin(), height.end())) {
+void Species<T>::r_set_heights(std::vector<double> heights) {
+  util::check_length(heights.size(), size());
+  if (!util::is_decreasing(heights.begin(), heights.end())) {
     util::stop("height must be decreasing (ties allowed)");
   }
   size_t i = 0;
   for (plants_iterator it = plants.begin(); it != plants.end(); ++it, ++i) {
-    it->plant.set_height(height[i]);
+    it->plant.set_height(heights[i]);
   }
 }
 
 template <typename T>
-std::vector<double> Species<T>::r_leaf_area() const {
+std::vector<double> Species<T>::r_leaf_areas() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& p : plants) {
@@ -230,9 +230,9 @@ std::vector<double> Species<T>::r_leaf_area() const {
 }
 
 template <typename T>
-std::vector<double> Species<T>::r_leaf_area_error() const {
+std::vector<double> Species<T>::r_leaf_areas_error() const {
   const double scal = 1.0;
-  return util::local_error_integration(r_height(), r_leaf_area(), scal);
+  return util::local_error_integration(r_heights(), r_leaf_areas(), scal);
 }
 
 }

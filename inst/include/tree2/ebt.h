@@ -32,6 +32,10 @@ public:
   std::vector<util::index> r_run_next();
   Parameters r_parameters() const {return parameters;}
   const patch_type&   r_patch() const {return patch;}
+  // TODO: These are liable to change to return all species at once by
+  // default.  The pluralisation difference between
+  // EBT::r_leaf_area_error and Species::r_leaf_areas_error will get
+  // dealt with then.
   double              r_seed_rain(util::index species_index) const;
   std::vector<double> r_seed_rain_cohort(util::index species_index) const;
   std::vector<double> r_seed_rain_error(util::index species_index) const;
@@ -129,7 +133,6 @@ double EBT<T>::seed_rain(size_t species_index) const {
                          seed_rain_cohort(species_index));
 }
 
-// TODO: Use ranged iterator?
 template <typename T>
 std::vector<double> EBT<T>::seed_rains() const {
   std::vector<double> ret;
@@ -158,7 +161,7 @@ EBT<T>::r_seed_rain_cohort(util::index species_index) const {
 template <typename T>
 std::vector<double> EBT<T>::r_seed_rain_error(util::index species_index) const {
   // TODO: This causes this to happen too often, given we usually get
-  // all the errors I think?
+  // all the errors I think? (see TODO in class definition)
   double tot_seed_out = seed_rain_total();
   const size_t idx = species_index.check_bounds(patch.size());
   return util::local_error_integration(cohort_schedule.times(idx),

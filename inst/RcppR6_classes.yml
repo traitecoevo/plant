@@ -462,11 +462,11 @@ Species:
     size: {type: size_t, access: member}
     seed: {type: "tree2::Cohort<tree2::Plant>", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
-    height: {type: "std::vector<double>", access: member, name_cpp: r_height, name_cpp_set: r_set_height}
+    heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     plants: {type: "std::vector<tree2::Cohort<tree2::Plant> >", access: member, name_cpp: r_plants}
     seeds: {type: "std::vector<double>", access: member}
-    leaf_area: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area}
-    leaf_area_error: {type: "std::vector<double>", access: member, name_cpp: r_leaf_area_error}
+    leaf_areas: {type: "std::vector<double>", access: member, name_cpp: r_leaf_areas}
+    leaf_areas_error: {type: "std::vector<double>", access: member, name_cpp: r_leaf_areas_error}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}

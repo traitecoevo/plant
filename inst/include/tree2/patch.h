@@ -127,7 +127,7 @@ double Patch<T>::canopy_openness(double height) const {
 
 template <typename T>
 std::vector<double> Patch<T>::r_leaf_area_error(size_t species_index) const {
-  return species[species_index].r_leaf_area_error();
+  return species[species_index].r_leaf_areas_error();
 }
 
 template <typename T>

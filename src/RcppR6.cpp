@@ -777,12 +777,12 @@ double Species__height_max__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Coho
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species__height__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
-  return obj_->r_height();
+std::vector<double> Species__heights__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->r_heights();
 }
 // [[Rcpp::export]]
-void Species__height__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, std::vector<double> value) {
-  obj_->r_set_height(value);
+void Species__heights__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, std::vector<double> value) {
+  obj_->r_set_heights(value);
 }
 
 // [[Rcpp::export]]
@@ -796,13 +796,13 @@ std::vector<double> Species__seeds__get(tree2::RcppR6::RcppR6<tree2::Species<tre
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species__leaf_area__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
-  return obj_->r_leaf_area();
+std::vector<double> Species__leaf_areas__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->r_leaf_areas();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species__leaf_area_error__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
-  return obj_->r_leaf_area_error();
+std::vector<double> Species__leaf_areas_error__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->r_leaf_areas_error();
 }
 
 // [[Rcpp::export]]

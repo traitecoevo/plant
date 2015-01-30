@@ -743,12 +743,12 @@ Species__height_max__get <- function(obj_) {
     .Call('tree2_Species__height_max__get', PACKAGE = 'tree2', obj_)
 }
 
-Species__height__get <- function(obj_) {
-    .Call('tree2_Species__height__get', PACKAGE = 'tree2', obj_)
+Species__heights__get <- function(obj_) {
+    .Call('tree2_Species__heights__get', PACKAGE = 'tree2', obj_)
 }
 
-Species__height__set <- function(obj_, value) {
-    invisible(.Call('tree2_Species__height__set', PACKAGE = 'tree2', obj_, value))
+Species__heights__set <- function(obj_, value) {
+    invisible(.Call('tree2_Species__heights__set', PACKAGE = 'tree2', obj_, value))
 }
 
 Species__plants__get <- function(obj_) {
@@ -759,12 +759,12 @@ Species__seeds__get <- function(obj_) {
     .Call('tree2_Species__seeds__get', PACKAGE = 'tree2', obj_)
 }
 
-Species__leaf_area__get <- function(obj_) {
-    .Call('tree2_Species__leaf_area__get', PACKAGE = 'tree2', obj_)
+Species__leaf_areas__get <- function(obj_) {
+    .Call('tree2_Species__leaf_areas__get', PACKAGE = 'tree2', obj_)
 }
 
-Species__leaf_area_error__get <- function(obj_) {
-    .Call('tree2_Species__leaf_area_error__get', PACKAGE = 'tree2', obj_)
+Species__leaf_areas_error__get <- function(obj_) {
+    .Call('tree2_Species__leaf_areas_error__get', PACKAGE = 'tree2', obj_)
 }
 
 Species__ode_size__get <- function(obj_) {

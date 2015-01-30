@@ -148,8 +148,7 @@ test_that("Ported from tree1", {
   ## final time).
   ## EBT with fixed times agrees:
   res_e_3 <- run_ebt_test(ebt)
-  expect_that(res_e_3, equals(res_e_1, tolerance=1e-10))
-  expect_that(res_e_3, not(is_identical_to(res_e_1)))
+  expect_that(res_e_3, is_identical_to(res_e_1))
 
   ## EBT can be rerun successfully with fixed times:
   ebt$reset()

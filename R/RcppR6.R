@@ -1011,11 +1011,11 @@ Parameters <- function(..., values=list(...)) {
                     stop("Species$height_max is read-only")
                   }
                 },
-                height = function(value) {
+                heights = function(value) {
                   if (missing(value)) {
-                    Species__height__get(self)
+                    Species__heights__get(self)
                   } else {
-                    Species__height__set(self, value)
+                    Species__heights__set(self, value)
                   }
                 },
                 plants = function(value) {
@@ -1032,18 +1032,18 @@ Parameters <- function(..., values=list(...)) {
                     stop("Species$seeds is read-only")
                   }
                 },
-                leaf_area = function(value) {
+                leaf_areas = function(value) {
                   if (missing(value)) {
-                    Species__leaf_area__get(self)
+                    Species__leaf_areas__get(self)
                   } else {
-                    stop("Species$leaf_area is read-only")
+                    stop("Species$leaf_areas is read-only")
                   }
                 },
-                leaf_area_error = function(value) {
+                leaf_areas_error = function(value) {
                   if (missing(value)) {
-                    Species__leaf_area_error__get(self)
+                    Species__leaf_areas_error__get(self)
                   } else {
-                    stop("Species$leaf_area_error is read-only")
+                    stop("Species$leaf_areas_error is read-only")
                   }
                 },
                 ode_size = function(value) {
