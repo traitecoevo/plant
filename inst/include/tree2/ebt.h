@@ -104,7 +104,7 @@ std::vector<size_t> EBT<T>::run_next() {
 
 template <typename T>
 double EBT<T>::time() const {
-  return solver.get_time();// TODO: ?patch.environment.time;
+  return patch.time();
 }
 
 // NOTE: solver.reset() will set time within the solver to zero.

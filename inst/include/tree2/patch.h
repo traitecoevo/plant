@@ -95,12 +95,10 @@ void Patch<T>::reset() {
   compute_vars_phys();
 }
 
-// TODO: use this https://github.com/klmr/cpp11-range for ranged loops:
-//   for (size_t i : range(0, species.size())) {
 template <typename T>
 double Patch<T>::height_max() const {
   double ret = 0.0;
-  for (size_t i = 0; i < species.size(); ++i) {
+  for (auto i : util::indices(species)) {
     if (is_resident[i]) {
       ret = std::max(ret, species[i].height_max());
     }
@@ -111,7 +109,7 @@ double Patch<T>::height_max() const {
 template <typename T>
 double Patch<T>::leaf_area_above(double height) const {
   double tot = 0.0;
-  for (size_t i = 0; i < species.size(); ++i) {
+  for (auto i : util::indices(species)) {
     if (is_resident[i]) {
       tot += species[i].leaf_area_above(height);
     }
@@ -150,9 +148,9 @@ void Patch<T>::rescale_light_environment() {
 
 template <typename T>
 void Patch<T>::compute_vars_phys() {
-  for (size_t species_index = 0; species_index < size(); ++species_index) {
-    environment.set_seed_rain_index(species_index);
-    species[species_index].compute_vars_phys(environment);
+  for (auto i : util::indices(species)) {
+    environment.set_seed_rain_index(i);
+    species[i].compute_vars_phys(environment);
   }
 }
 
