@@ -53,7 +53,7 @@ test_that("grow_plant_to_size", {
   heights <- seq(1, 10)
   s <- Strategy()
 
-  res <- grow_plant_bracket(Plant(s), heights, env, "height")
+  res <- grow_plant_bracket(Plant(s), heights, "height", env)
 
   expect_that(res$t0, is_identical_to(res$time[res$index]))
   expect_that(res$t1, is_identical_to(res$time[res$index + 1L]))
@@ -76,7 +76,7 @@ test_that("grow_plant_to_size", {
   expect_that(all(tmp$state < res$y1[i,]), is_true())
 
   ## Do all plants using the proper function:
-  obj <- grow_plant_to_size(Plant(s), heights, env, "height")
+  obj <- grow_plant_to_size(Plant(s), heights, "height", env)
   expect_that(obj$time, is_a("numeric"))
   expect_that(all(obj$time > res$t0), is_true())
   expect_that(all(obj$time < res$t1), is_true())

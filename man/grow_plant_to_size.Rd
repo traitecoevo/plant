@@ -3,15 +3,17 @@
 \alias{grow_plant_to_size}
 \title{Grow plant to given size}
 \usage{
-grow_plant_to_size(plant, sizes, env, size_name, time_max = Inf)
+grow_plant_to_size(plant, sizes, size_name, env, time_max = Inf)
 }
 \arguments{
 \item{plant}{A \code{Plant} object.}
 
-\item{env}{An \code{Environment} object.}
+\item{sizes}{A vector of sizes to grow the plant to}
 
 \item{size_name}{The name of the size variable within
 \code{Plant$vars_phys} (e.g., height).}
+
+\item{env}{An \code{Environment} object.}
 
 \item{time_max}{Time to run the ODE out for -- only exists to
 prevent an infinite loop (say, on an unreachable size).}
@@ -20,7 +22,8 @@ prevent an infinite loop (say, on an unreachable size).}
 A list with elements \code{time} (the time that a given
 size was reached), \code{state} (the \emph{ode state} at these
 times, as a matrix) and \code{plant} a list of plants grown to the
-appropriate size.
+appropriate size.  Note that if only a single size is given,
+a list of length 1 is returned.
 }
 \description{
 Grow a plant up to particular sizes.
