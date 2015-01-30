@@ -91,8 +91,7 @@ std::vector<size_t> EBT<T>::run_next() {
   }
   patch.add_seeds(ret);
 
-  // TODO: Using r_ function -- fix at some point...
-  const bool use_ode_times = cohort_schedule.r_use_ode_times();
+  const bool use_ode_times = cohort_schedule.using_ode_times();
   solver.set_state_from_system(patch);
   if (use_ode_times) {
     solver.advance_fixed(patch, e.times);

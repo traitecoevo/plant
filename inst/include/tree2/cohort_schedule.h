@@ -58,6 +58,7 @@ public:
 
   double get_max_time() const;
   std::vector<std::vector<double> > get_times() const;
+  bool using_ode_times() const;
 
   // * R interface:
   void r_clear_times(util::index species_index);
@@ -67,7 +68,6 @@ public:
   std::vector<double> r_ode_times() const;
   void r_set_ode_times(std::vector<double> x);
   void r_clear_ode_times();
-  bool r_use_ode_times() const;
   void r_set_use_ode_times(bool x);
   SEXP r_all_times() const;
   void r_set_all_times(SEXP x);

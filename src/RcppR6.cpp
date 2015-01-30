@@ -296,7 +296,7 @@ void CohortSchedule__ode_times__set(tree2::RcppR6::RcppR6<tree2::CohortSchedule>
 
 // [[Rcpp::export]]
 bool CohortSchedule__use_ode_times__get(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_) {
-  return obj_->r_use_ode_times();
+  return obj_->using_ode_times();
 }
 // [[Rcpp::export]]
 void CohortSchedule__use_ode_times__set(tree2::RcppR6::RcppR6<tree2::CohortSchedule> obj_, bool value) {

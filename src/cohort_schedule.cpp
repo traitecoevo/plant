@@ -229,7 +229,7 @@ void CohortSchedule::r_clear_ode_times() {
   reset();
 }
 
-bool CohortSchedule::r_use_ode_times() const {
+bool CohortSchedule::using_ode_times() const {
   return use_ode_times;
 }
 
