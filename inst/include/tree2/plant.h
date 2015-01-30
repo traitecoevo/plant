@@ -34,7 +34,6 @@ public:
   double fecundity_rate() const;
   void set_fecundity(double x);
 
-  // TODO: Track down what is going on here:
   double heartwood_area() const;
   double heartwood_area_rate() const;
   void set_heartwood_area(double x);
@@ -95,8 +94,6 @@ public:
 
   const Control& control() const;
 
-  void trim_rates();
-
 private:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
@@ -130,23 +127,23 @@ private:
   // change in height per change in leaf area
   double dheight_dleaf_area() const;
   // Mass of stem needed for new unit mass leaf, d m_s / d m_l
-  double dmass_sapwood_dmass_leaf() const;
+  double dsapwood_mass_dleaf_mass() const;
   // Mass of bark needed for new unit mass leaf, d m_b / d m_l
-  double dmass_bark_dmass_leaf() const;
+  double dbark_mass_dleaf_mass() const;
   // Mass of root needed for new unit mass leaf, d m_r / d m_l
-  double dmass_root_dmass_leaf() const;
-  // Growth rate of leaf area per unit time
-  double dleaf_area_dt() const;
-  // Growth rate of spawood area at base per unit time
-  double dsapwood_area_dt() const;
-  // Growth rate of bark area at base per unit time
-  double dbark_area_dt() const;
-  // Growth rate of stem basal per unit time
-  double dbasal_area_dt() const;
-  // Growth rate of basal dimater per unit basal area
+  double droot_mass_dleaf_mass() const;
+  // Growth rate of basal diameter per unit basal area
   double dbasal_diam_dbasal_area() const;
-  // Growth rate of basal dimaterper unit time
+  // Growth rate of components per unit time:
+  double dleaf_area_dt() const;
+  double dsapwood_area_dt() const;
+  double dbark_area_dt() const;
+  double dbasal_area_dt() const;
   double dbasal_diam_dt() const;
+  double droot_mass_dt() const;
+  double dlive_mass_dt() const;
+  double dtotal_mass_dt() const;
+  double dabove_ground_mass_dt() const;
 
   double sapwood_turnover() const;
 
@@ -157,8 +154,8 @@ private:
   // basal area
   double basal_area() const;
 
-  double mass_live_given_height(double h);
-  double height_given_mass_leaf(double mass_leaf_) const;
+  double live_mass_given_height(double h);
+  double height_given_leaf_mass(double leaf_mass_) const;
 
   // To simplify my life, I'm making a small internal-only class that
   // contains some implementation details here.
@@ -167,20 +164,19 @@ private:
   // think...
   class internals {
   public:
-    // TODO: flip the mass_{var} to {var}_mass.
     internals();
     // * Individual size
     // Mass of leaves.  This is the core independent variable
-    double mass_leaf;      // [eqn 1]
-    // Other size variables that follow directly from `mass_leaf`:
+    double leaf_mass;      // [eqn 1]
+    // Other size variables that follow directly from `leaf_mass`:
     double leaf_area;      // [eqn 2]
     double height;         // [eqn 3]
-    double mass_sapwood;   // [eqn 4]
-    double mass_bark;      // [eqn 5]
-    double mass_heartwood; // [eqn 6]
-    double area_heartwood;
-    double mass_root;      // [eqn 7] (fine roots)
-    double mass_live;      // [eqn 8]
+    double sapwood_mass;   // [eqn 4]
+    double bark_mass;      // [eqn 5]
+    double heartwood_mass; // [eqn 6]
+    double heartwood_area;
+    double root_mass;      // [eqn 7] (fine roots)
+    double live_mass;      // [eqn 8]
     // * Mass production
     double assimilation;   // [eqn 12] Gross annual CO2 assimilation
     double respiration;    // [eqn 13] Total maintenance respiration
@@ -189,7 +185,7 @@ private:
     double reproduction_fraction; // [eqn 16]
     double fecundity_rate; // [eqn 17] Rate of offspring production
     double leaf_fraction;  // [eqn 18] Fraction of mass growth that is leaves
-    double mass_leaf_growth_rate; // [eqn 19] Growth rate in leaf mass
+    double leaf_mass_growth_rate; // [eqn 19] Growth rate in leaf mass
     double height_growth_rate;    // [doc/details.md]
     // * Mortality
     double mortality_rate; // [eqn 21]

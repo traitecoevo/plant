@@ -23,21 +23,21 @@ test_that("Reference comparison", {
               is_identical_to(h0))
   expect_that(p_size[["leaf_area"]],
               equals(cmp$LeafArea(h0)))
-  expect_that(p_size[["mass_leaf"]],
+  expect_that(p_size[["leaf_mass"]],
               equals(cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0))))
-  expect_that(p_size[["mass_sapwood"]],
+  expect_that(p_size[["sapwood_mass"]],
               equals(cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
-  expect_that(p_size[["mass_bark"]],
+  expect_that(p_size[["bark_mass"]],
               equals(cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
-  expect_that(p_size[["mass_root"]],
+  expect_that(p_size[["root_mass"]],
               equals(cmp$RootMass(cmp$LeafArea(h0))))
-  expect_that(p_size[["mass_live"]],
+  expect_that(p_size[["live_mass"]],
               equals(cmp$LiveMass(cmp$traits, cmp$LeafArea(h0))))
-  expect_that(p_size[["area_bark"]],
+  expect_that(p_size[["bark_area"]],
               equals(cmp$bark_area(h0)))
-  expect_that(p_size[["area_sapwood"]],
+  expect_that(p_size[["sapwood_area"]],
               equals(cmp$sapwood_area(h0)))
-  expect_that(p_size[["area_basal"]],
+  expect_that(p_size[["basal_area"]],
               equals(cmp$basal_area(h0)))
 
   expect_that(p$height,    is_identical_to(p_size[["height"]]))
@@ -46,14 +46,14 @@ test_that("Reference comparison", {
   ## Heartwood function
   ## TODO: Check with Daniel here -- might need updating.
   ## Expect zero unless it has been set otherwise
-  expect_that(p_size[["area_heartwood"]],
+  expect_that(p_size[["heartwood_area"]],
               is_identical_to(0.0))
   HA0 <- 1e-3
   p$heartwood_area <- HA0
   p_size <- p$vars_size
-  expect_that(p_size[["area_heartwood"]],
+  expect_that(p_size[["heartwood_area"]],
               is_identical_to(HA0))
-  expect_that(p_size[["area_basal"]],
+  expect_that(p_size[["basal_area"]],
               equals(cmp$basal_area(h0) + HA0))
   # set heartwood back at zero for subsequent tests
   p$heartwood_area <- 0
@@ -132,19 +132,19 @@ test_that("Reference comparison", {
               equals(cmp_dheight_dleaf_area))
 
   ## 11. Sapwood mass per leaf mass
-  cmp_dmass_sapwood_dmass_leaf <- cmp$sapwood.per.leaf.mass(cmp$traits, h0)
-  expect_that(p_growth[["dmass_sapwood_dmass_leaf"]],
-              equals(cmp_dmass_sapwood_dmass_leaf))
+  cmp_dsapwood_mass_dleaf_mass <- cmp$sapwood.per.leaf.mass(cmp$traits, h0)
+  expect_that(p_growth[["dsapwood_mass_dleaf_mass"]],
+              equals(cmp_dsapwood_mass_dleaf_mass))
 
   ## 12. Bark mass per leaf mass
-  cmp_dmass_bark_dmass_leaf <- cmp$bark.per.leaf.mass(cmp$traits, h0)
-  expect_that(p_growth[["dmass_bark_dmass_leaf"]],
-              equals(cmp_dmass_bark_dmass_leaf))
+  cmp_dbark_mass_dleaf_mass <- cmp$bark.per.leaf.mass(cmp$traits, h0)
+  expect_that(p_growth[["dbark_mass_dleaf_mass"]],
+              equals(cmp_dbark_mass_dleaf_mass))
 
   ## 12. Root mass per leaf mass
-  cmp_dmass_root_dmass_leaf <- cmp$root.per.leaf.mass(cmp$traits, h0)
-  expect_that(p_growth[["dmass_root_dmass_leaf"]],
-              equals(cmp_dmass_root_dmass_leaf))
+  cmp_droot_mass_dleaf_mass <- cmp$root.per.leaf.mass(cmp$traits, h0)
+  expect_that(p_growth[["droot_mass_dleaf_mass"]],
+              equals(cmp_droot_mass_dleaf_mass))
 
   ## 13. Leaf area growth rate
   cmp_dleaf_area_dt <- cmp$dleaf_area_dt(cmp$traits, h0, light_env)
@@ -195,7 +195,7 @@ test_that("Seed bits", {
   light_env <- attr(env, "light_env") # underlying function
 
   ## Check that our root-finding succeeded and the leaf mass is correct:
-  expect_that(seed$vars_size[["mass_live"]],
+  expect_that(seed$vars_size[["live_mass"]],
               equals(s$s, tolerance=1e-7))
 
   ## Check that the height at birth is correct.  These answers are

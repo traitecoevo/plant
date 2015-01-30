@@ -112,12 +112,13 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
   // Need to check that the rates are valid after setting the
   // mortality value here (can go to -Inf and that requires squashing
   // the rate to zero).
-  // trim_rates();
-  plant.trim_rates();
   if (!R_FINITE(log_density)) {
     // Can do this at the same time that we do set_log_density, I think.
     log_density_rate = 0.0;
   }
+  // NOTE: It's *possible* here that we need to set
+  // plant.vars.mortality_rate to zero here, but I don't see that's
+  // likely.
 }
 
 template <typename T>
