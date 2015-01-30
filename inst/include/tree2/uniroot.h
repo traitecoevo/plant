@@ -6,6 +6,7 @@
 // method.
 
 #include <boost/math/tools/roots.hpp>
+#include <tree2/util.h>
 
 namespace tree2 {
 namespace util {
@@ -26,11 +27,13 @@ template <typename Function>
 double uniroot(Function f, double min, double max, double tol,
                size_t max_iterations) {
   using boost::math::tools::bisect;
+  size_t it = max_iterations;
   std::pair<double, double> root = bisect(f, min, max,
                                           internals::uniroot_tol(tol, tol),
-                                          max_iterations);
-  // TODO: probably should check here that we didn't exhaust the
-  // number of steps we may take (i.e. max_iterations was not too bad).
+                                          it);
+  if (it > max_iterations) {
+    util::stop("Exceeded max_iterations");
+  }
   return (root.first + root.second) / 2.0;
 }
 
