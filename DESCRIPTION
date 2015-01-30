@@ -17,4 +17,4 @@ Suggests:
     testthat,
     deSolve,
     numDeriv,
-    RcppR6 (>= 0.2)
+    RcppR6 (>= 0.2.001)

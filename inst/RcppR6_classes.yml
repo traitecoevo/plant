@@ -391,13 +391,10 @@ Plant:
   active:
     height: {type: double, access: member, name_cpp: height, name_cpp_set: set_height}
     # Possibly these four should be read-only?
-    #
-    # TODO: should be able to drop the name_cpp bit here, but there's
-    # a bug in RcppR6 that leaves it required.
-    mortality: {type: double, access: member, name_cpp: mortality, name_cpp_set: set_mortality}
-    fecundity: {type: double, access: member, name_cpp: fecundity, name_cpp_set: set_fecundity}
-    heartwood_area: {type: double, access: member, name_cpp: heartwood_area, name_cpp_set: set_heartwood_area}
-    heartwood_mass: {type: double, access: member, name_cpp: heartwood_mass, name_cpp_set: set_heartwood_mass}
+    mortality: {type: double, access: member, name_cpp_set: set_mortality}
+    fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
+    heartwood_area: {type: double, access: member, name_cpp_set: set_heartwood_area}
+    heartwood_mass: {type: double, access: member, name_cpp_set: set_heartwood_mass}
     leaf_area: {type: double, access: member}
     survival_probability: {type: double, access: member}
     strategy: {type: "tree2::Strategy", access: member, name_cpp: r_get_strategy}

@@ -26,13 +26,6 @@ intervals_type QAG::get_last_intervals() const {
   return w.get_intervals();
 }
 
-SEXP QAG::r_get_last_intervals() const {
-  intervals_type tmp = get_last_intervals();
-  Rcpp::List ret = Rcpp::List::create(Rcpp::_["a"] = tmp[0],
-				      Rcpp::_["b"] = tmp[1]);
-  return Rcpp::wrap(ret);
-}
-
 // * R interface
 double QAG::r_integrate(SEXP f, double a, double b) {
   util::RFunctionWrapper fw(Rcpp::as<Rcpp::Function>(f));

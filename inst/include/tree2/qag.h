@@ -36,7 +36,6 @@ public:
   double r_integrate(SEXP f, double a, double b);
   double r_integrate_with_intervals(SEXP f, SEXP intervals);
   double r_integrate_with_last_intervals(SEXP f, double a, double b);
-  SEXP r_get_last_intervals() const;
 
 private:
   template <typename Function>
