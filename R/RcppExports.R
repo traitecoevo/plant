@@ -467,14 +467,6 @@ Interpolator__eval <- function(obj_, x) {
     .Call('tree2_Interpolator__eval', PACKAGE = 'tree2', obj_, x)
 }
 
-Interpolator__deriv <- function(obj_, x) {
-    .Call('tree2_Interpolator__deriv', PACKAGE = 'tree2', obj_, x)
-}
-
-Interpolator__type__get <- function(obj_) {
-    .Call('tree2_Interpolator__type__get', PACKAGE = 'tree2', obj_)
-}
-
 Interpolator__x__get <- function(obj_) {
     .Call('tree2_Interpolator__x__get', PACKAGE = 'tree2', obj_)
 }
@@ -497,46 +489,6 @@ Interpolator__min__get <- function(obj_) {
 
 Interpolator__max__get <- function(obj_) {
     .Call('tree2_Interpolator__max__get', PACKAGE = 'tree2', obj_)
-}
-
-Interpolator_TK__ctor <- function() {
-    .Call('tree2_Interpolator_TK__ctor', PACKAGE = 'tree2')
-}
-
-Interpolator_TK__init <- function(obj_, x, y) {
-    invisible(.Call('tree2_Interpolator_TK__init', PACKAGE = 'tree2', obj_, x, y))
-}
-
-Interpolator_TK__eval <- function(obj_, x) {
-    .Call('tree2_Interpolator_TK__eval', PACKAGE = 'tree2', obj_, x)
-}
-
-Interpolator_TK__deriv <- function(obj_, x) {
-    .Call('tree2_Interpolator_TK__deriv', PACKAGE = 'tree2', obj_, x)
-}
-
-Interpolator_TK__x__get <- function(obj_) {
-    .Call('tree2_Interpolator_TK__x__get', PACKAGE = 'tree2', obj_)
-}
-
-Interpolator_TK__y__get <- function(obj_) {
-    .Call('tree2_Interpolator_TK__y__get', PACKAGE = 'tree2', obj_)
-}
-
-Interpolator_TK__xy__get <- function(obj_) {
-    .Call('tree2_Interpolator_TK__xy__get', PACKAGE = 'tree2', obj_)
-}
-
-Interpolator_TK__size__get <- function(obj_) {
-    .Call('tree2_Interpolator_TK__size__get', PACKAGE = 'tree2', obj_)
-}
-
-Interpolator_TK__min__get <- function(obj_) {
-    .Call('tree2_Interpolator_TK__min__get', PACKAGE = 'tree2', obj_)
-}
-
-Interpolator_TK__max__get <- function(obj_) {
-    .Call('tree2_Interpolator_TK__max__get', PACKAGE = 'tree2', obj_)
 }
 
 Environment__ctor <- function(p) {
@@ -1012,10 +964,6 @@ lcp_whole_plant <- function(p) {
 
 test_uniroot <- function(f, min, max) {
     .Call('tree2_test_uniroot', PACKAGE = 'tree2', f, min, max)
-}
-
-set_sane_gsl_error_handling <- function() {
-    invisible(.Call('tree2_set_sane_gsl_error_handling', PACKAGE = 'tree2'))
 }
 
 trapezium <- function(x, y) {

@@ -3,9 +3,4 @@
 # In theory, this should be sufficient, but this causes compilation to
 # fail for me on Yosemite:
 # CXX_STD = CXX11
-
-GSL_CFLAGS=`gsl-config --cflags`
-GSL_LIBS=`gsl-config --libs`
-
-PKG_CPPFLAGS += -I../inst/include/ $(GSL_CFLAGS) --std=c++11
-PKG_LIBS += $(GSL_LIBS)
+PKG_CPPFLAGS += -I../inst/include/ --std=c++11

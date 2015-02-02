@@ -188,11 +188,6 @@ T clamp(T x, T min_val, T max_val) {
 std::vector<double> local_error_integration(const std::vector<double>& x,
                                             const std::vector<double>& y,
                                             double scal);
-
-void handler_pass_to_R(const char *reason,
-                       const char *file,
-                       int line,
-                       int gsl_errno);
 }
 }
 
@@ -200,7 +195,5 @@ namespace Rcpp {
 template <> SEXP wrap(const tree2::util::index&);
 template <> tree2::util::index as(SEXP);
 }
-
-void set_sane_gsl_error_handling();
 
 #endif

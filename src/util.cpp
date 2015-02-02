@@ -1,5 +1,4 @@
 #include <tree2/util.h>
-#include <gsl/gsl_errno.h>
 #include <Rcpp.h>
 
 namespace tree2 {
@@ -58,16 +57,6 @@ void stop(const std::string& msg) {
   Rcpp::stop(msg);
 }
 
-void handler_pass_to_R(const char *reason,
-                       const char *file,
-                       int line,
-                       int gsl_errno) {
-  std::ostringstream o;
-  o << "GSLERROR: " << reason << ": " <<  file << ":" << line <<
-    " [" << util::to_string(gsl_errno) << "]";
-  Rcpp::stop(o.str());
-}
-
 // The basic idea here is that we consider the three points
 //   {(x1, y1), (x2, y2), (x3, y3)}
 // and we want to know how much the middle point is contributing to
@@ -115,12 +104,6 @@ template <> tree2::util::index as(SEXP x) {
   }
   return tree2::util::base_1_to_0<int, size_t>(ix);
 }
-}
-
-// NOTE: Possibly wants moving?
-// [[Rcpp::export]]
-void set_sane_gsl_error_handling() {
-  gsl_set_error_handler(&tree2::util::handler_pass_to_R);
 }
 
 // [[Rcpp::export]]
