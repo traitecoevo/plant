@@ -3298,6 +3298,34 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// EBT__use_ode_times__get
+bool EBT__use_ode_times__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_);
+RcppExport SEXP tree2_EBT__use_ode_times__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > >::type obj_(obj_SEXP );
+        bool __result = EBT__use_ode_times__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// EBT__use_ode_times__set
+void EBT__use_ode_times__set(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, bool value);
+RcppExport SEXP tree2_EBT__use_ode_times__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< bool >::type value(valueSEXP );
+        EBT__use_ode_times__set(obj_, value);
+    }
+    return R_NilValue;
+END_RCPP
+}
 // PlantRunner__ctor
 tree2::tools::PlantRunner PlantRunner__ctor(tree2::Plant plant, tree2::Environment environment);
 RcppExport SEXP tree2_PlantRunner__ctor(SEXP plantSEXP, SEXP environmentSEXP) {
@@ -3399,6 +3427,21 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< double >::type min(minSEXP );
         Rcpp::traits::input_parameter< double >::type max(maxSEXP );
         double __result = test_uniroot(f, min, max);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// matrix_to_list
+Rcpp::List matrix_to_list(Rcpp::NumericMatrix x);
+RcppExport SEXP tree2_matrix_to_list(SEXP xSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type x(xSEXP );
+        Rcpp::List __result = matrix_to_list(x);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

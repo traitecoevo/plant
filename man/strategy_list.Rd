@@ -4,15 +4,14 @@
 \alias{strategy_list}
 \title{Create a list of Strategies}
 \usage{
-strategy_list(x, trait_name, strategy = Strategy())
+strategy_list(x, strategy = Strategy())
 
-plant_list(x, trait_name, strategy = Strategy())
+plant_list(x, strategy = Strategy())
 }
 \arguments{
-\item{x}{Values for the trait}
-
-\item{trait_name}{Name of the trait to vary (may be any element of
-Strategy)}
+\item{x}{Values for the trait.  This must be a \emph{matrix}, with
+column names corresponding to entries in \code{Strategy} and rows
+representing different values.}
 
 \item{strategy}{Default strategy to modify}
 }

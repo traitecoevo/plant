@@ -53,13 +53,16 @@ equilibrium_quiet <- function(base=Control()) {
 ##' This is the simplest way of using the EBT, probably.
 ##' @title Run EBT
 ##' @param p Parameters object
+##' @param use_ode_times Should ODE times be used?
 ##' @return A \code{EBT} object.
 ##' @author Rich FitzJohn
 ##' @export
-run_ebt <- function(p, sched) {
+run_ebt <- function(p, use_ode_times=FALSE) {
   ebt <- EBT(p)
+  if (use_ode_times) {
+    ebt$use_ode_times <- TRUE
+  }
   ebt$run()
-  ## ebt$update_ode_times() # TODO: Implement!
   ebt
 }
 

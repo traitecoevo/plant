@@ -588,6 +588,11 @@ EBT:
       type: "Rcpp::List"
       access: function
       name_cpp: "tree2::get_state"
+    use_ode_times:
+      type: bool
+      access: member
+      name_cpp: r_use_ode_times
+      name_cpp_set: r_set_use_ode_times
 
 PlantRunner:
   name_cpp: "tree2::tools::PlantRunner"

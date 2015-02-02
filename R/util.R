@@ -73,5 +73,5 @@ validate <- function(x, ...) {
   UseMethod("validate")
 }
 validate.Parameters <- function(x, ...) {
-  Parameters__vdor(p)
+  Parameters__vdor(x)
 }

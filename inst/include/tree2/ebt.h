@@ -42,6 +42,8 @@ public:
   std::vector<std::vector<double> > r_seed_rain_error() const;
   std::vector<double> r_leaf_area_error(util::index species_index) const;
   std::vector<double> r_ode_times() const;
+  bool r_use_ode_times() const;
+  void r_set_use_ode_times(bool x);
 
   CohortSchedule r_cohort_schedule() const {return cohort_schedule;}
   void r_set_cohort_schedule(CohortSchedule x);
@@ -195,6 +197,16 @@ std::vector<double> EBT<T>::r_leaf_area_error(util::index species_index) const {
 template <typename T>
 std::vector<double> EBT<T>::r_ode_times() const {
   return solver.get_times();
+}
+
+template <typename T>
+bool EBT<T>::r_use_ode_times() const {
+  return cohort_schedule.using_ode_times();
+}
+
+template <typename T>
+void EBT<T>::r_set_use_ode_times(bool x) {
+  cohort_schedule.r_set_use_ode_times(x);
 }
 
 template <typename T>

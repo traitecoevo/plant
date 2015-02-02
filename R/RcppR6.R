@@ -1259,6 +1259,13 @@ Parameters <- function(..., values=list(...)) {
                   } else {
                     stop("EBT$state is read-only")
                   }
+                },
+                use_ode_times = function(value) {
+                  if (missing(value)) {
+                    EBT__use_ode_times__get(self)
+                  } else {
+                    EBT__use_ode_times__set(self, value)
+                  }
                 }))
 
 

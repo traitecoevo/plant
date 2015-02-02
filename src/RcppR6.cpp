@@ -986,6 +986,15 @@ Rcpp::List EBT__state__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_
   return tree2::get_state(*obj_);
 }
 
+// [[Rcpp::export]]
+bool EBT__use_ode_times__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->r_use_ode_times();
+}
+// [[Rcpp::export]]
+void EBT__use_ode_times__set(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, bool value) {
+  obj_->r_set_use_ode_times(value);
+}
+
 
 // [[Rcpp::export]]
 tree2::tools::PlantRunner PlantRunner__ctor(tree2::Plant plant, tree2::Environment environment) {

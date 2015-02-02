@@ -3,10 +3,12 @@
 \alias{run_ebt}
 \title{Run EBT}
 \usage{
-run_ebt(p, sched)
+run_ebt(p, use_ode_times = FALSE)
 }
 \arguments{
 \item{p}{Parameters object}
+
+\item{use_ode_times}{Should ODE times be used?}
 }
 \value{
 A \code{EBT} object.

@@ -927,6 +927,14 @@ EBT__state__get <- function(obj_) {
     .Call('tree2_EBT__state__get', PACKAGE = 'tree2', obj_)
 }
 
+EBT__use_ode_times__get <- function(obj_) {
+    .Call('tree2_EBT__use_ode_times__get', PACKAGE = 'tree2', obj_)
+}
+
+EBT__use_ode_times__set <- function(obj_, value) {
+    invisible(.Call('tree2_EBT__use_ode_times__set', PACKAGE = 'tree2', obj_, value))
+}
+
 PlantRunner__ctor <- function(plant, environment) {
     .Call('tree2_PlantRunner__ctor', PACKAGE = 'tree2', plant, environment)
 }
@@ -968,6 +976,10 @@ lcp_whole_plant <- function(p) {
 
 test_uniroot <- function(f, min, max) {
     .Call('tree2_test_uniroot', PACKAGE = 'tree2', f, min, max)
+}
+
+matrix_to_list <- function(x) {
+    .Call('tree2_matrix_to_list', PACKAGE = 'tree2', x)
 }
 
 trapezium <- function(x, y) {
