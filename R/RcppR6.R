@@ -1210,6 +1210,9 @@ Parameters <- function(..., values=list(...)) {
                 },
                 leaf_area_error = function(species_index) {
                   EBT__leaf_area_error(self, species_index)
+                },
+                set_cohort_schedule_times = function(times) {
+                  EBT__set_cohort_schedule_times(self, times)
                 }),
               active=list(
                 complete = function(value) {

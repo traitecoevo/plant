@@ -3167,6 +3167,19 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// EBT__set_cohort_schedule_times
+void EBT__set_cohort_schedule_times(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, std::vector<std::vector<double> > times);
+RcppExport SEXP tree2_EBT__set_cohort_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< std::vector<std::vector<double> > >::type times(timesSEXP );
+        EBT__set_cohort_schedule_times(obj_, times);
+    }
+    return R_NilValue;
+END_RCPP
+}
 // EBT__complete__get
 bool EBT__complete__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_);
 RcppExport SEXP tree2_EBT__complete__get(SEXP obj_SEXP) {

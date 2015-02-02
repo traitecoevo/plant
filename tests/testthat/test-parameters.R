@@ -115,3 +115,15 @@ test_that("Parameters overwrites Strategy control", {
   expect_that(p2$control, is_identical_to(ctrl_p))
   expect_that(p2$strategies[[1]]$control, is_identical_to(ctrl_p))
 })
+
+test_that("Generate cohort schedule", {
+  p <- Parameters(strategies=list(Strategy()),
+                  seed_rain=pi/2,
+                  is_resident=TRUE)
+  sched <- make_cohort_schedule(p)
+
+  expect_that(sched$n_species, equals(1))
+  expect_that(sched$max_time, equals(p$cohort_schedule_max_time))
+  expect_that(sched$times(1), equals(p$cohort_schedule_times_default))
+  expect_that(sched$all_times, equals(p$cohort_schedule_times))
+})

@@ -945,6 +945,10 @@ std::vector<double> EBT__leaf_area_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2:
   return obj_->r_leaf_area_error(species_index);
 }
 // [[Rcpp::export]]
+void EBT__set_cohort_schedule_times(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, std::vector<std::vector<double> > times) {
+  obj_->r_set_cohort_schedule_times(times);
+}
+// [[Rcpp::export]]
 bool EBT__complete__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
   return obj_->complete();
 }

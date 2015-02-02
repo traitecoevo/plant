@@ -44,6 +44,7 @@ public:
 
   CohortSchedule r_cohort_schedule() const {return cohort_schedule;}
   void r_set_cohort_schedule(CohortSchedule x);
+  void r_set_cohort_schedule_times(std::vector<std::vector<double> > x);
 
 private:
   double seed_rain_total() const;
@@ -193,6 +194,15 @@ void EBT<T>::r_set_cohort_schedule(CohortSchedule x) {
   // new schedule, this making Parameters sufficient.
   parameters.cohort_schedule_max_time = cohort_schedule.get_max_time();
   parameters.cohort_schedule_times = cohort_schedule.get_times();
+}
+
+template <typename T>
+void EBT<T>::r_set_cohort_schedule_times(std::vector<std::vector<double> > x) {
+  if (patch.ode_size() > 0) {
+    util::stop("Cannot set schedule without resetting first");
+  }
+  cohort_schedule.set_times(x);
+  parameters.cohort_schedule_times = x;
 }
 
 template <typename T>

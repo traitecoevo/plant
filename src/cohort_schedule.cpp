@@ -69,7 +69,7 @@ void CohortSchedule::set_times(const std::vector<double>& times_,
 
 void CohortSchedule::set_times(const std::vector<std::vector<double> >& times_) {
   util::check_length(times_.size(), n_species);
-  for (size_t i = 0; i < size(); ++i) {
+  for (size_t i = 0; i < n_species; ++i) {
     set_times(times_[i], i);
   }
 }
@@ -258,6 +258,7 @@ void CohortSchedule::r_set_all_times(SEXP rx) {
   for (Rcpp::List::iterator el = x.begin(); el != x.end(); ++el) {
     new_times.push_back(Rcpp::as<std::vector<double> >(*el));
   }
+  // set_all_times(new_times);
   util::check_length(new_times.size(), n_species);
   for (size_t i = 0; i < n_species; ++i) {
     set_times(new_times[i], i);

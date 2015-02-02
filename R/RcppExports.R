@@ -891,6 +891,10 @@ EBT__leaf_area_error <- function(obj_, species_index) {
     .Call('tree2_EBT__leaf_area_error', PACKAGE = 'tree2', obj_, species_index)
 }
 
+EBT__set_cohort_schedule_times <- function(obj_, times) {
+    invisible(.Call('tree2_EBT__set_cohort_schedule_times', PACKAGE = 'tree2', obj_, times))
+}
+
 EBT__complete__get <- function(obj_) {
     .Call('tree2_EBT__complete__get', PACKAGE = 'tree2', obj_)
 }

@@ -560,6 +560,10 @@ EBT:
       args: [species_index: "tree2::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_leaf_area_error
+    set_cohort_schedule_times:
+      args: [times: "std::vector<std::vector<double> >"]
+      return_type: void
+      name_cpp: r_set_cohort_schedule_times
     # times
     # set_times
   active:
