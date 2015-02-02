@@ -57,9 +57,9 @@ equilibrium_quiet <- function(base=Control()) {
 ##' @author Rich FitzJohn
 ##' @export
 run_ebt <- function(p, sched) {
-  ebt <- new(EBT, p)
+  ebt <- EBT(p)
   ebt$run()
-  ebt$update_ode_times()
+  ## ebt$update_ode_times() # TODO: Implement!
   ebt
 }
 
@@ -85,19 +85,12 @@ ebt_base_parameters <- function() {
 ##' @param sched A CohortSchedule Object
 ##' @author Rich FitzJohn
 run_ebt_collect <- function(p) {
-  get_state <- function(ebt) {
-    light_env <- ebt$patch$environment$light_environment$xy
-    colnames(light_env) <- c("height", "canopy_openness")
-    list(time=ebt$time, species=ebt$state, light_env=light_env)
-  }
-
   ebt <- EBT(p)
-  res <- list(get_state(ebt))
+  res <- list(ebt$state)
 
   while (!ebt$complete) {
     ebt$run_next()
-    st <- get_state(ebt)
-    res <- c(res, list(st))
+    res <- c(res, list(ebt$state))
   }
 
   time <- sapply(res, "[[", "time")
@@ -117,6 +110,6 @@ run_ebt_collect <- function(p) {
   ## little more obvious.
   species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
 
-  list(time=time, species=species, light_env=light_env)
-  ## seed_rain=ebt$seed_rains)
+  list(time=time, species=species, light_env=light_env,
+       seed_rain=ebt$seed_rains)
 }
