@@ -68,3 +68,10 @@ seq_log <- function(from, to, length.out) {
 seq_log_range <- function(r, length.out) {
   seq_log(r[[1]], r[[2]], length.out)
 }
+
+validate <- function(x, ...) {
+  UseMethod("validate")
+}
+validate.Parameters <- function(x, ...) {
+  Parameters__vdor(p)
+}

@@ -113,3 +113,32 @@ run_ebt_collect <- function(p) {
   list(time=time, species=species, light_env=light_env,
        seed_rain=ebt$seed_rains)
 }
+
+run_ebt_error <- function(p) {
+  ebt <- EBT(p)
+  n_spp <- length(p$strategies)
+
+  lai_error <- rep(list(NULL), n_spp)
+  while (!ebt$complete) {
+    added <- ebt$run_next()
+    for (idx in added) {
+      lai_error[[idx]] <-
+        c(lai_error[[idx]], list(ebt$leaf_area_error(idx)))
+    }
+  }
+
+  lai_error <- lapply(lai_error, function(x)
+                      do.call(rbind, pad_matrix(x)))
+  ## TODO: This is why we need all seed rains at once:
+  err_seed_rain <- lapply(seq_len(n_spp), function(idx)
+                          ebt$seed_rain_error(idx))
+  f <- function(m) {
+    suppressWarnings(apply(m, 2, max, na.rm=TRUE))
+  }
+  total <- lapply(seq_len(n_spp), function(idx)
+                  f(rbind(lai_error[[idx]], err_seed_rain[[idx]])))
+
+  list(seed_rain=ebt$seed_rains,
+       err=list(lai=lai_error, seed_rain=err_seed_rain, total=total),
+       ode_times=ebt$ode_times)
+}

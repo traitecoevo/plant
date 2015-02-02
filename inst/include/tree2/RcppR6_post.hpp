@@ -198,7 +198,6 @@ template <> inline SEXP wrap(const tree2::Control& x) {
   ret["ode_a_dydt"] = Rcpp::wrap(x.ode_a_dydt);
   ret["schedule_nsteps"] = Rcpp::wrap(x.schedule_nsteps);
   ret["schedule_eps"] = Rcpp::wrap(x.schedule_eps);
-  ret["schedule_progress"] = Rcpp::wrap(x.schedule_progress);
   ret["schedule_verbose"] = Rcpp::wrap(x.schedule_verbose);
   ret["schedule_patch_survival"] = Rcpp::wrap(x.schedule_patch_survival);
   ret["equilibrium_nsteps"] = Rcpp::wrap(x.equilibrium_nsteps);
@@ -273,8 +272,6 @@ template <> inline tree2::Control as(SEXP x) {
   ret.schedule_nsteps = Rcpp::as<size_t >(xl["schedule_nsteps"]);
   // ret.schedule_eps = Rcpp::as<decltype(retschedule_eps) >(xl["schedule_eps"]);
   ret.schedule_eps = Rcpp::as<double >(xl["schedule_eps"]);
-  // ret.schedule_progress = Rcpp::as<decltype(retschedule_progress) >(xl["schedule_progress"]);
-  ret.schedule_progress = Rcpp::as<bool >(xl["schedule_progress"]);
   // ret.schedule_verbose = Rcpp::as<decltype(retschedule_verbose) >(xl["schedule_verbose"]);
   ret.schedule_verbose = Rcpp::as<bool >(xl["schedule_verbose"]);
   // ret.schedule_patch_survival = Rcpp::as<decltype(retschedule_patch_survival) >(xl["schedule_patch_survival"]);

@@ -33,7 +33,6 @@ test_that("Defaults", {
 
     schedule_nsteps   = 20, # size_t
     schedule_eps      = 1e-3,
-    schedule_progress = FALSE,
     schedule_verbose  = FALSE,
     schedule_patch_survival = 6.25302620663814e-05,
 

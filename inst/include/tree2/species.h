@@ -53,7 +53,7 @@ public:
 
   // These are used to determine the degree of cohort refinement.
   std::vector<double> r_leaf_areas() const;
-  std::vector<double> r_leaf_areas_error() const;
+  std::vector<double> r_leaf_areas_error(double scal) const;
 
 private:
   const Control& control() const {return strategy->get_control();}
@@ -230,8 +230,7 @@ std::vector<double> Species<T>::r_leaf_areas() const {
 }
 
 template <typename T>
-std::vector<double> Species<T>::r_leaf_areas_error() const {
-  const double scal = 1.0;
+std::vector<double> Species<T>::r_leaf_areas_error(double scal) const {
   return util::local_error_integration(r_heights(), r_leaf_areas(), scal);
 }
 

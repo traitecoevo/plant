@@ -104,6 +104,13 @@ template <> tree2::util::index as(SEXP x) {
   }
   return tree2::util::base_1_to_0<int, size_t>(ix);
 }
+template <> SEXP wrap(const std::vector<tree2::util::index>& x) {
+  Rcpp::IntegerVector ret(x.size());
+  for (auto i: tree2::util::indices(x)) {
+    ret[static_cast<int>(i)] = tree2::util::base_0_to_1<size_t, int>(x[i].x);
+  }
+  return Rcpp::wrap(ret);
+}
 }
 
 // [[Rcpp::export]]

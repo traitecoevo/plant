@@ -155,7 +155,6 @@ Control:
     - ode_a_dydt: double
     - schedule_nsteps: size_t
     - schedule_eps: double
-    - schedule_progress: bool
     - schedule_verbose: bool
     - schedule_patch_survival: double
     - equilibrium_nsteps: size_t
@@ -458,7 +457,6 @@ Species:
     plants: {type: "std::vector<tree2::Cohort<tree2::Plant> >", access: member, name_cpp: r_plants}
     seeds: {type: "std::vector<double>", access: member}
     leaf_areas: {type: "std::vector<double>", access: member, name_cpp: r_leaf_areas}
-    leaf_areas_error: {type: "std::vector<double>", access: member, name_cpp: r_leaf_areas_error}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
@@ -478,6 +476,10 @@ Species:
       return_type: "tree2::Cohort<tree2::Plant>"
       args: [index: "tree2::util::index"]
       name_cpp: r_plant_at
+    leaf_areas_error:
+      return_type: "std::vector<double>"
+      args: [scal: double=1]
+      name_cpp: r_leaf_areas_error
 
 Patch:
   forward_declare: false
@@ -546,6 +548,9 @@ EBT:
     seed_rain_error:
       args: [species_index: "tree2::util::index"]
       return_type: "std::vector<double>"
+      name_cpp: r_seed_rain_error
+    all_seed_rain_error:
+      return_type: "std::vector<std::vector<double> >"
       name_cpp: r_seed_rain_error
     seed_rain_cohort:
       args: [species_index: "tree2::util::index"]

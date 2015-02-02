@@ -753,6 +753,10 @@ tree2::Cohort<tree2::Plant> Species__plant_at(tree2::RcppR6::RcppR6<tree2::Speci
   return obj_->r_plant_at(index);
 }
 // [[Rcpp::export]]
+std::vector<double> Species__leaf_areas_error(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, double scal) {
+  return obj_->r_leaf_areas_error(scal);
+}
+// [[Rcpp::export]]
 size_t Species__size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
   return obj_->size();
 }
@@ -789,11 +793,6 @@ std::vector<double> Species__seeds__get(tree2::RcppR6::RcppR6<tree2::Species<tre
 // [[Rcpp::export]]
 std::vector<double> Species__leaf_areas__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
   return obj_->r_leaf_areas();
-}
-
-// [[Rcpp::export]]
-std::vector<double> Species__leaf_areas_error__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
-  return obj_->r_leaf_areas_error();
 }
 
 // [[Rcpp::export]]
@@ -926,6 +925,10 @@ double EBT__seed_rain(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tre
 // [[Rcpp::export]]
 std::vector<double> EBT__seed_rain_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index) {
   return obj_->r_seed_rain_error(species_index);
+}
+// [[Rcpp::export]]
+std::vector<std::vector<double> > EBT__all_seed_rain_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->r_seed_rain_error();
 }
 // [[Rcpp::export]]
 std::vector<double> EBT__seed_rain_cohort(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index) {

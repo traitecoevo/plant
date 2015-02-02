@@ -194,6 +194,7 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
 namespace Rcpp {
 template <> SEXP wrap(const tree2::util::index&);
 template <> tree2::util::index as(SEXP);
+template <> SEXP wrap(const std::vector<tree2::util::index>&);
 }
 
 #endif

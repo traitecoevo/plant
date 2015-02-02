@@ -39,6 +39,7 @@ public:
   double              r_seed_rain(util::index species_index) const;
   std::vector<double> r_seed_rain_cohort(util::index species_index) const;
   std::vector<double> r_seed_rain_error(util::index species_index) const;
+  std::vector<std::vector<double> > r_seed_rain_error() const;
   std::vector<double> r_leaf_area_error(util::index species_index) const;
   std::vector<double> r_ode_times() const;
 
@@ -171,7 +172,21 @@ std::vector<double> EBT<T>::r_seed_rain_error(util::index species_index) const {
 }
 
 template <typename T>
+std::vector<std::vector<double> > EBT<T>::r_seed_rain_error() const {
+  std::vector<std::vector<double> > ret;
+  double tot_seed_out = seed_rain_total();
+  for (size_t i = 0; i < patch.size(); ++i) {
+    ret.push_back(util::local_error_integration(cohort_schedule.times(i),
+                                                seed_rain_cohort(i),
+                                                tot_seed_out));
+  }
+  return ret;
+}
+
+template <typename T>
 std::vector<double> EBT<T>::r_leaf_area_error(util::index species_index) const {
+  // TODO: I think we need to scale this by total area; that should be
+  // computed for everything so will get passed in as an argument.
   // const double tot_leaf_area  = patch.leaf_area_above(0.0);
   const size_t idx = species_index.check_bounds(patch.size());
   return patch.r_leaf_area_error(idx);

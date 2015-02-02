@@ -978,6 +978,9 @@ Parameters <- function(..., values=list(...)) {
                 },
                 plant_at = function(index) {
                   Species__plant_at(self, index)
+                },
+                leaf_areas_error = function(scal=1) {
+                  Species__leaf_areas_error(self, scal)
                 }),
               active=list(
                 size = function(value) {
@@ -1027,13 +1030,6 @@ Parameters <- function(..., values=list(...)) {
                     Species__leaf_areas__get(self)
                   } else {
                     stop("Species$leaf_areas is read-only")
-                  }
-                },
-                leaf_areas_error = function(value) {
-                  if (missing(value)) {
-                    Species__leaf_areas_error__get(self)
-                  } else {
-                    stop("Species$leaf_areas_error is read-only")
                   }
                 },
                 ode_size = function(value) {
@@ -1194,6 +1190,9 @@ Parameters <- function(..., values=list(...)) {
                 },
                 seed_rain_error = function(species_index) {
                   EBT__seed_rain_error(self, species_index)
+                },
+                all_seed_rain_error = function() {
+                  EBT__all_seed_rain_error(self)
                 },
                 seed_rain_cohort = function(species_index) {
                   EBT__seed_rain_cohort(self, species_index)

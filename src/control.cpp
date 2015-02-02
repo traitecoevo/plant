@@ -33,7 +33,6 @@ Control::Control() : integrator(15, 1, 0, 0) {
 
   schedule_nsteps   = 20;
   schedule_eps      = 1e-3;
-  schedule_progress = false;
   schedule_verbose  = false;
   // This odd number is designed to agree with Daniel's implementation
   // of the model.

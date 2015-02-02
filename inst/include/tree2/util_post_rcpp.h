@@ -18,7 +18,10 @@ struct RFunctionWrapper {
   Rcpp::Function f;
 };
 
-Rcpp::NumericMatrix to_rcpp_matrix(std::vector< std::vector<double> > x);
+Rcpp::NumericMatrix
+to_rcpp_matrix(const std::vector< std::vector<double> >& x);
+Rcpp::NumericMatrix
+to_rcpp_matrix_pad(const std::vector<std::vector<double> >& x);
 
 }
 }

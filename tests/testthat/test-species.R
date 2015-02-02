@@ -24,7 +24,7 @@ test_that("Basics", {
   expect_that(sp$species, is_identical_to(NULL))
   expect_that(sp$heights, is_identical_to(numeric(0)))
   expect_that(sp$leaf_areas, is_identical_to(numeric(0)))
-  expect_that(sp$leaf_areas_error, is_identical_to(numeric(0)))
+  expect_that(sp$leaf_areas_error(1.0), is_identical_to(numeric(0)))
   expect_that(sp$ode_size, equals(0))
   expect_that(sp$ode_state, is_identical_to(numeric(0)))
   expect_that(sp$ode_rates, is_identical_to(numeric(0)))
@@ -185,9 +185,12 @@ test_that("Leaf area sensible with three cohorts", {
   expect_that(sp$leaf_areas,
               is_identical_to(cmp_leaf_area))
 
-  cmp <- local_error_integration(sp$heights, cmp_leaf_area, 1)
-  expect_that(sp$leaf_areas_error,
-              is_identical_to(cmp))
+  cmp    <- local_error_integration(sp$heights, cmp_leaf_area, 1.0)
+  cmp_pi <- local_error_integration(sp$heights, cmp_leaf_area, pi)
+
+  expect_that(sp$leaf_areas_error(),    is_identical_to(cmp))
+  expect_that(sp$leaf_areas_error(1.0), is_identical_to(cmp))
+  expect_that(sp$leaf_areas_error(pi),  is_identical_to(cmp_pi))
 
   ode_state <- sp$ode_state
   plants <- sp$plants

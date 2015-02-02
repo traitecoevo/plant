@@ -65,7 +65,7 @@ test_that("Ported from tree1", {
   ## Can be resolved by passing off to another utility function I
   ## think, but probably better done via traits (but I don't see how
   ## to make those work).
-  i <- unlist(ebt$run_next())
+  i <- ebt$run_next()
 
   expect_that(ebt$cohort_schedule$remaining, equals(length(t) - 1))
   expect_that(ebt$complete, is_false())

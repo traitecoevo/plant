@@ -723,6 +723,10 @@ Species__plant_at <- function(obj_, index) {
     .Call('tree2_Species__plant_at', PACKAGE = 'tree2', obj_, index)
 }
 
+Species__leaf_areas_error <- function(obj_, scal) {
+    .Call('tree2_Species__leaf_areas_error', PACKAGE = 'tree2', obj_, scal)
+}
+
 Species__size__get <- function(obj_) {
     .Call('tree2_Species__size__get', PACKAGE = 'tree2', obj_)
 }
@@ -753,10 +757,6 @@ Species__seeds__get <- function(obj_) {
 
 Species__leaf_areas__get <- function(obj_) {
     .Call('tree2_Species__leaf_areas__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__leaf_areas_error__get <- function(obj_) {
-    .Call('tree2_Species__leaf_areas_error__get', PACKAGE = 'tree2', obj_)
 }
 
 Species__ode_size__get <- function(obj_) {
@@ -873,6 +873,10 @@ EBT__seed_rain <- function(obj_, species_index) {
 
 EBT__seed_rain_error <- function(obj_, species_index) {
     .Call('tree2_EBT__seed_rain_error', PACKAGE = 'tree2', obj_, species_index)
+}
+
+EBT__all_seed_rain_error <- function(obj_) {
+    .Call('tree2_EBT__all_seed_rain_error', PACKAGE = 'tree2', obj_)
 }
 
 EBT__seed_rain_cohort <- function(obj_, species_index) {
