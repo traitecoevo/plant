@@ -500,6 +500,53 @@ double Interpolator__max__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpo
 
 
 // [[Rcpp::export]]
+tree2::interpolator::Interpolator_TK Interpolator_TK__ctor() {
+  return tree2::interpolator::Interpolator_TK();
+}
+// [[Rcpp::export]]
+void Interpolator_TK__init(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_, const std::vector<double>& x, const std::vector<double>& y) {
+  obj_->init(x, y);
+}
+// [[Rcpp::export]]
+std::vector<double> Interpolator_TK__eval(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_, std::vector<double> x) {
+  return obj_->r_eval(x);
+}
+// [[Rcpp::export]]
+std::vector<double> Interpolator_TK__deriv(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_, std::vector<double> x) {
+  return obj_->r_deriv(x);
+}
+// [[Rcpp::export]]
+std::vector<double> Interpolator_TK__x__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_) {
+  return obj_->get_x();
+}
+
+// [[Rcpp::export]]
+std::vector<double> Interpolator_TK__y__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_) {
+  return obj_->get_y();
+}
+
+// [[Rcpp::export]]
+SEXP Interpolator_TK__xy__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_) {
+  return obj_->r_get_xy();
+}
+
+// [[Rcpp::export]]
+size_t Interpolator_TK__size__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_) {
+  return obj_->size();
+}
+
+// [[Rcpp::export]]
+double Interpolator_TK__min__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_) {
+  return obj_->min();
+}
+
+// [[Rcpp::export]]
+double Interpolator_TK__max__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_) {
+  return obj_->max();
+}
+
+
+// [[Rcpp::export]]
 tree2::Environment Environment__ctor(tree2::Parameters p) {
   return tree2::Environment(p);
 }

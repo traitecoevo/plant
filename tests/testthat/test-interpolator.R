@@ -26,9 +26,9 @@ test_that("Empty cubic splines behave sensibly", {
   expect_that(s$min, equals(Inf))
   expect_that(s$max, equals(-Inf))
   expect_that(s$eval(1),
-              throws_error("Interpolator not initialised"));
+              throws_error("Interpolator not initialised"))
   expect_that(s$type,
-              throws_error("Interpolator not initialised")); #  stupid
+              throws_error("Interpolator not initialised")) #  stupid
 })
 
 test_that("Splines require sensible data", {
@@ -53,6 +53,12 @@ test_that("Splines are accurate enough", {
   s$init(xx, yy)
   yy_C <- s$eval(xx_cmp)
   expect_that(yy_C, equals(yy_cmp, tolerance=1e-6))
+
+  s2 <- Interpolator_TK()
+  s2$init(xx, yy)
+  yy_C2 <- s2$eval(xx_cmp)
+  expect_that(yy_C2, equals(yy_cmp, tolerance=1e-6))
+  expect_that(yy_C2, not(is_identical_to(yy_C)))
 })
 
 test_that("Spline derivatives are correct", {

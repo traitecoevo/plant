@@ -499,6 +499,46 @@ Interpolator__max__get <- function(obj_) {
     .Call('tree2_Interpolator__max__get', PACKAGE = 'tree2', obj_)
 }
 
+Interpolator_TK__ctor <- function() {
+    .Call('tree2_Interpolator_TK__ctor', PACKAGE = 'tree2')
+}
+
+Interpolator_TK__init <- function(obj_, x, y) {
+    invisible(.Call('tree2_Interpolator_TK__init', PACKAGE = 'tree2', obj_, x, y))
+}
+
+Interpolator_TK__eval <- function(obj_, x) {
+    .Call('tree2_Interpolator_TK__eval', PACKAGE = 'tree2', obj_, x)
+}
+
+Interpolator_TK__deriv <- function(obj_, x) {
+    .Call('tree2_Interpolator_TK__deriv', PACKAGE = 'tree2', obj_, x)
+}
+
+Interpolator_TK__x__get <- function(obj_) {
+    .Call('tree2_Interpolator_TK__x__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator_TK__y__get <- function(obj_) {
+    .Call('tree2_Interpolator_TK__y__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator_TK__xy__get <- function(obj_) {
+    .Call('tree2_Interpolator_TK__xy__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator_TK__size__get <- function(obj_) {
+    .Call('tree2_Interpolator_TK__size__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator_TK__min__get <- function(obj_) {
+    .Call('tree2_Interpolator_TK__min__get', PACKAGE = 'tree2', obj_)
+}
+
+Interpolator_TK__max__get <- function(obj_) {
+    .Call('tree2_Interpolator_TK__max__get', PACKAGE = 'tree2', obj_)
+}
+
 Environment__ctor <- function(p) {
     .Call('tree2_Environment__ctor', PACKAGE = 'tree2', p)
 }

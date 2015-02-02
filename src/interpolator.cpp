@@ -10,13 +10,7 @@ namespace interpolator {
 // NULL, as we'll use these values to determine if memory needs
 // clearing.
 Interpolator::Interpolator()
-  : interpolation_type(select_interpolation_type(false)),
-    interp(NULL),
-    interp_accel(NULL) {
-}
-
-Interpolator::Interpolator(bool is_linear)
-  : interpolation_type(select_interpolation_type(is_linear)),
+  : interpolation_type(gsl_interp_cspline),
     interp(NULL),
     interp_accel(NULL) {
 }
@@ -184,16 +178,6 @@ void Interpolator::check_initialised() const {
   if (interp == NULL) {
     Rcpp::stop("Interpolator not initialised -- cannot evaluate");
   }
-}
-
-const gsl_interp_type*
-Interpolator::select_interpolation_type(bool is_linear) {
-  if (is_linear) {
-    return gsl_interp_linear;
-  } else {
-    return gsl_interp_cspline;
-  }
-  return NULL;
 }
 
 }

@@ -1742,6 +1742,156 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Interpolator_TK__ctor
+tree2::interpolator::Interpolator_TK Interpolator_TK__ctor();
+RcppExport SEXP tree2_Interpolator_TK__ctor() {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        tree2::interpolator::Interpolator_TK __result = Interpolator_TK__ctor();
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Interpolator_TK__init
+void Interpolator_TK__init(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_, const std::vector<double>& x, const std::vector<double>& y);
+RcppExport SEXP tree2_Interpolator_TK__init(SEXP obj_SEXP, SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< const std::vector<double>& >::type x(xSEXP );
+        Rcpp::traits::input_parameter< const std::vector<double>& >::type y(ySEXP );
+        Interpolator_TK__init(obj_, x, y);
+    }
+    return R_NilValue;
+END_RCPP
+}
+// Interpolator_TK__eval
+std::vector<double> Interpolator_TK__eval(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_, std::vector<double> x);
+RcppExport SEXP tree2_Interpolator_TK__eval(SEXP obj_SEXP, SEXP xSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< std::vector<double> >::type x(xSEXP );
+        std::vector<double> __result = Interpolator_TK__eval(obj_, x);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Interpolator_TK__deriv
+std::vector<double> Interpolator_TK__deriv(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_, std::vector<double> x);
+RcppExport SEXP tree2_Interpolator_TK__deriv(SEXP obj_SEXP, SEXP xSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< std::vector<double> >::type x(xSEXP );
+        std::vector<double> __result = Interpolator_TK__deriv(obj_, x);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Interpolator_TK__x__get
+std::vector<double> Interpolator_TK__x__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_);
+RcppExport SEXP tree2_Interpolator_TK__x__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> >::type obj_(obj_SEXP );
+        std::vector<double> __result = Interpolator_TK__x__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Interpolator_TK__y__get
+std::vector<double> Interpolator_TK__y__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_);
+RcppExport SEXP tree2_Interpolator_TK__y__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> >::type obj_(obj_SEXP );
+        std::vector<double> __result = Interpolator_TK__y__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Interpolator_TK__xy__get
+SEXP Interpolator_TK__xy__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_);
+RcppExport SEXP tree2_Interpolator_TK__xy__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> >::type obj_(obj_SEXP );
+        SEXP __result = Interpolator_TK__xy__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Interpolator_TK__size__get
+size_t Interpolator_TK__size__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_);
+RcppExport SEXP tree2_Interpolator_TK__size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> >::type obj_(obj_SEXP );
+        size_t __result = Interpolator_TK__size__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Interpolator_TK__min__get
+double Interpolator_TK__min__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_);
+RcppExport SEXP tree2_Interpolator_TK__min__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> >::type obj_(obj_SEXP );
+        double __result = Interpolator_TK__min__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// Interpolator_TK__max__get
+double Interpolator_TK__max__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> obj_);
+RcppExport SEXP tree2_Interpolator_TK__max__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator_TK> >::type obj_(obj_SEXP );
+        double __result = Interpolator_TK__max__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // Environment__ctor
 tree2::Environment Environment__ctor(tree2::Parameters p);
 RcppExport SEXP tree2_Environment__ctor(SEXP pSEXP) {

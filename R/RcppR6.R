@@ -687,6 +687,73 @@ Parameters <- function(..., values=list(...)) {
                   }
                 }))
 
+##' Spline interpolation
+##' @export
+`Interpolator_TK` <- function() {
+  Interpolator_TK__ctor()
+}
+.R6_Interpolator_TK <-
+  R6::R6Class("Interpolator_TK",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                init = function(x, y) {
+                  Interpolator_TK__init(self, x, y)
+                },
+                eval = function(x) {
+                  Interpolator_TK__eval(self, x)
+                },
+                deriv = function(x) {
+                  Interpolator_TK__deriv(self, x)
+                }),
+              active=list(
+                x = function(value) {
+                  if (missing(value)) {
+                    Interpolator_TK__x__get(self)
+                  } else {
+                    stop("Interpolator_TK$x is read-only")
+                  }
+                },
+                y = function(value) {
+                  if (missing(value)) {
+                    Interpolator_TK__y__get(self)
+                  } else {
+                    stop("Interpolator_TK$y is read-only")
+                  }
+                },
+                xy = function(value) {
+                  if (missing(value)) {
+                    Interpolator_TK__xy__get(self)
+                  } else {
+                    stop("Interpolator_TK$xy is read-only")
+                  }
+                },
+                size = function(value) {
+                  if (missing(value)) {
+                    Interpolator_TK__size__get(self)
+                  } else {
+                    stop("Interpolator_TK$size is read-only")
+                  }
+                },
+                min = function(value) {
+                  if (missing(value)) {
+                    Interpolator_TK__min__get(self)
+                  } else {
+                    stop("Interpolator_TK$min is read-only")
+                  }
+                },
+                max = function(value) {
+                  if (missing(value)) {
+                    Interpolator_TK__max__get(self)
+                  } else {
+                    stop("Interpolator_TK$max is read-only")
+                  }
+                }))
+
 ##' Environment object
 ##' @param p A Parameters object
 ##' @export

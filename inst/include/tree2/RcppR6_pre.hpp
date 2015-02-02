@@ -24,6 +24,7 @@ namespace tree2 { struct Parameters; }
 namespace tree2 { namespace quadrature { class QK; } }
 namespace tree2 { namespace quadrature { class QAG; } }
 namespace tree2 { namespace interpolator { class Interpolator; } }
+namespace tree2 { namespace interpolator { class Interpolator_TK; } }
 namespace tree2 { class Environment; }
 namespace tree2 { class Plant; }
 namespace tree2 { namespace tools { struct PlantRunner; } }
@@ -78,6 +79,9 @@ template <> tree2::quadrature::QAG as(SEXP);
 
 template <> SEXP wrap(const tree2::interpolator::Interpolator&);
 template <> tree2::interpolator::Interpolator as(SEXP);
+
+template <> SEXP wrap(const tree2::interpolator::Interpolator_TK&);
+template <> tree2::interpolator::Interpolator_TK as(SEXP);
 
 template <> SEXP wrap(const tree2::Environment&);
 template <> tree2::Environment as(SEXP);
