@@ -31,11 +31,22 @@ test_that("Creation & defaults", {
 })
 
 test_that("Nontrivial creation", {
-  expect_that(Parameters(strategies=list(Strategy())),
-              throws_error("Inconsistent lengths"))
-  expect_that(Parameters(strategies=list(Strategy()),
+  p <- Parameters(strategies=list(Strategy()))
+  expect_that(p$seed_rain, equals(1.0))
+  expect_that(p$is_resident, is_true())
+
+  expect_that(Parameters(seed_rain=pi),
+              throws_error("Incorrect length seed_rain"))
+  expect_that(Parameters(is_resident=FALSE),
+              throws_error("Incorrect length is_resident"))
+
+  expect_that(Parameters(strategies=list(Strategy(), Strategy()),
                          seed_rain=pi),
-              throws_error("Inconsistent lengths"))
+              throws_error("Incorrect length seed_rain"))
+  expect_that(Parameters(strategies=list(Strategy(), Strategy()),
+                         is_resident=TRUE),
+              throws_error("Incorrect length is_resident"))
+
   p <- Parameters(strategies=list(Strategy()),
                   seed_rain=pi,
                   is_resident=TRUE)

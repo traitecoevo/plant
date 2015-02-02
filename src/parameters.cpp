@@ -32,14 +32,27 @@ size_t Parameters::n_mutants() const {
 // a penalty.  So don't put anything too stupidly heavy in here.
 void Parameters::validate() {
   const size_t n_spp = size();
-  if (!(seed_rain.size() == n_spp && is_resident.size() == n_spp)) {
-    util::stop("Inconsistent lengths (strategies, seed_rain, is_resident)");
+
+  // Set some defaults and check lengths.  Number of strategies is
+  // taken as the "true" size.
+  if (seed_rain.empty()) {
+    seed_rain = std::vector<double>(n_spp, 1.0);
+  } else if (seed_rain.size() != n_spp) {
+    util::stop("Incorrect length seed_rain");
   }
+  if (is_resident.empty()) {
+    is_resident = std::vector<bool>(n_spp, true);
+  } else if (is_resident.size() != n_spp) {
+    util::stop("Incorrect length is_resident");
+  }
+
   setup_cohort_schedule();
   if (cohort_schedule_times.size() != n_spp) {
     util::stop("Incorrect length cohort_schedule_times");
   }
-  // Overwrite all strategy control objects:
+
+  // Overwrite all strategy control objects so that they take the
+  // Parameters' control object.
   for (auto& s : strategies) {
     s.control = control;
   }
