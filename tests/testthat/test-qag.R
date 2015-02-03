@@ -144,7 +144,7 @@ test_that("Remembering intervals works", {
   expect_that(ans_15, equals(area_R, tolerance=eps))
 
   intervals <- int_15$last_intervals
-  tmp <- do.call(cbind, intervals)
+  tmp <- cbind_list(intervals)
   tmp <- tmp[order(tmp[,1]),]
 
   ## check that the intervals make sense:
@@ -180,7 +180,7 @@ test_that("Remembering intervals works", {
   ans_scal <- int_15$integrate_with_last_intervals(f, 0, b1)
 
   intervals_scal <- int_15$last_intervals
-  tmp_scal <- do.call(cbind, intervals_scal)
+  tmp_scal <- cbind_list(intervals_scal)
   tmp_scal <- tmp_scal[order(tmp_scal[,1]),]
   expect_that(dim(tmp_scal), is_identical_to(dim(tmp)))
   expect_that(tmp_scal, equals(tmp * b1 / b))

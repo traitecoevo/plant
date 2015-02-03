@@ -923,14 +923,6 @@ double EBT__seed_rain(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tre
   return obj_->r_seed_rain(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT__seed_rain_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index) {
-  return obj_->r_seed_rain_error(species_index);
-}
-// [[Rcpp::export]]
-std::vector<std::vector<double> > EBT__all_seed_rain_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
-  return obj_->r_seed_rain_error();
-}
-// [[Rcpp::export]]
 std::vector<double> EBT__seed_rain_cohort(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index) {
   return obj_->r_seed_rain_cohort(species_index);
 }
@@ -993,6 +985,11 @@ bool EBT__use_ode_times__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > ob
 // [[Rcpp::export]]
 void EBT__use_ode_times__set(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, bool value) {
   obj_->r_set_use_ode_times(value);
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > EBT__seed_rain_error__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_) {
+  return obj_->r_seed_rain_error();
 }
 
 

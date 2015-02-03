@@ -1188,12 +1188,6 @@ Parameters <- function(..., values=list(...)) {
                 seed_rain = function(species_index) {
                   EBT__seed_rain(self, species_index)
                 },
-                seed_rain_error = function(species_index) {
-                  EBT__seed_rain_error(self, species_index)
-                },
-                all_seed_rain_error = function() {
-                  EBT__all_seed_rain_error(self)
-                },
                 seed_rain_cohort = function(species_index) {
                   EBT__seed_rain_cohort(self, species_index)
                 },
@@ -1265,6 +1259,13 @@ Parameters <- function(..., values=list(...)) {
                     EBT__use_ode_times__get(self)
                   } else {
                     EBT__use_ode_times__set(self, value)
+                  }
+                },
+                seed_rain_error = function(value) {
+                  if (missing(value)) {
+                    EBT__seed_rain_error__get(self)
+                  } else {
+                    stop("EBT$seed_rain_error is read-only")
                   }
                 }))
 

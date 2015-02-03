@@ -542,13 +542,6 @@ EBT:
       args: [species_index: "tree2::util::index"]
       return_type: double
       name_cpp: r_seed_rain
-    seed_rain_error:
-      args: [species_index: "tree2::util::index"]
-      return_type: "std::vector<double>"
-      name_cpp: r_seed_rain_error
-    all_seed_rain_error:
-      return_type: "std::vector<std::vector<double> >"
-      name_cpp: r_seed_rain_error
     seed_rain_cohort:
       args: [species_index: "tree2::util::index"]
       return_type: "std::vector<double>"
@@ -590,6 +583,10 @@ EBT:
       access: member
       name_cpp: r_use_ode_times
       name_cpp_set: r_set_use_ode_times
+    seed_rain_error:
+      type: "std::vector<std::vector<double> >"
+      access: member
+      name_cpp: r_seed_rain_error
 
 PlantRunner:
   name_cpp: "tree2::tools::PlantRunner"

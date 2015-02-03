@@ -237,9 +237,9 @@ equilibrium_runner_cleanup <- function(runner, converged=TRUE) {
   }
 
   p <- e$p
-  p$seed_rain <- e$last_seed_rain
+  p$seed_rain <- as.numeric(e$last_seed_rain)
   p$cohort_schedule_times <- e$last_schedule_times
-  attr(p, "progress") <- do.call("rbind", e$history)
+  attr(p, "progress") <- rbind_list(e$history)
   attr(p, "converged") <- converged
   p
 }

@@ -34,17 +34,15 @@ fast_control <- function(base=Control()) {
 ##' p <- new(Parameters)
 ##' p$set_control_parameters(equilibrium_verbose())
 equilibrium_verbose <- function(base=Control()) {
-  base$schedule_verbose=TRUE
-  base$equilibrium_verbose=TRUE
-  base$equilibrium_progress=TRUE
+  base$schedule_verbose <- TRUE
+  base$equilibrium_verbose <- TRUE
   base
 }
 ##' @export
 ##' @rdname equilibrium_verbose
 equilibrium_quiet <- function(base=Control()) {
-  base$schedule_verbose=FALSE
-  base$equilibrium_verbose=FALSE
-  base$equilibrium_progress=FALSE
+  base$schedule_verbose <- FALSE
+  base$equilibrium_verbose <- FALSE
   base
 }
 
@@ -130,18 +128,15 @@ run_ebt_error <- function(p) {
     }
   }
 
-  lai_error <- lapply(lai_error, function(x)
-                      do.call(rbind, pad_matrix(x)))
-  ## TODO: This is why we need all seed rains at once:
-  err_seed_rain <- lapply(seq_len(n_spp), function(idx)
-                          ebt$seed_rain_error(idx))
+  lai_error <- lapply(lai_error, function(x) rbind_list(pad_matrix(x)))
+  seed_rain_error <- ebt$seed_rain_error
   f <- function(m) {
     suppressWarnings(apply(m, 2, max, na.rm=TRUE))
   }
   total <- lapply(seq_len(n_spp), function(idx)
-                  f(rbind(lai_error[[idx]], err_seed_rain[[idx]])))
+                  f(rbind(lai_error[[idx]], seed_rain_error[[idx]])))
 
   list(seed_rain=ebt$seed_rains,
-       err=list(lai=lai_error, seed_rain=err_seed_rain, total=total),
+       err=list(lai=lai_error, seed_rain=seed_rain_error, total=total),
        ode_times=ebt$ode_times)
 }

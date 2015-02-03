@@ -1,0 +1,25 @@
+packages:
+  - sowsear
+  - tree2
+
+targets:
+  all:
+    depends:
+      - fitness.md
+      - equilibrium.md
+      - build_schedule.md
+
+  fitness.md:
+    knitr: true
+  fitness.Rmd:
+    command: sowsear("fitness.R", I("Rmd"))
+
+  equilibrium.md:
+    knitr: true
+  equilibrium.Rmd:
+    command: sowsear("equilibrium.R", I("Rmd"))
+
+  build_schedule.md:
+    knitr: true
+  build_schedule.Rmd:
+    command: sowsear("build_schedule.R", I("Rmd"))

@@ -51,8 +51,9 @@ pad_list_to_array <- function(x) {
 ##'
 ##' Unlike the billions of options for \code{seq}, only
 ##' \code{length.out} is supported here, and both \code{from} and
-##' \code{to} must be provided.
-##' @title Sequence in Log Space
+##' \code{to} must be provided.  For completeness, \code{seq_range}
+##' generates a range in non-log space.
+##' @title Sequence in log space
 ##' @param from Starting point
 ##' @param to Ending point
 ##' @param length.out Number of points to generate
@@ -67,6 +68,12 @@ seq_log <- function(from, to, length.out) {
 ##' @rdname seq_log
 seq_log_range <- function(r, length.out) {
   seq_log(r[[1]], r[[2]], length.out)
+}
+
+##' @export
+##' @rdname seq_log
+seq_range <- function(r, length.out) {
+  seq(r[[1]], r[[2]], length.out=length.out)
 }
 
 validate <- function(x, ...) {
@@ -90,4 +97,17 @@ make_message_verbose <- function(verbose) {
   } else {
     function(...) {}
   }
+}
+
+##' Create a matrix from a list by rbinding all columns together
+##' @title Create matrices from lists
+##' @param x A list, or something coercable to a list
+##' @export
+rbind_list <- function(x) {
+  do.call("rbind", as.list(x))
+}
+##' @export
+##' @rdname rbind_list
+cbind_list <- function(x) {
+  do.call("cbind", as.list(x))
 }

@@ -871,14 +871,6 @@ EBT__seed_rain <- function(obj_, species_index) {
     .Call('tree2_EBT__seed_rain', PACKAGE = 'tree2', obj_, species_index)
 }
 
-EBT__seed_rain_error <- function(obj_, species_index) {
-    .Call('tree2_EBT__seed_rain_error', PACKAGE = 'tree2', obj_, species_index)
-}
-
-EBT__all_seed_rain_error <- function(obj_) {
-    .Call('tree2_EBT__all_seed_rain_error', PACKAGE = 'tree2', obj_)
-}
-
 EBT__seed_rain_cohort <- function(obj_, species_index) {
     .Call('tree2_EBT__seed_rain_cohort', PACKAGE = 'tree2', obj_, species_index)
 }
@@ -933,6 +925,10 @@ EBT__use_ode_times__get <- function(obj_) {
 
 EBT__use_ode_times__set <- function(obj_, value) {
     invisible(.Call('tree2_EBT__use_ode_times__set', PACKAGE = 'tree2', obj_, value))
+}
+
+EBT__seed_rain_error__get <- function(obj_) {
+    .Call('tree2_EBT__seed_rain_error__get', PACKAGE = 'tree2', obj_)
 }
 
 PlantRunner__ctor <- function(plant, environment) {

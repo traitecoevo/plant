@@ -3089,37 +3089,6 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// EBT__seed_rain_error
-std::vector<double> EBT__seed_rain_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index);
-RcppExport SEXP tree2_EBT__seed_rain_error(SEXP obj_SEXP, SEXP species_indexSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > >::type obj_(obj_SEXP );
-        Rcpp::traits::input_parameter< tree2::util::index >::type species_index(species_indexSEXP );
-        std::vector<double> __result = EBT__seed_rain_error(obj_, species_index);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// EBT__all_seed_rain_error
-std::vector<std::vector<double> > EBT__all_seed_rain_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_);
-RcppExport SEXP tree2_EBT__all_seed_rain_error(SEXP obj_SEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > >::type obj_(obj_SEXP );
-        std::vector<std::vector<double> > __result = EBT__all_seed_rain_error(obj_);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
 // EBT__seed_rain_cohort
 std::vector<double> EBT__seed_rain_cohort(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index);
 RcppExport SEXP tree2_EBT__seed_rain_cohort(SEXP obj_SEXP, SEXP species_indexSEXP) {
@@ -3324,6 +3293,21 @@ BEGIN_RCPP
         EBT__use_ode_times__set(obj_, value);
     }
     return R_NilValue;
+END_RCPP
+}
+// EBT__seed_rain_error__get
+std::vector<std::vector<double> > EBT__seed_rain_error__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_);
+RcppExport SEXP tree2_EBT__seed_rain_error__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > >::type obj_(obj_SEXP );
+        std::vector<std::vector<double> > __result = EBT__seed_rain_error__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
 END_RCPP
 }
 // PlantRunner__ctor
