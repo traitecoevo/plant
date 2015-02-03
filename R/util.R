@@ -75,3 +75,19 @@ validate <- function(x, ...) {
 validate.Parameters <- function(x, ...) {
   Parameters__vdor(x)
 }
+
+loop <- function(X, FUN, ..., parallel=FALSE) {
+  if (parallel) {
+    parallel::mclapply(X, FUN, ..., mc.preschedule=FALSE)
+  } else {
+    lapply(X, FUN, ...)
+  }
+}
+
+make_message_verbose <- function(verbose) {
+  if (verbose) {
+    function(...) base::message(sprintf(...))
+  } else {
+    function(...) {}
+  }
+}

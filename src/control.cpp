@@ -41,12 +41,9 @@ Control::Control() : integrator(15, 1, 0, 0) {
   equilibrium_nsteps   = 20;
   equilibrium_eps      = 1e-5;
   equilibrium_large_seed_rain_change = 10;
-  equilibrium_progress = false;
   equilibrium_verbose  = true;
   equilibrium_solver_name = "iteration";
   equilibrium_extinct_seed_rain = 1e-3;
-  equilibrium_runsteady_tol = 1e-2;
-  equilibrium_inviable_test_eps = 1e-2;
   equilibrium_nattempts = 5;
   equilibrium_solver_logN = true;
   equilibrium_solver_try_keep = true;

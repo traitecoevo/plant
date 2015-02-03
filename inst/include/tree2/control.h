@@ -64,12 +64,9 @@ struct Control {
   size_t equilibrium_nsteps;
   double equilibrium_eps;
   double equilibrium_large_seed_rain_change;
-  bool   equilibrium_progress;
   bool   equilibrium_verbose;
   std::string equilibrium_solver_name;
   double equilibrium_extinct_seed_rain;
-  double equilibrium_runsteady_tol;
-  double equilibrium_inviable_test_eps;
   size_t equilibrium_nattempts;
   bool   equilibrium_solver_logN;
   bool   equilibrium_solver_try_keep;

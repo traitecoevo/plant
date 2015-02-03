@@ -17,4 +17,7 @@ Suggests:
     testthat,
     deSolve,
     numDeriv,
+    nlsolve,
+    BB,
+    parallel,
     RcppR6 (>= 0.2.001)

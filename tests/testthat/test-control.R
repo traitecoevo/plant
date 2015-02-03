@@ -39,12 +39,9 @@ test_that("Defaults", {
     equilibrium_nsteps   = 20, # size_t
     equilibrium_eps      = 1e-5,
     equilibrium_large_seed_rain_change = 10.0,
-    equilibrium_progress = FALSE,
     equilibrium_verbose  = TRUE,
     equilibrium_solver_name = "iteration",
     equilibrium_extinct_seed_rain = 1e-3,
-    equilibrium_runsteady_tol = 1e-2,
-    equilibrium_inviable_test_eps = 1e-2,
     equilibrium_nattempts   = 5, # size_t
     equilibrium_solver_logN = TRUE,
     equilibrium_solver_try_keep = TRUE)

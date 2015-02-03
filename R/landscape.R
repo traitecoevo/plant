@@ -43,7 +43,7 @@ expand_parameters <- function(trait_matrix, p, mutant=TRUE) {
                                  rep(list(times_new), n_extra))
 
   ## Clear this if it's present:
-  attr(ret, "seed_rain") <- NULL
+  attr(ret, "seed_rain_out") <- NULL
 
   ret
 }
