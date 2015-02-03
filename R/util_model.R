@@ -1,26 +1,15 @@
-fitness_landscape <- function(trait_matrix, p, raw_seed_rain=FALSE) {
-  n_residents <- length(p$strategies)
-  if (n_residents == 0L &&
-      length(p$cohort_schedule_ode_times) == 0L) {
-    p$cohort_schedule_ode_times <-
-      c(p$cohort_schedule_times_default, p$cohort_schedule_max_time)
-  }
-
-  p_with_mutants <- expand_parameters(trait_matrix, p)
-
-  ebt <- run_ebt(p_with_mutants,
-                 use_ode_times=length(p$cohort_schedule_ode_times) > 0)
-  seed_rain <- ebt$seed_rains
-  if (n_residents > 0L) {
-    seed_rain <- seed_rain[-seq_len(n_residents)]
-  }
-  if (raw_seed_rain) {
-    seed_rain
-  } else {
-    log(seed_rain)
-  }
-}
-
+##' Expand Parameters to include mutants.  All mutants get the same
+##' schedule, equal to all the unique times that any resident was
+##' introduced (if mutants) or the default schedule (if residents).
+##' This results in more work than is really needed, but should be
+##' reasonable most of the time.
+##'
+##' @title Expand Parameters to include mutants
+##' @param trait_matrix A matrix of traits corresponding to the
+##' new types to introduce.
+##' @param p A \code{Parameters} object.
+##' @author Rich FitzJohn
+##' @export
 expand_parameters <- function(trait_matrix, p, mutant=TRUE) {
   if (length(mutant) != 1L) {
     stop("mutant must be scalar")

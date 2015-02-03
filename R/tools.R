@@ -30,7 +30,7 @@ plant_list <- function(x, strategy=Strategy()) {
 ##' @export
 ##' @author Rich FitzJohn
 trait_matrix <- function(x, trait_name) {
-  m <- matrix(x, ncol=1)
+  m <- matrix(x, ncol=length(trait_name))
   colnames(m) <- trait_name
   m
 }
