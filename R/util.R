@@ -111,3 +111,18 @@ rbind_list <- function(x) {
 cbind_list <- function(x) {
   do.call("cbind", as.list(x))
 }
+
+##' Spline interpolation in log-x space
+##' @title Spline interpolation in log-x space
+##' @param x,y Vectors giving coordinates of points to be
+##' interpolated.  The x points should be naturally on a log scale.
+##' @param ... Additional parameters passed to
+##' \code{\link{splinefun}}.
+##' @export
+##' @author Rich FitzJohn
+splinefun_log <- function(x, y, ...) {
+  f <- splinefun(log(x), y, ...)
+  function(x) {
+    f(log(x))
+  }
+}
