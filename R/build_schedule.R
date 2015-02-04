@@ -17,6 +17,9 @@ build_schedule <- function(p) {
   p <- validate(p)
 
   n_spp <- length(p$strategies)
+  if (n_spp == 0L || !any(p$is_resident)) {
+    stop("Can't build a schedule with no residents")
+  }
   control <- p$control
   eps <- control$schedule_eps
 
