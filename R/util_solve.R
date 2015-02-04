@@ -46,7 +46,10 @@ nlsolve_nleqslv_attr <- function(sol) {
 
 nlsolve_dfsane <- function(x, fn, tol=1e-6, maxit=100) {
   control <- list(tol=tol, maxit=maxit, trace=FALSE)
-  sol <- BB::dfsane(x, fn, control=control, quiet=TRUE)
+  ## This works around `is.vector`, which returns FALSE if x has any
+  ## attribute, which confuses dfsane.
+  fn_vector <- function(x) as.numeric(fn(x))
+  sol <- BB::dfsane(x, fn_vector, control=control, quiet=TRUE)
   res <- sol$par
   attributes(res) <- nlsolve_dfsane_attr(sol)
   res

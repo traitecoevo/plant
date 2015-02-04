@@ -8,15 +8,15 @@ ans <- equilibrium_seed_rain(p)
 ans$seed_rain
 
 p$control$equilibrium_solver_name <- "nleqslv"
-ans <- equilibrium_seed_rain_solve(p)
+ans <- equilibrium_seed_rain(p)
 ans$seed_rain
 
 p$control$equilibrium_solver_name <- "dfsane"
-ans <- equilibrium_seed_rain_solve(p)
+ans <- equilibrium_seed_rain(p)
 ans$seed_rain
 
 p$control$equilibrium_solver_name <- "hybrid"
-ans <- equilibrium_seed_rain_hybrid(p)
+ans <- equilibrium_seed_rain(p)
 ans$seed_rain
 
 bounds <- viable_fitness(bounds(lma=c(0.01, 10.0)), p)

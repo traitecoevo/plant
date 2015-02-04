@@ -2,11 +2,14 @@
 \name{seq_log}
 \alias{seq_log}
 \alias{seq_log_range}
-\title{Sequence in Log Space}
+\alias{seq_range}
+\title{Sequence in log space}
 \usage{
 seq_log(from, to, length.out)
 
 seq_log_range(r, length.out)
+
+seq_range(r, length.out)
 }
 \arguments{
 \item{from}{Starting point}
@@ -23,7 +26,8 @@ Sequence in log space
 \details{
 Unlike the billions of options for \code{seq}, only
 \code{length.out} is supported here, and both \code{from} and
-\code{to} must be provided.
+\code{to} must be provided.  For completeness, \code{seq_range}
+generates a range in non-log space.
 }
 \author{
 Rich FitzJohn

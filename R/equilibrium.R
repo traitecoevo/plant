@@ -14,7 +14,7 @@ equilibrium_seed_rain <- function(p) {
   switch(solver,
          iteration=equilibrium_seed_rain_iteration(p),
          nleqslv=equilibrium_seed_rain_solve_robust(p, solver),
-         dfsane=equilibrium_seed_rain_solve_robust(p, dfsane),
+         dfsane=equilibrium_seed_rain_solve_robust(p, solver),
          hybrid=equilibrium_seed_rain_hybrid(p),
          stop("Unknown solver ", solver))
 }
@@ -52,8 +52,8 @@ equilibrium_seed_rain_iteration <- function(p) {
 }
 
 equilibrium_seed_rain_solve <- function(p, solver="nleqslv") {
-  try_keep <- as.logical(p$control$equilibrium_solver_try_keep)
-  logN <- as.logical(p$control$equilibrium_solver_logN)
+  try_keep <- p$control$equilibrium_solver_try_keep
+  logN <- p$control$equilibrium_solver_logN
   min_seed_rain <- 1e-10 # should also be in the controls?
   message_verbose <- make_message_verbose(p$control$equilibrium_verbose)
 

@@ -1,3 +1,11 @@
+##' Helper function for making bounds
+##' @title Trait bounds
+##' @param ... Named list, each element of which is a 2-element
+##' numeric vector of lower and upper bounds.
+##' @export
+##' @examples
+##' bounds(lma=c(0.01, 10))
+##' bounds(lma=c(0.01, 10), rho=c(1, 1000))
 bounds <- function(...) {
   x <- list(...)
   if (length(x) == 0) {
