@@ -64,10 +64,16 @@ max_growth_rate <- function(trait_matrix, p) {
 carrying_capacity <- function(trait_matrix, p, seed_rain=1,
                               parallel=FALSE) {
   f <- function(x) {
-    p <- expand_parameters(x, remove_residents(p))
+    ## NOTE: This is not very pretty because matrix_to_list, which we
+    ## use to iterate over this, does not preserve array-ness or
+    ## names.
+    p <- expand_parameters(trait_matrix(x, traits),
+                           remove_residents(p),
+                           mutant=FALSE)
     p$seed_rain <- seed_rain
     equilibrium_seed_rain(p)$seed_rain
   }
+  traits <- colnames(trait_matrix)
   unlist(loop(matrix_to_list(trait_matrix), f, parallel=parallel))
 }
 

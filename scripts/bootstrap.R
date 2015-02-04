@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 library(whisker)
 update_file <- function(str, filename) {
-  if (!identical(readLines(filename), str)) {
+  if (!file.exists(filename) || !identical(readLines(filename), str)) {
     writeLines(str, filename)
   }
 }
