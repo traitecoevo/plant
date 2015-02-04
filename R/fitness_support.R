@@ -22,6 +22,9 @@ bounds <- function(...) {
   ret
 }
 
+##' @param bounds A set of bounds
+##' @rdname bounds
+##' @export
 check_bounds <- function(bounds) {
   if (!is.matrix(bounds)) {
     stop("bounds must be a matrix")
@@ -34,6 +37,16 @@ check_bounds <- function(bounds) {
   }
   colnames(bounds) <- c("lower", "upper")
   invisible(bounds)
+}
+
+##' @param trait_names Character vector of trait names
+##' @rdname bounds
+##' @export
+bounds_infinite <- function(trait_names) {
+  n <- length(trait_names)
+  b <- cbind(lower=rep(-Inf, n), upper=rep(Inf, n))
+  rownames(b) <- trait_names
+  b
 }
 
 check_point <- function(x, bounds) {

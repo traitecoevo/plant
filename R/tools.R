@@ -7,12 +7,20 @@
 ##' @param strategy Default strategy to modify
 ##' @export
 strategy_list <- function(x, strategy=Strategy()) {
-  trait_names <- colnames(x)
-  f <- function(xi) {
-    strategy[trait_names] <- xi
-    strategy
+  if (is.matrix(x)) {
+    trait_names <- colnames(x)
+    f <- function(xi) {
+      strategy[trait_names] <- xi
+      strategy
+    }
+    lapply(matrix_to_list(x), f)
+  } else if (is.list(x)) {
+    f <- function(xi) {
+      strategy[names(xi)] <- xi
+      strategy
+    }
+    lapply(x, f)
   }
-  lapply(matrix_to_list(x), f)
 }
 
 ##' @rdname strategy_list

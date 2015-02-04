@@ -99,6 +99,8 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
   }
 
   if (log_scale) {
+    ## TODO: This actually won't work for optimise():
+    bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)
     f <- function(x) max_growth_rate(exp(trait_matrix(x, traits)), p)
   } else {
@@ -157,6 +159,7 @@ viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
   }
 
   if (log_scale) {
+    bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)
     x <- log(x)
     f <- function(x) {

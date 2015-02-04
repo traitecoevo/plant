@@ -20,3 +20,7 @@ bounds_2d <- bounds(lma=c(0.01, 10.0),
                     rho=c(300.0, 2000.0))
 bounds_2d_w <- viable_fitness(bounds_2d, p)
 bounds_2d_w
+
+## Infinite bounds:
+p <- ebt_base_parameters()
+viable_fitness(bounds_infinite("lma"), p)
