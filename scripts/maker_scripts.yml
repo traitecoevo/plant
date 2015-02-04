@@ -1,0 +1,22 @@
+targets:
+  maker_scripts.yml:
+    depends: "./.scripts"
+    command: system("./bootstrap.R")
+  scripts:
+    depends:
+      - maker_scripts.yml
+      - build_schedule.md
+      - equilibrium.md
+      - fitness.md
+  build_schedule.Rmd:
+    command: sowsear("build_schedule.R", I("Rmd"))
+  build_schedule.md:
+    knitr: true
+  equilibrium.Rmd:
+    command: sowsear("equilibrium.R", I("Rmd"))
+  equilibrium.md:
+    knitr: true
+  fitness.Rmd:
+    command: sowsear("fitness.R", I("Rmd"))
+  fitness.md:
+    knitr: true

@@ -1,25 +1,15 @@
+## This is based on richfitz/ghwiki, but implemented using maker.
+## Most of the magic happens in bootstrap.R.  Once this has been run
+## once it generates maker_scripts.yml; future changes to .scripts
+## will automatically propagate.
 packages:
   - sowsear
   - tree2
 
+include:
+  - maker_scripts.yml
+
 targets:
   all:
     depends:
-      - fitness.md
-      - equilibrium.md
-      - build_schedule.md
-
-  fitness.md:
-    knitr: true
-  fitness.Rmd:
-    command: sowsear("fitness.R", I("Rmd"))
-
-  equilibrium.md:
-    knitr: true
-  equilibrium.Rmd:
-    command: sowsear("equilibrium.R", I("Rmd"))
-
-  build_schedule.md:
-    knitr: true
-  build_schedule.Rmd:
-    command: sowsear("build_schedule.R", I("Rmd"))
+      - scripts
