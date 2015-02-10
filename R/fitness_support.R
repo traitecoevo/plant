@@ -23,9 +23,10 @@ bounds <- function(...) {
 }
 
 ##' @param bounds A set of bounds
+##' @param finite Logical indicating if bounds must be finite
 ##' @rdname bounds
 ##' @export
-check_bounds <- function(bounds) {
+check_bounds <- function(bounds, finite=FALSE) {
   if (!is.matrix(bounds)) {
     stop("bounds must be a matrix")
   }
@@ -34,6 +35,9 @@ check_bounds <- function(bounds) {
   }
   if (is.null(rownames(bounds))) {
     stop("bounds must have rownames")
+  }
+  if (finite && any(!is.finite(bounds))) {
+    stop("bounds must be finite")
   }
   colnames(bounds) <- c("lower", "upper")
   invisible(bounds)

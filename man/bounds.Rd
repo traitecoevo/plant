@@ -7,7 +7,7 @@
 \usage{
 bounds(...)
 
-check_bounds(bounds)
+check_bounds(bounds, finite = FALSE)
 
 bounds_infinite(trait_names)
 }
@@ -16,6 +16,8 @@ bounds_infinite(trait_names)
 numeric vector of lower and upper bounds.}
 
 \item{bounds}{A set of bounds}
+
+\item{finite}{Logical indicating if bounds must be finite}
 
 \item{trait_names}{Character vector of trait names}
 }

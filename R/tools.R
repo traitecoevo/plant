@@ -20,6 +20,8 @@ strategy_list <- function(x, strategy=Strategy()) {
       strategy
     }
     lapply(x, f)
+  } else {
+    stop("Invalid type x")
   }
 }
 
