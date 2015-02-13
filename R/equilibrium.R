@@ -196,12 +196,14 @@ make_equilibrium_runner <- function(p) {
 
   i <- 1L
   last_seed_rain <- p$seed_rain
-  orig_schedule_times <- last_schedule_times <- p$cohort_schedule_times
+  default_schedule_times <- rep(list(p$cohort_schedule_times_default),
+                                length(p$seed_rain))
+  last_schedule_times <- p$cohort_schedule_times
   history <- NULL
 
   function(seed_rain_in) {
     if (any(abs(seed_rain_in - last_seed_rain) > large_seed_rain_change)) {
-      p$cohort_schedule_times <- orig_schedule_times
+      p$cohort_schedule_times <- default_schedule_times
     }
 
     p$seed_rain <- seed_rain_in
