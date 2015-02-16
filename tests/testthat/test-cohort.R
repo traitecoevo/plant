@@ -1,9 +1,3 @@
-if (interactive()) {
-  devtools::load_all("../../")
-  library(testthat)
-  source("helper-tree2.R")
-}
-
 context("Cohort")
 
 ## TODO: This is all just ported over from tree1 and needs splitting

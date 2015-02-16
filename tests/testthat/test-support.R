@@ -1,9 +1,3 @@
-if (interactive()) {
-  devtools::load_all("../../")
-  library(testthat)
-  source("helper-tree2.R")
-}
-
 context("Support")
 
 test_that("Some support functions", {

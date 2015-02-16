@@ -1,9 +1,3 @@
-if (interactive()) {
-  devtools::load_all("../../")
-  library(testthat)
-  source("helper-tree2.R")
-}
-
 context("Lorenz (basic ODE)")
 
 library(deSolve)
@@ -55,7 +49,7 @@ test_that("Ode runner behaves", {
   lo <- Lorenz(pars[[1]], pars[[2]], pars[[3]])
   lo$ode_state <- y
   derivs_lorenz(y, pars)
-  
+
   sys <- OdeRunner("Lorenz")(lo)
   expect_that(sys, is_a("OdeRunner"))
   expect_that(sys, is_a("OdeRunner<Lorenz>"))

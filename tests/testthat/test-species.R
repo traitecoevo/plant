@@ -1,9 +1,3 @@
-if (interactive()) {
-  devtools::load_all("../../")
-  library(testthat)
-  source("helper-tree2.R")
-}
-
 ## TODO: The tests here really warrant splitting into different chunks
 ## - this was ported over from tree1 where the tests were loose in the
 ## file.

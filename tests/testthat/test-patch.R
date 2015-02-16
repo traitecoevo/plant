@@ -1,9 +1,3 @@
-if (interactive()) {
-  devtools::load_all("../../")
-  library(testthat)
-  source("helper-tree2.R")
-}
-
 ## TODO: Test add_seeds(vector<double>)
 
 context("Patch")
