@@ -91,9 +91,6 @@ void Plant::set_heartwood_mass(double x) {
 
 // This one is a bit different, as it converts from the mean of the
 // poisson process (on [0,Inf)) to a probability (on [0,1]).
-double Plant::mortality_probability() const {
-  return 1 - survival_probability();
-}
 double Plant::survival_probability() const {
   return exp(-mortality());
 }

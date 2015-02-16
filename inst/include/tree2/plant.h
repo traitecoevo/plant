@@ -43,7 +43,6 @@ public:
   void set_heartwood_mass(double x);
 
   // These are derived from mortality() -- see design.md.
-  double mortality_probability() const;
   double survival_probability() const;
 
   // * Competitive environment
