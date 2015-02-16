@@ -32,6 +32,13 @@ void Plant::set_height(double height_) {
     Rcpp::stop("height must be positive (given " +
                util::to_string(height_) + ")");
   }
+  // TODO: in the original version of the model, all of plant size was driven
+  // only  by height, so we only needed to check this here.  But now we have
+  // two size variables (heartwood mass being the other) we need to be more
+  // careful. For the new plant type, replace this height function with a new
+  // function that takes both size variables as arguments and update all the
+  // size variables at that point.
+
   if (!util::identical(height_, height())) {
     compute_vars_size(height_);
   }
@@ -64,6 +71,8 @@ double Plant::heartwood_area_rate() const {
   return vars.heartwood_area_rate;
 }
 void Plant::set_heartwood_area(double x) {
+  // TODO: Consider recomputing the size variables here
+  // See set_heartwood_mass
   vars.heartwood_area = x;
 }
 
@@ -74,6 +83,9 @@ double Plant::heartwood_mass_rate() const {
   return vars.heartwood_mass_rate;
 }
 void Plant::set_heartwood_mass(double x) {
+  // TODO: This needs to update size variables but does not yet,
+  // and won't until we get the new version done.
+  // See notes in set_height.
   vars.heartwood_mass = x;
 }
 
@@ -238,18 +250,7 @@ Plant::strategy_type Plant::r_get_strategy() const {
   return *strategy.get();
 }
 
-// NOTE: A few of these are still done via equations.
 SEXP Plant::r_get_vars_size() const {
-  // TODO: @dfalster - move to Strategy
-  // TODO: @dfalster - store results of these in size vars?
-  const double basal_area = strategy->basal_area(vars.leaf_area,
-                                                 vars.heartwood_area);
-  const double diameter = std::sqrt(4 * basal_area / M_PI);
-  const double bark_area = strategy->bark_area(vars.leaf_area);
-  const double sapwood_area = strategy->sapwood_area(vars.leaf_area);
-  const double total_mass = vars.live_mass + vars.heartwood_mass;
-  const double above_ground_mass =
-    vars.live_mass+vars.heartwood_mass - vars.root_mass;
   using namespace Rcpp;
   return wrap(NumericVector::create(
               _["leaf_mass"] = vars.leaf_mass,
@@ -258,15 +259,15 @@ SEXP Plant::r_get_vars_size() const {
               _["heartwood_mass"] = vars.heartwood_mass,
               _["root_mass"] = vars.root_mass,
               _["live_mass"] = vars.live_mass,
-              _["total_mass"] = total_mass,
-              _["above_ground_mass"] = above_ground_mass,
+              _["total_mass"] = vars.total_mass,
+              _["above_ground_mass"] = vars.above_ground_mass,
               _["height"] = vars.height,
               _["leaf_area"] = vars.leaf_area,
-              _["sapwood_area"] = sapwood_area,
-              _["bark_area"] = bark_area,
+              _["sapwood_area"] = vars.sapwood_area,
+              _["bark_area"] = vars.bark_area,
               _["heartwood_area"] = vars.heartwood_area,
-              _["basal_area"] = basal_area,
-              _["diameter"] = diameter
+              _["basal_area"] = vars.basal_area,
+              _["diameter"] = vars.diameter
               ));
 }
 
@@ -304,9 +305,11 @@ SEXP Plant::r_get_vars_growth() const {
     heartwood_area_rate = s->dheartwood_area_dt(leaf_area),
     heartwood_mass_rate = s->dheartwood_mass_dt(vars.sapwood_mass),
     dbasal_area_dt = s->dbasal_area_dt(leaf_area, leaf_mass_growth_rate),
-    dbasal_diam_dbasal_area = s->dbasal_diam_dbasal_area(leaf_area,
+    dbasal_diam_dbasal_area = s->dbasal_diam_dbasal_area(vars.bark_area,
+                                                         vars.sapwood_area,
                                                          vars.heartwood_area),
     dbasal_diam_dt = s->dbasal_diam_dt(leaf_area,
+                                       vars.bark_area, vars.sapwood_area,
                                        vars.heartwood_area,
                                        leaf_mass_growth_rate),
     droot_mass_dt = s->droot_mass_dt(leaf_area,
@@ -366,26 +369,23 @@ const Control& Plant::control() const {
 // * Individual size
 // [eqn 1-8] Update size variables to a new leaf mass.
 void Plant::compute_vars_size(double height_) {
-  // TODO: Move these into strategy, too
-  // First 3 differ from paper; working height->mass, not mass->height.
-  // [eqn 3] height
   vars.height = height_;
-  // [eqn 2] leaf_area (inverse of [eqn 3])
-  vars.leaf_area = pow(vars.height / strategy->a1, 1 / strategy->B1);
-  // [eqn 1] leaf_mass (inverse of [eqn 2])
-  vars.leaf_mass = vars.leaf_area * strategy->lma;
-
-  // These are identical to paper.
-  // [eqn 4] Mass of sapwood
-  vars.sapwood_mass =   strategy->rho / strategy->theta *
-    strategy->a1 * strategy->eta_c * pow(vars.leaf_area, 1 + strategy->B1);
-  // [eqn 5] Mass of bark
-  vars.bark_mass = strategy->b * vars.sapwood_mass;
-  // [eqn 7] Mass of (fine) roots
-  vars.root_mass = strategy->a3 * vars.leaf_area;
-  // [eqn 8] Total mass
-  vars.live_mass =
-    vars.leaf_mass + vars.sapwood_mass + vars.bark_mass + vars.root_mass;
+  vars.leaf_area = strategy->leaf_area(vars.height);
+  vars.leaf_mass = strategy->leaf_mass(vars.leaf_area);
+  vars.sapwood_area =  strategy->sapwood_area(vars.leaf_area);
+  vars.sapwood_mass =  strategy->sapwood_mass(vars.sapwood_area, vars.height);
+  vars.bark_area =  strategy->bark_area(vars.leaf_area);
+  vars.bark_mass = strategy->bark_mass(vars.bark_area, vars.height);
+  vars.root_mass = strategy->root_mass(vars.leaf_area);
+  vars.live_mass = strategy->live_mass(vars.leaf_mass, vars.sapwood_mass,
+                                       vars.bark_mass , vars.root_mass);
+  vars.basal_area = strategy->basal_area(vars.bark_area, vars.sapwood_area,
+                                         vars.heartwood_area);
+  vars.total_mass = strategy->total_mass(vars.leaf_mass, vars.bark_mass, vars.sapwood_mass,
+                                         vars.heartwood_mass, vars.root_mass);
+  vars.above_ground_mass = strategy->above_ground_mass(vars.leaf_mass, vars.bark_mass,
+                                                       vars.sapwood_mass, vars.root_mass);
+  vars.diameter = strategy->diameter(vars.basal_area);
 }
 
 // [eqn  9] Probability density of leaf area at height `z`
@@ -488,16 +488,10 @@ double Plant::height_seed(strategy_ptr_type s) {
   const size_t max_iterations = p.control().plant_seed_iterations;
 
   auto target = [&] (double x) mutable -> double {
-    return p.live_mass_given_height(x) - seed_mass;
+    return s->live_mass_given_height(x) - seed_mass;
   };
 
   return util::uniroot(target, h0, h1, tol, max_iterations);
-}
-
-// NOTE: This is used only by height_seed.
-double Plant::live_mass_given_height(double h) {
-  set_height(h);
-  return vars.live_mass;
 }
 
 Plant::internals::internals()

@@ -85,9 +85,62 @@ Strategy::Strategy() {
   eta_c = NA_REAL;
 }
 
-// [eqn 4] Sapwood area
+// [eqn 2] leaf_area (inverse of [eqn 3])
+double Strategy::leaf_area(double height) const{
+  return pow(height / a1, 1.0 / B1);
+}
+
+// [eqn 1] leaf_mass (inverse of [eqn 2])
+double Strategy::leaf_mass(double leaf_area) const{
+  return leaf_area * lma;
+}
+
+// [eqn 4] area and mass of sapwood
 double Strategy::sapwood_area(double leaf_area) const {
   return leaf_area / theta;
+}
+double Strategy::sapwood_mass(double sapwood_area, double height) const {
+  return sapwood_area * height * eta_c * rho;
+}
+
+// [eqn 5] area and mass of bark
+double Strategy::bark_area(double leaf_area) const {
+  return b * leaf_area / theta;
+}
+
+double Strategy::bark_mass(double bark_area, double height) const {
+  return bark_area * height * eta_c * rho;
+}
+
+double Strategy::basal_area(double bark_area, double sapwood_area,
+                            double heartwood_area) const {
+  return bark_area + sapwood_area + heartwood_area;
+}
+
+double Strategy::diameter(double basal_area) const {
+  return std::sqrt(4 *   basal_area / M_PI);
+}
+
+// [eqn 7] Mass of (fine) roots
+double Strategy::root_mass(double leaf_area) const {
+  return a3 * leaf_area;
+}
+
+// [eqn 8] Total mass
+double Strategy::live_mass(double leaf_mass, double bark_mass,
+                           double sapwood_mass, double root_mass) const {
+  return leaf_mass + sapwood_mass + bark_mass + root_mass;
+}
+
+double Strategy::total_mass(double leaf_mass, double bark_mass,
+                            double sapwood_mass, double heartwood_mass,
+                            double root_mass) const {
+  return leaf_mass + bark_mass + sapwood_mass +  heartwood_mass + root_mass;
+}
+
+double Strategy::above_ground_mass(double leaf_mass, double bark_mass,
+                            double sapwood_mass, double root_mass) const {
+  return leaf_mass + bark_mass + sapwood_mass + root_mass;
 }
 
 // [eqn 13] Total maintenance respiration
@@ -176,9 +229,9 @@ double Strategy::droot_mass_dleaf_mass(double /* leaf_area */) const {
 }
 
 // Growth rate of basal diameter per unit time
-double Strategy::dbasal_diam_dbasal_area(double leaf_area,
-                                         double heartwood_area) const {
-  return pow(M_PI / basal_area(leaf_area, heartwood_area), 0.5);
+double Strategy::dbasal_diam_dbasal_area(double bark_area, double sapwood_area,
+                            double heartwood_area) const {
+  return pow(M_PI / basal_area(bark_area, sapwood_area, heartwood_area), 0.5);
 }
 
 // Growth rate of leaf area per unit time
@@ -213,9 +266,10 @@ double Strategy::dbasal_area_dt(double leaf_area,
 
 // Growth rate of basal diameter per unit time
 double Strategy::dbasal_diam_dt(double leaf_area,
+                                double bark_area, double sapwood_area,
                                 double heartwood_area,
                                 double leaf_mass_growth_rate) const {
-  return dbasal_diam_dbasal_area(leaf_area, heartwood_area) *
+  return dbasal_diam_dbasal_area(bark_area, sapwood_area, heartwood_area) *
     dbasal_area_dt(leaf_area, leaf_mass_growth_rate);
 }
 
@@ -252,20 +306,20 @@ double Strategy::dabove_ground_mass_dt(double leaf_area,
                         dheartwood_mass_dt) - droot_mass_dt;
 }
 
-double Strategy::bark_area(double leaf_area) const {
-  return b * sapwood_area(leaf_area);
-}
-
-double Strategy::basal_area(double leaf_area, double heartwood_area) const {
-  return heartwood_area + bark_area(leaf_area) + sapwood_area(leaf_area);
-}
-
 double Strategy::dheartwood_mass_dt(double sapwood_mass) const {
   return sapwood_turnover(sapwood_mass);
 }
 
 double Strategy::sapwood_turnover(double sapwood_mass) const {
   return sapwood_mass * k_s;
+}
+
+double Strategy::live_mass_given_height(double height) const {
+  double leaf_area_ = leaf_area(height);
+  return leaf_mass(leaf_area_) +
+         bark_mass(bark_area(leaf_area_), height) +
+         sapwood_mass(sapwood_area(leaf_area_), height) +
+        root_mass(leaf_area_);
 }
 
 double Strategy::height_given_leaf_mass(double leaf_mass) const {

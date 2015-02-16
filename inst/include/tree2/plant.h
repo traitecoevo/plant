@@ -126,12 +126,19 @@ private:
     // Other size variables that follow directly from `leaf_mass`:
     double leaf_area;      // [eqn 2]
     double height;         // [eqn 3]
+    double sapwood_area;   // [eqn 4]
     double sapwood_mass;   // [eqn 4]
+    double bark_area;      // [eqn 5]
     double bark_mass;      // [eqn 5]
-    double heartwood_mass; // [eqn 6]
     double heartwood_area;
+    double heartwood_mass; // [eqn 6]
+    double basal_area;   //TODO: stem area?
     double root_mass;      // [eqn 7] (fine roots)
     double live_mass;      // [eqn 8]
+    double total_mass;
+    double above_ground_mass;
+    double diameter;      //TODO: stem_diameter?
+
     // * Mass production
     double assimilation;   // [eqn 12] Gross annual CO2 assimilation
     double respiration;    // [eqn 13] Total maintenance respiration
