@@ -42,12 +42,6 @@ public:
   double heartwood_mass_rate() const;
   void set_heartwood_mass(double x);
 
-  // Mortality functions
-  // Declared as static method so it can be accessed and queried externally
-  static double mortality_growth_independent(double d0);
-  static double mortality_growth_dependent(double d2, double d3,
-                                           double productivity);
-
   // These are derived from mortality() -- see design.md.
   double mortality_probability() const;
   double survival_probability() const;
@@ -64,7 +58,6 @@ public:
 
   // * Births and deaths
   // [eqn 20] Survival of seedlings during germination
-  double germination_probability() const;
   double germination_probability(const Environment& environment);
 
   // * ODE interface

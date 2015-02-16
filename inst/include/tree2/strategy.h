@@ -77,6 +77,17 @@ public:
   // double live_mass_given_height(double h); [TODO]
   double height_given_leaf_mass(double leaf_mass_) const;
 
+
+  double mortality_dt(double productivity_area) const;
+  double mortality_growth_independent_dt(double d0)const ;
+  double mortality_growth_dependent_dt(double d2, double d3,
+                                       double productivity_area
+                                       ) const;
+  // [eqn 20] Survival of seedlings during germination
+  double germination_probability(double leaf_area,
+                                 double net_production) const;
+
+
   quadrature::QAG& integrator() {return control.integrator;}
   // Every Strategy needs a set of Control objects -- these govern
   // things to do with how numerical calculations are performed,

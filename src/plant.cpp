@@ -77,16 +77,6 @@ void Plant::set_heartwood_mass(double x) {
   vars.heartwood_mass = x;
 }
 
-// Mortality functions
-double Plant::mortality_growth_independent(double d0) {
-  return(d0);
-}
-
-double Plant::mortality_growth_dependent(double d2, double d3,
-                                         double productivity) {
-  return(d2 * exp(-d3 * productivity));
-}
-
 // This one is a bit different, as it converts from the mean of the
 // poisson process (on [0,Inf)) to a probability (on [0,1]).
 double Plant::mortality_probability() const {
@@ -173,9 +163,6 @@ void Plant::compute_vars_phys(const Environment& environment,
 
   // [eqn 21] - Instantaneous mortality rate
   //
-  // Composed of a wood density effect (term involving c_d0) and a
-  // growth effect (term involving c_d2)
-  //
   // NOTE: When plants are extremely inviable, the rate of change in
   // mortality can be Inf, because net production is negative, leaf
   // area is small and so we get exp(big number).  However, most of
@@ -184,11 +171,8 @@ void Plant::compute_vars_phys(const Environment& environment,
   // we will need to trim this to some large finite value, but for
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(vars.mortality)) {
-    vars.mortality_rate =
-      mortality_growth_independent(strategy->c_d0) +
-      mortality_growth_dependent(strategy->c_d2, strategy->c_d3,
-                                 vars.net_production / vars.leaf_area);
-  } else {
+    vars.mortality_rate = strategy->mortality_dt(vars.net_production/vars.leaf_area);
+ } else {
     // If mortality probability is 1 (latency = Inf) then the rate
     // calculations break.  Setting them to zero gives the correct
     // behaviour.
@@ -198,22 +182,13 @@ void Plant::compute_vars_phys(const Environment& environment,
 
 // [eqn 20] Survival of seedlings during germination
 //
-// NOTE: This does not check/enforce that height is set to the seed
-// height (so this is actually the germination probability of a plant
-// that happens to be the current size).  This might be something to
-// change.
+// NOTE: This does not check/enforce that height is set to the seed height (so
+// this is actually the germination probability of a plant that happens to be
+// the current size).  This might be something to change. TODO: Could we pass
+// pointer to vars and thereby give access to any of functions thereein?
 double Plant::germination_probability(const Environment& environment) {
   compute_vars_phys(environment);
-  return germination_probability();
-}
-
-double Plant::germination_probability() const {
-  if (vars.net_production > 0) {
-    const double tmp = vars.leaf_area * strategy->c_s0 / vars.net_production;
-    return 1 / (tmp * tmp + 1.0);
-  } else {
-    return 0.0;
-  }
+  return strategy->germination_probability(vars.leaf_area, vars.net_production);
 }
 
 // ODE interface -- note that the don't care about time in the plant;
@@ -564,15 +539,3 @@ Plant make_plant(Plant::strategy_type s) {
 
 }
 
-// Some exports
-
-// [[Rcpp::export]]
-double mortality_growth_independent(double d0) {
-  return tree2::Plant::mortality_growth_independent(d0);
-}
-
-// [[Rcpp::export]]
-double mortality_growth_dependent(double d2, double d3,
-                                  double productivity) {
-  return tree2::Plant::mortality_growth_dependent(d2, d3, productivity);
-}

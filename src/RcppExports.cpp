@@ -120,38 +120,6 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// mortality_growth_independent
-double mortality_growth_independent(double d0);
-RcppExport SEXP tree2_mortality_growth_independent(SEXP d0SEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< double >::type d0(d0SEXP );
-        double __result = mortality_growth_independent(d0);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// mortality_growth_dependent
-double mortality_growth_dependent(double d2, double d3, double productivity);
-RcppExport SEXP tree2_mortality_growth_dependent(SEXP d2SEXP, SEXP d3SEXP, SEXP productivitySEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< double >::type d2(d2SEXP );
-        Rcpp::traits::input_parameter< double >::type d3(d3SEXP );
-        Rcpp::traits::input_parameter< double >::type productivity(productivitySEXP );
-        double __result = mortality_growth_dependent(d2, d3, productivity);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
 // Lorenz__ctor
 tree2::ode::test::Lorenz Lorenz__ctor(double sigma, double R, double b);
 RcppExport SEXP tree2_Lorenz__ctor(SEXP sigmaSEXP, SEXP RSEXP, SEXP bSEXP) {

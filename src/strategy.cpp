@@ -272,4 +272,53 @@ double Strategy::height_given_leaf_mass(double leaf_mass) const {
   return a1 * pow(leaf_mass / lma, B1);
 }
 
+double Strategy::mortality_dt(double productivity_area) const {
+
+  return mortality_growth_independent_dt(c_d0) +
+      mortality_growth_dependent_dt(c_d2, c_d3, productivity_area);
+}
+
+double Strategy::mortality_growth_independent_dt(double d0) const {
+  return d0;
+}
+
+double Strategy::mortality_growth_dependent_dt(
+                                  double d2, double d3,
+                                  double productivity_area) const {
+  return d2 * exp(-d3 * productivity_area);
+}
+
+// [eqn 20] Survival of seedlings during germination
+double Strategy::germination_probability(double leaf_area,
+                                         double net_production) const {
+  if (net_production > 0) {
+    const double tmp = c_s0 * leaf_area / net_production;
+    return 1 / (tmp * tmp + 1.0);
+  } else {
+    return 0.0;
+  }
+}
+
+// [eqn  9] Probability density of leaf area at height `z`
+double Strategy::q(double z, double height) const {
+  const double tmp = pow(z / height, eta);
+  return 2 * eta * (1 - tmp) * tmp / z;
+}
+
+// [eqn 10] ... Fraction of leaf area above height 'z' for an
+//              individual of height 'height'
+double Strategy::Q(double z, double height) const {
+  if (z > height) {
+    return 0.0;
+  }
+  const double tmp = 1.0-pow(z / height, eta);
+  return tmp * tmp;
+}
+
+// (inverse of [eqn 10]; return the height above which fraction 'x' of
+// the leaf mass would be found).
+double Strategy::Qp(double x, double height) const { // x in [0,1], unchecked.
+  return pow(1 - sqrt(x), (1/eta)) * height;
+}
+
 }

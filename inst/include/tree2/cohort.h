@@ -97,10 +97,13 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
 // defined on p 7 at the moment.
 template <typename T>
 void Cohort<T>::compute_initial_conditions(const Environment& environment) {
+
   compute_vars_phys(environment);
+  // TODO: compute_vars_phys being computed again in germination_probability
+  // removing here causing test failure, so figure out if can remove
 
   pr_patch_survival_at_birth = environment.patch_survival();
-  const double pr_germ = plant.germination_probability();
+  const double pr_germ = plant.germination_probability(environment);
   // EBT.md{eq:boundSurv}
   plant.set_mortality(-log(pr_germ));
   // EBT.md{eq:boundN}
