@@ -353,6 +353,11 @@ double Strategy::germination_probability(double leaf_area,
   }
 }
 
+double Strategy::leaf_area_above(double z, double height,
+                                 double leaf_area) const{
+  return leaf_area * Q(z, height);
+}
+
 // [eqn  9] Probability density of leaf area at height `z`
 double Strategy::q(double z, double height) const {
   const double tmp = pow(z / height, eta);

@@ -67,9 +67,11 @@ void Plant::set_fecundity(double x) {
 double Plant::heartwood_area() const {
   return vars.heartwood_area;
 }
+
 double Plant::heartwood_area_rate() const {
   return vars.heartwood_area_rate;
 }
+
 void Plant::set_heartwood_area(double x) {
   // TODO: Consider recomputing the size variables here
   // See set_heartwood_mass
@@ -79,9 +81,11 @@ void Plant::set_heartwood_area(double x) {
 double Plant::heartwood_mass() const {
   return vars.heartwood_mass;
 }
+
 double Plant::heartwood_mass_rate() const {
   return vars.heartwood_mass_rate;
 }
+
 void Plant::set_heartwood_mass(double x) {
   // TODO: This needs to update size variables but does not yet,
   // and won't until we get the new version done.
@@ -105,7 +109,7 @@ double Plant::leaf_area_above(double z) const {
   if (z < 0.0) {
     Rcpp::stop("Negative heights do not make sense");
   }
-  return vars.leaf_area * strategy->Q(z, vars.height);
+  return strategy->leaf_area_above(z, vars.height, vars.leaf_area);
 }
 
 // * Mass production
