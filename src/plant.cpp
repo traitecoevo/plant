@@ -452,16 +452,19 @@ double Plant::assimilation_leaf(double x) const {
 
 // NOTE: static method
 // The aim is to find a plant height that gives the correct seed mass.
-// TODO: @richfitz move this whole thing into strategy?
-// To achieve this staretgy will need some control objects
+// TODO: @richfitz you should move this whole thing into strategy.
+// To achieve this staretgy will need some control objects for root finding
 double Plant::height_seed(strategy_ptr_type s) {
 
   Plant p(s);
   const double seed_mass = p.strategy->s;
 
-  // TODO: I don't think these are actually correct bounds; we would
-  // actually want height given *total* mass.  This is probably why
-  // this breaks with obscure parameter values.
+  // Note, these are not entirely correct bounds. Ideally we would use height
+  // given *total* mass, not leaf mass, but that is difficult to calculate.
+  // Using "height given leaf mass" will expand upper bound, but that's ok
+  // most of time. Only issue is that could break with obscure paramater
+  // values for LMA or height-leaf area scaling. Could instead use some
+  // absolute maximum height for new seedling, e.g. 1m?
   const double
     h0 = s->height_given_leaf_mass(std::numeric_limits<double>::min()),
     h1 = s->height_given_leaf_mass(seed_mass);
