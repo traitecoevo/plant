@@ -200,21 +200,12 @@ Strategy:
     - hmat: double
     - s: double
     - n_area: double
-    - lma_0: double
-    - rho_0: double
-    - hmat_0: double
-    - s_0: double
-    - n_area_0: double
     - eta: double
-      #    - eta_c: double
     - theta: double
     - a1: double
     - B1: double
     - a3: double
-    - k_l0: double
-    - B4: double
-    - k_s0: double
-    - B5: double
+    - k_s: double
     - b: double
     - c_Rs: double
     - c_Rb: double
@@ -222,20 +213,17 @@ Strategy:
     - c_Rl: double
     - Y: double
     - c_bio: double
-      #    - k_l: double
+    - k_l: double
     - k_b: double
       #    - k_s: double
     - k_r: double
     - c_p1: double
     - c_p2: double
     - c_acc: double
-    - B7: double
     - c_r1: double
     - c_r2: double
     - c_s0: double
     - c_d0: double
-    - c_d1: double
-    - B6: double
     - c_d2: double
     - c_d3: double
     #    - height_0: double

@@ -78,10 +78,8 @@ void Plant::set_heartwood_mass(double x) {
 }
 
 // Mortality functions
-double Plant::mortality_growth_independent(double d0, double d1,
-                                           double rho, double rho_0,
-                                           double height, double B6) {
-  return(d0 * pow(rho / rho_0, -d1)* pow(height, B6));
+double Plant::mortality_growth_independent(double d0) {
+  return(d0);
 }
 
 double Plant::mortality_growth_dependent(double d2, double d3,
@@ -187,9 +185,7 @@ void Plant::compute_vars_phys(const Environment& environment,
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(vars.mortality)) {
     vars.mortality_rate =
-      mortality_growth_independent(strategy->c_d0, strategy->c_d1,
-                                   strategy->rho, strategy->rho_0,
-                                   vars.height, strategy->B6) +
+      mortality_growth_independent(strategy->c_d0) +
       mortality_growth_dependent(strategy->c_d2, strategy->c_d3,
                                  vars.net_production / vars.leaf_area);
   } else {
@@ -258,11 +254,6 @@ void Plant::prepare_strategy(strategy_ptr_type s) {
   s->control.initialize();
   // NOTE: this precomputes something to save a very small amount of time
   s->eta_c = 1 - 2/(1 + s->eta) + 1/(1 + 2*s->eta);
-  // NOTE: These are straight up hyper parametrisation.  k_l0, lma_0
-  // and B4 can all come out and be replaced by k_l, with this logic
-  // kept back in the generating class.
-  s->k_l = s->k_l0 * pow(s->lma/s->lma_0, -s->B4);
-  s->k_s = s->k_s0 * pow(s->rho/s->rho_0, -s->B5);
   // NOTE: Also precomputing, though less trivial
   s->height_0 = height_seed(s);
 }
@@ -576,11 +567,8 @@ Plant make_plant(Plant::strategy_type s) {
 // Some exports
 
 // [[Rcpp::export]]
-double mortality_growth_independent(double d0, double d1,
-                                    double rho, double rho_0,
-                                    double height, double B6) {
-  return tree2::Plant::mortality_growth_independent(d0, d1, rho, rho_0,
-                                                    height, B6);
+double mortality_growth_independent(double d0) {
+  return tree2::Plant::mortality_growth_independent(d0);
 }
 
 // [[Rcpp::export]]

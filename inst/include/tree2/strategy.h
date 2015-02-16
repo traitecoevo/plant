@@ -88,20 +88,15 @@ public:
 
   // * Core traits
   double lma, rho, hmat, s, n_area;
-
-  // * Deafult values for core traits
-  double lma_0, rho_0, hmat_0, s_0, n_area_0;
-
   // * Individual allometry
   // Canopy shape parameters
   double eta, eta_c;
   // Leaf area per sapwood area
   double theta;
   // Empirical constants for scaling relationships
-  double a1, B1, a3, k_l0, B4, k_s0, B5;
+  double a1, B1, a3;
   // Bark area per sapwood area
   double b;
-
   // * Production
   // Respiration constants
   double c_Rs, c_Rb, c_Rr, c_Rl;
@@ -115,10 +110,8 @@ public:
   double c_p1, c_p2;
 
   // * Seed production
-  // Accessory cost of reproduction - multiplication factor
+  // Accessory cost of reproduction, per seed
   double c_acc;
-  // Scaling of seed accessory costs with seed mass
-  double B7;
   // Proportion production alloctaed to reproduction
   double c_r1;
   // Size range across which individuals mature
@@ -129,11 +122,7 @@ public:
   double c_s0;
   // Baseline structural mortality rate
   double c_d0;
-  // Coeffcieint for wood density in mortality function
-  double c_d1;
-  // Coeffcieint for height in mortality function
-  double B6;
-  // Baseline for growth mortality rate
+ // Baseline for growth mortality rate
   double c_d2;
   // Coefficient for dry mass production in mortality function
   double c_d3;

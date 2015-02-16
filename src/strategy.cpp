@@ -14,19 +14,11 @@ namespace tree2 {
 
 Strategy::Strategy() {
   // * Core traits - default values
-  lma_0  = 0.1978791;  // leaf mas per area
-  rho_0  = 608;        // wood density
-  hmat_0 = 16.5958691; // Height at maturation
-  s_0    = 3.8e-5;  // Seed size
-  n_area_0 = 1.87e-3; // Leaf nitrogen per area (= Plant::v) [kg / m2]
-
-  // * To start with set actiual values to default
-  // TODO: This needs replacing with hyperparameters?
-  lma    = lma_0;
-  rho    = rho_0;
-  hmat   = hmat_0;
-  s      = s_0;
-  n_area = n_area_0;
+  lma    = 0.1978791; // Leaf mass per area [kg / m2]
+  rho    = 608;       // wood density [kg/m3]
+  hmat   = 16.5958691; // Height at maturation [m]
+  s      =  3.8e-5;  // Seed mass [kg]
+  n_area = 1.87e-3;  // Leaf nitrogen per area (= Plant::v) [kg / m2]
 
   // * Individual allometry
   // Canopy shape parameter (extra calculation here later)
@@ -57,14 +49,12 @@ Strategy::Strategy() {
   // Constant converting assimilated CO2 to dry mass [kg / mol]
   // (12E-3 / 0.49)
   c_bio  = 2.45e-2;
-  // Leaf turnover - LMA scaling
-  k_l0   =  0.4565855;
-  B4     = 1.71;
-  // Bark turnover
+  // Leaf tunover
+  k_l=  0.4565855;
+ // Bark turnover
   k_b    = 0.2;
   // Sapwood turnover
-  k_s0    = 0.2;
-  B5      = 0;
+  k_s     = 0.2;
   // Root turnover
   k_r    = 1.0;
   // Parameters of the hyperbola for annual LRC
@@ -72,12 +62,8 @@ Strategy::Strategy() {
   c_p2   = 0.19;
 
   // * Seed production
-  // Accessory cost of reproduction, kg for seed
-  // with mass s_0
-  // TODO: Deal with hyperparameters here?
-  c_acc  = 3.0 * s_0;
-  // Scaling of seed accessory costs with seed mass
-  B7     = 1.0;
+  // Accessory cost of reproduction, kg per seed
+  c_acc  = 3.0 *  3.8e-5;
 
   // Maximum alloction to reproduction
   c_r1   = 1.0;
@@ -89,23 +75,14 @@ Strategy::Strategy() {
   c_s0    = 0.1;
   // Baseline for intrinsic mortality
   c_d0    = 0.01;
-  // Coefficient for wood density in mortality function
-  c_d1    = 0.0;
-  // Coefficient for height density in mortality function
-  B6    = 0.0;
-  // Baseline rate for growth-related mortality
+ // Baseline rate for growth-related mortality
   c_d2    = 5.5;
   // Risk coefficient for dry mass production (per area)
   c_d3    = 20.0;
 
-  // Will get computed properly by Plant.
+  // Will get computed properly by prepare_strategy
   height_0    = NA_REAL;
-
-  // NOTE: These need setting at some point
-  // TODO: These possibly need setting as hyperparameters?
   eta_c = NA_REAL;
-  k_l = NA_REAL;
-  k_s = NA_REAL;
 }
 
 // [eqn 4] Sapwood area
@@ -132,9 +109,6 @@ double Strategy::respiration(double leaf_area, double sapwood_mass,
 }
 
 // [eqn 14] Total turnover
-//
-// (NOTE: `k_l` is (a_4*\phi)^{b_4} in [eqn 14], and is computed by
-// `prepare_strategy`).
 // TODO[SPLIT]: done for sapwood but not for others
 double Strategy::turnover(double leaf_mass, double bark_mass,
                           double sapwood_mass, double root_mass) const {
@@ -164,7 +138,7 @@ double Strategy::reproduction_fraction(double height) const {
 double Strategy::dfecundity_dt(double net_production,
                                double reproduction_fraction) const {
   return net_production * reproduction_fraction /
-    (s + c_acc * pow(s / s_0, B7));
+    (s + c_acc);
 }
 
 // [eqn 18] Fraction of mass growth that is leaves (see doc/details.md
@@ -220,7 +194,7 @@ double Strategy::dsapwood_area_dt(double leaf_mass_growth_rate) const {
 // TODO: @dfalster - should this not take leaf_mass_growth_rate like
 // the others?
 double Strategy::dheartwood_area_dt(double leaf_area) const {
-  return k_s0 * sapwood_area(leaf_area);
+  return k_s * sapwood_area(leaf_area);
 }
 
 // Growth rate of bark area at base per unit time

@@ -121,19 +121,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // mortality_growth_independent
-double mortality_growth_independent(double d0, double d1, double rho, double rho_0, double height, double B6);
-RcppExport SEXP tree2_mortality_growth_independent(SEXP d0SEXP, SEXP d1SEXP, SEXP rhoSEXP, SEXP rho_0SEXP, SEXP heightSEXP, SEXP B6SEXP) {
+double mortality_growth_independent(double d0);
+RcppExport SEXP tree2_mortality_growth_independent(SEXP d0SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< double >::type d0(d0SEXP );
-        Rcpp::traits::input_parameter< double >::type d1(d1SEXP );
-        Rcpp::traits::input_parameter< double >::type rho(rhoSEXP );
-        Rcpp::traits::input_parameter< double >::type rho_0(rho_0SEXP );
-        Rcpp::traits::input_parameter< double >::type height(heightSEXP );
-        Rcpp::traits::input_parameter< double >::type B6(B6SEXP );
-        double __result = mortality_growth_independent(d0, d1, rho, rho_0, height, B6);
+        double __result = mortality_growth_independent(d0);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

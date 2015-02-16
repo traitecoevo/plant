@@ -59,8 +59,8 @@ test_gradient_richardson <- function(f, x, d, r) {
     .Call('tree2_test_gradient_richardson', PACKAGE = 'tree2', f, x, d, r)
 }
 
-mortality_growth_independent <- function(d0, d1, rho, rho_0, height, B6) {
-    .Call('tree2_mortality_growth_independent', PACKAGE = 'tree2', d0, d1, rho, rho_0, height, B6)
+mortality_growth_independent <- function(d0) {
+    .Call('tree2_mortality_growth_independent', PACKAGE = 'tree2', d0)
 }
 
 mortality_growth_dependent <- function(d2, d3, productivity) {
