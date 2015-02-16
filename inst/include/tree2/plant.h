@@ -90,14 +90,6 @@ private:
   // [eqn 1-8] Update size variables to a new leaf mass.
   void compute_vars_size(double height_);
 
-  // * Competitive environment
-  // [eqn  9] Probability density of leaf area at height `z`
-  double q(double z) const;
-  // [eqn 10] Fraction of leaf area above height `z`
-  double Q(double z) const;
-  // [      ] Inverse of Q: height above which fraction 'x' of leaf found
-  double Qp(double x) const;
-
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
   double assimilation(const Environment& environment, bool reuse_intervals);

@@ -108,7 +108,7 @@ double Plant::leaf_area_above(double z) const {
   if (z < 0.0) {
     Rcpp::stop("Negative heights do not make sense");
   }
-  return vars.leaf_area * Q(z);
+  return vars.leaf_area * strategy->Q(z, vars.height);
 }
 
 // * Mass production
@@ -388,29 +388,6 @@ void Plant::compute_vars_size(double height_) {
   vars.diameter = strategy->diameter(vars.basal_area);
 }
 
-// [eqn  9] Probability density of leaf area at height `z`
-double Plant::q(double z) const {
-  const double eta = strategy->eta;
-  const double tmp = pow(z / vars.height, eta);
-  return 2 * eta * (1 - tmp) * tmp / z;
-}
-
-// [eqn 10] ... Fraction of leaf area above height 'z' for an
-//              individual of height 'height'
-double Plant::Q(double z) const {
-  if (z > vars.height) {
-    return 0.0;
-  }
-  const double tmp = 1.0-pow(z / vars.height, strategy->eta);
-  return tmp * tmp;
-}
-
-// (inverse of [eqn 10]; return the height above which fraction 'x' of
-// the leaf mass would be found).
-double Plant::Qp(double x) const { // x in [0,1], unchecked.
-  return pow(1 - sqrt(x), (1/strategy->eta)) * vars.height;
-}
-
 // [eqn 12] Gross annual CO2 assimilation
 //
 // NOTE: In contrast with Daniel's implementation (but following
@@ -458,12 +435,12 @@ double Plant::compute_assimilation_x(double x,
 
 double Plant::compute_assimilation_h(double h,
                                      const Environment& environment) const {
-  return assimilation_leaf(environment.canopy_openness(h)) * q(h);
+  return assimilation_leaf(environment.canopy_openness(h)) * strategy->q(h, vars.height);
 }
 
 double Plant::compute_assimilation_p(double p,
                                      const Environment& environment) const {
-  return assimilation_leaf(environment.canopy_openness(Qp(p)));
+  return assimilation_leaf(environment.canopy_openness(strategy->Qp(p, vars.height)));
 }
 
 // [Appendix S6] Per-leaf photosynthetic rate.
@@ -474,7 +451,10 @@ double Plant::assimilation_leaf(double x) const {
 
 // NOTE: static method
 // The aim is to find a plant height that gives the correct seed mass.
+// TODO: @richfitz move this whole thing into strategy?
+// To achieve this staretgy will need some control objects
 double Plant::height_seed(strategy_ptr_type s) {
+
   Plant p(s);
   const double seed_mass = p.strategy->s;
 

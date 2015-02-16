@@ -112,6 +112,13 @@ public:
   double germination_probability(double leaf_area,
                                  double net_production) const;
 
+  // * Competitive environment
+  // [eqn  9] Probability density of leaf area at height `z`
+  double q(double z, double height) const;
+  // [eqn 10] Fraction of leaf area above height `z`
+  double Q(double z, double height) const;
+  // [      ] Inverse of Q: height above which fraction 'x' of leaf found
+  double Qp(double x, double height) const;
 
   quadrature::QAG& integrator() {return control.integrator;}
   // Every Strategy needs a set of Control objects -- these govern
