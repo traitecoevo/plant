@@ -9,6 +9,74 @@ namespace tree2 {
 struct Strategy {
 public:
   Strategy();
+
+  // * Size
+  // [eqn 4] Sapwood area
+  double sapwood_area(double leaf_area) const;
+
+  // * Mass production
+
+  // [eqn 13] Total maintenance respiration
+  double respiration(double leaf_area, double sapwood_mass,
+                     double bark_mass, double root_mass) const;
+  // [eqn 14] Total turnover
+  double turnover(double leaf_mass, double bark_mass,
+                  double sapwood_mass, double root_mass) const;
+  // [eqn 15] Net production
+  double net_production(double assimilation, double respiration,
+                        double turnover);
+  // [eqn 16] Fraction of whole plan growth that is leaf
+  double reproduction_fraction(double height) const;
+  // [eqn 17] Rate of offspring production
+  double dfecundity_dt(double net_production,
+                       double reproduction_fraction) const;
+
+  // [eqn 18] Fraction of mass growth that is leaves
+  double leaf_mass_fraction(double leaf_area) const;
+  double leaf_area_fraction(double leaf_area) const;
+
+  // change in height per change in leaf area
+  double dheight_dleaf_area(double leaf_area) const;
+  // Mass of stem needed for new unit mass leaf, d m_s / d m_l
+  double dsapwood_mass_dleaf_mass(double leaf_area) const;
+  // Mass of bark needed for new unit mass leaf, d m_b / d m_l
+  double dbark_mass_dleaf_mass(double leaf_area) const;
+  // Mass of root needed for new unit mass leaf, d m_r / d m_l
+  double droot_mass_dleaf_mass(double leaf_area) const;
+  // Growth rate of basal diameter per unit basal area
+  double dbasal_diam_dbasal_area(double leaf_area,
+                                 double heartwood_area) const;
+  // Growth rate of components per unit time:
+  double dleaf_area_dt(double leaf_mass_growth_rate) const;
+  double dsapwood_area_dt(double leaf_mass_growth_rate) const;
+  double dheartwood_area_dt(double leaf_area) const;
+  double dbark_area_dt(double leaf_mass_growth_rate) const;
+  double dbasal_area_dt(double leaf_area, double leaf_mass_growth_rate) const;
+  double dbasal_diam_dt(double leaf_area, double heartwood_area,
+                        double leaf_mass_growth_rate) const;
+  double droot_mass_dt(double leaf_area,
+                       double leaf_mass_growth_rate) const;
+  double dlive_mass_dt(double reproduction_fraction,
+                       double net_production) const;
+  double dtotal_mass_dt(double reproduction_fraction,
+                        double net_production,
+                        double dheartwood_mass_dt) const;
+  double dabove_ground_mass_dt(double leaf_area,
+                               double reproduction_fraction,
+                               double net_production,
+                               double dheartwood_mass_dt,
+                               double leaf_mass_growth_rate) const;
+
+  // Bark area
+  double bark_area(double leaf_area) const;
+  // basal area
+  double basal_area(double leaf_area, double heartwood_area) const;
+  double dheartwood_mass_dt(double sapwood_mass) const;
+  double sapwood_turnover(double sapwood_mass) const;
+
+  // double live_mass_given_height(double h); [TODO]
+  double height_given_leaf_mass(double leaf_mass_) const;
+
   quadrature::QAG& integrator() {return control.integrator;}
   // Every Strategy needs a set of Control objects -- these govern
   // things to do with how numerical calculations are performed,

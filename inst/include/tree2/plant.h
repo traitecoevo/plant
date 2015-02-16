@@ -116,46 +116,10 @@ private:
   double compute_assimilation_p(double p, const Environment& environment) const;
   // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
-  // [eqn 13] Total maintenance respiration
-  double compute_respiration() const;
-  // [eqn 14] Total turnover
-  double compute_turnover() const;
-  // [eqn 16] Fraction of whole plan growth that is leaf
-  double compute_reproduction_fraction() const;
-  // [eqn 18] Fraction of mass growth that is leaves
-  double compute_leaf_fraction() const;
-  // change in height per change in leaf area
-  double dheight_dleaf_area() const;
-  // Mass of stem needed for new unit mass leaf, d m_s / d m_l
-  double dsapwood_mass_dleaf_mass() const;
-  // Mass of bark needed for new unit mass leaf, d m_b / d m_l
-  double dbark_mass_dleaf_mass() const;
-  // Mass of root needed for new unit mass leaf, d m_r / d m_l
-  double droot_mass_dleaf_mass() const;
-  // Growth rate of basal diameter per unit basal area
-  double dbasal_diam_dbasal_area() const;
-  // Growth rate of components per unit time:
-  double dleaf_area_dt() const;
-  double dsapwood_area_dt() const;
-  double dbark_area_dt() const;
-  double dbasal_area_dt() const;
-  double dbasal_diam_dt() const;
-  double droot_mass_dt() const;
-  double dlive_mass_dt() const;
-  double dtotal_mass_dt() const;
-  double dabove_ground_mass_dt() const;
 
-  double sapwood_turnover() const;
-
-  // Sapwood area
-  double sapwood_area() const;
-  // Bark area
-  double bark_area() const;
-  // basal area
-  double basal_area() const;
-
+  // TODO: Move into Strategy by computing this statelessly?  Requires
+  // moving the size functions over (@dfalster).
   double live_mass_given_height(double h);
-  double height_given_leaf_mass(double leaf_mass_) const;
 
   // To simplify my life, I'm making a small internal-only class that
   // contains some implementation details here.
@@ -187,6 +151,8 @@ private:
     double leaf_fraction;  // [eqn 18] Fraction of mass growth that is leaves
     double leaf_mass_growth_rate; // [eqn 19] Growth rate in leaf mass
     double height_growth_rate;    // [doc/details.md]
+    double heartwood_area_rate;
+    double heartwood_mass_rate;
     // * Mortality
     double mortality_rate; // [eqn 21]
     // * Variables
