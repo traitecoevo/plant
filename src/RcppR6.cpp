@@ -629,11 +629,6 @@ double Plant__leaf_area__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
 }
 
 // [[Rcpp::export]]
-double Plant__survival_probability__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
-  return obj_->survival_probability();
-}
-
-// [[Rcpp::export]]
 tree2::Strategy Plant__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
   return obj_->r_get_strategy();
 }

@@ -825,13 +825,6 @@ Plant_internals <- function(..., values=list(...)) {
                     stop("Plant$leaf_area is read-only")
                   }
                 },
-                survival_probability = function(value) {
-                  if (missing(value)) {
-                    Plant__survival_probability__get(self)
-                  } else {
-                    stop("Plant$survival_probability is read-only")
-                  }
-                },
                 strategy = function(value) {
                   if (missing(value)) {
                     Plant__strategy__get(self)

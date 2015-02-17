@@ -2116,21 +2116,6 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Plant__survival_probability__get
-double Plant__survival_probability__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
-RcppExport SEXP tree2_Plant__survival_probability__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
-        double __result = Plant__survival_probability__get(obj_);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
 // Plant__strategy__get
 tree2::Strategy Plant__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
 RcppExport SEXP tree2_Plant__strategy__get(SEXP obj_SEXP) {

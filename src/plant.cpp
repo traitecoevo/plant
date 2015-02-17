@@ -91,12 +91,6 @@ void Plant::set_heartwood_mass(double x) {
   vars.heartwood_mass = x;
 }
 
-// This one is a bit different, as it converts from the mean of the
-// poisson process (on [0,Inf)) to a probability (on [0,1]).
-double Plant::survival_probability() const {
-  return exp(-mortality());
-}
-
 // * Competitive environment
 double Plant::leaf_area() const {
   return vars.leaf_area;
@@ -249,7 +243,8 @@ void Plant::compute_vars_growth() {
 // pointer to vars and thereby give access to any of functions thereein?
 double Plant::germination_probability(const Environment& environment) {
   compute_vars_phys(environment);
-  return strategy->germination_probability(vars.leaf_area, vars.net_production);
+  return strategy->germination_probability(vars.leaf_area,
+                                           vars.net_production);
 }
 
 // ODE interface -- note that the don't care about time in the plant;

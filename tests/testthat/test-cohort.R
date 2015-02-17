@@ -138,7 +138,7 @@ test_that("ODE interface", {
            rates[["mortality_rate"]],
            ## This is different to the approach in tree1?
            rates[["fecundity_rate"]] *
-             patch_survival * cohort$plant$survival_probability,
+             patch_survival * exp(-cohort$plant$mortality),
            -rates[["mortality_rate"]] - cohort$growth_rate_gradient(env))
   expect_that(cohort$ode_rates, equals(cmp))
 })

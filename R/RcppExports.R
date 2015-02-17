@@ -607,10 +607,6 @@ Plant__leaf_area__get <- function(obj_) {
     .Call('tree2_Plant__leaf_area__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant__survival_probability__get <- function(obj_) {
-    .Call('tree2_Plant__survival_probability__get', PACKAGE = 'tree2', obj_)
-}
-
 Plant__strategy__get <- function(obj_) {
     .Call('tree2_Plant__strategy__get', PACKAGE = 'tree2', obj_)
 }

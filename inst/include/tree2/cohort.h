@@ -83,9 +83,13 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
     - plant.mortality_rate();
 
   // EBT.md{eq:boundSurv}, see Numerical technique
+  // survival_plant: converts from the mean of the poisson process (on
+  // [0,Inf)) to a probability (on [0,1]).
   const double survival_patch = environment.patch_survival();
+  const double survival_plant = exp(-plant.mortality());
+
   seeds_survival_weighted_rate =
-    plant.fecundity_rate() * plant.survival_probability() *
+    plant.fecundity_rate() * survival_plant *
     survival_patch / pr_patch_survival_at_birth;
 }
 
@@ -157,9 +161,11 @@ double Cohort<T>::leaf_area_above(double height_) const {
   return density * plant.leaf_area_above(height_);
 }
 
+// TODO: Possibly push this logic into species and drop entirely from
+// Cohort.
 template <typename T>
 double Cohort<T>::leaf_area() const {
-  return density * plant.leaf_area();
+  return plant.leaf_area_above(0.0);
 }
 
 // ODE interface -- note that the don't care about time in the cohort;

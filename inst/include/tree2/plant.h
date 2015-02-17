@@ -41,9 +41,6 @@ public:
   double heartwood_mass_rate() const;
   void set_heartwood_mass(double x);
 
-  // These are derived from mortality() -- see design.md.
-  double survival_probability() const;
-
   // * Competitive environment
   double leaf_area() const;
   // [      ] Leaf area (not fraction) above height `z`

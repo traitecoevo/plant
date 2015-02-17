@@ -423,7 +423,6 @@ Plant:
     heartwood_area: {type: double, access: member, name_cpp_set: set_heartwood_area}
     heartwood_mass: {type: double, access: member, name_cpp_set: set_heartwood_mass}
     leaf_area: {type: double, access: member}
-    survival_probability: {type: double, access: member}
     strategy: {type: "tree2::Strategy", access: member, name_cpp: r_get_strategy}
     internals: {type: "tree2::Plant_internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
