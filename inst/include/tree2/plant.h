@@ -136,9 +136,10 @@ private:
     double turnover;       // [eqn 14] Total turnover
     double net_production; // [eqn 15] Net production
     double reproduction_fraction; // [eqn 16]
+    double growth_fraction;
     double fecundity_rate; // [eqn 17] Rate of offspring production
-    double leaf_fraction;  // [eqn 18] Fraction of mass growth that is leaves
-    double leaf_mass_growth_rate; // [eqn 19] Growth rate in leaf mass
+    double leaf_area_growth_rate; // [eqn 19] Growth rate in leaf mass
+    double leaf_area_deployment_mass;
     double height_growth_rate;    // [doc/details.md]
     double heartwood_area_rate;
     double heartwood_mass_rate;

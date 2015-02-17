@@ -148,25 +148,22 @@ void Plant::compute_vars_phys(const Environment& environment,
     vars.fecundity_rate = strategy->dfecundity_dt(vars.net_production,
                                                   vars.reproduction_fraction);
 
-    // [eqn 18] - Fraction of mass growth in leaves
-    // TODO: rename this to leaf_mass_fraction or drop entirely.  May
-    // want to replumb leaf_mass_fraction, dleaf_area_dt in Strategy,
-    // too.
-    vars.leaf_fraction = strategy->leaf_mass_fraction(vars.leaf_area);
+    // [eqn 19] - Growth rate in leaf height
+    // different to Falster 2010, which was growth rate in leaf mass
+    vars.leaf_area_deployment_mass = strategy->leaf_area_deployment_mass(vars.leaf_area);
+    vars.growth_fraction =strategy->growth_fraction(vars.height);
 
-    // [eqn 19] - Growth rate in leaf mass
-    vars.leaf_mass_growth_rate = vars.net_production *
-      (1 - vars.reproduction_fraction) * vars.leaf_fraction;
-
-    // [      ] - see doc/details.md
-    vars.height_growth_rate =
+    vars.leaf_area_growth_rate = vars.net_production * vars.growth_fraction *
+          vars.leaf_area_deployment_mass;
+   vars.height_growth_rate =
       strategy->dheight_dleaf_area(vars.leaf_area) *
-      vars.leaf_mass_growth_rate / strategy->lma;
+      vars.leaf_area_growth_rate;
   } else {
     vars.reproduction_fraction = 0.0;
+    vars.growth_fraction = 0.0;
     vars.fecundity_rate        = 0.0;
-    vars.leaf_fraction         = 0.0;
-    vars.leaf_mass_growth_rate = 0.0;
+    vars.leaf_area_growth_rate = 0.0;
+    vars.leaf_area_deployment_mass = 0.0;
     vars.height_growth_rate    = 0.0;
   }
 
@@ -280,8 +277,8 @@ SEXP Plant::r_get_vars_phys() const {
               _["turnover"] = vars.turnover,
               _["net_production"] = vars.net_production,
               _["reproduction_fraction"] = vars.reproduction_fraction,
+              _["growth_fraction"] = vars.growth_fraction,
               _["fecundity_rate"] = vars.fecundity_rate,
-              _["leaf_fraction"] = vars.leaf_fraction,
               _["height_growth_rate"] = vars.height_growth_rate,
               _["mortality_rate"] = vars.mortality_rate
               ));
@@ -292,29 +289,27 @@ SEXP Plant::r_get_vars_growth() const {
   // TODO: @dfalster - as for r_get_vars_size()
   const strategy_type *s = strategy.get(); // for brevity.
   const double leaf_area = vars.leaf_area,
-    leaf_mass_growth_rate = vars.leaf_mass_growth_rate;
+    leaf_area_growth_rate = vars.leaf_area_growth_rate;
   const double
     dheight_dleaf_area = s->dheight_dleaf_area(leaf_area),
-    dleaf_area_dleaf_mass = 1 / s->lma,
-    growth_fraction = 1 - vars.reproduction_fraction,
-    dsapwood_mass_dleaf_mass = s->dsapwood_mass_dleaf_mass(leaf_area),
-    dbark_mass_dleaf_mass = s->dbark_mass_dleaf_mass(leaf_area),
-    droot_mass_dleaf_mass = s->droot_mass_dleaf_mass(leaf_area),
-    dleaf_area_dt = s->dleaf_area_dt(leaf_mass_growth_rate),
-    dsapwood_area_dt = s->dsapwood_area_dt(leaf_mass_growth_rate),
-    dbark_area_dt = s->dbark_area_dt(leaf_mass_growth_rate),
+    growth_fraction = vars.growth_fraction,
+    dsapwood_mass_dleaf_area = s->dsapwood_mass_dleaf_area(leaf_area),
+    dbark_mass_dleaf_area = s->dbark_mass_dleaf_area(leaf_area),
+    droot_mass_dleaf_area = s->droot_mass_dleaf_area(leaf_area),
+    dsapwood_area_dt = s->dsapwood_area_dt(leaf_area_growth_rate),
+    dbark_area_dt = s->dbark_area_dt(leaf_area_growth_rate),
     heartwood_area_rate = s->dheartwood_area_dt(leaf_area),
     heartwood_mass_rate = s->dheartwood_mass_dt(vars.sapwood_mass),
-    dbasal_area_dt = s->dbasal_area_dt(leaf_area, leaf_mass_growth_rate),
+    dbasal_area_dt = s->dbasal_area_dt(leaf_area, leaf_area_growth_rate),
     dbasal_diam_dbasal_area = s->dbasal_diam_dbasal_area(vars.bark_area,
                                                          vars.sapwood_area,
                                                          vars.heartwood_area),
     dbasal_diam_dt = s->dbasal_diam_dt(leaf_area,
                                        vars.bark_area, vars.sapwood_area,
                                        vars.heartwood_area,
-                                       leaf_mass_growth_rate),
+                                       leaf_area_growth_rate),
     droot_mass_dt = s->droot_mass_dt(leaf_area,
-                                    leaf_mass_growth_rate),
+                                    leaf_area_growth_rate),
     dlive_mass_dt = s->dlive_mass_dt(vars.reproduction_fraction,
                                     vars.net_production),
     dtotal_mass_dt = s->dtotal_mass_dt(vars.reproduction_fraction,
@@ -325,17 +320,17 @@ SEXP Plant::r_get_vars_growth() const {
                              vars.reproduction_fraction,
                             vars.net_production,
                             vars.heartwood_mass_rate,
-                            leaf_mass_growth_rate);
+                            leaf_area_growth_rate);
 
   using namespace Rcpp;
   return wrap(NumericVector::create(
               _["dheight_dleaf_area"] = dheight_dleaf_area,
-              _["dleaf_area_dleaf_mass"] = dleaf_area_dleaf_mass,
               _["growth_fraction"] = growth_fraction,
-              _["dsapwood_mass_dleaf_mass"] = dsapwood_mass_dleaf_mass,
-              _["dbark_mass_dleaf_mass"] = dbark_mass_dleaf_mass,
-              _["droot_mass_dleaf_mass"] = droot_mass_dleaf_mass,
-              _["dleaf_area_dt"] = dleaf_area_dt,
+              _["dsapwood_mass_dleaf_area"] = dsapwood_mass_dleaf_area,
+              _["dbark_mass_dleaf_area"] = dbark_mass_dleaf_area,
+              _["droot_mass_dleaf_area"] = droot_mass_dleaf_area,
+              _["dleaf_area_dt"] = leaf_area_growth_rate,
+              _["leaf_area_deployment_mass"] = vars.leaf_area_deployment_mass,
               _["dsapwood_area_dt"] = dsapwood_area_dt,
               _["dbark_area_dt"] = dbark_area_dt,
               _["dheartwood_area_dt"] = heartwood_area_rate,
@@ -343,7 +338,7 @@ SEXP Plant::r_get_vars_growth() const {
               _["dbasal_area_dt"] = dbasal_area_dt,
               _["dbasal_diam_dbasal_area"] = dbasal_diam_dbasal_area,
               _["dbasal_diam_dt"] = dbasal_diam_dt,
-              _["dleaf_mass_dt"] = leaf_mass_growth_rate,
+              _["dleaf_area_dt"] = leaf_area_growth_rate,
               _["droot_mass_dt"] = droot_mass_dt,
               // TODO: reproduction_fraction -> reproduction_mass_fraction?
               // TODO: net production -> net mass production?
@@ -494,8 +489,7 @@ Plant::internals::internals()
     net_production(NA_REAL),
     reproduction_fraction(NA_REAL),
     fecundity_rate(NA_REAL),
-    leaf_fraction(NA_REAL),
-    leaf_mass_growth_rate(NA_REAL),
+    leaf_area_growth_rate(NA_REAL),
     height_growth_rate(NA_REAL),
     heartwood_area_rate(NA_REAL),
     heartwood_mass_rate(NA_REAL),

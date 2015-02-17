@@ -106,10 +106,6 @@ test_that("Reference comparison", {
   expect_that(p_phys[["fecundity_rate"]],
               equals(cmp_fecundity_rate, tolerance=1e-7))
 
-  ## 7. Fraction of whole plant (mass) growth that is leaf.
-  cmp_leaf_fraction <- cmp$leaf.fraction(cmp$traits, h0)
-  expect_that(p_phys[["leaf_fraction"]],
-              equals(cmp_leaf_fraction))
 
   ## 8. Growth rate for height
   cmp_height_growth_rate <- cmp$height.growth.rate(cmp$traits, h0, light_env)
@@ -117,7 +113,7 @@ test_that("Reference comparison", {
               equals(cmp_height_growth_rate, tolerance=1e-7))
 
   cmp_height_growth_rate <-
-    cmp$height.growth.rate.via.mass.leaf(cmp$traits, h0, light_env)
+    cmp$height.growth.rate.via.area.leaf(cmp$traits, h0, light_env)
   expect_that(p_phys[["height_growth_rate"]],
               equals(cmp_height_growth_rate, tolerance=1e-7))
 
@@ -132,19 +128,19 @@ test_that("Reference comparison", {
               equals(cmp_dheight_dleaf_area))
 
   ## 11. Sapwood mass per leaf mass
-  cmp_dsapwood_mass_dleaf_mass <- cmp$sapwood.per.leaf.mass(cmp$traits, h0)
-  expect_that(p_growth[["dsapwood_mass_dleaf_mass"]],
-              equals(cmp_dsapwood_mass_dleaf_mass))
+  cmp_dsapwood_mass_dleaf_area<- cmp$sapwood.per.leaf.area(cmp$traits, h0)
+  expect_that(p_growth[["dsapwood_mass_dleaf_area"]],
+              equals(cmp_dsapwood_mass_dleaf_area))
 
   ## 12. Bark mass per leaf mass
-  cmp_dbark_mass_dleaf_mass <- cmp$bark.per.leaf.mass(cmp$traits, h0)
-  expect_that(p_growth[["dbark_mass_dleaf_mass"]],
-              equals(cmp_dbark_mass_dleaf_mass))
+  cmp_dbark_mass_dleaf_area <- cmp$bark.per.leaf.area(cmp$traits, h0)
+  expect_that(p_growth[["dbark_mass_dleaf_area"]],
+              equals(cmp_dbark_mass_dleaf_area))
 
   ## 12. Root mass per leaf mass
-  cmp_droot_mass_dleaf_mass <- cmp$root.per.leaf.mass(cmp$traits, h0)
-  expect_that(p_growth[["droot_mass_dleaf_mass"]],
-              equals(cmp_droot_mass_dleaf_mass))
+  cmp_droot_mass_dleaf_area <- cmp$root.per.leaf.area(cmp$traits, h0)
+  expect_that(p_growth[["droot_mass_dleaf_area"]],
+              equals(cmp_droot_mass_dleaf_area))
 
   ## 13. Leaf area growth rate
   cmp_dleaf_area_dt <- cmp$dleaf_area_dt(cmp$traits, h0, light_env)
@@ -184,7 +180,8 @@ test_that("Reference comparison", {
   ## Check that height decomposition multiplies out to give right answer
   expect_that(p_phys[["height_growth_rate"]],
               equals(
-                prod(p_growth[c("dheight_dleaf_area","dleaf_area_dleaf_mass","growth_fraction")], p_phys[c("leaf_fraction","net_production")]), tolerance=1e-7))
+                prod(p_growth[c("dheight_dleaf_area","leaf_area_deployment_mass","growth_fraction")],
+                  p_phys[c("net_production")]), tolerance=1e-7))
 })
 
 test_that("Seed bits", {

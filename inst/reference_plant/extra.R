@@ -54,36 +54,34 @@ fecundity.rate <- function(traits, h, env) {
 ##
 ## This verison is more explicit than the version in the C++ code for
 ## didactic purposes and because
-leaf.fraction <- function(traits, h) {
-  1 / (1 + sapwood.per.leaf.mass(traits, h)
-    + bark.per.leaf.mass(traits, h)
-    + root.per.leaf.mass(traits, h))
+leaf.area.deployment <- function(traits, h) {
+  1 / (traits$lma + sapwood.per.leaf.area(traits, h)
+    + bark.per.leaf.area(traits, h)
+    + root.per.leaf.area(traits, h))
 }
 
-sapwood.per.leaf.mass <- function(traits, h){
+sapwood.per.leaf.area <- function(traits, h){
   rho <- traits$rho
   phi <- traits$lma
   etac <- etac(p.eta)
-  ml <- LeafMass(traits$lma, LeafArea(h))
+  al <- LeafArea(h)
 
-  rho * etac * p.a1 * (p.B1 + 1) / (p.theta * phi) *
-    (ml / phi)^p.B1
+  rho * etac * p.a1 * (p.B1 + 1) / (p.theta) * al^p.B1
 }
 
-bark.per.leaf.mass <- function(traits, h){
-  p.b * sapwood.per.leaf.mass(traits, h)
+bark.per.leaf.area <- function(traits, h){
+  p.b * sapwood.per.leaf.area(traits, h)
 }
 
-root.per.leaf.mass <- function(traits, h){
-  phi <- traits$lma
-  p.a3 / phi
+root.per.leaf.area <- function(traits, h){
+  p.a3
 }
 
 
-mass.leaf.growth.rate <- function(traits, h, env) {
+area.leaf.growth.rate <- function(traits, h, env) {
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
-  l <- leaf.fraction(traits, h)
+  l <- leaf.area.deployment(traits, h)
   g <- (1 - r) * p * l
   g[p < 0] <- 0
   g
@@ -159,10 +157,10 @@ bark_area <- function(h){
 }
 
 ## Based on the above function, same algorithm as used in C++ version.
-height.growth.rate.via.mass.leaf <- function(traits, h, env) {
-  dmdt <- mass.leaf.growth.rate(traits, h, env)
+height.growth.rate.via.area.leaf <- function(traits, h, env) {
+  daldt <- area.leaf.growth.rate(traits, h, env)
   a <- LeafArea(h)
-  p.a1 * p.B1 * (a)^(p.B1 - 1) * dmdt / traits$lma
+  p.a1 * p.B1 * (a)^(p.B1 - 1) * daldt
 }
 
 p.c_d0 <- 0.01
