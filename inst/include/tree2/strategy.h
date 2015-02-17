@@ -132,6 +132,9 @@ public:
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x, double height) const;
 
+  // The aim is to find a plant height that gives the correct seed mass.
+  double height_seed(void) const;
+
   quadrature::QAG& integrator() {return control.integrator;}
   // Every Strategy needs a set of Control objects -- these govern
   // things to do with how numerical calculations are performed,

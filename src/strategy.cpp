@@ -1,4 +1,5 @@
 #include <tree2/strategy.h>
+#include <tree2/uniroot.h>
 #include <RcppCommon.h> // NA_REAL
 
 namespace tree2 {
@@ -396,6 +397,29 @@ double Strategy::Q(double z, double height) const {
 // the leaf mass would be found).
 double Strategy::Qp(double x, double height) const { // x in [0,1], unchecked.
   return pow(1 - sqrt(x), (1/eta)) * height;
+}
+
+// The aim is to find a plant height that gives the correct seed mass.
+double Strategy::height_seed(void) const {
+
+  // Note, these are not entirely correct bounds. Ideally we would use height
+  // given *total* mass, not leaf mass, but that is difficult to calculate.
+  // Using "height given leaf mass" will expand upper bound, but that's ok
+  // most of time. Only issue is that could break with obscure paramater
+  // values for LMA or height-leaf area scaling. Could instead use some
+  // absolute maximum height for new seedling, e.g. 1m?
+  const double
+    h0 = height_given_leaf_mass(std::numeric_limits<double>::min()),
+    h1 = height_given_leaf_mass(s);
+
+  const double tol = control.plant_seed_tol;
+  const size_t max_iterations = control.plant_seed_iterations;
+
+  auto target = [&] (double x) mutable -> double {
+    return live_mass_given_height(x) - s;
+  };
+
+  return util::uniroot(target, h0, h1, tol, max_iterations);
 }
 
 }

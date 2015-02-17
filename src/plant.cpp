@@ -1,6 +1,5 @@
 #include <tree2/plant.h>
 #include <tree2/qag.h>
-#include <tree2/uniroot.h>
 #include <Rcpp.h>
 #include <functional>
 
@@ -240,7 +239,7 @@ void Plant::prepare_strategy(strategy_ptr_type s) {
   // NOTE: this precomputes something to save a very small amount of time
   s->eta_c = 1 - 2/(1 + s->eta) + 1/(1 + 2*s->eta);
   // NOTE: Also precomputing, though less trivial
-  s->height_0 = height_seed(s);
+  s->height_0 = s->height_seed();
 }
 
 // * R interface
@@ -443,34 +442,6 @@ double Plant::compute_assimilation_p(double p,
 // Here, `x` is openness, ranging from 0 to 1.
 double Plant::assimilation_leaf(double x) const {
   return strategy->c_p1 * x / (x + strategy->c_p2);
-}
-
-// NOTE: static method
-// The aim is to find a plant height that gives the correct seed mass.
-// TODO: @richfitz you should move this whole thing into strategy.
-// To achieve this staretgy will need some control objects for root finding
-double Plant::height_seed(strategy_ptr_type s) {
-
-  Plant p(s);
-  const double seed_mass = p.strategy->s;
-
-  // Note, these are not entirely correct bounds. Ideally we would use height
-  // given *total* mass, not leaf mass, but that is difficult to calculate.
-  // Using "height given leaf mass" will expand upper bound, but that's ok
-  // most of time. Only issue is that could break with obscure paramater
-  // values for LMA or height-leaf area scaling. Could instead use some
-  // absolute maximum height for new seedling, e.g. 1m?
-  const double
-    h0 = s->height_given_leaf_mass(std::numeric_limits<double>::min()),
-    h1 = s->height_given_leaf_mass(seed_mass);
-  const double tol = p.control().plant_seed_tol;
-  const size_t max_iterations = p.control().plant_seed_iterations;
-
-  auto target = [&] (double x) mutable -> double {
-    return s->live_mass_given_height(x) - seed_mass;
-  };
-
-  return util::uniroot(target, h0, h1, tol, max_iterations);
 }
 
 Plant::internals::internals()

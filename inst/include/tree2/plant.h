@@ -69,7 +69,6 @@ public:
 
   // * Set constants within Strategy
   static void prepare_strategy(strategy_ptr_type s);
-  static double height_seed(strategy_ptr_type s);
 
   // * R interface
   strategy_type r_get_strategy() const;
