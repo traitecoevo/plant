@@ -441,9 +441,6 @@ Plant:
     germination_probability:
       args: [environment: "const tree2::Environment&"]
       return_type: double
-    copy:
-      return_type: "tree2::Plant"
-      name_cpp: r_copy
 
 # For now, this one is not templated.
 Cohort:

@@ -559,10 +559,6 @@ Plant__germination_probability <- function(obj_, environment) {
     .Call('tree2_Plant__germination_probability', PACKAGE = 'tree2', obj_, environment)
 }
 
-Plant__copy <- function(obj_) {
-    .Call('tree2_Plant__copy', PACKAGE = 'tree2', obj_)
-}
-
 Plant__height__get <- function(obj_) {
     .Call('tree2_Plant__height__get', PACKAGE = 'tree2', obj_)
 }

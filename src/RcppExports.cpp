@@ -1946,21 +1946,6 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Plant__copy
-tree2::Plant Plant__copy(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
-RcppExport SEXP tree2_Plant__copy(SEXP obj_SEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
-        tree2::Plant __result = Plant__copy(obj_);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
 // Plant__height__get
 double Plant__height__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
 RcppExport SEXP tree2_Plant__height__get(SEXP obj_SEXP) {

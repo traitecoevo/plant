@@ -423,14 +423,32 @@ double Strategy::mortality_growth_dependent_dt(
 }
 
 // [eqn 20] Survival of seedlings during germination
-double Strategy::germination_probability(double leaf_area,
-                                         double net_production) const {
-  if (net_production > 0) {
-    const double tmp = c_s0 * leaf_area / net_production;
-    return 1 / (tmp * tmp + 1.0);
+double Strategy::germination_probability(const Environment& environment) {
+  const double net_production_ =
+    net_production(environment, height_0, leaf_area_0);
+  if (net_production_ > 0) {
+    const double tmp = c_s0 * leaf_area_0 / net_production_;
+    return 1.0 / (tmp * tmp + 1.0);
   } else {
     return 0.0;
   }
+}
+
+double Strategy::net_production(const Environment& environment,
+                                double height, double leaf_area_) {
+  const double leaf_mass_    = leaf_mass(leaf_area_);
+  const double sapwood_area_ = sapwood_area(leaf_area_);
+  const double sapwood_mass_ = sapwood_mass(sapwood_area_, height);
+  const double bark_area_    = bark_area(leaf_area_);
+  const double bark_mass_    = bark_mass(bark_area_, height);
+  const double root_mass_    = root_mass(leaf_area_);
+  const double assimilation_ = assimilation(environment, height,
+                                            leaf_area_, false);
+  const double respiration_ =
+    respiration(leaf_mass_, sapwood_mass_, bark_mass_, root_mass_);
+  const double turnover_ =
+    turnover(leaf_mass_, sapwood_mass_, bark_mass_, root_mass_);
+  return net_production(assimilation_, respiration_, turnover_);
 }
 
 double Strategy::leaf_area_above(double z, double height,
@@ -490,6 +508,7 @@ void Strategy::prepare_strategy() {
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
   // NOTE: Also precomputing, though less trivial
   height_0 = height_seed();
+  leaf_area_0 = leaf_area(height_0);
 }
 
 }

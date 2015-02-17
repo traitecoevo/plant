@@ -575,10 +575,6 @@ double Plant__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant> obj_, 
   return obj_->germination_probability(environment);
 }
 // [[Rcpp::export]]
-tree2::Plant Plant__copy(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
-  return obj_->r_copy();
-}
-// [[Rcpp::export]]
 double Plant__height__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
   return obj_->height();
 }

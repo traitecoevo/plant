@@ -7,7 +7,6 @@
 #include <tree2/strategy.h>
 #include <tree2/plant_internals.h>
 #include <tree2/ode_interface.h>
-#include <RcppCommon.h>
 
 namespace tree2 {
 
@@ -60,7 +59,7 @@ public:
   double germination_probability(const Environment& environment);
 
   // * ODE interface
-  static size_t ode_size() {return 5;}
+  static size_t       ode_size() {return 5;}
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;

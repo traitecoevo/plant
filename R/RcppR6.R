@@ -778,9 +778,6 @@ Plant_internals <- function(..., values=list(...)) {
                 },
                 germination_probability = function(environment) {
                   Plant__germination_probability(self, environment)
-                },
-                copy = function() {
-                  Plant__copy(self)
                 }),
               active=list(
                 height = function(value) {

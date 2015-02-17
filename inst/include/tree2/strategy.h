@@ -135,8 +135,9 @@ public:
   double mortality_growth_dependent_dt(double d2, double d3,
                                        double productivity_area) const;
   // [eqn 20] Survival of seedlings during germination
-  double germination_probability(double leaf_area,
-                                 double net_production) const;
+  double germination_probability(const Environment& environment);
+  double net_production(const Environment& environment,
+                        double height, double leaf_area);
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
@@ -203,8 +204,9 @@ public:
   // Coefficient for dry mass production in mortality function
   double c_d3;
 
-  // Height of a (germinated) seed
+  // Height and leaf area of a (germinated) seed
   double height_0;
+  double leaf_area_0;
 };
 
 }

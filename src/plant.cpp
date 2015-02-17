@@ -236,15 +236,8 @@ void Plant::compute_vars_growth() {
 }
 
 // [eqn 20] Survival of seedlings during germination
-//
-// NOTE: This does not check/enforce that height is set to the seed height (so
-// this is actually the germination probability of a plant that happens to be
-// the current size).  This might be something to change. TODO: Could we pass
-// pointer to vars and thereby give access to any of functions thereein?
 double Plant::germination_probability(const Environment& environment) {
-  compute_vars_phys(environment);
-  return strategy->germination_probability(vars.leaf_area,
-                                           vars.net_production);
+  return strategy->germination_probability(environment);
 }
 
 // ODE interface -- note that the don't care about time in the plant;
