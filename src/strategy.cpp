@@ -483,4 +483,13 @@ double Strategy::height_seed(void) const {
   return util::uniroot(target, h0, h1, tol, max_iterations);
 }
 
+void Strategy::prepare_strategy() {
+  // Set up the integrator
+  control.initialize();
+  // NOTE: this precomputes something to save a very small amount of time
+  eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
+  // NOTE: Also precomputing, though less trivial
+  height_0 = height_seed();
+}
+
 }

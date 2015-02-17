@@ -152,6 +152,9 @@ public:
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
 
+  // Set constants within Strategy
+  void prepare_strategy();
+
   // Every Strategy needs a set of Control objects -- these govern
   // things to do with how numerical calculations are performed,
   // rather than the biological control that this class has.

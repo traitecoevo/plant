@@ -232,16 +232,6 @@ std::vector<std::string> Plant::ode_names() {
 	"heartwood_area", "heartwood_mass"});
 }
 
-// NOTE: static method.
-void Plant::prepare_strategy(strategy_ptr_type s) {
-  // Set up the integrator.
-  s->control.initialize();
-  // NOTE: this precomputes something to save a very small amount of time
-  s->eta_c = 1 - 2/(1 + s->eta) + 1/(1 + 2*s->eta);
-  // NOTE: Also precomputing, though less trivial
-  s->height_0 = s->height_seed();
-}
-
 // * R interface
 Plant::strategy_type Plant::r_get_strategy() const {
   return *strategy.get();
@@ -411,9 +401,8 @@ Plant::internals::internals()
 }
 
 Plant::strategy_ptr_type make_strategy_ptr(Plant::strategy_type s) {
-  Plant::strategy_ptr_type sp = std::make_shared<Plant::strategy_type>(s);
-  Plant::prepare_strategy(sp);
-  return sp;
+  s.prepare_strategy();
+  return std::make_shared<Plant::strategy_type>(s);
 }
 
 Plant make_plant(Plant::strategy_type s) {

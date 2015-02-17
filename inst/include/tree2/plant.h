@@ -65,9 +65,6 @@ public:
   // Optional, but useful
   static std::vector<std::string> ode_names();
 
-  // * Set constants within Strategy
-  static void prepare_strategy(strategy_ptr_type s);
-
   // * R interface
   strategy_type r_get_strategy() const;
   SEXP r_get_vars_size() const;
