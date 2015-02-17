@@ -5,6 +5,7 @@
 #include <memory> // std::shared_ptr
 #include <vector>
 #include <tree2/strategy.h>
+#include <tree2/plant_internals.h>
 #include <tree2/ode_interface.h>
 #include <RcppCommon.h>
 
@@ -83,59 +84,8 @@ private:
   // [eqn 1-8] Update size variables to a new leaf mass.
   void compute_vars_size(double height_);
 
-  // TODO: Move into Strategy by computing this statelessly?  Requires
-  // moving the size functions over (@dfalster).
-  double live_mass_given_height(double h);
-
-  // To simplify my life, I'm making a small internal-only class that
-  // contains some implementation details here.
-
-  // TODO: I'll organise exporting this as a RcppR6 list class I
-  // think...
-  class internals {
-  public:
-    internals();
-    // * Individual size
-    // Mass of leaves.  This is the core independent variable
-    double leaf_mass;      // [eqn 1]
-    // Other size variables that follow directly from `leaf_mass`:
-    double leaf_area;      // [eqn 2]
-    double height;         // [eqn 3]
-    double sapwood_area;   // [eqn 4]
-    double sapwood_mass;   // [eqn 4]
-    double bark_area;      // [eqn 5]
-    double bark_mass;      // [eqn 5]
-    double heartwood_area;
-    double heartwood_mass; // [eqn 6]
-    double basal_area;   //TODO: stem area?
-    double root_mass;      // [eqn 7] (fine roots)
-    double live_mass;      // [eqn 8]
-    double total_mass;
-    double above_ground_mass;
-    double diameter;      //TODO: stem_diameter?
-
-    // * Mass production
-    double assimilation;   // [eqn 12] Gross annual CO2 assimilation
-    double respiration;    // [eqn 13] Total maintenance respiration
-    double turnover;       // [eqn 14] Total turnover
-    double net_production; // [eqn 15] Net production
-    double reproduction_fraction; // [eqn 16]
-    double growth_fraction;
-    double fecundity_rate; // [eqn 17] Rate of offspring production
-    double leaf_area_growth_rate; // [eqn 19] Growth rate in leaf mass
-    double leaf_area_deployment_mass;
-    double height_growth_rate;    // [doc/details.md]
-    double heartwood_area_rate;
-    double heartwood_mass_rate;
-    // * Mortality
-    double mortality_rate; // [eqn 21]
-    // * Variables
-    double mortality;
-    double fecundity;
-  };
-
   strategy_ptr_type strategy;
-  internals vars;
+  Plant_internals vars;
 
   // The ode dimensions are:
   // 1. Height

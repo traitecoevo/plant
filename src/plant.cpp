@@ -373,33 +373,6 @@ void Plant::compute_vars_size(double height_) {
   vars.diameter = strategy->diameter(vars.basal_area);
 }
 
-
-Plant::internals::internals()
-  : leaf_mass(NA_REAL),
-    leaf_area(NA_REAL),
-    height(NA_REAL),
-    sapwood_mass(NA_REAL),
-    bark_mass(NA_REAL),
-    heartwood_area(0),
-    heartwood_mass(0),
-    root_mass(NA_REAL),
-    live_mass(NA_REAL),
-    assimilation(NA_REAL),
-    respiration(NA_REAL),
-    turnover(NA_REAL),
-    net_production(NA_REAL),
-    reproduction_fraction(NA_REAL),
-    fecundity_rate(NA_REAL),
-    leaf_area_growth_rate(NA_REAL),
-    height_growth_rate(NA_REAL),
-    heartwood_area_rate(NA_REAL),
-    heartwood_mass_rate(NA_REAL),
-    mortality_rate(NA_REAL),
-    // But these should be zero
-    mortality(0.0),
-    fecundity(0.0) {
-}
-
 // TODO: Rename Plant::strategy_ptr to Strategy::ptr
 Plant::strategy_ptr_type make_strategy_ptr(Plant::strategy_type s) {
   s.prepare_strategy();
