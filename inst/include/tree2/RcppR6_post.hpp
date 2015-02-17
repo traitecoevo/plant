@@ -566,6 +566,19 @@ template <> inline SEXP wrap(const tree2::Plant_internals& x) {
   ret["mortality_rate"] = Rcpp::wrap(x.mortality_rate);
   ret["mortality"] = Rcpp::wrap(x.mortality);
   ret["fecundity"] = Rcpp::wrap(x.fecundity);
+  ret["dheight_dleaf_area"] = Rcpp::wrap(x.dheight_dleaf_area);
+  ret["dsapwood_mass_dleaf_area"] = Rcpp::wrap(x.dsapwood_mass_dleaf_area);
+  ret["dbark_mass_dleaf_area"] = Rcpp::wrap(x.dbark_mass_dleaf_area);
+  ret["droot_mass_dleaf_area"] = Rcpp::wrap(x.droot_mass_dleaf_area);
+  ret["dsapwood_area_dt"] = Rcpp::wrap(x.dsapwood_area_dt);
+  ret["dbark_area_dt"] = Rcpp::wrap(x.dbark_area_dt);
+  ret["dbasal_area_dt"] = Rcpp::wrap(x.dbasal_area_dt);
+  ret["dbasal_diam_dbasal_area"] = Rcpp::wrap(x.dbasal_diam_dbasal_area);
+  ret["dbasal_diam_dt"] = Rcpp::wrap(x.dbasal_diam_dt);
+  ret["droot_mass_dt"] = Rcpp::wrap(x.droot_mass_dt);
+  ret["dlive_mass_dt"] = Rcpp::wrap(x.dlive_mass_dt);
+  ret["dtotal_mass_dt"] = Rcpp::wrap(x.dtotal_mass_dt);
+  ret["dabove_ground_mass_dt"] = Rcpp::wrap(x.dabove_ground_mass_dt);
   ret.attr("class") = "Plant_internals";
   return ret;
 }
@@ -638,6 +651,32 @@ template <> inline tree2::Plant_internals as(SEXP x) {
   ret.mortality = Rcpp::as<double >(xl["mortality"]);
   // ret.fecundity = Rcpp::as<decltype(retfecundity) >(xl["fecundity"]);
   ret.fecundity = Rcpp::as<double >(xl["fecundity"]);
+  // ret.dheight_dleaf_area = Rcpp::as<decltype(retdheight_dleaf_area) >(xl["dheight_dleaf_area"]);
+  ret.dheight_dleaf_area = Rcpp::as<double >(xl["dheight_dleaf_area"]);
+  // ret.dsapwood_mass_dleaf_area = Rcpp::as<decltype(retdsapwood_mass_dleaf_area) >(xl["dsapwood_mass_dleaf_area"]);
+  ret.dsapwood_mass_dleaf_area = Rcpp::as<double >(xl["dsapwood_mass_dleaf_area"]);
+  // ret.dbark_mass_dleaf_area = Rcpp::as<decltype(retdbark_mass_dleaf_area) >(xl["dbark_mass_dleaf_area"]);
+  ret.dbark_mass_dleaf_area = Rcpp::as<double >(xl["dbark_mass_dleaf_area"]);
+  // ret.droot_mass_dleaf_area = Rcpp::as<decltype(retdroot_mass_dleaf_area) >(xl["droot_mass_dleaf_area"]);
+  ret.droot_mass_dleaf_area = Rcpp::as<double >(xl["droot_mass_dleaf_area"]);
+  // ret.dsapwood_area_dt = Rcpp::as<decltype(retdsapwood_area_dt) >(xl["dsapwood_area_dt"]);
+  ret.dsapwood_area_dt = Rcpp::as<double >(xl["dsapwood_area_dt"]);
+  // ret.dbark_area_dt = Rcpp::as<decltype(retdbark_area_dt) >(xl["dbark_area_dt"]);
+  ret.dbark_area_dt = Rcpp::as<double >(xl["dbark_area_dt"]);
+  // ret.dbasal_area_dt = Rcpp::as<decltype(retdbasal_area_dt) >(xl["dbasal_area_dt"]);
+  ret.dbasal_area_dt = Rcpp::as<double >(xl["dbasal_area_dt"]);
+  // ret.dbasal_diam_dbasal_area = Rcpp::as<decltype(retdbasal_diam_dbasal_area) >(xl["dbasal_diam_dbasal_area"]);
+  ret.dbasal_diam_dbasal_area = Rcpp::as<double >(xl["dbasal_diam_dbasal_area"]);
+  // ret.dbasal_diam_dt = Rcpp::as<decltype(retdbasal_diam_dt) >(xl["dbasal_diam_dt"]);
+  ret.dbasal_diam_dt = Rcpp::as<double >(xl["dbasal_diam_dt"]);
+  // ret.droot_mass_dt = Rcpp::as<decltype(retdroot_mass_dt) >(xl["droot_mass_dt"]);
+  ret.droot_mass_dt = Rcpp::as<double >(xl["droot_mass_dt"]);
+  // ret.dlive_mass_dt = Rcpp::as<decltype(retdlive_mass_dt) >(xl["dlive_mass_dt"]);
+  ret.dlive_mass_dt = Rcpp::as<double >(xl["dlive_mass_dt"]);
+  // ret.dtotal_mass_dt = Rcpp::as<decltype(retdtotal_mass_dt) >(xl["dtotal_mass_dt"]);
+  ret.dtotal_mass_dt = Rcpp::as<double >(xl["dtotal_mass_dt"]);
+  // ret.dabove_ground_mass_dt = Rcpp::as<decltype(retdabove_ground_mass_dt) >(xl["dabove_ground_mass_dt"]);
+  ret.dabove_ground_mass_dt = Rcpp::as<double >(xl["dabove_ground_mass_dt"]);
   return ret;
 }
 

@@ -567,6 +567,10 @@ void Plant__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tr
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
+void Plant__compute_vars_growth(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  obj_->compute_vars_growth();
+}
+// [[Rcpp::export]]
 double Plant__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment) {
   return obj_->germination_probability(environment);
 }
@@ -637,11 +641,6 @@ tree2::Strategy Plant__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
 // [[Rcpp::export]]
 tree2::Plant_internals Plant__internals__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
   return obj_->r_internals();
-}
-
-// [[Rcpp::export]]
-SEXP Plant__vars_growth__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
-  return obj_->r_get_vars_growth();
 }
 
 // [[Rcpp::export]]

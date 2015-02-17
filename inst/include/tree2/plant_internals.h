@@ -44,6 +44,23 @@ public:
   // * Variables
   double mortality;
   double fecundity;
+
+  // * Growth partitioning
+  double dheight_dleaf_area;
+  double dsapwood_mass_dleaf_area;
+  double dbark_mass_dleaf_area;
+  double droot_mass_dleaf_area;
+  double dsapwood_area_dt;
+  double dbark_area_dt;
+  double dbasal_area_dt;
+  double dbasal_diam_dt;
+  double droot_mass_dt;
+  // TODO: reproduction_fraction -> reproduction_mass_fraction?
+  // TODO: net production -> net mass production?
+  double dlive_mass_dt;
+  double dtotal_mass_dt;
+  double dabove_ground_mass_dt;
+  double dbasal_diam_dbasal_area;
 };
 
 }

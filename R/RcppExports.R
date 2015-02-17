@@ -551,6 +551,10 @@ Plant__compute_vars_phys <- function(obj_, environment) {
     invisible(.Call('tree2_Plant__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
 }
 
+Plant__compute_vars_growth <- function(obj_) {
+    invisible(.Call('tree2_Plant__compute_vars_growth', PACKAGE = 'tree2', obj_))
+}
+
 Plant__germination_probability <- function(obj_, environment) {
     .Call('tree2_Plant__germination_probability', PACKAGE = 'tree2', obj_, environment)
 }
@@ -613,10 +617,6 @@ Plant__strategy__get <- function(obj_) {
 
 Plant__internals__get <- function(obj_) {
     .Call('tree2_Plant__internals__get', PACKAGE = 'tree2', obj_)
-}
-
-Plant__vars_growth__get <- function(obj_) {
-    .Call('tree2_Plant__vars_growth__get', PACKAGE = 'tree2', obj_)
 }
 
 Plant__ode_size__get <- function(obj_) {

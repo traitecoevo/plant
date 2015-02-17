@@ -79,7 +79,7 @@ test_that("Ported from tree1", {
 
   ## This is entirely optional, but kind of nice to see.
   if (interactive()) {
-    hh <- seq(plant$height * 0.5, plant$height * 1.5, length=101)
+    hh <- seq(plant$height * 0.5, plant$height * 1.5, length.out=101)
     gr <- sapply(hh, growth_rate_given_height, p2, env)
     p2$height <- plant$height
     h_focus <- plant$height

@@ -65,14 +65,13 @@ test_that("Reference comparison", {
   ## compute A_lf; will have to correct some numbers.
   cmp_const <- s$Y * s$c_bio
 
-  ## TODO: Check what p$vars_growth looks like before running through
-  ## with environment.  Most are NA_real_, but some are not (some are
-  ## computed on exit, but that's an implementation detail).
+  ## TODO: Check what growth variables look like before running
+  ## through with environment.  Most are NA_real_, but some are not
 
   ## Compute the physiological variables and retreive them.
   p$compute_vars_phys(env)
+  p$compute_vars_growth() # NOTE: Compute immediately *after* vars_phys
   vars <- p$internals
-  p_growth <- p$vars_growth
 
   ## 1. Assimilation:
   cmp_assimilation_plant <- cmp$assimilation.plant(h0, light_env)
@@ -122,64 +121,64 @@ test_that("Reference comparison", {
 
   ## 10. Archietcural layout
   cmp_dheight_dleaf_area <- cmp$dHdA(cmp$LeafArea(h0))
-  expect_that(p_growth[["dheight_dleaf_area"]],
+  expect_that(vars[["dheight_dleaf_area"]],
               equals(cmp_dheight_dleaf_area))
 
   ## 11. Sapwood mass per leaf mass
   cmp_dsapwood_mass_dleaf_area<- cmp$sapwood.per.leaf.area(cmp$traits, h0)
-  expect_that(p_growth[["dsapwood_mass_dleaf_area"]],
+  expect_that(vars[["dsapwood_mass_dleaf_area"]],
               equals(cmp_dsapwood_mass_dleaf_area))
 
   ## 12. Bark mass per leaf mass
   cmp_dbark_mass_dleaf_area <- cmp$bark.per.leaf.area(cmp$traits, h0)
-  expect_that(p_growth[["dbark_mass_dleaf_area"]],
+  expect_that(vars[["dbark_mass_dleaf_area"]],
               equals(cmp_dbark_mass_dleaf_area))
 
   ## 12. Root mass per leaf mass
   cmp_droot_mass_dleaf_area <- cmp$root.per.leaf.area(cmp$traits, h0)
-  expect_that(p_growth[["droot_mass_dleaf_area"]],
+  expect_that(vars[["droot_mass_dleaf_area"]],
               equals(cmp_droot_mass_dleaf_area))
 
   ## 13. Leaf area growth rate
   cmp_dleaf_area_dt <- cmp$dleaf_area_dt(cmp$traits, h0, light_env)
-  expect_that(p_growth[["dleaf_area_dt"]],
+  expect_that(vars[["leaf_area_growth_rate"]],
               equals(cmp_dleaf_area_dt, tolerance=1e-7))
 
   ## 14. sapwood area growth rate
   cmp_dsapwood_area_dt <- cmp$dsapwood_area_dt(cmp$traits, h0, light_env)
-  expect_that(p_growth[["dsapwood_area_dt"]],
+  expect_that(vars[["dsapwood_area_dt"]],
               equals(cmp_dsapwood_area_dt, tolerance=1e-7))
 
   ## 15. bark area growth rate
   cmp_dbark_area_dt <- cmp$dbark_area_dt(cmp$traits, h0, light_env)
-  expect_that(p_growth[["dbark_area_dt"]],
+  expect_that(vars[["dbark_area_dt"]],
               equals(cmp_dbark_area_dt, tolerance=1e-7))
 
   ## 16. heartwood area growth rate
   cmp_dheartwood_area_dt <- cmp$dheartwood_area_dt(cmp$traits, h0, light_env)
-  expect_that(p_growth[["dheartwood_area_dt"]],
+  expect_that(vars[["heartwood_area_rate"]],
               equals(cmp_dheartwood_area_dt, tolerance=1e-7))
 
   ## 17. basal area growth rate
   cmp_dbasal_area_dt <- cmp$dbasal_area_dt(cmp$traits, h0, light_env)
-  expect_that(p_growth[["dbasal_area_dt"]],
+  expect_that(vars[["dbasal_area_dt"]],
               equals(cmp_dbasal_area_dt, tolerance=1e-7))
 
   ## 18. change in basal diam per basal area
   cmp_dbasal_diam_dbasal_area <- cmp$dbasal_diam_dbasal_area(cmp$basal_area(h0))
-  expect_that(p_growth[["dbasal_diam_dbasal_area"]],
+  expect_that(vars[["dbasal_diam_dbasal_area"]],
               equals(cmp_dbasal_diam_dbasal_area, tolerance=1e-7))
 
   ## 18. basal diam growth rate
   cmp_dbasal_diam_dt <- cmp$dbasal_diam_dt(cmp$traits, h0, light_env)
-  expect_that(p_growth[["dbasal_diam_dt"]],
+  expect_that(vars[["dbasal_diam_dt"]],
               equals(cmp_dbasal_diam_dt, tolerance=1e-7))
 
   ## Check that height decomposition multiplies out to give right
   ## answer
-  cmp <- prod(unlist(p_growth[c("dheight_dleaf_area",
-                                "leaf_area_deployment_mass",
-                                "growth_fraction")]),
+  cmp <- prod(unlist(vars[c("dheight_dleaf_area",
+                            "leaf_area_deployment_mass",
+                            "growth_fraction")]),
               vars[[c("net_production")]])
   expect_that(vars[["height_growth_rate"]],
               equals(cmp, tolerance=1e-7))
@@ -269,17 +268,17 @@ test_that("Ode interface", {
 
   env <- test_environment(p$height * 10)
   p$compute_vars_phys(env)
+  p$compute_vars_growth() # NOTE: Compute immediately *after* vars_phys
   expect_that(p$ode_state,
               equals(c(p$height, p$mortality, p$fecundity,
                        p$heartwood_area, p$heartwood_mass)))
-  phys <- as.list(p$internals)
-  growth <- as.list(p$vars_growth)
+  vars <- as.list(p$internals)
   expect_that(p$ode_rates,
-              equals(c(phys$height_growth_rate,
-                       phys$mortality_rate,
-                       phys$fecundity_rate,
-                       growth$dheartwood_area_dt,
-                       growth$dheartwood_mass_dt)))
+              equals(c(vars$height_growth_rate,
+                       vars$mortality_rate,
+                       vars$fecundity_rate,
+                       vars$heartwood_area_rate,
+                       vars$heartwood_mass_rate)))
 
   state_new <- c(p$height * 2, runif(p$ode_size - 1L))
   p$ode_state <- state_new

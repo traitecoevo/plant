@@ -773,6 +773,9 @@ Plant_internals <- function(..., values=list(...)) {
                 compute_vars_phys = function(environment) {
                   Plant__compute_vars_phys(self, environment)
                 },
+                compute_vars_growth = function() {
+                  Plant__compute_vars_growth(self)
+                },
                 germination_probability = function(environment) {
                   Plant__germination_probability(self, environment)
                 },
@@ -841,13 +844,6 @@ Plant_internals <- function(..., values=list(...)) {
                     Plant__internals__get(self)
                   } else {
                     stop("Plant$internals is read-only")
-                  }
-                },
-                vars_growth = function(value) {
-                  if (missing(value)) {
-                    Plant__vars_growth__get(self)
-                  } else {
-                    stop("Plant$vars_growth is read-only")
                   }
                 },
                 ode_size = function(value) {

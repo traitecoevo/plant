@@ -1918,6 +1918,18 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Plant__compute_vars_growth
+void Plant__compute_vars_growth(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
+RcppExport SEXP tree2_Plant__compute_vars_growth(SEXP obj_SEXP) {
+BEGIN_RCPP
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
+        Plant__compute_vars_growth(obj_);
+    }
+    return R_NilValue;
+END_RCPP
+}
 // Plant__germination_probability
 double Plant__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment);
 RcppExport SEXP tree2_Plant__germination_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
@@ -2143,21 +2155,6 @@ BEGIN_RCPP
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
         tree2::Plant_internals __result = Plant__internals__get(obj_);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// Plant__vars_growth__get
-SEXP Plant__vars_growth__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
-RcppExport SEXP tree2_Plant__vars_growth__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
-        SEXP __result = Plant__vars_growth__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

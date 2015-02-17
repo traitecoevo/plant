@@ -53,6 +53,10 @@ public:
   // [eqn 12-19,21] Update physiological variables
   void compute_vars_phys(const Environment& environment, bool
 			 reuse_intervals=false);
+  // TODO: This is temporary -- it should be called by
+  // compute_vars_phys, but I don't want that to always happen, so do
+  // it manually for now.
+  void compute_vars_growth();
 
   // * Births and deaths
   // [eqn 20] Survival of seedlings during germination
@@ -68,7 +72,6 @@ public:
 
   // * R interface
   strategy_type r_get_strategy() const;
-  SEXP r_get_vars_growth() const;
 
   // * Used by tools:
   double net_production() const {return vars.net_production;}
