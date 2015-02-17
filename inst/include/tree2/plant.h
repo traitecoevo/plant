@@ -68,14 +68,13 @@ public:
 
   // * R interface
   strategy_type r_get_strategy() const;
-  SEXP r_get_vars_size() const;
-  SEXP r_get_vars_phys() const;
   SEXP r_get_vars_growth() const;
 
   // * Used by tools:
   double net_production() const {return vars.net_production;}
 
   Plant r_copy() const;
+  Plant_internals r_internals() const;
 
   const Control& control() const;
 

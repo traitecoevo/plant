@@ -549,6 +549,12 @@ void Environment__light_environment__set(tree2::RcppR6::RcppR6<tree2::Environmen
 
 
 // [[Rcpp::export]]
+SEXP Plant_internals__ctor() {
+  return Rcpp::wrap(tree2::Plant_internals());
+}
+
+
+// [[Rcpp::export]]
 tree2::Plant Plant__ctor(tree2::Strategy strategy) {
   return tree2::make_plant(strategy);
 }
@@ -629,13 +635,8 @@ tree2::Strategy Plant__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
 }
 
 // [[Rcpp::export]]
-SEXP Plant__vars_size__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
-  return obj_->r_get_vars_size();
-}
-
-// [[Rcpp::export]]
-SEXP Plant__vars_phys__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
-  return obj_->r_get_vars_phys();
+tree2::Plant_internals Plant__internals__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->r_internals();
 }
 
 // [[Rcpp::export]]

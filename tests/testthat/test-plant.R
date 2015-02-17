@@ -11,36 +11,36 @@ test_that("Reference comparison", {
   h0 <- 10
   p$height <- h0
 
-  p_size <- p$vars_size
+  vars <- p$internals
 
-  expect_that(p_size[["height"]],
+  expect_that(vars[["height"]],
               is_identical_to(h0))
-  expect_that(p_size[["leaf_area"]],
+  expect_that(vars[["leaf_area"]],
               equals(cmp$LeafArea(h0)))
-  expect_that(p_size[["leaf_mass"]],
+  expect_that(vars[["leaf_mass"]],
               equals(cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0))))
-  expect_that(p_size[["sapwood_mass"]],
+  expect_that(vars[["sapwood_mass"]],
               equals(cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
-  expect_that(p_size[["bark_mass"]],
+  expect_that(vars[["bark_mass"]],
               equals(cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
-  expect_that(p_size[["root_mass"]],
+  expect_that(vars[["root_mass"]],
               equals(cmp$RootMass(cmp$LeafArea(h0))))
-  expect_that(p_size[["live_mass"]],
+  expect_that(vars[["live_mass"]],
               equals(cmp$LiveMass(cmp$traits, cmp$LeafArea(h0))))
-  expect_that(p_size[["bark_area"]],
+  expect_that(vars[["bark_area"]],
               equals(cmp$bark_area(h0)))
-  expect_that(p_size[["sapwood_area"]],
+  expect_that(vars[["sapwood_area"]],
               equals(cmp$sapwood_area(h0)))
-  expect_that(p_size[["basal_area"]],
+  expect_that(vars[["basal_area"]],
               equals(cmp$basal_area(h0)))
 
-  expect_that(p$height,    is_identical_to(p_size[["height"]]))
-  expect_that(p$leaf_area, is_identical_to(p_size[["leaf_area"]]))
+  expect_that(p$height,    is_identical_to(vars[["height"]]))
+  expect_that(p$leaf_area, is_identical_to(vars[["leaf_area"]]))
 
   ## Heartwood function
   ## TODO: Check with Daniel here -- might need updating.
   ## Expect zero unless it has been set otherwise
-  expect_that(p_size[["heartwood_area"]],
+  expect_that(vars[["heartwood_area"]],
               is_identical_to(0.0))
   HA0 <- 1e-3
   p$heartwood_area <- HA0
@@ -50,14 +50,13 @@ test_that("Reference comparison", {
   h <- p$height
   p$height <- h + .1 # trick plant into recomputing all size variables
   p$height <- h
-  p_size <- p$vars_size
-  expect_that(p_size[["heartwood_area"]],
+  vars <- p$internals
+  expect_that(vars[["heartwood_area"]],
               is_identical_to(HA0))
-  expect_that(p_size[["basal_area"]],
+  expect_that(vars[["basal_area"]],
               equals(cmp$basal_area(h0) + HA0))
   # set heartwood back at zero for subsequent tests
   p$heartwood_area <- 0
-
 
   env <- test_environment(h0)
   light_env <- attr(env, "light_env") # underlying function
@@ -72,54 +71,53 @@ test_that("Reference comparison", {
 
   ## Compute the physiological variables and retreive them.
   p$compute_vars_phys(env)
-  p_phys <- p$vars_phys
+  vars <- p$internals
   p_growth <- p$vars_growth
 
   ## 1. Assimilation:
   cmp_assimilation_plant <- cmp$assimilation.plant(h0, light_env)
-  expect_that(p_phys[["assimilation"]],
+  expect_that(vars[["assimilation"]],
               equals(cmp_assimilation_plant / cmp_const))
 
   ## 2. Respiration:
   cmp_respiration <- cmp$respiration.given.height(cmp$traits, h0)
-  expect_that(p_phys[["respiration"]],
+  expect_that(vars[["respiration"]],
               equals(cmp_respiration / cmp_const))
 
   ## 3. Turnover:
   cmp_turnover <- cmp$turnover.given.height(cmp$traits, h0)
-  expect_that(p_phys[["turnover"]],
+  expect_that(vars[["turnover"]],
               equals(cmp_turnover))
 
   ## 4. Net production:
   cmp_net_production <- cmp$net.production(cmp$traits, h0, light_env)
-  expect_that(p_phys[["net_production"]],
+  expect_that(vars[["net_production"]],
               equals(cmp_net_production, tolerance=1e-7))
 
   ## 5. Reproduction fraction
   cmp_reproduction_fraction <-
     cmp$ReproductiveAllocation(cmp$traits$hmat,h0)
-  expect_that(p_phys[["reproduction_fraction"]],
+  expect_that(vars[["reproduction_fraction"]],
               equals(cmp_reproduction_fraction))
 
   ## 6. Fecundity rate
   cmp_fecundity_rate <- cmp$fecundity.rate(cmp$traits, h0, light_env)
-  expect_that(p_phys[["fecundity_rate"]],
+  expect_that(vars[["fecundity_rate"]],
               equals(cmp_fecundity_rate, tolerance=1e-7))
-
 
   ## 8. Growth rate for height
   cmp_height_growth_rate <- cmp$height.growth.rate(cmp$traits, h0, light_env)
-  expect_that(p_phys[["height_growth_rate"]],
+  expect_that(vars[["height_growth_rate"]],
               equals(cmp_height_growth_rate, tolerance=1e-7))
 
   cmp_height_growth_rate <-
     cmp$height.growth.rate.via.area.leaf(cmp$traits, h0, light_env)
-  expect_that(p_phys[["height_growth_rate"]],
+  expect_that(vars[["height_growth_rate"]],
               equals(cmp_height_growth_rate, tolerance=1e-7))
 
   ## 9. Mortality rate
   cmp_mortality_rate <- cmp$mortality.rate(cmp$traits, h0, light_env)
-  expect_that(p_phys[["mortality_rate"]],
+  expect_that(vars[["mortality_rate"]],
               equals(cmp_mortality_rate))
 
   ## 10. Archietcural layout
@@ -177,11 +175,14 @@ test_that("Reference comparison", {
   expect_that(p_growth[["dbasal_diam_dt"]],
               equals(cmp_dbasal_diam_dt, tolerance=1e-7))
 
-  ## Check that height decomposition multiplies out to give right answer
-  expect_that(p_phys[["height_growth_rate"]],
-              equals(
-                prod(p_growth[c("dheight_dleaf_area","leaf_area_deployment_mass","growth_fraction")],
-                  p_phys[c("net_production")]), tolerance=1e-7))
+  ## Check that height decomposition multiplies out to give right
+  ## answer
+  cmp <- prod(unlist(p_growth[c("dheight_dleaf_area",
+                                "leaf_area_deployment_mass",
+                                "growth_fraction")]),
+              vars[[c("net_production")]])
+  expect_that(vars[["height_growth_rate"]],
+              equals(cmp, tolerance=1e-7))
 })
 
 test_that("Seed bits", {
@@ -192,7 +193,7 @@ test_that("Seed bits", {
   light_env <- attr(env, "light_env") # underlying function
 
   ## Check that our root-finding succeeded and the leaf mass is correct:
-  expect_that(seed$vars_size[["live_mass"]],
+  expect_that(seed$internals[["live_mass"]],
               equals(s$s, tolerance=1e-7))
 
   ## Check that the height at birth is correct.  These answers are
@@ -225,12 +226,12 @@ test_that("Assimilation over distribution", {
 
   p1$compute_vars_phys(env)
   p2$compute_vars_phys(env)
-  p1_phys <- p1$vars_phys
-  p2_phys <- p2$vars_phys
+  p1_vars <- p1$internals
+  p2_vars <- p2$internals
 
   ## Result is similar but not identical:
-  expect_that(p2_phys, equals(p1_phys))
-  expect_that(p2_phys, not(is_identical_to(p1_phys)))
+  expect_that(p2_vars, equals(p1_vars, tolerance=1e-7))
+  expect_that(p2_vars, not(is_identical_to(p1_vars)))
 })
 
 test_that("Non-adaptive assimilation integration works", {
@@ -250,13 +251,13 @@ test_that("Non-adaptive assimilation integration works", {
 
   p1$compute_vars_phys(env)
   p2$compute_vars_phys(env)
-  p1_phys <- p1$vars_phys
-  p2_phys <- p2$vars_phys
+  p1_vars <- p1$internals
+  p2_vars <- p2$internals
 
   ## Result is similar but not identical:
-  expect_that(p2_phys[["assimilation"]],
-              equals(p1_phys[["assimilation"]], tolerance=1e-3))
-  expect_that(p2_phys, not(is_identical_to(p1_phys)))
+  expect_that(p2_vars[["assimilation"]],
+              equals(p1_vars[["assimilation"]], tolerance=1e-3))
+  expect_that(p2_vars, not(is_identical_to(p1_vars)))
 })
 
 test_that("Ode interface", {
@@ -271,7 +272,7 @@ test_that("Ode interface", {
   expect_that(p$ode_state,
               equals(c(p$height, p$mortality, p$fecundity,
                        p$heartwood_area, p$heartwood_mass)))
-  phys <- as.list(p$vars_phys)
+  phys <- as.list(p$internals)
   growth <- as.list(p$vars_growth)
   expect_that(p$ode_rates,
               equals(c(phys$height_growth_rate,

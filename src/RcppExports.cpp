@@ -1860,6 +1860,20 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Plant_internals__ctor
+SEXP Plant_internals__ctor();
+RcppExport SEXP tree2_Plant_internals__ctor() {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        SEXP __result = Plant_internals__ctor();
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // Plant__ctor
 tree2::Plant Plant__ctor(tree2::Strategy strategy);
 RcppExport SEXP tree2_Plant__ctor(SEXP strategySEXP) {
@@ -2120,30 +2134,15 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Plant__vars_size__get
-SEXP Plant__vars_size__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
-RcppExport SEXP tree2_Plant__vars_size__get(SEXP obj_SEXP) {
+// Plant__internals__get
+tree2::Plant_internals Plant__internals__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
+RcppExport SEXP tree2_Plant__internals__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
-        SEXP __result = Plant__vars_size__get(obj_);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// Plant__vars_phys__get
-SEXP Plant__vars_phys__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
-RcppExport SEXP tree2_Plant__vars_phys__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
-        SEXP __result = Plant__vars_phys__get(obj_);
+        tree2::Plant_internals __result = Plant__internals__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -3318,14 +3317,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // oderunner_plant_size
-SEXP oderunner_plant_size(const tree2::ode::Runner<tree2::tools::PlantRunner>& obj);
+tree2::Plant_internals oderunner_plant_size(const tree2::ode::Runner<tree2::tools::PlantRunner>& obj);
 RcppExport SEXP tree2_oderunner_plant_size(SEXP objSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< const tree2::ode::Runner<tree2::tools::PlantRunner>& >::type obj(objSEXP );
-        SEXP __result = oderunner_plant_size(obj);
+        tree2::Plant_internals __result = oderunner_plant_size(obj);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

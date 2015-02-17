@@ -412,8 +412,7 @@ Plant:
     leaf_area: {type: double, access: member}
     survival_probability: {type: double, access: member}
     strategy: {type: "tree2::Strategy", access: member, name_cpp: r_get_strategy}
-    vars_size: {type: SEXP, access: member, name_cpp: r_get_vars_size}
-    vars_phys: {type: SEXP, access: member, name_cpp: r_get_vars_phys}
+    internals: {type: "tree2::Plant_internals", access: member, name_cpp: "r_internals"}
     vars_growth: {type: SEXP, access: member, name_cpp: r_get_vars_growth}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}

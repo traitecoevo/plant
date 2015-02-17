@@ -741,6 +741,17 @@ Parameters <- function(..., values=list(...)) {
                   }
                 }))
 
+
+Plant_internals <- function(..., values=list(...)) {
+  ret <- Plant_internals__ctor()
+  if (length(err <- setdiff(names(values), names(ret))) > 0L) {
+    stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
+  }
+  to_set <- intersect(names(values), names(ret))
+  ret[to_set] <- values[to_set]
+  ret
+}
+
 ##' Plant object
 ##' @param strategy A \code{Strategy} object
 ##' @export
@@ -825,18 +836,11 @@ Parameters <- function(..., values=list(...)) {
                     stop("Plant$strategy is read-only")
                   }
                 },
-                vars_size = function(value) {
+                internals = function(value) {
                   if (missing(value)) {
-                    Plant__vars_size__get(self)
+                    Plant__internals__get(self)
                   } else {
-                    stop("Plant$vars_size is read-only")
-                  }
-                },
-                vars_phys = function(value) {
-                  if (missing(value)) {
-                    Plant__vars_phys__get(self)
-                  } else {
-                    stop("Plant$vars_phys is read-only")
+                    stop("Plant$internals is read-only")
                   }
                 },
                 vars_growth = function(value) {

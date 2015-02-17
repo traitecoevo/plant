@@ -72,6 +72,10 @@ template <> inline std::string   class_name_r<tree2::Environment >() {return "En
 template <> inline std::string   package_name<tree2::Environment >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Environment >() {return ".R6_Environment";}
 
+template <> inline std::string   class_name_r<tree2::Plant_internals >() {return "Plant_internals";}
+template <> inline std::string   package_name<tree2::Plant_internals >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Plant_internals >() {return "";}
+
 template <> inline std::string   class_name_r<tree2::Plant >() {return "Plant";}
 template <> inline std::string   package_name<tree2::Plant >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Plant >() {return ".R6_Plant";}
@@ -528,6 +532,113 @@ template <> inline SEXP wrap(const tree2::Environment& x) {
 }
 template <> inline tree2::Environment as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::Environment>(x));
+}
+
+template <> inline SEXP wrap(const tree2::Plant_internals& x) {
+  Rcpp::List ret;
+  ret["leaf_mass"] = Rcpp::wrap(x.leaf_mass);
+  ret["leaf_area"] = Rcpp::wrap(x.leaf_area);
+  ret["height"] = Rcpp::wrap(x.height);
+  ret["sapwood_area"] = Rcpp::wrap(x.sapwood_area);
+  ret["sapwood_mass"] = Rcpp::wrap(x.sapwood_mass);
+  ret["bark_area"] = Rcpp::wrap(x.bark_area);
+  ret["bark_mass"] = Rcpp::wrap(x.bark_mass);
+  ret["heartwood_area"] = Rcpp::wrap(x.heartwood_area);
+  ret["heartwood_mass"] = Rcpp::wrap(x.heartwood_mass);
+  ret["basal_area"] = Rcpp::wrap(x.basal_area);
+  ret["root_mass"] = Rcpp::wrap(x.root_mass);
+  ret["live_mass"] = Rcpp::wrap(x.live_mass);
+  ret["total_mass"] = Rcpp::wrap(x.total_mass);
+  ret["above_ground_mass"] = Rcpp::wrap(x.above_ground_mass);
+  ret["diameter"] = Rcpp::wrap(x.diameter);
+  ret["assimilation"] = Rcpp::wrap(x.assimilation);
+  ret["respiration"] = Rcpp::wrap(x.respiration);
+  ret["turnover"] = Rcpp::wrap(x.turnover);
+  ret["net_production"] = Rcpp::wrap(x.net_production);
+  ret["reproduction_fraction"] = Rcpp::wrap(x.reproduction_fraction);
+  ret["growth_fraction"] = Rcpp::wrap(x.growth_fraction);
+  ret["fecundity_rate"] = Rcpp::wrap(x.fecundity_rate);
+  ret["leaf_area_growth_rate"] = Rcpp::wrap(x.leaf_area_growth_rate);
+  ret["leaf_area_deployment_mass"] = Rcpp::wrap(x.leaf_area_deployment_mass);
+  ret["height_growth_rate"] = Rcpp::wrap(x.height_growth_rate);
+  ret["heartwood_area_rate"] = Rcpp::wrap(x.heartwood_area_rate);
+  ret["heartwood_mass_rate"] = Rcpp::wrap(x.heartwood_mass_rate);
+  ret["mortality_rate"] = Rcpp::wrap(x.mortality_rate);
+  ret["mortality"] = Rcpp::wrap(x.mortality);
+  ret["fecundity"] = Rcpp::wrap(x.fecundity);
+  ret.attr("class") = "Plant_internals";
+  return ret;
+}
+template <> inline tree2::Plant_internals as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::Plant_internals >(x)) {
+    Rcpp::stop("Expected an object of type Plant_internals");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  tree2::Plant_internals ret;
+  Rcpp::List xl(x);
+  // ret.leaf_mass = Rcpp::as<decltype(retleaf_mass) >(xl["leaf_mass"]);
+  ret.leaf_mass = Rcpp::as<double >(xl["leaf_mass"]);
+  // ret.leaf_area = Rcpp::as<decltype(retleaf_area) >(xl["leaf_area"]);
+  ret.leaf_area = Rcpp::as<double >(xl["leaf_area"]);
+  // ret.height = Rcpp::as<decltype(retheight) >(xl["height"]);
+  ret.height = Rcpp::as<double >(xl["height"]);
+  // ret.sapwood_area = Rcpp::as<decltype(retsapwood_area) >(xl["sapwood_area"]);
+  ret.sapwood_area = Rcpp::as<double >(xl["sapwood_area"]);
+  // ret.sapwood_mass = Rcpp::as<decltype(retsapwood_mass) >(xl["sapwood_mass"]);
+  ret.sapwood_mass = Rcpp::as<double >(xl["sapwood_mass"]);
+  // ret.bark_area = Rcpp::as<decltype(retbark_area) >(xl["bark_area"]);
+  ret.bark_area = Rcpp::as<double >(xl["bark_area"]);
+  // ret.bark_mass = Rcpp::as<decltype(retbark_mass) >(xl["bark_mass"]);
+  ret.bark_mass = Rcpp::as<double >(xl["bark_mass"]);
+  // ret.heartwood_area = Rcpp::as<decltype(retheartwood_area) >(xl["heartwood_area"]);
+  ret.heartwood_area = Rcpp::as<double >(xl["heartwood_area"]);
+  // ret.heartwood_mass = Rcpp::as<decltype(retheartwood_mass) >(xl["heartwood_mass"]);
+  ret.heartwood_mass = Rcpp::as<double >(xl["heartwood_mass"]);
+  // ret.basal_area = Rcpp::as<decltype(retbasal_area) >(xl["basal_area"]);
+  ret.basal_area = Rcpp::as<double >(xl["basal_area"]);
+  // ret.root_mass = Rcpp::as<decltype(retroot_mass) >(xl["root_mass"]);
+  ret.root_mass = Rcpp::as<double >(xl["root_mass"]);
+  // ret.live_mass = Rcpp::as<decltype(retlive_mass) >(xl["live_mass"]);
+  ret.live_mass = Rcpp::as<double >(xl["live_mass"]);
+  // ret.total_mass = Rcpp::as<decltype(rettotal_mass) >(xl["total_mass"]);
+  ret.total_mass = Rcpp::as<double >(xl["total_mass"]);
+  // ret.above_ground_mass = Rcpp::as<decltype(retabove_ground_mass) >(xl["above_ground_mass"]);
+  ret.above_ground_mass = Rcpp::as<double >(xl["above_ground_mass"]);
+  // ret.diameter = Rcpp::as<decltype(retdiameter) >(xl["diameter"]);
+  ret.diameter = Rcpp::as<double >(xl["diameter"]);
+  // ret.assimilation = Rcpp::as<decltype(retassimilation) >(xl["assimilation"]);
+  ret.assimilation = Rcpp::as<double >(xl["assimilation"]);
+  // ret.respiration = Rcpp::as<decltype(retrespiration) >(xl["respiration"]);
+  ret.respiration = Rcpp::as<double >(xl["respiration"]);
+  // ret.turnover = Rcpp::as<decltype(retturnover) >(xl["turnover"]);
+  ret.turnover = Rcpp::as<double >(xl["turnover"]);
+  // ret.net_production = Rcpp::as<decltype(retnet_production) >(xl["net_production"]);
+  ret.net_production = Rcpp::as<double >(xl["net_production"]);
+  // ret.reproduction_fraction = Rcpp::as<decltype(retreproduction_fraction) >(xl["reproduction_fraction"]);
+  ret.reproduction_fraction = Rcpp::as<double >(xl["reproduction_fraction"]);
+  // ret.growth_fraction = Rcpp::as<decltype(retgrowth_fraction) >(xl["growth_fraction"]);
+  ret.growth_fraction = Rcpp::as<double >(xl["growth_fraction"]);
+  // ret.fecundity_rate = Rcpp::as<decltype(retfecundity_rate) >(xl["fecundity_rate"]);
+  ret.fecundity_rate = Rcpp::as<double >(xl["fecundity_rate"]);
+  // ret.leaf_area_growth_rate = Rcpp::as<decltype(retleaf_area_growth_rate) >(xl["leaf_area_growth_rate"]);
+  ret.leaf_area_growth_rate = Rcpp::as<double >(xl["leaf_area_growth_rate"]);
+  // ret.leaf_area_deployment_mass = Rcpp::as<decltype(retleaf_area_deployment_mass) >(xl["leaf_area_deployment_mass"]);
+  ret.leaf_area_deployment_mass = Rcpp::as<double >(xl["leaf_area_deployment_mass"]);
+  // ret.height_growth_rate = Rcpp::as<decltype(retheight_growth_rate) >(xl["height_growth_rate"]);
+  ret.height_growth_rate = Rcpp::as<double >(xl["height_growth_rate"]);
+  // ret.heartwood_area_rate = Rcpp::as<decltype(retheartwood_area_rate) >(xl["heartwood_area_rate"]);
+  ret.heartwood_area_rate = Rcpp::as<double >(xl["heartwood_area_rate"]);
+  // ret.heartwood_mass_rate = Rcpp::as<decltype(retheartwood_mass_rate) >(xl["heartwood_mass_rate"]);
+  ret.heartwood_mass_rate = Rcpp::as<double >(xl["heartwood_mass_rate"]);
+  // ret.mortality_rate = Rcpp::as<decltype(retmortality_rate) >(xl["mortality_rate"]);
+  ret.mortality_rate = Rcpp::as<double >(xl["mortality_rate"]);
+  // ret.mortality = Rcpp::as<decltype(retmortality) >(xl["mortality"]);
+  ret.mortality = Rcpp::as<double >(xl["mortality"]);
+  // ret.fecundity = Rcpp::as<decltype(retfecundity) >(xl["fecundity"]);
+  ret.fecundity = Rcpp::as<double >(xl["fecundity"]);
+  return ret;
 }
 
 template <> inline SEXP wrap(const tree2::Plant& x) {

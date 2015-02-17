@@ -36,9 +36,13 @@ double lcp_whole_plant(Plant p) {
 }
 }
 
+// TOOD: Now that this returns all the variables, it probably needs a
+// change of name.  However, it's only used internally so it's not
+// that big of a deal.
 // [[Rcpp::export]]
-SEXP oderunner_plant_size(const tree2::ode::Runner<tree2::tools::PlantRunner>& obj) {
-  return obj.obj.plant.r_get_vars_size();
+tree2::Plant_internals
+oderunner_plant_size(const tree2::ode::Runner<tree2::tools::PlantRunner>& obj) {
+  return obj.obj.plant.r_internals();
 }
 
 //' Create a light environment where light levels are constant down

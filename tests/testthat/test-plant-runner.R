@@ -3,11 +3,12 @@ context("PlantRunner")
 test_that("PlantRunner", {
   p <- Plant(Strategy())
   env <- test_environment(10)
+  p$compute_vars_phys(env)
 
   pr <- PlantRunner(p, env)
   expect_that(pr, is_a("PlantRunner"))
   expect_that(pr$plant, is_a("Plant"))
-  expect_that(pr$plant$vars_size, is_identical_to(p$vars_size))
+  expect_that(pr$plant$internals, is_identical_to(p$internals))
 
   ## This going to work with a *copy* of pr; so that won't propagate
   ## back.
@@ -17,7 +18,7 @@ test_that("PlantRunner", {
   expect_that(runner$time, equals(0.0))
 
   expect_that(oderunner_plant_size(runner),
-              is_identical_to(p$vars_size))
+              is_identical_to(p$internals))
 
   continue_if <- function(obj) {
     obj$state[[1]] < 15

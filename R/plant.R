@@ -34,7 +34,7 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   if (length(sizes) == 0L || is.unsorted(sizes)) {
     stop("sizes must be non-empty and sorted")
   }
-  if (plant$vars_size[[size_name]] > sizes[[1]]) {
+  if (plant$internals[[size_name]] > sizes[[1]]) {
     stop("Plant already bigger than smallest target size")
   }
 

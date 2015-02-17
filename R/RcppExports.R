@@ -535,6 +535,10 @@ Environment__light_environment__set <- function(obj_, value) {
     invisible(.Call('tree2_Environment__light_environment__set', PACKAGE = 'tree2', obj_, value))
 }
 
+Plant_internals__ctor <- function() {
+    .Call('tree2_Plant_internals__ctor', PACKAGE = 'tree2')
+}
+
 Plant__ctor <- function(strategy) {
     .Call('tree2_Plant__ctor', PACKAGE = 'tree2', strategy)
 }
@@ -607,12 +611,8 @@ Plant__strategy__get <- function(obj_) {
     .Call('tree2_Plant__strategy__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant__vars_size__get <- function(obj_) {
-    .Call('tree2_Plant__vars_size__get', PACKAGE = 'tree2', obj_)
-}
-
-Plant__vars_phys__get <- function(obj_) {
-    .Call('tree2_Plant__vars_phys__get', PACKAGE = 'tree2', obj_)
+Plant__internals__get <- function(obj_) {
+    .Call('tree2_Plant__internals__get', PACKAGE = 'tree2', obj_)
 }
 
 Plant__vars_growth__get <- function(obj_) {

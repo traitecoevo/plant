@@ -237,42 +237,6 @@ Plant::strategy_type Plant::r_get_strategy() const {
   return *strategy.get();
 }
 
-SEXP Plant::r_get_vars_size() const {
-  using namespace Rcpp;
-  return wrap(NumericVector::create(
-              _["leaf_mass"] = vars.leaf_mass,
-              _["sapwood_mass"] = vars.sapwood_mass,
-              _["bark_mass"] = vars.bark_mass,
-              _["heartwood_mass"] = vars.heartwood_mass,
-              _["root_mass"] = vars.root_mass,
-              _["live_mass"] = vars.live_mass,
-              _["total_mass"] = vars.total_mass,
-              _["above_ground_mass"] = vars.above_ground_mass,
-              _["height"] = vars.height,
-              _["leaf_area"] = vars.leaf_area,
-              _["sapwood_area"] = vars.sapwood_area,
-              _["bark_area"] = vars.bark_area,
-              _["heartwood_area"] = vars.heartwood_area,
-              _["basal_area"] = vars.basal_area,
-              _["diameter"] = vars.diameter
-              ));
-}
-
-SEXP Plant::r_get_vars_phys() const {
-  using namespace Rcpp;
-  return wrap(NumericVector::create(
-              _["assimilation"] = vars.assimilation,
-              _["respiration"] = vars.respiration,
-              _["turnover"] = vars.turnover,
-              _["net_production"] = vars.net_production,
-              _["reproduction_fraction"] = vars.reproduction_fraction,
-              _["growth_fraction"] = vars.growth_fraction,
-              _["fecundity_rate"] = vars.fecundity_rate,
-              _["height_growth_rate"] = vars.height_growth_rate,
-              _["mortality_rate"] = vars.mortality_rate
-              ));
-}
-
 // TODO: Could use functions for some of the last three messes.
 SEXP Plant::r_get_vars_growth() const {
   // TODO: @dfalster - as for r_get_vars_size()
@@ -339,6 +303,10 @@ SEXP Plant::r_get_vars_growth() const {
 
 Plant Plant::r_copy() const {
   return *this;
+}
+
+Plant_internals Plant::r_internals() const {
+  return vars;
 }
 
 // This exists only so that I know that nothing will change the

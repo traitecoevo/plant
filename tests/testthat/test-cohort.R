@@ -21,7 +21,7 @@ test_that("Ported from tree1", {
   growth_rate_given_height <- function(height, plant, env) {
     plant$height <- height
     plant$compute_vars_phys(env)
-    plant$vars_phys[["height_growth_rate"]]
+    plant$internals[["height_growth_rate"]]
   }
   grad_forward <- function(f, x, dx, ...) {
     (f(x + dx, ...) - f(x, ...)) / dx
@@ -33,7 +33,7 @@ test_that("Ported from tree1", {
   ## First, a quick sanity check that our little function behaves as
   ## expected:
   expect_that(growth_rate_given_height(plant$height, p2, env),
-              equals(plant$vars_phys[["height_growth_rate"]]))
+              equals(plant$internals[["height_growth_rate"]]))
 
   ## With height:
   ctrl <- s$control
@@ -108,14 +108,16 @@ test_that("ODE interface", {
   ## Different ode size to Plant, but that's not tested here (TODO)
   expect_that(cohort$ode_size, equals(4))
 
-  expect_that(cohort$plant$vars_size, is_identical_to(plant$vars_size))
-  expect_that(cohort$plant$vars_phys, is_identical_to(plant$vars_phys))
+  ## Mortality is different because that's what Cohorts track
+  v <- setdiff(names(cohort$plant$internals), "mortality")
+  expect_that(cohort$plant$internals[v],
+              is_identical_to(plant$internals[v]))
 
   ## Set up plant too:
   pr_germ <- plant$germination_probability(env)
 
   y <- plant$ode_state
-  g <- plant$vars_phys[["height_growth_rate"]]
+  g <- plant$internals[["height_growth_rate"]]
 
   ## Ode *values*:
   cmp <- c(plant$height,
@@ -130,7 +132,7 @@ test_that("ODE interface", {
   env$time <- 10
   patch_survival <- env$patch_survival
 
-  rates <- plant$vars_phys
+  rates <- plant$internals
 
   cmp <- c(rates[["height_growth_rate"]],
            rates[["mortality_rate"]],
