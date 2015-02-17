@@ -27,6 +27,8 @@ namespace tree2 { namespace interpolator { class Interpolator; } }
 namespace tree2 { class Environment; }
 namespace tree2 { struct Plant_internals; }
 namespace tree2 { class Plant; }
+namespace tree2 { struct Plant2_internals; }
+namespace tree2 { class Plant2; }
 namespace tree2 { namespace tools { struct PlantRunner; } }
 
 namespace Rcpp {
@@ -88,6 +90,12 @@ template <> tree2::Plant_internals as(SEXP);
 
 template <> SEXP wrap(const tree2::Plant&);
 template <> tree2::Plant as(SEXP);
+
+template <> SEXP wrap(const tree2::Plant2_internals&);
+template <> tree2::Plant2_internals as(SEXP);
+
+template <> SEXP wrap(const tree2::Plant2&);
+template <> tree2::Plant2 as(SEXP);
 
 template <> SEXP wrap(const tree2::Cohort<tree2::Plant>&);
 template <> tree2::Cohort<tree2::Plant> as(SEXP);

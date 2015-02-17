@@ -317,12 +317,6 @@ void Plant::compute_vars_size(double height_) {
   vars.diameter = strategy->diameter(vars.basal_area);
 }
 
-// TODO: Rename Plant::strategy_ptr to Strategy::ptr
-Plant::strategy_ptr_type make_strategy_ptr(Plant::strategy_type s) {
-  s.prepare_strategy();
-  return std::make_shared<Plant::strategy_type>(s);
-}
-
 Plant make_plant(Plant::strategy_type s) {
   return Plant(make_strategy_ptr(s));
 }

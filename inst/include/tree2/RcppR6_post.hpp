@@ -80,6 +80,14 @@ template <> inline std::string   class_name_r<tree2::Plant >() {return "Plant";}
 template <> inline std::string   package_name<tree2::Plant >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Plant >() {return ".R6_Plant";}
 
+template <> inline std::string   class_name_r<tree2::Plant2_internals >() {return "Plant2_internals";}
+template <> inline std::string   package_name<tree2::Plant2_internals >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Plant2_internals >() {return "";}
+
+template <> inline std::string   class_name_r<tree2::Plant2 >() {return "Plant2";}
+template <> inline std::string   package_name<tree2::Plant2 >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Plant2 >() {return ".R6_Plant2";}
+
 template <> inline std::string   class_name_r<tree2::Cohort<tree2::Plant> >() {return "Cohort";}
 template <> inline std::string   package_name<tree2::Cohort<tree2::Plant> >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Cohort<tree2::Plant> >() {return ".R6_Cohort";}
@@ -685,6 +693,51 @@ template <> inline SEXP wrap(const tree2::Plant& x) {
 }
 template <> inline tree2::Plant as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::Plant>(x));
+}
+
+template <> inline SEXP wrap(const tree2::Plant2_internals& x) {
+  Rcpp::List ret;
+  ret["leaf_area"] = Rcpp::wrap(x.leaf_area);
+  ret["height"] = Rcpp::wrap(x.height);
+  ret["height_rate"] = Rcpp::wrap(x.height_rate);
+  ret["mortality"] = Rcpp::wrap(x.mortality);
+  ret["mortality_rate"] = Rcpp::wrap(x.mortality_rate);
+  ret["fecundity"] = Rcpp::wrap(x.fecundity);
+  ret["fecundity_rate"] = Rcpp::wrap(x.fecundity_rate);
+  ret.attr("class") = "Plant2_internals";
+  return ret;
+}
+template <> inline tree2::Plant2_internals as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::Plant2_internals >(x)) {
+    Rcpp::stop("Expected an object of type Plant2_internals");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  tree2::Plant2_internals ret;
+  Rcpp::List xl(x);
+  // ret.leaf_area = Rcpp::as<decltype(retleaf_area) >(xl["leaf_area"]);
+  ret.leaf_area = Rcpp::as<double >(xl["leaf_area"]);
+  // ret.height = Rcpp::as<decltype(retheight) >(xl["height"]);
+  ret.height = Rcpp::as<double >(xl["height"]);
+  // ret.height_rate = Rcpp::as<decltype(retheight_rate) >(xl["height_rate"]);
+  ret.height_rate = Rcpp::as<double >(xl["height_rate"]);
+  // ret.mortality = Rcpp::as<decltype(retmortality) >(xl["mortality"]);
+  ret.mortality = Rcpp::as<double >(xl["mortality"]);
+  // ret.mortality_rate = Rcpp::as<decltype(retmortality_rate) >(xl["mortality_rate"]);
+  ret.mortality_rate = Rcpp::as<double >(xl["mortality_rate"]);
+  // ret.fecundity = Rcpp::as<decltype(retfecundity) >(xl["fecundity"]);
+  ret.fecundity = Rcpp::as<double >(xl["fecundity"]);
+  // ret.fecundity_rate = Rcpp::as<decltype(retfecundity_rate) >(xl["fecundity_rate"]);
+  ret.fecundity_rate = Rcpp::as<double >(xl["fecundity_rate"]);
+  return ret;
+}
+
+template <> inline SEXP wrap(const tree2::Plant2& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Plant2>(x));
+}
+template <> inline tree2::Plant2 as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Plant2>(x));
 }
 
 template <> inline SEXP wrap(const tree2::Cohort<tree2::Plant>& x) {

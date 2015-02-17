@@ -2,6 +2,7 @@
 #ifndef TREE2_STRATEGY_H_
 #define TREE2_STRATEGY_H_
 
+#include <memory>
 #include <tree2/control.h>
 #include <tree2/environment.h>
 #include <tree2/qag_internals.h> // quadrature::intervals_type
@@ -11,6 +12,7 @@ namespace tree2 {
 
 struct Strategy {
 public:
+  typedef std::shared_ptr<Strategy> ptr;
   Strategy();
 
   // * Size
@@ -82,6 +84,10 @@ public:
   // [eqn 15] Net production
   double net_production(double assimilation, double respiration,
                         double turnover) const;
+  double net_production(const Environment& environment,
+                        double height, double leaf_area,
+                        bool reuse_intervals=false);
+
   // [eqn 16] Fraction of whole plan growth that is leaf
   double reproduction_fraction(double height) const;
   double growth_fraction(double height) const;
@@ -136,8 +142,6 @@ public:
                                        double productivity_area) const;
   // [eqn 20] Survival of seedlings during germination
   double germination_probability(const Environment& environment);
-  double net_production(const Environment& environment,
-                        double height, double leaf_area);
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
@@ -208,6 +212,8 @@ public:
   double height_0;
   double leaf_area_0;
 };
+
+Strategy::ptr make_strategy_ptr(Strategy s);
 
 }
 

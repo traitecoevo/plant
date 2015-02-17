@@ -442,6 +442,48 @@ Plant:
       args: [environment: "const tree2::Environment&"]
       return_type: double
 
+Plant2_internals:
+  forward_declare: struct
+  name_cpp: "tree2::Plant2_internals"
+  list:
+    - leaf_area: double
+    - height: double
+    - height_rate: double
+    - mortality: double
+    - mortality_rate: double
+    - fecundity: double
+    - fecundity_rate: double
+
+Plant2:
+  forward_declare: true
+  name_cpp: "tree2::Plant2"
+  constructor:
+    name_cpp: "tree2::make_plant2"
+    args: [strategy: "tree2::Strategy"]
+    roxygen: |
+      Plant2 object
+      @param strategy A \code{Strategy} object
+      @export
+  active:
+    height: {type: double, access: member, name_cpp: height, name_cpp_set: set_height}
+    mortality: {type: double, access: member, name_cpp_set: set_mortality}
+    fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
+    strategy: {type: "tree2::Strategy", access: member, name_cpp: r_get_strategy}
+    internals: {type: "tree2::Plant2_internals", access: member, name_cpp: "r_internals"}
+    ode_size: {type: size_t, access: member}
+    ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
+    ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
+  methods:
+    leaf_area_above:
+      args: [h: double]
+      return_type: double
+    compute_vars_phys:
+      args: [environment: "const tree2::Environment&"]
+      return_type: void
+    germination_probability:
+      args: [environment: "const tree2::Environment&"]
+      return_type: double
+
 # For now, this one is not templated.
 Cohort:
   forward_declare: false

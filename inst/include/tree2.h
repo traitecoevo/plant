@@ -46,6 +46,7 @@ template <typename T> class Runner;
 
 // Getting more serious down here.
 #include <tree2/plant.h>
+#include <tree2/plant2.h>
 #include <tree2/cohort.h>
 #include <tree2/species.h>
 #include <tree2/patch.h>

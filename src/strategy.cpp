@@ -270,6 +270,25 @@ double Strategy::net_production(double assimilation, double respiration,
   return c_bio * Y * (assimilation - respiration) - turnover;
 }
 
+// One shot:
+double Strategy::net_production(const Environment& environment,
+                                double height, double leaf_area_,
+                                bool reuse_intervals) {
+  const double leaf_mass_    = leaf_mass(leaf_area_);
+  const double sapwood_area_ = sapwood_area(leaf_area_);
+  const double sapwood_mass_ = sapwood_mass(sapwood_area_, height);
+  const double bark_area_    = bark_area(leaf_area_);
+  const double bark_mass_    = bark_mass(bark_area_, height);
+  const double root_mass_    = root_mass(leaf_area_);
+  const double assimilation_ = assimilation(environment, height,
+                                            leaf_area_, reuse_intervals);
+  const double respiration_ =
+    respiration(leaf_mass_, sapwood_mass_, bark_mass_, root_mass_);
+  const double turnover_ =
+    turnover(leaf_mass_, sapwood_mass_, bark_mass_, root_mass_);
+  return net_production(assimilation_, respiration_, turnover_);
+}
+
 // [eqn 16] Fraction of production allocated to reproduction
 double Strategy::reproduction_fraction(double height) const {
   return c_r1 / (1.0 + exp(c_r2 * (1.0 - height / hmat)));
@@ -434,23 +453,6 @@ double Strategy::germination_probability(const Environment& environment) {
   }
 }
 
-double Strategy::net_production(const Environment& environment,
-                                double height, double leaf_area_) {
-  const double leaf_mass_    = leaf_mass(leaf_area_);
-  const double sapwood_area_ = sapwood_area(leaf_area_);
-  const double sapwood_mass_ = sapwood_mass(sapwood_area_, height);
-  const double bark_area_    = bark_area(leaf_area_);
-  const double bark_mass_    = bark_mass(bark_area_, height);
-  const double root_mass_    = root_mass(leaf_area_);
-  const double assimilation_ = assimilation(environment, height,
-                                            leaf_area_, false);
-  const double respiration_ =
-    respiration(leaf_mass_, sapwood_mass_, bark_mass_, root_mass_);
-  const double turnover_ =
-    turnover(leaf_mass_, sapwood_mass_, bark_mass_, root_mass_);
-  return net_production(assimilation_, respiration_, turnover_);
-}
-
 double Strategy::leaf_area_above(double z, double height,
                                  double leaf_area) const{
   return leaf_area * Q(z, height);
@@ -509,6 +511,12 @@ void Strategy::prepare_strategy() {
   // NOTE: Also precomputing, though less trivial
   height_0 = height_seed();
   leaf_area_0 = leaf_area(height_0);
+}
+
+// TODO: Rename Plant::strategy_ptr to Strategy::ptr
+Strategy::ptr make_strategy_ptr(Strategy s) {
+  s.prepare_strategy();
+  return std::make_shared<Strategy>(s);
 }
 
 }

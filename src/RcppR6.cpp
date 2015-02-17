@@ -660,6 +660,85 @@ std::vector<std::string> Plant__ode_names__get(tree2::RcppR6::RcppR6<tree2::Plan
 
 
 // [[Rcpp::export]]
+SEXP Plant2_internals__ctor() {
+  return Rcpp::wrap(tree2::Plant2_internals());
+}
+
+
+// [[Rcpp::export]]
+tree2::Plant2 Plant2__ctor(tree2::Strategy strategy) {
+  return tree2::make_plant2(strategy);
+}
+// [[Rcpp::export]]
+double Plant2__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double h) {
+  return obj_->leaf_area_above(h);
+}
+// [[Rcpp::export]]
+void Plant2__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, const tree2::Environment& environment) {
+  obj_->compute_vars_phys(environment);
+}
+// [[Rcpp::export]]
+double Plant2__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, const tree2::Environment& environment) {
+  return obj_->germination_probability(environment);
+}
+// [[Rcpp::export]]
+double Plant2__height__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
+  return obj_->height();
+}
+// [[Rcpp::export]]
+void Plant2__height__set(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double value) {
+  obj_->set_height(value);
+}
+
+// [[Rcpp::export]]
+double Plant2__mortality__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
+  return obj_->mortality();
+}
+// [[Rcpp::export]]
+void Plant2__mortality__set(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double value) {
+  obj_->set_mortality(value);
+}
+
+// [[Rcpp::export]]
+double Plant2__fecundity__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
+  return obj_->fecundity();
+}
+// [[Rcpp::export]]
+void Plant2__fecundity__set(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double value) {
+  obj_->set_fecundity(value);
+}
+
+// [[Rcpp::export]]
+tree2::Strategy Plant2__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
+  return obj_->r_get_strategy();
+}
+
+// [[Rcpp::export]]
+tree2::Plant2_internals Plant2__internals__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
+  return obj_->r_internals();
+}
+
+// [[Rcpp::export]]
+size_t Plant2__ode_size__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
+  return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
+tree2::ode::state_type Plant2__ode_state__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
+  return tree2::ode::r_ode_state(*obj_);
+}
+// [[Rcpp::export]]
+void Plant2__ode_state__set(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, tree2::ode::state_type value) {
+  tree2::ode::r_set_ode_state(*obj_, value);
+}
+
+// [[Rcpp::export]]
+tree2::ode::state_type Plant2__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
+  return tree2::ode::r_ode_rates(*obj_);
+}
+
+
+// [[Rcpp::export]]
 tree2::Cohort<tree2::Plant> Cohort__ctor(tree2::Strategy strategy) {
   return tree2::make_cohort<tree2::Plant>(strategy);
 }

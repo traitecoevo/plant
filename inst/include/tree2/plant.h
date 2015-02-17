@@ -2,7 +2,6 @@
 #ifndef TREE_PLANT_H_
 #define TREE_PLANT_H_
 
-#include <memory> // std::shared_ptr
 #include <vector>
 #include <tree2/strategy.h>
 #include <tree2/plant_internals.h>
@@ -12,8 +11,8 @@ namespace tree2 {
 
 class Plant {
 public:
-  typedef Strategy                       strategy_type;
-  typedef std::shared_ptr<strategy_type> strategy_ptr_type;
+  typedef Strategy      strategy_type;
+  typedef Strategy::ptr strategy_ptr_type;
   Plant(strategy_ptr_type s);
 
   // * Individual size
@@ -94,7 +93,6 @@ private:
   static const int ode_dimension = 5;
 };
 
-Plant::strategy_ptr_type make_strategy_ptr(Plant::strategy_type s);
 Plant make_plant(Plant::strategy_type s);
 
 }

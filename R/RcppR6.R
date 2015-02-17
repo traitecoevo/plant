@@ -866,6 +866,99 @@ Plant_internals <- function(..., values=list(...)) {
                 }))
 
 
+Plant2_internals <- function(..., values=list(...)) {
+  ret <- Plant2_internals__ctor()
+  if (length(err <- setdiff(names(values), names(ret))) > 0L) {
+    stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
+  }
+  to_set <- intersect(names(values), names(ret))
+  ret[to_set] <- values[to_set]
+  ret
+}
+
+##' Plant2 object
+##' @param strategy A \code{Strategy} object
+##' @export
+`Plant2` <- function(strategy) {
+  Plant2__ctor(strategy)
+}
+.R6_Plant2 <-
+  R6::R6Class("Plant2",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                leaf_area_above = function(h) {
+                  Plant2__leaf_area_above(self, h)
+                },
+                compute_vars_phys = function(environment) {
+                  Plant2__compute_vars_phys(self, environment)
+                },
+                germination_probability = function(environment) {
+                  Plant2__germination_probability(self, environment)
+                }),
+              active=list(
+                height = function(value) {
+                  if (missing(value)) {
+                    Plant2__height__get(self)
+                  } else {
+                    Plant2__height__set(self, value)
+                  }
+                },
+                mortality = function(value) {
+                  if (missing(value)) {
+                    Plant2__mortality__get(self)
+                  } else {
+                    Plant2__mortality__set(self, value)
+                  }
+                },
+                fecundity = function(value) {
+                  if (missing(value)) {
+                    Plant2__fecundity__get(self)
+                  } else {
+                    Plant2__fecundity__set(self, value)
+                  }
+                },
+                strategy = function(value) {
+                  if (missing(value)) {
+                    Plant2__strategy__get(self)
+                  } else {
+                    stop("Plant2$strategy is read-only")
+                  }
+                },
+                internals = function(value) {
+                  if (missing(value)) {
+                    Plant2__internals__get(self)
+                  } else {
+                    stop("Plant2$internals is read-only")
+                  }
+                },
+                ode_size = function(value) {
+                  if (missing(value)) {
+                    Plant2__ode_size__get(self)
+                  } else {
+                    stop("Plant2$ode_size is read-only")
+                  }
+                },
+                ode_state = function(value) {
+                  if (missing(value)) {
+                    Plant2__ode_state__get(self)
+                  } else {
+                    Plant2__ode_state__set(self, value)
+                  }
+                },
+                ode_rates = function(value) {
+                  if (missing(value)) {
+                    Plant2__ode_rates__get(self)
+                  } else {
+                    stop("Plant2$ode_rates is read-only")
+                  }
+                }))
+
+
 `Cohort` <- function(strategy) {
   Cohort__ctor(strategy)
 }
