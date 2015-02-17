@@ -1,5 +1,6 @@
 #include <tree2/strategy.h>
 #include <tree2/uniroot.h>
+#include <tree2/qag.h>
 #include <RcppCommon.h> // NA_REAL
 
 namespace tree2 {
@@ -151,6 +152,66 @@ double Strategy::total_mass(double leaf_mass, double bark_mass,
 double Strategy::above_ground_mass(double leaf_mass, double bark_mass,
                             double sapwood_mass, double root_mass) const {
   return leaf_mass + bark_mass + sapwood_mass + root_mass;
+}
+
+// [eqn 12] Gross annual CO2 assimilation
+//
+// NOTE: In contrast with Daniel's implementation (but following
+// Falster 2012), we do not normalise by Y*c_bio here.
+double Strategy::assimilation(const Environment& environment, double height,
+                              double leaf_area, bool reuse_intervals) {
+  const bool over_distribution = control.plant_assimilation_over_distribution;
+  const double x_min = 0.0, x_max = over_distribution ? 1.0 : height;
+
+  double A = 0.0;
+
+  std::function<double(double)> f;
+  if (over_distribution) {
+    f = [&] (double x) -> double {
+      return compute_assimilation_p(x, height, environment);
+    };
+  } else {
+    f = [&] (double x) -> double {
+      return compute_assimilation_h(x, height, environment);
+    };
+  }
+
+  if (control.plant_assimilation_adaptive && reuse_intervals) {
+    A = control.integrator.integrate_with_last_intervals(f, x_min, x_max);
+  } else {
+    A = control.integrator.integrate(f, x_min, x_max);
+  }
+
+  return leaf_area * A;
+}
+
+// This is used in the calculation of assimilation by
+// `compute_assimilation` above; it is the term within the integral in
+// [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
+// where `z` is height.
+double Strategy::compute_assimilation_x(double x, double height,
+                                     const Environment& environment) const {
+  if (control.plant_assimilation_over_distribution) {
+    return compute_assimilation_p(x, height, environment);
+  } else {
+    return compute_assimilation_h(x, height, environment);
+  }
+}
+
+double Strategy::compute_assimilation_h(double z, double height,
+                                     const Environment& environment) const {
+  return assimilation_leaf(environment.canopy_openness(z)) * q(z, height);
+}
+
+double Strategy::compute_assimilation_p(double p, double height,
+                                     const Environment& environment) const {
+  return assimilation_leaf(environment.canopy_openness(Qp(p, height)));
+}
+
+// [Appendix S6] Per-leaf photosynthetic rate.
+// Here, `x` is openness, ranging from 0 to 1.
+double Strategy::assimilation_leaf(double x) const {
+  return c_p1 * x / (x + c_p2);
 }
 
 // [eqn 13] Total maintenance respiration
@@ -338,7 +399,7 @@ double Strategy::live_mass_given_height(double height) const {
   return leaf_mass(leaf_area_) +
          bark_mass(bark_area(leaf_area_), height) +
          sapwood_mass(sapwood_area(leaf_area_), height) +
-        root_mass(leaf_area_);
+         root_mass(leaf_area_);
 }
 
 double Strategy::height_given_leaf_mass(double leaf_mass) const {

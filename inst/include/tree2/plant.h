@@ -5,8 +5,6 @@
 #include <memory> // std::shared_ptr
 #include <vector>
 #include <tree2/strategy.h>
-#include <tree2/qag_internals.h> // quadrature::intervals_type
-#include <tree2/environment.h>
 #include <tree2/ode_interface.h>
 #include <RcppCommon.h>
 
@@ -87,16 +85,6 @@ private:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
   void compute_vars_size(double height_);
-
-  // * Mass production
-  // [eqn 12] Gross annual CO2 assimilation
-  double assimilation(const Environment& environment, bool reuse_intervals);
-  // Used internally, corresponding to the inner term in [eqn 12]
-  double compute_assimilation_x(double x, const Environment& environment) const;
-  double compute_assimilation_h(double h, const Environment& environment) const;
-  double compute_assimilation_p(double p, const Environment& environment) const;
-  // [Appendix S6] Per-leaf photosynthetic rate.
-  double assimilation_leaf(double x) const;
 
   // TODO: Move into Strategy by computing this statelessly?  Requires
   // moving the size functions over (@dfalster).

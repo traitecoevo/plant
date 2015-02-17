@@ -3,6 +3,9 @@
 #define TREE2_STRATEGY_H_
 
 #include <tree2/control.h>
+#include <tree2/environment.h>
+#include <tree2/qag_internals.h> // quadrature::intervals_type
+#include <tree2/environment.h>
 
 namespace tree2 {
 
@@ -44,6 +47,20 @@ public:
                            double sapwood_mass, double root_mass) const;
 
    // * Mass production
+  // [eqn 12] Gross annual CO2 assimilation
+  double assimilation(const Environment& environment, double height,
+                      double leaf_area, bool reuse_intervals);
+  // Used internally, corresponding to the inner term in [eqn 12]
+  double compute_assimilation_x(double x, double height,
+                                const Environment& environment) const;
+  double compute_assimilation_h(double h, double height,
+                                const Environment& environment) const;
+  double compute_assimilation_p(double p, double height,
+                                const Environment& environment) const;
+  // [Appendix S6] Per-leaf photosynthetic rate.
+  double assimilation_leaf(double x) const;
+
+
 
   // [eqn 13] Total maintenance respiration
   double respiration(double leaf_mass, double sapwood_mass,
@@ -135,7 +152,6 @@ public:
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
 
-  quadrature::QAG& integrator() {return control.integrator;}
   // Every Strategy needs a set of Control objects -- these govern
   // things to do with how numerical calculations are performed,
   // rather than the biological control that this class has.

@@ -1,5 +1,4 @@
 #include <tree2/plant.h>
-#include <tree2/qag.h>
 #include <Rcpp.h>
 #include <functional>
 
@@ -117,7 +116,8 @@ double Plant::leaf_area_above(double z) const {
 void Plant::compute_vars_phys(const Environment& environment,
 			      bool reuse_intervals) {
   // [eqn 12] Gross annual CO2 assimilation
-  vars.assimilation = assimilation(environment, reuse_intervals);
+  vars.assimilation = strategy->assimilation(environment, vars.height,
+                                             vars.leaf_area, reuse_intervals);
 
   // [eqn 13] Total maintenance respiration
   vars.respiration = strategy->respiration(vars.leaf_mass,
@@ -383,66 +383,6 @@ void Plant::compute_vars_size(double height_) {
   vars.diameter = strategy->diameter(vars.basal_area);
 }
 
-// [eqn 12] Gross annual CO2 assimilation
-//
-// NOTE: In contrast with Daniel's implementation (but following
-// Falster 2012), we do not normalise by Y*c_bio here.
-double Plant::assimilation(const Environment& environment,
-			   bool reuse_intervals) {
-  const bool over_distribution = control().plant_assimilation_over_distribution;
-  const double x_min = 0.0, x_max = over_distribution ? 1.0 : vars.height;
-
-  double A = 0.0;
-  quadrature::QAG& integrator(strategy->integrator());
-
-  std::function<double(double)> f;
-  if (over_distribution) {
-    f = [&] (double x) -> double {
-      return compute_assimilation_p(x, environment);
-    };
-  } else {
-    f = [&] (double x) -> double {
-      return compute_assimilation_h(x, environment);
-    };
-  }
-
-  if (control().plant_assimilation_adaptive && reuse_intervals) {
-    A = integrator.integrate_with_last_intervals(f, x_min, x_max);
-  } else {
-    A = integrator.integrate(f, x_min, x_max);
-  }
-
-  return vars.leaf_area * A;
-}
-
-// This is used in the calculation of assimilation by
-// `compute_assimilation` above; it is the term within the integral in
-// [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
-// where `z` is height.
-double Plant::compute_assimilation_x(double x,
-                                     const Environment& environment) const {
-  if (control().plant_assimilation_over_distribution) {
-    return compute_assimilation_p(x, environment);
-  } else {
-    return compute_assimilation_h(x, environment);
-  }
-}
-
-double Plant::compute_assimilation_h(double h,
-                                     const Environment& environment) const {
-  return assimilation_leaf(environment.canopy_openness(h)) * strategy->q(h, vars.height);
-}
-
-double Plant::compute_assimilation_p(double p,
-                                     const Environment& environment) const {
-  return assimilation_leaf(environment.canopy_openness(strategy->Qp(p, vars.height)));
-}
-
-// [Appendix S6] Per-leaf photosynthetic rate.
-// Here, `x` is openness, ranging from 0 to 1.
-double Plant::assimilation_leaf(double x) const {
-  return strategy->c_p1 * x / (x + strategy->c_p2);
-}
 
 Plant::internals::internals()
   : leaf_mass(NA_REAL),
@@ -481,4 +421,3 @@ Plant make_plant(Plant::strategy_type s) {
 }
 
 }
-
