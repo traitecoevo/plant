@@ -124,14 +124,14 @@ void Plant::compute_vars_phys(const Environment& environment,
                                      vars.bark_mass, vars.root_mass);
 
   // [eqn 15] Net production
-  vars.net_production = strategy->net_production(vars.assimilation,
+  vars.net_mass_production = strategy->net_mass_production(vars.assimilation,
                                                  vars.respiration,
                                                  vars.turnover);
 
-  if (vars.net_production > 0) {
+  if (vars.net_mass_production > 0) {
     // [eqn 16] - Fraction of whole plant growth that is leaf
-    vars.reproduction_fraction =
-      strategy->reproduction_fraction(vars.height);
+    vars.reproduction_mass_fraction =
+      strategy->reproduction_mass_fraction(vars.height);
 
     // [eqn 17] - Rate of offspring production
     //
@@ -140,17 +140,17 @@ void Plant::compute_vars_phys(const Environment& environment,
     // NOTE: This is also a hyperparametrisation and should move into
     // the initialisation function.
     vars.fecundity_rate =
-      strategy->dfecundity_dt(vars.net_production,
-                              vars.reproduction_fraction);
+      strategy->dfecundity_dt(vars.net_mass_production,
+                              vars.reproduction_mass_fraction);
 
     // [eqn 19] - Growth rate in leaf height
     // different to Falster 2010, which was growth rate in leaf mass
     vars.leaf_area_deployment_mass =
       strategy->leaf_area_deployment_mass(vars.leaf_area);
-    vars.growth_fraction = strategy->growth_fraction(vars.height);
+    vars.growth_mass_fraction = strategy->growth_mass_fraction(vars.height);
 
     vars.leaf_area_growth_rate =
-      vars.net_production * vars.growth_fraction *
+      vars.net_mass_production * vars.growth_mass_fraction *
       vars.leaf_area_deployment_mass;
    vars.height_growth_rate =
       strategy->dheight_dleaf_area(vars.leaf_area) *
@@ -160,8 +160,8 @@ void Plant::compute_vars_phys(const Environment& environment,
    vars.heartwood_mass_rate =
       strategy->dheartwood_mass_dt(vars.sapwood_mass);
   } else {
-    vars.reproduction_fraction = 0.0;
-    vars.growth_fraction       = 0.0;
+    vars.reproduction_mass_fraction = 0.0;
+    vars.growth_mass_fraction       = 0.0;
     vars.fecundity_rate        = 0.0;
     vars.leaf_area_growth_rate = 0.0;
     vars.leaf_area_deployment_mass = 0.0;
@@ -180,9 +180,8 @@ void Plant::compute_vars_phys(const Environment& environment,
   // we will need to trim this to some large finite value, but for
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(vars.mortality)) {
-    // TODO: Should this not be in Strategy @dfalster?
     vars.mortality_rate =
-      strategy->mortality_dt(vars.net_production / vars.leaf_area);
+      strategy->mortality_dt(vars.net_mass_production / vars.leaf_area);
   } else {
     // If mortality probability is 1 (latency = Inf) then the rate
     // calculations break.  Setting them to zero gives the correct
@@ -207,30 +206,30 @@ void Plant::compute_vars_growth() {
   // Changes over time:
   vars.dsapwood_area_dt    = s->dsapwood_area_dt(leaf_area_growth_rate);
   vars.dbark_area_dt       = s->dbark_area_dt(leaf_area_growth_rate);
-  vars.dbasal_area_dt      = s->dbasal_area_dt(leaf_area,
+  vars.dstem_area_dt      = s->dstem_area_dt(leaf_area,
                                                leaf_area_growth_rate);
-  vars.dbasal_diam_dt      = s->dbasal_diam_dt(leaf_area,
+  vars.dstem_diameter_dt      = s->dstem_diameter_dt(leaf_area,
                                           vars.bark_area,
                                           vars.sapwood_area,
                                           vars.heartwood_area,
                                           leaf_area_growth_rate);
   vars.droot_mass_dt       = s->droot_mass_dt(leaf_area,
                                          leaf_area_growth_rate);
-  vars.dlive_mass_dt       = s->dlive_mass_dt(vars.reproduction_fraction,
-                                         vars.net_production);
-  vars.dtotal_mass_dt      = s->dtotal_mass_dt(vars.reproduction_fraction,
-                                          vars.net_production,
+  vars.dlive_mass_dt       = s->dlive_mass_dt(vars.reproduction_mass_fraction,
+                                         vars.net_mass_production);
+  vars.dtotal_mass_dt      = s->dtotal_mass_dt(vars.reproduction_mass_fraction,
+                                          vars.net_mass_production,
                                           vars.heartwood_mass_rate);
   vars.dabove_ground_mass_dt =
     s->dabove_ground_mass_dt(leaf_area,
-                             vars.reproduction_fraction,
-                             vars.net_production,
+                             vars.reproduction_mass_fraction,
+                             vars.net_mass_production,
                              vars.heartwood_mass_rate,
                              leaf_area_growth_rate);
 
   // Odd one out:
-  vars.dbasal_diam_dbasal_area =
-    s->dbasal_diam_dbasal_area(vars.bark_area,
+  vars.dstem_diameter_dstem_area =
+    s->dstem_diameter_dstem_area(vars.bark_area,
                                vars.sapwood_area,
                                vars.heartwood_area);
 }
@@ -308,13 +307,13 @@ void Plant::compute_vars_size(double height_) {
   vars.root_mass = strategy->root_mass(vars.leaf_area);
   vars.live_mass = strategy->live_mass(vars.leaf_mass, vars.sapwood_mass,
                                        vars.bark_mass , vars.root_mass);
-  vars.basal_area = strategy->basal_area(vars.bark_area, vars.sapwood_area,
+  vars.stem_area = strategy->stem_area(vars.bark_area, vars.sapwood_area,
                                          vars.heartwood_area);
   vars.total_mass = strategy->total_mass(vars.leaf_mass, vars.bark_mass, vars.sapwood_mass,
                                          vars.heartwood_mass, vars.root_mass);
   vars.above_ground_mass = strategy->above_ground_mass(vars.leaf_mass, vars.bark_mass,
                                                        vars.sapwood_mass, vars.root_mass);
-  vars.diameter = strategy->diameter(vars.basal_area);
+  vars.stem_diameter = strategy->stem_diameter(vars.stem_area);
 }
 
 Plant make_plant(Plant::strategy_type s) {

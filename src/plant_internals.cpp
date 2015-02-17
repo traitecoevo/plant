@@ -21,19 +21,19 @@ Plant_internals::Plant_internals()
   bark_mass(NA_REAL),
   heartwood_area(0.0), // NOTE: Starts at zero
   heartwood_mass(0.0), // NOTE: Starts at zero
-  basal_area(NA_REAL),
+  stem_area(NA_REAL),
   root_mass(NA_REAL),
   live_mass(NA_REAL),
   total_mass(NA_REAL),
   above_ground_mass(NA_REAL),
-  diameter(NA_REAL),
+  stem_diameter(NA_REAL),
   // * Physiological
   assimilation(NA_REAL),
   respiration(NA_REAL),
   turnover(NA_REAL),
-  net_production(NA_REAL),
-  reproduction_fraction(NA_REAL),
-  growth_fraction(NA_REAL),
+  net_mass_production(NA_REAL),
+  reproduction_mass_fraction(NA_REAL),
+  growth_mass_fraction(NA_REAL),
   fecundity_rate(NA_REAL),
   leaf_area_growth_rate(NA_REAL),
   leaf_area_deployment_mass(NA_REAL),
@@ -51,13 +51,13 @@ Plant_internals::Plant_internals()
   droot_mass_dleaf_area(NA_REAL),
   dsapwood_area_dt(NA_REAL),
   dbark_area_dt(NA_REAL),
-  dbasal_area_dt(NA_REAL),
-  dbasal_diam_dt(NA_REAL),
+  dstem_area_dt(NA_REAL),
+  dstem_diameter_dt(NA_REAL),
   droot_mass_dt(NA_REAL),
   dlive_mass_dt(NA_REAL),
   dtotal_mass_dt(NA_REAL),
   dabove_ground_mass_dt(NA_REAL),
-  dbasal_diam_dbasal_area(NA_REAL) {
+  dstem_diameter_dstem_area(NA_REAL) {
 }
 
 }

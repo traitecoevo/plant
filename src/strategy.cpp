@@ -123,13 +123,13 @@ double Strategy::bark_mass(double bark_area, double height) const {
   return bark_area * height * eta_c * rho;
 }
 
-double Strategy::basal_area(double bark_area, double sapwood_area,
+double Strategy::stem_area(double bark_area, double sapwood_area,
                             double heartwood_area) const {
   return bark_area + sapwood_area + heartwood_area;
 }
 
-double Strategy::diameter(double basal_area) const {
-  return std::sqrt(4 *   basal_area / M_PI);
+double Strategy::stem_diameter(double stem_area) const {
+  return std::sqrt(4 *   stem_area / M_PI);
 }
 
 // [eqn 7] Mass of (fine) roots
@@ -264,14 +264,14 @@ double Strategy::turnover_root(double mass) const {
 // [eqn 15] Net production
 //
 // NOTE: Translation of variable names from the EBT.  everything
-// before the minus sign is EBT's N, our `net_production` is EBT's P.
-double Strategy::net_production(double assimilation, double respiration,
+// before the minus sign is EBT's N, our `net_mass_production` is EBT's P.
+double Strategy::net_mass_production(double assimilation, double respiration,
                                 double turnover) const {
   return c_bio * Y * (assimilation - respiration) - turnover;
 }
 
 // One shot:
-double Strategy::net_production(const Environment& environment,
+double Strategy::net_mass_production(const Environment& environment,
                                 double height, double leaf_area_,
                                 bool reuse_intervals) {
   const double leaf_mass_    = leaf_mass(leaf_area_);
@@ -286,24 +286,24 @@ double Strategy::net_production(const Environment& environment,
     respiration(leaf_mass_, sapwood_mass_, bark_mass_, root_mass_);
   const double turnover_ =
     turnover(leaf_mass_, sapwood_mass_, bark_mass_, root_mass_);
-  return net_production(assimilation_, respiration_, turnover_);
+  return net_mass_production(assimilation_, respiration_, turnover_);
 }
 
 // [eqn 16] Fraction of production allocated to reproduction
-double Strategy::reproduction_fraction(double height) const {
+double Strategy::reproduction_mass_fraction(double height) const {
   return c_r1 / (1.0 + exp(c_r2 * (1.0 - height / hmat)));
 }
 
 // Fraction of production allocated to growth
-double Strategy::growth_fraction(double height) const {
-  return 1.0 - reproduction_fraction(height);
+double Strategy::growth_mass_fraction(double height) const {
+  return 1.0 - reproduction_mass_fraction(height);
 }
 
 // [eqn 17] Rate of offspring production
 // TODO[HYPERPARAMETER]: s/s0; ideally s + constant
-double Strategy::dfecundity_dt(double net_production,
-                               double reproduction_fraction) const {
-  return net_production * reproduction_fraction / (s + c_acc);
+double Strategy::dfecundity_dt(double net_mass_production,
+                               double reproduction_mass_fraction) const {
+  return net_mass_production * reproduction_mass_fraction / (s + c_acc);
 }
 
 double Strategy::leaf_area_deployment_mass(double leaf_area) const {
@@ -334,10 +334,10 @@ double Strategy::droot_mass_dleaf_area(double /* leaf_area */) const {
   return a3;
 }
 
-// Growth rate of basal diameter per unit time
-double Strategy::dbasal_diam_dbasal_area(double bark_area, double sapwood_area,
+// Growth rate of basal stem_diameter per unit time
+double Strategy::dstem_diameter_dstem_area(double bark_area, double sapwood_area,
                             double heartwood_area) const {
-  return pow(M_PI / basal_area(bark_area, sapwood_area, heartwood_area), 0.5);
+  return pow(M_PI / stem_area(bark_area, sapwood_area, heartwood_area), 0.5);
 }
 
 // Growth rate of spawood area at base per unit time
@@ -347,7 +347,6 @@ double Strategy::dsapwood_area_dt(double leaf_area_growth_rate) const {
 
 // Note, unlike others, heartwood growth does not depend on leaf area growth, but
 // rather existsing sapwood
-// TODO: @dfalster - pass in sapwood area
 double Strategy::dheartwood_area_dt(double leaf_area) const {
   return k_s * sapwood_area(leaf_area);
 }
@@ -359,20 +358,20 @@ double Strategy::dbark_area_dt(double leaf_area_growth_rate) const {
 }
 
 // Growth rate of stem basal area per unit time
-double Strategy::dbasal_area_dt(double leaf_area,
+double Strategy::dstem_area_dt(double leaf_area,
                                 double leaf_area_growth_rate) const {
   return dsapwood_area_dt(leaf_area_growth_rate) +
     dbark_area_dt(leaf_area_growth_rate) +
     dheartwood_area_dt(leaf_area);
 }
 
-// Growth rate of basal diameter per unit time
-double Strategy::dbasal_diam_dt(double leaf_area,
+// Growth rate of basal stem_diameter per unit time
+double Strategy::dstem_diameter_dt(double leaf_area,
                                 double bark_area, double sapwood_area,
                                 double heartwood_area,
                                 double leaf_area_growth_rate) const {
-  return dbasal_diam_dbasal_area(bark_area, sapwood_area, heartwood_area) *
-    dbasal_area_dt(leaf_area, leaf_area_growth_rate);
+  return dstem_diameter_dstem_area(bark_area, sapwood_area, heartwood_area) *
+    dstem_area_dt(leaf_area, leaf_area_growth_rate);
 }
 
 // TODO: Passing in leaf *area* but d (leaf *mass*) / dt, which does
@@ -382,29 +381,29 @@ double Strategy::droot_mass_dt(double leaf_area,
   return leaf_area_growth_rate * droot_mass_dleaf_area(leaf_area);
 }
 
-double Strategy::dlive_mass_dt(double reproduction_fraction,
-                               double net_production) const {
-  return (1 - reproduction_fraction) * net_production;
+double Strategy::dlive_mass_dt(double reproduction_mass_fraction,
+                               double net_mass_production) const {
+  return (1 - reproduction_mass_fraction) * net_mass_production;
 }
 
 // TODO: Change top two to use dlive_mass_dt
-double Strategy::dtotal_mass_dt(double reproduction_fraction,
-                                double net_production,
+double Strategy::dtotal_mass_dt(double reproduction_mass_fraction,
+                                double net_mass_production,
                                 double dheartwood_mass_dt) const {
-  return dlive_mass_dt(reproduction_fraction, net_production) +
+  return dlive_mass_dt(reproduction_mass_fraction, net_mass_production) +
     dheartwood_mass_dt;
 }
 
 // TODO: Change top two to use dlive_mass_dt
 // TODO: Do we not track root mass change?
 double Strategy::dabove_ground_mass_dt(double leaf_area,
-                                       double reproduction_fraction,
-                                       double net_production,
+                                       double reproduction_mass_fraction,
+                                       double net_mass_production,
                                        double dheartwood_mass_dt,
                                        double leaf_area_growth_rate) const {
   const double droot_mass_dt =
     leaf_area_growth_rate * droot_mass_dleaf_area(leaf_area);
-  return dtotal_mass_dt(reproduction_fraction, net_production,
+  return dtotal_mass_dt(reproduction_mass_fraction, net_mass_production,
                         dheartwood_mass_dt) - droot_mass_dt;
 }
 
@@ -443,10 +442,10 @@ double Strategy::mortality_growth_dependent_dt(
 
 // [eqn 20] Survival of seedlings during germination
 double Strategy::germination_probability(const Environment& environment) {
-  const double net_production_ =
-    net_production(environment, height_0, leaf_area_0);
-  if (net_production_ > 0) {
-    const double tmp = c_s0 * leaf_area_0 / net_production_;
+  const double net_mass_production_ =
+    net_mass_production(environment, height_0, leaf_area_0);
+  if (net_mass_production_ > 0) {
+    const double tmp = c_s0 * leaf_area_0 / net_mass_production_;
     return 1.0 / (tmp * tmp + 1.0);
   } else {
     return 0.0;

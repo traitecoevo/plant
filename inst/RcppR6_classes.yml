@@ -370,18 +370,18 @@ Plant_internals:
     - bark_mass: double
     - heartwood_area: double
     - heartwood_mass: double
-    - basal_area: double
+    - stem_area: double
     - root_mass: double
     - live_mass: double
     - total_mass: double
     - above_ground_mass: double
-    - diameter: double
+    - stem_diameter: double
     - assimilation: double
     - respiration: double
     - turnover: double
-    - net_production: double
-    - reproduction_fraction: double
-    - growth_fraction: double
+    - net_mass_production: double
+    - reproduction_mass_fraction: double
+    - growth_mass_fraction: double
     - fecundity_rate: double
     - leaf_area_growth_rate: double
     - leaf_area_deployment_mass: double
@@ -397,9 +397,9 @@ Plant_internals:
     - droot_mass_dleaf_area: double
     - dsapwood_area_dt: double
     - dbark_area_dt: double
-    - dbasal_area_dt: double
-    - dbasal_diam_dbasal_area: double
-    - dbasal_diam_dt: double
+    - dstem_area_dt: double
+    - dstem_diameter_dstem_area: double
+    - dstem_diameter_dt: double
     - droot_mass_dt: double
     - dlive_mass_dt: double
     - dtotal_mass_dt: double

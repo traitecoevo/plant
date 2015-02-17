@@ -31,9 +31,9 @@ public:
   double bark_area(double leaf_area) const;
   double bark_mass (double bark_area, double height) const;
 
-  double basal_area(double bark_area, double sapwood_area,
+  double stem_area(double bark_area, double sapwood_area,
                             double heartwood_area) const;
-  double diameter(double basal_area) const;
+  double stem_diameter(double stem_area) const;
 
   // [eqn 7] Mass of (fine) roots
   double root_mass(double leaf_area) const;
@@ -82,18 +82,18 @@ public:
   double turnover_root(double mass) const;
 
   // [eqn 15] Net production
-  double net_production(double assimilation, double respiration,
+  double net_mass_production(double assimilation, double respiration,
                         double turnover) const;
-  double net_production(const Environment& environment,
+  double net_mass_production(const Environment& environment,
                         double height, double leaf_area,
                         bool reuse_intervals=false);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
-  double reproduction_fraction(double height) const;
-  double growth_fraction(double height) const;
+  double reproduction_mass_fraction(double height) const;
+  double growth_mass_fraction(double height) const;
   // [eqn 17] Rate of offspring production
-  double dfecundity_dt(double net_production,
-                       double reproduction_fraction) const;
+  double dfecundity_dt(double net_mass_production,
+                       double reproduction_mass_fraction) const;
 
   // [eqn 18] Fraction of mass growth that is leaves
   double leaf_area_deployment_mass(double leaf_area) const;
@@ -106,27 +106,27 @@ public:
   double dbark_mass_dleaf_area(double leaf_area) const;
   // Mass of root needed for new unit area leaf, d m_r / d a_l
   double droot_mass_dleaf_area(double leaf_area) const;
-  // Growth rate of basal diameter per unit basal area
-  double dbasal_diam_dbasal_area(double bark_area, double sapwood_area,
+  // Growth rate of basal stem_diameter per unit basal area
+  double dstem_diameter_dstem_area(double bark_area, double sapwood_area,
                             double heartwood_area) const;
   // Growth rate of components per unit time:
   double dleaf_area_dt(double leaf_area_growth_rate) const;
   double dsapwood_area_dt(double leaf_area_growth_rate) const;
   double dheartwood_area_dt(double leaf_area) const;
   double dbark_area_dt(double leaf_area_growth_rate) const;
-  double dbasal_area_dt(double leaf_area, double leaf_area_growth_rate) const;
-  double dbasal_diam_dt(double leaf_area, double bark_area, double sapwood_area,
+  double dstem_area_dt(double leaf_area, double leaf_area_growth_rate) const;
+  double dstem_diameter_dt(double leaf_area, double bark_area, double sapwood_area,
                         double heartwood_area, double leaf_area_growth_rate) const;
   double droot_mass_dt(double leaf_area,
                        double leaf_area_growth_rate) const;
-  double dlive_mass_dt(double reproduction_fraction,
-                       double net_production) const;
-  double dtotal_mass_dt(double reproduction_fraction,
-                        double net_production,
+  double dlive_mass_dt(double reproduction_mass_fraction,
+                       double net_mass_production) const;
+  double dtotal_mass_dt(double reproduction_mass_fraction,
+                        double net_mass_production,
                         double dheartwood_mass_dt) const;
   double dabove_ground_mass_dt(double leaf_area,
-                               double reproduction_fraction,
-                               double net_production,
+                               double reproduction_mass_fraction,
+                               double net_mass_production,
                                double dheartwood_mass_dt,
                                double leaf_area_growth_rate) const;
 

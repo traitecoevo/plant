@@ -122,22 +122,22 @@ dheartwood_area_dt <- function(traits, h, env){
 }
 
 ## basal area growth rate
-dbasal_area_dt <- function(traits, h, env){
+dstem_area_dt <- function(traits, h, env){
   dheartwood_area_dt(traits, h, env) + dsapwood_area_dt(traits, h, env) + dbark_area_dt(traits, h, env)
 }
 
-## change in basal diameter per basal area
-dbasal_diam_dbasal_area <- function(basal_area){
-  sqrt(pi/basal_area)
+## change in basal stem_diameter per basal area
+dstem_diameter_dstem_area <- function(stem_area){
+  sqrt(pi/stem_area)
 }
 
-## basal diameter growth rate
-dbasal_diam_dt <- function(traits, h, env){
- dbasal_diam_dbasal_area(basal_area(h)) * dbasal_area_dt(traits, h, env)
+## stem diameter growth rate
+dstem_diameter_dt <- function(traits, h, env){
+ dstem_diameter_dstem_area(stem_area(h)) * dstem_area_dt(traits, h, env)
 }
 
 ## basal area
-basal_area <- function(h){
+stem_area <- function(h){
   sapwood_area(h) + bark_area(h) + heartwood_area(h)
 }
 

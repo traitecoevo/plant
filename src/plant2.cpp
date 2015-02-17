@@ -8,23 +8,23 @@ void Plant2::compute_vars_phys(const Environment& environment,
   // idea is to set height_rate, mortality_rate and fecundity_rate.
   const double height    = vars.height;
   const double leaf_area = vars.leaf_area;
-  const double net_production =
-    strategy->net_production(environment, height, leaf_area,
+  const double net_mass_production =
+    strategy->net_mass_production(environment, height, leaf_area,
                                reuse_intervals);
 
-  if (net_production > 0) {
-    const double reproduction_fraction =
-      strategy->reproduction_fraction(height);
+  if (net_mass_production > 0) {
+    const double reproduction_mass_fraction =
+      strategy->reproduction_mass_fraction(height);
     const double leaf_area_deployment_mass =
       strategy->leaf_area_deployment_mass(leaf_area);
-    const double growth_fraction = strategy->growth_fraction(height);
+    const double growth_mass_fraction = strategy->growth_mass_fraction(height);
     const double leaf_area_growth_rate =
-      net_production * growth_fraction * leaf_area_deployment_mass;
+      net_mass_production * growth_mass_fraction * leaf_area_deployment_mass;
     vars.height_rate =
       strategy->dheight_dleaf_area(leaf_area) * leaf_area_growth_rate;
     vars.fecundity_rate =
-      strategy->dfecundity_dt(net_production,
-                              reproduction_fraction);
+      strategy->dfecundity_dt(net_mass_production,
+                              reproduction_mass_fraction);
 
   } else {
     vars.height_rate    = 0.0;
@@ -32,10 +32,7 @@ void Plant2::compute_vars_phys(const Environment& environment,
   }
 
   // [eqn 21] - Instantaneous mortality rate
-  // TODO: Should this not be in Strategy @dfalster?  Move entire
-  // if/else clause into Strategy, and rewrite to take net_production,
-  // leaf_area and mortality as arguments.
-  //
+
   // NOTE: When plants are extremely inviable, the rate of change in
   // mortality can be Inf, because net production is negative, leaf
   // area is small and so we get exp(big number).  However, most of
@@ -45,7 +42,7 @@ void Plant2::compute_vars_phys(const Environment& environment,
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(vars.mortality)) {
     vars.mortality_rate =
-      strategy->mortality_dt(net_production / leaf_area);
+      strategy->mortality_dt(net_mass_production / leaf_area);
   } else {
     // If mortality probability is 1 (latency = Inf) then the rate
     // calculations break.  Setting them to zero gives the correct

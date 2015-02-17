@@ -31,8 +31,8 @@ test_that("Reference comparison", {
               equals(cmp$bark_area(h0)))
   expect_that(vars[["sapwood_area"]],
               equals(cmp$sapwood_area(h0)))
-  expect_that(vars[["basal_area"]],
-              equals(cmp$basal_area(h0)))
+  expect_that(vars[["stem_area"]],
+              equals(cmp$stem_area(h0)))
 
   expect_that(p$height,    is_identical_to(vars[["height"]]))
   expect_that(p$leaf_area, is_identical_to(vars[["leaf_area"]]))
@@ -53,8 +53,8 @@ test_that("Reference comparison", {
   vars <- p$internals
   expect_that(vars[["heartwood_area"]],
               is_identical_to(HA0))
-  expect_that(vars[["basal_area"]],
-              equals(cmp$basal_area(h0) + HA0))
+  expect_that(vars[["stem_area"]],
+              equals(cmp$stem_area(h0) + HA0))
   # set heartwood back at zero for subsequent tests
   p$heartwood_area <- 0
 
@@ -89,15 +89,15 @@ test_that("Reference comparison", {
               equals(cmp_turnover))
 
   ## 4. Net production:
-  cmp_net_production <- cmp$net.production(cmp$traits, h0, light_env)
-  expect_that(vars[["net_production"]],
-              equals(cmp_net_production, tolerance=1e-7))
+  cmp_net_mass_production <- cmp$net.production(cmp$traits, h0, light_env)
+  expect_that(vars[["net_mass_production"]],
+              equals(cmp_net_mass_production, tolerance=1e-7))
 
   ## 5. Reproduction fraction
-  cmp_reproduction_fraction <-
+  cmp_reproduction_mass_fraction <-
     cmp$ReproductiveAllocation(cmp$traits$hmat,h0)
-  expect_that(vars[["reproduction_fraction"]],
-              equals(cmp_reproduction_fraction))
+  expect_that(vars[["reproduction_mass_fraction"]],
+              equals(cmp_reproduction_mass_fraction))
 
   ## 6. Fecundity rate
   cmp_fecundity_rate <- cmp$fecundity.rate(cmp$traits, h0, light_env)
@@ -160,26 +160,26 @@ test_that("Reference comparison", {
               equals(cmp_dheartwood_area_dt, tolerance=1e-7))
 
   ## 17. basal area growth rate
-  cmp_dbasal_area_dt <- cmp$dbasal_area_dt(cmp$traits, h0, light_env)
-  expect_that(vars[["dbasal_area_dt"]],
-              equals(cmp_dbasal_area_dt, tolerance=1e-7))
+  cmp_dstem_area_dt <- cmp$dstem_area_dt(cmp$traits, h0, light_env)
+  expect_that(vars[["dstem_area_dt"]],
+              equals(cmp_dstem_area_dt, tolerance=1e-7))
 
   ## 18. change in basal diam per basal area
-  cmp_dbasal_diam_dbasal_area <- cmp$dbasal_diam_dbasal_area(cmp$basal_area(h0))
-  expect_that(vars[["dbasal_diam_dbasal_area"]],
-              equals(cmp_dbasal_diam_dbasal_area, tolerance=1e-7))
+  cmp_dstem_diameter_dstem_area <- cmp$dstem_diameter_dstem_area(cmp$stem_area(h0))
+  expect_that(vars[["dstem_diameter_dstem_area"]],
+              equals(cmp_dstem_diameter_dstem_area, tolerance=1e-7))
 
   ## 18. basal diam growth rate
-  cmp_dbasal_diam_dt <- cmp$dbasal_diam_dt(cmp$traits, h0, light_env)
-  expect_that(vars[["dbasal_diam_dt"]],
-              equals(cmp_dbasal_diam_dt, tolerance=1e-7))
+  cmp_dstem_diameter_dt <- cmp$dstem_diameter_dt(cmp$traits, h0, light_env)
+  expect_that(vars[["dstem_diameter_dt"]],
+              equals(cmp_dstem_diameter_dt, tolerance=1e-7))
 
   ## Check that height decomposition multiplies out to give right
   ## answer
   cmp <- prod(unlist(vars[c("dheight_dleaf_area",
                             "leaf_area_deployment_mass",
-                            "growth_fraction")]),
-              vars[[c("net_production")]])
+                            "growth_mass_fraction")]),
+              vars[[c("net_mass_production")]])
   expect_that(vars[["height_growth_rate"]],
               equals(cmp, tolerance=1e-7))
 })

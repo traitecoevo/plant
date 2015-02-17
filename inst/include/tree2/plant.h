@@ -69,7 +69,7 @@ public:
   strategy_type r_get_strategy() const;
 
   // * Used by tools:
-  double net_production() const {return vars.net_production;}
+  double net_mass_production() const {return vars.net_mass_production;}
 
   Plant r_copy() const;
   Plant_internals r_internals() const;
