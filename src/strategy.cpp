@@ -153,25 +153,50 @@ double Strategy::above_ground_mass(double leaf_mass, double bark_mass,
 }
 
 // [eqn 13] Total maintenance respiration
-//
 // NOTE: In contrast with Falster ref model, we do not normalise by Y*c_bio.
-//
-// TODO: split into components?
 double Strategy::respiration(double leaf_mass, double sapwood_mass,
                              double bark_mass, double root_mass) const {
-  return
-    c_Rl * leaf_mass + c_Rs * sapwood_mass + c_Rb * bark_mass + c_Rr * root_mass;
+  return respiration_leaf(leaf_mass) + respiration_bark(bark_mass)
+         + respiration_sapwood(sapwood_mass) + respiration_root(root_mass);
+}
+
+double Strategy::respiration_leaf(double mass) const {
+  return c_Rl * mass;
+}
+
+double Strategy::respiration_bark(double mass) const {
+  return c_Rb * mass;
+}
+
+double Strategy::respiration_sapwood(double mass) const {
+  return c_Rs * mass;
+}
+
+double Strategy::respiration_root(double mass) const {
+  return c_Rr * mass;
 }
 
 // [eqn 14] Total turnover
-// TODO[SPLIT]: done for sapwood but not for others
 double Strategy::turnover(double leaf_mass, double bark_mass,
                           double sapwood_mass, double root_mass) const {
-  return
-    leaf_mass * k_l  +
-    bark_mass * k_b  +
-    sapwood_turnover(sapwood_mass) +
-    root_mass * k_r;
+   return turnover_leaf(leaf_mass) + turnover_bark(bark_mass)
+          + turnover_sapwood(sapwood_mass) + turnover_root(root_mass);
+}
+
+double Strategy::turnover_leaf(double mass) const {
+  return k_l * mass;
+}
+
+double Strategy::turnover_bark(double mass) const {
+  return k_b * mass;
+}
+
+double Strategy::turnover_sapwood(double mass) const {
+  return k_s * mass;
+}
+
+double Strategy::turnover_root(double mass) const {
+  return k_r * mass;
 }
 
 // [eqn 15] Net production
@@ -308,12 +333,9 @@ double Strategy::dabove_ground_mass_dt(double leaf_area,
 }
 
 double Strategy::dheartwood_mass_dt(double sapwood_mass) const {
-  return sapwood_turnover(sapwood_mass);
+  return turnover_sapwood(sapwood_mass);
 }
 
-double Strategy::sapwood_turnover(double sapwood_mass) const {
-  return sapwood_mass * k_s;
-}
 
 double Strategy::live_mass_given_height(double height) const {
   double leaf_area_ = leaf_area(height);

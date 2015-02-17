@@ -48,9 +48,20 @@ public:
   // [eqn 13] Total maintenance respiration
   double respiration(double leaf_mass, double sapwood_mass,
                      double bark_mass, double root_mass) const;
+
+  double respiration_leaf(double mass) const;
+  double respiration_bark(double mass) const;
+  double respiration_sapwood(double mass) const;
+  double respiration_root(double mass) const;
+
   // [eqn 14] Total turnover
   double turnover(double leaf_mass, double bark_mass,
                   double sapwood_mass, double root_mass) const;
+  double turnover_leaf(double mass) const;
+  double turnover_bark(double mass) const;
+  double turnover_sapwood(double mass) const;
+  double turnover_root(double mass) const;
+
   // [eqn 15] Net production
   double net_production(double assimilation, double respiration,
                         double turnover);
@@ -97,7 +108,6 @@ public:
                                double leaf_mass_growth_rate) const;
 
   double dheartwood_mass_dt(double sapwood_mass) const;
-  double sapwood_turnover(double sapwood_mass) const;
 
   double live_mass_given_height(double height) const;
   double height_given_leaf_mass(double leaf_mass_) const;
