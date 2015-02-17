@@ -2,13 +2,15 @@
 #ifndef TREE_ENVIRONMENT_H_
 #define TREE_ENVIRONMENT_H_
 
-#include <tree2/parameters.h>
+#include <tree2/control.h>
 #include <tree2/disturbance.h>
 #include <tree2/interpolator.h>
 #include <tree2/adaptive_interpolator.h>
 #include <tree2/util.h>
 
 namespace tree2 {
+
+struct Parameters;
 
 class Environment {
 public:

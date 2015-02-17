@@ -1,4 +1,5 @@
 #include <tree2/environment.h>
+#include <tree2/parameters.h>
 
 namespace tree2 {
 
