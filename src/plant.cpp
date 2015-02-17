@@ -16,8 +16,8 @@ Plant::Plant(strategy_ptr_type s)
 double Plant::height() const {
   return vars.height;
 }
-double Plant::height_rate() const {
-  return vars.height_growth_rate;
+double Plant::height_dt() const {
+  return vars.height_dt;
 }
 // NOTE: Only recomputes size variables if the height is actually
 // different.  This is totally safe if nothing else sets either height
@@ -45,8 +45,8 @@ void Plant::set_height(double height_) {
 double Plant::mortality() const {
   return vars.mortality;
 }
-double Plant::mortality_rate() const {
-  return vars.mortality_rate;
+double Plant::mortality_dt() const {
+  return vars.mortality_dt;
 }
 void Plant::set_mortality(double x) {
   vars.mortality = x;
@@ -55,53 +55,53 @@ void Plant::set_mortality(double x) {
 double Plant::fecundity() const {
   return vars.fecundity;
 }
-double Plant::fecundity_rate() const {
-  return vars.fecundity_rate;
+double Plant::reproduction_dt() const {
+  return vars.reproduction_dt;
 }
 void Plant::set_fecundity(double x) {
   vars.fecundity = x;
 }
 
-double Plant::heartwood_area() const {
-  return vars.heartwood_area;
+double Plant::area_heartwood() const {
+  return vars.area_heartwood;
 }
 
-double Plant::heartwood_area_rate() const {
-  return vars.heartwood_area_rate;
+double Plant::area_heartwood_dt() const {
+  return vars.area_heartwood_dt;
 }
 
-void Plant::set_heartwood_area(double x) {
+void Plant::set_area_heartwood(double x) {
   // TODO: Consider recomputing the size variables here
-  // See set_heartwood_mass
-  vars.heartwood_area = x;
+  // See set_mass_heartwood
+  vars.area_heartwood = x;
 }
 
-double Plant::heartwood_mass() const {
-  return vars.heartwood_mass;
+double Plant::mass_heartwood() const {
+  return vars.mass_heartwood;
 }
 
-double Plant::heartwood_mass_rate() const {
-  return vars.heartwood_mass_rate;
+double Plant::mass_heartwood_dt() const {
+  return vars.mass_heartwood_dt;
 }
 
-void Plant::set_heartwood_mass(double x) {
+void Plant::set_mass_heartwood(double x) {
   // TODO: This needs to update size variables but does not yet,
   // and won't until we get the new version done.
   // See notes in set_height.
-  vars.heartwood_mass = x;
+  vars.mass_heartwood = x;
 }
 
 // * Competitive environment
-double Plant::leaf_area() const {
-  return vars.leaf_area;
+double Plant::area_leaf() const {
+  return vars.area_leaf;
 }
 
 // [      ] Leaf area (not fraction) above height `z`
-double Plant::leaf_area_above(double z) const {
+double Plant::area_leaf_above(double z) const {
   if (z < 0.0) {
     Rcpp::stop("Negative heights do not make sense");
   }
-  return strategy->leaf_area_above(z, vars.height, vars.leaf_area);
+  return strategy->area_leaf_above(z, vars.height, vars.area_leaf);
 }
 
 // * Mass production
@@ -111,27 +111,27 @@ void Plant::compute_vars_phys(const Environment& environment,
 			      bool reuse_intervals) {
   // [eqn 12] Gross annual CO2 assimilation
   vars.assimilation = strategy->assimilation(environment, vars.height,
-                                             vars.leaf_area, reuse_intervals);
+                                             vars.area_leaf, reuse_intervals);
 
   // [eqn 13] Total maintenance respiration
-  vars.respiration = strategy->respiration(vars.leaf_mass,
-                                           vars.sapwood_mass,
-                                           vars.bark_mass,
-                                           vars.root_mass);
+  vars.respiration = strategy->respiration(vars.mass_leaf,
+                                           vars.mass_sapwood,
+                                           vars.mass_bark,
+                                           vars.mass_root);
 
   // [eqn 14] Total turnover
-  vars.turnover = strategy->turnover(vars.leaf_mass, vars.sapwood_mass,
-                                     vars.bark_mass, vars.root_mass);
+  vars.turnover = strategy->turnover(vars.mass_leaf, vars.mass_sapwood,
+                                     vars.mass_bark, vars.mass_root);
 
   // [eqn 15] Net production
-  vars.net_mass_production = strategy->net_mass_production(vars.assimilation,
+  vars.net_mass_production_dt = strategy->net_mass_production_dt(vars.assimilation,
                                                  vars.respiration,
                                                  vars.turnover);
 
-  if (vars.net_mass_production > 0) {
+  if (vars.net_mass_production_dt > 0) {
     // [eqn 16] - Fraction of whole plant growth that is leaf
-    vars.reproduction_mass_fraction =
-      strategy->reproduction_mass_fraction(vars.height);
+    vars.fraction_allocation_reproduction =
+      strategy->fraction_allocation_reproduction(vars.height);
 
     // [eqn 17] - Rate of offspring production
     //
@@ -139,35 +139,35 @@ void Plant::compute_vars_phys(const Environment& environment,
     // dispersal), but we do not here.
     // NOTE: This is also a hyperparametrisation and should move into
     // the initialisation function.
-    vars.fecundity_rate =
-      strategy->dfecundity_dt(vars.net_mass_production,
-                              vars.reproduction_mass_fraction);
+    vars.reproduction_dt =
+      strategy->reproduction_dt(vars.net_mass_production_dt,
+                              vars.fraction_allocation_reproduction);
 
     // [eqn 19] - Growth rate in leaf height
     // different to Falster 2010, which was growth rate in leaf mass
-    vars.leaf_area_deployment_mass =
-      strategy->leaf_area_deployment_mass(vars.leaf_area);
-    vars.growth_mass_fraction = strategy->growth_mass_fraction(vars.height);
+    vars.darea_leaf_dmass_live =
+      strategy->darea_leaf_dmass_live(vars.area_leaf);
+    vars.fraction_allocation_growth = strategy->fraction_allocation_growth(vars.height);
 
-    vars.leaf_area_growth_rate =
-      vars.net_mass_production * vars.growth_mass_fraction *
-      vars.leaf_area_deployment_mass;
-   vars.height_growth_rate =
-      strategy->dheight_dleaf_area(vars.leaf_area) *
-      vars.leaf_area_growth_rate;
-   vars.heartwood_area_rate =
-     strategy->dheartwood_area_dt(vars.leaf_area);
-   vars.heartwood_mass_rate =
-      strategy->dheartwood_mass_dt(vars.sapwood_mass);
+    vars.area_leaf_dt =
+      vars.net_mass_production_dt * vars.fraction_allocation_growth *
+      vars.darea_leaf_dmass_live;
+   vars.height_dt =
+      strategy->dheight_darea_leaf(vars.area_leaf) *
+      vars.area_leaf_dt;
+   vars.area_heartwood_dt =
+     strategy->area_heartwood_dt(vars.area_leaf);
+   vars.mass_heartwood_dt =
+      strategy->mass_heartwood_dt(vars.mass_sapwood);
   } else {
-    vars.reproduction_mass_fraction = 0.0;
-    vars.growth_mass_fraction       = 0.0;
-    vars.fecundity_rate        = 0.0;
-    vars.leaf_area_growth_rate = 0.0;
-    vars.leaf_area_deployment_mass = 0.0;
-    vars.height_growth_rate    = 0.0;
-    vars.heartwood_area_rate   = 0.0;
-    vars.heartwood_mass_rate   = 0.0;
+    vars.fraction_allocation_reproduction = 0.0;
+    vars.fraction_allocation_growth       = 0.0;
+    vars.reproduction_dt        = 0.0;
+    vars.area_leaf_dt = 0.0;
+    vars.darea_leaf_dmass_live = 0.0;
+    vars.height_dt    = 0.0;
+    vars.area_heartwood_dt   = 0.0;
+    vars.mass_heartwood_dt   = 0.0;
   }
 
   // [eqn 21] - Instantaneous mortality rate
@@ -180,13 +180,13 @@ void Plant::compute_vars_phys(const Environment& environment,
   // we will need to trim this to some large finite value, but for
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(vars.mortality)) {
-    vars.mortality_rate =
-      strategy->mortality_dt(vars.net_mass_production / vars.leaf_area);
+    vars.mortality_dt =
+      strategy->mortality_dt(vars.net_mass_production_dt / vars.area_leaf);
   } else {
     // If mortality probability is 1 (latency = Inf) then the rate
     // calculations break.  Setting them to zero gives the correct
     // behaviour.
-    vars.mortality_rate = 0.0;
+    vars.mortality_dt = 0.0;
   }
 }
 
@@ -194,44 +194,42 @@ void Plant::compute_vars_phys(const Environment& environment,
 // TODO: This will move into the "super size" plant.
 void Plant::compute_vars_growth() {
   const strategy_type *s = strategy.get(); // for brevity.
-  const double leaf_area = vars.leaf_area,
-    leaf_area_growth_rate = vars.leaf_area_growth_rate;
+  const double area_leaf = vars.area_leaf,
+    area_leaf_dt = vars.area_leaf_dt;
+
+  const double area_stem = vars.area_bark +
+                           vars.area_sapwood +
+                           vars.area_heartwood;
 
   // Changes with leaf area:
-  vars.dheight_dleaf_area       = s->dheight_dleaf_area(leaf_area);
-  vars.dsapwood_mass_dleaf_area = s->dsapwood_mass_dleaf_area(leaf_area);
-  vars.dbark_mass_dleaf_area    = s->dbark_mass_dleaf_area(leaf_area);
-  vars.droot_mass_dleaf_area    = s->droot_mass_dleaf_area(leaf_area);
+  vars.dheight_darea_leaf       = s->dheight_darea_leaf(area_leaf);
+  vars.dmass_sapwood_darea_leaf = s->dmass_sapwood_darea_leaf(area_leaf);
+  vars.dmass_bark_darea_leaf    = s->dmass_bark_darea_leaf(area_leaf);
+  vars.dmass_root_darea_leaf    = s->dmass_root_darea_leaf(area_leaf);
 
   // Changes over time:
-  vars.dsapwood_area_dt    = s->dsapwood_area_dt(leaf_area_growth_rate);
-  vars.dbark_area_dt       = s->dbark_area_dt(leaf_area_growth_rate);
-  vars.dstem_area_dt      = s->dstem_area_dt(leaf_area,
-                                               leaf_area_growth_rate);
-  vars.dstem_diameter_dt      = s->dstem_diameter_dt(leaf_area,
-                                          vars.bark_area,
-                                          vars.sapwood_area,
-                                          vars.heartwood_area,
-                                          leaf_area_growth_rate);
-  vars.droot_mass_dt       = s->droot_mass_dt(leaf_area,
-                                         leaf_area_growth_rate);
-  vars.dlive_mass_dt       = s->dlive_mass_dt(vars.reproduction_mass_fraction,
-                                         vars.net_mass_production);
-  vars.dtotal_mass_dt      = s->dtotal_mass_dt(vars.reproduction_mass_fraction,
-                                          vars.net_mass_production,
-                                          vars.heartwood_mass_rate);
-  vars.dabove_ground_mass_dt =
-    s->dabove_ground_mass_dt(leaf_area,
-                             vars.reproduction_mass_fraction,
-                             vars.net_mass_production,
-                             vars.heartwood_mass_rate,
-                             leaf_area_growth_rate);
+  vars.area_sapwood_dt    = s->area_sapwood_dt(area_leaf_dt);
+  vars.area_bark_dt       = s->area_bark_dt(area_leaf_dt);
+  vars.area_stem_dt       = s->area_stem_dt(area_leaf,
+                                              area_leaf_dt);
+  vars.diameter_stem_dt   = s->diameter_stem_dt(area_stem,
+                                                  vars.area_stem_dt);
+  vars.mass_root_dt       = s->mass_root_dt(area_leaf,
+                                             area_leaf_dt);
+  vars.mass_live_dt       = s->mass_live_dt(vars.fraction_allocation_reproduction,
+                                              vars.net_mass_production_dt);
+  vars.mass_total_dt      = s->mass_total_dt(vars.fraction_allocation_reproduction,
+                                              vars.net_mass_production_dt,
+                                              vars.mass_heartwood_dt);
+  vars.mass_above_ground_dt =
+    s->mass_above_ground_dt(area_leaf,
+                             vars.fraction_allocation_reproduction,
+                             vars.net_mass_production_dt,
+                             vars.mass_heartwood_dt,
+                             area_leaf_dt);
 
   // Odd one out:
-  vars.dstem_diameter_dstem_area =
-    s->dstem_diameter_dstem_area(vars.bark_area,
-                               vars.sapwood_area,
-                               vars.heartwood_area);
+  vars.ddiameter_stem_darea_stem = s->ddiameter_stem_darea_stem(area_stem);
 }
 
 // [eqn 20] Survival of seedlings during germination
@@ -245,30 +243,30 @@ ode::const_iterator Plant::set_ode_state(ode::const_iterator it) {
   set_height(*it++);
   set_mortality(*it++);
   set_fecundity(*it++);
-  set_heartwood_area(*it++);
-  set_heartwood_mass(*it++);
+  set_area_heartwood(*it++);
+  set_mass_heartwood(*it++);
   return it;
 }
 ode::iterator Plant::ode_state(ode::iterator it) const {
   *it++ = height();
   *it++ = mortality();
   *it++ = fecundity();
-  *it++ = heartwood_area();
-  *it++ = heartwood_mass();
+  *it++ = area_heartwood();
+  *it++ = mass_heartwood();
   return it;
 }
 ode::iterator Plant::ode_rates(ode::iterator it) const {
-  *it++ = height_rate();
-  *it++ = mortality_rate();
-  *it++ = fecundity_rate();
-  *it++ = heartwood_area_rate();
-  *it++ = heartwood_mass_rate();
+  *it++ = height_dt();
+  *it++ = mortality_dt();
+  *it++ = reproduction_dt();
+  *it++ = area_heartwood_dt();
+  *it++ = mass_heartwood_dt();
   return it;
 }
 
 std::vector<std::string> Plant::ode_names() {
   return std::vector<std::string>({"height", "mortality", "fecundity",
-	"heartwood_area", "heartwood_mass"});
+	"area_heartwood", "mass_heartwood"});
 }
 
 // * R interface
@@ -298,22 +296,22 @@ const Control& Plant::control() const {
 // [eqn 1-8] Update size variables to a new leaf mass.
 void Plant::compute_vars_size(double height_) {
   vars.height = height_;
-  vars.leaf_area = strategy->leaf_area(vars.height);
-  vars.leaf_mass = strategy->leaf_mass(vars.leaf_area);
-  vars.sapwood_area =  strategy->sapwood_area(vars.leaf_area);
-  vars.sapwood_mass =  strategy->sapwood_mass(vars.sapwood_area, vars.height);
-  vars.bark_area =  strategy->bark_area(vars.leaf_area);
-  vars.bark_mass = strategy->bark_mass(vars.bark_area, vars.height);
-  vars.root_mass = strategy->root_mass(vars.leaf_area);
-  vars.live_mass = strategy->live_mass(vars.leaf_mass, vars.sapwood_mass,
-                                       vars.bark_mass , vars.root_mass);
-  vars.stem_area = strategy->stem_area(vars.bark_area, vars.sapwood_area,
-                                         vars.heartwood_area);
-  vars.total_mass = strategy->total_mass(vars.leaf_mass, vars.bark_mass, vars.sapwood_mass,
-                                         vars.heartwood_mass, vars.root_mass);
-  vars.above_ground_mass = strategy->above_ground_mass(vars.leaf_mass, vars.bark_mass,
-                                                       vars.sapwood_mass, vars.root_mass);
-  vars.stem_diameter = strategy->stem_diameter(vars.stem_area);
+  vars.area_leaf = strategy->area_leaf(vars.height);
+  vars.mass_leaf = strategy->mass_leaf(vars.area_leaf);
+  vars.area_sapwood =  strategy->area_sapwood(vars.area_leaf);
+  vars.mass_sapwood =  strategy->mass_sapwood(vars.area_sapwood, vars.height);
+  vars.area_bark =  strategy->area_bark(vars.area_leaf);
+  vars.mass_bark = strategy->mass_bark(vars.area_bark, vars.height);
+  vars.mass_root = strategy->mass_root(vars.area_leaf);
+  vars.mass_live = strategy->mass_live(vars.mass_leaf, vars.mass_sapwood,
+                                       vars.mass_bark , vars.mass_root);
+  vars.area_stem = strategy->area_stem(vars.area_bark, vars.area_sapwood,
+                                         vars.area_heartwood);
+  vars.mass_total = strategy->mass_total(vars.mass_leaf, vars.mass_bark, vars.mass_sapwood,
+                                         vars.mass_heartwood, vars.mass_root);
+  vars.mass_above_ground = strategy->mass_above_ground(vars.mass_leaf, vars.mass_bark,
+                                                       vars.mass_sapwood, vars.mass_root);
+  vars.diameter_stem = strategy->diameter_stem(vars.area_stem);
 }
 
 Plant make_plant(Plant::strategy_type s) {

@@ -20,29 +20,29 @@ public:
 
   // * Individual size
   double height() const;
-  double height_rate() const;
+  double height_dt() const;
   void set_height(double height_);
 
   double mortality() const;
-  double mortality_rate() const;
+  double mortality_dt() const;
   void set_mortality(double x);
 
   double fecundity() const;
-  double fecundity_rate() const;
+  double reproduction_dt() const;
   void set_fecundity(double x);
 
-  double heartwood_area() const;
-  double heartwood_area_rate() const;
-  void set_heartwood_area(double x);
+  double area_heartwood() const;
+  double area_heartwood_dt() const;
+  void set_area_heartwood(double x);
 
-  double heartwood_mass() const;
-  double heartwood_mass_rate() const;
-  void set_heartwood_mass(double x);
+  double mass_heartwood() const;
+  double mass_heartwood_dt() const;
+  void set_mass_heartwood(double x);
 
   // * Competitive environment
-  double leaf_area() const;
+  double area_leaf() const;
   // [      ] Leaf area (not fraction) above height `z`
-  double leaf_area_above(double z) const;
+  double area_leaf_above(double z) const;
 
   // * Mass production
   // [eqn 12-19,21] Update physiological variables
@@ -69,7 +69,7 @@ public:
   strategy_type r_get_strategy() const;
 
   // * Used by tools:
-  double net_mass_production() const {return vars.net_mass_production;}
+  double net_mass_production_dt() const {return vars.net_mass_production_dt;}
 
   Plant r_copy() const;
   Plant_internals r_internals() const;

@@ -23,8 +23,8 @@ public:
   double r_growth_rate_gradient(const Environment& environment);
 
   double height() const {return plant.height();}
-  double leaf_area_above(double z) const;
-  double leaf_area() const;
+  double area_leaf_above(double z) const;
+  double area_leaf() const;
   double fecundity() const {return seeds_survival_weighted;}
 
   void set_log_density(double x) {
@@ -51,10 +51,10 @@ private:
   double growth_rate_gradient(const Environment& environment) const;
 
   double log_density;
-  double log_density_rate;
+  double log_density_dt;
   double density; // hmm...
   double seeds_survival_weighted;
-  double seeds_survival_weighted_rate;
+  double seeds_survival_weighted_dt;
   double pr_patch_survival_at_birth;
 };
 
@@ -62,10 +62,10 @@ template <typename T>
 Cohort<T>::Cohort(strategy_ptr_type s)
   : plant(s),
     log_density(R_NegInf),
-    log_density_rate(0),
+    log_density_dt(0),
     density(0),
     seeds_survival_weighted(0),
-    seeds_survival_weighted_rate(0),
+    seeds_survival_weighted_dt(0),
     pr_patch_survival_at_birth(1) {
 }
 
@@ -77,10 +77,10 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
   // EBT.md{eq:boundN}, see Numerical technique.
   // details.md, for details on translation from mass_leaf to height.
   // NOTE: This must be called *after* compute_vars_phys, but given we
-  // need mortality_rate() that's always going to be the case.
-  log_density_rate =
+  // need mortality_dt() that's always going to be the case.
+  log_density_dt =
     - growth_rate_gradient(environment)
-    - plant.mortality_rate();
+    - plant.mortality_dt();
 
   // EBT.md{eq:boundSurv}, see Numerical technique
   // survival_plant: converts from the mean of the poisson process (on
@@ -88,8 +88,8 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
   const double survival_patch = environment.patch_survival();
   const double survival_plant = exp(-plant.mortality());
 
-  seeds_survival_weighted_rate =
-    plant.fecundity_rate() * survival_plant *
+  seeds_survival_weighted_dt =
+    plant.reproduction_dt() * survival_plant *
     survival_patch / pr_patch_survival_at_birth;
 }
 
@@ -111,8 +111,8 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
   // EBT.md{eq:boundSurv}
   plant.set_mortality(-log(pr_germ));
   // EBT.md{eq:boundN}
-  const double g = plant.height_rate();
-  const double seed_rain = environment.seed_rain_rate();
+  const double g = plant.height_dt();
+  const double seed_rain = environment.seed_rain_dt();
   // NOTE: log(0.0) -> -Inf, which should behave fine.
   set_log_density(g > 0 ? log(seed_rain * pr_germ / g) : log(0.0));
 
@@ -121,10 +121,10 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
   // the rate to zero).
   if (!R_FINITE(log_density)) {
     // Can do this at the same time that we do set_log_density, I think.
-    log_density_rate = 0.0;
+    log_density_dt = 0.0;
   }
   // NOTE: It's *possible* here that we need to set
-  // plant.vars.mortality_rate to zero here, but I don't see that's
+  // plant.vars.mortality_dt to zero here, but I don't see that's
   // likely.
 }
 
@@ -141,7 +141,7 @@ double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
     return util::gradient_richardson(fun, plant.height(), eps,
 				     control.cohort_gradient_richardson_depth);
   } else {
-    return util::gradient_fd(fun, plant.height(), eps, plant.height_rate(),
+    return util::gradient_fd(fun, plant.height(), eps, plant.height_dt(),
                              control.cohort_gradient_direction);
   }
 }
@@ -157,15 +157,15 @@ double Cohort<T>::r_growth_rate_gradient(const Environment& environment) {
 }
 
 template <typename T>
-double Cohort<T>::leaf_area_above(double height_) const {
-  return density * plant.leaf_area_above(height_);
+double Cohort<T>::area_leaf_above(double height_) const {
+  return density * plant.area_leaf_above(height_);
 }
 
 // TODO: Possibly push this logic into species and drop entirely from
 // Cohort.
 template <typename T>
-double Cohort<T>::leaf_area() const {
-  return plant.leaf_area_above(0.0);
+double Cohort<T>::area_leaf() const {
+  return plant.area_leaf_above(0.0);
 }
 
 // ODE interface -- note that the don't care about time in the cohort;
@@ -188,10 +188,10 @@ ode::iterator Cohort<T>::ode_state(ode::iterator it) const {
 }
 template <typename T>
 ode::iterator Cohort<T>::ode_rates(ode::iterator it) const {
-  *it++ = plant.height_rate();
-  *it++ = plant.mortality_rate();
-  *it++ = seeds_survival_weighted_rate;
-  *it++ = log_density_rate;
+  *it++ = plant.height_dt();
+  *it++ = plant.mortality_dt();
+  *it++ = seeds_survival_weighted_dt;
+  *it++ = log_density_dt;
   return it;
 }
 
@@ -205,7 +205,7 @@ double growth_rate_given_height(T& plant, double height,
 				const Environment& environment) {
   plant.set_height(height);
   plant.compute_vars_phys(environment, true);
-  return plant.height_rate();
+  return plant.height_dt();
 }
 
 }

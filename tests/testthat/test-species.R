@@ -17,8 +17,8 @@ test_that("Basics", {
   expect_that(sp$height_max, is_identical_to(h0))
   expect_that(sp$species, is_identical_to(NULL))
   expect_that(sp$heights, is_identical_to(numeric(0)))
-  expect_that(sp$leaf_areas, is_identical_to(numeric(0)))
-  expect_that(sp$leaf_areas_error(1.0), is_identical_to(numeric(0)))
+  expect_that(sp$area_leafs, is_identical_to(numeric(0)))
+  expect_that(sp$area_leafs_error(1.0), is_identical_to(numeric(0)))
   expect_that(sp$ode_size, equals(0))
   expect_that(sp$ode_state, is_identical_to(numeric(0)))
   expect_that(sp$ode_rates, is_identical_to(numeric(0)))
@@ -41,7 +41,7 @@ test_that("Basics", {
   expect_that(length(plants), equals(1))
   expect_that(plants[[1]]$vars_phys, is_identical_to(seed$vars_phys))
   expect_that(sp$heights, equals(seed$height))
-  expect_that(sp$leaf_areas, equals(seed$leaf_area))
+  expect_that(sp$area_leafs, equals(seed$area_leaf))
   ## NOTE: Didn't check ode values
 
   ## Internal and test seed report same values:
@@ -56,16 +56,16 @@ test_that("Basics", {
   expect_that(sp$seed$plant$germination_probability(env),
               is_identical_to(plant$germination_probability(env)))
 
-  expect_that(sp$leaf_area_above(0), equals(0))
+  expect_that(sp$area_leaf_above(0), equals(0))
 
   sp$heights <- 1
 
   h <- 0
   x <- c(sp$seed$height, sp$heights)
-  y <- c(sp$seed$leaf_area_above(h),
-         sp$plant_at(1)$leaf_area_above(h))
+  y <- c(sp$seed$area_leaf_above(h),
+         sp$plant_at(1)$area_leaf_above(h))
 
-  expect_that(sp$leaf_area_above(h),
+  expect_that(sp$area_leaf_above(h),
               is_identical_to(trapezium(x, y)))
 
   ## Better tests: I want cases where:
@@ -82,9 +82,9 @@ test_that("Basics", {
 ## 1: empty species (no cohorts) has no leaf area above any height:
 test_that("Empty species has no leaf area", {
   sp <- Species(Strategy())
-  expect_that(sp$leaf_area_above(0), equals(0))
-  expect_that(sp$leaf_area_above(10), equals(0))
-  expect_that(sp$leaf_area_above(Inf), equals(0))
+  expect_that(sp$area_leaf_above(0), equals(0))
+  expect_that(sp$area_leaf_above(10), equals(0))
+  expect_that(sp$area_leaf_above(Inf), equals(0))
 })
 
 ## 2: Cohort up against boundary has no leaf area:
@@ -92,15 +92,15 @@ test_that("Species with only boundary cohort no leaf area", {
   sp <- Species(Strategy())
   sp$add_seed()
   sp$compute_vars_phys(env)
-  expect_that(sp$leaf_area_above(0), equals(0))
-  expect_that(sp$leaf_area_above(10), equals(0))
-  expect_that(sp$leaf_area_above(Inf), equals(0))
+  expect_that(sp$area_leaf_above(0), equals(0))
+  expect_that(sp$area_leaf_above(10), equals(0))
+  expect_that(sp$area_leaf_above(Inf), equals(0))
 })
 
-cmp_leaf_area_above <- function(h, sp) {
+cmp_area_leaf_above <- function(h, sp) {
   x <- c(sp$heights, sp$seed$height)
-  y <- c(sapply(sp$plants, function(p) p$leaf_area_above(h)),
-         sp$seed$leaf_area_above(h))
+  y <- c(sapply(sp$plants, function(p) p$area_leaf_above(h)),
+         sp$seed$area_leaf_above(h))
   trapezium(rev(x), rev(y))
 }
 
@@ -113,14 +113,14 @@ test_that("Leaf area sensible with one cohort", {
   sp$heights <- h_top
 
   ## At base and top
-  expect_that(sp$leaf_area_above(0), is_more_than(0))
-  expect_that(sp$leaf_area_above(0), equals(cmp_leaf_area_above(0, sp)))
+  expect_that(sp$area_leaf_above(0), is_more_than(0))
+  expect_that(sp$area_leaf_above(0), equals(cmp_area_leaf_above(0, sp)))
 
-  expect_that(sp$leaf_area_above(h_top), is_identical_to(0.0))
+  expect_that(sp$area_leaf_above(h_top), is_identical_to(0.0))
 
   ## Part way up (and above bottom seed boundary condition)
-  expect_that(sp$leaf_area_above(h_top * .5),
-              equals(cmp_leaf_area_above(h_top * .5, sp)))
+  expect_that(sp$area_leaf_above(h_top * .5),
+              equals(cmp_area_leaf_above(h_top * .5, sp)))
 
   ode_state <- sp$ode_state
   p <- sp$plant_at(1)
@@ -137,15 +137,15 @@ test_that("Leaf area sensible with two cohorts", {
   sp$heights <- h_top * c(1, .6)
 
   ## At base and top
-  expect_that(sp$leaf_area_above(0), is_more_than(0))
-  expect_that(sp$leaf_area_above(0), equals(cmp_leaf_area_above(0, sp)))
-  expect_that(sp$leaf_area_above(h_top), equals(0))
+  expect_that(sp$area_leaf_above(0), is_more_than(0))
+  expect_that(sp$area_leaf_above(0), equals(cmp_area_leaf_above(0, sp)))
+  expect_that(sp$area_leaf_above(h_top), equals(0))
   ## Part way up (below bottom cohort, above boundarty condition)
-  expect_that(sp$leaf_area_above(h_top * .5),
-              equals(cmp_leaf_area_above(h_top * .5, sp)))
+  expect_that(sp$area_leaf_above(h_top * .5),
+              equals(cmp_area_leaf_above(h_top * .5, sp)))
   ## Within the top pair (excluding the seed)
-  expect_that(sp$leaf_area_above(h_top * .8),
-              equals(cmp_leaf_area_above(h_top * .8, sp)))
+  expect_that(sp$area_leaf_above(h_top * .8),
+              equals(cmp_area_leaf_above(h_top * .8, sp)))
 
   ode_state <- sp$ode_state
   plants <- sp$plants
@@ -164,27 +164,27 @@ test_that("Leaf area sensible with three cohorts", {
   sp$heights <- h_top * c(1, .75, .6)
 
   ## At base and top
-  expect_that(sp$leaf_area_above(0), is_more_than(0))
-  expect_that(sp$leaf_area_above(0), equals(cmp_leaf_area_above(0, sp)))
-  expect_that(sp$leaf_area_above(h_top), equals(0))
+  expect_that(sp$area_leaf_above(0), is_more_than(0))
+  expect_that(sp$area_leaf_above(0), equals(cmp_area_leaf_above(0, sp)))
+  expect_that(sp$area_leaf_above(h_top), equals(0))
   ## Part way up (below bottom cohort, above boundarty condition)
-  expect_that(sp$leaf_area_above(h_top * .5),
-              equals(cmp_leaf_area_above(h_top * .5, sp)))
+  expect_that(sp$area_leaf_above(h_top * .5),
+              equals(cmp_area_leaf_above(h_top * .5, sp)))
   ## Within the top pair (excluding the seed)
-  expect_that(sp$leaf_area_above(h_top * .8),
-              equals(cmp_leaf_area_above(h_top * .8, sp)))
+  expect_that(sp$area_leaf_above(h_top * .8),
+              equals(cmp_area_leaf_above(h_top * .8, sp)))
 
-  cmp_leaf_area <- sapply(seq_len(sp$size),
-                          function(i) sp$plant_at(i)$leaf_area)
-  expect_that(sp$leaf_areas,
-              is_identical_to(cmp_leaf_area))
+  cmp_area_leaf <- sapply(seq_len(sp$size),
+                          function(i) sp$plant_at(i)$area_leaf)
+  expect_that(sp$area_leafs,
+              is_identical_to(cmp_area_leaf))
 
-  cmp    <- local_error_integration(sp$heights, cmp_leaf_area, 1.0)
-  cmp_pi <- local_error_integration(sp$heights, cmp_leaf_area, pi)
+  cmp    <- local_error_integration(sp$heights, cmp_area_leaf, 1.0)
+  cmp_pi <- local_error_integration(sp$heights, cmp_area_leaf, pi)
 
-  expect_that(sp$leaf_areas_error(),    is_identical_to(cmp))
-  expect_that(sp$leaf_areas_error(1.0), is_identical_to(cmp))
-  expect_that(sp$leaf_areas_error(pi),  is_identical_to(cmp_pi))
+  expect_that(sp$area_leafs_error(),    is_identical_to(cmp))
+  expect_that(sp$area_leafs_error(1.0), is_identical_to(cmp))
+  expect_that(sp$area_leafs_error(pi),  is_identical_to(cmp_pi))
 
   ode_state <- sp$ode_state
   plants <- sp$plants

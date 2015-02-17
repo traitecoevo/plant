@@ -4,31 +4,31 @@ namespace tree2 {
 
 void Plant2::compute_vars_phys(const Environment& environment,
                                bool reuse_intervals) {
-  // vars.height and vars.leaf_area are done on the way in here.  The
-  // idea is to set height_rate, mortality_rate and fecundity_rate.
+  // vars.height and vars.area_leaf are done on the way in here.  The
+  // idea is to set height_dt, mortality_dt and reproduction_dt.
   const double height    = vars.height;
-  const double leaf_area = vars.leaf_area;
-  const double net_mass_production =
-    strategy->net_mass_production(environment, height, leaf_area,
+  const double area_leaf = vars.area_leaf;
+  const double net_mass_production_dt =
+    strategy->net_mass_production_dt(environment, height, area_leaf,
                                reuse_intervals);
 
-  if (net_mass_production > 0) {
-    const double reproduction_mass_fraction =
-      strategy->reproduction_mass_fraction(height);
-    const double leaf_area_deployment_mass =
-      strategy->leaf_area_deployment_mass(leaf_area);
-    const double growth_mass_fraction = strategy->growth_mass_fraction(height);
-    const double leaf_area_growth_rate =
-      net_mass_production * growth_mass_fraction * leaf_area_deployment_mass;
-    vars.height_rate =
-      strategy->dheight_dleaf_area(leaf_area) * leaf_area_growth_rate;
-    vars.fecundity_rate =
-      strategy->dfecundity_dt(net_mass_production,
-                              reproduction_mass_fraction);
+  if (net_mass_production_dt > 0) {
+    const double fraction_allocation_reproduction =
+      strategy->fraction_allocation_reproduction(height);
+    const double darea_leaf_dmass_live =
+      strategy->darea_leaf_dmass_live(area_leaf);
+    const double fraction_allocation_growth = strategy->fraction_allocation_growth(height);
+    const double area_leaf_dt =
+      net_mass_production_dt * fraction_allocation_growth * darea_leaf_dmass_live;
+    vars.height_dt =
+      strategy->dheight_darea_leaf(area_leaf) * area_leaf_dt;
+    vars.reproduction_dt =
+      strategy->reproduction_dt(net_mass_production_dt,
+                              fraction_allocation_reproduction);
 
   } else {
-    vars.height_rate    = 0.0;
-    vars.fecundity_rate = 0.0;
+    vars.height_dt    = 0.0;
+    vars.reproduction_dt = 0.0;
   }
 
   // [eqn 21] - Instantaneous mortality rate
@@ -41,13 +41,13 @@ void Plant2::compute_vars_phys(const Environment& environment,
   // we will need to trim this to some large finite value, but for
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(vars.mortality)) {
-    vars.mortality_rate =
-      strategy->mortality_dt(net_mass_production / leaf_area);
+    vars.mortality_dt =
+      strategy->mortality_dt(net_mass_production_dt / area_leaf);
   } else {
     // If mortality probability is 1 (latency = Inf) then the rate
     // calculations break.  Setting them to zero gives the correct
     // behaviour.
-    vars.mortality_rate = 0.0;
+    vars.mortality_dt = 0.0;
   }
 }
 
@@ -64,9 +64,9 @@ ode::iterator Plant2::ode_state(ode::iterator it) const {
   return it;
 }
 ode::iterator Plant2::ode_rates(ode::iterator it) const {
-  *it++ = height_rate();
-  *it++ = mortality_rate();
-  *it++ = fecundity_rate();
+  *it++ = height_dt();
+  *it++ = mortality_dt();
+  *it++ = reproduction_dt();
   return it;
 }
 

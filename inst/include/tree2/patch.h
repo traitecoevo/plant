@@ -25,7 +25,7 @@ public:
   double height_max() const;
 
   // [eqn 11] Canopy openness at `height`
-  double leaf_area_above(double height) const;
+  double area_leaf_above(double height) const;
   double canopy_openness(double height) const;
 
   void add_seed(size_t species_index);
@@ -50,7 +50,7 @@ public:
   Parameters r_parameters() const {return parameters;}
   Environment r_environment() const {return environment;}
   std::vector<Species<T> > r_species() const {return species;}
-  std::vector<double> r_leaf_area_error(size_t species_index) const;
+  std::vector<double> r_area_leaf_error(size_t species_index) const;
 
   void r_add_seed(util::index species_index) {
     add_seed(species_index.check_bounds(size()));
@@ -107,11 +107,11 @@ double Patch<T>::height_max() const {
 }
 
 template <typename T>
-double Patch<T>::leaf_area_above(double height) const {
+double Patch<T>::area_leaf_above(double height) const {
   double tot = 0.0;
   for (auto i : util::indices(species)) {
     if (is_resident[i]) {
-      tot += species[i].leaf_area_above(height);
+      tot += species[i].area_leaf_above(height);
     }
   }
   return tot;
@@ -121,14 +121,14 @@ template <typename T>
 double Patch<T>::canopy_openness(double height) const {
   // NOTE: patch_area does not appear in the EBT model formulation;
   // really we should require that it is 1.0, or drop it entirely.
-  return exp(-parameters.c_ext * leaf_area_above(height) /
+  return exp(-parameters.c_ext * area_leaf_above(height) /
              parameters.patch_area);
 }
 
 template <typename T>
-std::vector<double> Patch<T>::r_leaf_area_error(size_t species_index) const {
-  const double tot_leaf_area = leaf_area_above(0.0);
-  return species[species_index].r_leaf_areas_error(tot_leaf_area);
+std::vector<double> Patch<T>::r_area_leaf_error(size_t species_index) const {
+  const double tot_area_leaf = area_leaf_above(0.0);
+  return species[species_index].r_area_leafs_error(tot_area_leaf);
 }
 
 template <typename T>

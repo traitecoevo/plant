@@ -712,11 +712,11 @@ Parameters <- function(..., values=list(...)) {
                     stop("Environment$patch_survival is read-only")
                   }
                 },
-                seed_rain_rate = function(value) {
+                seed_rain_dt = function(value) {
                   if (missing(value)) {
-                    Environment__seed_rain_rate__get(self)
+                    Environment__seed_rain_dt__get(self)
                   } else {
-                    stop("Environment$seed_rain_rate is read-only")
+                    stop("Environment$seed_rain_dt is read-only")
                   }
                 },
                 disturbance_regime = function(value) {
@@ -767,8 +767,8 @@ Plant_internals <- function(..., values=list(...)) {
                 initialize = function(ptr) {
                   self$.ptr <- ptr
                 },
-                leaf_area_above = function(h) {
-                  Plant__leaf_area_above(self, h)
+                area_leaf_above = function(h) {
+                  Plant__area_leaf_above(self, h)
                 },
                 compute_vars_phys = function(environment) {
                   Plant__compute_vars_phys(self, environment)
@@ -801,25 +801,25 @@ Plant_internals <- function(..., values=list(...)) {
                     Plant__fecundity__set(self, value)
                   }
                 },
-                heartwood_area = function(value) {
+                area_heartwood = function(value) {
                   if (missing(value)) {
-                    Plant__heartwood_area__get(self)
+                    Plant__area_heartwood__get(self)
                   } else {
-                    Plant__heartwood_area__set(self, value)
+                    Plant__area_heartwood__set(self, value)
                   }
                 },
-                heartwood_mass = function(value) {
+                mass_heartwood = function(value) {
                   if (missing(value)) {
-                    Plant__heartwood_mass__get(self)
+                    Plant__mass_heartwood__get(self)
                   } else {
-                    Plant__heartwood_mass__set(self, value)
+                    Plant__mass_heartwood__set(self, value)
                   }
                 },
-                leaf_area = function(value) {
+                area_leaf = function(value) {
                   if (missing(value)) {
-                    Plant__leaf_area__get(self)
+                    Plant__area_leaf__get(self)
                   } else {
-                    stop("Plant$leaf_area is read-only")
+                    stop("Plant$area_leaf is read-only")
                   }
                 },
                 strategy = function(value) {
@@ -891,8 +891,8 @@ Plant2_internals <- function(..., values=list(...)) {
                 initialize = function(ptr) {
                   self$.ptr <- ptr
                 },
-                leaf_area_above = function(h) {
-                  Plant2__leaf_area_above(self, h)
+                area_leaf_above = function(h) {
+                  Plant2__area_leaf_above(self, h)
                 },
                 compute_vars_phys = function(environment) {
                   Plant2__compute_vars_phys(self, environment)
@@ -971,8 +971,8 @@ Plant2_internals <- function(..., values=list(...)) {
                 initialize = function(ptr) {
                   self$.ptr <- ptr
                 },
-                leaf_area_above = function(height) {
-                  Cohort__leaf_area_above(self, height)
+                area_leaf_above = function(height) {
+                  Cohort__area_leaf_above(self, height)
                 },
                 growth_rate_gradient = function(environment) {
                   Cohort__growth_rate_gradient(self, environment)
@@ -998,11 +998,11 @@ Plant2_internals <- function(..., values=list(...)) {
                     stop("Cohort$height is read-only")
                   }
                 },
-                leaf_area = function(value) {
+                area_leaf = function(value) {
                   if (missing(value)) {
-                    Cohort__leaf_area__get(self)
+                    Cohort__area_leaf__get(self)
                   } else {
-                    stop("Cohort$leaf_area is read-only")
+                    stop("Cohort$area_leaf is read-only")
                   }
                 },
                 fecundity = function(value) {
@@ -1053,8 +1053,8 @@ Plant2_internals <- function(..., values=list(...)) {
                 compute_vars_phys = function(environment) {
                   Species__compute_vars_phys(self, environment)
                 },
-                leaf_area_above = function(height) {
-                  Species__leaf_area_above(self, height)
+                area_leaf_above = function(height) {
+                  Species__area_leaf_above(self, height)
                 },
                 add_seed = function() {
                   Species__add_seed(self)
@@ -1062,8 +1062,8 @@ Plant2_internals <- function(..., values=list(...)) {
                 plant_at = function(index) {
                   Species__plant_at(self, index)
                 },
-                leaf_areas_error = function(scal=1) {
-                  Species__leaf_areas_error(self, scal)
+                area_leafs_error = function(scal=1) {
+                  Species__area_leafs_error(self, scal)
                 }),
               active=list(
                 size = function(value) {
@@ -1108,11 +1108,11 @@ Plant2_internals <- function(..., values=list(...)) {
                     stop("Species$seeds is read-only")
                   }
                 },
-                leaf_areas = function(value) {
+                area_leafs = function(value) {
                   if (missing(value)) {
-                    Species__leaf_areas__get(self)
+                    Species__area_leafs__get(self)
                   } else {
-                    stop("Species$leaf_areas is read-only")
+                    stop("Species$area_leafs is read-only")
                   }
                 },
                 ode_size = function(value) {
@@ -1150,8 +1150,8 @@ Plant2_internals <- function(..., values=list(...)) {
                 initialize = function(ptr) {
                   self$.ptr <- ptr
                 },
-                leaf_area_above = function(height) {
-                  Patch__leaf_area_above(self, height)
+                area_leaf_above = function(height) {
+                  Patch__area_leaf_above(self, height)
                 },
                 canopy_openness = function(height) {
                   Patch__canopy_openness(self, height)
@@ -1274,8 +1274,8 @@ Plant2_internals <- function(..., values=list(...)) {
                 seed_rain_cohort = function(species_index) {
                   EBT__seed_rain_cohort(self, species_index)
                 },
-                leaf_area_error = function(species_index) {
-                  EBT__leaf_area_error(self, species_index)
+                area_leaf_error = function(species_index) {
+                  EBT__area_leaf_error(self, species_index)
                 },
                 set_cohort_schedule_times = function(times) {
                   EBT__set_cohort_schedule_times(self, times)

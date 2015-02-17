@@ -34,7 +34,7 @@ void Environment::clear() {
   light_environment.clear();
 }
 
-double Environment::seed_rain_rate() const {
+double Environment::seed_rain_dt() const {
   if (seed_rain.empty()) {
     Rcpp::stop("Cannot get seed rain for empty environment");
   }

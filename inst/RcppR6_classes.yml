@@ -198,7 +198,7 @@ Strategy:
     - lma: double
     - rho: double
     - hmat: double
-    - s: double
+    - mass_seed: double
     - n_area: double
     - eta: double
     - theta: double
@@ -352,7 +352,7 @@ Environment:
       name_cpp: r_set_seed_rain_index
   active:
     patch_survival: {type: double, access: member}
-    seed_rain_rate: {type: double, access: member}
+    seed_rain_dt: {type: double, access: member}
     disturbance_regime: {type: "tree2::Disturbance", access: field}
     time: {type: double, access: field}
     light_environment: {type: "tree2::interpolator::Interpolator", access: field}
@@ -361,49 +361,49 @@ Plant_internals:
   forward_declare: struct
   name_cpp: "tree2::Plant_internals"
   list:
-    - leaf_mass: double
-    - leaf_area: double
+    - mass_leaf: double
+    - area_leaf: double
     - height: double
-    - sapwood_area: double
-    - sapwood_mass: double
-    - bark_area: double
-    - bark_mass: double
-    - heartwood_area: double
-    - heartwood_mass: double
-    - stem_area: double
-    - root_mass: double
-    - live_mass: double
-    - total_mass: double
-    - above_ground_mass: double
-    - stem_diameter: double
+    - area_sapwood: double
+    - mass_sapwood: double
+    - area_bark: double
+    - mass_bark: double
+    - area_heartwood: double
+    - mass_heartwood: double
+    - area_stem: double
+    - mass_root: double
+    - mass_live: double
+    - mass_total: double
+    - mass_above_ground: double
+    - diameter_stem: double
     - assimilation: double
     - respiration: double
     - turnover: double
-    - net_mass_production: double
-    - reproduction_mass_fraction: double
-    - growth_mass_fraction: double
-    - fecundity_rate: double
-    - leaf_area_growth_rate: double
-    - leaf_area_deployment_mass: double
-    - height_growth_rate: double
-    - heartwood_area_rate: double
-    - heartwood_mass_rate: double
-    - mortality_rate: double
+    - net_mass_production_dt: double
+    - fraction_allocation_reproduction: double
+    - fraction_allocation_growth: double
+    - reproduction_dt: double
+    - area_leaf_dt: double
+    - darea_leaf_dmass_live: double
+    - height_dt: double
+    - area_heartwood_dt: double
+    - mass_heartwood_dt: double
+    - mortality_dt: double
     - mortality: double
     - fecundity: double
-    - dheight_dleaf_area: double
-    - dsapwood_mass_dleaf_area: double
-    - dbark_mass_dleaf_area: double
-    - droot_mass_dleaf_area: double
-    - dsapwood_area_dt: double
-    - dbark_area_dt: double
-    - dstem_area_dt: double
-    - dstem_diameter_dstem_area: double
-    - dstem_diameter_dt: double
-    - droot_mass_dt: double
-    - dlive_mass_dt: double
-    - dtotal_mass_dt: double
-    - dabove_ground_mass_dt: double
+    - dheight_darea_leaf: double
+    - dmass_sapwood_darea_leaf: double
+    - dmass_bark_darea_leaf: double
+    - dmass_root_darea_leaf: double
+    - area_sapwood_dt: double
+    - area_bark_dt: double
+    - area_stem_dt: double
+    - ddiameter_stem_darea_stem: double
+    - diameter_stem_dt: double
+    - mass_root_dt: double
+    - mass_live_dt: double
+    - mass_total_dt: double
+    - mass_above_ground_dt: double
 
 Plant:
   forward_declare: true
@@ -420,9 +420,9 @@ Plant:
     # Possibly these four should be read-only?
     mortality: {type: double, access: member, name_cpp_set: set_mortality}
     fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
-    heartwood_area: {type: double, access: member, name_cpp_set: set_heartwood_area}
-    heartwood_mass: {type: double, access: member, name_cpp_set: set_heartwood_mass}
-    leaf_area: {type: double, access: member}
+    area_heartwood: {type: double, access: member, name_cpp_set: set_area_heartwood}
+    mass_heartwood: {type: double, access: member, name_cpp_set: set_mass_heartwood}
+    area_leaf: {type: double, access: member}
     strategy: {type: "tree2::Strategy", access: member, name_cpp: r_get_strategy}
     internals: {type: "tree2::Plant_internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
@@ -430,7 +430,7 @@ Plant:
     ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
   methods:
-    leaf_area_above:
+    area_leaf_above:
       args: [h: double]
       return_type: double
     compute_vars_phys:
@@ -446,13 +446,13 @@ Plant2_internals:
   forward_declare: struct
   name_cpp: "tree2::Plant2_internals"
   list:
-    - leaf_area: double
+    - area_leaf: double
     - height: double
-    - height_rate: double
+    - height_dt: double
     - mortality: double
-    - mortality_rate: double
+    - mortality_dt: double
     - fecundity: double
-    - fecundity_rate: double
+    - reproduction_dt: double
 
 Plant2:
   forward_declare: true
@@ -474,7 +474,7 @@ Plant2:
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
     ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
   methods:
-    leaf_area_above:
+    area_leaf_above:
       args: [h: double]
       return_type: double
     compute_vars_phys:
@@ -494,13 +494,13 @@ Cohort:
   active:
     plant: {type: "tree2::Plant", access: field, readonly: true}
     height: {type: double, access: member}
-    leaf_area: {type: double, access: member}
+    area_leaf: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
     ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
   methods:
-    leaf_area_above:
+    area_leaf_above:
       return_type: double
       args: [height: double]
     growth_rate_gradient:
@@ -527,7 +527,7 @@ Species:
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     plants: {type: "std::vector<tree2::Cohort<tree2::Plant> >", access: member, name_cpp: r_plants}
     seeds: {type: "std::vector<double>", access: member}
-    leaf_areas: {type: "std::vector<double>", access: member, name_cpp: r_leaf_areas}
+    area_leafs: {type: "std::vector<double>", access: member, name_cpp: r_area_leafs}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
@@ -538,7 +538,7 @@ Species:
     compute_vars_phys:
       return_type: void
       args: [environment: "const tree2::Environment&"]
-    leaf_area_above:
+    area_leaf_above:
       return_type: double
       args: [height: double]
     add_seed:
@@ -547,10 +547,10 @@ Species:
       return_type: "tree2::Cohort<tree2::Plant>"
       args: [index: "tree2::util::index"]
       name_cpp: r_plant_at
-    leaf_areas_error:
+    area_leafs_error:
       return_type: "std::vector<double>"
       args: [scal: double=1]
-      name_cpp: r_leaf_areas_error
+      name_cpp: r_area_leafs_error
 
 Patch:
   forward_declare: false
@@ -570,7 +570,7 @@ Patch:
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state"}
     ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
   methods:
-    leaf_area_above: {return_type: double, args: [height: double]}
+    area_leaf_above: {return_type: double, args: [height: double]}
     canopy_openness: {return_type: double, args: [height: double]}
     add_seed:
       return_type: void
@@ -620,10 +620,10 @@ EBT:
       args: [species_index: "tree2::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_seed_rain_cohort
-    leaf_area_error:
+    area_leaf_error:
       args: [species_index: "tree2::util::index"]
       return_type: "std::vector<double>"
-      name_cpp: r_leaf_area_error
+      name_cpp: r_area_leaf_error
     set_cohort_schedule_times:
       args: [times: "std::vector<std::vector<double> >"]
       return_type: void

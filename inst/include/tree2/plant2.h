@@ -14,19 +14,19 @@ struct Plant2_internals {
   Plant2_internals()
     :
     height(NA_REAL),
-    height_rate(NA_REAL),
+    height_dt(NA_REAL),
     mortality(0.0),
-    mortality_rate(NA_REAL),
+    mortality_dt(NA_REAL),
     fecundity(0.0),
-    fecundity_rate(NA_REAL) {
+    reproduction_dt(NA_REAL) {
   }
   double height;
-  double leaf_area;
-  double height_rate;
+  double area_leaf;
+  double height_dt;
   double mortality;
-  double mortality_rate;
+  double mortality_dt;
   double fecundity;
-  double fecundity_rate;
+  double reproduction_dt;
 };
 
 class Plant2 {
@@ -39,22 +39,22 @@ public:
   }
 
   double height() const {return vars.height;}
-  double height_rate() const {return vars.height_rate;}
+  double height_dt() const {return vars.height_dt;}
   void set_height(double x) {
     vars.height    = x;
-    vars.leaf_area = strategy->leaf_area(x);
+    vars.area_leaf = strategy->area_leaf(x);
   }
 
   double mortality() const {return vars.mortality;}
-  double mortality_rate() const {return vars.mortality_rate;}
+  double mortality_dt() const {return vars.mortality_dt;}
   void set_mortality(double x) {vars.mortality = x;}
 
   double fecundity() const {return vars.fecundity;}
-  double fecundity_rate() const {return vars.fecundity_rate;}
+  double reproduction_dt() const {return vars.reproduction_dt;}
   void set_fecundity(double x) {vars.fecundity = x;}
 
-  double leaf_area_above(double z) const {
-    return strategy->leaf_area_above(z, vars.height, vars.leaf_area);
+  double area_leaf_above(double z) const {
+    return strategy->area_leaf_above(z, vars.height, vars.area_leaf);
   }
 
   void compute_vars_phys(const Environment& environment, bool

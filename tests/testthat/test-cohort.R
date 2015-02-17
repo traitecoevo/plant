@@ -21,7 +21,7 @@ test_that("Ported from tree1", {
   growth_rate_given_height <- function(height, plant, env) {
     plant$height <- height
     plant$compute_vars_phys(env)
-    plant$internals[["height_growth_rate"]]
+    plant$internals[["height_dt"]]
   }
   grad_forward <- function(f, x, dx, ...) {
     (f(x + dx, ...) - f(x, ...)) / dx
@@ -33,7 +33,7 @@ test_that("Ported from tree1", {
   ## First, a quick sanity check that our little function behaves as
   ## expected:
   expect_that(growth_rate_given_height(plant$height, p2, env),
-              equals(plant$internals[["height_growth_rate"]]))
+              equals(plant$internals[["height_dt"]]))
 
   ## With height:
   ctrl <- s$control
@@ -117,13 +117,13 @@ test_that("ODE interface", {
   pr_germ <- plant$germination_probability(env)
 
   y <- plant$ode_state
-  g <- plant$internals[["height_growth_rate"]]
+  g <- plant$internals[["height_dt"]]
 
   ## Ode *values*:
   cmp <- c(plant$height,
            -log(pr_germ),
            0.0, # fecundity
-           log(pr_germ * env$seed_rain_rate / g))
+           log(pr_germ * env$seed_rain_dt / g))
   expect_that(cohort$ode_state, equals(cmp))
 
   expect_that(cohort$fecundity, is_identical_to(0.0));
@@ -134,11 +134,11 @@ test_that("ODE interface", {
 
   rates <- plant$internals
 
-  cmp <- c(rates[["height_growth_rate"]],
-           rates[["mortality_rate"]],
+  cmp <- c(rates[["height_dt"]],
+           rates[["mortality_dt"]],
            ## This is different to the approach in tree1?
-           rates[["fecundity_rate"]] *
+           rates[["reproduction_dt"]] *
              patch_survival * exp(-cohort$plant$mortality),
-           -rates[["mortality_rate"]] - cohort$growth_rate_gradient(env))
+           -rates[["mortality_dt"]] - cohort$growth_rate_gradient(env))
   expect_that(cohort$ode_rates, equals(cmp))
 })

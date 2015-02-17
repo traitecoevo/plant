@@ -42,10 +42,10 @@ net.production <- function(traits, h, env) {
       turnover.given.height(traits, h)
 }
 
-fecundity.rate <- function(traits, h, env) {
+reproduction_dt <- function(traits, h, env) {
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
-  f <- r * p / (p.c_acc + traits$s)
+  f <- r * p / (p.c_acc + traits$mass_seed)
   f[p < 0] <- 0
   f
 }
@@ -78,7 +78,7 @@ root.per.leaf.area <- function(traits, h){
 }
 
 
-area.leaf.growth.rate <- function(traits, h, env) {
+area.leaf.growth.dt <- function(traits, h, env) {
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
   l <- leaf.area.deployment(traits, h)
@@ -88,7 +88,7 @@ area.leaf.growth.rate <- function(traits, h, env) {
 }
 
 ## Based on Daniel's code for computing dh/da.
-height.growth.rate <- function(traits, h, env) {
+height.growth.dt <- function(traits, h, env) {
   a <- LeafArea(h)
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
@@ -97,7 +97,7 @@ height.growth.rate <- function(traits, h, env) {
   g
 }
 
-dleaf_area_dt <- function(traits, h, env){
+area_leaf_dt <- function(traits, h, env){
   a <- LeafArea(h)
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
@@ -107,58 +107,58 @@ dleaf_area_dt <- function(traits, h, env){
 }
 
 ## sapwood area growth rate
-dsapwood_area_dt <- function(traits, h, env){
-  dleaf_area_dt(traits, h, env)/p.theta
+area_sapwood_dt <- function(traits, h, env){
+  area_leaf_dt(traits, h, env)/p.theta
 }
 
 ## bark area growth rate
-dbark_area_dt <- function(traits, h, env){
- p.b*dleaf_area_dt(traits, h, env)/p.theta
+area_bark_dt <- function(traits, h, env){
+ p.b*area_leaf_dt(traits, h, env)/p.theta
 }
 
 ## heartwood area growth rate
-dheartwood_area_dt <- function(traits, h, env){
+area_heartwood_dt <- function(traits, h, env){
   p.k_s*LeafArea(h)/p.theta
 }
 
 ## basal area growth rate
-dstem_area_dt <- function(traits, h, env){
-  dheartwood_area_dt(traits, h, env) + dsapwood_area_dt(traits, h, env) + dbark_area_dt(traits, h, env)
+area_stem_dt <- function(traits, h, env){
+  area_heartwood_dt(traits, h, env) + area_sapwood_dt(traits, h, env) + area_bark_dt(traits, h, env)
 }
 
-## change in basal stem_diameter per basal area
-dstem_diameter_dstem_area <- function(stem_area){
-  sqrt(pi/stem_area)
+## change in basal diameter_stem per basal area
+ddiameter_stem_darea_stem <- function(area_stem){
+  sqrt(pi/area_stem)
 }
 
 ## stem diameter growth rate
-dstem_diameter_dt <- function(traits, h, env){
- dstem_diameter_dstem_area(stem_area(h)) * dstem_area_dt(traits, h, env)
+diameter_stem_dt <- function(traits, h, env){
+ ddiameter_stem_darea_stem(area_stem(h)) * area_stem_dt(traits, h, env)
 }
 
 ## basal area
-stem_area <- function(h){
-  sapwood_area(h) + bark_area(h) + heartwood_area(h)
+area_stem <- function(h){
+  area_sapwood(h) + area_bark(h) + area_heartwood(h)
 }
 
 ## heartwood area
-heartwood_area <- function(h){
+area_heartwood <- function(h){
   0
 }
 
 ## sapwood area
-sapwood_area <- function(h){
+area_sapwood <- function(h){
   LeafArea(h) / p.theta
 }
 
 ## bark area
-bark_area <- function(h){
+area_bark <- function(h){
   p.b * LeafArea(h) / p.theta
 }
 
 ## Based on the above function, same algorithm as used in C++ version.
-height.growth.rate.via.area.leaf <- function(traits, h, env) {
-  daldt <- area.leaf.growth.rate(traits, h, env)
+height.growth.dt.via.area.leaf <- function(traits, h, env) {
+  daldt <- area.leaf.growth.dt(traits, h, env)
   a <- LeafArea(h)
   p.a1 * p.B1 * (a)^(p.B1 - 1) * daldt
 }
@@ -168,7 +168,7 @@ p.c_d2 <- 5.5
 p.c_d3 <- 20.0
 p.c_s0 <- 0.1
 
-mortality.rate <- function(traits, h, env) {
+mortality.dt <- function(traits, h, env) {
   p <- net.production(traits, h, env)
   a <- LeafArea(h)
   p.c_d0 +
@@ -182,7 +182,7 @@ height.at.birth <- function(traits) {
   hmin <- 1e-16
   hmax <- 1
   f <- function(h)
-    LiveMass(traits, LeafArea(h)) - traits$s
+    LiveMass(traits, LeafArea(h)) - traits$mass_seed
   uniroot(f, c(hmin, hmax))$root
 }
 

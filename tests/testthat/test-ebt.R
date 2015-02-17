@@ -263,8 +263,8 @@ test_that("", {
 ##   expect_that(ebt$seed_rain(2), throws_error())
 
 ##   lae.cmp <-
-##     ebt$patch$species[[1]]$leaf_area_error(ebt$patch$leaf_area_above(0))
-##   expect_that(ebt$leaf_area_error(1),
+##     ebt$patch$species[[1]]$area_leaf_error(ebt$patch$area_leaf_above(0))
+##   expect_that(ebt$area_leaf_error(1),
 ##               is_identical_to(lae.cmp))
 ## })
 

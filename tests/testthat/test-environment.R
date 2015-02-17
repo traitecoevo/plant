@@ -51,17 +51,17 @@ test_that("Disturbance related parameters", {
 
 test_that("Seed rain related parameters", {
   e <- Environment(Parameters())
-  expect_that(e$seed_rain_rate,
+  expect_that(e$seed_rain_dt,
               throws_error("Cannot get seed rain for empty environment"))
 
   x <- c(.1, .2)
   e <- test_environment(10, n_strategies=2, seed_rain=x)
 
-  expect_that(e$seed_rain_rate, is_identical_to(x[[1]]))
+  expect_that(e$seed_rain_dt, is_identical_to(x[[1]]))
   e$set_seed_rain_index(1)
-  expect_that(e$seed_rain_rate, is_identical_to(x[[1]]))
+  expect_that(e$seed_rain_dt, is_identical_to(x[[1]]))
   e$set_seed_rain_index(2)
-  expect_that(e$seed_rain_rate, is_identical_to(x[[2]]))
+  expect_that(e$seed_rain_dt, is_identical_to(x[[2]]))
   expect_that(e$set_seed_rain_index(0),
               throws_error("Invalid value for index"))
   expect_that(e$set_seed_rain_index(3),

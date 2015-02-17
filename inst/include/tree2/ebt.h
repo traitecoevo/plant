@@ -34,13 +34,13 @@ public:
   const patch_type&   r_patch() const {return patch;}
   // TODO: These are liable to change to return all species at once by
   // default.  The pluralisation difference between
-  // EBT::r_leaf_area_error and Species::r_leaf_areas_error will get
+  // EBT::r_area_leaf_error and Species::r_area_leafs_error will get
   // dealt with then.
   double              r_seed_rain(util::index species_index) const;
   std::vector<double> r_seed_rain_cohort(util::index species_index) const;
   std::vector<double> r_seed_rain_error(util::index species_index) const;
   std::vector<std::vector<double> > r_seed_rain_error() const;
-  std::vector<double> r_leaf_area_error(util::index species_index) const;
+  std::vector<double> r_area_leaf_error(util::index species_index) const;
   std::vector<double> r_ode_times() const;
   bool r_use_ode_times() const;
   void r_set_use_ode_times(bool x);
@@ -186,12 +186,12 @@ std::vector<std::vector<double> > EBT<T>::r_seed_rain_error() const {
 }
 
 template <typename T>
-std::vector<double> EBT<T>::r_leaf_area_error(util::index species_index) const {
+std::vector<double> EBT<T>::r_area_leaf_error(util::index species_index) const {
   // TODO: I think we need to scale this by total area; that should be
   // computed for everything so will get passed in as an argument.
-  // const double tot_leaf_area  = patch.leaf_area_above(0.0);
+  // const double tot_area_leaf  = patch.area_leaf_above(0.0);
   const size_t idx = species_index.check_bounds(patch.size());
-  return patch.r_leaf_area_error(idx);
+  return patch.r_area_leaf_error(idx);
 }
 
 template <typename T>

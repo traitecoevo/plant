@@ -6,6 +6,120 @@
 
 using namespace Rcpp;
 
+// test_adaptive_interpolator
+tree2::interpolator::Interpolator test_adaptive_interpolator(Rcpp::Function f, double a, double b);
+RcppExport SEXP tree2_test_adaptive_interpolator(SEXP fSEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP );
+        Rcpp::traits::input_parameter< double >::type a(aSEXP );
+        Rcpp::traits::input_parameter< double >::type b(bSEXP );
+        tree2::interpolator::Interpolator __result = test_adaptive_interpolator(f, a, b);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// cohort_schedule_times_default
+std::vector<double> cohort_schedule_times_default(double max_time);
+RcppExport SEXP tree2_cohort_schedule_times_default(SEXP max_timeSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< double >::type max_time(max_timeSEXP );
+        std::vector<double> __result = cohort_schedule_times_default(max_time);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// r_cohort_schedule_max_time_default
+double r_cohort_schedule_max_time_default(const tree2::Parameters& p);
+RcppExport SEXP tree2_r_cohort_schedule_max_time_default(SEXP pSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
+        double __result = r_cohort_schedule_max_time_default(p);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// r_cohort_schedule_default
+tree2::CohortSchedule r_cohort_schedule_default(const tree2::Parameters& p);
+RcppExport SEXP tree2_r_cohort_schedule_default(SEXP pSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
+        tree2::CohortSchedule __result = r_cohort_schedule_default(p);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// r_make_cohort_schedule
+tree2::CohortSchedule r_make_cohort_schedule(const tree2::Parameters& p);
+RcppExport SEXP tree2_r_make_cohort_schedule(SEXP pSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
+        tree2::CohortSchedule __result = r_make_cohort_schedule(p);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// test_gradient_fd1
+double test_gradient_fd1(Rcpp::Function f, double x, double dx, int direction, double fx = NA_REAL);
+RcppExport SEXP tree2_test_gradient_fd1(SEXP fSEXP, SEXP xSEXP, SEXP dxSEXP, SEXP directionSEXP, SEXP fxSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP );
+        Rcpp::traits::input_parameter< double >::type x(xSEXP );
+        Rcpp::traits::input_parameter< double >::type dx(dxSEXP );
+        Rcpp::traits::input_parameter< int >::type direction(directionSEXP );
+        Rcpp::traits::input_parameter< double >::type fx(fxSEXP );
+        double __result = test_gradient_fd1(f, x, dx, direction, fx);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
+// test_gradient_richardson
+double test_gradient_richardson(Rcpp::Function f, double x, double d, size_t r);
+RcppExport SEXP tree2_test_gradient_richardson(SEXP fSEXP, SEXP xSEXP, SEXP dSEXP, SEXP rSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP );
+        Rcpp::traits::input_parameter< double >::type x(xSEXP );
+        Rcpp::traits::input_parameter< double >::type d(dSEXP );
+        Rcpp::traits::input_parameter< size_t >::type r(rSEXP );
+        double __result = test_gradient_richardson(f, x, d, r);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // Lorenz__ctor
 tree2::ode::test::Lorenz Lorenz__ctor(double sigma, double R, double b);
 RcppExport SEXP tree2_Lorenz__ctor(SEXP sigmaSEXP, SEXP RSEXP, SEXP bSEXP) {
@@ -1647,15 +1761,15 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Environment__seed_rain_rate__get
-double Environment__seed_rain_rate__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_);
-RcppExport SEXP tree2_Environment__seed_rain_rate__get(SEXP obj_SEXP) {
+// Environment__seed_rain_dt__get
+double Environment__seed_rain_dt__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_);
+RcppExport SEXP tree2_Environment__seed_rain_dt__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Environment> >::type obj_(obj_SEXP );
-        double __result = Environment__seed_rain_rate__get(obj_);
+        double __result = Environment__seed_rain_dt__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -1775,16 +1889,16 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Plant__leaf_area_above
-double Plant__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double h);
-RcppExport SEXP tree2_Plant__leaf_area_above(SEXP obj_SEXP, SEXP hSEXP) {
+// Plant__area_leaf_above
+double Plant__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double h);
+RcppExport SEXP tree2_Plant__area_leaf_above(SEXP obj_SEXP, SEXP hSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type h(hSEXP );
-        double __result = Plant__leaf_area_above(obj_, h);
+        double __result = Plant__area_leaf_above(obj_, h);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -1916,71 +2030,71 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Plant__heartwood_area__get
-double Plant__heartwood_area__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
-RcppExport SEXP tree2_Plant__heartwood_area__get(SEXP obj_SEXP) {
+// Plant__area_heartwood__get
+double Plant__area_heartwood__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
+RcppExport SEXP tree2_Plant__area_heartwood__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
-        double __result = Plant__heartwood_area__get(obj_);
+        double __result = Plant__area_heartwood__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant__heartwood_area__set
-void Plant__heartwood_area__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value);
-RcppExport SEXP tree2_Plant__heartwood_area__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// Plant__area_heartwood__set
+void Plant__area_heartwood__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value);
+RcppExport SEXP tree2_Plant__area_heartwood__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type value(valueSEXP );
-        Plant__heartwood_area__set(obj_, value);
+        Plant__area_heartwood__set(obj_, value);
     }
     return R_NilValue;
 END_RCPP
 }
-// Plant__heartwood_mass__get
-double Plant__heartwood_mass__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
-RcppExport SEXP tree2_Plant__heartwood_mass__get(SEXP obj_SEXP) {
+// Plant__mass_heartwood__get
+double Plant__mass_heartwood__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
+RcppExport SEXP tree2_Plant__mass_heartwood__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
-        double __result = Plant__heartwood_mass__get(obj_);
+        double __result = Plant__mass_heartwood__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant__heartwood_mass__set
-void Plant__heartwood_mass__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value);
-RcppExport SEXP tree2_Plant__heartwood_mass__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// Plant__mass_heartwood__set
+void Plant__mass_heartwood__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value);
+RcppExport SEXP tree2_Plant__mass_heartwood__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type value(valueSEXP );
-        Plant__heartwood_mass__set(obj_, value);
+        Plant__mass_heartwood__set(obj_, value);
     }
     return R_NilValue;
 END_RCPP
 }
-// Plant__leaf_area__get
-double Plant__leaf_area__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
-RcppExport SEXP tree2_Plant__leaf_area__get(SEXP obj_SEXP) {
+// Plant__area_leaf__get
+double Plant__area_leaf__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
+RcppExport SEXP tree2_Plant__area_leaf__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
-        double __result = Plant__leaf_area__get(obj_);
+        double __result = Plant__area_leaf__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2119,16 +2233,16 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Plant2__leaf_area_above
-double Plant2__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double h);
-RcppExport SEXP tree2_Plant2__leaf_area_above(SEXP obj_SEXP, SEXP hSEXP) {
+// Plant2__area_leaf_above
+double Plant2__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double h);
+RcppExport SEXP tree2_Plant2__area_leaf_above(SEXP obj_SEXP, SEXP hSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type h(hSEXP );
-        double __result = Plant2__leaf_area_above(obj_, h);
+        double __result = Plant2__area_leaf_above(obj_, h);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2351,16 +2465,16 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Cohort__leaf_area_above
-double Cohort__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, double height);
-RcppExport SEXP tree2_Cohort__leaf_area_above(SEXP obj_SEXP, SEXP heightSEXP) {
+// Cohort__area_leaf_above
+double Cohort__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, double height);
+RcppExport SEXP tree2_Cohort__area_leaf_above(SEXP obj_SEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type height(heightSEXP );
-        double __result = Cohort__leaf_area_above(obj_, height);
+        double __result = Cohort__area_leaf_above(obj_, height);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2439,15 +2553,15 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Cohort__leaf_area__get
-double Cohort__leaf_area__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_);
-RcppExport SEXP tree2_Cohort__leaf_area__get(SEXP obj_SEXP) {
+// Cohort__area_leaf__get
+double Cohort__area_leaf__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_);
+RcppExport SEXP tree2_Cohort__area_leaf__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > >::type obj_(obj_SEXP );
-        double __result = Cohort__leaf_area__get(obj_);
+        double __result = Cohort__area_leaf__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2567,16 +2681,16 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Species__leaf_area_above
-double Species__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, double height);
-RcppExport SEXP tree2_Species__leaf_area_above(SEXP obj_SEXP, SEXP heightSEXP) {
+// Species__area_leaf_above
+double Species__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, double height);
+RcppExport SEXP tree2_Species__area_leaf_above(SEXP obj_SEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type height(heightSEXP );
-        double __result = Species__leaf_area_above(obj_, height);
+        double __result = Species__area_leaf_above(obj_, height);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2611,16 +2725,16 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Species__leaf_areas_error
-std::vector<double> Species__leaf_areas_error(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, double scal);
-RcppExport SEXP tree2_Species__leaf_areas_error(SEXP obj_SEXP, SEXP scalSEXP) {
+// Species__area_leafs_error
+std::vector<double> Species__area_leafs_error(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, double scal);
+RcppExport SEXP tree2_Species__area_leafs_error(SEXP obj_SEXP, SEXP scalSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type scal(scalSEXP );
-        std::vector<double> __result = Species__leaf_areas_error(obj_, scal);
+        std::vector<double> __result = Species__area_leafs_error(obj_, scal);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2730,15 +2844,15 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Species__leaf_areas__get
-std::vector<double> Species__leaf_areas__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_);
-RcppExport SEXP tree2_Species__leaf_areas__get(SEXP obj_SEXP) {
+// Species__area_leafs__get
+std::vector<double> Species__area_leafs__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_);
+RcppExport SEXP tree2_Species__area_leafs__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > >::type obj_(obj_SEXP );
-        std::vector<double> __result = Species__leaf_areas__get(obj_);
+        std::vector<double> __result = Species__area_leafs__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2818,16 +2932,16 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Patch__leaf_area_above
-double Patch__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, double height);
-RcppExport SEXP tree2_Patch__leaf_area_above(SEXP obj_SEXP, SEXP heightSEXP) {
+// Patch__area_leaf_above
+double Patch__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, double height);
+RcppExport SEXP tree2_Patch__area_leaf_above(SEXP obj_SEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type height(heightSEXP );
-        double __result = Patch__leaf_area_above(obj_, height);
+        double __result = Patch__area_leaf_above(obj_, height);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -3166,16 +3280,16 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// EBT__leaf_area_error
-std::vector<double> EBT__leaf_area_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index);
-RcppExport SEXP tree2_EBT__leaf_area_error(SEXP obj_SEXP, SEXP species_indexSEXP) {
+// EBT__area_leaf_error
+std::vector<double> EBT__area_leaf_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index);
+RcppExport SEXP tree2_EBT__area_leaf_error(SEXP obj_SEXP, SEXP species_indexSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< tree2::util::index >::type species_index(species_indexSEXP );
-        std::vector<double> __result = EBT__leaf_area_error(obj_, species_index);
+        std::vector<double> __result = EBT__area_leaf_error(obj_, species_index);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -3415,120 +3529,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// test_adaptive_interpolator
-tree2::interpolator::Interpolator test_adaptive_interpolator(Rcpp::Function f, double a, double b);
-RcppExport SEXP tree2_test_adaptive_interpolator(SEXP fSEXP, SEXP aSEXP, SEXP bSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP );
-        Rcpp::traits::input_parameter< double >::type a(aSEXP );
-        Rcpp::traits::input_parameter< double >::type b(bSEXP );
-        tree2::interpolator::Interpolator __result = test_adaptive_interpolator(f, a, b);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// cohort_schedule_times_default
-std::vector<double> cohort_schedule_times_default(double max_time);
-RcppExport SEXP tree2_cohort_schedule_times_default(SEXP max_timeSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< double >::type max_time(max_timeSEXP );
-        std::vector<double> __result = cohort_schedule_times_default(max_time);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// r_cohort_schedule_max_time_default
-double r_cohort_schedule_max_time_default(const tree2::Parameters& p);
-RcppExport SEXP tree2_r_cohort_schedule_max_time_default(SEXP pSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
-        double __result = r_cohort_schedule_max_time_default(p);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// r_cohort_schedule_default
-tree2::CohortSchedule r_cohort_schedule_default(const tree2::Parameters& p);
-RcppExport SEXP tree2_r_cohort_schedule_default(SEXP pSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
-        tree2::CohortSchedule __result = r_cohort_schedule_default(p);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// r_make_cohort_schedule
-tree2::CohortSchedule r_make_cohort_schedule(const tree2::Parameters& p);
-RcppExport SEXP tree2_r_make_cohort_schedule(SEXP pSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< const tree2::Parameters& >::type p(pSEXP );
-        tree2::CohortSchedule __result = r_make_cohort_schedule(p);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// test_gradient_fd1
-double test_gradient_fd1(Rcpp::Function f, double x, double dx, int direction, double fx = NA_REAL);
-RcppExport SEXP tree2_test_gradient_fd1(SEXP fSEXP, SEXP xSEXP, SEXP dxSEXP, SEXP directionSEXP, SEXP fxSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP );
-        Rcpp::traits::input_parameter< double >::type x(xSEXP );
-        Rcpp::traits::input_parameter< double >::type dx(dxSEXP );
-        Rcpp::traits::input_parameter< int >::type direction(directionSEXP );
-        Rcpp::traits::input_parameter< double >::type fx(fxSEXP );
-        double __result = test_gradient_fd1(f, x, dx, direction, fx);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// test_gradient_richardson
-double test_gradient_richardson(Rcpp::Function f, double x, double d, size_t r);
-RcppExport SEXP tree2_test_gradient_richardson(SEXP fSEXP, SEXP xSEXP, SEXP dSEXP, SEXP rSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP );
-        Rcpp::traits::input_parameter< double >::type x(xSEXP );
-        Rcpp::traits::input_parameter< double >::type d(dSEXP );
-        Rcpp::traits::input_parameter< size_t >::type r(rSEXP );
-        double __result = test_gradient_richardson(f, x, d, r);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
 // oderunner_plant_size
 tree2::Plant_internals oderunner_plant_size(const tree2::ode::Runner<tree2::tools::PlantRunner>& obj);
 RcppExport SEXP tree2_oderunner_plant_size(SEXP objSEXP) {
@@ -3592,6 +3592,21 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// matrix_to_list
+Rcpp::List matrix_to_list(Rcpp::NumericMatrix x);
+RcppExport SEXP tree2_matrix_to_list(SEXP xSEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type x(xSEXP );
+        Rcpp::List __result = matrix_to_list(x);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // trapezium
 double trapezium(const std::vector<double>& x, const std::vector<double>& y);
 RcppExport SEXP tree2_trapezium(SEXP xSEXP, SEXP ySEXP) {
@@ -3635,21 +3650,6 @@ BEGIN_RCPP
         Rcpp::traits::input_parameter< const std::vector<double>& >::type y(ySEXP );
         Rcpp::traits::input_parameter< double >::type scal(scalSEXP );
         std::vector<double> __result = local_error_integration(x, y, scal);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}
-// matrix_to_list
-Rcpp::List matrix_to_list(Rcpp::NumericMatrix x);
-RcppExport SEXP tree2_matrix_to_list(SEXP xSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type x(xSEXP );
-        Rcpp::List __result = matrix_to_list(x);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

@@ -516,8 +516,8 @@ double Environment__patch_survival__get(tree2::RcppR6::RcppR6<tree2::Environment
 }
 
 // [[Rcpp::export]]
-double Environment__seed_rain_rate__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
-  return obj_->seed_rain_rate();
+double Environment__seed_rain_dt__get(tree2::RcppR6::RcppR6<tree2::Environment> obj_) {
+  return obj_->seed_rain_dt();
 }
 
 // [[Rcpp::export]]
@@ -559,8 +559,8 @@ tree2::Plant Plant__ctor(tree2::Strategy strategy) {
   return tree2::make_plant(strategy);
 }
 // [[Rcpp::export]]
-double Plant__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double h) {
-  return obj_->leaf_area_above(h);
+double Plant__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double h) {
+  return obj_->area_leaf_above(h);
 }
 // [[Rcpp::export]]
 void Plant__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment) {
@@ -602,26 +602,26 @@ void Plant__fecundity__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double valu
 }
 
 // [[Rcpp::export]]
-double Plant__heartwood_area__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
-  return obj_->heartwood_area();
+double Plant__area_heartwood__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->area_heartwood();
 }
 // [[Rcpp::export]]
-void Plant__heartwood_area__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
-  obj_->set_heartwood_area(value);
-}
-
-// [[Rcpp::export]]
-double Plant__heartwood_mass__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
-  return obj_->heartwood_mass();
-}
-// [[Rcpp::export]]
-void Plant__heartwood_mass__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
-  obj_->set_heartwood_mass(value);
+void Plant__area_heartwood__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+  obj_->set_area_heartwood(value);
 }
 
 // [[Rcpp::export]]
-double Plant__leaf_area__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
-  return obj_->leaf_area();
+double Plant__mass_heartwood__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->mass_heartwood();
+}
+// [[Rcpp::export]]
+void Plant__mass_heartwood__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+  obj_->set_mass_heartwood(value);
+}
+
+// [[Rcpp::export]]
+double Plant__area_leaf__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+  return obj_->area_leaf();
 }
 
 // [[Rcpp::export]]
@@ -670,8 +670,8 @@ tree2::Plant2 Plant2__ctor(tree2::Strategy strategy) {
   return tree2::make_plant2(strategy);
 }
 // [[Rcpp::export]]
-double Plant2__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double h) {
-  return obj_->leaf_area_above(h);
+double Plant2__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double h) {
+  return obj_->area_leaf_above(h);
 }
 // [[Rcpp::export]]
 void Plant2__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, const tree2::Environment& environment) {
@@ -743,8 +743,8 @@ tree2::Cohort<tree2::Plant> Cohort__ctor(tree2::Strategy strategy) {
   return tree2::make_cohort<tree2::Plant>(strategy);
 }
 // [[Rcpp::export]]
-double Cohort__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, double height) {
-  return obj_->leaf_area_above(height);
+double Cohort__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, double height) {
+  return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
 double Cohort__growth_rate_gradient(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_, const tree2::Environment& environment) {
@@ -769,8 +769,8 @@ double Cohort__height__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > o
 }
 
 // [[Rcpp::export]]
-double Cohort__leaf_area__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
-  return obj_->leaf_area();
+double Cohort__area_leaf__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> > obj_) {
+  return obj_->area_leaf();
 }
 
 // [[Rcpp::export]]
@@ -811,8 +811,8 @@ void Species__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Species<tree2::Coho
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-double Species__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, double height) {
-  return obj_->leaf_area_above(height);
+double Species__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, double height) {
+  return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
 void Species__add_seed(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
@@ -823,8 +823,8 @@ tree2::Cohort<tree2::Plant> Species__plant_at(tree2::RcppR6::RcppR6<tree2::Speci
   return obj_->r_plant_at(index);
 }
 // [[Rcpp::export]]
-std::vector<double> Species__leaf_areas_error(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, double scal) {
-  return obj_->r_leaf_areas_error(scal);
+std::vector<double> Species__area_leafs_error(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_, double scal) {
+  return obj_->r_area_leafs_error(scal);
 }
 // [[Rcpp::export]]
 size_t Species__size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
@@ -861,8 +861,8 @@ std::vector<double> Species__seeds__get(tree2::RcppR6::RcppR6<tree2::Species<tre
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species__leaf_areas__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
-  return obj_->r_leaf_areas();
+std::vector<double> Species__area_leafs__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > > obj_) {
+  return obj_->r_area_leafs();
 }
 
 // [[Rcpp::export]]
@@ -890,8 +890,8 @@ tree2::Patch<tree2::Cohort<tree2::Plant> > Patch__ctor(tree2::Parameters paramet
   return tree2::Patch<tree2::Cohort<tree2::Plant> >(parameters);
 }
 // [[Rcpp::export]]
-double Patch__leaf_area_above(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, double height) {
-  return obj_->leaf_area_above(height);
+double Patch__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, double height) {
+  return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
 double Patch__canopy_openness(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > > obj_, double height) {
@@ -997,8 +997,8 @@ std::vector<double> EBT__seed_rain_cohort(tree2::RcppR6::RcppR6<tree2::EBT<tree2
   return obj_->r_seed_rain_cohort(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT__leaf_area_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index) {
-  return obj_->r_leaf_area_error(species_index);
+std::vector<double> EBT__area_leaf_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, tree2::util::index species_index) {
+  return obj_->r_area_leaf_error(species_index);
 }
 // [[Rcpp::export]]
 void EBT__set_cohort_schedule_times(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> > obj_, std::vector<std::vector<double> > times) {

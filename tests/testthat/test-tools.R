@@ -14,7 +14,7 @@ test_that("lcp_whole_plant", {
     target <- function(canopy_openness) {
       env <- fixed_environment(canopy_openness)
       plant$compute_vars_phys(env)
-      plant$internals[["net_mass_production"]]
+      plant$internals[["net_mass_production_dt"]]
     }
 
     f1 <- target(1)

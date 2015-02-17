@@ -19,7 +19,7 @@ test_that("Reference comparison", {
 
   expect_that(p1$height, is_identical_to(p2$height))
   expect_that(vars2[["height"]], is_identical_to(vars1[["height"]]))
-  expect_that(vars2[["leaf_area"]], is_identical_to(vars1[["leaf_area"]]))
+  expect_that(vars2[["area_leaf"]], is_identical_to(vars1[["area_leaf"]]))
 
   env <- test_environment(h0)
   light_env <- attr(env, "light_env") # underlying function
@@ -31,10 +31,10 @@ test_that("Reference comparison", {
   vars1 <- p1$internals
   vars2 <- p2$internals
 
-  expect_that(vars1[["fecundity_rate"]],
-              equals(vars2[["fecundity_rate"]], tolerance=1e-7))
-  expect_that(vars1[["height_growth_rate"]],
-              equals(vars2[["height_rate"]], tolerance=1e-7))
-  expect_that(vars1[["mortality_rate"]],
-              equals(vars2[["mortality_rate"]], tolerance=1e-7))
+  expect_that(vars1[["reproduction_dt"]],
+              equals(vars2[["reproduction_dt"]], tolerance=1e-7))
+  expect_that(vars1[["height_dt"]],
+              equals(vars2[["height_dt"]], tolerance=1e-7))
+  expect_that(vars1[["mortality_dt"]],
+              equals(vars2[["mortality_dt"]], tolerance=1e-7))
 })

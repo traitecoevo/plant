@@ -27,7 +27,7 @@ test_that("Basics", {
 
   ## Empty light environment:
   patch$compute_light_environment()
-  expect_that(patch$leaf_area_above(0), is_identical_to(0))
+  expect_that(patch$area_leaf_above(0), is_identical_to(0))
 
   expect_that(patch$add_seed(0), throws_error("Invalid value"))
   expect_that(patch$add_seed(2), throws_error("out of bounds"))

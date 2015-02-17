@@ -29,7 +29,7 @@ public:
   void add_seed();
 
   double height_max() const;
-  double leaf_area_above(double height) const;
+  double area_leaf_above(double height) const;
   void compute_vars_phys(const Environment& environment);
   std::vector<double> seeds() const;
 
@@ -52,8 +52,8 @@ public:
   }
 
   // These are used to determine the degree of cohort refinement.
-  std::vector<double> r_leaf_areas() const;
-  std::vector<double> r_leaf_areas_error(double scal) const;
+  std::vector<double> r_area_leafs() const;
+  std::vector<double> r_area_leafs_error(double scal) const;
 
 private:
   const Control& control() const {return strategy->get_control();}
@@ -105,7 +105,7 @@ double Species<T>::height_max() const {
 // the list.
 //
 // NOTE: This is simply performing numerical integration, via the
-// trapezium rule, of the leaf_area_above with respect to plant
+// trapezium rule, of the area_leaf_above with respect to plant
 // height.  You'd think that this would be nicer to do in terms of a
 // call to an external trapezium integration function, but building
 // and discarding the intermediate storage ends up being a nontrivial
@@ -125,16 +125,16 @@ double Species<T>::height_max() const {
 // also needed if the last looked at plant was still contributing to
 // the integral).
 template <typename T>
-double Species<T>::leaf_area_above(double height) const {
+double Species<T>::area_leaf_above(double height) const {
   if (size() == 0 || height_max() < height) {
     return 0.0;
   }
   double tot = 0.0;
   plants_const_iterator it = plants.begin();
-  double h1 = it->height(), f_h1 = it->leaf_area_above(height);
+  double h1 = it->height(), f_h1 = it->area_leaf_above(height);
 
   for (++it; it != plants.end(); ++it) {
-    const double h0 = it->height(), f_h0 = it->leaf_area_above(height);
+    const double h0 = it->height(), f_h0 = it->area_leaf_above(height);
     if (!util::is_finite(f_h0)) {
       Rcpp::stop("Detected non-finite contribution");
     }
@@ -148,7 +148,7 @@ double Species<T>::leaf_area_above(double height) const {
   }
 
   if (size() == 1 || f_h1 > 0) {
-    const double h0 = seed.height(), f_h0 = seed.leaf_area_above(height);
+    const double h0 = seed.height(), f_h0 = seed.area_leaf_above(height);
     tot += (h1 - h0) * (f_h1 + f_h0);
   }
 
@@ -220,18 +220,18 @@ void Species<T>::r_set_heights(std::vector<double> heights) {
 }
 
 template <typename T>
-std::vector<double> Species<T>::r_leaf_areas() const {
+std::vector<double> Species<T>::r_area_leafs() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& p : plants) {
-    ret.push_back(p.leaf_area());
+    ret.push_back(p.area_leaf());
   }
   return ret;
 }
 
 template <typename T>
-std::vector<double> Species<T>::r_leaf_areas_error(double scal) const {
-  return util::local_error_integration(r_heights(), r_leaf_areas(), scal);
+std::vector<double> Species<T>::r_area_leafs_error(double scal) const {
+  return util::local_error_integration(r_heights(), r_area_leafs(), scal);
 }
 
 }

@@ -30,7 +30,7 @@ test_that("Defaults", {
     lma    = 0.1978791,
     n_area = 0.00187,
     rho    = 608,
-    s      = 3.8e-5,
+    mass_seed = 3.8e-5,
     theta  = 4669,
     control = Control())
 

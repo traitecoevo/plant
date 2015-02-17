@@ -17,41 +17,41 @@ public:
 
   // * Size
 
-  // [eqn 2] leaf_area (inverse of [eqn 3])
-  double leaf_area(double height) const;
+  // [eqn 2] area_leaf (inverse of [eqn 3])
+  double area_leaf(double height) const;
 
-  // [eqn 1] leaf_mass (inverse of [eqn 2])
-  double leaf_mass(double leaf_area) const;
+  // [eqn 1] mass_leaf (inverse of [eqn 2])
+  double mass_leaf(double area_leaf) const;
 
   // [eqn 4] area and mass of sapwood
-  double sapwood_area(double leaf_area) const;
-  double sapwood_mass(double sapwood_area, double height) const;
+  double area_sapwood(double area_leaf) const;
+  double mass_sapwood(double area_sapwood, double height) const;
 
   // [eqn 5] area and mass of bark
-  double bark_area(double leaf_area) const;
-  double bark_mass (double bark_area, double height) const;
+  double area_bark(double area_leaf) const;
+  double mass_bark (double area_bark, double height) const;
 
-  double stem_area(double bark_area, double sapwood_area,
-                            double heartwood_area) const;
-  double stem_diameter(double stem_area) const;
+  double area_stem(double area_bark, double area_sapwood,
+                            double area_heartwood) const;
+  double diameter_stem(double area_stem) const;
 
   // [eqn 7] Mass of (fine) roots
-  double root_mass(double leaf_area) const;
+  double mass_root(double area_leaf) const;
 
   // [eqn 8] Total Mass
-  double live_mass(double leaf_mass, double bark_mass,
-                   double sapwood_mass, double root_mass) const;
+  double mass_live(double mass_leaf, double mass_bark,
+                   double mass_sapwood, double mass_root) const;
 
-  double total_mass(double leaf_mass, double bark_mass, double sapwood_mass,
-                    double heartwood_mass, double root_mass) const;
+  double mass_total(double mass_leaf, double mass_bark, double mass_sapwood,
+                    double mass_heartwood, double mass_root) const;
 
-  double above_ground_mass(double leaf_mass, double bark_mass,
-                           double sapwood_mass, double root_mass) const;
+  double mass_above_ground(double mass_leaf, double mass_bark,
+                           double mass_sapwood, double mass_root) const;
 
    // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
   double assimilation(const Environment& environment, double height,
-                      double leaf_area, bool reuse_intervals);
+                      double area_leaf, bool reuse_intervals);
   // Used internally, corresponding to the inner term in [eqn 12]
   double compute_assimilation_x(double x, double height,
                                 const Environment& environment) const;
@@ -65,8 +65,8 @@ public:
 
 
   // [eqn 13] Total maintenance respiration
-  double respiration(double leaf_mass, double sapwood_mass,
-                     double bark_mass, double root_mass) const;
+  double respiration(double mass_leaf, double mass_sapwood,
+                     double mass_bark, double mass_root) const;
 
   double respiration_leaf(double mass) const;
   double respiration_bark(double mass) const;
@@ -74,66 +74,66 @@ public:
   double respiration_root(double mass) const;
 
   // [eqn 14] Total turnover
-  double turnover(double leaf_mass, double bark_mass,
-                  double sapwood_mass, double root_mass) const;
+  double turnover(double mass_leaf, double mass_bark,
+                  double mass_sapwood, double mass_root) const;
   double turnover_leaf(double mass) const;
   double turnover_bark(double mass) const;
   double turnover_sapwood(double mass) const;
   double turnover_root(double mass) const;
 
   // [eqn 15] Net production
-  double net_mass_production(double assimilation, double respiration,
+  double net_mass_production_dt(double assimilation, double respiration,
                         double turnover) const;
-  double net_mass_production(const Environment& environment,
-                        double height, double leaf_area,
+  double net_mass_production_dt(const Environment& environment,
+                        double height, double area_leaf,
                         bool reuse_intervals=false);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
-  double reproduction_mass_fraction(double height) const;
-  double growth_mass_fraction(double height) const;
+  double fraction_allocation_reproduction(double height) const;
+  double fraction_allocation_growth(double height) const;
   // [eqn 17] Rate of offspring production
-  double dfecundity_dt(double net_mass_production,
-                       double reproduction_mass_fraction) const;
+  double reproduction_dt(double net_mass_production_dt,
+                       double fraction_allocation_reproduction) const;
 
   // [eqn 18] Fraction of mass growth that is leaves
-  double leaf_area_deployment_mass(double leaf_area) const;
+  double darea_leaf_dmass_live(double area_leaf) const;
 
   // change in height per change in leaf area
-  double dheight_dleaf_area(double leaf_area) const;
+  double dheight_darea_leaf(double area_leaf) const;
+  // Mass of leaf needed for new unit area leaf, d m_s / d a_l
+  double dmass_leaf_darea_leaf(double area_leaf) const;
   // Mass of stem needed for new unit area leaf, d m_s / d a_l
-  double dsapwood_mass_dleaf_area(double leaf_area) const;
+  double dmass_sapwood_darea_leaf(double area_leaf) const;
   // Mass of bark needed for new unit area leaf, d m_b / d a_l
-  double dbark_mass_dleaf_area(double leaf_area) const;
+  double dmass_bark_darea_leaf(double area_leaf) const;
   // Mass of root needed for new unit area leaf, d m_r / d a_l
-  double droot_mass_dleaf_area(double leaf_area) const;
-  // Growth rate of basal stem_diameter per unit basal area
-  double dstem_diameter_dstem_area(double bark_area, double sapwood_area,
-                            double heartwood_area) const;
+  double dmass_root_darea_leaf(double area_leaf) const;
+  // Growth rate of basal diameter_stem per unit stem area
+  double ddiameter_stem_darea_stem(double area_stem) const;
   // Growth rate of components per unit time:
-  double dleaf_area_dt(double leaf_area_growth_rate) const;
-  double dsapwood_area_dt(double leaf_area_growth_rate) const;
-  double dheartwood_area_dt(double leaf_area) const;
-  double dbark_area_dt(double leaf_area_growth_rate) const;
-  double dstem_area_dt(double leaf_area, double leaf_area_growth_rate) const;
-  double dstem_diameter_dt(double leaf_area, double bark_area, double sapwood_area,
-                        double heartwood_area, double leaf_area_growth_rate) const;
-  double droot_mass_dt(double leaf_area,
-                       double leaf_area_growth_rate) const;
-  double dlive_mass_dt(double reproduction_mass_fraction,
-                       double net_mass_production) const;
-  double dtotal_mass_dt(double reproduction_mass_fraction,
-                        double net_mass_production,
-                        double dheartwood_mass_dt) const;
-  double dabove_ground_mass_dt(double leaf_area,
-                               double reproduction_mass_fraction,
-                               double net_mass_production,
-                               double dheartwood_mass_dt,
-                               double leaf_area_growth_rate) const;
+  double area_leaf_dt(double area_leaf_dt) const;
+  double area_sapwood_dt(double area_leaf_dt) const;
+  double area_heartwood_dt(double area_leaf) const;
+  double area_bark_dt(double area_leaf_dt) const;
+  double area_stem_dt(double area_leaf, double area_leaf_dt) const;
+  double diameter_stem_dt(double area_stem, double area_stem_dt) const;
+  double mass_root_dt(double area_leaf,
+                       double area_leaf_dt) const;
+  double mass_live_dt(double fraction_allocation_reproduction,
+                       double net_mass_production_dt) const;
+  double mass_total_dt(double fraction_allocation_reproduction,
+                        double net_mass_production_dt,
+                        double mass_heartwood_dt) const;
+  double mass_above_ground_dt(double area_leaf,
+                               double fraction_allocation_reproduction,
+                               double net_mass_production_dt,
+                               double mass_heartwood_dt,
+                               double area_leaf_dt) const;
 
-  double dheartwood_mass_dt(double sapwood_mass) const;
+  double mass_heartwood_dt(double mass_sapwood) const;
 
-  double live_mass_given_height(double height) const;
-  double height_given_leaf_mass(double leaf_mass_) const;
+  double mass_live_given_height(double height) const;
+  double height_given_mass_leaf(double mass_leaf_) const;
 
 
   double mortality_dt(double productivity_area) const;
@@ -145,7 +145,7 @@ public:
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
-  double leaf_area_above(double z, double height, double leaf_area) const;
+  double area_leaf_above(double z, double height, double area_leaf) const;
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
@@ -168,7 +168,7 @@ public:
   // that into Control or Environment instead.
 
   // * Core traits
-  double lma, rho, hmat, s, n_area;
+  double lma, rho, hmat, mass_seed, n_area;
   // * Individual allometry
   // Canopy shape parameters
   double eta, eta_c;
@@ -210,7 +210,7 @@ public:
 
   // Height and leaf area of a (germinated) seed
   double height_0;
-  double leaf_area_0;
+  double area_leaf_0;
 };
 
 Strategy::ptr make_strategy_ptr(Strategy s);

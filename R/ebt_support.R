@@ -124,7 +124,7 @@ run_ebt_error <- function(p) {
     added <- ebt$run_next()
     for (idx in added) {
       lai_error[[idx]] <-
-        c(lai_error[[idx]], list(ebt$leaf_area_error(idx)))
+        c(lai_error[[idx]], list(ebt$area_leaf_error(idx)))
     }
   }
 

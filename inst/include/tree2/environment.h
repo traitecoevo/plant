@@ -25,7 +25,7 @@ public:
   void clear();
 
   // NOTE: Interface here will change
-  double seed_rain_rate() const;
+  double seed_rain_dt() const;
   void set_seed_rain_index(size_t x);
 
   // * R interface

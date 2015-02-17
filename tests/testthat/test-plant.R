@@ -15,53 +15,53 @@ test_that("Reference comparison", {
 
   expect_that(vars[["height"]],
               is_identical_to(h0))
-  expect_that(vars[["leaf_area"]],
+  expect_that(vars[["area_leaf"]],
               equals(cmp$LeafArea(h0)))
-  expect_that(vars[["leaf_mass"]],
+  expect_that(vars[["mass_leaf"]],
               equals(cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0))))
-  expect_that(vars[["sapwood_mass"]],
+  expect_that(vars[["mass_sapwood"]],
               equals(cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
-  expect_that(vars[["bark_mass"]],
+  expect_that(vars[["mass_bark"]],
               equals(cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0)))
-  expect_that(vars[["root_mass"]],
+  expect_that(vars[["mass_root"]],
               equals(cmp$RootMass(cmp$LeafArea(h0))))
-  expect_that(vars[["live_mass"]],
+  expect_that(vars[["mass_live"]],
               equals(cmp$LiveMass(cmp$traits, cmp$LeafArea(h0))))
-  expect_that(vars[["bark_area"]],
-              equals(cmp$bark_area(h0)))
-  expect_that(vars[["sapwood_area"]],
-              equals(cmp$sapwood_area(h0)))
-  expect_that(vars[["stem_area"]],
-              equals(cmp$stem_area(h0)))
+  expect_that(vars[["area_bark"]],
+              equals(cmp$area_bark(h0)))
+  expect_that(vars[["area_sapwood"]],
+              equals(cmp$area_sapwood(h0)))
+  expect_that(vars[["area_stem"]],
+              equals(cmp$area_stem(h0)))
 
   expect_that(p$height,    is_identical_to(vars[["height"]]))
-  expect_that(p$leaf_area, is_identical_to(vars[["leaf_area"]]))
+  expect_that(p$area_leaf, is_identical_to(vars[["area_leaf"]]))
 
   ## Heartwood function
   ## TODO: Check with Daniel here -- might need updating.
   ## Expect zero unless it has been set otherwise
-  expect_that(vars[["heartwood_area"]],
+  expect_that(vars[["area_heartwood"]],
               is_identical_to(0.0))
   HA0 <- 1e-3
-  p$heartwood_area <- HA0
+  p$area_heartwood <- HA0
   ## TODO: This is due to issues with how we think about size; see notes
-  ## in plant.cpp around set_height and set_heartwood_mass.  Note that
+  ## in plant.cpp around set_height and set_mass_heartwood.  Note that
   ## when running as an ODE, this gives the *wrong answer*.
   h <- p$height
   p$height <- h + .1 # trick plant into recomputing all size variables
   p$height <- h
   vars <- p$internals
-  expect_that(vars[["heartwood_area"]],
+  expect_that(vars[["area_heartwood"]],
               is_identical_to(HA0))
-  expect_that(vars[["stem_area"]],
-              equals(cmp$stem_area(h0) + HA0))
+  expect_that(vars[["area_stem"]],
+              equals(cmp$area_stem(h0) + HA0))
   # set heartwood back at zero for subsequent tests
-  p$heartwood_area <- 0
+  p$area_heartwood <- 0
 
   env <- test_environment(h0)
   light_env <- attr(env, "light_env") # underlying function
 
-  ## The R model computes A_lf * leaf_area * Y * c_bio, wheras we just
+  ## The R model computes A_lf * area_leaf * Y * c_bio, wheras we just
   ## compute A_lf; will have to correct some numbers.
   cmp_const <- s$Y * s$c_bio
 
@@ -89,98 +89,98 @@ test_that("Reference comparison", {
               equals(cmp_turnover))
 
   ## 4. Net production:
-  cmp_net_mass_production <- cmp$net.production(cmp$traits, h0, light_env)
-  expect_that(vars[["net_mass_production"]],
-              equals(cmp_net_mass_production, tolerance=1e-7))
+  cmp_net_mass_production_dt <- cmp$net.production(cmp$traits, h0, light_env)
+  expect_that(vars[["net_mass_production_dt"]],
+              equals(cmp_net_mass_production_dt, tolerance=1e-7))
 
   ## 5. Reproduction fraction
-  cmp_reproduction_mass_fraction <-
+  cmp_fraction_allocation_reproduction <-
     cmp$ReproductiveAllocation(cmp$traits$hmat,h0)
-  expect_that(vars[["reproduction_mass_fraction"]],
-              equals(cmp_reproduction_mass_fraction))
+  expect_that(vars[["fraction_allocation_reproduction"]],
+              equals(cmp_fraction_allocation_reproduction))
 
   ## 6. Fecundity rate
-  cmp_fecundity_rate <- cmp$fecundity.rate(cmp$traits, h0, light_env)
-  expect_that(vars[["fecundity_rate"]],
-              equals(cmp_fecundity_rate, tolerance=1e-7))
+  cmp_reproduction_dt <- cmp$reproduction_dt(cmp$traits, h0, light_env)
+  expect_that(vars[["reproduction_dt"]],
+              equals(cmp_reproduction_dt, tolerance=1e-7))
 
   ## 8. Growth rate for height
-  cmp_height_growth_rate <- cmp$height.growth.rate(cmp$traits, h0, light_env)
-  expect_that(vars[["height_growth_rate"]],
-              equals(cmp_height_growth_rate, tolerance=1e-7))
+  cmp_height_dt <- cmp$height.growth.dt(cmp$traits, h0, light_env)
+  expect_that(vars[["height_dt"]],
+              equals(cmp_height_dt, tolerance=1e-7))
 
-  cmp_height_growth_rate <-
-    cmp$height.growth.rate.via.area.leaf(cmp$traits, h0, light_env)
-  expect_that(vars[["height_growth_rate"]],
-              equals(cmp_height_growth_rate, tolerance=1e-7))
+  cmp_height_dt <-
+    cmp$height.growth.dt.via.area.leaf(cmp$traits, h0, light_env)
+  expect_that(vars[["height_dt"]],
+              equals(cmp_height_dt, tolerance=1e-7))
 
   ## 9. Mortality rate
-  cmp_mortality_rate <- cmp$mortality.rate(cmp$traits, h0, light_env)
-  expect_that(vars[["mortality_rate"]],
-              equals(cmp_mortality_rate))
+  cmp_mortality_dt <- cmp$mortality.dt(cmp$traits, h0, light_env)
+  expect_that(vars[["mortality_dt"]],
+              equals(cmp_mortality_dt))
 
   ## 10. Archietcural layout
-  cmp_dheight_dleaf_area <- cmp$dHdA(cmp$LeafArea(h0))
-  expect_that(vars[["dheight_dleaf_area"]],
-              equals(cmp_dheight_dleaf_area))
+  cmp_dheight_darea_leaf <- cmp$dHdA(cmp$LeafArea(h0))
+  expect_that(vars[["dheight_darea_leaf"]],
+              equals(cmp_dheight_darea_leaf))
 
   ## 11. Sapwood mass per leaf mass
-  cmp_dsapwood_mass_dleaf_area<- cmp$sapwood.per.leaf.area(cmp$traits, h0)
-  expect_that(vars[["dsapwood_mass_dleaf_area"]],
-              equals(cmp_dsapwood_mass_dleaf_area))
+  cmp_dmass_sapwood_darea_leaf<- cmp$sapwood.per.leaf.area(cmp$traits, h0)
+  expect_that(vars[["dmass_sapwood_darea_leaf"]],
+              equals(cmp_dmass_sapwood_darea_leaf))
 
   ## 12. Bark mass per leaf mass
-  cmp_dbark_mass_dleaf_area <- cmp$bark.per.leaf.area(cmp$traits, h0)
-  expect_that(vars[["dbark_mass_dleaf_area"]],
-              equals(cmp_dbark_mass_dleaf_area))
+  cmp_dmass_bark_darea_leaf <- cmp$bark.per.leaf.area(cmp$traits, h0)
+  expect_that(vars[["dmass_bark_darea_leaf"]],
+              equals(cmp_dmass_bark_darea_leaf))
 
   ## 12. Root mass per leaf mass
-  cmp_droot_mass_dleaf_area <- cmp$root.per.leaf.area(cmp$traits, h0)
-  expect_that(vars[["droot_mass_dleaf_area"]],
-              equals(cmp_droot_mass_dleaf_area))
+  cmp_dmass_root_darea_leaf <- cmp$root.per.leaf.area(cmp$traits, h0)
+  expect_that(vars[["dmass_root_darea_leaf"]],
+              equals(cmp_dmass_root_darea_leaf))
 
   ## 13. Leaf area growth rate
-  cmp_dleaf_area_dt <- cmp$dleaf_area_dt(cmp$traits, h0, light_env)
-  expect_that(vars[["leaf_area_growth_rate"]],
-              equals(cmp_dleaf_area_dt, tolerance=1e-7))
+  cmp_area_leaf_dt <- cmp$area_leaf_dt(cmp$traits, h0, light_env)
+  expect_that(vars[["area_leaf_dt"]],
+              equals(cmp_area_leaf_dt, tolerance=1e-7))
 
   ## 14. sapwood area growth rate
-  cmp_dsapwood_area_dt <- cmp$dsapwood_area_dt(cmp$traits, h0, light_env)
-  expect_that(vars[["dsapwood_area_dt"]],
-              equals(cmp_dsapwood_area_dt, tolerance=1e-7))
+  cmp_area_sapwood_dt <- cmp$area_sapwood_dt(cmp$traits, h0, light_env)
+  expect_that(vars[["area_sapwood_dt"]],
+              equals(cmp_area_sapwood_dt, tolerance=1e-7))
 
   ## 15. bark area growth rate
-  cmp_dbark_area_dt <- cmp$dbark_area_dt(cmp$traits, h0, light_env)
-  expect_that(vars[["dbark_area_dt"]],
-              equals(cmp_dbark_area_dt, tolerance=1e-7))
+  cmp_area_bark_dt <- cmp$area_bark_dt(cmp$traits, h0, light_env)
+  expect_that(vars[["area_bark_dt"]],
+              equals(cmp_area_bark_dt, tolerance=1e-7))
 
   ## 16. heartwood area growth rate
-  cmp_dheartwood_area_dt <- cmp$dheartwood_area_dt(cmp$traits, h0, light_env)
-  expect_that(vars[["heartwood_area_rate"]],
-              equals(cmp_dheartwood_area_dt, tolerance=1e-7))
+  cmp_area_heartwood_dt <- cmp$area_heartwood_dt(cmp$traits, h0, light_env)
+  expect_that(vars[["area_heartwood_dt"]],
+              equals(cmp_area_heartwood_dt, tolerance=1e-7))
 
   ## 17. basal area growth rate
-  cmp_dstem_area_dt <- cmp$dstem_area_dt(cmp$traits, h0, light_env)
-  expect_that(vars[["dstem_area_dt"]],
-              equals(cmp_dstem_area_dt, tolerance=1e-7))
+  cmp_area_stem_dt <- cmp$area_stem_dt(cmp$traits, h0, light_env)
+  expect_that(vars[["area_stem_dt"]],
+              equals(cmp_area_stem_dt, tolerance=1e-7))
 
   ## 18. change in basal diam per basal area
-  cmp_dstem_diameter_dstem_area <- cmp$dstem_diameter_dstem_area(cmp$stem_area(h0))
-  expect_that(vars[["dstem_diameter_dstem_area"]],
-              equals(cmp_dstem_diameter_dstem_area, tolerance=1e-7))
+  cmp_ddiameter_stem_darea_stem <- cmp$ddiameter_stem_darea_stem(cmp$area_stem(h0))
+  expect_that(vars[["ddiameter_stem_darea_stem"]],
+              equals(cmp_ddiameter_stem_darea_stem, tolerance=1e-7))
 
   ## 18. basal diam growth rate
-  cmp_dstem_diameter_dt <- cmp$dstem_diameter_dt(cmp$traits, h0, light_env)
-  expect_that(vars[["dstem_diameter_dt"]],
-              equals(cmp_dstem_diameter_dt, tolerance=1e-7))
+  cmp_diameter_stem_dt <- cmp$diameter_stem_dt(cmp$traits, h0, light_env)
+  expect_that(vars[["diameter_stem_dt"]],
+              equals(cmp_diameter_stem_dt, tolerance=1e-7))
 
   ## Check that height decomposition multiplies out to give right
   ## answer
-  cmp <- prod(unlist(vars[c("dheight_dleaf_area",
-                            "leaf_area_deployment_mass",
-                            "growth_mass_fraction")]),
-              vars[[c("net_mass_production")]])
-  expect_that(vars[["height_growth_rate"]],
+  cmp <- prod(unlist(vars[c("dheight_darea_leaf",
+                            "darea_leaf_dmass_live",
+                            "fraction_allocation_growth")]),
+              vars[[c("net_mass_production_dt")]])
+  expect_that(vars[["height_dt"]],
               equals(cmp, tolerance=1e-7))
 })
 
@@ -192,8 +192,8 @@ test_that("Seed bits", {
   light_env <- attr(env, "light_env") # underlying function
 
   ## Check that our root-finding succeeded and the leaf mass is correct:
-  expect_that(seed$internals[["live_mass"]],
-              equals(s$s, tolerance=1e-7))
+  expect_that(seed$internals[["mass_live"]],
+              equals(s$mass_seed, tolerance=1e-7))
 
   ## Check that the height at birth is correct.  These answers are
   ## actually quite different, which could come from the root finding?
@@ -264,21 +264,21 @@ test_that("Ode interface", {
   expect_that(p$ode_size, equals(5))
   expect_that(p$ode_state,
               equals(c(p$height, p$mortality, p$fecundity,
-                       p$heartwood_area, p$heartwood_mass)))
+                       p$area_heartwood, p$mass_heartwood)))
 
   env <- test_environment(p$height * 10)
   p$compute_vars_phys(env)
   p$compute_vars_growth() # NOTE: Compute immediately *after* vars_phys
   expect_that(p$ode_state,
               equals(c(p$height, p$mortality, p$fecundity,
-                       p$heartwood_area, p$heartwood_mass)))
+                       p$area_heartwood, p$mass_heartwood)))
   vars <- as.list(p$internals)
   expect_that(p$ode_rates,
-              equals(c(vars$height_growth_rate,
-                       vars$mortality_rate,
-                       vars$fecundity_rate,
-                       vars$heartwood_area_rate,
-                       vars$heartwood_mass_rate)))
+              equals(c(vars$height_dt,
+                       vars$mortality_dt,
+                       vars$reproduction_dt,
+                       vars$area_heartwood_dt,
+                       vars$mass_heartwood_dt)))
 
   state_new <- c(p$height * 2, runif(p$ode_size - 1L))
   p$ode_state <- state_new
@@ -286,5 +286,5 @@ test_that("Ode interface", {
 
   expect_that(p$ode_names,
               is_identical_to(c("height", "mortality", "fecundity",
-                                "heartwood_area", "heartwood_mass")))
+                                "area_heartwood", "mass_heartwood")))
 })
