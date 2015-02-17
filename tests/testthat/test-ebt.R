@@ -35,7 +35,7 @@ test_that("Ported from tree1", {
               throws_error("Incorrect length input; expected 1, received 2"))
 
   ## Build a schedule for 14 introductions from t=0 to t=5
-  t <- seq(0, 5, length=14)
+  t <- seq(0, 5, length.out=14)
   sched$set_times(t, 1)
   sched$max_time <- max(t) + diff(t)[[1]]
   ebt$cohort_schedule <- sched
@@ -164,7 +164,7 @@ test_that("", {
   ## Then set a cohort schedule:
   ## Build a schedule for 14 introductions from t=0 to t=5
   sched <- ebt$cohort_schedule
-  t <- seq(0, sched$max_time, length=14)
+  t <- seq(0, sched$max_time, length.out=14)
   ebt$set_cohort_schedule_times(list(t))
 
   ## Did set in the EBT:

@@ -2,11 +2,11 @@ context("Interpolator")
 
 target <- function(x) sin(2*x)
 
-xx <- seq(0, 2*pi, length=101)
+xx <- seq(0, 2*pi, length.out=101)
 yy <- target(xx)
 
 ## Places to evaluate, and the true values at that point:
-xx_cmp <- seq(min(xx), max(xx), length=2*length(xx))
+xx_cmp <- seq(min(xx), max(xx), length.out=2*length(xx))
 yy_cmp <- target(xx_cmp)
 
 test_that("Test data is sensible", {

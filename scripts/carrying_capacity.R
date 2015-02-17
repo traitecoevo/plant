@@ -7,7 +7,7 @@ lma_detail <- seq_log_range(r, 201)
 
 ## Construct a fitness landscape across this region showing it is the
 ## right set of bounds:
-lma <- trait_matrix(seq_log_range(r, length=51), "lma")
+lma <- trait_matrix(seq_log_range(r, length.out=51), "lma")
 w <- max_growth_rate(lma, p)
 
 plot(w ~ lma, log="x", type="l", ylim=range(0, w), las=1,
@@ -18,7 +18,7 @@ lines(lma_detail, splinefun_log(lma, w)(lma_detail),
 
 ## This one is heaps slower, so easier to work with a smaller set of
 ## points.
-lma <- trait_matrix(seq_log_range(r, length=31), "lma")
+lma <- trait_matrix(seq_log_range(r, length.out=31), "lma")
 K <- carrying_capacity(lma, p, parallel=TRUE)
 
 plot(K ~ lma, log="x", type="l", ylim=range(0, K), las=1,

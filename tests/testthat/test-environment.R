@@ -16,7 +16,7 @@ test_that("Empty environment", {
 test_that("Manually set environment", {
   e <- Environment(Parameters())
   ## Now, set the light environment.
-  hh <- seq(0, 10, length=101)
+  hh <- seq(0, 10, length.out=101)
   light_env <- function(x) {
     exp(x/(max(hh)*2)) - 1 + (1 - (exp(.5) - 1))/2
   }

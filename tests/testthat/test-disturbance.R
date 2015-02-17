@@ -37,7 +37,7 @@ test_that("Disturbance calculations are expected", {
   obj <- Disturbance(m)
 
   disturbance <- make_disturbance(obj$mean_interval)
-  tt <- seq(0, 100, length=101)
+  tt <- seq(0, 100, length.out=101)
 
   p_t <- sapply(tt, function(t) obj$pr_survival(t))
   expect_that(p_t, equals(disturbance$Pi(tt)))

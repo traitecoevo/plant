@@ -258,7 +258,7 @@ test_that("ode_times", {
   expected <- expected[order(expected$start, -expected$species_index),]
   expected$end <- c(expected$start[-1], max_t)
 
-  t_ode <- seq(0, sched$max_time, length=14)
+  t_ode <- seq(0, sched$max_time, length.out=14)
   idx <- findInterval(t_ode, c(expected$start, max_t), TRUE)
   tmp <- unname(t(apply(expected[c("start", "end")], 1, unlist)))
 

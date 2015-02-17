@@ -82,7 +82,7 @@ test_that("Basics", {
   ## patch$add_seed(1)
   ## solver <- solver_from_ode_target(patch, p$control$ode_control)
 
-  ## tt <- seq(0, 25, length=26)
+  ## tt <- seq(0, 25, length.out=26)
   ## hh <- patch$height[[1]]
   ## for (ti in tt[-1]) {
   ##   solver$advance(ti)
