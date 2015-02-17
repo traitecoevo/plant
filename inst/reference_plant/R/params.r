@@ -29,8 +29,8 @@ p.c_p1=150.36;
 p.c_p2=0.19;
 
 #respiration rates
-p.c_Rl = 2.1E4; #mol / kg / yr
-p.c_Rs = 4012;  #mol / m3 / yr
+p.c_Rl = 2.1e4 * 1.87e-3 / 0.1978791; #mol / kg / yr
+p.c_Rs = 4012/608;  #mol / m3 / yr
 p.c_Rr = 217;   #mol / kg / yr
 p.c_Rb = 2*p.c_Rs;
 

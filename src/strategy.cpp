@@ -34,16 +34,25 @@ Strategy::Strategy() {
   b      = 0.17;
 
   // * Production
-  // Ratio of leaf dark respiration to leaf nitrogen mass
-  // [mol CO2 / kgN / yr] (6.66e-4 * (365*24*60*60))
-  c_Rl   = 2.1e4;
+  // Ratio of leaf dark respiration to leaf mass
+  // =  [mol CO2 / kgN / yr] (6.66e-4 * (365*24*60*60))
+  //  * [kgN / m2 leaf] (1.87e-3 = narea)
+  //  / [kg leaf / m2 ] (0.1978791 = lma)
+  // Hard coded in value of narea and lma here so that this value doesnt change if
+  // those traits change above
+  c_Rl   = 2.1e4 * 1.87e-3 / 0.1978791;
   // Root respiration per mass [mol CO2 / kg / yr]
   c_Rr   = 217;
-  // Sapwood respiration per stem volume [mol CO2 / m3 / yr]
-  c_Rs   = 4012;
-  // Bark respiration per stem volume [mol CO2 / m3 / yr]
-  // (note, new since paper -- see respiration calculation)
-  c_Rb   = 2 * c_Rs;
+  // Sapwood respiration per stem mass
+  // = respiration per volume [mol CO2 / m3 / yr]
+  // /  wood density [kg/m3]
+  c_Rs   = 4012.0 / 608.0;
+  // Bark respiration per stem mass
+  // assumed to be twice rate of sapwood
+  // (NOTE that there is a reparametrisation here relative to the paper
+  // -- c_Rb is defined (new) as 2*c_Rs, wheras the paper assumes a
+  // fixed multiplication by 2)
+  c_Rb   = 2.0 * c_Rs;
   // Carbon conversion parameter
   Y      = 0.7;
   // Constant converting assimilated CO2 to dry mass [kg / mol]
@@ -145,20 +154,13 @@ double Strategy::above_ground_mass(double leaf_mass, double bark_mass,
 
 // [eqn 13] Total maintenance respiration
 //
-// (NOTE that there is a reparametrisation here relative to the paper
-// -- c_Rb is defined (new) as 2*c_Rs, wheras the paper assumes a
-// fixed multiplication by 2)
-//
-// NOTE: In contrast with EBT, we do not normalise by Y*c_bio.
+// NOTE: In contrast with Falster ref model, we do not normalise by Y*c_bio.
 //
 // TODO: split into components?
-double Strategy::respiration(double leaf_area, double sapwood_mass,
+double Strategy::respiration(double leaf_mass, double sapwood_mass,
                              double bark_mass, double root_mass) const {
   return
-    c_Rl * leaf_area * n_area +
-    c_Rs * sapwood_mass / rho +
-    c_Rb * bark_mass    / rho +
-    c_Rr * root_mass;
+    c_Rl * leaf_mass + c_Rs * sapwood_mass + c_Rb * bark_mass + c_Rr * root_mass;
 }
 
 // [eqn 14] Total turnover
@@ -190,8 +192,7 @@ double Strategy::reproduction_fraction(double height) const {
 // TODO[HYPERPARAMETER]: s/s0; ideally s + constant
 double Strategy::dfecundity_dt(double net_production,
                                double reproduction_fraction) const {
-  return net_production * reproduction_fraction /
-    (s + c_acc);
+  return net_production * reproduction_fraction / (s + c_acc);
 }
 
 // [eqn 18] Fraction of mass growth that is leaves (see doc/details.md
@@ -202,10 +203,10 @@ double Strategy::leaf_mass_fraction(double leaf_area) const {
               + dbark_mass_dleaf_mass(leaf_area)
               + droot_mass_dleaf_mass(leaf_area));
 }
+
 double Strategy::leaf_area_fraction(double leaf_area) const {
   return leaf_mass_fraction(leaf_area) / lma;
 }
-
 
 // TODO: Ordering below here needs working on, probably as @dfalster
 // does equation documentation?

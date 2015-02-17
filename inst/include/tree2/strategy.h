@@ -46,7 +46,7 @@ public:
    // * Mass production
 
   // [eqn 13] Total maintenance respiration
-  double respiration(double leaf_area, double sapwood_mass,
+  double respiration(double leaf_mass, double sapwood_mass,
                      double bark_mass, double root_mass) const;
   // [eqn 14] Total turnover
   double turnover(double leaf_mass, double bark_mass,

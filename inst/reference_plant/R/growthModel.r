@@ -91,22 +91,22 @@ Production <-function(traits, h, env, print=0){
 Production.detail <-function(traits, A, ms, mb,  mr, env, print=0){
   if(print==1){
     cat("Assim = ", Assim(A, env), "\n")
-    cat("Resp = ",Respiration(A, ms/traits$rho, mb/traits$rho,  mr), "\n")
+    cat("Resp = ",Respiration(A*traits$lma, ms, mb,  mr), "\n")
     cat("Turn = ",Turnover(traits, A*traits$lma, ms, mb,  mr), "\n")
   }
-  Assim(A, env) - Respiration(A, ms/traits$rho, mb/traits$rho,  mr) - Turnover(traits, A*traits$lma, ms, mb,  mr)
+  Assim(A, env) - Respiration(A*traits$lma, ms, mb,  mr) - Turnover(traits, A*traits$lma, ms, mb,  mr)
   }
 
 Assim <- function(A, env){p.Y*p.c_bio*A*p.c_p1 * env/(p.c_p2+env)}
 
-Respiration <-function(A, vs, vb,  mr){
-  Respiration.leaf(A) + Respiration.sapwood(vs) + Respiration.bark(vb) + Respiration.root(mr)
+Respiration <-function(ml, ms, mb,  mr){
+  Respiration.leaf(ml) + Respiration.sapwood(ms) + Respiration.bark(mb) + Respiration.root(mr)
   }
 
-Respiration.leaf <-function(A){p.Y*p.c_bio *(p.c_Rl*p.n_area*A)}
-Respiration.sapwood <-function(vs){p.Y*p.c_bio * p.c_Rs*vs}
-Respiration.bark <-function(vb){p.Y*p.c_bio *2*p.c_Rs*vb}
-Respiration.root <-function(mr){p.Y*p.c_bio * p.c_Rr*mr}
+Respiration.leaf <-function(ml){p.Y*p.c_bio *(p.c_Rl*ml)}
+Respiration.sapwood <-function(ms){p.Y*p.c_bio * p.c_Rs * ms}
+Respiration.bark <-function(mb){p.Y*p.c_bio * p.c_Rb * mb}
+Respiration.root <-function(mr){p.Y*p.c_bio * p.c_Rr * mr}
 
 Turnover <-function(traits, ml, ms, mb,  mr){
   Turnover.leaf(traits$lma, ml) + Turnover.sapwood(ms) + Turnover.bark(mb) + Turnover.root(mr)

@@ -121,7 +121,7 @@ void Plant::compute_vars_phys(const Environment& environment,
   vars.assimilation = assimilation(environment, reuse_intervals);
 
   // [eqn 13] Total maintenance respiration
-  vars.respiration = strategy->respiration(vars.leaf_area,
+  vars.respiration = strategy->respiration(vars.leaf_mass,
                                            vars.sapwood_mass,
                                            vars.bark_mass,
                                            vars.root_mass);

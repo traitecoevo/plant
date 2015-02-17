@@ -19,10 +19,11 @@ assimilation.plant <- function(h, light.env) {
 
 respiration.given.height <- function(traits, h) {
   a <- LeafArea(h)
+  mass.leaf <- a*traits$lma
   mass.sapwood <- SapwoodMass(traits$rho, a, h)
   mass.bark <- BarkMass(traits$rho, a, h)
   mass.root <- RootMass(a)
-  Respiration(a, mass.sapwood/traits$rho, mass.bark/traits$rho,
+  Respiration(mass.leaf, mass.sapwood, mass.bark,
               mass.root)
 }
 
