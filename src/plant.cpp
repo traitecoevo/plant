@@ -150,13 +150,15 @@ void Plant::compute_vars_phys(const Environment& environment,
     // [eqn 19] - Growth rate in leaf height
     // different to Falster 2010, which was growth rate in leaf mass
     vars.leaf_area_deployment_mass = strategy->leaf_area_deployment_mass(vars.leaf_area);
-    vars.growth_fraction =strategy->growth_fraction(vars.height);
+    vars.growth_fraction = strategy->growth_fraction(vars.height);
 
     vars.leaf_area_growth_rate = vars.net_production * vars.growth_fraction *
           vars.leaf_area_deployment_mass;
    vars.height_growth_rate =
       strategy->dheight_dleaf_area(vars.leaf_area) *
       vars.leaf_area_growth_rate;
+   vars.heartwood_area_rate = strategy->dheartwood_area_dt(vars.leaf_area);
+   vars.heartwood_mass_rate = strategy->dheartwood_mass_dt(vars.sapwood_mass);
   } else {
     vars.reproduction_fraction = 0.0;
     vars.growth_fraction = 0.0;
@@ -164,11 +166,9 @@ void Plant::compute_vars_phys(const Environment& environment,
     vars.leaf_area_growth_rate = 0.0;
     vars.leaf_area_deployment_mass = 0.0;
     vars.height_growth_rate    = 0.0;
+    vars.heartwood_area_rate   = 0.0;
+    vars.heartwood_mass_rate   = 0.0;
   }
-
-  // TODO: New stuff - does this go above perhaps?
-  vars.heartwood_area_rate = strategy->dheartwood_area_dt(vars.leaf_area);
-  vars.heartwood_mass_rate = strategy->dheartwood_mass_dt(vars.sapwood_mass);
 
   // [eqn 21] - Instantaneous mortality rate
   //
@@ -181,7 +181,7 @@ void Plant::compute_vars_phys(const Environment& environment,
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(vars.mortality)) {
     vars.mortality_rate = strategy->mortality_dt(vars.net_production/vars.leaf_area);
- } else {
+  } else {
     // If mortality probability is 1 (latency = Inf) then the rate
     // calculations break.  Setting them to zero gives the correct
     // behaviour.
@@ -400,6 +400,7 @@ Plant::internals::internals()
     fecundity(0.0) {
 }
 
+// TODO: Rename Plant::strategy_ptr to Strategy::ptr
 Plant::strategy_ptr_type make_strategy_ptr(Plant::strategy_type s) {
   s.prepare_strategy();
   return std::make_shared<Plant::strategy_type>(s);

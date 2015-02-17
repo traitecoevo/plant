@@ -266,7 +266,7 @@ double Strategy::turnover_root(double mass) const {
 // NOTE: Translation of variable names from the EBT.  everything
 // before the minus sign is EBT's N, our `net_production` is EBT's P.
 double Strategy::net_production(double assimilation, double respiration,
-                                double turnover) {
+                                double turnover) const {
   return c_bio * Y * (assimilation - respiration) - turnover;
 }
 

@@ -81,7 +81,7 @@ public:
 
   // [eqn 15] Net production
   double net_production(double assimilation, double respiration,
-                        double turnover);
+                        double turnover) const;
   // [eqn 16] Fraction of whole plan growth that is leaf
   double reproduction_fraction(double height) const;
   double growth_fraction(double height) const;
@@ -133,8 +133,7 @@ public:
   double mortality_dt(double productivity_area) const;
   double mortality_growth_independent_dt(double d0)const ;
   double mortality_growth_dependent_dt(double d2, double d3,
-                                       double productivity_area
-                                       ) const;
+                                       double productivity_area) const;
   // [eqn 20] Survival of seedlings during germination
   double germination_probability(double leaf_area,
                                  double net_production) const;
