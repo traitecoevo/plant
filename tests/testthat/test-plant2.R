@@ -9,6 +9,16 @@ test_that("Reference comparison", {
   expect_that(p2, is_a("Plant2"))
 
   h0 <- 10
+  p2$height <- h0
+  vars2 <- p2$internals
+  expect_that(all(is.na(vars2[c("height_dt", "mortality_dt",
+                                "fecundity_dt")])), is_true())
+
+  for(v in c("mortality", "fecundity")) {
+      expect_that(vars2[[v]], equals(0, tolerance=1e-7))
+  }
+
+  # Set and get functions behave identically
   p1$height <- h0
   p2$height <- h0
 
@@ -17,9 +27,17 @@ test_that("Reference comparison", {
 
   expect_that(vars2, is_a("Plant2_internals"))
 
-  expect_that(p1$height, is_identical_to(p2$height))
-  expect_that(vars2[["height"]], is_identical_to(vars1[["height"]]))
-  expect_that(vars2[["area_leaf"]], is_identical_to(vars1[["area_leaf"]]))
+  variable.names <- c("area_leaf", "height", "height_dt", "mortality",
+                      "mortality_dt","fecundity","fecundity_dt")
+
+  expect_that(all(names(vars2) %in% variable.names), is_true())
+  expect_that(all(names(vars2) %in% names(vars1)), is_true())
+
+  for(v in variable.names) {
+     expect_that(vars2[[v]], equals(vars1[[v]], tolerance=1e-7))
+  }
+
+  # Compute the vital rates and compare them
 
   env <- test_environment(h0)
   light_env <- attr(env, "light_env") # underlying function

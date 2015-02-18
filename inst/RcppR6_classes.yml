@@ -382,7 +382,7 @@ Plant_internals:
     - net_mass_production_dt: double
     - fraction_allocation_reproduction: double
     - fraction_allocation_growth: double
-    - reproduction_dt: double
+    - fecundity_dt: double
     - area_leaf_dt: double
     - darea_leaf_dmass_live: double
     - height_dt: double
@@ -452,7 +452,7 @@ Plant2_internals:
     - mortality: double
     - mortality_dt: double
     - fecundity: double
-    - reproduction_dt: double
+    - fecundity_dt: double
 
 Plant2:
   forward_declare: true

@@ -5,7 +5,7 @@ namespace tree2 {
 void Plant2::compute_vars_phys(const Environment& environment,
                                bool reuse_intervals) {
   // vars.height and vars.area_leaf are done on the way in here.  The
-  // idea is to set height_dt, mortality_dt and reproduction_dt.
+  // idea is to set height_dt, mortality_dt and fecundity_dt.
   const double height    = vars.height;
   const double area_leaf = vars.area_leaf;
   const double net_mass_production_dt =
@@ -22,13 +22,13 @@ void Plant2::compute_vars_phys(const Environment& environment,
       net_mass_production_dt * fraction_allocation_growth * darea_leaf_dmass_live;
     vars.height_dt =
       strategy->dheight_darea_leaf(area_leaf) * area_leaf_dt;
-    vars.reproduction_dt =
-      strategy->reproduction_dt(net_mass_production_dt,
+    vars.fecundity_dt =
+      strategy->fecundity_dt(net_mass_production_dt,
                               fraction_allocation_reproduction);
 
   } else {
     vars.height_dt    = 0.0;
-    vars.reproduction_dt = 0.0;
+    vars.fecundity_dt = 0.0;
   }
 
   // [eqn 21] - Instantaneous mortality rate
@@ -66,7 +66,7 @@ ode::iterator Plant2::ode_state(ode::iterator it) const {
 ode::iterator Plant2::ode_rates(ode::iterator it) const {
   *it++ = height_dt();
   *it++ = mortality_dt();
-  *it++ = reproduction_dt();
+  *it++ = fecundity_dt();
   return it;
 }
 

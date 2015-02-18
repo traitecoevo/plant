@@ -305,7 +305,7 @@ double Strategy::fraction_allocation_growth(double height) const {
 }
 
 // [eqn 17] Rate of offspring production
-double Strategy::reproduction_dt(double net_mass_production_dt,
+double Strategy::fecundity_dt(double net_mass_production_dt,
                                double fraction_allocation_reproduction) const {
   return net_mass_production_dt * fraction_allocation_reproduction / (mass_seed + c_acc);
 }

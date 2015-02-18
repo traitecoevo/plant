@@ -42,7 +42,7 @@ net.production <- function(traits, h, env) {
       turnover.given.height(traits, h)
 }
 
-reproduction_dt <- function(traits, h, env) {
+fecundity_dt <- function(traits, h, env) {
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
   f <- r * p / (p.c_acc + traits$mass_seed)

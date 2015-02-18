@@ -100,9 +100,9 @@ test_that("Reference comparison", {
               equals(cmp_fraction_allocation_reproduction))
 
   ## 6. Fecundity rate
-  cmp_reproduction_dt <- cmp$reproduction_dt(cmp$traits, h0, light_env)
-  expect_that(vars[["reproduction_dt"]],
-              equals(cmp_reproduction_dt, tolerance=1e-7))
+  cmp_fecundity_dt <- cmp$fecundity_dt(cmp$traits, h0, light_env)
+  expect_that(vars[["fecundity_dt"]],
+              equals(cmp_fecundity_dt, tolerance=1e-7))
 
   ## 8. Growth rate for height
   cmp_height_dt <- cmp$height.growth.dt(cmp$traits, h0, light_env)
@@ -276,7 +276,7 @@ test_that("Ode interface", {
   expect_that(p$ode_rates,
               equals(c(vars$height_dt,
                        vars$mortality_dt,
-                       vars$reproduction_dt,
+                       vars$fecundity_dt,
                        vars$area_heartwood_dt,
                        vars$mass_heartwood_dt)))
 

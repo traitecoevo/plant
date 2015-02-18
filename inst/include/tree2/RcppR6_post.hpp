@@ -565,7 +565,7 @@ template <> inline SEXP wrap(const tree2::Plant_internals& x) {
   ret["net_mass_production_dt"] = Rcpp::wrap(x.net_mass_production_dt);
   ret["fraction_allocation_reproduction"] = Rcpp::wrap(x.fraction_allocation_reproduction);
   ret["fraction_allocation_growth"] = Rcpp::wrap(x.fraction_allocation_growth);
-  ret["reproduction_dt"] = Rcpp::wrap(x.reproduction_dt);
+  ret["fecundity_dt"] = Rcpp::wrap(x.fecundity_dt);
   ret["area_leaf_dt"] = Rcpp::wrap(x.area_leaf_dt);
   ret["darea_leaf_dmass_live"] = Rcpp::wrap(x.darea_leaf_dmass_live);
   ret["height_dt"] = Rcpp::wrap(x.height_dt);
@@ -641,8 +641,8 @@ template <> inline tree2::Plant_internals as(SEXP x) {
   ret.fraction_allocation_reproduction = Rcpp::as<double >(xl["fraction_allocation_reproduction"]);
   // ret.fraction_allocation_growth = Rcpp::as<decltype(retfraction_allocation_growth) >(xl["fraction_allocation_growth"]);
   ret.fraction_allocation_growth = Rcpp::as<double >(xl["fraction_allocation_growth"]);
-  // ret.reproduction_dt = Rcpp::as<decltype(retreproduction_dt) >(xl["reproduction_dt"]);
-  ret.reproduction_dt = Rcpp::as<double >(xl["reproduction_dt"]);
+  // ret.fecundity_dt = Rcpp::as<decltype(retfecundity_dt) >(xl["fecundity_dt"]);
+  ret.fecundity_dt = Rcpp::as<double >(xl["fecundity_dt"]);
   // ret.area_leaf_dt = Rcpp::as<decltype(retarea_leaf_dt) >(xl["area_leaf_dt"]);
   ret.area_leaf_dt = Rcpp::as<double >(xl["area_leaf_dt"]);
   // ret.darea_leaf_dmass_live = Rcpp::as<decltype(retdarea_leaf_dmass_live) >(xl["darea_leaf_dmass_live"]);
@@ -703,7 +703,7 @@ template <> inline SEXP wrap(const tree2::Plant2_internals& x) {
   ret["mortality"] = Rcpp::wrap(x.mortality);
   ret["mortality_dt"] = Rcpp::wrap(x.mortality_dt);
   ret["fecundity"] = Rcpp::wrap(x.fecundity);
-  ret["reproduction_dt"] = Rcpp::wrap(x.reproduction_dt);
+  ret["fecundity_dt"] = Rcpp::wrap(x.fecundity_dt);
   ret.attr("class") = "Plant2_internals";
   return ret;
 }
@@ -728,8 +728,8 @@ template <> inline tree2::Plant2_internals as(SEXP x) {
   ret.mortality_dt = Rcpp::as<double >(xl["mortality_dt"]);
   // ret.fecundity = Rcpp::as<decltype(retfecundity) >(xl["fecundity"]);
   ret.fecundity = Rcpp::as<double >(xl["fecundity"]);
-  // ret.reproduction_dt = Rcpp::as<decltype(retreproduction_dt) >(xl["reproduction_dt"]);
-  ret.reproduction_dt = Rcpp::as<double >(xl["reproduction_dt"]);
+  // ret.fecundity_dt = Rcpp::as<decltype(retfecundity_dt) >(xl["fecundity_dt"]);
+  ret.fecundity_dt = Rcpp::as<double >(xl["fecundity_dt"]);
   return ret;
 }
 

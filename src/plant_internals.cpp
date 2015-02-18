@@ -34,7 +34,7 @@ Plant_internals::Plant_internals()
   net_mass_production_dt(NA_REAL),
   fraction_allocation_reproduction(NA_REAL),
   fraction_allocation_growth(NA_REAL),
-  reproduction_dt(NA_REAL),
+  fecundity_dt(NA_REAL),
   area_leaf_dt(NA_REAL),
   darea_leaf_dmass_live(NA_REAL),
   height_dt(NA_REAL),

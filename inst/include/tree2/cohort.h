@@ -89,7 +89,7 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
   const double survival_plant = exp(-plant.mortality());
 
   seeds_survival_weighted_dt =
-    plant.reproduction_dt() * survival_plant *
+    plant.fecundity_dt() * survival_plant *
     survival_patch / pr_patch_survival_at_birth;
 }
 

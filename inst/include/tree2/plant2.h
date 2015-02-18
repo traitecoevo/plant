@@ -18,7 +18,7 @@ struct Plant2_internals {
     mortality(0.0),
     mortality_dt(NA_REAL),
     fecundity(0.0),
-    reproduction_dt(NA_REAL) {
+    fecundity_dt(NA_REAL) {
   }
   double height;
   double area_leaf;
@@ -26,7 +26,7 @@ struct Plant2_internals {
   double mortality;
   double mortality_dt;
   double fecundity;
-  double reproduction_dt;
+  double fecundity_dt;
 };
 
 class Plant2 {
@@ -50,7 +50,7 @@ public:
   void set_mortality(double x) {vars.mortality = x;}
 
   double fecundity() const {return vars.fecundity;}
-  double reproduction_dt() const {return vars.reproduction_dt;}
+  double fecundity_dt() const {return vars.fecundity_dt;}
   void set_fecundity(double x) {vars.fecundity = x;}
 
   double area_leaf_above(double z) const {

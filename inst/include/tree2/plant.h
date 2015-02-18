@@ -28,7 +28,7 @@ public:
   void set_mortality(double x);
 
   double fecundity() const;
-  double reproduction_dt() const;
+  double fecundity_dt() const;
   void set_fecundity(double x);
 
   double area_heartwood() const;

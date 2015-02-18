@@ -137,7 +137,7 @@ test_that("ODE interface", {
   cmp <- c(rates[["height_dt"]],
            rates[["mortality_dt"]],
            ## This is different to the approach in tree1?
-           rates[["reproduction_dt"]] *
+           rates[["fecundity_dt"]] *
              patch_survival * exp(-cohort$plant$mortality),
            -rates[["mortality_dt"]] - cohort$growth_rate_gradient(env))
   expect_that(cohort$ode_rates, equals(cmp))

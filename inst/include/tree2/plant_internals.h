@@ -33,7 +33,7 @@ public:
   double net_mass_production_dt; // [eqn 15] Net production
   double fraction_allocation_reproduction; // [eqn 16]
   double fraction_allocation_growth;
-  double reproduction_dt; // [eqn 17] Rate of offspring production
+  double fecundity_dt; // [eqn 17] Rate of offspring production
   double area_leaf_dt; // [eqn 19] Growth rate in leaf mass
   double darea_leaf_dmass_live;
   double height_dt;    // [doc/details.md]

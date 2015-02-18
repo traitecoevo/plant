@@ -55,8 +55,8 @@ void Plant::set_mortality(double x) {
 double Plant::fecundity() const {
   return vars.fecundity;
 }
-double Plant::reproduction_dt() const {
-  return vars.reproduction_dt;
+double Plant::fecundity_dt() const {
+  return vars.fecundity_dt;
 }
 void Plant::set_fecundity(double x) {
   vars.fecundity = x;
@@ -139,8 +139,8 @@ void Plant::compute_vars_phys(const Environment& environment,
     // dispersal), but we do not here.
     // NOTE: This is also a hyperparametrisation and should move into
     // the initialisation function.
-    vars.reproduction_dt =
-      strategy->reproduction_dt(vars.net_mass_production_dt,
+    vars.fecundity_dt =
+      strategy->fecundity_dt(vars.net_mass_production_dt,
                               vars.fraction_allocation_reproduction);
 
     // [eqn 19] - Growth rate in leaf height
@@ -162,7 +162,7 @@ void Plant::compute_vars_phys(const Environment& environment,
   } else {
     vars.fraction_allocation_reproduction = 0.0;
     vars.fraction_allocation_growth       = 0.0;
-    vars.reproduction_dt        = 0.0;
+    vars.fecundity_dt        = 0.0;
     vars.area_leaf_dt = 0.0;
     vars.darea_leaf_dmass_live = 0.0;
     vars.height_dt    = 0.0;
@@ -258,7 +258,7 @@ ode::iterator Plant::ode_state(ode::iterator it) const {
 ode::iterator Plant::ode_rates(ode::iterator it) const {
   *it++ = height_dt();
   *it++ = mortality_dt();
-  *it++ = reproduction_dt();
+  *it++ = fecundity_dt();
   *it++ = area_heartwood_dt();
   *it++ = mass_heartwood_dt();
   return it;

@@ -92,7 +92,7 @@ public:
   double fraction_allocation_reproduction(double height) const;
   double fraction_allocation_growth(double height) const;
   // [eqn 17] Rate of offspring production
-  double reproduction_dt(double net_mass_production_dt,
+  double fecundity_dt(double net_mass_production_dt,
                        double fraction_allocation_reproduction) const;
 
   // [eqn 18] Fraction of mass growth that is leaves
