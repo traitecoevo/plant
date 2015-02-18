@@ -4,6 +4,8 @@
 
 #include <vector>
 #include <cmath>
+#include <cstddef>
+#include <limits>
 
 namespace tree2 {
 namespace util {
