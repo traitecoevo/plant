@@ -2450,6 +2450,21 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
+// Plant2__ode_names__get
+std::vector<std::string> Plant2__ode_names__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
+RcppExport SEXP tree2_Plant2__ode_names__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    SEXP __sexp_result;
+    {
+        Rcpp::RNGScope __rngScope;
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
+        std::vector<std::string> __result = Plant2__ode_names__get(obj_);
+        PROTECT(__sexp_result = Rcpp::wrap(__result));
+    }
+    UNPROTECT(1);
+    return __sexp_result;
+END_RCPP
+}
 // Cohort__ctor
 tree2::Cohort<tree2::Plant> Cohort__ctor(tree2::Strategy strategy);
 RcppExport SEXP tree2_Cohort__ctor(SEXP strategySEXP) {

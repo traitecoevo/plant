@@ -956,6 +956,13 @@ Plant2_internals <- function(..., values=list(...)) {
                   } else {
                     stop("Plant2$ode_rates is read-only")
                   }
+                },
+                ode_names = function(value) {
+                  if (missing(value)) {
+                    Plant2__ode_names__get(self)
+                  } else {
+                    stop("Plant2$ode_names is read-only")
+                  }
                 }))
 
 

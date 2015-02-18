@@ -68,6 +68,10 @@ public:
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
+  // Optional, but useful
+  static std::vector<std::string> ode_names() {
+    return std::vector<std::string>({"height", "mortality", "fecundity"});
+  }
 
   // * R interface
   strategy_type r_get_strategy() const {return *strategy.get();}

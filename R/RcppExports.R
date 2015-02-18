@@ -699,6 +699,10 @@ Plant2__ode_rates__get <- function(obj_) {
     .Call('tree2_Plant2__ode_rates__get', PACKAGE = 'tree2', obj_)
 }
 
+Plant2__ode_names__get <- function(obj_) {
+    .Call('tree2_Plant2__ode_names__get', PACKAGE = 'tree2', obj_)
+}
+
 Cohort__ctor <- function(strategy) {
     .Call('tree2_Cohort__ctor', PACKAGE = 'tree2', strategy)
 }

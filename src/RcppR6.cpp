@@ -737,6 +737,11 @@ tree2::ode::state_type Plant2__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Plant
   return tree2::ode::r_ode_rates(*obj_);
 }
 
+// [[Rcpp::export]]
+std::vector<std::string> Plant2__ode_names__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
+  return obj_->ode_names();
+}
+
 
 // [[Rcpp::export]]
 tree2::Cohort<tree2::Plant> Cohort__ctor(tree2::Strategy strategy) {
