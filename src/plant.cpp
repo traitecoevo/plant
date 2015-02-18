@@ -171,23 +171,9 @@ void Plant::compute_vars_phys(const Environment& environment,
   }
 
   // [eqn 21] - Instantaneous mortality rate
-  //
-  // NOTE: When plants are extremely inviable, the rate of change in
-  // mortality can be Inf, because net production is negative, leaf
-  // area is small and so we get exp(big number).  However, most of
-  // the time that happens we should get infinite mortality variable
-  // levels and the rate of change won't matter.  It is possible that
-  // we will need to trim this to some large finite value, but for
-  // now, just checking that the actual mortality rate is finite.
-  if (R_FINITE(vars.mortality)) {
-    vars.mortality_dt =
-      strategy->mortality_dt(vars.net_mass_production_dt / vars.area_leaf);
-  } else {
-    // If mortality probability is 1 (latency = Inf) then the rate
-    // calculations break.  Setting them to zero gives the correct
-    // behaviour.
-    vars.mortality_dt = 0.0;
-  }
+  vars.mortality_dt =
+      strategy->mortality_dt(vars.net_mass_production_dt / vars.area_leaf,
+                             vars.mortality);
 }
 
 // Extra accounting.

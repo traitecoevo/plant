@@ -136,7 +136,7 @@ public:
   double height_given_mass_leaf(double mass_leaf_) const;
 
 
-  double mortality_dt(double productivity_area) const;
+  double mortality_dt(double productivity_area, double cumulative_mortality) const;
   double mortality_growth_independent_dt(double d0)const ;
   double mortality_growth_dependent_dt(double d2, double d3,
                                        double productivity_area) const;

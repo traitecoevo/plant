@@ -428,10 +428,26 @@ double Strategy::height_given_mass_leaf(double mass_leaf) const {
   return a1 * pow(mass_leaf / lma, B1);
 }
 
-double Strategy::mortality_dt(double productivity_area) const {
+double Strategy::mortality_dt(double productivity_area,
+                              double cumulative_mortality) const {
 
-  return mortality_growth_independent_dt(c_d0) +
+  // NOTE: When plants are extremely inviable, the rate of change in
+  // mortality can be Inf, because net production is negative, leaf
+  // area is small and so we get exp(big number).  However, most of
+  // the time that happens we should get infinite mortality variable
+  // levels and the rate of change won't matter.  It is possible that
+  // we will need to trim this to some large finite value, but for
+  // now, just checking that the actual mortality rate is finite.
+  if (R_FINITE(cumulative_mortality)) {
+    return
+      mortality_growth_independent_dt(c_d0) +
       mortality_growth_dependent_dt(c_d2, c_d3, productivity_area);
+ } else {
+    // If mortality probability is 1 (latency = Inf) then the rate
+    // calculations break.  Setting them to zero gives the correct
+    // behaviour.
+    return 0.0;
+  }
 }
 
 double Strategy::mortality_growth_independent_dt(double d0) const {
