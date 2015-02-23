@@ -742,8 +742,8 @@ Parameters <- function(..., values=list(...)) {
                 }))
 
 
-Plant_Internals <- function(..., values=list(...)) {
-  ret <- Plant_Internals__ctor()
+Plant_internals <- function(..., values=list(...)) {
+  ret <- Plant_internals__ctor()
   if (length(err <- setdiff(names(values), names(ret))) > 0L) {
     stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
   }
@@ -866,8 +866,8 @@ Plant_Internals <- function(..., values=list(...)) {
                 }))
 
 
-Plant2_Internals <- function(..., values=list(...)) {
-  ret <- Plant2_Internals__ctor()
+PlantMinimal_internals <- function(..., values=list(...)) {
+  ret <- PlantMinimal_internals__ctor()
   if (length(err <- setdiff(names(values), names(ret))) > 0L) {
     stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
   }
@@ -876,14 +876,14 @@ Plant2_Internals <- function(..., values=list(...)) {
   ret
 }
 
-##' Plant2 object
+##' Minimal Plant object
 ##' @param strategy A \code{Strategy} object
 ##' @export
-`Plant2` <- function(strategy) {
-  Plant2__ctor(strategy)
+`PlantMinimal` <- function(strategy) {
+  PlantMinimal__ctor(strategy)
 }
-.R6_Plant2 <-
-  R6::R6Class("Plant2",
+.R6_PlantMinimal <-
+  R6::R6Class("PlantMinimal",
               portable=TRUE,
               inherit=NULL,
               public=list(
@@ -892,76 +892,76 @@ Plant2_Internals <- function(..., values=list(...)) {
                   self$.ptr <- ptr
                 },
                 area_leaf_above = function(h) {
-                  Plant2__area_leaf_above(self, h)
+                  PlantMinimal__area_leaf_above(self, h)
                 },
                 compute_vars_phys = function(environment) {
-                  Plant2__compute_vars_phys(self, environment)
+                  PlantMinimal__compute_vars_phys(self, environment)
                 },
                 germination_probability = function(environment) {
-                  Plant2__germination_probability(self, environment)
+                  PlantMinimal__germination_probability(self, environment)
                 }),
               active=list(
                 height = function(value) {
                   if (missing(value)) {
-                    Plant2__height__get(self)
+                    PlantMinimal__height__get(self)
                   } else {
-                    Plant2__height__set(self, value)
+                    PlantMinimal__height__set(self, value)
                   }
                 },
                 mortality = function(value) {
                   if (missing(value)) {
-                    Plant2__mortality__get(self)
+                    PlantMinimal__mortality__get(self)
                   } else {
-                    Plant2__mortality__set(self, value)
+                    PlantMinimal__mortality__set(self, value)
                   }
                 },
                 fecundity = function(value) {
                   if (missing(value)) {
-                    Plant2__fecundity__get(self)
+                    PlantMinimal__fecundity__get(self)
                   } else {
-                    Plant2__fecundity__set(self, value)
+                    PlantMinimal__fecundity__set(self, value)
                   }
                 },
                 strategy = function(value) {
                   if (missing(value)) {
-                    Plant2__strategy__get(self)
+                    PlantMinimal__strategy__get(self)
                   } else {
-                    stop("Plant2$strategy is read-only")
+                    stop("PlantMinimal$strategy is read-only")
                   }
                 },
                 internals = function(value) {
                   if (missing(value)) {
-                    Plant2__internals__get(self)
+                    PlantMinimal__internals__get(self)
                   } else {
-                    stop("Plant2$internals is read-only")
+                    stop("PlantMinimal$internals is read-only")
                   }
                 },
                 ode_size = function(value) {
                   if (missing(value)) {
-                    Plant2__ode_size__get(self)
+                    PlantMinimal__ode_size__get(self)
                   } else {
-                    stop("Plant2$ode_size is read-only")
+                    stop("PlantMinimal$ode_size is read-only")
                   }
                 },
                 ode_state = function(value) {
                   if (missing(value)) {
-                    Plant2__ode_state__get(self)
+                    PlantMinimal__ode_state__get(self)
                   } else {
-                    Plant2__ode_state__set(self, value)
+                    PlantMinimal__ode_state__set(self, value)
                   }
                 },
                 ode_rates = function(value) {
                   if (missing(value)) {
-                    Plant2__ode_rates__get(self)
+                    PlantMinimal__ode_rates__get(self)
                   } else {
-                    stop("Plant2$ode_rates is read-only")
+                    stop("PlantMinimal$ode_rates is read-only")
                   }
                 },
                 ode_names = function(value) {
                   if (missing(value)) {
-                    Plant2__ode_names__get(self)
+                    PlantMinimal__ode_names__get(self)
                   } else {
-                    stop("Plant2$ode_names is read-only")
+                    stop("PlantMinimal$ode_names is read-only")
                   }
                 }))
 

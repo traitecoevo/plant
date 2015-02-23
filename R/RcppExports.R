@@ -535,8 +535,8 @@ Environment__light_environment__set <- function(obj_, value) {
     invisible(.Call('tree2_Environment__light_environment__set', PACKAGE = 'tree2', obj_, value))
 }
 
-Plant_Internals__ctor <- function() {
-    .Call('tree2_Plant_Internals__ctor', PACKAGE = 'tree2')
+Plant_internals__ctor <- function() {
+    .Call('tree2_Plant_internals__ctor', PACKAGE = 'tree2')
 }
 
 Plant__ctor <- function(strategy) {
@@ -631,76 +631,76 @@ Plant__ode_names__get <- function(obj_) {
     .Call('tree2_Plant__ode_names__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant2_Internals__ctor <- function() {
-    .Call('tree2_Plant2_Internals__ctor', PACKAGE = 'tree2')
+PlantMinimal_internals__ctor <- function() {
+    .Call('tree2_PlantMinimal_internals__ctor', PACKAGE = 'tree2')
 }
 
-Plant2__ctor <- function(strategy) {
-    .Call('tree2_Plant2__ctor', PACKAGE = 'tree2', strategy)
+PlantMinimal__ctor <- function(strategy) {
+    .Call('tree2_PlantMinimal__ctor', PACKAGE = 'tree2', strategy)
 }
 
-Plant2__area_leaf_above <- function(obj_, h) {
-    .Call('tree2_Plant2__area_leaf_above', PACKAGE = 'tree2', obj_, h)
+PlantMinimal__area_leaf_above <- function(obj_, h) {
+    .Call('tree2_PlantMinimal__area_leaf_above', PACKAGE = 'tree2', obj_, h)
 }
 
-Plant2__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('tree2_Plant2__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
+PlantMinimal__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('tree2_PlantMinimal__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
 }
 
-Plant2__germination_probability <- function(obj_, environment) {
-    .Call('tree2_Plant2__germination_probability', PACKAGE = 'tree2', obj_, environment)
+PlantMinimal__germination_probability <- function(obj_, environment) {
+    .Call('tree2_PlantMinimal__germination_probability', PACKAGE = 'tree2', obj_, environment)
 }
 
-Plant2__height__get <- function(obj_) {
-    .Call('tree2_Plant2__height__get', PACKAGE = 'tree2', obj_)
+PlantMinimal__height__get <- function(obj_) {
+    .Call('tree2_PlantMinimal__height__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant2__height__set <- function(obj_, value) {
-    invisible(.Call('tree2_Plant2__height__set', PACKAGE = 'tree2', obj_, value))
+PlantMinimal__height__set <- function(obj_, value) {
+    invisible(.Call('tree2_PlantMinimal__height__set', PACKAGE = 'tree2', obj_, value))
 }
 
-Plant2__mortality__get <- function(obj_) {
-    .Call('tree2_Plant2__mortality__get', PACKAGE = 'tree2', obj_)
+PlantMinimal__mortality__get <- function(obj_) {
+    .Call('tree2_PlantMinimal__mortality__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant2__mortality__set <- function(obj_, value) {
-    invisible(.Call('tree2_Plant2__mortality__set', PACKAGE = 'tree2', obj_, value))
+PlantMinimal__mortality__set <- function(obj_, value) {
+    invisible(.Call('tree2_PlantMinimal__mortality__set', PACKAGE = 'tree2', obj_, value))
 }
 
-Plant2__fecundity__get <- function(obj_) {
-    .Call('tree2_Plant2__fecundity__get', PACKAGE = 'tree2', obj_)
+PlantMinimal__fecundity__get <- function(obj_) {
+    .Call('tree2_PlantMinimal__fecundity__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant2__fecundity__set <- function(obj_, value) {
-    invisible(.Call('tree2_Plant2__fecundity__set', PACKAGE = 'tree2', obj_, value))
+PlantMinimal__fecundity__set <- function(obj_, value) {
+    invisible(.Call('tree2_PlantMinimal__fecundity__set', PACKAGE = 'tree2', obj_, value))
 }
 
-Plant2__strategy__get <- function(obj_) {
-    .Call('tree2_Plant2__strategy__get', PACKAGE = 'tree2', obj_)
+PlantMinimal__strategy__get <- function(obj_) {
+    .Call('tree2_PlantMinimal__strategy__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant2__internals__get <- function(obj_) {
-    .Call('tree2_Plant2__internals__get', PACKAGE = 'tree2', obj_)
+PlantMinimal__internals__get <- function(obj_) {
+    .Call('tree2_PlantMinimal__internals__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant2__ode_size__get <- function(obj_) {
-    .Call('tree2_Plant2__ode_size__get', PACKAGE = 'tree2', obj_)
+PlantMinimal__ode_size__get <- function(obj_) {
+    .Call('tree2_PlantMinimal__ode_size__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant2__ode_state__get <- function(obj_) {
-    .Call('tree2_Plant2__ode_state__get', PACKAGE = 'tree2', obj_)
+PlantMinimal__ode_state__get <- function(obj_) {
+    .Call('tree2_PlantMinimal__ode_state__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant2__ode_state__set <- function(obj_, value) {
-    invisible(.Call('tree2_Plant2__ode_state__set', PACKAGE = 'tree2', obj_, value))
+PlantMinimal__ode_state__set <- function(obj_, value) {
+    invisible(.Call('tree2_PlantMinimal__ode_state__set', PACKAGE = 'tree2', obj_, value))
 }
 
-Plant2__ode_rates__get <- function(obj_) {
-    .Call('tree2_Plant2__ode_rates__get', PACKAGE = 'tree2', obj_)
+PlantMinimal__ode_rates__get <- function(obj_) {
+    .Call('tree2_PlantMinimal__ode_rates__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant2__ode_names__get <- function(obj_) {
-    .Call('tree2_Plant2__ode_names__get', PACKAGE = 'tree2', obj_)
+PlantMinimal__ode_names__get <- function(obj_) {
+    .Call('tree2_PlantMinimal__ode_names__get', PACKAGE = 'tree2', obj_)
 }
 
 Cohort__ctor <- function(strategy) {

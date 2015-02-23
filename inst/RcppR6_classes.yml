@@ -342,7 +342,7 @@ Environment:
     time: {type: double, access: field}
     light_environment: {type: "tree2::interpolator::Interpolator", access: field}
 
-Plant_Internals:
+Plant_internals:
   name_cpp: "tree2::Plant::Internals"
   list:
     - mass_leaf: double
@@ -425,8 +425,8 @@ Plant:
       args: [environment: "const tree2::Environment&"]
       return_type: double
 
-Plant2_Internals:
-  name_cpp: "tree2::Plant2::Internals"
+PlantMinimal_internals:
+  name_cpp: "tree2::PlantMinimal_internals"
   list:
     - area_leaf: double
     - height: double
@@ -436,13 +436,13 @@ Plant2_Internals:
     - fecundity: double
     - fecundity_dt: double
 
-Plant2:
-  name_cpp: "tree2::Plant2"
+PlantMinimal:
+  name_cpp: "tree2::PlantMinimal<tree2::Strategy>"
   constructor:
-    name_cpp: "tree2::make_plant2"
+    name_cpp: "tree2::make_plant_minimal<tree2::Strategy>"
     args: [strategy: "tree2::Strategy"]
     roxygen: |
-      Plant2 object
+      Minimal Plant object
       @param strategy A \code{Strategy} object
       @export
   active:
@@ -450,7 +450,7 @@ Plant2:
     mortality: {type: double, access: member, name_cpp_set: set_mortality}
     fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
     strategy: {type: "tree2::Strategy", access: member, name_cpp: r_get_strategy}
-    internals: {type: "tree2::Plant2::Internals", access: member, name_cpp: "r_internals"}
+    internals: {type: "tree2::PlantMinimal_internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
     ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}

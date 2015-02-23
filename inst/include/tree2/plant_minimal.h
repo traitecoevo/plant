@@ -1,17 +1,23 @@
 // -*-c++-*-
-#ifndef TREE_PLANT2_H_
-#define TREE_PLANT2_H_
+#ifndef TREE_PLANT_MINIMAL_H_
+#define TREE_PLANT_MINIMAL_H_
 
 #include <memory> // std::shared_ptr
 #include <vector>
 #include <tree2/strategy.h>
-#include <tree2/plant_internals.h>
 #include <tree2/ode_interface.h>
 
 namespace tree2 {
 
-struct Plant2_internals {
-  Plant2_internals()
+// These are common to all minimal plants, for now at least.
+//
+// Moving to a more general "size" based model would be easy enough
+// but we'd need to also store height because Patch & Environment
+// between them use height to work out how far up to compute the
+// canopy openness for.  So like leaf_area being carried around we'd
+// need to carry height as well.
+struct PlantMinimal_internals {
+  PlantMinimal_internals()
     :
     height(NA_REAL),
     height_dt(NA_REAL),
@@ -29,11 +35,12 @@ struct Plant2_internals {
   double fecundity_dt;
 };
 
-class Plant2 {
+template <typename S>
+class PlantMinimal {
 public:
-  typedef Plant2_internals Internals;
-  typedef Strategy         strategy_type;
-  Plant2(strategy_type::ptr s)
+  typedef PlantMinimal_internals Internals;
+  typedef S                      strategy_type;
+  PlantMinimal(typename strategy_type::ptr s)
     : strategy(s) {
     set_height(strategy->height_0);
   }
@@ -94,16 +101,17 @@ public:
 
   // * R interface
   strategy_type r_get_strategy() const {return *strategy.get();}
-  Plant2::Internals r_internals() const {return vars;}
+  PlantMinimal::Internals r_internals() const {return vars;}
   const Control& control() const {return strategy->control;}
 
 private:
-  strategy_type::ptr strategy;
-  Plant2::Internals vars;
+  typename strategy_type::ptr strategy;
+  PlantMinimal::Internals vars;
 };
 
-inline Plant2 make_plant2(Plant2::strategy_type s) {
-  return Plant2(make_strategy_ptr(s));
+template <typename S>
+PlantMinimal<S> make_plant_minimal(S s) {
+  return PlantMinimal<S>(make_strategy_ptr(s));
 }
 
 }

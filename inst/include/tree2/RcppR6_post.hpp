@@ -72,7 +72,7 @@ template <> inline std::string   class_name_r<tree2::Environment >() {return "En
 template <> inline std::string   package_name<tree2::Environment >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Environment >() {return ".R6_Environment";}
 
-template <> inline std::string   class_name_r<tree2::Plant::Internals >() {return "Plant_Internals";}
+template <> inline std::string   class_name_r<tree2::Plant::Internals >() {return "Plant_internals";}
 template <> inline std::string   package_name<tree2::Plant::Internals >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Plant::Internals >() {return "";}
 
@@ -80,13 +80,13 @@ template <> inline std::string   class_name_r<tree2::Plant >() {return "Plant";}
 template <> inline std::string   package_name<tree2::Plant >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Plant >() {return ".R6_Plant";}
 
-template <> inline std::string   class_name_r<tree2::Plant2::Internals >() {return "Plant2_Internals";}
-template <> inline std::string   package_name<tree2::Plant2::Internals >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Plant2::Internals >() {return "";}
+template <> inline std::string   class_name_r<tree2::PlantMinimal_internals >() {return "PlantMinimal_internals";}
+template <> inline std::string   package_name<tree2::PlantMinimal_internals >() {return "tree2";}
+template <> inline std::string generator_name<tree2::PlantMinimal_internals >() {return "";}
 
-template <> inline std::string   class_name_r<tree2::Plant2 >() {return "Plant2";}
-template <> inline std::string   package_name<tree2::Plant2 >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Plant2 >() {return ".R6_Plant2";}
+template <> inline std::string   class_name_r<tree2::PlantMinimal<tree2::Strategy> >() {return "PlantMinimal";}
+template <> inline std::string   package_name<tree2::PlantMinimal<tree2::Strategy> >() {return "tree2";}
+template <> inline std::string generator_name<tree2::PlantMinimal<tree2::Strategy> >() {return ".R6_PlantMinimal";}
 
 template <> inline std::string   class_name_r<tree2::Cohort<tree2::Plant> >() {return "Cohort";}
 template <> inline std::string   package_name<tree2::Cohort<tree2::Plant> >() {return "tree2";}
@@ -584,12 +584,12 @@ template <> inline SEXP wrap(const tree2::Plant::Internals& x) {
   ret["mass_live_dt"] = Rcpp::wrap(x.mass_live_dt);
   ret["mass_total_dt"] = Rcpp::wrap(x.mass_total_dt);
   ret["mass_above_ground_dt"] = Rcpp::wrap(x.mass_above_ground_dt);
-  ret.attr("class") = "Plant_Internals";
+  ret.attr("class") = "Plant_internals";
   return ret;
 }
 template <> inline tree2::Plant::Internals as(SEXP x) {
   if (!tree2::RcppR6::is<tree2::Plant::Internals >(x)) {
-    Rcpp::stop("Expected an object of type Plant_Internals");
+    Rcpp::stop("Expected an object of type Plant_internals");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
@@ -692,7 +692,7 @@ template <> inline tree2::Plant as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::Plant>(x));
 }
 
-template <> inline SEXP wrap(const tree2::Plant2::Internals& x) {
+template <> inline SEXP wrap(const tree2::PlantMinimal_internals& x) {
   Rcpp::List ret;
   ret["area_leaf"] = Rcpp::wrap(x.area_leaf);
   ret["height"] = Rcpp::wrap(x.height);
@@ -701,17 +701,17 @@ template <> inline SEXP wrap(const tree2::Plant2::Internals& x) {
   ret["mortality_dt"] = Rcpp::wrap(x.mortality_dt);
   ret["fecundity"] = Rcpp::wrap(x.fecundity);
   ret["fecundity_dt"] = Rcpp::wrap(x.fecundity_dt);
-  ret.attr("class") = "Plant2_Internals";
+  ret.attr("class") = "PlantMinimal_internals";
   return ret;
 }
-template <> inline tree2::Plant2::Internals as(SEXP x) {
-  if (!tree2::RcppR6::is<tree2::Plant2::Internals >(x)) {
-    Rcpp::stop("Expected an object of type Plant2_Internals");
+template <> inline tree2::PlantMinimal_internals as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::PlantMinimal_internals >(x)) {
+    Rcpp::stop("Expected an object of type PlantMinimal_internals");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  tree2::Plant2::Internals ret;
+  tree2::PlantMinimal_internals ret;
   Rcpp::List xl(x);
   // ret.area_leaf = Rcpp::as<decltype(retarea_leaf) >(xl["area_leaf"]);
   ret.area_leaf = Rcpp::as<double >(xl["area_leaf"]);
@@ -730,11 +730,11 @@ template <> inline tree2::Plant2::Internals as(SEXP x) {
   return ret;
 }
 
-template <> inline SEXP wrap(const tree2::Plant2& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::Plant2>(x));
+template <> inline SEXP wrap(const tree2::PlantMinimal<tree2::Strategy>& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> >(x));
 }
-template <> inline tree2::Plant2 as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::Plant2>(x));
+template <> inline tree2::PlantMinimal<tree2::Strategy> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> >(x));
 }
 
 template <> inline SEXP wrap(const tree2::Cohort<tree2::Plant>& x) {

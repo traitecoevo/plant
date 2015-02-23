@@ -1860,14 +1860,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Plant_Internals__ctor
-SEXP Plant_Internals__ctor();
-RcppExport SEXP tree2_Plant_Internals__ctor() {
+// Plant_internals__ctor
+SEXP Plant_internals__ctor();
+RcppExport SEXP tree2_Plant_internals__ctor() {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        SEXP __result = Plant_Internals__ctor();
+        SEXP __result = Plant_internals__ctor();
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2204,261 +2204,261 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Plant2_Internals__ctor
-SEXP Plant2_Internals__ctor();
-RcppExport SEXP tree2_Plant2_Internals__ctor() {
+// PlantMinimal_internals__ctor
+SEXP PlantMinimal_internals__ctor();
+RcppExport SEXP tree2_PlantMinimal_internals__ctor() {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        SEXP __result = Plant2_Internals__ctor();
+        SEXP __result = PlantMinimal_internals__ctor();
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__ctor
-tree2::Plant2 Plant2__ctor(tree2::Strategy strategy);
-RcppExport SEXP tree2_Plant2__ctor(SEXP strategySEXP) {
+// PlantMinimal__ctor
+tree2::PlantMinimal<tree2::Strategy> PlantMinimal__ctor(tree2::Strategy strategy);
+RcppExport SEXP tree2_PlantMinimal__ctor(SEXP strategySEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::Strategy >::type strategy(strategySEXP );
-        tree2::Plant2 __result = Plant2__ctor(strategy);
+        tree2::PlantMinimal<tree2::Strategy> __result = PlantMinimal__ctor(strategy);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__area_leaf_above
-double Plant2__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double h);
-RcppExport SEXP tree2_Plant2__area_leaf_above(SEXP obj_SEXP, SEXP hSEXP) {
+// PlantMinimal__area_leaf_above
+double PlantMinimal__area_leaf_above(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, double h);
+RcppExport SEXP tree2_PlantMinimal__area_leaf_above(SEXP obj_SEXP, SEXP hSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type h(hSEXP );
-        double __result = Plant2__area_leaf_above(obj_, h);
+        double __result = PlantMinimal__area_leaf_above(obj_, h);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__compute_vars_phys
-void Plant2__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, const tree2::Environment& environment);
-RcppExport SEXP tree2_Plant2__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
+// PlantMinimal__compute_vars_phys
+void PlantMinimal__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, const tree2::Environment& environment);
+RcppExport SEXP tree2_PlantMinimal__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< const tree2::Environment& >::type environment(environmentSEXP );
-        Plant2__compute_vars_phys(obj_, environment);
+        PlantMinimal__compute_vars_phys(obj_, environment);
     }
     return R_NilValue;
 END_RCPP
 }
-// Plant2__germination_probability
-double Plant2__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, const tree2::Environment& environment);
-RcppExport SEXP tree2_Plant2__germination_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
+// PlantMinimal__germination_probability
+double PlantMinimal__germination_probability(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, const tree2::Environment& environment);
+RcppExport SEXP tree2_PlantMinimal__germination_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< const tree2::Environment& >::type environment(environmentSEXP );
-        double __result = Plant2__germination_probability(obj_, environment);
+        double __result = PlantMinimal__germination_probability(obj_, environment);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__height__get
-double Plant2__height__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
-RcppExport SEXP tree2_Plant2__height__get(SEXP obj_SEXP) {
+// PlantMinimal__height__get
+double PlantMinimal__height__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_);
+RcppExport SEXP tree2_PlantMinimal__height__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
-        double __result = Plant2__height__get(obj_);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
+        double __result = PlantMinimal__height__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__height__set
-void Plant2__height__set(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double value);
-RcppExport SEXP tree2_Plant2__height__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// PlantMinimal__height__set
+void PlantMinimal__height__set(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, double value);
+RcppExport SEXP tree2_PlantMinimal__height__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type value(valueSEXP );
-        Plant2__height__set(obj_, value);
+        PlantMinimal__height__set(obj_, value);
     }
     return R_NilValue;
 END_RCPP
 }
-// Plant2__mortality__get
-double Plant2__mortality__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
-RcppExport SEXP tree2_Plant2__mortality__get(SEXP obj_SEXP) {
+// PlantMinimal__mortality__get
+double PlantMinimal__mortality__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_);
+RcppExport SEXP tree2_PlantMinimal__mortality__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
-        double __result = Plant2__mortality__get(obj_);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
+        double __result = PlantMinimal__mortality__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__mortality__set
-void Plant2__mortality__set(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double value);
-RcppExport SEXP tree2_Plant2__mortality__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// PlantMinimal__mortality__set
+void PlantMinimal__mortality__set(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, double value);
+RcppExport SEXP tree2_PlantMinimal__mortality__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type value(valueSEXP );
-        Plant2__mortality__set(obj_, value);
+        PlantMinimal__mortality__set(obj_, value);
     }
     return R_NilValue;
 END_RCPP
 }
-// Plant2__fecundity__get
-double Plant2__fecundity__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
-RcppExport SEXP tree2_Plant2__fecundity__get(SEXP obj_SEXP) {
+// PlantMinimal__fecundity__get
+double PlantMinimal__fecundity__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_);
+RcppExport SEXP tree2_PlantMinimal__fecundity__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
-        double __result = Plant2__fecundity__get(obj_);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
+        double __result = PlantMinimal__fecundity__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__fecundity__set
-void Plant2__fecundity__set(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, double value);
-RcppExport SEXP tree2_Plant2__fecundity__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// PlantMinimal__fecundity__set
+void PlantMinimal__fecundity__set(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, double value);
+RcppExport SEXP tree2_PlantMinimal__fecundity__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< double >::type value(valueSEXP );
-        Plant2__fecundity__set(obj_, value);
+        PlantMinimal__fecundity__set(obj_, value);
     }
     return R_NilValue;
 END_RCPP
 }
-// Plant2__strategy__get
-tree2::Strategy Plant2__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
-RcppExport SEXP tree2_Plant2__strategy__get(SEXP obj_SEXP) {
+// PlantMinimal__strategy__get
+tree2::Strategy PlantMinimal__strategy__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_);
+RcppExport SEXP tree2_PlantMinimal__strategy__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
-        tree2::Strategy __result = Plant2__strategy__get(obj_);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
+        tree2::Strategy __result = PlantMinimal__strategy__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__internals__get
-tree2::Plant2::Internals Plant2__internals__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
-RcppExport SEXP tree2_Plant2__internals__get(SEXP obj_SEXP) {
+// PlantMinimal__internals__get
+tree2::PlantMinimal_internals PlantMinimal__internals__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_);
+RcppExport SEXP tree2_PlantMinimal__internals__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
-        tree2::Plant2::Internals __result = Plant2__internals__get(obj_);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
+        tree2::PlantMinimal_internals __result = PlantMinimal__internals__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__ode_size__get
-size_t Plant2__ode_size__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
-RcppExport SEXP tree2_Plant2__ode_size__get(SEXP obj_SEXP) {
+// PlantMinimal__ode_size__get
+size_t PlantMinimal__ode_size__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_);
+RcppExport SEXP tree2_PlantMinimal__ode_size__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
-        size_t __result = Plant2__ode_size__get(obj_);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
+        size_t __result = PlantMinimal__ode_size__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__ode_state__get
-tree2::ode::state_type Plant2__ode_state__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
-RcppExport SEXP tree2_Plant2__ode_state__get(SEXP obj_SEXP) {
+// PlantMinimal__ode_state__get
+tree2::ode::state_type PlantMinimal__ode_state__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_);
+RcppExport SEXP tree2_PlantMinimal__ode_state__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
-        tree2::ode::state_type __result = Plant2__ode_state__get(obj_);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
+        tree2::ode::state_type __result = PlantMinimal__ode_state__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__ode_state__set
-void Plant2__ode_state__set(tree2::RcppR6::RcppR6<tree2::Plant2> obj_, tree2::ode::state_type value);
-RcppExport SEXP tree2_Plant2__ode_state__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// PlantMinimal__ode_state__set
+void PlantMinimal__ode_state__set(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, tree2::ode::state_type value);
+RcppExport SEXP tree2_PlantMinimal__ode_state__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
         Rcpp::traits::input_parameter< tree2::ode::state_type >::type value(valueSEXP );
-        Plant2__ode_state__set(obj_, value);
+        PlantMinimal__ode_state__set(obj_, value);
     }
     return R_NilValue;
 END_RCPP
 }
-// Plant2__ode_rates__get
-tree2::ode::state_type Plant2__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
-RcppExport SEXP tree2_Plant2__ode_rates__get(SEXP obj_SEXP) {
+// PlantMinimal__ode_rates__get
+tree2::ode::state_type PlantMinimal__ode_rates__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_);
+RcppExport SEXP tree2_PlantMinimal__ode_rates__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
-        tree2::ode::state_type __result = Plant2__ode_rates__get(obj_);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
+        tree2::ode::state_type __result = PlantMinimal__ode_rates__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
     return __sexp_result;
 END_RCPP
 }
-// Plant2__ode_names__get
-std::vector<std::string> Plant2__ode_names__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
-RcppExport SEXP tree2_Plant2__ode_names__get(SEXP obj_SEXP) {
+// PlantMinimal__ode_names__get
+std::vector<std::string> PlantMinimal__ode_names__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_);
+RcppExport SEXP tree2_PlantMinimal__ode_names__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
-        std::vector<std::string> __result = Plant2__ode_names__get(obj_);
+        Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > >::type obj_(obj_SEXP );
+        std::vector<std::string> __result = PlantMinimal__ode_names__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
