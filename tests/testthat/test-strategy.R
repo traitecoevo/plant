@@ -7,8 +7,8 @@ test_that("Defaults", {
     a1     = 5.44,
     a3     = 0.07,
     b      = 0.17,
-    c_Rb   = 8024/608,
-    c_Rl   = 2.1e4 * 1.87e-3 / 0.1978791,
+    c_Rb   = 8024 / 608,
+    c_Rl   = 39.27 / 0.1978791,
     c_Rr   = 217,
     c_Rs   = 4012/608,
     c_acc  = 3.0*3.8e-5,
@@ -28,7 +28,6 @@ test_that("Defaults", {
     k_r    = 1,
     k_s   = 0.2,
     lma    = 0.1978791,
-    n_area = 0.00187,
     rho    = 608,
     mass_seed = 3.8e-5,
     theta  = 4669,
@@ -50,8 +49,9 @@ test_that("Strategy parameters agree with reference model", {
   s <- Strategy()
 
   ## Expect that all parameters in the R version are found in the C++
-  ## version.
-  expect_that(all(names(cmp_pars) %in% names(s)), is_true())
+  ## version, *except* for n_area
+  v <- setdiff(names(cmp_pars), "n_area")
+  expect_that(all(v %in% names(s)), is_true())
 
   ## And v.v., except for a few additions:
   extra <- "control"
@@ -69,6 +69,5 @@ test_that("Strategy parameters agree with reference model", {
               is_false())
 
   ## And demand that all parameters agree.
-  expect_that(s[names(cmp_pars)],
-              is_identical_to(cmp_pars))
+  expect_that(s[v], equals(cmp_pars[v], tolerance=1e-13))
 })

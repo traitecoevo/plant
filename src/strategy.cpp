@@ -19,8 +19,7 @@ Strategy::Strategy() {
   lma       = 0.1978791;  // Leaf mass per area [kg / m2]
   rho       = 608.0;      // wood density [kg/m3]
   hmat      = 16.5958691; // Height at maturation [m]
-  mass_seed =  3.8e-5;    // Seed mass [kg]
-  n_area    = 1.87e-3;    // Leaf nitrogen per area [kg / m2]
+  mass_seed = 3.8e-5;    // Seed mass [kg]
 
   // * Individual allometry
   // Canopy shape parameter (extra calculation here later)
@@ -37,12 +36,11 @@ Strategy::Strategy() {
 
   // * Production
   // Ratio of leaf dark respiration to leaf mass
-  // =  [mol CO2 / kgN / yr] (6.66e-4 * (365*24*60*60))
-  //  * [kgN / m2 leaf] (1.87e-3 = narea)
-  //  / [kg leaf / m2 ] (0.1978791 = lma)
-  // Hard coded in value of n_area and lma here so that this value
-  // doesn't change if those traits change above
-  c_Rl   = 2.1e4 * 1.87e-3 / 0.1978791;
+  // =  [mol CO2 / kg(leaf) / yr]  |  (39.27)         |
+  //    / [kg(leaf) / m2 ]         |    / (0.1978791) | lma
+  // Hard coded in value of lma here so that this value doesn't change
+  // if that trait changes above.
+  c_Rl   = 39.27 / 0.1978791;
   // Root respiration per mass [mol CO2 / kg / yr]
   c_Rr   = 217.0;
   // Sapwood respiration per stem mass

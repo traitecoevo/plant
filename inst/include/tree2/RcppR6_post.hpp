@@ -350,13 +350,11 @@ template <> inline SEXP wrap(const tree2::Strategy& x) {
   ret["rho"] = Rcpp::wrap(x.rho);
   ret["hmat"] = Rcpp::wrap(x.hmat);
   ret["mass_seed"] = Rcpp::wrap(x.mass_seed);
-  ret["n_area"] = Rcpp::wrap(x.n_area);
   ret["eta"] = Rcpp::wrap(x.eta);
   ret["theta"] = Rcpp::wrap(x.theta);
   ret["a1"] = Rcpp::wrap(x.a1);
   ret["B1"] = Rcpp::wrap(x.B1);
   ret["a3"] = Rcpp::wrap(x.a3);
-  ret["k_s"] = Rcpp::wrap(x.k_s);
   ret["b"] = Rcpp::wrap(x.b);
   ret["c_Rs"] = Rcpp::wrap(x.c_Rs);
   ret["c_Rb"] = Rcpp::wrap(x.c_Rb);
@@ -366,6 +364,7 @@ template <> inline SEXP wrap(const tree2::Strategy& x) {
   ret["c_bio"] = Rcpp::wrap(x.c_bio);
   ret["k_l"] = Rcpp::wrap(x.k_l);
   ret["k_b"] = Rcpp::wrap(x.k_b);
+  ret["k_s"] = Rcpp::wrap(x.k_s);
   ret["k_r"] = Rcpp::wrap(x.k_r);
   ret["c_p1"] = Rcpp::wrap(x.c_p1);
   ret["c_p2"] = Rcpp::wrap(x.c_p2);
@@ -397,8 +396,6 @@ template <> inline tree2::Strategy as(SEXP x) {
   ret.hmat = Rcpp::as<double >(xl["hmat"]);
   // ret.mass_seed = Rcpp::as<decltype(retmass_seed) >(xl["mass_seed"]);
   ret.mass_seed = Rcpp::as<double >(xl["mass_seed"]);
-  // ret.n_area = Rcpp::as<decltype(retn_area) >(xl["n_area"]);
-  ret.n_area = Rcpp::as<double >(xl["n_area"]);
   // ret.eta = Rcpp::as<decltype(reteta) >(xl["eta"]);
   ret.eta = Rcpp::as<double >(xl["eta"]);
   // ret.theta = Rcpp::as<decltype(rettheta) >(xl["theta"]);
@@ -409,8 +406,6 @@ template <> inline tree2::Strategy as(SEXP x) {
   ret.B1 = Rcpp::as<double >(xl["B1"]);
   // ret.a3 = Rcpp::as<decltype(reta3) >(xl["a3"]);
   ret.a3 = Rcpp::as<double >(xl["a3"]);
-  // ret.k_s = Rcpp::as<decltype(retk_s) >(xl["k_s"]);
-  ret.k_s = Rcpp::as<double >(xl["k_s"]);
   // ret.b = Rcpp::as<decltype(retb) >(xl["b"]);
   ret.b = Rcpp::as<double >(xl["b"]);
   // ret.c_Rs = Rcpp::as<decltype(retc_Rs) >(xl["c_Rs"]);
@@ -429,6 +424,8 @@ template <> inline tree2::Strategy as(SEXP x) {
   ret.k_l = Rcpp::as<double >(xl["k_l"]);
   // ret.k_b = Rcpp::as<decltype(retk_b) >(xl["k_b"]);
   ret.k_b = Rcpp::as<double >(xl["k_b"]);
+  // ret.k_s = Rcpp::as<decltype(retk_s) >(xl["k_s"]);
+  ret.k_s = Rcpp::as<double >(xl["k_s"]);
   // ret.k_r = Rcpp::as<decltype(retk_r) >(xl["k_r"]);
   ret.k_r = Rcpp::as<double >(xl["k_r"]);
   // ret.c_p1 = Rcpp::as<decltype(retc_p1) >(xl["c_p1"]);
