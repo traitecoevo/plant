@@ -11,9 +11,9 @@ namespace tree2 {
 
 class Plant {
 public:
-  typedef Strategy      strategy_type;
-  typedef Strategy::ptr strategy_ptr_type;
-  Plant(strategy_ptr_type s);
+  typedef Plant_internals Internals;
+  typedef Strategy        strategy_type;
+  Plant(strategy_type::ptr s);
 
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
@@ -72,7 +72,7 @@ public:
   double net_mass_production_dt() const {return vars.net_mass_production_dt;}
 
   Plant r_copy() const;
-  Plant_internals r_internals() const;
+  Internals r_internals() const;
 
   const Control& control() const;
 
@@ -81,8 +81,8 @@ private:
   // [eqn 1-8] Update size variables to a new leaf mass.
   void compute_vars_size(double height_);
 
-  strategy_ptr_type strategy;
-  Plant_internals vars;
+  strategy_type::ptr strategy;
+  Internals vars;
 
   // The ode dimensions are:
   // 1. Height

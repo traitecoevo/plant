@@ -742,8 +742,8 @@ Parameters <- function(..., values=list(...)) {
                 }))
 
 
-Plant_internals <- function(..., values=list(...)) {
-  ret <- Plant_internals__ctor()
+Plant_Internals <- function(..., values=list(...)) {
+  ret <- Plant_Internals__ctor()
   if (length(err <- setdiff(names(values), names(ret))) > 0L) {
     stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
   }
@@ -866,8 +866,8 @@ Plant_internals <- function(..., values=list(...)) {
                 }))
 
 
-Plant2_internals <- function(..., values=list(...)) {
-  ret <- Plant2_internals__ctor()
+Plant2_Internals <- function(..., values=list(...)) {
+  ret <- Plant2_Internals__ctor()
   if (length(err <- setdiff(names(values), names(ret))) > 0L) {
     stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
   }

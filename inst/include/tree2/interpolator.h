@@ -3,7 +3,7 @@
 #define TREE_INTERPOLATOR_H_
 
 #include <vector>
-#include <RcppCommon.h>
+#include <RcppCommon.h> // SEXP
 #include <tk/spline.h>
 
 namespace tree2 {

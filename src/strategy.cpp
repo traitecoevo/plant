@@ -16,32 +16,32 @@ namespace tree2 {
 
 Strategy::Strategy() {
   // * Core traits - default values
-  lma    = 0.1978791; // Leaf mass per area [kg / m2]
-  rho    = 608.0;       // wood density [kg/m3]
-  hmat   = 16.5958691; // Height at maturation [m]
-  mass_seed     =  3.8e-5;  // Seed mass [kg]
-  n_area = 1.87e-3;  // Leaf nitrogen per area (= Plant::v) [kg / m2]
+  lma       = 0.1978791;  // Leaf mass per area [kg / m2]
+  rho       = 608.0;      // wood density [kg/m3]
+  hmat      = 16.5958691; // Height at maturation [m]
+  mass_seed =  3.8e-5;    // Seed mass [kg]
+  n_area    = 1.87e-3;    // Leaf nitrogen per area [kg / m2]
 
   // * Individual allometry
   // Canopy shape parameter (extra calculation here later)
-  eta = 12.0;
+  eta       = 12.0;
   // ratio leaf area to sapwood area
-  theta  = 4669;
+  theta     = 4669;
   // Height - leaf mass scaling
-  a1     = 5.44;
-  B1     = 0.306;
+  a1        = 5.44;
+  B1        = 0.306;
   // Root - leaf scaling
-  a3     = 0.07;
+  a3        = 0.07;
   // Ratio of bark area : sapwood area
-  b      = 0.17;
+  b         = 0.17;
 
   // * Production
   // Ratio of leaf dark respiration to leaf mass
   // =  [mol CO2 / kgN / yr] (6.66e-4 * (365*24*60*60))
   //  * [kgN / m2 leaf] (1.87e-3 = narea)
   //  / [kg leaf / m2 ] (0.1978791 = lma)
-  // Hard coded in value of narea and lma here so that this value doesnt change if
-  // those traits change above
+  // Hard coded in value of n_area and lma here so that this value
+  // doesn't change if those traits change above
   c_Rl   = 2.1e4 * 1.87e-3 / 0.1978791;
   // Root respiration per mass [mol CO2 / kg / yr]
   c_Rr   = 217.0;
@@ -92,17 +92,17 @@ Strategy::Strategy() {
   c_d3    = 20.0;
 
   // Will get computed properly by prepare_strategy
-  height_0    = NA_REAL;
-  eta_c = NA_REAL;
+  height_0 = NA_REAL;
+  eta_c    = NA_REAL;
 }
 
 // [eqn 2] area_leaf (inverse of [eqn 3])
-double Strategy::area_leaf(double height) const{
+double Strategy::area_leaf(double height) const {
   return pow(height / a1, 1.0 / B1);
 }
 
 // [eqn 1] mass_leaf (inverse of [eqn 2])
-double Strategy::mass_leaf(double area_leaf) const{
+double Strategy::mass_leaf(double area_leaf) const {
   return area_leaf * lma;
 }
 
@@ -153,6 +153,39 @@ double Strategy::mass_total(double mass_leaf, double mass_bark,
 double Strategy::mass_above_ground(double mass_leaf, double mass_bark,
                             double mass_sapwood, double mass_root) const {
   return mass_leaf + mass_bark + mass_sapwood + mass_root;
+}
+
+// one-shot update of the ebt variables
+void Strategy::ebt_vars(const Environment& environment, bool reuse_intervals,
+                        double height, double area_leaf_, double mortality,
+                        // output by reference:
+                        double& height_dt_, double& fecundity_dt_,
+                        double& mortality_dt_) {
+  const double net_mass_production_dt_ =
+    net_mass_production_dt(environment, height, area_leaf_,
+                           reuse_intervals);
+  if (net_mass_production_dt_ > 0) {
+    const double fraction_allocation_reproduction_ =
+      fraction_allocation_reproduction(height);
+    const double darea_leaf_dmass_live_ =
+      darea_leaf_dmass_live(area_leaf_);
+    const double fraction_allocation_growth_ =
+      fraction_allocation_growth(height);
+    const double area_leaf_dt =
+      net_mass_production_dt_ * fraction_allocation_growth_ *
+      darea_leaf_dmass_live_;
+    height_dt_ =
+      dheight_darea_leaf(area_leaf_) * area_leaf_dt;
+    fecundity_dt_ =
+      fecundity_dt(net_mass_production_dt_,
+                   fraction_allocation_reproduction_);
+  } else {
+    height_dt_    = 0.0;
+    fecundity_dt_ = 0.0;
+  }
+  // [eqn 21] - Instantaneous mortality rate
+  mortality_dt_ =
+      mortality_dt(net_mass_production_dt_ / area_leaf_, mortality);
 }
 
 // [eqn 12] Gross annual CO2 assimilation
@@ -276,6 +309,7 @@ double Strategy::net_mass_production_dt(double assimilation, double respiration,
 }
 
 // One shot calculation of net_mass_production_dt
+// Used by germination_probability() and ebt_vars().
 double Strategy::net_mass_production_dt(const Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals) {
@@ -307,7 +341,8 @@ double Strategy::fraction_allocation_growth(double height) const {
 // [eqn 17] Rate of offspring production
 double Strategy::fecundity_dt(double net_mass_production_dt,
                                double fraction_allocation_reproduction) const {
-  return net_mass_production_dt * fraction_allocation_reproduction / (mass_seed + c_acc);
+  return net_mass_production_dt * fraction_allocation_reproduction /
+    (mass_seed + c_acc);
 }
 
 double Strategy::darea_leaf_dmass_live(double area_leaf) const {
@@ -440,8 +475,8 @@ double Strategy::mortality_dt(double productivity_area,
   // now, just checking that the actual mortality rate is finite.
   if (R_FINITE(cumulative_mortality)) {
     return
-      mortality_growth_independent_dt(c_d0) +
-      mortality_growth_dependent_dt(c_d2, c_d3, productivity_area);
+      mortality_growth_independent_dt() +
+      mortality_growth_dependent_dt(productivity_area);
  } else {
     // If mortality probability is 1 (latency = Inf) then the rate
     // calculations break.  Setting them to zero gives the correct
@@ -450,14 +485,12 @@ double Strategy::mortality_dt(double productivity_area,
   }
 }
 
-double Strategy::mortality_growth_independent_dt(double d0) const {
-  return d0;
+double Strategy::mortality_growth_independent_dt() const {
+  return c_d0;
 }
 
-double Strategy::mortality_growth_dependent_dt(
-                                  double d2, double d3,
-                                  double productivity_area) const {
-  return d2 * exp(-d3 * productivity_area);
+double Strategy::mortality_growth_dependent_dt(double productivity_area) const {
+  return c_d2 * exp(-c_d3 * productivity_area);
 }
 
 // [eqn 20] Survival of seedlings during germination
@@ -473,7 +506,7 @@ double Strategy::germination_probability(const Environment& environment) {
 }
 
 double Strategy::area_leaf_above(double z, double height,
-                                 double area_leaf) const{
+                                 double area_leaf) const {
   return area_leaf * Q(z, height);
 }
 

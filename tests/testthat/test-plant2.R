@@ -45,7 +45,7 @@ test_that("Reference comparison", {
   vars1 <- p1$internals
   vars2 <- p2$internals
 
-  expect_that(vars2, is_a("Plant2_internals"))
+  expect_that(vars2, is_a("Plant2_Internals"))
 
   variable.names <- c("area_leaf", "height", "height_dt", "mortality",
                       "mortality_dt","fecundity","fecundity_dt")

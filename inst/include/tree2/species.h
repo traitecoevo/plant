@@ -20,8 +20,8 @@ template <typename T>
 class Species {
 public:
   typedef T cohort_type;
-  typedef typename cohort_type::strategy_type     strategy_type;
-  typedef typename cohort_type::strategy_ptr_type strategy_ptr_type;
+  typedef typename T::strategy_type   strategy_type;
+  typedef typename strategy_type::ptr strategy_type_ptr;
   Species(strategy_type s);
 
   size_t size() const;
@@ -57,7 +57,7 @@ public:
 
 private:
   const Control& control() const {return strategy->get_control();}
-  strategy_ptr_type strategy;
+  strategy_type_ptr strategy;
   cohort_type seed;
   // TODO: this should really say cohorts, rather than plants.
   std::vector<cohort_type> plants;
@@ -136,7 +136,7 @@ double Species<T>::area_leaf_above(double height) const {
   for (++it; it != plants.end(); ++it) {
     const double h0 = it->height(), f_h0 = it->area_leaf_above(height);
     if (!util::is_finite(f_h0)) {
-      Rcpp::stop("Detected non-finite contribution");
+      util::stop("Detected non-finite contribution");
     }
     tot += (h1 - h0) * (f_h1 + f_h0);
     // Upper point moves for next time:

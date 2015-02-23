@@ -12,9 +12,9 @@ template <typename T>
 class Cohort {
 public:
   typedef T plant_type;
-  typedef typename T::strategy_type     strategy_type;
-  typedef typename T::strategy_ptr_type strategy_ptr_type;
-  Cohort(strategy_ptr_type s);
+  typedef typename T::strategy_type   strategy_type;
+  typedef typename strategy_type::ptr strategy_type_ptr;
+  Cohort(strategy_type_ptr s);
 
   void compute_vars_phys(const Environment& environment);
   void compute_initial_conditions(const Environment& environment);
@@ -59,7 +59,7 @@ private:
 };
 
 template <typename T>
-Cohort<T>::Cohort(strategy_ptr_type s)
+Cohort<T>::Cohort(strategy_type_ptr s)
   : plant(s),
     log_density(R_NegInf),
     log_density_dt(0),

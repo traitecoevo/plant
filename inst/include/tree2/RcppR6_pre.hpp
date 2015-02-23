@@ -11,25 +11,8 @@ template <typename T> class RcppR6;
 }
 }
 
-namespace tree2 { namespace ode { namespace test { class Lorenz; } } }
 namespace tree2 { namespace ode { namespace test { class OdeR; } } }
 
-namespace tree2 { class CohortScheduleEvent; }
-namespace tree2 { class CohortSchedule; }
-namespace tree2 { class Disturbance; }
-namespace tree2 { struct Control; }
-namespace tree2 { namespace ode { struct OdeControl; } }
-namespace tree2 { struct Strategy; }
-namespace tree2 { struct Parameters; }
-namespace tree2 { namespace quadrature { class QK; } }
-namespace tree2 { namespace quadrature { class QAG; } }
-namespace tree2 { namespace interpolator { class Interpolator; } }
-namespace tree2 { class Environment; }
-namespace tree2 { struct Plant_internals; }
-namespace tree2 { class Plant; }
-namespace tree2 { struct Plant2_internals; }
-namespace tree2 { class Plant2; }
-namespace tree2 { namespace tools { struct PlantRunner; } }
 
 namespace Rcpp {
 template <typename T> SEXP wrap(const tree2::RcppR6::RcppR6<T>&);
@@ -85,14 +68,14 @@ template <> tree2::interpolator::Interpolator as(SEXP);
 template <> SEXP wrap(const tree2::Environment&);
 template <> tree2::Environment as(SEXP);
 
-template <> SEXP wrap(const tree2::Plant_internals&);
-template <> tree2::Plant_internals as(SEXP);
+template <> SEXP wrap(const tree2::Plant::Internals&);
+template <> tree2::Plant::Internals as(SEXP);
 
 template <> SEXP wrap(const tree2::Plant&);
 template <> tree2::Plant as(SEXP);
 
-template <> SEXP wrap(const tree2::Plant2_internals&);
-template <> tree2::Plant2_internals as(SEXP);
+template <> SEXP wrap(const tree2::Plant2::Internals&);
+template <> tree2::Plant2::Internals as(SEXP);
 
 template <> SEXP wrap(const tree2::Plant2&);
 template <> tree2::Plant2 as(SEXP);

@@ -1860,14 +1860,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Plant_internals__ctor
-SEXP Plant_internals__ctor();
-RcppExport SEXP tree2_Plant_internals__ctor() {
+// Plant_Internals__ctor
+SEXP Plant_Internals__ctor();
+RcppExport SEXP tree2_Plant_Internals__ctor() {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        SEXP __result = Plant_internals__ctor();
+        SEXP __result = Plant_Internals__ctor();
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2117,14 +2117,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // Plant__internals__get
-tree2::Plant_internals Plant__internals__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
+tree2::Plant::Internals Plant__internals__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_);
 RcppExport SEXP tree2_Plant__internals__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant> >::type obj_(obj_SEXP );
-        tree2::Plant_internals __result = Plant__internals__get(obj_);
+        tree2::Plant::Internals __result = Plant__internals__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2204,14 +2204,14 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// Plant2_internals__ctor
-SEXP Plant2_internals__ctor();
-RcppExport SEXP tree2_Plant2_internals__ctor() {
+// Plant2_Internals__ctor
+SEXP Plant2_Internals__ctor();
+RcppExport SEXP tree2_Plant2_Internals__ctor() {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        SEXP __result = Plant2_internals__ctor();
+        SEXP __result = Plant2_Internals__ctor();
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -2378,14 +2378,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // Plant2__internals__get
-tree2::Plant2_internals Plant2__internals__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
+tree2::Plant2::Internals Plant2__internals__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_);
 RcppExport SEXP tree2_Plant2__internals__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< tree2::RcppR6::RcppR6<tree2::Plant2> >::type obj_(obj_SEXP );
-        tree2::Plant2_internals __result = Plant2__internals__get(obj_);
+        tree2::Plant2::Internals __result = Plant2__internals__get(obj_);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);

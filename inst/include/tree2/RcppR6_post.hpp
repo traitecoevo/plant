@@ -72,17 +72,17 @@ template <> inline std::string   class_name_r<tree2::Environment >() {return "En
 template <> inline std::string   package_name<tree2::Environment >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Environment >() {return ".R6_Environment";}
 
-template <> inline std::string   class_name_r<tree2::Plant_internals >() {return "Plant_internals";}
-template <> inline std::string   package_name<tree2::Plant_internals >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Plant_internals >() {return "";}
+template <> inline std::string   class_name_r<tree2::Plant::Internals >() {return "Plant_Internals";}
+template <> inline std::string   package_name<tree2::Plant::Internals >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Plant::Internals >() {return "";}
 
 template <> inline std::string   class_name_r<tree2::Plant >() {return "Plant";}
 template <> inline std::string   package_name<tree2::Plant >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Plant >() {return ".R6_Plant";}
 
-template <> inline std::string   class_name_r<tree2::Plant2_internals >() {return "Plant2_internals";}
-template <> inline std::string   package_name<tree2::Plant2_internals >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Plant2_internals >() {return "";}
+template <> inline std::string   class_name_r<tree2::Plant2::Internals >() {return "Plant2_Internals";}
+template <> inline std::string   package_name<tree2::Plant2::Internals >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Plant2::Internals >() {return "";}
 
 template <> inline std::string   class_name_r<tree2::Plant2 >() {return "Plant2";}
 template <> inline std::string   package_name<tree2::Plant2 >() {return "tree2";}
@@ -542,7 +542,7 @@ template <> inline tree2::Environment as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::Environment>(x));
 }
 
-template <> inline SEXP wrap(const tree2::Plant_internals& x) {
+template <> inline SEXP wrap(const tree2::Plant::Internals& x) {
   Rcpp::List ret;
   ret["mass_leaf"] = Rcpp::wrap(x.mass_leaf);
   ret["area_leaf"] = Rcpp::wrap(x.area_leaf);
@@ -587,17 +587,17 @@ template <> inline SEXP wrap(const tree2::Plant_internals& x) {
   ret["mass_live_dt"] = Rcpp::wrap(x.mass_live_dt);
   ret["mass_total_dt"] = Rcpp::wrap(x.mass_total_dt);
   ret["mass_above_ground_dt"] = Rcpp::wrap(x.mass_above_ground_dt);
-  ret.attr("class") = "Plant_internals";
+  ret.attr("class") = "Plant_Internals";
   return ret;
 }
-template <> inline tree2::Plant_internals as(SEXP x) {
-  if (!tree2::RcppR6::is<tree2::Plant_internals >(x)) {
-    Rcpp::stop("Expected an object of type Plant_internals");
+template <> inline tree2::Plant::Internals as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::Plant::Internals >(x)) {
+    Rcpp::stop("Expected an object of type Plant_Internals");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  tree2::Plant_internals ret;
+  tree2::Plant::Internals ret;
   Rcpp::List xl(x);
   // ret.mass_leaf = Rcpp::as<decltype(retmass_leaf) >(xl["mass_leaf"]);
   ret.mass_leaf = Rcpp::as<double >(xl["mass_leaf"]);
@@ -695,7 +695,7 @@ template <> inline tree2::Plant as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::Plant>(x));
 }
 
-template <> inline SEXP wrap(const tree2::Plant2_internals& x) {
+template <> inline SEXP wrap(const tree2::Plant2::Internals& x) {
   Rcpp::List ret;
   ret["area_leaf"] = Rcpp::wrap(x.area_leaf);
   ret["height"] = Rcpp::wrap(x.height);
@@ -704,17 +704,17 @@ template <> inline SEXP wrap(const tree2::Plant2_internals& x) {
   ret["mortality_dt"] = Rcpp::wrap(x.mortality_dt);
   ret["fecundity"] = Rcpp::wrap(x.fecundity);
   ret["fecundity_dt"] = Rcpp::wrap(x.fecundity_dt);
-  ret.attr("class") = "Plant2_internals";
+  ret.attr("class") = "Plant2_Internals";
   return ret;
 }
-template <> inline tree2::Plant2_internals as(SEXP x) {
-  if (!tree2::RcppR6::is<tree2::Plant2_internals >(x)) {
-    Rcpp::stop("Expected an object of type Plant2_internals");
+template <> inline tree2::Plant2::Internals as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::Plant2::Internals >(x)) {
+    Rcpp::stop("Expected an object of type Plant2_Internals");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  tree2::Plant2_internals ret;
+  tree2::Plant2::Internals ret;
   Rcpp::List xl(x);
   // ret.area_leaf = Rcpp::as<decltype(retarea_leaf) >(xl["area_leaf"]);
   ret.area_leaf = Rcpp::as<double >(xl["area_leaf"]);

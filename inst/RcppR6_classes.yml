@@ -1,6 +1,5 @@
 Lorenz:
   name_cpp: "tree2::ode::test::Lorenz"
-  forward_declare: true
   constructor:
     args: [sigma: double, R: double, b: double]
   active:
@@ -41,7 +40,6 @@ OdeRunner:
     set_state_from_system: {return_type: void}
 
 CohortScheduleEvent:
-  forward_declare: true
   name_cpp: "tree2::CohortScheduleEvent"
   constructor:
     args: [introduction: double, species_index: "tree2::util::index"]
@@ -53,7 +51,6 @@ CohortScheduleEvent:
     species_index_raw: {type: "size_t", access: member, name_cpp: species_index_raw}
 
 CohortSchedule:
-  forward_declare: true
   name_cpp: "tree2::CohortSchedule"
   constructor:
     roxygen: |
@@ -98,7 +95,6 @@ CohortSchedule:
 
 Disturbance:
   name_cpp: "tree2::Disturbance"
-  forward_declare: true
   constructor:
     roxygen: |
       Disturbance control object
@@ -122,7 +118,6 @@ Disturbance:
     mean_interval: {type: double, access: member, name_cpp: r_mean_interval}
 
 Control:
-  forward_declare: struct
   name_cpp: "tree2::Control"
   roxygen: |
     Control parameters that tune various aspects of the numerical solvers.
@@ -168,7 +163,6 @@ Control:
     - equilibrium_solver_try_keep: bool
 
 OdeControl:
-  forward_declare: struct
   name_cpp: "tree2::ode::OdeControl"
   roxygen: |
     Control parameters for the ode system
@@ -186,7 +180,6 @@ OdeControl:
     - step_size_initial: double
 
 Strategy:
-  forward_declare: struct
   name_cpp: "tree2::Strategy"
   roxygen: |
     Strategy parameters that tune various aspects of the biological model.
@@ -230,7 +223,6 @@ Strategy:
     - control: "tree2::Control"
 
 Parameters:
-  forward_declare: struct
   name_cpp: "tree2::Parameters"
   roxygen: |
     Strategy parameters that tune various aspects of the biological model.
@@ -256,7 +248,6 @@ Parameters:
     - cohort_schedule_ode_times: "std::vector<double>"
 
 QK:
-  forward_declare: true
   name_cpp: "tree2::quadrature::QK"
   constructor:
     roxygen: |
@@ -281,7 +272,6 @@ QK:
     last_area_asc: {type: double, access: member, name_cpp: get_last_area_asc}
 
 QAG:
-  forward_declare: true
   name_cpp: "tree2::quadrature::QAG"
   constructor:
     args: [rule: size_t, max_iterations: size_t, atol: double, rtol: double]
@@ -306,7 +296,6 @@ QAG:
     is_adaptive: {type: bool, access: member}
 
 Interpolator:
-  forward_declare: true
   name_cpp: "tree2::interpolator::Interpolator"
   constructor:
     roxygen: |
@@ -329,7 +318,6 @@ Interpolator:
     max: {type: double, access: member}
 
 Environment:
-  forward_declare: true
   name_cpp: "tree2::Environment"
   constructor:
     args: [p: "tree2::Parameters"]
@@ -357,9 +345,8 @@ Environment:
     time: {type: double, access: field}
     light_environment: {type: "tree2::interpolator::Interpolator", access: field}
 
-Plant_internals:
-  forward_declare: struct
-  name_cpp: "tree2::Plant_internals"
+Plant_Internals:
+  name_cpp: "tree2::Plant::Internals"
   list:
     - mass_leaf: double
     - area_leaf: double
@@ -406,7 +393,6 @@ Plant_internals:
     - mass_above_ground_dt: double
 
 Plant:
-  forward_declare: true
   name_cpp: "tree2::Plant"
   constructor:
     name_cpp: "tree2::make_plant"
@@ -424,7 +410,7 @@ Plant:
     mass_heartwood: {type: double, access: member, name_cpp_set: set_mass_heartwood}
     area_leaf: {type: double, access: member}
     strategy: {type: "tree2::Strategy", access: member, name_cpp: r_get_strategy}
-    internals: {type: "tree2::Plant_internals", access: member, name_cpp: "r_internals"}
+    internals: {type: "tree2::Plant::Internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
     ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
@@ -442,9 +428,8 @@ Plant:
       args: [environment: "const tree2::Environment&"]
       return_type: double
 
-Plant2_internals:
-  forward_declare: struct
-  name_cpp: "tree2::Plant2_internals"
+Plant2_Internals:
+  name_cpp: "tree2::Plant2::Internals"
   list:
     - area_leaf: double
     - height: double
@@ -455,7 +440,6 @@ Plant2_internals:
     - fecundity_dt: double
 
 Plant2:
-  forward_declare: true
   name_cpp: "tree2::Plant2"
   constructor:
     name_cpp: "tree2::make_plant2"
@@ -469,7 +453,7 @@ Plant2:
     mortality: {type: double, access: member, name_cpp_set: set_mortality}
     fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
     strategy: {type: "tree2::Strategy", access: member, name_cpp: r_get_strategy}
-    internals: {type: "tree2::Plant2_internals", access: member, name_cpp: "r_internals"}
+    internals: {type: "tree2::Plant2::Internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
     ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
@@ -487,7 +471,6 @@ Plant2:
 
 # For now, this one is not templated.
 Cohort:
-  forward_declare: false
   name_cpp: "tree2::Cohort<tree2::Plant>"
   constructor:
     name_cpp: "tree2::make_cohort<tree2::Plant>"
@@ -517,7 +500,6 @@ Cohort:
 
 # For now, also not templated
 Species:
-  forward_declare: false
   name_cpp: "tree2::Species<tree2::Cohort<tree2::Plant> >"
   constructor:
     args: [strategy: "tree2::Strategy"]
@@ -554,7 +536,6 @@ Species:
       name_cpp: r_area_leafs_error
 
 Patch:
-  forward_declare: false
   name_cpp: "tree2::Patch<tree2::Cohort<tree2::Plant> >"
   constructor:
     args: [parameters: "tree2::Parameters"]
@@ -601,7 +582,6 @@ Patch:
       args: [y: "const tree2::ode::state_type&", time: double]
 
 EBT:
-  forward_declare: false
   name_cpp: "tree2::EBT<tree2::Plant>"
   constructor:
     args: [parameters: "tree2::Parameters"]
@@ -665,7 +645,6 @@ EBT:
 
 PlantRunner:
   name_cpp: "tree2::tools::PlantRunner"
-  forward_declare: struct
   constructor:
     args: [plant: "tree2::Plant", environment: "tree2::Environment"]
   active:

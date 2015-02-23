@@ -2,7 +2,7 @@
 #ifndef TREE_COHORT_SCHEDULE_H_
 #define TREE_COHORT_SCHEDULE_H_
 
-#include <RcppCommon.h>
+#include <RcppCommon.h> // SEXP
 #include <tree2/util.h>
 
 // The "times" methods (set_times, times) refer to the *introduction*

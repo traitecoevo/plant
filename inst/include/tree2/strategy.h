@@ -48,6 +48,11 @@ public:
   double mass_above_ground(double mass_leaf, double mass_bark,
                            double mass_sapwood, double mass_root) const;
 
+  void ebt_vars(const Environment& environment, bool reuse_intervals,
+                double height, double leaf_area, double mortality,
+                double& height_dt_, double& fecundity_dt_,
+                double& mortality_dt_);
+
    // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
   double assimilation(const Environment& environment, double height,
@@ -83,17 +88,17 @@ public:
 
   // [eqn 15] Net production
   double net_mass_production_dt(double assimilation, double respiration,
-                        double turnover) const;
+                                double turnover) const;
   double net_mass_production_dt(const Environment& environment,
-                        double height, double area_leaf,
-                        bool reuse_intervals=false);
+                                double height, double area_leaf_,
+                                bool reuse_intervals=false);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
   double fraction_allocation_reproduction(double height) const;
   double fraction_allocation_growth(double height) const;
   // [eqn 17] Rate of offspring production
   double fecundity_dt(double net_mass_production_dt,
-                       double fraction_allocation_reproduction) const;
+                      double fraction_allocation_reproduction) const;
 
   // [eqn 18] Fraction of mass growth that is leaves
   double darea_leaf_dmass_live(double area_leaf) const;
@@ -137,9 +142,8 @@ public:
 
 
   double mortality_dt(double productivity_area, double cumulative_mortality) const;
-  double mortality_growth_independent_dt(double d0)const ;
-  double mortality_growth_dependent_dt(double d2, double d3,
-                                       double productivity_area) const;
+  double mortality_growth_independent_dt()const ;
+  double mortality_growth_dependent_dt(double productivity_area) const;
   // [eqn 20] Survival of seedlings during germination
   double germination_probability(const Environment& environment);
 

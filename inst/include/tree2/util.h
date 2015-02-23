@@ -4,7 +4,7 @@
 
 #include <stddef.h> // size_t
 #include <sstream>  // std::stringstream
-#include <RcppCommon.h>
+#include <RcppCommon.h> // as/wrap
 #include <tree2/util_lang_range.h>
 
 namespace tree2 {

@@ -4,7 +4,7 @@
 
 namespace tree2 {
 
-Plant::Plant(strategy_ptr_type s)
+Plant::Plant(strategy_type::ptr s)
   : strategy(s) {
   set_height(strategy->height_0);
 }
@@ -260,11 +260,7 @@ Plant::strategy_type Plant::r_get_strategy() const {
   return *strategy.get();
 }
 
-Plant Plant::r_copy() const {
-  return *this;
-}
-
-Plant_internals Plant::r_internals() const {
+Plant::Internals Plant::r_internals() const {
   return vars;
 }
 

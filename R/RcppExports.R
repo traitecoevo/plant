@@ -535,8 +535,8 @@ Environment__light_environment__set <- function(obj_, value) {
     invisible(.Call('tree2_Environment__light_environment__set', PACKAGE = 'tree2', obj_, value))
 }
 
-Plant_internals__ctor <- function() {
-    .Call('tree2_Plant_internals__ctor', PACKAGE = 'tree2')
+Plant_Internals__ctor <- function() {
+    .Call('tree2_Plant_Internals__ctor', PACKAGE = 'tree2')
 }
 
 Plant__ctor <- function(strategy) {
@@ -631,8 +631,8 @@ Plant__ode_names__get <- function(obj_) {
     .Call('tree2_Plant__ode_names__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant2_internals__ctor <- function() {
-    .Call('tree2_Plant2_internals__ctor', PACKAGE = 'tree2')
+Plant2_Internals__ctor <- function() {
+    .Call('tree2_Plant2_Internals__ctor', PACKAGE = 'tree2')
 }
 
 Plant2__ctor <- function(strategy) {

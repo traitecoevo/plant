@@ -31,9 +31,9 @@ struct Plant2_internals {
 
 class Plant2 {
 public:
-  typedef Strategy                       strategy_type;
-  typedef std::shared_ptr<strategy_type> strategy_ptr_type;
-  Plant2(strategy_ptr_type s)
+  typedef Plant2_internals Internals;
+  typedef Strategy         strategy_type;
+  Plant2(strategy_type::ptr s)
     : strategy(s) {
     set_height(strategy->height_0);
   }
@@ -58,16 +58,35 @@ public:
   }
 
   void compute_vars_phys(const Environment& environment, bool
-                           reuse_intervals=false);
+                         reuse_intervals=false) {
+    strategy->ebt_vars(environment, reuse_intervals,
+                       vars.height, vars.area_leaf, vars.mortality,
+                       vars.height_dt, vars.fecundity_dt, vars.mortality_dt);
+  }
   double germination_probability(const Environment& environment) {
     return strategy->germination_probability(environment);
   }
 
   // * ODE interface
   static size_t       ode_size() {return 3;}
-  ode::const_iterator set_ode_state(ode::const_iterator it);
-  ode::iterator       ode_state(ode::iterator it) const;
-  ode::iterator       ode_rates(ode::iterator it) const;
+  ode::const_iterator set_ode_state(ode::const_iterator it) {
+    set_height(*it++);
+    set_mortality(*it++);
+    set_fecundity(*it++);
+    return it;
+  }
+  ode::iterator ode_state(ode::iterator it) const {
+    *it++ = height();
+    *it++ = mortality();
+    *it++ = fecundity();
+    return it;
+  }
+  ode::iterator ode_rates(ode::iterator it) const {
+    *it++ = height_dt();
+    *it++ = mortality_dt();
+    *it++ = fecundity_dt();
+    return it;
+  }
   // Optional, but useful
   static std::vector<std::string> ode_names() {
     return std::vector<std::string>({"height", "mortality", "fecundity"});
@@ -75,15 +94,17 @@ public:
 
   // * R interface
   strategy_type r_get_strategy() const {return *strategy.get();}
-  Plant2_internals r_internals() const {return vars;}
+  Plant2::Internals r_internals() const {return vars;}
   const Control& control() const {return strategy->control;}
 
 private:
-  strategy_ptr_type strategy;
-  Plant2_internals vars;
+  strategy_type::ptr strategy;
+  Plant2::Internals vars;
 };
 
-Plant2 make_plant2(Plant2::strategy_type s);
+inline Plant2 make_plant2(Plant2::strategy_type s) {
+  return Plant2(make_strategy_ptr(s));
+}
 
 }
 

@@ -549,8 +549,8 @@ void Environment__light_environment__set(tree2::RcppR6::RcppR6<tree2::Environmen
 
 
 // [[Rcpp::export]]
-SEXP Plant_internals__ctor() {
-  return Rcpp::wrap(tree2::Plant_internals());
+SEXP Plant_Internals__ctor() {
+  return Rcpp::wrap(tree2::Plant::Internals());
 }
 
 
@@ -630,7 +630,7 @@ tree2::Strategy Plant__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
 }
 
 // [[Rcpp::export]]
-tree2::Plant_internals Plant__internals__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+tree2::Plant::Internals Plant__internals__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
   return obj_->r_internals();
 }
 
@@ -660,8 +660,8 @@ std::vector<std::string> Plant__ode_names__get(tree2::RcppR6::RcppR6<tree2::Plan
 
 
 // [[Rcpp::export]]
-SEXP Plant2_internals__ctor() {
-  return Rcpp::wrap(tree2::Plant2_internals());
+SEXP Plant2_Internals__ctor() {
+  return Rcpp::wrap(tree2::Plant2::Internals());
 }
 
 
@@ -714,7 +714,7 @@ tree2::Strategy Plant2__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_)
 }
 
 // [[Rcpp::export]]
-tree2::Plant2_internals Plant2__internals__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
+tree2::Plant2::Internals Plant2__internals__get(tree2::RcppR6::RcppR6<tree2::Plant2> obj_) {
   return obj_->r_internals();
 }
 
