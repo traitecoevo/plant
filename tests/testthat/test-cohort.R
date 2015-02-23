@@ -10,7 +10,7 @@ test_that("Ported from tree1", {
   cohort <- Cohort(s)
 
   expect_that(cohort, is_a("Cohort"))
-  expect_that(cohort$plant, is_a("Plant"))
+  expect_that(cohort$plant, is_a("PlantMinimal"))
 
   env <- test_environment(2 * plant$height,
                           light_env=function(x) rep(1, length(x)),

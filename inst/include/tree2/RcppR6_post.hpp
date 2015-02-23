@@ -88,21 +88,21 @@ template <> inline std::string   class_name_r<tree2::PlantMinimal<tree2::Strateg
 template <> inline std::string   package_name<tree2::PlantMinimal<tree2::Strategy> >() {return "tree2";}
 template <> inline std::string generator_name<tree2::PlantMinimal<tree2::Strategy> >() {return ".R6_PlantMinimal";}
 
-template <> inline std::string   class_name_r<tree2::Cohort<tree2::Plant> >() {return "Cohort";}
-template <> inline std::string   package_name<tree2::Cohort<tree2::Plant> >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Cohort<tree2::Plant> >() {return ".R6_Cohort";}
+template <> inline std::string   class_name_r<tree2::Cohort<tree2::PlantFF> >() {return "Cohort";}
+template <> inline std::string   package_name<tree2::Cohort<tree2::PlantFF> >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Cohort<tree2::PlantFF> >() {return ".R6_Cohort";}
 
-template <> inline std::string   class_name_r<tree2::Species<tree2::Cohort<tree2::Plant> > >() {return "Species";}
-template <> inline std::string   package_name<tree2::Species<tree2::Cohort<tree2::Plant> > >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Species<tree2::Cohort<tree2::Plant> > >() {return ".R6_Species";}
+template <> inline std::string   class_name_r<tree2::Species<tree2::Cohort<tree2::PlantFF> > >() {return "Species";}
+template <> inline std::string   package_name<tree2::Species<tree2::Cohort<tree2::PlantFF> > >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Species<tree2::Cohort<tree2::PlantFF> > >() {return ".R6_Species";}
 
-template <> inline std::string   class_name_r<tree2::Patch<tree2::Cohort<tree2::Plant> > >() {return "Patch";}
-template <> inline std::string   package_name<tree2::Patch<tree2::Cohort<tree2::Plant> > >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Patch<tree2::Cohort<tree2::Plant> > >() {return ".R6_Patch";}
+template <> inline std::string   class_name_r<tree2::Patch<tree2::Cohort<tree2::PlantFF> > >() {return "Patch";}
+template <> inline std::string   package_name<tree2::Patch<tree2::Cohort<tree2::PlantFF> > >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Patch<tree2::Cohort<tree2::PlantFF> > >() {return ".R6_Patch";}
 
-template <> inline std::string   class_name_r<tree2::EBT<tree2::Plant> >() {return "EBT";}
-template <> inline std::string   package_name<tree2::EBT<tree2::Plant> >() {return "tree2";}
-template <> inline std::string generator_name<tree2::EBT<tree2::Plant> >() {return ".R6_EBT";}
+template <> inline std::string   class_name_r<tree2::EBT<tree2::PlantFF> >() {return "EBT";}
+template <> inline std::string   package_name<tree2::EBT<tree2::PlantFF> >() {return "tree2";}
+template <> inline std::string generator_name<tree2::EBT<tree2::PlantFF> >() {return ".R6_EBT";}
 
 template <> inline std::string   class_name_r<tree2::tools::PlantRunner >() {return "PlantRunner";}
 template <> inline std::string   package_name<tree2::tools::PlantRunner >() {return "tree2";}
@@ -737,32 +737,32 @@ template <> inline tree2::PlantMinimal<tree2::Strategy> as(SEXP x) {
   return *(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> >(x));
 }
 
-template <> inline SEXP wrap(const tree2::Cohort<tree2::Plant>& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> >(x));
+template <> inline SEXP wrap(const tree2::Cohort<tree2::PlantFF>& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> >(x));
 }
-template <> inline tree2::Cohort<tree2::Plant> as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::Plant> >(x));
-}
-
-template <> inline SEXP wrap(const tree2::Species<tree2::Cohort<tree2::Plant> >& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > >(x));
-}
-template <> inline tree2::Species<tree2::Cohort<tree2::Plant> > as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::Plant> > >(x));
+template <> inline tree2::Cohort<tree2::PlantFF> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> >(x));
 }
 
-template <> inline SEXP wrap(const tree2::Patch<tree2::Cohort<tree2::Plant> >& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > >(x));
+template <> inline SEXP wrap(const tree2::Species<tree2::Cohort<tree2::PlantFF> >& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::PlantFF> > >(x));
 }
-template <> inline tree2::Patch<tree2::Cohort<tree2::Plant> > as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::Plant> > >(x));
+template <> inline tree2::Species<tree2::Cohort<tree2::PlantFF> > as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Species<tree2::Cohort<tree2::PlantFF> > >(x));
 }
 
-template <> inline SEXP wrap(const tree2::EBT<tree2::Plant>& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> >(x));
+template <> inline SEXP wrap(const tree2::Patch<tree2::Cohort<tree2::PlantFF> >& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::PlantFF> > >(x));
 }
-template <> inline tree2::EBT<tree2::Plant> as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::EBT<tree2::Plant> >(x));
+template <> inline tree2::Patch<tree2::Cohort<tree2::PlantFF> > as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Patch<tree2::Cohort<tree2::PlantFF> > >(x));
+}
+
+template <> inline SEXP wrap(const tree2::EBT<tree2::PlantFF>& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> >(x));
+}
+template <> inline tree2::EBT<tree2::PlantFF> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> >(x));
 }
 
 template <> inline SEXP wrap(const tree2::tools::PlantRunner& x) {

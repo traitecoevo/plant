@@ -24,17 +24,24 @@
 
 // Getting more serious down here.
 #include <tree2/plant.h>
+#include <tree2/plant_minimal.h>
+
 #include <tree2/cohort.h>
 #include <tree2/species.h>
 #include <tree2/patch.h>
 #include <tree2/ebt.h>
 
-#include <tree2/plant_minimal.h>
-
 #include <tree2/plant_runner.h>
 
 // Purely for testing
 #include <tree2/lorenz.h>
+
+namespace tree2 {
+// Use this to manually switch between the minimal plant type and the
+// full one.  Eventually we'll get this stuff exposed nicely.
+//   typedef tree2::Plant PlantFF;
+typedef tree2::PlantMinimal<tree2::Strategy> PlantFF;
+}
 
 // Include this early on.  It can be either after classes have been
 // declared (but before Rcpp has been loaded) or first.  This file will
