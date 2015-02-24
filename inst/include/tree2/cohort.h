@@ -165,7 +165,7 @@ double Cohort<T>::area_leaf_above(double height_) const {
 // Cohort.
 template <typename T>
 double Cohort<T>::area_leaf() const {
-  return plant.area_leaf_above(0.0);
+  return area_leaf_above(0.0);
 }
 
 // ODE interface -- note that the don't care about time in the cohort;

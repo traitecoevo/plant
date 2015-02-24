@@ -142,3 +142,35 @@ test_that("ODE interface", {
            -rates[["mortality_dt"]] - cohort$growth_rate_gradient(env))
   expect_that(cohort$ode_rates, equals(cmp))
 })
+
+test_that("leaf area calculations", {
+  s <- Strategy()
+  env <- test_environment(10,
+                          light_env=function(x) rep(1, length(x)),
+                          seed_rain=1.0)
+
+  plant <- Plant(s)
+  cohort <- Cohort(s)
+  h <- cohort$height
+
+  expect_that(cohort$area_leaf, equals(0)) # zero density
+  cohort$compute_initial_conditions(env)
+  density <- exp(cohort$ode_state[[4]])
+  expect_that(cohort$area_leaf,
+              equals(plant$area_leaf * density))
+  expect_that(cohort$area_leaf_above(h / 2),
+              equals(plant$area_leaf_above(h / 2) * density))
+
+  h <- 8.0
+  plant$height <- h
+  v <- cohort$ode_state
+  v[[1]] <- h
+  cohort$ode_state <- v
+  expect_that(plant$height, is_identical_to(h))
+  expect_that(cohort$height, is_identical_to(h))
+
+  expect_that(cohort$area_leaf,
+              equals(plant$area_leaf * density))
+  expect_that(cohort$area_leaf_above(h / 2),
+              equals(plant$area_leaf_above(h / 2) * density))
+})
