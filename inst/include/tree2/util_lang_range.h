@@ -184,6 +184,7 @@ infinite_range_proxy<T> range(T begin) {
 namespace traits {
 
 #pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunknown-pragmas"
 #pragma clang diagnostic ignored "-Wundefined-inline"
 template <typename C>
 struct has_size {
