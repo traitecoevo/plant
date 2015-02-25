@@ -243,6 +243,7 @@ Parameters:
     - cohort_schedule_times_default: "std::vector<double>"
     - cohort_schedule_times: "std::vector<std::vector<double> >"
     - cohort_schedule_ode_times: "std::vector<double>"
+    - hyperpar: SEXP
 
 QK:
   name_cpp: "tree2::quadrature::QK"

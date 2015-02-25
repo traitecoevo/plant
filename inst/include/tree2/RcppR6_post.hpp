@@ -467,6 +467,7 @@ template <> inline SEXP wrap(const tree2::Parameters& x) {
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
+  ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = "Parameters";
   return ret;
 }
@@ -507,6 +508,8 @@ template <> inline tree2::Parameters as(SEXP x) {
   ret.cohort_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["cohort_schedule_times"]);
   // ret.cohort_schedule_ode_times = Rcpp::as<decltype(retcohort_schedule_ode_times) >(xl["cohort_schedule_ode_times"]);
   ret.cohort_schedule_ode_times = Rcpp::as<std::vector<double> >(xl["cohort_schedule_ode_times"]);
+  // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
+  ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   ret.validate();
   return ret;
 }

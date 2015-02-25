@@ -1,7 +1,7 @@
 ## Start off with a empty landscape:
 p <- ebt_base_parameters()
 m <- trait_matrix(seq_log(0.01, 10.0, length.out=51), "lma")
-w <- fitness_landscape(ff_parameters(m), p)
+w <- fitness_landscape(m, p)
 plot(m, w, type="l", log="x", xlab="LMA", ylab="Fitness", las=1)
 
 ## Compute the maximum fitness:

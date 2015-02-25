@@ -6,6 +6,7 @@
 #include <tree2/strategy.h>
 #include <tree2/cohort_schedule.h>
 #include <vector>
+#include <RcppCommon.h> // SEXP
 
 // TODO: I will possibly move out the "Patch" parameters out into
 // their own simple list class at some point, to make this a bit more
@@ -42,6 +43,9 @@ struct Parameters {
   std::vector<double> cohort_schedule_times_default;
   std::vector<std::vector<double> > cohort_schedule_times;
   std::vector<double> cohort_schedule_ode_times;
+
+  // An R function that will be used to hyperparametrise the model.
+  SEXP hyperpar;
 
   // Some little query functions for use on the C side:
   size_t size() const;

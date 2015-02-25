@@ -11,7 +11,8 @@ Parameters::Parameters()
     Pi_0(0.25),
     n_patches(1),
     disturbance_mean_interval(30),
-    cohort_schedule_max_time(NA_REAL) {
+    cohort_schedule_max_time(NA_REAL),
+    hyperpar(R_NilValue) {
 }
 
 size_t Parameters::size() const {
@@ -49,6 +50,13 @@ void Parameters::validate() {
   setup_cohort_schedule();
   if (cohort_schedule_times.size() != n_spp) {
     util::stop("Incorrect length cohort_schedule_times");
+  }
+
+  // This is not a lot of checking, but should be enough.  There's no
+  // way of telling if the function is a good idea without running it,
+  // anyway.
+  if (hyperpar != R_NilValue && !Rcpp::is<Rcpp::Function>(hyperpar)) {
+    util::stop("hyper must be NULL or a function");
   }
 
   // Overwrite all strategy control objects so that they take the

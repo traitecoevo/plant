@@ -65,14 +65,16 @@ run_ebt <- function(p, use_ode_times=FALSE) {
 }
 
 ##' Hopefully sensible set of parameters for use with the EBT.  Turns
-##' accuracy down a bunch, makes it noisy.
+##' accuracy down a bunch, makes it noisy, sets up the
+##' hyperparameterisation that we most often use.
 ##' @title Sensible, fast (ish) EBT parameters
 ##' @author Rich FitzJohn
 ##' @export
 ebt_base_parameters <- function() {
   ctrl <- equilibrium_verbose(fast_control())
-  ctrl$schedule_eps=0.005
-  Parameters(patch_area=1.0, control=ctrl)
+  ctrl$schedule_eps <- 0.005
+  Parameters(patch_area=1.0, control=ctrl,
+             hyperpar=ff_parameters)
 }
 
 ##' Run the EBT model, given a Parameters and CohortSchedule

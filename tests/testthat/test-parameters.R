@@ -12,7 +12,8 @@ test_that("Creation & defaults", {
                    c_ext=0.5,
                    n_patches=1,    # NOTE: Different to tree 0.1
                    patch_area=1.0, # NOTE: Different to tree 0.1
-                   disturbance_mean_interval=30.0)
+                   disturbance_mean_interval=30.0,
+                   hyperpar=NULL)
 
   expect_that(p[names(expected)], is_identical_to(expected))
   expect_that(p$strategy_default, equals(Strategy()))
@@ -120,4 +121,16 @@ test_that("Generate cohort schedule", {
   expect_that(sched$max_time, equals(p$cohort_schedule_max_time))
   expect_that(sched$times(1), equals(p$cohort_schedule_times_default))
   expect_that(sched$all_times, equals(p$cohort_schedule_times))
+})
+
+test_that("Store hyperparams", {
+  p <- Parameters(hyperpar=ff_parameters)
+  expect_that(p$hyperpar, is_identical_to(ff_parameters))
+  tmp <- Patch(p)$parameters
+  expect_that(tmp$hyperpar, is_identical_to(ff_parameters))
+})
+
+test_that("ebt_base_parameters", {
+  p <- ebt_base_parameters()
+  expect_that(p$hyperpar, equals(ff_parameters))
 })

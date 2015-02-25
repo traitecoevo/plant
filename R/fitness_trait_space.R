@@ -1,9 +1,7 @@
 ## These functions involve "trait space" as a concept, and as such
 ## care about hyperparameters; ways of converting things like lma into
-## a set of parameters.  Soon these will be put into the Parameters
-## object for ease of use (much like the equilibrium control
-## parameters are in the Control object) but for now we just hard
-## code ff_parameters as the only choice.
+## a set of parameters.  This is handled by strategy_list, which all
+## of these functions use.
 
 ##' Find point of maximum fitness in empty fitness landscape within a
 ##' specified range.
@@ -19,7 +17,6 @@
 ##' @export
 ##' @author Daniel Falster, Rich FitzJohn
 max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
-  hyper <- ff_parameters
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
 
@@ -31,9 +28,9 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
     ## TODO: This actually won't work for optimise():
     bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)
-    f <- function(x) max_growth_rate(hyper(exp(trait_matrix(x, traits))), p)
+    f <- function(x) max_growth_rate(exp(trait_matrix(x, traits)), p)
   } else {
-    f <- function(x) max_growth_rate(hyper(trait_matrix(x, traits)), p)
+    f <- function(x) max_growth_rate(trait_matrix(x, traits), p)
   }
 
   if (length(traits) == 1L) {
@@ -72,14 +69,13 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
 ##' @export
 ##' @author Rich FitzJohn
 viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
-  hyper <- ff_parameters
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
   if (is.null(x)) {
     x <- unlist(p$strategy_default[traits])
   }
   x <- check_point(x, bounds)
-  w <- max_growth_rate(x, hyper(p))
+  w <- max_growth_rate(x, p)
 
   if (w < 0) {
     message("Starting value had negative fitness, looking for max")
@@ -93,11 +89,11 @@ viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
     bounds <- log(bounds)
     x <- log(x)
     f <- function(x) {
-      max_growth_rate(hyper(exp(trait_matrix(x, traits))), p)
+      max_growth_rate(exp(trait_matrix(x, traits)), p)
     }
   } else {
     f <- function(x) {
-      max_growth_rate(hyper(trait_matrix(x, traits)), p)
+      max_growth_rate(trait_matrix(x, traits), p)
     }
   }
 

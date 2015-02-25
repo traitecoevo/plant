@@ -8,7 +8,8 @@ ebt_base_parameters()
 }
 \description{
 Hopefully sensible set of parameters for use with the EBT.  Turns
-accuracy down a bunch, makes it noisy.
+accuracy down a bunch, makes it noisy, sets up the
+hyperparameterisation that we most often use.
 }
 \author{
 Rich FitzJohn
