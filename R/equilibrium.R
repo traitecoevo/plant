@@ -308,29 +308,34 @@ check_inviable <- function(p) {
   ## though so who knows.
   eps_test <- 1e-2
   seed_rain <- p$seed_rain
-  eq <- make_equilibrium_runner(p)
-  res <- eq(seed_rain)
+  ## NOTE: We don't actually run to equilibrium here; this is just
+  ## because it's a useful way of doing incoming -> outgoing seed
+  ## rain.
+  runner <- make_equilibrium_runner(p)
+  seed_rain_out <- runner(seed_rain)
 
-  test <- which(res[,"out"] < res[,"in"] &
-                seed_rain < max(seed_rain) * eps_test)
-  test <- test[order(seed_rain[test])]
+  test <- which(seed_rain_out < seed_rain &
+                seed_rain < max(seed_rain_out) * eps_test)
+  test <- test[order(seed_rain_out[test])]
 
-  drop <- logical(length(seed_rain))
-  ret <- res
+  drop <- logical(length(seed_rain_out))
 
   for (i in test) {
     message("check_inviable> Testing species ", i)
-    x <- ret[,"out"]
+    x <- seed_rain_out
     x[i] <- eps
-    res <- eq(x)
-    if (diff(res[i,]) < 0) {
+    seed_rain_out <- runner(x)
+    if (seed_rain_out[[i]] < eps) {
       message("check_inviable>\t...removing")
-      drop[i] <- TRUE
-      ret[i,"out"] <- 0.0
-      ret <- res
+      drop[[i]] <- TRUE
+      seed_rain_out[[i]] <- 0.0
     }
   }
 
-  attr(ret, "drop") <- drop
-  ret
+  ## It's possible that things slip through and get driven extinct by
+  ## the time that they reach here.
+  drop <- drop | seed_rain_out < eps
+
+  attr(seed_rain_out, "drop") <- drop
+  seed_rain_out
 }
