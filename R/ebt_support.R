@@ -140,3 +140,26 @@ run_ebt_error <- function(p) {
        err=list(lai=lai_error, seed_rain=seed_rain_error, total=total),
        ode_times=ebt$ode_times)
 }
+
+##' Hyperparameters for tree
+##' @title Hyperparameters for tree
+##' @param m A trait matrix
+##' @export
+ff_parameters <- function(m) {
+  if ("lma" %in% colnames(m)) {
+    lma_0 <- 0.1978791
+    c_Rl0 <- 198.4545
+    k_l0 <- 0.4565855
+    B4 <- 1.71
+    k_l  <- k_l0 * (m[, "lma"] / lma_0) ^ (-B4)
+    c_Rl <- c_Rl0 * lma_0 / m[, "lma"]
+    m <- cbind(m, k_l, c_Rl)
+  }
+  if ("rho" %in% colnames(m)) {
+    stop("please implement rho hyperparameters")
+  }
+  if ("mass_seed" %in% colnames(m)) {
+    stop("please implement mass_seed hyperparameters")
+  }
+  m
+}
