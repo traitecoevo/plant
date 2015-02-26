@@ -174,8 +174,32 @@ ff_parameters <- function(m) {
     ret <- cbind(m, k_l, c_Rl)
   }
   if ("rho" %in% colnames(m)) {
-    stop("please implement rho hyperparameters")
-  }
+
+    rho_0 <- 608   # Normalisation point
+
+    # Effect on mortality
+    d00 <- 0.01    # Baseline rate of mortality
+    d1  <- 0.0     # Scaling coefficient
+    d_0  <- d00 *  (m[, "rho"] / rho_0) ^ (-d1)
+
+    # Effect on sapwood turnover
+    k_s0 <- 0.2   # Baseline rate of sapwood turnover
+    B5   <- 0.0   #
+    k_s  <- k_s0 *  (m[, "rho"] / rho_0) ^ (-B5)
+
+    # Effect on rate of sapwood respiration
+    # Respiration rates are per unit mass, so this next line has the effect of
+    # holding constant the respiration rate per unit volume.
+    # So respiration rates per unit mass vary with rho, respiration rates per unit
+    # volume don't.
+    c_Rs <- 4012.0 / m[, "rho"]
+
+    ## Set rates for bark turnover and respiration
+    c_Rb <- 2.0*c_Rs
+    k_b  <- 0.2
+
+    ret <- cbind(m, d_0, k_s, c_Rs, k_b, c_Rb)
+ }
   if ("mass_seed" %in% colnames(m)) {
     stop("please implement mass_seed hyperparameters")
   }
