@@ -75,7 +75,7 @@ equilibrium_seed_rain_solve <- function(p, solver="nleqslv") {
     runner <- function(x) {
       x_full <- rep(0, length(seed_rain_full))
       x_full[i_keep] <- x
-      runner_full(x_full)[i_keep,,drop=FALSE]
+      runner_full(x_full)[i_keep]
     }
   }
 
@@ -324,11 +324,12 @@ check_inviable <- function(p) {
     message("check_inviable> Testing species ", i)
     x <- seed_rain_out
     x[i] <- eps
-    seed_rain_out <- runner(x)
-    if (seed_rain_out[[i]] < eps) {
+    res <- runner(x)
+    if (res[[i]] < eps) {
       message("check_inviable>\t...removing")
       drop[[i]] <- TRUE
-      seed_rain_out[[i]] <- 0.0
+      res[[i]] <- 0.0
+      seed_rain_out <- res
     }
   }
 
