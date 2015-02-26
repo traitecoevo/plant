@@ -2,13 +2,18 @@
 % Please edit documentation in R/util.R
 \name{splinefun_log}
 \alias{splinefun_log}
+\alias{splinefun_loglog}
 \title{Spline interpolation in log-x space}
 \usage{
 splinefun_log(x, y, ...)
+
+splinefun_loglog(x, y, ...)
 }
 \arguments{
 \item{x,y}{Vectors giving coordinates of points to be
-interpolated.  The x points should be naturally on a log scale.}
+interpolated.  The x points should be naturally on a log scale,
+and for \code{splinefun_loglog} both x and y should be on a log
+scale.}
 
 \item{...}{Additional parameters passed to
 \code{\link{splinefun}}.}
