@@ -83,7 +83,12 @@ positive_1d <- function(f, x, dx, lower=-Inf, upper=Inf, tol=1e-3) {
     x <- b[[type]]$x
     fx <- b[[type]]$fx
     if (prod(fx[1:2]) < 0) {
-      uniroot(f, x, f.lower=fx[[1]], f.upper=fx[[2]], tol=tol)$root
+      ## The suppressWarnings is here to stop the warning
+      ##   -Inf replaced by maximally negative value
+      ## which we're actually OK with.
+      suppressWarnings(uniroot(f, x,
+                               f.lower=fx[[1]], f.upper=fx[[2]],
+                               tol=tol)$root)
     } else {
       if (type == "lower") x[[1]] else x[[2]]
     }
