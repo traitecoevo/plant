@@ -4,6 +4,7 @@
 \alias{bounds}
 \alias{bounds_infinite}
 \alias{check_bounds}
+\alias{check_point}
 \title{Trait bounds}
 \usage{
 bounds(...)
@@ -11,6 +12,8 @@ bounds(...)
 check_bounds(bounds, finite = FALSE)
 
 bounds_infinite(trait_names)
+
+check_point(x, bounds)
 }
 \arguments{
 \item{...}{Named list, each element of which is a 2-element
@@ -21,6 +24,8 @@ numeric vector of lower and upper bounds.}
 \item{finite}{Logical indicating if bounds must be finite}
 
 \item{trait_names}{Character vector of trait names}
+
+\item{x}{a point to detect if it lies within bounds}
 }
 \description{
 Helper function for making bounds

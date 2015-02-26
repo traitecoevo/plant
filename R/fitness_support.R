@@ -53,6 +53,9 @@ bounds_infinite <- function(trait_names) {
   b
 }
 
+##' @export
+##' @rdname bounds
+##' @param x a point to detect if it lies within bounds
 check_point <- function(x, bounds) {
   if (is.matrix(x)) {
     if (ncol(x) != nrow(bounds)) {
