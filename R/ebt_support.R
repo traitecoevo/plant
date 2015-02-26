@@ -148,14 +148,30 @@ run_ebt_error <- function(p) {
 ##' @param m A trait matrix
 ##' @export
 ff_parameters <- function(m) {
+
+  ret <- m
+  c_Rl0 <- 198.4545
+  # Rate of leaf respiration per unit leaf mass
+  # =   (6.66e-4 * (365*24*60*60)) [mol CO2 / kgN / yr] *
+  #   * (1.87e-3) [kgN / m2 leaf] *
+  #   / (0.1978791) [kg leaf / m2 ]
+
   if ("lma" %in% colnames(m)) {
-    lma_0 <- 0.1978791
-    c_Rl0 <- 198.4545
-    k_l0 <- 0.4565855
-    B4 <- 1.71
-    k_l  <- k_l0 * (m[, "lma"] / lma_0) ^ (-B4)
-    c_Rl <- c_Rl0 * lma_0 / m[, "lma"]
-    m <- cbind(m, k_l, c_Rl)
+    lma_0 <- 0.1978791  # Normalisation point
+
+    # Effect of leaf turnover
+    k_l0  <- 0.4565855  # Baseline rate of leaf turnover
+    B4    <- 1.71
+    k_l   <- k_l0 * (m[, "lma"] / lma_0) ^ (-B4)
+
+    # Effect of rate of leaf respiration
+    # Respiration rates are per unit mass, so this next line has the effect of
+    # holding constant the respiration rate per unit leaf area.
+    # So respiration rates per unit mass vary with lma, while respiration rates per unit
+    # area don't.
+    c_Rl  <- c_Rl0 * lma_0 / m[, "lma"]
+
+    ret <- cbind(m, k_l, c_Rl)
   }
   if ("rho" %in% colnames(m)) {
     stop("please implement rho hyperparameters")
@@ -163,5 +179,5 @@ ff_parameters <- function(m) {
   if ("mass_seed" %in% colnames(m)) {
     stop("please implement mass_seed hyperparameters")
   }
-  m
+  ret
 }
