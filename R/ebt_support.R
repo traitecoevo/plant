@@ -167,8 +167,8 @@ ff_parameters <- function(m) {
     # Effect of rate of leaf respiration
     # Respiration rates are per unit mass, so this next line has the effect of
     # holding constant the respiration rate per unit leaf area.
-    # So respiration rates per unit mass vary with lma, while respiration rates per unit
-    # area don't.
+    # So respiration rates per unit mass vary with lma, while respiration rates
+    # per unit area don't.
     c_Rl  <- c_Rl0 * lma_0 / m[, "lma"]
 
     ret <- cbind(m, k_l, c_Rl)
@@ -190,8 +190,8 @@ ff_parameters <- function(m) {
     # Effect on rate of sapwood respiration
     # Respiration rates are per unit mass, so this next line has the effect of
     # holding constant the respiration rate per unit volume.
-    # So respiration rates per unit mass vary with rho, respiration rates per unit
-    # volume don't.
+    # So respiration rates per unit mass vary with rho, respiration rates per
+    # unit volume don't.
     c_Rs <- 4012.0 / m[, "rho"]
 
     ## Set rates for bark turnover and respiration
@@ -201,7 +201,10 @@ ff_parameters <- function(m) {
     ret <- cbind(m, d_0, k_s, c_Rs, k_b, c_Rb)
  }
   if ("mass_seed" %in% colnames(m)) {
-    stop("please implement mass_seed hyperparameters")
+
+    # Effect on accesory costs per seed
+    c_acc  = 3.0 * m[, "mass_seed"]
+    ret <- cbind(m, c_acc)
   }
   ret
 }
