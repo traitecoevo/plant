@@ -149,34 +149,32 @@ run_ebt_error <- function(p) {
 ##' @export
 ff_parameters <- function(m) {
 
-  ret <- m
-  c_Rl0 <- 198.4545
-  # Rate of leaf respiration per unit leaf mass
-  # =   (6.66e-4 * (365*24*60*60)) [mol CO2 / kgN / yr] *
-  #   * (1.87e-3) [kgN / m2 leaf] *
-  #   / (0.1978791) [kg leaf / m2 ]
+  # Normalisation points
+  lma_0   <- 0.1978791  # [kg / m2]
+  narea_0 <- 1.87e-3    # [kg / m2]
+  rho_0   <- 608        # [kg / m3]
+
+  # First see if leaf N is defined, if not define it
+  if ("narea" %in% colnames(m)) {
+    narea <- m[, "narea"]
+  }  else {
+    narea <- narea_0
+  }
 
   if ("lma" %in% colnames(m)) {
-    lma_0 <- 0.1978791  # Normalisation point
+    lma <- m[, "lma"]
 
     # Effect of leaf turnover
     k_l0  <- 0.4565855  # Baseline rate of leaf turnover
     B4    <- 1.71
-    k_l   <- k_l0 * (m[, "lma"] / lma_0) ^ (-B4)
-
-    # Effect of rate of leaf respiration
-    # Respiration rates are per unit mass, so this next line has the effect of
-    # holding constant the respiration rate per unit leaf area.
-    # So respiration rates per unit mass vary with lma, while respiration rates
-    # per unit area don't.
-    c_Rl  <- c_Rl0 * lma_0 / m[, "lma"]
-
-    ret <- cbind(m, k_l, c_Rl)
+    k_l   <- k_l0 * (lma / lma_0) ^ (-B4)
+    m <- cbind(m, k_l)
+  } else {
+    lma <- lma_0
+    # To do: to be safe, this should really be value stored in strategy
   }
+
   if ("rho" %in% colnames(m)) {
-
-    rho_0 <- 608   # Normalisation point
-
     # Effect on mortality
     d00 <- 0.01    # Baseline rate of mortality
     d1  <- 0.0     # Scaling coefficient
@@ -198,13 +196,33 @@ ff_parameters <- function(m) {
     c_Rb <- 2.0*c_Rs
     k_b  <- 0.2
 
-    ret <- cbind(m, d_0, k_s, c_Rs, k_b, c_Rb)
- }
-  if ("mass_seed" %in% colnames(m)) {
+    m <- cbind(m, d_0, k_s, c_Rs, k_b, c_Rb)
+  }
 
+  if ("mass_seed" %in% colnames(m)) {
     # Effect on accesory costs per seed
     c_acc  = 3.0 * m[, "mass_seed"]
-    ret <- cbind(m, c_acc)
+    m <- cbind(m, c_acc)
   }
-  ret
+
+  # Set leaf photosynthesis and respiration rates
+  # Photosynthesis per mass leaf N [mol CO2 / kgN / yr]
+  # To do: more transparency needed for this calculation. Current value comes from
+  # offline model
+  # To do: this is where we improve photosynthesis model
+  c_PN  <- 80406.42
+  c_p1  <- c_PN * narea
+
+  # Respiration per mass leaf N [mol CO2 / kgN / yr]
+  # = (6.66e-4 * (365*24*60*60))
+  # Obatined from global average of ratio of dark respiration rate to leaf
+  # nitrogen content using the GLOPNET dataset
+  c_RN  <-  21002.98
+  # Respiration rates are per unit mass, so convert to mass-based rate by
+  # dividing with lma
+  # So respiration rates per unit mass vary with lma, while respiration rates
+  # per unit area don't.
+  c_Rl  <- c_RN * narea / lma
+
+  cbind(m, c_p1, c_Rl)
 }
