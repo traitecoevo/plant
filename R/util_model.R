@@ -9,23 +9,22 @@
 ##' hyperparameterisation.
 ##' @export
 strategy_list <- function(x, parameters) {
-  hyper <- parameters$hyperpar
-  if (is.null(hyper)) {
-    hyper <- identity
-  }
-  strategy <- parameters$strategy_default
-
-  if (is.matrix(x)) {
-    x <- hyper(x)
-    trait_names <- colnames(x)
-    f <- function(xi) {
-      strategy[trait_names] <- xi
-      strategy
-    }
-    lapply(matrix_to_list(x), f)
-  } else {
+  if (!is.matrix(x)) {
     stop("Invalid type x -- expected a matrix")
   }
+
+  strategy <- parameters$strategy_default
+  hyper <- parameters$hyperpar
+  if (!is.null(hyper)) {
+    x <- hyper(x, strategy)
+  }
+
+  trait_names <- colnames(x)
+  f <- function(xi) {
+    strategy[trait_names] <- xi
+    strategy
+  }
+  lapply(matrix_to_list(x), f)
 }
 
 ##' @rdname strategy_list

@@ -146,114 +146,99 @@ run_ebt_error <- function(p) {
 
 ##' Hyperparameters for tree
 ##' @title Hyperparameters for tree
-##' @param m A trait matrix
-##' @export
-ff_parameters <- function(m) {
-
-  # Normalisation points
-  lma_0   <- 0.1978791  # [kg / m2]
-  narea_0 <- 1.87e-3    # [kg / m2]
-  rho_0   <- 608        # [kg / m3]
-
-  # First see if leaf N is defined, if not define it
-  if ("narea" %in% colnames(m)) {
-    narea <- m[, "narea"]
-  }  else {
-    narea <- narea_0
-  }
-
-  if ("lma" %in% colnames(m)) {
-    lma <- m[, "lma"]
-
-    # Effect of leaf turnover
-    k_l0  <- 0.4565855  # Baseline rate of leaf turnover
-    B4    <- 1.71
-    k_l   <- k_l0 * (lma / lma_0) ^ (-B4)
-    m <- cbind(m, k_l)
-  } else {
-    lma <- lma_0
-    # To do: to be safe, this should really be value stored in strategy
-  }
-
-  if ("rho" %in% colnames(m)) {
-    # Effect on mortality
-    d00 <- 0.01    # Baseline rate of mortality
-    d1  <- 0.0     # Scaling coefficient
-    d_0  <- d00 *  (m[, "rho"] / rho_0) ^ (-d1)
-
-    # Effect on sapwood turnover
-    k_s0 <- 0.2   # Baseline rate of sapwood turnover
-    B5   <- 0.0   #
-    k_s  <- k_s0 *  (m[, "rho"] / rho_0) ^ (-B5)
-
-    # Effect on rate of sapwood respiration
-    # Respiration rates are per unit mass, so this next line has the effect of
-    # holding constant the respiration rate per unit volume.
-    # So respiration rates per unit mass vary with rho, respiration rates per
-    # unit volume don't.
-    c_Rs <- 4012.0 / m[, "rho"]
-
-    ## Set rates for bark turnover and respiration
-    c_Rb <- 2.0*c_Rs
-    k_b  <- 0.2
-
-    m <- cbind(m, d_0, k_s, c_Rs, k_b, c_Rb)
-  }
-
-  if ("mass_seed" %in% colnames(m)) {
-    # Effect on accesory costs per seed
-    c_acc  = 3.0 * m[, "mass_seed"]
-    m <- cbind(m, c_acc)
-  }
-
-  # Set leaf photosynthesis and respiration rates
-  # Photosynthesis per mass leaf N [mol CO2 / kgN / yr]
-  # To do: more transparency needed for this calculation. Current value comes from
-  # offline model
-  # To do: this is where we improve photosynthesis model
-  c_PN  <- 80406.42
-  c_p1  <- c_PN * narea
-
-  # Respiration per mass leaf N [mol CO2 / kgN / yr]
-  # = (6.66e-4 * (365*24*60*60))
-  # Obatined from global average of ratio of dark respiration rate to leaf
-  # nitrogen content using the GLOPNET dataset
-  c_RN  <-  21002.98
-  # Respiration rates are per unit mass, so convert to mass-based rate by
-  # dividing with lma
-  # So respiration rates per unit mass vary with lma, while respiration rates
-  # per unit area don't.
-  c_Rl  <- c_RN * narea / lma
-
-  cbind(m, c_p1, c_Rl)
-}
-
-##' Hyperparameters for tree
-##' @title Hyperparameters for tree
-##' @param m A trait matrix
 ##' @param B4 Slope of lma / leaf turnover log-log relationship
+##' @param lma_0 LMA value...
+##' @param k_l_0 ...
+##' @param rho_0 ...
+##' @param d0_0 ...
+##' @param d1 ...
+##' @param B5 ...
 ##' @export
 ##' @rdname ff_parameters
-make_ff_parameters <- function(B4=1.71) {
+make_ff_parameters <- function(B4=1.71,
+                               lma_0=0.1978791,
+                               k_l_0=0.4565855,
+                               rho_0=608.0,
+                               d0_0=0.01,
+                               d1=0.0,
+                               k_s_0=0.2,
+                               B5=0.0,
+                               narea_0=1.87e-3) {
   force(B4)
-  function(m) {
-    if ("lma" %in% colnames(m)) {
-      lma_0 <- 0.1978791
-      c_Rl0 <- 198.4545
-      k_l0 <- 0.4565855
-      k_l  <- k_l0 * (m[, "lma"] / lma_0) ^ (-B4)
-      c_Rl <- c_Rl0 * lma_0 / m[, "lma"]
-      m <- cbind(m, k_l, c_Rl)
+  force(lma_0)
+  force(k_l_0)
+  force(rho_0)
+  force(d0_0)
+  force(d1)
+  force(B5)
+  function(m, s) {
+    with_default <- function(name, default_value=s[[name]]) {
+      rep_len(if (name %in% colnames(m)) m[, name] else default_value,
+              nrow(m))
     }
-    if ("rho" %in% colnames(m)) {
-      stop("please implement rho hyperparameters")
+    lma       <- with_default("lma")
+    rho       <- with_default("rho")
+    mass_seed <- with_default("mass_seed")
+    narea     <- with_default("narea", narea_0)
+
+    ## lma / leaf turnover relationship:
+    k_l   <- k_l_0 * (lma / lma_0) ^ (-B4)
+
+    ## rho / mortality relationship:
+    d_0  <- d0_0 * (rho / rho_0) ^ (-d1)
+
+    ## rho / wood turnover relationship:
+    k_s  <- k_s_0 *  (rho / rho_0) ^ (-B5)
+
+    ## rho / sapwood respiration relationship:
+
+    ## Respiration rates are per unit mass, so this next line has the
+    ## effect of holding constant the respiration rate per unit volume.
+    ## So respiration rates per unit mass vary with rho, respiration
+    ## rates per unit volume don't.
+    c_Rs <- 4012.0 / rho
+    c_Rb <- 2.0 * c_Rs # bark respiration follows from sapwood
+    k_b  <- 0.2        # bark turnover follows from sapwood
+
+    ## mass_seed / accessory cost relationship
+    c_acc <- 3.0 * mass_seed
+
+    ## narea / photosynthesis / respiration
+    ## Photosynthesis per mass leaf N [mol CO2 / kgN / yr]
+    ## TODO: more transparency needed for this calculation. Current
+    ## value comes from offline model
+    ## TODO: this is where we improve photosynthesis model
+    ## TODO: Move control of this into the arguments
+    c_PN  <- 80406.42
+    c_p1  <- c_PN * narea
+
+    ## Respiration per mass leaf N [mol CO2 / kgN / yr]
+    ## = (6.66e-4 * (365*24*60*60))
+    ## Obatined from global average of ratio of dark respiration rate to
+    ## leaf nitrogen content using the GLOPNET dataset
+    c_RN  <-  21002.98
+    ## Respiration rates are per unit mass, so convert to mass-based
+    ## rate by dividing with lma
+    ## So respiration rates per unit mass vary with lma, while
+    ## respiration rates per unit area don't.
+    c_Rl  <- c_RN * narea / lma
+
+    extra <- cbind(k_l,                       # lma
+                   d_0, k_s, c_Rs, c_Rb, k_b, # rho
+                   c_acc,                     # mass_seed
+                   c_p1, c_Rl)                # narea
+
+    overlap <- intersect(colnames(m), colnames(extra))
+    if (length(overlap) > 0L) {
+      stop("Attempt to overwrite generated parameters: ",
+           paste(overlap, collapse=", "))
     }
-    if ("mass_seed" %in% colnames(m)) {
-      stop("please implement mass_seed hyperparameters")
-    }
-    m
+
+    cbind(m, extra)
   }
 }
 ##' @rdname ff_parameters
 ##' @export
+##' @param m A trait matrix
+##' @param s A default strategy
 ff_parameters <- make_ff_parameters()

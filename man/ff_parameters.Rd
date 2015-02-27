@@ -5,14 +5,30 @@
 \alias{make_ff_parameters}
 \title{Hyperparameters for tree}
 \usage{
-make_ff_parameters(B4 = 1.71)
+make_ff_parameters(B4 = 1.71, lma_0 = 0.1978791, k_l_0 = 0.4565855,
+  rho_0 = 608, d0_0 = 0.01, d1 = 0, k_s_0 = 0.2, B5 = 0,
+  narea_0 = 0.00187)
 
-ff_parameters(m)
+ff_parameters(m, s)
 }
 \arguments{
 \item{B4}{Slope of lma / leaf turnover log-log relationship}
 
+\item{lma_0}{LMA value...}
+
+\item{k_l_0}{...}
+
+\item{rho_0}{...}
+
+\item{d0_0}{...}
+
+\item{d1}{...}
+
+\item{B5}{...}
+
 \item{m}{A trait matrix}
+
+\item{s}{A default strategy}
 }
 \description{
 Hyperparameters for tree
