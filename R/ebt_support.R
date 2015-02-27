@@ -216,7 +216,7 @@ make_ff_parameters <- function(B4=1.71,
     ## = (6.66e-4 * (365*24*60*60))
     ## Obatined from global average of ratio of dark respiration rate to
     ## leaf nitrogen content using the GLOPNET dataset
-    c_RN  <-  21002.98
+    c_RN  <-  21000
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
