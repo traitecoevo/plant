@@ -73,6 +73,7 @@ run_ebt <- function(p, use_ode_times=FALSE) {
 ebt_base_parameters <- function() {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
+  ctrl$equilibrium_eps <- 1e-3
   Parameters(patch_area=1.0, control=ctrl,
              hyperpar=ff_parameters)
 }
