@@ -198,7 +198,6 @@ make_ff_parameters <- function(B4=1.71,
     ## rates per unit volume don't.
     c_Rs <- 4012.0 / rho
     c_Rb <- 2.0 * c_Rs # bark respiration follows from sapwood
-    k_b  <- 0.2        # bark turnover follows from sapwood
 
     ## mass_seed / accessory cost relationship
     c_acc <- 3.0 * mass_seed
@@ -223,10 +222,10 @@ make_ff_parameters <- function(B4=1.71,
     ## respiration rates per unit area don't.
     c_Rl  <- c_RN * narea / lma
 
-    extra <- cbind(k_l,                       # lma
-                   d_0, k_s, c_Rs, c_Rb, k_b, # rho
-                   c_acc,                     # mass_seed
-                   c_p1, c_Rl)                # narea
+    extra <- cbind(k_l,                  # lma
+                   d_0, k_s, c_Rs, c_Rb, # rho
+                   c_acc,                # mass_seed
+                   c_p1, c_Rl)           # narea
 
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {
