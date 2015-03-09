@@ -13,14 +13,7 @@
 ##' @export
 fitness_landscape <- function(trait_matrix, p, raw_seed_rain=FALSE) {
   n_residents <- length(p$strategies)
-  if (n_residents == 0L &&
-      length(p$cohort_schedule_ode_times) == 0L) {
-    p$cohort_schedule_ode_times <-
-      c(p$cohort_schedule_times_default, p$cohort_schedule_max_time)
-  }
-
   p_with_mutants <- expand_parameters(trait_matrix, p)
-
   ebt <- run_ebt(p_with_mutants,
                  use_ode_times=length(p$cohort_schedule_ode_times) > 0)
   seed_rain <- ebt$seed_rains
