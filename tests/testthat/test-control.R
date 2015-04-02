@@ -31,7 +31,7 @@ test_that("Defaults", {
     schedule_patch_survival = 6.25302620663814e-05,
 
     equilibrium_nsteps   = 20, # size_t
-    equilibrium_eps      = 1e-3,
+    equilibrium_eps      = 1e-5,
     equilibrium_large_seed_rain_change = 10.0,
     equilibrium_verbose  = TRUE,
     equilibrium_solver_name = "iteration",

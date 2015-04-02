@@ -7,6 +7,7 @@ test_that("Some support functions", {
   p <- ebt_base_parameters()
   expect_that(p, is_a("Parameters"))
   cmp <- equilibrium_verbose(fast_control())
-  cmp$schedule_eps=0.005
+  cmp$schedule_eps <- 0.005
+  cmp$equilibrium_eps <- 1e-3
   expect_that(p$control, equals(cmp))
 })
