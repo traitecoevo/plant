@@ -1,5 +1,5 @@
 #include <gsl/gsl_errno.h>
-#include <tree/util.h>
+#include "util.h"
 
 namespace util {
 

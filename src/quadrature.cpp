@@ -1,6 +1,6 @@
-#include <tree/quadrature.h>
-#include <tree/quadrature_rules.h>
-#include <tree/util.h>
+#include "quadrature.h"
+#include "quadrature_rules.h"
+#include "util.h"
 
 namespace integration {
 

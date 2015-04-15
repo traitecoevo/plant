@@ -1,5 +1,3 @@
-PACKAGE := $(shell grep '^Package:' DESCRIPTION | sed -E 's/^Package:[[:space:]]+//')
-
 all:
 	make -C src
 
@@ -11,7 +9,7 @@ clean:
 	make -C src clean
 
 test:
-	Rscript -e 'library(methods); devtools::test()'
+	make -C inst/tests test
 
 test-regression:
 	make -C tests/regression
@@ -29,10 +27,5 @@ roxygen:
 
 install:
 	R CMD INSTALL .
-
-check: build
-	R CMD check --no-manual `ls -1tr ${PACKAGE}*gz | tail -n1`
-	@rm -f `ls -1tr ${PACKAGE}*gz | tail -n1`
-	@rm -rf ${PACKAGE}.Rcheck
 
 .PHONY: all doc clean test install

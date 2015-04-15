@@ -1,4 +1,4 @@
-#include <tree/adaptive_interpolator.h>
+#include "adaptive_interpolator.h"
 
 namespace interpolator {
 

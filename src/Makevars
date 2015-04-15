@@ -17,4 +17,3 @@ PKG_LIBS=$(RCPP_LDFLAGS) $(GSL_LIBS)
 ## To enable profiling with Google Perftools:
 # PKG_LIBS:=$(PKG_LIBS) -lprofiler
 ## However, Instruments seems to be working again.
-PKG_CPPFLAGS += -I../inst/include/

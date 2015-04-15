@@ -1,40 +1,40 @@
 #include <Rcpp.h>
 
-#include <tree/interpolator.h>
-#include <tree/adaptive_interpolator.h>
-#include <tree/fake_light_environment.h>
+#include "interpolator.h"
+#include "adaptive_interpolator.h"
+#include "fake_light_environment.h"
 
-#include <tree/ode_target.h>
-#include <tree/lorenz.h>
-#include <tree/ode_r.h>
+#include "ode_target.h"
+#include "lorenz.h"
+#include "ode_r.h"
 
-#include <tree/lookup.h>
+#include "lookup.h"
 
-#include <tree/strategy.h>
-#include <tree/parameters.h>
-#include <tree/control.h>
+#include "strategy.h"
+#include "parameters.h"
+#include "control.h"
 
-#include <tree/disturbance.h>
-#include <tree/environment.h>
+#include "disturbance.h"
+#include "environment.h"
 
-#include <tree/plant.h>
-#include <tree/cohort_discrete.h>
+#include "plant.h"
+#include "cohort_discrete.h"
 
-#include <tree/cohort_top.h>
-#include <tree/cohort_schedule.h>
+#include "cohort_top.h"
+#include "cohort_schedule.h"
 
-#include <tree/patch.h>
+#include "patch.h"
 
-#include <tree/metacommunity.h>
-#include <tree/ebt.h>
-#include <tree/ebt_mutant_runner.h>
+#include "metacommunity.h"
+#include "ebt.h"
+#include "ebt_mutant_runner.h"
 
-#include <tree/functor.h>
-#include <tree/find_root.h>
-#include <tree/quadrature.h>
-#include <tree/integration.h>
-#include <tree/gradient.h>
-#include <tree/state.h>
+#include "functor.h"
+#include "find_root.h"
+#include "quadrature.h"
+#include "integration.h"
+#include "gradient.h"
+#include "state.h"
 
 #ifdef __clang__
 #pragma clang diagnostic push

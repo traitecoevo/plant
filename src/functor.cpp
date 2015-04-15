@@ -1,6 +1,6 @@
-#include <tree/functor.h>
+#include "functor.h"
 
-#include <tree/util.h>
+#include "util.h"
 
 namespace util {
 

@@ -1,5 +1,6 @@
-#include <tree/plant.h>
-#include <tree/find_root.h>
+#include "plant.h"
+
+#include "find_root.h"
 
 namespace model {
 
