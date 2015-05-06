@@ -10,6 +10,13 @@ drop_blank <- function(x) {
   gsub("(^\n|\n$)", "", x)
 }
 
+load_scripts <- function(filename) {
+  scripts <- readLines(filename)
+  scripts <- sub("\\s*#.*$", "", scripts)
+  scripts <- scripts[!grepl("^\\s*$", scripts)]
+  sub("\\.R$", "", scripts)
+}
+
 template <- '
 targets:
   remake_scripts.yml:
@@ -28,7 +35,7 @@ targets:
     knitr: true
 {{/scripts}}'
 
-scripts <- sub("\\.R$", "", readLines(".scripts"))
+scripts <- load_scripts(".scripts")
 vals <- list(scripts=iteratelist(scripts, value="script"))
 yml <- drop_blank(whisker.render(template, vals))
 update_file(yml, "remake_scripts.yml")
