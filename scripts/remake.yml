@@ -7,7 +7,7 @@ packages:
   - tree2
 
 include:
-  - maker_scripts.yml
+  - remake_scripts.yml
 
 targets:
   all:

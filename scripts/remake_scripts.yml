@@ -1,27 +1,27 @@
 targets:
-  maker_scripts.yml:
+  remake_scripts.yml:
     depends: "./.scripts"
     command: system("./bootstrap.R")
   scripts:
     depends:
-      - maker_scripts.yml
+      - remake_scripts.yml
       - build_schedule.md
       - equilibrium.md
       - fitness.md
       - carrying_capacity.md
   build_schedule.Rmd:
-    command: sowsear("build_schedule.R", I("Rmd"))
+    command: sowsear("build_schedule.R")
   build_schedule.md:
     knitr: true
   equilibrium.Rmd:
-    command: sowsear("equilibrium.R", I("Rmd"))
+    command: sowsear("equilibrium.R")
   equilibrium.md:
     knitr: true
   fitness.Rmd:
-    command: sowsear("fitness.R", I("Rmd"))
+    command: sowsear("fitness.R")
   fitness.md:
     knitr: true
   carrying_capacity.Rmd:
-    command: sowsear("carrying_capacity.R", I("Rmd"))
+    command: sowsear("carrying_capacity.R")
   carrying_capacity.md:
     knitr: true

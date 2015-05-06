@@ -12,18 +12,18 @@ drop_blank <- function(x) {
 
 template <- '
 targets:
-  maker_scripts.yml:
+  remake_scripts.yml:
     depends: "./.scripts"
     command: system("./bootstrap.R")
   scripts:
     depends:
-      - maker_scripts.yml
+      - remake_scripts.yml
 {{#scripts}}
       - {{script}}.md
 {{/scripts}}
 {{#scripts}}
   {{script}}.Rmd:
-    command: sowsear("{{script}}.R", I("Rmd"))
+    command: sowsear("{{script}}.R")
   {{script}}.md:
     knitr: true
 {{/scripts}}'
@@ -31,4 +31,4 @@ targets:
 scripts <- sub("\\.R$", "", readLines(".scripts"))
 vals <- list(scripts=iteratelist(scripts, value="script"))
 yml <- drop_blank(whisker.render(template, vals))
-update_file(yml, "maker_scripts.yml")
+update_file(yml, "remake_scripts.yml")
