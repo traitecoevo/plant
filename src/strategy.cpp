@@ -67,7 +67,7 @@ Strategy::Strategy() {
   // Root turnover
   k_r    = 1.0;
   // Parameters of the hyperbola for annual LRC
-  c_p1   = 150.36;
+  c_p1   = 150.36; // NOTE: should be '150.3600054'
   c_p2   = 0.19;
 
   // * Seed production

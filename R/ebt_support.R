@@ -171,7 +171,7 @@ make_ff_parameters <- function(B4=1.71,
   force(d0_0)
   force(d1)
   force(B5)
-  function(m, s) {
+  function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
               nrow(m))
@@ -185,7 +185,7 @@ make_ff_parameters <- function(B4=1.71,
     k_l   <- k_l_0 * (lma / lma_0) ^ (-B4)
 
     ## rho / mortality relationship:
-    d_0  <- d0_0 * (rho / rho_0) ^ (-d1)
+    c_d0  <- d0_0 * (rho / rho_0) ^ (-d1)
 
     ## rho / wood turnover relationship:
     k_s  <- k_s_0 *  (rho / rho_0) ^ (-B5)
@@ -222,15 +222,35 @@ make_ff_parameters <- function(B4=1.71,
     ## respiration rates per unit area don't.
     c_Rl  <- c_RN * narea / lma
 
-    extra <- cbind(k_l,                  # lma
-                   d_0, k_s, c_Rs, c_Rb, # rho
-                   c_acc,                # mass_seed
-                   c_p1, c_Rl)           # narea
+    extra <- cbind(k_l,                   # lma
+                   c_d0, k_s, c_Rs, c_Rb, # rho
+                   c_acc,                 # mass_seed
+                   c_p1, c_Rl)            # narea
 
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {
       stop("Attempt to overwrite generated parameters: ",
            paste(overlap, collapse=", "))
+    }
+
+    ## Filter extra so that any column where all numbers are with eps
+    ## of the default strategy are not replaced:
+    if (filter) {
+      if (nrow(extra) == 0L) {
+        extra <- NULL
+      } else {
+        pos <- diff(apply(extra, 2, range)) == 0
+        if (any(pos)) {
+          eps <- sqrt(.Machine$double.eps)
+          x1 <- extra[1, pos]
+          x2 <- unlist(s[names(x1)])
+          drop <- abs(x1 - x2) < eps & abs(1 - x1/x2) < eps
+          if (any(drop)) {
+            keep <- setdiff(colnames(extra), names(drop)[drop])
+            extra <- extra[, keep, drop=FALSE]
+          }
+        }
+      }
     }
 
     cbind(m, extra)
