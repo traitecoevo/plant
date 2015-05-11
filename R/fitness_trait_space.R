@@ -79,9 +79,12 @@ viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
 
   if (w < 0) {
     message("Starting value had negative fitness, looking for max")
-    x <- max_fitness(bounds, p, bounds, log_scale)
+    x <- max_fitness(bounds, p, log_scale)
     w <- attr(x, "fitness")
     message(sprintf("\t...found max fitness at %2.5f (w=%2.5f)", x, w))
+    if (w < 0) {
+      return(NULL)
+    }
   }
 
   if (log_scale) {
