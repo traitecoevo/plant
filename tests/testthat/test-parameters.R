@@ -54,32 +54,17 @@ test_that("Nontrivial creation", {
               is_identical_to(list(p$cohort_schedule_times_default)))
 
   ## Now, with some of these set:
-  t1 <- 10.123
   p <- Parameters(strategies=list(Strategy()),
                   seed_rain=pi,
                   is_resident=TRUE,
-                  cohort_schedule_max_time=t1)
+                  disturbance_mean_interval=2)
 
   expect_that(p$cohort_schedule_max_time,
-              is_identical_to(t1))
+              is_less_than(10))
   expect_that(p$cohort_schedule_times_default,
-              is_identical_to(cohort_schedule_times_default(t1)))
+              is_identical_to(cohort_schedule_times_default(p$cohort_schedule_max_time)))
   expect_that(p$cohort_schedule_times,
               is_identical_to(list(p$cohort_schedule_times_default)))
-
-  tt <- p$cohort_schedule_times_default
-  p <- Parameters(strategies=list(Strategy()),
-                  seed_rain=pi,
-                  is_resident=TRUE,
-                  cohort_schedule_times_default=tt)
-
-  ## This might be an alarming gap here:
-  expect_that(p$cohort_schedule_max_time,
-              is_identical_to(cohort_schedule_max_time_default(p)))
-  expect_that(p$cohort_schedule_times_default,
-              is_identical_to(tt))
-  expect_that(p$cohort_schedule_times,
-              is_identical_to(list(tt)))
 })
 
 test_that("Parameters overwrites Strategy control", {
@@ -133,4 +118,33 @@ test_that("Store hyperparams", {
 test_that("ebt_base_parameters", {
   p <- ebt_base_parameters()
   expect_that(p$hyperpar, equals(ff_parameters))
+})
+
+test_that("Disturbance interval", {
+  p <- ebt_base_parameters()
+  expect_that(p$disturbance_mean_interval, equals(30.0))
+  expect_that(p$cohort_schedule_max_time,
+              is_identical_to(cohort_schedule_max_time_default(p)))
+  p$strategies <- list(Strategy())
+
+  p$disturbance_mean_interval <- 10.0
+  ## This is going to force us back through the validator
+  p2 <- validate(p)
+  expect_that(p2$cohort_schedule_max_time,
+              is_identical_to(cohort_schedule_max_time_default(p2)))
+  expect_that(p2$cohort_schedule_max_time,
+              is_less_than(p$cohort_schedule_max_time))
+  expect_that(last(p2$cohort_schedule_times_default),
+              is_less_than(p2$cohort_schedule_max_time))
+  expect_that(last(p2$cohort_schedule_times_default),
+              is_less_than(p2$cohort_schedule_max_time))
+  expect_that(p2$cohort_schedule_times,
+              equals(list(p2$cohort_schedule_times_default)))
+
+  ## We will blow away any data that is stored in p$cohort_schedule*
+  expect_that(p$cohort_schedule_max_time, is_more_than(100))
+  p$cohort_schedule_max_time <- 1
+  p$cohort_schedule_times_default <- 1:10
+  p$cohort_schedule_time <- list(1:11)
+  expect_that(validate(p), equals(p2))
 })

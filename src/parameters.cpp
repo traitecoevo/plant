@@ -66,16 +66,22 @@ void Parameters::validate() {
   }
 }
 
+
 // Separating this out just because it's a bit crap:
 void Parameters::setup_cohort_schedule() {
-  if (!util::is_finite(cohort_schedule_max_time)) {
-    cohort_schedule_max_time = cohort_schedule_max_time_default(*this);
+  const double max_time = cohort_schedule_max_time_default(*this);
+  const bool update =
+    !(util::is_finite(cohort_schedule_max_time) &&
+      util::identical(cohort_schedule_max_time, max_time));
+
+  if (update || !util::is_finite(cohort_schedule_max_time)) {
+    cohort_schedule_max_time = max_time;
   }
-  if (cohort_schedule_times_default.empty()) {
+  if (update || cohort_schedule_times_default.empty()) {
     cohort_schedule_times_default =
       tree2::cohort_schedule_times_default(cohort_schedule_max_time);
   }
-  if (cohort_schedule_times.empty() && size() > 0) {
+  if ((update || cohort_schedule_times.empty()) && size() > 0) {
     for (size_t i = 0; i < size(); ++i) {
       cohort_schedule_times.push_back(cohort_schedule_times_default);
     }
