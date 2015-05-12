@@ -498,7 +498,7 @@ Cohort:
 
 # For now, also not templated
 Species:
-  name_cpp: "tree2::Species<tree2::Cohort<tree2::PlantFF> >"
+  name_cpp: "tree2::Species<tree2::PlantFF>"
   constructor:
     args: [strategy: "tree2::Strategy"]
   active:
@@ -534,7 +534,7 @@ Species:
       name_cpp: r_area_leafs_error
 
 Patch:
-  name_cpp: "tree2::Patch<tree2::Cohort<tree2::PlantFF> >"
+  name_cpp: "tree2::Patch<tree2::PlantFF>"
   constructor:
     args: [parameters: "tree2::Parameters"]
   active:
@@ -543,7 +543,7 @@ Patch:
     height_max: {type: double, access: member}
     parameters: {type: "tree2::Parameters", access: member, name_cpp: r_parameters}
     environment: {type: "tree2::Environment", access: member, name_cpp: r_environment}
-    species: {type: "std::vector<tree2::Species<tree2::Cohort<tree2::PlantFF> > >", access: member, name_cpp: r_species}
+    species: {type: "std::vector<tree2::Species<tree2::PlantFF> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "tree2::ode::r_ode_time"}
@@ -615,7 +615,7 @@ EBT:
     seed_rains: {type: "std::vector<double>", access: member}
     parameters: {type: "tree2::Parameters", access: member, name_cpp: r_parameters}
     patch:
-      type: "tree2::Patch<tree2::Cohort<tree2::PlantFF> >"
+      type: "tree2::Patch<tree2::PlantFF>"
       access: member
       name_cpp: r_patch
     cohort_schedule:

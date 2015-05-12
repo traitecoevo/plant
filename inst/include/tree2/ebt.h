@@ -13,8 +13,9 @@ template <typename T>
 class EBT {
 public:
   typedef T plant_type;
-  typedef Cohort<plant_type> cohort_type;
-  typedef Patch<cohort_type> patch_type;
+  typedef Cohort<plant_type>  cohort_type;
+  typedef Species<plant_type> species_type;
+  typedef Patch<plant_type>   patch_type;
   EBT(Parameters p);
 
   void run();
@@ -31,7 +32,7 @@ public:
   // * R interface
   std::vector<util::index> r_run_next();
   Parameters r_parameters() const {return parameters;}
-  const patch_type&   r_patch() const {return patch;}
+  const patch_type& r_patch() const {return patch;}
   // TODO: These are liable to change to return all species at once by
   // default.  The pluralisation difference between
   // EBT::r_area_leaf_error and Species::r_area_leafs_error will get

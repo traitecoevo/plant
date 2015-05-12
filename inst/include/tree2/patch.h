@@ -10,9 +10,9 @@ namespace tree2 {
 template <typename T>
 class Patch {
 public:
-  // This is actually a lie at the moment I think...
-  // typedef T plant_type;
-  // typedef Cohort<plant_type> cohort_type;
+  typedef T plant_type;
+  typedef Cohort<plant_type> cohort_type;
+  typedef Species<plant_type> species_type;
   Patch(Parameters p);
 
   void reset();
@@ -31,7 +31,7 @@ public:
   void add_seed(size_t species_index);
   void add_seeds(const std::vector<size_t>& species_index);
 
-  const Species<T>& at(size_t species_index) const {
+  const species_type& at(size_t species_index) const {
     return species[species_index];
   }
   const Disturbance& disturbance_regime() const {
@@ -49,13 +49,13 @@ public:
   // Data accessors:
   Parameters r_parameters() const {return parameters;}
   Environment r_environment() const {return environment;}
-  std::vector<Species<T> > r_species() const {return species;}
+  std::vector<species_type> r_species() const {return species;}
   std::vector<double> r_area_leaf_error(size_t species_index) const;
 
   void r_add_seed(util::index species_index) {
     add_seed(species_index.check_bounds(size()));
   }
-  Species<T> r_at(util::index species_index) const {
+  species_type r_at(util::index species_index) const {
     at(species_index.check_bounds(size()));
   }
   // These are only here because they wrap private functions.

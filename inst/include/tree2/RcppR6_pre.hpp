@@ -83,11 +83,11 @@ template <> tree2::PlantMinimal<tree2::Strategy> as(SEXP);
 template <> SEXP wrap(const tree2::Cohort<tree2::PlantFF>&);
 template <> tree2::Cohort<tree2::PlantFF> as(SEXP);
 
-template <> SEXP wrap(const tree2::Species<tree2::Cohort<tree2::PlantFF> >&);
-template <> tree2::Species<tree2::Cohort<tree2::PlantFF> > as(SEXP);
+template <> SEXP wrap(const tree2::Species<tree2::PlantFF>&);
+template <> tree2::Species<tree2::PlantFF> as(SEXP);
 
-template <> SEXP wrap(const tree2::Patch<tree2::Cohort<tree2::PlantFF> >&);
-template <> tree2::Patch<tree2::Cohort<tree2::PlantFF> > as(SEXP);
+template <> SEXP wrap(const tree2::Patch<tree2::PlantFF>&);
+template <> tree2::Patch<tree2::PlantFF> as(SEXP);
 
 template <> SEXP wrap(const tree2::EBT<tree2::PlantFF>&);
 template <> tree2::EBT<tree2::PlantFF> as(SEXP);

@@ -64,7 +64,7 @@ inline Rcpp::NumericMatrix get_state(const Environment environment) {
 template <typename T>
 Rcpp::List get_state(const EBT<T>& ebt) {
   using namespace Rcpp;
-  const Patch<Cohort<T> >& patch = ebt.r_patch();
+  const Patch<T>& patch = ebt.r_patch();
   return List::create(_["time"] = ebt.time(),
 		      _["species"] = get_state(patch),
 		      _["light_env"] = get_state(patch.r_environment()));

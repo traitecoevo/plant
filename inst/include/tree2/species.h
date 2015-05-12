@@ -19,7 +19,8 @@ namespace tree2 {
 template <typename T>
 class Species {
 public:
-  typedef T cohort_type;
+  typedef T plant_type;
+  typedef Cohort<plant_type> cohort_type;
   typedef typename T::strategy_type   strategy_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   Species(strategy_type s);
@@ -177,7 +178,7 @@ std::vector<double> Species<T>::seeds() const {
 
 template <typename T>
 size_t Species<T>::ode_size() const {
-  return size() * T::ode_size();
+  return size() * cohort_type::ode_size();
 }
 
 template <typename T>
