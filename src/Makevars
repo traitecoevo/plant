@@ -1,0 +1,6 @@
+## -*- makefile -*-
+
+# In theory, this should be sufficient, but this causes compilation to
+# fail for me on Yosemite:
+# CXX_STD = CXX11
+PKG_CPPFLAGS += -I../inst/include/ --std=c++11
