@@ -1,6 +1,6 @@
-#include <tree2/control.h>
+#include <tree/control.h>
 
-namespace tree2 {
+namespace tree {
 
 Control::Control() : integrator(15, 1, 0, 0) {
   plant_assimilation_adaptive = true;

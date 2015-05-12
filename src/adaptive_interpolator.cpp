@@ -1,8 +1,8 @@
-#include <tree2/adaptive_interpolator.h>
+#include <tree/adaptive_interpolator.h>
 #include <Rcpp.h>
-#include <tree2/util_post_rcpp.h>
+#include <tree/util_post_rcpp.h>
 
-namespace tree2 {
+namespace tree {
 namespace interpolator {
 
 // Given our current set of x/y points, construct the interpolated
@@ -35,12 +35,12 @@ bool AdaptiveInterpolator::check_err(double y_true, double y_pred) const {
 }
 
 // [[Rcpp::export]]
-tree2::interpolator::Interpolator
+tree::interpolator::Interpolator
 test_adaptive_interpolator(Rcpp::Function f, double a, double b) {
-  tree2::util::RFunctionWrapper fw(f);
+  tree::util::RFunctionWrapper fw(f);
   const double atol = 1e-6, rtol = 1e-6;
   const size_t nbase = 17, max_depth = 16;
-  tree2::interpolator::AdaptiveInterpolator
+  tree::interpolator::AdaptiveInterpolator
     generator(atol, rtol, nbase, max_depth);
   return generator.construct(fw, a, b);
 }

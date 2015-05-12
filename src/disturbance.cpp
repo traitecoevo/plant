@@ -1,8 +1,8 @@
-#include <tree2/disturbance.h>
+#include <tree/disturbance.h>
 
 #include <Rcpp.h>
 
-namespace tree2 {
+namespace tree {
 
 Disturbance::Disturbance(double mean_interval_)
   : shape(2.0),

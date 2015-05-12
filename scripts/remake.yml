@@ -4,7 +4,7 @@
 ## will automatically propagate.
 packages:
   - sowsear
-  - tree2
+  - tree
 
 include:
   - remake_scripts.yml

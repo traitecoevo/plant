@@ -1,7 +1,7 @@
-#include <tree2.h>
-#include <tree2/uniroot.h>
+#include <tree.h>
+#include <tree/uniroot.h>
 
-namespace tree2 {
+namespace tree {
 namespace tools {
 
 Environment fixed_environment(double canopy_openness,
@@ -40,8 +40,8 @@ double lcp_whole_plant(FFW16_PlantPlus p) {
 // change of name.  However, it's only used internally so it's not
 // that big of a deal.
 // [[Rcpp::export]]
-tree2::FFW16_PlantPlus_internals
-oderunner_plant_size(const tree2::ode::Runner<tree2::tools::PlantRunner>& obj) {
+tree::FFW16_PlantPlus_internals
+oderunner_plant_size(const tree::ode::Runner<tree::tools::PlantRunner>& obj) {
   return obj.obj.plant.r_internals();
 }
 
@@ -55,9 +55,9 @@ oderunner_plant_size(const tree2::ode::Runner<tree2::tools::PlantRunner>& obj) {
 //' @export
 //' @author Rich FitzJohn
 // [[Rcpp::export]]
-tree2::Environment fixed_environment(double canopy_openness,
+tree::Environment fixed_environment(double canopy_openness,
 				     double height_max=150.0) {
-  return tree2::tools::fixed_environment(canopy_openness, height_max);
+  return tree::tools::fixed_environment(canopy_openness, height_max);
 }
 
 //' Compute the whole plant light compensation point for a single
@@ -67,6 +67,6 @@ tree2::Environment fixed_environment(double canopy_openness,
 //' @export
 //' @author Rich FitzJohn
 // [[Rcpp::export]]
-double lcp_whole_plant(tree2::FFW16_PlantPlus p) {
-  return tree2::tools::lcp_whole_plant(p);
+double lcp_whole_plant(tree::FFW16_PlantPlus p) {
+  return tree::tools::lcp_whole_plant(p);
 }

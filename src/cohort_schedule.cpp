@@ -1,11 +1,11 @@
-#include <tree2/cohort_schedule.h>
-#include <tree2/parameters.h>
-#include <tree2/disturbance.h>
-#include <tree2/util.h>
+#include <tree/cohort_schedule.h>
+#include <tree/parameters.h>
+#include <tree/disturbance.h>
+#include <tree/util.h>
 #include <Rcpp.h>
 #include <cmath> // log2, exp2
 
-namespace tree2 {
+namespace tree {
 
 CohortSchedule::CohortSchedule(size_t n_species_)
   : n_species(n_species_),

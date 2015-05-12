@@ -1,7 +1,7 @@
-#include <tree2/util.h>
+#include <tree/util.h>
 #include <Rcpp.h>
 
-namespace tree2 {
+namespace tree {
 namespace util {
 
 size_t index::check_bounds(size_t size) {
@@ -98,20 +98,20 @@ bool is_function(SEXP x) {
 }
 
 namespace Rcpp {
-template <> SEXP wrap(const tree2::util::index& x) {
-  return Rcpp::wrap(tree2::util::base_0_to_1<size_t, int>(x.x));
+template <> SEXP wrap(const tree::util::index& x) {
+  return Rcpp::wrap(tree::util::base_0_to_1<size_t, int>(x.x));
 }
-template <> tree2::util::index as(SEXP x) {
+template <> tree::util::index as(SEXP x) {
   const int ix(Rcpp::as<int>(x));
   if (ix <= 0) {
     Rcpp::stop("Invalid value for index (must be >= 1)");
   }
-  return tree2::util::base_1_to_0<int, size_t>(ix);
+  return tree::util::base_1_to_0<int, size_t>(ix);
 }
-template <> SEXP wrap(const std::vector<tree2::util::index>& x) {
+template <> SEXP wrap(const std::vector<tree::util::index>& x) {
   Rcpp::IntegerVector ret(x.size());
-  for (auto i: tree2::util::indices(x)) {
-    ret[static_cast<int>(i)] = tree2::util::base_0_to_1<size_t, int>(x[i].x);
+  for (auto i: tree::util::indices(x)) {
+    ret[static_cast<int>(i)] = tree::util::base_0_to_1<size_t, int>(x[i].x);
   }
   return Rcpp::wrap(ret);
 }
@@ -120,18 +120,18 @@ template <> SEXP wrap(const std::vector<tree2::util::index>& x) {
 // [[Rcpp::export]]
 double trapezium(const std::vector<double>& x,
                  const std::vector<double>& y) {
-  return tree2::util::trapezium(x, y);
+  return tree::util::trapezium(x, y);
 }
 
 // [[Rcpp::export]]
 std::vector<double> trapezium_vector(const std::vector<double>& x,
                                      const std::vector<double>& y) {
-  return tree2::util::trapezium_vector(x, y);
+  return tree::util::trapezium_vector(x, y);
 }
 
 // [[Rcpp::export]]
 std::vector<double> local_error_integration(const std::vector<double>& x,
                                             const std::vector<double>& y,
                                             double scal) {
-  return tree2::util::local_error_integration(x, y, scal);
+  return tree::util::local_error_integration(x, y, scal);
 }

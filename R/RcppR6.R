@@ -2,7 +2,7 @@
 
 ##' @importFrom Rcpp evalCpp
 ##' @importFrom R6 R6Class
-##' @useDynLib tree2
+##' @useDynLib tree
 NULL
 
 

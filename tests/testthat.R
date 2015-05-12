@@ -1,4 +1,4 @@
 library(testthat)
-library(tree2)
+library(tree)
 
-test_check("tree2")
+test_check("tree")

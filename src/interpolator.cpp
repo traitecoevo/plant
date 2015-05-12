@@ -1,9 +1,9 @@
-#include <tree2/interpolator.h>
-#include <tree2/util.h>
-#include <tree2/util_post_rcpp.h> // to_rcpp_matrix
+#include <tree/interpolator.h>
+#include <tree/util.h>
+#include <tree/util_post_rcpp.h> // to_rcpp_matrix
 #include <Rcpp.h>
 
-namespace tree2 {
+namespace tree {
 namespace interpolator {
 
 // Build a interpolator out of the vectors 'x' and 'y'.

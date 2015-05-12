@@ -1,6 +1,6 @@
-#include <tree2/qk_rules.h>
+#include <tree/qk_rules.h>
 
-namespace tree2 {
+namespace tree {
 namespace quadrature {
 
 // * QK15:

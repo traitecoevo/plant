@@ -1,6 +1,6 @@
-#include <tree2/util_post_rcpp.h>
+#include <tree/util_post_rcpp.h>
 
-namespace tree2 {
+namespace tree {
 namespace util {
 
 // Given a vector-of-vectors, copy the vector x[i] into the ith
@@ -49,5 +49,5 @@ Rcpp::List matrix_to_list(Rcpp::NumericMatrix x) {
 
 // [[Rcpp::export]]
 Rcpp::List matrix_to_list(Rcpp::NumericMatrix x) {
-  return tree2::util::matrix_to_list(x);
+  return tree::util::matrix_to_list(x);
 }

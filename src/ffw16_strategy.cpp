@@ -1,10 +1,10 @@
-#include <tree2/ffw16_strategy.h>
-#include <tree2/uniroot.h>
-#include <tree2/qag.h>
-#include <tree2/environment.h>
+#include <tree/ffw16_strategy.h>
+#include <tree/uniroot.h>
+#include <tree/qag.h>
+#include <tree/environment.h>
 #include <RcppCommon.h> // NA_REAL
 
-namespace tree2 {
+namespace tree {
 
 // TODO: There is some fairly major re-plumbing needed here; we need
 // to separate out hyperparameters from the ones the model cares

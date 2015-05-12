@@ -1,9 +1,9 @@
-#include <tree2/qag_internals.h>
-#include <tree2/util.h>
+#include <tree/qag_internals.h>
+#include <tree/util.h>
 
 #include <algorithm> // min_element, max_element
 
-namespace tree2 {
+namespace tree {
 namespace quadrature {
 namespace internal {
 void workspace::clear() {

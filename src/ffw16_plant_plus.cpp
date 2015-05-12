@@ -1,8 +1,8 @@
-#include <tree2/ffw16_plant_plus.h>
+#include <tree/ffw16_plant_plus.h>
 #include <Rcpp.h>
 #include <functional>
 
-namespace tree2 {
+namespace tree {
 
 FFW16_PlantPlus::FFW16_PlantPlus(strategy_type::ptr s)
   : strategy(s) {
