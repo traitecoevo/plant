@@ -260,4 +260,6 @@ make_ff_parameters <- function(B4=1.71,
 ##' @export
 ##' @param m A trait matrix
 ##' @param s A default strategy
+##' @param filter Logical, indicating if generated parameters that are
+##' the same as the default should be removed.
 ff_parameters <- make_ff_parameters()

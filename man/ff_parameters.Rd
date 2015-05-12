@@ -9,7 +9,7 @@ make_ff_parameters(B4 = 1.71, lma_0 = 0.1978791, k_l_0 = 0.4565855,
   rho_0 = 608, d0_0 = 0.01, d1 = 0, k_s_0 = 0.2, B5 = 0,
   narea_0 = 0.00187)
 
-ff_parameters(m, s)
+ff_parameters(m, s, filter = TRUE)
 }
 \arguments{
 \item{B4}{Slope of lma / leaf turnover log-log relationship}
@@ -29,6 +29,9 @@ ff_parameters(m, s)
 \item{m}{A trait matrix}
 
 \item{s}{A default strategy}
+
+\item{filter}{Logical, indicating if generated parameters that are
+the same as the default should be removed.}
 }
 \description{
 Hyperparameters for tree

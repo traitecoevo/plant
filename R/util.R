@@ -79,6 +79,7 @@ seq_range <- function(r, length.out) {
 validate <- function(x, ...) {
   UseMethod("validate")
 }
+##' @export
 validate.Parameters <- function(x, ...) {
   Parameters__vdor(x)
 }
