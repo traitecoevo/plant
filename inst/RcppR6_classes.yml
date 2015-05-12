@@ -179,72 +179,6 @@ OdeControl:
     - step_size_max: double
     - step_size_initial: double
 
-Strategy:
-  name_cpp: "tree2::Strategy"
-  roxygen: |
-    Strategy parameters that tune various aspects of the biological model.
-    @title Strategy parameters
-    @param ...,values Values to initialise the struct with (either as
-    variadic arguments, or as a list, but not both).
-    @export
-  list:
-    - lma: double
-    - rho: double
-    - hmat: double
-    - mass_seed: double
-    - eta: double
-    - theta: double
-    - a1: double
-    - B1: double
-    - a3: double
-    - b: double
-    - c_Rs: double
-    - c_Rb: double
-    - c_Rr: double
-    - c_Rl: double
-    - Y: double
-    - c_bio: double
-    - k_l: double
-    - k_b: double
-    - k_s: double
-    - k_r: double
-    - c_p1: double
-    - c_p2: double
-    - c_acc: double
-    - c_r1: double
-    - c_r2: double
-    - c_s0: double
-    - c_d0: double
-    - c_d2: double
-    - c_d3: double
-    - control: "tree2::Control"
-
-Parameters:
-  name_cpp: "tree2::Parameters"
-  roxygen: |
-    Strategy parameters that tune various aspects of the biological model.
-    @title Strategy parameters
-    @param ...,values Values to initialise the struct with (either as
-    variadic arguments, or as a list, but not both).
-    @export
-  validator_cpp: validate
-  list:
-    - c_ext: double
-    - patch_area: double
-    - Pi_0: double
-    - n_patches: size_t
-    - disturbance_mean_interval: double
-    - strategies: "std::vector<tree2::Strategy>"
-    - seed_rain: "std::vector<double>"
-    - is_resident: "std::vector<bool>"
-    - control: "tree2::Control"
-    - strategy_default: "tree2::Strategy"
-    - cohort_schedule_max_time: double
-    - cohort_schedule_times_default: "std::vector<double>"
-    - cohort_schedule_times: "std::vector<std::vector<double> >"
-    - cohort_schedule_ode_times: "std::vector<double>"
-    - hyperpar: SEXP
-
 QK:
   name_cpp: "tree2::quadrature::QK"
   constructor:
@@ -318,7 +252,7 @@ Interpolator:
 Environment:
   name_cpp: "tree2::Environment"
   constructor:
-    args: [p: "tree2::Parameters"]
+    args: [p: "tree2::FFW16_Parameters"]
     roxygen: |
       Environment object
       @param p A Parameters object
@@ -344,7 +278,163 @@ Environment:
     light_environment: {type: "tree2::interpolator::Interpolator", access: field}
 
 Plant_internals:
-  name_cpp: "tree2::Plant::Internals"
+  name_cpp: "tree2::Plant_internals"
+  list:
+    - area_leaf: double
+    - height: double
+    - height_dt: double
+    - mortality: double
+    - mortality_dt: double
+    - fecundity: double
+    - fecundity_dt: double
+
+Plant:
+  name_cpp: "tree2::Plant<T>"
+  templates:
+    parameters: T
+    concrete:
+      - ["FFW16": "tree2::FFW16_Strategy"]
+  constructor:
+    args: [s: T]
+    name_cpp: "tree2::make_plant<T>"
+    roxygen: |
+      Plant object
+      @param T String containing class of plant to create; currently
+      must be \code{"FFW16"}.  See \code{\link{FFW16_Plant}} for more
+      details.
+      @export
+  active:
+    height: {type: double, access: member, name_cpp: height, name_cpp_set: set_height}
+    mortality: {type: double, access: member, name_cpp_set: set_mortality}
+    fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
+    strategy: {type: "T", access: member, name_cpp: r_get_strategy}
+    internals: {type: "tree2::Plant<T>::internals", access: member, name_cpp: "r_internals"}
+    ode_size: {type: size_t, access: member}
+    ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
+    ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
+    ode_names: {type: "std::vector<std::string>", access: member}
+  methods:
+    area_leaf_above:
+      args: [h: double]
+      return_type: double
+    compute_vars_phys:
+      args: [environment: "const tree2::Environment&"]
+      return_type: void
+    germination_probability:
+      args: [environment: "const tree2::Environment&"]
+      return_type: double
+
+PlantRunner:
+  name_cpp: "tree2::tools::PlantRunner"
+  constructor:
+    args: [plant: "tree2::FFW16_PlantPlus", environment: "tree2::Environment"]
+  active:
+    plant: {access: field, type: "tree2::FFW16_PlantPlus"}
+
+FFW16_Strategy:
+  name_cpp: "tree2::FFW16_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - lma: double
+    - rho: double
+    - hmat: double
+    - mass_seed: double
+    - eta: double
+    - theta: double
+    - a1: double
+    - B1: double
+    - a3: double
+    - b: double
+    - c_Rs: double
+    - c_Rb: double
+    - c_Rr: double
+    - c_Rl: double
+    - Y: double
+    - c_bio: double
+    - k_l: double
+    - k_b: double
+    - k_s: double
+    - k_r: double
+    - c_p1: double
+    - c_p2: double
+    - c_acc: double
+    - c_r1: double
+    - c_r2: double
+    - c_s0: double
+    - c_d0: double
+    - c_d2: double
+    - c_d3: double
+    - control: "tree2::Control"
+
+FFW16_Parameters:
+  name_cpp: "tree2::FFW16_Parameters"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  validator_cpp: validate
+  list:
+    - c_ext: double
+    - patch_area: double
+    - Pi_0: double
+    - n_patches: size_t
+    - disturbance_mean_interval: double
+    - strategies: "std::vector<tree2::FFW16_Strategy>"
+    - seed_rain: "std::vector<double>"
+    - is_resident: "std::vector<bool>"
+    - control: "tree2::Control"
+    - strategy_default: "tree2::FFW16_Strategy"
+    - cohort_schedule_max_time: double
+    - cohort_schedule_times_default: "std::vector<double>"
+    - cohort_schedule_times: "std::vector<std::vector<double> >"
+    - cohort_schedule_ode_times: "std::vector<double>"
+    - hyperpar: SEXP
+
+FFW16_PlantPlus:
+  name_cpp: "tree2::FFW16_PlantPlus"
+  constructor:
+    name_cpp: "tree2::make_plant_plus"
+    args: [strategy: "tree2::FFW16_Strategy"]
+    roxygen: |
+      Plant object
+      @param strategy A \code{FFW16_Strategy} object
+      @export
+  active:
+    height: {type: double, access: member, name_cpp: height, name_cpp_set: set_height}
+    # Possibly these four should be read-only?
+    mortality: {type: double, access: member, name_cpp_set: set_mortality}
+    fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
+    area_heartwood: {type: double, access: member, name_cpp_set: set_area_heartwood}
+    mass_heartwood: {type: double, access: member, name_cpp_set: set_mass_heartwood}
+    area_leaf: {type: double, access: member}
+    strategy: {type: "tree2::FFW16_Strategy", access: member, name_cpp: r_get_strategy}
+    internals: {type: "tree2::FFW16_PlantPlus::internals", access: member, name_cpp: "r_internals"}
+    ode_size: {type: size_t, access: member}
+    ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
+    ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
+    ode_names: {type: "std::vector<std::string>", access: member}
+  methods:
+    area_leaf_above:
+      args: [h: double]
+      return_type: double
+    compute_vars_phys:
+      args: [environment: "const tree2::Environment&"]
+      return_type: void
+    compute_vars_growth:
+      return_type: void
+    germination_probability:
+      args: [environment: "const tree2::Environment&"]
+      return_type: double
+
+FFW16_PlantPlus_internals:
+  name_cpp: "tree2::FFW16_PlantPlus::internals"
   list:
     - mass_leaf: double
     - area_leaf: double
@@ -390,91 +480,14 @@ Plant_internals:
     - mass_total_dt: double
     - mass_above_ground_dt: double
 
-Plant:
-  name_cpp: "tree2::Plant"
-  constructor:
-    name_cpp: "tree2::make_plant"
-    args: [strategy: "tree2::Strategy"]
-    roxygen: |
-      Plant object
-      @param strategy A \code{Strategy} object
-      @export
-  active:
-    height: {type: double, access: member, name_cpp: height, name_cpp_set: set_height}
-    # Possibly these four should be read-only?
-    mortality: {type: double, access: member, name_cpp_set: set_mortality}
-    fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
-    area_heartwood: {type: double, access: member, name_cpp_set: set_area_heartwood}
-    mass_heartwood: {type: double, access: member, name_cpp_set: set_mass_heartwood}
-    area_leaf: {type: double, access: member}
-    strategy: {type: "tree2::Strategy", access: member, name_cpp: r_get_strategy}
-    internals: {type: "tree2::Plant::Internals", access: member, name_cpp: "r_internals"}
-    ode_size: {type: size_t, access: member}
-    ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
-    ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
-    ode_names: {type: "std::vector<std::string>", access: member}
-  methods:
-    area_leaf_above:
-      args: [h: double]
-      return_type: double
-    compute_vars_phys:
-      args: [environment: "const tree2::Environment&"]
-      return_type: void
-    compute_vars_growth:
-      return_type: void
-    germination_probability:
-      args: [environment: "const tree2::Environment&"]
-      return_type: double
-
-PlantMinimal_internals:
-  name_cpp: "tree2::PlantMinimal_internals"
-  list:
-    - area_leaf: double
-    - height: double
-    - height_dt: double
-    - mortality: double
-    - mortality_dt: double
-    - fecundity: double
-    - fecundity_dt: double
-
-PlantMinimal:
-  name_cpp: "tree2::PlantMinimal<tree2::Strategy>"
-  constructor:
-    name_cpp: "tree2::make_plant_minimal<tree2::Strategy>"
-    args: [strategy: "tree2::Strategy"]
-    roxygen: |
-      Minimal Plant object
-      @param strategy A \code{Strategy} object
-      @export
-  active:
-    height: {type: double, access: member, name_cpp: height, name_cpp_set: set_height}
-    mortality: {type: double, access: member, name_cpp_set: set_mortality}
-    fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
-    strategy: {type: "tree2::Strategy", access: member, name_cpp: r_get_strategy}
-    internals: {type: "tree2::PlantMinimal_internals", access: member, name_cpp: "r_internals"}
-    ode_size: {type: size_t, access: member}
-    ode_state: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_state", name_cpp_set: "tree2::ode::r_set_ode_state"}
-    ode_rates: {type: "tree2::ode::state_type", access: function, name_cpp: "tree2::ode::r_ode_rates"}
-    ode_names: {type: "std::vector<std::string>", access: member}
-  methods:
-    area_leaf_above:
-      args: [h: double]
-      return_type: double
-    compute_vars_phys:
-      args: [environment: "const tree2::Environment&"]
-      return_type: void
-    germination_probability:
-      args: [environment: "const tree2::Environment&"]
-      return_type: double
-
 # For now, this one is not templated.
-Cohort:
-  name_cpp: "tree2::Cohort<tree2::PlantFF>"
+FFW16_Cohort:
+  name_cpp: "tree2::Cohort<tree2::FFW16_Plant>"
   constructor:
-    name_cpp: "tree2::make_cohort<tree2::PlantFF>"
-    args: [strategy: "tree2::Strategy"]
+    name_cpp: "tree2::make_cohort<tree2::FFW16_Plant>"
+    args: [strategy: "tree2::FFW16_Strategy"]
   active:
-    plant: {type: "tree2::PlantFF", access: field, readonly: true}
+    plant: {type: "tree2::FFW16_Plant", access: field, readonly: true}
     height: {type: double, access: member}
     area_leaf: {type: double, access: member}
     fecundity: {type: double, access: member}
@@ -497,16 +510,16 @@ Cohort:
       args: [environment: "const tree2::Environment&"]
 
 # For now, also not templated
-Species:
-  name_cpp: "tree2::Species<tree2::PlantFF>"
+FFW16_Species:
+  name_cpp: "tree2::Species<tree2::FFW16_Plant>"
   constructor:
-    args: [strategy: "tree2::Strategy"]
+    args: [strategy: "tree2::FFW16_Strategy"]
   active:
     size: {type: size_t, access: member}
-    seed: {type: "tree2::Cohort<tree2::PlantFF>", access: member, name_cpp: r_seed}
+    seed: {type: "tree2::Cohort<tree2::FFW16_Plant>", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
-    plants: {type: "std::vector<tree2::Cohort<tree2::PlantFF> >", access: member, name_cpp: r_plants}
+    plants: {type: "std::vector<tree2::Cohort<tree2::FFW16_Plant> >", access: member, name_cpp: r_plants}
     seeds: {type: "std::vector<double>", access: member}
     area_leafs: {type: "std::vector<double>", access: member, name_cpp: r_area_leafs}
     ## ODE interface:
@@ -525,7 +538,7 @@ Species:
     add_seed:
       return_type: void
     plant_at:
-      return_type: "tree2::Cohort<tree2::PlantFF>"
+      return_type: "tree2::Cohort<tree2::FFW16_Plant>"
       args: [index: "tree2::util::index"]
       name_cpp: r_plant_at
     area_leafs_error:
@@ -533,17 +546,17 @@ Species:
       args: [scal: double=1]
       name_cpp: r_area_leafs_error
 
-Patch:
-  name_cpp: "tree2::Patch<tree2::PlantFF>"
+FFW16_Patch:
+  name_cpp: "tree2::Patch<tree2::FFW16_Plant>"
   constructor:
-    args: [parameters: "tree2::Parameters"]
+    args: [parameters: "tree2::FFW16_Parameters"]
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
-    parameters: {type: "tree2::Parameters", access: member, name_cpp: r_parameters}
+    parameters: {type: "tree2::FFW16_Parameters", access: member, name_cpp: r_parameters}
     environment: {type: "tree2::Environment", access: member, name_cpp: r_environment}
-    species: {type: "std::vector<tree2::Species<tree2::PlantFF> >", access: member, name_cpp: r_species}
+    species: {type: "std::vector<tree2::Species<tree2::FFW16_Plant> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "tree2::ode::r_ode_time"}
@@ -579,10 +592,10 @@ Patch:
       name_cpp: "tree2::ode::r_derivs"
       args: [y: "const tree2::ode::state_type&", time: double]
 
-EBT:
-  name_cpp: "tree2::EBT<tree2::PlantFF>"
+FFW16_EBT:
+  name_cpp: "tree2::EBT<tree2::FFW16_Plant>"
   constructor:
-    args: [parameters: "tree2::Parameters"]
+    args: [parameters: "tree2::FFW16_Parameters"]
   methods:
     run:
       return_type: void
@@ -613,9 +626,9 @@ EBT:
     complete: {type: bool, access: member}
     time: {type: double, access: member}
     seed_rains: {type: "std::vector<double>", access: member}
-    parameters: {type: "tree2::Parameters", access: member, name_cpp: r_parameters}
+    parameters: {type: "tree2::FFW16_Parameters", access: member, name_cpp: r_parameters}
     patch:
-      type: "tree2::Patch<tree2::PlantFF>"
+      type: "tree2::Patch<tree2::FFW16_Plant>"
       access: member
       name_cpp: r_patch
     cohort_schedule:
@@ -640,10 +653,3 @@ EBT:
       type: "std::vector<std::vector<double> >"
       access: member
       name_cpp: r_seed_rain_error
-
-PlantRunner:
-  name_cpp: "tree2::tools::PlantRunner"
-  constructor:
-    args: [plant: "tree2::Plant", environment: "tree2::Environment"]
-  active:
-    plant: {access: field, type: "tree2::Plant"}

@@ -6,7 +6,7 @@ namespace tree2 {
 namespace tools {
 Environment fixed_environment(double canopy_openness,
 			      double height_max=150.0);
-double lcp_whole_plant(Plant p);
+double lcp_whole_plant(FFW16_PlantPlus p);
 
 }
 }

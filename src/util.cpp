@@ -90,6 +90,10 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
   return ret;
 }
 
+bool is_function(SEXP x) {
+  return Rcpp::is<Rcpp::Function>(x);
+}
+
 }
 }
 

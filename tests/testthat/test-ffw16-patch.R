@@ -1,15 +1,15 @@
 ## TODO: Test add_seeds(vector<double>)
 
-context("Patch")
+context("FFW16_Patch")
 
 test_that("Basics", {
   ## TODO: This is something that needs validating: the seed_rain and
   ## is_resident vectors must be the right length.
-  p <- Parameters(strategies=list(Strategy()),
-                  seed_rain=pi/2,
-                  is_resident=TRUE)
-  patch <- Patch(p)
-  cmp <- Cohort(p$strategies[[1]])
+  p <- FFW16_Parameters(strategies=list(FFW16_Strategy()),
+                        seed_rain=pi/2,
+                        is_resident=TRUE)
+  patch <- FFW16_Patch(p)
+  cmp <- FFW16_Cohort(p$strategies[[1]])
 
   expect_that(patch$size, equals(1))
   expect_that(patch$height_max, is_identical_to(cmp$height))
@@ -19,7 +19,7 @@ test_that("Basics", {
   expect_that(patch$environment$time, is_identical_to(0.0))
 
   expect_that(length(patch$species), equals(1))
-  expect_that(patch$species[[1]], is_a("Species"))
+  expect_that(patch$species[[1]], is_a("FFW16_Species"))
 
   expect_that(patch$ode_size, equals(0))
   expect_that(patch$ode_state, is_identical_to(numeric(0)))

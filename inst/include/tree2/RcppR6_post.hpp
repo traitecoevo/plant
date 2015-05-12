@@ -48,14 +48,6 @@ template <> inline std::string   class_name_r<tree2::ode::OdeControl >() {return
 template <> inline std::string   package_name<tree2::ode::OdeControl >() {return "tree2";}
 template <> inline std::string generator_name<tree2::ode::OdeControl >() {return "";}
 
-template <> inline std::string   class_name_r<tree2::Strategy >() {return "Strategy";}
-template <> inline std::string   package_name<tree2::Strategy >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Strategy >() {return "";}
-
-template <> inline std::string   class_name_r<tree2::Parameters >() {return "Parameters";}
-template <> inline std::string   package_name<tree2::Parameters >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Parameters >() {return "";}
-
 template <> inline std::string   class_name_r<tree2::quadrature::QK >() {return "QK";}
 template <> inline std::string   package_name<tree2::quadrature::QK >() {return "tree2";}
 template <> inline std::string generator_name<tree2::quadrature::QK >() {return ".R6_QK";}
@@ -72,41 +64,49 @@ template <> inline std::string   class_name_r<tree2::Environment >() {return "En
 template <> inline std::string   package_name<tree2::Environment >() {return "tree2";}
 template <> inline std::string generator_name<tree2::Environment >() {return ".R6_Environment";}
 
-template <> inline std::string   class_name_r<tree2::Plant::Internals >() {return "Plant_internals";}
-template <> inline std::string   package_name<tree2::Plant::Internals >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Plant::Internals >() {return "";}
+template <> inline std::string   class_name_r<tree2::Plant_internals >() {return "Plant_internals";}
+template <> inline std::string   package_name<tree2::Plant_internals >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Plant_internals >() {return "";}
 
-template <> inline std::string   class_name_r<tree2::Plant >() {return "Plant";}
-template <> inline std::string   package_name<tree2::Plant >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Plant >() {return ".R6_Plant";}
-
-template <> inline std::string   class_name_r<tree2::PlantMinimal_internals >() {return "PlantMinimal_internals";}
-template <> inline std::string   package_name<tree2::PlantMinimal_internals >() {return "tree2";}
-template <> inline std::string generator_name<tree2::PlantMinimal_internals >() {return "";}
-
-template <> inline std::string   class_name_r<tree2::PlantMinimal<tree2::Strategy> >() {return "PlantMinimal";}
-template <> inline std::string   package_name<tree2::PlantMinimal<tree2::Strategy> >() {return "tree2";}
-template <> inline std::string generator_name<tree2::PlantMinimal<tree2::Strategy> >() {return ".R6_PlantMinimal";}
-
-template <> inline std::string   class_name_r<tree2::Cohort<tree2::PlantFF> >() {return "Cohort";}
-template <> inline std::string   package_name<tree2::Cohort<tree2::PlantFF> >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Cohort<tree2::PlantFF> >() {return ".R6_Cohort";}
-
-template <> inline std::string   class_name_r<tree2::Species<tree2::PlantFF> >() {return "Species";}
-template <> inline std::string   package_name<tree2::Species<tree2::PlantFF> >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Species<tree2::PlantFF> >() {return ".R6_Species";}
-
-template <> inline std::string   class_name_r<tree2::Patch<tree2::PlantFF> >() {return "Patch";}
-template <> inline std::string   package_name<tree2::Patch<tree2::PlantFF> >() {return "tree2";}
-template <> inline std::string generator_name<tree2::Patch<tree2::PlantFF> >() {return ".R6_Patch";}
-
-template <> inline std::string   class_name_r<tree2::EBT<tree2::PlantFF> >() {return "EBT";}
-template <> inline std::string   package_name<tree2::EBT<tree2::PlantFF> >() {return "tree2";}
-template <> inline std::string generator_name<tree2::EBT<tree2::PlantFF> >() {return ".R6_EBT";}
+template <> inline std::string   class_name_r<tree2::Plant<tree2::FFW16_Strategy> >() {return "Plant<FFW16>";}
+template <> inline std::string   package_name<tree2::Plant<tree2::FFW16_Strategy> >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Plant<tree2::FFW16_Strategy> >() {return ".R6_Plant___FFW16";}
 
 template <> inline std::string   class_name_r<tree2::tools::PlantRunner >() {return "PlantRunner";}
 template <> inline std::string   package_name<tree2::tools::PlantRunner >() {return "tree2";}
 template <> inline std::string generator_name<tree2::tools::PlantRunner >() {return ".R6_PlantRunner";}
+
+template <> inline std::string   class_name_r<tree2::FFW16_Strategy >() {return "FFW16_Strategy";}
+template <> inline std::string   package_name<tree2::FFW16_Strategy >() {return "tree2";}
+template <> inline std::string generator_name<tree2::FFW16_Strategy >() {return "";}
+
+template <> inline std::string   class_name_r<tree2::FFW16_Parameters >() {return "FFW16_Parameters";}
+template <> inline std::string   package_name<tree2::FFW16_Parameters >() {return "tree2";}
+template <> inline std::string generator_name<tree2::FFW16_Parameters >() {return "";}
+
+template <> inline std::string   class_name_r<tree2::FFW16_PlantPlus >() {return "FFW16_PlantPlus";}
+template <> inline std::string   package_name<tree2::FFW16_PlantPlus >() {return "tree2";}
+template <> inline std::string generator_name<tree2::FFW16_PlantPlus >() {return ".R6_FFW16_PlantPlus";}
+
+template <> inline std::string   class_name_r<tree2::FFW16_PlantPlus::internals >() {return "FFW16_PlantPlus_internals";}
+template <> inline std::string   package_name<tree2::FFW16_PlantPlus::internals >() {return "tree2";}
+template <> inline std::string generator_name<tree2::FFW16_PlantPlus::internals >() {return "";}
+
+template <> inline std::string   class_name_r<tree2::Cohort<tree2::FFW16_Plant> >() {return "FFW16_Cohort";}
+template <> inline std::string   package_name<tree2::Cohort<tree2::FFW16_Plant> >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Cohort<tree2::FFW16_Plant> >() {return ".R6_FFW16_Cohort";}
+
+template <> inline std::string   class_name_r<tree2::Species<tree2::FFW16_Plant> >() {return "FFW16_Species";}
+template <> inline std::string   package_name<tree2::Species<tree2::FFW16_Plant> >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Species<tree2::FFW16_Plant> >() {return ".R6_FFW16_Species";}
+
+template <> inline std::string   class_name_r<tree2::Patch<tree2::FFW16_Plant> >() {return "FFW16_Patch";}
+template <> inline std::string   package_name<tree2::Patch<tree2::FFW16_Plant> >() {return "tree2";}
+template <> inline std::string generator_name<tree2::Patch<tree2::FFW16_Plant> >() {return ".R6_FFW16_Patch";}
+
+template <> inline std::string   class_name_r<tree2::EBT<tree2::FFW16_Plant> >() {return "FFW16_EBT";}
+template <> inline std::string   package_name<tree2::EBT<tree2::FFW16_Plant> >() {return "tree2";}
+template <> inline std::string generator_name<tree2::EBT<tree2::FFW16_Plant> >() {return ".R6_FFW16_EBT";}
 }
 }
 }
@@ -344,7 +344,87 @@ template <> inline tree2::ode::OdeControl as(SEXP x) {
   return ret;
 }
 
-template <> inline SEXP wrap(const tree2::Strategy& x) {
+template <> inline SEXP wrap(const tree2::quadrature::QK& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::quadrature::QK>(x));
+}
+template <> inline tree2::quadrature::QK as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::quadrature::QK>(x));
+}
+
+template <> inline SEXP wrap(const tree2::quadrature::QAG& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::quadrature::QAG>(x));
+}
+template <> inline tree2::quadrature::QAG as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::quadrature::QAG>(x));
+}
+
+template <> inline SEXP wrap(const tree2::interpolator::Interpolator& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator>(x));
+}
+template <> inline tree2::interpolator::Interpolator as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator>(x));
+}
+
+template <> inline SEXP wrap(const tree2::Environment& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Environment>(x));
+}
+template <> inline tree2::Environment as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Environment>(x));
+}
+
+template <> inline SEXP wrap(const tree2::Plant_internals& x) {
+  Rcpp::List ret;
+  ret["area_leaf"] = Rcpp::wrap(x.area_leaf);
+  ret["height"] = Rcpp::wrap(x.height);
+  ret["height_dt"] = Rcpp::wrap(x.height_dt);
+  ret["mortality"] = Rcpp::wrap(x.mortality);
+  ret["mortality_dt"] = Rcpp::wrap(x.mortality_dt);
+  ret["fecundity"] = Rcpp::wrap(x.fecundity);
+  ret["fecundity_dt"] = Rcpp::wrap(x.fecundity_dt);
+  ret.attr("class") = "Plant_internals";
+  return ret;
+}
+template <> inline tree2::Plant_internals as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::Plant_internals >(x)) {
+    Rcpp::stop("Expected an object of type Plant_internals");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  tree2::Plant_internals ret;
+  Rcpp::List xl(x);
+  // ret.area_leaf = Rcpp::as<decltype(retarea_leaf) >(xl["area_leaf"]);
+  ret.area_leaf = Rcpp::as<double >(xl["area_leaf"]);
+  // ret.height = Rcpp::as<decltype(retheight) >(xl["height"]);
+  ret.height = Rcpp::as<double >(xl["height"]);
+  // ret.height_dt = Rcpp::as<decltype(retheight_dt) >(xl["height_dt"]);
+  ret.height_dt = Rcpp::as<double >(xl["height_dt"]);
+  // ret.mortality = Rcpp::as<decltype(retmortality) >(xl["mortality"]);
+  ret.mortality = Rcpp::as<double >(xl["mortality"]);
+  // ret.mortality_dt = Rcpp::as<decltype(retmortality_dt) >(xl["mortality_dt"]);
+  ret.mortality_dt = Rcpp::as<double >(xl["mortality_dt"]);
+  // ret.fecundity = Rcpp::as<decltype(retfecundity) >(xl["fecundity"]);
+  ret.fecundity = Rcpp::as<double >(xl["fecundity"]);
+  // ret.fecundity_dt = Rcpp::as<decltype(retfecundity_dt) >(xl["fecundity_dt"]);
+  ret.fecundity_dt = Rcpp::as<double >(xl["fecundity_dt"]);
+  return ret;
+}
+
+template <> inline SEXP wrap(const tree2::Plant<tree2::FFW16_Strategy>& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> >(x));
+}
+template <> inline tree2::Plant<tree2::FFW16_Strategy> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> >(x));
+}
+
+template <> inline SEXP wrap(const tree2::tools::PlantRunner& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner>(x));
+}
+template <> inline tree2::tools::PlantRunner as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner>(x));
+}
+
+template <> inline SEXP wrap(const tree2::FFW16_Strategy& x) {
   Rcpp::List ret;
   ret["lma"] = Rcpp::wrap(x.lma);
   ret["rho"] = Rcpp::wrap(x.rho);
@@ -376,17 +456,17 @@ template <> inline SEXP wrap(const tree2::Strategy& x) {
   ret["c_d2"] = Rcpp::wrap(x.c_d2);
   ret["c_d3"] = Rcpp::wrap(x.c_d3);
   ret["control"] = Rcpp::wrap(x.control);
-  ret.attr("class") = "Strategy";
+  ret.attr("class") = "FFW16_Strategy";
   return ret;
 }
-template <> inline tree2::Strategy as(SEXP x) {
-  if (!tree2::RcppR6::is<tree2::Strategy >(x)) {
-    Rcpp::stop("Expected an object of type Strategy");
+template <> inline tree2::FFW16_Strategy as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::FFW16_Strategy >(x)) {
+    Rcpp::stop("Expected an object of type FFW16_Strategy");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  tree2::Strategy ret;
+  tree2::FFW16_Strategy ret;
   Rcpp::List xl(x);
   // ret.lma = Rcpp::as<decltype(retlma) >(xl["lma"]);
   ret.lma = Rcpp::as<double >(xl["lma"]);
@@ -451,7 +531,7 @@ template <> inline tree2::Strategy as(SEXP x) {
   return ret;
 }
 
-template <> inline SEXP wrap(const tree2::Parameters& x) {
+template <> inline SEXP wrap(const tree2::FFW16_Parameters& x) {
   Rcpp::List ret;
   ret["c_ext"] = Rcpp::wrap(x.c_ext);
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
@@ -468,17 +548,17 @@ template <> inline SEXP wrap(const tree2::Parameters& x) {
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
   ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
-  ret.attr("class") = "Parameters";
+  ret.attr("class") = "FFW16_Parameters";
   return ret;
 }
-template <> inline tree2::Parameters as(SEXP x) {
-  if (!tree2::RcppR6::is<tree2::Parameters >(x)) {
-    Rcpp::stop("Expected an object of type Parameters");
+template <> inline tree2::FFW16_Parameters as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::FFW16_Parameters >(x)) {
+    Rcpp::stop("Expected an object of type FFW16_Parameters");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  tree2::Parameters ret;
+  tree2::FFW16_Parameters ret;
   Rcpp::List xl(x);
   // ret.c_ext = Rcpp::as<decltype(retc_ext) >(xl["c_ext"]);
   ret.c_ext = Rcpp::as<double >(xl["c_ext"]);
@@ -491,7 +571,7 @@ template <> inline tree2::Parameters as(SEXP x) {
   // ret.disturbance_mean_interval = Rcpp::as<decltype(retdisturbance_mean_interval) >(xl["disturbance_mean_interval"]);
   ret.disturbance_mean_interval = Rcpp::as<double >(xl["disturbance_mean_interval"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
-  ret.strategies = Rcpp::as<std::vector<tree2::Strategy> >(xl["strategies"]);
+  ret.strategies = Rcpp::as<std::vector<tree2::FFW16_Strategy> >(xl["strategies"]);
   // ret.seed_rain = Rcpp::as<decltype(retseed_rain) >(xl["seed_rain"]);
   ret.seed_rain = Rcpp::as<std::vector<double> >(xl["seed_rain"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
@@ -499,7 +579,7 @@ template <> inline tree2::Parameters as(SEXP x) {
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<tree2::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
-  ret.strategy_default = Rcpp::as<tree2::Strategy >(xl["strategy_default"]);
+  ret.strategy_default = Rcpp::as<tree2::FFW16_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_max_time = Rcpp::as<decltype(retcohort_schedule_max_time) >(xl["cohort_schedule_max_time"]);
   ret.cohort_schedule_max_time = Rcpp::as<double >(xl["cohort_schedule_max_time"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -514,35 +594,14 @@ template <> inline tree2::Parameters as(SEXP x) {
   return ret;
 }
 
-template <> inline SEXP wrap(const tree2::quadrature::QK& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::quadrature::QK>(x));
+template <> inline SEXP wrap(const tree2::FFW16_PlantPlus& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus>(x));
 }
-template <> inline tree2::quadrature::QK as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::quadrature::QK>(x));
-}
-
-template <> inline SEXP wrap(const tree2::quadrature::QAG& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::quadrature::QAG>(x));
-}
-template <> inline tree2::quadrature::QAG as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::quadrature::QAG>(x));
+template <> inline tree2::FFW16_PlantPlus as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus>(x));
 }
 
-template <> inline SEXP wrap(const tree2::interpolator::Interpolator& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator>(x));
-}
-template <> inline tree2::interpolator::Interpolator as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::interpolator::Interpolator>(x));
-}
-
-template <> inline SEXP wrap(const tree2::Environment& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::Environment>(x));
-}
-template <> inline tree2::Environment as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::Environment>(x));
-}
-
-template <> inline SEXP wrap(const tree2::Plant::Internals& x) {
+template <> inline SEXP wrap(const tree2::FFW16_PlantPlus::internals& x) {
   Rcpp::List ret;
   ret["mass_leaf"] = Rcpp::wrap(x.mass_leaf);
   ret["area_leaf"] = Rcpp::wrap(x.area_leaf);
@@ -587,17 +646,17 @@ template <> inline SEXP wrap(const tree2::Plant::Internals& x) {
   ret["mass_live_dt"] = Rcpp::wrap(x.mass_live_dt);
   ret["mass_total_dt"] = Rcpp::wrap(x.mass_total_dt);
   ret["mass_above_ground_dt"] = Rcpp::wrap(x.mass_above_ground_dt);
-  ret.attr("class") = "Plant_internals";
+  ret.attr("class") = "FFW16_PlantPlus_internals";
   return ret;
 }
-template <> inline tree2::Plant::Internals as(SEXP x) {
-  if (!tree2::RcppR6::is<tree2::Plant::Internals >(x)) {
-    Rcpp::stop("Expected an object of type Plant_internals");
+template <> inline tree2::FFW16_PlantPlus::internals as(SEXP x) {
+  if (!tree2::RcppR6::is<tree2::FFW16_PlantPlus::internals >(x)) {
+    Rcpp::stop("Expected an object of type FFW16_PlantPlus_internals");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  tree2::Plant::Internals ret;
+  tree2::FFW16_PlantPlus::internals ret;
   Rcpp::List xl(x);
   // ret.mass_leaf = Rcpp::as<decltype(retmass_leaf) >(xl["mass_leaf"]);
   ret.mass_leaf = Rcpp::as<double >(xl["mass_leaf"]);
@@ -688,91 +747,32 @@ template <> inline tree2::Plant::Internals as(SEXP x) {
   return ret;
 }
 
-template <> inline SEXP wrap(const tree2::Plant& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::Plant>(x));
+template <> inline SEXP wrap(const tree2::Cohort<tree2::FFW16_Plant>& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> >(x));
 }
-template <> inline tree2::Plant as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::Plant>(x));
-}
-
-template <> inline SEXP wrap(const tree2::PlantMinimal_internals& x) {
-  Rcpp::List ret;
-  ret["area_leaf"] = Rcpp::wrap(x.area_leaf);
-  ret["height"] = Rcpp::wrap(x.height);
-  ret["height_dt"] = Rcpp::wrap(x.height_dt);
-  ret["mortality"] = Rcpp::wrap(x.mortality);
-  ret["mortality_dt"] = Rcpp::wrap(x.mortality_dt);
-  ret["fecundity"] = Rcpp::wrap(x.fecundity);
-  ret["fecundity_dt"] = Rcpp::wrap(x.fecundity_dt);
-  ret.attr("class") = "PlantMinimal_internals";
-  return ret;
-}
-template <> inline tree2::PlantMinimal_internals as(SEXP x) {
-  if (!tree2::RcppR6::is<tree2::PlantMinimal_internals >(x)) {
-    Rcpp::stop("Expected an object of type PlantMinimal_internals");
-    // NOTE: Won't drop through or return anything.
-  }
-  // NOTE: assumes default constructable, and will assign *every*
-  // field twice.  No current support for a hook.
-  tree2::PlantMinimal_internals ret;
-  Rcpp::List xl(x);
-  // ret.area_leaf = Rcpp::as<decltype(retarea_leaf) >(xl["area_leaf"]);
-  ret.area_leaf = Rcpp::as<double >(xl["area_leaf"]);
-  // ret.height = Rcpp::as<decltype(retheight) >(xl["height"]);
-  ret.height = Rcpp::as<double >(xl["height"]);
-  // ret.height_dt = Rcpp::as<decltype(retheight_dt) >(xl["height_dt"]);
-  ret.height_dt = Rcpp::as<double >(xl["height_dt"]);
-  // ret.mortality = Rcpp::as<decltype(retmortality) >(xl["mortality"]);
-  ret.mortality = Rcpp::as<double >(xl["mortality"]);
-  // ret.mortality_dt = Rcpp::as<decltype(retmortality_dt) >(xl["mortality_dt"]);
-  ret.mortality_dt = Rcpp::as<double >(xl["mortality_dt"]);
-  // ret.fecundity = Rcpp::as<decltype(retfecundity) >(xl["fecundity"]);
-  ret.fecundity = Rcpp::as<double >(xl["fecundity"]);
-  // ret.fecundity_dt = Rcpp::as<decltype(retfecundity_dt) >(xl["fecundity_dt"]);
-  ret.fecundity_dt = Rcpp::as<double >(xl["fecundity_dt"]);
-  return ret;
+template <> inline tree2::Cohort<tree2::FFW16_Plant> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> >(x));
 }
 
-template <> inline SEXP wrap(const tree2::PlantMinimal<tree2::Strategy>& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> >(x));
+template <> inline SEXP wrap(const tree2::Species<tree2::FFW16_Plant>& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> >(x));
 }
-template <> inline tree2::PlantMinimal<tree2::Strategy> as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> >(x));
-}
-
-template <> inline SEXP wrap(const tree2::Cohort<tree2::PlantFF>& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> >(x));
-}
-template <> inline tree2::Cohort<tree2::PlantFF> as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> >(x));
+template <> inline tree2::Species<tree2::FFW16_Plant> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> >(x));
 }
 
-template <> inline SEXP wrap(const tree2::Species<tree2::PlantFF>& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> >(x));
+template <> inline SEXP wrap(const tree2::Patch<tree2::FFW16_Plant>& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> >(x));
 }
-template <> inline tree2::Species<tree2::PlantFF> as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> >(x));
-}
-
-template <> inline SEXP wrap(const tree2::Patch<tree2::PlantFF>& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> >(x));
-}
-template <> inline tree2::Patch<tree2::PlantFF> as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> >(x));
+template <> inline tree2::Patch<tree2::FFW16_Plant> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> >(x));
 }
 
-template <> inline SEXP wrap(const tree2::EBT<tree2::PlantFF>& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> >(x));
+template <> inline SEXP wrap(const tree2::EBT<tree2::FFW16_Plant>& x) {
+  return wrap(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> >(x));
 }
-template <> inline tree2::EBT<tree2::PlantFF> as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> >(x));
-}
-
-template <> inline SEXP wrap(const tree2::tools::PlantRunner& x) {
-  return wrap(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner>(x));
-}
-template <> inline tree2::tools::PlantRunner as(SEXP x) {
-  return *(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner>(x));
+template <> inline tree2::EBT<tree2::FFW16_Plant> as(SEXP x) {
+  return *(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> >(x));
 }
 }
 

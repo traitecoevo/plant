@@ -1,13 +1,13 @@
 context("PlantRunner")
 
 test_that("PlantRunner", {
-  p <- Plant(Strategy())
+  p <- FFW16_PlantPlus(FFW16_Strategy())
   env <- test_environment(10)
   p$compute_vars_phys(env)
 
   pr <- PlantRunner(p, env)
   expect_that(pr, is_a("PlantRunner"))
-  expect_that(pr$plant, is_a("Plant"))
+  expect_that(pr$plant, is_a("FFW16_PlantPlus"))
   expect_that(pr$plant$internals, is_identical_to(p$internals))
 
   ## This going to work with a *copy* of pr; so that won't propagate
@@ -26,7 +26,7 @@ test_that("PlantRunner", {
   observer <- function(obj) {
     c(obj$time, obj$state)
   }
-  pr <- PlantRunner(Plant(Strategy()), env)
+  pr <- PlantRunner(FFW16_PlantPlus(FFW16_Strategy()), env)
   runner <- OdeRunner("PlantRunner")(pr)
   ret <- list(observer(runner))
   while (continue_if(runner)) {
@@ -46,9 +46,9 @@ test_that("PlantRunner", {
 test_that("grow_plant_to_size", {
   env <- test_environment(10)
   heights <- seq(1, 10)
-  s <- Strategy()
+  s <- FFW16_Strategy()
 
-  res <- grow_plant_bracket(Plant(s), heights, "height", env)
+  res <- grow_plant_bracket(FFW16_PlantPlus(s), heights, "height", env)
 
   expect_that(res$t0, is_identical_to(res$time[res$index]))
   expect_that(res$t1, is_identical_to(res$time[res$index + 1L]))
@@ -71,7 +71,7 @@ test_that("grow_plant_to_size", {
   expect_that(all(tmp$state < res$y1[i,]), is_true())
 
   ## Do all plants using the proper function:
-  obj <- grow_plant_to_size(Plant(s), heights, "height", env)
+  obj <- grow_plant_to_size(FFW16_PlantPlus(s), heights, "height", env)
   expect_that(obj$time, is_a("numeric"))
   expect_that(all(obj$time > res$t0), is_true())
   expect_that(all(obj$time < res$t1), is_true())
@@ -80,7 +80,7 @@ test_that("grow_plant_to_size", {
   expect_that(all(obj$state < res$y1), is_true())
 
   expect_that(length(obj$plant), equals(length(heights)))
-  expect_that(all(sapply(obj$plant, inherits, "Plant")), is_true())
+  expect_that(all(sapply(obj$plant, inherits, "FFW16_PlantPlus")), is_true())
   expect_that(sapply(obj$plant, function(p) p$height),
               equals(heights, tolerance=1e-6))
 })

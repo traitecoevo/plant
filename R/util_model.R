@@ -4,9 +4,9 @@
 ##' @param x Values for the trait.  This must be a \emph{matrix}, with
 ##' column names corresponding to entries in \code{Strategy} and rows
 ##' representing different values.
-##' @param parameters \code{\link{Parameters}} object containing
+##' @param parameters \code{\link{FFW16_Parameters}} object containing
 ##' default strategy to modify, plus an optional
-##' hyperparameterisation.
+##' hyperparameterisation (see \code{\link{make_FFW16_hyperpar}}).
 ##' @export
 strategy_list <- function(x, parameters) {
   if (!is.matrix(x)) {
@@ -57,6 +57,9 @@ trait_matrix <- function(x, trait_name) {
 ##' @param trait_matrix A matrix of traits corresponding to the
 ##' new types to introduce.
 ##' @param p A \code{Parameters} object.
+##' @param mutant Create new types as \emph{mutants}?  These will have
+##' no effect on other plants in the community (i.e. have zero
+##' density).
 ##' @author Rich FitzJohn
 ##' @export
 expand_parameters <- function(trait_matrix, p, mutant=TRUE) {

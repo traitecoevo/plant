@@ -8,10 +8,6 @@ check_inviable(p)
 }
 \arguments{
 \item{p}{A Parameters object}
-
-\item{schedule_default}{Schedule to use by default}
-
-\item{schedule_initial}{Schedule to start from}
 }
 \description{
 Check low-abundance strategies for viability.

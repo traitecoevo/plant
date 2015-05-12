@@ -10,13 +10,13 @@ Environment fixed_environment(double canopy_openness,
   std::vector<double> y = {canopy_openness, canopy_openness, canopy_openness};
   interpolator::Interpolator env;
   env.init(x, y);
-  Parameters p;
+  FFW16_Parameters p;
   Environment ret(p);
   ret.light_environment = env;
   return ret;
 }
 
-double lcp_whole_plant(Plant p) {
+double lcp_whole_plant(FFW16_PlantPlus p) {
   auto target = [&] (double x) mutable -> double {
     Environment env = fixed_environment(x);
     p.compute_vars_phys(env);
@@ -40,7 +40,7 @@ double lcp_whole_plant(Plant p) {
 // change of name.  However, it's only used internally so it's not
 // that big of a deal.
 // [[Rcpp::export]]
-tree2::Plant_internals
+tree2::FFW16_PlantPlus_internals
 oderunner_plant_size(const tree2::ode::Runner<tree2::tools::PlantRunner>& obj) {
   return obj.obj.plant.r_internals();
 }
@@ -67,6 +67,6 @@ tree2::Environment fixed_environment(double canopy_openness,
 //' @export
 //' @author Rich FitzJohn
 // [[Rcpp::export]]
-double lcp_whole_plant(tree2::Plant p) {
+double lcp_whole_plant(tree2::FFW16_PlantPlus p) {
   return tree2::tools::lcp_whole_plant(p);
 }

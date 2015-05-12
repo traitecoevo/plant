@@ -471,36 +471,6 @@ OdeControl <- function(..., values=list(...)) {
   ret
 }
 
-##' Strategy parameters that tune various aspects of the biological model.
-##' @title Strategy parameters
-##' @param ...,values Values to initialise the struct with (either as
-##' variadic arguments, or as a list, but not both).
-##' @export
-Strategy <- function(..., values=list(...)) {
-  ret <- Strategy__ctor()
-  if (length(err <- setdiff(names(values), names(ret))) > 0L) {
-    stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
-  }
-  to_set <- intersect(names(values), names(ret))
-  ret[to_set] <- values[to_set]
-  ret
-}
-
-##' Strategy parameters that tune various aspects of the biological model.
-##' @title Strategy parameters
-##' @param ...,values Values to initialise the struct with (either as
-##' variadic arguments, or as a list, but not both).
-##' @export
-Parameters <- function(..., values=list(...)) {
-  ret <- Parameters__ctor()
-  if (length(err <- setdiff(names(values), names(ret))) > 0L) {
-    stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
-  }
-  to_set <- intersect(names(values), names(ret))
-  ret[to_set] <- values[to_set]
-  Parameters__vdor(ret)
-}
-
 ##' Gauss-Kronrod Quadrature
 ##' @param rule Degree of the rule; valid sizes are 15, 21, 31, 41, 51, 61.
 `QK` <- function(rule) {
@@ -753,609 +723,102 @@ Plant_internals <- function(..., values=list(...)) {
 }
 
 ##' Plant object
-##' @param strategy A \code{Strategy} object
+##' @param T String containing class of plant to create; currently
+##' must be \code{"FFW16"}.  See \code{\link{FFW16_Plant}} for more
+##' details.
 ##' @export
-`Plant` <- function(strategy) {
-  Plant__ctor(strategy)
+Plant <- function(T) {
+  type <- c(T)
+  valid <- list("Plant<FFW16>"="FFW16")
+  constructors <- list("Plant<FFW16>"=`Plant<FFW16>`)
+  constructors[[check_type(type, valid)]]
 }
-.R6_Plant <-
-  R6::R6Class("Plant",
+.R6_Plant <- R6::R6Class("Plant")
+
+
+`Plant<FFW16>` <- function(s) {
+  Plant___FFW16__ctor(s)
+}
+.R6_Plant___FFW16 <-
+  R6::R6Class("Plant<FFW16>",
               portable=TRUE,
-              inherit=NULL,
+              inherit=.R6_Plant,
               public=list(
                 .ptr=NULL,
                 initialize = function(ptr) {
                   self$.ptr <- ptr
                 },
                 area_leaf_above = function(h) {
-                  Plant__area_leaf_above(self, h)
+                  Plant___FFW16__area_leaf_above(self, h)
                 },
                 compute_vars_phys = function(environment) {
-                  Plant__compute_vars_phys(self, environment)
-                },
-                compute_vars_growth = function() {
-                  Plant__compute_vars_growth(self)
+                  Plant___FFW16__compute_vars_phys(self, environment)
                 },
                 germination_probability = function(environment) {
-                  Plant__germination_probability(self, environment)
+                  Plant___FFW16__germination_probability(self, environment)
                 }),
               active=list(
                 height = function(value) {
                   if (missing(value)) {
-                    Plant__height__get(self)
+                    Plant___FFW16__height__get(self)
                   } else {
-                    Plant__height__set(self, value)
+                    Plant___FFW16__height__set(self, value)
                   }
                 },
                 mortality = function(value) {
                   if (missing(value)) {
-                    Plant__mortality__get(self)
+                    Plant___FFW16__mortality__get(self)
                   } else {
-                    Plant__mortality__set(self, value)
+                    Plant___FFW16__mortality__set(self, value)
                   }
                 },
                 fecundity = function(value) {
                   if (missing(value)) {
-                    Plant__fecundity__get(self)
+                    Plant___FFW16__fecundity__get(self)
                   } else {
-                    Plant__fecundity__set(self, value)
-                  }
-                },
-                area_heartwood = function(value) {
-                  if (missing(value)) {
-                    Plant__area_heartwood__get(self)
-                  } else {
-                    Plant__area_heartwood__set(self, value)
-                  }
-                },
-                mass_heartwood = function(value) {
-                  if (missing(value)) {
-                    Plant__mass_heartwood__get(self)
-                  } else {
-                    Plant__mass_heartwood__set(self, value)
-                  }
-                },
-                area_leaf = function(value) {
-                  if (missing(value)) {
-                    Plant__area_leaf__get(self)
-                  } else {
-                    stop("Plant$area_leaf is read-only")
+                    Plant___FFW16__fecundity__set(self, value)
                   }
                 },
                 strategy = function(value) {
                   if (missing(value)) {
-                    Plant__strategy__get(self)
+                    Plant___FFW16__strategy__get(self)
                   } else {
-                    stop("Plant$strategy is read-only")
+                    stop("Plant<FFW16>$strategy is read-only")
                   }
                 },
                 internals = function(value) {
                   if (missing(value)) {
-                    Plant__internals__get(self)
+                    Plant___FFW16__internals__get(self)
                   } else {
-                    stop("Plant$internals is read-only")
+                    stop("Plant<FFW16>$internals is read-only")
                   }
                 },
                 ode_size = function(value) {
                   if (missing(value)) {
-                    Plant__ode_size__get(self)
+                    Plant___FFW16__ode_size__get(self)
                   } else {
-                    stop("Plant$ode_size is read-only")
+                    stop("Plant<FFW16>$ode_size is read-only")
                   }
                 },
                 ode_state = function(value) {
                   if (missing(value)) {
-                    Plant__ode_state__get(self)
+                    Plant___FFW16__ode_state__get(self)
                   } else {
-                    Plant__ode_state__set(self, value)
+                    Plant___FFW16__ode_state__set(self, value)
                   }
                 },
                 ode_rates = function(value) {
                   if (missing(value)) {
-                    Plant__ode_rates__get(self)
+                    Plant___FFW16__ode_rates__get(self)
                   } else {
-                    stop("Plant$ode_rates is read-only")
+                    stop("Plant<FFW16>$ode_rates is read-only")
                   }
                 },
                 ode_names = function(value) {
                   if (missing(value)) {
-                    Plant__ode_names__get(self)
+                    Plant___FFW16__ode_names__get(self)
                   } else {
-                    stop("Plant$ode_names is read-only")
-                  }
-                }))
-
-
-PlantMinimal_internals <- function(..., values=list(...)) {
-  ret <- PlantMinimal_internals__ctor()
-  if (length(err <- setdiff(names(values), names(ret))) > 0L) {
-    stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
-  }
-  to_set <- intersect(names(values), names(ret))
-  ret[to_set] <- values[to_set]
-  ret
-}
-
-##' Minimal Plant object
-##' @param strategy A \code{Strategy} object
-##' @export
-`PlantMinimal` <- function(strategy) {
-  PlantMinimal__ctor(strategy)
-}
-.R6_PlantMinimal <-
-  R6::R6Class("PlantMinimal",
-              portable=TRUE,
-              inherit=NULL,
-              public=list(
-                .ptr=NULL,
-                initialize = function(ptr) {
-                  self$.ptr <- ptr
-                },
-                area_leaf_above = function(h) {
-                  PlantMinimal__area_leaf_above(self, h)
-                },
-                compute_vars_phys = function(environment) {
-                  PlantMinimal__compute_vars_phys(self, environment)
-                },
-                germination_probability = function(environment) {
-                  PlantMinimal__germination_probability(self, environment)
-                }),
-              active=list(
-                height = function(value) {
-                  if (missing(value)) {
-                    PlantMinimal__height__get(self)
-                  } else {
-                    PlantMinimal__height__set(self, value)
-                  }
-                },
-                mortality = function(value) {
-                  if (missing(value)) {
-                    PlantMinimal__mortality__get(self)
-                  } else {
-                    PlantMinimal__mortality__set(self, value)
-                  }
-                },
-                fecundity = function(value) {
-                  if (missing(value)) {
-                    PlantMinimal__fecundity__get(self)
-                  } else {
-                    PlantMinimal__fecundity__set(self, value)
-                  }
-                },
-                strategy = function(value) {
-                  if (missing(value)) {
-                    PlantMinimal__strategy__get(self)
-                  } else {
-                    stop("PlantMinimal$strategy is read-only")
-                  }
-                },
-                internals = function(value) {
-                  if (missing(value)) {
-                    PlantMinimal__internals__get(self)
-                  } else {
-                    stop("PlantMinimal$internals is read-only")
-                  }
-                },
-                ode_size = function(value) {
-                  if (missing(value)) {
-                    PlantMinimal__ode_size__get(self)
-                  } else {
-                    stop("PlantMinimal$ode_size is read-only")
-                  }
-                },
-                ode_state = function(value) {
-                  if (missing(value)) {
-                    PlantMinimal__ode_state__get(self)
-                  } else {
-                    PlantMinimal__ode_state__set(self, value)
-                  }
-                },
-                ode_rates = function(value) {
-                  if (missing(value)) {
-                    PlantMinimal__ode_rates__get(self)
-                  } else {
-                    stop("PlantMinimal$ode_rates is read-only")
-                  }
-                },
-                ode_names = function(value) {
-                  if (missing(value)) {
-                    PlantMinimal__ode_names__get(self)
-                  } else {
-                    stop("PlantMinimal$ode_names is read-only")
-                  }
-                }))
-
-
-`Cohort` <- function(strategy) {
-  Cohort__ctor(strategy)
-}
-.R6_Cohort <-
-  R6::R6Class("Cohort",
-              portable=TRUE,
-              inherit=NULL,
-              public=list(
-                .ptr=NULL,
-                initialize = function(ptr) {
-                  self$.ptr <- ptr
-                },
-                area_leaf_above = function(height) {
-                  Cohort__area_leaf_above(self, height)
-                },
-                growth_rate_gradient = function(environment) {
-                  Cohort__growth_rate_gradient(self, environment)
-                },
-                compute_vars_phys = function(environment) {
-                  Cohort__compute_vars_phys(self, environment)
-                },
-                compute_initial_conditions = function(environment) {
-                  Cohort__compute_initial_conditions(self, environment)
-                }),
-              active=list(
-                plant = function(value) {
-                  if (missing(value)) {
-                    Cohort__plant__get(self)
-                  } else {
-                    stop("Cohort$plant is read-only")
-                  }
-                },
-                height = function(value) {
-                  if (missing(value)) {
-                    Cohort__height__get(self)
-                  } else {
-                    stop("Cohort$height is read-only")
-                  }
-                },
-                area_leaf = function(value) {
-                  if (missing(value)) {
-                    Cohort__area_leaf__get(self)
-                  } else {
-                    stop("Cohort$area_leaf is read-only")
-                  }
-                },
-                fecundity = function(value) {
-                  if (missing(value)) {
-                    Cohort__fecundity__get(self)
-                  } else {
-                    stop("Cohort$fecundity is read-only")
-                  }
-                },
-                ode_size = function(value) {
-                  if (missing(value)) {
-                    Cohort__ode_size__get(self)
-                  } else {
-                    stop("Cohort$ode_size is read-only")
-                  }
-                },
-                ode_state = function(value) {
-                  if (missing(value)) {
-                    Cohort__ode_state__get(self)
-                  } else {
-                    Cohort__ode_state__set(self, value)
-                  }
-                },
-                ode_rates = function(value) {
-                  if (missing(value)) {
-                    Cohort__ode_rates__get(self)
-                  } else {
-                    stop("Cohort$ode_rates is read-only")
-                  }
-                }))
-
-
-`Species` <- function(strategy) {
-  Species__ctor(strategy)
-}
-.R6_Species <-
-  R6::R6Class("Species",
-              portable=TRUE,
-              inherit=NULL,
-              public=list(
-                .ptr=NULL,
-                initialize = function(ptr) {
-                  self$.ptr <- ptr
-                },
-                clear = function() {
-                  Species__clear(self)
-                },
-                compute_vars_phys = function(environment) {
-                  Species__compute_vars_phys(self, environment)
-                },
-                area_leaf_above = function(height) {
-                  Species__area_leaf_above(self, height)
-                },
-                add_seed = function() {
-                  Species__add_seed(self)
-                },
-                plant_at = function(index) {
-                  Species__plant_at(self, index)
-                },
-                area_leafs_error = function(scal=1) {
-                  Species__area_leafs_error(self, scal)
-                }),
-              active=list(
-                size = function(value) {
-                  if (missing(value)) {
-                    Species__size__get(self)
-                  } else {
-                    stop("Species$size is read-only")
-                  }
-                },
-                seed = function(value) {
-                  if (missing(value)) {
-                    Species__seed__get(self)
-                  } else {
-                    stop("Species$seed is read-only")
-                  }
-                },
-                height_max = function(value) {
-                  if (missing(value)) {
-                    Species__height_max__get(self)
-                  } else {
-                    stop("Species$height_max is read-only")
-                  }
-                },
-                heights = function(value) {
-                  if (missing(value)) {
-                    Species__heights__get(self)
-                  } else {
-                    Species__heights__set(self, value)
-                  }
-                },
-                plants = function(value) {
-                  if (missing(value)) {
-                    Species__plants__get(self)
-                  } else {
-                    stop("Species$plants is read-only")
-                  }
-                },
-                seeds = function(value) {
-                  if (missing(value)) {
-                    Species__seeds__get(self)
-                  } else {
-                    stop("Species$seeds is read-only")
-                  }
-                },
-                area_leafs = function(value) {
-                  if (missing(value)) {
-                    Species__area_leafs__get(self)
-                  } else {
-                    stop("Species$area_leafs is read-only")
-                  }
-                },
-                ode_size = function(value) {
-                  if (missing(value)) {
-                    Species__ode_size__get(self)
-                  } else {
-                    stop("Species$ode_size is read-only")
-                  }
-                },
-                ode_state = function(value) {
-                  if (missing(value)) {
-                    Species__ode_state__get(self)
-                  } else {
-                    Species__ode_state__set(self, value)
-                  }
-                },
-                ode_rates = function(value) {
-                  if (missing(value)) {
-                    Species__ode_rates__get(self)
-                  } else {
-                    stop("Species$ode_rates is read-only")
-                  }
-                }))
-
-
-`Patch` <- function(parameters) {
-  Patch__ctor(parameters)
-}
-.R6_Patch <-
-  R6::R6Class("Patch",
-              portable=TRUE,
-              inherit=NULL,
-              public=list(
-                .ptr=NULL,
-                initialize = function(ptr) {
-                  self$.ptr <- ptr
-                },
-                area_leaf_above = function(height) {
-                  Patch__area_leaf_above(self, height)
-                },
-                canopy_openness = function(height) {
-                  Patch__canopy_openness(self, height)
-                },
-                add_seed = function(species_index) {
-                  Patch__add_seed(self, species_index)
-                },
-                compute_light_environment = function() {
-                  Patch__compute_light_environment(self)
-                },
-                compute_vars_phys = function() {
-                  Patch__compute_vars_phys(self)
-                },
-                reset = function() {
-                  Patch__reset(self)
-                },
-                set_ode_state = function(values, time) {
-                  Patch__set_ode_state(self, values, time)
-                },
-                derivs = function(y, time) {
-                  Patch__derivs(self, y, time)
-                }),
-              active=list(
-                time = function(value) {
-                  if (missing(value)) {
-                    Patch__time__get(self)
-                  } else {
-                    stop("Patch$time is read-only")
-                  }
-                },
-                size = function(value) {
-                  if (missing(value)) {
-                    Patch__size__get(self)
-                  } else {
-                    stop("Patch$size is read-only")
-                  }
-                },
-                height_max = function(value) {
-                  if (missing(value)) {
-                    Patch__height_max__get(self)
-                  } else {
-                    stop("Patch$height_max is read-only")
-                  }
-                },
-                parameters = function(value) {
-                  if (missing(value)) {
-                    Patch__parameters__get(self)
-                  } else {
-                    stop("Patch$parameters is read-only")
-                  }
-                },
-                environment = function(value) {
-                  if (missing(value)) {
-                    Patch__environment__get(self)
-                  } else {
-                    stop("Patch$environment is read-only")
-                  }
-                },
-                species = function(value) {
-                  if (missing(value)) {
-                    Patch__species__get(self)
-                  } else {
-                    stop("Patch$species is read-only")
-                  }
-                },
-                ode_size = function(value) {
-                  if (missing(value)) {
-                    Patch__ode_size__get(self)
-                  } else {
-                    stop("Patch$ode_size is read-only")
-                  }
-                },
-                ode_time = function(value) {
-                  if (missing(value)) {
-                    Patch__ode_time__get(self)
-                  } else {
-                    stop("Patch$ode_time is read-only")
-                  }
-                },
-                ode_state = function(value) {
-                  if (missing(value)) {
-                    Patch__ode_state__get(self)
-                  } else {
-                    stop("Patch$ode_state is read-only")
-                  }
-                },
-                ode_rates = function(value) {
-                  if (missing(value)) {
-                    Patch__ode_rates__get(self)
-                  } else {
-                    stop("Patch$ode_rates is read-only")
-                  }
-                }))
-
-
-`EBT` <- function(parameters) {
-  EBT__ctor(parameters)
-}
-.R6_EBT <-
-  R6::R6Class("EBT",
-              portable=TRUE,
-              inherit=NULL,
-              public=list(
-                .ptr=NULL,
-                initialize = function(ptr) {
-                  self$.ptr <- ptr
-                },
-                run = function() {
-                  EBT__run(self)
-                },
-                run_next = function() {
-                  EBT__run_next(self)
-                },
-                reset = function() {
-                  EBT__reset(self)
-                },
-                seed_rain = function(species_index) {
-                  EBT__seed_rain(self, species_index)
-                },
-                seed_rain_cohort = function(species_index) {
-                  EBT__seed_rain_cohort(self, species_index)
-                },
-                area_leaf_error = function(species_index) {
-                  EBT__area_leaf_error(self, species_index)
-                },
-                set_cohort_schedule_times = function(times) {
-                  EBT__set_cohort_schedule_times(self, times)
-                }),
-              active=list(
-                complete = function(value) {
-                  if (missing(value)) {
-                    EBT__complete__get(self)
-                  } else {
-                    stop("EBT$complete is read-only")
-                  }
-                },
-                time = function(value) {
-                  if (missing(value)) {
-                    EBT__time__get(self)
-                  } else {
-                    stop("EBT$time is read-only")
-                  }
-                },
-                seed_rains = function(value) {
-                  if (missing(value)) {
-                    EBT__seed_rains__get(self)
-                  } else {
-                    stop("EBT$seed_rains is read-only")
-                  }
-                },
-                parameters = function(value) {
-                  if (missing(value)) {
-                    EBT__parameters__get(self)
-                  } else {
-                    stop("EBT$parameters is read-only")
-                  }
-                },
-                patch = function(value) {
-                  if (missing(value)) {
-                    EBT__patch__get(self)
-                  } else {
-                    stop("EBT$patch is read-only")
-                  }
-                },
-                cohort_schedule = function(value) {
-                  if (missing(value)) {
-                    EBT__cohort_schedule__get(self)
-                  } else {
-                    EBT__cohort_schedule__set(self, value)
-                  }
-                },
-                ode_times = function(value) {
-                  if (missing(value)) {
-                    EBT__ode_times__get(self)
-                  } else {
-                    stop("EBT$ode_times is read-only")
-                  }
-                },
-                state = function(value) {
-                  if (missing(value)) {
-                    EBT__state__get(self)
-                  } else {
-                    stop("EBT$state is read-only")
-                  }
-                },
-                use_ode_times = function(value) {
-                  if (missing(value)) {
-                    EBT__use_ode_times__get(self)
-                  } else {
-                    EBT__use_ode_times__set(self, value)
-                  }
-                },
-                seed_rain_error = function(value) {
-                  if (missing(value)) {
-                    EBT__seed_rain_error__get(self)
-                  } else {
-                    stop("EBT$seed_rain_error is read-only")
+                    stop("Plant<FFW16>$ode_names is read-only")
                   }
                 }))
 
@@ -1378,6 +841,554 @@ PlantMinimal_internals <- function(..., values=list(...)) {
                     PlantRunner__plant__get(self)
                   } else {
                     PlantRunner__plant__set(self, value)
+                  }
+                }))
+
+##' Strategy parameters that tune various aspects of the biological model.
+##' @title Strategy parameters
+##' @param ...,values Values to initialise the struct with (either as
+##' variadic arguments, or as a list, but not both).
+##' @export
+FFW16_Strategy <- function(..., values=list(...)) {
+  ret <- FFW16_Strategy__ctor()
+  if (length(err <- setdiff(names(values), names(ret))) > 0L) {
+    stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
+  }
+  to_set <- intersect(names(values), names(ret))
+  ret[to_set] <- values[to_set]
+  ret
+}
+
+##' Strategy parameters that tune various aspects of the biological model.
+##' @title Strategy parameters
+##' @param ...,values Values to initialise the struct with (either as
+##' variadic arguments, or as a list, but not both).
+##' @export
+FFW16_Parameters <- function(..., values=list(...)) {
+  ret <- FFW16_Parameters__ctor()
+  if (length(err <- setdiff(names(values), names(ret))) > 0L) {
+    stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
+  }
+  to_set <- intersect(names(values), names(ret))
+  ret[to_set] <- values[to_set]
+  FFW16_Parameters__vdor(ret)
+}
+
+##' Plant object
+##' @param strategy A \code{FFW16_Strategy} object
+##' @export
+`FFW16_PlantPlus` <- function(strategy) {
+  FFW16_PlantPlus__ctor(strategy)
+}
+.R6_FFW16_PlantPlus <-
+  R6::R6Class("FFW16_PlantPlus",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                area_leaf_above = function(h) {
+                  FFW16_PlantPlus__area_leaf_above(self, h)
+                },
+                compute_vars_phys = function(environment) {
+                  FFW16_PlantPlus__compute_vars_phys(self, environment)
+                },
+                compute_vars_growth = function() {
+                  FFW16_PlantPlus__compute_vars_growth(self)
+                },
+                germination_probability = function(environment) {
+                  FFW16_PlantPlus__germination_probability(self, environment)
+                }),
+              active=list(
+                height = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__height__get(self)
+                  } else {
+                    FFW16_PlantPlus__height__set(self, value)
+                  }
+                },
+                mortality = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__mortality__get(self)
+                  } else {
+                    FFW16_PlantPlus__mortality__set(self, value)
+                  }
+                },
+                fecundity = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__fecundity__get(self)
+                  } else {
+                    FFW16_PlantPlus__fecundity__set(self, value)
+                  }
+                },
+                area_heartwood = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__area_heartwood__get(self)
+                  } else {
+                    FFW16_PlantPlus__area_heartwood__set(self, value)
+                  }
+                },
+                mass_heartwood = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__mass_heartwood__get(self)
+                  } else {
+                    FFW16_PlantPlus__mass_heartwood__set(self, value)
+                  }
+                },
+                area_leaf = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__area_leaf__get(self)
+                  } else {
+                    stop("FFW16_PlantPlus$area_leaf is read-only")
+                  }
+                },
+                strategy = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__strategy__get(self)
+                  } else {
+                    stop("FFW16_PlantPlus$strategy is read-only")
+                  }
+                },
+                internals = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__internals__get(self)
+                  } else {
+                    stop("FFW16_PlantPlus$internals is read-only")
+                  }
+                },
+                ode_size = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__ode_size__get(self)
+                  } else {
+                    stop("FFW16_PlantPlus$ode_size is read-only")
+                  }
+                },
+                ode_state = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__ode_state__get(self)
+                  } else {
+                    FFW16_PlantPlus__ode_state__set(self, value)
+                  }
+                },
+                ode_rates = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__ode_rates__get(self)
+                  } else {
+                    stop("FFW16_PlantPlus$ode_rates is read-only")
+                  }
+                },
+                ode_names = function(value) {
+                  if (missing(value)) {
+                    FFW16_PlantPlus__ode_names__get(self)
+                  } else {
+                    stop("FFW16_PlantPlus$ode_names is read-only")
+                  }
+                }))
+
+
+FFW16_PlantPlus_internals <- function(..., values=list(...)) {
+  ret <- FFW16_PlantPlus_internals__ctor()
+  if (length(err <- setdiff(names(values), names(ret))) > 0L) {
+    stop(sprintf("Unknown fields: %s", paste(err, collapse=", ")))
+  }
+  to_set <- intersect(names(values), names(ret))
+  ret[to_set] <- values[to_set]
+  ret
+}
+
+
+`FFW16_Cohort` <- function(strategy) {
+  FFW16_Cohort__ctor(strategy)
+}
+.R6_FFW16_Cohort <-
+  R6::R6Class("FFW16_Cohort",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                area_leaf_above = function(height) {
+                  FFW16_Cohort__area_leaf_above(self, height)
+                },
+                growth_rate_gradient = function(environment) {
+                  FFW16_Cohort__growth_rate_gradient(self, environment)
+                },
+                compute_vars_phys = function(environment) {
+                  FFW16_Cohort__compute_vars_phys(self, environment)
+                },
+                compute_initial_conditions = function(environment) {
+                  FFW16_Cohort__compute_initial_conditions(self, environment)
+                }),
+              active=list(
+                plant = function(value) {
+                  if (missing(value)) {
+                    FFW16_Cohort__plant__get(self)
+                  } else {
+                    stop("FFW16_Cohort$plant is read-only")
+                  }
+                },
+                height = function(value) {
+                  if (missing(value)) {
+                    FFW16_Cohort__height__get(self)
+                  } else {
+                    stop("FFW16_Cohort$height is read-only")
+                  }
+                },
+                area_leaf = function(value) {
+                  if (missing(value)) {
+                    FFW16_Cohort__area_leaf__get(self)
+                  } else {
+                    stop("FFW16_Cohort$area_leaf is read-only")
+                  }
+                },
+                fecundity = function(value) {
+                  if (missing(value)) {
+                    FFW16_Cohort__fecundity__get(self)
+                  } else {
+                    stop("FFW16_Cohort$fecundity is read-only")
+                  }
+                },
+                ode_size = function(value) {
+                  if (missing(value)) {
+                    FFW16_Cohort__ode_size__get(self)
+                  } else {
+                    stop("FFW16_Cohort$ode_size is read-only")
+                  }
+                },
+                ode_state = function(value) {
+                  if (missing(value)) {
+                    FFW16_Cohort__ode_state__get(self)
+                  } else {
+                    FFW16_Cohort__ode_state__set(self, value)
+                  }
+                },
+                ode_rates = function(value) {
+                  if (missing(value)) {
+                    FFW16_Cohort__ode_rates__get(self)
+                  } else {
+                    stop("FFW16_Cohort$ode_rates is read-only")
+                  }
+                }))
+
+
+`FFW16_Species` <- function(strategy) {
+  FFW16_Species__ctor(strategy)
+}
+.R6_FFW16_Species <-
+  R6::R6Class("FFW16_Species",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                clear = function() {
+                  FFW16_Species__clear(self)
+                },
+                compute_vars_phys = function(environment) {
+                  FFW16_Species__compute_vars_phys(self, environment)
+                },
+                area_leaf_above = function(height) {
+                  FFW16_Species__area_leaf_above(self, height)
+                },
+                add_seed = function() {
+                  FFW16_Species__add_seed(self)
+                },
+                plant_at = function(index) {
+                  FFW16_Species__plant_at(self, index)
+                },
+                area_leafs_error = function(scal=1) {
+                  FFW16_Species__area_leafs_error(self, scal)
+                }),
+              active=list(
+                size = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__size__get(self)
+                  } else {
+                    stop("FFW16_Species$size is read-only")
+                  }
+                },
+                seed = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__seed__get(self)
+                  } else {
+                    stop("FFW16_Species$seed is read-only")
+                  }
+                },
+                height_max = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__height_max__get(self)
+                  } else {
+                    stop("FFW16_Species$height_max is read-only")
+                  }
+                },
+                heights = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__heights__get(self)
+                  } else {
+                    FFW16_Species__heights__set(self, value)
+                  }
+                },
+                plants = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__plants__get(self)
+                  } else {
+                    stop("FFW16_Species$plants is read-only")
+                  }
+                },
+                seeds = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__seeds__get(self)
+                  } else {
+                    stop("FFW16_Species$seeds is read-only")
+                  }
+                },
+                area_leafs = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__area_leafs__get(self)
+                  } else {
+                    stop("FFW16_Species$area_leafs is read-only")
+                  }
+                },
+                ode_size = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__ode_size__get(self)
+                  } else {
+                    stop("FFW16_Species$ode_size is read-only")
+                  }
+                },
+                ode_state = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__ode_state__get(self)
+                  } else {
+                    FFW16_Species__ode_state__set(self, value)
+                  }
+                },
+                ode_rates = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__ode_rates__get(self)
+                  } else {
+                    stop("FFW16_Species$ode_rates is read-only")
+                  }
+                }))
+
+
+`FFW16_Patch` <- function(parameters) {
+  FFW16_Patch__ctor(parameters)
+}
+.R6_FFW16_Patch <-
+  R6::R6Class("FFW16_Patch",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                area_leaf_above = function(height) {
+                  FFW16_Patch__area_leaf_above(self, height)
+                },
+                canopy_openness = function(height) {
+                  FFW16_Patch__canopy_openness(self, height)
+                },
+                add_seed = function(species_index) {
+                  FFW16_Patch__add_seed(self, species_index)
+                },
+                compute_light_environment = function() {
+                  FFW16_Patch__compute_light_environment(self)
+                },
+                compute_vars_phys = function() {
+                  FFW16_Patch__compute_vars_phys(self)
+                },
+                reset = function() {
+                  FFW16_Patch__reset(self)
+                },
+                set_ode_state = function(values, time) {
+                  FFW16_Patch__set_ode_state(self, values, time)
+                },
+                derivs = function(y, time) {
+                  FFW16_Patch__derivs(self, y, time)
+                }),
+              active=list(
+                time = function(value) {
+                  if (missing(value)) {
+                    FFW16_Patch__time__get(self)
+                  } else {
+                    stop("FFW16_Patch$time is read-only")
+                  }
+                },
+                size = function(value) {
+                  if (missing(value)) {
+                    FFW16_Patch__size__get(self)
+                  } else {
+                    stop("FFW16_Patch$size is read-only")
+                  }
+                },
+                height_max = function(value) {
+                  if (missing(value)) {
+                    FFW16_Patch__height_max__get(self)
+                  } else {
+                    stop("FFW16_Patch$height_max is read-only")
+                  }
+                },
+                parameters = function(value) {
+                  if (missing(value)) {
+                    FFW16_Patch__parameters__get(self)
+                  } else {
+                    stop("FFW16_Patch$parameters is read-only")
+                  }
+                },
+                environment = function(value) {
+                  if (missing(value)) {
+                    FFW16_Patch__environment__get(self)
+                  } else {
+                    stop("FFW16_Patch$environment is read-only")
+                  }
+                },
+                species = function(value) {
+                  if (missing(value)) {
+                    FFW16_Patch__species__get(self)
+                  } else {
+                    stop("FFW16_Patch$species is read-only")
+                  }
+                },
+                ode_size = function(value) {
+                  if (missing(value)) {
+                    FFW16_Patch__ode_size__get(self)
+                  } else {
+                    stop("FFW16_Patch$ode_size is read-only")
+                  }
+                },
+                ode_time = function(value) {
+                  if (missing(value)) {
+                    FFW16_Patch__ode_time__get(self)
+                  } else {
+                    stop("FFW16_Patch$ode_time is read-only")
+                  }
+                },
+                ode_state = function(value) {
+                  if (missing(value)) {
+                    FFW16_Patch__ode_state__get(self)
+                  } else {
+                    stop("FFW16_Patch$ode_state is read-only")
+                  }
+                },
+                ode_rates = function(value) {
+                  if (missing(value)) {
+                    FFW16_Patch__ode_rates__get(self)
+                  } else {
+                    stop("FFW16_Patch$ode_rates is read-only")
+                  }
+                }))
+
+
+`FFW16_EBT` <- function(parameters) {
+  FFW16_EBT__ctor(parameters)
+}
+.R6_FFW16_EBT <-
+  R6::R6Class("FFW16_EBT",
+              portable=TRUE,
+              inherit=NULL,
+              public=list(
+                .ptr=NULL,
+                initialize = function(ptr) {
+                  self$.ptr <- ptr
+                },
+                run = function() {
+                  FFW16_EBT__run(self)
+                },
+                run_next = function() {
+                  FFW16_EBT__run_next(self)
+                },
+                reset = function() {
+                  FFW16_EBT__reset(self)
+                },
+                seed_rain = function(species_index) {
+                  FFW16_EBT__seed_rain(self, species_index)
+                },
+                seed_rain_cohort = function(species_index) {
+                  FFW16_EBT__seed_rain_cohort(self, species_index)
+                },
+                area_leaf_error = function(species_index) {
+                  FFW16_EBT__area_leaf_error(self, species_index)
+                },
+                set_cohort_schedule_times = function(times) {
+                  FFW16_EBT__set_cohort_schedule_times(self, times)
+                }),
+              active=list(
+                complete = function(value) {
+                  if (missing(value)) {
+                    FFW16_EBT__complete__get(self)
+                  } else {
+                    stop("FFW16_EBT$complete is read-only")
+                  }
+                },
+                time = function(value) {
+                  if (missing(value)) {
+                    FFW16_EBT__time__get(self)
+                  } else {
+                    stop("FFW16_EBT$time is read-only")
+                  }
+                },
+                seed_rains = function(value) {
+                  if (missing(value)) {
+                    FFW16_EBT__seed_rains__get(self)
+                  } else {
+                    stop("FFW16_EBT$seed_rains is read-only")
+                  }
+                },
+                parameters = function(value) {
+                  if (missing(value)) {
+                    FFW16_EBT__parameters__get(self)
+                  } else {
+                    stop("FFW16_EBT$parameters is read-only")
+                  }
+                },
+                patch = function(value) {
+                  if (missing(value)) {
+                    FFW16_EBT__patch__get(self)
+                  } else {
+                    stop("FFW16_EBT$patch is read-only")
+                  }
+                },
+                cohort_schedule = function(value) {
+                  if (missing(value)) {
+                    FFW16_EBT__cohort_schedule__get(self)
+                  } else {
+                    FFW16_EBT__cohort_schedule__set(self, value)
+                  }
+                },
+                ode_times = function(value) {
+                  if (missing(value)) {
+                    FFW16_EBT__ode_times__get(self)
+                  } else {
+                    stop("FFW16_EBT$ode_times is read-only")
+                  }
+                },
+                state = function(value) {
+                  if (missing(value)) {
+                    FFW16_EBT__state__get(self)
+                  } else {
+                    stop("FFW16_EBT$state is read-only")
+                  }
+                },
+                use_ode_times = function(value) {
+                  if (missing(value)) {
+                    FFW16_EBT__use_ode_times__get(self)
+                  } else {
+                    FFW16_EBT__use_ode_times__set(self, value)
+                  }
+                },
+                seed_rain_error = function(value) {
+                  if (missing(value)) {
+                    FFW16_EBT__seed_rain_error__get(self)
+                  } else {
+                    stop("FFW16_EBT$seed_rain_error is read-only")
                   }
                 }))
 

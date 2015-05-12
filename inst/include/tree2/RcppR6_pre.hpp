@@ -14,6 +14,7 @@ template <typename T> class RcppR6;
 namespace tree2 { namespace ode { namespace test { class OdeR; } } }
 
 
+
 namespace Rcpp {
 template <typename T> SEXP wrap(const tree2::RcppR6::RcppR6<T>&);
 namespace traits {
@@ -50,12 +51,6 @@ template <> tree2::Control as(SEXP);
 template <> SEXP wrap(const tree2::ode::OdeControl&);
 template <> tree2::ode::OdeControl as(SEXP);
 
-template <> SEXP wrap(const tree2::Strategy&);
-template <> tree2::Strategy as(SEXP);
-
-template <> SEXP wrap(const tree2::Parameters&);
-template <> tree2::Parameters as(SEXP);
-
 template <> SEXP wrap(const tree2::quadrature::QK&);
 template <> tree2::quadrature::QK as(SEXP);
 
@@ -68,32 +63,38 @@ template <> tree2::interpolator::Interpolator as(SEXP);
 template <> SEXP wrap(const tree2::Environment&);
 template <> tree2::Environment as(SEXP);
 
-template <> SEXP wrap(const tree2::Plant::Internals&);
-template <> tree2::Plant::Internals as(SEXP);
+template <> SEXP wrap(const tree2::Plant_internals&);
+template <> tree2::Plant_internals as(SEXP);
 
-template <> SEXP wrap(const tree2::Plant&);
-template <> tree2::Plant as(SEXP);
-
-template <> SEXP wrap(const tree2::PlantMinimal_internals&);
-template <> tree2::PlantMinimal_internals as(SEXP);
-
-template <> SEXP wrap(const tree2::PlantMinimal<tree2::Strategy>&);
-template <> tree2::PlantMinimal<tree2::Strategy> as(SEXP);
-
-template <> SEXP wrap(const tree2::Cohort<tree2::PlantFF>&);
-template <> tree2::Cohort<tree2::PlantFF> as(SEXP);
-
-template <> SEXP wrap(const tree2::Species<tree2::PlantFF>&);
-template <> tree2::Species<tree2::PlantFF> as(SEXP);
-
-template <> SEXP wrap(const tree2::Patch<tree2::PlantFF>&);
-template <> tree2::Patch<tree2::PlantFF> as(SEXP);
-
-template <> SEXP wrap(const tree2::EBT<tree2::PlantFF>&);
-template <> tree2::EBT<tree2::PlantFF> as(SEXP);
+template <> SEXP wrap(const tree2::Plant<tree2::FFW16_Strategy>&);
+template <> tree2::Plant<tree2::FFW16_Strategy> as(SEXP);
 
 template <> SEXP wrap(const tree2::tools::PlantRunner&);
 template <> tree2::tools::PlantRunner as(SEXP);
+
+template <> SEXP wrap(const tree2::FFW16_Strategy&);
+template <> tree2::FFW16_Strategy as(SEXP);
+
+template <> SEXP wrap(const tree2::FFW16_Parameters&);
+template <> tree2::FFW16_Parameters as(SEXP);
+
+template <> SEXP wrap(const tree2::FFW16_PlantPlus&);
+template <> tree2::FFW16_PlantPlus as(SEXP);
+
+template <> SEXP wrap(const tree2::FFW16_PlantPlus::internals&);
+template <> tree2::FFW16_PlantPlus::internals as(SEXP);
+
+template <> SEXP wrap(const tree2::Cohort<tree2::FFW16_Plant>&);
+template <> tree2::Cohort<tree2::FFW16_Plant> as(SEXP);
+
+template <> SEXP wrap(const tree2::Species<tree2::FFW16_Plant>&);
+template <> tree2::Species<tree2::FFW16_Plant> as(SEXP);
+
+template <> SEXP wrap(const tree2::Patch<tree2::FFW16_Plant>&);
+template <> tree2::Patch<tree2::FFW16_Plant> as(SEXP);
+
+template <> SEXP wrap(const tree2::EBT<tree2::FFW16_Plant>&);
+template <> tree2::EBT<tree2::FFW16_Plant> as(SEXP);
 }
 
 #endif

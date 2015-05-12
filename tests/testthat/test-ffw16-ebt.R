@@ -1,26 +1,26 @@
-context("EBT")
+context("FFW16_EBT")
 
 test_that("Ported from tree1", {
-  p <- Parameters(strategies=list(Strategy()),
-                  seed_rain=pi/2,
-                  patch_area=10,
-                  is_resident=TRUE)
+  p <- FFW16_Parameters(strategies=list(FFW16_Strategy()),
+                        seed_rain=pi/2,
+                        patch_area=10,
+                        is_resident=TRUE)
 
-  expect_that(ebt <- EBT(p),
+  expect_that(ebt <- FFW16_EBT(p),
               throws_error("Patch area must be exactly 1 for the EBT"))
 
   p$patch_area <- 1.0
-  ebt <- EBT(p)
-  expect_that(ebt, is_a("EBT"))
+  ebt <- FFW16_EBT(p)
+  expect_that(ebt, is_a("FFW16_EBT"))
 
   ## NOTE: I'm not sure where these are only equal and not identical.
   expect_that(ebt$parameters, equals(p))
 
   ## Check that the underlying Patch really is a Patch<CohortTop>:
-  expect_that(ebt$patch, is_a("Patch"))
+  expect_that(ebt$patch, is_a("FFW16_Patch"))
   expect_that(length(ebt$patch$species), equals(1))
-  expect_that(ebt$patch$species[[1]], is_a("Species"))
-  expect_that(ebt$patch$species[[1]]$seed, is_a("Cohort"))
+  expect_that(ebt$patch$species[[1]], is_a("FFW16_Species"))
+  expect_that(ebt$patch$species[[1]]$seed, is_a("FFW16_Cohort"))
   expect_that(ebt$patch$time, is_identical_to(0.0))
 
   sched <- ebt$cohort_schedule
@@ -155,11 +155,11 @@ test_that("Ported from tree1", {
 })
 
 test_that("", {
-  p <- Parameters(strategies=list(Strategy()),
-                  seed_rain=pi/2,
-                  is_resident=TRUE,
-                  cohort_schedule_max_time=5.0)
-  ebt <- EBT(p)
+  p <- FFW16_Parameters(strategies=list(FFW16_Strategy()),
+                        seed_rain=pi/2,
+                        is_resident=TRUE,
+                        cohort_schedule_max_time=5.0)
+  ebt <- FFW16_EBT(p)
 
   ## Then set a cohort schedule:
   ## Build a schedule for 14 introductions from t=0 to t=5
@@ -186,7 +186,7 @@ test_that("", {
               is_identical_to(list(t)))
 
   ## TODO: Also a bug:
-  ebt2 <- EBT(p2)
+  ebt2 <- FFW16_EBT(p2)
   expect_that(ebt2$cohort_schedule$max_time,
               is_identical_to(sched2$max_time))
   expect_that(ebt2$cohort_schedule$all_times,

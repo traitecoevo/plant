@@ -17,8 +17,4 @@ defaults are used.}
 Control parameters for \code{\link{equilibrium_seed_rain}} that
 make progress noisier.  This is just a convenience function.
 }
-\examples{
-p <- new(Parameters)
-p$set_control_parameters(equilibrium_verbose())
-}
 

@@ -4,10 +4,12 @@
 \alias{Plant}
 \title{Plant object}
 \usage{
-Plant(strategy)
+Plant(T)
 }
 \arguments{
-\item{strategy}{A \code{Strategy} object}
+\item{T}{String containing class of plant to create; currently
+must be \code{"FFW16"}.  See \code{\link{FFW16_Plant}} for more
+details.}
 }
 \description{
 Plant object

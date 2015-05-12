@@ -1,10 +1,10 @@
-#include <tree2/plant.h>
+#include <tree2/ffw16_plant_plus.h>
 #include <Rcpp.h>
 #include <functional>
 
 namespace tree2 {
 
-Plant::Plant(strategy_type::ptr s)
+FFW16_PlantPlus::FFW16_PlantPlus(strategy_type::ptr s)
   : strategy(s) {
   set_height(strategy->height_0);
 }
@@ -13,10 +13,10 @@ Plant::Plant(strategy_type::ptr s)
 // [eqn 1-8] Update size variables given an input leaf mass
 
 // Height is really important -- everything else follows from it.
-double Plant::height() const {
+double FFW16_PlantPlus::height() const {
   return vars.height;
 }
-double Plant::height_dt() const {
+double FFW16_PlantPlus::height_dt() const {
   return vars.height_dt;
 }
 // NOTE: Only recomputes size variables if the height is actually
@@ -25,7 +25,7 @@ double Plant::height_dt() const {
 // quite a bit of calculation time and book-keeping down the track.
 // If we're off because of a floating point difference, the worst that
 // happens is that we recompute the variables again.
-void Plant::set_height(double height_) {
+void FFW16_PlantPlus::set_height(double height_) {
   if (height_ < 0.0) {
     Rcpp::stop("height must be positive (given " +
                util::to_string(height_) + ")");
@@ -42,49 +42,49 @@ void Plant::set_height(double height_) {
   }
 }
 
-double Plant::mortality() const {
+double FFW16_PlantPlus::mortality() const {
   return vars.mortality;
 }
-double Plant::mortality_dt() const {
+double FFW16_PlantPlus::mortality_dt() const {
   return vars.mortality_dt;
 }
-void Plant::set_mortality(double x) {
+void FFW16_PlantPlus::set_mortality(double x) {
   vars.mortality = x;
 }
 
-double Plant::fecundity() const {
+double FFW16_PlantPlus::fecundity() const {
   return vars.fecundity;
 }
-double Plant::fecundity_dt() const {
+double FFW16_PlantPlus::fecundity_dt() const {
   return vars.fecundity_dt;
 }
-void Plant::set_fecundity(double x) {
+void FFW16_PlantPlus::set_fecundity(double x) {
   vars.fecundity = x;
 }
 
-double Plant::area_heartwood() const {
+double FFW16_PlantPlus::area_heartwood() const {
   return vars.area_heartwood;
 }
 
-double Plant::area_heartwood_dt() const {
+double FFW16_PlantPlus::area_heartwood_dt() const {
   return vars.area_heartwood_dt;
 }
 
-void Plant::set_area_heartwood(double x) {
+void FFW16_PlantPlus::set_area_heartwood(double x) {
   // TODO: Consider recomputing the size variables here
   // See set_mass_heartwood
   vars.area_heartwood = x;
 }
 
-double Plant::mass_heartwood() const {
+double FFW16_PlantPlus::mass_heartwood() const {
   return vars.mass_heartwood;
 }
 
-double Plant::mass_heartwood_dt() const {
+double FFW16_PlantPlus::mass_heartwood_dt() const {
   return vars.mass_heartwood_dt;
 }
 
-void Plant::set_mass_heartwood(double x) {
+void FFW16_PlantPlus::set_mass_heartwood(double x) {
   // TODO: This needs to update size variables but does not yet,
   // and won't until we get the new version done.
   // See notes in set_height.
@@ -92,12 +92,12 @@ void Plant::set_mass_heartwood(double x) {
 }
 
 // * Competitive environment
-double Plant::area_leaf() const {
+double FFW16_PlantPlus::area_leaf() const {
   return vars.area_leaf;
 }
 
 // [      ] Leaf area (not fraction) above height `z`
-double Plant::area_leaf_above(double z) const {
+double FFW16_PlantPlus::area_leaf_above(double z) const {
   if (z < 0.0) {
     Rcpp::stop("Negative heights do not make sense");
   }
@@ -107,7 +107,7 @@ double Plant::area_leaf_above(double z) const {
 // * Mass production
 // [eqn 12-19,21] Update physiological variables given the current
 // light environment (and given the current set of size variables).
-void Plant::compute_vars_phys(const Environment& environment,
+void FFW16_PlantPlus::compute_vars_phys(const Environment& environment,
 			      bool reuse_intervals) {
   // [eqn 12] Gross annual CO2 assimilation
   vars.assimilation = strategy->assimilation(environment, vars.height,
@@ -124,9 +124,10 @@ void Plant::compute_vars_phys(const Environment& environment,
                                      vars.mass_bark, vars.mass_root);
 
   // [eqn 15] Net production
-  vars.net_mass_production_dt = strategy->net_mass_production_dt(vars.assimilation,
-                                                 vars.respiration,
-                                                 vars.turnover);
+  vars.net_mass_production_dt =
+    strategy->net_mass_production_dt_A(vars.assimilation,
+                                       vars.respiration,
+                                       vars.turnover);
 
   if (vars.net_mass_production_dt > 0) {
     // [eqn 16] - Fraction of whole plant growth that is leaf
@@ -178,7 +179,7 @@ void Plant::compute_vars_phys(const Environment& environment,
 
 // Extra accounting.
 // TODO: This will move into the "super size" plant.
-void Plant::compute_vars_growth() {
+void FFW16_PlantPlus::compute_vars_growth() {
   const strategy_type *s = strategy.get(); // for brevity.
   const double area_leaf = vars.area_leaf,
     area_leaf_dt = vars.area_leaf_dt;
@@ -219,13 +220,13 @@ void Plant::compute_vars_growth() {
 }
 
 // [eqn 20] Survival of seedlings during germination
-double Plant::germination_probability(const Environment& environment) {
+double FFW16_PlantPlus::germination_probability(const Environment& environment) {
   return strategy->germination_probability(environment);
 }
 
 // ODE interface -- note that the don't care about time in the plant;
 // only Patch and above does.
-ode::const_iterator Plant::set_ode_state(ode::const_iterator it) {
+ode::const_iterator FFW16_PlantPlus::set_ode_state(ode::const_iterator it) {
   set_height(*it++);
   set_mortality(*it++);
   set_fecundity(*it++);
@@ -233,7 +234,7 @@ ode::const_iterator Plant::set_ode_state(ode::const_iterator it) {
   set_mass_heartwood(*it++);
   return it;
 }
-ode::iterator Plant::ode_state(ode::iterator it) const {
+ode::iterator FFW16_PlantPlus::ode_state(ode::iterator it) const {
   *it++ = height();
   *it++ = mortality();
   *it++ = fecundity();
@@ -241,7 +242,7 @@ ode::iterator Plant::ode_state(ode::iterator it) const {
   *it++ = mass_heartwood();
   return it;
 }
-ode::iterator Plant::ode_rates(ode::iterator it) const {
+ode::iterator FFW16_PlantPlus::ode_rates(ode::iterator it) const {
   *it++ = height_dt();
   *it++ = mortality_dt();
   *it++ = fecundity_dt();
@@ -250,17 +251,17 @@ ode::iterator Plant::ode_rates(ode::iterator it) const {
   return it;
 }
 
-std::vector<std::string> Plant::ode_names() {
+std::vector<std::string> FFW16_PlantPlus::ode_names() {
   return std::vector<std::string>({"height", "mortality", "fecundity",
 	"area_heartwood", "mass_heartwood"});
 }
 
 // * R interface
-Plant::strategy_type Plant::r_get_strategy() const {
+FFW16_PlantPlus::strategy_type FFW16_PlantPlus::r_get_strategy() const {
   return *strategy.get();
 }
 
-Plant::Internals Plant::r_internals() const {
+FFW16_PlantPlus::internals FFW16_PlantPlus::r_internals() const {
   return vars;
 }
 
@@ -268,7 +269,7 @@ Plant::Internals Plant::r_internals() const {
 // control parameters by only being able to access a const reference
 // (it's shared with everything else that shares the strategy).  It
 // also saves a little ugly looking referencing.
-const Control& Plant::control() const {
+const Control& FFW16_PlantPlus::control() const {
   return strategy->control;
 }
 
@@ -276,7 +277,7 @@ const Control& Plant::control() const {
 
 // * Individual size
 // [eqn 1-8] Update size variables to a new leaf mass.
-void Plant::compute_vars_size(double height_) {
+void FFW16_PlantPlus::compute_vars_size(double height_) {
   vars.height = height_;
   vars.area_leaf = strategy->area_leaf(vars.height);
   vars.mass_leaf = strategy->mass_leaf(vars.area_leaf);
@@ -296,8 +297,8 @@ void Plant::compute_vars_size(double height_) {
   vars.diameter_stem = strategy->diameter_stem(vars.area_stem);
 }
 
-Plant make_plant(Plant::strategy_type s) {
-  return Plant(make_strategy_ptr(s));
+FFW16_PlantPlus make_plant_plus(FFW16_PlantPlus::strategy_type s) {
+  return FFW16_PlantPlus(make_strategy_ptr(s));
 }
 
 }

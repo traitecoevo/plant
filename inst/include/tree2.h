@@ -18,13 +18,13 @@
 #include <tree2/environment.h>
 
 #include <tree2/control.h>
-#include <tree2/strategy.h>
+#include <tree2/ffw16_strategy.h>
 #include <tree2/parameters.h>
 #include <tree2/cohort_schedule.h>
 
 // Getting more serious down here.
+#include <tree2/ffw16_plant_plus.h>
 #include <tree2/plant.h>
-#include <tree2/plant_minimal.h>
 
 #include <tree2/cohort.h>
 #include <tree2/species.h>
@@ -39,8 +39,12 @@
 namespace tree2 {
 // Use this to manually switch between the minimal plant type and the
 // full one.  Eventually we'll get this stuff exposed nicely.
-//   typedef tree2::Plant PlantFF;
-typedef tree2::PlantMinimal<tree2::Strategy> PlantFF;
+typedef Parameters<FFW16_Strategy> FFW16_Parameters;
+typedef Plant<FFW16_Strategy>      FFW16_Plant;
+typedef Cohort<FFW16_Plant>        FFW16_Cohort;
+typedef Species<FFW16_Plant>       FFW16_Species;
+typedef Patch<FFW16_Plant>         FFW16_Patch;
+typedef EBT<FFW16_Plant>           FFW16_EBT;
 }
 
 // Include this early on.  It can be either after classes have been

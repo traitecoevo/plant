@@ -80,8 +80,8 @@ validate <- function(x, ...) {
   UseMethod("validate")
 }
 ##' @export
-validate.Parameters <- function(x, ...) {
-  Parameters__vdor(x)
+validate.FFW16_Parameters <- function(x, ...) {
+  FFW16_Parameters__vdor(x)
 }
 
 loop <- function(X, FUN, ..., parallel=FALSE) {

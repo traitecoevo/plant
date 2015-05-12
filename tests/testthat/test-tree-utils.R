@@ -34,16 +34,16 @@ test_that("Default times", {
 })
 
 test_that("Cohort schedule max time", {
-  p <- Parameters()
+  p <- FFW16_Parameters()
   t <- cohort_schedule_max_time_default(p)
   d <- Disturbance(p$disturbance_mean_interval)
   expect_that(t, equals(d$cdf(p$control$schedule_patch_survival)))
 })
 
 test_that("Default schedule", {
-  p <- Parameters(strategies=list(Strategy(), Strategy()),
-                  seed_rain=c(pi/2, pi),
-                  is_resident=c(TRUE, TRUE))
+  p <- FFW16_Parameters(strategies=list(FFW16_Strategy(), FFW16_Strategy()),
+                        seed_rain=c(pi/2, pi),
+                        is_resident=c(TRUE, TRUE))
   cohort_schedule <- cohort_schedule_default(p)
   expect_that(cohort_schedule, is_a("CohortSchedule"))
   expect_that(cohort_schedule$n_species, equals(length(p$strategies)))

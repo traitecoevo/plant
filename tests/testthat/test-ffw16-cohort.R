@@ -1,16 +1,16 @@
-context("Cohort")
+context("FFW16_Cohort")
 
 ## TODO: This is all just ported over from tree1 and needs splitting
 ## into units.
 
 test_that("Ported from tree1", {
-  s <- Strategy()
+  s <- FFW16_Strategy()
 
-  plant <- Plant(s)
-  cohort <- Cohort(s)
+  plant <- FFW16_PlantPlus(s)
+  cohort <- FFW16_Cohort(s)
 
-  expect_that(cohort, is_a("Cohort"))
-  expect_that(cohort$plant, is_a("PlantMinimal"))
+  expect_that(cohort, is_a("FFW16_Cohort"))
+  expect_that(cohort$plant, is_a("Plant<FFW16>"))
 
   env <- test_environment(2 * plant$height,
                           light_env=function(x) rep(1, length(x)),
@@ -28,7 +28,7 @@ test_that("Ported from tree1", {
   }
 
   plant$compute_vars_phys(env)
-  p2 <- Plant(s)
+  p2 <- FFW16_PlantPlus(s)
 
   ## First, a quick sanity check that our little function behaves as
   ## expected:
@@ -58,7 +58,7 @@ test_that("Ported from tree1", {
   expect_that(dgdh, is_identical_to(dgdh_forward))
 
   ## Again with Richarson extrapolation:
-  cohort2 <- Cohort(Strategy(control=Control(cohort_gradient_richardson=TRUE)))
+  cohort2 <- FFW16_Cohort(FFW16_Strategy(control=Control(cohort_gradient_richardson=TRUE)))
   expect_that(cohort2$plant$strategy$control$cohort_gradient_richardson,
               is_true())
 
@@ -95,9 +95,9 @@ test_that("Ported from tree1", {
 ##   * Check that the initial conditions are actually correct
 ##   * Check that the rates computed are actually correct
 test_that("ODE interface", {
-  s <- Strategy()
-  plant <- Plant(s)
-  cohort <- Cohort(s)
+  s <- FFW16_Strategy()
+  plant <- FFW16_PlantPlus(s)
+  cohort <- FFW16_Cohort(s)
   env <- test_environment(2 * plant$height,
                           light_env=function(x) rep(1, length(x)),
                           seed_rain=1.0)
@@ -144,13 +144,13 @@ test_that("ODE interface", {
 })
 
 test_that("leaf area calculations", {
-  s <- Strategy()
+  s <- FFW16_Strategy()
   env <- test_environment(10,
                           light_env=function(x) rep(1, length(x)),
                           seed_rain=1.0)
 
-  plant <- Plant(s)
-  cohort <- Cohort(s)
+  plant <- FFW16_PlantPlus(s)
+  cohort <- FFW16_Cohort(s)
   h <- cohort$height
 
   expect_that(cohort$area_leaf, equals(0)) # zero density

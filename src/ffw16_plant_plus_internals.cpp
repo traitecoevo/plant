@@ -1,4 +1,4 @@
-#include <tree2/plant_internals.h>
+#include <tree2/ffw16_plant_plus_internals.h>
 #include <R.h>
 
 namespace tree2 {
@@ -9,7 +9,7 @@ namespace tree2 {
 // TODO: Some are d<foo>_dt, others are foo_rate.  I'm OK with time
 // derivatives getting separate treatment, but it needs to be
 // consistent.
-Plant_internals::Plant_internals()
+FFW16_PlantPlus_internals::FFW16_PlantPlus_internals()
   :
   // * Size
   mass_leaf(NA_REAL),

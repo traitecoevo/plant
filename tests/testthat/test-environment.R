@@ -1,7 +1,7 @@
 context("Environment")
 
 test_that("Empty environment", {
-  e <- Environment(Parameters())
+  e <- Environment(FFW16_Parameters())
 
   ## At this point, we should have full canopy openness, partly because
   ## the spline is just not constructed.
@@ -14,7 +14,7 @@ test_that("Empty environment", {
 })
 
 test_that("Manually set environment", {
-  e <- Environment(Parameters())
+  e <- Environment(FFW16_Parameters())
   ## Now, set the light environment.
   hh <- seq(0, 10, length.out=101)
   light_env <- function(x) {
@@ -35,7 +35,7 @@ test_that("Manually set environment", {
 })
 
 test_that("Disturbance related parameters", {
-  e <- Environment(Parameters())
+  e <- Environment(FFW16_Parameters())
   expect_that(e$time, is_identical_to(0.0))
   expect_that(e$patch_survival_conditional(e$time), is_identical_to(1.0))
 
@@ -50,7 +50,7 @@ test_that("Disturbance related parameters", {
 })
 
 test_that("Seed rain related parameters", {
-  e <- Environment(Parameters())
+  e <- Environment(FFW16_Parameters())
   expect_that(e$seed_rain_dt,
               throws_error("Cannot get seed rain for empty environment"))
 

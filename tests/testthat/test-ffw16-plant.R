@@ -1,11 +1,11 @@
-context("PlantMinimal")
+context("FFW16_Plant")
 
 test_that("Reference comparison", {
-  s <- Strategy()
-  p1 <- Plant(s)
-  p2 <- PlantMinimal(s)
+  s <- FFW16_Strategy()
+  p1 <- FFW16_PlantPlus(s)
+  p2 <- FFW16_Plant(s)
 
-  expect_that(p2, is_a("PlantMinimal"))
+  expect_that(p2, is_a("Plant<FFW16>"))
   expect_that(p2$strategy, is_identical_to(s))
   expect_that(p2$strategy, is_identical_to(p1$strategy))
 
@@ -45,7 +45,7 @@ test_that("Reference comparison", {
   vars1 <- p1$internals
   vars2 <- p2$internals
 
-  expect_that(vars2, is_a("PlantMinimal_internals"))
+  expect_that(vars2, is_a("Plant_internals"))
 
   variable.names <- c("area_leaf", "height", "height_dt", "mortality",
                       "mortality_dt","fecundity","fecundity_dt")

@@ -6,6 +6,8 @@
 ##' in \code{p}.
 ##' @param p Parameters object.  Needs to contain residents with their
 ##' incoming seed rain.
+##' @param raw_seed_rain Logical; if \code{TRUE} report per capita
+##' seed rain rather than fitness.
 ##' @return Vector with the output seed rain.  Mutants have an
 ##' arbitrary seed rain of one, so this is the rate of seed
 ##' production per capita.

@@ -1,7 +1,7 @@
 ##' Run system to seed rain equilibrium
 ##'
 ##' @title Run system to seed rain equilibrium
-##' @param p A \code{\link{Parameters}} object
+##' @param p A \code{\link{FFW16_Parameters}} object
 ##' @return A Parameters object, with seed rain and cohort schedule
 ##' elements set.
 ##' @export
@@ -293,8 +293,6 @@ equilibrium_seed_rain_solve_target <- function(runner, keep, logN,
 ##'
 ##' @title Check low-abundance strategies for viability
 ##' @param p A Parameters object
-##' @param schedule_default Schedule to use by default
-##' @param schedule_initial Schedule to start from
 ##' @export
 check_inviable <- function(p) {
   ## eps_test: *Relative* value to use for determining what

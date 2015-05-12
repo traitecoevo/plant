@@ -25,7 +25,7 @@ test_that("lcp_whole_plant", {
     }
   }
 
-  p <- Plant(Strategy())
+  p <- FFW16_PlantPlus(FFW16_Strategy())
   expect_that(lcp_whole_plant(p),
               equals(lcp_whole_plant_R(p), tolerance=1e-5))
 })

@@ -11,6 +11,10 @@ expand_parameters(trait_matrix, p, mutant = TRUE)
 new types to introduce.}
 
 \item{p}{A \code{Parameters} object.}
+
+\item{mutant}{Create new types as \emph{mutants}?  These will have
+no effect on other plants in the community (i.e. have zero
+density).}
 }
 \description{
 Expand Parameters to include mutants.  All mutants get the same

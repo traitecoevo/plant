@@ -30,9 +30,6 @@ fast_control <- function(base=Control()) {
 ##' @export
 ##' @param base An optional \code{Control} object.  If omitted, the
 ##' defaults are used.
-##' @examples
-##' p <- new(Parameters)
-##' p$set_control_parameters(equilibrium_verbose())
 equilibrium_verbose <- function(base=Control()) {
   base$schedule_verbose <- TRUE
   base$equilibrium_verbose <- TRUE
@@ -56,7 +53,7 @@ equilibrium_quiet <- function(base=Control()) {
 ##' @author Rich FitzJohn
 ##' @export
 run_ebt <- function(p, use_ode_times=FALSE) {
-  ebt <- EBT(p)
+  ebt <- FFW16_EBT(p)
   if (use_ode_times) {
     ebt$use_ode_times <- TRUE
   }
@@ -74,8 +71,8 @@ ebt_base_parameters <- function() {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
-  Parameters(patch_area=1.0, control=ctrl,
-             hyperpar=ff_parameters)
+  FFW16_Parameters(patch_area=1.0, control=ctrl,
+                   hyperpar=FFW16_hyperpar)
 }
 
 ##' Run the EBT model, given a Parameters and CohortSchedule
@@ -85,11 +82,10 @@ ebt_base_parameters <- function() {
 ##' Consider this function liable to change.
 ##'
 ##' @title Run the EBT, Collecting Output
-##' @param p A Parameters object
-##' @param sched A CohortSchedule Object
+##' @param p A \code{\link{FFW16_Parameters}} object
 ##' @author Rich FitzJohn
 run_ebt_collect <- function(p) {
-  ebt <- EBT(p)
+  ebt <- FFW16_EBT(p)
   res <- list(ebt$state)
 
   while (!ebt$complete) {
@@ -119,7 +115,7 @@ run_ebt_collect <- function(p) {
 }
 
 run_ebt_error <- function(p) {
-  ebt <- EBT(p)
+  ebt <- FFW16_EBT(p)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)
@@ -152,10 +148,12 @@ run_ebt_error <- function(p) {
 ##' @param rho_0 ...
 ##' @param d0_0 ...
 ##' @param d1 ...
+##' @param k_s_0 ...
 ##' @param B5 ...
+##' @param narea_0 ...
 ##' @export
-##' @rdname ff_parameters
-make_ff_parameters <- function(B4=1.71,
+##' @rdname FFW16_hyperpar
+make_FFW16_hyperpar <- function(B4=1.71,
                                lma_0=0.1978791,
                                k_l_0=0.4565855,
                                rho_0=608.0,
@@ -256,10 +254,10 @@ make_ff_parameters <- function(B4=1.71,
     cbind(m, extra)
   }
 }
-##' @rdname ff_parameters
+##' @rdname FFW16_hyperpar
 ##' @export
 ##' @param m A trait matrix
 ##' @param s A default strategy
 ##' @param filter Logical, indicating if generated parameters that are
 ##' the same as the default should be removed.
-ff_parameters <- make_ff_parameters()
+FFW16_hyperpar <- make_FFW16_hyperpar()

@@ -3,14 +3,6 @@
 
 namespace tree2 {
 
-Environment::Environment(Parameters p)
-  : time(0.0),
-    disturbance_regime(p.disturbance_mean_interval),
-    seed_rain(p.seed_rain),
-    seed_rain_index(0),
-    light_environment_generator(make_interpolator(p.control)) {
-}
-
 double Environment::canopy_openness(double height) const {
   const bool within_canopy = height <= light_environment.max();
   return within_canopy ? light_environment.eval(height) : 1.0;

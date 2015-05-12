@@ -7,9 +7,7 @@
 run_ebt_collect(p)
 }
 \arguments{
-\item{p}{A Parameters object}
-
-\item{sched}{A CohortSchedule Object}
+\item{p}{A \code{\link{FFW16_Parameters}} object}
 }
 \description{
 Run the EBT model, given a Parameters and CohortSchedule

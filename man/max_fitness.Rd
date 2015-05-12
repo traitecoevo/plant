@@ -16,7 +16,7 @@ search}
 \item{log_scale}{Is the parameter naturally on a log scale?  If
 so, this will greatly speed things up.}
 
-\item{trait}{Name of the trait (e.g., \code{"lma"})}
+\item{tol}{Tolerance used in the optimisation}
 }
 \description{
 Find point of maximum fitness in empty fitness landscape within a

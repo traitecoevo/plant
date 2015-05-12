@@ -13,6 +13,9 @@ in \code{p}.}
 
 \item{p}{Parameters object.  Needs to contain residents with their
 incoming seed rain.}
+
+\item{raw_seed_rain}{Logical; if \code{TRUE} report per capita
+seed rain rather than fitness.}
 }
 \value{
 Vector with the output seed rain.  Mutants have an

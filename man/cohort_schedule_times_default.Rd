@@ -9,16 +9,6 @@ cohort_schedule_times_default(max_time)
 \arguments{
 \item{max_time}{Time to generate introduction times up to (the
 last introduction time will be at least \code{max_time}).}
-
-\item{multiplier}{The rate of increase of step size with time.
-The greater the number the faster step size will increase.}
-
-\item{min_step_size}{The smallest gap between introduction times
-(must be greater than zero, and will be the first introduction
-time).}
-
-\item{max_step_size}{The largest gap between introduction times
-(may be infinite).}
 }
 \value{
 Vector of introduction times.

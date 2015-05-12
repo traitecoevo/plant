@@ -7,7 +7,7 @@
 equilibrium_seed_rain(p)
 }
 \arguments{
-\item{p}{A \code{\link{Parameters}} object}
+\item{p}{A \code{\link{FFW16_Parameters}} object}
 }
 \value{
 A Parameters object, with seed rain and cohort schedule

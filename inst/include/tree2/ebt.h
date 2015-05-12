@@ -13,10 +13,12 @@ template <typename T>
 class EBT {
 public:
   typedef T plant_type;
+  typedef typename T::strategy_type strategy_type;
+  typedef Parameters<strategy_type> parameters_type;
   typedef Cohort<plant_type>  cohort_type;
   typedef Species<plant_type> species_type;
   typedef Patch<plant_type>   patch_type;
-  EBT(Parameters p);
+  EBT(parameters_type p);
 
   void run();
   std::vector<size_t> run_next();
@@ -31,7 +33,7 @@ public:
 
   // * R interface
   std::vector<util::index> r_run_next();
-  Parameters r_parameters() const {return parameters;}
+  parameters_type r_parameters() const {return parameters;}
   const patch_type& r_patch() const {return patch;}
   // TODO: These are liable to change to return all species at once by
   // default.  The pluralisation difference between
@@ -54,14 +56,14 @@ private:
   double seed_rain_total() const;
   std::vector<double> seed_rain_cohort(size_t species_index) const;
 
-  Parameters parameters;
+  parameters_type parameters;
   patch_type patch;
   CohortSchedule cohort_schedule;
   ode::Solver<patch_type> solver;
 };
 
 template <typename T>
-EBT<T>::EBT(Parameters p)
+EBT<T>::EBT(parameters_type p)
   : parameters(p),
     patch(parameters),
     cohort_schedule(make_cohort_schedule(parameters)),

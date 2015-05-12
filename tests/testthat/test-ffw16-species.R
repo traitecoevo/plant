@@ -2,15 +2,15 @@
 ## - this was ported over from tree1 where the tests were loose in the
 ## file.
 
-context("Species")
+context("FFW16_Species")
 
 env <- test_environment(3, seed_rain=1.0)
 
 test_that("Basics", {
-  s <- Strategy()
-  sp <- Species(s)
-  seed <- Cohort(s)
-  plant <- Plant(s)
+  s <- FFW16_Strategy()
+  sp <- FFW16_Species(s)
+  seed <- FFW16_Cohort(s)
+  plant <- FFW16_PlantPlus(s)
   h0 <- seed$height
 
   expect_that(sp$size, equals(0))
@@ -48,7 +48,7 @@ test_that("Basics", {
   expect_that(sp$seed$vars_phys,
               is_identical_to(seed$vars_phys))
 
-  expect_that(sp$plant_at(1), is_a("Cohort"))
+  expect_that(sp$plant_at(1), is_a("FFW16_Cohort"))
   expect_that(sp$plant_at(1)$vars_phys,
               is_identical_to(plants[[1]]$vars_phys))
 
@@ -81,15 +81,15 @@ test_that("Basics", {
 
 ## 1: empty species (no cohorts) has no leaf area above any height:
 test_that("Empty species has no leaf area", {
-  sp <- Species(Strategy())
+  sp <- FFW16_Species(FFW16_Strategy())
   expect_that(sp$area_leaf_above(0), equals(0))
   expect_that(sp$area_leaf_above(10), equals(0))
   expect_that(sp$area_leaf_above(Inf), equals(0))
 })
 
 ## 2: Cohort up against boundary has no leaf area:
-test_that("Species with only boundary cohort no leaf area", {
-  sp <- Species(Strategy())
+test_that("FFW16_Species with only boundary cohort no leaf area", {
+  sp <- FFW16_Species(FFW16_Strategy())
   sp$add_seed()
   sp$compute_vars_phys(env)
   expect_that(sp$area_leaf_above(0), equals(0))
@@ -106,7 +106,7 @@ cmp_area_leaf_above <- function(h, sp) {
 
 ## 3: Single cohort; one round of trapezium:
 test_that("Leaf area sensible with one cohort", {
-  sp <- Species(Strategy())
+  sp <- FFW16_Species(FFW16_Strategy())
   sp$compute_vars_phys(env)
   sp$add_seed()
   h_top <- sp$height_max * 4
@@ -129,7 +129,7 @@ test_that("Leaf area sensible with one cohort", {
 })
 
 test_that("Leaf area sensible with two cohorts", {
-  sp <- Species(Strategy())
+  sp <- FFW16_Species(FFW16_Strategy())
   sp$compute_vars_phys(env)
   sp$add_seed()
   h_top <- sp$height_max * 4
@@ -155,7 +155,7 @@ test_that("Leaf area sensible with two cohorts", {
 })
 
 test_that("Leaf area sensible with three cohorts", {
-  sp <- Species(Strategy())
+  sp <- FFW16_Species(FFW16_Strategy())
   sp$compute_vars_phys(env)
   sp$add_seed()
   h_top <- sp$height_max * 4

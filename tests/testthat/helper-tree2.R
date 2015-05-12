@@ -68,8 +68,8 @@ test_environment <- function(height, n=101, light_env=NULL,
   env <- tree2:::Interpolator()
   env$init(hh, ee)
 
-  parameters <- tree2:::Parameters()
-  parameters$strategies <- rep(list(tree2:::Strategy()), n_strategies)
+  parameters <- FFW16_Parameters()
+  parameters$strategies <- rep(list(tree2::FFW16_Strategy()), n_strategies)
   parameters$seed_rain <- seed_rain
   parameters$is_resident <- rep(TRUE, n_strategies)
 

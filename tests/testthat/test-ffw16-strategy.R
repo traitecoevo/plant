@@ -1,4 +1,4 @@
-context("Strategy")
+context("FFW16_Strategy")
 
 test_that("Defaults", {
   expected <- list(
@@ -35,18 +35,18 @@ test_that("Defaults", {
 
   keys <- sort(names(expected))
 
-  s <- Strategy()
-  expect_that(s, is_a("Strategy"))
+  s <- FFW16_Strategy()
+  expect_that(s, is_a("FFW16_Strategy"))
 
   expect_that(sort(names(s)), is_identical_to(keys))
   expect_that(unclass(s)[keys], is_identical_to(expected[keys]))
 })
 
-test_that("Strategy parameters agree with reference model", {
+test_that("FFW16_Strategy parameters agree with reference model", {
   cmp <- make_reference_plant()
   cmp_pars <- cmp$get_parameters()
 
-  s <- Strategy()
+  s <- FFW16_Strategy()
 
   ## Expect that all parameters in the R version are found in the C++
   ## version, *except* for n_area

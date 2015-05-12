@@ -1,9 +1,9 @@
-context("Plant")
+context("FFW16_PlantPlus")
 
 test_that("Reference comparison", {
   cmp <- make_reference_plant()
-  s <- Strategy()
-  p <- Plant(s)
+  s <- FFW16_Strategy()
+  p <- FFW16_PlantPlus(s)
 
   expect_that(p$strategy, is_identical_to(s))
 
@@ -186,8 +186,8 @@ test_that("Reference comparison", {
 
 test_that("Seed bits", {
   ## Seed stuff:
-  s <- Strategy()
-  seed <- Plant(s)
+  s <- FFW16_Strategy()
+  seed <- FFW16_PlantPlus(s)
   env <- test_environment(10) # high enough
   light_env <- attr(env, "light_env") # underlying function
 
@@ -212,12 +212,12 @@ test_that("Seed bits", {
 ## elsewhere.
 
 test_that("Assimilation over distribution", {
-  s1 <- Strategy()
-  p1 <- Plant(s1)
+  s1 <- FFW16_Strategy()
+  p1 <- FFW16_PlantPlus(s1)
 
   c2 <- Control(plant_assimilation_over_distribution=TRUE)
-  s2 <- Strategy(control=c2)
-  p2 <- Plant(s2)
+  s2 <- FFW16_Strategy(control=c2)
+  p2 <- FFW16_PlantPlus(s2)
 
   p1$height <- 10.0
   p2$height <- p1$height
@@ -236,13 +236,13 @@ test_that("Assimilation over distribution", {
 test_that("Non-adaptive assimilation integration works", {
   c1 <- Control(plant_assimilation_adaptive=TRUE,
                 plant_assimilation_over_distribution=TRUE)
-  s1 <- Strategy(control=c1)
-  p1 <- Plant(s1)
+  s1 <- FFW16_Strategy(control=c1)
+  p1 <- FFW16_PlantPlus(s1)
 
   c2 <- Control(plant_assimilation_adaptive=FALSE,
                 plant_assimilation_over_distribution=TRUE)
-  s2 <- Strategy(control=c2)
-  p2 <- Plant(s2)
+  s2 <- FFW16_Strategy(control=c2)
+  p2 <- FFW16_PlantPlus(s2)
 
   p1$height <- 10.0
   p2$height <- p1$height
@@ -260,7 +260,7 @@ test_that("Non-adaptive assimilation integration works", {
 })
 
 test_that("Ode interface", {
-  p <- Plant(Strategy())
+  p <- FFW16_PlantPlus(FFW16_Strategy())
   expect_that(p$ode_size, equals(5))
   expect_that(p$ode_state,
               equals(c(p$height, p$mortality, p$fecundity,

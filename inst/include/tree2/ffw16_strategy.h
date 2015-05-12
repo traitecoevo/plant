@@ -1,19 +1,22 @@
 // -*-c++-*-
-#ifndef TREE2_STRATEGY_H_
-#define TREE2_STRATEGY_H_
+#ifndef TREE2_FFW16_STRATEGY_H_
+#define TREE2_FFW16_STRATEGY_H_
 
 #include <memory>
 #include <tree2/control.h>
-#include <tree2/environment.h>
 #include <tree2/qag_internals.h> // quadrature::intervals_type
-#include <tree2/environment.h>
 
 namespace tree2 {
 
-struct Strategy {
+// Environment needs Parameters to initialise and that needs Strategy,
+// so there's a really awkward circular reference here.  This forward
+// declaration breaks it, but there might be a better solution.
+class Environment;
+
+struct FFW16_Strategy {
 public:
-  typedef std::shared_ptr<Strategy> ptr;
-  Strategy();
+  typedef std::shared_ptr<FFW16_Strategy> ptr;
+  FFW16_Strategy();
 
   // * Size
 
@@ -87,8 +90,8 @@ public:
   double turnover_root(double mass) const;
 
   // [eqn 15] Net production
-  double net_mass_production_dt(double assimilation, double respiration,
-                                double turnover) const;
+  double net_mass_production_dt_A(double assimilation, double respiration,
+                                  double turnover) const;
   double net_mass_production_dt(const Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals=false);
@@ -160,7 +163,7 @@ public:
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
 
-  // Set constants within Strategy
+  // Set constants within FFW16_Strategy
   void prepare_strategy();
 
   // Every Strategy needs a set of Control objects -- these govern
@@ -217,7 +220,7 @@ public:
   double area_leaf_0;
 };
 
-Strategy::ptr make_strategy_ptr(Strategy s);
+FFW16_Strategy::ptr make_strategy_ptr(FFW16_Strategy s);
 
 }
 

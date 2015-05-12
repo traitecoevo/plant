@@ -7,13 +7,13 @@
 ##' specified range.
 ##'
 ##' @title Find point of maximum fitness within some range.
-##' @param trait Name of the trait (e.g., \code{"lma"})
 ##' @param bounds Two element vector specifing range within which to
 ##' search
 ##' @param p Parameters object to use.  Importantly, the
 ##' \code{strategy_default} element gets used here.
 ##' @param log_scale Is the parameter naturally on a log scale?  If
 ##' so, this will greatly speed things up.
+##' @param tol Tolerance used in the optimisation
 ##' @export
 ##' @author Daniel Falster, Rich FitzJohn
 max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {

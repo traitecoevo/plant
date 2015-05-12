@@ -352,23 +352,6 @@ SEXP OdeControl__ctor() {
 
 
 // [[Rcpp::export]]
-SEXP Strategy__ctor() {
-  return Rcpp::wrap(tree2::Strategy());
-}
-
-
-// [[Rcpp::export]]
-SEXP Parameters__ctor() {
-  return Rcpp::wrap(tree2::Parameters());
-}
-
-// [[Rcpp::export]]
-SEXP Parameters__vdor(SEXP obj) {
-  return Rcpp::wrap(Rcpp::as<tree2::Parameters>(obj));
-}
-
-
-// [[Rcpp::export]]
 tree2::quadrature::QK QK__ctor(size_t rule) {
   return tree2::quadrature::QK(rule);
 }
@@ -491,7 +474,7 @@ double Interpolator__max__get(tree2::RcppR6::RcppR6<tree2::interpolator::Interpo
 
 
 // [[Rcpp::export]]
-tree2::Environment Environment__ctor(tree2::Parameters p) {
+tree2::Environment Environment__ctor(tree2::FFW16_Parameters p) {
   return tree2::Environment(p);
 }
 // [[Rcpp::export]]
@@ -550,534 +533,551 @@ void Environment__light_environment__set(tree2::RcppR6::RcppR6<tree2::Environmen
 
 // [[Rcpp::export]]
 SEXP Plant_internals__ctor() {
-  return Rcpp::wrap(tree2::Plant::Internals());
+  return Rcpp::wrap(tree2::Plant_internals());
 }
 
 
 // [[Rcpp::export]]
-tree2::Plant Plant__ctor(tree2::Strategy strategy) {
-  return tree2::make_plant(strategy);
+tree2::Plant<tree2::FFW16_Strategy> Plant___FFW16__ctor(tree2::FFW16_Strategy s) {
+  return tree2::make_plant<tree2::FFW16_Strategy>(s);
 }
 // [[Rcpp::export]]
-double Plant__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double h) {
+double Plant___FFW16__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_, double h) {
   return obj_->area_leaf_above(h);
 }
 // [[Rcpp::export]]
-void Plant__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment) {
+void Plant___FFW16__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_, const tree2::Environment& environment) {
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-void Plant__compute_vars_growth(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
-  obj_->compute_vars_growth();
-}
-// [[Rcpp::export]]
-double Plant__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant> obj_, const tree2::Environment& environment) {
+double Plant___FFW16__germination_probability(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_, const tree2::Environment& environment) {
   return obj_->germination_probability(environment);
 }
 // [[Rcpp::export]]
-double Plant__height__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+double Plant___FFW16__height__get(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_) {
   return obj_->height();
 }
 // [[Rcpp::export]]
-void Plant__height__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+void Plant___FFW16__height__set(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_, double value) {
   obj_->set_height(value);
 }
 
 // [[Rcpp::export]]
-double Plant__mortality__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+double Plant___FFW16__mortality__get(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_) {
   return obj_->mortality();
 }
 // [[Rcpp::export]]
-void Plant__mortality__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+void Plant___FFW16__mortality__set(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_, double value) {
   obj_->set_mortality(value);
 }
 
 // [[Rcpp::export]]
-double Plant__fecundity__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+double Plant___FFW16__fecundity__get(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_) {
   return obj_->fecundity();
 }
 // [[Rcpp::export]]
-void Plant__fecundity__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+void Plant___FFW16__fecundity__set(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_, double value) {
   obj_->set_fecundity(value);
 }
 
 // [[Rcpp::export]]
-double Plant__area_heartwood__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+tree2::FFW16_Strategy Plant___FFW16__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_) {
+  return obj_->r_get_strategy();
+}
+
+// [[Rcpp::export]]
+tree2::Plant<tree2::FFW16_Strategy>::internals Plant___FFW16__internals__get(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_) {
+  return obj_->r_internals();
+}
+
+// [[Rcpp::export]]
+size_t Plant___FFW16__ode_size__get(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_) {
+  return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
+tree2::ode::state_type Plant___FFW16__ode_state__get(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_) {
+  return tree2::ode::r_ode_state(*obj_);
+}
+// [[Rcpp::export]]
+void Plant___FFW16__ode_state__set(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_, tree2::ode::state_type value) {
+  tree2::ode::r_set_ode_state(*obj_, value);
+}
+
+// [[Rcpp::export]]
+tree2::ode::state_type Plant___FFW16__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_) {
+  return tree2::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+std::vector<std::string> Plant___FFW16__ode_names__get(tree2::RcppR6::RcppR6<tree2::Plant<tree2::FFW16_Strategy> > obj_) {
+  return obj_->ode_names();
+}
+
+
+// [[Rcpp::export]]
+tree2::tools::PlantRunner PlantRunner__ctor(tree2::FFW16_PlantPlus plant, tree2::Environment environment) {
+  return tree2::tools::PlantRunner(plant, environment);
+}
+// [[Rcpp::export]]
+tree2::FFW16_PlantPlus PlantRunner__plant__get(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner> obj_) {
+  return obj_->plant;
+}
+// [[Rcpp::export]]
+void PlantRunner__plant__set(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner> obj_, tree2::FFW16_PlantPlus value) {
+  obj_->plant = value;
+}
+
+
+// [[Rcpp::export]]
+SEXP FFW16_Strategy__ctor() {
+  return Rcpp::wrap(tree2::FFW16_Strategy());
+}
+
+
+// [[Rcpp::export]]
+SEXP FFW16_Parameters__ctor() {
+  return Rcpp::wrap(tree2::FFW16_Parameters());
+}
+
+// [[Rcpp::export]]
+SEXP FFW16_Parameters__vdor(SEXP obj) {
+  return Rcpp::wrap(Rcpp::as<tree2::FFW16_Parameters>(obj));
+}
+
+
+// [[Rcpp::export]]
+tree2::FFW16_PlantPlus FFW16_PlantPlus__ctor(tree2::FFW16_Strategy strategy) {
+  return tree2::make_plant_plus(strategy);
+}
+// [[Rcpp::export]]
+double FFW16_PlantPlus__area_leaf_above(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_, double h) {
+  return obj_->area_leaf_above(h);
+}
+// [[Rcpp::export]]
+void FFW16_PlantPlus__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_, const tree2::Environment& environment) {
+  obj_->compute_vars_phys(environment);
+}
+// [[Rcpp::export]]
+void FFW16_PlantPlus__compute_vars_growth(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
+  obj_->compute_vars_growth();
+}
+// [[Rcpp::export]]
+double FFW16_PlantPlus__germination_probability(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_, const tree2::Environment& environment) {
+  return obj_->germination_probability(environment);
+}
+// [[Rcpp::export]]
+double FFW16_PlantPlus__height__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
+  return obj_->height();
+}
+// [[Rcpp::export]]
+void FFW16_PlantPlus__height__set(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_, double value) {
+  obj_->set_height(value);
+}
+
+// [[Rcpp::export]]
+double FFW16_PlantPlus__mortality__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
+  return obj_->mortality();
+}
+// [[Rcpp::export]]
+void FFW16_PlantPlus__mortality__set(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_, double value) {
+  obj_->set_mortality(value);
+}
+
+// [[Rcpp::export]]
+double FFW16_PlantPlus__fecundity__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
+  return obj_->fecundity();
+}
+// [[Rcpp::export]]
+void FFW16_PlantPlus__fecundity__set(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_, double value) {
+  obj_->set_fecundity(value);
+}
+
+// [[Rcpp::export]]
+double FFW16_PlantPlus__area_heartwood__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
   return obj_->area_heartwood();
 }
 // [[Rcpp::export]]
-void Plant__area_heartwood__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+void FFW16_PlantPlus__area_heartwood__set(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_, double value) {
   obj_->set_area_heartwood(value);
 }
 
 // [[Rcpp::export]]
-double Plant__mass_heartwood__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+double FFW16_PlantPlus__mass_heartwood__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
   return obj_->mass_heartwood();
 }
 // [[Rcpp::export]]
-void Plant__mass_heartwood__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, double value) {
+void FFW16_PlantPlus__mass_heartwood__set(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_, double value) {
   obj_->set_mass_heartwood(value);
 }
 
 // [[Rcpp::export]]
-double Plant__area_leaf__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+double FFW16_PlantPlus__area_leaf__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
   return obj_->area_leaf();
 }
 
 // [[Rcpp::export]]
-tree2::Strategy Plant__strategy__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+tree2::FFW16_Strategy FFW16_PlantPlus__strategy__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
   return obj_->r_get_strategy();
 }
 
 // [[Rcpp::export]]
-tree2::Plant::Internals Plant__internals__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+tree2::FFW16_PlantPlus::internals FFW16_PlantPlus__internals__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
   return obj_->r_internals();
 }
 
 // [[Rcpp::export]]
-size_t Plant__ode_size__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+size_t FFW16_PlantPlus__ode_size__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-tree2::ode::state_type Plant__ode_state__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+tree2::ode::state_type FFW16_PlantPlus__ode_state__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
   return tree2::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Plant__ode_state__set(tree2::RcppR6::RcppR6<tree2::Plant> obj_, tree2::ode::state_type value) {
+void FFW16_PlantPlus__ode_state__set(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_, tree2::ode::state_type value) {
   tree2::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-tree2::ode::state_type Plant__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+tree2::ode::state_type FFW16_PlantPlus__ode_rates__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
   return tree2::ode::r_ode_rates(*obj_);
 }
 
 // [[Rcpp::export]]
-std::vector<std::string> Plant__ode_names__get(tree2::RcppR6::RcppR6<tree2::Plant> obj_) {
+std::vector<std::string> FFW16_PlantPlus__ode_names__get(tree2::RcppR6::RcppR6<tree2::FFW16_PlantPlus> obj_) {
   return obj_->ode_names();
 }
 
 
 // [[Rcpp::export]]
-SEXP PlantMinimal_internals__ctor() {
-  return Rcpp::wrap(tree2::PlantMinimal_internals());
+SEXP FFW16_PlantPlus_internals__ctor() {
+  return Rcpp::wrap(tree2::FFW16_PlantPlus::internals());
 }
 
 
 // [[Rcpp::export]]
-tree2::PlantMinimal<tree2::Strategy> PlantMinimal__ctor(tree2::Strategy strategy) {
-  return tree2::make_plant_minimal<tree2::Strategy>(strategy);
+tree2::Cohort<tree2::FFW16_Plant> FFW16_Cohort__ctor(tree2::FFW16_Strategy strategy) {
+  return tree2::make_cohort<tree2::FFW16_Plant>(strategy);
 }
 // [[Rcpp::export]]
-double PlantMinimal__area_leaf_above(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, double h) {
-  return obj_->area_leaf_above(h);
-}
-// [[Rcpp::export]]
-void PlantMinimal__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, const tree2::Environment& environment) {
-  obj_->compute_vars_phys(environment);
-}
-// [[Rcpp::export]]
-double PlantMinimal__germination_probability(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, const tree2::Environment& environment) {
-  return obj_->germination_probability(environment);
-}
-// [[Rcpp::export]]
-double PlantMinimal__height__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_) {
-  return obj_->height();
-}
-// [[Rcpp::export]]
-void PlantMinimal__height__set(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, double value) {
-  obj_->set_height(value);
-}
-
-// [[Rcpp::export]]
-double PlantMinimal__mortality__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_) {
-  return obj_->mortality();
-}
-// [[Rcpp::export]]
-void PlantMinimal__mortality__set(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, double value) {
-  obj_->set_mortality(value);
-}
-
-// [[Rcpp::export]]
-double PlantMinimal__fecundity__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_) {
-  return obj_->fecundity();
-}
-// [[Rcpp::export]]
-void PlantMinimal__fecundity__set(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, double value) {
-  obj_->set_fecundity(value);
-}
-
-// [[Rcpp::export]]
-tree2::Strategy PlantMinimal__strategy__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_) {
-  return obj_->r_get_strategy();
-}
-
-// [[Rcpp::export]]
-tree2::PlantMinimal_internals PlantMinimal__internals__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_) {
-  return obj_->r_internals();
-}
-
-// [[Rcpp::export]]
-size_t PlantMinimal__ode_size__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_) {
-  return obj_->ode_size();
-}
-
-// [[Rcpp::export]]
-tree2::ode::state_type PlantMinimal__ode_state__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_) {
-  return tree2::ode::r_ode_state(*obj_);
-}
-// [[Rcpp::export]]
-void PlantMinimal__ode_state__set(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_, tree2::ode::state_type value) {
-  tree2::ode::r_set_ode_state(*obj_, value);
-}
-
-// [[Rcpp::export]]
-tree2::ode::state_type PlantMinimal__ode_rates__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_) {
-  return tree2::ode::r_ode_rates(*obj_);
-}
-
-// [[Rcpp::export]]
-std::vector<std::string> PlantMinimal__ode_names__get(tree2::RcppR6::RcppR6<tree2::PlantMinimal<tree2::Strategy> > obj_) {
-  return obj_->ode_names();
-}
-
-
-// [[Rcpp::export]]
-tree2::Cohort<tree2::PlantFF> Cohort__ctor(tree2::Strategy strategy) {
-  return tree2::make_cohort<tree2::PlantFF>(strategy);
-}
-// [[Rcpp::export]]
-double Cohort__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_, double height) {
+double FFW16_Cohort__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_, double height) {
   return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
-double Cohort__growth_rate_gradient(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_, const tree2::Environment& environment) {
+double FFW16_Cohort__growth_rate_gradient(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_, const tree2::Environment& environment) {
   return obj_->r_growth_rate_gradient(environment);
 }
 // [[Rcpp::export]]
-void Cohort__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_, const tree2::Environment& environment) {
+void FFW16_Cohort__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_, const tree2::Environment& environment) {
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-void Cohort__compute_initial_conditions(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_, const tree2::Environment& environment) {
+void FFW16_Cohort__compute_initial_conditions(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_, const tree2::Environment& environment) {
   obj_->compute_initial_conditions(environment);
 }
 // [[Rcpp::export]]
-tree2::PlantFF Cohort__plant__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_) {
+tree2::FFW16_Plant FFW16_Cohort__plant__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_) {
   return obj_->plant;
 }
 
 // [[Rcpp::export]]
-double Cohort__height__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_) {
+double FFW16_Cohort__height__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_) {
   return obj_->height();
 }
 
 // [[Rcpp::export]]
-double Cohort__area_leaf__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_) {
+double FFW16_Cohort__area_leaf__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_) {
   return obj_->area_leaf();
 }
 
 // [[Rcpp::export]]
-double Cohort__fecundity__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_) {
+double FFW16_Cohort__fecundity__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_) {
   return obj_->fecundity();
 }
 
 // [[Rcpp::export]]
-size_t Cohort__ode_size__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_) {
+size_t FFW16_Cohort__ode_size__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-tree2::ode::state_type Cohort__ode_state__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_) {
+tree2::ode::state_type FFW16_Cohort__ode_state__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_) {
   return tree2::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Cohort__ode_state__set(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_, tree2::ode::state_type value) {
+void FFW16_Cohort__ode_state__set(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_, tree2::ode::state_type value) {
   tree2::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-tree2::ode::state_type Cohort__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::PlantFF> > obj_) {
+tree2::ode::state_type FFW16_Cohort__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Cohort<tree2::FFW16_Plant> > obj_) {
   return tree2::ode::r_ode_rates(*obj_);
 }
 
 
 // [[Rcpp::export]]
-tree2::Species<tree2::PlantFF> Species__ctor(tree2::Strategy strategy) {
-  return tree2::Species<tree2::PlantFF>(strategy);
+tree2::Species<tree2::FFW16_Plant> FFW16_Species__ctor(tree2::FFW16_Strategy strategy) {
+  return tree2::Species<tree2::FFW16_Plant>(strategy);
 }
 // [[Rcpp::export]]
-void Species__clear(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+void FFW16_Species__clear(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
-void Species__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_, const tree2::Environment& environment) {
+void FFW16_Species__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_, const tree2::Environment& environment) {
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-double Species__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_, double height) {
+double FFW16_Species__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_, double height) {
   return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
-void Species__add_seed(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+void FFW16_Species__add_seed(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   obj_->add_seed();
 }
 // [[Rcpp::export]]
-tree2::Cohort<tree2::PlantFF> Species__plant_at(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_, tree2::util::index index) {
+tree2::Cohort<tree2::FFW16_Plant> FFW16_Species__plant_at(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_, tree2::util::index index) {
   return obj_->r_plant_at(index);
 }
 // [[Rcpp::export]]
-std::vector<double> Species__area_leafs_error(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_, double scal) {
+std::vector<double> FFW16_Species__area_leafs_error(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_, double scal) {
   return obj_->r_area_leafs_error(scal);
 }
 // [[Rcpp::export]]
-size_t Species__size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+size_t FFW16_Species__size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   return obj_->size();
 }
 
 // [[Rcpp::export]]
-tree2::Cohort<tree2::PlantFF> Species__seed__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+tree2::Cohort<tree2::FFW16_Plant> FFW16_Species__seed__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   return obj_->r_seed();
 }
 
 // [[Rcpp::export]]
-double Species__height_max__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+double FFW16_Species__height_max__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   return obj_->height_max();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species__heights__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+std::vector<double> FFW16_Species__heights__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   return obj_->r_heights();
 }
 // [[Rcpp::export]]
-void Species__heights__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_, std::vector<double> value) {
+void FFW16_Species__heights__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_, std::vector<double> value) {
   obj_->r_set_heights(value);
 }
 
 // [[Rcpp::export]]
-std::vector<tree2::Cohort<tree2::PlantFF> > Species__plants__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+std::vector<tree2::Cohort<tree2::FFW16_Plant> > FFW16_Species__plants__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   return obj_->r_plants();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species__seeds__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+std::vector<double> FFW16_Species__seeds__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   return obj_->seeds();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species__area_leafs__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+std::vector<double> FFW16_Species__area_leafs__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   return obj_->r_area_leafs();
 }
 
 // [[Rcpp::export]]
-size_t Species__ode_size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+size_t FFW16_Species__ode_size__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-tree2::ode::state_type Species__ode_state__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+tree2::ode::state_type FFW16_Species__ode_state__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   return tree2::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Species__ode_state__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_, tree2::ode::state_type value) {
+void FFW16_Species__ode_state__set(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_, tree2::ode::state_type value) {
   tree2::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-tree2::ode::state_type Species__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::PlantFF> > obj_) {
+tree2::ode::state_type FFW16_Species__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Species<tree2::FFW16_Plant> > obj_) {
   return tree2::ode::r_ode_rates(*obj_);
 }
 
 
 // [[Rcpp::export]]
-tree2::Patch<tree2::PlantFF> Patch__ctor(tree2::Parameters parameters) {
-  return tree2::Patch<tree2::PlantFF>(parameters);
+tree2::Patch<tree2::FFW16_Plant> FFW16_Patch__ctor(tree2::FFW16_Parameters parameters) {
+  return tree2::Patch<tree2::FFW16_Plant>(parameters);
 }
 // [[Rcpp::export]]
-double Patch__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_, double height) {
+double FFW16_Patch__area_leaf_above(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_, double height) {
   return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
-double Patch__canopy_openness(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_, double height) {
+double FFW16_Patch__canopy_openness(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_, double height) {
   return obj_->canopy_openness(height);
 }
 // [[Rcpp::export]]
-void Patch__add_seed(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_, tree2::util::index species_index) {
+void FFW16_Patch__add_seed(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_, tree2::util::index species_index) {
   obj_->r_add_seed(species_index);
 }
 // [[Rcpp::export]]
-void Patch__compute_light_environment(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+void FFW16_Patch__compute_light_environment(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   obj_->r_compute_light_environment();
 }
 // [[Rcpp::export]]
-void Patch__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+void FFW16_Patch__compute_vars_phys(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   obj_->r_compute_vars_phys();
 }
 // [[Rcpp::export]]
-void Patch__reset(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+void FFW16_Patch__reset(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   obj_->reset();
 }
 // [[Rcpp::export]]
-void Patch__set_ode_state(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_, tree2::ode::state_type values, double time) {
+void FFW16_Patch__set_ode_state(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_, tree2::ode::state_type values, double time) {
   tree2::ode::r_set_ode_state(*obj_, values, time);
 }
 // [[Rcpp::export]]
-tree2::ode::state_type Patch__derivs(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_, const tree2::ode::state_type& y, double time) {
+tree2::ode::state_type FFW16_Patch__derivs(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_, const tree2::ode::state_type& y, double time) {
   return tree2::ode::r_derivs(*obj_, y, time);
 }
 // [[Rcpp::export]]
-double Patch__time__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+double FFW16_Patch__time__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-size_t Patch__size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+size_t FFW16_Patch__size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   return obj_->size();
 }
 
 // [[Rcpp::export]]
-double Patch__height_max__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+double FFW16_Patch__height_max__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   return obj_->height_max();
 }
 
 // [[Rcpp::export]]
-tree2::Parameters Patch__parameters__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+tree2::FFW16_Parameters FFW16_Patch__parameters__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   return obj_->r_parameters();
 }
 
 // [[Rcpp::export]]
-tree2::Environment Patch__environment__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+tree2::Environment FFW16_Patch__environment__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   return obj_->r_environment();
 }
 
 // [[Rcpp::export]]
-std::vector<tree2::Species<tree2::PlantFF> > Patch__species__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+std::vector<tree2::Species<tree2::FFW16_Plant> > FFW16_Patch__species__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   return obj_->r_species();
 }
 
 // [[Rcpp::export]]
-size_t Patch__ode_size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+size_t FFW16_Patch__ode_size__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-double Patch__ode_time__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+double FFW16_Patch__ode_time__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   return tree2::ode::r_ode_time(*obj_);
 }
 
 // [[Rcpp::export]]
-tree2::ode::state_type Patch__ode_state__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+tree2::ode::state_type FFW16_Patch__ode_state__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   return tree2::ode::r_ode_state(*obj_);
 }
 
 // [[Rcpp::export]]
-tree2::ode::state_type Patch__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::PlantFF> > obj_) {
+tree2::ode::state_type FFW16_Patch__ode_rates__get(tree2::RcppR6::RcppR6<tree2::Patch<tree2::FFW16_Plant> > obj_) {
   return tree2::ode::r_ode_rates(*obj_);
 }
 
 
 // [[Rcpp::export]]
-tree2::EBT<tree2::PlantFF> EBT__ctor(tree2::Parameters parameters) {
-  return tree2::EBT<tree2::PlantFF>(parameters);
+tree2::EBT<tree2::FFW16_Plant> FFW16_EBT__ctor(tree2::FFW16_Parameters parameters) {
+  return tree2::EBT<tree2::FFW16_Plant>(parameters);
 }
 // [[Rcpp::export]]
-void EBT__run(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+void FFW16_EBT__run(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   obj_->run();
 }
 // [[Rcpp::export]]
-std::vector<tree2::util::index> EBT__run_next(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+std::vector<tree2::util::index> FFW16_EBT__run_next(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return obj_->r_run_next();
 }
 // [[Rcpp::export]]
-void EBT__reset(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+void FFW16_EBT__reset(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   obj_->reset();
 }
 // [[Rcpp::export]]
-double EBT__seed_rain(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_, tree2::util::index species_index) {
+double FFW16_EBT__seed_rain(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_, tree2::util::index species_index) {
   return obj_->r_seed_rain(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT__seed_rain_cohort(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_, tree2::util::index species_index) {
+std::vector<double> FFW16_EBT__seed_rain_cohort(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_, tree2::util::index species_index) {
   return obj_->r_seed_rain_cohort(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT__area_leaf_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_, tree2::util::index species_index) {
+std::vector<double> FFW16_EBT__area_leaf_error(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_, tree2::util::index species_index) {
   return obj_->r_area_leaf_error(species_index);
 }
 // [[Rcpp::export]]
-void EBT__set_cohort_schedule_times(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_, std::vector<std::vector<double> > times) {
+void FFW16_EBT__set_cohort_schedule_times(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_, std::vector<std::vector<double> > times) {
   obj_->r_set_cohort_schedule_times(times);
 }
 // [[Rcpp::export]]
-bool EBT__complete__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+bool FFW16_EBT__complete__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return obj_->complete();
 }
 
 // [[Rcpp::export]]
-double EBT__time__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+double FFW16_EBT__time__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-std::vector<double> EBT__seed_rains__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+std::vector<double> FFW16_EBT__seed_rains__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return obj_->seed_rains();
 }
 
 // [[Rcpp::export]]
-tree2::Parameters EBT__parameters__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+tree2::FFW16_Parameters FFW16_EBT__parameters__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return obj_->r_parameters();
 }
 
 // [[Rcpp::export]]
-tree2::Patch<tree2::PlantFF> EBT__patch__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+tree2::Patch<tree2::FFW16_Plant> FFW16_EBT__patch__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return obj_->r_patch();
 }
 
 // [[Rcpp::export]]
-tree2::CohortSchedule EBT__cohort_schedule__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+tree2::CohortSchedule FFW16_EBT__cohort_schedule__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return obj_->r_cohort_schedule();
 }
 // [[Rcpp::export]]
-void EBT__cohort_schedule__set(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_, tree2::CohortSchedule value) {
+void FFW16_EBT__cohort_schedule__set(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_, tree2::CohortSchedule value) {
   obj_->r_set_cohort_schedule(value);
 }
 
 // [[Rcpp::export]]
-std::vector<double> EBT__ode_times__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+std::vector<double> FFW16_EBT__ode_times__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return obj_->r_ode_times();
 }
 
 // [[Rcpp::export]]
-Rcpp::List EBT__state__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+Rcpp::List FFW16_EBT__state__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return tree2::get_state(*obj_);
 }
 
 // [[Rcpp::export]]
-bool EBT__use_ode_times__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+bool FFW16_EBT__use_ode_times__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return obj_->r_use_ode_times();
 }
 // [[Rcpp::export]]
-void EBT__use_ode_times__set(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_, bool value) {
+void FFW16_EBT__use_ode_times__set(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_, bool value) {
   obj_->r_set_use_ode_times(value);
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double> > EBT__seed_rain_error__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::PlantFF> > obj_) {
+std::vector<std::vector<double> > FFW16_EBT__seed_rain_error__get(tree2::RcppR6::RcppR6<tree2::EBT<tree2::FFW16_Plant> > obj_) {
   return obj_->r_seed_rain_error();
-}
-
-
-// [[Rcpp::export]]
-tree2::tools::PlantRunner PlantRunner__ctor(tree2::Plant plant, tree2::Environment environment) {
-  return tree2::tools::PlantRunner(plant, environment);
-}
-// [[Rcpp::export]]
-tree2::Plant PlantRunner__plant__get(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner> obj_) {
-  return obj_->plant;
-}
-// [[Rcpp::export]]
-void PlantRunner__plant__set(tree2::RcppR6::RcppR6<tree2::tools::PlantRunner> obj_, tree2::Plant value) {
-  obj_->plant = value;
 }
 

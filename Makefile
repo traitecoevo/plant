@@ -1,10 +1,11 @@
 PACKAGE := $(shell grep '^Package:' DESCRIPTION | sed -E 's/^Package:[[:space:]]+//')
+RSCRIPT = Rscript --no-init-file
 
 all:
-# This is probably The Right Way to do this:
-#	Rscript -e 'devtools::compile_dll()'
-# but will overzealosuly compile everything.
 	cd src; R CMD SHLIB *.cpp -o ${PACKAGE}.so
+
+compile_dll:
+	Rscript -e 'devtools::compile_dll()'
 
 test:
 	Rscript -e 'library(methods); devtools::test()'
@@ -22,6 +23,9 @@ roxygen:
 install:
 	R CMD INSTALL .
 
+build:
+	R CMD build .
+
 check: build
 	R CMD check --no-manual `ls -1tr ${PACKAGE}*gz | tail -n1`
 	@rm -f `ls -1tr ${PACKAGE}*gz | tail -n1`
@@ -30,4 +34,4 @@ check: build
 clean:
 	rm -f src/*.o src/*.so
 
-.PHONY: all doc clean test install
+.PHONY: all compile_dll doc clean test install

@@ -11,9 +11,11 @@ template <typename T>
 class Patch {
 public:
   typedef T plant_type;
+  typedef typename T::strategy_type strategy_type;
+  typedef Parameters<strategy_type> parameters_type;
   typedef Cohort<plant_type> cohort_type;
   typedef Species<plant_type> species_type;
-  Patch(Parameters p);
+  Patch(parameters_type p);
 
   void reset();
   size_t size() const {return species.size();}
@@ -47,7 +49,7 @@ public:
 
   // * R interface
   // Data accessors:
-  Parameters r_parameters() const {return parameters;}
+  parameters_type r_parameters() const {return parameters;}
   Environment r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
   std::vector<double> r_area_leaf_error(size_t species_index) const;
@@ -67,14 +69,14 @@ private:
   void rescale_light_environment();
   void compute_vars_phys();
 
-  Parameters parameters;
+  parameters_type parameters;
   std::vector<bool> is_resident;
   Environment environment;
   std::vector<Species<T> > species;
 };
 
 template <typename T>
-Patch<T>::Patch(Parameters p)
+Patch<T>::Patch(parameters_type p)
   : parameters(p),
     is_resident(p.is_resident),
     environment(parameters) {

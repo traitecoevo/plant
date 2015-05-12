@@ -24,13 +24,6 @@ test_adaptive_interpolator <- function(f, a, b) {
 #' @title Generate Default Cohort Introduction Times
 #' @param max_time Time to generate introduction times up to (the
 #' last introduction time will be at least \code{max_time}).
-#' @param multiplier The rate of increase of step size with time.
-#' The greater the number the faster step size will increase.
-#' @param min_step_size The smallest gap between introduction times
-#' (must be greater than zero, and will be the first introduction
-#' time).
-#' @param max_step_size The largest gap between introduction times
-#' (may be infinite).
 #' @return Vector of introduction times.
 #' @export
 #' @author Rich FitzJohn, adapted from original C++ code by Daniel
@@ -367,18 +360,6 @@ OdeControl__ctor <- function() {
     .Call('tree2_OdeControl__ctor', PACKAGE = 'tree2')
 }
 
-Strategy__ctor <- function() {
-    .Call('tree2_Strategy__ctor', PACKAGE = 'tree2')
-}
-
-Parameters__ctor <- function() {
-    .Call('tree2_Parameters__ctor', PACKAGE = 'tree2')
-}
-
-Parameters__vdor <- function(obj) {
-    .Call('tree2_Parameters__vdor', PACKAGE = 'tree2', obj)
-}
-
 QK__ctor <- function(rule) {
     .Call('tree2_QK__ctor', PACKAGE = 'tree2', rule)
 }
@@ -539,452 +520,72 @@ Plant_internals__ctor <- function() {
     .Call('tree2_Plant_internals__ctor', PACKAGE = 'tree2')
 }
 
-Plant__ctor <- function(strategy) {
-    .Call('tree2_Plant__ctor', PACKAGE = 'tree2', strategy)
+Plant___FFW16__ctor <- function(s) {
+    .Call('tree2_Plant___FFW16__ctor', PACKAGE = 'tree2', s)
 }
 
-Plant__area_leaf_above <- function(obj_, h) {
-    .Call('tree2_Plant__area_leaf_above', PACKAGE = 'tree2', obj_, h)
+Plant___FFW16__area_leaf_above <- function(obj_, h) {
+    .Call('tree2_Plant___FFW16__area_leaf_above', PACKAGE = 'tree2', obj_, h)
 }
 
-Plant__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('tree2_Plant__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
+Plant___FFW16__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('tree2_Plant___FFW16__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
 }
 
-Plant__compute_vars_growth <- function(obj_) {
-    invisible(.Call('tree2_Plant__compute_vars_growth', PACKAGE = 'tree2', obj_))
+Plant___FFW16__germination_probability <- function(obj_, environment) {
+    .Call('tree2_Plant___FFW16__germination_probability', PACKAGE = 'tree2', obj_, environment)
 }
 
-Plant__germination_probability <- function(obj_, environment) {
-    .Call('tree2_Plant__germination_probability', PACKAGE = 'tree2', obj_, environment)
+Plant___FFW16__height__get <- function(obj_) {
+    .Call('tree2_Plant___FFW16__height__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant__height__get <- function(obj_) {
-    .Call('tree2_Plant__height__get', PACKAGE = 'tree2', obj_)
+Plant___FFW16__height__set <- function(obj_, value) {
+    invisible(.Call('tree2_Plant___FFW16__height__set', PACKAGE = 'tree2', obj_, value))
 }
 
-Plant__height__set <- function(obj_, value) {
-    invisible(.Call('tree2_Plant__height__set', PACKAGE = 'tree2', obj_, value))
+Plant___FFW16__mortality__get <- function(obj_) {
+    .Call('tree2_Plant___FFW16__mortality__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant__mortality__get <- function(obj_) {
-    .Call('tree2_Plant__mortality__get', PACKAGE = 'tree2', obj_)
+Plant___FFW16__mortality__set <- function(obj_, value) {
+    invisible(.Call('tree2_Plant___FFW16__mortality__set', PACKAGE = 'tree2', obj_, value))
 }
 
-Plant__mortality__set <- function(obj_, value) {
-    invisible(.Call('tree2_Plant__mortality__set', PACKAGE = 'tree2', obj_, value))
+Plant___FFW16__fecundity__get <- function(obj_) {
+    .Call('tree2_Plant___FFW16__fecundity__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant__fecundity__get <- function(obj_) {
-    .Call('tree2_Plant__fecundity__get', PACKAGE = 'tree2', obj_)
+Plant___FFW16__fecundity__set <- function(obj_, value) {
+    invisible(.Call('tree2_Plant___FFW16__fecundity__set', PACKAGE = 'tree2', obj_, value))
 }
 
-Plant__fecundity__set <- function(obj_, value) {
-    invisible(.Call('tree2_Plant__fecundity__set', PACKAGE = 'tree2', obj_, value))
+Plant___FFW16__strategy__get <- function(obj_) {
+    .Call('tree2_Plant___FFW16__strategy__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant__area_heartwood__get <- function(obj_) {
-    .Call('tree2_Plant__area_heartwood__get', PACKAGE = 'tree2', obj_)
+Plant___FFW16__internals__get <- function(obj_) {
+    .Call('tree2_Plant___FFW16__internals__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant__area_heartwood__set <- function(obj_, value) {
-    invisible(.Call('tree2_Plant__area_heartwood__set', PACKAGE = 'tree2', obj_, value))
+Plant___FFW16__ode_size__get <- function(obj_) {
+    .Call('tree2_Plant___FFW16__ode_size__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant__mass_heartwood__get <- function(obj_) {
-    .Call('tree2_Plant__mass_heartwood__get', PACKAGE = 'tree2', obj_)
+Plant___FFW16__ode_state__get <- function(obj_) {
+    .Call('tree2_Plant___FFW16__ode_state__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant__mass_heartwood__set <- function(obj_, value) {
-    invisible(.Call('tree2_Plant__mass_heartwood__set', PACKAGE = 'tree2', obj_, value))
+Plant___FFW16__ode_state__set <- function(obj_, value) {
+    invisible(.Call('tree2_Plant___FFW16__ode_state__set', PACKAGE = 'tree2', obj_, value))
 }
 
-Plant__area_leaf__get <- function(obj_) {
-    .Call('tree2_Plant__area_leaf__get', PACKAGE = 'tree2', obj_)
+Plant___FFW16__ode_rates__get <- function(obj_) {
+    .Call('tree2_Plant___FFW16__ode_rates__get', PACKAGE = 'tree2', obj_)
 }
 
-Plant__strategy__get <- function(obj_) {
-    .Call('tree2_Plant__strategy__get', PACKAGE = 'tree2', obj_)
-}
-
-Plant__internals__get <- function(obj_) {
-    .Call('tree2_Plant__internals__get', PACKAGE = 'tree2', obj_)
-}
-
-Plant__ode_size__get <- function(obj_) {
-    .Call('tree2_Plant__ode_size__get', PACKAGE = 'tree2', obj_)
-}
-
-Plant__ode_state__get <- function(obj_) {
-    .Call('tree2_Plant__ode_state__get', PACKAGE = 'tree2', obj_)
-}
-
-Plant__ode_state__set <- function(obj_, value) {
-    invisible(.Call('tree2_Plant__ode_state__set', PACKAGE = 'tree2', obj_, value))
-}
-
-Plant__ode_rates__get <- function(obj_) {
-    .Call('tree2_Plant__ode_rates__get', PACKAGE = 'tree2', obj_)
-}
-
-Plant__ode_names__get <- function(obj_) {
-    .Call('tree2_Plant__ode_names__get', PACKAGE = 'tree2', obj_)
-}
-
-PlantMinimal_internals__ctor <- function() {
-    .Call('tree2_PlantMinimal_internals__ctor', PACKAGE = 'tree2')
-}
-
-PlantMinimal__ctor <- function(strategy) {
-    .Call('tree2_PlantMinimal__ctor', PACKAGE = 'tree2', strategy)
-}
-
-PlantMinimal__area_leaf_above <- function(obj_, h) {
-    .Call('tree2_PlantMinimal__area_leaf_above', PACKAGE = 'tree2', obj_, h)
-}
-
-PlantMinimal__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('tree2_PlantMinimal__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
-}
-
-PlantMinimal__germination_probability <- function(obj_, environment) {
-    .Call('tree2_PlantMinimal__germination_probability', PACKAGE = 'tree2', obj_, environment)
-}
-
-PlantMinimal__height__get <- function(obj_) {
-    .Call('tree2_PlantMinimal__height__get', PACKAGE = 'tree2', obj_)
-}
-
-PlantMinimal__height__set <- function(obj_, value) {
-    invisible(.Call('tree2_PlantMinimal__height__set', PACKAGE = 'tree2', obj_, value))
-}
-
-PlantMinimal__mortality__get <- function(obj_) {
-    .Call('tree2_PlantMinimal__mortality__get', PACKAGE = 'tree2', obj_)
-}
-
-PlantMinimal__mortality__set <- function(obj_, value) {
-    invisible(.Call('tree2_PlantMinimal__mortality__set', PACKAGE = 'tree2', obj_, value))
-}
-
-PlantMinimal__fecundity__get <- function(obj_) {
-    .Call('tree2_PlantMinimal__fecundity__get', PACKAGE = 'tree2', obj_)
-}
-
-PlantMinimal__fecundity__set <- function(obj_, value) {
-    invisible(.Call('tree2_PlantMinimal__fecundity__set', PACKAGE = 'tree2', obj_, value))
-}
-
-PlantMinimal__strategy__get <- function(obj_) {
-    .Call('tree2_PlantMinimal__strategy__get', PACKAGE = 'tree2', obj_)
-}
-
-PlantMinimal__internals__get <- function(obj_) {
-    .Call('tree2_PlantMinimal__internals__get', PACKAGE = 'tree2', obj_)
-}
-
-PlantMinimal__ode_size__get <- function(obj_) {
-    .Call('tree2_PlantMinimal__ode_size__get', PACKAGE = 'tree2', obj_)
-}
-
-PlantMinimal__ode_state__get <- function(obj_) {
-    .Call('tree2_PlantMinimal__ode_state__get', PACKAGE = 'tree2', obj_)
-}
-
-PlantMinimal__ode_state__set <- function(obj_, value) {
-    invisible(.Call('tree2_PlantMinimal__ode_state__set', PACKAGE = 'tree2', obj_, value))
-}
-
-PlantMinimal__ode_rates__get <- function(obj_) {
-    .Call('tree2_PlantMinimal__ode_rates__get', PACKAGE = 'tree2', obj_)
-}
-
-PlantMinimal__ode_names__get <- function(obj_) {
-    .Call('tree2_PlantMinimal__ode_names__get', PACKAGE = 'tree2', obj_)
-}
-
-Cohort__ctor <- function(strategy) {
-    .Call('tree2_Cohort__ctor', PACKAGE = 'tree2', strategy)
-}
-
-Cohort__area_leaf_above <- function(obj_, height) {
-    .Call('tree2_Cohort__area_leaf_above', PACKAGE = 'tree2', obj_, height)
-}
-
-Cohort__growth_rate_gradient <- function(obj_, environment) {
-    .Call('tree2_Cohort__growth_rate_gradient', PACKAGE = 'tree2', obj_, environment)
-}
-
-Cohort__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('tree2_Cohort__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
-}
-
-Cohort__compute_initial_conditions <- function(obj_, environment) {
-    invisible(.Call('tree2_Cohort__compute_initial_conditions', PACKAGE = 'tree2', obj_, environment))
-}
-
-Cohort__plant__get <- function(obj_) {
-    .Call('tree2_Cohort__plant__get', PACKAGE = 'tree2', obj_)
-}
-
-Cohort__height__get <- function(obj_) {
-    .Call('tree2_Cohort__height__get', PACKAGE = 'tree2', obj_)
-}
-
-Cohort__area_leaf__get <- function(obj_) {
-    .Call('tree2_Cohort__area_leaf__get', PACKAGE = 'tree2', obj_)
-}
-
-Cohort__fecundity__get <- function(obj_) {
-    .Call('tree2_Cohort__fecundity__get', PACKAGE = 'tree2', obj_)
-}
-
-Cohort__ode_size__get <- function(obj_) {
-    .Call('tree2_Cohort__ode_size__get', PACKAGE = 'tree2', obj_)
-}
-
-Cohort__ode_state__get <- function(obj_) {
-    .Call('tree2_Cohort__ode_state__get', PACKAGE = 'tree2', obj_)
-}
-
-Cohort__ode_state__set <- function(obj_, value) {
-    invisible(.Call('tree2_Cohort__ode_state__set', PACKAGE = 'tree2', obj_, value))
-}
-
-Cohort__ode_rates__get <- function(obj_) {
-    .Call('tree2_Cohort__ode_rates__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__ctor <- function(strategy) {
-    .Call('tree2_Species__ctor', PACKAGE = 'tree2', strategy)
-}
-
-Species__clear <- function(obj_) {
-    invisible(.Call('tree2_Species__clear', PACKAGE = 'tree2', obj_))
-}
-
-Species__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('tree2_Species__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
-}
-
-Species__area_leaf_above <- function(obj_, height) {
-    .Call('tree2_Species__area_leaf_above', PACKAGE = 'tree2', obj_, height)
-}
-
-Species__add_seed <- function(obj_) {
-    invisible(.Call('tree2_Species__add_seed', PACKAGE = 'tree2', obj_))
-}
-
-Species__plant_at <- function(obj_, index) {
-    .Call('tree2_Species__plant_at', PACKAGE = 'tree2', obj_, index)
-}
-
-Species__area_leafs_error <- function(obj_, scal) {
-    .Call('tree2_Species__area_leafs_error', PACKAGE = 'tree2', obj_, scal)
-}
-
-Species__size__get <- function(obj_) {
-    .Call('tree2_Species__size__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__seed__get <- function(obj_) {
-    .Call('tree2_Species__seed__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__height_max__get <- function(obj_) {
-    .Call('tree2_Species__height_max__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__heights__get <- function(obj_) {
-    .Call('tree2_Species__heights__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__heights__set <- function(obj_, value) {
-    invisible(.Call('tree2_Species__heights__set', PACKAGE = 'tree2', obj_, value))
-}
-
-Species__plants__get <- function(obj_) {
-    .Call('tree2_Species__plants__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__seeds__get <- function(obj_) {
-    .Call('tree2_Species__seeds__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__area_leafs__get <- function(obj_) {
-    .Call('tree2_Species__area_leafs__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__ode_size__get <- function(obj_) {
-    .Call('tree2_Species__ode_size__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__ode_state__get <- function(obj_) {
-    .Call('tree2_Species__ode_state__get', PACKAGE = 'tree2', obj_)
-}
-
-Species__ode_state__set <- function(obj_, value) {
-    invisible(.Call('tree2_Species__ode_state__set', PACKAGE = 'tree2', obj_, value))
-}
-
-Species__ode_rates__get <- function(obj_) {
-    .Call('tree2_Species__ode_rates__get', PACKAGE = 'tree2', obj_)
-}
-
-Patch__ctor <- function(parameters) {
-    .Call('tree2_Patch__ctor', PACKAGE = 'tree2', parameters)
-}
-
-Patch__area_leaf_above <- function(obj_, height) {
-    .Call('tree2_Patch__area_leaf_above', PACKAGE = 'tree2', obj_, height)
-}
-
-Patch__canopy_openness <- function(obj_, height) {
-    .Call('tree2_Patch__canopy_openness', PACKAGE = 'tree2', obj_, height)
-}
-
-Patch__add_seed <- function(obj_, species_index) {
-    invisible(.Call('tree2_Patch__add_seed', PACKAGE = 'tree2', obj_, species_index))
-}
-
-Patch__compute_light_environment <- function(obj_) {
-    invisible(.Call('tree2_Patch__compute_light_environment', PACKAGE = 'tree2', obj_))
-}
-
-Patch__compute_vars_phys <- function(obj_) {
-    invisible(.Call('tree2_Patch__compute_vars_phys', PACKAGE = 'tree2', obj_))
-}
-
-Patch__reset <- function(obj_) {
-    invisible(.Call('tree2_Patch__reset', PACKAGE = 'tree2', obj_))
-}
-
-Patch__set_ode_state <- function(obj_, values, time) {
-    invisible(.Call('tree2_Patch__set_ode_state', PACKAGE = 'tree2', obj_, values, time))
-}
-
-Patch__derivs <- function(obj_, y, time) {
-    .Call('tree2_Patch__derivs', PACKAGE = 'tree2', obj_, y, time)
-}
-
-Patch__time__get <- function(obj_) {
-    .Call('tree2_Patch__time__get', PACKAGE = 'tree2', obj_)
-}
-
-Patch__size__get <- function(obj_) {
-    .Call('tree2_Patch__size__get', PACKAGE = 'tree2', obj_)
-}
-
-Patch__height_max__get <- function(obj_) {
-    .Call('tree2_Patch__height_max__get', PACKAGE = 'tree2', obj_)
-}
-
-Patch__parameters__get <- function(obj_) {
-    .Call('tree2_Patch__parameters__get', PACKAGE = 'tree2', obj_)
-}
-
-Patch__environment__get <- function(obj_) {
-    .Call('tree2_Patch__environment__get', PACKAGE = 'tree2', obj_)
-}
-
-Patch__species__get <- function(obj_) {
-    .Call('tree2_Patch__species__get', PACKAGE = 'tree2', obj_)
-}
-
-Patch__ode_size__get <- function(obj_) {
-    .Call('tree2_Patch__ode_size__get', PACKAGE = 'tree2', obj_)
-}
-
-Patch__ode_time__get <- function(obj_) {
-    .Call('tree2_Patch__ode_time__get', PACKAGE = 'tree2', obj_)
-}
-
-Patch__ode_state__get <- function(obj_) {
-    .Call('tree2_Patch__ode_state__get', PACKAGE = 'tree2', obj_)
-}
-
-Patch__ode_rates__get <- function(obj_) {
-    .Call('tree2_Patch__ode_rates__get', PACKAGE = 'tree2', obj_)
-}
-
-EBT__ctor <- function(parameters) {
-    .Call('tree2_EBT__ctor', PACKAGE = 'tree2', parameters)
-}
-
-EBT__run <- function(obj_) {
-    invisible(.Call('tree2_EBT__run', PACKAGE = 'tree2', obj_))
-}
-
-EBT__run_next <- function(obj_) {
-    .Call('tree2_EBT__run_next', PACKAGE = 'tree2', obj_)
-}
-
-EBT__reset <- function(obj_) {
-    invisible(.Call('tree2_EBT__reset', PACKAGE = 'tree2', obj_))
-}
-
-EBT__seed_rain <- function(obj_, species_index) {
-    .Call('tree2_EBT__seed_rain', PACKAGE = 'tree2', obj_, species_index)
-}
-
-EBT__seed_rain_cohort <- function(obj_, species_index) {
-    .Call('tree2_EBT__seed_rain_cohort', PACKAGE = 'tree2', obj_, species_index)
-}
-
-EBT__area_leaf_error <- function(obj_, species_index) {
-    .Call('tree2_EBT__area_leaf_error', PACKAGE = 'tree2', obj_, species_index)
-}
-
-EBT__set_cohort_schedule_times <- function(obj_, times) {
-    invisible(.Call('tree2_EBT__set_cohort_schedule_times', PACKAGE = 'tree2', obj_, times))
-}
-
-EBT__complete__get <- function(obj_) {
-    .Call('tree2_EBT__complete__get', PACKAGE = 'tree2', obj_)
-}
-
-EBT__time__get <- function(obj_) {
-    .Call('tree2_EBT__time__get', PACKAGE = 'tree2', obj_)
-}
-
-EBT__seed_rains__get <- function(obj_) {
-    .Call('tree2_EBT__seed_rains__get', PACKAGE = 'tree2', obj_)
-}
-
-EBT__parameters__get <- function(obj_) {
-    .Call('tree2_EBT__parameters__get', PACKAGE = 'tree2', obj_)
-}
-
-EBT__patch__get <- function(obj_) {
-    .Call('tree2_EBT__patch__get', PACKAGE = 'tree2', obj_)
-}
-
-EBT__cohort_schedule__get <- function(obj_) {
-    .Call('tree2_EBT__cohort_schedule__get', PACKAGE = 'tree2', obj_)
-}
-
-EBT__cohort_schedule__set <- function(obj_, value) {
-    invisible(.Call('tree2_EBT__cohort_schedule__set', PACKAGE = 'tree2', obj_, value))
-}
-
-EBT__ode_times__get <- function(obj_) {
-    .Call('tree2_EBT__ode_times__get', PACKAGE = 'tree2', obj_)
-}
-
-EBT__state__get <- function(obj_) {
-    .Call('tree2_EBT__state__get', PACKAGE = 'tree2', obj_)
-}
-
-EBT__use_ode_times__get <- function(obj_) {
-    .Call('tree2_EBT__use_ode_times__get', PACKAGE = 'tree2', obj_)
-}
-
-EBT__use_ode_times__set <- function(obj_, value) {
-    invisible(.Call('tree2_EBT__use_ode_times__set', PACKAGE = 'tree2', obj_, value))
-}
-
-EBT__seed_rain_error__get <- function(obj_) {
-    .Call('tree2_EBT__seed_rain_error__get', PACKAGE = 'tree2', obj_)
+Plant___FFW16__ode_names__get <- function(obj_) {
+    .Call('tree2_Plant___FFW16__ode_names__get', PACKAGE = 'tree2', obj_)
 }
 
 PlantRunner__ctor <- function(plant, environment) {
@@ -997,6 +598,398 @@ PlantRunner__plant__get <- function(obj_) {
 
 PlantRunner__plant__set <- function(obj_, value) {
     invisible(.Call('tree2_PlantRunner__plant__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_Strategy__ctor <- function() {
+    .Call('tree2_FFW16_Strategy__ctor', PACKAGE = 'tree2')
+}
+
+FFW16_Parameters__ctor <- function() {
+    .Call('tree2_FFW16_Parameters__ctor', PACKAGE = 'tree2')
+}
+
+FFW16_Parameters__vdor <- function(obj) {
+    .Call('tree2_FFW16_Parameters__vdor', PACKAGE = 'tree2', obj)
+}
+
+FFW16_PlantPlus__ctor <- function(strategy) {
+    .Call('tree2_FFW16_PlantPlus__ctor', PACKAGE = 'tree2', strategy)
+}
+
+FFW16_PlantPlus__area_leaf_above <- function(obj_, h) {
+    .Call('tree2_FFW16_PlantPlus__area_leaf_above', PACKAGE = 'tree2', obj_, h)
+}
+
+FFW16_PlantPlus__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('tree2_FFW16_PlantPlus__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
+}
+
+FFW16_PlantPlus__compute_vars_growth <- function(obj_) {
+    invisible(.Call('tree2_FFW16_PlantPlus__compute_vars_growth', PACKAGE = 'tree2', obj_))
+}
+
+FFW16_PlantPlus__germination_probability <- function(obj_, environment) {
+    .Call('tree2_FFW16_PlantPlus__germination_probability', PACKAGE = 'tree2', obj_, environment)
+}
+
+FFW16_PlantPlus__height__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__height__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__height__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_PlantPlus__height__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_PlantPlus__mortality__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__mortality__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__mortality__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_PlantPlus__mortality__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_PlantPlus__fecundity__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__fecundity__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__fecundity__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_PlantPlus__fecundity__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_PlantPlus__area_heartwood__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__area_heartwood__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__area_heartwood__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_PlantPlus__area_heartwood__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_PlantPlus__mass_heartwood__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__mass_heartwood__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__mass_heartwood__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_PlantPlus__mass_heartwood__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_PlantPlus__area_leaf__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__area_leaf__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__strategy__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__strategy__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__internals__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__internals__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__ode_size__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__ode_size__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__ode_state__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__ode_state__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__ode_state__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_PlantPlus__ode_state__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_PlantPlus__ode_rates__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__ode_rates__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus__ode_names__get <- function(obj_) {
+    .Call('tree2_FFW16_PlantPlus__ode_names__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_PlantPlus_internals__ctor <- function() {
+    .Call('tree2_FFW16_PlantPlus_internals__ctor', PACKAGE = 'tree2')
+}
+
+FFW16_Cohort__ctor <- function(strategy) {
+    .Call('tree2_FFW16_Cohort__ctor', PACKAGE = 'tree2', strategy)
+}
+
+FFW16_Cohort__area_leaf_above <- function(obj_, height) {
+    .Call('tree2_FFW16_Cohort__area_leaf_above', PACKAGE = 'tree2', obj_, height)
+}
+
+FFW16_Cohort__growth_rate_gradient <- function(obj_, environment) {
+    .Call('tree2_FFW16_Cohort__growth_rate_gradient', PACKAGE = 'tree2', obj_, environment)
+}
+
+FFW16_Cohort__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('tree2_FFW16_Cohort__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
+}
+
+FFW16_Cohort__compute_initial_conditions <- function(obj_, environment) {
+    invisible(.Call('tree2_FFW16_Cohort__compute_initial_conditions', PACKAGE = 'tree2', obj_, environment))
+}
+
+FFW16_Cohort__plant__get <- function(obj_) {
+    .Call('tree2_FFW16_Cohort__plant__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Cohort__height__get <- function(obj_) {
+    .Call('tree2_FFW16_Cohort__height__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Cohort__area_leaf__get <- function(obj_) {
+    .Call('tree2_FFW16_Cohort__area_leaf__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Cohort__fecundity__get <- function(obj_) {
+    .Call('tree2_FFW16_Cohort__fecundity__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Cohort__ode_size__get <- function(obj_) {
+    .Call('tree2_FFW16_Cohort__ode_size__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Cohort__ode_state__get <- function(obj_) {
+    .Call('tree2_FFW16_Cohort__ode_state__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Cohort__ode_state__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_Cohort__ode_state__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_Cohort__ode_rates__get <- function(obj_) {
+    .Call('tree2_FFW16_Cohort__ode_rates__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Species__ctor <- function(strategy) {
+    .Call('tree2_FFW16_Species__ctor', PACKAGE = 'tree2', strategy)
+}
+
+FFW16_Species__clear <- function(obj_) {
+    invisible(.Call('tree2_FFW16_Species__clear', PACKAGE = 'tree2', obj_))
+}
+
+FFW16_Species__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('tree2_FFW16_Species__compute_vars_phys', PACKAGE = 'tree2', obj_, environment))
+}
+
+FFW16_Species__area_leaf_above <- function(obj_, height) {
+    .Call('tree2_FFW16_Species__area_leaf_above', PACKAGE = 'tree2', obj_, height)
+}
+
+FFW16_Species__add_seed <- function(obj_) {
+    invisible(.Call('tree2_FFW16_Species__add_seed', PACKAGE = 'tree2', obj_))
+}
+
+FFW16_Species__plant_at <- function(obj_, index) {
+    .Call('tree2_FFW16_Species__plant_at', PACKAGE = 'tree2', obj_, index)
+}
+
+FFW16_Species__area_leafs_error <- function(obj_, scal) {
+    .Call('tree2_FFW16_Species__area_leafs_error', PACKAGE = 'tree2', obj_, scal)
+}
+
+FFW16_Species__size__get <- function(obj_) {
+    .Call('tree2_FFW16_Species__size__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Species__seed__get <- function(obj_) {
+    .Call('tree2_FFW16_Species__seed__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Species__height_max__get <- function(obj_) {
+    .Call('tree2_FFW16_Species__height_max__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Species__heights__get <- function(obj_) {
+    .Call('tree2_FFW16_Species__heights__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Species__heights__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_Species__heights__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_Species__plants__get <- function(obj_) {
+    .Call('tree2_FFW16_Species__plants__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Species__seeds__get <- function(obj_) {
+    .Call('tree2_FFW16_Species__seeds__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Species__area_leafs__get <- function(obj_) {
+    .Call('tree2_FFW16_Species__area_leafs__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Species__ode_size__get <- function(obj_) {
+    .Call('tree2_FFW16_Species__ode_size__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Species__ode_state__get <- function(obj_) {
+    .Call('tree2_FFW16_Species__ode_state__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Species__ode_state__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_Species__ode_state__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_Species__ode_rates__get <- function(obj_) {
+    .Call('tree2_FFW16_Species__ode_rates__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Patch__ctor <- function(parameters) {
+    .Call('tree2_FFW16_Patch__ctor', PACKAGE = 'tree2', parameters)
+}
+
+FFW16_Patch__area_leaf_above <- function(obj_, height) {
+    .Call('tree2_FFW16_Patch__area_leaf_above', PACKAGE = 'tree2', obj_, height)
+}
+
+FFW16_Patch__canopy_openness <- function(obj_, height) {
+    .Call('tree2_FFW16_Patch__canopy_openness', PACKAGE = 'tree2', obj_, height)
+}
+
+FFW16_Patch__add_seed <- function(obj_, species_index) {
+    invisible(.Call('tree2_FFW16_Patch__add_seed', PACKAGE = 'tree2', obj_, species_index))
+}
+
+FFW16_Patch__compute_light_environment <- function(obj_) {
+    invisible(.Call('tree2_FFW16_Patch__compute_light_environment', PACKAGE = 'tree2', obj_))
+}
+
+FFW16_Patch__compute_vars_phys <- function(obj_) {
+    invisible(.Call('tree2_FFW16_Patch__compute_vars_phys', PACKAGE = 'tree2', obj_))
+}
+
+FFW16_Patch__reset <- function(obj_) {
+    invisible(.Call('tree2_FFW16_Patch__reset', PACKAGE = 'tree2', obj_))
+}
+
+FFW16_Patch__set_ode_state <- function(obj_, values, time) {
+    invisible(.Call('tree2_FFW16_Patch__set_ode_state', PACKAGE = 'tree2', obj_, values, time))
+}
+
+FFW16_Patch__derivs <- function(obj_, y, time) {
+    .Call('tree2_FFW16_Patch__derivs', PACKAGE = 'tree2', obj_, y, time)
+}
+
+FFW16_Patch__time__get <- function(obj_) {
+    .Call('tree2_FFW16_Patch__time__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Patch__size__get <- function(obj_) {
+    .Call('tree2_FFW16_Patch__size__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Patch__height_max__get <- function(obj_) {
+    .Call('tree2_FFW16_Patch__height_max__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Patch__parameters__get <- function(obj_) {
+    .Call('tree2_FFW16_Patch__parameters__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Patch__environment__get <- function(obj_) {
+    .Call('tree2_FFW16_Patch__environment__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Patch__species__get <- function(obj_) {
+    .Call('tree2_FFW16_Patch__species__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Patch__ode_size__get <- function(obj_) {
+    .Call('tree2_FFW16_Patch__ode_size__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Patch__ode_time__get <- function(obj_) {
+    .Call('tree2_FFW16_Patch__ode_time__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Patch__ode_state__get <- function(obj_) {
+    .Call('tree2_FFW16_Patch__ode_state__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_Patch__ode_rates__get <- function(obj_) {
+    .Call('tree2_FFW16_Patch__ode_rates__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__ctor <- function(parameters) {
+    .Call('tree2_FFW16_EBT__ctor', PACKAGE = 'tree2', parameters)
+}
+
+FFW16_EBT__run <- function(obj_) {
+    invisible(.Call('tree2_FFW16_EBT__run', PACKAGE = 'tree2', obj_))
+}
+
+FFW16_EBT__run_next <- function(obj_) {
+    .Call('tree2_FFW16_EBT__run_next', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__reset <- function(obj_) {
+    invisible(.Call('tree2_FFW16_EBT__reset', PACKAGE = 'tree2', obj_))
+}
+
+FFW16_EBT__seed_rain <- function(obj_, species_index) {
+    .Call('tree2_FFW16_EBT__seed_rain', PACKAGE = 'tree2', obj_, species_index)
+}
+
+FFW16_EBT__seed_rain_cohort <- function(obj_, species_index) {
+    .Call('tree2_FFW16_EBT__seed_rain_cohort', PACKAGE = 'tree2', obj_, species_index)
+}
+
+FFW16_EBT__area_leaf_error <- function(obj_, species_index) {
+    .Call('tree2_FFW16_EBT__area_leaf_error', PACKAGE = 'tree2', obj_, species_index)
+}
+
+FFW16_EBT__set_cohort_schedule_times <- function(obj_, times) {
+    invisible(.Call('tree2_FFW16_EBT__set_cohort_schedule_times', PACKAGE = 'tree2', obj_, times))
+}
+
+FFW16_EBT__complete__get <- function(obj_) {
+    .Call('tree2_FFW16_EBT__complete__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__time__get <- function(obj_) {
+    .Call('tree2_FFW16_EBT__time__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__seed_rains__get <- function(obj_) {
+    .Call('tree2_FFW16_EBT__seed_rains__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__parameters__get <- function(obj_) {
+    .Call('tree2_FFW16_EBT__parameters__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__patch__get <- function(obj_) {
+    .Call('tree2_FFW16_EBT__patch__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__cohort_schedule__get <- function(obj_) {
+    .Call('tree2_FFW16_EBT__cohort_schedule__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__cohort_schedule__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_EBT__cohort_schedule__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_EBT__ode_times__get <- function(obj_) {
+    .Call('tree2_FFW16_EBT__ode_times__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__state__get <- function(obj_) {
+    .Call('tree2_FFW16_EBT__state__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__use_ode_times__get <- function(obj_) {
+    .Call('tree2_FFW16_EBT__use_ode_times__get', PACKAGE = 'tree2', obj_)
+}
+
+FFW16_EBT__use_ode_times__set <- function(obj_, value) {
+    invisible(.Call('tree2_FFW16_EBT__use_ode_times__set', PACKAGE = 'tree2', obj_, value))
+}
+
+FFW16_EBT__seed_rain_error__get <- function(obj_) {
+    .Call('tree2_FFW16_EBT__seed_rain_error__get', PACKAGE = 'tree2', obj_)
 }
 
 oderunner_plant_size <- function(obj) {

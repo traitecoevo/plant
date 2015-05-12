@@ -4,7 +4,7 @@
 
 #include <stddef.h> // size_t
 #include <sstream>  // std::stringstream
-#include <RcppCommon.h> // as/wrap
+#include <RcppCommon.h> // as/wrap/SEXP
 #include <tree2/util_lang_range.h>
 
 namespace tree2 {
@@ -180,6 +180,8 @@ template <typename T>
 T clamp(T x, T min_val, T max_val) {
   return std::max(std::min(x, max_val), min_val);
 }
+
+bool is_function(SEXP x);
 
 // The basic idea here is that we consider the three points
 //   {(x1, y1), (x2, y2), (x3, y3)}

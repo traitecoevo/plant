@@ -21,32 +21,6 @@ std::vector<double> cohort_schedule_times_default(double max_time) {
   return times;
 }
 
-double cohort_schedule_max_time_default(const Parameters& p) {
-  Disturbance d(p.disturbance_mean_interval);
-  return d.cdf(p.control.schedule_patch_survival);
-}
-
-CohortSchedule cohort_schedule_default(const Parameters& p) {
-  const double max_time = cohort_schedule_max_time_default(p);
-  CohortSchedule schedule(0);
-  schedule.r_set_max_time(max_time);
-  std::vector<double> times = cohort_schedule_times_default(max_time);
-  if (times.size() < 1) {
-    util::stop("Did not generate any times, surprisingly");
-  }
-  return schedule.expand(p.size(), times);
-}
-
-// NOTE: can't be a const reference because of validation, which might
-// set defaults within p.
-CohortSchedule make_cohort_schedule(const Parameters& p) {
-  CohortSchedule ret(p.size());
-  ret.r_set_max_time(p.cohort_schedule_max_time);
-  ret.set_times(p.cohort_schedule_times);
-  ret.r_set_ode_times(p.cohort_schedule_ode_times);
-  return ret;
-}
-
 }
 
 //' Generate a suitable set of default cohort introduction times,
@@ -68,20 +42,12 @@ CohortSchedule make_cohort_schedule(const Parameters& p) {
 //' @title Generate Default Cohort Introduction Times
 //' @param max_time Time to generate introduction times up to (the
 //' last introduction time will be at least \code{max_time}).
-//' @param multiplier The rate of increase of step size with time.
-//' The greater the number the faster step size will increase.
-//' @param min_step_size The smallest gap between introduction times
-//' (must be greater than zero, and will be the first introduction
-//' time).
-//' @param max_step_size The largest gap between introduction times
-//' (may be infinite).
 //' @return Vector of introduction times.
 //' @export
 //' @author Rich FitzJohn, adapted from original C++ code by Daniel
 //' S. Falster.
 // [[Rcpp::export]]
-std::vector<double>
-cohort_schedule_times_default(double max_time) {
+std::vector<double> cohort_schedule_times_default(double max_time) {
   return tree2::cohort_schedule_times_default(max_time);
 }
 
@@ -91,16 +57,16 @@ cohort_schedule_times_default(double max_time) {
 // ::cohort_schedule_max_time_default, but that's not how it's
 // implemented.
 // [[Rcpp::export(cohort_schedule_max_time_default)]]
-double r_cohort_schedule_max_time_default(const tree2::Parameters& p) {
+double r_cohort_schedule_max_time_default(const tree2::FFW16_Parameters& p) {
   return tree2::cohort_schedule_max_time_default(p);
 }
 
 // [[Rcpp::export(cohort_schedule_default)]]
-tree2::CohortSchedule r_cohort_schedule_default(const tree2::Parameters& p) {
+tree2::CohortSchedule r_cohort_schedule_default(const tree2::FFW16_Parameters& p) {
   return tree2::cohort_schedule_default(p);
 }
 
 // [[Rcpp::export(make_cohort_schedule)]]
-tree2::CohortSchedule r_make_cohort_schedule(const tree2::Parameters& p) {
+tree2::CohortSchedule r_make_cohort_schedule(const tree2::FFW16_Parameters& p) {
   return tree2::make_cohort_schedule(p);
 }
