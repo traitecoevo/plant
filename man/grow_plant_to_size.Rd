@@ -4,7 +4,8 @@
 \alias{grow_plant_to_size}
 \title{Grow plant to given size}
 \usage{
-grow_plant_to_size(plant, sizes, size_name, env, time_max = Inf)
+grow_plant_to_size(plant, sizes, size_name, env, time_max = Inf,
+  warn = TRUE)
 }
 \arguments{
 \item{plant}{A \code{Plant} object.}
@@ -19,6 +20,8 @@ size).}
 
 \item{time_max}{Time to run the ODE out for -- only exists to
 prevent an infinite loop (say, on an unreachable size).}
+
+\item{warn}{Warn if requesting a plant that is too large?}
 }
 \value{
 A list with elements \code{time} (the time that a given

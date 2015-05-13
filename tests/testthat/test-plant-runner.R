@@ -105,6 +105,11 @@ test_that("grow_plant_to_size", {
   expect_that(last(res2$time), equals(NA_real_))
   expect_that(any(is.na(res2$time[-length(sizes2)])), is_false())
 
+  expect_that(res3 <- grow_plant_to_size(pl, sizes2, "height", env,
+                                         100, warn=FALSE),
+              not(gives_warning()))
+  expect_that(res3, equals(res2))
+
   if (FALSE) {
     plot(height ~ time, as.data.frame(res$trajectory), type="l")
     points(res$time, res$state[, "height"], pch=19)

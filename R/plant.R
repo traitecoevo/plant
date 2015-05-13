@@ -12,14 +12,16 @@
 ##' @param env An \code{Environment} object.
 ##' @param time_max Time to run the ODE out for -- only exists to
 ##' prevent an infinite loop (say, on an unreachable size).
+##' @param warn Warn if requesting a plant that is too large?
 ##' @return A list with elements \code{time} (the time that a given
 ##' size was reached), \code{state} (the \emph{ode state} at these
 ##' times, as a matrix) and \code{plant} a list of plants grown to the
 ##' appropriate size.  Note that if only a single size is given,
 ##' a list of length 1 is returned.
 ##' @export
-grow_plant_to_size <- function(plant, sizes, size_name, env, time_max=Inf) {
-  obj <- grow_plant_bracket(plant, sizes, size_name, env, time_max)
+grow_plant_to_size <- function(plant, sizes, size_name, env,
+                               time_max=Inf, warn=TRUE) {
+  obj <- grow_plant_bracket(plant, sizes, size_name, env, time_max, warn)
 
   polish <- function(i) {
     grow_plant_bisect(obj$runner, sizes[[i]], size_name,
@@ -37,7 +39,7 @@ grow_plant_to_size <- function(plant, sizes, size_name, env, time_max=Inf) {
 }
 
 grow_plant_bracket <- function(plant, sizes, size_name, env,
-                               time_max=Inf) {
+                               time_max=Inf, warn=TRUE) {
   if (length(sizes) == 0L || is.unsorted(sizes)) {
     stop("sizes must be non-empty and sorted")
   }
@@ -59,8 +61,11 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
       i <- i + 1L
     }
     if (runner$time >= time_max) {
-      warning(sprintf("Time exceeded time_max, %d larger sizes dropped",
-                      sum(is.na(j))), immediate.=TRUE)
+      if (warn) {
+        warning(sprintf("Time exceeded time_max, %d larger sizes dropped",
+                        sum(is.na(j))), immediate.=TRUE)
+      }
+      break
     }
   }
 
