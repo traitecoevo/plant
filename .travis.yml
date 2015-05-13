@@ -12,6 +12,7 @@ before_install:
   - sudo apt-get -qq install g++-4.8 libgfortran3-dbg
   - mkdir ~/.R
   - echo -e "CC=gcc-4.8 -std=gnu99\nCXX=g++-4.8 -std=c++11\nnCXX1X=g++-4.8\nCXXFLAGS=-g -O3\nCXX1XFLAGS=-g -O3\nCFLAGS=-g -O3\n" > ~/.R/Makevars
+  - sudo ln -s /usr/lib/x86_64-linux-gnu/libgfortran.so.3 /usr/lib/x86_64-linux-gnu/libgfortran.so
 
 install:
   - ./travis-tool.sh install_deps
