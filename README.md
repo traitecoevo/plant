@@ -1,5 +1,7 @@
 # The TRait Ecology and Evolution (TREE) model
 
+[![Build Status](https://travis-ci.org/traitecoevo/tree.png?branch=master)](https://travis-ci.org/traitecoevo/tree)
+
 ## Installation
 
 Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, plus we've had success on Ubuntu 12.4 and 14.4).
