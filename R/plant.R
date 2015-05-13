@@ -19,7 +19,9 @@
 ##' @export
 grow_plant_to_size <- function(plant, sizes, size_name, env, time_max=Inf) {
   obj <- grow_plant_bracket(plant, sizes, size_name, env, time_max)
-  res <- lapply(seq_along(sizes), function(i)
+  obj <- obj[!is.null(obj)]
+
+  res <- lapply(seq_along(obj), function(i)
                 grow_plant_bisect(obj$runner, sizes[[i]], size_name,
                                   obj$t0[[i]], obj$t1[[i]], obj$y0[i,]))
   state <- t(sapply(res, "[[", "state"))
@@ -44,15 +46,17 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   j <- integer(n)
   state <- list(list(time=runner$time, state=runner$state))
 
-  while (i <= n) {
+  while (i <= n & runner$time < time_max) {
     runner$step()
     state <- c(state, list(list(time=runner$time, state=runner$state)))
     while (i <= n && oderunner_plant_size(runner)[[size_name]] > sizes[[i]]) {
       j[[i]] <- length(state) - 1L
       i <- i + 1L
     }
-    if (runner$time > time_max) {
-      stop("Time exceeded time_max")
+    if (runner$time >= time_max) {
+      j = j[seq_len(i)]
+      state <- state[-length(state)]
+      warning("Time exceeded time_max, larger sizes dropped in returned object")
     }
   }
 
