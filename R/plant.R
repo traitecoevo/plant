@@ -5,7 +5,8 @@
 ##'
 ##' @title Grow plant to given size
 ##' @param plant A \code{Plant} object.
-##' @param sizes A vector of sizes to grow the plant to
+##' @param sizes A vector of sizes to grow the plant to (increasing in
+##' size).
 ##' @param size_name The name of the size variable within
 ##' \code{Plant$vars_phys} (e.g., height).
 ##' @param env An \code{Environment} object.
@@ -19,16 +20,20 @@
 ##' @export
 grow_plant_to_size <- function(plant, sizes, size_name, env, time_max=Inf) {
   obj <- grow_plant_bracket(plant, sizes, size_name, env, time_max)
-  obj <- obj[!is.null(obj)]
 
-  res <- lapply(seq_along(obj), function(i)
-                grow_plant_bisect(obj$runner, sizes[[i]], size_name,
-                                  obj$t0[[i]], obj$t1[[i]], obj$y0[i,]))
+  polish <- function(i) {
+    grow_plant_bisect(obj$runner, sizes[[i]], size_name,
+                      obj$t0[[i]], obj$t1[[i]], obj$y0[i, ])
+  }
+  res <- lapply(seq_along(sizes), polish)
+
   state <- t(sapply(res, "[[", "state"))
   colnames(state) <- colnames(obj$state)
-  list(time=sapply(res, "[[", "time"),
+
+  list(time=vnapply(res, "[[", "time"),
        state=state,
-       plant=lapply(res, "[[", "plant"))
+       plant=lapply(res, "[[", "plant"),
+       trajectory=cbind(time=obj$time, state=obj$state))
 }
 
 grow_plant_bracket <- function(plant, sizes, size_name, env,
@@ -43,7 +48,7 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   runner <- OdeRunner("PlantRunner")(PlantRunner(plant, env))
   i <- 1L
   n <- length(sizes)
-  j <- integer(n)
+  j <- rep_len(NA_integer_, n)
   state <- list(list(time=runner$time, state=runner$state))
 
   while (i <= n & runner$time < time_max) {
@@ -54,18 +59,23 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
       i <- i + 1L
     }
     if (runner$time >= time_max) {
-      j = j[seq_len(i)]
-      state <- state[-length(state)]
-      warning("Time exceeded time_max, larger sizes dropped in returned object")
+      warning(sprintf("Time exceeded time_max, %d larger sizes dropped",
+                      sum(is.na(j))), immediate.=TRUE)
     }
   }
 
-  t <- sapply(state, "[[", "time")
+  t <- vnapply(state, "[[", "time")
   m <- t(sapply(state, "[[", "state"))
+  k <- j + 1L
   colnames(m) <- runner$object$plant$ode_names
-  list(t0=t[j], t1=t[j + 1L],
-       y0=m[j,,drop=FALSE], y1=m[j + 1L,,drop=FALSE],
-       time=t, state=m, index=j, runner=runner)
+  list(t0=t[j],
+       t1=t[k],
+       y0=m[j, , drop=FALSE],
+       y1=m[k, , drop=FALSE],
+       time=t,
+       state=m,
+       index=j,
+       runner=runner)
 }
 
 grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
@@ -74,9 +84,12 @@ grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
     runner$step_to(t1)
     oderunner_plant_size(runner)[[size_name]] - size
   }
-  ## NOTE: if we get access to the previously computed distances here
-  ## we can save a little time.  But I don't think that's going to
-  ## work well.
-  root <- uniroot(f, lower=t0, upper=t1)
-  list(time=root$root, state=runner$state, plant=runner$object$plant)
+
+  if (is.na(t0) || is.na(t1) || any(is.na(y0))) {
+    y0[] <- NA_real_
+    list(time=NA_real_, state=y0, plant=NULL)
+  } else {
+    root <- uniroot(f, lower=t0, upper=t1)
+    list(time=root$root, state=runner$state, plant=runner$object$plant)
+  }
 }

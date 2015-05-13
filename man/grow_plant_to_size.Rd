@@ -9,7 +9,8 @@ grow_plant_to_size(plant, sizes, size_name, env, time_max = Inf)
 \arguments{
 \item{plant}{A \code{Plant} object.}
 
-\item{sizes}{A vector of sizes to grow the plant to}
+\item{sizes}{A vector of sizes to grow the plant to (increasing in
+size).}
 
 \item{size_name}{The name of the size variable within
 \code{Plant$vars_phys} (e.g., height).}

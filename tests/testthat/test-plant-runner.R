@@ -86,4 +86,30 @@ test_that("grow_plant_to_size", {
 })
 
 ## TODO: another useful function could be to construct splines for
-## arbitrary variables during a run.
+## arbitrary variables during a run; we end up with all the state here
+## so that should be fairly straightforward.
+
+test_that("grow_plant_to_size", {
+  strategy <- FFW16_Strategy()
+  pl <- FFW16_PlantPlus(strategy)
+  sizes <- c(1, 5, 10, 12, strategy$hmat)
+  env <- fixed_environment(1.0)
+  res <- grow_plant_to_size(pl, sizes, "height", env, 10000)
+
+  expect_that(res$state[, "height"], equals(sizes, tolerance=1e-6))
+
+  sizes2 <- c(sizes, last(sizes) * 2)
+  expect_that(res2 <- grow_plant_to_size(pl, sizes2, "height", env, 100),
+              gives_warning("Time exceeded time_max"))
+  expect_that(length(res2$time), equals(length(sizes2)))
+  expect_that(last(res2$time), equals(NA_real_))
+  expect_that(any(is.na(res2$time[-length(sizes2)])), is_false())
+
+  if (FALSE) {
+    plot(height ~ time, as.data.frame(res$trajectory), type="l")
+    points(res$time, res$state[, "height"], pch=19)
+
+    plot(height ~ time, as.data.frame(res2$trajectory), type="l")
+    points(res2$time, res2$state[, "height"], pch=19)
+  }
+})
