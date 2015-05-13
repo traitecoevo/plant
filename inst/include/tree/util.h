@@ -5,13 +5,9 @@
 #include <stddef.h> // size_t
 #include <sstream>  // std::stringstream
 #include <RcppCommon.h> // as/wrap/SEXP
-#include <tree/util_lang_range.h>
 
 namespace tree {
 namespace util {
-
-using ::util::lang::indices;
-using ::util::lang::range;
 
 struct index {
   index(size_t x_) : x(x_) {}

@@ -100,7 +100,7 @@ void Patch<T>::reset() {
 template <typename T>
 double Patch<T>::height_max() const {
   double ret = 0.0;
-  for (auto i : util::indices(species)) {
+  for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
       ret = std::max(ret, species[i].height_max());
     }
@@ -111,7 +111,7 @@ double Patch<T>::height_max() const {
 template <typename T>
 double Patch<T>::area_leaf_above(double height) const {
   double tot = 0.0;
-  for (auto i : util::indices(species)) {
+  for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
       tot += species[i].area_leaf_above(height);
     }
@@ -151,7 +151,7 @@ void Patch<T>::rescale_light_environment() {
 
 template <typename T>
 void Patch<T>::compute_vars_phys() {
-  for (auto i : util::indices(species)) {
+  for (size_t i = 0; i < size(); ++i) {	
     environment.set_seed_rain_index(i);
     species[i].compute_vars_phys(environment);
   }
