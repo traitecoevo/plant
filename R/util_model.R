@@ -14,9 +14,9 @@ strategy_list <- function(x, parameters) {
   }
 
   strategy <- parameters$strategy_default
-  hyper <- parameters$hyperpar
-  if (!is.null(hyper)) {
-    x <- hyper(x, strategy)
+  hyperpar <- parameters$hyperpar
+  if (!is.null(hyperpar)) {
+    x <- hyperpar(x, strategy)
   }
 
   trait_names <- colnames(x)
@@ -25,6 +25,13 @@ strategy_list <- function(x, parameters) {
     strategy
   }
   lapply(matrix_to_list(x), f)
+}
+
+##' @export
+##' @rdname strategy_list
+strategy_default <- function(parameters) {
+  strategy_list(trait_matrix(parameters$strategy_default$lma, "lma"),
+                parameters)[[1]]
 }
 
 ##' @rdname strategy_list
