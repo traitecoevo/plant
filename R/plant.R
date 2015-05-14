@@ -13,6 +13,7 @@
 ##' @param time_max Time to run the ODE out for -- only exists to
 ##' prevent an infinite loop (say, on an unreachable size).
 ##' @param warn Warn if requesting a plant that is too large?
+##' @param filter Filter plants that are too large?
 ##' @return A list with elements \code{time} (the time that a given
 ##' size was reached), \code{state} (the \emph{ode state} at these
 ##' times, as a matrix) and \code{plant} a list of plants grown to the
@@ -20,7 +21,7 @@
 ##' a list of length 1 is returned.
 ##' @export
 grow_plant_to_size <- function(plant, sizes, size_name, env,
-                               time_max=Inf, warn=TRUE) {
+                               time_max=Inf, warn=TRUE, filter=FALSE) {
   obj <- grow_plant_bracket(plant, sizes, size_name, env, time_max, warn)
 
   polish <- function(i) {
@@ -32,10 +33,19 @@ grow_plant_to_size <- function(plant, sizes, size_name, env,
   state <- t(sapply(res, "[[", "state"))
   colnames(state) <- colnames(obj$state)
 
-  list(time=vnapply(res, "[[", "time"),
-       state=state,
-       plant=lapply(res, "[[", "plant"),
-       trajectory=cbind(time=obj$time, state=obj$state))
+  ret <- list(time=vnapply(res, "[[", "time"),
+              state=state,
+              plant=lapply(res, "[[", "plant"),
+              trajectory=cbind(time=obj$time, state=obj$state))
+  if (filter) {
+    i <- !vlapply(ret$plant, is.null)
+    if (!all(i)) {
+      ret$time  <- ret$time[i]
+      ret$state <- ret$state[i, , drop=FALSE]
+      ret$plant <- ret$plant[i]
+    }
+  }
+  ret
 }
 
 grow_plant_bracket <- function(plant, sizes, size_name, env,

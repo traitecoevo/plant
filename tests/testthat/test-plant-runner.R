@@ -110,6 +110,18 @@ test_that("grow_plant_to_size", {
               not(gives_warning()))
   expect_that(res3, equals(res2))
 
+  expect_that(res4 <- grow_plant_to_size(pl, sizes2, "height", env,
+                                         100, warn=FALSE, filter=TRUE),
+              not(gives_warning()))
+
+  ## Manually filter:
+  cmp <- res2
+  i <- !is.na(cmp$time)
+  expect_that(res4$time, equals(cmp$time[i]))
+  expect_that(res4$plant, equals(cmp$plant[i]))
+  expect_that(res4$state, equals(cmp$state[i,]))
+  expect_that(res4$trajectory, equals(cmp$trajectory))
+
   if (FALSE) {
     plot(height ~ time, as.data.frame(res$trajectory), type="l")
     points(res$time, res$state[, "height"], pch=19)
