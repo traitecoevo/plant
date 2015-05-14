@@ -2,6 +2,7 @@
 % Please edit documentation in R/util_model.R
 \name{strategy_list}
 \alias{plant_list}
+\alias{strategy}
 \alias{strategy_default}
 \alias{strategy_list}
 \title{Create a list of Strategies}
@@ -9,6 +10,8 @@
 strategy_list(x, parameters)
 
 strategy_default(parameters)
+
+strategy(x, parameters)
 
 plant_list(x, parameters)
 }

@@ -30,8 +30,16 @@ strategy_list <- function(x, parameters) {
 ##' @export
 ##' @rdname strategy_list
 strategy_default <- function(parameters) {
-  strategy_list(trait_matrix(parameters$strategy_default$lma, "lma"),
-                parameters)[[1]]
+  strategy(trait_matrix(1, "a")[, -1, drop=FALSE], parameters)
+}
+
+##' @export
+##' @rdname strategy_list
+strategy <- function(x, parameters) {
+  if (nrow(x) != 1L) {
+    stop("Expected a single type")
+  }
+  strategy_list(x, parameters)[[1]]
 }
 
 ##' @rdname strategy_list
