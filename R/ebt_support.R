@@ -83,15 +83,34 @@ ebt_base_parameters <- function() {
 ##'
 ##' @title Run the EBT, Collecting Output
 ##' @param p A \code{\link{FFW16_Parameters}} object
+##' @param include_area_leaf Include total leaf area (will change; see
+##' issue #138)
 ##' @author Rich FitzJohn
 ##' @export
-run_ebt_collect <- function(p) {
+run_ebt_collect <- function(p, include_area_leaf=FALSE) {
+  collect_default <- function(ebt) {
+    ebt$state
+  }
+  collect_area_leaf <- function(ebt) {
+    ret <- ebt$state
+    area_leaf <- numeric(length(ret$species))
+    for (i in seq_along(ret$species)) {
+      ## ret$species[[i]] <- rbind(
+      ##   ret$species[[i]]
+      ##   area_leaf=c(ebt$patch$species[[i]]$area_leafs, 0.0))
+      area_leaf[i] <- ebt$patch$species[[i]]$area_leaf_above(0.0)
+    }
+    ret$area_leaf <- area_leaf
+    ret
+  }
+  collect <- if (include_area_leaf) collect_area_leaf else collect_default
+
   ebt <- FFW16_EBT(p)
-  res <- list(ebt$state)
+  res <- list(collect(ebt))
 
   while (!ebt$complete) {
     ebt$run_next()
-    res <- c(res, list(ebt$state))
+    res <- c(res, list(collect(ebt)))
   }
 
   time <- sapply(res, "[[", "time")
@@ -111,8 +130,14 @@ run_ebt_collect <- function(p) {
   ## little more obvious.
   species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
 
-  list(time=time, species=species, light_env=light_env,
-       seed_rain=ebt$seed_rains)
+  ret <- list(time=time, species=species, light_env=light_env,
+              seed_rain=ebt$seed_rains)
+
+  if (include_area_leaf) {
+    ret$area_leaf <- do.call("rbind", lapply(res, "[[", "area_leaf"))
+  }
+
+  ret
 }
 
 run_ebt_error <- function(p) {

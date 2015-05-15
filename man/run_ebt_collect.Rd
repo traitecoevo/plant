@@ -4,10 +4,13 @@
 \alias{run_ebt_collect}
 \title{Run the EBT, Collecting Output}
 \usage{
-run_ebt_collect(p)
+run_ebt_collect(p, include_area_leaf = FALSE)
 }
 \arguments{
 \item{p}{A \code{\link{FFW16_Parameters}} object}
+
+\item{include_area_leaf}{Include total leaf area (will change; see
+issue #138)}
 }
 \description{
 Run the EBT model, given a Parameters and CohortSchedule
