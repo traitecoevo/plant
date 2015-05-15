@@ -84,6 +84,7 @@ ebt_base_parameters <- function() {
 ##' @title Run the EBT, Collecting Output
 ##' @param p A \code{\link{FFW16_Parameters}} object
 ##' @author Rich FitzJohn
+##' @export
 run_ebt_collect <- function(p) {
   ebt <- FFW16_EBT(p)
   res <- list(ebt$state)
