@@ -159,7 +159,7 @@ make_patch <- function(state, p) {
 ebt_state <- function(i, x) {
   f_sp <- function(el) {
     el <- el[, i, ]
-    el[, !is.na(el[1, ])]
+    el[, !is.na(el[1, ]), drop=FALSE]
   }
   list(time=x$time[[i]], species=lapply(x$species, f_sp))
 }
