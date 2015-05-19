@@ -131,7 +131,7 @@ run_ebt_collect <- function(p, include_area_leaf=FALSE) {
   species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
 
   ret <- list(time=time, species=species, light_env=light_env,
-              seed_rain=ebt$seed_rains)
+              seed_rain=ebt$seed_rains, p=p)
 
   if (include_area_leaf) {
     ret$area_leaf <- do.call("rbind", lapply(res, "[[", "area_leaf"))
@@ -162,6 +162,12 @@ ebt_state <- function(i, x) {
     el[, !is.na(el[1, ])]
   }
   list(time=x$time[[i]], species=lapply(x$species, f_sp))
+}
+
+##' @export
+##' @rdname make_patch
+ebt_patch <- function(i, x) {
+  make_patch(ebt_state(i, x), x$p)
 }
 
 run_ebt_error <- function(p) {
