@@ -489,6 +489,7 @@ FFW16_Cohort:
   active:
     plant: {type: "tree::FFW16_Plant", access: field, readonly: true}
     height: {type: double, access: member}
+    log_density: {type: double, access: member, name_cpp: get_log_density}
     area_leaf: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}

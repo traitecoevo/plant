@@ -1,8 +1,7 @@
 PACKAGE := $(shell grep '^Package:' DESCRIPTION | sed -E 's/^Package:[[:space:]]+//')
 RSCRIPT = Rscript --no-init-file
 
-all:
-	cd src; R CMD SHLIB *.cpp -o ${PACKAGE}.so
+all: compile_dll
 
 compile_dll:
 	Rscript -e 'devtools::compile_dll()'

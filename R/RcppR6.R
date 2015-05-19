@@ -1038,6 +1038,13 @@ FFW16_PlantPlus_internals <- function(..., values=list(...)) {
                     stop("FFW16_Cohort$height is read-only")
                   }
                 },
+                log_density = function(value) {
+                  if (missing(value)) {
+                    FFW16_Cohort__log_density__get(self)
+                  } else {
+                    stop("FFW16_Cohort$log_density is read-only")
+                  }
+                },
                 area_leaf = function(value) {
                   if (missing(value)) {
                     FFW16_Cohort__area_leaf__get(self)

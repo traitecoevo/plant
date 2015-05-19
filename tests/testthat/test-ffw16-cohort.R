@@ -153,9 +153,12 @@ test_that("leaf area calculations", {
   cohort <- FFW16_Cohort(s)
   h <- cohort$height
 
+  expect_that(cohort$log_density,      equals(-Inf)) # zero
+  expect_that(exp(cohort$log_density), equals(0.0)) # zero
   expect_that(cohort$area_leaf, equals(0)) # zero density
   cohort$compute_initial_conditions(env)
-  density <- exp(cohort$ode_state[[4]])
+  expect_that(cohort$ode_state[[4]], equals(cohort$log_density))
+  density <- exp(cohort$log_density)
   expect_that(cohort$area_leaf,
               equals(plant$area_leaf * density))
   expect_that(cohort$area_leaf_above(h / 2),

@@ -736,6 +736,10 @@ FFW16_Cohort__height__get <- function(obj_) {
     .Call('tree_FFW16_Cohort__height__get', PACKAGE = 'tree', obj_)
 }
 
+FFW16_Cohort__log_density__get <- function(obj_) {
+    .Call('tree_FFW16_Cohort__log_density__get', PACKAGE = 'tree', obj_)
+}
+
 FFW16_Cohort__area_leaf__get <- function(obj_) {
     .Call('tree_FFW16_Cohort__area_leaf__get', PACKAGE = 'tree', obj_)
 }

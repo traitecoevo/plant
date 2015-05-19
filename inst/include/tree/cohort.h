@@ -27,6 +27,8 @@ public:
   double area_leaf() const;
   double fecundity() const {return seeds_survival_weighted;}
 
+  // Unfortunate, but need a get_ here because of name shadowing...
+  double get_log_density() const {return log_density;}
   void set_log_density(double x) {
     log_density = x;
     density = exp(log_density);

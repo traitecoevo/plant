@@ -2004,6 +2004,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// FFW16_Cohort__log_density__get
+double FFW16_Cohort__log_density__get(tree::RcppR6::RcppR6<tree::Cohort<tree::FFW16_Plant> > obj_);
+RcppExport SEXP tree_FFW16_Cohort__log_density__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< tree::RcppR6::RcppR6<tree::Cohort<tree::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_Cohort__log_density__get(obj_));
+    return __result;
+END_RCPP
+}
 // FFW16_Cohort__area_leaf__get
 double FFW16_Cohort__area_leaf__get(tree::RcppR6::RcppR6<tree::Cohort<tree::FFW16_Plant> > obj_);
 RcppExport SEXP tree_FFW16_Cohort__area_leaf__get(SEXP obj_SEXP) {

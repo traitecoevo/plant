@@ -788,6 +788,11 @@ double FFW16_Cohort__height__get(tree::RcppR6::RcppR6<tree::Cohort<tree::FFW16_P
 }
 
 // [[Rcpp::export]]
+double FFW16_Cohort__log_density__get(tree::RcppR6::RcppR6<tree::Cohort<tree::FFW16_Plant> > obj_) {
+  return obj_->get_log_density();
+}
+
+// [[Rcpp::export]]
 double FFW16_Cohort__area_leaf__get(tree::RcppR6::RcppR6<tree::Cohort<tree::FFW16_Plant> > obj_) {
   return obj_->area_leaf();
 }
