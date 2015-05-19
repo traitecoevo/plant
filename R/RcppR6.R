@@ -1213,6 +1213,9 @@ FFW16_PlantPlus_internals <- function(..., values=list(...)) {
                 },
                 derivs = function(y, time) {
                   FFW16_Patch__derivs(self, y, time)
+                },
+                set_state = function(time, state, n) {
+                  FFW16_Patch__set_state(self, time, state, n)
                 }),
               active=list(
                 time = function(value) {

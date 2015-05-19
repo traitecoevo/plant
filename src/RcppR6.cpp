@@ -941,6 +941,10 @@ tree::ode::state_type FFW16_Patch__derivs(tree::RcppR6::RcppR6<tree::Patch<tree:
   return tree::ode::r_derivs(*obj_, y, time);
 }
 // [[Rcpp::export]]
+void FFW16_Patch__set_state(tree::RcppR6::RcppR6<tree::Patch<tree::FFW16_Plant> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n) {
+  obj_->r_set_state(time, state, n);
+}
+// [[Rcpp::export]]
 double FFW16_Patch__time__get(tree::RcppR6::RcppR6<tree::Patch<tree::FFW16_Plant> > obj_) {
   return obj_->time();
 }

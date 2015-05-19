@@ -872,6 +872,10 @@ FFW16_Patch__derivs <- function(obj_, y, time) {
     .Call('tree_FFW16_Patch__derivs', PACKAGE = 'tree', obj_, y, time)
 }
 
+FFW16_Patch__set_state <- function(obj_, time, state, n) {
+    invisible(.Call('tree_FFW16_Patch__set_state', PACKAGE = 'tree', obj_, time, state, n))
+}
+
 FFW16_Patch__time__get <- function(obj_) {
     .Call('tree_FFW16_Patch__time__get', PACKAGE = 'tree', obj_)
 }

@@ -2381,6 +2381,19 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// FFW16_Patch__set_state
+void FFW16_Patch__set_state(tree::RcppR6::RcppR6<tree::Patch<tree::FFW16_Plant> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n);
+RcppExport SEXP tree_FFW16_Patch__set_state(SEXP obj_SEXP, SEXP timeSEXP, SEXP stateSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< tree::RcppR6::RcppR6<tree::Patch<tree::FFW16_Plant> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const std::vector<size_t>& >::type n(nSEXP);
+    FFW16_Patch__set_state(obj_, time, state, n);
+    return R_NilValue;
+END_RCPP
+}
 // FFW16_Patch__time__get
 double FFW16_Patch__time__get(tree::RcppR6::RcppR6<tree::Patch<tree::FFW16_Plant> > obj_);
 RcppExport SEXP tree_FFW16_Patch__time__get(SEXP obj_SEXP) {

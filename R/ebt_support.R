@@ -140,6 +140,30 @@ run_ebt_collect <- function(p, include_area_leaf=FALSE) {
   ret
 }
 
+##' Functions for reconstructing a Patch from an EBT
+##' @title Reconstruct a patch
+##' @param state State object created by \code{ebt_state}
+##' @param p Parameters object
+##' @export
+make_patch <- function(state, p) {
+  n <- viapply(state$species, ncol)
+  patch <- FFW16_Patch(p)
+  patch$set_state(state$time, unlist(state$species), n)
+  patch
+}
+
+##' @rdname make_patch
+##' @param i Index to extract from \code{x}
+##' @param x Result of running \code{\link{run_ebt_collect}}
+##' @export
+ebt_state <- function(i, x) {
+  f_sp <- function(el) {
+    el <- el[, i, ]
+    el[, !is.na(el[1, ])]
+  }
+  list(time=x$time[[i]], species=lapply(x$species, f_sp))
+}
+
 run_ebt_error <- function(p) {
   ebt <- FFW16_EBT(p)
   n_spp <- length(p$strategies)

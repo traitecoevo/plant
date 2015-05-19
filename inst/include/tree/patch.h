@@ -4,6 +4,7 @@
 
 #include <tree/parameters.h>
 #include <tree/species.h>
+#include <tree/ode_interface.h>
 
 namespace tree {
 
@@ -53,7 +54,9 @@ public:
   Environment r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
   std::vector<double> r_area_leaf_error(size_t species_index) const;
-
+  void r_set_state(double time,
+                   const std::vector<double>& state,
+                   const std::vector<size_t>& n);
   void r_add_seed(util::index species_index) {
     add_seed(species_index.check_bounds(size()));
   }
@@ -151,7 +154,7 @@ void Patch<T>::rescale_light_environment() {
 
 template <typename T>
 void Patch<T>::compute_vars_phys() {
-  for (size_t i = 0; i < size(); ++i) {	
+  for (size_t i = 0; i < size(); ++i) {
     environment.set_seed_rain_index(i);
     species[i].compute_vars_phys(environment);
   }
@@ -178,6 +181,26 @@ void Patch<T>::add_seeds(const std::vector<size_t>& species_index) {
   if (recompute) {
     compute_light_environment();
   }
+}
+
+// Arguments here are:
+//   time: time
+//   state: vector of ode state; we'll pass an iterator with that in
+//   n: number of *individuals* of each species
+template <typename T>
+void Patch<T>::r_set_state(double time,
+                           const std::vector<double>& state,
+                           const std::vector<size_t>& n) {
+  const size_t n_species = species.size();
+  util::check_length(n.size(), n_species);
+  reset();
+  for (size_t i = 0; i < n_species; ++i) {
+    for (size_t j = 0; j < n[i]; ++j) {
+      species[i].add_seed();
+    }
+  }
+  util::check_length(state.size(), ode_size());
+  set_ode_state(state.begin(), time);
 }
 
 // ODE interface
