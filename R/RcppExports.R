@@ -812,6 +812,10 @@ FFW16_Species__heights__set <- function(obj_, value) {
     invisible(.Call('tree_FFW16_Species__heights__set', PACKAGE = 'tree', obj_, value))
 }
 
+FFW16_Species__log_densities__get <- function(obj_) {
+    .Call('tree_FFW16_Species__log_densities__get', PACKAGE = 'tree', obj_)
+}
+
 FFW16_Species__plants__get <- function(obj_) {
     .Call('tree_FFW16_Species__plants__get', PACKAGE = 'tree', obj_)
 }

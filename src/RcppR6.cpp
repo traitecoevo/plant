@@ -875,6 +875,11 @@ void FFW16_Species__heights__set(tree::RcppR6::RcppR6<tree::Species<tree::FFW16_
 }
 
 // [[Rcpp::export]]
+std::vector<double> FFW16_Species__log_densities__get(tree::RcppR6::RcppR6<tree::Species<tree::FFW16_Plant> > obj_) {
+  return obj_->r_log_densities();
+}
+
+// [[Rcpp::export]]
 std::vector<tree::Cohort<tree::FFW16_Plant> > FFW16_Species__plants__get(tree::RcppR6::RcppR6<tree::Species<tree::FFW16_Plant> > obj_) {
   return obj_->r_plants();
 }

@@ -1141,6 +1141,13 @@ FFW16_PlantPlus_internals <- function(..., values=list(...)) {
                     FFW16_Species__heights__set(self, value)
                   }
                 },
+                log_densities = function(value) {
+                  if (missing(value)) {
+                    FFW16_Species__log_densities__get(self)
+                  } else {
+                    stop("FFW16_Species$log_densities is read-only")
+                  }
+                },
                 plants = function(value) {
                   if (missing(value)) {
                     FFW16_Species__plants__get(self)

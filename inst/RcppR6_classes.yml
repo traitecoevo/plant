@@ -520,6 +520,7 @@ FFW16_Species:
     seed: {type: "tree::Cohort<tree::FFW16_Plant>", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
+    log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
     plants: {type: "std::vector<tree::Cohort<tree::FFW16_Plant> >", access: member, name_cpp: r_plants}
     seeds: {type: "std::vector<double>", access: member}
     area_leafs: {type: "std::vector<double>", access: member, name_cpp: r_area_leafs}

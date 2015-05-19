@@ -56,6 +56,9 @@ public:
   std::vector<double> r_area_leafs() const;
   std::vector<double> r_area_leafs_error(double scal) const;
 
+  // This is just kind of useful
+  std::vector<double> r_log_densities() const;
+
 private:
   const Control& control() const {return strategy->get_control();}
   strategy_type_ptr strategy;
@@ -233,6 +236,17 @@ std::vector<double> Species<T>::r_area_leafs() const {
 template <typename T>
 std::vector<double> Species<T>::r_area_leafs_error(double scal) const {
   return util::local_error_integration(r_heights(), r_area_leafs(), scal);
+}
+
+template <typename T>
+std::vector<double> Species<T>::r_log_densities() const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (plants_const_iterator it = plants.begin();
+       it != plants.end(); ++it) {
+    ret.push_back(it->get_log_density());
+  }
+  return ret;
 }
 
 }

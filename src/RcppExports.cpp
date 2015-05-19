@@ -2214,6 +2214,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// FFW16_Species__log_densities__get
+std::vector<double> FFW16_Species__log_densities__get(tree::RcppR6::RcppR6<tree::Species<tree::FFW16_Plant> > obj_);
+RcppExport SEXP tree_FFW16_Species__log_densities__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< tree::RcppR6::RcppR6<tree::Species<tree::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_Species__log_densities__get(obj_));
+    return __result;
+END_RCPP
+}
 // FFW16_Species__plants__get
 std::vector<tree::Cohort<tree::FFW16_Plant> > FFW16_Species__plants__get(tree::RcppR6::RcppR6<tree::Species<tree::FFW16_Plant> > obj_);
 RcppExport SEXP tree_FFW16_Species__plants__get(SEXP obj_SEXP) {

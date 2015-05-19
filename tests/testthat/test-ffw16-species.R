@@ -4,9 +4,8 @@
 
 context("FFW16_Species")
 
-env <- test_environment(3, seed_rain=1.0)
-
 test_that("Basics", {
+  env <- test_environment(3, seed_rain=1.0)
   s <- FFW16_Strategy()
   sp <- FFW16_Species(s)
   seed <- FFW16_Cohort(s)
@@ -17,6 +16,7 @@ test_that("Basics", {
   expect_that(sp$height_max, is_identical_to(h0))
   expect_that(sp$species, is_identical_to(NULL))
   expect_that(sp$heights, is_identical_to(numeric(0)))
+  expect_that(sp$log_densities, is_identical_to(numeric(0)))
   expect_that(sp$area_leafs, is_identical_to(numeric(0)))
   expect_that(sp$area_leafs_error(1.0), is_identical_to(numeric(0)))
   expect_that(sp$ode_size, equals(0))
@@ -41,6 +41,7 @@ test_that("Basics", {
   expect_that(length(plants), equals(1))
   expect_that(plants[[1]]$vars_phys, is_identical_to(seed$vars_phys))
   expect_that(sp$heights, equals(seed$height))
+  expect_that(sp$log_densities, equals(seed$log_density))
   expect_that(sp$area_leafs, equals(seed$area_leaf))
   ## NOTE: Didn't check ode values
 
@@ -89,6 +90,7 @@ test_that("Empty species has no leaf area", {
 
 ## 2: Cohort up against boundary has no leaf area:
 test_that("FFW16_Species with only boundary cohort no leaf area", {
+  env <- test_environment(3, seed_rain=1.0)
   sp <- FFW16_Species(FFW16_Strategy())
   sp$add_seed()
   sp$compute_vars_phys(env)
@@ -106,6 +108,7 @@ cmp_area_leaf_above <- function(h, sp) {
 
 ## 3: Single cohort; one round of trapezium:
 test_that("Leaf area sensible with one cohort", {
+  env <- test_environment(3, seed_rain=1.0)
   sp <- FFW16_Species(FFW16_Strategy())
   sp$compute_vars_phys(env)
   sp$add_seed()
@@ -129,6 +132,7 @@ test_that("Leaf area sensible with one cohort", {
 })
 
 test_that("Leaf area sensible with two cohorts", {
+  env <- test_environment(3, seed_rain=1.0)
   sp <- FFW16_Species(FFW16_Strategy())
   sp$compute_vars_phys(env)
   sp$add_seed()
@@ -155,6 +159,7 @@ test_that("Leaf area sensible with two cohorts", {
 })
 
 test_that("Leaf area sensible with three cohorts", {
+  env <- test_environment(3, seed_rain=1.0)
   sp <- FFW16_Species(FFW16_Strategy())
   sp$compute_vars_phys(env)
   sp$add_seed()
