@@ -48,6 +48,55 @@ grow_plant_to_size <- function(plant, sizes, size_name, env,
   ret
 }
 
+##' Grow a plant up for particular time lengths
+##'
+##' @title Grow a plant
+##' @param plant A \code{Plant} object
+##' @param times A vector of times
+##' @param env An \code{Environment} object
+##' @export
+grow_plant_to_time <- function(plant, times, env) {
+  if (any(times < 0.0)) {
+    stop("Times must be positive")
+  }
+  n <- length(times)
+  if (n == 0L) {
+    stop("At least one time must be given")
+  }
+
+  y0 <- plant$ode_state
+  t0 <- 0.0
+  i <- 1L
+  t_next <- times[[i]]
+  runner <- OdeRunner("PlantRunner")(PlantRunner(plant, env))
+  runner_detail <- OdeRunner("PlantRunner")(PlantRunner(plant, env))
+
+  ## TODO: This could also be done by better configuring the
+  ## underlying ODE runner, but this seems a reasonable way of getting
+  ## things run for now.
+  state <- matrix(NA, n, length(y0))
+  colnames(state) <- plant$ode_names
+
+  plant <- vector("list", n)
+  while (i <= n) {
+    runner$step()
+    t1 <- runner$time
+    y1 <- runner$state
+    while (t_next < t1 && i <= n) {
+      runner_detail$set_state(y0, t0)
+      runner_detail$step_to(t_next)
+      state[i, ] <- runner$state
+      plant[[i]] <- runner$object$plant
+      i <- i + 1L
+      t_next <- times[i] # allows out-of-bounds extraction
+    }
+    t0 <- t1
+    y0 <- y1
+  }
+
+  list(time=times, state=state, plant=plant)
+}
+
 grow_plant_bracket <- function(plant, sizes, size_name, env,
                                time_max=Inf, warn=TRUE) {
   if (length(sizes) == 0L || is.unsorted(sizes)) {

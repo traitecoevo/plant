@@ -130,3 +130,21 @@ test_that("grow_plant_to_size", {
     points(res2$time, res2$state[, "height"], pch=19)
   }
 })
+
+test_that("grow_plant_to_time", {
+  strategy <- FFW16_Strategy()
+  pl <- FFW16_PlantPlus(strategy)
+  env <- fixed_environment(1.0)
+  times <- c(0, 10^(-4:3))
+  res <- grow_plant_to_time(pl, times, env)
+  expect_that(res$plant, is_a("list"))
+  expect_that(length(res$plant), equals(length(times)))
+
+  expect_that(res$state, is_a("matrix"))
+  expect_that(colnames(res$state), equals(pl$ode_names))
+  expect_that(nrow(res$state), equals(length(times)))
+
+  expect_that(all(diff(res$state[, "height"]) > 0), is_true())
+
+  expect_that(res$time, is_identical_to(times))
+})
