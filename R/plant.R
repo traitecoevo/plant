@@ -48,6 +48,14 @@ grow_plant_to_size <- function(plant, sizes, size_name, env,
   ret
 }
 
+##' @export
+##' @rdname grow_plant_to_size
+##' @param ... Additional parameters passed to
+##' \code{grow_plant_to_size}.
+grow_plant_to_height <- function(plant, heights, env, ...) {
+  grow_plant_to_size(plant, heights, "height", env, ...)
+}
+
 ##' Grow a plant up for particular time lengths
 ##'
 ##' @title Grow a plant
