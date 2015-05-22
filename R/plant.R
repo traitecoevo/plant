@@ -85,8 +85,8 @@ grow_plant_to_time <- function(plant, times, env) {
     while (t_next < t1 && i <= n) {
       runner_detail$set_state(y0, t0)
       runner_detail$step_to(t_next)
-      state[i, ] <- runner$state
-      plant[[i]] <- runner$object$plant
+      state[i, ] <- runner_detail$state
+      plant[[i]] <- runner_detail$object$plant
       i <- i + 1L
       t_next <- times[i] # allows out-of-bounds extraction
     }
