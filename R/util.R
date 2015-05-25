@@ -150,3 +150,27 @@ vnapply <- function(X, FUN, ...) {
 vcapply <- function(X, FUN, ...) {
   vapply(X, FUN, character(1), ...)
 }
+
+##' Make colours transparent
+##' @title Make colours transparent
+##' @param col Vector of colours
+##' @param opacity Vector of opacities
+##' @export
+##' @examples
+##' make_transparent("red", seq(0, 1, length.out=6))
+##' make_transparent(c("red", "blue"), .5)
+make_transparent <- function(col, opacity=.5) {
+  alpha <- opacity
+  if (length(alpha) > 1 && any(is.na(alpha))) {
+    n <- max(length(col), length(alpha))
+    alpha <- rep(alpha, length.out=n)
+    col <- rep(col, length.out=n)
+    ok <- !is.na(alpha)
+    ret <- rep(NA, length(col))
+    ret[ok] <- make_transparent(col[ok], alpha[ok])
+    ret
+  } else {
+    tmp <- col2rgb(col)/255
+    rgb(tmp[1,], tmp[2,], tmp[3,], alpha=alpha)
+  }
+}
