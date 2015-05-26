@@ -20,4 +20,4 @@ Suggests:
     nleqslv,
     BB,
     parallel,
-    RcppR6 (>= 0.2.001)
+    RcppR6 (>= 0.2.1)

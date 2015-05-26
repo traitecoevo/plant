@@ -401,7 +401,7 @@ FFW16_PlantPlus:
   name_cpp: "tree::FFW16_PlantPlus"
   constructor:
     name_cpp: "tree::make_plant_plus"
-    args: [strategy: "tree::FFW16_Strategy"]
+    args: [strategy: "tree::FFW16_Strategy=FFW16_Strategy()"]
     roxygen: |
       Plant object
       @param strategy A \code{FFW16_Strategy} object
