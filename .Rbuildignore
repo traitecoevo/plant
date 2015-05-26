@@ -2,3 +2,8 @@
 ^scripts$
 ^docker$
 ^Makefile$
+^wiki$
+^reference$
+^ignore$
+^doc$
+^tree_.+\.tar\.gz$

@@ -36,7 +36,8 @@ grow_plant_to_size <- function(plant, sizes, size_name, env,
   ret <- list(time=vnapply(res, "[[", "time"),
               state=state,
               plant=lapply(res, "[[", "plant"),
-              trajectory=cbind(time=obj$time, state=obj$state))
+              trajectory=cbind(time=obj$time, state=obj$state),
+              env=env)
   if (filter) {
     i <- !vlapply(ret$plant, is.null)
     if (!all(i)) {
@@ -102,7 +103,7 @@ grow_plant_to_time <- function(plant, times, env) {
     y0 <- y1
   }
 
-  list(time=times, state=state, plant=plant)
+  list(time=times, state=state, plant=plant, env=env)
 }
 
 grow_plant_bracket <- function(plant, sizes, size_name, env,
