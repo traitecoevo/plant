@@ -52,7 +52,9 @@ test_that("Disturbance calculations are expected", {
 
   expect_that(sapply(tt, function(t) obj$pr_survival_conditional(t, 0)),
               equals(p_t))
-  expect_that(sapply(tt, function(t) obj$density(t)),
+
+  ## density is vectorised
+  expect_that(obj$density(tt),
               equals(disturbance$freq(tt)))
 
   expect_that(disturbance$cdf(p_t), equals(tt))

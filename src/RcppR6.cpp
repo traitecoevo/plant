@@ -318,8 +318,8 @@ plant::Disturbance Disturbance__ctor(double mean_interval) {
   return plant::Disturbance(mean_interval);
 }
 // [[Rcpp::export]]
-double Disturbance__density(plant::RcppR6::RcppR6<plant::Disturbance> obj_, double time) {
-  return obj_->density(time);
+std::vector<double> Disturbance__density(plant::RcppR6::RcppR6<plant::Disturbance> obj_, std::vector<double> time) {
+  return obj_->r_density(time);
 }
 // [[Rcpp::export]]
 double Disturbance__pr_survival(plant::RcppR6::RcppR6<plant::Disturbance> obj_, double time) {

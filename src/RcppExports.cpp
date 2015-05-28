@@ -902,13 +902,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // Disturbance__density
-double Disturbance__density(plant::RcppR6::RcppR6<plant::Disturbance> obj_, double time);
+std::vector<double> Disturbance__density(plant::RcppR6::RcppR6<plant::Disturbance> obj_, std::vector<double> time);
 RcppExport SEXP plant_Disturbance__density(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
     __result = Rcpp::wrap(Disturbance__density(obj_, time));
     return __result;
 END_RCPP

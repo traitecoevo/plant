@@ -38,4 +38,14 @@ double Disturbance::cdf(double p) const {
   return pow(log(p) / -scale, 1/shape);
 }
 
+// Helper function for pulling patch densities out from R as a vector.
+std::vector<double> Disturbance::r_density(std::vector<double> time) const {
+  std::vector<double> ret;
+  ret.reserve(time.size());
+  for (const auto& t : time) {
+    ret.push_back(density(t));
+  }
+  return ret;
+}
+
 }

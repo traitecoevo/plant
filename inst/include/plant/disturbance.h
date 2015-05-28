@@ -2,6 +2,8 @@
 #ifndef PLANT_PLANT_DISTURBANCE_H_
 #define PLANT_PLANT_DISTURBANCE_H_
 
+#include <vector>
+
 namespace plant {
 
 // Currently hard coded for Weibull only.  Alternatives are
@@ -16,6 +18,8 @@ public:
   double pr_survival(double time) const;
   double pr_survival_conditional(double time, double time_start) const;
   double cdf(double pr) const;
+
+  std::vector<double> r_density(std::vector<double> time) const;
 
 private:
   double shape;

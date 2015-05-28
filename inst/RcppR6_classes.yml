@@ -103,8 +103,9 @@ Disturbance:
     args: [mean_interval: double]
   methods:
     density:
-      args: [time: double]
-      return_type: double
+      args: [time: "std::vector<double>"]
+      return_type: "std::vector<double>"
+      name_cpp: r_density
     pr_survival:
       args: [time: double]
       return_type: double
