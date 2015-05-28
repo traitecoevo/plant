@@ -414,6 +414,7 @@ template <> inline SEXP wrap(const plant::FFW16_Strategy& x) {
   ret["c_acc"] = Rcpp::wrap(x.c_acc);
   ret["c_r1"] = Rcpp::wrap(x.c_r1);
   ret["c_r2"] = Rcpp::wrap(x.c_r2);
+  ret["Pi_0"] = Rcpp::wrap(x.Pi_0);
   ret["c_s0"] = Rcpp::wrap(x.c_s0);
   ret["c_d0"] = Rcpp::wrap(x.c_d0);
   ret["c_d2"] = Rcpp::wrap(x.c_d2);
@@ -481,6 +482,8 @@ template <> inline plant::FFW16_Strategy as(SEXP x) {
   ret.c_r1 = Rcpp::as<double >(xl["c_r1"]);
   // ret.c_r2 = Rcpp::as<decltype(retc_r2) >(xl["c_r2"]);
   ret.c_r2 = Rcpp::as<double >(xl["c_r2"]);
+  // ret.Pi_0 = Rcpp::as<decltype(retPi_0) >(xl["Pi_0"]);
+  ret.Pi_0 = Rcpp::as<double >(xl["Pi_0"]);
   // ret.c_s0 = Rcpp::as<decltype(retc_s0) >(xl["c_s0"]);
   ret.c_s0 = Rcpp::as<double >(xl["c_s0"]);
   // ret.c_d0 = Rcpp::as<decltype(retc_d0) >(xl["c_d0"]);
@@ -497,7 +500,6 @@ template <> inline SEXP wrap(const plant::FFW16_Parameters& x) {
   Rcpp::List ret;
   ret["c_ext"] = Rcpp::wrap(x.c_ext);
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
-  ret["Pi_0"] = Rcpp::wrap(x.Pi_0);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
   ret["strategies"] = Rcpp::wrap(x.strategies);
@@ -526,8 +528,6 @@ template <> inline plant::FFW16_Parameters as(SEXP x) {
   ret.c_ext = Rcpp::as<double >(xl["c_ext"]);
   // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
   ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
-  // ret.Pi_0 = Rcpp::as<decltype(retPi_0) >(xl["Pi_0"]);
-  ret.Pi_0 = Rcpp::as<double >(xl["Pi_0"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
   // ret.disturbance_mean_interval = Rcpp::as<decltype(retdisturbance_mean_interval) >(xl["disturbance_mean_interval"]);

@@ -366,6 +366,7 @@ FFW16_Strategy:
     - c_acc: double
     - c_r1: double
     - c_r2: double
+    - Pi_0: double
     - c_s0: double
     - c_d0: double
     - c_d2: double
@@ -384,7 +385,6 @@ FFW16_Parameters:
   list:
     - c_ext: double
     - patch_area: double
-    - Pi_0: double
     - n_patches: size_t
     - disturbance_mean_interval: double
     - strategies: "std::vector<plant::FFW16_Strategy>"

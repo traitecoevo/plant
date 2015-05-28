@@ -26,7 +26,6 @@ struct Parameters {
   // Data -- public for now (see github issue #17).
   double c_ext;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2)
-  double Pi_0;       // Probability of survival during dispersal
   size_t n_patches;  // Number of patches in the metacommunity
   double disturbance_mean_interval; // Disturbance interval (years)
 
@@ -64,7 +63,6 @@ template <typename T>
 Parameters<T>::Parameters()
   : c_ext(0.5),
     patch_area(1.0),
-    Pi_0(0.25),
     n_patches(1),
     disturbance_mean_interval(30),
     cohort_schedule_max_time(NA_REAL),

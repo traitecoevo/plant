@@ -3,6 +3,7 @@ context("FFW16_Strategy")
 test_that("Defaults", {
   expected <- list(
     B1     = 0.306,
+    Pi_0   = 0.25,
     Y      = 0.7,
     a1     = 5.44,
     a3     = 0.07,
@@ -54,7 +55,7 @@ test_that("FFW16_Strategy parameters agree with reference model", {
   expect_that(all(v %in% names(s)), is_true())
 
   ## And v.v., except for a few additions:
-  extra <- "control"
+  extra <- c("control", "Pi_0")
   common <- setdiff(names(s), extra)
   expect_that(all(extra %in% names(s)), is_true())
   expect_that(all(common %in% names(cmp_pars)),

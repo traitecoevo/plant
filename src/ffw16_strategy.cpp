@@ -14,6 +14,7 @@ namespace plant {
 // TODO: Document consistent argument order: l, b, s, h, r
 // TODO: Document ordering of different types of variables (size
 // before physiology, before compound things?)
+// TODO: Consider moving to activating as an initialisation list?
 
 FFW16_Strategy::FFW16_Strategy() {
   // * Core traits - default values
@@ -81,6 +82,8 @@ FFW16_Strategy::FFW16_Strategy() {
   c_r2   = 50;
 
   // * Mortality parameters
+  // Probability of survival during dispersal
+  Pi_0   = 0.25;
   // Parameter for seedling survival
   c_s0    = 0.1;
   // Baseline for intrinsic mortality

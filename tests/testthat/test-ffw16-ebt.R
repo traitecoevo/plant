@@ -243,7 +243,7 @@ test_that("Seed rain & error calculations correct", {
     d <- ebt$patch$environment$disturbance_regime
     pa <- d$density(a)
     p <- ebt$parameters
-    scale <- p[["Pi_0"]] * p$seed_rain
+    scale <- ebt$parameters$strategies[[1]]$Pi_0 * p$seed_rain
     seeds <- pa * ebt$patch$species[[1]]$seeds * scale
     total <- trapezium(a, seeds)
     if (error) local_error_integration(a, seeds, total) else total

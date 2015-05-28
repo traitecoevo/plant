@@ -206,6 +206,8 @@ public:
   double c_r2;
 
   // * Mortality
+  // Probability of survival during dispersal
+  double Pi_0;
   // Parameter for seedling mortality
   double c_s0;
   // Baseline structural mortality rate

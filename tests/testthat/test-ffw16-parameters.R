@@ -8,8 +8,7 @@ test_that("Creation & defaults", {
   expect_that(length(p$is_resident), equals(0))
   expect_that(length(p$seed_rain), equals(0))
 
-  expected <- list(Pi_0=0.25,
-                   c_ext=0.5,
+  expected <- list(c_ext=0.5,
                    n_patches=1,    # NOTE: Different to tree 0.1
                    patch_area=1.0, # NOTE: Different to tree 0.1
                    disturbance_mean_interval=30.0,
