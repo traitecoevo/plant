@@ -231,42 +231,34 @@ test_that("", {
 ##   expect_that(ebt$times(1), is_identical_to(times))
 ## })
 
-## test_that("Seed rain & error calculations correct", {
-##   p <- new(Parameters)
-##   p$add_strategy(new(Strategy))
-##   p$set_control_parameters(fast_control())
-##   p$set_parameters(list(patch_area=1.0))   # See issue #13
-##   p$seed_rain <- 1.1
+test_that("Seed rain & error calculations correct", {
+  p0 <- ebt_base_parameters()
+  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, FALSE)
 
-##   ebt <- new(EBT, p)
-##   ebt$reset()
-##   ebt$cohort_schedule <- default_cohort_schedule(p)
-##   ebt$run()
+  ebt <- run_ebt(p1)
+  expect_that(ebt, is_a("FFW16_EBT"))
 
-##   seed_rain.R <- function(ebt, error=FALSE) {
-##     a <- ebt$cohort_schedule$times(1)
-##     d <- ebt$patch$disturbance_regime
-##     pa <- sapply(a, function(ai) d$density(ai))
-##     p <- ebt$parameters
-##     scale <- p$parameters[["Pi_0"]] * p$seed_rain
-##     seeds <- pa * ebt$patch$species[[1]]$seeds * scale
-##     total <- trapezium(a, seeds)
-##     if (error) local_error_integration(a, seeds, total) else total
-##   }
+  seed_rain_R <- function(ebt, error=FALSE) {
+    a <- ebt$cohort_schedule$times(1)
+    d <- ebt$patch$environment$disturbance_regime
+    pa <- d$density(a)
+    p <- ebt$parameters
+    scale <- p[["Pi_0"]] * p$seed_rain
+    seeds <- pa * ebt$patch$species[[1]]$seeds * scale
+    total <- trapezium(a, seeds)
+    if (error) local_error_integration(a, seeds, total) else total
+  }
 
-##   expect_that(ebt$seed_rain(1), equals(seed_rain.R(ebt)))
-##   expect_that(ebt$seed_rains, equals(seed_rain.R(ebt)))
-##   expect_that(ebt$seed_rain_error(1),
-##               equals(seed_rain.R(ebt, error=TRUE)))
+  expect_that(ebt$seed_rain(1), equals(seed_rain_R(ebt)))
+  expect_that(ebt$seed_rains, equals(seed_rain_R(ebt)))
+  expect_that(ebt$seed_rain_error[[1]],
+              equals(seed_rain_R(ebt, error=TRUE)))
 
-##   expect_that(ebt$seed_rain(0), throws_error())
-##   expect_that(ebt$seed_rain(2), throws_error())
-
-##   lae.cmp <-
-##     ebt$patch$species[[1]]$area_leaf_error(ebt$patch$area_leaf_above(0))
-##   expect_that(ebt$area_leaf_error(1),
-##               is_identical_to(lae.cmp))
-## })
+  lae_cmp <-
+    ebt$patch$species[[1]]$area_leafs_error(ebt$patch$area_leaf_above(0))
+  expect_that(ebt$area_leaf_error(1),
+              is_identical_to(lae_cmp))
+})
 
 ## test_that("Can create empty EBT", {
 ##   p <- new(Parameters)

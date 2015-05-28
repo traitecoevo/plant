@@ -130,8 +130,13 @@ run_ebt_collect <- function(p, include_area_leaf=FALSE) {
   ## little more obvious.
   species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
 
-  ret <- list(time=time, species=species, light_env=light_env,
-              seed_rain=ebt$seed_rains, p=p)
+  patch_density <- ebt$patch$environment$disturbance_regime$density(time)
+
+  ret <- list(time=time, species=species,
+              light_env=light_env,
+              seed_rain=ebt$seed_rains,
+              patch_density=patch_density,
+              p=p)
 
   if (include_area_leaf) {
     ret$area_leaf <- do.call("rbind", lapply(res, "[[", "area_leaf"))
