@@ -1,6 +1,6 @@
-# The TRait Ecology and Evolution (TREE) model
+# The Trait Ecology and Evolution (plant) model
 
-[![Build Status](https://travis-ci.org/traitecoevo/tree.png?branch=master)](https://travis-ci.org/traitecoevo/tree)
+[![Build Status](https://travis-ci.org/traitecoevo/plant.png?branch=master)](https://travis-ci.org/traitecoevo/plant)
 
 ## Installation
 
@@ -12,13 +12,13 @@ Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satis
 
 ```r
 drat:::add("traitecoevo")
-install.packages("tree")
+install.packages("plant")
 ```
 
-(versions of R before 3.2.0 may require `install.packages("tree", type="source")` here)
+(versions of R before 3.2.0 may require `install.packages("plant", type="source")` here)
 
 **Option 2, using `devtools::install_github`**
 
 ```r
-devtools::install_github("traitecoevo/tree")
+devtools::install_github("traitecoevo/plant")
 ```

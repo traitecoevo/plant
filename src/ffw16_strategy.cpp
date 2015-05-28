@@ -1,10 +1,10 @@
-#include <tree/ffw16_strategy.h>
-#include <tree/uniroot.h>
-#include <tree/qag.h>
-#include <tree/environment.h>
+#include <plant/ffw16_strategy.h>
+#include <plant/uniroot.h>
+#include <plant/qag.h>
+#include <plant/environment.h>
 #include <RcppCommon.h> // NA_REAL
 
-namespace tree {
+namespace plant {
 
 // TODO: There is some fairly major re-plumbing needed here; we need
 // to separate out hyperparameters from the ones the model cares

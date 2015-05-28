@@ -4,7 +4,7 @@
 \alias{FFW16_PlantPlus}
 \title{Plant object}
 \usage{
-FFW16_PlantPlus(strategy)
+FFW16_PlantPlus(strategy = FFW16_Strategy())
 }
 \arguments{
 \item{strategy}{A \code{FFW16_Strategy} object}

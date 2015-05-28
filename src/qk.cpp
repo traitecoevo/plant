@@ -1,10 +1,10 @@
-#include <tree/qk.h>
-#include <tree/qk_rules.h>
+#include <plant/qk.h>
+#include <plant/qk_rules.h>
 
-#include <tree/util.h> // check_length
-#include <tree/util_post_rcpp.h> // RFunctionWrapper
+#include <plant/util.h> // check_length
+#include <plant/util_post_rcpp.h> // RFunctionWrapper
 
-namespace tree {
+namespace plant {
 namespace quadrature {
 
 QK::QK(size_t rule)

@@ -6,4 +6,4 @@
 ^reference$
 ^ignore$
 ^doc$
-^tree_.+\.tar\.gz$
+^plant_.+\.tar\.gz$

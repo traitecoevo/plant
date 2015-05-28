@@ -1,9 +1,9 @@
-#include <tree/qag.h>
-#include <tree/util.h>
-#include <tree/util_post_rcpp.h>
+#include <plant/qag.h>
+#include <plant/util.h>
+#include <plant/util_post_rcpp.h>
 #include <Rcpp.h>
 
-namespace tree {
+namespace plant {
 namespace quadrature {
 
 // Default construction using delegating constructors:

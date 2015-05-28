@@ -1,7 +1,7 @@
-#include <tree/ode_control.h>
-#include <tree/util.h>
+#include <plant/ode_control.h>
+#include <plant/util.h>
 
-namespace tree {
+namespace plant {
 namespace ode {
 
 OdeControl::OdeControl() : OdeControl(1e-8, 1e-8, 1.0, 0.0,

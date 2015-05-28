@@ -1,15 +1,15 @@
 Lorenz:
-  name_cpp: "tree::ode::test::Lorenz"
+  name_cpp: "plant::ode::test::Lorenz"
   constructor:
     args: [sigma: double, R: double, b: double]
   active:
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_state", name_cpp_set: "tree::ode::r_set_ode_state"}
-    ode_rates: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_rates"}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     pars: {type: "std::vector<double>", access: member}
 
 OdeR:
-  name_cpp: "tree::ode::test::OdeR"
+  name_cpp: "plant::ode::test::OdeR"
   forward_declare: true
   constructor:
     args: [derivs: "Rcpp::Function", state: "Rcpp::Function", time: double]
@@ -17,18 +17,18 @@ OdeR:
     update_state: {return_type: void}
 
 OdeRunner:
-  name_cpp: "tree::ode::Runner<T>"
+  name_cpp: "plant::ode::Runner<T>"
   templates:
     parameters: T
     concrete:
-      - ["Lorenz": "tree::ode::test::Lorenz"]
-      - ["OdeR":   "tree::ode::test::OdeR"]
-      - ["PlantRunner": "tree::tools::PlantRunner"]
+      - ["Lorenz": "plant::ode::test::Lorenz"]
+      - ["OdeR":   "plant::ode::test::OdeR"]
+      - ["PlantRunner": "plant::tools::PlantRunner"]
   constructor:
-    args: [obj: T, control: "tree::ode::OdeControl=OdeControl()"]
+    args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
   active:
     time: {type: double, access: member}
-    state: {type: "tree::ode::state_type", access: member}
+    state: {type: "plant::ode::state_type", access: member}
     times: {type: "std::vector<double>", access: member}
     object: {type: T, access: member}
   methods:
@@ -36,22 +36,22 @@ OdeRunner:
     advance_fixed: {return_type: void, args: [time: "std::vector<double>"]}
     step: {return_type: void}
     step_to: {return_type: void, args: [time: double]}
-    set_state: {return_type: void, args: [y: "tree::ode::state_type", time: double]}
+    set_state: {return_type: void, args: [y: "plant::ode::state_type", time: double]}
     set_state_from_system: {return_type: void}
 
 CohortScheduleEvent:
-  name_cpp: "tree::CohortScheduleEvent"
+  name_cpp: "plant::CohortScheduleEvent"
   constructor:
-    args: [introduction: double, species_index: "tree::util::index"]
+    args: [introduction: double, species_index: "plant::util::index"]
   active:
-    species_index: {type: "tree::util::index", access: field, name_cpp: species_index}
+    species_index: {type: "plant::util::index", access: field, name_cpp: species_index}
     times: {type: "std::vector<double>", access: field, readonly: true}
     time_introduction: {type: double, access: member}
     time_end: {type: double, access: member}
     species_index_raw: {type: "size_t", access: member, name_cpp: species_index_raw}
 
 CohortSchedule:
-  name_cpp: "tree::CohortSchedule"
+  name_cpp: "plant::CohortSchedule"
   constructor:
     roxygen: |
       Schedule of cohort introduction times
@@ -61,7 +61,7 @@ CohortSchedule:
   active:
     size: {type: size_t, access: member}
     n_species: {type: size_t, access: member, name_cpp: get_n_species}
-    next_event: {type: "tree::CohortScheduleEvent", access: member}
+    next_event: {type: "plant::CohortScheduleEvent", access: member}
     remaining: {type: size_t, access: member}
     max_time: {type: double, access: member, name_cpp: get_max_time, name_cpp_set: r_set_max_time}
     ode_times: {type: "std::vector<double>", access: member, name_cpp: r_ode_times, name_cpp_set: r_set_ode_times}
@@ -69,32 +69,32 @@ CohortSchedule:
     all_times: {type: SEXP, access: member, name_cpp: r_all_times, name_cpp_set: r_set_all_times}
   methods:
     expand:
-      return_type: "tree::CohortSchedule"
+      return_type: "plant::CohortSchedule"
       args: [n_extra: size_t, times: "std::vector<double>"]
     clear_times:
       return_type: void
-      args: [species_index: "tree::util::index"]
+      args: [species_index: "plant::util::index"]
     clear_ode_times:
       return_type: void
       name_cpp: r_clear_ode_times
     set_times:
       return_type: void
       name_cpp: r_set_times
-      args: [times: "std::vector<double>", species_index: "tree::util::index"]
+      args: [times: "std::vector<double>", species_index: "plant::util::index"]
     times:
       return_type: "std::vector<double>"
       name_cpp: r_times
-      args: [species_index: "tree::util::index"]
+      args: [species_index: "plant::util::index"]
     reset:
       return_type: void
     pop:
       return_type: void
     copy:
-      return_type: "tree::CohortSchedule"
+      return_type: "plant::CohortSchedule"
       name_cpp: r_copy
 
 Disturbance:
-  name_cpp: "tree::Disturbance"
+  name_cpp: "plant::Disturbance"
   constructor:
     roxygen: |
       Disturbance control object
@@ -118,7 +118,7 @@ Disturbance:
     mean_interval: {type: double, access: member, name_cpp: r_mean_interval}
 
 Control:
-  name_cpp: "tree::Control"
+  name_cpp: "plant::Control"
   roxygen: |
     Control parameters that tune various aspects of the numerical solvers.
     @title Control parameters
@@ -163,7 +163,7 @@ Control:
     - equilibrium_solver_try_keep: bool
 
 OdeControl:
-  name_cpp: "tree::ode::OdeControl"
+  name_cpp: "plant::ode::OdeControl"
   roxygen: |
     Control parameters for the ode system
     @title ODE Control parameters
@@ -180,7 +180,7 @@ OdeControl:
     - step_size_initial: double
 
 QK:
-  name_cpp: "tree::quadrature::QK"
+  name_cpp: "plant::quadrature::QK"
   constructor:
     roxygen: |
       Gauss-Kronrod Quadrature
@@ -204,7 +204,7 @@ QK:
     last_area_asc: {type: double, access: member, name_cpp: get_last_area_asc}
 
 QAG:
-  name_cpp: "tree::quadrature::QAG"
+  name_cpp: "plant::quadrature::QAG"
   constructor:
     args: [rule: size_t, max_iterations: size_t, atol: double, rtol: double]
   methods:
@@ -224,11 +224,11 @@ QAG:
     last_area: {type: double, access: member, name_cpp: get_last_area}
     last_error: {type: double, access: member, name_cpp: get_last_error}
     last_iterations: {type: size_t, access: member, name_cpp: get_last_iterations}
-    last_intervals: {type: "tree::quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
+    last_intervals: {type: "plant::quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
     is_adaptive: {type: bool, access: member}
 
 Interpolator:
-  name_cpp: "tree::interpolator::Interpolator"
+  name_cpp: "plant::interpolator::Interpolator"
   constructor:
     roxygen: |
       Spline interpolation
@@ -250,9 +250,9 @@ Interpolator:
     max: {type: double, access: member}
 
 Environment:
-  name_cpp: "tree::Environment"
+  name_cpp: "plant::Environment"
   constructor:
-    args: [p: "tree::FFW16_Parameters"]
+    args: [p: "plant::FFW16_Parameters"]
     roxygen: |
       Environment object
       @param p A Parameters object
@@ -267,18 +267,18 @@ Environment:
     clear:
       return_type: void
     set_seed_rain_index:
-      args: [x: "tree::util::index"]
+      args: [x: "plant::util::index"]
       return_type: void
       name_cpp: r_set_seed_rain_index
   active:
     patch_survival: {type: double, access: member}
     seed_rain_dt: {type: double, access: member}
-    disturbance_regime: {type: "tree::Disturbance", access: field}
+    disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
-    light_environment: {type: "tree::interpolator::Interpolator", access: field}
+    light_environment: {type: "plant::interpolator::Interpolator", access: field}
 
 Plant_internals:
-  name_cpp: "tree::Plant_internals"
+  name_cpp: "plant::Plant_internals"
   list:
     - area_leaf: double
     - height: double
@@ -289,14 +289,14 @@ Plant_internals:
     - fecundity_dt: double
 
 Plant:
-  name_cpp: "tree::Plant<T>"
+  name_cpp: "plant::Plant<T>"
   templates:
     parameters: T
     concrete:
-      - ["FFW16": "tree::FFW16_Strategy"]
+      - ["FFW16": "plant::FFW16_Strategy"]
   constructor:
     args: [s: T]
-    name_cpp: "tree::make_plant<T>"
+    name_cpp: "plant::make_plant<T>"
     roxygen: |
       Plant object
       @param T String containing class of plant to create; currently
@@ -308,31 +308,31 @@ Plant:
     mortality: {type: double, access: member, name_cpp_set: set_mortality}
     fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
     strategy: {type: "T", access: member, name_cpp: r_get_strategy}
-    internals: {type: "tree::Plant<T>::internals", access: member, name_cpp: "r_internals"}
+    internals: {type: "plant::Plant<T>::internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_state", name_cpp_set: "tree::ode::r_set_ode_state"}
-    ode_rates: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_rates"}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
   methods:
     area_leaf_above:
       args: [h: double]
       return_type: double
     compute_vars_phys:
-      args: [environment: "const tree::Environment&"]
+      args: [environment: "const plant::Environment&"]
       return_type: void
     germination_probability:
-      args: [environment: "const tree::Environment&"]
+      args: [environment: "const plant::Environment&"]
       return_type: double
 
 PlantRunner:
-  name_cpp: "tree::tools::PlantRunner"
+  name_cpp: "plant::tools::PlantRunner"
   constructor:
-    args: [plant: "tree::FFW16_PlantPlus", environment: "tree::Environment"]
+    args: [plant: "plant::FFW16_PlantPlus", environment: "plant::Environment"]
   active:
-    plant: {access: field, type: "tree::FFW16_PlantPlus"}
+    plant: {access: field, type: "plant::FFW16_PlantPlus"}
 
 FFW16_Strategy:
-  name_cpp: "tree::FFW16_Strategy"
+  name_cpp: "plant::FFW16_Strategy"
   roxygen: |
     Strategy parameters that tune various aspects of the biological model.
     @title Strategy parameters
@@ -369,10 +369,10 @@ FFW16_Strategy:
     - c_d0: double
     - c_d2: double
     - c_d3: double
-    - control: "tree::Control"
+    - control: "plant::Control"
 
 FFW16_Parameters:
-  name_cpp: "tree::FFW16_Parameters"
+  name_cpp: "plant::FFW16_Parameters"
   roxygen: |
     Strategy parameters that tune various aspects of the biological model.
     @title Strategy parameters
@@ -386,11 +386,11 @@ FFW16_Parameters:
     - Pi_0: double
     - n_patches: size_t
     - disturbance_mean_interval: double
-    - strategies: "std::vector<tree::FFW16_Strategy>"
+    - strategies: "std::vector<plant::FFW16_Strategy>"
     - seed_rain: "std::vector<double>"
     - is_resident: "std::vector<bool>"
-    - control: "tree::Control"
-    - strategy_default: "tree::FFW16_Strategy"
+    - control: "plant::Control"
+    - strategy_default: "plant::FFW16_Strategy"
     - cohort_schedule_max_time: double
     - cohort_schedule_times_default: "std::vector<double>"
     - cohort_schedule_times: "std::vector<std::vector<double> >"
@@ -398,10 +398,10 @@ FFW16_Parameters:
     - hyperpar: SEXP
 
 FFW16_PlantPlus:
-  name_cpp: "tree::FFW16_PlantPlus"
+  name_cpp: "plant::FFW16_PlantPlus"
   constructor:
-    name_cpp: "tree::make_plant_plus"
-    args: [strategy: "tree::FFW16_Strategy=FFW16_Strategy()"]
+    name_cpp: "plant::make_plant_plus"
+    args: [strategy: "plant::FFW16_Strategy=FFW16_Strategy()"]
     roxygen: |
       Plant object
       @param strategy A \code{FFW16_Strategy} object
@@ -414,27 +414,27 @@ FFW16_PlantPlus:
     area_heartwood: {type: double, access: member, name_cpp_set: set_area_heartwood}
     mass_heartwood: {type: double, access: member, name_cpp_set: set_mass_heartwood}
     area_leaf: {type: double, access: member}
-    strategy: {type: "tree::FFW16_Strategy", access: member, name_cpp: r_get_strategy}
-    internals: {type: "tree::FFW16_PlantPlus::internals", access: member, name_cpp: "r_internals"}
+    strategy: {type: "plant::FFW16_Strategy", access: member, name_cpp: r_get_strategy}
+    internals: {type: "plant::FFW16_PlantPlus::internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_state", name_cpp_set: "tree::ode::r_set_ode_state"}
-    ode_rates: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_rates"}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
   methods:
     area_leaf_above:
       args: [h: double]
       return_type: double
     compute_vars_phys:
-      args: [environment: "const tree::Environment&"]
+      args: [environment: "const plant::Environment&"]
       return_type: void
     compute_vars_growth:
       return_type: void
     germination_probability:
-      args: [environment: "const tree::Environment&"]
+      args: [environment: "const plant::Environment&"]
       return_type: double
 
 FFW16_PlantPlus_internals:
-  name_cpp: "tree::FFW16_PlantPlus::internals"
+  name_cpp: "plant::FFW16_PlantPlus::internals"
   list:
     - mass_leaf: double
     - area_leaf: double
@@ -482,19 +482,19 @@ FFW16_PlantPlus_internals:
 
 # For now, this one is not templated.
 FFW16_Cohort:
-  name_cpp: "tree::Cohort<tree::FFW16_Plant>"
+  name_cpp: "plant::Cohort<plant::FFW16_Plant>"
   constructor:
-    name_cpp: "tree::make_cohort<tree::FFW16_Plant>"
-    args: [strategy: "tree::FFW16_Strategy"]
+    name_cpp: "plant::make_cohort<plant::FFW16_Plant>"
+    args: [strategy: "plant::FFW16_Strategy"]
   active:
-    plant: {type: "tree::FFW16_Plant", access: field, readonly: true}
+    plant: {type: "plant::FFW16_Plant", access: field, readonly: true}
     height: {type: double, access: member}
     log_density: {type: double, access: member, name_cpp: get_log_density}
     area_leaf: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_state", name_cpp_set: "tree::ode::r_set_ode_state"}
-    ode_rates: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_rates"}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
     area_leaf_above:
       return_type: double
@@ -502,46 +502,46 @@ FFW16_Cohort:
     growth_rate_gradient:
       return_type: double
       name_cpp: "r_growth_rate_gradient"
-      args: [environment: "const tree::Environment&"]
+      args: [environment: "const plant::Environment&"]
     compute_vars_phys:
       return_type: void
-      args: [environment: "const tree::Environment&"]
+      args: [environment: "const plant::Environment&"]
     compute_initial_conditions:
       return_type: void
-      args: [environment: "const tree::Environment&"]
+      args: [environment: "const plant::Environment&"]
 
 # For now, also not templated
 FFW16_Species:
-  name_cpp: "tree::Species<tree::FFW16_Plant>"
+  name_cpp: "plant::Species<plant::FFW16_Plant>"
   constructor:
-    args: [strategy: "tree::FFW16_Strategy"]
+    args: [strategy: "plant::FFW16_Strategy"]
   active:
     size: {type: size_t, access: member}
-    seed: {type: "tree::Cohort<tree::FFW16_Plant>", access: member, name_cpp: r_seed}
+    seed: {type: "plant::Cohort<plant::FFW16_Plant>", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
-    plants: {type: "std::vector<tree::Cohort<tree::FFW16_Plant> >", access: member, name_cpp: r_plants}
+    plants: {type: "std::vector<plant::Cohort<plant::FFW16_Plant> >", access: member, name_cpp: r_plants}
     seeds: {type: "std::vector<double>", access: member}
     area_leafs: {type: "std::vector<double>", access: member, name_cpp: r_area_leafs}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_state: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_state", name_cpp_set: "tree::ode::r_set_ode_state"}
-    ode_rates: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_rates"}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
     clear:
       return_type: void
     compute_vars_phys:
       return_type: void
-      args: [environment: "const tree::Environment&"]
+      args: [environment: "const plant::Environment&"]
     area_leaf_above:
       return_type: double
       args: [height: double]
     add_seed:
       return_type: void
     plant_at:
-      return_type: "tree::Cohort<tree::FFW16_Plant>"
-      args: [index: "tree::util::index"]
+      return_type: "plant::Cohort<plant::FFW16_Plant>"
+      args: [index: "plant::util::index"]
       name_cpp: r_plant_at
     area_leafs_error:
       return_type: "std::vector<double>"
@@ -549,27 +549,27 @@ FFW16_Species:
       name_cpp: r_area_leafs_error
 
 FFW16_Patch:
-  name_cpp: "tree::Patch<tree::FFW16_Plant>"
+  name_cpp: "plant::Patch<plant::FFW16_Plant>"
   constructor:
-    args: [parameters: "tree::FFW16_Parameters"]
+    args: [parameters: "plant::FFW16_Parameters"]
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
-    parameters: {type: "tree::FFW16_Parameters", access: member, name_cpp: r_parameters}
-    environment: {type: "tree::Environment", access: member, name_cpp: r_environment}
-    species: {type: "std::vector<tree::Species<tree::FFW16_Plant> >", access: member, name_cpp: r_species}
+    parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
+    environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
+    species: {type: "std::vector<plant::Species<plant::FFW16_Plant> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
-    ode_time: {type: double, access: function, name_cpp: "tree::ode::r_ode_time"}
-    ode_state: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_state"}
-    ode_rates: {type: "tree::ode::state_type", access: function, name_cpp: "tree::ode::r_ode_rates"}
+    ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
     area_leaf_above: {return_type: double, args: [height: double]}
     canopy_openness: {return_type: double, args: [height: double]}
     add_seed:
       return_type: void
-      args: [species_index: "tree::util::index"]
+      args: [species_index: "plant::util::index"]
       name_cpp: r_add_seed
     compute_light_environment:
       return_type: void
@@ -586,40 +586,40 @@ FFW16_Patch:
     set_ode_state:
       return_type: void
       access: function
-      name_cpp: "tree::ode::r_set_ode_state"
-      args: [values: "tree::ode::state_type", time: double]
+      name_cpp: "plant::ode::r_set_ode_state"
+      args: [values: "plant::ode::state_type", time: double]
     derivs:
-      return_type: "tree::ode::state_type"
+      return_type: "plant::ode::state_type"
       access: function
-      name_cpp: "tree::ode::r_derivs"
-      args: [y: "const tree::ode::state_type&", time: double]
+      name_cpp: "plant::ode::r_derivs"
+      args: [y: "const plant::ode::state_type&", time: double]
     set_state:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&"]
       name_cpp: r_set_state
       return_type: void
 
 FFW16_EBT:
-  name_cpp: "tree::EBT<tree::FFW16_Plant>"
+  name_cpp: "plant::EBT<plant::FFW16_Plant>"
   constructor:
-    args: [parameters: "tree::FFW16_Parameters"]
+    args: [parameters: "plant::FFW16_Parameters"]
   methods:
     run:
       return_type: void
     run_next:
-      return_type: "std::vector<tree::util::index>"
+      return_type: "std::vector<plant::util::index>"
       name_cpp: r_run_next
     reset:
       return_type: void
     seed_rain:
-      args: [species_index: "tree::util::index"]
+      args: [species_index: "plant::util::index"]
       return_type: double
       name_cpp: r_seed_rain
     seed_rain_cohort:
-      args: [species_index: "tree::util::index"]
+      args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_seed_rain_cohort
     area_leaf_error:
-      args: [species_index: "tree::util::index"]
+      args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_area_leaf_error
     set_cohort_schedule_times:
@@ -632,13 +632,13 @@ FFW16_EBT:
     complete: {type: bool, access: member}
     time: {type: double, access: member}
     seed_rains: {type: "std::vector<double>", access: member}
-    parameters: {type: "tree::FFW16_Parameters", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
     patch:
-      type: "tree::Patch<tree::FFW16_Plant>"
+      type: "plant::Patch<plant::FFW16_Plant>"
       access: member
       name_cpp: r_patch
     cohort_schedule:
-      type: "tree::CohortSchedule"
+      type: "plant::CohortSchedule"
       access: member
       name_cpp: r_cohort_schedule
       name_cpp_set: r_set_cohort_schedule
@@ -649,7 +649,7 @@ FFW16_EBT:
     state:
       type: "Rcpp::List"
       access: function
-      name_cpp: "tree::get_state"
+      name_cpp: "plant::get_state"
     use_ode_times:
       type: bool
       access: member

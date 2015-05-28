@@ -1,7 +1,7 @@
-#include <tree/ebt_utils.h>
-#include <tree.h>
+#include <plant/ebt_utils.h>
+#include <plant.h>
 
-namespace tree {
+namespace plant {
 
 std::vector<double> cohort_schedule_times_default(double max_time) {
   const double multiplier=0.2, min_step_size=1e-5, max_step_size=2.0;
@@ -48,25 +48,25 @@ std::vector<double> cohort_schedule_times_default(double max_time) {
 //' S. Falster.
 // [[Rcpp::export]]
 std::vector<double> cohort_schedule_times_default(double max_time) {
-  return tree::cohort_schedule_times_default(max_time);
+  return plant::cohort_schedule_times_default(max_time);
 }
 
 // These two have the slighty odd export to prevent argument dependent
-// lookup, which renders the version in tree:: a candidate.  It might
+// lookup, which renders the version in plant:: a candidate.  It might
 // be better to have RcppExports refer to
 // ::cohort_schedule_max_time_default, but that's not how it's
 // implemented.
 // [[Rcpp::export(cohort_schedule_max_time_default)]]
-double r_cohort_schedule_max_time_default(const tree::FFW16_Parameters& p) {
-  return tree::cohort_schedule_max_time_default(p);
+double r_cohort_schedule_max_time_default(const plant::FFW16_Parameters& p) {
+  return plant::cohort_schedule_max_time_default(p);
 }
 
 // [[Rcpp::export(cohort_schedule_default)]]
-tree::CohortSchedule r_cohort_schedule_default(const tree::FFW16_Parameters& p) {
-  return tree::cohort_schedule_default(p);
+plant::CohortSchedule r_cohort_schedule_default(const plant::FFW16_Parameters& p) {
+  return plant::cohort_schedule_default(p);
 }
 
 // [[Rcpp::export(make_cohort_schedule)]]
-tree::CohortSchedule r_make_cohort_schedule(const tree::FFW16_Parameters& p) {
-  return tree::make_cohort_schedule(p);
+plant::CohortSchedule r_make_cohort_schedule(const plant::FFW16_Parameters& p) {
+  return plant::make_cohort_schedule(p);
 }

@@ -1,7 +1,7 @@
-#include <tree/environment.h>
-#include <tree/parameters.h>
+#include <plant/environment.h>
+#include <plant/parameters.h>
 
-namespace tree {
+namespace plant {
 
 double Environment::canopy_openness(double height) const {
   const bool within_canopy = height <= light_environment.max();

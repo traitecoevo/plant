@@ -1,7 +1,7 @@
-#include <tree/ffw16_plant_plus_internals.h>
+#include <plant/ffw16_plant_plus_internals.h>
 #include <R.h>
 
-namespace tree {
+namespace plant {
 
 // TODO: Some of these start at zero, others at NA_REAL.  Work out
 // when they get set and set them.

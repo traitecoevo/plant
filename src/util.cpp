@@ -1,7 +1,7 @@
-#include <tree/util.h>
+#include <plant/util.h>
 #include <Rcpp.h>
 
-namespace tree {
+namespace plant {
 namespace util {
 
 size_t index::check_bounds(size_t size) {
@@ -98,20 +98,20 @@ bool is_function(SEXP x) {
 }
 
 namespace Rcpp {
-template <> SEXP wrap(const tree::util::index& x) {
-  return Rcpp::wrap(tree::util::base_0_to_1<size_t, int>(x.x));
+template <> SEXP wrap(const plant::util::index& x) {
+  return Rcpp::wrap(plant::util::base_0_to_1<size_t, int>(x.x));
 }
-template <> tree::util::index as(SEXP x) {
+template <> plant::util::index as(SEXP x) {
   const int ix(Rcpp::as<int>(x));
   if (ix <= 0) {
     Rcpp::stop("Invalid value for index (must be >= 1)");
   }
-  return tree::util::base_1_to_0<int, size_t>(ix);
+  return plant::util::base_1_to_0<int, size_t>(ix);
 }
-template <> SEXP wrap(const std::vector<tree::util::index>& x) {
+template <> SEXP wrap(const std::vector<plant::util::index>& x) {
   Rcpp::IntegerVector ret(x.size());
   for (size_t i = 0; i < x.size(); ++i) {
-    ret[static_cast<int>(i)] = tree::util::base_0_to_1<size_t, int>(x[i].x);
+    ret[static_cast<int>(i)] = plant::util::base_0_to_1<size_t, int>(x[i].x);
   }
   return Rcpp::wrap(ret);
 }
@@ -120,18 +120,18 @@ template <> SEXP wrap(const std::vector<tree::util::index>& x) {
 // [[Rcpp::export]]
 double trapezium(const std::vector<double>& x,
                  const std::vector<double>& y) {
-  return tree::util::trapezium(x, y);
+  return plant::util::trapezium(x, y);
 }
 
 // [[Rcpp::export]]
 std::vector<double> trapezium_vector(const std::vector<double>& x,
                                      const std::vector<double>& y) {
-  return tree::util::trapezium_vector(x, y);
+  return plant::util::trapezium_vector(x, y);
 }
 
 // [[Rcpp::export]]
 std::vector<double> local_error_integration(const std::vector<double>& x,
                                             const std::vector<double>& y,
                                             double scal) {
-  return tree::util::local_error_integration(x, y, scal);
+  return plant::util::local_error_integration(x, y, scal);
 }

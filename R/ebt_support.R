@@ -196,8 +196,8 @@ run_ebt_error <- function(p) {
        ode_times=ebt$ode_times)
 }
 
-##' Hyperparameters for tree
-##' @title Hyperparameters for tree
+##' Hyperparameters for plant
+##' @title Hyperparameters for plant
 ##' @param B4 Slope of lma / leaf turnover log-log relationship
 ##' @param lma_0 LMA value...
 ##' @param k_l_0 ...

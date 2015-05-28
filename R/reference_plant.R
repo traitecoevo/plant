@@ -12,7 +12,7 @@
 ##' FitzJohn)
 ##' @export
 make_reference_plant <- function() {
-  path <- system.file("reference_plant", package="tree")
+  path <- system.file("reference_plant", package=.packageName)
 
   e <- new.env()
   source(file.path(path, "R/params.r"), local=e)

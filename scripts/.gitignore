@@ -1,0 +1,4 @@
+.remake
+*.Rmd
+*.md
+figure

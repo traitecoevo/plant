@@ -3,7 +3,7 @@
 \name{make_FFW16_hyperpar}
 \alias{FFW16_hyperpar}
 \alias{make_FFW16_hyperpar}
-\title{Hyperparameters for tree}
+\title{Hyperparameters for plant}
 \usage{
 make_FFW16_hyperpar(B4 = 1.71, lma_0 = 0.1978791, k_l_0 = 0.4565855,
   rho_0 = 608, d0_0 = 0.01, d1 = 0, k_s_0 = 0.2, B5 = 0,
@@ -38,6 +38,6 @@ FFW16_hyperpar(m, s, filter = TRUE)
 the same as the default should be removed.}
 }
 \description{
-Hyperparameters for tree
+Hyperparameters for plant
 }
 
