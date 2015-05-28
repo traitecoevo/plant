@@ -12,13 +12,13 @@ Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satis
 
 ```r
 drat:::add("traitecoevo")
-install.packages("plant")
+install.packages("plant", dependencies=TRUE)
 ```
 
-(versions of R before 3.2.0 may require `install.packages("plant", type="source")` here)
+Versions of R before 3.2.0 may require `install.packages("plant", type="source")` here.  The `dependencies=TRUE` installs some additional packages that are used in tests and some of the routines.
 
 **Option 2, using `devtools::install_github`**
 
 ```r
-devtools::install_github("traitecoevo/plant")
+devtools::install_github("traitecoevo/plant", dependencies=TRUE)
 ```
