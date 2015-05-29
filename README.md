@@ -4,7 +4,7 @@
 
 ## Installation
 
-Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, plus we've had success on Ubuntu 12.4 and 14.4).
+Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, plus we've had success on Ubuntu 12.04 and 14.04).
 
 **Option 1, using [`drat`](https://github.com/eddelbuettel/drat)**
 
@@ -22,3 +22,7 @@ Versions of R before 3.2.0 may require `install.packages("plant", type="source")
 ```r
 devtools::install_github("traitecoevo/plant", dependencies=TRUE)
 ```
+
+### Windows
+
+Installation on Windows is likely to be a challenge, because of the lack of a C++11 compiler.  The current Windows [toolchain](http://cran.r-project.org/bin/windows/Rtools/) uses gcc 4.6.3, which des not feature enough C++11 support to successfully compile plant.  There is support coming for gcc 4.9.2, but that is [under development](https://rawgit.com/kevinushey/RToolsToolchainUpdate/master/mingwnotes.html).  This should become available on Windows very soon (it was initially aimed for 3.2.0 but didn't quite make it).  As soon as this is available we will provide Windows binaries.
