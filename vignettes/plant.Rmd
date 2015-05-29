@@ -16,6 +16,13 @@ to run (several hours) than is typical or ideal for an R package.
 In the meantime, they are available on the `traitecoevo/plant_paper`
 [wiki](https://github.com/traitecoevo/plant_paper/wiki).
 
+Details of the modelling approaches:
+
+* [Modelling demography of plants, patches and metapopulations](physiology.pdf)
+* [Plant physiological model](demography.pdf)
+
+Details of using `plant` from R:
+
 * [Plant level properties](https://github.com/traitecoevo/plant_paper/wiki/plant) ([source](https://github.com/traitecoevo/plant_paper/blob/master/vignettes/src/plant.R))
 * [Cohort spacing algorithm](https://github.com/traitecoevo/plant_paper/wiki/cohort_spacing) ([source](https://github.com/traitecoevo/plant_paper/blob/master/vignettes/src/cohort_spacing.R))
 * [Finding demographic equilibrium](https://github.com/traitecoevo/plant_paper/wiki/equilibrium) ([source](https://github.com/traitecoevo/plant_paper/blob/master/vignettes/src/equilibrium.R))
