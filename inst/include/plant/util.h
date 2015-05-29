@@ -186,6 +186,9 @@ bool is_function(SEXP x);
 std::vector<double> local_error_integration(const std::vector<double>& x,
                                             const std::vector<double>& y,
                                             double scal);
+
+SEXP get_from_package(const std::string& name);
+
 }
 }
 

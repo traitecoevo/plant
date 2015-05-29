@@ -66,7 +66,7 @@ Parameters<T>::Parameters()
     n_patches(1),
     disturbance_mean_interval(30),
     cohort_schedule_max_time(NA_REAL),
-    hyperpar(R_NilValue) {
+    hyperpar(util::get_from_package("FFW16_hyperpar")) {
 }
 
 template <typename T>

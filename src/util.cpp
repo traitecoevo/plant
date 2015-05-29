@@ -90,6 +90,11 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
   return ret;
 }
 
+SEXP get_from_package(const std::string& name) {
+  Rcpp::Environment pkg("package:plant");
+  return pkg[name];
+}
+
 bool is_function(SEXP x) {
   return Rcpp::is<Rcpp::Function>(x);
 }

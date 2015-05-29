@@ -12,7 +12,7 @@ test_that("Creation & defaults", {
                    n_patches=1,    # NOTE: Different to tree 0.1
                    patch_area=1.0, # NOTE: Different to tree 0.1
                    disturbance_mean_interval=30.0,
-                   hyperpar=NULL)
+                   hyperpar=FFW16_hyperpar)
 
   expect_that(p[names(expected)], is_identical_to(expected))
   expect_that(p$strategy_default, equals(FFW16_Strategy()))
