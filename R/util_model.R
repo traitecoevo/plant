@@ -45,7 +45,7 @@ strategy <- function(x, parameters) {
 ##' @rdname strategy_list
 ##' @export
 plant_list <- function(x, parameters) {
-  lapply(strategy_list(x, parameters), Plant)
+  lapply(strategy_list(x, parameters), FFW16_Plant)
 }
 
 ##' Helper function to create trait matrices suitable for
