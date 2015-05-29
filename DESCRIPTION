@@ -20,4 +20,6 @@ Suggests:
     nleqslv,
     BB,
     parallel,
-    RcppR6 (>= 0.2.1)
+    RcppR6 (>= 0.2.1),
+    knitr
+VignetteBuilder: knitr

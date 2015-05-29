@@ -33,4 +33,7 @@ check: build
 clean:
 	rm -f src/*.o src/*.so
 
-.PHONY: all compile_dll doc clean test install
+vignettes: vignettes/plant.Rmd
+	${RSCRIPT} -e 'library(methods); devtools::build_vignettes()'
+
+.PHONY: all compile_dll doc clean test install vignettes
