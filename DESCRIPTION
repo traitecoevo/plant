@@ -1,6 +1,6 @@
 Package: plant
 Title: Trait-Driven Models of Ecology and Evolution
-Version: 0.2.1
+Version: 0.2.2
 Author: Richard G. FitzJohn and Daniel S. Falster
 Maintainer: Richard G. FitzJohn <rich.fitzjohn@gmail.com>
 Description: Implements EBT (Falster et al. 2010) and an individual
