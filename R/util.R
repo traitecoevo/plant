@@ -92,14 +92,6 @@ loop <- function(X, FUN, ..., parallel=FALSE) {
   }
 }
 
-make_message_verbose <- function(verbose) {
-  if (verbose) {
-    function(...) base::message(sprintf(...))
-  } else {
-    function(...) {}
-  }
-}
-
 ##' Create a matrix from a list by rbinding all columns together
 ##' @title Create matrices from lists
 ##' @param x A list, or something coercable to a list

@@ -78,10 +78,10 @@ viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
   w <- max_growth_rate(x, p)
 
   if (w < 0) {
-    message("Starting value had negative fitness, looking for max")
+    plant_log_viable("Starting value had negative fitness, looking for max")
     x <- max_fitness(bounds, p, log_scale)
     w <- attr(x, "fitness")
-    message(sprintf("\t...found max fitness at %2.5f (w=%2.5f)", x, w))
+    plant_log_viable(sprintf("\t...found max fitness at %2.5f (w=%2.5f)", x, w))
     if (w < 0) {
       return(NULL)
     }

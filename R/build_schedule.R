@@ -39,12 +39,12 @@ build_schedule <- function(p) {
     }
     p$cohort_schedule_times <- times
 
-    if (control$schedule_verbose) {
-      message(sprintf("schedule> %d: Splitting {%s} times (%s)",
-                      i,
-                      paste(sapply(split, sum),    collapse=","),
-                      paste(sapply(split, length), collapse=",")))
-    }
+    ## TODO: could record the error here perhaps?
+    msg <- sprintf("%d: Splitting {%s} times (%s)",
+                   i,
+                   paste(sapply(split, sum),    collapse=","),
+                   paste(sapply(split, length), collapse=","))
+    plant_log_debug(msg, routine="schedule", event="split", round=i)
   }
 
   p$cohort_schedule_ode_times <- res$ode_times

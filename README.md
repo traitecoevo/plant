@@ -23,6 +23,12 @@ Versions of R before 3.2.0 may require `install.packages("plant", type="source")
 devtools::install_github("traitecoevo/plant", dependencies=TRUE)
 ```
 
+Development versions of `plant` (version 0.2.3 onwards) depends on the `loggr` package: install that from drat or with
+
+```
+devtools::install_github("smbache/loggr")
+```
+
 ### Windows
 
 Installation on Windows is likely to be a challenge, because of the lack of a C++11 compiler.  The current Windows [toolchain](http://cran.r-project.org/bin/windows/Rtools/) uses gcc 4.6.3, which des not feature enough C++11 support to successfully compile plant.  There is support coming for gcc 4.9.2, but that is [under development](https://rawgit.com/kevinushey/RToolsToolchainUpdate/master/mingwnotes.html).  This should become available on Windows very soon (it was initially aimed for 3.2.0 but didn't quite make it).  As soon as this is available we will provide Windows binaries.

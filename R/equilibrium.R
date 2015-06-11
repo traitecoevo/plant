@@ -8,9 +8,8 @@
 ##' @author Rich FitzJohn
 equilibrium_seed_rain <- function(p) {
   solver <- p$control$equilibrium_solver_name
-  if (p$control$equilibrium_verbose) {
-    message("eq> Solving seed rain using ", solver)
-  }
+  plant_log_info(sprintf("Solving seed rain using %s", solver),
+                 routine="equilibrium", stage="start", solver=solver)
   switch(solver,
          iteration=equilibrium_seed_rain_iteration(p),
          nleqslv=equilibrium_seed_rain_solve_robust(p, solver),
@@ -27,9 +26,12 @@ equilibrium_seed_rain_iteration <- function(p) {
     rchange <- 1 - x_out / x_in
     ## eps > 0 && # <- this was a precondition - seems odd.
     converged <- all(abs(achange) < eps | abs(rchange) < eps)
-    if (verbose && converged) {
-      fmt <- "eq> Reached target accuracy (delta %2.5e, %2.5e < %2.5e eps)"
-      message(sprintf(fmt, max(abs(achange)), max(abs(rchange)), eps))
+    if (converged) {
+      achange <- max(abs(achange))
+      rchange <- max(abs(rchange))
+      fmt <- "Reached target accuracy (delta %2.5e, %2.5e < %2.5e eps)"
+      plant_log_eq(sprintf(fmt, achange, rchange, eps),
+                   stage="converged", achange=achange, rchange=rchange)
     }
     converged
   }
@@ -54,10 +56,11 @@ equilibrium_seed_rain_iteration <- function(p) {
 equilibrium_seed_rain_solve <- function(p, solver="nleqslv") {
   try_keep <- p$control$equilibrium_solver_try_keep
   logN <- p$control$equilibrium_solver_logN
-  min_seed_rain <- 1e-10 # should also be in the controls?
-  message_verbose <- make_message_verbose(p$control$equilibrium_verbose)
+  min_seed_rain <- 1e-10 # TODO: should also be in the controls?
 
-  message_verbose("eq> Solving seed rain using %s", solver)
+  plant_log_eq(paste("Solving seed rain using", solver),
+               stage="start", solver=solver)
+
   seed_rain <- p$seed_rain
   runner <- make_equilibrium_runner(p)
 
@@ -66,8 +69,9 @@ equilibrium_seed_rain_solve <- function(p, solver="nleqslv") {
   to_drop <- seed_rain < min_seed_rain
   if (any(to_drop)) {
     i_keep <- which(!to_drop)
-    message_verbose("eq> Species %s extinct: excluding from search",
-                    paste(which(to_drop), collapse=" & "))
+    msg <- sprintf("Species %s extinct: excluding from search",
+                   paste(which(to_drop), collapse=" & "))
+    plant_log_eq(msg, stage="drop species", drop=which(to_drop))
     seed_rain_full <- seed_rain
     seed_rain <- seed_rain_full[i_keep]
 
@@ -83,8 +87,10 @@ equilibrium_seed_rain_solve <- function(p, solver="nleqslv") {
   if (try_keep) {
     ans <- runner(seed_rain)
     keep <- unname(ans >= seed_rain)
-    message_verbose("eq> Keeping species: %s",
-                    paste(which(!to_drop)[keep], collapse=", "))
+
+    msg <- sprintf("Keeping species %s",
+                   paste(which(!to_drop)[keep], collapse=", "))
+    plant_log_eq(msg, stage="keep species", keep=which(!to_drop)[keep])
   } else {
     keep <- rep(FALSE, length(p$strategies))
   }
@@ -107,25 +113,24 @@ equilibrium_seed_rain_solve <- function(p, solver="nleqslv") {
   res
 }
 
+## NOTE: I don't know that this is used?  Perhaps it is?
 equilibrium_seed_rain_solve_robust <- function(p, solver="nleqslv") {
-  message_verbose <- make_message_verbose(p$control$equilibrium_verbose)
-
   fit <- try(equilibrium_seed_rain_solve(p, solver))
   if (failed(fit)) {
-    message_verbose("eq> Falling back on iteration")
+    plant_log_eq("Falling back on iteration")
     fit_it <- equilibrium_seed_rain_iteration(p)
     ## Here, we might want to pick a set of values that look good from
     ## the previous set.
 
-    message_verbose("eq> Trying again with the solver")
+    plant_log_eq("Trying again with the solver")
     p$seed_rain <- unname(fit_it$seed_rain)
     fit2 <- try(equilibrium_seed_rain_solve(p, solver))
 
     if (failed(fit2)) {
-      message_verbose("eq> Solver failed again: using iteration version")
+      plant_log_eq("Solver failed again: using iteration version")
       fit <- fit_it
     } else {
-      message_verbose("eq> Solver worked on second attempt")
+      plant_log_eq("Solver worked on second attempt")
       fit <- fit2
     }
   }
@@ -141,7 +146,6 @@ equilibrium_seed_rain_solve_robust <- function(p, solver="nleqslv") {
 ## that were zeroed to make sure they're really dead.
 equilibrium_seed_rain_hybrid <- function(p) {
   attempts <- p$control$equilibrium_nattempts
-  message_verbose <- make_message_verbose(p$control$equilibrium_verbose)
 
   ## Then expand this out so that we can try alternating solvers
   solver <- rep(c("nleqslv", "dfsane"), length.out=attempts)
@@ -150,17 +154,19 @@ equilibrium_seed_rain_hybrid <- function(p) {
     ans_it <- equilibrium_seed_rain_iteration(p)
     p$seed_rain <- ans_it$seed_rain
     converged_it <- isTRUE(attr(ans_it, "converged"))
-    message_verbose("eq> Iteration %d %s",
-                    i, if (converged_it) "converged" else "did not converge")
+    msg <- sprintf("Iteration %d %s",
+                   i, if (converged_it) "converged" else "did not converge")
+    plant_log_eq(msg, step="iteration", converged=converged_it, iteration=i)
 
     ans_sol <- try(equilibrium_seed_rain_solve(p, solver[[i]]))
     converged_sol <- isTRUE(attr(ans_sol, "converged"))
-    message_verbose("eq> Solve %d %s",
+    msg <- sprintf("Solve %d %s",
                     i, if (converged_sol) "converged" else "did not converge")
+    plant_log_eq(msg, step="solve", converged=converged_sol, iteration=i)
 
     if (converged_sol) {
       if (any(ans_sol$seed_rain == 0.0)) {
-        message_verbose("eq> Checking species driven to extinction")
+        plant_log_eq("Checking species driven to extinction")
         ## Add these species back at extremely low density and make sure
         ## that this looks like a legit extinction.
         y_in <- ans_sol$seed_rain
@@ -171,16 +177,17 @@ equilibrium_seed_rain_hybrid <- function(p) {
         p_check$seed_rain <- y_in
         y_out <- run_ebt(p_check)$seed_rains
         if (any(y_out[i] > y_in[i])) {
-          message_verbose("eq> Solver drove viable species extinct: rejecting")
+          plant_log_eq("Solver drove viable species extinct: rejecting")
           next
         }
       }
-      message_verbose("eq> Accepting solution via solver")
+      plant_log_eq("Accepting solution via solver")
       return(ans_sol)
     }
   }
 
-  message_verbose("eq> Repeated rounds failed to find optimum")
+  ## This one should be a warning?
+  plant_log_eq("Repeated rounds failed to find optimum")
   ans_it
 }
 
@@ -217,12 +224,15 @@ make_equilibrium_runner <- function(p) {
     last_seed_rain      <<- seed_rain_in
     history <<- c(history, list(c("in"=seed_rain_in, out=seed_rain_out)))
 
-    if (p$control$equilibrium_verbose) {
-      message(sprintf("eq> %d: %s -> %s (delta = %s)", i,
-                      pretty_num_collapse(seed_rain_in),
-                      pretty_num_collapse(seed_rain_out),
-                      pretty_num_collapse(seed_rain_out - seed_rain_in)))
-    }
+    msg <- sprintf("eq> %d: %s -> %s (delta = %s)", i,
+                   pretty_num_collapse(seed_rain_in),
+                   pretty_num_collapse(seed_rain_out),
+                   pretty_num_collapse(seed_rain_out - seed_rain_in))
+    plant_log_eq(msg,
+                 stage="runner",
+                 iteration=i,
+                 seed_rain_in=seed_rain_in,
+                 seed_rain_out=seed_rain_out)
     i <<- i + 1L
 
     attr(seed_rain_out, "schedule_times") <- last_schedule_times
@@ -255,21 +265,21 @@ equilibrium_seed_rain_solve_target <- function(runner, keep, logN,
   force(logN)
   force(min_seed_rain)
   force(max_seed_rain)
-  message_verbose <- make_message_verbose(verbose)
   function(x, ...) {
     if (logN) {
       x <- exp(x)
     }
+    ## TODO: most of the plant_log_eq things here should be DEBUG not INFO?
     ## Avoid negative seed rains:
     x[x < min_seed_rain & keep] <- min_seed_rain
     x[x < min_seed_rain & !keep] <- 0.0
     if (!any(x > 0)) {
-      message_verbose("eq> All species extinct?")
+      plant_log_eq("All species extinct?")
     }
     too_high <- x > max_seed_rain
     if (any(too_high)) {
-      message_verbose("eq> Truncating seed rain of species %s",
-                      paste(which(too_high), collapse=", "))
+      plant_log_eq("Truncating seed rain of species %s",
+                   paste(which(too_high), collapse=", "))
       if (length(max_seed_rain) == 1L) {
         max_seed_rain <- rep(max_seed_rain, length.out=length(x))
       }
@@ -319,12 +329,14 @@ check_inviable <- function(p) {
   drop <- logical(length(seed_rain_out))
 
   for (i in test) {
-    message("check_inviable> Testing species ", i)
+    plant_log_inviable(paste("Testing species", i),
+                       stage="testing", species=i)
     x <- seed_rain_out
     x[i] <- eps
     res <- runner(x)
     if (res[[i]] < eps) {
-      message("check_inviable>\t...removing")
+      plant_log_inviable(paste("Removing species", i),
+                         stage="removing", species=i)
       drop[[i]] <- TRUE
       res[[i]] <- 0.0
       seed_rain_out <- res
