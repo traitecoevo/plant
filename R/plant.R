@@ -53,6 +53,7 @@ grow_plant_to_size <- function(plant, sizes, size_name, env,
 ##' @rdname grow_plant_to_size
 ##' @param ... Additional parameters passed to
 ##' \code{grow_plant_to_size}.
+##' @param heights Heights (when using \code{grow_plant_to_height})
 grow_plant_to_height <- function(plant, heights, env, ...) {
   grow_plant_to_size(plant, heights, "height", env, ...)
 }

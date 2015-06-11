@@ -28,6 +28,8 @@ prevent an infinite loop (say, on an unreachable size).}
 
 \item{filter}{Filter plants that are too large?}
 
+\item{heights}{Heights (when using \code{grow_plant_to_height})}
+
 \item{...}{Additional parameters passed to
 \code{grow_plant_to_size}.}
 }
