@@ -140,7 +140,9 @@ void Parameters<T>::setup_cohort_schedule() {
     cohort_schedule_times_default =
       plant::cohort_schedule_times_default(cohort_schedule_max_time);
   }
-  if ((update || cohort_schedule_times.empty()) && size() > 0) {
+
+  if (update || (cohort_schedule_times.empty() && size() > 0)) {
+    cohort_schedule_times.clear();
     for (size_t i = 0; i < size(); ++i) {
       cohort_schedule_times.push_back(cohort_schedule_times_default);
     }

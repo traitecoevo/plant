@@ -21,3 +21,12 @@ test_that("collect / make_patch", {
   expect_that(res$patch_density,
               equals(cmp_patch_density))
 })
+
+test_that("expand_parameters", {
+  p0 <- ebt_base_parameters()
+  p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, FALSE)
+  ## This will trigger rebuilding the times:
+  p1$cohort_schedule_max_time <- 100
+  expect_that(p2 <- expand_parameters(trait_matrix(0.2, "lma"), p1, FALSE),
+              not(throws_error()))
+})
