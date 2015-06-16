@@ -76,6 +76,12 @@ seq_range <- function(r, length.out) {
   seq(r[[1]], r[[2]], length.out=length.out)
 }
 
+##' Validate an object.  Currently only \code{Parameters} objects are
+##' validated.
+##' @title Validate an object
+##' @param x Object
+##' @param ... Additional arguments to be passed to methods
+##' @export
 validate <- function(x, ...) {
   UseMethod("validate")
 }
