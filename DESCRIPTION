@@ -14,14 +14,16 @@ Imports:
     Rcpp,
     R6,
     loggr,
-    crayon
+    crayon,
+    nleqslv,
+    BB,
+    grader
 Suggests:
     testthat,
     deSolve,
     numDeriv,
-    nleqslv,
-    BB,
     parallel,
     RcppR6 (>= 0.2.1),
-    knitr
+    knitr,
+    plant.ml
 VignetteBuilder: knitr
