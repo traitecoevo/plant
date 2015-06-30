@@ -88,7 +88,14 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
   // survival_plant: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
   const double survival_patch = environment.patch_survival();
-  const double survival_plant = exp(-plant.mortality());
+  double survival_plant = exp(-plant.mortality());
+  if (!R_FINITE(survival_plant)) {
+    // This is caused by NaN values in plant.mortality and log
+    // density; this should only be an issue when density is so low
+    // that we can throw these away.  I think that with smaller step
+    // sizes this is better behaved too?
+    survival_plant = 0.0;
+  }
 
   seeds_survival_weighted_dt =
     plant.fecundity_dt() * survival_plant *
