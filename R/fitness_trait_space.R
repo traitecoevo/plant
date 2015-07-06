@@ -20,10 +20,6 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
 
-  if (length(traits) > 1L) {
-    stop("Doesn't yet support multiple traits")
-  }
-
   if (log_scale) {
     ## TODO: This actually won't work for optimise():
     bounds[bounds[,1] == -Inf, 1] <- 0
@@ -35,17 +31,20 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
 
   if (length(traits) == 1L) {
     out <- optimise(f, interval=bounds, maximum=TRUE, tol=tol)
-    ret <- if (log_scale) exp(out$maximum) else out$maximum
+    ret <- out$maximum
     fitness <- out$objective
   } else {
     ## This is not very well tested, and the tolerance is not useful:
     out <- optim(rowMeans(bounds), f, method="L-BFGS-B",
-                 lower=bounds[,1], upper=bounds[,2],
+                 lower=bounds[, "lower"], upper=bounds[, "upper"],
                  control=list(fnscale=-1, factr=1e10))
-    ret <- if (log_scale) exp(out$ret) else out$ret
+    ret <- out$par
     fitness <- out$value
   }
 
+  if (log_scale) {
+    ret <- exp(ret)
+  }
   attr(ret, "fitness") <- fitness
   ret
 }
@@ -81,7 +80,8 @@ viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
     plant_log_viable("Starting value had negative fitness, looking for max")
     x <- max_fitness(bounds, p, log_scale)
     w <- attr(x, "fitness")
-    plant_log_viable(sprintf("\t...found max fitness at %2.5f (w=%2.5f)", x, w))
+    plant_log_viable(sprintf("\t...found max fitness at %s (w=%2.5f)",
+                             paste(formatC(x), collapse=", "), w))
     if (w < 0) {
       return(NULL)
     }
