@@ -381,7 +381,8 @@ FFW16_Parameters:
     @param ...,values Values to initialise the struct with (either as
     variadic arguments, or as a list, but not both).
     @export
-  validator_cpp: validate
+  validator:
+    name_cpp: validate
   list:
     - c_ext: double
     - patch_area: double

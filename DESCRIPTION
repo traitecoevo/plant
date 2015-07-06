@@ -23,7 +23,7 @@ Suggests:
     deSolve,
     numDeriv,
     parallel,
-    RcppR6 (>= 0.2.1),
+    RcppR6 (>= 0.2.3),
     knitr,
     plant.ml
 VignetteBuilder: knitr
