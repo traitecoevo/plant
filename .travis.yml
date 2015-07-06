@@ -24,6 +24,7 @@ install:
   - ./travis-tool.sh install_deps
   - ./travis-tool.sh github_package hadley/testthat
   - ./travis-tool.sh github_package richfitz/RcppR6
+  - ./travis-tool.sh github_package richfitz/grader
   - ./travis-tool.sh github_package smbache/loggr
   - ./travis-tool.sh github_package jimhester/covr
 
