@@ -26,7 +26,7 @@ Rcpp::NumericMatrix get_state(const Species<T>& species) {
 			  species.size() + 1); // +1 is seed
   Rcpp::NumericMatrix::iterator it = ret.begin();
   for (size_t i = 0; i < species.size(); ++i) {
-    it = get_state(species.r_plant_at(i), it);
+    it = get_state(species.r_cohort_at(i), it);
   }
   it = get_state(species.r_seed(), it);
 

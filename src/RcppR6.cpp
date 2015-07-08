@@ -842,8 +842,8 @@ void FFW16_Species__add_seed(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_P
   obj_->add_seed();
 }
 // [[Rcpp::export]]
-plant::Cohort<plant::FFW16_Plant> FFW16_Species__plant_at(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > obj_, plant::util::index index) {
-  return obj_->r_plant_at(index);
+plant::Cohort<plant::FFW16_Plant> FFW16_Species__cohort_at(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > obj_, plant::util::index index) {
+  return obj_->r_cohort_at(index);
 }
 // [[Rcpp::export]]
 std::vector<double> FFW16_Species__area_leafs_error(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > obj_, double scal) {
@@ -879,8 +879,8 @@ std::vector<double> FFW16_Species__log_densities__get(plant::RcppR6::RcppR6<plan
 }
 
 // [[Rcpp::export]]
-std::vector<plant::Cohort<plant::FFW16_Plant> > FFW16_Species__plants__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > obj_) {
-  return obj_->r_plants();
+std::vector<plant::Cohort<plant::FFW16_Plant> > FFW16_Species__cohorts__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > obj_) {
+  return obj_->r_cohorts();
 }
 
 // [[Rcpp::export]]

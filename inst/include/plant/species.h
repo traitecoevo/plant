@@ -47,9 +47,9 @@ public:
   std::vector<double> r_heights() const;
   void r_set_heights(std::vector<double> heights);
   const cohort_type& r_seed() const {return seed;}
-  std::vector<cohort_type> r_plants() const {return plants;}
-  const cohort_type& r_plant_at(util::index idx) const {
-    return plants[idx.check_bounds(size())];
+  std::vector<cohort_type> r_cohorts() const {return cohorts;}
+  const cohort_type& r_cohort_at(util::index idx) const {
+    return cohorts[idx.check_bounds(size())];
   }
 
   // These are used to determine the degree of cohort refinement.
@@ -63,11 +63,10 @@ private:
   const Control& control() const {return strategy->get_control();}
   strategy_type_ptr strategy;
   cohort_type seed;
-  // TODO: this should really say cohorts, rather than plants.
-  std::vector<cohort_type> plants;
+  std::vector<cohort_type> cohorts;
 
-  typedef typename std::vector<cohort_type>::iterator plants_iterator;
-  typedef typename std::vector<cohort_type>::const_iterator plants_const_iterator;
+  typedef typename std::vector<cohort_type>::iterator cohorts_iterator;
+  typedef typename std::vector<cohort_type>::const_iterator cohorts_const_iterator;
 };
 
 template <typename T>
@@ -78,19 +77,19 @@ Species<T>::Species(strategy_type s)
 
 template <typename T>
 size_t Species<T>::size() const {
-  return plants.size();
+  return cohorts.size();
 }
 
 template <typename T>
 void Species<T>::clear() {
-  plants.clear();
+  cohorts.clear();
   // Reset the seed to a blank seed, too.
   seed = cohort_type(strategy);
 }
 
 template <typename T>
 void Species<T>::add_seed() {
-  plants.push_back(seed);
+  cohorts.push_back(seed);
   // TODO: Should the seed be recomputed here?
 }
 
@@ -100,12 +99,12 @@ void Species<T>::add_seed() {
 // tall as a seed.
 template <typename T>
 double Species<T>::height_max() const {
-  return plants.empty() ? seed.height() : plants.front().height();
+  return cohorts.empty() ? seed.height() : cohorts.front().height();
 }
 
-// Because of plants are always ordered from largest to smallest, we
+// Because of cohorts are always ordered from largest to smallest, we
 // need not continue down the list once the leaf area above a certain
-// height is zero, because it will be zero for all plants further down
+// height is zero, because it will be zero for all cohorts further down
 // the list.
 //
 // NOTE: This is simply performing numerical integration, via the
@@ -134,10 +133,10 @@ double Species<T>::area_leaf_above(double height) const {
     return 0.0;
   }
   double tot = 0.0;
-  plants_const_iterator it = plants.begin();
+  cohorts_const_iterator it = cohorts.begin();
   double h1 = it->height(), f_h1 = it->area_leaf_above(height);
 
-  for (++it; it != plants.end(); ++it) {
+  for (++it; it != cohorts.end(); ++it) {
     const double h0 = it->height(), f_h0 = it->area_leaf_above(height);
     if (!util::is_finite(f_h0)) {
       util::stop("Detected non-finite contribution");
@@ -163,8 +162,8 @@ double Species<T>::area_leaf_above(double height) const {
 // through the ode stepper.
 template <typename T>
 void Species<T>::compute_vars_phys(const Environment& environment) {
-  for (auto& p : plants) {
-    p.compute_vars_phys(environment);
+  for (auto& c : cohorts) {
+    c.compute_vars_phys(environment);
   }
   seed.compute_initial_conditions(environment);
 }
@@ -173,8 +172,8 @@ template <typename T>
 std::vector<double> Species<T>::seeds() const {
   std::vector<double> ret;
   ret.reserve(size());
-  for (auto& p : plants) {
-    ret.push_back(p.fecundity());
+  for (auto& c : cohorts) {
+    ret.push_back(c.fecundity());
   }
   return ret;
 }
@@ -186,17 +185,17 @@ size_t Species<T>::ode_size() const {
 
 template <typename T>
 ode::const_iterator Species<T>::set_ode_state(ode::const_iterator it) {
-  return ode::set_ode_state(plants.begin(), plants.end(), it);
+  return ode::set_ode_state(cohorts.begin(), cohorts.end(), it);
 }
 
 template <typename T>
 ode::iterator Species<T>::ode_state(ode::iterator it) const {
-  return ode::ode_state(plants.begin(), plants.end(), it);
+  return ode::ode_state(cohorts.begin(), cohorts.end(), it);
 }
 
 template <typename T>
 ode::iterator Species<T>::ode_rates(ode::iterator it) const {
-  return ode::ode_rates(plants.begin(), plants.end(), it);
+  return ode::ode_rates(cohorts.begin(), cohorts.end(), it);
 }
 
 
@@ -204,8 +203,8 @@ template <typename T>
 std::vector<double> Species<T>::r_heights() const {
   std::vector<double> ret;
   ret.reserve(size());
-  for (plants_const_iterator it = plants.begin();
-       it != plants.end(); ++it) {
+  for (cohorts_const_iterator it = cohorts.begin();
+       it != cohorts.end(); ++it) {
     ret.push_back(it->height());
   }
   return ret;
@@ -218,7 +217,7 @@ void Species<T>::r_set_heights(std::vector<double> heights) {
     util::stop("height must be decreasing (ties allowed)");
   }
   size_t i = 0;
-  for (plants_iterator it = plants.begin(); it != plants.end(); ++it, ++i) {
+  for (cohorts_iterator it = cohorts.begin(); it != cohorts.end(); ++it, ++i) {
     it->plant.set_height(heights[i]);
   }
 }
@@ -227,8 +226,8 @@ template <typename T>
 std::vector<double> Species<T>::r_area_leafs() const {
   std::vector<double> ret;
   ret.reserve(size());
-  for (auto& p : plants) {
-    ret.push_back(p.area_leaf());
+  for (auto& c : cohorts) {
+    ret.push_back(c.area_leaf());
   }
   return ret;
 }
@@ -242,8 +241,8 @@ template <typename T>
 std::vector<double> Species<T>::r_log_densities() const {
   std::vector<double> ret;
   ret.reserve(size());
-  for (plants_const_iterator it = plants.begin();
-       it != plants.end(); ++it) {
+  for (cohorts_const_iterator it = cohorts.begin();
+       it != cohorts.end(); ++it) {
     ret.push_back(it->get_log_density());
   }
   return ret;

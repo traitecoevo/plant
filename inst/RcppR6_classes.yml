@@ -523,7 +523,7 @@ FFW16_Species:
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
-    plants: {type: "std::vector<plant::Cohort<plant::FFW16_Plant> >", access: member, name_cpp: r_plants}
+    cohorts: {type: "std::vector<plant::Cohort<plant::FFW16_Plant> >", access: member, name_cpp: r_cohorts}
     seeds: {type: "std::vector<double>", access: member}
     area_leafs: {type: "std::vector<double>", access: member, name_cpp: r_area_leafs}
     ## ODE interface:
@@ -541,10 +541,10 @@ FFW16_Species:
       args: [height: double]
     add_seed:
       return_type: void
-    plant_at:
+    cohort_at:
       return_type: "plant::Cohort<plant::FFW16_Plant>"
       args: [index: "plant::util::index"]
-      name_cpp: r_plant_at
+      name_cpp: r_cohort_at
     area_leafs_error:
       return_type: "std::vector<double>"
       args: [scal: double=1]

@@ -811,8 +811,8 @@ FFW16_Species__add_seed <- function(obj_) {
     invisible(.Call('plant_FFW16_Species__add_seed', PACKAGE = 'plant', obj_))
 }
 
-FFW16_Species__plant_at <- function(obj_, index) {
-    .Call('plant_FFW16_Species__plant_at', PACKAGE = 'plant', obj_, index)
+FFW16_Species__cohort_at <- function(obj_, index) {
+    .Call('plant_FFW16_Species__cohort_at', PACKAGE = 'plant', obj_, index)
 }
 
 FFW16_Species__area_leafs_error <- function(obj_, scal) {
@@ -843,8 +843,8 @@ FFW16_Species__log_densities__get <- function(obj_) {
     .Call('plant_FFW16_Species__log_densities__get', PACKAGE = 'plant', obj_)
 }
 
-FFW16_Species__plants__get <- function(obj_) {
-    .Call('plant_FFW16_Species__plants__get', PACKAGE = 'plant', obj_)
+FFW16_Species__cohorts__get <- function(obj_) {
+    .Call('plant_FFW16_Species__cohorts__get', PACKAGE = 'plant', obj_)
 }
 
 FFW16_Species__seeds__get <- function(obj_) {

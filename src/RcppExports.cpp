@@ -2169,15 +2169,15 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// FFW16_Species__plant_at
-plant::Cohort<plant::FFW16_Plant> FFW16_Species__plant_at(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > obj_, plant::util::index index);
-RcppExport SEXP plant_FFW16_Species__plant_at(SEXP obj_SEXP, SEXP indexSEXP) {
+// FFW16_Species__cohort_at
+plant::Cohort<plant::FFW16_Plant> FFW16_Species__cohort_at(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > obj_, plant::util::index index);
+RcppExport SEXP plant_FFW16_Species__cohort_at(SEXP obj_SEXP, SEXP indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::util::index >::type index(indexSEXP);
-    __result = Rcpp::wrap(FFW16_Species__plant_at(obj_, index));
+    __result = Rcpp::wrap(FFW16_Species__cohort_at(obj_, index));
     return __result;
 END_RCPP
 }
@@ -2259,14 +2259,14 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// FFW16_Species__plants__get
-std::vector<plant::Cohort<plant::FFW16_Plant> > FFW16_Species__plants__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > obj_);
-RcppExport SEXP plant_FFW16_Species__plants__get(SEXP obj_SEXP) {
+// FFW16_Species__cohorts__get
+std::vector<plant::Cohort<plant::FFW16_Plant> > FFW16_Species__cohorts__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_Species__cohorts__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_Species__plants__get(obj_));
+    __result = Rcpp::wrap(FFW16_Species__cohorts__get(obj_));
     return __result;
 END_RCPP
 }

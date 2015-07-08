@@ -36,10 +36,10 @@ test_that("Basics", {
   sp$add_seed()
   expect_that(sp$size, equals(1))
 
-  plants <- sp$plants
-  expect_that(plants, is_a("list"))
-  expect_that(length(plants), equals(1))
-  expect_that(plants[[1]]$vars_phys, is_identical_to(seed$vars_phys))
+  cohorts <- sp$cohorts
+  expect_that(cohorts, is_a("list"))
+  expect_that(length(cohorts), equals(1))
+  expect_that(cohorts[[1]]$vars_phys, is_identical_to(seed$vars_phys))
   expect_that(sp$heights, equals(seed$height))
   expect_that(sp$log_densities, equals(seed$log_density))
   expect_that(sp$area_leafs, equals(seed$area_leaf))
@@ -49,9 +49,9 @@ test_that("Basics", {
   expect_that(sp$seed$vars_phys,
               is_identical_to(seed$vars_phys))
 
-  expect_that(sp$plant_at(1), is_a("FFW16_Cohort"))
-  expect_that(sp$plant_at(1)$vars_phys,
-              is_identical_to(plants[[1]]$vars_phys))
+  expect_that(sp$cohort_at(1), is_a("FFW16_Cohort"))
+  expect_that(sp$cohort_at(1)$vars_phys,
+              is_identical_to(cohorts[[1]]$vars_phys))
 
   ## Not sure about this -- do we need more immediate access?
   expect_that(sp$seed$plant$germination_probability(env),
@@ -64,7 +64,7 @@ test_that("Basics", {
   h <- 0
   x <- c(sp$seed$height, sp$heights)
   y <- c(sp$seed$area_leaf_above(h),
-         sp$plant_at(1)$area_leaf_above(h))
+         sp$cohort_at(1)$area_leaf_above(h))
 
   expect_that(sp$area_leaf_above(h),
               is_identical_to(trapezium(x, y)))
@@ -76,8 +76,8 @@ test_that("Basics", {
   ## Re-set up the initial conditions
   sp$compute_vars_phys(env)
 
-  expect_that(sp$plant_at(1), throws_error("Index 1 out of bounds"))
-  expect_that(sp$plant_at(0), throws_error("Invalid value for index"))
+  expect_that(sp$cohort_at(1), throws_error("Index 1 out of bounds"))
+  expect_that(sp$cohort_at(0), throws_error("Invalid value for index"))
 })
 
 ## 1: empty species (no cohorts) has no leaf area above any height:
@@ -101,7 +101,7 @@ test_that("FFW16_Species with only boundary cohort no leaf area", {
 
 cmp_area_leaf_above <- function(h, sp) {
   x <- c(sp$heights, sp$seed$height)
-  y <- c(sapply(sp$plants, function(p) p$area_leaf_above(h)),
+  y <- c(sapply(sp$cohorts, function(p) p$area_leaf_above(h)),
          sp$seed$area_leaf_above(h))
   trapezium(rev(x), rev(y))
 }
@@ -126,7 +126,7 @@ test_that("Leaf area sensible with one cohort", {
               equals(cmp_area_leaf_above(h_top * .5, sp)))
 
   ode_state <- sp$ode_state
-  p <- sp$plant_at(1)
+  p <- sp$cohort_at(1)
   expect_that(length(ode_state), equals(4))
   expect_that(ode_state, is_identical_to(p$ode_state))
 })
@@ -152,10 +152,10 @@ test_that("Leaf area sensible with two cohorts", {
               equals(cmp_area_leaf_above(h_top * .8, sp)))
 
   ode_state <- sp$ode_state
-  plants <- sp$plants
+  cohorts <- sp$cohorts
   expect_that(length(ode_state), equals(4 * sp$size))
   expect_that(ode_state,
-              is_identical_to(unlist(lapply(plants, function(p) p$ode_state))))
+              is_identical_to(unlist(lapply(cohorts, function(p) p$ode_state))))
 })
 
 test_that("Leaf area sensible with three cohorts", {
@@ -180,7 +180,7 @@ test_that("Leaf area sensible with three cohorts", {
               equals(cmp_area_leaf_above(h_top * .8, sp)))
 
   cmp_area_leaf <- sapply(seq_len(sp$size),
-                          function(i) sp$plant_at(i)$area_leaf)
+                          function(i) sp$cohort_at(i)$area_leaf)
   expect_that(sp$area_leafs,
               is_identical_to(cmp_area_leaf))
 
@@ -192,8 +192,8 @@ test_that("Leaf area sensible with three cohorts", {
   expect_that(sp$area_leafs_error(pi),  is_identical_to(cmp_pi))
 
   ode_state <- sp$ode_state
-  plants <- sp$plants
+  cohorts <- sp$cohorts
   expect_that(length(ode_state), equals(4 * sp$size))
   expect_that(ode_state,
-              is_identical_to(unlist(lapply(plants, function(p) p$ode_state))))
+              is_identical_to(unlist(lapply(cohorts, function(p) p$ode_state))))
 })
