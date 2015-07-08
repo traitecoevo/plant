@@ -143,10 +143,15 @@ positive_1d_bracket <- function(f, x, dx, lower, upper, grow=2) {
 ## This is a multidimensional version of positive_1d.  It's a hack for
 ## now.
 positive_2d <- function(f, x, lower, upper, n_total=200) {
+  ## TODO: this should only be done if length is 1:
+  lower <- rep(lower, length.out=length(x))
+  upper <- rep(upper, length.out=length(x))
+
   requireNamespace("plant.ml")
   is_nonnegative <- function(y) y >= 0.0
   pts <- lapply(seq_along(lower), function(i) c(lower[[i]], upper[[i]]))
-  m0 <- rbind(x, unname(as.matrix(do.call("expand.grid", pts))))
+  m0 <- rbind(x, unname(as.matrix(do.call("expand.grid", pts))),
+              deparse.level=0)
   plant.ml::delaunay_run_map(m0, f, is_nonnegative,
                              n_total=n_total, exploit=50)
 }
