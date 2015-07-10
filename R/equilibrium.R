@@ -278,8 +278,8 @@ equilibrium_seed_rain_solve_target <- function(runner, keep, logN,
     }
     too_high <- x > max_seed_rain
     if (any(too_high)) {
-      plant_log_eq("Truncating seed rain of species %s",
-                   paste(which(too_high), collapse=", "))
+      plant_log_eq(sprintf("Truncating seed rain of species %s",
+                           paste(which(too_high), collapse=", ")))
       if (length(max_seed_rain) == 1L) {
         max_seed_rain <- rep(max_seed_rain, length.out=length(x))
       }
