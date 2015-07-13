@@ -172,3 +172,16 @@ make_transparent <- function(col, opacity=.5) {
     rgb(tmp[1,], tmp[2,], tmp[3,], alpha=alpha)
   }
 }
+
+assert_named_if_not_empty <- function(x, name=deparse(substitute(x))) {
+  if (length(x) > 0L) {
+    nms <- names(x)
+    if (is.null(nms) || any(nms == "") || any(duplicated(nms))) {
+      stop(sprintf("All elements of %s must be uniquely named", name))
+    }
+  }
+}
+
+modify_list <- function(x, val) {
+  modifyList(x, val[intersect(names(val), names(x))])
+}

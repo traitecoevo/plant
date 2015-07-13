@@ -322,3 +322,46 @@ make_FFW16_hyperpar <- function(B4=1.71,
 ##' @param filter Logical, indicating if generated parameters that are
 ##' the same as the default should be removed.
 FFW16_hyperpar <- make_FFW16_hyperpar()
+
+##' Helper function for creating parameter objects suitable for an
+##' assembly.
+##' @title Helper function for creating parameter objects
+##' @param ... Named 
+##' @param pars 
+##' @param time_disturbance Time to disturbance
+##' @export
+assembly_parameters <- function(..., pars=NULL) {
+  p <- plant::ebt_base_parameters()
+
+  ## These are nice to have:
+  p$control$equilibrium_solver_name <- "hybrid"
+  p$control$equilibrium_nsteps <- 60
+
+  if (is.null(pars)) {
+    pars <- list(...)
+  } else if (length(list(...)) > 0L) {
+    stop("Do not provide both ... and pars")
+  }
+
+  if (length(pars) > 0L) {
+    assert_named_if_not_empty(pars)
+
+    excl <- c("control", "strategy_default", "hyperpar")
+    pos <- setdiff(c(names(formals(make_FFW16_hyperpar)),
+                     names(p),
+                     names(p$control),
+                     names(p$strategy_default)),
+                   excl)
+    unk <- setdiff(names(pars), pos)
+    if (length(unk) > 0L) {
+      stop("Unknown parameters: ", paste(unk, collapse=", "))
+    }
+
+    nms_hyper <- intersect(names(pars), names(formals(make_FFW16_hyperpar)))
+    p$hyperpar <- do.call("make_FFW16_hyperpar", pars[nms_hyper])
+    p                  <- modify_list(p,                  pars)
+    p$control          <- modify_list(p$control,          pars)
+    p$strategy_default <- modify_list(p$strategy_default, pars)
+  }
+  p
+}
