@@ -1063,6 +1063,10 @@ FFW16_StochasticSpecies__plant_at <- function(obj_, index) {
     .Call('plant_FFW16_StochasticSpecies__plant_at', PACKAGE = 'plant', obj_, index)
 }
 
+FFW16_StochasticSpecies__deaths <- function(obj_) {
+    .Call('plant_FFW16_StochasticSpecies__deaths', PACKAGE = 'plant', obj_)
+}
+
 FFW16_StochasticSpecies__size__get <- function(obj_) {
     .Call('plant_FFW16_StochasticSpecies__size__get', PACKAGE = 'plant', obj_)
 }

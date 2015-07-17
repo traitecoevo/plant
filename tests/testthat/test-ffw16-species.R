@@ -14,7 +14,7 @@ test_that("Basics", {
 
   expect_that(sp$size, equals(0))
   expect_that(sp$height_max, is_identical_to(h0))
-  expect_that(sp$species, is_identical_to(NULL))
+  expect_that(sp$cohorts, is_identical_to(list()))
   expect_that(sp$heights, is_identical_to(numeric(0)))
   expect_that(sp$log_densities, is_identical_to(numeric(0)))
   expect_that(sp$area_leafs, is_identical_to(numeric(0)))

@@ -695,3 +695,5 @@ FFW16_StochasticSpecies:
       return_type: "plant::FFW16_Plant"
       args: [index: "plant::util::index"]
       name_cpp: r_plant_at
+    deaths:
+      return_type: size_t

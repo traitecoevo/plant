@@ -2,6 +2,7 @@
 #ifndef PLANT_PLANT_STOCHASTIC_SPECIES_H_
 #define PLANT_PLANT_STOCHASTIC_SPECIES_H_
 
+#include <list>
 #include <vector>
 #include <plant/util.h>
 #include <plant/environment.h>
@@ -20,8 +21,8 @@ namespace plant {
 // * don't use Cohort<T> for storage
 // * support for non-deterministic deaths
 // * stochastic birth survival (?)
-// * possibly uses a list<T> rather than a vector<T> for storage because
-// then we can easily delete without reallocating everything.
+// * uses a list<T> rather than a list<T> for storage because then we can
+//   easily kill plants without reallocating everything.
 
 // Eventually we might need to support things like stochastic cohorts
 // to support:
@@ -50,6 +51,10 @@ public:
   void compute_vars_phys(const Environment& environment);
   std::vector<double> seeds() const;
 
+  // This is totally new, relative to the deterministic model; this
+  // will destructively modify the species by removing individuals.
+  size_t deaths();
+
   // * ODE interface
   // NOTE: We are a time-independent model here so no need to pass
   // time in as an argument.  All the bits involving time are taken
@@ -63,19 +68,18 @@ public:
   std::vector<double> r_heights() const;
   void r_set_heights(std::vector<double> heights);
   const plant_type& r_seed() const {return seed;}
-  std::vector<plant_type> r_plants() const {return plants;}
+  std::list<plant_type> r_plants() const {return plants;}
   const plant_type& r_plant_at(util::index idx) const {
-    return plants[idx.check_bounds(size())];
+    // No random access here - so this is done the hard way.
+    const size_t i = idx.check_bounds(size());
+    return *std::next(plants.begin(), i);
   }
 
 private:
   const Control& control() const {return strategy->get_control();}
   strategy_type_ptr strategy;
   plant_type seed;
-  std::vector<plant_type> plants;
-
-  typedef typename std::vector<plant_type>::iterator plants_iterator;
-  typedef typename std::vector<plant_type>::const_iterator plants_const_iterator;
+  std::list<plant_type> plants;
 };
 
 template <typename T>
@@ -103,13 +107,12 @@ void StochasticSpecies<T>::add_seed() {
   plants.push_back(seed);
 }
 
-// If a species contains no individuals, we return the height of a
-// seed of the species.  Otherwise we return the height of the largest
-// individual (always the first in the list) which will be at least
-// tall as a seed.
+// If a species contains no individuals, we return zero
+// (c.f. Species).  Otherwise we return the height of the largest
+// individual (always the first in the list).
 template <typename T>
 double StochasticSpecies<T>::height_max() const {
-  return plants.empty() ? seed.height() : plants.front().height();
+  return plants.empty() ? 0.0 : plants.front().height();
 }
 
 // Because of plants are always ordered from largest to smallest, we
@@ -171,6 +174,23 @@ std::vector<double> StochasticSpecies<T>::seeds() const {
   }
   return ret;
 }
+
+template <typename T>
+size_t StochasticSpecies<T>::deaths() {
+  auto p = plants.begin();
+  size_t died = 0;
+  while (p != plants.end()) {
+    if (unif_rand() < p->mortality_probability()) {
+      died++;
+      p = plants.erase(p);
+    } else {
+      p->reset_mortality();
+      ++p;
+    }
+  }
+  return died;
+}
+
 
 template <typename T>
 size_t StochasticSpecies<T>::ode_size() const {

@@ -2868,6 +2868,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// FFW16_StochasticSpecies__deaths
+size_t FFW16_StochasticSpecies__deaths(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticSpecies__deaths(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticSpecies__deaths(obj_));
+    return __result;
+END_RCPP
+}
 // FFW16_StochasticSpecies__size__get
 size_t FFW16_StochasticSpecies__size__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_);
 RcppExport SEXP plant_FFW16_StochasticSpecies__size__get(SEXP obj_SEXP) {
@@ -2924,7 +2935,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // FFW16_StochasticSpecies__plants__get
-std::vector<plant::FFW16_Plant> FFW16_StochasticSpecies__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_);
+std::list<plant::FFW16_Plant> FFW16_StochasticSpecies__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_);
 RcppExport SEXP plant_FFW16_StochasticSpecies__plants__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
