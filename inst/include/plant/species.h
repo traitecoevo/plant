@@ -2,10 +2,6 @@
 #ifndef PLANT_PLANT_SPECIES_H_
 #define PLANT_PLANT_SPECIES_H_
 
-// This one really needs to use some serious Rcpp bits so we're going
-// to need to import Rcpp.h I think.  That means being careful about
-// where we stick this in plant.h
-
 #include <vector>
 #include <plant/util.h>
 #include <plant/environment.h>

@@ -71,6 +71,8 @@ template <> SEXP wrap(const plant::Patch<plant::FFW16_Plant>&);
 template <> plant::Patch<plant::FFW16_Plant> as(SEXP);
 template <> SEXP wrap(const plant::EBT<plant::FFW16_Plant>&);
 template <> plant::EBT<plant::FFW16_Plant> as(SEXP);
+template <> SEXP wrap(const plant::StochasticSpecies<plant::FFW16_Plant>&);
+template <> plant::StochasticSpecies<plant::FFW16_Plant> as(SEXP);
 }
 
 #endif

@@ -14,7 +14,8 @@ class Plant {
 public:
   typedef Plant_internals internals;
   typedef T               strategy_type;
-  Plant(typename strategy_type::ptr s)
+  typedef typename strategy_type::ptr strategy_type_ptr;
+  Plant(strategy_type_ptr s)
     : strategy(s) {
     set_height(strategy->height_0);
   }
@@ -79,7 +80,7 @@ public:
   const Control& control() const {return strategy->control;}
 
 private:
-  typename strategy_type::ptr strategy;
+  strategy_type_ptr strategy;
   internals vars;
 };
 

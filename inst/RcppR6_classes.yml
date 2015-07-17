@@ -661,3 +661,34 @@ FFW16_EBT:
       type: "std::vector<std::vector<double> >"
       access: member
       name_cpp: r_seed_rain_error
+
+FFW16_StochasticSpecies:
+  name_cpp: "plant::StochasticSpecies<plant::FFW16_Plant>"
+  constructor:
+    args: [strategy: "plant::FFW16_Strategy"]
+  active:
+    size: {type: size_t, access: member}
+    seed: {type: "plant::FFW16_Plant", access: member, name_cpp: r_seed}
+    height_max: {type: double, access: member, readonly: true}
+    heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
+    plants: {type: "std::vector<plant::FFW16_Plant>", access: member, name_cpp: r_plants}
+    seeds: {type: "std::vector<double>", access: member}
+    ## ODE interface:
+    ode_size: {type: size_t, access: member}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+  methods:
+    clear:
+      return_type: void
+    compute_vars_phys:
+      return_type: void
+      args: [environment: "const plant::Environment&"]
+    area_leaf_above:
+      return_type: double
+      args: [height: double]
+    add_seed:
+      return_type: void
+    plant_at:
+      return_type: "plant::FFW16_Plant"
+      args: [index: "plant::util::index"]
+      name_cpp: r_plant_at

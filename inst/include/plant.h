@@ -31,6 +31,9 @@
 #include <plant/patch.h>
 #include <plant/ebt.h>
 
+// Stochastic model
+#include <plant/stochastic_species.h>
+
 #include <plant/plant_runner.h>
 
 // Purely for testing
