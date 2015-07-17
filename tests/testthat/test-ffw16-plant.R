@@ -97,3 +97,20 @@ test_that("Reference comparison", {
   expect_that(p2$ode_state, equals(c(h0, m0, f0)))
   expect_that(p2$ode_state, equals(p1$ode_state[ii]))
 })
+
+test_that("stochastic support", {
+  s <- FFW16_Strategy()
+  p <- FFW16_Plant(s)
+  expect_that(p$mortality, equals(0.0))
+  expect_that(p$mortality_probability, equals(0.0))
+
+  p$mortality <- pi
+  expect_that(p$mortality_probability, equals(1 - exp(-pi)))
+
+  p$mortality <- 10000000
+  expect_that(p$mortality_probability, equals(1))
+
+  p$reset_mortality()
+  expect_that(p$mortality, equals(0.0))
+  expect_that(p$mortality_probability, equals(0.0))
+})

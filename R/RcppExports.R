@@ -563,6 +563,10 @@ Plant___FFW16__germination_probability <- function(obj_, environment) {
     .Call('plant_Plant___FFW16__germination_probability', PACKAGE = 'plant', obj_, environment)
 }
 
+Plant___FFW16__reset_mortality <- function(obj_) {
+    invisible(.Call('plant_Plant___FFW16__reset_mortality', PACKAGE = 'plant', obj_))
+}
+
 Plant___FFW16__height__get <- function(obj_) {
     .Call('plant_Plant___FFW16__height__get', PACKAGE = 'plant', obj_)
 }
@@ -613,6 +617,10 @@ Plant___FFW16__ode_rates__get <- function(obj_) {
 
 Plant___FFW16__ode_names__get <- function(obj_) {
     .Call('plant_Plant___FFW16__ode_names__get', PACKAGE = 'plant', obj_)
+}
+
+Plant___FFW16__mortality_probability__get <- function(obj_) {
+    .Call('plant_Plant___FFW16__mortality_probability__get', PACKAGE = 'plant', obj_)
 }
 
 PlantRunner__ctor <- function(plant, environment) {

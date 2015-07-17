@@ -1487,6 +1487,16 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// Plant___FFW16__reset_mortality
+void Plant___FFW16__reset_mortality(plant::RcppR6::RcppR6<plant::Plant<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFW16__reset_mortality(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
+    Plant___FFW16__reset_mortality(obj_);
+    return R_NilValue;
+END_RCPP
+}
 // Plant___FFW16__height__get
 double Plant___FFW16__height__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFW16_Strategy> > obj_);
 RcppExport SEXP plant_Plant___FFW16__height__get(SEXP obj_SEXP) {
@@ -1627,6 +1637,17 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     __result = Rcpp::wrap(Plant___FFW16__ode_names__get(obj_));
+    return __result;
+END_RCPP
+}
+// Plant___FFW16__mortality_probability__get
+double Plant___FFW16__mortality_probability__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFW16__mortality_probability__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFW16__mortality_probability__get(obj_));
     return __result;
 END_RCPP
 }

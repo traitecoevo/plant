@@ -74,6 +74,14 @@ public:
     return std::vector<std::string>({"height", "mortality", "fecundity"});
   }
 
+  // Used in the stochastic model:
+  double mortality_probability() const {
+    return 1 - exp(-mortality());
+  }
+  void reset_mortality() {
+    set_mortality(0.0);
+  }
+
   // * R interface
   strategy_type r_get_strategy() const {return *strategy.get();}
   internals r_internals() const {return vars;}

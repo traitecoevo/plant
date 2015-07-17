@@ -554,6 +554,10 @@ double Plant___FFW16__germination_probability(plant::RcppR6::RcppR6<plant::Plant
   return obj_->germination_probability(environment);
 }
 // [[Rcpp::export]]
+void Plant___FFW16__reset_mortality(plant::RcppR6::RcppR6<plant::Plant<plant::FFW16_Strategy> > obj_) {
+  obj_->reset_mortality();
+}
+// [[Rcpp::export]]
 double Plant___FFW16__height__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFW16_Strategy> > obj_) {
   return obj_->height();
 }
@@ -612,6 +616,11 @@ plant::ode::state_type Plant___FFW16__ode_rates__get(plant::RcppR6::RcppR6<plant
 // [[Rcpp::export]]
 std::vector<std::string> Plant___FFW16__ode_names__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFW16_Strategy> > obj_) {
   return obj_->ode_names();
+}
+
+// [[Rcpp::export]]
+double Plant___FFW16__mortality_probability__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFW16_Strategy> > obj_) {
+  return obj_->mortality_probability();
 }
 
 

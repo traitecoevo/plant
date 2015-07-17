@@ -314,6 +314,7 @@ Plant:
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
+    mortality_probability: {type: double, access: member}
   methods:
     area_leaf_above:
       args: [h: double]
@@ -324,6 +325,8 @@ Plant:
     germination_probability:
       args: [environment: "const plant::Environment&"]
       return_type: double
+    reset_mortality:
+      return_type: void
 
 PlantRunner:
   name_cpp: "plant::tools::PlantRunner"
@@ -671,7 +674,7 @@ FFW16_StochasticSpecies:
     seed: {type: "plant::FFW16_Plant", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
-    plants: {type: "std::vector<plant::FFW16_Plant>", access: member, name_cpp: r_plants}
+    plants: {type: "std::list<plant::FFW16_Plant>", access: member, name_cpp: r_plants}
     seeds: {type: "std::vector<double>", access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
