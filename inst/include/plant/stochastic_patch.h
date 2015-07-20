@@ -1,24 +1,22 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_PATCH_H_
-#define PLANT_PLANT_PATCH_H_
-
-#include <plant/parameters.h>
-#include <plant/species.h>
-#include <plant/ode_interface.h>
+#ifndef PLANT_PLANT_STOCHASTIC_PATCH_H_
+#define PLANT_PLANT_STOCHASTIC_PATCH_H_
 
 namespace plant {
 
+// This one is basically _exactly_ the same as Patch, but the
+// definitions of some functions are going to be different and a few
+// others will be added.
 template <typename T>
-class Patch {
+class StochasticPatch {
 public:
   typedef T plant_type;
   typedef typename T::strategy_type strategy_type;
   typedef Parameters<strategy_type> parameters_type;
-  typedef Cohort<plant_type> cohort_type;
-  typedef Species<plant_type> species_type;
-  Patch(parameters_type p);
-
+  typedef StochasticSpecies<plant_type> species_type;
+  StochasticPatch(parameters_type p);
   void reset();
+
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
 
@@ -30,6 +28,10 @@ public:
 
   void add_seed(size_t species_index);
   void add_seeds(const std::vector<size_t>& species_index);
+  void add_seedling(size_t species_index);
+  void add_seedlings(const std::vector<size_t>& species_index);
+
+  std::vector<size_t> deaths();
 
   const species_type& at(size_t species_index) const {
     return species[species_index];
@@ -50,20 +52,24 @@ public:
   parameters_type r_parameters() const {return parameters;}
   Environment r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
-  std::vector<double> r_area_leaf_error(size_t species_index) const;
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n);
+  // TODO: No support here for setting *vectors* of species.  Might
+  // want to supoprt that?
   void r_add_seed(util::index species_index) {
     add_seed(species_index.check_bounds(size()));
   }
+  void r_add_seedling(util::index species_index) {
+    add_seedling(species_index.check_bounds(size()));
+  }
+
   species_type r_at(util::index species_index) const {
     at(species_index.check_bounds(size()));
   }
   // These are only here because they wrap private functions.
   void r_compute_light_environment() {compute_light_environment();}
   void r_compute_vars_phys() {compute_vars_phys();}
-
 private:
   void compute_light_environment();
   void rescale_light_environment();
@@ -76,19 +82,19 @@ private:
 };
 
 template <typename T>
-Patch<T>::Patch(parameters_type p)
+StochasticPatch<T>::StochasticPatch(parameters_type p)
   : parameters(p),
     is_resident(p.is_resident),
     environment(parameters) {
   parameters.validate();
   for (auto s : parameters.strategies) {
-    species.push_back(Species<T>(s));
+    species.push_back(species_type(s));
   }
   reset();
 }
 
 template <typename T>
-void Patch<T>::reset() {
+void StochasticPatch<T>::reset() {
   for (auto& s : species) {
     s.clear();
   }
@@ -98,7 +104,7 @@ void Patch<T>::reset() {
 }
 
 template <typename T>
-double Patch<T>::height_max() const {
+double StochasticPatch<T>::height_max() const {
   double ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
@@ -109,7 +115,7 @@ double Patch<T>::height_max() const {
 }
 
 template <typename T>
-double Patch<T>::area_leaf_above(double height) const {
+double StochasticPatch<T>::area_leaf_above(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
@@ -120,39 +126,35 @@ double Patch<T>::area_leaf_above(double height) const {
 }
 
 template <typename T>
-double Patch<T>::canopy_openness(double height) const {
+double StochasticPatch<T>::canopy_openness(double height) const {
   // NOTE: patch_area does not appear in the EBT model formulation;
   // really we should require that it is 1.0, or drop it entirely.
   return exp(-parameters.c_ext * area_leaf_above(height) /
              parameters.patch_area);
 }
 
-template <typename T>
-std::vector<double> Patch<T>::r_area_leaf_error(size_t species_index) const {
-  const double tot_area_leaf = area_leaf_above(0.0);
-  return species[species_index].r_area_leafs_error(tot_area_leaf);
-}
 
 template <typename T>
-void Patch<T>::compute_light_environment() {
-  if (parameters.n_residents() > 0) {
+void StochasticPatch<T>::compute_light_environment() {
+  if (parameters.n_residents() > 0 & height_max() > 0.0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
     environment.compute_light_environment(f, height_max());
   }
 }
 
 template <typename T>
-void Patch<T>::rescale_light_environment() {
-  if (parameters.n_residents() > 0) {
+void StochasticPatch<T>::rescale_light_environment() {
+  if (parameters.n_residents() > 0 & height_max() > 0.0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
     environment.rescale_light_environment(f, height_max());
   }
 }
 
 template <typename T>
-void Patch<T>::compute_vars_phys() {
+void StochasticPatch<T>::compute_vars_phys() {
   for (size_t i = 0; i < size(); ++i) {
-    environment.set_seed_rain_index(i);
+    // NOTE: No need for this, but other bits will change...
+    // environment.set_seed_rain_index(i);
     species[i].compute_vars_phys(environment);
   }
 }
@@ -160,8 +162,15 @@ void Patch<T>::compute_vars_phys() {
 // TODO: We should only be recomputing the light environment for the
 // points that are below the height of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
+
+// This is an issue for the nonstochastic Patch too but is likely to
+// be worse here I think.
+
+// NOTE: There's a lot of duplication here because the logic in these
+// four cases is slightly different.  Hopefully we can standardise on
+// just one of these soon, but for now this should be OK.
 template <typename T>
-void Patch<T>::add_seed(size_t species_index) {
+void StochasticPatch<T>::add_seedling(size_t species_index) {
   species[species_index].add_seed();
   if (parameters.is_resident[species_index]) {
     compute_light_environment();
@@ -169,7 +178,7 @@ void Patch<T>::add_seed(size_t species_index) {
 }
 
 template <typename T>
-void Patch<T>::add_seeds(const std::vector<size_t>& species_index) {
+void StochasticPatch<T>::add_seedlings(const std::vector<size_t>& species_index) {
   bool recompute = false;
   for (size_t i : species_index) {
     species[i].add_seed();
@@ -180,12 +189,47 @@ void Patch<T>::add_seeds(const std::vector<size_t>& species_index) {
   }
 }
 
+template <typename T>
+void StochasticPatch<T>::add_seed(size_t species_index) {
+  const double pr_germinate =
+    species[species_index].germination_probability(environment);
+  if (unif_rand() < pr_germinate) {
+    add_seedling(species_index);
+  }
+}
+
+template <typename T>
+void StochasticPatch<T>::add_seeds(const std::vector<size_t>& species_index) {
+  bool recompute = false;
+  for (size_t i : species_index) {
+    const double pr_germinate =
+      species[species_index].germination_probability(environment);
+    if (unif_rand() < pr_germinate) {
+      species[i].add_seed();
+      recompute = recompute || parameters.is_resident[i];
+    }
+  }
+  if (recompute) {
+    compute_light_environment();
+  }
+}
+
+template <typename T>
+std::vector<size_t> StochasticPatch<T>::deaths() {
+  std::vector<size_t> ret;
+  ret.reserve(size());
+  for (auto& s : species) {
+    ret.push_back(s.deaths());
+  }
+  return ret;
+}
+
 // Arguments here are:
 //   time: time
 //   state: vector of ode state; we'll pass an iterator with that in
 //   n: number of *individuals* of each species
 template <typename T>
-void Patch<T>::r_set_state(double time,
+void StochasticPatch<T>::r_set_state(double time,
                            const std::vector<double>& state,
                            const std::vector<size_t>& n) {
   const size_t n_species = species.size();
@@ -202,17 +246,17 @@ void Patch<T>::r_set_state(double time,
 
 // ODE interface
 template <typename T>
-size_t Patch<T>::ode_size() const {
+size_t StochasticPatch<T>::ode_size() const {
   return ode::ode_size(species.begin(), species.end());
 }
 
 template <typename T>
-double Patch<T>::ode_time() const {
+double StochasticPatch<T>::ode_time() const {
   return time();
 }
 
 template <typename T>
-ode::const_iterator Patch<T>::set_ode_state(ode::const_iterator it,
+ode::const_iterator StochasticPatch<T>::set_ode_state(ode::const_iterator it,
                                             double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
@@ -226,12 +270,12 @@ ode::const_iterator Patch<T>::set_ode_state(ode::const_iterator it,
 }
 
 template <typename T>
-ode::iterator Patch<T>::ode_state(ode::iterator it) const {
+ode::iterator StochasticPatch<T>::ode_state(ode::iterator it) const {
   return ode::ode_state(species.begin(), species.end(), it);
 }
 
 template <typename T>
-ode::iterator Patch<T>::ode_rates(ode::iterator it) const {
+ode::iterator StochasticPatch<T>::ode_rates(ode::iterator it) const {
   return ode::ode_rates(species.begin(), species.end(), it);
 }
 

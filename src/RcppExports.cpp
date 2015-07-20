@@ -2879,6 +2879,18 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// FFW16_StochasticSpecies__germination_probability
+double FFW16_StochasticSpecies__germination_probability(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_, const plant::Environment& environment);
+RcppExport SEXP plant_FFW16_StochasticSpecies__germination_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
+    __result = Rcpp::wrap(FFW16_StochasticSpecies__germination_probability(obj_, environment));
+    return __result;
+END_RCPP
+}
 // FFW16_StochasticSpecies__size__get
 size_t FFW16_StochasticSpecies__size__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_);
 RcppExport SEXP plant_FFW16_StochasticSpecies__size__get(SEXP obj_SEXP) {
@@ -2997,6 +3009,252 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
     __result = Rcpp::wrap(FFW16_StochasticSpecies__ode_rates__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__ctor
+plant::StochasticPatch<plant::FFW16_Plant> FFW16_StochasticPatch__ctor(plant::FFW16_Parameters parameters);
+RcppExport SEXP plant_FFW16_StochasticPatch__ctor(SEXP parametersSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::FFW16_Parameters >::type parameters(parametersSEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__ctor(parameters));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__area_leaf_above
+double FFW16_StochasticPatch__area_leaf_above(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, double height);
+RcppExport SEXP plant_FFW16_StochasticPatch__area_leaf_above(SEXP obj_SEXP, SEXP heightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type height(heightSEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__area_leaf_above(obj_, height));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__canopy_openness
+double FFW16_StochasticPatch__canopy_openness(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, double height);
+RcppExport SEXP plant_FFW16_StochasticPatch__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type height(heightSEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__canopy_openness(obj_, height));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__add_seed
+void FFW16_StochasticPatch__add_seed(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, plant::util::index species_index);
+RcppExport SEXP plant_FFW16_StochasticPatch__add_seed(SEXP obj_SEXP, SEXP species_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
+    FFW16_StochasticPatch__add_seed(obj_, species_index);
+    return R_NilValue;
+END_RCPP
+}
+// FFW16_StochasticPatch__add_seedling
+void FFW16_StochasticPatch__add_seedling(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, plant::util::index species_index);
+RcppExport SEXP plant_FFW16_StochasticPatch__add_seedling(SEXP obj_SEXP, SEXP species_indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
+    FFW16_StochasticPatch__add_seedling(obj_, species_index);
+    return R_NilValue;
+END_RCPP
+}
+// FFW16_StochasticPatch__compute_light_environment
+void FFW16_StochasticPatch__compute_light_environment(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__compute_light_environment(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    FFW16_StochasticPatch__compute_light_environment(obj_);
+    return R_NilValue;
+END_RCPP
+}
+// FFW16_StochasticPatch__compute_vars_phys
+void FFW16_StochasticPatch__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__compute_vars_phys(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    FFW16_StochasticPatch__compute_vars_phys(obj_);
+    return R_NilValue;
+END_RCPP
+}
+// FFW16_StochasticPatch__reset
+void FFW16_StochasticPatch__reset(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__reset(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    FFW16_StochasticPatch__reset(obj_);
+    return R_NilValue;
+END_RCPP
+}
+// FFW16_StochasticPatch__set_ode_state
+void FFW16_StochasticPatch__set_ode_state(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, plant::ode::state_type values, double time);
+RcppExport SEXP plant_FFW16_StochasticPatch__set_ode_state(SEXP obj_SEXP, SEXP valuesSEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::ode::state_type >::type values(valuesSEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    FFW16_StochasticPatch__set_ode_state(obj_, values, time);
+    return R_NilValue;
+END_RCPP
+}
+// FFW16_StochasticPatch__derivs
+plant::ode::state_type FFW16_StochasticPatch__derivs(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, const plant::ode::state_type& y, double time);
+RcppExport SEXP plant_FFW16_StochasticPatch__derivs(SEXP obj_SEXP, SEXP ySEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< const plant::ode::state_type& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__derivs(obj_, y, time));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__set_state
+void FFW16_StochasticPatch__set_state(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n);
+RcppExport SEXP plant_FFW16_StochasticPatch__set_state(SEXP obj_SEXP, SEXP timeSEXP, SEXP stateSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const std::vector<size_t>& >::type n(nSEXP);
+    FFW16_StochasticPatch__set_state(obj_, time, state, n);
+    return R_NilValue;
+END_RCPP
+}
+// FFW16_StochasticPatch__deaths
+std::vector<size_t> FFW16_StochasticPatch__deaths(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__deaths(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__deaths(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__time__get
+double FFW16_StochasticPatch__time__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__time__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__time__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__size__get
+size_t FFW16_StochasticPatch__size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__size__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__height_max__get
+double FFW16_StochasticPatch__height_max__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__height_max__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__height_max__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__parameters__get
+plant::FFW16_Parameters FFW16_StochasticPatch__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__parameters__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__parameters__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__environment__get
+plant::Environment FFW16_StochasticPatch__environment__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__environment__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__environment__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__species__get
+std::vector<plant::StochasticSpecies<plant::FFW16_Plant> > FFW16_StochasticPatch__species__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__species__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__species__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__ode_size__get
+size_t FFW16_StochasticPatch__ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__ode_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__ode_size__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__ode_time__get
+double FFW16_StochasticPatch__ode_time__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__ode_time__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__ode_time__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__ode_state__get
+plant::ode::state_type FFW16_StochasticPatch__ode_state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__ode_state__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__ode_state__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticPatch__ode_rates__get
+plant::ode::state_type FFW16_StochasticPatch__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticPatch__ode_rates__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticPatch__ode_rates__get(obj_));
     return __result;
 END_RCPP
 }

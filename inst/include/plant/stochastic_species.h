@@ -54,6 +54,9 @@ public:
   // This is totally new, relative to the deterministic model; this
   // will destructively modify the species by removing individuals.
   size_t deaths();
+  double germination_probability(const Environment& environment) {
+    return seed.germination_probability(environment);
+  }
 
   // * ODE interface
   // NOTE: We are a time-independent model here so no need to pass

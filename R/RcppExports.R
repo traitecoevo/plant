@@ -1067,6 +1067,10 @@ FFW16_StochasticSpecies__deaths <- function(obj_) {
     .Call('plant_FFW16_StochasticSpecies__deaths', PACKAGE = 'plant', obj_)
 }
 
+FFW16_StochasticSpecies__germination_probability <- function(obj_, environment) {
+    .Call('plant_FFW16_StochasticSpecies__germination_probability', PACKAGE = 'plant', obj_, environment)
+}
+
 FFW16_StochasticSpecies__size__get <- function(obj_) {
     .Call('plant_FFW16_StochasticSpecies__size__get', PACKAGE = 'plant', obj_)
 }
@@ -1109,6 +1113,94 @@ FFW16_StochasticSpecies__ode_state__set <- function(obj_, value) {
 
 FFW16_StochasticSpecies__ode_rates__get <- function(obj_) {
     .Call('plant_FFW16_StochasticSpecies__ode_rates__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__ctor <- function(parameters) {
+    .Call('plant_FFW16_StochasticPatch__ctor', PACKAGE = 'plant', parameters)
+}
+
+FFW16_StochasticPatch__area_leaf_above <- function(obj_, height) {
+    .Call('plant_FFW16_StochasticPatch__area_leaf_above', PACKAGE = 'plant', obj_, height)
+}
+
+FFW16_StochasticPatch__canopy_openness <- function(obj_, height) {
+    .Call('plant_FFW16_StochasticPatch__canopy_openness', PACKAGE = 'plant', obj_, height)
+}
+
+FFW16_StochasticPatch__add_seed <- function(obj_, species_index) {
+    invisible(.Call('plant_FFW16_StochasticPatch__add_seed', PACKAGE = 'plant', obj_, species_index))
+}
+
+FFW16_StochasticPatch__add_seedling <- function(obj_, species_index) {
+    invisible(.Call('plant_FFW16_StochasticPatch__add_seedling', PACKAGE = 'plant', obj_, species_index))
+}
+
+FFW16_StochasticPatch__compute_light_environment <- function(obj_) {
+    invisible(.Call('plant_FFW16_StochasticPatch__compute_light_environment', PACKAGE = 'plant', obj_))
+}
+
+FFW16_StochasticPatch__compute_vars_phys <- function(obj_) {
+    invisible(.Call('plant_FFW16_StochasticPatch__compute_vars_phys', PACKAGE = 'plant', obj_))
+}
+
+FFW16_StochasticPatch__reset <- function(obj_) {
+    invisible(.Call('plant_FFW16_StochasticPatch__reset', PACKAGE = 'plant', obj_))
+}
+
+FFW16_StochasticPatch__set_ode_state <- function(obj_, values, time) {
+    invisible(.Call('plant_FFW16_StochasticPatch__set_ode_state', PACKAGE = 'plant', obj_, values, time))
+}
+
+FFW16_StochasticPatch__derivs <- function(obj_, y, time) {
+    .Call('plant_FFW16_StochasticPatch__derivs', PACKAGE = 'plant', obj_, y, time)
+}
+
+FFW16_StochasticPatch__set_state <- function(obj_, time, state, n) {
+    invisible(.Call('plant_FFW16_StochasticPatch__set_state', PACKAGE = 'plant', obj_, time, state, n))
+}
+
+FFW16_StochasticPatch__deaths <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__deaths', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__time__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__time__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__size__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__size__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__height_max__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__height_max__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__parameters__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__parameters__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__environment__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__environment__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__species__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__species__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__ode_size__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__ode_size__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__ode_time__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__ode_time__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__ode_state__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__ode_state__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatch__ode_rates__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatch__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
 test_uniroot <- function(f, min, max) {

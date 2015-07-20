@@ -1133,6 +1133,10 @@ size_t FFW16_StochasticSpecies__deaths(plant::RcppR6::RcppR6<plant::StochasticSp
   return obj_->deaths();
 }
 // [[Rcpp::export]]
+double FFW16_StochasticSpecies__germination_probability(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_, const plant::Environment& environment) {
+  return obj_->germination_probability(environment);
+}
+// [[Rcpp::export]]
 size_t FFW16_StochasticSpecies__size__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_) {
   return obj_->size();
 }
@@ -1182,6 +1186,105 @@ void FFW16_StochasticSpecies__ode_state__set(plant::RcppR6::RcppR6<plant::Stocha
 
 // [[Rcpp::export]]
 plant::ode::state_type FFW16_StochasticSpecies__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_) {
+  return plant::ode::r_ode_rates(*obj_);
+}
+
+
+// [[Rcpp::export]]
+plant::StochasticPatch<plant::FFW16_Plant> FFW16_StochasticPatch__ctor(plant::FFW16_Parameters parameters) {
+  return plant::StochasticPatch<plant::FFW16_Plant>(parameters);
+}
+// [[Rcpp::export]]
+double FFW16_StochasticPatch__area_leaf_above(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, double height) {
+  return obj_->area_leaf_above(height);
+}
+// [[Rcpp::export]]
+double FFW16_StochasticPatch__canopy_openness(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, double height) {
+  return obj_->canopy_openness(height);
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatch__add_seed(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, plant::util::index species_index) {
+  obj_->r_add_seed(species_index);
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatch__add_seedling(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, plant::util::index species_index) {
+  obj_->r_add_seedling(species_index);
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatch__compute_light_environment(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  obj_->r_compute_light_environment();
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatch__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  obj_->r_compute_vars_phys();
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatch__reset(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  obj_->reset();
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatch__set_ode_state(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, plant::ode::state_type values, double time) {
+  plant::ode::r_set_ode_state(*obj_, values, time);
+}
+// [[Rcpp::export]]
+plant::ode::state_type FFW16_StochasticPatch__derivs(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, const plant::ode::state_type& y, double time) {
+  return plant::ode::r_derivs(*obj_, y, time);
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatch__set_state(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n) {
+  obj_->r_set_state(time, state, n);
+}
+// [[Rcpp::export]]
+std::vector<size_t> FFW16_StochasticPatch__deaths(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  return obj_->deaths();
+}
+// [[Rcpp::export]]
+double FFW16_StochasticPatch__time__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  return obj_->time();
+}
+
+// [[Rcpp::export]]
+size_t FFW16_StochasticPatch__size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  return obj_->size();
+}
+
+// [[Rcpp::export]]
+double FFW16_StochasticPatch__height_max__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  return obj_->height_max();
+}
+
+// [[Rcpp::export]]
+plant::FFW16_Parameters FFW16_StochasticPatch__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  return obj_->r_parameters();
+}
+
+// [[Rcpp::export]]
+plant::Environment FFW16_StochasticPatch__environment__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  return obj_->r_environment();
+}
+
+// [[Rcpp::export]]
+std::vector<plant::StochasticSpecies<plant::FFW16_Plant> > FFW16_StochasticPatch__species__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  return obj_->r_species();
+}
+
+// [[Rcpp::export]]
+size_t FFW16_StochasticPatch__ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
+double FFW16_StochasticPatch__ode_time__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  return plant::ode::r_ode_time(*obj_);
+}
+
+// [[Rcpp::export]]
+plant::ode::state_type FFW16_StochasticPatch__ode_state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
+  return plant::ode::r_ode_state(*obj_);
+}
+
+// [[Rcpp::export]]
+plant::ode::state_type FFW16_StochasticPatch__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
 }
 

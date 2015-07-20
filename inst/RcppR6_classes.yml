@@ -697,3 +697,62 @@ FFW16_StochasticSpecies:
       name_cpp: r_plant_at
     deaths:
       return_type: size_t
+    germination_probability:
+      args: [environment: "const plant::Environment&"]
+      return_type: double
+
+FFW16_StochasticPatch:
+  name_cpp: "plant::StochasticPatch<plant::FFW16_Plant>"
+  constructor:
+    args: [parameters: "plant::FFW16_Parameters"]
+  active:
+    time: {type: double, access: member}
+    size: {type: size_t, access: member}
+    height_max: {type: double, access: member}
+    parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
+    environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
+    species: {type: "std::vector<plant::StochasticSpecies<plant::FFW16_Plant> >", access: member, name_cpp: r_species}
+    ## ODE interface:
+    ode_size: {type: size_t, access: member}
+    ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+  methods:
+    area_leaf_above: {return_type: double, args: [height: double]}
+    canopy_openness: {return_type: double, args: [height: double]}
+    add_seed:
+      return_type: void
+      args: [species_index: "plant::util::index"]
+      name_cpp: r_add_seed
+    add_seedling:
+      return_type: void
+      args: [species_index: "plant::util::index"]
+      name_cpp: r_add_seedling
+    compute_light_environment:
+      return_type: void
+      name_cpp: r_compute_light_environment
+    compute_vars_phys:
+      return_type: void
+      name_cpp: r_compute_vars_phys
+    # TODO: Not 100% sure this is needed from R:
+    reset:
+      return_type: void
+    # Because we now care about time, we need to make sure that the
+    # setter function passes time along, so can't be done via the
+    # active binding (unlike Species, Cohort, etc).
+    set_ode_state:
+      return_type: void
+      access: function
+      name_cpp: "plant::ode::r_set_ode_state"
+      args: [values: "plant::ode::state_type", time: double]
+    derivs:
+      return_type: "plant::ode::state_type"
+      access: function
+      name_cpp: "plant::ode::r_derivs"
+      args: [y: "const plant::ode::state_type&", time: double]
+    set_state:
+      args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&"]
+      name_cpp: r_set_state
+      return_type: void
+    deaths:
+      return_type: "std::vector<size_t>"

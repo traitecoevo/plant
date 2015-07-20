@@ -97,4 +97,12 @@ test_that("Multiple individuals", {
   expect_that(sp$plant_at(j)$mortality, is_identical_to(0.0))
 })
 
+test_that("germination probability", {
+  env <- test_environment(3, seed_rain=1.0)
+  s <- FFW16_Strategy()
+  sp <- FFW16_StochasticSpecies(s)
+  p <- FFW16_Plant(s)
 
+  expect_that(sp$germination_probability(env),
+              equals(p$germination_probability(env)))
+})
