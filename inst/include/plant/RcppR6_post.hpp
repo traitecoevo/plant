@@ -91,6 +91,9 @@ template <> inline std::string generator_name<plant::StochasticSpecies<plant::FF
 template <> inline std::string   class_name_r<plant::StochasticPatch<plant::FFW16_Plant> >() {return "FFW16_StochasticPatch";}
 template <> inline std::string   package_name<plant::StochasticPatch<plant::FFW16_Plant> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticPatch<plant::FFW16_Plant> >() {return ".R6_FFW16_StochasticPatch";}
+template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::FFW16_Plant> >() {return "FFW16_StochasticPatchRunner";}
+template <> inline std::string   package_name<plant::StochasticPatchRunner<plant::FFW16_Plant> >() {return "plant";}
+template <> inline std::string generator_name<plant::StochasticPatchRunner<plant::FFW16_Plant> >() {return ".R6_FFW16_StochasticPatchRunner";}
 }
 }
 }
@@ -747,6 +750,12 @@ template <> inline SEXP wrap(const plant::StochasticPatch<plant::FFW16_Plant>& x
 }
 template <> inline plant::StochasticPatch<plant::FFW16_Plant> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> >(x));
+}
+template <> inline SEXP wrap(const plant::StochasticPatchRunner<plant::FFW16_Plant>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> >(x));
+}
+template <> inline plant::StochasticPatchRunner<plant::FFW16_Plant> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> >(x));
 }
 }
 

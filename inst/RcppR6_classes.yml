@@ -721,7 +721,7 @@ FFW16_StochasticPatch:
     area_leaf_above: {return_type: double, args: [height: double]}
     canopy_openness: {return_type: double, args: [height: double]}
     add_seed:
-      return_type: void
+      return_type: bool
       args: [species_index: "plant::util::index"]
       name_cpp: r_add_seed
     add_seedling:
@@ -756,3 +756,33 @@ FFW16_StochasticPatch:
       return_type: void
     deaths:
       return_type: "std::vector<size_t>"
+
+FFW16_StochasticPatchRunner:
+  name_cpp: "plant::StochasticPatchRunner<plant::FFW16_Plant>"
+  constructor:
+    args: [parameters: "plant::FFW16_Parameters"]
+  methods:
+    run:
+      return_type: void
+    run_next:
+      return_type: size_t
+      name_cpp: r_run_next
+    reset:
+      return_type: void
+    set_schedule_times:
+      args: [times: "std::vector<std::vector<double> >"]
+      return_type: void
+      name_cpp: r_set_schedule_times
+  active:
+    complete: {type: bool, access: member}
+    time: {type: double, access: member}
+    parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
+    patch:
+      type: "plant::StochasticPatch<plant::FFW16_Plant>"
+      access: member
+      name_cpp: r_patch
+    schedule:
+      type: "plant::CohortSchedule"
+      access: member
+      name_cpp: r_schedule
+      name_cpp_set: r_set_schedule

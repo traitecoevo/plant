@@ -1203,8 +1203,8 @@ double FFW16_StochasticPatch__canopy_openness(plant::RcppR6::RcppR6<plant::Stoch
   return obj_->canopy_openness(height);
 }
 // [[Rcpp::export]]
-void FFW16_StochasticPatch__add_seed(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, plant::util::index species_index) {
-  obj_->r_add_seed(species_index);
+bool FFW16_StochasticPatch__add_seed(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, plant::util::index species_index) {
+  return obj_->r_add_seed(species_index);
 }
 // [[Rcpp::export]]
 void FFW16_StochasticPatch__add_seedling(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_, plant::util::index species_index) {
@@ -1286,5 +1286,55 @@ plant::ode::state_type FFW16_StochasticPatch__ode_state__get(plant::RcppR6::Rcpp
 // [[Rcpp::export]]
 plant::ode::state_type FFW16_StochasticPatch__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Plant> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
+}
+
+
+// [[Rcpp::export]]
+plant::StochasticPatchRunner<plant::FFW16_Plant> FFW16_StochasticPatchRunner__ctor(plant::FFW16_Parameters parameters) {
+  return plant::StochasticPatchRunner<plant::FFW16_Plant>(parameters);
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatchRunner__run(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
+  obj_->run();
+}
+// [[Rcpp::export]]
+size_t FFW16_StochasticPatchRunner__run_next(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
+  return obj_->r_run_next();
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatchRunner__reset(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
+  obj_->reset();
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatchRunner__set_schedule_times(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_, std::vector<std::vector<double> > times) {
+  obj_->r_set_schedule_times(times);
+}
+// [[Rcpp::export]]
+bool FFW16_StochasticPatchRunner__complete__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
+  return obj_->complete();
+}
+
+// [[Rcpp::export]]
+double FFW16_StochasticPatchRunner__time__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
+  return obj_->time();
+}
+
+// [[Rcpp::export]]
+plant::FFW16_Parameters FFW16_StochasticPatchRunner__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
+  return obj_->r_parameters();
+}
+
+// [[Rcpp::export]]
+plant::StochasticPatch<plant::FFW16_Plant> FFW16_StochasticPatchRunner__patch__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
+  return obj_->r_patch();
+}
+
+// [[Rcpp::export]]
+plant::CohortSchedule FFW16_StochasticPatchRunner__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
+  return obj_->r_schedule();
+}
+// [[Rcpp::export]]
+void FFW16_StochasticPatchRunner__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_, plant::CohortSchedule value) {
+  obj_->r_set_schedule(value);
 }
 

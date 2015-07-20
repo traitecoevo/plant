@@ -31,12 +31,13 @@ public:
   void step(System& system);
   void step_to(System& system, double time_max_);
 
+  void set_time_max(double time_max_);
+
 private:
   void resize(size_t size_);
   void setup_dydt_in(System& system);
   void save_dydt_out_as_in();
   void set_time(double t);
-  void set_time_max(double time_max_);
 
   OdeControl control;
   Step<System> stepper;

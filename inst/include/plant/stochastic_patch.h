@@ -26,7 +26,7 @@ public:
   double area_leaf_above(double height) const;
   double canopy_openness(double height) const;
 
-  void add_seed(size_t species_index);
+  bool add_seed(size_t species_index);
   void add_seeds(const std::vector<size_t>& species_index);
   void add_seedling(size_t species_index);
   void add_seedlings(const std::vector<size_t>& species_index);
@@ -57,8 +57,8 @@ public:
                    const std::vector<size_t>& n);
   // TODO: No support here for setting *vectors* of species.  Might
   // want to supoprt that?
-  void r_add_seed(util::index species_index) {
-    add_seed(species_index.check_bounds(size()));
+  bool r_add_seed(util::index species_index) {
+    return add_seed(species_index.check_bounds(size()));
   }
   void r_add_seedling(util::index species_index) {
     add_seedling(species_index.check_bounds(size()));
@@ -190,12 +190,14 @@ void StochasticPatch<T>::add_seedlings(const std::vector<size_t>& species_index)
 }
 
 template <typename T>
-void StochasticPatch<T>::add_seed(size_t species_index) {
+bool StochasticPatch<T>::add_seed(size_t species_index) {
   const double pr_germinate =
     species[species_index].germination_probability(environment);
-  if (unif_rand() < pr_germinate) {
+  const bool added = unif_rand() < pr_germinate;
+  if (added) {
     add_seedling(species_index);
   }
+  return added;
 }
 
 template <typename T>

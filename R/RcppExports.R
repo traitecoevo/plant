@@ -1128,7 +1128,7 @@ FFW16_StochasticPatch__canopy_openness <- function(obj_, height) {
 }
 
 FFW16_StochasticPatch__add_seed <- function(obj_, species_index) {
-    invisible(.Call('plant_FFW16_StochasticPatch__add_seed', PACKAGE = 'plant', obj_, species_index))
+    .Call('plant_FFW16_StochasticPatch__add_seed', PACKAGE = 'plant', obj_, species_index)
 }
 
 FFW16_StochasticPatch__add_seedling <- function(obj_, species_index) {
@@ -1201,6 +1201,50 @@ FFW16_StochasticPatch__ode_state__get <- function(obj_) {
 
 FFW16_StochasticPatch__ode_rates__get <- function(obj_) {
     .Call('plant_FFW16_StochasticPatch__ode_rates__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatchRunner__ctor <- function(parameters) {
+    .Call('plant_FFW16_StochasticPatchRunner__ctor', PACKAGE = 'plant', parameters)
+}
+
+FFW16_StochasticPatchRunner__run <- function(obj_) {
+    invisible(.Call('plant_FFW16_StochasticPatchRunner__run', PACKAGE = 'plant', obj_))
+}
+
+FFW16_StochasticPatchRunner__run_next <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatchRunner__run_next', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatchRunner__reset <- function(obj_) {
+    invisible(.Call('plant_FFW16_StochasticPatchRunner__reset', PACKAGE = 'plant', obj_))
+}
+
+FFW16_StochasticPatchRunner__set_schedule_times <- function(obj_, times) {
+    invisible(.Call('plant_FFW16_StochasticPatchRunner__set_schedule_times', PACKAGE = 'plant', obj_, times))
+}
+
+FFW16_StochasticPatchRunner__complete__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatchRunner__complete__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatchRunner__time__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatchRunner__time__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatchRunner__parameters__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatchRunner__parameters__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatchRunner__patch__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatchRunner__patch__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatchRunner__schedule__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatchRunner__schedule__get', PACKAGE = 'plant', obj_)
+}
+
+FFW16_StochasticPatchRunner__schedule__set <- function(obj_, value) {
+    invisible(.Call('plant_FFW16_StochasticPatchRunner__schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
 test_uniroot <- function(f, min, max) {

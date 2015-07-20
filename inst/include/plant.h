@@ -34,6 +34,7 @@
 // Stochastic model
 #include <plant/stochastic_species.h>
 #include <plant/stochastic_patch.h>
+#include <plant/stochastic_patch_runner.h>
 
 #include <plant/plant_runner.h>
 
