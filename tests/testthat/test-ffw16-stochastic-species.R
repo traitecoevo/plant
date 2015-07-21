@@ -7,6 +7,7 @@ test_that("empty", {
 
   expect_that(sp, is_a("FFW16_StochasticSpecies"))
   expect_that(sp$size, equals(0))
+  expect_that(sp$size_plants, equals(0))
 
   seed <- sp$seed
   expect_that(seed, is_a("Plant"))
@@ -32,6 +33,7 @@ test_that("Single individual", {
   sp$add_seed()
 
   expect_that(sp$size, equals(1))
+  expect_that(sp$size_plants, equals(1))
   expect_that(sp$ode_size, equals(p$ode_size))
   expect_that(length(sp$ode_state), equals(p$ode_size))
   expect_that(sp$ode_state, equals(p$ode_state))
@@ -61,6 +63,7 @@ test_that("Multiple individuals", {
   }
 
   expect_that(sp$size, equals(n))
+  expect_that(sp$size_plants, equals(n))
   expect_that(sp$is_alive, equals(rep(TRUE, n)))
 
   hh <- sort(runif(n, sp$height_max, h), decreasing=TRUE)
@@ -79,6 +82,7 @@ test_that("Multiple individuals", {
   nd <- sp$deaths()
   expect_that(nd, equals(0))
   expect_that(sp$size, equals(n))
+  expect_that(sp$size_plants, equals(n))
 
   m <- matrix(sp$ode_state, n_ode)
   ## Basically set up individual 4 for death:
@@ -96,6 +100,7 @@ test_that("Multiple individuals", {
   nd <- sp$deaths()
   expect_that(nd, equals(1))
   expect_that(sp$size, equals(n - 1))
+  expect_that(sp$size_plants, equals(n))
   expect_that(sp$is_alive, equals(seq_len(n) != i))
 
   hh2 <- sapply(sp$plants, function(x) x$height)

@@ -70,7 +70,7 @@ typedef EBT<FFW16_Plant>           FFW16_EBT;
 // point after RcppR6_pre.hpp is included.
 #include <plant/RcppR6_post.hpp>
 #include <plant/util_post_rcpp.h>
-#include <plant/plant_utils.h>
+#include <plant/get_state.h>
 #include <plant/plant_tools.h>
 
 #endif

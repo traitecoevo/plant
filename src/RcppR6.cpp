@@ -1142,6 +1142,11 @@ size_t FFW16_StochasticSpecies__size__get(plant::RcppR6::RcppR6<plant::Stochasti
 }
 
 // [[Rcpp::export]]
+size_t FFW16_StochasticSpecies__size_plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_) {
+  return obj_->size_plants();
+}
+
+// [[Rcpp::export]]
 plant::FFW16_Plant FFW16_StochasticSpecies__seed__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_) {
   return obj_->r_seed();
 }
@@ -1341,5 +1346,10 @@ plant::CohortSchedule FFW16_StochasticPatchRunner__schedule__get(plant::RcppR6::
 // [[Rcpp::export]]
 void FFW16_StochasticPatchRunner__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_, plant::CohortSchedule value) {
   obj_->r_set_schedule(value);
+}
+
+// [[Rcpp::export]]
+Rcpp::List FFW16_StochasticPatchRunner__state__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
+  return plant::get_state(*obj_);
 }
 

@@ -131,8 +131,6 @@ double StochasticPatch<T>::area_leaf_above(double height) const {
 
 template <typename T>
 double StochasticPatch<T>::canopy_openness(double height) const {
-  // NOTE: patch_area does not appear in the EBT model formulation;
-  // really we should require that it is 1.0, or drop it entirely.
   return exp(-parameters.c_ext * area_leaf_above(height) /
              parameters.patch_area);
 }

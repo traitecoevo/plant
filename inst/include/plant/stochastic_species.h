@@ -41,6 +41,7 @@ public:
   StochasticSpecies(strategy_type s);
 
   size_t size() const;
+  size_t size_plants() const {return plants.size();}
   void clear();
   void add_seed();
   void add_seed(const Environment& environment);
@@ -73,7 +74,7 @@ public:
   const plant_type& r_seed() const {return seed;}
   std::vector<plant_type> r_plants() const {return plants;}
   const plant_type& r_plant_at(util::index idx) const {
-    return plants[idx.check_bounds(plants.size())];
+    return plants[idx.check_bounds(size_plants())];
   }
 
 private:
@@ -124,7 +125,7 @@ void StochasticSpecies<T>::add_seed(const Environment& environment) {
 // individual (always the first in the list).
 template <typename T>
 double StochasticSpecies<T>::height_max() const {
-  for (size_t i = 0; i < plants.size(); ++i) {
+  for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       return plants[i].height();
     }
@@ -155,7 +156,7 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
   double tot = 0.0;
   // TODO: Here, and elsewhere, consider using a
   // boost::filter_iterator, which is in BH
-  for (size_t i = 0; i < plants.size(); ++i) {
+  for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       if (plants[i].height() > height) {
         tot += plants[i].area_leaf_above(height);
@@ -171,7 +172,7 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
 // through the ode stepper.
 template <typename T>
 void StochasticSpecies<T>::compute_vars_phys(const Environment& environment) {
-  for (size_t i = 0; i < plants.size(); ++i) {
+  for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       plants[i].compute_vars_phys(environment);
     }
@@ -198,7 +199,7 @@ std::vector<double> StochasticSpecies<T>::seeds() const {
 template <typename T>
 size_t StochasticSpecies<T>::deaths() {
   size_t died = 0;
-  for (size_t i = 0; i < plants.size(); ++i) {
+  for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       if (unif_rand() < plants[i].mortality_probability()) {
         is_alive[i] = false;
@@ -219,7 +220,7 @@ size_t StochasticSpecies<T>::ode_size() const {
 
 template <typename T>
 ode::const_iterator StochasticSpecies<T>::set_ode_state(ode::const_iterator it) {
-  for (size_t i = 0; i < plants.size(); ++i) {
+  for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       it = plants[i].set_ode_state(it);
     }
@@ -229,7 +230,7 @@ ode::const_iterator StochasticSpecies<T>::set_ode_state(ode::const_iterator it) 
 
 template <typename T>
 ode::iterator StochasticSpecies<T>::ode_state(ode::iterator it) const {
-  for (size_t i = 0; i < plants.size(); ++i) {
+  for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       it = plants[i].ode_state(it);
     }
@@ -239,7 +240,7 @@ ode::iterator StochasticSpecies<T>::ode_state(ode::iterator it) const {
 
 template <typename T>
 ode::iterator StochasticSpecies<T>::ode_rates(ode::iterator it) const {
-  for (size_t i = 0; i < plants.size(); ++i) {
+  for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       it = plants[i].ode_rates(it);
     }
@@ -253,7 +254,7 @@ std::vector<double> StochasticSpecies<T>::r_heights() const {
   std::vector<double> ret;
   ret.reserve(size());
   // TODO: also simplify r_heights for Species?
-  for (size_t i = 0; i < plants.size(); ++i) {
+  for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       ret.push_back(plants[i].height());
     }
@@ -267,7 +268,7 @@ void StochasticSpecies<T>::r_set_heights(std::vector<double> heights) {
   if (!util::is_decreasing(heights.begin(), heights.end())) {
     util::stop("height must be decreasing (ties allowed)");
   }
-  for (size_t i = 0; i < plants.size(); ++i) {
+  for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       plants[i].set_height(heights[i]);
     }

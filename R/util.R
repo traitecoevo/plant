@@ -22,13 +22,20 @@ list_to_array <- function(x) {
   if (length(unique(lapply(x, dim))) > 1L) {
     stop("More than one dimension")
   }
+  d <- dim(x[[1]])
+  if (is.null(d)) {
+    if (length(unique(lapply(x, length))) > 1L) {
+      stop("More than one length")
+    }
+    d <- length(x[[1]])
+  }
 
   dimnames2 <- function(x) {
     dn <- dimnames(x)
     if (is.null(dn)) rep(list(NULL), length(dim(x))) else dn
   }
   array(unlist(x),
-        c(dim(x[[1]]), length(x)),
+        c(d, length(x)),
         dimnames=c(dimnames2(x[[1]]), list(names(x))))
 }
 

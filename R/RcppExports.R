@@ -1075,6 +1075,10 @@ FFW16_StochasticSpecies__size__get <- function(obj_) {
     .Call('plant_FFW16_StochasticSpecies__size__get', PACKAGE = 'plant', obj_)
 }
 
+FFW16_StochasticSpecies__size_plants__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticSpecies__size_plants__get', PACKAGE = 'plant', obj_)
+}
+
 FFW16_StochasticSpecies__seed__get <- function(obj_) {
     .Call('plant_FFW16_StochasticSpecies__seed__get', PACKAGE = 'plant', obj_)
 }
@@ -1249,6 +1253,10 @@ FFW16_StochasticPatchRunner__schedule__get <- function(obj_) {
 
 FFW16_StochasticPatchRunner__schedule__set <- function(obj_, value) {
     invisible(.Call('plant_FFW16_StochasticPatchRunner__schedule__set', PACKAGE = 'plant', obj_, value))
+}
+
+FFW16_StochasticPatchRunner__state__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticPatchRunner__state__get', PACKAGE = 'plant', obj_)
 }
 
 test_uniroot <- function(f, min, max) {

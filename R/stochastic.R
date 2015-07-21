@@ -26,8 +26,56 @@ stochastic_schedule <- function(p) {
   n_species <- length(seed_rain)
   sched <- CohortSchedule(n_species)
   sched$max_time <- max_time
-  for (i in seq_len(seed_rain)) {
+  for (i in seq_along(seed_rain)) {
     sched$set_times(stochastic_arrival_times(max_time, seed_rain[[i]]), i)
   }
   sched
+}
+
+## This one might need to be made differently so that different
+## schedules can be added easily.
+run_stochastic_collect <- function(p, random_schedule=TRUE) {
+  collect <- function(obj) {
+    obj$state
+  }
+
+  obj <- FFW16_StochasticPatchRunner(p)
+  if (random_schedule) {
+    obj$schedule <- stochastic_schedule(p)
+  }
+
+  res <- list(collect(obj))
+
+  while (!obj$complete) {
+    obj$run_next()
+    res <- c(res, list(collect(obj)))
+  }
+
+  time <- sapply(res, "[[", "time")
+  light_env <- lapply(res, "[[", "light_env")
+  species <- lapply(res, "[[", "species")
+
+  ## The aperm() here means that dimensions are
+  ## [variable,time,plant], so that taking species[[1]]["height",,]
+  ## gives a matrix that has time down rows and plants across columns
+  ## (so is therefore plottable with matplot)
+
+  n_spp <- length(species[[1]])
+
+  species_is_alive <- lapply(seq_len(n_spp), function(i)
+    t(pad_list_to_array(lapply(species, function(x) attr(x[[i]], "is_alive")))))
+  species <- lapply(seq_len(n_spp), function(i)
+    aperm(pad_list_to_array(lapply(species, "[[", i)), c(1, 3, 2)))
+  attr(species, "is_alive") <- species_is_alive
+
+  patch_density <- obj$patch$environment$disturbance_regime$density(time)
+
+  ret <- list(time=time,
+              species=species,
+              light_env=light_env,
+              seed_rain=obj$seed_rains,
+              patch_density=patch_density,
+              p=p)
+
+  ret
 }
