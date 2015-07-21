@@ -766,7 +766,7 @@ FFW16_StochasticPatchRunner:
     run:
       return_type: void
     run_next:
-      return_type: size_t
+      return_type: plant::util::index
       name_cpp: r_run_next
     reset:
       return_type: void

@@ -43,6 +43,7 @@ public:
   size_t size() const;
   void clear();
   void add_seed();
+  void add_seed(const Environment& environment);
 
   double height_max() const;
   double area_leaf_above(double height) const;
@@ -111,6 +112,13 @@ void StochasticSpecies<T>::add_seed() {
   is_alive.push_back(true);
 }
 
+template <typename T>
+void StochasticSpecies<T>::add_seed(const Environment& environment) {
+  add_seed();
+  plants.back().compute_vars_phys(environment);
+}
+
+
 // If a species contains no individuals, we return zero
 // (c.f. Species).  Otherwise we return the height of the largest
 // individual (always the first in the list).
@@ -145,14 +153,17 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
     return 0.0;
   }
   double tot = 0.0;
-  for (const auto& it : plants) {
-    if (it.height() > height) {
-      tot += it.area_leaf_above(height);
-    } else {
-      break;
+  // TODO: Here, and elsewhere, consider using a
+  // boost::filter_iterator, which is in BH
+  for (size_t i = 0; i < plants.size(); ++i) {
+    if (is_alive[i]) {
+      if (plants[i].height() > height) {
+        tot += plants[i].area_leaf_above(height);
+      } else {
+        break;
+      }
     }
   }
-
   return tot;
 }
 

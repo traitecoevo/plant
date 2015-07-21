@@ -23,6 +23,10 @@ double Environment::patch_survival_conditional(double time_at_birth) const {
 // Reset the environment.
 void Environment::clear() {
   time = 0.0;
+  clear_light_environment();
+}
+
+void Environment::clear_light_environment() {
   light_environment.clear();
 }
 

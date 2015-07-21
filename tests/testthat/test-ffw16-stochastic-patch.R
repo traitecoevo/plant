@@ -31,9 +31,16 @@ test_that("non empty", {
   expect_that(patch$add_seed(0), throws_error("Invalid value"))
   expect_that(patch$add_seed(10), throws_error("out of bounds"))
 
-  patch$add_seed(1)
+  expect_that(patch$add_seed(1), is_true())
   expect_that(patch$height_max, is_more_than(0.0))
   expect_that(patch$height_max, equals(cmp$height))
 
   expect_that(patch$deaths(), equals(0))
+
+  le <- patch$environment$light_environment
+  expect_that(range(le$x), equals(c(0.0, cmp$height)))
+  expect_that(max(le$y), equals(1.0))
+  expect_that(le$y[[1]], is_less_than(1.0))
+
+  expect_that(all(patch$ode_rates > 0.0), is_true())
 })

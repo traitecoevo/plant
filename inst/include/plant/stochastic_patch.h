@@ -4,9 +4,15 @@
 
 namespace plant {
 
-// This one is basically _exactly_ the same as Patch, but the
-// definitions of some functions are going to be different and a few
-// others will be added.
+// NOTE: compute_light_environment() here might fail (especially for
+// rare seed arrivals) because the adaptive refinement can't deal with
+// the sharp corners that are implied.  The simplest thing to do is to
+// tone down the tolerance (fast_control() seems good enough) but that
+// might not be enough.  It might be best to do something more clever
+// than just fail on refining, but doing that will require
+// confirmation that the issue is simply in a couple of places rather
+// than throughout.  Running the spline piecewise would be the best
+// bet there.
 template <typename T>
 class StochasticPatch {
 public:
@@ -27,9 +33,7 @@ public:
   double canopy_openness(double height) const;
 
   bool add_seed(size_t species_index);
-  void add_seeds(const std::vector<size_t>& species_index);
   void add_seedling(size_t species_index);
-  void add_seedlings(const std::vector<size_t>& species_index);
 
   std::vector<size_t> deaths();
 
@@ -139,6 +143,8 @@ void StochasticPatch<T>::compute_light_environment() {
   if (parameters.n_residents() > 0 & height_max() > 0.0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
     environment.compute_light_environment(f, height_max());
+  } else {
+    environment.clear_light_environment();
   }
 }
 
@@ -159,32 +165,16 @@ void StochasticPatch<T>::compute_vars_phys() {
   }
 }
 
-// TODO: We should only be recomputing the light environment for the
-// points that are below the height of the seedling -- not the entire
-// light environment; probably worth just doing a rescale there?
-
-// This is an issue for the nonstochastic Patch too but is likely to
-// be worse here I think.
-
-// NOTE: There's a lot of duplication here because the logic in these
-// four cases is slightly different.  Hopefully we can standardise on
-// just one of these soon, but for now this should be OK.
+// In theory, this could be done more efficiently by, in the add_seed
+// case, using the values stored in the species seed.  But we don't
+// really get that here.  It might be better to move add_seed /
+// add_seedling within Species, given this.
 template <typename T>
 void StochasticPatch<T>::add_seedling(size_t species_index) {
-  species[species_index].add_seed();
+  // Add a seed, setting ODE variables based on the *current* light environment
+  species[species_index].add_seed(environment);
+  // Then we update the light environment.
   if (parameters.is_resident[species_index]) {
-    compute_light_environment();
-  }
-}
-
-template <typename T>
-void StochasticPatch<T>::add_seedlings(const std::vector<size_t>& species_index) {
-  bool recompute = false;
-  for (size_t i : species_index) {
-    species[i].add_seed();
-    recompute = recompute || parameters.is_resident[i];
-  }
-  if (recompute) {
     compute_light_environment();
   }
 }
@@ -201,27 +191,18 @@ bool StochasticPatch<T>::add_seed(size_t species_index) {
 }
 
 template <typename T>
-void StochasticPatch<T>::add_seeds(const std::vector<size_t>& species_index) {
-  bool recompute = false;
-  for (size_t i : species_index) {
-    const double pr_germinate =
-      species[species_index].germination_probability(environment);
-    if (unif_rand() < pr_germinate) {
-      species[i].add_seed();
-      recompute = recompute || parameters.is_resident[i];
-    }
-  }
-  if (recompute) {
-    compute_light_environment();
-  }
-}
-
-template <typename T>
 std::vector<size_t> StochasticPatch<T>::deaths() {
   std::vector<size_t> ret;
   ret.reserve(size());
+  bool recompute = false;
   for (auto& s : species) {
-    ret.push_back(s.deaths());
+    const size_t n_deaths = s.deaths();
+    ret.push_back(n_deaths);
+    recompute = recompute || n_deaths > 0;
+  }
+  if (recompute) {
+    compute_light_environment();
+    compute_vars_phys();
   }
   return ret;
 }
@@ -259,7 +240,7 @@ double StochasticPatch<T>::ode_time() const {
 
 template <typename T>
 ode::const_iterator StochasticPatch<T>::set_ode_state(ode::const_iterator it,
-                                            double time) {
+                                                      double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
   if (parameters.control.environment_light_rescale_usually) {

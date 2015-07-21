@@ -3292,7 +3292,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // FFW16_StochasticPatchRunner__run_next
-size_t FFW16_StochasticPatchRunner__run_next(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_);
+plant::util::index FFW16_StochasticPatchRunner__run_next(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_);
 RcppExport SEXP plant_FFW16_StochasticPatchRunner__run_next(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;

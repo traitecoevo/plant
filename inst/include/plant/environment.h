@@ -22,6 +22,7 @@ public:
   double patch_survival() const;
   double patch_survival_conditional(double time_at_birth) const;
   void clear();
+  void clear_light_environment();
 
   // NOTE: Interface here will change
   double seed_rain_dt() const;

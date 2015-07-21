@@ -1303,7 +1303,7 @@ void FFW16_StochasticPatchRunner__run(plant::RcppR6::RcppR6<plant::StochasticPat
   obj_->run();
 }
 // [[Rcpp::export]]
-size_t FFW16_StochasticPatchRunner__run_next(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
+plant::util::index FFW16_StochasticPatchRunner__run_next(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Plant> > obj_) {
   return obj_->r_run_next();
 }
 // [[Rcpp::export]]
