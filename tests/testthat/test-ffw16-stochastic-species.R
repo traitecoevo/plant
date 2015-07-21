@@ -16,6 +16,7 @@ test_that("empty", {
   expect_that(sp$height_max, equals(0.0))
   expect_that(sp$species, is_identical_to(NULL))
   expect_that(sp$plants, equals(list()))
+  expect_that(sp$is_alive, equals(logical()))
   expect_that(sp$area_leaf_above(0), equals(0.0))
   expect_that(sp$ode_size, equals(0))
   expect_that(sp$ode_state, is_identical_to(numeric(0)))
@@ -35,6 +36,7 @@ test_that("Single individual", {
   expect_that(length(sp$ode_state), equals(p$ode_size))
   expect_that(sp$ode_state, equals(p$ode_state))
   expect_that(sp$ode_rates, equals(rep(NA_real_, p$ode_size)))
+  expect_that(sp$is_alive, equals(TRUE))
 
   sp$compute_vars_phys(env)
   p$compute_vars_phys(env)
@@ -59,6 +61,7 @@ test_that("Multiple individuals", {
   }
 
   expect_that(sp$size, equals(n))
+  expect_that(sp$is_alive, equals(rep(TRUE, n)))
 
   hh <- sort(runif(n, sp$height_max, h), decreasing=TRUE)
   expect_that(sp$heights <- rev(hh), throws_error("must be decreasing"))
@@ -88,13 +91,21 @@ test_that("Multiple individuals", {
   expect_that(sp$plant_at(i)$mortality_probability, equals(1))
   expect_that(sp$plant_at(j)$mortality_probability, equals(0))
   expect_that(sp$plant_at(j)$mortality, is_more_than(0.0))
+  m[2, j] <- 0.0 # reset back to original for later comparison
 
   nd <- sp$deaths()
   expect_that(nd, equals(1))
   expect_that(sp$size, equals(n - 1))
+  expect_that(sp$is_alive, equals(seq_len(n) != i))
+
   hh2 <- sapply(sp$plants, function(x) x$height)
-  expect_that(hh2, equals(hh[-i]))
+  ## still the same:
+  expect_that(hh2, equals(hh))
   expect_that(sp$plant_at(j)$mortality, is_identical_to(0.0))
+
+  m2 <- matrix(sp$ode_state, n_ode)
+  expect_that(ncol(m2), equals(n - 1))
+  expect_that(m2, is_identical_to(m[, -i]))
 })
 
 test_that("germination probability", {

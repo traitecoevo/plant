@@ -674,7 +674,8 @@ FFW16_StochasticSpecies:
     seed: {type: "plant::FFW16_Plant", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
-    plants: {type: "std::list<plant::FFW16_Plant>", access: member, name_cpp: r_plants}
+    plants: {type: "std::vector<plant::FFW16_Plant>", access: member, name_cpp: r_plants}
+    is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
     seeds: {type: "std::vector<double>", access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}

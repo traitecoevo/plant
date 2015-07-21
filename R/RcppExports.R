@@ -1095,6 +1095,10 @@ FFW16_StochasticSpecies__plants__get <- function(obj_) {
     .Call('plant_FFW16_StochasticSpecies__plants__get', PACKAGE = 'plant', obj_)
 }
 
+FFW16_StochasticSpecies__is_alive__get <- function(obj_) {
+    .Call('plant_FFW16_StochasticSpecies__is_alive__get', PACKAGE = 'plant', obj_)
+}
+
 FFW16_StochasticSpecies__seeds__get <- function(obj_) {
     .Call('plant_FFW16_StochasticSpecies__seeds__get', PACKAGE = 'plant', obj_)
 }

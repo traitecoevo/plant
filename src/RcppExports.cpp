@@ -2947,13 +2947,24 @@ BEGIN_RCPP
 END_RCPP
 }
 // FFW16_StochasticSpecies__plants__get
-std::list<plant::FFW16_Plant> FFW16_StochasticSpecies__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_);
+std::vector<plant::FFW16_Plant> FFW16_StochasticSpecies__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_);
 RcppExport SEXP plant_FFW16_StochasticSpecies__plants__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
     __result = Rcpp::wrap(FFW16_StochasticSpecies__plants__get(obj_));
+    return __result;
+END_RCPP
+}
+// FFW16_StochasticSpecies__is_alive__get
+std::vector<bool> FFW16_StochasticSpecies__is_alive__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_StochasticSpecies__is_alive__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_StochasticSpecies__is_alive__get(obj_));
     return __result;
 END_RCPP
 }

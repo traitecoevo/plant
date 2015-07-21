@@ -2,7 +2,6 @@
 #ifndef PLANT_PLANT_STOCHASTIC_SPECIES_H_
 #define PLANT_PLANT_STOCHASTIC_SPECIES_H_
 
-#include <list>
 #include <vector>
 #include <plant/util.h>
 #include <plant/environment.h>
@@ -21,13 +20,12 @@ namespace plant {
 // * don't use Cohort<T> for storage
 // * support for non-deterministic deaths
 // * stochastic birth survival (?)
-// * uses a list<T> rather than a list<T> for storage because then we can
-//   easily kill plants without reallocating everything.
 
 // Eventually we might need to support things like stochastic cohorts
 // to support:
 // * discrete multiple arrivals in a single time
 // * tracking birth times
+// * tracking aliveness
 //
 // That should be a fairly simple addition here though.
 //
@@ -68,21 +66,21 @@ public:
   ode::iterator       ode_rates(ode::iterator it) const;
 
   // * R interface
+  std::vector<bool> r_is_alive() const {return is_alive;}
   std::vector<double> r_heights() const;
   void r_set_heights(std::vector<double> heights);
   const plant_type& r_seed() const {return seed;}
-  std::list<plant_type> r_plants() const {return plants;}
+  std::vector<plant_type> r_plants() const {return plants;}
   const plant_type& r_plant_at(util::index idx) const {
-    // No random access here - so this is done the hard way.
-    const size_t i = idx.check_bounds(size());
-    return *std::next(plants.begin(), i);
+    return plants[idx.check_bounds(plants.size())];
   }
 
 private:
   const Control& control() const {return strategy->get_control();}
   strategy_type_ptr strategy;
   plant_type seed;
-  std::list<plant_type> plants;
+  std::vector<plant_type> plants;
+  std::vector<bool>       is_alive;
 };
 
 template <typename T>
@@ -93,12 +91,14 @@ StochasticSpecies<T>::StochasticSpecies(strategy_type s)
 
 template <typename T>
 size_t StochasticSpecies<T>::size() const {
-  return plants.size();
+  // number of _alive_ plants.
+  return std::count(is_alive.begin(), is_alive.end(), true);
 }
 
 template <typename T>
 void StochasticSpecies<T>::clear() {
   plants.clear();
+  is_alive.clear();
   // Reset the seed to a blank seed, too.
   seed = plant_type(strategy);
 }
@@ -108,6 +108,7 @@ void StochasticSpecies<T>::clear() {
 template <typename T>
 void StochasticSpecies<T>::add_seed() {
   plants.push_back(seed);
+  is_alive.push_back(true);
 }
 
 // If a species contains no individuals, we return zero
@@ -115,7 +116,12 @@ void StochasticSpecies<T>::add_seed() {
 // individual (always the first in the list).
 template <typename T>
 double StochasticSpecies<T>::height_max() const {
-  return plants.empty() ? 0.0 : plants.front().height();
+  for (size_t i = 0; i < plants.size(); ++i) {
+    if (is_alive[i]) {
+      return plants[i].height();
+    }
+  }
+  return 0.0;
 }
 
 // Because of plants are always ordered from largest to smallest, we
@@ -154,13 +160,11 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
 // through the ode stepper.
 template <typename T>
 void StochasticSpecies<T>::compute_vars_phys(const Environment& environment) {
-  for (auto& p : plants) {
-    p.compute_vars_phys(environment);
+  for (size_t i = 0; i < plants.size(); ++i) {
+    if (is_alive[i]) {
+      plants[i].compute_vars_phys(environment);
+    }
   }
-  // TODO: this will be worth doing if (and only if) we can store the
-  // germination probability.  Otherwise it's probably easiest to do
-  // this on demand.
-  seed.compute_vars_phys(environment);
 }
 
 // TODO: This is going to change...
@@ -172,6 +176,8 @@ std::vector<double> StochasticSpecies<T>::seeds() const {
   // want to track here?  Or do we need to do some more magic to it?
   //
   // basically - I think I need to take the floor here or something?
+  //
+  // NOTE: dead plants count here!
   for (auto& p : plants) {
     ret.push_back(p.fecundity());
   }
@@ -180,15 +186,15 @@ std::vector<double> StochasticSpecies<T>::seeds() const {
 
 template <typename T>
 size_t StochasticSpecies<T>::deaths() {
-  auto p = plants.begin();
   size_t died = 0;
-  while (p != plants.end()) {
-    if (unif_rand() < p->mortality_probability()) {
-      died++;
-      p = plants.erase(p);
-    } else {
-      p->reset_mortality();
-      ++p;
+  for (size_t i = 0; i < plants.size(); ++i) {
+    if (is_alive[i]) {
+      if (unif_rand() < plants[i].mortality_probability()) {
+        is_alive[i] = false;
+        died++;
+      } else {
+        plants[i].reset_mortality();
+      }
     }
   }
   return died;
@@ -202,17 +208,32 @@ size_t StochasticSpecies<T>::ode_size() const {
 
 template <typename T>
 ode::const_iterator StochasticSpecies<T>::set_ode_state(ode::const_iterator it) {
-  return ode::set_ode_state(plants.begin(), plants.end(), it);
+  for (size_t i = 0; i < plants.size(); ++i) {
+    if (is_alive[i]) {
+      it = plants[i].set_ode_state(it);
+    }
+  }
+  return it;
 }
 
 template <typename T>
 ode::iterator StochasticSpecies<T>::ode_state(ode::iterator it) const {
-  return ode::ode_state(plants.begin(), plants.end(), it);
+  for (size_t i = 0; i < plants.size(); ++i) {
+    if (is_alive[i]) {
+      it = plants[i].ode_state(it);
+    }
+  }
+  return it;
 }
 
 template <typename T>
 ode::iterator StochasticSpecies<T>::ode_rates(ode::iterator it) const {
-  return ode::ode_rates(plants.begin(), plants.end(), it);
+  for (size_t i = 0; i < plants.size(); ++i) {
+    if (is_alive[i]) {
+      it = plants[i].ode_rates(it);
+    }
+  }
+  return it;
 }
 
 
@@ -221,8 +242,10 @@ std::vector<double> StochasticSpecies<T>::r_heights() const {
   std::vector<double> ret;
   ret.reserve(size());
   // TODO: also simplify r_heights for Species?
-  for (const auto& p : plants) {
-    ret.push_back(p.height());
+  for (size_t i = 0; i < plants.size(); ++i) {
+    if (is_alive[i]) {
+      ret.push_back(plants[i].height());
+    }
   }
   return ret;
 }
@@ -233,9 +256,10 @@ void StochasticSpecies<T>::r_set_heights(std::vector<double> heights) {
   if (!util::is_decreasing(heights.begin(), heights.end())) {
     util::stop("height must be decreasing (ties allowed)");
   }
-  size_t i = 0;
-  for (auto& p: plants) {
-    p.set_height(heights[i++]);
+  for (size_t i = 0; i < plants.size(); ++i) {
+    if (is_alive[i]) {
+      plants[i].set_height(heights[i]);
+    }
   }
 }
 

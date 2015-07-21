@@ -1161,8 +1161,13 @@ void FFW16_StochasticSpecies__heights__set(plant::RcppR6::RcppR6<plant::Stochast
 }
 
 // [[Rcpp::export]]
-std::list<plant::FFW16_Plant> FFW16_StochasticSpecies__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_) {
+std::vector<plant::FFW16_Plant> FFW16_StochasticSpecies__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_) {
   return obj_->r_plants();
+}
+
+// [[Rcpp::export]]
+std::vector<bool> FFW16_StochasticSpecies__is_alive__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFW16_Plant> > obj_) {
+  return obj_->r_is_alive();
 }
 
 // [[Rcpp::export]]
