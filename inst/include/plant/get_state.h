@@ -75,7 +75,7 @@ Rcpp::NumericMatrix::iterator get_state(const Plant<T>& plant,
 
 template <typename T>
 Rcpp::NumericMatrix get_state(const StochasticSpecies<T>& species) {
-  typedef T plant_type;
+  typedef Plant<T> plant_type;
   const size_t ode_size = plant_type::ode_size(), np = species.size_plants();
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np);
 

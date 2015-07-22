@@ -44,12 +44,14 @@
 namespace plant {
 // Use this to manually switch between the minimal plant type and the
 // full one.  Eventually we'll get this stuff exposed nicely.
+//
+// TOOD: Don't know if this is needed any more?
 typedef Parameters<FFW16_Strategy> FFW16_Parameters;
 typedef Plant<FFW16_Strategy>      FFW16_Plant;
-typedef Cohort<FFW16_Plant>        FFW16_Cohort;
-typedef Species<FFW16_Plant>       FFW16_Species;
-typedef Patch<FFW16_Plant>         FFW16_Patch;
-typedef EBT<FFW16_Plant>           FFW16_EBT;
+typedef Cohort<FFW16_Strategy>     FFW16_Cohort;
+typedef Species<FFW16_Strategy>    FFW16_Species;
+typedef Patch<FFW16_Strategy>      FFW16_Patch;
+typedef EBT<FFW16_Strategy>        FFW16_EBT;
 }
 
 // Include this early on.  It can be either after classes have been

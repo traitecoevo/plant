@@ -12,12 +12,13 @@ namespace plant {
 template <typename T>
 class EBT {
 public:
-  typedef T plant_type;
-  typedef typename T::strategy_type strategy_type;
-  typedef Parameters<strategy_type> parameters_type;
-  typedef Cohort<plant_type>  cohort_type;
-  typedef Species<plant_type> species_type;
-  typedef Patch<plant_type>   patch_type;
+  typedef T             strategy_type;
+  typedef Plant<T>      plant_type;
+  typedef Cohort<T>     cohort_type;
+  typedef Species<T>    species_type;
+  typedef Patch<T>      patch_type;
+  typedef Parameters<T> parameters_type;
+
   EBT(parameters_type p);
 
   void run();

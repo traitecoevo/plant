@@ -49,7 +49,7 @@ test_that("Basics", {
   expect_that(sp$seed$vars_phys,
               is_identical_to(seed$vars_phys))
 
-  expect_that(sp$cohort_at(1), is_a("FFW16_Cohort"))
+  expect_that(sp$cohort_at(1), is_a("Cohort<FFW16>"))
   expect_that(sp$cohort_at(1)$vars_phys,
               is_identical_to(cohorts[[1]]$vars_phys))
 

@@ -9,7 +9,7 @@ test_that("Ported from tree1", {
   plant <- FFW16_PlantPlus(s)
   cohort <- FFW16_Cohort(s)
 
-  expect_that(cohort, is_a("FFW16_Cohort"))
+  expect_that(cohort, is_a("Cohort<FFW16>"))
   expect_that(cohort$plant, is_a("Plant<FFW16>"))
 
   env <- test_environment(2 * plant$height,

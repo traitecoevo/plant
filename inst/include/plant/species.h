@@ -15,9 +15,9 @@ namespace plant {
 template <typename T>
 class Species {
 public:
-  typedef T plant_type;
-  typedef Cohort<plant_type> cohort_type;
-  typedef typename T::strategy_type   strategy_type;
+  typedef T         strategy_type;
+  typedef Plant<T>  plant_type;
+  typedef Cohort<T> cohort_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   Species(strategy_type s);
 

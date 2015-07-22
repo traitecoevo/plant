@@ -20,7 +20,7 @@ test_that("Ported from tree1", {
   expect_that(ebt$patch, is_a("FFW16_Patch"))
   expect_that(length(ebt$patch$species), equals(1))
   expect_that(ebt$patch$species[[1]], is_a("FFW16_Species"))
-  expect_that(ebt$patch$species[[1]]$seed, is_a("FFW16_Cohort"))
+  expect_that(ebt$patch$species[[1]]$seed, is_a("Cohort<FFW16>"))
   expect_that(ebt$patch$time, is_identical_to(0.0))
 
   sched <- ebt$cohort_schedule

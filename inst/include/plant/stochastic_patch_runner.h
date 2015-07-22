@@ -22,11 +22,11 @@ namespace plant {
 template <typename T>
 class StochasticPatchRunner {
 public:
-  typedef T plant_type;
-  typedef typename T::strategy_type     strategy_type;
-  typedef Parameters<strategy_type>     parameters_type;
-  typedef StochasticSpecies<plant_type> species_type;
-  typedef StochasticPatch<plant_type>   patch_type;
+  typedef T                    strategy_type;
+  typedef Plant<T>             plant_type;
+  typedef StochasticSpecies<T> species_type;
+  typedef StochasticPatch<T>   patch_type;
+  typedef Parameters<T>        parameters_type;
 
   StochasticPatchRunner(parameters_type p);
 

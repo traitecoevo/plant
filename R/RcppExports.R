@@ -743,64 +743,64 @@ FFW16_PlantPlus_internals__ctor <- function() {
     .Call('plant_FFW16_PlantPlus_internals__ctor', PACKAGE = 'plant')
 }
 
-FFW16_Cohort__ctor <- function(strategy) {
-    .Call('plant_FFW16_Cohort__ctor', PACKAGE = 'plant', strategy)
+Cohort___FFW16__ctor <- function(strategy) {
+    .Call('plant_Cohort___FFW16__ctor', PACKAGE = 'plant', strategy)
 }
 
-FFW16_Cohort__area_leaf_above <- function(obj_, height) {
-    .Call('plant_FFW16_Cohort__area_leaf_above', PACKAGE = 'plant', obj_, height)
+Cohort___FFW16__area_leaf_above <- function(obj_, height) {
+    .Call('plant_Cohort___FFW16__area_leaf_above', PACKAGE = 'plant', obj_, height)
 }
 
-FFW16_Cohort__growth_rate_gradient <- function(obj_, environment) {
-    .Call('plant_FFW16_Cohort__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
+Cohort___FFW16__growth_rate_gradient <- function(obj_, environment) {
+    .Call('plant_Cohort___FFW16__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
 }
 
-FFW16_Cohort__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('plant_FFW16_Cohort__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
+Cohort___FFW16__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('plant_Cohort___FFW16__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
 }
 
-FFW16_Cohort__compute_initial_conditions <- function(obj_, environment) {
-    invisible(.Call('plant_FFW16_Cohort__compute_initial_conditions', PACKAGE = 'plant', obj_, environment))
+Cohort___FFW16__compute_initial_conditions <- function(obj_, environment) {
+    invisible(.Call('plant_Cohort___FFW16__compute_initial_conditions', PACKAGE = 'plant', obj_, environment))
 }
 
-FFW16_Cohort__plant__get <- function(obj_) {
-    .Call('plant_FFW16_Cohort__plant__get', PACKAGE = 'plant', obj_)
+Cohort___FFW16__plant__get <- function(obj_) {
+    .Call('plant_Cohort___FFW16__plant__get', PACKAGE = 'plant', obj_)
 }
 
-FFW16_Cohort__height__get <- function(obj_) {
-    .Call('plant_FFW16_Cohort__height__get', PACKAGE = 'plant', obj_)
+Cohort___FFW16__height__get <- function(obj_) {
+    .Call('plant_Cohort___FFW16__height__get', PACKAGE = 'plant', obj_)
 }
 
-FFW16_Cohort__log_density__get <- function(obj_) {
-    .Call('plant_FFW16_Cohort__log_density__get', PACKAGE = 'plant', obj_)
+Cohort___FFW16__log_density__get <- function(obj_) {
+    .Call('plant_Cohort___FFW16__log_density__get', PACKAGE = 'plant', obj_)
 }
 
-FFW16_Cohort__area_leaf__get <- function(obj_) {
-    .Call('plant_FFW16_Cohort__area_leaf__get', PACKAGE = 'plant', obj_)
+Cohort___FFW16__area_leaf__get <- function(obj_) {
+    .Call('plant_Cohort___FFW16__area_leaf__get', PACKAGE = 'plant', obj_)
 }
 
-FFW16_Cohort__fecundity__get <- function(obj_) {
-    .Call('plant_FFW16_Cohort__fecundity__get', PACKAGE = 'plant', obj_)
+Cohort___FFW16__fecundity__get <- function(obj_) {
+    .Call('plant_Cohort___FFW16__fecundity__get', PACKAGE = 'plant', obj_)
 }
 
-FFW16_Cohort__ode_size__get <- function(obj_) {
-    .Call('plant_FFW16_Cohort__ode_size__get', PACKAGE = 'plant', obj_)
+Cohort___FFW16__ode_size__get <- function(obj_) {
+    .Call('plant_Cohort___FFW16__ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-FFW16_Cohort__ode_state__get <- function(obj_) {
-    .Call('plant_FFW16_Cohort__ode_state__get', PACKAGE = 'plant', obj_)
+Cohort___FFW16__ode_state__get <- function(obj_) {
+    .Call('plant_Cohort___FFW16__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-FFW16_Cohort__ode_state__set <- function(obj_, value) {
-    invisible(.Call('plant_FFW16_Cohort__ode_state__set', PACKAGE = 'plant', obj_, value))
+Cohort___FFW16__ode_state__set <- function(obj_, value) {
+    invisible(.Call('plant_Cohort___FFW16__ode_state__set', PACKAGE = 'plant', obj_, value))
 }
 
-FFW16_Cohort__ode_rates__get <- function(obj_) {
-    .Call('plant_FFW16_Cohort__ode_rates__get', PACKAGE = 'plant', obj_)
+Cohort___FFW16__ode_rates__get <- function(obj_) {
+    .Call('plant_Cohort___FFW16__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-FFW16_Cohort__ode_names__get <- function(obj_) {
-    .Call('plant_FFW16_Cohort__ode_names__get', PACKAGE = 'plant', obj_)
+Cohort___FFW16__ode_names__get <- function(obj_) {
+    .Call('plant_Cohort___FFW16__ode_names__get', PACKAGE = 'plant', obj_)
 }
 
 FFW16_Species__ctor <- function(strategy) {

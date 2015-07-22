@@ -489,14 +489,17 @@ FFW16_PlantPlus_internals:
     - mass_total_dt: double
     - mass_above_ground_dt: double
 
-# For now, this one is not templated.
-FFW16_Cohort:
-  name_cpp: "plant::Cohort<plant::FFW16_Plant>"
+Cohort:
+  name_cpp: "plant::Cohort<T>"
+  templates:
+    parameters: T
+    concrete:
+      - ["FFW16": "plant::FFW16_Strategy"]
   constructor:
-    name_cpp: "plant::make_cohort<plant::FFW16_Plant>"
-    args: [strategy: "plant::FFW16_Strategy"]
+    name_cpp: "plant::make_cohort<T>"
+    args: [strategy: T]
   active:
-    plant: {type: "plant::FFW16_Plant", access: field, readonly: true}
+    plant: {type: "plant::Plant<T>", access: field, readonly: true}
     height: {type: double, access: member}
     log_density: {type: double, access: member, name_cpp: get_log_density}
     area_leaf: {type: double, access: member}
@@ -522,16 +525,16 @@ FFW16_Cohort:
 
 # For now, also not templated
 FFW16_Species:
-  name_cpp: "plant::Species<plant::FFW16_Plant>"
+  name_cpp: "plant::Species<plant::FFW16_Strategy>"
   constructor:
     args: [strategy: "plant::FFW16_Strategy"]
   active:
     size: {type: size_t, access: member}
-    seed: {type: "plant::Cohort<plant::FFW16_Plant>", access: member, name_cpp: r_seed}
+    seed: {type: "plant::Cohort<plant::FFW16_Strategy>", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
-    cohorts: {type: "std::vector<plant::Cohort<plant::FFW16_Plant> >", access: member, name_cpp: r_cohorts}
+    cohorts: {type: "std::vector<plant::Cohort<plant::FFW16_Strategy> >", access: member, name_cpp: r_cohorts}
     seeds: {type: "std::vector<double>", access: member}
     area_leafs: {type: "std::vector<double>", access: member, name_cpp: r_area_leafs}
     ## ODE interface:
@@ -550,7 +553,7 @@ FFW16_Species:
     add_seed:
       return_type: void
     cohort_at:
-      return_type: "plant::Cohort<plant::FFW16_Plant>"
+      return_type: "plant::Cohort<plant::FFW16_Strategy>"
       args: [index: "plant::util::index"]
       name_cpp: r_cohort_at
     area_leafs_error:
@@ -559,7 +562,7 @@ FFW16_Species:
       name_cpp: r_area_leafs_error
 
 FFW16_Patch:
-  name_cpp: "plant::Patch<plant::FFW16_Plant>"
+  name_cpp: "plant::Patch<plant::FFW16_Strategy>"
   constructor:
     args: [parameters: "plant::FFW16_Parameters"]
   active:
@@ -568,7 +571,7 @@ FFW16_Patch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
     environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
-    species: {type: "std::vector<plant::Species<plant::FFW16_Plant> >", access: member, name_cpp: r_species}
+    species: {type: "std::vector<plant::Species<plant::FFW16_Strategy> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -609,7 +612,7 @@ FFW16_Patch:
       return_type: void
 
 FFW16_EBT:
-  name_cpp: "plant::EBT<plant::FFW16_Plant>"
+  name_cpp: "plant::EBT<plant::FFW16_Strategy>"
   constructor:
     args: [parameters: "plant::FFW16_Parameters"]
   methods:
@@ -644,7 +647,7 @@ FFW16_EBT:
     seed_rains: {type: "std::vector<double>", access: member}
     parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
     patch:
-      type: "plant::Patch<plant::FFW16_Plant>"
+      type: "plant::Patch<plant::FFW16_Strategy>"
       access: member
       name_cpp: r_patch
     cohort_schedule:
@@ -671,16 +674,16 @@ FFW16_EBT:
       name_cpp: r_seed_rain_error
 
 FFW16_StochasticSpecies:
-  name_cpp: "plant::StochasticSpecies<plant::FFW16_Plant>"
+  name_cpp: "plant::StochasticSpecies<plant::FFW16_Strategy>"
   constructor:
     args: [strategy: "plant::FFW16_Strategy"]
   active:
     size: {type: size_t, access: member}
     size_plants: {type: size_t, access: member}
-    seed: {type: "plant::FFW16_Plant", access: member, name_cpp: r_seed}
+    seed: {type: "plant::Plant<plant::FFW16_Strategy>", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
-    plants: {type: "std::vector<plant::FFW16_Plant>", access: member, name_cpp: r_plants}
+    plants: {type: "std::vector<plant::Plant<plant::FFW16_Strategy> >", access: member, name_cpp: r_plants}
     is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
     seeds: {type: "std::vector<double>", access: member}
     ## ODE interface:
@@ -699,7 +702,7 @@ FFW16_StochasticSpecies:
     add_seed:
       return_type: void
     plant_at:
-      return_type: "plant::FFW16_Plant"
+      return_type: "plant::Plant<plant::FFW16_Strategy>"
       args: [index: "plant::util::index"]
       name_cpp: r_plant_at
     deaths:
@@ -709,7 +712,7 @@ FFW16_StochasticSpecies:
       return_type: double
 
 FFW16_StochasticPatch:
-  name_cpp: "plant::StochasticPatch<plant::FFW16_Plant>"
+  name_cpp: "plant::StochasticPatch<plant::FFW16_Strategy>"
   constructor:
     args: [parameters: "plant::FFW16_Parameters"]
   active:
@@ -718,7 +721,7 @@ FFW16_StochasticPatch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
     environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
-    species: {type: "std::vector<plant::StochasticSpecies<plant::FFW16_Plant> >", access: member, name_cpp: r_species}
+    species: {type: "std::vector<plant::StochasticSpecies<plant::FFW16_Strategy> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -765,7 +768,7 @@ FFW16_StochasticPatch:
       return_type: "std::vector<size_t>"
 
 FFW16_StochasticPatchRunner:
-  name_cpp: "plant::StochasticPatchRunner<plant::FFW16_Plant>"
+  name_cpp: "plant::StochasticPatchRunner<plant::FFW16_Strategy>"
   constructor:
     args: [parameters: "plant::FFW16_Parameters"]
   methods:
@@ -785,7 +788,7 @@ FFW16_StochasticPatchRunner:
     time: {type: double, access: member}
     parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
     patch:
-      type: "plant::StochasticPatch<plant::FFW16_Plant>"
+      type: "plant::StochasticPatch<plant::FFW16_Strategy>"
       access: member
       name_cpp: r_patch
     schedule:

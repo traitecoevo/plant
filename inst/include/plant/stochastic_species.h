@@ -35,8 +35,8 @@ namespace plant {
 template <typename T>
 class StochasticSpecies {
 public:
-  typedef T plant_type;
-  typedef typename T::strategy_type   strategy_type;
+  typedef T         strategy_type;
+  typedef Plant<T>  plant_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   StochasticSpecies(strategy_type s);
 

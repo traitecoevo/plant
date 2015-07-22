@@ -16,10 +16,10 @@ namespace plant {
 template <typename T>
 class StochasticPatch {
 public:
-  typedef T plant_type;
-  typedef typename T::strategy_type strategy_type;
-  typedef Parameters<strategy_type> parameters_type;
-  typedef StochasticSpecies<plant_type> species_type;
+  typedef T                    strategy_type;
+  typedef Plant<T>             plant_type;
+  typedef StochasticSpecies<T> species_type;
+  typedef Parameters<T>        parameters_type;
   StochasticPatch(parameters_type p);
   void reset();
 

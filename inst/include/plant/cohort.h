@@ -11,8 +11,8 @@ namespace plant {
 template <typename T>
 class Cohort {
 public:
-  typedef T plant_type;
-  typedef typename T::strategy_type   strategy_type;
+  typedef T        strategy_type;
+  typedef Plant<T> plant_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   Cohort(strategy_type_ptr s);
 
@@ -142,7 +142,7 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
 
 template <typename T>
 double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
-  T p = plant;
+  plant_type p = plant;
   auto fun = [&] (double h) mutable -> double {
     return growth_rate_given_height(p, h, environment);
   };

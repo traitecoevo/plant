@@ -63,20 +63,20 @@ template <> SEXP wrap(const plant::FFW16_PlantPlus&);
 template <> plant::FFW16_PlantPlus as(SEXP);
 template <> SEXP wrap(const plant::FFW16_PlantPlus::internals&);
 template <> plant::FFW16_PlantPlus::internals as(SEXP);
-template <> SEXP wrap(const plant::Cohort<plant::FFW16_Plant>&);
-template <> plant::Cohort<plant::FFW16_Plant> as(SEXP);
-template <> SEXP wrap(const plant::Species<plant::FFW16_Plant>&);
-template <> plant::Species<plant::FFW16_Plant> as(SEXP);
-template <> SEXP wrap(const plant::Patch<plant::FFW16_Plant>&);
-template <> plant::Patch<plant::FFW16_Plant> as(SEXP);
-template <> SEXP wrap(const plant::EBT<plant::FFW16_Plant>&);
-template <> plant::EBT<plant::FFW16_Plant> as(SEXP);
-template <> SEXP wrap(const plant::StochasticSpecies<plant::FFW16_Plant>&);
-template <> plant::StochasticSpecies<plant::FFW16_Plant> as(SEXP);
-template <> SEXP wrap(const plant::StochasticPatch<plant::FFW16_Plant>&);
-template <> plant::StochasticPatch<plant::FFW16_Plant> as(SEXP);
-template <> SEXP wrap(const plant::StochasticPatchRunner<plant::FFW16_Plant>&);
-template <> plant::StochasticPatchRunner<plant::FFW16_Plant> as(SEXP);
+template <> SEXP wrap(const plant::Cohort<plant::FFW16_Strategy>&);
+template <> plant::Cohort<plant::FFW16_Strategy> as(SEXP);
+template <> SEXP wrap(const plant::Species<plant::FFW16_Strategy>&);
+template <> plant::Species<plant::FFW16_Strategy> as(SEXP);
+template <> SEXP wrap(const plant::Patch<plant::FFW16_Strategy>&);
+template <> plant::Patch<plant::FFW16_Strategy> as(SEXP);
+template <> SEXP wrap(const plant::EBT<plant::FFW16_Strategy>&);
+template <> plant::EBT<plant::FFW16_Strategy> as(SEXP);
+template <> SEXP wrap(const plant::StochasticSpecies<plant::FFW16_Strategy>&);
+template <> plant::StochasticSpecies<plant::FFW16_Strategy> as(SEXP);
+template <> SEXP wrap(const plant::StochasticPatch<plant::FFW16_Strategy>&);
+template <> plant::StochasticPatch<plant::FFW16_Strategy> as(SEXP);
+template <> SEXP wrap(const plant::StochasticPatchRunner<plant::FFW16_Strategy>&);
+template <> plant::StochasticPatchRunner<plant::FFW16_Strategy> as(SEXP);
 }
 
 #endif
