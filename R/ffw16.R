@@ -25,3 +25,10 @@ FFW16_Cohort <- function(s=FFW16_Strategy()) {
 FFW16_Species <- function(s=FFW16_Strategy()) {
   Species("FFW16")(s)
 }
+
+##' @export
+##' @rdname FFW16
+##' @param ... Arguments!
+FFW16_Parameters <- function(...) {
+  Parameters("FFW16")(...)
+}

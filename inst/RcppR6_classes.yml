@@ -380,14 +380,19 @@ FFW16_Strategy:
     - c_d3: double
     - control: "plant::Control"
 
-FFW16_Parameters:
-  name_cpp: "plant::Parameters<plant::FFW16_Strategy>"
-  roxygen: |
-    Strategy parameters that tune various aspects of the biological model.
-    @title Strategy parameters
-    @param ...,values Values to initialise the struct with (either as
-    variadic arguments, or as a list, but not both).
-    @export
+Parameters:
+  name_cpp: "plant::Parameters<T>"
+  templates:
+    parameters: T
+    concrete:
+      - ["FFW16": "plant::FFW16_Strategy"]
+  # TODO: This is broken:
+  # roxygen: |
+  #   Strategy parameters that tune various aspects of the biological model.
+  #   @title Strategy parameters
+  #   @param ...,values Values to initialise the struct with (either as
+  #   variadic arguments, or as a list, but not both).
+  #   @export
   validator:
     name_cpp: validate
   list:

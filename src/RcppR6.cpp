@@ -645,11 +645,11 @@ SEXP FFW16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-SEXP FFW16_Parameters__ctor() {
+SEXP Parameters___FFW16__ctor() {
   return Rcpp::wrap(plant::Parameters<plant::FFW16_Strategy>());
 }
 // [[Rcpp::export]]
-SEXP FFW16_Parameters__vdor(SEXP obj) {
+SEXP Parameters___FFW16__vdor(SEXP obj) {
   return Rcpp::wrap(Rcpp::as<plant::Parameters<plant::FFW16_Strategy> >(obj));
 }
 

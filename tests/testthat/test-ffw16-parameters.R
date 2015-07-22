@@ -2,7 +2,7 @@ context("FFW16_Parameters")
 
 test_that("Creation & defaults", {
   p <- FFW16_Parameters()
-  expect_that(p, is_a("FFW16_Parameters"))
+  expect_that(p, is_a("Parameters<FFW16>"))
 
   expect_that(length(p$strategies), equals(0))
   expect_that(length(p$is_resident), equals(0))

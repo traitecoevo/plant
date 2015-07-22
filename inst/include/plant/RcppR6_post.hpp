@@ -64,7 +64,7 @@ template <> inline std::string generator_name<plant::tools::PlantRunner >() {ret
 template <> inline std::string   class_name_r<plant::FFW16_Strategy >() {return "FFW16_Strategy";}
 template <> inline std::string   package_name<plant::FFW16_Strategy >() {return "plant";}
 template <> inline std::string generator_name<plant::FFW16_Strategy >() {return "";}
-template <> inline std::string   class_name_r<plant::Parameters<plant::FFW16_Strategy> >() {return "FFW16_Parameters";}
+template <> inline std::string   class_name_r<plant::Parameters<plant::FFW16_Strategy> >() {return "Parameters<FFW16>";}
 template <> inline std::string   package_name<plant::Parameters<plant::FFW16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::Parameters<plant::FFW16_Strategy> >() {return "";}
 template <> inline std::string   class_name_r<plant::FFW16_PlantPlus >() {return "FFW16_PlantPlus";}
@@ -533,12 +533,12 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FFW16_Strategy>& x) 
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
   ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
-  ret.attr("class") = "FFW16_Parameters";
+  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<FFW16>", "Parameters");
   return ret;
 }
 template <> inline plant::Parameters<plant::FFW16_Strategy> as(SEXP x) {
   if (!plant::RcppR6::is<plant::Parameters<plant::FFW16_Strategy> >(x)) {
-    Rcpp::stop("Expected an object of type FFW16_Parameters");
+    Rcpp::stop("Expected an object of type Parameters<FFW16>");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*

@@ -1695,24 +1695,24 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// FFW16_Parameters__ctor
-SEXP FFW16_Parameters__ctor();
-RcppExport SEXP plant_FFW16_Parameters__ctor() {
+// Parameters___FFW16__ctor
+SEXP Parameters___FFW16__ctor();
+RcppExport SEXP plant_Parameters___FFW16__ctor() {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    __result = Rcpp::wrap(FFW16_Parameters__ctor());
+    __result = Rcpp::wrap(Parameters___FFW16__ctor());
     return __result;
 END_RCPP
 }
-// FFW16_Parameters__vdor
-SEXP FFW16_Parameters__vdor(SEXP obj);
-RcppExport SEXP plant_FFW16_Parameters__vdor(SEXP objSEXP) {
+// Parameters___FFW16__vdor
+SEXP Parameters___FFW16__vdor(SEXP obj);
+RcppExport SEXP plant_Parameters___FFW16__vdor(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< SEXP >::type obj(objSEXP);
-    __result = Rcpp::wrap(FFW16_Parameters__vdor(obj));
+    __result = Rcpp::wrap(Parameters___FFW16__vdor(obj));
     return __result;
 END_RCPP
 }

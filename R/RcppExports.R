@@ -639,12 +639,12 @@ FFW16_Strategy__ctor <- function() {
     .Call('plant_FFW16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-FFW16_Parameters__ctor <- function() {
-    .Call('plant_FFW16_Parameters__ctor', PACKAGE = 'plant')
+Parameters___FFW16__ctor <- function() {
+    .Call('plant_Parameters___FFW16__ctor', PACKAGE = 'plant')
 }
 
-FFW16_Parameters__vdor <- function(obj) {
-    .Call('plant_FFW16_Parameters__vdor', PACKAGE = 'plant', obj)
+Parameters___FFW16__vdor <- function(obj) {
+    .Call('plant_Parameters___FFW16__vdor', PACKAGE = 'plant', obj)
 }
 
 FFW16_PlantPlus__ctor <- function(strategy) {

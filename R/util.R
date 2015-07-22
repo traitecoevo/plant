@@ -93,8 +93,10 @@ validate <- function(x, ...) {
   UseMethod("validate")
 }
 ##' @export
-validate.FFW16_Parameters <- function(x, ...) {
-  FFW16_Parameters__vdor(x)
+`validate.Parameters<FFW16>` <- function(x, ...) {
+  ## TODO: This uses an implementation detail of RcppR6 that is not
+  ## really OK to use; this could change at any moment.
+  Parameters___FFW16__vdor(x)
 }
 
 loop <- function(X, FUN, ..., parallel=FALSE) {
