@@ -35,6 +35,7 @@ FFW16_Parameters <- function(...) {
 
 ##' @export
 ##' @rdname FFW16
+##' @param p A \code{Parameters<FFW16>} object
 FFW16_Patch <- function(p) {
   Patch("FFW16")(p)
 }

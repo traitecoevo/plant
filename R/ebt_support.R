@@ -326,9 +326,8 @@ FFW16_hyperpar <- make_FFW16_hyperpar()
 ##' Helper function for creating parameter objects suitable for an
 ##' assembly.
 ##' @title Helper function for creating parameter objects
-##' @param ... Named 
-##' @param pars 
-##' @param time_disturbance Time to disturbance
+##' @param ... Named set of parameters
+##' @param pars A list of parameters
 ##' @export
 assembly_parameters <- function(..., pars=NULL) {
   p <- plant::ebt_base_parameters()

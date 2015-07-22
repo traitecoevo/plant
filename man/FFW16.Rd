@@ -2,9 +2,14 @@
 % Please edit documentation in R/ffw16.R
 \name{FFW16_Plant}
 \alias{FFW16_Cohort}
+\alias{FFW16_EBT}
 \alias{FFW16_Parameters}
+\alias{FFW16_Patch}
 \alias{FFW16_Plant}
 \alias{FFW16_Species}
+\alias{FFW16_StochasticPatch}
+\alias{FFW16_StochasticPatchRunner}
+\alias{FFW16_StochasticSpecies}
 \title{Create a FFW16 Plant or Cohort}
 \usage{
 FFW16_Plant(s = FFW16_Strategy())
@@ -14,11 +19,23 @@ FFW16_Cohort(s = FFW16_Strategy())
 FFW16_Species(s = FFW16_Strategy())
 
 FFW16_Parameters(...)
+
+FFW16_Patch(p)
+
+FFW16_EBT(p)
+
+FFW16_StochasticSpecies(s = FFW16_Strategy())
+
+FFW16_StochasticPatch(p)
+
+FFW16_StochasticPatchRunner(p)
 }
 \arguments{
 \item{s}{A \code{\link{FFW16_Strategy}} object}
 
 \item{...}{Arguments!}
+
+\item{p}{A \code{Parameters<FFW16>} object}
 }
 \description{
 Create a FFW16 Plant or Cohort

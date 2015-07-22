@@ -16,8 +16,7 @@ Imports:
     loggr,
     crayon,
     nleqslv,
-    BB,
-    grader
+    BB
 Suggests:
     testthat,
     deSolve,

@@ -7,11 +7,9 @@
 assembly_parameters(..., pars = NULL)
 }
 \arguments{
-\item{...}{Named}
+\item{...}{Named set of parameters}
 
-\item{pars}{}
-
-\item{time_disturbance}{Time to disturbance}
+\item{pars}{A list of parameters}
 }
 \description{
 Helper function for creating parameter objects suitable for an
