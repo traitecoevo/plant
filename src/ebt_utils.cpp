@@ -57,16 +57,16 @@ std::vector<double> cohort_schedule_times_default(double max_time) {
 // ::cohort_schedule_max_time_default, but that's not how it's
 // implemented.
 // [[Rcpp::export(cohort_schedule_max_time_default)]]
-double r_cohort_schedule_max_time_default(const plant::FFW16_Parameters& p) {
+double r_cohort_schedule_max_time_default(const plant::Parameters<plant::FFW16_Strategy>& p) {
   return plant::cohort_schedule_max_time_default(p);
 }
 
 // [[Rcpp::export(cohort_schedule_default)]]
-plant::CohortSchedule r_cohort_schedule_default(const plant::FFW16_Parameters& p) {
+plant::CohortSchedule r_cohort_schedule_default(const plant::Parameters<plant::FFW16_Strategy>& p) {
   return plant::cohort_schedule_default(p);
 }
 
 // [[Rcpp::export(make_cohort_schedule)]]
-plant::CohortSchedule r_make_cohort_schedule(const plant::FFW16_Parameters& p) {
+plant::CohortSchedule r_make_cohort_schedule(const plant::Parameters<plant::FFW16_Strategy>& p) {
   return plant::make_cohort_schedule(p);
 }

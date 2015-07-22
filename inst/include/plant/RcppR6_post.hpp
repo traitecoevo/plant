@@ -64,9 +64,9 @@ template <> inline std::string generator_name<plant::tools::PlantRunner >() {ret
 template <> inline std::string   class_name_r<plant::FFW16_Strategy >() {return "FFW16_Strategy";}
 template <> inline std::string   package_name<plant::FFW16_Strategy >() {return "plant";}
 template <> inline std::string generator_name<plant::FFW16_Strategy >() {return "";}
-template <> inline std::string   class_name_r<plant::FFW16_Parameters >() {return "FFW16_Parameters";}
-template <> inline std::string   package_name<plant::FFW16_Parameters >() {return "plant";}
-template <> inline std::string generator_name<plant::FFW16_Parameters >() {return "";}
+template <> inline std::string   class_name_r<plant::Parameters<plant::FFW16_Strategy> >() {return "FFW16_Parameters";}
+template <> inline std::string   package_name<plant::Parameters<plant::FFW16_Strategy> >() {return "plant";}
+template <> inline std::string generator_name<plant::Parameters<plant::FFW16_Strategy> >() {return "";}
 template <> inline std::string   class_name_r<plant::FFW16_PlantPlus >() {return "FFW16_PlantPlus";}
 template <> inline std::string   package_name<plant::FFW16_PlantPlus >() {return "plant";}
 template <> inline std::string generator_name<plant::FFW16_PlantPlus >() {return ".R6_FFW16_PlantPlus";}
@@ -517,7 +517,7 @@ template <> inline plant::FFW16_Strategy as(SEXP x) {
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   return ret;
 }
-template <> inline SEXP wrap(const plant::FFW16_Parameters& x) {
+template <> inline SEXP wrap(const plant::Parameters<plant::FFW16_Strategy>& x) {
   Rcpp::List ret;
   ret["c_ext"] = Rcpp::wrap(x.c_ext);
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
@@ -536,14 +536,14 @@ template <> inline SEXP wrap(const plant::FFW16_Parameters& x) {
   ret.attr("class") = "FFW16_Parameters";
   return ret;
 }
-template <> inline plant::FFW16_Parameters as(SEXP x) {
-  if (!plant::RcppR6::is<plant::FFW16_Parameters >(x)) {
+template <> inline plant::Parameters<plant::FFW16_Strategy> as(SEXP x) {
+  if (!plant::RcppR6::is<plant::Parameters<plant::FFW16_Strategy> >(x)) {
     Rcpp::stop("Expected an object of type FFW16_Parameters");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::FFW16_Parameters ret;
+  plant::Parameters<plant::FFW16_Strategy> ret;
   Rcpp::List xl(x);
   // ret.c_ext = Rcpp::as<decltype(retc_ext) >(xl["c_ext"]);
   ret.c_ext = Rcpp::as<double >(xl["c_ext"]);

@@ -253,7 +253,7 @@ Interpolator:
 Environment:
   name_cpp: "plant::Environment"
   constructor:
-    args: [p: "plant::FFW16_Parameters"]
+    args: [p: "plant::Parameters<plant::FFW16_Strategy>"]
     roxygen: |
       Environment object
       @param p A Parameters object
@@ -381,7 +381,7 @@ FFW16_Strategy:
     - control: "plant::Control"
 
 FFW16_Parameters:
-  name_cpp: "plant::FFW16_Parameters"
+  name_cpp: "plant::Parameters<plant::FFW16_Strategy>"
   roxygen: |
     Strategy parameters that tune various aspects of the biological model.
     @title Strategy parameters
@@ -564,12 +564,12 @@ FFW16_Species:
 FFW16_Patch:
   name_cpp: "plant::Patch<plant::FFW16_Strategy>"
   constructor:
-    args: [parameters: "plant::FFW16_Parameters"]
+    args: [parameters: "plant::Parameters<plant::FFW16_Strategy>"]
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
-    parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::Parameters<plant::FFW16_Strategy>", access: member, name_cpp: r_parameters}
     environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::Species<plant::FFW16_Strategy> >", access: member, name_cpp: r_species}
     ## ODE interface:
@@ -614,7 +614,7 @@ FFW16_Patch:
 FFW16_EBT:
   name_cpp: "plant::EBT<plant::FFW16_Strategy>"
   constructor:
-    args: [parameters: "plant::FFW16_Parameters"]
+    args: [parameters: "plant::Parameters<plant::FFW16_Strategy>"]
   methods:
     run:
       return_type: void
@@ -645,7 +645,7 @@ FFW16_EBT:
     complete: {type: bool, access: member}
     time: {type: double, access: member}
     seed_rains: {type: "std::vector<double>", access: member}
-    parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::Parameters<plant::FFW16_Strategy>", access: member, name_cpp: r_parameters}
     patch:
       type: "plant::Patch<plant::FFW16_Strategy>"
       access: member
@@ -714,12 +714,12 @@ FFW16_StochasticSpecies:
 FFW16_StochasticPatch:
   name_cpp: "plant::StochasticPatch<plant::FFW16_Strategy>"
   constructor:
-    args: [parameters: "plant::FFW16_Parameters"]
+    args: [parameters: "plant::Parameters<plant::FFW16_Strategy>"]
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
-    parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::Parameters<plant::FFW16_Strategy>", access: member, name_cpp: r_parameters}
     environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::StochasticSpecies<plant::FFW16_Strategy> >", access: member, name_cpp: r_species}
     ## ODE interface:
@@ -770,7 +770,7 @@ FFW16_StochasticPatch:
 FFW16_StochasticPatchRunner:
   name_cpp: "plant::StochasticPatchRunner<plant::FFW16_Strategy>"
   constructor:
-    args: [parameters: "plant::FFW16_Parameters"]
+    args: [parameters: "plant::Parameters<plant::FFW16_Strategy>"]
   methods:
     run:
       return_type: void
@@ -786,7 +786,7 @@ FFW16_StochasticPatchRunner:
   active:
     complete: {type: bool, access: member}
     time: {type: double, access: member}
-    parameters: {type: "plant::FFW16_Parameters", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::Parameters<plant::FFW16_Strategy>", access: member, name_cpp: r_parameters}
     patch:
       type: "plant::StochasticPatch<plant::FFW16_Strategy>"
       access: member

@@ -5,12 +5,12 @@ namespace plant {
 namespace tools {
 
 Environment fixed_environment(double canopy_openness,
-			      double height_max) {
+                              double height_max) {
   std::vector<double> x = {0, height_max/2.0, height_max};
   std::vector<double> y = {canopy_openness, canopy_openness, canopy_openness};
   interpolator::Interpolator env;
   env.init(x, y);
-  FFW16_Parameters p;
+  Parameters<FFW16_Strategy> p;
   Environment ret(p);
   ret.light_environment = env;
   return ret;

@@ -474,7 +474,7 @@ double Interpolator__max__get(plant::RcppR6::RcppR6<plant::interpolator::Interpo
 
 
 // [[Rcpp::export]]
-plant::Environment Environment__ctor(plant::FFW16_Parameters p) {
+plant::Environment Environment__ctor(plant::Parameters<plant::FFW16_Strategy> p) {
   return plant::Environment(p);
 }
 // [[Rcpp::export]]
@@ -646,11 +646,11 @@ SEXP FFW16_Strategy__ctor() {
 
 // [[Rcpp::export]]
 SEXP FFW16_Parameters__ctor() {
-  return Rcpp::wrap(plant::FFW16_Parameters());
+  return Rcpp::wrap(plant::Parameters<plant::FFW16_Strategy>());
 }
 // [[Rcpp::export]]
 SEXP FFW16_Parameters__vdor(SEXP obj) {
-  return Rcpp::wrap(Rcpp::as<plant::FFW16_Parameters >(obj));
+  return Rcpp::wrap(Rcpp::as<plant::Parameters<plant::FFW16_Strategy> >(obj));
 }
 
 
@@ -928,7 +928,7 @@ plant::ode::state_type FFW16_Species__ode_rates__get(plant::RcppR6::RcppR6<plant
 
 
 // [[Rcpp::export]]
-plant::Patch<plant::FFW16_Strategy> FFW16_Patch__ctor(plant::FFW16_Parameters parameters) {
+plant::Patch<plant::FFW16_Strategy> FFW16_Patch__ctor(plant::Parameters<plant::FFW16_Strategy> parameters) {
   return plant::Patch<plant::FFW16_Strategy>(parameters);
 }
 // [[Rcpp::export]]
@@ -983,7 +983,7 @@ double FFW16_Patch__height_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF
 }
 
 // [[Rcpp::export]]
-plant::FFW16_Parameters FFW16_Patch__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFW16_Strategy> > obj_) {
+plant::Parameters<plant::FFW16_Strategy> FFW16_Patch__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFW16_Strategy> > obj_) {
   return obj_->r_parameters();
 }
 
@@ -1019,7 +1019,7 @@ plant::ode::state_type FFW16_Patch__ode_rates__get(plant::RcppR6::RcppR6<plant::
 
 
 // [[Rcpp::export]]
-plant::EBT<plant::FFW16_Strategy> FFW16_EBT__ctor(plant::FFW16_Parameters parameters) {
+plant::EBT<plant::FFW16_Strategy> FFW16_EBT__ctor(plant::Parameters<plant::FFW16_Strategy> parameters) {
   return plant::EBT<plant::FFW16_Strategy>(parameters);
 }
 // [[Rcpp::export]]
@@ -1066,7 +1066,7 @@ std::vector<double> FFW16_EBT__seed_rains__get(plant::RcppR6::RcppR6<plant::EBT<
 }
 
 // [[Rcpp::export]]
-plant::FFW16_Parameters FFW16_EBT__parameters__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFW16_Strategy> > obj_) {
+plant::Parameters<plant::FFW16_Strategy> FFW16_EBT__parameters__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFW16_Strategy> > obj_) {
   return obj_->r_parameters();
 }
 
@@ -1206,7 +1206,7 @@ plant::ode::state_type FFW16_StochasticSpecies__ode_rates__get(plant::RcppR6::Rc
 
 
 // [[Rcpp::export]]
-plant::StochasticPatch<plant::FFW16_Strategy> FFW16_StochasticPatch__ctor(plant::FFW16_Parameters parameters) {
+plant::StochasticPatch<plant::FFW16_Strategy> FFW16_StochasticPatch__ctor(plant::Parameters<plant::FFW16_Strategy> parameters) {
   return plant::StochasticPatch<plant::FFW16_Strategy>(parameters);
 }
 // [[Rcpp::export]]
@@ -1269,7 +1269,7 @@ double FFW16_StochasticPatch__height_max__get(plant::RcppR6::RcppR6<plant::Stoch
 }
 
 // [[Rcpp::export]]
-plant::FFW16_Parameters FFW16_StochasticPatch__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Strategy> > obj_) {
+plant::Parameters<plant::FFW16_Strategy> FFW16_StochasticPatch__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFW16_Strategy> > obj_) {
   return obj_->r_parameters();
 }
 
@@ -1305,7 +1305,7 @@ plant::ode::state_type FFW16_StochasticPatch__ode_rates__get(plant::RcppR6::Rcpp
 
 
 // [[Rcpp::export]]
-plant::StochasticPatchRunner<plant::FFW16_Strategy> FFW16_StochasticPatchRunner__ctor(plant::FFW16_Parameters parameters) {
+plant::StochasticPatchRunner<plant::FFW16_Strategy> FFW16_StochasticPatchRunner__ctor(plant::Parameters<plant::FFW16_Strategy> parameters) {
   return plant::StochasticPatchRunner<plant::FFW16_Strategy>(parameters);
 }
 // [[Rcpp::export]]
@@ -1335,7 +1335,7 @@ double FFW16_StochasticPatchRunner__time__get(plant::RcppR6::RcppR6<plant::Stoch
 }
 
 // [[Rcpp::export]]
-plant::FFW16_Parameters FFW16_StochasticPatchRunner__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Strategy> > obj_) {
+plant::Parameters<plant::FFW16_Strategy> FFW16_StochasticPatchRunner__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFW16_Strategy> > obj_) {
   return obj_->r_parameters();
 }
 
