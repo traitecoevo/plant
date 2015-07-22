@@ -32,3 +32,14 @@ FFW16_Species <- function(s=FFW16_Strategy()) {
 FFW16_Parameters <- function(...) {
   Parameters("FFW16")(...)
 }
+
+## Helper:
+## TODO: consider directly using the C++ version in environment.h
+##' @export
+##' @rdname Environment
+##' @param p A Parameters object
+make_environment <- function(p) {
+  Environment(p$disturbance_mean_interval,
+              p$seed_rain,
+              p$control)
+}

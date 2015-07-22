@@ -491,8 +491,8 @@ Interpolator__max__get <- function(obj_) {
     .Call('plant_Interpolator__max__get', PACKAGE = 'plant', obj_)
 }
 
-Environment__ctor <- function(p) {
-    .Call('plant_Environment__ctor', PACKAGE = 'plant', p)
+Environment__ctor <- function(disturbance_mean_interval, seed_rain, control) {
+    .Call('plant_Environment__ctor', PACKAGE = 'plant', disturbance_mean_interval, seed_rain, control)
 }
 
 Environment__canopy_openness <- function(obj_, height) {

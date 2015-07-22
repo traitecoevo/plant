@@ -1288,13 +1288,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // Environment__ctor
-plant::Environment Environment__ctor(plant::Parameters<plant::FFW16_Strategy> p);
-RcppExport SEXP plant_Environment__ctor(SEXP pSEXP) {
+plant::Environment Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, plant::Control control);
+RcppExport SEXP plant_Environment__ctor(SEXP disturbance_mean_intervalSEXP, SEXP seed_rainSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::FFW16_Strategy> >::type p(pSEXP);
-    __result = Rcpp::wrap(Environment__ctor(p));
+    Rcpp::traits::input_parameter< double >::type disturbance_mean_interval(disturbance_mean_intervalSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type seed_rain(seed_rainSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    __result = Rcpp::wrap(Environment__ctor(disturbance_mean_interval, seed_rain, control));
     return __result;
 END_RCPP
 }

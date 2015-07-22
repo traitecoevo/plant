@@ -253,10 +253,12 @@ Interpolator:
 Environment:
   name_cpp: "plant::Environment"
   constructor:
-    args: [p: "plant::Parameters<plant::FFW16_Strategy>"]
+    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", control: "plant::Control"]
     roxygen: |
       Environment object
-      @param p A Parameters object
+      @param disturbance_mean_interval mean disturbance interval in years
+      @param seed_rain vector of seed rains
+      @param control A Control object
       @export
   methods:
     canopy_openness:

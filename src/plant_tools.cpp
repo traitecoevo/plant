@@ -11,7 +11,7 @@ Environment fixed_environment(double canopy_openness,
   interpolator::Interpolator env;
   env.init(x, y);
   Parameters<FFW16_Strategy> p;
-  Environment ret(p);
+  Environment ret(make_environment(p));
   ret.light_environment = env;
   return ret;
 }

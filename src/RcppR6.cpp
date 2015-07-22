@@ -474,8 +474,8 @@ double Interpolator__max__get(plant::RcppR6::RcppR6<plant::interpolator::Interpo
 
 
 // [[Rcpp::export]]
-plant::Environment Environment__ctor(plant::Parameters<plant::FFW16_Strategy> p) {
-  return plant::Environment(p);
+plant::Environment Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, plant::Control control) {
+  return plant::Environment(disturbance_mean_interval, seed_rain, control);
 }
 // [[Rcpp::export]]
 double Environment__canopy_openness(plant::RcppR6::RcppR6<plant::Environment> obj_, double height) {

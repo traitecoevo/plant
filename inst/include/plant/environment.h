@@ -12,8 +12,9 @@ namespace plant {
 
 class Environment {
 public:
-  template <typename Parameters>
-  Environment(Parameters p);
+  Environment(double disturbance_mean_interval,
+              std::vector<double> seed_rain_,
+              Control control);
   double canopy_openness(double height) const;
   template <typename Function>
   void compute_light_environment(Function f_canopy_openness, double height_max);
@@ -40,15 +41,6 @@ private:
   size_t seed_rain_index;
   interpolator::AdaptiveInterpolator light_environment_generator;
 };
-
-template <typename Parameters>
-Environment::Environment(Parameters p)
-  : time(0.0),
-    disturbance_regime(p.disturbance_mean_interval),
-    seed_rain(p.seed_rain),
-    seed_rain_index(0),
-    light_environment_generator(make_interpolator(p.control)) {
-}
 
 template <typename Function>
 void Environment::compute_light_environment(Function f_canopy_openness,
@@ -81,6 +73,11 @@ make_interpolator(const Control& control) {
                               control.environment_light_tol,
                               control.environment_light_nbase,
                               control.environment_light_max_depth);
+}
+
+template <typename T>
+Environment make_environment(T p) {
+  return Environment(p.disturbance_mean_interval, p.seed_rain, p.control);
 }
 
 }
