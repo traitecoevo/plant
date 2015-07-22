@@ -91,7 +91,7 @@ std::vector<double> local_error_integration(const std::vector<double>& x,
 }
 
 SEXP get_from_package(const std::string& name) {
-  Rcpp::Environment pkg("package:plant");
+  Rcpp::Environment pkg = Rcpp::Environment::namespace_env("plant");
   return pkg[name];
 }
 
