@@ -5,7 +5,7 @@ test_that("empty", {
   s <- FFW16_Strategy()
   sp <- FFW16_StochasticSpecies(s)
 
-  expect_that(sp, is_a("FFW16_StochasticSpecies"))
+  expect_that(sp, is_a("StochasticSpecies<FFW16>"))
   expect_that(sp$size, equals(0))
   expect_that(sp$size_plants, equals(0))
 

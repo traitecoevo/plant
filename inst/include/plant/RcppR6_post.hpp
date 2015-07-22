@@ -82,18 +82,18 @@ template <> inline std::string generator_name<plant::Species<plant::FFW16_Strate
 template <> inline std::string   class_name_r<plant::Patch<plant::FFW16_Strategy> >() {return "Patch<FFW16>";}
 template <> inline std::string   package_name<plant::Patch<plant::FFW16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::Patch<plant::FFW16_Strategy> >() {return ".R6_Patch___FFW16";}
-template <> inline std::string   class_name_r<plant::EBT<plant::FFW16_Strategy> >() {return "FFW16_EBT";}
+template <> inline std::string   class_name_r<plant::EBT<plant::FFW16_Strategy> >() {return "EBT<FFW16>";}
 template <> inline std::string   package_name<plant::EBT<plant::FFW16_Strategy> >() {return "plant";}
-template <> inline std::string generator_name<plant::EBT<plant::FFW16_Strategy> >() {return ".R6_FFW16_EBT";}
-template <> inline std::string   class_name_r<plant::StochasticSpecies<plant::FFW16_Strategy> >() {return "FFW16_StochasticSpecies";}
+template <> inline std::string generator_name<plant::EBT<plant::FFW16_Strategy> >() {return ".R6_EBT___FFW16";}
+template <> inline std::string   class_name_r<plant::StochasticSpecies<plant::FFW16_Strategy> >() {return "StochasticSpecies<FFW16>";}
 template <> inline std::string   package_name<plant::StochasticSpecies<plant::FFW16_Strategy> >() {return "plant";}
-template <> inline std::string generator_name<plant::StochasticSpecies<plant::FFW16_Strategy> >() {return ".R6_FFW16_StochasticSpecies";}
-template <> inline std::string   class_name_r<plant::StochasticPatch<plant::FFW16_Strategy> >() {return "FFW16_StochasticPatch";}
+template <> inline std::string generator_name<plant::StochasticSpecies<plant::FFW16_Strategy> >() {return ".R6_StochasticSpecies___FFW16";}
+template <> inline std::string   class_name_r<plant::StochasticPatch<plant::FFW16_Strategy> >() {return "StochasticPatch<FFW16>";}
 template <> inline std::string   package_name<plant::StochasticPatch<plant::FFW16_Strategy> >() {return "plant";}
-template <> inline std::string generator_name<plant::StochasticPatch<plant::FFW16_Strategy> >() {return ".R6_FFW16_StochasticPatch";}
-template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::FFW16_Strategy> >() {return "FFW16_StochasticPatchRunner";}
+template <> inline std::string generator_name<plant::StochasticPatch<plant::FFW16_Strategy> >() {return ".R6_StochasticPatch___FFW16";}
+template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::FFW16_Strategy> >() {return "StochasticPatchRunner<FFW16>";}
 template <> inline std::string   package_name<plant::StochasticPatchRunner<plant::FFW16_Strategy> >() {return "plant";}
-template <> inline std::string generator_name<plant::StochasticPatchRunner<plant::FFW16_Strategy> >() {return ".R6_FFW16_StochasticPatchRunner";}
+template <> inline std::string generator_name<plant::StochasticPatchRunner<plant::FFW16_Strategy> >() {return ".R6_StochasticPatchRunner___FFW16";}
 }
 }
 }

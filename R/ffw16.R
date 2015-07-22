@@ -39,6 +39,30 @@ FFW16_Patch <- function(p) {
   Patch("FFW16")(p)
 }
 
+##' @export
+##' @rdname FFW16
+FFW16_EBT <- function(p) {
+  EBT("FFW16")(p)
+}
+
+##' @export
+##' @rdname FFW16
+FFW16_StochasticSpecies <- function(s=FFW16_Strategy()) {
+  StochasticSpecies("FFW16")(s)
+}
+
+##' @export
+##' @rdname FFW16
+FFW16_StochasticPatch <- function(p) {
+  StochasticPatch("FFW16")(p)
+}
+
+##' @export
+##' @rdname FFW16
+FFW16_StochasticPatchRunner <- function(p) {
+  StochasticPatchRunner("FFW16")(p)
+}
+
 ## Helper:
 ## TODO: consider directly using the C++ version in environment.h
 ##' @export

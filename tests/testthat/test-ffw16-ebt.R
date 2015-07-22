@@ -11,7 +11,7 @@ test_that("Ported from tree1", {
 
   p$patch_area <- 1.0
   ebt <- FFW16_EBT(p)
-  expect_that(ebt, is_a("FFW16_EBT"))
+  expect_that(ebt, is_a("EBT<FFW16>"))
 
   ## NOTE: I'm not sure where these are only equal and not identical.
   expect_that(ebt$parameters, equals(p))
@@ -238,7 +238,7 @@ test_that("Seed rain & error calculations correct", {
   p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, FALSE)
 
   ebt <- run_ebt(p1)
-  expect_that(ebt, is_a("FFW16_EBT"))
+  expect_that(ebt, is_a("EBT<FFW16>"))
 
   seed_rain_R <- function(ebt, error=FALSE) {
     a <- ebt$cohort_schedule$times(1)

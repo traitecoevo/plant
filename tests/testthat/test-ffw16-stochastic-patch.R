@@ -6,7 +6,7 @@ test_that("empty", {
                         is_resident=TRUE)
   patch <- FFW16_StochasticPatch(p)
 
-  expect_that(patch, is_a("FFW16_StochasticPatch"))
+  expect_that(patch, is_a("StochasticPatch<FFW16>"))
 
   expect_that(patch$size, equals(1))
   expect_that(patch$height_max, equals(0.0))
@@ -17,7 +17,7 @@ test_that("empty", {
   sp <- patch$species
   expect_that(is.list(sp), is_true())
   expect_that(length(sp), equals(1))
-  expect_that(sp[[1]], is_a("FFW16_StochasticSpecies"))
+  expect_that(sp[[1]], is_a("StochasticSpecies<FFW16>"))
   expect_that(sp[[1]]$size, equals(0))
 })
 
