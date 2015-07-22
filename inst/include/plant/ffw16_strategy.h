@@ -5,6 +5,7 @@
 #include <memory>
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
+#include <plant/plant_internals.h>
 
 namespace plant {
 
@@ -52,11 +53,9 @@ public:
                            double mass_sapwood, double mass_root) const;
 
   void ebt_vars(const Environment& environment, bool reuse_intervals,
-                double height, double leaf_area, double mortality,
-                double& height_dt_, double& fecundity_dt_,
-                double& mortality_dt_);
+                Plant_internals& vars);
 
-   // * Mass production
+  // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
   double assimilation(const Environment& environment, double height,
                       double area_leaf, bool reuse_intervals);

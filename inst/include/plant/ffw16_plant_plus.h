@@ -47,7 +47,7 @@ public:
   // * Mass production
   // [eqn 12-19,21] Update physiological variables
   void compute_vars_phys(const Environment& environment, bool
-			 reuse_intervals=false);
+                         reuse_intervals=false);
   // TODO: This is temporary -- it should be called by
   // compute_vars_phys, but I don't want that to always happen, so do
   // it manually for now.
@@ -58,6 +58,12 @@ public:
   double germination_probability(const Environment& environment);
 
   // * ODE interface
+  //   The ode dimensions are:
+  //   1. Height
+  //   2. Mortality
+  //   3. Fecundity
+  //   4. Heartwood area
+  //   5. Heartwood mass
   static size_t       ode_size() {return 5;}
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
@@ -83,14 +89,6 @@ private:
 
   strategy_type::ptr strategy;
   internals vars;
-
-  // The ode dimensions are:
-  // 1. Height
-  // 2. Mortality
-  // 3. Fecundity
-  // 4. Heartwood area
-  // 5. Heartwood mass
-  static const int ode_dimension = 5;
 };
 
 FFW16_PlantPlus make_plant_plus(FFW16_PlantPlus::strategy_type s);

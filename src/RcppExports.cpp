@@ -2136,6 +2136,17 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// FFW16_Cohort__ode_names__get
+std::vector<std::string> FFW16_Cohort__ode_names__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFW16_Plant> > obj_);
+RcppExport SEXP plant_FFW16_Cohort__ode_names__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFW16_Plant> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(FFW16_Cohort__ode_names__get(obj_));
+    return __result;
+END_RCPP
+}
 // FFW16_Species__ctor
 plant::Species<plant::FFW16_Plant> FFW16_Species__ctor(plant::FFW16_Strategy strategy);
 RcppExport SEXP plant_FFW16_Species__ctor(SEXP strategySEXP) {

@@ -288,6 +288,10 @@ Plant_internals:
     - mortality_dt: double
     - fecundity: double
     - fecundity_dt: double
+    - area_heartwood: double
+    - area_heartwood_dt: double
+    - mass_heartwood: double
+    - mass_heartwood_dt: double
 
 Plant:
   name_cpp: "plant::Plant<T>"
@@ -500,6 +504,7 @@ FFW16_Cohort:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+    ode_names: {type: "std::vector<std::string>", access: member}
   methods:
     area_leaf_above:
       return_type: double

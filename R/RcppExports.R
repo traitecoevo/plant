@@ -799,6 +799,10 @@ FFW16_Cohort__ode_rates__get <- function(obj_) {
     .Call('plant_FFW16_Cohort__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
+FFW16_Cohort__ode_names__get <- function(obj_) {
+    .Call('plant_FFW16_Cohort__ode_names__get', PACKAGE = 'plant', obj_)
+}
+
 FFW16_Species__ctor <- function(strategy) {
     .Call('plant_FFW16_Species__ctor', PACKAGE = 'plant', strategy)
 }

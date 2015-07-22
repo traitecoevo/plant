@@ -35,16 +35,19 @@ public:
   }
 
   // ODE interface.
-  // TODO: This does *not* include the extra calculations added to
-  // Plant for heartwood size; need to discuss further with @dfalster.
   //
   // NOTE: We are a time-independent model here so no need to pass
   // time in as an argument.  All the bits involving time are taken
   // care of by Environment for us.
-  static size_t ode_size() {return 4;}
+  static size_t ode_size() {return 6;}
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
+  static std::vector<std::string> ode_names() {
+    return std::vector<std::string>({"height", "mortality",
+          "area_heartwood", "mass_heartwood",
+          "seeds_survival_weighted", "log_density"});
+  }
 
   plant_type plant;
 
@@ -148,7 +151,7 @@ double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
   const double eps = control.cohort_gradient_eps;
   if (control.cohort_gradient_richardson) {
     return util::gradient_richardson(fun, plant.height(), eps,
-				     control.cohort_gradient_richardson_depth);
+                                     control.cohort_gradient_richardson_depth);
   } else {
     return util::gradient_fd(fun, plant.height(), eps, plant.height_dt(),
                              control.cohort_gradient_direction);
@@ -183,6 +186,9 @@ template <typename T>
 ode::const_iterator Cohort<T>::set_ode_state(ode::const_iterator it) {
   plant.set_height(*it++);
   plant.set_mortality(*it++);
+  // skipping plant::fecunity, in lieu of seeds_survival_weighted
+  plant.set_area_heartwood(*it++);
+  plant.set_mass_heartwood(*it++);
   seeds_survival_weighted = *it++;
   set_log_density(*it++);
   return it;
@@ -191,6 +197,8 @@ template <typename T>
 ode::iterator Cohort<T>::ode_state(ode::iterator it) const {
   *it++ = plant.height();
   *it++ = plant.mortality();
+  *it++ = plant.area_heartwood();
+  *it++ = plant.mass_heartwood();
   *it++ = seeds_survival_weighted;
   *it++ = log_density;
   return it;
@@ -199,6 +207,8 @@ template <typename T>
 ode::iterator Cohort<T>::ode_rates(ode::iterator it) const {
   *it++ = plant.height_dt();
   *it++ = plant.mortality_dt();
+  *it++ = plant.area_heartwood_dt();
+  *it++ = plant.mass_heartwood_dt();
   *it++ = seeds_survival_weighted_dt;
   *it++ = log_density_dt;
   return it;
@@ -211,7 +221,7 @@ Cohort<T> make_cohort(typename Cohort<T>::strategy_type s) {
 
 template <typename T>
 double growth_rate_given_height(T& plant, double height,
-				const Environment& environment) {
+                                const Environment& environment) {
   plant.set_height(height);
   plant.compute_vars_phys(environment, true);
   return plant.height_dt();

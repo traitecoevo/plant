@@ -34,7 +34,8 @@ test_that("empty", {
   expect_that(res, equals(1L))
   expect_that(obj$time, is_identical_to(sched2$all_times[[1]][[2]]))
 
-  expect_that(length(obj$patch$ode_state), equals(3))
+  ode_size <- FFW16_Plant(FFW16_Strategy())$ode_size
+  expect_that(length(obj$patch$ode_state), equals(ode_size))
   expect_that(obj$patch$size, equals(1))
 
   expect_that(obj$complete, is_false())

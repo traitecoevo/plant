@@ -19,7 +19,11 @@ struct Plant_internals {
     mortality(0.0),
     mortality_dt(NA_REAL),
     fecundity(0.0),
-    fecundity_dt(NA_REAL) {
+    fecundity_dt(NA_REAL),
+    area_heartwood(0.0),
+    area_heartwood_dt(NA_REAL),
+    mass_heartwood(0.0),
+    mass_heartwood_dt(NA_REAL) {
   }
   double height;
   double area_leaf;
@@ -28,6 +32,10 @@ struct Plant_internals {
   double mortality_dt;
   double fecundity;
   double fecundity_dt;
+  double area_heartwood;
+  double area_heartwood_dt;
+  double mass_heartwood;
+  double mass_heartwood_dt;
 };
 
 }

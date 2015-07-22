@@ -132,7 +132,7 @@ double FFW16_Strategy::area_stem(double area_bark, double area_sapwood,
 }
 
 double FFW16_Strategy::diameter_stem(double area_stem) const {
-  return std::sqrt(4 *   area_stem / M_PI);
+  return std::sqrt(4 * area_stem / M_PI);
 }
 
 // [eqn 7] Mass of (fine) roots
@@ -158,44 +158,58 @@ double FFW16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 }
 
 // one-shot update of the ebt variables
-void FFW16_Strategy::ebt_vars(const Environment& environment, bool reuse_intervals,
-                        double height, double area_leaf_, double mortality,
-                        // output by reference:
-                        double& height_dt_, double& fecundity_dt_,
-                        double& mortality_dt_) {
+// TODO: this would be heaps nicer if we just took a reference to internals.
+void FFW16_Strategy::ebt_vars(const Environment& environment,
+                              bool reuse_intervals,
+                              Plant_internals& vars) {
+  // double height, double area_leaf_,
+  // double mortality,
+  // // output by reference:
+  // double& height_dt_,
+  // double& fecundity_dt_, double& mortality_dt_,
+  // double& area_heartwood, double& mass_heartwood) {
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height, area_leaf_,
+    net_mass_production_dt(environment, vars.height, vars.area_leaf,
                            reuse_intervals);
   if (net_mass_production_dt_ > 0) {
     const double fraction_allocation_reproduction_ =
-      fraction_allocation_reproduction(height);
+      fraction_allocation_reproduction(vars.height);
     const double darea_leaf_dmass_live_ =
-      darea_leaf_dmass_live(area_leaf_);
+      darea_leaf_dmass_live(vars.area_leaf);
     const double fraction_allocation_growth_ =
-      fraction_allocation_growth(height);
+      fraction_allocation_growth(vars.height);
     const double area_leaf_dt =
       net_mass_production_dt_ * fraction_allocation_growth_ *
       darea_leaf_dmass_live_;
-    height_dt_ =
-      dheight_darea_leaf(area_leaf_) * area_leaf_dt;
-    fecundity_dt_ =
+    vars.height_dt =
+      dheight_darea_leaf(vars.area_leaf) * area_leaf_dt;
+    vars.fecundity_dt =
       fecundity_dt(net_mass_production_dt_,
                    fraction_allocation_reproduction_);
+
+    vars.area_heartwood_dt = area_heartwood_dt(vars.area_leaf);
+    const double area_sapwood_ = area_sapwood(vars.area_leaf);
+    const double mass_sapwood_ = mass_sapwood(area_sapwood_, vars.height);
+    vars.mass_heartwood_dt = mass_heartwood_dt(mass_sapwood_);
   } else {
-    height_dt_    = 0.0;
-    fecundity_dt_ = 0.0;
+    vars.height_dt         = 0.0;
+    vars.fecundity_dt      = 0.0;
+    vars.area_heartwood_dt = 0.0;
+    vars.mass_heartwood_dt = 0.0;
   }
   // [eqn 21] - Instantaneous mortality rate
-  mortality_dt_ =
-      mortality_dt(net_mass_production_dt_ / area_leaf_, mortality);
+  vars.mortality_dt =
+      mortality_dt(net_mass_production_dt_ / vars.area_leaf, vars.mortality);
 }
 
 // [eqn 12] Gross annual CO2 assimilation
 //
 // NOTE: In contrast with Daniel's implementation (but following
 // Falster 2012), we do not normalise by Y*c_bio here.
-double FFW16_Strategy::assimilation(const Environment& environment, double height,
-                              double area_leaf, bool reuse_intervals) {
+double FFW16_Strategy::assimilation(const Environment& environment,
+                                    double height,
+                                    double area_leaf,
+                                    bool reuse_intervals) {
   const bool over_distribution = control.plant_assimilation_over_distribution;
   const double x_min = 0.0, x_max = over_distribution ? 1.0 : height;
 

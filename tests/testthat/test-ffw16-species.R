@@ -125,9 +125,11 @@ test_that("Leaf area sensible with one cohort", {
   expect_that(sp$area_leaf_above(h_top * .5),
               equals(cmp_area_leaf_above(h_top * .5, sp)))
 
+  ode_size <- FFW16_Cohort(FFW16_Strategy())$ode_size
   ode_state <- sp$ode_state
   p <- sp$cohort_at(1)
-  expect_that(length(ode_state), equals(4))
+  expect_that(sp$ode_size, equals(ode_size))
+  expect_that(length(ode_state), equals(ode_size))
   expect_that(ode_state, is_identical_to(p$ode_state))
 })
 
@@ -151,9 +153,11 @@ test_that("Leaf area sensible with two cohorts", {
   expect_that(sp$area_leaf_above(h_top * .8),
               equals(cmp_area_leaf_above(h_top * .8, sp)))
 
+  ode_size <- FFW16_Cohort(FFW16_Strategy())$ode_size
   ode_state <- sp$ode_state
   cohorts <- sp$cohorts
-  expect_that(length(ode_state), equals(4 * sp$size))
+  expect_that(sp$ode_size, equals(ode_size * sp$size))
+  expect_that(length(ode_state), equals(ode_size * sp$size))
   expect_that(ode_state,
               is_identical_to(unlist(lapply(cohorts, function(p) p$ode_state))))
 })
@@ -191,9 +195,10 @@ test_that("Leaf area sensible with three cohorts", {
   expect_that(sp$area_leafs_error(1.0), is_identical_to(cmp))
   expect_that(sp$area_leafs_error(pi),  is_identical_to(cmp_pi))
 
+  ode_size <- FFW16_Cohort(FFW16_Strategy())$ode_size
   ode_state <- sp$ode_state
   cohorts <- sp$cohorts
-  expect_that(length(ode_state), equals(4 * sp$size))
+  expect_that(length(ode_state), equals(ode_size * sp$size))
   expect_that(ode_state,
               is_identical_to(unlist(lapply(cohorts, function(p) p$ode_state))))
 })

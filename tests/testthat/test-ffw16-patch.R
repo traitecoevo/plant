@@ -32,8 +32,9 @@ test_that("Basics", {
   expect_that(patch$add_seed(0), throws_error("Invalid value"))
   expect_that(patch$add_seed(2), throws_error("out of bounds"))
 
+  ode_size <- FFW16_Cohort(FFW16_Strategy())$ode_size
   patch$add_seed(1)
-  expect_that(patch$ode_size, equals(4))
+  expect_that(patch$ode_size, equals(ode_size))
 
   ## Then pull this out:
   cmp$compute_initial_conditions(patch$environment)

@@ -253,7 +253,7 @@ ode::iterator FFW16_PlantPlus::ode_rates(ode::iterator it) const {
 
 std::vector<std::string> FFW16_PlantPlus::ode_names() {
   return std::vector<std::string>({"height", "mortality", "fecundity",
-	"area_heartwood", "mass_heartwood"});
+        "area_heartwood", "mass_heartwood"});
 }
 
 // * R interface

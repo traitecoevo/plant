@@ -35,43 +35,56 @@ public:
   double fecundity_dt() const {return vars.fecundity_dt;}
   void set_fecundity(double x) {vars.fecundity = x;}
 
+  double area_heartwood() const {return vars.area_heartwood;}
+  double area_heartwood_dt() const {return vars.area_heartwood_dt;}
+  void set_area_heartwood(double x) {vars.area_heartwood = x;}
+
+  double mass_heartwood() const {return vars.mass_heartwood;}
+  double mass_heartwood_dt() const {return vars.mass_heartwood_dt;}
+  void set_mass_heartwood(double x) {vars.mass_heartwood = x;}
+
   double area_leaf_above(double z) const {
     return strategy->area_leaf_above(z, vars.height, vars.area_leaf);
   }
 
-  void compute_vars_phys(const Environment& environment, bool
-                         reuse_intervals=false) {
-    strategy->ebt_vars(environment, reuse_intervals,
-                       vars.height, vars.area_leaf, vars.mortality,
-                       vars.height_dt, vars.fecundity_dt, vars.mortality_dt);
+  void compute_vars_phys(const Environment& environment,
+                         bool reuse_intervals=false) {
+    strategy->ebt_vars(environment, reuse_intervals, vars);
   }
   double germination_probability(const Environment& environment) {
     return strategy->germination_probability(environment);
   }
 
   // * ODE interface
-  static size_t       ode_size() {return 3;}
+  static size_t       ode_size() {return 5;}
   ode::const_iterator set_ode_state(ode::const_iterator it) {
     set_height(*it++);
     set_mortality(*it++);
     set_fecundity(*it++);
+    set_area_heartwood(*it++);
+    set_mass_heartwood(*it++);
     return it;
   }
   ode::iterator ode_state(ode::iterator it) const {
     *it++ = height();
     *it++ = mortality();
     *it++ = fecundity();
+    *it++ = area_heartwood();
+    *it++ = mass_heartwood();
     return it;
   }
   ode::iterator ode_rates(ode::iterator it) const {
     *it++ = height_dt();
     *it++ = mortality_dt();
     *it++ = fecundity_dt();
+    *it++ = area_heartwood_dt();
+    *it++ = mass_heartwood_dt();
     return it;
   }
   // Optional, but useful
   static std::vector<std::string> ode_names() {
-    return std::vector<std::string>({"height", "mortality", "fecundity"});
+    return std::vector<std::string>({"height", "mortality", "fecundity",
+          "area_heartwood", "mass_heartwood"});
   }
 
   // Used in the stochastic model:

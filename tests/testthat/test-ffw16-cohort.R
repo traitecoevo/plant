@@ -105,8 +105,11 @@ test_that("ODE interface", {
   cohort$compute_initial_conditions(env)
   plant$compute_vars_phys(env)
 
-  ## Different ode size to Plant, but that's not tested here (TODO)
-  expect_that(cohort$ode_size, equals(4))
+  expect_that(cohort$ode_size, equals(6))
+  nms <- c("height", "mortality",
+           "area_heartwood", "mass_heartwood",
+           "seeds_survival_weighted", "log_density")
+  expect_that(cohort$ode_names, equals(nms))
 
   ## Mortality is different because that's what Cohorts track
   v <- setdiff(names(cohort$plant$internals), "mortality")
@@ -122,6 +125,8 @@ test_that("ODE interface", {
   ## Ode *values*:
   cmp <- c(plant$height,
            -log(pr_germ),
+           0, # area_heardwood
+           0, # mass_heartwood
            0.0, # fecundity
            log(pr_germ * env$seed_rain_dt / g))
   expect_that(cohort$ode_state, equals(cmp))
@@ -136,6 +141,8 @@ test_that("ODE interface", {
 
   cmp <- c(rates[["height_dt"]],
            rates[["mortality_dt"]],
+           rates[["area_heartwood_dt"]],
+           rates[["mass_heartwood_dt"]],
            ## This is different to the approach in tree1?
            rates[["fecundity_dt"]] *
              patch_survival * exp(-cohort$plant$mortality),
@@ -157,7 +164,7 @@ test_that("leaf area calculations", {
   expect_that(exp(cohort$log_density), equals(0.0)) # zero
   expect_that(cohort$area_leaf, equals(0)) # zero density
   cohort$compute_initial_conditions(env)
-  expect_that(cohort$ode_state[[4]], equals(cohort$log_density))
+  expect_that(cohort$ode_state[[6]], equals(cohort$log_density))
   density <- exp(cohort$log_density)
   expect_that(cohort$area_leaf,
               equals(plant$area_leaf * density))

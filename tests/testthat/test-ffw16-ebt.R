@@ -61,6 +61,8 @@ test_that("Ported from tree1", {
   ## to make those work).
   i <- ebt$run_next()
 
+  ode_size <- FFW16_Cohort(FFW16_Strategy())$ode_size
+
   expect_that(ebt$cohort_schedule$remaining, equals(length(t) - 1))
   expect_that(ebt$complete, is_false())
   expect_that(i, equals(1))
@@ -68,7 +70,7 @@ test_that("Ported from tree1", {
   ## introduction, and the end time of the first introduction.
   expect_that(ebt$time, is_identical_to(times$end[1]))
   expect_that(ebt$time, is_identical_to(times$start[2]))
-  expect_that(ebt$patch$ode_size, equals(4))
+  expect_that(ebt$patch$ode_size, equals(ode_size))
 
   ## Trying to set schedule for partly run ebt fails
   expect_that(ebt$cohort_schedule <- sched,
@@ -82,7 +84,7 @@ test_that("Ported from tree1", {
   expect_that(ebt$complete, is_false())
   expect_that(ebt$time, is_identical_to(times$end[2]))
   expect_that(ebt$time, is_identical_to(times$start[3]))
-  expect_that(ebt$patch$ode_size, equals(4 * 2))
+  expect_that(ebt$patch$ode_size, equals(ode_size * 2))
 
   ## Reset everything
   ## "EBT reset successful"

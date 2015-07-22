@@ -829,6 +829,11 @@ plant::ode::state_type FFW16_Cohort__ode_rates__get(plant::RcppR6::RcppR6<plant:
   return plant::ode::r_ode_rates(*obj_);
 }
 
+// [[Rcpp::export]]
+std::vector<std::string> FFW16_Cohort__ode_names__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFW16_Plant> > obj_) {
+  return obj_->ode_names();
+}
+
 
 // [[Rcpp::export]]
 plant::Species<plant::FFW16_Plant> FFW16_Species__ctor(plant::FFW16_Strategy strategy) {

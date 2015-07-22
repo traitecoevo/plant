@@ -356,6 +356,10 @@ template <> inline SEXP wrap(const plant::Plant_internals& x) {
   ret["mortality_dt"] = Rcpp::wrap(x.mortality_dt);
   ret["fecundity"] = Rcpp::wrap(x.fecundity);
   ret["fecundity_dt"] = Rcpp::wrap(x.fecundity_dt);
+  ret["area_heartwood"] = Rcpp::wrap(x.area_heartwood);
+  ret["area_heartwood_dt"] = Rcpp::wrap(x.area_heartwood_dt);
+  ret["mass_heartwood"] = Rcpp::wrap(x.mass_heartwood);
+  ret["mass_heartwood_dt"] = Rcpp::wrap(x.mass_heartwood_dt);
   ret.attr("class") = "Plant_internals";
   return ret;
 }
@@ -382,6 +386,14 @@ template <> inline plant::Plant_internals as(SEXP x) {
   ret.fecundity = Rcpp::as<double >(xl["fecundity"]);
   // ret.fecundity_dt = Rcpp::as<decltype(retfecundity_dt) >(xl["fecundity_dt"]);
   ret.fecundity_dt = Rcpp::as<double >(xl["fecundity_dt"]);
+  // ret.area_heartwood = Rcpp::as<decltype(retarea_heartwood) >(xl["area_heartwood"]);
+  ret.area_heartwood = Rcpp::as<double >(xl["area_heartwood"]);
+  // ret.area_heartwood_dt = Rcpp::as<decltype(retarea_heartwood_dt) >(xl["area_heartwood_dt"]);
+  ret.area_heartwood_dt = Rcpp::as<double >(xl["area_heartwood_dt"]);
+  // ret.mass_heartwood = Rcpp::as<decltype(retmass_heartwood) >(xl["mass_heartwood"]);
+  ret.mass_heartwood = Rcpp::as<double >(xl["mass_heartwood"]);
+  // ret.mass_heartwood_dt = Rcpp::as<decltype(retmass_heartwood_dt) >(xl["mass_heartwood_dt"]);
+  ret.mass_heartwood_dt = Rcpp::as<double >(xl["mass_heartwood_dt"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::Plant<plant::FFW16_Strategy>& x) {

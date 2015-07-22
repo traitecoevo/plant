@@ -23,25 +23,16 @@ Rcpp::NumericMatrix::iterator get_state(const Cohort<T>& cohort,
 
 template <typename T>
 Rcpp::NumericMatrix get_state(const Species<T>& species) {
-  Rcpp::NumericMatrix ret(static_cast<int>(species.r_seed().ode_size()),
-                          species.size() + 1); // +1 is seed
+  typedef Cohort<T> cohort_type;
+  const size_t ode_size = cohort_type::ode_size(), np = species.size();
+  Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np + 1); // +1 is seed
   Rcpp::NumericMatrix::iterator it = ret.begin();
-  for (size_t i = 0; i < species.size(); ++i) {
+  for (size_t i = 0; i < np; ++i) {
     it = get_state(species.r_cohort_at(i), it);
   }
   it = get_state(species.r_seed(), it);
-
-  // Add dimension names to this:
-  // bah: this is going to scale poorly.
-  Rcpp::CharacterVector rownames =
-    Rcpp::CharacterVector::create("height", "log_mortality",
-                                  "seeds", "log_density");
-  // Can probably do this via static_assert?
-  if (ret.nrow() != rownames.size()) {
-    Rcpp::stop("Hmm - looks like the model has changed...");
-  }
-  ret.attr("dimnames") = Rcpp::List::create(rownames, R_NilValue);
-
+  ret.attr("dimnames") =
+    Rcpp::List::create(cohort_type::ode_names(), R_NilValue);
   return ret;
 }
 
@@ -87,6 +78,7 @@ Rcpp::NumericMatrix get_state(const StochasticSpecies<T>& species) {
   typedef T plant_type;
   const size_t ode_size = plant_type::ode_size(), np = species.size_plants();
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np);
+
   Rcpp::NumericMatrix::iterator it = ret.begin();
   for (size_t i = 0; i < np; ++i) {
     it = get_state(species.r_plant_at(i), it);
