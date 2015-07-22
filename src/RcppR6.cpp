@@ -836,93 +836,93 @@ std::vector<std::string> Cohort___FFW16__ode_names__get(plant::RcppR6::RcppR6<pl
 
 
 // [[Rcpp::export]]
-plant::Species<plant::FFW16_Strategy> FFW16_Species__ctor(plant::FFW16_Strategy strategy) {
+plant::Species<plant::FFW16_Strategy> Species___FFW16__ctor(plant::FFW16_Strategy strategy) {
   return plant::Species<plant::FFW16_Strategy>(strategy);
 }
 // [[Rcpp::export]]
-void FFW16_Species__clear(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+void Species___FFW16__clear(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
-void FFW16_Species__compute_vars_phys(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, const plant::Environment& environment) {
+void Species___FFW16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, const plant::Environment& environment) {
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-double FFW16_Species__area_leaf_above(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, double height) {
+double Species___FFW16__area_leaf_above(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, double height) {
   return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
-void FFW16_Species__add_seed(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+void Species___FFW16__add_seed(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   obj_->add_seed();
 }
 // [[Rcpp::export]]
-plant::Cohort<plant::FFW16_Strategy> FFW16_Species__cohort_at(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, plant::util::index index) {
+plant::Cohort<plant::FFW16_Strategy> Species___FFW16__cohort_at(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, plant::util::index index) {
   return obj_->r_cohort_at(index);
 }
 // [[Rcpp::export]]
-std::vector<double> FFW16_Species__area_leafs_error(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, double scal) {
+std::vector<double> Species___FFW16__area_leafs_error(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, double scal) {
   return obj_->r_area_leafs_error(scal);
 }
 // [[Rcpp::export]]
-size_t FFW16_Species__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+size_t Species___FFW16__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return obj_->size();
 }
 
 // [[Rcpp::export]]
-plant::Cohort<plant::FFW16_Strategy> FFW16_Species__seed__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+plant::Cohort<plant::FFW16_Strategy> Species___FFW16__seed__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return obj_->r_seed();
 }
 
 // [[Rcpp::export]]
-double FFW16_Species__height_max__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+double Species___FFW16__height_max__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return obj_->height_max();
 }
 
 // [[Rcpp::export]]
-std::vector<double> FFW16_Species__heights__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+std::vector<double> Species___FFW16__heights__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return obj_->r_heights();
 }
 // [[Rcpp::export]]
-void FFW16_Species__heights__set(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, std::vector<double> value) {
+void Species___FFW16__heights__set(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, std::vector<double> value) {
   obj_->r_set_heights(value);
 }
 
 // [[Rcpp::export]]
-std::vector<double> FFW16_Species__log_densities__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+std::vector<double> Species___FFW16__log_densities__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return obj_->r_log_densities();
 }
 
 // [[Rcpp::export]]
-std::vector<plant::Cohort<plant::FFW16_Strategy> > FFW16_Species__cohorts__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+std::vector<plant::Cohort<plant::FFW16_Strategy> > Species___FFW16__cohorts__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return obj_->r_cohorts();
 }
 
 // [[Rcpp::export]]
-std::vector<double> FFW16_Species__seeds__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+std::vector<double> Species___FFW16__seeds__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return obj_->seeds();
 }
 
 // [[Rcpp::export]]
-std::vector<double> FFW16_Species__area_leafs__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+std::vector<double> Species___FFW16__area_leafs__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return obj_->r_area_leafs();
 }
 
 // [[Rcpp::export]]
-size_t FFW16_Species__ode_size__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+size_t Species___FFW16__ode_size__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type FFW16_Species__ode_state__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+plant::ode::state_type Species___FFW16__ode_state__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return plant::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void FFW16_Species__ode_state__set(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, plant::ode::state_type value) {
+void Species___FFW16__ode_state__set(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_, plant::ode::state_type value) {
   plant::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type FFW16_Species__ode_rates__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
+plant::ode::state_type Species___FFW16__ode_rates__get(plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
 }
 

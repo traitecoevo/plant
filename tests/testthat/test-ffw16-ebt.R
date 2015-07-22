@@ -19,7 +19,7 @@ test_that("Ported from tree1", {
   ## Check that the underlying Patch really is a Patch<CohortTop>:
   expect_that(ebt$patch, is_a("FFW16_Patch"))
   expect_that(length(ebt$patch$species), equals(1))
-  expect_that(ebt$patch$species[[1]], is_a("FFW16_Species"))
+  expect_that(ebt$patch$species[[1]], is_a("Species<FFW16>"))
   expect_that(ebt$patch$species[[1]]$seed, is_a("Cohort<FFW16>"))
   expect_that(ebt$patch$time, is_identical_to(0.0))
 

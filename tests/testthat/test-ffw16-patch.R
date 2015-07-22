@@ -19,7 +19,7 @@ test_that("Basics", {
   expect_that(patch$environment$time, is_identical_to(0.0))
 
   expect_that(length(patch$species), equals(1))
-  expect_that(patch$species[[1]], is_a("FFW16_Species"))
+  expect_that(patch$species[[1]], is_a("Species<FFW16>"))
 
   expect_that(patch$ode_size, equals(0))
   expect_that(patch$ode_state, is_identical_to(numeric(0)))

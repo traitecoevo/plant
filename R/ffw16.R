@@ -19,3 +19,9 @@ FFW16_Plant <- function(s=FFW16_Strategy()) {
 FFW16_Cohort <- function(s=FFW16_Strategy()) {
   Cohort("FFW16")(s)
 }
+
+##' @export
+##' @rdname FFW16
+FFW16_Species <- function(s=FFW16_Strategy()) {
+  Species("FFW16")(s)
+}

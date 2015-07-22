@@ -524,17 +524,21 @@ Cohort:
       args: [environment: "const plant::Environment&"]
 
 # For now, also not templated
-FFW16_Species:
-  name_cpp: "plant::Species<plant::FFW16_Strategy>"
+Species:
+  name_cpp: "plant::Species<T>"
+  templates:
+    parameters: T
+    concrete:
+      - ["FFW16": "plant::FFW16_Strategy"]
   constructor:
-    args: [strategy: "plant::FFW16_Strategy"]
+    args: [strategy: T]
   active:
     size: {type: size_t, access: member}
-    seed: {type: "plant::Cohort<plant::FFW16_Strategy>", access: member, name_cpp: r_seed}
+    seed: {type: "plant::Cohort<T>", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
-    cohorts: {type: "std::vector<plant::Cohort<plant::FFW16_Strategy> >", access: member, name_cpp: r_cohorts}
+    cohorts: {type: "std::vector<plant::Cohort<T> >", access: member, name_cpp: r_cohorts}
     seeds: {type: "std::vector<double>", access: member}
     area_leafs: {type: "std::vector<double>", access: member, name_cpp: r_area_leafs}
     ## ODE interface:
@@ -553,7 +557,7 @@ FFW16_Species:
     add_seed:
       return_type: void
     cohort_at:
-      return_type: "plant::Cohort<plant::FFW16_Strategy>"
+      return_type: "plant::Cohort<T>"
       args: [index: "plant::util::index"]
       name_cpp: r_cohort_at
     area_leafs_error:
