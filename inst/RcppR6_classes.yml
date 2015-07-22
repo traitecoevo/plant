@@ -572,17 +572,21 @@ Species:
       args: [scal: double=1]
       name_cpp: r_area_leafs_error
 
-FFW16_Patch:
-  name_cpp: "plant::Patch<plant::FFW16_Strategy>"
+Patch:
+  name_cpp: "plant::Patch<T>"
+  templates:
+    parameters: T
+    concrete:
+      - ["FFW16": "plant::FFW16_Strategy"]
   constructor:
-    args: [parameters: "plant::Parameters<plant::FFW16_Strategy>"]
+    args: [parameters: "plant::Parameters<T>"]
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
-    parameters: {type: "plant::Parameters<plant::FFW16_Strategy>", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
     environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
-    species: {type: "std::vector<plant::Species<plant::FFW16_Strategy> >", access: member, name_cpp: r_species}
+    species: {type: "std::vector<plant::Species<T> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}

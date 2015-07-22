@@ -33,6 +33,12 @@ FFW16_Parameters <- function(...) {
   Parameters("FFW16")(...)
 }
 
+##' @export
+##' @rdname FFW16
+FFW16_Patch <- function(p) {
+  Patch("FFW16")(p)
+}
+
 ## Helper:
 ## TODO: consider directly using the C++ version in environment.h
 ##' @export

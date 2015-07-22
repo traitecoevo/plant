@@ -79,9 +79,9 @@ template <> inline std::string generator_name<plant::Cohort<plant::FFW16_Strateg
 template <> inline std::string   class_name_r<plant::Species<plant::FFW16_Strategy> >() {return "Species<FFW16>";}
 template <> inline std::string   package_name<plant::Species<plant::FFW16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::Species<plant::FFW16_Strategy> >() {return ".R6_Species___FFW16";}
-template <> inline std::string   class_name_r<plant::Patch<plant::FFW16_Strategy> >() {return "FFW16_Patch";}
+template <> inline std::string   class_name_r<plant::Patch<plant::FFW16_Strategy> >() {return "Patch<FFW16>";}
 template <> inline std::string   package_name<plant::Patch<plant::FFW16_Strategy> >() {return "plant";}
-template <> inline std::string generator_name<plant::Patch<plant::FFW16_Strategy> >() {return ".R6_FFW16_Patch";}
+template <> inline std::string generator_name<plant::Patch<plant::FFW16_Strategy> >() {return ".R6_Patch___FFW16";}
 template <> inline std::string   class_name_r<plant::EBT<plant::FFW16_Strategy> >() {return "FFW16_EBT";}
 template <> inline std::string   package_name<plant::EBT<plant::FFW16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::EBT<plant::FFW16_Strategy> >() {return ".R6_FFW16_EBT";}
