@@ -12,9 +12,10 @@ test_that("collect / make_patch", {
 
   expect_that(p1_113$ode_state, equals(unlist(st_113$species)))
   expect_that(p1_113$time, equals(st_113$time))
+  expect_that(p1_113$environment$light_environment$xy,
+              equals(unname(st_113$light_env)))
   expect_that(p1_113$canopy_openness(0), is_less_than(0.5))
   expect_that(p1_113$height_max,         is_more_than(10))
-
 
   cmp_patch_density <-
     Disturbance(p1$disturbance_mean_interval)$density(res$time)

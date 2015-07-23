@@ -622,7 +622,7 @@ Patch:
       name_cpp: "plant::ode::r_derivs"
       args: [y: "const plant::ode::state_type&", time: double]
     set_state:
-      args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&"]
+      args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&", light_env: "const std::vector<double>&"]
       name_cpp: r_set_state
       return_type: void
 

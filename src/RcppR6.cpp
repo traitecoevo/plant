@@ -964,8 +964,8 @@ plant::ode::state_type Patch___FFW16__derivs(plant::RcppR6::RcppR6<plant::Patch<
   return plant::ode::r_derivs(*obj_, y, time);
 }
 // [[Rcpp::export]]
-void Patch___FFW16__set_state(plant::RcppR6::RcppR6<plant::Patch<plant::FFW16_Strategy> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n) {
-  obj_->r_set_state(time, state, n);
+void Patch___FFW16__set_state(plant::RcppR6::RcppR6<plant::Patch<plant::FFW16_Strategy> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& light_env) {
+  obj_->r_set_state(time, state, n, light_env);
 }
 // [[Rcpp::export]]
 double Patch___FFW16__time__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFW16_Strategy> > obj_) {

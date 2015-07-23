@@ -54,7 +54,8 @@ public:
   std::vector<double> r_area_leaf_error(size_t species_index) const;
   void r_set_state(double time,
                    const std::vector<double>& state,
-                   const std::vector<size_t>& n);
+                   const std::vector<size_t>& n,
+                   const std::vector<double>& light_env);
   void r_add_seed(util::index species_index) {
     add_seed(species_index.check_bounds(size()));
   }
@@ -188,7 +189,8 @@ void Patch<T>::add_seeds(const std::vector<size_t>& species_index) {
 template <typename T>
 void Patch<T>::r_set_state(double time,
                            const std::vector<double>& state,
-                           const std::vector<size_t>& n) {
+                           const std::vector<size_t>& n,
+                           const std::vector<double>& light_env) {
   const size_t n_species = species.size();
   util::check_length(n.size(), n_species);
   reset();
@@ -199,6 +201,20 @@ void Patch<T>::r_set_state(double time,
   }
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
+
+  // See issue #144; this is important as we have to at least refine
+  // the light environment, but doing this is better because it means
+  // that if rescale_usually is on we do get the same light
+  // environment as before.
+  if (light_env.size() % 2 != 0) {
+    util::stop("Expected even number of elements in light environment");
+  }
+  const size_t light_env_n = light_env.size() / 2;
+  auto it = light_env.begin();
+  std::vector<double> light_env_x, light_env_y;
+  std::copy_n(it,               light_env_n, std::back_inserter(light_env_x));
+  std::copy_n(it + light_env_n, light_env_n, std::back_inserter(light_env_y));
+  environment.light_environment.init(light_env_x, light_env_y);
 }
 
 // ODE interface

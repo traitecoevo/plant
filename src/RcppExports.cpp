@@ -2472,15 +2472,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___FFW16__set_state
-void Patch___FFW16__set_state(plant::RcppR6::RcppR6<plant::Patch<plant::FFW16_Strategy> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n);
-RcppExport SEXP plant_Patch___FFW16__set_state(SEXP obj_SEXP, SEXP timeSEXP, SEXP stateSEXP, SEXP nSEXP) {
+void Patch___FFW16__set_state(plant::RcppR6::RcppR6<plant::Patch<plant::FFW16_Strategy> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& light_env);
+RcppExport SEXP plant_Patch___FFW16__set_state(SEXP obj_SEXP, SEXP timeSEXP, SEXP stateSEXP, SEXP nSEXP, SEXP light_envSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
     Rcpp::traits::input_parameter< const std::vector<double>& >::type state(stateSEXP);
     Rcpp::traits::input_parameter< const std::vector<size_t>& >::type n(nSEXP);
-    Patch___FFW16__set_state(obj_, time, state, n);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type light_env(light_envSEXP);
+    Patch___FFW16__set_state(obj_, time, state, n, light_env);
     return R_NilValue;
 END_RCPP
 }

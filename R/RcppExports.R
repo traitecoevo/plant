@@ -919,8 +919,8 @@ Patch___FFW16__derivs <- function(obj_, y, time) {
     .Call('plant_Patch___FFW16__derivs', PACKAGE = 'plant', obj_, y, time)
 }
 
-Patch___FFW16__set_state <- function(obj_, time, state, n) {
-    invisible(.Call('plant_Patch___FFW16__set_state', PACKAGE = 'plant', obj_, time, state, n))
+Patch___FFW16__set_state <- function(obj_, time, state, n, light_env) {
+    invisible(.Call('plant_Patch___FFW16__set_state', PACKAGE = 'plant', obj_, time, state, n, light_env))
 }
 
 Patch___FFW16__time__get <- function(obj_) {

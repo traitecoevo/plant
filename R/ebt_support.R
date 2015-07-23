@@ -153,7 +153,7 @@ run_ebt_collect <- function(p, include_area_leaf=FALSE) {
 make_patch <- function(state, p) {
   n <- viapply(state$species, ncol)
   patch <- FFW16_Patch(p)
-  patch$set_state(state$time, unlist(state$species), n)
+  patch$set_state(state$time, unlist(state$species), n, state$light_env)
   patch
 }
 
@@ -166,7 +166,8 @@ ebt_state <- function(i, x) {
     el <- el[, i, ]
     el[, !is.na(el[1, ]), drop=FALSE]
   }
-  list(time=x$time[[i]], species=lapply(x$species, f_sp))
+  list(time=x$time[[i]], species=lapply(x$species, f_sp),
+       light_env=x$light_env[[i]])
 }
 
 ##' @export
