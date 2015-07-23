@@ -30,6 +30,9 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
   }
 
   if (length(traits) == 1L) {
+    if (!all(is.finite(bounds))) {
+      stop("Starting value did not have finite fitness; finite bounds required")
+    }
     out <- optimise(f, interval=bounds, maximum=TRUE, tol=tol)
     ret <- out$maximum
     fitness <- out$objective
