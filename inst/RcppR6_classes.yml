@@ -413,14 +413,20 @@ Parameters:
     - cohort_schedule_ode_times: "std::vector<double>"
     - hyperpar: SEXP
 
-FFW16_PlantPlus:
-  name_cpp: "plant::PlantPlus<plant::FFW16_Strategy>"
+PlantPlus:
+  name_cpp: "plant::PlantPlus<T>"
+  templates:
+    parameters: T
+    concrete:
+      - ["FFW16": "plant::FFW16_Strategy"]
   constructor:
-    name_cpp: "plant::make_plant_plus"
-    args: [strategy: "plant::FFW16_Strategy=FFW16_Strategy()"]
+    name_cpp: "plant::make_plant_plus<T>"
+    args: [strategy: T]
     roxygen: |
       Plant object
-      @param strategy A \code{FFW16_Strategy} object
+      @param T String containing class of plant to create; currently
+      must be \code{"FFW16"}.  See \code{\link{FFW16_Plant}} for more
+      details.
       @export
   active:
     height: {type: double, access: member, name_cpp: height, name_cpp_set: set_height}
@@ -430,8 +436,8 @@ FFW16_PlantPlus:
     area_heartwood: {type: double, access: member, name_cpp_set: set_area_heartwood}
     mass_heartwood: {type: double, access: member, name_cpp_set: set_mass_heartwood}
     area_leaf: {type: double, access: member}
-    strategy: {type: "plant::FFW16_Strategy", access: member, name_cpp: r_get_strategy}
-    internals: {type: "plant::PlantPlus<plant::FFW16_Strategy>::internals", access: member, name_cpp: "r_internals"}
+    strategy: {type: "T", access: member, name_cpp: r_get_strategy}
+    internals: {type: "plant::PlantPlus_internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
@@ -450,7 +456,7 @@ FFW16_PlantPlus:
       return_type: double
 
 PlantPlus_internals:
-  name_cpp: "plant::PlantPlus<plant::FFW16_Strategy>::internals"
+  name_cpp: "plant::PlantPlus_internals"
   list:
     - mass_leaf: double
     - area_leaf: double

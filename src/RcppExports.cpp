@@ -1718,257 +1718,257 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__ctor
-plant::PlantPlus<plant::FFW16_Strategy> FFW16_PlantPlus__ctor(plant::FFW16_Strategy strategy);
-RcppExport SEXP plant_FFW16_PlantPlus__ctor(SEXP strategySEXP) {
+// PlantPlus___FFW16__ctor
+plant::PlantPlus<plant::FFW16_Strategy> PlantPlus___FFW16__ctor(plant::FFW16_Strategy strategy);
+RcppExport SEXP plant_PlantPlus___FFW16__ctor(SEXP strategySEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::FFW16_Strategy >::type strategy(strategySEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__ctor(strategy));
+    __result = Rcpp::wrap(PlantPlus___FFW16__ctor(strategy));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__area_leaf_above
-double FFW16_PlantPlus__area_leaf_above(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double h);
-RcppExport SEXP plant_FFW16_PlantPlus__area_leaf_above(SEXP obj_SEXP, SEXP hSEXP) {
+// PlantPlus___FFW16__area_leaf_above
+double PlantPlus___FFW16__area_leaf_above(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double h);
+RcppExport SEXP plant_PlantPlus___FFW16__area_leaf_above(SEXP obj_SEXP, SEXP hSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type h(hSEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__area_leaf_above(obj_, h));
+    __result = Rcpp::wrap(PlantPlus___FFW16__area_leaf_above(obj_, h));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__compute_vars_phys
-void FFW16_PlantPlus__compute_vars_phys(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, const plant::Environment& environment);
-RcppExport SEXP plant_FFW16_PlantPlus__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
+// PlantPlus___FFW16__compute_vars_phys
+void PlantPlus___FFW16__compute_vars_phys(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP plant_PlantPlus___FFW16__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
-    FFW16_PlantPlus__compute_vars_phys(obj_, environment);
+    PlantPlus___FFW16__compute_vars_phys(obj_, environment);
     return R_NilValue;
 END_RCPP
 }
-// FFW16_PlantPlus__compute_vars_growth
-void FFW16_PlantPlus__compute_vars_growth(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__compute_vars_growth(SEXP obj_SEXP) {
+// PlantPlus___FFW16__compute_vars_growth
+void PlantPlus___FFW16__compute_vars_growth(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__compute_vars_growth(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    FFW16_PlantPlus__compute_vars_growth(obj_);
+    PlantPlus___FFW16__compute_vars_growth(obj_);
     return R_NilValue;
 END_RCPP
 }
-// FFW16_PlantPlus__germination_probability
-double FFW16_PlantPlus__germination_probability(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, const plant::Environment& environment);
-RcppExport SEXP plant_FFW16_PlantPlus__germination_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
+// PlantPlus___FFW16__germination_probability
+double PlantPlus___FFW16__germination_probability(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP plant_PlantPlus___FFW16__germination_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__germination_probability(obj_, environment));
+    __result = Rcpp::wrap(PlantPlus___FFW16__germination_probability(obj_, environment));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__height__get
-double FFW16_PlantPlus__height__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__height__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__height__get
+double PlantPlus___FFW16__height__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__height__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__height__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__height__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__height__set
-void FFW16_PlantPlus__height__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value);
-RcppExport SEXP plant_FFW16_PlantPlus__height__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// PlantPlus___FFW16__height__set
+void PlantPlus___FFW16__height__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value);
+RcppExport SEXP plant_PlantPlus___FFW16__height__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    FFW16_PlantPlus__height__set(obj_, value);
+    PlantPlus___FFW16__height__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
-// FFW16_PlantPlus__mortality__get
-double FFW16_PlantPlus__mortality__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__mortality__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__mortality__get
+double PlantPlus___FFW16__mortality__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__mortality__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__mortality__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__mortality__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__mortality__set
-void FFW16_PlantPlus__mortality__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value);
-RcppExport SEXP plant_FFW16_PlantPlus__mortality__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// PlantPlus___FFW16__mortality__set
+void PlantPlus___FFW16__mortality__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value);
+RcppExport SEXP plant_PlantPlus___FFW16__mortality__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    FFW16_PlantPlus__mortality__set(obj_, value);
+    PlantPlus___FFW16__mortality__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
-// FFW16_PlantPlus__fecundity__get
-double FFW16_PlantPlus__fecundity__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__fecundity__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__fecundity__get
+double PlantPlus___FFW16__fecundity__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__fecundity__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__fecundity__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__fecundity__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__fecundity__set
-void FFW16_PlantPlus__fecundity__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value);
-RcppExport SEXP plant_FFW16_PlantPlus__fecundity__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// PlantPlus___FFW16__fecundity__set
+void PlantPlus___FFW16__fecundity__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value);
+RcppExport SEXP plant_PlantPlus___FFW16__fecundity__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    FFW16_PlantPlus__fecundity__set(obj_, value);
+    PlantPlus___FFW16__fecundity__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
-// FFW16_PlantPlus__area_heartwood__get
-double FFW16_PlantPlus__area_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__area_heartwood__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__area_heartwood__get
+double PlantPlus___FFW16__area_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__area_heartwood__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__area_heartwood__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__area_heartwood__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__area_heartwood__set
-void FFW16_PlantPlus__area_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value);
-RcppExport SEXP plant_FFW16_PlantPlus__area_heartwood__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// PlantPlus___FFW16__area_heartwood__set
+void PlantPlus___FFW16__area_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value);
+RcppExport SEXP plant_PlantPlus___FFW16__area_heartwood__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    FFW16_PlantPlus__area_heartwood__set(obj_, value);
+    PlantPlus___FFW16__area_heartwood__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
-// FFW16_PlantPlus__mass_heartwood__get
-double FFW16_PlantPlus__mass_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__mass_heartwood__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__mass_heartwood__get
+double PlantPlus___FFW16__mass_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__mass_heartwood__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__mass_heartwood__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__mass_heartwood__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__mass_heartwood__set
-void FFW16_PlantPlus__mass_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value);
-RcppExport SEXP plant_FFW16_PlantPlus__mass_heartwood__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// PlantPlus___FFW16__mass_heartwood__set
+void PlantPlus___FFW16__mass_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value);
+RcppExport SEXP plant_PlantPlus___FFW16__mass_heartwood__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    FFW16_PlantPlus__mass_heartwood__set(obj_, value);
+    PlantPlus___FFW16__mass_heartwood__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
-// FFW16_PlantPlus__area_leaf__get
-double FFW16_PlantPlus__area_leaf__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__area_leaf__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__area_leaf__get
+double PlantPlus___FFW16__area_leaf__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__area_leaf__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__area_leaf__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__area_leaf__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__strategy__get
-plant::FFW16_Strategy FFW16_PlantPlus__strategy__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__strategy__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__strategy__get
+plant::FFW16_Strategy PlantPlus___FFW16__strategy__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__strategy__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__strategy__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__strategy__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__internals__get
-plant::PlantPlus<plant::FFW16_Strategy>::internals FFW16_PlantPlus__internals__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__internals__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__internals__get
+plant::PlantPlus_internals PlantPlus___FFW16__internals__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__internals__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__internals__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__internals__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__ode_size__get
-size_t FFW16_PlantPlus__ode_size__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__ode_size__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__ode_size__get
+size_t PlantPlus___FFW16__ode_size__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__ode_size__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__ode_size__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__ode_size__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__ode_state__get
-plant::ode::state_type FFW16_PlantPlus__ode_state__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__ode_state__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__ode_state__get
+plant::ode::state_type PlantPlus___FFW16__ode_state__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__ode_state__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__ode_state__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__ode_state__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__ode_state__set
-void FFW16_PlantPlus__ode_state__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, plant::ode::state_type value);
-RcppExport SEXP plant_FFW16_PlantPlus__ode_state__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// PlantPlus___FFW16__ode_state__set
+void PlantPlus___FFW16__ode_state__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, plant::ode::state_type value);
+RcppExport SEXP plant_PlantPlus___FFW16__ode_state__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::ode::state_type >::type value(valueSEXP);
-    FFW16_PlantPlus__ode_state__set(obj_, value);
+    PlantPlus___FFW16__ode_state__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
-// FFW16_PlantPlus__ode_rates__get
-plant::ode::state_type FFW16_PlantPlus__ode_rates__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__ode_rates__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__ode_rates__get
+plant::ode::state_type PlantPlus___FFW16__ode_rates__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__ode_rates__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__ode_rates__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__ode_rates__get(obj_));
     return __result;
 END_RCPP
 }
-// FFW16_PlantPlus__ode_names__get
-std::vector<std::string> FFW16_PlantPlus__ode_names__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
-RcppExport SEXP plant_FFW16_PlantPlus__ode_names__get(SEXP obj_SEXP) {
+// PlantPlus___FFW16__ode_names__get
+std::vector<std::string> PlantPlus___FFW16__ode_names__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_);
+RcppExport SEXP plant_PlantPlus___FFW16__ode_names__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
-    __result = Rcpp::wrap(FFW16_PlantPlus__ode_names__get(obj_));
+    __result = Rcpp::wrap(PlantPlus___FFW16__ode_names__get(obj_));
     return __result;
 END_RCPP
 }

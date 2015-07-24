@@ -64,6 +64,10 @@ FFW16_StochasticPatchRunner <- function(p) {
   StochasticPatchRunner("FFW16")(p)
 }
 
+FFW16_PlantPlus <- function(s) {
+  PlantPlus("FFW16")(s)
+}
+
 ## Helper:
 ## TODO: consider directly using the C++ version in environment.h
 ##' @export

@@ -7,7 +7,7 @@ test_that("Reference comparison", {
 
   expect_that(pl, is_a("Plant<FFW16>"))
   ## TODO: PlantPlus not yet templated (can it be?)
-  expect_that(pp, is_a("FFW16_PlantPlus"))
+  expect_that(pp, is_a("PlantPlus<FFW16>"))
   expect_that(pp$strategy, is_identical_to(s))
   expect_that(pl$strategy, is_identical_to(s))
 

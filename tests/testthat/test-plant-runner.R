@@ -7,7 +7,7 @@ test_that("PlantRunner", {
 
   pr <- PlantRunner(p, env)
   expect_that(pr, is_a("PlantRunner"))
-  expect_that(pr$plant, is_a("FFW16_PlantPlus"))
+  expect_that(pr$plant, is_a("PlantPlus<FFW16>"))
   expect_that(pr$plant$internals, is_identical_to(p$internals))
 
   ## This going to work with a *copy* of pr; so that won't propagate
@@ -80,7 +80,7 @@ test_that("grow_plant_to_size", {
   expect_that(all(obj$state < res$y1), is_true())
 
   expect_that(length(obj$plant), equals(length(heights)))
-  expect_that(all(sapply(obj$plant, inherits, "FFW16_PlantPlus")), is_true())
+  expect_that(all(sapply(obj$plant, inherits, "PlantPlus<FFW16>")), is_true())
   expect_that(sapply(obj$plant, function(p) p$height),
               equals(heights, tolerance=1e-6))
 })

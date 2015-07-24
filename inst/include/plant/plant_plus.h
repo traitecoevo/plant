@@ -276,8 +276,6 @@ void PlantPlus<T>::compute_vars_growth() {
   vars.ddiameter_stem_darea_stem = s->ddiameter_stem_darea_stem(area_stem);
 }
 
-
-
 template <typename T>
 PlantPlus<T> make_plant_plus(T s) {
   return PlantPlus<T>(make_strategy_ptr(s));

@@ -655,113 +655,113 @@ SEXP Parameters___FFW16__vdor(SEXP obj) {
 
 
 // [[Rcpp::export]]
-plant::PlantPlus<plant::FFW16_Strategy> FFW16_PlantPlus__ctor(plant::FFW16_Strategy strategy) {
-  return plant::make_plant_plus(strategy);
+plant::PlantPlus<plant::FFW16_Strategy> PlantPlus___FFW16__ctor(plant::FFW16_Strategy strategy) {
+  return plant::make_plant_plus<plant::FFW16_Strategy>(strategy);
 }
 // [[Rcpp::export]]
-double FFW16_PlantPlus__area_leaf_above(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double h) {
+double PlantPlus___FFW16__area_leaf_above(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double h) {
   return obj_->area_leaf_above(h);
 }
 // [[Rcpp::export]]
-void FFW16_PlantPlus__compute_vars_phys(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, const plant::Environment& environment) {
+void PlantPlus___FFW16__compute_vars_phys(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, const plant::Environment& environment) {
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-void FFW16_PlantPlus__compute_vars_growth(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+void PlantPlus___FFW16__compute_vars_growth(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   obj_->compute_vars_growth();
 }
 // [[Rcpp::export]]
-double FFW16_PlantPlus__germination_probability(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, const plant::Environment& environment) {
+double PlantPlus___FFW16__germination_probability(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, const plant::Environment& environment) {
   return obj_->germination_probability(environment);
 }
 // [[Rcpp::export]]
-double FFW16_PlantPlus__height__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+double PlantPlus___FFW16__height__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->height();
 }
 // [[Rcpp::export]]
-void FFW16_PlantPlus__height__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value) {
+void PlantPlus___FFW16__height__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value) {
   obj_->set_height(value);
 }
 
 // [[Rcpp::export]]
-double FFW16_PlantPlus__mortality__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+double PlantPlus___FFW16__mortality__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->mortality();
 }
 // [[Rcpp::export]]
-void FFW16_PlantPlus__mortality__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value) {
+void PlantPlus___FFW16__mortality__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value) {
   obj_->set_mortality(value);
 }
 
 // [[Rcpp::export]]
-double FFW16_PlantPlus__fecundity__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+double PlantPlus___FFW16__fecundity__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->fecundity();
 }
 // [[Rcpp::export]]
-void FFW16_PlantPlus__fecundity__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value) {
+void PlantPlus___FFW16__fecundity__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value) {
   obj_->set_fecundity(value);
 }
 
 // [[Rcpp::export]]
-double FFW16_PlantPlus__area_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+double PlantPlus___FFW16__area_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->area_heartwood();
 }
 // [[Rcpp::export]]
-void FFW16_PlantPlus__area_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value) {
+void PlantPlus___FFW16__area_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value) {
   obj_->set_area_heartwood(value);
 }
 
 // [[Rcpp::export]]
-double FFW16_PlantPlus__mass_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+double PlantPlus___FFW16__mass_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->mass_heartwood();
 }
 // [[Rcpp::export]]
-void FFW16_PlantPlus__mass_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value) {
+void PlantPlus___FFW16__mass_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, double value) {
   obj_->set_mass_heartwood(value);
 }
 
 // [[Rcpp::export]]
-double FFW16_PlantPlus__area_leaf__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+double PlantPlus___FFW16__area_leaf__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->area_leaf();
 }
 
 // [[Rcpp::export]]
-plant::FFW16_Strategy FFW16_PlantPlus__strategy__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+plant::FFW16_Strategy PlantPlus___FFW16__strategy__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->r_get_strategy();
 }
 
 // [[Rcpp::export]]
-plant::PlantPlus<plant::FFW16_Strategy>::internals FFW16_PlantPlus__internals__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+plant::PlantPlus_internals PlantPlus___FFW16__internals__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->r_internals();
 }
 
 // [[Rcpp::export]]
-size_t FFW16_PlantPlus__ode_size__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+size_t PlantPlus___FFW16__ode_size__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type FFW16_PlantPlus__ode_state__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+plant::ode::state_type PlantPlus___FFW16__ode_state__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return plant::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void FFW16_PlantPlus__ode_state__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, plant::ode::state_type value) {
+void PlantPlus___FFW16__ode_state__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_, plant::ode::state_type value) {
   plant::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type FFW16_PlantPlus__ode_rates__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+plant::ode::state_type PlantPlus___FFW16__ode_rates__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
 }
 
 // [[Rcpp::export]]
-std::vector<std::string> FFW16_PlantPlus__ode_names__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+std::vector<std::string> PlantPlus___FFW16__ode_names__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->ode_names();
 }
 
 
 // [[Rcpp::export]]
 SEXP PlantPlus_internals__ctor() {
-  return Rcpp::wrap(plant::PlantPlus<plant::FFW16_Strategy>::internals());
+  return Rcpp::wrap(plant::PlantPlus_internals());
 }
 
 
