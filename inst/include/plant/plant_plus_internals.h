@@ -1,12 +1,12 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_FFW16_PLANT_PLUS_INTERNALS_H_
-#define PLANT_PLANT_FFW16_PLANT_PLUS_INTERNALS_H_
+#ifndef PLANT_PLANT_PLANT_PLUS_INTERNALS_H_
+#define PLANT_PLANT_PLANT_PLUS_INTERNALS_H_
 
 namespace plant {
 
-struct FFW16_PlantPlus_internals {
+struct PlantPlus_internals {
 public:
-  FFW16_PlantPlus_internals();
+  PlantPlus_internals();
   // * Individual size
   // Mass of leaves.  This is the core independent variable
   double mass_leaf;      // [eqn 1]

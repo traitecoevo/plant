@@ -50,7 +50,7 @@ test_that("Reference comparison", {
   vars_pp <- pp$internals
 
   expect_that(vars_pl, is_a("Plant_internals"))
-  expect_that(vars_pp, is_a("FFW16_PlantPlus_internals"))
+  expect_that(vars_pp, is_a("PlantPlus_internals"))
 
   variable_names <- c("area_leaf", "height", "mortality", "fecundity",
                       "area_heartwood", "mass_heartwood")

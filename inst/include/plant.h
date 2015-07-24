@@ -23,8 +23,8 @@
 #include <plant/cohort_schedule.h>
 
 // Getting more serious down here.
-#include <plant/ffw16_plant_plus.h>
 #include <plant/plant.h>
+#include <plant/plant_plus.h>
 
 #include <plant/cohort.h>
 #include <plant/species.h>

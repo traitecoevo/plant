@@ -739,8 +739,8 @@ FFW16_PlantPlus__ode_names__get <- function(obj_) {
     .Call('plant_FFW16_PlantPlus__ode_names__get', PACKAGE = 'plant', obj_)
 }
 
-FFW16_PlantPlus_internals__ctor <- function() {
-    .Call('plant_FFW16_PlantPlus_internals__ctor', PACKAGE = 'plant')
+PlantPlus_internals__ctor <- function() {
+    .Call('plant_PlantPlus_internals__ctor', PACKAGE = 'plant')
 }
 
 Cohort___FFW16__ctor <- function(strategy) {

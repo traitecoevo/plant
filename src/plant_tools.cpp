@@ -16,7 +16,7 @@ Environment fixed_environment(double canopy_openness,
   return ret;
 }
 
-double lcp_whole_plant(FFW16_PlantPlus p) {
+double lcp_whole_plant(PlantPlus<FFW16_Strategy> p) {
   auto target = [&] (double x) mutable -> double {
     Environment env = fixed_environment(x);
     p.compute_vars_phys(env);
@@ -40,7 +40,7 @@ double lcp_whole_plant(FFW16_PlantPlus p) {
 // change of name.  However, it's only used internally so it's not
 // that big of a deal.
 // [[Rcpp::export]]
-plant::FFW16_PlantPlus_internals
+plant::PlantPlus_internals
 oderunner_plant_size(const plant::ode::Runner<plant::tools::PlantRunner>& obj) {
   return obj.obj.plant.r_internals();
 }
@@ -56,7 +56,7 @@ oderunner_plant_size(const plant::ode::Runner<plant::tools::PlantRunner>& obj) {
 //' @author Rich FitzJohn
 // [[Rcpp::export]]
 plant::Environment fixed_environment(double canopy_openness,
-				     double height_max=150.0) {
+                                     double height_max=150.0) {
   return plant::tools::fixed_environment(canopy_openness, height_max);
 }
 
@@ -67,6 +67,6 @@ plant::Environment fixed_environment(double canopy_openness,
 //' @export
 //' @author Rich FitzJohn
 // [[Rcpp::export]]
-double lcp_whole_plant(plant::FFW16_PlantPlus p) {
+double lcp_whole_plant(plant::PlantPlus<plant::FFW16_Strategy> p) {
   return plant::tools::lcp_whole_plant(p);
 }

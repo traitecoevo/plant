@@ -67,12 +67,12 @@ template <> inline std::string generator_name<plant::FFW16_Strategy >() {return 
 template <> inline std::string   class_name_r<plant::Parameters<plant::FFW16_Strategy> >() {return "Parameters<FFW16>";}
 template <> inline std::string   package_name<plant::Parameters<plant::FFW16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::Parameters<plant::FFW16_Strategy> >() {return "";}
-template <> inline std::string   class_name_r<plant::FFW16_PlantPlus >() {return "FFW16_PlantPlus";}
-template <> inline std::string   package_name<plant::FFW16_PlantPlus >() {return "plant";}
-template <> inline std::string generator_name<plant::FFW16_PlantPlus >() {return ".R6_FFW16_PlantPlus";}
-template <> inline std::string   class_name_r<plant::FFW16_PlantPlus::internals >() {return "FFW16_PlantPlus_internals";}
-template <> inline std::string   package_name<plant::FFW16_PlantPlus::internals >() {return "plant";}
-template <> inline std::string generator_name<plant::FFW16_PlantPlus::internals >() {return "";}
+template <> inline std::string   class_name_r<plant::PlantPlus<plant::FFW16_Strategy> >() {return "FFW16_PlantPlus";}
+template <> inline std::string   package_name<plant::PlantPlus<plant::FFW16_Strategy> >() {return "plant";}
+template <> inline std::string generator_name<plant::PlantPlus<plant::FFW16_Strategy> >() {return ".R6_FFW16_PlantPlus";}
+template <> inline std::string   class_name_r<plant::PlantPlus<plant::FFW16_Strategy>::internals >() {return "PlantPlus_internals";}
+template <> inline std::string   package_name<plant::PlantPlus<plant::FFW16_Strategy>::internals >() {return "plant";}
+template <> inline std::string generator_name<plant::PlantPlus<plant::FFW16_Strategy>::internals >() {return "";}
 template <> inline std::string   class_name_r<plant::Cohort<plant::FFW16_Strategy> >() {return "Cohort<FFW16>";}
 template <> inline std::string   package_name<plant::Cohort<plant::FFW16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::Cohort<plant::FFW16_Strategy> >() {return ".R6_Cohort___FFW16";}
@@ -576,13 +576,13 @@ template <> inline plant::Parameters<plant::FFW16_Strategy> as(SEXP x) {
   ret.validate();
   return ret;
 }
-template <> inline SEXP wrap(const plant::FFW16_PlantPlus& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::FFW16_PlantPlus>(x));
+template <> inline SEXP wrap(const plant::PlantPlus<plant::FFW16_Strategy>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> >(x));
 }
-template <> inline plant::FFW16_PlantPlus as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::FFW16_PlantPlus>(x));
+template <> inline plant::PlantPlus<plant::FFW16_Strategy> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> >(x));
 }
-template <> inline SEXP wrap(const plant::FFW16_PlantPlus::internals& x) {
+template <> inline SEXP wrap(const plant::PlantPlus<plant::FFW16_Strategy>::internals& x) {
   Rcpp::List ret;
   ret["mass_leaf"] = Rcpp::wrap(x.mass_leaf);
   ret["area_leaf"] = Rcpp::wrap(x.area_leaf);
@@ -627,17 +627,17 @@ template <> inline SEXP wrap(const plant::FFW16_PlantPlus::internals& x) {
   ret["mass_live_dt"] = Rcpp::wrap(x.mass_live_dt);
   ret["mass_total_dt"] = Rcpp::wrap(x.mass_total_dt);
   ret["mass_above_ground_dt"] = Rcpp::wrap(x.mass_above_ground_dt);
-  ret.attr("class") = "FFW16_PlantPlus_internals";
+  ret.attr("class") = "PlantPlus_internals";
   return ret;
 }
-template <> inline plant::FFW16_PlantPlus::internals as(SEXP x) {
-  if (!plant::RcppR6::is<plant::FFW16_PlantPlus::internals >(x)) {
-    Rcpp::stop("Expected an object of type FFW16_PlantPlus_internals");
+template <> inline plant::PlantPlus<plant::FFW16_Strategy>::internals as(SEXP x) {
+  if (!plant::RcppR6::is<plant::PlantPlus<plant::FFW16_Strategy>::internals >(x)) {
+    Rcpp::stop("Expected an object of type PlantPlus_internals");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::FFW16_PlantPlus::internals ret;
+  plant::PlantPlus<plant::FFW16_Strategy>::internals ret;
   Rcpp::List xl(x);
   // ret.mass_leaf = Rcpp::as<decltype(retmass_leaf) >(xl["mass_leaf"]);
   ret.mass_leaf = Rcpp::as<double >(xl["mass_leaf"]);

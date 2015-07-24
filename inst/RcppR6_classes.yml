@@ -337,9 +337,9 @@ Plant:
 PlantRunner:
   name_cpp: "plant::tools::PlantRunner"
   constructor:
-    args: [plant: "plant::FFW16_PlantPlus", environment: "plant::Environment"]
+    args: [plant: "plant::PlantPlus<plant::FFW16_Strategy>", environment: "plant::Environment"]
   active:
-    plant: {access: field, type: "plant::FFW16_PlantPlus"}
+    plant: {access: field, type: "plant::PlantPlus<plant::FFW16_Strategy>"}
 
 FFW16_Strategy:
   name_cpp: "plant::FFW16_Strategy"
@@ -414,7 +414,7 @@ Parameters:
     - hyperpar: SEXP
 
 FFW16_PlantPlus:
-  name_cpp: "plant::FFW16_PlantPlus"
+  name_cpp: "plant::PlantPlus<plant::FFW16_Strategy>"
   constructor:
     name_cpp: "plant::make_plant_plus"
     args: [strategy: "plant::FFW16_Strategy=FFW16_Strategy()"]
@@ -431,7 +431,7 @@ FFW16_PlantPlus:
     mass_heartwood: {type: double, access: member, name_cpp_set: set_mass_heartwood}
     area_leaf: {type: double, access: member}
     strategy: {type: "plant::FFW16_Strategy", access: member, name_cpp: r_get_strategy}
-    internals: {type: "plant::FFW16_PlantPlus::internals", access: member, name_cpp: "r_internals"}
+    internals: {type: "plant::PlantPlus<plant::FFW16_Strategy>::internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
@@ -449,8 +449,8 @@ FFW16_PlantPlus:
       args: [environment: "const plant::Environment&"]
       return_type: double
 
-FFW16_PlantPlus_internals:
-  name_cpp: "plant::FFW16_PlantPlus::internals"
+PlantPlus_internals:
+  name_cpp: "plant::PlantPlus<plant::FFW16_Strategy>::internals"
   list:
     - mass_leaf: double
     - area_leaf: double

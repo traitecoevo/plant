@@ -1,4 +1,4 @@
-#include <plant/ffw16_plant_plus_internals.h>
+#include <plant/plant_plus_internals.h>
 #include <R.h>
 
 namespace plant {
@@ -9,7 +9,7 @@ namespace plant {
 // TODO: Some are d<foo>_dt, others are foo_rate.  I'm OK with time
 // derivatives getting separate treatment, but it needs to be
 // consistent.
-FFW16_PlantPlus_internals::FFW16_PlantPlus_internals()
+PlantPlus_internals::PlantPlus_internals()
   :
   // * Size
   mass_leaf(NA_REAL),
