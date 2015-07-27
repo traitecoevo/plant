@@ -81,6 +81,10 @@ template <> inline std::string generator_name<plant::Parameters<plant::FFdev_Str
 template <> inline std::string   class_name_r<plant::PlantPlus<plant::FFW16_Strategy> >() {return "PlantPlus<FFW16>";}
 template <> inline std::string   package_name<plant::PlantPlus<plant::FFW16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::PlantPlus<plant::FFW16_Strategy> >() {return ".R6_PlantPlus___FFW16";}
+
+template <> inline std::string   class_name_r<plant::PlantPlus<plant::FFdev_Strategy> >() {return "PlantPlus<FFdev>";}
+template <> inline std::string   package_name<plant::PlantPlus<plant::FFdev_Strategy> >() {return "plant";}
+template <> inline std::string generator_name<plant::PlantPlus<plant::FFdev_Strategy> >() {return ".R6_PlantPlus___FFdev";}
 template <> inline std::string   class_name_r<plant::PlantPlus_internals >() {return "PlantPlus_internals";}
 template <> inline std::string   package_name<plant::PlantPlus_internals >() {return "plant";}
 template <> inline std::string generator_name<plant::PlantPlus_internals >() {return "";}
@@ -776,6 +780,13 @@ template <> inline SEXP wrap(const plant::PlantPlus<plant::FFW16_Strategy>& x) {
 }
 template <> inline plant::PlantPlus<plant::FFW16_Strategy> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> >(x));
+}
+
+template <> inline SEXP wrap(const plant::PlantPlus<plant::FFdev_Strategy>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> >(x));
+}
+template <> inline plant::PlantPlus<plant::FFdev_Strategy> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> >(x));
 }
 template <> inline SEXP wrap(const plant::PlantPlus_internals& x) {
   Rcpp::List ret;

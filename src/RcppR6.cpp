@@ -863,6 +863,111 @@ std::vector<std::string> PlantPlus___FFW16__ode_names__get(plant::RcppR6::RcppR6
 
 
 // [[Rcpp::export]]
+plant::PlantPlus<plant::FFdev_Strategy> PlantPlus___FFdev__ctor(plant::FFdev_Strategy strategy) {
+  return plant::make_plant_plus<plant::FFdev_Strategy>(strategy);
+}
+// [[Rcpp::export]]
+double PlantPlus___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double h) {
+  return obj_->area_leaf_above(h);
+}
+// [[Rcpp::export]]
+void PlantPlus___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+  obj_->compute_vars_phys(environment);
+}
+// [[Rcpp::export]]
+void PlantPlus___FFdev__compute_vars_growth(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  obj_->compute_vars_growth();
+}
+// [[Rcpp::export]]
+double PlantPlus___FFdev__germination_probability(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+  return obj_->germination_probability(environment);
+}
+// [[Rcpp::export]]
+double PlantPlus___FFdev__height__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->height();
+}
+// [[Rcpp::export]]
+void PlantPlus___FFdev__height__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double value) {
+  obj_->set_height(value);
+}
+
+// [[Rcpp::export]]
+double PlantPlus___FFdev__mortality__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->mortality();
+}
+// [[Rcpp::export]]
+void PlantPlus___FFdev__mortality__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double value) {
+  obj_->set_mortality(value);
+}
+
+// [[Rcpp::export]]
+double PlantPlus___FFdev__fecundity__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->fecundity();
+}
+// [[Rcpp::export]]
+void PlantPlus___FFdev__fecundity__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double value) {
+  obj_->set_fecundity(value);
+}
+
+// [[Rcpp::export]]
+double PlantPlus___FFdev__area_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->area_heartwood();
+}
+// [[Rcpp::export]]
+void PlantPlus___FFdev__area_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double value) {
+  obj_->set_area_heartwood(value);
+}
+
+// [[Rcpp::export]]
+double PlantPlus___FFdev__mass_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->mass_heartwood();
+}
+// [[Rcpp::export]]
+void PlantPlus___FFdev__mass_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double value) {
+  obj_->set_mass_heartwood(value);
+}
+
+// [[Rcpp::export]]
+double PlantPlus___FFdev__area_leaf__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->area_leaf();
+}
+
+// [[Rcpp::export]]
+plant::FFdev_Strategy PlantPlus___FFdev__strategy__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->r_get_strategy();
+}
+
+// [[Rcpp::export]]
+plant::PlantPlus_internals PlantPlus___FFdev__internals__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->r_internals();
+}
+
+// [[Rcpp::export]]
+size_t PlantPlus___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
+plant::ode::state_type PlantPlus___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return plant::ode::r_ode_state(*obj_);
+}
+// [[Rcpp::export]]
+void PlantPlus___FFdev__ode_state__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, plant::ode::state_type value) {
+  plant::ode::r_set_ode_state(*obj_, value);
+}
+
+// [[Rcpp::export]]
+plant::ode::state_type PlantPlus___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return plant::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+std::vector<std::string> PlantPlus___FFdev__ode_names__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->ode_names();
+}
+
+
+// [[Rcpp::export]]
 SEXP PlantPlus_internals__ctor() {
   return Rcpp::wrap(plant::PlantPlus_internals());
 }

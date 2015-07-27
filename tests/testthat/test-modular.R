@@ -17,6 +17,12 @@ test_that("Construction", {
     expect_that(class(p$strategy), equals(class(s)))
     expect_that(p$strategy, equals(s))
 
+    pp <- PlantPlus(x)(s)
+    expect_that(pp, is_a("PlantPlus"))
+    expect_that(pp, is_a(sprintf("PlantPlus<%s>", x)))
+    expect_that(class(pp$strategy), equals(class(s)))
+    expect_that(pp$strategy, equals(s))
+
     coh <- Cohort(x)(s)
 
     expect_that(coh, is_a("Cohort"))

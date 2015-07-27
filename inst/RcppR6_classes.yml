@@ -462,6 +462,7 @@ PlantPlus:
     parameters: T
     concrete:
       - ["FFW16": "plant::FFW16_Strategy"]
+      - ["FFdev": "plant::FFdev_Strategy"]
   constructor:
     name_cpp: "plant::make_plant_plus<T>"
     args: [strategy: T]
