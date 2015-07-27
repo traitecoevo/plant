@@ -748,6 +748,16 @@ SEXP Parameters___FFW16__vdor(SEXP obj) {
 
 
 // [[Rcpp::export]]
+SEXP Parameters___FFdev__ctor() {
+  return Rcpp::wrap(plant::Parameters<plant::FFdev_Strategy>());
+}
+// [[Rcpp::export]]
+SEXP Parameters___FFdev__vdor(SEXP obj) {
+  return Rcpp::wrap(Rcpp::as<plant::Parameters<plant::FFdev_Strategy> >(obj));
+}
+
+
+// [[Rcpp::export]]
 plant::PlantPlus<plant::FFW16_Strategy> PlantPlus___FFW16__ctor(plant::FFW16_Strategy strategy) {
   return plant::make_plant_plus<plant::FFW16_Strategy>(strategy);
 }

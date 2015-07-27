@@ -1938,6 +1938,27 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// Parameters___FFdev__ctor
+SEXP Parameters___FFdev__ctor();
+RcppExport SEXP plant_Parameters___FFdev__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    __result = Rcpp::wrap(Parameters___FFdev__ctor());
+    return __result;
+END_RCPP
+}
+// Parameters___FFdev__vdor
+SEXP Parameters___FFdev__vdor(SEXP obj);
+RcppExport SEXP plant_Parameters___FFdev__vdor(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< SEXP >::type obj(objSEXP);
+    __result = Rcpp::wrap(Parameters___FFdev__vdor(obj));
+    return __result;
+END_RCPP
+}
 // PlantPlus___FFW16__ctor
 plant::PlantPlus<plant::FFW16_Strategy> PlantPlus___FFW16__ctor(plant::FFW16_Strategy strategy);
 RcppExport SEXP plant_PlantPlus___FFW16__ctor(SEXP strategySEXP) {

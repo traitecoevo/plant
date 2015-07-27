@@ -727,6 +727,14 @@ Parameters___FFW16__vdor <- function(obj) {
     .Call('plant_Parameters___FFW16__vdor', PACKAGE = 'plant', obj)
 }
 
+Parameters___FFdev__ctor <- function() {
+    .Call('plant_Parameters___FFdev__ctor', PACKAGE = 'plant')
+}
+
+Parameters___FFdev__vdor <- function(obj) {
+    .Call('plant_Parameters___FFdev__vdor', PACKAGE = 'plant', obj)
+}
+
 PlantPlus___FFW16__ctor <- function(strategy) {
     .Call('plant_PlantPlus___FFW16__ctor', PACKAGE = 'plant', strategy)
 }

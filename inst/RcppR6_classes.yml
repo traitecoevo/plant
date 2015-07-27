@@ -430,6 +430,7 @@ Parameters:
     parameters: T
     concrete:
       - ["FFW16": "plant::FFW16_Strategy"]
+      - ["FFdev": "plant::FFdev_Strategy"]
   # TODO: This is broken:
   # roxygen: |
   #   Strategy parameters that tune various aspects of the biological model.
@@ -444,11 +445,11 @@ Parameters:
     - patch_area: double
     - n_patches: size_t
     - disturbance_mean_interval: double
-    - strategies: "std::vector<plant::FFW16_Strategy>"
+    - strategies: "std::vector<T>"
     - seed_rain: "std::vector<double>"
     - is_resident: "std::vector<bool>"
     - control: "plant::Control"
-    - strategy_default: "plant::FFW16_Strategy"
+    - strategy_default: "T"
     - cohort_schedule_max_time: double
     - cohort_schedule_times_default: "std::vector<double>"
     - cohort_schedule_times: "std::vector<std::vector<double> >"

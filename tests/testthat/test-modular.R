@@ -28,5 +28,10 @@ test_that("Construction", {
     expect_that(sp, is_a("Species"))
     expect_that(sp, is_a(sprintf("Species<%s>", x)))
     expect_that(class(sp$seed), equals(class(coh)))
+
+    par <- Parameters(x)(strategies=list(s))
+    expect_that(par, is_a("Parameters"))
+    expect_that(par, is_a(sprintf("Parameters<%s>", x)))
+    expect_that(par$strategies[[1]], equals(s))
   }
 })

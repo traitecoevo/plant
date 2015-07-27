@@ -64,6 +64,9 @@ template <> SEXP wrap(const plant::FFdev_Strategy&);
 template <> plant::FFdev_Strategy as(SEXP);
 template <> SEXP wrap(const plant::Parameters<plant::FFW16_Strategy>&);
 template <> plant::Parameters<plant::FFW16_Strategy> as(SEXP);
+
+template <> SEXP wrap(const plant::Parameters<plant::FFdev_Strategy>&);
+template <> plant::Parameters<plant::FFdev_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::PlantPlus<plant::FFW16_Strategy>&);
 template <> plant::PlantPlus<plant::FFW16_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::PlantPlus_internals&);
