@@ -301,6 +301,7 @@ Plant:
     parameters: T
     concrete:
       - ["FFW16": "plant::FFW16_Strategy"]
+      - ["FFdev": "plant::FFdev_Strategy"]
   constructor:
     args: [s: T]
     name_cpp: "plant::make_plant<T>"
@@ -549,6 +550,7 @@ Cohort:
     parameters: T
     concrete:
       - ["FFW16": "plant::FFW16_Strategy"]
+      - ["FFdev": "plant::FFdev_Strategy"]
   constructor:
     name_cpp: "plant::make_cohort<T>"
     args: [strategy: T]
@@ -584,6 +586,7 @@ Species:
     parameters: T
     concrete:
       - ["FFW16": "plant::FFW16_Strategy"]
+      - ["FFdev": "plant::FFdev_Strategy"]
   constructor:
     args: [strategy: T]
   active:

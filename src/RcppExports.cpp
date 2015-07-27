@@ -1653,6 +1653,216 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// Plant___FFdev__ctor
+plant::Plant<plant::FFdev_Strategy> Plant___FFdev__ctor(plant::FFdev_Strategy s);
+RcppExport SEXP plant_Plant___FFdev__ctor(SEXP sSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::FFdev_Strategy >::type s(sSEXP);
+    __result = Rcpp::wrap(Plant___FFdev__ctor(s));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__area_leaf_above
+double Plant___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, double h);
+RcppExport SEXP plant_Plant___FFdev__area_leaf_above(SEXP obj_SEXP, SEXP hSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type h(hSEXP);
+    __result = Rcpp::wrap(Plant___FFdev__area_leaf_above(obj_, h));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__compute_vars_phys
+void Plant___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP plant_Plant___FFdev__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
+    Plant___FFdev__compute_vars_phys(obj_, environment);
+    return R_NilValue;
+END_RCPP
+}
+// Plant___FFdev__germination_probability
+double Plant___FFdev__germination_probability(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP plant_Plant___FFdev__germination_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
+    __result = Rcpp::wrap(Plant___FFdev__germination_probability(obj_, environment));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__reset_mortality
+void Plant___FFdev__reset_mortality(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__reset_mortality(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Plant___FFdev__reset_mortality(obj_);
+    return R_NilValue;
+END_RCPP
+}
+// Plant___FFdev__height__get
+double Plant___FFdev__height__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__height__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFdev__height__get(obj_));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__height__set
+void Plant___FFdev__height__set(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, double value);
+RcppExport SEXP plant_Plant___FFdev__height__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Plant___FFdev__height__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Plant___FFdev__mortality__get
+double Plant___FFdev__mortality__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__mortality__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFdev__mortality__get(obj_));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__mortality__set
+void Plant___FFdev__mortality__set(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, double value);
+RcppExport SEXP plant_Plant___FFdev__mortality__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Plant___FFdev__mortality__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Plant___FFdev__fecundity__get
+double Plant___FFdev__fecundity__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__fecundity__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFdev__fecundity__get(obj_));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__fecundity__set
+void Plant___FFdev__fecundity__set(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, double value);
+RcppExport SEXP plant_Plant___FFdev__fecundity__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Plant___FFdev__fecundity__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Plant___FFdev__strategy__get
+plant::FFdev_Strategy Plant___FFdev__strategy__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__strategy__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFdev__strategy__get(obj_));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__internals__get
+plant::Plant<plant::FFdev_Strategy>::internals Plant___FFdev__internals__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__internals__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFdev__internals__get(obj_));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__ode_size__get
+size_t Plant___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__ode_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFdev__ode_size__get(obj_));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__ode_state__get
+plant::ode::state_type Plant___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__ode_state__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFdev__ode_state__get(obj_));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__ode_state__set
+void Plant___FFdev__ode_state__set(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, plant::ode::state_type value);
+RcppExport SEXP plant_Plant___FFdev__ode_state__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::ode::state_type >::type value(valueSEXP);
+    Plant___FFdev__ode_state__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Plant___FFdev__ode_rates__get
+plant::ode::state_type Plant___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__ode_rates__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFdev__ode_rates__get(obj_));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__ode_names__get
+std::vector<std::string> Plant___FFdev__ode_names__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__ode_names__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFdev__ode_names__get(obj_));
+    return __result;
+END_RCPP
+}
+// Plant___FFdev__mortality_probability__get
+double Plant___FFdev__mortality_probability__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Plant___FFdev__mortality_probability__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Plant___FFdev__mortality_probability__get(obj_));
+    return __result;
+END_RCPP
+}
 // PlantRunner__ctor
 plant::tools::PlantRunner PlantRunner__ctor(plant::PlantPlus<plant::FFW16_Strategy> plant, plant::Environment environment);
 RcppExport SEXP plant_PlantRunner__ctor(SEXP plantSEXP, SEXP environmentSEXP) {
@@ -2159,6 +2369,173 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// Cohort___FFdev__ctor
+plant::Cohort<plant::FFdev_Strategy> Cohort___FFdev__ctor(plant::FFdev_Strategy strategy);
+RcppExport SEXP plant_Cohort___FFdev__ctor(SEXP strategySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::FFdev_Strategy >::type strategy(strategySEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__ctor(strategy));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__area_leaf_above
+double Cohort___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_, double height);
+RcppExport SEXP plant_Cohort___FFdev__area_leaf_above(SEXP obj_SEXP, SEXP heightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type height(heightSEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__area_leaf_above(obj_, height));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__growth_rate_gradient
+double Cohort___FFdev__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP plant_Cohort___FFdev__growth_rate_gradient(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__growth_rate_gradient(obj_, environment));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__compute_vars_phys
+void Cohort___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP plant_Cohort___FFdev__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
+    Cohort___FFdev__compute_vars_phys(obj_, environment);
+    return R_NilValue;
+END_RCPP
+}
+// Cohort___FFdev__compute_initial_conditions
+void Cohort___FFdev__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP plant_Cohort___FFdev__compute_initial_conditions(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
+    Cohort___FFdev__compute_initial_conditions(obj_, environment);
+    return R_NilValue;
+END_RCPP
+}
+// Cohort___FFdev__plant__get
+plant::Plant<plant::FFdev_Strategy> Cohort___FFdev__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Cohort___FFdev__plant__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__plant__get(obj_));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__height__get
+double Cohort___FFdev__height__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Cohort___FFdev__height__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__height__get(obj_));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__log_density__get
+double Cohort___FFdev__log_density__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Cohort___FFdev__log_density__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__log_density__get(obj_));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__area_leaf__get
+double Cohort___FFdev__area_leaf__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Cohort___FFdev__area_leaf__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__area_leaf__get(obj_));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__fecundity__get
+double Cohort___FFdev__fecundity__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Cohort___FFdev__fecundity__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__fecundity__get(obj_));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__ode_size__get
+size_t Cohort___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Cohort___FFdev__ode_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__ode_size__get(obj_));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__ode_state__get
+plant::ode::state_type Cohort___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Cohort___FFdev__ode_state__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__ode_state__get(obj_));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__ode_state__set
+void Cohort___FFdev__ode_state__set(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_, plant::ode::state_type value);
+RcppExport SEXP plant_Cohort___FFdev__ode_state__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::ode::state_type >::type value(valueSEXP);
+    Cohort___FFdev__ode_state__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Cohort___FFdev__ode_rates__get
+plant::ode::state_type Cohort___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Cohort___FFdev__ode_rates__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__ode_rates__get(obj_));
+    return __result;
+END_RCPP
+}
+// Cohort___FFdev__ode_names__get
+std::vector<std::string> Cohort___FFdev__ode_names__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Cohort___FFdev__ode_names__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Cohort___FFdev__ode_names__get(obj_));
+    return __result;
+END_RCPP
+}
 // Species___FFW16__ctor
 plant::Species<plant::FFW16_Strategy> Species___FFW16__ctor(plant::FFW16_Strategy strategy);
 RcppExport SEXP plant_Species___FFW16__ctor(SEXP strategySEXP) {
@@ -2377,6 +2754,227 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFW16_Strategy> > >::type obj_(obj_SEXP);
     __result = Rcpp::wrap(Species___FFW16__ode_rates__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__ctor
+plant::Species<plant::FFdev_Strategy> Species___FFdev__ctor(plant::FFdev_Strategy strategy);
+RcppExport SEXP plant_Species___FFdev__ctor(SEXP strategySEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::FFdev_Strategy >::type strategy(strategySEXP);
+    __result = Rcpp::wrap(Species___FFdev__ctor(strategy));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__clear
+void Species___FFdev__clear(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__clear(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Species___FFdev__clear(obj_);
+    return R_NilValue;
+END_RCPP
+}
+// Species___FFdev__compute_vars_phys
+void Species___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP plant_Species___FFdev__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
+    Species___FFdev__compute_vars_phys(obj_, environment);
+    return R_NilValue;
+END_RCPP
+}
+// Species___FFdev__area_leaf_above
+double Species___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, double height);
+RcppExport SEXP plant_Species___FFdev__area_leaf_above(SEXP obj_SEXP, SEXP heightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type height(heightSEXP);
+    __result = Rcpp::wrap(Species___FFdev__area_leaf_above(obj_, height));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__add_seed
+void Species___FFdev__add_seed(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__add_seed(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Species___FFdev__add_seed(obj_);
+    return R_NilValue;
+END_RCPP
+}
+// Species___FFdev__cohort_at
+plant::Cohort<plant::FFdev_Strategy> Species___FFdev__cohort_at(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, plant::util::index index);
+RcppExport SEXP plant_Species___FFdev__cohort_at(SEXP obj_SEXP, SEXP indexSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::util::index >::type index(indexSEXP);
+    __result = Rcpp::wrap(Species___FFdev__cohort_at(obj_, index));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__area_leafs_error
+std::vector<double> Species___FFdev__area_leafs_error(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, double scal);
+RcppExport SEXP plant_Species___FFdev__area_leafs_error(SEXP obj_SEXP, SEXP scalSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type scal(scalSEXP);
+    __result = Rcpp::wrap(Species___FFdev__area_leafs_error(obj_, scal));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__size__get
+size_t Species___FFdev__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__size__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__seed__get
+plant::Cohort<plant::FFdev_Strategy> Species___FFdev__seed__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__seed__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__seed__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__height_max__get
+double Species___FFdev__height_max__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__height_max__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__height_max__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__heights__get
+std::vector<double> Species___FFdev__heights__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__heights__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__heights__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__heights__set
+void Species___FFdev__heights__set(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, std::vector<double> value);
+RcppExport SEXP plant_Species___FFdev__heights__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type value(valueSEXP);
+    Species___FFdev__heights__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Species___FFdev__log_densities__get
+std::vector<double> Species___FFdev__log_densities__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__log_densities__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__log_densities__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__cohorts__get
+std::vector<plant::Cohort<plant::FFdev_Strategy> > Species___FFdev__cohorts__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__cohorts__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__cohorts__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__seeds__get
+std::vector<double> Species___FFdev__seeds__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__seeds__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__seeds__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__area_leafs__get
+std::vector<double> Species___FFdev__area_leafs__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__area_leafs__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__area_leafs__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__ode_size__get
+size_t Species___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__ode_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__ode_size__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__ode_state__get
+plant::ode::state_type Species___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__ode_state__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__ode_state__get(obj_));
+    return __result;
+END_RCPP
+}
+// Species___FFdev__ode_state__set
+void Species___FFdev__ode_state__set(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, plant::ode::state_type value);
+RcppExport SEXP plant_Species___FFdev__ode_state__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::ode::state_type >::type value(valueSEXP);
+    Species___FFdev__ode_state__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Species___FFdev__ode_rates__get
+plant::ode::state_type Species___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_);
+RcppExport SEXP plant_Species___FFdev__ode_rates__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
+    __result = Rcpp::wrap(Species___FFdev__ode_rates__get(obj_));
     return __result;
 END_RCPP
 }

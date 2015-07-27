@@ -53,6 +53,9 @@ template <> SEXP wrap(const plant::Plant_internals&);
 template <> plant::Plant_internals as(SEXP);
 template <> SEXP wrap(const plant::Plant<plant::FFW16_Strategy>&);
 template <> plant::Plant<plant::FFW16_Strategy> as(SEXP);
+
+template <> SEXP wrap(const plant::Plant<plant::FFdev_Strategy>&);
+template <> plant::Plant<plant::FFdev_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::tools::PlantRunner&);
 template <> plant::tools::PlantRunner as(SEXP);
 template <> SEXP wrap(const plant::FFW16_Strategy&);
@@ -67,8 +70,14 @@ template <> SEXP wrap(const plant::PlantPlus_internals&);
 template <> plant::PlantPlus_internals as(SEXP);
 template <> SEXP wrap(const plant::Cohort<plant::FFW16_Strategy>&);
 template <> plant::Cohort<plant::FFW16_Strategy> as(SEXP);
+
+template <> SEXP wrap(const plant::Cohort<plant::FFdev_Strategy>&);
+template <> plant::Cohort<plant::FFdev_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::Species<plant::FFW16_Strategy>&);
 template <> plant::Species<plant::FFW16_Strategy> as(SEXP);
+
+template <> SEXP wrap(const plant::Species<plant::FFdev_Strategy>&);
+template <> plant::Species<plant::FFdev_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::Patch<plant::FFW16_Strategy>&);
 template <> plant::Patch<plant::FFW16_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::EBT<plant::FFW16_Strategy>&);
