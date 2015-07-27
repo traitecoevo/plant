@@ -630,6 +630,7 @@ Patch:
     parameters: T
     concrete:
       - ["FFW16": "plant::FFW16_Strategy"]
+      - ["FFdev": "plant::FFdev_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T>"]
   active:
@@ -684,6 +685,7 @@ EBT:
     parameters: T
     concrete:
       - ["FFW16": "plant::FFW16_Strategy"]
+      - ["FFdev": "plant::FFdev_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T>"]
   methods:

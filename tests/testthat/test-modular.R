@@ -1,8 +1,12 @@
 context("Modular")
 
 test_that("Construction", {
-  ## Do this in a generic way so that we can add as many additional
-  ## classes in the future and test in one place.
+
+  ## This is a *minimal* set of tests that checks that it is possible
+  ## to create the full set of different object types (Plant, Species,
+  ## Patch etc) with different underlying Strategy types.  It doesn't
+  ## actually try to run them though, so do that elsewhere.
+
   cl <- list(FFW16=FFW16_Strategy,
              FFdev=FFdev_Strategy)
 
@@ -39,5 +43,15 @@ test_that("Construction", {
     expect_that(par, is_a("Parameters"))
     expect_that(par, is_a(sprintf("Parameters<%s>", x)))
     expect_that(par$strategies[[1]], equals(s))
+
+    pat <- Patch(x)(par)
+    expect_that(pat, is_a("Patch"))
+    expect_that(pat, is_a(sprintf("Patch<%s>", x)))
+    expect_that(class(pat$species[[1]]), equals(class(sp)))
+
+    ebt <- EBT(x)(par)
+    expect_that(ebt, is_a("EBT"))
+    expect_that(ebt, is_a(sprintf("EBT<%s>", x)))
+    expect_that(class(ebt$patch), equals(class(pat)))
   }
 })

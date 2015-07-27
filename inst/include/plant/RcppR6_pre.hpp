@@ -86,8 +86,14 @@ template <> SEXP wrap(const plant::Species<plant::FFdev_Strategy>&);
 template <> plant::Species<plant::FFdev_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::Patch<plant::FFW16_Strategy>&);
 template <> plant::Patch<plant::FFW16_Strategy> as(SEXP);
+
+template <> SEXP wrap(const plant::Patch<plant::FFdev_Strategy>&);
+template <> plant::Patch<plant::FFdev_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::EBT<plant::FFW16_Strategy>&);
 template <> plant::EBT<plant::FFW16_Strategy> as(SEXP);
+
+template <> SEXP wrap(const plant::EBT<plant::FFdev_Strategy>&);
+template <> plant::EBT<plant::FFdev_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::StochasticSpecies<plant::FFW16_Strategy>&);
 template <> plant::StochasticSpecies<plant::FFW16_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::StochasticPatch<plant::FFW16_Strategy>&);
