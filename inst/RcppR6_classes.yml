@@ -752,6 +752,7 @@ StochasticSpecies:
     parameters: T
     concrete:
       - ["FFW16": "plant::FFW16_Strategy"]
+      - ["FFdev": "plant::FFdev_Strategy"]
   constructor:
     args: [strategy: "T"]
   active:
@@ -794,6 +795,7 @@ StochasticPatch:
     parameters: T
     concrete:
       - ["FFW16": "plant::FFW16_Strategy"]
+      - ["FFdev": "plant::FFdev_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T>"]
   active:
@@ -854,6 +856,7 @@ StochasticPatchRunner:
     parameters: T
     concrete:
       - ["FFW16": "plant::FFW16_Strategy"]
+      - ["FFdev": "plant::FFdev_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T>"]
   methods:

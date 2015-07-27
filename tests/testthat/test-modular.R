@@ -53,5 +53,21 @@ test_that("Construction", {
     expect_that(ebt, is_a("EBT"))
     expect_that(ebt, is_a(sprintf("EBT<%s>", x)))
     expect_that(class(ebt$patch), equals(class(pat)))
+
+    ## Stochastic model:
+    s_sp <- StochasticSpecies(x)(s)
+    expect_that(s_sp, is_a("StochasticSpecies"))
+    expect_that(s_sp, is_a(sprintf("StochasticSpecies<%s>", x)))
+    expect_that(class(s_sp$seed), equals(class(p)))
+
+    s_pat <- StochasticPatch(x)(par)
+    expect_that(s_pat, is_a("StochasticPatch"))
+    expect_that(s_pat, is_a(sprintf("StochasticPatch<%s>", x)))
+    expect_that(class(s_pat$species[[1]]), equals(class(s_sp)))
+
+    s_pr <- StochasticPatchRunner(x)(par)
+    expect_that(s_pr, is_a("StochasticPatchRunner"))
+    expect_that(s_pr, is_a(sprintf("StochasticPatchRunner<%s>", x)))
+    expect_that(class(s_pr$patch), equals(class(s_pat)))
   }
 })
