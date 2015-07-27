@@ -288,3 +288,27 @@ test_that("Ode interface", {
               is_identical_to(c("height", "mortality", "fecundity",
                                 "area_heartwood", "mass_heartwood")))
 })
+
+test_that("conversions", {
+  cmp <- make_reference_plant()
+  s <- FFW16_Strategy()
+  p <- FFW16_Plant(s)
+  p$height <- 10
+  env <- test_environment(p$height)
+
+  pp1 <- FFW16_plant_to_plant_plus(p, NULL)
+  expect_that(pp1, is_a("PlantPlus<FFW16>"))
+  expect_that(pp1$internals$assimilation, equals(NA_real_))
+  expect_that(pp1$height, equals(p$height))
+
+  pp2 <- FFW16_plant_to_plant_plus(p, env)
+  expect_that(pp2$internals$assimilation, is_more_than(0))
+  pp1$compute_vars_phys(env)
+  pp1$compute_vars_growth()
+  expect_that(pp1$internals, equals(pp2$internals))
+
+  p2 <- pp1$to_plant()
+  expect_that(p2, is_a("Plant<FFW16>"))
+  expect_that(p2$internals$height_dt, equals(NA_real_))
+  expect_that(p2$internals, equals(p$internals))
+})

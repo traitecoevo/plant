@@ -498,6 +498,8 @@ PlantPlus:
     germination_probability:
       args: [environment: "const plant::Environment&"]
       return_type: double
+    to_plant:
+      return_type: "plant::Plant<T>"
 
 PlantPlus_internals:
   name_cpp: "plant::PlantPlus_internals"

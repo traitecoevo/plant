@@ -6,6 +6,8 @@
 #include <plant/ffw16_strategy.h>
 #include <plant/plant_plus_internals.h>
 #include <plant/ode_interface.h>
+#include <plant/plant.h>
+#include <plant/environment.h>
 
 namespace plant {
 
@@ -18,6 +20,27 @@ public:
   PlantPlus(strategy_type_ptr s)
     : strategy(s) {
     set_height(strategy->height_0);
+  }
+
+  PlantPlus(Plant<T> p)
+    : strategy(make_strategy_ptr(p.r_get_strategy())) {
+    std::vector<double> state(ode_size());
+    p.ode_state(state.begin());
+    set_ode_state(state.begin());
+  }
+
+  PlantPlus(Plant<T> p, const Environment& environment)
+    : PlantPlus(p) {
+    compute_vars_phys(environment);
+    compute_vars_growth();
+  }
+
+  Plant<T> to_plant() const {
+    Plant<T> p(strategy);
+    std::vector<double> state(ode_size());
+    ode_state(state.begin());
+    p.set_ode_state(state.begin());
+    return p;
   }
 
   // * Individual size

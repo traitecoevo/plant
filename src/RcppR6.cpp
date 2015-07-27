@@ -778,6 +778,10 @@ double PlantPlus___FFW16__germination_probability(plant::RcppR6::RcppR6<plant::P
   return obj_->germination_probability(environment);
 }
 // [[Rcpp::export]]
+plant::Plant<plant::FFW16_Strategy> PlantPlus___FFW16__to_plant(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
+  return obj_->to_plant();
+}
+// [[Rcpp::export]]
 double PlantPlus___FFW16__height__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFW16_Strategy> > obj_) {
   return obj_->height();
 }
@@ -881,6 +885,10 @@ void PlantPlus___FFdev__compute_vars_growth(plant::RcppR6::RcppR6<plant::PlantPl
 // [[Rcpp::export]]
 double PlantPlus___FFdev__germination_probability(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
   return obj_->germination_probability(environment);
+}
+// [[Rcpp::export]]
+plant::Plant<plant::FFdev_Strategy> PlantPlus___FFdev__to_plant(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+  return obj_->to_plant();
 }
 // [[Rcpp::export]]
 double PlantPlus___FFdev__height__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
