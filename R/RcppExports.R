@@ -639,6 +639,10 @@ FFW16_Strategy__ctor <- function() {
     .Call('plant_FFW16_Strategy__ctor', PACKAGE = 'plant')
 }
 
+FFdev_Strategy__ctor <- function() {
+    .Call('plant_FFdev_Strategy__ctor', PACKAGE = 'plant')
+}
+
 Parameters___FFW16__ctor <- function() {
     .Call('plant_Parameters___FFW16__ctor', PACKAGE = 'plant')
 }

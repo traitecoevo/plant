@@ -22,6 +22,9 @@
 #include <plant/parameters.h>
 #include <plant/cohort_schedule.h>
 
+// new physiology
+#include <plant/ffdev_strategy.h>
+
 // Getting more serious down here.
 #include <plant/plant.h>
 #include <plant/plant_plus.h>

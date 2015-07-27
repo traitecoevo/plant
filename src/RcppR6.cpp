@@ -645,6 +645,12 @@ SEXP FFW16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
+SEXP FFdev_Strategy__ctor() {
+  return Rcpp::wrap(plant::FFdev_Strategy());
+}
+
+
+// [[Rcpp::export]]
 SEXP Parameters___FFW16__ctor() {
   return Rcpp::wrap(plant::Parameters<plant::FFW16_Strategy>());
 }

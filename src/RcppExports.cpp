@@ -1697,6 +1697,16 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// FFdev_Strategy__ctor
+SEXP FFdev_Strategy__ctor();
+RcppExport SEXP plant_FFdev_Strategy__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    __result = Rcpp::wrap(FFdev_Strategy__ctor());
+    return __result;
+END_RCPP
+}
 // Parameters___FFW16__ctor
 SEXP Parameters___FFW16__ctor();
 RcppExport SEXP plant_Parameters___FFW16__ctor() {

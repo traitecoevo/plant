@@ -64,6 +64,9 @@ template <> inline std::string generator_name<plant::tools::PlantRunner >() {ret
 template <> inline std::string   class_name_r<plant::FFW16_Strategy >() {return "FFW16_Strategy";}
 template <> inline std::string   package_name<plant::FFW16_Strategy >() {return "plant";}
 template <> inline std::string generator_name<plant::FFW16_Strategy >() {return "";}
+template <> inline std::string   class_name_r<plant::FFdev_Strategy >() {return "FFdev_Strategy";}
+template <> inline std::string   package_name<plant::FFdev_Strategy >() {return "plant";}
+template <> inline std::string generator_name<plant::FFdev_Strategy >() {return "";}
 template <> inline std::string   class_name_r<plant::Parameters<plant::FFW16_Strategy> >() {return "Parameters<FFW16>";}
 template <> inline std::string   package_name<plant::Parameters<plant::FFW16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::Parameters<plant::FFW16_Strategy> >() {return "";}
@@ -452,6 +455,115 @@ template <> inline plant::FFW16_Strategy as(SEXP x) {
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
   plant::FFW16_Strategy ret;
+  Rcpp::List xl(x);
+  // ret.lma = Rcpp::as<decltype(retlma) >(xl["lma"]);
+  ret.lma = Rcpp::as<double >(xl["lma"]);
+  // ret.rho = Rcpp::as<decltype(retrho) >(xl["rho"]);
+  ret.rho = Rcpp::as<double >(xl["rho"]);
+  // ret.hmat = Rcpp::as<decltype(rethmat) >(xl["hmat"]);
+  ret.hmat = Rcpp::as<double >(xl["hmat"]);
+  // ret.mass_seed = Rcpp::as<decltype(retmass_seed) >(xl["mass_seed"]);
+  ret.mass_seed = Rcpp::as<double >(xl["mass_seed"]);
+  // ret.eta = Rcpp::as<decltype(reteta) >(xl["eta"]);
+  ret.eta = Rcpp::as<double >(xl["eta"]);
+  // ret.theta = Rcpp::as<decltype(rettheta) >(xl["theta"]);
+  ret.theta = Rcpp::as<double >(xl["theta"]);
+  // ret.a1 = Rcpp::as<decltype(reta1) >(xl["a1"]);
+  ret.a1 = Rcpp::as<double >(xl["a1"]);
+  // ret.B1 = Rcpp::as<decltype(retB1) >(xl["B1"]);
+  ret.B1 = Rcpp::as<double >(xl["B1"]);
+  // ret.a3 = Rcpp::as<decltype(reta3) >(xl["a3"]);
+  ret.a3 = Rcpp::as<double >(xl["a3"]);
+  // ret.b = Rcpp::as<decltype(retb) >(xl["b"]);
+  ret.b = Rcpp::as<double >(xl["b"]);
+  // ret.c_Rs = Rcpp::as<decltype(retc_Rs) >(xl["c_Rs"]);
+  ret.c_Rs = Rcpp::as<double >(xl["c_Rs"]);
+  // ret.c_Rb = Rcpp::as<decltype(retc_Rb) >(xl["c_Rb"]);
+  ret.c_Rb = Rcpp::as<double >(xl["c_Rb"]);
+  // ret.c_Rr = Rcpp::as<decltype(retc_Rr) >(xl["c_Rr"]);
+  ret.c_Rr = Rcpp::as<double >(xl["c_Rr"]);
+  // ret.c_Rl = Rcpp::as<decltype(retc_Rl) >(xl["c_Rl"]);
+  ret.c_Rl = Rcpp::as<double >(xl["c_Rl"]);
+  // ret.Y = Rcpp::as<decltype(retY) >(xl["Y"]);
+  ret.Y = Rcpp::as<double >(xl["Y"]);
+  // ret.c_bio = Rcpp::as<decltype(retc_bio) >(xl["c_bio"]);
+  ret.c_bio = Rcpp::as<double >(xl["c_bio"]);
+  // ret.k_l = Rcpp::as<decltype(retk_l) >(xl["k_l"]);
+  ret.k_l = Rcpp::as<double >(xl["k_l"]);
+  // ret.k_b = Rcpp::as<decltype(retk_b) >(xl["k_b"]);
+  ret.k_b = Rcpp::as<double >(xl["k_b"]);
+  // ret.k_s = Rcpp::as<decltype(retk_s) >(xl["k_s"]);
+  ret.k_s = Rcpp::as<double >(xl["k_s"]);
+  // ret.k_r = Rcpp::as<decltype(retk_r) >(xl["k_r"]);
+  ret.k_r = Rcpp::as<double >(xl["k_r"]);
+  // ret.c_p1 = Rcpp::as<decltype(retc_p1) >(xl["c_p1"]);
+  ret.c_p1 = Rcpp::as<double >(xl["c_p1"]);
+  // ret.c_p2 = Rcpp::as<decltype(retc_p2) >(xl["c_p2"]);
+  ret.c_p2 = Rcpp::as<double >(xl["c_p2"]);
+  // ret.c_acc = Rcpp::as<decltype(retc_acc) >(xl["c_acc"]);
+  ret.c_acc = Rcpp::as<double >(xl["c_acc"]);
+  // ret.c_r1 = Rcpp::as<decltype(retc_r1) >(xl["c_r1"]);
+  ret.c_r1 = Rcpp::as<double >(xl["c_r1"]);
+  // ret.c_r2 = Rcpp::as<decltype(retc_r2) >(xl["c_r2"]);
+  ret.c_r2 = Rcpp::as<double >(xl["c_r2"]);
+  // ret.Pi_0 = Rcpp::as<decltype(retPi_0) >(xl["Pi_0"]);
+  ret.Pi_0 = Rcpp::as<double >(xl["Pi_0"]);
+  // ret.c_s0 = Rcpp::as<decltype(retc_s0) >(xl["c_s0"]);
+  ret.c_s0 = Rcpp::as<double >(xl["c_s0"]);
+  // ret.c_d0 = Rcpp::as<decltype(retc_d0) >(xl["c_d0"]);
+  ret.c_d0 = Rcpp::as<double >(xl["c_d0"]);
+  // ret.c_d2 = Rcpp::as<decltype(retc_d2) >(xl["c_d2"]);
+  ret.c_d2 = Rcpp::as<double >(xl["c_d2"]);
+  // ret.c_d3 = Rcpp::as<decltype(retc_d3) >(xl["c_d3"]);
+  ret.c_d3 = Rcpp::as<double >(xl["c_d3"]);
+  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
+  ret.control = Rcpp::as<plant::Control >(xl["control"]);
+  return ret;
+}
+template <> inline SEXP wrap(const plant::FFdev_Strategy& x) {
+  Rcpp::List ret;
+  ret["lma"] = Rcpp::wrap(x.lma);
+  ret["rho"] = Rcpp::wrap(x.rho);
+  ret["hmat"] = Rcpp::wrap(x.hmat);
+  ret["mass_seed"] = Rcpp::wrap(x.mass_seed);
+  ret["eta"] = Rcpp::wrap(x.eta);
+  ret["theta"] = Rcpp::wrap(x.theta);
+  ret["a1"] = Rcpp::wrap(x.a1);
+  ret["B1"] = Rcpp::wrap(x.B1);
+  ret["a3"] = Rcpp::wrap(x.a3);
+  ret["b"] = Rcpp::wrap(x.b);
+  ret["c_Rs"] = Rcpp::wrap(x.c_Rs);
+  ret["c_Rb"] = Rcpp::wrap(x.c_Rb);
+  ret["c_Rr"] = Rcpp::wrap(x.c_Rr);
+  ret["c_Rl"] = Rcpp::wrap(x.c_Rl);
+  ret["Y"] = Rcpp::wrap(x.Y);
+  ret["c_bio"] = Rcpp::wrap(x.c_bio);
+  ret["k_l"] = Rcpp::wrap(x.k_l);
+  ret["k_b"] = Rcpp::wrap(x.k_b);
+  ret["k_s"] = Rcpp::wrap(x.k_s);
+  ret["k_r"] = Rcpp::wrap(x.k_r);
+  ret["c_p1"] = Rcpp::wrap(x.c_p1);
+  ret["c_p2"] = Rcpp::wrap(x.c_p2);
+  ret["c_acc"] = Rcpp::wrap(x.c_acc);
+  ret["c_r1"] = Rcpp::wrap(x.c_r1);
+  ret["c_r2"] = Rcpp::wrap(x.c_r2);
+  ret["Pi_0"] = Rcpp::wrap(x.Pi_0);
+  ret["c_s0"] = Rcpp::wrap(x.c_s0);
+  ret["c_d0"] = Rcpp::wrap(x.c_d0);
+  ret["c_d2"] = Rcpp::wrap(x.c_d2);
+  ret["c_d3"] = Rcpp::wrap(x.c_d3);
+  ret["control"] = Rcpp::wrap(x.control);
+  ret.attr("class") = "FFdev_Strategy";
+  return ret;
+}
+template <> inline plant::FFdev_Strategy as(SEXP x) {
+  if (!plant::RcppR6::is<plant::FFdev_Strategy >(x)) {
+    Rcpp::stop("Expected an object of type FFdev_Strategy");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::FFdev_Strategy ret;
   Rcpp::List xl(x);
   // ret.lma = Rcpp::as<decltype(retlma) >(xl["lma"]);
   ret.lma = Rcpp::as<double >(xl["lma"]);
