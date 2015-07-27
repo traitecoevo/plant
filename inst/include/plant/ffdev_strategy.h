@@ -199,10 +199,10 @@ public:
   // * Seed production
   // Accessory cost of reproduction, per seed
   double c_acc;
-  // Proportion production alloctaed to reproduction
+  // Max proportion production allocated to reproduction
   double c_r1;
   // Size range across which individuals mature
-  double c_r2;
+  double c_r3;
 
   // * Mortality
   // Probability of survival during dispersal

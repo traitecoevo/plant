@@ -416,7 +416,7 @@ FFdev_Strategy:
     - c_p2: double
     - c_acc: double
     - c_r1: double
-    - c_r2: double
+    - c_r3: double
     - Pi_0: double
     - c_s0: double
     - c_d0: double

@@ -593,7 +593,7 @@ template <> inline SEXP wrap(const plant::FFdev_Strategy& x) {
   ret["c_p2"] = Rcpp::wrap(x.c_p2);
   ret["c_acc"] = Rcpp::wrap(x.c_acc);
   ret["c_r1"] = Rcpp::wrap(x.c_r1);
-  ret["c_r2"] = Rcpp::wrap(x.c_r2);
+  ret["c_r3"] = Rcpp::wrap(x.c_r3);
   ret["Pi_0"] = Rcpp::wrap(x.Pi_0);
   ret["c_s0"] = Rcpp::wrap(x.c_s0);
   ret["c_d0"] = Rcpp::wrap(x.c_d0);
@@ -660,8 +660,8 @@ template <> inline plant::FFdev_Strategy as(SEXP x) {
   ret.c_acc = Rcpp::as<double >(xl["c_acc"]);
   // ret.c_r1 = Rcpp::as<decltype(retc_r1) >(xl["c_r1"]);
   ret.c_r1 = Rcpp::as<double >(xl["c_r1"]);
-  // ret.c_r2 = Rcpp::as<decltype(retc_r2) >(xl["c_r2"]);
-  ret.c_r2 = Rcpp::as<double >(xl["c_r2"]);
+  // ret.c_r3 = Rcpp::as<decltype(retc_r3) >(xl["c_r3"]);
+  ret.c_r3 = Rcpp::as<double >(xl["c_r3"]);
   // ret.Pi_0 = Rcpp::as<decltype(retPi_0) >(xl["Pi_0"]);
   ret.Pi_0 = Rcpp::as<double >(xl["Pi_0"]);
   // ret.c_s0 = Rcpp::as<decltype(retc_s0) >(xl["c_s0"]);

@@ -20,7 +20,7 @@ FFdev_Strategy::FFdev_Strategy() {
   // * Core traits - default values
   lma       = 0.1978791;  // Leaf mass per area [kg / m2]
   rho       = 608.0;      // wood density [kg/m3]
-  hmat      = 16.5958691; // Height at maturation [m]
+  hmat      = 16; // Height at maturation [m]
   mass_seed = 3.8e-5;    // Seed mass [kg]
 
   // * Individual allometry
@@ -76,10 +76,10 @@ FFdev_Strategy::FFdev_Strategy() {
   // Accessory cost of reproduction, kg per seed
   c_acc  = 3.0 *  3.8e-5;
 
-  // Maximum alloction to reproduction
+  // Maximum allocation to reproduction
   c_r1   = 1.0;
-  // Size range across which individuals mature
-  c_r2   = 50;
+  // height above hmat at which allocation to reproduction is half its max value
+  c_r3   = 2;
 
   // * Mortality parameters
   // Probability of survival during dispersal
@@ -344,9 +344,12 @@ double FFdev_Strategy::net_mass_production_dt(const Environment& environment,
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
-// [eqn 16] Fraction of production allocated to reproduction
+// Fraction of production allocated to reproduction
 double FFdev_Strategy::fraction_allocation_reproduction(double height) const {
-  return c_r1 / (1.0 + exp(c_r2 * (1.0 - height / hmat)));
+  if(height <= hmat)
+    return 0.0;
+  else
+    return c_r1 * (height - hmat) / (c_r3  + (height - hmat));
 }
 
 // Fraction of production allocated to growth
