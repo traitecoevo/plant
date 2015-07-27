@@ -1,6 +1,5 @@
 context("Lorenz (basic ODE)")
 
-library(deSolve)
 derivs_lorenz <- function(y, pars) {
   sigma <- pars[[1]]
   R <- pars[[2]]
