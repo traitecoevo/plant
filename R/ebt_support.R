@@ -324,6 +324,14 @@ make_FFW16_hyperpar <- function(B4=1.71,
 ##' the same as the default should be removed.
 FFW16_hyperpar <- make_FFW16_hyperpar()
 
+##' @rdname FFdev_hyperpar
+##' @export
+##' @param m A trait matrix
+##' @param s A default strategy
+##' @param filter Logical, indicating if generated parameters that are
+##' the same as the default should be removed.
+FFdev_hyperpar <- make_FFW16_hyperpar()
+
 ##' Helper function for creating parameter objects suitable for an
 ##' assembly.
 ##' @title Helper function for creating parameter objects

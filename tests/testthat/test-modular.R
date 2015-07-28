@@ -7,11 +7,10 @@ test_that("Construction", {
   ## Patch etc) with different underlying Strategy types.  It doesn't
   ## actually try to run them though, so do that elsewhere.
 
-  cl <- list(FFW16=FFW16_Strategy,
-             FFdev=FFdev_Strategy)
+  strategy_types <- get_list_of_strategy_types()
 
-  for (x in names(cl)) {
-    s <- cl[[x]]()
+  for (x in names(strategy_types)) {
+    s <- strategy_types[[x]]()
     expect_that(s, is_a(paste0(x, "_Strategy")))
 
     p <- Plant(x)(s)

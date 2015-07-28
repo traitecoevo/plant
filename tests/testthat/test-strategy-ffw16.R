@@ -1,7 +1,80 @@
-context("FFW16_PlantPlus")
+context("Strategy-FFW16")
+
+test_that("Defaults", {
+  expected <- list(
+    B1     = 0.306,
+    Pi_0   = 0.25,
+    Y      = 0.7,
+    a1     = 5.44,
+    a3     = 0.07,
+    b      = 0.17,
+    c_Rb   = 8024 / 608,
+    c_Rl   = 39.27 / 0.1978791,
+    c_Rr   = 217,
+    c_Rs   = 4012/608,
+    c_acc  = 3.0*3.8e-5,
+    c_bio  = 0.0245,
+    c_d0   = 0.01,
+    c_d2   = 5.5,
+    c_d3   = 20,
+    c_p1   = 150.36,
+    c_p2   = 0.19,
+    c_r1   = 1,
+    c_r2   = 50,
+    c_s0   = 0.1,
+    eta    = 12,
+    hmat   = 16.5958691,
+    k_b    = 0.2,
+    k_l   = 0.4565855,
+    k_r    = 1,
+    k_s   = 0.2,
+    lma    = 0.1978791,
+    rho    = 608,
+    mass_seed = 3.8e-5,
+    theta  = 4669,
+    control = Control())
+
+  keys <- sort(names(expected))
+
+  s <- FFW16_Strategy()
+  expect_that(s, is_a("FFW16_Strategy"))
+
+  expect_that(sort(names(s)), is_identical_to(keys))
+  expect_that(unclass(s)[keys], is_identical_to(expected[keys]))
+})
+
+test_that("FFW16_Strategy parameters agree with reference model", {
+  cmp <- make_reference_plant("FFW16")
+  cmp_pars <- cmp$get_parameters()
+
+  s <- FFW16_Strategy()
+
+  ## Expect that all parameters in the R version are found in the C++
+  ## version, *except* for n_area
+  v <- setdiff(names(cmp_pars), "n_area")
+  expect_that(all(v %in% names(s)), is_true())
+
+  ## And v.v., except for a few additions:
+  extra <- c("control", "Pi_0")
+  common <- setdiff(names(s), extra)
+  expect_that(all(extra %in% names(s)), is_true())
+  expect_that(all(common %in% names(cmp_pars)),
+              is_true())
+
+  ## The C++ version should have no NA values by this point.
+  expect_that(any(sapply(s[common], is.na)),
+              is_false())
+
+  ## And neither should the R version.
+  expect_that(any(sapply(cmp_pars, is.na)),
+              is_false())
+
+  ## And demand that all parameters agree.
+  expect_that(s[v], equals(cmp_pars[v], tolerance=1e-13))
+})
 
 test_that("Reference comparison", {
-  cmp <- make_reference_plant()
+  cmp <- make_reference_plant("FFW16")
   s <- FFW16_Strategy()
   p <- FFW16_PlantPlus(s)
 
@@ -182,133 +255,4 @@ test_that("Reference comparison", {
               vars[[c("net_mass_production_dt")]])
   expect_that(vars[["height_dt"]],
               equals(cmp, tolerance=1e-7))
-})
-
-test_that("Seed bits", {
-  ## Seed stuff:
-  s <- FFW16_Strategy()
-  seed <- FFW16_PlantPlus(s)
-  env <- test_environment(10) # high enough
-  light_env <- attr(env, "light_env") # underlying function
-
-  ## Check that our root-finding succeeded and the leaf mass is correct:
-  expect_that(seed$internals[["mass_live"]],
-              equals(s$mass_seed, tolerance=1e-7))
-
-  ## Check that the height at birth is correct.  These answers are
-  ## actually quite different, which could come from the root finding?
-  cmp <- make_reference_plant()
-  expect_that(seed$height,
-              equals(cmp$height.at.birth(cmp$traits), tolerance=1e-4))
-
-  ## Then, check the germination probabilities in the current light
-  ## environment:
-  expect_that(seed$germination_probability(env),
-              equals(cmp$germination.probability(cmp$traits, light_env),
-                     tolerance=1e-5))
-})
-
-## TODO: Missing here: all the plant growing stuff.  Move that
-## elsewhere.
-
-test_that("Assimilation over distribution", {
-  s1 <- FFW16_Strategy()
-  p1 <- FFW16_PlantPlus(s1)
-
-  c2 <- Control(plant_assimilation_over_distribution=TRUE)
-  s2 <- FFW16_Strategy(control=c2)
-  p2 <- FFW16_PlantPlus(s2)
-
-  p1$height <- 10.0
-  p2$height <- p1$height
-  env <- test_environment(p1$height)
-
-  p1$compute_vars_phys(env)
-  p2$compute_vars_phys(env)
-  p1_vars <- p1$internals
-  p2_vars <- p2$internals
-
-  ## Result is similar but not identical:
-  expect_that(p2_vars, equals(p1_vars, tolerance=1e-7))
-  expect_that(p2_vars, not(is_identical_to(p1_vars)))
-})
-
-test_that("Non-adaptive assimilation integration works", {
-  c1 <- Control(plant_assimilation_adaptive=TRUE,
-                plant_assimilation_over_distribution=TRUE)
-  s1 <- FFW16_Strategy(control=c1)
-  p1 <- FFW16_PlantPlus(s1)
-
-  c2 <- Control(plant_assimilation_adaptive=FALSE,
-                plant_assimilation_over_distribution=TRUE)
-  s2 <- FFW16_Strategy(control=c2)
-  p2 <- FFW16_PlantPlus(s2)
-
-  p1$height <- 10.0
-  p2$height <- p1$height
-  env <- test_environment(p1$height)
-
-  p1$compute_vars_phys(env)
-  p2$compute_vars_phys(env)
-  p1_vars <- p1$internals
-  p2_vars <- p2$internals
-
-  ## Result is similar but not identical:
-  expect_that(p2_vars[["assimilation"]],
-              equals(p1_vars[["assimilation"]], tolerance=1e-3))
-  expect_that(p2_vars, not(is_identical_to(p1_vars)))
-})
-
-test_that("Ode interface", {
-  p <- FFW16_PlantPlus(FFW16_Strategy())
-  expect_that(p$ode_size, equals(5))
-  expect_that(p$ode_state,
-              equals(c(p$height, p$mortality, p$fecundity,
-                       p$area_heartwood, p$mass_heartwood)))
-
-  env <- test_environment(p$height * 10)
-  p$compute_vars_phys(env)
-  p$compute_vars_growth() # NOTE: Compute immediately *after* vars_phys
-  expect_that(p$ode_state,
-              equals(c(p$height, p$mortality, p$fecundity,
-                       p$area_heartwood, p$mass_heartwood)))
-  vars <- as.list(p$internals)
-  expect_that(p$ode_rates,
-              equals(c(vars$height_dt,
-                       vars$mortality_dt,
-                       vars$fecundity_dt,
-                       vars$area_heartwood_dt,
-                       vars$mass_heartwood_dt)))
-
-  state_new <- c(p$height * 2, runif(p$ode_size - 1L))
-  p$ode_state <- state_new
-  expect_that(p$ode_state, is_identical_to(state_new))
-
-  expect_that(p$ode_names,
-              is_identical_to(c("height", "mortality", "fecundity",
-                                "area_heartwood", "mass_heartwood")))
-})
-
-test_that("conversions", {
-  cmp <- make_reference_plant()
-  s <- FFW16_Strategy()
-  p <- FFW16_Plant(s)
-  p$height <- 10
-  env <- test_environment(p$height)
-
-  pp1 <- FFW16_plant_to_plant_plus(p, NULL)
-  expect_that(pp1, is_a("PlantPlus<FFW16>"))
-  expect_that(pp1$internals$assimilation, equals(NA_real_))
-  expect_that(pp1$height, equals(p$height))
-
-  pp2 <- FFW16_plant_to_plant_plus(p, env)
-  expect_that(pp2$internals$assimilation, is_more_than(0))
-  pp1$compute_vars_phys(env)
-  pp1$compute_vars_growth()
-  expect_that(pp1$internals, equals(pp2$internals))
-
-  p2 <- pp1$to_plant()
-  expect_that(p2, is_a("Plant<FFW16>"))
-  expect_that(p2$internals$height_dt, equals(NA_real_))
-  expect_that(p2$internals, equals(p$internals))
 })

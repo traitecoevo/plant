@@ -1,4 +1,4 @@
-context("ebt support")
+context("EBT support")
 
 test_that("collect / make_patch", {
   p0 <- ebt_base_parameters()

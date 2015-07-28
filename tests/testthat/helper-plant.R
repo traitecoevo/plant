@@ -1,3 +1,14 @@
+
+get_list_of_strategy_types <- function() {
+  list(FFW16=FFW16_Strategy,
+       FFdev=FFdev_Strategy)
+}
+
+get_list_of_hyperpar_functions <- function() {
+  list(FFW16=FFW16_hyperpar,
+       FFdev=FFdev_hyperpar)
+}
+
 ## New expect_that helper functions; test that a number is in a range,
 ## or that a range contains a number.
 is_within_interval <- function(lower, upper) {

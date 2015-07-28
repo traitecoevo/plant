@@ -1,69 +1,75 @@
-context("Environment")
 
-test_that("Empty environment", {
-  e <- make_environment(FFW16_Parameters())
+strategy_types <- get_list_of_strategy_types()
 
-  ## At this point, we should have full canopy openness, partly because
-  ## the spline is just not constructed.
-  expect_that(e$canopy_openness(0), equals(1.0))
-  expect_that(e$canopy_openness(100), equals(1.0))
+for (x in names(strategy_types)) {
 
-  spline <- e$light_environment
-  expect_that(spline$size, equals(0))
-  expect_that(spline$x, equals(numeric(0)))
-})
+  context(sprintf("Environment-%s",x))
 
-test_that("Manually set environment", {
-  e <- make_environment(FFW16_Parameters())
-  ## Now, set the light environment.
-  hh <- seq(0, 10, length.out=101)
-  light_env <- function(x) {
-    exp(x/(max(hh)*2)) - 1 + (1 - (exp(.5) - 1))/2
-  }
-  ee <- light_env(hh)
-  env <- Interpolator()
-  env$init(hh, ee)
+  test_that("Empty environment", {
+    e <- make_environment(Parameters(x)())
 
-  ## And set it
-  e$light_environment <- env
+    ## At this point, we should have full canopy openness, partly because
+    ## the spline is just not constructed.
+    expect_that(e$canopy_openness(0), equals(1.0))
+    expect_that(e$canopy_openness(100), equals(1.0))
 
-  expect_that(e$light_environment$xy, is_identical_to(env$xy))
+    spline <- e$light_environment
+    expect_that(spline$size, equals(0))
+    expect_that(spline$x, equals(numeric(0)))
+  })
 
-  hmid <- (hh[-1] + hh[-length(hh)])/2
-  expect_that(sapply(hmid, e$light_environment$eval),
-              is_identical_to(sapply(hmid, env$eval)))
-})
+  test_that("Manually set environment", {
+    e <- make_environment(Parameters(x)())
+    ## Now, set the light environment.
+    hh <- seq(0, 10, length.out=101)
+    light_env <- function(x) {
+      exp(x/(max(hh)*2)) - 1 + (1 - (exp(.5) - 1))/2
+    }
+    ee <- light_env(hh)
+    env <- Interpolator()
+    env$init(hh, ee)
 
-test_that("Disturbance related parameters", {
-  e <- make_environment(FFW16_Parameters())
-  expect_that(e$time, is_identical_to(0.0))
-  expect_that(e$patch_survival_conditional(e$time), is_identical_to(1.0))
+    ## And set it
+    e$light_environment <- env
 
-  disturbance <- Disturbance(30.0)
-  e$time <- 10
-  expect_that(e$patch_survival_conditional(0),
-              is_identical_to(disturbance$pr_survival_conditional(e$time, 0)))
-  expect_that(e$patch_survival_conditional(2),
-              is_identical_to(disturbance$pr_survival_conditional(e$time, 2)))
+    expect_that(e$light_environment$xy, is_identical_to(env$xy))
 
-  expect_that(e$disturbance_regime, is_a("Disturbance"))
-})
+    hmid <- (hh[-1] + hh[-length(hh)])/2
+    expect_that(sapply(hmid, e$light_environment$eval),
+                is_identical_to(sapply(hmid, env$eval)))
+  })
 
-test_that("Seed rain related parameters", {
-  e <- make_environment(FFW16_Parameters())
-  expect_that(e$seed_rain_dt,
-              throws_error("Cannot get seed rain for empty environment"))
+  test_that("Disturbance related parameters", {
+    e <- make_environment(Parameters(x)())
+    expect_that(e$time, is_identical_to(0.0))
+    expect_that(e$patch_survival_conditional(e$time), is_identical_to(1.0))
 
-  x <- c(.1, .2)
-  e <- test_environment(10, n_strategies=2, seed_rain=x)
+    disturbance <- Disturbance(30.0)
+    e$time <- 10
+    expect_that(e$patch_survival_conditional(0),
+                is_identical_to(disturbance$pr_survival_conditional(e$time, 0)))
+    expect_that(e$patch_survival_conditional(2),
+                is_identical_to(disturbance$pr_survival_conditional(e$time, 2)))
 
-  expect_that(e$seed_rain_dt, is_identical_to(x[[1]]))
-  e$set_seed_rain_index(1)
-  expect_that(e$seed_rain_dt, is_identical_to(x[[1]]))
-  e$set_seed_rain_index(2)
-  expect_that(e$seed_rain_dt, is_identical_to(x[[2]]))
-  expect_that(e$set_seed_rain_index(0),
-              throws_error("Invalid value for index"))
-  expect_that(e$set_seed_rain_index(3),
-              throws_error("Index 3 out of bounds"))
-})
+    expect_that(e$disturbance_regime, is_a("Disturbance"))
+  })
+
+  test_that("Seed rain related parameters", {
+    e <- make_environment(Parameters(x)())
+    expect_that(e$seed_rain_dt,
+                throws_error("Cannot get seed rain for empty environment"))
+
+    x <- c(.1, .2)
+    e <- test_environment(10, n_strategies=2, seed_rain=x)
+
+    expect_that(e$seed_rain_dt, is_identical_to(x[[1]]))
+    e$set_seed_rain_index(1)
+    expect_that(e$seed_rain_dt, is_identical_to(x[[1]]))
+    e$set_seed_rain_index(2)
+    expect_that(e$seed_rain_dt, is_identical_to(x[[2]]))
+    expect_that(e$set_seed_rain_index(0),
+                throws_error("Invalid value for index"))
+    expect_that(e$set_seed_rain_index(3),
+                throws_error("Index 3 out of bounds"))
+  })
+}

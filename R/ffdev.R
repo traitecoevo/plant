@@ -67,14 +67,3 @@ FFdev_StochasticPatchRunner <- function(p) {
 FFdev_PlantPlus <- function(s) {
   PlantPlus("FFdev")(s)
 }
-
-## Helper:
-## TODO: consider directly using the C++ version in environment.h
-##' @export
-##' @rdname Environment
-##' @param p A Parameters object
-make_environment <- function(p) {
-  Environment(p$disturbance_mean_interval,
-              p$seed_rain,
-              p$control)
-}

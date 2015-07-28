@@ -1,4 +1,20 @@
-##' Create an instance of reference version of growth model
+##' Create an instance of reference version for specified growth model
+##'
+##' @title Reference Growth Model
+##' @return An object with a number of methods (accessed with
+##' \code{$}).  These will hopefully be documented at some point.
+##' @author Daniel S. Falster (extra code and porting by Rich
+##' FitzJohn)
+##' @export
+make_reference_plant <- function(type) {
+  if(type=="FFW16")
+    ret <- make_reference_plant_FFW16()
+  else
+    ret <- NULL
+  ret
+}
+
+##' Create an instance of reference version of growth model FFW16
 ##'
 ##' This is an old version of the growth model, implemented by Daniel
 ##' Falster.  It does \emph{not} implement any of the actual growth.
@@ -11,8 +27,9 @@
 ##' @author Daniel S. Falster (extra code and porting by Rich
 ##' FitzJohn)
 ##' @export
-make_reference_plant <- function() {
-  path <- system.file("reference_plant", package=.packageName)
+make_reference_plant_FFW16 <- function() {
+
+  path <- system.file("reference_plant_ffw16", package=.packageName)
 
   e <- new.env()
   source(file.path(path, "R/params.r"), local=e)
