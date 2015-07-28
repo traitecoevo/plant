@@ -365,3 +365,26 @@ assembly_parameters <- function(..., pars=NULL) {
   }
   p
 }
+
+ebt_to_internals <- function(obj, use_environment=TRUE) {
+  dat <- lapply(seq_along(obj$time), function(i)
+    patch_to_internals(ebt_patch(i, obj), use_environment))
+  f <- function(i) {
+    aperm(pad_list_to_array(lapply(dat, function(x) t(x[[i]]))), c(1, 3, 2))
+  }
+  lapply(seq_along(dat[[1]]), f)
+}
+
+patch_to_internals <- function(x, use_environment=TRUE) {
+  env <- if (use_environment) x$environment else NULL
+  lapply(x$species, species_to_internals, env)
+}
+
+species_to_internals <- function(sp, environment=NULL) {
+  sp_pp <- lapply(sp$cohorts, function(x)
+    plant_to_plant_plus(x$plant, environment))
+  ints <- do.call("rbind", lapply(sp_pp, function(x) unlist(x$internals)))
+  cbind(ints,
+        log_density=sp$log_densities,
+        seeds_survival_weighted=sp$seeds)
+}

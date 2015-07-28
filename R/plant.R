@@ -167,3 +167,16 @@ grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
     list(time=root$root, state=runner$state, plant=runner$object$plant)
   }
 }
+
+## This will get merged into RcppR6, so may change!
+plant_to_plant_plus <- function(x, ...) {
+  UseMethod("plant_to_plant_plus")
+}
+##' @export
+`plant_to_plant_plus.Plant<FFW16>` <- function(x, ...) {
+  FFW16_plant_to_plant_plus(x, ...)
+}
+##' @export
+`plant_to_plant_plus.Plant<FFdev>` <- function(x, ...) {
+  FFdev_plant_to_plant_plus(x, ...)
+}

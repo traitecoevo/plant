@@ -21,6 +21,33 @@ test_that("collect / make_patch", {
     Disturbance(p1$disturbance_mean_interval)$density(res$time)
   expect_that(res$patch_density,
               equals(cmp_patch_density))
+
+  dat <- patch_to_internals(p1_113)
+  expect_that(dat, is_a("list"))
+  expect_that(length(dat), equals(1))
+
+  dat <- dat[[1]]
+  expect_that(dat, is_a("matrix"))
+  expect_that(nrow(dat), equals(length(p1_113$species[[1]]$cohorts)))
+  n_int <- length(PlantPlus("FFW16")(p1$strategies[[1]])$internals)
+  expect_that(ncol(dat), equals(n_int + 2L))
+
+  ## NOTE: this currently takes *longer* than the EBT to run due to (I
+  ## think) the RcppR6 calling being pretty inefficient in this case.
+  ## I should really benchmark it and see why it is so slow, but
+  ## possibly we could do this within C++ for a major speedup.
+  ints <- ebt_to_internals(res)
+
+  n_times <- length(p1$cohort_schedule_times[[1]])
+  expect_that(length(ints), equals(1))
+  ints <- ints[[1]]
+  expect_that(ints, is_a("array"))
+  expect_that(length(dim(ints)), equals(3))
+  expect_that(dim(ints), equals(c(n_int + 2L, n_times + 1, n_times)))
+
+  v <- rownames(res$species[[1]])
+  expect_that(all(v %in% rownames(ints)), is_true())
+  expect_that(ints[v, , ], equals(res$species[[1]]))
 })
 
 test_that("expand_parameters", {
