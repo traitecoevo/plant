@@ -2,7 +2,9 @@
 % Please edit documentation in R/ebt_support.R
 \name{make_FFW16_hyperpar}
 \alias{FFW16_hyperpar}
+\alias{hyperpar}
 \alias{make_FFW16_hyperpar}
+\alias{make_hyperpar}
 \title{Hyperparameters for plant}
 \usage{
 make_FFW16_hyperpar(B4 = 1.71, lma_0 = 0.1978791, k_l_0 = 0.4565855,
@@ -10,6 +12,10 @@ make_FFW16_hyperpar(B4 = 1.71, lma_0 = 0.1978791, k_l_0 = 0.4565855,
   narea_0 = 0.00187)
 
 FFW16_hyperpar(m, s, filter = TRUE)
+
+make_hyperpar(type)
+
+hyperpar(type)
 }
 \arguments{
 \item{B4}{Slope of lma / leaf turnover log-log relationship}
@@ -36,6 +42,10 @@ FFW16_hyperpar(m, s, filter = TRUE)
 
 \item{filter}{Logical, indicating if generated parameters that are
 the same as the default should be removed.}
+
+\item{type}{Either \code{"FFW16"} or \code{"FFdev"}.}
+
+\item{type}{Either \code{"FFW16"} or \code{"FFdev"}.}
 }
 \description{
 Hyperparameters for plant

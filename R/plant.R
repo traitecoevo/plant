@@ -168,6 +168,8 @@ grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
   }
 }
 
+## These are waiting on RcppR6 #23 and plant #164
+
 ## This will get merged into RcppR6, so may change!
 plant_to_plant_plus <- function(x, ...) {
   UseMethod("plant_to_plant_plus")
@@ -179,4 +181,22 @@ plant_to_plant_plus <- function(x, ...) {
 ##' @export
 `plant_to_plant_plus.Plant<FFdev>` <- function(x, ...) {
   FFdev_plant_to_plant_plus(x, ...)
+}
+
+##' Compute the whole plant light compensation point for a single
+##' plant.
+##' @title Whole plant light compensation point
+##' @param p A \code{PlantPlus}, with strategy, height, etc set.
+##' @export
+##' @author Rich FitzJohn
+lcp_whole_plant <- function(p, ...) {
+  UseMethod("lcp_whole_plant")
+}
+##' @export
+`lcp_whole_plant.PlantPlus<FFW16>` <- function(p, ...) {
+  FFW16_lcp_whole_plant(p, ...)
+}
+##' @export
+`lcp_whole_plant.PlantPlus<FFdev>` <- function(p, ...) {
+  FFdev_lcp_whole_plant(p, ...)
 }

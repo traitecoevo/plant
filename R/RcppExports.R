@@ -65,14 +65,12 @@ fixed_environment <- function(canopy_openness, height_max = 150.0) {
     .Call('plant_fixed_environment', PACKAGE = 'plant', canopy_openness, height_max)
 }
 
-#' Compute the whole plant light compensation point for a single
-#' plant.
-#' @title Whole plant light compensation point
-#' @param p A \code{Plant}, with strategy, height, etc set.
-#' @export
-#' @author Rich FitzJohn
-lcp_whole_plant <- function(p) {
-    .Call('plant_lcp_whole_plant', PACKAGE = 'plant', p)
+FFW16_lcp_whole_plant <- function(p) {
+    .Call('plant_FFW16_lcp_whole_plant', PACKAGE = 'plant', p)
+}
+
+FFdev_lcp_whole_plant <- function(p) {
+    .Call('plant_FFdev_lcp_whole_plant', PACKAGE = 'plant', p)
 }
 
 Lorenz__ctor <- function(sigma, R, b) {

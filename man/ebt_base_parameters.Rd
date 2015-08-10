@@ -4,7 +4,7 @@
 \alias{ebt_base_parameters}
 \title{Sensible, fast (ish) EBT parameters}
 \usage{
-ebt_base_parameters()
+ebt_base_parameters(type = "FFW16")
 }
 \description{
 Hopefully sensible set of parameters for use with the EBT.  Turns

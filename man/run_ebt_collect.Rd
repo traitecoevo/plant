@@ -7,7 +7,7 @@
 run_ebt_collect(p, include_area_leaf = FALSE)
 }
 \arguments{
-\item{p}{A \code{\link{FFW16_Parameters}} object}
+\item{p}{A \code{Parameters} object}
 
 \item{include_area_leaf}{Include total leaf area (will change; see
 issue #138)}

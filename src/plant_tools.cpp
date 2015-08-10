@@ -16,23 +16,6 @@ Environment fixed_environment(double canopy_openness,
   return ret;
 }
 
-double lcp_whole_plant(PlantPlus<FFW16_Strategy> p) {
-  auto target = [&] (double x) mutable -> double {
-    Environment env = fixed_environment(x);
-    p.compute_vars_phys(env);
-    return p.net_mass_production_dt();
-  };
-
-  const double f1 = target(1.0);
-  if (f1 < 0.0) {
-    return NA_REAL;
-  } else {
-    const double tol = p.control().plant_seed_tol;
-    const size_t max_iterations = p.control().plant_seed_iterations;
-    return util::uniroot(target, 0.0, 1.0, tol, max_iterations);
-  }
-}
-
 }
 }
 
@@ -60,13 +43,14 @@ plant::Environment fixed_environment(double canopy_openness,
   return plant::tools::fixed_environment(canopy_openness, height_max);
 }
 
-//' Compute the whole plant light compensation point for a single
-//' plant.
-//' @title Whole plant light compensation point
-//' @param p A \code{Plant}, with strategy, height, etc set.
-//' @export
-//' @author Rich FitzJohn
+
+// Technical debt: (See RcppR6 #23 and plant #164)
+
 // [[Rcpp::export]]
-double lcp_whole_plant(plant::PlantPlus<plant::FFW16_Strategy> p) {
+double FFW16_lcp_whole_plant(plant::PlantPlus<plant::FFW16_Strategy> p) {
+  return plant::tools::lcp_whole_plant(p);
+}
+// [[Rcpp::export]]
+double FFdev_lcp_whole_plant(plant::PlantPlus<plant::FFdev_Strategy> p) {
   return plant::tools::lcp_whole_plant(p);
 }

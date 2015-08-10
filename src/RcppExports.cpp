@@ -106,14 +106,25 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// lcp_whole_plant
-double lcp_whole_plant(plant::PlantPlus<plant::FFW16_Strategy> p);
-RcppExport SEXP plant_lcp_whole_plant(SEXP pSEXP) {
+// FFW16_lcp_whole_plant
+double FFW16_lcp_whole_plant(plant::PlantPlus<plant::FFW16_Strategy> p);
+RcppExport SEXP plant_FFW16_lcp_whole_plant(SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::PlantPlus<plant::FFW16_Strategy> >::type p(pSEXP);
-    __result = Rcpp::wrap(lcp_whole_plant(p));
+    __result = Rcpp::wrap(FFW16_lcp_whole_plant(p));
+    return __result;
+END_RCPP
+}
+// FFdev_lcp_whole_plant
+double FFdev_lcp_whole_plant(plant::PlantPlus<plant::FFdev_Strategy> p);
+RcppExport SEXP plant_FFdev_lcp_whole_plant(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::PlantPlus<plant::FFdev_Strategy> >::type p(pSEXP);
+    __result = Rcpp::wrap(FFdev_lcp_whole_plant(p));
     return __result;
 END_RCPP
 }
