@@ -1,7 +1,7 @@
 ##' Run system to seed rain equilibrium
 ##'
 ##' @title Run system to seed rain equilibrium
-##' @param p A \code{\link{FFW16_Parameters}} object
+##' @param p A \code{\link{Parameters}} object
 ##' @return A Parameters object, with seed rain and cohort schedule
 ##' elements set.
 ##' @export

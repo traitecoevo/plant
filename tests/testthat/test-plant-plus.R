@@ -122,12 +122,12 @@ for (x in names(strategy_types)) {
     p$height <- 10
     env <- test_environment(p$height)
 
-    pp1 <- FFW16_plant_to_plant_plus(p, NULL)
+    pp1 <- plant_to_plant_plus(p, NULL)
     expect_that(pp1, is_a(sprintf("PlantPlus<%s>",x)))
     expect_that(pp1$internals$assimilation, equals(NA_real_))
     expect_that(pp1$height, equals(p$height))
 
-    pp2 <- FFW16_plant_to_plant_plus(p, env)
+    pp2 <- plant_to_plant_plus(p, env)
     expect_that(pp2$internals$assimilation, is_more_than(0))
     pp1$compute_vars_phys(env)
     pp1$compute_vars_growth()

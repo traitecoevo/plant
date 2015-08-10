@@ -53,7 +53,8 @@ equilibrium_quiet <- function(base=Control()) {
 ##' @author Rich FitzJohn
 ##' @export
 run_ebt <- function(p, use_ode_times=FALSE) {
-  ebt <- FFW16_EBT(p)
+  type <- extract_RcppR6_template_type(p, "Parameters")
+  ebt <- EBT(type)(p)
   if (use_ode_times) {
     ebt$use_ode_times <- TRUE
   }
@@ -81,7 +82,7 @@ ebt_base_parameters <- function(type="FFW16") {
 ##' Consider this function liable to change.
 ##'
 ##' @title Run the EBT, Collecting Output
-##' @param p A \code{\link{FFW16_Parameters}} object
+##' @param p A \code{Parameters} object
 ##' @param include_area_leaf Include total leaf area (will change; see
 ##' issue #138)
 ##' @author Rich FitzJohn
@@ -103,8 +104,9 @@ run_ebt_collect <- function(p, include_area_leaf=FALSE) {
     ret
   }
   collect <- if (include_area_leaf) collect_area_leaf else collect_default
+  type <- extract_RcppR6_template_type(p, "Parameters")
 
-  ebt <- FFW16_EBT(p)
+  ebt <- EBT(type)(p)
   res <- list(collect(ebt))
 
   while (!ebt$complete) {
@@ -150,8 +152,9 @@ run_ebt_collect <- function(p, include_area_leaf=FALSE) {
 ##' @param p Parameters object
 ##' @export
 make_patch <- function(state, p) {
+  type <- extract_RcppR6_template_type(p, "Parameters")
   n <- viapply(state$species, ncol)
-  patch <- FFW16_Patch(p)
+  patch <- Patch(type)(p)
   patch$set_state(state$time, unlist(state$species), n, state$light_env)
   patch
 }
@@ -176,7 +179,8 @@ ebt_patch <- function(i, x) {
 }
 
 run_ebt_error <- function(p) {
-  ebt <- FFW16_EBT(p)
+  type <- extract_RcppR6_template_type(p, "Parameters")
+  ebt <- EBT(type)(p)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)

@@ -38,8 +38,8 @@ run_stochastic_collect <- function(p, random_schedule=TRUE) {
   collect <- function(obj) {
     obj$state
   }
-
-  obj <- FFW16_StochasticPatchRunner(p)
+  type <- extract_RcppR6_template_type(p, "Parameters")
+  obj <- StochasticPatchRunner(type)(p)
   if (random_schedule) {
     obj$schedule <- stochastic_schedule(p)
   }

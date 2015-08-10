@@ -7,10 +7,13 @@
 ##' FitzJohn)
 ##' @export
 make_reference_plant <- function(type) {
-  if(type=="FFW16")
+  if (type == "FFW16") {
     ret <- make_reference_plant_FFW16()
-  else
+  } else {
+    ## TODO: Why does this not throw?
+    stop("No reference plant for type ", type)
     ret <- NULL
+  }
   ret
 }
 
