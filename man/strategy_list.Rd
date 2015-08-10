@@ -17,12 +17,12 @@ plant_list(x, parameters)
 }
 \arguments{
 \item{x}{Values for the trait.  This must be a \emph{matrix}, with
-column names corresponding to entries in \code{Strategy} and rows
-representing different values.}
+column names corresponding to entries in \code{Strategy} and
+rows representing different values.}
 
-\item{parameters}{\code{\link{FFW16_Parameters}} object containing
-default strategy to modify, plus an optional
-hyperparameterisation (see \code{\link{make_FFW16_hyperpar}}).}
+\item{parameters}{\code{\link{Parameters}} object containing a
+  default strategy to modify.  Any hyperparameterisation included
+  will be applied.}
 }
 \description{
 Create a list of Strategies or Plants by varying a single trait.

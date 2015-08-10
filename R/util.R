@@ -194,3 +194,12 @@ assert_named_if_not_empty <- function(x, name=deparse(substitute(x))) {
 modify_list <- function(x, val) {
   modifyList(x, val[intersect(names(val), names(x))])
 }
+
+extract_RcppR6_template_type <- function(x, base) {
+  cl <- class(x)[[1]]
+  re <- sprintf("^%s<([^>]+)>$", base)
+  if (!grepl(re, cl)) {
+    stop("Unexpected type ", cl)
+  }
+  sub(re, "\\1", cl)
+}

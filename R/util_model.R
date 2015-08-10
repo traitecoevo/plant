@@ -2,11 +2,12 @@
 ##'
 ##' @title Create a list of Strategies
 ##' @param x Values for the trait.  This must be a \emph{matrix}, with
-##' column names corresponding to entries in \code{Strategy} and rows
-##' representing different values.
-##' @param parameters \code{\link{FFW16_Parameters}} object containing
-##' default strategy to modify, plus an optional
-##' hyperparameterisation (see \code{\link{make_FFW16_hyperpar}}).
+##'   column names corresponding to entries in \code{Strategy} and
+##'   rows representing different values.
+##' @param parameters \code{\link{Parameters}} object containing a
+##'   default strategy to modify.  Any hyperparameterisation included
+##'   will be applied.
+##'
 ##' @export
 strategy_list <- function(x, parameters) {
   if (!is.matrix(x)) {
@@ -45,7 +46,11 @@ strategy <- function(x, parameters) {
 ##' @rdname strategy_list
 ##' @export
 plant_list <- function(x, parameters) {
-  lapply(strategy_list(x, parameters), FFW16_Plant)
+  if (!inherits(parameters, "Parameters")) {
+    stop("parameters must be a 'Parameters' object")
+  }
+  type <- extract_RcppR6_template_type(parameters, "Parameters")
+  lapply(strategy_list(x, parameters), Plant(type))
 }
 
 ##' Helper function to create trait matrices suitable for

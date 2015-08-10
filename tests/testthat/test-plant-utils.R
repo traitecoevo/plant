@@ -55,3 +55,25 @@ for (x in names(strategy_types)) {
     expect_that(cohort_schedule$times(2), is_identical_to(tt))
   })
 }
+
+test_that("strategy_list", {
+  for (x in names(strategy_types)) {
+    p <- Parameters(x)()
+    s <- strategy_list(trait_matrix(1, "lma"), p)
+    expect_that(length(s), equals(1))
+    expect_that(s, is_a("list"))
+    expect_that(s[[1]], is_a(sprintf("%s_Strategy", x)))
+  }
+})
+
+test_that("plant_list", {
+  for (x in names(strategy_types)) {
+    p <- Parameters(x)()
+
+    obj <- plant_list(trait_matrix(1, "lma"), p)
+    expect_that(length(s), equals(1))
+    expect_that(obj, is_a("list"))
+    expect_that(obj[[1]], is_a("Plant"))
+    expect_that(obj[[1]], is_a(sprintf("Plant<%s>", x)))
+  }
+})

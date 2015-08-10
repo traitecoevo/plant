@@ -4,20 +4,14 @@
 \alias{make_reference_plant}
 \title{Reference Growth Model}
 \usage{
-make_reference_plant()
+make_reference_plant(type)
 }
 \value{
 An object with a number of methods (accessed with
 \code{$}).  These will hopefully be documented at some point.
 }
 \description{
-Create an instance of reference version of growth model
-}
-\details{
-This is an old version of the growth model, implemented by Daniel
-Falster.  It does \emph{not} implement any of the actual growth.
-It is used in testing code to make sure that the full model
-version gives sensible results.
+Create an instance of reference version for specified growth model
 }
 \author{
 Daniel S. Falster (extra code and porting by Rich
