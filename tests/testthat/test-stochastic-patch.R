@@ -1,14 +1,9 @@
+context("StochasticPatch")
 
+strategy_types <- get_list_of_strategy_types()
 
-## TODO: Remove ["FFW16"] to test this with all types. But first
-## requires issue #162 to be resolved
-strategy_types <- get_list_of_strategy_types()["FFW16"]
-
-for (x in names(strategy_types)) {
-
-  context(sprintf("StochasticPatch-%s",x))
-
-  test_that("empty", {
+test_that("empty", {
+  for (x in names(strategy_types)) {
     p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE)
@@ -27,9 +22,11 @@ for (x in names(strategy_types)) {
     expect_that(length(sp), equals(1))
     expect_that(sp[[1]], is_a(sprintf("StochasticSpecies<%s>",x)))
     expect_that(sp[[1]]$size, equals(0))
-  })
+  }
+})
 
-  test_that("non empty", {
+test_that("non empty", {
+  for (x in names(strategy_types)) {
     p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE)
@@ -50,6 +47,11 @@ for (x in names(strategy_types)) {
     expect_that(max(le$y), equals(1.0))
     expect_that(le$y[[1]], is_less_than(1.0))
 
-    expect_that(all(patch$ode_rates > 0.0), is_true())
-  })
-}
+    if (x == "FFW16") {
+      expect_that(all(patch$ode_rates > 0.0), is_true())
+    } else if (x == "FFdev") {
+      expect_that(all(patch$ode_rates[-3] > 0.0), is_true())
+      expect_that(patch$ode_rates[[3]], equals(0))
+    }
+  }
+})

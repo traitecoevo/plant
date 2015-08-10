@@ -1,14 +1,9 @@
+context("EBT")
 
-## TODO: Remove ["FFW16"] to test this with all types. But first
-## requires issue #162 to be resolved
-strategy_types <- get_list_of_strategy_types()["FFW16"]
+strategy_types <- get_list_of_strategy_types()
 
-for (x in names(strategy_types)) {
-
-  context(sprintf("EBT-%s",x))
-
-  test_that("Ported from tree1", {
-
+test_that("Ported from tree1", {
+  for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
     plant <- Plant(x)(s)
     cohort <- Cohort(x)(s)
@@ -166,7 +161,8 @@ for (x in names(strategy_types)) {
     ebt$reset()
     res_e_4 <- run_ebt_test(ebt)
     expect_that(res_e_4, is_identical_to(res_e_3))
-  })
+  }
+})
 
   # test_that("", {
   #   p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
@@ -302,4 +298,3 @@ for (x in names(strategy_types)) {
   # ##   expect_that(env$light_environment$size, equals(0))
   # ##   expect_that(env$canopy_openness(0), equals(1.0))
   # ## })
-}

@@ -1,14 +1,11 @@
+context("PlantPlus")
 
 ## TODO: Remove ["FFW16"] to test this with all types. But first
 ## requires issue #162 to be resolved
-strategy_types <- get_list_of_strategy_types()["FFW16"]
+strategy_types <- get_list_of_strategy_types()
 
-for (x in names(strategy_types)) {
-
-  context(sprintf("PlantPlus-%s",x))
-
-  test_that("Seed bits", {
-
+test_that("Seed bits", {
+  for (x in names(strategy_types)) {
     ## Seed stuff:
     s <- strategy_types[[x]]()
     seed <- PlantPlus(x)(s)
@@ -19,26 +16,26 @@ for (x in names(strategy_types)) {
     expect_that(seed$internals[["mass_live"]],
                 equals(s$mass_seed, tolerance=1e-7))
 
-    cmp <- make_reference_plant(x)
-    if(!is.null(cmp)) {
-
+    cmp <- try(make_reference_plant(x), silent=TRUE)
+    if (!inherits(cmp, "try-error")) {
       ## Check that the height at birth is correct.  These answers are
       ## actually quite different, which could come from the root finding?
       expect_that(seed$height,
-              equals(cmp$height.at.birth(cmp$traits), tolerance=1e-4))
+                  equals(cmp$height.at.birth(cmp$traits), tolerance=1e-4))
 
       ## Then, check the germination probabilities in the current light
       ## environment:
       expect_that(seed$germination_probability(env),
                   equals(cmp$germination.probability(cmp$traits, light_env),
                          tolerance=1e-5))
-      }
-  })
+    }
+  }
+})
 
-  ## TODO: Missing here: all the plant growing stuff.  Move that
-  ## elsewhere.
-
-  test_that("Assimilation over distribution", {
+## TODO: Missing here: all the plant growing stuff.  Move that
+## elsewhere.
+test_that("Assimilation over distribution", {
+  for (x in names(strategy_types)) {
     s1 <- strategy_types[[x]]()
     p1 <- PlantPlus(x)(s1)
 
@@ -58,9 +55,11 @@ for (x in names(strategy_types)) {
     ## Result is similar but not identical:
     expect_that(p2_vars, equals(p1_vars, tolerance=1e-7))
     expect_that(p2_vars, not(is_identical_to(p1_vars)))
-  })
+  }
+})
 
-  test_that("Non-adaptive assimilation integration works", {
+test_that("Non-adaptive assimilation integration works", {
+  for (x in names(strategy_types)) {
     c1 <- Control(plant_assimilation_adaptive=TRUE,
                   plant_assimilation_over_distribution=TRUE)
     s1 <- strategy_types[[x]](control=c1)
@@ -84,9 +83,11 @@ for (x in names(strategy_types)) {
     expect_that(p2_vars[["assimilation"]],
                 equals(p1_vars[["assimilation"]], tolerance=1e-3))
     expect_that(p2_vars, not(is_identical_to(p1_vars)))
-  })
+  }
+})
 
-  test_that("Ode interface", {
+test_that("Ode interface", {
+  for (x in names(strategy_types)) {
     p <- PlantPlus(x)(strategy_types[[x]]())
     expect_that(p$ode_size, equals(5))
     expect_that(p$ode_state,
@@ -114,9 +115,11 @@ for (x in names(strategy_types)) {
     expect_that(p$ode_names,
                 is_identical_to(c("height", "mortality", "fecundity",
                                   "area_heartwood", "mass_heartwood")))
-  })
+  }
+})
 
-  test_that("conversions", {
+test_that("conversions", {
+  for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
     p <- Plant(x)(s)
     p$height <- 10
@@ -137,5 +140,5 @@ for (x in names(strategy_types)) {
     expect_that(p2, is_a(sprintf("Plant<%s>",x)))
     expect_that(p2$internals$height_dt, equals(NA_real_))
     expect_that(p2$internals, equals(p$internals))
-  })
-}
+  }
+})

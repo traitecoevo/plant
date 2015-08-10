@@ -1,14 +1,11 @@
-
+context("PlantRunner")
 
 ## TODO: Remove ["FFW16"] to test this with all types. But first
 ## requires issue #162 to be resolved
 strategy_types <- get_list_of_strategy_types()["FFW16"]
 
-for (x in names(strategy_types)) {
-
-  context(sprintf("PlantRunner-%s",x))
-
-  test_that("PlantRunner", {
+test_that("PlantRunner", {
+  for (x in names(strategy_types)) {
     p <- PlantPlus(x)(strategy_types[[x]]())
     env <- test_environment(10)
     p$compute_vars_phys(env)
@@ -49,9 +46,11 @@ for (x in names(strategy_types)) {
     if (interactive()) {
       plot(height ~ time, as.data.frame(m))
     }
-  })
+  }
+})
 
-  test_that("grow_plant_to_size", {
+test_that("grow_plant_to_size", {
+  for (x in names(strategy_types)) {
     env <- test_environment(10)
     heights <- seq(1, 10)
     s <- strategy_types[[x]]()
@@ -91,13 +90,14 @@ for (x in names(strategy_types)) {
     expect_that(all(sapply(obj$plant, inherits, sprintf("PlantPlus<%s>",x))), is_true())
     expect_that(sapply(obj$plant, function(p) p$height),
                 equals(heights, tolerance=1e-6))
-  })
+  }
+})
 
-  ## TODO: another useful function could be to construct splines for
-  ## arbitrary variables during a run; we end up with all the state here
-  ## so that should be fairly straightforward.
-
-  test_that("grow_plant_to_size", {
+## TODO: another useful function could be to construct splines for
+## arbitrary variables during a run; we end up with all the state here
+## so that should be fairly straightforward.
+test_that("grow_plant_to_size", {
+  for (x in names(strategy_types)) {
     strategy <- strategy_types[[x]]()
     pl <- PlantPlus(x)(strategy)
     sizes <- c(1, 5, 10, 12, strategy$hmat)
@@ -137,9 +137,11 @@ for (x in names(strategy_types)) {
       plot(height ~ time, as.data.frame(res2$trajectory), type="l")
       points(res2$time, res2$state[, "height"], pch=19)
     }
-  })
+  }
+})
 
-  test_that("grow_plant_to_time", {
+test_that("grow_plant_to_time", {
+  for (x in names(strategy_types)) {
     strategy <- strategy_types[[x]]()
     pl <- PlantPlus(x)(strategy)
     env <- fixed_environment(1.0)
@@ -155,5 +157,5 @@ for (x in names(strategy_types)) {
     expect_that(all(diff(res$state[, "height"]) > 0), is_true())
 
     expect_that(res$time, is_identical_to(times))
-  })
-}
+  }
+})

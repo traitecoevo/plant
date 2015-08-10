@@ -1,13 +1,9 @@
+context("StochasticPatchRunner")
 
-## TODO: Remove ["FFW16"] to test this with all types. But first
-## requires issue #162 to be resolved
-strategy_types <- get_list_of_strategy_types()["FFW16"]
+strategy_types <- get_list_of_strategy_types()
 
-for (x in names(strategy_types)) {
-
-  context(sprintf("StochasticPatchRunner-%s",x))
-
-  test_that("empty", {
+test_that("empty", {
+  for (x in names(strategy_types)) {
     set.seed(1)
     p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
@@ -46,9 +42,11 @@ for (x in names(strategy_types)) {
     expect_that(obj$patch$size, equals(1))
 
     expect_that(obj$complete, is_false())
-  })
+  }
+})
 
-  test_that("collect", {
+test_that("collect", {
+  for (x in names(strategy_types)) {
     set.seed(1)
     p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
                           seed_rain=5/50,
@@ -65,5 +63,5 @@ for (x in names(strategy_types)) {
       matplot(res$time, res$species[[1]]["height", , ], type="l",
               lty=1, col="#00000055")
     }
-  })
-}
+  }
+})
