@@ -32,18 +32,6 @@ cohort_schedule_times_default <- function(max_time) {
     .Call('plant_cohort_schedule_times_default', PACKAGE = 'plant', max_time)
 }
 
-cohort_schedule_max_time_default <- function(p) {
-    .Call('plant_r_cohort_schedule_max_time_default', PACKAGE = 'plant', p)
-}
-
-cohort_schedule_default <- function(p) {
-    .Call('plant_r_cohort_schedule_default', PACKAGE = 'plant', p)
-}
-
-make_cohort_schedule <- function(p) {
-    .Call('plant_r_make_cohort_schedule', PACKAGE = 'plant', p)
-}
-
 test_gradient_fd1 <- function(f, x, dx, direction, fx = NA_real_) {
     .Call('plant_test_gradient_fd1', PACKAGE = 'plant', f, x, dx, direction, fx)
 }
@@ -1977,6 +1965,30 @@ StochasticPatchRunner___FFdev__schedule__set <- function(obj_, value) {
 
 StochasticPatchRunner___FFdev__state__get <- function(obj_) {
     .Call('plant_StochasticPatchRunner___FFdev__state__get', PACKAGE = 'plant', obj_)
+}
+
+cohort_schedule_max_time_default__Parameters___FFW16 <- function(p) {
+    .Call('plant_cohort_schedule_max_time_default__Parameters___FFW16', PACKAGE = 'plant', p)
+}
+
+cohort_schedule_max_time_default__Parameters___FFdev <- function(p) {
+    .Call('plant_cohort_schedule_max_time_default__Parameters___FFdev', PACKAGE = 'plant', p)
+}
+
+cohort_schedule_default__Parameters___FFW16 <- function(p) {
+    .Call('plant_cohort_schedule_default__Parameters___FFW16', PACKAGE = 'plant', p)
+}
+
+cohort_schedule_default__Parameters___FFdev <- function(p) {
+    .Call('plant_cohort_schedule_default__Parameters___FFdev', PACKAGE = 'plant', p)
+}
+
+make_cohort_schedule__Parameters___FFW16 <- function(p) {
+    .Call('plant_make_cohort_schedule__Parameters___FFW16', PACKAGE = 'plant', p)
+}
+
+make_cohort_schedule__Parameters___FFdev <- function(p) {
+    .Call('plant_make_cohort_schedule__Parameters___FFdev', PACKAGE = 'plant', p)
 }
 
 test_uniroot <- function(f, min, max) {

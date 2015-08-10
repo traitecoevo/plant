@@ -2,7 +2,7 @@
 
 S3method(plant_to_plant_plus,"Plant<FFW16>")
 S3method(plant_to_plant_plus,"Plant<FFdev>")
-S3method(validate,"Parameters<FFW16>")
+S3method(validate,"Parameters")
 export(CohortSchedule)
 export(Control)
 export(Disturbance)

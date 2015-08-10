@@ -67,12 +67,11 @@ run_ebt <- function(p, use_ode_times=FALSE) {
 ##' @title Sensible, fast (ish) EBT parameters
 ##' @author Rich FitzJohn
 ##' @export
-ebt_base_parameters <- function() {
+ebt_base_parameters <- function(type="FFW16") {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
-  FFW16_Parameters(patch_area=1.0, control=ctrl,
-                   hyperpar=FFW16_hyperpar)
+  Parameters(type)(patch_area=1.0, control=ctrl, hyperpar=hyperpar(type))
 }
 
 ##' Run the EBT model, given a Parameters and CohortSchedule
@@ -331,6 +330,26 @@ FFW16_hyperpar <- make_FFW16_hyperpar()
 ##' @param filter Logical, indicating if generated parameters that are
 ##' the same as the default should be removed.
 FFdev_hyperpar <- make_FFW16_hyperpar()
+
+##' @rdname FFW16_hyperpar
+##' @param type Either \code{"FFW16"} or \code{"FFdev"}.
+##' @export
+make_hyperpar <- function(type) {
+  switch(type,
+         FFW16=make_FFW16_hyperpar,
+         FFdev=make_FFW16_hyperpar,
+         stop("Unknown type ", type))
+}
+
+##' @rdname FFW16_hyperpar
+##' @param type Either \code{"FFW16"} or \code{"FFdev"}.
+##' @export
+hyperpar <- function(type) {
+  switch(type,
+         FFW16=FFW16_hyperpar,
+         FFdev=FFW16_hyperpar,
+         stop("Unknown type ", type))
+}
 
 ##' Helper function for creating parameter objects suitable for an
 ##' assembly.

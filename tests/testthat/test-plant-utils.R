@@ -1,14 +1,11 @@
-
+context("Plant utilities")
 
 ## TODO: Remove ["FFW16"] to test this with all types. But first
 ## requires issue #162 to be resolved
-strategy_types <- get_list_of_strategy_types()["FFW16"]
+strategy_types <- get_list_of_strategy_types()
 
-for (x in names(strategy_types)) {
-
-  context(sprintf("Plant utilities-%s",x))
-
-  test_that("Default times", {
+test_that("Default times", {
+  for (x in names(strategy_types)) {
     ## This is the original function, from tree1:
     cmp_cohort_introduction_times <- function(max_time, multiplier=0.2,
                                               min_step_size=1e-5,
@@ -33,19 +30,23 @@ for (x in names(strategy_types)) {
     expect_that(last(tt), is_less_than(t1))
     expect_that(c(tt, t1),
                 equals(cmp_cohort_introduction_times(t1)))
-  })
+  }
+})
 
-  test_that("Cohort schedule max time", {
+test_that("Cohort schedule max time", {
+  for (x in names(strategy_types)) {
     p <- Parameters(x)()
     t <- cohort_schedule_max_time_default(p)
     d <- Disturbance(p$disturbance_mean_interval)
     expect_that(t, equals(d$cdf(p$control$schedule_patch_survival)))
-  })
+  }
+})
 
-  test_that("Default schedule", {
+test_that("Default schedule", {
+  for (x in names(strategy_types)) {
     p <- Parameters(x)(strategies=list(strategy_types[[x]](), strategy_types[[x]]()),
-                          seed_rain=c(pi/2, pi),
-                          is_resident=c(TRUE, TRUE))
+      seed_rain=c(pi/2, pi),
+      is_resident=c(TRUE, TRUE))
     cohort_schedule <- cohort_schedule_default(p)
     expect_that(cohort_schedule, is_a("CohortSchedule"))
     expect_that(cohort_schedule$n_species, equals(length(p$strategies)))
@@ -53,8 +54,8 @@ for (x in names(strategy_types)) {
     tt <- cohort_schedule_times_default(t_max)
     expect_that(cohort_schedule$times(1), is_identical_to(tt))
     expect_that(cohort_schedule$times(2), is_identical_to(tt))
-  })
-}
+  }
+})
 
 test_that("strategy_list", {
   for (x in names(strategy_types)) {
@@ -71,7 +72,7 @@ test_that("plant_list", {
     p <- Parameters(x)()
 
     obj <- plant_list(trait_matrix(1, "lma"), p)
-    expect_that(length(s), equals(1))
+    expect_that(length(obj), equals(1))
     expect_that(obj, is_a("list"))
     expect_that(obj[[1]], is_a("Plant"))
     expect_that(obj[[1]], is_a(sprintf("Plant<%s>", x)))

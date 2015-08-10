@@ -93,10 +93,13 @@ validate <- function(x, ...) {
   UseMethod("validate")
 }
 ##' @export
-`validate.Parameters<FFW16>` <- function(x, ...) {
+`validate.Parameters` <- function(x, ...) {
+  plant <- parent.env(environment())
   ## TODO: This uses an implementation detail of RcppR6 that is not
-  ## really OK to use; this could change at any moment.
-  Parameters___FFW16__vdor(x)
+  ## really OK to use; this could change at any moment.  Probably I'll
+  ## expose this in some RcppR6 generated code eventually.
+  type <- extract_RcppR6_template_type(x, "Parameters")
+  get(sprintf("Parameters___%s__vdor", type), plant, inherits=FALSE)(x)
 }
 
 loop <- function(X, FUN, ..., parallel=FALSE) {

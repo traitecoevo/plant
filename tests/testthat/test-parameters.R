@@ -1,15 +1,21 @@
+context("Parameters")
 
-## TODO: Remove ["FFW16"] to test this with all types. But first
-## requires issue #162 to be resolved
-strategy_types <- get_list_of_strategy_types()["FFW16"]
-hyperpar_functions <-get_list_of_hyperpar_functions()
+strategy_types <- get_list_of_strategy_types()
 
-for (x in names(strategy_types)) {
-  context(sprintf("Parameters-%s",x))
-  test_that("Creation & defaults", {
+test_that("hyperpar creation", {
+  for (x in names(strategy_types)) {
+    h <- hyperpar(x)
+    expect_that(h, is_a("function"))
+    expect_that(names(formals(h)), equals(c("m", "s", "filter")))
+    expect_that(make_hyperpar(x)(), equals(h))
+  }
+})
+
+test_that("Creation & defaults", {
+  for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
     p <- Parameters(x)()
-    expect_that(p, is_a(sprintf("Parameters<%s>",x)))
+    expect_that(p, is_a(sprintf("Parameters<%s>", x)))
 
     expect_that(length(p$strategies), equals(0))
     expect_that(length(p$is_resident), equals(0))
@@ -19,9 +25,9 @@ for (x in names(strategy_types)) {
                      n_patches=1,    # NOTE: Different to tree 0.1
                      patch_area=1.0, # NOTE: Different to tree 0.1
                      disturbance_mean_interval=30.0,
-                     hyperpar=hyperpar_functions[[x]])
+                     hyperpar=hyperpar(x))
 
-    expect_that(p[names(expected)], is_identical_to(expected))
+    expect_that(p[names(expected)], equals(expected))
     expect_that(p$strategy_default, equals(s))
 
     expect_that(p$cohort_schedule_max_time,
@@ -29,9 +35,11 @@ for (x in names(strategy_types)) {
     expect_that(p$cohort_schedule_times_default,
                 is_identical_to(cohort_schedule_times_default(p$cohort_schedule_max_time)))
     expect_that(p$cohort_schedule_times, is_identical_to(list()))
-  })
+  }
+})
 
-  test_that("Nontrivial creation", {
+test_that("Nontrivial creation", {
+  for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
     p <- Parameters(x)(strategies=list(s))
     expect_that(p$seed_rain, equals(1.0))
@@ -74,9 +82,11 @@ for (x in names(strategy_types)) {
                 is_identical_to(cohort_schedule_times_default(p$cohort_schedule_max_time)))
     expect_that(p$cohort_schedule_times,
                 is_identical_to(list(p$cohort_schedule_times_default)))
-  })
+  }
+})
 
-  test_that("Parameters overwrites Strategy control", {
+test_that("Parameters overwrites Strategy control", {
+  for (x in names(strategy_types)) {
     ctrl <- ctrl_s <- ctrl_p <- Control()
     ## set these just as markers:
     ctrl_s$schedule_eps <- 1
@@ -103,9 +113,11 @@ for (x in names(strategy_types)) {
                            seed_rain=1, is_resident=TRUE)
     expect_that(p2$control, is_identical_to(ctrl_p))
     expect_that(p2$strategies[[1]]$control, is_identical_to(ctrl_p))
-  })
+  }
+})
 
-  test_that("Generate cohort schedule", {
+test_that("Generate cohort schedule", {
+  for (x in names(strategy_types)) {
     p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2, is_resident=TRUE)
     sched <- make_cohort_schedule(p)
@@ -114,22 +126,39 @@ for (x in names(strategy_types)) {
     expect_that(sched$max_time, equals(p$cohort_schedule_max_time))
     expect_that(sched$times(1), equals(p$cohort_schedule_times_default))
     expect_that(sched$all_times, equals(p$cohort_schedule_times))
-  })
+  }
+})
 
-  test_that("Store hyperparams", {
-    p <- Parameters(x)(hyperpar=hyperpar_functions[[x]])
-    expect_that(p$hyperpar, is_identical_to(hyperpar_functions[[x]]))
+test_that("Store hyperparams", {
+  for (x in names(strategy_types)) {
+    p <- Parameters(x)(hyperpar=hyperpar(x))
+    expect_that(p$hyperpar, is_identical_to(hyperpar(x)))
     tmp <- Patch(x)(p)$parameters
-    expect_that(tmp$hyperpar, is_identical_to(hyperpar_functions[[x]]))
-  })
+    expect_that(tmp$hyperpar, is_identical_to(hyperpar(x)))
+  }
+})
 
-  test_that("ebt_base_parameters", {
-    p <- ebt_base_parameters()
-    expect_that(p$hyperpar, equals(hyperpar_functions[[x]]))
-  })
+test_that("Validate", {
+  for (x in names(strategy_types)) {
+    p <- Parameters(x)()
+    expect_that(validate(p), equals(p))
+    p$is_resident <- TRUE
+    expect_that(validate(p), throws_error("Incorrect length is_resident"))
+  }
+})
 
-  test_that("Disturbance interval", {
-    p <- ebt_base_parameters()
+
+test_that("ebt_base_parameters", {
+  for (x in names(strategy_types)) {
+    p <- ebt_base_parameters(x)
+    expect_that(p$hyperpar, equals(hyperpar(x)))
+    expect_that(p, is_a(sprintf("Parameters<%s>", x)))
+  }
+})
+
+test_that("Disturbance interval", {
+  for (x in names(strategy_types)[[1]]) {
+    p <- ebt_base_parameters(x)
     expect_that(p$disturbance_mean_interval, equals(30.0))
     expect_that(p$cohort_schedule_max_time,
                 is_identical_to(cohort_schedule_max_time_default(p)))
@@ -155,5 +184,5 @@ for (x in names(strategy_types)) {
     p$cohort_schedule_times_default <- 1:10
     p$cohort_schedule_time <- list(1:11)
     expect_that(validate(p), equals(p2))
-  })
-}
+  }
+})

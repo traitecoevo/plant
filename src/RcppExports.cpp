@@ -30,39 +30,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// r_cohort_schedule_max_time_default
-double r_cohort_schedule_max_time_default(const plant::Parameters<plant::FFW16_Strategy>& p);
-RcppExport SEXP plant_r_cohort_schedule_max_time_default(SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::FFW16_Strategy>& >::type p(pSEXP);
-    __result = Rcpp::wrap(r_cohort_schedule_max_time_default(p));
-    return __result;
-END_RCPP
-}
-// r_cohort_schedule_default
-plant::CohortSchedule r_cohort_schedule_default(const plant::Parameters<plant::FFW16_Strategy>& p);
-RcppExport SEXP plant_r_cohort_schedule_default(SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::FFW16_Strategy>& >::type p(pSEXP);
-    __result = Rcpp::wrap(r_cohort_schedule_default(p));
-    return __result;
-END_RCPP
-}
-// r_make_cohort_schedule
-plant::CohortSchedule r_make_cohort_schedule(const plant::Parameters<plant::FFW16_Strategy>& p);
-RcppExport SEXP plant_r_make_cohort_schedule(SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::FFW16_Strategy>& >::type p(pSEXP);
-    __result = Rcpp::wrap(r_make_cohort_schedule(p));
-    return __result;
-END_RCPP
-}
 // test_gradient_fd1
 double test_gradient_fd1(Rcpp::Function f, double x, double dx, int direction, double fx);
 RcppExport SEXP plant_test_gradient_fd1(SEXP fSEXP, SEXP xSEXP, SEXP dxSEXP, SEXP directionSEXP, SEXP fxSEXP) {
@@ -5406,6 +5373,72 @@ BEGIN_RCPP
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > >::type obj_(obj_SEXP);
     __result = Rcpp::wrap(StochasticPatchRunner___FFdev__state__get(obj_));
+    return __result;
+END_RCPP
+}
+// cohort_schedule_max_time_default__Parameters___FFW16
+double cohort_schedule_max_time_default__Parameters___FFW16(const plant::Parameters<plant::FFW16_Strategy>& p);
+RcppExport SEXP plant_cohort_schedule_max_time_default__Parameters___FFW16(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FFW16_Strategy>& >::type p(pSEXP);
+    __result = Rcpp::wrap(cohort_schedule_max_time_default__Parameters___FFW16(p));
+    return __result;
+END_RCPP
+}
+// cohort_schedule_max_time_default__Parameters___FFdev
+double cohort_schedule_max_time_default__Parameters___FFdev(const plant::Parameters<plant::FFdev_Strategy>& p);
+RcppExport SEXP plant_cohort_schedule_max_time_default__Parameters___FFdev(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FFdev_Strategy>& >::type p(pSEXP);
+    __result = Rcpp::wrap(cohort_schedule_max_time_default__Parameters___FFdev(p));
+    return __result;
+END_RCPP
+}
+// cohort_schedule_default__Parameters___FFW16
+plant::CohortSchedule cohort_schedule_default__Parameters___FFW16(const plant::Parameters<plant::FFW16_Strategy>& p);
+RcppExport SEXP plant_cohort_schedule_default__Parameters___FFW16(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FFW16_Strategy>& >::type p(pSEXP);
+    __result = Rcpp::wrap(cohort_schedule_default__Parameters___FFW16(p));
+    return __result;
+END_RCPP
+}
+// cohort_schedule_default__Parameters___FFdev
+plant::CohortSchedule cohort_schedule_default__Parameters___FFdev(const plant::Parameters<plant::FFdev_Strategy>& p);
+RcppExport SEXP plant_cohort_schedule_default__Parameters___FFdev(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FFdev_Strategy>& >::type p(pSEXP);
+    __result = Rcpp::wrap(cohort_schedule_default__Parameters___FFdev(p));
+    return __result;
+END_RCPP
+}
+// make_cohort_schedule__Parameters___FFW16
+plant::CohortSchedule make_cohort_schedule__Parameters___FFW16(const plant::Parameters<plant::FFW16_Strategy>& p);
+RcppExport SEXP plant_make_cohort_schedule__Parameters___FFW16(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FFW16_Strategy>& >::type p(pSEXP);
+    __result = Rcpp::wrap(make_cohort_schedule__Parameters___FFW16(p));
+    return __result;
+END_RCPP
+}
+// make_cohort_schedule__Parameters___FFdev
+plant::CohortSchedule make_cohort_schedule__Parameters___FFdev(const plant::Parameters<plant::FFdev_Strategy>& p);
+RcppExport SEXP plant_make_cohort_schedule__Parameters___FFdev(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FFdev_Strategy>& >::type p(pSEXP);
+    __result = Rcpp::wrap(make_cohort_schedule__Parameters___FFdev(p));
     return __result;
 END_RCPP
 }

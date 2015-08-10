@@ -50,23 +50,3 @@ std::vector<double> cohort_schedule_times_default(double max_time) {
 std::vector<double> cohort_schedule_times_default(double max_time) {
   return plant::cohort_schedule_times_default(max_time);
 }
-
-// These two have the slighty odd export to prevent argument dependent
-// lookup, which renders the version in plant:: a candidate.  It might
-// be better to have RcppExports refer to
-// ::cohort_schedule_max_time_default, but that's not how it's
-// implemented.
-// [[Rcpp::export(cohort_schedule_max_time_default)]]
-double r_cohort_schedule_max_time_default(const plant::Parameters<plant::FFW16_Strategy>& p) {
-  return plant::cohort_schedule_max_time_default(p);
-}
-
-// [[Rcpp::export(cohort_schedule_default)]]
-plant::CohortSchedule r_cohort_schedule_default(const plant::Parameters<plant::FFW16_Strategy>& p) {
-  return plant::cohort_schedule_default(p);
-}
-
-// [[Rcpp::export(make_cohort_schedule)]]
-plant::CohortSchedule r_make_cohort_schedule(const plant::Parameters<plant::FFW16_Strategy>& p) {
-  return plant::make_cohort_schedule(p);
-}
