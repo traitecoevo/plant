@@ -20,7 +20,7 @@ plant_list(x, parameters)
 column names corresponding to entries in \code{Strategy} and
 rows representing different values.}
 
-\item{parameters}{\code{\link{Parameters}} object containing a
+\item{parameters}{\code{Parameters} object containing a
   default strategy to modify.  Any hyperparameterisation included
   will be applied.}
 }

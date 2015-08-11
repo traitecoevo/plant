@@ -5,8 +5,10 @@
 ##' \code{$}).  These will hopefully be documented at some point.
 ##' @author Daniel S. Falster (extra code and porting by Rich
 ##' FitzJohn)
+##' @param type name of model to make a reference plant for (only FFW16
+##' supported at present).
 ##' @export
-make_reference_plant <- function(type) {
+make_reference_plant <- function(type="FFW16") {
   if (type == "FFW16") {
     ret <- make_reference_plant_FFW16()
   } else {

@@ -6,6 +6,9 @@
 \usage{
 ebt_base_parameters(type = "FFW16")
 }
+\arguments{
+\item{type}{Name of model (defaults to FFW16 but FFdev also valid)}
+}
 \description{
 Hopefully sensible set of parameters for use with the EBT.  Turns
 accuracy down a bunch, makes it noisy, sets up the

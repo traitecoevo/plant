@@ -8,6 +8,8 @@ lcp_whole_plant(p, ...)
 }
 \arguments{
 \item{p}{A \code{PlantPlus}, with strategy, height, etc set.}
+
+\item{...}{Additional arguments that are ignored}
 }
 \description{
 Compute the whole plant light compensation point for a single

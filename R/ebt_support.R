@@ -67,6 +67,7 @@ run_ebt <- function(p, use_ode_times=FALSE) {
 ##' hyperparameterisation that we most often use.
 ##' @title Sensible, fast (ish) EBT parameters
 ##' @author Rich FitzJohn
+##' @param type Name of model (defaults to FFW16 but FFdev also valid)
 ##' @export
 ebt_base_parameters <- function(type="FFW16") {
   ctrl <- equilibrium_verbose(fast_control())
@@ -327,12 +328,8 @@ make_FFW16_hyperpar <- function(B4=1.71,
 ##' the same as the default should be removed.
 FFW16_hyperpar <- make_FFW16_hyperpar()
 
-##' @rdname FFdev_hyperpar
+##' @rdname FFW16_hyperpar
 ##' @export
-##' @param m A trait matrix
-##' @param s A default strategy
-##' @param filter Logical, indicating if generated parameters that are
-##' the same as the default should be removed.
 FFdev_hyperpar <- make_FFW16_hyperpar()
 
 ##' @rdname FFW16_hyperpar
@@ -346,7 +343,6 @@ make_hyperpar <- function(type) {
 }
 
 ##' @rdname FFW16_hyperpar
-##' @param type Either \code{"FFW16"} or \code{"FFdev"}.
 ##' @export
 hyperpar <- function(type) {
   switch(type,

@@ -187,6 +187,7 @@ plant_to_plant_plus <- function(x, ...) {
 ##' plant.
 ##' @title Whole plant light compensation point
 ##' @param p A \code{PlantPlus}, with strategy, height, etc set.
+##' @param ... Additional arguments that are ignored
 ##' @export
 ##' @author Rich FitzJohn
 lcp_whole_plant <- function(p, ...) {

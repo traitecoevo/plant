@@ -4,7 +4,7 @@
 ##' @param x Values for the trait.  This must be a \emph{matrix}, with
 ##'   column names corresponding to entries in \code{Strategy} and
 ##'   rows representing different values.
-##' @param parameters \code{\link{Parameters}} object containing a
+##' @param parameters \code{Parameters} object containing a
 ##'   default strategy to modify.  Any hyperparameterisation included
 ##'   will be applied.
 ##'

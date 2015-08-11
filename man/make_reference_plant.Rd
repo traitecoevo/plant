@@ -4,7 +4,11 @@
 \alias{make_reference_plant}
 \title{Reference Growth Model}
 \usage{
-make_reference_plant(type)
+make_reference_plant(type = "FFW16")
+}
+\arguments{
+\item{type}{name of model to make a reference plant for (only FFW16
+supported at present).}
 }
 \value{
 An object with a number of methods (accessed with
