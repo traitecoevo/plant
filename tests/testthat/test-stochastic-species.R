@@ -1,13 +1,9 @@
+context("StochasticSpecies")
 
-## TODO: Remove ["FFW16"] to test this with all types.
-## But this triggers error on `all(sp$ode_rates > 0)`
-strategy_types <- get_list_of_strategy_types()["FFW16"]
+strategy_types <- get_list_of_strategy_types()
 
-for (x in names(strategy_types)) {
-
-  context(sprintf("StochasticSpecies-%s",x))
-
-  test_that("empty", {
+test_that("empty", {
+  for (x in names(strategy_types)) {
     env <- test_environment(3, seed_rain=1.0)
     s <- strategy_types[[x]]()
     sp <- StochasticSpecies(x)(s)
@@ -29,9 +25,11 @@ for (x in names(strategy_types)) {
     expect_that(sp$ode_size, equals(0))
     expect_that(sp$ode_state, is_identical_to(numeric(0)))
     expect_that(sp$ode_rates, is_identical_to(numeric(0)))
-  })
+  }
+})
 
-  test_that("Single individual", {
+test_that("Single individual", {
+  for (x in names(strategy_types)) {
     env <- test_environment(3, seed_rain=1.0)
     s <- strategy_types[[x]]()
     sp <- StochasticSpecies(x)(s)
@@ -50,16 +48,24 @@ for (x in names(strategy_types)) {
     sp$compute_vars_phys(env)
     p$compute_vars_phys(env)
     expect_that(sp$ode_rates, equals(p$ode_rates))
-    expect_that(all(sp$ode_rates > 0), is_true())
+
+    if (x == "FFW16") {
+      expect_that(all(sp$ode_rates > 0.0), is_true())
+    } else if (x == "FFdev") {
+      expect_that(all(sp$ode_rates[-3] > 0.0), is_true())
+      expect_that(sp$ode_rates[[3]], is_identical_to(0.0))
+    }
 
     pl <- sp$plants
     expect_that(length(pl), equals(1))
     expect_that(class(pl[[1]]), equals(class(p)))
     expect_that(pl[[1]]$ode_state, equals(p$ode_state))
     expect_that(sp$height_max, equals(p$height))
-  })
+  }
+})
 
-  test_that("Multiple individuals", {
+test_that("Multiple individuals", {
+  for (x in names(strategy_types)) {
     h <- 10
     env <- test_environment(h, seed_rain=1.0)
     s <- strategy_types[[x]]()
@@ -84,7 +90,7 @@ for (x in names(strategy_types)) {
 
     n_ode <- sp$plant_at(1)$ode_size
     m <- matrix(sp$ode_state, n_ode)
-    expect_that(max(m[-1, ]), equals(0))
+    expect_that(max(m[-1, ]), is_identical_to(0.0))
 
     nd <- sp$deaths()
     expect_that(nd, equals(0))
@@ -118,9 +124,11 @@ for (x in names(strategy_types)) {
     m2 <- matrix(sp$ode_state, n_ode)
     expect_that(ncol(m2), equals(n - 1))
     expect_that(m2, is_identical_to(m[, -i]))
-  })
+  }
+})
 
-  test_that("germination probability", {
+test_that("germination probability", {
+  for (x in names(strategy_types)) {
     env <- test_environment(3, seed_rain=1.0)
     s <- strategy_types[[x]]()
     sp <- StochasticSpecies(x)(s)
@@ -128,5 +136,5 @@ for (x in names(strategy_types)) {
 
     expect_that(sp$germination_probability(env),
                 equals(p$germination_probability(env)))
-  })
-}
+  }
+})

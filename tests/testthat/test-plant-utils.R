@@ -1,7 +1,5 @@
 context("Plant utilities")
 
-## TODO: Remove ["FFW16"] to test this with all types. But first
-## requires issue #162 to be resolved
 strategy_types <- get_list_of_strategy_types()
 
 test_that("Default times", {
