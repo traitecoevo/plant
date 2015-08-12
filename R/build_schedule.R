@@ -39,7 +39,6 @@ build_schedule <- function(p) {
     }
     p$cohort_schedule_times <- times
 
-    ## TODO: could record the error here perhaps?
     msg <- sprintf("%d: Splitting {%s} times (%s)",
                    i,
                    paste(sapply(split, sum),    collapse=","),

@@ -6,11 +6,6 @@
 
 namespace plant {
 
-// TODO: There is some fairly major re-plumbing needed here; we need
-// to separate out hyperparameters from the ones the model cares
-// about, and possibly define a post-parameter setting hook so that
-// other intermediates can be generated.
-
 // TODO: Document consistent argument order: l, b, s, h, r
 // TODO: Document ordering of different types of variables (size
 // before physiology, before compound things?)
@@ -158,16 +153,9 @@ double FFW16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 }
 
 // one-shot update of the ebt variables
-// TODO: this would be heaps nicer if we just took a reference to internals.
 void FFW16_Strategy::ebt_vars(const Environment& environment,
                               bool reuse_intervals,
                               Plant_internals& vars) {
-  // double height, double area_leaf_,
-  // double mortality,
-  // // output by reference:
-  // double& height_dt_,
-  // double& fecundity_dt_, double& mortality_dt_,
-  // double& area_heartwood, double& mass_heartwood) {
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, vars.height, vars.area_leaf,
                            reuse_intervals);
@@ -411,7 +399,6 @@ double FFW16_Strategy::area_heartwood_dt(double area_leaf) const {
 }
 
 // Growth rate of bark area at base per unit time
-// TODO: this seems possible inefficient, probably does not matter
 double FFW16_Strategy::area_bark_dt(double area_leaf_dt) const {
   return b * area_leaf_dt / theta;
 }
@@ -429,8 +416,6 @@ double FFW16_Strategy::diameter_stem_dt(double area_stem, double area_stem_dt) c
   return ddiameter_stem_darea_stem(area_stem) * area_stem_dt;
 }
 
-// TODO: Passing in leaf *area* but d (leaf *mass*) / dt, which does
-// not seem ideal.
 double FFW16_Strategy::mass_root_dt(double area_leaf,
                                double area_leaf_dt) const {
   return area_leaf_dt * dmass_root_darea_leaf(area_leaf);
@@ -443,13 +428,12 @@ double FFW16_Strategy::mass_live_dt(double fraction_allocation_reproduction,
 
 // TODO: Change top two to use mass_live_dt
 double FFW16_Strategy::mass_total_dt(double fraction_allocation_reproduction,
-                                double net_mass_production_dt,
-                                double mass_heartwood_dt) const {
+                                     double net_mass_production_dt,
+                                     double mass_heartwood_dt) const {
   return mass_live_dt(fraction_allocation_reproduction, net_mass_production_dt) +
     mass_heartwood_dt;
 }
 
-// TODO: Change top two to use mass_live_dt
 // TODO: Do we not track root mass change?
 double FFW16_Strategy::mass_above_ground_dt(double area_leaf,
                                        double fraction_allocation_reproduction,

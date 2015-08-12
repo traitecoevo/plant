@@ -69,7 +69,6 @@ FFW16_PlantPlus <- function(s) {
 }
 
 ## Helper:
-## TODO: consider directly using the C++ version in environment.h
 ##' @export
 ##' @rdname Environment
 ##' @param p A Parameters object

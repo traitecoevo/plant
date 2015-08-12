@@ -7,9 +7,6 @@
 // implemented (see RcppR6 #23, but also #22 which would be required
 // to make this nice to use).
 //
-// TODO: it would be nice to pass environment=NULL as a default here
-// but I don't see how as we definitely don't want C++'s NULL!
-//
 // TODO: This actually can't easily be done with the RcppR6 approach
 // because the different strategies aren't a class that is templated;
 // instead we'll need to manually list classes (added in #23).

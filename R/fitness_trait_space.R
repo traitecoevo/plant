@@ -21,7 +21,6 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
   traits <- rownames(bounds)
 
   if (log_scale) {
-    ## TODO: This actually won't work for optimise():
     bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)
     f <- function(x) max_growth_rate(exp(trait_matrix(x, traits)), p)

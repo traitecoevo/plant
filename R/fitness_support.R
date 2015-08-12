@@ -143,9 +143,8 @@ positive_1d_bracket <- function(f, x, dx, lower, upper, grow=2) {
 ## This is a multidimensional version of positive_1d.  It's a hack for
 ## now.
 positive_2d <- function(f, x, lower, upper, n_total=200) {
-  ## TODO: this should only be done if length is 1:
-  lower <- rep(lower, length.out=length(x))
-  upper <- rep(upper, length.out=length(x))
+  lower <- rep1(lower, length(x))
+  upper <- rep1(upper, length(x))
 
   requireNamespace("plant.ml")
   is_nonnegative <- function(y) y >= 0.0

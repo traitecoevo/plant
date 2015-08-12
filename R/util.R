@@ -206,3 +206,13 @@ extract_RcppR6_template_type <- function(x, base) {
   }
   sub(re, "\\1", cl)
 }
+
+rep1 <- function(x, length.out, name=deparse(substitute(x))) {
+  if (length(x) == length.out) {
+    x
+  } else if (length(x) == 1L) {
+    rep_len(x, length.out)
+  } else {
+    stop(sprintf("%s must be length %d or scalar", name))
+  }
+}
