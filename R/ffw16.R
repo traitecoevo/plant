@@ -64,7 +64,9 @@ FFW16_StochasticPatchRunner <- function(p) {
   StochasticPatchRunner("FFW16")(p)
 }
 
-FFW16_PlantPlus <- function(s) {
+##' @export
+##' @rdname FFW16
+FFW16_PlantPlus <- function(s=FFW16_Strategy()) {
   PlantPlus("FFW16")(s)
 }
 

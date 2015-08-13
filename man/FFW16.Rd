@@ -6,6 +6,7 @@
 \alias{FFW16_Parameters}
 \alias{FFW16_Patch}
 \alias{FFW16_Plant}
+\alias{FFW16_PlantPlus}
 \alias{FFW16_Species}
 \alias{FFW16_StochasticPatch}
 \alias{FFW16_StochasticPatchRunner}
@@ -29,6 +30,8 @@ FFW16_StochasticSpecies(s = FFW16_Strategy())
 FFW16_StochasticPatch(p)
 
 FFW16_StochasticPatchRunner(p)
+
+FFW16_PlantPlus(s = FFW16_Strategy())
 }
 \arguments{
 \item{s}{A \code{\link{FFW16_Strategy}} object}

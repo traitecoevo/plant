@@ -6,6 +6,7 @@
 \alias{FFdev_Parameters}
 \alias{FFdev_Patch}
 \alias{FFdev_Plant}
+\alias{FFdev_PlantPlus}
 \alias{FFdev_Species}
 \alias{FFdev_StochasticPatch}
 \alias{FFdev_StochasticPatchRunner}
@@ -29,6 +30,8 @@ FFdev_StochasticSpecies(s = FFdev_Strategy())
 FFdev_StochasticPatch(p)
 
 FFdev_StochasticPatchRunner(p)
+
+FFdev_PlantPlus(s = FFdev_Strategy())
 }
 \arguments{
 \item{s}{A \code{\link{FFdev_Strategy}} object}

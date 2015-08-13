@@ -64,6 +64,8 @@ FFdev_StochasticPatchRunner <- function(p) {
   StochasticPatchRunner("FFdev")(p)
 }
 
-FFdev_PlantPlus <- function(s) {
+##' @export
+##' @rdname FFdev
+FFdev_PlantPlus <- function(s=FFdev_Strategy()) {
   PlantPlus("FFdev")(s)
 }
