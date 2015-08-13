@@ -164,137 +164,124 @@ test_that("Ported from tree1", {
   }
 })
 
-  # test_that("", {
-  #   p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
-  #                         seed_rain=pi/2,
-  #                         is_resident=TRUE,
-  #                         cohort_schedule_max_time=5.0)
-  #   ebt <- EBT(x)(p)
+test_that("schedule setting", {
+  for (x in names(strategy_types)) {
+    p <- Parameters(x)(
+      strategies=list(strategy_types[[x]]()),
+      seed_rain=pi/2,
+      is_resident=TRUE,
+      cohort_schedule_max_time=5.0)
+    ebt <- EBT(x)(p)
 
-  #   ## Then set a cohort schedule:
-  #   ## Build a schedule for 14 introductions from t=0 to t=5
-  #   sched <- ebt$cohort_schedule
-  #   t <- seq(0, sched$max_time, length.out=14)
-  #   ebt$set_cohort_schedule_times(list(t))
+    ## Then set a cohort schedule:
+    ## Build a schedule for 14 introductions from t=0 to t=5
+    sched <- ebt$cohort_schedule
+    t <- seq(0, sched$max_time, length.out=14)
+    ebt$set_cohort_schedule_times(list(t))
 
-  #   ## Did set in the EBT:
-  #   expect_that(ebt$cohort_schedule$all_times,
-  #               is_identical_to(list(t)))
+    ## Did set in the EBT:
+    expect_that(ebt$cohort_schedule$all_times,
+                is_identical_to(list(t)))
 
-  #   ## And updated in the parameters:
-  #   p2 <- ebt$parameters
-  #   expect_that(p2$cohort_schedule_max_time,
-  #               is_identical_to(sched$max_time))
-  #   expect_that(p2$cohort_schedule_times,
-  #               is_identical_to(list(t)))
+    ## And updated in the parameters:
+    p2 <- ebt$parameters
+    expect_that(p2$cohort_schedule_max_time,
+                is_identical_to(sched$max_time))
+    expect_that(p2$cohort_schedule_times,
+                is_identical_to(list(t)))
 
-  #   ## Remake the schedule:
-  #   sched2 <- make_cohort_schedule(p2)
-  #   expect_that(sched2$max_time,
-  #               is_identical_to(sched$max_time))
-  #   expect_that(sched2$all_times,
-  #               is_identical_to(list(t)))
+    ## Remake the schedule:
+    sched2 <- make_cohort_schedule(p2)
+    expect_that(sched2$max_time,
+                is_identical_to(sched$max_time))
+    expect_that(sched2$all_times,
+                is_identical_to(list(t)))
 
-  #   ## TODO: Also a bug:
-  #   ebt2 <- EBT(x)(p2)
-  #   expect_that(ebt2$cohort_schedule$max_time,
-  #               is_identical_to(sched2$max_time))
-  #   expect_that(ebt2$cohort_schedule$all_times,
-  #               is_identical_to(sched2$all_times))
-  # })
+    ebt2 <- EBT(x)(p2)
+    expect_that(ebt2$cohort_schedule$max_time,
+                is_identical_to(sched2$max_time))
+    expect_that(ebt2$cohort_schedule$all_times,
+                is_identical_to(sched2$all_times))
+  }
+})
 
-  # ## ## TODO: This is a fairly inadequate set of tests; none of the failure
-  # ## ## conditions are tested, and it's undefined what will happen if we
-  # ## ## set a cohort schedule that leaves us between introduction points.
-  # ## test_that("State get/set works", {
-  # ##   ## Next, try and partly run the EBT, grab its state and push it into a
-  # ##   ## second copy.
-  # ##   ebt$reset()
-  # ##   tmp <- run_ebt_test(ebt, sched$max_time / 2)
-  # ##   state <- ebt$state
+  ## ## TODO: This is a fairly inadequate set of tests; none of the failure
+  ## ## conditions are tested, and it's undefined what will happen if we
+  ## ## set a cohort schedule that leaves us between introduction points.
+  ## test_that("State get/set works", {
+  ##   ## Next, try and partly run the EBT, grab its state and push it into a
+  ##   ## second copy.
+  ##   ebt$reset()
+  ##   tmp <- run_ebt_test(ebt, sched$max_time / 2)
+  ##   state <- ebt$state
 
-  # ##   ebt2 <- new(EBT, ebt$parameters)
-  # ##   ebt2$state <- state
+  ##   ebt2 <- new(EBT, ebt$parameters)
+  ##   ebt2$state <- state
 
-  # ##   expect_that(ebt2$state, equals(ebt$state))
-  # ##   ## Emergent things:
-  # ##   expect_that(ebt2$patch$environment$light_environment$xy,
-  # ##               equals(ebt$patch$environment$light_environment$xy))
-  # ##   expect_that(ebt2$ode_state, equals(ebt$ode_state))
-  # ##   expect_that(ebt2$ode_rates,  equals(ebt$ode_rates))
-  # ##   # TODO: This needs implementing; requires get/set of the ODE solver
-  # ##   # state.
-  # ##   # expect_that(ebt2$time,       equals(ebt$time))
-  # ## })
+  ##   expect_that(ebt2$state, equals(ebt$state))
+  ##   ## Emergent things:
+  ##   expect_that(ebt2$patch$environment$light_environment$xy,
+  ##               equals(ebt$patch$environment$light_environment$xy))
+  ##   expect_that(ebt2$ode_state, equals(ebt$ode_state))
+  ##   expect_that(ebt2$ode_rates,  equals(ebt$ode_rates))
+  ##   # TODO: This needs implementing; requires get/set of the ODE solver
+  ##   # state.
+  ##   # expect_that(ebt2$time,       equals(ebt$time))
+  ## })
 
-  # ## test_that("Can set times directly", {
-  # ##   ebt$reset()
-  # ##   times <- ebt$times(1)
-  # ##   times2 <- sort(c(times, 0.5*(times[-1] + times[-length(times)])))
-  # ##   ebt$set_times(times2, 1)
-  # ##   expect_that(ebt$times(1), is_identical_to(times2))
-  # ##   expect_that(ebt$cohort_schedule$times(1), is_identical_to(times2))
-  # ##   ebt$run_next()
-  # ##   expect_that(ebt$set_times(times, 1), throws_error())
-  # ##   ebt$reset()
-  # ##   ebt$set_times(times, 1)
-  # ##   expect_that(ebt$times(1), is_identical_to(times))
-  # ## })
+  ## test_that("Can set times directly", {
+  ##   ebt$reset()
+  ##   times <- ebt$times(1)
+  ##   times2 <- sort(c(times, 0.5*(times[-1] + times[-length(times)])))
+  ##   ebt$set_times(times2, 1)
+  ##   expect_that(ebt$times(1), is_identical_to(times2))
+  ##   expect_that(ebt$cohort_schedule$times(1), is_identical_to(times2))
+  ##   ebt$run_next()
+  ##   expect_that(ebt$set_times(times, 1), throws_error())
+  ##   ebt$reset()
+  ##   ebt$set_times(times, 1)
+  ##   expect_that(ebt$times(1), is_identical_to(times))
+  ## })
 
-  # test_that("Seed rain & error calculations correct", {
-  #   p0 <- ebt_base_parameters()
-  #   p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, FALSE)
+test_that("Seed rain & error calculations correct", {
+  for (x in names(strategy_types)) {
+    p0 <- ebt_base_parameters(x)
+    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, FALSE)
 
-  #   ebt <- run_ebt(p1)
-  #   expect_that(ebt, is_a(sprintf("EBT<%s>",x)))
+    ebt <- run_ebt(p1)
+    expect_that(ebt, is_a(sprintf("EBT<%s>", x)))
 
-  #   seed_rain_R <- function(ebt, error=FALSE) {
-  #     a <- ebt$cohort_schedule$times(1)
-  #     d <- ebt$patch$environment$disturbance_regime
-  #     pa <- d$density(a)
-  #     p <- ebt$parameters
-  #     scale <- ebt$parameters$strategies[[1]]$Pi_0 * p$seed_rain
-  #     seeds <- pa * ebt$patch$species[[1]]$seeds * scale
-  #     total <- trapezium(a, seeds)
-  #     if (error) local_error_integration(a, seeds, total) else total
-  #   }
+    seed_rain_R <- function(ebt, error=FALSE) {
+      a <- ebt$cohort_schedule$times(1)
+      d <- ebt$patch$environment$disturbance_regime
+      pa <- d$density(a)
+      p <- ebt$parameters
+      scale <- ebt$parameters$strategies[[1]]$Pi_0 * p$seed_rain
+      seeds <- pa * ebt$patch$species[[1]]$seeds * scale
+      total <- trapezium(a, seeds)
+      if (error) local_error_integration(a, seeds, total) else total
+    }
 
-  #   expect_that(ebt$seed_rain(1), equals(seed_rain_R(ebt)))
-  #   expect_that(ebt$seed_rains, equals(seed_rain_R(ebt)))
-  #   expect_that(ebt$seed_rain_error[[1]],
-  #               equals(seed_rain_R(ebt, error=TRUE)))
+    expect_that(ebt$seed_rain(1), equals(seed_rain_R(ebt)))
+    expect_that(ebt$seed_rains, equals(seed_rain_R(ebt)))
+    expect_that(ebt$seed_rain_error[[1]],
+                equals(seed_rain_R(ebt, error=TRUE)))
 
-  #   lae_cmp <-
-  #     ebt$patch$species[[1]]$area_leafs_error(ebt$patch$area_leaf_above(0))
-  #   expect_that(ebt$area_leaf_error(1),
-  #               is_identical_to(lae_cmp))
-  # })
+    lae_cmp <-
+      ebt$patch$species[[1]]$area_leafs_error(ebt$patch$area_leaf_above(0))
+    expect_that(ebt$area_leaf_error(1),
+                is_identical_to(lae_cmp))
+  }
+})
 
-  # ## test_that("Can create empty EBT", {
-  # ##   p <- new(Parameters)
-  # ##   p$set_parameters(list(patch_area=1.0))
-  # ##   ebt <- new(EBT, p)
+test_that("Can create empty EBT", {
+  for (x in names(strategy_types)) {
+    p <- Parameters(x)()
+    ebt <- EBT(x)(p)
 
-  # ##   ## Check light environment is empty:
-  # ##   env <- ebt$patch$environment
-  # ##   expect_that(env$light_environment$size, equals(0))
-  # ##   expect_that(env$canopy_openness(0), equals(1.0))
-  # ## })
-
-  # ## test_that("Can create empty EBT with mutants", {
-  # ##   p <- new(Parameters)
-  # ##   p$set_parameters(list(patch_area=1.0))   # See issue #13
-  # ##   p$set_control_parameters(fast_control()) # A bit faster
-  # ##   p$add_strategy_mutant(new(Strategy, list(lma=0.1)))
-
-  # ##   t_max <- 10
-  # ##   schedule0 <- default_cohort_schedule(p, t_max)
-
-  # ##   ebt <- run_ebt(p, schedule0)
-  # ##   expect_that(ebt$time, equals(t_max))
-
-  # ##   ## Check light environment is empty:
-  # ##   env <- ebt$patch$environment
-  # ##   expect_that(env$light_environment$size, equals(0))
-  # ##   expect_that(env$canopy_openness(0), equals(1.0))
-  # ## })
+    ## Check light environment is empty:
+    env <- ebt$patch$environment
+    expect_that(env$light_environment$size, equals(0))
+    expect_that(env$canopy_openness(0), equals(1.0))
+  }
+})
