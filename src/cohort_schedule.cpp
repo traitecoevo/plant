@@ -57,7 +57,7 @@ std::vector<std::vector<double> > CohortSchedule::get_times() const {
 }
 
 void CohortSchedule::set_times(const std::vector<double>& times_,
-			       size_t species_index) {
+                               size_t species_index) {
   clear_times(species_index);
   events_iterator e = events.begin();
   for (std::vector<double>::const_iterator t = times_.begin();
@@ -94,7 +94,7 @@ void CohortSchedule::reset() {
     events_iterator e_next = e;
     ++e_next;
     e->times.push_back(e_next == queue.end() ?
-		       max_time : e_next->time_introduction());
+                       max_time : e_next->time_introduction());
     e = e_next;
   }
 
@@ -125,8 +125,8 @@ void CohortSchedule::distribute_ode_times() {
       // The condition here excludes times that exactly match one of
       // the time boundaries (we'll be stopping there anyway).
       if (!util::identical(*t, e->time_introduction()) &&
-	  !util::identical(*t, e->time_end())) {
-	extra.push_back(*t);
+          !util::identical(*t, e->time_end())) {
+        extra.push_back(*t);
       }
       ++t;
     }
@@ -163,7 +163,7 @@ void CohortSchedule::r_clear_times(util::index species_index) {
 }
 
 void CohortSchedule::r_set_times(std::vector<double> times_,
-				 util::index species_index) {
+                                 util::index species_index) {
   if (!util::is_sorted(times_.begin(), times_.end())) {
     Rcpp::stop("Times must be sorted (increasing)");
   }
@@ -272,7 +272,7 @@ CohortSchedule CohortSchedule::r_copy() const {
 // * Private methods
 CohortSchedule::events_iterator
 CohortSchedule::add_time(double time, size_t species_index,
-			 events_iterator it) {
+                         events_iterator it) {
   Event e(time, species_index);
   it = events.begin();
   while (it != events.end() && time > it->time_introduction()) {

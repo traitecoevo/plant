@@ -113,10 +113,7 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
 // defined on p 7 at the moment.
 template <typename T>
 void Cohort<T>::compute_initial_conditions(const Environment& environment) {
-
   compute_vars_phys(environment);
-  // TODO: compute_vars_phys being computed again in germination_probability
-  // removing here causing test failure, so figure out if can remove
 
   pr_patch_survival_at_birth = environment.patch_survival();
   const double pr_germ = plant.germination_probability(environment);
@@ -173,8 +170,6 @@ double Cohort<T>::area_leaf_above(double height_) const {
   return density * plant.area_leaf_above(height_);
 }
 
-// TODO: Possibly push this logic into species and drop entirely from
-// Cohort.
 template <typename T>
 double Cohort<T>::area_leaf() const {
   return area_leaf_above(0.0);

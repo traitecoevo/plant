@@ -59,9 +59,6 @@ Interpolator AdaptiveInterpolator::construct(Function target,
   yy.clear();
   zz.clear();
 
-  // TODO: If we template seq_len better, we can avoid a copy.  But
-  // using seq_len here guarantees that the first and last element are
-  // *exactly* 'a' and 'b'.
   std::vector<double> tmp = util::seq_len(a, b, nbase);
   for (size_t i = 0; i < nbase; i++) {
     const double xi = tmp[i];

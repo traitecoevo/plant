@@ -10,9 +10,6 @@
 // introduction time of zero.  This is only enforced in that the model
 // will just refuse to run if started with the incorrect time.
 
-// TODO: CohortSchedule should possibly require a max_time to be set
-// before it is used?
-
 namespace plant {
 
 // This could be done via a list object, but I think this is OK for
@@ -78,7 +75,7 @@ private:
   typedef std::list<Event>::const_iterator events_const_iterator;
 
   events_iterator add_time(double times, size_t species_index,
-			   events_iterator it);
+                           events_iterator it);
   void distribute_ode_times();
 
   size_t n_species;
