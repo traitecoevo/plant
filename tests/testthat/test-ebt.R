@@ -271,6 +271,19 @@ test_that("Seed rain & error calculations correct", {
       ebt$patch$species[[1]]$area_leafs_error(ebt$patch$area_leaf_above(0))
     expect_that(ebt$area_leaf_error(1),
                 is_identical_to(lae_cmp))
+
+    int <- make_ebt_integrate(ebt)
+    Pi_0 <- ebt$parameters$strategies[[1]]$Pi_0
+    expect_that(int("seeds_survival_weighted") *
+                  Pi_0, equals(ebt$seed_rain(1)))
+
+    res <- run_ebt_collect(p1)
+    int2 <- make_ebt_integrate(res)
+
+    expect_that(int2("seeds_survival_weighted"),
+                equals(int("seeds_survival_weighted")))
+    expect_that(int2("area_leaf"),
+                equals(int("area_leaf")))
   }
 })
 

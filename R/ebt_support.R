@@ -415,3 +415,55 @@ species_to_internals <- function(sp, environment=NULL) {
         log_density=sp$log_densities,
         seeds_survival_weighted=sp$seeds)
 }
+
+##' Create a function that allows integrating aggregate properties of
+##' the EBT system.
+##'
+##' The workflow here is to run an EBT to create an EBT by running
+##' \code{run_ebt}, or a set of data from \code{run_ebt_collect} and
+##' then reconstitute all the intermediate bits of data so that an any
+##' variable that \code{PlantPlus} tracks can be integrated out.
+##' Because the pre-processing step is reasonably slow, this function
+##' returns a function that takes a variable name and integrates it.
+##'
+##' @title Integrate EBT variables
+##' @param ebt An object from \code{run_ebt} or \code{run_ebt_collect}
+##' @export
+make_ebt_integrate <- function(obj) {
+  ## TODO: This needs to be made to work with the output of
+  ## run_ebt_collect, which means that it could possibly work with the
+  ## output over time, which would be cool; that might help with some
+  ## of the stuff from the "emergent" vignette.
+  if (inherits(obj, "EBT")) {
+    internals <- patch_to_internals(obj$patch)
+    n <- length(internals)
+    sched <- obj$cohort_schedule
+    a <- lapply(seq_len(n), sched$times)
+    pa <- lapply(a, obj$patch$environment$disturbance_regime$density)
+  } else {
+    internals <- patch_to_internals(ebt_patch(length(obj$time), obj))
+    n <- length(internals)
+    a <- obj$p$cohort_schedule_times
+    pa <- lapply(a, Disturbance(obj$p$disturbance_mean_interval)$density)
+  }
+
+  if (n == 0L) {
+    stop("This just isn't going to work out")
+  }
+
+  pos <- colnames(internals[[1]])
+
+  f1 <- function(i, name, error=FALSE) {
+    x <- a[[i]]
+    y <- pa[[i]] * internals[[i]][, name]
+    total <- trapezium(x, y)
+    if (error) local_error_integration(x, y, total) else total
+  }
+
+  function(name, error=FALSE) {
+    if (!(name %in% pos)) {
+      stop("Unknown variable: ", name)
+    }
+    vnapply(seq_len(n), f1, name, error)
+  }
+}
