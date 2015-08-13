@@ -148,6 +148,40 @@ splinefun_loglog <- function(x, y, ...) {
   }
 }
 
+##' Clamp a function to particular values when outside of a given domain (r)
+##'
+##' Things like names on input and return vectors are not dealt with
+##' very well, and would differ if the function was better
+##' constructed.  Values falling outwide the domain are not evaluated
+##' (which is useful if these would cause crashes, warnings, etc).
+##'
+##' @title Clamp function to domain
+##' @param f A function that takes \code{x} as a first argument.
+##' @param r Range of values (vector of length 2)
+##' @param value (Single) value to use when out of domain.
+##' @return A new function
+##' @export
+clamp_domain <- function(f, r, value=NA_real_) {
+  f <- match.fun(f)
+  if (length(r) != 2L) {
+    stop("Expected length two range")
+  }
+  if (any(is.na(r)) || r[[2]] < r[[1]]) {
+    stop("Values for range must be finite and not decreasing")
+  }
+  if (length(value) != 1L) {
+    stop("value must be length 1")
+  }
+  function(x, ...) {
+    ret <- rep_len(value, length(x))
+    i <- x >= r[[1]] & x <= r[[2]]
+    if (any(i)) {
+      ret[i] <- f(x[i])
+    }
+    ret
+  }
+}
+
 vlapply <- function(X, FUN, ...) {
   vapply(X, FUN, logical(1), ...)
 }
