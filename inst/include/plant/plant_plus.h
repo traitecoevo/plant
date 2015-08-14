@@ -49,7 +49,7 @@ public:
   // * Individual size
   double height() const {return vars.height;}
   double height_dt() const {return vars.height_dt;}
-  void set_height(double height_) {
+  void set_height(double x) {
     // TODO: in the original version of the model, all of plant size
     // was driven only by height, so we only needed to check this
     // here.  But now we have two size variables (heartwood mass being
@@ -57,7 +57,8 @@ public:
     // replace this height function with a new function that takes
     // both size variables as arguments and update all the size
     // variables at that point.
-    compute_vars_size(height_);
+    vars.height = x;
+    compute_vars_size();
   }
 
   double mortality() const {return vars.mortality;}
@@ -70,16 +71,17 @@ public:
 
   double area_heartwood() const {return vars.area_heartwood;}
   double area_heartwood_dt() const {return vars.area_heartwood_dt;}
-  // TODO: Consider recomputing the size variables here
-  // See set_mass_heartwood
-  void set_area_heartwood(double x) {vars.area_heartwood = x;}
+  void set_area_heartwood(double x) {
+    vars.area_heartwood = x;
+    compute_vars_size();
+  }
 
   double mass_heartwood() const {return vars.mass_heartwood;}
   double mass_heartwood_dt() const {return vars.mass_heartwood_dt;}
-  // TODO: This needs to update size variables but does not yet,
-  // and won't until we get the new version done.
-  // See notes in set_height.
-  void set_mass_heartwood(double x) {vars.mass_heartwood = x;}
+  void set_mass_heartwood(double x) {
+    vars.mass_heartwood = x;
+    compute_vars_size();
+  }
 
   // * Competitive environment
   double area_leaf() const {return vars.area_leaf;}
@@ -111,8 +113,6 @@ public:
   //   3. Fecundity
   //   4. Heartwood area
   //   5. Heartwood mass
-  // TODO: I wonder if it makes sense to move this into the Strategy
-  // object, given that this is duplicated with Plant?
   static size_t       ode_size() {return 5;}
   ode::const_iterator set_ode_state(ode::const_iterator it) {
     set_height(*it++);
@@ -155,7 +155,7 @@ public:
 private:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.
-  void compute_vars_size(double height_);
+  void compute_vars_size();
 
   strategy_type_ptr strategy;
   internals vars;
@@ -164,8 +164,7 @@ private:
 // * Individual size
 // [eqn 1-8] Update size variables to a new leaf mass.
 template <typename T>
-void PlantPlus<T>::compute_vars_size(double height_) {
-  vars.height = height_;
+void PlantPlus<T>::compute_vars_size() {
   vars.area_leaf = strategy->area_leaf(vars.height);
   vars.mass_leaf = strategy->mass_leaf(vars.area_leaf);
   vars.area_sapwood =  strategy->area_sapwood(vars.area_leaf);
