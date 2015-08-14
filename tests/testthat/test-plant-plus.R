@@ -140,3 +140,24 @@ test_that("conversions", {
     expect_that(p2$internals, equals(p$internals))
   }
 })
+
+test_that("regression", {
+  s <- FFW16_Strategy(
+         hmat = 30.0,
+         c_r1 = 0.8,
+         c_r2 = 20,
+         a1   = 2.17,
+         B1   = 0.546,
+         k_l  = 0.4565855 / 3,
+         lma  = 0.06879341)
+  pl <- FFW16_PlantPlus(s)
+  runner <- OdeRunner("PlantRunner")(PlantRunner(pl, fixed_environment(1)))
+  runner$advance(5)
+  d0 <- oderunner_plant_size(runner)[["diameter_stem"]]
+  y0 <- runner$state
+  t0 <- runner$time
+  runner$step()
+  runner$set_state(y0, t0)
+  d1 <- oderunner_plant_size(runner)[["diameter_stem"]]
+  expect_that(d0, equals(d1))
+})
