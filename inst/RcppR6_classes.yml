@@ -467,7 +467,7 @@ PlantPlus:
     name_cpp: "plant::make_plant_plus<T>"
     args: [strategy: T]
     roxygen: |
-      Plant object
+      PlantPlus object
       @param T String containing class of plant to create; currently
       must be \code{"FFW16"}.  See \code{\link{FFW16_Plant}} for more
       details.
