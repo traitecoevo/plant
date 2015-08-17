@@ -201,3 +201,7 @@ lcp_whole_plant <- function(p, ...) {
 `lcp_whole_plant.PlantPlus<FFdev>` <- function(p, ...) {
   FFdev_lcp_whole_plant(p, ...)
 }
+##' @export
+lcp_whole_plant.Plant <- function(p, ...) {
+  lcp_whole_plant(plant_to_plant_plus(p, NULL))
+}
