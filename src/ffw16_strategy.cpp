@@ -46,8 +46,8 @@ FFW16_Strategy::FFW16_Strategy() {
   c_Rs   = 4012.0 / 608.0;
   // Bark respiration per stem mass
   // assumed to be twice rate of sapwood
-  // (NOTE that there is a reparametrisation here relative to the paper
-  // -- c_Rb is defined (new) as 2*c_Rs, wheras the paper assumes a
+  // (NOTE that there is a re-parametrisation here relative to the paper
+  // -- c_Rb is defined (new) as 2*c_Rs, whereas the paper assumes a
   // fixed multiplication by 2)
   c_Rb   = 2.0 * c_Rs;
   // Carbon conversion parameter
@@ -55,7 +55,7 @@ FFW16_Strategy::FFW16_Strategy() {
   // Constant converting assimilated CO2 to dry mass [kg / mol]
   // (12E-3 / 0.49)
   c_bio  = 2.45e-2;
-  // Leaf tunover
+  // Leaf turnover
   k_l=  0.4565855;
  // Bark turnover
   k_b    = 0.2;
@@ -71,7 +71,7 @@ FFW16_Strategy::FFW16_Strategy() {
   // Accessory cost of reproduction, kg per seed
   c_acc  = 3.0 *  3.8e-5;
 
-  // Maximum alloction to reproduction
+  // Maximum allocation to reproduction
   c_r1   = 1.0;
   // Size range across which individuals mature
   c_r2   = 50;
@@ -387,13 +387,13 @@ double FFW16_Strategy::ddiameter_stem_darea_stem(double area_stem) const {
   return pow(M_PI / area_stem, 0.5);
 }
 
-// Growth rate of spawood area at base per unit time
+// Growth rate of sapwood area at base per unit time
 double FFW16_Strategy::area_sapwood_dt(double area_leaf_dt) const {
   return area_leaf_dt / theta;
 }
 
 // Note, unlike others, heartwood growth does not depend on leaf area growth, but
-// rather existsing sapwood
+// rather existing sapwood
 double FFW16_Strategy::area_heartwood_dt(double area_leaf) const {
   return k_s * area_sapwood(area_leaf);
 }
@@ -416,6 +416,7 @@ double FFW16_Strategy::diameter_stem_dt(double area_stem, double area_stem_dt) c
   return ddiameter_stem_darea_stem(area_stem) * area_stem_dt;
 }
 
+// Growth rate of root mass per unit time
 double FFW16_Strategy::mass_root_dt(double area_leaf,
                                double area_leaf_dt) const {
   return area_leaf_dt * dmass_root_darea_leaf(area_leaf);
@@ -538,7 +539,7 @@ double FFW16_Strategy::height_seed(void) const {
   // Note, these are not entirely correct bounds. Ideally we would use height
   // given *total* mass, not leaf mass, but that is difficult to calculate.
   // Using "height given leaf mass" will expand upper bound, but that's ok
-  // most of time. Only issue is that could break with obscure paramater
+  // most of time. Only issue is that could break with obscure parameter
   // values for LMA or height-leaf area scaling. Could instead use some
   // absolute maximum height for new seedling, e.g. 1m?
   const double
@@ -558,9 +559,9 @@ double FFW16_Strategy::height_seed(void) const {
 void FFW16_Strategy::prepare_strategy() {
   // Set up the integrator
   control.initialize();
-  // NOTE: this precomputes something to save a very small amount of time
+  // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
-  // NOTE: Also precomputing, though less trivial
+  // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   area_leaf_0 = area_leaf(height_0);
 }

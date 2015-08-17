@@ -218,7 +218,7 @@ void PlantPlus<T>::compute_vars_phys(const Environment& environment,
     //
     // NOTE: In EBT, was multiplied by Pi_0 (survival during
     // dispersal), but we do not here.
-    // NOTE: This is also a hyperparametrisation and should move into
+    // NOTE: This is also a hyper-parametrisation and should move into
     // the initialisation function.
     vars.fecundity_dt =
       strategy->fecundity_dt(vars.net_mass_production_dt,
