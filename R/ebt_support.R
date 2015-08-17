@@ -448,7 +448,7 @@ make_ebt_integrate <- function(obj) {
   }
 
   if (n == 0L) {
-    stop("This just isn't going to work out")
+    stop("This just isn't going to work out (plant internals are empty)")
   }
 
   pos <- colnames(internals[[1]])
@@ -457,9 +457,12 @@ make_ebt_integrate <- function(obj) {
     x <- a[[i]]
     y <- pa[[i]] * internals[[i]][, name]
     total <- trapezium(x, y)
-    if (error) local_error_integration(x, y, total) else total
+    if (error) {
+      local_error_integration(x, y, total)
+    } else {
+      total
+    }
   }
-
   function(name, error=FALSE) {
     if (!(name %in% pos)) {
       stop("Unknown variable: ", name)
