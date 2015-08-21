@@ -354,7 +354,7 @@ FFW16_Strategy:
     - lma: double
     - rho: double
     - hmat: double
-    - mass_seed: double
+    - omega: double
     - eta: double
     - theta: double
     - a_l1: double
@@ -395,7 +395,7 @@ FFdev_Strategy:
     - lma: double
     - rho: double
     - hmat: double
-    - mass_seed: double
+    - omega: double
     - eta: double
     - theta: double
     - a_l1: double

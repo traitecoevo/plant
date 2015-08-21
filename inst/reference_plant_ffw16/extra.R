@@ -45,7 +45,7 @@ net.production <- function(traits, h, env) {
 fecundity_dt <- function(traits, h, env) {
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
-  f <- r * p / (p.a_f3 + traits$mass_seed)
+  f <- r * p / (p.a_f3 + traits$omega)
   f[p < 0] <- 0
   f
 }
@@ -182,7 +182,7 @@ height.at.birth <- function(traits) {
   hmin <- 1e-16
   hmax <- 1
   f <- function(h)
-    LiveMass(traits, LeafArea(h)) - traits$mass_seed
+    LiveMass(traits, LeafArea(h)) - traits$omega
   uniroot(f, c(hmin, hmax))$root
 }
 

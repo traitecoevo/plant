@@ -16,7 +16,7 @@ FFdev_Strategy::FFdev_Strategy() {
   lma       = 0.1978791;  // Leaf mass per area [kg / m2]
   rho       = 608.0;      // wood density [kg/m3]
   hmat      = 16; // Height at maturation [m]
-  mass_seed = 3.8e-5;    // Seed mass [kg]
+  omega     = 3.8e-5;    // Seed mass [kg]
 
   // * Individual allometry
   // Canopy shape parameter (extra calculation here later)
@@ -349,7 +349,7 @@ double FFdev_Strategy::fraction_allocation_growth(double height) const {
 double FFdev_Strategy::fecundity_dt(double net_mass_production_dt,
                                double fraction_allocation_reproduction) const {
   return net_mass_production_dt * fraction_allocation_reproduction /
-    (mass_seed + a_f3);
+    (omega + a_f3);
 }
 
 double FFdev_Strategy::darea_leaf_dmass_live(double area_leaf) const {
@@ -546,13 +546,13 @@ double FFdev_Strategy::height_seed(void) const {
   // absolute maximum height for new seedling, e.g. 1m?
   const double
     h0 = height_given_mass_leaf(std::numeric_limits<double>::min()),
-    h1 = height_given_mass_leaf(mass_seed);
+    h1 = height_given_mass_leaf(omega);
 
   const double tol = control.plant_seed_tol;
   const size_t max_iterations = control.plant_seed_iterations;
 
   auto target = [&] (double x) mutable -> double {
-    return mass_live_given_height(x) - mass_seed;
+    return mass_live_given_height(x) - omega;
   };
 
   return util::uniroot(target, h0, h1, tol, max_iterations);

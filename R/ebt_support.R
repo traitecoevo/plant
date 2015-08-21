@@ -249,7 +249,7 @@ make_FFW16_hyperpar <- function(B_kl_slope=1.71,
     }
     lma       <- with_default("lma")
     rho       <- with_default("rho")
-    mass_seed <- with_default("mass_seed")
+    omega     <- with_default("omega")
     narea     <- with_default("narea", narea_0)
 
     ## lma / leaf turnover relationship:
@@ -270,8 +270,8 @@ make_FFW16_hyperpar <- function(B_kl_slope=1.71,
     r_s <- 4012.0 / rho
     r_b <- 2.0 * r_s # bark respiration follows from sapwood
 
-    ## mass_seed / accessory cost relationship
-    a_f3 <- 3.0 * mass_seed
+    ## omega / accessory cost relationship
+    a_f3 <- 3.0 * omega
 
     ## narea / photosynthesis / respiration
     ## Photosynthesis per mass leaf N [mol CO2 / kgN / yr]
@@ -321,7 +321,7 @@ make_FFW16_hyperpar <- function(B_kl_slope=1.71,
 
     extra <- cbind(k_l,                   # lma
                    d_I, k_s, r_s, r_b, # rho
-                   a_f3,                 # mass_seed
+                   a_f3,                 # omega
                    a_p1, a_p2,            # narea   
                    r_l)                  # lma, narea
 

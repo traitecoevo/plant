@@ -38,7 +38,7 @@ make_reference_plant_FFW16 <- function() {
   source(file.path(path, "R/params.r"), local=e)
   source(file.path(path, "R/growthModel.r"), local=e)
 
-  e$traits <- list(lma=1.11E-01, rho=608, hmat=20, mass_seed=3.8e-5)
+  e$traits <- list(lma=1.11E-01, rho=608, hmat=20, omega=3.8e-5)
   ## Reset a few parameters to revert back to C++ defaults
   e$traits$lma <- 0.1978791
   e$traits$hmat <- 16.5958691
@@ -56,7 +56,7 @@ make_reference_plant_FFW16 <- function() {
             "a_f1", "a_f2")
   get.pars <- function() {
     vars.traits <- list(lma=e$traits$lma, rho=e$traits$rho,
-                        hmat=e$traits$hmat, mass_seed=e$traits$ mass_seed)
+                        hmat=e$traits$hmat, omega=e$traits$ omega)
     ret <- lapply(sprintf("p.%s", vars), get, e)
     names(ret) <- vars
     c(vars.traits, ret)

@@ -174,7 +174,7 @@ public:
   // that into Control or Environment instead.
 
   // * Core traits
-  double lma, rho, hmat, mass_seed;
+  double lma, rho, hmat, omega;
   // * Individual allometry
   // Canopy shape parameters
   double eta, eta_c;

@@ -12,7 +12,7 @@ test_that("Seed bits", {
 
     ## Check that our root-finding succeeded and the leaf mass is correct:
     expect_that(seed$internals[["mass_live"]],
-                equals(s$mass_seed, tolerance=1e-7))
+                equals(s$omega, tolerance=1e-7))
 
     cmp <- try(make_reference_plant(x), silent=TRUE)
     if (!inherits(cmp, "try-error")) {
