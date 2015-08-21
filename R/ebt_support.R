@@ -217,6 +217,7 @@ run_ebt_error <- function(p) {
 ##' @param k_s_0 ...
 ##' @param B5 ...
 ##' @param narea_0 ...
+##' @param c_ext ...
 ##' @export
 ##' @rdname FFW16_hyperpar
 make_FFW16_hyperpar <- function(B4=1.71,
@@ -227,7 +228,9 @@ make_FFW16_hyperpar <- function(B4=1.71,
                                d1=0.0,
                                k_s_0=0.2,
                                B5=0.0,
-                               narea_0=1.87e-3) {
+                               narea_0=1.87e-3,
+                               c_ext=0.5,
+                               latitude=0) {
   force(B4)
   force(lma_0)
   force(k_l_0)
@@ -235,6 +238,10 @@ make_FFW16_hyperpar <- function(B4=1.71,
   force(d0_0)
   force(d1)
   force(B5)
+  force(narea_0)
+  force(c_ext)
+  force(latitude)
+
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
@@ -268,16 +275,42 @@ make_FFW16_hyperpar <- function(B4=1.71,
 
     ## narea / photosynthesis / respiration
     ## Photosynthesis per mass leaf N [mol CO2 / kgN / yr]
-    ## TODO: more transparency needed for this calculation. Current
-    ## value comes from offline model
-    ## TODO: this is where we improve photosynthesis model
-    ## TODO: Move control of this into the arguments
-    c_PN  <- 80406.42
-    c_p1  <- c_PN * narea
+
+    assimilian_rectangular_hyperbolae <- function(I, Amax, theta, quantum) {
+      x <- quantum * I + Amax
+      (x - (x^2 - 4 * theta * quantum * I * Amax)^0.5)/(2 * theta)
+    }
+
+    approximate_annual_assimilation <- function(pars, E = seq(0, 1, by = 0.02)) {
+      
+      # Only integrate over half year, as solar path is symmetrical
+      D <- seq(0, 365/2, length.out = 10000)
+      I <- PAR_given_solar_angle(solar_angle(D, latitude = abs(pars$latitude)))
+      
+      AA <- NA * E
+      
+      for (i in seq_len(length(E))) {
+        AA[i] <- 2*trapezium(D, assimilian_rectangular_hyperbolae(
+                                pars$c_ext * I * E[i], 
+                                pars$Amax, pars$theta, pars$QY)
+                          )
+      }
+      
+      data <- data.frame(E = E, AA = AA)
+      fit <- nls(AA ~ p1 * E/(p2 + E), data, start = list(p1 = 100, p2 = 0.2))
+      coef(fit)
+    } 
+    NUE <- 5120.738 * 24 * 3600/1e+06 
+    # (mol CO2/ kg N /day )
+
+    pars <- list(latitude = latitude, Amax = narea * NUE, theta = 0.5, QY = 0.04, c_ext = c_ext)
+    y <- approximate_annual_assimilation(pars)
+    c_p1  <- y[["p1"]]
+    c_p2  <- y[["p2"]]
 
     ## Respiration per mass leaf N [mol CO2 / kgN / yr]
     ## = (6.66e-4 * (365*24*60*60))
-    ## Obatined from global average of ratio of dark respiration rate to
+    ## Obtained from global average of ratio of dark respiration rate to
     ## leaf nitrogen content using the GLOPNET dataset
     c_RN  <-  21000
     ## Respiration rates are per unit mass, so convert to mass-based
@@ -289,7 +322,8 @@ make_FFW16_hyperpar <- function(B4=1.71,
     extra <- cbind(k_l,                   # lma
                    c_d0, k_s, c_Rs, c_Rb, # rho
                    c_acc,                 # mass_seed
-                   c_p1, c_Rl)            # narea
+                   c_p1, c_p2,            # narea   
+                   c_Rl)                  # lma, narea
 
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {
