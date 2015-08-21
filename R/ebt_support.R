@@ -208,36 +208,36 @@ run_ebt_error <- function(p) {
 
 ##' Hyperparameters for plant
 ##' @title Hyperparameters for plant
-##' @param B_kl_slope Slope of lma / leaf turnover log-log relationship
+##' @param B_kl2 Slope of lma / leaf turnover log-log relationship
 ##' @param lma_0 LMA value...
-##' @param B_kl_base ...
+##' @param B_kl1 ...
 ##' @param rho_0 ...
-##' @param B_dI_base ...
-##' @param B_dI_slope ...
-##' @param B_ks_base ...
-##' @param B_ks_slope ...
+##' @param B_dI1 ...
+##' @param B_dI2 ...
+##' @param B_ks1 ...
+##' @param B_ks2 ...
 ##' @param narea_0 ...
 ##' @param k_I ...
 ##' @export
 ##' @rdname FFW16_hyperpar
-make_FFW16_hyperpar <- function(B_kl_slope=1.71,
+make_FFW16_hyperpar <- function(B_kl2=1.71,
                                lma_0=0.1978791,
-                               B_kl_base=0.4565855,
+                               B_kl1=0.4565855,
                                rho_0=608.0,
-                               B_dI_base=0.01,
-                               B_dI_slope=0.0,
-                               B_ks_base=0.2,
-                               B_ks_slope=0.0,
+                               B_dI1=0.01,
+                               B_dI2=0.0,
+                               B_ks1=0.2,
+                               B_ks2=0.0,
                                narea_0=1.87e-3,
                                k_I=0.5,
                                latitude=0) {
-  force(B_kl_slope)
+  force(B_kl2)
   force(lma_0)
-  force(B_kl_base)
+  force(B_kl1)
   force(rho_0)
-  force(B_dI_base)
-  force(B_dI_slope)
-  force(B_ks_slope)
+  force(B_dI1)
+  force(B_dI2)
+  force(B_ks2)
   force(narea_0)
   force(k_I)
   force(latitude)
@@ -253,13 +253,13 @@ make_FFW16_hyperpar <- function(B_kl_slope=1.71,
     narea     <- with_default("narea", narea_0)
 
     ## lma / leaf turnover relationship:
-    k_l   <- B_kl_base * (lma / lma_0) ^ (-B_kl_slope)
+    k_l   <- B_kl1 * (lma / lma_0) ^ (-B_kl2)
 
     ## rho / mortality relationship:
-    d_I  <- B_dI_base * (rho / rho_0) ^ (-B_dI_slope)
+    d_I  <- B_dI1 * (rho / rho_0) ^ (-B_dI2)
 
     ## rho / wood turnover relationship:
-    k_s  <- B_ks_base *  (rho / rho_0) ^ (-B_ks_slope)
+    k_s  <- B_ks1 *  (rho / rho_0) ^ (-B_ks2)
 
     ## rho / sapwood respiration relationship:
 

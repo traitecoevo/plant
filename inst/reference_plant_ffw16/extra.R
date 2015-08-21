@@ -164,15 +164,15 @@ height.growth.dt.via.area.leaf <- function(traits, h, env) {
 }
 
 p.d_I <- 0.01
-p.a_dG_base <- 5.5
-p.a_dG_slope <- 20.0
+p.a_dG1 <- 5.5
+p.a_dG2 <- 20.0
 p.a_d0 <- 0.1
 
 mortality.dt <- function(traits, h, env) {
   p <- net.production(traits, h, env)
   a <- LeafArea(h)
   p.d_I +
-    p.a_dG_base * exp(-p.a_dG_slope * p / a)
+    p.a_dG1 * exp(-p.a_dG2 * p / a)
 }
 
 height.at.birth <- function(traits) {

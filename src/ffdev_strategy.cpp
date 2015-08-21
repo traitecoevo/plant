@@ -84,9 +84,9 @@ FFdev_Strategy::FFdev_Strategy() {
   // Baseline for intrinsic mortality
   d_I    = 0.01;
  // Baseline rate for growth-related mortality
-  a_dG_base    = 5.5;
+  a_dG1    = 5.5;
   // Risk coefficient for dry mass production (per area)
-  a_dG_slope    = 20.0;
+  a_dG2    = 20.0;
 
   // Will get computed properly by prepare_strategy
   height_0 = NA_REAL;
@@ -493,7 +493,7 @@ double FFdev_Strategy::mortality_growth_independent_dt() const {
 }
 
 double FFdev_Strategy::mortality_growth_dependent_dt(double productivity_area) const {
-  return a_dG_base * exp(-a_dG_slope * productivity_area);
+  return a_dG1 * exp(-a_dG2 * productivity_area);
 }
 
 // [eqn 20] Survival of seedlings during germination

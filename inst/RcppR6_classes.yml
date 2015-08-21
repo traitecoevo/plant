@@ -379,8 +379,8 @@ FFW16_Strategy:
     - S_D: double
     - a_d0: double
     - d_I: double
-    - a_dG_base: double
-    - a_dG_slope: double
+    - a_dG1: double
+    - a_dG2: double
     - control: "plant::Control"
 
 FFdev_Strategy:
@@ -420,8 +420,8 @@ FFdev_Strategy:
     - S_D: double
     - a_d0: double
     - d_I: double
-    - a_dG_base: double
-    - a_dG_slope: double
+    - a_dG1: double
+    - a_dG2: double
     - control: "plant::Control"
 
 Parameters:

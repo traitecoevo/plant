@@ -212,9 +212,9 @@ public:
   // Baseline structural mortality rate
   double d_I;
  // Baseline for growth mortality rate
-  double a_dG_base;
+  double a_dG1;
   // Coefficient for dry mass production in mortality function
-  double a_dG_slope;
+  double a_dG2;
 
   // Height and leaf area of a (germinated) seed
   double height_0;

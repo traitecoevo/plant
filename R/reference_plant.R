@@ -52,7 +52,7 @@ make_reference_plant_FFW16 <- function() {
   vars <- c("eta", "theta", "a_l1", "a_l2", "a_r1", "a_b1",
             "n_area", "r_l", "r_r", "r_s", "r_b", "a_y",
             "a_bio", "k_l", "k_b", "k_s", "k_r", "a_p1", "a_p2",
-            "a_f3","d_I", "a_dG_base", "a_dG_slope", "a_d0",
+            "a_f3","d_I", "a_dG1", "a_dG2", "a_d0",
             "a_f1", "a_f2")
   get.pars <- function() {
     vars.traits <- list(lma=e$traits$lma, rho=e$traits$rho,
