@@ -144,10 +144,10 @@ test_that("conversions", {
 test_that("regression", {
   s <- FFW16_Strategy(
          hmat = 30.0,
-         c_r1 = 0.8,
-         c_r2 = 20,
-         a1   = 2.17,
-         B1   = 0.546,
+         a_f1 = 0.8,
+         a_f2 = 20,
+         a_l1   = 2.17,
+         a_l2   = 0.546,
          k_l  = 0.4565855 / 3,
          lma  = 0.06879341)
   pl <- FFW16_PlantPlus(s)

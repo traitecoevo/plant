@@ -16,14 +16,14 @@ test_that("assembly_parameters", {
   expect_that(assembly_parameters(), is_a("Parameters<FFW16>"))
 
   ## Modify some things:
-  p <- assembly_parameters(B4=2)
-  expect_that(environment(p$hyperpar)$B4, equals(2))
-  p <- assembly_parameters(B4=2, c_bio=pi)
-  expect_that(environment(p$hyperpar)$B4, equals(2))
-  expect_that(p$strategy_default$c_bio, equals(pi))
+  p <- assembly_parameters(B_kl_slope=2)
+  expect_that(environment(p$hyperpar)$B_kl_slope, equals(2))
+  p <- assembly_parameters(B_kl_slope=2, a_bio=pi)
+  expect_that(environment(p$hyperpar)$B_kl_slope, equals(2))
+  expect_that(p$strategy_default$a_bio, equals(pi))
 
-  expect_that(p2 <- assembly_parameters(list(B4=2, c_bio=pi)),
+  expect_that(p2 <- assembly_parameters(list(B_kl_slope=2, a_bio=pi)),
               throws_error("named"))
-  p2 <- assembly_parameters(pars=list(B4=2, c_bio=pi))
+  p2 <- assembly_parameters(pars=list(B_kl_slope=2, a_bio=pi))
   expect_that(p2, equals(p))
 })

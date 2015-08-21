@@ -249,8 +249,8 @@ template <typename T>
 std::vector<double> EBT<T>::seed_rain_cohort(size_t species_index) const {
   const std::vector<double> times = cohort_schedule.times(species_index);
   const Disturbance& disturbance_regime = patch.disturbance_regime();
-  const double Pi_0 = parameters.strategies[species_index].Pi_0;
-  const double scal = Pi_0 * parameters.seed_rain[species_index];
+  const double S_D = parameters.strategies[species_index].S_D;
+  const double scal = S_D * parameters.seed_rain[species_index];
   std::vector<double> seeds = patch.at(species_index).seeds();
   for (size_t i = 0; i < seeds.size(); ++i) {
     seeds[i] *= disturbance_regime.density(times[i]) * scal;

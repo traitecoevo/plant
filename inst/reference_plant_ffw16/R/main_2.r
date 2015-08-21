@@ -9,7 +9,7 @@ source('params.r')
 traits<-list()
 traits$lma =1.11E-01
 traits$rho = 608;
-traits$hmat = 100; p.c_r1=0.75; p.c_r2=10;
+traits$hmat = 100; p.a_f1=0.75; p.a_f2=10;
 
 
 
@@ -25,11 +25,11 @@ plotMarginalCostsLfArea(traits, seqLog(0.01, 10, 100))
 plotMarginalCostsHeight(traits, seqLog(0.01, 10, 100))
   
 #reproduction
-traits$hmat=25; p.c_r1=1.0;
+traits$hmat=25; p.a_f1=1.0;
 plotReproductiveAllocation(traits, seqLog(1, 50, 100))
-traits$hmat=10; p.c_r1=1.0;
+traits$hmat=10; p.a_f1=1.0;
 plotReproductiveAllocation(traits, seqLog(1, 40, 100), add=TRUE)
-traits$hmat=4; p.c_r1=1.0;
+traits$hmat=4; p.a_f1=1.0;
 plotReproductiveAllocation(traits, seqLog(1, 40, 100), add=TRUE)
 points(c(10,4, 25), c(0.5, 0.5, 0.5), type='p', pty='19', col="red")
 arrows(13.3, 0.5, 7.5, 0.5, col="red", code=3)
@@ -57,7 +57,7 @@ plotTraitvHeightGrowth(X,traits, h=c(0.25, 0.5, 1, 5, 10, 20), env=1, option=3)
 
 
 #plot height growth vs size
-traits$hmat=50; p.c_r1=0.0;
+traits$hmat=50; p.a_f1=0.0;
 RGR=FALSE
 traits$lma = 0.01
 plotSizevHeightGrowth(traits, h=seqLog(0.2, 25, 100), env=1.0, add=FALSE, RGR=RGR)

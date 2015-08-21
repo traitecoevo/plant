@@ -181,40 +181,40 @@ public:
   // Leaf area per sapwood area
   double theta;
   // Empirical constants for scaling relationships
-  double a1, B1, a3;
+  double a_l1, a_l2, a_r1;
   // Bark area per sapwood area
-  double b;
+  double a_b1;
   // * Production
   // Respiration constants
-  double c_Rs, c_Rb, c_Rr, c_Rl;
+  double r_l, r_b, r_s, r_r;
   // Yield = carbon fixed in tissue per carbon assimilated;
-  double Y;
+  double a_y;
   // Conversion factor
-  double c_bio;
+  double a_bio;
   // Leaf, bark sapwood, and root turnover rates
   double k_l, k_b, k_s, k_r;
   // Leaf productivity parameters  - only used when no N reallocation
-  double c_p1, c_p2;
+  double a_p1, a_p2;
 
   // * Seed production
   // Accessory cost of reproduction, per seed
-  double c_acc;
+  double a_f3;
   // Max proportion production allocated to reproduction
-  double c_r1;
+  double a_f1;
   // Size range across which individuals mature
-  double c_r3;
+  double a_f2;
 
   // * Mortality
   // Probability of survival during dispersal
-  double Pi_0;
+  double S_D;
   // Parameter for seedling mortality
-  double c_s0;
+  double a_d0;
   // Baseline structural mortality rate
-  double c_d0;
+  double d_I;
  // Baseline for growth mortality rate
-  double c_d2;
+  double a_dG_base;
   // Coefficient for dry mass production in mortality function
-  double c_d3;
+  double a_dG_slope;
 
   // Height and leaf area of a (germinated) seed
   double height_0;

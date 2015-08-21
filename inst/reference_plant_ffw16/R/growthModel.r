@@ -8,14 +8,14 @@ seqLog <- function(from, to, n,base=10){base^(seq(log(from,base),log(to,base),le
 
 
 #ALLOMETRIC MODEL FOR SIZE OF CONMPONENTS
-Height <- function(A){p.a1*A^p.B1}
-dHdA<-function(A){p.B1*p.a1*A^(p.B1-1)}
-LeafArea<-function(h){ (h/p.a1)^(1/p.B1)}
+Height <- function(A){p.a_l1*A^p.a_l2}
+dHdA<-function(A){p.a_l2*p.a_l1*A^(p.a_l2-1)}
+LeafArea<-function(h){ (h/p.a_l1)^(1/p.a_l2)}
 LeafMass<-function(lma, A){A*lma}
-RootMass<-function(A){p.a3*A}
+RootMass<-function(A){p.a_r1*A}
 SapwoodMass<-function(rho, A,h){rho/p.theta*etac(p.eta)*A*h}
 etac<-function(eta){1-2/(1+eta)+1/(1+2*eta)}
-BarkMass<-function(rho, A,h){p.b*SapwoodMass(A,h, rho)}
+BarkMass<-function(rho, A,h){p.a_b1 * SapwoodMass(A,h, rho)}
 LiveMass<-function(traits, A){
   ml =LeafMass(traits$lma, A)
   ms =SapwoodMass(traits$rho,A,Height(A))
@@ -61,8 +61,8 @@ dHdt<-function(traits, h, env){dHdA(LeafArea(h))*dAdMt(traits, LeafArea(h))*Prod
 #MARGINAL COST OF LEAF AREA GROWTH
 dMldA<-function(lma,A){A*0+lma}
 dMsdA<-function(rho, A){rho/p.theta*etac(p.eta)*(Height(A)+A*dHdA(A))}
-dMbdA<-function(rho, A){p.b*dMsdA(rho,A)}
-dMrdA<-function(A){A*0+p.a3}
+dMbdA<-function(rho, A){p.a_b1 * dMsdA(rho,A)}
+dMrdA<-function(A){A*0+p.a_r1}
 dMtdA<-function(traits,A){dMldA(traits$lma, A) + dMbdA(traits$rho,A) + dMsdA(traits$rho,A) + dMrdA(A)}
 dAdMt<-function(traits, A){1/dMtdA(traits, A)}
 
@@ -73,7 +73,7 @@ dMbdH<-function(rho,h){ A=LeafArea(h); dMbdA(rho,A)/dHdA(A)}
 dMrdH<-function(h){ A=LeafArea(h); dMrdA(A)/dHdA(A)}
 
 #reproductive allocation
-ReproductiveAllocation <-function(hmat,h){p.c_r1/(1+exp(p.c_r2*(1-h/hmat)))}
+ReproductiveAllocation <-function(hmat,h){p.a_f1/(1+exp(p.a_f2*(1-h/hmat)))}
 
 #production functions
 dMtdt<-function(traits, h, env){
@@ -97,16 +97,16 @@ Production.detail <-function(traits, A, ms, mb,  mr, env, print=0){
   Assim(A, env) - Respiration(A*traits$lma, ms, mb,  mr) - Turnover(traits, A*traits$lma, ms, mb,  mr)
   }
 
-Assim <- function(A, env){p.Y*p.c_bio*A*p.c_p1 * env/(p.c_p2+env)}
+Assim <- function(A, env){p.a_y*p.a_bio*A*p.a_p1 * env/(p.a_p2+env)}
 
 Respiration <-function(ml, ms, mb,  mr){
   Respiration.leaf(ml) + Respiration.sapwood(ms) + Respiration.bark(mb) + Respiration.root(mr)
   }
 
-Respiration.leaf <-function(ml){p.Y*p.c_bio *(p.c_Rl*ml)}
-Respiration.sapwood <-function(ms){p.Y*p.c_bio * p.c_Rs * ms}
-Respiration.bark <-function(mb){p.Y*p.c_bio * p.c_Rb * mb}
-Respiration.root <-function(mr){p.Y*p.c_bio * p.c_Rr * mr}
+Respiration.leaf <-function(ml){p.a_y*p.a_bio *(p.r_l*ml)}
+Respiration.sapwood <-function(ms){p.a_y*p.a_bio * p.r_s * ms}
+Respiration.bark <-function(mb){p.a_y*p.a_bio * p.r_b * mb}
+Respiration.root <-function(mr){p.a_y*p.a_bio * p.r_r * mr}
 
 Turnover <-function(traits, ml, ms, mb,  mr){
   Turnover.leaf(traits$lma, ml) + Turnover.sapwood(ms) + Turnover.bark(mb) + Turnover.root(mr)

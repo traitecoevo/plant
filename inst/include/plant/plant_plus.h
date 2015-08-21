@@ -216,7 +216,7 @@ void PlantPlus<T>::compute_vars_phys(const Environment& environment,
 
     // [eqn 17] - Rate of offspring production
     //
-    // NOTE: In EBT, was multiplied by Pi_0 (survival during
+    // NOTE: In EBT, was multiplied by S_D (survival during
     // dispersal), but we do not here.
     // NOTE: This is also a hyper-parametrisation and should move into
     // the initialisation function.

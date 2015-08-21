@@ -42,18 +42,18 @@ make_reference_plant_FFW16 <- function() {
   ## Reset a few parameters to revert back to C++ defaults
   e$traits$lma <- 0.1978791
   e$traits$hmat <- 16.5958691
-  e$p.c_bio <- 2.45e-2
+  e$p.a_bio <- 2.45e-2
   e$p.k_l <- 0.4565855
   e$p.theta <- 4669
 
   ## Function to return current values of parameters.
   ## All parameters can be translated as x -> p.x, where 'x' is the
   ## name in the C++ version.
-  vars <- c("eta", "theta", "a1", "B1", "a3", "b",
-            "n_area", "c_Rl", "c_Rr", "c_Rs", "c_Rb", "Y",
-            "c_bio", "k_l", "k_b", "k_s", "k_r", "c_p1", "c_p2",
-            "c_acc","c_d0", "c_d2", "c_d3", "c_s0",
-            "c_r1", "c_r2")
+  vars <- c("eta", "theta", "a_l1", "a_l2", "a_r1", "a_b1",
+            "n_area", "r_l", "r_r", "r_s", "r_b", "a_y",
+            "a_bio", "k_l", "k_b", "k_s", "k_r", "a_p1", "a_p2",
+            "a_f3","d_I", "a_dG_base", "a_dG_slope", "a_d0",
+            "a_f1", "a_f2")
   get.pars <- function() {
     vars.traits <- list(lma=e$traits$lma, rho=e$traits$rho,
                         hmat=e$traits$hmat, mass_seed=e$traits$ mass_seed)

@@ -9,7 +9,7 @@ source('params.r')
 traits<-list()
 traits$lma =1.11E-01
 traits$rho = 608;
-traits$hmat = 20; p.c_r1=0.75; p.c_r2=10;
+traits$hmat = 20; p.a_f1=0.75; p.a_f2=10;
 
 
 

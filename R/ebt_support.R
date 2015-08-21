@@ -208,36 +208,36 @@ run_ebt_error <- function(p) {
 
 ##' Hyperparameters for plant
 ##' @title Hyperparameters for plant
-##' @param B4 Slope of lma / leaf turnover log-log relationship
+##' @param B_kl_slope Slope of lma / leaf turnover log-log relationship
 ##' @param lma_0 LMA value...
-##' @param k_l_0 ...
+##' @param B_kl_base ...
 ##' @param rho_0 ...
-##' @param d0_0 ...
-##' @param d1 ...
-##' @param k_s_0 ...
-##' @param B5 ...
+##' @param B_dI_base ...
+##' @param B_dI_slope ...
+##' @param B_ks_base ...
+##' @param B_ks_slope ...
 ##' @param narea_0 ...
 ##' @param c_ext ...
 ##' @export
 ##' @rdname FFW16_hyperpar
-make_FFW16_hyperpar <- function(B4=1.71,
+make_FFW16_hyperpar <- function(B_kl_slope=1.71,
                                lma_0=0.1978791,
-                               k_l_0=0.4565855,
+                               B_kl_base=0.4565855,
                                rho_0=608.0,
-                               d0_0=0.01,
-                               d1=0.0,
-                               k_s_0=0.2,
-                               B5=0.0,
+                               B_dI_base=0.01,
+                               B_dI_slope=0.0,
+                               B_ks_base=0.2,
+                               B_ks_slope=0.0,
                                narea_0=1.87e-3,
                                c_ext=0.5,
                                latitude=0) {
-  force(B4)
+  force(B_kl_slope)
   force(lma_0)
-  force(k_l_0)
+  force(B_kl_base)
   force(rho_0)
-  force(d0_0)
-  force(d1)
-  force(B5)
+  force(B_dI_base)
+  force(B_dI_slope)
+  force(B_ks_slope)
   force(narea_0)
   force(c_ext)
   force(latitude)
@@ -253,13 +253,13 @@ make_FFW16_hyperpar <- function(B4=1.71,
     narea     <- with_default("narea", narea_0)
 
     ## lma / leaf turnover relationship:
-    k_l   <- k_l_0 * (lma / lma_0) ^ (-B4)
+    k_l   <- B_kl_base * (lma / lma_0) ^ (-B_kl_slope)
 
     ## rho / mortality relationship:
-    c_d0  <- d0_0 * (rho / rho_0) ^ (-d1)
+    d_I  <- B_dI_base * (rho / rho_0) ^ (-B_dI_slope)
 
     ## rho / wood turnover relationship:
-    k_s  <- k_s_0 *  (rho / rho_0) ^ (-B5)
+    k_s  <- B_ks_base *  (rho / rho_0) ^ (-B_ks_slope)
 
     ## rho / sapwood respiration relationship:
 
@@ -267,11 +267,11 @@ make_FFW16_hyperpar <- function(B4=1.71,
     ## effect of holding constant the respiration rate per unit volume.
     ## So respiration rates per unit mass vary with rho, respiration
     ## rates per unit volume don't.
-    c_Rs <- 4012.0 / rho
-    c_Rb <- 2.0 * c_Rs # bark respiration follows from sapwood
+    r_s <- 4012.0 / rho
+    r_b <- 2.0 * r_s # bark respiration follows from sapwood
 
     ## mass_seed / accessory cost relationship
-    c_acc <- 3.0 * mass_seed
+    a_f3 <- 3.0 * mass_seed
 
     ## narea / photosynthesis / respiration
     ## Photosynthesis per mass leaf N [mol CO2 / kgN / yr]
@@ -305,8 +305,8 @@ make_FFW16_hyperpar <- function(B4=1.71,
 
     pars <- list(latitude = latitude, Amax = narea * NUE, theta = 0.5, QY = 0.04, c_ext = c_ext)
     y <- approximate_annual_assimilation(pars)
-    c_p1  <- y[["p1"]]
-    c_p2  <- y[["p2"]]
+    a_p1  <- y[["p1"]]
+    a_p2  <- y[["p2"]]
 
     ## Respiration per mass leaf N [mol CO2 / kgN / yr]
     ## = (6.66e-4 * (365*24*60*60))
@@ -317,13 +317,13 @@ make_FFW16_hyperpar <- function(B4=1.71,
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
     ## respiration rates per unit area don't.
-    c_Rl  <- c_RN * narea / lma
+    r_l  <- c_RN * narea / lma
 
     extra <- cbind(k_l,                   # lma
-                   c_d0, k_s, c_Rs, c_Rb, # rho
-                   c_acc,                 # mass_seed
-                   c_p1, c_p2,            # narea   
-                   c_Rl)                  # lma, narea
+                   d_I, k_s, r_s, r_b, # rho
+                   a_f3,                 # mass_seed
+                   a_p1, a_p2,            # narea   
+                   r_l)                  # lma, narea
 
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {

@@ -2,26 +2,26 @@ context("Strategy-FFdev")
 
 test_that("Defaults", {
   expected <- list(
-    B1     = 0.306,
-    Pi_0   = 0.25,
-    Y      = 0.7,
-    a1     = 5.44,
-    a3     = 0.07,
-    b      = 0.17,
-    c_Rb   = 8024 / 608,
-    c_Rl   = 39.27 / 0.1978791,
-    c_Rr   = 217,
-    c_Rs   = 4012/608,
-    c_acc  = 3.0*3.8e-5,
-    c_bio  = 0.0245,
-    c_d0   = 0.01,
-    c_d2   = 5.5,
-    c_d3   = 20,
-    c_p1   = 150.36,
-    c_p2   = 0.19,
-    c_r1   = 1,
-    c_r3   = 2,
-    c_s0   = 0.1,
+    a_l2     = 0.306,
+    S_D   = 0.25,
+    a_y      = 0.7,
+    a_l1     = 5.44,
+    a_r1     = 0.07,
+    a_b1      = 0.17,
+    r_b   = 8024 / 608,
+    r_l   = 39.27 / 0.1978791,
+    r_r   = 217,
+    r_s   = 4012/608,
+    a_f3  = 3.0*3.8e-5,
+    a_bio  = 0.0245,
+    d_I   = 0.01,
+    a_dG_base   = 5.5,
+    a_dG_slope   = 20,
+    a_p1   = 150.36,
+    a_p2   = 0.19,
+    a_f1   = 1,
+    a_f2   = 2,
+    a_d0   = 0.1,
     eta    = 12,
     hmat   = 16,
     k_b    = 0.2,
@@ -69,7 +69,7 @@ test_that("Reference comparison", {
 
   seed <- PlantPlus("FFdev")(s)
 
-  h <- c(seed$height, s[["hmat"]],  s[["hmat"]] + s[["c_r3"]],  s[["hmat"]] + 3 * s[["c_r3"]])
+  h <- c(seed$height, s[["hmat"]],  s[["hmat"]] + s[["a_f2"]],  s[["hmat"]] + 3 * s[["a_f2"]])
   r_out <- c(0, 0, 0.5, 0.75)
 
   for (i in seq_along(h)) {

@@ -45,7 +45,7 @@ net.production <- function(traits, h, env) {
 fecundity_dt <- function(traits, h, env) {
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
-  f <- r * p / (p.c_acc + traits$mass_seed)
+  f <- r * p / (p.a_f3 + traits$mass_seed)
   f[p < 0] <- 0
   f
 }
@@ -66,15 +66,15 @@ sapwood.per.leaf.area <- function(traits, h){
   etac <- etac(p.eta)
   al <- LeafArea(h)
 
-  rho * etac * p.a1 * (p.B1 + 1) / (p.theta) * al^p.B1
+  rho * etac * p.a_l1 * (p.a_l2 + 1) / (p.theta) * al^p.a_l2
 }
 
 bark.per.leaf.area <- function(traits, h){
-  p.b * sapwood.per.leaf.area(traits, h)
+  p.a_b1 * sapwood.per.leaf.area(traits, h)
 }
 
 root.per.leaf.area <- function(traits, h){
-  p.a3
+  p.a_r1
 }
 
 
@@ -113,7 +113,7 @@ area_sapwood_dt <- function(traits, h, env){
 
 ## bark area growth rate
 area_bark_dt <- function(traits, h, env){
- p.b*area_leaf_dt(traits, h, env)/p.theta
+ p.a_b1 * area_leaf_dt(traits, h, env)/p.theta
 }
 
 ## heartwood area growth rate
@@ -153,26 +153,26 @@ area_sapwood <- function(h){
 
 ## bark area
 area_bark <- function(h){
-  p.b * LeafArea(h) / p.theta
+  p.a_b1 * LeafArea(h) / p.theta
 }
 
 ## Based on the above function, same algorithm as used in C++ version.
 height.growth.dt.via.area.leaf <- function(traits, h, env) {
   daldt <- area.leaf.growth.dt(traits, h, env)
   a <- LeafArea(h)
-  p.a1 * p.B1 * (a)^(p.B1 - 1) * daldt
+  p.a_l1 * p.a_l2 * (a)^(p.a_l2 - 1) * daldt
 }
 
-p.c_d0 <- 0.01
-p.c_d2 <- 5.5
-p.c_d3 <- 20.0
-p.c_s0 <- 0.1
+p.d_I <- 0.01
+p.a_dG_base <- 5.5
+p.a_dG_slope <- 20.0
+p.a_d0 <- 0.1
 
 mortality.dt <- function(traits, h, env) {
   p <- net.production(traits, h, env)
   a <- LeafArea(h)
-  p.c_d0 +
-    p.c_d2 * exp(-p.c_d3 * p / a)
+  p.d_I +
+    p.a_dG_base * exp(-p.a_dG_slope * p / a)
 }
 
 height.at.birth <- function(traits) {
@@ -195,7 +195,7 @@ germination.probability <- function(traits, env) {
   h <- height.at.birth(traits)
   P <- net.production(traits, h, env)
   if (P > 0)
-    ((P / LeafArea(h))^(-2) * p.c_s0^2 + 1)^(-1)
+    ((P / LeafArea(h))^(-2) * p.a_d0^2 + 1)^(-1)
   else
     0
 }

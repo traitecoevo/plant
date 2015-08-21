@@ -2,26 +2,26 @@ context("Strategy-FFW16")
 
 test_that("Defaults", {
   expected <- list(
-    B1     = 0.306,
-    Pi_0   = 0.25,
-    Y      = 0.7,
-    a1     = 5.44,
-    a3     = 0.07,
-    b      = 0.17,
-    c_Rb   = 8024 / 608,
-    c_Rl   = 39.27 / 0.1978791,
-    c_Rr   = 217,
-    c_Rs   = 4012/608,
-    c_acc  = 3.0*3.8e-5,
-    c_bio  = 0.0245,
-    c_d0   = 0.01,
-    c_d2   = 5.5,
-    c_d3   = 20,
-    c_p1   = 150.36,
-    c_p2   = 0.19,
-    c_r1   = 1,
-    c_r2   = 50,
-    c_s0   = 0.1,
+    a_l2     = 0.306,
+    S_D   = 0.25,
+    a_y      = 0.7,
+    a_l1     = 5.44,
+    a_r1     = 0.07,
+    a_b1      = 0.17,
+    r_b   = 8024 / 608,
+    r_l   = 39.27 / 0.1978791,
+    r_r   = 217,
+    r_s   = 4012/608,
+    a_f3  = 3.0*3.8e-5,
+    a_bio  = 0.0245,
+    d_I   = 0.01,
+    a_dG_base   = 5.5,
+    a_dG_slope   = 20,
+    a_p1   = 150.36,
+    a_p2   = 0.19,
+    a_f1   = 1,
+    a_f2   = 50,
+    a_d0   = 0.1,
     eta    = 12,
     hmat   = 16.5958691,
     k_b    = 0.2,
@@ -55,7 +55,7 @@ test_that("FFW16_Strategy parameters agree with reference model", {
   expect_that(all(v %in% names(s)), is_true())
 
   ## And v.v., except for a few additions:
-  extra <- c("control", "Pi_0")
+  extra <- c("control", "S_D")
   common <- setdiff(names(s), extra)
   expect_that(all(extra %in% names(s)), is_true())
   expect_that(all(common %in% names(cmp_pars)),
@@ -134,9 +134,9 @@ test_that("Reference comparison", {
   env <- test_environment(h0)
   light_env <- attr(env, "light_env") # underlying function
 
-  ## The R model computes A_lf * area_leaf * Y * c_bio, wheras we just
+  ## The R model computes A_lf * area_leaf * a_y * a_bio, wheras we just
   ## compute A_lf; will have to correct some numbers.
-  cmp_const <- s$Y * s$c_bio
+  cmp_const <- s$a_y * s$a_bio
 
   ## TODO: Check what growth variables look like before running
   ## through with environment.  Most are NA_real_, but some are not

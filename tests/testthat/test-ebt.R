@@ -256,7 +256,7 @@ test_that("Seed rain & error calculations correct", {
       d <- ebt$patch$environment$disturbance_regime
       pa <- d$density(a)
       p <- ebt$parameters
-      scale <- ebt$parameters$strategies[[1]]$Pi_0 * p$seed_rain
+      scale <- ebt$parameters$strategies[[1]]$S_D * p$seed_rain
       seeds <- pa * ebt$patch$species[[1]]$seeds * scale
       total <- trapezium(a, seeds)
       if (error) local_error_integration(a, seeds, total) else total
@@ -273,9 +273,9 @@ test_that("Seed rain & error calculations correct", {
                 is_identical_to(lae_cmp))
 
     int <- make_ebt_integrate(ebt)
-    Pi_0 <- ebt$parameters$strategies[[1]]$Pi_0
+    S_D <- ebt$parameters$strategies[[1]]$S_D
     expect_that(int("seeds_survival_weighted") *
-                  Pi_0, equals(ebt$seed_rain(1)))
+                  S_D, equals(ebt$seed_rain(1)))
 
     res <- run_ebt_collect(p1)
     int2 <- make_ebt_integrate(res)
