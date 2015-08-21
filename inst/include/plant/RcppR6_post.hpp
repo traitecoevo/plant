@@ -463,7 +463,7 @@ template <> inline SEXP wrap(const plant::FFW16_Strategy& x) {
   ret["lma"] = Rcpp::wrap(x.lma);
   ret["rho"] = Rcpp::wrap(x.rho);
   ret["hmat"] = Rcpp::wrap(x.hmat);
-  ret["mass_seed"] = Rcpp::wrap(x.mass_seed);
+  ret["omega"] = Rcpp::wrap(x.omega);
   ret["eta"] = Rcpp::wrap(x.eta);
   ret["theta"] = Rcpp::wrap(x.theta);
   ret["a_l1"] = Rcpp::wrap(x.a_l1);
@@ -509,8 +509,8 @@ template <> inline plant::FFW16_Strategy as(SEXP x) {
   ret.rho = Rcpp::as<double >(xl["rho"]);
   // ret.hmat = Rcpp::as<decltype(rethmat) >(xl["hmat"]);
   ret.hmat = Rcpp::as<double >(xl["hmat"]);
-  // ret.mass_seed = Rcpp::as<decltype(retmass_seed) >(xl["mass_seed"]);
-  ret.mass_seed = Rcpp::as<double >(xl["mass_seed"]);
+  // ret.omega = Rcpp::as<decltype(retomega) >(xl["omega"]);
+  ret.omega = Rcpp::as<double >(xl["omega"]);
   // ret.eta = Rcpp::as<decltype(reteta) >(xl["eta"]);
   ret.eta = Rcpp::as<double >(xl["eta"]);
   // ret.theta = Rcpp::as<decltype(rettheta) >(xl["theta"]);
@@ -572,7 +572,7 @@ template <> inline SEXP wrap(const plant::FFdev_Strategy& x) {
   ret["lma"] = Rcpp::wrap(x.lma);
   ret["rho"] = Rcpp::wrap(x.rho);
   ret["hmat"] = Rcpp::wrap(x.hmat);
-  ret["mass_seed"] = Rcpp::wrap(x.mass_seed);
+  ret["omega"] = Rcpp::wrap(x.omega);
   ret["eta"] = Rcpp::wrap(x.eta);
   ret["theta"] = Rcpp::wrap(x.theta);
   ret["a_l1"] = Rcpp::wrap(x.a_l1);
@@ -618,8 +618,8 @@ template <> inline plant::FFdev_Strategy as(SEXP x) {
   ret.rho = Rcpp::as<double >(xl["rho"]);
   // ret.hmat = Rcpp::as<decltype(rethmat) >(xl["hmat"]);
   ret.hmat = Rcpp::as<double >(xl["hmat"]);
-  // ret.mass_seed = Rcpp::as<decltype(retmass_seed) >(xl["mass_seed"]);
-  ret.mass_seed = Rcpp::as<double >(xl["mass_seed"]);
+  // ret.omega = Rcpp::as<decltype(retomega) >(xl["omega"]);
+  ret.omega = Rcpp::as<double >(xl["omega"]);
   // ret.eta = Rcpp::as<decltype(reteta) >(xl["eta"]);
   ret.eta = Rcpp::as<double >(xl["eta"]);
   // ret.theta = Rcpp::as<decltype(rettheta) >(xl["theta"]);
