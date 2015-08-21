@@ -282,31 +282,35 @@ make_FFW16_hyperpar <- function(B_kl_slope=1.71,
     }
 
     approximate_annual_assimilation <- function(pars, E = seq(0, 1, by = 0.02)) {
-      
+
       # Only integrate over half year, as solar path is symmetrical
       D <- seq(0, 365/2, length.out = 10000)
       I <- PAR_given_solar_angle(solar_angle(D, latitude = abs(pars$latitude)))
-      
+
       AA <- NA * E
-      
+
       for (i in seq_len(length(E))) {
         AA[i] <- 2*trapezium(D, assimilian_rectangular_hyperbolae(
-                                pars$c_ext * I * E[i], 
+                                pars$c_ext * I * E[i],
                                 pars$Amax, pars$theta, pars$QY)
                           )
       }
-      
+
       data <- data.frame(E = E, AA = AA)
       fit <- nls(AA ~ p1 * E/(p2 + E), data, start = list(p1 = 100, p2 = 0.2))
       coef(fit)
-    } 
-    NUE <- 5120.738 * 24 * 3600/1e+06 
-    # (mol CO2/ kg N /day )
+    }
 
-    pars <- list(latitude = latitude, Amax = narea * NUE, theta = 0.5, QY = 0.04, c_ext = c_ext)
-    y <- approximate_annual_assimilation(pars)
-    a_p1  <- y[["p1"]]
-    a_p2  <- y[["p2"]]
+    # This needed in case narea has length zero, in which case trapezium fails
+    a_p1  <- a_p2  <- 0 * narea
+    if(length(narea) > 0 ) {
+      NUE <- 5120.738 * 24 * 3600/1e+06
+      # (mol CO2/ kg N /day )
+      pars <- list(latitude = latitude, Amax = narea * NUE, theta = 0.5, QY = 0.04, c_ext = c_ext)
+      y <- approximate_annual_assimilation(pars)
+      a_p1  <- y[["p1"]]
+      a_p2  <- y[["p2"]]
+    }
 
     ## Respiration per mass leaf N [mol CO2 / kgN / yr]
     ## = (6.66e-4 * (365*24*60*60))
