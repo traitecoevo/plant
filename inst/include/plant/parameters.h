@@ -24,7 +24,7 @@ struct Parameters {
   typedef T strategy_type;
   Parameters();
   // Data -- public for now (see github issue #17).
-  double c_ext;      // Light extinction coefficient
+  double k_I;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
   double disturbance_mean_interval; // Disturbance interval (years)
@@ -61,7 +61,7 @@ private:
 
 template <typename T>
 Parameters<T>::Parameters()
-  : c_ext(0.5),
+  : k_I(0.5),
     patch_area(1.0),
     n_patches(1),
     disturbance_mean_interval(30),

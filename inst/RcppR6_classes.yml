@@ -441,7 +441,7 @@ Parameters:
   validator:
     name_cpp: validate
   list:
-    - c_ext: double
+    - k_I: double
     - patch_area: double
     - n_patches: size_t
     - disturbance_mean_interval: double

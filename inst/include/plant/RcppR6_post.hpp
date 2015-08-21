@@ -678,7 +678,7 @@ template <> inline plant::FFdev_Strategy as(SEXP x) {
 }
 template <> inline SEXP wrap(const plant::Parameters<plant::FFW16_Strategy>& x) {
   Rcpp::List ret;
-  ret["c_ext"] = Rcpp::wrap(x.c_ext);
+  ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
@@ -704,8 +704,8 @@ template <> inline plant::Parameters<plant::FFW16_Strategy> as(SEXP x) {
   // field twice.  No current support for a hook.
   plant::Parameters<plant::FFW16_Strategy> ret;
   Rcpp::List xl(x);
-  // ret.c_ext = Rcpp::as<decltype(retc_ext) >(xl["c_ext"]);
-  ret.c_ext = Rcpp::as<double >(xl["c_ext"]);
+  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
+  ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
   ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
@@ -738,7 +738,7 @@ template <> inline plant::Parameters<plant::FFW16_Strategy> as(SEXP x) {
 
 template <> inline SEXP wrap(const plant::Parameters<plant::FFdev_Strategy>& x) {
   Rcpp::List ret;
-  ret["c_ext"] = Rcpp::wrap(x.c_ext);
+  ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
@@ -764,8 +764,8 @@ template <> inline plant::Parameters<plant::FFdev_Strategy> as(SEXP x) {
   // field twice.  No current support for a hook.
   plant::Parameters<plant::FFdev_Strategy> ret;
   Rcpp::List xl(x);
-  // ret.c_ext = Rcpp::as<decltype(retc_ext) >(xl["c_ext"]);
-  ret.c_ext = Rcpp::as<double >(xl["c_ext"]);
+  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
+  ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
   ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);

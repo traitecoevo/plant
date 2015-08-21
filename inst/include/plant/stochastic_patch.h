@@ -131,7 +131,7 @@ double StochasticPatch<T>::area_leaf_above(double height) const {
 
 template <typename T>
 double StochasticPatch<T>::canopy_openness(double height) const {
-  return exp(-parameters.c_ext * area_leaf_above(height) /
+  return exp(-parameters.k_I * area_leaf_above(height) /
              parameters.patch_area);
 }
 

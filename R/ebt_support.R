@@ -217,7 +217,7 @@ run_ebt_error <- function(p) {
 ##' @param B_ks_base ...
 ##' @param B_ks_slope ...
 ##' @param narea_0 ...
-##' @param c_ext ...
+##' @param k_I ...
 ##' @export
 ##' @rdname FFW16_hyperpar
 make_FFW16_hyperpar <- function(B_kl_slope=1.71,
@@ -229,7 +229,7 @@ make_FFW16_hyperpar <- function(B_kl_slope=1.71,
                                B_ks_base=0.2,
                                B_ks_slope=0.0,
                                narea_0=1.87e-3,
-                               c_ext=0.5,
+                               k_I=0.5,
                                latitude=0) {
   force(B_kl_slope)
   force(lma_0)
@@ -239,7 +239,7 @@ make_FFW16_hyperpar <- function(B_kl_slope=1.71,
   force(B_dI_slope)
   force(B_ks_slope)
   force(narea_0)
-  force(c_ext)
+  force(k_I)
   force(latitude)
 
   function(m, s, filter=TRUE) {
@@ -291,7 +291,7 @@ make_FFW16_hyperpar <- function(B_kl_slope=1.71,
 
       for (i in seq_len(length(E))) {
         AA[i] <- 2*trapezium(D, assimilian_rectangular_hyperbolae(
-                                pars$c_ext * I * E[i],
+                                pars$k_I * I * E[i],
                                 pars$Amax, pars$theta, pars$QY)
                           )
       }
@@ -306,7 +306,7 @@ make_FFW16_hyperpar <- function(B_kl_slope=1.71,
     if(length(narea) > 0 ) {
       NUE <- 5120.738 * 24 * 3600/1e+06
       # (mol CO2/ kg N /day )
-      pars <- list(latitude = latitude, Amax = narea * NUE, theta = 0.5, QY = 0.04, c_ext = c_ext)
+      pars <- list(latitude = latitude, Amax = narea * NUE, theta = 0.5, QY = 0.04, k_I = k_I)
       y <- approximate_annual_assimilation(pars)
       a_p1  <- y[["p1"]]
       a_p2  <- y[["p2"]]
@@ -326,7 +326,7 @@ make_FFW16_hyperpar <- function(B_kl_slope=1.71,
     extra <- cbind(k_l,                   # lma
                    d_I, k_s, r_s, r_b, # rho
                    a_f3,                 # omega
-                   a_p1, a_p2,            # narea   
+                   a_p1, a_p2,            # narea
                    r_l)                  # lma, narea
 
     overlap <- intersect(colnames(m), colnames(extra))
