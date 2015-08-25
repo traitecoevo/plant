@@ -32,8 +32,19 @@ stochastic_schedule <- function(p) {
   sched
 }
 
-## This one might need to be made differently so that different
+##' Run a stochastic simulation of a patch, given a Parameters
+##'
+##' This one might need to be made differently so that different
 ## schedules can be added easily.
+##' Not sure if this is how we will generally want to do this.
+##' Consider this function liable to change.
+##'
+##' @title Run a stochastic patch, Collecting Output
+##' @param p A \code{\link{FFW16_Parameters}} object
+##' @param random_schedule setting to TRUE causes algorithm to generate
+##' a random schedule based on seed rain and area.
+##' @author Rich FitzJohn
+##' @export
 run_stochastic_collect <- function(p, random_schedule=TRUE) {
   collect <- function(obj) {
     obj$state
