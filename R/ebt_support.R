@@ -221,26 +221,31 @@ run_ebt_error <- function(p) {
 ##' @export
 ##' @rdname FFW16_hyperpar
 make_FFW16_hyperpar <- function(B_kl2=1.71,
-                               lma_0=0.1978791,
-                               B_kl1=0.4565855,
-                               rho_0=608.0,
-                               B_dI1=0.01,
-                               B_dI2=0.0,
-                               B_ks1=0.2,
-                               B_ks2=0.0,
-                               narea_0=1.87e-3,
-                               k_I=0.5,
-                               latitude=0) {
-  force(B_kl2)
-  force(lma_0)
-  force(B_kl1)
-  force(rho_0)
-  force(B_dI1)
-  force(B_dI2)
-  force(B_ks2)
-  force(narea_0)
-  force(k_I)
-  force(latitude)
+                                lma_0=0.1978791,
+                                B_kl1=0.4565855,
+                                rho_0=608.0,
+                                B_dI1=0.01,
+                                B_dI2=0.0,
+                                B_ks1=0.2,
+                                B_ks2=0.0,
+                                narea_0=1.87e-3,
+                                k_I=0.5,
+                                latitude=0) {
+  assert_scalar <- function(x, name=deparse(substitute(x))) {
+    if (length(x) != 1L) {
+      stop(sprintf("%s must be a scalar", name), call. = FALSE)
+    }
+  }
+  assert_scalar(B_kl2)
+  assert_scalar(lma_0)
+  assert_scalar(B_kl1)
+  assert_scalar(rho_0)
+  assert_scalar(B_dI1)
+  assert_scalar(B_dI2)
+  assert_scalar(B_ks2)
+  assert_scalar(narea_0)
+  assert_scalar(k_I)
+  assert_scalar(latitude)
 
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {
@@ -275,25 +280,26 @@ make_FFW16_hyperpar <- function(B_kl2=1.71,
 
     ## narea / photosynthesis / respiration
     ## Photosynthesis per mass leaf N [mol CO2 / kgN / yr]
-
-    assimilian_rectangular_hyperbolae <- function(I, Amax, theta, quantum) {
+    assimilation_rectangular_hyperbolae <- function(I, Amax, theta, quantum) {
       x <- quantum * I + Amax
-      (x - (x^2 - 4 * theta * quantum * I * Amax)^0.5)/(2 * theta)
+      (x - sqrt(x^2 - 4 * theta * quantum * I * Amax)) / (2 * theta)
     }
 
-    approximate_annual_assimilation <- function(pars, E = seq(0, 1, by = 0.02)) {
-
-      # Only integrate over half year, as solar path is symmetrical
+    approximate_annual_assimilation <- function(narea, latitude) {
+      NUE <- 5120.738 * 24 * 3600 / 1e+06 # (mol CO2/ kg N / day)
+      theta <- 0.5
+      QY <- 0.04
+      E <- seq(0, 1, by=0.02)
+      ## Only integrate over half year, as solar path is symmetrical
       D <- seq(0, 365/2, length.out = 10000)
-      I <- PAR_given_solar_angle(solar_angle(D, latitude = abs(pars$latitude)))
+      I <- PAR_given_solar_angle(solar_angle(D, latitude = abs(latitude)))
 
+      Amax <- narea * NUE
       AA <- NA * E
 
       for (i in seq_len(length(E))) {
-        AA[i] <- 2*trapezium(D, assimilian_rectangular_hyperbolae(
-                                pars$k_I * I * E[i],
-                                pars$Amax, pars$theta, pars$QY)
-                          )
+        AA[i] <- 2 * trapezium(D, assimilation_rectangular_hyperbolae(
+                                    k_I * I * E[i], Amax, theta, QY))
       }
 
       data <- data.frame(E = E, AA = AA)
@@ -302,14 +308,15 @@ make_FFW16_hyperpar <- function(B_kl2=1.71,
     }
 
     # This needed in case narea has length zero, in which case trapezium fails
-    a_p1  <- a_p2  <- 0 * narea
-    if(length(narea) > 0 ) {
-      NUE <- 5120.738 * 24 * 3600/1e+06
-      # (mol CO2/ kg N /day )
-      pars <- list(latitude = latitude, Amax = narea * NUE, theta = 0.5, QY = 0.04, k_I = k_I)
-      y <- approximate_annual_assimilation(pars)
-      a_p1  <- y[["p1"]]
-      a_p2  <- y[["p2"]]
+    a_p1 <- a_p2 <- 0 * narea
+    ## TODO: Remove th 0.5 hardcoded default for k_I here, and deal
+    ## with this more nicely.
+    if (length(narea) > 0 || k_I != 0.5) {
+      i <- match(narea, unique(narea))
+      y <- vapply(unique(narea), approximate_annual_assimilation,
+                  numeric(2), latitude)
+      a_p1  <- y["p1", i]
+      a_p2  <- y["p2", i]
     }
 
     ## Respiration per mass leaf N [mol CO2 / kgN / yr]
@@ -323,11 +330,11 @@ make_FFW16_hyperpar <- function(B_kl2=1.71,
     ## respiration rates per unit area don't.
     r_l  <- c_RN * narea / lma
 
-    extra <- cbind(k_l,                   # lma
+    extra <- cbind(k_l,                # lma
                    d_I, k_s, r_s, r_b, # rho
-                   a_f3,                 # omega
-                   a_p1, a_p2,            # narea
-                   r_l)                  # lma, narea
+                   a_f3,               # omega
+                   a_p1, a_p2,         # narea
+                   r_l)                # lma, narea
 
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {

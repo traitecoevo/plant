@@ -186,3 +186,14 @@ test_that("Disturbance interval", {
     expect_that(validate(p), equals(p2))
   }
 })
+
+test_that("narea calculation", {
+  x <- c(1.38, 3.07, 2.94)
+  p0 <- FFW16_Parameters()
+  m <- trait_matrix(x, "hmat")
+  expect_that(sl <- strategy_list(m, p0),
+              not(gives_warning()))
+
+  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0))
+  expect_that(sl, equals(cmp))
+})
