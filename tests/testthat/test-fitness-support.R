@@ -17,7 +17,7 @@ test_that("positive_1d", {
 })
 
 test_that("positive_2d", {
-  skip_if_not_installed("plant.ml")
+  skip_if_no_plant_ml_python()
   f <- function(x) {
     if (!is.matrix(x)) {
       x <- rbind(x, deparse.level=0)
@@ -27,5 +27,3 @@ test_that("positive_2d", {
 
   ans <- positive_2d(f, c(0, 0), -2, 2)
 })
-
-

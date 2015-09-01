@@ -117,3 +117,13 @@ test_ode_make_system <- function(obj) {
 test_ode_make_solver <- function(sys) {
   OdeRunner(class(sys)[[1]])(sys)
 }
+
+skip_if_no_plant_ml_python <- function() {
+  skip_if_not_installed("plant.ml")
+  ok <- !inherits(try(plant.ml:::ensure_python_loaded(), silent=TRUE),
+                  "try-error")
+  if (ok) {
+    return()
+  }
+  skip("python packages missing")
+}
