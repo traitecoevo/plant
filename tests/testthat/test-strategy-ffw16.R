@@ -256,3 +256,45 @@ test_that("Reference comparison", {
   expect_that(vars[["height_dt"]],
               equals(cmp, tolerance=1e-7))
 })
+
+
+test_that("FFW16_Strategy hyper-parameterisation", {
+
+  s <- FFW16_Strategy()
+
+  # lma
+  lma <- c(0.1,1)
+  ret <- FFW16_hyperpar(trait_matrix(lma, "lma"), s)
+  expect_that(ret[, "lma"], equals(lma))
+  expect_that(ret[, "k_l"], equals(c(1.46678,0.028600), tolerance=1e-5))
+  expect_that(ret[, "r_l"], equals(c(392.70, 39.27), tolerance=1e-5))
+  expect_that(colnames(ret), equals(c("lma","k_l","r_l")))
+
+  # wood density
+  rho <- c(200,300)
+  ret <- FFW16_hyperpar(trait_matrix(rho, "rho"), s)
+  expect_that(ret[, "rho"], equals(rho))
+  expect_that(ret[, "r_s"], equals(c(20.06000,13.37333), tolerance=1e-5))
+  expect_that(ret[, "r_b"], equals(2*ret[, "r_s"]))
+  expect_that(colnames(ret), equals(c("rho","r_s","r_b")))
+
+  # narea
+  narea <- c(2E-3,2.3E-3)
+  ret <- FFW16_hyperpar(trait_matrix(narea, "narea"), s)
+  expect_that(ret[, "narea"], equals(narea))
+  expect_that(ret[, "r_l"], equals(c(212.2508, 244.0884), tolerance=1e-5))
+  expect_that(ret[, "a_p1"], equals(c(162.2592, 188.1549), tolerance=1e-5))
+  expect_that(ret[, "a_p2"], equals(c(0.220904, 0.259173), tolerance=1e-5))
+  expect_that(colnames(ret), equals(c("narea", "a_p1", "a_p2", "r_l")))
+
+  # seed mass
+  omega <- 3.8e-5*c(1,2,3)
+  ret <- FFW16_hyperpar(trait_matrix(omega, "omega"), s)
+  expect_that(ret[, "omega"], equals(omega))
+  expect_that(ret[, "a_f3"], equals(3*omega))
+  expect_that(colnames(ret), equals(c("omega","a_f3")))
+
+  # Todo: need to example with empty trait matrix, just not sure how to trigger!
+
+})
+
