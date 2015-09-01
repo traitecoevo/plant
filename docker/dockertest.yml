@@ -1,2 +1,4 @@
 r_github_packages:
   - richfitz/RcppR6
+r_local_packages:
+  - ../plant.ml
