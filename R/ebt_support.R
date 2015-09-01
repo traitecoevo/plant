@@ -247,6 +247,8 @@ make_FFW16_hyperpar <- function(B_kl2=1.71,
   assert_scalar(k_I)
   assert_scalar(latitude)
 
+  ## TODO: k_I should actually be in default parameter set, so perhaps don't pass into function?
+
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
@@ -272,29 +274,43 @@ make_FFW16_hyperpar <- function(B_kl2=1.71,
     ## effect of holding constant the respiration rate per unit volume.
     ## So respiration rates per unit mass vary with rho, respiration
     ## rates per unit volume don't.
-    r_s <- 4012.0 / rho
-    r_b <- 2.0 * r_s # bark respiration follows from sapwood
+    ## (mol CO2 / m3 / yr)
+    B_rs1 <- 4012.0
+    r_s <- B_rs1 / rho
+    # bark respiration follows from sapwood
+    B_rb1 <- 4012.0*2.0
+    r_b <- B_rb1 / rho
 
     ## omega / accessory cost relationship
-    a_f3 <- 3.0 * omega
+    B_f1 <- 3.0
+    a_f3 <- B_f1 * omega
 
     ## narea / photosynthesis / respiration
     ## Photosynthesis per mass leaf N [mol CO2 / kgN / yr]
-    assimilation_rectangular_hyperbolae <- function(I, Amax, theta, quantum) {
-      x <- quantum * I + Amax
-      (x - sqrt(x^2 - 4 * theta * quantum * I * Amax)) / (2 * theta)
+    assimilation_rectangular_hyperbolae <- function(I, Amax, theta, QY) {
+      x <- QY * I + Amax
+      (x - sqrt(x^2 - 4 * theta * QY * I * Amax)) / (2 * theta)
     }
 
+    # Potential assimilation (Amax) per unit leaf nitrogen
+    # (mol CO2/ kg N / day)
+    B_lf1 <- 5120.738 * 24 * 3600 / 1e+06
+    # Curvature of light response curve
+    B_lf2 <- 0.5
+    # Quantum yield of leaf photosynthesis
+    # (mol CO2 / mol PAR)
+    B_lf3 <- 0.04
+
     approximate_annual_assimilation <- function(narea, latitude) {
-      NUE <- 5120.738 * 24 * 3600 / 1e+06 # (mol CO2/ kg N / day)
-      theta <- 0.5
-      QY <- 0.04
       E <- seq(0, 1, by=0.02)
       ## Only integrate over half year, as solar path is symmetrical
       D <- seq(0, 365/2, length.out = 10000)
       I <- PAR_given_solar_angle(solar_angle(D, latitude = abs(latitude)))
 
-      Amax <- narea * NUE
+      Amax <- narea * B_lf1
+      theta <- B_lf2
+      QY <- B_lf3
+
       AA <- NA * E
 
       for (i in seq_len(length(E))) {
@@ -323,12 +339,12 @@ make_FFW16_hyperpar <- function(B_kl2=1.71,
     ## = (6.66e-4 * (365*24*60*60))
     ## Obtained from global average of ratio of dark respiration rate to
     ## leaf nitrogen content using the GLOPNET dataset
-    c_RN  <-  21000
+    B_lf4  <-  21000
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
     ## respiration rates per unit area don't.
-    r_l  <- c_RN * narea / lma
+    r_l  <- B_lf4 * narea / lma
 
     extra <- cbind(k_l,                # lma
                    d_I, k_s, r_s, r_b, # rho
