@@ -208,27 +208,43 @@ run_ebt_error <- function(p) {
 
 ##' Hyperparameters for plant
 ##' @title Hyperparameters for plant
-##' @param B_kl2 Slope of lma / leaf turnover log-log relationship
 ##' @param lma_0 LMA value...
 ##' @param B_kl1 ...
+##' @param B_kl2 ...
 ##' @param rho_0 ...
 ##' @param B_dI1 ...
 ##' @param B_dI2 ...
 ##' @param B_ks1 ...
 ##' @param B_ks2 ...
+##' @param B_rs1 ...
+##' @param B_rb1 ...
+##' @param B_f1 ...
 ##' @param narea_0 ...
+##' @param B_lf1 ...
+##' @param B_lf2 ...
+##' @param B_lf3 ...
+##' @param B_lf4 ...
 ##' @param k_I ...
+##' @param latitude ...
 ##' @export
 ##' @rdname FFW16_hyperpar
-make_FFW16_hyperpar <- function(B_kl2=1.71,
+make_FFW16_hyperpar <- function(
                                 lma_0=0.1978791,
                                 B_kl1=0.4565855,
+                                B_kl2=1.71,
                                 rho_0=608.0,
                                 B_dI1=0.01,
                                 B_dI2=0.0,
                                 B_ks1=0.2,
                                 B_ks2=0.0,
+                                B_rs1=4012.0,
+                                B_rb1=2.0*4012.0,
+                                B_f1 =3.0,
                                 narea_0=1.87e-3,
+                                B_lf1=5120.738 * 24 * 3600 / 1e+06,
+                                B_lf2=0.5,
+                                B_lf3=0.04,
+                                B_lf4=21000,
                                 k_I=0.5,
                                 latitude=0) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
@@ -236,14 +252,22 @@ make_FFW16_hyperpar <- function(B_kl2=1.71,
       stop(sprintf("%s must be a scalar", name), call. = FALSE)
     }
   }
-  assert_scalar(B_kl2)
   assert_scalar(lma_0)
   assert_scalar(B_kl1)
+  assert_scalar(B_kl2)
   assert_scalar(rho_0)
   assert_scalar(B_dI1)
   assert_scalar(B_dI2)
+  assert_scalar(B_ks1)
   assert_scalar(B_ks2)
+  assert_scalar(B_rs1)
+  assert_scalar(B_rb1)
+  assert_scalar(B_f1)
   assert_scalar(narea_0)
+  assert_scalar(B_lf1)
+  assert_scalar(B_lf2)
+  assert_scalar(B_lf3)
+  assert_scalar(B_lf4)
   assert_scalar(k_I)
   assert_scalar(latitude)
 
@@ -274,15 +298,11 @@ make_FFW16_hyperpar <- function(B_kl2=1.71,
     ## effect of holding constant the respiration rate per unit volume.
     ## So respiration rates per unit mass vary with rho, respiration
     ## rates per unit volume don't.
-    ## (mol CO2 / m3 / yr)
-    B_rs1 <- 4012.0
     r_s <- B_rs1 / rho
     # bark respiration follows from sapwood
-    B_rb1 <- 4012.0*2.0
     r_b <- B_rb1 / rho
 
     ## omega / accessory cost relationship
-    B_f1 <- 3.0
     a_f3 <- B_f1 * omega
 
     ## narea / photosynthesis / respiration
@@ -291,15 +311,6 @@ make_FFW16_hyperpar <- function(B_kl2=1.71,
       x <- QY * I + Amax
       (x - sqrt(x^2 - 4 * theta * QY * I * Amax)) / (2 * theta)
     }
-
-    # Potential assimilation (Amax) per unit leaf nitrogen
-    # (mol CO2/ kg N / day)
-    B_lf1 <- 5120.738 * 24 * 3600 / 1e+06
-    # Curvature of light response curve
-    B_lf2 <- 0.5
-    # Quantum yield of leaf photosynthesis
-    # (mol CO2 / mol PAR)
-    B_lf3 <- 0.04
 
     approximate_annual_assimilation <- function(narea, latitude) {
       E <- seq(0, 1, by=0.02)
@@ -335,11 +346,6 @@ make_FFW16_hyperpar <- function(B_kl2=1.71,
       a_p2  <- y["p2", i]
     }
 
-    ## Respiration per mass leaf N [mol CO2 / kgN / yr]
-    ## = (6.66e-4 * (365*24*60*60))
-    ## Obtained from global average of ratio of dark respiration rate to
-    ## leaf nitrogen content using the GLOPNET dataset
-    B_lf4  <-  21000
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
