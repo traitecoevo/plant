@@ -8,9 +8,11 @@
 \alias{make_hyperpar}
 \title{Hyperparameters for plant}
 \usage{
-make_FFW16_hyperpar(B_kl2 = 1.71, lma_0 = 0.1978791, B_kl1 = 0.4565855,
+make_FFW16_hyperpar(lma_0 = 0.1978791, B_kl1 = 0.4565855, B_kl2 = 1.71,
   rho_0 = 608, B_dI1 = 0.01, B_dI2 = 0, B_ks1 = 0.2, B_ks2 = 0,
-  narea_0 = 0.00187, k_I = 0.5, latitude = 0)
+  B_rs1 = 4012, B_rb1 = 2 * 4012, B_f1 = 3, narea_0 = 0.00187,
+  B_lf1 = 5120.738 * 24 * 3600/1e+06, B_lf2 = 0.5, B_lf3 = 0.04,
+  B_lf4 = 21000, k_I = 0.5, latitude = 0)
 
 FFW16_hyperpar(m, s, filter = TRUE)
 
@@ -21,11 +23,11 @@ make_hyperpar(type)
 hyperpar(type)
 }
 \arguments{
-\item{B_kl2}{Slope of lma / leaf turnover log-log relationship}
-
 \item{lma_0}{LMA value...}
 
 \item{B_kl1}{...}
+
+\item{B_kl2}{...}
 
 \item{rho_0}{...}
 
@@ -37,9 +39,25 @@ hyperpar(type)
 
 \item{B_ks2}{...}
 
+\item{B_rs1}{...}
+
+\item{B_rb1}{...}
+
+\item{B_f1}{...}
+
 \item{narea_0}{...}
 
+\item{B_lf1}{...}
+
+\item{B_lf2}{...}
+
+\item{B_lf3}{...}
+
+\item{B_lf4}{...}
+
 \item{k_I}{...}
+
+\item{latitude}{...}
 
 \item{m}{A trait matrix}
 
