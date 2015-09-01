@@ -313,8 +313,6 @@ test_that("FFW16_Strategy hyper-parameterisation", {
   expect_that(ret[, "omega"], equals(omega))
   expect_that(ret[, "a_f3"], equals(3*omega))
 
-  # Todo: need to example with empty trait matrix, just not sure how to trigger!
-
   ## This happens on Linux (and therefore on travis) due to numerical
   ## differences in the integration.
   if ("a_p1" %in% colnames(ret)) {
@@ -322,5 +320,9 @@ test_that("FFW16_Strategy hyper-parameterisation", {
     expect_that(length(unique(a_p1)), equals(1L))
     expect_that(a_p1[[1]], equals(s$a_p1, tolerance=1e-7))
   }
+
+  ## Empty trait matrix:
+  ret <- FFW16_hyperpar(trait_matrix(numeric(0), "lma"), s)
+  expect_that(ret, equals(trait_matrix(numeric(0), "lma")))
 })
 

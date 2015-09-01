@@ -384,7 +384,10 @@ make_FFW16_hyperpar <- function(
       }
     }
 
-    cbind(m, extra)
+    if (!is.null(extra)) {
+      m <- cbind(m, extra)
+    }
+    m
   }
 }
 ##' @rdname FFW16_hyperpar
