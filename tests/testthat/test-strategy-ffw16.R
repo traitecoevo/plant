@@ -17,8 +17,8 @@ test_that("Defaults", {
     d_I   = 0.01,
     a_dG1   = 5.5,
     a_dG2   = 20,
-    a_p1   = 150.36,
-    a_p2   = 0.19,
+    a_p1   = 151.177775377968,
+    a_p2   = 0.204716166503633,
     a_f1   = 1,
     a_f2   = 50,
     a_d0   = 0.1,
@@ -68,6 +68,7 @@ test_that("FFW16_Strategy parameters agree with reference model", {
   ## And neither should the R version.
   expect_that(any(sapply(cmp_pars, is.na)),
               is_false())
+
 
   ## And demand that all parameters agree.
   expect_that(s[v], equals(cmp_pars[v], tolerance=1e-13))

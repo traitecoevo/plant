@@ -56,7 +56,7 @@ make_reference_plant_FFW16 <- function() {
             "a_f1", "a_f2")
   get.pars <- function() {
     vars.traits <- list(lma=e$traits$lma, rho=e$traits$rho,
-                        hmat=e$traits$hmat, omega=e$traits$ omega)
+                        hmat=e$traits$hmat, omega=e$traits$omega)
     ret <- lapply(sprintf("p.%s", vars), get, e)
     names(ret) <- vars
     c(vars.traits, ret)

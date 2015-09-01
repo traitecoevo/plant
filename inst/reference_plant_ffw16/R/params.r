@@ -25,8 +25,8 @@ p.a_b1= 0.17;
 
 #nitrogen concentrations & photosynthesis
 p.n_area=1.87E-3;    #leaf kg/m2
-p.a_p1=150.36;
-p.a_p2=0.19;
+p.a_p1=151.177775377968;
+p.a_p2=0.204716166503633;
 
 #respiration rates
 p.r_l = 2.1e4 * 1.87e-3 / 0.1978791; #mol / kg / yr

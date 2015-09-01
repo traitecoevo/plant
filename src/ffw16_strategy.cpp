@@ -64,8 +64,8 @@ FFW16_Strategy::FFW16_Strategy() {
   // Root turnover
   k_r    = 1.0;
   // Parameters of the hyperbola for annual LRC
-  a_p1   = 150.36; // NOTE: should be '150.3600054'
-  a_p2   = 0.19;
+  a_p1   = 151.177775377968;
+  a_p2   = 0.204716166503633;
 
   // * Seed production
   // Accessory cost of reproduction, kg per seed
