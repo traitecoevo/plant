@@ -202,10 +202,15 @@ make_FFW16_hyperpar <- function(
         AA[i] <- 2 * trapezium(D, assimilation_rectangular_hyperbolae(
                                     k_I * I * E[i], Amax, theta, QY))
       }
-
-      data <- data.frame(E = E, AA = AA)
-      fit <- nls(AA ~ p1 * E/(p2 + E), data, start = list(p1 = 100, p2 = 0.2))
-      coef(fit)
+      if(all(diff(AA) < 1E-8)) {
+        # line fitting will fail if all have are zero, or potentially same value
+        ret <- c(last(AA), 0)
+        names(ret) <- c("p1","p2")
+      } else {
+        fit <- nls(AA ~ p1 * E/(p2 + E), data.frame(E = E, AA = AA), start = list(p1 = 100, p2 = 0.2))
+        ret <- coef(fit)
+      }
+      ret
     }
 
     # This needed in case narea has length zero, in which case trapezium fails

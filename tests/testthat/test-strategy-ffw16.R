@@ -297,14 +297,14 @@ test_that("FFW16_Strategy hyper-parameterisation", {
   }
 
   # narea
-  narea <- c(2E-3,2.3E-3)
+  narea <- c(0, 2E-3,2.3E-3)
   ret <- FFW16_hyperpar(trait_matrix(narea, "narea"), s)
   expect_that(all(c("narea", "a_p1", "a_p2", "r_l") %in% colnames(ret)),
               is_true())
   expect_that(ret[, "narea"], equals(narea))
-  expect_that(ret[, "r_l"], equals(c(212.2508, 244.0884), tolerance=1e-5))
-  expect_that(ret[, "a_p1"], equals(c(162.2592, 188.1549), tolerance=1e-5))
-  expect_that(ret[, "a_p2"], equals(c(0.220904, 0.259173), tolerance=1e-5))
+  expect_that(ret[, "r_l"], equals(c(0, 212.2508, 244.0884), tolerance=1e-5))
+  expect_that(ret[, "a_p1"], equals(c(0, 162.2592, 188.1549), tolerance=1e-5))
+  expect_that(ret[, "a_p2"], equals(c(0, 0.220904, 0.259173), tolerance=1e-5))
 
   # seed mass
   omega <- 3.8e-5*c(1,2,3)
