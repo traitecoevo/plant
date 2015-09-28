@@ -32,7 +32,7 @@ public:
     std::copy(res.begin(), res.end(), y.begin());
     update_dydt();
   }
-  double ode_size() const {return y.size();}
+  size_t ode_size() const {return y.size();}
   double ode_time() const {return time;}
   ode::const_iterator set_ode_state(ode::const_iterator it, double time_) {
     std::copy_n(it, ode_size(), y.begin());
