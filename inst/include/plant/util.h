@@ -3,7 +3,6 @@
 #define PLANT_PLANT_UTIL_H_
 
 #include <stddef.h> // size_t
-#include <sstream>  // std::stringstream
 #include <RcppCommon.h> // as/wrap/SEXP
 
 namespace plant {
@@ -115,11 +114,7 @@ void stop(const std::string&);
 
 template<typename T>
 std::string to_string(T x) {
-  std::ostringstream o;
-  if (!(o << x)) {
-    stop("String conversion failure");
-  }
-  return o.str();
+  return std::to_string(x);
 }
 
 template <class ForwardIterator>
