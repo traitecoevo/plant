@@ -32,7 +32,14 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
     if (!all(is.finite(bounds))) {
       stop("Starting value did not have finite fitness; finite bounds required")
     }
-    out <- optimise(f, interval=bounds, maximum=TRUE, tol=tol)
+    ## The suppressWarnings here is for warnings like:
+    ##
+    ## Warning message:
+    ## In optimise(f, interval = bounds, maximum = TRUE, tol = tol) :
+    ##   NA/Inf replaced by maximum positive value
+    ##
+    ## which is probably the desired behaviour here.
+    out <- suppressWarnings(optimise(f, interval=bounds, maximum=TRUE, tol=tol))
     ret <- out$maximum
     fitness <- out$objective
   } else {
