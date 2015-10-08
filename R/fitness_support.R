@@ -72,7 +72,8 @@ check_point <- function(x, bounds) {
   } else if (names(x) != rownames(bounds)) {
     stop("Incorrect names on x")
   }
-  if (any(x < bounds[,1] | x > bounds[,2])) {
+  tx <- t(x)
+  if (any(tx < bounds[, "lower"] | tx > bounds[, "upper"])) {
     stop("Value does not lie within bounds")
   }
   invisible(x)
