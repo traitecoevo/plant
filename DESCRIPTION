@@ -1,10 +1,11 @@
 Package: plant
-Title: Trait-Driven Models of Ecology and Evolution
+Title: A package for modelling forest trait ecology and evolution
 Version: 0.2.3
 Author: Richard G. FitzJohn and Daniel S. Falster
 Maintainer: Richard G. FitzJohn <rich.fitzjohn@gmail.com>
-Description: Implements EBT (Falster et al. 2010) and an individual
-    based model.
+Description: Solves trait, size and patch structured model
+    from (Falster et al. 2010) using either method of
+    characteristics or as stochastic, finite-sized population.
 Depends:
     R (>= 3.1.0)
 License: GPL-2

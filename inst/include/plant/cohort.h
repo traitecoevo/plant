@@ -78,16 +78,12 @@ template <typename T>
 void Cohort<T>::compute_vars_phys(const Environment& environment) {
   plant.compute_vars_phys(environment);
 
-  // [eqn 22] Density per unit area of individuals with size 'h'.
-  // EBT.md{eq:boundN}, see Numerical technique.
-  // details.md, for details on translation from mass_leaf to height.
   // NOTE: This must be called *after* compute_vars_phys, but given we
   // need mortality_dt() that's always going to be the case.
   log_density_dt =
     - growth_rate_gradient(environment)
     - plant.mortality_dt();
 
-  // EBT.md{eq:boundSurv}, see Numerical technique
   // survival_plant: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
   const double survival_patch = environment.patch_survival();
@@ -117,9 +113,7 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
 
   pr_patch_survival_at_birth = environment.patch_survival();
   const double pr_germ = plant.germination_probability(environment);
-  // EBT.md{eq:boundSurv}
   plant.set_mortality(-log(pr_germ));
-  // EBT.md{eq:boundN}
   const double g = plant.height_dt();
   const double seed_rain = environment.seed_rain_dt();
   // NOTE: log(0.0) -> -Inf, which should behave fine.
