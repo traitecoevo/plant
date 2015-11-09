@@ -1293,164 +1293,164 @@ Patch___FFdev__ode_rates__get <- function(obj_) {
     .Call('plant_Patch___FFdev__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__ctor <- function(parameters) {
-    .Call('plant_EBT___FF16__ctor', PACKAGE = 'plant', parameters)
+SCM___FF16__ctor <- function(parameters) {
+    .Call('plant_SCM___FF16__ctor', PACKAGE = 'plant', parameters)
 }
 
-EBT___FF16__run <- function(obj_) {
-    invisible(.Call('plant_EBT___FF16__run', PACKAGE = 'plant', obj_))
+SCM___FF16__run <- function(obj_) {
+    invisible(.Call('plant_SCM___FF16__run', PACKAGE = 'plant', obj_))
 }
 
-EBT___FF16__run_next <- function(obj_) {
-    .Call('plant_EBT___FF16__run_next', PACKAGE = 'plant', obj_)
+SCM___FF16__run_next <- function(obj_) {
+    .Call('plant_SCM___FF16__run_next', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__reset <- function(obj_) {
-    invisible(.Call('plant_EBT___FF16__reset', PACKAGE = 'plant', obj_))
+SCM___FF16__reset <- function(obj_) {
+    invisible(.Call('plant_SCM___FF16__reset', PACKAGE = 'plant', obj_))
 }
 
-EBT___FF16__seed_rain <- function(obj_, species_index) {
-    .Call('plant_EBT___FF16__seed_rain', PACKAGE = 'plant', obj_, species_index)
+SCM___FF16__seed_rain <- function(obj_, species_index) {
+    .Call('plant_SCM___FF16__seed_rain', PACKAGE = 'plant', obj_, species_index)
 }
 
-EBT___FF16__seed_rain_cohort <- function(obj_, species_index) {
-    .Call('plant_EBT___FF16__seed_rain_cohort', PACKAGE = 'plant', obj_, species_index)
+SCM___FF16__seed_rain_cohort <- function(obj_, species_index) {
+    .Call('plant_SCM___FF16__seed_rain_cohort', PACKAGE = 'plant', obj_, species_index)
 }
 
-EBT___FF16__area_leaf_error <- function(obj_, species_index) {
-    .Call('plant_EBT___FF16__area_leaf_error', PACKAGE = 'plant', obj_, species_index)
+SCM___FF16__area_leaf_error <- function(obj_, species_index) {
+    .Call('plant_SCM___FF16__area_leaf_error', PACKAGE = 'plant', obj_, species_index)
 }
 
-EBT___FF16__set_cohort_schedule_times <- function(obj_, times) {
-    invisible(.Call('plant_EBT___FF16__set_cohort_schedule_times', PACKAGE = 'plant', obj_, times))
+SCM___FF16__set_cohort_schedule_times <- function(obj_, times) {
+    invisible(.Call('plant_SCM___FF16__set_cohort_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
-EBT___FF16__complete__get <- function(obj_) {
-    .Call('plant_EBT___FF16__complete__get', PACKAGE = 'plant', obj_)
+SCM___FF16__complete__get <- function(obj_) {
+    .Call('plant_SCM___FF16__complete__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__time__get <- function(obj_) {
-    .Call('plant_EBT___FF16__time__get', PACKAGE = 'plant', obj_)
+SCM___FF16__time__get <- function(obj_) {
+    .Call('plant_SCM___FF16__time__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__seed_rains__get <- function(obj_) {
-    .Call('plant_EBT___FF16__seed_rains__get', PACKAGE = 'plant', obj_)
+SCM___FF16__seed_rains__get <- function(obj_) {
+    .Call('plant_SCM___FF16__seed_rains__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__parameters__get <- function(obj_) {
-    .Call('plant_EBT___FF16__parameters__get', PACKAGE = 'plant', obj_)
+SCM___FF16__parameters__get <- function(obj_) {
+    .Call('plant_SCM___FF16__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__patch__get <- function(obj_) {
-    .Call('plant_EBT___FF16__patch__get', PACKAGE = 'plant', obj_)
+SCM___FF16__patch__get <- function(obj_) {
+    .Call('plant_SCM___FF16__patch__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__cohort_schedule__get <- function(obj_) {
-    .Call('plant_EBT___FF16__cohort_schedule__get', PACKAGE = 'plant', obj_)
+SCM___FF16__cohort_schedule__get <- function(obj_) {
+    .Call('plant_SCM___FF16__cohort_schedule__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__cohort_schedule__set <- function(obj_, value) {
-    invisible(.Call('plant_EBT___FF16__cohort_schedule__set', PACKAGE = 'plant', obj_, value))
+SCM___FF16__cohort_schedule__set <- function(obj_, value) {
+    invisible(.Call('plant_SCM___FF16__cohort_schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
-EBT___FF16__ode_times__get <- function(obj_) {
-    .Call('plant_EBT___FF16__ode_times__get', PACKAGE = 'plant', obj_)
+SCM___FF16__ode_times__get <- function(obj_) {
+    .Call('plant_SCM___FF16__ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__state__get <- function(obj_) {
-    .Call('plant_EBT___FF16__state__get', PACKAGE = 'plant', obj_)
+SCM___FF16__state__get <- function(obj_) {
+    .Call('plant_SCM___FF16__state__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__use_ode_times__get <- function(obj_) {
-    .Call('plant_EBT___FF16__use_ode_times__get', PACKAGE = 'plant', obj_)
+SCM___FF16__use_ode_times__get <- function(obj_) {
+    .Call('plant_SCM___FF16__use_ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FF16__use_ode_times__set <- function(obj_, value) {
-    invisible(.Call('plant_EBT___FF16__use_ode_times__set', PACKAGE = 'plant', obj_, value))
+SCM___FF16__use_ode_times__set <- function(obj_, value) {
+    invisible(.Call('plant_SCM___FF16__use_ode_times__set', PACKAGE = 'plant', obj_, value))
 }
 
-EBT___FF16__seed_rain_error__get <- function(obj_) {
-    .Call('plant_EBT___FF16__seed_rain_error__get', PACKAGE = 'plant', obj_)
+SCM___FF16__seed_rain_error__get <- function(obj_) {
+    .Call('plant_SCM___FF16__seed_rain_error__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__ctor <- function(parameters) {
-    .Call('plant_EBT___FFdev__ctor', PACKAGE = 'plant', parameters)
+SCM___FFdev__ctor <- function(parameters) {
+    .Call('plant_SCM___FFdev__ctor', PACKAGE = 'plant', parameters)
 }
 
-EBT___FFdev__run <- function(obj_) {
-    invisible(.Call('plant_EBT___FFdev__run', PACKAGE = 'plant', obj_))
+SCM___FFdev__run <- function(obj_) {
+    invisible(.Call('plant_SCM___FFdev__run', PACKAGE = 'plant', obj_))
 }
 
-EBT___FFdev__run_next <- function(obj_) {
-    .Call('plant_EBT___FFdev__run_next', PACKAGE = 'plant', obj_)
+SCM___FFdev__run_next <- function(obj_) {
+    .Call('plant_SCM___FFdev__run_next', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__reset <- function(obj_) {
-    invisible(.Call('plant_EBT___FFdev__reset', PACKAGE = 'plant', obj_))
+SCM___FFdev__reset <- function(obj_) {
+    invisible(.Call('plant_SCM___FFdev__reset', PACKAGE = 'plant', obj_))
 }
 
-EBT___FFdev__seed_rain <- function(obj_, species_index) {
-    .Call('plant_EBT___FFdev__seed_rain', PACKAGE = 'plant', obj_, species_index)
+SCM___FFdev__seed_rain <- function(obj_, species_index) {
+    .Call('plant_SCM___FFdev__seed_rain', PACKAGE = 'plant', obj_, species_index)
 }
 
-EBT___FFdev__seed_rain_cohort <- function(obj_, species_index) {
-    .Call('plant_EBT___FFdev__seed_rain_cohort', PACKAGE = 'plant', obj_, species_index)
+SCM___FFdev__seed_rain_cohort <- function(obj_, species_index) {
+    .Call('plant_SCM___FFdev__seed_rain_cohort', PACKAGE = 'plant', obj_, species_index)
 }
 
-EBT___FFdev__area_leaf_error <- function(obj_, species_index) {
-    .Call('plant_EBT___FFdev__area_leaf_error', PACKAGE = 'plant', obj_, species_index)
+SCM___FFdev__area_leaf_error <- function(obj_, species_index) {
+    .Call('plant_SCM___FFdev__area_leaf_error', PACKAGE = 'plant', obj_, species_index)
 }
 
-EBT___FFdev__set_cohort_schedule_times <- function(obj_, times) {
-    invisible(.Call('plant_EBT___FFdev__set_cohort_schedule_times', PACKAGE = 'plant', obj_, times))
+SCM___FFdev__set_cohort_schedule_times <- function(obj_, times) {
+    invisible(.Call('plant_SCM___FFdev__set_cohort_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
-EBT___FFdev__complete__get <- function(obj_) {
-    .Call('plant_EBT___FFdev__complete__get', PACKAGE = 'plant', obj_)
+SCM___FFdev__complete__get <- function(obj_) {
+    .Call('plant_SCM___FFdev__complete__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__time__get <- function(obj_) {
-    .Call('plant_EBT___FFdev__time__get', PACKAGE = 'plant', obj_)
+SCM___FFdev__time__get <- function(obj_) {
+    .Call('plant_SCM___FFdev__time__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__seed_rains__get <- function(obj_) {
-    .Call('plant_EBT___FFdev__seed_rains__get', PACKAGE = 'plant', obj_)
+SCM___FFdev__seed_rains__get <- function(obj_) {
+    .Call('plant_SCM___FFdev__seed_rains__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__parameters__get <- function(obj_) {
-    .Call('plant_EBT___FFdev__parameters__get', PACKAGE = 'plant', obj_)
+SCM___FFdev__parameters__get <- function(obj_) {
+    .Call('plant_SCM___FFdev__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__patch__get <- function(obj_) {
-    .Call('plant_EBT___FFdev__patch__get', PACKAGE = 'plant', obj_)
+SCM___FFdev__patch__get <- function(obj_) {
+    .Call('plant_SCM___FFdev__patch__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__cohort_schedule__get <- function(obj_) {
-    .Call('plant_EBT___FFdev__cohort_schedule__get', PACKAGE = 'plant', obj_)
+SCM___FFdev__cohort_schedule__get <- function(obj_) {
+    .Call('plant_SCM___FFdev__cohort_schedule__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__cohort_schedule__set <- function(obj_, value) {
-    invisible(.Call('plant_EBT___FFdev__cohort_schedule__set', PACKAGE = 'plant', obj_, value))
+SCM___FFdev__cohort_schedule__set <- function(obj_, value) {
+    invisible(.Call('plant_SCM___FFdev__cohort_schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
-EBT___FFdev__ode_times__get <- function(obj_) {
-    .Call('plant_EBT___FFdev__ode_times__get', PACKAGE = 'plant', obj_)
+SCM___FFdev__ode_times__get <- function(obj_) {
+    .Call('plant_SCM___FFdev__ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__state__get <- function(obj_) {
-    .Call('plant_EBT___FFdev__state__get', PACKAGE = 'plant', obj_)
+SCM___FFdev__state__get <- function(obj_) {
+    .Call('plant_SCM___FFdev__state__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__use_ode_times__get <- function(obj_) {
-    .Call('plant_EBT___FFdev__use_ode_times__get', PACKAGE = 'plant', obj_)
+SCM___FFdev__use_ode_times__get <- function(obj_) {
+    .Call('plant_SCM___FFdev__use_ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-EBT___FFdev__use_ode_times__set <- function(obj_, value) {
-    invisible(.Call('plant_EBT___FFdev__use_ode_times__set', PACKAGE = 'plant', obj_, value))
+SCM___FFdev__use_ode_times__set <- function(obj_, value) {
+    invisible(.Call('plant_SCM___FFdev__use_ode_times__set', PACKAGE = 'plant', obj_, value))
 }
 
-EBT___FFdev__seed_rain_error__get <- function(obj_) {
-    .Call('plant_EBT___FFdev__seed_rain_error__get', PACKAGE = 'plant', obj_)
+SCM___FFdev__seed_rain_error__get <- function(obj_) {
+    .Call('plant_SCM___FFdev__seed_rain_error__get', PACKAGE = 'plant', obj_)
 }
 
 StochasticSpecies___FF16__ctor <- function(strategy) {
@@ -1921,33 +1921,6 @@ test_adaptive_interpolator <- function(f, a, b) {
     .Call('plant_test_adaptive_interpolator', PACKAGE = 'plant', f, a, b)
 }
 
-#' Generate a suitable set of default cohort introduction times,
-#' biased so that introductions are more closely packed at the
-#' beginning of time, become increasingly spread out.
-#'
-#' The reason for the stepped distribution is to keep step sizes as
-#' series of doublings.  Doing this limits the range of possible
-#' introduction times from an infinite set of possible values to a
-#' very limited subset of values (based on combinations of 1, 0.5,
-#' 0.25, 0.125 etc).  The reason for doing this is to minimise the
-#' number of unique introduction times across all species. The ODE
-#' stepper needs to stop at each point where a cohort is introduced.
-#' If each species was selecting a bunch of points that was
-#' essentially unique (compared to those selected for all other
-#' species), the number of unique cohort introductions times could
-#' get very large, requiring more ODE steps.
-#'
-#' @title Generate Default Cohort Introduction Times
-#' @param max_time Time to generate introduction times up to (the
-#' last introduction time will be at least \code{max_time}).
-#' @return Vector of introduction times.
-#' @export
-#' @author Rich FitzJohn, adapted from original C++ code by Daniel
-#' S. Falster.
-cohort_schedule_times_default <- function(max_time) {
-    .Call('plant_cohort_schedule_times_default', PACKAGE = 'plant', max_time)
-}
-
 test_gradient_fd1 <- function(f, x, dx, direction, fx = NA_real_) {
     .Call('plant_test_gradient_fd1', PACKAGE = 'plant', f, x, dx, direction, fx)
 }
@@ -1987,6 +1960,33 @@ FF16_lcp_whole_plant <- function(p) {
 
 FFdev_lcp_whole_plant <- function(p) {
     .Call('plant_FFdev_lcp_whole_plant', PACKAGE = 'plant', p)
+}
+
+#' Generate a suitable set of default cohort introduction times,
+#' biased so that introductions are more closely packed at the
+#' beginning of time, become increasingly spread out.
+#'
+#' The reason for the stepped distribution is to keep step sizes as
+#' series of doublings.  Doing this limits the range of possible
+#' introduction times from an infinite set of possible values to a
+#' very limited subset of values (based on combinations of 1, 0.5,
+#' 0.25, 0.125 etc).  The reason for doing this is to minimise the
+#' number of unique introduction times across all species. The ODE
+#' stepper needs to stop at each point where a cohort is introduced.
+#' If each species was selecting a bunch of points that was
+#' essentially unique (compared to those selected for all other
+#' species), the number of unique cohort introductions times could
+#' get very large, requiring more ODE steps.
+#'
+#' @title Generate Default Cohort Introduction Times
+#' @param max_time Time to generate introduction times up to (the
+#' last introduction time will be at least \code{max_time}).
+#' @return Vector of introduction times.
+#' @export
+#' @author Rich FitzJohn, adapted from original C++ code by Daniel
+#' S. Falster.
+cohort_schedule_times_default <- function(max_time) {
+    .Call('plant_cohort_schedule_times_default', PACKAGE = 'plant', max_time)
 }
 
 test_uniroot <- function(f, min, max) {

@@ -2,11 +2,11 @@
 % Please edit documentation in R/ff16.R
 \name{FF16_Plant}
 \alias{FF16_Cohort}
-\alias{FF16_EBT}
 \alias{FF16_Parameters}
 \alias{FF16_Patch}
 \alias{FF16_Plant}
 \alias{FF16_PlantPlus}
+\alias{FF16_SCM}
 \alias{FF16_Species}
 \alias{FF16_StochasticPatch}
 \alias{FF16_StochasticPatchRunner}
@@ -23,7 +23,7 @@ FF16_Parameters(...)
 
 FF16_Patch(p)
 
-FF16_EBT(p)
+FF16_SCM(p)
 
 FF16_StochasticSpecies(s = FF16_Strategy())
 

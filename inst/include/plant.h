@@ -32,7 +32,7 @@
 #include <plant/cohort.h>
 #include <plant/species.h>
 #include <plant/patch.h>
-#include <plant/ebt.h>
+#include <plant/scm.h>
 
 // Stochastic model
 #include <plant/stochastic_species.h>

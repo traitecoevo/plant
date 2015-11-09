@@ -42,8 +42,8 @@ FF16_Patch <- function(p) {
 
 ##' @export
 ##' @rdname FF16
-FF16_EBT <- function(p) {
-  EBT("FF16")(p)
+FF16_SCM <- function(p) {
+  SCM("FF16")(p)
 }
 
 ##' @export

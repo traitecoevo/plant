@@ -109,13 +109,13 @@ template <> inline std::string generator_name<plant::Patch<plant::FF16_Strategy>
 template <> inline std::string   class_name_r<plant::Patch<plant::FFdev_Strategy> >() {return "Patch<FFdev>";}
 template <> inline std::string   package_name<plant::Patch<plant::FFdev_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::Patch<plant::FFdev_Strategy> >() {return ".R6_Patch___FFdev";}
-template <> inline std::string   class_name_r<plant::EBT<plant::FF16_Strategy> >() {return "EBT<FF16>";}
-template <> inline std::string   package_name<plant::EBT<plant::FF16_Strategy> >() {return "plant";}
-template <> inline std::string generator_name<plant::EBT<plant::FF16_Strategy> >() {return ".R6_EBT___FF16";}
+template <> inline std::string   class_name_r<plant::SCM<plant::FF16_Strategy> >() {return "SCM<FF16>";}
+template <> inline std::string   package_name<plant::SCM<plant::FF16_Strategy> >() {return "plant";}
+template <> inline std::string generator_name<plant::SCM<plant::FF16_Strategy> >() {return ".R6_SCM___FF16";}
 
-template <> inline std::string   class_name_r<plant::EBT<plant::FFdev_Strategy> >() {return "EBT<FFdev>";}
-template <> inline std::string   package_name<plant::EBT<plant::FFdev_Strategy> >() {return "plant";}
-template <> inline std::string generator_name<plant::EBT<plant::FFdev_Strategy> >() {return ".R6_EBT___FFdev";}
+template <> inline std::string   class_name_r<plant::SCM<plant::FFdev_Strategy> >() {return "SCM<FFdev>";}
+template <> inline std::string   package_name<plant::SCM<plant::FFdev_Strategy> >() {return "plant";}
+template <> inline std::string generator_name<plant::SCM<plant::FFdev_Strategy> >() {return ".R6_SCM___FFdev";}
 template <> inline std::string   class_name_r<plant::StochasticSpecies<plant::FF16_Strategy> >() {return "StochasticSpecies<FF16>";}
 template <> inline std::string   package_name<plant::StochasticSpecies<plant::FF16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticSpecies<plant::FF16_Strategy> >() {return ".R6_StochasticSpecies___FF16";}
@@ -992,18 +992,18 @@ template <> inline SEXP wrap(const plant::Patch<plant::FFdev_Strategy>& x) {
 template <> inline plant::Patch<plant::FFdev_Strategy> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> >(x));
 }
-template <> inline SEXP wrap(const plant::EBT<plant::FF16_Strategy>& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> >(x));
+template <> inline SEXP wrap(const plant::SCM<plant::FF16_Strategy>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> >(x));
 }
-template <> inline plant::EBT<plant::FF16_Strategy> as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> >(x));
+template <> inline plant::SCM<plant::FF16_Strategy> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> >(x));
 }
 
-template <> inline SEXP wrap(const plant::EBT<plant::FFdev_Strategy>& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> >(x));
+template <> inline SEXP wrap(const plant::SCM<plant::FFdev_Strategy>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> >(x));
 }
-template <> inline plant::EBT<plant::FFdev_Strategy> as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> >(x));
+template <> inline plant::SCM<plant::FFdev_Strategy> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> >(x));
 }
 template <> inline SEXP wrap(const plant::StochasticSpecies<plant::FF16_Strategy>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> >(x));

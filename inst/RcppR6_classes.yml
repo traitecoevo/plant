@@ -681,8 +681,8 @@ Patch:
       name_cpp: r_set_state
       return_type: void
 
-EBT:
-  name_cpp: "plant::EBT<T>"
+SCM:
+  name_cpp: "plant::SCM<T>"
   templates:
     parameters: T
     concrete:

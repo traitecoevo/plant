@@ -52,7 +52,7 @@ public:
   double mass_above_ground(double mass_leaf, double mass_bark,
                            double mass_sapwood, double mass_root) const;
 
-  void ebt_vars(const Environment& environment, bool reuse_intervals,
+  void scm_vars(const Environment& environment, bool reuse_intervals,
                 Plant_internals& vars);
 
   // * Mass production

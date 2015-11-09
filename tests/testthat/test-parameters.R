@@ -148,9 +148,9 @@ test_that("Validate", {
 })
 
 
-test_that("ebt_base_parameters", {
+test_that("scm_base_parameters", {
   for (x in names(strategy_types)) {
-    p <- ebt_base_parameters(x)
+    p <- scm_base_parameters(x)
     expect_that(p$hyperpar, equals(hyperpar(x)))
     expect_that(p, is_a(sprintf("Parameters<%s>", x)))
   }
@@ -158,7 +158,7 @@ test_that("ebt_base_parameters", {
 
 test_that("Disturbance interval", {
   for (x in names(strategy_types)[[1]]) {
-    p <- ebt_base_parameters(x)
+    p <- scm_base_parameters(x)
     expect_that(p$disturbance_mean_interval, equals(30.0))
     expect_that(p$cohort_schedule_max_time,
                 is_identical_to(cohort_schedule_max_time_default(p)))

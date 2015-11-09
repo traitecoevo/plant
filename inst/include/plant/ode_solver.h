@@ -94,7 +94,7 @@ void Solver<System>::advance(System& system, double time_max_) {
 // NOTE: We take a vector of times {t_0, t_1, ...}.  This vector
 // *must* contain a starting time, but can otherwise be empty.  We
 // will step exactly to t_1, then to t_2 up to the end point.  No step
-// size adjustments will be done.  This is used in the EBT.
+// size adjustments will be done.  This is used in the SCM.
 //
 // NOTE: Careful here: exact floating point comparison in determining
 // that we're starting from the right place.  However, because we take

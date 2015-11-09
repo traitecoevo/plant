@@ -4,7 +4,7 @@
 
 #include <plant/cohort_schedule.h>
 #include <plant/disturbance.h>
-#include <plant/ebt_utils.h>
+#include <plant/scm_utils.h>
 
 namespace plant {
 

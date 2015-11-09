@@ -123,7 +123,7 @@ double Patch<T>::area_leaf_above(double height) const {
 
 template <typename T>
 double Patch<T>::canopy_openness(double height) const {
-  // NOTE: patch_area does not appear in the EBT model formulation;
+  // NOTE: patch_area does not appear in the SCM model formulation;
   // really we should require that it is 1.0, or drop it entirely.
   return exp(-parameters.k_I * area_leaf_above(height) /
              parameters.patch_area);

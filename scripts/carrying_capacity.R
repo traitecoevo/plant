@@ -1,5 +1,5 @@
 plant_log_console()
-p <- ebt_base_parameters()
+p <- scm_base_parameters()
 p$control <- equilibrium_quiet(p$control)
 
 ## Find the viable range for lma for the default parameters:

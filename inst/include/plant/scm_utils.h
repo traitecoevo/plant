@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_EBT_UTILS_H_
-#define PLANT_PLANT_EBT_UTILS_H_
+#ifndef PLANT_PLANT_SCM_UTILS_H_
+#define PLANT_PLANT_SCM_UTILS_H_
 
 #include <plant/cohort_schedule.h>
 #include <plant/disturbance.h>

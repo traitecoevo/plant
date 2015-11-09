@@ -8,7 +8,7 @@
 #include <plant/control.h>
 #include <plant/ff16_strategy.h>
 #include <plant/cohort_schedule.h>
-#include <plant/ebt_utils.h> // Unfortunately needed for setup_cohort_schedule
+#include <plant/scm_utils.h> // Unfortunately needed for setup_cohort_schedule
 
 // TODO: I will possibly move out the "Patch" parameters out into
 // their own simple list class at some point, to make this a bit more
@@ -125,7 +125,7 @@ void Parameters<T>::validate() {
 }
 
 // Separating this out just because it's a bit crap:
-// TODO: Consider adding this to ebt_utils.h perhaps?
+// TODO: Consider adding this to scm_utils.h perhaps?
 template <typename T>
 void Parameters<T>::setup_cohort_schedule() {
   const double max_time = cohort_schedule_max_time_default(*this);

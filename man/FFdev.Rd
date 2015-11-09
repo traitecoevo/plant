@@ -2,11 +2,11 @@
 % Please edit documentation in R/ffdev.R
 \name{FFdev_Plant}
 \alias{FFdev_Cohort}
-\alias{FFdev_EBT}
 \alias{FFdev_Parameters}
 \alias{FFdev_Patch}
 \alias{FFdev_Plant}
 \alias{FFdev_PlantPlus}
+\alias{FFdev_SCM}
 \alias{FFdev_Species}
 \alias{FFdev_StochasticPatch}
 \alias{FFdev_StochasticPatchRunner}
@@ -23,7 +23,7 @@ FFdev_Parameters(...)
 
 FFdev_Patch(p)
 
-FFdev_EBT(p)
+FFdev_SCM(p)
 
 FFdev_StochasticSpecies(s = FFdev_Strategy())
 

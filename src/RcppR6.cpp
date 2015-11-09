@@ -1488,183 +1488,183 @@ plant::ode::state_type Patch___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant
 
 
 // [[Rcpp::export]]
-plant::EBT<plant::FF16_Strategy> EBT___FF16__ctor(plant::Parameters<plant::FF16_Strategy> parameters) {
-  return plant::EBT<plant::FF16_Strategy>(parameters);
+plant::SCM<plant::FF16_Strategy> SCM___FF16__ctor(plant::Parameters<plant::FF16_Strategy> parameters) {
+  return plant::SCM<plant::FF16_Strategy>(parameters);
 }
 // [[Rcpp::export]]
-void EBT___FF16__run(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+void SCM___FF16__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   obj_->run();
 }
 // [[Rcpp::export]]
-std::vector<plant::util::index> EBT___FF16__run_next(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+std::vector<plant::util::index> SCM___FF16__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return obj_->r_run_next();
 }
 // [[Rcpp::export]]
-void EBT___FF16__reset(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+void SCM___FF16__reset(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   obj_->reset();
 }
 // [[Rcpp::export]]
-double EBT___FF16__seed_rain(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
+double SCM___FF16__seed_rain(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
   return obj_->r_seed_rain(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT___FF16__seed_rain_cohort(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
+std::vector<double> SCM___FF16__seed_rain_cohort(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
   return obj_->r_seed_rain_cohort(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT___FF16__area_leaf_error(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
+std::vector<double> SCM___FF16__area_leaf_error(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
   return obj_->r_area_leaf_error(species_index);
 }
 // [[Rcpp::export]]
-void EBT___FF16__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_, std::vector<std::vector<double> > times) {
+void SCM___FF16__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, std::vector<std::vector<double> > times) {
   obj_->r_set_cohort_schedule_times(times);
 }
 // [[Rcpp::export]]
-bool EBT___FF16__complete__get(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+bool SCM___FF16__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return obj_->complete();
 }
 
 // [[Rcpp::export]]
-double EBT___FF16__time__get(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+double SCM___FF16__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-std::vector<double> EBT___FF16__seed_rains__get(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+std::vector<double> SCM___FF16__seed_rains__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return obj_->seed_rains();
 }
 
 // [[Rcpp::export]]
-plant::Parameters<plant::FF16_Strategy> EBT___FF16__parameters__get(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+plant::Parameters<plant::FF16_Strategy> SCM___FF16__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return obj_->r_parameters();
 }
 
 // [[Rcpp::export]]
-plant::Patch<plant::FF16_Strategy> EBT___FF16__patch__get(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+plant::Patch<plant::FF16_Strategy> SCM___FF16__patch__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return obj_->r_patch();
 }
 
 // [[Rcpp::export]]
-plant::CohortSchedule EBT___FF16__cohort_schedule__get(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+plant::CohortSchedule SCM___FF16__cohort_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return obj_->r_cohort_schedule();
 }
 // [[Rcpp::export]]
-void EBT___FF16__cohort_schedule__set(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_, plant::CohortSchedule value) {
+void SCM___FF16__cohort_schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, plant::CohortSchedule value) {
   obj_->r_set_cohort_schedule(value);
 }
 
 // [[Rcpp::export]]
-std::vector<double> EBT___FF16__ode_times__get(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+std::vector<double> SCM___FF16__ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return obj_->r_ode_times();
 }
 
 // [[Rcpp::export]]
-Rcpp::List EBT___FF16__state__get(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+Rcpp::List SCM___FF16__state__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return plant::get_state(*obj_);
 }
 
 // [[Rcpp::export]]
-bool EBT___FF16__use_ode_times__get(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+bool SCM___FF16__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return obj_->r_use_ode_times();
 }
 // [[Rcpp::export]]
-void EBT___FF16__use_ode_times__set(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_, bool value) {
+void SCM___FF16__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, bool value) {
   obj_->r_set_use_ode_times(value);
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double> > EBT___FF16__seed_rain_error__get(plant::RcppR6::RcppR6<plant::EBT<plant::FF16_Strategy> > obj_) {
+std::vector<std::vector<double> > SCM___FF16__seed_rain_error__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_) {
   return obj_->r_seed_rain_error();
 }
 
 
 // [[Rcpp::export]]
-plant::EBT<plant::FFdev_Strategy> EBT___FFdev__ctor(plant::Parameters<plant::FFdev_Strategy> parameters) {
-  return plant::EBT<plant::FFdev_Strategy>(parameters);
+plant::SCM<plant::FFdev_Strategy> SCM___FFdev__ctor(plant::Parameters<plant::FFdev_Strategy> parameters) {
+  return plant::SCM<plant::FFdev_Strategy>(parameters);
 }
 // [[Rcpp::export]]
-void EBT___FFdev__run(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+void SCM___FFdev__run(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   obj_->run();
 }
 // [[Rcpp::export]]
-std::vector<plant::util::index> EBT___FFdev__run_next(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+std::vector<plant::util::index> SCM___FFdev__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return obj_->r_run_next();
 }
 // [[Rcpp::export]]
-void EBT___FFdev__reset(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+void SCM___FFdev__reset(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   obj_->reset();
 }
 // [[Rcpp::export]]
-double EBT___FFdev__seed_rain(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
+double SCM___FFdev__seed_rain(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
   return obj_->r_seed_rain(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT___FFdev__seed_rain_cohort(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
+std::vector<double> SCM___FFdev__seed_rain_cohort(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
   return obj_->r_seed_rain_cohort(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> EBT___FFdev__area_leaf_error(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
+std::vector<double> SCM___FFdev__area_leaf_error(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
   return obj_->r_area_leaf_error(species_index);
 }
 // [[Rcpp::export]]
-void EBT___FFdev__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_, std::vector<std::vector<double> > times) {
+void SCM___FFdev__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, std::vector<std::vector<double> > times) {
   obj_->r_set_cohort_schedule_times(times);
 }
 // [[Rcpp::export]]
-bool EBT___FFdev__complete__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+bool SCM___FFdev__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return obj_->complete();
 }
 
 // [[Rcpp::export]]
-double EBT___FFdev__time__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+double SCM___FFdev__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-std::vector<double> EBT___FFdev__seed_rains__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+std::vector<double> SCM___FFdev__seed_rains__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return obj_->seed_rains();
 }
 
 // [[Rcpp::export]]
-plant::Parameters<plant::FFdev_Strategy> EBT___FFdev__parameters__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+plant::Parameters<plant::FFdev_Strategy> SCM___FFdev__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return obj_->r_parameters();
 }
 
 // [[Rcpp::export]]
-plant::Patch<plant::FFdev_Strategy> EBT___FFdev__patch__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+plant::Patch<plant::FFdev_Strategy> SCM___FFdev__patch__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return obj_->r_patch();
 }
 
 // [[Rcpp::export]]
-plant::CohortSchedule EBT___FFdev__cohort_schedule__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+plant::CohortSchedule SCM___FFdev__cohort_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return obj_->r_cohort_schedule();
 }
 // [[Rcpp::export]]
-void EBT___FFdev__cohort_schedule__set(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_, plant::CohortSchedule value) {
+void SCM___FFdev__cohort_schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, plant::CohortSchedule value) {
   obj_->r_set_cohort_schedule(value);
 }
 
 // [[Rcpp::export]]
-std::vector<double> EBT___FFdev__ode_times__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+std::vector<double> SCM___FFdev__ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return obj_->r_ode_times();
 }
 
 // [[Rcpp::export]]
-Rcpp::List EBT___FFdev__state__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+Rcpp::List SCM___FFdev__state__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return plant::get_state(*obj_);
 }
 
 // [[Rcpp::export]]
-bool EBT___FFdev__use_ode_times__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+bool SCM___FFdev__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return obj_->r_use_ode_times();
 }
 // [[Rcpp::export]]
-void EBT___FFdev__use_ode_times__set(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_, bool value) {
+void SCM___FFdev__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, bool value) {
   obj_->r_set_use_ode_times(value);
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double> > EBT___FFdev__seed_rain_error__get(plant::RcppR6::RcppR6<plant::EBT<plant::FFdev_Strategy> > obj_) {
+std::vector<std::vector<double> > SCM___FFdev__seed_rain_error__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
   return obj_->r_seed_rain_error();
 }
 

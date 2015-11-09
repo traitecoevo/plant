@@ -175,7 +175,7 @@ equilibrium_seed_rain_hybrid <- function(p) {
 
         p_check <- p
         p_check$seed_rain <- y_in
-        y_out <- run_ebt(p_check)$seed_rains
+        y_out <- run_scm(p_check)$seed_rains
         if (any(y_out[i] > y_in[i])) {
           plant_log_eq("Solver drove viable species extinct: rejecting")
           next

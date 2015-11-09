@@ -4,7 +4,7 @@ strategy_types <- get_list_of_strategy_types()
 
 test_that("Corner case", {
   for (x in names(strategy_types)) {
-    p <- ebt_base_parameters(x)
+    p <- scm_base_parameters(x)
     expect_that(build_schedule(p), throws_error("no residents"))
     p <- expand_parameters(trait_matrix(0.1, "lma"), p)
     expect_that(build_schedule(p), throws_error("no residents"))
@@ -16,7 +16,7 @@ test_that("Schedule building", {
   for (x in names(strategy_types)[[1]]) {
     ## This is a really dumb test but it should act as a regression test
     ## at least.
-    p <- ebt_base_parameters(x)
+    p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
     p$seed_rain <- 0.1
     p <- build_schedule(p)
