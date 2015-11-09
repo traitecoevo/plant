@@ -2,72 +2,72 @@
 ## the actual strategy?  That would need to be organised by the
 ## templating though and that's stretched to the limit.
 
-##' Create a FFW16 Plant or Cohort
-##' @title Create a FFW16 Plant or Cohort
-##' @param s A \code{\link{FFW16_Strategy}} object
+##' Create a FF16 Plant or Cohort
+##' @title Create a FF16 Plant or Cohort
+##' @param s A \code{\link{FF16_Strategy}} object
 ##' @export
-##' @rdname FFW16
+##' @rdname FF16
 ##' @examples
-##' pl <- FFW16_Plant()
+##' pl <- FF16_Plant()
 ##' pl$height
-FFW16_Plant <- function(s=FFW16_Strategy()) {
-  Plant("FFW16")(s)
+FF16_Plant <- function(s=FF16_Strategy()) {
+  Plant("FF16")(s)
 }
 
 ##' @export
-##' @rdname FFW16
-FFW16_Cohort <- function(s=FFW16_Strategy()) {
-  Cohort("FFW16")(s)
+##' @rdname FF16
+FF16_Cohort <- function(s=FF16_Strategy()) {
+  Cohort("FF16")(s)
 }
 
 ##' @export
-##' @rdname FFW16
-FFW16_Species <- function(s=FFW16_Strategy()) {
-  Species("FFW16")(s)
+##' @rdname FF16
+FF16_Species <- function(s=FF16_Strategy()) {
+  Species("FF16")(s)
 }
 
 ##' @export
-##' @rdname FFW16
+##' @rdname FF16
 ##' @param ... Arguments!
-FFW16_Parameters <- function(...) {
-  Parameters("FFW16")(...)
+FF16_Parameters <- function(...) {
+  Parameters("FF16")(...)
 }
 
 ##' @export
-##' @rdname FFW16
-##' @param p A \code{Parameters<FFW16>} object
-FFW16_Patch <- function(p) {
-  Patch("FFW16")(p)
+##' @rdname FF16
+##' @param p A \code{Parameters<FF16>} object
+FF16_Patch <- function(p) {
+  Patch("FF16")(p)
 }
 
 ##' @export
-##' @rdname FFW16
-FFW16_EBT <- function(p) {
-  EBT("FFW16")(p)
+##' @rdname FF16
+FF16_EBT <- function(p) {
+  EBT("FF16")(p)
 }
 
 ##' @export
-##' @rdname FFW16
-FFW16_StochasticSpecies <- function(s=FFW16_Strategy()) {
-  StochasticSpecies("FFW16")(s)
+##' @rdname FF16
+FF16_StochasticSpecies <- function(s=FF16_Strategy()) {
+  StochasticSpecies("FF16")(s)
 }
 
 ##' @export
-##' @rdname FFW16
-FFW16_StochasticPatch <- function(p) {
-  StochasticPatch("FFW16")(p)
+##' @rdname FF16
+FF16_StochasticPatch <- function(p) {
+  StochasticPatch("FF16")(p)
 }
 
 ##' @export
-##' @rdname FFW16
-FFW16_StochasticPatchRunner <- function(p) {
-  StochasticPatchRunner("FFW16")(p)
+##' @rdname FF16
+FF16_StochasticPatchRunner <- function(p) {
+  StochasticPatchRunner("FF16")(p)
 }
 
 ##' @export
-##' @rdname FFW16
-FFW16_PlantPlus <- function(s=FFW16_Strategy()) {
-  PlantPlus("FFW16")(s)
+##' @rdname FF16
+FF16_PlantPlus <- function(s=FF16_Strategy()) {
+  PlantPlus("FF16")(s)
 }
 
 ## Helper:
@@ -80,8 +80,8 @@ make_environment <- function(p) {
               p$control)
 }
 
-##' Hyperparameters for FFW16 physiological model
-##' @title Hyperparameters for FFW16 physiological model
+##' Hyperparameters for FF16 physiological model
+##' @title Hyperparameters for FF16 physiological model
 ##' @param lma_0 Central (mean) value for leaf mass per area
 ##' @param B_kl1 Rate of leaf turnover at phi_0
 ##' @param B_kl2 Scaling slope for phi in leaf turnover
@@ -101,8 +101,8 @@ make_environment <- function(p) {
 ##' @param k_I light extinction coefficient
 ##' @param latitude degrees from equator (0-90), used in solar model
 ##' @export
-##' @rdname FFW16_hyperpar
-make_FFW16_hyperpar <- function(
+##' @rdname FF16_hyperpar
+make_FF16_hyperpar <- function(
                                 lma_0=0.1978791,
                                 B_kl1=0.4565855,
                                 B_kl2=1.71,
@@ -270,10 +270,10 @@ make_FFW16_hyperpar <- function(
   }
 }
 
-##' @rdname FFW16_hyperpar
+##' @rdname FF16_hyperpar
 ##' @export
 ##' @param m A trait matrix
 ##' @param s A default strategy
 ##' @param filter Logical, indicating if generated parameters that are
 ##' the same as the default should be removed.
-FFW16_hyperpar <- make_FFW16_hyperpar()
+FF16_hyperpar <- make_FF16_hyperpar()

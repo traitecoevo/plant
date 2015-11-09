@@ -6,7 +6,7 @@
 #include <RcppCommon.h> // SEXP
 
 #include <plant/control.h>
-#include <plant/ffw16_strategy.h>
+#include <plant/FF16_strategy.h>
 #include <plant/cohort_schedule.h>
 #include <plant/ebt_utils.h> // Unfortunately needed for setup_cohort_schedule
 
@@ -66,7 +66,7 @@ Parameters<T>::Parameters()
     n_patches(1),
     disturbance_mean_interval(30),
     cohort_schedule_max_time(NA_REAL),
-    hyperpar(util::get_from_package("FFW16_hyperpar")) {
+    hyperpar(util::get_from_package("FF16_hyperpar")) {
 }
 
 template <typename T>

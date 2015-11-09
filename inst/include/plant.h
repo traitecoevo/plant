@@ -18,7 +18,7 @@
 #include <plant/environment.h>
 
 #include <plant/control.h>
-#include <plant/ffw16_strategy.h>
+#include <plant/FF16_strategy.h>
 #include <plant/parameters.h>
 #include <plant/cohort_schedule.h>
 

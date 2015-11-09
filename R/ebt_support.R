@@ -67,9 +67,9 @@ run_ebt <- function(p, use_ode_times=FALSE) {
 ##' hyperparameterisation that we most often use.
 ##' @title Sensible, fast (ish) EBT parameters
 ##' @author Rich FitzJohn
-##' @param type Name of model (defaults to FFW16 but FFdev also valid)
+##' @param type Name of model (defaults to FF16 but FFdev also valid)
 ##' @export
-ebt_base_parameters <- function(type="FFW16") {
+ebt_base_parameters <- function(type="FF16") {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
@@ -207,22 +207,22 @@ run_ebt_error <- function(p) {
 }
 
 ##' @rdname Hyperparameter functions
-##' @param type Either \code{"FFW16"} or \code{"FFdev"}.
+##' @param type Either \code{"FF16"} or \code{"FFdev"}.
 ##' @export
 make_hyperpar <- function(type) {
   switch(type,
-         FFW16=make_FFW16_hyperpar,
-         FFdev=make_FFW16_hyperpar,
+         FF16=make_FF16_hyperpar,
+         FFdev=make_FF16_hyperpar,
          stop("Unknown type ", type))
 }
 
 ##' @rdname Hyperparameter functions
-##' @param type Either \code{"FFW16"} or \code{"FFdev"}.
+##' @param type Either \code{"FF16"} or \code{"FFdev"}.
 ##' @export
 hyperpar <- function(type) {
   switch(type,
-         FFW16=FFW16_hyperpar,
-         FFdev=FFW16_hyperpar,
+         FF16=FF16_hyperpar,
+         FFdev=FF16_hyperpar,
          stop("Unknown type ", type))
 }
 
@@ -249,7 +249,7 @@ assembly_parameters <- function(..., pars=NULL) {
     assert_named_if_not_empty(pars)
 
     excl <- c("control", "strategy_default", "hyperpar")
-    pos <- setdiff(c(names(formals(make_FFW16_hyperpar)),
+    pos <- setdiff(c(names(formals(make_FF16_hyperpar)),
                      names(p),
                      names(p$control),
                      names(p$strategy_default)),
@@ -259,8 +259,8 @@ assembly_parameters <- function(..., pars=NULL) {
       stop("Unknown parameters: ", paste(unk, collapse=", "))
     }
 
-    nms_hyper <- intersect(names(pars), names(formals(make_FFW16_hyperpar)))
-    p$hyperpar <- do.call("make_FFW16_hyperpar", pars[nms_hyper])
+    nms_hyper <- intersect(names(pars), names(formals(make_FF16_hyperpar)))
+    p$hyperpar <- do.call("make_FF16_hyperpar", pars[nms_hyper])
     p                  <- modify_list(p,                  pars)
     p$control          <- modify_list(p$control,          pars)
     p$strategy_default <- modify_list(p$strategy_default, pars)

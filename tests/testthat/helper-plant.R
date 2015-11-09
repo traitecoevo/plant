@@ -1,11 +1,11 @@
 
 get_list_of_strategy_types <- function() {
-  list(FFW16=FFW16_Strategy,
+  list(FF16=FF16_Strategy,
        FFdev=FFdev_Strategy)
 }
 
 get_list_of_hyperpar_functions <- function() {
-  list(FFW16=FFW16_hyperpar,
+  list(FF16=FF16_hyperpar,
        FFdev=FFdev_hyperpar)
 }
 
@@ -79,8 +79,8 @@ test_environment <- function(height, n=101, light_env=NULL,
   env <- Interpolator()
   env$init(hh, ee)
 
-  parameters <- FFW16_Parameters()
-  parameters$strategies <- rep(list(FFW16_Strategy()), n_strategies)
+  parameters <- FF16_Parameters()
+  parameters$strategies <- rep(list(FF16_Strategy()), n_strategies)
   parameters$seed_rain <- seed_rain
   parameters$is_resident <- rep(TRUE, n_strategies)
 

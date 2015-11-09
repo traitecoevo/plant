@@ -49,7 +49,7 @@ test_that("Single individual", {
     p$compute_vars_phys(env)
     expect_that(sp$ode_rates, equals(p$ode_rates))
 
-    if (x == "FFW16") {
+    if (x == "FF16") {
       expect_that(all(sp$ode_rates > 0.0), is_true())
     } else if (x == "FFdev") {
       expect_that(all(sp$ode_rates[-3] > 0.0), is_true())

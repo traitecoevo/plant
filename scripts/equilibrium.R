@@ -1,7 +1,7 @@
 ## Find the equilibrium seed rain a few different ways:
 plant_log_console()
 p <- ebt_base_parameters()
-p$strategies <- list(FFW16_Strategy())
+p$strategies <- list(FF16_Strategy())
 p$seed_rain <- 1.1
 
 p$control$equilibrium_solver_name <- "iteration"

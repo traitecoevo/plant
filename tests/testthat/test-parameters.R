@@ -189,7 +189,7 @@ test_that("Disturbance interval", {
 
 test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
-  p0 <- FFW16_Parameters()
+  p0 <- FF16_Parameters()
   m <- trait_matrix(x, "hmat")
   expect_that(sl <- strategy_list(m, p0),
               not(gives_warning()))

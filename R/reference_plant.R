@@ -5,19 +5,19 @@
 ##' \code{$}).  These will hopefully be documented at some point.
 ##' @author Daniel S. Falster (extra code and porting by Rich
 ##' FitzJohn)
-##' @param type name of model to make a reference plant for (only FFW16
+##' @param type name of model to make a reference plant for (only FF16
 ##' supported at present).
 ##' @export
-make_reference_plant <- function(type="FFW16") {
-  if (type == "FFW16") {
-    ret <- make_reference_plant_FFW16()
+make_reference_plant <- function(type="FF16") {
+  if (type == "FF16") {
+    ret <- make_reference_plant_FF16()
   } else {
     stop("No reference plant for type ", type)
   }
   ret
 }
 
-##' Create an instance of reference version of growth model FFW16
+##' Create an instance of reference version of growth model FF16
 ##'
 ##' This is an old version of the growth model, implemented by Daniel
 ##' Falster.  It does \emph{not} implement any of the actual growth.
@@ -30,9 +30,9 @@ make_reference_plant <- function(type="FFW16") {
 ##' @author Daniel S. Falster (extra code and porting by Rich
 ##' FitzJohn)
 ##' @export
-make_reference_plant_FFW16 <- function() {
+make_reference_plant_FF16 <- function() {
 
-  path <- system.file("reference_plant_ffw16", package=.packageName)
+  path <- system.file("reference_plant_FF16", package=.packageName)
 
   e <- new.env()
   source(file.path(path, "R/params.r"), local=e)

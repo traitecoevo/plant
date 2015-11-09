@@ -40,7 +40,7 @@ stochastic_schedule <- function(p) {
 ##' Consider this function liable to change.
 ##'
 ##' @title Run a stochastic patch, Collecting Output
-##' @param p A \code{\link{FFW16_Parameters}} object
+##' @param p A \code{\link{FF16_Parameters}} object
 ##' @param random_schedule setting to TRUE causes algorithm to generate
 ##' a random schedule based on seed rain and area.
 ##' @author Rich FitzJohn

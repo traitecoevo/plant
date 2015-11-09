@@ -47,7 +47,7 @@ test_that("non empty", {
     expect_that(max(le$y), equals(1.0))
     expect_that(le$y[[1]], is_less_than(1.0))
 
-    if (x == "FFW16") {
+    if (x == "FF16") {
       expect_that(all(patch$ode_rates > 0.0), is_true())
     } else if (x == "FFdev") {
       expect_that(all(patch$ode_rates[-3] > 0.0), is_true())

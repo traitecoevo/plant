@@ -29,7 +29,7 @@ test_that("collect / make_patch", {
   dat <- dat[[1]]
   expect_that(dat, is_a("matrix"))
   expect_that(nrow(dat), equals(length(p1_113$species[[1]]$cohorts)))
-  n_int <- length(PlantPlus("FFW16")(p1$strategies[[1]])$internals)
+  n_int <- length(PlantPlus("FF16")(p1$strategies[[1]])$internals)
   expect_that(ncol(dat), equals(n_int + 2L))
 
   ## NOTE: this currently takes *longer* than the EBT to run due to (I
