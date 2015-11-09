@@ -4,10 +4,10 @@
 \alias{make_reference_plant}
 \title{Reference Growth Model}
 \usage{
-make_reference_plant(type = "FFW16")
+make_reference_plant(type = "FF16")
 }
 \arguments{
-\item{type}{name of model to make a reference plant for (only FFW16
+\item{type}{name of model to make a reference plant for (only FF16
 supported at present).}
 }
 \value{

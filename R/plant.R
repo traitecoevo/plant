@@ -175,8 +175,8 @@ plant_to_plant_plus <- function(x, ...) {
   UseMethod("plant_to_plant_plus")
 }
 ##' @export
-`plant_to_plant_plus.Plant<FFW16>` <- function(x, ...) {
-  FFW16_plant_to_plant_plus(x, ...)
+`plant_to_plant_plus.Plant<FF16>` <- function(x, ...) {
+  FF16_plant_to_plant_plus(x, ...)
 }
 ##' @export
 `plant_to_plant_plus.Plant<FFdev>` <- function(x, ...) {
@@ -194,8 +194,8 @@ lcp_whole_plant <- function(p, ...) {
   UseMethod("lcp_whole_plant")
 }
 ##' @export
-`lcp_whole_plant.PlantPlus<FFW16>` <- function(p, ...) {
-  FFW16_lcp_whole_plant(p, ...)
+`lcp_whole_plant.PlantPlus<FF16>` <- function(p, ...) {
+  FF16_lcp_whole_plant(p, ...)
 }
 ##' @export
 `lcp_whole_plant.PlantPlus<FFdev>` <- function(p, ...) {

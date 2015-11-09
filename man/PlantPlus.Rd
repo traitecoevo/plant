@@ -8,7 +8,7 @@ PlantPlus(T)
 }
 \arguments{
 \item{T}{String containing class of plant to create; currently
-must be \code{"FFW16"}.  See \code{\link{FFW16_Plant}} for more
+must be \code{"FF16"}.  See \code{\link{FF16_Plant}} for more
 details.}
 }
 \description{

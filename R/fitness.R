@@ -16,7 +16,7 @@
 fitness_landscape <- function(trait_matrix, p, raw_seed_rain=FALSE) {
   n_residents <- length(p$strategies)
   p_with_mutants <- expand_parameters(trait_matrix, p)
-  ebt <- run_ebt(p_with_mutants,
+  ebt <- run_scm(p_with_mutants,
                  use_ode_times=length(p$cohort_schedule_ode_times) > 0)
   seed_rain <- ebt$seed_rains
   if (n_residents > 0L) {

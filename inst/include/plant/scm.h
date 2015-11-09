@@ -1,16 +1,16 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_EBT_H_
-#define PLANT_PLANT_EBT_H_
+#ifndef PLANT_PLANT_SCM_H_
+#define PLANT_PLANT_SCM_H_
 
 #include <plant/patch.h>
 #include <plant/cohort_schedule.h>
 #include <plant/ode_solver.h>
-#include <plant/ebt_utils.h>
+#include <plant/scm_utils.h>
 
 namespace plant {
 
 template <typename T>
-class EBT {
+class SCM {
 public:
   typedef T             strategy_type;
   typedef Plant<T>      plant_type;
@@ -19,7 +19,7 @@ public:
   typedef Patch<T>      patch_type;
   typedef Parameters<T> parameters_type;
 
-  EBT(parameters_type p);
+  SCM(parameters_type p);
 
   void run();
   std::vector<size_t> run_next();
@@ -38,7 +38,7 @@ public:
   const patch_type& r_patch() const {return patch;}
   // TODO: These are liable to change to return all species at once by
   // default.  The pluralisation difference between
-  // EBT::r_area_leaf_error and Species::r_area_leafs_error will get
+  // SCM::r_area_leaf_error and Species::r_area_leafs_error will get
   // dealt with then.
   double              r_seed_rain(util::index species_index) const;
   std::vector<double> r_seed_rain_cohort(util::index species_index) const;
@@ -64,19 +64,19 @@ private:
 };
 
 template <typename T>
-EBT<T>::EBT(parameters_type p)
+SCM<T>::SCM(parameters_type p)
   : parameters(p),
     patch(parameters),
     cohort_schedule(make_cohort_schedule(parameters)),
     solver(patch, make_ode_control(p.control)) {
   parameters.validate();
   if (!util::identical(parameters.patch_area, 1.0)) {
-    util::stop("Patch area must be exactly 1 for the EBT");
+    util::stop("Patch area must be exactly 1 for the SCM");
   }
 }
 
 template <typename T>
-void EBT<T>::run() {
+void SCM<T>::run() {
   reset();
   while (!complete()) {
     run_next();
@@ -84,7 +84,7 @@ void EBT<T>::run() {
 }
 
 template <typename T>
-std::vector<size_t> EBT<T>::run_next() {
+std::vector<size_t> SCM<T>::run_next() {
   std::vector<size_t> ret;
   const double t0 = time();
 
@@ -115,7 +115,7 @@ std::vector<size_t> EBT<T>::run_next() {
 }
 
 template <typename T>
-double EBT<T>::time() const {
+double SCM<T>::time() const {
   return patch.time();
 }
 
@@ -124,25 +124,25 @@ double EBT<T>::time() const {
 // the solver.  It might be better to add a set_time method within
 // ode::Solver, and then here do explicitly ode_solver.set_time(0)?
 template <typename T>
-void EBT<T>::reset() {
+void SCM<T>::reset() {
   patch.reset();
   cohort_schedule.reset();
   solver.reset(patch);
 }
 
 template <typename T>
-bool EBT<T>::complete() const {
+bool SCM<T>::complete() const {
   return cohort_schedule.remaining() == 0;
 }
 
 template <typename T>
-double EBT<T>::seed_rain(size_t species_index) const {
+double SCM<T>::seed_rain(size_t species_index) const {
   return util::trapezium(cohort_schedule.times(species_index),
                          seed_rain_cohort(species_index));
 }
 
 template <typename T>
-std::vector<double> EBT<T>::seed_rains() const {
+std::vector<double> SCM<T>::seed_rains() const {
   std::vector<double> ret;
   for (size_t i = 0; i < patch.size(); ++i) {
     ret.push_back(seed_rain(i));
@@ -151,23 +151,23 @@ std::vector<double> EBT<T>::seed_rains() const {
 }
 
 template <typename T>
-std::vector<util::index> EBT<T>::r_run_next() {
+std::vector<util::index> SCM<T>::r_run_next() {
   return util::index_vector(run_next());
 }
 
 template <typename T>
-double EBT<T>::r_seed_rain(util::index species_index) const {
+double SCM<T>::r_seed_rain(util::index species_index) const {
   return seed_rain(species_index.check_bounds(patch.size()));
 }
 
 template <typename T>
 std::vector<double>
-EBT<T>::r_seed_rain_cohort(util::index species_index) const {
+SCM<T>::r_seed_rain_cohort(util::index species_index) const {
   return seed_rain_cohort(species_index.check_bounds(patch.size()));
 }
 
 template <typename T>
-std::vector<double> EBT<T>::r_seed_rain_error(util::index species_index) const {
+std::vector<double> SCM<T>::r_seed_rain_error(util::index species_index) const {
   // TODO: This causes this to happen too often, given we usually get
   // all the errors I think? (see TODO in class definition)
   double tot_seed_out = seed_rain_total();
@@ -178,7 +178,7 @@ std::vector<double> EBT<T>::r_seed_rain_error(util::index species_index) const {
 }
 
 template <typename T>
-std::vector<std::vector<double> > EBT<T>::r_seed_rain_error() const {
+std::vector<std::vector<double> > SCM<T>::r_seed_rain_error() const {
   std::vector<std::vector<double> > ret;
   double tot_seed_out = seed_rain_total();
   for (size_t i = 0; i < patch.size(); ++i) {
@@ -190,7 +190,7 @@ std::vector<std::vector<double> > EBT<T>::r_seed_rain_error() const {
 }
 
 template <typename T>
-std::vector<double> EBT<T>::r_area_leaf_error(util::index species_index) const {
+std::vector<double> SCM<T>::r_area_leaf_error(util::index species_index) const {
   // TODO: I think we need to scale this by total area; that should be
   // computed for everything so will get passed in as an argument.
   // const double tot_area_leaf  = patch.area_leaf_above(0.0);
@@ -199,22 +199,22 @@ std::vector<double> EBT<T>::r_area_leaf_error(util::index species_index) const {
 }
 
 template <typename T>
-std::vector<double> EBT<T>::r_ode_times() const {
+std::vector<double> SCM<T>::r_ode_times() const {
   return solver.get_times();
 }
 
 template <typename T>
-bool EBT<T>::r_use_ode_times() const {
+bool SCM<T>::r_use_ode_times() const {
   return cohort_schedule.using_ode_times();
 }
 
 template <typename T>
-void EBT<T>::r_set_use_ode_times(bool x) {
+void SCM<T>::r_set_use_ode_times(bool x) {
   cohort_schedule.r_set_use_ode_times(x);
 }
 
 template <typename T>
-void EBT<T>::r_set_cohort_schedule(CohortSchedule x) {
+void SCM<T>::r_set_cohort_schedule(CohortSchedule x) {
   if (patch.ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
@@ -228,7 +228,7 @@ void EBT<T>::r_set_cohort_schedule(CohortSchedule x) {
 }
 
 template <typename T>
-void EBT<T>::r_set_cohort_schedule_times(std::vector<std::vector<double> > x) {
+void SCM<T>::r_set_cohort_schedule_times(std::vector<std::vector<double> > x) {
   if (patch.ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
@@ -237,7 +237,7 @@ void EBT<T>::r_set_cohort_schedule_times(std::vector<std::vector<double> > x) {
 }
 
 template <typename T>
-double EBT<T>::seed_rain_total() const {
+double SCM<T>::seed_rain_total() const {
   double tot = 0.0;
   for (size_t i = 0; i < patch.size(); ++i) {
     tot += seed_rain(i);
@@ -246,7 +246,7 @@ double EBT<T>::seed_rain_total() const {
 }
 
 template <typename T>
-std::vector<double> EBT<T>::seed_rain_cohort(size_t species_index) const {
+std::vector<double> SCM<T>::seed_rain_cohort(size_t species_index) const {
   const std::vector<double> times = cohort_schedule.times(species_index);
   const Disturbance& disturbance_regime = patch.disturbance_regime();
   const double S_D = parameters.strategies[species_index].S_D;

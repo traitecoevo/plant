@@ -48,9 +48,9 @@ test_that("Construction", {
     expect_that(pat, is_a(sprintf("Patch<%s>", x)))
     expect_that(class(pat$species[[1]]), equals(class(sp)))
 
-    ebt <- EBT(x)(par)
-    expect_that(ebt, is_a("EBT"))
-    expect_that(ebt, is_a(sprintf("EBT<%s>", x)))
+    ebt <- SCM(x)(par)
+    expect_that(ebt, is_a("SCM"))
+    expect_that(ebt, is_a(sprintf("SCM<%s>", x)))
     expect_that(class(ebt$patch), equals(class(pat)))
 
     ## Stochastic model:

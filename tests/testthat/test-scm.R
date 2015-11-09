@@ -1,4 +1,4 @@
-context("EBT")
+context("SCM")
 
 strategy_types <- get_list_of_strategy_types()
 
@@ -13,12 +13,12 @@ test_that("Ported from tree1", {
                           patch_area=10,
                           is_resident=TRUE)
 
-    expect_that(ebt <- EBT(x)(p),
-                throws_error("Patch area must be exactly 1 for the EBT"))
+    expect_that(ebt <- SCM(x)(p),
+                throws_error("Patch area must be exactly 1 for the SCM"))
 
     p$patch_area <- 1.0
-    ebt <- EBT(x)(p)
-    expect_that(ebt, is_a(sprintf("EBT<%s>", x)))
+    ebt <- SCM(x)(p)
+    expect_that(ebt, is_a(sprintf("SCM<%s>", x)))
 
     ## NOTE: I'm not sure where these are only equal and not identical.
     expect_that(ebt$parameters, equals(p))
@@ -56,7 +56,7 @@ test_that("Ported from tree1", {
     ## Will be helpful for checking that things worked:
     times <- data.frame(start=t, end=c(t[-1], sched$max_time))
 
-    ## Before starting, check that the EBT is actually empty
+    ## Before starting, check that the SCM is actually empty
     expect_that(ebt$time,                equals(0.0))
     expect_that(ebt$patch$ode_size,      equals(0))
     expect_that(ebt$patch$ode_size,      equals(0))
@@ -85,7 +85,7 @@ test_that("Ported from tree1", {
 
     i <- unlist(ebt$run_next())
     expect_that(i, equals(1))
-    ## EBT ran successfully:
+    ## SCM ran successfully:
     expect_that(ebt$cohort_schedule$remaining,
                 equals(length(t) - 2))
     expect_that(ebt$complete, is_false())
@@ -94,7 +94,7 @@ test_that("Ported from tree1", {
     expect_that(ebt$patch$ode_size, equals(ode_size * 2))
 
     ## Reset everything
-    ## "EBT reset successful"
+    ## "SCM reset successful"
     ebt$reset()
     expect_that(ebt$time,                equals(0.0))
     expect_that(ebt$time,                equals(0.0))
@@ -117,7 +117,7 @@ test_that("Ported from tree1", {
       n <- max(sapply(x, length))
       t(sapply(x, function(i) c(i, rep(NA, n-length(i)))))
     }
-    run_ebt_test <- function(ebt, t_max=Inf) {
+    run_scm_test <- function(ebt, t_max=Inf) {
       tt <- hh <- NULL
       species_index <- 1L
       ebt$reset()
@@ -130,16 +130,16 @@ test_that("Ported from tree1", {
       list(t=tt, h=hh)
     }
 
-    ## Next, Run the whole schedule using the EBT.
-    res_e_1 <- run_ebt_test(ebt)
+    ## Next, Run the whole schedule using the SCM.
+    res_e_1 <- run_scm_test(ebt)
 
     ## Then, check that resetting the cohort allows rerunning easily:
-    ## EBT can be rerun successfully:
+    ## SCM can be rerun successfully:
     ebt$reset()
-    res_e_2 <- run_ebt_test(ebt)
+    res_e_2 <- run_scm_test(ebt)
     expect_that(res_e_2, is_identical_to(res_e_1))
 
-    ## Pull the times out of the EBT and set them in the schedule:
+    ## Pull the times out of the SCM and set them in the schedule:
     sched <- ebt$cohort_schedule
     sched$ode_times <- ebt$ode_times
     sched$use_ode_times <- TRUE
@@ -153,13 +153,13 @@ test_that("Ported from tree1", {
     ## between stepping to a point (requiring calculating the step size)
     ## and the stepping a particular step size (requiring calculating the
     ## final time).
-    ## EBT with fixed times agrees:
-    res_e_3 <- run_ebt_test(ebt)
+    ## SCM with fixed times agrees:
+    res_e_3 <- run_scm_test(ebt)
     expect_that(res_e_3, is_identical_to(res_e_1))
 
-    ## EBT can be rerun successfully with fixed times:
+    ## SCM can be rerun successfully with fixed times:
     ebt$reset()
-    res_e_4 <- run_ebt_test(ebt)
+    res_e_4 <- run_scm_test(ebt)
     expect_that(res_e_4, is_identical_to(res_e_3))
   }
 })
@@ -171,7 +171,7 @@ test_that("schedule setting", {
       seed_rain=pi/2,
       is_resident=TRUE,
       cohort_schedule_max_time=5.0)
-    ebt <- EBT(x)(p)
+    ebt <- SCM(x)(p)
 
     ## Then set a cohort schedule:
     ## Build a schedule for 14 introductions from t=0 to t=5
@@ -179,7 +179,7 @@ test_that("schedule setting", {
     t <- seq(0, sched$max_time, length.out=14)
     ebt$set_cohort_schedule_times(list(t))
 
-    ## Did set in the EBT:
+    ## Did set in the SCM:
     expect_that(ebt$cohort_schedule$all_times,
                 is_identical_to(list(t)))
 
@@ -197,7 +197,7 @@ test_that("schedule setting", {
     expect_that(sched2$all_times,
                 is_identical_to(list(t)))
 
-    ebt2 <- EBT(x)(p2)
+    ebt2 <- SCM(x)(p2)
     expect_that(ebt2$cohort_schedule$max_time,
                 is_identical_to(sched2$max_time))
     expect_that(ebt2$cohort_schedule$all_times,
@@ -209,13 +209,13 @@ test_that("schedule setting", {
   ## ## conditions are tested, and it's undefined what will happen if we
   ## ## set a cohort schedule that leaves us between introduction points.
   ## test_that("State get/set works", {
-  ##   ## Next, try and partly run the EBT, grab its state and push it into a
+  ##   ## Next, try and partly run the SCM, grab its state and push it into a
   ##   ## second copy.
   ##   ebt$reset()
-  ##   tmp <- run_ebt_test(ebt, sched$max_time / 2)
+  ##   tmp <- run_scm_test(ebt, sched$max_time / 2)
   ##   state <- ebt$state
 
-  ##   ebt2 <- new(EBT, ebt$parameters)
+  ##   ebt2 <- new(SCM, ebt$parameters)
   ##   ebt2$state <- state
 
   ##   expect_that(ebt2$state, equals(ebt$state))
@@ -245,11 +245,11 @@ test_that("schedule setting", {
 
 test_that("Seed rain & error calculations correct", {
   for (x in names(strategy_types)) {
-    p0 <- ebt_base_parameters(x)
+    p0 <- scm_base_parameters(x)
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, FALSE)
 
-    ebt <- run_ebt(p1)
-    expect_that(ebt, is_a(sprintf("EBT<%s>", x)))
+    ebt <- run_scm(p1)
+    expect_that(ebt, is_a(sprintf("SCM<%s>", x)))
 
     seed_rain_R <- function(ebt, error=FALSE) {
       a <- ebt$cohort_schedule$times(1)
@@ -272,13 +272,13 @@ test_that("Seed rain & error calculations correct", {
     expect_that(ebt$area_leaf_error(1),
                 is_identical_to(lae_cmp))
 
-    int <- make_ebt_integrate(ebt)
+    int <- make_scm_integrate(ebt)
     S_D <- ebt$parameters$strategies[[1]]$S_D
     expect_that(int("seeds_survival_weighted") *
                   S_D, equals(ebt$seed_rain(1)))
 
-    res <- run_ebt_collect(p1)
-    int2 <- make_ebt_integrate(res)
+    res <- run_scm_collect(p1)
+    int2 <- make_scm_integrate(res)
 
     expect_that(int2("seeds_survival_weighted"),
                 equals(int("seeds_survival_weighted")))
@@ -287,10 +287,10 @@ test_that("Seed rain & error calculations correct", {
   }
 })
 
-test_that("Can create empty EBT", {
+test_that("Can create empty SCM", {
   for (x in names(strategy_types)) {
     p <- Parameters(x)()
-    ebt <- EBT(x)(p)
+    ebt <- SCM(x)(p)
 
     ## Check light environment is empty:
     env <- ebt$patch$environment

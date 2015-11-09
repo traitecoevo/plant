@@ -142,7 +142,7 @@ test_that("conversions", {
 })
 
 test_that("regression", {
-  s <- FFW16_Strategy(
+  s <- FF16_Strategy(
          hmat = 30.0,
          a_f1 = 0.8,
          a_f2 = 20,
@@ -150,7 +150,7 @@ test_that("regression", {
          a_l2   = 0.546,
          k_l  = 0.4565855 / 3,
          lma  = 0.06879341)
-  pl <- FFW16_PlantPlus(s)
+  pl <- FF16_PlantPlus(s)
   runner <- OdeRunner("PlantRunner")(PlantRunner(pl, fixed_environment(1)))
   runner$advance(5)
   d0 <- oderunner_plant_size(runner)[["diameter_stem"]]

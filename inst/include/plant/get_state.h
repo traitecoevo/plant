@@ -4,7 +4,7 @@
 
 #include <plant/parameters.h>
 #include <plant/cohort_schedule.h>
-#include <plant/ebt.h>
+#include <plant/scm.h>
 #include <plant/stochastic_patch_runner.h>
 #include <Rcpp.h>
 
@@ -55,7 +55,7 @@ inline Rcpp::NumericMatrix get_state(const Environment environment) {
 }
 
 template <typename T>
-Rcpp::List get_state(const EBT<T>& ebt) {
+Rcpp::List get_state(const SCM<T>& ebt) {
   using namespace Rcpp;
   const Patch<T>& patch = ebt.r_patch();
   return List::create(_["time"] = ebt.time(),

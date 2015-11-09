@@ -1,4 +1,4 @@
-context("Strategy-FFW16")
+context("Strategy-FF16")
 
 test_that("Defaults", {
   expected <- list(
@@ -36,18 +36,18 @@ test_that("Defaults", {
 
   keys <- sort(names(expected))
 
-  s <- FFW16_Strategy()
-  expect_that(s, is_a("FFW16_Strategy"))
+  s <- FF16_Strategy()
+  expect_that(s, is_a("FF16_Strategy"))
 
   expect_that(sort(names(s)), is_identical_to(keys))
   expect_that(unclass(s)[keys], is_identical_to(expected[keys]))
 })
 
-test_that("FFW16_Strategy parameters agree with reference model", {
-  cmp <- make_reference_plant("FFW16")
+test_that("FF16_Strategy parameters agree with reference model", {
+  cmp <- make_reference_plant("FF16")
   cmp_pars <- cmp$get_parameters()
 
-  s <- FFW16_Strategy()
+  s <- FF16_Strategy()
 
   ## Expect that all parameters in the R version are found in the C++
   ## version, *except* for n_area
@@ -75,9 +75,9 @@ test_that("FFW16_Strategy parameters agree with reference model", {
 })
 
 test_that("Reference comparison", {
-  cmp <- make_reference_plant("FFW16")
-  s <- FFW16_Strategy()
-  p <- FFW16_PlantPlus(s)
+  cmp <- make_reference_plant("FF16")
+  s <- FF16_Strategy()
+  p <- FF16_PlantPlus(s)
 
   expect_that(p$strategy, is_identical_to(s))
 
@@ -259,13 +259,13 @@ test_that("Reference comparison", {
 })
 
 
-test_that("FFW16_Strategy hyper-parameterisation", {
+test_that("FF16_Strategy hyper-parameterisation", {
 
-  s <- FFW16_Strategy()
+  s <- FF16_Strategy()
 
   # lma
   lma <- c(0.1,1)
-  ret <- FFW16_hyperpar(trait_matrix(lma, "lma"), s)
+  ret <- FF16_hyperpar(trait_matrix(lma, "lma"), s)
 
   expect_that(all(c("lma", "k_l", "r_l") %in% colnames(ret)), is_true())
   expect_that(ret[, "lma"], equals(lma))
@@ -282,7 +282,7 @@ test_that("FFW16_Strategy hyper-parameterisation", {
 
   # wood density
   rho <- c(200,300)
-  ret <- FFW16_hyperpar(trait_matrix(rho, "rho"), s)
+  ret <- FF16_hyperpar(trait_matrix(rho, "rho"), s)
   expect_that(all(c("rho", "r_s", "r_b") %in% colnames(ret)), is_true())
   expect_that(ret[, "rho"], equals(rho))
   expect_that(ret[, "r_s"], equals(c(20.06000,13.37333), tolerance=1e-5))
@@ -298,7 +298,7 @@ test_that("FFW16_Strategy hyper-parameterisation", {
 
   # narea
   narea <- c(0, 2E-3,2.3E-3)
-  ret <- FFW16_hyperpar(trait_matrix(narea, "narea"), s)
+  ret <- FF16_hyperpar(trait_matrix(narea, "narea"), s)
   expect_that(all(c("narea", "a_p1", "a_p2", "r_l") %in% colnames(ret)),
               is_true())
   expect_that(ret[, "narea"], equals(narea))
@@ -308,7 +308,7 @@ test_that("FFW16_Strategy hyper-parameterisation", {
 
   # seed mass
   omega <- 3.8e-5*c(1,2,3)
-  ret <- FFW16_hyperpar(trait_matrix(omega, "omega"), s)
+  ret <- FF16_hyperpar(trait_matrix(omega, "omega"), s)
   expect_that(all(c("omega", "a_f3") %in% colnames(ret)), is_true())
   expect_that(ret[, "omega"], equals(omega))
   expect_that(ret[, "a_f3"], equals(3*omega))
@@ -322,7 +322,7 @@ test_that("FFW16_Strategy hyper-parameterisation", {
   }
 
   ## Empty trait matrix:
-  ret <- FFW16_hyperpar(trait_matrix(numeric(0), "lma"), s)
+  ret <- FF16_hyperpar(trait_matrix(numeric(0), "lma"), s)
   expect_that(ret, equals(trait_matrix(numeric(0), "lma")))
 })
 

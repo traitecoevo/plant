@@ -153,7 +153,7 @@ double FFdev_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 }
 
 // one-shot update of the ebt variables
-void FFdev_Strategy::ebt_vars(const Environment& environment,
+void FFdev_Strategy::scm_vars(const Environment& environment,
                               bool reuse_intervals,
                               Plant_internals& vars) {
   const double net_mass_production_dt_ =
@@ -306,14 +306,14 @@ double FFdev_Strategy::turnover_root(double mass) const {
 // [eqn 15] Net production
 //
 // NOTE: Translation of variable names from the Falster 2011.  Everything
-// before the minus sign is EBT's N, our `net_mass_production_dt` is EBT's P.
+// before the minus sign is SCM's N, our `net_mass_production_dt` is SCM's P.
 double FFdev_Strategy::net_mass_production_dt_A(double assimilation, double respiration,
                                 double turnover) const {
   return a_bio * a_y * (assimilation - respiration) - turnover;
 }
 
 // One shot calculation of net_mass_production_dt
-// Used by germination_probability() and ebt_vars().
+// Used by germination_probability() and scm_vars().
 double FFdev_Strategy::net_mass_production_dt(const Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals) {

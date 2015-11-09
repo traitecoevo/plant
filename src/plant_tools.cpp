@@ -10,7 +10,7 @@ Environment fixed_environment(double canopy_openness,
   std::vector<double> y = {canopy_openness, canopy_openness, canopy_openness};
   interpolator::Interpolator env;
   env.init(x, y);
-  Parameters<FFW16_Strategy> p;
+  Parameters<FF16_Strategy> p;
   Environment ret(make_environment(p));
   ret.light_environment = env;
   return ret;
@@ -47,7 +47,7 @@ plant::Environment fixed_environment(double canopy_openness,
 // Technical debt: (See RcppR6 #23 and plant #164)
 
 // [[Rcpp::export]]
-double FFW16_lcp_whole_plant(plant::PlantPlus<plant::FFW16_Strategy> p) {
+double FF16_lcp_whole_plant(plant::PlantPlus<plant::FF16_Strategy> p) {
   return plant::tools::lcp_whole_plant(p);
 }
 // [[Rcpp::export]]

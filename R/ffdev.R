@@ -42,8 +42,8 @@ FFdev_Patch <- function(p) {
 
 ##' @export
 ##' @rdname FFdev
-FFdev_EBT <- function(p) {
-  EBT("FFdev")(p)
+FFdev_SCM <- function(p) {
+  SCM("FFdev")(p)
 }
 
 ##' @export

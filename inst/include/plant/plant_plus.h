@@ -3,7 +3,7 @@
 #define PLANT_PLANT_PLANT_PLUS_H_
 
 #include <vector>
-#include <plant/ffw16_strategy.h>
+#include <plant/ff16_strategy.h>
 #include <plant/plant_plus_internals.h>
 #include <plant/ode_interface.h>
 #include <plant/plant.h>
@@ -216,7 +216,7 @@ void PlantPlus<T>::compute_vars_phys(const Environment& environment,
 
     // [eqn 17] - Rate of offspring production
     //
-    // NOTE: In EBT, was multiplied by S_D (survival during
+    // NOTE: In prototype from Falster 2010, was multiplied by S_D (survival during
     // dispersal), but we do not here.
     // NOTE: This is also a hyper-parametrisation and should move into
     // the initialisation function.

@@ -9,7 +9,7 @@ namespace plant {
 
 // The name here is likely to change.
 //
-// The interface mirrors that of EBT; we'll use the same basic
+// The interface mirrors that of SCM; we'll use the same basic
 // approach for a schedule too perhaps.
 //
 // One thing that is different though is that we need to take care in
@@ -77,7 +77,7 @@ template <typename T>
 size_t StochasticPatchRunner<T>::run_next() {
   const double t0 = time();
 
-  // NOTE: Unlike EBT::run_next(), this assumes that there is only a
+  // NOTE: Unlike SCM::run_next(), this assumes that there is only a
   // single event at a given time.  That's not all bad -- multiple
   // events could occur at a single time but the time-saving trick of
   // not computing the light environment would not work.

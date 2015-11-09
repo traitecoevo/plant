@@ -1,4 +1,4 @@
-#include <plant/ebt_utils.h>
+#include <plant/scm_utils.h>
 #include <plant.h>
 
 namespace plant {

@@ -43,18 +43,18 @@ equilibrium_quiet <- function(base=Control()) {
   base
 }
 
-##' Run the EBT, returning the EBT object for interrogation
+##' Run the SCM, returning the SCM object for interrogation
 ##'
-##' This is the simplest way of using the EBT, probably.
-##' @title Run EBT
+##' This is the simplest way of using the SCM, probably.
+##' @title Run SCM
 ##' @param p Parameters object
 ##' @param use_ode_times Should ODE times be used?
-##' @return A \code{EBT} object.
+##' @return A \code{SCM} object.
 ##' @author Rich FitzJohn
 ##' @export
-run_ebt <- function(p, use_ode_times=FALSE) {
+run_scm <- function(p, use_ode_times=FALSE) {
   type <- extract_RcppR6_template_type(p, "Parameters")
-  ebt <- EBT(type)(p)
+  ebt <- SCM(type)(p)
   if (use_ode_times) {
     ebt$use_ode_times <- TRUE
   }
@@ -62,33 +62,33 @@ run_ebt <- function(p, use_ode_times=FALSE) {
   ebt
 }
 
-##' Hopefully sensible set of parameters for use with the EBT.  Turns
+##' Hopefully sensible set of parameters for use with the SCM.  Turns
 ##' accuracy down a bunch, makes it noisy, sets up the
 ##' hyperparameterisation that we most often use.
-##' @title Sensible, fast (ish) EBT parameters
+##' @title Sensible, fast (ish) SCM parameters
 ##' @author Rich FitzJohn
-##' @param type Name of model (defaults to FFW16 but FFdev also valid)
+##' @param type Name of model (defaults to FF16 but FFdev also valid)
 ##' @export
-ebt_base_parameters <- function(type="FFW16") {
+scm_base_parameters <- function(type="FF16") {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
   Parameters(type)(patch_area=1.0, control=ctrl, hyperpar=hyperpar(type))
 }
 
-##' Run the EBT model, given a Parameters and CohortSchedule
+##' Run the SCM model, given a Parameters and CohortSchedule
 ##'
-##' This is mostly a simple wrapper around some of the EBT functions.
+##' This is mostly a simple wrapper around some of the SCM functions.
 ##' Not sure if this is how we will generally want to do this.
 ##' Consider this function liable to change.
 ##'
-##' @title Run the EBT, Collecting Output
+##' @title Run the SCM, Collecting Output
 ##' @param p A \code{Parameters} object
 ##' @param include_area_leaf Include total leaf area (will change; see
 ##' issue #138)
 ##' @author Rich FitzJohn
 ##' @export
-run_ebt_collect <- function(p, include_area_leaf=FALSE) {
+run_scm_collect <- function(p, include_area_leaf=FALSE) {
   collect_default <- function(ebt) {
     ebt$state
   }
@@ -107,7 +107,7 @@ run_ebt_collect <- function(p, include_area_leaf=FALSE) {
   collect <- if (include_area_leaf) collect_area_leaf else collect_default
   type <- extract_RcppR6_template_type(p, "Parameters")
 
-  ebt <- EBT(type)(p)
+  ebt <- SCM(type)(p)
   res <- list(collect(ebt))
 
   while (!ebt$complete) {
@@ -147,9 +147,9 @@ run_ebt_collect <- function(p, include_area_leaf=FALSE) {
   ret
 }
 
-##' Functions for reconstructing a Patch from an EBT
+##' Functions for reconstructing a Patch from an SCM
 ##' @title Reconstruct a patch
-##' @param state State object created by \code{ebt_state}
+##' @param state State object created by \code{scm_state}
 ##' @param p Parameters object
 ##' @export
 make_patch <- function(state, p) {
@@ -162,9 +162,9 @@ make_patch <- function(state, p) {
 
 ##' @rdname make_patch
 ##' @param i Index to extract from \code{x}
-##' @param x Result of running \code{\link{run_ebt_collect}}
+##' @param x Result of running \code{\link{run_scm_collect}}
 ##' @export
-ebt_state <- function(i, x) {
+scm_state <- function(i, x) {
   f_sp <- function(el) {
     el <- el[, i, ]
     el[, !is.na(el[1, ]), drop=FALSE]
@@ -175,13 +175,13 @@ ebt_state <- function(i, x) {
 
 ##' @export
 ##' @rdname make_patch
-ebt_patch <- function(i, x) {
-  make_patch(ebt_state(i, x), x$p)
+scm_patch <- function(i, x) {
+  make_patch(scm_state(i, x), x$p)
 }
 
-run_ebt_error <- function(p) {
+run_scm_error <- function(p) {
   type <- extract_RcppR6_template_type(p, "Parameters")
-  ebt <- EBT(type)(p)
+  ebt <- SCM(type)(p)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)
@@ -207,22 +207,22 @@ run_ebt_error <- function(p) {
 }
 
 ##' @rdname Hyperparameter functions
-##' @param type Either \code{"FFW16"} or \code{"FFdev"}.
+##' @param type Either \code{"FF16"} or \code{"FFdev"}.
 ##' @export
 make_hyperpar <- function(type) {
   switch(type,
-         FFW16=make_FFW16_hyperpar,
-         FFdev=make_FFW16_hyperpar,
+         FF16=make_FF16_hyperpar,
+         FFdev=make_FF16_hyperpar,
          stop("Unknown type ", type))
 }
 
 ##' @rdname Hyperparameter functions
-##' @param type Either \code{"FFW16"} or \code{"FFdev"}.
+##' @param type Either \code{"FF16"} or \code{"FFdev"}.
 ##' @export
 hyperpar <- function(type) {
   switch(type,
-         FFW16=FFW16_hyperpar,
-         FFdev=FFW16_hyperpar,
+         FF16=FF16_hyperpar,
+         FFdev=FF16_hyperpar,
          stop("Unknown type ", type))
 }
 
@@ -233,7 +233,7 @@ hyperpar <- function(type) {
 ##' @param pars A list of parameters
 ##' @export
 assembly_parameters <- function(..., pars=NULL) {
-  p <- plant::ebt_base_parameters()
+  p <- plant::scm_base_parameters()
 
   ## These are nice to have:
   p$control$equilibrium_solver_name <- "hybrid"
@@ -249,7 +249,7 @@ assembly_parameters <- function(..., pars=NULL) {
     assert_named_if_not_empty(pars)
 
     excl <- c("control", "strategy_default", "hyperpar")
-    pos <- setdiff(c(names(formals(make_FFW16_hyperpar)),
+    pos <- setdiff(c(names(formals(make_FF16_hyperpar)),
                      names(p),
                      names(p$control),
                      names(p$strategy_default)),
@@ -259,8 +259,8 @@ assembly_parameters <- function(..., pars=NULL) {
       stop("Unknown parameters: ", paste(unk, collapse=", "))
     }
 
-    nms_hyper <- intersect(names(pars), names(formals(make_FFW16_hyperpar)))
-    p$hyperpar <- do.call("make_FFW16_hyperpar", pars[nms_hyper])
+    nms_hyper <- intersect(names(pars), names(formals(make_FF16_hyperpar)))
+    p$hyperpar <- do.call("make_FF16_hyperpar", pars[nms_hyper])
     p                  <- modify_list(p,                  pars)
     p$control          <- modify_list(p$control,          pars)
     p$strategy_default <- modify_list(p$strategy_default, pars)
@@ -268,9 +268,9 @@ assembly_parameters <- function(..., pars=NULL) {
   p
 }
 
-ebt_to_internals <- function(obj, use_environment=TRUE) {
+scm_to_internals <- function(obj, use_environment=TRUE) {
   dat <- lapply(seq_along(obj$time), function(i)
-    patch_to_internals(ebt_patch(i, obj), use_environment))
+    patch_to_internals(scm_patch(i, obj), use_environment))
   f <- function(i) {
     aperm(pad_list_to_array(lapply(dat, function(x) t(x[[i]]))), c(1, 3, 2))
   }
@@ -292,31 +292,31 @@ species_to_internals <- function(sp, environment=NULL) {
 }
 
 ##' Create a function that allows integrating aggregate properties of
-##' the EBT system.
+##' the SCM system.
 ##'
-##' The workflow here is to run an EBT to create an EBT by running
-##' \code{run_ebt}, or a set of data from \code{run_ebt_collect} and
+##' The workflow here is to run an SCM to create an SCM by running
+##' \code{run_scm}, or a set of data from \code{run_scm_collect} and
 ##' then reconstitute all the intermediate bits of data so that an any
 ##' variable that \code{PlantPlus} tracks can be integrated out.
 ##' Because the pre-processing step is reasonably slow, this function
 ##' returns a function that takes a variable name and integrates it.
 ##'
-##' @title Integrate EBT variables
-##' @param ebt An object from \code{run_ebt} or \code{run_ebt_collect}
+##' @title Integrate SCM variables
+##' @param ebt An object from \code{run_scm} or \code{run_scm_collect}
 ##' @export
-make_ebt_integrate <- function(obj) {
+make_scm_integrate <- function(obj) {
   ## TODO: This needs to be made to work with the output of
-  ## run_ebt_collect, which means that it could possibly work with the
+  ## run_scm_collect, which means that it could possibly work with the
   ## output over time, which would be cool; that might help with some
   ## of the stuff from the "emergent" vignette.
-  if (inherits(obj, "EBT")) {
+  if (inherits(obj, "SCM")) {
     internals <- patch_to_internals(obj$patch)
     n <- length(internals)
     sched <- obj$cohort_schedule
     a <- lapply(seq_len(n), sched$times)
     pa <- lapply(a, obj$patch$environment$disturbance_regime$density)
   } else {
-    internals <- patch_to_internals(ebt_patch(length(obj$time), obj))
+    internals <- patch_to_internals(scm_patch(length(obj$time), obj))
     n <- length(internals)
     a <- obj$p$cohort_schedule_times
     pa <- lapply(a, Disturbance(obj$p$disturbance_mean_interval)$density)

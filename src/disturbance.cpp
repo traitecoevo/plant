@@ -27,7 +27,7 @@ double Disturbance::pr_survival(double time) const {
 
 // This is the conditional probability of surviving to 'time', given
 // that we were alive at 'time_start'.  It was used in the original
-// EBT implementation.
+// Falster 2010 implementation.
 double Disturbance::pr_survival_conditional(double time,
                                             double time_start) const {
   return pr_survival(time) / pr_survival(time_start);

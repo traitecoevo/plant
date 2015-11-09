@@ -1,13 +1,13 @@
-context("EBT support")
+context("SCM support")
 
 test_that("collect / make_patch", {
-  p0 <- ebt_base_parameters()
+  p0 <- scm_base_parameters()
   p0$disturbance_mean_interval <- 30.0
   p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, FALSE)
 
-  res <- run_ebt_collect(p1)
+  res <- run_scm_collect(p1)
 
-  st_113 <- ebt_state(113, res)
+  st_113 <- scm_state(113, res)
   p1_113 <- make_patch(st_113, p1)
 
   expect_that(p1_113$ode_state, equals(unlist(st_113$species)))
@@ -29,14 +29,14 @@ test_that("collect / make_patch", {
   dat <- dat[[1]]
   expect_that(dat, is_a("matrix"))
   expect_that(nrow(dat), equals(length(p1_113$species[[1]]$cohorts)))
-  n_int <- length(PlantPlus("FFW16")(p1$strategies[[1]])$internals)
+  n_int <- length(PlantPlus("FF16")(p1$strategies[[1]])$internals)
   expect_that(ncol(dat), equals(n_int + 2L))
 
-  ## NOTE: this currently takes *longer* than the EBT to run due to (I
+  ## NOTE: this currently takes *longer* than the SCM to run due to (I
   ## think) the RcppR6 calling being pretty inefficient in this case.
   ## I should really benchmark it and see why it is so slow, but
   ## possibly we could do this within C++ for a major speedup.
-  ints <- ebt_to_internals(res)
+  ints <- scm_to_internals(res)
 
   n_times <- length(p1$cohort_schedule_times[[1]])
   expect_that(length(ints), equals(1))
@@ -51,7 +51,7 @@ test_that("collect / make_patch", {
 })
 
 test_that("expand_parameters", {
-  p0 <- ebt_base_parameters()
+  p0 <- scm_base_parameters()
   p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, FALSE)
   ## This will trigger rebuilding the times:
   p1$cohort_schedule_max_time <- 100

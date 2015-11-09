@@ -7,7 +7,7 @@
 run_stochastic_collect(p, random_schedule = TRUE)
 }
 \arguments{
-\item{p}{A \code{\link{FFW16_Parameters}} object}
+\item{p}{A \code{\link{FF16_Parameters}} object}
 
 \item{random_schedule}{setting to TRUE causes algorithm to generate
 a random schedule based on seed rain and area.}

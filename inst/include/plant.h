@@ -18,7 +18,7 @@
 #include <plant/environment.h>
 
 #include <plant/control.h>
-#include <plant/ffw16_strategy.h>
+#include <plant/ff16_strategy.h>
 #include <plant/parameters.h>
 #include <plant/cohort_schedule.h>
 
@@ -32,7 +32,7 @@
 #include <plant/cohort.h>
 #include <plant/species.h>
 #include <plant/patch.h>
-#include <plant/ebt.h>
+#include <plant/scm.h>
 
 // Stochastic model
 #include <plant/stochastic_species.h>

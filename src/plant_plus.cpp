@@ -1,5 +1,5 @@
 #include <plant/plant_plus.h>
-#include <plant/ffw16_strategy.h>
+#include <plant/ff16_strategy.h>
 #include <plant/ffdev_strategy.h>
 #include <plant/plant_tools.h>
 
@@ -12,8 +12,8 @@
 // instead we'll need to manually list classes (added in #23).
 
 // [[Rcpp::export]]
-plant::PlantPlus<plant::FFW16_Strategy>
-FFW16_plant_to_plant_plus(plant::Plant<plant::FFW16_Strategy> p,
+plant::PlantPlus<plant::FF16_Strategy>
+FF16_plant_to_plant_plus(plant::Plant<plant::FF16_Strategy> p,
                           SEXP environment) {
   return plant::plant_to_plant_plus(p, environment);
 }
