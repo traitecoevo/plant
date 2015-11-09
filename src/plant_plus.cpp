@@ -1,5 +1,5 @@
 #include <plant/plant_plus.h>
-#include <plant/FF16_strategy.h>
+#include <plant/ff16_strategy.h>
 #include <plant/ffdev_strategy.h>
 #include <plant/plant_tools.h>
 

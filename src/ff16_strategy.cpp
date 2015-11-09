@@ -1,4 +1,4 @@
-#include <plant/FF16_strategy.h>
+#include <plant/ff16_strategy.h>
 #include <plant/uniroot.h>
 #include <plant/qag.h>
 #include <plant/environment.h>
