@@ -4,10 +4,10 @@
 \alias{ebt_base_parameters}
 \title{Sensible, fast (ish) EBT parameters}
 \usage{
-ebt_base_parameters(type = "FFW16")
+ebt_base_parameters(type = "FF16")
 }
 \arguments{
-\item{type}{Name of model (defaults to FFW16 but FFdev also valid)}
+\item{type}{Name of model (defaults to FF16 but FFdev also valid)}
 }
 \description{
 Hopefully sensible set of parameters for use with the EBT.  Turns

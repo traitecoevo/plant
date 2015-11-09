@@ -6,128 +6,6 @@
 
 using namespace Rcpp;
 
-// test_adaptive_interpolator
-plant::interpolator::Interpolator test_adaptive_interpolator(Rcpp::Function f, double a, double b);
-RcppExport SEXP plant_test_adaptive_interpolator(SEXP fSEXP, SEXP aSEXP, SEXP bSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP);
-    Rcpp::traits::input_parameter< double >::type a(aSEXP);
-    Rcpp::traits::input_parameter< double >::type b(bSEXP);
-    __result = Rcpp::wrap(test_adaptive_interpolator(f, a, b));
-    return __result;
-END_RCPP
-}
-// cohort_schedule_times_default
-std::vector<double> cohort_schedule_times_default(double max_time);
-RcppExport SEXP plant_cohort_schedule_times_default(SEXP max_timeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< double >::type max_time(max_timeSEXP);
-    __result = Rcpp::wrap(cohort_schedule_times_default(max_time));
-    return __result;
-END_RCPP
-}
-// test_gradient_fd1
-double test_gradient_fd1(Rcpp::Function f, double x, double dx, int direction, double fx);
-RcppExport SEXP plant_test_gradient_fd1(SEXP fSEXP, SEXP xSEXP, SEXP dxSEXP, SEXP directionSEXP, SEXP fxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP);
-    Rcpp::traits::input_parameter< double >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type dx(dxSEXP);
-    Rcpp::traits::input_parameter< int >::type direction(directionSEXP);
-    Rcpp::traits::input_parameter< double >::type fx(fxSEXP);
-    __result = Rcpp::wrap(test_gradient_fd1(f, x, dx, direction, fx));
-    return __result;
-END_RCPP
-}
-// test_gradient_richardson
-double test_gradient_richardson(Rcpp::Function f, double x, double d, size_t r);
-RcppExport SEXP plant_test_gradient_richardson(SEXP fSEXP, SEXP xSEXP, SEXP dSEXP, SEXP rSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP);
-    Rcpp::traits::input_parameter< double >::type x(xSEXP);
-    Rcpp::traits::input_parameter< double >::type d(dSEXP);
-    Rcpp::traits::input_parameter< size_t >::type r(rSEXP);
-    __result = Rcpp::wrap(test_gradient_richardson(f, x, d, r));
-    return __result;
-END_RCPP
-}
-// FF16_plant_to_plant_plus
-plant::PlantPlus<plant::FF16_Strategy> FF16_plant_to_plant_plus(plant::Plant<plant::FF16_Strategy> p, SEXP environment);
-RcppExport SEXP plant_FF16_plant_to_plant_plus(SEXP pSEXP, SEXP environmentSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< plant::Plant<plant::FF16_Strategy> >::type p(pSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type environment(environmentSEXP);
-    __result = Rcpp::wrap(FF16_plant_to_plant_plus(p, environment));
-    return __result;
-END_RCPP
-}
-// FFdev_plant_to_plant_plus
-plant::PlantPlus<plant::FFdev_Strategy> FFdev_plant_to_plant_plus(plant::Plant<plant::FFdev_Strategy> p, SEXP environment);
-RcppExport SEXP plant_FFdev_plant_to_plant_plus(SEXP pSEXP, SEXP environmentSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< plant::Plant<plant::FFdev_Strategy> >::type p(pSEXP);
-    Rcpp::traits::input_parameter< SEXP >::type environment(environmentSEXP);
-    __result = Rcpp::wrap(FFdev_plant_to_plant_plus(p, environment));
-    return __result;
-END_RCPP
-}
-// oderunner_plant_size
-plant::PlantPlus_internals oderunner_plant_size(const plant::ode::Runner<plant::tools::PlantRunner>& obj);
-RcppExport SEXP plant_oderunner_plant_size(SEXP objSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::PlantRunner>& >::type obj(objSEXP);
-    __result = Rcpp::wrap(oderunner_plant_size(obj));
-    return __result;
-END_RCPP
-}
-// fixed_environment
-plant::Environment fixed_environment(double canopy_openness, double height_max);
-RcppExport SEXP plant_fixed_environment(SEXP canopy_opennessSEXP, SEXP height_maxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< double >::type canopy_openness(canopy_opennessSEXP);
-    Rcpp::traits::input_parameter< double >::type height_max(height_maxSEXP);
-    __result = Rcpp::wrap(fixed_environment(canopy_openness, height_max));
-    return __result;
-END_RCPP
-}
-// FF16_lcp_whole_plant
-double FF16_lcp_whole_plant(plant::PlantPlus<plant::FF16_Strategy> p);
-RcppExport SEXP plant_FF16_lcp_whole_plant(SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< plant::PlantPlus<plant::FF16_Strategy> >::type p(pSEXP);
-    __result = Rcpp::wrap(FF16_lcp_whole_plant(p));
-    return __result;
-END_RCPP
-}
-// FFdev_lcp_whole_plant
-double FFdev_lcp_whole_plant(plant::PlantPlus<plant::FFdev_Strategy> p);
-RcppExport SEXP plant_FFdev_lcp_whole_plant(SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< plant::PlantPlus<plant::FFdev_Strategy> >::type p(pSEXP);
-    __result = Rcpp::wrap(FFdev_lcp_whole_plant(p));
-    return __result;
-END_RCPP
-}
 // Lorenz__ctor
 plant::ode::test::Lorenz Lorenz__ctor(double sigma, double R, double b);
 RcppExport SEXP plant_Lorenz__ctor(SEXP sigmaSEXP, SEXP RSEXP, SEXP bSEXP) {
@@ -5453,6 +5331,128 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// test_adaptive_interpolator
+plant::interpolator::Interpolator test_adaptive_interpolator(Rcpp::Function f, double a, double b);
+RcppExport SEXP plant_test_adaptive_interpolator(SEXP fSEXP, SEXP aSEXP, SEXP bSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP);
+    Rcpp::traits::input_parameter< double >::type a(aSEXP);
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    __result = Rcpp::wrap(test_adaptive_interpolator(f, a, b));
+    return __result;
+END_RCPP
+}
+// cohort_schedule_times_default
+std::vector<double> cohort_schedule_times_default(double max_time);
+RcppExport SEXP plant_cohort_schedule_times_default(SEXP max_timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< double >::type max_time(max_timeSEXP);
+    __result = Rcpp::wrap(cohort_schedule_times_default(max_time));
+    return __result;
+END_RCPP
+}
+// test_gradient_fd1
+double test_gradient_fd1(Rcpp::Function f, double x, double dx, int direction, double fx);
+RcppExport SEXP plant_test_gradient_fd1(SEXP fSEXP, SEXP xSEXP, SEXP dxSEXP, SEXP directionSEXP, SEXP fxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP);
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type dx(dxSEXP);
+    Rcpp::traits::input_parameter< int >::type direction(directionSEXP);
+    Rcpp::traits::input_parameter< double >::type fx(fxSEXP);
+    __result = Rcpp::wrap(test_gradient_fd1(f, x, dx, direction, fx));
+    return __result;
+END_RCPP
+}
+// test_gradient_richardson
+double test_gradient_richardson(Rcpp::Function f, double x, double d, size_t r);
+RcppExport SEXP plant_test_gradient_richardson(SEXP fSEXP, SEXP xSEXP, SEXP dSEXP, SEXP rSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::Function >::type f(fSEXP);
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type d(dSEXP);
+    Rcpp::traits::input_parameter< size_t >::type r(rSEXP);
+    __result = Rcpp::wrap(test_gradient_richardson(f, x, d, r));
+    return __result;
+END_RCPP
+}
+// FF16_plant_to_plant_plus
+plant::PlantPlus<plant::FF16_Strategy> FF16_plant_to_plant_plus(plant::Plant<plant::FF16_Strategy> p, SEXP environment);
+RcppExport SEXP plant_FF16_plant_to_plant_plus(SEXP pSEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::Plant<plant::FF16_Strategy> >::type p(pSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type environment(environmentSEXP);
+    __result = Rcpp::wrap(FF16_plant_to_plant_plus(p, environment));
+    return __result;
+END_RCPP
+}
+// FFdev_plant_to_plant_plus
+plant::PlantPlus<plant::FFdev_Strategy> FFdev_plant_to_plant_plus(plant::Plant<plant::FFdev_Strategy> p, SEXP environment);
+RcppExport SEXP plant_FFdev_plant_to_plant_plus(SEXP pSEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::Plant<plant::FFdev_Strategy> >::type p(pSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type environment(environmentSEXP);
+    __result = Rcpp::wrap(FFdev_plant_to_plant_plus(p, environment));
+    return __result;
+END_RCPP
+}
+// oderunner_plant_size
+plant::PlantPlus_internals oderunner_plant_size(const plant::ode::Runner<plant::tools::PlantRunner>& obj);
+RcppExport SEXP plant_oderunner_plant_size(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::PlantRunner>& >::type obj(objSEXP);
+    __result = Rcpp::wrap(oderunner_plant_size(obj));
+    return __result;
+END_RCPP
+}
+// fixed_environment
+plant::Environment fixed_environment(double canopy_openness, double height_max);
+RcppExport SEXP plant_fixed_environment(SEXP canopy_opennessSEXP, SEXP height_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< double >::type canopy_openness(canopy_opennessSEXP);
+    Rcpp::traits::input_parameter< double >::type height_max(height_maxSEXP);
+    __result = Rcpp::wrap(fixed_environment(canopy_openness, height_max));
+    return __result;
+END_RCPP
+}
+// FF16_lcp_whole_plant
+double FF16_lcp_whole_plant(plant::PlantPlus<plant::FF16_Strategy> p);
+RcppExport SEXP plant_FF16_lcp_whole_plant(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::PlantPlus<plant::FF16_Strategy> >::type p(pSEXP);
+    __result = Rcpp::wrap(FF16_lcp_whole_plant(p));
+    return __result;
+END_RCPP
+}
+// FFdev_lcp_whole_plant
+double FFdev_lcp_whole_plant(plant::PlantPlus<plant::FFdev_Strategy> p);
+RcppExport SEXP plant_FFdev_lcp_whole_plant(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< plant::PlantPlus<plant::FFdev_Strategy> >::type p(pSEXP);
+    __result = Rcpp::wrap(FFdev_lcp_whole_plant(p));
+    return __result;
+END_RCPP
+}
 // test_uniroot
 double test_uniroot(Rcpp::Function f, double min, double max);
 RcppExport SEXP plant_test_uniroot(SEXP fSEXP, SEXP minSEXP, SEXP maxSEXP) {
@@ -5463,17 +5463,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type min(minSEXP);
     Rcpp::traits::input_parameter< double >::type max(maxSEXP);
     __result = Rcpp::wrap(test_uniroot(f, min, max));
-    return __result;
-END_RCPP
-}
-// matrix_to_list
-Rcpp::List matrix_to_list(Rcpp::NumericMatrix x);
-RcppExport SEXP plant_matrix_to_list(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type x(xSEXP);
-    __result = Rcpp::wrap(matrix_to_list(x));
     return __result;
 END_RCPP
 }
@@ -5511,6 +5500,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::vector<double>& >::type y(ySEXP);
     Rcpp::traits::input_parameter< double >::type scal(scalSEXP);
     __result = Rcpp::wrap(local_error_integration(x, y, scal));
+    return __result;
+END_RCPP
+}
+// matrix_to_list
+Rcpp::List matrix_to_list(Rcpp::NumericMatrix x);
+RcppExport SEXP plant_matrix_to_list(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type x(xSEXP);
+    __result = Rcpp::wrap(matrix_to_list(x));
     return __result;
 END_RCPP
 }
