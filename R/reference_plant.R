@@ -32,7 +32,7 @@ make_reference_plant <- function(type="FF16") {
 ##' @export
 make_reference_plant_FF16 <- function() {
 
-  path <- system.file("reference_plant_FF16", package=.packageName)
+  path <- system.file("reference_plant_ff16", package=.packageName)
 
   e <- new.env()
   source(file.path(path, "R/params.r"), local=e)
