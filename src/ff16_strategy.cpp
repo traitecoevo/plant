@@ -152,7 +152,7 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
   return mass_leaf + mass_bark + mass_sapwood + mass_root;
 }
 
-// one-shot update of the ebt variables
+// one-shot update of the scm variables
 void FF16_Strategy::scm_vars(const Environment& environment,
                               bool reuse_intervals,
                               Plant_internals& vars) {

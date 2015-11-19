@@ -54,12 +54,12 @@ equilibrium_quiet <- function(base=Control()) {
 ##' @export
 run_scm <- function(p, use_ode_times=FALSE) {
   type <- extract_RcppR6_template_type(p, "Parameters")
-  ebt <- SCM(type)(p)
+  scm <- SCM(type)(p)
   if (use_ode_times) {
-    ebt$use_ode_times <- TRUE
+    scm$use_ode_times <- TRUE
   }
-  ebt$run()
-  ebt
+  scm$run()
+  scm
 }
 
 ##' Hopefully sensible set of parameters for use with the SCM.  Turns
@@ -89,17 +89,17 @@ scm_base_parameters <- function(type="FF16") {
 ##' @author Rich FitzJohn
 ##' @export
 run_scm_collect <- function(p, include_area_leaf=FALSE) {
-  collect_default <- function(ebt) {
-    ebt$state
+  collect_default <- function(scm) {
+    scm$state
   }
-  collect_area_leaf <- function(ebt) {
-    ret <- ebt$state
+  collect_area_leaf <- function(scm) {
+    ret <- scm$state
     area_leaf <- numeric(length(ret$species))
     for (i in seq_along(ret$species)) {
       ## ret$species[[i]] <- rbind(
       ##   ret$species[[i]]
-      ##   area_leaf=c(ebt$patch$species[[i]]$area_leafs, 0.0))
-      area_leaf[i] <- ebt$patch$species[[i]]$area_leaf_above(0.0)
+      ##   area_leaf=c(scm$patch$species[[i]]$area_leafs, 0.0))
+      area_leaf[i] <- scm$patch$species[[i]]$area_leaf_above(0.0)
     }
     ret$area_leaf <- area_leaf
     ret
@@ -107,12 +107,12 @@ run_scm_collect <- function(p, include_area_leaf=FALSE) {
   collect <- if (include_area_leaf) collect_area_leaf else collect_default
   type <- extract_RcppR6_template_type(p, "Parameters")
 
-  ebt <- SCM(type)(p)
-  res <- list(collect(ebt))
+  scm <- SCM(type)(p)
+  res <- list(collect(scm))
 
-  while (!ebt$complete) {
-    ebt$run_next()
-    res <- c(res, list(collect(ebt)))
+  while (!scm$complete) {
+    scm$run_next()
+    res <- c(res, list(collect(scm)))
   }
 
   time <- sapply(res, "[[", "time")
@@ -132,11 +132,11 @@ run_scm_collect <- function(p, include_area_leaf=FALSE) {
   ## little more obvious.
   species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
 
-  patch_density <- ebt$patch$environment$disturbance_regime$density(time)
+  patch_density <- scm$patch$environment$disturbance_regime$density(time)
 
   ret <- list(time=time, species=species,
               light_env=light_env,
-              seed_rain=ebt$seed_rains,
+              seed_rain=scm$seed_rains,
               patch_density=patch_density,
               p=p)
 
@@ -181,29 +181,29 @@ scm_patch <- function(i, x) {
 
 run_scm_error <- function(p) {
   type <- extract_RcppR6_template_type(p, "Parameters")
-  ebt <- SCM(type)(p)
+  scm <- SCM(type)(p)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)
-  while (!ebt$complete) {
-    added <- ebt$run_next()
+  while (!scm$complete) {
+    added <- scm$run_next()
     for (idx in added) {
       lai_error[[idx]] <-
-        c(lai_error[[idx]], list(ebt$area_leaf_error(idx)))
+        c(lai_error[[idx]], list(scm$area_leaf_error(idx)))
     }
   }
 
   lai_error <- lapply(lai_error, function(x) rbind_list(pad_matrix(x)))
-  seed_rain_error <- ebt$seed_rain_error
+  seed_rain_error <- scm$seed_rain_error
   f <- function(m) {
     suppressWarnings(apply(m, 2, max, na.rm=TRUE))
   }
   total <- lapply(seq_len(n_spp), function(idx)
                   f(rbind(lai_error[[idx]], seed_rain_error[[idx]])))
 
-  list(seed_rain=ebt$seed_rains,
+  list(seed_rain=scm$seed_rains,
        err=list(lai=lai_error, seed_rain=seed_rain_error, total=total),
-       ode_times=ebt$ode_times)
+       ode_times=scm$ode_times)
 }
 
 ##' @rdname Hyperparameter functions
@@ -302,7 +302,7 @@ species_to_internals <- function(sp, environment=NULL) {
 ##' returns a function that takes a variable name and integrates it.
 ##'
 ##' @title Integrate SCM variables
-##' @param ebt An object from \code{run_scm} or \code{run_scm_collect}
+##' @param scm An object from \code{run_scm} or \code{run_scm_collect}
 ##' @export
 make_scm_integrate <- function(obj) {
   ## TODO: This needs to be made to work with the output of
