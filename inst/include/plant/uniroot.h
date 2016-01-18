@@ -27,11 +27,11 @@ template <typename Function>
 double uniroot(Function f, double min, double max, double tol,
                size_t max_iterations) {
   using boost::math::tools::bisect;
-  size_t it = max_iterations;
+  boost::uintmax_t it = max_iterations;
   std::pair<double, double> root = bisect(f, min, max,
                                           internals::uniroot_tol(tol, tol),
                                           it);
-  if (it > max_iterations) {
+  if (it > static_cast<boost::uintmax_t>(max_iterations)) {
     util::stop("Exceeded max_iterations");
   }
   return (root.first + root.second) / 2.0;
