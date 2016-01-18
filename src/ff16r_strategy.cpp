@@ -21,8 +21,8 @@ FF16r_Strategy::FF16r_Strategy() {
   // * Individual allometry
   // Canopy shape parameter (extra calculation here later)
   eta       = 12.0;
-  // ratio leaf area to sapwood area
-  theta     = 4669;
+  // Ratio sapwood area area to leaf area
+  theta     = 1.0/4669;
   // Height - leaf mass scaling
   a_l1        = 5.44;
   a_l2        = 0.306;
@@ -105,7 +105,7 @@ double FF16r_Strategy::mass_leaf(double area_leaf) const {
 
 // [eqn 4] area and mass of sapwood
 double FF16r_Strategy::area_sapwood(double area_leaf) const {
-  return area_leaf / theta;
+  return area_leaf * theta;
 }
 
 double FF16r_Strategy::mass_sapwood(double area_sapwood, double height) const {
@@ -114,7 +114,7 @@ double FF16r_Strategy::mass_sapwood(double area_sapwood, double height) const {
 
 // [eqn 5] area and mass of bark
 double FF16r_Strategy::area_bark(double area_leaf) const {
-  return a_b1 * area_leaf / theta;
+  return a_b1 * area_leaf * theta;
 }
 
 double FF16r_Strategy::mass_bark(double area_bark, double height) const {
@@ -372,7 +372,7 @@ double FF16r_Strategy::dmass_leaf_darea_leaf(double /* area_leaf */) const {
 
 // Mass of stem needed for new unit area leaf, d m_s / d a_l
 double FF16r_Strategy::dmass_sapwood_darea_leaf(double area_leaf) const {
-  return rho * eta_c * a_l1 / (theta) * (a_l2 + 1.0) * pow(area_leaf, a_l2);
+  return rho * eta_c * a_l1 * theta * (a_l2 + 1.0) * pow(area_leaf, a_l2);
 }
 
 // Mass of bark needed for new unit area leaf, d m_b / d a_l
@@ -392,7 +392,7 @@ double FF16r_Strategy::ddiameter_stem_darea_stem(double area_stem) const {
 
 // Growth rate of sapwood area at base per unit time
 double FF16r_Strategy::area_sapwood_dt(double area_leaf_dt) const {
-  return area_leaf_dt / theta;
+  return area_leaf_dt * theta;
 }
 
 // Note, unlike others, heartwood growth does not depend on leaf area growth, but
@@ -403,7 +403,7 @@ double FF16r_Strategy::area_heartwood_dt(double area_leaf) const {
 
 // Growth rate of bark area at base per unit time
 double FF16r_Strategy::area_bark_dt(double area_leaf_dt) const {
-  return a_b1 * area_leaf_dt / theta;
+  return a_b1 * area_leaf_dt * theta;
 }
 
 // Growth rate of stem basal area per unit time

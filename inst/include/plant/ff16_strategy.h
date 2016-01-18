@@ -178,7 +178,7 @@ public:
   // * Individual allometry
   // Canopy shape parameters
   double eta, eta_c;
-  // Leaf area per sapwood area
+  // Sapwood area per leaf area
   double theta;
   // Empirical constants for scaling relationships
   double a_l1, a_l2, a_r1;
@@ -199,7 +199,7 @@ public:
   // * Seed production
   // Accessory cost of reproduction, per seed
   double a_f3;
-  // Proportion production alloctaed to reproduction
+  // Proportion production allocated to reproduction
   double a_f1;
   // Size range across which individuals mature
   double a_f2;

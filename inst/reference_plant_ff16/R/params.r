@@ -4,8 +4,8 @@
 p.eta=12;
 
 #ratio leaf area to sapwood area
-p.theta=4669;
-p.theta=10000;
+p.theta=1/4669;
+p.theta=1/10000;
 
 
 #height  - leaf mass scaling

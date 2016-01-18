@@ -13,7 +13,7 @@ dHdA<-function(A){p.a_l2*p.a_l1*A^(p.a_l2-1)}
 LeafArea<-function(h){ (h/p.a_l1)^(1/p.a_l2)}
 LeafMass<-function(lma, A){A*lma}
 RootMass<-function(A){p.a_r1*A}
-SapwoodMass<-function(rho, A,h){rho/p.theta*etac(p.eta)*A*h}
+SapwoodMass<-function(rho, A,h){rho*p.theta*etac(p.eta)*A*h}
 etac<-function(eta){1-2/(1+eta)+1/(1+2*eta)}
 BarkMass<-function(rho, A,h){p.a_b1 * SapwoodMass(A,h, rho)}
 LiveMass<-function(traits, A){
@@ -60,7 +60,7 @@ dHdt<-function(traits, h, env){dHdA(LeafArea(h))*dAdMt(traits, LeafArea(h))*Prod
 
 #MARGINAL COST OF LEAF AREA GROWTH
 dMldA<-function(lma,A){A*0+lma}
-dMsdA<-function(rho, A){rho/p.theta*etac(p.eta)*(Height(A)+A*dHdA(A))}
+dMsdA<-function(rho, A){rho*p.theta*etac(p.eta)*(Height(A)+A*dHdA(A))}
 dMbdA<-function(rho, A){p.a_b1 * dMsdA(rho,A)}
 dMrdA<-function(A){A*0+p.a_r1}
 dMtdA<-function(traits,A){dMldA(traits$lma, A) + dMbdA(traits$rho,A) + dMsdA(traits$rho,A) + dMrdA(A)}

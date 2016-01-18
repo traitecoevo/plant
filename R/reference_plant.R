@@ -44,7 +44,7 @@ make_reference_plant_FF16 <- function() {
   e$traits$hmat <- 16.5958691
   e$p.a_bio <- 2.45e-2
   e$p.k_l <- 0.4565855
-  e$p.theta <- 4669
+  e$p.theta <- 1.0 / 4669
 
   ## Function to return current values of parameters.
   ## All parameters can be translated as x -> p.x, where 'x' is the

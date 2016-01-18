@@ -66,7 +66,7 @@ sapwood.per.leaf.area <- function(traits, h){
   etac <- etac(p.eta)
   al <- LeafArea(h)
 
-  rho * etac * p.a_l1 * (p.a_l2 + 1) / (p.theta) * al^p.a_l2
+  rho * etac * p.a_l1 * (p.a_l2 + 1) * (p.theta) * al^p.a_l2
 }
 
 bark.per.leaf.area <- function(traits, h){
@@ -108,17 +108,17 @@ area_leaf_dt <- function(traits, h, env){
 
 ## sapwood area growth rate
 area_sapwood_dt <- function(traits, h, env){
-  area_leaf_dt(traits, h, env)/p.theta
+  area_leaf_dt(traits, h, env)* p.theta
 }
 
 ## bark area growth rate
 area_bark_dt <- function(traits, h, env){
- p.a_b1 * area_leaf_dt(traits, h, env)/p.theta
+ p.a_b1 * area_leaf_dt(traits, h, env)* p.theta
 }
 
 ## heartwood area growth rate
 area_heartwood_dt <- function(traits, h, env){
-  p.k_s*LeafArea(h)/p.theta
+  p.k_s*LeafArea(h)* p.theta
 }
 
 ## basal area growth rate
@@ -148,12 +148,12 @@ area_heartwood <- function(h){
 
 ## sapwood area
 area_sapwood <- function(h){
-  LeafArea(h) / p.theta
+  LeafArea(h) * p.theta
 }
 
 ## bark area
 area_bark <- function(h){
-  p.a_b1 * LeafArea(h) / p.theta
+  p.a_b1 * LeafArea(h) * p.theta
 }
 
 ## Based on the above function, same algorithm as used in C++ version.

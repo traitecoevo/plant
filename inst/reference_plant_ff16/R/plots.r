@@ -182,7 +182,7 @@ if(option==0){
 if(option>0){ #not seed mass
   if(option==1){XLAB = "LMA (kg/m2)";}
   if(option==2){XLAB = "RHO (kg/m3)";}
-  if(option==3){XLAB = "LA:SA (m2/m2)"; theta = p.theta}
+  if(option==3){XLAB = "SA:LA (m2/m2)"; theta = p.theta}
   
   nLines<-max(length(h))
   if(length(h)<nLines){h<-rep(h[1], nLines)}

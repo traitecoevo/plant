@@ -178,7 +178,7 @@ public:
   // * Individual allometry
   // Canopy shape parameters
   double eta, eta_c;
-  // Leaf area per sapwood area
+  // Sapwood area per leaf area
   double theta;
   // Empirical constants for scaling relationships
   double a_l1, a_l2, a_r1;
