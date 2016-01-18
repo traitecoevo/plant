@@ -82,24 +82,24 @@ make_environment <- function(p) {
 
 ##' Hyperparameters for FF16 physiological model
 ##' @title Hyperparameters for FF16 physiological model
-##' @param lma_0 Central (mean) value for leaf mass per area
-##' @param B_kl1 Rate of leaf turnover at phi_0
-##' @param B_kl2 Scaling slope for phi in leaf turnover
-##' @param rho_0 Central (mean) value for wood density
-##' @param B_dI1 Rate of instantaneous mortality at rho_0
-##' @param B_dI2 Scaling slope for wood density in intrinsic mortality
-##' @param B_ks1 Rate of sapwood turnover at rho_0
-##' @param B_ks2 Scaling slope for rho in sapwood turnover
-##' @param B_rs1 CO_2 respiration per unit sapwood volume
-##' @param B_rb1 CO_2 respiration per unit sapwood volume
-##' @param B_f1 Cost of seed accessories per unit seed mass
-##' @param narea_0 central (mean) value for nitrogen per leaf area
-##' @param B_lf1 Potential CO_2 photosynthesis per unit narea
-##' @param B_lf2 Curvature of leaf photosynthetic light response curve
-##' @param B_lf3 Quantum yield of leaf photosynthetic light response curve
-##' @param B_lf4 CO_2 respiration per unit leaf nitrogen
-##' @param k_I light extinction coefficient
-##' @param latitude degrees from equator (0-90), used in solar model
+##' @param lma_0 Central (mean) value for leaf mass per area [kg /m2]
+##' @param B_kl1 Rate of leaf turnover at lma_0 [/yr]
+##' @param B_kl2 Scaling slope for phi in leaf turnover [dimensionless]
+##' @param rho_0 Central (mean) value for wood density [kg /m3]
+##' @param B_dI1 Rate of instantaneous mortality at rho_0 [/yr]
+##' @param B_dI2 Scaling slope for wood density in intrinsic mortality [dimensionless]
+##' @param B_ks1 Rate of sapwood turnover at rho_0 [/yr]
+##' @param B_ks2 Scaling slope for rho in sapwood turnover [dimensionless]
+##' @param B_rs1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
+##' @param B_rb1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
+##' @param B_f1 Cost of seed accessories per unit seed mass [dimensionless]
+##' @param narea_0 central (mean) value for nitrogen per leaf area [kg / m2]
+##' @param B_lf1 Potential CO_2 photosynthesis per unit nitrogen [mol / d / kg]
+##' @param B_lf2 Curvature of leaf photosynthetic light response curve [dimensionless]
+##' @param B_lf3 Quantum yield of leaf photosynthetic light response curve [dimensionless]
+##' @param B_lf4 CO_2 respiration per unit leaf nitrogen [mol / yr / kg]
+##' @param k_I light extinction coefficient [dimensionless]
+##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @export
 ##' @rdname FF16_hyperpar
 make_FF16_hyperpar <- function(

@@ -14,41 +14,41 @@ make_FF16_hyperpar(lma_0 = 0.1978791, B_kl1 = 0.4565855, B_kl2 = 1.71,
 FF16_hyperpar(m, s, filter = TRUE)
 }
 \arguments{
-\item{lma_0}{Central (mean) value for leaf mass per area}
+\item{lma_0}{Central (mean) value for leaf mass per area [kg /m2]}
 
-\item{B_kl1}{Rate of leaf turnover at phi_0}
+\item{B_kl1}{Rate of leaf turnover at lma_0 [/yr]}
 
-\item{B_kl2}{Scaling slope for phi in leaf turnover}
+\item{B_kl2}{Scaling slope for phi in leaf turnover [dimensionless]}
 
-\item{rho_0}{Central (mean) value for wood density}
+\item{rho_0}{Central (mean) value for wood density [kg /m3]}
 
-\item{B_dI1}{Rate of instantaneous mortality at rho_0}
+\item{B_dI1}{Rate of instantaneous mortality at rho_0 [/yr]}
 
-\item{B_dI2}{Scaling slope for wood density in intrinsic mortality}
+\item{B_dI2}{Scaling slope for wood density in intrinsic mortality [dimensionless]}
 
-\item{B_ks1}{Rate of sapwood turnover at rho_0}
+\item{B_ks1}{Rate of sapwood turnover at rho_0 [/yr]}
 
-\item{B_ks2}{Scaling slope for rho in sapwood turnover}
+\item{B_ks2}{Scaling slope for rho in sapwood turnover [dimensionless]}
 
-\item{B_rs1}{CO_2 respiration per unit sapwood volume}
+\item{B_rs1}{CO_2 respiration per unit sapwood volume [mol / yr / m3 ]}
 
-\item{B_rb1}{CO_2 respiration per unit sapwood volume}
+\item{B_rb1}{CO_2 respiration per unit sapwood volume [mol / yr / m3 ]}
 
-\item{B_f1}{Cost of seed accessories per unit seed mass}
+\item{B_f1}{Cost of seed accessories per unit seed mass [dimensionless]}
 
-\item{narea_0}{central (mean) value for nitrogen per leaf area}
+\item{narea_0}{central (mean) value for nitrogen per leaf area [kg / m2]}
 
-\item{B_lf1}{Potential CO_2 photosynthesis per unit narea}
+\item{B_lf1}{Potential CO_2 photosynthesis per unit nitrogen [mol / d / kg]}
 
-\item{B_lf2}{Curvature of leaf photosynthetic light response curve}
+\item{B_lf2}{Curvature of leaf photosynthetic light response curve [dimensionless]}
 
-\item{B_lf3}{Quantum yield of leaf photosynthetic light response curve}
+\item{B_lf3}{Quantum yield of leaf photosynthetic light response curve [dimensionless]}
 
-\item{B_lf4}{CO_2 respiration per unit leaf nitrogen}
+\item{B_lf4}{CO_2 respiration per unit leaf nitrogen [mol / yr / kg]}
 
-\item{k_I}{light extinction coefficient}
+\item{k_I}{light extinction coefficient [dimensionless]}
 
-\item{latitude}{degrees from equator (0-90), used in solar model}
+\item{latitude}{degrees from equator (0-90), used in solar model [deg]}
 
 \item{m}{A trait matrix}
 
