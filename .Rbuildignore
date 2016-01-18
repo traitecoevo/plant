@@ -8,3 +8,4 @@
 ^doc$
 ^docs$
 ^plant_.+\.tar\.gz$
+^vignettes/.gitignore$
