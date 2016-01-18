@@ -33,7 +33,7 @@ targets:
   all:
     depends:
       - vignettes_rendered
-      - vignettes
+      - install_vignettes
 
   vignettes_md:
     depends:
@@ -139,7 +139,7 @@ targets:
       - figures/middle.png
 
   # HACK ALERT! HACK ALERT!
-  vignettes:
+  install_vignettes:
     command: build_vignettes()
     depends:
       - vignettes/demography.Rnw

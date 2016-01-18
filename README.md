@@ -8,18 +8,18 @@
 
 **Details of the modelling approaches:**
 
-* `vignette("demography")`: Modelling demography of plants, patches and metapopulations
-* `vignette("physiology")`: Plant physiological model
+* `vignette("demography")`: Modelling demography of plants, patches and metapopulations [online](https://traitecoevo.github.io/plant/vignettes/demography.pdf)
+* `vignette("physiology")`: Plant physiological model [online](https://traitecoevo.github.io/plant/vignettes/physiology.pdf)
 
 **Details of using `plant` from R:**
 
-* `vignette("plant")`: Plant level properties
-* `vignette("cohort_spacing")`: The cohort spacing algorithm
-* `vignette("equilibrium")`: Finding demographic equilibrium
-* `vignette("patch")`: Patch level dynamics
-* `vignette("emergent")`: Patch level emergent properties
-* `vignette("fitness")`: Calculating fitness
-* `vignette("parameters")`: Modifying parameters of the physiological model
+* `vignette("plant")`: Plant level properties [online](https://traitecoevo.github.io/plant/vignettes/plant.html)
+* `vignette("cohort_spacing")`: The cohort spacing algorithm [online](https://traitecoevo.github.io/plant/vignettes/cohort_spacing.html)
+* `vignette("equilibrium")`: Finding demographic equilibrium [online](https://traitecoevo.github.io/plant/vignettes/equilibrium.html)
+* `vignette("patch")`: Patch level dynamics [online](https://traitecoevo.github.io/plant/vignettes/patch.html)
+* `vignette("emergent")`: Patch level emergent properties [online](https://traitecoevo.github.io/plant/vignettes/emergent.html)
+* `vignette("fitness")`: Calculating fitness [online](https://traitecoevo.github.io/plant/vignettes/fitness.html)
+* `vignette("parameters")`: Modifying parameters of the physiological model [online](https://traitecoevo.github.io/plant/vignettes/parameters.html)
 
 ## Installation
 
