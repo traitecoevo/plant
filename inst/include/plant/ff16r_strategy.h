@@ -186,7 +186,7 @@ public:
   double a_b1;
   // * Production
   // Respiration constants
-  double r_l, r_b, r_s, r_r;
+  double r_s, r_b, r_r, r_l;
   // Yield = carbon fixed in tissue per carbon assimilated;
   double a_y;
   // Conversion factor

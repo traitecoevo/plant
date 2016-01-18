@@ -390,13 +390,13 @@ double FF16r_Strategy::ddiameter_stem_darea_stem(double area_stem) const {
   return pow(M_PI / area_stem, 0.5);
 }
 
-// Growth rate of spawood area at base per unit time
+// Growth rate of sapwood area at base per unit time
 double FF16r_Strategy::area_sapwood_dt(double area_leaf_dt) const {
   return area_leaf_dt / theta;
 }
 
 // Note, unlike others, heartwood growth does not depend on leaf area growth, but
-// rather existsing sapwood
+// rather existing sapwood
 double FF16r_Strategy::area_heartwood_dt(double area_leaf) const {
   return k_s * area_sapwood(area_leaf);
 }
@@ -541,7 +541,7 @@ double FF16r_Strategy::height_seed(void) const {
   // Note, these are not entirely correct bounds. Ideally we would use height
   // given *total* mass, not leaf mass, but that is difficult to calculate.
   // Using "height given leaf mass" will expand upper bound, but that's ok
-  // most of time. Only issue is that could break with obscure paramater
+  // most of time. Only issue is that could break with obscure parameter
   // values for LMA or height-leaf area scaling. Could instead use some
   // absolute maximum height for new seedling, e.g. 1m?
   const double
@@ -561,9 +561,9 @@ double FF16r_Strategy::height_seed(void) const {
 void FF16r_Strategy::prepare_strategy() {
   // Set up the integrator
   control.initialize();
-  // NOTE: this precomputes something to save a very small amount of time
+  // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
-  // NOTE: Also precomputing, though less trivial
+  // NOTE: Also pre-computing, though less trivial
   height_0 = height_seed();
   area_leaf_0 = area_leaf(height_0);
 }
