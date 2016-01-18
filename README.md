@@ -2,6 +2,25 @@
 
 [![Build Status](https://travis-ci.org/traitecoevo/plant.png?branch=master)](https://travis-ci.org/traitecoevo/plant)
 
+## Documentation
+
+`plant` comes with a lot of documentation.  Run `library(help=plant)` to see the index, and see vignettes:
+
+**Details of the modelling approaches:**
+
+* `vignette("demography")`: Modelling demography of plants, patches and metapopulations
+* `vignette("physiology")`: Plant physiological model
+
+**Details of using `plant` from R:**
+
+* `vignette("plant")`: Plant level properties
+* `vignette("cohort_spacing")`: The cohort spacing algorithm
+* `vignette("equilibrium")`: Finding demographic equilibrium
+* `vignette("patch")`: Patch level dynamics
+* `vignette("emergent")`: Patch level emergent properties
+* `vignette("fitness")`: Calculating fitness
+* `vignette("parameters")`: Modifying parameters of the physiological model
+
 ## Installation
 
 Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, plus we've had success on Ubuntu 12.04 and 14.04).
