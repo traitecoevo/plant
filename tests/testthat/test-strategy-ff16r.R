@@ -17,13 +17,13 @@ test_that("Defaults", {
     d_I   = 0.01,
     a_dG1   = 5.5,
     a_dG2   = 20,
-    a_p1   = 150.36,
-    a_p2   = 0.19,
+    a_p1   = 151.177775377968,
+    a_p2   = 0.204716166503633,
     a_f1   = 1,
     a_f2   = 2,
     a_d0   = 0.1,
     eta    = 12,
-    hmat   = 16,
+    hmat   = 16.5958691,
     k_b    = 0.2,
     k_l   = 0.4565855,
     k_r    = 1,
@@ -32,6 +32,7 @@ test_that("Defaults", {
     rho    = 608,
     omega  = 3.8e-5,
     theta  = 1.0/4669,
+
     control = Control())
 
   keys <- sort(names(expected))
