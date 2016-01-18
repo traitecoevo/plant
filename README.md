@@ -32,3 +32,7 @@ devtools::install_github("smbache/loggr")
 ### Windows
 
 Installation on Windows is likely to be a challenge, because of the lack of a C++11 compiler.  The current Windows [toolchain](http://cran.r-project.org/bin/windows/Rtools/) uses gcc 4.6.3, which des not feature enough C++11 support to successfully compile plant.  There is support coming for gcc 4.9.2, but that is [under development](https://rawgit.com/kevinushey/RToolsToolchainUpdate/master/mingwnotes.html).  This should become available on Windows very soon (it was initially aimed for 3.2.0 but didn't quite make it).  As soon as this is available we will provide Windows binaries.
+
+## Building vignettes
+
+See [`docs/README.md`](docs/README.md) for details.  The vignettes are not built as part of the package installation as they take a couple of hours to build.

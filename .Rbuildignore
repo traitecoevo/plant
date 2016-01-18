@@ -6,4 +6,5 @@
 ^reference$
 ^ignore$
 ^doc$
+^docs$
 ^plant_.+\.tar\.gz$

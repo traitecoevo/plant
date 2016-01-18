@@ -1,0 +1,8 @@
+.remake
+*.Rmd
+*.md
+*.pdf
+*.html
+growth_model_pars_*.tex
+figure
+auto
