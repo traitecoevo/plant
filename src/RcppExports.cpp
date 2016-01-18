@@ -5466,17 +5466,6 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// matrix_to_list
-Rcpp::List matrix_to_list(Rcpp::NumericMatrix x);
-RcppExport SEXP plant_matrix_to_list(SEXP xSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type x(xSEXP);
-    __result = Rcpp::wrap(matrix_to_list(x));
-    return __result;
-END_RCPP
-}
 // trapezium
 double trapezium(const std::vector<double>& x, const std::vector<double>& y);
 RcppExport SEXP plant_trapezium(SEXP xSEXP, SEXP ySEXP) {
@@ -5511,6 +5500,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const std::vector<double>& >::type y(ySEXP);
     Rcpp::traits::input_parameter< double >::type scal(scalSEXP);
     __result = Rcpp::wrap(local_error_integration(x, y, scal));
+    return __result;
+END_RCPP
+}
+// matrix_to_list
+Rcpp::List matrix_to_list(Rcpp::NumericMatrix x);
+RcppExport SEXP plant_matrix_to_list(SEXP xSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< Rcpp::NumericMatrix >::type x(xSEXP);
+    __result = Rcpp::wrap(matrix_to_list(x));
     return __result;
 END_RCPP
 }
