@@ -26,10 +26,9 @@ build_vignettes <- function(cleanup=FALSE) {
   copy <- c("figures", "figure",
             "mee.bst", "suppmat.sty", "refs.bib",
             "growth_model_pars_core.tex", "growth_model_pars_hyper.tex")
-  if (cleanup) {
-    unlink(file.path(dest, copy), recursive=TRUE)
-  } else {
-    file.copy(copy, dest, recursive=TRUE)
+  unlink(file.path(dest, copy), recursive=TRUE)
+  if (!cleanup) {
+    file.copy(copy, dest, recursive=TRUE, overwrite=TRUE)
     devtools::build_vignettes()
   }
 }

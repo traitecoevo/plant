@@ -36,7 +36,7 @@ clean:
 vignettes:
 	(cd docs; remake install_vignettes)
 
-staticdocs:
+staticdocs: vignettes
 	@mkdir -p inst/staticdocs
 	Rscript -e "library(methods); staticdocs::build_site()"
 	rm -f vignettes/*.html

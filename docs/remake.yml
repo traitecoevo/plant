@@ -157,9 +157,9 @@ targets:
       - ./suppmat.sty
 
   vignettes/demography.Rnw:
-    command: file.copy("demography.tex", target_name)
+    command: file.copy("demography.tex", target_name, overwrite=TRUE)
   vignettes/physiology.Rnw:
-    command: file.copy("physiology.tex", target_name)
+    command: file.copy("physiology.tex", target_name, overwrite=TRUE)
   vignettes/plant.Rmd:
     command: patch_md("plant.md", target_name)
   vignettes/equilibrium.Rmd:
