@@ -1,4 +1,4 @@
-context("Strategy-FFdev")
+context("Strategy-FF16r")
 
 test_that("Defaults", {
   expected <- list(
@@ -36,16 +36,16 @@ test_that("Defaults", {
 
   keys <- sort(names(expected))
 
-  s <- FFdev_Strategy()
-  expect_that(s, is_a("FFdev_Strategy"))
+  s <- FF16r_Strategy()
+  expect_that(s, is_a("FF16r_Strategy"))
 
   expect_that(sort(names(s)), is_identical_to(keys))
   expect_that(unclass(s)[keys], is_identical_to(expected[keys]))
 })
 
 test_that("Reference comparison", {
-  s <- FFdev_Strategy()
-  p <- FFdev_PlantPlus(s)
+  s <- FF16r_Strategy()
+  p <- FF16r_PlantPlus(s)
 
   expect_that(p$strategy, is_identical_to(s))
 
@@ -67,7 +67,7 @@ test_that("Reference comparison", {
   env <- test_environment(1)
   light_env <- attr(env, "light_env") # underlying function
 
-  seed <- PlantPlus("FFdev")(s)
+  seed <- PlantPlus("FF16r")(s)
 
   h <- c(seed$height, s[["hmat"]],  s[["hmat"]] + s[["a_f2"]],  s[["hmat"]] + 3 * s[["a_f2"]])
   r_out <- c(0, 0, 0.5, 0.75)

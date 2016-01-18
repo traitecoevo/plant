@@ -7,7 +7,7 @@
 scm_base_parameters(type = "FF16")
 }
 \arguments{
-\item{type}{Name of model (defaults to FF16 but FFdev also valid)}
+\item{type}{Name of model (defaults to FF16 but FF16r also valid)}
 }
 \description{
 Hopefully sensible set of parameters for use with the SCM.  Turns

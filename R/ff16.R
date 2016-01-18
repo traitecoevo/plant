@@ -179,13 +179,14 @@ make_FF16_hyperpar <- function(
     ## omega / accessory cost relationship
     a_f3 <- B_f1 * omega
 
-    ## narea / photosynthesis / respiration
-    ## Photosynthesis per mass leaf N [mol CO2 / kgN / yr]
+    ## Narea, photosynthesis, respiration
+
     assimilation_rectangular_hyperbolae <- function(I, Amax, theta, QY) {
       x <- QY * I + Amax
       (x - sqrt(x^2 - 4 * theta * QY * I * Amax)) / (2 * theta)
     }
 
+    ## Photosynthesis  [mol CO2 / m2 / yr]
     approximate_annual_assimilation <- function(narea, latitude) {
       E <- seq(0, 1, by=0.02)
       ## Only integrate over half year, as solar path is symmetrical

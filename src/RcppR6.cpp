@@ -625,88 +625,88 @@ double Plant___FF16__mortality_probability__get(plant::RcppR6::RcppR6<plant::Pla
 
 
 // [[Rcpp::export]]
-plant::Plant<plant::FFdev_Strategy> Plant___FFdev__ctor(plant::FFdev_Strategy s) {
-  return plant::make_plant<plant::FFdev_Strategy>(s);
+plant::Plant<plant::FF16r_Strategy> Plant___FF16r__ctor(plant::FF16r_Strategy s) {
+  return plant::make_plant<plant::FF16r_Strategy>(s);
 }
 // [[Rcpp::export]]
-double Plant___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, double h) {
+double Plant___FF16r__area_leaf_above(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_, double h) {
   return obj_->area_leaf_above(h);
 }
 // [[Rcpp::export]]
-void Plant___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+void Plant___FF16r__compute_vars_phys(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_, const plant::Environment& environment) {
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-double Plant___FFdev__germination_probability(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+double Plant___FF16r__germination_probability(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_, const plant::Environment& environment) {
   return obj_->germination_probability(environment);
 }
 // [[Rcpp::export]]
-void Plant___FFdev__reset_mortality(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+void Plant___FF16r__reset_mortality(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   obj_->reset_mortality();
 }
 // [[Rcpp::export]]
-double Plant___FFdev__height__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+double Plant___FF16r__height__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   return obj_->height();
 }
 // [[Rcpp::export]]
-void Plant___FFdev__height__set(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, double value) {
+void Plant___FF16r__height__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_, double value) {
   obj_->set_height(value);
 }
 
 // [[Rcpp::export]]
-double Plant___FFdev__mortality__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+double Plant___FF16r__mortality__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   return obj_->mortality();
 }
 // [[Rcpp::export]]
-void Plant___FFdev__mortality__set(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, double value) {
+void Plant___FF16r__mortality__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_, double value) {
   obj_->set_mortality(value);
 }
 
 // [[Rcpp::export]]
-double Plant___FFdev__fecundity__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+double Plant___FF16r__fecundity__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   return obj_->fecundity();
 }
 // [[Rcpp::export]]
-void Plant___FFdev__fecundity__set(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, double value) {
+void Plant___FF16r__fecundity__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_, double value) {
   obj_->set_fecundity(value);
 }
 
 // [[Rcpp::export]]
-plant::FFdev_Strategy Plant___FFdev__strategy__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+plant::FF16r_Strategy Plant___FF16r__strategy__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   return obj_->r_get_strategy();
 }
 
 // [[Rcpp::export]]
-plant::Plant<plant::FFdev_Strategy>::internals Plant___FFdev__internals__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+plant::Plant<plant::FF16r_Strategy>::internals Plant___FF16r__internals__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   return obj_->r_internals();
 }
 
 // [[Rcpp::export]]
-size_t Plant___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+size_t Plant___FF16r__ode_size__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type Plant___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type Plant___FF16r__ode_state__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Plant___FFdev__ode_state__set(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_, plant::ode::state_type value) {
+void Plant___FF16r__ode_state__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_, plant::ode::state_type value) {
   plant::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type Plant___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type Plant___FF16r__ode_rates__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
 }
 
 // [[Rcpp::export]]
-std::vector<std::string> Plant___FFdev__ode_names__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+std::vector<std::string> Plant___FF16r__ode_names__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   return obj_->ode_names();
 }
 
 // [[Rcpp::export]]
-double Plant___FFdev__mortality_probability__get(plant::RcppR6::RcppR6<plant::Plant<plant::FFdev_Strategy> > obj_) {
+double Plant___FF16r__mortality_probability__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy> > obj_) {
   return obj_->mortality_probability();
 }
 
@@ -732,8 +732,8 @@ SEXP FF16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-SEXP FFdev_Strategy__ctor() {
-  return Rcpp::wrap(plant::FFdev_Strategy());
+SEXP FF16r_Strategy__ctor() {
+  return Rcpp::wrap(plant::FF16r_Strategy());
 }
 
 
@@ -748,12 +748,12 @@ SEXP Parameters___FF16__vdor(SEXP obj) {
 
 
 // [[Rcpp::export]]
-SEXP Parameters___FFdev__ctor() {
-  return Rcpp::wrap(plant::Parameters<plant::FFdev_Strategy>());
+SEXP Parameters___FF16r__ctor() {
+  return Rcpp::wrap(plant::Parameters<plant::FF16r_Strategy>());
 }
 // [[Rcpp::export]]
-SEXP Parameters___FFdev__vdor(SEXP obj) {
-  return Rcpp::wrap(Rcpp::as<plant::Parameters<plant::FFdev_Strategy> >(obj));
+SEXP Parameters___FF16r__vdor(SEXP obj) {
+  return Rcpp::wrap(Rcpp::as<plant::Parameters<plant::FF16r_Strategy> >(obj));
 }
 
 
@@ -867,110 +867,110 @@ std::vector<std::string> PlantPlus___FF16__ode_names__get(plant::RcppR6::RcppR6<
 
 
 // [[Rcpp::export]]
-plant::PlantPlus<plant::FFdev_Strategy> PlantPlus___FFdev__ctor(plant::FFdev_Strategy strategy) {
-  return plant::make_plant_plus<plant::FFdev_Strategy>(strategy);
+plant::PlantPlus<plant::FF16r_Strategy> PlantPlus___FF16r__ctor(plant::FF16r_Strategy strategy) {
+  return plant::make_plant_plus<plant::FF16r_Strategy>(strategy);
 }
 // [[Rcpp::export]]
-double PlantPlus___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double h) {
+double PlantPlus___FF16r__area_leaf_above(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_, double h) {
   return obj_->area_leaf_above(h);
 }
 // [[Rcpp::export]]
-void PlantPlus___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+void PlantPlus___FF16r__compute_vars_phys(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_, const plant::Environment& environment) {
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-void PlantPlus___FFdev__compute_vars_growth(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+void PlantPlus___FF16r__compute_vars_growth(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   obj_->compute_vars_growth();
 }
 // [[Rcpp::export]]
-double PlantPlus___FFdev__germination_probability(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+double PlantPlus___FF16r__germination_probability(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_, const plant::Environment& environment) {
   return obj_->germination_probability(environment);
 }
 // [[Rcpp::export]]
-plant::Plant<plant::FFdev_Strategy> PlantPlus___FFdev__to_plant(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+plant::Plant<plant::FF16r_Strategy> PlantPlus___FF16r__to_plant(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->to_plant();
 }
 // [[Rcpp::export]]
-double PlantPlus___FFdev__height__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+double PlantPlus___FF16r__height__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->height();
 }
 // [[Rcpp::export]]
-void PlantPlus___FFdev__height__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double value) {
+void PlantPlus___FF16r__height__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_, double value) {
   obj_->set_height(value);
 }
 
 // [[Rcpp::export]]
-double PlantPlus___FFdev__mortality__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+double PlantPlus___FF16r__mortality__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->mortality();
 }
 // [[Rcpp::export]]
-void PlantPlus___FFdev__mortality__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double value) {
+void PlantPlus___FF16r__mortality__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_, double value) {
   obj_->set_mortality(value);
 }
 
 // [[Rcpp::export]]
-double PlantPlus___FFdev__fecundity__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+double PlantPlus___FF16r__fecundity__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->fecundity();
 }
 // [[Rcpp::export]]
-void PlantPlus___FFdev__fecundity__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double value) {
+void PlantPlus___FF16r__fecundity__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_, double value) {
   obj_->set_fecundity(value);
 }
 
 // [[Rcpp::export]]
-double PlantPlus___FFdev__area_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+double PlantPlus___FF16r__area_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->area_heartwood();
 }
 // [[Rcpp::export]]
-void PlantPlus___FFdev__area_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double value) {
+void PlantPlus___FF16r__area_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_, double value) {
   obj_->set_area_heartwood(value);
 }
 
 // [[Rcpp::export]]
-double PlantPlus___FFdev__mass_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+double PlantPlus___FF16r__mass_heartwood__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->mass_heartwood();
 }
 // [[Rcpp::export]]
-void PlantPlus___FFdev__mass_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, double value) {
+void PlantPlus___FF16r__mass_heartwood__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_, double value) {
   obj_->set_mass_heartwood(value);
 }
 
 // [[Rcpp::export]]
-double PlantPlus___FFdev__area_leaf__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+double PlantPlus___FF16r__area_leaf__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->area_leaf();
 }
 
 // [[Rcpp::export]]
-plant::FFdev_Strategy PlantPlus___FFdev__strategy__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+plant::FF16r_Strategy PlantPlus___FF16r__strategy__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->r_get_strategy();
 }
 
 // [[Rcpp::export]]
-plant::PlantPlus_internals PlantPlus___FFdev__internals__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+plant::PlantPlus_internals PlantPlus___FF16r__internals__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->r_internals();
 }
 
 // [[Rcpp::export]]
-size_t PlantPlus___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+size_t PlantPlus___FF16r__ode_size__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type PlantPlus___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type PlantPlus___FF16r__ode_state__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void PlantPlus___FFdev__ode_state__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_, plant::ode::state_type value) {
+void PlantPlus___FF16r__ode_state__set(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_, plant::ode::state_type value) {
   plant::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type PlantPlus___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type PlantPlus___FF16r__ode_rates__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
 }
 
 // [[Rcpp::export]]
-std::vector<std::string> PlantPlus___FFdev__ode_names__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FFdev_Strategy> > obj_) {
+std::vector<std::string> PlantPlus___FF16r__ode_names__get(plant::RcppR6::RcppR6<plant::PlantPlus<plant::FF16r_Strategy> > obj_) {
   return obj_->ode_names();
 }
 
@@ -1052,71 +1052,71 @@ std::vector<std::string> Cohort___FF16__ode_names__get(plant::RcppR6::RcppR6<pla
 
 
 // [[Rcpp::export]]
-plant::Cohort<plant::FFdev_Strategy> Cohort___FFdev__ctor(plant::FFdev_Strategy strategy) {
-  return plant::make_cohort<plant::FFdev_Strategy>(strategy);
+plant::Cohort<plant::FF16r_Strategy> Cohort___FF16r__ctor(plant::FF16r_Strategy strategy) {
+  return plant::make_cohort<plant::FF16r_Strategy>(strategy);
 }
 // [[Rcpp::export]]
-double Cohort___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_, double height) {
+double Cohort___FF16r__area_leaf_above(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_, double height) {
   return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
-double Cohort___FFdev__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+double Cohort___FF16r__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_, const plant::Environment& environment) {
   return obj_->r_growth_rate_gradient(environment);
 }
 // [[Rcpp::export]]
-void Cohort___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+void Cohort___FF16r__compute_vars_phys(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_, const plant::Environment& environment) {
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-void Cohort___FFdev__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+void Cohort___FF16r__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_, const plant::Environment& environment) {
   obj_->compute_initial_conditions(environment);
 }
 // [[Rcpp::export]]
-plant::Plant<plant::FFdev_Strategy> Cohort___FFdev__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_) {
+plant::Plant<plant::FF16r_Strategy> Cohort___FF16r__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_) {
   return obj_->plant;
 }
 
 // [[Rcpp::export]]
-double Cohort___FFdev__height__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_) {
+double Cohort___FF16r__height__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_) {
   return obj_->height();
 }
 
 // [[Rcpp::export]]
-double Cohort___FFdev__log_density__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_) {
+double Cohort___FF16r__log_density__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_) {
   return obj_->get_log_density();
 }
 
 // [[Rcpp::export]]
-double Cohort___FFdev__area_leaf__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_) {
+double Cohort___FF16r__area_leaf__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_) {
   return obj_->area_leaf();
 }
 
 // [[Rcpp::export]]
-double Cohort___FFdev__fecundity__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_) {
+double Cohort___FF16r__fecundity__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_) {
   return obj_->fecundity();
 }
 
 // [[Rcpp::export]]
-size_t Cohort___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_) {
+size_t Cohort___FF16r__ode_size__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type Cohort___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type Cohort___FF16r__ode_state__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Cohort___FFdev__ode_state__set(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_, plant::ode::state_type value) {
+void Cohort___FF16r__ode_state__set(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_, plant::ode::state_type value) {
   plant::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type Cohort___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type Cohort___FF16r__ode_rates__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
 }
 
 // [[Rcpp::export]]
-std::vector<std::string> Cohort___FFdev__ode_names__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FFdev_Strategy> > obj_) {
+std::vector<std::string> Cohort___FF16r__ode_names__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy> > obj_) {
   return obj_->ode_names();
 }
 
@@ -1214,93 +1214,93 @@ plant::ode::state_type Species___FF16__ode_rates__get(plant::RcppR6::RcppR6<plan
 
 
 // [[Rcpp::export]]
-plant::Species<plant::FFdev_Strategy> Species___FFdev__ctor(plant::FFdev_Strategy strategy) {
-  return plant::Species<plant::FFdev_Strategy>(strategy);
+plant::Species<plant::FF16r_Strategy> Species___FF16r__ctor(plant::FF16r_Strategy strategy) {
+  return plant::Species<plant::FF16r_Strategy>(strategy);
 }
 // [[Rcpp::export]]
-void Species___FFdev__clear(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+void Species___FF16r__clear(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
-void Species___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+void Species___FF16r__compute_vars_phys(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_, const plant::Environment& environment) {
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-double Species___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, double height) {
+double Species___FF16r__area_leaf_above(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_, double height) {
   return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
-void Species___FFdev__add_seed(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+void Species___FF16r__add_seed(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   obj_->add_seed();
 }
 // [[Rcpp::export]]
-plant::Cohort<plant::FFdev_Strategy> Species___FFdev__cohort_at(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, plant::util::index index) {
+plant::Cohort<plant::FF16r_Strategy> Species___FF16r__cohort_at(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_, plant::util::index index) {
   return obj_->r_cohort_at(index);
 }
 // [[Rcpp::export]]
-std::vector<double> Species___FFdev__area_leafs_error(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, double scal) {
+std::vector<double> Species___FF16r__area_leafs_error(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_, double scal) {
   return obj_->r_area_leafs_error(scal);
 }
 // [[Rcpp::export]]
-size_t Species___FFdev__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+size_t Species___FF16r__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return obj_->size();
 }
 
 // [[Rcpp::export]]
-plant::Cohort<plant::FFdev_Strategy> Species___FFdev__seed__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+plant::Cohort<plant::FF16r_Strategy> Species___FF16r__seed__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return obj_->r_seed();
 }
 
 // [[Rcpp::export]]
-double Species___FFdev__height_max__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+double Species___FF16r__height_max__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return obj_->height_max();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___FFdev__heights__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+std::vector<double> Species___FF16r__heights__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return obj_->r_heights();
 }
 // [[Rcpp::export]]
-void Species___FFdev__heights__set(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, std::vector<double> value) {
+void Species___FF16r__heights__set(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_, std::vector<double> value) {
   obj_->r_set_heights(value);
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___FFdev__log_densities__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+std::vector<double> Species___FF16r__log_densities__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return obj_->r_log_densities();
 }
 
 // [[Rcpp::export]]
-std::vector<plant::Cohort<plant::FFdev_Strategy> > Species___FFdev__cohorts__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+std::vector<plant::Cohort<plant::FF16r_Strategy> > Species___FF16r__cohorts__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return obj_->r_cohorts();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___FFdev__seeds__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+std::vector<double> Species___FF16r__seeds__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return obj_->seeds();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___FFdev__area_leafs__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+std::vector<double> Species___FF16r__area_leafs__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return obj_->r_area_leafs();
 }
 
 // [[Rcpp::export]]
-size_t Species___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+size_t Species___FF16r__ode_size__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type Species___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type Species___FF16r__ode_state__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void Species___FFdev__ode_state__set(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_, plant::ode::state_type value) {
+void Species___FF16r__ode_state__set(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_, plant::ode::state_type value) {
   plant::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type Species___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::Species<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type Species___FF16r__ode_rates__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
 }
 
@@ -1397,92 +1397,92 @@ plant::ode::state_type Patch___FF16__ode_rates__get(plant::RcppR6::RcppR6<plant:
 
 
 // [[Rcpp::export]]
-plant::Patch<plant::FFdev_Strategy> Patch___FFdev__ctor(plant::Parameters<plant::FFdev_Strategy> parameters) {
-  return plant::Patch<plant::FFdev_Strategy>(parameters);
+plant::Patch<plant::FF16r_Strategy> Patch___FF16r__ctor(plant::Parameters<plant::FF16r_Strategy> parameters) {
+  return plant::Patch<plant::FF16r_Strategy>(parameters);
 }
 // [[Rcpp::export]]
-double Patch___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_, double height) {
+double Patch___FF16r__area_leaf_above(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_, double height) {
   return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
-double Patch___FFdev__canopy_openness(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_, double height) {
+double Patch___FF16r__canopy_openness(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_, double height) {
   return obj_->canopy_openness(height);
 }
 // [[Rcpp::export]]
-void Patch___FFdev__add_seed(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
+void Patch___FF16r__add_seed(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_, plant::util::index species_index) {
   obj_->r_add_seed(species_index);
 }
 // [[Rcpp::export]]
-void Patch___FFdev__compute_light_environment(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+void Patch___FF16r__compute_light_environment(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   obj_->r_compute_light_environment();
 }
 // [[Rcpp::export]]
-void Patch___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+void Patch___FF16r__compute_vars_phys(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   obj_->r_compute_vars_phys();
 }
 // [[Rcpp::export]]
-void Patch___FFdev__reset(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+void Patch___FF16r__reset(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   obj_->reset();
 }
 // [[Rcpp::export]]
-void Patch___FFdev__set_ode_state(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_, plant::ode::state_type values, double time) {
+void Patch___FF16r__set_ode_state(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_, plant::ode::state_type values, double time) {
   plant::ode::r_set_ode_state(*obj_, values, time);
 }
 // [[Rcpp::export]]
-plant::ode::state_type Patch___FFdev__derivs(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_, const plant::ode::state_type& y, double time) {
+plant::ode::state_type Patch___FF16r__derivs(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_, const plant::ode::state_type& y, double time) {
   return plant::ode::r_derivs(*obj_, y, time);
 }
 // [[Rcpp::export]]
-void Patch___FFdev__set_state(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& light_env) {
+void Patch___FF16r__set_state(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& light_env) {
   obj_->r_set_state(time, state, n, light_env);
 }
 // [[Rcpp::export]]
-double Patch___FFdev__time__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+double Patch___FF16r__time__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-size_t Patch___FFdev__size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+size_t Patch___FF16r__size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   return obj_->size();
 }
 
 // [[Rcpp::export]]
-double Patch___FFdev__height_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+double Patch___FF16r__height_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   return obj_->height_max();
 }
 
 // [[Rcpp::export]]
-plant::Parameters<plant::FFdev_Strategy> Patch___FFdev__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+plant::Parameters<plant::FF16r_Strategy> Patch___FF16r__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   return obj_->r_parameters();
 }
 
 // [[Rcpp::export]]
-plant::Environment Patch___FFdev__environment__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+plant::Environment Patch___FF16r__environment__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   return obj_->r_environment();
 }
 
 // [[Rcpp::export]]
-std::vector<plant::Species<plant::FFdev_Strategy> > Patch___FFdev__species__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+std::vector<plant::Species<plant::FF16r_Strategy> > Patch___FF16r__species__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   return obj_->r_species();
 }
 
 // [[Rcpp::export]]
-size_t Patch___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+size_t Patch___FF16r__ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-double Patch___FFdev__ode_time__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+double Patch___FF16r__ode_time__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_time(*obj_);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type Patch___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type Patch___FF16r__ode_state__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_state(*obj_);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type Patch___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::Patch<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type Patch___FF16r__ode_rates__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
 }
 
@@ -1579,92 +1579,92 @@ std::vector<std::vector<double> > SCM___FF16__seed_rain_error__get(plant::RcppR6
 
 
 // [[Rcpp::export]]
-plant::SCM<plant::FFdev_Strategy> SCM___FFdev__ctor(plant::Parameters<plant::FFdev_Strategy> parameters) {
-  return plant::SCM<plant::FFdev_Strategy>(parameters);
+plant::SCM<plant::FF16r_Strategy> SCM___FF16r__ctor(plant::Parameters<plant::FF16r_Strategy> parameters) {
+  return plant::SCM<plant::FF16r_Strategy>(parameters);
 }
 // [[Rcpp::export]]
-void SCM___FFdev__run(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+void SCM___FF16r__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   obj_->run();
 }
 // [[Rcpp::export]]
-std::vector<plant::util::index> SCM___FFdev__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+std::vector<plant::util::index> SCM___FF16r__run_next(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return obj_->r_run_next();
 }
 // [[Rcpp::export]]
-void SCM___FFdev__reset(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+void SCM___FF16r__reset(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   obj_->reset();
 }
 // [[Rcpp::export]]
-double SCM___FFdev__seed_rain(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
+double SCM___FF16r__seed_rain(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_, plant::util::index species_index) {
   return obj_->r_seed_rain(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> SCM___FFdev__seed_rain_cohort(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
+std::vector<double> SCM___FF16r__seed_rain_cohort(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_, plant::util::index species_index) {
   return obj_->r_seed_rain_cohort(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> SCM___FFdev__area_leaf_error(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
+std::vector<double> SCM___FF16r__area_leaf_error(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_, plant::util::index species_index) {
   return obj_->r_area_leaf_error(species_index);
 }
 // [[Rcpp::export]]
-void SCM___FFdev__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, std::vector<std::vector<double> > times) {
+void SCM___FF16r__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_, std::vector<std::vector<double> > times) {
   obj_->r_set_cohort_schedule_times(times);
 }
 // [[Rcpp::export]]
-bool SCM___FFdev__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+bool SCM___FF16r__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return obj_->complete();
 }
 
 // [[Rcpp::export]]
-double SCM___FFdev__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+double SCM___FF16r__time__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-std::vector<double> SCM___FFdev__seed_rains__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+std::vector<double> SCM___FF16r__seed_rains__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return obj_->seed_rains();
 }
 
 // [[Rcpp::export]]
-plant::Parameters<plant::FFdev_Strategy> SCM___FFdev__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+plant::Parameters<plant::FF16r_Strategy> SCM___FF16r__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return obj_->r_parameters();
 }
 
 // [[Rcpp::export]]
-plant::Patch<plant::FFdev_Strategy> SCM___FFdev__patch__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+plant::Patch<plant::FF16r_Strategy> SCM___FF16r__patch__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return obj_->r_patch();
 }
 
 // [[Rcpp::export]]
-plant::CohortSchedule SCM___FFdev__cohort_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+plant::CohortSchedule SCM___FF16r__cohort_schedule__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return obj_->r_cohort_schedule();
 }
 // [[Rcpp::export]]
-void SCM___FFdev__cohort_schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, plant::CohortSchedule value) {
+void SCM___FF16r__cohort_schedule__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_, plant::CohortSchedule value) {
   obj_->r_set_cohort_schedule(value);
 }
 
 // [[Rcpp::export]]
-std::vector<double> SCM___FFdev__ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+std::vector<double> SCM___FF16r__ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return obj_->r_ode_times();
 }
 
 // [[Rcpp::export]]
-Rcpp::List SCM___FFdev__state__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+Rcpp::List SCM___FF16r__state__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return plant::get_state(*obj_);
 }
 
 // [[Rcpp::export]]
-bool SCM___FFdev__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+bool SCM___FF16r__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return obj_->r_use_ode_times();
 }
 // [[Rcpp::export]]
-void SCM___FFdev__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_, bool value) {
+void SCM___FF16r__use_ode_times__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_, bool value) {
   obj_->r_set_use_ode_times(value);
 }
 
 // [[Rcpp::export]]
-std::vector<std::vector<double> > SCM___FFdev__seed_rain_error__get(plant::RcppR6::RcppR6<plant::SCM<plant::FFdev_Strategy> > obj_) {
+std::vector<std::vector<double> > SCM___FF16r__seed_rain_error__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy> > obj_) {
   return obj_->r_seed_rain_error();
 }
 
@@ -1766,97 +1766,97 @@ plant::ode::state_type StochasticSpecies___FF16__ode_rates__get(plant::RcppR6::R
 
 
 // [[Rcpp::export]]
-plant::StochasticSpecies<plant::FFdev_Strategy> StochasticSpecies___FFdev__ctor(plant::FFdev_Strategy strategy) {
-  return plant::StochasticSpecies<plant::FFdev_Strategy>(strategy);
+plant::StochasticSpecies<plant::FF16r_Strategy> StochasticSpecies___FF16r__ctor(plant::FF16r_Strategy strategy) {
+  return plant::StochasticSpecies<plant::FF16r_Strategy>(strategy);
 }
 // [[Rcpp::export]]
-void StochasticSpecies___FFdev__clear(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+void StochasticSpecies___FF16r__clear(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
-void StochasticSpecies___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+void StochasticSpecies___FF16r__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_, const plant::Environment& environment) {
   obj_->compute_vars_phys(environment);
 }
 // [[Rcpp::export]]
-double StochasticSpecies___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_, double height) {
+double StochasticSpecies___FF16r__area_leaf_above(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_, double height) {
   return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
-void StochasticSpecies___FFdev__add_seed(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+void StochasticSpecies___FF16r__add_seed(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   obj_->add_seed();
 }
 // [[Rcpp::export]]
-plant::Plant<plant::FFdev_Strategy> StochasticSpecies___FFdev__plant_at(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_, plant::util::index index) {
+plant::Plant<plant::FF16r_Strategy> StochasticSpecies___FF16r__plant_at(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_, plant::util::index index) {
   return obj_->r_plant_at(index);
 }
 // [[Rcpp::export]]
-size_t StochasticSpecies___FFdev__deaths(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+size_t StochasticSpecies___FF16r__deaths(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return obj_->deaths();
 }
 // [[Rcpp::export]]
-double StochasticSpecies___FFdev__germination_probability(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_, const plant::Environment& environment) {
+double StochasticSpecies___FF16r__germination_probability(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_, const plant::Environment& environment) {
   return obj_->germination_probability(environment);
 }
 // [[Rcpp::export]]
-size_t StochasticSpecies___FFdev__size__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+size_t StochasticSpecies___FF16r__size__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return obj_->size();
 }
 
 // [[Rcpp::export]]
-size_t StochasticSpecies___FFdev__size_plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+size_t StochasticSpecies___FF16r__size_plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return obj_->size_plants();
 }
 
 // [[Rcpp::export]]
-plant::Plant<plant::FFdev_Strategy> StochasticSpecies___FFdev__seed__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+plant::Plant<plant::FF16r_Strategy> StochasticSpecies___FF16r__seed__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return obj_->r_seed();
 }
 
 // [[Rcpp::export]]
-double StochasticSpecies___FFdev__height_max__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+double StochasticSpecies___FF16r__height_max__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return obj_->height_max();
 }
 
 // [[Rcpp::export]]
-std::vector<double> StochasticSpecies___FFdev__heights__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+std::vector<double> StochasticSpecies___FF16r__heights__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return obj_->r_heights();
 }
 // [[Rcpp::export]]
-void StochasticSpecies___FFdev__heights__set(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_, std::vector<double> value) {
+void StochasticSpecies___FF16r__heights__set(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_, std::vector<double> value) {
   obj_->r_set_heights(value);
 }
 
 // [[Rcpp::export]]
-std::vector<plant::Plant<plant::FFdev_Strategy> > StochasticSpecies___FFdev__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+std::vector<plant::Plant<plant::FF16r_Strategy> > StochasticSpecies___FF16r__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return obj_->r_plants();
 }
 
 // [[Rcpp::export]]
-std::vector<bool> StochasticSpecies___FFdev__is_alive__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+std::vector<bool> StochasticSpecies___FF16r__is_alive__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return obj_->r_is_alive();
 }
 
 // [[Rcpp::export]]
-std::vector<double> StochasticSpecies___FFdev__seeds__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+std::vector<double> StochasticSpecies___FF16r__seeds__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return obj_->seeds();
 }
 
 // [[Rcpp::export]]
-size_t StochasticSpecies___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+size_t StochasticSpecies___FF16r__ode_size__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type StochasticSpecies___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type StochasticSpecies___FF16r__ode_state__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_state(*obj_);
 }
 // [[Rcpp::export]]
-void StochasticSpecies___FFdev__ode_state__set(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_, plant::ode::state_type value) {
+void StochasticSpecies___FF16r__ode_state__set(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_, plant::ode::state_type value) {
   plant::ode::r_set_ode_state(*obj_, value);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type StochasticSpecies___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type StochasticSpecies___FF16r__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
 }
 
@@ -1961,100 +1961,100 @@ plant::ode::state_type StochasticPatch___FF16__ode_rates__get(plant::RcppR6::Rcp
 
 
 // [[Rcpp::export]]
-plant::StochasticPatch<plant::FFdev_Strategy> StochasticPatch___FFdev__ctor(plant::Parameters<plant::FFdev_Strategy> parameters) {
-  return plant::StochasticPatch<plant::FFdev_Strategy>(parameters);
+plant::StochasticPatch<plant::FF16r_Strategy> StochasticPatch___FF16r__ctor(plant::Parameters<plant::FF16r_Strategy> parameters) {
+  return plant::StochasticPatch<plant::FF16r_Strategy>(parameters);
 }
 // [[Rcpp::export]]
-double StochasticPatch___FFdev__area_leaf_above(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_, double height) {
+double StochasticPatch___FF16r__area_leaf_above(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_, double height) {
   return obj_->area_leaf_above(height);
 }
 // [[Rcpp::export]]
-double StochasticPatch___FFdev__canopy_openness(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_, double height) {
+double StochasticPatch___FF16r__canopy_openness(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_, double height) {
   return obj_->canopy_openness(height);
 }
 // [[Rcpp::export]]
-bool StochasticPatch___FFdev__add_seed(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
+bool StochasticPatch___FF16r__add_seed(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_, plant::util::index species_index) {
   return obj_->r_add_seed(species_index);
 }
 // [[Rcpp::export]]
-void StochasticPatch___FFdev__add_seedling(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_, plant::util::index species_index) {
+void StochasticPatch___FF16r__add_seedling(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_, plant::util::index species_index) {
   obj_->r_add_seedling(species_index);
 }
 // [[Rcpp::export]]
-void StochasticPatch___FFdev__compute_light_environment(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+void StochasticPatch___FF16r__compute_light_environment(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   obj_->r_compute_light_environment();
 }
 // [[Rcpp::export]]
-void StochasticPatch___FFdev__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+void StochasticPatch___FF16r__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   obj_->r_compute_vars_phys();
 }
 // [[Rcpp::export]]
-void StochasticPatch___FFdev__reset(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+void StochasticPatch___FF16r__reset(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   obj_->reset();
 }
 // [[Rcpp::export]]
-void StochasticPatch___FFdev__set_ode_state(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_, plant::ode::state_type values, double time) {
+void StochasticPatch___FF16r__set_ode_state(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_, plant::ode::state_type values, double time) {
   plant::ode::r_set_ode_state(*obj_, values, time);
 }
 // [[Rcpp::export]]
-plant::ode::state_type StochasticPatch___FFdev__derivs(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_, const plant::ode::state_type& y, double time) {
+plant::ode::state_type StochasticPatch___FF16r__derivs(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_, const plant::ode::state_type& y, double time) {
   return plant::ode::r_derivs(*obj_, y, time);
 }
 // [[Rcpp::export]]
-void StochasticPatch___FFdev__set_state(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n) {
+void StochasticPatch___FF16r__set_state(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n) {
   obj_->r_set_state(time, state, n);
 }
 // [[Rcpp::export]]
-std::vector<size_t> StochasticPatch___FFdev__deaths(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+std::vector<size_t> StochasticPatch___FF16r__deaths(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return obj_->deaths();
 }
 // [[Rcpp::export]]
-double StochasticPatch___FFdev__time__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+double StochasticPatch___FF16r__time__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-size_t StochasticPatch___FFdev__size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+size_t StochasticPatch___FF16r__size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return obj_->size();
 }
 
 // [[Rcpp::export]]
-double StochasticPatch___FFdev__height_max__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+double StochasticPatch___FF16r__height_max__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return obj_->height_max();
 }
 
 // [[Rcpp::export]]
-plant::Parameters<plant::FFdev_Strategy> StochasticPatch___FFdev__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+plant::Parameters<plant::FF16r_Strategy> StochasticPatch___FF16r__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return obj_->r_parameters();
 }
 
 // [[Rcpp::export]]
-plant::Environment StochasticPatch___FFdev__environment__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+plant::Environment StochasticPatch___FF16r__environment__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return obj_->r_environment();
 }
 
 // [[Rcpp::export]]
-std::vector<plant::StochasticSpecies<plant::FFdev_Strategy> > StochasticPatch___FFdev__species__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+std::vector<plant::StochasticSpecies<plant::FF16r_Strategy> > StochasticPatch___FF16r__species__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return obj_->r_species();
 }
 
 // [[Rcpp::export]]
-size_t StochasticPatch___FFdev__ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+size_t StochasticPatch___FF16r__ode_size__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return obj_->ode_size();
 }
 
 // [[Rcpp::export]]
-double StochasticPatch___FFdev__ode_time__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+double StochasticPatch___FF16r__ode_time__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_time(*obj_);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type StochasticPatch___FFdev__ode_state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type StochasticPatch___FF16r__ode_state__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_state(*obj_);
 }
 
 // [[Rcpp::export]]
-plant::ode::state_type StochasticPatch___FFdev__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FFdev_Strategy> > obj_) {
+plant::ode::state_type StochasticPatch___FF16r__ode_rates__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
 }
 
@@ -2115,56 +2115,56 @@ Rcpp::List StochasticPatchRunner___FF16__state__get(plant::RcppR6::RcppR6<plant:
 
 
 // [[Rcpp::export]]
-plant::StochasticPatchRunner<plant::FFdev_Strategy> StochasticPatchRunner___FFdev__ctor(plant::Parameters<plant::FFdev_Strategy> parameters) {
-  return plant::StochasticPatchRunner<plant::FFdev_Strategy>(parameters);
+plant::StochasticPatchRunner<plant::FF16r_Strategy> StochasticPatchRunner___FF16r__ctor(plant::Parameters<plant::FF16r_Strategy> parameters) {
+  return plant::StochasticPatchRunner<plant::FF16r_Strategy>(parameters);
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___FFdev__run(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_) {
+void StochasticPatchRunner___FF16r__run(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_) {
   obj_->run();
 }
 // [[Rcpp::export]]
-plant::util::index StochasticPatchRunner___FFdev__run_next(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_) {
+plant::util::index StochasticPatchRunner___FF16r__run_next(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_) {
   return obj_->r_run_next();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___FFdev__reset(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_) {
+void StochasticPatchRunner___FF16r__reset(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_) {
   obj_->reset();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___FFdev__set_schedule_times(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_, std::vector<std::vector<double> > times) {
+void StochasticPatchRunner___FF16r__set_schedule_times(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_, std::vector<std::vector<double> > times) {
   obj_->r_set_schedule_times(times);
 }
 // [[Rcpp::export]]
-bool StochasticPatchRunner___FFdev__complete__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_) {
+bool StochasticPatchRunner___FF16r__complete__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_) {
   return obj_->complete();
 }
 
 // [[Rcpp::export]]
-double StochasticPatchRunner___FFdev__time__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_) {
+double StochasticPatchRunner___FF16r__time__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_) {
   return obj_->time();
 }
 
 // [[Rcpp::export]]
-plant::Parameters<plant::FFdev_Strategy> StochasticPatchRunner___FFdev__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_) {
+plant::Parameters<plant::FF16r_Strategy> StochasticPatchRunner___FF16r__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_) {
   return obj_->r_parameters();
 }
 
 // [[Rcpp::export]]
-plant::StochasticPatch<plant::FFdev_Strategy> StochasticPatchRunner___FFdev__patch__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_) {
+plant::StochasticPatch<plant::FF16r_Strategy> StochasticPatchRunner___FF16r__patch__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_) {
   return obj_->r_patch();
 }
 
 // [[Rcpp::export]]
-plant::CohortSchedule StochasticPatchRunner___FFdev__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_) {
+plant::CohortSchedule StochasticPatchRunner___FF16r__schedule__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_) {
   return obj_->r_schedule();
 }
 // [[Rcpp::export]]
-void StochasticPatchRunner___FFdev__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_, plant::CohortSchedule value) {
+void StochasticPatchRunner___FF16r__schedule__set(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_, plant::CohortSchedule value) {
   obj_->r_set_schedule(value);
 }
 
 // [[Rcpp::export]]
-Rcpp::List StochasticPatchRunner___FFdev__state__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FFdev_Strategy> > obj_) {
+Rcpp::List StochasticPatchRunner___FF16r__state__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy> > obj_) {
   return plant::get_state(*obj_);
 }
 
@@ -2174,8 +2174,8 @@ double cohort_schedule_max_time_default__Parameters___FF16(const plant::Paramete
    return plant::cohort_schedule_max_time_default<plant::Parameters<plant::FF16_Strategy> >(p);
 }
 // [[Rcpp::export]]
-double cohort_schedule_max_time_default__Parameters___FFdev(const plant::Parameters<plant::FFdev_Strategy>& p) {
-   return plant::cohort_schedule_max_time_default<plant::Parameters<plant::FFdev_Strategy> >(p);
+double cohort_schedule_max_time_default__Parameters___FF16r(const plant::Parameters<plant::FF16r_Strategy>& p) {
+   return plant::cohort_schedule_max_time_default<plant::Parameters<plant::FF16r_Strategy> >(p);
 }
 
 // [[Rcpp::export]]
@@ -2183,8 +2183,8 @@ plant::CohortSchedule cohort_schedule_default__Parameters___FF16(const plant::Pa
    return plant::cohort_schedule_default<plant::Parameters<plant::FF16_Strategy> >(p);
 }
 // [[Rcpp::export]]
-plant::CohortSchedule cohort_schedule_default__Parameters___FFdev(const plant::Parameters<plant::FFdev_Strategy>& p) {
-   return plant::cohort_schedule_default<plant::Parameters<plant::FFdev_Strategy> >(p);
+plant::CohortSchedule cohort_schedule_default__Parameters___FF16r(const plant::Parameters<plant::FF16r_Strategy>& p) {
+   return plant::cohort_schedule_default<plant::Parameters<plant::FF16r_Strategy> >(p);
 }
 
 // [[Rcpp::export]]
@@ -2192,6 +2192,6 @@ plant::CohortSchedule make_cohort_schedule__Parameters___FF16(const plant::Param
    return plant::make_cohort_schedule<plant::Parameters<plant::FF16_Strategy> >(p);
 }
 // [[Rcpp::export]]
-plant::CohortSchedule make_cohort_schedule__Parameters___FFdev(const plant::Parameters<plant::FFdev_Strategy>& p) {
-   return plant::make_cohort_schedule<plant::Parameters<plant::FFdev_Strategy> >(p);
+plant::CohortSchedule make_cohort_schedule__Parameters___FF16r(const plant::Parameters<plant::FF16r_Strategy>& p) {
+   return plant::make_cohort_schedule<plant::Parameters<plant::FF16r_Strategy> >(p);
 }

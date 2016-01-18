@@ -17,8 +17,8 @@ FF16_plant_to_plant_plus <- function(p, environment) {
     .Call('plant_FF16_plant_to_plant_plus', PACKAGE = 'plant', p, environment)
 }
 
-FFdev_plant_to_plant_plus <- function(p, environment) {
-    .Call('plant_FFdev_plant_to_plant_plus', PACKAGE = 'plant', p, environment)
+FF16r_plant_to_plant_plus <- function(p, environment) {
+    .Call('plant_FF16r_plant_to_plant_plus', PACKAGE = 'plant', p, environment)
 }
 
 oderunner_plant_size <- function(obj) {
@@ -42,8 +42,8 @@ FF16_lcp_whole_plant <- function(p) {
     .Call('plant_FF16_lcp_whole_plant', PACKAGE = 'plant', p)
 }
 
-FFdev_lcp_whole_plant <- function(p) {
-    .Call('plant_FFdev_lcp_whole_plant', PACKAGE = 'plant', p)
+FF16r_lcp_whole_plant <- function(p) {
+    .Call('plant_FF16r_lcp_whole_plant', PACKAGE = 'plant', p)
 }
 
 Lorenz__ctor <- function(sigma, R, b) {
@@ -590,80 +590,80 @@ Plant___FF16__mortality_probability__get <- function(obj_) {
     .Call('plant_Plant___FF16__mortality_probability__get', PACKAGE = 'plant', obj_)
 }
 
-Plant___FFdev__ctor <- function(s) {
-    .Call('plant_Plant___FFdev__ctor', PACKAGE = 'plant', s)
+Plant___FF16r__ctor <- function(s) {
+    .Call('plant_Plant___FF16r__ctor', PACKAGE = 'plant', s)
 }
 
-Plant___FFdev__area_leaf_above <- function(obj_, h) {
-    .Call('plant_Plant___FFdev__area_leaf_above', PACKAGE = 'plant', obj_, h)
+Plant___FF16r__area_leaf_above <- function(obj_, h) {
+    .Call('plant_Plant___FF16r__area_leaf_above', PACKAGE = 'plant', obj_, h)
 }
 
-Plant___FFdev__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('plant_Plant___FFdev__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
+Plant___FF16r__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('plant_Plant___FF16r__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
 }
 
-Plant___FFdev__germination_probability <- function(obj_, environment) {
-    .Call('plant_Plant___FFdev__germination_probability', PACKAGE = 'plant', obj_, environment)
+Plant___FF16r__germination_probability <- function(obj_, environment) {
+    .Call('plant_Plant___FF16r__germination_probability', PACKAGE = 'plant', obj_, environment)
 }
 
-Plant___FFdev__reset_mortality <- function(obj_) {
-    invisible(.Call('plant_Plant___FFdev__reset_mortality', PACKAGE = 'plant', obj_))
+Plant___FF16r__reset_mortality <- function(obj_) {
+    invisible(.Call('plant_Plant___FF16r__reset_mortality', PACKAGE = 'plant', obj_))
 }
 
-Plant___FFdev__height__get <- function(obj_) {
-    .Call('plant_Plant___FFdev__height__get', PACKAGE = 'plant', obj_)
+Plant___FF16r__height__get <- function(obj_) {
+    .Call('plant_Plant___FF16r__height__get', PACKAGE = 'plant', obj_)
 }
 
-Plant___FFdev__height__set <- function(obj_, value) {
-    invisible(.Call('plant_Plant___FFdev__height__set', PACKAGE = 'plant', obj_, value))
+Plant___FF16r__height__set <- function(obj_, value) {
+    invisible(.Call('plant_Plant___FF16r__height__set', PACKAGE = 'plant', obj_, value))
 }
 
-Plant___FFdev__mortality__get <- function(obj_) {
-    .Call('plant_Plant___FFdev__mortality__get', PACKAGE = 'plant', obj_)
+Plant___FF16r__mortality__get <- function(obj_) {
+    .Call('plant_Plant___FF16r__mortality__get', PACKAGE = 'plant', obj_)
 }
 
-Plant___FFdev__mortality__set <- function(obj_, value) {
-    invisible(.Call('plant_Plant___FFdev__mortality__set', PACKAGE = 'plant', obj_, value))
+Plant___FF16r__mortality__set <- function(obj_, value) {
+    invisible(.Call('plant_Plant___FF16r__mortality__set', PACKAGE = 'plant', obj_, value))
 }
 
-Plant___FFdev__fecundity__get <- function(obj_) {
-    .Call('plant_Plant___FFdev__fecundity__get', PACKAGE = 'plant', obj_)
+Plant___FF16r__fecundity__get <- function(obj_) {
+    .Call('plant_Plant___FF16r__fecundity__get', PACKAGE = 'plant', obj_)
 }
 
-Plant___FFdev__fecundity__set <- function(obj_, value) {
-    invisible(.Call('plant_Plant___FFdev__fecundity__set', PACKAGE = 'plant', obj_, value))
+Plant___FF16r__fecundity__set <- function(obj_, value) {
+    invisible(.Call('plant_Plant___FF16r__fecundity__set', PACKAGE = 'plant', obj_, value))
 }
 
-Plant___FFdev__strategy__get <- function(obj_) {
-    .Call('plant_Plant___FFdev__strategy__get', PACKAGE = 'plant', obj_)
+Plant___FF16r__strategy__get <- function(obj_) {
+    .Call('plant_Plant___FF16r__strategy__get', PACKAGE = 'plant', obj_)
 }
 
-Plant___FFdev__internals__get <- function(obj_) {
-    .Call('plant_Plant___FFdev__internals__get', PACKAGE = 'plant', obj_)
+Plant___FF16r__internals__get <- function(obj_) {
+    .Call('plant_Plant___FF16r__internals__get', PACKAGE = 'plant', obj_)
 }
 
-Plant___FFdev__ode_size__get <- function(obj_) {
-    .Call('plant_Plant___FFdev__ode_size__get', PACKAGE = 'plant', obj_)
+Plant___FF16r__ode_size__get <- function(obj_) {
+    .Call('plant_Plant___FF16r__ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-Plant___FFdev__ode_state__get <- function(obj_) {
-    .Call('plant_Plant___FFdev__ode_state__get', PACKAGE = 'plant', obj_)
+Plant___FF16r__ode_state__get <- function(obj_) {
+    .Call('plant_Plant___FF16r__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Plant___FFdev__ode_state__set <- function(obj_, value) {
-    invisible(.Call('plant_Plant___FFdev__ode_state__set', PACKAGE = 'plant', obj_, value))
+Plant___FF16r__ode_state__set <- function(obj_, value) {
+    invisible(.Call('plant_Plant___FF16r__ode_state__set', PACKAGE = 'plant', obj_, value))
 }
 
-Plant___FFdev__ode_rates__get <- function(obj_) {
-    .Call('plant_Plant___FFdev__ode_rates__get', PACKAGE = 'plant', obj_)
+Plant___FF16r__ode_rates__get <- function(obj_) {
+    .Call('plant_Plant___FF16r__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-Plant___FFdev__ode_names__get <- function(obj_) {
-    .Call('plant_Plant___FFdev__ode_names__get', PACKAGE = 'plant', obj_)
+Plant___FF16r__ode_names__get <- function(obj_) {
+    .Call('plant_Plant___FF16r__ode_names__get', PACKAGE = 'plant', obj_)
 }
 
-Plant___FFdev__mortality_probability__get <- function(obj_) {
-    .Call('plant_Plant___FFdev__mortality_probability__get', PACKAGE = 'plant', obj_)
+Plant___FF16r__mortality_probability__get <- function(obj_) {
+    .Call('plant_Plant___FF16r__mortality_probability__get', PACKAGE = 'plant', obj_)
 }
 
 PlantRunner__ctor <- function(plant, environment) {
@@ -682,8 +682,8 @@ FF16_Strategy__ctor <- function() {
     .Call('plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-FFdev_Strategy__ctor <- function() {
-    .Call('plant_FFdev_Strategy__ctor', PACKAGE = 'plant')
+FF16r_Strategy__ctor <- function() {
+    .Call('plant_FF16r_Strategy__ctor', PACKAGE = 'plant')
 }
 
 Parameters___FF16__ctor <- function() {
@@ -694,12 +694,12 @@ Parameters___FF16__vdor <- function(obj) {
     .Call('plant_Parameters___FF16__vdor', PACKAGE = 'plant', obj)
 }
 
-Parameters___FFdev__ctor <- function() {
-    .Call('plant_Parameters___FFdev__ctor', PACKAGE = 'plant')
+Parameters___FF16r__ctor <- function() {
+    .Call('plant_Parameters___FF16r__ctor', PACKAGE = 'plant')
 }
 
-Parameters___FFdev__vdor <- function(obj) {
-    .Call('plant_Parameters___FFdev__vdor', PACKAGE = 'plant', obj)
+Parameters___FF16r__vdor <- function(obj) {
+    .Call('plant_Parameters___FF16r__vdor', PACKAGE = 'plant', obj)
 }
 
 PlantPlus___FF16__ctor <- function(strategy) {
@@ -798,100 +798,100 @@ PlantPlus___FF16__ode_names__get <- function(obj_) {
     .Call('plant_PlantPlus___FF16__ode_names__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__ctor <- function(strategy) {
-    .Call('plant_PlantPlus___FFdev__ctor', PACKAGE = 'plant', strategy)
+PlantPlus___FF16r__ctor <- function(strategy) {
+    .Call('plant_PlantPlus___FF16r__ctor', PACKAGE = 'plant', strategy)
 }
 
-PlantPlus___FFdev__area_leaf_above <- function(obj_, h) {
-    .Call('plant_PlantPlus___FFdev__area_leaf_above', PACKAGE = 'plant', obj_, h)
+PlantPlus___FF16r__area_leaf_above <- function(obj_, h) {
+    .Call('plant_PlantPlus___FF16r__area_leaf_above', PACKAGE = 'plant', obj_, h)
 }
 
-PlantPlus___FFdev__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('plant_PlantPlus___FFdev__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
+PlantPlus___FF16r__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('plant_PlantPlus___FF16r__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
 }
 
-PlantPlus___FFdev__compute_vars_growth <- function(obj_) {
-    invisible(.Call('plant_PlantPlus___FFdev__compute_vars_growth', PACKAGE = 'plant', obj_))
+PlantPlus___FF16r__compute_vars_growth <- function(obj_) {
+    invisible(.Call('plant_PlantPlus___FF16r__compute_vars_growth', PACKAGE = 'plant', obj_))
 }
 
-PlantPlus___FFdev__germination_probability <- function(obj_, environment) {
-    .Call('plant_PlantPlus___FFdev__germination_probability', PACKAGE = 'plant', obj_, environment)
+PlantPlus___FF16r__germination_probability <- function(obj_, environment) {
+    .Call('plant_PlantPlus___FF16r__germination_probability', PACKAGE = 'plant', obj_, environment)
 }
 
-PlantPlus___FFdev__to_plant <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__to_plant', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__to_plant <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__to_plant', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__height__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__height__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__height__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__height__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__height__set <- function(obj_, value) {
-    invisible(.Call('plant_PlantPlus___FFdev__height__set', PACKAGE = 'plant', obj_, value))
+PlantPlus___FF16r__height__set <- function(obj_, value) {
+    invisible(.Call('plant_PlantPlus___FF16r__height__set', PACKAGE = 'plant', obj_, value))
 }
 
-PlantPlus___FFdev__mortality__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__mortality__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__mortality__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__mortality__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__mortality__set <- function(obj_, value) {
-    invisible(.Call('plant_PlantPlus___FFdev__mortality__set', PACKAGE = 'plant', obj_, value))
+PlantPlus___FF16r__mortality__set <- function(obj_, value) {
+    invisible(.Call('plant_PlantPlus___FF16r__mortality__set', PACKAGE = 'plant', obj_, value))
 }
 
-PlantPlus___FFdev__fecundity__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__fecundity__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__fecundity__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__fecundity__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__fecundity__set <- function(obj_, value) {
-    invisible(.Call('plant_PlantPlus___FFdev__fecundity__set', PACKAGE = 'plant', obj_, value))
+PlantPlus___FF16r__fecundity__set <- function(obj_, value) {
+    invisible(.Call('plant_PlantPlus___FF16r__fecundity__set', PACKAGE = 'plant', obj_, value))
 }
 
-PlantPlus___FFdev__area_heartwood__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__area_heartwood__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__area_heartwood__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__area_heartwood__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__area_heartwood__set <- function(obj_, value) {
-    invisible(.Call('plant_PlantPlus___FFdev__area_heartwood__set', PACKAGE = 'plant', obj_, value))
+PlantPlus___FF16r__area_heartwood__set <- function(obj_, value) {
+    invisible(.Call('plant_PlantPlus___FF16r__area_heartwood__set', PACKAGE = 'plant', obj_, value))
 }
 
-PlantPlus___FFdev__mass_heartwood__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__mass_heartwood__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__mass_heartwood__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__mass_heartwood__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__mass_heartwood__set <- function(obj_, value) {
-    invisible(.Call('plant_PlantPlus___FFdev__mass_heartwood__set', PACKAGE = 'plant', obj_, value))
+PlantPlus___FF16r__mass_heartwood__set <- function(obj_, value) {
+    invisible(.Call('plant_PlantPlus___FF16r__mass_heartwood__set', PACKAGE = 'plant', obj_, value))
 }
 
-PlantPlus___FFdev__area_leaf__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__area_leaf__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__area_leaf__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__area_leaf__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__strategy__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__strategy__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__strategy__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__strategy__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__internals__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__internals__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__internals__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__internals__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__ode_size__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__ode_size__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__ode_size__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__ode_state__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__ode_state__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__ode_state__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__ode_state__set <- function(obj_, value) {
-    invisible(.Call('plant_PlantPlus___FFdev__ode_state__set', PACKAGE = 'plant', obj_, value))
+PlantPlus___FF16r__ode_state__set <- function(obj_, value) {
+    invisible(.Call('plant_PlantPlus___FF16r__ode_state__set', PACKAGE = 'plant', obj_, value))
 }
 
-PlantPlus___FFdev__ode_rates__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__ode_rates__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__ode_rates__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-PlantPlus___FFdev__ode_names__get <- function(obj_) {
-    .Call('plant_PlantPlus___FFdev__ode_names__get', PACKAGE = 'plant', obj_)
+PlantPlus___FF16r__ode_names__get <- function(obj_) {
+    .Call('plant_PlantPlus___FF16r__ode_names__get', PACKAGE = 'plant', obj_)
 }
 
 PlantPlus_internals__ctor <- function() {
@@ -958,64 +958,64 @@ Cohort___FF16__ode_names__get <- function(obj_) {
     .Call('plant_Cohort___FF16__ode_names__get', PACKAGE = 'plant', obj_)
 }
 
-Cohort___FFdev__ctor <- function(strategy) {
-    .Call('plant_Cohort___FFdev__ctor', PACKAGE = 'plant', strategy)
+Cohort___FF16r__ctor <- function(strategy) {
+    .Call('plant_Cohort___FF16r__ctor', PACKAGE = 'plant', strategy)
 }
 
-Cohort___FFdev__area_leaf_above <- function(obj_, height) {
-    .Call('plant_Cohort___FFdev__area_leaf_above', PACKAGE = 'plant', obj_, height)
+Cohort___FF16r__area_leaf_above <- function(obj_, height) {
+    .Call('plant_Cohort___FF16r__area_leaf_above', PACKAGE = 'plant', obj_, height)
 }
 
-Cohort___FFdev__growth_rate_gradient <- function(obj_, environment) {
-    .Call('plant_Cohort___FFdev__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
+Cohort___FF16r__growth_rate_gradient <- function(obj_, environment) {
+    .Call('plant_Cohort___FF16r__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
 }
 
-Cohort___FFdev__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('plant_Cohort___FFdev__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
+Cohort___FF16r__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('plant_Cohort___FF16r__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
 }
 
-Cohort___FFdev__compute_initial_conditions <- function(obj_, environment) {
-    invisible(.Call('plant_Cohort___FFdev__compute_initial_conditions', PACKAGE = 'plant', obj_, environment))
+Cohort___FF16r__compute_initial_conditions <- function(obj_, environment) {
+    invisible(.Call('plant_Cohort___FF16r__compute_initial_conditions', PACKAGE = 'plant', obj_, environment))
 }
 
-Cohort___FFdev__plant__get <- function(obj_) {
-    .Call('plant_Cohort___FFdev__plant__get', PACKAGE = 'plant', obj_)
+Cohort___FF16r__plant__get <- function(obj_) {
+    .Call('plant_Cohort___FF16r__plant__get', PACKAGE = 'plant', obj_)
 }
 
-Cohort___FFdev__height__get <- function(obj_) {
-    .Call('plant_Cohort___FFdev__height__get', PACKAGE = 'plant', obj_)
+Cohort___FF16r__height__get <- function(obj_) {
+    .Call('plant_Cohort___FF16r__height__get', PACKAGE = 'plant', obj_)
 }
 
-Cohort___FFdev__log_density__get <- function(obj_) {
-    .Call('plant_Cohort___FFdev__log_density__get', PACKAGE = 'plant', obj_)
+Cohort___FF16r__log_density__get <- function(obj_) {
+    .Call('plant_Cohort___FF16r__log_density__get', PACKAGE = 'plant', obj_)
 }
 
-Cohort___FFdev__area_leaf__get <- function(obj_) {
-    .Call('plant_Cohort___FFdev__area_leaf__get', PACKAGE = 'plant', obj_)
+Cohort___FF16r__area_leaf__get <- function(obj_) {
+    .Call('plant_Cohort___FF16r__area_leaf__get', PACKAGE = 'plant', obj_)
 }
 
-Cohort___FFdev__fecundity__get <- function(obj_) {
-    .Call('plant_Cohort___FFdev__fecundity__get', PACKAGE = 'plant', obj_)
+Cohort___FF16r__fecundity__get <- function(obj_) {
+    .Call('plant_Cohort___FF16r__fecundity__get', PACKAGE = 'plant', obj_)
 }
 
-Cohort___FFdev__ode_size__get <- function(obj_) {
-    .Call('plant_Cohort___FFdev__ode_size__get', PACKAGE = 'plant', obj_)
+Cohort___FF16r__ode_size__get <- function(obj_) {
+    .Call('plant_Cohort___FF16r__ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-Cohort___FFdev__ode_state__get <- function(obj_) {
-    .Call('plant_Cohort___FFdev__ode_state__get', PACKAGE = 'plant', obj_)
+Cohort___FF16r__ode_state__get <- function(obj_) {
+    .Call('plant_Cohort___FF16r__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Cohort___FFdev__ode_state__set <- function(obj_, value) {
-    invisible(.Call('plant_Cohort___FFdev__ode_state__set', PACKAGE = 'plant', obj_, value))
+Cohort___FF16r__ode_state__set <- function(obj_, value) {
+    invisible(.Call('plant_Cohort___FF16r__ode_state__set', PACKAGE = 'plant', obj_, value))
 }
 
-Cohort___FFdev__ode_rates__get <- function(obj_) {
-    .Call('plant_Cohort___FFdev__ode_rates__get', PACKAGE = 'plant', obj_)
+Cohort___FF16r__ode_rates__get <- function(obj_) {
+    .Call('plant_Cohort___FF16r__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-Cohort___FFdev__ode_names__get <- function(obj_) {
-    .Call('plant_Cohort___FFdev__ode_names__get', PACKAGE = 'plant', obj_)
+Cohort___FF16r__ode_names__get <- function(obj_) {
+    .Call('plant_Cohort___FF16r__ode_names__get', PACKAGE = 'plant', obj_)
 }
 
 Species___FF16__ctor <- function(strategy) {
@@ -1098,84 +1098,84 @@ Species___FF16__ode_rates__get <- function(obj_) {
     .Call('plant_Species___FF16__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__ctor <- function(strategy) {
-    .Call('plant_Species___FFdev__ctor', PACKAGE = 'plant', strategy)
+Species___FF16r__ctor <- function(strategy) {
+    .Call('plant_Species___FF16r__ctor', PACKAGE = 'plant', strategy)
 }
 
-Species___FFdev__clear <- function(obj_) {
-    invisible(.Call('plant_Species___FFdev__clear', PACKAGE = 'plant', obj_))
+Species___FF16r__clear <- function(obj_) {
+    invisible(.Call('plant_Species___FF16r__clear', PACKAGE = 'plant', obj_))
 }
 
-Species___FFdev__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('plant_Species___FFdev__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
+Species___FF16r__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('plant_Species___FF16r__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
 }
 
-Species___FFdev__area_leaf_above <- function(obj_, height) {
-    .Call('plant_Species___FFdev__area_leaf_above', PACKAGE = 'plant', obj_, height)
+Species___FF16r__area_leaf_above <- function(obj_, height) {
+    .Call('plant_Species___FF16r__area_leaf_above', PACKAGE = 'plant', obj_, height)
 }
 
-Species___FFdev__add_seed <- function(obj_) {
-    invisible(.Call('plant_Species___FFdev__add_seed', PACKAGE = 'plant', obj_))
+Species___FF16r__add_seed <- function(obj_) {
+    invisible(.Call('plant_Species___FF16r__add_seed', PACKAGE = 'plant', obj_))
 }
 
-Species___FFdev__cohort_at <- function(obj_, index) {
-    .Call('plant_Species___FFdev__cohort_at', PACKAGE = 'plant', obj_, index)
+Species___FF16r__cohort_at <- function(obj_, index) {
+    .Call('plant_Species___FF16r__cohort_at', PACKAGE = 'plant', obj_, index)
 }
 
-Species___FFdev__area_leafs_error <- function(obj_, scal) {
-    .Call('plant_Species___FFdev__area_leafs_error', PACKAGE = 'plant', obj_, scal)
+Species___FF16r__area_leafs_error <- function(obj_, scal) {
+    .Call('plant_Species___FF16r__area_leafs_error', PACKAGE = 'plant', obj_, scal)
 }
 
-Species___FFdev__size__get <- function(obj_) {
-    .Call('plant_Species___FFdev__size__get', PACKAGE = 'plant', obj_)
+Species___FF16r__size__get <- function(obj_) {
+    .Call('plant_Species___FF16r__size__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__seed__get <- function(obj_) {
-    .Call('plant_Species___FFdev__seed__get', PACKAGE = 'plant', obj_)
+Species___FF16r__seed__get <- function(obj_) {
+    .Call('plant_Species___FF16r__seed__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__height_max__get <- function(obj_) {
-    .Call('plant_Species___FFdev__height_max__get', PACKAGE = 'plant', obj_)
+Species___FF16r__height_max__get <- function(obj_) {
+    .Call('plant_Species___FF16r__height_max__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__heights__get <- function(obj_) {
-    .Call('plant_Species___FFdev__heights__get', PACKAGE = 'plant', obj_)
+Species___FF16r__heights__get <- function(obj_) {
+    .Call('plant_Species___FF16r__heights__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__heights__set <- function(obj_, value) {
-    invisible(.Call('plant_Species___FFdev__heights__set', PACKAGE = 'plant', obj_, value))
+Species___FF16r__heights__set <- function(obj_, value) {
+    invisible(.Call('plant_Species___FF16r__heights__set', PACKAGE = 'plant', obj_, value))
 }
 
-Species___FFdev__log_densities__get <- function(obj_) {
-    .Call('plant_Species___FFdev__log_densities__get', PACKAGE = 'plant', obj_)
+Species___FF16r__log_densities__get <- function(obj_) {
+    .Call('plant_Species___FF16r__log_densities__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__cohorts__get <- function(obj_) {
-    .Call('plant_Species___FFdev__cohorts__get', PACKAGE = 'plant', obj_)
+Species___FF16r__cohorts__get <- function(obj_) {
+    .Call('plant_Species___FF16r__cohorts__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__seeds__get <- function(obj_) {
-    .Call('plant_Species___FFdev__seeds__get', PACKAGE = 'plant', obj_)
+Species___FF16r__seeds__get <- function(obj_) {
+    .Call('plant_Species___FF16r__seeds__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__area_leafs__get <- function(obj_) {
-    .Call('plant_Species___FFdev__area_leafs__get', PACKAGE = 'plant', obj_)
+Species___FF16r__area_leafs__get <- function(obj_) {
+    .Call('plant_Species___FF16r__area_leafs__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__ode_size__get <- function(obj_) {
-    .Call('plant_Species___FFdev__ode_size__get', PACKAGE = 'plant', obj_)
+Species___FF16r__ode_size__get <- function(obj_) {
+    .Call('plant_Species___FF16r__ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__ode_state__get <- function(obj_) {
-    .Call('plant_Species___FFdev__ode_state__get', PACKAGE = 'plant', obj_)
+Species___FF16r__ode_state__get <- function(obj_) {
+    .Call('plant_Species___FF16r__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FFdev__ode_state__set <- function(obj_, value) {
-    invisible(.Call('plant_Species___FFdev__ode_state__set', PACKAGE = 'plant', obj_, value))
+Species___FF16r__ode_state__set <- function(obj_, value) {
+    invisible(.Call('plant_Species___FF16r__ode_state__set', PACKAGE = 'plant', obj_, value))
 }
 
-Species___FFdev__ode_rates__get <- function(obj_) {
-    .Call('plant_Species___FFdev__ode_rates__get', PACKAGE = 'plant', obj_)
+Species___FF16r__ode_rates__get <- function(obj_) {
+    .Call('plant_Species___FF16r__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
 Patch___FF16__ctor <- function(parameters) {
@@ -1258,84 +1258,84 @@ Patch___FF16__ode_rates__get <- function(obj_) {
     .Call('plant_Patch___FF16__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FFdev__ctor <- function(parameters) {
-    .Call('plant_Patch___FFdev__ctor', PACKAGE = 'plant', parameters)
+Patch___FF16r__ctor <- function(parameters) {
+    .Call('plant_Patch___FF16r__ctor', PACKAGE = 'plant', parameters)
 }
 
-Patch___FFdev__area_leaf_above <- function(obj_, height) {
-    .Call('plant_Patch___FFdev__area_leaf_above', PACKAGE = 'plant', obj_, height)
+Patch___FF16r__area_leaf_above <- function(obj_, height) {
+    .Call('plant_Patch___FF16r__area_leaf_above', PACKAGE = 'plant', obj_, height)
 }
 
-Patch___FFdev__canopy_openness <- function(obj_, height) {
-    .Call('plant_Patch___FFdev__canopy_openness', PACKAGE = 'plant', obj_, height)
+Patch___FF16r__canopy_openness <- function(obj_, height) {
+    .Call('plant_Patch___FF16r__canopy_openness', PACKAGE = 'plant', obj_, height)
 }
 
-Patch___FFdev__add_seed <- function(obj_, species_index) {
-    invisible(.Call('plant_Patch___FFdev__add_seed', PACKAGE = 'plant', obj_, species_index))
+Patch___FF16r__add_seed <- function(obj_, species_index) {
+    invisible(.Call('plant_Patch___FF16r__add_seed', PACKAGE = 'plant', obj_, species_index))
 }
 
-Patch___FFdev__compute_light_environment <- function(obj_) {
-    invisible(.Call('plant_Patch___FFdev__compute_light_environment', PACKAGE = 'plant', obj_))
+Patch___FF16r__compute_light_environment <- function(obj_) {
+    invisible(.Call('plant_Patch___FF16r__compute_light_environment', PACKAGE = 'plant', obj_))
 }
 
-Patch___FFdev__compute_vars_phys <- function(obj_) {
-    invisible(.Call('plant_Patch___FFdev__compute_vars_phys', PACKAGE = 'plant', obj_))
+Patch___FF16r__compute_vars_phys <- function(obj_) {
+    invisible(.Call('plant_Patch___FF16r__compute_vars_phys', PACKAGE = 'plant', obj_))
 }
 
-Patch___FFdev__reset <- function(obj_) {
-    invisible(.Call('plant_Patch___FFdev__reset', PACKAGE = 'plant', obj_))
+Patch___FF16r__reset <- function(obj_) {
+    invisible(.Call('plant_Patch___FF16r__reset', PACKAGE = 'plant', obj_))
 }
 
-Patch___FFdev__set_ode_state <- function(obj_, values, time) {
-    invisible(.Call('plant_Patch___FFdev__set_ode_state', PACKAGE = 'plant', obj_, values, time))
+Patch___FF16r__set_ode_state <- function(obj_, values, time) {
+    invisible(.Call('plant_Patch___FF16r__set_ode_state', PACKAGE = 'plant', obj_, values, time))
 }
 
-Patch___FFdev__derivs <- function(obj_, y, time) {
-    .Call('plant_Patch___FFdev__derivs', PACKAGE = 'plant', obj_, y, time)
+Patch___FF16r__derivs <- function(obj_, y, time) {
+    .Call('plant_Patch___FF16r__derivs', PACKAGE = 'plant', obj_, y, time)
 }
 
-Patch___FFdev__set_state <- function(obj_, time, state, n, light_env) {
-    invisible(.Call('plant_Patch___FFdev__set_state', PACKAGE = 'plant', obj_, time, state, n, light_env))
+Patch___FF16r__set_state <- function(obj_, time, state, n, light_env) {
+    invisible(.Call('plant_Patch___FF16r__set_state', PACKAGE = 'plant', obj_, time, state, n, light_env))
 }
 
-Patch___FFdev__time__get <- function(obj_) {
-    .Call('plant_Patch___FFdev__time__get', PACKAGE = 'plant', obj_)
+Patch___FF16r__time__get <- function(obj_) {
+    .Call('plant_Patch___FF16r__time__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FFdev__size__get <- function(obj_) {
-    .Call('plant_Patch___FFdev__size__get', PACKAGE = 'plant', obj_)
+Patch___FF16r__size__get <- function(obj_) {
+    .Call('plant_Patch___FF16r__size__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FFdev__height_max__get <- function(obj_) {
-    .Call('plant_Patch___FFdev__height_max__get', PACKAGE = 'plant', obj_)
+Patch___FF16r__height_max__get <- function(obj_) {
+    .Call('plant_Patch___FF16r__height_max__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FFdev__parameters__get <- function(obj_) {
-    .Call('plant_Patch___FFdev__parameters__get', PACKAGE = 'plant', obj_)
+Patch___FF16r__parameters__get <- function(obj_) {
+    .Call('plant_Patch___FF16r__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FFdev__environment__get <- function(obj_) {
-    .Call('plant_Patch___FFdev__environment__get', PACKAGE = 'plant', obj_)
+Patch___FF16r__environment__get <- function(obj_) {
+    .Call('plant_Patch___FF16r__environment__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FFdev__species__get <- function(obj_) {
-    .Call('plant_Patch___FFdev__species__get', PACKAGE = 'plant', obj_)
+Patch___FF16r__species__get <- function(obj_) {
+    .Call('plant_Patch___FF16r__species__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FFdev__ode_size__get <- function(obj_) {
-    .Call('plant_Patch___FFdev__ode_size__get', PACKAGE = 'plant', obj_)
+Patch___FF16r__ode_size__get <- function(obj_) {
+    .Call('plant_Patch___FF16r__ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FFdev__ode_time__get <- function(obj_) {
-    .Call('plant_Patch___FFdev__ode_time__get', PACKAGE = 'plant', obj_)
+Patch___FF16r__ode_time__get <- function(obj_) {
+    .Call('plant_Patch___FF16r__ode_time__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FFdev__ode_state__get <- function(obj_) {
-    .Call('plant_Patch___FFdev__ode_state__get', PACKAGE = 'plant', obj_)
+Patch___FF16r__ode_state__get <- function(obj_) {
+    .Call('plant_Patch___FF16r__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FFdev__ode_rates__get <- function(obj_) {
-    .Call('plant_Patch___FFdev__ode_rates__get', PACKAGE = 'plant', obj_)
+Patch___FF16r__ode_rates__get <- function(obj_) {
+    .Call('plant_Patch___FF16r__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___FF16__ctor <- function(parameters) {
@@ -1418,84 +1418,84 @@ SCM___FF16__seed_rain_error__get <- function(obj_) {
     .Call('plant_SCM___FF16__seed_rain_error__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__ctor <- function(parameters) {
-    .Call('plant_SCM___FFdev__ctor', PACKAGE = 'plant', parameters)
+SCM___FF16r__ctor <- function(parameters) {
+    .Call('plant_SCM___FF16r__ctor', PACKAGE = 'plant', parameters)
 }
 
-SCM___FFdev__run <- function(obj_) {
-    invisible(.Call('plant_SCM___FFdev__run', PACKAGE = 'plant', obj_))
+SCM___FF16r__run <- function(obj_) {
+    invisible(.Call('plant_SCM___FF16r__run', PACKAGE = 'plant', obj_))
 }
 
-SCM___FFdev__run_next <- function(obj_) {
-    .Call('plant_SCM___FFdev__run_next', PACKAGE = 'plant', obj_)
+SCM___FF16r__run_next <- function(obj_) {
+    .Call('plant_SCM___FF16r__run_next', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__reset <- function(obj_) {
-    invisible(.Call('plant_SCM___FFdev__reset', PACKAGE = 'plant', obj_))
+SCM___FF16r__reset <- function(obj_) {
+    invisible(.Call('plant_SCM___FF16r__reset', PACKAGE = 'plant', obj_))
 }
 
-SCM___FFdev__seed_rain <- function(obj_, species_index) {
-    .Call('plant_SCM___FFdev__seed_rain', PACKAGE = 'plant', obj_, species_index)
+SCM___FF16r__seed_rain <- function(obj_, species_index) {
+    .Call('plant_SCM___FF16r__seed_rain', PACKAGE = 'plant', obj_, species_index)
 }
 
-SCM___FFdev__seed_rain_cohort <- function(obj_, species_index) {
-    .Call('plant_SCM___FFdev__seed_rain_cohort', PACKAGE = 'plant', obj_, species_index)
+SCM___FF16r__seed_rain_cohort <- function(obj_, species_index) {
+    .Call('plant_SCM___FF16r__seed_rain_cohort', PACKAGE = 'plant', obj_, species_index)
 }
 
-SCM___FFdev__area_leaf_error <- function(obj_, species_index) {
-    .Call('plant_SCM___FFdev__area_leaf_error', PACKAGE = 'plant', obj_, species_index)
+SCM___FF16r__area_leaf_error <- function(obj_, species_index) {
+    .Call('plant_SCM___FF16r__area_leaf_error', PACKAGE = 'plant', obj_, species_index)
 }
 
-SCM___FFdev__set_cohort_schedule_times <- function(obj_, times) {
-    invisible(.Call('plant_SCM___FFdev__set_cohort_schedule_times', PACKAGE = 'plant', obj_, times))
+SCM___FF16r__set_cohort_schedule_times <- function(obj_, times) {
+    invisible(.Call('plant_SCM___FF16r__set_cohort_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
-SCM___FFdev__complete__get <- function(obj_) {
-    .Call('plant_SCM___FFdev__complete__get', PACKAGE = 'plant', obj_)
+SCM___FF16r__complete__get <- function(obj_) {
+    .Call('plant_SCM___FF16r__complete__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__time__get <- function(obj_) {
-    .Call('plant_SCM___FFdev__time__get', PACKAGE = 'plant', obj_)
+SCM___FF16r__time__get <- function(obj_) {
+    .Call('plant_SCM___FF16r__time__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__seed_rains__get <- function(obj_) {
-    .Call('plant_SCM___FFdev__seed_rains__get', PACKAGE = 'plant', obj_)
+SCM___FF16r__seed_rains__get <- function(obj_) {
+    .Call('plant_SCM___FF16r__seed_rains__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__parameters__get <- function(obj_) {
-    .Call('plant_SCM___FFdev__parameters__get', PACKAGE = 'plant', obj_)
+SCM___FF16r__parameters__get <- function(obj_) {
+    .Call('plant_SCM___FF16r__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__patch__get <- function(obj_) {
-    .Call('plant_SCM___FFdev__patch__get', PACKAGE = 'plant', obj_)
+SCM___FF16r__patch__get <- function(obj_) {
+    .Call('plant_SCM___FF16r__patch__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__cohort_schedule__get <- function(obj_) {
-    .Call('plant_SCM___FFdev__cohort_schedule__get', PACKAGE = 'plant', obj_)
+SCM___FF16r__cohort_schedule__get <- function(obj_) {
+    .Call('plant_SCM___FF16r__cohort_schedule__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__cohort_schedule__set <- function(obj_, value) {
-    invisible(.Call('plant_SCM___FFdev__cohort_schedule__set', PACKAGE = 'plant', obj_, value))
+SCM___FF16r__cohort_schedule__set <- function(obj_, value) {
+    invisible(.Call('plant_SCM___FF16r__cohort_schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___FFdev__ode_times__get <- function(obj_) {
-    .Call('plant_SCM___FFdev__ode_times__get', PACKAGE = 'plant', obj_)
+SCM___FF16r__ode_times__get <- function(obj_) {
+    .Call('plant_SCM___FF16r__ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__state__get <- function(obj_) {
-    .Call('plant_SCM___FFdev__state__get', PACKAGE = 'plant', obj_)
+SCM___FF16r__state__get <- function(obj_) {
+    .Call('plant_SCM___FF16r__state__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__use_ode_times__get <- function(obj_) {
-    .Call('plant_SCM___FFdev__use_ode_times__get', PACKAGE = 'plant', obj_)
+SCM___FF16r__use_ode_times__get <- function(obj_) {
+    .Call('plant_SCM___FF16r__use_ode_times__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FFdev__use_ode_times__set <- function(obj_, value) {
-    invisible(.Call('plant_SCM___FFdev__use_ode_times__set', PACKAGE = 'plant', obj_, value))
+SCM___FF16r__use_ode_times__set <- function(obj_, value) {
+    invisible(.Call('plant_SCM___FF16r__use_ode_times__set', PACKAGE = 'plant', obj_, value))
 }
 
-SCM___FFdev__seed_rain_error__get <- function(obj_) {
-    .Call('plant_SCM___FFdev__seed_rain_error__get', PACKAGE = 'plant', obj_)
+SCM___FF16r__seed_rain_error__get <- function(obj_) {
+    .Call('plant_SCM___FF16r__seed_rain_error__get', PACKAGE = 'plant', obj_)
 }
 
 StochasticSpecies___FF16__ctor <- function(strategy) {
@@ -1582,88 +1582,88 @@ StochasticSpecies___FF16__ode_rates__get <- function(obj_) {
     .Call('plant_StochasticSpecies___FF16__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__ctor <- function(strategy) {
-    .Call('plant_StochasticSpecies___FFdev__ctor', PACKAGE = 'plant', strategy)
+StochasticSpecies___FF16r__ctor <- function(strategy) {
+    .Call('plant_StochasticSpecies___FF16r__ctor', PACKAGE = 'plant', strategy)
 }
 
-StochasticSpecies___FFdev__clear <- function(obj_) {
-    invisible(.Call('plant_StochasticSpecies___FFdev__clear', PACKAGE = 'plant', obj_))
+StochasticSpecies___FF16r__clear <- function(obj_) {
+    invisible(.Call('plant_StochasticSpecies___FF16r__clear', PACKAGE = 'plant', obj_))
 }
 
-StochasticSpecies___FFdev__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('plant_StochasticSpecies___FFdev__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
+StochasticSpecies___FF16r__compute_vars_phys <- function(obj_, environment) {
+    invisible(.Call('plant_StochasticSpecies___FF16r__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
 }
 
-StochasticSpecies___FFdev__area_leaf_above <- function(obj_, height) {
-    .Call('plant_StochasticSpecies___FFdev__area_leaf_above', PACKAGE = 'plant', obj_, height)
+StochasticSpecies___FF16r__area_leaf_above <- function(obj_, height) {
+    .Call('plant_StochasticSpecies___FF16r__area_leaf_above', PACKAGE = 'plant', obj_, height)
 }
 
-StochasticSpecies___FFdev__add_seed <- function(obj_) {
-    invisible(.Call('plant_StochasticSpecies___FFdev__add_seed', PACKAGE = 'plant', obj_))
+StochasticSpecies___FF16r__add_seed <- function(obj_) {
+    invisible(.Call('plant_StochasticSpecies___FF16r__add_seed', PACKAGE = 'plant', obj_))
 }
 
-StochasticSpecies___FFdev__plant_at <- function(obj_, index) {
-    .Call('plant_StochasticSpecies___FFdev__plant_at', PACKAGE = 'plant', obj_, index)
+StochasticSpecies___FF16r__plant_at <- function(obj_, index) {
+    .Call('plant_StochasticSpecies___FF16r__plant_at', PACKAGE = 'plant', obj_, index)
 }
 
-StochasticSpecies___FFdev__deaths <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__deaths', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__deaths <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__deaths', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__germination_probability <- function(obj_, environment) {
-    .Call('plant_StochasticSpecies___FFdev__germination_probability', PACKAGE = 'plant', obj_, environment)
+StochasticSpecies___FF16r__germination_probability <- function(obj_, environment) {
+    .Call('plant_StochasticSpecies___FF16r__germination_probability', PACKAGE = 'plant', obj_, environment)
 }
 
-StochasticSpecies___FFdev__size__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__size__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__size__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__size__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__size_plants__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__size_plants__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__size_plants__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__size_plants__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__seed__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__seed__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__seed__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__seed__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__height_max__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__height_max__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__height_max__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__height_max__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__heights__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__heights__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__heights__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__heights__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__heights__set <- function(obj_, value) {
-    invisible(.Call('plant_StochasticSpecies___FFdev__heights__set', PACKAGE = 'plant', obj_, value))
+StochasticSpecies___FF16r__heights__set <- function(obj_, value) {
+    invisible(.Call('plant_StochasticSpecies___FF16r__heights__set', PACKAGE = 'plant', obj_, value))
 }
 
-StochasticSpecies___FFdev__plants__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__plants__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__plants__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__plants__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__is_alive__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__is_alive__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__is_alive__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__is_alive__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__seeds__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__seeds__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__seeds__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__seeds__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__ode_size__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__ode_size__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__ode_size__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__ode_state__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__ode_state__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__ode_state__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FFdev__ode_state__set <- function(obj_, value) {
-    invisible(.Call('plant_StochasticSpecies___FFdev__ode_state__set', PACKAGE = 'plant', obj_, value))
+StochasticSpecies___FF16r__ode_state__set <- function(obj_, value) {
+    invisible(.Call('plant_StochasticSpecies___FF16r__ode_state__set', PACKAGE = 'plant', obj_, value))
 }
 
-StochasticSpecies___FFdev__ode_rates__get <- function(obj_) {
-    .Call('plant_StochasticSpecies___FFdev__ode_rates__get', PACKAGE = 'plant', obj_)
+StochasticSpecies___FF16r__ode_rates__get <- function(obj_) {
+    .Call('plant_StochasticSpecies___FF16r__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
 StochasticPatch___FF16__ctor <- function(parameters) {
@@ -1754,92 +1754,92 @@ StochasticPatch___FF16__ode_rates__get <- function(obj_) {
     .Call('plant_StochasticPatch___FF16__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__ctor <- function(parameters) {
-    .Call('plant_StochasticPatch___FFdev__ctor', PACKAGE = 'plant', parameters)
+StochasticPatch___FF16r__ctor <- function(parameters) {
+    .Call('plant_StochasticPatch___FF16r__ctor', PACKAGE = 'plant', parameters)
 }
 
-StochasticPatch___FFdev__area_leaf_above <- function(obj_, height) {
-    .Call('plant_StochasticPatch___FFdev__area_leaf_above', PACKAGE = 'plant', obj_, height)
+StochasticPatch___FF16r__area_leaf_above <- function(obj_, height) {
+    .Call('plant_StochasticPatch___FF16r__area_leaf_above', PACKAGE = 'plant', obj_, height)
 }
 
-StochasticPatch___FFdev__canopy_openness <- function(obj_, height) {
-    .Call('plant_StochasticPatch___FFdev__canopy_openness', PACKAGE = 'plant', obj_, height)
+StochasticPatch___FF16r__canopy_openness <- function(obj_, height) {
+    .Call('plant_StochasticPatch___FF16r__canopy_openness', PACKAGE = 'plant', obj_, height)
 }
 
-StochasticPatch___FFdev__add_seed <- function(obj_, species_index) {
-    .Call('plant_StochasticPatch___FFdev__add_seed', PACKAGE = 'plant', obj_, species_index)
+StochasticPatch___FF16r__add_seed <- function(obj_, species_index) {
+    .Call('plant_StochasticPatch___FF16r__add_seed', PACKAGE = 'plant', obj_, species_index)
 }
 
-StochasticPatch___FFdev__add_seedling <- function(obj_, species_index) {
-    invisible(.Call('plant_StochasticPatch___FFdev__add_seedling', PACKAGE = 'plant', obj_, species_index))
+StochasticPatch___FF16r__add_seedling <- function(obj_, species_index) {
+    invisible(.Call('plant_StochasticPatch___FF16r__add_seedling', PACKAGE = 'plant', obj_, species_index))
 }
 
-StochasticPatch___FFdev__compute_light_environment <- function(obj_) {
-    invisible(.Call('plant_StochasticPatch___FFdev__compute_light_environment', PACKAGE = 'plant', obj_))
+StochasticPatch___FF16r__compute_light_environment <- function(obj_) {
+    invisible(.Call('plant_StochasticPatch___FF16r__compute_light_environment', PACKAGE = 'plant', obj_))
 }
 
-StochasticPatch___FFdev__compute_vars_phys <- function(obj_) {
-    invisible(.Call('plant_StochasticPatch___FFdev__compute_vars_phys', PACKAGE = 'plant', obj_))
+StochasticPatch___FF16r__compute_vars_phys <- function(obj_) {
+    invisible(.Call('plant_StochasticPatch___FF16r__compute_vars_phys', PACKAGE = 'plant', obj_))
 }
 
-StochasticPatch___FFdev__reset <- function(obj_) {
-    invisible(.Call('plant_StochasticPatch___FFdev__reset', PACKAGE = 'plant', obj_))
+StochasticPatch___FF16r__reset <- function(obj_) {
+    invisible(.Call('plant_StochasticPatch___FF16r__reset', PACKAGE = 'plant', obj_))
 }
 
-StochasticPatch___FFdev__set_ode_state <- function(obj_, values, time) {
-    invisible(.Call('plant_StochasticPatch___FFdev__set_ode_state', PACKAGE = 'plant', obj_, values, time))
+StochasticPatch___FF16r__set_ode_state <- function(obj_, values, time) {
+    invisible(.Call('plant_StochasticPatch___FF16r__set_ode_state', PACKAGE = 'plant', obj_, values, time))
 }
 
-StochasticPatch___FFdev__derivs <- function(obj_, y, time) {
-    .Call('plant_StochasticPatch___FFdev__derivs', PACKAGE = 'plant', obj_, y, time)
+StochasticPatch___FF16r__derivs <- function(obj_, y, time) {
+    .Call('plant_StochasticPatch___FF16r__derivs', PACKAGE = 'plant', obj_, y, time)
 }
 
-StochasticPatch___FFdev__set_state <- function(obj_, time, state, n) {
-    invisible(.Call('plant_StochasticPatch___FFdev__set_state', PACKAGE = 'plant', obj_, time, state, n))
+StochasticPatch___FF16r__set_state <- function(obj_, time, state, n) {
+    invisible(.Call('plant_StochasticPatch___FF16r__set_state', PACKAGE = 'plant', obj_, time, state, n))
 }
 
-StochasticPatch___FFdev__deaths <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__deaths', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__deaths <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__deaths', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__time__get <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__time__get', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__time__get <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__time__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__size__get <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__size__get', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__size__get <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__size__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__height_max__get <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__height_max__get', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__height_max__get <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__height_max__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__parameters__get <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__parameters__get', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__parameters__get <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__environment__get <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__environment__get', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__environment__get <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__environment__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__species__get <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__species__get', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__species__get <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__species__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__ode_size__get <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__ode_size__get', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__ode_size__get <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__ode_time__get <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__ode_time__get', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__ode_time__get <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__ode_time__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__ode_state__get <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__ode_state__get', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__ode_state__get <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__ode_state__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FFdev__ode_rates__get <- function(obj_) {
-    .Call('plant_StochasticPatch___FFdev__ode_rates__get', PACKAGE = 'plant', obj_)
+StochasticPatch___FF16r__ode_rates__get <- function(obj_) {
+    .Call('plant_StochasticPatch___FF16r__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
 StochasticPatchRunner___FF16__ctor <- function(parameters) {
@@ -1890,76 +1890,76 @@ StochasticPatchRunner___FF16__state__get <- function(obj_) {
     .Call('plant_StochasticPatchRunner___FF16__state__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___FFdev__ctor <- function(parameters) {
-    .Call('plant_StochasticPatchRunner___FFdev__ctor', PACKAGE = 'plant', parameters)
+StochasticPatchRunner___FF16r__ctor <- function(parameters) {
+    .Call('plant_StochasticPatchRunner___FF16r__ctor', PACKAGE = 'plant', parameters)
 }
 
-StochasticPatchRunner___FFdev__run <- function(obj_) {
-    invisible(.Call('plant_StochasticPatchRunner___FFdev__run', PACKAGE = 'plant', obj_))
+StochasticPatchRunner___FF16r__run <- function(obj_) {
+    invisible(.Call('plant_StochasticPatchRunner___FF16r__run', PACKAGE = 'plant', obj_))
 }
 
-StochasticPatchRunner___FFdev__run_next <- function(obj_) {
-    .Call('plant_StochasticPatchRunner___FFdev__run_next', PACKAGE = 'plant', obj_)
+StochasticPatchRunner___FF16r__run_next <- function(obj_) {
+    .Call('plant_StochasticPatchRunner___FF16r__run_next', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___FFdev__reset <- function(obj_) {
-    invisible(.Call('plant_StochasticPatchRunner___FFdev__reset', PACKAGE = 'plant', obj_))
+StochasticPatchRunner___FF16r__reset <- function(obj_) {
+    invisible(.Call('plant_StochasticPatchRunner___FF16r__reset', PACKAGE = 'plant', obj_))
 }
 
-StochasticPatchRunner___FFdev__set_schedule_times <- function(obj_, times) {
-    invisible(.Call('plant_StochasticPatchRunner___FFdev__set_schedule_times', PACKAGE = 'plant', obj_, times))
+StochasticPatchRunner___FF16r__set_schedule_times <- function(obj_, times) {
+    invisible(.Call('plant_StochasticPatchRunner___FF16r__set_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
-StochasticPatchRunner___FFdev__complete__get <- function(obj_) {
-    .Call('plant_StochasticPatchRunner___FFdev__complete__get', PACKAGE = 'plant', obj_)
+StochasticPatchRunner___FF16r__complete__get <- function(obj_) {
+    .Call('plant_StochasticPatchRunner___FF16r__complete__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___FFdev__time__get <- function(obj_) {
-    .Call('plant_StochasticPatchRunner___FFdev__time__get', PACKAGE = 'plant', obj_)
+StochasticPatchRunner___FF16r__time__get <- function(obj_) {
+    .Call('plant_StochasticPatchRunner___FF16r__time__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___FFdev__parameters__get <- function(obj_) {
-    .Call('plant_StochasticPatchRunner___FFdev__parameters__get', PACKAGE = 'plant', obj_)
+StochasticPatchRunner___FF16r__parameters__get <- function(obj_) {
+    .Call('plant_StochasticPatchRunner___FF16r__parameters__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___FFdev__patch__get <- function(obj_) {
-    .Call('plant_StochasticPatchRunner___FFdev__patch__get', PACKAGE = 'plant', obj_)
+StochasticPatchRunner___FF16r__patch__get <- function(obj_) {
+    .Call('plant_StochasticPatchRunner___FF16r__patch__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___FFdev__schedule__get <- function(obj_) {
-    .Call('plant_StochasticPatchRunner___FFdev__schedule__get', PACKAGE = 'plant', obj_)
+StochasticPatchRunner___FF16r__schedule__get <- function(obj_) {
+    .Call('plant_StochasticPatchRunner___FF16r__schedule__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___FFdev__schedule__set <- function(obj_, value) {
-    invisible(.Call('plant_StochasticPatchRunner___FFdev__schedule__set', PACKAGE = 'plant', obj_, value))
+StochasticPatchRunner___FF16r__schedule__set <- function(obj_, value) {
+    invisible(.Call('plant_StochasticPatchRunner___FF16r__schedule__set', PACKAGE = 'plant', obj_, value))
 }
 
-StochasticPatchRunner___FFdev__state__get <- function(obj_) {
-    .Call('plant_StochasticPatchRunner___FFdev__state__get', PACKAGE = 'plant', obj_)
+StochasticPatchRunner___FF16r__state__get <- function(obj_) {
+    .Call('plant_StochasticPatchRunner___FF16r__state__get', PACKAGE = 'plant', obj_)
 }
 
 cohort_schedule_max_time_default__Parameters___FF16 <- function(p) {
     .Call('plant_cohort_schedule_max_time_default__Parameters___FF16', PACKAGE = 'plant', p)
 }
 
-cohort_schedule_max_time_default__Parameters___FFdev <- function(p) {
-    .Call('plant_cohort_schedule_max_time_default__Parameters___FFdev', PACKAGE = 'plant', p)
+cohort_schedule_max_time_default__Parameters___FF16r <- function(p) {
+    .Call('plant_cohort_schedule_max_time_default__Parameters___FF16r', PACKAGE = 'plant', p)
 }
 
 cohort_schedule_default__Parameters___FF16 <- function(p) {
     .Call('plant_cohort_schedule_default__Parameters___FF16', PACKAGE = 'plant', p)
 }
 
-cohort_schedule_default__Parameters___FFdev <- function(p) {
-    .Call('plant_cohort_schedule_default__Parameters___FFdev', PACKAGE = 'plant', p)
+cohort_schedule_default__Parameters___FF16r <- function(p) {
+    .Call('plant_cohort_schedule_default__Parameters___FF16r', PACKAGE = 'plant', p)
 }
 
 make_cohort_schedule__Parameters___FF16 <- function(p) {
     .Call('plant_make_cohort_schedule__Parameters___FF16', PACKAGE = 'plant', p)
 }
 
-make_cohort_schedule__Parameters___FFdev <- function(p) {
-    .Call('plant_make_cohort_schedule__Parameters___FFdev', PACKAGE = 'plant', p)
+make_cohort_schedule__Parameters___FF16r <- function(p) {
+    .Call('plant_make_cohort_schedule__Parameters___FF16r', PACKAGE = 'plant', p)
 }
 
 #' Generate a suitable set of default cohort introduction times,

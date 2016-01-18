@@ -1,6 +1,6 @@
 #include <plant/plant_plus.h>
 #include <plant/ff16_strategy.h>
-#include <plant/ffdev_strategy.h>
+#include <plant/FF16r_strategy.h>
 #include <plant/plant_tools.h>
 
 // TODO: These will disappear once the templated functions are
@@ -19,8 +19,8 @@ FF16_plant_to_plant_plus(plant::Plant<plant::FF16_Strategy> p,
 }
 
 // [[Rcpp::export]]
-plant::PlantPlus<plant::FFdev_Strategy>
-FFdev_plant_to_plant_plus(plant::Plant<plant::FFdev_Strategy> p,
+plant::PlantPlus<plant::FF16r_Strategy>
+FF16r_plant_to_plant_plus(plant::Plant<plant::FF16r_Strategy> p,
                           SEXP environment) {
   return plant::plant_to_plant_plus(p, environment);
 }

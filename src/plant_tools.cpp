@@ -51,6 +51,6 @@ double FF16_lcp_whole_plant(plant::PlantPlus<plant::FF16_Strategy> p) {
   return plant::tools::lcp_whole_plant(p);
 }
 // [[Rcpp::export]]
-double FFdev_lcp_whole_plant(plant::PlantPlus<plant::FFdev_Strategy> p) {
+double FF16r_lcp_whole_plant(plant::PlantPlus<plant::FF16r_Strategy> p) {
   return plant::tools::lcp_whole_plant(p);
 }

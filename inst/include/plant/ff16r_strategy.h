@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_FFDEV_STRATEGY_H_
-#define PLANT_PLANT_FFDEV_STRATEGY_H_
+#ifndef PLANT_PLANT_FF16r_STRATEGY_H_
+#define PLANT_PLANT_FF16r_STRATEGY_H_
 
 #include <memory>
 #include <plant/control.h>
@@ -14,10 +14,10 @@ namespace plant {
 // declaration breaks it, but there might be a better solution.
 class Environment;
 
-struct FFdev_Strategy {
+struct FF16r_Strategy {
 public:
-  typedef std::shared_ptr<FFdev_Strategy> ptr;
-  FFdev_Strategy();
+  typedef std::shared_ptr<FF16r_Strategy> ptr;
+  FF16r_Strategy();
 
   // * Size
 
@@ -162,7 +162,7 @@ public:
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
 
-  // Set constants within FFdev_Strategy
+  // Set constants within FF16r_Strategy
   void prepare_strategy();
 
   // Every Strategy needs a set of Control objects -- these govern
@@ -221,7 +221,7 @@ public:
   double area_leaf_0;
 };
 
-FFdev_Strategy::ptr make_strategy_ptr(FFdev_Strategy s);
+FF16r_Strategy::ptr make_strategy_ptr(FF16r_Strategy s);
 
 }
 

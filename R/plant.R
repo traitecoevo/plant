@@ -179,8 +179,8 @@ plant_to_plant_plus <- function(x, ...) {
   FF16_plant_to_plant_plus(x, ...)
 }
 ##' @export
-`plant_to_plant_plus.Plant<FFdev>` <- function(x, ...) {
-  FFdev_plant_to_plant_plus(x, ...)
+`plant_to_plant_plus.Plant<FF16r>` <- function(x, ...) {
+  FF16r_plant_to_plant_plus(x, ...)
 }
 
 ##' Compute the whole plant light compensation point for a single
@@ -198,8 +198,8 @@ lcp_whole_plant <- function(p, ...) {
   FF16_lcp_whole_plant(p, ...)
 }
 ##' @export
-`lcp_whole_plant.PlantPlus<FFdev>` <- function(p, ...) {
-  FFdev_lcp_whole_plant(p, ...)
+`lcp_whole_plant.PlantPlus<FF16r>` <- function(p, ...) {
+  FF16r_lcp_whole_plant(p, ...)
 }
 ##' @export
 lcp_whole_plant.Plant <- function(p, ...) {

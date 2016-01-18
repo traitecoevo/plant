@@ -1,12 +1,12 @@
 
 get_list_of_strategy_types <- function() {
   list(FF16=FF16_Strategy,
-       FFdev=FFdev_Strategy)
+       FF16r=FF16r_Strategy)
 }
 
 get_list_of_hyperpar_functions <- function() {
   list(FF16=FF16_hyperpar,
-       FFdev=FFdev_hyperpar)
+       FF16r=FF16r_hyperpar)
 }
 
 ## New expect_that helper functions; test that a number is in a range,

@@ -23,7 +23,7 @@
 #include <plant/cohort_schedule.h>
 
 // new physiology
-#include <plant/ffdev_strategy.h>
+#include <plant/FF16r_strategy.h>
 
 // Getting more serious down here.
 #include <plant/plant.h>

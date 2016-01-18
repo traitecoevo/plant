@@ -51,7 +51,7 @@ test_that("Single individual", {
 
     if (x == "FF16") {
       expect_that(all(sp$ode_rates > 0.0), is_true())
-    } else if (x == "FFdev") {
+    } else if (x == "FF16r") {
       expect_that(all(sp$ode_rates[-3] > 0.0), is_true())
       expect_that(sp$ode_rates[[3]], is_identical_to(0.0))
     }

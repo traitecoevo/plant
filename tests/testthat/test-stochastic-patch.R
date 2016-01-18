@@ -49,7 +49,7 @@ test_that("non empty", {
 
     if (x == "FF16") {
       expect_that(all(patch$ode_rates > 0.0), is_true())
-    } else if (x == "FFdev") {
+    } else if (x == "FF16r") {
       expect_that(all(patch$ode_rates[-3] > 0.0), is_true())
       expect_that(patch$ode_rates[[3]], equals(0))
     }

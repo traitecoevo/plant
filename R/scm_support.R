@@ -67,7 +67,7 @@ run_scm <- function(p, use_ode_times=FALSE) {
 ##' hyperparameterisation that we most often use.
 ##' @title Sensible, fast (ish) SCM parameters
 ##' @author Rich FitzJohn
-##' @param type Name of model (defaults to FF16 but FFdev also valid)
+##' @param type Name of model (defaults to FF16 but FF16r also valid)
 ##' @export
 scm_base_parameters <- function(type="FF16") {
   ctrl <- equilibrium_verbose(fast_control())
@@ -207,22 +207,22 @@ run_scm_error <- function(p) {
 }
 
 ##' @rdname Hyperparameter functions
-##' @param type Either \code{"FF16"} or \code{"FFdev"}.
+##' @param type Either \code{"FF16"} or \code{"FF16r"}.
 ##' @export
 make_hyperpar <- function(type) {
   switch(type,
          FF16=make_FF16_hyperpar,
-         FFdev=make_FF16_hyperpar,
+         FF16r=make_FF16_hyperpar,
          stop("Unknown type ", type))
 }
 
 ##' @rdname Hyperparameter functions
-##' @param type Either \code{"FF16"} or \code{"FFdev"}.
+##' @param type Either \code{"FF16"} or \code{"FF16r"}.
 ##' @export
 hyperpar <- function(type) {
   switch(type,
          FF16=FF16_hyperpar,
-         FFdev=FF16_hyperpar,
+         FF16r=FF16_hyperpar,
          stop("Unknown type ", type))
 }
 
