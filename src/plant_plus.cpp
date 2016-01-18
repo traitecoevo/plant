@@ -1,6 +1,6 @@
 #include <plant/plant_plus.h>
 #include <plant/ff16_strategy.h>
-#include <plant/FF16r_strategy.h>
+#include <plant/ff16r_strategy.h>
 #include <plant/plant_tools.h>
 
 // TODO: These will disappear once the templated functions are
