@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<title>Index. plant 2.0.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Richard G. FitzJohn and Daniel S. Falster">
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/highlight.css" rel="stylesheet">
+<link href="css/staticdocs.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+
+  <body>
+    <div class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="#">plant 2.0.0</a>
+      <div class="nav">
+        <ul class="nav">
+          <li><a href="index.html"><i class="icon-home icon-white"></i> Index</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="container">
+      <header>
+        
+      </header>
+      
+      <div class="row">
+  <div class="span8">
+    <h1>The Trait Ecology and Evolution (plant) model</h1>
+
+<p><a href="https://travis-ci.org/traitecoevo/plant"><img src="https://travis-ci.org/traitecoevo/plant.png?branch=master" alt="Build Status"/></a></p>
+
+<h2>Documentation</h2>
+
+<p><code>plant</code> comes with a lot of documentation.  Run <code>library(help=plant)</code> to see the index, and see vignettes:</p>
+
+<p><strong>Details of the modelling approaches:</strong></p>
+
+<ul>
+<li><code>vignette(&quot;demography&quot;)</code>: Modelling demography of plants, patches and metapopulations <a href="https://traitecoevo.github.io/plant/vignettes/demography.pdf">online</a></li>
+<li><code>vignette(&quot;physiology&quot;)</code>: Plant physiological model <a href="https://traitecoevo.github.io/plant/vignettes/physiology.pdf">online</a></li>
+</ul>
+
+<p><strong>Details of using <code>plant</code> from R:</strong></p>
+
+<ul>
+<li><code>vignette(&quot;plant&quot;)</code>: Plant level properties <a href="https://traitecoevo.github.io/plant/vignettes/plant.html">online</a></li>
+<li><code>vignette(&quot;cohort_spacing&quot;)</code>: The cohort spacing algorithm <a href="https://traitecoevo.github.io/plant/vignettes/cohort_spacing.html">online</a></li>
+<li><code>vignette(&quot;equilibrium&quot;)</code>: Finding demographic equilibrium <a href="https://traitecoevo.github.io/plant/vignettes/equilibrium.html">online</a></li>
+<li><code>vignette(&quot;patch&quot;)</code>: Patch level dynamics <a href="https://traitecoevo.github.io/plant/vignettes/patch.html">online</a></li>
+<li><code>vignette(&quot;emergent&quot;)</code>: Patch level emergent properties <a href="https://traitecoevo.github.io/plant/vignettes/emergent.html">online</a></li>
+<li><code>vignette(&quot;fitness&quot;)</code>: Calculating fitness <a href="https://traitecoevo.github.io/plant/vignettes/fitness.html">online</a></li>
+<li><code>vignette(&quot;parameters&quot;)</code>: Modifying parameters of the physiological model <a href="https://traitecoevo.github.io/plant/vignettes/parameters.html">online</a></li>
+</ul>
+
+<h2>Installation</h2>
+
+<p>Installation requires a C++11 compatible C compiler (OSX &gt;= 10.10/Yosemite satisfies this, plus we&#39;ve had success on Ubuntu 12.04 and 14.04).</p>
+
+<p><strong>Option 1, using <a href="https://github.com/eddelbuettel/drat"><code>drat</code></a></strong></p>
+
+<p>(install <code>drat</code> with <code>install.packages(&quot;drat&quot;)</code>)</p>
+
+<pre><code class="r">drat:::add(&quot;traitecoevo&quot;)
+install.packages(&quot;plant&quot;, dependencies=TRUE)
+</code></pre>
+
+<p>Versions of R before 3.2.0 may require <code>install.packages(&quot;plant&quot;, type=&quot;source&quot;)</code> here.  The <code>dependencies=TRUE</code> installs some additional packages that are used in tests and some of the routines.</p>
+
+<p><strong>Option 2, using <code>devtools::install_github</code></strong></p>
+
+<pre><code class="r">devtools::install_github(&quot;traitecoevo/plant&quot;, dependencies=TRUE)
+</code></pre>
+
+<p>Development versions of <code>plant</code> (version 0.2.3 onwards) depends on the <code>loggr</code> package: install that from drat or with</p>
+
+<pre><code>devtools::install_github(&quot;smbache/loggr&quot;)
+</code></pre>
+
+<h3>Windows</h3>
+
+<p>Installation on Windows is likely to be a challenge, because of the lack of a C++11 compiler.  The current Windows <a href="http://cran.r-project.org/bin/windows/Rtools/">toolchain</a> uses gcc 4.6.3, which des not feature enough C++11 support to successfully compile plant.  There is support coming for gcc 4.9.2, but that is <a href="https://rawgit.com/kevinushey/RToolsToolchainUpdate/master/mingwnotes.html">under development</a>.  This should become available on Windows very soon (it was initially aimed for 3.2.0 but didn&#39;t quite make it).  As soon as this is available we will provide Windows binaries.</p>
+
+<h2>Building vignettes</h2>
+
+<p>See [<code>docs/README.md</code>](docs/README.md) for details.  The vignettes are not built as part of the package installation as they take a couple of hours to build.</p>
+
+
+    <h2>Help topics</h2>
+
+    <h3></h3>
+    
+    
+    <ul class="index">
+        
+      <li>
+        <code><a href="assembly_parameters.html">assembly_parameters</a></code><br />Helper function for creating parameter objects</li>
+            
+      <li>
+        <code><a href="bounds.html">bounds</a></code>(bounds_infinite, check_bounds, check_point)<br />Trait bounds</li>
+            
+      <li>
+        <code><a href="build_schedule.html">build_schedule</a></code><br />Build Cohort Schedule</li>
+            
+      <li>
+        <code><a href="carrying_capacity.html">carrying_capacity</a></code><br />Carrying Capacity</li>
+            
+      <li>
+        <code><a href="check_inviable.html">check_inviable</a></code><br />Check low-abundance strategies for viability</li>
+            
+      <li>
+        <code><a href="clamp_domain.html">clamp_domain</a></code><br />Clamp function to domain</li>
+            
+      <li>
+        <code><a href="CohortSchedule.html">CohortSchedule</a></code><br />Schedule of cohort introduction times</li>
+            
+      <li>
+        <code><a href="cohort_schedule_times_default.html">cohort_schedule_times_default</a></code><br />Generate Default Cohort Introduction Times</li>
+            
+      <li>
+        <code><a href="Control.html">Control</a></code><br />Control parameters</li>
+            
+      <li>
+        <code><a href="Disturbance.html">Disturbance</a></code><br />Disturbance control object</li>
+            
+      <li>
+        <code><a href="Environment.html">Environment</a></code>(make_environment)<br />Environment object</li>
+            
+      <li>
+        <code><a href="equilibrium_seed_rain.html">equilibrium_seed_rain</a></code><br />Run system to seed rain equilibrium</li>
+            
+      <li>
+        <code><a href="equilibrium_verbose.html">equilibrium_verbose</a></code>(equilibrium_quiet)<br />Noisy Parameters for Equilibrium Finding</li>
+            
+      <li>
+        <code><a href="expand_parameters.html">expand_parameters</a></code><br />Expand Parameters to include mutants</li>
+            
+      <li>
+        <code><a href="fast_control.html">fast_control</a></code><br />Fast Control Defaults</li>
+            
+      <li>
+        <code><a href="FF16.html">FF16_Plant</a></code>(FF16_Cohort, FF16_Parameters, FF16_Patch, FF16_PlantPlus, FF16_SCM, FF16_Species, FF16_StochasticPatch, FF16_StochasticPatchRunner, FF16_StochasticSpecies)<br />Create a FF16 Plant or Cohort</li>
+            
+      <li>
+        <code><a href="FF16r_hyperpar.html">FF16r_hyperpar</a></code><br />Hyperparameters for FF16r physiological model are same as FF16</li>
+            
+      <li>
+        <code><a href="FF16r.html">FF16r_Plant</a></code>(FF16r_Cohort, FF16r_Parameters, FF16r_Patch, FF16r_PlantPlus, FF16r_SCM, FF16r_Species, FF16r_StochasticPatch, FF16r_StochasticPatchRunner, FF16r_StochasticSpecies)<br />Create a FF16r Plant or Cohort</li>
+            
+      <li>
+        <code><a href="FF16r_Strategy.html">FF16r_Strategy</a></code><br />Strategy parameters</li>
+            
+      <li>
+        <code><a href="FF16_Strategy.html">FF16_Strategy</a></code><br />Strategy parameters</li>
+            
+      <li>
+        <code><a href="fitness_landscape.html">fitness_landscape</a></code><br />Fitness Landscape</li>
+            
+      <li>
+        <code><a href="fixed_environment.html">fixed_environment</a></code><br />Create fixed light environment</li>
+            
+      <li>
+        <code><a href="grow_plant_to_size.html">grow_plant_to_size</a></code>(grow_plant_to_height)<br />Grow plant to given size</li>
+            
+      <li>
+        <code><a href="grow_plant_to_time.html">grow_plant_to_time</a></code><br />Grow a plant</li>
+            
+      <li>
+        <code><a href="Interpolator.html">Interpolator</a></code><br />Spline interpolation</li>
+            
+      <li>
+        <code><a href="lcp_whole_plant.html">lcp_whole_plant</a></code><br />Whole plant light compensation point</li>
+            
+      <li>
+        <code><a href="FF16_hyperpar.html">make_FF16_hyperpar</a></code>(FF16_hyperpar)<br />Hyperparameters for FF16 physiological model</li>
+            
+      <li>
+        <code><a href="make_patch.html">make_patch</a></code>(scm_patch, scm_state)<br />Reconstruct a patch</li>
+            
+      <li>
+        <code><a href="make_reference_plant.html">make_reference_plant</a></code><br />Reference Growth Model</li>
+            
+      <li>
+        <code><a href="make_reference_plant_FF16.html">make_reference_plant_FF16</a></code><br />Reference Growth Model</li>
+            
+      <li>
+        <code><a href="make_scm_integrate.html">make_scm_integrate</a></code><br />Integrate SCM variables</li>
+            
+      <li>
+        <code><a href="make_transparent.html">make_transparent</a></code><br />Make colours transparent</li>
+            
+      <li>
+        <code><a href="max_fitness.html">max_fitness</a></code><br />Find point of maximum fitness within some range.</li>
+            
+      <li>
+        <code><a href="max_growth_rate.html">max_growth_rate</a></code><br />Compute Max Growth Rate</li>
+            
+      <li>
+        <code><a href="nlsolve.html">nlsolve</a></code><br />Thin wrapper around nleqslv and dfsane</li>
+            
+      <li>
+        <code><a href="OdeControl.html">OdeControl</a></code><br />ODE Control parameters</li>
+            
+      <li>
+        <code><a href="Plant.html">Plant</a></code><br />Plant object</li>
+            
+      <li>
+        <code><a href="plant_log_console.html">plant_log_console</a></code><br />Activate logging with loggr</li>
+            
+      <li>
+        <code><a href="PlantPlus.html">PlantPlus</a></code><br />PlantPlus object</li>
+            
+      <li>
+        <code><a href="QK.html">QK</a></code><br />Gauss-Kronrod Quadrature</li>
+            
+      <li>
+        <code><a href="rbind_list.html">rbind_list</a></code>(cbind_list)<br />Create matrices from lists</li>
+            
+      <li>
+        <code><a href="run_scm.html">run_scm</a></code><br />Run SCM</li>
+            
+      <li>
+        <code><a href="run_scm_collect.html">run_scm_collect</a></code><br />Run the SCM, Collecting Output</li>
+            
+      <li>
+        <code><a href="run_stochastic_collect.html">run_stochastic_collect</a></code><br />Run a stochastic patch, Collecting Output</li>
+            
+      <li>
+        <code><a href="scm_base_parameters.html">scm_base_parameters</a></code><br />Sensible, fast (ish) SCM parameters</li>
+            
+      <li>
+        <code><a href="seq_log.html">seq_log</a></code>(seq_log_range, seq_range)<br />Sequence in log space</li>
+            
+      <li>
+        <code><a href="splinefun_log.html">splinefun_log</a></code>(splinefun_loglog)<br />Spline interpolation in log-x space</li>
+            
+      <li>
+        <code><a href="strategy_list.html">strategy_list</a></code>(plant_list, strategy, strategy_default)<br />Create a list of Strategies</li>
+            
+      <li>
+        <code><a href="trait_matrix.html">trait_matrix</a></code><br />Create trait matrix</li>
+            
+      <li>
+        <code><a href="validate.html">validate</a></code><br />Validate an object</li>
+            
+      <li>
+        <code><a href="viable_fitness.html">viable_fitness</a></code><br />Compute Region of Positive Fitnes</li>
+    
+    </ul>
+  </div>
+  
+  <div class="span3 offset1">
+    <h2>Vignettes</h2>
+    <ul>
+      <li><a href="vignettes/cohort_spacing.html">plant: A package for modelling forest trait ecology &amp; evolution: _Cohort spacing algorithm_</a></li>
+      <li><a href="vignettes/emergent.html">plant: A package for modelling forest trait ecology &amp; evolution: _Patch-level emergent properties_</a></li>
+      <li><a href="vignettes/equilibrium.html">plant: A package for modelling forest trait ecology &amp; evolution: _Finding demographic equilibrium_</a></li>
+      <li><a href="vignettes/fitness.html">plant: A package for modelling forest trait ecology &amp; evolution: _Calculating fitness_</a></li>
+      <li><a href="vignettes/parameters.html">plant: A package for modelling forest trait ecology &amp; evolution: _Modifying parameters_</a></li>
+      <li><a href="vignettes/patch.html">plant: A package for modelling forest trait ecology &amp; evolution: _Patch-level dynamics_</a></li>
+      <li><a href="vignettes/plant.html">plant: A package for modelling forest trait ecology &amp; evolution: _Plant-level properties_</a></li>
+      <li><a href="vignettes/demography.pdf">plant demography</a></li>
+      <li><a href="vignettes/physiology.pdf">plant physiology</a></li>
+    </ul>
+        
+    <h2>Dependencies</h2>
+    <ul>
+      
+      <li><strong>Imports</strong>: Rcpp, R6, loggr, crayon, nleqslv, BB</li>
+      <li><strong>Suggests</strong>: testthat, deSolve, numDeriv, parallel, RcppR6, knitr, plant.ml</li>
+      
+    </ul>
+    <h2>Authors</h2>
+    <ul>
+    </ul>
+
+  </div>
+</div>
+      
+      <footer>
+      <p class="pull-right"><a href="#">Back to top</a></p>
+<p>Built by <a href="https://github.com/hadley/staticdocs">staticdocs</a>. Styled with <a href="http://twitter.github.com/bootstrap">bootstrap</a>.</p>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+<title>make_FF16_hyperpar. plant 2.0.0</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="">
+
+<link href="css/bootstrap.css" rel="stylesheet">
+<link href="css/bootstrap-responsive.css" rel="stylesheet">
+<link href="css/highlight.css" rel="stylesheet">
+<link href="css/staticdocs.css" rel="stylesheet">
+
+<!--[if lt IE 9]>
+  <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    tex2jax: {
+      inlineMath: [ ['$','$'], ["\\(","\\)"] ],
+      processEscapes: true
+    }
+  });
+</script>
+<script type="text/javascript"
+  src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML">
+</script>
+  </head>
+
+  <body>
+    <div class="navbar">
+  <div class="navbar-inner">
+    <div class="container">
+      <a class="brand" href="#">plant 2.0.0</a>
+      <div class="nav">
+        <ul class="nav">
+          <li><a href="index.html"><i class="icon-home icon-white"></i> Index</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <div class="container">
+      <header>
+        
+      </header>
+      
+      <h1>Hyperparameters for FF16 physiological model</h1>
+
+<div class="row">
+  <div class="span8">
+    <h2>Usage</h2>
+    <pre><div>make_FF16_hyperpar(lma_0&nbsp;=&nbsp;0.1978791, B_kl1&nbsp;=&nbsp;0.4565855, B_kl2&nbsp;=&nbsp;1.71, rho_0&nbsp;=&nbsp;608, B_dI1&nbsp;=&nbsp;0.01, B_dI2&nbsp;=&nbsp;0, B_ks1&nbsp;=&nbsp;0.2, B_ks2&nbsp;=&nbsp;0, B_rs1&nbsp;=&nbsp;4012, B_rb1&nbsp;=&nbsp;2 * 4012, B_f1&nbsp;=&nbsp;3, narea_0&nbsp;=&nbsp;0.00187, B_lf1&nbsp;=&nbsp;5120.738 * 24 * 3600/1e+06, B_lf2&nbsp;=&nbsp;0.5, B_lf3&nbsp;=&nbsp;0.04, B_lf4&nbsp;=&nbsp;21000, k_I&nbsp;=&nbsp;0.5, latitude&nbsp;=&nbsp;0)</div>
+<div>FF16_hyperpar(m, s, filter&nbsp;=&nbsp;TRUE)</div></pre>
+    
+    <h2>Arguments</h2>
+    <dl>
+      <dt>lma_0</dt>
+      <dd>Central (mean) value for leaf mass per area [kg /m2]</dd>
+      <dt>B_kl1</dt>
+      <dd>Rate of leaf turnover at lma_0 [/yr]</dd>
+      <dt>B_kl2</dt>
+      <dd>Scaling slope for phi in leaf turnover [dimensionless]</dd>
+      <dt>rho_0</dt>
+      <dd>Central (mean) value for wood density [kg /m3]</dd>
+      <dt>B_dI1</dt>
+      <dd>Rate of instantaneous mortality at rho_0 [/yr]</dd>
+      <dt>B_dI2</dt>
+      <dd>Scaling slope for wood density in intrinsic mortality [dimensionless]</dd>
+      <dt>B_ks1</dt>
+      <dd>Rate of sapwood turnover at rho_0 [/yr]</dd>
+      <dt>B_ks2</dt>
+      <dd>Scaling slope for rho in sapwood turnover [dimensionless]</dd>
+      <dt>B_rs1</dt>
+      <dd>CO_2 respiration per unit sapwood volume [mol / yr / m3 ]</dd>
+      <dt>B_rb1</dt>
+      <dd>CO_2 respiration per unit sapwood volume [mol / yr / m3 ]</dd>
+      <dt>B_f1</dt>
+      <dd>Cost of seed accessories per unit seed mass [dimensionless]</dd>
+      <dt>narea_0</dt>
+      <dd>central (mean) value for nitrogen per leaf area [kg / m2]</dd>
+      <dt>B_lf1</dt>
+      <dd>Potential CO_2 photosynthesis per unit nitrogen [mol / d / kg]</dd>
+      <dt>B_lf2</dt>
+      <dd>Curvature of leaf photosynthetic light response curve [dimensionless]</dd>
+      <dt>B_lf3</dt>
+      <dd>Quantum yield of leaf photosynthetic light response curve [dimensionless]</dd>
+      <dt>B_lf4</dt>
+      <dd>CO_2 respiration per unit leaf nitrogen [mol / yr / kg]</dd>
+      <dt>k_I</dt>
+      <dd>light extinction coefficient [dimensionless]</dd>
+      <dt>latitude</dt>
+      <dd>degrees from equator (0-90), used in solar model [deg]</dd>
+      <dt>m</dt>
+      <dd>A trait matrix</dd>
+      <dt>s</dt>
+      <dd>A default strategy</dd>
+      <dt>filter</dt>
+      <dd>Logical, indicating if generated parameters that are
+the same as the default should be removed.</dd>
+    </dl>
+    
+    <div class="Description">
+      <h2>Description</h2>
+
+      <p>Hyperparameters for FF16 physiological model</p>
+  
+    </div>
+      </div>
+  <div class="span4">
+    <!-- <ul>
+      <li>FF16_hyperpar</li><li>make_FF16_hyperpar</li>
+    </ul>
+    <ul>
+      
+    </ul> -->
+      
+        
+  </div>
+</div>
+      
+      <footer>
+      <p class="pull-right"><a href="#">Back to top</a></p>
+<p>Built by <a href="https://github.com/hadley/staticdocs">staticdocs</a>. Styled with <a href="http://twitter.github.com/bootstrap">bootstrap</a>.</p>
+      </footer>
+    </div>
+  </body>
+</html>
