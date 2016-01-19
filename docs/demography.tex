@@ -44,7 +44,7 @@ Table \ref{tab:definitions} provides a list of names and definitions used
 throughout this document.
 
 \begin{table}[ht]
-\caption{Variable names and definitions in demographic model.}
+\caption{Variable names and definitions in the demographic model of the {\plant} package.}
 \centering
 \begin{tabular}{p{2cm}p{2cm}p{9cm}}
 \hline
@@ -60,7 +60,7 @@ $E_a(z)$& & Canopy openness at height $z$ within a patch of age $a$\\
 \multicolumn{3}{l}{\textbf{Plant state variables}} \\
 $x$ & & Vector of traits for a species\\
 $H$ & m & Height of a plant\\
-$H_0$ & m & Height of a seedling after germination\\
+$H_0(x)$ & m & Height of a seedling with traits $x$ after germination\\
 $z$ & m & Height in canopy\\
 $A_{\rm l}(H)$ & m$^{-2}$ & Leaf area of a plant with height $H$ \\
 $Q(z, H)$ & & Fraction of leaf area above height $z$ for a plant with height $H$\\
@@ -101,7 +101,7 @@ and returns rates of growth, mortality, and fecundity. The physiological model m
 describe how much leaf area the plant contributes to shading other plants in the patch.
 Specifically, the physiological model is responsible for calculating the following
 variables from Table \ref{tab:definitions}:
-$A_{\rm l}(H)$, $Q(z, H)$, $g(x, H, E_a)$, $f(x, H, E_a)$, $d(x, H, E_a)$, and
+$A_{\rm l}(H)$, $Q(z, H)$, $H_0(x)$, $g(x, H, E_a)$, $f(x, H, E_a)$, $d(x, H, E_a)$, and
 $S_{\rm G} (x, H_0, E_{{\rm a}0})$.
 All are other variables in Table \ref{tab:definitions} are calculated in the
 demographic model using the equations provided below.
@@ -111,13 +111,13 @@ demographic model using the equations provided below.
 We first consider the dynamics of an individual plant. Throughout, we refer to a
 plant as having traits \(x\) and size \(H\), with the latter given by its height. The
 plant grows in a light environment \(E\), a function describing the distribution
-of light with respect to height. Ultimately, \(E\) depends on the
+of light with respect to height within a patch. Ultimately, \(E\) depends on the
 composition of plants in a patch, and thus on the patch age \(a\). To indicate this dependence, we
-write \(E_a\). The functions \(g(x, H, E_a)\), \(f(x, H, E_a)\), and
+write \(E_a\). Further, let \(a_0\)be the age in which the plant germinated, and \(H_)(x)\) its initial height. The functions \(g(x, H, E_a)\), \(f(x, H, E_a)\), and
 \(d(x, H, E_a)\) denote the growth, death, and fecundity rates of the
 plant. Then,
 \begin{equation} \label{eq:size}
-H(x, a_0, a) = H_0 + \int_{a_0}^{a} g(x, H(x, a_0, a^\prime), E_{a^\prime}) \, {\rm d}a^\prime
+H(x, a_0, a) = H_0(x) + \int_{a_0}^{a} g(x, H(x, a_0, a^\prime), E_{a^\prime}) \, {\rm d}a^\prime
 \end{equation}
 is the trajectory of plant height,
 \begin{equation} \label{eq:survivalIndividual}
@@ -167,7 +167,7 @@ deterministically via the following partial differential equation (\textsc{pde})
 See section \ref{derivation-of-pde-describing-size-structured-dynamics} for the derivation of this \textsc{pde}.
 
 Eq. \(\ref{eq:PDE}\) has two boundary conditions. The first links the
-flux of individuals across the lower bound \((H_0)\) of the size-density
+flux of individuals across the lower bound \((H_0(x))\) of the size-density
 distribution to the rate \(Y_{x}\) at which seeds arrive in the patch,
 \begin{equation} \label{eq:BC1}
 N(H_0 | x, a_0) = \left\{
@@ -208,7 +208,7 @@ with the boundary condition
 \begin{equation} P(0) = \int_0^\infty d_{\rm P}(a) \, P(a) \, {\rm d} a.
 \end{equation}
 The probability that a patch remains undisturbed from patch age \(a_0\) to patch age \(a\) is
-Then given by
+then given by
 \begin{equation} \label{eq:survivalPatch}
 S_{\rm P} (a_0, a) = \exp\left( - \int_{a_0}^{a} d_{\rm P}(a^\prime) \, {\rm d} a^\prime \right).
 \end{equation}
@@ -356,7 +356,7 @@ individual's probability of surviving, and its traits,
 
 The equations below describe how we solve the trait-, size-, and patch-structured
 population dynamics specified in the previous section.
-Our approach to solving for the size-density distribution is based on the characteristic method \citep{Angulo-2004}. The characteristic method is related to
+Our approach to solving for the size-density distribution is based on the characteristic method \citep{Angulo-2004,Angulo-2014,Angulo-2016}. The characteristic method is related to
 the Escalator Boxcar Train technique
 \citep{Deroos-1988, Deroos-1997, Deroos-1992}, but not identical to it.
 
@@ -367,13 +367,13 @@ in a large patch, we also need to estimate the average abundance of individuals.
 Each of these problems is formulated as an initial-value \textsc{ode} problem
 (\textsc{ivp}), which can be solved using an \textsc{ode} stepper.
 
-\subsection{Approach}
+\subsection{Approach}\label{approach}
 
 \subsubsection{Size}\label{size}
 
 The size of an individual is obtained via Eq.
 \ref{eq:size}, which is solved via the \textsc{ivp}
-\[\frac{dy}{dt} = g(x, y, t) ,\] \[ y(0) = H_0.\]
+\[\frac{dy}{dt} = g(x, y, t) ,\] \[ y(0) = H_0(x).\]
 
 \subsubsection{Survival}\label{survival}
 
@@ -397,7 +397,7 @@ above and \(S_{\rm P}\) is calculated as in Eq.
 
 By integrating along the characteristics of Eq. \(\ref{eq:PDE}\),
 the size-density of individuals born with height \(H_0\) and traits \(x\) at patch age \(a_{0}\) is given by
-\citep{Deroos-1997}
+\citep{Deroos-1997,Angulo-2004}
 \begin{equation}\label{eq:boundN}
 N(H | x, a) = N(H_0 | x, a_0)
 \exp \left( - \int _{a_0}^{a} \left[\frac{\partial g(x, H(x, a_0, a^\prime), E_{a^\prime})}{\partial H} + d(x, H(x, a_0, a^\prime), E_{a^\prime})\right] {\rm d} a^\prime \right).
@@ -429,9 +429,7 @@ from which we obtain the size-density
 \subsection{Controls on approximation error}
 
 We now outline how to control the error of the approximate solutions
-to the system of equations described above.
-
-In our algorithm, numerical solutions are required to address a variety of problems:
+to the system of equations described above. In our algorithm, numerical solutions are required to address a variety of problems:
 \begin{itemize}
 \item To estimate the amount of light at a given height in a patch requires
 numerically integrating over the size-density distribution within that patch.
@@ -452,7 +450,6 @@ accurate only up to a specified level. These levels are controlled
 via parameters in the {\plant} code. Below, we
 provide a brief overview of the different numerical techniques being
 applied and outline how error tolerance can be increased or decreased.
-
 We refer to various control parameters that can be found within the
 \texttt{control} object. For a worked example illustrating how to modify these control parameters,
 see the section \texttt{parameters} of Appendix S3.
@@ -462,7 +459,7 @@ see the section \texttt{parameters} of Appendix S3.
 When a seed germinates, it produces a seedling of given height. The
 height of these seedlings is assumed to vary with the seed mass.
 Because there is no analytical solution relating seedling height to seed
-mass -- at least when using our default physiological model -- we must solve
+mass -- at least when using the default \texttt{FF16} physiological model -- we must solve
 for this height numerically. The calculation is performed by the function
 \texttt{height\_seed} within the physiological model, using the Boost
 library's one-dimensional \texttt{bisect} routine
@@ -471,7 +468,7 @@ is controlled by the parameter \texttt{plant\_seed\_tol}.
 
 \subsubsection{Stepping of \textsc{ode}s}
 
-All of the \textsc{ivp}s outlined above must be stepped through time.
+All of the \textsc{ivp}s outlined above (in section \ref{approach}) must be stepped through time.
 For this, {\plant} uses
 the embedded Runge-Kutta Cash-Karp 4-5 algorithm \citep{Cash-1990}, with
 code ported directly from the

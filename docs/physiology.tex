@@ -40,10 +40,10 @@ package. This model has primarily been developed elsewhere, in particular in
 but rather so that users can understand the full system of equations being
 solved within {\plant}.
 
-The purpose of the physiological model in {\plant} is to take a plant's
+The purpose of a physiological model in {\plant} is to take a plant's
 current size, light environment, and physiological parameters as inputs,
-and return its growth, mortality, and fecundity rates. In the default
-physiological model within {\plant}, these vital rates are all
+and return its growth, mortality, and fecundity rates. In the \texttt{FF16}
+physiological model, these vital rates are all
 derived from the rate at which living biomass is produced by the plant,
 which in turn is calculated based on well-understood physiology (Fig.
 \ref{fig:schematic-phys}). Various physiological parameters
@@ -65,7 +65,9 @@ mass is actually allocated there. Figure adapted from
 \label{fig:schematic-phys}
 \end{figure}
 
-\section{Leaf photosynthesis}\label{leaf-photosynthesis}
+\section{Growth}\label{growth}
+
+\subsection{Leaf photosynthesis}\label{leaf-photosynthesis}
 
 We denote by \(p(x, E)\) the gross rate of leaf photosynthesis per unit
 leaf area within the canopy of a plant with traits \(x\) at light
@@ -75,16 +77,16 @@ We assume a relationship of the form
 p(x, E(z)) = \frac{\alpha_{{\rm p1}}}{E(z) + \alpha_{{\rm p2}}},
 \end{equation}
 for the average of \(p\) across the year. The parameters
-\(\alpha_{{\rm p1}} and \alpha_{{\rm p2}}\) are derived from a detailed leaf-level
-model and measure the light levels, respectively, at maximum annual photosynthesis and at 50\% of this maximum. The average rate of
+\(\alpha_{{\rm p1}}\) and \(\alpha_{{\rm p2}}\) are derived from a detailed leaf-level
+model and measure, respectively, maximum annual photosynthesis and the light levels at 50\% of this maximum. The average rate of
 leaf photosynthesis across the plant is then
 \begin{equation}\label{eq:photosynthesis_av}
 \bar{p}(x, H, E_{a}) = \int_0^H p(x, E_a(z)) \, q(z, H) \, {\rm d}z,
 \end{equation}
-where \(q(z, H)\) is the density of leaf area at height \(z\) (Eq.
+where \(q(z, H)\) is the vertical distribution of leaf area with respect to height \(z\) (Eq.
 \ref{eq:crown3}).
 
-\section{Mass production}\label{standard-model-for-mass-production}
+\subsection{Mass production}\label{standard-model-for-mass-production}
 
 The amount of biomass available for growth,
 \({\rm d}B  / {\rm d}t\), is given by the difference between income
@@ -109,10 +111,10 @@ to the costs of maintenance respiration), and \(\alpha_{\rm bio}\) is the amount
 area. The total mass of living tissues is
 \(M_{\rm a} = M_{\rm l} + M_{\rm b} + M_{\rm s} + M_{\rm r}.\)
 
-\section{Height growth}\label{height-growth-rate}
+\subsection{Height growth}\label{height-growth-rate}
 
 The key measure of growth required by the demographic model is the
-rate of height growth, $g(x, H, E_{a})$. To model height growth
+rate of height growth, denoted $g(x, H, E_{a})$. To model height growth
 requires that we translate mass
 production into height increment, accounting for the costs of
 building new tissues, allocation
@@ -144,9 +146,9 @@ expressed as a sum of construction costs per unit leaf area,
 \end{equation}
 
 The third factor,
-\({\rm d}M_{\rm a} / {\rm d}M_{\rm b}\), is the fraction
+\({\rm d}M_{\rm a} / {\rm d}B\), is the fraction
 of net biomass production (Eq. \ref{eq:dbdt}) that is allocated to
-growth rather than reproduction or storage. In the default physiological model,
+growth rather than reproduction or storage. In the \texttt{FF16} physiological model,
 we let this growth fraction decrease with height according to the function
 \begin{equation}\label{eq:allocation}
 \frac{{\rm d}M_{\rm a}}{{\rm d}B}(H) = 1 -
@@ -155,11 +157,11 @@ we let this growth fraction decrease with height according to the function
 where $\alpha_{{\rm f1}}$ is the maximum possible allocation ($0-1$) and $\alpha_{{\rm f2}}$
 determines the sharpness of the transition \citep{Falster-2011}.
 
-\section{Diameter growth}
+\subsection{Diameter growth}
 
 Analogously, the growth in basal area $A_{\rm st}$ can be
 expressed as the sum of growth in sapwood, bark, and heartwood areas
-($A_{\rm s}, A_{\rm b}, and A_{\rm h}$, respectively),
+($A_{\rm s}, A_{\rm b}$, and $A_{\rm h}$, respectively),
 $$\frac{{\rm d}A_{\rm st}}{{\rm d}t} = \frac{{\rm d}A_{\rm b}}{{\rm d}t} + \frac{{\rm d}A_{\rm s}}{{\rm d}t} + \frac{{\rm d}A_{\rm h}}{{\rm d}t}.$$
 Applying the chain rule, we derive an equation for basal area growth that contains many of the same
 elements as Eq. \ref{eq:dhdt},
@@ -186,13 +188,12 @@ also be derived (Table \ref{tab:allometry}).
 
 \subsection{Leaf area}\label{leaf-area}
 
-Based on empirically observed allometry, we assume an allometric power-law
+Based on empirically observed allometry \citep{Falster-2011}, we assume an allometric power-law
 scaling relationship between the accumulated leaf area of a plant and
 its height,
 \begin{equation}\label{eq:ha}
-A_{\rm l} = \alpha_{{\rm l1}} \, H^{\alpha_{{\rm l2}}}.
+H = \alpha_{{\rm l1}} \, A_{\rm l}^{\alpha_{{\rm l2}}}.
 \end{equation}
-Note that this scaling relationship is inverted relative to that in \citet{Falster-2011}.
 
 \subsection{Vertical distribution of leaf
 area}\label{vertical-distribution-of-leaf-area}
@@ -202,8 +203,8 @@ distribution of leaf area within the crowns of individual plants. This
 model can account for a variety of canopy profiles through a single
 parameter \(\eta\). Setting \(\eta = 1\) results in a conical canopy, as
 seen in many conifers, while higher values, e.g., \(\eta = 12\) , give a
-top-heavy canopy profile similar to those seen among angiosperms. We denote by
-by \(A_{{\rm s},z}\) the sapwood area at height \(z\), by \(q(z, H)\) the vertical distribution of leaf area of
+top-heavy canopy profile similar to those seen among angiosperms. We denote
+by \(A_{{\rm s},z}\) the sapwood area at height \(z\) within the plant, by \(q(z, H)\) the vertical distribution of leaf area of
 leaf area with respect to height \(z\), and by \(Q(z, H)\) the cumulative fraction of a
 plant's leaves above height \(z\). As defined previously, \(A_{\rm s}\) is the sapwood
 area at the base of the plant. Following \citet{Yokozawa-1995}, we
@@ -234,7 +235,7 @@ q(z, H) = 2\frac{\eta}{H}\left(1-\left(\frac{z}{H}\right)^{\eta}\right) \left(\f
 Integrating \(A_{{\rm s},z}\) yields the total mass of
 sapwood in a plant,
 \begin{equation}\label{eq:ms1}
-M_{\rm s}  = \rho \int_0^h A_{{\rm s},z} \, {\rm d}z = \rho A_{\rm s} H \eta_{\rm c} ,
+M_{\rm s}  = \rho \int_0^H A_{{\rm s},z} \, {\rm d}z = \rho A_{\rm s} H \eta_{\rm c} ,
 \end{equation}
 where \(\eta_{\rm c} = 1 - \frac{2}{1 + \eta} + \frac{1}{1 + 2\eta}\)
 \citep{Yokozawa-1995}. Substituting from Eq. \ref{eq:crown2}  into Eq.
@@ -249,7 +250,7 @@ M_{\rm s} = \rho \, \eta_{\rm c} \, \theta \, A_{\rm l}  \, H.
 Bark and phloem tissue are modelled using an analogue of the pipe model,
 leading to a similar equation as that for sapwood mass (Eq.
 \ref{eq:ms2}). The cross-section area of bark per unit leaf area is
-assumed to be a constant fraction \(b\) of sapwood area per unit leaf
+assumed to be a constant fraction \(\alpha_{{\rm b1}}\) of sapwood area per unit leaf
 area such that
 \begin{equation}\label{eq:mb}
 M_{\rm b} = \alpha_{{\rm b1}} M_{\rm s}.
@@ -294,12 +295,12 @@ plant performance, but potentially varying with species traits. The
 growth-dependent rate is assumed to decline exponentially with the rate
 of mass production per unit leaf area,
 \begin{equation}\label{eq:mortality_GD}
-d_{{\rm G}}(x, H, E_{a}) = \alpha_{{\rm dG1}} \exp(-\alpha_{{\rm dG3}} X),
+d_{{\rm G}}(x, H, E_{a}) = \alpha_{{\rm dG1}} \exp(-\alpha_{{\rm dG2}} X),
 \end{equation}
 where \(X = {\rm d}B/{\rm d}t / A_{\rm l}\). This
 relationship allows for plants to increase in mortality as their growth rate
 approaches zero, while allowing for species to differ in
-the parameters \(\alpha_{{\rm dG1}}\) and \(\alpha_{{\rm dG3}}\).
+the parameters \(\alpha_{{\rm dG1}}\) and \(\alpha_{{\rm dG2}}\).
 
 We also require a function \(S_{\rm G}  (x^\prime, H_0, E_{{\rm a}0})\) for plant survival
 through germination. For the demographic model to behave smoothly,
@@ -307,7 +308,7 @@ through germination. For the demographic model to behave smoothly,
 \(g(x, H_0, E_{{\rm a}0})\) approaches zero. Following \citet{Falster-2011},
 we use the function
 \begin{equation} \label{eq:pi1}
-S_{\rm G} (x^\prime, H_0, E_{{\rm a}0}) = \frac1{1 + X^2}
+S_{\rm G} (x^\prime, H_0, E_{{\rm a}0}) = \frac1{1 + X^2},
 \end{equation}
 where $X = \alpha_{{\rm d0}} \frac{A_{\rm l}}{{\rm d}B / {\rm d}t}$ and $\alpha_{{\rm d0}}$ is a
 constant. Eq. \ref{eq:pi1} is consistent with Eq.
@@ -316,21 +317,21 @@ constant. Eq. \ref{eq:pi1} is consistent with Eq.
 \section{Hyper-parameterisation of physiological model via
 traits}\label{traits}
 
-The physiological model includes default values for all needed parameters
+The \texttt{FF16} physiological model includes default values for all needed parameters
 (Table \ref{tab:params_core}). Species are known to vary considerably
 in many of these parameters, such as $\phi$, $\rho$, $\nu$, and $\omega$; so by varying parameters
 one can account for species differences. When altering a parameter in the model, however,
 one must also consider whether there are trade-offs linking parameters.
 
 {\plant} allows for the
-hyper-parameterisation of the physiological model via plant functional traits: this enables
+hyper-parameterisation of the \texttt{FF16} physiological model via plant functional traits: this enables
 simultaneous variation in multiple parameters in accordance with an assumed trade-off. In the
-default physiological model, we implement the relationships described below. For more
+\texttt{FF16} physiological model, we implement the relationships described below. For more
 details, see \texttt{make\_FF16\_hyperpar.R}.
 
 \subsection{Leaf mass per unit area}
 
-The trait leaf mass per unit area (\textsc{lma}), denoted by $\phi$, directly influences growth by changing
+The trait leaf mass per unit area, denoted by $\phi$, directly influences growth by changing
 ${\rm d}A_{\rm l} / {\rm d}M_{\rm a}$. In addition, we
 link $\phi$ to the rate of leaf turnover,
 based on a widely observed scaling relationship from \citet{Wright-2004},
@@ -340,24 +341,25 @@ allows us to vary $\beta_{{\rm kl1}}$ and $\beta_{{\rm kl2}}$ without displacing
 observed mean.
 
 We also vary the mass-based leaf respiration rate so that it stays constant per unit leaf area and
-varies with \textsc{lma} and \textsc{narea}, as empirically observed \cite{Wright-2004},
+varies with $\phi$ and nitrogen per unit leaf area $\nu$, as empirically observed \cite{Wright-2004},
 $$r_{\rm l} = \frac{\beta_{{\rm lf4}}\, \nu}{\phi}.$$
 
 \subsection{Wood density}
 
 The trait wood density, denoted by $\rho$, directly influences growth by changing
-${\rm d}A_{\rm l} / {\rm d}M_{\rm a}$. In addition, we
-link $\rho$ to the rate of growth-independent mortality,
-$$d_{\rm I} = \beta_{{\rm dI1}} \, \left(\frac{\rho}{\rho_0}\right) ^ {-\beta_{{\rm dI2}}}.$$
-In addition, $\rho$ is assumed to influence the rate of sapwood turnover,
+${\rm d}A_{\rm l} / {\rm d}M_{\rm a}$. In addition, we allow for
+$\rho$ to influence the rate of growth-independent mortality,
+$$d_{\rm I} = \beta_{{\rm dI1}} \, \left(\frac{\rho}{\rho_0}\right) ^ {-\beta_{{\rm dI2}}},$$
+and also the rate of sapwood turnover,
 $$k_{\rm s} = \beta_{{\rm ks1}} \, \left(\frac{\rho}{\rho_0}\right)^ {-\beta_{{\rm ks2}}},$$
-
-As for $\phi$, these
-relationships are normalized around $\rho_0$, the global mean of $\rho$.
+As for $\phi$, these relationships are normalized around $\rho_0$, the global mean of $\rho$.
+By default, $\beta_{{\rm kI2}}$ and $\beta_{{\rm ks2}}$ are set to zero, so these linkages
+only become present when these parameters are set to something other than their default values.
 
 The rate of sapwood respiration per unit volume is assumed to be constant, so
 sapwood respiration per unit mass varies as
-$$r_{\rm r}  = \frac{\beta_{{\rm rs1}}}{\rho}.$$
+$$r_{\rm r}  = \frac{\beta_{{\rm rs1}}}{\rho},$$
+where $\beta_{{\rm rs1}}$ is a default rate per volume of sapwood.
 Similarly, the rate of bark respiration per unit mass varies as
 $$r_{\rm b} = \frac{\beta_{{\rm rb1}}}{\rho},$$
 with $\beta_{{\rm rb1}} = 2 \beta_{{\rm rs1}}$.
@@ -366,7 +368,7 @@ with $\beta_{{\rm rb1}} = 2 \beta_{{\rm rs1}}$.
 
 Effects of the trait seed mass, denoted by $\omega$, are naturally embedded in the equation determining
 fecundity (Eq. \ref{eq:fecundity}) and the initial height of seedlings. In addition,
-we let the accessory cost per seed be a linear function of seed size,
+we let the accessory cost per seed be a multiple of seed size,
 $$\alpha_{{\rm f3}} = \beta_{{\rm f1}} \omega,$$
 as empirically observed \citep{Henery-2001}.
 
@@ -396,9 +398,9 @@ $\alpha_{{\rm p1}}$ and $\alpha_{{\rm p2}}$, such that these become functions of
 \section{Tables}\label{tables}
 
 \begin{table}[h!]
-\caption{Key variables of the physiological model. For mass ($M$), respiration ($r$), and turnover ($k$)
-variables, subscripts refer to any of the following tissues : \(l\) = leaves, \(b\) = bark, \(s\) = sapwood,
-\(r\) = roots, \(a\) = all living tissue  . For area \(A\) variables, subscripts refer to any of the following: \(l\) = leaves, \(st\) = total stem cross-section, \(ss\) = sapwood cross-section.}
+\caption{Key variables of the \texttt{FF16} physiological model. For mass ($M$), respiration ($r$), and turnover ($k$)
+variables, subscripts refer to any of the following tissues: \(l\) = leaves, \(b\) = bark, \(s\) = sapwood,
+\(r\) = roots, \(a\) = all living tissue. For area \(A\) variables, subscripts refer to any of the following: \(l\) = leaves, \(st\) = total stem cross-section, \(s\) = sapwood cross-section, \(b\) = bark cross-section, \(h\)heartwood cross-section.}
 \centering
 \begin{tabular}{p{2cm}p{2.5cm}p{8cm}}
 \hline
@@ -434,12 +436,12 @@ $S_{\rm G} (x, H_0, E_{{\rm a}0})$ & & Probability that a seed germinates succes
 \newpage
 
 \begin{table}[h!]
-\caption{Equations of an allometric growth model based on functional-balance assumptions.
-The key assumptions of the physiological model are listed in (a), under "Function". From these
+\caption{Equations of the allometric growth model implemented within the \texttt{FF16} physiological model, based on functional-balance assumptions (see text for details).
+The key assumptions allocation model are listed in (a), under ``Function''. From these
 assumptions, allocation functions are derived for tissue areas and tissue masses (b). Also
 the growth rate of each tissue type can be expressed as a function of the growth rate of leaf area. For mass ($M$), respiration ($r$), and turnover ($k$)
-variables, subscripts denote different tissues: \(l\) = leaves, \(b\) = bark, \(s\) = sapwood,
-\(r\) = roots, \(a\) = all living tissue  . For area \(A\) variables, subscripts denote: \(l\) = leaves, \(st\) = total stem cross-section, \(ss\) = sapwood cross-section.}
+variables, subscripts refer to any of the following tissues: \(l\) = leaves, \(b\) = bark, \(s\) = sapwood,
+\(r\) = roots, \(a\) = all living tissue. For area \(A\) variables, subscripts refer to any of the following: \(l\) = leaves, \(st\) = total stem cross-section, \(s\) = sapwood cross-section, \(b\) = bark cross-section, \(h\)heartwood cross-section.}
 \centering
 \begin{tabular}{p{2.5cm}p{3.5cm}p{5cm}p{4cm} }\\ \hline
 Variable & Function & Allocation & Growth rate\\ \hline
@@ -481,13 +483,13 @@ $\frac{{\rm d}M_{\rm r}}{{\rm d}t} = \frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} \
 \newpage
 
 \begin{table}[h!]
-\caption{Core model parameters}
+\caption{Core parameters of the \texttt{FF16} physiological model.}
 \input{growth_model_pars_core}
 \label{tab:params_core}
 \end{table}
 
 \begin{table}[h!]
-\caption{Parameters for hyper-parameterisation}
+\caption{Parameters for hyper-parameterisation of the \texttt{FF16} physiological model.}
 \input{growth_model_pars_hyper}
 \label{tab:params_hyper}
 \end{table}
