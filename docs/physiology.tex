@@ -103,7 +103,7 @@ plant \citep{Makela-1997, Thornley-2000, Falster-2011},
 Here, \(M, r\), and \(k\) refer to the mass, maintenance respiration rate, and
 turnover rate of different tissues, denoted by subscripts \(l\) = leaves,
 \(b\) = bark, \(s\) = sapwood, and \(r\) = roots. \(\bar{p}\) is the assimilation
-rate of CO\(_2\) per leaf area, \(\alpha_{\rm y}\) is yield (i.e., the fraction of
+rate of CO\(_2\) per unit leaf area, \(\alpha_{\rm y}\) is yield (i.e., the fraction of
 assimilated carbon fixed in biomass, with the remaining fraction being lost
 as growth respiration; this comes in addition
 to the costs of maintenance respiration), and \(\alpha_{\rm bio}\) is the amount of biomass per unit carbon fixed. Gross photosynthetic production is proportional to leaf area,
@@ -187,6 +187,7 @@ leaves, roots, and stems. The growth rates of various tissues can then
 also be derived (Table \ref{tab:allometry}).
 
 \subsection{Leaf area}\label{leaf-area}
+
 
 Based on empirically observed allometry \citep{Falster-2011}, we assume an allometric power-law
 scaling relationship between the accumulated leaf area of a plant and
@@ -372,7 +373,7 @@ we let the accessory cost per seed be a multiple of seed size,
 $$\alpha_{{\rm f3}} = \beta_{{\rm f1}} \omega,$$
 as empirically observed \citep{Henery-2001}.
 
-\subsection{Nitrogen per leaf area}
+\subsection{Nitrogen per unit leaf area}
 
 Photosynthesis per unit leaf area and respiration rates per unit leaf mass (or area)
 are assumed to vary with leaf nitrogen per unit area, $\nu$. The calculation of respiration rates is already described above. To calculate the average annual photosynthesis for a leaf,
@@ -399,8 +400,8 @@ $\alpha_{{\rm p1}}$ and $\alpha_{{\rm p2}}$, such that these become functions of
 
 \begin{table}[h!]
 \caption{Key variables of the \texttt{FF16} physiological model. For mass ($M$), respiration ($r$), and turnover ($k$)
-variables, subscripts refer to any of the following tissues: \(l\) = leaves, \(b\) = bark, \(s\) = sapwood,
-\(r\) = roots, \(a\) = all living tissue. For area \(A\) variables, subscripts refer to any of the following: \(l\) = leaves, \(st\) = total stem cross-section, \(s\) = sapwood cross-section, \(b\) = bark cross-section, \(h\)heartwood cross-section.}
+variables, subscripts refer to any of the following tissues: \({\rm l}\) = leaves, \({\rm b}\) = bark, \({\rm s}\) = sapwood,
+\({\rm r}\) = roots, \({\rm a}\) = all living tissue. For area \(A\) variables, subscripts refer to any of the following: \({\rm l}\) = leaves, \({\rm st}\) = total stem cross-section, \({\rm s}\) = sapwood cross-section, \({\rm b}\) = bark cross-section, \({\rm h}\) = heartwood cross-section.}
 \centering
 \begin{tabular}{p{2cm}p{2.5cm}p{8cm}}
 \hline
@@ -413,14 +414,14 @@ $H$ & m & Height of a plant\\
 $B$ & kg & Biomass originating from parent plant\\
 $M_i$ & kg & Mass of tissue type $i$ retained on plant \\
 $A_i$ & m$^2$ & Surface area or area of cross-section of tissue type $i$\\
-$q(z, H)$ & m$^-1$ & Vertical distribution of leaf area for a plant with height $H$\\
+$q(z, H)$ & m$^{-1}$ & Vertical distribution of leaf area across heights $z$ for a plant with height $H$\\
 $Q(z, H)$ &  & Fraction of leaf area above height $z$ for a plant with height $H$\\
 \multicolumn{3}{l}{\textbf{Mass production}} \\
 $p,\bar{p}$ & kg yr$^{-1}$ m$^{-2}$ & Photosynthetic rate per unit area \\
 $r_i$ & kg kg$^{-1}$ yr$^{-1}$ & Respiration rate per unit mass of tissue type $i$ \\
 $k_i$ & yr$^{-1}$ & Turnover rate for tissue type $i$ \\
 \multicolumn{3}{l}{\textbf{Environment}} \\
-$a$ & yr$^{-1}$ & Patch age\\
+$a$ & yr& Patch age\\
 $E_{a}$ & & Profile of canopy openness within a patch of age $a$\\
 $E_{a}(z)$&& Canopy openness at height $z$ within a patch of age $a$\\
 \multicolumn{3}{l}{\textbf{Demographic outcomes}} \\
@@ -440,8 +441,8 @@ $S_{\rm G} (x, H_0, E_{{\rm a}0})$ & & Probability that a seed germinates succes
 The key assumptions allocation model are listed in (a), under ``Function''. From these
 assumptions, allocation functions are derived for tissue areas and tissue masses (b). Also
 the growth rate of each tissue type can be expressed as a function of the growth rate of leaf area. For mass ($M$), respiration ($r$), and turnover ($k$)
-variables, subscripts refer to any of the following tissues: \(l\) = leaves, \(b\) = bark, \(s\) = sapwood,
-\(r\) = roots, \(a\) = all living tissue. For area \(A\) variables, subscripts refer to any of the following: \(l\) = leaves, \(st\) = total stem cross-section, \(s\) = sapwood cross-section, \(b\) = bark cross-section, \(h\)heartwood cross-section.}
+variables, subscripts refer to any of the following tissues: \({\rm l}\) = leaves, \({\rm b}\) = bark, \({\rm s}\) = sapwood,
+\({\rm r}\) = roots, \({\rm a}\) = all living tissue. For area \(A\) variables, subscripts refer to any of the following: \({\rm l}\) = leaves, \({\rm st}\) = total stem cross-section, \({\rm s}\) = sapwood cross-section, \({\rm b}\) = bark cross-section, \({\rm h}\) = heartwood cross-section.}
 \centering
 \begin{tabular}{p{2.5cm}p{3.5cm}p{5cm}p{4cm} }\\ \hline
 Variable & Function & Allocation & Growth rate\\ \hline

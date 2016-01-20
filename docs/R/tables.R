@@ -8,12 +8,12 @@ table_plant_parameters <- function(filename, dest){
   to_math <- tab$Symbol != ""
   tab$Symbol[to_math] <- sprintf("$%s$", tab$Symbol[to_math])
 
-  to_math <- grepl("[_^]", tab$Units)
-  tab$Units[to_math] <-
+  to_math <- grepl("[_^]", tab$Unit)
+  tab$Unit[to_math] <-
     sprintf("$%s$",
-            gsub("(mol|kg|m|yr|d)", "\\\\mathrm{\\1}", tab$Units[to_math]))
-  tab$Units[to_math] <-
-            gsub(" ", "\\,", tab$Units[to_math], fixed =TRUE)
+            gsub("(mol|kg|m|yr|d)", "\\\\mathrm{\\1}", tab$Unit[to_math]))
+  tab$Unit[to_math] <-
+            gsub(" ", "\\,", tab$Unit[to_math], fixed =TRUE)
 
   s <- c(FF16_Strategy(),
          lapply(as.list(args(make_FF16_hyperpar)), eval))
