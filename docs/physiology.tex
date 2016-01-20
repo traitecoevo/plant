@@ -383,13 +383,19 @@ using a rectangular-hyperbolic photosynthesis light response curve,
 $$p(\nu, E) = \frac1{365 \textrm{d}}\int_0^{365 \textrm{d}}\frac{Y(t) + A_m - \sqrt{(Y(t) + A_m)^2 - 4 \beta_{{\rm lf2}} Y(t) A_m }}{2 \beta_{{\rm lf2}}} {\rm d}t,$$
 where
 \begin{itemize}
-\item $A_m = \nu \, \beta_{{\rm lf1}}$ is the maximum photosynthetic capacity of the leaf,
+\item $A_m$ is the maximum photosynthetic capacity of the leaf,
 \item $\beta_{{\rm lf2}}$ is the curvature of the light response curve,
 \item $Y(t) = \beta_{{\rm lf3}} I(t)$ is the initial yield of the light response curve, with $\beta_{{\rm lf3}}$ being the quantum yield parameter,
 \item $I(t) = k_{\rm I} \, I_0(t)\, E$ is the intensity of light on the leaf surface, and
 \item $I_0(t)$ is light incident on a surface perpendicular to the sun's rays directly above the canopy at time $t$.
 \end{itemize}
 The profile of $I_0(t)$ is given by a solar model adapted from \citet{TerSteege-1997}.
+
+We allow for the maximum photosynthetic capacity of the leaf to vary with leaf nitrogen per unit area, as
+\begin{equation} \label{eq:amax}
+A_m = \beta_{lf1} \, \left(\frac{\nu}{\nu_0}\right)^{\beta_{lf5}},
+\end{equation}
+where $\beta_{lf1}$ and $\beta_{lf5}$ are constants. The relationships is normalized around $\nu_0$, the global mean of leaf nitrogen per unit area.
 
 Values of $p(\nu, E)$ are calculated across a range of values of $E$, and then an expression of the form in Eq. \ref{eq:photosynthesis} is fitted to extract the parameters
 $\alpha_{{\rm p1}}$ and $\alpha_{{\rm p2}}$, such that these become functions of $\nu$.

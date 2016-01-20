@@ -93,11 +93,13 @@ make_environment <- function(p) {
 ##' @param B_rs1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
 ##' @param B_rb1 CO_2 respiration per unit sapwood volume [mol / yr / m3 ]
 ##' @param B_f1 Cost of seed accessories per unit seed mass [dimensionless]
+##' @param narea nitrogen per leaf area [kg / m2]
 ##' @param narea_0 central (mean) value for nitrogen per leaf area [kg / m2]
-##' @param B_lf1 Potential CO_2 photosynthesis per unit nitrogen [mol / d / kg]
+##' @param B_lf1 Potential CO_2 photosynthesis at average leaf nitrogen [mol / d / m2]
 ##' @param B_lf2 Curvature of leaf photosynthetic light response curve [dimensionless]
 ##' @param B_lf3 Quantum yield of leaf photosynthetic light response curve [dimensionless]
 ##' @param B_lf4 CO_2 respiration per unit leaf nitrogen [mol / yr / kg]
+##' @param B_lf5 Scaling exponent for leaf nitrogen in maximum leaf photosynthesis [dimensionless]
 ##' @param k_I light extinction coefficient [dimensionless]
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @export
@@ -114,11 +116,13 @@ make_FF16_hyperpar <- function(
                                 B_rs1=4012.0,
                                 B_rb1=2.0*4012.0,
                                 B_f1 =3.0,
+                                narea=1.87e-3,
                                 narea_0=1.87e-3,
-                                B_lf1=5120.738 * 24 * 3600 / 1e+06,
+                                B_lf1=5120.738 * 1.87e-3 * 24 * 3600 / 1e+06,
                                 B_lf2=0.5,
                                 B_lf3=0.04,
                                 B_lf4=21000,
+                                B_lf5=1,
                                 k_I=0.5,
                                 latitude=0) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
@@ -137,11 +141,13 @@ make_FF16_hyperpar <- function(
   assert_scalar(B_rs1)
   assert_scalar(B_rb1)
   assert_scalar(B_f1)
+  assert_scalar(narea)
   assert_scalar(narea_0)
   assert_scalar(B_lf1)
   assert_scalar(B_lf2)
   assert_scalar(B_lf3)
   assert_scalar(B_lf4)
+  assert_scalar(B_lf5)
   assert_scalar(k_I)
   assert_scalar(latitude)
 
@@ -155,7 +161,7 @@ make_FF16_hyperpar <- function(
     lma       <- with_default("lma")
     rho       <- with_default("rho")
     omega     <- with_default("omega")
-    narea     <- with_default("narea", narea_0)
+    narea     <- with_default("narea", narea)
 
     ## lma / leaf turnover relationship:
     k_l   <- B_kl1 * (lma / lma_0) ^ (-B_kl2)
@@ -193,7 +199,7 @@ make_FF16_hyperpar <- function(
       D <- seq(0, 365/2, length.out = 10000)
       I <- PAR_given_solar_angle(solar_angle(D, latitude = abs(latitude)))
 
-      Amax <- narea * B_lf1
+      Amax <- B_lf1 * (narea/narea_0) ^  B_lf5
       theta <- B_lf2
       QY <- B_lf3
 
