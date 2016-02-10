@@ -123,7 +123,26 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   state <- list(list(time=runner$time, state=runner$state))
 
   while (i <= n & runner$time < time_max) {
-    runner$step()
+    ok <- tryCatch({
+      runner$step()
+      TRUE
+    },
+    error=function(e) {
+      msg <- c("Stopping early as integration failed with error: ", e$message,
+               sprintf("  %d larger sizes dropped", sum(is.na(j))))
+      if (warn) {
+        warning(paste(msg, collapse="\n"), immediate.=TRUE)
+      }
+      ## TODO: Consider making this an error, or making the test a bit better.
+      if (runner$object$plant$ode_rates[[2]] < 1e-10) {
+        warning("Integration may have failed for reasons other than mortality",
+                immediate.=TRUE)
+      }
+      FALSE
+    })
+    if (!ok) {
+      break
+    }
     state <- c(state, list(list(time=runner$time, state=runner$state)))
     while (i <= n && oderunner_plant_size(runner)[[size_name]] > sizes[[i]]) {
       j[[i]] <- length(state) - 1L

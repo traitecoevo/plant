@@ -159,3 +159,23 @@ test_that("grow_plant_to_time", {
     expect_that(res$time, is_identical_to(times))
   }
 })
+
+test_that("Sensible behaviour on integration failure", {
+  ## As reported in issue #174
+  traits <- trait_matrix(
+    c(10.8552329005728,0.0105249489979936,633.641169104633,0.00227017846696535,3.61377429973252,0.66734,1.99575855688525,0.0567301588978768,900.481925352216,0.278101287831634,0.0183902655344452,0.523884989942541,4.34167189261234,4.520285,0.824983001217059,0.0344755338576102,0.245619588820917,0.260495,5031.78411788144,1.06992910086522,1.1368443297711,50,1),
+    c("eta","lma","rho","theta","a_l1","a_l2","a_r1","a_b1","r_r","k_b","k_r","omega","B_kl1","B_kl2","B_ks1","narea","B_lf1","B_lf5","B_lf4","B_rs1","B_rb1","hmat","c_r1")
+  )
+
+  s <- strategy(traits, scm_base_parameters())
+  pl <- FF16_PlantPlus(s)
+
+  env <- fixed_environment(1)
+  sizes <- seq_range(c(pl$height, 50), 50)
+  expect_that(res <- grow_plant_to_size(pl, sizes, "height", env, 1000, warn = TRUE, filter = TRUE),
+              gives_warning("integration failed with error"))
+  expect_that(res$plant, equals(list()))
+  expect_that(res$time, equals(numeric(0)))
+  expect_that(nrow(res$state), equals(0))
+  expect_that(nrow(res$trajectory), equals(1))
+})
