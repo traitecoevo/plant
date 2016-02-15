@@ -128,7 +128,7 @@ area_stem_dt <- function(traits, h, env){
 
 ## change in basal diameter_stem per basal area
 ddiameter_stem_darea_stem <- function(area_stem){
-  sqrt(pi/area_stem)
+  sqrt(1.0/(pi*area_stem))
 }
 
 ## stem diameter growth rate

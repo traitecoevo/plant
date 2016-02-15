@@ -388,7 +388,7 @@ double FF16r_Strategy::dmass_root_darea_leaf(double /* area_leaf */) const {
 
 // Growth rate of basal diameter_stem per unit time
 double FF16r_Strategy::ddiameter_stem_darea_stem(double area_stem) const {
-  return pow(M_PI / area_stem, 0.5);
+  return pow(M_PI * area_stem, -0.5);
 }
 
 // Growth rate of sapwood area at base per unit time

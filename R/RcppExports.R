@@ -1993,6 +1993,10 @@ test_uniroot <- function(f, min, max) {
     .Call('plant_test_uniroot', PACKAGE = 'plant', f, min, max)
 }
 
+matrix_to_list <- function(x) {
+    .Call('plant_matrix_to_list', PACKAGE = 'plant', x)
+}
+
 trapezium <- function(x, y) {
     .Call('plant_trapezium', PACKAGE = 'plant', x, y)
 }
@@ -2003,9 +2007,5 @@ trapezium_vector <- function(x, y) {
 
 local_error_integration <- function(x, y, scal) {
     .Call('plant_local_error_integration', PACKAGE = 'plant', x, y, scal)
-}
-
-matrix_to_list <- function(x) {
-    .Call('plant_matrix_to_list', PACKAGE = 'plant', x)
 }
 
