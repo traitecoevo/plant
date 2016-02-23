@@ -28,6 +28,8 @@ knitr_options:
   vignette:
     auto_figure_prefix: true
     chdir: true
+    options:
+      fig.cap: ""
 
 targets:
   all:

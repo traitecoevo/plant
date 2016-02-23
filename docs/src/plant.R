@@ -179,7 +179,7 @@ plot(res_mass$time, mass, type="o", pch=19, las=1, xlab="Time (years)")
 ## two species that differ in their LMA values. This what is presented
 ## In Fig. 2a of the paper.
 
-p <- scm_base_parameters()
+p <- scm_base_parameters("FF16")
 ## Low LMA ("fast growth") species
 s1 <- strategy(trait_matrix(0.0825,  "lma"), p)
 ## High LMA ("low growth") species

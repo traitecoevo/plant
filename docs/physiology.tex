@@ -94,7 +94,7 @@ The amount of biomass available for growth,
 plant \citep{Makela-1997, Thornley-2000, Falster-2011},
 \begin{equation}\label{eq:dbdt}
 \underbrace{\strut \frac{{\rm d}B}{{\rm d}t}}_\textrm{net biomass production}
-= \underbrace{\strut \alpha_{\rm bio} }_\textrm{mass per c} \,
+= \underbrace{\strut \alpha_{\rm bio} }_\textrm{mass per C} \,
 \underbrace{\strut \alpha_{\rm y} }_\textrm{yield}
 \big( \underbrace{\strut A_{\rm l} \, \bar{p}}_\textrm{photosynthesis} -
 \underbrace{\strut \, \sum_{i = {\rm l}, {\rm b}, {\rm s}, {\rm r}}{M_i \, r_i}}_\textrm{respiration}\big)
@@ -172,7 +172,7 @@ elements as Eq. \ref{eq:dhdt},
 Diameter growth is then given by the geometric relationship between stem
 diameter $D$ and $A_{\rm st}$,
 \begin{equation} \label{eq:dDdt}
-\frac{{\rm d}D}{{\rm d}t} = \left(\pi\, A_{\rm st}\right)^{-0.5} \, \frac{{\rm d}A_{\rm st}}{{\rm d}t}.
+\frac{{\rm d}D}{{\rm d}t} = \left(\pi \, A_{\rm st}\right)^{-0.5} \, \frac{{\rm d}A_{\rm st}}{{\rm d}t}.
 \end{equation}
 
 \section{Functional-balance model for
@@ -193,8 +193,9 @@ Based on empirically observed allometry \citep{Falster-2011}, we assume an allom
 scaling relationship between the accumulated leaf area of a plant and
 its height,
 \begin{equation}\label{eq:ha}
-H = \alpha_{{\rm l1}} \, A_{\rm l}^{\alpha_{{\rm l2}}}.
+H = \alpha_{{\rm l1}} \, \left(A_{\rm l} \, {\rm m^{-2}}\right)^{\alpha_{{\rm l2}}}.
 \end{equation}
+This relationship is normalised around a leaf area of 1m${^2}$.
 
 \subsection{Vertical distribution of leaf
 area}\label{vertical-distribution-of-leaf-area}
@@ -342,7 +343,7 @@ allows us to vary $\beta_{{\rm kl1}}$ and $\beta_{{\rm kl2}}$ without displacing
 observed mean.
 
 We also vary the mass-based leaf respiration rate so that it stays constant per unit leaf area and
-varies with $\phi$ and nitrogen per unit leaf area $\nu$, as empirically observed \cite{Wright-2004},
+varies with $\phi$ and nitrogen per unit leaf area $\nu$, as empirically observed by \citet{Wright-2004},
 $$r_{\rm l} = \frac{\beta_{{\rm lf4}}\, \nu}{\phi}.$$
 
 \subsection{Wood density}
@@ -359,7 +360,7 @@ only become present when these parameters are set to something other than their 
 
 The rate of sapwood respiration per unit volume is assumed to be constant, so
 sapwood respiration per unit mass varies as
-$$r_{\rm r}  = \frac{\beta_{{\rm rs1}}}{\rho},$$
+$$r_{\rm s}  = \frac{\beta_{{\rm rs1}}}{\rho},$$
 where $\beta_{{\rm rs1}}$ is a default rate per volume of sapwood.
 Similarly, the rate of bark respiration per unit mass varies as
 $$r_{\rm b} = \frac{\beta_{{\rm rb1}}}{\rho},$$
@@ -380,10 +381,10 @@ are assumed to vary with leaf nitrogen per unit area, $\nu$. The calculation of 
 we integrate the instantaneous rate per unit leaf area over the annual solar trajectory,
 using a rectangular-hyperbolic photosynthesis light response curve,
 
-$$p(\nu, E) = \frac1{365 \textrm{d}}\int_0^{365 \textrm{d}}\frac{Y(t) + A_m - \sqrt{(Y(t) + A_m)^2 - 4 \beta_{{\rm lf2}} Y(t) A_m }}{2 \beta_{{\rm lf2}}} {\rm d}t,$$
+$$p(\nu, E) = \frac1{365 \textrm{d}}\int_0^{365 \textrm{d}}\frac{Y(t) + A_{\rm max} - \sqrt{(Y(t) + A_{\rm max})^2 - 4 \beta_{{\rm lf2}} Y(t) A_{\rm max} }}{2 \beta_{{\rm lf2}}} {\rm d}t,$$
 where
 \begin{itemize}
-\item $A_m$ is the maximum photosynthetic capacity of the leaf,
+\item $A_{\rm max}$ is the maximum photosynthetic capacity of the leaf,
 \item $\beta_{{\rm lf2}}$ is the curvature of the light response curve,
 \item $Y(t) = \beta_{{\rm lf3}} I(t)$ is the initial yield of the light response curve, with $\beta_{{\rm lf3}}$ being the quantum yield parameter,
 \item $I(t) = k_{\rm I} \, I_0(t)\, E$ is the intensity of light on the leaf surface, and
@@ -393,9 +394,9 @@ The profile of $I_0(t)$ is given by a solar model adapted from \citet{TerSteege-
 
 We allow for the maximum photosynthetic capacity of the leaf to vary with leaf nitrogen per unit area, as
 \begin{equation} \label{eq:amax}
-A_m = \beta_{lf1} \, \left(\frac{\nu}{\nu_0}\right)^{\beta_{lf5}},
+A_{\rm max} = \beta_{{\rm lf1}} \, \left(\frac{\nu}{\nu_0}\right)^{\beta_{{\rm lf5}}},
 \end{equation}
-where $\beta_{lf1}$ and $\beta_{lf5}$ are constants. The relationships is normalized around $\nu_0$, the global mean of leaf nitrogen per unit area.
+where $\beta_{{\rm lf1}}$ and $\beta_{{\rm lf5}}$ are constants. The relationships is normalized around $\nu_0$, the global mean of leaf nitrogen per unit area.
 
 Values of $p(\nu, E)$ are calculated across a range of values of $E$, and then an expression of the form in Eq. \ref{eq:photosynthesis} is fitted to extract the parameters
 $\alpha_{{\rm p1}}$ and $\alpha_{{\rm p2}}$, such that these become functions of $\nu$.
@@ -423,8 +424,8 @@ $A_i$ & m$^2$ & Surface area or area of cross-section of tissue type $i$\\
 $q(z, H)$ & m$^{-1}$ & Vertical distribution of leaf area across heights $z$ for a plant with height $H$\\
 $Q(z, H)$ &  & Fraction of leaf area above height $z$ for a plant with height $H$\\
 \multicolumn{3}{l}{\textbf{Mass production}} \\
-$p,\bar{p}$ & kg yr$^{-1}$ m$^{-2}$ & Photosynthetic rate per unit area \\
-$r_i$ & kg kg$^{-1}$ yr$^{-1}$ & Respiration rate per unit mass of tissue type $i$ \\
+$p,\bar{p}$ & mol yr$^{-1}$ m$^{-2}$ & Photosynthetic rate per unit area \\
+$r_i$ & mol yr$^{-1}$ kg$^{-1}$  & Respiration rate per unit mass of tissue type $i$ \\
 $k_i$ & yr$^{-1}$ & Turnover rate for tissue type $i$ \\
 \multicolumn{3}{l}{\textbf{Environment}} \\
 $a$ & yr& Patch age\\
@@ -454,8 +455,8 @@ variables, subscripts refer to any of the following tissues: \({\rm l}\) = leave
 Variable & Function & Allocation & Growth rate\\ \hline
 \multicolumn{4}{l}{\textbf{(a) Assumed relationships with leaf area}} \\
 Height &
-$H = \alpha_{{\rm l1}} \, A_{\rm l  }^{\alpha_{{\rm l2}}}$ &
-$\frac{{\rm d}H}{{\rm d}A_{\rm l}} = \alpha_{{\rm l2}} \alpha_{{\rm l1}} A_{\rm l}^{\alpha_{{\rm l2}}-1}$ &
+$H = \alpha_{{\rm l1}} \, \left(A_{\rm l} \, {\rm m^{-2}} \right)^{\alpha_{{\rm l2}}}$ &
+$\frac{{\rm d}H}{{\rm d}A_{\rm l}} = \alpha_{{\rm l2}} \alpha_{{\rm l1}} \left(A_{\rm l} \, {\rm m^{-2}} \right)^{\alpha_{{\rm l2}}-1}$ &
 $\frac{{\rm d}H}{{\rm d}t} = \frac{{\rm d}H}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$ \\
 Sapwoood area &
 $A_{\rm s} = \theta \, A_{\rm l}$ &

@@ -31,7 +31,7 @@ pl$strategy$lma
 ## `lma` affects a few places in the model; see [the source
 ## code](https://github.com/traitecoevo/plant/blob/master/src/ff16_strategy.cpp),
 ## but only really for converting from leaf area to leaf mass (leaf
-## mass being leaf area multiplied by leaf mass per leaf area).
+## mass being leaf area multiplied by leaf mass per unit leaf area).
 ## However, as a component of the leaf economic spectrum we imagine
 ## LMA as affecting a number of other components of the model.
 
@@ -114,5 +114,5 @@ p$control
 ## `scm_base_parameters` provides a faster set by using `fast_control`
 ## to set many of these to less accurate values.
 
-p2 <- scm_base_parameters()
+p2 <- scm_base_parameters("FF16")
 p2$control[unlist(p$control) != unlist(p2$control)]

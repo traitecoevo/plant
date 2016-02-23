@@ -2,10 +2,7 @@
 title: "plant: A package for modelling forest trait ecology & evolution: _Introduction_"
 ---
 
-This document provides a number of worked examples that replicate
-the figures in the paper.  The code is not identical to the paper
-version because through this document we try for a bit more
-exposition at the cost of more global variables, etc.
+This document provides a number of worked examples that replicate the figures in the paper. The material in this section has been developed and edited by the first two authors. The code is not identical to the version used to generate the paper because through this document we try for a bit more exposition at the cost of more global variables, etc.
 
 # Design
 

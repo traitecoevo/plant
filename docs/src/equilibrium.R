@@ -23,7 +23,7 @@ cobweb <- function(m, ...) {
 ## Try to establish what the equilibrium seed rain is.
 
 ## Set model parameters
-p0 <- scm_base_parameters()
+p0 <- scm_base_parameters("FF16")
 p <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FALSE)
 
 ## Some output seed rains, given an input seed rain:
@@ -89,7 +89,6 @@ lma <- c(0.0825, 0.15)
 p2 <- expand_parameters(trait_matrix(lma, "lma"), p0, FALSE)
 
 p2_eq <- equilibrium_seed_rain(p2)
-## TODO: This is not the correct format here:
 approach <- attr(p2_eq, "progress")
 
 ## From a distance, these both hone in nicely on the equilibrium, and
