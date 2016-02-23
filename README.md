@@ -34,18 +34,23 @@ drat:::add("traitecoevo")
 install.packages("plant", dependencies=TRUE)
 ```
 
-Versions of R before 3.2.0 may require `install.packages("plant", type="source")` here.  The `dependencies=TRUE` installs some additional packages that are used in tests and some of the routines.
+Answer "Yes", if you get asked whether you wish to "install these from sources?". Alternatively try `install.packages("plant", type="source")` here.  The `dependencies=TRUE` installs some additional packages that are used in tests and some of the routines.
 
 **Option 2, using `devtools::install_github`**
 
+(install `devtools` with `install.packages("devtools")`)
+
+The `plant` package can be installed from github using the [`devtools`](https://cran.r-project.org/web/packages/devtools/index.html) package. `plant` also requires the packages `loggr` and `RcppR6 packages`: install those with
+
+```r
+devtools::install_github("smbache/loggr", dependencies=TRUE)
+devtools::install_github("richfitz/RcppR6", dependencies=TRUE)
+```
+
+Then install plant:
+
 ```r
 devtools::install_github("traitecoevo/plant", dependencies=TRUE)
-```
-
-Development versions of `plant` (version 0.2.3 onwards) depends on the `loggr` package: install that from drat or with
-
-```
-devtools::install_github("smbache/loggr")
 ```
 
 ### Windows
