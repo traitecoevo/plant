@@ -38,17 +38,7 @@ contains <- function(value) {
   }
 }
 
-is_greater_than <- function(value) {
-  function(actual) {
-    testthat::expectation(actual > value, paste("is not greater than", value))
-  }
-}
-
-is_less_than <- function(value) {
-  function(actual) {
-    testthat::expectation(actual < value, paste("is not less than", value))
-  }
-}
+is_greater_than <- testthat::is_more_than
 
 is_at_most <- function(value) {
   function(actual) {
