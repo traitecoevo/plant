@@ -43,8 +43,8 @@ test_that("Defaults", {
   keys <- sort(names(expected))
 
   ctrl <- Control()
-  expect_that(ctrl, is_a("Control"))
+  expect_is(ctrl, "Control")
 
-  expect_that(sort(names(ctrl)), is_identical_to(keys))
-  expect_that(unclass(ctrl)[keys], is_identical_to(expected[keys]))
+  expect_identical(sort(names(ctrl)), keys)
+  expect_identical(unclass(ctrl)[keys], expected[keys])
 })

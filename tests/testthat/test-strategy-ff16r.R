@@ -38,17 +38,17 @@ test_that("Defaults", {
   keys <- sort(names(expected))
 
   s <- FF16r_Strategy()
-  expect_that(s, is_a("FF16r_Strategy"))
+  expect_is(s, "FF16r_Strategy")
 
-  expect_that(sort(names(s)), is_identical_to(keys))
-  expect_that(unclass(s)[keys], is_identical_to(expected[keys]))
+  expect_identical(sort(names(s)), keys)
+  expect_identical(unclass(s)[keys], expected[keys])
 })
 
 test_that("Reference comparison", {
   s <- FF16r_Strategy()
   p <- FF16r_PlantPlus(s)
 
-  expect_that(p$strategy, is_identical_to(s))
+  expect_identical(p$strategy, s)
 
   ## Set the height to something (here 10)
   h0 <- 10
@@ -56,12 +56,11 @@ test_that("Reference comparison", {
 
   vars <- p$internals
 
-  expect_that(vars[["height"]],
-              is_identical_to(h0))
+  expect_identical(vars[["height"]], h0)
 
 
-  expect_that(p$height,    is_identical_to(vars[["height"]]))
-  expect_that(p$area_leaf, is_identical_to(vars[["area_leaf"]]))
+  expect_identical(p$height, vars[["height"]])
+  expect_identical(p$area_leaf, vars[["area_leaf"]])
 
   # Reproductive allocation functions
 
@@ -80,8 +79,7 @@ test_that("Reference comparison", {
     p$compute_vars_phys(env)
     p$compute_vars_growth()
 
-    expect_that(p$internals[["fraction_allocation_reproduction"]],
-      is_identical_to(r_out[i]))
+    expect_identical(p$internals[["fraction_allocation_reproduction"]], r_out[i])
   }
 
 })

@@ -11,37 +11,37 @@ test_that("empty", {
                           control=fast_control())
 
     obj <- StochasticPatchRunner(x)(p)
-    expect_that(obj$time, is_identical_to(0.0))
+    expect_identical(obj$time, 0.0)
 
     sched <- obj$schedule
-    expect_that(sched$size, equals(0))
-    expect_that(sched$max_time, equals(p$cohort_schedule_max_time))
+    expect_equal(sched$size, 0)
+    expect_equal(sched$max_time, p$cohort_schedule_max_time)
 
     ## Now, create a new set of times:
     sched2 <- stochastic_schedule(p)
-    expect_that(sched2$size, is_more_than(0))
+    expect_gt(sched2$size, 0)
 
     ## Does thuis need to happen twice?
     obj$schedule <- sched2
-    expect_that(obj$schedule$size, equals(sched2$size))
+    expect_equal(obj$schedule$size, sched2$size)
 
     ## Importantly, this moves time forward to where the first
     ## introduction will be!
-    expect_that(obj$time, is_identical_to(sched2$next_event$time_introduction))
+    expect_identical(obj$time, sched2$next_event$time_introduction)
 
     ## We're empty though....
-    expect_that(obj$patch$species[[1]]$size, equals(0))
-    expect_that(obj$patch$ode_state, equals(numeric(0)))
+    expect_equal(obj$patch$species[[1]]$size, 0)
+    expect_equal(obj$patch$ode_state, numeric(0))
 
     res <- obj$run_next()
-    expect_that(res, equals(1L))
-    expect_that(obj$time, is_identical_to(sched2$all_times[[1]][[2]]))
+    expect_equal(res, 1L)
+    expect_identical(obj$time, sched2$all_times[[1]][[2]])
 
     ode_size <- Plant(x)(strategy_types[[x]]())$ode_size
-    expect_that(length(obj$patch$ode_state), equals(ode_size))
-    expect_that(obj$patch$size, equals(1))
+    expect_equal(length(obj$patch$ode_state), ode_size)
+    expect_equal(obj$patch$size, 1)
 
-    expect_that(obj$complete, is_false())
+    expect_false(obj$complete)
   }
 })
 

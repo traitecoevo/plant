@@ -9,19 +9,19 @@ test_that("empty", {
                           is_resident=TRUE)
     patch <- StochasticPatch(x)(p)
 
-    expect_that(patch, is_a(sprintf("StochasticPatch<%s>",x)))
+    expect_is(patch, sprintf("StochasticPatch<%s>",x))
 
-    expect_that(patch$size, equals(1))
-    expect_that(patch$height_max, equals(0.0))
-    expect_that(patch$canopy_openness(0), equals(1.0))
-    expect_that(patch$ode_state, equals(numeric(0)))
-    expect_that(patch$ode_rates, equals(numeric(0)))
+    expect_equal(patch$size, 1)
+    expect_equal(patch$height_max, 0.0)
+    expect_equal(patch$canopy_openness(0), 1.0)
+    expect_equal(patch$ode_state, numeric(0))
+    expect_equal(patch$ode_rates, numeric(0))
 
     sp <- patch$species
-    expect_that(is.list(sp), is_true())
-    expect_that(length(sp), equals(1))
-    expect_that(sp[[1]], is_a(sprintf("StochasticSpecies<%s>",x)))
-    expect_that(sp[[1]]$size, equals(0))
+    expect_true(is.list(sp))
+    expect_equal(length(sp), 1)
+    expect_is(sp[[1]], sprintf("StochasticSpecies<%s>",x))
+    expect_equal(sp[[1]]$size, 0)
   }
 })
 
@@ -33,25 +33,25 @@ test_that("non empty", {
     patch <- StochasticPatch(x)(p)
     cmp <- Plant(x)(p$strategies[[1]])
 
-    expect_that(patch$add_seed(0), throws_error("Invalid value"))
-    expect_that(patch$add_seed(10), throws_error("out of bounds"))
+    expect_error(patch$add_seed(0), "Invalid value")
+    expect_error(patch$add_seed(10), "out of bounds")
 
-    expect_that(patch$add_seed(1), is_true())
-    expect_that(patch$height_max, is_more_than(0.0))
-    expect_that(patch$height_max, equals(cmp$height))
+    expect_true(patch$add_seed(1))
+    expect_gt(patch$height_max, 0.0)
+    expect_equal(patch$height_max, cmp$height)
 
-    expect_that(patch$deaths(), equals(0))
+    expect_equal(patch$deaths(), 0)
 
     le <- patch$environment$light_environment
-    expect_that(range(le$x), equals(c(0.0, cmp$height)))
-    expect_that(max(le$y), equals(1.0))
-    expect_that(le$y[[1]], is_less_than(1.0))
+    expect_equal(range(le$x), c(0.0, cmp$height))
+    expect_equal(max(le$y), 1.0)
+    expect_lt(le$y[[1]], 1.0)
 
     if (x == "FF16") {
-      expect_that(all(patch$ode_rates > 0.0), is_true())
+      expect_true(all(patch$ode_rates > 0.0))
     } else if (x == "FF16r") {
-      expect_that(all(patch$ode_rates[-3] > 0.0), is_true())
-      expect_that(patch$ode_rates[[3]], equals(0))
+      expect_true(all(patch$ode_rates[-3] > 0.0))
+      expect_equal(patch$ode_rates[[3]], 0)
     }
   }
 })

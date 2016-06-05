@@ -27,9 +27,9 @@ make_disturbance <- function(site.mean) {
 test_that("Creation", {
   m <- 30.0
   obj <- Disturbance(m)
-  expect_that(obj, is_a("Disturbance"))
-  expect_that(obj, is_a("R6"))
-  expect_that(obj$mean_interval, is_identical_to(m))
+  expect_is(obj, "Disturbance")
+  expect_is(obj, "R6")
+  expect_identical(obj$mean_interval, m)
 })
 
 test_that("Disturbance calculations are expected", {
@@ -40,25 +40,22 @@ test_that("Disturbance calculations are expected", {
   tt <- seq(0, 100, length.out=101)
 
   p_t <- sapply(tt, function(t) obj$pr_survival(t))
-  expect_that(p_t, equals(disturbance$Pi(tt)))
+  expect_equal(p_t, disturbance$Pi(tt))
 
   t_start <- 5
   p_t2 <- sapply(tt, function(t) obj$pr_survival_conditional(t, t_start))
-  expect_that(p_t2, equals(disturbance$weight(t_start, tt)))
+  expect_equal(p_t2, disturbance$weight(t_start, tt))
 
   ## Check of the conditional distribution approach:
-  expect_that(p_t2,
-              equals(p_t / obj$pr_survival(t_start)))
+  expect_equal(p_t2, p_t / obj$pr_survival(t_start))
 
-  expect_that(sapply(tt, function(t) obj$pr_survival_conditional(t, 0)),
-              equals(p_t))
+  expect_equal(sapply(tt, function(t) obj$pr_survival_conditional(t, 0)), p_t)
 
   ## density is vectorised
-  expect_that(obj$density(tt),
-              equals(disturbance$freq(tt)))
+  expect_equal(obj$density(tt), disturbance$freq(tt))
 
-  expect_that(disturbance$cdf(p_t), equals(tt))
-  expect_that(sapply(p_t, function(p) obj$cdf(p)), equals(tt))
+  expect_equal(disturbance$cdf(p_t), tt)
+  expect_equal(sapply(p_t, function(p) obj$cdf(p)), tt)
 
   ## Now, look at the rest of the issues.
 
@@ -68,8 +65,7 @@ test_that("Disturbance calculations are expected", {
   ## CDF is close.
   scale <- with(disturbance, lam^(-1/psi))
   shape <- disturbance$psi
-  expect_that(pweibull(tt, shape, scale, FALSE),
-              equals(disturbance$weight(0, tt)))
+  expect_equal(pweibull(tt, shape, scale, FALSE), disturbance$weight(0, tt))
 })
 
 test_that("Reference survival eps gives correct running time", {
@@ -90,5 +86,5 @@ test_that("Reference survival eps gives correct running time", {
   y1 <- f1(age)
   y2 <- sapply(age, f2)
 
-  expect_that(y1, equals(y2))
+  expect_equal(y1, y2)
 })

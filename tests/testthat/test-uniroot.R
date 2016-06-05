@@ -11,11 +11,9 @@ test_that("Agrees with R", {
            uniroot(f, c(1, 3))$root)
 
   ## Check the R solutions:
-  expect_that(cmp, equals(sol, tolerance=1e-5))
+  expect_equal(cmp, sol, tolerance=1e-5)
 
   ## Then with our thing:
-  expect_that(test_uniroot(f, 0, 1),
-              equals(sol[[1]], tolerance=1e-6))
-  expect_that(test_uniroot(f, 1, 3),
-              equals(sol[[2]], tolerance=1e-6))
+  expect_equal(test_uniroot(f, 0, 1), sol[[1]], tolerance=1e-6)
+  expect_equal(test_uniroot(f, 1, 3), sol[[2]], tolerance=1e-6)
 })

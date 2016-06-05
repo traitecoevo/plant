@@ -23,11 +23,10 @@ test_that("Default times", {
 
     t1 <- 10.123
     tt <- cohort_schedule_times_default(t1)
-    expect_that(tt[[1]], is_identical_to(0.0))
+    expect_identical(tt[[1]], 0.0)
 
-    expect_that(last(tt), is_less_than(t1))
-    expect_that(c(tt, t1),
-                equals(cmp_cohort_introduction_times(t1)))
+    expect_lt(last(tt), t1)
+    expect_equal(c(tt, t1), cmp_cohort_introduction_times(t1))
   }
 })
 
@@ -36,7 +35,7 @@ test_that("Cohort schedule max time", {
     p <- Parameters(x)()
     t <- cohort_schedule_max_time_default(p)
     d <- Disturbance(p$disturbance_mean_interval)
-    expect_that(t, equals(d$cdf(p$control$schedule_patch_survival)))
+    expect_equal(t, d$cdf(p$control$schedule_patch_survival))
   }
 })
 
@@ -46,12 +45,12 @@ test_that("Default schedule", {
       seed_rain=c(pi/2, pi),
       is_resident=c(TRUE, TRUE))
     cohort_schedule <- cohort_schedule_default(p)
-    expect_that(cohort_schedule, is_a("CohortSchedule"))
-    expect_that(cohort_schedule$n_species, equals(length(p$strategies)))
+    expect_is(cohort_schedule, "CohortSchedule")
+    expect_equal(cohort_schedule$n_species, length(p$strategies))
     t_max <- cohort_schedule_max_time_default(p)
     tt <- cohort_schedule_times_default(t_max)
-    expect_that(cohort_schedule$times(1), is_identical_to(tt))
-    expect_that(cohort_schedule$times(2), is_identical_to(tt))
+    expect_identical(cohort_schedule$times(1), tt)
+    expect_identical(cohort_schedule$times(2), tt)
   }
 })
 
@@ -59,9 +58,9 @@ test_that("strategy_list", {
   for (x in names(strategy_types)) {
     p <- Parameters(x)()
     s <- strategy_list(trait_matrix(1, "lma"), p)
-    expect_that(length(s), equals(1))
-    expect_that(s, is_a("list"))
-    expect_that(s[[1]], is_a(sprintf("%s_Strategy", x)))
+    expect_equal(length(s), 1)
+    expect_is(s, "list")
+    expect_is(s[[1]], sprintf("%s_Strategy", x))
   }
 })
 
@@ -70,9 +69,9 @@ test_that("plant_list", {
     p <- Parameters(x)()
 
     obj <- plant_list(trait_matrix(1, "lma"), p)
-    expect_that(length(obj), equals(1))
-    expect_that(obj, is_a("list"))
-    expect_that(obj[[1]], is_a("Plant"))
-    expect_that(obj[[1]], is_a(sprintf("Plant<%s>", x)))
+    expect_equal(length(obj), 1)
+    expect_is(obj, "list")
+    expect_is(obj[[1]], "Plant")
+    expect_is(obj[[1]], sprintf("Plant<%s>", x))
   }
 })

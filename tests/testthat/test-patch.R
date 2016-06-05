@@ -20,56 +20,53 @@ for (x in names(strategy_types)) {
     patch <- Patch(x)(p)
     cmp <- Cohort(x)(p$strategies[[1]])
 
-    expect_that(patch$size, equals(1))
-    expect_that(patch$height_max, is_identical_to(cmp$height))
-    expect_that(patch$parameters, equals(p))
+    expect_equal(patch$size, 1)
+    expect_identical(patch$height_max, cmp$height)
+    expect_equal(patch$parameters, p)
 
-    expect_that(patch$environment, is_a("Environment"))
-    expect_that(patch$environment$time, is_identical_to(0.0))
+    expect_is(patch$environment, "Environment")
+    expect_identical(patch$environment$time, 0.0)
 
-    expect_that(length(patch$species), equals(1))
-    expect_that(patch$species[[1]], is_a(sprintf("Species<%s>",x)))
+    expect_equal(length(patch$species), 1)
+    expect_is(patch$species[[1]], sprintf("Species<%s>",x))
 
-    expect_that(patch$ode_size, equals(0))
-    expect_that(patch$ode_state, is_identical_to(numeric(0)))
-    expect_that(patch$ode_rates, is_identical_to(numeric(0)))
+    expect_equal(patch$ode_size, 0)
+    expect_identical(patch$ode_state, numeric(0))
+    expect_identical(patch$ode_rates, numeric(0))
 
     ## Empty light environment:
     patch$compute_light_environment()
-    expect_that(patch$area_leaf_above(0), is_identical_to(0))
+    expect_identical(patch$area_leaf_above(0), 0)
 
-    expect_that(patch$add_seed(0), throws_error("Invalid value"))
-    expect_that(patch$add_seed(2), throws_error("out of bounds"))
+    expect_error(patch$add_seed(0), "Invalid value")
+    expect_error(patch$add_seed(2), "out of bounds")
 
     ode_size <- Cohort(x)(s)$ode_size
     patch$add_seed(1)
-    expect_that(patch$ode_size, equals(ode_size))
+    expect_equal(patch$ode_size, ode_size)
 
     ## Then pull this out:
     cmp$compute_initial_conditions(patch$environment)
 
-    expect_that(patch$ode_state,
-                is_identical_to(cmp$ode_state))
-    expect_that(patch$ode_rates,
-                is_identical_to(cmp$ode_rates))
+    expect_identical(patch$ode_state, cmp$ode_state)
+    expect_identical(patch$ode_rates, cmp$ode_rates)
 
     y <- patch$ode_state
     patch$set_ode_state(y, 0)
-    expect_that(patch$ode_state, is_identical_to(y))
+    expect_identical(patch$ode_state, y)
 
     ## NOTE: These should be identical, but are merely equal...
-    expect_that(patch$derivs(y, 0),
-                equals(cmp$ode_rates))
+    expect_equal(patch$derivs(y, 0), cmp$ode_rates)
 
     ## solver <- solver_from_ode_target(patch, p$control$ode_control)
     ## solver$step()
     ## patch$add_seed(1)
-    ## expect_that(patch$ode_size,
-    ##             equals(cmp$ode_size * patch$n_individuals))
+    ## expect_equal(patch$ode_size,
+    ##             cmp$ode_size * patch$n_individuals)
 
     patch$reset()
-    expect_that(patch$ode_size, equals(0))
-    expect_that(patch$environment$time, is_identical_to(0.0))
+    expect_equal(patch$ode_size, 0)
+    expect_identical(patch$environment$time, 0.0)
 
     t <- patch$environment$time # do via environment only?
 
@@ -104,14 +101,13 @@ for (x in names(strategy_types)) {
     ##   points(tt, hh)
     ## }
 
-    ## expect_that(hh, equals(spline(t, h, xout=tt)$y, tolerance=1e-7))
+    ## expect_equal(hh, spline(t, h, xout=tt)$y, tolerance=1e-7)
 
     ## test_that("OK at end of sequence", {
-    ##   expect_that(patch$time, is_identical_to(tt[[length(tt)]]))
+    ##   expect_identical(patch$time, tt[[length(tt)]])
     ##   solver$advance(tt[[length(tt)]])
-    ##   expect_that(patch$time, is_identical_to(tt[[length(tt)]]))
-    ##   expect_that(solver$advance(tt[[length(tt)]] - 1e-8),
-    ##               throws_error())
+    ##   expect_identical(patch$time, tt[[length(tt)]])
+    ##   expect_error(solver$advance(tt[[length(tt)]] - 1e-8))
     ## })
 
     ## test_that("State get/set works", {
@@ -131,17 +127,16 @@ for (x in names(strategy_types)) {
     ##   state <- patch$state
 
     ##   patch2 <- new(PatchCohortTop, patch$parameters)
-    ##   expect_that(patch2$state <- state, throws_error())
+    ##   expect_error(patch2$state <- state)
     ##   patch2$force_state(state)
-    ##   expect_that(patch2$state, is_identical_to(state))
+    ##   expect_identical(patch2$state, state)
 
     ##   ## Check some things that depend on state make sense:
-    ##   expect_that(patch2$environment$light_environment$xy,
-    ##               is_identical_to(patch$environment$light_environment$xy))
-    ##   expect_that(patch2$time, is_identical_to(patch$time))
-    ##   expect_that(patch2$ode_state, is_identical_to(patch$ode_state))
-    ##   expect_that(patch2$height, is_identical_to(patch$height))
-    ##   expect_that(patch2$ode_rates, is_identical_to(patch$ode_rates))
+    ##   expect_identical(patch2$environment$light_environment$xy)
+    ##   expect_identical(patch2$time, patch$time)
+    ##   expect_identical(patch2$ode_state, patch$ode_state)
+    ##   expect_identical(patch2$height, patch$height)
+    ##   expect_identical(patch2$ode_rates, patch$ode_rates)
     ## })
   })
 }

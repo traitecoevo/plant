@@ -5,10 +5,8 @@ test_that("Trapezium rule works", {
   set.seed(1)
   xx <- sort(runif(n))
   yy <- runif(n)
-  expect_that(trapezium(xx, yy),
-              equals(sum((xx[-1] - xx[-n]) * (yy[-1] + yy[-n])) / 2))
-  expect_that(trapezium(c(1, 1), c(1, 2)),
-              is_identical_to(0.0))
+  expect_equal(trapezium(xx, yy), sum((xx[-1] - xx[-n]) * (yy[-1] + yy[-n])) / 2)
+  expect_identical(trapezium(c(1, 1), c(1, 2)), 0.0)
 })
 
 test_that("Trapezium local error estimate is correct", {
@@ -34,17 +32,11 @@ test_that("Trapezium local error estimate is correct", {
   yy <- 6*(sin(xx) + 1)
   tot <- abs(trapezium(xx, yy))
 
-  expect_that(local_error_integration(xx, yy, 1),
-              equals(local_error_integration_R(xx, yy)))
-  expect_that(local_error_integration(xx, yy, tot),
-              equals(local_error_integration_R(xx, yy)/tot))
+  expect_equal(local_error_integration(xx, yy, 1), local_error_integration_R(xx, yy))
+  expect_equal(local_error_integration(xx, yy, tot), local_error_integration_R(xx, yy)/tot)
 
-  expect_that(local_error_integration(numeric(0), numeric(0), tot),
-              equals(numeric(0)))
-  expect_that(local_error_integration(xx[1], yy[1], tot),
-              equals(NA_real_))
-  expect_that(local_error_integration(xx[1:2], yy[1:2], tot),
-              equals(c(NA_real_, NA_real_)))
-  expect_that(local_error_integration(xx[1:2], yy[1:3], tot),
-              throws_error())
+  expect_equal(local_error_integration(numeric(0), numeric(0), tot), numeric(0))
+  expect_equal(local_error_integration(xx[1], yy[1], tot), NA_real_)
+  expect_equal(local_error_integration(xx[1:2], yy[1:2], tot), c(NA_real_, NA_real_))
+  expect_error(local_error_integration(xx[1:2], yy[1:3], tot))
 })

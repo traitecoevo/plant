@@ -3,10 +3,9 @@ strategy_types <- get_list_of_strategy_types()
 
 test_that("fixed_environment", {
   env <- fixed_environment(0.5)
-  expect_that(env, is_a("Environment"))
-    expect_that(env$light_environment$xy,
-                equals(cbind(c(0, 75, 150), 0.5)))
-  expect_that(env$canopy_openness(40), equals(0.5))
+  expect_is(env, "Environment")
+    expect_equal(env$light_environment$xy, cbind(c(0, 75, 150), 0.5))
+  expect_equal(env$canopy_openness(40), 0.5)
 })
 
 test_that("lcp_whole_plant", {
@@ -28,7 +27,6 @@ test_that("lcp_whole_plant", {
     }
 
     p <- PlantPlus(x)(strategy_types[[x]]())
-    expect_that(lcp_whole_plant(p),
-                equals(lcp_whole_plant_R(p), tolerance=1e-5))
+    expect_equal(lcp_whole_plant(p), lcp_whole_plant_R(p), tolerance=1e-5)
   }
 })

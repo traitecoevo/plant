@@ -5,9 +5,9 @@ strategy_types <- get_list_of_strategy_types()
 test_that("Corner case", {
   for (x in names(strategy_types)) {
     p <- scm_base_parameters(x)
-    expect_that(build_schedule(p), throws_error("no residents"))
+    expect_error(build_schedule(p), "no residents")
     p <- expand_parameters(trait_matrix(0.1, "lma"), p)
-    expect_that(build_schedule(p), throws_error("no residents"))
+    expect_error(build_schedule(p), "no residents")
   }
 })
 
@@ -20,7 +20,7 @@ test_that("Schedule building", {
     p$strategies <- list(strategy_types[[x]]())
     p$seed_rain <- 0.1
     p <- build_schedule(p)
-    expect_that(length(p$cohort_schedule_times_default), equals(141))
-    expect_that(length(p$cohort_schedule_times[[1]]),    equals(176))
+    expect_equal(length(p$cohort_schedule_times_default), 141)
+    expect_equal(length(p$cohort_schedule_times[[1]]), 176)
   }
 })

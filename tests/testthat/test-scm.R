@@ -13,33 +13,31 @@ test_that("Ported from tree1", {
                           patch_area=10,
                           is_resident=TRUE)
 
-    expect_that(scm <- SCM(x)(p),
-                throws_error("Patch area must be exactly 1 for the SCM"))
+    expect_error(scm <- SCM(x)(p), "Patch area must be exactly 1 for the SCM")
 
     p$patch_area <- 1.0
     scm <- SCM(x)(p)
-    expect_that(scm, is_a(sprintf("SCM<%s>", x)))
+    expect_is(scm, sprintf("SCM<%s>", x))
 
     ## NOTE: I'm not sure where these are only equal and not identical.
-    expect_that(scm$parameters, equals(p))
+    expect_equal(scm$parameters, p)
 
     ## Check that the underlying Patch really is a Patch<CohortTop>:
-    expect_that(scm$patch, is_a(sprintf("Patch<%s>", x)))
-    expect_that(length(scm$patch$species), equals(1))
-    expect_that(scm$patch$species[[1]], is_a(sprintf("Species<%s>",x)))
-    expect_that(scm$patch$species[[1]]$seed, is_a(sprintf("Cohort<%s>",x)))
-    expect_that(scm$patch$time, is_identical_to(0.0))
+    expect_is(scm$patch, sprintf("Patch<%s>", x))
+    expect_equal(length(scm$patch$species), 1)
+    expect_is(scm$patch$species[[1]], sprintf("Species<%s>",x))
+    expect_is(scm$patch$species[[1]]$seed, sprintf("Cohort<%s>",x))
+    expect_identical(scm$patch$time, 0.0)
 
     sched <- scm$cohort_schedule
     cmp_sched <- make_cohort_schedule(p)
-    expect_that(sched$size, equals(cmp_sched$size))
-    expect_that(sched$all_times, equals(cmp_sched$all_times))
+    expect_equal(sched$size, cmp_sched$size)
+    expect_equal(sched$all_times, cmp_sched$all_times)
 
     ## If the schedule is for the wrong number of species, it should cause
     ## an error...
     sched2 <- CohortSchedule(sched$n_species + 1)
-    expect_that(scm$cohort_schedule <- sched2,
-                throws_error("Incorrect length input; expected 1, received 2"))
+    expect_error(scm$cohort_schedule <- sched2, "Incorrect length input; expected 1, received 2")
 
     ## Build a schedule for 14 introductions from t=0 to t=5
     t <- seq(0, 5, length.out=14)
@@ -47,20 +45,18 @@ test_that("Ported from tree1", {
     sched$max_time <- max(t) + diff(t)[[1]]
     scm$cohort_schedule <- sched
 
-    expect_that(scm$cohort_schedule$all_times,
-                is_identical_to(sched$all_times))
+    expect_identical(scm$cohort_schedule$all_times, sched$all_times)
     ## Parameters has been updated:
-    expect_that(scm$parameters$cohort_schedule_times,
-                is_identical_to(sched$all_times))
+    expect_identical(scm$parameters$cohort_schedule_times, sched$all_times)
 
     ## Will be helpful for checking that things worked:
     times <- data.frame(start=t, end=c(t[-1], sched$max_time))
 
     ## Before starting, check that the SCM is actually empty
-    expect_that(scm$time,                equals(0.0))
-    expect_that(scm$patch$ode_size,      equals(0))
-    expect_that(scm$patch$ode_size,      equals(0))
-    expect_that(scm$complete,            is_false())
+    expect_equal(scm$time, 0.0)
+    expect_equal(scm$patch$ode_size, 0)
+    expect_equal(scm$patch$ode_size, 0)
+    expect_false(scm$complete)
 
     ## TODO: The unlist here is annoying...
     ## Can be resolved by passing off to another utility function I
@@ -70,36 +66,34 @@ test_that("Ported from tree1", {
 
     ode_size <- Cohort(x)(strategy_types[[x]]())$ode_size
 
-    expect_that(scm$cohort_schedule$remaining, equals(length(t) - 1))
-    expect_that(scm$complete, is_false())
-    expect_that(i, equals(1))
+    expect_equal(scm$cohort_schedule$remaining, length(t) - 1)
+    expect_false(scm$complete)
+    expect_equal(i, 1)
     ## Note that this is the *second* time; the time of the next
     ## introduction, and the end time of the first introduction.
-    expect_that(scm$time, is_identical_to(times$end[1]))
-    expect_that(scm$time, is_identical_to(times$start[2]))
-    expect_that(scm$patch$ode_size, equals(ode_size))
+    expect_identical(scm$time, times$end[1])
+    expect_identical(scm$time, times$start[2])
+    expect_equal(scm$patch$ode_size, ode_size)
 
     ## Trying to set schedule for partly run scm fails
-    expect_that(scm$cohort_schedule <- sched,
-                throws_error("Cannot set schedule without resetting first"))
+    expect_error(scm$cohort_schedule <- sched, "Cannot set schedule without resetting first")
 
     i <- unlist(scm$run_next())
-    expect_that(i, equals(1))
+    expect_equal(i, 1)
     ## SCM ran successfully:
-    expect_that(scm$cohort_schedule$remaining,
-                equals(length(t) - 2))
-    expect_that(scm$complete, is_false())
-    expect_that(scm$time, is_identical_to(times$end[2]))
-    expect_that(scm$time, is_identical_to(times$start[3]))
-    expect_that(scm$patch$ode_size, equals(ode_size * 2))
+    expect_equal(scm$cohort_schedule$remaining, length(t) - 2)
+    expect_false(scm$complete)
+    expect_identical(scm$time, times$end[2])
+    expect_identical(scm$time, times$start[3])
+    expect_equal(scm$patch$ode_size, ode_size * 2)
 
     ## Reset everything
     ## "SCM reset successful"
     scm$reset()
-    expect_that(scm$time,                equals(0.0))
-    expect_that(scm$time,                equals(0.0))
-    expect_that(scm$patch$ode_size,      equals(0))
-    expect_that(scm$cohort_schedule$remaining, equals(length(t)))
+    expect_equal(scm$time, 0.0)
+    expect_equal(scm$time, 0.0)
+    expect_equal(scm$patch$ode_size, 0)
+    expect_equal(scm$cohort_schedule$remaining, length(t))
 
     ## At this point, and possibly before scm$seed_rains is corrupt.
 
@@ -137,7 +131,7 @@ test_that("Ported from tree1", {
     ## SCM can be rerun successfully:
     scm$reset()
     res_e_2 <- run_scm_test(scm)
-    expect_that(res_e_2, is_identical_to(res_e_1))
+    expect_identical(res_e_2, res_e_1)
 
     ## Pull the times out of the SCM and set them in the schedule:
     sched <- scm$cohort_schedule
@@ -155,12 +149,12 @@ test_that("Ported from tree1", {
     ## final time).
     ## SCM with fixed times agrees:
     res_e_3 <- run_scm_test(scm)
-    expect_that(res_e_3, is_identical_to(res_e_1))
+    expect_identical(res_e_3, res_e_1)
 
     ## SCM can be rerun successfully with fixed times:
     scm$reset()
     res_e_4 <- run_scm_test(scm)
-    expect_that(res_e_4, is_identical_to(res_e_3))
+    expect_identical(res_e_4, res_e_3)
   }
 })
 
@@ -180,28 +174,21 @@ test_that("schedule setting", {
     scm$set_cohort_schedule_times(list(t))
 
     ## Did set in the SCM:
-    expect_that(scm$cohort_schedule$all_times,
-                is_identical_to(list(t)))
+    expect_identical(scm$cohort_schedule$all_times, list(t))
 
     ## And updated in the parameters:
     p2 <- scm$parameters
-    expect_that(p2$cohort_schedule_max_time,
-                is_identical_to(sched$max_time))
-    expect_that(p2$cohort_schedule_times,
-                is_identical_to(list(t)))
+    expect_identical(p2$cohort_schedule_max_time, sched$max_time)
+    expect_identical(p2$cohort_schedule_times, list(t))
 
     ## Remake the schedule:
     sched2 <- make_cohort_schedule(p2)
-    expect_that(sched2$max_time,
-                is_identical_to(sched$max_time))
-    expect_that(sched2$all_times,
-                is_identical_to(list(t)))
+    expect_identical(sched2$max_time, sched$max_time)
+    expect_identical(sched2$all_times, list(t))
 
     scm2 <- SCM(x)(p2)
-    expect_that(scm2$cohort_schedule$max_time,
-                is_identical_to(sched2$max_time))
-    expect_that(scm2$cohort_schedule$all_times,
-                is_identical_to(sched2$all_times))
+    expect_identical(scm2$cohort_schedule$max_time, sched2$max_time)
+    expect_identical(scm2$cohort_schedule$all_times, sched2$all_times)
   }
 })
 
@@ -218,15 +205,15 @@ test_that("schedule setting", {
   ##   scm2 <- new(SCM, scm$parameters)
   ##   scm2$state <- state
 
-  ##   expect_that(scm2$state, equals(scm$state))
+  ##   expect_equal(scm2$state, scm$state)
   ##   ## Emergent things:
-  ##   expect_that(scm2$patch$environment$light_environment$xy,
-  ##               equals(scm$patch$environment$light_environment$xy))
-  ##   expect_that(scm2$ode_state, equals(scm$ode_state))
-  ##   expect_that(scm2$ode_rates,  equals(scm$ode_rates))
+  ##   expect_equal(scm2$patch$environment$light_environment$xy,
+  ##                scm$patch$environment$light_environment$xy)
+  ##   expect_equal(scm2$ode_state, scm$ode_state)
+  ##   expect_equal(scm2$ode_rates, scm$ode_rates)
   ##   # TODO: This needs implementing; requires get/set of the ODE solver
   ##   # state.
-  ##   # expect_that(scm2$time,       equals(scm$time))
+  ##   # expect_equal(scm2$time, scm$time)
   ## })
 
   ## test_that("Can set times directly", {
@@ -234,13 +221,13 @@ test_that("schedule setting", {
   ##   times <- scm$times(1)
   ##   times2 <- sort(c(times, 0.5*(times[-1] + times[-length(times)])))
   ##   scm$set_times(times2, 1)
-  ##   expect_that(scm$times(1), is_identical_to(times2))
-  ##   expect_that(scm$cohort_schedule$times(1), is_identical_to(times2))
+  ##   expect_identical(scm$times(1), times2)
+  ##   expect_identical(scm$cohort_schedule$times(1), times2)
   ##   scm$run_next()
-  ##   expect_that(scm$set_times(times, 1), throws_error())
+  ##   expect_error(scm$set_times(times, 1))
   ##   scm$reset()
   ##   scm$set_times(times, 1)
-  ##   expect_that(scm$times(1), is_identical_to(times))
+  ##   expect_identical(scm$times(1), times)
   ## })
 
 test_that("Seed rain & error calculations correct", {
@@ -249,7 +236,7 @@ test_that("Seed rain & error calculations correct", {
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, FALSE)
 
     scm <- run_scm(p1)
-    expect_that(scm, is_a(sprintf("SCM<%s>", x)))
+    expect_is(scm, sprintf("SCM<%s>", x))
 
     seed_rain_R <- function(scm, error=FALSE) {
       a <- scm$cohort_schedule$times(1)
@@ -262,28 +249,23 @@ test_that("Seed rain & error calculations correct", {
       if (error) local_error_integration(a, seeds, total) else total
     }
 
-    expect_that(scm$seed_rain(1), equals(seed_rain_R(scm)))
-    expect_that(scm$seed_rains, equals(seed_rain_R(scm)))
-    expect_that(scm$seed_rain_error[[1]],
-                equals(seed_rain_R(scm, error=TRUE)))
+    expect_equal(scm$seed_rain(1), seed_rain_R(scm))
+    expect_equal(scm$seed_rains, seed_rain_R(scm))
+    expect_equal(scm$seed_rain_error[[1]], seed_rain_R(scm, error=TRUE))
 
     lae_cmp <-
       scm$patch$species[[1]]$area_leafs_error(scm$patch$area_leaf_above(0))
-    expect_that(scm$area_leaf_error(1),
-                is_identical_to(lae_cmp))
+    expect_identical(scm$area_leaf_error(1), lae_cmp)
 
     int <- make_scm_integrate(scm)
     S_D <- scm$parameters$strategies[[1]]$S_D
-    expect_that(int("seeds_survival_weighted") *
-                  S_D, equals(scm$seed_rain(1)))
+    expect_equal(int("seeds_survival_weighted") * S_D, scm$seed_rain(1))
 
     res <- run_scm_collect(p1)
     int2 <- make_scm_integrate(res)
 
-    expect_that(int2("seeds_survival_weighted"),
-                equals(int("seeds_survival_weighted")))
-    expect_that(int2("area_leaf"),
-                equals(int("area_leaf")))
+    expect_equal(int2("seeds_survival_weighted"), int("seeds_survival_weighted"))
+    expect_equal(int2("area_leaf"), int("area_leaf"))
   }
 })
 
@@ -294,7 +276,7 @@ test_that("Can create empty SCM", {
 
     ## Check light environment is empty:
     env <- scm$patch$environment
-    expect_that(env$light_environment$size, equals(0))
-    expect_that(env$canopy_openness(0), equals(1.0))
+    expect_equal(env$light_environment$size, 0)
+    expect_equal(env$canopy_openness(0), 1.0)
   }
 })

@@ -12,8 +12,8 @@ test_that("Defaults", {
   keys <- sort(names(expected))
 
   ctrl <- OdeControl()
-  expect_that(ctrl, is_a("OdeControl"))
+  expect_is(ctrl, "OdeControl")
 
-  expect_that(sort(names(ctrl)), is_identical_to(keys))
-  expect_that(unclass(ctrl)[keys], is_identical_to(expected[keys]))
+  expect_identical(sort(names(ctrl)), keys)
+  expect_identical(unclass(ctrl)[keys], expected[keys])
 })
