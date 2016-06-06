@@ -7,6 +7,9 @@ init:
 install:
   ps: Bootstrap
 
+environment:
+  _R_CHECK_FORCE_SUGGESTS_: false
+
 build_script:
   - travis-tool.sh install_deps
   - travis-tool.sh github_package richfitz/RcppR6
@@ -18,5 +21,3 @@ test_script:
 
 on_failure:
   - travis-tool.sh dump_logs
-
-
