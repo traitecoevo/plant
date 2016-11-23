@@ -231,9 +231,13 @@ hyperpar <- function(type) {
 ##' @title Helper function for creating parameter objects
 ##' @param ... Named set of parameters
 ##' @param pars A list of parameters
+##' @param base_parameters_fn Function for creating base parameter set (default scm_base_parameters)
+##' @param make_hyperpar_fn Function for creating hyperparameterisation (default make_FF16_hyperpar)
 ##' @export
-assembly_parameters <- function(..., pars=NULL) {
-  p <- plant::scm_base_parameters()
+assembly_parameters <- function(..., pars=NULL, base_parameters_fn = scm_base_parameters,
+                                  make_hyperpar_fn = make_FF16_hyperpar) {
+
+  p <- base_parameters_fn()
 
   ## These are nice to have:
   p$control$equilibrium_solver_name <- "hybrid"
@@ -249,7 +253,7 @@ assembly_parameters <- function(..., pars=NULL) {
     assert_named_if_not_empty(pars)
 
     excl <- c("control", "strategy_default", "hyperpar")
-    pos <- setdiff(c(names(formals(make_FF16_hyperpar)),
+    pos <- setdiff(c(names(formals(make_hyperpar_fn)),
                      names(p),
                      names(p$control),
                      names(p$strategy_default)),
@@ -259,8 +263,8 @@ assembly_parameters <- function(..., pars=NULL) {
       stop("Unknown parameters: ", paste(unk, collapse=", "))
     }
 
-    nms_hyper <- intersect(names(pars), names(formals(make_FF16_hyperpar)))
-    p$hyperpar <- do.call("make_FF16_hyperpar", pars[nms_hyper])
+    nms_hyper <- intersect(names(pars), names(formals(make_hyperpar_fn)))
+    p$hyperpar <- do.call("make_hyperpar_fn", pars[nms_hyper])
     p                  <- modify_list(p,                  pars)
     p$control          <- modify_list(p$control,          pars)
     p$strategy_default <- modify_list(p$strategy_default, pars)
