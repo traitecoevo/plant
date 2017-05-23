@@ -5,7 +5,6 @@ packages:
   - nleqslv
   - sowsear
   - xtable
-  - callr
 
 sources:
   - R
