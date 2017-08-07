@@ -1,25 +1,21 @@
 language: r
 cache: packages
 warnings_are_errors: false
-dist: trusty
-sudo: required
+sudo: false
+
 env:
   global:
-    - R_CODECOV=true
     - _R_CHECK_FORCE_SUGGESTS_=false
-    - MAKEFLAGS="-j 2"
 
-apt:
-  packages:
-   # - gfortran
-   # - libgfortran3
-
-before_install:
-  # Update C++ compiler to a C++11 compatible one, while still
-  # mantaining the ability to link gfortran code.  From:
-  # http://gearchicken.com/wordpress/?p=105
-  # http://askubuntu.com.80bola.com/questions/612591/usr-bin-ld-cannot-find-lgfortran-matlab
-  #- sudo ln -s /usr/lib/x86_64-linux-gnu/libgfortran.so.3 /usr/lib/x86_64-linux-gnu/libgfortran.so
+matrix:
+  include:
+    - os: linux
+      dist: trusty
+      env:
+        - R_CODECOV=true
+        - MAKEFLAGS="-j 2"
+    - os: osx
+      osx_image: xcode7.2
 
 r_github_packages:
   - richfitz/RcppR6
