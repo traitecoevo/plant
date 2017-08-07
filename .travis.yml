@@ -6,7 +6,7 @@ sudo: required
 env:
   global:
     - R_CODECOV=true
-    - R_CHECK_FORCE_SUGGESTS_=false
+    - _R_CHECK_FORCE_SUGGESTS_=false
     - MAKEFLAGS="-j 2"
 
 apt:
