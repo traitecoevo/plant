@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/traitecoevo/plant.png?branch=master)](https://travis-ci.org/traitecoevo/plant)
 [![Build status](https://ci.appveyor.com/api/projects/status/github/traitecoevo/plant?branch=master&svg=true)](https://ci.appveyor.com/project/traitecoevo/plant/branch/master)
-[![Coverage Status](https://coveralls.io/repos/traitecoevo/plant/badge.svg?branch=master)](https://coveralls.io/r/traitecoevo/plant?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/traitecoevo/plant/badge.svg?branch=master)](https://coveralls.io/github/traitecoevo/plant?branch=master)
 
 ## Documentation
 
