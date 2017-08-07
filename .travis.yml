@@ -9,13 +9,13 @@ env:
 
 matrix:
   include:
-    - os: linux
-      dist: trusty
-      env:
-        - R_CODECOV=true
-        - MAKEFLAGS="-j 2"
+    # - os: linux
+    #   dist: trusty
+    #   env:
+    #     - R_CODECOV=true
+    #     - MAKEFLAGS="-j 2"
     - os: osx
-      osx_image: xcode7.2
+      latex: false
 
 r_github_packages:
   - richfitz/RcppR6
