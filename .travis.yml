@@ -9,11 +9,11 @@ env:
 
 matrix:
   include:
-    # - os: linux
-    #   dist: trusty
-    #   env:
-    #     - R_CODECOV=true
-    #     - MAKEFLAGS="-j 2"
+    - os: linux
+      dist: trusty
+      env:
+        - R_CODECOV=true
+        - MAKEFLAGS="-j 2"
     - os: osx
       latex: false
 
