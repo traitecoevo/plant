@@ -6010,6 +6010,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_trapezium", (DL_FUNC) &_plant_trapezium, 2},
     {"_plant_trapezium_vector", (DL_FUNC) &_plant_trapezium_vector, 2},
     {"_plant_local_error_integration", (DL_FUNC) &_plant_local_error_integration, 3},
+
     {NULL, NULL, 0}
 };
 
