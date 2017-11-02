@@ -27,3 +27,4 @@ Suggests:
     knitr,
     plant.ml
 VignetteBuilder: knitr
+RoxygenNote: 6.0.1
