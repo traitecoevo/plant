@@ -1,12 +1,23 @@
-# The Trait Ecology and Evolution (plant) model
+# plant: A package for modelling forest trait ecology and evolution
 
 [![Build Status](https://travis-ci.org/traitecoevo/plant.png?branch=master)](https://travis-ci.org/traitecoevo/plant)
 [![Build status](https://ci.appveyor.com/api/projects/status/github/traitecoevo/plant?branch=master&svg=true)](https://ci.appveyor.com/project/traitecoevo/plant/branch/master)
 [![Coverage Status](https://coveralls.io/repos/github/traitecoevo/plant/badge.svg?branch=master)](https://coveralls.io/github/traitecoevo/plant?branch=master)
 
+
+The plant package for R is an extensible framework for modelling size- and trait-structured demography, ecology and evolution in simulated forests. At its core, plant is an individual-based model where plant physiology and demography are mediated by traits. Individual plants from multiple species can be grown in isolation, in patches of competing plants or in metapopulations under a disturbance regime. These dynamics can be integrated into metapopulation-level estimates of invasion fitness and vegetation structure. Accessed from R, the core routines in plant are written in C++. The package provides for alternative physiologies and for capturing trade-offs among parameters. A detailed test suite is provided to ensure correct behaviour of the code.
+
+## Citation
+
+Falster DS, FitzJohn RG, Brännström Å, Dieckmann U, Westoby M (2016) plant: A package for modelling forest trait ecology & evolution. *Methods in Ecology and Evolution* 7: 136-146. doi: [10.1111/2041-210X.12525](http://doi.org/10.1111/2041-210X.12525)
+
 ## Documentation
 
-`plant` comes with a lot of documentation.  Run `library(help=plant)` to see the index, and see vignettes:
+For an overview of the plant package see the above publication. Further background on the default `FF16` growth model is available in Falster *et al* 2011 ([10.1111/j.1365-2745.2010.01735.x](http://doi.org/10.1111/j.1365-2745.2010.01735.x)) and Falster *et al* 2017 ([10.1101/083451](http://doi.org/10.1101/083451)).
+
+Run `library(help=plant)` to see the index of functions.
+
+`plant` comes with a lot of documentation. Initial versions were included as supplementary material with the publication about plant, which can be accessed [here](http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12525/abstract#footer-support-info). Updated versions can be built from within the package (instructions below) or accessed online:
 
 **Details of the modelling approaches:**
 
@@ -23,26 +34,26 @@
 * `vignette("fitness")`: Calculating fitness [online](https://traitecoevo.github.io/plant/vignettes/fitness.html)
 * `vignette("parameters")`: Modifying parameters of the physiological model [online](https://traitecoevo.github.io/plant/vignettes/parameters.html)
 
+If you want to build the vignettes locally, see [`docs/README.md`](docs/README.md) for details.  The vignettes are not built as part of the package installation as they take a couple of hours to build.
+
+**Details on package structure**
+
+Plant is a complex package. It uses [C++11](https://en.wikipedia.org/wiki/C%2B%2B11) behind the scenes for speed, and [R6 classes](https://cran.r-project.org/web/packages/R6/vignettes/Introduction.html). 
+
+In this blog post, Rich FitzJohn and I describe the [key technologies used to build the plant package](https://methodsblog.wordpress.com/2016/02/23/plant/).
+
+
 ## Installation
 
-Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, plus we've had success on Ubuntu 12.04 and 14.04).
+You must be using R 3.2.0 or newer. At this stage the package is not on cran. You're options for installing are described below.
 
-**Option 1, using [`drat`](https://github.com/eddelbuettel/drat)**
+Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, as do standard linux Ubuntu 12.04 and 14.04). On Windows machines you will need to install [Rtools](http://cran.r-project.org/bin/windows/Rtools/). When I tried this in Rstudio, Rstudio automagically sensed the absence of a compiler and asked if I wanted to install Rtools. Click `Yes`!
 
-(install `drat` with `install.packages("drat")`)
-
-```r
-drat:::add("traitecoevo")
-install.packages("plant", dependencies=TRUE)
-```
-
-Answer "Yes", if you get asked whether you wish to "install these from sources?". Alternatively try `install.packages("plant", type="source")` here.  The `dependencies=TRUE` installs some additional packages that are used in tests and some of the routines.
-
-**Option 2, using `devtools::install_github`**
+**Option 1, using `devtools::install_github`**
 
 (install `devtools` with `install.packages("devtools")`)
 
-The `plant` package can be installed from github using the [`devtools`](https://cran.r-project.org/web/packages/devtools/index.html) package. `plant` also requires the packages `loggr` and `RcppR6 packages`: install those with
+The `plant` package can be installed direct from github using the [`devtools`](https://cran.r-project.org/web/packages/devtools/index.html) package. `plant` also requires the packages `loggr` and `RcppR6` packages. Install those with
 
 ```r
 devtools::install_github("smbache/loggr", dependencies=TRUE)
@@ -55,10 +66,23 @@ Then install plant:
 devtools::install_github("traitecoevo/plant", dependencies=TRUE)
 ```
 
-### Windows
+**Option 2, download and install locally**
 
-Installation on Windows is likely to be a challenge, because of the lack of a C++11 compiler.  The current Windows [toolchain](http://cran.r-project.org/bin/windows/Rtools/) uses gcc 4.6.3, which des not feature enough C++11 support to successfully compile plant.  There is support coming for gcc 4.9.2, but that is [under development](https://rawgit.com/kevinushey/RToolsToolchainUpdate/master/mingwnotes.html).  This should become available on Windows very soon (it was initially aimed for 3.2.0 but didn't quite make it).  As soon as this is available we will provide Windows binaries.
+If installing locally you will still need to install the `loggr` and `RcppR6` packages. Install using `devtools::install_github` as above, or alternatively do as follows.
 
-## Building vignettes
+Download a zip file from github of the dependencies [RcppR6](https://github.com/richfitz/RcppR6/archive/master.zip) and [loggr](https://github.com/smbache/loggr/archive/master.zip) (if needed), plus [plant](https://github.com/traitecoevo/plant/archive/master.zip). 
 
-See [`docs/README.md`](docs/README.md) for details.  The vignettes are not built as part of the package installation as they take a couple of hours to build.
+Unzip these archives and then for each package run the command
+
+```r
+install.packages("path_to_package", repos = NULL, type="source")
+
+```
+where `path_to_package` is the folder for each package, e.g. `~/Downloads/plant-master`
+
+## Usage
+
+Plant has been used in the following publications:
+
+- Falster DS, FitzJohn RG, Brännström Å, Dieckmann U, Westoby M (2016) plant: A package for modelling forest trait ecology & evolution. *Methods in Ecology and Evolution* 7: 136-146. doi: [10.1111/2041-210X.12525](http://doi.org/10.1111/2041-210X.12525)&nbsp; code: [github](https://github.com/traitecoevo/plant_paper)
+- Falster DS, Duursma RA, FitzJohn RG (2016) Trajectories: how functional traits influence plant growth and shade tolerance across the life-cycle. *bioRxiv*: 083451. doi: [10.1101/083451](http://doi.org/10.1101/083451)&nbsp; code: [github](https://github.com/traitecoevo/growth_trajectories)
