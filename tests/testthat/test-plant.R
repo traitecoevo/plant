@@ -77,8 +77,8 @@ for (x in names(strategy_types)) {
     vars_pp <- pp$internals
     vars_pl <- pl$internals
 
-    expect_identical(vars_pl[variable_names], vars_pp[variable_names])
-    expect_identical(vars_pl[rate_names], vars_pp[rate_names])
+    expect_equal(vars_pl[variable_names], vars_pp[variable_names])
+    expect_equal(vars_pl[rate_names], vars_pp[rate_names])
 
     ## Area_leaf_above
     for (h in seq(0, h0, length.out=10)) {

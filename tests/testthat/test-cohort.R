@@ -57,9 +57,9 @@ for (x in names(strategy_types)) {
     ## Now, do this with the cohort:
     dgdh <- cohort$growth_rate_gradient(env)
 
-    expect_identical(dgdh, dgdh_forward)
+    expect_equal(dgdh, dgdh_forward)
 
-    ## Again with Richarson extrapolation:
+    ## Again with Richardson extrapolation:
         cohort <- Cohort(x)(s)
     cohort2 <- Cohort(x)(strategy_types[[x]](control=Control(cohort_gradient_richardson=TRUE)))
     expect_true(cohort2$plant$strategy$control$cohort_gradient_richardson)
@@ -117,7 +117,7 @@ for (x in names(strategy_types)) {
 
     ## Mortality is different because that's what Cohorts track
     v <- setdiff(names(cohort$plant$internals), "mortality")
-    expect_identical(cohort$plant$internals[v], plant$internals[v])
+    expect_equal(cohort$plant$internals[v], plant$internals[v])
 
     ## Set up plant too:
     pr_germ <- plant$germination_probability(env)

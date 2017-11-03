@@ -31,5 +31,5 @@ test_that("Gradients agree", {
   d <- 1e-6
   r <- 4L
   method_args <- list(d=d, eps=d)
-  expect_identical(test_gradient_richardson(f, x, d, r), numDeriv::grad(f, x, method.args=method_args))
+  expect_equal(test_gradient_richardson(f, x, d, r), numDeriv::grad(f, x, method.args=method_args))
 })

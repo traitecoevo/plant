@@ -158,6 +158,17 @@ test_that("grow_plant_to_time", {
 })
 
 test_that("Sensible behaviour on integration failure", {
+
+  pl <- FF16_PlantPlus()
+
+  env <- fixed_environment(1)
+  sizes <- seq_range(c(pl$height, 50), 50)
+  expect_warning(res <- grow_plant_to_size(pl, sizes, "height", env, 10, warn = TRUE, filter = TRUE),
+                  "Time exceeded time_max")
+  expect_is(res$plant, "list")
+  expect_equal(nrow(res$state), length(res$time))
+  expect_equal(res$state[,"height"], sizes[seq_len(length(res$time))], tol = 1E-5)
+
   ## As reported in issue #174
   traits <- trait_matrix(
     c(10.8552329005728,0.0105249489979936,633.641169104633,0.00227017846696535,3.61377429973252,0.66734,1.99575855688525,0.0567301588978768,900.481925352216,0.278101287831634,0.0183902655344452,0.523884989942541,4.34167189261234,4.520285,0.824983001217059,0.0344755338576102,0.245619588820917,0.260495,5031.78411788144,1.06992910086522,1.1368443297711,50,1),
@@ -170,9 +181,8 @@ test_that("Sensible behaviour on integration failure", {
   env <- fixed_environment(1)
   sizes <- seq_range(c(pl$height, 50), 50)
   expect_warning(res <- grow_plant_to_size(pl, sizes, "height", env, 1000, warn = TRUE, filter = TRUE),
-                  "integration failed with error")
+                  "50 larger sizes dropped")
   expect_equal(res$plant, list())
   expect_equal(res$time, numeric(0))
   expect_equal(nrow(res$state), 0)
-  expect_equal(nrow(res$trajectory), 1)
 })

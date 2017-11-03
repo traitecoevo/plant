@@ -52,27 +52,27 @@ test_that("Cannot make non-existent rules", {
 test_that("Vectorised interface to integration works", {
   int_15 <- QK(15)
   x <- int_15$integrate_vector_x(a, b)
-  expect_identical(int_15$integrate_vector(f(x), a, b), int_15$integrate(f, a, b))
+  expect_equal(int_15$integrate_vector(f(x), a, b), int_15$integrate(f, a, b))
 
   int_21 <- QK(21)
   x <- int_21$integrate_vector_x(a, b)
-  expect_identical(int_21$integrate_vector(f(x), a, b), int_21$integrate(f, a, b))
+  expect_equal(int_21$integrate_vector(f(x), a, b), int_21$integrate(f, a, b))
 
   int_31 <- QK(31)
   x <- int_31$integrate_vector_x(a, b)
-  expect_identical(int_31$integrate_vector(f(x), a, b), int_31$integrate(f, a, b))
+  expect_equal(int_31$integrate_vector(f(x), a, b), int_31$integrate(f, a, b))
 
   int_41 <- QK(41)
   x <- int_41$integrate_vector_x(a, b)
-  expect_identical(int_41$integrate_vector(f(x), a, b), int_41$integrate(f, a, b))
+  expect_equal(int_41$integrate_vector(f(x), a, b), int_41$integrate(f, a, b))
 
   int_51 <- QK(51)
   x <- int_51$integrate_vector_x(a, b)
-  expect_identical(int_51$integrate_vector(f(x), a, b), int_51$integrate(f, a, b))
+  expect_equal(int_51$integrate_vector(f(x), a, b), int_51$integrate(f, a, b))
 
   int_61 <- QK(61)
   x <- int_61$integrate_vector_x(a, b)
-  expect_identical(int_61$integrate_vector(f(x), a, b), int_61$integrate(f, a, b))
+  expect_equal(int_61$integrate_vector(f(x), a, b), int_61$integrate(f, a, b))
 
   ## Safe from wrong-length arguments.
   expect_error(int_61$integrate_vector(f(x)[-1], a, b), "Incorrect length input")
