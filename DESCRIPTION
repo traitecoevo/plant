@@ -8,7 +8,7 @@ Description: Solves trait, size and patch structured model
     from (Falster et al. 2016) using either method of
     characteristics or as stochastic, finite-sized population.
 Depends:
-    R (>= 3.1.0)
+    R (>= 3.3.0)
 Encoding: UTF-8
 License: GPL-2
 LazyData: true
@@ -20,9 +20,6 @@ Imports:
     crayon,
     nleqslv,
     BB
-Remotes: 
-    richfitz/RcppR6
-    smbache/loggr
 Suggests:
     testthat,
     deSolve,
