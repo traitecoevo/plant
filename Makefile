@@ -1,10 +1,11 @@
 PACKAGE := $(shell grep '^Package:' DESCRIPTION | sed -E 's/^Package:[[:space:]]+//')
 RSCRIPT = Rscript --no-init-file
 
-all: compile_dll
+all: compile
 
-compile_dll:
-	Rscript -e 'devtools::compile_dll()'
+compile: RcppR6 
+	Rscript -e 'devtools::compile_dll()' \ 
+	make roxygen
 
 test:
 	Rscript -e 'library(methods); devtools::test()'
@@ -44,4 +45,4 @@ staticdocs: vignettes
 website: staticdocs
 	./update_web.sh
 
-.PHONY: all compile_dll doc clean test install vignettes
+.PHONY: all compile doc clean test install vignettes
