@@ -83,11 +83,11 @@ run_latex <- function(filename, interaction="nonstopmode", engine="pdflatex") {
   args <- c(paste0("-interaction=", interaction),
             "-halt-on-error",
             filename)
-  callr::call_system(Sys_which(engine), args)
+  call_system(Sys_which(engine), args)
 }
 
 run_bibtex <- function(filename) {
-  callr::call_system(Sys_which("bibtex"), sub(".tex$", "", filename))
+  call_system(Sys_which("bibtex"), sub(".tex$", "", filename))
 }
 
 Sys_which <- function(x) {
