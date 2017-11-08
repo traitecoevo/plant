@@ -171,6 +171,8 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
        runner=runner)
 }
 
+##' @noRd
+##' @importFrom stats uniroot
 grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
   f <- function(t1) {
     runner$set_state(y0, t0)

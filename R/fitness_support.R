@@ -79,6 +79,7 @@ check_point <- function(x, bounds) {
   invisible(x)
 }
 
+##' @importFrom stats uniroot
 positive_1d <- function(f, x, dx, lower=-Inf, upper=Inf, tol=1e-3) {
   root <- function(b, type) {
     x <- b[[type]]$x

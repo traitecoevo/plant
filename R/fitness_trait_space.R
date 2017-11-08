@@ -14,6 +14,7 @@
 ##' @param log_scale Is the parameter naturally on a log scale?  If
 ##' so, this will greatly speed things up.
 ##' @param tol Tolerance used in the optimisation
+##' @importFrom stats optimise optim 
 ##' @export
 ##' @author Daniel Falster, Rich FitzJohn
 max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {

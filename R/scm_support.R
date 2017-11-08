@@ -1,3 +1,4 @@
+##' Sets reasonable defaults for fast numerical calculations
 ##' @title Fast Control Defaults
 ##' @return A Control object with parameters set.
 ##' @author Rich FitzJohn
@@ -206,8 +207,10 @@ run_scm_error <- function(p) {
        ode_times=scm$ode_times)
 }
 
-##' @rdname Hyperparameter functions
+##' Set a suitable hyperparameter function for chosen physiological model
+##' @title Hyperparameters for FF16 physiological model
 ##' @param type Either \code{"FF16"} or \code{"FF16r"}.
+##' @rdname Hyperparameter_functions
 ##' @export
 make_hyperpar <- function(type) {
   switch(type,
@@ -216,7 +219,7 @@ make_hyperpar <- function(type) {
          stop("Unknown type ", type))
 }
 
-##' @rdname Hyperparameter functions
+##' @rdname Hyperparameter_functions
 ##' @param type Either \code{"FF16"} or \code{"FF16r"}.
 ##' @export
 hyperpar <- function(type) {

@@ -13,6 +13,9 @@ defaults are used.}
 \value{
 A Control object with parameters set.
 }
+\description{
+Sets reasonable defaults for fast numerical calculations
+}
 \author{
 Rich FitzJohn
 }

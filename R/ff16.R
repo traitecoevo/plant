@@ -102,6 +102,7 @@ make_environment <- function(p) {
 ##' @param B_lf5 Scaling exponent for leaf nitrogen in maximum leaf photosynthesis [dimensionless]
 ##' @param k_I light extinction coefficient [dimensionless]
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
+##' @importFrom stats coef nls
 ##' @export
 ##' @rdname FF16_hyperpar
 make_FF16_hyperpar <- function(
@@ -279,8 +280,4 @@ make_FF16_hyperpar <- function(
 
 ##' @rdname FF16_hyperpar
 ##' @export
-##' @param m A trait matrix
-##' @param s A default strategy
-##' @param filter Logical, indicating if generated parameters that are
-##' the same as the default should be removed.
 FF16_hyperpar <- make_FF16_hyperpar()

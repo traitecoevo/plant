@@ -132,6 +132,7 @@ cbind_list <- function(x) {
 ##' @param ... Additional parameters passed to
 ##' \code{\link{splinefun}}.
 ##' @export
+##' @importFrom stats splinefun
 ##' @author Rich FitzJohn
 splinefun_log <- function(x, y, ...) {
   f <- splinefun(log(x), y, ...)
@@ -140,6 +141,7 @@ splinefun_log <- function(x, y, ...) {
   }
 }
 ##' @export
+##' @importFrom stats splinefun
 ##' @rdname splinefun_log
 splinefun_loglog <- function(x, y, ...) {
   f <- splinefun(log(x), log(y), ...)
@@ -200,6 +202,7 @@ vcapply <- function(X, FUN, ...) {
 ##' @param col Vector of colours
 ##' @param opacity Vector of opacities
 ##' @export
+##' @importFrom grDevices col2rgb rgb
 ##' @examples
 ##' make_transparent("red", seq(0, 1, length.out=6))
 ##' make_transparent(c("red", "blue"), .5)
@@ -228,6 +231,7 @@ assert_named_if_not_empty <- function(x, name=deparse(substitute(x))) {
   }
 }
 
+##' @importFrom utils modifyList
 modify_list <- function(x, val) {
   modifyList(x, val[intersect(names(val), names(x))])
 }

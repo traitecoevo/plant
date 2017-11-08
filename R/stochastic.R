@@ -3,6 +3,7 @@
 ## Generate a vector of arrival times.
 ##
 ## This will be slow, but fairly easy to get right.
+##' @importFrom stats rexp
 stochastic_arrival_times <- function(max_time, seed_rain_total, n=NULL) {
   if (is.null(n)) {
     n <- max_time * seed_rain_total
