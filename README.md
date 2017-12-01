@@ -45,9 +45,9 @@ In this blog post, Rich FitzJohn and I describe the [key technologies used to bu
 
 ## Installation
 
-You must be using R 3.2.0 or newer. At this stage the package is not on cran. You're options for installing are described below.
+You must be using R 3.3.0 or newer. At this stage the package is not on CRAN. You're options for installing are described below.
 
-Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, as do standard linux Ubuntu 12.04 and 14.04). On Windows machines you will need to install [Rtools](http://cran.r-project.org/bin/windows/Rtools/). When I tried this in Rstudio, Rstudio automagically sensed the absence of a compiler and asked if I wanted to install Rtools. Click `Yes`!
+Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, as do standard linux Ubuntu 12.04 and 14.04). On Windows machines you will need to install [Rtools](http://cran.r-project.org/bin/windows/Rtools/). When I tried this in [Rstudio](https://www.rstudio.com/), the program [automagically](https://en.oxforddictionaries.com/definition/automagically) sensed the absence of a compiler and asked if I wanted to install Rtools. Click `Yes`!
 
 **Option 1, using `devtools::install_github`**
 
@@ -70,7 +70,13 @@ devtools::install_github("traitecoevo/plant", dependencies=TRUE)
 
 If installing locally you will still need to install the `loggr` and `RcppR6` packages. Install using `devtools::install_github` as above, or alternatively do as follows.
 
-Download a zip file from github of the dependencies [RcppR6](https://github.com/richfitz/RcppR6/archive/master.zip) and [loggr](https://github.com/smbache/loggr/archive/master.zip) (if needed), plus [plant](https://github.com/traitecoevo/plant/archive/master.zip). 
+Additionally install other dependencies from CRAN:
+
+```r
+install.packages(c("Rcpp", "R6", "crayon", "nleqslv", "BB" ,"BH"))
+``` 
+
+Then download a zip file from github of the dependencies [RcppR6](https://github.com/richfitz/RcppR6/archive/master.zip) and [loggr](https://github.com/smbache/loggr/archive/master.zip) (if needed), plus [plant](https://github.com/traitecoevo/plant/archive/master.zip). 
 
 Unzip these archives and then for each package run the command
 
