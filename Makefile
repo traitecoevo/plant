@@ -35,14 +35,13 @@ clean:
 	rm -f src/*.o src/*.so
 
 vignettes:
-	(cd docs; remake install_vignettes)
+	(cd inst/docs; ln -sf ../../vignettes vignettes; remake install_vignettes)
 
-staticdocs: vignettes
-	@mkdir -p inst/staticdocs
-	Rscript -e "library(methods); staticdocs::build_site()"
-	rm -f vignettes/*.html
-	@rmdir inst/staticdocs
-website: staticdocs
-	./update_web.sh
+pkgdown: vignettes
+	Rscript -e "pkgdown::build_site()"
+	open "docs/index.html"
+
+website: pkgdown
+	sh update_web.sh
 
 .PHONY: all compile doc clean test install vignettes

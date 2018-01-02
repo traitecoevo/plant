@@ -9,9 +9,9 @@
 ^update_web.sh$
 ^inst/doc
 ^inst/web
-^doc$
 ^docs$
 ^plant_.+\.tar\.gz$
 ^vignettes$
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^_pkgdown\.yml$

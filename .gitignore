@@ -1,5 +1,8 @@
 *.Rproj
-inst/doc
-inst/web
 vignettes/*
 .Rproj.user
+.vscode
+/docs
+.Rhistory
+*.so
+*.o
