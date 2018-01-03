@@ -151,6 +151,7 @@ targets:
       - vignettes/emergent.Rmd
       - vignettes/fitness.Rmd
       - vignettes/cohort_spacing.Rmd
+      - vignettes/developer_notes.Rmd
       - vignettes/parameters.Rmd
       - growth_model_pars_core.tex
       - growth_model_pars_hyper.tex
@@ -171,6 +172,8 @@ targets:
     command: patch_md("patch.md", target_name)
   vignettes/emergent.Rmd:
     command: patch_md("emergent.md", target_name)
+  vignettes/developer_notes.Rmd:
+    command: patch_md("developer_notes.md", target_name)
   vignettes/fitness.Rmd:
     command: patch_md("fitness.md", target_name)
   vignettes/parameters.Rmd:

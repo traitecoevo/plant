@@ -35,7 +35,7 @@ clean:
 	rm -f src/*.o src/*.so
 
 vignettes:
-	(cd inst/docs; ln -sf ../../vignettes vignettes; remake install_vignettes)
+	(cd inst/docs; ln -sfn ../../vignettes vignettes; remake install_vignettes)
 
 pkgdown: vignettes
 	Rscript -e "pkgdown::build_site()"

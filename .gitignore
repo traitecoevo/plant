@@ -1,8 +1,4 @@
-*.Rproj
 vignettes/*
-.Rproj.user
-.vscode
-/docs
-.Rhistory
-*.so
-*.o
+inst/doc/
+docs
+!/inst/docs/
