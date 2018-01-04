@@ -2,3 +2,4 @@ vignettes/*
 inst/doc/
 docs
 !/inst/docs/
+.Rproj.user

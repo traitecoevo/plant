@@ -37,11 +37,14 @@ clean:
 vignettes:
 	(cd inst/docs; ln -sfn ../../vignettes vignettes; remake install_vignettes)
 
-pkgdown: vignettes
+build_site: vignettes
 	Rscript -e "pkgdown::build_site()"
+
+pkgdown: build_site
 	open "docs/index.html"
 
-website: pkgdown
+website: build_site
 	sh update_web.sh
+	open "https://traitecoevo.github.io/plant/"
 
 .PHONY: all compile doc clean test install vignettes

@@ -26,21 +26,25 @@ Run `library(help=plant)` to see the index of functions.
 
 **Details of using `plant` from R:**
 
-* `vignette("plant")`: Plant level properties [online](https://traitecoevo.github.io/plant/vignettes/plant.html)
-* `vignette("cohort_spacing")`: The cohort spacing algorithm [online](https://traitecoevo.github.io/plant/vignettes/cohort_spacing.html)
-* `vignette("equilibrium")`: Finding demographic equilibrium [online](https://traitecoevo.github.io/plant/vignettes/equilibrium.html)
-* `vignette("patch")`: Patch level dynamics [online](https://traitecoevo.github.io/plant/vignettes/patch.html)
-* `vignette("emergent")`: Patch level emergent properties [online](https://traitecoevo.github.io/plant/vignettes/emergent.html)
-* `vignette("fitness")`: Calculating fitness [online](https://traitecoevo.github.io/plant/vignettes/fitness.html)
-* `vignette("parameters")`: Modifying parameters of the physiological model [online](https://traitecoevo.github.io/plant/vignettes/parameters.html)
+* `vignette("plant")`: Plant level properties [online](https://traitecoevo.github.io/plant/articles/plant.html)
+* `vignette("cohort_spacing")`: The cohort spacing algorithm [online](https://traitecoevo.github.io/plant/articles/cohort_spacing.html)
+* `vignette("equilibrium")`: Finding demographic equilibrium [online](https://traitecoevo.github.io/plant/articles/equilibrium.html)
+* `vignette("patch")`: Patch level dynamics [online](https://traitecoevo.github.io/plant/articles/patch.html)
+* `vignette("emergent")`: Patch level emergent properties [online](https://traitecoevo.github.io/plant/articles/emergent.html)
+* `vignette("fitness")`: Calculating fitness [online](https://traitecoevo.github.io/plant/articles/fitness.html)
+* `vignette("parameters")`: Modifying parameters of the physiological model [online](https://traitecoevo.github.io/plant/articles/parameters.html)
 
-If you want to build the vignettes locally, see [`docs/README.md`](docs/README.md) for details.  The vignettes are not built as part of the package installation as they take a couple of hours to build.
+If you want to build the vignettes locally, see [`inst/docs/README.md`](inst/docs/README.md) for details.  The vignettes are not built as part of the package installation as they take a couple of hours to build.
 
 **Details on package structure**
 
 Plant is a complex package. It uses [C++11](https://en.wikipedia.org/wiki/C%2B%2B11) behind the scenes for speed, and [R6 classes](https://cran.r-project.org/web/packages/R6/vignettes/Introduction.html). 
 
 In this blog post, Rich FitzJohn and I describe the [key technologies used to build the plant package](https://methodsblog.wordpress.com/2016/02/23/plant/).
+
+**Developer Notes**
+
+If you are interested in developing plant you should read the [developer notes](https://traitecoevo.github.io/plant/articles/developer_notes.html).
 
 
 ## Installation
@@ -85,6 +89,16 @@ install.packages("path_to_package", repos = NULL, type="source")
 
 ```
 where `path_to_package` is the folder for each package, e.g. `~/Downloads/plant-master`
+
+**Installing different versions** 
+
+To install a specific (older) release, decide for the version number that you want to install in https://github.com/traitecoevo/plant/releases  e.g.
+
+```r
+devtools::install_github("traitecoevo/plant", ref = "v1.0.0", dependencies=TRUE)
+```
+
+with `"v1.0.0"` replaced by the appropriate version number.
 
 ## Usage
 

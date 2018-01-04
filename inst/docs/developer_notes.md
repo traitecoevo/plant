@@ -2,9 +2,19 @@
 title: "Developer Notes"
 ---
 
+## Issues
+
+We use [github issues](https://github.com/traitecoevo/plant/issues/) for feature requests, bug reports and  developer coordination.
+
 ## Gitflow workflow
 
-We use the [Gitflow]([here](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow)) workflow.
+We use the [Gitflow](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow) workflow.
+This means we have two main branches:
+
+1. a master branch (`master`) for stable releases
+2. a development branch (`develop`) where all development takes place
+
+We also use feature branches which branch from the development branch where we can then introduce new features and then pull them back into the development branch.
 
 ##  Code Structure
 #### Directory  Structure
