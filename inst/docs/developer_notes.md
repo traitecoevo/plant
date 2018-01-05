@@ -71,20 +71,18 @@ Modified Files:
 * `src/plant_plus.cpp`
 * `src/plant_tools.cpp`
 * `tests/testthat/helper-plant.R`
-* `R/scm_support.R` (Uses the FF16 hyperpar and make_hyperpar)
-
-(I am unsure if we need to please advise )
-Files that you might have to  edit by hand as well as edit the documentation: 
-* update `R/reference_plant.R`
-* `R/scm_support.R` (Just documentation for hyperpar and make_hyperpar functions)
+* `R/scm_support.R` (Currently uses the FF16 hyperpar and make_hyperpar)
 
 4. Then navigate back to the root directory of the project and run `make clean; make; make test`to recompile and test `plant` with your new strategy.
 
-If you want to make changes to your new strategies parameters you will have to update: 
+5. Modify the files `src/NAME_strategy.cpp` and `inst/include/plant/NAME_strategy.h` to reflect any changes in biology.
+6. Run make `make` to recompile plant
+7. Write suitable tests for your new strategy and run `make test` 
 
+If you want to make changes to your new strategies parameters you will have to update: 
 * `inst/include/RccpR6_classes.yml` In the top level section describing your parameters.
 
-When you make changes to your strategy remember to update the tests!
+----
 
 ## Makefile guide:
 
