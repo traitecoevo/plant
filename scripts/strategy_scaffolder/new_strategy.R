@@ -2,7 +2,6 @@
 
 library(whisker)
 library(yaml)
-library(purrr)
 
 root <-  "./../.."
 R6_yaml_path <- paste0(root, "/inst/RcppR6_classes.yml")
@@ -55,15 +54,16 @@ render_cpp <- function (name) {
 update_classes_yml <- function (name) {
   readLines(R6_yaml_path) -> raw
   # add the extra templates below the FF16r ones
-  raw %>% map(function(x) {
+  lapply(raw, function(x) {
       if(x != "      - [\"FF16r\": \"plant::FF16r_Strategy\"]") return(x)
       c(x, 
         whisker.render(
           "      - [\"{{name}}\": \"plant::{{name}}_Strategy\"]",
           list(name=name)
         ))
-    }) %>%
-    flatten() -> r6_templates
+    }) -> r6_templates
+  
+  unlist(r6_templates) -> r6_templates
 
   # add the strategy
 
@@ -109,14 +109,15 @@ update_plant_plus <- function (name) {
 
   readLines(paste0(root, "/src/plant_plus.cpp")) -> raw
   # add the extra templates below the FF16r ones
-  raw %>% map(function(x) {
+  lapply(raw, function(x) {
       if(x != "#include <plant/ff16r_strategy.h>") return(x)
       c(x, 
         whisker.render("#include <plant/{{name}}_strategy.h>",
           list(name=tolower(name))
         ))
-    }) %>%
-    flatten() -> with_includes
+    }) -> with_includes
+
+  unlist(with_includes) -> with_includes
 
   # add the the technical debt to the end of the file
 
@@ -143,15 +144,14 @@ plant::PlantPlus<plant::{{name}}_Strategy>
 update_plant <- function (name) {
     readLines(paste0(root, "/inst/include/plant.h")) -> raw
   # add the extra templates below the FF16r ones
-  raw %>% map(function(x) {
+  lapply(raw, function(x) {
       if(x != "#include <plant/ff16r_strategy.h>") return(x)
       c(x, 
         whisker.render("#include <plant/{{name}}_strategy.h>",
           list(name=tolower(name))
         ))
-    }) %>%
-    flatten() -> out
-      paste0(unlist(out)) -> out
+    }) -> out
+  paste0(unlist(out)) -> out
   writeLines(
     out, 
     paste0(root, "/inst/include/plant.h")
@@ -159,8 +159,7 @@ update_plant <- function (name) {
 }
 
 update_plant_r <- function (name) {
-  t1 <- whisker.render("
-# The following two functions were added by the scaffolder in
+  t1 <- whisker.render("# The following two functions were added by the scaffolder in
 # /scripts/strategy_scaffolder/new_strategy.R
 ##' @export
 `plant_to_plant_plus.Plant<{{name}}>` <- function(x, ...) {
@@ -198,17 +197,14 @@ update_test_helper <- function(name) {
 
   readLines(paste0(root, "/tests/testthat/helper-plant.R")) -> raw
   # add the extra templates below the FF16r ones
-  raw %>% map(function(x) {
+  lapply(raw, function(x) {
       switch(x, 
         "       FF16r=FF16r_Strategy)"=c(t1, x),
         "       FF16r=FF16r_hyperpar)"=c(t2, x),
         x
       )
-    }) %>%
-    flatten %>% 
-    unlist %>% 
-    paste0 -> out
-  
+    }) -> out
+  paste0(unlist(out)) -> out  
   writeLines(out,
     paste0(root, "/tests/testthat/helper-plant.R")
   )
@@ -220,19 +216,15 @@ update_scm_support <- function (name) {
 
   readLines(paste0(root, "/R/scm_support.R")) -> raw
   # add the extra templates below the FF16r ones
-  raw %>% map(function(x) {
+  lapply(raw, function(x) {
       switch(x, 
         "         FF16r=make_FF16_hyperpar,"=c(t1, x),
         "         FF16r=FF16_hyperpar,"=c(t2, x),
         x
       )
-    }) %>%
-    flatten %>% 
-    unlist %>% 
-    paste0 -> out
-  
+    }) -> out
+  paste0(unlist(out)) -> out
   writeLines(out,
-    #"scm_support.R"
     paste0(root, "/R/scm_support.R")
   )
 }
