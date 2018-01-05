@@ -23,6 +23,8 @@ echo "\tinst/include/RccpR6_classes.yml"
 echo "\tsrc/plant_plus.cpp"
 echo "\tsrc/plant_tools.cpp"
 echo "\ttests/testthat/helper-plant.cpp"
+echo "\tR/plant.R"
+echo "\tR/scm_support.R"
 echo 
 echo run the following in the root directory to recompile and test plant.
 echo "make clean; make; make test; make install"

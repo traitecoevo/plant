@@ -212,6 +212,7 @@ run_scm_error <- function(p) {
 ##' @param type Either \code{"FF16"} or \code{"FF16r"}.
 ##' @rdname Hyperparameter_functions
 ##' @export
+# if you update this function (even synatctic changes) update the function update_smc_support in the scaffolder
 make_hyperpar <- function(type) {
   switch(type,
          FF16=make_FF16_hyperpar,
@@ -222,6 +223,7 @@ make_hyperpar <- function(type) {
 ##' @rdname Hyperparameter_functions
 ##' @param type Either \code{"FF16"} or \code{"FF16r"}.
 ##' @export
+# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
 hyperpar <- function(type) {
   switch(type,
          FF16=FF16_hyperpar,

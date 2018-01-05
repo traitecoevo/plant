@@ -193,8 +193,8 @@ render_tests <- function(name) {
 }
 # Updates helper-plant's list of strategies
 update_test_helper <- function(name) {
-  t1 <- whisker.render("       {{name}}={{name}}_Strategy,")
-  t2 <- whisker.render("       {{name}}={{name}}_hyperpar,")
+  t1 <- whisker.render("       {{name}}={{name}}_Strategy,", list(name=name))
+  t2 <- whisker.render("       {{name}}={{name}}_hyperpar,", list(name=name))
 
   readLines(paste0(root, "/tests/testthat/helper-plant.R")) -> raw
   # add the extra templates below the FF16r ones
@@ -214,6 +214,28 @@ update_test_helper <- function(name) {
   )
 }
 
+update_scm_support <- function (name) {
+  t1 <- whisker.render("         {{name}}=make_FF16_hyperpar,", list(name=name))
+  t2 <- whisker.render("         {{name}}=FF16_hyperpar,", list(name=name))
+
+  readLines(paste0(root, "/R/scm_support.R")) -> raw
+  # add the extra templates below the FF16r ones
+  raw %>% map(function(x) {
+      switch(x, 
+        "         FF16r=make_FF16_hyperpar,"=c(t1, x),
+        "         FF16r=FF16_hyperpar,"=c(t2, x),
+        x
+      )
+    }) %>%
+    flatten %>% 
+    unlist %>% 
+    paste0 -> out
+  
+  writeLines(out,
+    #"scm_support.R"
+    paste0(root, "/R/scm_support.R")
+  )
+}
 new_strategy <- function(name) {
   check(name)
   render_r(name)
@@ -226,4 +248,5 @@ new_strategy <- function(name) {
   update_plant_r(name)
   render_tests(name)
   update_test_helper(name)
+  update_scm_support(name)
 }

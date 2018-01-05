@@ -71,11 +71,12 @@ Modified Files:
 * `src/plant_plus.cpp`
 * `src/plant_tools.cpp`
 * `tests/testthat/helper-plant.R`
+* `R/scm_support.R` (Uses the FF16 hyperpar and make_hyperpar)
 
 (I am unsure if we need to please advise )
 Files that you might have to  edit by hand as well as edit the documentation: 
 * update `R/reference_plant.R`
-* update `R/scm_support.R`
+* `R/scm_support.R` (Just documentation for hyperpar and make_hyperpar functions)
 
 4. Then navigate back to the root directory of the project and run `make clean; make; make test`to recompile and test `plant` with your new strategy.
 
