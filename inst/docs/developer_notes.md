@@ -70,13 +70,14 @@ Modified Files:
 * `src/plant_plus.cpp`
 * `src/plant_tools.cpp`
 
-4. Then navigate back to the root directory of the project and run `make` to compile the package with your new strategy.
-
 (I am unsure if we need to please advise )
 Files that you might have to  edit by hand as well as edit the documentation: 
-1. update `R/reference_plant.R`
-2. update `R/scm_support.R`
+* update `R/reference_plant.R`
+* update `R/scm_support.R`
 
+4. Then navigate back to the root directory of the project and run `make clean` then `make` to compile the package with your new strategy.
+
+5. Run `make install` to reinstall your plant package.
 
 ## Makefile guide:
 
