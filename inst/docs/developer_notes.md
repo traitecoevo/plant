@@ -51,7 +51,7 @@ The site is then pushed to the `gh-pages` branch. (https://traitecoevo.github.io
 ## Installing new strategies
 
 To install a new strategy use the scaffolder found in `scripts/strategy_scaffolder`:
-1. **IMPORTANT:** Make sure your project is at a state where you are happy to go back to if you decide to, ie: do this in a new branch or fork. There is no easy way to undo the changes to this package so you will have to do `git reset --hard HEAD` if you want to go back.
+1. **IMPORTANT:** Make sure your project is at a state where you are happy to go back to if you decide to, ie: do this in a new branch or fork. There is no easy way to undo the changes to this package so you will have to do `git reset --hard HEAD` if you want to go back. You will still have to delete the new and untracked files listed below.
 
 2. Move to `scripts/strategy_scaffolder` by running `cd scripts/strategy_scaffolder` from the root of this project.
 3. Run the scaffolder with `sh strategy_scaffolder.sh NAME` where `NAME` is the name of your strategy, The default strategy's name is `FF16`

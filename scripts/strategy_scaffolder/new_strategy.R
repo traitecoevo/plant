@@ -179,7 +179,7 @@ update_plant_r <- function (name) {
   paste0(unlist(out)) -> out
   writeLines(
     out, 
-    paste0(root, "/inst/include/plant.h")
+    paste0(root, "/R/plant.R")
   )
 }
 
