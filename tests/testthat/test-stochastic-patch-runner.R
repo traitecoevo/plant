@@ -53,9 +53,10 @@ test_that("collect", {
                           patch_area=50,
                           is_resident=TRUE,
                           control=fast_control())
-    res <- run_stochastic_collect(p)
+    expect_silent(res <- run_stochastic_collect(p))
+    ## TODO: more tests on collect output
 
-    ## This shows that we're probably over-agressively killing plants.
+    ## This shows that we're probably over-aggressively killing plants.
     ## Not sure why, but might be mostly due to the patch area being far
     ## too low.
     if (FALSE) {

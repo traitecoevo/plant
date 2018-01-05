@@ -113,6 +113,6 @@ test_that("OdeR interface", {
   expect_identical(lo$ode_state, sol2$state)
 
   lo$ode_state <- y
-  expect_not_identical(lo$ode_state, sol2$state)
+  expect_false(identical(lo$ode_state, sol2$state))
   expect_error(sol2$set_state_from_system(), "Time does not match previous")
 })

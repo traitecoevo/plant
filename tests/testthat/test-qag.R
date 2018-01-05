@@ -186,7 +186,7 @@ test_that("Non-adaptive integration works", {
     expect_identical(ans_f, ans_q)
     expect_identical(int_f$last_error, int_q$last_error)
     if (length(int_a$last_intervals[[1]]) > 1L) {
-      expect_not_identical(ans_a, ans_q)
+      expect_false(identical(ans_a, ans_q))
     } else {
       expect_identical(ans_a, ans_q)
     }

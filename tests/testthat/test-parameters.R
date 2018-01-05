@@ -84,10 +84,10 @@ test_that("Parameters overwrites Strategy control", {
 
     s <- strategy_types[[x]](control=ctrl_s)
     expect_identical(s$control, ctrl_s)
-    expect_not_identical(s$control, ctrl_p)
+    expect_false(identical(s$control, ctrl_p))
 
     p <- Parameters(x)(control=ctrl_p)
-    expect_not_identical(p$control, ctrl_s)
+    expect_false(identical(p$control, ctrl_s))
     expect_identical(p$control, ctrl_p)
 
     p$strategies <- list(s)
@@ -175,7 +175,7 @@ test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- FF16_Parameters()
   m <- trait_matrix(x, "hmat")
-  expect_not_warning(sl <- strategy_list(m, p0))
+  expect_silent(sl <- strategy_list(m, p0))
 
   cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0))
   expect_equal(sl, cmp)
