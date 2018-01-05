@@ -191,6 +191,28 @@ render_tests <- function(name) {
     paste0(root, "/tests/testthat/test-strategy-", tolower(name), ".R")
   )
 }
+# Updates helper-plant's list of strategies
+update_test_helper <- function(name) {
+  t1 <- whisker.render("       {{name}}={{name}}_Strategy,")
+  t2 <- whisker.render("       {{name}}={{name}}_hyperpar,")
+
+  readLines(paste0(root, "/tests/testthat/helper-plant.R")) -> raw
+  # add the extra templates below the FF16r ones
+  raw %>% map(function(x) {
+      switch(x, 
+        "       FF16r=FF16r_Strategy)"=c(t1, x),
+        "       FF16r=FF16r_hyperpar)"=c(t2, x),
+        x
+      )
+    }) %>%
+    flatten %>% 
+    unlist %>% 
+    paste0 -> out
+  
+  writeLines(out,
+    paste0(root, "/tests/testthat/helper-plant.R")
+  )
+}
 
 new_strategy <- function(name) {
   check(name)
@@ -203,4 +225,5 @@ new_strategy <- function(name) {
   update_plant_tools(name)
   update_plant_r(name)
   render_tests(name)
+  update_test_helper(name)
 }

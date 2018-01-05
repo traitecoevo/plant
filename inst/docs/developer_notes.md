@@ -70,6 +70,7 @@ Modified Files:
 * `inst/include/RccpR6_classes.yml`
 * `src/plant_plus.cpp`
 * `src/plant_tools.cpp`
+* `tests/testthat/helper-plant.R`
 
 (I am unsure if we need to please advise )
 Files that you might have to  edit by hand as well as edit the documentation: 

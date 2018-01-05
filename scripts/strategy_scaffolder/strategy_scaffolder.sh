@@ -22,6 +22,7 @@ echo "\tinst/include/plant.h"
 echo "\tinst/include/RccpR6_classes.yml"
 echo "\tsrc/plant_plus.cpp"
 echo "\tsrc/plant_tools.cpp"
+echo "\ttests/testthat/helper-plant.cpp"
 echo 
 echo run the following in the root directory to recompile and test plant.
 echo "make clean; make; make test; make install"
