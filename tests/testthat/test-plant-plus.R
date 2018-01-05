@@ -50,7 +50,7 @@ test_that("Assimilation over distribution", {
 
     ## Result is similar but not identical:
     expect_equal(p2_vars, p1_vars, tolerance=1e-7)
-    expect_not_identical(p2_vars, p1_vars)
+    expect_false(identical(p2_vars, p1_vars))
   }
 })
 
@@ -77,7 +77,7 @@ test_that("Non-adaptive assimilation integration works", {
 
     ## Result is similar but not identical:
     expect_equal(p2_vars[["assimilation"]], p1_vars[["assimilation"]], tolerance=1e-3)
-    expect_not_identical(p2_vars, p1_vars)
+    expect_false(identical(p2_vars, p1_vars))
   }
 })
 

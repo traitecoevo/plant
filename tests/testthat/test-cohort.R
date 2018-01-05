@@ -68,7 +68,7 @@ for (x in names(strategy_types)) {
     ## somewhere or an issue due to reusing intervals.
     dgdh2 <- cohort2$growth_rate_gradient(env)
     ## expect_identical(dgdh2, dgdh_richardson)
-    expect_not_identical(dgdh2, dgdh)
+    expect_false(identical(dgdh2, dgdh))
 
     ## p <- cohort2$plant
     ## p$compute_vars_phys(env)

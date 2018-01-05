@@ -112,11 +112,11 @@ test_that("grow_plant_to_size", {
     expect_equal(last(res2$time), NA_real_)
     expect_false(any(is.na(res2$time[-length(sizes2)])))
 
-    expect_not_warning(res3 <- grow_plant_to_size(pl, sizes2, "height", env,
+    expect_silent(res3 <- grow_plant_to_size(pl, sizes2, "height", env,
                                            100, warn=FALSE))
     expect_equal(res3, res2)
 
-    expect_not_warning(res4 <- grow_plant_to_size(pl, sizes2, "height", env,
+    expect_silent(res4 <- grow_plant_to_size(pl, sizes2, "height", env,
                                            100, warn=FALSE, filter=TRUE))
 
     ## Manually filter:
