@@ -79,6 +79,10 @@ Files that you might have to  edit by hand as well as edit the documentation:
 
 5. Run `make install` to reinstall your plant package.
 
+If you want to make changes to your new strategies parameters you will have to update: 
+
+* `inst/include/RccpR6_classes.yml` In the top level section describing your parameters.
+
 ## Makefile guide:
 
 #### All
