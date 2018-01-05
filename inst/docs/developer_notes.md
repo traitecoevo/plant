@@ -48,6 +48,42 @@ To build and push the website to the `gh-pages` branch run `make website`.
 This first builds the vignettes from `/inst/docs` then builds the site with [pkgdown](http://pkgdown.r-lib.org).
 The site is then pushed to the `gh-pages` branch. (https://traitecoevo.github.io/plant)
 
+## Installing new strategies
+
+To install a new strategy use the scaffolder found in `scripts/strategy_scaffolder`:
+1. **IMPORTANT:** Make sure your project is at a state where you are happy to go back to if you decide to, ie: do this in a new branch or fork. There is no easy way to undo the changes to this package so you will have to do `git reset --hard HEAD` if you want to go back. You will still have to delete the new and untracked files listed below.
+
+2. Move to `scripts/strategy_scaffolder` by running `cd scripts/strategy_scaffolder` from the root of this project.
+3. Run the scaffolder with `sh strategy_scaffolder.sh NAME` where `NAME` is the name of your strategy, The default strategy's name is `FF16`
+
+This creates new files and modifies existing ones to add a new strategy based off of the templates found in `scripts/strategy_scaffolder/templates`.
+The following files are created or modified: 
+
+New files created:
+* `R/NAME.R`
+* `src/NAME_strategy.cpp`
+* `inst/include/plant/NAME_strategy.h`
+* `tests/testthat/test-strategy-NAME.R`
+
+Modified Files:
+* `inst/include/plant.h`
+* `inst/include/RccpR6_classes.yml`
+* `src/plant_plus.cpp`
+* `src/plant_tools.cpp`
+
+(I am unsure if we need to please advise )
+Files that you might have to  edit by hand as well as edit the documentation: 
+* update `R/reference_plant.R`
+* update `R/scm_support.R`
+
+4. Then navigate back to the root directory of the project and run `make clean; make; make test`to recompile and test `plant` with your new strategy.
+
+If you want to make changes to your new strategies parameters you will have to update: 
+
+* `inst/include/RccpR6_classes.yml` In the top level section describing your parameters.
+
+When you make changes to your strategy remember to update the tests!
+
 ## Makefile guide:
 
 #### All

@@ -1,0 +1,75 @@
+# This strategy was built from the template /scripts/strategy_scaffolder/templates/NAME.Rtempate
+# This strategy was based off R/ff16r.R
+
+##' Create a {{name}} Plant or Cohort
+##' @title Create a {{name}} Plant or Cohort
+##' @param s A \code{\link{{{name}}_Strategy}} object
+##' @export
+##' @rdname {{name}}
+##' @examples
+##' pl <- {{name}}_Plant()
+##' pl$height
+{{name}}_Plant <- function(s={{name}}_Strategy()) {
+  Plant("{{name}}")(s)
+}
+
+##' @export
+##' @rdname {{name}}
+{{name}}_Cohort <- function(s={{name}}_Strategy()) {
+  Cohort("{{name}}")(s)
+}
+
+##' @export
+##' @rdname {{name}}
+{{name}}_Species <- function(s={{name}}_Strategy()) {
+  Species("{{name}}")(s)
+}
+
+##' @export
+##' @rdname {{name}}
+##' @param ... Arguments!
+{{name}}_Parameters <- function(...) {
+  Parameters("{{name}}")(...)
+}
+
+##' @export
+##' @rdname {{name}}
+##' @param p A \code{Parameters<{{name}}>} object
+{{name}}_Patch <- function(p) {
+  Patch("{{name}}")(p)
+}
+
+##' @export
+##' @rdname {{name}}
+{{name}}_SCM <- function(p) {
+  SCM("{{name}}")(p)
+}
+
+##' @export
+##' @rdname {{name}}
+{{name}}_StochasticSpecies <- function(s={{name}}_Strategy()) {
+  StochasticSpecies("{{name}}")(s)
+}
+
+##' @export
+##' @rdname {{name}}
+{{name}}_StochasticPatch <- function(p) {
+  StochasticPatch("{{name}}")(p)
+}
+
+##' @export
+##' @rdname {{name}}
+{{name}}_StochasticPatchRunner <- function(p) {
+  StochasticPatchRunner("{{name}}")(p)
+}
+
+##' @export
+##' @rdname {{name}}
+{{name}}_PlantPlus <- function(s={{name}}_Strategy()) {
+  PlantPlus("{{name}}")(s)
+}
+
+##' @rdname FF16_hyperpar
+##' @export
+{{name}}_hyperpar <- make_FF16_hyperpar()
+ 
