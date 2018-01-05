@@ -63,6 +63,7 @@ New files created:
 * `R/NAME.R`
 * `src/NAME_strategy.cpp`
 * `inst/include/plant/NAME_strategy.h`
+* `tests/testthat/test-strategy-NAME.R`
 
 Modified Files:
 * `inst/include/plant.h`
@@ -75,13 +76,13 @@ Files that you might have to  edit by hand as well as edit the documentation:
 * update `R/reference_plant.R`
 * update `R/scm_support.R`
 
-4. Then navigate back to the root directory of the project and run `make clean` then `make` to compile the package with your new strategy.
-
-5. Run `make install` to reinstall your plant package.
+4. Then navigate back to the root directory of the project and run `make clean; make; make test`to recompile and test `plant` with your new strategy.
 
 If you want to make changes to your new strategies parameters you will have to update: 
 
 * `inst/include/RccpR6_classes.yml` In the top level section describing your parameters.
+
+When you make changes to your strategy remember to update the tests!
 
 ## Makefile guide:
 

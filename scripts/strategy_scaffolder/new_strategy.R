@@ -183,6 +183,15 @@ update_plant_r <- function (name) {
   )
 }
 
+# Builds the tests to tests/testthat/test-strategy-name.R
+render_tests <- function(name) {
+  template <- read_template("./templates/test-strategy-NAME.Rtemplate")
+  writeLines(
+    whisker.render(template, list(name=name)),
+    paste0(root, "/tests/testthat/test-strategy-", tolower(name), ".R")
+  )
+}
+
 new_strategy <- function(name) {
   check(name)
   render_r(name)
@@ -193,4 +202,5 @@ new_strategy <- function(name) {
   update_plant(name)
   update_plant_tools(name)
   update_plant_r(name)
+  render_tests(name)
 }

@@ -15,6 +15,7 @@ echo New files created:
 echo "\tR/${LNAME}.R"
 echo "\tsrc/${LNAME}_strategy.cpp"
 echo "\tinst/include/plant/${LNAME}_strategy.h"
+echo "\ttests/testthat/test-strategy-${LNAME}.R"
 echo
 echo Modified Files:
 echo "\tinst/include/plant.h"
@@ -22,5 +23,5 @@ echo "\tinst/include/RccpR6_classes.yml"
 echo "\tsrc/plant_plus.cpp"
 echo "\tsrc/plant_tools.cpp"
 echo 
-echo 
-echo run make in the root directory to recompile plant.
+echo run the following in the root directory to recompile and test plant.
+echo "make clean; make; make test; make install"
