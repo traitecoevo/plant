@@ -1,16 +1,18 @@
 
 if [[ $# -eq 0 ]] ; then
-    echo 'Please provide a strategy name as the first argument.'
+    echo 'Please provide a strategy name as the first argument and the strategy to copy from as the second argument.'
     exit 0
 fi
 
 NAME=$1
 LNAME=`echo "$NAME" | tr '[:upper:]' '[:lower:]'`
 
-echo Making new strategy with name ${NAME} in result/
-RScript -e "source('./new_strategy.R'); new_strategy('${NAME}')"
+STRATEGY=${$2:-FF16}
 
-echo Strategy $NAME created
+echo Making new strategy with name ${NAME} in result/
+RScript -e "source('./new_strategy.R'); new_strategy('${NAME}', '${STRATEGY}')"
+
+echo Strategy $NAME created from $STRATEGY
 echo New files created:
 echo "\tR/${LNAME}.R"
 echo "\tsrc/${LNAME}_strategy.cpp"

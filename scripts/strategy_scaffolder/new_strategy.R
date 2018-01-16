@@ -6,7 +6,7 @@ library(yaml)
 root <-  "./../.."
 R6_yaml_path <- paste0(root, "/inst/RcppR6_classes.yml")
 
-check <- function(name) {
+check <- function(name, strategy) {
   r6 <- yaml::read_yaml(R6_yaml_path)
 
   if(length(names(r6)) == 0) 
@@ -15,43 +15,12 @@ check <- function(name) {
     stop(paste(name, "is reserved, try again with a different strategy name."))
   if(paste0(name, "_Strategy") %in% names(r6))
     stop(paste("Strategy name:", name, "is allready in use, try again with a different strategy name."))
+  if(! paste0(strategy, "_Strategy") %in% names(r6))
+    stop(paste("Strategy name:", strategy, "could not be found, please try again."))
 }
-
-
-read_template <- function (filename) {
-  readChar(filename, file.info(filename)$size)
-}
-
-# Makes the R file:
-# R/NAME.R
-render_r <- function(name) {
-  template <- read_template("./templates/NAME.Rtemplate")
-  writeLines(
-    whisker.render(template, list(name=name)),
-    paste0(root, "/R/", tolower(name), ".R")
-  )
-}
-
-# Makes the new file
-# inst/include/plant/NAME_strategy.h
-render_h <- function (name) {
-  template <- read_template("./templates/NAME_strategy.htempate")
-  writeLines(
-    whisker.render(template, list(name=name)),
-    paste0(root, "/inst/include/plant/", tolower(name), "_strategy.h")
-  )
-}
-# * src/NAME_strategy.cpp
-render_cpp <- function (name) {
-  template <- read_template("./templates/NAME_strategy.cpptemplate")
-  writeLines(
-    whisker.render(template, list(name=name,lname=tolower(name))),
-    paste0(root, "/src/", tolower(name), "_strategy.cpp")
-  )
-} 
 
 # make the RccpR6 file
-update_classes_yml <- function (name) {
+update_classes_yml <- function (name, strategy) {
   readLines(R6_yaml_path) -> raw
   # add the extra templates below the FF16r ones
   lapply(raw, function(x) {
@@ -67,13 +36,17 @@ update_classes_yml <- function (name) {
 
   # add the strategy
 
-  start_point <- which(grepl("^FF16r_Strategy", r6_templates))[1]
+  start_point <- which(grepl(paste0("^", strategy, "_Strategy"), r6_templates))[1]
   candidates <- which(grepl("^$", r6_templates)) # get blank lines
   candidates <- candidates - start_point
   entry <- start_point +  min(candidates <- candidates[ candidates > 0])
 
-  read_template('./templates/R6Strategy.ymltemplate') -> yml_template
-  whisker.render(yml_template, list(name=name)) -> yml_strategy
+  # grab the parts of the yaml strategy that we will copy and replace
+
+  yml_strategy <- c(paste('# The following strategy was built from', strategy, 'on', date()),
+  lapply(r6_templates[start_point:entry], function (x) {
+    gsub(strategy, name, x)
+  }))
   append(r6_templates, yml_strategy, entry) -> out
 
   # write
@@ -182,14 +155,6 @@ update_plant_r <- function (name) {
   )
 }
 
-# Builds the tests to tests/testthat/test-strategy-name.R
-render_tests <- function(name) {
-  template <- read_template("./templates/test-strategy-NAME.Rtemplate")
-  writeLines(
-    whisker.render(template, list(name=name)),
-    paste0(root, "/tests/testthat/test-strategy-", tolower(name), ".R")
-  )
-}
 # Updates helper-plant's list of strategies
 update_test_helper <- function(name) {
   t1 <- whisker.render("       {{name}}={{name}}_Strategy,", list(name=name))
@@ -228,17 +193,55 @@ update_scm_support <- function (name) {
     paste0(root, "/R/scm_support.R")
   )
 }
-new_strategy <- function(name) {
-  check(name)
-  render_r(name)
-  render_h(name)
-  render_cpp(name)
-  update_classes_yml(name)
+
+# Reads the file, finds and replaces both lower case and uppercase of strategy
+# with new_name and writes the new file to out_file
+template_file <- function (new_name, strategy, file, 
+  out_file = gsub(strategy, new_name, 
+              gsub(tolower(strategy), tolower(new_name), file)),
+  test = TRUE) {
+  ar <- function (..., test = FALSE) paste0(ifelse(test, './results/',  "./../../"), ...)
+  
+  if (test) out_file <- gsub('/', '__', out_file)
+
+  comment_char <- ifelse(grepl("R$", file), '#', '//')
+  comment <- paste(comment_char, 'Built from ', file, 'on', date(), 
+    'using the scaffolder, from the strategy: ',  strategy)
+
+
+  l_new_name <- tolower(new_name)
+  l_strategy <- tolower(strategy)
+
+  readLines(ar(file)) -> raw
+
+  lapply(raw, function(x) gsub(strategy, new_name, x)) -> out
+  lapply(out, function(x) gsub(l_strategy, l_new_name, x)) -> out
+  unlist(c(comment, out)) -> out
+
+  writeLines(out, ar(out_file, test = test))
+} 
+
+scaffold_files <- function (new_name, strategy, test = FALSE) {
+  files <- c(
+    paste0('R/', strategy, '.R'),
+    paste0('src/', tolower(strategy), '_strategy.cpp'),
+    paste0('inst/include/plant/', tolower(strategy), '_strategy.h'),
+    paste0('tests/testthat/test-strategy-', tolower(strategy), '.R')
+  )
+  for (file in files) {
+    cat(paste('Creating new file', file))
+    template_file(new_name, strategy, file, test = test)
+  }  
+}
+
+scaffold <- function(name, strategy) {
+  check(name, strategy)
+  scaffold_files(new_name, strategy)
+  update_classes_yml(name, strategy)
   update_plant_plus(name)
   update_plant(name)
   update_plant_tools(name)
   update_plant_r(name)
-  render_tests(name)
   update_test_helper(name)
   update_scm_support(name)
 }
