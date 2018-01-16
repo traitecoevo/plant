@@ -54,10 +54,8 @@ To install a new strategy use the scaffolder found in `scripts/strategy_scaffold
 1. **IMPORTANT:** Make sure your project is at a state where you are happy to go back to if you decide to, ie: do this in a new branch or fork. There is no easy way to undo the changes to this package so you will have to do `git reset --hard HEAD` if you want to go back. You will still have to delete the new and untracked files listed below.
 
 2. Move to `scripts/strategy_scaffolder` by running `cd scripts/strategy_scaffolder` from the root of this project.
-3. Run the scaffolder with `sh strategy_scaffolder.sh NAME` where `NAME` is the name of your strategy, The default strategy's name is `FF16`
-
-This creates new files and modifies existing ones to add a new strategy based off of the templates found in `scripts/strategy_scaffolder/templates`.
-The following files are created or modified: 
+3. Run the scaffolder with `sh scaffolder.sh NAME STRATEGY` where `NAME` is the name of your `new` strategy and `STRATEGY` is the strategy that you want to copy from.
+If run without `STRATEGY`, the scaffolder uses the strategy `FF16` as default.
 
 New files created:
 * `R/NAME.R`

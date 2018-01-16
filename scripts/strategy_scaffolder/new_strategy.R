@@ -200,6 +200,7 @@ template_file <- function (new_name, strategy, file,
   out_file = gsub(strategy, new_name, 
               gsub(tolower(strategy), tolower(new_name), file)),
   test = TRUE) {
+  
   ar <- function (..., test = FALSE) paste0(ifelse(test, './results/',  "./../../"), ...)
   
   if (test) out_file <- gsub('/', '__', out_file)
@@ -223,20 +224,19 @@ template_file <- function (new_name, strategy, file,
 
 scaffold_files <- function (new_name, strategy, test = FALSE) {
   files <- c(
-    paste0('R/', strategy, '.R'),
+    paste0('R/', tolower(strategy), '.R'),
     paste0('src/', tolower(strategy), '_strategy.cpp'),
     paste0('inst/include/plant/', tolower(strategy), '_strategy.h'),
     paste0('tests/testthat/test-strategy-', tolower(strategy), '.R')
   )
   for (file in files) {
-    cat(paste('Creating new file', file))
     template_file(new_name, strategy, file, test = test)
   }  
 }
 
 scaffold <- function(name, strategy) {
   check(name, strategy)
-  scaffold_files(new_name, strategy)
+  scaffold_files(name, strategy)
   update_classes_yml(name, strategy)
   update_plant_plus(name)
   update_plant(name)

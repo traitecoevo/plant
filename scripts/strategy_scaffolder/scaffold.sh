@@ -1,3 +1,4 @@
+set -e
 
 if [[ $# -eq 0 ]] ; then
     echo 'Please provide a strategy name as the first argument and the strategy to copy from as the second argument.'
@@ -7,10 +8,11 @@ fi
 NAME=$1
 LNAME=`echo "$NAME" | tr '[:upper:]' '[:lower:]'`
 
-STRATEGY=${$2:-FF16}
+STRATEGY=$2
+STRATEGY=${STRATEGY:-FF16}
 
 echo Making new strategy with name ${NAME} in result/
-RScript -e "source('./new_strategy.R'); new_strategy('${NAME}', '${STRATEGY}')"
+RScript -e "library(methods); source('./new_strategy.R'); scaffold('${NAME}', '${STRATEGY}')"
 
 echo Strategy $NAME created from $STRATEGY
 echo New files created:
