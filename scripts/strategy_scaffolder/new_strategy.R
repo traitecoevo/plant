@@ -3,36 +3,66 @@
 library(whisker)
 library(yaml)
 
-root <-  "./../.."
-R6_yaml_path <- paste0(root, "/inst/RcppR6_classes.yml")
+R6_yaml_path <- function() {
+  paste0("inst/RcppR6_classes.yml")
+}
+
 
 check <- function(name, strategy) {
-  r6 <- yaml::read_yaml(R6_yaml_path)
+  r6 <- yaml::read_yaml(R6_yaml_path())
 
   if(length(names(r6)) == 0) 
-    stop(paste(name, "Cannot find", R6_yaml_path))
+    stop(paste(name, "Cannot find", R6_yaml_path()))
   if(name %in% names(r6)) 
     stop(paste(name, "is reserved, try again with a different strategy name."))
   if(paste0(name, "_Strategy") %in% names(r6))
-    stop(paste("Strategy name:", name, "is allready in use, try again with a different strategy name."))
+    stop(paste("Strategy name:", name, "is already in use, try again with a different strategy name."))
   if(! paste0(strategy, "_Strategy") %in% names(r6))
     stop(paste("Strategy name:", strategy, "could not be found, please try again."))
 }
 
+updating_message <- function(file) {
+  message(sprintf("\t - updating file: %s", file))
+}
+
+creating_message <- function(file) {
+  message(sprintf("\t - creating file: %s", file))
+}
+
+update_file <- function(file, name, f) {
+
+  updating_message(file)
+  readLines(file) -> raw
+  lapply(raw, f) -> out
+  paste0(unlist(out)) -> out  
+  writeLines(out, file)
+  invisible(out)
+}
+
+append_to_file <- function(file, debt, after, verbose=TRUE) {
+
+  if(verbose)
+    updating_message(file)
+  readLines(file) -> raw
+  append(raw, unlist(debt), length(raw) + after) -> out
+  writeLines(out, file)
+}
+
 # make the RccpR6 file
 update_classes_yml <- function (name, strategy) {
-  readLines(R6_yaml_path) -> raw
+
+  file <- R6_yaml_path()
+
   # add the extra templates below the FF16r ones
-  lapply(raw, function(x) {
+  f <- function(x) {
       if(x != "      - [\"FF16r\": \"plant::FF16r_Strategy\"]") return(x)
       c(x, 
         whisker.render(
           "      - [\"{{name}}\": \"plant::{{name}}_Strategy\"]",
           list(name=name)
         ))
-    }) -> r6_templates
-  
-  unlist(r6_templates) -> r6_templates
+    }
+  update_file(file, name, f) -> r6_templates
 
   # add the strategy
 
@@ -42,25 +72,17 @@ update_classes_yml <- function (name, strategy) {
   entry <- start_point +  min(candidates <- candidates[ candidates > 0])
 
   # grab the parts of the yaml strategy that we will copy and replace
-
   yml_strategy <- c(paste('# The following strategy was built from', strategy, 'on', date()),
   lapply(r6_templates[start_point:entry], function (x) {
     gsub(strategy, name, x)
   }))
-  append(r6_templates, yml_strategy, entry) -> out
 
-  # write
-  paste0(unlist(out)) -> out
-  writeLines(
-    out, 
-    paste0(root, "/inst/RcppR6_classes.yml")
-  )
+  append_to_file(file, yml_strategy, entry, FALSE)
 }
 
 # updates src/plant_tools.cpp
 update_plant_tools <- function (name) {
-  readLines(paste0(root, "/src/plant_tools.cpp")) -> raw
-    whisker.render("
+  whisker.render("
 // Template found in scripts/strategy/new_strategy.R
 // [[Rcpp::export]]
 double {{name}}_lcp_whole_plant(plant::PlantPlus<plant::{{name}}_Strategy> p) {
@@ -68,32 +90,22 @@ double {{name}}_lcp_whole_plant(plant::PlantPlus<plant::{{name}}_Strategy> p) {
 }
 ", list(name=name)) -> debt
 
-  append(raw, debt, length(raw) + 1) -> out
-  # write
-  paste0(unlist(out)) -> out
-  writeLines(
-    out,
-    paste0(root, "/src/plant_tools.cpp")
-  )
+  append_to_file("src/plant_tools.cpp", debt, 1)
 }
 
 # updates src/plant_plus.cpp
 update_plant_plus <- function (name) {
 
-  readLines(paste0(root, "/src/plant_plus.cpp")) -> raw
-  # add the extra templates below the FF16r ones
-  lapply(raw, function(x) {
+  f <- function(x) {
       if(x != "#include <plant/ff16r_strategy.h>") return(x)
       c(x, 
         whisker.render("#include <plant/{{name}}_strategy.h>",
           list(name=tolower(name))
         ))
-    }) -> with_includes
+    }
+  update_file("src/plant_plus.cpp", name, f) 
 
-  unlist(with_includes) -> with_includes
-
-  # add the the technical debt to the end of the file
-
+  # add the technical debt to the end of the file
   whisker.render("
 // Template found in scripts/strategy/new_strategy.R
 // [[Rcpp::export]]
@@ -104,31 +116,22 @@ plant::PlantPlus<plant::{{name}}_Strategy>
 }
 ", list(name=name)) -> debt
 
-  append(with_includes, debt, length(raw) + 1) -> out
-  # write
-  paste0(unlist(out)) -> out
-  writeLines(
-    out, 
-    paste0(root, "/src/plant_plus.cpp")
-  )
+  append_to_file("src/plant_plus.cpp", debt, 1, FALSE)
 }
 
 # updates inst/include/plant.h
 update_plant <- function (name) {
-    readLines(paste0(root, "/inst/include/plant.h")) -> raw
+
   # add the extra templates below the FF16r ones
-  lapply(raw, function(x) {
+  f <- function(x) {
       if(x != "#include <plant/ff16r_strategy.h>") return(x)
       c(x, 
         whisker.render("#include <plant/{{name}}_strategy.h>",
           list(name=tolower(name))
         ))
-    }) -> out
-  paste0(unlist(out)) -> out
-  writeLines(
-    out, 
-    paste0(root, "/inst/include/plant.h")
-  )
+    }
+
+  update_file("inst/include/plant.h", name, f)
 }
 
 update_plant_r <- function (name) {
@@ -144,15 +147,7 @@ update_plant_r <- function (name) {
 }", list(name=name))
 
   # add both t1 and t2 at the end of the file
-
-  readLines(paste0(root, "/R/plant.R")) -> raw
-  # add the extra templates below the FF16r ones
-  append(raw, list(t1, t2), length(raw) + 5) -> out
-  paste0(unlist(out)) -> out
-  writeLines(
-    out, 
-    paste0(root, "/R/plant.R")
-  )
+  append_to_file("R/plant.R", list(t1, t2), 5)
 }
 
 # Updates helper-plant's list of strategies
@@ -160,38 +155,29 @@ update_test_helper <- function(name) {
   t1 <- whisker.render("       {{name}}={{name}}_Strategy,", list(name=name))
   t2 <- whisker.render("       {{name}}={{name}}_hyperpar,", list(name=name))
 
-  readLines(paste0(root, "/tests/testthat/helper-plant.R")) -> raw
   # add the extra templates below the FF16r ones
-  lapply(raw, function(x) {
-      switch(x, 
-        "       FF16r=FF16r_Strategy)"=c(t1, x),
-        "       FF16r=FF16r_hyperpar)"=c(t2, x),
-        x
-      )
-    }) -> out
-  paste0(unlist(out)) -> out  
-  writeLines(out,
-    paste0(root, "/tests/testthat/helper-plant.R")
-  )
+  f <- function(x) {
+          switch(x, 
+            "       FF16r=FF16r_Strategy)"=c(t1, x),
+            "       FF16r=FF16r_hyperpar)"=c(t2, x),
+            x)
+        }
+  update_file("tests/testthat/helper-plant.R", name, f)
 }
 
 update_scm_support <- function (name) {
   t1 <- whisker.render("         {{name}}=make_FF16_hyperpar,", list(name=name))
   t2 <- whisker.render("         {{name}}=FF16_hyperpar,", list(name=name))
 
-  readLines(paste0(root, "/R/scm_support.R")) -> raw
   # add the extra templates below the FF16r ones
-  lapply(raw, function(x) {
+  f <- function(x) {
       switch(x, 
         "         FF16r=make_FF16_hyperpar,"=c(t1, x),
         "         FF16r=FF16_hyperpar,"=c(t2, x),
         x
       )
-    }) -> out
-  paste0(unlist(out)) -> out
-  writeLines(out,
-    paste0(root, "/R/scm_support.R")
-  )
+    }
+  update_file("R/scm_support.R", name, f)
 }
 
 # Reads the file, finds and replaces both lower case and uppercase of strategy
@@ -200,15 +186,16 @@ template_file <- function (new_name, strategy, file,
   out_file = gsub(strategy, new_name, 
               gsub(tolower(strategy), tolower(new_name), file)),
   test = TRUE) {
-  
-  ar <- function (..., test = FALSE) paste0(ifelse(test, './results/',  "./../../"), ...)
+
+  ar <- function (..., test = FALSE) paste0(ifelse(test, './results/',  "./"), ...)
   
   if (test) out_file <- gsub('/', '__', out_file)
+
+  creating_message(out_file)
 
   comment_char <- ifelse(grepl("R$", file), '#', '//')
   comment <- paste(comment_char, 'Built from ', file, 'on', date(), 
     'using the scaffolder, from the strategy: ',  strategy)
-
 
   l_new_name <- tolower(new_name)
   l_strategy <- tolower(strategy)
@@ -234,10 +221,11 @@ scaffold_files <- function (new_name, strategy, test = FALSE) {
   }  
 }
 
-scaffold <- function(name, strategy) {
-  check(name, strategy)
-  scaffold_files(name, strategy)
-  update_classes_yml(name, strategy)
+create_strategy_scaffold <- function(name, template="FF16") {
+  message(sprintf("Making new strategy with name %s from %s", name, template))
+  check(name, template)
+  scaffold_files(name, template)
+  update_classes_yml(name, template)
   update_plant_plus(name)
   update_plant(name)
   update_plant_tools(name)

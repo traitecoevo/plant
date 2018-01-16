@@ -48,14 +48,8 @@ To build and push the website to the `gh-pages` branch run `make website`.
 This first builds the vignettes from `/inst/docs` then builds the site with [pkgdown](http://pkgdown.r-lib.org).
 The site is then pushed to the `gh-pages` branch. (https://traitecoevo.github.io/plant)
 
-## Installing new strategies
+## Strategies
 
-To install a new strategy use the scaffolder found in `scripts/strategy_scaffolder`:
-1. **IMPORTANT:** Make sure your project is at a state where you are happy to go back to if you decide to, ie: do this in a new branch or fork. There is no easy way to undo the changes to this package so you will have to do `git reset --hard HEAD` if you want to go back. You will still have to delete the new and untracked files listed below.
-
-2. Move to `scripts/strategy_scaffolder` by running `cd scripts/strategy_scaffolder` from the root of this project.
-3. Run the scaffolder with `sh scaffolder.sh NAME STRATEGY` where `NAME` is the name of your `new` strategy and `STRATEGY` is the strategy that you want to copy from.
-If run without `STRATEGY`, the scaffolder uses the strategy `FF16` as default.
 
 New files created:
 * `R/NAME.R`
@@ -64,21 +58,36 @@ New files created:
 * `tests/testthat/test-strategy-NAME.R`
 
 Modified Files:
-* `inst/include/plant.h`
 * `inst/include/RccpR6_classes.yml`
+* `inst/include/plant.h`
 * `src/plant_plus.cpp`
 * `src/plant_tools.cpp`
 * `tests/testthat/helper-plant.R`
 * `R/scm_support.R` (Currently uses the FF16 hyperpar and make_hyperpar)
 
-4. Then navigate back to the root directory of the project and run `make clean; make; make test`to recompile and test `plant` with your new strategy.
 
-5. Modify the files `src/NAME_strategy.cpp` and `inst/include/plant/NAME_strategy.h` to reflect any changes in biology.
-6. Run make `make` to recompile plant
-7. Write suitable tests for your new strategy and run `make test` 
+### Installing new strategies
 
-If you want to make changes to your new strategies parameters you will have to update: 
-* `inst/include/RccpR6_classes.yml` In the top level section describing your parameters.
+To install a new strategy use the scaffolder found in `scripts/strategy_scaffolder`:
+1. **IMPORTANT:** Make sure your project is at a state where you are happy to go back to if you decide to, ie: do this in a new branch or fork. There is no easy way to undo the changes to this package so you will have to do `git reset --hard HEAD` if you want to go back. You will still have to delete the new and untracked files listed below.
+
+2. Run the scaffolder with 
+```
+source('scripts/strategy_scaffolder/new_strategy.R')
+create_strategy_scaffold("NAME", "TEMPLATE")
+```
+sh scripts/strategy_scaffolder/scaffold.sh NAME TEMPLATE` where `NAME` is the name of your `new` strategy and `TEMPLATE` is the strategy that you want to copy from.
+If run without `TEMPLATE`, the scaffolder uses the `FF16` strategy by default.
+
+3. Then navigate back to the root directory of the project and run `make clean; make; make test`to recompile and test `plant` with your new strategy.
+
+4. Modify the files `src/NAME_strategy.cpp` and `inst/include/plant/NAME_strategy.h` to reflect any changes in biology.
+	- If you make changes to your new strategies parameters you will have to update the files: 
+	* `inst/include/RccpR6_classes.yml` - see top-level section under the new strategy name, describing your parameters.
+	* . Write suitable tests for your new strategy and run `make test` 
+
+5. Run make `make` to recompile plant
+
 
 ----
 
