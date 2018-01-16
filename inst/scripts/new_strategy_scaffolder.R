@@ -1,12 +1,9 @@
-#!/bin/usr/RScript
-
 library(whisker)
 library(yaml)
 
 R6_yaml_path <- function() {
   paste0("inst/RcppR6_classes.yml")
 }
-
 
 check <- function(name, strategy) {
   r6 <- yaml::read_yaml(R6_yaml_path())
@@ -29,6 +26,8 @@ creating_message <- function(file) {
   message(sprintf("\t - creating file: %s", file))
 }
 
+# update file by applying the function f to each line of the file
+# allows for find and replace like modifications
 update_file <- function(file, name, f) {
 
   updating_message(file)
@@ -39,6 +38,7 @@ update_file <- function(file, name, f) {
   invisible(out)
 }
 
+# append text to end of file
 append_to_file <- function(file, debt, after, verbose=TRUE) {
 
   if(verbose)
