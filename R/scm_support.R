@@ -68,7 +68,7 @@ run_scm <- function(p, use_ode_times=FALSE) {
 ##' hyperparameterisation that we most often use.
 ##' @title Sensible, fast (ish) SCM parameters
 ##' @author Rich FitzJohn
-##' @param type Name of model (defaults to FF16 but FF16r also valid)
+##' @param type Name of model (defaults to FF16 but any strategy name is valid).
 ##' @export
 scm_base_parameters <- function(type="FF16") {
   ctrl <- equilibrium_verbose(fast_control())
@@ -209,9 +209,10 @@ run_scm_error <- function(p) {
 
 ##' Set a suitable hyperparameter function for chosen physiological model
 ##' @title Hyperparameters for FF16 physiological model
-##' @param type Either \code{"FF16"} or \code{"FF16r"}.
+##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
 ##' @rdname Hyperparameter_functions
 ##' @export
+# if you update this function (even synatctic changes) update the function update_smc_support in the scaffolder
 make_hyperpar <- function(type) {
   switch(type,
          FF16=make_FF16_hyperpar,
@@ -220,8 +221,9 @@ make_hyperpar <- function(type) {
 }
 
 ##' @rdname Hyperparameter_functions
-##' @param type Either \code{"FF16"} or \code{"FF16r"}.
+##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
 ##' @export
+# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
 hyperpar <- function(type) {
   switch(type,
          FF16=FF16_hyperpar,

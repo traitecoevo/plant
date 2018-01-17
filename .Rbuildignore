@@ -9,6 +9,7 @@
 ^update_web.sh$
 ^inst/doc
 ^inst/web
+^inst/scripts
 ^docs$
 ^plant_.+\.tar\.gz$
 ^vignettes$
