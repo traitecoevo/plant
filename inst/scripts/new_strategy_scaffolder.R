@@ -83,7 +83,7 @@ update_classes_yml <- function (name, strategy) {
 # updates src/plant_tools.cpp
 update_plant_tools <- function (name) {
   whisker.render("
-// Template found in scripts/strategy/new_strategy.R
+// Template found in inst/scripts/new_strategy_scaffolder.R. function: update_plant_tools()
 // [[Rcpp::export]]
 double {{name}}_lcp_whole_plant(plant::PlantPlus<plant::{{name}}_Strategy> p) {
   return plant::tools::lcp_whole_plant(p);

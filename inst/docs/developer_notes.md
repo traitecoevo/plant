@@ -74,9 +74,9 @@ In addition, the following files must be modified to include appropriate details
 * `tests/testthat/helper-plant.R`
 * `R/scm_support.R` (Currently uses the FF16 hyperpar and make_hyperpar)
 
-Rather than making the above modifications by hand, you can use scaffolder found in `inst/scripts/new_strategy_scaffolder.R` to create a suitable template. The scaffolder is set up to add code at appropriate points. 
+Rather than making the above modifications by hand, you can use the scaffolder found in `inst/scripts/new_strategy_scaffolder.R` to create a suitable template. The scaffolder is set up to add code at appropriate points. 
 
-Before trying to install a new strategy, make sure your project is at a state where you are happy to go back to if you decide to, ie: do this in a new branch or fork. There is no easy way to undo the changes so you will have to do `git reset --hard HEAD` if you want to go back. You will still have to delete the new and untracked files listed below.
+Before trying to install a new strategy, make sure your project is at a state where you are happy to go back to if you decide to, ie: do this in a new branch or fork. There is no easy way to undo the changes so you will have to do `git reset --hard HEAD` if you want to go back. You will still have to delete the new and untracked files listed above.
 
 To install a new strategy using the scaffolder, run the following code from an R session at the project root:
 
