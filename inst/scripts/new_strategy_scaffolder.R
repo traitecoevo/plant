@@ -107,7 +107,7 @@ update_plant_plus <- function (name) {
 
   # add the technical debt to the end of the file
   whisker.render("
-// Template found in scripts/strategy/new_strategy.R
+// Template found in inst/scripts/new_strategy_scaffolder.R. function: update_plant_plus()
 // [[Rcpp::export]]
 plant::PlantPlus<plant::{{name}}_Strategy>
 {{name}}_plant_to_plant_plus(plant::Plant<plant::{{name}}_Strategy> p,
