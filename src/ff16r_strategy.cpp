@@ -91,6 +91,8 @@ FF16r_Strategy::FF16r_Strategy() {
   // Will get computed properly by prepare_strategy
   height_0 = NA_REAL;
   eta_c    = NA_REAL;
+
+  name = "FF16r";
 }
 
 

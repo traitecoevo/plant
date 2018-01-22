@@ -19,15 +19,6 @@ Environment fixed_environment(double canopy_openness,
 }
 }
 
-// TOOD: Now that this returns all the variables, it probably needs a
-// change of name.  However, it's only used internally so it's not
-// that big of a deal.
-// [[Rcpp::export]]
-plant::PlantPlus_internals
-oderunner_plant_size(const plant::ode::Runner<plant::tools::PlantRunner>& obj) {
-  return obj.obj.plant.r_internals();
-}
-
 //' Create a light environment where light levels are constant down
 //' the canopy.
 //'

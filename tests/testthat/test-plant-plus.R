@@ -27,7 +27,12 @@ test_that("Seed bits", {
     }
   }
 })
-
+test_that("PlantPlus Strategy Names", {
+  for (x in names(strategy_types)) {
+    s <- strategy_types[[x]]()
+    expect_equal(PlantPlus(x)(s)$strategy_name, x)
+  }
+})
 ## TODO: Missing here: all the plant growing stuff.  Move that
 ## elsewhere.
 test_that("Assimilation over distribution", {
@@ -148,13 +153,14 @@ test_that("regression", {
          k_l  = 0.4565855 / 3,
          lma  = 0.06879341)
   pl <- FF16_PlantPlus(s)
-  runner <- OdeRunner("PlantRunner")(PlantRunner(pl, fixed_environment(1)))
+  plant_runner <- PlantRunner("FF16")(pl, fixed_environment(1))
+  runner <- OdeRunner("FF16")(plant_runner)
   runner$advance(5)
-  d0 <- oderunner_plant_size(runner)[["diameter_stem"]]
+  d0 <- plant_runner$plant_internals[["diameter_stem"]]
   y0 <- runner$state
   t0 <- runner$time
   runner$step()
   runner$set_state(y0, t0)
-  d1 <- oderunner_plant_size(runner)[["diameter_stem"]]
+  d1 <- plant_runner$plant_internals[["diameter_stem"]]
   expect_equal(d0, d1)
 })
