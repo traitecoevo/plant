@@ -2,7 +2,7 @@ context("PlantRunner")
 
 ## TODO: Remove ["FF16"] to test this with all types. But first
 ## requires issue #162 to be resolved
-strategy_types <- get_list_of_strategy_types()["FF16"]
+strategy_types <- get_list_of_strategy_types()
 
 test_that("PlantRunner", {
   for (x in names(strategy_types)) {
@@ -10,28 +10,28 @@ test_that("PlantRunner", {
     env <- test_environment(10)
     p$compute_vars_phys(env)
 
-    pr <- PlantRunner(p, env)
-    expect_is(pr, "PlantRunner")
+    pr <- PlantRunner(x)(p, env)
+    expect_is(pr, sprintf("PlantRunner<%s>",x))
     expect_is(pr$plant, sprintf("PlantPlus<%s>",x))
     expect_identical(pr$plant$internals, p$internals)
 
     ## This going to work with a *copy* of pr; so that won't propagate
     ## back.
-    runner <- OdeRunner("PlantRunner")(pr)
+    runner <- OdeRunner(x)(pr)
     expect_is(runner, "OdeRunner")
-    expect_is(runner, "OdeRunner<PlantRunner>")
+    expect_is(runner, sprintf("OdeRunner<%s>", x))
     expect_equal(runner$time, 0.0)
 
-    expect_identical(oderunner_plant_size(runner), p$internals)
-
+    expect_identical(runner_plant_internals(runner), p$internals)
+    
     continue_if <- function(obj) {
       obj$state[[1]] < 15
     }
     observer <- function(obj) {
       c(obj$time, obj$state)
     }
-    pr <- PlantRunner(PlantPlus(x)(strategy_types[[x]]()), env)
-    runner <- OdeRunner("PlantRunner")(pr)
+    pr <- PlantRunner(x)(PlantPlus(x)(strategy_types[[x]]()), env)
+    runner <- OdeRunner(x)(pr)
     ret <- list(observer(runner))
     while (continue_if(runner)) {
       message(runner$time)
@@ -48,13 +48,32 @@ test_that("PlantRunner", {
   }
 })
 
+test_that("runner_plant_internals", {
+  for (x in names(strategy_types)) {
+    p <- PlantPlus(x)(strategy_types[[x]]())
+    env <- test_environment(10)
+    p$compute_vars_phys(env)
+
+    runner <- OdeRunner(x)(PlantRunner(x)(p, env))
+
+    h0 <- runner_plant_internals(runner)[["height"]]
+    runner$step()
+    runner$step()
+    runner$step()
+    runner$step()
+    h1 <- runner_plant_internals(runner)[["height"]]
+    expect_gt(h1, h0) ## test that plants grow
+  }
+})
+
 test_that("grow_plant_to_size", {
   for (x in names(strategy_types)) {
     env <- test_environment(10)
     heights <- seq(1, 10)
     s <- strategy_types[[x]]()
 
-    res <- grow_plant_bracket(PlantPlus(x)(s), heights, "height", env)
+    pp <- PlantPlus(x)(s)
+    res <- grow_plant_bracket(pp, heights, "height", env)
 
     expect_identical(res$t0, res$time[res$index])
     expect_identical(res$t1, res$time[res$index + 1L])
@@ -63,7 +82,7 @@ test_that("grow_plant_to_size", {
     ## We really do bracket the size:
     expect_true(all(res$y0[,"height"] < heights))
     expect_true(all(res$y1[,"height"] > heights))
-    expect_is(res$runner, "OdeRunner<PlantRunner>")
+    expect_is(res$runner, sprintf("OdeRunner<%s>", x))
 
     ## Then, do the search for a single case:
     i <- 3L
@@ -77,6 +96,19 @@ test_that("grow_plant_to_size", {
     expect_true(all(tmp$state > res$y0[i,]))
     expect_true(all(tmp$state < res$y1[i,]))
 
+    if (interactive()) {
+      par(mfrow=c(3,1))
+      ll <- c(res$y0[i,], res$y1[i,], tmp$state)
+      y_min <- min(ll)
+      y_max <- max(ll)
+      plot(res$y0[i,],col="blue", type="l", ylim=c(y_min, y_max), main=x)
+      points(tmp$state > res$y0[i,], col = "green", pch = 2)
+      points(tmp$state < res$y1[i,], col = "pink", pch = 4)
+      lines(tmp$state)
+      lines(res$y1[i,], col = "red", pch = 17)
+      plot(tmp$state - res$y0[i,], col = "green", pch = 2)
+      plot(tmp$state - res$y1[i,], col = "pink", pch = 4)
+    }
     ## Do all plants using the proper function:
     obj <- grow_plant_to_size(PlantPlus(x)(s), heights, "height", env)
     expect_is(obj$time, "numeric")

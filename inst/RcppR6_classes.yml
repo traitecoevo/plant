@@ -23,7 +23,8 @@ OdeRunner:
     concrete:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
-      - ["PlantRunner": "plant::tools::PlantRunner"]
+      - ["FF16": "plant::tools::PlantRunner<plant::FF16_Strategy>"]
+      - ["FF16r": "plant::tools::PlantRunner<plant::FF16r_Strategy>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
   active:
@@ -322,6 +323,7 @@ Plant:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
     mortality_probability: {type: double, access: member}
+    strategy_name: {type: "std::string", access: member}
   methods:
     area_leaf_above:
       args: [h: double]
@@ -336,11 +338,17 @@ Plant:
       return_type: void
 
 PlantRunner:
-  name_cpp: "plant::tools::PlantRunner"
+  name_cpp: "plant::tools::PlantRunner<T>"
+  templates:
+    parameters: T
+    concrete:
+      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
-    args: [plant: "plant::PlantPlus<plant::FF16_Strategy>", environment: "plant::Environment"]
+    name_cpp: "plant::tools::PlantRunner<T>"
+    args: [plant: "plant::PlantPlus<T>", environment: "plant::Environment"]
   active:
-    plant: {access: field, type: "plant::PlantPlus<plant::FF16_Strategy>"}
+    plant: {access: field, type: "plant::PlantPlus<T>"}
 
 FF16_Strategy:
   name_cpp: "plant::FF16_Strategy"
@@ -486,6 +494,7 @@ PlantPlus:
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
+    strategy_name: {type: "std::string", access: member}
   methods:
     area_leaf_above:
       args: [h: double]
@@ -500,7 +509,6 @@ PlantPlus:
       return_type: double
     to_plant:
       return_type: "plant::Plant<T>"
-
 PlantPlus_internals:
   name_cpp: "plant::PlantPlus_internals"
   list:

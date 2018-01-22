@@ -95,6 +95,8 @@ public:
     set_mortality(0.0);
   }
 
+  std::string strategy_name() const {return strategy->name;}
+
   // * R interface
   strategy_type r_get_strategy() const {return *strategy.get();}
   internals r_internals() const {return vars;}
