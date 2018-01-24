@@ -50,7 +50,7 @@ The site is then pushed to the `gh-pages` branch. (https://traitecoevo.github.io
 
 ## Strategies
 
-The foundation of the `plant` package are sub-models for an individual species’ physiological strategy. The `FF16` strategy is the default strategy. However, the plant package has been written to enable new physiological strategy to be added, and then use the same machinery for modelling size-structured population dynamics. This possible via the use of templating in C++ 11. 
+The foundation of the `plant` package are sub-models for an individual species’ physiological strategy. The `FF16` strategy is the default strategy. However, the plant package has been written to enable new physiological strategy to be added, and then use the same machinery for modelling size-structured population dynamics, we do this by using templating in C++11 (see [Templating](#templating)).
 
 Adding a new physiological strategy requires some changes to be made throughout the code and then the code recompiled. To achieve this, you'll need to download the package code from Github (new strategies cannot be added using an installed R package) and follow the instructions below. 
 
@@ -97,6 +97,20 @@ Then recompile and test as above.
 After the project compiles, you will notices even more files that have changed, for example in files like `NAMESPACE`, `R/RcppExports.R` etc. These files are auto-generated and therefore modifications are triggered from files listed above.
 
 ----
+
+## Templating
+---
+
+We use templating to enable plant to work with multiple strategies and lets us write code that is strategy generic.
+The templated class definitions are found in `inst/include/plant` and their function implementations are found either in the `.h` files or in `/src`.
+
+We then use the [RcppR6](https://github.com/richfitz/RcppR6) package combined with the `.h` files and class definitions (found in `inst/RcppR6_classes.yml`) into Rcpp which we can then be used in the `.R` files (in `/R`) or exported.
+
+### Templating Resources
+
+* [RccpR6 Templates](http://htmlpreview.github.io/?https://raw.githubusercontent.com/richfitz/RcppR6/master/inst/doc/templates.html)
+* [Templating in C++](https://en.wikipedia.org/wiki/Template_(C%2B%2B))
+
 
 ## Makefile guide:
 
