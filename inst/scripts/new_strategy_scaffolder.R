@@ -55,12 +55,12 @@ update_classes_yml <- function (name, strategy) {
 
   # add the extra templates below the FF16r ones
   f <- function(x) {
-      if(x != "      - [\"FF16r\": \"plant::FF16r_Strategy\"]") return(x)
-      c(x, 
-        whisker.render(
-          "      - [\"{{name}}\": \"plant::{{name}}_Strategy\"]",
-          list(name=name)
-        ))
+      switch(x,
+      "      - [\"FF16r\": \"plant::FF16r_Strategy\"]"=c(x, whisker.render(
+      "      - [\"{{name}}\": \"plant::{{name}}_Strategy\"]", list(name=name))),
+      "      - [\"FF16r\": \"plant::tools::PlantRunner<plant::FF16r_Strategy>\"]"=c(x,whisker.render(
+      "      - [\"{{name}}\": \"plant::tools::PlantRunner<plant::{{name}}_Strategy>\"]", list(name=name))),
+      x)
     }
   update_file(file, name, f) -> r6_templates
 
