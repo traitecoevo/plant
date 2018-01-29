@@ -84,6 +84,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_oderunner_plant_internals
+plant::PlantPlus_internals FF16_oderunner_plant_internals(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy>>& obj);
+RcppExport SEXP _plant_FF16_oderunner_plant_internals(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy>>& >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_oderunner_plant_internals(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16r_oderunner_plant_internals
+plant::PlantPlus_internals FF16r_oderunner_plant_internals(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16r_Strategy>>& obj);
+RcppExport SEXP _plant_FF16r_oderunner_plant_internals(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16r_Strategy>>& >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16r_oderunner_plant_internals(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
 // FF16_lcp_whole_plant
 double FF16_lcp_whole_plant(plant::PlantPlus<plant::FF16_Strategy> p);
 RcppExport SEXP _plant_FF16_lcp_whole_plant(SEXP pSEXP) {
@@ -5710,6 +5732,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_plant_to_plant_plus", (DL_FUNC) &_plant_FF16_plant_to_plant_plus, 2},
     {"_plant_FF16r_plant_to_plant_plus", (DL_FUNC) &_plant_FF16r_plant_to_plant_plus, 2},
     {"_plant_fixed_environment", (DL_FUNC) &_plant_fixed_environment, 2},
+    {"_plant_FF16_oderunner_plant_internals", (DL_FUNC) &_plant_FF16_oderunner_plant_internals, 1},
+    {"_plant_FF16r_oderunner_plant_internals", (DL_FUNC) &_plant_FF16r_oderunner_plant_internals, 1},
     {"_plant_FF16_lcp_whole_plant", (DL_FUNC) &_plant_FF16_lcp_whole_plant, 1},
     {"_plant_FF16r_lcp_whole_plant", (DL_FUNC) &_plant_FF16r_lcp_whole_plant, 1},
     {"_plant_Lorenz__ctor", (DL_FUNC) &_plant_Lorenz__ctor, 3},

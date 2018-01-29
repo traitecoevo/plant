@@ -22,7 +22,7 @@ test_that("PlantRunner", {
     expect_is(runner, sprintf("OdeRunner<%s>", x))
     expect_equal(runner$time, 0.0)
 
-    expect_identical(runner_plant_internals(runner), p$internals)
+    expect_identical((get_plant_internals_fun(p))(runner), p$internals)
     
     continue_if <- function(obj) {
       obj$state[[1]] < 15
@@ -48,20 +48,20 @@ test_that("PlantRunner", {
   }
 })
 
-test_that("runner_plant_internals", {
+test_that("get_plant_internals_fun", {
   for (x in names(strategy_types)) {
     p <- PlantPlus(x)(strategy_types[[x]]())
     env <- test_environment(10)
     p$compute_vars_phys(env)
 
     runner <- OdeRunner(x)(PlantRunner(x)(p, env))
-
-    h0 <- runner_plant_internals(runner)[["height"]]
+    internals <- get_plant_internals_fun(runner$object$plant)
+    h0 <- internals(runner)[["height"]]
     runner$step()
     runner$step()
     runner$step()
     runner$step()
-    h1 <- runner_plant_internals(runner)[["height"]]
+    h1 <- internals(runner)[["height"]]
     expect_gt(h1, h0) ## test that plants grow
   }
 })
