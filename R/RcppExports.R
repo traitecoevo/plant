@@ -34,6 +34,14 @@ fixed_environment <- function(canopy_openness, height_max = 150.0) {
     .Call('_plant_fixed_environment', PACKAGE = 'plant', canopy_openness, height_max)
 }
 
+FF16_oderunner_plant_internals <- function(obj) {
+    .Call('_plant_FF16_oderunner_plant_internals', PACKAGE = 'plant', obj)
+}
+
+FF16r_oderunner_plant_internals <- function(obj) {
+    .Call('_plant_FF16r_oderunner_plant_internals', PACKAGE = 'plant', obj)
+}
+
 FF16_lcp_whole_plant <- function(p) {
     .Call('_plant_FF16_lcp_whole_plant', PACKAGE = 'plant', p)
 }

@@ -113,8 +113,8 @@ grow_plant_to_time <- function(plant, times, env) {
 }
 
 ## internal funciton to grab the internal state of the ode runner:
-runner_plant_internals <- function (runner) {
-  runner$object$plant$internals
+get_plant_internals_fun <- function (plant) {
+  get(paste0(plant$strategy_name, '_oderunner_plant_internals'))
 }
 
 grow_plant_bracket <- function(plant, sizes, size_name, env,
@@ -128,6 +128,7 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   strategy_name <- plant$strategy_name
 
   runner <- OdeRunner(strategy_name)(PlantRunner(strategy_name)(plant, env))
+  internals <- get_plant_internals_fun(runner$object$plant)
   i <- 1L
   n <- length(sizes)
   j <- rep_len(NA_integer_, n)
@@ -155,7 +156,7 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
       break
     }
     state <- c(state, list(list(time=runner$time, state=runner$state)))
-    while (i <= n && runner_plant_internals(runner)[[size_name]] > sizes[[i]]) {
+    while (i <= n && internals(runner)[[size_name]] > sizes[[i]]) {
       j[[i]] <- length(state) - 1L
       i <- i + 1L
     }
@@ -185,10 +186,11 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
 ##' @noRd
 ##' @importFrom stats uniroot
 grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
+  internals <- get_plant_internals_fun(runner$object$plant)
   f <- function(t1) {
     runner$set_state(y0, t0)
     runner$step_to(t1)
-    runner_plant_internals(runner)[[size_name]] - size
+    internals(runner)[[size_name]] - size
   }
 
   if (is.na(t0) || is.na(t1) || any(is.na(y0))) {
