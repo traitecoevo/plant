@@ -1,7 +1,5 @@
 context("PlantRunner")
 
-## TODO: Remove ["FF16"] to test this with all types. But first
-## requires issue #162 to be resolved
 strategy_types <- get_list_of_strategy_types()
 
 test_that("PlantRunner", {
@@ -75,6 +73,7 @@ test_that("grow_plant_to_size", {
     pp <- PlantPlus(x)(s)
     res <- grow_plant_bracket(pp, heights, "height", env)
 
+
     expect_identical(res$t0, res$time[res$index])
     expect_identical(res$t1, res$time[res$index + 1L])
     expect_identical(res$y0, res$state[res$index,])
@@ -93,8 +92,15 @@ test_that("grow_plant_to_size", {
     ## The plant lies within the range expected:
     expect_gte(tmp$time, res$t0[[i]])
     expect_lte(tmp$time, res$t1[[i]])
-    expect_true(all(tmp$state > res$y0[i,]))
-    expect_true(all(tmp$state < res$y1[i,]))
+
+    j1 <- match(c("height", "mortality", "area_heartwood", "mass_heartwood"), names(res$y0[i,]))
+    expect_true(all(tmp$state[j1] > res$y0[i,j1]))
+    expect_true(all(tmp$state[j1] < res$y1[i,j1]))
+
+    ## separate test using <= & >= for fecundity as unlike other variables, fecundity could be zero
+    j2 <- match(c("fecundity"), names(res$y0[i,]))
+    expect_true(all(tmp$state[j2] >= res$y0[i,j2]))
+    expect_true(all(tmp$state[j2] <= res$y1[i,j2]))
 
     if (interactive()) {
       par(mfrow=c(3,1))
@@ -115,8 +121,10 @@ test_that("grow_plant_to_size", {
     expect_true(all(obj$time > res$t0))
     expect_true(all(obj$time < res$t1))
 
-    expect_true(all(obj$state > res$y0))
-    expect_true(all(obj$state < res$y1))
+    expect_true(all(obj$state[,j1] > res$y0[,j1]))
+    expect_true(all(obj$state[,j1] < res$y1[,j1]))
+    expect_true(all(obj$state[,j2] >= res$y0[,j2]))
+    expect_true(all(obj$state[,j2] <= res$y1[,j2]))
 
     expect_equal(length(obj$plant), length(heights))
     expect_true(all(sapply(obj$plant, inherits, sprintf("PlantPlus<%s>",x))))
