@@ -7,7 +7,7 @@
 make_scm_integrate(obj)
 }
 \arguments{
-\item{scm}{An object from \code{run_scm} or \code{run_scm_collect}}
+\item{obj}{An object from \code{run_scm} or \code{run_scm_collect}}
 }
 \description{
 Create a function that allows integrating aggregate properties of

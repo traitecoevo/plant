@@ -7,7 +7,7 @@ namespace ode {
 
 // These are utilities designed to make it more pleasant to work with
 // ode objects.  The first in-place functions work with the
-// boost::odeint interface, and the types are just to reuce typing.
+// boost::odeint interface, and the types are just to reduce typing.
 typedef std::vector<double>        state_type;
 typedef state_type::const_iterator const_iterator;
 typedef state_type::iterator       iterator;

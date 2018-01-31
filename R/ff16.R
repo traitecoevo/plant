@@ -278,6 +278,11 @@ make_FF16_hyperpar <- function(
   }
 }
 
-##' @rdname FF16_hyperpar
+##' Hyperparameter function for FF16 physiological model
+##' @title Hyperparameter function for FF16 physiological model
+##' @param m A matrix of trait values, as returned by \code{trait_matrix}
+##' @param s A strategy object
+##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers 
+##' that are within eps of the default strategy are not replaced.
 ##' @export
 FF16_hyperpar <- make_FF16_hyperpar()
