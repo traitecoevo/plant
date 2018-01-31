@@ -152,6 +152,8 @@ public:
   // * Used by tools:
   double net_mass_production_dt() const {return vars.net_mass_production_dt;}
 
+  std::string strategy_name() const {return strategy->name;}
+
 private:
   // * Individual size
   // [eqn 1-8] Update size variables to a new leaf mass.

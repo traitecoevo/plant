@@ -8,14 +8,17 @@
 namespace plant {
 namespace tools {
 
-// TODO: This should be templated, I think, but that plays badly with
-// RcppR6's requirements for "concrete" types.
-struct PlantRunner {
-  PlantRunner(PlantPlus<FF16_Strategy> plant_, Environment environment_)
+template <typename T>
+class PlantRunner {
+public:
+  typedef T strategy_type;
+  PlantRunner(PlantPlus<T> plant_, Environment environment_)
     : plant(plant_), environment(environment_) {
     plant.compute_vars_phys(environment);
   }
-  static size_t ode_size() {return PlantPlus<FF16_Strategy>::ode_size();}
+
+  static size_t ode_size() {return PlantPlus<T>::ode_size();}
+  
   double ode_time() const {return environment.time;}
   ode::const_iterator set_ode_state(ode::const_iterator it, double time) {
     it = plant.set_ode_state(it);
@@ -29,7 +32,8 @@ struct PlantRunner {
   ode::iterator ode_rates(ode::iterator it) const {
     return plant.ode_rates(it);
   }
-  PlantPlus<FF16_Strategy> plant;
+  
+  PlantPlus<T> plant;
   Environment environment;
 };
 

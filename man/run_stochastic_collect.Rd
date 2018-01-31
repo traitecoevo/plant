@@ -17,6 +17,7 @@ Run a stochastic simulation of a patch, given a Parameters
 }
 \details{
 This one might need to be made differently so that different
+schedules can be added easily.
 Not sure if this is how we will generally want to do this.
 Consider this function liable to change.
 }

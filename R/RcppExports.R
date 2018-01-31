@@ -21,10 +21,6 @@ FF16r_plant_to_plant_plus <- function(p, environment) {
     .Call('_plant_FF16r_plant_to_plant_plus', PACKAGE = 'plant', p, environment)
 }
 
-oderunner_plant_size <- function(obj) {
-    .Call('_plant_oderunner_plant_size', PACKAGE = 'plant', obj)
-}
-
 #' Create a light environment where light levels are constant down
 #' the canopy.
 #'
@@ -36,6 +32,14 @@ oderunner_plant_size <- function(obj) {
 #' @author Rich FitzJohn
 fixed_environment <- function(canopy_openness, height_max = 150.0) {
     .Call('_plant_fixed_environment', PACKAGE = 'plant', canopy_openness, height_max)
+}
+
+FF16_oderunner_plant_internals <- function(obj) {
+    .Call('_plant_FF16_oderunner_plant_internals', PACKAGE = 'plant', obj)
+}
+
+FF16r_oderunner_plant_internals <- function(obj) {
+    .Call('_plant_FF16r_oderunner_plant_internals', PACKAGE = 'plant', obj)
 }
 
 FF16_lcp_whole_plant <- function(p) {
@@ -166,48 +170,92 @@ OdeRunner___OdeR__object__get <- function(obj_) {
     .Call('_plant_OdeRunner___OdeR__object__get', PACKAGE = 'plant', obj_)
 }
 
-OdeRunner___PlantRunner__ctor <- function(obj, control) {
-    .Call('_plant_OdeRunner___PlantRunner__ctor', PACKAGE = 'plant', obj, control)
+OdeRunner___FF16__ctor <- function(obj, control) {
+    .Call('_plant_OdeRunner___FF16__ctor', PACKAGE = 'plant', obj, control)
 }
 
-OdeRunner___PlantRunner__advance <- function(obj_, time) {
-    invisible(.Call('_plant_OdeRunner___PlantRunner__advance', PACKAGE = 'plant', obj_, time))
+OdeRunner___FF16__advance <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___FF16__advance', PACKAGE = 'plant', obj_, time))
 }
 
-OdeRunner___PlantRunner__advance_fixed <- function(obj_, time) {
-    invisible(.Call('_plant_OdeRunner___PlantRunner__advance_fixed', PACKAGE = 'plant', obj_, time))
+OdeRunner___FF16__advance_fixed <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___FF16__advance_fixed', PACKAGE = 'plant', obj_, time))
 }
 
-OdeRunner___PlantRunner__step <- function(obj_) {
-    invisible(.Call('_plant_OdeRunner___PlantRunner__step', PACKAGE = 'plant', obj_))
+OdeRunner___FF16__step <- function(obj_) {
+    invisible(.Call('_plant_OdeRunner___FF16__step', PACKAGE = 'plant', obj_))
 }
 
-OdeRunner___PlantRunner__step_to <- function(obj_, time) {
-    invisible(.Call('_plant_OdeRunner___PlantRunner__step_to', PACKAGE = 'plant', obj_, time))
+OdeRunner___FF16__step_to <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___FF16__step_to', PACKAGE = 'plant', obj_, time))
 }
 
-OdeRunner___PlantRunner__set_state <- function(obj_, y, time) {
-    invisible(.Call('_plant_OdeRunner___PlantRunner__set_state', PACKAGE = 'plant', obj_, y, time))
+OdeRunner___FF16__set_state <- function(obj_, y, time) {
+    invisible(.Call('_plant_OdeRunner___FF16__set_state', PACKAGE = 'plant', obj_, y, time))
 }
 
-OdeRunner___PlantRunner__set_state_from_system <- function(obj_) {
-    invisible(.Call('_plant_OdeRunner___PlantRunner__set_state_from_system', PACKAGE = 'plant', obj_))
+OdeRunner___FF16__set_state_from_system <- function(obj_) {
+    invisible(.Call('_plant_OdeRunner___FF16__set_state_from_system', PACKAGE = 'plant', obj_))
 }
 
-OdeRunner___PlantRunner__time__get <- function(obj_) {
-    .Call('_plant_OdeRunner___PlantRunner__time__get', PACKAGE = 'plant', obj_)
+OdeRunner___FF16__time__get <- function(obj_) {
+    .Call('_plant_OdeRunner___FF16__time__get', PACKAGE = 'plant', obj_)
 }
 
-OdeRunner___PlantRunner__state__get <- function(obj_) {
-    .Call('_plant_OdeRunner___PlantRunner__state__get', PACKAGE = 'plant', obj_)
+OdeRunner___FF16__state__get <- function(obj_) {
+    .Call('_plant_OdeRunner___FF16__state__get', PACKAGE = 'plant', obj_)
 }
 
-OdeRunner___PlantRunner__times__get <- function(obj_) {
-    .Call('_plant_OdeRunner___PlantRunner__times__get', PACKAGE = 'plant', obj_)
+OdeRunner___FF16__times__get <- function(obj_) {
+    .Call('_plant_OdeRunner___FF16__times__get', PACKAGE = 'plant', obj_)
 }
 
-OdeRunner___PlantRunner__object__get <- function(obj_) {
-    .Call('_plant_OdeRunner___PlantRunner__object__get', PACKAGE = 'plant', obj_)
+OdeRunner___FF16__object__get <- function(obj_) {
+    .Call('_plant_OdeRunner___FF16__object__get', PACKAGE = 'plant', obj_)
+}
+
+OdeRunner___FF16r__ctor <- function(obj, control) {
+    .Call('_plant_OdeRunner___FF16r__ctor', PACKAGE = 'plant', obj, control)
+}
+
+OdeRunner___FF16r__advance <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___FF16r__advance', PACKAGE = 'plant', obj_, time))
+}
+
+OdeRunner___FF16r__advance_fixed <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___FF16r__advance_fixed', PACKAGE = 'plant', obj_, time))
+}
+
+OdeRunner___FF16r__step <- function(obj_) {
+    invisible(.Call('_plant_OdeRunner___FF16r__step', PACKAGE = 'plant', obj_))
+}
+
+OdeRunner___FF16r__step_to <- function(obj_, time) {
+    invisible(.Call('_plant_OdeRunner___FF16r__step_to', PACKAGE = 'plant', obj_, time))
+}
+
+OdeRunner___FF16r__set_state <- function(obj_, y, time) {
+    invisible(.Call('_plant_OdeRunner___FF16r__set_state', PACKAGE = 'plant', obj_, y, time))
+}
+
+OdeRunner___FF16r__set_state_from_system <- function(obj_) {
+    invisible(.Call('_plant_OdeRunner___FF16r__set_state_from_system', PACKAGE = 'plant', obj_))
+}
+
+OdeRunner___FF16r__time__get <- function(obj_) {
+    .Call('_plant_OdeRunner___FF16r__time__get', PACKAGE = 'plant', obj_)
+}
+
+OdeRunner___FF16r__state__get <- function(obj_) {
+    .Call('_plant_OdeRunner___FF16r__state__get', PACKAGE = 'plant', obj_)
+}
+
+OdeRunner___FF16r__times__get <- function(obj_) {
+    .Call('_plant_OdeRunner___FF16r__times__get', PACKAGE = 'plant', obj_)
+}
+
+OdeRunner___FF16r__object__get <- function(obj_) {
+    .Call('_plant_OdeRunner___FF16r__object__get', PACKAGE = 'plant', obj_)
 }
 
 CohortScheduleEvent__ctor <- function(introduction, species_index) {
@@ -590,6 +638,10 @@ Plant___FF16__mortality_probability__get <- function(obj_) {
     .Call('_plant_Plant___FF16__mortality_probability__get', PACKAGE = 'plant', obj_)
 }
 
+Plant___FF16__strategy_name__get <- function(obj_) {
+    .Call('_plant_Plant___FF16__strategy_name__get', PACKAGE = 'plant', obj_)
+}
+
 Plant___FF16r__ctor <- function(s) {
     .Call('_plant_Plant___FF16r__ctor', PACKAGE = 'plant', s)
 }
@@ -666,16 +718,32 @@ Plant___FF16r__mortality_probability__get <- function(obj_) {
     .Call('_plant_Plant___FF16r__mortality_probability__get', PACKAGE = 'plant', obj_)
 }
 
-PlantRunner__ctor <- function(plant, environment) {
-    .Call('_plant_PlantRunner__ctor', PACKAGE = 'plant', plant, environment)
+Plant___FF16r__strategy_name__get <- function(obj_) {
+    .Call('_plant_Plant___FF16r__strategy_name__get', PACKAGE = 'plant', obj_)
 }
 
-PlantRunner__plant__get <- function(obj_) {
-    .Call('_plant_PlantRunner__plant__get', PACKAGE = 'plant', obj_)
+PlantRunner___FF16__ctor <- function(plant, environment) {
+    .Call('_plant_PlantRunner___FF16__ctor', PACKAGE = 'plant', plant, environment)
 }
 
-PlantRunner__plant__set <- function(obj_, value) {
-    invisible(.Call('_plant_PlantRunner__plant__set', PACKAGE = 'plant', obj_, value))
+PlantRunner___FF16__plant__get <- function(obj_) {
+    .Call('_plant_PlantRunner___FF16__plant__get', PACKAGE = 'plant', obj_)
+}
+
+PlantRunner___FF16__plant__set <- function(obj_, value) {
+    invisible(.Call('_plant_PlantRunner___FF16__plant__set', PACKAGE = 'plant', obj_, value))
+}
+
+PlantRunner___FF16r__ctor <- function(plant, environment) {
+    .Call('_plant_PlantRunner___FF16r__ctor', PACKAGE = 'plant', plant, environment)
+}
+
+PlantRunner___FF16r__plant__get <- function(obj_) {
+    .Call('_plant_PlantRunner___FF16r__plant__get', PACKAGE = 'plant', obj_)
+}
+
+PlantRunner___FF16r__plant__set <- function(obj_, value) {
+    invisible(.Call('_plant_PlantRunner___FF16r__plant__set', PACKAGE = 'plant', obj_, value))
 }
 
 FF16_Strategy__ctor <- function() {
@@ -798,6 +866,10 @@ PlantPlus___FF16__ode_names__get <- function(obj_) {
     .Call('_plant_PlantPlus___FF16__ode_names__get', PACKAGE = 'plant', obj_)
 }
 
+PlantPlus___FF16__strategy_name__get <- function(obj_) {
+    .Call('_plant_PlantPlus___FF16__strategy_name__get', PACKAGE = 'plant', obj_)
+}
+
 PlantPlus___FF16r__ctor <- function(strategy) {
     .Call('_plant_PlantPlus___FF16r__ctor', PACKAGE = 'plant', strategy)
 }
@@ -892,6 +964,10 @@ PlantPlus___FF16r__ode_rates__get <- function(obj_) {
 
 PlantPlus___FF16r__ode_names__get <- function(obj_) {
     .Call('_plant_PlantPlus___FF16r__ode_names__get', PACKAGE = 'plant', obj_)
+}
+
+PlantPlus___FF16r__strategy_name__get <- function(obj_) {
+    .Call('_plant_PlantPlus___FF16r__strategy_name__get', PACKAGE = 'plant', obj_)
 }
 
 PlantPlus_internals__ctor <- function() {
