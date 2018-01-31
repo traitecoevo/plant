@@ -103,6 +103,8 @@ for (x in names(strategy_types)) {
     ## ode_state
     expect_equal(pl$ode_state, c(h0, m0, f0, 0, 0))
     expect_equal(pl$ode_state, pp$ode_state)
+
+    expect_equal(pl$strategy_name, x)
   })
 
   test_that("stochastic support", {

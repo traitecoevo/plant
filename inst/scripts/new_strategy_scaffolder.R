@@ -29,7 +29,6 @@ creating_message <- function(file) {
 # update file by applying the function f to each line of the file
 # allows for find and replace like modifications
 update_file <- function(file, name, f) {
-
   updating_message(file)
   readLines(file) -> raw
   lapply(raw, f) -> out
@@ -55,12 +54,12 @@ update_classes_yml <- function (name, strategy) {
 
   # add the extra templates below the FF16r ones
   f <- function(x) {
-      if(x != "      - [\"FF16r\": \"plant::FF16r_Strategy\"]") return(x)
-      c(x, 
-        whisker.render(
-          "      - [\"{{name}}\": \"plant::{{name}}_Strategy\"]",
-          list(name=name)
-        ))
+      switch(x,
+      "      - [\"FF16r\": \"plant::FF16r_Strategy\"]"=c(x, whisker.render(
+      "      - [\"{{name}}\": \"plant::{{name}}_Strategy\"]", list(name=name))),
+      "      - [\"FF16r\": \"plant::tools::PlantRunner<plant::FF16r_Strategy>\"]"=c(x,whisker.render(
+      "      - [\"{{name}}\": \"plant::tools::PlantRunner<plant::{{name}}_Strategy>\"]", list(name=name))),
+      x)
     }
   update_file(file, name, f) -> r6_templates
 
@@ -83,10 +82,16 @@ update_classes_yml <- function (name, strategy) {
 # updates src/plant_tools.cpp
 update_plant_tools <- function (name) {
   whisker.render("
-// Template found in inst/scripts/new_strategy_scaffolder.R. function: update_plant_tools()
+// Templates found in inst/scripts/new_strategy_scaffolder.R. function: update_plant_tools()
 // [[Rcpp::export]]
 double {{name}}_lcp_whole_plant(plant::PlantPlus<plant::{{name}}_Strategy> p) {
   return plant::tools::lcp_whole_plant(p);
+}
+// [[Rcpp::export]]
+plant::PlantPlus_internals
+{{name}}_oderunner_plant_internals(
+  const plant::ode::Runner<plant::tools::PlantRunner<plant::{{name}}_Strategy>>& obj) {
+  return obj.obj.plant.r_internals();
 }
 ", list(name=name)) -> debt
 

@@ -219,6 +219,8 @@ public:
   // Height and leaf area of a (germinated) seed
   double height_0;
   double area_leaf_0;
+
+  std::string name;
 };
 
 FF16r_Strategy::ptr make_strategy_ptr(FF16r_Strategy s);

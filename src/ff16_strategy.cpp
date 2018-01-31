@@ -91,6 +91,8 @@ FF16_Strategy::FF16_Strategy() {
   // Will get computed properly by prepare_strategy
   height_0 = NA_REAL;
   eta_c    = NA_REAL;
+
+  name = "FF16";
 }
 
 // [eqn 2] area_leaf (inverse of [eqn 3])
