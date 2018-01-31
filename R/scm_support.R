@@ -212,7 +212,7 @@ run_scm_error <- function(p) {
 ##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
 ##' @rdname Hyperparameter_functions
 ##' @export
-# if you update this function (even synatctic changes) update the function update_smc_support in the scaffolder
+# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
 make_hyperpar <- function(type) {
   switch(type,
          FF16=make_FF16_hyperpar,
@@ -221,7 +221,6 @@ make_hyperpar <- function(type) {
 }
 
 ##' @rdname Hyperparameter_functions
-##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
 ##' @export
 # if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
 hyperpar <- function(type) {
@@ -311,7 +310,7 @@ species_to_internals <- function(sp, environment=NULL) {
 ##' returns a function that takes a variable name and integrates it.
 ##'
 ##' @title Integrate SCM variables
-##' @param scm An object from \code{run_scm} or \code{run_scm_collect}
+##' @param obj An object from \code{run_scm} or \code{run_scm_collect}
 ##' @export
 make_scm_integrate <- function(obj) {
   ## TODO: This needs to be made to work with the output of

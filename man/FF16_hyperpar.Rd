@@ -57,7 +57,16 @@ FF16r_hyperpar(m, s, filter = TRUE)
 \item{k_I}{light extinction coefficient [dimensionless]}
 
 \item{latitude}{degrees from equator (0-90), used in solar model [deg]}
+
+\item{m}{A matrix of trait values, as returned by \code{trait_matrix}}
+
+\item{s}{A strategy object}
+
+\item{filter}{A flag indicating whether to filter columns. If TRUE, any numbers 
+that are within eps of the default strategy are not replaced.}
 }
 \description{
 Hyperparameters for FF16 physiological model
+
+Hyperparameter function for FF16 physiological model
 }

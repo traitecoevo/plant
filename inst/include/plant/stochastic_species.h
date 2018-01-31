@@ -142,7 +142,7 @@ double StochasticSpecies<T>::height_max() const {
 // all heights, as sum(numeric(0)) -> 0
 //
 // NOTE: A similar early-exit condition to the Plant version is used;
-// once the lower bound of the trazpeium is zero, we stop including
+// once the lower bound of the trapezium is zero, we stop including
 // individuals.  Working with the boundary plant is tricky here,
 // because we might need to include that, too: always in the case of a
 // single plant (needed to be the second half of the trapezium) and

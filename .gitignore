@@ -2,4 +2,6 @@ vignettes/*
 inst/doc/
 docs
 !/inst/docs/
-.Rproj.user
+*Rproj*
+*.Rhistory*
+^plant.Rcheck$
