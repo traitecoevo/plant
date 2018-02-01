@@ -1,0 +1,23 @@
+Symbol,Unit,Description
+**Plant construction**,,
+$x$,,Vector of traits for a species
+$H_0$,m,Height of a seedling after germination
+$H$,m,Height of a plant
+$B$,kg,Biomass originating from parent plant
+$M_i$,kg,Mass of tissue type $i$ retained on plant 
+$A_i$,m$^2$,Surface area or area of cross-section of tissue type $i$
+"$q(z, H)$",m$^{-1}$,Vertical distribution of leaf area across heights $z$ for a plant with height $H$
+"$Q(z, H)$",,Fraction of leaf area above height $z$ for a plant with height $H$Mass production,
+**Mass production**,,
+"$p,\bar{p}$",mol yr$^{-1}$ m$^{-2}$,Photosynthetic rate per unit area 
+$r_i$,mol yr$^{-1}$ kg$^{-1}$ ,Respiration rate per unit mass of tissue type $i$ 
+$k_i$,yr$^{-1}$,Turnover rate for tissue type $i$ 
+**Environment**,,
+$a$,yr,Patch age
+$E_{a}$,,Profile of canopy openness within a patch of age $a$
+$E_{a}(z)$,,Canopy openness at height $z$ within a patch of age $a$
+**Demographic outcomes**,,
+"$g(x, H, E_{a})$",m yr$^{-1}$,Height growth rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$ 
+"$f(x, H, E_{a})$",yr$^{-1}$,Seed production rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$
+"$d(x, H, E_{a})$",yr$^{-1}$,Instantaneous mortality rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$
+"$S_{\rm G} (x, H_0, E_{{\rm a}0})$",,Probability that a seed germinates successfully 

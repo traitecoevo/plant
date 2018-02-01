@@ -3,7 +3,7 @@ title: "The `FF16` growth strategy"
 bibliography: refs.bib
 csl: methods-in-ecology-and-evolution.csl
 date: "`r Sys.Date()`"
-output: 
+output:
   bookdown::html_document2:
     toc: yes
     number_sections: false
@@ -42,15 +42,15 @@ derived from the rate at which living biomass is produced by the plant,
 which in turn is calculated based on well-understood physiology Fig. \@ref(fig:phys). Various physiological parameters
 influence demographic outcomes. Varying these parameters allows accounting for
 species differences, potentially via traits (see last
-section). Tables \@ref(tab:definitions), \ref{tab:params_core}, \ref{tab:params_hyper} summarize the
+section). Tables \@ref(tab:definitions), \@ref(tab:params-core), \@ref(tab:params-hyper) summarize the
 units and definitions of all variables, parameters, and hyper-parameters used in
 the material below. 
 
 ```{r phys, out.width = '100%', fig.cap="**Physiological model in `plant`, giving demographic rates on the basis of its traits, size, and light environment, as functions of net mass production.** The dashed arrow towards mortality indicates that, although the mortality rate is assumed to depend on mass production, no mass is actually allocated there. Figure adapted from @Falster-2011 and @Falster-2015.", echo=FALSE}
-knitr::include_graphics("figures/schematic-phys.png")
+knitr::include_graphics("assets/FF16-schematic-phys.png")
 ```
 
-# Growth  {#growth}
+# Growth {#growth}
 
 ## Leaf photosynthesis {#leaf-photosynthesis}
 
@@ -180,7 +180,7 @@ required by most ecologically realistic vegetation models
 roots). This approach allows us to track only the
 plant's height, while still accounting for the mass needs to build
 leaves, roots, and stems. The growth rates of various tissues can then
-also be derived (Table \ref{tab:allometry}).
+also be derived (Table \@ref(tab:allometry)).
 
 ## Leaf area {#leaf-area}
 
@@ -328,7 +328,7 @@ constant. Eq. \@ref(eq:pi1) is consistent with Eq.
 # Hyper-parameterisation of physiological model via traits {#traits}
 
 The `FF16` physiological model includes default values for all needed parameters
-(Table \ref{tab:params_core}). Species are known to vary considerably
+(Table \@ref(tab:params-core)). Species are known to vary considerably
 in many of these parameters, such as $\phi$, $\rho$, $\nu$, and $\omega$; so by varying parameters
 one can account for species differences. When altering a parameter in the model, however,
 one must also consider whether there are trade-offs linking parameters.
@@ -411,7 +411,8 @@ as empirically observed [@Henery-2001].
 
 ## Nitrogen per unit leaf area
 
-Photosynthesis per unit leaf area and respiration rates per unit leaf mass (or area) are assumed to vary with leaf nitrogen per unit area, $\nu$. The calculation of respiration rates is already described above. To calculate the average annual photosynthesis for a leaf, we integrate the instantaneous rate per unit leaf area over the annual solar trajectory, using a rectangular-hyperbolic photosynthesis light response curve, \begin{equation}
+Photosynthesis per unit leaf area and respiration rates per unit leaf mass (or area) are assumed to vary with leaf nitrogen per unit area, $\nu$. The calculation of respiration rates is already described above. To calculate the average annual photosynthesis for a leaf, we integrate the instantaneous rate per unit leaf area over the annual solar trajectory, using a rectangular-hyperbolic photosynthesis light response curve, 
+\begin{equation}
 p(\nu, E) = \frac1{365 \textrm{d}}\int_0^{365 \textrm{d}}\frac{Y(t) + A_{\rm max} - \sqrt{(Y(t) + A_{\rm max})^2 - 4 \beta_{{\rm lf2}} Y(t) A_{\rm max} }}{2 \beta_{{\rm lf2}}} {\rm d}t,
 (\#eq:ptss)
 \end{equation}
@@ -437,106 +438,35 @@ $\alpha_{{\rm p1}}$ and $\alpha_{{\rm p2}}$, such that these become functions of
 
 # Tables {#tables}
 
-```{r definitions, echo=FALSE}
-knitr::kable(
-  head(mtcars[, 1:8], 10), 
+```{r definitions, echo=FALSE, results='asis'}
+x <- read.csv("assets/FF16-vars.csv")
+# TODO: can we get groups as headers spanning multiple columns?
+knitr::kable(x,  align = "l",
   caption = 'Key variables of the `FF16` physiological model. For mass ($M$), respiration ($r$), and turnover ($k$) variables, subscripts refer to any of the following tissues: ${\\rm l}$ = leaves, ${\\rm b}$ = bark, ${\\rm s}$ = sapwood,${\\rm r}$ = roots, ${\\rm a}$ = all living tissue. For area $A$ variables, subscripts refer to any of the following: ${\\rm l}$ = leaves, ${\\rm st}$ = total stem cross-section, ${\\rm s}$ = sapwood cross-section, ${\\rm b}$ = bark cross-section, ${\\rm h}$ = heartwood cross-section'
 )
 ```
 
-\begin{table}[h!]
-\caption{.}
-\centering
-\begin{tabular}{p{2cm}p{2.5cm}p{8cm}}
-\hline
-Symbol & Unit & Description \\
-\hline
-\multicolumn{3}{l}{\textbf{Plant construction}} \\
-$x$ & & Vector of traits for a species\\
-$H_0$ & m & Height of a seedling after germination\\
-$H$ & m & Height of a plant\\
-$B$ & kg & Biomass originating from parent plant\\
-$M_i$ & kg & Mass of tissue type $i$ retained on plant \\
-$A_i$ & m$^2$ & Surface area or area of cross-section of tissue type $i$\\
-$q(z, H)$ & m$^{-1}$ & Vertical distribution of leaf area across heights $z$ for a plant with height $H$\\
-$Q(z, H)$ &  & Fraction of leaf area above height $z$ for a plant with height $H$\\
-\multicolumn{3}{l}{\textbf{Mass production}} \\
-$p,\bar{p}$ & mol yr$^{-1}$ m$^{-2}$ & Photosynthetic rate per unit area \\
-$r_i$ & mol yr$^{-1}$ kg$^{-1}$  & Respiration rate per unit mass of tissue type $i$ \\
-$k_i$ & yr$^{-1}$ & Turnover rate for tissue type $i$ \\
-\multicolumn{3}{l}{\textbf{Environment}} \\
-$a$ & yr& Patch age\\
-$E_{a}$ & & Profile of canopy openness within a patch of age $a$\\
-$E_{a}(z)$&& Canopy openness at height $z$ within a patch of age $a$\\
-\multicolumn{3}{l}{\textbf{Demographic outcomes}} \\
-$g(x, H, E_{a})$ & m yr$^{-1}$ & Height growth rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$ \\
-$f(x, H, E_{a})$ & yr$^{-1}$ & Seed production rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$\\
-$d(x, H, E_{a})$ & yr$^{-1}$ & Instantaneous mortality rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$\\
-$S_{\rm G} (x, H_0, E_{{\rm a}0})$ & & Probability that a seed germinates successfully \\
-\hline
-\end{tabular}
- \label{tab:definitions}
-\end{table}
+```{r allometry, echo=FALSE, results='asis'}
+x <- read.csv("assets/FF16-eqns.csv")
+knitr::kable(x,  align = "l",
+  caption = 'Equations of the allometric growth model implemented within the `FF16` physiological model, based on functional-balance assumptions (see text for details). In (a) we list  key assumptions of allocation model between specific variation with leaf area, under "Function". From these assumptions, allocation functions are derived for tissue areas and tissue masses (b). Also the growth rate of each tissue type can be expressed as a function of the growth rate of leaf area. For mass ($M$), respiration ($r$), and turnover ($k$) variables, subscripts refer to any of the following tissues: ${\\rm l}$ = leaves, ${\\rm b}$ = bark, ${\\rm s}$ = sapwood, ${\\rm r}$ = roots, ${\\rm a}$ = all living tissue. For area $A$ variables, subscripts refer to any of the following: ${\\rm l}$ = leaves, ${\\rm st}$ = total stem cross-section, ${\\rm s}$ = sapwood cross-section, ${\\rm b}$ = bark cross-section, ${\\rm h}$ = heartwood cross-section'
+)
+```
+
+```{r params-core, echo=FALSE, results='asis'}
+x <- read.csv("assets/FF16-params-core.csv")
+knitr::kable(x,  align = "l",
+  caption = 'Core parameters of the `FF16` physiological model.'
+)
+```
 
 
+```{r params-hyper, echo=FALSE, results='asis'}
+x <- read.csv("assets/FF16-params-hyper.csv")
+knitr::kable(x,  align = "l",
+  caption = 'Parameters for hyper-parameterisation of the `FF16` physiological model.'
+)
+```
 
-\begin{table}[h!]
-\caption{Equations of the allometric growth model implemented within the `FF16` physiological model, based on functional-balance assumptions (see text for details).
-The key assumptions allocation model are listed in (a), under ``Function''. From these
-assumptions, allocation functions are derived for tissue areas and tissue masses (b). Also
-the growth rate of each tissue type can be expressed as a function of the growth rate of leaf area. For mass ($M$), respiration ($r$), and turnover ($k$)
-variables, subscripts refer to any of the following tissues: ${\rm l}$ = leaves, ${\rm b}$ = bark, ${\rm s}$ = sapwood,
-${\rm r}$ = roots, ${\rm a}$ = all living tissue. For area $A$ variables, subscripts refer to any of the following: ${\rm l}$ = leaves, ${\rm st}$ = total stem cross-section, ${\rm s}$ = sapwood cross-section, ${\rm b}$ = bark cross-section, ${\rm h}$ = heartwood cross-section.}
-\centering
-\begin{tabular}{p{2.5cm}p{3.5cm}p{5cm}p{4cm} }\\ \hline
-Variable & Function & Allocation & Growth rate\\ \hline
-\multicolumn{4}{l}{\textbf{(a) Assumed relationships with leaf area}} \\
-Height &
-$H = \alpha_{{\rm l1}} \, \left(A_{\rm l} \, {\rm m^{-2}} \right)^{\alpha_{{\rm l2}}}$ &
-$\frac{{\rm d}H}{{\rm d}A_{\rm l}} = \alpha_{{\rm l2}} \alpha_{{\rm l1}} \left(A_{\rm l} \, {\rm m^{-2}} \right)^{\alpha_{{\rm l2}}-1}$ &
-$\frac{{\rm d}H}{{\rm d}t} = \frac{{\rm d}H}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$ \\
-Sapwoood area &
-$A_{\rm s} = \theta \, A_{\rm l}$ &
-$\frac{{\rm d}A_{\rm s}}{{\rm d} A_{\rm l}} = \theta$ &
-$\frac{{\rm d}A_{\rm s}}{{\rm d}t} = \frac{{\rm d}A_{\rm s}}{{\rm d} A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$ \\
-Bark area &
-$A_{\rm b} = \alpha_{{\rm b1}} \, \theta \, A_{\rm l}$ &
-$\frac{{\rm d}A_{\rm b}}{{\rm d} A_{\rm l}} = \alpha_{{\rm b1}} \, \theta$ &
-$\frac{{\rm d}A_{\rm b}}{{\rm d}t} = \frac{{\rm d}A_{\rm b}}{{\rm d} A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$ \\ \\
-\multicolumn{4}{l}{\textbf{(b) Derived equations for mass of tissue }} \\
-Leaf mass &
-$M_{\rm l} = \phi \, A_{\rm l} $ &
-$\frac{{\rm d}M_{\rm l}}{{\rm d}A_{\rm l}} = \phi$ &
-$\frac{{\rm d}M_{\rm l}}{{\rm d}t} = \frac{{\rm d}M_{\rm l}}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$ \\
-Sapwood mass &
-$M_{\rm s} = \rho \, \theta \, \eta_{\rm c} \, A_{\rm l} \, H $ &
-$\frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} = \rho \, \theta \, \eta_{\rm c} \, \big(H + A_{\rm l} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \big)$ &
-$\frac{{\rm d}M_{\rm s}}{{\rm d}t} = \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$ \\
-Bark mass &
-$M_{\rm b} = \alpha_{{\rm b1}} \, \rho \, \theta \, \eta_{\rm c} \, A_{\rm l} \, H $ &
-$\frac{{\rm d}M_{\rm b}}{{\rm d}A_{\rm l}} = \alpha_{{\rm b1}} \, \rho \, \theta \, \eta_{\rm c}\big(H + A_{\rm l} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \big)$ &
-$\frac{{\rm d}M_{\rm b}}{{\rm d}t} = \frac{{\rm d}M_{\rm b}}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$ \\
-Root mass &
-$M_{\rm r} = \alpha_{{\rm r1}} \, A_{\rm l}$ &
-$\frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} = \alpha_{{\rm r1}}$ &
-$\frac{{\rm d}M_{\rm r}}{{\rm d}t} = \frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$ \\
-\hline \\
-\end{tabular}
- \label{tab:allometry}
-\end{table}
-
-
-
-\begin{table}[h!]
-\caption{Core parameters of the `FF16` physiological model.}
-\input{growth_model_pars_core}
- \label{tab:params_core}
-\end{table}
-
-\begin{table}[h!]
-\caption{Parameters for hyper-parameterisation of the `FF16` physiological model.}
-\input{growth_model_pars_hyper}
- \label{tab:params_hyper}
-\end{table}
 
 # References
