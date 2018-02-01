@@ -1,3 +1,12 @@
+copy_assets_figures <- function(cleanup=FALSE) {
+  dest <- "vignettes"
+  copy <- c("figure", "assets")
+  unlink(file.path(dest, copy), recursive=TRUE)
+  if (!cleanup) {
+    file.copy(copy, dest, recursive=TRUE, overwrite=TRUE)
+  }
+}
+
 empty_box <- function() {
   par(oma=c(0,0,0,0), mar=rep(0.1,4))
   plot(1,1, ann=FALSE, axes=FALSE, type='n')
@@ -51,55 +60,4 @@ splinefun_loglog2 <- function(x, y, xx){
   ii <- xx <= max(x, na.rm=TRUE) & xx >= min(x, na.rm=TRUE)
   ret[!ii] <- 0
   ret
-}
-
-combine_md <- function(..., output) {
-  find_metadata <- function(x) {
-    i <- grep("^---+\\s*$", x)
-    if (length(i) < 2L) {
-      stop("Metadata block not found")
-    }
-    if (i[[1]] != 1L) {
-      stop("Metadata block not the first line")
-    }
-    i
-  }
-  demote <- function(x) {
-    i <- which(grepl("^#+", x))
-    i <- i[i == 1 | grepl("^\\s*$", x[i - 1])]
-    x[i] <- paste0("#", x[i])
-    x
-  }
-
-  files <- c(...)
-  dat <- lapply(files, readLines)
-  titles <- character(length(dat))
-
-  for (i in seq_along(dat)) {
-    x <- dat[[i]]
-    j <- find_metadata(x)
-    t <- yaml::yaml.load(x[(j[[1]] + 1L):(j[[2]] - 1L)])$title
-    t <- sub("plant:[^:]*: ", "", t)
-    t <- gsub("(^_|_$)", "", t)
-    titles[[i]] <- t
-    dat[[i]] <- c("", paste("#", t), demote(x[-(j[[1]]:j[[2]])]))
-  }
-
-  header <-
-    c("---",
-      'title: "Worked examples showing how to interact with plant from R"',
-      "---")
-  ret <- c(header, unlist(dat))
-  writeLines(ret, output)
-}
-
-## I'm 99% sure we've done this before.
-md_to_pdf <- function(filename) {
-  output <- sub("\\.md", ".pdf", basename(filename))
-  template <- c("--template", "template.tex")
-  opts <- "--toc"
-  owd <- setwd(dirname(filename))
-  on.exit(setwd(owd))
-  call_system(Sys_which("pandoc"),
-              c(basename(filename), "-o", output, template, opts))
 }

@@ -38,7 +38,7 @@ vignettes:
 	(cd inst/docs; ln -sfn ../../vignettes vignettes; remake install_vignettes)
 
 build_site: vignettes
-	Rscript -e "pkgdown::build_site()"
+	Rscript -e "source('pkgdown/build_rmarkdown_format.R'); pkgdown::build_site()"
 
 pkgdown: build_site
 	open "docs/index.html"

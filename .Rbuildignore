@@ -14,6 +14,6 @@
 ^_pkgdown\.yml$
 ^NEWS.md
 ^inst/docs$
-^_pkgdown\.yml$
 ^docs$
 ^plant.Rcheck$
+^pkgdown$

@@ -1,15 +1,21 @@
 ---
 title: "The `FF16` growth strategy"
-bibliography: refs.bib
-csl: methods-in-ecology-and-evolution.csl
+bibliography: assets/refs.bib
+csl: assets/methods-in-ecology-and-evolution.csl
 date: "`r Sys.Date()`"
 output:
-  bookdown::html_document2:
-    toc: yes
-    number_sections: false
+bookdown::html_document2:
+  toc: yes
+  number_sections: false
 ---
 
-<!-- 
+<!--
+
+output:
+bookdown::html_document2:
+  toc: yes
+  number_sections: false
+
 output:
   html_document:
     keep_md: true
