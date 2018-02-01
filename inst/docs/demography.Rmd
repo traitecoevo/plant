@@ -1,7 +1,7 @@
 ---
 title: "Modelling the demography of plants, patches, and metacommunities"
-bibliography: refs.bib
-csl: methods-in-ecology-and-evolution.csl
+bibliography: assets/refs.bib
+csl: assets/methods-in-ecology-and-evolution.csl
 output: 
   bookdown::html_document2:
     toc: yes

@@ -3,7 +3,6 @@ packages:
   - plant
   - BB
   - nleqslv
-  - sowsear
   - xtable
 
 sources:
@@ -33,7 +32,6 @@ knitr_options:
 targets:
   all:
     depends:
-      - vignettes_rendered
       - install_vignettes
 
   vignettes_md:
@@ -46,43 +44,12 @@ targets:
       - cohort_spacing.md
       - parameters.md
 
-  vignettes_html:
-    depends:
-      - plant.html
-      - equilibrium.html
-      - patch.html
-      - emergent.html
-      - fitness.html
-      - cohort_spacing.html
-      - parameters.html
-      - code.html
-
-  vignettes_pdf:
-    depends:
-    - demography.pdf
-    - physiology.pdf
-    - code.pdf
-
-  vignettes_rendered:
-    depends:
-      - vignettes_pdf
-      - vignettes_html
-
-  plant.Rmd:
-    command: sowsear("src/plant.R", output=target_name)
-  cohort_spacing.Rmd:
-    command: sowsear("src/cohort_spacing.R", output=target_name)
-  equilibrium.Rmd:
-    command: sowsear("src/equilibrium.R", output=target_name)
-  patch.Rmd:
-    command: sowsear("src/patch.R", output=target_name)
-  emergent.Rmd:
-    command: sowsear("src/emergent.R", output=target_name)
-  fitness.Rmd:
-    command: sowsear("src/fitness.R", output=target_name)
-  parameters.Rmd:
-    command: sowsear("src/parameters.R", output=target_name)
-
+  demography.md:
+    knitr: vignette
+  physiology.md:
+    knitr: vignette
+  developer_notes.md:
+    knitr: vignette
   plant.md:
     knitr: vignette
   cohort_spacing.md:
@@ -98,39 +65,11 @@ targets:
   parameters.md:
     knitr: vignette
 
-  code.md:
-    command: combine_md("intro.md", "plant.md", "cohort_spacing.md", "equilibrium.md", "patch.md", "emergent.md", "fitness.md", "parameters.md", output=target_name)
-  code.html:
-    command: render("code.md", quiet=TRUE)
-  code.pdf:
-    command: md_to_pdf("code.md")
-
-  plant.html:
-    command: render("plant.md", quiet=TRUE)
-  cohort_spacing.html:
-    command: render("cohort_spacing.md", quiet=TRUE)
-  equilibrium.html:
-    command: render("equilibrium.md", quiet=TRUE)
-  patch.html:
-    command: render("patch.md", quiet=TRUE)
-  emergent.html:
-    command: render("emergent.md", quiet=TRUE)
-  fitness.html:
-    command: render("fitness.md", quiet=TRUE)
-  parameters.html:
-    command: render("parameters.md", quiet=TRUE)
-
-  growth_model_pars_core.tex:
-    command: table_plant_parameters("growth_model_pars_core.csv", target_name)
-  growth_model_pars_hyper.tex:
-    command: table_plant_parameters("growth_model_pars_hyper.csv", target_name)
-
-  # HACK ALERT! HACK ALERT!
   install_vignettes:
-    command: build_vignettes()
+    command: copy_assets_figures()
     depends:
-      - vignettes/demography.Rnw
-      - vignettes/physiology.Rnw
+      - vignettes/demography.Rmd
+      - vignettes/physiology.Rmd
       - vignettes/plant.Rmd
       - vignettes/equilibrium.Rmd
       - vignettes/patch.Rmd
@@ -139,28 +78,24 @@ targets:
       - vignettes/cohort_spacing.Rmd
       - vignettes/developer_notes.Rmd
       - vignettes/parameters.Rmd
-      - growth_model_pars_core.tex
-      - growth_model_pars_hyper.tex
-      - refs.bib
-      - ./suppmat.sty
 
   vignettes/plant.Rmd:
-    command: patch_md("plant.md", target_name)
+    command: file.copy("plant.md", target_name, overwrite=TRUE)
   vignettes/equilibrium.Rmd:
-    command: patch_md("equilibrium.md", target_name)
+    command: file.copy("equilibrium.md", target_name, overwrite=TRUE)
   vignettes/cohort_spacing.Rmd:
-    command: patch_md("cohort_spacing.md", target_name)
+    command: file.copy("cohort_spacing.md", target_name, overwrite=TRUE)
   vignettes/patch.Rmd:
-    command: patch_md("patch.md", target_name)
+    command: file.copy("patch.md", target_name, overwrite=TRUE)
   vignettes/emergent.Rmd:
-    command: patch_md("emergent.md", target_name)
+    command: file.copy("emergent.md", target_name, overwrite=TRUE)
   vignettes/fitness.Rmd:
-    command: patch_md("fitness.md", target_name)
+    command: file.copy("fitness.md", target_name, overwrite=TRUE)
   vignettes/parameters.Rmd:
-    command: patch_md("parameters.md", target_name)
+    command: file.copy("parameters.md", target_name, overwrite=TRUE)
   vignettes/developer_notes.Rmd:
     command: file.copy("developer_notes.Rmd", target_name, overwrite=TRUE)
-
-
-  clean:
-    command: cleanup_vignettes()
+  vignettes/demography.Rmd:
+    command: file.copy("demography.Rmd", target_name, overwrite=TRUE)
+  vignettes/physiology.Rmd:
+    command: file.copy("physiology.Rmd", target_name, overwrite=TRUE)
