@@ -1,11 +1,12 @@
 ---
-title: "Description of the `FF16` growth strategy model"
+title: "The `FF16` growth strategy"
 bibliography: refs.bib
 csl: methods-in-ecology-and-evolution.csl
 date: "`r Sys.Date()`"
 output: 
   bookdown::html_document2:
     toc: yes
+    number_sections: false
 ---
 
 <!-- 
@@ -38,17 +39,16 @@ current size, light environment, and physiological parameters as inputs,
 and return its growth, mortality, and fecundity rates. In the `FF16`
 physiological model, these vital rates are all
 derived from the rate at which living biomass is produced by the plant,
-which in turn is calculated based on well-understood physiology ([Fig. 1](#fig-schematic-phys)). Various physiological parameters
+which in turn is calculated based on well-understood physiology Fig. \@ref(fig:phys). Various physiological parameters
 influence demographic outcomes. Varying these parameters allows accounting for
 species differences, potentially via traits (see last
-section). Tables
-\ref{tab:definitions}, \ref{tab:params_core}, \ref{tab:params_hyper} summarize the
+section). Tables \@ref(tab:definitions), \ref{tab:params_core}, \ref{tab:params_hyper} summarize the
 units and definitions of all variables, parameters, and hyper-parameters used in
 the material below. 
 
-#### {#fig-schematic-phys}
-![**Fig. 1: Physiological model in `plant`, giving demographic rates on the basis of its traits, size, and light environment, as functions of net mass production.** The dashed arrow towards mortality indicates that, although the mortality rate is assumed to depend on mass production, no mass is actually allocated there. Figure adapted from @Falster-2011 and @Falster-2015.](figures/schematic-phys.png)
-
+```{r phys, out.width = '100%', fig.cap="**Physiological model in `plant`, giving demographic rates on the basis of its traits, size, and light environment, as functions of net mass production.** The dashed arrow towards mortality indicates that, although the mortality rate is assumed to depend on mass production, no mass is actually allocated there. Figure adapted from @Falster-2011 and @Falster-2015.", echo=FALSE}
+knitr::include_graphics("figures/schematic-phys.png")
+```
 
 # Growth  {#growth}
 
@@ -78,7 +78,7 @@ where $q(z, H)$ is the vertical distribution of leaf area with respect to height
 The amount of biomass available for growth,
 ${\rm d}B  / {\rm d}t$, is given by the difference between income
 (total photosynthetic rate) and losses (respiration and turnover) within the
-plant [@Makela-1997, Thornley-2000, Falster-2011],
+plant [@Makela-1997, @Thornley-2000, @Falster-2011],
 \begin{equation}
 \underbrace{\strut \frac{{\rm d}B}{{\rm d}t}}_\textrm{net biomass production}
 = \underbrace{\strut \alpha_{\rm bio} }_\textrm{mass per C} \,
@@ -153,7 +153,11 @@ determines the sharpness of the transition [@Falster-2011].
 Analogously, the growth in basal area $A_{\rm st}$ can be
 expressed as the sum of growth in sapwood, bark, and heartwood areas
 ($A_{\rm s}, A_{\rm b}$, and $A_{\rm h}$, respectively),
-$$\frac{{\rm d}A_{\rm st}}{{\rm d}t} = \frac{{\rm d}A_{\rm b}}{{\rm d}t} + \frac{{\rm d}A_{\rm s}}{{\rm d}t} + \frac{{\rm d}A_{\rm h}}{{\rm d}t}.$$
+\begin{equation}
+\frac{{\rm d}A_{\rm st}}{{\rm d}t} = \frac{{\rm d}A_{\rm b}}{{\rm d}t} + \frac{{\rm d}A_{\rm s}}{{\rm d}t} + \frac{{\rm d}A_{\rm h}}{{\rm d}t}.
+(\#eq:dA-dst)
+\end{equation}
+
 Applying the chain rule, we derive an equation for basal area growth that contains many of the same
 elements as Eq. \@ref(eq:dhdt),
 \begin{equation}
@@ -179,7 +183,6 @@ leaves, roots, and stems. The growth rates of various tissues can then
 also be derived (Table \ref{tab:allometry}).
 
 ## Leaf area {#leaf-area}
-
 
 Based on empirically observed allometry [@Falster-2011], we assume an allometric power-law
 scaling relationship between the accumulated leaf area of a plant and
@@ -291,7 +294,7 @@ to reproduction).
 # Mortality {#mortality}
 
 Instantaneous rates of plant mortality are given by the sum of a growth-independent and a growth-dependent rate
-[@Falster-2011, Moorcroft-2001],
+[@Falster-2011, @Moorcroft-2001],
 \begin{equation}
 d(x, H, E_{a}) = d_{{\rm I}}(x, H) + d_{{\rm G}}(x, H, E_{a}).
 (\#eq:mortality)
@@ -342,33 +345,57 @@ The trait leaf mass per unit area, denoted by $\phi$, directly influences growth
 ${\rm d}A_{\rm l} / {\rm d}M_{\rm a}$. In addition, we
 link $\phi$ to the rate of leaf turnover,
 based on a widely observed scaling relationship from @Wright-2004,
-$$k_{\rm l} = \beta_{{\rm kl1}} \, \left(\frac{\phi}{\phi_0}\right)^{-\beta_{{\rm kl2}}}.$$
+\begin{equation}
+k_{\rm l} = \beta_{{\rm kl1}} \, \left(\frac{\phi}{\phi_0}\right)^{-\beta_{{\rm kl2}}}.
+(\#eq:k-l)
+\end{equation}
+
 This relationship is normalised around $\phi_0$, the global mean of $\phi$. This
 allows us to vary $\beta_{{\rm kl1}}$ and $\beta_{{\rm kl2}}$ without displacing the relationship from the
 observed mean.
 
 We also vary the mass-based leaf respiration rate so that it stays constant per unit leaf area and
 varies with $\phi$ and nitrogen per unit leaf area $\nu$, as empirically observed by @Wright-2004,
-$$r_{\rm l} = \frac{\beta_{{\rm lf4}}\, \nu}{\phi}.$$
+\begin{equation}
+r_{\rm l} = \frac{\beta_{{\rm lf4}}\, \nu}{\phi}.
+(\#eq:rl)
+\end{equation}
+
 
 ## Wood density
 
 The trait wood density, denoted by $\rho$, directly influences growth by changing
 ${\rm d}A_{\rm l} / {\rm d}M_{\rm a}$. In addition, we allow for
 $\rho$ to influence the rate of growth-independent mortality,
-$$d_{\rm I} = \beta_{{\rm dI1}} \, \left(\frac{\rho}{\rho_0}\right) ^ {-\beta_{{\rm dI2}}},$$
+\begin{equation}
+d_{\rm I} = \beta_{{\rm dI1}} \, \left(\frac{\rho}{\rho_0}\right) ^ {-\beta_{{\rm dI2}}},
+(\#eq:dI)
+\end{equation}
+
 and also the rate of sapwood turnover,
-$$k_{\rm s} = \beta_{{\rm ks1}} \, \left(\frac{\rho}{\rho_0}\right)^ {-\beta_{{\rm ks2}}},$$
+\begin{equation}
+k_{\rm s} = \beta_{{\rm ks1}} \, \left(\frac{\rho}{\rho_0}\right)^ {-\beta_{{\rm ks2}}},
+(\#eq:ks)
+\end{equation}
+
 As for $\phi$, these relationships are normalized around $\rho_0$, the global mean of $\rho$.
 By default, $\beta_{{\rm kI2}}$ and $\beta_{{\rm ks2}}$ are set to zero, so these linkages
 only become present when these parameters are set to something other than their default values.
 
 The rate of sapwood respiration per unit volume is assumed to be constant, so
 sapwood respiration per unit mass varies as
-$$r_{\rm s}  = \frac{\beta_{{\rm rs1}}}{\rho},$$
+\begin{equation}
+r_{\rm s}  = \frac{\beta_{{\rm rs1}}}{\rho},
+(\#eq:rs)
+\end{equation}
+
 where $\beta_{{\rm rs1}}$ is a default rate per volume of sapwood.
 Similarly, the rate of bark respiration per unit mass varies as
-$$r_{\rm b} = \frac{\beta_{{\rm rb1}}}{\rho},$$
+\begin{equation}
+r_{\rm b} = \frac{\beta_{{\rm rb1}}}{\rho},
+(\#eq:rb)
+\end{equation}
+
 with $\beta_{{\rm rb1}} = 2 \beta_{{\rm rs1}}$.
 
 ## Seed mass
@@ -376,17 +403,18 @@ with $\beta_{{\rm rb1}} = 2 \beta_{{\rm rs1}}$.
 Effects of the trait seed mass, denoted by $\omega$, are naturally embedded in the equation determining
 fecundity (Eq. \@ref(eq:fecundity)) and the initial height of seedlings. In addition,
 we let the accessory cost per seed be a multiple of seed size,
-$$\alpha_{{\rm f3}} = \beta_{{\rm f1}} \omega,$$
+\begin{equation}
+\alpha_{{\rm f3}} = \beta_{{\rm f1}} \omega,
+(\#eq:a-f3)
+\end{equation}
 as empirically observed [@Henery-2001].
 
 ## Nitrogen per unit leaf area
 
-Photosynthesis per unit leaf area and respiration rates per unit leaf mass (or area)
-are assumed to vary with leaf nitrogen per unit area, $\nu$. The calculation of respiration rates is already described above. To calculate the average annual photosynthesis for a leaf,
-we integrate the instantaneous rate per unit leaf area over the annual solar trajectory,
-using a rectangular-hyperbolic photosynthesis light response curve,
-
-$$p(\nu, E) = \frac1{365 \textrm{d}}\int_0^{365 \textrm{d}}\frac{Y(t) + A_{\rm max} - \sqrt{(Y(t) + A_{\rm max})^2 - 4 \beta_{{\rm lf2}} Y(t) A_{\rm max} }}{2 \beta_{{\rm lf2}}} {\rm d}t,$$
+Photosynthesis per unit leaf area and respiration rates per unit leaf mass (or area) are assumed to vary with leaf nitrogen per unit area, $\nu$. The calculation of respiration rates is already described above. To calculate the average annual photosynthesis for a leaf, we integrate the instantaneous rate per unit leaf area over the annual solar trajectory, using a rectangular-hyperbolic photosynthesis light response curve, \begin{equation}
+p(\nu, E) = \frac1{365 \textrm{d}}\int_0^{365 \textrm{d}}\frac{Y(t) + A_{\rm max} - \sqrt{(Y(t) + A_{\rm max})^2 - 4 \beta_{{\rm lf2}} Y(t) A_{\rm max} }}{2 \beta_{{\rm lf2}}} {\rm d}t,
+(\#eq:ptss)
+\end{equation}
 where
 
 - $A_{\rm max}$ is the maximum photosynthetic capacity of the leaf,
@@ -407,14 +435,17 @@ where $\beta_{{\rm lf1}}$ and $\beta_{{\rm lf5}}$ are constants. The relationshi
 Values of $p(\nu, E)$ are calculated across a range of values of $E$, and then an expression of the form in Eq. \@ref(eq:photosynthesis) is fitted to extract the parameters
 $\alpha_{{\rm p1}}$ and $\alpha_{{\rm p2}}$, such that these become functions of $\nu$.
 
-
-
 # Tables {#tables}
 
+```{r definitions, echo=FALSE}
+knitr::kable(
+  head(mtcars[, 1:8], 10), 
+  caption = 'Key variables of the `FF16` physiological model. For mass ($M$), respiration ($r$), and turnover ($k$) variables, subscripts refer to any of the following tissues: ${\\rm l}$ = leaves, ${\\rm b}$ = bark, ${\\rm s}$ = sapwood,${\\rm r}$ = roots, ${\\rm a}$ = all living tissue. For area $A$ variables, subscripts refer to any of the following: ${\\rm l}$ = leaves, ${\\rm st}$ = total stem cross-section, ${\\rm s}$ = sapwood cross-section, ${\\rm b}$ = bark cross-section, ${\\rm h}$ = heartwood cross-section'
+)
+```
+
 \begin{table}[h!]
-\caption{Key variables of the `FF16` physiological model. For mass ($M$), respiration ($r$), and turnover ($k$)
-variables, subscripts refer to any of the following tissues: ${\rm l}$ = leaves, ${\rm b}$ = bark, ${\rm s}$ = sapwood,
-${\rm r}$ = roots, ${\rm a}$ = all living tissue. For area $A$ variables, subscripts refer to any of the following: ${\rm l}$ = leaves, ${\rm st}$ = total stem cross-section, ${\rm s}$ = sapwood cross-section, ${\rm b}$ = bark cross-section, ${\rm h}$ = heartwood cross-section.}
+\caption{.}
 \centering
 \begin{tabular}{p{2cm}p{2.5cm}p{8cm}}
 \hline
