@@ -68,7 +68,7 @@ model and measure, respectively, maximum annual photosynthesis and the light lev
 leaf photosynthesis across the plant is then
 \begin{equation}
 \bar{p}(x, H, E_{a}) = \int_0^H p(x, E_a(z)) \, q(z, H) \, {\rm d}z,
-(\#eq:photosynthesis_av)
+(\#eq:photosynthesis-av)
 \end{equation}
 where $q(z, H)$ is the vertical distribution of leaf area with respect to height $z$ (Eq.
 \@ref(eq:crown3)).
@@ -334,9 +334,9 @@ one must also consider whether there are trade-offs linking parameters.
 hyper-parameterisation of the `FF16` physiological model via plant functional traits: this enables
 simultaneous variation in multiple parameters in accordance with an assumed trade-off. In the
 `FF16` physiological model, we implement the relationships described below. For more
-details, see \texttt{make\_FF16\_hyperpar.R}.
+details, see `make_FF16_hyperpar.R`.
 
-## Leaf mass per unit area}
+## Leaf mass per unit area
 
 The trait leaf mass per unit area, denoted by $\phi$, directly influences growth by changing
 ${\rm d}A_{\rm l} / {\rm d}M_{\rm a}$. In addition, we
@@ -388,13 +388,13 @@ using a rectangular-hyperbolic photosynthesis light response curve,
 
 $$p(\nu, E) = \frac1{365 \textrm{d}}\int_0^{365 \textrm{d}}\frac{Y(t) + A_{\rm max} - \sqrt{(Y(t) + A_{\rm max})^2 - 4 \beta_{{\rm lf2}} Y(t) A_{\rm max} }}{2 \beta_{{\rm lf2}}} {\rm d}t,$$
 where
-\begin{itemize}
-\item $A_{\rm max}$ is the maximum photosynthetic capacity of the leaf,
-\item $\beta_{{\rm lf2}}$ is the curvature of the light response curve,
-\item $Y(t) = \beta_{{\rm lf3}} I(t)$ is the initial yield of the light response curve, with $\beta_{{\rm lf3}}$ being the quantum yield parameter,
-\item $I(t) = k_{\rm I} \, I_0(t)\, E$ is the intensity of light on the leaf surface, and
-\item $I_0(t)$ is light incident on a surface perpendicular to the sun's rays directly above the canopy at time $t$.
-\end{itemize}
+
+- $A_{\rm max}$ is the maximum photosynthetic capacity of the leaf,
+- $\beta_{{\rm lf2}}$ is the curvature of the light response curve,
+- $Y(t) = \beta_{{\rm lf3}} I(t)$ is the initial yield of the light response curve, with $\beta_{{\rm lf3}}$ being the quantum yield parameter,
+- $I(t) = k_{\rm I} \, I_0(t)\, E$ is the intensity of light on the leaf surface, and
+- $I_0(t)$ is light incident on a surface perpendicular to the sun's rays directly above the canopy at time $t$.
+
 The profile of $I_0(t)$ is given by a solar model adapted from @TerSteege-1997.
 
 We allow for the maximum photosynthetic capacity of the leaf to vary with leaf nitrogen per unit area, as
