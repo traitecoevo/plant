@@ -138,7 +138,7 @@ of species in the metacommunity.
 
 Assuming patches are sufficiently large, the dynamics of $N$ can be modelled
 deterministically via the following partial differential equation (PDE)
-[@Kohyama-1993, Deroos-1997, Moorcroft-2001],
+[@Kohyama-1993, @Deroos-1997, @Moorcroft-2001],
 \begin{equation}
 \frac{\partial}{\partial a} N(H | x, a) = - d(x, H, E_a) \, N(H | x, a) - \frac{\partial}{\partial H} \left[g(x, H, E_a) \, N(H | x, a)\right].
 (\#eq:PDE)
@@ -181,7 +181,7 @@ a patch of age 0 by a disturbance event. Here we focus on situations
 where the age structure has reached an equilibrium. See section
 [derivation-of-pde-describing-age-structured-dynamics](#derivation-of-pde-describing-age-structured-dynamics) for the derivation and
 non-equilibrium situations. The dynamics of $P$ are given by
-[@Mckendrick-1926, Vonfoerster-1959]
+[@Mckendrick-1926, @Vonfoerster-1959]
 \begin{equation}
 \frac{{\rm d}}{{\rm d} a} P(a) = - d_{\rm P}(a) \, P(a) ,
 (\#eq:agepde)
@@ -307,19 +307,19 @@ basis for trait inheritance and expression. We also adhere to standard
 conventions in such analyses by assuming that the mutant phenotype is sufficiently
 rare to have a negligible effect on the light environment where it is growing [@Geritz-1998].
 The approach for calculating fitness implemented here follows the approach
-described by \cite{Falster-2015}.
+described by @Falster-2015.
 
 In general, invasion fitness is defined as the long-term per capita
 growth rate of a rare mutant phenotype in the environment
 determined by a resident phenotype [@Metz-1992]. Calculating
 per capita growth rates, however, is particularly challenging in a
-structured metacommunity model [@Gyllenberg-2001, Metz-2001]. As
+structured metacommunity model [@Gyllenberg-2001, @Metz-2001]. As
 an alternative measure of invasion fitness in metacommunities, we can use the basic reproduction
 ratio measuring the expected number of new dispersers arising from a
 single dispersal event. For metacommunities at demographic equilibrium, evolutionary inferences made using basic
 reproduction ratios are equivalent to those made using per capita growth
 rates
-[@Gyllenberg-2001, Metz-2001].
+[@Gyllenberg-2001, @Metz-2001].
 
 We denote by $R\left(x^\prime, x\right)$ the basic reproduction ratio of
 individuals with traits $x^\prime$ growing in the competitive
@@ -335,7 +335,7 @@ R\left(x^\prime,x\right) = \int _0^{\infty} P\left(a\right) \, \tilde{R}\left(x^
 where $\tilde{R}\left(x^\prime, a_0, a \right)$ is the expected number
 of dispersing offspring produced by a single dispersing seed with traits $x^\prime$ arriving in
 a patch of age $a_0$ up until age $a$
-[@Gyllenberg-2001, Metz-2001].
+[@Gyllenberg-2001, @Metz-2001].
 In turn, $\tilde{R}\left(x^\prime, a,\infty\right)$ is calculated by integrating
 an individual's fecundity over the expected lifetime of a patch, taking
 into account competitive shading from residents with traits $x$, the
@@ -349,9 +349,9 @@ individual's probability of surviving, and its traits,
 
 The equations below describe how we solve the trait-, size-, and patch-structured
 population dynamics specified in the previous section.
-Our approach to solving for the size-density distribution is based on the characteristic method [@Angulo-2004,Angulo-2014,Angulo-2016]. The characteristic method is related to
+Our approach to solving for the size-density distribution is based on the characteristic method [@Angulo-2004, @Angulo-2014, @Angulo-2016]. The characteristic method is related to
 the Escalator Boxcar Train technique
-[@Deroos-1988, Deroos-1997, Deroos-1992], but not identical to it.
+[@Deroos-1988, @Deroos-1997, @Deroos-1992], but not identical to it.
 
 When simulating an individual plant, or the development of a
 patch, we need to solve for the size, survival, and seed
@@ -416,7 +416,7 @@ above and $S_{\rm P}$ is calculated as in Eq. \@ref(eq:survivalPatch)$.
 
 By integrating along the characteristics of Eq. \@ref(eq:PDE),
 the size-density of individuals born with height $H_0$ and traits $x$ at patch age $a_{0}$ is given by
-[@Deroos-1997,Angulo-2004]
+[@Deroos-1997, @Angulo-2004]
 \begin{equation}
 N(H | x, a) = N(H_0 | x, a_0)
 \exp \left( - \int _{a_0}^{a} \left[\frac{\partial g(x, H(x, a_0, a^\prime), E_{a^\prime})}{\partial H} + d(x, H(x, a_0, a^\prime), E_{a^\prime})\right] {\rm d} a^\prime \right).
@@ -493,7 +493,7 @@ mass -- at least when using the default `FF16` physiological model -- we must so
 for this height numerically. The calculation is performed by the function
 `height_seed` within the physiological model, using the Boost
 library's one-dimensional `bisect` routine
-[@Schaling-2014, Eddelbuettel-2015]. The accuracy of the solution
+[@Schaling-2014, @Eddelbuettel-2015]. The accuracy of the solution
 is controlled by the parameter `plant_seed_tol`.
 
 ### Stepping of ODEs
