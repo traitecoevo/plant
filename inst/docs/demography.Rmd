@@ -1,50 +1,22 @@
-\documentclass[10pt,twoside]{article}
+---
+title: "plant: A package for modelling forest trait ecology & evolution: _Modelling the demography of plants, patches, and metacommunities_"
+bibliography: refs.bib
+csl: methods-in-ecology-and-evolution.csl
+---
 
-%!\VignetteEncoding{UTF-8}
-%\VignetteIndexEntry{plant demography}
-%\usepackage{Sweave}
 
-\usepackage{suppmat}
-\usepackage{listings}
-
-\newcommand{\plant}{\textsc{plant}}
-
-\usepackage{graphicx}
-% We will generate all images so they have a width \maxwidth. This means
-% that they will get their normal width if they fit onto the page, but
-% are scaled down if they would overflow the margins.
-\makeatletter
-\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
-\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
-\makeatother
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
-
-\title{Modelling the demography of plants, patches, and metacommunities}
-\date{}
-
-\usepackage[]{natbib}
-\bibliographystyle{mee}
-
-\begin{document}
-
-\maketitle
-
-\tableofcontents
-
-\section{Introduction}
-
-This document outlines methods used to model demography in the {\plant}
+This document outlines methods used to model demography in the `plant`
 package. We first outline the system of equations being solved. These equations were primarily
-developed elsewhere, in particular in \citet{Falster-2011} and
-\citet{Falster-2015}, following general principles laid out in
-\citet{Deroos-1997}, \citet{Kohyama-1993}, and \citet{Moorcroft-2001}. They are presented here so that
-users can understand the full system of equations being solved within {\plant}.
+developed elsewhere, in particular in @Falster-2011 and
+@Falster-2015, following general principles laid out in
+@Deroos-1997, @Kohyama-1993, and @Moorcroft-2001. They are presented here so that
+users can understand the full system of equations being solved within `plant`.
 We then describe the numerical techniques used to solve the equations.
 Table \ref{tab:definitions} provides a list of names and definitions used
 throughout this document.
 
 \begin{table}[ht]
-\caption{Variable names and definitions in the demographic model of the {\plant} package.}
+\caption{Variable names and definitions in the demographic model of the `plant` package.}
 \centering
 \begin{tabular}{p{2cm}p{2cm}p{9cm}}
 \hline
@@ -90,10 +62,10 @@ $k_{\rm I}$ & & Light extinction coefficient\\
 $\bar{a}$ & yr & Mean interval between patch disturbances \\
 \hline
 \end{tabular}
-\label{tab:definitions}
+ \label{tab:definitions}
 \end{table}
 
-\section{Metacommunity dynamics}\label{system-dynamics}
+\section{Metacommunity dynamics} \label{system-dynamics}
 
 The following material is written assuming there exists a physiological sub-model
 that takes as inputs a plant's traits $x$, height $H$, and light environment $E_a$,
@@ -106,14 +78,14 @@ $S_{\rm G} (x, H_0, E_{{\rm a}0})$.
 All are other variables in Table \ref{tab:definitions} are calculated in the
 demographic model using the equations provided below.
 
-\subsection{Individual plants}\label{individual-plants}
+\subsection{Individual plants} \label{individual-plants}
 
 We first consider the dynamics of an individual plant. Throughout, we refer to a
 plant as having traits \(x\) and size \(H\), with the latter given by its height. The
 plant grows in a light environment \(E\), a function describing the distribution
 of light with respect to height within a patch. Ultimately, \(E\) depends on the
 composition of plants in a patch, and thus on the patch age \(a\). To indicate this dependence, we
-write \(E_a\). Further, let \(a_0\)be the age in which the plant germinated, and \(H_)(x)\) its initial height. The functions \(g(x, H, E_a)\), \(f(x, H, E_a)\), and
+write \(E_a\). Further, let \(a_0\)be the age in which the plant germinated, and \(H_0(x)\) its initial height. The functions \(g(x, H, E_a)\), \(f(x, H, E_a)\), and
 \(d(x, H, E_a)\) denote the growth, death, and fecundity rates of the
 plant. Then,
 \begin{equation} \label{eq:size}
@@ -134,7 +106,7 @@ is the plant's cumulative seed output, from its birth at patch age
 The notational complexity required in Eqs. \ref{eq:size}-\ref{eq:tildeR1} potentially obscures an important point: these equations are simply the general, nonlinear solutions to
 integrating growth, mortality, and fecundity over time.
 
-\subsection{Patches of competing plants}\label{patches-of-competing-plants-size-structured-populations}
+\subsection{Patches of competing plants} \label{patches-of-competing-plants-size-structured-populations}
 
 We now consider a patch of competing plants. At any age \(a\), the
 patch is described by the size-density distribution \(N(H | x, a)\) of plants
@@ -146,7 +118,7 @@ two other factors: (i) plants interact, thereby altering \(E_a\) with
 age, and (ii) new individuals may establish, expanding the system of
 equations.
 
-In the current version of {\plant}, plants interact by shading one another.
+In the current version of `plant`, plants interact by shading one another.
 Following standards biophysical principles, we let the canopy openness
 \(E_a(z)\) at height \(z\) in a patch of age \(a\) decline exponentially
 with the total amount of leaf area above \(z\),
@@ -160,7 +132,7 @@ of species in the metacommunity.
 
 Assuming patches are sufficiently large, the dynamics of \(N\) can be modelled
 deterministically via the following partial differential equation (\textsc{pde})
-\citep{Kohyama-1993, Deroos-1997, Moorcroft-2001},
+[@Kohyama-1993, Deroos-1997, Moorcroft-2001],
 \begin{equation} \label{eq:PDE}
 \frac{\partial}{\partial a} N(H | x, a) = - d(x, H, E_a) \, N(H | x, a) - \frac{\partial}{\partial H} \left[g(x, H, E_a) \, N(H | x, a)\right].
 \end{equation}
@@ -179,7 +151,7 @@ The function \(S_{\rm G} (x, H_0, E_{{\rm a}0})\) denotes survival through
 germination and must be chosen such that
 \(S_{\rm G} (x, H_0, E_{{\rm a}0}) / g(x, H_0, E_{{\rm a}0}) \rightarrow 0\) as
 \(g(x, H_0, E_{{\rm a}0}) \rightarrow 0\), to ensure a smooth decline in
-initial density as conditions deteriorate \citep{Falster-2011}.
+initial density as conditions deteriorate [@Falster-2011].
 
 The second boundary condition of Eq. \(\ref{eq:PDE}\) specifies the initial size-density
 distribution in patches right after a disturbance, i.e., for \(a = 0\). Throughout, we consider only
@@ -190,7 +162,7 @@ although non--zero distributions could alternatively be specified
 \citep[e.g.,][]{Kohyama-1993, Moorcroft-2001}.
 
 \subsection{Age structure of
-patches}\label{age-structured-distribution-of-patches}
+patches} \label{age-structured-distribution-of-patches}
 
 We now consider the distribution of patch age \(a\) in the metacommunity.
 With \(a\) denoting the time since last disturbance, \(P(a)\) denotes the
@@ -200,7 +172,7 @@ a patch of age 0 by a disturbance event. Here we focus on situations
 where the age structure has reached an equilibrium. See section
 \ref{derivation-of-pde-describing-age-structured-dynamics} for the derivation and
 non-equilibrium situations. The dynamics of \(P\) are given by
-\citep{Mckendrick-1926, Vonfoerster-1959}
+[@Mckendrick-1926, Vonfoerster-1959]
 \begin{equation} \label{eq:agepde}
 \frac{{\rm d}}{{\rm d} a} P(a) = - d_{\rm P}(a) \, P(a) ,
 \end{equation}
@@ -222,13 +194,13 @@ P(0) = \frac1{\int_0^\infty S_{\rm P} (0, a) {\rm d}a}
 is the average disturbance frequency of a patch and, at the same time, the frequency-density of patches of
 age \(0\).
 
-The default approach in {\plant} is to assume that $d_{\rm P}(a)$
+The default approach in `plant` is to assume that $d_{\rm P}(a)$
 increases linearly with patch age, which leads to a Weibull distribution for $P$,
 specified by a single parameter $\bar{a}$
 measuring the mean interval between disturbances (see section \ref{derivation-of-pde-describing-age-structured-dynamics} for details).
 
 \subsection{Trait-, size-, and patch-structured
-metacommunities}\label{trait--size--and-patch-structured-metapopulations}
+metacommunities} \label{trait--size--and-patch-structured-metapopulations}
 
 We consider a large area of habitat where: (i) disturbances (such as fires,
 storms, landslides, floods, or disease outbreaks) strike patches of the
@@ -264,7 +236,7 @@ right value for \(Y_x\), by solving Eqs. \ref{eq:BC1} and
 \ref{eq:seed_rain} simultaneously, for all species with traits $x$ in the metacommunity.
 
 \subsection{Emergent properties of
-metacommunities}\label{emergent-properties-of-metapopulation}
+metacommunities} \label{emergent-properties-of-metapopulation}
 
 Summary statistics of a metacommunity are obtained by integrating
 over the size-density distribution, weighting by the frequency-density \(P(a)\).
@@ -304,7 +276,7 @@ and across the entire metacommunity,
 \hat{W} = \int_{0}^{\infty} P(a) \, W(a) \, {\rm d}a.
 \end{equation}
 
-\subsection{Invasion fitness}\label{invasion-fitness}
+\subsection{Invasion fitness} \label{invasion-fitness}
 
 We now consider how to estimate the fitness of a rare mutant individual
 with traits \(x^\prime\) growing in the light environment of a resident
@@ -314,21 +286,21 @@ fecundity, and mortality -- taking into account the non-linear effects of
 competition, but ignoring the underlying genetic
 basis for trait inheritance and expression. We also adhere to standard
 conventions in such analyses by assuming that the mutant phenotype is sufficiently
-rare to have a negligible effect on the light environment where it is growing \citep{Geritz-1998}.
+rare to have a negligible effect on the light environment where it is growing [@Geritz-1998].
 The approach for calculating fitness implemented here follows the approach
 described by \cite{Falster-2015}.
 
 In general, invasion fitness is defined as the long-term per capita
 growth rate of a rare mutant phenotype in the environment
-determined by a resident phenotype \citep{Metz-1992}. Calculating
+determined by a resident phenotype [@Metz-1992]. Calculating
 per capita growth rates, however, is particularly challenging in a
-structured metacommunity model \citep{Gyllenberg-2001, Metz-2001}. As
+structured metacommunity model [@Gyllenberg-2001, Metz-2001]. As
 an alternative measure of invasion fitness in metacommunities, we can use the basic reproduction
 ratio measuring the expected number of new dispersers arising from a
 single dispersal event. For metacommunities at demographic equilibrium, evolutionary inferences made using basic
 reproduction ratios are equivalent to those made using per capita growth
 rates
-\citep{Gyllenberg-2001, Metz-2001}.
+[@Gyllenberg-2001, Metz-2001].
 
 We denote by \(R\left(x^\prime, x\right)\) the basic reproduction ratio of
 individuals with traits \(x^\prime\) growing in the competitive
@@ -343,7 +315,7 @@ R\left(x^\prime,x\right) = \int _0^{\infty} P\left(a\right) \, \tilde{R}\left(x^
 where \(\tilde{R}\left(x^\prime, a_0, a \right)\) is the expected number
 of dispersing offspring produced by a single dispersing seed with traits \(x^\prime\) arriving in
 a patch of age \(a_0\) up until age \(a\)
-\citep{Gyllenberg-2001, Metz-2001}.
+[@Gyllenberg-2001, Metz-2001].
 In turn, \(\tilde{R}\left(x^\prime, a,\infty\right)\) is calculated by integrating
 an individual's fecundity over the expected lifetime of a patch, taking
 into account competitive shading from residents with traits \(x\), the
@@ -356,9 +328,9 @@ individual's probability of surviving, and its traits,
 
 The equations below describe how we solve the trait-, size-, and patch-structured
 population dynamics specified in the previous section.
-Our approach to solving for the size-density distribution is based on the characteristic method \citep{Angulo-2004,Angulo-2014,Angulo-2016}. The characteristic method is related to
+Our approach to solving for the size-density distribution is based on the characteristic method [@Angulo-2004,Angulo-2014,Angulo-2016]. The characteristic method is related to
 the Escalator Boxcar Train technique
-\citep{Deroos-1988, Deroos-1997, Deroos-1992}, but not identical to it.
+[@Deroos-1988, Deroos-1997, Deroos-1992], but not identical to it.
 
 When simulating an individual plant, or the development of a
 patch, we need to solve for the size, survival, and seed
@@ -367,15 +339,15 @@ in a large patch, we also need to estimate the average abundance of individuals.
 Each of these problems is formulated as an initial-value \textsc{ode} problem
 (\textsc{ivp}), which can be solved using an \textsc{ode} stepper.
 
-\subsection{Approach}\label{approach}
+## Approach \label{approach}
 
-\subsubsection{Size}\label{size}
+## Size \label{size}
 
 The size of an individual is obtained via Eq.
 \ref{eq:size}, which is solved via the \textsc{ivp}
 \[\frac{dy}{dt} = g(x, y, t) ,\] \[ y(0) = H_0(x).\]
 
-\subsubsection{Survival}\label{survival}
+## Survival \label{survival}
 
 The probability of an individual surviving from patch age
 \(a_0\) to patch age \(a\) is obtained via Eq. \ref{eq:survivalIndividual},
@@ -384,7 +356,7 @@ which is solved via the \textsc{ivp}
 \[ y(0) = - \ln\left(S_{\rm G} (x, H_0, E_{a0})\right) .\]
 Survival is then \[ S_{\rm I} (x, a_0, a) = \exp\left( - y(a) \right).\]
 
-\subsubsection{Seed production}\label{seed-production}
+\subsubsection{Seed production} \label{seed-production}
 
 The lifetime seed production of individuals is
 obtained via Eq. \ref{eq:tildeR}, which is solved via the \textsc{ivp}
@@ -393,12 +365,12 @@ obtained via Eq. \ref{eq:tildeR}, which is solved via the \textsc{ivp}
 above and \(S_{\rm P}\) is calculated as in Eq.
 \(\ref{eq:survivalPatch}\).
 
-\subsubsection{Size-density of individuals}\label{density-of-individuals}
+\subsubsection{Size-density of individuals} \label{density-of-individuals}
 
 By integrating along the characteristics of Eq. \(\ref{eq:PDE}\),
 the size-density of individuals born with height \(H_0\) and traits \(x\) at patch age \(a_{0}\) is given by
-\citep{Deroos-1997,Angulo-2004}
-\begin{equation}\label{eq:boundN}
+[@Deroos-1997,Angulo-2004]
+\begin{equation} \label{eq:boundN}
 N(H | x, a) = N(H_0 | x, a_0)
 \exp \left( - \int _{a_0}^{a} \left[\frac{\partial g(x, H(x, a_0, a^\prime), E_{a^\prime})}{\partial H} + d(x, H(x, a_0, a^\prime), E_{a^\prime})\right] {\rm d} a^\prime \right).
 \end{equation}
@@ -447,38 +419,38 @@ metacommunity, requires numerical root finding.
 
 As with all numerical techniques, solutions to each of these problems are
 accurate only up to a specified level. These levels are controlled
-via parameters in the {\plant} code. Below, we
+via parameters in the `plant` code. Below, we
 provide a brief overview of the different numerical techniques being
 applied and outline how error tolerance can be increased or decreased.
 We refer to various control parameters that can be found within the
-\texttt{control} object. For a worked example illustrating how to modify these control parameters,
-see the section \texttt{parameters} of Appendix S3.
+`control` object. For a worked example illustrating how to modify these control parameters,
+see the section `parameters` of Appendix S3.
 
-\subsubsection{Initial plant heights}\label{initial-height-of-plants}
+\subsubsection{Initial plant heights} \label{initial-height-of-plants}
 
 When a seed germinates, it produces a seedling of given height. The
 height of these seedlings is assumed to vary with the seed mass.
 Because there is no analytical solution relating seedling height to seed
-mass -- at least when using the default \texttt{FF16} physiological model -- we must solve
+mass -- at least when using the default `FF16` physiological model -- we must solve
 for this height numerically. The calculation is performed by the function
-\texttt{height\_seed} within the physiological model, using the Boost
-library's one-dimensional \texttt{bisect} routine
-\citep{Schaling-2014, Eddelbuettel-2015}. The accuracy of the solution
-is controlled by the parameter \texttt{plant\_seed\_tol}.
+`height\_seed` within the physiological model, using the Boost
+library's one-dimensional `bisect` routine
+[@Schaling-2014, Eddelbuettel-2015]. The accuracy of the solution
+is controlled by the parameter `plant\_seed\_tol`.
 
 \subsubsection{Stepping of \textsc{ode}s}
 
 All of the \textsc{ivp}s outlined above (in section \ref{approach}) must be stepped through time.
-For this, {\plant} uses
-the embedded Runge-Kutta Cash-Karp 4-5 algorithm \citep{Cash-1990}, with
+For this, `plant` uses
+the embedded Runge-Kutta Cash-Karp 4-5 algorithm [@Cash-1990], with
 code ported directly from the
 \href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
-\citep{Galassi-2009}. The accuracy of the solver is controlled by two
+[@Galassi-2009]. The accuracy of the solver is controlled by two
 control parameters for relative and absolute accuracy,
-\texttt{ode\_tol\_rel} and \texttt{ode\_tol\_abs}.
+`ode\_tol\_rel` and `ode\_tol\_abs`.
 
 \subsubsection{Approximation of size-density distribution via the characteristic method}
-\label{approximation-of-size-density-distribution-via-the-ebt}
+ \label{approximation-of-size-density-distribution-via-the-ebt}
 
 Errors in the approximation of the size-density distribution arise from two sources:
 (i) coarse stepping of cohorts through time and
@@ -486,16 +458,16 @@ Errors in the approximation of the size-density distribution arise from two sour
 
 As described above, the stepping of the \textsc{ode} solver is controlled by two
 control parameters for relative and absolute accuracy,
-\texttt{ode\_tol\_rel} and \texttt{ode\_tol\_abs}.
+`ode\_tol\_rel` and `ode\_tol\_abs`.
 
 A second factor controlling the accuracy with which cohorts are stepped
 through time is the accuracy of the derivative calculation according to Eq.
 \ref{eq:boundN}, calculated via standard finite differencing
-\citep{Abramowitz-2012}. When the parameter
-\texttt{cohort\_gradient\_richardson} is \texttt{TRUE} a Richardson extrapolation
-\citep{Stoer-2002} is used to refine the estimate, up to depth
-\texttt{cohort\_gradient\_richardson}. The overall accuracy of the
-derivative is controlled by \texttt{cohort\_gradient\_eps}.
+[@Abramowitz-2012]. When the parameter
+`cohort\_gradient\_richardson` is `TRUE` a Richardson extrapolation
+[@Stoer-2002] is used to refine the estimate, up to depth
+`cohort\_gradient\_richardson`. The overall accuracy of the
+derivative is controlled by `cohort\_gradient\_eps`.
 
 The primary factor controlling the spacing of cohorts is the schedule of
 cohort introduction times. Because the system of equations to be integrated is deterministic, the
@@ -509,44 +481,44 @@ appropriately refined schedule, which allows the required integrations to be
 performed with the desired accuracy at every time point. At the same
 time, for reasons of computational efficiency, we want as few cohorts as possible.
 
-A suitable schedule is found using the function \texttt{build\_schedule}.
+A suitable schedule is found using the function `build\_schedule`.
 This function takes an
 initial vector of introduction times and considers for each cohort
 whether removing that cohort causes the error introduced when
 integrating two specified functions over the size-density distribution to jump
-over the allowable error threshold \texttt{schedule\_eps}. This
+over the allowable error threshold `schedule\_eps`. This
 calculation is repeated for every time step in the development of the
 patch. A new cohort is introduced immediately prior to any cohort
 failing these tests. The dynamics of the patch are
 then simulated again and the process is repeated, until all integrations at
 all time points have an error below the tolerable limit
-\texttt{schedule\_eps}. Decreasing \texttt{schedule\_eps} demands higher
+`schedule\_eps`. Decreasing `schedule\_eps` demands higher
 accuracy from the solver, and thus increases the number of cohorts being
 introduced. Note that we are assessing whether removing an existing cohort
 causes the error to jump above the threshold limit, and using this to decide
 whether an extra cohort -- in addition to the one used in the test --
 should be introduced. Thus, the actual error is likely to
-be lower than, but at most equal to, \texttt{schedule\_eps}. The general idea
+be lower than, but at most equal to, `schedule\_eps`. The general idea
 of adaptively refining the vector of introduction times was first applied
-by \citet{Falster-2011}, and was described further by \citet{Falster-2015}.
+by @Falster-2011, and was described further by @Falster-2015.
 
 To determine the error associated with a given cohort, we integrate
 two different functions over the size-density distribution, within the function
-\texttt{run\_scm\_error}. We then assess how much removing the focal
+`run\_scm\_error`. We then assess how much removing the focal
 cohort increases the error in these two integrations. The first
-integration, performed by the function \texttt{area\_leaf\_error}, determines
+integration, performed by the function `area\_leaf\_error`, determines
 how much the removal of the focal cohort increases the error in the
 estimate of the total leaf area in the patch. The second integration,
-performed by the function \texttt{seed\_rain\_error}, determines how much
+performed by the function `seed\_rain\_error`, determines how much
 the removal of the focal cohort increases the error in the estimate of the total seed
 production from the patch. The relative error in each integration is then
-calculated using the \texttt{local\_error\_integration} function.
+calculated using the `local\_error\_integration` function.
 
-For a worked example illustrating the \texttt{build\_schedule} function,
-see the section \texttt{cohort\_spacing} of Appendix S3.
+For a worked example illustrating the `build\_schedule` function,
+see the section `cohort\_spacing` of Appendix S3.
 
 \subsubsection{Calculation of light environment and influence on
-assimilation}\label{calculation-of-light-environment-and-influence-on-assimilation}
+assimilation} \label{calculation-of-light-environment-and-influence-on-assimilation}
 
 To progress with solving the system of \textsc{ode}s requires that we calculate the amount of
 shading on each of the cohorts, from all other plants in the
@@ -555,12 +527,12 @@ patch.
 Calculating the canopy openness \(E_a(z)\) at a given height \(z\) in a patch of age \(a\) requires that
 we integrate over the size-density distribution (Eq. \ref{eq:light}). This
 integration is performed using the trapezium rule, within the function
-\texttt{area\_leaf\_above} in \texttt{species.h}. The main factor
+`area\_leaf\_above` in \texttt{species.h}. The main factor
 controlling the accuracy of the integration is the spacing of cohorts.
 The cohort introduction times determining the
 spacing of cohorts are adaptively refined as described above. This implies that also the trapezium integration
-within the \texttt{area\_leaf\_above} function is adaptively refined
-via the \texttt{build\_schedule} function.
+within the `area\_leaf\_above` function is adaptively refined
+via the `build\_schedule` function.
 
 The cost of calculating \(E_a(z)\) linearly increases with the number of
 cohorts in the metacommunity. Since the same calculation must be repeated
@@ -587,41 +559,41 @@ Starting with an initial set of 33 points, we assess how much each point
 contributes to the accuracy of the spline fit at the location of each
 cohort, first via exact calculation, and second by linearly interpolating
 from adjacent cohorts. The absolute difference in these values is
-compared to the control parameter \texttt{environment\_light\_tol}. If
+compared to the control parameter `environment\_light\_tol`. If
 the error is greater than this tolerance, the interval is bisected and the is
 process repeated (see
 \texttt{adaptive\_interpolator.h} for details).
 
 \subsubsection{Integration over light
-environment}\label{integrating-over-light-environment}
+environment} \label{integrating-over-light-environment}
 
 Plants have leaf area distributed over a range of heights. Estimating
 a plant's assimilation at each time step thus requires integrating
 leaf-level rates over the plant. The integration is performed using
-Gaussian quadrature, using the QUADPACK routines \citep{Piessens-1983}
+Gaussian quadrature, using the QUADPACK routines [@Piessens-1983]
 adapted from the \href{http://www.gnu.org/software/gsl/}{GNU Scientific
-Library} \citep{Galassi-2009}; see \texttt{qag.h} for details.
-If the control parameter \texttt{plant\_assimilation\_adaptive} is \texttt{TRUE},
+Library} [@Galassi-2009]; see \texttt{qag.h} for details.
+If the control parameter `plant\_assimilation\_adaptive` is `TRUE`,
 the integration is performed using adaptive refinement with an accuracy
-controlled by the parameter \texttt{plant\_assimilation\_tol}.
+controlled by the parameter `plant\_assimilation\_tol`.
 
 \subsubsection{Solving for seed
-rains}\label{solving-demographic-seed-rain}
+rains} \label{solving-demographic-seed-rain}
 
 For a single species, solving for \(Y_x\) is a straightforward
 one-dimensional root-finding problem, which can be solved with accuracy
-\texttt{equilibrium\_eps} via a simple bisection algorithm (see
+`equilibrium\_eps` via a simple bisection algorithm (see
 \texttt{equlibrium.R} for details).
 
 Solving for seed rains in metacommunities with multiple species is significantly harder,
-because there is no generally applicable method for multi-dimensional root finding. In {\plant}, we
+because there is no generally applicable method for multi-dimensional root finding. In `plant`, we
 have therefore implemented several different approaches (see
 \texttt{equlibrium.R} for details).
 
-\section{Appendices}\label{appendices}
+# Appendices \label{appendices}
 
 \subsection{Derivation of \textsc{pde} describing age-structured
-dynamics}\label{derivation-of-pde-describing-age-structured-dynamics}
+dynamics} \label{derivation-of-pde-describing-age-structured-dynamics}
 
 We consider patches of habitat that are subject to an intermittent
 disturbance, with the age of a patch measuring the time
@@ -655,7 +627,7 @@ not on time \(t\). The rate of disturbance
 may also depend on features of the vegetation in the patch, rather than on patch age directly, in which case an equilibrium distribution of patch ages can still arise, provided the
 vegetation is also assumed to be at equilibrium.
 
-\subsubsection{Exponential distribution}\label{exponential-distribution}
+\subsubsection{Exponential distribution} \label{exponential-distribution}
 
 If the rate \(d_{\rm P}\) of patch disturbance is constant with respect to
 patch age, then the rates at which patches of age \(a\) are
@@ -664,7 +636,7 @@ disturbed follow an exponential distribution,
 distribution of patch ages is then given by
 \[ S_{\rm P}(0, a) = \exp\left(-d_{\rm P} a\right), \, P(0) = d_{\rm P}.\]
 
-\subsubsection{Weibull distribution}\label{weibull-distribution}
+\subsubsection{Weibull distribution} \label{weibull-distribution}
 
 If the rate of patch disturbance changes with patch age according to
 \(d_{\rm P}(a) = \lambda \psi a^{\psi-1}\), then the rates at which
@@ -681,17 +653,17 @@ also specify this distribution by the mean  disturbance interval
 \(\bar{a} = \frac1{P(0)}\). From this, we can calculate the relevant value for
 \(\lambda = \left(\frac{\Gamma\left(\frac1{\psi}\right)}{\psi \bar{a}}\right)^{\psi}\).
 
-The default in {\plant} is to assume $\psi=2$, such that \(d_{\rm P}\) increases as
+The default in `plant` is to assume $\psi=2$, such that \(d_{\rm P}\) increases as
 a linear function of patch age. The distribution of patch ages is then specified by a
 single parameter, $\bar{a}$.
 
 
 \subsection{Derivation of \textsc{pde} describing size-structured
-dynamics}\label{derivation-of-pde-describing-size-structured-dynamics}
+dynamics} \label{derivation-of-pde-describing-size-structured-dynamics}
 
 To model the metacommunity, we use a \textsc{pde} describing the dynamics for a thin
 slice \(\Delta H\). This \textsc{pde} can be derived as follows, following
-\citet{Deroos-1997}. Note that in this sub-section the dependencies on the traits $x$ are deliberately not made explicit. Assuming that all rates are constant within the
+@Deroos-1997. Note that in this sub-section the dependencies on the traits $x$ are deliberately not made explicit. Assuming that all rates are constant within the
 interval \(\Delta H\), the total number of individuals within the
 interval spanned by \([H - 0.5\Delta H, H + 0.5\Delta H)\) is
 \(N(H, a)\Delta H\). The flux of individuals in and out of this size
@@ -735,7 +707,7 @@ equal the population's total birth rate \(B\), yielding the boundary condition
 \end{equation}
 
 \subsection{Converting density from one size unit to
-another}\label{converting-density-from-one-size-unit-to-another}
+another} \label{converting-density-from-one-size-unit-to-another}
 
 The quantification of size-density depends on the chosen size
 unit (Eq. \(\ref{eq:PDE}\)). Thus, what if we want to express size-density with respect to
@@ -758,7 +730,4 @@ Noting that the second term on the right-hand side is simply the definition of
 \begin{equation} \label{eq:n_conversion2} N^\prime(H | x, a) = N(M | x, a) \, \frac{{\rm d} M}{{\rm d} H}.
 \end{equation}
 
-\clearpage
-\bibliography{refs}
-
-\end{document}
+# References

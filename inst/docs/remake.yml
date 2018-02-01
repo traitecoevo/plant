@@ -105,14 +105,6 @@ targets:
   code.pdf:
     command: md_to_pdf("code.md")
 
-  demography.pdf:
-    command: latex_build("demography.tex", "refs.bib", clean=TRUE)
-  physiology.pdf:
-    command: latex_build("physiology.tex", "refs.bib", clean=TRUE)
-    depends:
-      - growth_model_pars_core.tex
-      - growth_model_pars_hyper.tex
-
   plant.html:
     command: render("plant.md", quiet=TRUE)
   cohort_spacing.html:
@@ -132,12 +124,6 @@ targets:
     command: table_plant_parameters("growth_model_pars_core.csv", target_name)
   growth_model_pars_hyper.tex:
     command: table_plant_parameters("growth_model_pars_hyper.csv", target_name)
-  figures/schematic.pdf:
-    command: latex_build("figures/schematic.tex", clean=TRUE)
-    depends:
-      - figures/schematic-frame.pdf
-      - figures/schematic-phys.pdf
-      - figures/middle.png
 
   # HACK ALERT! HACK ALERT!
   install_vignettes:
@@ -158,10 +144,6 @@ targets:
       - refs.bib
       - ./suppmat.sty
 
-  vignettes/demography.Rnw:
-    command: file.copy("demography.tex", target_name, overwrite=TRUE)
-  vignettes/physiology.Rnw:
-    command: file.copy("physiology.tex", target_name, overwrite=TRUE)
   vignettes/plant.Rmd:
     command: patch_md("plant.md", target_name)
   vignettes/equilibrium.Rmd:
@@ -172,12 +154,13 @@ targets:
     command: patch_md("patch.md", target_name)
   vignettes/emergent.Rmd:
     command: patch_md("emergent.md", target_name)
-  vignettes/developer_notes.Rmd:
-    command: patch_md("developer_notes.md", target_name)
   vignettes/fitness.Rmd:
     command: patch_md("fitness.md", target_name)
   vignettes/parameters.Rmd:
     command: patch_md("parameters.md", target_name)
+  vignettes/developer_notes.Rmd:
+    command: file.copy("developer_notes.Rmd", target_name, overwrite=TRUE)
+
 
   clean:
     command: cleanup_vignettes()
