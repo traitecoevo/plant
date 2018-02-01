@@ -65,7 +65,7 @@ $\bar{a}$ & yr & Mean interval between patch disturbances \\
  \label{tab:definitions}
 \end{table}
 
-\section{Metacommunity dynamics} \label{system-dynamics}
+# Metacommunity dynamics \label{system-dynamics}
 
 The following material is written assuming there exists a physiological sub-model
 that takes as inputs a plant's traits $x$, height $H$, and light environment $E_a$,
@@ -324,7 +324,7 @@ individual's probability of surviving, and its traits,
 \tilde{R}(x^\prime, a_0, \infty) = \int_{a_0}^{\infty} S_{\rm D} \, f(x^\prime, H(x^\prime, a_0, a), E_{a}) \, S_{\rm I} (x^\prime, a_0, a) \, S_{\rm P} (a_0, a) \, {\rm d} a.
 \end{equation}
 
-\section{Numerical methods for solving metacommunity dynamics}
+# Numerical methods for solving metacommunity dynamics
 
 The equations below describe how we solve the trait-, size-, and patch-structured
 population dynamics specified in the previous section.

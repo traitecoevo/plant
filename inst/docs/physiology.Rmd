@@ -26,16 +26,8 @@ section). Tables
 units and definitions of all variables, parameters, and hyper-parameters used in
 the material below.
 
-\begin{figure}[h!]
-\centering
-\includegraphics[width=15cm,height=15cm,keepaspectratio]{figures/schematic-phys}
-\caption{Physiological model in `plant`, giving
-demographic rates on the basis of its traits, size, and light environment, as functions of
-net mass production. The dashed arrow towards mortality indicates that, although the mortality rate is assumed to depend on mass production, no
-mass is actually allocated there. Figure adapted from
-@Falster-2011 and @Falster-2015.}
- \label{fig:schematic-phys}
-\end{figure}
+![Physiological model in `plant`, giving demographic rates on the basis of its traits, size, and light environment, as functions of net mass production. The dashed arrow towards mortality indicates that, although the mortality rate is assumed to depend on mass production, no mass is actually allocated there. Figure adapted from @Falster-2011 and @Falster-2015.](figures/schematic-phys.pdf)
+\label{fig:schematic-phys}
 
 # Growth \label{growth}
 
@@ -242,7 +234,7 @@ imposing a fixed ratio of root mass to leaf area ensures that
 approximate costs of root production are included in calculations of
 carbon budget.
 
-\section{Seed production} \label{seed-production}
+# Seed production \label{seed-production}
 
 The rate of seed production, \(f(x, H, E_{a})\), is a direct
 function of the mass allocated to reproduction,
