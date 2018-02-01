@@ -3,8 +3,8 @@ title: "Modelling the demography of plants, patches, and metacommunities"
 bibliography: refs.bib
 csl: methods-in-ecology-and-evolution.csl
 output: 
-	bookdown::html_document2:
-		toc: yes
+  bookdown::html_document2:
+    toc: yes
 ---
 
 This document outlines methods used to model demography in the `plant`
@@ -108,7 +108,7 @@ is the probability a seed germinates successfully, and
 is the plant's cumulative seed output, from its birth at patch age
 $a = a_0$ until patch age $a$.
 
-The notational complexity required in Eqs. \@ref(eq:size)-\@ref(eq:tildR1) potentially obscures an important point: these equations are simply the general, nonlinear solutions to
+The notational complexity required in Eqs. \@ref(eq:size)-\@ref(eq:tildeR1) potentially obscures an important point: these equations are simply the general, non-linear solutions to
 integrating growth, mortality, and fecundity over time.
 
 ## Patches of competing plants {#patches-of-competing-plants-size-structured-populations}
@@ -118,7 +118,7 @@ patch is described by the size-density distribution $N(H | x, a)$ of plants
 with traits $x$ and height $H$. In a finite-sized patch, $N$ is described by a
 collection of points, each indicating the height of one individual, whereas in a very (infinitely) large patch,
 $N$ is a continuous function. In either case, the demographic
-behaviour of the plants within the patch is given by Eqs. \@ref(eq:size)-\@ref(eq:tildR1). Integrating the dynamics over time is complicated by
+behaviour of the plants within the patch is given by Eqs. \@ref(eq:size)-\@ref(eq:tildeR1). Integrating the dynamics over time is complicated by-
 two other factors: (i) plants interact, thereby altering $E_a$ with
 age, and (ii) new individuals may establish, expanding the system of
 equations.
@@ -378,7 +378,7 @@ The size of an individual is obtained via Eq. \@ref(eq:size) which is solved via
 ### Survival {#survival}
 
 The probability of an individual surviving from patch age
-$a_0$ to patch age $a$ is obtained via Eq. \@ref(eq:survalIndividual),
+$a_0$ to patch age $a$ is obtained via Eq. \@ref(eq:survivalIndividual),
 which is solved via the IVP
 \begin{equation}
 \frac{dy}{dt} = d(x, H_i(t) , E_t),
@@ -399,7 +399,7 @@ Survival is then
 ### Seed production {#seed-production}
 
 The lifetime seed production of individuals is
-obtained via Eq. \@ref(eq:tild), which is solved via the IVP
+obtained via Eq. \@ref(eq:tildeR1), which is solved via the IVP
 \begin{equation}
 \frac{dy}{dt} = S_{\rm D} \, f(x, H_i(t), E_t) \, S_{\rm I} (x, a_0,t) \, S_{\rm P} (a_0, t),
 (\#eq:dy)
@@ -410,8 +410,7 @@ obtained via Eq. \@ref(eq:tild), which is solved via the IVP
 (\#eq:y0)
 \end{equation}
 where $S_{\rm I}$ is calculated as described
-above and $S_{\rm P}$ is calculated as in Eq.
-\@ref(eq:survalPatch)$.
+above and $S_{\rm P}$ is calculated as in Eq. \@ref(eq:survivalPatch)$.
 
 ### Size-density of individuals {#density-of-individuals}
 
@@ -423,7 +422,7 @@ N(H | x, a) = N(H_0 | x, a_0)
 \exp \left( - \int _{a_0}^{a} \left[\frac{\partial g(x, H(x, a_0, a^\prime), E_{a^\prime})}{\partial H} + d(x, H(x, a_0, a^\prime), E_{a^\prime})\right] {\rm d} a^\prime \right).
 (\#eq:boundN)
 \end{equation}
-Eq. \@ref(eq:boun) states that the size-density $N$ at a specific patch age $a$ is
+Eq. \@ref(eq:boundN) states that the size-density $N$ at a specific patch age $a$ is
 the product of the size-density at patch age $a_{0}$ adjusted for changes through
 growth and mortality. Size-density decreases through time because of
 mortality, as in a typical survival equation, but also changes
@@ -441,7 +440,7 @@ is controlled indirectly, via the schedule of patch ages at which
 new cohorts are introduced into the metacommunity. We then track the
 demography of each such cohort.
 
-The integral in Eq. \@ref(eq:boun) is solved via the IVP
+The integral in Eq. \@ref(eq:boundN) is solved via the IVP
 \begin{equation}
 \frac{dy}{dt} = \frac{\partial g(x, H_i(t), E_t)}{\partial H} + d(x, H_i(t), E_t),
 (\#eq:dy-N)
@@ -461,20 +460,20 @@ N(H_0 | x, a_0) = \exp( - y(a)).
 
 We now outline how to control the error of the approximate solutions
 to the system of equations described above. In our algorithm, numerical solutions are required to address a variety of problems:
-\begin{itemize}
-\item To estimate the amount of light at a given height in a patch requires
+
+- To estimate the amount of light at a given height in a patch requires
 numerically integrating over the size-density distribution within that patch.
-\item To calculate the
+- To calculate the
 assimilation of a plant requires numerically integrating
 photosynthesis over this light profile.
-\item To simulate patch dynamics
+- To simulate patch dynamics
 requires numerically identifying a vector of patch ages at which new cohorts are
 introduced, and then numerically stepping the equations for each cohort forward in time to
 estimate their size, survival, and fecundity at different subsequent patch ages.
-\item To solve for the initial height of a plant given
+- To solve for the initial height of a plant given
 its seed mass, and for the equilibrium seed rains across the
 metacommunity, requires numerical root finding.
-\end{itemize}
+
 
 As with all numerical techniques, solutions to each of these problems are
 accurate only up to a specified level. These levels are controlled
@@ -502,8 +501,7 @@ is controlled by the parameter `plant_seed_tol`.
 All of the IVPs outlined above (in section [approach](#approach)) must be stepped through time.
 For this, `plant` uses
 the embedded Runge-Kutta Cash-Karp 4-5 algorithm [@Cash-1990], with
-code ported directly from the
-\href{http://www.gnu.org/software/gsl/}{GNU Scientific Library}
+code ported directly from the [GNU Scientific Library](http://www.gnu.org/software/gsl/)
 [@Galassi-2009]. The accuracy of the solver is controlled by two
 control parameters for relative and absolute accuracy,
 `ode_tol_rel` and `ode_tol_abs`.
@@ -519,7 +517,7 @@ control parameters for relative and absolute accuracy,
 `ode_tol_rel` and `ode_tol_abs`.
 
 A second factor controlling the accuracy with which cohorts are stepped
-through time is the accuracy of the derivative calculation according to Eq. \@ref(eq:boun), calculated via standard finite differencing
+through time is the accuracy of the derivative calculation according to Eq. \@ref(eq:boundN), calculated via standard finite differencing
 [@Abramowitz-2012]. When the parameter
 `cohort_gradient_richardson` is `TRUE` a Richardson extrapolation
 [@Stoer-2002] is used to refine the estimate, up to depth
@@ -583,7 +581,7 @@ patch.
 Calculating the canopy openness $E_a(z)$ at a given height $z$ in a patch of age $a$ requires that
 we integrate over the size-density distribution (Eq. \@ref(eq:light). This
 integration is performed using the trapezium rule, within the function
-`area_leaf_above` in \texttt{species.h}. The main factor
+`area_leaf_above` in [species.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/species.h). The main factor
 controlling the accuracy of the integration is the spacing of cohorts.
 The cohort introduction times determining the
 spacing of cohorts are adaptively refined as described above. This implies that also the trapezium integration
@@ -617,8 +615,7 @@ cohort, first via exact calculation, and second by linearly interpolating
 from adjacent cohorts. The absolute difference in these values is
 compared to the control parameter `environment_light_tol`. If
 the error is greater than this tolerance, the interval is bisected and the is
-process repeated (see
-\texttt{adaptive_interpolator.h} for details).
+process repeated (see [adaptive_interpolator.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/adaptive_interpolator.h) for details).
 
 ### Integration over light environment {#integrating-over-light-environment}
 
@@ -626,8 +623,7 @@ Plants have leaf area distributed over a range of heights. Estimating
 a plant's assimilation at each time step thus requires integrating
 leaf-level rates over the plant. The integration is performed using
 Gaussian quadrature, using the QUADPACK routines [@Piessens-1983]
-adapted from the \href{http://www.gnu.org/software/gsl/}{GNU Scientific
-Library} [@Galassi-2009]; see \texttt{qag.h} for details.
+adapted from the [GNU Scientific Library](http://www.gnu.org/software/gsl/) [@Galassi-2009]; see [qag.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/qag.h) for details.
 If the control parameter `plant_assimilation_adaptive` is `TRUE`,
 the integration is performed using adaptive refinement with an accuracy
 controlled by the parameter `plant_assimilation_tol`.
@@ -637,12 +633,12 @@ controlled by the parameter `plant_assimilation_tol`.
 For a single species, solving for $Y_x$ is a straightforward
 one-dimensional root-finding problem, which can be solved with accuracy
 `equilibrium_eps` via a simple bisection algorithm (see
-\texttt{equlibrium.R} for details).
+[equlibrium.R](https://github.com/traitecoevo/plant/blob/master/R/equilibrium.R) for details).
 
 Solving for seed rains in metacommunities with multiple species is significantly harder,
 because there is no generally applicable method for multi-dimensional root finding. In `plant`, we
 have therefore implemented several different approaches (see
-\texttt{equlibrium.R} for details).
+[equlibrium.R](https://github.com/traitecoevo/plant/blob/master/R/equilibrium.R) for details).
 
 # Appendices {#appendices}
 
@@ -751,7 +747,7 @@ interval can be expressed as
 The first two terms describe the flux in and out of the considered size interval
 through growth, while the last term describes losses through mortality.
 The change in the density of individuals within this size interval during a time
-step \textit{$\Delta $a} is thus
+step $\Delta $a is thus
 \begin{equation}
 \begin{array}{ll} N(H, a + \Delta a)\Delta H - N(H, a)\Delta H = &g(H - 0.5 \Delta H, a) \, N(H - 0.5 \Delta H, a)\Delta a \\ & - g(H + 0.5 \Delta H, a) \, N(H + 0.5 \Delta H, a)\Delta a\\& - d (H, a) \, N(H, a)\Delta H\Delta a.
 \end{array}
