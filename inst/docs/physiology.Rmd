@@ -2,7 +2,16 @@
 title: "plant: A package for modelling forest trait ecology & evolution: _Description of the `FF16` physiological model_"
 bibliography: refs.bib
 csl: methods-in-ecology-and-evolution.csl
+date: "`r Sys.Date()`"
+output: bookdown::html_document2
 ---
+
+<!-- output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  \usepackage[utf8]{inputenc}
+--- -->
 
 # Introduction
 
@@ -17,40 +26,42 @@ current size, light environment, and physiological parameters as inputs,
 and return its growth, mortality, and fecundity rates. In the `FF16`
 physiological model, these vital rates are all
 derived from the rate at which living biomass is produced by the plant,
-which in turn is calculated based on well-understood physiology (Fig.
-\ref{fig:schematic-phys}). Various physiological parameters
+which in turn is calculated based on well-understood physiology ([Fig. 1](#fig-schematic-phys)). Various physiological parameters
 influence demographic outcomes. Varying these parameters allows accounting for
 species differences, potentially via traits (see last
 section). Tables
 \ref{tab:definitions}, \ref{tab:params_core}, \ref{tab:params_hyper} summarize the
 units and definitions of all variables, parameters, and hyper-parameters used in
-the material below.
+the material below. 
 
-![Physiological model in `plant`, giving demographic rates on the basis of its traits, size, and light environment, as functions of net mass production. The dashed arrow towards mortality indicates that, although the mortality rate is assumed to depend on mass production, no mass is actually allocated there. Figure adapted from @Falster-2011 and @Falster-2015.](figures/schematic-phys.pdf)
-\label{fig:schematic-phys}
+#### {#fig-schematic-phys}
+![**Fig. 1: Physiological model in `plant`, giving demographic rates on the basis of its traits, size, and light environment, as functions of net mass production.** The dashed arrow towards mortality indicates that, although the mortality rate is assumed to depend on mass production, no mass is actually allocated there. Figure adapted from @Falster-2011 and @Falster-2015.](figures/schematic-phys.png)
 
-# Growth \label{growth}
 
-\subsection{Leaf photosynthesis} \label{leaf-photosynthesis}
+# Growth  {#growth}
+
+## Leaf photosynthesis {#leaf-photosynthesis}
 
 We denote by \(p(x, E)\) the gross rate of leaf photosynthesis per unit
 leaf area within the canopy of a plant with traits \(x\) at light
 level \(E(z)\), where \(z\) is height within the canopy.
 We assume a relationship of the form
-\begin{equation} \label{eq:photosynthesis}
-p(x, E(z)) = \frac{\alpha_{{\rm p1}}}{E(z) + \alpha_{{\rm p2}}},
+\begin{equation}
+	p(x, E(z)) = \frac{\alpha_{{\rm p1}}}{E(z) + \alpha_{{\rm p2}}},
+	(\#eq:photosynthesis)
 \end{equation}
 for the average of \(p\) across the year. The parameters
 \(\alpha_{{\rm p1}}\) and \(\alpha_{{\rm p2}}\) are derived from a detailed leaf-level
 model and measure, respectively, maximum annual photosynthesis and the light levels at 50\% of this maximum. The average rate of
 leaf photosynthesis across the plant is then
-\begin{equation} \label{eq:photosynthesis_av}
+\begin{equation} \label(eq:photosynthesis_av)
 \bar{p}(x, H, E_{a}) = \int_0^H p(x, E_a(z)) \, q(z, H) \, {\rm d}z,
 \end{equation}
 where \(q(z, H)\) is the vertical distribution of leaf area with respect to height \(z\) (Eq.
 \ref{eq:crown3}).
 
-\subsection{Mass production} \label{standard-model-for-mass-production}
+See Eq. \@ref(eq:photosynthesis)
+## Mass production {#standard-model-for-mass-production}
 
 The amount of biomass available for growth,
 \({\rm d}B  / {\rm d}t\), is given by the difference between income
@@ -75,7 +86,7 @@ to the costs of maintenance respiration), and \(\alpha_{\rm bio}\) is the amount
 area. The total mass of living tissues is
 \(M_{\rm a} = M_{\rm l} + M_{\rm b} + M_{\rm s} + M_{\rm r}.\)
 
-\subsection{Height growth} \label{height-growth-rate}
+## Height growth {#height-growth-rate}
 
 The key measure of growth required by the demographic model is the
 rate of height growth, denoted $g(x, H, E_{a})$. To model height growth
@@ -121,7 +132,7 @@ we let this growth fraction decrease with height according to the function
 where $\alpha_{{\rm f1}}$ is the maximum possible allocation ($0-1$) and $\alpha_{{\rm f2}}$
 determines the sharpness of the transition [@Falster-2011].
 
-\subsection{Diameter growth}
+## Diameter growth
 
 Analogously, the growth in basal area $A_{\rm st}$ can be
 expressed as the sum of growth in sapwood, bark, and heartwood areas
@@ -139,8 +150,7 @@ diameter $D$ and $A_{\rm st}$,
 \frac{{\rm d}D}{{\rm d}t} = \left(\pi \, A_{\rm st}\right)^{-0.5} \, \frac{{\rm d}A_{\rm st}}{{\rm d}t}.
 \end{equation}
 
-\section{Functional-balance model for
-allocation} \label{a-functional-balance-model-for-allocation}
+# Functional-balance model for allocation {#a-functional-balance-model-for-allocation}
 
 Here we describe an allometric model linking to a plant's height its various other size dimensions
 required by most ecologically realistic vegetation models
@@ -150,7 +160,7 @@ plant's height, while still accounting for the mass needs to build
 leaves, roots, and stems. The growth rates of various tissues can then
 also be derived (Table \ref{tab:allometry}).
 
-\subsection{Leaf area} \label{leaf-area}
+## Leaf area {#leaf-area}
 
 
 Based on empirically observed allometry [@Falster-2011], we assume an allometric power-law
@@ -161,8 +171,7 @@ H = \alpha_{{\rm l1}} \, \left(A_{\rm l} \, {\rm m^{-2}}\right)^{\alpha_{{\rm l2
 \end{equation}
 This relationship is normalised around a leaf area of 1m${^2}$.
 
-\subsection{Vertical distribution of leaf
-area} \label{vertical-distribution-of-leaf-area}
+## Vertical distribution of leaf area {#vertical-distribution-of-leaf-area}
 
 We follow the model of @Yokozawa-1995 describing the vertical
 distribution of leaf area within the crowns of individual plants. This
@@ -180,23 +189,25 @@ assume a relationship between \(A_{{\rm s},z}\) and height such that
 \end{equation}
 
 We also assume that each unit of leaf area is supported by a fixed area \(\theta\) of
-sapwood \citep[in agreement with the pipe model;][]{Shinozaki-1964}, so that the total canopy
+sapwood [in agreement with the pipe model; @Shinozaki-1964], so that the total canopy
 area of a plant relates to its basal sapwood area \(A_{\rm s}\),
 \begin{equation} \label{eq:crown2}
 A_{\rm s} = \theta \, A_{\rm l}.
 \end{equation}
 The pipe model is assumed to hold within individual plants, as well as
-across plants of different size. It follows that
+across plants of different size. It follows that,
+
 \begin{equation} \label{eq:crown1}
 Q(z, H) = \left(1-\left(\frac{z}{H}\right)^\eta\right)^2.
 \end{equation}
+
 Differentiating with respect to \(z\) then yields a solution for the
 probability density of leaf area as a function of height,
 \begin{equation} \label{eq:crown3}
 q(z, H) = 2\frac{\eta}{H}\left(1-\left(\frac{z}{H}\right)^{\eta}\right) \left(\frac{z}{H}\right)^{\eta-1}.
 \end{equation}
 
-\subsection{Sapwood mass} \label{mass-of-sapwood}
+## Sapwood mass {#mass-of-sapwood}
 
 Integrating \(A_{{\rm s},z}\) yields the total mass of
 sapwood in a plant,
@@ -211,7 +222,7 @@ leaf area and height,
 M_{\rm s} = \rho \, \eta_{\rm c} \, \theta \, A_{\rm l}  \, H.
 \end{equation}
 
-\subsection{Bark mass} \label{bark-mass}
+## Bark mass {#bark-mass}
 
 Bark and phloem tissue are modelled using an analogue of the pipe model,
 leading to a similar equation as that for sapwood mass (Eq.
@@ -222,7 +233,7 @@ area such that
 M_{\rm b} = \alpha_{{\rm b1}} M_{\rm s}.
 \end{equation}
 
-\subsection{Root mass} \label{root-mass}
+## Root mass {#root-mass}
 
 Also consistent with the pipe model, we assume a fixed ratio of
 root mass per unit leaf area,
@@ -234,7 +245,7 @@ imposing a fixed ratio of root mass to leaf area ensures that
 approximate costs of root production are included in calculations of
 carbon budget.
 
-# Seed production \label{seed-production}
+# Seed production {#seed-production}
 
 The rate of seed production, \(f(x, H, E_{a})\), is a direct
 function of the mass allocated to reproduction,
@@ -249,7 +260,7 @@ of $\frac{{\rm d}B}{{\rm d}t}$ that is allocated to growth (from Eq. \ref{eq:all
 $1-\frac{{\rm d}M_{\rm a}}{{\rm d}B}$ gives the fraction allocated
 to reproduction).
 
-# Mortality \label{mortality}
+# Mortality {#mortality}
 
 Instantaneous rates of plant mortality are given by the sum of a growth-independent and a growth-dependent rate
 [@Falster-2011, Moorcroft-2001],
@@ -280,8 +291,7 @@ where $X = \alpha_{{\rm d0}} \frac{A_{\rm l}}{{\rm d}B / {\rm d}t}$ and $\alpha_
 constant. Eq. \ref{eq:pi1} is consistent with Eq.
 \ref{eq:mortality_GD}, as both cause survival to decline with mass production.
 
-\section{Hyper-parameterisation of physiological model via
-traits} \label{traits}
+# Hyper-parameterisation of physiological model via traits {#traits}
 
 The `FF16` physiological model includes default values for all needed parameters
 (Table \ref{tab:params_core}). Species are known to vary considerably
@@ -295,7 +305,7 @@ simultaneous variation in multiple parameters in accordance with an assumed trad
 `FF16` physiological model, we implement the relationships described below. For more
 details, see \texttt{make\_FF16\_hyperpar.R}.
 
-\subsection{Leaf mass per unit area}
+## Leaf mass per unit area}
 
 The trait leaf mass per unit area, denoted by $\phi$, directly influences growth by changing
 ${\rm d}A_{\rm l} / {\rm d}M_{\rm a}$. In addition, we
@@ -310,7 +320,7 @@ We also vary the mass-based leaf respiration rate so that it stays constant per 
 varies with $\phi$ and nitrogen per unit leaf area $\nu$, as empirically observed by @Wright-2004,
 $$r_{\rm l} = \frac{\beta_{{\rm lf4}}\, \nu}{\phi}.$$
 
-\subsection{Wood density}
+## Wood density
 
 The trait wood density, denoted by $\rho$, directly influences growth by changing
 ${\rm d}A_{\rm l} / {\rm d}M_{\rm a}$. In addition, we allow for
@@ -330,7 +340,7 @@ Similarly, the rate of bark respiration per unit mass varies as
 $$r_{\rm b} = \frac{\beta_{{\rm rb1}}}{\rho},$$
 with $\beta_{{\rm rb1}} = 2 \beta_{{\rm rs1}}$.
 
-\subsection{Seed mass}
+## Seed mass
 
 Effects of the trait seed mass, denoted by $\omega$, are naturally embedded in the equation determining
 fecundity (Eq. \ref{eq:fecundity}) and the initial height of seedlings. In addition,
@@ -338,7 +348,7 @@ we let the accessory cost per seed be a multiple of seed size,
 $$\alpha_{{\rm f3}} = \beta_{{\rm f1}} \omega,$$
 as empirically observed [@Henery-2001].
 
-\subsection{Nitrogen per unit leaf area}
+## Nitrogen per unit leaf area
 
 Photosynthesis per unit leaf area and respiration rates per unit leaf mass (or area)
 are assumed to vary with leaf nitrogen per unit area, $\nu$. The calculation of respiration rates is already described above. To calculate the average annual photosynthesis for a leaf,
@@ -365,9 +375,9 @@ where $\beta_{{\rm lf1}}$ and $\beta_{{\rm lf5}}$ are constants. The relationshi
 Values of $p(\nu, E)$ are calculated across a range of values of $E$, and then an expression of the form in Eq. \ref{eq:photosynthesis} is fitted to extract the parameters
 $\alpha_{{\rm p1}}$ and $\alpha_{{\rm p2}}$, such that these become functions of $\nu$.
 
-\clearpage
 
-# Tables \label{tables}
+
+# Tables {#tables}
 
 \begin{table}[h!]
 \caption{Key variables of the `FF16` physiological model. For mass ($M$), respiration ($r$), and turnover ($k$)
@@ -405,7 +415,7 @@ $S_{\rm G} (x, H_0, E_{{\rm a}0})$ & & Probability that a seed germinates succes
  \label{tab:definitions}
 \end{table}
 
-\newpage
+
 
 \begin{table}[h!]
 \caption{Equations of the allometric growth model implemented within the `FF16` physiological model, based on functional-balance assumptions (see text for details).
@@ -452,7 +462,7 @@ $\frac{{\rm d}M_{\rm r}}{{\rm d}t} = \frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} \
  \label{tab:allometry}
 \end{table}
 
-\newpage
+
 
 \begin{table}[h!]
 \caption{Core parameters of the `FF16` physiological model.}
