@@ -1,36 +1,23 @@
 ---
 title: "The `FF16` growth strategy"
+author: 
+- Daniel Falster
+- Rich FitzJohn
+- Ake Brannstrom
+- Ulf Dieckmann
+- Mark Westoby
+date: 2016
 bibliography: assets/refs.bib
 csl: assets/methods-in-ecology-and-evolution.csl
-date: "`r Sys.Date()`"
 output:
-bookdown::html_document2:
-  toc: yes
-  number_sections: false
+  bookdown::html_document2:
+    toc: yes
+    number_sections: false
 ---
 
-<!--
-
-output:
-bookdown::html_document2:
-  toc: yes
-  number_sections: false
-
-output:
-  html_document:
-    keep_md: true
-    mathjax: local
-    self_contained: false
-    toc: true
-    toc_float: true
- 
-
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Vignette Title}
-  %\VignetteEngine{knitr::rmarkdown}
-  \usepackage[utf8]{inputenc}
---- -->
+```{r, echo=FALSE}
+library(plant)
+```
 
 # Introduction
 
@@ -444,8 +431,35 @@ $\alpha_{{\rm p1}}$ and $\alpha_{{\rm p2}}$, such that these become functions of
 
 # Tables {#tables}
 
+```{r functions, echo=FALSE}
+extract_strategy_parameter_values <- function(vars){
+
+  s <- c(FF16_Strategy(),
+         lapply(as.list(args(make_FF16_hyperpar)), eval))
+  
+  out <- rep(NA_character_, length(vars))
+
+  # Now extract values from plant
+  to_code <- vars != "" & vars %in% names(s)
+  code <- vars[to_code]
+
+  val <- s[code]
+  err <- sapply(val, is.null)
+  if (any(err)) {
+    message("Missing parameters: ", paste(code[err], collapse=", "))
+  }
+
+  oo <- options(scipen=999)
+  on.exit(options(oo))
+  out[to_code] <- unlist(lapply(val, prettyNum))
+  out[is.na(out)] <- ""
+
+  out
+}
+```
+
 ```{r definitions, echo=FALSE, results='asis'}
-x <- read.csv("assets/FF16-vars.csv")
+x <- read.csv("assets/FF16-vars.csv", stringsAsFactors = FALSE)
 # TODO: can we get groups as headers spanning multiple columns?
 knitr::kable(x,  align = "l",
   caption = 'Key variables of the `FF16` physiological model. For mass ($M$), respiration ($r$), and turnover ($k$) variables, subscripts refer to any of the following tissues: ${\\rm l}$ = leaves, ${\\rm b}$ = bark, ${\\rm s}$ = sapwood,${\\rm r}$ = roots, ${\\rm a}$ = all living tissue. For area $A$ variables, subscripts refer to any of the following: ${\\rm l}$ = leaves, ${\\rm st}$ = total stem cross-section, ${\\rm s}$ = sapwood cross-section, ${\\rm b}$ = bark cross-section, ${\\rm h}$ = heartwood cross-section'
@@ -453,14 +467,16 @@ knitr::kable(x,  align = "l",
 ```
 
 ```{r allometry, echo=FALSE, results='asis'}
-x <- read.csv("assets/FF16-eqns.csv")
+x <- read.csv("assets/FF16-eqns.csv", stringsAsFactors = FALSE)
 knitr::kable(x,  align = "l",
   caption = 'Equations of the allometric growth model implemented within the `FF16` physiological model, based on functional-balance assumptions (see text for details). In (a) we list  key assumptions of allocation model between specific variation with leaf area, under "Function". From these assumptions, allocation functions are derived for tissue areas and tissue masses (b). Also the growth rate of each tissue type can be expressed as a function of the growth rate of leaf area. For mass ($M$), respiration ($r$), and turnover ($k$) variables, subscripts refer to any of the following tissues: ${\\rm l}$ = leaves, ${\\rm b}$ = bark, ${\\rm s}$ = sapwood, ${\\rm r}$ = roots, ${\\rm a}$ = all living tissue. For area $A$ variables, subscripts refer to any of the following: ${\\rm l}$ = leaves, ${\\rm st}$ = total stem cross-section, ${\\rm s}$ = sapwood cross-section, ${\\rm b}$ = bark cross-section, ${\\rm h}$ = heartwood cross-section'
 )
 ```
 
 ```{r params-core, echo=FALSE, results='asis'}
-x <- read.csv("assets/FF16-params-core.csv")
+
+x <- read.csv("assets/FF16-params-core.csv", stringsAsFactors = FALSE)
+x$Value <- extract_strategy_parameter_values(x$Code)
 knitr::kable(x,  align = "l",
   caption = 'Core parameters of the `FF16` physiological model.'
 )
@@ -468,7 +484,8 @@ knitr::kable(x,  align = "l",
 
 
 ```{r params-hyper, echo=FALSE, results='asis'}
-x <- read.csv("assets/FF16-params-hyper.csv")
+x <- read.csv("assets/FF16-params-hyper.csv", stringsAsFactors = FALSE)
+x$Value <- extract_strategy_parameter_values(x$Code)
 knitr::kable(x,  align = "l",
   caption = 'Parameters for hyper-parameterisation of the `FF16` physiological model.'
 )
