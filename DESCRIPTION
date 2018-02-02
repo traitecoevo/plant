@@ -1,6 +1,6 @@
 Package: plant
 Title: A package for modelling forest trait ecology and evolution
-Version: 1.0.0
+Version: 1.1.0
 Authors@R: c(
     person("Daniel", "Falster", , "daniel.falster@unsw.edu.au", c("aut", "cre")),
     person("Richard", "FitzJohn", , "", c("aut")))
