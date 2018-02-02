@@ -14,58 +14,16 @@ developed elsewhere, in particular in @Falster-2011 and
 @Deroos-1997, @Kohyama-1993, and @Moorcroft-2001. They are presented here so that
 users can understand the full system of equations being solved within `plant`.
 We then describe the numerical techniques used to solve the equations.
-Table \ref{tab:definitions} provides a list of names and definitions used
+Table \@ref(tab:definitions) provides a list of names and definitions used
 throughout this document.
 
-\begin{table}[ht]
-\caption{Variable names and definitions in the demographic model of the `plant` package.}
-\centering
-\begin{tabular}{p{2cm}p{2cm}p{9cm}}
-\hline
-Symbol & Unit & Description \\
-\hline
-\multicolumn{3}{l}{\textbf{Patch state variables}} \\
-$K$ & & Number of species in the metacommunity\\
-$a, a^{\prime}$ & yr & Patch age (time since disturbance)\\
-$a_0$ & yr & Patch age when plant germinates \\
-$E_a$ & & Profile of canopy openness within a patch of age $a$\\
-$E_a(z)$& & Canopy openness at height $z$ within a patch of age $a$\\
 
-\multicolumn{3}{l}{\textbf{Plant state variables}} \\
-$x$ & & Vector of traits for a species\\
-$H$ & m & Height of a plant\\
-$H_0(x)$ & m & Height of a seedling with traits $x$ after germination\\
-$z$ & m & Height in canopy\\
-$A_{\rm l}(H)$ & m$^2$ & Leaf area of a plant with height $H$ \\
-$Q(z, H)$ & & Fraction of leaf area above height $z$ for a plant with height $H$\\
-
-\multicolumn{3}{l}{\textbf{Abundance measures}} \\
-$P(a)$ & yr$^{-1}$ & Frequency-density of patches of age $a$ \\
-$Y_{x}$ & m$^{-2}$ yr$^{-1}$ & Global seed rain for a species with traits $x$\\
-$N(H | x, a)$ & m$^{-1}$ m$^{-2}$ & Density of plants at height $H$ per unit ground area for given traits $x$ and patch age $a$\\
-
-\multicolumn{3}{l}{\textbf{Demographic rates}} \\
-$g(x, H, E_a)$ & m yr$^{-1}$ & Height growth rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$\\
-$f(x, H, E_a)$ & yr$^{-1}$ & Seed production rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$\\
-$d(x, H, E_a)$ & yr$^{-1}$ & Instantaneous mortality rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$\\
-$d_{\rm P}(a)$ & yr$^{-1}$ & Instantaneous disturbance rate of a patch of age $a$\\
-
-\multicolumn{3}{l}{\textbf{Demographic outcomes}} \\
-$H(x, a_0, a)$ & m & Height of a plant with traits $x$ in a patch of age $a$ having germinated at patch age $a_0$\\
-$S_{\rm D}$ & & Probability a seed survives dispersal \\
-$S_{\rm G} (x, H_0, E_{{\rm a}0})$ & & Probability the seed of a plant with traits $x$ germinates successfully at height $H_0$ in the light environment $E_{{\rm a}0}$ in a patch of age $a_0$\\
-$S_{\rm I} (x, a_0, a)$ & & Probability a plant survives from patch age $a_0$ to patch age $a$\\
-$S_{\rm P} ( a_0, a)$ & & Probability a patch remains undisturbed from patch age $a_0$ to patch age $a$\\
-$\tilde{R}(x, a_0, a)$ & & Cumulative seed output for plants with traits $x$ from patch age $a_0$ to patch age $a$ \\
-$R\left(x^\prime, x\right)$ & & Basic reproduction ratio for a mutant plant with traits $x^\prime$ growing in a metapopulation of resident plants with traits $x$\\
-
-\multicolumn{3}{l}{\textbf{Miscellaneous constants}} \\
-$k_{\rm I}$ & & Light extinction coefficient\\
-$\bar{a}$ & yr & Mean interval between patch disturbances \\
-\hline
-\end{tabular}
- \label{tab:definitions}
-\end{table}
+```{r definitions, echo=FALSE, results='asis'}
+x <- read.csv("assets/demography-vars.csv")
+knitr::kable(x,  align = "l",
+  caption = 'Variable names and definitions in the demographic model of the `plant` package.'
+)
+```
 
 # Metacommunity dynamics {#system-dynamics}
 
@@ -74,10 +32,10 @@ that takes as inputs a plant's traits $x$, height $H$, and light environment $E_
 and returns rates of growth, mortality, and fecundity. The physiological model must
 describe how much leaf area the plant contributes to shading other plants in the patch.
 Specifically, the physiological model is responsible for calculating the following
-variables from Table \ref{tab:definitions}:
+variables from Table \@ref(tab:definitions):
 $A_{\rm l}(H)$, $Q(z, H)$, $H_0(x)$, $g(x, H, E_a)$, $f(x, H, E_a)$, $d(x, H, E_a)$, and
 $S_{\rm G} (x, H_0, E_{{\rm a}0})$.
-All are other variables in Table \ref{tab:definitions} are calculated in the
+All are other variables in Table \@ref(tab:definitions) are calculated in the
 demographic model using the equations provided below.
 
 ## Individual plants {#individual-plants}
