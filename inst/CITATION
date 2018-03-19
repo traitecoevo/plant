@@ -1,0 +1,15 @@
+citHeader("To cite plant in publications use:")
+
+citEntry(, 
+  entry        = "Article",
+  author       = "Daniel S Falster and Richard G. FitzJohn and Ake Brannstrom and Ulf Dieckmann and Mark Westoby",
+  title        = "plant: A package for modelling forest trait ecology and evolution",
+  journal      = "Methods in Ecology and Evolution",
+  year         = "2016",
+  volume       = "7",
+  pages        = "136--146",
+  issn         = "2041-210X",
+  doi          = "10.1111/2041-210X.12525",
+  url          = "https://github.com/traitecoevo/plant",
+  textVersion  = "Falster DS, FitzJohn RG, Brannstrom A, Dieckmann U, Westoby M (2016) plant: A package for modelling forest trait ecology & evolution. Methods in Ecology and Evolution 7: 136-146. doi: 10.1111/2041-210X.12525"
+)

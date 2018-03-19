@@ -1,5 +1,13 @@
 ---
-title: "plant: A package for modelling forest trait ecology & evolution: _Patch-level dynamics_"
+title: "Patch-level dynamics"
+author: 
+- Rich FitzJohn
+- Daniel Falster
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    toc: yes
+    number_sections: false
 ---
 
 The aim here is to use plant to investigate dynamics of plants

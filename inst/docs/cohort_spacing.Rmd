@@ -1,5 +1,13 @@
 ---
-title: "plant: A package for modelling forest trait ecology & evolution: _Cohort spacing algorithm_"
+title: "Cohort spacing algorithm"
+author: 
+- Rich FitzJohn
+- Daniel Falster
+date: 2016
+output:
+  bookdown::html_document2:
+    toc: yes
+    number_sections: false
 ---
 
 This vignette shows some details of cohort splitting.  It's

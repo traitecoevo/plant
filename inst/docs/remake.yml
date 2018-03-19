@@ -34,23 +34,13 @@ targets:
     depends:
       - install_vignettes
 
-  vignettes_md:
-    depends:
-      - plant.md
-      - equilibrium.md
-      - patch.md
-      - emergent.md
-      - fitness.md
-      - cohort_spacing.md
-      - parameters.md
-
   demography.md:
     knitr: vignette
   physiology.md:
     knitr: vignette
   developer_notes.md:
     knitr: vignette
-  plant.md:
+  individuals.md:
     knitr: vignette
   cohort_spacing.md:
     knitr: vignette
@@ -70,7 +60,7 @@ targets:
     depends:
       - vignettes/demography.Rmd
       - vignettes/physiology.Rmd
-      - vignettes/plant.Rmd
+      - vignettes/individuals.Rmd
       - vignettes/equilibrium.Rmd
       - vignettes/patch.Rmd
       - vignettes/emergent.Rmd
@@ -79,8 +69,8 @@ targets:
       - vignettes/developer_notes.Rmd
       - vignettes/parameters.Rmd
 
-  vignettes/plant.Rmd:
-    command: file.copy("plant.md", target_name, overwrite=TRUE)
+  vignettes/individuals.Rmd:
+    command: file.copy("individuals.md", target_name, overwrite=TRUE)
   vignettes/equilibrium.Rmd:
     command: file.copy("equilibrium.md", target_name, overwrite=TRUE)
   vignettes/cohort_spacing.Rmd:

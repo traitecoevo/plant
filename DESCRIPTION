@@ -31,7 +31,8 @@ Suggests:
     parallel,
     RcppR6 (>= 0.2.3),
     knitr,
-    plant.ml
+    plant.ml,
+    rmarkdown
 VignetteBuilder: knitr
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues

@@ -13,39 +13,16 @@ Falster DS, FitzJohn RG, Brännström Å, Dieckmann U, Westoby M (2016) plant: A
 
 ## Documentation
 
-For an overview of the plant package see the above publication. Further background on the default `FF16` growth model is available in Falster *et al* 2011 ([10.1111/j.1365-2745.2010.01735.x](http://doi.org/10.1111/j.1365-2745.2010.01735.x)) and Falster *et al* 2017 ([10.1101/083451](http://doi.org/10.1101/083451)).
+An overview of the plant package is given by the above publication. Further background on the default `FF16` growth model is available in Falster *et al* 2011 ([10.1111/j.1365-2745.2010.01735.x](http://doi.org/10.1111/j.1365-2745.2010.01735.x)) and Falster *et al* 2017 ([10.1101/083451](http://doi.org/10.1101/083451)).
 
-Run `library(help=plant)` to see the index of functions.
+`plant` comes with a lot of documentation, available at [https://traitecoevo.github.io/plant/](https://traitecoevo.github.io/plant/). Initial versions for some of the material there was also  included as supplementary material with the publication about plant, which can be accessed [here](http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12525/abstract#footer-support-info). 
 
-`plant` comes with a lot of documentation. Initial versions were included as supplementary material with the publication about plant, which can be accessed [here](http://onlinelibrary.wiley.com/doi/10.1111/2041-210X.12525/abstract#footer-support-info). Updated versions can be built from within the package (instructions below) or accessed online:
 
-**Details of the modelling approaches:**
+## Package structure
 
-* `vignette("demography")`: Modelling demography of plants, patches and metapopulations [online](https://traitecoevo.github.io/plant/vignettes/demography.pdf)
-* `vignette("physiology")`: Plant physiological model [online](https://traitecoevo.github.io/plant/vignettes/physiology.pdf)
+Plant is a complex package, using [C++11](https://en.wikipedia.org/wiki/C%2B%2B11) behind the scenes for speed with [R6 classes](https://cran.r-project.org/web/packages/R6/vignettes/Introduction.html) (via the [Rcpp](https://cran.r-project.org/web/packages/Rcpp/index.html) and [RcppR6](https://github.com/richfitz/RcppR6) packages).  In this blog post, Rich FitzJohn and I describe the [key technologies used to build the plant package](https://methodsblog.wordpress.com/2016/02/23/plant/). 
 
-**Details of using `plant` from R:**
-
-* `vignette("plant")`: Plant level properties [online](https://traitecoevo.github.io/plant/articles/plant.html)
-* `vignette("cohort_spacing")`: The cohort spacing algorithm [online](https://traitecoevo.github.io/plant/articles/cohort_spacing.html)
-* `vignette("equilibrium")`: Finding demographic equilibrium [online](https://traitecoevo.github.io/plant/articles/equilibrium.html)
-* `vignette("patch")`: Patch level dynamics [online](https://traitecoevo.github.io/plant/articles/patch.html)
-* `vignette("emergent")`: Patch level emergent properties [online](https://traitecoevo.github.io/plant/articles/emergent.html)
-* `vignette("fitness")`: Calculating fitness [online](https://traitecoevo.github.io/plant/articles/fitness.html)
-* `vignette("parameters")`: Modifying parameters of the physiological model [online](https://traitecoevo.github.io/plant/articles/parameters.html)
-
-If you want to build the vignettes locally, see [`inst/docs/README.md`](inst/docs/README.md) for details.  The vignettes are not built as part of the package installation as they take a couple of hours to build.
-
-**Details on package structure**
-
-Plant is a complex package. It uses [C++11](https://en.wikipedia.org/wiki/C%2B%2B11) behind the scenes for speed, and [R6 classes](https://cran.r-project.org/web/packages/R6/vignettes/Introduction.html). 
-
-In this blog post, Rich FitzJohn and I describe the [key technologies used to build the plant package](https://methodsblog.wordpress.com/2016/02/23/plant/).
-
-**Developer Notes**
-
-If you are interested in developing plant you should read the [developer notes](https://traitecoevo.github.io/plant/articles/developer_notes.html).
-
+If you are interested in developing plant you should read the [Developer Notes](https://traitecoevo.github.io/plant/articles/developer_notes.html).
 
 ## Installation
 
