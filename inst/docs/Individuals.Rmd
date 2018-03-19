@@ -1,5 +1,13 @@
 ---
-title: "plant: A package for modelling forest trait ecology & evolution: _Plant-level properties_"
+title: "Plant-level properties"
+author: 
+- Rich FitzJohn
+- Daniel Falster
+date: 2016
+output:
+  bookdown::html_document2:
+    toc: yes
+    number_sections: false
 ---
 
 This vignette illustrates the sort of analysis used to generate

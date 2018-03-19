@@ -1,11 +1,18 @@
 ---
 title: "Modelling the demography of plants, patches, and metacommunities"
+author: 
+- Daniel Falster
+- Ake Brannstrom
+- Ulf Dieckmann
+date: 2016
 bibliography: assets/refs.bib
 csl: assets/methods-in-ecology-and-evolution.csl
 output: 
   bookdown::html_document2:
     toc: yes
 ---
+
+# Introduction
 
 This document outlines methods used to model demography in the `plant`
 package. We first outline the system of equations being solved. These equations were primarily

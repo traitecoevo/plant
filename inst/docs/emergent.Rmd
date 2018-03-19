@@ -1,5 +1,13 @@
 ---
-title: "plant: A package for modelling forest trait ecology & evolution: _Patch-level emergent properties_"
+title: "Patch-level emergent properties"
+author: 
+- Rich FitzJohn
+- Daniel Falster
+date: 2016
+output:
+  bookdown::html_document2:
+    toc: yes
+    number_sections: false
 ---
 
 The aim here is to use the plant package to investigate dynamics

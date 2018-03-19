@@ -1,5 +1,10 @@
 ---
 title: "Developer Notes"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    toc: yes
+    number_sections: false
 ---
 
 ## Issues

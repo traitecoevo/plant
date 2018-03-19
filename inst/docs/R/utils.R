@@ -7,6 +7,8 @@ copy_assets_figures <- function(cleanup=FALSE) {
   }
 }
 
+#TODO - everything from here down can be deleted I think
+
 empty_box <- function() {
   par(oma=c(0,0,0,0), mar=rep(0.1,4))
   plot(1,1, ann=FALSE, axes=FALSE, type='n')
@@ -61,3 +63,4 @@ splinefun_loglog2 <- function(x, y, xx){
   ret[!ii] <- 0
   ret
 }
+

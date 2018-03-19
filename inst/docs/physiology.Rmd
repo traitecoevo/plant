@@ -1,16 +1,11 @@
 ---
 title: "The `FF16` growth strategy"
-author: 
-- Daniel Falster
-- Rich FitzJohn
-- Ake Brannstrom
-- Ulf Dieckmann
-- Mark Westoby
+author: DS Falster, RG FitzJohn, Å Brännström, U Dieckmann, M Westoby
 date: 2016
 bibliography: assets/refs.bib
 csl: assets/methods-in-ecology-and-evolution.csl
 output:
-  bookdown::html_document2:
+  html_document:
     toc: yes
     number_sections: false
 ---

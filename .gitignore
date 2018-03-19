@@ -1,7 +1,5 @@
 vignettes/*
-inst/doc/
-docs
-!/inst/docs/
+inst/website
 *Rproj*
 *.Rhistory*
 ^plant.Rcheck$
