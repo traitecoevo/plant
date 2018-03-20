@@ -8,8 +8,11 @@
 <title>Patch-level dynamics • plant</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
-<!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<script src="../extra.js"></script><meta property="og:title" content="Patch-level dynamics">
+<meta property="og:description" content="">
+<meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -139,35 +142,38 @@
                         <h4 class="author">Daniel Falster</h4>
             
             <h4 class="date">2018-02-02</h4>
-          </div>
+      
+      <small>Source: <a href="https:/github.com/traitecoevo/plant/blob/master/vignettes/patch.Rmd"><code>vignettes/patch.Rmd</code></a></small>
+
+    </div>
 
     
     
 <div class="contents">
 <p>The aim here is to use plant to investigate dynamics of plants within a single patch.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(plant)
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(plant)
 
 p0 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/scm_base_parameters.html">scm_base_parameters</a></span>(<span class="st">"FF16"</span>)
-p0<span class="op">$</span>control<span class="op">$</span>equilibrium_nsteps &lt;-<span class="st"> </span><span class="dv">30</span>
-p0<span class="op">$</span>control<span class="op">$</span>equilibrium_solver_name &lt;-<span class="st"> "hybrid"</span>
-p0<span class="op">$</span>disturbance_mean_interval &lt;-<span class="st"> </span><span class="fl">30.0</span></code></pre></div>
+p0$control$equilibrium_nsteps &lt;-<span class="st"> </span><span class="dv">30</span>
+p0$control$equilibrium_solver_name &lt;-<span class="st"> "hybrid"</span>
+p0$disturbance_mean_interval &lt;-<span class="st"> </span><span class="fl">30.0</span></code></pre>
 <p>First, with a single species:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/expand_parameters.html">expand_parameters</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="fl">0.0825</span>, <span class="st">"lma"</span>), p0, <span class="ot">FALSE</span>)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">p1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/expand_parameters.html">expand_parameters</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="fl">0.0825</span>, <span class="st">"lma"</span>), p0, <span class="ot">FALSE</span>)</code></pre>
 <p>Run everything out to equilibrium:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p1_eq &lt;-<span class="st"> </span><span class="kw"><a href="../reference/equilibrium_seed_rain.html">equilibrium_seed_rain</a></span>(p1)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">p1_eq &lt;-<span class="st"> </span><span class="kw"><a href="../reference/equilibrium_seed_rain.html">equilibrium_seed_rain</a></span>(p1)</code></pre>
 <p>This collects information about the state of the system at every ODE step:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">data1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_scm_collect.html">run_scm_collect</a></span>(p1_eq)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">data1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_scm_collect.html">run_scm_collect</a></span>(p1_eq)</code></pre>
 <p>Entries are: * time: time of the step * species: a list with the state of each species (in this case there is only 1). The contents is a 3d array of variable / time step / cohort * light_env: a list with the points of the light environment spline (height / canopy openness) * seed_rain: output seed rain * p: input parameters</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(data1)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(data1)</code></pre>
 <pre><code>## [1] "time"          "species"       "light_env"     "seed_rain"    
 ## [5] "patch_density" "p"</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">t &lt;-<span class="st"> </span>data1<span class="op">$</span>time
-h &lt;-<span class="st"> </span>data1<span class="op">$</span>species[[<span class="dv">1</span>]][<span class="st">"height"</span>, , ]</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">t &lt;-<span class="st"> </span>data1$time
+h &lt;-<span class="st"> </span>data1$species[[<span class="dv">1</span>]][<span class="st">"height"</span>, , ]</code></pre>
 <p>h here is two of the three dimensions of the state array; each row is a <em>time</em> and each column is a <em>cohort</em>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(h)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">dim</span>(h)</code></pre>
 <pre><code>## [1] 214 213</code></pre>
 <p>So the ith row is the height of all extant cohorts in the patch (some are NA if they have not been introduced yet)</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">h[<span class="dv">150</span>, ]</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">h[<span class="dv">150</span>, ]</code></pre>
 <pre><code>##   [1] 10.2485992 10.2482823 10.2479654 10.2476483 10.2473311 10.2470138
 ##   [7] 10.2466964 10.2463789 10.2460613 10.2455764 10.2450913 10.2446059
 ##  [13] 10.2441202 10.2436342 10.2426616 10.2416879 10.2407131 10.2397372
@@ -205,7 +211,7 @@ h &lt;-<span class="st"> </span>data1<span class="op">$</span>species[[<span cla
 ## [205]         NA         NA         NA         NA         NA         NA
 ## [211]         NA         NA         NA</code></pre>
 <p>And the jth column is the heights of a particular cohort, NA if that time is before it was introduced:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">h[, <span class="dv">60</span>]</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">h[, <span class="dv">60</span>]</code></pre>
 <pre><code>##   [1]         NA         NA         NA         NA         NA         NA
 ##   [7]         NA         NA         NA         NA         NA         NA
 ##  [13]         NA         NA         NA         NA         NA         NA
@@ -244,133 +250,133 @@ h &lt;-<span class="st"> </span>data1<span class="op">$</span>species[[<span cla
 ## [211] 17.8648844 17.8758038 17.8863635 17.8931463</code></pre>
 <p>With a single species there is always one more time step than cohort introduction, with the last two steps having the same number of cohorts. With multiple species there can be more time steps than cohort introductions, as we’ll record data every cohort introduction for <em>either</em> species, which will be refined to different schedules.</p>
 <p>Individual plants increase in height with respect to time, but because they are competing the growth rate depends on the amount of shading above them, in addition to size dependent growth rate (see vignette:plant)</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">matplot</span>(t, h, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(<span class="st">"black"</span>, <span class="fl">0.25</span>), <span class="dt">type=</span><span class="st">"l"</span>,
-        <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Height (m)"</span>)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">matplot</span>(t, h, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(<span class="st">"black"</span>, <span class="fl">0.25</span>), <span class="dt">type=</span><span class="st">"l"</span>,
+        <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Height (m)"</span>)</code></pre>
 <div class="figure">
 <img src="figure/patch__unnamed-chunk-9-1.png">
 </div>
 <p>The light environment is stored over each time step:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">xlim &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">1.1</span>)
-ylim &lt;-<span class="st"> </span><span class="kw">range</span>(data1<span class="op">$</span>light_env[[<span class="kw">length</span>(data1<span class="op">$</span>light_env)]][, <span class="st">"height"</span>])
+<pre class="sourceCode r"><code class="sourceCode r">xlim &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, <span class="fl">1.1</span>)
+ylim &lt;-<span class="st"> </span><span class="kw">range</span>(data1$light_env[[<span class="kw">length</span>(data1$light_env)]][, <span class="st">"height"</span>])
 <span class="kw">plot</span>(<span class="ot">NA</span>, <span class="dt">xlim=</span>xlim, <span class="dt">ylim=</span>ylim, <span class="dt">las=</span><span class="dv">1</span>,
      <span class="dt">xlab=</span><span class="st">"Canopy openness"</span>, <span class="dt">ylab=</span><span class="st">"Height (m)"</span>)
-<span class="cf">for</span> (i <span class="cf">in</span> data1<span class="op">$</span>light_env) {
+for (i in data1$light_env) {
   <span class="kw">lines</span>(i[, <span class="st">"canopy_openness"</span>], i[, <span class="st">"height"</span>], <span class="dt">col=</span><span class="st">"grey"</span>)
 }
 
 blues &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"#DEEBF7"</span>, <span class="st">"#C6DBEF"</span>, <span class="st">"#9ECAE1"</span>, <span class="st">"#6BAED6"</span>,
            <span class="st">"#4292C6"</span>, <span class="st">"#2171B5"</span>, <span class="st">"#08519C"</span>, <span class="st">"#08306B"</span>)
-times &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">40</span>, data1<span class="op">$</span>time[[<span class="kw">length</span>(data1<span class="op">$</span>time)]])
-cols &lt;-<span class="st"> </span><span class="kw">colorRampPalette</span>(blues[<span class="op">-</span>(<span class="dv">1</span><span class="op">:</span><span class="dv">2</span>)])(<span class="kw">length</span>(times))
-<span class="cf">for</span> (i <span class="cf">in</span> <span class="kw">seq_along</span>(times)) {
-  x &lt;-<span class="st"> </span>data1<span class="op">$</span>light_env[[<span class="kw">which.min</span>(<span class="kw">abs</span>(times[[i]] <span class="op">-</span><span class="st"> </span>data1<span class="op">$</span>time))]]
+times &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">5</span>, <span class="dv">10</span>, <span class="dv">20</span>, <span class="dv">40</span>, data1$time[[<span class="kw">length</span>(data1$time)]])
+cols &lt;-<span class="st"> </span><span class="kw">colorRampPalette</span>(blues[-(<span class="dv">1</span>:<span class="dv">2</span>)])(<span class="kw">length</span>(times))
+for (i in <span class="kw">seq_along</span>(times)) {
+  x &lt;-<span class="st"> </span>data1$light_env[[<span class="kw">which.min</span>(<span class="kw">abs</span>(times[[i]] -<span class="st"> </span>data1$time))]]
   <span class="kw">lines</span>(x[, <span class="st">"canopy_openness"</span>], x[, <span class="st">"height"</span>], <span class="dt">col=</span>cols[[i]])
   y &lt;-<span class="st"> </span>x[<span class="kw">nrow</span>(x), <span class="st">"height"</span>]
   <span class="kw">points</span>(<span class="dv">1</span>, y, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">col=</span>cols[[i]])
-  <span class="kw">text</span>(<span class="dv">1</span> <span class="op">+</span><span class="st"> </span><span class="kw">strwidth</span>(<span class="st">"x"</span>), y, <span class="kw">paste</span>(<span class="kw">round</span>(times[[i]]), <span class="st">"years"</span>),
+  <span class="kw">text</span>(<span class="dv">1</span> +<span class="st"> </span><span class="kw">strwidth</span>(<span class="st">"x"</span>), y, <span class="kw">paste</span>(<span class="kw">round</span>(times[[i]]), <span class="st">"years"</span>),
        <span class="dt">adj=</span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>))
-}</code></pre></div>
+}</code></pre>
 <div class="figure">
 <img src="figure/patch__unnamed-chunk-10-1.png">
 </div>
 <p>The amount of light at the ground level is perhaps the most relevant metric:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">y &lt;-<span class="st"> </span><span class="kw">sapply</span>(data1<span class="op">$</span>light_env, <span class="cf">function</span>(x) x[<span class="dv">1</span>, <span class="st">"canopy_openness"</span>])
-<span class="kw">plot</span>(data1<span class="op">$</span>time, y, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
-     <span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Canopy openness"</span>)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">y &lt;-<span class="st"> </span><span class="kw">sapply</span>(data1$light_env, function(x) x[<span class="dv">1</span>, <span class="st">"canopy_openness"</span>])
+<span class="kw">plot</span>(data1$time, y, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
+     <span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Canopy openness"</span>)</code></pre>
 <div class="figure">
 <img src="figure/patch__unnamed-chunk-11-1.png">
 </div>
 <p>The waves here are due to rounds of recruitment and self thinning. Mortality is not instantaneous, so species recruit to a density that generates a canopy that they cannot survive under.</p>
 <p>Leaf area index is the driver that controls the canopy openness (via the light extinction coefficient <code>p1$k_I</code>, following exponential extinction). This is not returned by <code>run_scm_collect</code> so instead we need to rebuild patches using <code>scm_patch</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">patches1 &lt;-<span class="st"> </span><span class="kw">lapply</span>(<span class="kw">seq_along</span>(data1<span class="op">$</span>time), scm_patch, data1)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">patches1 &lt;-<span class="st"> </span><span class="kw">lapply</span>(<span class="kw">seq_along</span>(data1$time), scm_patch, data1)</code></pre>
 <p>Each element of the resulting list is a Patch object, the same as was observed when running the model.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lai1 &lt;-<span class="st"> </span><span class="kw">sapply</span>(patches1, <span class="cf">function</span>(x) x<span class="op">$</span><span class="kw">area_leaf_above</span>(<span class="fl">0.0</span>))
-<span class="kw">plot</span>(data1<span class="op">$</span>time, lai1, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>,
-     <span class="dt">ylab=</span><span class="st">"Leaf area index"</span>)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">lai1 &lt;-<span class="st"> </span><span class="kw">sapply</span>(patches1, function(x) x$<span class="kw">area_leaf_above</span>(<span class="fl">0.0</span>))
+<span class="kw">plot</span>(data1$time, lai1, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>,
+     <span class="dt">ylab=</span><span class="st">"Leaf area index"</span>)</code></pre>
 <div class="figure">
 <img src="figure/patch__unnamed-chunk-13-1.png">
 </div>
 <p>If multiple species are grown at once, they compete with one another. This adds a second species – with a higher lma value than the first species – to the population and runs them until they reach equilibrium seed rain at the metapopulation level.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/expand_parameters.html">expand_parameters</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="fl">0.2625</span>, <span class="st">"lma"</span>), p1, <span class="ot">FALSE</span>)
-p2_eq &lt;-<span class="st"> </span><span class="kw"><a href="../reference/equilibrium_seed_rain.html">equilibrium_seed_rain</a></span>(p2)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/expand_parameters.html">expand_parameters</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="fl">0.2625</span>, <span class="st">"lma"</span>), p1, <span class="ot">FALSE</span>)
+p2_eq &lt;-<span class="st"> </span><span class="kw"><a href="../reference/equilibrium_seed_rain.html">equilibrium_seed_rain</a></span>(p2)</code></pre>
 <p>Then collect the patch-level dynamics:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">data2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_scm_collect.html">run_scm_collect</a></span>(p2_eq)
+<pre class="sourceCode r"><code class="sourceCode r">data2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/run_scm_collect.html">run_scm_collect</a></span>(p2_eq)
 
-t2 &lt;-<span class="st"> </span>data2<span class="op">$</span>time
-h1 &lt;-<span class="st"> </span>data2<span class="op">$</span>species[[<span class="dv">1</span>]][<span class="st">"height"</span>, , ]
-h2 &lt;-<span class="st"> </span>data2<span class="op">$</span>species[[<span class="dv">2</span>]][<span class="st">"height"</span>, , ]
+t2 &lt;-<span class="st"> </span>data2$time
+h1 &lt;-<span class="st"> </span>data2$species[[<span class="dv">1</span>]][<span class="st">"height"</span>, , ]
+h2 &lt;-<span class="st"> </span>data2$species[[<span class="dv">2</span>]][<span class="st">"height"</span>, , ]
 
 cols &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"#e34a33"</span>, <span class="st">"#045a8d"</span>)
 <span class="kw">matplot</span>(t2, h1, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(cols[[<span class="dv">1</span>]], .<span class="dv">25</span>), <span class="dt">type=</span><span class="st">"l"</span>,
         <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Height (m)"</span>)
-<span class="kw">matlines</span>(t2, h2, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(cols[[<span class="dv">2</span>]], .<span class="dv">25</span>))</code></pre></div>
+<span class="kw">matlines</span>(t2, h2, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(cols[[<span class="dv">2</span>]], .<span class="dv">25</span>))</code></pre>
 <div class="figure">
 <img src="figure/patch__unnamed-chunk-15-1.png">
 </div>
 <p>Alternatively we can compare the growth of species 1 by itself or with another species:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">matplot</span>(t, h, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(<span class="st">"black"</span>, .<span class="dv">25</span>), <span class="dt">type=</span><span class="st">"l"</span>,
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">matplot</span>(t, h, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(<span class="st">"black"</span>, .<span class="dv">25</span>), <span class="dt">type=</span><span class="st">"l"</span>,
         <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Height (m)"</span>)
-<span class="kw">matlines</span>(t2, h1, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(cols[[<span class="dv">1</span>]], .<span class="dv">25</span>))</code></pre></div>
+<span class="kw">matlines</span>(t2, h1, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(cols[[<span class="dv">1</span>]], .<span class="dv">25</span>))</code></pre>
 <div class="figure">
 <img src="figure/patch__unnamed-chunk-16-1.png">
 </div>
 <p>This shows that the additional species does not affect the growth of the <em>initial</em> wave of cohorts (because the second species is growing more slowly and is shorter than the first species), but subsequent waves are slowed or eliminated.</p>
 <p>The dynamics are easier to see when coded by cohort density (some of the lines here represent cohorts at close to zero density).</p>
 <p>Relativise the log densities onto (-4, max)</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">d1 &lt;-<span class="st"> </span>data2<span class="op">$</span>species[[<span class="dv">1</span>]][<span class="st">"log_density"</span>, , ]
-d2 &lt;-<span class="st"> </span>data2<span class="op">$</span>species[[<span class="dv">2</span>]][<span class="st">"log_density"</span>, , ]
-rel &lt;-<span class="st"> </span><span class="cf">function</span>(x, xmin) {
-  x[x <span class="op">&lt;</span><span class="st"> </span>xmin] &lt;-<span class="st"> </span>xmin
+<pre class="sourceCode r"><code class="sourceCode r">d1 &lt;-<span class="st"> </span>data2$species[[<span class="dv">1</span>]][<span class="st">"log_density"</span>, , ]
+d2 &lt;-<span class="st"> </span>data2$species[[<span class="dv">2</span>]][<span class="st">"log_density"</span>, , ]
+rel &lt;-<span class="st"> </span>function(x, xmin) {
+  x[x &lt;<span class="st"> </span>xmin] &lt;-<span class="st"> </span>xmin
   xmax &lt;-<span class="st"> </span><span class="kw">max</span>(x, <span class="dt">na.rm=</span><span class="ot">TRUE</span>)
-  (x <span class="op">-</span><span class="st"> </span>xmin) <span class="op">/</span><span class="st"> </span>(xmax <span class="op">-</span><span class="st"> </span>xmin)
+  (x -<span class="st"> </span>xmin) /<span class="st"> </span>(xmax -<span class="st"> </span>xmin)
 }
-rd1 &lt;-<span class="st"> </span><span class="kw">rel</span>(d1, <span class="op">-</span><span class="dv">4</span>)
-rd2 &lt;-<span class="st"> </span><span class="kw">rel</span>(d2, <span class="op">-</span><span class="dv">4</span>)</code></pre></div>
+rd1 &lt;-<span class="st"> </span><span class="kw">rel</span>(d1, -<span class="dv">4</span>)
+rd2 &lt;-<span class="st"> </span><span class="kw">rel</span>(d2, -<span class="dv">4</span>)</code></pre>
 <p>R doesn’t seem to offer a way to plot lines that vary in colour, so this is quite roundabout using <code>segments</code>, shaded by the density at the first part of the line segment:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="kw">length</span>(t2)
+<pre class="sourceCode r"><code class="sourceCode r">n &lt;-<span class="st"> </span><span class="kw">length</span>(t2)
 x &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw">rep</span>(t2, <span class="kw">ncol</span>(h1)), <span class="kw">nrow</span>(h1))
 col1 &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(cols[[<span class="dv">1</span>]], rd1), <span class="kw">nrow</span>(d1))
 col2 &lt;-<span class="st"> </span><span class="kw">matrix</span>(<span class="kw"><a href="../reference/make_transparent.html">make_transparent</a></span>(cols[[<span class="dv">2</span>]], rd2), <span class="kw">nrow</span>(d2))
 <span class="kw">plot</span>(<span class="ot">NA</span>, <span class="dt">xlim=</span><span class="kw">range</span>(t2), <span class="dt">ylim=</span><span class="kw">range</span>(h1, <span class="dt">na.rm=</span><span class="ot">TRUE</span>),
      <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Cohort height (m)"</span>)
-<span class="kw">segments</span>(x[<span class="op">-</span><span class="dv">1</span>, ], h2[<span class="op">-</span><span class="dv">1</span>, ], x[<span class="op">-</span>n, ], h2[<span class="op">-</span>n, ], <span class="dt">col=</span>col2[<span class="op">-</span>n, ], <span class="dt">lend=</span><span class="st">"butt"</span>)
-<span class="kw">segments</span>(x[<span class="op">-</span><span class="dv">1</span>, ], h1[<span class="op">-</span><span class="dv">1</span>, ], x[<span class="op">-</span>n, ], h1[<span class="op">-</span>n, ], <span class="dt">col=</span>col1[<span class="op">-</span>n, ], <span class="dt">lend=</span><span class="st">"butt"</span>)</code></pre></div>
+<span class="kw">segments</span>(x[-<span class="dv">1</span>, ], h2[-<span class="dv">1</span>, ], x[-n, ], h2[-n, ], <span class="dt">col=</span>col2[-n, ], <span class="dt">lend=</span><span class="st">"butt"</span>)
+<span class="kw">segments</span>(x[-<span class="dv">1</span>, ], h1[-<span class="dv">1</span>, ], x[-n, ], h1[-n, ], <span class="dt">col=</span>col1[-n, ], <span class="dt">lend=</span><span class="st">"butt"</span>)</code></pre>
 <div class="figure">
 <img src="figure/patch__unnamed-chunk-18-1.png">
 </div>
 <p>Then, the total leaf area:</p>
 <p>Each element of the resulting list is a Patch object, the same as was observed when running the model.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">patches2 &lt;-<span class="st"> </span><span class="kw">lapply</span>(<span class="kw">seq_along</span>(data2<span class="op">$</span>time), scm_patch, data2)
-lai2 &lt;-<span class="st"> </span><span class="kw">sapply</span>(patches2, <span class="cf">function</span>(x) x<span class="op">$</span><span class="kw">area_leaf_above</span>(<span class="fl">0.0</span>))
+<pre class="sourceCode r"><code class="sourceCode r">patches2 &lt;-<span class="st"> </span><span class="kw">lapply</span>(<span class="kw">seq_along</span>(data2$time), scm_patch, data2)
+lai2 &lt;-<span class="st"> </span><span class="kw">sapply</span>(patches2, function(x) x$<span class="kw">area_leaf_above</span>(<span class="fl">0.0</span>))
 
-lai2_<span class="dv">1</span> &lt;-<span class="st"> </span><span class="kw">sapply</span>(patches2, <span class="cf">function</span>(x) x<span class="op">$</span>species[[<span class="dv">1</span>]]<span class="op">$</span><span class="kw">area_leaf_above</span>(<span class="fl">0.0</span>))
-lai2_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">sapply</span>(patches2, <span class="cf">function</span>(x) x<span class="op">$</span>species[[<span class="dv">2</span>]]<span class="op">$</span><span class="kw">area_leaf_above</span>(<span class="fl">0.0</span>))
+lai2_1 &lt;-<span class="st"> </span><span class="kw">sapply</span>(patches2, function(x) x$species[[<span class="dv">1</span>]]$<span class="kw">area_leaf_above</span>(<span class="fl">0.0</span>))
+lai2_2 &lt;-<span class="st"> </span><span class="kw">sapply</span>(patches2, function(x) x$species[[<span class="dv">2</span>]]$<span class="kw">area_leaf_above</span>(<span class="fl">0.0</span>))
 
 <span class="kw">plot</span>(t2, lai2, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">lty=</span><span class="dv">2</span>,
      <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Leaf area index"</span>)
-<span class="kw">lines</span>(t2, lai2_<span class="dv">1</span>, <span class="dt">col=</span>cols[[<span class="dv">1</span>]])
-<span class="kw">lines</span>(t2, lai2_<span class="dv">2</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])</code></pre></div>
+<span class="kw">lines</span>(t2, lai2_1, <span class="dt">col=</span>cols[[<span class="dv">1</span>]])
+<span class="kw">lines</span>(t2, lai2_2, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])</code></pre>
 <div class="figure">
 <img src="figure/patch__unnamed-chunk-19-1.png">
 </div>
 <p>To find the average value over the metapopulation we weight by patch abundance:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">metapopulation &lt;-<span class="st"> </span><span class="cf">function</span>(x){
-  plant<span class="op">:::</span><span class="kw">trapezium</span>(t2, x<span class="op">*</span>data2<span class="op">$</span>patch_density)
+<pre class="sourceCode r"><code class="sourceCode r">metapopulation &lt;-<span class="st"> </span>function(x){
+  plant:::<span class="kw">trapezium</span>(t2, x*data2$patch_density)
 }
 
 lai2_av &lt;-<span class="st"> </span><span class="kw">metapopulation</span>(lai2)
-lai2_1_av &lt;-<span class="st"> </span><span class="kw">metapopulation</span>(lai2_<span class="dv">1</span>)
-lai2_2_av &lt;-<span class="st"> </span><span class="kw">metapopulation</span>(lai2_<span class="dv">2</span>)
+lai2_1_av &lt;-<span class="st"> </span><span class="kw">metapopulation</span>(lai2_1)
+lai2_2_av &lt;-<span class="st"> </span><span class="kw">metapopulation</span>(lai2_2)
 
 <span class="kw">plot</span>(t2, lai2, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">lty=</span><span class="dv">2</span>,
      <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Leaf area index"</span>)
-<span class="kw">lines</span>(t2, lai2_<span class="dv">1</span>, <span class="dt">col=</span>cols[[<span class="dv">1</span>]])
-<span class="kw">lines</span>(t2, lai2_<span class="dv">2</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
+<span class="kw">lines</span>(t2, lai2_1, <span class="dt">col=</span>cols[[<span class="dv">1</span>]])
+<span class="kw">lines</span>(t2, lai2_2, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
 
 <span class="kw">axis</span>(<span class="dv">4</span>, <span class="dt">at=</span>lai2_av,   <span class="dt">tck=</span><span class="fl">0.1</span>, <span class="dt">lty =</span> <span class="dv">2</span>, <span class="dt">labels=</span><span class="ot">NA</span>)
 <span class="kw">axis</span>(<span class="dv">4</span>, <span class="dt">at=</span>lai2_1_av, <span class="dt">tck=</span><span class="fl">0.1</span>, <span class="dt">col.ticks=</span>cols[[<span class="dv">1</span>]], <span class="dt">labels=</span><span class="ot">NA</span>)
 <span class="kw">axis</span>(<span class="dv">4</span>, <span class="dt">at=</span>lai2_2_av, <span class="dt">tck=</span><span class="fl">0.1</span>, <span class="dt">col.ticks=</span>cols[[<span class="dv">1</span>]], <span class="dt">labels=</span><span class="ot">NA</span>)
-<span class="kw">axis</span>(<span class="dv">1</span>, <span class="dt">at=</span><span class="dv">108</span>, <span class="dt">labels=</span><span class="st">"Av"</span>)</code></pre></div>
+<span class="kw">axis</span>(<span class="dv">1</span>, <span class="dt">at=</span><span class="dv">108</span>, <span class="dt">labels=</span><span class="st">"Av"</span>)</code></pre>
 <div class="figure">
 <img src="figure/patch__unnamed-chunk-20-1.png">
 </div>
@@ -388,7 +394,7 @@ lai2_2_av &lt;-<span class="st"> </span><span class="kw">metapopulation</span>(l
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="http://hadley.github.io/pkgdown/">pkgdown</a>.</p>
+  <p>Site built with <a href="http://pkgdown.r-lib.org/">pkgdown</a>.</p>
 </div>
 
       </footer>

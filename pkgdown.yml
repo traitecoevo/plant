@@ -1,6 +1,6 @@
-urls:
-  reference: http://github.com/traitecoevo/plant/reference
-  article: http://github.com/traitecoevo/plant/articles
+pandoc: 1.13.2
+pkgdown: 0.1.0.9000
+pkgdown_sha: 9fcc3acd70db8ea9ccb2d55efe7cd573eecbbb4b
 articles:
   cohort_spacing: cohort_spacing.html
   demography: demography.html
@@ -13,4 +13,7 @@ articles:
   patch: patch.html
   physiology: physiology.html
   plant: plant.html
+urls:
+  reference: https://traitecoevo.github.io/plant//reference
+  article: https://traitecoevo.github.io/plant//articles
 

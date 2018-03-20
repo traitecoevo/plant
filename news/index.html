@@ -6,7 +6,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>All news • plant</title>
+<title>Changelog • plant</title>
 
 <!-- jquery -->
 <script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script>
@@ -18,13 +18,16 @@
 <!-- Font Awesome icons -->
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 
+<!-- clipboard.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script>
 <script src="../pkgdown.js"></script>
   <link href="../extra.css" rel="stylesheet">
-  
+  <script src="../extra.js"></script>
+<meta property="og:title" content="Changelog" />
 <!-- mathjax -->
 <script src='https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
 
@@ -157,26 +160,54 @@
 
   <div class="col-md-9">
     <div class="page-header">
-      <h1>Change log <small>All releases</small></h1>
+      <h1>Change log <small></small></h1>
+      <small>Source: <a href='https:/github.com/traitecoevo/plant/blob/master/NEWS.md'><code>NEWS.md</code></a></small>
     </div>
 
     <div class="contents">
+    <div id="plant-1-2-0-release-notes" class="section level2">
+<h2 class="hasAnchor">
+<a href="#plant-1-2-0-release-notes" class="anchor"></a>Plant 1.2.0 Release Notes</h2>
+<p>v1.2.0 was released on 20/03/2018</p>
+<div id="major-changes" class="section level3">
+<h3 class="hasAnchor">
+<a href="#major-changes" class="anchor"></a>Major Changes</h3>
+<ul>
+<li>New strategy scaffolder ensures higher level operations work across all strategies and for new strategies. This includes <code>lcp_whole_plant</code> <code>XXX_PlantPlus</code>, <code>grow_plant_to_size</code>, <code>grow_plant_to_height</code>, <code>grow_plant_to_time</code>
+</li>
+<li>website now builds via <code>pkgdown</code> package (used to use staticdocs but this is deprecated)</li>
+<li>simplified workflow for building website</li>
+<li>converted supporting materials from tex to Rmd</li>
+</ul>
+</div>
+<div id="minor-changes" class="section level3">
+<h3 class="hasAnchor">
+<a href="#minor-changes" class="anchor"></a>Minor Changes</h3>
+<ul>
+<li>start documenting notes for developers in <code>inst/docs/developer_notes.Rmd</code>
+</li>
+<li>add <code>CITATION</code> file</li>
+<li>Address many issues in documentation and package setup causing rcmdcheck to fail</li>
+</ul>
+<p>A full account of changes from the previous version is available on Github: <a href="https://github.com/traitecoevo/plant/compare/v1.1.0...v1.2.0">v1.1.0…v1.2.0</a></p>
+</div>
+</div>
     <div id="plant-1-1-0-release-notes" class="section level2">
 <h2 class="hasAnchor">
 <a href="#plant-1-1-0-release-notes" class="anchor"></a>Plant 1.1.0 Release Notes</h2>
 <p>v1.1.0 was released on 2/02/2018</p>
-<div id="major-changes" class="section level3">
+<div id="major-changes-1" class="section level3">
 <h3 class="hasAnchor">
-<a href="#major-changes" class="anchor"></a>Major Changes</h3>
+<a href="#major-changes-1" class="anchor"></a>Major Changes</h3>
 <ul>
 <li>Now compiles and runs on Windows machines (requires R 3.3.0 or newer)</li>
 <li>Further details on installation</li>
 <li>Enable assembly_parameters to accept more named arguments</li>
 </ul>
 </div>
-<div id="minor-changes" class="section level3">
+<div id="minor-changes-1" class="section level3">
 <h3 class="hasAnchor">
-<a href="#minor-changes" class="anchor"></a>Minor Changes</h3>
+<a href="#minor-changes-1" class="anchor"></a>Minor Changes</h3>
 <ul>
 <li>Add Appveyor for build tests on Windows machines</li>
 <li>Update tests to use latest version of testthat</li>
@@ -186,7 +217,7 @@
 <li>roxygen &amp; Rcpp updates</li>
 <li>Added a <code>NEWS.md</code> file to track changes to the package.</li>
 </ul>
-<p>A full account of changes from the previous version is available on Gihtub: <a href="https://github.com/traitecoevo/plant/compare/v1.0.0...v1.1.0">v1.0.0…v1.1.0</a></p>
+<p>A full account of changes from the previous version is available on Github: <a href="https://github.com/traitecoevo/plant/compare/v1.0.0...v1.1.0">v1.0.0…v1.1.0</a></p>
 <hr>
 </div>
 </div>
@@ -196,7 +227,7 @@
 <p>v1.0.0 was released on 23/02/2016</p>
 <p>This version corresponds to the paper describing the package:</p>
 <p>Falster, DS, RG FitzJohn, Å Brännström, U Dieckmann, M Westoby (2016) plant: A package for modelling forest trait ecology and evolution. Methods in Ecology and Evolution 7: 136-146, doi: <a href="http://doi.org/10.1111/2041-210X.12525">10.1111/2041-210X.12525</a></p>
-<p>A full account of changes from the previous version is available on Gihtub: <a href="https://github.com/traitecoevo/plant/compare/v0.2.2...v1.0.0">v0.2.2…v1.0.0</a></p>
+<p>A full account of changes from the previous version is available on Github: <a href="https://github.com/traitecoevo/plant/compare/v0.2.2...v1.0.0">v0.2.2…v1.0.0</a></p>
 <hr>
 </div>
     <div id="plant-0-2-2-release-notes" class="section level2">
@@ -204,9 +235,9 @@
 <a href="#plant-0-2-2-release-notes" class="anchor"></a>Plant 0.2.2 Release Notes</h2>
 <p>v0.2.2 was released on 1/06/2015</p>
 <p>Draft paper about package submitted to Methods in Ecology &amp; Evolution.</p>
-<div id="major-changes-1" class="section level3">
+<div id="major-changes-2" class="section level3">
 <h3 class="hasAnchor">
-<a href="#major-changes-1" class="anchor"></a>Major changes</h3>
+<a href="#major-changes-2" class="anchor"></a>Major changes</h3>
 <p>First stable release of advanced implementation of plant</p>
 </div>
 </div>
@@ -217,6 +248,7 @@
     <div id="tocnav">
       <h2>Contents</h2>
       <ul class="nav nav-pills nav-stacked">
+        <li><a href="#plant-1-2-0-release-notes">1.2.0</a></li>
         <li><a href="#plant-1-1-0-release-notes">1.1.0</a></li>
         <li><a href="#plant-1-0-0-release-notes">1.0.0</a></li>
         <li><a href="#plant-0-2-2-release-notes">0.2.2</a></li>
@@ -232,7 +264,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="http://hadley.github.io/pkgdown/">pkgdown</a>.</p>
+  <p>Site built with <a href="http://pkgdown.r-lib.org/">pkgdown</a>.</p>
 </div>
 
       </footer>
@@ -240,3 +272,4 @@
 
   </body>
 </html>
+

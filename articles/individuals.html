@@ -8,8 +8,11 @@
 <title>Plant-level properties • plant</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
-<!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<script src="../extra.js"></script><meta property="og:title" content="Plant-level properties">
+<meta property="og:description" content="">
+<meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -139,17 +142,20 @@
                         <h4 class="author">Daniel Falster</h4>
             
             <h4 class="date">2016</h4>
-          </div>
+      
+      <small>Source: <a href="https:/github.com/traitecoevo/plant/blob/master/vignettes/individuals.Rmd"><code>vignettes/individuals.Rmd</code></a></small>
+
+    </div>
 
     
     
 <div class="contents">
 <p>This vignette illustrates the sort of analysis used to generate the plant figure (Fig 2) in the manuscript, i.e. modelling the dynamics of individual plants. It also shows some of the features of working with plant components of the model.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(plant)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(plant)</code></pre>
 <p>Plants are constructed with the <code>FF16_Plant</code> function. That function takes as its only argument a “strategy” object; the default is <code>FF16_Strategy</code>, but alternative strategies can be provided (see below). The “strategy” object contains all the physiological underpinning the dynamics of individual plants and entire metapopulations.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_Plant</a></span>()</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_Plant</a></span>()</code></pre>
 <p>Plants are an <a href="https://github.com/wch/R6">R6</a> class, and have a number of elements and fields that can be accessed:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl</code></pre>
 <pre><code>## &lt;Plant&lt;FF16&gt;&gt;
 ##   Inherits from: &lt;Plant&gt;
 ##   Public:
@@ -171,43 +177,43 @@
 ##     reset_mortality: function () 
 ##     strategy: active binding</code></pre>
 <p>Things labelled ‘active binding’ are “fields” and can be read from and (sometimes) set:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>height</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$height</code></pre>
 <pre><code>## [1] 0.3441948</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>height &lt;-<span class="st"> </span><span class="dv">10</span>
-pl<span class="op">$</span>height</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$height &lt;-<span class="st"> </span><span class="dv">10</span>
+pl$height</code></pre>
 <pre><code>## [1] 10</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>fecundity</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$fecundity</code></pre>
 <pre><code>## [1] 0</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>mortality</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$mortality</code></pre>
 <pre><code>## [1] 0</code></pre>
 <p>Height, fecundity and mortality are the three key variables propagated by the internal system of differential equations:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>ode_state</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$ode_state</code></pre>
 <pre><code>## [1] 10  0  0  0  0</code></pre>
 <p>To compute rates of change for these variables we need a light environment. The function <code>fixed_environment</code> creates an environment that has the same canopy openness (here 100%) at all heights. The plant <em>does not affect</em> this light environment.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">env &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(<span class="fl">1.0</span>)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">env &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(<span class="fl">1.0</span>)</code></pre>
 <p>The <code>compute_vars_phys</code> method computes net mass production for the plant, and from that demographic rates:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>ode_rates</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$ode_rates</code></pre>
 <pre><code>## [1] NA NA NA NA NA</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span><span class="kw">compute_vars_phys</span>(env)
-pl<span class="op">$</span>ode_rates</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$<span class="kw">compute_vars_phys</span>(env)
+pl$ode_rates</code></pre>
 <pre><code>## [1] 9.231625e-01 1.002618e-02 6.905594e-05 3.132290e-04 1.687620e+00</code></pre>
 <p>Some internals from the calculations are available in the <code>internals</code> field:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(pl<span class="op">$</span>internals)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(pl$internals)</code></pre>
 <pre><code>##  [1] "area_leaf"         "height"            "height_dt"        
 ##  [4] "mortality"         "mortality_dt"      "fecundity"        
 ##  [7] "fecundity_dt"      "area_heartwood"    "area_heartwood_dt"
 ## [10] "mass_heartwood"    "mass_heartwood_dt"</code></pre>
 <p>Height growth rate</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>internals<span class="op">$</span>height_dt</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$internals$height_dt</code></pre>
 <pre><code>## [1] 0.9231625</code></pre>
 <p>Leaf area (m^2)</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>internals<span class="op">$</span>area_leaf</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$internals$area_leaf</code></pre>
 <pre><code>## [1] 7.312332</code></pre>
 <p>There’s not actually that much that can be done with Plant objects; they’re designed to be small and light to work well with the larger simulation code that does not particularly care about most of the internal calculations.</p>
 <p>Because of this, we have a “PlantPlus” object that exposes more of a strategy, and in addition stem diameter growth:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pp &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(pl<span class="op">$</span>strategy)
-pp<span class="op">$</span><span class="kw">compute_vars_phys</span>(env)
-<span class="kw">names</span>(pp<span class="op">$</span>internals)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pp &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(pl$strategy)
+pp$<span class="kw">compute_vars_phys</span>(env)
+<span class="kw">names</span>(pp$internals)</code></pre>
 <pre><code>##  [1] "mass_leaf"                        "area_leaf"                       
 ##  [3] "height"                           "area_sapwood"                    
 ##  [5] "mass_sapwood"                     "area_bark"                       
@@ -231,8 +237,8 @@ pp<span class="op">$</span><span class="kw">compute_vars_phys</span>(env)
 ## [41] "mass_live_dt"                     "mass_total_dt"                   
 ## [43] "mass_above_ground_dt"</code></pre>
 <p>Some of the internals require <code>compute_vars_internals</code> to be run (the zapsmall function rounds numbers close to zero to zero):</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pp<span class="op">$</span><span class="kw">compute_vars_growth</span>()
-<span class="kw">zapsmall</span>(<span class="kw">unlist</span>(pp<span class="op">$</span>internals))</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pp$<span class="kw">compute_vars_growth</span>()
+<span class="kw">zapsmall</span>(<span class="kw">unlist</span>(pp$internals))</code></pre>
 <pre><code>##                        mass_leaf                        area_leaf 
 ##                            0.000                            0.000 
 ##                           height                     area_sapwood 
@@ -278,70 +284,70 @@ pp<span class="op">$</span><span class="kw">compute_vars_phys</span>(env)
 ##             mass_above_ground_dt 
 ##                            0.000</code></pre>
 <p>This PlantPlus object also includes heartwood area and mass as two more variables for the ODE system (this might move into Plant soon – see <a href="https://github.com/traitecoevo/plant/issues/139">this issue</a>). Tracking of these variables is needed to estimate stem diameter growth</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pp<span class="op">$</span>ode_names</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pp$ode_names</code></pre>
 <pre><code>## [1] "height"         "mortality"      "fecundity"      "area_heartwood"
 ## [5] "mass_heartwood"</code></pre>
 <p>Plants are a type of <em>reference object</em>. They are different to almost every other R object you regularly interact with in that they do not make copies when you rename them. So changes to one will be reflected in another.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl2 &lt;-<span class="st"> </span>pl
-pl2<span class="op">$</span>height &lt;-<span class="st"> </span><span class="dv">1</span>
-pl2<span class="op">$</span>height</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl2 &lt;-<span class="st"> </span>pl
+pl2$height &lt;-<span class="st"> </span><span class="dv">1</span>
+pl2$height</code></pre>
 <pre><code>## [1] 1</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>height <span class="co"># also 1!</span></code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$height <span class="co"># also 1!</span></code></pre>
 <pre><code>## [1] 1</code></pre>
 <div id="growing-plants" class="section level1">
 <h1 class="hasAnchor">
 <a href="#growing-plants" class="anchor"></a>Growing plants</h1>
 <p>Rather than setting plant physical sizes to given values, it will often be required to <em>grow</em> them to a size. This is required to compute seed output (integrated over the plant’s lifetime) stem diameter, survival, etc; basically everything except for height.</p>
 <p>It’s possible to directly integrate the equations exposed by the plant, using the <code>ode_state</code> field, <code>compute_vars_phys</code> method and <code>ode_rates</code> field. For example, we can use the R package <code>deSolve</code>:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">derivs &lt;-<span class="st"> </span><span class="cf">function</span>(t, y, plant, env) {
-  plant<span class="op">$</span>ode_state &lt;-<span class="st"> </span>y
-  plant<span class="op">$</span><span class="kw">compute_vars_phys</span>(env)
-  <span class="kw">list</span>(plant<span class="op">$</span>ode_rates)
+<pre class="sourceCode r"><code class="sourceCode r">derivs &lt;-<span class="st"> </span>function(t, y, plant, env) {
+  plant$ode_state &lt;-<span class="st"> </span>y
+  plant$<span class="kw">compute_vars_phys</span>(env)
+  <span class="kw">list</span>(plant$ode_rates)
 }
 pl &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_Plant</a></span>()
 tt &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">50</span>, <span class="dt">length.out=</span><span class="dv">101</span>)
-y0 &lt;-<span class="st"> </span><span class="kw">setNames</span>(pl<span class="op">$</span>ode_state, pl<span class="op">$</span>ode_names)
-yy &lt;-<span class="st"> </span>deSolve<span class="op">::</span><span class="kw"><a href="http://www.rdocumentation.org/packages/deSolve/topics/lsoda">lsoda</a></span>(y0, tt, derivs, pl, <span class="dt">env=</span>env)
-<span class="kw">plot</span>(height <span class="op">~</span><span class="st"> </span>time, yy, <span class="dt">type=</span><span class="st">"l"</span>)</code></pre></div>
+y0 &lt;-<span class="st"> </span><span class="kw">setNames</span>(pl$ode_state, pl$ode_names)
+yy &lt;-<span class="st"> </span>deSolve::<span class="kw">lsoda</span>(y0, tt, derivs, pl, <span class="dt">env=</span>env)
+<span class="kw">plot</span>(height ~<span class="st"> </span>time, yy, <span class="dt">type=</span><span class="st">"l"</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-15-1.png">
 </div>
 <p>Alternatively, it might desirable to grow a plant to a particular size. We could interpolate from the previous results easily enough. E.g., to find a plant with height of 15 m:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">h &lt;-<span class="st"> </span><span class="fl">15.0</span></code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">h &lt;-<span class="st"> </span><span class="fl">15.0</span></code></pre>
 <p>that happened approximately here:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">t &lt;-<span class="st"> </span><span class="kw">spline</span>(yy[, <span class="st">"height"</span>], yy[, <span class="st">"time"</span>], <span class="dt">xout=</span>h)<span class="op">$</span>y</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">t &lt;-<span class="st"> </span><span class="kw">spline</span>(yy[, <span class="st">"height"</span>], yy[, <span class="st">"time"</span>], <span class="dt">xout=</span>h)$y</code></pre>
 <p>Interpolate to find the state:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">y &lt;-<span class="st"> </span><span class="kw">apply</span>(yy[, <span class="op">-</span><span class="dv">1</span>], <span class="dv">2</span>, <span class="cf">function</span>(y) <span class="kw">spline</span>(yy[, <span class="st">"time"</span>], y, <span class="dt">xout=</span>t)<span class="op">$</span>y)
+<pre class="sourceCode r"><code class="sourceCode r">y &lt;-<span class="st"> </span><span class="kw">apply</span>(yy[, -<span class="dv">1</span>], <span class="dv">2</span>, function(y) <span class="kw">spline</span>(yy[, <span class="st">"time"</span>], y, <span class="dt">xout=</span>t)$y)
 
 pl2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_Plant</a></span>()
-pl2<span class="op">$</span>ode_state &lt;-<span class="st"> </span>y
-pl2<span class="op">$</span><span class="kw">compute_vars_phys</span>(env)</code></pre></div>
+pl2$ode_state &lt;-<span class="st"> </span>y
+pl2$<span class="kw">compute_vars_phys</span>(env)</code></pre>
 <p>Plant is expected height:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl2<span class="op">$</span>height</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl2$height</code></pre>
 <pre><code>## [1] 15</code></pre>
 <p>And at this height, here is the total seed production:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl2<span class="op">$</span>fecundity</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl2$fecundity</code></pre>
 <pre><code>## [1] 289.9376</code></pre>
 <p>To make this type of operation easier, we provide the function <code>grow_plant_to_time</code></p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_plant_to_time.html">grow_plant_to_time</a></span>(<span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(<span class="kw"><a href="../reference/FF16_Strategy.html">FF16_Strategy</a></span>()), tt, env)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_plant_to_time.html">grow_plant_to_time</a></span>(<span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(<span class="kw"><a href="../reference/FF16_Strategy.html">FF16_Strategy</a></span>()), tt, env)</code></pre>
 <p>Here is the result, plotted against the result obtained from using <code>deSolve</code> above:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(height <span class="op">~</span><span class="st"> </span>tt, res<span class="op">$</span>state, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(height ~<span class="st"> </span>tt, res$state, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
      <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Height (m)"</span>)
-<span class="kw">points</span>(height <span class="op">~</span><span class="st"> </span>time, yy, <span class="dt">col=</span><span class="st">"grey"</span>, <span class="dt">cex=</span>.<span class="dv">5</span>)</code></pre></div>
+<span class="kw">points</span>(height ~<span class="st"> </span>time, yy, <span class="dt">col=</span><span class="st">"grey"</span>, <span class="dt">cex=</span>.<span class="dv">5</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-22-1.png">
 </div>
 <p>Completing the set, <code>plant</code> also provides a function for growing plants to a particular size; <code>grow_plant_to_size</code>. This takes <em>any</em> size measurement in the plant and can grow the plant to that size. So, for height:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(<span class="kw"><a href="../reference/FF16_Strategy.html">FF16_Strategy</a></span>())
-heights &lt;-<span class="st"> </span><span class="kw">seq</span>(pl<span class="op">$</span>height, pl<span class="op">$</span>strategy<span class="op">$</span>hmat, <span class="dt">length.out=</span><span class="dv">20</span>)
-res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_plant_to_size.html">grow_plant_to_size</a></span>(pl, heights, <span class="st">"height"</span>, env)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(<span class="kw"><a href="../reference/FF16_Strategy.html">FF16_Strategy</a></span>())
+heights &lt;-<span class="st"> </span><span class="kw">seq</span>(pl$height, pl$strategy$hmat, <span class="dt">length.out=</span><span class="dv">20</span>)
+res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_plant_to_size.html">grow_plant_to_size</a></span>(pl, heights, <span class="st">"height"</span>, env)</code></pre>
 <p>This returns a vector of times; this is when the heights were achieved</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">res<span class="op">$</span>time</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">res$time</code></pre>
 <pre><code>##  [1]  0.000000  1.545681  2.523393  3.365033  4.155087  4.926508  5.696593
 ##  [8]  6.476387  7.274127  8.096757  8.950785  9.842785 10.779771 11.769706
 ## [15] 12.821689 13.946774 15.158668 16.476692 17.957500 20.137320</code></pre>
 <p>A matrix of state:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(res<span class="op">$</span>state)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">head</span>(res$state)</code></pre>
 <pre><code>##         height  mortality    fecundity area_heartwood mass_heartwood
 ## [1,] 0.3441948 0.00000000 0.000000e+00   0.000000e+00   0.000000e+00
 ## [2,] 1.1995465 0.01545682 7.754892e-20   1.280271e-07   6.544158e-05
@@ -350,7 +356,7 @@ res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_pl
 ## [5,] 3.7656006 0.04155098 6.750246e-15   1.081677e-05   1.755419e-02
 ## [6,] 4.6209512 0.04926531 1.710259e-13   2.510437e-05   5.019027e-02</code></pre>
 <p>And a list of plants</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">res<span class="op">$</span>plant[[<span class="dv">10</span>]]</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">res$plant[[<span class="dv">10</span>]]</code></pre>
 <pre><code>## &lt;PlantPlus&lt;FF16&gt;&gt;
 ##   Inherits from: &lt;PlantPlus&gt;
 ##   Public:
@@ -374,190 +380,190 @@ res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_pl
 ##     ode_state: active binding
 ##     strategy: active binding
 ##     to_plant: function ()</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">res<span class="op">$</span>plant[[<span class="dv">10</span>]]<span class="op">$</span>height</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">res$plant[[<span class="dv">10</span>]]$height</code></pre>
 <pre><code>## [1] 8.042356</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">heights[[<span class="dv">10</span>]]</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">heights[[<span class="dv">10</span>]]</code></pre>
 <pre><code>## [1] 8.042356</code></pre>
 <p>Also included is <code>trajectory</code>; the points that the ODE stepper used with the system state at those times.</p>
 <p>There is a convenience function <code>run_plant_to_heights</code> that achieves the same thing. Alternatively, and variable within <code>plant$internals</code> can be used, so long as it increases monotonically with respect to time.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(<span class="kw"><a href="../reference/FF16_Strategy.html">FF16_Strategy</a></span>())
-mass &lt;-<span class="st"> </span><span class="kw"><a href="../reference/seq_log.html">seq_log</a></span>(pl<span class="op">$</span>internals<span class="op">$</span>mass_above_ground <span class="op">+</span><span class="st"> </span><span class="fl">1e-8</span>, <span class="dv">1000</span>, <span class="dt">length.out=</span><span class="dv">21</span>)
+<pre class="sourceCode r"><code class="sourceCode r">pl &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(<span class="kw"><a href="../reference/FF16_Strategy.html">FF16_Strategy</a></span>())
+mass &lt;-<span class="st"> </span><span class="kw"><a href="../reference/seq_log.html">seq_log</a></span>(pl$internals$mass_above_ground +<span class="st"> </span><span class="fl">1e-8</span>, <span class="dv">1000</span>, <span class="dt">length.out=</span><span class="dv">21</span>)
 res_mass &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_plant_to_size.html">grow_plant_to_size</a></span>(pl, mass, <span class="st">"mass_above_ground"</span>, env,
-                               <span class="dt">time_max=</span><span class="dv">100</span>, <span class="dt">warn=</span><span class="ot">FALSE</span>)</code></pre></div>
+                               <span class="dt">time_max=</span><span class="dv">100</span>, <span class="dt">warn=</span><span class="ot">FALSE</span>)</code></pre>
 <p>(this seems on the low side - see <a href="https://github.com/traitecoevo/plant/issues/142">this issue</a>).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(res_mass<span class="op">$</span>time, mass, <span class="dt">type=</span><span class="st">"o"</span>, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(res_mass$time, mass, <span class="dt">type=</span><span class="st">"o"</span>, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-28-1.png">
 </div>
 <p>With all these bits in place, let’s look at growth trajectories of two species that differ in their LMA values. This what is presented In Fig. 2a of the paper.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/scm_base_parameters.html">scm_base_parameters</a></span>(<span class="st">"FF16"</span>)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/scm_base_parameters.html">scm_base_parameters</a></span>(<span class="st">"FF16"</span>)</code></pre>
 <p>Low LMA (“fast growth”) species</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/strategy_list.html">strategy</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="fl">0.0825</span>,  <span class="st">"lma"</span>), p)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">s1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/strategy_list.html">strategy</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="fl">0.0825</span>,  <span class="st">"lma"</span>), p)</code></pre>
 <p>High LMA (“low growth”) species</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">s2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/strategy_list.html">strategy</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="fl">0.2625</span>, <span class="st">"lma"</span>), p)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">s2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/strategy_list.html">strategy</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="fl">0.2625</span>, <span class="st">"lma"</span>), p)</code></pre>
 <p>Note that we’re using an alternative way of specifying strategies here, to trigger our “hyper-parametrisation” approach. This may be simplified in future, but currently the “hyper-parametrisation” function resides on the <code>p</code> object.</p>
 <p>Then, generate a sequence of heights to collect information at</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(s1)
-pl2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(s2)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(s1)
+pl2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(s2)</code></pre>
 <p>(they are different for the two plants because they have different starting heights, the lower LMA of s1 allows it to achieve a greater initial height for given seed mass)</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">heights1 &lt;-<span class="st"> </span><span class="kw">seq</span>(pl1<span class="op">$</span>height, s1<span class="op">$</span>hmat, <span class="dt">length.out=</span>100L)
-heights2 &lt;-<span class="st"> </span><span class="kw">seq</span>(pl2<span class="op">$</span>height, s2<span class="op">$</span>hmat, <span class="dt">length.out=</span>100L)
+<pre class="sourceCode r"><code class="sourceCode r">heights1 &lt;-<span class="st"> </span><span class="kw">seq</span>(pl1$height, s1$hmat, <span class="dt">length.out=</span>100L)
+heights2 &lt;-<span class="st"> </span><span class="kw">seq</span>(pl2$height, s2$hmat, <span class="dt">length.out=</span>100L)
 
 dat1 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_plant_to_size.html">grow_plant_to_height</a></span>(pl1, heights1, env,
                              <span class="dt">time_max=</span><span class="dv">100</span>, <span class="dt">warn=</span><span class="ot">FALSE</span>, <span class="dt">filter=</span><span class="ot">TRUE</span>)
 dat2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_plant_to_size.html">grow_plant_to_height</a></span>(pl2, heights2, env,
                              <span class="dt">time_max=</span><span class="dv">100</span>, <span class="dt">warn=</span><span class="ot">FALSE</span>, <span class="dt">filter=</span><span class="ot">TRUE</span>)
 
-<span class="kw">plot</span>(dat1<span class="op">$</span>trajectory[, <span class="st">"time"</span>], dat1<span class="op">$</span>trajectory[, <span class="st">"height"</span>],
+<span class="kw">plot</span>(dat1$trajectory[, <span class="st">"time"</span>], dat1$trajectory[, <span class="st">"height"</span>],
      <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">lty=</span><span class="dv">1</span>,
      <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Height (m)"</span>)
-<span class="kw">lines</span>(dat2<span class="op">$</span>trajectory[, <span class="st">"time"</span>], dat2<span class="op">$</span>trajectory[, <span class="st">"height"</span>], <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">legend</span>(<span class="st">"bottomright"</span>, <span class="kw">c</span>(<span class="st">"Low LMA"</span>, <span class="st">"High LMA"</span>), <span class="dt">lty=</span><span class="dv">1</span><span class="op">:</span><span class="dv">2</span>, <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre></div>
+<span class="kw">lines</span>(dat2$trajectory[, <span class="st">"time"</span>], dat2$trajectory[, <span class="st">"height"</span>], <span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">legend</span>(<span class="st">"bottomright"</span>, <span class="kw">c</span>(<span class="st">"Low LMA"</span>, <span class="st">"High LMA"</span>), <span class="dt">lty=</span><span class="dv">1</span>:<span class="dv">2</span>, <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-33-1.png">
 </div>
 <p>Similarly, growing the plants under lower light:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">env_low &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(<span class="fl">0.5</span>)
+<pre class="sourceCode r"><code class="sourceCode r">env_low &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(<span class="fl">0.5</span>)
 dat1_low &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_plant_to_size.html">grow_plant_to_height</a></span>(pl1, heights1, env_low,
                                  <span class="dt">time_max=</span><span class="dv">100</span>, <span class="dt">warn=</span><span class="ot">FALSE</span>, <span class="dt">filter=</span><span class="ot">TRUE</span>)
 dat2_low &lt;-<span class="st"> </span><span class="kw"><a href="../reference/grow_plant_to_size.html">grow_plant_to_height</a></span>(pl2, heights2, env_low,
                                  <span class="dt">time_max=</span><span class="dv">100</span>, <span class="dt">warn=</span><span class="ot">FALSE</span>, <span class="dt">filter=</span><span class="ot">TRUE</span>)
 
 cols &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"black"</span>, <span class="st">"#e34a33"</span>)
-<span class="kw">plot</span>(dat1<span class="op">$</span>trajectory[, <span class="st">"time"</span>], dat1<span class="op">$</span>trajectory[, <span class="st">"height"</span>],
+<span class="kw">plot</span>(dat1$trajectory[, <span class="st">"time"</span>], dat1$trajectory[, <span class="st">"height"</span>],
      <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">lty=</span><span class="dv">1</span>,
      <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Height (m)"</span>)
-<span class="kw">lines</span>(dat2<span class="op">$</span>trajectory[, <span class="st">"time"</span>], dat2<span class="op">$</span>trajectory[, <span class="st">"height"</span>], <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">lines</span>(dat1_low<span class="op">$</span>trajectory[, <span class="st">"time"</span>], dat1_low<span class="op">$</span>trajectory[, <span class="st">"height"</span>],
+<span class="kw">lines</span>(dat2$trajectory[, <span class="st">"time"</span>], dat2$trajectory[, <span class="st">"height"</span>], <span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">lines</span>(dat1_low$trajectory[, <span class="st">"time"</span>], dat1_low$trajectory[, <span class="st">"height"</span>],
       <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
-<span class="kw">lines</span>(dat2_low<span class="op">$</span>trajectory[, <span class="st">"time"</span>], dat2_low<span class="op">$</span>trajectory[, <span class="st">"height"</span>],
+<span class="kw">lines</span>(dat2_low$trajectory[, <span class="st">"time"</span>], dat2_low$trajectory[, <span class="st">"height"</span>],
       <span class="dt">lty=</span><span class="dv">2</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
 <span class="kw">legend</span>(<span class="st">"bottomright"</span>,
        <span class="kw">c</span>(<span class="st">"High light"</span>, <span class="st">"Low light"</span>), <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols,
-       <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre></div>
+       <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-34-1.png">
 </div>
 <p>The <em>height growth rate</em> is the derivative of height with respect to time - the slope of the plot above. It is really the core quantity in the model; the actual heights are computed by solving the set of ODEs that includes height growth rate.</p>
 <p>Growth rate with respect to height shows a hump-shaped pattern that is affected by both traits and by light environment. To extract this information from the trajectories takes a little more work though.</p>
 <p>Here is a plant from part way through one run</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl &lt;-<span class="st"> </span>dat1<span class="op">$</span>plant[[<span class="dv">50</span>]]</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl &lt;-<span class="st"> </span>dat1$plant[[<span class="dv">50</span>]]</code></pre>
 <p>Here is the set of ODE state variables:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">setNames</span>(pl<span class="op">$</span>ode_state, pl<span class="op">$</span>ode_names)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">setNames</span>(pl$ode_state, pl$ode_names)</code></pre>
 <pre><code>##         height      mortality      fecundity area_heartwood mass_heartwood 
 ##   8.412120e+00   7.797210e-02   9.998839e-08   3.403727e-04   1.262008e+00</code></pre>
 <p>And the set of <em>rate</em> variables</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">setNames</span>(pl<span class="op">$</span>ode_rates, pl<span class="op">$</span>ode_names)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">setNames</span>(pl$ode_rates, pl$ode_names)</code></pre>
 <pre><code>##         height      mortality      fecundity area_heartwood mass_heartwood 
 ##   9.530474e-01   1.003019e-02   3.243850e-07   1.780143e-04   8.068135e-01</code></pre>
 <p>…however, the rates might not be correct. They are whatever was left by the ODE stepper when it was advancing the plant, so it’s best to update them:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span><span class="kw">compute_vars_phys</span>(dat1<span class="op">$</span>env)
-<span class="kw">setNames</span>(pl<span class="op">$</span>ode_rates, pl<span class="op">$</span>ode_names)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$<span class="kw">compute_vars_phys</span>(dat1$env)
+<span class="kw">setNames</span>(pl$ode_rates, pl$ode_names)</code></pre>
 <pre><code>##         height      mortality      fecundity area_heartwood mass_heartwood 
 ##   9.530474e-01   1.003019e-02   3.243850e-07   1.780143e-04   8.068135e-01</code></pre>
 <p>(in this case they are the same because the light environment is unchanging, but that not be the case generally)</p>
 <p>Alternatively, we can access the height growth rate via the internals, which is the same as accessing directly from the ODE rates but more explicit:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>internals<span class="op">$</span>height_dt</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$internals$height_dt</code></pre>
 <pre><code>## [1] 0.9530474</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>ode_rates[[<span class="dv">1</span>]]</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$ode_rates[[<span class="dv">1</span>]]</code></pre>
 <pre><code>## [1] 0.9530474</code></pre>
 <p>Collecting height growth for all plants:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dhdt1 &lt;-<span class="st"> </span><span class="kw">sapply</span>(dat1<span class="op">$</span>plant, <span class="cf">function</span>(x) x<span class="op">$</span>internals<span class="op">$</span>height_dt)
-dhdt2 &lt;-<span class="st"> </span><span class="kw">sapply</span>(dat2<span class="op">$</span>plant, <span class="cf">function</span>(x) x<span class="op">$</span>internals<span class="op">$</span>height_dt)
-dhdt1_low &lt;-<span class="st"> </span><span class="kw">sapply</span>(dat1_low<span class="op">$</span>plant, <span class="cf">function</span>(x) x<span class="op">$</span>internals<span class="op">$</span>height_dt)
-dhdt2_low &lt;-<span class="st"> </span><span class="kw">sapply</span>(dat2_low<span class="op">$</span>plant, <span class="cf">function</span>(x) x<span class="op">$</span>internals<span class="op">$</span>height_dt)
+<pre class="sourceCode r"><code class="sourceCode r">dhdt1 &lt;-<span class="st"> </span><span class="kw">sapply</span>(dat1$plant, function(x) x$internals$height_dt)
+dhdt2 &lt;-<span class="st"> </span><span class="kw">sapply</span>(dat2$plant, function(x) x$internals$height_dt)
+dhdt1_low &lt;-<span class="st"> </span><span class="kw">sapply</span>(dat1_low$plant, function(x) x$internals$height_dt)
+dhdt2_low &lt;-<span class="st"> </span><span class="kw">sapply</span>(dat2_low$plant, function(x) x$internals$height_dt)
 
-<span class="kw">plot</span>(dat1<span class="op">$</span>time, dhdt1, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">lty=</span><span class="dv">1</span>,
+<span class="kw">plot</span>(dat1$time, dhdt1, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">lty=</span><span class="dv">1</span>,
      <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Time (years)"</span>, <span class="dt">ylab=</span><span class="st">"Height growth rate (m / yr)"</span>)
-<span class="kw">lines</span>(dat2<span class="op">$</span>time, dhdt2, <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">lines</span>(dat1_low<span class="op">$</span>time, dhdt1_low, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
-<span class="kw">lines</span>(dat2_low<span class="op">$</span>time, dhdt2_low, <span class="dt">lty=</span><span class="dv">2</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
+<span class="kw">lines</span>(dat2$time, dhdt2, <span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">lines</span>(dat1_low$time, dhdt1_low, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
+<span class="kw">lines</span>(dat2_low$time, dhdt2_low, <span class="dt">lty=</span><span class="dv">2</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
 <span class="kw">legend</span>(<span class="st">"topright"</span>,
        <span class="kw">c</span>(<span class="st">"High light"</span>, <span class="st">"Low light"</span>), <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols,
-       <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre></div>
+       <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-40-1.png">
 </div>
 <p>Alternatively, change in height plotted against height itself:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">ylim &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, <span class="kw">max</span>(dhdt1))
-<span class="kw">plot</span>(dat1<span class="op">$</span>state[, <span class="st">"height"</span>], dhdt1, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">lty=</span><span class="dv">1</span>,
+<pre class="sourceCode r"><code class="sourceCode r">ylim &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, <span class="kw">max</span>(dhdt1))
+<span class="kw">plot</span>(dat1$state[, <span class="st">"height"</span>], dhdt1, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">lty=</span><span class="dv">1</span>,
      <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Height (m)"</span>, <span class="dt">ylab=</span><span class="st">"Height growth rate (m / yr)"</span>, <span class="dt">ylim=</span>ylim)
-<span class="kw">lines</span>(dat2<span class="op">$</span>state[, <span class="st">"height"</span>], dhdt2, <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">lines</span>(dat1_low<span class="op">$</span>state[, <span class="st">"height"</span>], dhdt1_low, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
-<span class="kw">lines</span>(dat2_low<span class="op">$</span>state[, <span class="st">"height"</span>], dhdt2_low, <span class="dt">lty=</span><span class="dv">2</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
+<span class="kw">lines</span>(dat2$state[, <span class="st">"height"</span>], dhdt2, <span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">lines</span>(dat1_low$state[, <span class="st">"height"</span>], dhdt1_low, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
+<span class="kw">lines</span>(dat2_low$state[, <span class="st">"height"</span>], dhdt2_low, <span class="dt">lty=</span><span class="dv">2</span>, <span class="dt">col=</span>cols[[<span class="dv">2</span>]])
 <span class="kw">legend</span>(<span class="st">"topright"</span>,
        <span class="kw">c</span>(<span class="st">"High light"</span>, <span class="st">"Low light"</span>), <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols,
-       <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre></div>
+       <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-41-1.png">
 </div>
 <p>Over a plant’s life, allocation to different structures varies. This is captured by a set of variables stored within the internals: e.g., <code>mass_leaf</code> <code>mass_sapwood</code>.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>internals<span class="op">$</span>mass_leaf</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$internals$mass_leaf</code></pre>
 <pre><code>## [1] 0.3428489</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span>internals<span class="op">$</span>mass_sapwood</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$internals$mass_sapwood</code></pre>
 <pre><code>## [1] 4.034067</code></pre>
 <p>(these numbers seem a bit off: one of the motivations here is to develop and use better models of plant allometry. The parameterisation used at present are derived from adults and perform poorly with small plants. However, based on height / area relationships [Falster 2011, supporting information], for an 8m tall plant total leaf areas of 5-10 m are plausible and with an LMA of 0.08 that implies a total <em>dry</em> weight of 400 - 800 g).</p>
 <p>Total live dry mass fraction to leaf and stem can be computed as:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">f &lt;-<span class="st"> </span><span class="cf">function</span>(p) {
-  p_ints &lt;-<span class="st"> </span>p<span class="op">$</span>internals
-  <span class="kw">c</span>(<span class="dt">leaf=</span>p_ints<span class="op">$</span>mass_leaf <span class="op">/</span><span class="st"> </span>p_ints<span class="op">$</span>mass_live,
-    <span class="dt">sapwood=</span>p_ints<span class="op">$</span>mass_sapwood <span class="op">/</span><span class="st"> </span>p_ints<span class="op">$</span>mass_live)
+<pre class="sourceCode r"><code class="sourceCode r">f &lt;-<span class="st"> </span>function(p) {
+  p_ints &lt;-<span class="st"> </span>p$internals
+  <span class="kw">c</span>(<span class="dt">leaf=</span>p_ints$mass_leaf /<span class="st"> </span>p_ints$mass_live,
+    <span class="dt">sapwood=</span>p_ints$mass_sapwood /<span class="st"> </span>p_ints$mass_live)
 }
 
 cols_part &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"black"</span>, <span class="st">"#045a8d"</span>)
-<span class="kw">matplot</span>(dat1<span class="op">$</span>state[, <span class="st">"height"</span>], <span class="kw">t</span>(<span class="kw">sapply</span>(dat1<span class="op">$</span>plant, f)),
+<span class="kw">matplot</span>(dat1$state[, <span class="st">"height"</span>], <span class="kw">t</span>(<span class="kw">sapply</span>(dat1$plant, f)),
         <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">col=</span>cols_part, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),
         <span class="dt">xlab=</span><span class="st">"Height (m)"</span>, <span class="dt">ylab=</span><span class="st">"Fractional allocation"</span>, <span class="dt">las=</span><span class="dv">1</span>)
-<span class="kw">matlines</span>(dat2<span class="op">$</span>state[, <span class="st">"height"</span>], <span class="kw">t</span>(<span class="kw">sapply</span>(dat2<span class="op">$</span>plant, f)),
+<span class="kw">matlines</span>(dat2$state[, <span class="st">"height"</span>], <span class="kw">t</span>(<span class="kw">sapply</span>(dat2$plant, f)),
          <span class="dt">col=</span>cols_part, <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">legend</span>(<span class="st">"topright"</span>, <span class="kw">c</span>(<span class="st">"Sapwood"</span>, <span class="st">"Leaf"</span>), <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw">rev</span>(cols_part), <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre></div>
+<span class="kw">legend</span>(<span class="st">"topright"</span>, <span class="kw">c</span>(<span class="st">"Sapwood"</span>, <span class="st">"Leaf"</span>), <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span><span class="kw">rev</span>(cols_part), <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-43-1.png">
 </div>
 <p>Relative allocation to leaf mass drops steeply as a plant grows and is replaced by allocation to sapwood mass.</p>
 <p>The growth rates vary with both size and light environment (see above).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>()
-pl<span class="op">$</span>height &lt;-<span class="st"> </span><span class="dv">10</span>
-pl<span class="op">$</span><span class="kw">compute_vars_phys</span>(<span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(<span class="fl">1.0</span>))
-pl<span class="op">$</span>internals<span class="op">$</span>height_dt <span class="co"># in full light</span></code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>()
+pl$height &lt;-<span class="st"> </span><span class="dv">10</span>
+pl$<span class="kw">compute_vars_phys</span>(<span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(<span class="fl">1.0</span>))
+pl$internals$height_dt <span class="co"># in full light</span></code></pre>
 <pre><code>## [1] 0.9231625</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span><span class="kw">compute_vars_phys</span>(<span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(<span class="fl">0.5</span>))
-pl<span class="op">$</span>internals<span class="op">$</span>height_dt <span class="co"># in 1/2 light</span></code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$<span class="kw">compute_vars_phys</span>(<span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(<span class="fl">0.5</span>))
+pl$internals$height_dt <span class="co"># in 1/2 light</span></code></pre>
 <pre><code>## [1] 0.4522332</code></pre>
 <p>At some point the plant cannot maintain positive carbon balance and therefore cannot grow; for example at 25% canopy openness:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl<span class="op">$</span><span class="kw">compute_vars_phys</span>(<span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(<span class="fl">0.25</span>))
-pl<span class="op">$</span>internals<span class="op">$</span>height_dt</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pl$<span class="kw">compute_vars_phys</span>(<span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(<span class="fl">0.25</span>))
+pl$internals$height_dt</code></pre>
 <pre><code>## [1] 0</code></pre>
 <p>The light level at which carbon gain becomes zero is the “whole plant light compensation point”.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/lcp_whole_plant.html">lcp_whole_plant</a></span>(pl)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw"><a href="../reference/lcp_whole_plant.html">lcp_whole_plant</a></span>(pl)</code></pre>
 <pre><code>## [1] 0.2991714</code></pre>
 <p>Consider a vector of canopy opennesses:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">openness &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dt">length.out=</span><span class="dv">51</span>)
+<pre class="sourceCode r"><code class="sourceCode r">openness &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dt">length.out=</span><span class="dv">51</span>)
 
-lcp &lt;-<span class="st"> </span><span class="kw"><a href="../reference/lcp_whole_plant.html">lcp_whole_plant</a></span>(pl)</code></pre></div>
+lcp &lt;-<span class="st"> </span><span class="kw"><a href="../reference/lcp_whole_plant.html">lcp_whole_plant</a></span>(pl)</code></pre>
 <p>Height growth rate increases in a saturating fashion with increasing canopy openness from the light compensation point.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">f &lt;-<span class="st"> </span><span class="cf">function</span>(x, pl) {
+<pre class="sourceCode r"><code class="sourceCode r">f &lt;-<span class="st"> </span>function(x, pl) {
   env &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fixed_environment.html">fixed_environment</a></span>(x)
-  pl<span class="op">$</span><span class="kw">compute_vars_phys</span>(env)
-  pl<span class="op">$</span>internals<span class="op">$</span>height_dt
+  pl$<span class="kw">compute_vars_phys</span>(env)
+  pl$internals$height_dt
 }
-x &lt;-<span class="st"> </span><span class="kw">c</span>(lcp, openness[openness <span class="op">&gt;</span><span class="st"> </span>lcp])
+x &lt;-<span class="st"> </span><span class="kw">c</span>(lcp, openness[openness &gt;<span class="st"> </span>lcp])
 <span class="kw">plot</span>(x, <span class="kw">sapply</span>(x, f, pl), <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>),
      <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlab=</span><span class="st">"Canopy openness"</span>, <span class="dt">ylab=</span><span class="st">"Height growth rate (m / yr)"</span>)
-<span class="kw">points</span>(lcp, <span class="fl">0.0</span>, <span class="dt">pch=</span><span class="dv">19</span>)</code></pre></div>
+<span class="kw">points</span>(lcp, <span class="fl">0.0</span>, <span class="dt">pch=</span><span class="dv">19</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-48-1.png">
 </div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">g &lt;-<span class="st"> </span><span class="cf">function</span>(x, pl) {
+<pre class="sourceCode r"><code class="sourceCode r">g &lt;-<span class="st"> </span>function(x, pl) {
   lcp &lt;-<span class="st"> </span><span class="kw"><a href="../reference/lcp_whole_plant.html">lcp_whole_plant</a></span>(pl)
-  x &lt;-<span class="st"> </span><span class="kw">c</span>(lcp, openness[openness <span class="op">&gt;</span><span class="st"> </span>lcp])
+  x &lt;-<span class="st"> </span><span class="kw">c</span>(lcp, openness[openness &gt;<span class="st"> </span>lcp])
   <span class="kw">cbind</span>(<span class="dt">x=</span>x, <span class="dt">y=</span><span class="kw">sapply</span>(x, f, pl))
-}</code></pre></div>
+}</code></pre>
 <p>Now, consider this for a seedling and for a plant at half its maximum size size:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl_seed &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(s1)
+<pre class="sourceCode r"><code class="sourceCode r">pl_seed &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(s1)
 y_seed &lt;-<span class="st"> </span><span class="kw">g</span>(openness, pl_seed)
 pl_adult &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(s1)
-pl_adult<span class="op">$</span>height &lt;-<span class="st"> </span>pl_adult<span class="op">$</span>strategy<span class="op">$</span>hmat <span class="op">/</span><span class="st"> </span><span class="dv">2</span>
+pl_adult$height &lt;-<span class="st"> </span>pl_adult$strategy$hmat /<span class="st"> </span><span class="dv">2</span>
 y_adult &lt;-<span class="st"> </span><span class="kw">g</span>(openness, pl_adult)
 cols_height &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"#31a354"</span>, <span class="st">"black"</span>)
 
@@ -566,14 +572,14 @@ ymax &lt;-<span class="st"> </span><span class="kw">max</span>(y_seed[, <span cl
      <span class="dt">xlim=</span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">1</span>), <span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>, ymax), <span class="dt">las=</span><span class="dv">1</span>,
      <span class="dt">xlab=</span><span class="st">"Canopy openness"</span>, <span class="dt">ylab=</span><span class="st">"Height growth year (m / yr)"</span>)
 <span class="kw">lines</span>(y_adult, <span class="dt">col=</span>cols_height[[<span class="dv">2</span>]])
-<span class="kw">legend</span>(<span class="st">"bottomright"</span>, <span class="kw">c</span>(<span class="st">"Seedling"</span>, <span class="st">"Adult"</span>), <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols_height, <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre></div>
+<span class="kw">legend</span>(<span class="st">"bottomright"</span>, <span class="kw">c</span>(<span class="st">"Seedling"</span>, <span class="st">"Adult"</span>), <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols_height, <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-49-1.png">
 </div>
 <p>The light compensation point and curve varies with traits, too:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pl2_seed &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(s2)
+<pre class="sourceCode r"><code class="sourceCode r">pl2_seed &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(s2)
 pl2_adult &lt;-<span class="st"> </span><span class="kw"><a href="../reference/FF16.html">FF16_PlantPlus</a></span>(s2)
-pl2_adult<span class="op">$</span>height &lt;-<span class="st"> </span>pl2_adult<span class="op">$</span>strategy<span class="op">$</span>hmat <span class="op">/</span><span class="st"> </span><span class="dv">2</span>
+pl2_adult$height &lt;-<span class="st"> </span>pl2_adult$strategy$hmat /<span class="st"> </span><span class="dv">2</span>
 y2_seed &lt;-<span class="st"> </span><span class="kw">g</span>(openness, pl2_seed)
 y2_adult &lt;-<span class="st"> </span><span class="kw">g</span>(openness, pl2_adult)
 
@@ -584,7 +590,7 @@ ymax &lt;-<span class="st"> </span><span class="kw">max</span>(ymax, y2_seed[, <
 <span class="kw">lines</span>(y_adult, <span class="dt">col=</span>cols_height[[<span class="dv">2</span>]])
 <span class="kw">lines</span>(y2_seed, <span class="dt">col=</span>cols_height[[<span class="dv">1</span>]], <span class="dt">lty=</span><span class="dv">2</span>)
 <span class="kw">lines</span>(y2_adult, <span class="dt">col=</span>cols_height[[<span class="dv">2</span>]], <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">legend</span>(<span class="st">"bottomright"</span>, <span class="kw">c</span>(<span class="st">"Seedling"</span>, <span class="st">"Adult"</span>), <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols_height, <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre></div>
+<span class="kw">legend</span>(<span class="st">"bottomright"</span>, <span class="kw">c</span>(<span class="st">"Seedling"</span>, <span class="st">"Adult"</span>), <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">col=</span>cols_height, <span class="dt">bty=</span><span class="st">"n"</span>)</code></pre>
 <div class="figure">
 <img src="figure/individuals__unnamed-chunk-50-1.png">
 </div>
@@ -611,7 +617,7 @@ ymax &lt;-<span class="st"> </span><span class="kw">max</span>(ymax, y2_seed[, <
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="http://hadley.github.io/pkgdown/">pkgdown</a>.</p>
+  <p>Site built with <a href="http://pkgdown.r-lib.org/">pkgdown</a>.</p>
 </div>
 
       </footer>

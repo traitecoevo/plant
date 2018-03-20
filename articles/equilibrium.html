@@ -8,8 +8,11 @@
 <title>Finding demographic equilibrium • plant</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
-<!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<script src="../extra.js"></script><meta property="og:title" content="Finding demographic equilibrium">
+<meta property="og:description" content="">
+<meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -139,53 +142,56 @@
                         <h4 class="author">Daniel Falster</h4>
             
             <h4 class="date">2016</h4>
-          </div>
+      
+      <small>Source: <a href="https:/github.com/traitecoevo/plant/blob/master/vignettes/equilibrium.Rmd"><code>vignettes/equilibrium.Rmd</code></a></small>
+
+    </div>
 
     
     
 <div class="contents">
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(plant)
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(plant)
 <span class="kw">library</span>(parallel)
 
-run &lt;-<span class="st"> </span><span class="cf">function</span>(seed_rain_in, p) {
-  p<span class="op">$</span>seed_rain &lt;-<span class="st"> </span>seed_rain_in
-  <span class="kw"><a href="../reference/run_scm.html">run_scm</a></span>(p)<span class="op">$</span>seed_rains
+run &lt;-<span class="st"> </span>function(seed_rain_in, p) {
+  p$seed_rain &lt;-<span class="st"> </span>seed_rain_in
+  <span class="kw"><a href="../reference/run_scm.html">run_scm</a></span>(p)$seed_rains
 }
 
-run_new_schedule &lt;-<span class="st"> </span><span class="cf">function</span>(seed_rain_in, p) {
-  p<span class="op">$</span>seed_rain &lt;-<span class="st"> </span>seed_rain_in
+run_new_schedule &lt;-<span class="st"> </span>function(seed_rain_in, p) {
+  p$seed_rain &lt;-<span class="st"> </span>seed_rain_in
   res &lt;-<span class="st"> </span><span class="kw"><a href="../reference/build_schedule.html">build_schedule</a></span>(p)
   <span class="kw">attr</span>(res, <span class="st">"seed_rain_out"</span>)
 }
 
-cobweb &lt;-<span class="st"> </span><span class="cf">function</span>(m, ...) {
+cobweb &lt;-<span class="st"> </span>function(m, ...) {
   <span class="kw">lines</span>(<span class="kw">rep</span>(m[,<span class="dv">1</span>], <span class="dt">each=</span><span class="dv">2</span>), <span class="kw">c</span>(<span class="kw">t</span>(m)), ...)
-}</code></pre></div>
+}</code></pre>
 <p>Try to establish what the equilibrium seed rain is.</p>
 <p>Set model parameters</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p0 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/scm_base_parameters.html">scm_base_parameters</a></span>(<span class="st">"FF16"</span>)
-p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/expand_parameters.html">expand_parameters</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="fl">0.0825</span>, <span class="st">"lma"</span>), p0, <span class="ot">FALSE</span>)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">p0 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/scm_base_parameters.html">scm_base_parameters</a></span>(<span class="st">"FF16"</span>)
+p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/expand_parameters.html">expand_parameters</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="fl">0.0825</span>, <span class="st">"lma"</span>), p0, <span class="ot">FALSE</span>)</code></pre>
 <p>Some output seed rains, given an input seed rain:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">run</span>(<span class="fl">1.0</span>, p)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">run</span>(<span class="fl">1.0</span>, p)</code></pre>
 <pre><code>## [1] 19.82443</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">run</span>(<span class="fl">10.0</span>, p)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">run</span>(<span class="fl">10.0</span>, p)</code></pre>
 <pre><code>## [1] 17.63104</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">run</span>(<span class="fl">50.0</span>, p)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">run</span>(<span class="fl">50.0</span>, p)</code></pre>
 <pre><code>## [1] 16.58796</code></pre>
 <p>When below the equilibrium, <code>run</code> returns a seed rain that is greater than the input, when above it, <code>run</code> returns a seed rain that is less than the input.</p>
 <div id="approach-to-equilibrium" class="section level1">
 <h1 class="hasAnchor">
 <a href="#approach-to-equilibrium" class="anchor"></a>1: Approach to equilibrium:</h1>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p_eq &lt;-<span class="st"> </span><span class="kw"><a href="../reference/equilibrium_seed_rain.html">equilibrium_seed_rain</a></span>(p)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">p_eq &lt;-<span class="st"> </span><span class="kw"><a href="../reference/equilibrium_seed_rain.html">equilibrium_seed_rain</a></span>(p)</code></pre>
 <p>Equilibrium seed rain is right around where the last two values from run were producing</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p_eq<span class="op">$</span>seed_rain</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">p_eq$seed_rain</code></pre>
 <pre><code>## [1] 17.31512</code></pre>
 <p>From a distance, these both hone in nicely on the equilibrium, and rapidly, too.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">approach &lt;-<span class="st"> </span><span class="kw">attr</span>(p_eq, <span class="st">"progress"</span>)
+<pre class="sourceCode r"><code class="sourceCode r">approach &lt;-<span class="st"> </span><span class="kw">attr</span>(p_eq, <span class="st">"progress"</span>)
 r &lt;-<span class="st"> </span><span class="kw">range</span>(approach)
 <span class="kw">plot</span>(approach, <span class="dt">type=</span><span class="st">"n"</span>, <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlim=</span>r, <span class="dt">ylim=</span>r)
 <span class="kw">abline</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dt">lty=</span><span class="dv">2</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
-<span class="kw">cobweb</span>(approach, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">cex=</span>.<span class="dv">5</span>, <span class="dt">type=</span><span class="st">"o"</span>)</code></pre></div>
+<span class="kw">cobweb</span>(approach, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">cex=</span>.<span class="dv">5</span>, <span class="dt">type=</span><span class="st">"o"</span>)</code></pre>
 <div class="figure">
 <img src="figure/equilibrium__equilibrium_approach-1.png">
 </div>
@@ -194,15 +200,15 @@ r &lt;-<span class="st"> </span><span class="kw">range</span>(approach)
 <h1 class="hasAnchor">
 <a href="#near-the-equilibrium-point" class="anchor"></a>2: Near the equilibrium point:</h1>
 <p>Then, in the vicinity of the root we should look at what the curve actually looks like, without adaptive refinement.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">dr &lt;-<span class="st"> </span><span class="dv">2</span> <span class="co"># range of input to vary (plus and minus this many seeds)</span>
-seed_rain_in &lt;-<span class="st"> </span><span class="kw">seq</span>(p_eq<span class="op">$</span>seed_rain <span class="op">-</span><span class="st"> </span>dr,
-                    p_eq<span class="op">$</span>seed_rain <span class="op">+</span><span class="st"> </span>dr, <span class="dt">length.out=</span><span class="dv">31</span>)
-seed_rain_out &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/parallel/topics/mclapply">mclapply</a></span>(seed_rain_in, run, p_eq))</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">dr &lt;-<span class="st"> </span><span class="dv">2</span> <span class="co"># range of input to vary (plus and minus this many seeds)</span>
+seed_rain_in &lt;-<span class="st"> </span><span class="kw">seq</span>(p_eq$seed_rain -<span class="st"> </span>dr,
+                    p_eq$seed_rain +<span class="st"> </span>dr, <span class="dt">length.out=</span><span class="dv">31</span>)
+seed_rain_out &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/parallel/topics/mclapply">mclapply</a></span>(seed_rain_in, run, p_eq))</code></pre>
 <p>Here is input seeds vs. output seeds:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(seed_rain_in, seed_rain_out, <span class="dt">xlab=</span><span class="st">"Incoming seed rain"</span>,
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(seed_rain_in, seed_rain_out, <span class="dt">xlab=</span><span class="st">"Incoming seed rain"</span>,
      <span class="dt">ylab=</span><span class="st">"Outgoing seed rain"</span>, <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">asp=</span><span class="dv">5</span>, <span class="dt">col=</span><span class="st">"red"</span>)
 <span class="kw">abline</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dt">lty=</span><span class="dv">2</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
-<span class="kw">cobweb</span>(approach)</code></pre></div>
+<span class="kw">cobweb</span>(approach)</code></pre>
 <div class="figure">
 <img src="figure/equilibrium__seeds_in_seeds_out-1.png">
 </div>
@@ -210,16 +216,16 @@ seed_rain_out &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span
 <div id="global-function-shape" class="section level1">
 <h1 class="hasAnchor">
 <a href="#global-function-shape" class="anchor"></a>4. Global function shape</h1>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">seed_rain_in_global &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, <span class="kw">max</span>(approach), <span class="dt">length.out=</span><span class="dv">51</span>)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">seed_rain_in_global &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="dv">1</span>, <span class="kw">max</span>(approach), <span class="dt">length.out=</span><span class="dv">51</span>)</code></pre>
 <p>This takes quite a while to compute.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">seed_rain_out_global &lt;-
-<span class="st">  </span><span class="kw">unlist</span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/parallel/topics/mclapply">mclapply</a></span>(seed_rain_in_global, run_new_schedule, p))</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">seed_rain_out_global &lt;-
+<span class="st">  </span><span class="kw">unlist</span>(<span class="kw"><a href="http://www.rdocumentation.org/packages/parallel/topics/mclapply">mclapply</a></span>(seed_rain_in_global, run_new_schedule, p))</code></pre>
 <p>This is pretty patchy, which is due to incompletely refining the cohort schedule, I believe. Tighten <code>schedule_eps</code> to make the curve smoother, at the cost of potentially a lot more effort.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(seed_rain_in_global, seed_rain_out_global,
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(seed_rain_in_global, seed_rain_out_global,
      <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">type=</span><span class="st">"l"</span>,
      <span class="dt">xlab=</span><span class="st">"Incoming seed rain"</span>, <span class="dt">ylab=</span><span class="st">"Outgoing seed rain"</span>)
 <span class="kw">abline</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dt">lty=</span><span class="dv">2</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
-<span class="kw">cobweb</span>(approach, <span class="dt">lty=</span><span class="dv">3</span>)</code></pre></div>
+<span class="kw">cobweb</span>(approach, <span class="dt">lty=</span><span class="dv">3</span>)</code></pre>
 <div class="figure">
 <img src="figure/equilibrium__seeds_in_seeds_out_global-1.png">
 </div>
@@ -227,70 +233,70 @@ seed_rain_out &lt;-<span class="st"> </span><span class="kw">unlist</span>(<span
 <div id="multiple-species-at-once" class="section level1">
 <h1 class="hasAnchor">
 <a href="#multiple-species-at-once" class="anchor"></a>5. Multiple species at once:</h1>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lma &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.0825</span>, <span class="fl">0.15</span>)
+<pre class="sourceCode r"><code class="sourceCode r">lma &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="fl">0.0825</span>, <span class="fl">0.15</span>)
 p2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/expand_parameters.html">expand_parameters</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(lma, <span class="st">"lma"</span>), p0, <span class="ot">FALSE</span>)
 
 p2_eq &lt;-<span class="st"> </span><span class="kw"><a href="../reference/equilibrium_seed_rain.html">equilibrium_seed_rain</a></span>(p2)
-approach &lt;-<span class="st"> </span><span class="kw">attr</span>(p2_eq, <span class="st">"progress"</span>)</code></pre></div>
+approach &lt;-<span class="st"> </span><span class="kw">attr</span>(p2_eq, <span class="st">"progress"</span>)</code></pre>
 <p>From a distance, these both hone in nicely on the equilibrium, and rapidly, too.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">r &lt;-<span class="st"> </span><span class="kw">range</span>(<span class="kw">unlist</span>(approach))
+<pre class="sourceCode r"><code class="sourceCode r">r &lt;-<span class="st"> </span><span class="kw">range</span>(<span class="kw">unlist</span>(approach))
 <span class="kw">plot</span>(approach[[<span class="dv">1</span>]], <span class="dt">type=</span><span class="st">"n"</span>, <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">xlim=</span>r, <span class="dt">ylim=</span>r, <span class="dt">xlab=</span><span class="st">"in"</span>, <span class="dt">ylab=</span><span class="st">"out"</span>)
 <span class="kw">abline</span>(<span class="dv">0</span>, <span class="dv">1</span>, <span class="dt">lty=</span><span class="dv">2</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
 cols &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">"black"</span>, <span class="st">"red"</span>)
-<span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>) {
-  <span class="kw">cobweb</span>(approach[, i <span class="op">+</span><span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">2</span>)], <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">cex=</span>.<span class="dv">5</span>, <span class="dt">type=</span><span class="st">"o"</span>, <span class="dt">col=</span>cols[[i]])
+for (i in <span class="dv">1</span>:<span class="dv">2</span>) {
+  <span class="kw">cobweb</span>(approach[, i +<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">2</span>)], <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">cex=</span>.<span class="dv">5</span>, <span class="dt">type=</span><span class="st">"o"</span>, <span class="dt">col=</span>cols[[i]])
 }
-<span class="kw">abline</span>(<span class="dt">v=</span>p2_eq<span class="op">$</span>seed_rain, <span class="dt">col=</span><span class="dv">1</span><span class="op">:</span><span class="dv">2</span>, <span class="dt">lty=</span><span class="dv">3</span>)</code></pre></div>
+<span class="kw">abline</span>(<span class="dt">v=</span>p2_eq$seed_rain, <span class="dt">col=</span><span class="dv">1</span>:<span class="dv">2</span>, <span class="dt">lty=</span><span class="dv">3</span>)</code></pre>
 <div class="figure">
 <img src="figure/equilibrium__approach_two_species-1.png">
 </div>
 <p>Note that the first guess position of the red species is higher than the black species, but in the end the output seed rain is lower. This is the difficulty in computing multi species equilibria - the different solutions affect each other. In general multi-dimensional root finding is difficult; even knowing that there are roots is not straightforward, much less proving that we’ve converged on the “correct” root (for example [0,0] is a root in this case but that root is not stable). plant uses some heuristics to try to ensure that the root returned is an attracting point but sequentially applying rounds of iteration and non-linear root finding algorithms, as well as rescaling seed rains to repel from known unstable roots.</p>
 <p>To illustrate this a little further, though still in the fairly trivial 2d case, first identify the other two equilibria.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">pp &lt;-<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/parallel/topics/mclapply">mclapply</a></span>(lma, <span class="cf">function</span>(x)
-  <span class="kw"><a href="../reference/equilibrium_seed_rain.html">equilibrium_seed_rain</a></span>(<span class="kw"><a href="../reference/expand_parameters.html">expand_parameters</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(x, <span class="st">"lma"</span>), p0, <span class="ot">FALSE</span>)))</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">pp &lt;-<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/parallel/topics/mclapply">mclapply</a></span>(lma, function(x)
+  <span class="kw"><a href="../reference/equilibrium_seed_rain.html">equilibrium_seed_rain</a></span>(<span class="kw"><a href="../reference/expand_parameters.html">expand_parameters</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(x, <span class="st">"lma"</span>), p0, <span class="ot">FALSE</span>)))</code></pre>
 <p>Here’s the seed rains of each species when alone:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">seed_rain1 &lt;-<span class="st"> </span><span class="kw">sapply</span>(pp, <span class="cf">function</span>(x) x<span class="op">$</span>seed_rain)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">seed_rain1 &lt;-<span class="st"> </span><span class="kw">sapply</span>(pp, function(x) x$seed_rain)</code></pre>
 <p>So that means that we have <em>four</em> equilibria: 1: The trivial equilibrium:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eq00 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)
-<span class="kw">run</span>(eq00, p2_eq) <span class="op">-</span><span class="st"> </span>eq00</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">eq00 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">0</span>)
+<span class="kw">run</span>(eq00, p2_eq) -<span class="st"> </span>eq00</code></pre>
 <pre><code>## [1] 0 0</code></pre>
 <p>2: Species 1 alone</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eq10 &lt;-<span class="st"> </span><span class="kw">c</span>(seed_rain1[[<span class="dv">1</span>]], <span class="dv">0</span>)
-<span class="kw">run_new_schedule</span>(eq10, p2) <span class="op">-</span><span class="st"> </span>eq10</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">eq10 &lt;-<span class="st"> </span><span class="kw">c</span>(seed_rain1[[<span class="dv">1</span>]], <span class="dv">0</span>)
+<span class="kw">run_new_schedule</span>(eq10, p2) -<span class="st"> </span>eq10</code></pre>
 <pre><code>## [1] -0.009399603  0.000000000</code></pre>
 <p>3: Species 2 alone</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eq01 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, seed_rain1[[<span class="dv">2</span>]])
-<span class="kw">run_new_schedule</span>(eq01, p2) <span class="op">-</span><span class="st"> </span>eq01</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">eq01 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="dv">0</span>, seed_rain1[[<span class="dv">2</span>]])
+<span class="kw">run_new_schedule</span>(eq01, p2) -<span class="st"> </span>eq01</code></pre>
 <pre><code>## [1] 0.000000000 0.007976816</code></pre>
 <p>4: Species 1 and 2 together:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">eq11 &lt;-<span class="st"> </span>p2_eq<span class="op">$</span>seed_rain
-<span class="kw">run</span>(eq11, p2_eq) <span class="op">-</span><span class="st"> </span>eq11</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">eq11 &lt;-<span class="st"> </span>p2_eq$seed_rain
+<span class="kw">run</span>(eq11, p2_eq) -<span class="st"> </span>eq11</code></pre>
 <pre><code>## [1] 0.0011239196 0.0003123585</code></pre>
 <p>(note that the approximations here mean that these equilibria are not terribly well polished - there are a set of nested approximations that make this difficult. Possibly the biggest culprit is the cohort refinement step).</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">len &lt;-<span class="st"> </span><span class="dv">21</span>
-dx &lt;-<span class="st"> </span><span class="kw">max</span>(seed_rain1) <span class="op">/</span><span class="st"> </span>(len <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)
-n1 &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="fl">0.001</span>, <span class="dt">by=</span>dx, <span class="dt">to=</span>seed_rain1[[<span class="dv">1</span>]] <span class="op">+</span><span class="st"> </span>dx)
-n2 &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="fl">0.001</span>, <span class="dt">by=</span>dx, <span class="dt">to=</span>seed_rain1[[<span class="dv">2</span>]] <span class="op">+</span><span class="st"> </span>dx)
+<pre class="sourceCode r"><code class="sourceCode r">len &lt;-<span class="st"> </span><span class="dv">21</span>
+dx &lt;-<span class="st"> </span><span class="kw">max</span>(seed_rain1) /<span class="st"> </span>(len -<span class="st"> </span><span class="dv">1</span>)
+n1 &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="fl">0.001</span>, <span class="dt">by=</span>dx, <span class="dt">to=</span>seed_rain1[[<span class="dv">1</span>]] +<span class="st"> </span>dx)
+n2 &lt;-<span class="st"> </span><span class="kw">seq</span>(<span class="fl">0.001</span>, <span class="dt">by=</span>dx, <span class="dt">to=</span>seed_rain1[[<span class="dv">2</span>]] +<span class="st"> </span>dx)
 nn_in &lt;-<span class="st"> </span><span class="kw">as.matrix</span>(<span class="kw">expand.grid</span>(n1, n2))
 tmp &lt;-<span class="st"> </span><span class="kw"><a href="http://www.rdocumentation.org/packages/parallel/topics/mclapply">mclapply</a></span>(<span class="kw">unname</span>(<span class="kw">split</span>(nn_in, <span class="kw">seq_len</span>(<span class="kw">nrow</span>(nn_in)))),
                 run_new_schedule, p2_eq)
 nn_out &lt;-<span class="st"> </span><span class="kw">do.call</span>(<span class="st">"rbind"</span>, tmp)
 
-len &lt;-<span class="st"> </span><span class="kw">log</span>(<span class="kw">rowSums</span>(<span class="kw">sqrt</span>((nn_out <span class="op">-</span><span class="st"> </span>nn_in)<span class="op">^</span><span class="dv">2</span>)))
-rlen &lt;-<span class="st"> </span>len <span class="op">/</span><span class="st"> </span><span class="kw">max</span>(len) <span class="op">*</span><span class="st"> </span>dx <span class="op">*</span><span class="st"> </span><span class="fl">0.8</span>
+len &lt;-<span class="st"> </span><span class="kw">log</span>(<span class="kw">rowSums</span>(<span class="kw">sqrt</span>((nn_out -<span class="st"> </span>nn_in)^<span class="dv">2</span>)))
+rlen &lt;-<span class="st"> </span>len /<span class="st"> </span><span class="kw">max</span>(len) *<span class="st"> </span>dx *<span class="st"> </span><span class="fl">0.8</span>
 
-theta &lt;-<span class="st"> </span><span class="kw">atan2</span>(nn_out[, <span class="dv">2</span>] <span class="op">-</span><span class="st"> </span>nn_in[, <span class="dv">2</span>], nn_out[, <span class="dv">1</span>] <span class="op">-</span><span class="st"> </span>nn_in[, <span class="dv">1</span>])
+theta &lt;-<span class="st"> </span><span class="kw">atan2</span>(nn_out[, <span class="dv">2</span>] -<span class="st"> </span>nn_in[, <span class="dv">2</span>], nn_out[, <span class="dv">1</span>] -<span class="st"> </span>nn_in[, <span class="dv">1</span>])
 
-x1 &lt;-<span class="st"> </span>nn_in[, <span class="dv">1</span>] <span class="op">+</span><span class="st"> </span>rlen <span class="op">*</span><span class="st"> </span><span class="kw">cos</span>(theta)
-y1 &lt;-<span class="st"> </span>nn_in[, <span class="dv">2</span>] <span class="op">+</span><span class="st"> </span>rlen <span class="op">*</span><span class="st"> </span><span class="kw">sin</span>(theta)</code></pre></div>
+x1 &lt;-<span class="st"> </span>nn_in[, <span class="dv">1</span>] +<span class="st"> </span>rlen *<span class="st"> </span><span class="kw">cos</span>(theta)
+y1 &lt;-<span class="st"> </span>nn_in[, <span class="dv">2</span>] +<span class="st"> </span>rlen *<span class="st"> </span><span class="kw">sin</span>(theta)</code></pre>
 <p>NOTE: I’m not sure why the point really close to the equilibrium here looks like it’s moving so quickly, and possibly in the wrong direction. Cohort instability perhaps?</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(nn_in, <span class="dt">xlab=</span><span class="st">"Species 1"</span>, <span class="dt">ylab=</span><span class="st">"Species 2"</span>, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">cex=</span>.<span class="dv">25</span>,
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(nn_in, <span class="dt">xlab=</span><span class="st">"Species 1"</span>, <span class="dt">ylab=</span><span class="st">"Species 2"</span>, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">cex=</span>.<span class="dv">25</span>,
      <span class="dt">col=</span><span class="st">"grey"</span>, <span class="dt">asp=</span><span class="dv">1</span>)
 <span class="kw">arrows</span>(nn_in[, <span class="dv">1</span>], nn_in[, <span class="dv">2</span>], x1, y1, <span class="dt">length=</span><span class="fl">0.02</span>)
-<span class="kw">lines</span>(<span class="kw">rbind</span>(approach[<span class="dv">1</span>, <span class="dv">1</span><span class="op">:</span><span class="dv">2</span>], approach[, <span class="dv">3</span><span class="op">:</span><span class="dv">4</span>]), <span class="dt">type=</span><span class="st">"o"</span>, <span class="dt">col=</span><span class="st">"red"</span>,
+<span class="kw">lines</span>(<span class="kw">rbind</span>(approach[<span class="dv">1</span>, <span class="dv">1</span>:<span class="dv">2</span>], approach[, <span class="dv">3</span>:<span class="dv">4</span>]), <span class="dt">type=</span><span class="st">"o"</span>, <span class="dt">col=</span><span class="st">"red"</span>,
       <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">cex=</span>.<span class="dv">5</span>)
-<span class="kw">points</span>(p2_eq<span class="op">$</span>seed_rain[[<span class="dv">1</span>]], p2_eq<span class="op">$</span>seed_rain[[<span class="dv">2</span>]], <span class="dt">pch=</span><span class="dv">19</span>)
-<span class="kw">points</span>(<span class="kw">rbind</span>(eq00, eq10, eq01))</code></pre></div>
+<span class="kw">points</span>(p2_eq$seed_rain[[<span class="dv">1</span>]], p2_eq$seed_rain[[<span class="dv">2</span>]], <span class="dt">pch=</span><span class="dv">19</span>)
+<span class="kw">points</span>(<span class="kw">rbind</span>(eq00, eq10, eq01))</code></pre>
 <div class="figure">
 <img src="figure/equilibrium__unnamed-chunk-17-1.png">
 </div>
@@ -319,7 +325,7 @@ y1 &lt;-<span class="st"> </span>nn_in[, <span class="dv">2</span>] <span class=
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="http://hadley.github.io/pkgdown/">pkgdown</a>.</p>
+  <p>Site built with <a href="http://pkgdown.r-lib.org/">pkgdown</a>.</p>
 </div>
 
       </footer>

@@ -18,13 +18,16 @@
 <!-- Font Awesome icons -->
 <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
 
+<!-- clipboard.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script>
 
 <!-- pkgdown -->
 <link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script>
 <script src="../pkgdown.js"></script>
   <link href="../extra.css" rel="stylesheet">
-  
+  <script src="../extra.js"></script>
+<meta property="og:title" content="Function reference" />
 <!-- mathjax -->
 <script src='https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML'></script>
 
@@ -158,7 +161,7 @@
     <div class="page-header">
       <h1>
         Reference
-        <small>version&nbsp;1.0.0.900</small>
+        <small>version&nbsp;1.2.0</small>
       </h1>
     </div>
 
@@ -180,307 +183,307 @@
         <tr>
           <!--  -->
           <td>
-            <p><code><a href="assembly_parameters.html">assembly_parameters</a></code> </p>
-          </td>
-          <td><p>Helper function for creating parameter objects</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="bounds.html">bounds</a></code> <code><a href="bounds.html">check_bounds</a></code> <code><a href="bounds.html">bounds_infinite</a></code> <code><a href="bounds.html">check_point</a></code> </p>
-          </td>
-          <td><p>Trait bounds</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="build_schedule.html">build_schedule</a></code> </p>
-          </td>
-          <td><p>Build Cohort Schedule</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="carrying_capacity.html">carrying_capacity</a></code> </p>
-          </td>
-          <td><p>Carrying Capacity</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="check_inviable.html">check_inviable</a></code> </p>
-          </td>
-          <td><p>Check low-abundance strategies for viability</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="clamp_domain.html">clamp_domain</a></code> </p>
-          </td>
-          <td><p>Clamp function to domain</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="cohort_schedule_times_default.html">cohort_schedule_times_default</a></code> </p>
-          </td>
-          <td><p>Generate Default Cohort Introduction Times</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="CohortSchedule.html">CohortSchedule</a></code> </p>
+            <p><code><a href="CohortSchedule.html">CohortSchedule()</a></code> </p>
           </td>
           <td><p>Schedule of cohort introduction times</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="Control.html">Control</a></code> </p>
+            <p><code><a href="Control.html">Control()</a></code> </p>
           </td>
           <td><p>Control parameters</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="Disturbance.html">Disturbance</a></code> </p>
+            <p><code><a href="Disturbance.html">Disturbance()</a></code> </p>
           </td>
           <td><p>Disturbance control object</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="Environment.html">Environment</a></code> <code><a href="Environment.html">make_environment</a></code> </p>
+            <p><code><a href="Environment.html">Environment()</a></code> <code><a href="Environment.html">make_environment()</a></code> </p>
           </td>
           <td><p>Environment object</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="equilibrium_seed_rain.html">equilibrium_seed_rain</a></code> </p>
-          </td>
-          <td><p>Run system to seed rain equilibrium</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="equilibrium_verbose.html">equilibrium_verbose</a></code> <code><a href="equilibrium_verbose.html">equilibrium_quiet</a></code> </p>
-          </td>
-          <td><p>Noisy Parameters for Equilibrium Finding</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="expand_parameters.html">expand_parameters</a></code> </p>
-          </td>
-          <td><p>Expand Parameters to include mutants</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="fast_control.html">fast_control</a></code> </p>
-          </td>
-          <td><p>Fast Control Defaults</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="FF16_hyperpar.html">make_FF16_hyperpar</a></code> <code><a href="FF16_hyperpar.html">FF16_hyperpar</a></code> <code><a href="FF16_hyperpar.html">FF16r_hyperpar</a></code> </p>
-          </td>
-          <td><p>Hyperparameters for FF16 physiological model</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="FF16_Strategy.html">FF16_Strategy</a></code> </p>
-          </td>
-          <td><p>Strategy parameters</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="FF16.html">FF16_Plant</a></code> <code><a href="FF16.html">FF16_Cohort</a></code> <code><a href="FF16.html">FF16_Species</a></code> <code><a href="FF16.html">FF16_Parameters</a></code> <code><a href="FF16.html">FF16_Patch</a></code> <code><a href="FF16.html">FF16_SCM</a></code> <code><a href="FF16.html">FF16_StochasticSpecies</a></code> <code><a href="FF16.html">FF16_StochasticPatch</a></code> <code><a href="FF16.html">FF16_StochasticPatchRunner</a></code> <code><a href="FF16.html">FF16_PlantPlus</a></code> </p>
+            <p><code><a href="FF16.html">FF16_Plant()</a></code> <code><a href="FF16.html">FF16_Cohort()</a></code> <code><a href="FF16.html">FF16_Species()</a></code> <code><a href="FF16.html">FF16_Parameters()</a></code> <code><a href="FF16.html">FF16_Patch()</a></code> <code><a href="FF16.html">FF16_SCM()</a></code> <code><a href="FF16.html">FF16_StochasticSpecies()</a></code> <code><a href="FF16.html">FF16_StochasticPatch()</a></code> <code><a href="FF16.html">FF16_StochasticPatchRunner()</a></code> <code><a href="FF16.html">FF16_PlantPlus()</a></code> </p>
           </td>
           <td><p>Create a FF16 Plant or Cohort</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="FF16r_Strategy.html">FF16r_Strategy</a></code> </p>
+            <p><code><a href="FF16_Strategy.html">FF16_Strategy()</a></code> </p>
           </td>
           <td><p>Strategy parameters</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="FF16r.html">FF16r_Plant</a></code> <code><a href="FF16r.html">FF16r_Cohort</a></code> <code><a href="FF16r.html">FF16r_Species</a></code> <code><a href="FF16r.html">FF16r_Parameters</a></code> <code><a href="FF16r.html">FF16r_Patch</a></code> <code><a href="FF16r.html">FF16r_SCM</a></code> <code><a href="FF16r.html">FF16r_StochasticSpecies</a></code> <code><a href="FF16r.html">FF16r_StochasticPatch</a></code> <code><a href="FF16r.html">FF16r_StochasticPatchRunner</a></code> <code><a href="FF16r.html">FF16r_PlantPlus</a></code> </p>
-          </td>
-          <td><p>Create a FF16r Plant or Cohort</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="fitness_landscape.html">fitness_landscape</a></code> </p>
-          </td>
-          <td><p>Fitness Landscape</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="fixed_environment.html">fixed_environment</a></code> </p>
-          </td>
-          <td><p>Create fixed light environment</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="grow_plant_to_size.html">grow_plant_to_size</a></code> <code><a href="grow_plant_to_size.html">grow_plant_to_height</a></code> </p>
-          </td>
-          <td><p>Grow plant to given size</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="grow_plant_to_time.html">grow_plant_to_time</a></code> </p>
-          </td>
-          <td><p>Grow a plant</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="Hyperparameter_functions.html">make_hyperpar</a></code> <code><a href="Hyperparameter_functions.html">hyperpar</a></code> </p>
+            <p><code><a href="FF16_hyperpar.html">make_FF16_hyperpar()</a></code> <code><a href="FF16_hyperpar.html">FF16_hyperpar()</a></code> <code><a href="FF16_hyperpar.html">FF16r_hyperpar()</a></code> </p>
           </td>
           <td><p>Hyperparameters for FF16 physiological model</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="Interpolator.html">Interpolator</a></code> </p>
+            <p><code><a href="FF16r.html">FF16r_Plant()</a></code> <code><a href="FF16r.html">FF16r_Cohort()</a></code> <code><a href="FF16r.html">FF16r_Species()</a></code> <code><a href="FF16r.html">FF16r_Parameters()</a></code> <code><a href="FF16r.html">FF16r_Patch()</a></code> <code><a href="FF16r.html">FF16r_SCM()</a></code> <code><a href="FF16r.html">FF16r_StochasticSpecies()</a></code> <code><a href="FF16r.html">FF16r_StochasticPatch()</a></code> <code><a href="FF16r.html">FF16r_StochasticPatchRunner()</a></code> <code><a href="FF16r.html">FF16r_PlantPlus()</a></code> </p>
+          </td>
+          <td><p>Create a FF16r Plant or Cohort</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="FF16r_Strategy.html">FF16r_Strategy()</a></code> </p>
+          </td>
+          <td><p>Strategy parameters</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="Hyperparameter_functions.html">make_hyperpar()</a></code> <code><a href="Hyperparameter_functions.html">hyperpar()</a></code> </p>
+          </td>
+          <td><p>Hyperparameters for FF16 physiological model</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="Interpolator.html">Interpolator()</a></code> </p>
           </td>
           <td><p>Spline interpolation</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="lcp_whole_plant.html">lcp_whole_plant</a></code> </p>
-          </td>
-          <td><p>Whole plant light compensation point</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="make_patch.html">make_patch</a></code> <code><a href="make_patch.html">scm_state</a></code> <code><a href="make_patch.html">scm_patch</a></code> </p>
-          </td>
-          <td><p>Reconstruct a patch</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="make_reference_plant_FF16.html">make_reference_plant_FF16</a></code> </p>
-          </td>
-          <td><p>Reference Growth Model</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="make_reference_plant.html">make_reference_plant</a></code> </p>
-          </td>
-          <td><p>Reference Growth Model</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="make_scm_integrate.html">make_scm_integrate</a></code> </p>
-          </td>
-          <td><p>Integrate SCM variables</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="make_transparent.html">make_transparent</a></code> </p>
-          </td>
-          <td><p>Make colours transparent</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="max_fitness.html">max_fitness</a></code> </p>
-          </td>
-          <td><p>Find point of maximum fitness within some range.</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="max_growth_rate.html">max_growth_rate</a></code> </p>
-          </td>
-          <td><p>Compute Max Growth Rate</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="nlsolve.html">nlsolve</a></code> </p>
-          </td>
-          <td><p>Thin wrapper around nleqslv and dfsane</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="OdeControl.html">OdeControl</a></code> </p>
+            <p><code><a href="OdeControl.html">OdeControl()</a></code> </p>
           </td>
           <td><p>ODE Control parameters</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="plant_log_console.html">plant_log_console</a></code> </p>
-          </td>
-          <td><p>Activate logging with loggr</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="Plant.html">Plant</a></code> </p>
+            <p><code><a href="Plant.html">Plant()</a></code> </p>
           </td>
           <td><p>Plant object</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="PlantPlus.html">PlantPlus</a></code> </p>
+            <p><code><a href="PlantPlus.html">PlantPlus()</a></code> </p>
           </td>
           <td><p>PlantPlus object</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="QK.html">QK</a></code> </p>
+            <p><code><a href="QK.html">QK()</a></code> </p>
           </td>
           <td><p>Gauss-Kronrod Quadrature</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="rbind_list.html">rbind_list</a></code> <code><a href="rbind_list.html">cbind_list</a></code> </p>
+            <p><code><a href="assembly_parameters.html">assembly_parameters()</a></code> </p>
+          </td>
+          <td><p>Helper function for creating parameter objects</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="bounds.html">bounds()</a></code> <code><a href="bounds.html">check_bounds()</a></code> <code><a href="bounds.html">bounds_infinite()</a></code> <code><a href="bounds.html">check_point()</a></code> </p>
+          </td>
+          <td><p>Trait bounds</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="build_schedule.html">build_schedule()</a></code> </p>
+          </td>
+          <td><p>Build Cohort Schedule</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="carrying_capacity.html">carrying_capacity()</a></code> </p>
+          </td>
+          <td><p>Carrying Capacity</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="check_inviable.html">check_inviable()</a></code> </p>
+          </td>
+          <td><p>Check low-abundance strategies for viability</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="clamp_domain.html">clamp_domain()</a></code> </p>
+          </td>
+          <td><p>Clamp function to domain</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="cohort_schedule_times_default.html">cohort_schedule_times_default()</a></code> </p>
+          </td>
+          <td><p>Generate Default Cohort Introduction Times</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="equilibrium_seed_rain.html">equilibrium_seed_rain()</a></code> </p>
+          </td>
+          <td><p>Run system to seed rain equilibrium</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="equilibrium_verbose.html">equilibrium_verbose()</a></code> <code><a href="equilibrium_verbose.html">equilibrium_quiet()</a></code> </p>
+          </td>
+          <td><p>Noisy Parameters for Equilibrium Finding</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="expand_parameters.html">expand_parameters()</a></code> </p>
+          </td>
+          <td><p>Expand Parameters to include mutants</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="fast_control.html">fast_control()</a></code> </p>
+          </td>
+          <td><p>Fast Control Defaults</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="fitness_landscape.html">fitness_landscape()</a></code> </p>
+          </td>
+          <td><p>Fitness Landscape</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="fixed_environment.html">fixed_environment()</a></code> </p>
+          </td>
+          <td><p>Create fixed light environment</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="grow_plant_to_size.html">grow_plant_to_size()</a></code> <code><a href="grow_plant_to_size.html">grow_plant_to_height()</a></code> </p>
+          </td>
+          <td><p>Grow plant to given size</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="grow_plant_to_time.html">grow_plant_to_time()</a></code> </p>
+          </td>
+          <td><p>Grow a plant</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="lcp_whole_plant.html">lcp_whole_plant()</a></code> </p>
+          </td>
+          <td><p>Whole plant light compensation point</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="make_patch.html">make_patch()</a></code> <code><a href="make_patch.html">scm_state()</a></code> <code><a href="make_patch.html">scm_patch()</a></code> </p>
+          </td>
+          <td><p>Reconstruct a patch</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="make_reference_plant.html">make_reference_plant()</a></code> </p>
+          </td>
+          <td><p>Reference Growth Model</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="make_reference_plant_FF16.html">make_reference_plant_FF16()</a></code> </p>
+          </td>
+          <td><p>Reference Growth Model</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="make_scm_integrate.html">make_scm_integrate()</a></code> </p>
+          </td>
+          <td><p>Integrate SCM variables</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="make_transparent.html">make_transparent()</a></code> </p>
+          </td>
+          <td><p>Make colours transparent</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="max_fitness.html">max_fitness()</a></code> </p>
+          </td>
+          <td><p>Find point of maximum fitness within some range.</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="max_growth_rate.html">max_growth_rate()</a></code> </p>
+          </td>
+          <td><p>Compute Max Growth Rate</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="nlsolve.html">nlsolve()</a></code> </p>
+          </td>
+          <td><p>Thin wrapper around nleqslv and dfsane</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="plant_log_console.html">plant_log_console()</a></code> </p>
+          </td>
+          <td><p>Activate logging with loggr</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="rbind_list.html">rbind_list()</a></code> <code><a href="rbind_list.html">cbind_list()</a></code> </p>
           </td>
           <td><p>Create matrices from lists</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="run_scm_collect.html">run_scm_collect</a></code> </p>
-          </td>
-          <td><p>Run the SCM, Collecting Output</p></td>
-        </tr><tr>
-          <!--  -->
-          <td>
-            <p><code><a href="run_scm.html">run_scm</a></code> </p>
+            <p><code><a href="run_scm.html">run_scm()</a></code> </p>
           </td>
           <td><p>Run SCM</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="run_stochastic_collect.html">run_stochastic_collect</a></code> </p>
+            <p><code><a href="run_scm_collect.html">run_scm_collect()</a></code> </p>
+          </td>
+          <td><p>Run the SCM, Collecting Output</p></td>
+        </tr><tr>
+          <!--  -->
+          <td>
+            <p><code><a href="run_stochastic_collect.html">run_stochastic_collect()</a></code> </p>
           </td>
           <td><p>Run a stochastic patch, Collecting Output</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="scm_base_parameters.html">scm_base_parameters</a></code> </p>
+            <p><code><a href="scm_base_parameters.html">scm_base_parameters()</a></code> </p>
           </td>
           <td><p>Sensible, fast (ish) SCM parameters</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="seq_log.html">seq_log</a></code> <code><a href="seq_log.html">seq_log_range</a></code> <code><a href="seq_log.html">seq_range</a></code> </p>
+            <p><code><a href="seq_log.html">seq_log()</a></code> <code><a href="seq_log.html">seq_log_range()</a></code> <code><a href="seq_log.html">seq_range()</a></code> </p>
           </td>
           <td><p>Sequence in log space</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="splinefun_log.html">splinefun_log</a></code> <code><a href="splinefun_log.html">splinefun_loglog</a></code> </p>
+            <p><code><a href="splinefun_log.html">splinefun_log()</a></code> <code><a href="splinefun_log.html">splinefun_loglog()</a></code> </p>
           </td>
           <td><p>Spline interpolation in log-x space</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="strategy_list.html">strategy_list</a></code> <code><a href="strategy_list.html">strategy_default</a></code> <code><a href="strategy_list.html">strategy</a></code> <code><a href="strategy_list.html">plant_list</a></code> </p>
+            <p><code><a href="strategy_list.html">strategy_list()</a></code> <code><a href="strategy_list.html">strategy_default()</a></code> <code><a href="strategy_list.html">strategy()</a></code> <code><a href="strategy_list.html">plant_list()</a></code> </p>
           </td>
           <td><p>Create a list of Strategies</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="trait_matrix.html">trait_matrix</a></code> </p>
+            <p><code><a href="trait_matrix.html">trait_matrix()</a></code> </p>
           </td>
           <td><p>Create trait matrix</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="validate.html">validate</a></code> </p>
+            <p><code><a href="validate.html">validate()</a></code> </p>
           </td>
           <td><p>Validate an object</p></td>
         </tr><tr>
           <!--  -->
           <td>
-            <p><code><a href="viable_fitness.html">viable_fitness</a></code> </p>
+            <p><code><a href="viable_fitness.html">viable_fitness()</a></code> </p>
           </td>
           <td><p>Compute Region of Positive Fitnes</p></td>
         </tr>
@@ -503,7 +506,7 @@
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="http://hadley.github.io/pkgdown/">pkgdown</a>.</p>
+  <p>Site built with <a href="http://pkgdown.r-lib.org/">pkgdown</a>.</p>
 </div>
 
       </footer>
@@ -511,3 +514,4 @@
 
   </body>
 </html>
+

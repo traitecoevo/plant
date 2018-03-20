@@ -8,8 +8,11 @@
 <title>Calculating fitness • plant</title>
 <!-- jquery --><script src="https://code.jquery.com/jquery-3.1.0.min.js" integrity="sha384-nrOSfDHtoPMzJHjVTdCopGqIqeYETSXhZDFyniQ8ZHcVy08QesyHcnOUpMpqnmWq" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script><!-- Font Awesome icons --><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
-<!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
+<!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/1.7.1/clipboard.min.js" integrity="sha384-cV+rhyOuRHc9Ub/91rihWcGmMmCXDeksTtCihMupQHSsi8GIIRDG0ThDc3HGQFJ3" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../jquery.sticky-kit.min.js"></script><script src="../pkgdown.js"></script><link href="../extra.css" rel="stylesheet">
+<script src="../extra.js"></script><meta property="og:title" content="Calculating fitness">
+<meta property="og:description" content="">
+<meta name="twitter:card" content="summary">
 <!-- mathjax --><script src="https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
@@ -139,151 +142,154 @@
                         <h4 class="author">Daniel Falster</h4>
             
             <h4 class="date">2016</h4>
-          </div>
+      
+      <small>Source: <a href="https:/github.com/traitecoevo/plant/blob/master/vignettes/fitness.Rmd"><code>vignettes/fitness.Rmd</code></a></small>
+
+    </div>
 
     
     
 <div class="contents">
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(plant)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(plant)</code></pre>
 <p>Start by setting a few parameters; this is the base set of parameters we’ll use.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p0 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/scm_base_parameters.html">scm_base_parameters</a></span>(<span class="st">"FF16"</span>)
-p0<span class="op">$</span>control<span class="op">$</span>equilibrium_nsteps &lt;-<span class="st"> </span><span class="dv">30</span>
-p0<span class="op">$</span>control<span class="op">$</span>equilibrium_solver_name &lt;-<span class="st"> "hybrid"</span>
-p0<span class="op">$</span>disturbance_mean_interval &lt;-<span class="st"> </span><span class="fl">30.0</span></code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">p0 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/scm_base_parameters.html">scm_base_parameters</a></span>(<span class="st">"FF16"</span>)
+p0$control$equilibrium_nsteps &lt;-<span class="st"> </span><span class="dv">30</span>
+p0$control$equilibrium_solver_name &lt;-<span class="st"> "hybrid"</span>
+p0$disturbance_mean_interval &lt;-<span class="st"> </span><span class="fl">30.0</span></code></pre>
 <p>First, compute the space that any strategy can exist along the “lma” axis:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">bounds &lt;-<span class="st"> </span><span class="kw"><a href="../reference/viable_fitness.html">viable_fitness</a></span>(<span class="kw"><a href="../reference/bounds.html">bounds_infinite</a></span>(<span class="st">"lma"</span>), p0)
-bounds</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">bounds &lt;-<span class="st"> </span><span class="kw"><a href="../reference/viable_fitness.html">viable_fitness</a></span>(<span class="kw"><a href="../reference/bounds.html">bounds_infinite</a></span>(<span class="st">"lma"</span>), p0)
+bounds</code></pre>
 <pre><code>##          lower    upper
 ## lma 0.02533822 4.989169</code></pre>
 <p>Generate a set of trait values across this range and compute the fitness landscape:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lma &lt;-<span class="st"> </span><span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="kw"><a href="../reference/seq_log.html">seq_log_range</a></span>(bounds, <span class="dv">101</span>), <span class="st">"lma"</span>)
+<pre class="sourceCode r"><code class="sourceCode r">lma &lt;-<span class="st"> </span><span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="kw"><a href="../reference/seq_log.html">seq_log_range</a></span>(bounds, <span class="dv">101</span>), <span class="st">"lma"</span>)
 w0 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p0)
 
 <span class="kw">plot</span>(lma, w0, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">las=</span><span class="dv">1</span>, <span class="dt">ylab=</span><span class="st">"Fitness (empty environment)"</span>)
-<span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>, <span class="dt">col=</span><span class="st">"grey"</span>)</code></pre></div>
+<span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>, <span class="dt">col=</span><span class="st">"grey"</span>)</code></pre>
 <div class="figure">
 <img src="figure/fitness__unnamed-chunk-4-1.png">
 </div>
 <p>Any trait value along this point can persist, so start with random sample (Set seed for random number generator so that get same results when rerun)</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">5</span>)
-lma1 &lt;-<span class="st"> </span><span class="kw">sort</span>(<span class="kw">sample</span>(lma, <span class="dv">4</span>))</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">set.seed</span>(<span class="dv">5</span>)
+lma1 &lt;-<span class="st"> </span><span class="kw">sort</span>(<span class="kw">sample</span>(lma, <span class="dv">4</span>))</code></pre>
 <p>This function takes an lma value, introduces it to the community, runs that out to equilibrium seed rain:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">add_eq &lt;-<span class="st"> </span><span class="cf">function</span>(x, p) {
+<pre class="sourceCode r"><code class="sourceCode r">add_eq &lt;-<span class="st"> </span>function(x, p) {
   p &lt;-<span class="st"> </span><span class="kw"><a href="../reference/expand_parameters.html">expand_parameters</a></span>(<span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(x, <span class="st">"lma"</span>), p, <span class="dt">mutant=</span><span class="ot">FALSE</span>)
   <span class="kw"><a href="../reference/equilibrium_seed_rain.html">equilibrium_seed_rain</a></span>(p)
-}</code></pre></div>
+}</code></pre>
 <p>If run interactively it will produce a lot of output</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p1 &lt;-<span class="st"> </span><span class="kw">lapply</span>(lma1, add_eq, p0)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">p1 &lt;-<span class="st"> </span><span class="kw">lapply</span>(lma1, add_eq, p0)</code></pre>
 <p>Then compute fitness landscapes for each of these:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">w1 &lt;-<span class="st"> </span><span class="kw">sapply</span>(p1, <span class="cf">function</span>(p) <span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p))
+<pre class="sourceCode r"><code class="sourceCode r">w1 &lt;-<span class="st"> </span><span class="kw">sapply</span>(p1, function(p) <span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p))
 
-<span class="kw">matplot</span>(lma, w1, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">ylim=</span><span class="kw">c</span>(<span class="op">-</span><span class="dv">5</span>, <span class="kw">max</span>(w1)))
+<span class="kw">matplot</span>(lma, w1, <span class="dt">lty=</span><span class="dv">1</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">ylim=</span><span class="kw">c</span>(-<span class="dv">5</span>, <span class="kw">max</span>(w1)))
 <span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
-<span class="kw">points</span>(lma1, <span class="kw">rep</span>(<span class="dv">0</span>, <span class="dv">4</span>), <span class="dt">col=</span><span class="dv">1</span><span class="op">:</span><span class="dv">4</span>, <span class="dt">pch=</span><span class="dv">19</span>)</code></pre></div>
+<span class="kw">points</span>(lma1, <span class="kw">rep</span>(<span class="dv">0</span>, <span class="dv">4</span>), <span class="dt">col=</span><span class="dv">1</span>:<span class="dv">4</span>, <span class="dt">pch=</span><span class="dv">19</span>)</code></pre>
 <div class="figure">
 <img src="figure/fitness__unnamed-chunk-8-1.png">
 </div>
 <p>For this system, there is an evolutionary attractor around lma 0.0825:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lma_b &lt;-<span class="st"> </span><span class="fl">0.0825</span>
+<pre class="sourceCode r"><code class="sourceCode r">lma_b &lt;-<span class="st"> </span><span class="fl">0.0825</span>
 p1b &lt;-<span class="st"> </span><span class="kw">add_eq</span>(lma_b, p0)
 
 w1b &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p1b)
 <span class="kw">plot</span>(lma, w1b, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
      <span class="dt">xlab=</span><span class="st">"Leaf mass per unit leaf area"</span>, <span class="dt">ylab=</span><span class="st">"Fitness"</span>)
 <span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
-<span class="kw">points</span>(lma_b, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>)</code></pre></div>
+<span class="kw">points</span>(lma_b, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>)</code></pre>
 <div class="figure">
 <img src="figure/fitness__unnamed-chunk-9-1.png">
 </div>
 <p>Zooming in in the vicinity of the result shows that this is disruptive selection: fitness increases to both sides of the resident!</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lma_detail &lt;-<span class="st"> </span><span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="kw"><a href="../reference/seq_log.html">seq_log</a></span>(lma_b <span class="op">*</span><span class="st"> </span><span class="fl">0.95</span>, lma_b <span class="op">*</span><span class="st"> </span><span class="fl">1.05</span>, <span class="dv">51</span>), <span class="st">"lma"</span>)
+<pre class="sourceCode r"><code class="sourceCode r">lma_detail &lt;-<span class="st"> </span><span class="kw"><a href="../reference/trait_matrix.html">trait_matrix</a></span>(<span class="kw"><a href="../reference/seq_log.html">seq_log</a></span>(lma_b *<span class="st"> </span><span class="fl">0.95</span>, lma_b *<span class="st"> </span><span class="fl">1.05</span>, <span class="dv">51</span>), <span class="st">"lma"</span>)
 w1b_detail &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma_detail, p1b)
 <span class="kw">plot</span>(lma_detail, w1b_detail, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
      <span class="dt">xlab=</span><span class="st">"Leaf mass per unit leaf area"</span>, <span class="dt">ylab=</span><span class="st">"Fitness"</span>)
 <span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
-<span class="kw">points</span>(lma_b, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>)</code></pre></div>
+<span class="kw">points</span>(lma_b, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>)</code></pre>
 <div class="figure">
 <img src="figure/fitness__unnamed-chunk-10-1.png">
 </div>
 <p>Holding the first species at 0.0825 we can introduce additional species (it’s close enough to the optimum here, though in general this point might move substantially as new species are introduced).</p>
 <p>Consider introducing a new species at the point of maximum fitness:</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">lma_new &lt;-<span class="st"> </span>lma[<span class="kw">which.max</span>(w1b)]
-lma_new</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">lma_new &lt;-<span class="st"> </span>lma[<span class="kw">which.max</span>(w1b)]
+lma_new</code></pre>
 <pre><code>## [1] 0.3748389</code></pre>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(lma, w1b, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(lma, w1b, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
      <span class="dt">xlab=</span><span class="st">"Leaf mass per unit leaf area"</span>, <span class="dt">ylab=</span><span class="st">"Fitness"</span>)
 <span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
 <span class="kw">points</span>(lma_b, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>)
-<span class="kw">abline</span>(<span class="dt">v=</span>lma_new, <span class="dt">col=</span><span class="st">"red"</span>)</code></pre></div>
+<span class="kw">abline</span>(<span class="dt">v=</span>lma_new, <span class="dt">col=</span><span class="st">"red"</span>)</code></pre>
 <div class="figure">
 <img src="figure/fitness__unnamed-chunk-11-1.png">
 </div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p2 &lt;-<span class="st"> </span><span class="kw">add_eq</span>(lma_new, p1b)
-w2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p2)</code></pre></div>
+<pre class="sourceCode r"><code class="sourceCode r">p2 &lt;-<span class="st"> </span><span class="kw">add_eq</span>(lma_new, p1b)
+w2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p2)</code></pre>
 <p>After introducing this species, the fitness landscape is <em>drawn down</em> around the second species, with a fitness gradient that points towards increased lma.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(lma, w1b, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">plot</span>(lma, w1b, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
      <span class="dt">xlab=</span><span class="st">"Leaf mass per unit leaf area"</span>, <span class="dt">ylab=</span><span class="st">"Fitness"</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
 <span class="kw">lines</span>(lma, w2)
 <span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
 <span class="kw">points</span>(lma_b, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>)
 <span class="kw">points</span>(lma_new, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">col=</span><span class="st">"red"</span>)
 lma_new2 &lt;-<span class="st"> </span>lma[<span class="kw">which.max</span>(w2)]
-<span class="kw">abline</span>(<span class="dt">v=</span>lma_new2)</code></pre></div>
+<span class="kw">abline</span>(<span class="dt">v=</span>lma_new2)</code></pre>
 <div class="figure">
 <img src="figure/fitness__unnamed-chunk-12-1.png">
 </div>
 <p>At the cost of extremely tedious copy/paste code, here is the result of repeatedly taking the lma value with highest fitness and moving the second species to this point, running to equilibrium, and plotting. For comparison the previous landscapes are retained as dotted lines.</p>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p2_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw">add_eq</span>(lma_new2, p1b)
-w2_<span class="dv">2</span> &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p2_<span class="dv">2</span>)
+<pre class="sourceCode r"><code class="sourceCode r">p2_2 &lt;-<span class="st"> </span><span class="kw">add_eq</span>(lma_new2, p1b)
+w2_2 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p2_2)
 
 <span class="kw">plot</span>(lma, w1b, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
      <span class="dt">xlab=</span><span class="st">"Leaf mass per unit leaf area"</span>, <span class="dt">ylab=</span><span class="st">"Fitness"</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
 <span class="kw">lines</span>(lma, w2, <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">lines</span>(lma, w2_<span class="dv">2</span>)
+<span class="kw">lines</span>(lma, w2_2)
 <span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
 <span class="kw">points</span>(lma_b, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>)
 <span class="kw">points</span>(lma_new, <span class="dv">0</span>)
 <span class="kw">points</span>(lma_new2, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">col=</span><span class="st">"red"</span>)
-lma_new3 &lt;-<span class="st"> </span>lma[<span class="kw">which.max</span>(w2_<span class="dv">2</span>)]
-<span class="kw">abline</span>(<span class="dt">v=</span>lma_new3)</code></pre></div>
+lma_new3 &lt;-<span class="st"> </span>lma[<span class="kw">which.max</span>(w2_2)]
+<span class="kw">abline</span>(<span class="dt">v=</span>lma_new3)</code></pre>
 <div class="figure">
 <img src="figure/fitness__unnamed-chunk-13-1.png">
 </div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p2_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw">add_eq</span>(lma_new3, p1b)
-w2_<span class="dv">3</span> &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p2_<span class="dv">3</span>)
+<pre class="sourceCode r"><code class="sourceCode r">p2_3 &lt;-<span class="st"> </span><span class="kw">add_eq</span>(lma_new3, p1b)
+w2_3 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p2_3)
 
 <span class="kw">plot</span>(lma, w1b, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
      <span class="dt">xlab=</span><span class="st">"Leaf mass per unit leaf area"</span>, <span class="dt">ylab=</span><span class="st">"Fitness"</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
 <span class="kw">lines</span>(lma, w2, <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">lines</span>(lma, w2_<span class="dv">2</span>, <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">lines</span>(lma, w2_<span class="dv">3</span>)
+<span class="kw">lines</span>(lma, w2_2, <span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">lines</span>(lma, w2_3)
 <span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
 <span class="kw">points</span>(lma_b, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>)
 <span class="kw">points</span>(lma_new, <span class="dv">0</span>)
 <span class="kw">points</span>(lma_new2, <span class="dv">0</span>)
 <span class="kw">points</span>(lma_new3, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">col=</span><span class="st">"red"</span>)
-lma_new4 &lt;-<span class="st"> </span>lma[<span class="kw">which.max</span>(w2_<span class="dv">3</span>)]
-<span class="kw">abline</span>(<span class="dt">v=</span>lma_new4)</code></pre></div>
+lma_new4 &lt;-<span class="st"> </span>lma[<span class="kw">which.max</span>(w2_3)]
+<span class="kw">abline</span>(<span class="dt">v=</span>lma_new4)</code></pre>
 <div class="figure">
 <img src="figure/fitness__unnamed-chunk-13-2.png">
 </div>
-<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">p2_<span class="dv">4</span> &lt;-<span class="st"> </span><span class="kw">add_eq</span>(lma_new4, p1b)
-w2_<span class="dv">4</span> &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p2_<span class="dv">4</span>)
+<pre class="sourceCode r"><code class="sourceCode r">p2_4 &lt;-<span class="st"> </span><span class="kw">add_eq</span>(lma_new4, p1b)
+w2_4 &lt;-<span class="st"> </span><span class="kw"><a href="../reference/fitness_landscape.html">fitness_landscape</a></span>(lma, p2_4)
 
 <span class="kw">plot</span>(lma, w1b, <span class="dt">log=</span><span class="st">"x"</span>, <span class="dt">type=</span><span class="st">"l"</span>, <span class="dt">las=</span><span class="dv">1</span>,
      <span class="dt">xlab=</span><span class="st">"Leaf mass per unit leaf area"</span>, <span class="dt">ylab=</span><span class="st">"Fitness"</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
 <span class="kw">lines</span>(lma, w2, <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">lines</span>(lma, w2_<span class="dv">2</span>, <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">lines</span>(lma, w2_<span class="dv">3</span>, <span class="dt">lty=</span><span class="dv">2</span>)
-<span class="kw">lines</span>(lma, w2_<span class="dv">4</span>)
+<span class="kw">lines</span>(lma, w2_2, <span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">lines</span>(lma, w2_3, <span class="dt">lty=</span><span class="dv">2</span>)
+<span class="kw">lines</span>(lma, w2_4)
 <span class="kw">abline</span>(<span class="dt">h=</span><span class="dv">0</span>, <span class="dt">col=</span><span class="st">"grey"</span>)
 <span class="kw">points</span>(lma_b, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>)
 <span class="kw">points</span>(lma_new, <span class="dv">0</span>)
 <span class="kw">points</span>(lma_new2, <span class="dv">0</span>)
 <span class="kw">points</span>(lma_new3, <span class="dv">0</span>)
 <span class="kw">points</span>(lma_new4, <span class="dv">0</span>, <span class="dt">pch=</span><span class="dv">19</span>, <span class="dt">col=</span><span class="st">"red"</span>)
-lma_new5 &lt;-<span class="st"> </span>lma[<span class="kw">which.max</span>(w2_<span class="dv">4</span>)]
-<span class="kw">abline</span>(<span class="dt">v=</span>lma_new5)</code></pre></div>
+lma_new5 &lt;-<span class="st"> </span>lma[<span class="kw">which.max</span>(w2_4)]
+<span class="kw">abline</span>(<span class="dt">v=</span>lma_new5)</code></pre>
 <div class="figure">
 <img src="figure/fitness__unnamed-chunk-13-3.png">
 </div>
@@ -301,7 +307,7 @@ lma_new5 &lt;-<span class="st"> </span>lma[<span class="kw">which.max</span>(w2_
 </div>
 
 <div class="pkgdown">
-  <p>Site built with <a href="http://hadley.github.io/pkgdown/">pkgdown</a>.</p>
+  <p>Site built with <a href="http://pkgdown.r-lib.org/">pkgdown</a>.</p>
 </div>
 
       </footer>
