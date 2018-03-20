@@ -10,6 +10,10 @@ install:
 environment:
   _R_CHECK_FORCE_SUGGESTS_: false
 
+branches:
+  except:
+    - gh-pages
+
 build_script:
   - travis-tool.sh install_deps
   - travis-tool.sh github_package richfitz/RcppR6
