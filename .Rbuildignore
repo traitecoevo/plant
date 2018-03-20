@@ -14,7 +14,6 @@
 ^NEWS.md
 ^plant.Rcheck$
 ^inst/docs$
-^inst/reference_plant_ff16$
 ^inst/scripts$
 ^inst/website$
 ^vignettes/(?!plant).*$

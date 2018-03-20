@@ -3,3 +3,4 @@ inst/website
 *Rproj*
 *.Rhistory*
 ^plant.Rcheck$
+.Rproj.user
