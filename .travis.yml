@@ -1,5 +1,7 @@
 language: r
-cache: packages
+cache: 
+  packages: true
+  apt: true
 warnings_are_errors: false
 sudo: false
 

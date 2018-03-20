@@ -70,7 +70,6 @@ FF16r_PlantPlus <- function(s=FF16r_Strategy()) {
   PlantPlus("FF16r")(s)
 }
 
-##' @title Hyperparameters for FF16r physiological model are same as FF16
-##' @rdname FF16r_hyperpar
+##' @rdname FF16_hyperpar
 ##' @export
 FF16r_hyperpar <- make_FF16_hyperpar()

@@ -1,0 +1,91 @@
+packages:
+  - rmarkdown
+  - plant
+  - BB
+  - nleqslv
+  - xtable
+
+sources:
+  - R
+
+plot_options:
+  wide:
+    width: 12
+    height: 4
+  square:
+    width: 8
+    height: 8
+  med_square:
+    width: 10
+    height: 10
+  large_square:
+    width: 12
+    height: 12
+
+knitr_options:
+  vignette:
+    auto_figure_prefix: true
+    chdir: true
+    options:
+      fig.cap: ""
+
+targets:
+  all:
+    depends:
+      - install_vignettes
+
+  demography.md:
+    knitr: vignette
+  physiology.md:
+    knitr: vignette
+  developer_notes.md:
+    knitr: vignette
+  individuals.md:
+    knitr: vignette
+  cohort_spacing.md:
+    knitr: vignette
+  equilibrium.md:
+    knitr: vignette
+  patch.md:
+    knitr: vignette
+  emergent.md:
+    knitr: vignette
+  fitness.md:
+    knitr: vignette
+  parameters.md:
+    knitr: vignette
+
+  install_vignettes:
+    command: copy_assets_figures()
+    depends:
+      - vignettes/demography.Rmd
+      - vignettes/physiology.Rmd
+      - vignettes/individuals.Rmd
+      - vignettes/equilibrium.Rmd
+      - vignettes/patch.Rmd
+      - vignettes/emergent.Rmd
+      - vignettes/fitness.Rmd
+      - vignettes/cohort_spacing.Rmd
+      - vignettes/developer_notes.Rmd
+      - vignettes/parameters.Rmd
+
+  vignettes/individuals.Rmd:
+    command: file.copy("individuals.md", target_name, overwrite=TRUE)
+  vignettes/equilibrium.Rmd:
+    command: file.copy("equilibrium.md", target_name, overwrite=TRUE)
+  vignettes/cohort_spacing.Rmd:
+    command: file.copy("cohort_spacing.md", target_name, overwrite=TRUE)
+  vignettes/patch.Rmd:
+    command: file.copy("patch.md", target_name, overwrite=TRUE)
+  vignettes/emergent.Rmd:
+    command: file.copy("emergent.md", target_name, overwrite=TRUE)
+  vignettes/fitness.Rmd:
+    command: file.copy("fitness.md", target_name, overwrite=TRUE)
+  vignettes/parameters.Rmd:
+    command: file.copy("parameters.md", target_name, overwrite=TRUE)
+  vignettes/developer_notes.Rmd:
+    command: file.copy("developer_notes.Rmd", target_name, overwrite=TRUE)
+  vignettes/demography.Rmd:
+    command: file.copy("demography.Rmd", target_name, overwrite=TRUE)
+  vignettes/physiology.Rmd:
+    command: file.copy("physiology.Rmd", target_name, overwrite=TRUE)

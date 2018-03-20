@@ -1,3 +1,6 @@
-inst/doc
-inst/web
 vignettes/*
+inst/website
+*Rproj*
+*.Rhistory*
+^plant.Rcheck$
+.Rproj.user

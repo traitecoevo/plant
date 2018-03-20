@@ -1,9 +1,13 @@
 Package: plant
 Title: A package for modelling forest trait ecology and evolution
-Version: 1.1.0
+Version: 1.2.0
+Author: Daniel Falster [aut, cre], Rich FitzJohn [aut], John Wilshire [ctb]
 Authors@R: c(
-    person("Daniel", "Falster", , "daniel.falster@unsw.edu.au", c("aut", "cre")),
-    person("Richard", "FitzJohn", , "", c("aut")))
+    person("Daniel", "Falster", , "daniel.falster@unsw.edu.au", c("aut", "cre"), 
+            comment = c(ORCID = "0002-9814-092X")),
+    person("Richard", "FitzJohn", , "", "aut"),
+    person("John", "Wilshire", , "", "ctb"))
+Maintainer: Daniel Falster <daniel.falster@unsw.edu.au> 
 Description: Solves trait, size and patch structured model
     from (Falster et al. 2016) using either method of
     characteristics or as stochastic, finite-sized population.
@@ -27,6 +31,9 @@ Suggests:
     parallel,
     RcppR6 (>= 0.2.3),
     knitr,
-    plant.ml
+    plant.ml,
+    rmarkdown
 VignetteBuilder: knitr
+URL: https://github.com/traitecoevo/plant
+BugReports: https://github.com/traitecoevo/plant/issues
 RoxygenNote: 6.0.1

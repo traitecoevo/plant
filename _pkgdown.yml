@@ -1,0 +1,54 @@
+url: https://traitecoevo.github.io/plant/
+
+destination: inst/website
+
+template:
+  bootswatch: cosmo
+
+navbar:
+  title: "plant"
+  type: inverse
+  left:
+    - text: "Home"
+      icon: fa-home
+      href: index.html
+    - text: "Getting Started" 
+      icon: fa-tree
+      href: articles/plant.html
+    - text: "Reference"
+      icon: fa-list
+      href: reference/index.html
+    - text: "Theory"
+      icon: fa-book
+      menu:
+        - text: "Demography of plants, patches, and metacommunities"
+          href: articles/demography.html
+        - text: "The FF16 strategy"
+          href: articles/physiology.html
+    - text: "Examples"
+      icon: fa-file-code-o
+      menu:
+        - text: "Individual plants"
+          href: articles/individuals.html
+        - text: "Patches of competing plants"
+          href: articles/patch.html    
+        - text: "Finding demographic equilibrium"
+          href: articles/equilibrium.html
+        - text: "Emergent properties of patches"
+          href: articles/emergent.html
+        - text: "Calculating fitness"
+          href: articles/fitness.html
+        - text: "The cohort spacing algorithm"
+          href: articles/cohort_spacing.html
+        - text: "Changing parameters"
+          href: articles/parameters.html
+    - text: "Developer Notes"
+      icon: fa-terminal
+      href: articles/developer_notes.html
+  right:
+    - text: "News"
+      icon: fa-newspaper-o
+      href: news/index.html
+    - text: "Github"
+      icon: fa-github fa-lg
+      href: https://github.com/traitecoevo/plant

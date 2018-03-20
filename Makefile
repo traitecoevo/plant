@@ -35,14 +35,10 @@ clean:
 	rm -f src/*.o src/*.so
 
 vignettes:
-	(cd docs; remake install_vignettes)
+	(cd inst/docs; ln -sfn ../../vignettes vignettes; remake install_vignettes)
 
-staticdocs: vignettes
-	@mkdir -p inst/staticdocs
-	Rscript -e "library(methods); staticdocs::build_site()"
-	rm -f vignettes/*.html
-	@rmdir inst/staticdocs
-website: staticdocs
-	./update_web.sh
+website: vignettes
+	Rscript -e "pkgdown::build_site()" /
+	open "inst/website/index.html"
 
-.PHONY: all compile doc clean test install vignettes
+.PHONY: all compile doc clean test attributes roxygen install build check vignettes website push_website

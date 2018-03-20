@@ -3,6 +3,7 @@
 ## Generate a vector of arrival times.
 ##
 ## This will be slow, but fairly easy to get right.
+##' @importFrom stats rexp
 stochastic_arrival_times <- function(max_time, seed_rain_total, n=NULL) {
   if (is.null(n)) {
     n <- max_time * seed_rain_total
@@ -35,7 +36,7 @@ stochastic_schedule <- function(p) {
 ##' Run a stochastic simulation of a patch, given a Parameters
 ##'
 ##' This one might need to be made differently so that different
-## schedules can be added easily.
+##' schedules can be added easily.
 ##' Not sure if this is how we will generally want to do this.
 ##' Consider this function liable to change.
 ##'

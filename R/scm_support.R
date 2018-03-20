@@ -1,3 +1,4 @@
+##' Sets reasonable defaults for fast numerical calculations
 ##' @title Fast Control Defaults
 ##' @return A Control object with parameters set.
 ##' @author Rich FitzJohn
@@ -67,7 +68,7 @@ run_scm <- function(p, use_ode_times=FALSE) {
 ##' hyperparameterisation that we most often use.
 ##' @title Sensible, fast (ish) SCM parameters
 ##' @author Rich FitzJohn
-##' @param type Name of model (defaults to FF16 but FF16r also valid)
+##' @param type Name of model (defaults to FF16 but any strategy name is valid).
 ##' @export
 scm_base_parameters <- function(type="FF16") {
   ctrl <- equilibrium_verbose(fast_control())
@@ -206,9 +207,12 @@ run_scm_error <- function(p) {
        ode_times=scm$ode_times)
 }
 
-##' @rdname Hyperparameter functions
-##' @param type Either \code{"FF16"} or \code{"FF16r"}.
+##' Set a suitable hyperparameter function for chosen physiological model
+##' @title Hyperparameters for FF16 physiological model
+##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
+##' @rdname Hyperparameter_functions
 ##' @export
+# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
 make_hyperpar <- function(type) {
   switch(type,
          FF16=make_FF16_hyperpar,
@@ -216,9 +220,9 @@ make_hyperpar <- function(type) {
          stop("Unknown type ", type))
 }
 
-##' @rdname Hyperparameter functions
-##' @param type Either \code{"FF16"} or \code{"FF16r"}.
+##' @rdname Hyperparameter_functions
 ##' @export
+# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
 hyperpar <- function(type) {
   switch(type,
          FF16=FF16_hyperpar,
@@ -306,7 +310,7 @@ species_to_internals <- function(sp, environment=NULL) {
 ##' returns a function that takes a variable name and integrates it.
 ##'
 ##' @title Integrate SCM variables
-##' @param scm An object from \code{run_scm} or \code{run_scm_collect}
+##' @param obj An object from \code{run_scm} or \code{run_scm_collect}
 ##' @export
 make_scm_integrate <- function(obj) {
   ## TODO: This needs to be made to work with the output of

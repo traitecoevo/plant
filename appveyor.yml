@@ -21,3 +21,9 @@ test_script:
 
 on_failure:
   - travis-tool.sh dump_logs
+
+notifications:
+  - provider: Slack
+    incoming_webhook:
+      secure: WzvE1NjyDzOBbIMYbHFBZdBIDeqBwm+BMnrSxeued0de+RFokWM7IOk2Eo9wBlfWz1QLCoyMhujr8MKnsPw6NWkm3cWr+Tuc5i1KpV6+2OE=
+
