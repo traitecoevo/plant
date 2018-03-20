@@ -1,0 +1,11 @@
+"Variable","Function","Allocation","Growth rate"
+"**(a) Assumed**",,,
+"Height","$H = \alpha_{{\rm l1}} \, \left(A_{\rm l} \, {\rm m^{-2}} \right)^{\alpha_{{\rm l2}}}$","$\frac{{\rm d}H}{{\rm d}A_{\rm l}} = \alpha_{{\rm l2}} \alpha_{{\rm l1}} \left(A_{\rm l} \, {\rm m^{-2}} \right)^{\alpha_{{\rm l2}}-1}$","$\frac{{\rm d}H}{{\rm d}t} = \frac{{\rm d}H}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$"
+"Sapwoood area","$A_{\rm s} = \theta \, A_{\rm l}$","$\frac{{\rm d}A_{\rm s}}{{\rm d} A_{\rm l}} = \theta$","$\frac{{\rm d}A_{\rm s}}{{\rm d}t} = \frac{{\rm d}A_{\rm s}}{{\rm d} A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$"
+"Bark area","$A_{\rm b} = \alpha_{{\rm b1}} \, \theta \, A_{\rm l}$","$\frac{{\rm d}A_{\rm b}}{{\rm d} A_{\rm l}} = \alpha_{{\rm b1}} \, \theta$","$\frac{{\rm d}A_{\rm b}}{{\rm d}t} = \frac{{\rm d}A_{\rm b}}{{\rm d} A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$"
+"**(b) Derived**",,,
+"Leaf mass","$M_{\rm l} = \phi \, A_{\rm l}$","$\frac{{\rm d}M_{\rm l}}{{\rm d}A_{\rm l}} = \phi$","$\frac{{\rm d}M_{\rm l}}{{\rm d}t} = \frac{{\rm d}M_{\rm l}}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$"
+"Sapwood mass","$M_{\rm s} = \rho \, \theta \, \eta_{\rm c} \, A_{\rm l} \, H$","$\frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} = \rho \, \theta \, \eta_{\rm c} \, \big(H + A_{\rm l} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \big)$","$\frac{{\rm d}M_{\rm s}}{{\rm d}t} = \frac{{\rm d}M_{\rm s}}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$"
+"Bark mass","$M_{\rm b} = \alpha_{{\rm b1}} \, \rho \, \theta \, \eta_{\rm c} \, A_{\rm l} \, H$","$\frac{{\rm d}M_{\rm b}}{{\rm d}A_{\rm l}} = \alpha_{{\rm b1}} \, \rho \, \theta \, \eta_{\rm c}\big(H + A_{\rm l} \, \frac{{\rm d}H}{{\rm d}A_{\rm l}} \big)$","$\frac{{\rm d}M_{\rm b}}{{\rm d}t} = \frac{{\rm d}M_{\rm b}}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$"
+"Root mass","$M_{\rm r} = \alpha_{{\rm r1}} \, A_{\rm l}$","$\frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} = \alpha_{{\rm r1}}$","$\frac{{\rm d}M_{\rm r}}{{\rm d}t} = \frac{{\rm d}M_{\rm r}}{{\rm d}A_{\rm l}} \, \frac{{\rm d}A_{\rm l}}{{\rm d}t}$"
+
