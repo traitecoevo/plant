@@ -37,14 +37,8 @@ clean:
 vignettes:
 	(cd inst/docs; ln -sfn ../../vignettes vignettes; remake install_vignettes)
 
-build_site: vignettes
-	Rscript -e "pkgdown::build_site()"
+website: vignettes
+	Rscript -e "pkgdown::build_site()" /
+	open "inst/website/index.html"
 
-pkgdown: build_site
-	open "docs/index.html"
-
-website: build_site
-	sh update_web.sh
-	open "https://traitecoevo.github.io/plant/"
-
-.PHONY: all compile doc clean test install vignettes
+.PHONY: all compile doc clean test attributes roxygen install build check vignettes website push_website

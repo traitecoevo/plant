@@ -1,0 +1,34 @@
+Symbol,Unit,Description
+**Patch state variables**,,
+$K$,,Number of species in the metacommunity
+"$a, a^{\prime}$",yr,Patch age (time since disturbance)
+$a_0$,yr,Patch age when plant germinates 
+$E_a$,,Profile of canopy openness within a patch of age $a$
+$E_a(z)$,,Canopy openness at height $z$ within a patch of age $a$
+**Plant state variables**,,
+$x$,,Vector of traits for a species
+$H$,m,Height of a plant
+$H_0(x)$,m,Height of a seedling with traits $x$ after germination
+$z$,m,Height in canopy
+$A_{\rm l}(H)$,m$^2$,Leaf area of a plant with height $H$ 
+"$Q(z, H)$",,Fraction of leaf area above height $z$ for a plant with height $H$
+**Abundance measures**,,
+$P(a)$,yr$^{-1}$,Frequency-density of patches of age $a$ 
+$Y_{x}$,m$^{-2}$ yr$^{-1}$,Global seed rain for a species with traits $x$
+"$N(H | x, a)$",m$^{-1}$ m$^{-2}$,Density of plants at height $H$ per unit ground area for given traits $x$ and patch age $a$
+**Demographic rates**,,
+"$g(x, H, E_a)$",m yr$^{-1}$,Height growth rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$
+"$f(x, H, E_a)$",yr$^{-1}$,Seed production rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$
+"$d(x, H, E_a)$",yr$^{-1}$,Instantaneous mortality rate of a plant with traits $x$ and height $H$ in the light environment $E_a$ in a patch of age $a$
+$d_{\rm P}(a)$,yr$^{-1}$,Instantaneous disturbance rate of a patch of age $a$
+**Demographic outcomes**,,
+"$H(x, a_0, a)$",m,Height of a plant with traits $x$ in a patch of age $a$ having germinated at patch age $a_0$
+$S_{\rm D}$,,Probability a seed survives dispersal 
+"$S_{\rm G} (x, H_0, E_{{\rm a}0})$",,Probability the seed of a plant with traits $x$ germinates successfully at height $H_0$ in the light environment $E_{{\rm a}0}$ in a patch of age $a_0$
+"$S_{\rm I} (x, a_0, a)$",,Probability a plant survives from patch age $a_0$ to patch age $a$
+"$S_{\rm P} ( a_0, a)$",,Probability a patch remains undisturbed from patch age $a_0$ to patch age $a$
+"$\tilde{R}(x, a_0, a)$",,Cumulative seed output for plants with traits $x$ from patch age $a_0$ to patch age $a$ 
+"$R\left(x^\prime, x\right)$",,Basic reproduction ratio for a mutant plant with traits $x^\prime$ growing in a metapopulation of resident plants with traits $x$
+**Miscellaneous constants**,,
+$k_{\rm I}$,,Light extinction coefficient
+$\bar{a}$,yr,Mean interval between patch disturbances 

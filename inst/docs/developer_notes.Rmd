@@ -1,5 +1,10 @@
 ---
 title: "Developer Notes"
+date: "`r Sys.Date()`"
+output:
+  bookdown::html_document2:
+    toc: yes
+    number_sections: false
 ---
 
 ## Issues
@@ -80,7 +85,7 @@ Before trying to install a new strategy, make sure your project is at a state wh
 
 To install a new strategy using the scaffolder, run the following code from an R session at the project root:
 
-```{r}
+```{r, eval=FALSE}
 source('inst/scripts/new_strategy_scaffolder.R')
 create_strategy_scaffold("XX99", "FF16")
 ```
@@ -96,10 +101,7 @@ Then recompile and test as above.
 
 After the project compiles, you will notices even more files that have changed, for example in files like `NAMESPACE`, `R/RcppExports.R` etc. These files are auto-generated and therefore modifications are triggered from files listed above.
 
-----
-
 ## Templating
----
 
 We use templating to enable plant to work with multiple strategies and lets us write code that is strategy generic.
 The templated class definitions are found in `inst/include/plant` and their function implementations are found either in the `.h` files or in `/src`.
