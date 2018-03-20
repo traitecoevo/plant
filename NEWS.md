@@ -1,3 +1,22 @@
+## Plant 1.2.0  Release Notes
+
+v1.2.0 was released on 20/03/2018
+
+### Major Changes
+
+- New strategy scaffolder ensures higher level operations work across all strategies and for new strategies. This includes `lcp_whole_plant` `XXX_PlantPlus`, `grow_plant_to_size`, `grow_plant_to_height`, `grow_plant_to_time`
+- website now builds via `pkgdown` package (used to use staticdocs but this is deprecated)
+- simplified workflow for building website
+- converted supporting materials from tex to Rmd
+
+### Minor Changes
+
+- start documenting notes for developers in `inst/docs/developer_notes.Rmd`
+- add `CITATION` file
+- Address many issues in documentation and package setup causing rcmdcheck to fail
+
+A full account of changes from the previous version is available on Github: [v1.1.0...v1.2.0](https://github.com/traitecoevo/plant/compare/v1.1.0...v1.2.0)
+
 ## Plant 1.1.0  Release Notes
 
 v1.1.0 was released on 2/02/2018
