@@ -157,7 +157,7 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 // one-shot update of the scm variables
 void FF16_Strategy::scm_vars(const Environment& environment,
                               bool reuse_intervals,
-                              Plant_internals& vars) {
+                              FF16_internals& vars) {
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, vars.height, vars.area_leaf,
                            reuse_intervals);

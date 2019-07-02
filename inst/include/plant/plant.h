@@ -5,14 +5,15 @@
 #include <memory> // std::shared_ptr
 #include <vector>
 #include <plant/ode_interface.h>
-#include <plant/plant_internals.h>
+// #include <plant/plant_internals.h>
+#include <plant/ff16_strategy.h>
 
 namespace plant {
 
 template <typename T>
 class Plant {
 public:
-  typedef Plant_internals internals;
+  typedef FF16_internals internals;
   typedef T               strategy_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   Plant(strategy_type_ptr s)

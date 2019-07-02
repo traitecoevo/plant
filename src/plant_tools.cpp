@@ -36,7 +36,7 @@ plant::Environment fixed_environment(double canopy_openness,
 
 
 // [[Rcpp::export]]
-plant::Plant_internals
+plant::FF16_internals
 FF16_oderunner_plant_internals(
   const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy>>& obj) {
   return obj.obj.plant.r_internals();

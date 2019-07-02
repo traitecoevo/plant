@@ -52,9 +52,9 @@ template <> inline std::string generator_name<plant::interpolator::Interpolator 
 template <> inline std::string   class_name_r<plant::Environment >() {return "Environment";}
 template <> inline std::string   package_name<plant::Environment >() {return "plant";}
 template <> inline std::string generator_name<plant::Environment >() {return ".R6_Environment";}
-template <> inline std::string   class_name_r<plant::Plant_internals >() {return "Plant_internals";}
-template <> inline std::string   package_name<plant::Plant_internals >() {return "plant";}
-template <> inline std::string generator_name<plant::Plant_internals >() {return "";}
+template <> inline std::string   class_name_r<plant::FF16_internals >() {return "FF16_internals";}
+template <> inline std::string   package_name<plant::FF16_internals >() {return "plant";}
+template <> inline std::string generator_name<plant::FF16_internals >() {return "";}
 template <> inline std::string   class_name_r<plant::Plant<plant::FF16_Strategy> >() {return "Plant<FF16>";}
 template <> inline std::string   package_name<plant::Plant<plant::FF16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::Plant<plant::FF16_Strategy> >() {return ".R6_Plant___FF16";}
@@ -341,7 +341,7 @@ template <> inline SEXP wrap(const plant::Environment& x) {
 template <> inline plant::Environment as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Environment>(x));
 }
-template <> inline SEXP wrap(const plant::Plant_internals& x) {
+template <> inline SEXP wrap(const plant::FF16_internals& x) {
   Rcpp::List ret;
   ret["area_leaf"] = Rcpp::wrap(x.area_leaf);
   ret["height"] = Rcpp::wrap(x.height);
@@ -354,17 +354,17 @@ template <> inline SEXP wrap(const plant::Plant_internals& x) {
   ret["area_heartwood_dt"] = Rcpp::wrap(x.area_heartwood_dt);
   ret["mass_heartwood"] = Rcpp::wrap(x.mass_heartwood);
   ret["mass_heartwood_dt"] = Rcpp::wrap(x.mass_heartwood_dt);
-  ret.attr("class") = "Plant_internals";
+  ret.attr("class") = "FF16_internals";
   return ret;
 }
-template <> inline plant::Plant_internals as(SEXP x) {
-  if (!plant::RcppR6::is<plant::Plant_internals >(x)) {
-    Rcpp::stop("Expected an object of type Plant_internals");
+template <> inline plant::FF16_internals as(SEXP x) {
+  if (!plant::RcppR6::is<plant::FF16_internals >(x)) {
+    Rcpp::stop("Expected an object of type FF16_internals");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::Plant_internals ret;
+  plant::FF16_internals ret;
   Rcpp::List xl(x);
   // ret.area_leaf = Rcpp::as<decltype(retarea_leaf) >(xl["area_leaf"]);
   ret.area_leaf = Rcpp::as<double >(xl["area_leaf"]);

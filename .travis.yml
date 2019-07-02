@@ -12,6 +12,7 @@ env:
 branches:
   except:
     - gh-pages
+    - remove_plant_plus
 
 matrix:
   include:
