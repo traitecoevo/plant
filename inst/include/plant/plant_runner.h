@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_PLANT_RUNNER_H_
 #define PLANT_PLANT_PLANT_RUNNER_H_
 
-#include <plant/plant_plus.h>
+#include <plant/plant.h>
 #include <plant/environment.h>
 
 namespace plant {
@@ -12,12 +12,12 @@ template <typename T>
 class PlantRunner {
 public:
   typedef T strategy_type;
-  PlantRunner(PlantPlus<T> plant_, Environment environment_)
+  PlantRunner(Plant<T> plant_, Environment environment_)
     : plant(plant_), environment(environment_) {
     plant.compute_vars_phys(environment);
   }
 
-  static size_t ode_size() {return PlantPlus<T>::ode_size();}
+  static size_t ode_size() {return Plant<T>::ode_size();}
   
   double ode_time() const {return environment.time;}
   ode::const_iterator set_ode_state(ode::const_iterator it, double time) {
@@ -33,7 +33,7 @@ public:
     return plant.ode_rates(it);
   }
   
-  PlantPlus<T> plant;
+  Plant<T> plant;
   Environment environment;
 };
 

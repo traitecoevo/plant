@@ -9,11 +9,11 @@ for (x in names(strategy_types)) {
   test_that("Reference comparison", {
     s <- strategy_types[[x]]()
     pl <- Plant(x)(s)
-    pp <- PlantPlus(x)(s)
+    # pp <- PlantPlus(x)(s)
 
     expect_is(pl, sprintf("Plant<%s>",x))
-    expect_is(pp, sprintf("PlantPlus<%s>",x))
-    expect_identical(pp$strategy, s)
+    # expect_is(pp, sprintf("PlantPlus<%s>",x))
+    # expect_identical(pp$strategy, s)
     expect_identical(pl$strategy, s)
 
     ## Expected initial conditions
@@ -51,51 +51,51 @@ for (x in names(strategy_types)) {
 
     ## Compare internals
     vars_pl <- pl$internals
-    vars_pp <- pp$internals
+    # vars_pp <- pp$internals
 
     expect_is(vars_pl, "Plant_internals")
-    expect_is(vars_pp, "PlantPlus_internals")
+    # expect_is(vars_pp, "PlantPlus_internals")
 
     variable_names <- c("area_leaf", "height", "mortality", "fecundity",
                         "area_heartwood", "mass_heartwood")
     rate_names <- paste0(setdiff(variable_names, "area_leaf"), "_dt")
 
     expect_true(all(c(variable_names, rate_names) %in% names(vars_pl)))
-    expect_true(all(c(variable_names, rate_names) %in% names(vars_pp)))
-    expect_true(all(names(vars_pl) %in% names(vars_pp)))
+    # expect_true(all(c(variable_names, rate_names) %in% names(vars_pp)))
+    # expect_true(all(names(vars_pl) %in% names(vars_pp)))
 
-    expect_identical(vars_pl[variable_names], vars_pp[variable_names])
-    expect_identical(vars_pl[rate_names], vars_pp[rate_names])
+    # expect_identical(vars_pl[variable_names], vars_pp[variable_names])
+    # expect_identical(vars_pl[rate_names], vars_pp[rate_names])
 
     ## Compute the vital rates and compare them
     env <- test_environment(h0)
     light_env <- attr(env, "light_env") # underlying function
 
     pl$compute_vars_phys(env)
-    pp$compute_vars_phys(env)
+    # pp$compute_vars_phys(env)
 
-    vars_pp <- pp$internals
+    # vars_pp <- pp$internals
     vars_pl <- pl$internals
 
-    expect_equal(vars_pl[variable_names], vars_pp[variable_names])
-    expect_equal(vars_pl[rate_names], vars_pp[rate_names])
+    # expect_equal(vars_pl[variable_names], vars_pp[variable_names])
+    # expect_equal(vars_pl[rate_names], vars_pp[rate_names])
 
     ## Area_leaf_above
-    for (h in seq(0, h0, length.out=10)) {
-      expect_identical(pl$area_leaf_above(h), pp$area_leaf_above(h))
-    }
+    # for (h in seq(0, h0, length.out=10)) {
+    #   expect_identical(pl$area_leaf_above(h), pp$area_leaf_above(h))
+    # }
 
     ## Germination_probability
-    expect_identical(pl$germination_probability(env), pp$germination_probability(env))
+    # expect_identical(pl$germination_probability(env), pp$germination_probability(env))
 
     ## ode_system
     expect_identical(pl$ode_size, 5)
-    expect_identical(pp$ode_size, 5)
+    # expect_identical(pp$ode_size, 5)
 
     ode_names <- c("height", "mortality", "fecundity",
                    "area_heartwood", "mass_heartwood")
     expect_identical(pl$ode_names, ode_names)
-    expect_identical(pp$ode_names, ode_names)
+    # expect_identical(pp$ode_names, ode_names)
 
     ## ode_rates
     expect_equal(pl$ode_rates, pp$ode_rates)

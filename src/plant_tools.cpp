@@ -36,26 +36,26 @@ plant::Environment fixed_environment(double canopy_openness,
 
 
 // [[Rcpp::export]]
-plant::PlantPlus_internals
+plant::Plant_internals
 FF16_oderunner_plant_internals(
   const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy>>& obj) {
   return obj.obj.plant.r_internals();
 }
 
-// [[Rcpp::export]]
-plant::PlantPlus_internals
-FF16r_oderunner_plant_internals(
-  const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16r_Strategy>>& obj) {
-  return obj.obj.plant.r_internals();
-}
+// // [[Rcpp::export]]
+// plant::Plant_internals
+// FF16r_oderunner_plant_internals(
+//   const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16r_Strategy>>& obj) {
+//   return obj.obj.plant.r_internals();
+// }
 
 // Technical debt: (See RcppR6 #23 and plant #164)
 
-// [[Rcpp::export]]
-double FF16_lcp_whole_plant(plant::PlantPlus<plant::FF16_Strategy> p) {
-  return plant::tools::lcp_whole_plant(p);
-}
-// [[Rcpp::export]]
-double FF16r_lcp_whole_plant(plant::PlantPlus<plant::FF16r_Strategy> p) {
-  return plant::tools::lcp_whole_plant(p);
-}
+// // [[Rcpp::export]]
+// double FF16_lcp_whole_plant(plant::PlantPlus<plant::FF16_Strategy> p) {
+//   return plant::tools::lcp_whole_plant(p);
+// }
+// // [[Rcpp::export]]
+// double FF16r_lcp_whole_plant(plant::PlantPlus<plant::FF16r_Strategy> p) {
+//   return plant::tools::lcp_whole_plant(p);
+// }

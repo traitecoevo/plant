@@ -23,11 +23,11 @@
 #include <plant/cohort_schedule.h>
 
 // new physiology
-#include <plant/ff16r_strategy.h>
+// #include <plant/ff16r_strategy.h>
 
 // Getting more serious down here.
 #include <plant/plant.h>
-#include <plant/plant_plus.h>
+// #include <plant/plant_plus.h>
 
 #include <plant/cohort.h>
 #include <plant/species.h>
