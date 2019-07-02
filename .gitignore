@@ -4,3 +4,4 @@ inst/website
 *.Rhistory*
 ^plant.Rcheck$
 .Rproj.user
+src/*.o.tmp

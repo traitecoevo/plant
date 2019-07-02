@@ -22,6 +22,7 @@ RUN install2.r --error  \
     deldir \
     deSolve \
     devtools \
+    pkgbuild \
     knitr \
     nleqslv \
     numDeriv \

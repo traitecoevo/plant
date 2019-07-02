@@ -4,7 +4,7 @@ RSCRIPT = Rscript --no-init-file
 all: compile
 
 compile: RcppR6 
-	Rscript -e 'devtools::compile_dll()' \ 
+	Rscript -e 'pkgbuild::compile_dll()' \ 
 	make roxygen
 
 test:

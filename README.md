@@ -30,26 +30,26 @@ You must be using R 3.3.0 or newer. At this stage the package is not on CRAN. Yo
 
 Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, as do standard linux Ubuntu 12.04 and 14.04). On Windows machines you will need to install [Rtools](http://cran.r-project.org/bin/windows/Rtools/). When I tried this in [Rstudio](https://www.rstudio.com/), the program [automagically](https://en.oxforddictionaries.com/definition/automagically) sensed the absence of a compiler and asked if I wanted to install Rtools. Click `Yes`!
 
-**Option 1, using `devtools::install_github`**
+**Option 1, using `remotes::install_github`**
 
-(install `devtools` with `install.packages("devtools")`)
+(install `remotes` with `install.packages("remotes")`)
 
-The `plant` package can be installed direct from github using the [`devtools`](https://cran.r-project.org/web/packages/devtools/index.html) package. `plant` also requires the packages `loggr` and `RcppR6` packages. Install those with
+The `plant` package can be installed direct from github using the [`remotes`](https://cran.r-project.org/web/packages/remotes/index.html) package. `plant` also requires the packages `loggr` and `RcppR6` packages. Install those with
 
 ```r
-devtools::install_github("smbache/loggr", dependencies=TRUE)
-devtools::install_github("richfitz/RcppR6", dependencies=TRUE)
+remotes::install_github("smbache/loggr", dependencies=TRUE)
+remotes::install_github("richfitz/RcppR6", dependencies=TRUE)
 ```
 
 Then install plant:
 
 ```r
-devtools::install_github("traitecoevo/plant", dependencies=TRUE)
+remotes::install_github("traitecoevo/plant", dependencies=TRUE)
 ```
 
 **Option 2, download and install locally**
 
-If installing locally you will still need to install the `loggr` and `RcppR6` packages. Install using `devtools::install_github` as above, or alternatively do as follows.
+If installing locally you will still need to install the `loggr` and `RcppR6` packages. Install using `remotes::install_github` as above, or alternatively do as follows.
 
 Additionally install other dependencies from CRAN:
 
@@ -72,7 +72,7 @@ where `path_to_package` is the folder for each package, e.g. `~/Downloads/plant-
 To install a specific (older) release, decide for the version number that you want to install in https://github.com/traitecoevo/plant/releases  e.g.
 
 ```r
-devtools::install_github("traitecoevo/plant", ref = "v1.0.0", dependencies=TRUE)
+remotes::install_github("traitecoevo/plant", ref = "v1.0.0", dependencies=TRUE)
 ```
 
 with `"v1.0.0"` replaced by the appropriate version number.
