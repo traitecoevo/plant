@@ -281,8 +281,8 @@ Environment:
     time: {type: double, access: field}
     light_environment: {type: "plant::interpolator::Interpolator", access: field}
 
-Plant_internals:
-  name_cpp: "plant::Plant_internals"
+FF16_internals:
+  name_cpp: "plant::FF16_internals"
   list:
     - area_leaf: double
     - height: double

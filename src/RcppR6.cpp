@@ -532,8 +532,8 @@ void Environment__light_environment__set(plant::RcppR6::RcppR6<plant::Environmen
 
 
 // [[Rcpp::export]]
-SEXP Plant_internals__ctor() {
-  return Rcpp::wrap(plant::Plant_internals());
+SEXP FF16_internals__ctor() {
+  return Rcpp::wrap(plant::FF16_internals());
 }
 
 

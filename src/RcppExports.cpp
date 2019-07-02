@@ -1313,13 +1313,13 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Plant_internals__ctor
-SEXP Plant_internals__ctor();
-RcppExport SEXP _plant_Plant_internals__ctor() {
+// FF16_internals__ctor
+SEXP FF16_internals__ctor();
+RcppExport SEXP _plant_FF16_internals__ctor() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(Plant_internals__ctor());
+    rcpp_result_gen = Rcpp::wrap(FF16_internals__ctor());
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3140,7 +3140,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_oderunner_plant_internals
-plant::Plant_internals FF16_oderunner_plant_internals(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy>>& obj);
+plant::FF16_internals FF16_oderunner_plant_internals(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy>>& obj);
 RcppExport SEXP _plant_FF16_oderunner_plant_internals(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -3340,7 +3340,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Environment__time__set", (DL_FUNC) &_plant_Environment__time__set, 2},
     {"_plant_Environment__light_environment__get", (DL_FUNC) &_plant_Environment__light_environment__get, 1},
     {"_plant_Environment__light_environment__set", (DL_FUNC) &_plant_Environment__light_environment__set, 2},
-    {"_plant_Plant_internals__ctor", (DL_FUNC) &_plant_Plant_internals__ctor, 0},
+    {"_plant_FF16_internals__ctor", (DL_FUNC) &_plant_FF16_internals__ctor, 0},
     {"_plant_Plant___FF16__ctor", (DL_FUNC) &_plant_Plant___FF16__ctor, 1},
     {"_plant_Plant___FF16__area_leaf_above", (DL_FUNC) &_plant_Plant___FF16__area_leaf_above, 2},
     {"_plant_Plant___FF16__compute_vars_phys", (DL_FUNC) &_plant_Plant___FF16__compute_vars_phys, 2},

@@ -465,8 +465,8 @@ Environment__light_environment__set <- function(obj_, value) {
     invisible(.Call('_plant_Environment__light_environment__set', PACKAGE = 'plant', obj_, value))
 }
 
-Plant_internals__ctor <- function() {
-    .Call('_plant_Plant_internals__ctor', PACKAGE = 'plant')
+FF16_internals__ctor <- function() {
+    .Call('_plant_FF16_internals__ctor', PACKAGE = 'plant')
 }
 
 Plant___FF16__ctor <- function(s) {

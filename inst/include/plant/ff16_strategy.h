@@ -5,7 +5,7 @@
 #include <memory>
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
-#include <plant/plant_internals.h>
+// #include <plant/plant_internals.h>
 
 namespace plant {
 
@@ -13,6 +13,40 @@ namespace plant {
 // so there's a really awkward circular reference here.  This forward
 // declaration breaks it, but there might be a better solution.
 class Environment;
+
+// These are common to all minimal plants, for now at least.
+//
+// Moving to a more general "size" based model would be easy enough
+// but we'd need to also store height because Patch & Environment
+// between them use height to work out how far up to compute the
+// canopy openness for.  So like leaf_area being carried around we'd
+// need to carry height as well.
+struct FF16_internals {
+  FF16_internals()
+    :
+    height(NA_REAL),
+    height_dt(NA_REAL),
+    mortality(0.0),
+    mortality_dt(NA_REAL),
+    fecundity(0.0),
+    fecundity_dt(NA_REAL),
+    area_heartwood(0.0),
+    area_heartwood_dt(NA_REAL),
+    mass_heartwood(0.0),
+    mass_heartwood_dt(NA_REAL) {
+  }
+  double height;
+  double area_leaf;
+  double height_dt;
+  double mortality;
+  double mortality_dt;
+  double fecundity;
+  double fecundity_dt;
+  double area_heartwood;
+  double area_heartwood_dt;
+  double mass_heartwood;
+  double mass_heartwood_dt;
+};
 
 struct FF16_Strategy {
 public:
@@ -53,7 +87,7 @@ public:
                            double mass_sapwood, double mass_root) const;
 
   void scm_vars(const Environment& environment, bool reuse_intervals,
-                Plant_internals& vars);
+                FF16_internals& vars);
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
