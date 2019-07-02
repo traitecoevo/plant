@@ -1,12 +1,14 @@
 
 get_list_of_strategy_types <- function() {
-  list(FF16=FF16_Strategy,
-       FF16r=FF16r_Strategy)
+  # list(FF16=FF16_Strategy,
+  #      FF16r=FF16r_Strategy)
+  list(FF16=FF16_Strategy)
 }
 
 get_list_of_hyperpar_functions <- function() {
-  list(FF16=FF16_hyperpar,
-       FF16r=FF16r_hyperpar)
+  # list(FF16=FF16_hyperpar,
+  #      FF16r=FF16r_hyperpar)
+  list(FF16=FF16_hyperpar)
 }
 
 ## This makes a pretend light environment over the plant height,

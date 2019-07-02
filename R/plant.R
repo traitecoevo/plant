@@ -204,18 +204,18 @@ grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
 
 ## These are waiting on RcppR6 #23 and plant #164
 
-## This will get merged into RcppR6, so may change!
-plant_to_plant_plus <- function(x, ...) {
-  UseMethod("plant_to_plant_plus")
-}
-##' @export
-`plant_to_plant_plus.Plant<FF16>` <- function(x, ...) {
-  FF16_plant_to_plant_plus(x, ...)
-}
-##' @export
-`plant_to_plant_plus.Plant<FF16r>` <- function(x, ...) {
-  FF16r_plant_to_plant_plus(x, ...)
-}
+# ## This will get merged into RcppR6, so may change!
+# plant_to_plant_plus <- function(x, ...) {
+#   UseMethod("plant_to_plant_plus")
+# }
+# ##' @export
+# `plant_to_plant_plus.Plant<FF16>` <- function(x, ...) {
+#   FF16_plant_to_plant_plus(x, ...)
+# }
+# ##' @export
+# `plant_to_plant_plus.Plant<FF16r>` <- function(x, ...) {
+#   FF16r_plant_to_plant_plus(x, ...)
+# }
 
 ##' Compute the whole plant light compensation point for a single
 ##' plant.
@@ -224,18 +224,18 @@ plant_to_plant_plus <- function(x, ...) {
 ##' @param ... Additional arguments that are ignored
 ##' @export
 ##' @author Rich FitzJohn
-lcp_whole_plant <- function(p, ...) {
-  UseMethod("lcp_whole_plant")
-}
-##' @export
-`lcp_whole_plant.PlantPlus<FF16>` <- function(p, ...) {
-  FF16_lcp_whole_plant(p, ...)
-}
-##' @export
-`lcp_whole_plant.PlantPlus<FF16r>` <- function(p, ...) {
-  FF16r_lcp_whole_plant(p, ...)
-}
-##' @export
-lcp_whole_plant.Plant <- function(p, ...) {
-  lcp_whole_plant(plant_to_plant_plus(p, NULL))
-}
+# lcp_whole_plant <- function(p, ...) {
+#   UseMethod("lcp_whole_plant")
+# }
+# ##' @export
+# `lcp_whole_plant.PlantPlus<FF16>` <- function(p, ...) {
+#   FF16_lcp_whole_plant(p, ...)
+# }
+# ##' @export
+# `lcp_whole_plant.PlantPlus<FF16r>` <- function(p, ...) {
+#   FF16r_lcp_whole_plant(p, ...)
+# }
+# ##' @export
+# lcp_whole_plant.Plant <- function(p, ...) {
+#   lcp_whole_plant(plant_to_plant_plus(p, NULL))
+# }
