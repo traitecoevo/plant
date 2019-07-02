@@ -5,3 +5,4 @@ inst/website
 ^plant.Rcheck$
 .Rproj.user
 src/*.o.tmp
+tmp*
