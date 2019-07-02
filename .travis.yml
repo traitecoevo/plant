@@ -36,4 +36,4 @@ notifications:
   email:
     on_success: change
     on_failure: change
-  slack: bdkd:DPfom03G2FgVC9z69XMi9g4L
+  slack: traitecoevo:pYviKwrn6lAvBZUOxxktBwcO
