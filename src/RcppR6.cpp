@@ -532,14 +532,20 @@ void Environment__light_environment__set(plant::RcppR6::RcppR6<plant::Environmen
 
 
 // [[Rcpp::export]]
-SEXP FF16_internals__ctor() {
-  return Rcpp::wrap(plant::FF16_internals());
-}
-
-
-// [[Rcpp::export]]
 plant::Plant<plant::FF16_Strategy> Plant___FF16__ctor(plant::FF16_Strategy s) {
   return plant::make_plant<plant::FF16_Strategy>(s);
+}
+// [[Rcpp::export]]
+double Plant___FF16__state(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name) {
+  return obj_->state(name);
+}
+// [[Rcpp::export]]
+double Plant___FF16__rate(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name) {
+  return obj_->rate(name);
+}
+// [[Rcpp::export]]
+void Plant___FF16__set_state(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name, double v) {
+  obj_->set_state(name, v);
 }
 // [[Rcpp::export]]
 double Plant___FF16__area_leaf_above(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, double h) {
@@ -557,38 +563,6 @@ double Plant___FF16__germination_probability(plant::RcppR6::RcppR6<plant::Plant<
 void Plant___FF16__reset_mortality(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
   obj_->reset_mortality();
 }
-// [[Rcpp::export]]
-double Plant___FF16__height__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
-  return obj_->height();
-}
-// [[Rcpp::export]]
-void Plant___FF16__height__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, double value) {
-  obj_->set_height(value);
-}
-
-// [[Rcpp::export]]
-double Plant___FF16__mortality__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
-  return obj_->mortality();
-}
-// [[Rcpp::export]]
-void Plant___FF16__mortality__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, double value) {
-  obj_->set_mortality(value);
-}
-
-// [[Rcpp::export]]
-double Plant___FF16__fecundity__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
-  return obj_->fecundity();
-}
-// [[Rcpp::export]]
-void Plant___FF16__fecundity__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, double value) {
-  obj_->set_fecundity(value);
-}
-
-// [[Rcpp::export]]
-plant::FF16_Strategy Plant___FF16__strategy__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
-  return obj_->r_get_strategy();
-}
-
 // [[Rcpp::export]]
 plant::Plant<plant::FF16_Strategy>::internals Plant___FF16__internals__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
   return obj_->r_internals();
@@ -646,6 +620,12 @@ void PlantRunner___FF16__plant__set(plant::RcppR6::RcppR6<plant::tools::PlantRun
 // [[Rcpp::export]]
 SEXP FF16_Strategy__ctor() {
   return Rcpp::wrap(plant::FF16_Strategy());
+}
+
+
+// [[Rcpp::export]]
+SEXP Internals__ctor() {
+  return Rcpp::wrap(plant::Internals());
 }
 
 

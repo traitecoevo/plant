@@ -6,3 +6,4 @@ inst/website
 .Rproj.user
 src/*.o.tmp
 tmp*
+.vscode

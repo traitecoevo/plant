@@ -5,6 +5,7 @@
 #include <memory>
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
+#include <plant/internals.h> // quadrature::intervals_type
 // #include <plant/plant_internals.h>
 
 namespace plant {
@@ -14,47 +15,26 @@ namespace plant {
 // declaration breaks it, but there might be a better solution.
 class Environment;
 
-// These are common to all minimal plants, for now at least.
-//
-// Moving to a more general "size" based model would be easy enough
-// but we'd need to also store height because Patch & Environment
-// between them use height to work out how far up to compute the
-// canopy openness for.  So like leaf_area being carried around we'd
-// need to carry height as well.
-struct FF16_internals {
-  FF16_internals()
-    :
-    height(NA_REAL),
-    height_dt(NA_REAL),
-    mortality(0.0),
-    mortality_dt(NA_REAL),
-    fecundity(0.0),
-    fecundity_dt(NA_REAL),
-    area_heartwood(0.0),
-    area_heartwood_dt(NA_REAL),
-    mass_heartwood(0.0),
-    mass_heartwood_dt(NA_REAL) {
-  }
-  double height;
-  double area_leaf;
-  double height_dt;
-  double mortality;
-  double mortality_dt;
-  double fecundity;
-  double fecundity_dt;
-  double area_heartwood;
-  double area_heartwood_dt;
-  double mass_heartwood;
-  double mass_heartwood_dt;
-};
 
 struct FF16_Strategy {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
 
-  // * Size
 
+  static std::vector<std::string> state_names() {
+    return  std::vector<std::string>({
+      "height",
+      "mortality",
+      "fecundity",
+      "area_heartwood",
+      "mass_heartwood"
+      });
+  }
+  // update this when the length of state_names changes
+  static size_t state_size () { return 5; }
+  // the index of variables in the internals extra vector
+  std::map<std::string, int> state_index; 
   // [eqn 2] area_leaf (inverse of [eqn 3])
   double area_leaf(double height) const;
 
@@ -86,8 +66,9 @@ public:
   double mass_above_ground(double mass_leaf, double mass_bark,
                            double mass_sapwood, double mass_root) const;
 
+
   void scm_vars(const Environment& environment, bool reuse_intervals,
-                FF16_internals& vars);
+                Internals& vars);
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
@@ -185,7 +166,7 @@ public:
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
-  double area_leaf_above(double z, double height, double area_leaf) const;
+  double area_leaf_above(double z, double height) const;
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
@@ -255,6 +236,7 @@ public:
   double area_leaf_0;
 
   std::string name;
+  static size_t extra_size;
 };
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);

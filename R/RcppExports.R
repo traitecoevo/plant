@@ -465,12 +465,20 @@ Environment__light_environment__set <- function(obj_, value) {
     invisible(.Call('_plant_Environment__light_environment__set', PACKAGE = 'plant', obj_, value))
 }
 
-FF16_internals__ctor <- function() {
-    .Call('_plant_FF16_internals__ctor', PACKAGE = 'plant')
-}
-
 Plant___FF16__ctor <- function(s) {
     .Call('_plant_Plant___FF16__ctor', PACKAGE = 'plant', s)
+}
+
+Plant___FF16__state <- function(obj_, name) {
+    .Call('_plant_Plant___FF16__state', PACKAGE = 'plant', obj_, name)
+}
+
+Plant___FF16__rate <- function(obj_, name) {
+    .Call('_plant_Plant___FF16__rate', PACKAGE = 'plant', obj_, name)
+}
+
+Plant___FF16__set_state <- function(obj_, name, v) {
+    invisible(.Call('_plant_Plant___FF16__set_state', PACKAGE = 'plant', obj_, name, v))
 }
 
 Plant___FF16__area_leaf_above <- function(obj_, h) {
@@ -487,34 +495,6 @@ Plant___FF16__germination_probability <- function(obj_, environment) {
 
 Plant___FF16__reset_mortality <- function(obj_) {
     invisible(.Call('_plant_Plant___FF16__reset_mortality', PACKAGE = 'plant', obj_))
-}
-
-Plant___FF16__height__get <- function(obj_) {
-    .Call('_plant_Plant___FF16__height__get', PACKAGE = 'plant', obj_)
-}
-
-Plant___FF16__height__set <- function(obj_, value) {
-    invisible(.Call('_plant_Plant___FF16__height__set', PACKAGE = 'plant', obj_, value))
-}
-
-Plant___FF16__mortality__get <- function(obj_) {
-    .Call('_plant_Plant___FF16__mortality__get', PACKAGE = 'plant', obj_)
-}
-
-Plant___FF16__mortality__set <- function(obj_, value) {
-    invisible(.Call('_plant_Plant___FF16__mortality__set', PACKAGE = 'plant', obj_, value))
-}
-
-Plant___FF16__fecundity__get <- function(obj_) {
-    .Call('_plant_Plant___FF16__fecundity__get', PACKAGE = 'plant', obj_)
-}
-
-Plant___FF16__fecundity__set <- function(obj_, value) {
-    invisible(.Call('_plant_Plant___FF16__fecundity__set', PACKAGE = 'plant', obj_, value))
-}
-
-Plant___FF16__strategy__get <- function(obj_) {
-    .Call('_plant_Plant___FF16__strategy__get', PACKAGE = 'plant', obj_)
 }
 
 Plant___FF16__internals__get <- function(obj_) {
@@ -563,6 +543,10 @@ PlantRunner___FF16__plant__set <- function(obj_, value) {
 
 FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
+}
+
+Internals__ctor <- function() {
+    .Call('_plant_Internals__ctor', PACKAGE = 'plant')
 }
 
 Parameters___FF16__ctor <- function() {

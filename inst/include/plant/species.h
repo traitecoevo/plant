@@ -214,7 +214,7 @@ void Species<T>::r_set_heights(std::vector<double> heights) {
   }
   size_t i = 0;
   for (cohorts_iterator it = cohorts.begin(); it != cohorts.end(); ++it, ++i) {
-    it->plant.set_height(heights[i]);
+    it->plant.set_state("height", heights[i]);
   }
 }
 

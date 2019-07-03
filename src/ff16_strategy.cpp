@@ -91,7 +91,10 @@ FF16_Strategy::FF16_Strategy() {
   // Will get computed properly by prepare_strategy
   height_0 = NA_REAL;
   eta_c    = NA_REAL;
-
+  state_index = std::map<std::string,int>();
+  for (int i = 0; i < state_size(); i++) {
+    state_index[state_names()[i]] = i;
+  }
   name = "FF16";
 }
 
@@ -157,39 +160,39 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 // one-shot update of the scm variables
 void FF16_Strategy::scm_vars(const Environment& environment,
                               bool reuse_intervals,
-                              FF16_internals& vars) {
+                              Internals& vars) {
+
+  double height = vars.state(state_index["height"]);
+  double area_leaf_ = area_leaf(height);
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, vars.height, vars.area_leaf,
+    net_mass_production_dt(environment, height, area_leaf_,
                            reuse_intervals);
   if (net_mass_production_dt_ > 0) {
     const double fraction_allocation_reproduction_ =
-      fraction_allocation_reproduction(vars.height);
-    const double darea_leaf_dmass_live_ =
-      darea_leaf_dmass_live(vars.area_leaf);
-    const double fraction_allocation_growth_ =
-      fraction_allocation_growth(vars.height);
+      fraction_allocation_reproduction(height);
+    const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_);
+    const double fraction_allocation_growth_ = fraction_allocation_growth(height);
     const double area_leaf_dt =
       net_mass_production_dt_ * fraction_allocation_growth_ *
       darea_leaf_dmass_live_;
-    vars.height_dt =
-      dheight_darea_leaf(vars.area_leaf) * area_leaf_dt;
-    vars.fecundity_dt =
-      fecundity_dt(net_mass_production_dt_,
-                   fraction_allocation_reproduction_);
+      
+    vars.set_rate(state_index["height"], dheight_darea_leaf(area_leaf_) * area_leaf_dt);
+    vars.set_rate(state_index["fecundity"],
+      fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
-    vars.area_heartwood_dt = area_heartwood_dt(vars.area_leaf);
-    const double area_sapwood_ = area_sapwood(vars.area_leaf);
-    const double mass_sapwood_ = mass_sapwood(area_sapwood_, vars.height);
-    vars.mass_heartwood_dt = mass_heartwood_dt(mass_sapwood_);
+    vars.set_rate(state_index["area_heartwood"], area_heartwood_dt(area_leaf_));
+    const double area_sapwood_ = area_sapwood(area_leaf_);
+    const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
+    vars.set_rate(state_index["mass_heartwood"], mass_heartwood_dt(mass_sapwood_));
   } else {
-    vars.height_dt         = 0.0;
-    vars.fecundity_dt      = 0.0;
-    vars.area_heartwood_dt = 0.0;
-    vars.mass_heartwood_dt = 0.0;
+    vars.set_rate(state_index["height"], 0.0);
+    vars.set_rate(state_index["fecundity"], 0.0);
+    vars.set_rate(state_index["area_heartwood"], 0.0);
+    vars.set_rate(state_index["mass_heartwood"], 0.0);
   }
   // [eqn 21] - Instantaneous mortality rate
-  vars.mortality_dt =
-      mortality_dt(net_mass_production_dt_ / vars.area_leaf, vars.mortality);
+  vars.set_rate(state_index["mortality"],
+      mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(state_index["mortality"])));
 }
 
 // [eqn 12] Gross annual CO2 assimilation
@@ -508,9 +511,8 @@ double FF16_Strategy::germination_probability(const Environment& environment) {
   }
 }
 
-double FF16_Strategy::area_leaf_above(double z, double height,
-                                 double area_leaf) const {
-  return area_leaf * Q(z, height);
+double FF16_Strategy::area_leaf_above(double z, double height) const {
+  return area_leaf(height) * Q(z, height);
 }
 
 // [eqn  9] Probability density of leaf area at height `z`
@@ -572,5 +574,4 @@ FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s) {
   s.prepare_strategy();
   return std::make_shared<FF16_Strategy>(s);
 }
-
 }

@@ -3,116 +3,96 @@
 #define PLANT_PLANT_PLANT_MINIMAL_H_
 
 #include <memory> // std::shared_ptr
-#include <vector>
 #include <plant/ode_interface.h>
-// #include <plant/plant_internals.h>
-#include <plant/ff16_strategy.h>
+#include <vector>
+#include <plant/internals.h>
 
 namespace plant {
 
-template <typename T>
-class Plant {
+template <typename T> class Plant {
 public:
-  typedef FF16_internals internals;
-  typedef T               strategy_type;
+  typedef T strategy_type;
+  typedef Internals internals;
   typedef typename strategy_type::ptr strategy_type_ptr;
-  Plant(strategy_type_ptr s)
-    : strategy(s) {
-    set_height(strategy->height_0);
+  // for the time being...
+  Plant(strategy_type_ptr s) : strategy(s) {
+    set_state("height", strategy->height_0);
   }
 
-  double height() const {return vars.height;}
-  double height_dt() const {return vars.height_dt;}
-  void set_height(double x) {
-    vars.height    = x;
-    vars.area_leaf = strategy->area_leaf(x);
+  // useage: state("height")
+  double state(std::string name) const {
+    return vars.state(strategy->state_index[name]);
+  }
+  
+  // useage:_rate("area_heartwood")
+  double rate(std::string name) const {
+    return vars.rate(strategy->state_index[name]);
   }
 
-  double mortality() const {return vars.mortality;}
-  double mortality_dt() const {return vars.mortality_dt;}
-  void set_mortality(double x) {vars.mortality = x;}
-
-  double fecundity() const {return vars.fecundity;}
-  double fecundity_dt() const {return vars.fecundity_dt;}
-  void set_fecundity(double x) {vars.fecundity = x;}
-
-  double area_heartwood() const {return vars.area_heartwood;}
-  double area_heartwood_dt() const {return vars.area_heartwood_dt;}
-  void set_area_heartwood(double x) {vars.area_heartwood = x;}
-
-  double mass_heartwood() const {return vars.mass_heartwood;}
-  double mass_heartwood_dt() const {return vars.mass_heartwood_dt;}
-  void set_mass_heartwood(double x) {vars.mass_heartwood = x;}
+  // useage: set_state("height", 2.0)
+  void set_state(std::string name, double v) {
+    vars.set_state(strategy->state_index[name], v);
+  }
 
   double area_leaf_above(double z) const {
-    return strategy->area_leaf_above(z, vars.height, vars.area_leaf);
+    return strategy->area_leaf_above(z, state("height"));
   }
 
-  void compute_vars_phys(const Environment& environment,
-                         bool reuse_intervals=false) {
+  void compute_vars_phys(const Environment &environment,
+                         bool reuse_intervals = false) {
     strategy->scm_vars(environment, reuse_intervals, vars);
   }
-  double germination_probability(const Environment& environment) {
+  double germination_probability(const Environment &environment) {
     return strategy->germination_probability(environment);
   }
 
   // * ODE interface
-  static size_t       ode_size() {return 5;}
+  static size_t ode_size() { return 5; } // we want it to be: strategy->state_size; }
+
   ode::const_iterator set_ode_state(ode::const_iterator it) {
-    set_height(*it++);
-    set_mortality(*it++);
-    set_fecundity(*it++);
-    set_area_heartwood(*it++);
-    set_mass_heartwood(*it++);
+    for (int i = 0; i < vars.state_size; i++) {
+      vars.states[i] = *it++;
+    }
     return it;
   }
   ode::iterator ode_state(ode::iterator it) const {
-    *it++ = height();
-    *it++ = mortality();
-    *it++ = fecundity();
-    *it++ = area_heartwood();
-    *it++ = mass_heartwood();
+    for (int i = 0; i < vars.state_size; i++) {
+      *it++ = vars.states[i];
+    }
     return it;
   }
   ode::iterator ode_rates(ode::iterator it) const {
-    *it++ = height_dt();
-    *it++ = mortality_dt();
-    *it++ = fecundity_dt();
-    *it++ = area_heartwood_dt();
-    *it++ = mass_heartwood_dt();
+    for (int i = 0; i < vars.state_size; i++) {
+      *it++ = vars.rates[i];
+    }
     return it;
   }
   // Optional, but useful
-  static std::vector<std::string> ode_names() {
-    return std::vector<std::string>({"height", "mortality", "fecundity",
-          "area_heartwood", "mass_heartwood"});
-  }
+  static std::vector<std::string> ode_names() { return strategy_type::state_names(); }
 
   // Used in the stochastic model:
-  double mortality_probability() const {
-    return 1 - exp(-mortality());
-  }
-  void reset_mortality() {
-    set_mortality(0.0);
-  }
+  double mortality_probability() const { return 1 - exp(-state("mortality")); }
+  
+  void reset_mortality() { set_state("mortality", 0.0); }
 
-  std::string strategy_name() const {return strategy->name;}
+  std::string strategy_name() const { return strategy->name; }
 
   // * R interface
-  strategy_type r_get_strategy() const {return *strategy.get();}
-  internals r_internals() const {return vars;}
-  const Control& control() const {return strategy->control;}
+  strategy_type r_get_strategy() const { return *strategy.get(); }
+  // ! External R code depends on knowing r internals for like growing plant to
+  // ! height or something
+  internals r_internals() const { return vars; }
+  const Control &control() const { return strategy->control; }
 
 private:
   strategy_type_ptr strategy;
   internals vars;
 };
 
-template <typename T>
-Plant<T> make_plant(T s) {
+template <typename T> Plant<T> make_plant(T s) {
   return Plant<T>(make_strategy_ptr(s));
 }
 
-}
+} // namespace plant
 
 #endif

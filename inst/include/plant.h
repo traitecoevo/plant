@@ -28,6 +28,7 @@
 // Getting more serious down here.
 #include <plant/plant.h>
 // #include <plant/plant_plus.h>
+#include <plant/internals.h>
 
 #include <plant/cohort.h>
 #include <plant/species.h>
