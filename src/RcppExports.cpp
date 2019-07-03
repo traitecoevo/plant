@@ -1313,16 +1313,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// FF16_internals__ctor
-SEXP FF16_internals__ctor();
-RcppExport SEXP _plant_FF16_internals__ctor() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(FF16_internals__ctor());
-    return rcpp_result_gen;
-END_RCPP
-}
 // Plant___FF16__ctor
 plant::Plant<plant::FF16_Strategy> Plant___FF16__ctor(plant::FF16_Strategy s);
 RcppExport SEXP _plant_Plant___FF16__ctor(SEXP sSEXP) {
@@ -1332,6 +1322,42 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::FF16_Strategy >::type s(sSEXP);
     rcpp_result_gen = Rcpp::wrap(Plant___FF16__ctor(s));
     return rcpp_result_gen;
+END_RCPP
+}
+// Plant___FF16__state
+double Plant___FF16__state(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name);
+RcppExport SEXP _plant_Plant___FF16__state(SEXP obj_SEXP, SEXP nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(Plant___FF16__state(obj_, name));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Plant___FF16__rate
+double Plant___FF16__rate(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name);
+RcppExport SEXP _plant_Plant___FF16__rate(SEXP obj_SEXP, SEXP nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(Plant___FF16__rate(obj_, name));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Plant___FF16__set_state
+void Plant___FF16__set_state(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name, double v);
+RcppExport SEXP _plant_Plant___FF16__set_state(SEXP obj_SEXP, SEXP nameSEXP, SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
+    Rcpp::traits::input_parameter< double >::type v(vSEXP);
+    Plant___FF16__set_state(obj_, name, v);
+    return R_NilValue;
 END_RCPP
 }
 // Plant___FF16__area_leaf_above
@@ -1377,83 +1403,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
     Plant___FF16__reset_mortality(obj_);
     return R_NilValue;
-END_RCPP
-}
-// Plant___FF16__height__get
-double Plant___FF16__height__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_);
-RcppExport SEXP _plant_Plant___FF16__height__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Plant___FF16__height__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Plant___FF16__height__set
-void Plant___FF16__height__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, double value);
-RcppExport SEXP _plant_Plant___FF16__height__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Plant___FF16__height__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
-// Plant___FF16__mortality__get
-double Plant___FF16__mortality__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_);
-RcppExport SEXP _plant_Plant___FF16__mortality__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Plant___FF16__mortality__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Plant___FF16__mortality__set
-void Plant___FF16__mortality__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, double value);
-RcppExport SEXP _plant_Plant___FF16__mortality__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Plant___FF16__mortality__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
-// Plant___FF16__fecundity__get
-double Plant___FF16__fecundity__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_);
-RcppExport SEXP _plant_Plant___FF16__fecundity__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Plant___FF16__fecundity__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Plant___FF16__fecundity__set
-void Plant___FF16__fecundity__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, double value);
-RcppExport SEXP _plant_Plant___FF16__fecundity__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Plant___FF16__fecundity__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
-// Plant___FF16__strategy__get
-plant::FF16_Strategy Plant___FF16__strategy__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_);
-RcppExport SEXP _plant_Plant___FF16__strategy__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Plant___FF16__strategy__get(obj_));
-    return rcpp_result_gen;
 END_RCPP
 }
 // Plant___FF16__internals__get
@@ -1585,6 +1534,16 @@ BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     rcpp_result_gen = Rcpp::wrap(FF16_Strategy__ctor());
+    return rcpp_result_gen;
+END_RCPP
+}
+// Internals__ctor
+SEXP Internals__ctor();
+RcppExport SEXP _plant_Internals__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(Internals__ctor());
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3140,7 +3099,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_oderunner_plant_internals
-plant::FF16_internals FF16_oderunner_plant_internals(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy>>& obj);
+plant::Internals FF16_oderunner_plant_internals(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy>>& obj);
 RcppExport SEXP _plant_FF16_oderunner_plant_internals(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -3340,19 +3299,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Environment__time__set", (DL_FUNC) &_plant_Environment__time__set, 2},
     {"_plant_Environment__light_environment__get", (DL_FUNC) &_plant_Environment__light_environment__get, 1},
     {"_plant_Environment__light_environment__set", (DL_FUNC) &_plant_Environment__light_environment__set, 2},
-    {"_plant_FF16_internals__ctor", (DL_FUNC) &_plant_FF16_internals__ctor, 0},
     {"_plant_Plant___FF16__ctor", (DL_FUNC) &_plant_Plant___FF16__ctor, 1},
+    {"_plant_Plant___FF16__state", (DL_FUNC) &_plant_Plant___FF16__state, 2},
+    {"_plant_Plant___FF16__rate", (DL_FUNC) &_plant_Plant___FF16__rate, 2},
+    {"_plant_Plant___FF16__set_state", (DL_FUNC) &_plant_Plant___FF16__set_state, 3},
     {"_plant_Plant___FF16__area_leaf_above", (DL_FUNC) &_plant_Plant___FF16__area_leaf_above, 2},
     {"_plant_Plant___FF16__compute_vars_phys", (DL_FUNC) &_plant_Plant___FF16__compute_vars_phys, 2},
     {"_plant_Plant___FF16__germination_probability", (DL_FUNC) &_plant_Plant___FF16__germination_probability, 2},
     {"_plant_Plant___FF16__reset_mortality", (DL_FUNC) &_plant_Plant___FF16__reset_mortality, 1},
-    {"_plant_Plant___FF16__height__get", (DL_FUNC) &_plant_Plant___FF16__height__get, 1},
-    {"_plant_Plant___FF16__height__set", (DL_FUNC) &_plant_Plant___FF16__height__set, 2},
-    {"_plant_Plant___FF16__mortality__get", (DL_FUNC) &_plant_Plant___FF16__mortality__get, 1},
-    {"_plant_Plant___FF16__mortality__set", (DL_FUNC) &_plant_Plant___FF16__mortality__set, 2},
-    {"_plant_Plant___FF16__fecundity__get", (DL_FUNC) &_plant_Plant___FF16__fecundity__get, 1},
-    {"_plant_Plant___FF16__fecundity__set", (DL_FUNC) &_plant_Plant___FF16__fecundity__set, 2},
-    {"_plant_Plant___FF16__strategy__get", (DL_FUNC) &_plant_Plant___FF16__strategy__get, 1},
     {"_plant_Plant___FF16__internals__get", (DL_FUNC) &_plant_Plant___FF16__internals__get, 1},
     {"_plant_Plant___FF16__ode_size__get", (DL_FUNC) &_plant_Plant___FF16__ode_size__get, 1},
     {"_plant_Plant___FF16__ode_state__get", (DL_FUNC) &_plant_Plant___FF16__ode_state__get, 1},
@@ -3365,6 +3319,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_PlantRunner___FF16__plant__get", (DL_FUNC) &_plant_PlantRunner___FF16__plant__get, 1},
     {"_plant_PlantRunner___FF16__plant__set", (DL_FUNC) &_plant_PlantRunner___FF16__plant__set, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
+    {"_plant_Internals__ctor", (DL_FUNC) &_plant_Internals__ctor, 0},
     {"_plant_Parameters___FF16__ctor", (DL_FUNC) &_plant_Parameters___FF16__ctor, 0},
     {"_plant_Parameters___FF16__vdor", (DL_FUNC) &_plant_Parameters___FF16__vdor, 1},
     {"_plant_Cohort___FF16__ctor", (DL_FUNC) &_plant_Cohort___FF16__ctor, 1},

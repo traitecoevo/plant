@@ -22,7 +22,7 @@ public:
   // * R interface (testing only, really)
   double r_growth_rate_gradient(const Environment& environment);
 
-  double height() const {return plant.height();}
+  double height() const {return plant.state("height");}
   double area_leaf_above(double z) const;
   double area_leaf() const;
   double fecundity() const {return seeds_survival_weighted;}
@@ -39,14 +39,16 @@ public:
   // NOTE: We are a time-independent model here so no need to pass
   // time in as an argument.  All the bits involving time are taken
   // care of by Environment for us.
-  static size_t ode_size() {return 6;}
+  static size_t ode_size() { return strategy_type::state_size() + 2; }
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
+
   static std::vector<std::string> ode_names() {
-    return std::vector<std::string>({"height", "mortality",
-          "area_heartwood", "mass_heartwood",
-          "seeds_survival_weighted", "log_density"});
+    std::vector<std::string> plant_names = strategy_type::state_names();
+    plant_names.push_back("seeds_survival_weighted");
+    plant_names.push_back("log_density");
+    return plant_names;
   }
 
   plant_type plant;
@@ -82,12 +84,12 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
   // need mortality_dt() that's always going to be the case.
   log_density_dt =
     - growth_rate_gradient(environment)
-    - plant.mortality_dt();
+    - plant.rate("mortality");
 
   // survival_plant: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
   const double survival_patch = environment.patch_survival();
-  double survival_plant = exp(-plant.mortality());
+  double survival_plant = exp(-plant.state("mortality"));
   if (!R_FINITE(survival_plant)) {
     // This is caused by NaN values in plant.mortality and log
     // density; this should only be an issue when density is so low
@@ -97,7 +99,7 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
   }
 
   seeds_survival_weighted_dt =
-    plant.fecundity_dt() * survival_plant *
+    plant.rate("fecundity") * survival_plant *
     survival_patch / pr_patch_survival_at_birth;
 }
 
@@ -113,8 +115,8 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
 
   pr_patch_survival_at_birth = environment.patch_survival();
   const double pr_germ = plant.germination_probability(environment);
-  plant.set_mortality(-log(pr_germ));
-  const double g = plant.height_dt();
+  plant.set_state("mortality", -log(pr_germ));
+  const double g = plant.rate("height");
   const double seed_rain = environment.seed_rain_dt();
   // NOTE: log(0.0) -> -Inf, which should behave fine.
   set_log_density(g > 0 ? log(seed_rain * pr_germ / g) : log(0.0));
@@ -141,10 +143,10 @@ double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
   const Control& control = plant.control();
   const double eps = control.cohort_gradient_eps;
   if (control.cohort_gradient_richardson) {
-    return util::gradient_richardson(fun, plant.height(), eps,
+    return util::gradient_richardson(fun,  plant.state("height"), eps,
                                      control.cohort_gradient_richardson_depth);
   } else {
-    return util::gradient_fd(fun, plant.height(), eps, plant.height_dt(),
+    return util::gradient_fd(fun, plant.state("height"), eps, plant.rate("height"),
                              control.cohort_gradient_direction);
   }
 }
@@ -173,31 +175,31 @@ double Cohort<T>::area_leaf() const {
 // only Patch and above does.
 template <typename T>
 ode::const_iterator Cohort<T>::set_ode_state(ode::const_iterator it) {
-  plant.set_height(*it++);
-  plant.set_mortality(*it++);
+  plant.set_state("height", *it++);
+  plant.set_state("mortality", *it++);
   // skipping plant::fecunity, in lieu of seeds_survival_weighted
-  plant.set_area_heartwood(*it++);
-  plant.set_mass_heartwood(*it++);
+  plant.set_state("area_heartwood", *it++);
+  plant.set_state("mass_heartwood", *it++);
   seeds_survival_weighted = *it++;
   set_log_density(*it++);
   return it;
 }
 template <typename T>
 ode::iterator Cohort<T>::ode_state(ode::iterator it) const {
-  *it++ = plant.height();
-  *it++ = plant.mortality();
-  *it++ = plant.area_heartwood();
-  *it++ = plant.mass_heartwood();
+  *it++ = plant.state("height");
+  *it++ = plant.state("mortality");
+  *it++ = plant.state("area_heartwood");
+  *it++ = plant.state("mass_heartwood");
   *it++ = seeds_survival_weighted;
   *it++ = log_density;
   return it;
 }
 template <typename T>
 ode::iterator Cohort<T>::ode_rates(ode::iterator it) const {
-  *it++ = plant.height_dt();
-  *it++ = plant.mortality_dt();
-  *it++ = plant.area_heartwood_dt();
-  *it++ = plant.mass_heartwood_dt();
+  *it++ = plant.rate("height");
+  *it++ = plant.rate("mortality");
+  *it++ = plant.rate("area_heartwood");
+  *it++ = plant.rate("mass_heartwood");
   *it++ = seeds_survival_weighted_dt;
   *it++ = log_density_dt;
   return it;
@@ -211,9 +213,9 @@ Cohort<T> make_cohort(typename Cohort<T>::strategy_type s) {
 template <typename T>
 double growth_rate_given_height(T& plant, double height,
                                 const Environment& environment) {
-  plant.set_height(height);
+  plant.set_state("height", height);
   plant.compute_vars_phys(environment, true);
-  return plant.height_dt();
+  return plant.rate("height");
 }
 
 }
