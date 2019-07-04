@@ -21,7 +21,7 @@ for (x in names(strategy_types)) {
     cmp <- Cohort(x)(p$strategies[[1]])
 
     expect_equal(patch$size, 1)
-    expect_identical(patch$height_max, cmp$state("height"))
+    expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
 
     expect_is(patch$environment, "Environment")
