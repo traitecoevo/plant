@@ -22,18 +22,18 @@ public:
 
   // useage: state("height")
   double state(std::string name) const {
-    return vars.state(strategy->state_index[name]);
+    return vars.state(strategy->state_index.at(name));
   }
   
   // useage:_rate("area_heartwood")
   double rate(std::string name) const {
-    return vars.rate(strategy->state_index[name]);
+    return vars.rate(strategy->state_index.at(name));
   }
 
   // useage: set_state("height", 2.0)
   void set_state(std::string name, double v) {
     // TODO: put dependent state optimisation function here
-    vars.set_state(strategy->state_index[name], v);
+    vars.set_state(strategy->state_index.at(name), v);
   }
 
   double area_leaf_above(double z) const {

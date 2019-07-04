@@ -156,7 +156,7 @@ for (x in names(strategy_types)) {
 
   test_that("leaf area calculations", {
     s <- strategy_types[[x]]()
-    plant <- PlantPlus(x)(s)
+    plant <- Plant(x)(s)
     cohort <- Cohort(x)(s)
 
     env <- test_environment(10,

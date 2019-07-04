@@ -162,7 +162,7 @@ void FF16_Strategy::scm_vars(const Environment& environment,
                               bool reuse_intervals,
                               Internals& vars) {
 
-  double height = vars.state(state_index["height"]);
+  double height = vars.state(state_index.at("height"));
   double area_leaf_ = area_leaf(height);
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_,
@@ -176,23 +176,23 @@ void FF16_Strategy::scm_vars(const Environment& environment,
       net_mass_production_dt_ * fraction_allocation_growth_ *
       darea_leaf_dmass_live_;
       
-    vars.set_rate(state_index["height"], dheight_darea_leaf(area_leaf_) * area_leaf_dt);
-    vars.set_rate(state_index["fecundity"],
+    vars.set_rate(state_index.at("height"), dheight_darea_leaf(area_leaf_) * area_leaf_dt);
+    vars.set_rate(state_index.at("fecundity"),
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
-    vars.set_rate(state_index["area_heartwood"], area_heartwood_dt(area_leaf_));
+    vars.set_rate(state_index.at("area_heartwood"), area_heartwood_dt(area_leaf_));
     const double area_sapwood_ = area_sapwood(area_leaf_);
     const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
-    vars.set_rate(state_index["mass_heartwood"], mass_heartwood_dt(mass_sapwood_));
+    vars.set_rate(state_index.at("mass_heartwood"), mass_heartwood_dt(mass_sapwood_));
   } else {
-    vars.set_rate(state_index["height"], 0.0);
-    vars.set_rate(state_index["fecundity"], 0.0);
-    vars.set_rate(state_index["area_heartwood"], 0.0);
-    vars.set_rate(state_index["mass_heartwood"], 0.0);
+    vars.set_rate(state_index.at("height"), 0.0);
+    vars.set_rate(state_index.at("fecundity"), 0.0);
+    vars.set_rate(state_index.at("area_heartwood"), 0.0);
+    vars.set_rate(state_index.at("mass_heartwood"), 0.0);
   }
   // [eqn 21] - Instantaneous mortality rate
-  vars.set_rate(state_index["mortality"],
-      mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(state_index["mortality"])));
+  vars.set_rate(state_index.at("mortality"),
+      mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(state_index.at("mortality"))));
 }
 
 // [eqn 12] Gross annual CO2 assimilation

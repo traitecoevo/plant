@@ -41,6 +41,8 @@ for (x in names(strategy_types)) {
 
     expect_identical(pl$state("fecundity"), f0)
 
+    expect_error(pl$state("not a trait name"))
+
     ## Compare internals
     vars_pl <- pl$internals
 
