@@ -15,14 +15,14 @@ for (x in names(strategy_types)) {
     expect_is(cohort, sprintf("Cohort<%s>", x))
     expect_is(cohort$plant, sprintf("Plant<%s>", x))
 
-    env <- test_environment(2 * plant$height,
+    env <- test_environment(2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
     ## The big unknown is the growth rate gradient calculation; that is,
     ## the derivative d(dh/dt)/dh.
     growth_rate_given_height <- function(height, plant, env) {
-      plant$height <- height
+      plant$set_state("height", height)
       plant$compute_vars_phys(env)
       plant$internals[["height_dt"]]
     }
@@ -35,7 +35,7 @@ for (x in names(strategy_types)) {
 
     ## First, a quick sanity check that our little function behaves as
     ## expected:
-    expect_equal(growth_rate_given_height(plant$height, p2, env), plant$internals[["height_dt"]])
+    expect_equal(growth_rate_given_height(plant$state("height"), p2, env), plant$internals[["height_dt"]])
 
     ## With height:
     ctrl <- s$control
@@ -44,11 +44,11 @@ for (x in names(strategy_types)) {
 
     ## With a plant, manually compute the growth rate gradient using
     ## Richarson extrapolation:
-    dgdh_richardson <- numDeriv::grad(growth_rate_given_height, plant$height,
+    dgdh_richardson <- numDeriv::grad(growth_rate_given_height, plant$state("height"),
                                       plant=p2, env=env,
                                       method.args=method_args)
     ## And also using plain forward differencing:
-    dgdh_forward <- grad_forward(growth_rate_given_height, plant$height,
+    dgdh_forward <- grad_forward(growth_rate_given_height, plant$state("height"),
                                  method_args$eps, plant=p2, env=env)
 
     ## These agree, but not that much:
@@ -75,21 +75,21 @@ for (x in names(strategy_types)) {
     ## f <- function(x) {
     ##   growth_rate_given_height(x, p, env)
     ## }
-    ## dgdh3 <- test_gradient_richardson(f, p$height, ctrl$cohort_gradient_eps,
+    ## dgdh3 <- test_gradient_richardson(f, p$set_state("height", ), ctrl$cohort_gradient_eps,
     ##                                   ctrl$cohort_gradient_richardson_depth)
     ## dgdh3 - dgdh2
 
     ## This is entirely optional, but kind of nice to see.
     if (interactive()) {
-      hh <- seq(plant$height * 0.5, plant$height * 1.5, length.out=101)
+      hh <- seq(plant$state("height") * 0.5, plant$state("height") * 1.5, length.out=101)
       gr <- sapply(hh, growth_rate_given_height, p2, env)
-      p2$height <- plant$height
-      h_focus <- plant$height
-      g_focus <- growth_rate_given_height(plant$height, p2, env)
+      p2$set_state("height", plant$state("height"))
+      h_focus <- plant$state("height")
+      g_focus <- growth_rate_given_height(plant$state("height"), p2, env)
       plot(gr ~ hh, xlab="Height", ylab="Growth rate")
       points(g_focus ~ h_focus, col="red", pch=19)
       ## Intercept by solving y = m*x + c for c => (c = y - m * x).
-      abline(g_focus - dgdh * plant$height, dgdh)
+      abline(g_focus - dgdh * plant$state("height"), dgdh)
     }
 
   })
@@ -102,7 +102,7 @@ for (x in names(strategy_types)) {
     plant <- PlantPlus(x)(s)
     cohort <- Cohort(x)(s)
 
-    env <- test_environment(2 * plant$height,
+    env <- test_environment(2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
@@ -126,7 +126,7 @@ for (x in names(strategy_types)) {
     g <- plant$internals[["height_dt"]]
 
     ## Ode *values*:
-    cmp <- c(plant$height,
+    cmp <- c(plant$state("height"),
              -log(pr_germ),
              0, # area_heardwood
              0, # mass_heartwood
@@ -174,12 +174,12 @@ for (x in names(strategy_types)) {
     expect_equal(cohort$area_leaf_above(h / 2), plant$area_leaf_above(h / 2) * density)
 
     h <- 8.0
-    plant$height <- h
+    plant$set_state("height", h)
     v <- cohort$ode_state
     v[[1]] <- h
     cohort$ode_state <- v
-    expect_identical(plant$height, h)
-    expect_identical(cohort$height, h)
+    expect_identical(plant$state("height"), h)
+    expect_identical(cohort$state("height"), h)
 
     expect_equal(cohort$area_leaf, plant$area_leaf * density)
     expect_equal(cohort$area_leaf_above(h / 2), plant$area_leaf_above(h / 2) * density)

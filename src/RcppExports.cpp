@@ -1405,6 +1405,17 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Plant___FF16__strategy__get
+plant::FF16_Strategy Plant___FF16__strategy__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_);
+RcppExport SEXP _plant_Plant___FF16__strategy__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Plant___FF16__strategy__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Plant___FF16__internals__get
 plant::Internals Plant___FF16__internals__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_);
 RcppExport SEXP _plant_Plant___FF16__internals__get(SEXP obj_SEXP) {
@@ -3433,6 +3444,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Plant___FF16__compute_vars_phys", (DL_FUNC) &_plant_Plant___FF16__compute_vars_phys, 2},
     {"_plant_Plant___FF16__germination_probability", (DL_FUNC) &_plant_Plant___FF16__germination_probability, 2},
     {"_plant_Plant___FF16__reset_mortality", (DL_FUNC) &_plant_Plant___FF16__reset_mortality, 1},
+    {"_plant_Plant___FF16__strategy__get", (DL_FUNC) &_plant_Plant___FF16__strategy__get, 1},
     {"_plant_Plant___FF16__internals__get", (DL_FUNC) &_plant_Plant___FF16__internals__get, 1},
     {"_plant_Plant___FF16__ode_size__get", (DL_FUNC) &_plant_Plant___FF16__ode_size__get, 1},
     {"_plant_Plant___FF16__ode_state__get", (DL_FUNC) &_plant_Plant___FF16__ode_state__get, 1},

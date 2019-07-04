@@ -12,7 +12,7 @@ test_that("empty", {
     expect_is(patch, sprintf("StochasticPatch<%s>",x))
 
     expect_equal(patch$size, 1)
-    expect_equal(patch$height_max, 0.0)
+    expect_equal(patch$state("height")_max, 0.0)
     expect_equal(patch$canopy_openness(0), 1.0)
     expect_equal(patch$ode_state, numeric(0))
     expect_equal(patch$ode_rates, numeric(0))
@@ -37,13 +37,13 @@ test_that("non empty", {
     expect_error(patch$add_seed(10), "out of bounds")
 
     expect_true(patch$add_seed(1))
-    expect_gt(patch$height_max, 0.0)
-    expect_equal(patch$height_max, cmp$height)
+    expect_gt(patch$state("height")_max, 0.0)
+    expect_equal(patch$height_max, cmp$state("height"))
 
     expect_equal(patch$deaths(), 0)
 
     le <- patch$environment$light_environment
-    expect_equal(range(le$x), c(0.0, cmp$height))
+    expect_equal(range(le$x), c(0.0, cmp$state("height")))
     expect_equal(max(le$y), 1.0)
     expect_lt(le$y[[1]], 1.0)
 

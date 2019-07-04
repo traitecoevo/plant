@@ -16,8 +16,8 @@ test_that("empty", {
     expect_is(seed, "Plant")
     expect_is(seed, sprintf("Plant<%s>",x))
 
-    expect_equal(sp$heights, numeric(0))
-    expect_equal(sp$height_max, 0.0)
+    expect_equal(sp$state("height")s, numeric(0))
+    expect_equal(sp$state("height")_max, 0.0)
     expect_identical(sp$species, NULL)
     expect_equal(sp$plants, list())
     expect_equal(sp$is_alive, logical())
@@ -60,7 +60,7 @@ test_that("Single individual", {
     expect_equal(length(pl), 1)
     expect_equal(class(pl[[1]]), class(p))
     expect_equal(pl[[1]]$ode_state, p$ode_state)
-    expect_equal(sp$height_max, p$height)
+    expect_equal(sp$height_max, p$state("height"))
   }
 })
 
@@ -80,12 +80,12 @@ test_that("Multiple individuals", {
     expect_equal(sp$is_alive, rep(TRUE, n))
 
     hh <- sort(runif(n, sp$height_max, h), decreasing=TRUE)
-    expect_error(sp$heights <- rev(hh), "must be decreasing")
+    expect_error(sp$state("height")s <- rev(hh), "must be decreasing")
     sp$heights <- hh
-    expect_equal(sp$heights, hh)
+    expect_equal(sp$state("height")s, hh)
 
     for (i in seq_len(n)) {
-      expect_equal(sp$plant_at(i)$height, hh[[i]])
+      expect_equal(sp$plant_at(i)$state("height"), hh[[i]])
     }
 
     n_ode <- sp$plant_at(1)$ode_size
@@ -116,7 +116,7 @@ test_that("Multiple individuals", {
     expect_equal(sp$size_plants, n)
     expect_equal(sp$is_alive, seq_len(n) != i)
 
-    hh2 <- sapply(sp$plants, function(x) x$height)
+    hh2 <- sapply(sp$plants, function(x) x$state("height"))
     ## still the same:
     expect_equal(hh2, hh)
     expect_identical(sp$plant_at(j)$mortality, 0.0)

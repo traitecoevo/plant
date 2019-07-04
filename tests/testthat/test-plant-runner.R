@@ -128,7 +128,7 @@ test_that("grow_plant_to_size", {
 
     expect_equal(length(obj$plant), length(heights))
     expect_true(all(sapply(obj$plant, inherits, sprintf("Plant<%s>",x))))
-    expect_equal(sapply(obj$plant, function(p) p$height), heights, tolerance=1e-6)
+    expect_equal(sapply(obj$plant, function(p) p$state("height")), heights, tolerance=1e-6)
   }
 })
 
@@ -202,7 +202,7 @@ test_that("Sensible behaviour on integration failure", {
   pl <- FF16_Plant()
 
   env <- fixed_environment(1)
-  sizes <- seq_range(c(pl$height, 50), 50)
+  sizes <- seq_range(c(pl$state("height"), 50), 50)
   expect_warning(res <- grow_plant_to_size(pl, sizes, "height", env, 10, warn = TRUE, filter = TRUE),
                   "Time exceeded time_max")
   expect_is(res$plant, "list")
@@ -219,7 +219,7 @@ test_that("Sensible behaviour on integration failure", {
   pl <- FF16_Plant(s)
 
   env <- fixed_environment(1)
-  sizes <- seq_range(c(pl$height, 50), 50)
+  sizes <- seq_range(c(pl$state("height"), 50), 50)
   expect_warning(res <- grow_plant_to_size(pl, sizes, "height", env, 1000, warn = TRUE, filter = TRUE),
                   "50 larger sizes dropped")
   expect_equal(res$plant, list())

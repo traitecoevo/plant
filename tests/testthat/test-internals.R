@@ -29,5 +29,5 @@ test_that("Resize", {
   internals$resize(new_size = 20)
   expect_equal(internals$state_size, 20)
   expect_equal(internals$states, rep(0.0, 20))
-  expect_equal(all(is.na(ints$rates)),TRUE)
+  expect_equal(all(is.na(internals$rates)),TRUE)
 })

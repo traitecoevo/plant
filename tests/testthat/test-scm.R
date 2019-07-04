@@ -118,7 +118,7 @@ test_that("Ported from tree1", {
       while (!scm$complete > 0 && scm$time < t_max) {
         scm$run_next()
         tt <- c(tt, scm$time)
-        hh <- c(hh, list(scm$patch$species[[species_index]]$height))
+        hh <- c(hh, list(scm$patch$species[[species_index]]$state("height")))
       }
       hh <- list_to_matrix(hh)
       list(t=tt, h=hh)

@@ -45,21 +45,21 @@ test_that("Defaults", {
 
 test_that("Reference comparison", {
   s <- FF16_Strategy()
-  p <- FF16_PlantPlus(s)
+  p <- FF16_Plant(s)
 
   expect_identical(p$strategy, s)
 
   ## Set the height to something (here 10)
   h0 <- 10
-  p$height <- h0
+  p$set_state("height", h0)
 
+
+  expect_identical(p$state("height"), h0)
+
+  ## Check: Is this redundant now
+  ## We now use 
   vars <- p$internals
-
-  expect_identical(vars[["height"]], h0)
-
-
-  expect_identical(p$height, vars[["height"]])
-  expect_identical(p$area_leaf, vars[["area_leaf"]])
+  expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
 })
 
 
