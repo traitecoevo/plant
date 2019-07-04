@@ -564,6 +564,11 @@ void Plant___FF16__reset_mortality(plant::RcppR6::RcppR6<plant::Plant<plant::FF1
   obj_->reset_mortality();
 }
 // [[Rcpp::export]]
+plant::FF16_Strategy Plant___FF16__strategy__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
+  return obj_->r_get_strategy();
+}
+
+// [[Rcpp::export]]
 plant::Internals Plant___FF16__internals__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
   return obj_->r_internals();
 }

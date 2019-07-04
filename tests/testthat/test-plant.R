@@ -9,7 +9,6 @@ for (x in names(strategy_types)) {
   test_that("Reference comparison", {
     s <- strategy_types[[x]]()
     pl <- Plant(x)(s)
-    # pp <- PlantPlus(x)(s)
 
     expect_is(pl, sprintf("Plant<%s>",x))
     # expect_is(pp, sprintf("PlantPlus<%s>",x))
@@ -18,22 +17,19 @@ for (x in names(strategy_types)) {
 
     ## Expected initial conditions
     h0 <- 10
-    pl$height <- h0
-    vars_pl <- pl$internals
-    expect_true(all(is.na(vars_pl[c("height_dt", "mortality_dt",
-                                    "fecundity_dt",
-                                    "area_heartwood_dt", "mass_heartwood_dt")])))
-    for (v in c("mortality", "fecundity", "area_heartwood", "mass_heartwood")) {
-      expect_identical(vars_pl[[v]], 0.0)
+    pl$set_state("height", h0)
+
+    for(v in pl$ode_names[-1]) {
+      expect_identical(pl$state(v), 0.0)
+      expect_true(is.na(pl$rate(v)))
     }
-    expect_identical(vars_pl$height, h0)
+
+    expect_identical(pl$state("height"), h0)
 
     ## Set and get functions behave identically
-    pl$height <- h0
-    pp$height <- h0
+    pl$set_state("height", h0)
 
-    expect_identical(pl$height, h0)
-    expect_identical(pp$height, h0)
+    expect_identical(pl$state("height"), h0)
 
     m0 <- 5
     pl$mortality <- m0

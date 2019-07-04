@@ -497,6 +497,10 @@ Plant___FF16__reset_mortality <- function(obj_) {
     invisible(.Call('_plant_Plant___FF16__reset_mortality', PACKAGE = 'plant', obj_))
 }
 
+Plant___FF16__strategy__get <- function(obj_) {
+    .Call('_plant_Plant___FF16__strategy__get', PACKAGE = 'plant', obj_)
+}
+
 Plant___FF16__internals__get <- function(obj_) {
     .Call('_plant_Plant___FF16__internals__get', PACKAGE = 'plant', obj_)
 }

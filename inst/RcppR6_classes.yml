@@ -382,6 +382,8 @@ FF16_Strategy:
     - a_dG1: double
     - a_dG2: double
     - control: "plant::Control"
+# TODO: how to access these?
+#    - state_names: "std::vector<std::string>", access: field}
 
 Internals:
   name_cpp: "plant::Internals"

@@ -37,7 +37,7 @@ test_that("Reference comparison", {
 
   ## Set the height to something (here 10)
   h0 <- 10
-  p$height <- h0
+  p$set_state("height", h0)
 
   vars <- p$internals
 
@@ -52,7 +52,7 @@ test_that("Reference comparison", {
   expect_equal(vars[["area_sapwood"]], cmp$area_sapwood(h0))
   expect_equal(vars[["area_stem"]], cmp$area_stem(h0))
 
-  expect_identical(p$height, vars[["height"]])
+  expect_identical(p$state("height"), vars[["height"]])
   expect_identical(p$area_leaf, vars[["area_leaf"]])
 
   ## Heartwood function
@@ -65,8 +65,8 @@ test_that("Reference comparison", {
   ## in plant.cpp around set_height and set_mass_heartwood.  Note that
   ## when running as an ODE, this gives the *wrong answer*.
   h <- p$height
-  p$height <- h + .1 # trick plant into recomputing all size variables
-  p$height <- h
+  p$set_state("height", h + .1 # trick plant into recomputing all size variables)
+  p$set_state("height", h)
   vars <- p$internals
   expect_identical(vars[["area_heartwood"]], HA0)
   expect_equal(vars[["area_stem"]], cmp$area_stem(h0) + HA0)
@@ -114,7 +114,7 @@ test_that("Reference comparison", {
   expect_equal(vars[["fecundity_dt"]], cmp_fecundity_dt, tolerance=1e-7)
 
   ## 8. Growth rate for height
-  cmp_height_dt <- cmp$height.growth.dt(cmp$traits, h0, light_env)
+  cmp_height_dt <- cmp$state("height").growth.dt(cmp$traits, h0, light_env)
   expect_equal(vars[["height_dt"]], cmp_height_dt, tolerance=1e-7)
 
   cmp_height_dt <-
