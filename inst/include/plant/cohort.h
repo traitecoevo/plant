@@ -177,7 +177,7 @@ template <typename T>
 ode::const_iterator Cohort<T>::set_ode_state(ode::const_iterator it) {
   plant.set_state("height", *it++);
   plant.set_state("mortality", *it++);
-  // skipping plant::fecunity, in lieu of seeds_survival_weighted
+  // skipping plant::fecundity, in lieu of seeds_survival_weighted
   plant.set_state("area_heartwood", *it++);
   plant.set_state("mass_heartwood", *it++);
   seeds_survival_weighted = *it++;

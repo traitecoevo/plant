@@ -6,7 +6,7 @@ strategy_types <- get_list_of_strategy_types()
 for (x in names(strategy_types)) {
 
   context(sprintf("Cohort-%s",x))
-  test_that("Ported from tree1", {
+  test_that("setup, growth rates", {
 
     s <- strategy_types[[x]]()
     plant <- Plant(x)(s)
@@ -24,7 +24,7 @@ for (x in names(strategy_types)) {
     growth_rate_given_height <- function(height, plant, env) {
       plant$set_state("height", height)
       plant$compute_vars_phys(env)
-      plant$internals[["height_dt"]]
+      plant$rate("height")
     }
     grad_forward <- function(f, x, dx, ...) {
       (f(x + dx, ...) - f(x, ...)) / dx
@@ -35,7 +35,7 @@ for (x in names(strategy_types)) {
 
     ## First, a quick sanity check that our little function behaves as
     ## expected:
-    #expect_equal(growth_rate_given_height(plant$state("height"), p2, env), plant$internals[["height_dt"]])
+    expect_equal(growth_rate_given_height(plant$state("height"), p2, env),  plant$rate("height"))
 
     ## With height:
     ctrl <- s$control
@@ -99,8 +99,7 @@ for (x in names(strategy_types)) {
   ##   * Check that the rates computed are actually correct
   test_that("ODE interface", {
     s <- strategy_types[[x]]()
-    skip("need plant plus features integrated")
-    #plant <- PlantPlus(x)(s)
+    plant <- Plant(x)(s)
     cohort <- Cohort(x)(s)
 
     env <- test_environment(2 * plant$state("height"),
@@ -110,29 +109,32 @@ for (x in names(strategy_types)) {
     cohort$compute_initial_conditions(env)
     plant$compute_vars_phys(env)
 
-    expect_equal(cohort$ode_size, 6)
-    nms <- c("height", "mortality",
-             "area_heartwood", "mass_heartwood",
+    nms <- c(plant$ode_names, 
              "seeds_survival_weighted", "log_density")
+    expect_equal(cohort$ode_size, length(nms))
     expect_equal(cohort$ode_names, nms)
 
     ## Mortality is different because that's what Cohorts track
-    v <- setdiff(names(cohort$plant$internals), "mortality")
-    expect_equal(cohort$plant$internals[v], plant$internals[v])
+    for( v in setdiff(plant$ode_names, "mortality")) {
+      expect_equal(cohort$plant$state(v), plant$state(v))
+    }
 
     ## Set up plant too:
     pr_germ <- plant$germination_probability(env)
 
     y <- plant$ode_state
-    g <- plant$internals[["height_dt"]]
+    g <- plant$rate("height")
 
     ## Ode *values*:
     cmp <- c(plant$state("height"),
-             -log(pr_germ),
+             -log(pr_germ), # mortality
+             # TODO: how to deal with this with different
+             # ODE lengths?
              0, # area_heardwood
              0, # mass_heartwood
-             0.0, # fecundity
-             log(pr_germ * env$seed_rain_dt / g))
+             0, # seeds_survival_weighted
+             log(pr_germ * env$seed_rain_dt / g) 
+             )
     expect_equal(cohort$ode_state, cmp)
 
     expect_identical(cohort$fecundity, 0.0);
@@ -141,16 +143,27 @@ for (x in names(strategy_types)) {
     env$time <- 10
     patch_survival <- env$patch_survival
 
-    rates <- plant$internals
 
-    cmp <- c(rates[["height_dt"]],
-             rates[["mortality_dt"]],
-             rates[["area_heartwood_dt"]],
-             rates[["mass_heartwood_dt"]],
+    # rates <- plant$internals
+    # cmp <- c(rates[["height_dt"]],
+    #          rates[["mortality_dt"]],
+    #          rates[["area_heartwood_dt"]],
+    #          rates[["mass_heartwood_dt"]],
+    #          ## This is different to the approach in tree1?
+    #          rates[["fecundity_dt"]] *
+    #            patch_survival * exp(-cohort$plant$mortality),
+    #          -rates[["mortality_dt"]] - cohort$growth_rate_gradient(env))
+
+    cmp <- c(plant$rate("height"),
+             plant$rate("mortality"),
+             plant$rate("area_heartwood"),
+             plant$rate("mass_heartwood"),
              ## This is different to the approach in tree1?
-             rates[["fecundity_dt"]] *
-               patch_survival * exp(-cohort$plant$mortality),
-             -rates[["mortality_dt"]] - cohort$growth_rate_gradient(env))
+             plant$rate("fecundity") *
+               patch_survival * exp(-plant$state("mortality")),
+             -plant$rate("mortality") - cohort$growth_rate_gradient(env))
+
+   
     expect_equal(cohort$ode_rates, cmp)
   })
 
