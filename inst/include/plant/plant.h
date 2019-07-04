@@ -7,15 +7,16 @@
 #include <vector>
 #include <plant/internals.h>
 
+
 namespace plant {
 
 template <typename T> class Plant {
 public:
   typedef T strategy_type;
-  typedef Internals internals;
   typedef typename strategy_type::ptr strategy_type_ptr;
   // for the time being...
   Plant(strategy_type_ptr s) : strategy(s) {
+    vars.resize(strategy_type::state_size()); // = Internals(strategy_type::state_size());
     set_state("height", strategy->height_0);
   }
 
@@ -31,6 +32,7 @@ public:
 
   // useage: set_state("height", 2.0)
   void set_state(std::string name, double v) {
+    // TODO: put dependent state optimisation function here
     vars.set_state(strategy->state_index[name], v);
   }
 
@@ -81,12 +83,12 @@ public:
   strategy_type r_get_strategy() const { return *strategy.get(); }
   // ! External R code depends on knowing r internals for like growing plant to
   // ! height or something
-  internals r_internals() const { return vars; }
+  Internals r_internals() const { return vars; }
   const Control &control() const { return strategy->control; }
 
 private:
   strategy_type_ptr strategy;
-  internals vars;
+  Internals vars;
 };
 
 template <typename T> Plant<T> make_plant(T s) {

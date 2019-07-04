@@ -545,8 +545,52 @@ FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-Internals__ctor <- function() {
-    .Call('_plant_Internals__ctor', PACKAGE = 'plant')
+Internals__ctor <- function(s_size) {
+    .Call('_plant_Internals__ctor', PACKAGE = 'plant', s_size)
+}
+
+Internals__state <- function(obj_, i) {
+    .Call('_plant_Internals__state', PACKAGE = 'plant', obj_, i)
+}
+
+Internals__rate <- function(obj_, i) {
+    .Call('_plant_Internals__rate', PACKAGE = 'plant', obj_, i)
+}
+
+Internals__set_state <- function(obj_, i, v) {
+    invisible(.Call('_plant_Internals__set_state', PACKAGE = 'plant', obj_, i, v))
+}
+
+Internals__set_rate <- function(obj_, i, v) {
+    invisible(.Call('_plant_Internals__set_rate', PACKAGE = 'plant', obj_, i, v))
+}
+
+Internals__resize <- function(obj_, new_size) {
+    invisible(.Call('_plant_Internals__resize', PACKAGE = 'plant', obj_, new_size))
+}
+
+Internals__state_size__get <- function(obj_) {
+    .Call('_plant_Internals__state_size__get', PACKAGE = 'plant', obj_)
+}
+
+Internals__state_size__set <- function(obj_, value) {
+    invisible(.Call('_plant_Internals__state_size__set', PACKAGE = 'plant', obj_, value))
+}
+
+Internals__states__get <- function(obj_) {
+    .Call('_plant_Internals__states__get', PACKAGE = 'plant', obj_)
+}
+
+Internals__states__set <- function(obj_, value) {
+    invisible(.Call('_plant_Internals__states__set', PACKAGE = 'plant', obj_, value))
+}
+
+Internals__rates__get <- function(obj_) {
+    .Call('_plant_Internals__rates__get', PACKAGE = 'plant', obj_)
+}
+
+Internals__rates__set <- function(obj_, value) {
+    invisible(.Call('_plant_Internals__rates__set', PACKAGE = 'plant', obj_, value))
 }
 
 Parameters___FF16__ctor <- function() {
