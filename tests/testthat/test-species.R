@@ -13,13 +13,13 @@ for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
     sp <- Species(x)(s)
     seed <- Cohort(x)(s)
-    plant <- PlantPlus(x)(s)
+    plant <- Plant(x)(s)
     h0 <- seed$height
 
     expect_equal(sp$size, 0)
-    expect_identical(sp$state("height")_max, h0)
+    expect_identical(sp$height_max, h0)
     expect_identical(sp$cohorts, list())
-    expect_identical(sp$state("height")s, numeric(0))
+    expect_identical(sp$height, NULL)
     expect_identical(sp$log_densities, numeric(0))
     expect_identical(sp$area_leafs, numeric(0))
     expect_identical(sp$area_leafs_error(1.0), numeric(0))
@@ -42,7 +42,7 @@ for (x in names(strategy_types)) {
     expect_is(cohorts, "list")
     expect_equal(length(cohorts), 1)
     expect_identical(cohorts[[1]]$vars_phys, seed$vars_phys)
-    expect_equal(sp$heights, seed$state("height"))
+    expect_equal(sp$heights, seed$height)
     expect_equal(sp$log_densities, seed$log_density)
     expect_equal(sp$area_leafs, seed$area_leaf)
     ## NOTE: Didn't check ode values
@@ -61,7 +61,7 @@ for (x in names(strategy_types)) {
     sp$heights <- 1
 
     h <- 0
-    x <- c(sp$seed$height, sp$state("height")s)
+    x <- c(sp$seed$height, sp$heights)
     y <- c(sp$seed$area_leaf_above(h),
            sp$cohort_at(1)$area_leaf_above(h))
 
@@ -98,7 +98,7 @@ for (x in names(strategy_types)) {
   })
 
   cmp_area_leaf_above <- function(h, sp) {
-    x <- c(sp$heights, sp$seed$state("height"))
+    x <- c(sp$heights, sp$seed$height)
     y <- c(sapply(sp$cohorts, function(p) p$area_leaf_above(h)),
            sp$seed$area_leaf_above(h))
     trapezium(rev(x), rev(y))
@@ -110,7 +110,7 @@ for (x in names(strategy_types)) {
     sp <- Species(x)(strategy_types[[x]]())
     sp$compute_vars_phys(env)
     sp$add_seed()
-    h_top <- sp$state("height")_max * 4
+    h_top <- sp$height_max * 4
     sp$heights <- h_top
 
     ## At base and top
@@ -135,7 +135,7 @@ for (x in names(strategy_types)) {
     sp <- Species(x)(strategy_types[[x]]())
     sp$compute_vars_phys(env)
     sp$add_seed()
-    h_top <- sp$state("height")_max * 4
+    h_top <- sp$height_max * 4
     sp$add_seed()
     sp$heights <- h_top * c(1, .6)
 
@@ -161,7 +161,7 @@ for (x in names(strategy_types)) {
     sp <- Species(x)(strategy_types[[x]]())
     sp$compute_vars_phys(env)
     sp$add_seed()
-    h_top <- sp$state("height")_max * 4
+    h_top <- sp$height_max * 4
     sp$add_seed()
     sp$add_seed()
     sp$heights <- h_top * c(1, .75, .6)
@@ -179,8 +179,8 @@ for (x in names(strategy_types)) {
                             function(i) sp$cohort_at(i)$area_leaf)
     expect_identical(sp$area_leafs, cmp_area_leaf)
 
-    cmp    <- local_error_integration(sp$state("height")s, cmp_area_leaf, 1.0)
-    cmp_pi <- local_error_integration(sp$state("height")s, cmp_area_leaf, pi)
+    cmp    <- local_error_integration(sp$heights, cmp_area_leaf, 1.0)
+    cmp_pi <- local_error_integration(sp$heights, cmp_area_leaf, pi)
 
     expect_identical(sp$area_leafs_error(), cmp)
     expect_identical(sp$area_leafs_error(1.0), cmp)

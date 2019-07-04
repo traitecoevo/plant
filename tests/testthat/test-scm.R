@@ -256,7 +256,7 @@ test_that("Seed rain & error calculations correct", {
     lae_cmp <-
       scm$patch$species[[1]]$area_leafs_error(scm$patch$area_leaf_above(0))
     expect_identical(scm$area_leaf_error(1), lae_cmp)
-
+    
     int <- make_scm_integrate(scm)
     S_D <- scm$parameters$strategies[[1]]$S_D
     expect_equal(int("seeds_survival_weighted") * S_D, scm$seed_rain(1))
