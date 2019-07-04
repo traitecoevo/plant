@@ -11,7 +11,8 @@ test_that("PlantRunner", {
     pr <- PlantRunner(x)(p, env)
     expect_is(pr, sprintf("PlantRunner<%s>",x))
     expect_is(pr$plant, sprintf("Plant<%s>",x))
-    expect_identical(pr$plant$internals, p$internals)
+
+    expect_equal(pr$plant$internals, p$internals)
 
     ## This going to work with a *copy* of pr; so that won't propagate
     ## back.
@@ -20,7 +21,7 @@ test_that("PlantRunner", {
     expect_is(runner, sprintf("OdeRunner<%s>", x))
     expect_equal(runner$time, 0.0)
 
-    expect_identical((get_plant_internals_fun(p))(runner), p$internals)
+    expect_equal((get_plant_internals_fun(p))(runner), p$internals)
     
     continue_if <- function(obj) {
       obj$state[[1]] < 15
@@ -54,12 +55,12 @@ test_that("get_plant_internals_fun", {
 
     runner <- OdeRunner(x)(PlantRunner(x)(p, env))
     internals <- get_plant_internals_fun(runner$object$plant)
-    h0 <- internals(runner)[["height"]]
+    h0 <- runner$plant$state("height")
     runner$step()
     runner$step()
     runner$step()
     runner$step()
-    h1 <- internals(runner)[["height"]]
+    h1 <- runner$plant$state("height")
     expect_gt(h1, h0) ## test that plants grow
   }
 })

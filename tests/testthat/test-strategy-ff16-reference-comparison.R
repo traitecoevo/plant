@@ -31,6 +31,7 @@ test_that("FF16_Strategy parameters agree with reference model", {
 test_that("Reference comparison", {
   cmp <- make_reference_plant("FF16")
   s <- FF16_Strategy()
+  skip('reference plant is plant plus')
   p <- FF16_PlantPlus(s)
 
   expect_identical(p$strategy, s)
