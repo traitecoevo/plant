@@ -7,3 +7,4 @@ inst/website
 src/*.o.tmp
 tmp*
 .vscode
+scrap.R

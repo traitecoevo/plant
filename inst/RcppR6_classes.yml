@@ -299,7 +299,7 @@ Plant:
       details.
       @export
   active:
-    internals: {type: "plant::Plant<T>::internals", access: member, name_cpp: "r_internals"}
+    internals: {type: "plant::Internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
@@ -384,15 +384,15 @@ FF16_Strategy:
 
 Internals:
   name_cpp: "plant::Internals"
-  constructor: 
-    args: [s_size: int]
+  constructor:
+    args: [s_size: size_t]
     roxygen: |
       Internals TODO
-  list:
-    # extras include. area_leaf, area_heartwood, mass_heartwood
-    - state_size: int
-    - states: "std::vector<double>"
-    - rates: "std::vector<double>"
+      @export
+  active:
+    state_size: {type: size_t, access: field}
+    states: {type: "std::vector<double>", access: field}
+    rates: {type: "std::vector<double>", access: field}
   methods:
     state:
       args: [i: int]
@@ -402,6 +402,12 @@ Internals:
       return_type: double
     set_state:
       args: [i: int, v: double]
+      return_type: void
+    set_rate:
+      args: [i: int, v: double]
+      return_type: void
+    resize:
+      args: [new_size: size_t]
       return_type: void
 
 

@@ -12,20 +12,27 @@ namespace plant {
 
 class Internals {
 public:
-  Internals(int s_size=0)
+  Internals(size_t s_size=0)
       :
       state_size(s_size),
       states(s_size, 0.0),
       rates(s_size, NA_REAL) {
     }
-  int state_size;
+  size_t state_size;
   std::vector<double> states;
   std::vector<double> rates;
+
 
   double state(int i) const { return states[i]; }
   double  rate(int i) const { return rates[i]; }
   void set_state(int i, double v) { states[i] = v; }
   void set_rate(int i, double v) { rates[i] = v; }
+
+  void resize(size_t new_size) {
+    state_size = new_size;
+    states.resize(new_size, 0.0);
+    rates.resize(new_size, NA_REAL);
+  }
 };
 
 } // namespace plant

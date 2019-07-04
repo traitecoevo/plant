@@ -63,7 +63,7 @@ template <> inline std::string   package_name<plant::FF16_Strategy >() {return "
 template <> inline std::string generator_name<plant::FF16_Strategy >() {return "";}
 template <> inline std::string   class_name_r<plant::Internals >() {return "Internals";}
 template <> inline std::string   package_name<plant::Internals >() {return "plant";}
-template <> inline std::string generator_name<plant::Internals >() {return "";}
+template <> inline std::string generator_name<plant::Internals >() {return ".R6_Internals";}
 template <> inline std::string   class_name_r<plant::Parameters<plant::FF16_Strategy> >() {return "Parameters<FF16>";}
 template <> inline std::string   package_name<plant::Parameters<plant::FF16_Strategy> >() {return "plant";}
 template <> inline std::string generator_name<plant::Parameters<plant::FF16_Strategy> >() {return "";}
@@ -463,29 +463,10 @@ template <> inline plant::FF16_Strategy as(SEXP x) {
   return ret;
 }
 template <> inline SEXP wrap(const plant::Internals& x) {
-  Rcpp::List ret;
-  ret["state_size"] = Rcpp::wrap(x.state_size);
-  ret["states"] = Rcpp::wrap(x.states);
-  ret["rates"] = Rcpp::wrap(x.rates);
-  ret.attr("class") = "Internals";
-  return ret;
+  return wrap(plant::RcppR6::RcppR6<plant::Internals>(x));
 }
 template <> inline plant::Internals as(SEXP x) {
-  if (!plant::RcppR6::is<plant::Internals >(x)) {
-    Rcpp::stop("Expected an object of type Internals");
-    // NOTE: Won't drop through or return anything.
-  }
-  // NOTE: assumes default constructable, and will assign *every*
-  // field twice.  No current support for a hook.
-  plant::Internals ret;
-  Rcpp::List xl(x);
-  // ret.state_size = Rcpp::as<decltype(retstate_size) >(xl["state_size"]);
-  ret.state_size = Rcpp::as<int >(xl["state_size"]);
-  // ret.states = Rcpp::as<decltype(retstates) >(xl["states"]);
-  ret.states = Rcpp::as<std::vector<double> >(xl["states"]);
-  // ret.rates = Rcpp::as<decltype(retrates) >(xl["rates"]);
-  ret.rates = Rcpp::as<std::vector<double> >(xl["rates"]);
-  return ret;
+  return *(plant::RcppR6::RcppR6<plant::Internals>(x));
 }
 template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy>& x) {
   Rcpp::List ret;
