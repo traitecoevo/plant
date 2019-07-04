@@ -299,6 +299,7 @@ Plant:
       details.
       @export
   active:
+    strategy: {type: "T", access: member, name_cpp: r_get_strategy}
     internals: {type: "plant::Internals", access: member, name_cpp: "r_internals"}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
