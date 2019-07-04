@@ -31,6 +31,11 @@ public:
       "mass_heartwood"
       });
   }
+
+  // TODO : expose this so can access state_names directly
+  // In previous attempt couldn't get it to run
+  // static std::vector<std::string> state_names() { return strategy_type::state_names(); }
+
   // update this when the length of state_names changes
   static size_t state_size () { return 5; }
   // the index of variables in the internals extra vector
