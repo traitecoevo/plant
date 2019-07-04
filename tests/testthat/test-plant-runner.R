@@ -66,7 +66,6 @@ test_that("get_plant_internals_fun", {
 
 test_that("grow_plant_to_size", {
   for (x in names(strategy_types)) {
-    skip('We need plant plus features integrated')
     env <- test_environment(10)
     heights <- seq(1, 10)
     s <- strategy_types[[x]]()
@@ -138,7 +137,6 @@ test_that("grow_plant_to_size", {
 ## so that should be fairly straightforward.
 test_that("grow_plant_to_size", {
   for (x in names(strategy_types)) {
-    skip('We need plant plus features integrated')
     strategy <- strategy_types[[x]]()
     pl <- Plant(x)(strategy)
     sizes <- c(1, 5, 10, 12, strategy$hmat)
@@ -181,7 +179,6 @@ test_that("grow_plant_to_size", {
 
 test_that("grow_plant_to_time", {
   for (x in names(strategy_types)) {
-    skip('We need plant plus features integrated')
     strategy <- strategy_types[[x]]()
     pl <- Plant(x)(strategy)
     env <- fixed_environment(1.0)
@@ -201,7 +198,6 @@ test_that("grow_plant_to_time", {
 })
 
 test_that("Sensible behaviour on integration failure", {
-  skip('We need plant plus features integrated')
   pl <- FF16_Plant()
 
   env <- fixed_environment(1)

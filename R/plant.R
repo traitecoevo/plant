@@ -122,10 +122,14 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   if (length(sizes) == 0L || is.unsorted(sizes)) {
     stop("sizes must be non-empty and sorted")
   }
-  if (plant$internals[[size_name]] > sizes[[1]]) {
+  if (plant$state(size_name) > sizes[[1]]) {
     stop("Plant already bigger than smallest target size")
   }
   strategy_name <- plant$strategy_name
+
+  # TODO: size index uses index from 0
+  # can we clarify?
+  size_index <- (which(plant$ode_names == size_name) - 1)
 
   runner <- OdeRunner(strategy_name)(PlantRunner(strategy_name)(plant, env))
   internals <- get_plant_internals_fun(runner$object$plant)
@@ -156,7 +160,9 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
       break
     }
     state <- c(state, list(list(time=runner$time, state=runner$state)))
-    while (i <= n && internals(runner)[[size_name]] > sizes[[i]]) {
+
+
+    while (i <= n && internals(runner)$state(size_index) > sizes[[i]]) {
       j[[i]] <- length(state) - 1L
       i <- i + 1L
     }
@@ -186,11 +192,17 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
 ##' @noRd
 ##' @importFrom stats uniroot
 grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
+
+  
+  # TODO: size index uses index from 0
+  # can we clarify?
+  size_index <- (which(runner$object$plant$ode_names == size_name) - 1)
+
   internals <- get_plant_internals_fun(runner$object$plant)
   f <- function(t1) {
     runner$set_state(y0, t0)
     runner$step_to(t1)
-    internals(runner)[[size_name]] - size
+    internals(runner)$state(size_index) - size
   }
 
   if (is.na(t0) || is.na(t1) || any(is.na(y0))) {
