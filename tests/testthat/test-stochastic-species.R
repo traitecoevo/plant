@@ -16,8 +16,8 @@ test_that("empty", {
     expect_is(seed, "Plant")
     expect_is(seed, sprintf("Plant<%s>",x))
 
-    expect_equal(sp$state("height")s, numeric(0))
-    expect_equal(sp$state("height")_max, 0.0)
+    expect_equal(sp$heights, numeric(0))
+    expect_equal(sp$height_max, 0.0)
     expect_identical(sp$species, NULL)
     expect_equal(sp$plants, list())
     expect_equal(sp$is_alive, logical())
@@ -80,9 +80,9 @@ test_that("Multiple individuals", {
     expect_equal(sp$is_alive, rep(TRUE, n))
 
     hh <- sort(runif(n, sp$height_max, h), decreasing=TRUE)
-    expect_error(sp$state("height")s <- rev(hh), "must be decreasing")
+    expect_error(sp$heights <- rev(hh), "must be decreasing")
     sp$heights <- hh
-    expect_equal(sp$state("height")s, hh)
+    expect_equal(sp$heights, hh)
 
     for (i in seq_len(n)) {
       expect_equal(sp$plant_at(i)$state("height"), hh[[i]])
@@ -107,7 +107,7 @@ test_that("Multiple individuals", {
     sp$ode_state <- m
     expect_equal(sp$plant_at(i)$mortality_probability, 1)
     expect_equal(sp$plant_at(j)$mortality_probability, 0)
-    expect_gt(sp$plant_at(j)$mortality, 0.0)
+    expect_gt(sp$plant_at(j)$state("mortality"), 0.0)
     m[2, j] <- 0.0 # reset back to original for later comparison
 
     nd <- sp$deaths()
@@ -119,7 +119,7 @@ test_that("Multiple individuals", {
     hh2 <- sapply(sp$plants, function(x) x$state("height"))
     ## still the same:
     expect_equal(hh2, hh)
-    expect_identical(sp$plant_at(j)$mortality, 0.0)
+    expect_identical(sp$plant_at(j)$state("mortality"), 0.0)
 
     m2 <- matrix(sp$ode_state, n_ode)
     expect_equal(ncol(m2), n - 1)

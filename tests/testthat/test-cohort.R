@@ -126,15 +126,11 @@ for (x in names(strategy_types)) {
     g <- plant$rate("height")
 
     ## Ode *values*:
-    cmp <- c(plant$state("height"),
-             -log(pr_germ), # mortality
-             # TODO: how to deal with this with different
-             # ODE lengths?
-             0, # area_heardwood
-             0, # mass_heartwood
+    cmp <- c(plant$internals$states,
              0, # seeds_survival_weighted
-             log(pr_germ * env$seed_rain_dt / g) 
+             log(pr_germ * env$seed_rain_dt / g) # log density
              )
+    cmp[which(plant$ode_names == 'mortality')] <- -log(pr_germ)
     expect_equal(cohort$ode_state, cmp)
 
     expect_identical(cohort$fecundity, 0.0);
@@ -142,25 +138,10 @@ for (x in names(strategy_types)) {
     ## Ode *rates*:
     env$time <- 10
     patch_survival <- env$patch_survival
-
-
-    # rates <- plant$internals
-    # cmp <- c(rates[["height_dt"]],
-    #          rates[["mortality_dt"]],
-    #          rates[["area_heartwood_dt"]],
-    #          rates[["mass_heartwood_dt"]],
-    #          ## This is different to the approach in tree1?
-    #          rates[["fecundity_dt"]] *
-    #            patch_survival * exp(-cohort$plant$mortality),
-    #          -rates[["mortality_dt"]] - cohort$growth_rate_gradient(env))
-
-    cmp <- c(plant$rate("height"),
-             plant$rate("mortality"),
-             plant$rate("area_heartwood"),
-             plant$rate("mass_heartwood"),
+    
+    cmp <- c(plant$internals$rates,
              ## This is different to the approach in tree1?
-             plant$rate("fecundity") *
-               patch_survival * exp(-plant$state("mortality")),
+             plant$rate("fecundity") * patch_survival * exp(-plant$state("mortality")),
              -plant$rate("mortality") - cohort$growth_rate_gradient(env))
 
    
@@ -169,7 +150,7 @@ for (x in names(strategy_types)) {
 
   test_that("leaf area calculations", {
     s <- strategy_types[[x]]()
-    plant <- Plant(x)(s)
+    plant <- Plant(x)(s) 
     cohort <- Cohort(x)(s)
 
     env <- test_environment(10,
@@ -182,7 +163,8 @@ for (x in names(strategy_types)) {
     expect_equal(exp(cohort$log_density), 0.0) # zero
     expect_equal(cohort$area_leaf, 0) # zero density
     cohort$compute_initial_conditions(env)
-    expect_equal(cohort$ode_state[[6]], cohort$log_density)
+
+    expect_equal(cohort$ode_state[[cohort$ode_size]], cohort$log_density)
     density <- exp(cohort$log_density)
     expect_equal(cohort$area_leaf, plant$area_leaf_above(0.0) * density)
     expect_equal(cohort$area_leaf_above(h / 2), plant$area_leaf_above(h / 2) * density)
