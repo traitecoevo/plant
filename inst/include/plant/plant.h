@@ -16,7 +16,7 @@ public:
   typedef typename strategy_type::ptr strategy_type_ptr;
   // for the time being...
   Plant(strategy_type_ptr s) : strategy(s) {
-    vars.resize(strategy_type::state_size()); // = Internals(strategy_type::state_size());
+    vars.resize(strategy_type::state_size(), strategy_type::aux_size()); // = Internals(strategy_type::state_size());
     set_state("height", strategy->height_0);
   }
 
@@ -24,26 +24,25 @@ public:
   double state(std::string name) const {
     return vars.state(strategy->state_index.at(name));
   }
-  double state(int i) const {
-    return vars.state(i);
-  }
+  double state(int i) const { return vars.state(i); }
   
   // useage:_rate("area_heartwood")
   double rate(std::string name) const {
     return vars.rate(strategy->state_index.at(name));
   }
-  double rate(int i) const {
-    return vars.rate(i);
-  }
+  double rate(int i) const { return vars.rate(i); }
 
   // useage: set_state("height", 2.0)
   void set_state(std::string name, double v) {
     vars.set_state(strategy->state_index.at(name), v);
   }
-  void set_state(int i, double v) {
-    vars.set_state(i, v);
+  void set_state(int i, double v) { vars.set_state(i, v); }
+
+  // aux vars by name and index
+  double aux(std::string name) const {
+    return vars.auxs(strategy->aux_index.at(name));
   }
- 
+  double aux(int i) const { return vars.auxs(i); } 
 
   double area_leaf_above(double z) const {
     return strategy->area_leaf_above(z, state(HEIGHT_INDEX));
@@ -58,7 +57,9 @@ public:
   }
 
   // * ODE interface
-  static size_t ode_size() { return 5; } // we want it to be: strategy->state_size; }
+  static size_t ode_size() { return strategy_type::state_size(); }
+  static size_t aux_size() { return strategy_type::aux_size(); }
+  static size_t aux_names() { return strategy_type::aux_names(); }
 
   ode::const_iterator set_ode_state(ode::const_iterator it) {
     for (int i = 0; i < vars.state_size; i++) {

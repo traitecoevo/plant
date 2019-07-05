@@ -64,6 +64,11 @@ test_that("Reference comparison", {
 
 
 
+test_that("Critical Names", {
+  s <- FF16_Strategy()
+  my_names <- FF16_Plant(s)$ode_names
+  expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
+})
 test_that("FF16_Strategy hyper-parameterisation", {
   s <- FF16_Strategy()
 
