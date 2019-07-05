@@ -11,6 +11,7 @@ test_that("fixed_environment", {
 test_that("lcp_whole_plant", {
   for (x in names(strategy_types)) {
     ## R implementation:
+    skip('needs an ff16 plant plus strategy')
     lcp_whole_plant_R <- function(plant, ...) {
       target <- function(canopy_openness) {
         env <- fixed_environment(canopy_openness)

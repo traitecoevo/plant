@@ -290,10 +290,13 @@ patch_to_internals <- function(x, use_environment=TRUE) {
   lapply(x$species, species_to_internals, env)
 }
 
+
 species_to_internals <- function(sp, environment=NULL) {
-  sp_pp <- lapply(sp$cohorts, function(x)
-    plant_to_plant_plus(x$plant, environment))
-  ints <- do.call("rbind", lapply(sp_pp, function(x) unlist(x$internals)))
+  # Aggregate and extract plants
+  sp_p <- lapply(sp$cohorts, function(x) x$plant )
+  new_names <- c(sp_p[[1]]$ode_names, paste0(sp_p[[1]]$ode_names, '_dt'))
+  ints <- do.call("rbind", lapply(sp_p, function(x) c(x$internals$states, x$internals$rates)))
+  colnames(ints) <- new_names
   cbind(ints,
         log_density=sp$log_densities,
         seeds_survival_weighted=sp$seeds)

@@ -164,6 +164,7 @@ void FF16_Strategy::scm_vars(const Environment& environment,
 
   double height = vars.state(state_index.at("height"));
   double area_leaf_ = area_leaf(height);
+
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_,
                            reuse_intervals);

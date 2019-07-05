@@ -1,5 +1,4 @@
 context("Build_schedule")
-skip("too slow atm")
 strategy_types <- get_list_of_strategy_types()
 
 test_that("Corner case", {
