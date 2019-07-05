@@ -22,7 +22,7 @@ public:
   // * R interface (testing only, really)
   double r_growth_rate_gradient(const Environment& environment);
 
-  double height() const {return plant.state("height");}
+  double height() const {return plant.state(HEIGHT_INDEX);}
   double area_leaf_above(double z) const;
   double area_leaf() const;
   double fecundity() const {return seeds_survival_weighted;}
@@ -89,7 +89,7 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
   // survival_plant: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
   const double survival_patch = environment.patch_survival();
-  double survival_plant = exp(-plant.state("mortality"));
+  double survival_plant = exp(-plant.state(MORTALITY_INDEX));
   if (!R_FINITE(survival_plant)) {
     // This is caused by NaN values in plant.mortality and log
     // density; this should only be an issue when density is so low
@@ -143,10 +143,10 @@ double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
   const Control& control = plant.control();
   const double eps = control.cohort_gradient_eps;
   if (control.cohort_gradient_richardson) {
-    return util::gradient_richardson(fun,  plant.state("height"), eps,
+    return util::gradient_richardson(fun,  plant.state(HEIGHT_INDEX), eps,
                                      control.cohort_gradient_richardson_depth);
   } else {
-    return util::gradient_fd(fun, plant.state("height"), eps, plant.rate("height"),
+    return util::gradient_fd(fun, plant.state(HEIGHT_INDEX), eps, plant.rate("height"),
                              control.cohort_gradient_direction);
   }
 }

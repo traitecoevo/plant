@@ -20,7 +20,7 @@ public:
     set_state("height", strategy->height_0);
   }
 
-  // useage: state("height")
+  // useage: state(HEIGHT_INDEX)
   double state(std::string name) const {
     return vars.state(strategy->state_index.at(name));
   }
@@ -46,7 +46,7 @@ public:
  
 
   double area_leaf_above(double z) const {
-    return strategy->area_leaf_above(z, state("height"));
+    return strategy->area_leaf_above(z, state(HEIGHT_INDEX));
   }
 
   void compute_vars_phys(const Environment &environment,
@@ -82,7 +82,7 @@ public:
   static std::vector<std::string> ode_names() { return strategy_type::state_names(); }
 
   // Used in the stochastic model:
-  double mortality_probability() const { return 1 - exp(-state("mortality")); }
+  double mortality_probability() const { return 1 - exp(-state(MORTALITY_INDEX)); }
   
   void reset_mortality() { set_state("mortality", 0.0); }
 
