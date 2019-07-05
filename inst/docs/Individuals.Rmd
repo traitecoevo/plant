@@ -69,6 +69,7 @@ pl$ode_rates
 
 <!-- TODO: next bit is a bit vague -->
 The names of the vector are available via
+
 ```{r}
 pl$ode_names
 ```
