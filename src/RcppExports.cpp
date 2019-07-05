@@ -1549,13 +1549,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // Internals__ctor
-plant::Internals Internals__ctor(size_t s_size);
-RcppExport SEXP _plant_Internals__ctor(SEXP s_sizeSEXP) {
+plant::Internals Internals__ctor(size_t s_size, size_t a_size);
+RcppExport SEXP _plant_Internals__ctor(SEXP s_sizeSEXP, SEXP a_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< size_t >::type s_size(s_sizeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Internals__ctor(s_size));
+    Rcpp::traits::input_parameter< size_t >::type a_size(a_sizeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Internals__ctor(s_size, a_size));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1583,6 +1584,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Internals__aux
+double Internals__aux(plant::RcppR6::RcppR6<plant::Internals> obj_, int i);
+RcppExport SEXP _plant_Internals__aux(SEXP obj_SEXP, SEXP iSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Internals> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< int >::type i(iSEXP);
+    rcpp_result_gen = Rcpp::wrap(Internals__aux(obj_, i));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Internals__set_aux
+void Internals__set_aux(plant::RcppR6::RcppR6<plant::Internals> obj_, int i, double v);
+RcppExport SEXP _plant_Internals__set_aux(SEXP obj_SEXP, SEXP iSEXP, SEXP vSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Internals> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< int >::type i(iSEXP);
+    Rcpp::traits::input_parameter< double >::type v(vSEXP);
+    Internals__set_aux(obj_, i, v);
+    return R_NilValue;
+END_RCPP
+}
 // Internals__set_state
 void Internals__set_state(plant::RcppR6::RcppR6<plant::Internals> obj_, int i, double v);
 RcppExport SEXP _plant_Internals__set_state(SEXP obj_SEXP, SEXP iSEXP, SEXP vSEXP) {
@@ -1608,13 +1633,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // Internals__resize
-void Internals__resize(plant::RcppR6::RcppR6<plant::Internals> obj_, size_t new_size);
-RcppExport SEXP _plant_Internals__resize(SEXP obj_SEXP, SEXP new_sizeSEXP) {
+void Internals__resize(plant::RcppR6::RcppR6<plant::Internals> obj_, size_t new_size, size_t new_aux_size);
+RcppExport SEXP _plant_Internals__resize(SEXP obj_SEXP, SEXP new_sizeSEXP, SEXP new_aux_sizeSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Internals> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< size_t >::type new_size(new_sizeSEXP);
-    Internals__resize(obj_, new_size);
+    Rcpp::traits::input_parameter< size_t >::type new_aux_size(new_aux_sizeSEXP);
+    Internals__resize(obj_, new_size, new_aux_size);
     return R_NilValue;
 END_RCPP
 }
@@ -1637,6 +1663,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Internals> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< size_t >::type value(valueSEXP);
     Internals__state_size__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Internals__aux_size__get
+size_t Internals__aux_size__get(plant::RcppR6::RcppR6<plant::Internals> obj_);
+RcppExport SEXP _plant_Internals__aux_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Internals> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Internals__aux_size__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Internals__aux_size__set
+void Internals__aux_size__set(plant::RcppR6::RcppR6<plant::Internals> obj_, size_t value);
+RcppExport SEXP _plant_Internals__aux_size__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Internals> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< size_t >::type value(valueSEXP);
+    Internals__aux_size__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -1681,6 +1729,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Internals> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type value(valueSEXP);
     Internals__rates__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Internals__auxs__get
+std::vector<double> Internals__auxs__get(plant::RcppR6::RcppR6<plant::Internals> obj_);
+RcppExport SEXP _plant_Internals__auxs__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Internals> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Internals__auxs__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Internals__auxs__set
+void Internals__auxs__set(plant::RcppR6::RcppR6<plant::Internals> obj_, std::vector<double> value);
+RcppExport SEXP _plant_Internals__auxs__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Internals> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type value(valueSEXP);
+    Internals__auxs__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -3457,18 +3527,24 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_PlantRunner___FF16__plant__get", (DL_FUNC) &_plant_PlantRunner___FF16__plant__get, 1},
     {"_plant_PlantRunner___FF16__plant__set", (DL_FUNC) &_plant_PlantRunner___FF16__plant__set, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
-    {"_plant_Internals__ctor", (DL_FUNC) &_plant_Internals__ctor, 1},
+    {"_plant_Internals__ctor", (DL_FUNC) &_plant_Internals__ctor, 2},
     {"_plant_Internals__state", (DL_FUNC) &_plant_Internals__state, 2},
     {"_plant_Internals__rate", (DL_FUNC) &_plant_Internals__rate, 2},
+    {"_plant_Internals__aux", (DL_FUNC) &_plant_Internals__aux, 2},
+    {"_plant_Internals__set_aux", (DL_FUNC) &_plant_Internals__set_aux, 3},
     {"_plant_Internals__set_state", (DL_FUNC) &_plant_Internals__set_state, 3},
     {"_plant_Internals__set_rate", (DL_FUNC) &_plant_Internals__set_rate, 3},
-    {"_plant_Internals__resize", (DL_FUNC) &_plant_Internals__resize, 2},
+    {"_plant_Internals__resize", (DL_FUNC) &_plant_Internals__resize, 3},
     {"_plant_Internals__state_size__get", (DL_FUNC) &_plant_Internals__state_size__get, 1},
     {"_plant_Internals__state_size__set", (DL_FUNC) &_plant_Internals__state_size__set, 2},
+    {"_plant_Internals__aux_size__get", (DL_FUNC) &_plant_Internals__aux_size__get, 1},
+    {"_plant_Internals__aux_size__set", (DL_FUNC) &_plant_Internals__aux_size__set, 2},
     {"_plant_Internals__states__get", (DL_FUNC) &_plant_Internals__states__get, 1},
     {"_plant_Internals__states__set", (DL_FUNC) &_plant_Internals__states__set, 2},
     {"_plant_Internals__rates__get", (DL_FUNC) &_plant_Internals__rates__get, 1},
     {"_plant_Internals__rates__set", (DL_FUNC) &_plant_Internals__rates__set, 2},
+    {"_plant_Internals__auxs__get", (DL_FUNC) &_plant_Internals__auxs__get, 1},
+    {"_plant_Internals__auxs__set", (DL_FUNC) &_plant_Internals__auxs__set, 2},
     {"_plant_Parameters___FF16__ctor", (DL_FUNC) &_plant_Parameters___FF16__ctor, 0},
     {"_plant_Parameters___FF16__vdor", (DL_FUNC) &_plant_Parameters___FF16__vdor, 1},
     {"_plant_Cohort___FF16__ctor", (DL_FUNC) &_plant_Cohort___FF16__ctor, 1},

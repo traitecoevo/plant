@@ -21,6 +21,10 @@ public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
 
+  // update this when the length of state_names changes
+  static size_t state_size () { return 5; }
+  // update this when the length of aux_names changes
+  static size_t aux_size () { return 2; }
 
   static std::vector<std::string> state_names() {
     return  std::vector<std::string>({
@@ -31,15 +35,19 @@ public:
       "mass_heartwood"
       });
   }
+  static std::vector<std::string> aux_names() {
+    return  std::vector<std::string>({
+      "area_leaf",
+      "net_mass_production_dt"
+    });
+  }
 
   // TODO : expose this so can access state_names directly
   // In previous attempt couldn't get it to run
   // static std::vector<std::string> state_names() { return strategy_type::state_names(); }
-
-  // update this when the length of state_names changes
-  static size_t state_size () { return 5; }
   // the index of variables in the internals extra vector
   std::map<std::string, int> state_index; 
+  std::map<std::string, int> aux_index; 
   // [eqn 2] area_leaf (inverse of [eqn 3])
   double area_leaf(double height) const;
 
@@ -241,7 +249,6 @@ public:
   double area_leaf_0;
 
   std::string name;
-  static size_t extra_size;
 };
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);

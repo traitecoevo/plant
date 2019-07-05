@@ -388,14 +388,17 @@ FF16_Strategy:
 Internals:
   name_cpp: "plant::Internals"
   constructor:
-    args: [s_size: size_t]
+    args: [s_size: size_t, a_size: size_t]
     roxygen: |
-      Internals TODO
+      Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
+      which is calculated from the state through running compute_vars_phys
       @export
   active:
     state_size: {type: size_t, access: field}
+    aux_size: {type: size_t, access: field}
     states: {type: "std::vector<double>", access: field}
     rates: {type: "std::vector<double>", access: field}
+    auxs: {type: "std::vector<double>", access: field}
   methods:
     state:
       args: [i: int]
@@ -403,6 +406,12 @@ Internals:
     rate:
       args: [i: int]
       return_type: double
+    aux:
+      args: [i: int]
+      return_type: double
+    set_aux:
+      args: [i: int, v: double]
+      return_type: void
     set_state:
       args: [i: int, v: double]
       return_type: void
@@ -410,7 +419,7 @@ Internals:
       args: [i: int, v: double]
       return_type: void
     resize:
-      args: [new_size: size_t]
+      args: [new_size: size_t, new_aux_size: size_t]
       return_type: void
 
 

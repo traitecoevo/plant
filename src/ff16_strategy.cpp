@@ -91,9 +91,15 @@ FF16_Strategy::FF16_Strategy() {
   // Will get computed properly by prepare_strategy
   height_0 = NA_REAL;
   eta_c    = NA_REAL;
+  
+  // Create and fill the name to state index maps
   state_index = std::map<std::string,int>();
+  aux_index   = std::map<std::string,int>();
   for (int i = 0; i < state_size(); i++) {
     state_index[state_names()[i]] = i;
+  }
+  for (int i = 0; i < aux_size(); i++) {
+    aux_index[aux_names()[i]] = i;
   }
   name = "FF16";
 }
@@ -165,8 +171,16 @@ void FF16_Strategy::compute_vars_phys(const Environment& environment,
   double height = vars.state(HEIGHT_INDEX);
   double area_leaf_ = area_leaf(height);
 
+
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_, reuse_intervals);
+
+  // store the aux sate
+  if (vars.aux_size != 0) {
+    vars.set_aux(aux_index.at("area_leaf"), area_leaf_);
+    vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
+  }
+
   if (net_mass_production_dt_ > 0) {
     
     const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);

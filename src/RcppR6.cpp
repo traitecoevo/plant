@@ -629,8 +629,8 @@ SEXP FF16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::Internals Internals__ctor(size_t s_size) {
-  return plant::Internals(s_size);
+plant::Internals Internals__ctor(size_t s_size, size_t a_size) {
+  return plant::Internals(s_size, a_size);
 }
 // [[Rcpp::export]]
 double Internals__state(plant::RcppR6::RcppR6<plant::Internals> obj_, int i) {
@@ -641,6 +641,14 @@ double Internals__rate(plant::RcppR6::RcppR6<plant::Internals> obj_, int i) {
   return obj_->rate(i);
 }
 // [[Rcpp::export]]
+double Internals__aux(plant::RcppR6::RcppR6<plant::Internals> obj_, int i) {
+  return obj_->aux(i);
+}
+// [[Rcpp::export]]
+void Internals__set_aux(plant::RcppR6::RcppR6<plant::Internals> obj_, int i, double v) {
+  obj_->set_aux(i, v);
+}
+// [[Rcpp::export]]
 void Internals__set_state(plant::RcppR6::RcppR6<plant::Internals> obj_, int i, double v) {
   obj_->set_state(i, v);
 }
@@ -649,8 +657,8 @@ void Internals__set_rate(plant::RcppR6::RcppR6<plant::Internals> obj_, int i, do
   obj_->set_rate(i, v);
 }
 // [[Rcpp::export]]
-void Internals__resize(plant::RcppR6::RcppR6<plant::Internals> obj_, size_t new_size) {
-  obj_->resize(new_size);
+void Internals__resize(plant::RcppR6::RcppR6<plant::Internals> obj_, size_t new_size, size_t new_aux_size) {
+  obj_->resize(new_size, new_aux_size);
 }
 // [[Rcpp::export]]
 size_t Internals__state_size__get(plant::RcppR6::RcppR6<plant::Internals> obj_) {
@@ -659,6 +667,15 @@ size_t Internals__state_size__get(plant::RcppR6::RcppR6<plant::Internals> obj_) 
 // [[Rcpp::export]]
 void Internals__state_size__set(plant::RcppR6::RcppR6<plant::Internals> obj_, size_t value) {
   obj_->state_size = value;
+}
+
+// [[Rcpp::export]]
+size_t Internals__aux_size__get(plant::RcppR6::RcppR6<plant::Internals> obj_) {
+  return obj_->aux_size;
+}
+// [[Rcpp::export]]
+void Internals__aux_size__set(plant::RcppR6::RcppR6<plant::Internals> obj_, size_t value) {
+  obj_->aux_size = value;
 }
 
 // [[Rcpp::export]]
@@ -677,6 +694,15 @@ std::vector<double> Internals__rates__get(plant::RcppR6::RcppR6<plant::Internals
 // [[Rcpp::export]]
 void Internals__rates__set(plant::RcppR6::RcppR6<plant::Internals> obj_, std::vector<double> value) {
   obj_->rates = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Internals__auxs__get(plant::RcppR6::RcppR6<plant::Internals> obj_) {
+  return obj_->auxs;
+}
+// [[Rcpp::export]]
+void Internals__auxs__set(plant::RcppR6::RcppR6<plant::Internals> obj_, std::vector<double> value) {
+  obj_->auxs = value;
 }
 
 
