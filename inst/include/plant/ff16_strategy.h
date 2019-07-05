@@ -72,7 +72,7 @@ public:
                            double mass_sapwood, double mass_root) const;
 
 
-  void scm_vars(const Environment& environment, bool reuse_intervals,
+  void compute_vars_phys(const Environment& environment, bool reuse_intervals,
                 Internals& vars);
 
   // * Mass production
