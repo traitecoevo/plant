@@ -2,6 +2,10 @@
 #ifndef PLANT_PLANT_INTERNALS_MINIMAL_H_
 #define PLANT_PLANT_INTERNALS_MINIMAL_H_
 
+#define HEIGHT_INDEX 0
+#define MORTALITY_INDEX 1
+#define FECUNDITY_INDEX 2
+
 #include <memory> // std::shared_ptr
 #include <plant/ode_interface.h>
 #include <vector>

@@ -162,7 +162,7 @@ void FF16_Strategy::compute_vars_phys(const Environment& environment,
                               bool reuse_intervals,
                               Internals& vars) {
 
-  double height = vars.state(state_index.at("height"));
+  double height = vars.state(HEIGHT_INDEX);
   double area_leaf_ = area_leaf(height);
 
   const double net_mass_production_dt_ =
@@ -174,8 +174,8 @@ void FF16_Strategy::compute_vars_phys(const Environment& environment,
     const double fraction_allocation_growth_ = fraction_allocation_growth(height);
     const double area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
       
-    vars.set_rate(state_index.at("height"), dheight_darea_leaf(area_leaf_) * area_leaf_dt);
-    vars.set_rate(state_index.at("fecundity"),
+    vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
+    vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
     vars.set_rate(state_index.at("area_heartwood"), area_heartwood_dt(area_leaf_));
@@ -183,14 +183,14 @@ void FF16_Strategy::compute_vars_phys(const Environment& environment,
     const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
     vars.set_rate(state_index.at("mass_heartwood"), mass_heartwood_dt(mass_sapwood_));
   } else {
-    vars.set_rate(state_index.at("height"), 0.0);
-    vars.set_rate(state_index.at("fecundity"), 0.0);
+    vars.set_rate(HEIGHT_INDEX, 0.0);
+    vars.set_rate(FECUNDITY_INDEX, 0.0);
     vars.set_rate(state_index.at("area_heartwood"), 0.0);
     vars.set_rate(state_index.at("mass_heartwood"), 0.0);
   }
   // [eqn 21] - Instantaneous mortality rate
-  vars.set_rate(state_index.at("mortality"),
-      mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(state_index.at("mortality"))));
+  vars.set_rate(MORTALITY_INDEX,
+      mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(MORTALITY_INDEX)));
 }
 
 // [eqn 12] Gross annual CO2 assimilation

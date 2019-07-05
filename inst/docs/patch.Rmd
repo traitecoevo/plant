@@ -28,6 +28,8 @@ First, with a single species:
 p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FALSE)
 ```
 
+<!-- TODO: should really start here using a patch with fixed seed rain -->
+
 Run everything out to equilibrium:
 
 ```{r}
