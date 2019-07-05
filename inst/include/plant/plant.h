@@ -51,7 +51,7 @@ public:
 
   void compute_vars_phys(const Environment &environment,
                          bool reuse_intervals = false) {
-    strategy->scm_vars(environment, reuse_intervals, vars);
+    strategy->compute_vars_phys(environment, reuse_intervals, vars);
   }
   double germination_probability(const Environment &environment) {
     return strategy->germination_probability(environment);

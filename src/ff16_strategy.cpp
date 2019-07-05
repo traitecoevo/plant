@@ -158,7 +158,7 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 }
 
 // one-shot update of the scm variables
-void FF16_Strategy::scm_vars(const Environment& environment,
+void FF16_Strategy::compute_vars_phys(const Environment& environment,
                               bool reuse_intervals,
                               Internals& vars) {
 
@@ -166,16 +166,13 @@ void FF16_Strategy::scm_vars(const Environment& environment,
   double area_leaf_ = area_leaf(height);
 
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height, area_leaf_,
-                           reuse_intervals);
+    net_mass_production_dt(environment, height, area_leaf_, reuse_intervals);
   if (net_mass_production_dt_ > 0) {
-    const double fraction_allocation_reproduction_ =
-      fraction_allocation_reproduction(height);
+    
+    const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
     const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_);
     const double fraction_allocation_growth_ = fraction_allocation_growth(height);
-    const double area_leaf_dt =
-      net_mass_production_dt_ * fraction_allocation_growth_ *
-      darea_leaf_dmass_live_;
+    const double area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
       
     vars.set_rate(state_index.at("height"), dheight_darea_leaf(area_leaf_) * area_leaf_dt);
     vars.set_rate(state_index.at("fecundity"),
@@ -319,7 +316,7 @@ double FF16_Strategy::net_mass_production_dt_A(double assimilation, double respi
 }
 
 // One shot calculation of net_mass_production_dt
-// Used by germination_probability() and scm_vars().
+// Used by germination_probability() and compute_vars_phys().
 double FF16_Strategy::net_mass_production_dt(const Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals) {
