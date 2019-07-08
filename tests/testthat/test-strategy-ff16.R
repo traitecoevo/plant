@@ -32,7 +32,8 @@ test_that("Defaults", {
     rho    = 608,
     omega  = 3.8e-5,
     theta  = 1.0/4669,
-    control = Control())
+    control = Control(),
+    all_aux = FALSE)
 
   keys <- sort(names(expected))
 
