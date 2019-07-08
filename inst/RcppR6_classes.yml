@@ -331,6 +331,9 @@ Plant:
     germination_probability:
       args: [environment: "const plant::Environment&"]
       return_type: double
+    net_mass_production_dt:
+      args: [environment: "const plant::Environment&"]
+      return_type: double
     reset_mortality:
       return_type: void
 

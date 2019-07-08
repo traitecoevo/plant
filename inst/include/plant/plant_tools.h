@@ -14,7 +14,7 @@ double lcp_whole_plant(Plant<T> p) {
   auto target = [&] (double x) mutable -> double {
     Environment env = fixed_environment(x);
     p.compute_vars_phys(env);
-    return p.net_mass_production_dt();
+    return p.net_mass_production_dt(env);
   };
 
   const double f1 = target(1.0);

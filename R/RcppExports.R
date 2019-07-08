@@ -497,6 +497,10 @@ Plant___FF16__germination_probability <- function(obj_, environment) {
     .Call('_plant_Plant___FF16__germination_probability', PACKAGE = 'plant', obj_, environment)
 }
 
+Plant___FF16__net_mass_production_dt <- function(obj_, environment) {
+    .Call('_plant_Plant___FF16__net_mass_production_dt', PACKAGE = 'plant', obj_, environment)
+}
+
 Plant___FF16__reset_mortality <- function(obj_) {
     invisible(.Call('_plant_Plant___FF16__reset_mortality', PACKAGE = 'plant', obj_))
 }
@@ -1200,6 +1204,10 @@ fixed_environment <- function(canopy_openness, height_max = 150.0) {
 
 FF16_oderunner_plant_internals <- function(obj) {
     .Call('_plant_FF16_oderunner_plant_internals', PACKAGE = 'plant', obj)
+}
+
+FF16_lcp_whole_plant <- function(p) {
+    .Call('_plant_FF16_lcp_whole_plant', PACKAGE = 'plant', p)
 }
 
 #' Generate a suitable set of default cohort introduction times,

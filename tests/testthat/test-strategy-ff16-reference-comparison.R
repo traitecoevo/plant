@@ -166,6 +166,8 @@ test_that("Reference comparison", {
   cmp_diameter_stem_dt <- cmp$diameter_stem_dt(cmp$traits, h0, light_env)
   # expect_equal(p$rate("diameter_stem"), cmp_diameter_stem_dt, tolerance=1e-7)
 
+  ## TODO: add lcp_whole_plant test to refference comparison
+
   ## Check that height decomposition multiplies out to give right
   ## answer
   # cmp <- prod(unlist(vars[c("dheight_darea_leaf",

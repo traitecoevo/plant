@@ -1407,6 +1407,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Plant___FF16__net_mass_production_dt
+double Plant___FF16__net_mass_production_dt(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP _plant_Plant___FF16__net_mass_production_dt(SEXP obj_SEXP, SEXP environmentSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
+    rcpp_result_gen = Rcpp::wrap(Plant___FF16__net_mass_production_dt(obj_, environment));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Plant___FF16__reset_mortality
 void Plant___FF16__reset_mortality(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_);
 RcppExport SEXP _plant_Plant___FF16__reset_mortality(SEXP obj_SEXP) {
@@ -3350,6 +3362,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_lcp_whole_plant
+double FF16_lcp_whole_plant(plant::Plant<plant::FF16_Strategy> p);
+RcppExport SEXP _plant_FF16_lcp_whole_plant(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::Plant<plant::FF16_Strategy> >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_lcp_whole_plant(p));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cohort_schedule_times_default
 std::vector<double> cohort_schedule_times_default(double max_time);
 RcppExport SEXP _plant_cohort_schedule_times_default(SEXP max_timeSEXP) {
@@ -3548,6 +3571,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Plant___FF16__area_leaf_above", (DL_FUNC) &_plant_Plant___FF16__area_leaf_above, 2},
     {"_plant_Plant___FF16__compute_vars_phys", (DL_FUNC) &_plant_Plant___FF16__compute_vars_phys, 2},
     {"_plant_Plant___FF16__germination_probability", (DL_FUNC) &_plant_Plant___FF16__germination_probability, 2},
+    {"_plant_Plant___FF16__net_mass_production_dt", (DL_FUNC) &_plant_Plant___FF16__net_mass_production_dt, 2},
     {"_plant_Plant___FF16__reset_mortality", (DL_FUNC) &_plant_Plant___FF16__reset_mortality, 1},
     {"_plant_Plant___FF16__strategy__get", (DL_FUNC) &_plant_Plant___FF16__strategy__get, 1},
     {"_plant_Plant___FF16__internals__get", (DL_FUNC) &_plant_Plant___FF16__internals__get, 1},
@@ -3722,6 +3746,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_test_gradient_richardson", (DL_FUNC) &_plant_test_gradient_richardson, 4},
     {"_plant_fixed_environment", (DL_FUNC) &_plant_fixed_environment, 2},
     {"_plant_FF16_oderunner_plant_internals", (DL_FUNC) &_plant_FF16_oderunner_plant_internals, 1},
+    {"_plant_FF16_lcp_whole_plant", (DL_FUNC) &_plant_FF16_lcp_whole_plant, 1},
     {"_plant_cohort_schedule_times_default", (DL_FUNC) &_plant_cohort_schedule_times_default, 1},
     {"_plant_test_uniroot", (DL_FUNC) &_plant_test_uniroot, 3},
     {"_plant_trapezium", (DL_FUNC) &_plant_trapezium, 2},
