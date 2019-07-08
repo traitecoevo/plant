@@ -16,15 +16,16 @@ namespace plant {
 class Environment;
 
 
-struct FF16_Strategy {
+class FF16_Strategy {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
+  FF16_Strategy(bool all_aux_);
 
   // update this when the length of state_names changes
   static size_t state_size () { return 5; }
   // update this when the length of aux_names changes
-  static size_t aux_size () { return 2; }
+  size_t aux_size () { return aux_names().size(); }
 
   static std::vector<std::string> state_names() {
     return  std::vector<std::string>({
@@ -35,11 +36,17 @@ public:
       "mass_heartwood"
       });
   }
-  static std::vector<std::string> aux_names() {
-    return  std::vector<std::string>({
+
+  std::vector<std::string> aux_names() {
+    std::vector<std::string> ret({
       "area_leaf",
       "net_mass_production_dt"
     });
+    // add the associated computation to compute_vars_phys and compute there
+    if (all_aux) {
+      ret.push_back("area_sapwood");
+    }
+    return ret;
   }
 
   // TODO : expose this so can access state_names directly
@@ -48,8 +55,13 @@ public:
   // the index of variables in the internals extra vector
   std::map<std::string, int> state_index; 
   std::map<std::string, int> aux_index; 
+  
+  bool all_aux;
   // [eqn 2] area_leaf (inverse of [eqn 3])
   double area_leaf(double height) const;
+
+  void refresh_indices();
+  void collect_all_auxillary ();
 
   // [eqn 1] mass_leaf (inverse of [eqn 2])
   double mass_leaf(double area_leaf) const;

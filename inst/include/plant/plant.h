@@ -16,7 +16,7 @@ public:
   typedef typename strategy_type::ptr strategy_type_ptr;
   // for the time being...
   Plant(strategy_type_ptr s) : strategy(s) {
-    vars.resize(strategy_type::state_size(), strategy_type::aux_size()); // = Internals(strategy_type::state_size());
+    vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
     set_state("height", strategy->height_0);
   }
 
@@ -69,9 +69,10 @@ public:
 
   // * ODE interface
   static size_t ode_size() { return strategy_type::state_size(); }
-  static size_t aux_size() { return strategy_type::aux_size(); }
-  static std::vector<std::string> aux_names() { return strategy_type::aux_names(); }
   static std::vector<std::string> ode_names() { return strategy_type::state_names(); }
+
+  size_t aux_size() { return strategy->aux_size(); }
+  std::vector<std::string> aux_names() { return strategy->aux_names(); }
 
   ode::const_iterator set_ode_state(ode::const_iterator it) {
     for (int i = 0; i < vars.state_size; i++) {
