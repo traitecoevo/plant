@@ -163,21 +163,29 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
   return mass_leaf + mass_bark + mass_sapwood + mass_root;
 }
 
+// for updating auxillary state
+void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
+  if (index == HEIGHT_INDEX) {
+    double height = vars.state(HEIGHT_INDEX);
+    vars.set_aux(aux_index.at("area_leaf"), area_leaf(height));
+  }
+}
+
+
 // one-shot update of the scm variables
+// i.e. setting rates of ode vars from the state and updating aux vars
 void FF16_Strategy::compute_vars_phys(const Environment& environment,
                               bool reuse_intervals,
                               Internals& vars) {
 
   double height = vars.state(HEIGHT_INDEX);
-  double area_leaf_ = area_leaf(height);
-
+  double area_leaf_ = vars.aux(aux_index.at("area_leaf"));
 
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_, reuse_intervals);
 
   // store the aux sate
   if (vars.aux_size != 0) {
-    vars.set_aux(aux_index.at("area_leaf"), area_leaf_);
     vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
   }
 
@@ -523,9 +531,9 @@ double FF16_Strategy::germination_probability(const Environment& environment) {
   }
 }
 
-double FF16_Strategy::area_leaf_above(double z, double height) const {
+double FF16_Strategy::area_leaf_above(double z, double height, double area_leaf) const {
   // TODO: MODIFY THIS SO WE PASS THE AREA_LEAF WE RECOMPUTER 
-  return area_leaf(height) * Q(z, height);
+  return area_leaf * Q(z, height);
 }
 
 // [eqn  9] Probability density of leaf area at height `z`

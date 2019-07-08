@@ -34,9 +34,14 @@ public:
 
   // useage: set_state("height", 2.0)
   void set_state(std::string name, double v) {
-    vars.set_state(strategy->state_index.at(name), v);
+    int i = strategy->state_index.at(name);
+    vars.set_state(i, v);
+    strategy->update_dependent_aux(i, vars);
   }
-  void set_state(int i, double v) { vars.set_state(i, v); }
+  void set_state(int i, double v) {
+    vars.set_state(i, v);
+    strategy->update_dependent_aux(i, vars);
+  }
 
   // aux vars by name and index
   double aux(std::string name) const {
@@ -45,7 +50,7 @@ public:
   double aux(int i) const { return vars.aux(i); } 
 
   double area_leaf_above(double z) const {
-    return strategy->area_leaf_above(z, state(HEIGHT_INDEX));
+    return strategy->area_leaf_above(z, state(HEIGHT_INDEX), aux("area_leaf"));
   }
 
   void compute_vars_phys(const Environment &environment,
