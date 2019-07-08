@@ -11,12 +11,11 @@ test_that("fixed_environment", {
 test_that("lcp_whole_plant", {
   for (x in names(strategy_types)) {
     ## R implementation:
-    skip('needs an ff16 plant plus strategy')
     lcp_whole_plant_R <- function(plant, ...) {
       target <- function(canopy_openness) {
         env <- fixed_environment(canopy_openness)
         plant$compute_vars_phys(env)
-        plant$internals[["net_mass_production_dt"]]
+        plant$aux("net_mass_production_dt")
       }
 
       f1 <- target(1)
@@ -27,7 +26,7 @@ test_that("lcp_whole_plant", {
       }
     }
 
-    p <- PlantPlus(x)(strategy_types[[x]]())
+    p <- Plant(x)(strategy_types[[x]]())
     expect_equal(lcp_whole_plant(p), lcp_whole_plant_R(p), tolerance=1e-5)
   }
 })

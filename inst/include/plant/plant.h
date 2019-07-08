@@ -57,8 +57,14 @@ public:
                          bool reuse_intervals = false) {
     strategy->compute_vars_phys(environment, reuse_intervals, vars);
   }
+  
   double germination_probability(const Environment &environment) {
     return strategy->germination_probability(environment);
+  }
+
+  double net_mass_production_dt(const Environment &environment) {
+    // TODO:  maybe reuse intervals? default false 
+    return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("area_leaf"));
   }
 
   // * ODE interface

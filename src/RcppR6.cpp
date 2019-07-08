@@ -564,6 +564,10 @@ double Plant___FF16__germination_probability(plant::RcppR6::RcppR6<plant::Plant<
   return obj_->germination_probability(environment);
 }
 // [[Rcpp::export]]
+double Plant___FF16__net_mass_production_dt(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  return obj_->net_mass_production_dt(environment);
+}
+// [[Rcpp::export]]
 void Plant___FF16__reset_mortality(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
   obj_->reset_mortality();
 }
