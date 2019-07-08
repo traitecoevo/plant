@@ -531,9 +531,9 @@ double FF16_Strategy::germination_probability(const Environment& environment) {
   }
 }
 
-double FF16_Strategy::area_leaf_above(double z, double height, double area_leaf) const {
+double FF16_Strategy::area_leaf_above(double z, double height, double area_leaf_) const {
   // TODO: MODIFY THIS SO WE PASS THE AREA_LEAF WE RECOMPUTER 
-  return area_leaf * Q(z, height);
+  return area_leaf(height) * Q(z, height);
 }
 
 // [eqn  9] Probability density of leaf area at height `z`
