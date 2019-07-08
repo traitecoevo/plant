@@ -42,7 +42,8 @@ test_that("Reference comparison", {
   p$set_state("height", h0)
 
   expect_identical(p$state("height"), h0)
-  # expect_equal(p$state("area_leaf"), cmp$LeafArea(h0))
+  # testing set auxillary state as well as area_leaf depends on height only
+  expect_equal(p$aux("area_leaf"), cmp$LeafArea(h0))
   # expect_equal(p$state("mass_leaf"), cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0)))
   # expect_equal(p$state("mass_sapwood"), cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0))
   # expect_equal(p$state("mass_bark"), cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0))

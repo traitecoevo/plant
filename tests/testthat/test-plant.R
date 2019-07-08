@@ -37,7 +37,7 @@ for (x in names(strategy_types)) {
     expect_identical(pl$state("mortality"), m0)
 
     f0 <- 8
-    pl$set_state("fecundity",f0)
+    pl$set_state("fecundity", f0)
 
     expect_identical(pl$state("fecundity"), f0)
 

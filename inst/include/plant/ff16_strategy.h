@@ -83,6 +83,8 @@ public:
   void compute_vars_phys(const Environment& environment, bool reuse_intervals,
                 Internals& vars);
 
+  void update_dependent_aux(const int index, Internals& vars);
+
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
   double assimilation(const Environment& environment, double height,
@@ -179,7 +181,7 @@ public:
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
-  double area_leaf_above(double z, double height) const;
+  double area_leaf_above(double z, double height, double area_leaf) const;
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
