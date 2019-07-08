@@ -50,7 +50,7 @@ public:
   double aux(int i) const { return vars.aux(i); } 
 
   double area_leaf_above(double z) const {
-    return strategy->area_leaf_above(z, state(HEIGHT_INDEX), aux("area_leaf"));
+    return strategy->area_leaf_above(z, state(HEIGHT_INDEX), 0.0); // aux("area_leaf"));
   }
 
   void compute_vars_phys(const Environment &environment,
@@ -70,6 +70,7 @@ public:
   ode::const_iterator set_ode_state(ode::const_iterator it) {
     for (int i = 0; i < vars.state_size; i++) {
       vars.states[i] = *it++;
+      strategy->update_dependent_aux(i, vars);
     }
     return it;
   }

@@ -181,7 +181,7 @@ public:
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
-  double area_leaf_above(double z, double height, double area_leaf) const;
+  double area_leaf_above(double z, double height, double area_leaf_) const;
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
