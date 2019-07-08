@@ -28,7 +28,8 @@ test_that("collect / make_patch", {
   expect_is(dat, "matrix")
   expect_equal(nrow(dat), length(p1_113$species[[1]]$cohorts))
   # once for rates, once for states
-  n_int <- Plant("FF16")(p1$strategies[[1]])$ode_size * 2
+  n_int <- (Plant("FF16")(p1$strategies[[1]])$ode_size * 2) + 
+    Plant("FF16")(p1$strategies[[1]])$aux_size
   cat(ncol(dat), n_int + 2L)
   expect_equal(ncol(dat), n_int + 2L)
 

@@ -477,6 +477,10 @@ Plant___FF16__rate <- function(obj_, name) {
     .Call('_plant_Plant___FF16__rate', PACKAGE = 'plant', obj_, name)
 }
 
+Plant___FF16__aux <- function(obj_, name) {
+    .Call('_plant_Plant___FF16__aux', PACKAGE = 'plant', obj_, name)
+}
+
 Plant___FF16__set_state <- function(obj_, name, v) {
     invisible(.Call('_plant_Plant___FF16__set_state', PACKAGE = 'plant', obj_, name, v))
 }
@@ -505,8 +509,20 @@ Plant___FF16__internals__get <- function(obj_) {
     .Call('_plant_Plant___FF16__internals__get', PACKAGE = 'plant', obj_)
 }
 
+Plant___FF16__aux_size__get <- function(obj_) {
+    .Call('_plant_Plant___FF16__aux_size__get', PACKAGE = 'plant', obj_)
+}
+
 Plant___FF16__ode_size__get <- function(obj_) {
     .Call('_plant_Plant___FF16__ode_size__get', PACKAGE = 'plant', obj_)
+}
+
+Plant___FF16__ode_names__get <- function(obj_) {
+    .Call('_plant_Plant___FF16__ode_names__get', PACKAGE = 'plant', obj_)
+}
+
+Plant___FF16__aux_names__get <- function(obj_) {
+    .Call('_plant_Plant___FF16__aux_names__get', PACKAGE = 'plant', obj_)
 }
 
 Plant___FF16__ode_state__get <- function(obj_) {
@@ -519,10 +535,6 @@ Plant___FF16__ode_state__set <- function(obj_, value) {
 
 Plant___FF16__ode_rates__get <- function(obj_) {
     .Call('_plant_Plant___FF16__ode_rates__get', PACKAGE = 'plant', obj_)
-}
-
-Plant___FF16__ode_names__get <- function(obj_) {
-    .Call('_plant_Plant___FF16__ode_names__get', PACKAGE = 'plant', obj_)
 }
 
 Plant___FF16__mortality_probability__get <- function(obj_) {

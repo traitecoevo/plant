@@ -13,7 +13,8 @@ branches:
   except:
     - gh-pages
     - remove_plant_plus
-
+    - remove_plant_plus
+    - internals_aux_experiment
 matrix:
   include:
     - os: linux

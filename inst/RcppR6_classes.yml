@@ -301,10 +301,12 @@ Plant:
   active:
     strategy: {type: "T", access: member, name_cpp: r_get_strategy}
     internals: {type: "plant::Internals", access: member, name_cpp: "r_internals"}
+    aux_size: {type: size_t, access: member}
     ode_size: {type: size_t, access: member}
+    ode_names: {type: "std::vector<std::string>", access: member}
+    aux_names: {type: "std::vector<std::string>", access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
-    ode_names: {type: "std::vector<std::string>", access: member}
     mortality_probability: {type: double, access: member}
     strategy_name: {type: "std::string", access: member}
   methods:
@@ -312,6 +314,9 @@ Plant:
       args: [name: "std::string"]
       return_type: double
     rate:
+      args: [name: "std::string"]
+      return_type: double
+    aux:
       args: [name: "std::string"]
       return_type: double
     set_state:

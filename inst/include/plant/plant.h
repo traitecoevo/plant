@@ -40,9 +40,9 @@ public:
 
   // aux vars by name and index
   double aux(std::string name) const {
-    return vars.auxs(strategy->aux_index.at(name));
+    return vars.aux(strategy->aux_index.at(name));
   }
-  double aux(int i) const { return vars.auxs(i); } 
+  double aux(int i) const { return vars.aux(i); } 
 
   double area_leaf_above(double z) const {
     return strategy->area_leaf_above(z, state(HEIGHT_INDEX));
@@ -59,7 +59,8 @@ public:
   // * ODE interface
   static size_t ode_size() { return strategy_type::state_size(); }
   static size_t aux_size() { return strategy_type::aux_size(); }
-  static size_t aux_names() { return strategy_type::aux_names(); }
+  static std::vector<std::string> aux_names() { return strategy_type::aux_names(); }
+  static std::vector<std::string> ode_names() { return strategy_type::state_names(); }
 
   ode::const_iterator set_ode_state(ode::const_iterator it) {
     for (int i = 0; i < vars.state_size; i++) {
@@ -80,7 +81,6 @@ public:
     return it;
   }
   // Optional, but useful
-  static std::vector<std::string> ode_names() { return strategy_type::state_names(); }
 
   // Used in the stochastic model:
   double mortality_probability() const { return 1 - exp(-state(MORTALITY_INDEX)); }
