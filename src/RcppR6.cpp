@@ -544,6 +544,10 @@ double Plant___FF16__rate(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strateg
   return obj_->rate(name);
 }
 // [[Rcpp::export]]
+double Plant___FF16__aux(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name) {
+  return obj_->aux(name);
+}
+// [[Rcpp::export]]
 void Plant___FF16__set_state(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name, double v) {
   obj_->set_state(name, v);
 }
@@ -574,8 +578,23 @@ plant::Internals Plant___FF16__internals__get(plant::RcppR6::RcppR6<plant::Plant
 }
 
 // [[Rcpp::export]]
+size_t Plant___FF16__aux_size__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
+  return obj_->aux_size();
+}
+
+// [[Rcpp::export]]
 size_t Plant___FF16__ode_size__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
   return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
+std::vector<std::string> Plant___FF16__ode_names__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
+  return obj_->ode_names();
+}
+
+// [[Rcpp::export]]
+std::vector<std::string> Plant___FF16__aux_names__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
+  return obj_->aux_names();
 }
 
 // [[Rcpp::export]]
@@ -590,11 +609,6 @@ void Plant___FF16__ode_state__set(plant::RcppR6::RcppR6<plant::Plant<plant::FF16
 // [[Rcpp::export]]
 plant::ode::state_type Plant___FF16__ode_rates__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
-}
-
-// [[Rcpp::export]]
-std::vector<std::string> Plant___FF16__ode_names__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_) {
-  return obj_->ode_names();
 }
 
 // [[Rcpp::export]]

@@ -524,6 +524,7 @@ double FF16_Strategy::germination_probability(const Environment& environment) {
 }
 
 double FF16_Strategy::area_leaf_above(double z, double height) const {
+  // TODO: MODIFY THIS SO WE PASS THE AREA_LEAF WE RECOMPUTER 
   return area_leaf(height) * Q(z, height);
 }
 
