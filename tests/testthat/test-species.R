@@ -13,13 +13,13 @@ for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
     sp <- Species(x)(s)
     seed <- Cohort(x)(s)
-    plant <- PlantPlus(x)(s)
+    plant <- Plant(x)(s)
     h0 <- seed$height
 
     expect_equal(sp$size, 0)
     expect_identical(sp$height_max, h0)
     expect_identical(sp$cohorts, list())
-    expect_identical(sp$heights, numeric(0))
+    expect_identical(sp$height, NULL)
     expect_identical(sp$log_densities, numeric(0))
     expect_identical(sp$area_leafs, numeric(0))
     expect_identical(sp$area_leafs_error(1.0), numeric(0))

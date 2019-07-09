@@ -64,11 +64,11 @@ FF16_StochasticPatchRunner <- function(p) {
   StochasticPatchRunner("FF16")(p)
 }
 
-##' @export
-##' @rdname FF16
-FF16_PlantPlus <- function(s=FF16_Strategy()) {
-  PlantPlus("FF16")(s)
-}
+# ##' @export
+# ##' @rdname FF16
+# FF16_PlantPlus <- function(s=FF16_Strategy()) {
+#   PlantPlus("FF16")(s)
+# }
 
 ## Helper:
 ##' @export

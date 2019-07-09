@@ -5,7 +5,8 @@
 #include <memory>
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
-#include <plant/plant_internals.h>
+#include <plant/internals.h> // quadrature::intervals_type
+// #include <plant/plant_internals.h>
 
 namespace plant {
 
@@ -14,15 +15,51 @@ namespace plant {
 // declaration breaks it, but there might be a better solution.
 class Environment;
 
-struct FF16_Strategy {
+
+class FF16_Strategy {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
 
-  // * Size
+  // update this when the length of state_names changes
+  static size_t state_size () { return 5; }
+  // update this when the length of aux_names changes
+  size_t aux_size () { return aux_names().size(); }
 
+  static std::vector<std::string> state_names() {
+    return  std::vector<std::string>({
+      "height",
+      "mortality",
+      "fecundity",
+      "area_heartwood",
+      "mass_heartwood"
+      });
+  }
+
+  std::vector<std::string> aux_names() {
+    std::vector<std::string> ret({
+      "area_leaf",
+      "net_mass_production_dt"
+    });
+    // add the associated computation to compute_vars_phys and compute there
+    if (collect_all_auxillary) {
+      ret.push_back("area_sapwood");
+    }
+    return ret;
+  }
+
+  // TODO : expose this so can access state_names directly
+  // In previous attempt couldn't get it to run
+  // static std::vector<std::string> state_names() { return strategy_type::state_names(); }
+  // the index of variables in the internals extra vector
+  std::map<std::string, int> state_index; 
+  std::map<std::string, int> aux_index; 
+  
+  bool collect_all_auxillary;
   // [eqn 2] area_leaf (inverse of [eqn 3])
   double area_leaf(double height) const;
+
+  void refresh_indices();
 
   // [eqn 1] mass_leaf (inverse of [eqn 2])
   double mass_leaf(double area_leaf) const;
@@ -52,8 +89,11 @@ public:
   double mass_above_ground(double mass_leaf, double mass_bark,
                            double mass_sapwood, double mass_root) const;
 
-  void scm_vars(const Environment& environment, bool reuse_intervals,
-                Plant_internals& vars);
+
+  void compute_vars_phys(const Environment& environment, bool reuse_intervals,
+                Internals& vars);
+
+  void update_dependent_aux(const int index, Internals& vars);
 
   // * Mass production
   // [eqn 12] Gross annual CO2 assimilation
@@ -151,7 +191,7 @@ public:
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
-  double area_leaf_above(double z, double height, double area_leaf) const;
+  double area_leaf_above(double z, double height, double area_leaf_) const;
   // [eqn  9] Probability density of leaf area at height `z`
   double q(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`

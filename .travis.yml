@@ -12,7 +12,8 @@ env:
 branches:
   except:
     - gh-pages
-
+    - remove_plant_plus
+    - scaffolder
 matrix:
   include:
     - os: linux

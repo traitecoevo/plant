@@ -24,7 +24,7 @@ Rcpp::NumericMatrix::iterator get_state(const Cohort<T>& cohort,
 template <typename T>
 Rcpp::NumericMatrix get_state(const Species<T>& species) {
   typedef Cohort<T> cohort_type;
-  const size_t ode_size = cohort_type::ode_size(), np = species.size();
+  size_t ode_size = cohort_type::ode_size(), np = species.size();
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np + 1); // +1 is seed
   Rcpp::NumericMatrix::iterator it = ret.begin();
   for (size_t i = 0; i < np; ++i) {
@@ -76,7 +76,7 @@ Rcpp::NumericMatrix::iterator get_state(const Plant<T>& plant,
 template <typename T>
 Rcpp::NumericMatrix get_state(const StochasticSpecies<T>& species) {
   typedef Plant<T> plant_type;
-  const size_t ode_size = plant_type::ode_size(), np = species.size_plants();
+  size_t ode_size = plant_type::ode_size(), np = species.size_plants();
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np);
 
   Rcpp::NumericMatrix::iterator it = ret.begin();
