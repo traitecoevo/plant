@@ -386,6 +386,7 @@ template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["control"] = Rcpp::wrap(x.control);
+  ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
   ret.attr("class") = "FF16_Strategy";
   return ret;
 }
@@ -460,6 +461,8 @@ template <> inline plant::FF16_Strategy as(SEXP x) {
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
+  // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
+  ret.collect_all_auxillary = Rcpp::as<bool >(xl["collect_all_auxillary"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::Internals& x) {

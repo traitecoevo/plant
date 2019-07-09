@@ -12,7 +12,7 @@ test_that("FF16_Strategy parameters agree with reference model", {
   expect_true(all(v %in% names(s)))
 
   ## And v.v., except for a few additions:
-  extra <- c("control", "S_D", "all_aux")
+  extra <- c("control", "S_D", "collect_all_auxillary")
   common <- setdiff(names(s), extra)
   expect_true(all(extra %in% names(s)))
   expect_true(all(common %in% names(cmp_pars)))

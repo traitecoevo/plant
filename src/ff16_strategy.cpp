@@ -10,7 +10,7 @@ namespace plant {
 // TODO: Document ordering of different types of variables (size
 // before physiology, before compound things?)
 // TODO: Consider moving to activating as an initialisation list?
-FF16_Strategy::FF16_Strategy(bool all_aux_) : all_aux(all_aux_) {
+FF16_Strategy::FF16_Strategy() {
   // * Core traits - default values
   lma       = 0.1978791;  // Leaf mass per area [kg / m2]
   rho       = 608.0;      // Wood density [kg/m3]
@@ -75,7 +75,7 @@ FF16_Strategy::FF16_Strategy(bool all_aux_) : all_aux(all_aux_) {
   // Size range across which individuals mature
   a_f2   = 50; // [dimensionless]
 
-  // * Mortality parameters
+// * Mortality parameters
   // Probability of survival during dispersal
   S_D   = 0.25; // [dimensionless]
   // Parameter for seedling survival
@@ -90,26 +90,24 @@ FF16_Strategy::FF16_Strategy(bool all_aux_) : all_aux(all_aux_) {
   // Will get computed properly by prepare_strategy
   height_0 = NA_REAL;
   eta_c    = NA_REAL;
+
+  // build the string state/aux name to index map
   refresh_indices();
   name = "FF16";
 }
-FF16_Strategy::FF16_Strategy() : FF16_Strategy(false) {}
 
 void FF16_Strategy::refresh_indices () {
     // Create and fill the name to state index maps
   state_index = std::map<std::string,int>();
   aux_index   = std::map<std::string,int>();
-  for (int i = 0; i < state_size(); i++) {
-    state_index[state_names()[i]] = i;
+  std::vector<std::string> aux_names_vec = aux_names();
+  std::vector<std::string> state_names_vec = state_names();
+  for (int i = 0; i < state_names_vec.size(); i++) {
+    state_index[state_names_vec[i]] = i;
   }
-  for (int i = 0; i < aux_size(); i++) {
-    aux_index[aux_names()[i]] = i;
+  for (int i = 0; i < aux_names_vec.size(); i++) {
+    aux_index[aux_names_vec[i]] = i;
   }
-}
-
-void FF16_Strategy::collect_all_auxillary(){ 
-  all_aux = true;
-  refresh_indices();
 }
 
 // [eqn 2] area_leaf (inverse of [eqn 3])
@@ -211,7 +209,7 @@ void FF16_Strategy::compute_vars_phys(const Environment& environment,
     const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
     vars.set_rate(state_index.at("mass_heartwood"), mass_heartwood_dt(mass_sapwood_));
 
-    if (all_aux) {
+    if (collect_all_auxillary) {
       vars.set_aux(aux_index.at("area_sapwood"), area_sapwood_);
     }
   } else {

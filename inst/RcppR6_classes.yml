@@ -352,18 +352,12 @@ PlantRunner:
 
 FF16_Strategy:
   name_cpp: "plant::FF16_Strategy"
-  constructor: 
-    roxygen: |
-      Strategy parameters that tune various aspects of the biological model.
-      @title Strategy parameters
-      @param ...,values Values to initialise the struct with (either as
-      variadic arguments, or as a list, but not both).
-      @export
-  active: 
-    all_aux: {type: bool, access: field, readonly: true}
-  methods:
-    collect_all_auxillary: 
-      return_type: void
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
   list:
     - lma: double
     - rho: double
@@ -395,7 +389,8 @@ FF16_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control"
+    - control: "plant::Control" 
+    - collect_all_auxillary: bool 
 
 Internals:
   name_cpp: "plant::Internals"

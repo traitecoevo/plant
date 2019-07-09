@@ -33,7 +33,7 @@ test_that("Defaults", {
     omega  = 3.8e-5,
     theta  = 1.0/4669,
     control = Control(),
-    all_aux = FALSE)
+    collect_all_auxillary = FALSE)
 
   keys <- sort(names(expected))
 
@@ -42,6 +42,29 @@ test_that("Defaults", {
 
   expect_identical(sort(names(s)), keys)
   expect_identical(unclass(s)[keys], expected[keys])
+})
+
+test_that("FF16 collect_all_auxillary option", {
+
+  s <- FF16_Strategy()
+  p <- FF16_Plant(s)
+  expect_equal(p$aux_size, 2)
+  expect_equal(length(p$internals$auxs), 2)
+  expect_equal(p$aux_names, c(
+    "area_leaf",
+    "net_mass_production_dt"
+  ))
+
+  s <- FF16_Strategy(collect_all_auxillary=TRUE)
+  expect_true(s$collect_all_auxillary)
+  p <- FF16_Plant(s)
+  expect_equal(p$aux_size, 3)
+  expect_equal(length(p$internals$auxs), 3)
+  expect_equal(p$aux_names, c(
+    "area_leaf",
+    "net_mass_production_dt",
+    "area_sapwood"
+  ))
 })
 
 test_that("Reference comparison", {
