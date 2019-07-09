@@ -1,5 +1,4 @@
 context("Build_schedule")
-
 strategy_types <- get_list_of_strategy_types()
 
 test_that("Corner case", {

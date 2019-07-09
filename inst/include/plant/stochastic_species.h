@@ -127,7 +127,7 @@ template <typename T>
 double StochasticSpecies<T>::height_max() const {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
-      return plants[i].height();
+      return plants[i].state(HEIGHT_INDEX);
     }
   }
   return 0.0;
@@ -158,7 +158,7 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
   // boost::filter_iterator, which is in BH
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
-      if (plants[i].height() > height) {
+      if (plants[i].state(HEIGHT_INDEX) > height) {
         tot += plants[i].area_leaf_above(height);
       } else {
         break;
@@ -191,7 +191,7 @@ std::vector<double> StochasticSpecies<T>::seeds() const {
   //
   // NOTE: dead plants count here!
   for (auto& p : plants) {
-    ret.push_back(p.fecundity());
+    ret.push_back(p.state(FECUNDITY_INDEX));
   }
   return ret;
 }
@@ -256,7 +256,7 @@ std::vector<double> StochasticSpecies<T>::r_heights() const {
   // TODO: also simplify r_heights for Species?
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
-      ret.push_back(plants[i].height());
+      ret.push_back(plants[i].state(HEIGHT_INDEX));
     }
   }
   return ret;
@@ -270,7 +270,7 @@ void StochasticSpecies<T>::r_set_heights(std::vector<double> heights) {
   }
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
-      plants[i].set_height(heights[i]);
+      plants[i].set_state("height", heights[i]);
     }
   }
 }

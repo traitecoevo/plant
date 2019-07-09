@@ -10,7 +10,6 @@
 \alias{FF16_StochasticSpecies}
 \alias{FF16_StochasticPatch}
 \alias{FF16_StochasticPatchRunner}
-\alias{FF16_PlantPlus}
 \title{Create a FF16 Plant or Cohort}
 \usage{
 FF16_Plant(s = FF16_Strategy())
@@ -30,8 +29,6 @@ FF16_StochasticSpecies(s = FF16_Strategy())
 FF16_StochasticPatch(p)
 
 FF16_StochasticPatchRunner(p)
-
-FF16_PlantPlus(s = FF16_Strategy())
 }
 \arguments{
 \item{s}{A \code{\link{FF16_Strategy}} object}

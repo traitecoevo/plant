@@ -20,12 +20,6 @@ test_that("Construction", {
     expect_equal(class(p$strategy), class(s))
     expect_equal(p$strategy, s)
 
-    pp <- PlantPlus(x)(s)
-    expect_is(pp, "PlantPlus")
-    expect_is(pp, sprintf("PlantPlus<%s>", x))
-    expect_equal(class(pp$strategy), class(s))
-    expect_equal(pp$strategy, s)
-
     coh <- Cohort(x)(s)
 
     expect_is(coh, "Cohort")

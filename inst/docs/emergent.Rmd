@@ -14,7 +14,7 @@ The aim here is to use the plant package to investigate dynamics
 within a patch of competing plants, focussing on emergent patch-level
 properties, rather than properties of plants within the patch.
 
-``` {r }
+```{r}
 library(plant)
 
 p0 <- scm_base_parameters("FF16")
@@ -24,7 +24,8 @@ p0$disturbance_mean_interval <- 30.0
 ```
 
 We'll work with a single species at equilibrium
-``` {r }
+
+```{r}
 p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FALSE)
 p1_eq <- equilibrium_seed_rain(p1)
 data1 <- run_scm_collect(p1_eq)
@@ -33,7 +34,8 @@ data1 <- run_scm_collect(p1_eq)
 There was a bit of hassle in vignette:patch in plotting all
 trajectories along with a couple of lines corresponding to focal
 years.  We're going to do the same thing here:
-``` {r }
+
+```{r}
 closest <- function(t, time) {
   which.min(abs(time - t))
 }
@@ -56,7 +58,8 @@ and cohort identity.  However, to show the profiles for a given
 time slice using `matplot` it is convenient to transpose this
 matrix (`matplot` works column-by-column so we want each column to
 to be the state of the system at a given time)
-``` {r }
+
+```{r}
 density <- exp(log_density)
 matplot(height, density, type="l", lty=1,
         col=make_transparent("black", 0.15),
@@ -72,7 +75,8 @@ atto-x).  *Anyway*....
 
 The trajectories are easier to understand if a few are
 highlighted.
-``` {r }
+
+```{r}
 xlim <- c(0, max(height, na.rm=TRUE) * 1.05)
 matplot(height, density, type="l", lty=1,
         col=make_transparent("black", 0.15),
@@ -100,7 +104,8 @@ It's also possible see where the leaf area in the patch is coming
 from; a profile of leaf area with respect to height.  Again, this
 requires reconstructing the patches, and using an unexported
 function from `plant` to put this into a matrix:
-``` {r }
+
+```{r}
 patch <- lapply(seq_along(data1$time), scm_patch, data1)
 leaf_area <- lapply(patch, function(x) x$species[[1]]$area_leafs)
 leaf_area <- do.call("cbind", plant:::pad_matrix(leaf_area))
@@ -124,7 +129,8 @@ Finally, we can see where height growth rate is concentrated in the
 population.  This differs from the profile in vignette:plant
 because it is reduced depending on the light environment, but that
 environment is the one constructed by the plant itself.
-``` {r }
+
+```{r}
 matplot(height, growth_rate, type="l", lty=1, col="lightgrey",
         xlim=xlim, xlab="Height (m)",
         ylab="Height growth rate (m / year)", las=1)
@@ -140,13 +146,15 @@ What about the average relationship across the entire metapopulation?
 To get that, we  average (integrate) over the distribution over patch
 (for formula see demography vignette). To achieve this we first need
 the patch-level relationships to a series of fixed heights
-``` {r }
+
+```{r}
 hh <- seq_log_range(range(height, na.rm=TRUE), 500)
 ```
 
 We'll use a spline interpolation, on log-log-scaled data, clamped
 so that for x values outside the observed range are set to zero.
-``` {r }
+
+```{r}
 f <- function(height, density, hout) {
   r <- range(height, na.rm=TRUE)
   clamp_domain(splinefun_loglog(height, density), r, 0)(hout)
@@ -155,7 +163,8 @@ f <- function(height, density, hout) {
 
 Now interpolate the height-density relationship in each patch to
 the series of  specified heights
-``` {r }
+
+```{r}
 xx <- lapply(seq_along(data1$time),
              function(i) f(height[, i], density[, i], hh))
 n_hh <- plant:::pad_list_to_array(xx)
@@ -163,14 +172,16 @@ n_hh <- plant:::pad_list_to_array(xx)
 
 For each of these heights, we can now integrate across patches
 (i.e. across rows), weighting by patch abundance
-``` {r }
+
+```{r}
 trapezium <- plant:::trapezium
 n_av <- apply(n_hh, 1,
               function(x) trapezium(data1$time, x * data1$patch_density))
 ```
 
 Add this average to the plot (red line):
-``` {r }
+
+```{r}
 xlim <- c(0, max(height, na.rm=TRUE) * 1.05)
 matplot(height, density, type="l", lty=1,
         col=make_transparent("black", 0.15),

@@ -71,11 +71,11 @@ for (x in names(strategy_types)) {
     t <- patch$environment$time # do via environment only?
 
     ## patch$add_seed(1)
-    ## h <- patch$height[[1]]
+    ## h <- patch$state("height")[[1]]
     ## while (patch$time < 25) {
     ##   solver$step()
     ##   t <- c(t, patch$time)
-    ##   h <- c(h, patch$height[[1]])
+    ##   h <- c(h, patch$state("height")[[1]])
     ## }
 
     ## TODO: This is not really a test, but we need to look at this and
@@ -90,10 +90,10 @@ for (x in names(strategy_types)) {
     ## solver <- solver_from_ode_target(patch, p$control$ode_control)
 
     ## tt <- seq(0, 25, length.out=26)
-    ## hh <- patch$height[[1]]
+    ## hh <- patch$state("height")[[1]]
     ## for (ti in tt[-1]) {
     ##   solver$advance(ti)
-    ##   hh <- c(hh, patch$height[[1]])
+    ##   hh <- c(hh, patch$state("height")[[1]])
     ## }
 
     ## if (interactive()) {
@@ -135,7 +135,7 @@ for (x in names(strategy_types)) {
     ##   expect_identical(patch2$environment$light_environment$xy)
     ##   expect_identical(patch2$time, patch$time)
     ##   expect_identical(patch2$ode_state, patch$ode_state)
-    ##   expect_identical(patch2$height, patch$height)
+    ##   expect_identical(patch2$height, patch$state("height"))
     ##   expect_identical(patch2$ode_rates, patch$ode_rates)
     ## })
   })

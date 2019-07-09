@@ -10,7 +10,7 @@ output:
     number_sections: false
 ---
 
-``` {r }
+```{r}
 library(plant)
 library(parallel)
 
@@ -33,13 +33,15 @@ cobweb <- function(m, ...) {
 Try to establish what the equilibrium seed rain is.
 
 Set model parameters
-``` {r }
+
+```{r}
 p0 <- scm_base_parameters("FF16")
 p <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FALSE)
 ```
 
 Some output seed rains, given an input seed rain:
-``` {r }
+
+```{r}
 run(1.0, p)
 run(10.0, p)
 run(50.0, p)
@@ -50,13 +52,15 @@ greater than the input, when above it, `run` returns a seed rain
 that is less than the input.
 
 # 1: Approach to equilibrium:
-``` {r }
+
+```{r}
 p_eq <- equilibrium_seed_rain(p)
 ```
 
 Equilibrium seed rain is right around where the last two values
 from run were producing
-``` {r }
+
+```{r}
 p_eq$seed_rain
 ```
 
@@ -74,7 +78,8 @@ cobweb(approach, pch=19, cex=.5, type="o")
 
 Then, in the vicinity of the root we should look at what the curve
 actually looks like, without adaptive refinement.
-``` {r }
+
+```{r}
 dr <- 2 # range of input to vary (plus and minus this many seeds)
 seed_rain_in <- seq(p_eq$seed_rain - dr,
                     p_eq$seed_rain + dr, length.out=31)
@@ -90,12 +95,14 @@ cobweb(approach)
 ```
 
 # 4. Global function shape
-``` {r }
+
+```{r}
 seed_rain_in_global <- seq(1, max(approach), length.out=51)
 ```
 
 This takes quite a while to compute.
-``` {r }
+
+```{r}
 seed_rain_out_global <-
   unlist(mclapply(seed_rain_in_global, run_new_schedule, p))
 ```
@@ -112,7 +119,8 @@ cobweb(approach, lty=3)
 ```
 
 # 5. Multiple species at once:
-``` {r }
+
+```{r}
 lma <- c(0.0825, 0.15)
 p2 <- expand_parameters(trait_matrix(lma, "lma"), p0, FALSE)
 
@@ -148,37 +156,43 @@ from known unstable roots.
 
 To illustrate this a little further, though still in the fairly
 trivial 2d case, first identify the other two equilibria.
-``` {r }
+
+```{r}
 pp <- mclapply(lma, function(x)
   equilibrium_seed_rain(expand_parameters(trait_matrix(x, "lma"), p0, FALSE)))
 ```
 
 Here's the seed rains of each species when alone:
-``` {r }
+
+```{r}
 seed_rain1 <- sapply(pp, function(x) x$seed_rain)
 ```
 
 So that means that we have *four* equilibria:
 1: The trivial equilibrium:
-``` {r }
+
+```{r}
 eq00 <- c(0, 0)
 run(eq00, p2_eq) - eq00
 ```
 
 2: Species 1 alone
-``` {r }
+
+```{r}
 eq10 <- c(seed_rain1[[1]], 0)
 run_new_schedule(eq10, p2) - eq10
 ```
 
 3: Species 2 alone
-``` {r }
+
+```{r}
 eq01 <- c(0, seed_rain1[[2]])
 run_new_schedule(eq01, p2) - eq01
 ```
 
 4: Species 1 and 2 together:
-``` {r }
+
+```{r}
 eq11 <- p2_eq$seed_rain
 run(eq11, p2_eq) - eq11
 ```
@@ -188,7 +202,7 @@ not terribly well polished - there are a set of nested
 approximations that make this difficult.  Possibly the biggest
 culprit is the cohort refinement step).
 
-``` {r }
+```{r}
 len <- 21
 dx <- max(seed_rain1) / (len - 1)
 n1 <- seq(0.001, by=dx, to=seed_rain1[[1]] + dx)
@@ -210,7 +224,8 @@ y1 <- nn_in[, 2] + rlen * sin(theta)
 NOTE: I'm not sure why the point really close to the equilibrium
 here looks like it's moving so quickly, and possibly in the wrong
 direction.  Cohort instability perhaps?
-``` {r }
+
+```{r}
 plot(nn_in, xlab="Species 1", ylab="Species 2", pch=19, cex=.25,
      col="grey", asp=1)
 arrows(nn_in[, 1], nn_in[, 2], x1, y1, length=0.02)

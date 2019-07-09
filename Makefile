@@ -20,6 +20,9 @@ roxygen:
 	@mkdir -p man
 	Rscript -e "library(methods); devtools::document()"
 
+benchmark:
+	Rscript scripts/benchmark.R
+
 install:
 	R CMD INSTALL .
 

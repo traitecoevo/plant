@@ -265,7 +265,9 @@ test_that("Seed rain & error calculations correct", {
     int2 <- make_scm_integrate(res)
 
     expect_equal(int2("seeds_survival_weighted"), int("seeds_survival_weighted"))
-    expect_equal(int2("area_leaf"), int("area_leaf"))
+    expect_equal(int2("height"), int("height"))
+    expect_equal(int2("mortality"), int("mortality"))
+    expect_equal(int2("fecundity"), int("fecundity"))
   }
 })
 

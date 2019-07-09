@@ -12,7 +12,8 @@ output:
 
 The aim here is to use plant to investigate dynamics of plants
 within a single patch.
-``` {r }
+
+```{r}
 library(plant)
 
 p0 <- scm_base_parameters("FF16")
@@ -22,18 +23,23 @@ p0$disturbance_mean_interval <- 30.0
 ```
 
 First, with a single species:
-``` {r }
+
+```{r}
 p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FALSE)
 ```
 
+<!-- TODO: should really start here using a patch with fixed seed rain -->
+
 Run everything out to equilibrium:
-``` {r }
+
+```{r}
 p1_eq <- equilibrium_seed_rain(p1)
 ```
 
 This collects information about the state of the system at every
 ODE step:
-``` {r }
+
+```{r}
 data1 <- run_scm_collect(p1_eq)
 ```
 
@@ -46,7 +52,8 @@ Entries are:
     spline (height / canopy openness)
   * seed_rain: output seed rain
   * p: input parameters
-``` {r }
+
+```{r}
 names(data1)
 
 t <- data1$time
@@ -55,19 +62,22 @@ h <- data1$species[[1]]["height", , ]
 
 h here is two of the three dimensions of the state array; each row
 is a *time* and each column is a *cohort*.
-``` {r }
+
+```{r}
 dim(h)
 ```
 
 So the ith row is the height of all extant cohorts in the patch
 (some are NA if they have not been introduced yet)
-``` {r }
+
+```{r}
 h[150, ]
 ```
 
 And the jth column is the heights of a particular cohort, NA if
 that time is before it was introduced:
-``` {r }
+
+```{r}
 h[, 60]
 ```
 
@@ -82,13 +92,15 @@ Individual plants increase in height with respect to time, but
 because they are competing the growth rate depends on the amount of
 shading above them, in addition to size dependent growth rate (see
 vignette:plant)
-``` {r }
+
+```{r}
 matplot(t, h, lty=1, col=make_transparent("black", 0.25), type="l",
         las=1, xlab="Time (years)", ylab="Height (m)")
 ```
 
 The light environment is stored over each time step:
-``` {r }
+
+```{r}
 xlim <- c(0, 1.1)
 ylim <- range(data1$light_env[[length(data1$light_env)]][, "height"])
 plot(NA, xlim=xlim, ylim=ylim, las=1,
@@ -113,7 +125,8 @@ for (i in seq_along(times)) {
 
 The amount of light at the ground level is perhaps the most
 relevant metric:
-``` {r }
+
+```{r}
 y <- sapply(data1$light_env, function(x) x[1, "canopy_openness"])
 plot(data1$time, y, type="l", las=1,
      ylim=c(0, 1), xlab="Time (years)", ylab="Canopy openness")
@@ -128,13 +141,15 @@ Leaf area index is the driver that controls the canopy openness
 exponential extinction).  This is not returned by
 `run_scm_collect` so instead we need to rebuild patches using
 `scm_patch`.
-``` {r }
+
+```{r}
 patches1 <- lapply(seq_along(data1$time), scm_patch, data1)
 ```
 
 Each element of the resulting list is a Patch object, the same as
 was observed when running the model.
-``` {r }
+
+```{r}
 lai1 <- sapply(patches1, function(x) x$area_leaf_above(0.0))
 plot(data1$time, lai1, type="l", las=1, xlab="Time (years)",
      ylab="Leaf area index")
@@ -144,13 +159,15 @@ If multiple species are grown at once, they compete with one
 another.  This adds a second species -- with a higher lma value
 than the first species -- to the population and runs them until
 they reach equilibrium seed rain at the metapopulation level.
-``` {r }
+
+```{r}
 p2 <- expand_parameters(trait_matrix(0.2625, "lma"), p1, FALSE)
 p2_eq <- equilibrium_seed_rain(p2)
 ```
 
 Then collect the patch-level dynamics:
-``` {r }
+
+```{r}
 data2 <- run_scm_collect(p2_eq)
 
 t2 <- data2$time
@@ -165,7 +182,8 @@ matlines(t2, h2, lty=1, col=make_transparent(cols[[2]], .25))
 
 Alternatively we can compare the growth of species 1 by itself or
 with another species:
-``` {r }
+
+```{r}
 matplot(t, h, lty=1, col=make_transparent("black", .25), type="l",
         las=1, xlab="Time (years)", ylab="Height (m)")
 matlines(t2, h1, lty=1, col=make_transparent(cols[[1]], .25))
@@ -180,7 +198,8 @@ The dynamics are easier to see when coded by cohort density (some
 of the lines here represent cohorts at close to zero density).
 
 Relativise the log densities onto (-4, max)
-``` {r }
+
+```{r}
 d1 <- data2$species[[1]]["log_density", , ]
 d2 <- data2$species[[2]]["log_density", , ]
 rel <- function(x, xmin) {
@@ -195,7 +214,8 @@ rd2 <- rel(d2, -4)
 R doesn't seem to offer a way to plot lines that vary in colour, so
 this is quite roundabout using `segments`, shaded by the density at
 the first part of the line segment:
-``` {r }
+
+```{r}
 n <- length(t2)
 x <- matrix(rep(t2, ncol(h1)), nrow(h1))
 col1 <- matrix(make_transparent(cols[[1]], rd1), nrow(d1))
@@ -210,7 +230,8 @@ Then, the total leaf area:
 
 Each element of the resulting list is a Patch object, the same as
 was observed when running the model.
-``` {r }
+
+```{r}
 patches2 <- lapply(seq_along(data2$time), scm_patch, data2)
 lai2 <- sapply(patches2, function(x) x$area_leaf_above(0.0))
 
@@ -224,7 +245,8 @@ lines(t2, lai2_2, col=cols[[2]])
 ```
 
 To find the average value over the metapopulation we weight by patch abundance:
-``` {r }
+
+```{r}
 metapopulation <- function(x){
   plant:::trapezium(t2, x*data2$patch_density)
 }
