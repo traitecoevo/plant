@@ -16,10 +16,13 @@ public:
   typedef typename strategy_type::ptr strategy_type_ptr;
   // for the time being...
   Plant(strategy_type_ptr s) : strategy(s) {
+    if (strategy->aux_index.size() != s->aux_size()) {
+      strategy->refresh_indices();
+    }
     vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
     set_state("height", strategy->height_0);
   }
-
+  
   // useage: state(HEIGHT_INDEX)
   double state(std::string name) const {
     return vars.state(strategy->state_index.at(name));
