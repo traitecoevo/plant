@@ -4,7 +4,7 @@ RSCRIPT = Rscript --no-init-file
 all: compile
 
 compile: RcppR6 
-	Rscript -e 'devtools::compile_dll()' \ 
+	Rscript -e 'pkgbuild::compile_dll()' \ 
 	make roxygen
 
 test:
@@ -19,6 +19,9 @@ attributes:
 roxygen:
 	@mkdir -p man
 	Rscript -e "library(methods); devtools::document()"
+
+benchmark:
+	Rscript scripts/benchmark.R
 
 install:
 	R CMD INSTALL .

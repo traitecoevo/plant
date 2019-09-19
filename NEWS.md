@@ -1,3 +1,16 @@
+## Plant 1.2.1  Release Notes
+
+v1.2.1 was released on 20/09/2019
+
+### Major Changes
+
+### Minor Changes
+
+- update Makefile to use `pkgbuild` instead of `devtools` for building dll ( because of upstream changes )
+- switching to using `remotes` instead of `devtools` for installing from github ( because of upstream changes )
+
+A full account of changes from the previous version is available on Github: [v1.2.0...v1.2.1](https://github.com/traitecoevo/plant/compare/v1.2.0...v1.2.1)
+
 ## Plant 1.2.0  Release Notes
 
 v1.2.0 was released on 20/03/2018
@@ -17,7 +30,7 @@ v1.2.0 was released on 20/03/2018
 
 A full account of changes from the previous version is available on Github: [v1.1.0...v1.2.0](https://github.com/traitecoevo/plant/compare/v1.1.0...v1.2.0)
 
-## Plant 1.1.0  Release Notes
+## Plant 1.1.0 Release Notes
 
 v1.1.0 was released on 2/02/2018
 
