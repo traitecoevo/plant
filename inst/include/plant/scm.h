@@ -7,6 +7,8 @@
 #include <plant/ode_solver.h>
 #include <plant/scm_utils.h>
 
+// SCM: Solver - Characteristic Method
+
 namespace plant {
 
 template <typename T>

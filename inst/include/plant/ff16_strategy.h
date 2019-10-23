@@ -16,7 +16,7 @@ namespace plant {
 class Environment;
 
 
-class FF16_Strategy {
+class FF16_Strategy: public Strategy {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
@@ -105,8 +105,7 @@ public:
   double compute_assimilation_h(double h, double height,
                                 const Environment& environment) const;
   double compute_assimilation_p(double p, double height,
-                                const Environment& environment) const;
-  // [Appendix S6] Per-leaf photosynthetic rate.
+                                const Environment& environment) const; // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 
 
@@ -262,6 +261,25 @@ public:
 
   std::string name;
 };
+
+// [eqn 2] area_leaf (inverse of [eqn 3])
+double FF16_Strategy::compute_competition(double height) const {
+  return area_leaf(double height);
+}
+
+double FF16_Strategy::compute_competition(double z, double height, double competition_effect) const;
+  return area_leaf_above(z, height, competition_effect);
+}
+
+double FF16_Strategy::competition_effect_state(Internals& vars) const {
+  return 
+}
+
+double FF16_Strategy::competition_effect(Internals& vars) const {
+  return area_leaf(double height);
+}
+double competition_effect(double height) const;
+double competition_effect_state(Internals& vars);
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);
 

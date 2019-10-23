@@ -52,13 +52,13 @@ public:
   }
   double aux(int i) const { return vars.aux(i); } 
 
-  double area_leaf_above(double z) const {
-    return strategy->area_leaf_above(z, state(HEIGHT_INDEX), 0.0); // aux("area_leaf"));
+  double compute_competition(double z) const {
+    return strategy->compute_competition(z, state(HEIGHT_INDEX), 0.0);
   }
 
-  void compute_vars_phys(const Environment &environment,
-                         bool reuse_intervals = false) {
-    strategy->compute_vars_phys(environment, reuse_intervals, vars);
+  void compute_rates(const Environment &environment,
+                     bool reuse_intervals = false) {
+    strategy->compute_rates(environment, reuse_intervals, vars);
   }
   
   double germination_probability(const Environment &environment) {
@@ -67,6 +67,7 @@ public:
 
   double net_mass_production_dt(const Environment &environment) {
     // TODO:  maybe reuse intervals? default false 
+    // Plant shouldn't know about "area_leaf"
     return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("area_leaf"));
   }
 

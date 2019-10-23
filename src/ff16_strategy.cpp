@@ -178,6 +178,10 @@ void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
   }
 }
 
+double FF16_Strategy::area_leaf_state(Internals& vars) {
+    vars.aux(aux_index.at("area_leaf"))
+}
+
 
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
