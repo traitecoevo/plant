@@ -13,39 +13,32 @@ public:
 
   std::vector<std::string> aux_names();
 
-  // TODO : expose this so can access state_names directly
   std::map<std::string, int> state_index; 
   std::map<std::string, int> aux_index; 
   
   bool collect_all_auxillary;
 
-  // This would get renamed to something more generic - get_competiton_effect ?
-  double competition_effect(double height) const;
-  double competition_effect_state(Internals& vars);
-
   void refresh_indices();
 
-  // This would get renamed to something more generic -- compute_rates
+  double competition_effect(double size) const;
+  double competition_effect_state(Internals& vars);
+
   void compute_rates(const Environment& environment, bool reuse_intervals,
                      Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
 
   double net_mass_production_dt(const Environment& environment,
-                                double height, double competition_effect_,
+                                double size, double competition_effect_,
                                 bool reuse_intervals=false);
 
-  // [eqn 20] Survival of seedlings during germination
   double germination_probability(const Environment& environment);
 
-  // * Competitive environment
-  double compute_competition(double z, double height, double competition_effect) const;
+  double compute_competition(double z, double size, double competition_effect) const;
 
-  // This would get renamed to something more generic -- initial size?
-  // The aim is to find a plant height that gives the correct seed mass.
-  double height_seed(void) const;
+  double initial_size(void) const;
 
-  double height_0;
+  double size_0;
 
   // Every Strategy needs a set of Control objects
   Control control;

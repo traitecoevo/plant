@@ -256,13 +256,14 @@ public:
   double a_dG2;
 
   // Height and leaf area of a (germinated) seed
-  double height_0;
   double area_leaf_0;
 
   std::string name;
 };
 
-// [eqn 2] area_leaf (inverse of [eqn 3])
+
+// Translate generic methods to FF16 strategy leaf area methods
+
 double FF16_Strategy::compute_competition(double height) const {
   return area_leaf(double height);
 }
@@ -272,14 +273,12 @@ double FF16_Strategy::compute_competition(double z, double height, double compet
 }
 
 double FF16_Strategy::competition_effect_state(Internals& vars) const {
-  return 
+  return area_leaf_state(vars)
 }
 
 double FF16_Strategy::competition_effect(Internals& vars) const {
   return area_leaf(double height);
 }
-double competition_effect(double height) const;
-double competition_effect_state(Internals& vars);
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);
 

@@ -23,7 +23,7 @@ public:
     set_state("height", strategy->height_0);
   }
   
-  // useage: state(HEIGHT_INDEX)
+  // useage: state(SIZE_INDEX)
   double state(std::string name) const {
     return vars.state(strategy->state_index.at(name));
   }
@@ -53,7 +53,7 @@ public:
   double aux(int i) const { return vars.aux(i); } 
 
   double compute_competition(double z) const {
-    return strategy->compute_competition(z, state(HEIGHT_INDEX), 0.0);
+    return strategy->compute_competition(z, state(SIZE_INDEX), 0.0);
   }
 
   void compute_rates(const Environment &environment,
@@ -67,8 +67,7 @@ public:
 
   double net_mass_production_dt(const Environment &environment) {
     // TODO:  maybe reuse intervals? default false 
-    // Plant shouldn't know about "area_leaf"
-    return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("area_leaf"));
+    return strategy->net_mass_production_dt(environment, state(SIZE_INDEX), strategy->competition_effect_state(vars));
   }
 
   // * ODE interface

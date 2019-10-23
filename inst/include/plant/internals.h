@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_INTERNALS_MINIMAL_H_
 #define PLANT_PLANT_INTERNALS_MINIMAL_H_
 
-#define HEIGHT_INDEX 0
+#define SIZE_INDEX 0
 #define MORTALITY_INDEX 1
 #define FECUNDITY_INDEX 2
 
@@ -17,7 +17,7 @@ namespace plant {
 class Internals {
 public:
   Internals(size_t s_size=0, size_t a_size=0)
-      :
+      
       state_size(s_size),
       aux_size(a_size),
       states(s_size, 0.0),

@@ -16,15 +16,15 @@ public:
   typedef typename strategy_type::ptr strategy_type_ptr;
   Cohort(strategy_type_ptr s);
 
-  void compute_vars_phys(const Environment& environment);
+  void compute_rates(const Environment& environment);
   void compute_initial_conditions(const Environment& environment);
 
   // * R interface (testing only, really)
   double r_growth_rate_gradient(const Environment& environment);
 
-  double height() const {return plant.state(HEIGHT_INDEX);}
-  double area_leaf_above(double z) const;
-  double area_leaf() const;
+  double size() const {return plant.state(SIZE_INDEX);}
+  double compute_competition(double z) const;
+  double competition_effect() const;
   double fecundity() const {return seeds_survival_weighted;}
 
   // Unfortunate, but need a get_ here because of name shadowing...
@@ -77,10 +77,10 @@ Cohort<T>::Cohort(strategy_type_ptr s)
 }
 
 template <typename T>
-void Cohort<T>::compute_vars_phys(const Environment& environment) {
-  plant.compute_vars_phys(environment);
+void Cohort<T>::compute_rates(const Environment& environment) {
+  plant.compute_rates(environment);
 
-  // NOTE: This must be called *after* compute_vars_phys, but given we
+  // NOTE: This must be called *after* compute_rates, but given we
   // need mortality_dt() that's always going to be the case.
   log_density_dt =
     - growth_rate_gradient(environment)
@@ -111,7 +111,7 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
 // defined on p 7 at the moment.
 template <typename T>
 void Cohort<T>::compute_initial_conditions(const Environment& environment) {
-  compute_vars_phys(environment);
+  compute_rates(environment);
 
   pr_patch_survival_at_birth = environment.patch_survival();
   const double pr_germ = plant.germination_probability(environment);
@@ -143,10 +143,10 @@ double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
   const Control& control = plant.control();
   const double eps = control.cohort_gradient_eps;
   if (control.cohort_gradient_richardson) {
-    return util::gradient_richardson(fun,  plant.state(HEIGHT_INDEX), eps,
+    return util::gradient_richardson(fun,  plant.state(SIZE_INDEX), eps,
                                      control.cohort_gradient_richardson_depth);
   } else {
-    return util::gradient_fd(fun, plant.state(HEIGHT_INDEX), eps, plant.rate("height"),
+    return util::gradient_fd(fun, plant.state(SIZE_INDEX), eps, plant.rate("height"),
                              control.cohort_gradient_direction);
   }
 }
@@ -156,19 +156,19 @@ double Cohort<T>::r_growth_rate_gradient(const Environment& environment) {
   // We need to compute the physiological variables here, first, so
   // that reusing intervals works as expected.  This would ordinarily
   // be taken care of because of the calling order of
-  // compute_vars_phys / growth_rate_gradient.
-  plant.compute_vars_phys(environment);
+  // compute_rates / growth_rate_gradient.
+  plant.compute_rates(environment);
   return growth_rate_gradient(environment);
 }
 
 template <typename T>
-double Cohort<T>::area_leaf_above(double height_) const {
-  return density * plant.area_leaf_above(height_);
+double Cohort<T>::compute_competition(double height_) const {
+  return density * plant.compute_competition(height_);
 }
 
 template <typename T>
-double Cohort<T>::area_leaf() const {
-  return area_leaf_above(0.0);
+double Cohort<T>::competition_effect() const {
+  return compute_competition(0.0);
 }
 
 // ODE interface -- note that the don't care about time in the cohort;
@@ -211,7 +211,7 @@ template <typename T>
 double growth_rate_given_height(T& plant, double height,
                                 const Environment& environment) {
   plant.set_state("height", height);
-  plant.compute_vars_phys(environment, true);
+  plant.compute_rates(environment, true);
   return plant.rate("height");
 }
 
