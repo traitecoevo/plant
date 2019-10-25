@@ -1,3 +1,4 @@
+#include <plant/strategy.h>
 #include <plant/ff16_strategy.h>
 #include <plant/uniroot.h>
 #include <plant/qag.h>
@@ -88,7 +89,7 @@ FF16_Strategy::FF16_Strategy() {
   a_dG2    = 20.0;// [yr m2 / kg ]
 
   // Will get computed properly by prepare_strategy
-  height_0 = NA_REAL;
+  size_0 = NA_REAL;
   eta_c    = NA_REAL;
 
   collect_all_auxillary = false;
@@ -172,24 +173,24 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 
 // for updating auxillary state
 void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
-  if (index == HEIGHT_INDEX) {
-    double height = vars.state(HEIGHT_INDEX);
+  if (index == SIZE_INDEX) {
+    double height = vars.state(SIZE_INDEX);
     vars.set_aux(aux_index.at("area_leaf"), area_leaf(height));
   }
 }
 
-double FF16_Strategy::area_leaf_state(Internals& vars) {
-    vars.aux(aux_index.at("area_leaf"))
+double FF16_Strategy::area_leaf_state(Internals& vars) const {
+    vars.aux(aux_index.at("area_leaf"));
 }
 
 
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
-void FF16_Strategy::compute_vars_phys(const Environment& environment,
+void FF16_Strategy::compute_rates(const Environment& environment,
                               bool reuse_intervals,
                               Internals& vars) {
 
-  double height = vars.state(HEIGHT_INDEX);
+  double height = vars.state(SIZE_INDEX);
   double area_leaf_ = vars.aux(aux_index.at("area_leaf"));
 
   const double net_mass_production_dt_ =
@@ -205,7 +206,7 @@ void FF16_Strategy::compute_vars_phys(const Environment& environment,
     const double fraction_allocation_growth_ = fraction_allocation_growth(height);
     const double area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
       
-    vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
+    vars.set_rate(SIZE_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
     vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
 
@@ -218,7 +219,7 @@ void FF16_Strategy::compute_vars_phys(const Environment& environment,
       vars.set_aux(aux_index.at("area_sapwood"), area_sapwood_);
     }
   } else {
-    vars.set_rate(HEIGHT_INDEX, 0.0);
+    vars.set_rate(SIZE_INDEX, 0.0);
     vars.set_rate(FECUNDITY_INDEX, 0.0);
     vars.set_rate(state_index.at("area_heartwood"), 0.0);
     vars.set_rate(state_index.at("mass_heartwood"), 0.0);
@@ -351,7 +352,7 @@ double FF16_Strategy::net_mass_production_dt_A(double assimilation, double respi
 }
 
 // One shot calculation of net_mass_production_dt
-// Used by germination_probability() and compute_vars_phys().
+// Used by germination_probability() and compute_rates().
 double FF16_Strategy::net_mass_production_dt(const Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals) {
@@ -535,7 +536,7 @@ double FF16_Strategy::mortality_growth_dependent_dt(double productivity_area) co
 // [eqn 20] Survival of seedlings during germination
 double FF16_Strategy::germination_probability(const Environment& environment) {
   const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height_0, area_leaf_0);
+    net_mass_production_dt(environment, size_0, area_leaf_0);
   if (net_mass_production_dt_ > 0) {
     const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0);
@@ -572,7 +573,7 @@ double FF16_Strategy::Qp(double x, double height) const { // x in [0,1], uncheck
 }
 
 // The aim is to find a plant height that gives the correct seed mass.
-double FF16_Strategy::height_seed(void) const {
+double FF16_Strategy::initial_size(void) const {
 
   // Note, these are not entirely correct bounds. Ideally we would use height
   // given *total* mass, not leaf mass, but that is difficult to calculate.
@@ -599,9 +600,9 @@ void FF16_Strategy::prepare_strategy() {
   control.initialize();
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
-  // NOTE: Also pre-computing, though less trivial
-  height_0 = height_seed();
-  area_leaf_0 = area_leaf(height_0);
+  // NOTE: Also pre-computeng, though less trivial
+  size_0 = initial_size();
+  area_leaf_0 = area_leaf(size_0);
 }
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s) {

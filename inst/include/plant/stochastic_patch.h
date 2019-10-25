@@ -26,11 +26,11 @@ public:
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
 
-  double height_max() const;
+  double size_max() const;
 
-  // [eqn 11] Canopy openness at `height`
-  double area_leaf_above(double height) const;
-  double canopy_openness(double height) const;
+  // [eqn 11] Canopy openness at `size`
+  double compute_competition(double size) const;
+  double canopy_openness(double size) const;
 
   bool add_seed(size_t species_index);
   void add_seedling(size_t species_index);
@@ -73,11 +73,11 @@ public:
   }
   // These are only here because they wrap private functions.
   void r_compute_light_environment() {compute_light_environment();}
-  void r_compute_vars_phys() {compute_vars_phys();}
+  void r_compute_rates() {compute_rates();}
 private:
   void compute_light_environment();
   void rescale_light_environment();
-  void compute_vars_phys();
+  void compute_rates();
 
   parameters_type parameters;
   std::vector<bool> is_resident;
@@ -104,43 +104,43 @@ void StochasticPatch<T>::reset() {
   }
   environment.clear();
   compute_light_environment();
-  compute_vars_phys();
+  compute_rates();
 }
 
 template <typename T>
-double StochasticPatch<T>::height_max() const {
+double StochasticPatch<T>::size_max() const {
   double ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      ret = std::max(ret, species[i].height_max());
+      ret = std::max(ret, species[i].size_max());
     }
   }
   return ret;
 }
 
 template <typename T>
-double StochasticPatch<T>::area_leaf_above(double height) const {
+double StochasticPatch<T>::compute_competition(double size) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      tot += species[i].area_leaf_above(height);
+      tot += species[i].compute_competition(size);
     }
   }
   return tot;
 }
 
 template <typename T>
-double StochasticPatch<T>::canopy_openness(double height) const {
-  return exp(-parameters.k_I * area_leaf_above(height) /
+double StochasticPatch<T>::canopy_openness(double size) const {
+  return exp(-parameters.k_I * compute_competition(size) /
              parameters.patch_area);
 }
 
 
 template <typename T>
 void StochasticPatch<T>::compute_light_environment() {
-  if (parameters.n_residents() > 0 & height_max() > 0.0) {
+  if (parameters.n_residents() > 0 & size_max() > 0.0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.compute_light_environment(f, height_max());
+    environment.compute_light_environment(f, size_max());
   } else {
     environment.clear_light_environment();
   }
@@ -148,18 +148,18 @@ void StochasticPatch<T>::compute_light_environment() {
 
 template <typename T>
 void StochasticPatch<T>::rescale_light_environment() {
-  if (parameters.n_residents() > 0 & height_max() > 0.0) {
+  if (parameters.n_residents() > 0 & size_max() > 0.0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.rescale_light_environment(f, height_max());
+    environment.rescale_light_environment(f, size_max());
   }
 }
 
 template <typename T>
-void StochasticPatch<T>::compute_vars_phys() {
+void StochasticPatch<T>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
     // NOTE: No need for this, but other bits will change...
     // environment.set_seed_rain_index(i);
-    species[i].compute_vars_phys(environment);
+    species[i].compute_rates(environment);
   }
 }
 
@@ -200,7 +200,7 @@ std::vector<size_t> StochasticPatch<T>::deaths() {
   }
   if (recompute) {
     compute_light_environment();
-    compute_vars_phys();
+    compute_rates();
   }
   return ret;
 }
@@ -246,7 +246,7 @@ ode::const_iterator StochasticPatch<T>::set_ode_state(ode::const_iterator it,
   } else {
     compute_light_environment();
   }
-  compute_vars_phys();
+  compute_rates();
   return it;
 }
 

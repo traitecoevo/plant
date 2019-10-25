@@ -6,7 +6,7 @@
 #include <RcppCommon.h> // SEXP
 
 #include <plant/control.h>
-#include <plant/ff16_strategy.h>
+#include <plant/strategy.h>
 #include <plant/cohort_schedule.h>
 #include <plant/scm_utils.h> // Unfortunately needed for setup_cohort_schedule
 

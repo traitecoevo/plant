@@ -8,12 +8,12 @@
 namespace plant {
 namespace tools {
 Environment fixed_environment(double canopy_openness,
-                              double height_max=150.0);
+                              double size_max=150.0);
 template <typename T>
 double lcp_whole_plant(Plant<T> p) {
   auto target = [&] (double x) mutable -> double {
     Environment env = fixed_environment(x);
-    p.compute_vars_phys(env);
+    p.compute_rates(env);
     return p.net_mass_production_dt(env);
   };
 

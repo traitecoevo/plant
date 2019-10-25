@@ -13,9 +13,9 @@ Environment::Environment(double disturbance_mean_interval,
     light_environment_generator(make_interpolator(control)) {
 }
 
-double Environment::canopy_openness(double height) const {
-  const bool within_canopy = height <= light_environment.max();
-  return within_canopy ? light_environment.eval(height) : 1.0;
+double Environment::canopy_openness(double size) const {
+  const bool within_canopy = size <= light_environment.max();
+  return within_canopy ? light_environment.eval(size) : 1.0;
 }
 
 // Computes the probability of survival from 0 to time.

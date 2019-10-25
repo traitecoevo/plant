@@ -46,9 +46,9 @@ public:
   void add_seed();
   void add_seed(const Environment& environment);
 
-  double height_max() const;
-  double area_leaf_above(double height) const;
-  void compute_vars_phys(const Environment& environment);
+  double size_max() const;
+  double compute_competition(double size) const;
+  void compute_rates(const Environment& environment);
   std::vector<double> seeds() const;
 
   // This is totally new, relative to the deterministic model; this
@@ -69,8 +69,8 @@ public:
 
   // * R interface
   std::vector<bool> r_is_alive() const {return is_alive;}
-  std::vector<double> r_heights() const;
-  void r_set_heights(std::vector<double> heights);
+  std::vector<double> r_sizes() const;
+  void r_set_sizes(std::vector<double> sizes);
   const plant_type& r_seed() const {return seed;}
   std::vector<plant_type> r_plants() const {return plants;}
   const plant_type& r_plant_at(util::index idx) const {
@@ -116,15 +116,15 @@ void StochasticSpecies<T>::add_seed() {
 template <typename T>
 void StochasticSpecies<T>::add_seed(const Environment& environment) {
   add_seed();
-  plants.back().compute_vars_phys(environment);
+  plants.back().compute_rates(environment);
 }
 
 
 // If a species contains no individuals, we return zero
-// (c.f. Species).  Otherwise we return the height of the largest
+// (c.f. Species).  Otherwise we return the size of the largest
 // individual (always the first in the list).
 template <typename T>
-double StochasticSpecies<T>::height_max() const {
+double StochasticSpecies<T>::size_max() const {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       return plants[i].state(SIZE_INDEX);
@@ -135,11 +135,11 @@ double StochasticSpecies<T>::height_max() const {
 
 // Because of plants are always ordered from largest to smallest, we
 // need not continue down the list once the leaf area above a certain
-// height is zero, because it will be zero for all plants further down
+// size is zero, because it will be zero for all plants further down
 // the list.
 //
 // NOTE: In the cases where there is no individuals, we return 0 for
-// all heights, as sum(numeric(0)) -> 0
+// all sizes, as sum(numeric(0)) -> 0
 //
 // NOTE: A similar early-exit condition to the Plant version is used;
 // once the lower bound of the trapezium is zero, we stop including
@@ -149,8 +149,8 @@ double StochasticSpecies<T>::height_max() const {
 // also needed if the last looked at plant was still contributing to
 // the integral).
 template <typename T>
-double StochasticSpecies<T>::area_leaf_above(double height) const {
-  if (size() == 0 || height_max() < height) {
+double StochasticSpecies<T>::compute_competition(double size_) const {
+  if (size() == 0 || size_max() < size_) {
     return 0.0;
   }
   double tot = 0.0;
@@ -158,8 +158,8 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
   // boost::filter_iterator, which is in BH
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
-      if (plants[i].state(SIZE_INDEX) > height) {
-        tot += plants[i].area_leaf_above(height);
+      if (plants[i].state(SIZE_INDEX) > size_) {
+        tot += plants[i].compute_competition(size_);
       } else {
         break;
       }
@@ -171,10 +171,10 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
 template <typename T>
-void StochasticSpecies<T>::compute_vars_phys(const Environment& environment) {
+void StochasticSpecies<T>::compute_rates(const Environment& environment) {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
-      plants[i].compute_vars_phys(environment);
+      plants[i].compute_rates(environment);
     }
   }
 }
@@ -250,10 +250,10 @@ ode::iterator StochasticSpecies<T>::ode_rates(ode::iterator it) const {
 
 
 template <typename T>
-std::vector<double> StochasticSpecies<T>::r_heights() const {
+std::vector<double> StochasticSpecies<T>::r_sizes() const {
   std::vector<double> ret;
   ret.reserve(size());
-  // TODO: also simplify r_heights for Species?
+  // TODO: also simplify r_sizes for Species?
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       ret.push_back(plants[i].state(SIZE_INDEX));
@@ -263,14 +263,14 @@ std::vector<double> StochasticSpecies<T>::r_heights() const {
 }
 
 template <typename T>
-void StochasticSpecies<T>::r_set_heights(std::vector<double> heights) {
-  util::check_length(heights.size(), size());
-  if (!util::is_decreasing(heights.begin(), heights.end())) {
-    util::stop("height must be decreasing (ties allowed)");
+void StochasticSpecies<T>::r_set_sizes(std::vector<double> sizes) {
+  util::check_length(sizes.size(), size());
+  if (!util::is_decreasing(sizes.begin(), sizes.end())) {
+    util::stop("size must be decreasing (ties allowed)");
   }
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
-      plants[i].set_state("height", heights[i]);
+      plants[i].set_state("size", sizes[i]);
     }
   }
 }

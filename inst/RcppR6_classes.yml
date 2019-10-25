@@ -263,7 +263,7 @@ Environment:
       @export
   methods:
     canopy_openness:
-      args: [height: double]
+      args: [size: double]
       return_type: double
     patch_survival_conditional:
       args: [time_at_birth: double]
@@ -316,16 +316,16 @@ Plant:
     rate:
       args: [name: "std::string"]
       return_type: double
-    aux:
-      args: [name: "std::string"]
-      return_type: double
+    # aux:
+      # args: [name: "std::string"]
+      # return_type: double
     set_state:
       args: [name: "std::string", v: double]
       return_type: void
-    area_leaf_above:
+    compute_competition:
       args: [h: double]
       return_type: double
-    compute_vars_phys:
+    compute_rates:
       args: [environment: "const plant::Environment&"]
       return_type: void
     germination_probability:
@@ -398,7 +398,7 @@ Internals:
     args: [s_size: size_t, a_size: size_t]
     roxygen: |
       Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
-      which is calculated from the state through running compute_vars_phys
+      which is calculated from the state through running compute_rates
       @export
   active:
     state_size: {type: size_t, access: field}
@@ -474,23 +474,23 @@ Cohort:
     args: [strategy: T]
   active:
     plant: {type: "plant::Plant<T>", access: field, readonly: true}
-    height: {type: double, access: member}
+    size: {type: double, access: member}
     log_density: {type: double, access: member, name_cpp: get_log_density}
-    area_leaf: {type: double, access: member}
+    competition_effect: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
   methods:
-    area_leaf_above:
+    compute_competition:
       return_type: double
-      args: [height: double]
+      args: [size: double]
     growth_rate_gradient:
       return_type: double
       name_cpp: "r_growth_rate_gradient"
       args: [environment: "const plant::Environment&"]
-    compute_vars_phys:
+    compute_rates:
       return_type: void
       args: [environment: "const plant::Environment&"]
     compute_initial_conditions:
@@ -510,12 +510,12 @@ Species:
   active:
     size: {type: size_t, access: member}
     seed: {type: "plant::Cohort<T>", access: member, name_cpp: r_seed}
-    height_max: {type: double, access: member, readonly: true}
-    heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
+    size_max: {type: double, access: member, readonly: true}
+    sizes: {type: "std::vector<double>", access: member, name_cpp: r_sizes, name_cpp_set: r_set_sizes}
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
     cohorts: {type: "std::vector<plant::Cohort<T> >", access: member, name_cpp: r_cohorts}
     seeds: {type: "std::vector<double>", access: member}
-    area_leafs: {type: "std::vector<double>", access: member, name_cpp: r_area_leafs}
+    competition_effect: {type: "std::vector<double>", access: member, name_cpp: r_competition_effect}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
@@ -523,22 +523,22 @@ Species:
   methods:
     clear:
       return_type: void
-    compute_vars_phys:
+    compute_rates:
       return_type: void
       args: [environment: "const plant::Environment&"]
-    area_leaf_above:
+    compute_competition:
       return_type: double
-      args: [height: double]
+      args: [size: double]
     add_seed:
       return_type: void
     cohort_at:
       return_type: "plant::Cohort<T>"
       args: [index: "plant::util::index"]
       name_cpp: r_cohort_at
-    area_leafs_error:
+    competition_error:
       return_type: "std::vector<double>"
       args: [scal: double=1]
-      name_cpp: r_area_leafs_error
+      name_cpp: r_competition_error
 
 Patch:
   name_cpp: "plant::Patch<T>"
@@ -552,7 +552,7 @@ Patch:
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
-    height_max: {type: double, access: member}
+    size_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
     environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::Species<T> >", access: member, name_cpp: r_species}
@@ -562,8 +562,8 @@ Patch:
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
-    area_leaf_above: {return_type: double, args: [height: double]}
-    canopy_openness: {return_type: double, args: [height: double]}
+    compute_competition: {return_type: double, args: [size: double]}
+    canopy_openness: {return_type: double, args: [size: double]}
     add_seed:
       return_type: void
       args: [species_index: "plant::util::index"]
@@ -571,9 +571,9 @@ Patch:
     compute_light_environment:
       return_type: void
       name_cpp: r_compute_light_environment
-    compute_vars_phys:
+    compute_rates:
       return_type: void
-      name_cpp: r_compute_vars_phys
+      name_cpp: r_compute_rates
     # TODO: Not 100% sure this is needed from R:
     reset:
       return_type: void
@@ -620,10 +620,10 @@ SCM:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_seed_rain_cohort
-    area_leaf_error:
+    competition_error:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
-      name_cpp: r_area_leaf_error
+      name_cpp: r_competition_error
     set_cohort_schedule_times:
       args: [times: "std::vector<std::vector<double> >"]
       return_type: void
@@ -675,8 +675,8 @@ StochasticSpecies:
     size: {type: size_t, access: member}
     size_plants: {type: size_t, access: member}
     seed: {type: "plant::Plant<T>", access: member, name_cpp: r_seed}
-    height_max: {type: double, access: member, readonly: true}
-    heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
+    size_max: {type: double, access: member, readonly: true}
+    sizes: {type: "std::vector<double>", access: member, name_cpp: r_sizes, name_cpp_set: r_set_sizes}
     plants: {type: "std::vector<plant::Plant<T> >", access: member, name_cpp: r_plants}
     is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
     seeds: {type: "std::vector<double>", access: member}
@@ -687,12 +687,12 @@ StochasticSpecies:
   methods:
     clear:
       return_type: void
-    compute_vars_phys:
+    compute_rates:
       return_type: void
       args: [environment: "const plant::Environment&"]
-    area_leaf_above:
+    compute_competition:
       return_type: double
-      args: [height: double]
+      args: [size: double]
     add_seed:
       return_type: void
     plant_at:
@@ -717,7 +717,7 @@ StochasticPatch:
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
-    height_max: {type: double, access: member}
+    size_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
     environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::StochasticSpecies<T> >", access: member, name_cpp: r_species}
@@ -727,8 +727,8 @@ StochasticPatch:
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
-    area_leaf_above: {return_type: double, args: [height: double]}
-    canopy_openness: {return_type: double, args: [height: double]}
+    compute_competition: {return_type: double, args: [size: double]}
+    canopy_openness: {return_type: double, args: [size: double]}
     add_seed:
       return_type: bool
       args: [species_index: "plant::util::index"]
@@ -740,9 +740,9 @@ StochasticPatch:
     compute_light_environment:
       return_type: void
       name_cpp: r_compute_light_environment
-    compute_vars_phys:
+    compute_rates:
       return_type: void
-      name_cpp: r_compute_vars_phys
+      name_cpp: r_compute_rates
     # TODO: Not 100% sure this is needed from R:
     reset:
       return_type: void

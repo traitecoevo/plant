@@ -54,7 +54,7 @@ public:
   plant_type plant;
 
 private:
-  // This is the gradient of growth rate with respect to height:
+  // This is the gradient of growth rate with respect to size:
   double growth_rate_gradient(const Environment& environment) const;
 
   double log_density;
@@ -116,7 +116,7 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
   pr_patch_survival_at_birth = environment.patch_survival();
   const double pr_germ = plant.germination_probability(environment);
   plant.set_state("mortality", -log(pr_germ));
-  const double g = plant.rate("height");
+  const double g = plant.rate("size");
   const double seed_rain = environment.seed_rain_dt();
   // NOTE: log(0.0) -> -Inf, which should behave fine.
   set_log_density(g > 0 ? log(seed_rain * pr_germ / g) : log(0.0));
@@ -137,7 +137,7 @@ template <typename T>
 double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
   plant_type p = plant;
   auto fun = [&] (double h) mutable -> double {
-    return growth_rate_given_height(p, h, environment);
+    return growth_rate_given_size(p, h, environment);
   };
 
   const Control& control = plant.control();
@@ -146,7 +146,7 @@ double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
     return util::gradient_richardson(fun,  plant.state(SIZE_INDEX), eps,
                                      control.cohort_gradient_richardson_depth);
   } else {
-    return util::gradient_fd(fun, plant.state(SIZE_INDEX), eps, plant.rate("height"),
+    return util::gradient_fd(fun, plant.state(SIZE_INDEX), eps, plant.rate("size"),
                              control.cohort_gradient_direction);
   }
 }
@@ -162,8 +162,8 @@ double Cohort<T>::r_growth_rate_gradient(const Environment& environment) {
 }
 
 template <typename T>
-double Cohort<T>::compute_competition(double height_) const {
-  return density * plant.compute_competition(height_);
+double Cohort<T>::compute_competition(double size_) const {
+  return density * plant.compute_competition(size_);
 }
 
 template <typename T>
@@ -206,13 +206,12 @@ Cohort<T> make_cohort(typename Cohort<T>::strategy_type s) {
   return Cohort<T>(make_strategy_ptr(s));
 }
 
-// TODO: Eventually change to growth rate given size
 template <typename T>
-double growth_rate_given_height(T& plant, double height,
+double growth_rate_given_size(T& plant, double size,
                                 const Environment& environment) {
-  plant.set_state("height", height);
+  plant.set_state("size", size);
   plant.compute_rates(environment, true);
-  return plant.rate("height");
+  return plant.rate("size");
 }
 
 }

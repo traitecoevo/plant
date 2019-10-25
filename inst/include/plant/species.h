@@ -25,9 +25,9 @@ public:
   void clear();
   void add_seed();
 
-  double height_max() const;
-  double area_leaf_above(double height) const;
-  void compute_vars_phys(const Environment& environment);
+  double size_max() const;
+  double compute_competition(double size) const;
+  void compute_rates(const Environment& environment);
   std::vector<double> seeds() const;
 
   // * ODE interface
@@ -40,8 +40,8 @@ public:
   ode::iterator       ode_rates(ode::iterator it) const;
 
   // * R interface
-  std::vector<double> r_heights() const;
-  void r_set_heights(std::vector<double> heights);
+  std::vector<double> r_sizes() const;
+  void r_set_sizes(std::vector<double> sizes);
   const cohort_type& r_seed() const {return seed;}
   std::vector<cohort_type> r_cohorts() const {return cohorts;}
   const cohort_type& r_cohort_at(util::index idx) const {
@@ -49,8 +49,8 @@ public:
   }
 
   // These are used to determine the degree of cohort refinement.
-  std::vector<double> r_area_leafs() const;
-  std::vector<double> r_area_leafs_error(double scal) const;
+  std::vector<double> r_competition_effect() const;
+  std::vector<double> r_competition_error(double scal) const;
 
   // This is just kind of useful
   std::vector<double> r_log_densities() const;
@@ -89,23 +89,23 @@ void Species<T>::add_seed() {
   // TODO: Should the seed be recomputed here?
 }
 
-// If a species contains no individuals, we return the height of a
-// seed of the species.  Otherwise we return the height of the largest
+// If a species contains no individuals, we return the size of a
+// seed of the species.  Otherwise we return the size of the largest
 // individual (always the first in the list) which will be at least
 // tall as a seed.
 template <typename T>
-double Species<T>::height_max() const {
-  return cohorts.empty() ? seed.height() : cohorts.front().height();
+double Species<T>::size_max() const {
+  return cohorts.empty() ? seed.size() : cohorts.front().size();
 }
 
 // Because of cohorts are always ordered from largest to smallest, we
 // need not continue down the list once the leaf area above a certain
-// height is zero, because it will be zero for all cohorts further down
+// size is zero, because it will be zero for all cohorts further down
 // the list.
 //
 // NOTE: This is simply performing numerical integration, via the
-// trapezium rule, of the area_leaf_above with respect to plant
-// height.  You'd think that this would be nicer to do in terms of a
+// trapezium rule, of the compute_competition with respect to plant
+// size.  You'd think that this would be nicer to do in terms of a
 // call to an external trapezium integration function, but building
 // and discarding the intermediate storage ends up being a nontrivial
 // cost.  A more general iterator version might be possible, but with
@@ -113,7 +113,7 @@ double Species<T>::height_max() const {
 // useful.
 //
 // NOTE: In the cases where there is no individuals, we return 0 for
-// all heights.  The integral is not defined, but an empty light
+// all sizes.  The integral is not defined, but an empty light
 // environment seems appropriate.
 //
 // NOTE: A similar early-exit condition to the Plant version is used;
@@ -124,16 +124,16 @@ double Species<T>::height_max() const {
 // also needed if the last looked at plant was still contributing to
 // the integral).
 template <typename T>
-double Species<T>::area_leaf_above(double height) const {
-  if (size() == 0 || height_max() < height) {
+double Species<T>::compute_competition(double size_) const {
+  if (size() == 0 || size_max() < size_) {
     return 0.0;
   }
   double tot = 0.0;
   cohorts_const_iterator it = cohorts.begin();
-  double h1 = it->height(), f_h1 = it->area_leaf_above(height);
+  double h1 = it->size(), f_h1 = it->compute_competition(size_);
 
   for (++it; it != cohorts.end(); ++it) {
-    const double h0 = it->height(), f_h0 = it->area_leaf_above(height);
+    const double h0 = it->size(), f_h0 = it->compute_competition(size_);
     if (!util::is_finite(f_h0)) {
       util::stop("Detected non-finite contribution");
     }
@@ -141,13 +141,13 @@ double Species<T>::area_leaf_above(double height) const {
     // Upper point moves for next time:
     h1   = h0;
     f_h1 = f_h0;
-    if (h0 < height) {
+    if (h0 < size_) {
       break;
     }
   }
 
   if (size() == 1 || f_h1 > 0) {
-    const double h0 = seed.height(), f_h0 = seed.area_leaf_above(height);
+    const double h0 = seed.size(), f_h0 = seed.compute_competition(size_);
     tot += (h1 - h0) * (f_h1 + f_h0);
   }
 
@@ -157,9 +157,9 @@ double Species<T>::area_leaf_above(double height) const {
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
 template <typename T>
-void Species<T>::compute_vars_phys(const Environment& environment) {
+void Species<T>::compute_rates(const Environment& environment) {
   for (auto& c : cohorts) {
-    c.compute_vars_phys(environment);
+    c.compute_rates(environment);
   }
   seed.compute_initial_conditions(environment);
 }
@@ -196,41 +196,41 @@ ode::iterator Species<T>::ode_rates(ode::iterator it) const {
 
 
 template <typename T>
-std::vector<double> Species<T>::r_heights() const {
+std::vector<double> Species<T>::r_sizes() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (cohorts_const_iterator it = cohorts.begin();
        it != cohorts.end(); ++it) {
-    ret.push_back(it->height());
+    ret.push_back(it->size());
   }
   return ret;
 }
 
 template <typename T>
-void Species<T>::r_set_heights(std::vector<double> heights) {
-  util::check_length(heights.size(), size());
-  if (!util::is_decreasing(heights.begin(), heights.end())) {
-    util::stop("height must be decreasing (ties allowed)");
+void Species<T>::r_set_sizes(std::vector<double> sizes) {
+  util::check_length(sizes.size(), size());
+  if (!util::is_decreasing(sizes.begin(), sizes.end())) {
+    util::stop("size must be decreasing (ties allowed)");
   }
   size_t i = 0;
   for (cohorts_iterator it = cohorts.begin(); it != cohorts.end(); ++it, ++i) {
-    it->plant.set_state("height", heights[i]);
+    it->plant.set_state("size", sizes[i]);
   }
 }
 
 template <typename T>
-std::vector<double> Species<T>::r_area_leafs() const {
+std::vector<double> Species<T>::r_competition_effect() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : cohorts) {
-    ret.push_back(c.area_leaf());
+    ret.push_back(c.competition_effect());
   }
   return ret;
 }
 
 template <typename T>
-std::vector<double> Species<T>::r_area_leafs_error(double scal) const {
-  return util::local_error_integration(r_heights(), r_area_leafs(), scal);
+std::vector<double> Species<T>::r_competition_error(double scal) const {
+  return util::local_error_integration(r_sizes(), r_competition_effect(), scal);
 }
 
 template <typename T>

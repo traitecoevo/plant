@@ -5,8 +5,8 @@ namespace plant {
 namespace tools {
 
 Environment fixed_environment(double canopy_openness,
-                              double height_max) {
-  std::vector<double> x = {0, height_max/2.0, height_max};
+                              double size_max) {
+  std::vector<double> x = {0, size_max/2.0, size_max};
   std::vector<double> y = {canopy_openness, canopy_openness, canopy_openness};
   interpolator::Interpolator env;
   env.init(x, y);
@@ -24,14 +24,14 @@ Environment fixed_environment(double canopy_openness,
 //'
 //' @title Create fixed light environment
 //' @param canopy_openness Index of canopy openness (on 0,1)
-//' @param height_max Maximum height.  The default (150) should be big
+//' @param size_max Maximum size.  The default (150) should be big
 //' enough for most uses.
 //' @export
 //' @author Rich FitzJohn
 // [[Rcpp::export]]
 plant::Environment fixed_environment(double canopy_openness,
-                                     double height_max=150.0) {
-  return plant::tools::fixed_environment(canopy_openness, height_max);
+                                     double size_max=150.0) {
+  return plant::tools::fixed_environment(canopy_openness, size_max);
 }
 
 

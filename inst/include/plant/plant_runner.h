@@ -14,7 +14,7 @@ public:
   typedef T strategy_type;
   PlantRunner(Plant<T> plant_, Environment environment_)
     : plant(plant_), environment(environment_) {
-    plant.compute_vars_phys(environment);
+    plant.compute_rates(environment);
   }
 
   static size_t ode_size() {return Plant<T>::ode_size();}
@@ -23,7 +23,7 @@ public:
   ode::const_iterator set_ode_state(ode::const_iterator it, double time) {
     it = plant.set_ode_state(it);
     environment.time = time;
-    plant.compute_vars_phys(environment);
+    plant.compute_rates(environment);
     return it;
   }
   ode::iterator ode_state(ode::iterator it) const {

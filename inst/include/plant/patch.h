@@ -23,11 +23,11 @@ public:
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
 
-  double height_max() const;
+  double size_max() const;
 
-  // [eqn 11] Canopy openness at `height`
-  double area_leaf_above(double height) const;
-  double canopy_openness(double height) const;
+  // [eqn 11] Canopy openness at `size`
+  double compute_competition(double size) const;
+  double canopy_openness(double size) const;
 
   void add_seed(size_t species_index);
   void add_seeds(const std::vector<size_t>& species_index);
@@ -51,7 +51,7 @@ public:
   parameters_type r_parameters() const {return parameters;}
   Environment r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
-  std::vector<double> r_area_leaf_error(size_t species_index) const;
+  std::vector<double> r_competition_error(size_t species_index) const;
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
@@ -64,12 +64,12 @@ public:
   }
   // These are only here because they wrap private functions.
   void r_compute_light_environment() {compute_light_environment();}
-  void r_compute_vars_phys() {compute_vars_phys();}
+  void r_compute_rates() {compute_rates();}
 
 private:
   void compute_light_environment();
   void rescale_light_environment();
-  void compute_vars_phys();
+  void compute_rates();
 
   parameters_type parameters;
   std::vector<bool> is_resident;
@@ -96,50 +96,50 @@ void Patch<T>::reset() {
   }
   environment.clear();
   compute_light_environment();
-  compute_vars_phys();
+  compute_rates();
 }
 
 template <typename T>
-double Patch<T>::height_max() const {
+double Patch<T>::size_max() const {
   double ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      ret = std::max(ret, species[i].height_max());
+      ret = std::max(ret, species[i].size_max());
     }
   }
   return ret;
 }
 
 template <typename T>
-double Patch<T>::area_leaf_above(double height) const {
+double Patch<T>::compute_competition(double size) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      tot += species[i].area_leaf_above(height);
+      tot += species[i].compute_competition(size);
     }
   }
   return tot;
 }
 
 template <typename T>
-double Patch<T>::canopy_openness(double height) const {
+double Patch<T>::canopy_openness(double size) const {
   // NOTE: patch_area does not appear in the SCM model formulation;
   // really we should require that it is 1.0, or drop it entirely.
-  return exp(-parameters.k_I * area_leaf_above(height) /
+  return exp(-parameters.k_I * compute_competition(size) /
              parameters.patch_area);
 }
 
 template <typename T>
-std::vector<double> Patch<T>::r_area_leaf_error(size_t species_index) const {
-  const double tot_area_leaf = area_leaf_above(0.0);
-  return species[species_index].r_area_leafs_error(tot_area_leaf);
+std::vector<double> Patch<T>::r_competition_error(size_t species_index) const {
+  const double tot_competition = compute_competition(0.0);
+  return species[species_index].r_competition_error(tot_competition);
 }
 
 template <typename T>
 void Patch<T>::compute_light_environment() {
   if (parameters.n_residents() > 0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.compute_light_environment(f, height_max());
+    environment.compute_light_environment(f, size_max());
   }
 }
 
@@ -147,20 +147,20 @@ template <typename T>
 void Patch<T>::rescale_light_environment() {
   if (parameters.n_residents() > 0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.rescale_light_environment(f, height_max());
+    environment.rescale_light_environment(f, size_max());
   }
 }
 
 template <typename T>
-void Patch<T>::compute_vars_phys() {
+void Patch<T>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
     environment.set_seed_rain_index(i);
-    species[i].compute_vars_phys(environment);
+    species[i].compute_rates(environment);
   }
 }
 
 // TODO: We should only be recomputing the light environment for the
-// points that are below the height of the seedling -- not the entire
+// points that are below the size of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
 template <typename T>
 void Patch<T>::add_seed(size_t species_index) {
@@ -238,7 +238,7 @@ ode::const_iterator Patch<T>::set_ode_state(ode::const_iterator it,
   } else {
     compute_light_environment();
   }
-  compute_vars_phys();
+  compute_rates();
   return it;
 }
 

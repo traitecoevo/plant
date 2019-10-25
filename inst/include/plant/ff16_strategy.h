@@ -6,15 +6,10 @@
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
 #include <plant/internals.h> // quadrature::intervals_type
+#include <plant/strategy.h> 
 // #include <plant/plant_internals.h>
 
 namespace plant {
-
-// Environment needs Parameters to initialise and that needs Strategy,
-// so there's a really awkward circular reference here.  This forward
-// declaration breaks it, but there might be a better solution.
-class Environment;
-
 
 class FF16_Strategy: public Strategy {
 public:
@@ -28,7 +23,7 @@ public:
 
   static std::vector<std::string> state_names() {
     return  std::vector<std::string>({
-      "height",
+      "size",
       "mortality",
       "fecundity",
       "area_heartwood",
@@ -41,7 +36,7 @@ public:
       "area_leaf",
       "net_mass_production_dt"
     });
-    // add the associated computation to compute_vars_phys and compute there
+    // add the associated computation to compute_rates and compute there
     if (collect_all_auxillary) {
       ret.push_back("area_sapwood");
     }
@@ -54,10 +49,13 @@ public:
   // the index of variables in the internals extra vector
   std::map<std::string, int> state_index; 
   std::map<std::string, int> aux_index; 
-  
+
+  double initial_size(void) const;
+
   bool collect_all_auxillary;
   // [eqn 2] area_leaf (inverse of [eqn 3])
   double area_leaf(double height) const;
+  double area_leaf_state(Internals& vars) const;
 
   void refresh_indices();
 
@@ -90,7 +88,7 @@ public:
                            double mass_sapwood, double mass_root) const;
 
 
-  void compute_vars_phys(const Environment& environment, bool reuse_intervals,
+  void compute_rates(const Environment& environment, bool reuse_intervals,
                 Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
@@ -105,7 +103,8 @@ public:
   double compute_assimilation_h(double h, double height,
                                 const Environment& environment) const;
   double compute_assimilation_p(double p, double height,
-                                const Environment& environment) const; // [Appendix S6] Per-leaf photosynthetic rate.
+                                const Environment& environment) const;
+  // [Appendix S6] Per-leaf photosynthetic rate.
   double assimilation_leaf(double x) const;
 
 
@@ -198,8 +197,6 @@ public:
   // [      ] Inverse of Q: height above which fraction 'x' of leaf found
   double Qp(double x, double height) const;
 
-  // The aim is to find a plant height that gives the correct seed mass.
-  double height_seed(void) const;
 
   // Set constants within FF16_Strategy
   void prepare_strategy();
@@ -259,26 +256,24 @@ public:
   double area_leaf_0;
 
   std::string name;
+
+  // Translate generic methods to FF16 strategy leaf area methods
+
+  double competition_effect(double height) const {
+    return area_leaf(height);
+  }
+
+  double competition_effect_state(Internals& vars) const {
+    return area_leaf_state(vars);
+  }
+
+  double compute_competition(double z, double height, double competition_effect) const {
+    return area_leaf_above(z, height, competition_effect);
+  }
+
+  
 };
 
-
-// Translate generic methods to FF16 strategy leaf area methods
-
-double FF16_Strategy::compute_competition(double height) const {
-  return area_leaf(double height);
-}
-
-double FF16_Strategy::compute_competition(double z, double height, double competition_effect) const;
-  return area_leaf_above(z, height, competition_effect);
-}
-
-double FF16_Strategy::competition_effect_state(Internals& vars) const {
-  return area_leaf_state(vars)
-}
-
-double FF16_Strategy::competition_effect(Internals& vars) const {
-  return area_leaf(double height);
-}
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);
 

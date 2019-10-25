@@ -15,11 +15,11 @@ public:
   Environment(double disturbance_mean_interval,
               std::vector<double> seed_rain_,
               Control control);
-  double canopy_openness(double height) const;
+  double canopy_openness(double size) const;
   template <typename Function>
-  void compute_light_environment(Function f_canopy_openness, double height_max);
+  void compute_light_environment(Function f_canopy_openness, double size_max);
   template <typename Function>
-  void rescale_light_environment(Function f_canopy_openness, double height_max);
+  void rescale_light_environment(Function f_canopy_openness, double size_max);
   double patch_survival() const;
   double patch_survival_conditional(double time_at_birth) const;
   void clear();
@@ -44,20 +44,20 @@ private:
 
 template <typename Function>
 void Environment::compute_light_environment(Function f_canopy_openness,
-                                            double height_max) {
+                                            double size_max) {
   light_environment =
-    light_environment_generator.construct(f_canopy_openness, 0, height_max);
+    light_environment_generator.construct(f_canopy_openness, 0, size_max);
 }
 
 template <typename Function>
 void Environment::rescale_light_environment(Function f_canopy_openness,
-                                            double height_max) {
+                                            double size_max) {
   std::vector<double> h = light_environment.get_x();
   const double min = light_environment.min(), // 0.0?
-    height_max_old = light_environment.max();
+    size_max_old = light_environment.max();
 
-  util::rescale(h.begin(), h.end(), min, height_max_old, min, height_max);
-  h.back() = height_max; // Avoid round-off error.
+  util::rescale(h.begin(), h.end(), min, size_max_old, min, size_max);
+  h.back() = size_max; // Avoid round-off error.
 
   light_environment.clear();
   for (auto hi : h) {

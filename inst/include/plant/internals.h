@@ -17,7 +17,7 @@ namespace plant {
 class Internals {
 public:
   Internals(size_t s_size=0, size_t a_size=0)
-      
+      :
       state_size(s_size),
       aux_size(a_size),
       states(s_size, 0.0),

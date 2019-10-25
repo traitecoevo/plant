@@ -20,7 +20,7 @@ public:
       strategy->refresh_indices();
     }
     vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
-    set_state("height", strategy->height_0);
+    set_state("size", strategy->size_0);
   }
   
   // useage: state(SIZE_INDEX)
@@ -35,7 +35,7 @@ public:
   }
   double rate(int i) const { return vars.rate(i); }
 
-  // useage: set_state("height", 2.0)
+  // useage: set_state("size", 2.0)
   void set_state(std::string name, double v) {
     int i = strategy->state_index.at(name);
     vars.set_state(i, v);
@@ -45,12 +45,6 @@ public:
     vars.set_state(i, v);
     strategy->update_dependent_aux(i, vars);
   }
-
-  // aux vars by name and index
-  double aux(std::string name) const {
-    return vars.aux(strategy->aux_index.at(name));
-  }
-  double aux(int i) const { return vars.aux(i); } 
 
   double compute_competition(double z) const {
     return strategy->compute_competition(z, state(SIZE_INDEX), 0.0);
@@ -108,7 +102,7 @@ public:
   // * R interface
   strategy_type r_get_strategy() const { return *strategy.get(); }
   // ! External R code depends on knowing r internals for like growing plant to
-  // ! height or something
+  // ! size or something
   Internals r_internals() const { return vars; }
   const Control &control() const { return strategy->control; }
 

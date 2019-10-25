@@ -48,8 +48,10 @@ Rcpp::List get_state(const Patch<T>& patch) {
 inline Rcpp::NumericMatrix get_state(const Environment environment) {
   using namespace Rcpp;
   NumericMatrix xy = environment.light_environment.r_get_xy();
+  // TODO these labels should not be known in a method
+  // as generically named as `get_state`. Especially "canopy_openness"
   Rcpp::CharacterVector colnames =
-    Rcpp::CharacterVector::create("height", "canopy_openness");
+    Rcpp::CharacterVector::create("size", "canopy_openness");
   xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
   return xy;
 }

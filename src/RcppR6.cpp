@@ -478,8 +478,8 @@ plant::Environment Environment__ctor(double disturbance_mean_interval, std::vect
   return plant::Environment(disturbance_mean_interval, seed_rain, control);
 }
 // [[Rcpp::export]]
-double Environment__canopy_openness(plant::RcppR6::RcppR6<plant::Environment> obj_, double height) {
-  return obj_->canopy_openness(height);
+double Environment__canopy_openness(plant::RcppR6::RcppR6<plant::Environment> obj_, double size) {
+  return obj_->canopy_openness(size);
 }
 // [[Rcpp::export]]
 double Environment__patch_survival_conditional(plant::RcppR6::RcppR6<plant::Environment> obj_, double time_at_birth) {
@@ -544,20 +544,16 @@ double Plant___FF16__rate(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strateg
   return obj_->rate(name);
 }
 // [[Rcpp::export]]
-double Plant___FF16__aux(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name) {
-  return obj_->aux(name);
-}
-// [[Rcpp::export]]
 void Plant___FF16__set_state(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name, double v) {
   obj_->set_state(name, v);
 }
 // [[Rcpp::export]]
-double Plant___FF16__area_leaf_above(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, double h) {
-  return obj_->area_leaf_above(h);
+double Plant___FF16__compute_competition(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, double h) {
+  return obj_->compute_competition(h);
 }
 // [[Rcpp::export]]
-void Plant___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
-  obj_->compute_vars_phys(environment);
+void Plant___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
 double Plant___FF16__germination_probability(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
@@ -739,16 +735,16 @@ plant::Cohort<plant::FF16_Strategy> Cohort___FF16__ctor(plant::FF16_Strategy str
   return plant::make_cohort<plant::FF16_Strategy>(strategy);
 }
 // [[Rcpp::export]]
-double Cohort___FF16__area_leaf_above(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, double height) {
-  return obj_->area_leaf_above(height);
+double Cohort___FF16__compute_competition(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, double size) {
+  return obj_->compute_competition(size);
 }
 // [[Rcpp::export]]
 double Cohort___FF16__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
   return obj_->r_growth_rate_gradient(environment);
 }
 // [[Rcpp::export]]
-void Cohort___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
-  obj_->compute_vars_phys(environment);
+void Cohort___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
 void Cohort___FF16__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
@@ -760,8 +756,8 @@ plant::Plant<plant::FF16_Strategy> Cohort___FF16__plant__get(plant::RcppR6::Rcpp
 }
 
 // [[Rcpp::export]]
-double Cohort___FF16__height__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_) {
-  return obj_->height();
+double Cohort___FF16__size__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_) {
+  return obj_->size();
 }
 
 // [[Rcpp::export]]
@@ -770,8 +766,8 @@ double Cohort___FF16__log_density__get(plant::RcppR6::RcppR6<plant::Cohort<plant
 }
 
 // [[Rcpp::export]]
-double Cohort___FF16__area_leaf__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_) {
-  return obj_->area_leaf();
+double Cohort___FF16__competition_effect__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_) {
+  return obj_->competition_effect();
 }
 
 // [[Rcpp::export]]
@@ -813,12 +809,12 @@ void Species___FF16__clear(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Stra
   obj_->clear();
 }
 // [[Rcpp::export]]
-void Species___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
-  obj_->compute_vars_phys(environment);
+void Species___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
-double Species___FF16__area_leaf_above(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, double height) {
-  return obj_->area_leaf_above(height);
+double Species___FF16__compute_competition(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, double size) {
+  return obj_->compute_competition(size);
 }
 // [[Rcpp::export]]
 void Species___FF16__add_seed(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
@@ -829,8 +825,8 @@ plant::Cohort<plant::FF16_Strategy> Species___FF16__cohort_at(plant::RcppR6::Rcp
   return obj_->r_cohort_at(index);
 }
 // [[Rcpp::export]]
-std::vector<double> Species___FF16__area_leafs_error(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, double scal) {
-  return obj_->r_area_leafs_error(scal);
+std::vector<double> Species___FF16__competition_error(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, double scal) {
+  return obj_->r_competition_error(scal);
 }
 // [[Rcpp::export]]
 size_t Species___FF16__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
@@ -843,17 +839,17 @@ plant::Cohort<plant::FF16_Strategy> Species___FF16__seed__get(plant::RcppR6::Rcp
 }
 
 // [[Rcpp::export]]
-double Species___FF16__height_max__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
-  return obj_->height_max();
+double Species___FF16__size_max__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
+  return obj_->size_max();
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___FF16__heights__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
-  return obj_->r_heights();
+std::vector<double> Species___FF16__sizes__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
+  return obj_->r_sizes();
 }
 // [[Rcpp::export]]
-void Species___FF16__heights__set(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, std::vector<double> value) {
-  obj_->r_set_heights(value);
+void Species___FF16__sizes__set(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, std::vector<double> value) {
+  obj_->r_set_sizes(value);
 }
 
 // [[Rcpp::export]]
@@ -872,8 +868,8 @@ std::vector<double> Species___FF16__seeds__get(plant::RcppR6::RcppR6<plant::Spec
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___FF16__area_leafs__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
-  return obj_->r_area_leafs();
+std::vector<double> Species___FF16__competition_effect__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
+  return obj_->r_competition_effect();
 }
 
 // [[Rcpp::export]]
@@ -901,12 +897,12 @@ plant::Patch<plant::FF16_Strategy> Patch___FF16__ctor(plant::Parameters<plant::F
   return plant::Patch<plant::FF16_Strategy>(parameters);
 }
 // [[Rcpp::export]]
-double Patch___FF16__area_leaf_above(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_, double height) {
-  return obj_->area_leaf_above(height);
+double Patch___FF16__compute_competition(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_, double size) {
+  return obj_->compute_competition(size);
 }
 // [[Rcpp::export]]
-double Patch___FF16__canopy_openness(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_, double height) {
-  return obj_->canopy_openness(height);
+double Patch___FF16__canopy_openness(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_, double size) {
+  return obj_->canopy_openness(size);
 }
 // [[Rcpp::export]]
 void Patch___FF16__add_seed(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
@@ -917,8 +913,8 @@ void Patch___FF16__compute_light_environment(plant::RcppR6::RcppR6<plant::Patch<
   obj_->r_compute_light_environment();
 }
 // [[Rcpp::export]]
-void Patch___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_) {
-  obj_->r_compute_vars_phys();
+void Patch___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_) {
+  obj_->r_compute_rates();
 }
 // [[Rcpp::export]]
 void Patch___FF16__reset(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_) {
@@ -947,8 +943,8 @@ size_t Patch___FF16__size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_St
 }
 
 // [[Rcpp::export]]
-double Patch___FF16__height_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_) {
-  return obj_->height_max();
+double Patch___FF16__size_max__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_) {
+  return obj_->size_max();
 }
 
 // [[Rcpp::export]]
@@ -1012,8 +1008,8 @@ std::vector<double> SCM___FF16__seed_rain_cohort(plant::RcppR6::RcppR6<plant::SC
   return obj_->r_seed_rain_cohort(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> SCM___FF16__area_leaf_error(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
-  return obj_->r_area_leaf_error(species_index);
+std::vector<double> SCM___FF16__competition_error(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
+  return obj_->r_competition_error(species_index);
 }
 // [[Rcpp::export]]
 void SCM___FF16__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, std::vector<std::vector<double> > times) {
@@ -1087,12 +1083,12 @@ void StochasticSpecies___FF16__clear(plant::RcppR6::RcppR6<plant::StochasticSpec
   obj_->clear();
 }
 // [[Rcpp::export]]
-void StochasticSpecies___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
-  obj_->compute_vars_phys(environment);
+void StochasticSpecies___FF16__compute_rates(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
-double StochasticSpecies___FF16__area_leaf_above(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, double height) {
-  return obj_->area_leaf_above(height);
+double StochasticSpecies___FF16__compute_competition(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, double size) {
+  return obj_->compute_competition(size);
 }
 // [[Rcpp::export]]
 void StochasticSpecies___FF16__add_seed(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_) {
@@ -1126,17 +1122,17 @@ plant::Plant<plant::FF16_Strategy> StochasticSpecies___FF16__seed__get(plant::Rc
 }
 
 // [[Rcpp::export]]
-double StochasticSpecies___FF16__height_max__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_) {
-  return obj_->height_max();
+double StochasticSpecies___FF16__size_max__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_) {
+  return obj_->size_max();
 }
 
 // [[Rcpp::export]]
-std::vector<double> StochasticSpecies___FF16__heights__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_) {
-  return obj_->r_heights();
+std::vector<double> StochasticSpecies___FF16__sizes__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_) {
+  return obj_->r_sizes();
 }
 // [[Rcpp::export]]
-void StochasticSpecies___FF16__heights__set(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, std::vector<double> value) {
-  obj_->r_set_heights(value);
+void StochasticSpecies___FF16__sizes__set(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, std::vector<double> value) {
+  obj_->r_set_sizes(value);
 }
 
 // [[Rcpp::export]]
@@ -1179,12 +1175,12 @@ plant::StochasticPatch<plant::FF16_Strategy> StochasticPatch___FF16__ctor(plant:
   return plant::StochasticPatch<plant::FF16_Strategy>(parameters);
 }
 // [[Rcpp::export]]
-double StochasticPatch___FF16__area_leaf_above(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_, double height) {
-  return obj_->area_leaf_above(height);
+double StochasticPatch___FF16__compute_competition(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_, double size) {
+  return obj_->compute_competition(size);
 }
 // [[Rcpp::export]]
-double StochasticPatch___FF16__canopy_openness(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_, double height) {
-  return obj_->canopy_openness(height);
+double StochasticPatch___FF16__canopy_openness(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_, double size) {
+  return obj_->canopy_openness(size);
 }
 // [[Rcpp::export]]
 bool StochasticPatch___FF16__add_seed(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
@@ -1199,8 +1195,8 @@ void StochasticPatch___FF16__compute_light_environment(plant::RcppR6::RcppR6<pla
   obj_->r_compute_light_environment();
 }
 // [[Rcpp::export]]
-void StochasticPatch___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_) {
-  obj_->r_compute_vars_phys();
+void StochasticPatch___FF16__compute_rates(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_) {
+  obj_->r_compute_rates();
 }
 // [[Rcpp::export]]
 void StochasticPatch___FF16__reset(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_) {
@@ -1233,8 +1229,8 @@ size_t StochasticPatch___FF16__size__get(plant::RcppR6::RcppR6<plant::Stochastic
 }
 
 // [[Rcpp::export]]
-double StochasticPatch___FF16__height_max__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_) {
-  return obj_->height_max();
+double StochasticPatch___FF16__size_max__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_) {
+  return obj_->size_max();
 }
 
 // [[Rcpp::export]]
