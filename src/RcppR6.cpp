@@ -544,6 +544,10 @@ double Plant___FF16__rate(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strateg
   return obj_->rate(name);
 }
 // [[Rcpp::export]]
+double Plant___FF16__aux(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name) {
+  return obj_->aux(name);
+}
+// [[Rcpp::export]]
 void Plant___FF16__set_state(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name, double v) {
   obj_->set_state(name, v);
 }

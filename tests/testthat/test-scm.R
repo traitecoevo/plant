@@ -101,7 +101,7 @@ test_that("Ported from tree1", {
     ## It's *not* the ODE system thrashing (thankfully) because the
     ## number of ODE times reported are not that bad.
     ##
-    ## 50.1% in growth_rate_gradient(), and 45.4% in compute_vars_phys()
+    ## 50.1% in growth_rate_gradient(), and 45.4% in compute_rates()
     ## and 2.8% in initial_conditions() (so that's 98.3%) total.
     ## growth_rate_gradient and initial_conditions spend *all* their
     ## time doing growth_rate_gradient(), in turn all in
@@ -118,7 +118,7 @@ test_that("Ported from tree1", {
       while (!scm$complete > 0 && scm$time < t_max) {
         scm$run_next()
         tt <- c(tt, scm$time)
-        hh <- c(hh, list(scm$patch$species[[species_index]]$height))
+        hh <- c(hh, list(scm$patch$species[[species_index]]$size))
       }
       hh <- list_to_matrix(hh)
       list(t=tt, h=hh)
@@ -254,8 +254,8 @@ test_that("Seed rain & error calculations correct", {
     expect_equal(scm$seed_rain_error[[1]], seed_rain_R(scm, error=TRUE))
 
     lae_cmp <-
-      scm$patch$species[[1]]$area_leafs_error(scm$patch$area_leaf_above(0))
-    expect_identical(scm$area_leaf_error(1), lae_cmp)
+      scm$patch$species[[1]]$competition_error(scm$patch$compute_competition(0))
+    expect_identical(scm$competition_error(1), lae_cmp)
 
     int <- make_scm_integrate(scm)
     S_D <- scm$parameters$strategies[[1]]$S_D
@@ -265,7 +265,7 @@ test_that("Seed rain & error calculations correct", {
     int2 <- make_scm_integrate(res)
 
     expect_equal(int2("seeds_survival_weighted"), int("seeds_survival_weighted"))
-    expect_equal(int2("height"), int("height"))
+    expect_equal(int2("size"), int("size"))
     expect_equal(int2("mortality"), int("mortality"))
     expect_equal(int2("fecundity"), int("fecundity"))
   }

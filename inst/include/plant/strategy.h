@@ -17,7 +17,6 @@ class Environment;
 class Strategy {
 public:
   typedef std::shared_ptr<Strategy> ptr;
-  Strategy();
 
   // update this when the length of state_names changes
   static size_t state_size ();

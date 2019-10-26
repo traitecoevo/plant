@@ -37,11 +37,11 @@ test_that("Reference comparison", {
 
   expect_identical(p$strategy, s)
 
-  ## Set the height to something (here 10)
+  ## Set the size to something (here 10)
   h0 <- 10
-  p$set_state("height", h0)
+  p$set_state("size", h0)
 
-  expect_identical(p$state("height"), h0)
+  expect_identical(p$state("size"), h0)
   # testing set auxillary state as well as area_leaf depends on height only
   expect_equal(p$aux("area_leaf"), cmp$LeafArea(h0))
   # expect_equal(p$state("mass_leaf"), cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0)))
@@ -62,9 +62,9 @@ test_that("Reference comparison", {
   ## TODO: This is due to issues with how we think about size; see notes
   ## in plant.cpp around set_height and set_mass_heartwood.  Note that
   ## when running as an ODE, this gives the *wrong answer*.
-  h <- p$state("height")
-  p$set_state("height", h + .1) # trick plant into recomputing all size variables)
-  p$set_state("height", h)
+  h <- p$state("size")
+  p$set_state("size", h + .1) # trick plant into recomputing all size variables)
+  p$set_state("size", h)
 
   expect_identical(p$state("area_heartwood"), HA0)
   # expect_equal(p$state("area_stem"), cmp$area_stem(h0) + HA0)
@@ -82,8 +82,8 @@ test_that("Reference comparison", {
   ## through with environment.  Most are NA_real_, but some are not
 
   ## Compute the physiological variables and retrieve them.
-  p$compute_vars_phys(env)
-#  p$compute_vars_growth() # NOTE: Compute immediately *after* vars_phys
+  p$compute_rates(env)
+#  p$compute_vars_growth() # NOTE: Compute immediately *after* rates
 
   ## 1. Assimilation:
   cmp_assimilation_plant <- cmp$assimilation.plant(h0, light_env)
@@ -112,11 +112,11 @@ test_that("Reference comparison", {
 
   ## 8. Growth rate for height
   cmp_height_dt <- cmp$height.growth.dt(cmp$traits, h0, light_env)
-  expect_equal(p$rate("height"), cmp_height_dt, tolerance=1e-7)
+  expect_equal(p$rate("size"), cmp_height_dt, tolerance=1e-7)
 
   cmp_height_dt <-
     cmp$height.growth.dt.via.area.leaf(cmp$traits, h0, light_env)
-  expect_equal(p$rate("height"), cmp_height_dt, tolerance=1e-7)
+  expect_equal(p$rate("size"), cmp_height_dt, tolerance=1e-7)
 
   ## 9. Mortality rate
   cmp_mortality_dt <- cmp$mortality.dt(cmp$traits, h0, light_env)
@@ -174,5 +174,5 @@ test_that("Reference comparison", {
   #                           "darea_leaf_dmass_live",
   #                           "fraction_allocation_growth")]),
   #             vars[[c("net_mass_production_dt")]])
-  # expect_equal(p$rate("height"), cmp, tolerance=1e-7)
+  # expect_equal(p$rate("size"), cmp, tolerance=1e-7)
 })

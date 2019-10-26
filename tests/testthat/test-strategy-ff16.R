@@ -73,17 +73,17 @@ test_that("Reference comparison", {
 
   expect_identical(p$strategy, s)
 
-  ## Set the height to something (here 10)
+  ## Set the size to something (here 10)
   h0 <- 10
-  p$set_state("height", h0)
+  p$set_state("size", h0)
 
 
-  expect_identical(p$state("height"), h0)
+  expect_identical(p$state("size"), h0)
 
   ## Check: Is this redundant now
   ## We now use 
   vars <- p$internals
-  expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
+  expect_identical(p$state("size"), vars$states[which(p$ode_names == "size")])
 })
 
 
@@ -91,7 +91,7 @@ test_that("Reference comparison", {
 test_that("Critical Names", {
   s <- FF16_Strategy()
   my_names <- FF16_Plant(s)$ode_names
-  expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
+  expect_identical(my_names[1:3], c("size", "mortality", "fecundity"))
 })
 test_that("FF16_Strategy hyper-parameterisation", {
   s <- FF16_Strategy()

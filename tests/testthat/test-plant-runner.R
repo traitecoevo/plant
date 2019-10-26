@@ -6,7 +6,7 @@ test_that("PlantRunner", {
   for (x in names(strategy_types)) {
     p <- Plant(x)(strategy_types[[x]]())
     env <- test_environment(10)
-    p$compute_vars_phys(env)
+    p$compute_rates(env)
 
     pr <- PlantRunner(x)(p, env)
     expect_is(pr, sprintf("PlantRunner<%s>",x))
@@ -42,7 +42,7 @@ test_that("PlantRunner", {
     colnames(m) <- c("time", runner$object$plant$ode_names)
 
     if (interactive()) {
-      plot(height ~ time, as.data.frame(m))
+      plot(size ~ time, as.data.frame(m))
     }
   }
 })
@@ -51,15 +51,15 @@ test_that("get_plant_internals_fun", {
   for (x in names(strategy_types)) {
     p <- Plant(x)(strategy_types[[x]]())
     env <- test_environment(10)
-    p$compute_vars_phys(env)
+    p$compute_rates(env)
 
     runner <- OdeRunner(x)(PlantRunner(x)(p, env))
-    h0 <- runner$object$plant$state("height")
+    h0 <- runner$object$plant$state("size")
     runner$step()
     runner$step()
     runner$step()
     runner$step()
-    h1 <- runner$object$plant$state("height")
+    h1 <- runner$object$plant$state("size")
     expect_gt(h1, h0) ## test that plants grow
   }
 })
@@ -67,11 +67,11 @@ test_that("get_plant_internals_fun", {
 test_that("grow_plant_to_size", {
   for (x in names(strategy_types)) {
     env <- test_environment(10)
-    heights <- seq(1, 10)
+    sizes <- seq(1, 10)
     s <- strategy_types[[x]]()
 
     pp <- Plant(x)(s)
-    res <- grow_plant_bracket(pp, heights, "height", env)
+    res <- grow_plant_bracket(pp, sizes, "size", env)
 
 
     expect_identical(res$t0, res$time[res$index])
@@ -79,21 +79,21 @@ test_that("grow_plant_to_size", {
     expect_identical(res$y0, res$state[res$index,])
     expect_identical(res$y1, res$state[res$index + 1L,])
     ## We really do bracket the size:
-    expect_true(all(res$y0[,"height"] < heights))
-    expect_true(all(res$y1[,"height"] > heights))
+    expect_true(all(res$y0[,"size"] < sizes))
+    expect_true(all(res$y1[,"size"] > sizes))
     expect_is(res$runner, sprintf("OdeRunner<%s>", x))
 
     ## Then, do the search for a single case:
     i <- 3L
     tmp <- grow_plant_bisect(res$runner,
-                             heights[[i]], "height",
+                             sizes[[i]], "size",
                              res$t0[[i]], res$t1[[i]], res$y0[i,])
 
     ## The plant lies within the range expected:
     expect_gte(tmp$time, res$t0[[i]])
     expect_lte(tmp$time, res$t1[[i]])
 
-    j1 <- match(c("height", "mortality", "area_heartwood", "mass_heartwood"), names(res$y0[i,]))
+    j1 <- match(c("size", "mortality", "area_heartwood", "mass_heartwood"), names(res$y0[i,]))
     expect_true(all(tmp$state[j1] > res$y0[i,j1]))
     expect_true(all(tmp$state[j1] < res$y1[i,j1]))
 
@@ -116,7 +116,7 @@ test_that("grow_plant_to_size", {
       plot(tmp$state - res$y1[i,], col = "pink", pch = 4)
     }
     ## Do all plants using the proper function:
-    obj <- grow_plant_to_size(Plant(x)(s), heights, "height", env)
+    obj <- grow_plant_to_size(Plant(x)(s), sizes, "size", env)
     expect_is(obj$time, "numeric")
     expect_true(all(obj$time > res$t0))
     expect_true(all(obj$time < res$t1))
@@ -126,9 +126,9 @@ test_that("grow_plant_to_size", {
     expect_true(all(obj$state[,j2] >= res$y0[,j2]))
     expect_true(all(obj$state[,j2] <= res$y1[,j2]))
 
-    expect_equal(length(obj$plant), length(heights))
+    expect_equal(length(obj$plant), length(sizes))
     expect_true(all(sapply(obj$plant, inherits, sprintf("Plant<%s>",x))))
-    expect_equal(sapply(obj$plant, function(p) p$state("height")), heights, tolerance=1e-6)
+    expect_equal(sapply(obj$plant, function(p) p$state("size")), sizes, tolerance=1e-6)
   }
 })
 
@@ -141,22 +141,22 @@ test_that("grow_plant_to_size", {
     pl <- Plant(x)(strategy)
     sizes <- c(1, 5, 10, 12, strategy$hmat)
     env <- fixed_environment(1.0)
-    res <- grow_plant_to_size(pl, sizes, "height", env, 10000)
+    res <- grow_plant_to_size(pl, sizes, "size", env, 10000)
 
-    expect_equal(res$state[, "height"], sizes, tolerance=1e-6)
+    expect_equal(res$state[, "size"], sizes, tolerance=1e-6)
 
     sizes2 <- c(sizes, last(sizes) * 2)
-    expect_warning(res2 <- grow_plant_to_size(pl, sizes2, "height", env, 100),
+    expect_warning(res2 <- grow_plant_to_size(pl, sizes2, "size", env, 100),
                 "Time exceeded time_max")
     expect_equal(length(res2$time), length(sizes2))
     expect_equal(last(res2$time), NA_real_)
     expect_false(any(is.na(res2$time[-length(sizes2)])))
 
-    expect_silent(res3 <- grow_plant_to_size(pl, sizes2, "height", env,
+    expect_silent(res3 <- grow_plant_to_size(pl, sizes2, "size", env,
                                            100, warn=FALSE))
     expect_equal(res3, res2)
 
-    expect_silent(res4 <- grow_plant_to_size(pl, sizes2, "height", env,
+    expect_silent(res4 <- grow_plant_to_size(pl, sizes2, "size", env,
                                            100, warn=FALSE, filter=TRUE))
 
     ## Manually filter:
@@ -168,11 +168,11 @@ test_that("grow_plant_to_size", {
     expect_equal(res4$trajectory, cmp$trajectory)
 
     if (FALSE) {
-      plot(height ~ time, as.data.frame(res$trajectory), type="l")
-      points(res$time, res$state[, "height"], pch=19)
+      plot(size ~ time, as.data.frame(res$trajectory), type="l")
+      points(res$time, res$state[, "size"], pch=19)
 
-      plot(height ~ time, as.data.frame(res2$trajectory), type="l")
-      points(res2$time, res2$state[, "height"], pch=19)
+      plot(size ~ time, as.data.frame(res2$trajectory), type="l")
+      points(res2$time, res2$state[, "size"], pch=19)
     }
   }
 })
@@ -191,7 +191,7 @@ test_that("grow_plant_to_time", {
     expect_equal(colnames(res$state), pl$ode_names)
     expect_equal(nrow(res$state), length(times))
 
-    expect_true(all(diff(res$state[, "height"]) > 0))
+    expect_true(all(diff(res$state[, "size"]) > 0))
 
     expect_identical(res$time, times)
   }
@@ -201,12 +201,12 @@ test_that("Sensible behaviour on integration failure", {
   pl <- FF16_Plant()
 
   env <- fixed_environment(1)
-  sizes <- seq_range(c(pl$state("height"), 50), 50)
-  expect_warning(res <- grow_plant_to_size(pl, sizes, "height", env, 10, warn = TRUE, filter = TRUE),
+  sizes <- seq_range(c(pl$state("size"), 50), 50)
+  expect_warning(res <- grow_plant_to_size(pl, sizes, "size", env, 10, warn = TRUE, filter = TRUE),
                   "Time exceeded time_max")
   expect_is(res$plant, "list")
   expect_equal(nrow(res$state), length(res$time))
-  expect_equal(res$state[,"height"], sizes[seq_len(length(res$time))], tol = 1E-5)
+  expect_equal(res$state[,"size"], sizes[seq_len(length(res$time))], tol = 1E-5)
 
   ## As reported in issue #174
   traits <- trait_matrix(
@@ -218,8 +218,8 @@ test_that("Sensible behaviour on integration failure", {
   pl <- FF16_Plant(s)
 
   env <- fixed_environment(1)
-  sizes <- seq_range(c(pl$state("height"), 50), 50)
-  expect_warning(res <- grow_plant_to_size(pl, sizes, "height", env, 1000, warn = TRUE, filter = TRUE),
+  sizes <- seq_range(c(pl$state("size"), 50), 50)
+  expect_warning(res <- grow_plant_to_size(pl, sizes, "size", env, 1000, warn = TRUE, filter = TRUE),
                   "50 larger sizes dropped")
   expect_equal(res$plant, list())
   expect_equal(res$time, numeric(0))

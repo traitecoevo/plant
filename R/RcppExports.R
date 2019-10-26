@@ -477,6 +477,10 @@ Plant___FF16__rate <- function(obj_, name) {
     .Call('_plant_Plant___FF16__rate', PACKAGE = 'plant', obj_, name)
 }
 
+Plant___FF16__aux <- function(obj_, name) {
+    .Call('_plant_Plant___FF16__aux', PACKAGE = 'plant', obj_, name)
+}
+
 Plant___FF16__set_state <- function(obj_, name, v) {
     invisible(.Call('_plant_Plant___FF16__set_state', PACKAGE = 'plant', obj_, name, v))
 }

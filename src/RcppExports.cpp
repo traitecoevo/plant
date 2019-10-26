@@ -1348,6 +1348,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Plant___FF16__aux
+double Plant___FF16__aux(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name);
+RcppExport SEXP _plant_Plant___FF16__aux(SEXP obj_SEXP, SEXP nameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type name(nameSEXP);
+    rcpp_result_gen = Rcpp::wrap(Plant___FF16__aux(obj_, name));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Plant___FF16__set_state
 void Plant___FF16__set_state(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, std::string name, double v);
 RcppExport SEXP _plant_Plant___FF16__set_state(SEXP obj_SEXP, SEXP nameSEXP, SEXP vSEXP) {
@@ -3554,6 +3566,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Plant___FF16__ctor", (DL_FUNC) &_plant_Plant___FF16__ctor, 1},
     {"_plant_Plant___FF16__state", (DL_FUNC) &_plant_Plant___FF16__state, 2},
     {"_plant_Plant___FF16__rate", (DL_FUNC) &_plant_Plant___FF16__rate, 2},
+    {"_plant_Plant___FF16__aux", (DL_FUNC) &_plant_Plant___FF16__aux, 2},
     {"_plant_Plant___FF16__set_state", (DL_FUNC) &_plant_Plant___FF16__set_state, 3},
     {"_plant_Plant___FF16__compute_competition", (DL_FUNC) &_plant_Plant___FF16__compute_competition, 2},
     {"_plant_Plant___FF16__compute_rates", (DL_FUNC) &_plant_Plant___FF16__compute_rates, 2},

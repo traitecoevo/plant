@@ -17,19 +17,19 @@ for (x in names(strategy_types)) {
 
     ## Expected initial conditions
     h0 <- 10
-    pl$set_state("height", h0)
+    pl$set_state("size", h0)
 
     for(v in pl$ode_names[-1]) {
       expect_identical(pl$state(v), 0.0)
       expect_true(is.na(pl$rate(v)))
     }
 
-    expect_identical(pl$state("height"), h0)
+    expect_identical(pl$state("size"), h0)
 
     ## Set and get functions behave identically
-    pl$set_state("height", h0)
+    pl$set_state("size", h0)
 
-    expect_identical(pl$state("height"), h0)
+    expect_identical(pl$state("size"), h0)
 
     m0 <- 5
     pl$set_state("mortality", m0)
@@ -48,7 +48,7 @@ for (x in names(strategy_types)) {
 
     expect_is(vars_pl, "Internals")
 
-    # variable_names <- c("area_leaf", "height", "mortality", "fecundity", "area_heartwood", "mass_heartwood")
+    # variable_names <- c("area_leaf", "size", "mortality", "fecundity", "area_heartwood", "mass_heartwood")
     # rate_names <- paste0(setdiff(variable_names, "area_leaf"), "_dt")
 
     # expect_true(all(c(variable_names, rate_names) %in% names(vars_pl)))
@@ -57,8 +57,8 @@ for (x in names(strategy_types)) {
     env <- test_environment(h0)
     light_env <- attr(env, "light_env") # underlying function
 
-    pl$compute_vars_phys(env)
-    # pp$compute_vars_phys(env)
+    pl$compute_rates(env)
+    # pp$compute_rates(env)
 
     # vars_pp <- pp$internals
     vars_pl <- pl$internals

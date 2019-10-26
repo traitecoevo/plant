@@ -15,40 +15,40 @@ for (x in names(strategy_types)) {
     expect_is(cohort, sprintf("Cohort<%s>", x))
     expect_is(cohort$plant, sprintf("Plant<%s>", x))
 
-    env <- test_environment(2 * plant$state("height"),
+    env <- test_environment(2 * plant$state("size"),
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
     ## The big unknown is the growth rate gradient calculation; that is,
     ## the derivative d(dh/dt)/dh.
-    growth_rate_given_height <- function(height, plant, env) {
-      plant$set_state("height", height)
-      plant$compute_vars_phys(env)
-      plant$rate("height")
+    growth_rate_given_size <- function(size, plant, env) {
+      plant$set_state("size", size)
+      plant$compute_rates(env)
+      plant$rate("size")
     }
     grad_forward <- function(f, x, dx, ...) {
       (f(x + dx, ...) - f(x, ...)) / dx
     }
 
-    plant$compute_vars_phys(env)
+    plant$compute_rates(env)
     p2 <- Plant(x)(s)
 
     ## First, a quick sanity check that our little function behaves as
     ## expected:
-    expect_equal(growth_rate_given_height(plant$state("height"), p2, env),  plant$rate("height"))
+    expect_equal(growth_rate_given_size(plant$state("size"), p2, env),  plant$rate("size"))
 
-    ## With height:
+    ## With size:
     ctrl <- s$control
     method_args <- list(d=ctrl$cohort_gradient_eps,
                         eps=ctrl$cohort_gradient_eps)
 
     ## With a plant, manually compute the growth rate gradient using
     ## Richarson extrapolation:
-    dgdh_richardson <- numDeriv::grad(growth_rate_given_height, plant$state("height"),
+    dgdh_richardson <- numDeriv::grad(growth_rate_given_size, plant$state("size"),
                                       plant=p2, env=env,
                                       method.args=method_args)
     ## And also using plain forward differencing:
-    dgdh_forward <- grad_forward(growth_rate_given_height, plant$state("height"),
+    dgdh_forward <- grad_forward(growth_rate_given_size, plant$state("size"),
                                  method_args$eps, plant=p2, env=env)
 
     ## These agree, but not that much:
@@ -71,25 +71,25 @@ for (x in names(strategy_types)) {
     expect_false(identical(dgdh2, dgdh))
 
     ## p <- cohort2$plant
-    ## p$compute_vars_phys(env)
+    ## p$compute_rates(env)
     ## f <- function(x) {
-    ##   growth_rate_given_height(x, p, env)
+    ##   growth_rate_given_size(x, p, env)
     ## }
-    ## dgdh3 <- test_gradient_richardson(f, p$set_state("height", ), ctrl$cohort_gradient_eps,
+    ## dgdh3 <- test_gradient_richardson(f, p$set_state("size", ), ctrl$cohort_gradient_eps,
     ##                                   ctrl$cohort_gradient_richardson_depth)
     ## dgdh3 - dgdh2
 
     ## This is entirely optional, but kind of nice to see.
     if (interactive()) {
-      hh <- seq(plant$state("height") * 0.5, plant$state("height") * 1.5, length.out=101)
-      gr <- sapply(hh, growth_rate_given_height, p2, env)
-      p2$set_state("height", plant$state("height"))
-      h_focus <- plant$state("height")
-      g_focus <- growth_rate_given_height(plant$state("height"), p2, env)
+      hh <- seq(plant$state("size") * 0.5, plant$state("size") * 1.5, length.out=101)
+      gr <- sapply(hh, growth_rate_given_size, p2, env)
+      p2$set_state("size", plant$state("size"))
+      h_focus <- plant$state("size")
+      g_focus <- growth_rate_given_size(plant$state("size"), p2, env)
       plot(gr ~ hh, xlab="Height", ylab="Growth rate")
       points(g_focus ~ h_focus, col="red", pch=19)
       ## Intercept by solving y = m*x + c for c => (c = y - m * x).
-      abline(g_focus - dgdh * plant$state("height"), dgdh)
+      abline(g_focus - dgdh * plant$state("size"), dgdh)
     }
 
   })
@@ -102,12 +102,12 @@ for (x in names(strategy_types)) {
     plant <- Plant(x)(s)
     cohort <- Cohort(x)(s)
 
-    env <- test_environment(2 * plant$state("height"),
+    env <- test_environment(2 * plant$state("size"),
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
     cohort$compute_initial_conditions(env)
-    plant$compute_vars_phys(env)
+    plant$compute_rates(env)
 
     nms <- c(plant$ode_names, 
              "seeds_survival_weighted", "log_density")
@@ -123,7 +123,7 @@ for (x in names(strategy_types)) {
     pr_germ <- plant$germination_probability(env)
 
     y <- plant$ode_state
-    g <- plant$rate("height")
+    g <- plant$rate("size")
 
     ## Ode *values*:
     cmp <- c(plant$internals$states,
@@ -157,27 +157,27 @@ for (x in names(strategy_types)) {
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
-    h <- cohort$height
+    h <- cohort$size
 
     expect_equal(cohort$log_density, -Inf) # zero
     expect_equal(exp(cohort$log_density), 0.0) # zero
-    expect_equal(cohort$area_leaf, 0) # zero density
+    expect_equal(cohort$competition_effect, 0) # zero density
     cohort$compute_initial_conditions(env)
 
     expect_equal(cohort$ode_state[[cohort$ode_size]], cohort$log_density)
     density <- exp(cohort$log_density)
-    expect_equal(cohort$area_leaf, plant$area_leaf_above(0.0) * density)
-    expect_equal(cohort$area_leaf_above(h / 2), plant$area_leaf_above(h / 2) * density)
+    expect_equal(cohort$competition_effect, plant$compute_competition(0.0) * density)
+    expect_equal(cohort$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
 
     h <- 8.0
-    plant$set_state("height", h)
+    plant$set_state("size", h)
     v <- cohort$ode_state
     v[[1]] <- h
     cohort$ode_state <- v
-    expect_identical(plant$state("height"), h)
-    expect_identical(cohort$height, h)
+    expect_identical(plant$state("size"), h)
+    expect_identical(cohort$size, h)
 
-    expect_equal(cohort$area_leaf, plant$area_leaf_above(0) * density)
-    expect_equal(cohort$area_leaf_above(h / 2), plant$area_leaf_above(h / 2) * density)
+    expect_equal(cohort$competition_effect, plant$compute_competition(0) * density)
+    expect_equal(cohort$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
   })
 }

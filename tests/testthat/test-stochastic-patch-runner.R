@@ -61,7 +61,7 @@ test_that("collect", {
     ## too low.
     if (FALSE) {
       image(attr(res$species, "is_alive")[[1]])
-      matplot(res$time, res$species[[1]]["height", , ], type="l",
+      matplot(res$time, res$species[[1]]["size", , ], type="l",
               lty=1, col="#00000055")
     }
   }

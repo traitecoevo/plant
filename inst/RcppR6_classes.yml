@@ -316,9 +316,9 @@ Plant:
     rate:
       args: [name: "std::string"]
       return_type: double
-    # aux:
-      # args: [name: "std::string"]
-      # return_type: double
+    aux:
+      args: [name: "std::string"]
+      return_type: double
     set_state:
       args: [name: "std::string", v: double]
       return_type: void

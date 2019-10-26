@@ -46,6 +46,12 @@ public:
     strategy->update_dependent_aux(i, vars);
   }
 
+  // aux vars by name and index
+  double aux(std::string name) const {
+    return vars.aux(strategy->aux_index.at(name));
+  }
+  double aux(int i) const { return vars.aux(i); } 
+
   double compute_competition(double z) const {
     return strategy->compute_competition(z, state(SIZE_INDEX), 0.0);
   }
