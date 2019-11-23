@@ -176,7 +176,7 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
 void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(aux_index.at("area_leaf"), area_leaf(height));
+    vars.set_aux(aux_index.at("competition_effect"), area_leaf(height));
   }
 }
 
@@ -188,7 +188,7 @@ void FF16_Strategy::compute_rates(const Environment& environment,
                               Internals& vars) {
 
   double height = vars.state(HEIGHT_INDEX);
-  double area_leaf_ = vars.aux(aux_index.at("area_leaf"));
+  double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
 
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_, reuse_intervals);

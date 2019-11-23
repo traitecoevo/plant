@@ -43,7 +43,7 @@ test_that("Reference comparison", {
 
   expect_identical(p$state("height"), h0)
   # testing set auxillary state as well as area_leaf depends on height only
-  expect_equal(p$aux("area_leaf"), cmp$LeafArea(h0))
+  expect_equal(p$aux("competition_effect"), cmp$LeafArea(h0))
   # expect_equal(p$state("mass_leaf"), cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0)))
   # expect_equal(p$state("mass_sapwood"), cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0))
   # expect_equal(p$state("mass_bark"), cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0))
@@ -140,7 +140,7 @@ test_that("Reference comparison", {
 
   ## 13. Leaf area growth rate
   cmp_area_leaf_dt <- cmp$area_leaf_dt(cmp$traits, h0, light_env)
-  # expect_equal(p$rate("area_leaf"), cmp_area_leaf_dt, tolerance=1e-7)
+  # expect_equal(p$rate("competition_effect"), cmp_area_leaf_dt, tolerance=1e-7)
 
   ## 14. sapwood area growth rate
   cmp_area_sapwood_dt <- cmp$area_sapwood_dt(cmp$traits, h0, light_env)

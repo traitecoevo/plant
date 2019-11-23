@@ -40,7 +40,7 @@ public:
 
   std::vector<std::string> aux_names() {
     std::vector<std::string> ret({
-      "area_leaf",
+      "competition_effect",
       "net_mass_production_dt"
     });
     // add the associated computation to compute_rates and compute there
