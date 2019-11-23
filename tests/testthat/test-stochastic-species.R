@@ -21,7 +21,7 @@ test_that("empty", {
     expect_identical(sp$species, NULL)
     expect_equal(sp$plants, list())
     expect_equal(sp$is_alive, logical())
-    expect_equal(sp$area_leaf_above(0), 0.0)
+    expect_equal(sp$compute_competition(0), 0.0)
     expect_equal(sp$ode_size, 0)
     expect_identical(sp$ode_state, numeric(0))
     expect_identical(sp$ode_rates, numeric(0))

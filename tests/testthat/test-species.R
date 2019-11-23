@@ -56,16 +56,16 @@ for (x in names(strategy_types)) {
     ## Not sure about this -- do we need more immediate access?
     expect_identical(sp$seed$plant$germination_probability(env), plant$germination_probability(env))
 
-    expect_equal(sp$area_leaf_above(0), 0)
+    expect_equal(sp$compute_competition(0), 0)
 
     sp$heights <- 1
 
     h <- 0
     x <- c(sp$seed$height, sp$heights)
-    y <- c(sp$seed$area_leaf_above(h),
-           sp$cohort_at(1)$area_leaf_above(h))
+    y <- c(sp$seed$compute_competition(h),
+           sp$cohort_at(1)$compute_competition(h))
 
-    expect_identical(sp$area_leaf_above(h), trapezium(x, y))
+    expect_identical(sp$compute_competition(h), trapezium(x, y))
 
     ## Better tests: I want cases where:
     ## 1. empty: throws error
@@ -81,9 +81,9 @@ for (x in names(strategy_types)) {
   ## 1: empty species (no cohorts) has no leaf area above any height:
   test_that("Empty species has no leaf area", {
     sp <- Species(x)(strategy_types[[x]]())
-    expect_equal(sp$area_leaf_above(0), 0)
-    expect_equal(sp$area_leaf_above(10), 0)
-    expect_equal(sp$area_leaf_above(Inf), 0)
+    expect_equal(sp$compute_competition(0), 0)
+    expect_equal(sp$compute_competition(10), 0)
+    expect_equal(sp$compute_competition(Inf), 0)
   })
 
   ## 2: Cohort up against boundary has no leaf area:
@@ -92,15 +92,15 @@ for (x in names(strategy_types)) {
     sp <- Species(x)(strategy_types[[x]]())
     sp$add_seed()
     sp$compute_rates(env)
-    expect_equal(sp$area_leaf_above(0), 0)
-    expect_equal(sp$area_leaf_above(10), 0)
-    expect_equal(sp$area_leaf_above(Inf), 0)
+    expect_equal(sp$compute_competition(0), 0)
+    expect_equal(sp$compute_competition(10), 0)
+    expect_equal(sp$compute_competition(Inf), 0)
   })
 
-  cmp_area_leaf_above <- function(h, sp) {
+  cmp_compute_competition <- function(h, sp) {
     x <- c(sp$heights, sp$seed$height)
-    y <- c(sapply(sp$cohorts, function(p) p$area_leaf_above(h)),
-           sp$seed$area_leaf_above(h))
+    y <- c(sapply(sp$cohorts, function(p) p$compute_competition(h)),
+           sp$seed$compute_competition(h))
     trapezium(rev(x), rev(y))
   }
 
@@ -114,13 +114,13 @@ for (x in names(strategy_types)) {
     sp$heights <- h_top
 
     ## At base and top
-    expect_gt(sp$area_leaf_above(0), 0)
-    expect_equal(sp$area_leaf_above(0), cmp_area_leaf_above(0, sp))
+    expect_gt(sp$compute_competition(0), 0)
+    expect_equal(sp$compute_competition(0), cmp_compute_competition(0, sp))
 
-    expect_identical(sp$area_leaf_above(h_top), 0.0)
+    expect_identical(sp$compute_competition(h_top), 0.0)
 
     ## Part way up (and above bottom seed boundary condition)
-    expect_equal(sp$area_leaf_above(h_top * .5), cmp_area_leaf_above(h_top * .5, sp))
+    expect_equal(sp$compute_competition(h_top * .5), cmp_compute_competition(h_top * .5, sp))
 
     ode_size <- Cohort(x)(strategy_types[[x]]())$ode_size
     ode_state <- sp$ode_state
@@ -140,13 +140,13 @@ for (x in names(strategy_types)) {
     sp$heights <- h_top * c(1, .6)
 
     ## At base and top
-    expect_gt(sp$area_leaf_above(0), 0)
-    expect_equal(sp$area_leaf_above(0), cmp_area_leaf_above(0, sp))
-    expect_equal(sp$area_leaf_above(h_top), 0)
+    expect_gt(sp$compute_competition(0), 0)
+    expect_equal(sp$compute_competition(0), cmp_compute_competition(0, sp))
+    expect_equal(sp$compute_competition(h_top), 0)
     ## Part way up (below bottom cohort, above boundarty condition)
-    expect_equal(sp$area_leaf_above(h_top * .5), cmp_area_leaf_above(h_top * .5, sp))
+    expect_equal(sp$compute_competition(h_top * .5), cmp_compute_competition(h_top * .5, sp))
     ## Within the top pair (excluding the seed)
-    expect_equal(sp$area_leaf_above(h_top * .8), cmp_area_leaf_above(h_top * .8, sp))
+    expect_equal(sp$compute_competition(h_top * .8), cmp_compute_competition(h_top * .8, sp))
 
     ode_size <- Cohort(x)(strategy_types[[x]]())$ode_size
     ode_state <- sp$ode_state
@@ -167,13 +167,13 @@ for (x in names(strategy_types)) {
     sp$heights <- h_top * c(1, .75, .6)
 
     ## At base and top
-    expect_gt(sp$area_leaf_above(0), 0)
-    expect_equal(sp$area_leaf_above(0), cmp_area_leaf_above(0, sp))
-    expect_equal(sp$area_leaf_above(h_top), 0)
+    expect_gt(sp$compute_competition(0), 0)
+    expect_equal(sp$compute_competition(0), cmp_compute_competition(0, sp))
+    expect_equal(sp$compute_competition(h_top), 0)
     ## Part way up (below bottom cohort, above boundarty condition)
-    expect_equal(sp$area_leaf_above(h_top * .5), cmp_area_leaf_above(h_top * .5, sp))
+    expect_equal(sp$compute_competition(h_top * .5), cmp_compute_competition(h_top * .5, sp))
     ## Within the top pair (excluding the seed)
-    expect_equal(sp$area_leaf_above(h_top * .8), cmp_area_leaf_above(h_top * .8, sp))
+    expect_equal(sp$compute_competition(h_top * .8), cmp_compute_competition(h_top * .8, sp))
 
     cmp_area_leaf <- sapply(seq_len(sp$size),
                             function(i) sp$cohort_at(i)$area_leaf)

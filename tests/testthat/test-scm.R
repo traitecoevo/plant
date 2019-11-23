@@ -254,7 +254,7 @@ test_that("Seed rain & error calculations correct", {
     expect_equal(scm$seed_rain_error[[1]], seed_rain_R(scm, error=TRUE))
 
     lae_cmp <-
-      scm$patch$species[[1]]$area_leafs_error(scm$patch$area_leaf_above(0))
+      scm$patch$species[[1]]$area_leafs_error(scm$patch$compute_competition(0))
     expect_identical(scm$area_leaf_error(1), lae_cmp)
 
     int <- make_scm_integrate(scm)

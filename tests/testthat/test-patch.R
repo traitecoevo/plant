@@ -36,7 +36,7 @@ for (x in names(strategy_types)) {
 
     ## Empty light environment:
     patch$compute_light_environment()
-    expect_identical(patch$area_leaf_above(0), 0)
+    expect_identical(patch$compute_competition(0), 0)
 
     expect_error(patch$add_seed(0), "Invalid value")
     expect_error(patch$add_seed(2), "out of bounds")

@@ -26,7 +26,7 @@ public:
   double height_max() const;
 
   // [eqn 11] Canopy openness at `height`
-  double area_leaf_above(double height) const;
+  double compute_competition(double height) const;
   double canopy_openness(double height) const;
 
   void add_seed(size_t species_index);
@@ -111,11 +111,11 @@ double Patch<T>::height_max() const {
 }
 
 template <typename T>
-double Patch<T>::area_leaf_above(double height) const {
+double Patch<T>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      tot += species[i].area_leaf_above(height);
+      tot += species[i].compute_competition(height);
     }
   }
   return tot;
@@ -125,13 +125,13 @@ template <typename T>
 double Patch<T>::canopy_openness(double height) const {
   // NOTE: patch_area does not appear in the SCM model formulation;
   // really we should require that it is 1.0, or drop it entirely.
-  return exp(-parameters.k_I * area_leaf_above(height) /
+  return exp(-parameters.k_I * compute_competition(height) /
              parameters.patch_area);
 }
 
 template <typename T>
 std::vector<double> Patch<T>::r_area_leaf_error(size_t species_index) const {
-  const double tot_area_leaf = area_leaf_above(0.0);
+  const double tot_area_leaf = compute_competition(0.0);
   return species[species_index].r_area_leafs_error(tot_area_leaf);
 }
 

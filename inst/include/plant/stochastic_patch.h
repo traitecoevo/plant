@@ -29,7 +29,7 @@ public:
   double height_max() const;
 
   // [eqn 11] Canopy openness at `height`
-  double area_leaf_above(double height) const;
+  double compute_competition(double height) const;
   double canopy_openness(double height) const;
 
   bool add_seed(size_t species_index);
@@ -119,11 +119,11 @@ double StochasticPatch<T>::height_max() const {
 }
 
 template <typename T>
-double StochasticPatch<T>::area_leaf_above(double height) const {
+double StochasticPatch<T>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      tot += species[i].area_leaf_above(height);
+      tot += species[i].compute_competition(height);
     }
   }
   return tot;
@@ -131,7 +131,7 @@ double StochasticPatch<T>::area_leaf_above(double height) const {
 
 template <typename T>
 double StochasticPatch<T>::canopy_openness(double height) const {
-  return exp(-parameters.k_I * area_leaf_above(height) /
+  return exp(-parameters.k_I * compute_competition(height) /
              parameters.patch_area);
 }
 

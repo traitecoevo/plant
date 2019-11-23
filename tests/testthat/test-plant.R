@@ -68,7 +68,7 @@ for (x in names(strategy_types)) {
 
     ## Area_leaf_above
     # for (h in seq(0, h0, length.out=10)) {
-    #   expect_identical(pl$area_leaf_above(h), pp$area_leaf_above(h))
+    #   expect_identical(pl$compute_competition(h), pp$compute_competition(h))
     # }
 
     ## Germination_probability
