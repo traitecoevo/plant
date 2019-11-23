@@ -770,8 +770,8 @@ double Cohort___FF16__log_density__get(plant::RcppR6::RcppR6<plant::Cohort<plant
 }
 
 // [[Rcpp::export]]
-double Cohort___FF16__area_leaf__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_) {
-  return obj_->area_leaf();
+double Cohort___FF16__competition_effect__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_) {
+  return obj_->competition_effect();
 }
 
 // [[Rcpp::export]]
@@ -829,8 +829,8 @@ plant::Cohort<plant::FF16_Strategy> Species___FF16__cohort_at(plant::RcppR6::Rcp
   return obj_->r_cohort_at(index);
 }
 // [[Rcpp::export]]
-std::vector<double> Species___FF16__area_leafs_error(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, double scal) {
-  return obj_->r_area_leafs_error(scal);
+std::vector<double> Species___FF16__competition_effects_error(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, double scal) {
+  return obj_->r_competition_effects_error(scal);
 }
 // [[Rcpp::export]]
 size_t Species___FF16__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
@@ -872,8 +872,8 @@ std::vector<double> Species___FF16__seeds__get(plant::RcppR6::RcppR6<plant::Spec
 }
 
 // [[Rcpp::export]]
-std::vector<double> Species___FF16__area_leafs__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
-  return obj_->r_area_leafs();
+std::vector<double> Species___FF16__competition_effects__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_) {
+  return obj_->r_competition_effects();
 }
 
 // [[Rcpp::export]]
@@ -1012,8 +1012,8 @@ std::vector<double> SCM___FF16__seed_rain_cohort(plant::RcppR6::RcppR6<plant::SC
   return obj_->r_seed_rain_cohort(species_index);
 }
 // [[Rcpp::export]]
-std::vector<double> SCM___FF16__area_leaf_error(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
-  return obj_->r_area_leaf_error(species_index);
+std::vector<double> SCM___FF16__competition_effect_error(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, plant::util::index species_index) {
+  return obj_->r_competition_effect_error(species_index);
 }
 // [[Rcpp::export]]
 void SCM___FF16__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, std::vector<std::vector<double> > times) {

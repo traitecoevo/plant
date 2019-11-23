@@ -51,7 +51,7 @@ public:
   parameters_type r_parameters() const {return parameters;}
   Environment r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
-  std::vector<double> r_area_leaf_error(size_t species_index) const;
+  std::vector<double> r_competition_effect_error(size_t species_index) const;
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
@@ -130,9 +130,9 @@ double Patch<T>::canopy_openness(double height) const {
 }
 
 template <typename T>
-std::vector<double> Patch<T>::r_area_leaf_error(size_t species_index) const {
-  const double tot_area_leaf = compute_competition(0.0);
-  return species[species_index].r_area_leafs_error(tot_area_leaf);
+std::vector<double> Patch<T>::r_competition_effect_error(size_t species_index) const {
+  const double tot_competition_effect = compute_competition(0.0);
+  return species[species_index].r_competition_effects_error(tot_competition_effect);
 }
 
 template <typename T>

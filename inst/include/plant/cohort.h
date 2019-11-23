@@ -24,7 +24,7 @@ public:
 
   double height() const {return plant.state(HEIGHT_INDEX);}
   double compute_competition(double z) const;
-  double area_leaf() const;
+  double competition_effect() const;
   double fecundity() const {return seeds_survival_weighted;}
 
   // Unfortunate, but need a get_ here because of name shadowing...
@@ -167,7 +167,7 @@ double Cohort<T>::compute_competition(double height_) const {
 }
 
 template <typename T>
-double Cohort<T>::area_leaf() const {
+double Cohort<T>::competition_effect() const {
   return compute_competition(0.0);
 }
 

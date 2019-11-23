@@ -85,27 +85,27 @@ scm_base_parameters <- function(type="FF16") {
 ##'
 ##' @title Run the SCM, Collecting Output
 ##' @param p A \code{Parameters} object
-##' @param include_area_leaf Include total leaf area (will change; see
+##' @param include_competition_effect Include total leaf area (will change; see
 ##' issue #138)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, include_area_leaf=FALSE) {
+run_scm_collect <- function(p, include_competition_effect=FALSE) {
   collect_default <- function(scm) {
     scm$state
   }
-  collect_area_leaf <- function(scm) {
+  collect_competition_effect <- function(scm) {
     ret <- scm$state
-    area_leaf <- numeric(length(ret$species))
+    competition_effect <- numeric(length(ret$species))
     for (i in seq_along(ret$species)) {
       ## ret$species[[i]] <- rbind(
       ##   ret$species[[i]]
-      ##   area_leaf=c(scm$patch$species[[i]]$area_leafs, 0.0))
-      area_leaf[i] <- scm$patch$species[[i]]$compute_competition(0.0)
+      ##   competition_effect=c(scm$patch$species[[i]]$competition_effects, 0.0))
+      competition_effect[i] <- scm$patch$species[[i]]$compute_competition(0.0)
     }
-    ret$area_leaf <- area_leaf
+    ret$competition_effect <- competition_effect
     ret
   }
-  collect <- if (include_area_leaf) collect_area_leaf else collect_default
+  collect <- if (include_competition_effect) collect_competition_effect else collect_default
   type <- extract_RcppR6_template_type(p, "Parameters")
 
   scm <- SCM(type)(p)
@@ -141,8 +141,8 @@ run_scm_collect <- function(p, include_area_leaf=FALSE) {
               patch_density=patch_density,
               p=p)
 
-  if (include_area_leaf) {
-    ret$area_leaf <- do.call("rbind", lapply(res, "[[", "competition_effect"))
+  if (include_competition_effect) {
+    ret$competition_effect <- do.call("rbind", lapply(res, "[[", "competition_effect"))
   }
 
   ret
@@ -190,7 +190,7 @@ run_scm_error <- function(p) {
     added <- scm$run_next()
     for (idx in added) {
       lai_error[[idx]] <-
-        c(lai_error[[idx]], list(scm$area_leaf_error(idx)))
+        c(lai_error[[idx]], list(scm$competition_effect_error(idx)))
     }
   }
 

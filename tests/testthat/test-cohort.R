@@ -161,12 +161,12 @@ for (x in names(strategy_types)) {
 
     expect_equal(cohort$log_density, -Inf) # zero
     expect_equal(exp(cohort$log_density), 0.0) # zero
-    expect_equal(cohort$area_leaf, 0) # zero density
+    expect_equal(cohort$competition_effect, 0) # zero density
     cohort$compute_initial_conditions(env)
 
     expect_equal(cohort$ode_state[[cohort$ode_size]], cohort$log_density)
     density <- exp(cohort$log_density)
-    expect_equal(cohort$area_leaf, plant$compute_competition(0.0) * density)
+    expect_equal(cohort$competition_effect, plant$compute_competition(0.0) * density)
     expect_equal(cohort$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
 
     h <- 8.0
@@ -177,7 +177,7 @@ for (x in names(strategy_types)) {
     expect_identical(plant$state("height"), h)
     expect_identical(cohort$height, h)
 
-    expect_equal(cohort$area_leaf, plant$compute_competition(0) * density)
+    expect_equal(cohort$competition_effect, plant$compute_competition(0) * density)
     expect_equal(cohort$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
   })
 }

@@ -21,8 +21,8 @@ for (x in names(strategy_types)) {
     expect_identical(sp$cohorts, list())
     expect_identical(sp$height, NULL)
     expect_identical(sp$log_densities, numeric(0))
-    expect_identical(sp$area_leafs, numeric(0))
-    expect_identical(sp$area_leafs_error(1.0), numeric(0))
+    expect_identical(sp$competition_effects, numeric(0))
+    expect_identical(sp$competition_effects_error(1.0), numeric(0))
     expect_equal(sp$ode_size, 0)
     expect_identical(sp$ode_state, numeric(0))
     expect_identical(sp$ode_rates, numeric(0))
@@ -44,7 +44,7 @@ for (x in names(strategy_types)) {
     expect_identical(cohorts[[1]]$rates, seed$rates)
     expect_equal(sp$heights, seed$height)
     expect_equal(sp$log_densities, seed$log_density)
-    expect_equal(sp$area_leafs, seed$area_leaf)
+    expect_equal(sp$competition_effects, seed$competition_effect)
     ## NOTE: Didn't check ode values
 
     ## Internal and test seed report same values:
@@ -175,16 +175,16 @@ for (x in names(strategy_types)) {
     ## Within the top pair (excluding the seed)
     expect_equal(sp$compute_competition(h_top * .8), cmp_compute_competition(h_top * .8, sp))
 
-    cmp_area_leaf <- sapply(seq_len(sp$size),
-                            function(i) sp$cohort_at(i)$area_leaf)
-    expect_identical(sp$area_leafs, cmp_area_leaf)
+    cmp_competition_effect <- sapply(seq_len(sp$size),
+                            function(i) sp$cohort_at(i)$competition_effect)
+    expect_identical(sp$competition_effects, cmp_competition_effect)
 
-    cmp    <- local_error_integration(sp$heights, cmp_area_leaf, 1.0)
-    cmp_pi <- local_error_integration(sp$heights, cmp_area_leaf, pi)
+    cmp    <- local_error_integration(sp$heights, cmp_competition_effect, 1.0)
+    cmp_pi <- local_error_integration(sp$heights, cmp_competition_effect, pi)
 
-    expect_identical(sp$area_leafs_error(), cmp)
-    expect_identical(sp$area_leafs_error(1.0), cmp)
-    expect_identical(sp$area_leafs_error(pi), cmp_pi)
+    expect_identical(sp$competition_effects_error(), cmp)
+    expect_identical(sp$competition_effects_error(1.0), cmp)
+    expect_identical(sp$competition_effects_error(pi), cmp_pi)
 
     ode_size <- Cohort(x)(strategy_types[[x]]())$ode_size
     ode_state <- sp$ode_state
