@@ -16,7 +16,7 @@ public:
   typedef typename strategy_type::ptr strategy_type_ptr;
   Cohort(strategy_type_ptr s);
 
-  void compute_vars_phys(const Environment& environment);
+  void compute_rates(const Environment& environment);
   void compute_initial_conditions(const Environment& environment);
 
   // * R interface (testing only, really)
@@ -77,10 +77,10 @@ Cohort<T>::Cohort(strategy_type_ptr s)
 }
 
 template <typename T>
-void Cohort<T>::compute_vars_phys(const Environment& environment) {
-  plant.compute_vars_phys(environment);
+void Cohort<T>::compute_rates(const Environment& environment) {
+  plant.compute_rates(environment);
 
-  // NOTE: This must be called *after* compute_vars_phys, but given we
+  // NOTE: This must be called *after* compute_rates, but given we
   // need mortality_dt() that's always going to be the case.
   log_density_dt =
     - growth_rate_gradient(environment)
@@ -111,7 +111,7 @@ void Cohort<T>::compute_vars_phys(const Environment& environment) {
 // defined on p 7 at the moment.
 template <typename T>
 void Cohort<T>::compute_initial_conditions(const Environment& environment) {
-  compute_vars_phys(environment);
+  compute_rates(environment);
 
   pr_patch_survival_at_birth = environment.patch_survival();
   const double pr_germ = plant.germination_probability(environment);
@@ -156,8 +156,8 @@ double Cohort<T>::r_growth_rate_gradient(const Environment& environment) {
   // We need to compute the physiological variables here, first, so
   // that reusing intervals works as expected.  This would ordinarily
   // be taken care of because of the calling order of
-  // compute_vars_phys / growth_rate_gradient.
-  plant.compute_vars_phys(environment);
+  // compute_rates / growth_rate_gradient.
+  plant.compute_rates(environment);
   return growth_rate_gradient(environment);
 }
 
@@ -211,7 +211,7 @@ template <typename T>
 double growth_rate_given_height(T& plant, double height,
                                 const Environment& environment) {
   plant.set_state("height", height);
-  plant.compute_vars_phys(environment, true);
+  plant.compute_rates(environment, true);
   return plant.rate("height");
 }
 

@@ -27,7 +27,7 @@ public:
 
   double height_max() const;
   double area_leaf_above(double height) const;
-  void compute_vars_phys(const Environment& environment);
+  void compute_rates(const Environment& environment);
   std::vector<double> seeds() const;
 
   // * ODE interface
@@ -157,9 +157,9 @@ double Species<T>::area_leaf_above(double height) const {
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
 template <typename T>
-void Species<T>::compute_vars_phys(const Environment& environment) {
+void Species<T>::compute_rates(const Environment& environment) {
   for (auto& c : cohorts) {
-    c.compute_vars_phys(environment);
+    c.compute_rates(environment);
   }
   seed.compute_initial_conditions(environment);
 }

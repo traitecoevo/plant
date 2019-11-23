@@ -73,11 +73,11 @@ public:
   }
   // These are only here because they wrap private functions.
   void r_compute_light_environment() {compute_light_environment();}
-  void r_compute_vars_phys() {compute_vars_phys();}
+  void r_compute_rates() {compute_rates();}
 private:
   void compute_light_environment();
   void rescale_light_environment();
-  void compute_vars_phys();
+  void compute_rates();
 
   parameters_type parameters;
   std::vector<bool> is_resident;
@@ -104,7 +104,7 @@ void StochasticPatch<T>::reset() {
   }
   environment.clear();
   compute_light_environment();
-  compute_vars_phys();
+  compute_rates();
 }
 
 template <typename T>
@@ -155,11 +155,11 @@ void StochasticPatch<T>::rescale_light_environment() {
 }
 
 template <typename T>
-void StochasticPatch<T>::compute_vars_phys() {
+void StochasticPatch<T>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
     // NOTE: No need for this, but other bits will change...
     // environment.set_seed_rain_index(i);
-    species[i].compute_vars_phys(environment);
+    species[i].compute_rates(environment);
   }
 }
 
@@ -200,7 +200,7 @@ std::vector<size_t> StochasticPatch<T>::deaths() {
   }
   if (recompute) {
     compute_light_environment();
-    compute_vars_phys();
+    compute_rates();
   }
   return ret;
 }
@@ -246,7 +246,7 @@ ode::const_iterator StochasticPatch<T>::set_ode_state(ode::const_iterator it,
   } else {
     compute_light_environment();
   }
-  compute_vars_phys();
+  compute_rates();
   return it;
 }
 

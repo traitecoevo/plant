@@ -183,7 +183,7 @@ void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
 
 // one-shot update of the scm variables
 // i.e. setting rates of ode vars from the state and updating aux vars
-void FF16_Strategy::compute_vars_phys(const Environment& environment,
+void FF16_Strategy::compute_rates(const Environment& environment,
                               bool reuse_intervals,
                               Internals& vars) {
 
@@ -288,7 +288,7 @@ double FF16_Strategy::net_mass_production_dt_A(double assimilation, double respi
 }
 
 // One shot calculation of net_mass_production_dt
-// Used by germination_probability() and compute_vars_phys().
+// Used by germination_probability() and compute_rates().
 double FF16_Strategy::net_mass_production_dt(const Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals) {

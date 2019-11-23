@@ -48,7 +48,7 @@ public:
 
   double height_max() const;
   double area_leaf_above(double height) const;
-  void compute_vars_phys(const Environment& environment);
+  void compute_rates(const Environment& environment);
   std::vector<double> seeds() const;
 
   // This is totally new, relative to the deterministic model; this
@@ -116,7 +116,7 @@ void StochasticSpecies<T>::add_seed() {
 template <typename T>
 void StochasticSpecies<T>::add_seed(const Environment& environment) {
   add_seed();
-  plants.back().compute_vars_phys(environment);
+  plants.back().compute_rates(environment);
 }
 
 
@@ -171,10 +171,10 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
 template <typename T>
-void StochasticSpecies<T>::compute_vars_phys(const Environment& environment) {
+void StochasticSpecies<T>::compute_rates(const Environment& environment) {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
-      plants[i].compute_vars_phys(environment);
+      plants[i].compute_rates(environment);
     }
   }
 }

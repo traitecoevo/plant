@@ -57,8 +57,8 @@ for (x in names(strategy_types)) {
     env <- test_environment(h0)
     light_env <- attr(env, "light_env") # underlying function
 
-    pl$compute_vars_phys(env)
-    # pp$compute_vars_phys(env)
+    pl$compute_rates(env)
+    # pp$compute_rates(env)
 
     # vars_pp <- pp$internals
     vars_pl <- pl$internals

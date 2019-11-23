@@ -64,12 +64,12 @@ public:
   }
   // These are only here because they wrap private functions.
   void r_compute_light_environment() {compute_light_environment();}
-  void r_compute_vars_phys() {compute_vars_phys();}
+  void r_compute_rates() {compute_rates();}
 
 private:
   void compute_light_environment();
   void rescale_light_environment();
-  void compute_vars_phys();
+  void compute_rates();
 
   parameters_type parameters;
   std::vector<bool> is_resident;
@@ -96,7 +96,7 @@ void Patch<T>::reset() {
   }
   environment.clear();
   compute_light_environment();
-  compute_vars_phys();
+  compute_rates();
 }
 
 template <typename T>
@@ -152,10 +152,10 @@ void Patch<T>::rescale_light_environment() {
 }
 
 template <typename T>
-void Patch<T>::compute_vars_phys() {
+void Patch<T>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
     environment.set_seed_rain_index(i);
-    species[i].compute_vars_phys(environment);
+    species[i].compute_rates(environment);
   }
 }
 
@@ -238,7 +238,7 @@ ode::const_iterator Patch<T>::set_ode_state(ode::const_iterator it,
   } else {
     compute_light_environment();
   }
-  compute_vars_phys();
+  compute_rates();
   return it;
 }
 

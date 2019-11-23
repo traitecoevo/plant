@@ -489,8 +489,8 @@ Plant___FF16__area_leaf_above <- function(obj_, h) {
     .Call('_plant_Plant___FF16__area_leaf_above', PACKAGE = 'plant', obj_, h)
 }
 
-Plant___FF16__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('_plant_Plant___FF16__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
+Plant___FF16__compute_rates <- function(obj_, environment) {
+    invisible(.Call('_plant_Plant___FF16__compute_rates', PACKAGE = 'plant', obj_, environment))
 }
 
 Plant___FF16__germination_probability <- function(obj_, environment) {
@@ -657,8 +657,8 @@ Cohort___FF16__growth_rate_gradient <- function(obj_, environment) {
     .Call('_plant_Cohort___FF16__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
 }
 
-Cohort___FF16__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('_plant_Cohort___FF16__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
+Cohort___FF16__compute_rates <- function(obj_, environment) {
+    invisible(.Call('_plant_Cohort___FF16__compute_rates', PACKAGE = 'plant', obj_, environment))
 }
 
 Cohort___FF16__compute_initial_conditions <- function(obj_, environment) {
@@ -713,8 +713,8 @@ Species___FF16__clear <- function(obj_) {
     invisible(.Call('_plant_Species___FF16__clear', PACKAGE = 'plant', obj_))
 }
 
-Species___FF16__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('_plant_Species___FF16__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
+Species___FF16__compute_rates <- function(obj_, environment) {
+    invisible(.Call('_plant_Species___FF16__compute_rates', PACKAGE = 'plant', obj_, environment))
 }
 
 Species___FF16__area_leaf_above <- function(obj_, height) {
@@ -805,8 +805,8 @@ Patch___FF16__compute_light_environment <- function(obj_) {
     invisible(.Call('_plant_Patch___FF16__compute_light_environment', PACKAGE = 'plant', obj_))
 }
 
-Patch___FF16__compute_vars_phys <- function(obj_) {
-    invisible(.Call('_plant_Patch___FF16__compute_vars_phys', PACKAGE = 'plant', obj_))
+Patch___FF16__compute_rates <- function(obj_) {
+    invisible(.Call('_plant_Patch___FF16__compute_rates', PACKAGE = 'plant', obj_))
 }
 
 Patch___FF16__reset <- function(obj_) {
@@ -953,8 +953,8 @@ StochasticSpecies___FF16__clear <- function(obj_) {
     invisible(.Call('_plant_StochasticSpecies___FF16__clear', PACKAGE = 'plant', obj_))
 }
 
-StochasticSpecies___FF16__compute_vars_phys <- function(obj_, environment) {
-    invisible(.Call('_plant_StochasticSpecies___FF16__compute_vars_phys', PACKAGE = 'plant', obj_, environment))
+StochasticSpecies___FF16__compute_rates <- function(obj_, environment) {
+    invisible(.Call('_plant_StochasticSpecies___FF16__compute_rates', PACKAGE = 'plant', obj_, environment))
 }
 
 StochasticSpecies___FF16__area_leaf_above <- function(obj_, height) {
@@ -1053,8 +1053,8 @@ StochasticPatch___FF16__compute_light_environment <- function(obj_) {
     invisible(.Call('_plant_StochasticPatch___FF16__compute_light_environment', PACKAGE = 'plant', obj_))
 }
 
-StochasticPatch___FF16__compute_vars_phys <- function(obj_) {
-    invisible(.Call('_plant_StochasticPatch___FF16__compute_vars_phys', PACKAGE = 'plant', obj_))
+StochasticPatch___FF16__compute_rates <- function(obj_) {
+    invisible(.Call('_plant_StochasticPatch___FF16__compute_rates', PACKAGE = 'plant', obj_))
 }
 
 StochasticPatch___FF16__reset <- function(obj_) {

@@ -6,7 +6,7 @@ test_that("PlantRunner", {
   for (x in names(strategy_types)) {
     p <- Plant(x)(strategy_types[[x]]())
     env <- test_environment(10)
-    p$compute_vars_phys(env)
+    p$compute_rates(env)
 
     pr <- PlantRunner(x)(p, env)
     expect_is(pr, sprintf("PlantRunner<%s>",x))
@@ -51,7 +51,7 @@ test_that("get_plant_internals_fun", {
   for (x in names(strategy_types)) {
     p <- Plant(x)(strategy_types[[x]]())
     env <- test_environment(10)
-    p$compute_vars_phys(env)
+    p$compute_rates(env)
 
     runner <- OdeRunner(x)(PlantRunner(x)(p, env))
     h0 <- runner$object$plant$state("height")

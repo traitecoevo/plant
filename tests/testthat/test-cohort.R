@@ -23,14 +23,14 @@ for (x in names(strategy_types)) {
     ## the derivative d(dh/dt)/dh.
     growth_rate_given_height <- function(height, plant, env) {
       plant$set_state("height", height)
-      plant$compute_vars_phys(env)
+      plant$compute_rates(env)
       plant$rate("height")
     }
     grad_forward <- function(f, x, dx, ...) {
       (f(x + dx, ...) - f(x, ...)) / dx
     }
 
-    plant$compute_vars_phys(env)
+    plant$compute_rates(env)
     p2 <- Plant(x)(s)
 
     ## First, a quick sanity check that our little function behaves as
@@ -71,7 +71,7 @@ for (x in names(strategy_types)) {
     expect_false(identical(dgdh2, dgdh))
 
     ## p <- cohort2$plant
-    ## p$compute_vars_phys(env)
+    ## p$compute_rates(env)
     ## f <- function(x) {
     ##   growth_rate_given_height(x, p, env)
     ## }
@@ -107,7 +107,7 @@ for (x in names(strategy_types)) {
                             seed_rain=1.0)
 
     cohort$compute_initial_conditions(env)
-    plant$compute_vars_phys(env)
+    plant$compute_rates(env)
 
     nms <- c(plant$ode_names, 
              "seeds_survival_weighted", "log_density")

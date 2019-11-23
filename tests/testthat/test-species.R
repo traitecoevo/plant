@@ -28,11 +28,11 @@ for (x in names(strategy_types)) {
     expect_identical(sp$ode_rates, numeric(0))
 
     ## Causes initial conditions to be estimated:
-    sp$compute_vars_phys(env)
+    sp$compute_rates(env)
     seed$compute_initial_conditions(env)
 
     ## Internal and test seed report same values:
-    expect_identical(sp$seed$vars_phys, seed$vars_phys)
+    expect_identical(sp$seed$rates, seed$rates)
     expect_identical(sp$seed$ode_state, seed$ode_state)
 
     sp$add_seed()
@@ -41,17 +41,17 @@ for (x in names(strategy_types)) {
     cohorts <- sp$cohorts
     expect_is(cohorts, "list")
     expect_equal(length(cohorts), 1)
-    expect_identical(cohorts[[1]]$vars_phys, seed$vars_phys)
+    expect_identical(cohorts[[1]]$rates, seed$rates)
     expect_equal(sp$heights, seed$height)
     expect_equal(sp$log_densities, seed$log_density)
     expect_equal(sp$area_leafs, seed$area_leaf)
     ## NOTE: Didn't check ode values
 
     ## Internal and test seed report same values:
-    expect_identical(sp$seed$vars_phys, seed$vars_phys)
+    expect_identical(sp$seed$rates, seed$rates)
 
     expect_is(sp$cohort_at(1), sprintf("Cohort<%s>",x))
-    expect_identical(sp$cohort_at(1)$vars_phys, cohorts[[1]]$vars_phys)
+    expect_identical(sp$cohort_at(1)$rates, cohorts[[1]]$rates)
 
     ## Not sure about this -- do we need more immediate access?
     expect_identical(sp$seed$plant$germination_probability(env), plant$germination_probability(env))
@@ -72,7 +72,7 @@ for (x in names(strategy_types)) {
     sp$clear()
 
     ## Re-set up the initial conditions
-    sp$compute_vars_phys(env)
+    sp$compute_rates(env)
 
     expect_error(sp$cohort_at(1), "Index 1 out of bounds")
     expect_error(sp$cohort_at(0), "Invalid value for index")
@@ -91,7 +91,7 @@ for (x in names(strategy_types)) {
     env <- test_environment(3, seed_rain=1.0)
     sp <- Species(x)(strategy_types[[x]]())
     sp$add_seed()
-    sp$compute_vars_phys(env)
+    sp$compute_rates(env)
     expect_equal(sp$area_leaf_above(0), 0)
     expect_equal(sp$area_leaf_above(10), 0)
     expect_equal(sp$area_leaf_above(Inf), 0)
@@ -108,7 +108,7 @@ for (x in names(strategy_types)) {
   test_that("Leaf area sensible with one cohort", {
     env <- test_environment(3, seed_rain=1.0)
     sp <- Species(x)(strategy_types[[x]]())
-    sp$compute_vars_phys(env)
+    sp$compute_rates(env)
     sp$add_seed()
     h_top <- sp$height_max * 4
     sp$heights <- h_top
@@ -133,7 +133,7 @@ for (x in names(strategy_types)) {
   test_that("Leaf area sensible with two cohorts", {
     env <- test_environment(3, seed_rain=1.0)
     sp <- Species(x)(strategy_types[[x]]())
-    sp$compute_vars_phys(env)
+    sp$compute_rates(env)
     sp$add_seed()
     h_top <- sp$height_max * 4
     sp$add_seed()
@@ -159,7 +159,7 @@ for (x in names(strategy_types)) {
   test_that("Leaf area sensible with three cohorts", {
     env <- test_environment(3, seed_rain=1.0)
     sp <- Species(x)(strategy_types[[x]]())
-    sp$compute_vars_phys(env)
+    sp$compute_rates(env)
     sp$add_seed()
     h_top <- sp$height_max * 4
     sp$add_seed()

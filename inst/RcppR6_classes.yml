@@ -325,7 +325,7 @@ Plant:
     area_leaf_above:
       args: [h: double]
       return_type: double
-    compute_vars_phys:
+    compute_rates:
       args: [environment: "const plant::Environment&"]
       return_type: void
     germination_probability:
@@ -398,7 +398,7 @@ Internals:
     args: [s_size: size_t, a_size: size_t]
     roxygen: |
       Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
-      which is calculated from the state through running compute_vars_phys
+      which is calculated from the state through running compute_rates
       @export
   active:
     state_size: {type: size_t, access: field}
@@ -490,7 +490,7 @@ Cohort:
       return_type: double
       name_cpp: "r_growth_rate_gradient"
       args: [environment: "const plant::Environment&"]
-    compute_vars_phys:
+    compute_rates:
       return_type: void
       args: [environment: "const plant::Environment&"]
     compute_initial_conditions:
@@ -523,7 +523,7 @@ Species:
   methods:
     clear:
       return_type: void
-    compute_vars_phys:
+    compute_rates:
       return_type: void
       args: [environment: "const plant::Environment&"]
     area_leaf_above:
@@ -571,9 +571,9 @@ Patch:
     compute_light_environment:
       return_type: void
       name_cpp: r_compute_light_environment
-    compute_vars_phys:
+    compute_rates:
       return_type: void
-      name_cpp: r_compute_vars_phys
+      name_cpp: r_compute_rates
     # TODO: Not 100% sure this is needed from R:
     reset:
       return_type: void
@@ -687,7 +687,7 @@ StochasticSpecies:
   methods:
     clear:
       return_type: void
-    compute_vars_phys:
+    compute_rates:
       return_type: void
       args: [environment: "const plant::Environment&"]
     area_leaf_above:
@@ -740,9 +740,9 @@ StochasticPatch:
     compute_light_environment:
       return_type: void
       name_cpp: r_compute_light_environment
-    compute_vars_phys:
+    compute_rates:
       return_type: void
-      name_cpp: r_compute_vars_phys
+      name_cpp: r_compute_rates
     # TODO: Not 100% sure this is needed from R:
     reset:
       return_type: void

@@ -82,8 +82,8 @@ test_that("Reference comparison", {
   ## through with environment.  Most are NA_real_, but some are not
 
   ## Compute the physiological variables and retrieve them.
-  p$compute_vars_phys(env)
-#  p$compute_vars_growth() # NOTE: Compute immediately *after* vars_phys
+  p$compute_rates(env)
+#  p$compute_vars_growth() # NOTE: Compute immediately *after* rates
 
   ## 1. Assimilation:
   cmp_assimilation_plant <- cmp$assimilation.plant(h0, light_env)

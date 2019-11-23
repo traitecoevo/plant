@@ -43,7 +43,7 @@ public:
 
   double competition_effect_state(Internals& vars);
 
-  void compute_vars_phys(const Environment& environment, bool reuse_intervals,
+  void compute_rates(const Environment& environment, bool reuse_intervals,
                 Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
