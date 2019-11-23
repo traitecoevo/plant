@@ -47,7 +47,7 @@ public:
   void add_seed(const Environment& environment);
 
   double height_max() const;
-  double area_leaf_above(double height) const;
+  double compute_competition(double height) const;
   void compute_rates(const Environment& environment);
   std::vector<double> seeds() const;
 
@@ -149,7 +149,7 @@ double StochasticSpecies<T>::height_max() const {
 // also needed if the last looked at plant was still contributing to
 // the integral).
 template <typename T>
-double StochasticSpecies<T>::area_leaf_above(double height) const {
+double StochasticSpecies<T>::compute_competition(double height) const {
   if (size() == 0 || height_max() < height) {
     return 0.0;
   }
@@ -159,7 +159,7 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       if (plants[i].state(HEIGHT_INDEX) > height) {
-        tot += plants[i].area_leaf_above(height);
+        tot += plants[i].compute_competition(height);
       } else {
         break;
       }

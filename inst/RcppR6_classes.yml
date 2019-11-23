@@ -322,7 +322,7 @@ Plant:
     set_state:
       args: [name: "std::string", v: double]
       return_type: void
-    area_leaf_above:
+    compute_competition:
       args: [h: double]
       return_type: double
     compute_rates:
@@ -483,7 +483,7 @@ Cohort:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
   methods:
-    area_leaf_above:
+    compute_competition:
       return_type: double
       args: [height: double]
     growth_rate_gradient:
@@ -526,7 +526,7 @@ Species:
     compute_rates:
       return_type: void
       args: [environment: "const plant::Environment&"]
-    area_leaf_above:
+    compute_competition:
       return_type: double
       args: [height: double]
     add_seed:
@@ -562,7 +562,7 @@ Patch:
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
-    area_leaf_above: {return_type: double, args: [height: double]}
+    compute_competition: {return_type: double, args: [height: double]}
     canopy_openness: {return_type: double, args: [height: double]}
     add_seed:
       return_type: void
@@ -690,7 +690,7 @@ StochasticSpecies:
     compute_rates:
       return_type: void
       args: [environment: "const plant::Environment&"]
-    area_leaf_above:
+    compute_competition:
       return_type: double
       args: [height: double]
     add_seed:
@@ -727,7 +727,7 @@ StochasticPatch:
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
-    area_leaf_above: {return_type: double, args: [height: double]}
+    compute_competition: {return_type: double, args: [height: double]}
     canopy_openness: {return_type: double, args: [height: double]}
     add_seed:
       return_type: bool

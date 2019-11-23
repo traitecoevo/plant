@@ -193,7 +193,7 @@ template <typename T>
 std::vector<double> SCM<T>::r_area_leaf_error(util::index species_index) const {
   // TODO: I think we need to scale this by total area; that should be
   // computed for everything so will get passed in as an argument.
-  // const double tot_area_leaf  = patch.area_leaf_above(0.0);
+  // const double tot_area_leaf  = patch.compute_competition(0.0);
   const size_t idx = species_index.check_bounds(patch.size());
   return patch.r_area_leaf_error(idx);
 }

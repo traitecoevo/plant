@@ -23,7 +23,7 @@ public:
   double r_growth_rate_gradient(const Environment& environment);
 
   double height() const {return plant.state(HEIGHT_INDEX);}
-  double area_leaf_above(double z) const;
+  double compute_competition(double z) const;
   double area_leaf() const;
   double fecundity() const {return seeds_survival_weighted;}
 
@@ -162,13 +162,13 @@ double Cohort<T>::r_growth_rate_gradient(const Environment& environment) {
 }
 
 template <typename T>
-double Cohort<T>::area_leaf_above(double height_) const {
-  return density * plant.area_leaf_above(height_);
+double Cohort<T>::compute_competition(double height_) const {
+  return density * plant.compute_competition(height_);
 }
 
 template <typename T>
 double Cohort<T>::area_leaf() const {
-  return area_leaf_above(0.0);
+  return compute_competition(0.0);
 }
 
 // ODE interface -- note that the don't care about time in the cohort;

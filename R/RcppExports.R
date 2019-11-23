@@ -485,8 +485,8 @@ Plant___FF16__set_state <- function(obj_, name, v) {
     invisible(.Call('_plant_Plant___FF16__set_state', PACKAGE = 'plant', obj_, name, v))
 }
 
-Plant___FF16__area_leaf_above <- function(obj_, h) {
-    .Call('_plant_Plant___FF16__area_leaf_above', PACKAGE = 'plant', obj_, h)
+Plant___FF16__compute_competition <- function(obj_, h) {
+    .Call('_plant_Plant___FF16__compute_competition', PACKAGE = 'plant', obj_, h)
 }
 
 Plant___FF16__compute_rates <- function(obj_, environment) {
@@ -649,8 +649,8 @@ Cohort___FF16__ctor <- function(strategy) {
     .Call('_plant_Cohort___FF16__ctor', PACKAGE = 'plant', strategy)
 }
 
-Cohort___FF16__area_leaf_above <- function(obj_, height) {
-    .Call('_plant_Cohort___FF16__area_leaf_above', PACKAGE = 'plant', obj_, height)
+Cohort___FF16__compute_competition <- function(obj_, height) {
+    .Call('_plant_Cohort___FF16__compute_competition', PACKAGE = 'plant', obj_, height)
 }
 
 Cohort___FF16__growth_rate_gradient <- function(obj_, environment) {
@@ -717,8 +717,8 @@ Species___FF16__compute_rates <- function(obj_, environment) {
     invisible(.Call('_plant_Species___FF16__compute_rates', PACKAGE = 'plant', obj_, environment))
 }
 
-Species___FF16__area_leaf_above <- function(obj_, height) {
-    .Call('_plant_Species___FF16__area_leaf_above', PACKAGE = 'plant', obj_, height)
+Species___FF16__compute_competition <- function(obj_, height) {
+    .Call('_plant_Species___FF16__compute_competition', PACKAGE = 'plant', obj_, height)
 }
 
 Species___FF16__add_seed <- function(obj_) {
@@ -789,8 +789,8 @@ Patch___FF16__ctor <- function(parameters) {
     .Call('_plant_Patch___FF16__ctor', PACKAGE = 'plant', parameters)
 }
 
-Patch___FF16__area_leaf_above <- function(obj_, height) {
-    .Call('_plant_Patch___FF16__area_leaf_above', PACKAGE = 'plant', obj_, height)
+Patch___FF16__compute_competition <- function(obj_, height) {
+    .Call('_plant_Patch___FF16__compute_competition', PACKAGE = 'plant', obj_, height)
 }
 
 Patch___FF16__canopy_openness <- function(obj_, height) {
@@ -957,8 +957,8 @@ StochasticSpecies___FF16__compute_rates <- function(obj_, environment) {
     invisible(.Call('_plant_StochasticSpecies___FF16__compute_rates', PACKAGE = 'plant', obj_, environment))
 }
 
-StochasticSpecies___FF16__area_leaf_above <- function(obj_, height) {
-    .Call('_plant_StochasticSpecies___FF16__area_leaf_above', PACKAGE = 'plant', obj_, height)
+StochasticSpecies___FF16__compute_competition <- function(obj_, height) {
+    .Call('_plant_StochasticSpecies___FF16__compute_competition', PACKAGE = 'plant', obj_, height)
 }
 
 StochasticSpecies___FF16__add_seed <- function(obj_) {
@@ -1033,8 +1033,8 @@ StochasticPatch___FF16__ctor <- function(parameters) {
     .Call('_plant_StochasticPatch___FF16__ctor', PACKAGE = 'plant', parameters)
 }
 
-StochasticPatch___FF16__area_leaf_above <- function(obj_, height) {
-    .Call('_plant_StochasticPatch___FF16__area_leaf_above', PACKAGE = 'plant', obj_, height)
+StochasticPatch___FF16__compute_competition <- function(obj_, height) {
+    .Call('_plant_StochasticPatch___FF16__compute_competition', PACKAGE = 'plant', obj_, height)
 }
 
 StochasticPatch___FF16__canopy_openness <- function(obj_, height) {

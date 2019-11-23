@@ -52,8 +52,8 @@ public:
   }
   double aux(int i) const { return vars.aux(i); } 
 
-  double area_leaf_above(double z) const {
-    return strategy->area_leaf_above(z, state(HEIGHT_INDEX), 0.0); // aux("area_leaf"));
+  double compute_competition(double z) const {
+    return strategy->compute_competition(z, state(HEIGHT_INDEX), 0.0); // aux("area_leaf"));
   }
 
   void compute_rates(const Environment &environment,

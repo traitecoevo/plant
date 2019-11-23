@@ -26,7 +26,7 @@ public:
   void add_seed();
 
   double height_max() const;
-  double area_leaf_above(double height) const;
+  double compute_competition(double height) const;
   void compute_rates(const Environment& environment);
   std::vector<double> seeds() const;
 
@@ -104,7 +104,7 @@ double Species<T>::height_max() const {
 // the list.
 //
 // NOTE: This is simply performing numerical integration, via the
-// trapezium rule, of the area_leaf_above with respect to plant
+// trapezium rule, of the compute_competition with respect to plant
 // height.  You'd think that this would be nicer to do in terms of a
 // call to an external trapezium integration function, but building
 // and discarding the intermediate storage ends up being a nontrivial
@@ -124,16 +124,16 @@ double Species<T>::height_max() const {
 // also needed if the last looked at plant was still contributing to
 // the integral).
 template <typename T>
-double Species<T>::area_leaf_above(double height) const {
+double Species<T>::compute_competition(double height) const {
   if (size() == 0 || height_max() < height) {
     return 0.0;
   }
   double tot = 0.0;
   cohorts_const_iterator it = cohorts.begin();
-  double h1 = it->height(), f_h1 = it->area_leaf_above(height);
+  double h1 = it->height(), f_h1 = it->compute_competition(height);
 
   for (++it; it != cohorts.end(); ++it) {
-    const double h0 = it->height(), f_h0 = it->area_leaf_above(height);
+    const double h0 = it->height(), f_h0 = it->compute_competition(height);
     if (!util::is_finite(f_h0)) {
       util::stop("Detected non-finite contribution");
     }
@@ -147,7 +147,7 @@ double Species<T>::area_leaf_above(double height) const {
   }
 
   if (size() == 1 || f_h1 > 0) {
-    const double h0 = seed.height(), f_h0 = seed.area_leaf_above(height);
+    const double h0 = seed.height(), f_h0 = seed.compute_competition(height);
     tot += (h1 - h0) * (f_h1 + f_h0);
   }
 

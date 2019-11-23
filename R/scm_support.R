@@ -100,7 +100,7 @@ run_scm_collect <- function(p, include_area_leaf=FALSE) {
       ## ret$species[[i]] <- rbind(
       ##   ret$species[[i]]
       ##   area_leaf=c(scm$patch$species[[i]]$area_leafs, 0.0))
-      area_leaf[i] <- scm$patch$species[[i]]$area_leaf_above(0.0)
+      area_leaf[i] <- scm$patch$species[[i]]$compute_competition(0.0)
     }
     ret$area_leaf <- area_leaf
     ret
