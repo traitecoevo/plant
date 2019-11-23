@@ -3,6 +3,7 @@
 #include <plant/qag.h>
 #include <plant/environment.h>
 #include <plant/assimilation.h>
+#include <plant/strategy.h>
 #include <RcppCommon.h> // NA_REAL
 
 namespace plant {

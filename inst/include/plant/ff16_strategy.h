@@ -6,6 +6,7 @@
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
 #include <plant/internals.h> // quadrature::intervals_type
+#include <plant/strategy.h>
 #include <plant/assimilation.h>
 // #include <plant/plant_internals.h>
 
@@ -17,7 +18,7 @@ namespace plant {
 class Environment;
 
 
-class FF16_Strategy {
+class FF16_Strategy: public Strategy {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
@@ -49,14 +50,6 @@ public:
     return ret;
   }
 
-  // TODO : expose this so can access state_names directly
-  // In previous attempt couldn't get it to run
-  // static std::vector<std::string> state_names() { return strategy_type::state_names(); }
-  // the index of variables in the internals extra vector
-  std::map<std::string, int> state_index; 
-  std::map<std::string, int> aux_index; 
-  
-  bool collect_all_auxillary;
   // [eqn 2] area_leaf (inverse of [eqn 3])
   double area_leaf(double height) const;
 
@@ -187,11 +180,6 @@ public:
   // Set constants within FF16_Strategy
   void prepare_strategy();
 
-  // Every Strategy needs a set of Control objects -- these govern
-  // things to do with how numerical calculations are performed,
-  // rather than the biological control that this class has.
-  Control control;
-
   // Previously there was an "integrator" here.  I'm going to stick
   // that into Control or Environment instead.
 
@@ -245,6 +233,22 @@ public:
   std::string name;
 
   Assimilation assimilator;
+
+  // Translate generic methods to FF16 strategy leaf area methods
+
+  double competition_effect(double height) const {
+    return area_leaf(height);
+  }
+
+  /* double competition_effect_state(Internals& vars) const { */
+    /* return area_leaf_state(vars); */
+  /* } */
+
+  double compute_competition(double z, double height, double competition_effect) const {
+    return area_leaf_above(z, height, competition_effect);
+  }
+
+  
 };
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);
