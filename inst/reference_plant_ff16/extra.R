@@ -97,7 +97,7 @@ height.growth.dt <- function(traits, h, env) {
   g
 }
 
-area_leaf_dt <- function(traits, h, env){
+competition_effect_dt <- function(traits, h, env){
   a <- LeafArea(h)
   r <- ReproductiveAllocation(traits$hmat, h)
   p <- net.production(traits, h, env)
@@ -108,12 +108,12 @@ area_leaf_dt <- function(traits, h, env){
 
 ## sapwood area growth rate
 area_sapwood_dt <- function(traits, h, env){
-  area_leaf_dt(traits, h, env)* p.theta
+  competition_effect_dt(traits, h, env)* p.theta
 }
 
 ## bark area growth rate
 area_bark_dt <- function(traits, h, env){
- p.a_b1 * area_leaf_dt(traits, h, env)* p.theta
+ p.a_b1 * competition_effect_dt(traits, h, env)* p.theta
 }
 
 ## heartwood area growth rate

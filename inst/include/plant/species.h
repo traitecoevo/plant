@@ -49,8 +49,8 @@ public:
   }
 
   // These are used to determine the degree of cohort refinement.
-  std::vector<double> r_area_leafs() const;
-  std::vector<double> r_area_leafs_error(double scal) const;
+  std::vector<double> r_competition_effects() const;
+  std::vector<double> r_competition_effects_error(double scal) const;
 
   // This is just kind of useful
   std::vector<double> r_log_densities() const;
@@ -219,18 +219,18 @@ void Species<T>::r_set_heights(std::vector<double> heights) {
 }
 
 template <typename T>
-std::vector<double> Species<T>::r_area_leafs() const {
+std::vector<double> Species<T>::r_competition_effects() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : cohorts) {
-    ret.push_back(c.area_leaf());
+    ret.push_back(c.competition_effect());
   }
   return ret;
 }
 
 template <typename T>
-std::vector<double> Species<T>::r_area_leafs_error(double scal) const {
-  return util::local_error_integration(r_heights(), r_area_leafs(), scal);
+std::vector<double> Species<T>::r_competition_effects_error(double scal) const {
+  return util::local_error_integration(r_heights(), r_competition_effects(), scal);
 }
 
 template <typename T>

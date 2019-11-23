@@ -1911,14 +1911,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Cohort___FF16__area_leaf__get
-double Cohort___FF16__area_leaf__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_);
-RcppExport SEXP _plant_Cohort___FF16__area_leaf__get(SEXP obj_SEXP) {
+// Cohort___FF16__competition_effect__get
+double Cohort___FF16__competition_effect__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_);
+RcppExport SEXP _plant_Cohort___FF16__competition_effect__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Cohort___FF16__area_leaf__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Cohort___FF16__competition_effect__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2054,15 +2054,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___FF16__area_leafs_error
-std::vector<double> Species___FF16__area_leafs_error(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, double scal);
-RcppExport SEXP _plant_Species___FF16__area_leafs_error(SEXP obj_SEXP, SEXP scalSEXP) {
+// Species___FF16__competition_effects_error
+std::vector<double> Species___FF16__competition_effects_error(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, double scal);
+RcppExport SEXP _plant_Species___FF16__competition_effects_error(SEXP obj_SEXP, SEXP scalSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type scal(scalSEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___FF16__area_leafs_error(obj_, scal));
+    rcpp_result_gen = Rcpp::wrap(Species___FF16__competition_effects_error(obj_, scal));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2154,14 +2154,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___FF16__area_leafs__get
-std::vector<double> Species___FF16__area_leafs__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_);
-RcppExport SEXP _plant_Species___FF16__area_leafs__get(SEXP obj_SEXP) {
+// Species___FF16__competition_effects__get
+std::vector<double> Species___FF16__competition_effects__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_);
+RcppExport SEXP _plant_Species___FF16__competition_effects__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___FF16__area_leafs__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Species___FF16__competition_effects__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2500,15 +2500,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// SCM___FF16__area_leaf_error
-std::vector<double> SCM___FF16__area_leaf_error(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, plant::util::index species_index);
-RcppExport SEXP _plant_SCM___FF16__area_leaf_error(SEXP obj_SEXP, SEXP species_indexSEXP) {
+// SCM___FF16__competition_effect_error
+std::vector<double> SCM___FF16__competition_effect_error(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > obj_, plant::util::index species_index);
+RcppExport SEXP _plant_SCM___FF16__competition_effect_error(SEXP obj_SEXP, SEXP species_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::util::index >::type species_index(species_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__area_leaf_error(obj_, species_index));
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__competition_effect_error(obj_, species_index));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3616,7 +3616,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___FF16__plant__get", (DL_FUNC) &_plant_Cohort___FF16__plant__get, 1},
     {"_plant_Cohort___FF16__height__get", (DL_FUNC) &_plant_Cohort___FF16__height__get, 1},
     {"_plant_Cohort___FF16__log_density__get", (DL_FUNC) &_plant_Cohort___FF16__log_density__get, 1},
-    {"_plant_Cohort___FF16__area_leaf__get", (DL_FUNC) &_plant_Cohort___FF16__area_leaf__get, 1},
+    {"_plant_Cohort___FF16__competition_effect__get", (DL_FUNC) &_plant_Cohort___FF16__competition_effect__get, 1},
     {"_plant_Cohort___FF16__fecundity__get", (DL_FUNC) &_plant_Cohort___FF16__fecundity__get, 1},
     {"_plant_Cohort___FF16__ode_size__get", (DL_FUNC) &_plant_Cohort___FF16__ode_size__get, 1},
     {"_plant_Cohort___FF16__ode_state__get", (DL_FUNC) &_plant_Cohort___FF16__ode_state__get, 1},
@@ -3629,7 +3629,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16__compute_competition", (DL_FUNC) &_plant_Species___FF16__compute_competition, 2},
     {"_plant_Species___FF16__add_seed", (DL_FUNC) &_plant_Species___FF16__add_seed, 1},
     {"_plant_Species___FF16__cohort_at", (DL_FUNC) &_plant_Species___FF16__cohort_at, 2},
-    {"_plant_Species___FF16__area_leafs_error", (DL_FUNC) &_plant_Species___FF16__area_leafs_error, 2},
+    {"_plant_Species___FF16__competition_effects_error", (DL_FUNC) &_plant_Species___FF16__competition_effects_error, 2},
     {"_plant_Species___FF16__size__get", (DL_FUNC) &_plant_Species___FF16__size__get, 1},
     {"_plant_Species___FF16__seed__get", (DL_FUNC) &_plant_Species___FF16__seed__get, 1},
     {"_plant_Species___FF16__height_max__get", (DL_FUNC) &_plant_Species___FF16__height_max__get, 1},
@@ -3638,7 +3638,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16__log_densities__get", (DL_FUNC) &_plant_Species___FF16__log_densities__get, 1},
     {"_plant_Species___FF16__cohorts__get", (DL_FUNC) &_plant_Species___FF16__cohorts__get, 1},
     {"_plant_Species___FF16__seeds__get", (DL_FUNC) &_plant_Species___FF16__seeds__get, 1},
-    {"_plant_Species___FF16__area_leafs__get", (DL_FUNC) &_plant_Species___FF16__area_leafs__get, 1},
+    {"_plant_Species___FF16__competition_effects__get", (DL_FUNC) &_plant_Species___FF16__competition_effects__get, 1},
     {"_plant_Species___FF16__ode_size__get", (DL_FUNC) &_plant_Species___FF16__ode_size__get, 1},
     {"_plant_Species___FF16__ode_state__get", (DL_FUNC) &_plant_Species___FF16__ode_state__get, 1},
     {"_plant_Species___FF16__ode_state__set", (DL_FUNC) &_plant_Species___FF16__ode_state__set, 2},
@@ -3669,7 +3669,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__reset", (DL_FUNC) &_plant_SCM___FF16__reset, 1},
     {"_plant_SCM___FF16__seed_rain", (DL_FUNC) &_plant_SCM___FF16__seed_rain, 2},
     {"_plant_SCM___FF16__seed_rain_cohort", (DL_FUNC) &_plant_SCM___FF16__seed_rain_cohort, 2},
-    {"_plant_SCM___FF16__area_leaf_error", (DL_FUNC) &_plant_SCM___FF16__area_leaf_error, 2},
+    {"_plant_SCM___FF16__competition_effect_error", (DL_FUNC) &_plant_SCM___FF16__competition_effect_error, 2},
     {"_plant_SCM___FF16__set_cohort_schedule_times", (DL_FUNC) &_plant_SCM___FF16__set_cohort_schedule_times, 2},
     {"_plant_SCM___FF16__complete__get", (DL_FUNC) &_plant_SCM___FF16__complete__get, 1},
     {"_plant_SCM___FF16__time__get", (DL_FUNC) &_plant_SCM___FF16__time__get, 1},

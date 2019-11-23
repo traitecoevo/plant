@@ -476,7 +476,7 @@ Cohort:
     plant: {type: "plant::Plant<T>", access: field, readonly: true}
     height: {type: double, access: member}
     log_density: {type: double, access: member, name_cpp: get_log_density}
-    area_leaf: {type: double, access: member}
+    competition_effect: {type: double, access: member}
     fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
@@ -515,7 +515,7 @@ Species:
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
     cohorts: {type: "std::vector<plant::Cohort<T> >", access: member, name_cpp: r_cohorts}
     seeds: {type: "std::vector<double>", access: member}
-    area_leafs: {type: "std::vector<double>", access: member, name_cpp: r_area_leafs}
+    competition_effects: {type: "std::vector<double>", access: member, name_cpp: r_competition_effects}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
@@ -535,10 +535,10 @@ Species:
       return_type: "plant::Cohort<T>"
       args: [index: "plant::util::index"]
       name_cpp: r_cohort_at
-    area_leafs_error:
+    competition_effects_error:
       return_type: "std::vector<double>"
       args: [scal: double=1]
-      name_cpp: r_area_leafs_error
+      name_cpp: r_competition_effects_error
 
 Patch:
   name_cpp: "plant::Patch<T>"
@@ -620,10 +620,10 @@ SCM:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_seed_rain_cohort
-    area_leaf_error:
+    competition_effect_error:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
-      name_cpp: r_area_leaf_error
+      name_cpp: r_competition_effect_error
     set_cohort_schedule_times:
       args: [times: "std::vector<std::vector<double> >"]
       return_type: void

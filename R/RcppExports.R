@@ -677,8 +677,8 @@ Cohort___FF16__log_density__get <- function(obj_) {
     .Call('_plant_Cohort___FF16__log_density__get', PACKAGE = 'plant', obj_)
 }
 
-Cohort___FF16__area_leaf__get <- function(obj_) {
-    .Call('_plant_Cohort___FF16__area_leaf__get', PACKAGE = 'plant', obj_)
+Cohort___FF16__competition_effect__get <- function(obj_) {
+    .Call('_plant_Cohort___FF16__competition_effect__get', PACKAGE = 'plant', obj_)
 }
 
 Cohort___FF16__fecundity__get <- function(obj_) {
@@ -729,8 +729,8 @@ Species___FF16__cohort_at <- function(obj_, index) {
     .Call('_plant_Species___FF16__cohort_at', PACKAGE = 'plant', obj_, index)
 }
 
-Species___FF16__area_leafs_error <- function(obj_, scal) {
-    .Call('_plant_Species___FF16__area_leafs_error', PACKAGE = 'plant', obj_, scal)
+Species___FF16__competition_effects_error <- function(obj_, scal) {
+    .Call('_plant_Species___FF16__competition_effects_error', PACKAGE = 'plant', obj_, scal)
 }
 
 Species___FF16__size__get <- function(obj_) {
@@ -765,8 +765,8 @@ Species___FF16__seeds__get <- function(obj_) {
     .Call('_plant_Species___FF16__seeds__get', PACKAGE = 'plant', obj_)
 }
 
-Species___FF16__area_leafs__get <- function(obj_) {
-    .Call('_plant_Species___FF16__area_leafs__get', PACKAGE = 'plant', obj_)
+Species___FF16__competition_effects__get <- function(obj_) {
+    .Call('_plant_Species___FF16__competition_effects__get', PACKAGE = 'plant', obj_)
 }
 
 Species___FF16__ode_size__get <- function(obj_) {
@@ -889,8 +889,8 @@ SCM___FF16__seed_rain_cohort <- function(obj_, species_index) {
     .Call('_plant_SCM___FF16__seed_rain_cohort', PACKAGE = 'plant', obj_, species_index)
 }
 
-SCM___FF16__area_leaf_error <- function(obj_, species_index) {
-    .Call('_plant_SCM___FF16__area_leaf_error', PACKAGE = 'plant', obj_, species_index)
+SCM___FF16__competition_effect_error <- function(obj_, species_index) {
+    .Call('_plant_SCM___FF16__competition_effect_error', PACKAGE = 'plant', obj_, species_index)
 }
 
 SCM___FF16__set_cohort_schedule_times <- function(obj_, times) {
