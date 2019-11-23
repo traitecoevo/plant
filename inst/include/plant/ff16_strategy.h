@@ -6,6 +6,7 @@
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
 #include <plant/internals.h> // quadrature::intervals_type
+#include <plant/assimilation.h>
 // #include <plant/plant_internals.h>
 
 namespace plant {
@@ -95,21 +96,6 @@ public:
 
   void update_dependent_aux(const int index, Internals& vars);
 
-  // * Mass production
-  // [eqn 12] Gross annual CO2 assimilation
-  double assimilation(const Environment& environment, double height,
-                      double area_leaf, bool reuse_intervals);
-  // Used internally, corresponding to the inner term in [eqn 12]
-  double compute_assimilation_x(double x, double height,
-                                const Environment& environment) const;
-  double compute_assimilation_h(double h, double height,
-                                const Environment& environment) const;
-  double compute_assimilation_p(double p, double height,
-                                const Environment& environment) const;
-  // [Appendix S6] Per-leaf photosynthetic rate.
-  double assimilation_leaf(double x) const;
-
-
 
   // [eqn 13] Total maintenance respiration
   double respiration(double mass_leaf, double mass_sapwood,
@@ -192,12 +178,8 @@ public:
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
   double area_leaf_above(double z, double height, double area_leaf_) const;
-  // [eqn  9] Probability density of leaf area at height `z`
-  double q(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
   double Q(double z, double height) const;
-  // [      ] Inverse of Q: height above which fraction 'x' of leaf found
-  double Qp(double x, double height) const;
 
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
@@ -261,6 +243,8 @@ public:
   double area_leaf_0;
 
   std::string name;
+
+  Assimilation assimilator;
 };
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);

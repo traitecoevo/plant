@@ -2,6 +2,7 @@
 #include <plant/uniroot.h>
 #include <plant/qag.h>
 #include <plant/environment.h>
+#include <plant/assimilation.h>
 #include <RcppCommon.h> // NA_REAL
 
 namespace plant {
@@ -224,67 +225,6 @@ void FF16_Strategy::compute_vars_phys(const Environment& environment,
       mortality_dt(net_mass_production_dt_ / area_leaf_, vars.state(MORTALITY_INDEX)));
 }
 
-// [eqn 12] Gross annual CO2 assimilation
-//
-// NOTE: In contrast with Daniel's implementation (but following
-// Falster 2012), we do not normalise by a_y*a_bio here.
-double FF16_Strategy::assimilation(const Environment& environment,
-                                    double height,
-                                    double area_leaf,
-                                    bool reuse_intervals) {
-  const bool over_distribution = control.plant_assimilation_over_distribution;
-  const double x_min = 0.0, x_max = over_distribution ? 1.0 : height;
-
-  double A = 0.0;
-
-  std::function<double(double)> f;
-  if (over_distribution) {
-    f = [&] (double x) -> double {
-      return compute_assimilation_p(x, height, environment);
-    };
-  } else {
-    f = [&] (double x) -> double {
-      return compute_assimilation_h(x, height, environment);
-    };
-  }
-
-  if (control.plant_assimilation_adaptive && reuse_intervals) {
-    A = control.integrator.integrate_with_last_intervals(f, x_min, x_max);
-  } else {
-    A = control.integrator.integrate(f, x_min, x_max);
-  }
-
-  return area_leaf * A;
-}
-
-// This is used in the calculation of assimilation by
-// `compute_assimilation` above; it is the term within the integral in
-// [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
-// where `z` is height.
-double FF16_Strategy::compute_assimilation_x(double x, double height,
-                                     const Environment& environment) const {
-  if (control.plant_assimilation_over_distribution) {
-    return compute_assimilation_p(x, height, environment);
-  } else {
-    return compute_assimilation_h(x, height, environment);
-  }
-}
-
-double FF16_Strategy::compute_assimilation_h(double z, double height,
-                                     const Environment& environment) const {
-  return assimilation_leaf(environment.canopy_openness(z)) * q(z, height);
-}
-
-double FF16_Strategy::compute_assimilation_p(double p, double height,
-                                     const Environment& environment) const {
-  return assimilation_leaf(environment.canopy_openness(Qp(p, height)));
-}
-
-// [Appendix S6] Per-leaf photosynthetic rate.
-// Here, `x` is openness, ranging from 0 to 1.
-double FF16_Strategy::assimilation_leaf(double x) const {
-  return a_p1 * x / (x + a_p2);
-}
 
 // [eqn 13] Total maintenance respiration
 // NOTE: In contrast with Falster ref model, we do not normalise by a_y*a_bio.
@@ -357,7 +297,7 @@ double FF16_Strategy::net_mass_production_dt(const Environment& environment,
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
-  const double assimilation_ = assimilation(environment, height,
+  const double assimilation_ = assimilator.assimilate(control, environment, height,
                                             area_leaf_, reuse_intervals);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
@@ -545,12 +485,6 @@ double FF16_Strategy::area_leaf_above(double z, double height, double area_leaf_
   return area_leaf(height) * Q(z, height);
 }
 
-// [eqn  9] Probability density of leaf area at height `z`
-double FF16_Strategy::q(double z, double height) const {
-  const double tmp = pow(z / height, eta);
-  return 2 * eta * (1 - tmp) * tmp / z;
-}
-
 // [eqn 10] ... Fraction of leaf area above height 'z' for an
 //              individual of height 'height'
 double FF16_Strategy::Q(double z, double height) const {
@@ -559,12 +493,6 @@ double FF16_Strategy::Q(double z, double height) const {
   }
   const double tmp = 1.0-pow(z / height, eta);
   return tmp * tmp;
-}
-
-// (inverse of [eqn 10]; return the height above which fraction 'x' of
-// the leaf mass would be found).
-double FF16_Strategy::Qp(double x, double height) const { // x in [0,1], unchecked.
-  return pow(1 - sqrt(x), (1/eta)) * height;
 }
 
 // The aim is to find a plant height that gives the correct seed mass.
@@ -593,6 +521,7 @@ double FF16_Strategy::height_seed(void) const {
 void FF16_Strategy::prepare_strategy() {
   // Set up the integrator
   control.initialize();
+  assimilator.initialize(a_p1, a_p2, eta);
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
   // NOTE: Also pre-computing, though less trivial
