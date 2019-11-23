@@ -43,7 +43,7 @@ public:
       "area_leaf",
       "net_mass_production_dt"
     });
-    // add the associated computation to compute_vars_phys and compute there
+    // add the associated computation to compute_rates and compute there
     if (collect_all_auxillary) {
       ret.push_back("area_sapwood");
     }
@@ -84,7 +84,7 @@ public:
                            double mass_sapwood, double mass_root) const;
 
 
-  void compute_vars_phys(const Environment& environment, bool reuse_intervals,
+  void compute_rates(const Environment& environment, bool reuse_intervals,
                 Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);

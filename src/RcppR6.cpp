@@ -556,8 +556,8 @@ double Plant___FF16__area_leaf_above(plant::RcppR6::RcppR6<plant::Plant<plant::F
   return obj_->area_leaf_above(h);
 }
 // [[Rcpp::export]]
-void Plant___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
-  obj_->compute_vars_phys(environment);
+void Plant___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
 double Plant___FF16__germination_probability(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
@@ -747,8 +747,8 @@ double Cohort___FF16__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<p
   return obj_->r_growth_rate_gradient(environment);
 }
 // [[Rcpp::export]]
-void Cohort___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
-  obj_->compute_vars_phys(environment);
+void Cohort___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
 void Cohort___FF16__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
@@ -813,8 +813,8 @@ void Species___FF16__clear(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Stra
   obj_->clear();
 }
 // [[Rcpp::export]]
-void Species___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
-  obj_->compute_vars_phys(environment);
+void Species___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
 double Species___FF16__area_leaf_above(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, double height) {
@@ -917,8 +917,8 @@ void Patch___FF16__compute_light_environment(plant::RcppR6::RcppR6<plant::Patch<
   obj_->r_compute_light_environment();
 }
 // [[Rcpp::export]]
-void Patch___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_) {
-  obj_->r_compute_vars_phys();
+void Patch___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_) {
+  obj_->r_compute_rates();
 }
 // [[Rcpp::export]]
 void Patch___FF16__reset(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_) {
@@ -1087,8 +1087,8 @@ void StochasticSpecies___FF16__clear(plant::RcppR6::RcppR6<plant::StochasticSpec
   obj_->clear();
 }
 // [[Rcpp::export]]
-void StochasticSpecies___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
-  obj_->compute_vars_phys(environment);
+void StochasticSpecies___FF16__compute_rates(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
 double StochasticSpecies___FF16__area_leaf_above(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, double height) {
@@ -1199,8 +1199,8 @@ void StochasticPatch___FF16__compute_light_environment(plant::RcppR6::RcppR6<pla
   obj_->r_compute_light_environment();
 }
 // [[Rcpp::export]]
-void StochasticPatch___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_) {
-  obj_->r_compute_vars_phys();
+void StochasticPatch___FF16__compute_rates(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_) {
+  obj_->r_compute_rates();
 }
 // [[Rcpp::export]]
 void StochasticPatch___FF16__reset(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_) {

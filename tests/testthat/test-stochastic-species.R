@@ -45,8 +45,8 @@ test_that("Single individual", {
     expect_equal(sp$ode_rates, rep(NA_real_, p$ode_size))
     expect_equal(sp$is_alive, TRUE)
 
-    sp$compute_vars_phys(env)
-    p$compute_vars_phys(env)
+    sp$compute_rates(env)
+    p$compute_rates(env)
     expect_equal(sp$ode_rates, p$ode_rates)
 
     if (x == "FF16") {

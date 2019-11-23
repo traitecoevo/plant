@@ -56,9 +56,9 @@ public:
     return strategy->area_leaf_above(z, state(HEIGHT_INDEX), 0.0); // aux("area_leaf"));
   }
 
-  void compute_vars_phys(const Environment &environment,
+  void compute_rates(const Environment &environment,
                          bool reuse_intervals = false) {
-    strategy->compute_vars_phys(environment, reuse_intervals, vars);
+    strategy->compute_rates(environment, reuse_intervals, vars);
   }
   
   double germination_probability(const Environment &environment) {

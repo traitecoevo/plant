@@ -123,7 +123,7 @@ for (x in names(strategy_types)) {
     ##       solver <- solver_from_ode_target(patch, ode.control)
     ##     }
     ##   }
-    ##   patch$compute_vars_phys() # require because we just added seed
+    ##   patch$compute_rates() # require because we just added seed
     ##   state <- patch$state
 
     ##   patch2 <- new(PatchCohortTop, patch$parameters)

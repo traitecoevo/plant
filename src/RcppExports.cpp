@@ -1384,14 +1384,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Plant___FF16__compute_vars_phys
-void Plant___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
-RcppExport SEXP _plant_Plant___FF16__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
+// Plant___FF16__compute_rates
+void Plant___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP _plant_Plant___FF16__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
-    Plant___FF16__compute_vars_phys(obj_, environment);
+    Plant___FF16__compute_rates(obj_, environment);
     return R_NilValue;
 END_RCPP
 }
@@ -1856,14 +1856,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Cohort___FF16__compute_vars_phys
-void Cohort___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
-RcppExport SEXP _plant_Cohort___FF16__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
+// Cohort___FF16__compute_rates
+void Cohort___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP _plant_Cohort___FF16__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
-    Cohort___FF16__compute_vars_phys(obj_, environment);
+    Cohort___FF16__compute_rates(obj_, environment);
     return R_NilValue;
 END_RCPP
 }
@@ -2009,14 +2009,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Species___FF16__compute_vars_phys
-void Species___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
-RcppExport SEXP _plant_Species___FF16__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
+// Species___FF16__compute_rates
+void Species___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP _plant_Species___FF16__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
-    Species___FF16__compute_vars_phys(obj_, environment);
+    Species___FF16__compute_rates(obj_, environment);
     return R_NilValue;
 END_RCPP
 }
@@ -2265,13 +2265,13 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Patch___FF16__compute_vars_phys
-void Patch___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_);
-RcppExport SEXP _plant_Patch___FF16__compute_vars_phys(SEXP obj_SEXP) {
+// Patch___FF16__compute_rates
+void Patch___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > obj_);
+RcppExport SEXP _plant_Patch___FF16__compute_rates(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    Patch___FF16__compute_vars_phys(obj_);
+    Patch___FF16__compute_rates(obj_);
     return R_NilValue;
 END_RCPP
 }
@@ -2676,14 +2676,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// StochasticSpecies___FF16__compute_vars_phys
-void StochasticSpecies___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
-RcppExport SEXP _plant_StochasticSpecies___FF16__compute_vars_phys(SEXP obj_SEXP, SEXP environmentSEXP) {
+// StochasticSpecies___FF16__compute_rates
+void StochasticSpecies___FF16__compute_rates(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP _plant_StochasticSpecies___FF16__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
-    StochasticSpecies___FF16__compute_vars_phys(obj_, environment);
+    StochasticSpecies___FF16__compute_rates(obj_, environment);
     return R_NilValue;
 END_RCPP
 }
@@ -2955,13 +2955,13 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// StochasticPatch___FF16__compute_vars_phys
-void StochasticPatch___FF16__compute_vars_phys(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_);
-RcppExport SEXP _plant_StochasticPatch___FF16__compute_vars_phys(SEXP obj_SEXP) {
+// StochasticPatch___FF16__compute_rates
+void StochasticPatch___FF16__compute_rates(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > obj_);
+RcppExport SEXP _plant_StochasticPatch___FF16__compute_rates(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
-    StochasticPatch___FF16__compute_vars_phys(obj_);
+    StochasticPatch___FF16__compute_rates(obj_);
     return R_NilValue;
 END_RCPP
 }
@@ -3569,7 +3569,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Plant___FF16__aux", (DL_FUNC) &_plant_Plant___FF16__aux, 2},
     {"_plant_Plant___FF16__set_state", (DL_FUNC) &_plant_Plant___FF16__set_state, 3},
     {"_plant_Plant___FF16__area_leaf_above", (DL_FUNC) &_plant_Plant___FF16__area_leaf_above, 2},
-    {"_plant_Plant___FF16__compute_vars_phys", (DL_FUNC) &_plant_Plant___FF16__compute_vars_phys, 2},
+    {"_plant_Plant___FF16__compute_rates", (DL_FUNC) &_plant_Plant___FF16__compute_rates, 2},
     {"_plant_Plant___FF16__germination_probability", (DL_FUNC) &_plant_Plant___FF16__germination_probability, 2},
     {"_plant_Plant___FF16__net_mass_production_dt", (DL_FUNC) &_plant_Plant___FF16__net_mass_production_dt, 2},
     {"_plant_Plant___FF16__reset_mortality", (DL_FUNC) &_plant_Plant___FF16__reset_mortality, 1},
@@ -3611,7 +3611,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___FF16__ctor", (DL_FUNC) &_plant_Cohort___FF16__ctor, 1},
     {"_plant_Cohort___FF16__area_leaf_above", (DL_FUNC) &_plant_Cohort___FF16__area_leaf_above, 2},
     {"_plant_Cohort___FF16__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___FF16__growth_rate_gradient, 2},
-    {"_plant_Cohort___FF16__compute_vars_phys", (DL_FUNC) &_plant_Cohort___FF16__compute_vars_phys, 2},
+    {"_plant_Cohort___FF16__compute_rates", (DL_FUNC) &_plant_Cohort___FF16__compute_rates, 2},
     {"_plant_Cohort___FF16__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___FF16__compute_initial_conditions, 2},
     {"_plant_Cohort___FF16__plant__get", (DL_FUNC) &_plant_Cohort___FF16__plant__get, 1},
     {"_plant_Cohort___FF16__height__get", (DL_FUNC) &_plant_Cohort___FF16__height__get, 1},
@@ -3625,7 +3625,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___FF16__ode_names__get", (DL_FUNC) &_plant_Cohort___FF16__ode_names__get, 1},
     {"_plant_Species___FF16__ctor", (DL_FUNC) &_plant_Species___FF16__ctor, 1},
     {"_plant_Species___FF16__clear", (DL_FUNC) &_plant_Species___FF16__clear, 1},
-    {"_plant_Species___FF16__compute_vars_phys", (DL_FUNC) &_plant_Species___FF16__compute_vars_phys, 2},
+    {"_plant_Species___FF16__compute_rates", (DL_FUNC) &_plant_Species___FF16__compute_rates, 2},
     {"_plant_Species___FF16__area_leaf_above", (DL_FUNC) &_plant_Species___FF16__area_leaf_above, 2},
     {"_plant_Species___FF16__add_seed", (DL_FUNC) &_plant_Species___FF16__add_seed, 1},
     {"_plant_Species___FF16__cohort_at", (DL_FUNC) &_plant_Species___FF16__cohort_at, 2},
@@ -3648,7 +3648,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16__canopy_openness", (DL_FUNC) &_plant_Patch___FF16__canopy_openness, 2},
     {"_plant_Patch___FF16__add_seed", (DL_FUNC) &_plant_Patch___FF16__add_seed, 2},
     {"_plant_Patch___FF16__compute_light_environment", (DL_FUNC) &_plant_Patch___FF16__compute_light_environment, 1},
-    {"_plant_Patch___FF16__compute_vars_phys", (DL_FUNC) &_plant_Patch___FF16__compute_vars_phys, 1},
+    {"_plant_Patch___FF16__compute_rates", (DL_FUNC) &_plant_Patch___FF16__compute_rates, 1},
     {"_plant_Patch___FF16__reset", (DL_FUNC) &_plant_Patch___FF16__reset, 1},
     {"_plant_Patch___FF16__set_ode_state", (DL_FUNC) &_plant_Patch___FF16__set_ode_state, 3},
     {"_plant_Patch___FF16__derivs", (DL_FUNC) &_plant_Patch___FF16__derivs, 3},
@@ -3685,7 +3685,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__seed_rain_error__get", (DL_FUNC) &_plant_SCM___FF16__seed_rain_error__get, 1},
     {"_plant_StochasticSpecies___FF16__ctor", (DL_FUNC) &_plant_StochasticSpecies___FF16__ctor, 1},
     {"_plant_StochasticSpecies___FF16__clear", (DL_FUNC) &_plant_StochasticSpecies___FF16__clear, 1},
-    {"_plant_StochasticSpecies___FF16__compute_vars_phys", (DL_FUNC) &_plant_StochasticSpecies___FF16__compute_vars_phys, 2},
+    {"_plant_StochasticSpecies___FF16__compute_rates", (DL_FUNC) &_plant_StochasticSpecies___FF16__compute_rates, 2},
     {"_plant_StochasticSpecies___FF16__area_leaf_above", (DL_FUNC) &_plant_StochasticSpecies___FF16__area_leaf_above, 2},
     {"_plant_StochasticSpecies___FF16__add_seed", (DL_FUNC) &_plant_StochasticSpecies___FF16__add_seed, 1},
     {"_plant_StochasticSpecies___FF16__plant_at", (DL_FUNC) &_plant_StochasticSpecies___FF16__plant_at, 2},
@@ -3710,7 +3710,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___FF16__add_seed", (DL_FUNC) &_plant_StochasticPatch___FF16__add_seed, 2},
     {"_plant_StochasticPatch___FF16__add_seedling", (DL_FUNC) &_plant_StochasticPatch___FF16__add_seedling, 2},
     {"_plant_StochasticPatch___FF16__compute_light_environment", (DL_FUNC) &_plant_StochasticPatch___FF16__compute_light_environment, 1},
-    {"_plant_StochasticPatch___FF16__compute_vars_phys", (DL_FUNC) &_plant_StochasticPatch___FF16__compute_vars_phys, 1},
+    {"_plant_StochasticPatch___FF16__compute_rates", (DL_FUNC) &_plant_StochasticPatch___FF16__compute_rates, 1},
     {"_plant_StochasticPatch___FF16__reset", (DL_FUNC) &_plant_StochasticPatch___FF16__reset, 1},
     {"_plant_StochasticPatch___FF16__set_ode_state", (DL_FUNC) &_plant_StochasticPatch___FF16__set_ode_state, 3},
     {"_plant_StochasticPatch___FF16__derivs", (DL_FUNC) &_plant_StochasticPatch___FF16__derivs, 3},

@@ -8,7 +8,7 @@
 ##' @param sizes A vector of sizes to grow the plant to (increasing in
 ##' size).
 ##' @param size_name The name of the size variable within
-##' \code{Plant$vars_phys} (e.g., height).
+##' \code{Plant$rates} (e.g., height).
 ##' @param env An \code{Environment} object.
 ##' @param time_max Time to run the ODE out for -- only exists to
 ##' prevent an infinite loop (say, on an unreachable size).

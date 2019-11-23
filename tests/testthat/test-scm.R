@@ -101,7 +101,7 @@ test_that("Ported from tree1", {
     ## It's *not* the ODE system thrashing (thankfully) because the
     ## number of ODE times reported are not that bad.
     ##
-    ## 50.1% in growth_rate_gradient(), and 45.4% in compute_vars_phys()
+    ## 50.1% in growth_rate_gradient(), and 45.4% in compute_rates()
     ## and 2.8% in initial_conditions() (so that's 98.3%) total.
     ## growth_rate_gradient and initial_conditions spend *all* their
     ## time doing growth_rate_gradient(), in turn all in
