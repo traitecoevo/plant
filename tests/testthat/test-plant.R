@@ -48,8 +48,8 @@ for (x in names(strategy_types)) {
 
     expect_is(vars_pl, "Internals")
 
-    # variable_names <- c("area_leaf", "height", "mortality", "fecundity", "area_heartwood", "mass_heartwood")
-    # rate_names <- paste0(setdiff(variable_names, "area_leaf"), "_dt")
+    # variable_names <- c("competition_effect", "height", "mortality", "fecundity", "area_heartwood", "mass_heartwood")
+    # rate_names <- paste0(setdiff(variable_names, "competition_effect"), "_dt")
 
     # expect_true(all(c(variable_names, rate_names) %in% names(vars_pl)))
 

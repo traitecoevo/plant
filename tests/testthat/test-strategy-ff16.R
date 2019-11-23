@@ -51,7 +51,7 @@ test_that("FF16 collect_all_auxillary option", {
   expect_equal(p$aux_size, 2)
   expect_equal(length(p$internals$auxs), 2)
   expect_equal(p$aux_names, c(
-    "area_leaf",
+    "competition_effect",
     "net_mass_production_dt"
   ))
 
@@ -61,7 +61,7 @@ test_that("FF16 collect_all_auxillary option", {
   expect_equal(p$aux_size, 3)
   expect_equal(length(p$internals$auxs), 3)
   expect_equal(p$aux_names, c(
-    "area_leaf",
+    "competition_effect",
     "net_mass_production_dt",
     "area_sapwood"
   ))

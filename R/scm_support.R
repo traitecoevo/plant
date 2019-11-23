@@ -142,7 +142,7 @@ run_scm_collect <- function(p, include_area_leaf=FALSE) {
               p=p)
 
   if (include_area_leaf) {
-    ret$area_leaf <- do.call("rbind", lapply(res, "[[", "area_leaf"))
+    ret$area_leaf <- do.call("rbind", lapply(res, "[[", "competition_effect"))
   }
 
   ret
