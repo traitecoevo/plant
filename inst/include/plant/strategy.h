@@ -23,9 +23,21 @@ public:
   // update this when the length of aux_names changes
   size_t aux_size () { return aux_names().size(); }
 
-  static std::vector<std::string> state_names();
+  static std::vector<std::string> state_names() {
+    return  std::vector<std::string>({
+      "height",
+      "mortality",
+      "fecundity",
+    });
+  }
 
-  std::vector<std::string> aux_names();
+  std::vector<std::string> aux_names() {
+    return std::vector<std::string>({
+      "competition_effect",
+      "net_mass_production_dt"
+    });
+  }
+
 
   // TODO : expose this so can access state_names directly
   // In previous attempt couldn't get it to run
@@ -37,16 +49,12 @@ public:
 
   bool collect_all_auxillary;
 
-  void refresh_indices();
-
-  double competition_effect(double size) const;
+  virtual double competition_effect(double size) const = 0;
 
   double competition_effect_state(Internals& vars);
 
   void compute_rates(const Environment& environment, bool reuse_intervals,
                 Internals& vars);
-
-  void update_dependent_aux(const int index, Internals& vars);
 
   double net_mass_production_dt(const Environment& environment,
                                 double size, double competition_effect_,
@@ -70,10 +78,29 @@ public:
   // rather than the biological control that this class has.
   Control control;
 
+  void refresh_indices () {
+      // Create and fill the name to state index maps
+    state_index = std::map<std::string,int>();
+    aux_index   = std::map<std::string,int>();
+    std::vector<std::string> aux_names_vec = aux_names();
+    std::vector<std::string> state_names_vec = state_names();
+    for (int i = 0; i < state_names_vec.size(); i++) {
+      state_index[state_names_vec[i]] = i;
+    }
+    for (int i = 0; i < aux_names_vec.size(); i++) {
+      aux_index[aux_names_vec[i]] = i;
+    }
+  }
+
+  // for updating auxillary state
+  void update_dependent_aux(const int index, Internals& vars) {
+    if (index == HEIGHT_INDEX) {
+      double height = vars.state(HEIGHT_INDEX);
+      vars.set_aux(aux_index.at("competition_effect"), competition_effect(height));
+    }
+  }
   std::string name;
 };
-
-Strategy::ptr make_strategy_ptr(Strategy s);
 
 }
 

@@ -99,19 +99,6 @@ FF16_Strategy::FF16_Strategy() {
   name = "FF16";
 }
 
-void FF16_Strategy::refresh_indices () {
-    // Create and fill the name to state index maps
-  state_index = std::map<std::string,int>();
-  aux_index   = std::map<std::string,int>();
-  std::vector<std::string> aux_names_vec = aux_names();
-  std::vector<std::string> state_names_vec = state_names();
-  for (int i = 0; i < state_names_vec.size(); i++) {
-    state_index[state_names_vec[i]] = i;
-  }
-  for (int i = 0; i < aux_names_vec.size(); i++) {
-    aux_index[aux_names_vec[i]] = i;
-  }
-}
 
 // [eqn 2] area_leaf (inverse of [eqn 3])
 double FF16_Strategy::area_leaf(double height) const {
@@ -170,14 +157,6 @@ double FF16_Strategy::mass_total(double mass_leaf, double mass_bark,
 double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
                             double mass_sapwood, double mass_root) const {
   return mass_leaf + mass_bark + mass_sapwood + mass_root;
-}
-
-// for updating auxillary state
-void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
-  if (index == HEIGHT_INDEX) {
-    double height = vars.state(HEIGHT_INDEX);
-    vars.set_aux(aux_index.at("competition_effect"), area_leaf(height));
-  }
 }
 
 

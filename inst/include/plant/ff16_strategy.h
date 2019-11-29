@@ -53,8 +53,6 @@ public:
   // [eqn 2] area_leaf (inverse of [eqn 3])
   double area_leaf(double height) const;
 
-  void refresh_indices();
-
   // [eqn 1] mass_leaf (inverse of [eqn 2])
   double mass_leaf(double area_leaf) const;
 
@@ -86,8 +84,6 @@ public:
 
   void compute_rates(const Environment& environment, bool reuse_intervals,
                 Internals& vars);
-
-  void update_dependent_aux(const int index, Internals& vars);
 
 
   // [eqn 13] Total maintenance respiration
