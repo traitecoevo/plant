@@ -54,6 +54,11 @@ public:
 
   double germination_probability(const Environment& environment);
 
+  double fecundity_dt(double net_mass_production_dt,
+                      double fraction_allocation_reproduction) const;
+
+  double mortality_dt(double productivity_area, double cumulative_mortality) const;
+
   double compute_competition(double z, double size, double competition_effect) const;
 
   double initial_size(void) const;
