@@ -16,12 +16,47 @@ class Environment;
 
 class Strategy {
 public:
+
+  /* Common variables */
+
   typedef std::shared_ptr<Strategy> ptr;
 
-  // update this when the length of state_names changes
-  static size_t state_size ();
-  // update this when the length of aux_names changes
-  size_t aux_size () { return aux_names().size(); }
+  std::map<std::string, int> state_index; 
+  std::map<std::string, int> aux_index; 
+
+  bool collect_all_auxillary;
+
+  double size_0;
+
+  // Control objects govern things to do with how numerical calculations 
+  // are performed, rather than the biological control that this class has.
+  Control control;
+
+  std::string name;
+
+
+  /* Interface methods that all strategies must define. */
+
+  void compute_rates(const Environment& environment, bool reuse_intervals,
+                Internals& vars);
+
+  double compute_competition(double z, double size, double competition_effect) const;
+
+  virtual double competition_effect(double size) const = 0;
+
+  double net_mass_production_dt(const Environment& environment,
+                                double size, double competition_effect_,
+                                bool reuse_intervals=false);
+
+  double germination_probability(const Environment& environment);
+
+  double fecundity_dt(double net_mass_production_dt,
+                      double fraction_allocation_reproduction) const;
+
+  double mortality_dt(double productivity_area, double cumulative_mortality) const;
+
+
+  /* State names. Generally overridden. Must be a superset containing these in the same order */
 
   static std::vector<std::string> state_names() {
     return  std::vector<std::string>({
@@ -39,44 +74,13 @@ public:
   }
 
 
-  // TODO : expose this so can access state_names directly
-  // In previous attempt couldn't get it to run
-  // static std::vector<std::string> state_names() { return strategy_type::state_names(); }
-  // the index of variables in the internals extra vector
-  std::map<std::string, int> state_index; 
-  std::map<std::string, int> aux_index; 
+  /* General utility methods */
 
+  // update this when the length of state_names changes
+  static size_t state_size ();
+  // update this when the length of aux_names changes
+  size_t aux_size () { return aux_names().size(); }
 
-  bool collect_all_auxillary;
-
-  virtual double competition_effect(double size) const = 0;
-
-  double competition_effect_state(Internals& vars);
-
-  void compute_rates(const Environment& environment, bool reuse_intervals,
-                Internals& vars);
-
-  double net_mass_production_dt(const Environment& environment,
-                                double size, double competition_effect_,
-                                bool reuse_intervals=false);
-
-  double germination_probability(const Environment& environment);
-
-  double fecundity_dt(double net_mass_production_dt,
-                      double fraction_allocation_reproduction) const;
-
-  double mortality_dt(double productivity_area, double cumulative_mortality) const;
-
-  double compute_competition(double z, double size, double competition_effect) const;
-
-  double initial_size(void) const;
-
-  double size_0;
-
-  // Every Strategy needs a set of Control objects -- these govern
-  // things to do with how numerical calculations are performed,
-  // rather than the biological control that this class has.
-  Control control;
 
   void refresh_indices () {
       // Create and fill the name to state index maps
@@ -99,7 +103,7 @@ public:
       vars.set_aux(aux_index.at("competition_effect"), competition_effect(height));
     }
   }
-  std::string name;
+
 };
 
 }
