@@ -112,6 +112,14 @@ public:
   Internals r_internals() const { return vars; }
   const Control &control() const { return strategy->control; }
 
+  // TODO: Eventually change to growth rate given size
+  double growth_rate_given_height(double height, const Environment& environment) {
+    set_state("height", height);
+    compute_rates(environment, true);
+    return rate("height");
+  }
+
+
 private:
   strategy_type_ptr strategy;
   Internals vars;

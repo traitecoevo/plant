@@ -137,7 +137,7 @@ template <typename T>
 double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
   plant_type p = plant;
   auto fun = [&] (double h) mutable -> double {
-    return growth_rate_given_height(p, h, environment);
+    return p.growth_rate_given_height(h, environment);
   };
 
   const Control& control = plant.control();
@@ -204,15 +204,6 @@ ode::iterator Cohort<T>::ode_rates(ode::iterator it) const {
 template <typename T>
 Cohort<T> make_cohort(typename Cohort<T>::strategy_type s) {
   return Cohort<T>(make_strategy_ptr(s));
-}
-
-// TODO: Eventually change to growth rate given size
-template <typename T>
-double growth_rate_given_height(T& plant, double height,
-                                const Environment& environment) {
-  plant.set_state("height", height);
-  plant.compute_rates(environment, true);
-  return plant.rate("height");
 }
 
 }
