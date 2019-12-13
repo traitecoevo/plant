@@ -52,7 +52,7 @@ public:
                                 double size, double competition_effect_,
                                 bool reuse_intervals=false);
 
-  double germination_probability(const Environment& environment);
+  double establishment_probability(const Environment& environment);
 
   double fecundity_dt(double net_mass_production_dt,
                       double fraction_allocation_reproduction) const;

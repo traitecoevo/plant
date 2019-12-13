@@ -1395,15 +1395,15 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Plant___FF16__germination_probability
-double Plant___FF16__germination_probability(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
-RcppExport SEXP _plant_Plant___FF16__germination_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
+// Plant___FF16__establishment_probability
+double Plant___FF16__establishment_probability(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP _plant_Plant___FF16__establishment_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
-    rcpp_result_gen = Rcpp::wrap(Plant___FF16__germination_probability(obj_, environment));
+    rcpp_result_gen = Rcpp::wrap(Plant___FF16__establishment_probability(obj_, environment));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2732,15 +2732,15 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// StochasticSpecies___FF16__germination_probability
-double StochasticSpecies___FF16__germination_probability(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
-RcppExport SEXP _plant_StochasticSpecies___FF16__germination_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
+// StochasticSpecies___FF16__establishment_probability
+double StochasticSpecies___FF16__establishment_probability(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, const plant::Environment& environment);
+RcppExport SEXP _plant_StochasticSpecies___FF16__establishment_probability(SEXP obj_SEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< const plant::Environment& >::type environment(environmentSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticSpecies___FF16__germination_probability(obj_, environment));
+    rcpp_result_gen = Rcpp::wrap(StochasticSpecies___FF16__establishment_probability(obj_, environment));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3570,7 +3570,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Plant___FF16__set_state", (DL_FUNC) &_plant_Plant___FF16__set_state, 3},
     {"_plant_Plant___FF16__compute_competition", (DL_FUNC) &_plant_Plant___FF16__compute_competition, 2},
     {"_plant_Plant___FF16__compute_rates", (DL_FUNC) &_plant_Plant___FF16__compute_rates, 2},
-    {"_plant_Plant___FF16__germination_probability", (DL_FUNC) &_plant_Plant___FF16__germination_probability, 2},
+    {"_plant_Plant___FF16__establishment_probability", (DL_FUNC) &_plant_Plant___FF16__establishment_probability, 2},
     {"_plant_Plant___FF16__net_mass_production_dt", (DL_FUNC) &_plant_Plant___FF16__net_mass_production_dt, 2},
     {"_plant_Plant___FF16__reset_mortality", (DL_FUNC) &_plant_Plant___FF16__reset_mortality, 1},
     {"_plant_Plant___FF16__strategy__get", (DL_FUNC) &_plant_Plant___FF16__strategy__get, 1},
@@ -3690,7 +3690,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticSpecies___FF16__add_seed", (DL_FUNC) &_plant_StochasticSpecies___FF16__add_seed, 1},
     {"_plant_StochasticSpecies___FF16__plant_at", (DL_FUNC) &_plant_StochasticSpecies___FF16__plant_at, 2},
     {"_plant_StochasticSpecies___FF16__deaths", (DL_FUNC) &_plant_StochasticSpecies___FF16__deaths, 1},
-    {"_plant_StochasticSpecies___FF16__germination_probability", (DL_FUNC) &_plant_StochasticSpecies___FF16__germination_probability, 2},
+    {"_plant_StochasticSpecies___FF16__establishment_probability", (DL_FUNC) &_plant_StochasticSpecies___FF16__establishment_probability, 2},
     {"_plant_StochasticSpecies___FF16__size__get", (DL_FUNC) &_plant_StochasticSpecies___FF16__size__get, 1},
     {"_plant_StochasticSpecies___FF16__size_plants__get", (DL_FUNC) &_plant_StochasticSpecies___FF16__size_plants__get, 1},
     {"_plant_StochasticSpecies___FF16__seed__get", (DL_FUNC) &_plant_StochasticSpecies___FF16__seed__get, 1},

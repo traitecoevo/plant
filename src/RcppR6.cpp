@@ -560,8 +560,8 @@ void Plant___FF16__compute_rates(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_
   obj_->compute_rates(environment);
 }
 // [[Rcpp::export]]
-double Plant___FF16__germination_probability(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
-  return obj_->germination_probability(environment);
+double Plant___FF16__establishment_probability(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  return obj_->establishment_probability(environment);
 }
 // [[Rcpp::export]]
 double Plant___FF16__net_mass_production_dt(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
@@ -1107,8 +1107,8 @@ size_t StochasticSpecies___FF16__deaths(plant::RcppR6::RcppR6<plant::StochasticS
   return obj_->deaths();
 }
 // [[Rcpp::export]]
-double StochasticSpecies___FF16__germination_probability(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
-  return obj_->germination_probability(environment);
+double StochasticSpecies___FF16__establishment_probability(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_, const plant::Environment& environment) {
+  return obj_->establishment_probability(environment);
 }
 // [[Rcpp::export]]
 size_t StochasticSpecies___FF16__size__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy> > obj_) {

@@ -120,7 +120,7 @@ for (x in names(strategy_types)) {
     }
 
     ## Set up plant too:
-    pr_germ <- plant$germination_probability(env)
+    pr_estab <- plant$establishment_probability(env)
 
     y <- plant$ode_state
     g <- plant$rate("height")
@@ -128,9 +128,9 @@ for (x in names(strategy_types)) {
     ## Ode *values*:
     cmp <- c(plant$internals$states,
              0, # seeds_survival_weighted
-             log(pr_germ * env$seed_rain_dt / g) # log density
+             log(pr_estab * env$seed_rain_dt / g) # log density
              )
-    cmp[which(plant$ode_names == 'mortality')] <- -log(pr_germ)
+    cmp[which(plant$ode_names == 'mortality')] <- -log(pr_estab)
     expect_equal(cohort$ode_state, cmp)
 
     expect_identical(cohort$fecundity, 0.0);

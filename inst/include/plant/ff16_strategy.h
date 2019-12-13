@@ -165,8 +165,8 @@ public:
   double mortality_dt(double productivity_area, double cumulative_mortality) const;
   double mortality_growth_independent_dt()const ;
   double mortality_growth_dependent_dt(double productivity_area) const;
-  // [eqn 20] Survival of seedlings during germination
-  double germination_probability(const Environment& environment);
+  // [eqn 20] Survival of seedlings during establishment
+  double establishment_probability(const Environment& environment);
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant

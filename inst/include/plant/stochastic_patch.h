@@ -180,7 +180,7 @@ void StochasticPatch<T>::add_seedling(size_t species_index) {
 template <typename T>
 bool StochasticPatch<T>::add_seed(size_t species_index) {
   const double pr_germinate =
-    species[species_index].germination_probability(environment);
+    species[species_index].establishment_probability(environment);
   const bool added = unif_rand() < pr_germinate;
   if (added) {
     add_seedling(species_index);

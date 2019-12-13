@@ -127,13 +127,13 @@ test_that("Multiple individuals", {
   }
 })
 
-test_that("germination probability", {
+test_that("establishment probability", {
   for (x in names(strategy_types)) {
     env <- test_environment(3, seed_rain=1.0)
     s <- strategy_types[[x]]()
     sp <- StochasticSpecies(x)(s)
     p <- Plant(x)(s)
 
-    expect_equal(sp$germination_probability(env), p$germination_probability(env))
+    expect_equal(sp$establishment_probability(env), p$establishment_probability(env))
   }
 })

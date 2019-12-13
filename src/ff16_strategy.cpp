@@ -288,7 +288,7 @@ double FF16_Strategy::net_mass_production_dt_A(double assimilation, double respi
 }
 
 // One shot calculation of net_mass_production_dt
-// Used by germination_probability() and compute_rates().
+// Used by establishment_probability() and compute_rates().
 double FF16_Strategy::net_mass_production_dt(const Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals) {
@@ -469,8 +469,8 @@ double FF16_Strategy::mortality_growth_dependent_dt(double productivity_area) co
   return a_dG1 * exp(-a_dG2 * productivity_area);
 }
 
-// [eqn 20] Survival of seedlings during germination
-double FF16_Strategy::germination_probability(const Environment& environment) {
+// [eqn 20] Survival of seedlings during establishment
+double FF16_Strategy::establishment_probability(const Environment& environment) {
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height_0, area_leaf_0);
   if (net_mass_production_dt_ > 0) {

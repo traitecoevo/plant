@@ -328,7 +328,7 @@ Plant:
     compute_rates:
       args: [environment: "const plant::Environment&"]
       return_type: void
-    germination_probability:
+    establishment_probability:
       args: [environment: "const plant::Environment&"]
       return_type: double
     net_mass_production_dt:
@@ -701,7 +701,7 @@ StochasticSpecies:
       name_cpp: r_plant_at
     deaths:
       return_type: size_t
-    germination_probability:
+    establishment_probability:
       args: [environment: "const plant::Environment&"]
       return_type: double
 

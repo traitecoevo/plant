@@ -104,7 +104,7 @@ void Cohort<T>::compute_rates(const Environment& environment) {
 }
 
 // NOTE: There will be a discussion of why the mortality rate initial
-// condition is -log(germination_probability) in the documentation
+// condition is -log(establishment_probability) in the documentation
 // that Daniel is working out.
 //
 // NOTE: The initial condition for log_density is also a bit tricky, and
@@ -114,7 +114,7 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
   compute_rates(environment);
 
   pr_patch_survival_at_birth = environment.patch_survival();
-  const double pr_germ = plant.germination_probability(environment);
+  const double pr_germ = plant.establishment_probability(environment);
   plant.set_state("mortality", -log(pr_germ));
   const double g = plant.rate("height");
   const double seed_rain = environment.seed_rain_dt();

@@ -54,8 +54,8 @@ public:
   // This is totally new, relative to the deterministic model; this
   // will destructively modify the species by removing individuals.
   size_t deaths();
-  double germination_probability(const Environment& environment) {
-    return seed.germination_probability(environment);
+  double establishment_probability(const Environment& environment) {
+    return seed.establishment_probability(environment);
   }
 
   // * ODE interface
@@ -105,7 +105,7 @@ void StochasticSpecies<T>::clear() {
   seed = plant_type(strategy);
 }
 
-// Note that this does not do germination probability; suggest that
+// Note that this does not do establishment probability; suggest that
 // this is best to do in the StochasticPatch perhaps?
 template <typename T>
 void StochasticSpecies<T>::add_seed() {

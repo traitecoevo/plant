@@ -72,7 +72,7 @@ for (x in names(strategy_types)) {
     # }
 
     ## Germination_probability
-    # expect_identical(pl$germination_probability(env), pp$germination_probability(env))
+    # expect_identical(pl$establishment_probability(env), pp$establishment_probability(env))
 
     ## ode_system
     # expect_identical(pl$ode_size, 5)

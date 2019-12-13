@@ -61,8 +61,8 @@ public:
     strategy->compute_rates(environment, reuse_intervals, vars);
   }
   
-  double germination_probability(const Environment &environment) {
-    return strategy->germination_probability(environment);
+  double establishment_probability(const Environment &environment) {
+    return strategy->establishment_probability(environment);
   }
 
   double net_mass_production_dt(const Environment &environment) {

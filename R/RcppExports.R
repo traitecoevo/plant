@@ -493,8 +493,8 @@ Plant___FF16__compute_rates <- function(obj_, environment) {
     invisible(.Call('_plant_Plant___FF16__compute_rates', PACKAGE = 'plant', obj_, environment))
 }
 
-Plant___FF16__germination_probability <- function(obj_, environment) {
-    .Call('_plant_Plant___FF16__germination_probability', PACKAGE = 'plant', obj_, environment)
+Plant___FF16__establishment_probability <- function(obj_, environment) {
+    .Call('_plant_Plant___FF16__establishment_probability', PACKAGE = 'plant', obj_, environment)
 }
 
 Plant___FF16__net_mass_production_dt <- function(obj_, environment) {
@@ -973,8 +973,8 @@ StochasticSpecies___FF16__deaths <- function(obj_) {
     .Call('_plant_StochasticSpecies___FF16__deaths', PACKAGE = 'plant', obj_)
 }
 
-StochasticSpecies___FF16__germination_probability <- function(obj_, environment) {
-    .Call('_plant_StochasticSpecies___FF16__germination_probability', PACKAGE = 'plant', obj_, environment)
+StochasticSpecies___FF16__establishment_probability <- function(obj_, environment) {
+    .Call('_plant_StochasticSpecies___FF16__establishment_probability', PACKAGE = 'plant', obj_, environment)
 }
 
 StochasticSpecies___FF16__size__get <- function(obj_) {
