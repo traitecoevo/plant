@@ -17,14 +17,14 @@ for (x in names(strategy_types)) {
                           seed_rain=pi/2,
                           is_resident=TRUE)
 
-    patch <- Patch(x)(p)
+    patch <- Patch(x, "Env")(p)
     cmp <- Cohort(x)(p$strategies[[1]])
 
     expect_equal(patch$size, 1)
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
 
-    expect_is(patch$environment, "Environment")
+    expect_is(patch$environment, "Env")
     expect_identical(patch$environment$time, 0.0)
 
     expect_equal(length(patch$species), 1)

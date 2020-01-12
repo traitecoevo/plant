@@ -23,8 +23,8 @@ OdeRunner:
     concrete:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
-      - ["FF16": "plant::tools::PlantRunner<plant::FF16_Strategy>"]
-      # - ["FF16r": "plant::tools::PlantRunner<plant::FF16r_Strategy>"]
+      - ["FF16": "plant::tools::PlantRunner<plant::FF16_Strategy,plant::Environment>"]
+      # - ["FF16r": "plant::tools::PlantRunner<plant::FF16r_Strategy,plant::Environment>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
   active:
@@ -282,16 +282,17 @@ Environment:
     light_environment: {type: "plant::interpolator::Interpolator", access: field}
 
 
+
 Plant:
-  name_cpp: "plant::Plant<T>"
+  name_cpp: "plant::Plant<T,E>"
   templates:
-    parameters: T
+    parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "Env": "plant::Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [s: T]
-    name_cpp: "plant::make_plant<T>"
+    name_cpp: "plant::make_plant<T,E>"
     roxygen: |
       Plant object
       @param T String containing class of plant to create; currently
@@ -338,17 +339,17 @@ Plant:
       return_type: void
 
 PlantRunner:
-  name_cpp: "plant::tools::PlantRunner<T>"
+  name_cpp: "plant::tools::PlantRunner<T,E>"
   templates:
-    parameters: T
+    parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "Env": "plant::Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
-    name_cpp: "plant::tools::PlantRunner<T>"
-    args: [plant: "plant::Plant<T>", environment: "plant::Environment"]
+    name_cpp: "plant::tools::PlantRunner<T,E>"
+    args: [plant: "plant::Plant<T,E>", environment: "plant::Environment"]
   active:
-    plant: {access: field, type: "plant::Plant<T>"}
+    plant: {access: field, type: "plant::Plant<T,E>"}
 
 FF16_Strategy:
   name_cpp: "plant::FF16_Strategy"
@@ -463,17 +464,17 @@ Parameters:
     - hyperpar: SEXP
 
 Cohort:
-  name_cpp: "plant::Cohort<T>"
+  name_cpp: "plant::Cohort<T,E>"
   templates:
-    parameters: T
+    parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "Env": "plant::Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
-    name_cpp: "plant::make_cohort<T>"
+    name_cpp: "plant::make_cohort<T,E>"
     args: [strategy: T]
   active:
-    plant: {type: "plant::Plant<T>", access: field, readonly: true}
+    plant: {type: "plant::Plant<T,E>", access: field, readonly: true}
     height: {type: double, access: member}
     log_density: {type: double, access: member, name_cpp: get_log_density}
     competition_effect: {type: double, access: member}
@@ -499,21 +500,21 @@ Cohort:
 
 # For now, also not templated
 Species:
-  name_cpp: "plant::Species<T>"
+  name_cpp: "plant::Species<T,E>"
   templates:
-    parameters: T
+    parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "Env": "plant::Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [strategy: T]
   active:
     size: {type: size_t, access: member}
-    seed: {type: "plant::Cohort<T>", access: member, name_cpp: r_seed}
+    seed: {type: "plant::Cohort<T,E>", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
-    cohorts: {type: "std::vector<plant::Cohort<T> >", access: member, name_cpp: r_cohorts}
+    cohorts: {type: "std::vector<plant::Cohort<T,E> >", access: member, name_cpp: r_cohorts}
     seeds: {type: "std::vector<double>", access: member}
     competition_effects: {type: "std::vector<double>", access: member, name_cpp: r_competition_effects}
     ## ODE interface:
@@ -532,7 +533,7 @@ Species:
     add_seed:
       return_type: void
     cohort_at:
-      return_type: "plant::Cohort<T>"
+      return_type: "plant::Cohort<T,E>"
       args: [index: "plant::util::index"]
       name_cpp: r_cohort_at
     competition_effects_error:
@@ -541,11 +542,11 @@ Species:
       name_cpp: r_competition_effects_error
 
 Patch:
-  name_cpp: "plant::Patch<T>"
+  name_cpp: "plant::Patch<T,E>"
   templates:
-    parameters: T
+    parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "Env": "plant::Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T>"]
@@ -554,8 +555,8 @@ Patch:
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
-    environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
-    species: {type: "std::vector<plant::Species<T> >", access: member, name_cpp: r_species}
+    # environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
+    species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -596,11 +597,11 @@ Patch:
       return_type: void
 
 SCM:
-  name_cpp: "plant::SCM<T>"
+  name_cpp: "plant::SCM<T,E>"
   templates:
-    parameters: T
+    parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "Env": "plant::Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T>"]
@@ -636,7 +637,7 @@ SCM:
     seed_rains: {type: "std::vector<double>", access: member}
     parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
     patch:
-      type: "plant::Patch<T>"
+      type: "plant::Patch<T,E>"
       access: member
       name_cpp: r_patch
     cohort_schedule:
@@ -663,21 +664,21 @@ SCM:
       name_cpp: r_seed_rain_error
 
 StochasticSpecies:
-  name_cpp: "plant::StochasticSpecies<T>"
+  name_cpp: "plant::StochasticSpecies<T,E>"
   templates:
-    parameters: T
+    parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "Env": "plant::Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [strategy: "T"]
   active:
     size: {type: size_t, access: member}
     size_plants: {type: size_t, access: member}
-    seed: {type: "plant::Plant<T>", access: member, name_cpp: r_seed}
+    seed: {type: "plant::Plant<T,E>", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
-    plants: {type: "std::vector<plant::Plant<T> >", access: member, name_cpp: r_plants}
+    plants: {type: "std::vector<plant::Plant<T,E> >", access: member, name_cpp: r_plants}
     is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
     seeds: {type: "std::vector<double>", access: member}
     ## ODE interface:
@@ -696,7 +697,7 @@ StochasticSpecies:
     add_seed:
       return_type: void
     plant_at:
-      return_type: "plant::Plant<T>"
+      return_type: "plant::Plant<T,E>"
       args: [index: "plant::util::index"]
       name_cpp: r_plant_at
     deaths:
@@ -706,11 +707,11 @@ StochasticSpecies:
       return_type: double
 
 StochasticPatch:
-  name_cpp: "plant::StochasticPatch<T>"
+  name_cpp: "plant::StochasticPatch<T,E>"
   templates:
-    parameters: T
+    parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "Env": "plant::Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T>"]
@@ -720,7 +721,7 @@ StochasticPatch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
     environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
-    species: {type: "std::vector<plant::StochasticSpecies<T> >", access: member, name_cpp: r_species}
+    species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -767,11 +768,11 @@ StochasticPatch:
       return_type: "std::vector<size_t>"
 
 StochasticPatchRunner:
-  name_cpp: "plant::StochasticPatchRunner<T>"
+  name_cpp: "plant::StochasticPatchRunner<T,E>"
   templates:
-    parameters: T
+    parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "Env": "plant::Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T>"]
@@ -792,7 +793,7 @@ StochasticPatchRunner:
     time: {type: double, access: member}
     parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
     patch:
-      type: "plant::StochasticPatch<T>"
+      type: "plant::StochasticPatch<T,E>"
       access: member
       name_cpp: r_patch
     schedule:

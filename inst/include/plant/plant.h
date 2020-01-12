@@ -10,9 +10,10 @@
 
 namespace plant {
 
-template <typename T> class Plant {
+template <typename T, typename E> class Plant {
 public:
   typedef T strategy_type;
+  typedef E environment_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   // for the time being...
   Plant(strategy_type_ptr s) : strategy(s) {
@@ -56,16 +57,16 @@ public:
     return strategy->compute_competition(z, state(HEIGHT_INDEX), 0.0); // aux("competition_effect"));
   }
 
-  void compute_rates(const Environment &environment,
+  void compute_rates(const environment_type &environment,
                          bool reuse_intervals = false) {
     strategy->compute_rates(environment, reuse_intervals, vars);
   }
   
-  double establishment_probability(const Environment &environment) {
+  double establishment_probability(const environment_type &environment) {
     return strategy->establishment_probability(environment);
   }
 
-  double net_mass_production_dt(const Environment &environment) {
+  double net_mass_production_dt(const environment_type &environment) {
     // TODO:  maybe reuse intervals? default false 
     return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("competition_effect"));
   }
@@ -113,7 +114,7 @@ public:
   const Control &control() const { return strategy->control; }
 
   // TODO: Eventually change to growth rate given size
-  double growth_rate_given_height(double height, const Environment& environment) {
+  double growth_rate_given_height(double height, const environment_type& environment) {
     set_state("height", height);
     compute_rates(environment, true);
     return rate("height");
@@ -125,8 +126,8 @@ private:
   Internals vars;
 };
 
-template <typename T> Plant<T> make_plant(T s) {
-  return Plant<T>(make_strategy_ptr(s));
+template <typename T, typename E> Plant<T,E> make_plant(T s) {
+  return Plant<T,E>(make_strategy_ptr(s));
 }
 
 } // namespace plant

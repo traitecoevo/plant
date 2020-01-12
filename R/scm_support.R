@@ -55,7 +55,7 @@ equilibrium_quiet <- function(base=Control()) {
 ##' @export
 run_scm <- function(p, use_ode_times=FALSE) {
   type <- extract_RcppR6_template_type(p, "Parameters")
-  scm <- SCM(type)(p)
+  scm <- SCM(type, "Env")(p)
   if (use_ode_times) {
     scm$use_ode_times <- TRUE
   }
@@ -108,7 +108,8 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
   collect <- if (include_competition_effect) collect_competition_effect else collect_default
   type <- extract_RcppR6_template_type(p, "Parameters")
 
-  scm <- SCM(type)(p)
+  make_environment(p)
+  scm <- SCM(type, "Env")(p)
   res <- list(collect(scm))
 
   while (!scm$complete) {
@@ -182,7 +183,7 @@ scm_patch <- function(i, x) {
 
 run_scm_error <- function(p) {
   type <- extract_RcppR6_template_type(p, "Parameters")
-  scm <- SCM(type)(p)
+  scm <- SCM(type, "Env")(p)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)

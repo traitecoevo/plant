@@ -9,8 +9,8 @@ namespace plant {
 namespace tools {
 Environment fixed_environment(double canopy_openness,
                               double height_max=150.0);
-template <typename T>
-double lcp_whole_plant(Plant<T> p) {
+template <typename T, typename E>
+double lcp_whole_plant(Plant<T,E> p) {
   auto target = [&] (double x) mutable -> double {
     Environment env = fixed_environment(x);
     p.compute_rates(env);
@@ -30,17 +30,17 @@ double lcp_whole_plant(Plant<T> p) {
 
 // // These are only here because I really want somewhere after the Rcpp
 // // inclusion.
-// template <typename T>
-// PlantPlus<T> plant_to_plant_plus(Plant<T> p, SEXP environment) {
+// template <typename T, typename E>
+// PlantPlus<T,E> plant_to_plant_plus(Plant<T,E> p, SEXP environment) {
 //   if (environment == R_NilValue) {
-//     return PlantPlus<T>(p);
+//     return PlantPlus<T,E>(p);
 //   } else {
-//     return PlantPlus<T>(p, Rcpp::as<plant::Environment>(environment));
+//     return PlantPlus<T,E>(p, Rcpp::as<plant::Environment>(environment));
 //   }
 // }
 
-// template <typename T>
-// Plant<T> plant_plus_to_plant(PlantPlus<T> p) {
+// template <typename T, typename E>
+// Plant<T,E> plant_plus_to_plant(PlantPlus<T,E> p) {
 //   return p.to_plant();
 // }
 

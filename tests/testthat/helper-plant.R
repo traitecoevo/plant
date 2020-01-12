@@ -5,6 +5,11 @@ get_list_of_strategy_types <- function() {
     FF16=FF16_Strategy)
 }
 
+get_list_of_environment_types <- function() {
+  list(
+    Environment=Environment)
+}
+
 # ! Important the whitespace in the following funciton is used by the strategy scaffolder
 get_list_of_hyperpar_functions <- function() {
   list(

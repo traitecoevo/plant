@@ -9,13 +9,10 @@
 
 namespace plant {
 
-// Environment needs Parameters to initialise and that needs Strategy,
-// so there's a really awkward circular reference here.  This forward
-// declaration breaks it, but there might be a better solution.
-class Environment;
-
+template <typename E> 
 class Strategy {
 public:
+  typedef E             environment_type;
   typedef std::shared_ptr<Strategy> ptr;
 
   // update this when the length of state_names changes
@@ -43,16 +40,16 @@ public:
 
   double competition_effect_state(Internals& vars);
 
-  void compute_rates(const Environment& environment, bool reuse_intervals,
+  void compute_rates(const environment_type& environment, bool reuse_intervals,
                 Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
 
-  double net_mass_production_dt(const Environment& environment,
+  double net_mass_production_dt(const environment_type& environment,
                                 double size, double competition_effect_,
                                 bool reuse_intervals=false);
 
-  double establishment_probability(const Environment& environment);
+  double establishment_probability(const environment_type& environment);
 
   double fecundity_dt(double net_mass_production_dt,
                       double fraction_allocation_reproduction) const;
@@ -73,7 +70,6 @@ public:
   std::string name;
 };
 
-Strategy::ptr make_strategy_ptr(Strategy s);
 
 }
 

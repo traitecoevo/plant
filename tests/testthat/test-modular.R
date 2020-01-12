@@ -37,14 +37,14 @@ test_that("Construction", {
     expect_is(par, sprintf("Parameters<%s>", x))
     expect_equal(par$strategies[[1]], s)
 
-    pat <- Patch(x)(par)
+    pat <- Patch(x, "Env")(par)
     expect_is(pat, "Patch")
-    expect_is(pat, sprintf("Patch<%s>", x))
+    expect_is(pat, sprintf("Patch<%s,Env>", x))
     expect_equal(class(pat$species[[1]]), class(sp))
 
-    scm <- SCM(x)(par)
+    scm <- SCM(x, "Env")(par)
     expect_is(scm, "SCM")
-    expect_is(scm, sprintf("SCM<%s>", x))
+    expect_is(scm, sprintf("SCM<%s,Env>", x))
     expect_equal(class(scm$patch), class(pat))
 
     ## Stochastic model:

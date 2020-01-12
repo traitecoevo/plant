@@ -18,7 +18,7 @@ namespace plant {
 class Environment;
 
 
-class FF16_Strategy: public Strategy {
+class FF16_Strategy: public Strategy<Environment> {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();

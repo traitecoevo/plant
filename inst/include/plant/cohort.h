@@ -8,19 +8,20 @@
 
 namespace plant {
 
-template <typename T>
+template <typename T, typename E>
 class Cohort {
 public:
   typedef T        strategy_type;
-  typedef Plant<T> plant_type;
+  typedef E        environment_type;
+  typedef Plant<T,E> plant_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   Cohort(strategy_type_ptr s);
 
-  void compute_rates(const Environment& environment);
-  void compute_initial_conditions(const Environment& environment);
+  void compute_rates(const environment_type& environment);
+  void compute_initial_conditions(const environment_type& environment);
 
   // * R interface (testing only, really)
-  double r_growth_rate_gradient(const Environment& environment);
+  double r_growth_rate_gradient(const environment_type& environment);
 
   double height() const {return plant.state(HEIGHT_INDEX);}
   double compute_competition(double z) const;
@@ -55,7 +56,7 @@ public:
 
 private:
   // This is the gradient of growth rate with respect to height:
-  double growth_rate_gradient(const Environment& environment) const;
+  double growth_rate_gradient(const environment_type& environment) const;
 
   double log_density;
   double log_density_dt;
@@ -65,8 +66,8 @@ private:
   double pr_patch_survival_at_birth;
 };
 
-template <typename T>
-Cohort<T>::Cohort(strategy_type_ptr s)
+template <typename T, typename E>
+Cohort<T,E>::Cohort(strategy_type_ptr s)
   : plant(s),
     log_density(R_NegInf),
     log_density_dt(0),
@@ -76,8 +77,8 @@ Cohort<T>::Cohort(strategy_type_ptr s)
     pr_patch_survival_at_birth(1) {
 }
 
-template <typename T>
-void Cohort<T>::compute_rates(const Environment& environment) {
+template <typename T, typename E>
+void Cohort<T,E>::compute_rates(const environment_type& environment) {
   plant.compute_rates(environment);
 
   // NOTE: This must be called *after* compute_rates, but given we
@@ -109,8 +110,8 @@ void Cohort<T>::compute_rates(const Environment& environment) {
 //
 // NOTE: The initial condition for log_density is also a bit tricky, and
 // defined on p 7 at the moment.
-template <typename T>
-void Cohort<T>::compute_initial_conditions(const Environment& environment) {
+template <typename T, typename E>
+void Cohort<T,E>::compute_initial_conditions(const environment_type& environment) {
   compute_rates(environment);
 
   pr_patch_survival_at_birth = environment.patch_survival();
@@ -133,8 +134,8 @@ void Cohort<T>::compute_initial_conditions(const Environment& environment) {
   // likely.
 }
 
-template <typename T>
-double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
+template <typename T, typename E>
+double Cohort<T,E>::growth_rate_gradient(const environment_type& environment) const {
   plant_type p = plant;
   auto fun = [&] (double h) mutable -> double {
     return p.growth_rate_given_height(h, environment);
@@ -151,8 +152,8 @@ double Cohort<T>::growth_rate_gradient(const Environment& environment) const {
   }
 }
 
-template <typename T>
-double Cohort<T>::r_growth_rate_gradient(const Environment& environment) {
+template <typename T, typename E>
+double Cohort<T,E>::r_growth_rate_gradient(const environment_type& environment) {
   // We need to compute the physiological variables here, first, so
   // that reusing intervals works as expected.  This would ordinarily
   // be taken care of because of the calling order of
@@ -161,20 +162,20 @@ double Cohort<T>::r_growth_rate_gradient(const Environment& environment) {
   return growth_rate_gradient(environment);
 }
 
-template <typename T>
-double Cohort<T>::compute_competition(double height_) const {
+template <typename T, typename E>
+double Cohort<T,E>::compute_competition(double height_) const {
   return density * plant.compute_competition(height_);
 }
 
-template <typename T>
-double Cohort<T>::competition_effect() const {
+template <typename T, typename E>
+double Cohort<T,E>::competition_effect() const {
   return compute_competition(0.0);
 }
 
 // ODE interface -- note that the don't care about time in the cohort;
 // only Patch and above does.
-template <typename T>
-ode::const_iterator Cohort<T>::set_ode_state(ode::const_iterator it) {
+template <typename T, typename E>
+ode::const_iterator Cohort<T,E>::set_ode_state(ode::const_iterator it) {
   for (int i = 0; i < plant.ode_size(); i++) {
     plant.set_state(i, *it++);
   }
@@ -182,8 +183,8 @@ ode::const_iterator Cohort<T>::set_ode_state(ode::const_iterator it) {
   set_log_density(*it++);
   return it;
 }
-template <typename T>
-ode::iterator Cohort<T>::ode_state(ode::iterator it) const {
+template <typename T, typename E>
+ode::iterator Cohort<T,E>::ode_state(ode::iterator it) const {
   for (int i = 0; i < plant.ode_size(); i++) {
     *it++ = plant.state(i);
   }
@@ -191,8 +192,8 @@ ode::iterator Cohort<T>::ode_state(ode::iterator it) const {
   *it++ = log_density;
   return it;
 }
-template <typename T>
-ode::iterator Cohort<T>::ode_rates(ode::iterator it) const {
+template <typename T, typename E>
+ode::iterator Cohort<T,E>::ode_rates(ode::iterator it) const {
   for (int i = 0; i < plant.ode_size(); i++) {
     *it++ = plant.rate(i);
   }
@@ -201,9 +202,9 @@ ode::iterator Cohort<T>::ode_rates(ode::iterator it) const {
   return it;
 }
 
-template <typename T>
-Cohort<T> make_cohort(typename Cohort<T>::strategy_type s) {
-  return Cohort<T>(make_strategy_ptr(s));
+template <typename T, typename E>
+Cohort<T,E> make_cohort(typename Cohort<T,E>::strategy_type s) {
+  return Cohort<T,E>(make_strategy_ptr(s));
 }
 
 }

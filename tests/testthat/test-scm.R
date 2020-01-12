@@ -13,17 +13,17 @@ test_that("Ported from tree1", {
                           patch_area=10,
                           is_resident=TRUE)
 
-    expect_error(scm <- SCM(x)(p), "Patch area must be exactly 1 for the SCM")
+    expect_error(scm <- SCM(x, "Env")(p), "Patch area must be exactly 1 for the SCM")
 
     p$patch_area <- 1.0
-    scm <- SCM(x)(p)
-    expect_is(scm, sprintf("SCM<%s>", x))
+    scm <- SCM(x, "Env")(p)
+    expect_is(scm, sprintf("SCM<%s,Env>", x))
 
     ## NOTE: I'm not sure where these are only equal and not identical.
     expect_equal(scm$parameters, p)
 
     ## Check that the underlying Patch really is a Patch<CohortTop>:
-    expect_is(scm$patch, sprintf("Patch<%s>", x))
+    expect_is(scm$patch, sprintf("Patch<%s,Env>", x))
     expect_equal(length(scm$patch$species), 1)
     expect_is(scm$patch$species[[1]], sprintf("Species<%s>",x))
     expect_is(scm$patch$species[[1]]$seed, sprintf("Cohort<%s>",x))
@@ -159,13 +159,12 @@ test_that("Ported from tree1", {
 })
 
 test_that("schedule setting", {
-  for (x in names(strategy_types)) {
-    p <- Parameters(x)(
+  for (x in names(strategy_types)) { p <- Parameters(x)(
       strategies=list(strategy_types[[x]]()),
       seed_rain=pi/2,
       is_resident=TRUE,
       cohort_schedule_max_time=5.0)
-    scm <- SCM(x)(p)
+    scm <- SCM(x, "Env")(p)
 
     ## Then set a cohort schedule:
     ## Build a schedule for 14 introductions from t=0 to t=5
@@ -186,7 +185,7 @@ test_that("schedule setting", {
     expect_identical(sched2$max_time, sched$max_time)
     expect_identical(sched2$all_times, list(t))
 
-    scm2 <- SCM(x)(p2)
+    scm2 <- SCM(x, "Env")(p2)
     expect_identical(scm2$cohort_schedule$max_time, sched2$max_time)
     expect_identical(scm2$cohort_schedule$all_times, sched2$all_times)
   }
@@ -236,7 +235,7 @@ test_that("Seed rain & error calculations correct", {
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, FALSE)
 
     scm <- run_scm(p1)
-    expect_is(scm, sprintf("SCM<%s>", x))
+    expect_is(scm, sprintf("SCM<%s,Env>", x))
 
     seed_rain_R <- function(scm, error=FALSE) {
       a <- scm$cohort_schedule$times(1)
@@ -274,7 +273,7 @@ test_that("Seed rain & error calculations correct", {
 test_that("Can create empty SCM", {
   for (x in names(strategy_types)) {
     p <- Parameters(x)()
-    scm <- SCM(x)(p)
+    scm <- SCM(x, "Env")(p)
 
     ## Check light environment is empty:
     env <- scm$patch$environment

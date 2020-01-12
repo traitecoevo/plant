@@ -8,13 +8,14 @@
 
 namespace plant {
 
-template <typename T>
+template <typename T, typename E>
 class Patch {
 public:
   typedef T             strategy_type;
-  typedef Plant<T>      plant_type;
-  typedef Cohort<T>     cohort_type;
-  typedef Species<T>    species_type;
+  typedef E             environment_type;
+  typedef Plant<T,E>    plant_type;
+  typedef Cohort<T,E>   cohort_type;
+  typedef Species<T,E>  species_type;
   typedef Parameters<T> parameters_type;
 
   Patch(parameters_type p);
@@ -49,7 +50,7 @@ public:
   // * R interface
   // Data accessors:
   parameters_type r_parameters() const {return parameters;}
-  Environment r_environment() const {return environment;}
+  environment_type r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
   std::vector<double> r_competition_effect_error(size_t species_index) const;
   void r_set_state(double time,
@@ -73,24 +74,24 @@ private:
 
   parameters_type parameters;
   std::vector<bool> is_resident;
-  Environment environment;
+  environment_type environment;
   std::vector<species_type> species;
 };
 
-template <typename T>
-Patch<T>::Patch(parameters_type p)
+template <typename T, typename E>
+Patch<T,E>::Patch(parameters_type p)
   : parameters(p),
     is_resident(p.is_resident),
     environment(make_environment(parameters)) {
   parameters.validate();
   for (auto s : parameters.strategies) {
-    species.push_back(Species<T>(s));
+    species.push_back(Species<T,E>(s));
   }
   reset();
 }
 
-template <typename T>
-void Patch<T>::reset() {
+template <typename T, typename E>
+void Patch<T,E>::reset() {
   for (auto& s : species) {
     s.clear();
   }
@@ -99,8 +100,8 @@ void Patch<T>::reset() {
   compute_rates();
 }
 
-template <typename T>
-double Patch<T>::height_max() const {
+template <typename T, typename E>
+double Patch<T,E>::height_max() const {
   double ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
@@ -110,8 +111,8 @@ double Patch<T>::height_max() const {
   return ret;
 }
 
-template <typename T>
-double Patch<T>::compute_competition(double height) const {
+template <typename T, typename E>
+double Patch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
@@ -121,38 +122,38 @@ double Patch<T>::compute_competition(double height) const {
   return tot;
 }
 
-template <typename T>
-double Patch<T>::canopy_openness(double height) const {
+template <typename T, typename E>
+double Patch<T,E>::canopy_openness(double height) const {
   // NOTE: patch_area does not appear in the SCM model formulation;
   // really we should require that it is 1.0, or drop it entirely.
   return exp(-parameters.k_I * compute_competition(height) /
              parameters.patch_area);
 }
 
-template <typename T>
-std::vector<double> Patch<T>::r_competition_effect_error(size_t species_index) const {
+template <typename T, typename E>
+std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index) const {
   const double tot_competition_effect = compute_competition(0.0);
   return species[species_index].r_competition_effects_error(tot_competition_effect);
 }
 
-template <typename T>
-void Patch<T>::compute_light_environment() {
+template <typename T, typename E>
+void Patch<T,E>::compute_light_environment() {
   if (parameters.n_residents() > 0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
     environment.compute_light_environment(f, height_max());
   }
 }
 
-template <typename T>
-void Patch<T>::rescale_light_environment() {
+template <typename T, typename E>
+void Patch<T,E>::rescale_light_environment() {
   if (parameters.n_residents() > 0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
     environment.rescale_light_environment(f, height_max());
   }
 }
 
-template <typename T>
-void Patch<T>::compute_rates() {
+template <typename T, typename E>
+void Patch<T,E>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
     environment.set_seed_rain_index(i);
     species[i].compute_rates(environment);
@@ -162,16 +163,16 @@ void Patch<T>::compute_rates() {
 // TODO: We should only be recomputing the light environment for the
 // points that are below the height of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
-template <typename T>
-void Patch<T>::add_seed(size_t species_index) {
+template <typename T, typename E>
+void Patch<T,E>::add_seed(size_t species_index) {
   species[species_index].add_seed();
   if (parameters.is_resident[species_index]) {
     compute_light_environment();
   }
 }
 
-template <typename T>
-void Patch<T>::add_seeds(const std::vector<size_t>& species_index) {
+template <typename T, typename E>
+void Patch<T,E>::add_seeds(const std::vector<size_t>& species_index) {
   bool recompute = false;
   for (size_t i : species_index) {
     species[i].add_seed();
@@ -186,8 +187,8 @@ void Patch<T>::add_seeds(const std::vector<size_t>& species_index) {
 //   time: time
 //   state: vector of ode state; we'll pass an iterator with that in
 //   n: number of *individuals* of each species
-template <typename T>
-void Patch<T>::r_set_state(double time,
+template <typename T, typename E>
+void Patch<T,E>::r_set_state(double time,
                            const std::vector<double>& state,
                            const std::vector<size_t>& n,
                            const std::vector<double>& light_env) {
@@ -218,18 +219,18 @@ void Patch<T>::r_set_state(double time,
 }
 
 // ODE interface
-template <typename T>
-size_t Patch<T>::ode_size() const {
+template <typename T, typename E>
+size_t Patch<T,E>::ode_size() const {
   return ode::ode_size(species.begin(), species.end());
 }
 
-template <typename T>
-double Patch<T>::ode_time() const {
+template <typename T, typename E>
+double Patch<T,E>::ode_time() const {
   return time();
 }
 
-template <typename T>
-ode::const_iterator Patch<T>::set_ode_state(ode::const_iterator it,
+template <typename T, typename E>
+ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                             double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
@@ -242,13 +243,13 @@ ode::const_iterator Patch<T>::set_ode_state(ode::const_iterator it,
   return it;
 }
 
-template <typename T>
-ode::iterator Patch<T>::ode_state(ode::iterator it) const {
+template <typename T, typename E>
+ode::iterator Patch<T,E>::ode_state(ode::iterator it) const {
   return ode::ode_state(species.begin(), species.end(), it);
 }
 
-template <typename T>
-ode::iterator Patch<T>::ode_rates(ode::iterator it) const {
+template <typename T, typename E>
+ode::iterator Patch<T,E>::ode_rates(ode::iterator it) const {
   return ode::ode_rates(species.begin(), species.end(), it);
 }
 
