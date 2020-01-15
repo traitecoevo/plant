@@ -2368,6 +2368,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___FF16__Env__environment__get
+plant::Environment Patch___FF16__Env__environment__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::Environment> > obj_);
+RcppExport SEXP _plant_Patch___FF16__Env__environment__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__Env__environment__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___FF16__Env__species__get
 std::vector<plant::Species<plant::FF16_Strategy,plant::Environment> > Patch___FF16__Env__species__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::Environment> > obj_);
 RcppExport SEXP _plant_Patch___FF16__Env__species__get(SEXP obj_SEXP) {
@@ -3341,23 +3352,23 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_oderunner_plant_internals
-plant::Internals FF16_oderunner_plant_internals(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy>>& obj);
+plant::Internals FF16_oderunner_plant_internals(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::Environment>>& obj);
 RcppExport SEXP _plant_FF16_oderunner_plant_internals(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy>>& >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::Environment>>& >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(FF16_oderunner_plant_internals(obj));
     return rcpp_result_gen;
 END_RCPP
 }
 // FF16_lcp_whole_plant
-double FF16_lcp_whole_plant(plant::Plant<plant::FF16_Strategy> p);
+double FF16_lcp_whole_plant(plant::Plant<plant::FF16_Strategy,plant::Environment> p);
 RcppExport SEXP _plant_FF16_lcp_whole_plant(SEXP pSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Plant<plant::FF16_Strategy> >::type p(pSEXP);
+    Rcpp::traits::input_parameter< plant::Plant<plant::FF16_Strategy,plant::Environment> >::type p(pSEXP);
     rcpp_result_gen = Rcpp::wrap(FF16_lcp_whole_plant(p));
     return rcpp_result_gen;
 END_RCPP
@@ -3646,6 +3657,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16__Env__size__get", (DL_FUNC) &_plant_Patch___FF16__Env__size__get, 1},
     {"_plant_Patch___FF16__Env__height_max__get", (DL_FUNC) &_plant_Patch___FF16__Env__height_max__get, 1},
     {"_plant_Patch___FF16__Env__parameters__get", (DL_FUNC) &_plant_Patch___FF16__Env__parameters__get, 1},
+    {"_plant_Patch___FF16__Env__environment__get", (DL_FUNC) &_plant_Patch___FF16__Env__environment__get, 1},
     {"_plant_Patch___FF16__Env__species__get", (DL_FUNC) &_plant_Patch___FF16__Env__species__get, 1},
     {"_plant_Patch___FF16__Env__ode_size__get", (DL_FUNC) &_plant_Patch___FF16__Env__ode_size__get, 1},
     {"_plant_Patch___FF16__Env__ode_time__get", (DL_FUNC) &_plant_Patch___FF16__Env__ode_time__get, 1},

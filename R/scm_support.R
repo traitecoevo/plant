@@ -157,7 +157,7 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
 make_patch <- function(state, p) {
   type <- extract_RcppR6_template_type(p, "Parameters")
   n <- viapply(state$species, ncol)
-  patch <- Patch(type)(p)
+  patch <- Patch(type, "Env")(p)
   patch$set_state(state$time, unlist(state$species), n, state$light_env)
   patch
 }

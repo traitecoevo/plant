@@ -80,8 +80,8 @@ grow_plant_to_time <- function(plant, times, env) {
   t_next <- times[[i]]
   strategy_name <- plant$strategy_name
 
-  pr1 <- PlantRunner(strategy_name)(plant, env)
-  pr2 <- PlantRunner(strategy_name)(plant, env)
+  pr1 <- PlantRunner(strategy_name, "Env")(plant, env)
+  pr2 <- PlantRunner(strategy_name, "Env")(plant, env)
 
   runner <- OdeRunner(strategy_name)(pr1)
   runner_detail <- OdeRunner(strategy_name)(pr2)
@@ -131,7 +131,7 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   # can we clarify?
   size_index <- (which(plant$ode_names == size_name) - 1)
 
-  runner <- OdeRunner(strategy_name)(PlantRunner(strategy_name)(plant, env))
+  runner <- OdeRunner(strategy_name)(PlantRunner(strategy_name, "Env")(plant, env))
   internals <- get_plant_internals_fun(runner$object$plant)
   i <- 1L
   n <- length(sizes)

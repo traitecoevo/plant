@@ -957,6 +957,11 @@ plant::Parameters<plant::FF16_Strategy> Patch___FF16__Env__parameters__get(plant
 }
 
 // [[Rcpp::export]]
+plant::Environment Patch___FF16__Env__environment__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::Environment> > obj_) {
+  return obj_->r_environment();
+}
+
+// [[Rcpp::export]]
 std::vector<plant::Species<plant::FF16_Strategy,plant::Environment> > Patch___FF16__Env__species__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::Environment> > obj_) {
   return obj_->r_species();
 }

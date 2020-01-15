@@ -10,7 +10,7 @@ test_that("empty", {
                           is_resident=TRUE,
                           control=fast_control())
 
-    obj <- StochasticPatchRunner(x)(p)
+    obj <- StochasticPatchRunner(x, "Env")(p)
     expect_identical(obj$time, 0.0)
 
     sched <- obj$schedule
@@ -37,7 +37,7 @@ test_that("empty", {
     expect_equal(res, 1L)
     expect_identical(obj$time, sched2$all_times[[1]][[2]])
 
-    ode_size <- Plant(x)(strategy_types[[x]]())$ode_size
+    ode_size <- Plant(x, "Env")(strategy_types[[x]]())$ode_size
     expect_equal(length(obj$patch$ode_state), ode_size)
     expect_equal(obj$patch$size, 1)
 

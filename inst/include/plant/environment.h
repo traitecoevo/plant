@@ -8,6 +8,8 @@
 #include <plant/adaptive_interpolator.h>
 #include <plant/util.h>
 
+using namespace Rcpp;
+
 namespace plant {
 
 class Environment {

@@ -555,7 +555,7 @@ Patch:
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
-    # environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
+    environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}

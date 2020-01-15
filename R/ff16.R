@@ -11,19 +11,19 @@
 ##' pl <- FF16_Plant()
 ##' pl$height
 FF16_Plant <- function(s=FF16_Strategy()) {
-  Plant("FF16")(s)
+  Plant("FF16", "Env")(s)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_Cohort <- function(s=FF16_Strategy()) {
-  Cohort("FF16")(s)
+  Cohort("FF16", "Env")(s)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_Species <- function(s=FF16_Strategy()) {
-  Species("FF16")(s)
+  Species("FF16", "Env")(s)
 }
 
 ##' @export
@@ -37,31 +37,31 @@ FF16_Parameters <- function(...) {
 ##' @rdname FF16
 ##' @param p A \code{Parameters<FF16>} object
 FF16_Patch <- function(p) {
-  Patch("FF16")(p)
+  Patch("FF16", "Env")(p)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_SCM <- function(p) {
-  SCM("FF16")(p)
+  SCM("FF16", "Env")(p)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_StochasticSpecies <- function(s=FF16_Strategy()) {
-  StochasticSpecies("FF16")(s)
+  StochasticSpecies("FF16", "Env")(s)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_StochasticPatch <- function(p) {
-  StochasticPatch("FF16")(p)
+  StochasticPatch("FF16", "Env")(p)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_StochasticPatchRunner <- function(p) {
-  StochasticPatchRunner("FF16")(p)
+  StochasticPatchRunner("FF16", "Env")(p)
 }
 
 # ##' @export

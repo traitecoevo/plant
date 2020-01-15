@@ -7,9 +7,9 @@ test_that("empty", {
     p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE)
-    patch <- StochasticPatch(x)(p)
+    patch <- StochasticPatch(x, "Env")(p)
 
-    expect_is(patch, sprintf("StochasticPatch<%s>",x))
+    expect_is(patch, sprintf("StochasticPatch<%s,Env>",x))
 
     expect_equal(patch$size, 1)
     expect_equal(patch$height_max, 0.0)
@@ -20,7 +20,7 @@ test_that("empty", {
     sp <- patch$species
     expect_true(is.list(sp))
     expect_equal(length(sp), 1)
-    expect_is(sp[[1]], sprintf("StochasticSpecies<%s>",x))
+    expect_is(sp[[1]], sprintf("StochasticSpecies<%s,Env>",x))
     expect_equal(sp[[1]]$size, 0)
   }
 })
@@ -30,8 +30,8 @@ test_that("non empty", {
     p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE)
-    patch <- StochasticPatch(x)(p)
-    cmp <- Plant(x)(p$strategies[[1]])
+    patch <- StochasticPatch(x, "Env")(p)
+    cmp <- Plant(x, "Env")(p$strategies[[1]])
 
     expect_error(patch$add_seed(0), "Invalid value")
     expect_error(patch$add_seed(10), "out of bounds")

@@ -5,8 +5,8 @@ strategy_types <- get_list_of_strategy_types()
 test_that("Ported from tree1", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
-    plant <- Plant(x)(s)
-    cohort <- Cohort(x)(s)
+    plant <- Plant(x, "Env")(s)
+    cohort <- Cohort(x, "Env")(s)
 
     p <- Parameters(x)(strategies=list(s),
                           seed_rain=pi/2,
@@ -25,8 +25,8 @@ test_that("Ported from tree1", {
     ## Check that the underlying Patch really is a Patch<CohortTop>:
     expect_is(scm$patch, sprintf("Patch<%s,Env>", x))
     expect_equal(length(scm$patch$species), 1)
-    expect_is(scm$patch$species[[1]], sprintf("Species<%s>",x))
-    expect_is(scm$patch$species[[1]]$seed, sprintf("Cohort<%s>",x))
+    expect_is(scm$patch$species[[1]], sprintf("Species<%s,Env>",x))
+    expect_is(scm$patch$species[[1]]$seed, sprintf("Cohort<%s,Env>",x))
     expect_identical(scm$patch$time, 0.0)
 
     sched <- scm$cohort_schedule
@@ -64,7 +64,7 @@ test_that("Ported from tree1", {
     ## to make those work).
     i <- scm$run_next()
 
-    ode_size <- Cohort(x)(strategy_types[[x]]())$ode_size
+    ode_size <- Cohort(x, "Env")(strategy_types[[x]]())$ode_size
 
     expect_equal(scm$cohort_schedule$remaining, length(t) - 1)
     expect_false(scm$complete)
@@ -277,6 +277,7 @@ test_that("Can create empty SCM", {
 
     ## Check light environment is empty:
     env <- scm$patch$environment
+    patch <- scm$patch
     expect_equal(env$light_environment$size, 0)
     expect_equal(env$canopy_openness(0), 1.0)
   }

@@ -50,7 +50,7 @@ plant_list <- function(x, parameters) {
     stop("parameters must be a 'Parameters' object")
   }
   type <- extract_RcppR6_template_type(parameters, "Parameters")
-  lapply(strategy_list(x, parameters), Plant(type))
+  lapply(strategy_list(x, parameters), Plant(type, "Env"))
 }
 
 ##' Helper function to create trait matrices suitable for

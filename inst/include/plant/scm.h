@@ -7,6 +7,8 @@
 #include <plant/ode_solver.h>
 #include <plant/scm_utils.h>
 
+using namespace Rcpp;
+
 namespace plant {
 
 template <typename T, typename E>
@@ -19,6 +21,7 @@ public:
   typedef Species<T,E>  species_type;
   typedef Patch<T,E>    patch_type;
   typedef Parameters<T> parameters_type;
+
 
   SCM(parameters_type p);
 

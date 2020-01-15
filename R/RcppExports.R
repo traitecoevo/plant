@@ -841,6 +841,10 @@ Patch___FF16__Env__parameters__get <- function(obj_) {
     .Call('_plant_Patch___FF16__Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___FF16__Env__environment__get <- function(obj_) {
+    .Call('_plant_Patch___FF16__Env__environment__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___FF16__Env__species__get <- function(obj_) {
     .Call('_plant_Patch___FF16__Env__species__get', PACKAGE = 'plant', obj_)
 }

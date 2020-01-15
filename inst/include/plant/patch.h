@@ -6,6 +6,8 @@
 #include <plant/species.h>
 #include <plant/ode_interface.h>
 
+using namespace Rcpp;
+
 namespace plant {
 
 template <typename T, typename E>
