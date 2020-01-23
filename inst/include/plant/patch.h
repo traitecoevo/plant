@@ -58,7 +58,7 @@ public:
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
-                   const std::vector<double>& light_env);
+                   const std::vector<double>& env);
   void r_add_seed(util::index species_index) {
     add_seed(species_index.check_bounds(size()));
   }
@@ -66,12 +66,12 @@ public:
     at(species_index.check_bounds(size()));
   }
   // These are only here because they wrap private functions.
-  void r_compute_light_environment() {compute_light_environment();}
+  void r_compute_environment() {compute_environment();}
   void r_compute_rates() {compute_rates();}
 
 private:
-  void compute_light_environment();
-  void rescale_light_environment();
+  void compute_environment();
+  void rescale_environment();
   void compute_rates();
 
   parameters_type parameters;
@@ -98,7 +98,7 @@ void Patch<T,E>::reset() {
     s.clear();
   }
   environment.clear();
-  compute_light_environment();
+  compute_environment();
   compute_rates();
 }
 
@@ -139,18 +139,18 @@ std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index)
 }
 
 template <typename T, typename E>
-void Patch<T,E>::compute_light_environment() {
+void Patch<T,E>::compute_environment() {
   if (parameters.n_residents() > 0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.compute_light_environment(f, height_max());
+    environment.compute_environment(f, height_max());
   }
 }
 
 template <typename T, typename E>
-void Patch<T,E>::rescale_light_environment() {
+void Patch<T,E>::rescale_environment() {
   if (parameters.n_residents() > 0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.rescale_light_environment(f, height_max());
+    environment.rescale_environment(f, height_max());
   }
 }
 
@@ -162,14 +162,14 @@ void Patch<T,E>::compute_rates() {
   }
 }
 
-// TODO: We should only be recomputing the light environment for the
+// TODO: We should only be recomputing the environment for the
 // points that are below the height of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
 template <typename T, typename E>
 void Patch<T,E>::add_seed(size_t species_index) {
   species[species_index].add_seed();
   if (parameters.is_resident[species_index]) {
-    compute_light_environment();
+    compute_environment();
   }
 }
 
@@ -181,7 +181,7 @@ void Patch<T,E>::add_seeds(const std::vector<size_t>& species_index) {
     recompute = recompute || parameters.is_resident[i];
   }
   if (recompute) {
-    compute_light_environment();
+    compute_environment();
   }
 }
 
@@ -193,7 +193,7 @@ template <typename T, typename E>
 void Patch<T,E>::r_set_state(double time,
                            const std::vector<double>& state,
                            const std::vector<size_t>& n,
-                           const std::vector<double>& light_env) {
+                           const std::vector<double>& env) {
   const size_t n_species = species.size();
   util::check_length(n.size(), n_species);
   reset();
@@ -209,15 +209,15 @@ void Patch<T,E>::r_set_state(double time,
   // the light environment, but doing this is better because it means
   // that if rescale_usually is on we do get the same light
   // environment as before.
-  if (light_env.size() % 2 != 0) {
-    util::stop("Expected even number of elements in light environment");
+  if (env.size() % 2 != 0) {
+    util::stop("Expected even number of elements in environment");
   }
-  const size_t light_env_n = light_env.size() / 2;
-  auto it = light_env.begin();
-  std::vector<double> light_env_x, light_env_y;
-  std::copy_n(it,               light_env_n, std::back_inserter(light_env_x));
-  std::copy_n(it + light_env_n, light_env_n, std::back_inserter(light_env_y));
-  environment.light_environment.init(light_env_x, light_env_y);
+  const size_t env_n = env.size() / 2;
+  auto it = env.begin();
+  std::vector<double> env_x, env_y;
+  std::copy_n(it,               env_n, std::back_inserter(env_x));
+  std::copy_n(it + env_n, env_n, std::back_inserter(env_y));
+  environment.environment.init(env_x, env_y);
 }
 
 // ODE interface
@@ -236,10 +236,10 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                             double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
-  if (parameters.control.environment_light_rescale_usually) {
-    rescale_light_environment();
+  if (parameters.control.environment_rescale_usually) {
+    rescale_environment();
   } else {
-    compute_light_environment();
+    compute_environment();
   }
   compute_rates();
   return it;

@@ -16,8 +16,10 @@
 
 #include <plant/disturbance.h>
 #include <plant/environment.h>
+#include <plant/light_environment.h>
 
 #include <plant/control.h>
+#include <plant/strategy.h>
 #include <plant/ff16_strategy.h>
 #include <plant/parameters.h>
 #include <plant/cohort_schedule.h>

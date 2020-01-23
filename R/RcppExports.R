@@ -413,56 +413,56 @@ Interpolator__max__get <- function(obj_) {
     .Call('_plant_Interpolator__max__get', PACKAGE = 'plant', obj_)
 }
 
-Environment__ctor <- function(disturbance_mean_interval, seed_rain, control) {
-    .Call('_plant_Environment__ctor', PACKAGE = 'plant', disturbance_mean_interval, seed_rain, control)
+LightEnvironment__ctor <- function(disturbance_mean_interval, seed_rain, control) {
+    .Call('_plant_LightEnvironment__ctor', PACKAGE = 'plant', disturbance_mean_interval, seed_rain, control)
 }
 
-Environment__canopy_openness <- function(obj_, height) {
-    .Call('_plant_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
+LightEnvironment__canopy_openness <- function(obj_, height) {
+    .Call('_plant_LightEnvironment__canopy_openness', PACKAGE = 'plant', obj_, height)
 }
 
-Environment__patch_survival_conditional <- function(obj_, time_at_birth) {
-    .Call('_plant_Environment__patch_survival_conditional', PACKAGE = 'plant', obj_, time_at_birth)
+LightEnvironment__patch_survival_conditional <- function(obj_, time_at_birth) {
+    .Call('_plant_LightEnvironment__patch_survival_conditional', PACKAGE = 'plant', obj_, time_at_birth)
 }
 
-Environment__clear <- function(obj_) {
-    invisible(.Call('_plant_Environment__clear', PACKAGE = 'plant', obj_))
+LightEnvironment__clear <- function(obj_) {
+    invisible(.Call('_plant_LightEnvironment__clear', PACKAGE = 'plant', obj_))
 }
 
-Environment__set_seed_rain_index <- function(obj_, x) {
-    invisible(.Call('_plant_Environment__set_seed_rain_index', PACKAGE = 'plant', obj_, x))
+LightEnvironment__set_seed_rain_index <- function(obj_, x) {
+    invisible(.Call('_plant_LightEnvironment__set_seed_rain_index', PACKAGE = 'plant', obj_, x))
 }
 
-Environment__patch_survival__get <- function(obj_) {
-    .Call('_plant_Environment__patch_survival__get', PACKAGE = 'plant', obj_)
+LightEnvironment__patch_survival__get <- function(obj_) {
+    .Call('_plant_LightEnvironment__patch_survival__get', PACKAGE = 'plant', obj_)
 }
 
-Environment__seed_rain_dt__get <- function(obj_) {
-    .Call('_plant_Environment__seed_rain_dt__get', PACKAGE = 'plant', obj_)
+LightEnvironment__seed_rain_dt__get <- function(obj_) {
+    .Call('_plant_LightEnvironment__seed_rain_dt__get', PACKAGE = 'plant', obj_)
 }
 
-Environment__disturbance_regime__get <- function(obj_) {
-    .Call('_plant_Environment__disturbance_regime__get', PACKAGE = 'plant', obj_)
+LightEnvironment__disturbance_regime__get <- function(obj_) {
+    .Call('_plant_LightEnvironment__disturbance_regime__get', PACKAGE = 'plant', obj_)
 }
 
-Environment__disturbance_regime__set <- function(obj_, value) {
-    invisible(.Call('_plant_Environment__disturbance_regime__set', PACKAGE = 'plant', obj_, value))
+LightEnvironment__disturbance_regime__set <- function(obj_, value) {
+    invisible(.Call('_plant_LightEnvironment__disturbance_regime__set', PACKAGE = 'plant', obj_, value))
 }
 
-Environment__time__get <- function(obj_) {
-    .Call('_plant_Environment__time__get', PACKAGE = 'plant', obj_)
+LightEnvironment__time__get <- function(obj_) {
+    .Call('_plant_LightEnvironment__time__get', PACKAGE = 'plant', obj_)
 }
 
-Environment__time__set <- function(obj_, value) {
-    invisible(.Call('_plant_Environment__time__set', PACKAGE = 'plant', obj_, value))
+LightEnvironment__time__set <- function(obj_, value) {
+    invisible(.Call('_plant_LightEnvironment__time__set', PACKAGE = 'plant', obj_, value))
 }
 
-Environment__light_environment__get <- function(obj_) {
-    .Call('_plant_Environment__light_environment__get', PACKAGE = 'plant', obj_)
+LightEnvironment__environment_interpolator__get <- function(obj_) {
+    .Call('_plant_LightEnvironment__environment_interpolator__get', PACKAGE = 'plant', obj_)
 }
 
-Environment__light_environment__set <- function(obj_, value) {
-    invisible(.Call('_plant_Environment__light_environment__set', PACKAGE = 'plant', obj_, value))
+LightEnvironment__environment_interpolator__set <- function(obj_, value) {
+    invisible(.Call('_plant_LightEnvironment__environment_interpolator__set', PACKAGE = 'plant', obj_, value))
 }
 
 Plant___FF16__Env__ctor <- function(s) {
@@ -801,8 +801,8 @@ Patch___FF16__Env__add_seed <- function(obj_, species_index) {
     invisible(.Call('_plant_Patch___FF16__Env__add_seed', PACKAGE = 'plant', obj_, species_index))
 }
 
-Patch___FF16__Env__compute_light_environment <- function(obj_) {
-    invisible(.Call('_plant_Patch___FF16__Env__compute_light_environment', PACKAGE = 'plant', obj_))
+Patch___FF16__Env__compute_environment <- function(obj_) {
+    invisible(.Call('_plant_Patch___FF16__Env__compute_environment', PACKAGE = 'plant', obj_))
 }
 
 Patch___FF16__Env__compute_rates <- function(obj_) {
@@ -821,8 +821,8 @@ Patch___FF16__Env__derivs <- function(obj_, y, time) {
     .Call('_plant_Patch___FF16__Env__derivs', PACKAGE = 'plant', obj_, y, time)
 }
 
-Patch___FF16__Env__set_state <- function(obj_, time, state, n, light_env) {
-    invisible(.Call('_plant_Patch___FF16__Env__set_state', PACKAGE = 'plant', obj_, time, state, n, light_env))
+Patch___FF16__Env__set_state <- function(obj_, time, state, n, env) {
+    invisible(.Call('_plant_Patch___FF16__Env__set_state', PACKAGE = 'plant', obj_, time, state, n, env))
 }
 
 Patch___FF16__Env__time__get <- function(obj_) {
@@ -1049,8 +1049,8 @@ StochasticPatch___FF16__Env__add_seedling <- function(obj_, species_index) {
     invisible(.Call('_plant_StochasticPatch___FF16__Env__add_seedling', PACKAGE = 'plant', obj_, species_index))
 }
 
-StochasticPatch___FF16__Env__compute_light_environment <- function(obj_) {
-    invisible(.Call('_plant_StochasticPatch___FF16__Env__compute_light_environment', PACKAGE = 'plant', obj_))
+StochasticPatch___FF16__Env__compute_environment <- function(obj_) {
+    invisible(.Call('_plant_StochasticPatch___FF16__Env__compute_environment', PACKAGE = 'plant', obj_))
 }
 
 StochasticPatch___FF16__Env__compute_rates <- function(obj_) {
