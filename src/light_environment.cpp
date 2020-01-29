@@ -1,5 +1,5 @@
-#include <plant/ligh_environment.h>
-#include <plant/parameters.h>
+#include <plant/light_environment.h>
+/* #include <plant/parameters.h> */
 
 namespace plant {
 
