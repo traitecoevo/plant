@@ -6,6 +6,7 @@
 #include <plant/disturbance.h>
 #include <plant/interpolator.h>
 #include <plant/adaptive_interpolator.h>
+#include <plant/environment.h>
 #include <plant/util.h>
 
 using namespace Rcpp;
@@ -76,10 +77,10 @@ make_interpolator(const Control& control) {
                               control.environment_light_max_depth);
 }
 
-template <typename T>
-LightEnvironment make_environment(T p) {
-  return LightEnvironment(p.disturbance_mean_interval, p.seed_rain, p.control);
-}
+/* template <typename T> */
+/* LightEnvironment make_environment(T p) { */
+  /* return LightEnvironment(p.disturbance_mean_interval, p.seed_rain, p.control); */
+/* } */
 
 }
 

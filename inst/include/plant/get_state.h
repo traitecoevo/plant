@@ -45,9 +45,9 @@ Rcpp::List get_state(const Patch<T,E>& patch) {
   return ret;
 }
 
-inline Rcpp::NumericMatrix get_state(const LightEnvironment environment) {
+inline Rcpp::NumericMatrix get_state(const Environment environment) {
   using namespace Rcpp;
-  NumericMatrix xy = environment.environment_interpolator.r_get_xy();
+  NumericMatrix xy = environment.light_environment.r_get_xy();
   Rcpp::CharacterVector colnames =
     Rcpp::CharacterVector::create("height", "canopy_openness");
   xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
@@ -60,7 +60,7 @@ Rcpp::List get_state(const SCM<T,E>& scm) {
   const Patch<T,E>& patch = scm.r_patch();
   return List::create(_["time"] = scm.time(),
                       _["species"] = get_state(patch),
-                      _["env"] = get_state(patch.r_environment()));
+                      _["light_env"] = get_state(patch.r_environment()));
 }
 
 // stochastic model:
@@ -104,7 +104,7 @@ Rcpp::List get_state(const StochasticPatchRunner<T,E>& obj) {
   const StochasticPatch<T,E>& patch = obj.r_patch();
   return List::create(_["time"] = obj.time(),
                       _["species"] = get_state(patch),
-                      _["env"] = get_state(patch.r_environment()));
+                      _["light_env"] = get_state(patch.r_environment()));
 };
 
 }
