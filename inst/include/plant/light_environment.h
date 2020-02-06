@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_ENVIRONMENT_H_
-#define PLANT_PLANT_ENVIRONMENT_H_
+#ifndef PLANT_PLANT_LIGHT_ENVIRONMENT_H_
+#define PLANT_PLANT_LIGHT_ENVIRONMENT_H_
 
 #include <plant/control.h>
 #include <plant/disturbance.h>
@@ -13,7 +13,7 @@ using namespace Rcpp;
 
 namespace plant {
 
-class LightEnvironment {
+class LightEnvironment : public Environment {
 public:
   LightEnvironment(double disturbance_mean_interval,
               std::vector<double> seed_rain_,
@@ -67,20 +67,6 @@ void LightEnvironment::rescale_environment(Function f_canopy_openness,
   }
   environment_interpolator.initialise();
 }
-
-inline interpolator::AdaptiveInterpolator
-make_interpolator(const Control& control) {
-  using namespace interpolator;
-  return AdaptiveInterpolator(control.environment_light_tol,
-                              control.environment_light_tol,
-                              control.environment_light_nbase,
-                              control.environment_light_max_depth);
-}
-
-/* template <typename T> */
-/* LightEnvironment make_environment(T p) { */
-  /* return LightEnvironment(p.disturbance_mean_interval, p.seed_rain, p.control); */
-/* } */
 
 }
 

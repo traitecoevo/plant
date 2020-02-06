@@ -45,17 +45,17 @@ public:
   size_t size_plants() const {return plants.size();}
   void clear();
   void add_seed();
-  void add_seed(const Environment& environment);
+  void add_seed(const E& environment);
 
   double height_max() const;
   double compute_competition(double height) const;
-  void compute_rates(const Environment& environment);
+  void compute_rates(const E& environment);
   std::vector<double> seeds() const;
 
   // This is totally new, relative to the deterministic model; this
   // will destructively modify the species by removing individuals.
   size_t deaths();
-  double establishment_probability(const Environment& environment) {
+  double establishment_probability(const E& environment) {
     return seed.establishment_probability(environment);
   }
 
@@ -115,7 +115,7 @@ void StochasticSpecies<T,E>::add_seed() {
 }
 
 template <typename T, typename E>
-void StochasticSpecies<T,E>::add_seed(const Environment& environment) {
+void StochasticSpecies<T,E>::add_seed(const E& environment) {
   add_seed();
   plants.back().compute_rates(environment);
 }
@@ -172,7 +172,7 @@ double StochasticSpecies<T,E>::compute_competition(double height) const {
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
 template <typename T, typename E>
-void StochasticSpecies<T,E>::compute_rates(const Environment& environment) {
+void StochasticSpecies<T,E>::compute_rates(const E& environment) {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       plants[i].compute_rates(environment);

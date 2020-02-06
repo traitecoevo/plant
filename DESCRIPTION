@@ -36,4 +36,4 @@ Suggests:
 VignetteBuilder: knitr
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.2

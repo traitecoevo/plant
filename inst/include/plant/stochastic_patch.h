@@ -4,7 +4,7 @@
 
 namespace plant {
 
-// NOTE: compute_light_environment() here might fail (especially for
+// NOTE: compute_environment() here might fail (especially for
 // rare seed arrivals) because the adaptive refinement can't deal with
 // the sharp corners that are implied.  The simplest thing to do is to
 // tone down the tolerance (fast_control() seems good enough) but that
@@ -54,7 +54,7 @@ public:
   // * R interface
   // Data accessors:
   parameters_type r_parameters() const {return parameters;}
-  Environment r_environment() const {return environment;}
+  E r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
   void r_set_state(double time,
                    const std::vector<double>& state,
@@ -72,16 +72,16 @@ public:
     at(species_index.check_bounds(size()));
   }
   // These are only here because they wrap private functions.
-  void r_compute_light_environment() {compute_light_environment();}
+  void r_compute_environment() {compute_environment();}
   void r_compute_rates() {compute_rates();}
 private:
-  void compute_light_environment();
-  void rescale_light_environment();
+  void compute_environment();
+  void rescale_environment();
   void compute_rates();
 
   parameters_type parameters;
   std::vector<bool> is_resident;
-  Environment environment;
+  E environment;
   std::vector<species_type> species;
 };
 
@@ -89,7 +89,7 @@ template <typename T, typename E>
 StochasticPatch<T,E>::StochasticPatch(parameters_type p)
   : parameters(p),
     is_resident(p.is_resident),
-    environment(make_environment(parameters)) {
+    E(p.disturbance_mean_interval, p.seed_rain, p.control) {
   parameters.validate();
   for (auto s : parameters.strategies) {
     species.push_back(species_type(s));
@@ -103,7 +103,7 @@ void StochasticPatch<T,E>::reset() {
     s.clear();
   }
   environment.clear();
-  compute_light_environment();
+  compute_environment();
   compute_rates();
 }
 
@@ -137,20 +137,20 @@ double StochasticPatch<T,E>::canopy_openness(double height) const {
 
 
 template <typename T, typename E>
-void StochasticPatch<T,E>::compute_light_environment() {
+void StochasticPatch<T,E>::compute_environment() {
   if (parameters.n_residents() > 0 & height_max() > 0.0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.compute_light_environment(f, height_max());
+    environment.compute_environment(f, height_max());
   } else {
-    environment.clear_light_environment();
+    environment.clear_environment();
   }
 }
 
 template <typename T, typename E>
-void StochasticPatch<T,E>::rescale_light_environment() {
+void StochasticPatch<T,E>::rescale_environment() {
   if (parameters.n_residents() > 0 & height_max() > 0.0) {
     auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.rescale_light_environment(f, height_max());
+    environment.rescale_environment(f, height_max());
   }
 }
 
@@ -173,7 +173,7 @@ void StochasticPatch<T,E>::add_seedling(size_t species_index) {
   species[species_index].add_seed(environment);
   // Then we update the light environment.
   if (parameters.is_resident[species_index]) {
-    compute_light_environment();
+    compute_environment();
   }
 }
 
@@ -199,7 +199,7 @@ std::vector<size_t> StochasticPatch<T,E>::deaths() {
     recompute = recompute || n_deaths > 0;
   }
   if (recompute) {
-    compute_light_environment();
+    compute_environment();
     compute_rates();
   }
   return ret;
@@ -241,10 +241,10 @@ ode::const_iterator StochasticPatch<T,E>::set_ode_state(ode::const_iterator it,
                                                       double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
-  if (parameters.control.environment_light_rescale_usually) {
-    rescale_light_environment();
+  if (parameters.control.environment_rescale_usually) {
+    rescale_environment();
   } else {
-    compute_light_environment();
+    compute_environment();
   }
   compute_rates();
   return it;

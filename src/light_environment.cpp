@@ -1,4 +1,5 @@
 #include <plant/light_environment.h>
+#include <plant/environment.h>
 /* #include <plant/parameters.h> */
 
 namespace plant {
@@ -10,7 +11,10 @@ LightEnvironment::LightEnvironment(double disturbance_mean_interval,
     disturbance_regime(disturbance_mean_interval),
     seed_rain(seed_rain_),
     seed_rain_index(0),
-    environment_generator(make_interpolator(control)) {
+    environment_generator(interpolator::AdaptiveInterpolator(control.environment_light_tol,
+                              control.environment_light_tol,
+                              control.environment_light_nbase,
+                              control.environment_light_max_depth)) {
 }
 
 double LightEnvironment::canopy_openness(double height) const {

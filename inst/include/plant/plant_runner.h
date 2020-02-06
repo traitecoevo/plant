@@ -11,9 +11,7 @@ namespace tools {
 template <typename T, typename E>
 class PlantRunner {
 public:
-  typedef T strategy_type;
-  typedef E environment_type;
-  PlantRunner(Plant<T,E> plant_, environment_type environment_)
+  PlantRunner(Plant<T,E> plant_, E environment_)
     : plant(plant_), environment(environment_) {
     plant.compute_rates(environment);
   }
@@ -35,7 +33,7 @@ public:
   }
   
   Plant<T,E> plant;
-  environment_type environment;
+  E environment;
 };
 
 }
