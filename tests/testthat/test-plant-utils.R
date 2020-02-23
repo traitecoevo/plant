@@ -72,6 +72,6 @@ test_that("plant_list", {
     expect_equal(length(obj), 1)
     expect_is(obj, "list")
     expect_is(obj[[1]], "Plant")
-    expect_is(obj[[1]], sprintf("Plant<%s,Env>", x))
+    expect_is(obj[[1]], sprintf("Plant<%s,LightEnv>", x))
   }
 })

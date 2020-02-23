@@ -19,7 +19,7 @@ public:
   typedef T                      strategy_type;
   typedef Plant<T,E>             plant_type;
   typedef StochasticSpecies<T,E> species_type;
-  typedef Parameters<T>          parameters_type;
+  typedef Parameters<T,E>        parameters_type;
   StochasticPatch(parameters_type p);
   void reset();
 
@@ -89,7 +89,7 @@ template <typename T, typename E>
 StochasticPatch<T,E>::StochasticPatch(parameters_type p)
   : parameters(p),
     is_resident(p.is_resident),
-    E(p.disturbance_mean_interval, p.seed_rain, p.control) {
+    environment(p.environment) {
   parameters.validate();
   for (auto s : parameters.strategies) {
     species.push_back(species_type(s));

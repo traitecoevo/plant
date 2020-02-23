@@ -9,7 +9,7 @@ test_that("Defaults", {
     environment_light_max_depth= 16, # size_t
     environment_light_nbase = 17, # size_t
     environment_light_tol = 1e-6,
-    environment_light_rescale_usually = FALSE,
+    environment_rescale_usually = FALSE,
     ode_a_dydt = 0.0,
     ode_a_y = 1.0,
     ode_step_size_initial = 1e-6,

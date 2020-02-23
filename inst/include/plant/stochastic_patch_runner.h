@@ -26,7 +26,7 @@ public:
   typedef Plant<T,E>             plant_type;
   typedef StochasticSpecies<T,E> species_type;
   typedef StochasticPatch<T,E>   patch_type;
-  typedef Parameters<T>          parameters_type;
+  typedef Parameters<T,E>        parameters_type;
 
   StochasticPatchRunner(parameters_type p);
 

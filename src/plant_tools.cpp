@@ -10,7 +10,7 @@ LightEnvironment fixed_environment(double canopy_openness,
   std::vector<double> y = {canopy_openness, canopy_openness, canopy_openness};
   interpolator::Interpolator env;
   env.init(x, y);
-  Parameters<FF16_Strategy> p;
+  Parameters<FF16_Strategy,LightEnvironment> p;
   LightEnvironment ret(LightEnvironment(p.disturbance_mean_interval, p.seed_rain, p.control));
   ret.environment_interpolator = env;
   return ret;

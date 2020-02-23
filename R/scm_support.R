@@ -6,7 +6,7 @@
 ##' @param base An optional \code{Control} object.  If omitted, the
 ##' defaults are used.
 fast_control <- function(base=Control()) {
-  base$environment_light_rescale_usually <- TRUE
+  base$environment_rescale_usually <- TRUE
   base$environment_light_tol <- 1e-4
 
   base$plant_assimilation_adaptive <- FALSE
@@ -54,8 +54,8 @@ equilibrium_quiet <- function(base=Control()) {
 ##' @author Rich FitzJohn
 ##' @export
 run_scm <- function(p, use_ode_times=FALSE) {
-  type <- extract_RcppR6_template_type(p, "Parameters")
-  scm <- SCM(type, "Env")(p)
+  types <- extract_RcppR6_template_types(p, "Parameters")
+  scm <- do.call('SCM', types)(p)
   if (use_ode_times) {
     scm$use_ode_times <- TRUE
   }
@@ -70,11 +70,11 @@ run_scm <- function(p, use_ode_times=FALSE) {
 ##' @author Rich FitzJohn
 ##' @param type Name of model (defaults to FF16 but any strategy name is valid).
 ##' @export
-scm_base_parameters <- function(type="FF16") {
+scm_base_parameters <- function(type="FF16", env="LightEnv") {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
-  Parameters(type)(patch_area=1.0, control=ctrl, hyperpar=hyperpar(type))
+  Parameters(type, env)(patch_area=1.0, control=ctrl, hyperpar=hyperpar(type))
 }
 
 ##' Run the SCM model, given a Parameters and CohortSchedule
@@ -106,10 +106,9 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
     ret
   }
   collect <- if (include_competition_effect) collect_competition_effect else collect_default
-  type <- extract_RcppR6_template_type(p, "Parameters")
-
+  types <- extract_RcppR6_template_types(p, "Parameters")
   make_environment(p)
-  scm <- SCM(type, "Env")(p)
+  scm <- do.call('SCM', types)(p)
   res <- list(collect(scm))
 
   while (!scm$complete) {
@@ -155,9 +154,9 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
 ##' @param p Parameters object
 ##' @export
 make_patch <- function(state, p) {
-  type <- extract_RcppR6_template_type(p, "Parameters")
+  types <- extract_RcppR6_template_types(p, "Parameters")
   n <- viapply(state$species, ncol)
-  patch <- Patch(type, "Env")(p)
+  patch <- do.call('Patch', types)(p)
   patch$set_state(state$time, unlist(state$species), n, state$light_env)
   patch
 }
@@ -182,8 +181,8 @@ scm_patch <- function(i, x) {
 }
 
 run_scm_error <- function(p) {
-  type <- extract_RcppR6_template_type(p, "Parameters")
-  scm <- SCM(type, "Env")(p)
+  types <- extract_RcppR6_template_types(p, "Parameters")
+  scm <- do.call('SCM', types)(p)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)

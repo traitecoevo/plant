@@ -9,11 +9,11 @@ for (x in names(strategy_types)) {
   test_that("setup, growth rates", {
 
     s <- strategy_types[[x]]()
-    plant <- Plant(x,"Env")(s)
-    cohort <- Cohort(x,"Env")(s)
+    plant <- Plant(x,"LightEnv")(s)
+    cohort <- Cohort(x,"LightEnv")(s)
 
-    expect_is(cohort, sprintf("Cohort<%s,Env>", x))
-    expect_is(cohort$plant, sprintf("Plant<%s,Env>", x))
+    expect_is(cohort, sprintf("Cohort<%s,LightEnv>", x))
+    expect_is(cohort$plant, sprintf("Plant<%s,LightEnv>", x))
 
     env <- test_environment(2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
@@ -31,7 +31,7 @@ for (x in names(strategy_types)) {
     }
 
     plant$compute_rates(env)
-    p2 <- Plant(x,"Env")(s)
+    p2 <- Plant(x,"LightEnv")(s)
 
     ## First, a quick sanity check that our little function behaves as
     ## expected:
@@ -60,8 +60,8 @@ for (x in names(strategy_types)) {
     expect_equal(dgdh, dgdh_forward)
 
     ## Again with Richardson extrapolation:
-        cohort <- Cohort(x,"Env")(s)
-    cohort2 <- Cohort(x,"Env")(strategy_types[[x]](control=Control(cohort_gradient_richardson=TRUE)))
+        cohort <- Cohort(x,"LightEnv")(s)
+    cohort2 <- Cohort(x,"LightEnv")(strategy_types[[x]](control=Control(cohort_gradient_richardson=TRUE)))
     expect_true(cohort2$plant$strategy$control$cohort_gradient_richardson)
 
     ## NOTE: Not sure why this is not identical: it's either a bug
@@ -99,8 +99,8 @@ for (x in names(strategy_types)) {
   ##   * Check that the rates computed are actually correct
   test_that("ODE interface", {
     s <- strategy_types[[x]]()
-    plant <- Plant(x,"Env")(s)
-    cohort <- Cohort(x,"Env")(s)
+    plant <- Plant(x,"LightEnv")(s)
+    cohort <- Cohort(x,"LightEnv")(s)
 
     env <- test_environment(2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
@@ -150,8 +150,8 @@ for (x in names(strategy_types)) {
 
   test_that("leaf area calculations", {
     s <- strategy_types[[x]]()
-    plant <- Plant(x,"Env")(s) 
-    cohort <- Cohort(x,"Env")(s)
+    plant <- Plant(x,"LightEnv")(s) 
+    cohort <- Cohort(x,"LightEnv")(s)
 
     env <- test_environment(10,
                             light_env=function(x) rep(1, length(x)),

@@ -74,11 +74,6 @@ make_interpolator(const Control& control) {
                               control.environment_light_max_depth);
 }
 
-template <typename T>
-Environment make_environment(T p) {
-  return Environment(p.disturbance_mean_interval, p.seed_rain, p.control);
-}
-
 }
 
 #endif

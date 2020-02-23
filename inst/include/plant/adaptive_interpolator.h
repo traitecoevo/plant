@@ -21,6 +21,15 @@ public:
     dxmin(NA_REAL),
     interpolator() {
   }
+  AdaptiveInterpolator()
+  : atol(0.0),
+    rtol(0.0),
+    nbase(0.0),
+    max_depth(0.0),
+    dx(NA_REAL),
+    dxmin(NA_REAL),
+    interpolator() {
+  }
 
   template <typename Function>
   Interpolator construct(Function target, double a, double b);

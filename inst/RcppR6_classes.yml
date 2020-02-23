@@ -288,7 +288,7 @@ Plant:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "Env": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [s: T]
@@ -343,7 +343,7 @@ PlantRunner:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "Env": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     name_cpp: "plant::tools::PlantRunner<T,E>"
@@ -432,11 +432,11 @@ Internals:
 
 
 Parameters:
-  name_cpp: "plant::Parameters<T>"
+  name_cpp: "plant::Parameters<T,E>"
   templates:
-    parameters: T
+    parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   # TODO: This is broken:
   # roxygen: |
@@ -468,7 +468,7 @@ Cohort:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "Env": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     name_cpp: "plant::make_cohort<T,E>"
@@ -504,7 +504,7 @@ Species:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "Env": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [strategy: T]
@@ -546,16 +546,16 @@ Patch:
   templates:
     parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "Env": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
-    args: [parameters: "plant::Parameters<T>"]
+    args: [parameters: "plant::Parameters<T,E>"]
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
-    parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
-    environment: {type: "plant::LightEnvironment", access: member, name_cpp: r_environment}
+    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
+    environment: {type: E, access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -601,10 +601,10 @@ SCM:
   templates:
     parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "Env": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
-    args: [parameters: "plant::Parameters<T>"]
+    args: [parameters: "plant::Parameters<T,E>"]
   methods:
     run:
       return_type: void
@@ -635,7 +635,7 @@ SCM:
     complete: {type: bool, access: member}
     time: {type: double, access: member}
     seed_rains: {type: "std::vector<double>", access: member}
-    parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     patch:
       type: "plant::Patch<T,E>"
       access: member
@@ -668,7 +668,7 @@ StochasticSpecies:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "Env": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [strategy: "T"]
@@ -711,15 +711,15 @@ StochasticPatch:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "Env": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
-    args: [parameters: "plant::Parameters<T>"]
+    args: [parameters: "plant::Parameters<T,E>"]
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
-    parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: "plant::LightEnvironment", access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
@@ -772,10 +772,10 @@ StochasticPatchRunner:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "Env": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
-    args: [parameters: "plant::Parameters<T>"]
+    args: [parameters: "plant::Parameters<T,E>"]
   methods:
     run:
       return_type: void
@@ -791,7 +791,7 @@ StochasticPatchRunner:
   active:
     complete: {type: bool, access: member}
     time: {type: double, access: member}
-    parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     patch:
       type: "plant::StochasticPatch<T,E>"
       access: member

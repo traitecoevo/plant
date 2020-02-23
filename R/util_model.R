@@ -49,8 +49,8 @@ plant_list <- function(x, parameters) {
   if (!inherits(parameters, "Parameters")) {
     stop("parameters must be a 'Parameters' object")
   }
-  type <- extract_RcppR6_template_type(parameters, "Parameters")
-  lapply(strategy_list(x, parameters), Plant(type, "Env"))
+  types <- extract_RcppR6_template_types(parameters, "Parameters")
+  lapply(strategy_list(x, parameters), do.call('Plant', types))
 }
 
 ##' Helper function to create trait matrices suitable for

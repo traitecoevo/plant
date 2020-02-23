@@ -7,7 +7,7 @@
 
 namespace plant {
 namespace tools {
-Environment fixed_environment(double canopy_openness,
+LightEnvironment fixed_environment(double canopy_openness,
                               double height_max=150.0);
 template <typename T, typename E>
 double lcp_whole_plant(Plant<T,E> p) {

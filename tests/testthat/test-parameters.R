@@ -94,7 +94,7 @@ test_that("Parameters overwrites Strategy control", {
     p$seed_rain <- 1
     p$is_resident <- TRUE
     ## Pass though to force validation:
-    tmp <- Patch(x,"Env")(p)$parameters
+    tmp <- Patch(x,"LightEnv")(p)$parameters
     expect_identical(tmp$control, ctrl_p)
     expect_identical(tmp$strategies[[1]]$control, ctrl_p)
 
@@ -123,7 +123,7 @@ test_that("Store hyperparams", {
   for (x in names(strategy_types)) {
     p <- Parameters(x)(hyperpar=hyperpar(x))
     expect_identical(p$hyperpar, hyperpar(x))
-    tmp <- Patch(x,"Env")(p)$parameters
+    tmp <- Patch(x,"LightEnv")(p)$parameters
     expect_identical(tmp$hyperpar, hyperpar(x))
   }
 })

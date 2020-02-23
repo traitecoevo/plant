@@ -1,21 +1,6 @@
 #include <plant/light_environment.h>
-#include <plant/environment.h>
-/* #include <plant/parameters.h> */
 
 namespace plant {
-
-LightEnvironment::LightEnvironment(double disturbance_mean_interval,
-                         std::vector<double> seed_rain_,
-                         Control control)
-  : time(0.0),
-    disturbance_regime(disturbance_mean_interval),
-    seed_rain(seed_rain_),
-    seed_rain_index(0),
-    environment_generator(interpolator::AdaptiveInterpolator(control.environment_light_tol,
-                              control.environment_light_tol,
-                              control.environment_light_nbase,
-                              control.environment_light_max_depth)) {
-}
 
 double LightEnvironment::canopy_openness(double height) const {
   const bool within_canopy = height <= environment_interpolator.max();

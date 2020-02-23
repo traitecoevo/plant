@@ -3,23 +3,24 @@ strategy_types <- get_list_of_strategy_types()
 
 for (x in names(strategy_types)) {
 
-  context(sprintf("Environment-%s",x))
+  context(sprintf("LightEnvironment-%s",x))
 
   test_that("Empty environment", {
-    e <- make_environment(Parameters(x)())
+    p <- Parameters(x, "LightEnv")
+    e <- make_environment(p)
 
     ## At this point, we should have full canopy openness, partly because
     ## the spline is just not constructed.
     expect_equal(e$canopy_openness(0), 1.0)
     expect_equal(e$canopy_openness(100), 1.0)
 
-    spline <- e$light_environment
+    spline <- e$environment_interpolator
     expect_equal(spline$size, 0)
     expect_equal(spline$x, numeric(0))
   })
 
   test_that("Manually set environment", {
-    e <- make_environment(Parameters(x)())
+    e <- make_environment(Parameters(x, "LightEnv")())
     ## Now, set the light environment.
     hh <- seq(0, 10, length.out=101)
     light_env <- function(x) {
@@ -30,16 +31,16 @@ for (x in names(strategy_types)) {
     env$init(hh, ee)
 
     ## And set it
-    e$light_environment <- env
+    e$environment_interpolator <- env
 
-    expect_identical(e$light_environment$xy, env$xy)
+    expect_identical(e$environment_interpolator$xy, env$xy)
 
     hmid <- (hh[-1] + hh[-length(hh)])/2
-    expect_identical(sapply(hmid, e$light_environment$eval), sapply(hmid, env$eval))
+    expect_identical(sapply(hmid, e$environment_interpolator$eval), sapply(hmid, env$eval))
   })
 
   test_that("Disturbance related parameters", {
-    e <- make_environment(Parameters(x)())
+    e <- make_environment(Parameters(x, "LightEnv")())
     expect_identical(e$time, 0.0)
     expect_identical(e$patch_survival_conditional(e$time), 1.0)
 
@@ -52,7 +53,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Seed rain related parameters", {
-    e <- make_environment(Parameters(x)())
+    e <- make_environment(Parameters(x, "LightEnv")())
     expect_error(e$seed_rain_dt, "Cannot get seed rain for empty environment")
 
     x <- c(.1, .2)

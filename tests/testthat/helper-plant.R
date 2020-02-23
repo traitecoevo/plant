@@ -7,7 +7,7 @@ get_list_of_strategy_types <- function() {
 
 get_list_of_environment_types <- function() {
   list(
-    Environment=Environment)
+    LightEnv=LightEnvironment)
 }
 
 # ! Important the whitespace in the following funciton is used by the strategy scaffolder
@@ -30,8 +30,8 @@ test_environment <- function(height, n=101, light_env=NULL,
     }
   }
   ee <- light_env(hh)
-  env <- Interpolator()
-  env$init(hh, ee)
+  interpolator <- Interpolator()
+  interpolator$init(hh, ee)
 
   parameters <- FF16_Parameters()
   parameters$strategies <- rep(list(FF16_Strategy()), n_strategies)
@@ -39,7 +39,7 @@ test_environment <- function(height, n=101, light_env=NULL,
   parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- make_environment(parameters)
-  ret$light_environment <- env
+  ret$environment_interpolator <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }

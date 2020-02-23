@@ -20,7 +20,7 @@ public:
   typedef Cohort<T,E>   cohort_type;
   typedef Species<T,E>  species_type;
   typedef Patch<T,E>    patch_type;
-  typedef Parameters<T> parameters_type;
+  typedef Parameters<T,E> parameters_type;
 
 
   SCM(parameters_type p);

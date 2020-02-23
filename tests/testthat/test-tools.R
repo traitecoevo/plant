@@ -3,8 +3,8 @@ strategy_types <- get_list_of_strategy_types()
 
 test_that("fixed_environment", {
   env <- fixed_environment(0.5)
-  expect_is(env, "Environment")
-    expect_equal(env$light_environment$xy, cbind(c(0, 75, 150), 0.5))
+  expect_is(env, "LightEnvironment")
+    expect_equal(env$environment_interpolator$xy, cbind(c(0, 75, 150), 0.5))
   expect_equal(env$canopy_openness(40), 0.5)
 })
 
@@ -26,7 +26,7 @@ test_that("lcp_whole_plant", {
       }
     }
 
-    p <- Plant(x, "Env")(strategy_types[[x]]())
+    p <- Plant(x, "LightEnv")(strategy_types[[x]]())
     skip("Comparison no longer evaluate the nesting is too deep")
     expect_equal(lcp_whole_plant(p), lcp_whole_plant_R(p), tolerance=1e-5)
   }

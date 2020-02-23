@@ -8,9 +8,9 @@ for (x in names(strategy_types)) {
 
   test_that("Reference comparison", {
     s <- strategy_types[[x]]()
-    pl <- Plant(x,"Env")(s)
+    pl <- Plant(x,"LightEnv")(s)
 
-    expect_is(pl, sprintf("Plant<%s,Env>",x))
+    expect_is(pl, sprintf("Plant<%s,LightEnv>",x))
     # expect_is(pp, sprintf("PlantPlus<%s>",x))
     # expect_identical(pp$strategy, s)
     expect_identical(pl$strategy, s)
@@ -88,7 +88,7 @@ for (x in names(strategy_types)) {
   test_that("stochastic support", {
 
     s <- strategy_types[[x]]()
-    p <- Plant(x,"Env")(s)
+    p <- Plant(x,"LightEnv")(s)
 
     expect_equal(p$state("mortality"), 0.0)
     expect_equal(p$mortality_probability, 0.0)
