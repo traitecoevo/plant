@@ -13,7 +13,7 @@ for (x in names(strategy_types)) {
     plant <- Plant(x, "LightEnv")(s)
     cohort <- Cohort(x, "LightEnv")(s)
 
-    p <- Parameters(x)(strategies=list(s),
+    p <- Parameters(x, "LightEnv")(strategies=list(s),
                           seed_rain=pi/2,
                           is_resident=TRUE)
 

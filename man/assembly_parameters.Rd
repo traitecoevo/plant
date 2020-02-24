@@ -4,12 +4,9 @@
 \alias{assembly_parameters}
 \title{Helper function for creating parameter objects}
 \usage{
-assembly_parameters(
-  ...,
-  pars = NULL,
+assembly_parameters(..., pars = NULL,
   base_parameters_fn = scm_base_parameters,
-  make_hyperpar_fn = make_FF16_hyperpar
-)
+  make_hyperpar_fn = make_FF16_hyperpar)
 }
 \arguments{
 \item{...}{Named set of parameters}

@@ -75,12 +75,7 @@ FF16_StochasticPatchRunner <- function(p) {
 ##' @rdname LightEnvironment
 ##' @param p A Parameters object
 make_environment <- function(p) {
-  print(p$disturbance_mean_interval)
-  print(p$seed_rain)
-  print(p$environment)
-  e <- LightEnvironment(p$disturbance_mean_interval, p$seed_rain, p$control)
-  print(e)
-  e
+  LightEnvironment(p$disturbance_mean_interval, p$seed_rain, p$control)
 }
 
 ##' Hyperparameters for FF16 physiological model

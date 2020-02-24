@@ -16,13 +16,7 @@ namespace plant {
 class LightEnvironment : public Environment {
 public:
 
-  LightEnvironment()
-    : time(0.0),
-      disturbance_regime(1.0),
-      seed_rain({ 0.0, 0.0, 0.0 }),
-      seed_rain_index(3),
-      environment_generator(interpolator::AdaptiveInterpolator(0.0, 0.0, 0.0, 0.0)) {
-  };
+  LightEnvironment();
 
   LightEnvironment(double disturbance_mean_interval,
                            std::vector<double> seed_rain_,
