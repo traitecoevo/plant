@@ -1168,15 +1168,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // LightEnvironment__ctor
-plant::LightEnvironment LightEnvironment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, plant::Control control);
-RcppExport SEXP _plant_LightEnvironment__ctor(SEXP disturbance_mean_intervalSEXP, SEXP seed_rainSEXP, SEXP controlSEXP) {
+plant::LightEnvironment LightEnvironment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, double k_I, plant::Control control);
+RcppExport SEXP _plant_LightEnvironment__ctor(SEXP disturbance_mean_intervalSEXP, SEXP seed_rainSEXP, SEXP k_ISEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type disturbance_mean_interval(disturbance_mean_intervalSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type seed_rain(seed_rainSEXP);
+    Rcpp::traits::input_parameter< double >::type k_I(k_ISEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(LightEnvironment__ctor(disturbance_mean_interval, seed_rain, control));
+    rcpp_result_gen = Rcpp::wrap(LightEnvironment__ctor(disturbance_mean_interval, seed_rain, k_I, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1222,6 +1223,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::LightEnvironment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::util::index >::type x(xSEXP);
     LightEnvironment__set_seed_rain_index(obj_, x);
+    return R_NilValue;
+END_RCPP
+}
+// LightEnvironment__set_fixed_environment
+void LightEnvironment__set_fixed_environment(plant::RcppR6::RcppR6<plant::LightEnvironment> obj_, double canopy_openness, double height_max);
+RcppExport SEXP _plant_LightEnvironment__set_fixed_environment(SEXP obj_SEXP, SEXP canopy_opennessSEXP, SEXP height_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::LightEnvironment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type canopy_openness(canopy_opennessSEXP);
+    Rcpp::traits::input_parameter< double >::type height_max(height_maxSEXP);
+    LightEnvironment__set_fixed_environment(obj_, canopy_openness, height_max);
     return R_NilValue;
 END_RCPP
 }
@@ -1427,6 +1440,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy,plant::LightEnvironment> > >::type obj_(obj_SEXP);
     Plant___FF16__LightEnv__reset_mortality(obj_);
     return R_NilValue;
+END_RCPP
+}
+// Plant___FF16__LightEnv__lcp_whole_plant
+double Plant___FF16__LightEnv__lcp_whole_plant(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy,plant::LightEnvironment> > obj_);
+RcppExport SEXP _plant_Plant___FF16__LightEnv__lcp_whole_plant(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy,plant::LightEnvironment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Plant___FF16__LightEnv__lcp_whole_plant(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // Plant___FF16__LightEnv__strategy__get
@@ -2232,18 +2256,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___FF16__LightEnv__canopy_openness
-double Patch___FF16__LightEnv__canopy_openness(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::LightEnvironment> > obj_, double height);
-RcppExport SEXP _plant_Patch___FF16__LightEnv__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::LightEnvironment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type height(heightSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16__LightEnv__canopy_openness(obj_, height));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Patch___FF16__LightEnv__add_seed
 void Patch___FF16__LightEnv__add_seed(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::LightEnvironment> > obj_, plant::util::index species_index);
 RcppExport SEXP _plant_Patch___FF16__LightEnv__add_seed(SEXP obj_SEXP, SEXP species_indexSEXP) {
@@ -2910,18 +2922,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// StochasticPatch___FF16__LightEnv__canopy_openness
-double StochasticPatch___FF16__LightEnv__canopy_openness(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::LightEnvironment> > obj_, double height);
-RcppExport SEXP _plant_StochasticPatch___FF16__LightEnv__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::LightEnvironment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type height(heightSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16__LightEnv__canopy_openness(obj_, height));
-    return rcpp_result_gen;
-END_RCPP
-}
 // StochasticPatch___FF16__LightEnv__add_seed
 bool StochasticPatch___FF16__LightEnv__add_seed(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::LightEnvironment> > obj_, plant::util::index species_index);
 RcppExport SEXP _plant_StochasticPatch___FF16__LightEnv__add_seed(SEXP obj_SEXP, SEXP species_indexSEXP) {
@@ -3306,18 +3306,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// fixed_environment
-plant::LightEnvironment fixed_environment(double canopy_openness, double height_max);
-RcppExport SEXP _plant_fixed_environment(SEXP canopy_opennessSEXP, SEXP height_maxSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type canopy_openness(canopy_opennessSEXP);
-    Rcpp::traits::input_parameter< double >::type height_max(height_maxSEXP);
-    rcpp_result_gen = Rcpp::wrap(fixed_environment(canopy_openness, height_max));
-    return rcpp_result_gen;
-END_RCPP
-}
 // FF16_oderunner_plant_internals
 plant::Internals FF16_oderunner_plant_internals(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::LightEnvironment>>& obj);
 RcppExport SEXP _plant_FF16_oderunner_plant_internals(SEXP objSEXP) {
@@ -3326,17 +3314,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::LightEnvironment>>& >::type obj(objSEXP);
     rcpp_result_gen = Rcpp::wrap(FF16_oderunner_plant_internals(obj));
-    return rcpp_result_gen;
-END_RCPP
-}
-// FF16_lcp_whole_plant
-double FF16_lcp_whole_plant(plant::Plant<plant::FF16_Strategy,plant::LightEnvironment> p);
-RcppExport SEXP _plant_FF16_lcp_whole_plant(SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Plant<plant::FF16_Strategy,plant::LightEnvironment> >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_lcp_whole_plant(p));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3413,9 +3390,7 @@ BEGIN_RCPP
 END_RCPP
 }
 
-
-
-// cohort_schedule_max_time_default__Parameters___FF16
+//Hacks
 double cohort_schedule_max_time_default__Parameters___FF16__LightEnv(const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& p);
 RcppExport SEXP _plant_cohort_schedule_max_time_default__Parameters___FF16__LightEnv(SEXP pSEXP) {
 BEGIN_RCPP
@@ -3553,11 +3528,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Interpolator__size__get", (DL_FUNC) &_plant_Interpolator__size__get, 1},
     {"_plant_Interpolator__min__get", (DL_FUNC) &_plant_Interpolator__min__get, 1},
     {"_plant_Interpolator__max__get", (DL_FUNC) &_plant_Interpolator__max__get, 1},
-    {"_plant_LightEnvironment__ctor", (DL_FUNC) &_plant_LightEnvironment__ctor, 3},
+    {"_plant_LightEnvironment__ctor", (DL_FUNC) &_plant_LightEnvironment__ctor, 4},
     {"_plant_LightEnvironment__canopy_openness", (DL_FUNC) &_plant_LightEnvironment__canopy_openness, 2},
     {"_plant_LightEnvironment__patch_survival_conditional", (DL_FUNC) &_plant_LightEnvironment__patch_survival_conditional, 2},
     {"_plant_LightEnvironment__clear", (DL_FUNC) &_plant_LightEnvironment__clear, 1},
     {"_plant_LightEnvironment__set_seed_rain_index", (DL_FUNC) &_plant_LightEnvironment__set_seed_rain_index, 2},
+    {"_plant_LightEnvironment__set_fixed_environment", (DL_FUNC) &_plant_LightEnvironment__set_fixed_environment, 3},
     {"_plant_LightEnvironment__patch_survival__get", (DL_FUNC) &_plant_LightEnvironment__patch_survival__get, 1},
     {"_plant_LightEnvironment__seed_rain_dt__get", (DL_FUNC) &_plant_LightEnvironment__seed_rain_dt__get, 1},
     {"_plant_LightEnvironment__disturbance_regime__get", (DL_FUNC) &_plant_LightEnvironment__disturbance_regime__get, 1},
@@ -3576,6 +3552,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Plant___FF16__LightEnv__establishment_probability", (DL_FUNC) &_plant_Plant___FF16__LightEnv__establishment_probability, 2},
     {"_plant_Plant___FF16__LightEnv__net_mass_production_dt", (DL_FUNC) &_plant_Plant___FF16__LightEnv__net_mass_production_dt, 2},
     {"_plant_Plant___FF16__LightEnv__reset_mortality", (DL_FUNC) &_plant_Plant___FF16__LightEnv__reset_mortality, 1},
+    {"_plant_Plant___FF16__LightEnv__lcp_whole_plant", (DL_FUNC) &_plant_Plant___FF16__LightEnv__lcp_whole_plant, 1},
     {"_plant_Plant___FF16__LightEnv__strategy__get", (DL_FUNC) &_plant_Plant___FF16__LightEnv__strategy__get, 1},
     {"_plant_Plant___FF16__LightEnv__internals__get", (DL_FUNC) &_plant_Plant___FF16__LightEnv__internals__get, 1},
     {"_plant_Plant___FF16__LightEnv__aux_size__get", (DL_FUNC) &_plant_Plant___FF16__LightEnv__aux_size__get, 1},
@@ -3648,7 +3625,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16__LightEnv__ode_rates__get", (DL_FUNC) &_plant_Species___FF16__LightEnv__ode_rates__get, 1},
     {"_plant_Patch___FF16__LightEnv__ctor", (DL_FUNC) &_plant_Patch___FF16__LightEnv__ctor, 1},
     {"_plant_Patch___FF16__LightEnv__compute_competition", (DL_FUNC) &_plant_Patch___FF16__LightEnv__compute_competition, 2},
-    {"_plant_Patch___FF16__LightEnv__canopy_openness", (DL_FUNC) &_plant_Patch___FF16__LightEnv__canopy_openness, 2},
     {"_plant_Patch___FF16__LightEnv__add_seed", (DL_FUNC) &_plant_Patch___FF16__LightEnv__add_seed, 2},
     {"_plant_Patch___FF16__LightEnv__compute_environment", (DL_FUNC) &_plant_Patch___FF16__LightEnv__compute_environment, 1},
     {"_plant_Patch___FF16__LightEnv__compute_rates", (DL_FUNC) &_plant_Patch___FF16__LightEnv__compute_rates, 1},
@@ -3709,7 +3685,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticSpecies___FF16__LightEnv__ode_rates__get", (DL_FUNC) &_plant_StochasticSpecies___FF16__LightEnv__ode_rates__get, 1},
     {"_plant_StochasticPatch___FF16__LightEnv__ctor", (DL_FUNC) &_plant_StochasticPatch___FF16__LightEnv__ctor, 1},
     {"_plant_StochasticPatch___FF16__LightEnv__compute_competition", (DL_FUNC) &_plant_StochasticPatch___FF16__LightEnv__compute_competition, 2},
-    {"_plant_StochasticPatch___FF16__LightEnv__canopy_openness", (DL_FUNC) &_plant_StochasticPatch___FF16__LightEnv__canopy_openness, 2},
     {"_plant_StochasticPatch___FF16__LightEnv__add_seed", (DL_FUNC) &_plant_StochasticPatch___FF16__LightEnv__add_seed, 2},
     {"_plant_StochasticPatch___FF16__LightEnv__add_seedling", (DL_FUNC) &_plant_StochasticPatch___FF16__LightEnv__add_seedling, 2},
     {"_plant_StochasticPatch___FF16__LightEnv__compute_environment", (DL_FUNC) &_plant_StochasticPatch___FF16__LightEnv__compute_environment, 1},
@@ -3741,21 +3716,19 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___FF16__LightEnv__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__LightEnv__schedule__get, 1},
     {"_plant_StochasticPatchRunner___FF16__LightEnv__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__LightEnv__schedule__set, 2},
     {"_plant_StochasticPatchRunner___FF16__LightEnv__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__LightEnv__state__get, 1},
-    {"_plant_cohort_schedule_max_time_default__Parameters___FF16__LightEnv", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___FF16__LightEnv, 1},
-    {"_plant_cohort_schedule_default__Parameters___FF16__LightEnv", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16__LightEnv, 1},
-    {"_plant_make_cohort_schedule__Parameters___FF16__LightEnv", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16__LightEnv, 1},
     {"_plant_test_adaptive_interpolator", (DL_FUNC) &_plant_test_adaptive_interpolator, 3},
     {"_plant_test_gradient_fd1", (DL_FUNC) &_plant_test_gradient_fd1, 5},
     {"_plant_test_gradient_richardson", (DL_FUNC) &_plant_test_gradient_richardson, 4},
-    {"_plant_fixed_environment", (DL_FUNC) &_plant_fixed_environment, 2},
     {"_plant_FF16_oderunner_plant_internals", (DL_FUNC) &_plant_FF16_oderunner_plant_internals, 1},
-    {"_plant_FF16_lcp_whole_plant", (DL_FUNC) &_plant_FF16_lcp_whole_plant, 1},
     {"_plant_cohort_schedule_times_default", (DL_FUNC) &_plant_cohort_schedule_times_default, 1},
     {"_plant_test_uniroot", (DL_FUNC) &_plant_test_uniroot, 3},
     {"_plant_trapezium", (DL_FUNC) &_plant_trapezium, 2},
     {"_plant_trapezium_vector", (DL_FUNC) &_plant_trapezium_vector, 2},
     {"_plant_local_error_integration", (DL_FUNC) &_plant_local_error_integration, 3},
     {"_plant_matrix_to_list", (DL_FUNC) &_plant_matrix_to_list, 1},
+    {"_plant_cohort_schedule_default__Parameters___FF16__LightEnv",          (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16__LightEnv,          1},
+    {"_plant_cohort_schedule_max_time_default__Parameters___FF16__LightEnv", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___FF16__LightEnv, 1},
+    {"_plant_make_cohort_schedule__Parameters___FF16__LightEnv",             (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16__LightEnv,             1},
     {NULL, NULL, 0}
 };
 

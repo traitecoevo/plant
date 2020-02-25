@@ -105,3 +105,28 @@ for (x in names(strategy_types)) {
   })
 
 }
+
+
+test_that("lcp_whole_plant", {
+  for (x in names(strategy_types)) {
+    ## R implementation:
+    lcp_whole_plant_R <- function(plant, ...) {
+      target <- function(canopy_openness) {
+        env <- fixed_environment(canopy_openness)
+        plant$compute_rates(env)
+        plant$aux("net_mass_production_dt")
+      }
+
+      f1 <- target(1)
+      if (f1 < 0.0) {
+        NA_real_
+      } else {
+        uniroot(target, c(0, 1), f.upper=f1, ...)$root
+      }
+    }
+
+    p <- Plant(x, "LightEnv")(strategy_types[[x]]())
+    # skip("Comparison no longer evaluate the nesting is too deep")
+    expect_equal(p$lcp_whole_plant(), lcp_whole_plant_R(p), tolerance=1e-5)
+  }
+})

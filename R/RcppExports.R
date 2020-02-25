@@ -413,8 +413,8 @@ Interpolator__max__get <- function(obj_) {
     .Call('_plant_Interpolator__max__get', PACKAGE = 'plant', obj_)
 }
 
-LightEnvironment__ctor <- function(disturbance_mean_interval, seed_rain, control) {
-    .Call('_plant_LightEnvironment__ctor', PACKAGE = 'plant', disturbance_mean_interval, seed_rain, control)
+LightEnvironment__ctor <- function(disturbance_mean_interval, seed_rain, k_I, control) {
+    .Call('_plant_LightEnvironment__ctor', PACKAGE = 'plant', disturbance_mean_interval, seed_rain, k_I, control)
 }
 
 LightEnvironment__canopy_openness <- function(obj_, height) {
@@ -431,6 +431,10 @@ LightEnvironment__clear <- function(obj_) {
 
 LightEnvironment__set_seed_rain_index <- function(obj_, x) {
     invisible(.Call('_plant_LightEnvironment__set_seed_rain_index', PACKAGE = 'plant', obj_, x))
+}
+
+LightEnvironment__set_fixed_environment <- function(obj_, canopy_openness, height_max) {
+    invisible(.Call('_plant_LightEnvironment__set_fixed_environment', PACKAGE = 'plant', obj_, canopy_openness, height_max))
 }
 
 LightEnvironment__patch_survival__get <- function(obj_) {
@@ -503,6 +507,10 @@ Plant___FF16__LightEnv__net_mass_production_dt <- function(obj_, environment) {
 
 Plant___FF16__LightEnv__reset_mortality <- function(obj_) {
     invisible(.Call('_plant_Plant___FF16__LightEnv__reset_mortality', PACKAGE = 'plant', obj_))
+}
+
+Plant___FF16__LightEnv__lcp_whole_plant <- function(obj_) {
+    .Call('_plant_Plant___FF16__LightEnv__lcp_whole_plant', PACKAGE = 'plant', obj_)
 }
 
 Plant___FF16__LightEnv__strategy__get <- function(obj_) {
@@ -793,10 +801,6 @@ Patch___FF16__LightEnv__compute_competition <- function(obj_, height) {
     .Call('_plant_Patch___FF16__LightEnv__compute_competition', PACKAGE = 'plant', obj_, height)
 }
 
-Patch___FF16__LightEnv__canopy_openness <- function(obj_, height) {
-    .Call('_plant_Patch___FF16__LightEnv__canopy_openness', PACKAGE = 'plant', obj_, height)
-}
-
 Patch___FF16__LightEnv__add_seed <- function(obj_, species_index) {
     invisible(.Call('_plant_Patch___FF16__LightEnv__add_seed', PACKAGE = 'plant', obj_, species_index))
 }
@@ -1037,10 +1041,6 @@ StochasticPatch___FF16__LightEnv__compute_competition <- function(obj_, height) 
     .Call('_plant_StochasticPatch___FF16__LightEnv__compute_competition', PACKAGE = 'plant', obj_, height)
 }
 
-StochasticPatch___FF16__LightEnv__canopy_openness <- function(obj_, height) {
-    .Call('_plant_StochasticPatch___FF16__LightEnv__canopy_openness', PACKAGE = 'plant', obj_, height)
-}
-
 StochasticPatch___FF16__LightEnv__add_seed <- function(obj_, species_index) {
     .Call('_plant_StochasticPatch___FF16__LightEnv__add_seed', PACKAGE = 'plant', obj_, species_index)
 }
@@ -1177,25 +1177,8 @@ test_gradient_richardson <- function(f, x, d, r) {
     .Call('_plant_test_gradient_richardson', PACKAGE = 'plant', f, x, d, r)
 }
 
-#' Create a light environment where light levels are constant down
-#' the canopy.
-#'
-#' @title Create fixed light environment
-#' @param canopy_openness Index of canopy openness (on 0,1)
-#' @param height_max Maximum height.  The default (150) should be big
-#' enough for most uses.
-#' @export
-#' @author Rich FitzJohn
-fixed_environment <- function(canopy_openness, height_max = 150.0) {
-    .Call('_plant_fixed_environment', PACKAGE = 'plant', canopy_openness, height_max)
-}
-
 FF16_oderunner_plant_internals <- function(obj) {
     .Call('_plant_FF16_oderunner_plant_internals', PACKAGE = 'plant', obj)
-}
-
-FF16_lcp_whole_plant <- function(p) {
-    .Call('_plant_FF16_lcp_whole_plant', PACKAGE = 'plant', p)
 }
 
 #' Generate a suitable set of default cohort introduction times,

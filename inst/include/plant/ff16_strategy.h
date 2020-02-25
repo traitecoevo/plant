@@ -170,7 +170,7 @@ public:
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
-  double area_leaf_above(double z, double height, double area_leaf_) const;
+  double area_leaf_above(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
   double Q(double z, double height) const;
 
@@ -244,8 +244,8 @@ public:
     /* return area_leaf_state(vars); */
   /* } */
 
-  double compute_competition(double z, double height, double competition_effect) const {
-    return area_leaf_above(z, height, competition_effect);
+  double compute_competition(double z, double height) const {
+    return area_leaf_above(z, height);
   }
 
   

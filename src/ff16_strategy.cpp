@@ -481,8 +481,7 @@ double FF16_Strategy::establishment_probability(const LightEnvironment& environm
   }
 }
 
-double FF16_Strategy::area_leaf_above(double z, double height, double area_leaf_) const {
-  // TODO: MODIFY THIS SO WE PASS THE AREA_LEAF WE RECOMPUTER 
+double FF16_Strategy::area_leaf_above(double z, double height) const {
   return area_leaf(height) * Q(z, height);
 }
 

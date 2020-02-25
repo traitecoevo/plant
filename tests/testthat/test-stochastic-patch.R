@@ -13,7 +13,7 @@ test_that("empty", {
 
     expect_equal(patch$size, 1)
     expect_equal(patch$height_max, 0.0)
-    expect_equal(patch$canopy_openness(0), 1.0)
+    expect_equal(patch$compute_competition(0), 0.0)
     expect_equal(patch$ode_state, numeric(0))
     expect_equal(patch$ode_rates, numeric(0))
 

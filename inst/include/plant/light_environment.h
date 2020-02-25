@@ -19,23 +19,27 @@ public:
   LightEnvironment();
 
   LightEnvironment(double disturbance_mean_interval,
-                           std::vector<double> seed_rain_,
-                           Control control)
+                   std::vector<double> seed_rain_,
+                   double k_I_,
+                   Control control)
     : time(0.0),
       disturbance_regime(disturbance_mean_interval),
       seed_rain(seed_rain_),
       seed_rain_index(0),
+      k_I(k_I_),
       environment_generator(interpolator::AdaptiveInterpolator(control.environment_light_tol,
                                 control.environment_light_tol,
                                 control.environment_light_nbase,
                                 control.environment_light_max_depth)) {
   };
 
+  void set_fixed_environment(double competition_amount, double height_max);
+  void set_fixed_environment(double competition_amount);
   double canopy_openness(double height) const;
   template <typename Function>
-  void compute_environment(Function f_canopy_openness, double height_max);
+  void compute_environment(Function f_compute_competition, double height_max);
   template <typename Function>
-  void rescale_environment(Function f_canopy_openness, double height_max);
+  void rescale_environment(Function f_compute_competition, double height_max);
   double patch_survival() const;
   double patch_survival_conditional(double time_at_birth) const;
   void clear();
@@ -55,22 +59,28 @@ private:
   std::vector<double> seed_rain;
   size_t seed_rain_index;
   interpolator::AdaptiveInterpolator environment_generator;
+  double k_I;
 };
 
 template <typename Function>
-void LightEnvironment::compute_environment(Function f_canopy_openness,
+void LightEnvironment::compute_environment(Function f_compute_competition,
                                             double height_max) {
+  const double lower_bound = 0.0;
+  double upper_bound = height_max;
+
+  auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
   environment_interpolator =
-    environment_generator.construct(f_canopy_openness, 0, height_max);
+    environment_generator.construct(f_canopy_openness, lower_bound, upper_bound);
 }
 
 template <typename Function>
-void LightEnvironment::rescale_environment(Function f_canopy_openness,
+void LightEnvironment::rescale_environment(Function f_compute_competition,
                                            double height_max) {
   std::vector<double> h = environment_interpolator.get_x();
   const double min = environment_interpolator.min(), // 0.0?
     height_max_old = environment_interpolator.max();
 
+  auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
   util::rescale(h.begin(), h.end(), min, height_max_old, min, height_max);
   h.back() = height_max; // Avoid round-off error.
 
@@ -80,11 +90,6 @@ void LightEnvironment::rescale_environment(Function f_canopy_openness,
   }
   environment_interpolator.initialise();
 }
-
-/* template <typename Params> */
-/* LightEnvironment make_environment(Params p) { */
-  /* return LightEnvironment(p.disturbance_mean_interval, p.seed_rain, p.control); */
-/* } */
 
 }
 

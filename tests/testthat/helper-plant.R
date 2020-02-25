@@ -44,6 +44,13 @@ test_environment <- function(height, n=101, light_env=NULL,
   ret
 }
 
+fixed_environment <- function(e=1.0) {
+  p <- FF16_Parameters()
+  env <- LightEnvironment(30, c(1, 1), 0.5, p$control)
+  env$set_fixed_environment(e, 150.0)
+  env
+}
+
 test_ode_make_system <- function(obj) {
   make_derivs <- function(obj) {
     if (is.null(obj$set_ode_state)) {

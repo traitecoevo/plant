@@ -30,7 +30,6 @@ public:
 
   // [eqn 11] Canopy openness at `height`
   double compute_competition(double height) const;
-  double canopy_openness(double height) const;
 
   void add_seed(size_t species_index);
   void add_seeds(const std::vector<size_t>& species_index);
@@ -127,14 +126,6 @@ double Patch<T,E>::compute_competition(double height) const {
 }
 
 template <typename T, typename E>
-double Patch<T,E>::canopy_openness(double height) const {
-  // NOTE: patch_area does not appear in the SCM model formulation;
-  // really we should require that it is 1.0, or drop it entirely.
-  return exp(-parameters.k_I * compute_competition(height) /
-             parameters.patch_area);
-}
-
-template <typename T, typename E>
 std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index) const {
   const double tot_competition_effect = compute_competition(0.0);
   return species[species_index].r_competition_effects_error(tot_competition_effect);
@@ -143,7 +134,7 @@ std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index)
 template <typename T, typename E>
 void Patch<T,E>::compute_environment() {
   if (parameters.n_residents() > 0) {
-    auto f = [&] (double x) -> double {return canopy_openness(x);};
+    auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.compute_environment(f, height_max());
   }
 }
@@ -151,7 +142,7 @@ void Patch<T,E>::compute_environment() {
 template <typename T, typename E>
 void Patch<T,E>::rescale_environment() {
   if (parameters.n_residents() > 0) {
-    auto f = [&] (double x) -> double {return canopy_openness(x);};
+    auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.rescale_environment(f, height_max());
   }
 }

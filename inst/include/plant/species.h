@@ -133,11 +133,13 @@ double Species<T,E>::compute_competition(double height) const {
   cohorts_const_iterator it = cohorts.begin();
   double h1 = it->height(), f_h1 = it->compute_competition(height);
 
+  // Loop over cohorts
   for (++it; it != cohorts.end(); ++it) {
     const double h0 = it->height(), f_h0 = it->compute_competition(height);
     if (!util::is_finite(f_h0)) {
       util::stop("Detected non-finite contribution");
     }
+    // Integration
     tot += (h1 - h0) * (f_h1 + f_h0);
     // Upper point moves for next time:
     h1   = h0;

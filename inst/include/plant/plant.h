@@ -6,6 +6,7 @@
 #include <plant/ode_interface.h>
 #include <vector>
 #include <plant/internals.h>
+#include <plant/uniroot.h>
 
 
 namespace plant {
@@ -54,7 +55,7 @@ public:
   double aux(int i) const { return vars.aux(i); } 
 
   double compute_competition(double z) const {
-    return strategy->compute_competition(z, state(HEIGHT_INDEX), 0.0); // aux("competition_effect"));
+    return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));
   }
 
   void compute_rates(const environment_type &environment,
@@ -97,21 +98,13 @@ public:
     }
     return it;
   }
-  // Optional, but useful
+
+  // Single individual methods
 
   // Used in the stochastic model:
   double mortality_probability() const { return 1 - exp(-state(MORTALITY_INDEX)); }
   
   void reset_mortality() { set_state("mortality", 0.0); }
-
-  std::string strategy_name() const { return strategy->name; }
-
-  // * R interface
-  strategy_type r_get_strategy() const { return *strategy.get(); }
-  // ! External R code depends on knowing r internals for like growing plant to
-  // ! height or something
-  Internals r_internals() const { return vars; }
-  const Control &control() const { return strategy->control; }
 
   // TODO: Eventually change to growth rate given size
   double growth_rate_given_height(double height, const environment_type& environment) {
@@ -120,6 +113,37 @@ public:
     return rate("height");
   }
 
+  // TODO recame lcp_whole_plant to competition_compensation_point
+  double lcp_whole_plant() {
+    environment_type env = environment_type();
+
+    auto target = [&] (double x) mutable -> double {
+      env.set_fixed_environment(x);
+      compute_rates(env);
+      return net_mass_production_dt(env);
+    };
+
+    const double f1 = target(1.0);
+    if (f1 < 0.0) {
+      return NA_REAL;
+    } else {
+      const double tol = control().plant_seed_tol;
+      const size_t max_iterations = control().plant_seed_iterations;
+      return util::uniroot(target, 0.0, 1.0, tol, max_iterations);
+    }
+  }
+
+
+
+  std::string strategy_name() const { return strategy->name; }
+
+  // * R interface
+  strategy_type r_get_strategy() const { return *strategy.get(); }
+
+  // ! External R code depends on knowing r internals for like growing plant to
+  // ! height or something
+  Internals r_internals() const { return vars; }
+  const Control &control() const { return strategy->control; }
 
 private:
   strategy_type_ptr strategy;

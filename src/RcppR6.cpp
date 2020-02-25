@@ -474,8 +474,8 @@ double Interpolator__max__get(plant::RcppR6::RcppR6<plant::interpolator::Interpo
 
 
 // [[Rcpp::export]]
-plant::LightEnvironment LightEnvironment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, plant::Control control) {
-  return plant::LightEnvironment(disturbance_mean_interval, seed_rain, control);
+plant::LightEnvironment LightEnvironment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, double k_I, plant::Control control) {
+  return plant::LightEnvironment(disturbance_mean_interval, seed_rain, k_I, control);
 }
 // [[Rcpp::export]]
 double LightEnvironment__canopy_openness(plant::RcppR6::RcppR6<plant::LightEnvironment> obj_, double height) {
@@ -492,6 +492,10 @@ void LightEnvironment__clear(plant::RcppR6::RcppR6<plant::LightEnvironment> obj_
 // [[Rcpp::export]]
 void LightEnvironment__set_seed_rain_index(plant::RcppR6::RcppR6<plant::LightEnvironment> obj_, plant::util::index x) {
   obj_->r_set_seed_rain_index(x);
+}
+// [[Rcpp::export]]
+void LightEnvironment__set_fixed_environment(plant::RcppR6::RcppR6<plant::LightEnvironment> obj_, double canopy_openness, double height_max) {
+  obj_->set_fixed_environment(canopy_openness, height_max);
 }
 // [[Rcpp::export]]
 double LightEnvironment__patch_survival__get(plant::RcppR6::RcppR6<plant::LightEnvironment> obj_) {
@@ -570,6 +574,10 @@ double Plant___FF16__LightEnv__net_mass_production_dt(plant::RcppR6::RcppR6<plan
 // [[Rcpp::export]]
 void Plant___FF16__LightEnv__reset_mortality(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy,plant::LightEnvironment> > obj_) {
   obj_->reset_mortality();
+}
+// [[Rcpp::export]]
+double Plant___FF16__LightEnv__lcp_whole_plant(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy,plant::LightEnvironment> > obj_) {
+  return obj_->lcp_whole_plant();
 }
 // [[Rcpp::export]]
 plant::FF16_Strategy Plant___FF16__LightEnv__strategy__get(plant::RcppR6::RcppR6<plant::Plant<plant::FF16_Strategy,plant::LightEnvironment> > obj_) {
@@ -905,10 +913,6 @@ double Patch___FF16__LightEnv__compute_competition(plant::RcppR6::RcppR6<plant::
   return obj_->compute_competition(height);
 }
 // [[Rcpp::export]]
-double Patch___FF16__LightEnv__canopy_openness(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::LightEnvironment> > obj_, double height) {
-  return obj_->canopy_openness(height);
-}
-// [[Rcpp::export]]
 void Patch___FF16__LightEnv__add_seed(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::LightEnvironment> > obj_, plant::util::index species_index) {
   obj_->r_add_seed(species_index);
 }
@@ -1183,10 +1187,6 @@ double StochasticPatch___FF16__LightEnv__compute_competition(plant::RcppR6::Rcpp
   return obj_->compute_competition(height);
 }
 // [[Rcpp::export]]
-double StochasticPatch___FF16__LightEnv__canopy_openness(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::LightEnvironment> > obj_, double height) {
-  return obj_->canopy_openness(height);
-}
-// [[Rcpp::export]]
 bool StochasticPatch___FF16__LightEnv__add_seed(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::LightEnvironment> > obj_, plant::util::index species_index) {
   return obj_->r_add_seed(species_index);
 }
@@ -1328,7 +1328,8 @@ Rcpp::List StochasticPatchRunner___FF16__LightEnv__state__get(plant::RcppR6::Rcp
 }
 
 
-// From RcppR6 - can't handle multiple templated variables in functions
+
+// Hacks
 double cohort_schedule_max_time_default__Parameters___FF16__LightEnv(const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& p) {
    return plant::cohort_schedule_max_time_default<plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment> >(p);
 }

@@ -16,15 +16,16 @@ class Environment {
 public:
   double canopy_openness(double height) const;
   template <typename Function>
-  void compute_environment(Function f_canopy_openness, double height_max);
+  void compute_environment(Function f, double height_max);
+  void set_fixed_environment(double competition_amount, double height_max);
+  void set_fixed_environment(double competition_amount);
   template <typename Function>
-  void rescale_environment(Function f_canopy_openness, double height_max);
+  void rescale_environment(Function f, double height_max);
   double patch_survival() const;
   double patch_survival_conditional(double time_at_birth) const;
   void clear();
   void clear_environment();
 
-  // NOTE: Interface here will change
   double seed_rain_dt() const;
   void set_seed_rain_index(size_t x);
 
@@ -42,15 +43,12 @@ private:
 };
 
 template <typename Function>
-void Environment::compute_environment(Function f_canopy_openness,
-                                            double height_max) {
-  environment_interpolator =
-    environment_generator.construct(f_canopy_openness, 0, height_max);
+void Environment::compute_environment(Function f, double height_max) {
+  environment_interpolator = environment_generator.construct(f, 0, height_max);
 }
 
 template <typename Function>
-void Environment::rescale_environment(Function f_canopy_openness,
-                                            double height_max) {
+void Environment::rescale_environment(Function f, double height_max) {
   std::vector<double> h = environment_interpolator.get_x();
   const double min = environment_interpolator.min(), // 0.0?
     height_max_old = environment_interpolator.max();
@@ -60,7 +58,7 @@ void Environment::rescale_environment(Function f_canopy_openness,
 
   environment_interpolator.clear();
   for (auto hi : h) {
-    environment_interpolator.add_point(hi, f_canopy_openness(hi));
+    environment_interpolator.add_point(hi, f(hi));
   }
   environment_interpolator.initialise();
 }

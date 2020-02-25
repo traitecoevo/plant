@@ -13,7 +13,20 @@ LightEnvironment::LightEnvironment() {
     [&](double height) {
         return LightEnvironment::canopy_openness(height);
     }, 30, 150.0);
+  k_I = 0.5;
 };
+
+void LightEnvironment::set_fixed_environment(double canopy_openness, double height_max) {
+  std::vector<double> x = {0, height_max/2.0, height_max};
+  std::vector<double> y = {canopy_openness, canopy_openness, canopy_openness};
+  clear_environment();
+  environment_interpolator.init(x, y);
+}
+
+void LightEnvironment::set_fixed_environment(double canopy_openness) {
+  double height_max = 150.0;
+  set_fixed_environment(canopy_openness, height_max);
+}
 
 
 double LightEnvironment::canopy_openness(double height) const {

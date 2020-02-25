@@ -254,11 +254,12 @@ Interpolator:
 LightEnvironment:
   name_cpp: "plant::LightEnvironment"
   constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", control: "plant::Control"]
+    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
     roxygen: |
       LightEnvironment object
       @param disturbance_mean_interval mean disturbance interval in years
       @param seed_rain vector of seed rains
+      @param k_I light extinction coefficient
       @param control A Control object
       @export
   methods:
@@ -274,6 +275,9 @@ LightEnvironment:
       args: [x: "plant::util::index"]
       return_type: void
       name_cpp: r_set_seed_rain_index
+    set_fixed_environment:
+      args: [canopy_openness: double, height_max: double]
+      return_type: void
   active:
     patch_survival: {type: double, access: member}
     seed_rain_dt: {type: double, access: member}
@@ -337,6 +341,9 @@ Plant:
       return_type: double
     reset_mortality:
       return_type: void
+    lcp_whole_plant:
+      args: []
+      return_type: double
 
 PlantRunner:
   name_cpp: "plant::tools::PlantRunner<T,E>"
@@ -564,7 +571,6 @@ Patch:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
     compute_competition: {return_type: double, args: [height: double]}
-    canopy_openness: {return_type: double, args: [height: double]}
     add_seed:
       return_type: void
       args: [species_index: "plant::util::index"]
@@ -729,7 +735,6 @@ StochasticPatch:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
     compute_competition: {return_type: double, args: [height: double]}
-    canopy_openness: {return_type: double, args: [height: double]}
     add_seed:
       return_type: bool
       args: [species_index: "plant::util::index"]
