@@ -5,7 +5,7 @@ strategy_types <- get_list_of_strategy_types()
 test_that("empty", {
   for (x in names(strategy_types)) {
     set.seed(1)
-    p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x,"LightEnv")(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE,
                           control=fast_control())
@@ -48,7 +48,7 @@ test_that("empty", {
 test_that("collect", {
   for (x in names(strategy_types)) {
     set.seed(1)
-    p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x,"LightEnv")(strategies=list(strategy_types[[x]]()),
                           seed_rain=5/50,
                           patch_area=50,
                           is_resident=TRUE,

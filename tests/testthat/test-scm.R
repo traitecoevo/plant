@@ -8,7 +8,7 @@ test_that("Ported from tree1", {
     plant <- Plant(x, "LightEnv")(s)
     cohort <- Cohort(x, "LightEnv")(s)
 
-    p <- Parameters(x)(strategies=list(s),
+    p <- Parameters(x, "LightEnv")(strategies=list(s),
                           seed_rain=pi/2,
                           patch_area=10,
                           is_resident=TRUE)
@@ -159,7 +159,7 @@ test_that("Ported from tree1", {
 })
 
 test_that("schedule setting", {
-  for (x in names(strategy_types)) { p <- Parameters(x)(
+  for (x in names(strategy_types)) { p <- Parameters(x, "LightEnv")(
       strategies=list(strategy_types[[x]]()),
       seed_rain=pi/2,
       is_resident=TRUE,
@@ -272,7 +272,7 @@ test_that("Seed rain & error calculations correct", {
 
 test_that("Can create empty SCM", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x)()
+    p <- Parameters(x, "LightEnv")()
     scm <- SCM(x, "LightEnv")(p)
 
     ## Check light environment is empty:

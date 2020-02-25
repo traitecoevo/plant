@@ -117,7 +117,7 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
   }
 
   time <- sapply(res, "[[", "time")
-  light_env <- lapply(res, "[[", "light_env")
+  env <- lapply(res, "[[", "env")
   species <- lapply(res, "[[", "species")
   ## The aperm() here means that dimensions are
   ## [variable,time,cohort], so that taking species[[1]]["height",,]
@@ -136,7 +136,7 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
   patch_density <- scm$patch$environment$disturbance_regime$density(time)
 
   ret <- list(time=time, species=species,
-              light_env=light_env,
+              env=env,
               seed_rain=scm$seed_rains,
               patch_density=patch_density,
               p=p)
@@ -157,7 +157,7 @@ make_patch <- function(state, p) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   n <- viapply(state$species, ncol)
   patch <- do.call('Patch', types)(p)
-  patch$set_state(state$time, unlist(state$species), n, state$light_env)
+  patch$set_state(state$time, unlist(state$species), n, state$env)
   patch
 }
 
@@ -171,7 +171,7 @@ scm_state <- function(i, x) {
     el[, !is.na(el[1, ]), drop=FALSE]
   }
   list(time=x$time[[i]], species=lapply(x$species, f_sp),
-       light_env=x$light_env[[i]])
+       env=x$env[[i]])
 }
 
 ##' @export

@@ -3413,6 +3413,42 @@ BEGIN_RCPP
 END_RCPP
 }
 
+
+
+// cohort_schedule_max_time_default__Parameters___FF16
+double cohort_schedule_max_time_default__Parameters___FF16__LightEnv(const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& p);
+RcppExport SEXP _plant_cohort_schedule_max_time_default__Parameters___FF16__LightEnv(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(cohort_schedule_max_time_default__Parameters___FF16__LightEnv(p));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cohort_schedule_default__Parameters___FF16
+plant::CohortSchedule cohort_schedule_default__Parameters___FF16__LightEnv(const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& p);
+RcppExport SEXP _plant_cohort_schedule_default__Parameters___FF16__LightEnv(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(cohort_schedule_default__Parameters___FF16__LightEnv(p));
+    return rcpp_result_gen;
+END_RCPP
+}
+// make_cohort_schedule__Parameters___FF16
+plant::CohortSchedule make_cohort_schedule__Parameters___FF16__LightEnv(const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& p);
+RcppExport SEXP _plant_make_cohort_schedule__Parameters___FF16__LightEnv(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___FF16__LightEnv(p));
+    return rcpp_result_gen;
+END_RCPP
+}
+
 static const R_CallMethodDef CallEntries[] = {
     {"_plant_Lorenz__ctor", (DL_FUNC) &_plant_Lorenz__ctor, 3},
     {"_plant_Lorenz__ode_size__get", (DL_FUNC) &_plant_Lorenz__ode_size__get, 1},
@@ -3705,6 +3741,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___FF16__LightEnv__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__LightEnv__schedule__get, 1},
     {"_plant_StochasticPatchRunner___FF16__LightEnv__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__LightEnv__schedule__set, 2},
     {"_plant_StochasticPatchRunner___FF16__LightEnv__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__LightEnv__state__get, 1},
+    {"_plant_cohort_schedule_max_time_default__Parameters___FF16__LightEnv", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___FF16__LightEnv, 1},
+    {"_plant_cohort_schedule_default__Parameters___FF16__LightEnv", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16__LightEnv, 1},
+    {"_plant_make_cohort_schedule__Parameters___FF16__LightEnv", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16__LightEnv, 1},
     {"_plant_test_adaptive_interpolator", (DL_FUNC) &_plant_test_adaptive_interpolator, 3},
     {"_plant_test_gradient_fd1", (DL_FUNC) &_plant_test_gradient_fd1, 5},
     {"_plant_test_gradient_richardson", (DL_FUNC) &_plant_test_gradient_richardson, 4},

@@ -4,7 +4,7 @@ strategy_types <- get_list_of_strategy_types()
 
 test_that("empty", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, "LightEnv")(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE)
     patch <- StochasticPatch(x, "LightEnv")(p)
@@ -27,7 +27,7 @@ test_that("empty", {
 
 test_that("non empty", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, "LightEnv")(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE)
     patch <- StochasticPatch(x, "LightEnv")(p)

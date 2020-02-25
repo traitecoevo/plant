@@ -1328,4 +1328,15 @@ Rcpp::List StochasticPatchRunner___FF16__LightEnv__state__get(plant::RcppR6::Rcp
 }
 
 
+// From RcppR6 - can't handle multiple templated variables in functions
+double cohort_schedule_max_time_default__Parameters___FF16__LightEnv(const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& p) {
+   return plant::cohort_schedule_max_time_default<plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment> >(p);
+}
 
+plant::CohortSchedule cohort_schedule_default__Parameters___FF16__LightEnv(const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& p) {
+   return plant::cohort_schedule_default<plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment> >(p);
+}
+
+plant::CohortSchedule make_cohort_schedule__Parameters___FF16__LightEnv(const plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment>& p) {
+   return plant::make_cohort_schedule<plant::Parameters<plant::FF16_Strategy,plant::LightEnvironment> >(p);
+}

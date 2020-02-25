@@ -6,7 +6,7 @@ for (x in names(strategy_types)) {
   context(sprintf("LightEnvironment-%s",x))
 
   test_that("Empty environment", {
-    p <- Parameters(x, "LightEnv")
+    p <- Parameters(x, "LightEnv")()
     e <- make_environment(p)
 
     ## At this point, we should have full canopy openness, partly because
@@ -27,16 +27,16 @@ for (x in names(strategy_types)) {
       exp(x/(max(hh)*2)) - 1 + (1 - (exp(.5) - 1))/2
     }
     ee <- light_env(hh)
-    env <- Interpolator()
-    env$init(hh, ee)
+    interplator <- Interpolator()
+    interplator$init(hh, ee)
 
     ## And set it
-    e$environment_interpolator <- env
+    e$environment_interpolator <- interplator
 
-    expect_identical(e$environment_interpolator$xy, env$xy)
+    expect_identical(e$environment_interpolator$xy, interplator$xy)
 
     hmid <- (hh[-1] + hh[-length(hh)])/2
-    expect_identical(sapply(hmid, e$environment_interpolator$eval), sapply(hmid, env$eval))
+    expect_identical(sapply(hmid, e$environment_interpolator$eval), sapply(hmid, interplator$eval))
   })
 
   test_that("Disturbance related parameters", {
