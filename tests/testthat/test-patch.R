@@ -10,25 +10,25 @@ for (x in names(strategy_types)) {
     ## is_resident vectors must be the right length.
 
     s <- strategy_types[[x]]()
-    plant <- Plant(x, "LightEnv")(s)
-    cohort <- Cohort(x, "LightEnv")(s)
+    plant <- Plant(x, "FF16_Env")(s)
+    cohort <- Cohort(x, "FF16_Env")(s)
 
-    p <- Parameters(x, "LightEnv")(strategies=list(s),
+    p <- Parameters(x, "FF16_Env")(strategies=list(s),
                           seed_rain=pi/2,
                           is_resident=TRUE)
 
-    patch <- Patch(x, "LightEnv")(p)
-    cmp <- Cohort(x, "LightEnv")(p$strategies[[1]])
+    patch <- Patch(x, "FF16_Env")(p)
+    cmp <- Cohort(x, "FF16_Env")(p$strategies[[1]])
 
     expect_equal(patch$size, 1)
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
 
-    expect_is(patch$environment, "LightEnvironment")
+    expect_is(patch$environment, "FF16_Environment")
     expect_identical(patch$environment$time, 0.0)
 
     expect_equal(length(patch$species), 1)
-    expect_is(patch$species[[1]], sprintf("Species<%s,LightEnv>",x))
+    expect_is(patch$species[[1]], sprintf("Species<%s,FF16_Env>",x))
 
     expect_equal(patch$ode_size, 0)
     expect_identical(patch$ode_state, numeric(0))
@@ -41,7 +41,7 @@ for (x in names(strategy_types)) {
     expect_error(patch$add_seed(0), "Invalid value")
     expect_error(patch$add_seed(2), "out of bounds")
 
-    ode_size <- Cohort(x, "LightEnv")(s)$ode_size
+    ode_size <- Cohort(x, "FF16_Env")(s)$ode_size
     patch$add_seed(1)
     expect_equal(patch$ode_size, ode_size)
 

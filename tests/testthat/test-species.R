@@ -11,9 +11,9 @@ for (x in names(strategy_types)) {
   test_that("Basics", {
     env <- test_environment(3, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- Species(x, "LightEnv")(s)
-    seed <- Cohort(x, "LightEnv")(s)
-    plant <- Plant(x, "LightEnv")(s)
+    sp <- Species(x, "FF16_Env")(s)
+    seed <- Cohort(x, "FF16_Env")(s)
+    plant <- Plant(x, "FF16_Env")(s)
     h0 <- seed$height
 
     expect_equal(sp$size, 0)
@@ -50,7 +50,7 @@ for (x in names(strategy_types)) {
     ## Internal and test seed report same values:
     expect_identical(sp$seed$rates, seed$rates)
 
-    expect_is(sp$cohort_at(1), sprintf("Cohort<%s,LightEnv>",x))
+    expect_is(sp$cohort_at(1), sprintf("Cohort<%s,FF16_Env>",x))
     expect_identical(sp$cohort_at(1)$rates, cohorts[[1]]$rates)
 
     ## Not sure about this -- do we need more immediate access?
@@ -80,7 +80,7 @@ for (x in names(strategy_types)) {
 
   ## 1: empty species (no cohorts) has no leaf area above any height:
   test_that("Empty species has no leaf area", {
-    sp <- Species(x, "LightEnv")(strategy_types[[x]]())
+    sp <- Species(x, "FF16_Env")(strategy_types[[x]]())
     expect_equal(sp$compute_competition(0), 0)
     expect_equal(sp$compute_competition(10), 0)
     expect_equal(sp$compute_competition(Inf), 0)
@@ -89,7 +89,7 @@ for (x in names(strategy_types)) {
   ## 2: Cohort up against boundary has no leaf area:
   test_that("pecies with only boundary cohort no leaf area", {
     env <- test_environment(3, seed_rain=1.0)
-    sp <- Species(x, "LightEnv")(strategy_types[[x]]())
+    sp <- Species(x, "FF16_Env")(strategy_types[[x]]())
     sp$add_seed()
     sp$compute_rates(env)
     expect_equal(sp$compute_competition(0), 0)
@@ -107,7 +107,7 @@ for (x in names(strategy_types)) {
   ## 3: Single cohort; one round of trapezium:
   test_that("Leaf area sensible with one cohort", {
     env <- test_environment(3, seed_rain=1.0)
-    sp <- Species(x, "LightEnv")(strategy_types[[x]]())
+    sp <- Species(x, "FF16_Env")(strategy_types[[x]]())
     sp$compute_rates(env)
     sp$add_seed()
     h_top <- sp$height_max * 4
@@ -122,7 +122,7 @@ for (x in names(strategy_types)) {
     ## Part way up (and above bottom seed boundary condition)
     expect_equal(sp$compute_competition(h_top * .5), cmp_compute_competition(h_top * .5, sp))
 
-    ode_size <- Cohort(x, "LightEnv")(strategy_types[[x]]())$ode_size
+    ode_size <- Cohort(x, "FF16_Env")(strategy_types[[x]]())$ode_size
     ode_state <- sp$ode_state
     p <- sp$cohort_at(1)
     expect_equal(sp$ode_size, ode_size)
@@ -132,7 +132,7 @@ for (x in names(strategy_types)) {
 
   test_that("Leaf area sensible with two cohorts", {
     env <- test_environment(3, seed_rain=1.0)
-    sp <- Species(x, "LightEnv")(strategy_types[[x]]())
+    sp <- Species(x, "FF16_Env")(strategy_types[[x]]())
     sp$compute_rates(env)
     sp$add_seed()
     h_top <- sp$height_max * 4
@@ -148,7 +148,7 @@ for (x in names(strategy_types)) {
     ## Within the top pair (excluding the seed)
     expect_equal(sp$compute_competition(h_top * .8), cmp_compute_competition(h_top * .8, sp))
 
-    ode_size <- Cohort(x, "LightEnv")(strategy_types[[x]]())$ode_size
+    ode_size <- Cohort(x, "FF16_Env")(strategy_types[[x]]())$ode_size
     ode_state <- sp$ode_state
     cohorts <- sp$cohorts
     expect_equal(sp$ode_size, ode_size * sp$size)
@@ -158,7 +158,7 @@ for (x in names(strategy_types)) {
 
   test_that("Leaf area sensible with three cohorts", {
     env <- test_environment(3, seed_rain=1.0)
-    sp <- Species(x, "LightEnv")(strategy_types[[x]]())
+    sp <- Species(x, "FF16_Env")(strategy_types[[x]]())
     sp$compute_rates(env)
     sp$add_seed()
     h_top <- sp$height_max * 4
@@ -186,7 +186,7 @@ for (x in names(strategy_types)) {
     expect_identical(sp$competition_effects_error(1.0), cmp)
     expect_identical(sp$competition_effects_error(pi), cmp_pi)
 
-    ode_size <- Cohort(x, "LightEnv")(strategy_types[[x]]())$ode_size
+    ode_size <- Cohort(x, "FF16_Env")(strategy_types[[x]]())$ode_size
     ode_state <- sp$ode_state
     cohorts <- sp$cohorts
     expect_equal(length(ode_state), ode_size * sp$size)

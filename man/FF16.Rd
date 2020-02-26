@@ -35,7 +35,7 @@ FF16_StochasticPatchRunner(p)
 
 \item{...}{Arguments!}
 
-\item{p}{A \code{Parameters<FF16,LightEnv>} object}
+\item{p}{A \code{Parameters<FF16,FF16_Env>} object}
 }
 \description{
 Create a FF16 Plant or Cohort

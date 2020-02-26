@@ -4,7 +4,7 @@
 \alias{scm_base_parameters}
 \title{Sensible, fast (ish) SCM parameters}
 \usage{
-scm_base_parameters(type = "FF16", env = "LightEnv")
+scm_base_parameters(type = "FF16", env = "FF16_Env")
 }
 \arguments{
 \item{type}{Name of model (defaults to FF16 but any strategy name is valid).}

@@ -8,9 +8,9 @@ for (x in names(strategy_types)) {
 
   test_that("Reference comparison", {
     s <- strategy_types[[x]]()
-    pl <- Plant(x,"LightEnv")(s)
+    pl <- Plant(x,"FF16_Env")(s)
 
-    expect_is(pl, sprintf("Plant<%s,LightEnv>",x))
+    expect_is(pl, sprintf("Plant<%s,FF16_Env>",x))
     # expect_is(pp, sprintf("PlantPlus<%s>",x))
     # expect_identical(pp$strategy, s)
     expect_identical(pl$strategy, s)
@@ -88,7 +88,7 @@ for (x in names(strategy_types)) {
   test_that("stochastic support", {
 
     s <- strategy_types[[x]]()
-    p <- Plant(x,"LightEnv")(s)
+    p <- Plant(x,"FF16_Env")(s)
 
     expect_equal(p$state("mortality"), 0.0)
     expect_equal(p$mortality_probability, 0.0)
@@ -125,7 +125,7 @@ test_that("lcp_whole_plant", {
       }
     }
 
-    p <- Plant(x, "LightEnv")(strategy_types[[x]]())
+    p <- Plant(x, "FF16_Env")(strategy_types[[x]]())
     # skip("Comparison no longer evaluate the nesting is too deep")
     expect_equal(p$lcp_whole_plant(), lcp_whole_plant_R(p), tolerance=1e-5)
   }

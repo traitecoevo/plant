@@ -32,7 +32,7 @@ test_that("Default times", {
 
 test_that("Cohort schedule max time", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "LightEnv")()
+    p <- Parameters(x, "FF16_Env")()
     t <- cohort_schedule_max_time_default(p)
     d <- Disturbance(p$disturbance_mean_interval)
     expect_equal(t, d$cdf(p$control$schedule_patch_survival))
@@ -41,7 +41,7 @@ test_that("Cohort schedule max time", {
 
 test_that("Default schedule", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "LightEnv")(strategies=list(strategy_types[[x]](), strategy_types[[x]]()),
+    p <- Parameters(x, "FF16_Env")(strategies=list(strategy_types[[x]](), strategy_types[[x]]()),
       seed_rain=c(pi/2, pi),
       is_resident=c(TRUE, TRUE))
     cohort_schedule <- cohort_schedule_default(p)
@@ -56,7 +56,7 @@ test_that("Default schedule", {
 
 test_that("strategy_list", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "LightEnv")()
+    p <- Parameters(x, "FF16_Env")()
     s <- strategy_list(trait_matrix(1, "lma"), p)
     expect_equal(length(s), 1)
     expect_is(s, "list")
@@ -66,12 +66,12 @@ test_that("strategy_list", {
 
 test_that("plant_list", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "LightEnv")()
+    p <- Parameters(x, "FF16_Env")()
 
     obj <- plant_list(trait_matrix(1, "lma"), p)
     expect_equal(length(obj), 1)
     expect_is(obj, "list")
     expect_is(obj[[1]], "Plant")
-    expect_is(obj[[1]], sprintf("Plant<%s,LightEnv>", x))
+    expect_is(obj[[1]], sprintf("Plant<%s,FF16_Env>", x))
   }
 })

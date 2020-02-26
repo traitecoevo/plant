@@ -11,7 +11,7 @@ grow_plant_to_time(plant, times, env)
 
 \item{times}{A vector of times}
 
-\item{env}{An \code{LightEnvironment} object}
+\item{env}{An \code{FF16_Environment} object}
 }
 \description{
 Grow a plant up for particular time lengths

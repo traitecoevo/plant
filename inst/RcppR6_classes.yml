@@ -23,8 +23,8 @@ OdeRunner:
     concrete:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
-      - ["FF16": "plant::tools::PlantRunner<plant::FF16_Strategy,plant::LightEnvironment>"]
-      # - ["FF16r": "plant::tools::PlantRunner<plant::FF16r_Strategy,plant::LightEnvironment>"]
+      - ["FF16": "plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment>"]
+      # - ["FF16r": "plant::tools::PlantRunner<plant::FF16r_Strategy,plant::FF16_Environment>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
   active:
@@ -251,12 +251,12 @@ Interpolator:
     min: {type: double, access: member}
     max: {type: double, access: member}
 
-LightEnvironment:
-  name_cpp: "plant::LightEnvironment"
+FF16_Environment:
+  name_cpp: "plant::FF16_Environment"
   constructor:
     args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
     roxygen: |
-      LightEnvironment object
+      FF16_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
       @param seed_rain vector of seed rains
       @param k_I light extinction coefficient
@@ -292,7 +292,7 @@ Plant:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [s: T]
@@ -331,13 +331,13 @@ Plant:
       args: [h: double]
       return_type: double
     compute_rates:
-      args: [environment: "const plant::LightEnvironment&"]
+      args: [environment: "const plant::FF16_Environment&"]
       return_type: void
     establishment_probability:
-      args: [environment: "const plant::LightEnvironment&"]
+      args: [environment: "const plant::FF16_Environment&"]
       return_type: double
     net_mass_production_dt:
-      args: [environment: "const plant::LightEnvironment&"]
+      args: [environment: "const plant::FF16_Environment&"]
       return_type: double
     reset_mortality:
       return_type: void
@@ -350,11 +350,11 @@ PlantRunner:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     name_cpp: "plant::tools::PlantRunner<T,E>"
-    args: [plant: "plant::Plant<T,E>", environment: "plant::LightEnvironment"]
+    args: [plant: "plant::Plant<T,E>", environment: "plant::FF16_Environment"]
   active:
     plant: {access: field, type: "plant::Plant<T,E>"}
 
@@ -443,7 +443,7 @@ Parameters:
   templates:
     parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   # TODO: This is broken:
   # roxygen: |
@@ -475,7 +475,7 @@ Cohort:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     name_cpp: "plant::make_cohort<T,E>"
@@ -497,13 +497,13 @@ Cohort:
     growth_rate_gradient:
       return_type: double
       name_cpp: "r_growth_rate_gradient"
-      args: [environment: "const plant::LightEnvironment&"]
+      args: [environment: "const plant::FF16_Environment&"]
     compute_rates:
       return_type: void
-      args: [environment: "const plant::LightEnvironment&"]
+      args: [environment: "const plant::FF16_Environment&"]
     compute_initial_conditions:
       return_type: void
-      args: [environment: "const plant::LightEnvironment&"]
+      args: [environment: "const plant::FF16_Environment&"]
 
 # For now, also not templated
 Species:
@@ -511,7 +511,7 @@ Species:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [strategy: T]
@@ -533,7 +533,7 @@ Species:
       return_type: void
     compute_rates:
       return_type: void
-      args: [environment: "const plant::LightEnvironment&"]
+      args: [environment: "const plant::FF16_Environment&"]
     compute_competition:
       return_type: double
       args: [height: double]
@@ -553,7 +553,7 @@ Patch:
   templates:
     parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
@@ -607,7 +607,7 @@ SCM:
   templates:
     parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
@@ -674,7 +674,7 @@ StochasticSpecies:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [strategy: "T"]
@@ -696,7 +696,7 @@ StochasticSpecies:
       return_type: void
     compute_rates:
       return_type: void
-      args: [environment: "const plant::LightEnvironment&"]
+      args: [environment: "const plant::FF16_Environment&"]
     compute_competition:
       return_type: double
       args: [height: double]
@@ -709,7 +709,7 @@ StochasticSpecies:
     deaths:
       return_type: size_t
     establishment_probability:
-      args: [environment: "const plant::LightEnvironment&"]
+      args: [environment: "const plant::FF16_Environment&"]
       return_type: double
 
 StochasticPatch:
@@ -717,7 +717,7 @@ StochasticPatch:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
@@ -726,7 +726,7 @@ StochasticPatch:
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
-    environment: {type: "plant::LightEnvironment", access: member, name_cpp: r_environment}
+    environment: {type: "plant::FF16_Environment", access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -777,7 +777,7 @@ StochasticPatchRunner:
   templates:
     parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "LightEnv": "plant::LightEnvironment"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]

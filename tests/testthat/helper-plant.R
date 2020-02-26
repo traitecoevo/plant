@@ -7,7 +7,7 @@ get_list_of_strategy_types <- function() {
 
 get_list_of_environment_types <- function() {
   list(
-    LightEnv=LightEnvironment)
+    FF16_Env=FF16_Environment)
 }
 
 # ! Important the whitespace in the following funciton is used by the strategy scaffolder
@@ -46,7 +46,7 @@ test_environment <- function(height, n=101, light_env=NULL,
 
 fixed_environment <- function(e=1.0) {
   p <- FF16_Parameters()
-  env <- LightEnvironment(30, c(1, 1), 0.5, p$control)
+  env <- FF16_Environment(30, c(1, 1), 0.5, p$control)
   env$set_fixed_environment(e, 150.0)
   env
 }

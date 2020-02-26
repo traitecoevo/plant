@@ -12,13 +12,13 @@
 
 namespace plant {
 
-// LightEnvironment needs Parameters to initialise and that needs Strategy,
+// FF16_Environment needs Parameters to initialise and that needs Strategy,
 // so there's a really awkward circular reference here.  This forward
 // declaration breaks it, but there might be a better solution.
-class LightEnvironment;
+class FF16_Environment;
 
 
-class FF16_Strategy: public Strategy<LightEnvironment> {
+class FF16_Strategy: public Strategy<FF16_Environment> {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
@@ -84,7 +84,7 @@ public:
                            double mass_sapwood, double mass_root) const;
 
 
-  void compute_rates(const LightEnvironment& environment, bool reuse_intervals,
+  void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
                 Internals& vars);
 
   void update_dependent_aux(const int index, Internals& vars);
@@ -110,7 +110,7 @@ public:
   // [eqn 15] Net production
   double net_mass_production_dt_A(double assimilation, double respiration,
                                   double turnover) const;
-  double net_mass_production_dt(const LightEnvironment& environment,
+  double net_mass_production_dt(const FF16_Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals=false);
 
@@ -166,7 +166,7 @@ public:
   double mortality_growth_independent_dt()const ;
   double mortality_growth_dependent_dt(double productivity_area) const;
   // [eqn 20] Survival of seedlings during establishment
-  double establishment_probability(const LightEnvironment& environment);
+  double establishment_probability(const FF16_Environment& environment);
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
@@ -181,7 +181,7 @@ public:
   void prepare_strategy();
 
   // Previously there was an "integrator" here.  I'm going to stick
-  // that into Control or LightEnvironment instead.
+  // that into Control or FF16_Environment instead.
 
   // * Core traits
   double lma, rho, hmat, omega;

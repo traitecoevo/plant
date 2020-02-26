@@ -3,10 +3,10 @@ strategy_types <- get_list_of_strategy_types()
 
 for (x in names(strategy_types)) {
 
-  context(sprintf("LightEnvironment-%s",x))
+  context(sprintf("FF16_Environment-%s",x))
 
   test_that("Empty environment", {
-    p <- Parameters(x, "LightEnv")()
+    p <- Parameters(x, "FF16_Env")()
     e <- make_environment(p)
 
     ## At this point, we should have full canopy openness, partly because
@@ -20,7 +20,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Manually set environment", {
-    e <- make_environment(Parameters(x, "LightEnv")())
+    e <- make_environment(Parameters(x, "FF16_Env")())
     ## Now, set the light environment.
     hh <- seq(0, 10, length.out=101)
     light_env <- function(x) {
@@ -40,7 +40,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Disturbance related parameters", {
-    e <- make_environment(Parameters(x, "LightEnv")())
+    e <- make_environment(Parameters(x, "FF16_Env")())
     expect_identical(e$time, 0.0)
     expect_identical(e$patch_survival_conditional(e$time), 1.0)
 
@@ -53,7 +53,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Seed rain related parameters", {
-    e <- make_environment(Parameters(x, "LightEnv")())
+    e <- make_environment(Parameters(x, "FF16_Env")())
     expect_error(e$seed_rain_dt, "Cannot get seed rain for empty environment")
 
     x <- c(.1, .2)

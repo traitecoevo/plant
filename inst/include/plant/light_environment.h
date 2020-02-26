@@ -13,12 +13,12 @@ using namespace Rcpp;
 
 namespace plant {
 
-class LightEnvironment : public Environment {
+class FF16_Environment : public Environment {
 public:
 
-  LightEnvironment();
+  FF16_Environment();
 
-  LightEnvironment(double disturbance_mean_interval,
+  FF16_Environment(double disturbance_mean_interval,
                    std::vector<double> seed_rain_,
                    double k_I_,
                    Control control)
@@ -63,7 +63,7 @@ private:
 };
 
 template <typename Function>
-void LightEnvironment::compute_environment(Function f_compute_competition,
+void FF16_Environment::compute_environment(Function f_compute_competition,
                                             double height_max) {
   const double lower_bound = 0.0;
   double upper_bound = height_max;
@@ -74,7 +74,7 @@ void LightEnvironment::compute_environment(Function f_compute_competition,
 }
 
 template <typename Function>
-void LightEnvironment::rescale_environment(Function f_compute_competition,
+void FF16_Environment::rescale_environment(Function f_compute_competition,
                                            double height_max) {
   std::vector<double> h = environment_interpolator.get_x();
   const double min = environment_interpolator.min(), // 0.0?

@@ -4,12 +4,12 @@ strategy_types <- get_list_of_strategy_types()
 
 test_that("empty", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "LightEnv")(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, "FF16_Env")(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE)
-    patch <- StochasticPatch(x, "LightEnv")(p)
+    patch <- StochasticPatch(x, "FF16_Env")(p)
 
-    expect_is(patch, sprintf("StochasticPatch<%s,LightEnv>",x))
+    expect_is(patch, sprintf("StochasticPatch<%s,FF16_Env>",x))
 
     expect_equal(patch$size, 1)
     expect_equal(patch$height_max, 0.0)
@@ -20,18 +20,18 @@ test_that("empty", {
     sp <- patch$species
     expect_true(is.list(sp))
     expect_equal(length(sp), 1)
-    expect_is(sp[[1]], sprintf("StochasticSpecies<%s,LightEnv>",x))
+    expect_is(sp[[1]], sprintf("StochasticSpecies<%s,FF16_Env>",x))
     expect_equal(sp[[1]]$size, 0)
   }
 })
 
 test_that("non empty", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "LightEnv")(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, "FF16_Env")(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE)
-    patch <- StochasticPatch(x, "LightEnv")(p)
-    cmp <- Plant(x, "LightEnv")(p$strategies[[1]])
+    patch <- StochasticPatch(x, "FF16_Env")(p)
+    cmp <- Plant(x, "FF16_Env")(p$strategies[[1]])
 
     expect_error(patch$add_seed(0), "Invalid value")
     expect_error(patch$add_seed(10), "out of bounds")

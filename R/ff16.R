@@ -11,57 +11,57 @@
 ##' pl <- FF16_Plant()
 ##' pl$height
 FF16_Plant <- function(s=FF16_Strategy()) {
-  Plant("FF16", "LightEnv")(s)
+  Plant("FF16", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_Cohort <- function(s=FF16_Strategy()) {
-  Cohort("FF16", "LightEnv")(s)
+  Cohort("FF16", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_Species <- function(s=FF16_Strategy()) {
-  Species("FF16", "LightEnv")(s)
+  Species("FF16", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname FF16
 ##' @param ... Arguments!
 FF16_Parameters <- function(...) {
-  Parameters("FF16","LightEnv")(...)
+  Parameters("FF16","FF16_Env")(...)
 }
 
 ##' @export
 ##' @rdname FF16
-##' @param p A \code{Parameters<FF16,LightEnv>} object
+##' @param p A \code{Parameters<FF16,FF16_Env>} object
 FF16_Patch <- function(p) {
-  Patch("FF16", "LightEnv")(p)
+  Patch("FF16", "FF16_Env")(p)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_SCM <- function(p) {
-  SCM("FF16", "LightEnv")(p)
+  SCM("FF16", "FF16_Env")(p)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_StochasticSpecies <- function(s=FF16_Strategy()) {
-  StochasticSpecies("FF16", "LightEnv")(s)
+  StochasticSpecies("FF16", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_StochasticPatch <- function(p) {
-  StochasticPatch("FF16", "LightEnv")(p)
+  StochasticPatch("FF16", "FF16_Env")(p)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_StochasticPatchRunner <- function(p) {
-  StochasticPatchRunner("FF16", "LightEnv")(p)
+  StochasticPatchRunner("FF16", "FF16_Env")(p)
 }
 
 # ##' @export
@@ -72,10 +72,10 @@ FF16_StochasticPatchRunner <- function(p) {
 
 ## Helper:
 ##' @export
-##' @rdname LightEnvironment
+##' @rdname FF16_Environment
 ##' @param p A Parameters object
 make_environment <- function(p) {
-  LightEnvironment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
+  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
 }
 
 ##' Hyperparameters for FF16 physiological model
