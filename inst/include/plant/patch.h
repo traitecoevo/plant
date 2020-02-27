@@ -216,7 +216,7 @@ void Patch<T,E>::r_set_state(double time,
 // ODE interface
 template <typename T, typename E>
 size_t Patch<T,E>::ode_size() const {
-  return ode::ode_size(species.begin(), species.end());
+  return ode::ode_size(species.begin(), species.end()) + environment.ode_size();
 }
 
 template <typename T, typename E>
@@ -228,6 +228,8 @@ template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                             double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
+  it = environment.set_ode_state(it);
+
   environment.time = time;
   if (parameters.control.environment_rescale_usually) {
     rescale_environment();
@@ -240,12 +242,16 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
 
 template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_state(ode::iterator it) const {
-  return ode::ode_state(species.begin(), species.end(), it);
+  it = ode::ode_state(species.begin(), species.end(), it);
+  it = environment.ode_state(it);
+  return it;
 }
 
 template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_rates(ode::iterator it) const {
-  return ode::ode_rates(species.begin(), species.end(), it);
+  it = ode::ode_rates(species.begin(), species.end(), it);
+  it = environment.ode_rates(it);
+  return it;
 }
 
 }

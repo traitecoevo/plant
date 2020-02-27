@@ -7,6 +7,7 @@
 #include <plant/interpolator.h>
 #include <plant/adaptive_interpolator.h>
 #include <plant/util.h>
+#include <plant/ode_interface.h>
 
 using namespace Rcpp;
 
@@ -31,6 +32,20 @@ public:
 
   // * R interface
   void r_set_seed_rain_index(util::index x);
+
+  // Dummy iterators: do nothing if the environment has no state. 
+  ode::iterator ode_state(ode::iterator it) const {
+    return it;
+  }
+  ode::const_iterator set_ode_state(ode::const_iterator it) {
+    return it;
+  }
+  ode::iterator ode_rates(ode::iterator it) const {
+    return it;
+  }
+  int ode_size() const {
+    return 0;
+  }
 
   double time;
   Disturbance disturbance_regime;

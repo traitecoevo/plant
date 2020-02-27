@@ -2,20 +2,6 @@
 
 namespace plant {
 
-FF16_Environment::FF16_Environment() {
-  time = 0.0;
-  disturbance_regime = 30;
-  seed_rain = { 1.0, 1.0, 1.0 };
-  seed_rain_index = 3;
-  environment_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
-  // Define an anonymous function to pass got the environment generator
-  environment_interpolator = environment_generator.construct(
-    [&](double height) {
-        return FF16_Environment::canopy_openness(height);
-    }, 30, 150.0);
-  k_I = 0.5;
-};
-
 void FF16_Environment::set_fixed_environment(double canopy_openness, double height_max) {
   std::vector<double> x = {0, height_max/2.0, height_max};
   std::vector<double> y = {canopy_openness, canopy_openness, canopy_openness};

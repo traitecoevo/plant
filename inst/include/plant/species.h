@@ -49,6 +49,16 @@ public:
     return cohorts[idx.check_bounds(size())];
   }
 
+  // Do this with set_ode_state, using an iterator?
+  /* double state(int i) const { return vars.state(i); } */
+  
+  /* double rate(int i) const { return vars.rate(i); } */
+
+  /* void set_state(int i, double v) { */
+  /*   vars.set_state(i, v); */
+  /* } */
+
+
   // These are used to determine the degree of cohort refinement.
   std::vector<double> r_competition_effects() const;
   std::vector<double> r_competition_effects_error(double scal) const;
