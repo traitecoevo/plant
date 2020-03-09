@@ -8,6 +8,7 @@
 #include <plant/adaptive_interpolator.h>
 #include <plant/environment.h>
 #include <plant/util.h>
+#include <Rcpp.h>
 
 using namespace Rcpp;
 
@@ -81,6 +82,15 @@ public:
 
   double k_I;
 };
+
+inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
+  using namespace Rcpp;
+  NumericMatrix xy = environment.environment_interpolator.r_get_xy();
+  Rcpp::CharacterVector colnames =
+    Rcpp::CharacterVector::create("height", "canopy_openness");
+  xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
+  return xy;
+}
 
 }
 

@@ -45,15 +45,6 @@ Rcpp::List get_state(const Patch<T,E>& patch) {
   return ret;
 }
 
-inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
-  using namespace Rcpp;
-  NumericMatrix xy = environment.environment_interpolator.r_get_xy();
-  Rcpp::CharacterVector colnames =
-    Rcpp::CharacterVector::create("height", "canopy_openness");
-  xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
-  return xy;
-}
-
 inline Rcpp::NumericMatrix get_state(const Environment environment) {
   using namespace Rcpp;
   NumericMatrix xy = environment.environment_interpolator.r_get_xy();
