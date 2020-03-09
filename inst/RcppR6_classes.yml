@@ -299,9 +299,8 @@ Plant:
     name_cpp: "plant::make_plant<T,E>"
     roxygen: |
       Plant object
-      @param T String containing class of plant to create; currently
-      must be \code{"FF16"}.  See \code{\link{FF16_Plant}} for more
-      details.
+      @param T String containing class of plant strategy to create;
+      @param E String containing class of environmnet to create;
       @export
   active:
     strategy: {type: "T", access: member, name_cpp: r_get_strategy}
@@ -331,13 +330,13 @@ Plant:
       args: [h: double]
       return_type: double
     compute_rates:
-      args: [environment: "const plant::FF16_Environment&"]
+      args: [environment: "const plant::Environment&"]
       return_type: void
     establishment_probability:
-      args: [environment: "const plant::FF16_Environment&"]
+      args: [environment: "const plant::Environment&"]
       return_type: double
     net_mass_production_dt:
-      args: [environment: "const plant::FF16_Environment&"]
+      args: [environment: "const plant::Environment&"]
       return_type: double
     reset_mortality:
       return_type: void
@@ -354,7 +353,7 @@ PlantRunner:
       # - ["FF16r": "plant::FF16r_Strategy"]
   constructor:
     name_cpp: "plant::tools::PlantRunner<T,E>"
-    args: [plant: "plant::Plant<T,E>", environment: "plant::FF16_Environment"]
+    args: [plant: "plant::Plant<T,E>", environment: "plant::Environment"]
   active:
     plant: {access: field, type: "plant::Plant<T,E>"}
 
@@ -497,13 +496,13 @@ Cohort:
     growth_rate_gradient:
       return_type: double
       name_cpp: "r_growth_rate_gradient"
-      args: [environment: "const plant::FF16_Environment&"]
+      args: [environment: "const plant::Environment&"]
     compute_rates:
       return_type: void
-      args: [environment: "const plant::FF16_Environment&"]
+      args: [environment: "const plant::Environment&"]
     compute_initial_conditions:
       return_type: void
-      args: [environment: "const plant::FF16_Environment&"]
+      args: [environment: "const plant::Environment&"]
 
 # For now, also not templated
 Species:
@@ -533,7 +532,7 @@ Species:
       return_type: void
     compute_rates:
       return_type: void
-      args: [environment: "const plant::FF16_Environment&"]
+      args: [environment: "const plant::Environment&"]
     compute_competition:
       return_type: double
       args: [height: double]
@@ -696,7 +695,7 @@ StochasticSpecies:
       return_type: void
     compute_rates:
       return_type: void
-      args: [environment: "const plant::FF16_Environment&"]
+      args: [environment: "const plant::Environment&"]
     compute_competition:
       return_type: double
       args: [height: double]
@@ -709,7 +708,7 @@ StochasticSpecies:
     deaths:
       return_type: size_t
     establishment_probability:
-      args: [environment: "const plant::FF16_Environment&"]
+      args: [environment: "const plant::Environment&"]
       return_type: double
 
 StochasticPatch:
@@ -726,7 +725,7 @@ StochasticPatch:
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
-    environment: {type: "plant::FF16_Environment", access: member, name_cpp: r_environment}
+    environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
