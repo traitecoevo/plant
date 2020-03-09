@@ -8,7 +8,7 @@
 #include <plant/internals.h> // quadrature::intervals_type
 #include <plant/strategy.h>
 #include <plant/models/ff16_environment.h>
-#include <plant/assimilation.h>
+#include <plant/models/assimilation.h>
 
 namespace plant {
 
