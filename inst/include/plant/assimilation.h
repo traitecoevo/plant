@@ -3,7 +3,7 @@
 #define PLANT_PLANT_ASSIMILATION_H_
 
 #include <memory>
-#include <plant/light_environment.h>
+#include <plant/models/ff16_environment.h>
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
 #include <plant/internals.h> // quadrature::intervals_type
