@@ -7,16 +7,10 @@
 #include <plant/qag_internals.h> // quadrature::intervals_type
 #include <plant/internals.h> // quadrature::intervals_type
 #include <plant/strategy.h>
+#include <plant/models/ff16_environment.h>
 #include <plant/assimilation.h>
-// #include <plant/plant_internals.h>
 
 namespace plant {
-
-// FF16_Environment needs Parameters to initialise and that needs Strategy,
-// so there's a really awkward circular reference here.  This forward
-// declaration breaks it, but there might be a better solution.
-class FF16_Environment;
-
 
 class FF16_Strategy: public Strategy<FF16_Environment> {
 public:

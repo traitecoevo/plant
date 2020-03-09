@@ -24,7 +24,6 @@
 
 // Specific models
 #include <plant/models/ff16_strategy.h>
-#include <plant/models/ff16_environment.h>
 
 // Getting more serious down here.
 #include <plant/plant.h>
