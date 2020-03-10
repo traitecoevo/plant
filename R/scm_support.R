@@ -6,7 +6,7 @@
 ##' @param base An optional \code{Control} object.  If omitted, the
 ##' defaults are used.
 fast_control <- function(base=Control()) {
-  base$environment_light_rescale_usually <- TRUE
+  base$environment_rescale_usually <- TRUE
   base$environment_light_tol <- 1e-4
 
   base$plant_assimilation_adaptive <- FALSE
@@ -54,8 +54,8 @@ equilibrium_quiet <- function(base=Control()) {
 ##' @author Rich FitzJohn
 ##' @export
 run_scm <- function(p, use_ode_times=FALSE) {
-  type <- extract_RcppR6_template_type(p, "Parameters")
-  scm <- SCM(type)(p)
+  types <- extract_RcppR6_template_types(p, "Parameters")
+  scm <- do.call('SCM', types)(p)
   if (use_ode_times) {
     scm$use_ode_times <- TRUE
   }
@@ -70,11 +70,11 @@ run_scm <- function(p, use_ode_times=FALSE) {
 ##' @author Rich FitzJohn
 ##' @param type Name of model (defaults to FF16 but any strategy name is valid).
 ##' @export
-scm_base_parameters <- function(type="FF16") {
+scm_base_parameters <- function(type="FF16", env="FF16_Env") {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
-  Parameters(type)(patch_area=1.0, control=ctrl, hyperpar=hyperpar(type))
+  Parameters(type, env)(patch_area=1.0, control=ctrl, hyperpar=hyperpar(type))
 }
 
 ##' Run the SCM model, given a Parameters and CohortSchedule
@@ -85,30 +85,30 @@ scm_base_parameters <- function(type="FF16") {
 ##'
 ##' @title Run the SCM, Collecting Output
 ##' @param p A \code{Parameters} object
-##' @param include_area_leaf Include total leaf area (will change; see
+##' @param include_competition_effect Include total leaf area (will change; see
 ##' issue #138)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, include_area_leaf=FALSE) {
+run_scm_collect <- function(p, include_competition_effect=FALSE) {
   collect_default <- function(scm) {
     scm$state
   }
-  collect_area_leaf <- function(scm) {
+  collect_competition_effect <- function(scm) {
     ret <- scm$state
-    area_leaf <- numeric(length(ret$species))
+    competition_effect <- numeric(length(ret$species))
     for (i in seq_along(ret$species)) {
       ## ret$species[[i]] <- rbind(
       ##   ret$species[[i]]
-      ##   area_leaf=c(scm$patch$species[[i]]$area_leafs, 0.0))
-      area_leaf[i] <- scm$patch$species[[i]]$area_leaf_above(0.0)
+      ##   competition_effect=c(scm$patch$species[[i]]$competition_effects, 0.0))
+      competition_effect[i] <- scm$patch$species[[i]]$compute_competition(0.0)
     }
-    ret$area_leaf <- area_leaf
+    ret$competition_effect <- competition_effect
     ret
   }
-  collect <- if (include_area_leaf) collect_area_leaf else collect_default
-  type <- extract_RcppR6_template_type(p, "Parameters")
-
-  scm <- SCM(type)(p)
+  collect <- if (include_competition_effect) collect_competition_effect else collect_default
+  types <- extract_RcppR6_template_types(p, "Parameters")
+  make_environment(p)
+  scm <- do.call('SCM', types)(p)
   res <- list(collect(scm))
 
   while (!scm$complete) {
@@ -117,7 +117,7 @@ run_scm_collect <- function(p, include_area_leaf=FALSE) {
   }
 
   time <- sapply(res, "[[", "time")
-  light_env <- lapply(res, "[[", "light_env")
+  env <- lapply(res, "[[", "env")
   species <- lapply(res, "[[", "species")
   ## The aperm() here means that dimensions are
   ## [variable,time,cohort], so that taking species[[1]]["height",,]
@@ -136,13 +136,13 @@ run_scm_collect <- function(p, include_area_leaf=FALSE) {
   patch_density <- scm$patch$environment$disturbance_regime$density(time)
 
   ret <- list(time=time, species=species,
-              light_env=light_env,
+              env=env,
               seed_rain=scm$seed_rains,
               patch_density=patch_density,
               p=p)
 
-  if (include_area_leaf) {
-    ret$area_leaf <- do.call("rbind", lapply(res, "[[", "area_leaf"))
+  if (include_competition_effect) {
+    ret$competition_effect <- do.call("rbind", lapply(res, "[[", "competition_effect"))
   }
 
   ret
@@ -154,10 +154,10 @@ run_scm_collect <- function(p, include_area_leaf=FALSE) {
 ##' @param p Parameters object
 ##' @export
 make_patch <- function(state, p) {
-  type <- extract_RcppR6_template_type(p, "Parameters")
+  types <- extract_RcppR6_template_types(p, "Parameters")
   n <- viapply(state$species, ncol)
-  patch <- Patch(type)(p)
-  patch$set_state(state$time, unlist(state$species), n, state$light_env)
+  patch <- do.call('Patch', types)(p)
+  patch$set_state(state$time, unlist(state$species), n, state$env)
   patch
 }
 
@@ -171,7 +171,7 @@ scm_state <- function(i, x) {
     el[, !is.na(el[1, ]), drop=FALSE]
   }
   list(time=x$time[[i]], species=lapply(x$species, f_sp),
-       light_env=x$light_env[[i]])
+       env=x$env[[i]])
 }
 
 ##' @export
@@ -181,8 +181,8 @@ scm_patch <- function(i, x) {
 }
 
 run_scm_error <- function(p) {
-  type <- extract_RcppR6_template_type(p, "Parameters")
-  scm <- SCM(type)(p)
+  types <- extract_RcppR6_template_types(p, "Parameters")
+  scm <- do.call('SCM', types)(p)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)
@@ -190,7 +190,7 @@ run_scm_error <- function(p) {
     added <- scm$run_next()
     for (idx in added) {
       lai_error[[idx]] <-
-        c(lai_error[[idx]], list(scm$area_leaf_error(idx)))
+        c(lai_error[[idx]], list(scm$competition_effect_error(idx)))
     }
   }
 

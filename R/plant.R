@@ -8,8 +8,8 @@
 ##' @param sizes A vector of sizes to grow the plant to (increasing in
 ##' size).
 ##' @param size_name The name of the size variable within
-##' \code{Plant$vars_phys} (e.g., height).
-##' @param env An \code{Environment} object.
+##' \code{Plant$rates} (e.g., height).
+##' @param env An \code{FF16_Environment} object.
 ##' @param time_max Time to run the ODE out for -- only exists to
 ##' prevent an infinite loop (say, on an unreachable size).
 ##' @param warn Warn if requesting a plant that is too large?
@@ -63,7 +63,7 @@ grow_plant_to_height <- function(plant, heights, env, ...) {
 ##' @title Grow a plant
 ##' @param plant A \code{Plant} object
 ##' @param times A vector of times
-##' @param env An \code{Environment} object
+##' @param env An \code{FF16_Environment} object
 ##' @export
 grow_plant_to_time <- function(plant, times, env) {
   if (any(times < 0.0)) {
@@ -80,8 +80,8 @@ grow_plant_to_time <- function(plant, times, env) {
   t_next <- times[[i]]
   strategy_name <- plant$strategy_name
 
-  pr1 <- PlantRunner(strategy_name)(plant, env)
-  pr2 <- PlantRunner(strategy_name)(plant, env)
+  pr1 <- PlantRunner(strategy_name, "FF16_Env")(plant, env)
+  pr2 <- PlantRunner(strategy_name, "FF16_Env")(plant, env)
 
   runner <- OdeRunner(strategy_name)(pr1)
   runner_detail <- OdeRunner(strategy_name)(pr2)
@@ -131,7 +131,7 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   # can we clarify?
   size_index <- (which(plant$ode_names == size_name) - 1)
 
-  runner <- OdeRunner(strategy_name)(PlantRunner(strategy_name)(plant, env))
+  runner <- OdeRunner(strategy_name)(PlantRunner(strategy_name, "FF16_Env")(plant, env))
   internals <- get_plant_internals_fun(runner$object$plant)
   i <- 1L
   n <- length(sizes)

@@ -8,9 +8,9 @@ for (x in names(strategy_types)) {
 
   test_that("Reference comparison", {
     s <- strategy_types[[x]]()
-    pl <- Plant(x)(s)
+    pl <- Plant(x,"FF16_Env")(s)
 
-    expect_is(pl, sprintf("Plant<%s>",x))
+    expect_is(pl, sprintf("Plant<%s,FF16_Env>",x))
     # expect_is(pp, sprintf("PlantPlus<%s>",x))
     # expect_identical(pp$strategy, s)
     expect_identical(pl$strategy, s)
@@ -48,8 +48,8 @@ for (x in names(strategy_types)) {
 
     expect_is(vars_pl, "Internals")
 
-    # variable_names <- c("area_leaf", "height", "mortality", "fecundity", "area_heartwood", "mass_heartwood")
-    # rate_names <- paste0(setdiff(variable_names, "area_leaf"), "_dt")
+    # variable_names <- c("competition_effect", "height", "mortality", "fecundity", "area_heartwood", "mass_heartwood")
+    # rate_names <- paste0(setdiff(variable_names, "competition_effect"), "_dt")
 
     # expect_true(all(c(variable_names, rate_names) %in% names(vars_pl)))
 
@@ -57,8 +57,8 @@ for (x in names(strategy_types)) {
     env <- test_environment(h0)
     light_env <- attr(env, "light_env") # underlying function
 
-    pl$compute_vars_phys(env)
-    # pp$compute_vars_phys(env)
+    pl$compute_rates(env)
+    # pp$compute_rates(env)
 
     # vars_pp <- pp$internals
     vars_pl <- pl$internals
@@ -68,11 +68,11 @@ for (x in names(strategy_types)) {
 
     ## Area_leaf_above
     # for (h in seq(0, h0, length.out=10)) {
-    #   expect_identical(pl$area_leaf_above(h), pp$area_leaf_above(h))
+    #   expect_identical(pl$compute_competition(h), pp$compute_competition(h))
     # }
 
     ## Germination_probability
-    # expect_identical(pl$germination_probability(env), pp$germination_probability(env))
+    # expect_identical(pl$establishment_probability(env), pp$establishment_probability(env))
 
     ## ode_system
     # expect_identical(pl$ode_size, 5)
@@ -88,7 +88,7 @@ for (x in names(strategy_types)) {
   test_that("stochastic support", {
 
     s <- strategy_types[[x]]()
-    p <- Plant(x)(s)
+    p <- Plant(x,"FF16_Env")(s)
 
     expect_equal(p$state("mortality"), 0.0)
     expect_equal(p$mortality_probability, 0.0)
@@ -105,3 +105,28 @@ for (x in names(strategy_types)) {
   })
 
 }
+
+
+test_that("lcp_whole_plant", {
+  for (x in names(strategy_types)) {
+    ## R implementation:
+    lcp_whole_plant_R <- function(plant, ...) {
+      target <- function(canopy_openness) {
+        env <- fixed_environment(canopy_openness)
+        plant$compute_rates(env)
+        plant$aux("net_mass_production_dt")
+      }
+
+      f1 <- target(1)
+      if (f1 < 0.0) {
+        NA_real_
+      } else {
+        uniroot(target, c(0, 1), f.upper=f1, ...)$root
+      }
+    }
+
+    p <- Plant(x, "FF16_Env")(strategy_types[[x]]())
+    # skip("Comparison no longer evaluate the nesting is too deep")
+    expect_equal(p$lcp_whole_plant(), lcp_whole_plant_R(p), tolerance=1e-5)
+  }
+})

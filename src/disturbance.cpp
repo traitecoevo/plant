@@ -11,6 +11,13 @@ Disturbance::Disturbance(double mean_interval_)
   p0 = shape*pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);
 }
 
+Disturbance::Disturbance()
+  : shape(2.0),
+    mean_interval(1.0) {
+  scale = pow(R::gammafn(1.0/shape)/shape/mean_interval, shape);
+  p0 = shape*pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);
+}
+
 double Disturbance::density(double time) const {
   return p0 * pr_survival(time);
 }

@@ -5,28 +5,28 @@ strategy_types <- get_list_of_strategy_types()
 test_that("Ported from tree1", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
-    plant <- Plant(x)(s)
-    cohort <- Cohort(x)(s)
+    plant <- Plant(x, "FF16_Env")(s)
+    cohort <- Cohort(x, "FF16_Env")(s)
 
-    p <- Parameters(x)(strategies=list(s),
+    p <- Parameters(x, "FF16_Env")(strategies=list(s),
                           seed_rain=pi/2,
                           patch_area=10,
                           is_resident=TRUE)
 
-    expect_error(scm <- SCM(x)(p), "Patch area must be exactly 1 for the SCM")
+    expect_error(scm <- SCM(x, "FF16_Env")(p), "Patch area must be exactly 1 for the SCM")
 
     p$patch_area <- 1.0
-    scm <- SCM(x)(p)
-    expect_is(scm, sprintf("SCM<%s>", x))
+    scm <- SCM(x, "FF16_Env")(p)
+    expect_is(scm, sprintf("SCM<%s,FF16_Env>", x))
 
     ## NOTE: I'm not sure where these are only equal and not identical.
     expect_equal(scm$parameters, p)
 
     ## Check that the underlying Patch really is a Patch<CohortTop>:
-    expect_is(scm$patch, sprintf("Patch<%s>", x))
+    expect_is(scm$patch, sprintf("Patch<%s,FF16_Env>", x))
     expect_equal(length(scm$patch$species), 1)
-    expect_is(scm$patch$species[[1]], sprintf("Species<%s>",x))
-    expect_is(scm$patch$species[[1]]$seed, sprintf("Cohort<%s>",x))
+    expect_is(scm$patch$species[[1]], sprintf("Species<%s,FF16_Env>",x))
+    expect_is(scm$patch$species[[1]]$seed, sprintf("Cohort<%s,FF16_Env>",x))
     expect_identical(scm$patch$time, 0.0)
 
     sched <- scm$cohort_schedule
@@ -64,7 +64,7 @@ test_that("Ported from tree1", {
     ## to make those work).
     i <- scm$run_next()
 
-    ode_size <- Cohort(x)(strategy_types[[x]]())$ode_size
+    ode_size <- Cohort(x, "FF16_Env")(strategy_types[[x]]())$ode_size
 
     expect_equal(scm$cohort_schedule$remaining, length(t) - 1)
     expect_false(scm$complete)
@@ -101,7 +101,7 @@ test_that("Ported from tree1", {
     ## It's *not* the ODE system thrashing (thankfully) because the
     ## number of ODE times reported are not that bad.
     ##
-    ## 50.1% in growth_rate_gradient(), and 45.4% in compute_vars_phys()
+    ## 50.1% in growth_rate_gradient(), and 45.4% in compute_rates()
     ## and 2.8% in initial_conditions() (so that's 98.3%) total.
     ## growth_rate_gradient and initial_conditions spend *all* their
     ## time doing growth_rate_gradient(), in turn all in
@@ -159,13 +159,12 @@ test_that("Ported from tree1", {
 })
 
 test_that("schedule setting", {
-  for (x in names(strategy_types)) {
-    p <- Parameters(x)(
+  for (x in names(strategy_types)) { p <- Parameters(x, "FF16_Env")(
       strategies=list(strategy_types[[x]]()),
       seed_rain=pi/2,
       is_resident=TRUE,
       cohort_schedule_max_time=5.0)
-    scm <- SCM(x)(p)
+    scm <- SCM(x, "FF16_Env")(p)
 
     ## Then set a cohort schedule:
     ## Build a schedule for 14 introductions from t=0 to t=5
@@ -186,7 +185,7 @@ test_that("schedule setting", {
     expect_identical(sched2$max_time, sched$max_time)
     expect_identical(sched2$all_times, list(t))
 
-    scm2 <- SCM(x)(p2)
+    scm2 <- SCM(x, "FF16_Env")(p2)
     expect_identical(scm2$cohort_schedule$max_time, sched2$max_time)
     expect_identical(scm2$cohort_schedule$all_times, sched2$all_times)
   }
@@ -207,8 +206,8 @@ test_that("schedule setting", {
 
   ##   expect_equal(scm2$state, scm$state)
   ##   ## Emergent things:
-  ##   expect_equal(scm2$patch$environment$light_environment$xy,
-  ##                scm$patch$environment$light_environment$xy)
+  ##   expect_equal(scm2$patch$environment$environment_interpolator$xy,
+  ##                scm$patch$environment$environment_interpolator$xy)
   ##   expect_equal(scm2$ode_state, scm$ode_state)
   ##   expect_equal(scm2$ode_rates, scm$ode_rates)
   ##   # TODO: This needs implementing; requires get/set of the ODE solver
@@ -236,7 +235,7 @@ test_that("Seed rain & error calculations correct", {
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, FALSE)
 
     scm <- run_scm(p1)
-    expect_is(scm, sprintf("SCM<%s>", x))
+    expect_is(scm, sprintf("SCM<%s,FF16_Env>", x))
 
     seed_rain_R <- function(scm, error=FALSE) {
       a <- scm$cohort_schedule$times(1)
@@ -254,8 +253,8 @@ test_that("Seed rain & error calculations correct", {
     expect_equal(scm$seed_rain_error[[1]], seed_rain_R(scm, error=TRUE))
 
     lae_cmp <-
-      scm$patch$species[[1]]$area_leafs_error(scm$patch$area_leaf_above(0))
-    expect_identical(scm$area_leaf_error(1), lae_cmp)
+      scm$patch$species[[1]]$competition_effects_error(scm$patch$compute_competition(0))
+    expect_identical(scm$competition_effect_error(1), lae_cmp)
 
     int <- make_scm_integrate(scm)
     S_D <- scm$parameters$strategies[[1]]$S_D
@@ -273,12 +272,13 @@ test_that("Seed rain & error calculations correct", {
 
 test_that("Can create empty SCM", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x)()
-    scm <- SCM(x)(p)
+    p <- Parameters(x, "FF16_Env")()
+    scm <- SCM(x, "FF16_Env")(p)
 
     ## Check light environment is empty:
     env <- scm$patch$environment
-    expect_equal(env$light_environment$size, 0)
+    patch <- scm$patch
+    expect_equal(env$environment_interpolator$size, 0)
     expect_equal(env$canopy_openness(0), 1.0)
   }
 })

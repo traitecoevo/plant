@@ -18,16 +18,15 @@
 #include <plant/environment.h>
 
 #include <plant/control.h>
-#include <plant/ff16_strategy.h>
+#include <plant/strategy.h>
 #include <plant/parameters.h>
 #include <plant/cohort_schedule.h>
 
-// new physiology
-// #include <plant/ff16r_strategy.h>
+// Specific models
+#include <plant/models/ff16_strategy.h>
 
 // Getting more serious down here.
 #include <plant/plant.h>
-// #include <plant/plant_plus.h>
 #include <plant/internals.h>
 
 #include <plant/cohort.h>

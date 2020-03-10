@@ -6,22 +6,22 @@ test_that("empty", {
   for (x in names(strategy_types)) {
     env <- test_environment(3, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x)(s)
+    sp <- StochasticSpecies(x, "FF16_Env")(s)
 
-    expect_is(sp, sprintf("StochasticSpecies<%s>",x))
+    expect_is(sp, sprintf("StochasticSpecies<%s,FF16_Env>",x))
     expect_equal(sp$size, 0)
     expect_equal(sp$size_plants, 0)
 
     seed <- sp$seed
     expect_is(seed, "Plant")
-    expect_is(seed, sprintf("Plant<%s>",x))
+    expect_is(seed, sprintf("Plant<%s,FF16_Env>",x))
 
     expect_equal(sp$heights, numeric(0))
     expect_equal(sp$height_max, 0.0)
     expect_identical(sp$species, NULL)
     expect_equal(sp$plants, list())
     expect_equal(sp$is_alive, logical())
-    expect_equal(sp$area_leaf_above(0), 0.0)
+    expect_equal(sp$compute_competition(0), 0.0)
     expect_equal(sp$ode_size, 0)
     expect_identical(sp$ode_state, numeric(0))
     expect_identical(sp$ode_rates, numeric(0))
@@ -32,8 +32,8 @@ test_that("Single individual", {
   for (x in names(strategy_types)) {
     env <- test_environment(3, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x)(s)
-    p <- Plant(x)(s)
+    sp <- StochasticSpecies(x, "FF16_Env")(s)
+    p <- Plant(x, "FF16_Env")(s)
 
     sp$add_seed()
 
@@ -45,8 +45,8 @@ test_that("Single individual", {
     expect_equal(sp$ode_rates, rep(NA_real_, p$ode_size))
     expect_equal(sp$is_alive, TRUE)
 
-    sp$compute_vars_phys(env)
-    p$compute_vars_phys(env)
+    sp$compute_rates(env)
+    p$compute_rates(env)
     expect_equal(sp$ode_rates, p$ode_rates)
 
     if (x == "FF16") {
@@ -69,7 +69,7 @@ test_that("Multiple individuals", {
     h <- 10
     env <- test_environment(h, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x)(s)
+    sp <- StochasticSpecies(x, "FF16_Env")(s)
     n <- 10
     for (i in seq_len(n)) {
       sp$add_seed()
@@ -127,13 +127,13 @@ test_that("Multiple individuals", {
   }
 })
 
-test_that("germination probability", {
+test_that("establishment probability", {
   for (x in names(strategy_types)) {
     env <- test_environment(3, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x)(s)
-    p <- Plant(x)(s)
+    sp <- StochasticSpecies(x, "FF16_Env")(s)
+    p <- Plant(x, "FF16_Env")(s)
 
-    expect_equal(sp$germination_probability(env), p$germination_probability(env))
+    expect_equal(sp$establishment_probability(env), p$establishment_probability(env))
   }
 })

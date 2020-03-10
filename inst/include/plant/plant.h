@@ -6,13 +6,15 @@
 #include <plant/ode_interface.h>
 #include <vector>
 #include <plant/internals.h>
+#include <plant/uniroot.h>
 
 
 namespace plant {
 
-template <typename T> class Plant {
+template <typename T, typename E> class Plant {
 public:
   typedef T strategy_type;
+  typedef E environment_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   // for the time being...
   Plant(strategy_type_ptr s) : strategy(s) {
@@ -52,22 +54,22 @@ public:
   }
   double aux(int i) const { return vars.aux(i); } 
 
-  double area_leaf_above(double z) const {
-    return strategy->area_leaf_above(z, state(HEIGHT_INDEX), 0.0); // aux("area_leaf"));
+  double compute_competition(double z) const {
+    return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));
   }
 
-  void compute_vars_phys(const Environment &environment,
+  void compute_rates(const environment_type &environment,
                          bool reuse_intervals = false) {
-    strategy->compute_vars_phys(environment, reuse_intervals, vars);
+    strategy->compute_rates(environment, reuse_intervals, vars);
   }
   
-  double germination_probability(const Environment &environment) {
-    return strategy->germination_probability(environment);
+  double establishment_probability(const environment_type &environment) {
+    return strategy->establishment_probability(environment);
   }
 
-  double net_mass_production_dt(const Environment &environment) {
+  double net_mass_production_dt(const environment_type &environment) {
     // TODO:  maybe reuse intervals? default false 
-    return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("area_leaf"));
+    return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("competition_effect"));
   }
 
   // * ODE interface
@@ -96,17 +98,48 @@ public:
     }
     return it;
   }
-  // Optional, but useful
+
+  // Single individual methods
 
   // Used in the stochastic model:
   double mortality_probability() const { return 1 - exp(-state(MORTALITY_INDEX)); }
   
   void reset_mortality() { set_state("mortality", 0.0); }
 
+  // TODO: Eventually change to growth rate given size
+  double growth_rate_given_height(double height, const environment_type& environment) {
+    set_state("height", height);
+    compute_rates(environment, true);
+    return rate("height");
+  }
+
+  // TODO recame lcp_whole_plant to competition_compensation_point
+  double lcp_whole_plant() {
+    environment_type env = environment_type();
+
+    auto target = [&] (double x) mutable -> double {
+      env.set_fixed_environment(x);
+      compute_rates(env);
+      return net_mass_production_dt(env);
+    };
+
+    const double f1 = target(1.0);
+    if (f1 < 0.0) {
+      return NA_REAL;
+    } else {
+      const double tol = control().plant_seed_tol;
+      const size_t max_iterations = control().plant_seed_iterations;
+      return util::uniroot(target, 0.0, 1.0, tol, max_iterations);
+    }
+  }
+
+
+
   std::string strategy_name() const { return strategy->name; }
 
   // * R interface
   strategy_type r_get_strategy() const { return *strategy.get(); }
+
   // ! External R code depends on knowing r internals for like growing plant to
   // ! height or something
   Internals r_internals() const { return vars; }
@@ -117,8 +150,8 @@ private:
   Internals vars;
 };
 
-template <typename T> Plant<T> make_plant(T s) {
-  return Plant<T>(make_strategy_ptr(s));
+template <typename T, typename E> Plant<T,E> make_plant(T s) {
+  return Plant<T,E>(make_strategy_ptr(s));
 }
 
 } // namespace plant

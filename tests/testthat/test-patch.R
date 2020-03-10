@@ -10,38 +10,38 @@ for (x in names(strategy_types)) {
     ## is_resident vectors must be the right length.
 
     s <- strategy_types[[x]]()
-    plant <- Plant(x)(s)
-    cohort <- Cohort(x)(s)
+    plant <- Plant(x, "FF16_Env")(s)
+    cohort <- Cohort(x, "FF16_Env")(s)
 
-    p <- Parameters(x)(strategies=list(s),
+    p <- Parameters(x, "FF16_Env")(strategies=list(s),
                           seed_rain=pi/2,
                           is_resident=TRUE)
 
-    patch <- Patch(x)(p)
-    cmp <- Cohort(x)(p$strategies[[1]])
+    patch <- Patch(x, "FF16_Env")(p)
+    cmp <- Cohort(x, "FF16_Env")(p$strategies[[1]])
 
     expect_equal(patch$size, 1)
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
 
-    expect_is(patch$environment, "Environment")
+    expect_is(patch$environment, "FF16_Environment")
     expect_identical(patch$environment$time, 0.0)
 
     expect_equal(length(patch$species), 1)
-    expect_is(patch$species[[1]], sprintf("Species<%s>",x))
+    expect_is(patch$species[[1]], sprintf("Species<%s,FF16_Env>",x))
 
     expect_equal(patch$ode_size, 0)
     expect_identical(patch$ode_state, numeric(0))
     expect_identical(patch$ode_rates, numeric(0))
 
     ## Empty light environment:
-    patch$compute_light_environment()
-    expect_identical(patch$area_leaf_above(0), 0)
+    patch$compute_environment()
+    expect_identical(patch$compute_competition(0), 0)
 
     expect_error(patch$add_seed(0), "Invalid value")
     expect_error(patch$add_seed(2), "out of bounds")
 
-    ode_size <- Cohort(x)(s)$ode_size
+    ode_size <- Cohort(x, "FF16_Env")(s)$ode_size
     patch$add_seed(1)
     expect_equal(patch$ode_size, ode_size)
 
@@ -82,7 +82,7 @@ for (x in names(strategy_types)) {
     ## see if it makes any sense at all.
     ## if (interactive()) {
     ##   plot(t, h, type="l")
-    ##   plot(patch$environment$light_environment$xy, type="l")
+    ##   plot(patch$environment$environment_interpolator$xy, type="l")
     ## }
 
     ## patch$reset()
@@ -123,7 +123,7 @@ for (x in names(strategy_types)) {
     ##       solver <- solver_from_ode_target(patch, ode.control)
     ##     }
     ##   }
-    ##   patch$compute_vars_phys() # require because we just added seed
+    ##   patch$compute_rates() # require because we just added seed
     ##   state <- patch$state
 
     ##   patch2 <- new(PatchCohortTop, patch$parameters)
@@ -132,7 +132,7 @@ for (x in names(strategy_types)) {
     ##   expect_identical(patch2$state, state)
 
     ##   ## Check some things that depend on state make sense:
-    ##   expect_identical(patch2$environment$light_environment$xy)
+    ##   expect_identical(patch2$environment$environment_interpolator$xy)
     ##   expect_identical(patch2$time, patch$time)
     ##   expect_identical(patch2$ode_state, patch$ode_state)
     ##   expect_identical(patch2$height, patch$state("height"))

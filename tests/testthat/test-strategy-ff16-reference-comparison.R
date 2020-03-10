@@ -42,8 +42,8 @@ test_that("Reference comparison", {
   p$set_state("height", h0)
 
   expect_identical(p$state("height"), h0)
-  # testing set auxillary state as well as area_leaf depends on height only
-  expect_equal(p$aux("area_leaf"), cmp$LeafArea(h0))
+  # testing set auxillary state as well as area_leaf/competition_effect depends on height only
+  expect_equal(p$aux("competition_effect"), cmp$LeafArea(h0))
   # expect_equal(p$state("mass_leaf"), cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0)))
   # expect_equal(p$state("mass_sapwood"), cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0))
   # expect_equal(p$state("mass_bark"), cmp$BarkMass(cmp$traits$rho, cmp$LeafArea(h0), h0))
@@ -82,8 +82,8 @@ test_that("Reference comparison", {
   ## through with environment.  Most are NA_real_, but some are not
 
   ## Compute the physiological variables and retrieve them.
-  p$compute_vars_phys(env)
-#  p$compute_vars_growth() # NOTE: Compute immediately *after* vars_phys
+  p$compute_rates(env)
+#  p$compute_vars_growth() # NOTE: Compute immediately *after* rates
 
   ## 1. Assimilation:
   cmp_assimilation_plant <- cmp$assimilation.plant(h0, light_env)
@@ -139,8 +139,8 @@ test_that("Reference comparison", {
   # expect_equal(vars[["dmass_root_darea_leaf"]], cmp_dmass_root_darea_leaf)
 
   ## 13. Leaf area growth rate
-  cmp_area_leaf_dt <- cmp$area_leaf_dt(cmp$traits, h0, light_env)
-  # expect_equal(p$rate("area_leaf"), cmp_area_leaf_dt, tolerance=1e-7)
+  cmp_area_leaf_dt <- cmp$competition_effect_dt(cmp$traits, h0, light_env)
+  # expect_equal(p$rate("competition_effect"), cmp_area_leaf_dt, tolerance=1e-7)
 
   ## 14. sapwood area growth rate
   cmp_area_sapwood_dt <- cmp$area_sapwood_dt(cmp$traits, h0, light_env)

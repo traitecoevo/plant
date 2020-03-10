@@ -17,7 +17,7 @@ namespace plant {
 // first.  We'll see.
 
 // The main difference between this and the deterministic version is that:
-// * don't use Cohort<T> for storage
+// * don't use Cohort<T,E> for storage
 // * support for non-deterministic deaths
 // * stochastic birth survival (?)
 
@@ -32,11 +32,12 @@ namespace plant {
 // It's possible that this could all be done by some sort of base
 // class, or via a composition, but that's not going to happen super
 // quickly.
-template <typename T>
+template <typename T, typename E>
 class StochasticSpecies {
 public:
   typedef T         strategy_type;
-  typedef Plant<T>  plant_type;
+  typedef E         environment_type;
+  typedef Plant<T,E>  plant_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   StochasticSpecies(strategy_type s);
 
@@ -44,18 +45,18 @@ public:
   size_t size_plants() const {return plants.size();}
   void clear();
   void add_seed();
-  void add_seed(const Environment& environment);
+  void add_seed(const E& environment);
 
   double height_max() const;
-  double area_leaf_above(double height) const;
-  void compute_vars_phys(const Environment& environment);
+  double compute_competition(double height) const;
+  void compute_rates(const E& environment);
   std::vector<double> seeds() const;
 
   // This is totally new, relative to the deterministic model; this
   // will destructively modify the species by removing individuals.
   size_t deaths();
-  double germination_probability(const Environment& environment) {
-    return seed.germination_probability(environment);
+  double establishment_probability(const E& environment) {
+    return seed.establishment_probability(environment);
   }
 
   // * ODE interface
@@ -85,46 +86,46 @@ private:
   std::vector<bool>       is_alive;
 };
 
-template <typename T>
-StochasticSpecies<T>::StochasticSpecies(strategy_type s)
+template <typename T, typename E>
+StochasticSpecies<T,E>::StochasticSpecies(strategy_type s)
   : strategy(make_strategy_ptr(s)),
     seed(strategy) {
 }
 
-template <typename T>
-size_t StochasticSpecies<T>::size() const {
+template <typename T, typename E>
+size_t StochasticSpecies<T,E>::size() const {
   // number of _alive_ plants.
   return std::count(is_alive.begin(), is_alive.end(), true);
 }
 
-template <typename T>
-void StochasticSpecies<T>::clear() {
+template <typename T, typename E>
+void StochasticSpecies<T,E>::clear() {
   plants.clear();
   is_alive.clear();
   // Reset the seed to a blank seed, too.
   seed = plant_type(strategy);
 }
 
-// Note that this does not do germination probability; suggest that
+// Note that this does not do establishment probability; suggest that
 // this is best to do in the StochasticPatch perhaps?
-template <typename T>
-void StochasticSpecies<T>::add_seed() {
+template <typename T, typename E>
+void StochasticSpecies<T,E>::add_seed() {
   plants.push_back(seed);
   is_alive.push_back(true);
 }
 
-template <typename T>
-void StochasticSpecies<T>::add_seed(const Environment& environment) {
+template <typename T, typename E>
+void StochasticSpecies<T,E>::add_seed(const E& environment) {
   add_seed();
-  plants.back().compute_vars_phys(environment);
+  plants.back().compute_rates(environment);
 }
 
 
 // If a species contains no individuals, we return zero
 // (c.f. Species).  Otherwise we return the height of the largest
 // individual (always the first in the list).
-template <typename T>
-double StochasticSpecies<T>::height_max() const {
+template <typename T, typename E>
+double StochasticSpecies<T,E>::height_max() const {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       return plants[i].state(HEIGHT_INDEX);
@@ -148,8 +149,8 @@ double StochasticSpecies<T>::height_max() const {
 // single plant (needed to be the second half of the trapezium) and
 // also needed if the last looked at plant was still contributing to
 // the integral).
-template <typename T>
-double StochasticSpecies<T>::area_leaf_above(double height) const {
+template <typename T, typename E>
+double StochasticSpecies<T,E>::compute_competition(double height) const {
   if (size() == 0 || height_max() < height) {
     return 0.0;
   }
@@ -159,7 +160,7 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       if (plants[i].state(HEIGHT_INDEX) > height) {
-        tot += plants[i].area_leaf_above(height);
+        tot += plants[i].compute_competition(height);
       } else {
         break;
       }
@@ -170,18 +171,18 @@ double StochasticSpecies<T>::area_leaf_above(double height) const {
 
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
-template <typename T>
-void StochasticSpecies<T>::compute_vars_phys(const Environment& environment) {
+template <typename T, typename E>
+void StochasticSpecies<T,E>::compute_rates(const E& environment) {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
-      plants[i].compute_vars_phys(environment);
+      plants[i].compute_rates(environment);
     }
   }
 }
 
 // TODO: This is going to change...
-template <typename T>
-std::vector<double> StochasticSpecies<T>::seeds() const {
+template <typename T, typename E>
+std::vector<double> StochasticSpecies<T,E>::seeds() const {
   std::vector<double> ret;
   ret.reserve(size());
   // I don't think that this is quite right; is it fecundity that we
@@ -196,8 +197,8 @@ std::vector<double> StochasticSpecies<T>::seeds() const {
   return ret;
 }
 
-template <typename T>
-size_t StochasticSpecies<T>::deaths() {
+template <typename T, typename E>
+size_t StochasticSpecies<T,E>::deaths() {
   size_t died = 0;
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
@@ -213,13 +214,13 @@ size_t StochasticSpecies<T>::deaths() {
 }
 
 
-template <typename T>
-size_t StochasticSpecies<T>::ode_size() const {
+template <typename T, typename E>
+size_t StochasticSpecies<T,E>::ode_size() const {
   return size() * plant_type::ode_size();
 }
 
-template <typename T>
-ode::const_iterator StochasticSpecies<T>::set_ode_state(ode::const_iterator it) {
+template <typename T, typename E>
+ode::const_iterator StochasticSpecies<T,E>::set_ode_state(ode::const_iterator it) {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       it = plants[i].set_ode_state(it);
@@ -228,8 +229,8 @@ ode::const_iterator StochasticSpecies<T>::set_ode_state(ode::const_iterator it) 
   return it;
 }
 
-template <typename T>
-ode::iterator StochasticSpecies<T>::ode_state(ode::iterator it) const {
+template <typename T, typename E>
+ode::iterator StochasticSpecies<T,E>::ode_state(ode::iterator it) const {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       it = plants[i].ode_state(it);
@@ -238,8 +239,8 @@ ode::iterator StochasticSpecies<T>::ode_state(ode::iterator it) const {
   return it;
 }
 
-template <typename T>
-ode::iterator StochasticSpecies<T>::ode_rates(ode::iterator it) const {
+template <typename T, typename E>
+ode::iterator StochasticSpecies<T,E>::ode_rates(ode::iterator it) const {
   for (size_t i = 0; i < size_plants(); ++i) {
     if (is_alive[i]) {
       it = plants[i].ode_rates(it);
@@ -249,8 +250,8 @@ ode::iterator StochasticSpecies<T>::ode_rates(ode::iterator it) const {
 }
 
 
-template <typename T>
-std::vector<double> StochasticSpecies<T>::r_heights() const {
+template <typename T, typename E>
+std::vector<double> StochasticSpecies<T,E>::r_heights() const {
   std::vector<double> ret;
   ret.reserve(size());
   // TODO: also simplify r_heights for Species?
@@ -262,8 +263,8 @@ std::vector<double> StochasticSpecies<T>::r_heights() const {
   return ret;
 }
 
-template <typename T>
-void StochasticSpecies<T>::r_set_heights(std::vector<double> heights) {
+template <typename T, typename E>
+void StochasticSpecies<T,E>::r_set_heights(std::vector<double> heights) {
   util::check_length(heights.size(), size());
   if (!util::is_decreasing(heights.begin(), heights.end())) {
     util::stop("height must be decreasing (ties allowed)");

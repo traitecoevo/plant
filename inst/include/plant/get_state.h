@@ -14,16 +14,16 @@ namespace plant {
 // about that though as it revolves pretty closely around Rcpp types
 // and is kind of separate to the rest of the model.  It won't matter
 // though; if it does move in then we just adjust the yml.
-template <typename T>
-Rcpp::NumericMatrix::iterator get_state(const Cohort<T>& cohort,
+template <typename T, typename E>
+Rcpp::NumericMatrix::iterator get_state(const Cohort<T,E>& cohort,
                                         Rcpp::NumericMatrix::iterator it) {
   std::vector<double> tmp = ode::r_ode_state(cohort);
   return std::copy(tmp.begin(), tmp.end(), it);
 }
 
-template <typename T>
-Rcpp::NumericMatrix get_state(const Species<T>& species) {
-  typedef Cohort<T> cohort_type;
+template <typename T, typename E>
+Rcpp::NumericMatrix get_state(const Species<T,E>& species) {
+  typedef Cohort<T,E> cohort_type;
   size_t ode_size = cohort_type::ode_size(), np = species.size();
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np + 1); // +1 is seed
   Rcpp::NumericMatrix::iterator it = ret.begin();
@@ -36,8 +36,8 @@ Rcpp::NumericMatrix get_state(const Species<T>& species) {
   return ret;
 }
 
-template <typename T>
-Rcpp::List get_state(const Patch<T>& patch) {
+template <typename T, typename E>
+Rcpp::List get_state(const Patch<T,E>& patch) {
   Rcpp::List ret;
   for (size_t i = 0; i < patch.size(); ++i) {
     ret.push_back(get_state(patch.at(i)));
@@ -47,35 +47,35 @@ Rcpp::List get_state(const Patch<T>& patch) {
 
 inline Rcpp::NumericMatrix get_state(const Environment environment) {
   using namespace Rcpp;
-  NumericMatrix xy = environment.light_environment.r_get_xy();
+  NumericMatrix xy = environment.environment_interpolator.r_get_xy();
   Rcpp::CharacterVector colnames =
     Rcpp::CharacterVector::create("height", "canopy_openness");
   xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
   return xy;
 }
 
-template <typename T>
-Rcpp::List get_state(const SCM<T>& scm) {
+template <typename T, typename E>
+Rcpp::List get_state(const SCM<T,E>& scm) {
   using namespace Rcpp;
-  const Patch<T>& patch = scm.r_patch();
+  const Patch<T,E>& patch = scm.r_patch();
   return List::create(_["time"] = scm.time(),
                       _["species"] = get_state(patch),
-                      _["light_env"] = get_state(patch.r_environment()));
+                      _["env"] = get_state(patch.r_environment()));
 }
 
 // stochastic model:
-template <typename T>
-Rcpp::NumericMatrix::iterator get_state(const Plant<T>& plant,
+template <typename T, typename E>
+Rcpp::NumericMatrix::iterator get_state(const Plant<T,E>& plant,
                                         Rcpp::NumericMatrix::iterator it) {
-  // TODO: this should work (also up in get_state(Cohort<T>, ...)).
+  // TODO: this should work (also up in get_state(Cohort<T,E>, ...)).
   // return plant.ode_state(it);
   std::vector<double> tmp = ode::r_ode_state(plant);
   return std::copy(tmp.begin(), tmp.end(), it);
 }
 
-template <typename T>
-Rcpp::NumericMatrix get_state(const StochasticSpecies<T>& species) {
-  typedef Plant<T> plant_type;
+template <typename T, typename E>
+Rcpp::NumericMatrix get_state(const StochasticSpecies<T,E>& species) {
+  typedef Plant<T,E> plant_type;
   size_t ode_size = plant_type::ode_size(), np = species.size_plants();
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np);
 
@@ -89,8 +89,8 @@ Rcpp::NumericMatrix get_state(const StochasticSpecies<T>& species) {
   return ret;
 }
 
-template <typename T>
-Rcpp::List get_state(const StochasticPatch<T>& patch) {
+template <typename T, typename E>
+Rcpp::List get_state(const StochasticPatch<T,E>& patch) {
   Rcpp::List ret;
   for (size_t i = 0; i < patch.size(); ++i) {
     ret.push_back(get_state(patch.at(i)));
@@ -98,13 +98,13 @@ Rcpp::List get_state(const StochasticPatch<T>& patch) {
   return ret;
 }
 
-template <typename T>
-Rcpp::List get_state(const StochasticPatchRunner<T>& obj) {
+template <typename T, typename E>
+Rcpp::List get_state(const StochasticPatchRunner<T,E>& obj) {
   using namespace Rcpp;
-  const StochasticPatch<T>& patch = obj.r_patch();
+  const StochasticPatch<T,E>& patch = obj.r_patch();
   return List::create(_["time"] = obj.time(),
                       _["species"] = get_state(patch),
-                      _["light_env"] = get_state(patch.r_environment()));
+                      _["env"] = get_state(patch.r_environment()));
 };
 
 }

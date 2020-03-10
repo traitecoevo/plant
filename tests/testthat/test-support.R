@@ -5,7 +5,7 @@ test_that("Some support functions", {
   expect_is(equilibrium_verbose(), "Control")
   expect_is(equilibrium_quiet(), "Control")
   p <- scm_base_parameters()
-  expect_is(p, "Parameters<FF16>")
+  expect_is(p, "Parameters<FF16,FF16_Env>")
   cmp <- equilibrium_verbose(fast_control())
   cmp$schedule_eps <- 0.005
   cmp$equilibrium_eps <- 1e-3
@@ -13,7 +13,7 @@ test_that("Some support functions", {
 })
 
 test_that("assembly_parameters", {
-  expect_is(assembly_parameters(), "Parameters<FF16>")
+  expect_is(assembly_parameters(), "Parameters<FF16,FF16_Env>")
 
   ## Modify some things:
   p <- assembly_parameters(B_kl2=2)
