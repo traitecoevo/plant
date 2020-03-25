@@ -24,15 +24,14 @@ struct Parameters {
   typedef T strategy_type;
   typedef E environment_type;
 
-  Parameters()
+  Parameters(SEXP hyperpar = R_NilValue)
     : k_I(0.5),
       patch_area(1.0),
       n_patches(1),
       disturbance_mean_interval(30),
       cohort_schedule_max_time(NA_REAL),
-      // TODO : remove this coupling to FF16
-      hyperpar(util::get_from_package("FF16_hyperpar")) {
-      validate();
+      hyperpar(hyperpar) {
+        validate();
   }
 
   // Data -- public for now (see github issue #17).
