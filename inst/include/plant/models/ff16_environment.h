@@ -49,7 +49,7 @@ public:
   // TODO: move these to Environment 
   template <typename Function>
   void compute_environment(Function f_compute_competition,
-                                              double height_max) {
+                           double height_max) {
     const double lower_bound = 0.0;
     double upper_bound = height_max;
 

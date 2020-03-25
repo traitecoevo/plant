@@ -226,7 +226,7 @@ public:
 
   std::string name;
 
-  Assimilation assimilator;
+  Assimilation<FF16_Environment> assimilator;
 
   // Translate generic methods to FF16 strategy leaf area methods
 
