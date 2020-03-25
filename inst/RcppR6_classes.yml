@@ -444,6 +444,8 @@ Parameters:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       # - ["FF16r": "plant::FF16r_Strategy"]
+  constructor:
+    args: [hyperpar: "SEXP"]
   # TODO: This is broken:
   # roxygen: |
   #   Strategy parameters that tune various aspects of the biological model.

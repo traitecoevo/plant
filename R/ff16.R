@@ -29,8 +29,8 @@ FF16_Species <- function(s=FF16_Strategy()) {
 ##' @export
 ##' @rdname FF16
 ##' @param ... Arguments!
-FF16_Parameters <- function(...) {
-  Parameters("FF16","FF16_Env")(...)
+FF16_Parameters <- function() {
+  Parameters("FF16","FF16_Env")(hyperpar=FF16_hyperpar)
 }
 
 ##' @export
