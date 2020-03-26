@@ -12,7 +12,7 @@
 
 namespace plant {
 
-class FF16_Strategy: public Strategy<FF16_Environment> {
+class Light_Strategy: public Strategy<FF16_Environment> {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();

@@ -1,21 +1,24 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_FF16_STRATEGY_H_
-#define PLANT_PLANT_FF16_STRATEGY_H_
+#ifndef PLANT_PLANT_WATER_STRATEGY_H_
+#define PLANT_PLANT_WATER_STRATEGY_H_
 
 #include <memory>
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
+#include <plant/uniroot.h>
+#include <plant/qag.h>
+#include <RcppCommon.h> // NA_REAL
 #include <plant/internals.h> // quadrature::intervals_type
 #include <plant/strategy.h>
-#include <plant/models/ff16_environment.h>
+#include <plant/models/water_environment.h>
 #include <plant/models/assimilation.h>
 
 namespace plant {
 
-class FF16_Strategy: public Strategy<FF16_Environment> {
+class Water_Strategy: public Strategy<Water_Environment> {
 public:
-  typedef std::shared_ptr<FF16_Strategy> ptr;
-  FF16_Strategy();
+  typedef std::shared_ptr<Water_Strategy> ptr;
+  Water_Strategy();
 
   // Overrides ----------------------------------------------
 
@@ -38,6 +41,7 @@ public:
     std::vector<std::string> ret({
       "competition_effect",
       "net_mass_production_dt"
+      "water_use_dt"
     });
     // add the associated computation to compute_rates and compute there
     if (collect_all_auxillary) {
@@ -46,7 +50,7 @@ public:
     return ret;
   }
 
-  // Translate generic methods to FF16 strategy leaf area methods
+  // Translate generic methods to Water strategy leaf area methods
 
   double competition_effect(double height) const {
     return area_leaf(height);
@@ -60,10 +64,16 @@ public:
     return area_leaf_above(z, height);
   }
 
+
+  void compute_rates(const Water_Environment& environment, bool reuse_intervals,
+                Internals& vars);
+
+  void update_dependent_aux(const int index, Internals& vars);
+
   void refresh_indices();
 
 
-  // FF16 Methods  ----------------------------------------------
+  // Water Methods ----------------------------------------------
 
   // [eqn 2] area_leaf (inverse of [eqn 3])
   double area_leaf(double height) const;
@@ -97,12 +107,6 @@ public:
                            double mass_sapwood, double mass_root) const;
 
 
-  void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
-                Internals& vars);
-
-  void update_dependent_aux(const int index, Internals& vars);
-
-
   // [eqn 13] Total maintenance respiration
   double respiration(double mass_leaf, double mass_sapwood,
                      double mass_bark, double mass_root) const;
@@ -123,7 +127,7 @@ public:
   // [eqn 15] Net production
   double net_mass_production_dt_A(double assimilation, double respiration,
                                   double turnover) const;
-  double net_mass_production_dt(const FF16_Environment& environment,
+  double net_mass_production_dt(const Water_Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals=false);
 
@@ -179,7 +183,7 @@ public:
   double mortality_growth_independent_dt()const ;
   double mortality_growth_dependent_dt(double productivity_area) const;
   // [eqn 20] Survival of seedlings during establishment
-  double establishment_probability(const FF16_Environment& environment);
+  double establishment_probability(const Water_Environment& environment);
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
@@ -190,11 +194,11 @@ public:
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
 
-  // Set constants within FF16_Strategy
+  // Set constants within Water_Strategy
   void prepare_strategy();
 
   // Previously there was an "integrator" here.  I'm going to stick
-  // that into Control or FF16_Environment instead.
+  // that into Control or Water_Environment instead.
 
   // * Core traits
   double lma, rho, hmat, omega;
@@ -245,12 +249,8 @@ public:
 
   std::string name;
 
-  Assimilation<FF16_Environment> assimilator;
-
-  
+  Assimilation<Water_Environment> assimilator;
 };
-
-FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);
 
 }
 

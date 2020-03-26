@@ -206,6 +206,7 @@ template <typename T, typename E>
 ode::iterator Species<T,E>::ode_rates(ode::iterator it) const {
   return ode::ode_rates(cohorts.begin(), cohorts.end(), it);
 }
+//double sum_aux(int index) {}
 
 
 template <typename T, typename E>
