@@ -474,68 +474,6 @@ double Interpolator__max__get(plant::RcppR6::RcppR6<plant::interpolator::Interpo
 
 
 // [[Rcpp::export]]
-plant::FF16_Environment FF16_Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, double k_I, plant::Control control) {
-  return plant::FF16_Environment(disturbance_mean_interval, seed_rain, k_I, control);
-}
-// [[Rcpp::export]]
-double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
-  return obj_->canopy_openness(height);
-}
-// [[Rcpp::export]]
-double FF16_Environment__patch_survival_conditional(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double time_at_birth) {
-  return obj_->patch_survival_conditional(time_at_birth);
-}
-// [[Rcpp::export]]
-void FF16_Environment__clear(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  obj_->clear();
-}
-// [[Rcpp::export]]
-void FF16_Environment__set_seed_rain_index(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::util::index x) {
-  obj_->r_set_seed_rain_index(x);
-}
-// [[Rcpp::export]]
-void FF16_Environment__set_fixed_environment(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value, double height_max) {
-  obj_->set_fixed_environment(value, height_max);
-}
-// [[Rcpp::export]]
-double FF16_Environment__patch_survival__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->patch_survival();
-}
-
-// [[Rcpp::export]]
-double FF16_Environment__seed_rain_dt__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->seed_rain_dt();
-}
-
-// [[Rcpp::export]]
-plant::Disturbance FF16_Environment__disturbance_regime__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->disturbance_regime;
-}
-// [[Rcpp::export]]
-void FF16_Environment__disturbance_regime__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Disturbance value) {
-  obj_->disturbance_regime = value;
-}
-
-// [[Rcpp::export]]
-double FF16_Environment__time__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->time;
-}
-// [[Rcpp::export]]
-void FF16_Environment__time__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value) {
-  obj_->time = value;
-}
-
-// [[Rcpp::export]]
-plant::interpolator::Interpolator FF16_Environment__environment_interpolator__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->environment_interpolator;
-}
-// [[Rcpp::export]]
-void FF16_Environment__environment_interpolator__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::interpolator::Interpolator value) {
-  obj_->environment_interpolator = value;
-}
-
-
-// [[Rcpp::export]]
 plant::Plant<plant::FF16_Strategy,plant::FF16_Environment> Plant___FF16__FF16_Env__ctor(plant::FF16_Strategy s) {
   return plant::make_plant<plant::FF16_Strategy,plant::FF16_Environment>(s);
 }
@@ -645,12 +583,6 @@ plant::Plant<plant::FF16_Strategy,plant::FF16_Environment> PlantRunner___FF16__F
 // [[Rcpp::export]]
 void PlantRunner___FF16__FF16_Env__plant__set(plant::RcppR6::RcppR6<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::Plant<plant::FF16_Strategy,plant::FF16_Environment> value) {
   obj_->plant = value;
-}
-
-
-// [[Rcpp::export]]
-SEXP FF16_Strategy__ctor() {
-  return Rcpp::wrap(plant::FF16_Strategy());
 }
 
 
@@ -1325,6 +1257,74 @@ void StochasticPatchRunner___FF16__FF16_Env__schedule__set(plant::RcppR6::RcppR6
 // [[Rcpp::export]]
 Rcpp::List StochasticPatchRunner___FF16__FF16_Env__state__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return plant::get_state(*obj_);
+}
+
+
+// [[Rcpp::export]]
+SEXP FF16_Strategy__ctor() {
+  return Rcpp::wrap(plant::FF16_Strategy());
+}
+
+
+// [[Rcpp::export]]
+plant::FF16_Environment FF16_Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, double k_I, plant::Control control) {
+  return plant::FF16_Environment(disturbance_mean_interval, seed_rain, k_I, control);
+}
+// [[Rcpp::export]]
+double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
+  return obj_->canopy_openness(height);
+}
+// [[Rcpp::export]]
+double FF16_Environment__patch_survival_conditional(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double time_at_birth) {
+  return obj_->patch_survival_conditional(time_at_birth);
+}
+// [[Rcpp::export]]
+void FF16_Environment__clear(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  obj_->clear();
+}
+// [[Rcpp::export]]
+void FF16_Environment__set_seed_rain_index(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::util::index x) {
+  obj_->r_set_seed_rain_index(x);
+}
+// [[Rcpp::export]]
+void FF16_Environment__set_fixed_environment(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value, double height_max) {
+  obj_->set_fixed_environment(value, height_max);
+}
+// [[Rcpp::export]]
+double FF16_Environment__patch_survival__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->patch_survival();
+}
+
+// [[Rcpp::export]]
+double FF16_Environment__seed_rain_dt__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->seed_rain_dt();
+}
+
+// [[Rcpp::export]]
+plant::Disturbance FF16_Environment__disturbance_regime__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->disturbance_regime;
+}
+// [[Rcpp::export]]
+void FF16_Environment__disturbance_regime__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Disturbance value) {
+  obj_->disturbance_regime = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Environment__time__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->time;
+}
+// [[Rcpp::export]]
+void FF16_Environment__time__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value) {
+  obj_->time = value;
+}
+
+// [[Rcpp::export]]
+plant::interpolator::Interpolator FF16_Environment__environment_interpolator__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->environment_interpolator;
+}
+// [[Rcpp::export]]
+void FF16_Environment__environment_interpolator__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::interpolator::Interpolator value) {
+  obj_->environment_interpolator = value;
 }
 
 
