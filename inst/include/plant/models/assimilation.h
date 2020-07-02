@@ -3,13 +3,14 @@
 #define PLANT_PLANT_ASSIMILATION_H_
 
 #include <memory>
-#include <plant/models/ff16_environment.h>
+#include <plant/environment.h>
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
 #include <plant/internals.h> // quadrature::intervals_type
 
 namespace plant {
 
+template <typename E>
 class Assimilation {
   public:
 
@@ -27,8 +28,8 @@ class Assimilation {
   //
   // NOTE: In contrast with Daniel's implementation (but following
   // Falster 2012), we do not normalise by a_y*a_bio here.
-  double assimilate(Control& control, 
-                    const FF16_Environment& environment,
+  double assimilate(Control& control,
+                    const E& environment,
                     double height,
                     double area_leaf,
                     bool reuse_intervals
@@ -63,7 +64,7 @@ class Assimilation {
   // [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
   // where `z` is height.
   /* double compute_assimilation_x(Control control, double x, double height, */
-  /*                                      const FF16_Environment& environment) const { */
+  /*                                      const E& environment) const { */
   /*   if (control.plant_assimilation_over_distribution) { */
   /*     return compute_assimilation_p(x, height, environment); */
   /*   } else { */
@@ -72,13 +73,13 @@ class Assimilation {
   /* } */
 
   double compute_assimilation_h(double z, double height,
-                                       const FF16_Environment& environment) const {
-    return assimilation_leaf(environment.canopy_openness(z)) * q(z, height);
+                                       const E& environment) const {
+    return assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height);
   }
 
   double compute_assimilation_p(double p, double height,
-                                const FF16_Environment& environment) const {
-    return assimilation_leaf(environment.canopy_openness(Qp(p, height)));
+                                const E& environment) const {
+    return assimilation_leaf(environment.get_environment_at_height(Qp(p, height)));
   }
 
   // [Appendix S6] Per-leaf photosynthetic rate.

@@ -41,6 +41,7 @@ public:
     set_fixed_environment(value, height_max);
   }
 
+  void compute_rates() {}
 
   // Dummy iterators: do nothing if the environment has no state. 
   ode::iterator ode_state(ode::iterator it) const { return it; }

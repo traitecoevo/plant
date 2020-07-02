@@ -32,8 +32,8 @@ public:
   std::vector<double> auxs;
 
   double state(int i) const { return states[i]; }
-  double  rate(int i) const { return rates[i]; }
-  double  aux(int i) const { return auxs[i]; }
+  double rate(int i) const { return rates[i]; }
+  double aux(int i) const { return auxs[i]; }
 
   void set_state(int i, double v) { states[i] = v; }
   void set_rate(int i, double v) { rates[i] = v; }
