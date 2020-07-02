@@ -433,8 +433,8 @@ FF16_Environment__set_seed_rain_index <- function(obj_, x) {
     invisible(.Call('_plant_FF16_Environment__set_seed_rain_index', PACKAGE = 'plant', obj_, x))
 }
 
-FF16_Environment__set_fixed_environment <- function(obj_, canopy_openness, height_max) {
-    invisible(.Call('_plant_FF16_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, canopy_openness, height_max))
+FF16_Environment__set_fixed_environment <- function(obj_, value, height_max) {
+    invisible(.Call('_plant_FF16_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
 }
 
 FF16_Environment__patch_survival__get <- function(obj_) {
