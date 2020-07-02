@@ -14,6 +14,14 @@ FF16_Plant <- function(s=FF16_Strategy()) {
   Plant("FF16", "FF16_Env")(s)
 }
 
+#' Compute the whole plant light compensation point for a single
+#' plant with FF16 strategy. Called via general function in plant.R
+##' @export
+##' @rdname FF16
+`lcp_whole_plant.Plant<FF16>` <- function(p, ...) {
+  FF16_lcp_whole_plant(p, ...)
+}
+
 ##' @export
 ##' @rdname FF16
 FF16_Cohort <- function(s=FF16_Strategy()) {

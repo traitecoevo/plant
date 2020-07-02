@@ -64,20 +64,33 @@ update_classes_yml <- function (name, strategy) {
   update_file(file, name, f) -> r6_templates
 
   # add the strategy
-
-  start_point <- which(grepl(paste0("^", strategy, "_Strategy"), r6_templates))[1]
-  candidates <- which(grepl("^$", r6_templates)) # get blank lines
-  candidates <- candidates - start_point
-  entry <- start_point +  min(candidates <- candidates[ candidates > 0])
+  str_start <- which(grepl(paste0("^", strategy, "_Strategy"), r6_templates))[1]
+  str_candidates <- which(grepl("^$", r6_templates)) # get blank lines
+  str_candidates <- str_candidates - str_start
+  str_entry <- str_start + min(str_candidates <- str_candidates[str_candidates > 0])
 
   # grab the parts of the yaml strategy that we will copy and replace
   yml_strategy <- c(
     paste('# The following strategy was built from', strategy, 'on', date()),
-    lapply(r6_templates[start_point:entry], function (x) {
+    lapply(r6_templates[str_start:str_entry], function (x) {
       gsub(strategy, name, x)
   }))
 
-  append_to_file(file, yml_strategy, entry, FALSE)
+  # add the environment
+  env_start <- which(grepl(paste0("^", strategy, "_Environment"), r6_templates))[1]
+  env_candidates <- which(grepl("^$", r6_templates)) # get blank lines
+  env_candidates <- env_candidates - env_start
+  env_entry <- env_start + min(env_candidates <- env_candidates[env_candidates > 0])
+  
+  # grab the parts of the yaml strategy that we will copy and replace
+  yml_environment <- c(
+    paste('# The following environment was built from', strategy, 'on', date()),
+    lapply(r6_templates[env_start:env_entry], function (x) {
+      gsub(strategy, name, x)
+    }))
+
+  append_to_file(file, yml_strategy, str_entry, FALSE)
+  append_to_file(file, yml_environment, env_entry, FALSE)
 }
 
 # updates src/plant_tools.cpp
@@ -85,7 +98,7 @@ update_plant_tools <- function (name) {
   whisker.render("
 // [[Rcpp::export]]
 plant::Internals {{name}}_oderunner_plant_internals(
-  const plant::ode::Runner<plant::tools::PlantRunner<plant::{{name}}_Strategy,plant::{{name}}_Environment>>& obj) {
+  const plant::ode::Runner<plant::tools::PlantRunner<plant::{{name}}_Strategy, plant::{{name}}_Environment>>& obj) {
   return obj.obj.plant.r_internals();
 }
 
@@ -109,29 +122,19 @@ update_plant <- function (name) {
   update_file("inst/include/plant.h", name, f)
 }
 
-update_plant_r <- function (name) {
-  t1 <- whisker.render(
-    "# The following two functions were added by the scaffolder in
-# /scripts/strategy_scaffolder/new_strategy.R", list(name=name))
-  t2 <- whisker.render("##' @export
-`lcp_whole_plant.Plant<{{name}}>` <- function(p, ...) {
-  {{name}}_lcp_whole_plant(p, ...)
-}", list(name=name))
-
-  # add both t1 and t2 at the end of the file
-  append_to_file("R/plant.R", list(t1, t2), 5)
-}
-
 # Updates helper-plant's list of strategies
 update_test_helper <- function(name) {
   t1 <- whisker.render("    {{name}}={{name}}_Strategy,", list(name=name))
-  t2 <- whisker.render("    {{name}}={{name}}_hyperpar,", list(name=name))
-
+  t2 <- whisker.render("    {{name}}={{name}}_Environment,", list(name=name))
+  t3 <- whisker.render("    {{name}}={{name}}_hyperpar,", list(name=name))
+  
+  
   # add the extra templates below the FF16 ones
   f <- function(x) {
           switch(x, 
             "    FF16=FF16_Strategy)"=c(t1, x),
-            "    FF16=FF16_hyperpar)"=c(t2, x),
+            "    FF16=FF16_Environment)"=c(t2, x),
+            "    FF16=FF16_hyperpar)"=c(t3, x),
             x)
         }
   update_file("tests/testthat/helper-plant.R", name, f)
@@ -200,7 +203,6 @@ create_strategy_scaffold <- function(name, template="FF16") {
   update_classes_yml(name, template)
   update_plant(name)
   update_plant_tools(name)
-  update_plant_r(name)
   update_test_helper(name)
   update_scm_support(name)
 }
