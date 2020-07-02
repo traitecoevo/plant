@@ -84,9 +84,9 @@ private:
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p)
   : parameters(p),
-    is_resident(p.is_resident),
-    environment(p.environment) {
+    is_resident(p.is_resident) {
   parameters.validate();
+  environment = p.environment;
   for (auto s : parameters.strategies) {
     species.push_back(Species<T,E>(s));
   }

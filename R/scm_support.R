@@ -74,7 +74,7 @@ scm_base_parameters <- function(type="FF16", env="FF16_Env") {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
-  Parameters(type, env)(patch_area=1.0, control=ctrl, hyperpar=hyperpar(type))
+  Parameters(type, env)(patch_area=1.0, control=ctrl)
 }
 
 ##' Run the SCM model, given a Parameters and CohortSchedule
@@ -107,7 +107,6 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
   }
   collect <- if (include_competition_effect) collect_competition_effect else collect_default
   types <- extract_RcppR6_template_types(p, "Parameters")
-  make_environment(p)
   scm <- do.call('SCM', types)(p)
   res <- list(collect(scm))
 
@@ -207,29 +206,6 @@ run_scm_error <- function(p) {
        ode_times=scm$ode_times)
 }
 
-##' Set a suitable hyperparameter function for chosen physiological model
-##' @title Hyperparameters for FF16 physiological model
-##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
-##' @rdname Hyperparameter_functions
-##' @export
-# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
-make_hyperpar <- function(type) {
-  switch(type,
-         FF16=make_FF16_hyperpar,
-         FF16r=make_FF16_hyperpar,
-         stop("Unknown type ", type))
-}
-
-##' @rdname Hyperparameter_functions
-##' @export
-# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
-hyperpar <- function(type) {
-  switch(type,
-         FF16=FF16_hyperpar,
-         FF16r=FF16_hyperpar,
-         stop("Unknown type ", type))
-}
-
 ##' Helper function for creating parameter objects suitable for an
 ##' assembly.
 ##' @title Helper function for creating parameter objects
@@ -239,7 +215,7 @@ hyperpar <- function(type) {
 ##' @param make_hyperpar_fn Function for creating hyperparameterisation (default make_FF16_hyperpar)
 ##' @export
 assembly_parameters <- function(..., pars=NULL, base_parameters_fn = scm_base_parameters,
-                                  make_hyperpar_fn = make_FF16_hyperpar) {
+                                make_hyperpar_fn = make_FF16_hyperpar) {
 
   p <- base_parameters_fn()
 
@@ -268,7 +244,7 @@ assembly_parameters <- function(..., pars=NULL, base_parameters_fn = scm_base_pa
     }
 
     nms_hyper <- intersect(names(pars), names(formals(make_hyperpar_fn)))
-    p$hyperpar <- do.call("make_hyperpar_fn", pars[nms_hyper])
+   # p$hyperpar <- do.call("make_hyperpar_fn", pars[nms_hyper])
     p                  <- modify_list(p,                  pars)
     p$control          <- modify_list(p$control,          pars)
     p$strategy_default <- modify_list(p$strategy_default, pars)

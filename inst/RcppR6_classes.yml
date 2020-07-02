@@ -358,8 +358,6 @@ Internals:
 
 Parameters:
   name_cpp: "plant::Parameters<T,E>"
-  constructor:
-    args: [hyperpar: "SEXP"]
   templates:
     parameters: [T, E]
     concrete:
@@ -387,7 +385,6 @@ Parameters:
     - cohort_schedule_times_default: "std::vector<double>"
     - cohort_schedule_times: "std::vector<std::vector<double> >"
     - cohort_schedule_ode_times: "std::vector<double>"
-    - hyperpar: SEXP
 
 Cohort:
   name_cpp: "plant::Cohort<T,E>"

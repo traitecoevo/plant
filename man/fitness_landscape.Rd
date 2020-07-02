@@ -4,7 +4,7 @@
 \alias{fitness_landscape}
 \title{Fitness Landscape}
 \usage{
-fitness_landscape(trait_matrix, p, raw_seed_rain = FALSE)
+fitness_landscape(trait_matrix, p, hyperpar, raw_seed_rain = FALSE)
 }
 \arguments{
 \item{trait_matrix}{A matrix of traits corresponding to mutants to

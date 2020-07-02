@@ -57,7 +57,7 @@ test_that("Default schedule", {
 test_that("strategy_list", {
   for (x in names(strategy_types)) {
     p <- Parameters(x, "FF16_Env")()
-    s <- strategy_list(trait_matrix(1, "lma"), p)
+    s <- strategy_list(trait_matrix(1, "lma"), p, make_FF16_hyperpar())
     expect_equal(length(s), 1)
     expect_is(s, "list")
     expect_is(s[[1]], sprintf("%s_Strategy", x))
@@ -68,7 +68,7 @@ test_that("plant_list", {
   for (x in names(strategy_types)) {
     p <- Parameters(x, "FF16_Env")()
 
-    obj <- plant_list(trait_matrix(1, "lma"), p)
+    obj <- plant_list(trait_matrix(1, "lma"), p, make_FF16_hyperpar())
     expect_equal(length(obj), 1)
     expect_is(obj, "list")
     expect_is(obj[[1]], "Plant")

@@ -17,9 +17,7 @@ test_that("assembly_parameters", {
 
   ## Modify some things:
   p <- assembly_parameters(B_kl2=2)
-  expect_equal(environment(p$hyperpar)$B_kl2, 2)
   p <- assembly_parameters(B_kl2=2, a_bio=pi)
-  expect_equal(environment(p$hyperpar)$B_kl2, 2)
   expect_equal(p$strategy_default$a_bio, pi)
 
   expect_error(p2 <- assembly_parameters(list(B_kl2=2, a_bio=pi)), "named")

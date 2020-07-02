@@ -18,7 +18,7 @@ public:
   // update this when the length of state_names changes
   static size_t state_size ();
   // update this when the length of aux_names changes
-  size_t aux_size () { return aux_names().size(); }
+  size_t aux_size ();
 
   static std::vector<std::string> state_names();
 
