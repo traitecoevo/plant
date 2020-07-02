@@ -7,9 +7,9 @@
 Plant(T, E)
 }
 \arguments{
-\item{T}{String containing class of plant to create; currently
-must be \code{"FF16"}.  See \code{\link{FF16_Plant}} for more
-details.}
+\item{T}{String containing class of plant strategy to create;}
+
+\item{E}{String containing class of environmnet to create;}
 }
 \description{
 Plant object

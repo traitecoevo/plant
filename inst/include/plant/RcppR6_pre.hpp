@@ -47,14 +47,10 @@ template <> SEXP wrap(const plant::quadrature::QAG&);
 template <> plant::quadrature::QAG as(SEXP);
 template <> SEXP wrap(const plant::interpolator::Interpolator&);
 template <> plant::interpolator::Interpolator as(SEXP);
-template <> SEXP wrap(const plant::FF16_Environment&);
-template <> plant::FF16_Environment as(SEXP);
 template <> SEXP wrap(const plant::Plant<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::Plant<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 template <> SEXP wrap(const plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
-template <> SEXP wrap(const plant::FF16_Strategy&);
-template <> plant::FF16_Strategy as(SEXP);
 template <> SEXP wrap(const plant::Internals&);
 template <> plant::Internals as(SEXP);
 template <> SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>&);
@@ -73,6 +69,10 @@ template <> SEXP wrap(const plant::StochasticPatch<plant::FF16_Strategy,plant::F
 template <> plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 template <> SEXP wrap(const plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
+template <> SEXP wrap(const plant::FF16_Strategy&);
+template <> plant::FF16_Strategy as(SEXP);
+template <> SEXP wrap(const plant::FF16_Environment&);
+template <> plant::FF16_Environment as(SEXP);
 }
 
 #endif
