@@ -189,6 +189,7 @@ scaffold_files <- function (new_name, strategy, test = FALSE) {
     paste0('R/', tolower(strategy), '.R'),
     paste0('src/', tolower(strategy), '_strategy.cpp'),
     paste0('inst/include/plant/models/', tolower(strategy), '_strategy.h'),
+    paste0('inst/include/plant/models/', tolower(strategy), '_environment.h'),
     paste0('tests/testthat/test-strategy-', tolower(strategy), '.R')
   )
   for (file in files) {
