@@ -55,10 +55,10 @@ update_classes_yml <- function (name, strategy) {
   # add the extra templates below the FF16 ones
   f <- function(x) {
       switch(x,
-      "      - [\"FF16\": \"plant::FF16_Strategy\"]"=c(x, whisker.render(
-      "      - [\"{{name}}\": \"plant::{{name}}_Strategy\"]", list(name=name))),
-      "      - [\"FF16\": \"plant::tools::PlantRunner<plant::FF16_Strategy>\"]"=c(x,whisker.render(
-      "      - [\"{{name}}\": \"plant::tools::PlantRunner<plant::{{name}}_Strategy>\"]", list(name=name))),
+      "      - [\"FF16\": \"plant::FF16_Strategy\", \"FF16_Env\": \"plant::FF16_Environment\"]" = c( x, whisker.render(
+      "      - [\"{{name}}\": \"plant::{{name}}_Strategy\", \"{{name}}_Env\": \"plant::{{name}}_Environment\"]", list(name=name))),
+      "      - [\"FF16\": \"plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment>\"]"=c(x,whisker.render(
+      "      - [\"{{name}}\": \"plant::tools::PlantRunner<plant::{{name}}_Strategy,plant::{{name}}_Environment>\"]", list(name=name))),
       x)
     }
   update_file(file, name, f) -> r6_templates
@@ -84,15 +84,11 @@ update_classes_yml <- function (name, strategy) {
 update_plant_tools <- function (name) {
   whisker.render("
 // [[Rcpp::export]]
-double {{name}}_lcp_whole_plant(plant::Plant<plant::{{name}}_Strategy> p) {
-  return plant::tools::lcp_whole_plant(p);
-}
-// [[Rcpp::export]]
-plant::Internals
-{{name}}_oderunner_plant_internals(
-  const plant::ode::Runner<plant::tools::PlantRunner<plant::{{name}}_Strategy>>& obj) {
+plant::Internals {{name}}_oderunner_plant_internals(
+  const plant::ode::Runner<plant::tools::PlantRunner<plant::{{name}}_Strategy,plant::{{name}}_Environment>>& obj) {
   return obj.obj.plant.r_internals();
 }
+
 ", list(name=name)) -> debt
 
   append_to_file("src/plant_tools.cpp", debt, 1)
@@ -103,9 +99,9 @@ update_plant <- function (name) {
 
   # add the extra templates below the FF16 ones
   f <- function(x) {
-      if(x != "#include <plant/ff16_strategy.h>") return(x)
+      if(x != "#include <plant/models/ff16_strategy.h>") return(x)
       c(x, 
-        whisker.render("#include <plant/{{name}}_strategy.h>",
+        whisker.render("#include <plant/models/{{name}}_strategy.h>",
           list(name=tolower(name))
         ))
     }
@@ -189,7 +185,7 @@ scaffold_files <- function (new_name, strategy, test = FALSE) {
   files <- c(
     paste0('R/', tolower(strategy), '.R'),
     paste0('src/', tolower(strategy), '_strategy.cpp'),
-    paste0('inst/include/plant/', tolower(strategy), '_strategy.h'),
+    paste0('inst/include/plant/models/', tolower(strategy), '_strategy.h'),
     paste0('tests/testthat/test-strategy-', tolower(strategy), '.R')
   )
   for (file in files) {
