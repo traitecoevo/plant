@@ -57,8 +57,8 @@ update_classes_yml <- function (name, strategy) {
       switch(x,
       "      - [\"FF16\": \"plant::FF16_Strategy\", \"FF16_Env\": \"plant::FF16_Environment\"]" = c( x, whisker.render(
       "      - [\"{{name}}\": \"plant::{{name}}_Strategy\", \"{{name}}_Env\": \"plant::{{name}}_Environment\"]", list(name=name))),
-      "      - [\"FF16\": \"plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment>\"]"=c(x,whisker.render(
-      "      - [\"{{name}}\": \"plant::tools::PlantRunner<plant::{{name}}_Strategy,plant::{{name}}_Environment>\"]", list(name=name))),
+      "      - [\"FF16\": \"plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment>\"]"=c(x,whisker.render(
+      "      - [\"{{name}}\": \"plant::tools::PlantRunner<plant::{{name}}_Strategy, plant::{{name}}_Environment>\"]", list(name=name))),
       x)
     }
   update_file(file, name, f) -> r6_templates
@@ -71,7 +71,7 @@ update_classes_yml <- function (name, strategy) {
 
   # grab the parts of the yaml strategy that we will copy and replace
   yml_strategy <- c(
-    paste('# The following strategy was built from', strategy, 'on', date()),
+    paste('\n# The following strategy was built from', strategy, 'on', date()),
     lapply(r6_templates[str_start:str_entry], function (x) {
       gsub(strategy, name, x)
   }))
@@ -84,13 +84,12 @@ update_classes_yml <- function (name, strategy) {
   
   # grab the parts of the yaml strategy that we will copy and replace
   yml_environment <- c(
-    paste('# The following environment was built from', strategy, 'on', date()),
+    paste('\n# The following environment was built from', strategy, 'on', date()),
     lapply(r6_templates[env_start:env_entry], function (x) {
       gsub(strategy, name, x)
     }))
 
-  append_to_file(file, yml_strategy, str_entry, FALSE)
-  append_to_file(file, yml_environment, env_entry, FALSE)
+  append_to_file(file, c(yml_strategy, yml_environment), env_entry, FALSE)
 }
 
 # updates src/plant_tools.cpp

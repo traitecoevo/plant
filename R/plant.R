@@ -80,8 +80,8 @@ grow_plant_to_time <- function(plant, times, env) {
   t_next <- times[[i]]
   strategy_name <- plant$strategy_name
 
-  pr1 <- PlantRunner(strategy_name, "FF16_Env")(plant, env)
-  pr2 <- PlantRunner(strategy_name, "FF16_Env")(plant, env)
+  pr1 <- PlantRunner(strategy_name, sprintf("%s_Env", strategy_name))(plant, env)
+  pr2 <- PlantRunner(strategy_name, sprintf("%s_Env", strategy_name))(plant, env)
 
   runner <- OdeRunner(strategy_name)(pr1)
   runner_detail <- OdeRunner(strategy_name)(pr2)

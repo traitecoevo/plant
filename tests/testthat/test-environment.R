@@ -3,11 +3,11 @@ strategy_types <- get_list_of_strategy_types()
 
 for (x in names(strategy_types)) {
 
-  context(sprintf("FF16_Environment-%s",x))
+  context(sprintf("%s_Environment",x))
 
   test_that("Empty environment", {
-    p <- Parameters(x, "FF16_Env")()
-    e <- make_environment(p)
+    p <- Parameters(x, paste0(x, "_Env"))()
+    e <- make_environment(x, p)
 
     ## At this point, we should have full canopy openness, partly because
     ## the spline is just not constructed.
@@ -20,7 +20,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Manually set environment", {
-    e <- make_environment(Parameters(x, "FF16_Env")())
+    e <- make_environment(x, Parameters(x, paste0(x, "_Env"))())
     ## Now, set the light environment.
     hh <- seq(0, 10, length.out=101)
     light_env <- function(x) {
@@ -40,7 +40,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Disturbance related parameters", {
-    e <- make_environment(Parameters(x, "FF16_Env")())
+    e <- make_environment(x, Parameters(x, paste0(x, "_Env"))())
     expect_identical(e$time, 0.0)
     expect_identical(e$patch_survival_conditional(e$time), 1.0)
 
@@ -53,17 +53,17 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Seed rain related parameters", {
-    e <- make_environment(Parameters(x, "FF16_Env")())
+    e <- make_environment(x, Parameters(x, paste0(x, "_Env"))())
     expect_error(e$seed_rain_dt, "Cannot get seed rain for empty environment")
 
-    x <- c(.1, .2)
-    e <- test_environment(10, n_strategies=2, seed_rain=x)
+    z <- c(.1, .2)
+    e <- test_environment(x, 10, n_strategies=2, seed_rain=z)
 
-    expect_identical(e$seed_rain_dt, x[[1]])
+    expect_identical(e$seed_rain_dt, z[[1]])
     e$set_seed_rain_index(1)
-    expect_identical(e$seed_rain_dt, x[[1]])
+    expect_identical(e$seed_rain_dt, z[[1]])
     e$set_seed_rain_index(2)
-    expect_identical(e$seed_rain_dt, x[[2]])
+    expect_identical(e$seed_rain_dt, z[[2]])
     expect_error(e$set_seed_rain_index(0), "Invalid value for index")
     expect_error(e$set_seed_rain_index(3), "Index 3 out of bounds")
   })

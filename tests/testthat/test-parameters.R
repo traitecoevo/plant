@@ -14,8 +14,8 @@ test_that("hyperpar creation", {
 test_that("Creation & defaults", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
-    p <- Parameters(x, "FF16_Env")(hyperpar=FF16_hyperpar)
-    expect_is(p, sprintf("Parameters<%s,FF16_Env>", x))
+    p <- Parameters(x, paste0(x, "_Env"))(hyperpar=FF16_hyperpar)
+    expect_is(p, sprintf("Parameters<%s,%s_Env>", x, x))
 
     expect_equal(length(p$strategies), 0)
     expect_equal(length(p$is_resident), 0)
@@ -39,23 +39,23 @@ test_that("Creation & defaults", {
 test_that("Nontrivial creation", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
-    p <- Parameters(x, "FF16_Env")(strategies=list(s))
+    p <- Parameters(x, paste0(x, "_Env"))(strategies=list(s))
     expect_equal(p$seed_rain, 1.0)
     expect_true(p$is_resident)
 
-    expect_error(Parameters(x, "FF16_Env")(seed_rain=pi), "Incorrect length seed_rain")
-    expect_error(Parameters(x, "FF16_Env")(is_resident=FALSE), "Incorrect length is_resident")
+    expect_error(Parameters(x, paste0(x, "_Env"))(seed_rain=pi), "Incorrect length seed_rain")
+    expect_error(Parameters(x, paste0(x, "_Env"))(is_resident=FALSE), "Incorrect length is_resident")
 
-    expect_error(Parameters(x, "FF16_Env")(strategies=list(strategy_types[[x]](),
+    expect_error(Parameters(x, paste0(x, "_Env"))(strategies=list(strategy_types[[x]](),
                                    strategy_types[[x]]()),
                                  seed_rain=pi),
                  "Incorrect length seed_rain")
-    expect_error(Parameters(x, "FF16_Env")(strategies=list(strategy_types[[x]](),
+    expect_error(Parameters(x, paste0(x, "_Env"))(strategies=list(strategy_types[[x]](),
                                    strategy_types[[x]]()),
                                  is_resident=TRUE),
                  "Incorrect length is_resident")
 
-    p <- Parameters(x, "FF16_Env")(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, paste0(x, "_Env"))(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi,
                           is_resident=TRUE)
 
@@ -64,7 +64,7 @@ test_that("Nontrivial creation", {
     expect_identical(p$cohort_schedule_times, list(p$cohort_schedule_times_default))
 
     ## Now, with some of these set:
-    p <- Parameters(x, "FF16_Env")(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, paste0(x, "_Env"))(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi,
                           is_resident=TRUE,
                           disturbance_mean_interval=2)
@@ -86,7 +86,7 @@ test_that("Parameters overwrites Strategy control", {
     expect_identical(s$control, ctrl_s)
     expect_false(identical(s$control, ctrl_p))
 
-    p <- Parameters(x, "FF16_Env")(control=ctrl_p)
+    p <- Parameters(x, paste0(x, "_Env"))(control=ctrl_p)
     expect_false(identical(p$control, ctrl_s))
     expect_identical(p$control, ctrl_p)
 
@@ -94,12 +94,12 @@ test_that("Parameters overwrites Strategy control", {
     p$seed_rain <- 1
     p$is_resident <- TRUE
     ## Pass though to force validation:
-    tmp <- Patch(x,"FF16_Env")(p)$parameters
+    tmp <- Patch(x, paste0(x, "_Env"))(p)$parameters
     expect_identical(tmp$control, ctrl_p)
     expect_identical(tmp$strategies[[1]]$control, ctrl_p)
 
     ## In one shot:
-    p2 <- Parameters(x, "FF16_Env")(control=ctrl_p, strategies=list(s),
+    p2 <- Parameters(x, paste0(x, "_Env"))(control=ctrl_p, strategies=list(s),
                            seed_rain=1, is_resident=TRUE)
     expect_identical(p2$control, ctrl_p)
     expect_identical(p2$strategies[[1]]$control, ctrl_p)
@@ -108,7 +108,7 @@ test_that("Parameters overwrites Strategy control", {
 
 test_that("Generate cohort schedule", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "FF16_Env")(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, paste0(x, "_Env"))(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2, is_resident=TRUE)
     sched <- make_cohort_schedule(p)
 
@@ -121,16 +121,16 @@ test_that("Generate cohort schedule", {
 
 test_that("Store hyperparams", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "FF16_Env")(hyperpar=hyperpar(x))
+    p <- Parameters(x, paste0(x, "_Env"))(hyperpar=hyperpar(x))
     expect_identical(p$hyperpar, hyperpar(x))
-    tmp <- Patch(x,"FF16_Env")(p)$parameters
+    tmp <- Patch(x, paste0(x, "_Env"))(p)$parameters
     expect_identical(tmp$hyperpar, hyperpar(x))
   }
 })
 
 test_that("Validate", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "FF16_Env")()
+    p <- Parameters(x, paste0(x, "_Env"))()
     expect_equal(validate(p), p)
     p$is_resident <- TRUE
     expect_error(validate(p), "Incorrect length is_resident")
@@ -142,7 +142,7 @@ test_that("scm_base_parameters", {
   for (x in names(strategy_types)) {
     p <- scm_base_parameters(x)
     expect_equal(p$hyperpar, hyperpar(x))
-    expect_is(p, sprintf("Parameters<%s,FF16_Env>", x))
+    expect_is(p, sprintf("Parameters<%s,%s_Env>", x, x))
   }
 })
 
@@ -169,14 +169,4 @@ test_that("Disturbance interval", {
     p$cohort_schedule_time <- list(1:11)
     expect_equal(validate(p), p2)
   }
-})
-
-test_that("narea calculation", {
-  x <- c(1.38, 3.07, 2.94)
-  p0 <- FF16_Parameters()
-  m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- strategy_list(m, p0))
-
-  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0))
-  expect_equal(sl, cmp)
 })

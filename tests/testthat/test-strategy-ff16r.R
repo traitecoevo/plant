@@ -1,4 +1,5 @@
-context("Strategy-FF16")
+# Built from  tests/testthat/test-strategy-ff16.R on Fri Jul  3 08:14:35 2020 using the scaffolder, from the strategy:  FF16
+context("Strategy-FF16r")
 
 test_that("Defaults", {
   expected <- list(
@@ -20,7 +21,7 @@ test_that("Defaults", {
     a_p1   = 151.177775377968,
     a_p2   = 0.204716166503633,
     a_f1   = 1,
-    a_f2   = 50,
+    a_f2   = 2,
     a_d0   = 0.1,
     eta    = 12,
     hmat   = 16.5958691,
@@ -37,17 +38,17 @@ test_that("Defaults", {
 
   keys <- sort(names(expected))
 
-  s <- FF16_Strategy()
-  expect_is(s, "FF16_Strategy")
+  s <- FF16r_Strategy()
+  expect_is(s, "FF16r_Strategy")
 
   expect_identical(sort(names(s)), keys)
   expect_identical(unclass(s)[keys], expected[keys])
 })
 
-test_that("FF16 collect_all_auxillary option", {
+test_that("FF16r collect_all_auxillary option", {
 
-  s <- FF16_Strategy()
-  p <- FF16_Plant(s)
+  s <- FF16r_Strategy()
+  p <- FF16r_Plant(s)
   expect_equal(p$aux_size, 2)
   expect_equal(length(p$internals$auxs), 2)
   expect_equal(p$aux_names, c(
@@ -55,9 +56,9 @@ test_that("FF16 collect_all_auxillary option", {
     "net_mass_production_dt"
   ))
 
-  s <- FF16_Strategy(collect_all_auxillary=TRUE)
+  s <- FF16r_Strategy(collect_all_auxillary=TRUE)
   expect_true(s$collect_all_auxillary)
-  p <- FF16_Plant(s)
+  p <- FF16r_Plant(s)
   expect_equal(p$aux_size, 3)
   expect_equal(length(p$internals$auxs), 3)
   expect_equal(p$aux_names, c(
@@ -68,8 +69,8 @@ test_that("FF16 collect_all_auxillary option", {
 })
 
 test_that("Reference comparison", {
-  s <- FF16_Strategy()
-  p <- FF16_Plant(s)
+  s <- FF16r_Strategy()
+  p <- FF16r_Plant(s)
 
   expect_identical(p$strategy, s)
 
@@ -89,16 +90,16 @@ test_that("Reference comparison", {
 
 
 test_that("Critical Names", {
-  s <- FF16_Strategy()
-  my_names <- FF16_Plant(s)$ode_names
+  s <- FF16r_Strategy()
+  my_names <- FF16r_Plant(s)$ode_names
   expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
 })
-test_that("FF16_Strategy hyper-parameterisation", {
-  s <- FF16_Strategy()
+test_that("FF16r_Strategy hyper-parameterisation", {
+  s <- FF16r_Strategy()
 
   # lma
   lma <- c(0.1,1)
-  ret <- FF16_hyperpar(trait_matrix(lma, "lma"), s)
+  ret <- FF16r_hyperpar(trait_matrix(lma, "lma"), s)
 
   expect_true(all(c("lma", "k_l", "r_l") %in% colnames(ret)))
   expect_equal(ret[, "lma"], lma)
@@ -115,7 +116,7 @@ test_that("FF16_Strategy hyper-parameterisation", {
 
   # wood density
   rho <- c(200,300)
-  ret <- FF16_hyperpar(trait_matrix(rho, "rho"), s)
+  ret <- FF16r_hyperpar(trait_matrix(rho, "rho"), s)
   expect_true(all(c("rho", "r_s", "r_b") %in% colnames(ret)))
   expect_equal(ret[, "rho"], rho)
   expect_equal(ret[, "r_s"], c(20.06000,13.37333), tolerance=1e-5)
@@ -131,7 +132,7 @@ test_that("FF16_Strategy hyper-parameterisation", {
 
   # narea
   narea <- c(0, 2E-3,2.3E-3)
-  ret <- FF16_hyperpar(trait_matrix(narea, "narea"), s)
+  ret <- FF16r_hyperpar(trait_matrix(narea, "narea"), s)
   expect_true(all(c("narea", "a_p1", "a_p2", "r_l") %in% colnames(ret)))
   expect_equal(ret[, "narea"], narea)
   expect_equal(ret[, "r_l"], c(0, 212.2508, 244.0884), tolerance=1e-5)
@@ -140,7 +141,7 @@ test_that("FF16_Strategy hyper-parameterisation", {
 
   # seed mass
   omega <- 3.8e-5*c(1,2,3)
-  ret <- FF16_hyperpar(trait_matrix(omega, "omega"), s)
+  ret <- FF16r_hyperpar(trait_matrix(omega, "omega"), s)
   expect_true(all(c("omega", "a_f3") %in% colnames(ret)))
   expect_equal(ret[, "omega"], omega)
   expect_equal(ret[, "a_f3"], 3*omega)
@@ -153,18 +154,8 @@ test_that("FF16_Strategy hyper-parameterisation", {
     expect_equal(a_p1[[1]], s$a_p1, tolerance=1e-7)
   }
 
-
   ## Empty trait matrix:
-  ret <- FF16_hyperpar(trait_matrix(numeric(0), "lma"), s)
+  ret <- FF16r_hyperpar(trait_matrix(numeric(0), "lma"), s)
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
-test_that("narea calculation", {
-  x <- c(1.38, 3.07, 2.94)
-  p0 <- FF16_Parameters()
-  m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- strategy_list(m, p0))
-
-  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0))
-  expect_equal(sl, cmp)
-})

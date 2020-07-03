@@ -4,13 +4,13 @@ strategy_types <- get_list_of_strategy_types()
 
 test_that("PlantRunner", {
   for (x in names(strategy_types)) {
-    p <- Plant(x, "FF16_Env")(strategy_types[[x]]())
-    env <- test_environment(10)
+    p <- Plant(x, paste0(x, "_Env"))(strategy_types[[x]]())
+    env <- test_environment(x, 10)
     p$compute_rates(env)
 
-    pr <- PlantRunner(x, "FF16_Env")(p, env)
-    expect_is(pr, sprintf("PlantRunner<%s,FF16_Env>",x))
-    expect_is(pr$plant, sprintf("Plant<%s,FF16_Env>",x))
+    pr <- PlantRunner(x, paste0(x, "_Env"))(p, env)
+    expect_is(pr, sprintf("PlantRunner<%s,%s_Env>",x,x))
+    expect_is(pr$plant, sprintf("Plant<%s,%s_Env>",x,x))
 
     expect_equal(pr$plant$internals, p$internals)
 
@@ -29,7 +29,7 @@ test_that("PlantRunner", {
     observer <- function(obj) {
       c(obj$time, obj$state)
     }
-    pr <- PlantRunner(x, "FF16_Env")(Plant(x, "FF16_Env")(strategy_types[[x]]()), env)
+    pr <- PlantRunner(x, paste0(x, "_Env"))(Plant(x, paste0(x, "_Env"))(strategy_types[[x]]()), env)
     runner <- OdeRunner(x)(pr)
     ret <- list(observer(runner))
     while (continue_if(runner)) {
@@ -49,11 +49,11 @@ test_that("PlantRunner", {
 
 test_that("get_plant_internals_fun", {
   for (x in names(strategy_types)) {
-    p <- Plant(x, "FF16_Env")(strategy_types[[x]]())
-    env <- test_environment(10)
+    p <- Plant(x, paste0(x, "_Env"))(strategy_types[[x]]())
+    env <- test_environment(x, 10)
     p$compute_rates(env)
 
-    runner <- OdeRunner(x)(PlantRunner(x, "FF16_Env")(p, env))
+    runner <- OdeRunner(x)(PlantRunner(x, paste0(x, "_Env"))(p, env))
     h0 <- runner$object$plant$state("height")
     runner$step()
     runner$step()
@@ -66,11 +66,11 @@ test_that("get_plant_internals_fun", {
 
 test_that("grow_plant_to_size", {
   for (x in names(strategy_types)) {
-    env <- test_environment(10)
+    env <- test_environment(x, 10)
     heights <- seq(1, 10)
     s <- strategy_types[[x]]()
 
-    pp <- Plant(x, "FF16_Env")(s)
+    pp <- Plant(x, paste0(x, "_Env"))(s)
     res <- grow_plant_bracket(pp, heights, "height", env)
 
 
@@ -116,7 +116,7 @@ test_that("grow_plant_to_size", {
       plot(tmp$state - res$y1[i,], col = "pink", pch = 4)
     }
     ## Do all plants using the proper function:
-    obj <- grow_plant_to_size(Plant(x, "FF16_Env")(s), heights, "height", env)
+    obj <- grow_plant_to_size(Plant(x, paste0(x, "_Env"))(s), heights, "height", env)
     expect_is(obj$time, "numeric")
     expect_true(all(obj$time > res$t0))
     expect_true(all(obj$time < res$t1))
@@ -127,7 +127,7 @@ test_that("grow_plant_to_size", {
     expect_true(all(obj$state[,j2] <= res$y1[,j2]))
 
     expect_equal(length(obj$plant), length(heights))
-    expect_true(all(sapply(obj$plant, inherits, sprintf("Plant<%s,FF16_Env>",x))))
+    expect_true(all(sapply(obj$plant, inherits, sprintf("Plant<%s,%s_Env>",x,x))))
     expect_equal(sapply(obj$plant, function(p) p$state("height")), heights, tolerance=1e-6)
   }
 })
@@ -138,9 +138,9 @@ test_that("grow_plant_to_size", {
 test_that("grow_plant_to_size", {
   for (x in names(strategy_types)) {
     strategy <- strategy_types[[x]]()
-    pl <- Plant(x, "FF16_Env")(strategy)
+    pl <- Plant(x, paste0(x, "_Env"))(strategy)
     sizes <- c(1, 5, 10, 12, strategy$hmat)
-    env <- fixed_environment(1.0)
+    env <- fixed_environment(x, 1.0)
     res <- grow_plant_to_size(pl, sizes, "height", env, 10000)
 
     expect_equal(res$state[, "height"], sizes, tolerance=1e-6)
@@ -180,8 +180,8 @@ test_that("grow_plant_to_size", {
 test_that("grow_plant_to_time", {
   for (x in names(strategy_types)) {
     strategy <- strategy_types[[x]]()
-    pl <- Plant(x, "FF16_Env")(strategy)
-    env <- fixed_environment(1.0)
+    pl <- Plant(x, paste0(x, "_Env"))(strategy)
+    env <- fixed_environment(x, 1.0)
     times <- c(0, 10^(-4:3))
     res <- grow_plant_to_time(pl, times, env)
     expect_is(res$plant, "list")

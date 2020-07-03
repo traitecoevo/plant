@@ -5,12 +5,12 @@ strategy_types <- get_list_of_strategy_types()
 test_that("empty", {
   for (x in names(strategy_types)) {
     set.seed(1)
-    p <- Parameters(x,"FF16_Env")(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, paste0(x, "_Env"))(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE,
                           control=fast_control())
 
-    obj <- StochasticPatchRunner(x, "FF16_Env")(p)
+    obj <- StochasticPatchRunner(x, paste0(x, "_Env"))(p)
     expect_identical(obj$time, 0.0)
 
     sched <- obj$schedule
@@ -37,7 +37,7 @@ test_that("empty", {
     expect_equal(res, 1L)
     expect_identical(obj$time, sched2$all_times[[1]][[2]])
 
-    ode_size <- Plant(x, "FF16_Env")(strategy_types[[x]]())$ode_size
+    ode_size <- Plant(x, paste0(x, "_Env"))(strategy_types[[x]]())$ode_size
     expect_equal(length(obj$patch$ode_state), ode_size)
     expect_equal(obj$patch$size, 1)
 
@@ -48,7 +48,7 @@ test_that("empty", {
 test_that("collect", {
   for (x in names(strategy_types)) {
     set.seed(1)
-    p <- Parameters(x,"FF16_Env")(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, paste0(x, "_Env"))(strategies=list(strategy_types[[x]]()),
                           seed_rain=5/50,
                           patch_area=50,
                           is_resident=TRUE,

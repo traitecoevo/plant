@@ -9,13 +9,13 @@ for (x in names(strategy_types)) {
   test_that("setup, growth rates", {
 
     s <- strategy_types[[x]]()
-    plant <- Plant(x,"FF16_Env")(s)
-    cohort <- Cohort(x,"FF16_Env")(s)
+    plant <- Plant(x, paste0(x, "_Env"))(s)
+    cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
-    expect_is(cohort, sprintf("Cohort<%s,FF16_Env>", x))
-    expect_is(cohort$plant, sprintf("Plant<%s,FF16_Env>", x))
+    expect_is(cohort, sprintf("Cohort<%s,%s_Env>", x, x))
+    expect_is(cohort$plant, sprintf("Plant<%s,%s_Env>", x, x))
 
-    env <- test_environment(2 * plant$state("height"),
+    env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
@@ -26,12 +26,13 @@ for (x in names(strategy_types)) {
       plant$compute_rates(env)
       plant$rate("height")
     }
+
     grad_forward <- function(f, x, dx, ...) {
       (f(x + dx, ...) - f(x, ...)) / dx
     }
 
     plant$compute_rates(env)
-    p2 <- Plant(x,"FF16_Env")(s)
+    p2 <- Plant(x, paste0(x, "_Env"))(s)
 
     ## First, a quick sanity check that our little function behaves as
     ## expected:
@@ -60,8 +61,8 @@ for (x in names(strategy_types)) {
     expect_equal(dgdh, dgdh_forward)
 
     ## Again with Richardson extrapolation:
-        cohort <- Cohort(x,"FF16_Env")(s)
-    cohort2 <- Cohort(x,"FF16_Env")(strategy_types[[x]](control=Control(cohort_gradient_richardson=TRUE)))
+        cohort <- Cohort(x, paste0(x, "_Env"))(s)
+    cohort2 <- Cohort(x, paste0(x, "_Env"))(strategy_types[[x]](control=Control(cohort_gradient_richardson=TRUE)))
     expect_true(cohort2$plant$strategy$control$cohort_gradient_richardson)
 
     ## NOTE: Not sure why this is not identical: it's either a bug
@@ -99,10 +100,10 @@ for (x in names(strategy_types)) {
   ##   * Check that the rates computed are actually correct
   test_that("ODE interface", {
     s <- strategy_types[[x]]()
-    plant <- Plant(x,"FF16_Env")(s)
-    cohort <- Cohort(x,"FF16_Env")(s)
+    plant <- Plant(x, paste0(x, "_Env"))(s)
+    cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
-    env <- test_environment(2 * plant$state("height"),
+    env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
@@ -150,10 +151,10 @@ for (x in names(strategy_types)) {
 
   test_that("leaf area calculations", {
     s <- strategy_types[[x]]()
-    plant <- Plant(x,"FF16_Env")(s) 
-    cohort <- Cohort(x,"FF16_Env")(s)
+    plant <- Plant(x, paste0(x, "_Env"))(s) 
+    cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
-    env <- test_environment(10,
+    env <- test_environment(x, 10,
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 

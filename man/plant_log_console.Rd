@@ -4,7 +4,8 @@
 \alias{plant_log_console}
 \title{Activate logging with loggr}
 \usage{
-plant_log_console(..., .message = FALSE, .warning = FALSE, .error = FALSE)
+plant_log_console(..., .message = FALSE, .warning = FALSE,
+  .error = FALSE)
 }
 \arguments{
 \item{...}{Additional parameters passed to \code{loggr::log_file},

@@ -2,6 +2,7 @@
 % Please edit documentation in r/ff16.R
 \name{FF16_Plant}
 \alias{FF16_Plant}
+\alias{lcp_whole_plant.Plant<FF16>}
 \alias{FF16_Cohort}
 \alias{FF16_Species}
 \alias{FF16_Parameters}
@@ -13,6 +14,8 @@
 \title{Create a FF16 Plant or Cohort}
 \usage{
 FF16_Plant(s = FF16_Strategy())
+
+\method{lcp_whole_plant}{Plant<FF16>}(p, ...)
 
 FF16_Cohort(s = FF16_Strategy())
 

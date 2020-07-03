@@ -70,7 +70,7 @@ run_scm <- function(p, use_ode_times=FALSE) {
 ##' @author Rich FitzJohn
 ##' @param type Name of model (defaults to FF16 but any strategy name is valid).
 ##' @export
-scm_base_parameters <- function(type="FF16", env="FF16_Env") {
+scm_base_parameters <- function(type="FF16", env=sprintf("%s_Env", type)) {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
@@ -107,7 +107,8 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
   }
   collect <- if (include_competition_effect) collect_competition_effect else collect_default
   types <- extract_RcppR6_template_types(p, "Parameters")
-  make_environment(p)
+
+  make_environment("FF16", p)
   scm <- do.call('SCM', types)(p)
   res <- list(collect(scm))
 
@@ -215,6 +216,7 @@ run_scm_error <- function(p) {
 # if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
 make_hyperpar <- function(type) {
   switch(type,
+         FF16r=make_FF16_hyperpar,
          FF16=make_FF16_hyperpar,
          stop("Unknown type ", type))
 }
@@ -224,6 +226,7 @@ make_hyperpar <- function(type) {
 # if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
 hyperpar <- function(type) {
   switch(type,
+         FF16r=FF16_hyperpar,
          FF16=FF16_hyperpar,
          stop("Unknown type ", type))
 }
@@ -353,4 +356,11 @@ make_scm_integrate <- function(obj) {
     }
     vnapply(seq_len(n), f1, name, error)
   }
+}
+
+make_environment<- function(type, ...) {
+  switch(type,
+    FF16=FF16_make_environment(...),
+    FF16r=FF16r_make_environment(...),
+    stop("Unknown type ", type))
 }

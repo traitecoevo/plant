@@ -1,93 +1,94 @@
+# Built from  R/ff16.R on Fri Jul  3 08:14:35 2020 using the scaffolder, from the strategy:  FF16
 ## We can probably actually do better than this with an S3 method on
 ## the actual strategy?  That would need to be organised by the
 ## templating though and that's stretched to the limit.
 
-##' Create a FF16 Plant or Cohort
-##' @title Create a FF16 Plant or Cohort
-##' @param s A \code{\link{FF16_Strategy}} object
+##' Create a FF16r Plant or Cohort
+##' @title Create a FF16r Plant or Cohort
+##' @param s A \code{\link{FF16r_Strategy}} object
 ##' @export
-##' @rdname FF16
+##' @rdname FF16r
 ##' @examples
-##' pl <- FF16_Plant()
+##' pl <- FF16r_Plant()
 ##' pl$height
-FF16_Plant <- function(s=FF16_Strategy()) {
-  Plant("FF16", "FF16_Env")(s)
+FF16r_Plant <- function(s=FF16r_Strategy()) {
+  Plant("FF16r", "FF16r_Env")(s)
 }
 
 #' Compute the whole plant light compensation point for a single
-#' plant with FF16 strategy. Called via general function in plant.R
+#' plant with FF16r strategy. Called via general function in plant.R
 ##' @export
-##' @rdname FF16
-`lcp_whole_plant.Plant<FF16>` <- function(p, ...) {
-  FF16_lcp_whole_plant(p, ...)
+##' @rdname FF16r
+`lcp_whole_plant.Plant<FF16r>` <- function(p, ...) {
+  FF16r_lcp_whole_plant(p, ...)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_Cohort <- function(s=FF16_Strategy()) {
-  Cohort("FF16", "FF16_Env")(s)
+##' @rdname FF16r
+FF16r_Cohort <- function(s=FF16r_Strategy()) {
+  Cohort("FF16r", "FF16r_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_Species <- function(s=FF16_Strategy()) {
-  Species("FF16", "FF16_Env")(s)
+##' @rdname FF16r
+FF16r_Species <- function(s=FF16r_Strategy()) {
+  Species("FF16r", "FF16r_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16
+##' @rdname FF16r
 ##' @param ... Arguments!
-FF16_Parameters <- function() {
-  Parameters("FF16","FF16_Env")(hyperpar=FF16_hyperpar)
+FF16r_Parameters <- function() {
+  Parameters("FF16r","FF16r_Env")(hyperpar=FF16r_hyperpar)
 }
 
 ##' @export
-##' @rdname FF16
-##' @param p A \code{Parameters<FF16,FF16_Env>} object
-FF16_Patch <- function(p) {
-  Patch("FF16", "FF16_Env")(p)
+##' @rdname FF16r
+##' @param p A \code{Parameters<FF16r,FF16r_Env>} object
+FF16r_Patch <- function(p) {
+  Patch("FF16r", "FF16r_Env")(p)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_SCM <- function(p) {
-  SCM("FF16", "FF16_Env")(p)
+##' @rdname FF16r
+FF16r_SCM <- function(p) {
+  SCM("FF16r", "FF16r_Env")(p)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_StochasticSpecies <- function(s=FF16_Strategy()) {
-  StochasticSpecies("FF16", "FF16_Env")(s)
+##' @rdname FF16r
+FF16r_StochasticSpecies <- function(s=FF16r_Strategy()) {
+  StochasticSpecies("FF16r", "FF16r_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_StochasticPatch <- function(p) {
-  StochasticPatch("FF16", "FF16_Env")(p)
+##' @rdname FF16r
+FF16r_StochasticPatch <- function(p) {
+  StochasticPatch("FF16r", "FF16r_Env")(p)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_StochasticPatchRunner <- function(p) {
-  StochasticPatchRunner("FF16", "FF16_Env")(p)
+##' @rdname FF16r
+FF16r_StochasticPatchRunner <- function(p) {
+  StochasticPatchRunner("FF16r", "FF16r_Env")(p)
 }
 
 # ##' @export
-# ##' @rdname FF16
-# FF16_PlantPlus <- function(s=FF16_Strategy()) {
-#   PlantPlus("FF16")(s)
+# ##' @rdname FF16r
+# FF16r_PlantPlus <- function(s=FF16r_Strategy()) {
+#   PlantPlus("FF16r")(s)
 # }
 
 ## Helper:
 ##' @export
-##' @rdname FF16_Environment
+##' @rdname FF16r_Environment
 ##' @param p A Parameters object
-FF16_make_environment <- function(p) {
-  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
+FF16r_make_environment <- function(p) {
+  FF16r_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
 }
 
-##' Hyperparameters for FF16 physiological model
-##' @title Hyperparameters for FF16 physiological model
+##' Hyperparameters for FF16r physiological model
+##' @title Hyperparameters for FF16r physiological model
 ##' @param lma_0 Central (mean) value for leaf mass per area [kg /m2]
 ##' @param B_kl1 Rate of leaf turnover at lma_0 [/yr]
 ##' @param B_kl2 Scaling slope for phi in leaf turnover [dimensionless]
@@ -110,8 +111,8 @@ FF16_make_environment <- function(p) {
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @importFrom stats coef nls
 ##' @export
-##' @rdname FF16_hyperpar
-make_FF16_hyperpar <- function(
+##' @rdname FF16r_hyperpar
+make_FF16r_hyperpar <- function(
                                 lma_0=0.1978791,
                                 B_kl1=0.4565855,
                                 B_kl2=1.71,
@@ -284,11 +285,11 @@ make_FF16_hyperpar <- function(
   }
 }
 
-##' Hyperparameter function for FF16 physiological model
-##' @title Hyperparameter function for FF16 physiological model
+##' Hyperparameter function for FF16r physiological model
+##' @title Hyperparameter function for FF16r physiological model
 ##' @param m A matrix of trait values, as returned by \code{trait_matrix}
 ##' @param s A strategy object
 ##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers 
 ##' that are within eps of the default strategy are not replaced.
 ##' @export
-FF16_hyperpar <- make_FF16_hyperpar()
+FF16r_hyperpar <- make_FF16r_hyperpar()
