@@ -46,7 +46,7 @@ struct Control {
   double environment_light_tol;
   size_t environment_light_nbase;
   size_t environment_light_max_depth;
-  bool   environment_light_rescale_usually;
+  bool   environment_rescale_usually;
 
   double ode_step_size_initial;
   double ode_step_size_min;

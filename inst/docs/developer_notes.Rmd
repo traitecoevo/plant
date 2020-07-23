@@ -7,6 +7,8 @@ output:
     number_sections: false
 ---
 
+# Development
+
 ## Issues
 
 We use [github issues](https://github.com/traitecoevo/plant/issues/) for feature requests, bug reports and  developer coordination.
@@ -21,41 +23,134 @@ This means we have two main branches:
 
 We also use feature branches which branch from the development branch where we can then introduce new features and then pull them back into the development branch.
 
-##  Code Structure
-#### Directory  Structure
+## Compiling
+
+The makefile defines multiple targets in the package build process. These are called by running 
+```
+make target_name
+```
+where `target_name` is the target to build. Targets are as follows:
+
+- **`all`**: Compiles the package and builds the function documentation to `/man`
+- **`install`**: Installs this package (` R CMD INSTALL .`)
+- **`build`**: Builds plant (` R CMD build --no-build-vignettes`)
+- **`RcppR6`**:  Update or install RcppR6 files
+- **`attributes`**: Scans the source files for attributes and generate code as required. Generates the bindings required to call C++ functions from R for functions labelled with the `Rcpp::export` attribute
+- **`roxygen`**: Compiles the documentation for R
+- **`test`** Run the test suite
+- **`check`**: [Checks](http://r-pkgs.had.co.nz/check.html) plant for common problems
+- **`clean`**: Deletes `*.o` and `*.so` files that were produced when compiling the package
+- **`vignettes`**: Builds the vignettes
+- **`website`**: Makes the website using pkgdown
+
+# Design & Structure
+
+`plant` is build as an R package using C++ code, linked via [Rcpp](https://cran.r-project.org/package=Rcpp). Rcpp provides "provides R functions as well as C++ classes which offer a seamless integration of R and C++." 
+
+Two common challenges with using Rcpp are 1) that there is a lot of interface code (or "boilerplate") needed, 2) Rcpp "modules" can be slow to load. To overcome these we use the package [RcppR6](https://github.com/richfitz/RcppR6) to generate the interface. The RcppR6 package aims to provide a simple way of generating boilerplate code for exposing C++ classes to R. It is similar in many ways to Rcpp "modules" but without the slow load time. RcppR6 creates an interface using Rcpp's ["attributes"](http://dirk.eddelbuettel.com/code/rcpp/Rcpp-attributes.pdf) facilities to build the actual R/C++ glue. The [R6](https://github.com/wch/R6) R package is the reference class that we use for wrapping the generated class. To achieve the link, class definitions are written into a [YAML](http://en.wikipedia.org/wiki/YAML) file.
+
+
+## Directory Structure
+
+The code is organised as follows. This structure reflects structure generally used for R packages including C++ source.
+
+
 ```sh
-├── R # R functions
-├── docker # Docker files
+├── docker      		# Docker files
 │   └── plant-test
 ├── inst
-│   ├── docs # Files for building the documentation
-│   │   ├── R
-│   │   ├── figure
-│   │   ├── figures
-│   │   ├── reference
-│   │   ├── src
+│   ├── RcppR6_classes.yml    # Used by RCppR6 to generate the interface for Rcpp (C++ classes)
+│   ├── RcppR6_functions.yml  # Used by RCppR6 to generate the interface for Rcpp (C++ function)
 │   ├── include
-│   │   ├── plant # .h files for plant.
-│   │   └── tk
-│   └── reference_plant_ff16 # Reference plant physiology ff16.
-│       ├── R
-│       └── falster-traitdiversity
-├── man # R Documentation ie .Rd files.
-├── scripts # R scripts
-├── src # C++ files
-├── tests # Tests
-└── vignettes # Empty until the documentation is built
+│   │   ├── plant.h # THE main header file for package - sources other headers
+│   │   ├── plant 	# header (.h) files for different components, many including implementation
+│   │   └── tk      # simple cubic spline interpolation library
+│   ├── reference_plant_ff16 # Reference plant physiology ff16
+│   ├── docs    		# Files for building the documentation
+│   ├── scripts 		# Tools used in package management
+│   └── website 		# Reference plant physiology ff16
+├── man 			  		# R Documentation files (*.Rd)
+├── R 							# R functions
+├── scripts 	  		# R scripts
+├── src 			  		# C++ files with implementation where not included in headers
+├── tests 		  		# Tests
+└── vignettes   		# Empty until the documentation is built
 ```
 
-## Building the website:
+## Templating
 
-To build and push the website to the `gh-pages` branch run `make website`.
-This first builds the vignettes from `/inst/docs` then builds the site with [pkgdown](http://pkgdown.r-lib.org).
-The site is then pushed to the `gh-pages` branch. (https://traitecoevo.github.io/plant)
+We use templating to enable plant to work with multiple strategies and lets us write code that is strategy generic. The templated class definitions are found in `inst/include/plant` and their function implementations are found either in the `.h` files or in `/src`.
+
+We then use the [RcppR6](https://github.com/richfitz/RcppR6) package combined with the `.h` files and class definitions (found in `inst/RcppR6_classes.yml`) into Rcpp which we can then be used in the `.R` files (in `/R`) or exported.
+
+Templating Resources:
+
+* [RccpR6 Templates](http://htmlpreview.github.io/?https://raw.githubusercontent.com/richfitz/RcppR6/master/inst/doc/templates.html)
+* [Templating in C++](https://en.wikipedia.org/wiki/Template_(C%2B%2B))
+
+## Classes and their functions
+
+The main c++ header files (i.e. \*.h) are stored within the directory `inst/include/plant/`. In many cases, the implementations is written directly into the header files. Otherwise, the corresponding source file (i.e. \*.cpp) is stored within the folder `src`.
+
+The role of these different files is as follows.
+
+strategies: ff16_strategy.h
+
+plant.h
+
+cohort.h
+
+species.h
+
+patch.h
+
+SCM.h
+
+Helpers:
+
+- parameters.h
+- cohort_schedule.h
+- control.h
+- disturbance.h
+- environment.h
+
+plant_runner.h
+plant_tools.h
+scm_utils.h
+
+stochastic_patch_runner.h
+stochastic_patch.h
+stochastic_species.h
+stochastic_utils.h
+
+### Utilities
+
+adaptive_interpolator.h
+get_state.h
+gradient.h
+interpolator.h
+lorenz.h
+ode_control.h
+ode_interface.h
+ode_r.h
+ode_runner.h
+ode_solver.h
+ode_step.h
+qag_internals.h
+qag.h
+qk_rules.h
+qk.h
+
+RcppR6_post.hpp
+RcppR6_pre.hpp
+RcppR6_support.hpp
+uniroot.h
+util_post_rcpp.h
+util.h
 
 ## Strategies
 
-The foundation of the `plant` package are sub-models for an individual species’ physiological strategy. The `FF16` strategy is the default strategy. However, the plant package has been written to enable new physiological strategy to be added, and then use the same machinery for modelling size-structured population dynamics, we do this by using templating in C++11 (see [Templating](#templating)).
+The foundation of the `plant` package are sub-models for an individual species’ physiological strategy. The `FF16` strategy is the default strategy. However, the plant package has been written to enable new physiological strategies to be added, and then use the same machinery for modelling size-structured population dynamics, we do this by using templating in C++11 (see [Templating](#templating)).
 
 Adding a new physiological strategy requires some changes to be made throughout the code and then the code recompiled. To achieve this, you'll need to download the package code from Github (new strategies cannot be added using an installed R package) and follow the instructions below. 
 
@@ -101,71 +196,12 @@ Then recompile and test as above.
 
 After the project compiles, you will notices even more files that have changed, for example in files like `NAMESPACE`, `R/RcppExports.R` etc. These files are auto-generated and therefore modifications are triggered from files listed above.
 
-## Templating
 
-We use templating to enable plant to work with multiple strategies and lets us write code that is strategy generic.
-The templated class definitions are found in `inst/include/plant` and their function implementations are found either in the `.h` files or in `/src`.
+# Website
 
-We then use the [RcppR6](https://github.com/richfitz/RcppR6) package combined with the `.h` files and class definitions (found in `inst/RcppR6_classes.yml`) into Rcpp which we can then be used in the `.R` files (in `/R`) or exported.
+## Building the website:
 
-### Templating Resources
+To build and push the website to the `gh-pages` branch run `make website`.
+This first builds the vignettes from `/inst/docs` then builds the site with [pkgdown](http://pkgdown.r-lib.org).
+The site is then pushed to the `gh-pages` branch. (https://traitecoevo.github.io/plant)
 
-* [RccpR6 Templates](http://htmlpreview.github.io/?https://raw.githubusercontent.com/richfitz/RcppR6/master/inst/doc/templates.html)
-* [Templating in C++](https://en.wikipedia.org/wiki/Template_(C%2B%2B))
-
-
-## Makefile guide:
-
-#### All
-
-```make all```
-
-Compiles the package and builds the function documentation to `/man`. 
-
-#### Test
-
-```make test```
-
-Runs the test suite.
-
-#### Install
-
-```make install```
-
-Installs this package (` R CMD INSTALL .`).
-
-#### Build
-
-``` make build```
-
-Builds plant (` R CMD build --no-build-vignettes`).
-
-#### Check
-
-```make check```
-
-[Checks](http://r-pkgs.had.co.nz/check.html) plant for common problems.
-
-#### Clean
-
-```make clean```
-
-Deletes `*.o` and `*.so` files that were produced when compiling the package.
-
-#### vignettes
-
-```make vignettes```
-
-Builds the vignettes.
-
-#### pkgdown
-
-```make pkgdown```
-
-Makes the pkgdown site.
-
-#### website
-
-```make website```
-
-Pushes the site to the `gh-pages` branch. 

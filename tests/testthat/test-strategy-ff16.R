@@ -32,7 +32,8 @@ test_that("Defaults", {
     rho    = 608,
     omega  = 3.8e-5,
     theta  = 1.0/4669,
-    control = Control())
+    control = Control(),
+    collect_all_auxillary = FALSE)
 
   keys <- sort(names(expected))
 
@@ -43,27 +44,55 @@ test_that("Defaults", {
   expect_identical(unclass(s)[keys], expected[keys])
 })
 
+test_that("FF16 collect_all_auxillary option", {
+
+  s <- FF16_Strategy()
+  p <- FF16_Plant(s)
+  expect_equal(p$aux_size, 2)
+  expect_equal(length(p$internals$auxs), 2)
+  expect_equal(p$aux_names, c(
+    "competition_effect",
+    "net_mass_production_dt"
+  ))
+
+  s <- FF16_Strategy(collect_all_auxillary=TRUE)
+  expect_true(s$collect_all_auxillary)
+  p <- FF16_Plant(s)
+  expect_equal(p$aux_size, 3)
+  expect_equal(length(p$internals$auxs), 3)
+  expect_equal(p$aux_names, c(
+    "competition_effect",
+    "net_mass_production_dt",
+    "area_sapwood"
+  ))
+})
+
 test_that("Reference comparison", {
   s <- FF16_Strategy()
-  p <- FF16_PlantPlus(s)
+  p <- FF16_Plant(s)
 
   expect_identical(p$strategy, s)
 
   ## Set the height to something (here 10)
   h0 <- 10
-  p$height <- h0
+  p$set_state("height", h0)
 
+
+  expect_identical(p$state("height"), h0)
+
+  ## Check: Is this redundant now
+  ## We now use 
   vars <- p$internals
-
-  expect_identical(vars[["height"]], h0)
-
-
-  expect_identical(p$height, vars[["height"]])
-  expect_identical(p$area_leaf, vars[["area_leaf"]])
+  expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
 })
 
 
 
+test_that("Critical Names", {
+  s <- FF16_Strategy()
+  my_names <- FF16_Plant(s)$ode_names
+  expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
+})
 test_that("FF16_Strategy hyper-parameterisation", {
   s <- FF16_Strategy()
 
@@ -124,8 +153,18 @@ test_that("FF16_Strategy hyper-parameterisation", {
     expect_equal(a_p1[[1]], s$a_p1, tolerance=1e-7)
   }
 
+
   ## Empty trait matrix:
   ret <- FF16_hyperpar(trait_matrix(numeric(0), "lma"), s)
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
+test_that("narea calculation", {
+  x <- c(1.38, 3.07, 2.94)
+  p0 <- FF16_Parameters()
+  m <- trait_matrix(x, "hmat")
+  expect_silent(sl <- strategy_list(m, p0))
+
+  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0))
+  expect_equal(sl, cmp)
+})

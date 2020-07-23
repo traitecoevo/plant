@@ -4,3 +4,7 @@ inst/website
 *.Rhistory*
 ^plant.Rcheck$
 .Rproj.user
+src/*.o.tmp
+tmp*
+.vscode
+scrap.R

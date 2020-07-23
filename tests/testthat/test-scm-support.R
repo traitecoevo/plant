@@ -12,12 +12,11 @@ test_that("collect / make_patch", {
 
   expect_equal(p1_113$ode_state, unlist(st_113$species))
   expect_equal(p1_113$time, st_113$time)
-  expect_equal(p1_113$environment$light_environment$xy, unname(st_113$light_env))
-  expect_lt(p1_113$canopy_openness(0), 0.5)
+  expect_equal(p1_113$environment$environment_interpolator$xy, unname(st_113$env))
+  expect_lt(exp(-p0$k_I * p1_113$compute_competition(0)), 0.5)
   expect_gt(p1_113$height_max, 10)
 
-  cmp_patch_density <-
-    Disturbance(p1$disturbance_mean_interval)$density(res$time)
+  cmp_patch_density <- Disturbance(p1$disturbance_mean_interval)$density(res$time)
   expect_equal(res$patch_density, cmp_patch_density)
 
   dat <- patch_to_internals(p1_113)
@@ -27,7 +26,10 @@ test_that("collect / make_patch", {
   dat <- dat[[1]]
   expect_is(dat, "matrix")
   expect_equal(nrow(dat), length(p1_113$species[[1]]$cohorts))
-  n_int <- length(PlantPlus("FF16")(p1$strategies[[1]])$internals)
+  # once for rates, once for states
+  n_int <- (Plant("FF16","FF16_Env")(p1$strategies[[1]])$ode_size * 2) + 
+    Plant("FF16","FF16_Env")(p1$strategies[[1]])$aux_size
+  cat(ncol(dat), n_int + 2L)
   expect_equal(ncol(dat), n_int + 2L)
 
   ## NOTE: this currently takes *longer* than the SCM to run due to (I

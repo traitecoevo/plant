@@ -5,21 +5,65 @@
 #include <memory>
 #include <plant/control.h>
 #include <plant/qag_internals.h> // quadrature::intervals_type
-#include <plant/plant_internals.h>
+#include <plant/internals.h> // quadrature::intervals_type
+#include <plant/strategy.h>
+#include <plant/models/ff16_environment.h>
+#include <plant/models/assimilation.h>
 
 namespace plant {
 
-// Environment needs Parameters to initialise and that needs Strategy,
-// so there's a really awkward circular reference here.  This forward
-// declaration breaks it, but there might be a better solution.
-class Environment;
-
-struct FF16_Strategy {
+class FF16_Strategy: public Strategy<FF16_Environment> {
 public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
 
-  // * Size
+  // Overrides ----------------------------------------------
+
+  // update this when the length of state_names changes
+  static size_t state_size () { return 5; }
+  // update this when the length of aux_names changes
+  size_t aux_size () { return aux_names().size(); }
+
+  static std::vector<std::string> state_names() {
+    return  std::vector<std::string>({
+      "height",
+      "mortality",
+      "fecundity",
+      "area_heartwood",
+      "mass_heartwood"
+      });
+  }
+
+  std::vector<std::string> aux_names() {
+    std::vector<std::string> ret({
+      "competition_effect",
+      "net_mass_production_dt"
+    });
+    // add the associated computation to compute_rates and compute there
+    if (collect_all_auxillary) {
+      ret.push_back("area_sapwood");
+    }
+    return ret;
+  }
+
+  // Translate generic methods to FF16 strategy leaf area methods
+
+  double competition_effect(double height) const {
+    return area_leaf(height);
+  }
+
+  /* double competition_effect_state(Internals& vars) const { */
+    /* return area_leaf_state(vars); */
+  /* } */
+
+  double compute_competition(double z, double height) const {
+    return area_leaf_above(z, height);
+  }
+
+  void refresh_indices();
+
+
+  // FF16 Methods  ----------------------------------------------
 
   // [eqn 2] area_leaf (inverse of [eqn 3])
   double area_leaf(double height) const;
@@ -52,23 +96,11 @@ public:
   double mass_above_ground(double mass_leaf, double mass_bark,
                            double mass_sapwood, double mass_root) const;
 
-  void scm_vars(const Environment& environment, bool reuse_intervals,
-                Plant_internals& vars);
 
-  // * Mass production
-  // [eqn 12] Gross annual CO2 assimilation
-  double assimilation(const Environment& environment, double height,
-                      double area_leaf, bool reuse_intervals);
-  // Used internally, corresponding to the inner term in [eqn 12]
-  double compute_assimilation_x(double x, double height,
-                                const Environment& environment) const;
-  double compute_assimilation_h(double h, double height,
-                                const Environment& environment) const;
-  double compute_assimilation_p(double p, double height,
-                                const Environment& environment) const;
-  // [Appendix S6] Per-leaf photosynthetic rate.
-  double assimilation_leaf(double x) const;
+  void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
+                Internals& vars);
 
+  void update_dependent_aux(const int index, Internals& vars);
 
 
   // [eqn 13] Total maintenance respiration
@@ -91,7 +123,7 @@ public:
   // [eqn 15] Net production
   double net_mass_production_dt_A(double assimilation, double respiration,
                                   double turnover) const;
-  double net_mass_production_dt(const Environment& environment,
+  double net_mass_production_dt(const FF16_Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals=false);
 
@@ -146,18 +178,14 @@ public:
   double mortality_dt(double productivity_area, double cumulative_mortality) const;
   double mortality_growth_independent_dt()const ;
   double mortality_growth_dependent_dt(double productivity_area) const;
-  // [eqn 20] Survival of seedlings during germination
-  double germination_probability(const Environment& environment);
+  // [eqn 20] Survival of seedlings during establishment
+  double establishment_probability(const FF16_Environment& environment);
 
   // * Competitive environment
   // [eqn 11] total leaf area above height above height `z` for given plant
-  double area_leaf_above(double z, double height, double area_leaf) const;
-  // [eqn  9] Probability density of leaf area at height `z`
-  double q(double z, double height) const;
+  double area_leaf_above(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
   double Q(double z, double height) const;
-  // [      ] Inverse of Q: height above which fraction 'x' of leaf found
-  double Qp(double x, double height) const;
 
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
@@ -165,13 +193,8 @@ public:
   // Set constants within FF16_Strategy
   void prepare_strategy();
 
-  // Every Strategy needs a set of Control objects -- these govern
-  // things to do with how numerical calculations are performed,
-  // rather than the biological control that this class has.
-  Control control;
-
   // Previously there was an "integrator" here.  I'm going to stick
-  // that into Control or Environment instead.
+  // that into Control or FF16_Environment instead.
 
   // * Core traits
   double lma, rho, hmat, omega;
@@ -221,6 +244,10 @@ public:
   double area_leaf_0;
 
   std::string name;
+
+  Assimilation<FF16_Environment> assimilator;
+
+  
 };
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);

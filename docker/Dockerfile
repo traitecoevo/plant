@@ -22,6 +22,7 @@ RUN install2.r --error  \
     deldir \
     deSolve \
     devtools \
+    pkgbuild \
     knitr \
     nleqslv \
     numDeriv \
@@ -30,11 +31,11 @@ RUN install2.r --error  \
     rPython
 
 RUN installGithub.r  \
-    traitecoevo/callr \
-    traitecoevo/dockertest \
+#    traitecoevo/callr \
+#    traitecoevo/dockertest \
     richfitz/RcppR6 \
     hadley/testthat \
-    richfitz/grader \
+#    richfitz/grader \
     smbache/loggr \
     jimhester/covr
 

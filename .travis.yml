@@ -9,6 +9,11 @@ env:
   global:
     - _R_CHECK_FORCE_SUGGESTS_=false
 
+branches:
+  except:
+    - gh-pages
+    - remove_plant_plus
+    - scaffolder
 matrix:
   include:
     - os: linux
@@ -32,4 +37,4 @@ notifications:
   email:
     on_success: change
     on_failure: change
-  slack: bdkd:DPfom03G2FgVC9z69XMi9g4L
+  slack: traitecoevo:pYviKwrn6lAvBZUOxxktBwcO

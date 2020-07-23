@@ -6,36 +6,37 @@ strategy_types <- get_list_of_strategy_types()
 for (x in names(strategy_types)) {
 
   context(sprintf("Cohort-%s",x))
-  test_that("Ported from tree1", {
+  test_that("setup, growth rates", {
 
     s <- strategy_types[[x]]()
-    plant <- Plant(x)(s)
-    cohort <- Cohort(x)(s)
+    plant <- Plant(x, paste0(x, "_Env"))(s)
+    cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
-    expect_is(cohort, sprintf("Cohort<%s>", x))
-    expect_is(cohort$plant, sprintf("Plant<%s>", x))
+    expect_is(cohort, sprintf("Cohort<%s,%s_Env>", x, x))
+    expect_is(cohort$plant, sprintf("Plant<%s,%s_Env>", x, x))
 
-    env <- test_environment(2 * plant$height,
+    env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
     ## The big unknown is the growth rate gradient calculation; that is,
     ## the derivative d(dh/dt)/dh.
     growth_rate_given_height <- function(height, plant, env) {
-      plant$height <- height
-      plant$compute_vars_phys(env)
-      plant$internals[["height_dt"]]
+      plant$set_state("height", height)
+      plant$compute_rates(env)
+      plant$rate("height")
     }
+
     grad_forward <- function(f, x, dx, ...) {
       (f(x + dx, ...) - f(x, ...)) / dx
     }
 
-    plant$compute_vars_phys(env)
-    p2 <- PlantPlus(x)(s)
+    plant$compute_rates(env)
+    p2 <- Plant(x, paste0(x, "_Env"))(s)
 
     ## First, a quick sanity check that our little function behaves as
     ## expected:
-    expect_equal(growth_rate_given_height(plant$height, p2, env), plant$internals[["height_dt"]])
+    expect_equal(growth_rate_given_height(plant$state("height"), p2, env),  plant$rate("height"))
 
     ## With height:
     ctrl <- s$control
@@ -44,11 +45,11 @@ for (x in names(strategy_types)) {
 
     ## With a plant, manually compute the growth rate gradient using
     ## Richarson extrapolation:
-    dgdh_richardson <- numDeriv::grad(growth_rate_given_height, plant$height,
+    dgdh_richardson <- numDeriv::grad(growth_rate_given_height, plant$state("height"),
                                       plant=p2, env=env,
                                       method.args=method_args)
     ## And also using plain forward differencing:
-    dgdh_forward <- grad_forward(growth_rate_given_height, plant$height,
+    dgdh_forward <- grad_forward(growth_rate_given_height, plant$state("height"),
                                  method_args$eps, plant=p2, env=env)
 
     ## These agree, but not that much:
@@ -60,8 +61,8 @@ for (x in names(strategy_types)) {
     expect_equal(dgdh, dgdh_forward)
 
     ## Again with Richardson extrapolation:
-        cohort <- Cohort(x)(s)
-    cohort2 <- Cohort(x)(strategy_types[[x]](control=Control(cohort_gradient_richardson=TRUE)))
+        cohort <- Cohort(x, paste0(x, "_Env"))(s)
+    cohort2 <- Cohort(x, paste0(x, "_Env"))(strategy_types[[x]](control=Control(cohort_gradient_richardson=TRUE)))
     expect_true(cohort2$plant$strategy$control$cohort_gradient_richardson)
 
     ## NOTE: Not sure why this is not identical: it's either a bug
@@ -71,25 +72,25 @@ for (x in names(strategy_types)) {
     expect_false(identical(dgdh2, dgdh))
 
     ## p <- cohort2$plant
-    ## p$compute_vars_phys(env)
+    ## p$compute_rates(env)
     ## f <- function(x) {
     ##   growth_rate_given_height(x, p, env)
     ## }
-    ## dgdh3 <- test_gradient_richardson(f, p$height, ctrl$cohort_gradient_eps,
+    ## dgdh3 <- test_gradient_richardson(f, p$set_state("height", ), ctrl$cohort_gradient_eps,
     ##                                   ctrl$cohort_gradient_richardson_depth)
     ## dgdh3 - dgdh2
 
     ## This is entirely optional, but kind of nice to see.
     if (interactive()) {
-      hh <- seq(plant$height * 0.5, plant$height * 1.5, length.out=101)
+      hh <- seq(plant$state("height") * 0.5, plant$state("height") * 1.5, length.out=101)
       gr <- sapply(hh, growth_rate_given_height, p2, env)
-      p2$height <- plant$height
-      h_focus <- plant$height
-      g_focus <- growth_rate_given_height(plant$height, p2, env)
+      p2$set_state("height", plant$state("height"))
+      h_focus <- plant$state("height")
+      g_focus <- growth_rate_given_height(plant$state("height"), p2, env)
       plot(gr ~ hh, xlab="Height", ylab="Growth rate")
       points(g_focus ~ h_focus, col="red", pch=19)
       ## Intercept by solving y = m*x + c for c => (c = y - m * x).
-      abline(g_focus - dgdh * plant$height, dgdh)
+      abline(g_focus - dgdh * plant$state("height"), dgdh)
     }
 
   })
@@ -99,39 +100,38 @@ for (x in names(strategy_types)) {
   ##   * Check that the rates computed are actually correct
   test_that("ODE interface", {
     s <- strategy_types[[x]]()
-    plant <- PlantPlus(x)(s)
-    cohort <- Cohort(x)(s)
+    plant <- Plant(x, paste0(x, "_Env"))(s)
+    cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
-    env <- test_environment(2 * plant$height,
+    env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
     cohort$compute_initial_conditions(env)
-    plant$compute_vars_phys(env)
+    plant$compute_rates(env)
 
-    expect_equal(cohort$ode_size, 6)
-    nms <- c("height", "mortality",
-             "area_heartwood", "mass_heartwood",
+    nms <- c(plant$ode_names, 
              "seeds_survival_weighted", "log_density")
+    expect_equal(cohort$ode_size, length(nms))
     expect_equal(cohort$ode_names, nms)
 
     ## Mortality is different because that's what Cohorts track
-    v <- setdiff(names(cohort$plant$internals), "mortality")
-    expect_equal(cohort$plant$internals[v], plant$internals[v])
+    for( v in setdiff(plant$ode_names, "mortality")) {
+      expect_equal(cohort$plant$state(v), plant$state(v))
+    }
 
     ## Set up plant too:
-    pr_germ <- plant$germination_probability(env)
+    pr_estab <- plant$establishment_probability(env)
 
     y <- plant$ode_state
-    g <- plant$internals[["height_dt"]]
+    g <- plant$rate("height")
 
     ## Ode *values*:
-    cmp <- c(plant$height,
-             -log(pr_germ),
-             0, # area_heardwood
-             0, # mass_heartwood
-             0.0, # fecundity
-             log(pr_germ * env$seed_rain_dt / g))
+    cmp <- c(plant$internals$states,
+             0, # seeds_survival_weighted
+             log(pr_estab * env$seed_rain_dt / g) # log density
+             )
+    cmp[which(plant$ode_names == 'mortality')] <- -log(pr_estab)
     expect_equal(cohort$ode_state, cmp)
 
     expect_identical(cohort$fecundity, 0.0);
@@ -139,26 +139,22 @@ for (x in names(strategy_types)) {
     ## Ode *rates*:
     env$time <- 10
     patch_survival <- env$patch_survival
-
-    rates <- plant$internals
-
-    cmp <- c(rates[["height_dt"]],
-             rates[["mortality_dt"]],
-             rates[["area_heartwood_dt"]],
-             rates[["mass_heartwood_dt"]],
+    
+    cmp <- c(plant$internals$rates,
              ## This is different to the approach in tree1?
-             rates[["fecundity_dt"]] *
-               patch_survival * exp(-cohort$plant$mortality),
-             -rates[["mortality_dt"]] - cohort$growth_rate_gradient(env))
+             plant$rate("fecundity") * patch_survival * exp(-plant$state("mortality")),
+             -plant$rate("mortality") - cohort$growth_rate_gradient(env))
+
+   
     expect_equal(cohort$ode_rates, cmp)
   })
 
   test_that("leaf area calculations", {
     s <- strategy_types[[x]]()
-    plant <- PlantPlus(x)(s)
-    cohort <- Cohort(x)(s)
+    plant <- Plant(x, paste0(x, "_Env"))(s) 
+    cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
-    env <- test_environment(10,
+    env <- test_environment(x, 10,
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
@@ -166,22 +162,23 @@ for (x in names(strategy_types)) {
 
     expect_equal(cohort$log_density, -Inf) # zero
     expect_equal(exp(cohort$log_density), 0.0) # zero
-    expect_equal(cohort$area_leaf, 0) # zero density
+    expect_equal(cohort$competition_effect, 0) # zero density
     cohort$compute_initial_conditions(env)
-    expect_equal(cohort$ode_state[[6]], cohort$log_density)
+
+    expect_equal(cohort$ode_state[[cohort$ode_size]], cohort$log_density)
     density <- exp(cohort$log_density)
-    expect_equal(cohort$area_leaf, plant$area_leaf * density)
-    expect_equal(cohort$area_leaf_above(h / 2), plant$area_leaf_above(h / 2) * density)
+    expect_equal(cohort$competition_effect, plant$compute_competition(0.0) * density)
+    expect_equal(cohort$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
 
     h <- 8.0
-    plant$height <- h
+    plant$set_state("height", h)
     v <- cohort$ode_state
     v[[1]] <- h
     cohort$ode_state <- v
-    expect_identical(plant$height, h)
+    expect_identical(plant$state("height"), h)
     expect_identical(cohort$height, h)
 
-    expect_equal(cohort$area_leaf, plant$area_leaf * density)
-    expect_equal(cohort$area_leaf_above(h / 2), plant$area_leaf_above(h / 2) * density)
+    expect_equal(cohort$competition_effect, plant$compute_competition(0) * density)
+    expect_equal(cohort$compute_competition(h / 2), plant$compute_competition(h / 2) * density)
   })
 }
