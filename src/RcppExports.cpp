@@ -5406,6 +5406,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// K93_oderunner_plant_internals
+plant::Internals K93_oderunner_plant_internals(const plant::ode::Runner<plant::tools::PlantRunner<plant::K93_Strategy, plant::K93_Environment>>& obj);
+RcppExport SEXP _plant_K93_oderunner_plant_internals(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::PlantRunner<plant::K93_Strategy, plant::K93_Environment>>& >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(K93_oderunner_plant_internals(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cohort_schedule_times_default
 std::vector<double> cohort_schedule_times_default(double max_time);
 RcppExport SEXP _plant_cohort_schedule_times_default(SEXP max_timeSEXP) {
@@ -5963,6 +5974,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_make_cohort_schedule__Parameters___FF16r__FF16r_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16r__FF16r_Env, 1},
     {"_plant_FF16_oderunner_plant_internals", (DL_FUNC) &_plant_FF16_oderunner_plant_internals, 1},
     {"_plant_FF16r_oderunner_plant_internals", (DL_FUNC) &_plant_FF16r_oderunner_plant_internals, 1},
+    {"_plant_K93_oderunner_plant_internals", (DL_FUNC) &_plant_K93_oderunner_plant_internals, 1},
     {"_plant_cohort_schedule_times_default", (DL_FUNC) &_plant_cohort_schedule_times_default, 1},
     {"_plant_test_uniroot", (DL_FUNC) &_plant_test_uniroot, 3},
     {"_plant_trapezium", (DL_FUNC) &_plant_trapezium, 2},
