@@ -56,14 +56,14 @@ environment.  The function `fixed_environment` creates an
 environment that has the same canopy openness (here 100%) at all
 heights.  The plant *does not affect* this light environment.
 ```{r }
-env <- fixed_environment(1.0)
+env <- FF16_fixed_environment(1.0)
 ```
 
-The `compute_vars_phys` method computes net mass production for
+The `compute_rates` method computes net mass production for
 the plant, and from that demographic rates:
 ```{r }
 pl$ode_rates
-pl$compute_vars_phys(env)
+pl$compute_rates(env)
 pl$ode_rates
 ```
 
@@ -90,7 +90,7 @@ Because of this, we have a "PlantPlus" object that exposes more of
 a strategy, and in addition stem diameter growth:
 ```{r, eval=FALSE}
 pp <- FF16_Plant(pl$strategy)
-pp$compute_vars_phys(env)
+pp$compute_rates(env)
 names(pp$internals)
 ```
 
@@ -131,12 +131,12 @@ stem diameter, survival, etc; basically everything except for
 height.
 
 It's possible to directly integrate the equations exposed by the
-plant, using the `ode_state` field, `compute_vars_phys` method and
+plant, using the `ode_state` field, `compute_rates` method and
 `ode_rates` field.  For example, we can use the R package `deSolve`:
 ```{r }
 derivs <- function(t, y, plant, env) {
   plant$ode_state <- y
-  plant$compute_vars_phys(env)
+  plant$compute_rates(env)
   list(plant$ode_rates)
 }
 pl <- FF16_Plant()
@@ -164,7 +164,7 @@ y <- apply(yy[, -1], 2, function(y) spline(yy[, "time"], y, xout=t)$y)
 
 pl2 <- FF16_Plant()
 pl2$ode_state <- y
-pl2$compute_vars_phys(env)
+pl2$compute_rates(env)
 ```
 Plant is expected height:
 ```{r }
@@ -289,7 +289,7 @@ legend("bottomright", c("Low LMA", "High LMA"), lty=1:2, bty="n")
 
 Similarly, growing the plants under lower light:
 ```{r }
-env_low <- fixed_environment(0.5)
+env_low <- FF16_fixed_environment(0.5)
 dat1_low <- grow_plant_to_height(pl1, heights1, env_low,
                                  time_max=100, warn=FALSE, filter=TRUE)
 dat2_low <- grow_plant_to_height(pl2, heights2, env_low,
@@ -335,7 +335,7 @@ setNames(pl$ode_rates, pl$ode_names)
 left by the ODE stepper when it was advancing the plant, so it's
 best to update them:
 ```{r }
-pl$compute_vars_phys(dat1$env)
+pl$compute_rates(dat1$env)
 setNames(pl$ode_rates, pl$ode_names)
 ```
 (in this case they are the same because the light environment is
@@ -425,17 +425,17 @@ above).
 ```{r }
 pl <- FF16_Plant()
 pl$set_state("height", 10)
-pl$compute_vars_phys(fixed_environment(1.0))
+pl$compute_rates(FF16_fixed_environment(1.0))
 pl$rate("height") # in full light
 
-pl$compute_vars_phys(fixed_environment(0.5))
+pl$compute_rates(FF16_fixed_environment(0.5))
 pl$rate("height") # in 1/2 light
 ```
 
 At some point the plant cannot maintain positive carbon balance and
 therefore cannot grow; for example at 25% canopy openness:
 ```{r }
-pl$compute_vars_phys(fixed_environment(0.25))
+pl$compute_rates(FF16_fixed_environment(0.25))
 pl$rate("height")
 ```
 
@@ -466,8 +466,8 @@ Height growth rate increases in a saturating fashion with
 increasing canopy openness from the light compensation point.
 ```{r }
 f <- function(x, pl) {
-  env <- fixed_environment(x)
-  pl$compute_vars_phys(env)
+  env <- FF16_fixed_environment(x)
+  pl$compute_rates(env)
   pl$rate("height")
 }
 x <- c(lcp, openness[openness > lcp])
