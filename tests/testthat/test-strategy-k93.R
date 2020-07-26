@@ -4,7 +4,7 @@ context("Strategy-K93")
 test_that("Defaults", {
   expected <- list(
     height_0 = 2.0,
-    size_c = 30.0,
+#    size_c = 30.0,
     b_0 = 0.059,
     b_1 = 0.012,
     b_2 = 0.00041,
@@ -32,21 +32,21 @@ test_that("Reference comparison", {
 
   ## Set the size to something (here 10)
   s0 <- 10
-  p$set_state("size", s0)
+  p$set_state("height", s0)
 
 
-  expect_identical(p$state("size"), s0)
+  expect_identical(p$state("height"), s0)
 
   ## Check: Is this redundant now
   ## We now use 
   vars <- p$internals
-  expect_identical(p$state("size"), vars$states[which(p$ode_names == "size")])
+  expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
 })
 
 
 test_that("Critical Names", {
   s <- K93_Strategy()
   my_names <- K93_Plant(s)$ode_names
-  expect_identical(my_names[1:3], c("size", "mortality", "fecundity"))
+  expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
 })
 

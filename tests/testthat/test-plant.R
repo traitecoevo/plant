@@ -80,7 +80,10 @@ for (x in names(strategy_types)) {
     # expect_identical(pl$ode_names, ode_names)
 
     ## ode_state
-    expect_equal(pl$ode_state, c(h0, m0, f0, 0, 0))
+    if(x %in% c("FF16", "FF16r"))
+        expect_equal(pl$ode_state, c(h0, m0, f0, 0, 0))
+    else 
+        expect_equal(pl$ode_state, c(h0, m0, f0))
 
     expect_equal(pl$strategy_name, x)
   })

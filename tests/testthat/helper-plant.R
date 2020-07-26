@@ -41,7 +41,8 @@ skip_if_no_plant_ml_python <- function() {
 get_list_of_strategy_types <- function() {
   list(
     FF16=FF16_Strategy,
-    FF16r=FF16r_Strategy
+    FF16r=FF16r_Strategy,
+    K93=K93_Strategy
     )
 }
 
@@ -49,7 +50,8 @@ get_list_of_strategy_types <- function() {
 get_list_of_hyperpar_functions <- function() {
   list(
     FF16=FF16_hyperpar,
-    FF16r=FF16r_hyperpar
+    FF16r=FF16r_hyperpar,
+    K93=K93_Strategy
     )
 }
 
@@ -58,6 +60,7 @@ test_environment<- function(type, ...) {
   switch(type,
     FF16=FF16_test_environment(...),
     FF16r=FF16r_test_environment(...),
+    K93=K93_test_environment(...),
     stop("Unknown type ", type))
 }
 
@@ -126,3 +129,32 @@ FF16r_test_environment <- function(height, n=101, light_env=NULL,
   ret
 }
 
+
+
+## This makes a pretend light environment over the plant height,
+## slightly concave up, whatever.
+K93_test_environment <- function(height, n=101, light_env=NULL,
+                             n_strategies=1, seed_rain=0) {
+  if (length(seed_rain) == 1) {
+    seed_rain <- rep(seed_rain, length.out=n_strategies)
+  }
+  hh <- seq(0, height, length.out=n)
+  if (is.null(light_env)) {
+    light_env <- function(x) {
+      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
+    }
+  }
+  ee <- light_env(hh)
+  interpolator <- Interpolator()
+  interpolator$init(hh, ee)
+
+  parameters <- K93_Parameters()
+  parameters$strategies <- rep(list(K93_Strategy()), n_strategies)
+  parameters$seed_rain <- seed_rain
+  parameters$is_resident <- rep(TRUE, n_strategies)
+
+  ret <- K93_make_environment(parameters)
+  ret$environment_interpolator <- interpolator
+  attr(ret, "light_env") <- light_env
+  ret
+}

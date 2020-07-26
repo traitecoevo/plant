@@ -14,7 +14,7 @@ test_that("hyperpar creation", {
 test_that("Creation & defaults", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
-    p <- Parameters(x, paste0(x, "_Env"))(hyperpar=FF16_hyperpar)
+    p <- Parameters(x, paste0(x, "_Env"))(hyperpar=K93_hyperpar)
     expect_is(p, sprintf("Parameters<%s,%s_Env>", x, x))
 
     expect_equal(length(p$strategies), 0)
@@ -25,7 +25,7 @@ test_that("Creation & defaults", {
                      n_patches=1,    # NOTE: Different to tree 0.1
                      patch_area=1.0, # NOTE: Different to tree 0.1
                      disturbance_mean_interval=30.0,
-                     hyperpar=FF16_hyperpar)
+                     hyperpar=K93_hyperpar)
 
     expect_equal(p[names(expected)], expected)
     expect_equal(p$strategy_default, s)

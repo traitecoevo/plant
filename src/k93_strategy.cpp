@@ -28,9 +28,9 @@ K93_Strategy::K93_Strategy() {
 // Signatures fixed in plant.h
 void K93_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
-    double size = vars.state(HEIGHT_INDEX);
+    double height = vars.state(HEIGHT_INDEX);
     vars.set_aux(aux_index.at("competition_effect"),
-                 compute_competition(0.0, size));
+                 compute_competition(0.0, height));
   }
 }
 
@@ -62,20 +62,20 @@ void K93_Strategy::compute_rates(const K93_Environment& environment,
                               bool reuse_intervals,
                               Internals& vars) {
 
-  double size = vars.state(HEIGHT_INDEX);
+  double height = vars.state(HEIGHT_INDEX);
 
   // suppression integral mapped [0, 1] using adaptive spline
   // back transform to basal area and add supression from self
-  double competition = environment.get_environment_at_height(size);
-  double basal_area = size_to_basal_area(size);
+  double competition = environment.get_environment_at_height(height);
+  double basal_area = size_to_basal_area(height);
 
   double cumulative_basal_area = -log(competition) / environment.k_I + basal_area;
 
   vars.set_rate(HEIGHT_INDEX,
-    size_dt(size, cumulative_basal_area));
+    size_dt(height, cumulative_basal_area));
 
   vars.set_rate(FECUNDITY_INDEX,
-    fecundity_dt(size, cumulative_basal_area));
+    fecundity_dt(height, cumulative_basal_area));
 
   vars.set_rate(MORTALITY_INDEX,
     mortality_dt(cumulative_basal_area, vars.state(MORTALITY_INDEX)));
