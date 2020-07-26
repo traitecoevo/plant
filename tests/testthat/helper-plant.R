@@ -126,18 +126,3 @@ FF16r_test_environment <- function(height, n=101, light_env=NULL,
   ret
 }
 
-
-FF16_fixed_environment <- function(e=1.0) {
-  p <- FF16_Parameters()
-  env <- FF16_Environment(30, c(1, 1), 0.5, p$control)
-  env$set_fixed_environment(e, 150.0)
-  env
-}
-
-
-FF16r_fixed_environment <- function(e=1.0) {
-  p <- FF16r_Parameters()
-  env <- FF16r_Environment(30, c(1, 1), 0.5, p$control)
-  env$set_fixed_environment(e, 150.0)
-  env
-}

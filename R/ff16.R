@@ -86,6 +86,21 @@ FF16_make_environment <- function(p) {
   FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
 }
 
+##' Construct a fixed environment for FF16 strategy
+##'
+##' @param e=1.0 Value of environment 
+##' @param p A Parameters object
+##' @param height_max = 150.0 maximum possible height in environment
+##' @rdname FF16_Environment
+##'
+##' @export
+FF16_fixed_environment <- function(e=1.0, p = FF16_Parameters(), height_max = 150.0) {
+  env <- FF16_make_environment(p)
+  env$set_fixed_environment(e, height_max)
+  env
+}
+
+
 ##' Hyperparameters for FF16 physiological model
 ##' @title Hyperparameters for FF16 physiological model
 ##' @param lma_0 Central (mean) value for leaf mass per area [kg /m2]
