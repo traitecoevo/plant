@@ -5,12 +5,28 @@
 \alias{FF16_hyperpar}
 \title{Hyperparameters for FF16 physiological model}
 \usage{
-make_FF16_hyperpar(lma_0 = 0.1978791, B_kl1 = 0.4565855,
-  B_kl2 = 1.71, rho_0 = 608, B_dI1 = 0.01, B_dI2 = 0,
-  B_ks1 = 0.2, B_ks2 = 0, B_rs1 = 4012, B_rb1 = 2 * 4012,
-  B_f1 = 3, narea = 0.00187, narea_0 = 0.00187, B_lf1 = 5120.738 *
-  0.00187 * 24 * 3600/1e+06, B_lf2 = 0.5, B_lf3 = 0.04,
-  B_lf4 = 21000, B_lf5 = 1, k_I = 0.5, latitude = 0)
+make_FF16_hyperpar(
+  lma_0 = 0.1978791,
+  B_kl1 = 0.4565855,
+  B_kl2 = 1.71,
+  rho_0 = 608,
+  B_dI1 = 0.01,
+  B_dI2 = 0,
+  B_ks1 = 0.2,
+  B_ks2 = 0,
+  B_rs1 = 4012,
+  B_rb1 = 2 * 4012,
+  B_f1 = 3,
+  narea = 0.00187,
+  narea_0 = 0.00187,
+  B_lf1 = 5120.738 * 0.00187 * 24 * 3600/1e+06,
+  B_lf2 = 0.5,
+  B_lf3 = 0.04,
+  B_lf4 = 21000,
+  B_lf5 = 1,
+  k_I = 0.5,
+  latitude = 0
+)
 
 FF16_hyperpar(m, s, filter = TRUE)
 }

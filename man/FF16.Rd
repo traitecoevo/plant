@@ -15,7 +15,7 @@
 \usage{
 FF16_Plant(s = FF16_Strategy())
 
-\method{lcp_whole_plant}{Plant<FF16>}(p, ...)
+\method{lcp_whole_plant}{`Plant<FF16>`}(p, ...)
 
 FF16_Cohort(s = FF16_Strategy())
 

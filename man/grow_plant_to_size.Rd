@@ -5,8 +5,15 @@
 \alias{grow_plant_to_height}
 \title{Grow plant to given size}
 \usage{
-grow_plant_to_size(plant, sizes, size_name, env, time_max = Inf,
-  warn = TRUE, filter = FALSE)
+grow_plant_to_size(
+  plant,
+  sizes,
+  size_name,
+  env,
+  time_max = Inf,
+  warn = TRUE,
+  filter = FALSE
+)
 
 grow_plant_to_height(plant, heights, env, ...)
 }
