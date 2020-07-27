@@ -124,52 +124,15 @@ make_K93_hyperpar <- function(
   assert_scalar(b_2)
   assert_scalar(c_0)
   assert_scalar(c_1)
+  assert_scalar(d_0)
+  assert_scalar(d_1)
 
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
               nrow(m))
     }
-    b_0 <- with_default("b_0")
-    b_1 <- with_default("b_1")
-    b_2 <- with_default("b_2")
-    c_0 <- with_default("c_0")
-    c_1 <- with_default("c_1")
-    d_0 <- with_default("d_0")
-    d_1 <- with_default("d_1")
-
-
-    extra <- cbind(NULL)
-
-    overlap <- intersect(colnames(m), colnames(extra))
-    if (length(overlap) > 0L) {
-      stop("Attempt to overwrite generated parameters: ",
-           paste(overlap, collapse=", "))
-    }
-
-    ## Filter extra so that any column where all numbers are with eps
-    ## of the default strategy are not replaced:
-    if (filter) {
-      if (nrow(extra) == 0L) {
-        extra <- NULL
-      } else {
-        pos <- diff(apply(extra, 2, range)) == 0
-        if (any(pos)) {
-          eps <- sqrt(.Machine$double.eps)
-          x1 <- extra[1, pos]
-          x2 <- unlist(s[names(x1)])
-          drop <- abs(x1 - x2) < eps & abs(1 - x1/x2) < eps
-          if (any(drop)) {
-            keep <- setdiff(colnames(extra), names(drop)[drop])
-            extra <- extra[, keep, drop=FALSE]
-          }
-        }
-      }
-    }
-
-    if (!is.null(extra)) {
-      m <- cbind(m, extra)
-    }
+    
     m
   }
 
