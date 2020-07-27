@@ -34,8 +34,16 @@ void K93_Strategy::update_dependent_aux(const int index, Internals& vars) {
   }
 }
 
+
+double K93_Strategy::compute_competition(double z, double size) const {
+
+  // Competition only felt if plant bigger than target size z
+  return (z > size)?0:size_to_basal_area(size);
+ };
+
 double K93_Strategy::establishment_probability(const K93_Environment& environment){
-    return 1.0;
+  //TODO: may want to make this dependent on achieving positive growth rate
+  return 1.0;
 }
 
 double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,
@@ -65,11 +73,11 @@ void K93_Strategy::compute_rates(const K93_Environment& environment,
   double height = vars.state(HEIGHT_INDEX);
 
   // suppression integral mapped [0, 1] using adaptive spline
-  // back transform to basal area and add supression from self
+  // back transform to basal area and add suppression from self
   double competition = environment.get_environment_at_height(height);
   double basal_area = size_to_basal_area(height);
 
-  double cumulative_basal_area = -log(competition) / environment.k_I + basal_area;
+  double cumulative_basal_area = -log(competition) / environment.k_I;
 
   vars.set_rate(HEIGHT_INDEX,
     size_dt(height, cumulative_basal_area));
@@ -106,7 +114,7 @@ double K93_Strategy::mortality_dt(double cumulative_basal_area,
   // behaviour.
   if (R_FINITE(cumulative_mortality)) {
     double mu = -c_0 + c_1 * cumulative_basal_area;
-    return c_0 > mu + c_0 ? 0.0 : mu;
+    return (mu > 0)? mu:0.0;
  } else {
     return 0.0;
   }

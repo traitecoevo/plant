@@ -49,10 +49,7 @@ public:
                                 double size, double cumulative_basal_area,
                                 bool reuse_intervals=false);
 
-  double compute_competition(double z, double size) const {
-      // z not used
-      return size_to_basal_area(size);
-  };
+  double compute_competition(double z, double size) const;
 
   void update_dependent_aux(const int index, Internals& vars);
 
