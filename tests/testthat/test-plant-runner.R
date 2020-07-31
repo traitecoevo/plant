@@ -68,6 +68,9 @@ test_that("grow_plant_to_size", {
   for (x in names(strategy_types)) {
     env <- test_environment(x, 10)
     heights <- seq(1, 10)
+    if(x == "K93") {
+      heights <- seq(5, 100, by =20)
+    }
     s <- strategy_types[[x]]()
 
     pp <- Plant(x, paste0(x, "_Env"))(s)
@@ -89,16 +92,16 @@ test_that("grow_plant_to_size", {
                              heights[[i]], "height",
                              res$t0[[i]], res$t1[[i]], res$y0[i,])
 
-    ## The plant lies within the range expected:
+    ## The plant lies within the time range expected:
     expect_gte(tmp$time, res$t0[[i]])
     expect_lte(tmp$time, res$t1[[i]])
-
-    j1 <- match(c("height", "mortality", "area_heartwood", "mass_heartwood"), names(res$y0[i,]))
+ 
+    j1 <- match("height", names(res$y0[i,]))
     expect_true(all(tmp$state[j1] > res$y0[i,j1]))
     expect_true(all(tmp$state[j1] < res$y1[i,j1]))
 
-    ## separate test using <= & >= for fecundity as unlike other variables, fecundity could be zero
-    j2 <- match(c("fecundity"), names(res$y0[i,]))
+    ## test using <= & >= for fecundity & mortality, as unlike other size, fecundity could be zero
+    j2 <- match(c("fecundity", "mortality"), names(res$y0[i,]))
     expect_true(all(tmp$state[j2] >= res$y0[i,j2]))
     expect_true(all(tmp$state[j2] <= res$y1[i,j2]))
 
@@ -140,39 +143,43 @@ test_that("grow_plant_to_size", {
     strategy <- strategy_types[[x]]()
     pl <- Plant(x, paste0(x, "_Env"))(strategy)
     sizes <- c(1, 5, 10, 12, strategy$hmat)
+    if(x == "K93") 
+      sizes <- c(2.5, 5, 10, 12)
     env <- fixed_environment(x, 1.0)
     res <- grow_plant_to_size(pl, sizes, "height", env, 10000)
 
-    expect_equal(res$state[, "height"], sizes, tolerance=1e-6)
+    expect_equal(res$state[, "height"], sizes, tolerance=1e-4)
 
     sizes2 <- c(sizes, last(sizes) * 2)
-    expect_warning(res2 <- grow_plant_to_size(pl, sizes2, "height", env, 100),
+    if(x == "FF16") {
+      expect_warning(res2 <- grow_plant_to_size(pl, sizes2, "height", env, 100),
                 "Time exceeded time_max")
-    expect_equal(length(res2$time), length(sizes2))
-    expect_equal(last(res2$time), NA_real_)
-    expect_false(any(is.na(res2$time[-length(sizes2)])))
+      expect_equal(length(res2$time), length(sizes2))
+      expect_equal(last(res2$time), NA_real_)
+      expect_false(any(is.na(res2$time[-length(sizes2)])))
 
-    expect_silent(res3 <- grow_plant_to_size(pl, sizes2, "height", env,
+      expect_silent(res3 <- grow_plant_to_size(pl, sizes2, "height", env,
                                            100, warn=FALSE))
-    expect_equal(res3, res2)
+      expect_equal(res3, res2)
 
-    expect_silent(res4 <- grow_plant_to_size(pl, sizes2, "height", env,
+      expect_silent(res4 <- grow_plant_to_size(pl, sizes2, "height", env,
                                            100, warn=FALSE, filter=TRUE))
 
-    ## Manually filter:
-    cmp <- res2
-    i <- !is.na(cmp$time)
-    expect_equal(res4$time, cmp$time[i])
-    expect_equal(res4$plant, cmp$plant[i])
-    expect_equal(res4$state, cmp$state[i,])
-    expect_equal(res4$trajectory, cmp$trajectory)
+      ## Manually filter:
+      cmp <- res2
+      i <- !is.na(cmp$time)
+      expect_equal(res4$time, cmp$time[i])
+      expect_equal(res4$plant, cmp$plant[i])
+      expect_equal(res4$state, cmp$state[i,])
+      expect_equal(res4$trajectory, cmp$trajectory)
 
-    if (FALSE) {
-      plot(height ~ time, as.data.frame(res$trajectory), type="l")
-      points(res$time, res$state[, "height"], pch=19)
+      if (FALSE) {
+        plot(height ~ time, as.data.frame(res$trajectory), type="l")
+        points(res$time, res$state[, "height"], pch=19)
 
-      plot(height ~ time, as.data.frame(res2$trajectory), type="l")
-      points(res2$time, res2$state[, "height"], pch=19)
+        plot(height ~ time, as.data.frame(res2$trajectory), type="l")
+        points(res2$time, res2$state[, "height"], pch=19)
+      }
     }
   }
 })
@@ -200,7 +207,7 @@ test_that("grow_plant_to_time", {
 test_that("Sensible behaviour on integration failure", {
   pl <- FF16_Plant()
 
-  env <- fixed_environment(1)
+  env <- fixed_environment("FF16", 1)
   sizes <- seq_range(c(pl$state("height"), 50), 50)
   expect_warning(res <- grow_plant_to_size(pl, sizes, "height", env, 10, warn = TRUE, filter = TRUE),
                   "Time exceeded time_max")
@@ -217,7 +224,7 @@ test_that("Sensible behaviour on integration failure", {
   s <- strategy(traits, scm_base_parameters())
   pl <- FF16_Plant(s)
 
-  env <- fixed_environment(1)
+  env <- fixed_environment("FF16", 1)
   sizes <- seq_range(c(pl$state("height"), 50), 50)
   expect_warning(res <- grow_plant_to_size(pl, sizes, "height", env, 1000, warn = TRUE, filter = TRUE),
                   "50 larger sizes dropped")

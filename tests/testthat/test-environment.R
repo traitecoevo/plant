@@ -3,7 +3,7 @@ strategy_types <- get_list_of_strategy_types()
 
 for (x in names(strategy_types)) {
 
-  context(sprintf("%s_Environment",x))
+  context(sprintf("Environment-%s",x))
 
   test_that("Empty environment", {
     p <- Parameters(x, paste0(x, "_Env"))()

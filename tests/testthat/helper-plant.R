@@ -69,6 +69,7 @@ fixed_environment<- function(type, ...) {
   switch(type,
     FF16=FF16_fixed_environment(...),
     FF16r=FF16r_fixed_environment(...),
+    K93=K93_fixed_environment(...),
     stop("Unknown type ", type))
 }
 

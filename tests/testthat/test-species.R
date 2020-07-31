@@ -61,11 +61,11 @@ for (x in names(strategy_types)) {
     sp$heights <- 1
 
     h <- 0
-    x <- c(sp$seed$height, sp$heights)
+    xx <- c(sp$seed$height, sp$heights)
     y <- c(sp$seed$compute_competition(h),
            sp$cohort_at(1)$compute_competition(h))
 
-    expect_identical(sp$compute_competition(h), trapezium(x, y))
+    expect_identical(sp$compute_competition(h), trapezium(xx, y))
 
     ## Better tests: I want cases where:
     ## 1. empty: throws error
