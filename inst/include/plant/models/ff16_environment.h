@@ -18,38 +18,42 @@ class FF16_Environment : public Environment {
 public:
 
   FF16_Environment() {
+    // Define an anonymous function to pass got the environment generator
     time = 0.0;
     disturbance_regime = 30;
     seed_rain = { 1.0, 1.0, 1.0 };
     seed_rain_index = 3;
     k_I = 0.5;
     environment_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
-    // Define an anonymous function to pass got the environment generator
     environment_interpolator = environment_generator.construct(
       [&](double height) {
           return get_environment_at_height(height);
-      }, 0, 1); // these are update with init(x, y) whne patch is created
+      }, 0, 1); // these are update with init(x, y) when patch is created
   };
 
   FF16_Environment(double disturbance_mean_interval,
                    std::vector<double> seed_rain_,
                    double k_I_,
                    Control control) {
-      k_I = k_I_;
-      environment_generator = interpolator::AdaptiveInterpolator(control.environment_light_tol,
-                                control.environment_light_tol,
-                                control.environment_light_nbase,
-                                control.environment_light_max_depth);
-      time = 0.0;
-      disturbance_regime = disturbance_mean_interval;
-      seed_rain = seed_rain_;
-      seed_rain_index = 0;
+    k_I = k_I_;
+    time = 0.0;
+    disturbance_regime = disturbance_mean_interval;
+    seed_rain = seed_rain_;
+    seed_rain_index = 0;
+    environment_generator = interpolator::AdaptiveInterpolator(
+      control.environment_light_tol,
+      control.environment_light_tol,
+      control.environment_light_nbase,
+      control.environment_light_max_depth
+    );
+    environment_interpolator = environment_generator.construct(
+      [&](double height) {
+          return get_environment_at_height(height);
+      }, 0, 1); // these are update with init(x, y) when patch is created
   };
 
-  // TODO: move these to Environment 
   template <typename Function>
-  void compute_environment(Function f_compute_competition,
-                           double height_max) {
+  void compute_environment(Function f_compute_competition, double height_max) {
     const double lower_bound = 0.0;
     double upper_bound = height_max;
 
@@ -59,8 +63,7 @@ public:
   }
 
   template <typename Function>
-  void rescale_environment(Function f_compute_competition,
-                                             double height_max) {
+  void rescale_environment(Function f_compute_competition, double height_max) {
     std::vector<double> h = environment_interpolator.get_x();
     const double min = environment_interpolator.min(), // 0.0?
       height_max_old = environment_interpolator.max();
@@ -105,10 +108,12 @@ inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
 inline interpolator::AdaptiveInterpolator
 make_interpolator(const Control& control) {
   using namespace interpolator;
-  return AdaptiveInterpolator(control.environment_light_tol,
-                              control.environment_light_tol,
-                              control.environment_light_nbase,
-                              control.environment_light_max_depth);
+  return AdaptiveInterpolator(
+    control.environment_light_tol,
+    control.environment_light_tol,
+    control.environment_light_nbase,
+    control.environment_light_max_depth
+  );
 }
 
 }

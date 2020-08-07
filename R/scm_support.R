@@ -107,7 +107,6 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
   }
   collect <- if (include_competition_effect) collect_competition_effect else collect_default
   types <- extract_RcppR6_template_types(p, "Parameters")
-  make_environment(p)
   scm <- do.call('SCM', types)(p)
   res <- list(collect(scm))
 

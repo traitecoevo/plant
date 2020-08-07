@@ -17,9 +17,10 @@ class Environment {
 public:
 
   Environment() :
-    time(0.0),
+    time(NA_REAL),
     disturbance_regime(0),
-    seed_rain({}),
+    k_I(NA_REAL),
+    seed_rain(),
     seed_rain_index(0),
     environment_generator(interpolator::AdaptiveInterpolator()) {
   };
@@ -80,11 +81,11 @@ public:
 
   double time;
   Disturbance disturbance_regime;
+  double k_I;
   interpolator::Interpolator environment_interpolator;
   std::vector<double> seed_rain;
   size_t seed_rain_index;
   interpolator::AdaptiveInterpolator environment_generator;
-  double k_I;
 };
 
 }

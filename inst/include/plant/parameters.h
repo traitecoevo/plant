@@ -24,14 +24,15 @@ struct Parameters {
   typedef T strategy_type;
   typedef E environment_type;
 
-  Parameters(SEXP hyperpar = R_NilValue)
-    : k_I(0.5),
-      patch_area(1.0),
-      n_patches(1),
-      disturbance_mean_interval(30),
-      cohort_schedule_max_time(NA_REAL),
-      hyperpar(hyperpar) {
-        validate();
+  Parameters(SEXP hyperpar=R_NilValue) : 
+    k_I(0.5),
+    patch_area(1.0),
+    n_patches(1),
+    disturbance_mean_interval(30),
+    cohort_schedule_max_time(NA_REAL),
+    hyperpar(hyperpar)
+  {
+    validate();
   }
 
   // Data -- public for now (see github issue #17).
@@ -110,9 +111,6 @@ void Parameters<T,E>::validate() {
   if (cohort_schedule_times.size() != n_spp) {
     util::stop("Incorrect length cohort_schedule_times");
   }
-  /* if (environment.empty()) { */
-    /* environment = environment( */
-  /* } */
 
   // This is not a lot of checking, but should be enough.  There's no
   // way of telling if the function is a good idea without running it,
@@ -126,6 +124,8 @@ void Parameters<T,E>::validate() {
   for (auto& s : strategies) {
     s.control = control;
   }
+
+  environment = environment_type(disturbance_mean_interval, seed_rain, k_I, control);
 }
 
 // Separating this out just because it's a bit crap:
