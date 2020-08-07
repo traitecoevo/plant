@@ -76,11 +76,21 @@ public:
     environment_interpolator.initialise();
   }
 
+  void set_fixed_environment(double value, double height_max) {
+    std::vector<double> x = {0, height_max/2.0, height_max};
+    std::vector<double> y = {value, value, value};
+    clear_environment();
+    environment_interpolator.init(x, y);
+  }
+
+  void set_fixed_environment(double value) {
+    double height_max = 150.0;
+    set_fixed_environment(value, height_max);
+  }
+
   double canopy_openness(double height) const {
     return get_environment_at_height(height);
   }
-
-  double k_I;
 };
 
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
@@ -90,6 +100,15 @@ inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
     Rcpp::CharacterVector::create("height", "canopy_openness");
   xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
   return xy;
+}
+
+inline interpolator::AdaptiveInterpolator
+make_interpolator(const Control& control) {
+  using namespace interpolator;
+  return AdaptiveInterpolator(control.environment_light_tol,
+                              control.environment_light_tol,
+                              control.environment_light_nbase,
+                              control.environment_light_max_depth);
 }
 
 }
