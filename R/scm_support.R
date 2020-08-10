@@ -74,7 +74,7 @@ scm_base_parameters <- function(type="FF16", env="FF16_Env") {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
-  Parameters(type, env)(patch_area=1.0, control=ctrl, hyperpar=hyperpar(type))
+  Parameters(type, env)(patch_area=1.0, control=ctrl)
 }
 
 ##' Run the SCM model, given a Parameters and CohortSchedule
@@ -267,7 +267,7 @@ assembly_parameters <- function(..., pars=NULL, base_parameters_fn = scm_base_pa
     }
 
     nms_hyper <- intersect(names(pars), names(formals(make_hyperpar_fn)))
-    p$hyperpar <- do.call("make_hyperpar_fn", pars[nms_hyper])
+   # p$hyperpar <- do.call("make_hyperpar_fn", pars[nms_hyper])
     p                  <- modify_list(p,                  pars)
     p$control          <- modify_list(p$control,          pars)
     p$strategy_default <- modify_list(p$strategy_default, pars)

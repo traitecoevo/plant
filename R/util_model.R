@@ -15,10 +15,9 @@ strategy_list <- function(x, parameters) {
   }
 
   strategy <- parameters$strategy_default
-  hyperpar <- parameters$hyperpar
-  if (!is.null(hyperpar)) {
-    x <- hyperpar(x, strategy)
-  }
+  # if (!is.null(hyperpar)) {
+  x <- hyperpar("FF16")(x, strategy)
+  # }
 
   trait_names <- colnames(x)
   f <- function(xi) {
