@@ -24,13 +24,12 @@ struct Parameters {
   typedef T strategy_type;
   typedef E environment_type;
 
-  Parameters(SEXP hyperpar=R_NilValue) : 
+  Parameters() : 
     k_I(0.5),
     patch_area(1.0),
     n_patches(1),
     disturbance_mean_interval(30),
-    cohort_schedule_max_time(NA_REAL),
-    hyperpar(hyperpar)
+    cohort_schedule_max_time(NA_REAL)
   {
     validate();
   }
@@ -58,9 +57,6 @@ struct Parameters {
   std::vector<double> cohort_schedule_times_default;
   std::vector<std::vector<double> > cohort_schedule_times;
   std::vector<double> cohort_schedule_ode_times;
-
-  // An R function that will be used to hyperparametrise the model.
-  SEXP hyperpar;
 
   // Some little query functions for use on the C side:
   size_t size() const;
@@ -110,13 +106,6 @@ void Parameters<T,E>::validate() {
   setup_cohort_schedule();
   if (cohort_schedule_times.size() != n_spp) {
     util::stop("Incorrect length cohort_schedule_times");
-  }
-
-  // This is not a lot of checking, but should be enough.  There's no
-  // way of telling if the function is a good idea without running it,
-  // anyway.
-  if (hyperpar != R_NilValue && !util::is_function(hyperpar)) {
-    util::stop("hyperpar must be NULL or a function");
   }
 
   // Overwrite all strategy control objects so that they take the

@@ -87,9 +87,9 @@ private:
 template <typename T, typename E>
 StochasticPatch<T,E>::StochasticPatch(parameters_type p)
   : parameters(p),
-    is_resident(p.is_resident),
-    environment(p.environment) {
+    is_resident(p.is_resident) {
   parameters.validate();
+  environment = p.environment;
   for (auto s : parameters.strategies) {
     species.push_back(species_type(s));
   }

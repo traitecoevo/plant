@@ -368,7 +368,6 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant:
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
-  ret["hyperpar"] = Rcpp::wrap(x.hyperpar);
   ret.attr("class") = Rcpp::CharacterVector::create("Parameters<FF16,FF16_Env>", "Parameters");
   return ret;
 }
@@ -407,8 +406,6 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   ret.cohort_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["cohort_schedule_times"]);
   // ret.cohort_schedule_ode_times = Rcpp::as<decltype(retcohort_schedule_ode_times) >(xl["cohort_schedule_ode_times"]);
   ret.cohort_schedule_ode_times = Rcpp::as<std::vector<double> >(xl["cohort_schedule_ode_times"]);
-  // ret.hyperpar = Rcpp::as<decltype(rethyperpar) >(xl["hyperpar"]);
-  ret.hyperpar = Rcpp::as<SEXP >(xl["hyperpar"]);
   ret.validate();
   return ret;
 }
