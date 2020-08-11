@@ -9,15 +9,13 @@
 ##'   will be applied.
 ##'
 ##' @export
-strategy_list <- function(x, parameters) {
+strategy_list <- function(x, parameters, hyperpar) {
   if (!is.matrix(x)) {
     stop("Invalid type x -- expected a matrix")
   }
 
   strategy <- parameters$strategy_default
-  # if (!is.null(hyperpar)) {
-  x <- hyperpar("FF16")(x, strategy)
-  # }
+  x <- hyperpar(x, strategy)
 
   trait_names <- colnames(x)
   f <- function(xi) {
@@ -29,27 +27,27 @@ strategy_list <- function(x, parameters) {
 
 ##' @export
 ##' @rdname strategy_list
-strategy_default <- function(parameters) {
+strategy_default <- function(parameters, hyperpar) {
   strategy(trait_matrix(1, "a")[, -1, drop=FALSE], parameters)
 }
 
 ##' @export
 ##' @rdname strategy_list
-strategy <- function(x, parameters) {
+strategy <- function(x, parameters, hyperpar) {
   if (nrow(x) != 1L) {
     stop("Expected a single type")
   }
-  strategy_list(x, parameters)[[1]]
+  strategy_list(x, parameters, hyperpar)[[1]]
 }
 
 ##' @rdname strategy_list
 ##' @export
-plant_list <- function(x, parameters) {
+plant_list <- function(x, parameters, hyperpar) {
   if (!inherits(parameters, "Parameters")) {
     stop("parameters must be a 'Parameters' object")
   }
   types <- extract_RcppR6_template_types(parameters, "Parameters")
-  lapply(strategy_list(x, parameters), do.call('Plant', types))
+  lapply(strategy_list(x, parameters, hyperpar), do.call('Plant', types))
 }
 
 ##' Helper function to create trait matrices suitable for
@@ -81,11 +79,11 @@ trait_matrix <- function(x, trait_name) {
 ##' density).
 ##' @author Rich FitzJohn
 ##' @export
-expand_parameters <- function(trait_matrix, p, mutant=TRUE) {
+expand_parameters <- function(trait_matrix, p, hyperpar, mutant=TRUE) {
   if (length(mutant) != 1L) {
     stop("mutant must be scalar")
   }
-  extra <- strategy_list(trait_matrix, p)
+  extra <- strategy_list(trait_matrix, p, hyperpar)
   n_extra <- length(extra)
 
   ret <- p <- validate(p) # Ensure times are set up correctly.

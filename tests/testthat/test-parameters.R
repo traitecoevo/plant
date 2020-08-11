@@ -2,19 +2,10 @@ context("Parameters")
 
 strategy_types <- get_list_of_strategy_types()
 
-test_that("hyperpar creation", {
-  for (x in names(strategy_types)) {
-    h <- hyperpar(x)
-    expect_is(h, "function")
-    expect_equal(names(formals(h)), c("m", "s", "filter"))
-    expect_equal(make_hyperpar(x)(), h)
-  }
-})
-
 test_that("Creation & defaults", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
-    p <- Parameters(x, "FF16_Env")(hyperpar=FF16_hyperpar)
+    p <- Parameters(x, "FF16_Env")()
     expect_is(p, sprintf("Parameters<%s,FF16_Env>", x))
 
     expect_equal(length(p$strategies), 0)
@@ -24,8 +15,7 @@ test_that("Creation & defaults", {
     expected <- list(k_I=0.5,
                      n_patches=1,    # NOTE: Different to tree 0.1
                      patch_area=1.0, # NOTE: Different to tree 0.1
-                     disturbance_mean_interval=30.0,
-                     hyperpar=FF16_hyperpar)
+                     disturbance_mean_interval=30.0)
 
     expect_equal(p[names(expected)], expected)
     expect_equal(p$strategy_default, s)
@@ -119,15 +109,6 @@ test_that("Generate cohort schedule", {
   }
 })
 
-test_that("Store hyperparams", {
-  for (x in names(strategy_types)) {
-    p <- Parameters(x, "FF16_Env")(hyperpar=hyperpar(x))
-    expect_identical(p$hyperpar, hyperpar(x))
-    tmp <- Patch(x,"FF16_Env")(p)$parameters
-    expect_identical(tmp$hyperpar, hyperpar(x))
-  }
-})
-
 test_that("Validate", {
   for (x in names(strategy_types)) {
     p <- Parameters(x, "FF16_Env")()
@@ -141,7 +122,6 @@ test_that("Validate", {
 test_that("scm_base_parameters", {
   for (x in names(strategy_types)) {
     p <- scm_base_parameters(x)
-    expect_equal(p$hyperpar, hyperpar(x))
     expect_is(p, sprintf("Parameters<%s,FF16_Env>", x))
   }
 })
@@ -175,8 +155,9 @@ test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- FF16_Parameters()
   m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- strategy_list(m, p0))
+  hyperpar <- make_FF16_hyperpar()
+  expect_silent(sl <- strategy_list(m, p0, hyperpar))
 
-  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0))
+  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0, hyperpar))
   expect_equal(sl, cmp)
 })

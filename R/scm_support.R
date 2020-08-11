@@ -206,29 +206,6 @@ run_scm_error <- function(p) {
        ode_times=scm$ode_times)
 }
 
-##' Set a suitable hyperparameter function for chosen physiological model
-##' @title Hyperparameters for FF16 physiological model
-##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
-##' @rdname Hyperparameter_functions
-##' @export
-# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
-make_hyperpar <- function(type) {
-  switch(type,
-         FF16=make_FF16_hyperpar,
-         FF16r=make_FF16_hyperpar,
-         stop("Unknown type ", type))
-}
-
-##' @rdname Hyperparameter_functions
-##' @export
-# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
-hyperpar <- function(type) {
-  switch(type,
-         FF16=FF16_hyperpar,
-         FF16r=FF16_hyperpar,
-         stop("Unknown type ", type))
-}
-
 ##' Helper function for creating parameter objects suitable for an
 ##' assembly.
 ##' @title Helper function for creating parameter objects
@@ -238,7 +215,7 @@ hyperpar <- function(type) {
 ##' @param make_hyperpar_fn Function for creating hyperparameterisation (default make_FF16_hyperpar)
 ##' @export
 assembly_parameters <- function(..., pars=NULL, base_parameters_fn = scm_base_parameters,
-                                  make_hyperpar_fn = make_FF16_hyperpar) {
+                                make_hyperpar_fn = make_FF16_hyperpar) {
 
   p <- base_parameters_fn()
 

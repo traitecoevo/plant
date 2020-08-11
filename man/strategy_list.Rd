@@ -7,13 +7,13 @@
 \alias{plant_list}
 \title{Create a list of Strategies}
 \usage{
-strategy_list(x, parameters)
+strategy_list(x, parameters, hyperpar)
 
 strategy_default(parameters)
 
-strategy(x, parameters)
+strategy(x, parameters, hyperpar)
 
-plant_list(x, parameters)
+plant_list(x, parameters, hyperpar)
 }
 \arguments{
 \item{x}{Values for the trait.  This must be a \emph{matrix}, with
