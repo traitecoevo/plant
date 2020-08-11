@@ -20,9 +20,9 @@ public:
   FF16_Environment() {
     // Define an anonymous function to pass got the environment generator
     time = NA_REAL;
-    disturbance_regime = 30;
+    disturbance_regime = 0;
     seed_rain = { 1.0, 1.0, 1.0 };
-    seed_rain_index = 3;
+    seed_rain_index = 0;
     k_I = NA_REAL;
     environment_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
     environment_interpolator = environment_generator.construct(
