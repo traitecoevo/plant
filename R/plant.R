@@ -80,8 +80,8 @@ grow_plant_to_time <- function(plant, times, env) {
   t_next <- times[[i]]
   strategy_name <- plant$strategy_name
 
-  pr1 <- PlantRunner(strategy_name, "FF16_Env")(plant, env)
-  pr2 <- PlantRunner(strategy_name, "FF16_Env")(plant, env)
+  pr1 <- PlantRunner(strategy_name, sprintf("%s_Env", strategy_name))(plant, env)
+  pr2 <- PlantRunner(strategy_name, sprintf("%s_Env", strategy_name))(plant, env)
 
   runner <- OdeRunner(strategy_name)(pr1)
   runner_detail <- OdeRunner(strategy_name)(pr2)
@@ -131,7 +131,7 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   # can we clarify?
   size_index <- (which(plant$ode_names == size_name) - 1)
 
-  runner <- OdeRunner(strategy_name)(PlantRunner(strategy_name, "FF16_Env")(plant, env))
+  runner <- OdeRunner(strategy_name)(PlantRunner(strategy_name, sprintf("%s_Env", strategy_name))(plant, env))
   internals <- get_plant_internals_fun(runner$object$plant)
   i <- 1L
   n <- length(sizes)
@@ -239,14 +239,7 @@ grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
 lcp_whole_plant <- function(p, ...) {
   UseMethod("lcp_whole_plant")
 }
-##' @export
-`lcp_whole_plant.Plant<FF16>` <- function(p, ...) {
-  FF16_lcp_whole_plant(p, ...)
-}
-##' @export
-`lcp_whole_plant.Plant<FF16r>` <- function(p, ...) {
-  FF16r_lcp_whole_plant(p, ...)
-}
+
 ##' @export
 lcp_whole_plant.Plant <- function(p, ...) {
   lcp_whole_plant(p, ...)

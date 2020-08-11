@@ -29,8 +29,8 @@ template <> plant::ode::Runner<plant::ode::test::Lorenz> as(SEXP);
 template <> SEXP wrap(const plant::ode::Runner<plant::ode::test::OdeR>&);
 template <> plant::ode::Runner<plant::ode::test::OdeR> as(SEXP);
 
-template <> SEXP wrap(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> >&);
-template <> plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> > as(SEXP);
+template <> SEXP wrap(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment> >&);
+template <> plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment> > as(SEXP);
 template <> SEXP wrap(const plant::CohortScheduleEvent&);
 template <> plant::CohortScheduleEvent as(SEXP);
 template <> SEXP wrap(const plant::CohortSchedule&);

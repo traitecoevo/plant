@@ -1,56 +1,3 @@
-
-# ! Important the whitespace in the following funciton is used by the strategy scaffolder
-get_list_of_strategy_types <- function() {
-  list(
-    FF16=FF16_Strategy)
-}
-
-get_list_of_environment_types <- function() {
-  list(
-    FF16_Env=FF16_Environment)
-}
-
-# ! Important the whitespace in the following funciton is used by the strategy scaffolder
-get_list_of_hyperpar_functions <- function() {
-  list(
-    FF16=FF16_hyperpar)
-}
-
-## This makes a pretend light environment over the plant height,
-## slightly concave up, whatever.
-test_environment <- function(height, n=101, light_env=NULL,
-                             n_strategies=1, seed_rain=0) {
-  if (length(seed_rain) == 1) {
-    seed_rain <- rep(seed_rain, length.out=n_strategies)
-  }
-  hh <- seq(0, height, length.out=n)
-  if (is.null(light_env)) {
-    light_env <- function(x) {
-      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
-    }
-  }
-  ee <- light_env(hh)
-  interpolator <- Interpolator()
-  interpolator$init(hh, ee)
-
-  parameters <- FF16_Parameters()
-  parameters$strategies <- rep(list(FF16_Strategy()), n_strategies)
-  parameters$seed_rain <- seed_rain
-  parameters$is_resident <- rep(TRUE, n_strategies)
-
-  ret <- make_environment(parameters)
-  ret$environment_interpolator <- interpolator
-  attr(ret, "light_env") <- light_env
-  ret
-}
-
-fixed_environment <- function(e=1.0) {
-  p <- FF16_Parameters()
-  env <- FF16_Environment(30, c(1, 1), 0.5, p$control)
-  env$set_fixed_environment(e, 150.0)
-  env
-}
-
 test_ode_make_system <- function(obj) {
   make_derivs <- function(obj) {
     if (is.null(obj$set_ode_state)) {
@@ -88,3 +35,58 @@ skip_if_no_plant_ml_python <- function() {
   }
   skip("python packages missing")
 }
+
+# ! Important the whitespace in the following funciton is used by the strategy scaffolder
+get_list_of_strategy_types <- function() {
+  list(
+    FF16=FF16_Strategy
+    )
+}
+
+# ! Important the whitespace in the following function is used by the strategy scaffolder
+get_list_of_hyperpar_functions <- function() {
+  list(
+    FF16=FF16_hyperpar
+    )
+}
+
+test_environment<- function(type, ...) {
+  switch(type,
+    FF16=FF16_test_environment(...),
+    stop("Unknown type ", type))
+}
+
+fixed_environment<- function(type, ...) {
+  switch(type,
+    FF16=FF16_fixed_environment(...),
+    stop("Unknown type ", type))
+}
+
+## This makes a pretend light environment over the plant height,
+## slightly concave up, whatever.
+FF16_test_environment <- function(height, n=101, light_env=NULL,
+                             n_strategies=1, seed_rain=0) {
+  if (length(seed_rain) == 1) {
+    seed_rain <- rep(seed_rain, length.out=n_strategies)
+  }
+  hh <- seq(0, height, length.out=n)
+  if (is.null(light_env)) {
+    light_env <- function(x) {
+      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
+    }
+  }
+  ee <- light_env(hh)
+  interpolator <- Interpolator()
+  interpolator$init(hh, ee)
+
+  parameters <- FF16_Parameters()
+  parameters$strategies <- rep(list(FF16_Strategy()), n_strategies)
+  parameters$seed_rain <- seed_rain
+  parameters$is_resident <- rep(TRUE, n_strategies)
+
+  ret <- FF16_make_environment(parameters)
+  ret$environment_interpolator <- interpolator
+  attr(ret, "light_env") <- light_env
+  ret
+}
+

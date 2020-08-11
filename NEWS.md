@@ -1,3 +1,16 @@
+## Plant 1.2.1  Release Notes
+
+v1.2.1 was released on 20/09/2019
+
+### Major Changes
+
+### Minor Changes
+
+- update Makefile to use `pkgbuild` instead of `devtools` for building dll ( because of upstream changes )
+- switching to using `remotes` instead of `devtools` for installing from github ( because of upstream changes )
+
+A full account of changes from the previous version is available on Github: [v1.2.0...v1.2.1](https://github.com/traitecoevo/plant/compare/v1.2.0...v1.2.1)
+
 ## Plant 1.2.0  Release Notes
 
 v1.2.0 was released on 20/03/2018
@@ -17,7 +30,7 @@ v1.2.0 was released on 20/03/2018
 
 A full account of changes from the previous version is available on Github: [v1.1.0...v1.2.0](https://github.com/traitecoevo/plant/compare/v1.1.0...v1.2.0)
 
-## Plant 1.1.0  Release Notes
+## Plant 1.1.0 Release Notes
 
 v1.1.0 was released on 2/02/2018
 
@@ -38,8 +51,6 @@ v1.1.0 was released on 2/02/2018
 
 A full account of changes from the previous version is available on Github: [v1.0.0...v1.1.0](https://github.com/traitecoevo/plant/compare/v1.0.0...v1.1.0)
 
-_______________________________________________________________________________
-
 ## Plant 1.0.0 Release Notes
 
 v1.0.0 was released on 23/02/2016
@@ -49,8 +60,6 @@ This version corresponds to the paper describing the package:
 Falster, DS, RG FitzJohn, Å Brännström, U Dieckmann, M Westoby (2016) plant: A package for modelling forest trait ecology and evolution. Methods in Ecology and Evolution 7: 136-146, doi: [10.1111/2041-210X.12525](http://doi.org/10.1111/2041-210X.12525)
 
 A full account of changes from the previous version is available on Github: [v0.2.2...v1.0.0](https://github.com/traitecoevo/plant/compare/v0.2.2...v1.0.0)
-
-_______________________________________________________________________________
 
 
 ## Plant 0.2.2 Release Notes

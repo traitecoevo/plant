@@ -22,9 +22,9 @@ template <> inline std::string   class_name_r<plant::ode::Runner<plant::ode::tes
 template <> inline std::string   package_name<plant::ode::Runner<plant::ode::test::OdeR> >() {return "plant";}
 template <> inline std::string generator_name<plant::ode::Runner<plant::ode::test::OdeR> >() {return ".R6_OdeRunner___OdeR";}
 
-template <> inline std::string   class_name_r<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> > >() {return "OdeRunner<FF16>";}
-template <> inline std::string   package_name<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> > >() {return "plant";}
-template <> inline std::string generator_name<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> > >() {return ".R6_OdeRunner___FF16";}
+template <> inline std::string   class_name_r<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "OdeRunner<FF16>";}
+template <> inline std::string   package_name<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "plant";}
+template <> inline std::string generator_name<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return ".R6_OdeRunner___FF16";}
 template <> inline std::string   class_name_r<plant::CohortScheduleEvent >() {return "CohortScheduleEvent";}
 template <> inline std::string   package_name<plant::CohortScheduleEvent >() {return "plant";}
 template <> inline std::string generator_name<plant::CohortScheduleEvent >() {return ".R6_CohortScheduleEvent";}
@@ -135,11 +135,11 @@ template <> inline plant::ode::Runner<plant::ode::test::OdeR> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::ode::test::OdeR> >(x));
 }
 
-template <> inline SEXP wrap(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> >& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> > >(x));
+template <> inline SEXP wrap(const plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
 }
-template <> inline plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> > as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> > >(x));
+template <> inline plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
 }
 template <> inline SEXP wrap(const plant::CohortScheduleEvent& x) {
   return wrap(plant::RcppR6::RcppR6<plant::CohortScheduleEvent>(x));

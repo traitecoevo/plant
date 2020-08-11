@@ -23,7 +23,7 @@ OdeRunner:
     concrete:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
-      - ["FF16": "plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment>"]
+      - ["FF16": "plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
   active:
@@ -795,3 +795,4 @@ FF16_Environment:
     disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
     environment_interpolator: {type: "plant::interpolator::Interpolator", access: field}
+

@@ -71,7 +71,7 @@ test_that("Reference comparison", {
   # set heartwood back at zero for subsequent tests
   p$set_state("area_heartwood", 0)
 
-  env <- test_environment(h0)
+  env <- test_environment("FF16", h0)
   light_env <- attr(env, "light_env") # underlying function
 
   ## The R model computes A_lf * area_leaf * a_y * a_bio, wheras we just

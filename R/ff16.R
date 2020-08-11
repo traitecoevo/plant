@@ -14,6 +14,14 @@ FF16_Plant <- function(s=FF16_Strategy()) {
   Plant("FF16", "FF16_Env")(s)
 }
 
+#' Compute the whole plant light compensation point for a single
+#' plant with FF16 strategy. Called via general function in plant.R
+##' @export
+##' @rdname FF16
+`lcp_whole_plant.Plant<FF16>` <- function(p, ...) {
+  FF16_lcp_whole_plant(p, ...)
+}
+
 ##' @export
 ##' @rdname FF16
 FF16_Cohort <- function(s=FF16_Strategy()) {
@@ -74,9 +82,24 @@ FF16_StochasticPatchRunner <- function(p) {
 ##' @export
 ##' @rdname FF16_Environment
 ##' @param p A Parameters object
-make_environment <- function(p) {
+FF16_make_environment <- function(p) {
   FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
 }
+
+##' Construct a fixed environment for FF16 strategy
+##'
+##' @param e=1.0 Value of environment 
+##' @param p A Parameters object
+##' @param height_max = 150.0 maximum possible height in environment
+##' @rdname FF16_Environment
+##'
+##' @export
+FF16_fixed_environment <- function(e=1.0, p = FF16_Parameters(), height_max = 150.0) {
+  env <- FF16_make_environment(p)
+  env$set_fixed_environment(e, height_max)
+  env
+}
+
 
 ##' Hyperparameters for FF16 physiological model
 ##' @title Hyperparameters for FF16 physiological model

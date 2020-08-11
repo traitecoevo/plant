@@ -153,8 +153,18 @@ test_that("FF16_Strategy hyper-parameterisation", {
     expect_equal(a_p1[[1]], s$a_p1, tolerance=1e-7)
   }
 
+
   ## Empty trait matrix:
   ret <- FF16_hyperpar(trait_matrix(numeric(0), "lma"), s)
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
 })
 
+test_that("narea calculation", {
+  x <- c(1.38, 3.07, 2.94)
+  p0 <- FF16_Parameters()
+  m <- trait_matrix(x, "hmat")
+  expect_silent(sl <- strategy_list(m, p0, FF16_hyperpar))
+
+  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0, FF16_hyperpar))
+  expect_equal(sl, cmp)
+})

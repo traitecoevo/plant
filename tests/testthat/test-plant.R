@@ -8,9 +8,9 @@ for (x in names(strategy_types)) {
 
   test_that("Reference comparison", {
     s <- strategy_types[[x]]()
-    pl <- Plant(x,"FF16_Env")(s)
+    pl <- Plant(x, paste0(x, "_Env"))(s)
 
-    expect_is(pl, sprintf("Plant<%s,FF16_Env>",x))
+    expect_is(pl, sprintf("Plant<%s,%s_Env>",x,x))
     # expect_is(pp, sprintf("PlantPlus<%s>",x))
     # expect_identical(pp$strategy, s)
     expect_identical(pl$strategy, s)
@@ -54,7 +54,7 @@ for (x in names(strategy_types)) {
     # expect_true(all(c(variable_names, rate_names) %in% names(vars_pl)))
 
     ## Compute the vital rates and compare them
-    env <- test_environment(h0)
+    env <- test_environment(x, h0)
     light_env <- attr(env, "light_env") # underlying function
 
     pl$compute_rates(env)
@@ -80,7 +80,10 @@ for (x in names(strategy_types)) {
     # expect_identical(pl$ode_names, ode_names)
 
     ## ode_state
-    expect_equal(pl$ode_state, c(h0, m0, f0, 0, 0))
+    if(x %in% c("FF16", "FF16r"))
+        expect_equal(pl$ode_state, c(h0, m0, f0, 0, 0))
+    else 
+        expect_equal(pl$ode_state, c(h0, m0, f0))
 
     expect_equal(pl$strategy_name, x)
   })
@@ -88,7 +91,7 @@ for (x in names(strategy_types)) {
   test_that("stochastic support", {
 
     s <- strategy_types[[x]]()
-    p <- Plant(x,"FF16_Env")(s)
+    p <- Plant(x, paste0(x, "_Env"))(s)
 
     expect_equal(p$state("mortality"), 0.0)
     expect_equal(p$mortality_probability, 0.0)
@@ -108,11 +111,11 @@ for (x in names(strategy_types)) {
 
 
 test_that("lcp_whole_plant", {
-  for (x in names(strategy_types)) {
+  for (x in "FF16") {
     ## R implementation:
-    lcp_whole_plant_R <- function(plant, ...) {
+    lcp_whole_plant_R <- function(x, plant, ...) {
       target <- function(canopy_openness) {
-        env <- fixed_environment(canopy_openness)
+        env <- fixed_environment(x, canopy_openness)
         plant$compute_rates(env)
         plant$aux("net_mass_production_dt")
       }
@@ -125,8 +128,8 @@ test_that("lcp_whole_plant", {
       }
     }
 
-    p <- Plant(x, "FF16_Env")(strategy_types[[x]]())
+    p <- Plant(x, paste0(x, "_Env"))(strategy_types[[x]]())
     # skip("Comparison no longer evaluate the nesting is too deep")
-    expect_equal(p$lcp_whole_plant(), lcp_whole_plant_R(p), tolerance=1e-5)
+    expect_equal(p$lcp_whole_plant(), lcp_whole_plant_R(x, p), tolerance=1e-5)
   }
 })

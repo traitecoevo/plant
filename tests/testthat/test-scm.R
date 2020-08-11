@@ -6,28 +6,28 @@ hyperpar_functions <- get_list_of_hyperpar_functions()
 test_that("Ported from tree1", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
-    plant <- Plant(x, "FF16_Env")(s)
-    cohort <- Cohort(x, "FF16_Env")(s)
+    plant <- Plant(x, paste0(x, "_Env"))(s)
+    cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
-    p <- Parameters(x, "FF16_Env")(strategies=list(s),
+    p <- Parameters(x, paste0(x, "_Env"))(strategies=list(s),
                           seed_rain=pi/2,
                           patch_area=10,
                           is_resident=TRUE)
 
-    expect_error(scm <- SCM(x, "FF16_Env")(p), "Patch area must be exactly 1 for the SCM")
+    expect_error(scm <- SCM(x, paste0(x, "_Env"))(p), "Patch area must be exactly 1 for the SCM")
 
     p$patch_area <- 1.0
-    scm <- SCM(x, "FF16_Env")(p)
-    expect_is(scm, sprintf("SCM<%s,FF16_Env>", x))
+    scm <- SCM(x, paste0(x, "_Env"))(p)
+    expect_is(scm, sprintf("SCM<%s,%s_Env>", x, x))
 
     ## NOTE: I'm not sure where these are only equal and not identical.
     expect_equal(scm$parameters, p)
 
     ## Check that the underlying Patch really is a Patch<CohortTop>:
-    expect_is(scm$patch, sprintf("Patch<%s,FF16_Env>", x))
+    expect_is(scm$patch, sprintf("Patch<%s,%s_Env>", x, x))
     expect_equal(length(scm$patch$species), 1)
-    expect_is(scm$patch$species[[1]], sprintf("Species<%s,FF16_Env>",x))
-    expect_is(scm$patch$species[[1]]$seed, sprintf("Cohort<%s,FF16_Env>",x))
+    expect_is(scm$patch$species[[1]], sprintf("Species<%s,%s_Env>",x,x))
+    expect_is(scm$patch$species[[1]]$seed, sprintf("Cohort<%s,%s_Env>",x,x))
     expect_identical(scm$patch$time, 0.0)
 
     sched <- scm$cohort_schedule
@@ -65,7 +65,7 @@ test_that("Ported from tree1", {
     ## to make those work).
     i <- scm$run_next()
 
-    ode_size <- Cohort(x, "FF16_Env")(strategy_types[[x]]())$ode_size
+    ode_size <- Cohort(x, paste0(x, "_Env"))(strategy_types[[x]]())$ode_size
 
     expect_equal(scm$cohort_schedule$remaining, length(t) - 1)
     expect_false(scm$complete)
@@ -160,12 +160,12 @@ test_that("Ported from tree1", {
 })
 
 test_that("schedule setting", {
-  for (x in names(strategy_types)) { p <- Parameters(x, "FF16_Env")(
+  for (x in names(strategy_types)) { p <- Parameters(x, paste0(x, "_Env"))(
       strategies=list(strategy_types[[x]]()),
       seed_rain=pi/2,
       is_resident=TRUE,
       cohort_schedule_max_time=5.0)
-    scm <- SCM(x, "FF16_Env")(p)
+    scm <- SCM(x, paste0(x, "_Env"))(p)
 
     ## Then set a cohort schedule:
     ## Build a schedule for 14 introductions from t=0 to t=5
@@ -186,7 +186,7 @@ test_that("schedule setting", {
     expect_identical(sched2$max_time, sched$max_time)
     expect_identical(sched2$all_times, list(t))
 
-    scm2 <- SCM(x, "FF16_Env")(p2)
+    scm2 <- SCM(x, paste0(x, "_Env"))(p2)
     expect_identical(scm2$cohort_schedule$max_time, sched2$max_time)
     expect_identical(scm2$cohort_schedule$all_times, sched2$all_times)
   }
@@ -238,7 +238,7 @@ test_that("Seed rain & error calculations correct", {
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE)
 
     scm <- run_scm(p1)
-    expect_is(scm, sprintf("SCM<%s,FF16_Env>", x))
+    expect_is(scm, sprintf("SCM<%s,%s_Env>", x, x))
 
     seed_rain_R <- function(scm, error=FALSE) {
       a <- scm$cohort_schedule$times(1)
@@ -275,8 +275,8 @@ test_that("Seed rain & error calculations correct", {
 
 test_that("Can create empty SCM", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "FF16_Env")()
-    scm <- SCM(x, "FF16_Env")(p)
+    p <- Parameters(x, paste0(x, "_Env"))()
+    scm <- SCM(x, paste0(x, "_Env"))(p)
 
     ## Check light environment is empty:
     env <- scm$patch$environment

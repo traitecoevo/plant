@@ -16,3 +16,4 @@ plant::CohortSchedule cohort_schedule_default__Parameters___FF16__FF16_Env(const
 plant::CohortSchedule make_cohort_schedule__Parameters___FF16__FF16_Env(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& p) {
    return plant::make_cohort_schedule<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >(p);
 }
+

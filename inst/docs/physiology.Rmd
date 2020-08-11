@@ -47,7 +47,7 @@ leaf area within the canopy of a plant with traits $x$ at light
 level $E(z)$, where $z$ is height within the canopy.
 We assume a relationship of the form
 \begin{equation}
-	p(x, E(z)) = \frac{\alpha_{{\rm p1}}}{E(z) + \alpha_{{\rm p2}}},
+	p(x, E(z)) = \alpha_{{\rm p1}} \frac{ E(z)}{E(z) + \alpha_{{\rm p2}}},
 	(\#eq:photosynthesis)
 \end{equation}
 for the average of $p$ across the year. The parameters
