@@ -9,7 +9,7 @@
 \usage{
 strategy_list(x, parameters, hyperpar)
 
-strategy_default(parameters)
+strategy_default(parameters, hyperpar)
 
 strategy(x, parameters, hyperpar)
 
