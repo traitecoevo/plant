@@ -102,6 +102,36 @@ FF16r_fixed_environment <- function(e=1.0, p = FF16r_Parameters(), height_max = 
 }
 
 
+## This makes a pretend light environment over the plant height,
+## slightly concave up, whatever.
+FF16r_test_environment <- function(height, n=101, light_env=NULL,
+                             n_strategies=1, seed_rain=0) {
+  if (length(seed_rain) == 1) {
+    seed_rain <- rep(seed_rain, length.out=n_strategies)
+  }
+  hh <- seq(0, height, length.out=n)
+  if (is.null(light_env)) {
+    light_env <- function(x) {
+      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
+    }
+  }
+  ee <- light_env(hh)
+  interpolator <- Interpolator()
+  interpolator$init(hh, ee)
+
+  parameters <- FF16r_Parameters()
+  parameters$strategies <- rep(list(FF16r_Strategy()), n_strategies)
+  parameters$seed_rain <- seed_rain
+  parameters$is_resident <- rep(TRUE, n_strategies)
+
+  ret <- FF16r_make_environment(parameters)
+  ret$environment_interpolator <- interpolator
+  attr(ret, "light_env") <- light_env
+  ret
+}
+
+
+
 ##' Hyperparameters for FF16r physiological model
 ##' @title Hyperparameters for FF16r physiological model
 ##' @param lma_0 Central (mean) value for leaf mass per area [kg /m2]

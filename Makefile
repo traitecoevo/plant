@@ -3,7 +3,7 @@ RSCRIPT = Rscript --no-init-file
 
 all: compile
 
-compile:
+compile: RcppR6
 	Rscript -e 'pkgbuild::compile_dll()' \ 
 	make roxygen
 
