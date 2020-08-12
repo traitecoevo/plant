@@ -6,71 +6,18 @@
 \title{Hyperparameters for K93 physiological model}
 \usage{
 make_K93_hyperpar(
-  lma_0 = 0.1978791,
-  B_kl1 = 0.4565855,
-  B_kl2 = 1.71,
-  rho_0 = 608,
-  B_dI1 = 0.01,
-  B_dI2 = 0,
-  B_ks1 = 0.2,
-  B_ks2 = 0,
-  B_rs1 = 4012,
-  B_rb1 = 2 * 4012,
-  B_f1 = 3,
-  narea = 0.00187,
-  narea_0 = 0.00187,
-  B_lf1 = 5120.738 * 0.00187 * 24 * 3600/1e+06,
-  B_lf2 = 0.5,
-  B_lf3 = 0.04,
-  B_lf4 = 21000,
-  B_lf5 = 1,
-  k_I = 0.5,
-  latitude = 0
+  b_0 = 0.059,
+  b_1 = 0.012,
+  b_2 = 0.00041,
+  c_0 = 0.008,
+  c_1 = 0.00044,
+  d_0 = 0.00073,
+  d_1 = 0.044
 )
 
 K93_hyperpar(m, s, filter = TRUE)
 }
 \arguments{
-\item{lma_0}{Central (mean) value for leaf mass per area [kg /m2]}
-
-\item{B_kl1}{Rate of leaf turnover at lma_0 [/yr]}
-
-\item{B_kl2}{Scaling slope for phi in leaf turnover [dimensionless]}
-
-\item{rho_0}{Central (mean) value for wood density [kg /m3]}
-
-\item{B_dI1}{Rate of instantaneous mortality at rho_0 [/yr]}
-
-\item{B_dI2}{Scaling slope for wood density in intrinsic mortality [dimensionless]}
-
-\item{B_ks1}{Rate of sapwood turnover at rho_0 [/yr]}
-
-\item{B_ks2}{Scaling slope for rho in sapwood turnover [dimensionless]}
-
-\item{B_rs1}{CO_2 respiration per unit sapwood volume [mol / yr / m3 ]}
-
-\item{B_rb1}{CO_2 respiration per unit sapwood volume [mol / yr / m3 ]}
-
-\item{B_f1}{Cost of seed accessories per unit seed mass [dimensionless]}
-
-\item{narea}{nitrogen per leaf area [kg / m2]}
-
-\item{narea_0}{central (mean) value for nitrogen per leaf area [kg / m2]}
-
-\item{B_lf1}{Potential CO_2 photosynthesis at average leaf nitrogen [mol / d / m2]}
-
-\item{B_lf2}{Curvature of leaf photosynthetic light response curve [dimensionless]}
-
-\item{B_lf3}{Quantum yield of leaf photosynthetic light response curve [dimensionless]}
-
-\item{B_lf4}{CO_2 respiration per unit leaf nitrogen [mol / yr / kg]}
-
-\item{B_lf5}{Scaling exponent for leaf nitrogen in maximum leaf photosynthesis [dimensionless]}
-
-\item{k_I}{light extinction coefficient [dimensionless]}
-
-\item{latitude}{degrees from equator (0-90), used in solar model [deg]}
-
 \item{m}{A matrix of trait values, as returned by \code{trait_matrix}}
 
 \item{s}{A strategy object}

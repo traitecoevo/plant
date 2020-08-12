@@ -899,7 +899,7 @@ FF16r_Environment:
     environment_interpolator: {type: "plant::interpolator::Interpolator", access: field}
 
 
-# The following strategy was built from FF16r on Wed Aug 12 15:46:38 2020
+# The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
 K93_Strategy:
   name_cpp: "plant::K93_Strategy"
   roxygen: |
@@ -909,38 +909,15 @@ K93_Strategy:
     variadic arguments, or as a list, but not both).
     @export
   list:
-    - lma: double
-    - rho: double
-    - hmat: double
-    - omega: double
-    - eta: double
-    - theta: double
-    - a_l1: double
-    - a_l2: double
-    - a_r1: double
-    - a_b1: double
-    - r_s: double
-    - r_b: double
-    - r_r: double
-    - r_l: double
-    - a_y: double
-    - a_bio: double
-    - k_l: double
-    - k_b: double
-    - k_s: double
-    - k_r: double
-    - a_p1: double
-    - a_p2: double
-    - a_f3: double
-    - a_f1: double
-    - a_f2: double
-    - S_D: double
-    - a_d0: double
-    - d_I: double
-    - a_dG1: double
-    - a_dG2: double
-    - control: "plant::Control" 
-    - collect_all_auxillary: bool
+    - height_0: double
+    - b_0: double
+    - b_1: double
+    - b_2: double
+    - c_0: double
+    - c_1: double
+    - d_0: double
+    - d_1: double
+    - control: "plant::Control"
 
 
 # The following environment was built from FF16r on Wed Aug 12 15:46:38 2020

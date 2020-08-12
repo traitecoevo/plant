@@ -10,7 +10,7 @@ K93_Environment(disturbance_mean_interval, seed_rain, k_I, control)
 
 K93_make_environment(p)
 
-K93_fixed_environment(e = 1, p = K93_Parameters(), height_max = 150)
+K93_fixed_environment(e = 1, p = K93_Parameters(), height_max = 300)
 }
 \arguments{
 \item{disturbance_mean_interval}{mean disturbance interval in years}

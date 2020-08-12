@@ -1,4 +1,4 @@
-# Built from  tests/testthat/test-strategy-ff16r.R on Wed Aug 12 15:46:38 2020 using the scaffolder, from the strategy:  FF16r
+# Built from  tests/testthat/test-strategy-ff16r.R on Wed Aug 12 15:33:08 2020 using the scaffolder, from the strategy:  FF16r
 # Built from  tests/testthat/test-strategy-ff16.R on Fri Jul  3 08:14:35 2020 using the scaffolder, from the strategy:  FF16
 context("Strategy-K93")
 
