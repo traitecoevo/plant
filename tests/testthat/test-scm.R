@@ -1,7 +1,6 @@
 context("SCM")
 
 strategy_types <- get_list_of_strategy_types()
-hyperpar_functions <- get_list_of_hyperpar_functions()
 
 test_that("Ported from tree1", {
   for (x in names(strategy_types)) {
@@ -231,11 +230,9 @@ test_that("schedule setting", {
   ## })
 
 test_that("Seed rain & error calculations correct", {
-  for (i in 1:length(strategy_types)) {
-    x = names(strategy_types)[[i]]
-    hyperpar = hyperpar_functions[[i]]
+  for (x in names(strategy_types)) {
     p0 <- scm_base_parameters(x)
-    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE)
+    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE)
 
     scm <- run_scm(p1)
     expect_is(scm, sprintf("SCM<%s,%s_Env>", x, x))

@@ -9,7 +9,7 @@
 ##'   will be applied.
 ##'
 ##' @export
-strategy_list <- function(x, parameters, hyperpar) {
+strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
   if (!is.matrix(x)) {
     stop("Invalid type x -- expected a matrix")
   }
@@ -27,13 +27,13 @@ strategy_list <- function(x, parameters, hyperpar) {
 
 ##' @export
 ##' @rdname strategy_list
-strategy_default <- function(parameters, hyperpar) {
-  strategy(trait_matrix(1, "a")[, -1, drop=FALSE], parameters)
+strategy_default <- function(parameters, hyperpar=param_hyperpar(parameters)) {
+  strategy(trait_matrix(1, "a")[, -1, drop=FALSE], parameters, hyperpar)
 }
 
 ##' @export
 ##' @rdname strategy_list
-strategy <- function(x, parameters, hyperpar) {
+strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
   if (nrow(x) != 1L) {
     stop("Expected a single type")
   }
@@ -42,7 +42,7 @@ strategy <- function(x, parameters, hyperpar) {
 
 ##' @rdname strategy_list
 ##' @export
-plant_list <- function(x, parameters, hyperpar) {
+plant_list <- function(x, parameters, hyperpar=parram_hyperpar(parameters)) {
   if (!inherits(parameters, "Parameters")) {
     stop("parameters must be a 'Parameters' object")
   }
@@ -79,7 +79,7 @@ trait_matrix <- function(x, trait_name) {
 ##' density).
 ##' @author Rich FitzJohn
 ##' @export
-expand_parameters <- function(trait_matrix, p, hyperpar, mutant=TRUE) {
+expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutant=TRUE) {
   if (length(mutant) != 1L) {
     stop("mutant must be scalar")
   }

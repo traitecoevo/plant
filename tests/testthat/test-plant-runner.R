@@ -1,7 +1,6 @@
 context("PlantRunner")
 
 strategy_types <- get_list_of_strategy_types()
-hyperpar_functions <- get_list_of_hyperpar_functions()
 
 test_that("PlantRunner", {
   for (x in names(strategy_types)) {
@@ -204,7 +203,7 @@ test_that("grow_plant_to_time", {
 
 test_that("Sensible behaviour on integration failure", {
   pl <- FF16_Plant()
-  hyperpar <- make_FF16_hyperpar()
+  hyperpar <- FF16_hyperpar
 
   env <- fixed_environment("FF16", 1)
   sizes <- seq_range(c(pl$state("height"), 50), 50)

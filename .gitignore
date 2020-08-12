@@ -5,6 +5,8 @@ inst/website
 ^plant.Rcheck$
 .Rproj.user
 src/*.o.tmp
+src/*.o
+src/*.so
 tmp*
 .vscode
 scrap.R
