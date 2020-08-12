@@ -182,8 +182,7 @@ test_that("seed rain", {
   p1$seed_rain <- 20
   out <- run_scm(p1)
   expect_equal(out$seed_rains, 16.88946, tolerance=1e-5)
-  expect_equal(length(out$ode_times), 269)
-  expect_equal( out$ode_times[c(10, 100, 200)], c(0.000070, 4.216055, 39.077629), tolerance=1e-5)
+  expect_equal( out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 
   # two species
   p2 <- expand_parameters(trait_matrix(0.2625, "lma"), p1, FF16_hyperpar, FALSE)
