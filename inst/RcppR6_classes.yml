@@ -24,6 +24,7 @@ OdeRunner:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
+      - ["FF16r": "plant::tools::PlantRunner<plant::FF16r_Strategy, plant::FF16r_Environment>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
   active:
@@ -256,6 +257,7 @@ Plant:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   constructor:
     args: [s: T]
     name_cpp: "plant::make_plant<T,E>"
@@ -312,6 +314,7 @@ PlantRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   constructor:
     name_cpp: "plant::tools::PlantRunner<T,E>"
     args: [plant: "plant::Plant<T,E>", environment: E]
@@ -362,6 +365,7 @@ Parameters:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   # TODO: This is broken:
   # roxygen: |
   #   Strategy parameters that tune various aspects of the biological model.
@@ -392,6 +396,7 @@ Cohort:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   constructor:
     name_cpp: "plant::make_cohort<T,E>"
     args: [strategy: T]
@@ -427,6 +432,7 @@ Species:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   constructor:
     args: [strategy: T]
   active:
@@ -468,6 +474,7 @@ Patch:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
   active:
@@ -521,6 +528,7 @@ SCM:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
   methods:
@@ -587,6 +595,7 @@ StochasticSpecies:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   constructor:
     args: [strategy: "T"]
   active:
@@ -629,6 +638,7 @@ StochasticPatch:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
   active:
@@ -688,6 +698,7 @@ StochasticPatchRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
   methods:
@@ -768,6 +779,86 @@ FF16_Environment:
     args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
     roxygen: |
       FF16_Environment object
+      @param disturbance_mean_interval mean disturbance interval in years
+      @param seed_rain vector of seed rains
+      @param k_I light extinction coefficient
+      @param control A Control object
+      @export
+  methods:
+    canopy_openness:
+      args: [height: double]
+      return_type: double
+    patch_survival_conditional:
+      args: [time_at_birth: double]
+      return_type: double
+    clear:
+      return_type: void
+    set_seed_rain_index:
+      args: [x: "plant::util::index"]
+      return_type: void
+      name_cpp: r_set_seed_rain_index
+    set_fixed_environment:
+      args: [value: double, height_max: double]
+      return_type: void
+  active:
+    patch_survival: {type: double, access: member}
+    seed_rain_dt: {type: double, access: member}
+    disturbance_regime: {type: "plant::Disturbance", access: field}
+    time: {type: double, access: field}
+    environment_interpolator: {type: "plant::interpolator::Interpolator", access: field}
+
+
+# The following strategy was built from FF16 on Wed Aug 12 11:12:34 2020
+FF16r_Strategy:
+  name_cpp: "plant::FF16r_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - lma: double
+    - rho: double
+    - hmat: double
+    - omega: double
+    - eta: double
+    - theta: double
+    - a_l1: double
+    - a_l2: double
+    - a_r1: double
+    - a_b1: double
+    - r_s: double
+    - r_b: double
+    - r_r: double
+    - r_l: double
+    - a_y: double
+    - a_bio: double
+    - k_l: double
+    - k_b: double
+    - k_s: double
+    - k_r: double
+    - a_p1: double
+    - a_p2: double
+    - a_f3: double
+    - a_f1: double
+    - a_f2: double
+    - S_D: double
+    - a_d0: double
+    - d_I: double
+    - a_dG1: double
+    - a_dG2: double
+    - control: "plant::Control" 
+    - collect_all_auxillary: bool
+
+
+# The following environment was built from FF16 on Wed Aug 12 11:12:34 2020
+FF16r_Environment:
+  name_cpp: "plant::FF16r_Environment"
+  constructor:
+    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
+    roxygen: |
+      FF16r_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
       @param seed_rain vector of seed rains
       @param k_I light extinction coefficient

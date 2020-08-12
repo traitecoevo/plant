@@ -1,6 +1,7 @@
+// Built from  inst/include/plant/models/ff16_environment.h on Wed Aug 12 11:12:34 2020 using the scaffolder, from the strategy:  FF16
 // -*-c++-*-
-#ifndef PLANT_PLANT_FF16_ENVIRONMENT_H_
-#define PLANT_PLANT_FF16_ENVIRONMENT_H_
+#ifndef PLANT_PLANT_FF16r_ENVIRONMENT_H_
+#define PLANT_PLANT_FF16r_ENVIRONMENT_H_
 
 #include <plant/control.h>
 #include <plant/disturbance.h>
@@ -14,10 +15,10 @@ using namespace Rcpp;
 
 namespace plant {
 
-class FF16_Environment : public Environment {
+class FF16r_Environment : public Environment {
 public:
 
-  FF16_Environment() {
+  FF16r_Environment() {
     // Define an anonymous function to pass got the environment generator
     time = NA_REAL;
     disturbance_regime = 0;
@@ -31,7 +32,7 @@ public:
       }, 0, 1); // these are update with init(x, y) when patch is created
   };
 
-  FF16_Environment(double disturbance_mean_interval,
+  FF16r_Environment(double disturbance_mean_interval,
                    std::vector<double> seed_rain_,
                    double k_I_,
                    Control control) {
@@ -96,7 +97,7 @@ public:
   }
 };
 
-inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
+inline Rcpp::NumericMatrix get_state(const FF16r_Environment environment) {
   using namespace Rcpp;
   NumericMatrix xy = environment.environment_interpolator.r_get_xy();
   Rcpp::CharacterVector colnames =

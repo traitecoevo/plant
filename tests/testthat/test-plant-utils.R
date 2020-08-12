@@ -56,7 +56,7 @@ test_that("Default schedule", {
 
 test_that("strategy_list", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x, "FF16_Env")()
+    p <- Parameters(x, paste0(x, "_Env"))()
     s <- strategy_list(trait_matrix(1, "lma"), p, make_FF16_hyperpar())
     expect_equal(length(s), 1)
     expect_is(s, "list")

@@ -36,29 +36,33 @@ skip_if_no_plant_ml_python <- function() {
   skip("python packages missing")
 }
 
-# ! Important the whitespace in the following funciton is used by the strategy scaffolder
+# ! Important the whitespace in the following function is used by the strategy scaffolder
 get_list_of_strategy_types <- function() {
   list(
-    FF16=FF16_Strategy
+    FF16=FF16_Strategy,
+    FF16r=FF16r_Strategy
     )
 }
 
 # ! Important the whitespace in the following function is used by the strategy scaffolder
 get_list_of_hyperpar_functions <- function() {
   list(
-    FF16=FF16_hyperpar
+    FF16=FF16_hyperpar,
+    FF16r=FF16r_hyperpar
     )
 }
 
 test_environment<- function(type, ...) {
   switch(type,
     FF16=FF16_test_environment(...),
+    FF16r=FF16r_test_environment(...),
     stop("Unknown type ", type))
 }
 
 fixed_environment<- function(type, ...) {
   switch(type,
     FF16=FF16_fixed_environment(...),
+    FF16r=FF16r_fixed_environment(...),
     stop("Unknown type ", type))
 }
 
@@ -85,6 +89,35 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
   parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- FF16_make_environment(parameters)
+  ret$environment_interpolator <- interpolator
+  attr(ret, "light_env") <- light_env
+  ret
+}
+
+
+## This makes a pretend light environment over the plant height,
+## slightly concave up, whatever.
+FF16r_test_environment <- function(height, n=101, light_env=NULL,
+                             n_strategies=1, seed_rain=0) {
+  if (length(seed_rain) == 1) {
+    seed_rain <- rep(seed_rain, length.out=n_strategies)
+  }
+  hh <- seq(0, height, length.out=n)
+  if (is.null(light_env)) {
+    light_env <- function(x) {
+      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
+    }
+  }
+  ee <- light_env(hh)
+  interpolator <- Interpolator()
+  interpolator$init(hh, ee)
+
+  parameters <- FF16r_Parameters()
+  parameters$strategies <- rep(list(FF16r_Strategy()), n_strategies)
+  parameters$seed_rain <- seed_rain
+  parameters$is_resident <- rep(TRUE, n_strategies)
+
+  ret <- FF16r_make_environment(parameters)
   ret$environment_interpolator <- interpolator
   attr(ret, "light_env") <- light_env
   ret

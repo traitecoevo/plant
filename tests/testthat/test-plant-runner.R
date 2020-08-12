@@ -69,9 +69,6 @@ test_that("grow_plant_to_size", {
   for (x in names(strategy_types)) {
     env <- test_environment(x, 10)
     heights <- seq(1, 10)
-    if(x == "K93") {
-      heights <- seq(5, 100, by =20)
-    }
     s <- strategy_types[[x]]()
 
     pp <- Plant(x, paste0(x, "_Env"))(s)

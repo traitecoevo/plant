@@ -26,7 +26,7 @@ size).}
 \item{size_name}{The name of the size variable within
 \code{Plant$rates} (e.g., height).}
 
-\item{env}{An \code{FF16_Environment} object.}
+\item{env}{An \code{Environment} object.}
 
 \item{time_max}{Time to run the ODE out for -- only exists to
 prevent an infinite loop (say, on an unreachable size).}

@@ -9,7 +9,7 @@
 ##' size).
 ##' @param size_name The name of the size variable within
 ##' \code{Plant$rates} (e.g., height).
-##' @param env An \code{FF16_Environment} object.
+##' @param env An \code{Environment} object.
 ##' @param time_max Time to run the ODE out for -- only exists to
 ##' prevent an infinite loop (say, on an unreachable size).
 ##' @param warn Warn if requesting a plant that is too large?
@@ -63,7 +63,7 @@ grow_plant_to_height <- function(plant, heights, env, ...) {
 ##' @title Grow a plant
 ##' @param plant A \code{Plant} object
 ##' @param times A vector of times
-##' @param env An \code{FF16_Environment} object
+##' @param env An \code{Environment} object
 ##' @export
 grow_plant_to_time <- function(plant, times, env) {
   if (any(times < 0.0)) {
@@ -213,21 +213,6 @@ grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
     list(time=root$root, state=runner$state, plant=runner$object$plant)
   }
 }
-
-## These are waiting on RcppR6 #23 and plant #164
-
-# ## This will get merged into RcppR6, so may change!
-# plant_to_plant_plus <- function(x, ...) {
-#   UseMethod("plant_to_plant_plus")
-# }
-# ##' @export
-# `plant_to_plant_plus.Plant<FF16>` <- function(x, ...) {
-#   FF16_plant_to_plant_plus(x, ...)
-# }
-# ##' @export
-# `plant_to_plant_plus.Plant<FF16r>` <- function(x, ...) {
-#   FF16r_plant_to_plant_plus(x, ...)
-# }
 
 #' Compute the whole plant light compensation point for a single
 #' plant.
