@@ -168,3 +168,28 @@ test_that("narea calculation", {
   cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0, FF16_hyperpar))
   expect_equal(sl, cmp)
 })
+
+# integration test - runs a full patch metapopultaion
+# the seed rain produced integrates all demographic behaviours
+
+test_that("seed rain", {
+
+  p0 <- scm_base_parameters("FF16")
+
+  # one species
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE)
+
+  p1$seed_rain <- 20
+  out <- run_scm(p1)
+  expect_equal(out$seed_rains, 16.88946, tolerance=1e-5)
+  expect_equal(length(out$ode_times), 269)
+  expect_equal( out$ode_times[c(10, 100, 200)], c(0.000070, 4.216055, 39.077629), tolerance=1e-5)
+
+  # two species
+  p2 <- expand_parameters(trait_matrix(0.2625, "lma"), p1, FF16_hyperpar, FALSE)
+  p2$seed_rain <- c(11.99177, 16.51006)
+  out <- run_scm(p2)
+  expect_equal(out$seed_rains, c(11.99529, 16.47519), tolerance=1e-5)
+  expect_equal(length(out$ode_times), 297)
+})
+
