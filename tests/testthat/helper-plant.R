@@ -40,7 +40,8 @@ skip_if_no_plant_ml_python <- function() {
 get_list_of_strategy_types <- function() {
   list(
     FF16=FF16_Strategy,
-    FF16r=FF16r_Strategy
+    FF16r=FF16r_Strategy,
+    K93=K93_Strategy
     )
 }
 
@@ -48,7 +49,8 @@ get_list_of_strategy_types <- function() {
 get_list_of_hyperpar_functions <- function() {
   list(
     FF16=FF16_hyperpar,
-    FF16r=FF16r_hyperpar
+    FF16r=FF16r_hyperpar,
+    K93=K93_hyperpar
     )
 }
 
@@ -56,6 +58,7 @@ test_environment<- function(type, ...) {
   switch(type,
     FF16=FF16_test_environment(...),
     FF16r=FF16r_test_environment(...),
+    K93=K93_test_environment(...),
     stop("Unknown type ", type))
 }
 
@@ -63,5 +66,6 @@ fixed_environment<- function(type, ...) {
   switch(type,
     FF16=FF16_fixed_environment(...),
     FF16r=FF16r_fixed_environment(...),
+    K93=K93_fixed_environment(...),
     stop("Unknown type ", type))
 }

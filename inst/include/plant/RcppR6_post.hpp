@@ -29,6 +29,10 @@ template <> inline std::string generator_name<plant::ode::Runner<plant::tools::P
 template <> inline std::string   class_name_r<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16r_Strategy, plant::FF16r_Environment> > >() {return "OdeRunner<FF16r>";}
 template <> inline std::string   package_name<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16r_Strategy, plant::FF16r_Environment> > >() {return "plant";}
 template <> inline std::string generator_name<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16r_Strategy, plant::FF16r_Environment> > >() {return ".R6_OdeRunner___FF16r";}
+
+template <> inline std::string   class_name_r<plant::ode::Runner<plant::tools::PlantRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return "OdeRunner<K93>";}
+template <> inline std::string   package_name<plant::ode::Runner<plant::tools::PlantRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return "plant";}
+template <> inline std::string generator_name<plant::ode::Runner<plant::tools::PlantRunner<plant::K93_Strategy, plant::K93_Environment> > >() {return ".R6_OdeRunner___K93";}
 template <> inline std::string   class_name_r<plant::CohortScheduleEvent >() {return "CohortScheduleEvent";}
 template <> inline std::string   package_name<plant::CohortScheduleEvent >() {return "plant";}
 template <> inline std::string generator_name<plant::CohortScheduleEvent >() {return ".R6_CohortScheduleEvent";}
@@ -60,6 +64,10 @@ template <> inline std::string generator_name<plant::Plant<plant::FF16_Strategy,
 template <> inline std::string   class_name_r<plant::Plant<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "Plant<FF16r,FF16r_Env>";}
 template <> inline std::string   package_name<plant::Plant<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Plant<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return ".R6_Plant___FF16r__FF16r_Env";}
+
+template <> inline std::string   class_name_r<plant::Plant<plant::K93_Strategy,plant::K93_Environment> >() {return "Plant<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::Plant<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::Plant<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_Plant___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return "PlantRunner<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_PlantRunner___FF16__FF16_Env";}
@@ -67,6 +75,10 @@ template <> inline std::string generator_name<plant::tools::PlantRunner<plant::F
 template <> inline std::string   class_name_r<plant::tools::PlantRunner<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "PlantRunner<FF16r,FF16r_Env>";}
 template <> inline std::string   package_name<plant::tools::PlantRunner<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::tools::PlantRunner<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return ".R6_PlantRunner___FF16r__FF16r_Env";}
+
+template <> inline std::string   class_name_r<plant::tools::PlantRunner<plant::K93_Strategy,plant::K93_Environment> >() {return "PlantRunner<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::tools::PlantRunner<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::tools::PlantRunner<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_PlantRunner___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::Internals >() {return "Internals";}
 template <> inline std::string   package_name<plant::Internals >() {return "plant";}
 template <> inline std::string generator_name<plant::Internals >() {return ".R6_Internals";}
@@ -77,6 +89,10 @@ template <> inline std::string generator_name<plant::Parameters<plant::FF16_Stra
 template <> inline std::string   class_name_r<plant::Parameters<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "Parameters<FF16r,FF16r_Env>";}
 template <> inline std::string   package_name<plant::Parameters<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Parameters<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "";}
+
+template <> inline std::string   class_name_r<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >() {return "Parameters<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >() {return "";}
 template <> inline std::string   class_name_r<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >() {return "Cohort<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Cohort___FF16__FF16_Env";}
@@ -84,6 +100,10 @@ template <> inline std::string generator_name<plant::Cohort<plant::FF16_Strategy
 template <> inline std::string   class_name_r<plant::Cohort<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "Cohort<FF16r,FF16r_Env>";}
 template <> inline std::string   package_name<plant::Cohort<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Cohort<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return ".R6_Cohort___FF16r__FF16r_Env";}
+
+template <> inline std::string   class_name_r<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> >() {return "Cohort<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_Cohort___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> >() {return "Species<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Species___FF16__FF16_Env";}
@@ -91,6 +111,10 @@ template <> inline std::string generator_name<plant::Species<plant::FF16_Strateg
 template <> inline std::string   class_name_r<plant::Species<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "Species<FF16r,FF16r_Env>";}
 template <> inline std::string   package_name<plant::Species<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Species<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return ".R6_Species___FF16r__FF16r_Env";}
+
+template <> inline std::string   class_name_r<plant::Species<plant::K93_Strategy,plant::K93_Environment> >() {return "Species<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::Species<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::Species<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_Species___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> >() {return "Patch<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Patch___FF16__FF16_Env";}
@@ -98,6 +122,10 @@ template <> inline std::string generator_name<plant::Patch<plant::FF16_Strategy,
 template <> inline std::string   class_name_r<plant::Patch<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "Patch<FF16r,FF16r_Env>";}
 template <> inline std::string   package_name<plant::Patch<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Patch<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return ".R6_Patch___FF16r__FF16r_Env";}
+
+template <> inline std::string   class_name_r<plant::Patch<plant::K93_Strategy,plant::K93_Environment> >() {return "Patch<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::Patch<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::Patch<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_Patch___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> >() {return "SCM<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_SCM___FF16__FF16_Env";}
@@ -105,6 +133,10 @@ template <> inline std::string generator_name<plant::SCM<plant::FF16_Strategy,pl
 template <> inline std::string   class_name_r<plant::SCM<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "SCM<FF16r,FF16r_Env>";}
 template <> inline std::string   package_name<plant::SCM<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::SCM<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return ".R6_SCM___FF16r__FF16r_Env";}
+
+template <> inline std::string   class_name_r<plant::SCM<plant::K93_Strategy,plant::K93_Environment> >() {return "SCM<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::SCM<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::SCM<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_SCM___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> >() {return "StochasticSpecies<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_StochasticSpecies___FF16__FF16_Env";}
@@ -112,6 +144,10 @@ template <> inline std::string generator_name<plant::StochasticSpecies<plant::FF
 template <> inline std::string   class_name_r<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "StochasticSpecies<FF16r,FF16r_Env>";}
 template <> inline std::string   package_name<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return ".R6_StochasticSpecies___FF16r__FF16r_Env";}
+
+template <> inline std::string   class_name_r<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> >() {return "StochasticSpecies<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_StochasticSpecies___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> >() {return "StochasticPatch<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_StochasticPatch___FF16__FF16_Env";}
@@ -119,6 +155,10 @@ template <> inline std::string generator_name<plant::StochasticPatch<plant::FF16
 template <> inline std::string   class_name_r<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "StochasticPatch<FF16r,FF16r_Env>";}
 template <> inline std::string   package_name<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return ".R6_StochasticPatch___FF16r__FF16r_Env";}
+
+template <> inline std::string   class_name_r<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> >() {return "StochasticPatch<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_StochasticPatch___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return "StochasticPatchRunner<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_StochasticPatchRunner___FF16__FF16_Env";}
@@ -126,6 +166,10 @@ template <> inline std::string generator_name<plant::StochasticPatchRunner<plant
 template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "StochasticPatchRunner<FF16r,FF16r_Env>";}
 template <> inline std::string   package_name<plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16r_Environment> >() {return ".R6_StochasticPatchRunner___FF16r__FF16r_Env";}
+
+template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >() {return "StochasticPatchRunner<K93,K93_Env>";}
+template <> inline std::string   package_name<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_StochasticPatchRunner___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::FF16_Strategy >() {return "FF16_Strategy";}
 template <> inline std::string   package_name<plant::FF16_Strategy >() {return "plant";}
 template <> inline std::string generator_name<plant::FF16_Strategy >() {return "";}
@@ -138,6 +182,12 @@ template <> inline std::string generator_name<plant::FF16r_Strategy >() {return 
 template <> inline std::string   class_name_r<plant::FF16r_Environment >() {return "FF16r_Environment";}
 template <> inline std::string   package_name<plant::FF16r_Environment >() {return "plant";}
 template <> inline std::string generator_name<plant::FF16r_Environment >() {return ".R6_FF16r_Environment";}
+template <> inline std::string   class_name_r<plant::K93_Strategy >() {return "K93_Strategy";}
+template <> inline std::string   package_name<plant::K93_Strategy >() {return "plant";}
+template <> inline std::string generator_name<plant::K93_Strategy >() {return "";}
+template <> inline std::string   class_name_r<plant::K93_Environment >() {return "K93_Environment";}
+template <> inline std::string   package_name<plant::K93_Environment >() {return "plant";}
+template <> inline std::string generator_name<plant::K93_Environment >() {return ".R6_K93_Environment";}
 }
 }
 }
@@ -197,6 +247,13 @@ template <> inline SEXP wrap(const plant::ode::Runner<plant::tools::PlantRunner<
 }
 template <> inline plant::ode::Runner<plant::tools::PlantRunner<plant::FF16r_Strategy, plant::FF16r_Environment> > as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::PlantRunner<plant::FF16r_Strategy, plant::FF16r_Environment> > >(x));
+}
+
+template <> inline SEXP wrap(const plant::ode::Runner<plant::tools::PlantRunner<plant::K93_Strategy, plant::K93_Environment> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::PlantRunner<plant::K93_Strategy, plant::K93_Environment> > >(x));
+}
+template <> inline plant::ode::Runner<plant::tools::PlantRunner<plant::K93_Strategy, plant::K93_Environment> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::PlantRunner<plant::K93_Strategy, plant::K93_Environment> > >(x));
 }
 template <> inline SEXP wrap(const plant::CohortScheduleEvent& x) {
   return wrap(plant::RcppR6::RcppR6<plant::CohortScheduleEvent>(x));
@@ -405,6 +462,13 @@ template <> inline SEXP wrap(const plant::Plant<plant::FF16r_Strategy,plant::FF1
 template <> inline plant::Plant<plant::FF16r_Strategy,plant::FF16r_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Plant<plant::FF16r_Strategy,plant::FF16r_Environment> >(x));
 }
+
+template <> inline SEXP wrap(const plant::Plant<plant::K93_Strategy,plant::K93_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Plant<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
+template <> inline plant::Plant<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Plant<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
 template <> inline SEXP wrap(const plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::tools::PlantRunner<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
@@ -417,6 +481,13 @@ template <> inline SEXP wrap(const plant::tools::PlantRunner<plant::FF16r_Strate
 }
 template <> inline plant::tools::PlantRunner<plant::FF16r_Strategy,plant::FF16r_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::tools::PlantRunner<plant::FF16r_Strategy,plant::FF16r_Environment> >(x));
+}
+
+template <> inline SEXP wrap(const plant::tools::PlantRunner<plant::K93_Strategy,plant::K93_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::tools::PlantRunner<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
+template <> inline plant::tools::PlantRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::tools::PlantRunner<plant::K93_Strategy,plant::K93_Environment> >(x));
 }
 template <> inline SEXP wrap(const plant::Internals& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Internals>(x));
@@ -537,6 +608,63 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16r_Environm
   ret.validate();
   return ret;
 }
+
+template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& x) {
+  Rcpp::List ret;
+  ret["k_I"] = Rcpp::wrap(x.k_I);
+  ret["patch_area"] = Rcpp::wrap(x.patch_area);
+  ret["n_patches"] = Rcpp::wrap(x.n_patches);
+  ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
+  ret["strategies"] = Rcpp::wrap(x.strategies);
+  ret["seed_rain"] = Rcpp::wrap(x.seed_rain);
+  ret["is_resident"] = Rcpp::wrap(x.is_resident);
+  ret["control"] = Rcpp::wrap(x.control);
+  ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
+  ret["cohort_schedule_max_time"] = Rcpp::wrap(x.cohort_schedule_max_time);
+  ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
+  ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
+  ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
+  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<K93,K93_Env>", "Parameters");
+  return ret;
+}
+template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
+  if (!plant::RcppR6::is<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >(x)) {
+    Rcpp::stop("Expected an object of type Parameters<K93,K93_Env>");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::Parameters<plant::K93_Strategy,plant::K93_Environment> ret;
+  Rcpp::List xl(x);
+  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
+  ret.k_I = Rcpp::as<double >(xl["k_I"]);
+  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
+  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
+  // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
+  ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
+  // ret.disturbance_mean_interval = Rcpp::as<decltype(retdisturbance_mean_interval) >(xl["disturbance_mean_interval"]);
+  ret.disturbance_mean_interval = Rcpp::as<double >(xl["disturbance_mean_interval"]);
+  // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
+  ret.strategies = Rcpp::as<std::vector<plant::K93_Strategy> >(xl["strategies"]);
+  // ret.seed_rain = Rcpp::as<decltype(retseed_rain) >(xl["seed_rain"]);
+  ret.seed_rain = Rcpp::as<std::vector<double> >(xl["seed_rain"]);
+  // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
+  ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
+  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
+  ret.control = Rcpp::as<plant::Control >(xl["control"]);
+  // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
+  ret.strategy_default = Rcpp::as<plant::K93_Strategy >(xl["strategy_default"]);
+  // ret.cohort_schedule_max_time = Rcpp::as<decltype(retcohort_schedule_max_time) >(xl["cohort_schedule_max_time"]);
+  ret.cohort_schedule_max_time = Rcpp::as<double >(xl["cohort_schedule_max_time"]);
+  // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
+  ret.cohort_schedule_times_default = Rcpp::as<std::vector<double> >(xl["cohort_schedule_times_default"]);
+  // ret.cohort_schedule_times = Rcpp::as<decltype(retcohort_schedule_times) >(xl["cohort_schedule_times"]);
+  ret.cohort_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["cohort_schedule_times"]);
+  // ret.cohort_schedule_ode_times = Rcpp::as<decltype(retcohort_schedule_ode_times) >(xl["cohort_schedule_ode_times"]);
+  ret.cohort_schedule_ode_times = Rcpp::as<std::vector<double> >(xl["cohort_schedule_ode_times"]);
+  ret.validate();
+  return ret;
+}
 template <> inline SEXP wrap(const plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
@@ -549,6 +677,13 @@ template <> inline SEXP wrap(const plant::Cohort<plant::FF16r_Strategy,plant::FF
 }
 template <> inline plant::Cohort<plant::FF16r_Strategy,plant::FF16r_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16r_Environment> >(x));
+}
+
+template <> inline SEXP wrap(const plant::Cohort<plant::K93_Strategy,plant::K93_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
+template <> inline plant::Cohort<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> >(x));
 }
 template <> inline SEXP wrap(const plant::Species<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> >(x));
@@ -563,6 +698,13 @@ template <> inline SEXP wrap(const plant::Species<plant::FF16r_Strategy,plant::F
 template <> inline plant::Species<plant::FF16r_Strategy,plant::FF16r_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16r_Environment> >(x));
 }
+
+template <> inline SEXP wrap(const plant::Species<plant::K93_Strategy,plant::K93_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
+template <> inline plant::Species<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
 template <> inline SEXP wrap(const plant::Patch<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
@@ -575,6 +717,13 @@ template <> inline SEXP wrap(const plant::Patch<plant::FF16r_Strategy,plant::FF1
 }
 template <> inline plant::Patch<plant::FF16r_Strategy,plant::FF16r_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16r_Environment> >(x));
+}
+
+template <> inline SEXP wrap(const plant::Patch<plant::K93_Strategy,plant::K93_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
+template <> inline plant::Patch<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> >(x));
 }
 template <> inline SEXP wrap(const plant::SCM<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> >(x));
@@ -589,6 +738,13 @@ template <> inline SEXP wrap(const plant::SCM<plant::FF16r_Strategy,plant::FF16r
 template <> inline plant::SCM<plant::FF16r_Strategy,plant::FF16r_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16r_Environment> >(x));
 }
+
+template <> inline SEXP wrap(const plant::SCM<plant::K93_Strategy,plant::K93_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
+template <> inline plant::SCM<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
 template <> inline SEXP wrap(const plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
@@ -601,6 +757,13 @@ template <> inline SEXP wrap(const plant::StochasticSpecies<plant::FF16r_Strateg
 }
 template <> inline plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16r_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16r_Environment> >(x));
+}
+
+template <> inline SEXP wrap(const plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
+template <> inline plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> >(x));
 }
 template <> inline SEXP wrap(const plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> >(x));
@@ -615,6 +778,13 @@ template <> inline SEXP wrap(const plant::StochasticPatch<plant::FF16r_Strategy,
 template <> inline plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16r_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16r_Environment> >(x));
 }
+
+template <> inline SEXP wrap(const plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
+template <> inline plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
 template <> inline SEXP wrap(const plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
@@ -627,6 +797,13 @@ template <> inline SEXP wrap(const plant::StochasticPatchRunner<plant::FF16r_Str
 }
 template <> inline plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16r_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16r_Environment> >(x));
+}
+
+template <> inline SEXP wrap(const plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >(x));
+}
+template <> inline plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> >(x));
 }
 template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
   Rcpp::List ret;
@@ -863,6 +1040,124 @@ template <> inline SEXP wrap(const plant::FF16r_Environment& x) {
 }
 template <> inline plant::FF16r_Environment as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::FF16r_Environment>(x));
+}
+template <> inline SEXP wrap(const plant::K93_Strategy& x) {
+  Rcpp::List ret;
+  ret["lma"] = Rcpp::wrap(x.lma);
+  ret["rho"] = Rcpp::wrap(x.rho);
+  ret["hmat"] = Rcpp::wrap(x.hmat);
+  ret["omega"] = Rcpp::wrap(x.omega);
+  ret["eta"] = Rcpp::wrap(x.eta);
+  ret["theta"] = Rcpp::wrap(x.theta);
+  ret["a_l1"] = Rcpp::wrap(x.a_l1);
+  ret["a_l2"] = Rcpp::wrap(x.a_l2);
+  ret["a_r1"] = Rcpp::wrap(x.a_r1);
+  ret["a_b1"] = Rcpp::wrap(x.a_b1);
+  ret["r_s"] = Rcpp::wrap(x.r_s);
+  ret["r_b"] = Rcpp::wrap(x.r_b);
+  ret["r_r"] = Rcpp::wrap(x.r_r);
+  ret["r_l"] = Rcpp::wrap(x.r_l);
+  ret["a_y"] = Rcpp::wrap(x.a_y);
+  ret["a_bio"] = Rcpp::wrap(x.a_bio);
+  ret["k_l"] = Rcpp::wrap(x.k_l);
+  ret["k_b"] = Rcpp::wrap(x.k_b);
+  ret["k_s"] = Rcpp::wrap(x.k_s);
+  ret["k_r"] = Rcpp::wrap(x.k_r);
+  ret["a_p1"] = Rcpp::wrap(x.a_p1);
+  ret["a_p2"] = Rcpp::wrap(x.a_p2);
+  ret["a_f3"] = Rcpp::wrap(x.a_f3);
+  ret["a_f1"] = Rcpp::wrap(x.a_f1);
+  ret["a_f2"] = Rcpp::wrap(x.a_f2);
+  ret["S_D"] = Rcpp::wrap(x.S_D);
+  ret["a_d0"] = Rcpp::wrap(x.a_d0);
+  ret["d_I"] = Rcpp::wrap(x.d_I);
+  ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
+  ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
+  ret["control"] = Rcpp::wrap(x.control);
+  ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
+  ret.attr("class") = "K93_Strategy";
+  return ret;
+}
+template <> inline plant::K93_Strategy as(SEXP x) {
+  if (!plant::RcppR6::is<plant::K93_Strategy >(x)) {
+    Rcpp::stop("Expected an object of type K93_Strategy");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::K93_Strategy ret;
+  Rcpp::List xl(x);
+  // ret.lma = Rcpp::as<decltype(retlma) >(xl["lma"]);
+  ret.lma = Rcpp::as<double >(xl["lma"]);
+  // ret.rho = Rcpp::as<decltype(retrho) >(xl["rho"]);
+  ret.rho = Rcpp::as<double >(xl["rho"]);
+  // ret.hmat = Rcpp::as<decltype(rethmat) >(xl["hmat"]);
+  ret.hmat = Rcpp::as<double >(xl["hmat"]);
+  // ret.omega = Rcpp::as<decltype(retomega) >(xl["omega"]);
+  ret.omega = Rcpp::as<double >(xl["omega"]);
+  // ret.eta = Rcpp::as<decltype(reteta) >(xl["eta"]);
+  ret.eta = Rcpp::as<double >(xl["eta"]);
+  // ret.theta = Rcpp::as<decltype(rettheta) >(xl["theta"]);
+  ret.theta = Rcpp::as<double >(xl["theta"]);
+  // ret.a_l1 = Rcpp::as<decltype(reta_l1) >(xl["a_l1"]);
+  ret.a_l1 = Rcpp::as<double >(xl["a_l1"]);
+  // ret.a_l2 = Rcpp::as<decltype(reta_l2) >(xl["a_l2"]);
+  ret.a_l2 = Rcpp::as<double >(xl["a_l2"]);
+  // ret.a_r1 = Rcpp::as<decltype(reta_r1) >(xl["a_r1"]);
+  ret.a_r1 = Rcpp::as<double >(xl["a_r1"]);
+  // ret.a_b1 = Rcpp::as<decltype(reta_b1) >(xl["a_b1"]);
+  ret.a_b1 = Rcpp::as<double >(xl["a_b1"]);
+  // ret.r_s = Rcpp::as<decltype(retr_s) >(xl["r_s"]);
+  ret.r_s = Rcpp::as<double >(xl["r_s"]);
+  // ret.r_b = Rcpp::as<decltype(retr_b) >(xl["r_b"]);
+  ret.r_b = Rcpp::as<double >(xl["r_b"]);
+  // ret.r_r = Rcpp::as<decltype(retr_r) >(xl["r_r"]);
+  ret.r_r = Rcpp::as<double >(xl["r_r"]);
+  // ret.r_l = Rcpp::as<decltype(retr_l) >(xl["r_l"]);
+  ret.r_l = Rcpp::as<double >(xl["r_l"]);
+  // ret.a_y = Rcpp::as<decltype(reta_y) >(xl["a_y"]);
+  ret.a_y = Rcpp::as<double >(xl["a_y"]);
+  // ret.a_bio = Rcpp::as<decltype(reta_bio) >(xl["a_bio"]);
+  ret.a_bio = Rcpp::as<double >(xl["a_bio"]);
+  // ret.k_l = Rcpp::as<decltype(retk_l) >(xl["k_l"]);
+  ret.k_l = Rcpp::as<double >(xl["k_l"]);
+  // ret.k_b = Rcpp::as<decltype(retk_b) >(xl["k_b"]);
+  ret.k_b = Rcpp::as<double >(xl["k_b"]);
+  // ret.k_s = Rcpp::as<decltype(retk_s) >(xl["k_s"]);
+  ret.k_s = Rcpp::as<double >(xl["k_s"]);
+  // ret.k_r = Rcpp::as<decltype(retk_r) >(xl["k_r"]);
+  ret.k_r = Rcpp::as<double >(xl["k_r"]);
+  // ret.a_p1 = Rcpp::as<decltype(reta_p1) >(xl["a_p1"]);
+  ret.a_p1 = Rcpp::as<double >(xl["a_p1"]);
+  // ret.a_p2 = Rcpp::as<decltype(reta_p2) >(xl["a_p2"]);
+  ret.a_p2 = Rcpp::as<double >(xl["a_p2"]);
+  // ret.a_f3 = Rcpp::as<decltype(reta_f3) >(xl["a_f3"]);
+  ret.a_f3 = Rcpp::as<double >(xl["a_f3"]);
+  // ret.a_f1 = Rcpp::as<decltype(reta_f1) >(xl["a_f1"]);
+  ret.a_f1 = Rcpp::as<double >(xl["a_f1"]);
+  // ret.a_f2 = Rcpp::as<decltype(reta_f2) >(xl["a_f2"]);
+  ret.a_f2 = Rcpp::as<double >(xl["a_f2"]);
+  // ret.S_D = Rcpp::as<decltype(retS_D) >(xl["S_D"]);
+  ret.S_D = Rcpp::as<double >(xl["S_D"]);
+  // ret.a_d0 = Rcpp::as<decltype(reta_d0) >(xl["a_d0"]);
+  ret.a_d0 = Rcpp::as<double >(xl["a_d0"]);
+  // ret.d_I = Rcpp::as<decltype(retd_I) >(xl["d_I"]);
+  ret.d_I = Rcpp::as<double >(xl["d_I"]);
+  // ret.a_dG1 = Rcpp::as<decltype(reta_dG1) >(xl["a_dG1"]);
+  ret.a_dG1 = Rcpp::as<double >(xl["a_dG1"]);
+  // ret.a_dG2 = Rcpp::as<decltype(reta_dG2) >(xl["a_dG2"]);
+  ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
+  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
+  ret.control = Rcpp::as<plant::Control >(xl["control"]);
+  // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
+  ret.collect_all_auxillary = Rcpp::as<bool >(xl["collect_all_auxillary"]);
+  return ret;
+}
+template <> inline SEXP wrap(const plant::K93_Environment& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::K93_Environment>(x));
+}
+template <> inline plant::K93_Environment as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::K93_Environment>(x));
 }
 }
 
