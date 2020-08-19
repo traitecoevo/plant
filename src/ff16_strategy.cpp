@@ -1,8 +1,4 @@
-#include <plant/uniroot.h>
-#include <plant/qag.h>
-#include <plant/models/assimilation.h>
 #include <plant/models/ff16_strategy.h>
-#include <RcppCommon.h> // NA_REAL
 
 namespace plant {
 

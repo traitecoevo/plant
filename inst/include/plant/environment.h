@@ -6,8 +6,9 @@
 #include <plant/disturbance.h>
 #include <plant/interpolator.h>
 #include <plant/adaptive_interpolator.h>
-#include <plant/util.h>
 #include <plant/ode_interface.h>
+#include <plant/util.h>
+#include <Rcpp.h>
 
 using namespace Rcpp;
 

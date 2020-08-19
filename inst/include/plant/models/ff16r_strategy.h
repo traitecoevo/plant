@@ -3,10 +3,6 @@
 #ifndef PLANT_PLANT_FF16r_STRATEGY_H_
 #define PLANT_PLANT_FF16r_STRATEGY_H_
 
-#include <memory>
-#include <plant/control.h>
-#include <plant/qag_internals.h> // quadrature::intervals_type
-#include <plant/internals.h> // quadrature::intervals_type
 #include <plant/strategy.h>
 #include <plant/models/ff16r_environment.h>
 #include <plant/models/assimilation.h>

@@ -4,8 +4,11 @@
 
 #include <memory>
 #include <plant/control.h>
-#include <plant/qag_internals.h> // quadrature::intervals_type
-#include <plant/internals.h> // quadrature::intervals_type
+#include <plant/internals.h>
+#include <plant/uniroot.h>
+#include <RcppCommon.h> // NA_REAL
+#include <plant/uniroot.h>
+
 
 namespace plant {
 
