@@ -16,7 +16,7 @@ class SCM {
 public:
   typedef T             strategy_type;
   typedef E             environment_type;
-  typedef Plant<T,E>    plant_type;
+  typedef Individual<T,E>    individual_type;
   typedef Cohort<T,E>   cohort_type;
   typedef Species<T,E>  species_type;
   typedef Patch<T,E>    patch_type;

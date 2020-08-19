@@ -1,4 +1,4 @@
-context("Plant utilities")
+context("Individual utilities")
 
 strategy_types <- get_list_of_strategy_types()
 
@@ -64,14 +64,14 @@ test_that("strategy_list", {
   }
 })
 
-test_that("plant_list", {
+test_that("individual_list", {
   for (x in names(strategy_types)) {
     p <- Parameters(x, paste0(x, "_Env"))()
 
-    obj <- plant_list(trait_matrix(1, "lma"), p, make_FF16_hyperpar())
+    obj <- individual_list(trait_matrix(1, "lma"), p, make_FF16_hyperpar())
     expect_equal(length(obj), 1)
     expect_is(obj, "list")
-    expect_is(obj[[1]], "Plant")
-    expect_is(obj[[1]], sprintf("Plant<%s,%s_Env>", x, x))
+    expect_is(obj[[1]], "Individual")
+    expect_is(obj[[1]], sprintf("Individual<%s,%s_Env>", x, x))
   }
 })

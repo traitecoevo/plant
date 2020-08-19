@@ -11,13 +11,13 @@
 
 namespace plant {
 
-template <typename T, typename E> class Plant {
+template <typename T, typename E> class Individual {
 public:
   typedef T strategy_type;
   typedef E environment_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   // for the time being...
-  Plant(strategy_type_ptr s) : strategy(s) {
+  Individual(strategy_type_ptr s) : strategy(s) {
     if (strategy->aux_index.size() != s->aux_size()) {
       strategy->refresh_indices();
     }
@@ -150,8 +150,8 @@ private:
   Internals vars;
 };
 
-template <typename T, typename E> Plant<T,E> make_plant(T s) {
-  return Plant<T,E>(make_strategy_ptr(s));
+template <typename T, typename E> Individual<T,E> make_individual(T s) {
+  return Individual<T,E>(make_strategy_ptr(s));
 }
 
 } // namespace plant

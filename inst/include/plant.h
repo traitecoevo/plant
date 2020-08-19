@@ -28,7 +28,7 @@
 // #include <plant/models/water_strategy.h>
 
 // Getting more serious down here.
-#include <plant/plant.h>
+#include <plant/individual.h>
 #include <plant/internals.h>
 
 #include <plant/cohort.h>

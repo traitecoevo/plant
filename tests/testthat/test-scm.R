@@ -6,7 +6,7 @@ hyperpar_functions <- get_list_of_hyperpar_functions()
 test_that("Ported from tree1", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
-    plant <- Plant(x, paste0(x, "_Env"))(s)
+    plant <- Individual(x, paste0(x, "_Env"))(s)
     cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
     p <- Parameters(x, paste0(x, "_Env"))(strategies=list(s),

@@ -17,7 +17,7 @@ class Species {
 public:
   typedef T         strategy_type;
   typedef E         environment_type;
-  typedef Plant<T,E>  plant_type;
+  typedef Individual<T,E>  individual_type;
   typedef Cohort<T,E> cohort_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   Species(strategy_type s);

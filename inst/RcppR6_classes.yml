@@ -23,8 +23,8 @@ OdeRunner:
     concrete:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
-      - ["FF16": "plant::tools::PlantRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
-      - ["FF16r": "plant::tools::PlantRunner<plant::FF16r_Strategy, plant::FF16r_Environment>"]
+      - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
+      - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16r_Environment>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
   active:
@@ -251,8 +251,8 @@ Interpolator:
     min: {type: double, access: member}
     max: {type: double, access: member}
 
-Plant:
-  name_cpp: "plant::Plant<T,E>"
+Individual:
+  name_cpp: "plant::Individual<T,E>"
   templates:
     parameters: [T,E]
     concrete:
@@ -262,7 +262,7 @@ Plant:
     args: [s: T]
     name_cpp: "plant::make_plant<T,E>"
     roxygen: |
-      Plant object
+      Individual object
       @param T String containing class of plant strategy to create;
       @param E String containing class of environmnet to create;
       @export
@@ -308,18 +308,18 @@ Plant:
       args: []
       return_type: double
 
-PlantRunner:
-  name_cpp: "plant::tools::PlantRunner<T,E>"
+IndividualRunner:
+  name_cpp: "plant::tools::IndividualRunner<T,E>"
   templates:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
   constructor:
-    name_cpp: "plant::tools::PlantRunner<T,E>"
-    args: [plant: "plant::Plant<T,E>", environment: E]
+    name_cpp: "plant::tools::IndividualRunner<T,E>"
+    args: [plant: "plant::Individual<T,E>", environment: E]
   active:
-    plant: {access: field, type: "plant::Plant<T,E>"}
+    plant: {access: field, type: "plant::Individual<T,E>"}
 
 Internals:
   name_cpp: "plant::Internals"
@@ -401,7 +401,7 @@ Cohort:
     name_cpp: "plant::make_cohort<T,E>"
     args: [strategy: T]
   active:
-    plant: {type: "plant::Plant<T,E>", access: field, readonly: true}
+    plant: {type: "plant::Individual<T,E>", access: field, readonly: true}
     height: {type: double, access: member}
     log_density: {type: double, access: member, name_cpp: get_log_density}
     competition_effect: {type: double, access: member}
@@ -601,10 +601,10 @@ StochasticSpecies:
   active:
     size: {type: size_t, access: member}
     size_plants: {type: size_t, access: member}
-    seed: {type: "plant::Plant<T,E>", access: member, name_cpp: r_seed}
+    seed: {type: "plant::Individual<T,E>", access: member, name_cpp: r_seed}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
-    plants: {type: "std::vector<plant::Plant<T,E> >", access: member, name_cpp: r_plants}
+    plants: {type: "std::vector<plant::Individual<T,E> >", access: member, name_cpp: r_plants}
     is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
     seeds: {type: "std::vector<double>", access: member}
     ## ODE interface:
@@ -623,7 +623,7 @@ StochasticSpecies:
     add_seed:
       return_type: void
     plant_at:
-      return_type: "plant::Plant<T,E>"
+      return_type: "plant::Individual<T,E>"
       args: [index: "plant::util::index"]
       name_cpp: r_plant_at
     deaths:

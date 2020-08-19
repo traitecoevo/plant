@@ -8,10 +8,10 @@
 ##' @export
 ##' @rdname FF16
 ##' @examples
-##' pl <- FF16_Plant()
+##' pl <- FF16_Individual()
 ##' pl$height
-FF16_Plant <- function(s=FF16_Strategy()) {
-  Plant("FF16", "FF16_Env")(s)
+FF16_Individual <- function(s=FF16_Strategy()) {
+  Individual("FF16", "FF16_Env")(s)
 }
 
 #' Compute the whole plant light compensation point for a single
@@ -72,11 +72,6 @@ FF16_StochasticPatchRunner <- function(p) {
   StochasticPatchRunner("FF16", "FF16_Env")(p)
 }
 
-# ##' @export
-# ##' @rdname FF16
-# FF16_PlantPlus <- function(s=FF16_Strategy()) {
-#   PlantPlus("FF16")(s)
-# }
 
 ## Helper:
 ##' @export

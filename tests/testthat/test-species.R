@@ -13,7 +13,7 @@ for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
     sp <- Species(x, paste0(x, "_Env"))(s)
     seed <- Cohort(x, paste0(x, "_Env"))(s)
-    plant <- Plant(x, paste0(x, "_Env"))(s)
+    plant <- Individual(x, paste0(x, "_Env"))(s)
     h0 <- seed$height
 
     expect_equal(sp$size, 0)

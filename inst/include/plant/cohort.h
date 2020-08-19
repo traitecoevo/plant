@@ -13,7 +13,7 @@ class Cohort {
 public:
   typedef T        strategy_type;
   typedef E        environment_type;
-  typedef Plant<T,E> plant_type;
+  typedef Individual<T,E> individual_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   Cohort(strategy_type_ptr s);
 
@@ -52,7 +52,7 @@ public:
     return plant_names;
   }
 
-  plant_type plant;
+  individual_type plant;
 
 private:
   // This is the gradient of growth rate with respect to height:
@@ -136,7 +136,7 @@ void Cohort<T,E>::compute_initial_conditions(const environment_type& environment
 
 template <typename T, typename E>
 double Cohort<T,E>::growth_rate_gradient(const environment_type& environment) const {
-  plant_type p = plant;
+  individual_type p = plant;
   auto fun = [&] (double h) mutable -> double {
     return p.growth_rate_given_height(h, environment);
   };

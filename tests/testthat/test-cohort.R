@@ -9,11 +9,11 @@ for (x in names(strategy_types)) {
   test_that("setup, growth rates", {
 
     s <- strategy_types[[x]]()
-    plant <- Plant(x, paste0(x, "_Env"))(s)
+    plant <- Individual(x, paste0(x, "_Env"))(s)
     cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
     expect_is(cohort, sprintf("Cohort<%s,%s_Env>", x, x))
-    expect_is(cohort$plant, sprintf("Plant<%s,%s_Env>", x, x))
+    expect_is(cohort$plant, sprintf("Individual<%s,%s_Env>", x, x))
 
     env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
@@ -32,7 +32,7 @@ for (x in names(strategy_types)) {
     }
 
     plant$compute_rates(env)
-    p2 <- Plant(x, paste0(x, "_Env"))(s)
+    p2 <- Individual(x, paste0(x, "_Env"))(s)
 
     ## First, a quick sanity check that our little function behaves as
     ## expected:
@@ -100,7 +100,7 @@ for (x in names(strategy_types)) {
   ##   * Check that the rates computed are actually correct
   test_that("ODE interface", {
     s <- strategy_types[[x]]()
-    plant <- Plant(x, paste0(x, "_Env"))(s)
+    plant <- Individual(x, paste0(x, "_Env"))(s)
     cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
     env <- test_environment(x, 2 * plant$state("height"),
@@ -151,7 +151,7 @@ for (x in names(strategy_types)) {
 
   test_that("leaf area calculations", {
     s <- strategy_types[[x]]()
-    plant <- Plant(x, paste0(x, "_Env"))(s) 
+    plant <- Individual(x, paste0(x, "_Env"))(s) 
     cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
     env <- test_environment(x, 10,
