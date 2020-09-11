@@ -1,5 +1,5 @@
 language: r
-cache: 
+cache:
   packages: true
   apt: true
 warnings_are_errors: false
@@ -17,7 +17,7 @@ branches:
 matrix:
   include:
     - os: linux
-      dist: trusty
+      dist: bionic
       env:
         - R_CODECOV=true
         - MAKEFLAGS="-j 2"
