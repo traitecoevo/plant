@@ -13,7 +13,7 @@
 ##' production per capita.
 ##' @author Rich FitzJohn
 ##' @export
-fitness_landscape <- function(trait_matrix, p, hyperpar, raw_seed_rain=FALSE) {
+fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), raw_seed_rain=FALSE) {
   n_residents <- length(p$strategies)
   p_with_mutants <- expand_parameters(trait_matrix, p, hyperpar)
   scm <- run_scm(p_with_mutants,
@@ -64,7 +64,6 @@ carrying_capacity <- function(trait_matrix, p, seed_rain=1,
     ## names.
     p <- expand_parameters(trait_matrix(x, traits),
                            remove_residents(p),
-                           hyperpar,
                            mutant=FALSE)
     p$seed_rain <- seed_rain
     equilibrium_seed_rain(p)$seed_rain

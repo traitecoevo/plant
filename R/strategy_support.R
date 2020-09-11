@@ -12,6 +12,14 @@ make_hyperpar <- function(type) {
          stop("Unknown type ", type))
 }
 
+param_hyperpar <- function(parameters) {
+  type <- attr(parameters$strategy_default, "class")
+  switch(type,
+         FF16_Strategy=FF16_hyperpar,
+         FF16r_Strategy=FF16r_hyperpar,
+         stop("Unknown type ", type))
+}
+
 ##' @rdname Hyperparameter_functions
 ##' @export
 # if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
