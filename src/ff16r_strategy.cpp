@@ -1,9 +1,5 @@
 // Built from  src/ff16_strategy.cpp on Fri Jul  3 08:14:35 2020 using the scaffolder, from the strategy:  FF16
-#include <plant/uniroot.h>
-#include <plant/qag.h>
-#include <plant/models/assimilation.h>
 #include <plant/models/ff16r_strategy.h>
-#include <RcppCommon.h> // NA_REAL
 
 namespace plant {
 

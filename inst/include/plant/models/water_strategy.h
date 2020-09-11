@@ -2,13 +2,6 @@
 #ifndef PLANT_PLANT_WATER_STRATEGY_H_
 #define PLANT_PLANT_WATER_STRATEGY_H_
 
-#include <memory>
-#include <plant/control.h>
-#include <plant/qag_internals.h> // quadrature::intervals_type
-#include <plant/uniroot.h>
-#include <plant/qag.h>
-#include <RcppCommon.h> // NA_REAL
-#include <plant/internals.h> // quadrature::intervals_type
 #include <plant/strategy.h>
 #include <plant/models/water_environment.h>
 #include <plant/models/assimilation.h>

@@ -13,8 +13,8 @@ test_that("empty", {
     expect_equal(sp$size_plants, 0)
 
     seed <- sp$seed
-    expect_is(seed, "Plant")
-    expect_is(seed, sprintf("Plant<%s,%s_Env>",x,x))
+    expect_is(seed, "Individual")
+    expect_is(seed, sprintf("Individual<%s,%s_Env>",x,x))
 
     expect_equal(sp$heights, numeric(0))
     expect_equal(sp$height_max, 0.0)
@@ -33,7 +33,7 @@ test_that("Single individual", {
     env <- test_environment(x, 3, seed_rain=1.0)
     s <- strategy_types[[x]]()
     sp <- StochasticSpecies(x, paste0(x, "_Env"))(s)
-    p <- Plant(x, paste0(x, "_Env"))(s)
+    p <- Individual(x, paste0(x, "_Env"))(s)
 
     sp$add_seed()
 
@@ -132,7 +132,7 @@ test_that("establishment probability", {
     env <- test_environment(x, 3, seed_rain=1.0)
     s <- strategy_types[[x]]()
     sp <- StochasticSpecies(x, paste0(x, "_Env"))(s)
-    p <- Plant(x, paste0(x, "_Env"))(s)
+    p <- Individual(x, paste0(x, "_Env"))(s)
 
     expect_equal(sp$establishment_probability(env), p$establishment_probability(env))
   }

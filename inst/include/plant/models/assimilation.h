@@ -5,8 +5,7 @@
 #include <memory>
 #include <plant/environment.h>
 #include <plant/control.h>
-#include <plant/qag_internals.h> // quadrature::intervals_type
-#include <plant/internals.h> // quadrature::intervals_type
+#include <plant/qag.h> // quadrature::intervals_type
 
 namespace plant {
 

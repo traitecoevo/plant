@@ -31,7 +31,7 @@ test_that("non empty", {
                           seed_rain=pi/2,
                           is_resident=TRUE)
     patch <- StochasticPatch(x, paste0(x, "_Env"))(p)
-    cmp <- Plant(x, paste0(x, "_Env"))(p$strategies[[1]])
+    cmp <- Individual(x, paste0(x, "_Env"))(p$strategies[[1]])
 
     expect_error(patch$add_seed(0), "Invalid value")
     expect_error(patch$add_seed(10), "out of bounds")

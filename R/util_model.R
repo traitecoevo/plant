@@ -42,12 +42,13 @@ strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
 
 ##' @rdname strategy_list
 ##' @export
-plant_list <- function(x, parameters, hyperpar=parram_hyperpar(parameters)) {
+individual_list <- function(x, parameters, hyperpar=parram_hyperpar(parameters)) {
+
   if (!inherits(parameters, "Parameters")) {
     stop("parameters must be a 'Parameters' object")
   }
   types <- extract_RcppR6_template_types(parameters, "Parameters")
-  lapply(strategy_list(x, parameters, hyperpar), do.call('Plant', types))
+  lapply(strategy_list(x, parameters, hyperpar), do.call('Individual', types))
 }
 
 ##' Helper function to create trait matrices suitable for

@@ -65,7 +65,7 @@ Rcpp::List get_state(const SCM<T,E>& scm) {
 
 // stochastic model:
 template <typename T, typename E>
-Rcpp::NumericMatrix::iterator get_state(const Plant<T,E>& plant,
+Rcpp::NumericMatrix::iterator get_state(const Individual<T,E>& plant,
                                         Rcpp::NumericMatrix::iterator it) {
   // TODO: this should work (also up in get_state(Cohort<T,E>, ...)).
   // return plant.ode_state(it);
@@ -75,8 +75,8 @@ Rcpp::NumericMatrix::iterator get_state(const Plant<T,E>& plant,
 
 template <typename T, typename E>
 Rcpp::NumericMatrix get_state(const StochasticSpecies<T,E>& species) {
-  typedef Plant<T,E> plant_type;
-  size_t ode_size = plant_type::ode_size(), np = species.size_plants();
+  typedef Individual<T,E> individual_type;
+  size_t ode_size = individual_type::ode_size(), np = species.size_plants();
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np);
 
   Rcpp::NumericMatrix::iterator it = ret.begin();
@@ -84,7 +84,7 @@ Rcpp::NumericMatrix get_state(const StochasticSpecies<T,E>& species) {
     it = get_state(species.r_plant_at(i), it);
   }
   ret.attr("dimnames") =
-    Rcpp::List::create(plant_type::ode_names(), R_NilValue);
+    Rcpp::List::create(individual_type::ode_names(), R_NilValue);
   ret.attr("is_alive") = Rcpp::wrap(species.r_is_alive());
   return ret;
 }

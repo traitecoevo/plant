@@ -37,7 +37,7 @@ class StochasticSpecies {
 public:
   typedef T         strategy_type;
   typedef E         environment_type;
-  typedef Plant<T,E>  plant_type;
+  typedef Individual<T,E>  individual_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
   StochasticSpecies(strategy_type s);
 
@@ -72,17 +72,17 @@ public:
   std::vector<bool> r_is_alive() const {return is_alive;}
   std::vector<double> r_heights() const;
   void r_set_heights(std::vector<double> heights);
-  const plant_type& r_seed() const {return seed;}
-  std::vector<plant_type> r_plants() const {return plants;}
-  const plant_type& r_plant_at(util::index idx) const {
+  const individual_type& r_seed() const {return seed;}
+  std::vector<individual_type> r_plants() const {return plants;}
+  const individual_type& r_plant_at(util::index idx) const {
     return plants[idx.check_bounds(size_plants())];
   }
 
 private:
   const Control& control() const {return strategy->get_control();}
   strategy_type_ptr strategy;
-  plant_type seed;
-  std::vector<plant_type> plants;
+  individual_type seed;
+  std::vector<individual_type> plants;
   std::vector<bool>       is_alive;
 };
 
@@ -103,7 +103,7 @@ void StochasticSpecies<T,E>::clear() {
   plants.clear();
   is_alive.clear();
   // Reset the seed to a blank seed, too.
-  seed = plant_type(strategy);
+  seed = individual_type(strategy);
 }
 
 // Note that this does not do establishment probability; suggest that
@@ -216,7 +216,7 @@ size_t StochasticSpecies<T,E>::deaths() {
 
 template <typename T, typename E>
 size_t StochasticSpecies<T,E>::ode_size() const {
-  return size() * plant_type::ode_size();
+  return size() * individual_type::ode_size();
 }
 
 template <typename T, typename E>

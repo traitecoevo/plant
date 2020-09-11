@@ -3,7 +3,7 @@ context("Modular")
 test_that("Construction", {
 
   ## This is a *minimal* set of tests that checks that it is possible
-  ## to create the full set of different object types (Plant, Species,
+  ## to create the full set of different object types (Individual, Species,
   ## Patch etc) with different underlying Strategy types.  It doesn't
   ## actually try to run them though, so do that elsewhere.
 
@@ -13,10 +13,10 @@ test_that("Construction", {
     s <- strategy_types[[x]]()
     expect_is(s, paste0(x, "_Strategy"))
 
-    p <- Plant(x, paste0(x, "_Env"))(s)
+    p <- Individual(x, paste0(x, "_Env"))(s)
 
-    expect_is(p, "Plant")
-    expect_is(p, sprintf("Plant<%s,%s_Env>", x, x))
+    expect_is(p, "Individual")
+    expect_is(p, sprintf("Individual<%s,%s_Env>", x, x))
     expect_equal(class(p$strategy), class(s))
     expect_equal(p$strategy, s)
 

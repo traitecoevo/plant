@@ -32,8 +32,8 @@ test_that("Reference comparison", {
   cmp <- make_reference_plant("FF16")
   s <- FF16_Strategy()
   # skip('reference plant is plant plus')
-  # p <- FF16_PlantPlus(s)
-  p <- FF16_Plant(s)
+  # p <- FF16_IndividualPlus(s)
+  p <- FF16_Individual(s)
 
   expect_identical(p$strategy, s)
 

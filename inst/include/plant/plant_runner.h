@@ -2,21 +2,21 @@
 #ifndef PLANT_PLANT_PLANT_RUNNER_H_
 #define PLANT_PLANT_PLANT_RUNNER_H_
 
-#include <plant/plant.h>
+#include <plant/individual.h>
 #include <plant/environment.h>
 
 namespace plant {
 namespace tools {
 
 template <typename T, typename E>
-class PlantRunner {
+class IndividualRunner {
 public:
-  PlantRunner(Plant<T,E> plant_, E environment_)
+  IndividualRunner(Individual<T,E> plant_, E environment_)
     : plant(plant_), environment(environment_) {
     plant.compute_rates(environment);
   }
 
-  static size_t ode_size() {return Plant<T,E>::ode_size();}
+  static size_t ode_size() {return Individual<T,E>::ode_size();}
   
   double ode_time() const {return environment.time;}
   ode::const_iterator set_ode_state(ode::const_iterator it, double time) {
@@ -32,7 +32,7 @@ public:
     return plant.ode_rates(it);
   }
   
-  Plant<T,E> plant;
+  Individual<T,E> plant;
   E environment;
 };
 

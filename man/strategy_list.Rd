@@ -4,7 +4,7 @@
 \alias{strategy_list}
 \alias{strategy_default}
 \alias{strategy}
-\alias{plant_list}
+\alias{individual_list}
 \title{Create a list of Strategies}
 \usage{
 strategy_list(x, parameters, hyperpar)
@@ -13,7 +13,7 @@ strategy_default(parameters, hyperpar)
 
 strategy(x, parameters, hyperpar)
 
-plant_list(x, parameters, hyperpar)
+individual_list(x, parameters, hyperpar)
 }
 \arguments{
 \item{x}{Values for the trait.  This must be a \emph{matrix}, with

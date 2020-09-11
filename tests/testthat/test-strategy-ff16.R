@@ -47,7 +47,7 @@ test_that("Defaults", {
 test_that("FF16 collect_all_auxillary option", {
 
   s <- FF16_Strategy()
-  p <- FF16_Plant(s)
+  p <- FF16_Individual(s)
   expect_equal(p$aux_size, 2)
   expect_equal(length(p$internals$auxs), 2)
   expect_equal(p$aux_names, c(
@@ -57,7 +57,7 @@ test_that("FF16 collect_all_auxillary option", {
 
   s <- FF16_Strategy(collect_all_auxillary=TRUE)
   expect_true(s$collect_all_auxillary)
-  p <- FF16_Plant(s)
+  p <- FF16_Individual(s)
   expect_equal(p$aux_size, 3)
   expect_equal(length(p$internals$auxs), 3)
   expect_equal(p$aux_names, c(
@@ -69,7 +69,7 @@ test_that("FF16 collect_all_auxillary option", {
 
 test_that("Reference comparison", {
   s <- FF16_Strategy()
-  p <- FF16_Plant(s)
+  p <- FF16_Individual(s)
 
   expect_identical(p$strategy, s)
 
@@ -90,7 +90,7 @@ test_that("Reference comparison", {
 
 test_that("Critical Names", {
   s <- FF16_Strategy()
-  my_names <- FF16_Plant(s)$ode_names
+  my_names <- FF16_Individual(s)$ode_names
   expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
 })
 test_that("FF16_Strategy hyper-parameterisation", {

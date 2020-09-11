@@ -17,7 +17,7 @@ template <typename T, typename E>
 class StochasticPatch {
 public:
   typedef T                      strategy_type;
-  typedef Plant<T,E>             plant_type;
+  typedef Individual<T,E>             individual_type;
   typedef StochasticSpecies<T,E> species_type;
   typedef Parameters<T,E>        parameters_type;
   StochasticPatch(parameters_type p);

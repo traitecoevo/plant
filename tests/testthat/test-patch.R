@@ -10,7 +10,7 @@ for (x in names(strategy_types)) {
     ## is_resident vectors must be the right length.
 
     s <- strategy_types[[x]]()
-    plant <- Plant(x, paste0(x, "_Env"))(s)
+    plant <- Individual(x, paste0(x, "_Env"))(s)
     cohort <- Cohort(x, paste0(x, "_Env"))(s)
 
     p <- Parameters(x, paste0(x, "_Env"))(strategies=list(s),
