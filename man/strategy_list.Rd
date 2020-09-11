@@ -7,13 +7,13 @@
 \alias{individual_list}
 \title{Create a list of Strategies}
 \usage{
-strategy_list(x, parameters, hyperpar)
+strategy_list(x, parameters, hyperpar = param_hyperpar(parameters))
 
-strategy_default(parameters, hyperpar)
+strategy_default(parameters, hyperpar = param_hyperpar(parameters))
 
-strategy(x, parameters, hyperpar)
+strategy(x, parameters, hyperpar = param_hyperpar(parameters))
 
-individual_list(x, parameters, hyperpar)
+individual_list(x, parameters, hyperpar = parram_hyperpar(parameters))
 }
 \arguments{
 \item{x}{Values for the trait.  This must be a \emph{matrix}, with

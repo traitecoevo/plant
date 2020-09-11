@@ -4,7 +4,7 @@
 \alias{expand_parameters}
 \title{Expand Parameters to include mutants}
 \usage{
-expand_parameters(trait_matrix, p, hyperpar, mutant = TRUE)
+expand_parameters(trait_matrix, p, hyperpar = param_hyperpar(p), mutant = TRUE)
 }
 \arguments{
 \item{trait_matrix}{A matrix of traits corresponding to the
