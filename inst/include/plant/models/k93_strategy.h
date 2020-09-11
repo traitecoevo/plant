@@ -48,6 +48,8 @@ public:
                                 double size, double cumulative_basal_area,
                                 bool reuse_intervals=false);
 
+  double Q(double z, double size) const;
+
   double compute_competition(double z, double size) const;
 
   void update_dependent_aux(const int index, Internals& vars);
@@ -88,6 +90,9 @@ public:
   // Probability of survival during dispersal
   // required by scm.h
   double S_D = 1.0;
+
+  // Smoothing parameter
+  double eta = 12;
 
   // Rate of mortality over time
   double mortality_dt(double cumulative_basal_area,

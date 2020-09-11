@@ -37,11 +37,20 @@ void K93_Strategy::update_dependent_aux(const int index, Internals& vars) {
   }
 }
 
+// Smoothing function for competition effect
+double K93_Strategy::Q(double z, double size) const {
+  if (z > size) {
+    return 0.0;
+  }
+  const double tmp = 1.0 - pow(z / size, eta);
+
+  return tmp * tmp;
+}
 
 double K93_Strategy::compute_competition(double z, double size) const {
 
   // Competition only felt if plant bigger than target size z
-  return (z > size)?0:size_to_basal_area(size);
+  return size_to_basal_area(size) * Q(z, size);
  };
 
 double K93_Strategy::establishment_probability(const K93_Environment& environment){
@@ -82,6 +91,10 @@ void K93_Strategy::compute_rates(const K93_Environment& environment,
 
   double cumulative_basal_area = -log(competition) / environment.k_I;
 
+  if (!util::is_finite(cumulative_basal_area)) {
+    util::stop("Environmental interpolator has gone out of bounds, try lowering the extinction coefficient k_I");
+  }
+
   vars.set_rate(HEIGHT_INDEX,
     size_dt(height, cumulative_basal_area));
 
@@ -99,7 +112,14 @@ double K93_Strategy::size_to_basal_area(double size) const {
 // [eqn 10] Growth
 double K93_Strategy::size_dt(double size,
                              double cumulative_basal_area) const {
-  return pow(size, b_0 - b_1 * log(size) - b_2 * cumulative_basal_area);
+
+  double growth = size * (b_0 - b_1 * log(size) - b_2 * cumulative_basal_area);
+
+  if(growth < 0.0) {
+    growth = 0.0;
+  }
+
+  return growth;
 }
 
 // [eqn 12] Reproduction
