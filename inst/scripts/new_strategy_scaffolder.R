@@ -28,12 +28,12 @@ creating_message <- function(file) {
 
 # update file by applying the function f to each line of the file
 # allows for find and replace like modifications
-update_file <- function(file, templates, name, template_strategy) {
+update_file <- function(file, templates, name, template_strategy, sep = "\n") {
 
 
   # add the extra templates after the templated ones
   update_txt <- function(template_function) {
-    function(x, sep="\n")
+    function(x, sep)
       gsub(template_function(template_strategy), 
            sprintf("%s%s%s", 
                    template_function(template_strategy), 
@@ -48,7 +48,7 @@ update_file <- function(file, templates, name, template_strategy) {
   for(v in templates) {
     template_function <- function(name) {
       whisker.render(v, list(name=name))}
-    out <- update_txt(template_function)(out)
+    out <- update_txt(template_function)(out, sep)
   }
   writeLines(out, file)
   invisible(out)
@@ -130,27 +130,28 @@ update_plant <- function (name, template_strategy) {
 update_test_helper <- function(name, template_strategy) {
 
   templates <- c(
-  '    {{name}}={{name}}_Strategy,',
-  '    {{name}}={{name}}_fixed_environment(...),',
-  '    {{name}}={{name}}_test_environment(...),',
-  '    {{name}}={{name}}_hyperpar,'
+  '    {{name}}={{name}}_Strategy',
+  '    {{name}}={{name}}_fixed_environment(...)',
+  '    {{name}}={{name}}_test_environment(...)',
+  '    {{name}}={{name}}_hyperpar'
   )
   
-  update_file("tests/testthat/helper-plant.R", templates, name, template_strategy)
+  update_file("tests/testthat/helper-plant.R", templates, name, template_strategy, sep=",\n")
 }
 
 update_strategy_support <- function (name, template_strategy) {
   
   templates <- c(
-  '         {{name}}=make_{{name}}_hyperpar,',
-  '         {{name}}={{name}}_hyperpar,',
-  '    {{name}}={{name}}_make_environment(...),',
-  '         "Parameters<{{name}},{{name}}_Env>"=`cohort_schedule_max_time_default__Parameters___{{name}}__{{name}}_Env`,',
-  '         "Parameters<{{name}},{{name}}_Env>"=`cohort_schedule_default__Parameters___{{name}}__{{name}}_Env`,',
-  '         "Parameters<{{name}},{{name}}_Env>"=`make_cohort_schedule__Parameters___{{name}}__{{name}}_Env`,'
+  '         {{name}}=make_{{name}}_hyperpar',
+  '         {{name}}={{name}}_hyperpar',
+  '         {{name}}_Strategy={{name}}_hyperpar',
+  '    {{name}}={{name}}_make_environment(...)',
+  '         "Parameters<{{name}},{{name}}_Env>"=`cohort_schedule_max_time_default__Parameters___{{name}}__{{name}}_Env`',
+  '         "Parameters<{{name}},{{name}}_Env>"=`cohort_schedule_default__Parameters___{{name}}__{{name}}_Env`',
+  '         "Parameters<{{name}},{{name}}_Env>"=`make_cohort_schedule__Parameters___{{name}}__{{name}}_Env`'
   )
 
-  update_file("R/strategy_support.R", templates, name, template_strategy)
+  update_file("R/strategy_support.R", templates, name, template_strategy, sep=",\n")
 }
 
 # Reads the file, finds and replaces both lower case and uppercase of strategy

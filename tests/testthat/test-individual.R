@@ -79,7 +79,7 @@ for (x in names(strategy_types)) {
     # expect_identical(pl$ode_names, ode_names)
 
     ## ode_state
-    if(x %in% c("K93"))
+    if(grepl("K93", x))
         expect_equal(pl$ode_state, c(h0, m0, f0))
     else 
         expect_equal(pl$ode_state, c(h0, m0, f0, 0, 0))

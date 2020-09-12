@@ -74,7 +74,7 @@ test_that("grow_plant_to_size", {
 
     pp <- Individual(x, paste0(x, "_Env"))(s)
 
-    if(x == "K93")
+    if(grepl("K93", x))
       heights <- subset(heights, heights >  pp$strategy$height_0)
 
     res <- grow_plant_bracket(pp, heights, "height", env)
@@ -145,7 +145,7 @@ test_that("grow_plant_to_size", {
     strategy <- strategy_types[[x]]()
     pl <- Individual(x, paste0(x, "_Env"))(strategy)
     sizes <- c(1, 5, 10, 12, strategy$hmat)
-    if(x == "K93") 
+    if(grepl("K93", x)) 
       sizes <- c(2.5, 5, 10, 12)
     env <- fixed_environment(x, 1.0)
     res <- grow_plant_to_size(pl, sizes, "height", env, 10000)

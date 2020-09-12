@@ -10,7 +10,7 @@ test_that("empty", {
                           is_resident=TRUE,
                           control=fast_control())
     
-    if(x == "K93")
+    if(grepl("K93", x))
       p$k_I <- 1e-3
 
     obj <- StochasticPatchRunner(x, paste0(x, "_Env"))(p)
@@ -56,7 +56,7 @@ test_that("collect", {
                           patch_area=50,
                           is_resident=TRUE,
                           control=fast_control())
-    if(x == "K93")
+    if(grepl("K93", x))
       p$k_I <- 1e-3
     
     expect_silent(res <- run_stochastic_collect(p))
