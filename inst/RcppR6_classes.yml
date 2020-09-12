@@ -25,6 +25,7 @@ OdeRunner:
       - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
       - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16r_Environment>"]
+      - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
   active:
@@ -258,9 +259,10 @@ Individual:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [s: T]
-    name_cpp: "plant::make_plant<T,E>"
+    name_cpp: "plant::make_individual<T,E>"
     roxygen: |
       Individual object
       @param T String containing class of plant strategy to create;
@@ -315,6 +317,7 @@ IndividualRunner:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::tools::IndividualRunner<T,E>"
     args: [plant: "plant::Individual<T,E>", environment: E]
@@ -366,6 +369,7 @@ Parameters:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   # TODO: This is broken:
   # roxygen: |
   #   Strategy parameters that tune various aspects of the biological model.
@@ -397,6 +401,7 @@ Cohort:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::make_cohort<T,E>"
     args: [strategy: T]
@@ -433,6 +438,7 @@ Species:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: T]
   active:
@@ -475,6 +481,7 @@ Patch:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
   active:
@@ -529,6 +536,7 @@ SCM:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
   methods:
@@ -596,6 +604,7 @@ StochasticSpecies:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: "T"]
   active:
@@ -639,6 +648,7 @@ StochasticPatch:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
   active:
@@ -699,6 +709,7 @@ StochasticPatchRunner:
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
   methods:
@@ -859,6 +870,64 @@ FF16r_Environment:
     args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
     roxygen: |
       FF16r_Environment object
+      @param disturbance_mean_interval mean disturbance interval in years
+      @param seed_rain vector of seed rains
+      @param k_I light extinction coefficient
+      @param control A Control object
+      @export
+  methods:
+    canopy_openness:
+      args: [height: double]
+      return_type: double
+    patch_survival_conditional:
+      args: [time_at_birth: double]
+      return_type: double
+    clear:
+      return_type: void
+    set_seed_rain_index:
+      args: [x: "plant::util::index"]
+      return_type: void
+      name_cpp: r_set_seed_rain_index
+    set_fixed_environment:
+      args: [value: double, height_max: double]
+      return_type: void
+  active:
+    patch_survival: {type: double, access: member}
+    seed_rain_dt: {type: double, access: member}
+    disturbance_regime: {type: "plant::Disturbance", access: field}
+    time: {type: double, access: field}
+    environment_interpolator: {type: "plant::interpolator::Interpolator", access: field}
+
+
+# The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
+K93_Strategy:
+  name_cpp: "plant::K93_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - height_0: double
+    - b_0: double
+    - b_1: double
+    - b_2: double
+    - c_0: double
+    - c_1: double
+    - d_0: double
+    - d_1: double
+    - S_D: double
+    - control: "plant::Control"
+
+
+# The following environment was built from FF16r on Wed Aug 12 15:46:38 2020
+K93_Environment:
+  name_cpp: "plant::K93_Environment"
+  constructor:
+    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
+    roxygen: |
+      K93_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
       @param seed_rain vector of seed rains
       @param k_I light extinction coefficient

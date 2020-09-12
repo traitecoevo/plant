@@ -67,12 +67,17 @@ test_that("get_plant_internals_fun", {
 test_that("grow_plant_to_size", {
   for (x in names(strategy_types)) {
     env <- test_environment(x, 10)
+
     heights <- seq(1, 10)
+    
     s <- strategy_types[[x]]()
 
     pp <- Individual(x, paste0(x, "_Env"))(s)
-    res <- grow_plant_bracket(pp, heights, "height", env)
 
+    if(x == "K93")
+      heights <- subset(heights, heights >  pp$strategy$height_0)
+
+    res <- grow_plant_bracket(pp, heights, "height", env)
 
     expect_identical(res$t0, res$time[res$index])
     expect_identical(res$t1, res$time[res$index + 1L])

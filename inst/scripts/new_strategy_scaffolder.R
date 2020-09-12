@@ -71,7 +71,7 @@ update_classes_yml <- function (name, template_strategy) {
 
   templates <- c(
     "      - [\"{{name}}\": \"plant::{{name}}_Strategy\", \"{{name}}_Env\": \"plant::{{name}}_Environment\"]",
-    "      - [\"{{name}}\": \"plant::tools::PlantRunner<plant::{{name}}_Strategy, plant::{{name}}_Environment>\"]")
+    "      - [\"{{name}}\": \"plant::tools::IndividualRunner<plant::{{name}}_Strategy, plant::{{name}}_Environment>\"]")
 
   update_file(file, templates, name, template_strategy) -> r6_templates
 
@@ -109,7 +109,7 @@ update_plant_tools <- function (name) {
   whisker.render("
 // [[Rcpp::export]]
 plant::Internals {{name}}_oderunner_plant_internals(
-  const plant::ode::Runner<plant::tools::PlantRunner<plant::{{name}}_Strategy, plant::{{name}}_Environment>>& obj) {
+  const plant::ode::Runner<plant::tools::IndividualRunner<plant::{{name}}_Strategy, plant::{{name}}_Environment>>& obj) {
   return obj.obj.plant.r_internals();
 }
 

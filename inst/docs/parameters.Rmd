@@ -46,7 +46,7 @@ s$lma <- s$lma * 2
 and then from this construct a plant:
 
 ```{r}
-pl <- FF16_Plant(s)
+pl <- FF16_Individual(s)
 pl$strategy$lma
 ```
 

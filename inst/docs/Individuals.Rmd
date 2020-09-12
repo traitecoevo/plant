@@ -18,14 +18,14 @@ with plant components of the model.
 library(plant)
 ```
 
-Plants are constructed with the `FF16_Plant` function.  That
+Plants are constructed with the `FF16_Individual` function.  That
 function takes as its only argument a "strategy" object; the
 default is `FF16_Strategy`, but alternative strategies can be
 provided (see below). The "strategy" object contains all
 the physiological underpinning the dynamics of individual plants
 and entire metapopulations.
 ```{r }
-pl <- FF16_Plant()
+pl <- FF16_Individual()
 ```
 
 Plants are an [R6](https://github.com/wch/R6) class, and have a
@@ -89,7 +89,7 @@ most of the internal calculations.
 Because of this, we have a "PlantPlus" object that exposes more of
 a strategy, and in addition stem diameter growth:
 ```{r, eval=FALSE}
-pp <- FF16_Plant(pl$strategy)
+pp <- FF16_Individual(pl$strategy)
 pp$compute_rates(env)
 names(pp$internals)
 ```
@@ -139,7 +139,7 @@ derivs <- function(t, y, plant, env) {
   plant$compute_rates(env)
   list(plant$ode_rates)
 }
-pl <- FF16_Plant()
+pl <- FF16_Individual()
 tt <- seq(0, 50, length.out=101)
 y0 <- setNames(pl$ode_state, pl$ode_names)
 yy <- deSolve::lsoda(y0, tt, derivs, pl, env=env)
@@ -162,7 +162,7 @@ Interpolate to find the state:
 ```{r }
 y <- apply(yy[, -1], 2, function(y) spline(yy[, "time"], y, xout=t)$y)
 
-pl2 <- FF16_Plant()
+pl2 <- FF16_Individual()
 pl2$ode_state <- y
 pl2$compute_rates(env)
 ```
@@ -179,7 +179,7 @@ To make this type of operation easier, we provide the function
 `grow_plant_to_time`
 
 ```{r }
-res <- grow_plant_to_time(FF16_Plant(FF16_Strategy()), tt, env)
+res <- grow_plant_to_time(FF16_Individual(FF16_Strategy()), tt, env)
 ```
 
 Here is the result, plotted against the result obtained
@@ -196,7 +196,7 @@ plants to a particular size; `grow_plant_to_size`.  This takes
 size.  So, for height:
 
 ```{r }
-pl <- FF16_Plant(FF16_Strategy())
+pl <- FF16_Individual(FF16_Strategy())
 heights <- seq(pl$state("height"), pl$strategy$hmat, length.out=20)
 res <- grow_plant_to_size(pl, heights, "height", env)
 ```
@@ -229,7 +229,7 @@ achieves the same thing.  Alternatively, and variable within
 `plant$internals` can be used, so long as it increases
 monotonically with respect to time.
 ```{r }
-pl <- FF16_Plant(FF16_Strategy())
+pl <- FF16_Individual(FF16_Strategy())
 mass <- seq_log(pl$internals$mass_above_ground + 1e-8, 1000, length.out=21)
 res_mass <- grow_plant_to_size(pl, mass, "mass_above_ground", env,
                                time_max=100, warn=FALSE)
@@ -264,8 +264,8 @@ resides on the `p` object.
 
 Then, generate a sequence of heights to collect information at
 ```{r }
-pl1 <- FF16_Plant(s1)
-pl2 <- FF16_Plant(s2)
+pl1 <- FF16_Individual(s1)
+pl2 <- FF16_Individual(s2)
 ```
 
 (they are different for the two plants because they have different
@@ -423,7 +423,7 @@ The growth rates vary with both size and light environment (see
 above).
 
 ```{r }
-pl <- FF16_Plant()
+pl <- FF16_Individual()
 pl$set_state("height", 10)
 pl$compute_rates(FF16_fixed_environment(1.0))
 pl$rate("height") # in full light
@@ -487,9 +487,9 @@ Now, consider this for a seedling and for a plant at half its
 maximum size
 size:
 ```{r }
-pl_seed <- FF16_Plant(s1)
+pl_seed <- FF16_Individual(s1)
 y_seed <- g(openness, pl_seed)
-pl_adult <- FF16_Plant(s1)
+pl_adult <- FF16_Individual(s1)
 pl_adult$state("height", pl_adult$strategy$hmat / 2)
 y_adult <- g(openness, pl_adult)
 cols_height <- c("#31a354", "black")
@@ -504,8 +504,8 @@ legend("bottomright", c("Seedling", "Adult"), lty=1, col=cols_height, bty="n")
 
 The light compensation point and curve varies with traits, too:
 ```{r }
-pl2_seed <- FF16_PlantPlus(s2)
-pl2_adult <- FF16_PlantPlus(s2)
+pl2_seed <- FF16_IndividualPlus(s2)
+pl2_adult <- FF16_IndividualPlus(s2)
 pl2_adult$height <- pl2_adult$strategy$hmat / 2
 y2_seed <- g(openness, pl2_seed)
 y2_adult <- g(openness, pl2_adult)

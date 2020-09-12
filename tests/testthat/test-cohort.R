@@ -136,13 +136,10 @@ for (x in names(strategy_types)) {
 
     expect_identical(cohort$fecundity, 0.0);
 
-    ## Ode *rates*:
-    env$time <- 10
-    patch_survival <- env$patch_survival
-    
+    ## Ode *rates*:    
     cmp <- c(plant$internals$rates,
              ## This is different to the approach in tree1?
-             plant$rate("fecundity") * patch_survival * exp(-plant$state("mortality")),
+             plant$rate("fecundity") * env$patch_survival * exp(-plant$state("mortality")),
              -plant$rate("mortality") - cohort$growth_rate_gradient(env))
 
    
