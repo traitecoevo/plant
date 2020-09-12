@@ -1051,6 +1051,7 @@ template <> inline SEXP wrap(const plant::K93_Strategy& x) {
   ret["c_1"] = Rcpp::wrap(x.c_1);
   ret["d_0"] = Rcpp::wrap(x.d_0);
   ret["d_1"] = Rcpp::wrap(x.d_1);
+  ret["S_D"] = Rcpp::wrap(x.S_D);
   ret["control"] = Rcpp::wrap(x.control);
   ret.attr("class") = "K93_Strategy";
   return ret;
@@ -1080,6 +1081,8 @@ template <> inline plant::K93_Strategy as(SEXP x) {
   ret.d_0 = Rcpp::as<double >(xl["d_0"]);
   // ret.d_1 = Rcpp::as<decltype(retd_1) >(xl["d_1"]);
   ret.d_1 = Rcpp::as<double >(xl["d_1"]);
+  // ret.S_D = Rcpp::as<decltype(retS_D) >(xl["S_D"]);
+  ret.S_D = Rcpp::as<double >(xl["S_D"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   return ret;

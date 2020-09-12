@@ -12,6 +12,7 @@ test_that("Defaults", {
    c_1 = 0.00044,
    d_0 = 0.00073,
    d_1 = 0.044,
+   S_D = 1,
    control = Control())
 
   keys <- sort(names(expected))

@@ -917,6 +917,7 @@ K93_Strategy:
     - c_1: double
     - d_0: double
     - d_1: double
+    - S_D: double
     - control: "plant::Control"
 
 
