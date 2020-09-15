@@ -16,6 +16,7 @@
 
 #include <plant/disturbance.h>
 #include <plant/environment.h>
+#include <plant/canopy.h>
 
 #include <plant/control.h>
 #include <plant/strategy.h>

@@ -2485,14 +2485,6 @@ FF16_Environment__time__set <- function(obj_, value) {
     invisible(.Call('_plant_FF16_Environment__time__set', PACKAGE = 'plant', obj_, value))
 }
 
-FF16_Environment__environment_interpolator__get <- function(obj_) {
-    .Call('_plant_FF16_Environment__environment_interpolator__get', PACKAGE = 'plant', obj_)
-}
-
-FF16_Environment__environment_interpolator__set <- function(obj_, value) {
-    invisible(.Call('_plant_FF16_Environment__environment_interpolator__set', PACKAGE = 'plant', obj_, value))
-}
-
 FF16r_Strategy__ctor <- function() {
     .Call('_plant_FF16r_Strategy__ctor', PACKAGE = 'plant')
 }
@@ -2545,14 +2537,6 @@ FF16r_Environment__time__set <- function(obj_, value) {
     invisible(.Call('_plant_FF16r_Environment__time__set', PACKAGE = 'plant', obj_, value))
 }
 
-FF16r_Environment__environment_interpolator__get <- function(obj_) {
-    .Call('_plant_FF16r_Environment__environment_interpolator__get', PACKAGE = 'plant', obj_)
-}
-
-FF16r_Environment__environment_interpolator__set <- function(obj_, value) {
-    invisible(.Call('_plant_FF16r_Environment__environment_interpolator__set', PACKAGE = 'plant', obj_, value))
-}
-
 K93_Strategy__ctor <- function() {
     .Call('_plant_K93_Strategy__ctor', PACKAGE = 'plant')
 }
@@ -2603,14 +2587,6 @@ K93_Environment__time__get <- function(obj_) {
 
 K93_Environment__time__set <- function(obj_, value) {
     invisible(.Call('_plant_K93_Environment__time__set', PACKAGE = 'plant', obj_, value))
-}
-
-K93_Environment__environment_interpolator__get <- function(obj_) {
-    .Call('_plant_K93_Environment__environment_interpolator__get', PACKAGE = 'plant', obj_)
-}
-
-K93_Environment__environment_interpolator__set <- function(obj_, value) {
-    invisible(.Call('_plant_K93_Environment__environment_interpolator__set', PACKAGE = 'plant', obj_, value))
 }
 
 test_adaptive_interpolator <- function(f, a, b) {

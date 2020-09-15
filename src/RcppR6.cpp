@@ -2834,15 +2834,6 @@ void FF16_Environment__time__set(plant::RcppR6::RcppR6<plant::FF16_Environment> 
   obj_->time = value;
 }
 
-// [[Rcpp::export]]
-plant::interpolator::Interpolator FF16_Environment__environment_interpolator__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->environment_interpolator;
-}
-// [[Rcpp::export]]
-void FF16_Environment__environment_interpolator__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::interpolator::Interpolator value) {
-  obj_->environment_interpolator = value;
-}
-
 
 // [[Rcpp::export]]
 SEXP FF16r_Strategy__ctor() {
@@ -2902,15 +2893,6 @@ void FF16r_Environment__time__set(plant::RcppR6::RcppR6<plant::FF16r_Environment
   obj_->time = value;
 }
 
-// [[Rcpp::export]]
-plant::interpolator::Interpolator FF16r_Environment__environment_interpolator__get(plant::RcppR6::RcppR6<plant::FF16r_Environment> obj_) {
-  return obj_->environment_interpolator;
-}
-// [[Rcpp::export]]
-void FF16r_Environment__environment_interpolator__set(plant::RcppR6::RcppR6<plant::FF16r_Environment> obj_, plant::interpolator::Interpolator value) {
-  obj_->environment_interpolator = value;
-}
-
 
 // [[Rcpp::export]]
 SEXP K93_Strategy__ctor() {
@@ -2968,15 +2950,6 @@ double K93_Environment__time__get(plant::RcppR6::RcppR6<plant::K93_Environment> 
 // [[Rcpp::export]]
 void K93_Environment__time__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, double value) {
   obj_->time = value;
-}
-
-// [[Rcpp::export]]
-plant::interpolator::Interpolator K93_Environment__environment_interpolator__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {
-  return obj_->environment_interpolator;
-}
-// [[Rcpp::export]]
-void K93_Environment__environment_interpolator__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::interpolator::Interpolator value) {
-  obj_->environment_interpolator = value;
 }
 
 

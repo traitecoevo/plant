@@ -6928,28 +6928,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// FF16_Environment__environment_interpolator__get
-plant::interpolator::Interpolator FF16_Environment__environment_interpolator__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
-RcppExport SEXP _plant_FF16_Environment__environment_interpolator__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__environment_interpolator__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// FF16_Environment__environment_interpolator__set
-void FF16_Environment__environment_interpolator__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::interpolator::Interpolator value);
-RcppExport SEXP _plant_FF16_Environment__environment_interpolator__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::interpolator::Interpolator >::type value(valueSEXP);
-    FF16_Environment__environment_interpolator__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // FF16r_Strategy__ctor
 SEXP FF16r_Strategy__ctor();
 RcppExport SEXP _plant_FF16r_Strategy__ctor() {
@@ -7097,28 +7075,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// FF16r_Environment__environment_interpolator__get
-plant::interpolator::Interpolator FF16r_Environment__environment_interpolator__get(plant::RcppR6::RcppR6<plant::FF16r_Environment> obj_);
-RcppExport SEXP _plant_FF16r_Environment__environment_interpolator__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16r_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16r_Environment__environment_interpolator__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// FF16r_Environment__environment_interpolator__set
-void FF16r_Environment__environment_interpolator__set(plant::RcppR6::RcppR6<plant::FF16r_Environment> obj_, plant::interpolator::Interpolator value);
-RcppExport SEXP _plant_FF16r_Environment__environment_interpolator__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16r_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::interpolator::Interpolator >::type value(valueSEXP);
-    FF16r_Environment__environment_interpolator__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // K93_Strategy__ctor
 SEXP K93_Strategy__ctor();
 RcppExport SEXP _plant_K93_Strategy__ctor() {
@@ -7263,28 +7219,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     K93_Environment__time__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
-// K93_Environment__environment_interpolator__get
-plant::interpolator::Interpolator K93_Environment__environment_interpolator__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_);
-RcppExport SEXP _plant_K93_Environment__environment_interpolator__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(K93_Environment__environment_interpolator__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// K93_Environment__environment_interpolator__set
-void K93_Environment__environment_interpolator__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::interpolator::Interpolator value);
-RcppExport SEXP _plant_K93_Environment__environment_interpolator__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::interpolator::Interpolator >::type value(valueSEXP);
-    K93_Environment__environment_interpolator__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -8157,8 +8091,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__disturbance_regime__set", (DL_FUNC) &_plant_FF16_Environment__disturbance_regime__set, 2},
     {"_plant_FF16_Environment__time__get", (DL_FUNC) &_plant_FF16_Environment__time__get, 1},
     {"_plant_FF16_Environment__time__set", (DL_FUNC) &_plant_FF16_Environment__time__set, 2},
-    {"_plant_FF16_Environment__environment_interpolator__get", (DL_FUNC) &_plant_FF16_Environment__environment_interpolator__get, 1},
-    {"_plant_FF16_Environment__environment_interpolator__set", (DL_FUNC) &_plant_FF16_Environment__environment_interpolator__set, 2},
     {"_plant_FF16r_Strategy__ctor", (DL_FUNC) &_plant_FF16r_Strategy__ctor, 0},
     {"_plant_FF16r_Environment__ctor", (DL_FUNC) &_plant_FF16r_Environment__ctor, 4},
     {"_plant_FF16r_Environment__canopy_openness", (DL_FUNC) &_plant_FF16r_Environment__canopy_openness, 2},
@@ -8172,8 +8104,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16r_Environment__disturbance_regime__set", (DL_FUNC) &_plant_FF16r_Environment__disturbance_regime__set, 2},
     {"_plant_FF16r_Environment__time__get", (DL_FUNC) &_plant_FF16r_Environment__time__get, 1},
     {"_plant_FF16r_Environment__time__set", (DL_FUNC) &_plant_FF16r_Environment__time__set, 2},
-    {"_plant_FF16r_Environment__environment_interpolator__get", (DL_FUNC) &_plant_FF16r_Environment__environment_interpolator__get, 1},
-    {"_plant_FF16r_Environment__environment_interpolator__set", (DL_FUNC) &_plant_FF16r_Environment__environment_interpolator__set, 2},
     {"_plant_K93_Strategy__ctor", (DL_FUNC) &_plant_K93_Strategy__ctor, 0},
     {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 4},
     {"_plant_K93_Environment__canopy_openness", (DL_FUNC) &_plant_K93_Environment__canopy_openness, 2},
@@ -8187,8 +8117,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_K93_Environment__disturbance_regime__set", (DL_FUNC) &_plant_K93_Environment__disturbance_regime__set, 2},
     {"_plant_K93_Environment__time__get", (DL_FUNC) &_plant_K93_Environment__time__get, 1},
     {"_plant_K93_Environment__time__set", (DL_FUNC) &_plant_K93_Environment__time__set, 2},
-    {"_plant_K93_Environment__environment_interpolator__get", (DL_FUNC) &_plant_K93_Environment__environment_interpolator__get, 1},
-    {"_plant_K93_Environment__environment_interpolator__set", (DL_FUNC) &_plant_K93_Environment__environment_interpolator__set, 2},
     {"_plant_test_adaptive_interpolator", (DL_FUNC) &_plant_test_adaptive_interpolator, 3},
     {"_plant_cohort_schedule_max_time_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___FF16__FF16_Env, 1},
     {"_plant_cohort_schedule_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16__FF16_Env, 1},
