@@ -3,6 +3,7 @@
 #include <plant/uniroot.h>
 #include <plant/qag.h>
 #include <plant/models/assimilation.h>
+#include <plant/models/ff16_environment.h>
 #include <plant/models/k93_strategy.h>
 #include <RcppCommon.h> // NA_REAL
 
@@ -88,8 +89,9 @@ void K93_Strategy::compute_rates(const K93_Environment& environment,
   // back transform to basal area and add suppression from self
   double competition = environment.get_environment_at_height(height);
   double basal_area = size_to_basal_area(height);
+  const double k_I = get_k_I(environment);
 
-  double cumulative_basal_area = -log(competition) / environment.k_I;
+  double cumulative_basal_area = -log(competition) / k_I;
 
   if (!util::is_finite(cumulative_basal_area)) {
     util::stop("Environmental interpolator has gone out of bounds, try lowering the extinction coefficient k_I");

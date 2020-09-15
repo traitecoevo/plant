@@ -14,7 +14,7 @@ for (x in names(strategy_types)) {
     expect_equal(e$canopy_openness(0), 1.0)
     expect_equal(e$canopy_openness(100), 1.0)
 
-    spline <- e$environment_interpolator
+    spline <- e$canopy$canopy_interpolator
     expect_equal(spline$size, 33)
     expect_equal(spline$x, seq(0,1, length.out=33))
   })
@@ -31,12 +31,12 @@ for (x in names(strategy_types)) {
     interplator$init(hh, ee)
 
     ## And set it
-    e$environment_interpolator <- interplator
+    e$canopy$canopy_interpolator <- interplator
 
-    expect_identical(e$environment_interpolator$xy, interplator$xy)
+    expect_identical(e$canopy$canopy_interpolator$xy, interplator$xy)
 
     hmid <- (hh[-1] + hh[-length(hh)])/2
-    expect_identical(sapply(hmid, e$environment_interpolator$eval), sapply(hmid, interplator$eval))
+    expect_identical(sapply(hmid, e$canopy$canopy_interpolator$eval), sapply(hmid, interplator$eval))
   })
 
   test_that("Disturbance related parameters", {

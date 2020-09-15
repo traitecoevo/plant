@@ -6781,6 +6781,62 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Canopy__ctor
+plant::Canopy Canopy__ctor(double k_I, plant::Control control);
+RcppExport SEXP _plant_Canopy__ctor(SEXP k_ISEXP, SEXP controlSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type k_I(k_ISEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Canopy__ctor(k_I, control));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Canopy__canopy_openness
+double Canopy__canopy_openness(plant::RcppR6::RcppR6<plant::Canopy> obj_, double height);
+RcppExport SEXP _plant_Canopy__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Canopy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type height(heightSEXP);
+    rcpp_result_gen = Rcpp::wrap(Canopy__canopy_openness(obj_, height));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Canopy__clear
+void Canopy__clear(plant::RcppR6::RcppR6<plant::Canopy> obj_);
+RcppExport SEXP _plant_Canopy__clear(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Canopy> >::type obj_(obj_SEXP);
+    Canopy__clear(obj_);
+    return R_NilValue;
+END_RCPP
+}
+// Canopy__canopy_interpolator__get
+plant::interpolator::Interpolator Canopy__canopy_interpolator__get(plant::RcppR6::RcppR6<plant::Canopy> obj_);
+RcppExport SEXP _plant_Canopy__canopy_interpolator__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Canopy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Canopy__canopy_interpolator__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Canopy__canopy_interpolator__set
+void Canopy__canopy_interpolator__set(plant::RcppR6::RcppR6<plant::Canopy> obj_, plant::interpolator::Interpolator value);
+RcppExport SEXP _plant_Canopy__canopy_interpolator__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Canopy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::interpolator::Interpolator >::type value(valueSEXP);
+    Canopy__canopy_interpolator__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
 // FF16_Strategy__ctor
 SEXP FF16_Strategy__ctor();
 RcppExport SEXP _plant_FF16_Strategy__ctor() {
@@ -6925,6 +6981,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     FF16_Environment__time__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__canopy__get
+plant::Canopy FF16_Environment__canopy__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__canopy__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__canopy__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__canopy__set
+void FF16_Environment__canopy__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Canopy value);
+RcppExport SEXP _plant_FF16_Environment__canopy__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::Canopy >::type value(valueSEXP);
+    FF16_Environment__canopy__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -7075,6 +7153,28 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// FF16r_Environment__canopy__get
+plant::Canopy FF16r_Environment__canopy__get(plant::RcppR6::RcppR6<plant::FF16r_Environment> obj_);
+RcppExport SEXP _plant_FF16r_Environment__canopy__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16r_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16r_Environment__canopy__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16r_Environment__canopy__set
+void FF16r_Environment__canopy__set(plant::RcppR6::RcppR6<plant::FF16r_Environment> obj_, plant::Canopy value);
+RcppExport SEXP _plant_FF16r_Environment__canopy__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16r_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::Canopy >::type value(valueSEXP);
+    FF16r_Environment__canopy__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
 // K93_Strategy__ctor
 SEXP K93_Strategy__ctor();
 RcppExport SEXP _plant_K93_Strategy__ctor() {
@@ -7219,6 +7319,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     K93_Environment__time__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// K93_Environment__canopy__get
+plant::Canopy K93_Environment__canopy__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_);
+RcppExport SEXP _plant_K93_Environment__canopy__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(K93_Environment__canopy__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// K93_Environment__canopy__set
+void K93_Environment__canopy__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Canopy value);
+RcppExport SEXP _plant_K93_Environment__canopy__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::K93_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::Canopy >::type value(valueSEXP);
+    K93_Environment__canopy__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -8078,6 +8200,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___K93__K93_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__state__get, 1},
+    {"_plant_Canopy__ctor", (DL_FUNC) &_plant_Canopy__ctor, 2},
+    {"_plant_Canopy__canopy_openness", (DL_FUNC) &_plant_Canopy__canopy_openness, 2},
+    {"_plant_Canopy__clear", (DL_FUNC) &_plant_Canopy__clear, 1},
+    {"_plant_Canopy__canopy_interpolator__get", (DL_FUNC) &_plant_Canopy__canopy_interpolator__get, 1},
+    {"_plant_Canopy__canopy_interpolator__set", (DL_FUNC) &_plant_Canopy__canopy_interpolator__set, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
     {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 4},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
@@ -8091,6 +8218,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__disturbance_regime__set", (DL_FUNC) &_plant_FF16_Environment__disturbance_regime__set, 2},
     {"_plant_FF16_Environment__time__get", (DL_FUNC) &_plant_FF16_Environment__time__get, 1},
     {"_plant_FF16_Environment__time__set", (DL_FUNC) &_plant_FF16_Environment__time__set, 2},
+    {"_plant_FF16_Environment__canopy__get", (DL_FUNC) &_plant_FF16_Environment__canopy__get, 1},
+    {"_plant_FF16_Environment__canopy__set", (DL_FUNC) &_plant_FF16_Environment__canopy__set, 2},
     {"_plant_FF16r_Strategy__ctor", (DL_FUNC) &_plant_FF16r_Strategy__ctor, 0},
     {"_plant_FF16r_Environment__ctor", (DL_FUNC) &_plant_FF16r_Environment__ctor, 4},
     {"_plant_FF16r_Environment__canopy_openness", (DL_FUNC) &_plant_FF16r_Environment__canopy_openness, 2},
@@ -8104,6 +8233,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16r_Environment__disturbance_regime__set", (DL_FUNC) &_plant_FF16r_Environment__disturbance_regime__set, 2},
     {"_plant_FF16r_Environment__time__get", (DL_FUNC) &_plant_FF16r_Environment__time__get, 1},
     {"_plant_FF16r_Environment__time__set", (DL_FUNC) &_plant_FF16r_Environment__time__set, 2},
+    {"_plant_FF16r_Environment__canopy__get", (DL_FUNC) &_plant_FF16r_Environment__canopy__get, 1},
+    {"_plant_FF16r_Environment__canopy__set", (DL_FUNC) &_plant_FF16r_Environment__canopy__set, 2},
     {"_plant_K93_Strategy__ctor", (DL_FUNC) &_plant_K93_Strategy__ctor, 0},
     {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 4},
     {"_plant_K93_Environment__canopy_openness", (DL_FUNC) &_plant_K93_Environment__canopy_openness, 2},
@@ -8117,6 +8248,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_K93_Environment__disturbance_regime__set", (DL_FUNC) &_plant_K93_Environment__disturbance_regime__set, 2},
     {"_plant_K93_Environment__time__get", (DL_FUNC) &_plant_K93_Environment__time__get, 1},
     {"_plant_K93_Environment__time__set", (DL_FUNC) &_plant_K93_Environment__time__set, 2},
+    {"_plant_K93_Environment__canopy__get", (DL_FUNC) &_plant_K93_Environment__canopy__get, 1},
+    {"_plant_K93_Environment__canopy__set", (DL_FUNC) &_plant_K93_Environment__canopy__set, 2},
     {"_plant_test_adaptive_interpolator", (DL_FUNC) &_plant_test_adaptive_interpolator, 3},
     {"_plant_cohort_schedule_max_time_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___FF16__FF16_Env, 1},
     {"_plant_cohort_schedule_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16__FF16_Env, 1},

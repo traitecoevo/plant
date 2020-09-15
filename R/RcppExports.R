@@ -2433,6 +2433,26 @@ StochasticPatchRunner___K93__K93_Env__state__get <- function(obj_) {
     .Call('_plant_StochasticPatchRunner___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
+Canopy__ctor <- function(k_I, control) {
+    .Call('_plant_Canopy__ctor', PACKAGE = 'plant', k_I, control)
+}
+
+Canopy__canopy_openness <- function(obj_, height) {
+    .Call('_plant_Canopy__canopy_openness', PACKAGE = 'plant', obj_, height)
+}
+
+Canopy__clear <- function(obj_) {
+    invisible(.Call('_plant_Canopy__clear', PACKAGE = 'plant', obj_))
+}
+
+Canopy__canopy_interpolator__get <- function(obj_) {
+    .Call('_plant_Canopy__canopy_interpolator__get', PACKAGE = 'plant', obj_)
+}
+
+Canopy__canopy_interpolator__set <- function(obj_, value) {
+    invisible(.Call('_plant_Canopy__canopy_interpolator__set', PACKAGE = 'plant', obj_, value))
+}
+
 FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
@@ -2483,6 +2503,14 @@ FF16_Environment__time__get <- function(obj_) {
 
 FF16_Environment__time__set <- function(obj_, value) {
     invisible(.Call('_plant_FF16_Environment__time__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Environment__canopy__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__canopy__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__canopy__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__canopy__set', PACKAGE = 'plant', obj_, value))
 }
 
 FF16r_Strategy__ctor <- function() {
@@ -2537,6 +2565,14 @@ FF16r_Environment__time__set <- function(obj_, value) {
     invisible(.Call('_plant_FF16r_Environment__time__set', PACKAGE = 'plant', obj_, value))
 }
 
+FF16r_Environment__canopy__get <- function(obj_) {
+    .Call('_plant_FF16r_Environment__canopy__get', PACKAGE = 'plant', obj_)
+}
+
+FF16r_Environment__canopy__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16r_Environment__canopy__set', PACKAGE = 'plant', obj_, value))
+}
+
 K93_Strategy__ctor <- function() {
     .Call('_plant_K93_Strategy__ctor', PACKAGE = 'plant')
 }
@@ -2587,6 +2623,14 @@ K93_Environment__time__get <- function(obj_) {
 
 K93_Environment__time__set <- function(obj_, value) {
     invisible(.Call('_plant_K93_Environment__time__set', PACKAGE = 'plant', obj_, value))
+}
+
+K93_Environment__canopy__get <- function(obj_) {
+    .Call('_plant_K93_Environment__canopy__get', PACKAGE = 'plant', obj_)
+}
+
+K93_Environment__canopy__set <- function(obj_, value) {
+    invisible(.Call('_plant_K93_Environment__canopy__set', PACKAGE = 'plant', obj_, value))
 }
 
 test_adaptive_interpolator <- function(f, a, b) {

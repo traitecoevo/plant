@@ -68,11 +68,21 @@ public:
     canopy.r_init_interpolators(state);
   }
 
+  const double k_I() {
+    return canopy.k_I;
+  }
+
+  const double get_k_I(const FF16_Environment environment) {
+    return environment.canopy.k_I;
+  }
+
   Canopy canopy;
 };
 
+const double get_k_I(const FF16_Environment environment);
+
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
-  get_state(environment.canopy);
+  return get_state(environment.canopy);
 }
 
 

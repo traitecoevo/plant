@@ -2777,6 +2777,28 @@ Rcpp::List StochasticPatchRunner___K93__K93_Env__state__get(plant::RcppR6::RcppR
 
 
 // [[Rcpp::export]]
+plant::Canopy Canopy__ctor(double k_I, plant::Control control) {
+  return plant::Canopy(k_I, control);
+}
+// [[Rcpp::export]]
+double Canopy__canopy_openness(plant::RcppR6::RcppR6<plant::Canopy> obj_, double height) {
+  return obj_->canopy_openness(height);
+}
+// [[Rcpp::export]]
+void Canopy__clear(plant::RcppR6::RcppR6<plant::Canopy> obj_) {
+  obj_->clear();
+}
+// [[Rcpp::export]]
+plant::interpolator::Interpolator Canopy__canopy_interpolator__get(plant::RcppR6::RcppR6<plant::Canopy> obj_) {
+  return obj_->canopy_interpolator;
+}
+// [[Rcpp::export]]
+void Canopy__canopy_interpolator__set(plant::RcppR6::RcppR6<plant::Canopy> obj_, plant::interpolator::Interpolator value) {
+  obj_->canopy_interpolator = value;
+}
+
+
+// [[Rcpp::export]]
 SEXP FF16_Strategy__ctor() {
   return Rcpp::wrap(plant::FF16_Strategy());
 }
@@ -2832,6 +2854,15 @@ double FF16_Environment__time__get(plant::RcppR6::RcppR6<plant::FF16_Environment
 // [[Rcpp::export]]
 void FF16_Environment__time__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value) {
   obj_->time = value;
+}
+
+// [[Rcpp::export]]
+plant::Canopy FF16_Environment__canopy__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->canopy;
+}
+// [[Rcpp::export]]
+void FF16_Environment__canopy__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Canopy value) {
+  obj_->canopy = value;
 }
 
 
@@ -2893,6 +2924,15 @@ void FF16r_Environment__time__set(plant::RcppR6::RcppR6<plant::FF16r_Environment
   obj_->time = value;
 }
 
+// [[Rcpp::export]]
+plant::Canopy FF16r_Environment__canopy__get(plant::RcppR6::RcppR6<plant::FF16r_Environment> obj_) {
+  return obj_->canopy;
+}
+// [[Rcpp::export]]
+void FF16r_Environment__canopy__set(plant::RcppR6::RcppR6<plant::FF16r_Environment> obj_, plant::Canopy value) {
+  obj_->canopy = value;
+}
+
 
 // [[Rcpp::export]]
 SEXP K93_Strategy__ctor() {
@@ -2950,6 +2990,15 @@ double K93_Environment__time__get(plant::RcppR6::RcppR6<plant::K93_Environment> 
 // [[Rcpp::export]]
 void K93_Environment__time__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, double value) {
   obj_->time = value;
+}
+
+// [[Rcpp::export]]
+plant::Canopy K93_Environment__canopy__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {
+  return obj_->canopy;
+}
+// [[Rcpp::export]]
+void K93_Environment__canopy__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Canopy value) {
+  obj_->canopy = value;
 }
 
 

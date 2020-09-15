@@ -230,6 +230,7 @@ QAG:
     last_intervals: {type: "plant::quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
     is_adaptive: {type: bool, access: member}
 
+
 Interpolator:
   name_cpp: "plant::interpolator::Interpolator"
   constructor:
@@ -742,6 +743,19 @@ StochasticPatchRunner:
       access: function
       name_cpp: "plant::get_state"
 
+Canopy:
+  name_cpp: "plant::Canopy"
+  constructor:
+    args: [k_I: double, control: "plant::Control"]
+  methods:
+    canopy_openness:
+      args: [height: double]
+      return_type: double
+    clear:
+      return_type: void
+  active:
+    canopy_interpolator: {type: "plant::interpolator::Interpolator", access: field}
+
 FF16_Strategy:
   name_cpp: "plant::FF16_Strategy"
   roxygen: |
@@ -816,6 +830,7 @@ FF16_Environment:
     seed_rain_dt: {type: double, access: member}
     disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
+    canopy: {type: plant::Canopy, access: field}
 
 
 # The following strategy was built from FF16 on Wed Aug 12 11:12:34 2020
@@ -895,6 +910,7 @@ FF16r_Environment:
     seed_rain_dt: {type: double, access: member}
     disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
+    canopy: {type: plant::Canopy, access: field}
 
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
@@ -952,4 +968,5 @@ K93_Environment:
     seed_rain_dt: {type: double, access: member}
     disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
+    canopy: {type: plant::Canopy, access: field}
 

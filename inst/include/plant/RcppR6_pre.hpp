@@ -135,6 +135,8 @@ template <> plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16r_Envi
 
 template <> SEXP wrap(const plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Canopy&);
+template <> plant::Canopy as(SEXP);
 template <> SEXP wrap(const plant::FF16_Strategy&);
 template <> plant::FF16_Strategy as(SEXP);
 template <> SEXP wrap(const plant::FF16_Environment&);

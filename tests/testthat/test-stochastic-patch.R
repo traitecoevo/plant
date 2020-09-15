@@ -42,10 +42,10 @@ test_that("non empty", {
 
     expect_equal(patch$deaths(), 0)
 
-    le <- patch$environment$environment_interpolator
-    expect_equal(range(le$x), c(0.0, cmp$state("height")))
-    expect_equal(max(le$y), 1.0)
-    expect_lt(le$y[[1]], 1.0)
+    ci <- patch$environment$canopy$canopy_interpolator
+    expect_equal(range(ci$x), c(0.0, cmp$state("height")))
+    expect_equal(max(ci$y), 1.0)
+    expect_lt(ci$y[[1]], 1.0)
 
     if (x == "FF16") {
       expect_true(all(patch$ode_rates > 0.0))

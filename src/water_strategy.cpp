@@ -1,4 +1,5 @@
-#include <plant/models/water_strategy.h>
+// Comment this out for now: this will instead be a component like Canopy
+// #include <plant/models/water_strategy.h>
 
 namespace plant {
 
@@ -6,7 +7,7 @@ namespace plant {
 // TODO: Document ordering of different types of variables (size
 // before physiology, before compound things?)
 // TODO: Consider moving to activating as an initialisation list?
-Water_Strategy::Water_Strategy() {
+/*Water_Strategy::Water_Strategy() {
   // * Core traits - default values
   lma       = 0.1978791;  // Leaf mass per area [kg / m2]
   rho       = 608.0;      // Wood density [kg/m3]
@@ -186,8 +187,8 @@ void Water_Strategy::compute_rates(const Water_Environment& environment,
 
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height, area_leaf_, reuse_intervals);
-  /* const double soil_water_use_dt_ = */
-    /* soil_water_use_dt(environment, height, area_leaf_, reuse_intervals); */
+  // const double soil_water_use_dt_ =
+    // soil_water_use_dt(environment, height, area_leaf_, reuse_intervals);
 
   // store the aux sate
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
@@ -335,7 +336,7 @@ double Water_Strategy::dheight_darea_leaf(double area_leaf) const {
 }
 
 // Mass of leaf needed for new unit area leaf, d m_s / d a_l
-double Water_Strategy::dmass_leaf_darea_leaf(double /* area_leaf */) const {
+double Water_Strategy::dmass_leaf_darea_leaf(double area_leaf) const {
   return lma;
 }
 
@@ -350,7 +351,7 @@ double Water_Strategy::dmass_bark_darea_leaf(double area_leaf) const {
 }
 
 // Mass of root needed for new unit area leaf, d m_r / d a_l
-double Water_Strategy::dmass_root_darea_leaf(double /* area_leaf */) const {
+double Water_Strategy::dmass_root_darea_leaf(double area_leaf) const {
   return a_r1;
 }
 
@@ -530,4 +531,5 @@ Water_Strategy::ptr make_strategy_ptr(Water_Strategy s) {
   s.prepare_strategy();
   return std::make_shared<Water_Strategy>(s);
 }
+*/
 }

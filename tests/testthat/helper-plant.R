@@ -54,7 +54,7 @@ get_list_of_hyperpar_functions <- function() {
     )
 }
 
-test_environment<- function(type, ...) {
+test_environment <- function(type, ...) {
   switch(type,
     FF16=FF16_test_environment(...),
     FF16r=FF16r_test_environment(...),

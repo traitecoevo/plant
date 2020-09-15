@@ -14,7 +14,7 @@ test_that("collect / make_patch", {
 
   expect_equal(p1_113$ode_state, unlist(st_113$species))
   expect_equal(p1_113$time, st_113$time)
-  expect_equal(p1_113$environment$environment_interpolator$xy, unname(st_113$env))
+  expect_equal(p1_113$environment$canopy$canopy_interpolator$xy, unname(st_113$env))
   expect_lt(exp(-p0$k_I * p1_113$compute_competition(0)), 0.5)
   expect_gt(p1_113$height_max, 10)
 
@@ -34,10 +34,10 @@ test_that("collect / make_patch", {
   cat(ncol(dat), n_int + 2L)
   expect_equal(ncol(dat), n_int + 2L)
 
-  ## NOTE: this currently takes *longer* than the SCM to run due to (I
-  ## think) the RcppR6 calling being pretty inefficient in this case.
-  ## I should really benchmark it and see why it is so slow, but
-  ## possibly we could do this within C++ for a major speedup.
+  # NOTE: this currently takes *longer* than the SCM to run due to (I
+  # think) the RcppR6 calling being pretty inefficient in this case.
+  # I should really benchmark it and see why it is so slow, but
+  # possibly we could do this within C++ for a major speedup.
   ints <- scm_to_internals(res)
 
   n_times <- length(p1$cohort_schedule_times[[1]])
@@ -50,6 +50,7 @@ test_that("collect / make_patch", {
   v <- rownames(res$species[[1]])
   expect_true(all(v %in% rownames(ints)))
   expect_equal(ints[v, , ], res$species[[1]])
+
 })
 
 test_that("expand_parameters", {
