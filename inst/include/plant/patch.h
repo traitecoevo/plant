@@ -207,20 +207,7 @@ void Patch<T,E>::r_set_state(double time,
   }
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
-
-  // See issue #144; this is important as we have to at least refine
-  // the light environment, but doing this is better because it means
-  // that if rescale_usually is on we do get the same light
-  // environment as before.
-  if (env.size() % 2 != 0) {
-    util::stop("Expected even number of elements in light environment");
-  }
-  const size_t env_n = env.size() / 2;
-  auto it = env.begin();
-  std::vector<double> env_x, env_y;
-  std::copy_n(it,               env_n, std::back_inserter(env_x));
-  std::copy_n(it + env_n, env_n, std::back_inserter(env_y));
-  environment.environment_interpolator.init(env_x, env_y);
+  environment.r_init_interpolators(env);
 }
 
 // ODE interface

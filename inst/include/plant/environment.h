@@ -24,6 +24,7 @@ public:
 
   void set_fixed_environment(double value, double height_max);
   void set_fixed_environment(double value);
+  void init_interpolators(const std::vector<double>& state);
 
   void compute_rates();
 
@@ -68,6 +69,8 @@ public:
   void r_set_seed_rain_index(util::index x) {
     set_seed_rain_index(x.check_bounds(seed_rain.size()));
   }
+
+  void r_init_interpolators(const std::vector<double>& state) {}
 
   double get_environment_at_height(double height) {};
 

@@ -64,6 +64,10 @@ public:
     return canopy.canopy_openness(height);
   }
 
+  void r_init_interpolators(const std::vector<double>& state) {
+    canopy.r_init_interpolators(state);
+  }
+
   Canopy canopy;
 };
 

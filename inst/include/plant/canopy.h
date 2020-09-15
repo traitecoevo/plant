@@ -86,6 +86,23 @@ public:
     return get_canopy_at_height(height);
   }
 
+
+  void r_init_interpolators(const std::vector<double>& state) {
+    // See issue #144; this is important as we have to at least refine
+    // the light environment, but doing this is better because it means
+    // that if rescale_usually is on we do get the same light
+    // environment as before.
+    if (state.size() % 2 != 0) {
+      util::stop("Expected even number of elements in light environment");
+    }
+    const size_t state_n = state.size() / 2;
+    auto it = state.begin();
+    std::vector<double> state_x, state_y;
+    std::copy_n(it,         state_n, std::back_inserter(state_x));
+    std::copy_n(it + state_n, state_n, std::back_inserter(state_y));
+    canopy_interpolator.init(state_x, state_y);
+  }
+
   double k_I;
   interpolator::Interpolator canopy_interpolator;
   interpolator::AdaptiveInterpolator canopy_generator;
