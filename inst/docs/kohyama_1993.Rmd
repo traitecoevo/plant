@@ -1,0 +1,295 @@
+---
+title: "A forest architecture hypothesis for the stable coexistence of species"
+subtitle: "Kohyama 1993"
+author: Andrew O'Reilly-Nugent
+date: August 28, 2020
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    theme: united
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+devtools::load_all(".")
+```
+
+# Forest
+
+Growth, reproduction, mortality related to basal area.
+
+
+## Model structure
+
+### Size structured competition
+
+**Eq. 8**
+$$
+B(t, a, x) = \frac{\pi}{4 \cdot s(t, a)} \int_{x}^{x_{max}} y^2 \cdot f(t, a, y) dy
+$$
+
+
+*added additional smoothing parameter to interpolate competitive effect using a continuous function. $\eta = 12.0$*
+
+### Growth
+
+**Eq. 10**
+$$
+G(t, a, x) = x \cdot \Bigg(b_0 - b_1 \cdot ln{x} - b_2 \cdot B(t, a, x)\Bigg)
+$$
+
+### Fecundity
+
+**Eq. 12**
+
+$$
+R(t, a, x0) = d_0 \cdot B_0 \cdot exp{-d_1 \cdot B(t, a, x_0)}
+$$
+
+*$B_0$ re-interpreted as an individual basal area, integrated over whole stand, providing equivalent total reproductive output as Eq 9.*
+
+### Mortality
+**Eq. 11**
+$$
+\mu(t, a, x) = - c_0 + c_1 \cdot B(t, a, x_0)
+$$
+
+*Growth independent mortality provided by disturbance regime*
+
+### Dispersal and establishment
+
+Dispersal and establishment are fixtures of the `plant` framework, but not used in the original formulation of Kohyama. We set them both to $1.0$.
+
+# Model
+
+See [vignette 1] for model implementation.
+
+K93 strategy implemented in `plant` and can therefore use the `Plant` class to explore individual behaviours and the `SCM` solver to examine patch dynamics and forest development.
+
+## Individuals
+
+Instantiate a K93 individual then examine the state of each characteristic:
+
+```{r}
+p <- K93_Individual()
+
+# 3 parameters
+p$ode_size
+
+# size, mortality and fecundity
+p$ode_names
+
+# initialised at 2 cm DBH
+p$ode_state
+
+# set to fixed state
+p$ode_state <- c(50, 0, 0)
+
+```
+
+*note the size characteristic is currently hardcoded as 'height'*
+
+An environment is required to compute the rate of characteristic change (i.e. gradients):
+
+```{r}
+e <- 0.75
+env <- K93_fixed_environment(e)
+
+p$compute_rates(env)
+
+p$ode_rates
+```
+Here, a fixed environment means that individuals of any height experience the same competitive conditions. A `plant` environment is expressed on a proportional scale (between zero and one) describing the availability of resources. Environment values near one mean that individuals receive their full allocation of resources (e.g. light in an open canopy, with no shading), while values near zero mean that few resources are available.
+
+The Kohyama model describes the environment in terms of cumulative basal area of surrounding trees larger than the focal individual [Eq. 8](#Size structured competition). We back transform the environmental value into cumulative basal area such that the smallest individuals recieve the largest competitive effects from their neighbours: 
+
+```{r}
+# ind. parameters
+s <- p$strategy
+
+# backtransform environment to cumulative basal area
+k_I <- K93_Parameters()$k_I
+basal_area_above <- function(e) -log(e) / k_I
+
+# growth has both size and competition dependent terms
+x <- p$ode_state[1]
+x * (s$b_0 - s$b_1 * log(x) - s$b_2 * basal_area_above(e))
+```
+*the extinction coefficient $k_I$ is set to 0.5 by default but will likely be much lower in practice*
+
+Fecundity is proportional to basal area - in the original formulation this is calculated for the whole forest, but here we calculate individual contributions:
+
+```{r}
+# basal area
+basal_area <- pi / 4 * x^2
+
+s$d_0 * basal_area * exp(-s$d_1 * basal_area_above(e))
+```
+Like in the original paper, mortality is split into competition dependent and independent processes, the latter described by the average disturbance interval/frequency of the patch and is initially zero, but will increase as the patch develops over time.
+
+```{r}
+# average disturbance frequency
+env$disturbance_regime$mean_interval
+
+# cumulative hazard
+p$mortality_probability
+```
+
+We focus here on competition dependent mortality of an individual:
+
+```{r}
+# Initially too small to register, but matches the state above
+max(-s$c_0 + s$c_1 * basal_area_above(e), 0)
+
+# but increasing intensity of  competition increases the rate of mortality
+k_I <- 1e-6
+-s$c_0 + s$c_1 * basal_area_above(e)
+
+```
+which we confirm by updating our K93_Individual:
+
+```{r}
+# This is a bit more involved than I intended to start the vignette with.
+par <- K93_Parameters()
+par$k_I <- 1e-6
+
+env <- K93_fixed_environment(e, p = par)
+p$compute_rates(env)
+
+p$ode_rates[2]
+
+```
+
+## Patches
+
+First we need to add a species to the model parameters, then we run the characteristic solver `scm`, collecting the results at each timestep. Finally, we plot the height of each cohort of individuals over time:
+
+```{r}
+class(s)
+par$strategies[[1]] <- s
+
+results <- run_scm_collect(par)
+
+t <- results$time
+h <- results$species[[1]]["height", , ]
+
+matplot(t, h, lty = 1, type = "l", las = 1, 
+        col = make_transparent("black", 0.25),
+        xlab = "Time (years)", ylab = "Size (DBH cm)")
+
+```
+I'm not quite sure why the model runs out for 100-ish years, but we can see that the patch is still developing. Increasing the mean disturbance interval extends the simulation to 700 years and allows the first cohorts to reach their maximum size of 136cm DBH, matching Fig. 2 of Kohyama (1993):
+
+
+```{r}
+par$disturbance_mean_interval <- 200
+results <- run_scm_collect(par)
+
+h <- results$species[[1]]["height", , ]
+t <- results$time
+
+matplot(t, h, lty = 1, type = "l", las = 1, 
+        col = make_transparent("black", 0.25),
+        xlab = "Time (years)", ylab = "Size (DBH cm)")
+
+```
+*Note: we obtain more interesting results using the fast control parameters provided by the convenience function `scm_base_parameters`*
+
+```{r}
+fast_par <- scm_base_parameters("K93")
+fast_par$strategies[[1]] <- s
+
+fast_par$disturbance_mean_interval <- 200
+fast_par$k_I <- 1e-6
+
+results <- run_scm_collect(fast_par)
+
+h <- results$species[[1]]["height", , ]
+t <- results$time
+
+matplot(t, h, lty = 1, type = "l", las = 1, 
+        col = make_transparent("black", 0.25),
+        xlab = "Time (years)", ylab = "Size (DBH cm)")
+
+```
+
+Weighting each cohort by it's density shows how gap-formation can occur:
+
+```{r}
+library(ggplot2)
+library(dplyr)
+d <- results$species[[1]]["log_density", , ]
+n <- ncol(d)
+
+
+# ggplot doesn't crash like base plots, but can avoid extra deps. as necessary
+df <- data.frame(cohort = rep(1:n, each = length(t)),
+                 time = rep(t, times = n),
+                 height = as.vector(h),
+                 log_density = as.vector(d)) %>%
+  mutate(density = exp(log_density)) %>%
+  filter(density > 1e-7)
+
+ggplot(df, aes(x = time, y = height,
+               group = cohort, alpha = density)) +
+  geom_line() + 
+  labs(x = "Time (years)",
+       y = "Size (DBH cm)",
+       alpha = "Density") +
+  theme_bw()
+
+```
+*9,000 seems like a lot?*
+
+The Kohyama model also describes a patch with three species:
+
+```{r}
+sp <- trait_matrix(c(0.042, 0.063, 0.052,
+                     8.5e-3, 0.014, 0.015,
+                     2.2e-4, 4.6e-4, 3e-4,
+                     0.008, 0.008, 0.008,
+                     1.8e-4, 4.4e-4, 5.1e-4,
+                     1.4e-4, 2.5e-3, 8.8e-3, 
+                     0.044, 0.044, 0.044), 
+                   c("b_0", "b_1", "b_2",
+                     "c_0", "c_1", "d_0", "d_1"))
+
+fast_par2 <- scm_base_parameters("K93")
+fast_par2$disturbance_mean_interval <- 200
+fast_par2$k_I <- 1e-6
+
+sp_par <- expand_parameters(sp, fast_par2)
+
+sp_results <- run_scm_collect(sp_par)
+
+sp_h <- lapply(sp_results$species, function(x) x["height",,])
+sp_d <- lapply(sp_results$species, function(x) x["log_density",,])
+
+sp_names <- c("D. racemosum", "I. anisatum", "E. japonica")
+n_sp = length(sp_names)
+
+# This is hefty figure so we take every 5th cohort
+sp_df <- data.frame(species = rep(sp_names, each = length(t) * n),
+    cohort = rep(1:n, each = length(t), times = n_sp),
+    time = rep(t, times = n * n_sp),
+    height = unlist(sp_h),
+    log_density = unlist(sp_d)) %>%
+  mutate(density = exp(log_density)) %>%
+  filter(row_number() %% 5 == 0,
+         !is.na(density))
+
+# I don't fully understand the difference in density between figures
+quantile(sp_df$density)
+
+# This is kinda weird, I'll have to double check the parameters
+ggplot(sp_df, aes(x = time, y = height, colour = species,
+        group = paste(species, cohort),alpha = density)) +
+  geom_line() + 
+  labs(x = "Time (years)",
+       y = "Size (DBH cm)",
+       alpha = "Density") +
+  theme_bw()
+```
