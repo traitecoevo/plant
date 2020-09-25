@@ -1,6 +1,7 @@
 context("Build_schedule")
 
 strategy_types <- get_list_of_strategy_types()
+environment_types <- get_list_of_environment_types()
 
 test_that("Corner case", {
   for (x in names(strategy_types)) {

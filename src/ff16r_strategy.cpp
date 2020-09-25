@@ -91,7 +91,7 @@ FF16r_Strategy::FF16r_Strategy() {
   collect_all_auxillary = false;
   // build the string state/aux name to index map
   refresh_indices();
-  name = "FF16";
+  name = "FF16r";
 }
 
 

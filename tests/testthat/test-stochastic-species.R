@@ -1,20 +1,22 @@
 context("StochasticSpecies")
 
 strategy_types <- get_list_of_strategy_types()
+environment_types <- get_list_of_environment_types()
 
 test_that("empty", {
   for (x in names(strategy_types)) {
     env <- test_environment(x, 3, seed_rain=1.0)
+    e <- environment_types[[x]]
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x, paste0(x, "_Env"))(s)
+    sp <- StochasticSpecies(x, e)(s)
 
-    expect_is(sp, sprintf("StochasticSpecies<%s,%s_Env>",x,x))
+    expect_is(sp, sprintf("StochasticSpecies<%s,%s>",x,e))
     expect_equal(sp$size, 0)
     expect_equal(sp$size_plants, 0)
 
     seed <- sp$seed
     expect_is(seed, "Individual")
-    expect_is(seed, sprintf("Individual<%s,%s_Env>",x,x))
+    expect_is(seed, sprintf("Individual<%s,%s>",x,e))
 
     expect_equal(sp$heights, numeric(0))
     expect_equal(sp$height_max, 0.0)
@@ -32,8 +34,9 @@ test_that("Single individual", {
   for (x in names(strategy_types)) {
     env <- test_environment(x, 3, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x, paste0(x, "_Env"))(s)
-    p <- Individual(x, paste0(x, "_Env"))(s)
+    e <- environment_types[[x]]
+    sp <- StochasticSpecies(x, e)(s)
+    p <- Individual(x, e)(s)
 
     sp$add_seed()
 
@@ -69,7 +72,8 @@ test_that("Multiple individuals", {
     h <- 10
     env <- test_environment(x, h, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x, paste0(x, "_Env"))(s)
+    e <- environment_types[[x]]
+    sp <- StochasticSpecies(x, e)(s)
     n <- 10
     for (i in seq_len(n)) {
       sp$add_seed()
@@ -131,8 +135,9 @@ test_that("establishment probability", {
   for (x in names(strategy_types)) {
     env <- test_environment(x, 3, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x, paste0(x, "_Env"))(s)
-    p <- Individual(x, paste0(x, "_Env"))(s)
+    e <- environment_types[[x]]
+    sp <- StochasticSpecies(x, e)(s)
+    p <- Individual(x, e)(s)
 
     expect_equal(sp$establishment_probability(env), p$establishment_probability(env))
   }

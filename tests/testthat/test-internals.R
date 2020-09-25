@@ -1,7 +1,5 @@
 context("Internals")
 
-strategy_types <- get_list_of_strategy_types()
-
 test_that("internals getters and setters", {
   n = 3
   a_n = 2

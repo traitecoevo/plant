@@ -1,6 +1,7 @@
 
 
 strategy_types <- get_list_of_strategy_types()
+environment_types <- get_list_of_environment_types()
 
 for (x in names(strategy_types)) {
 
@@ -8,9 +9,10 @@ for (x in names(strategy_types)) {
 
   test_that("Reference comparison", {
     s <- strategy_types[[x]]()
-    pl <- Individual(x, paste0(x, "_Env"))(s)
+    e <- environment_types[[x]]
+    pl <- Individual(x, e)(s)
 
-    expect_is(pl, sprintf("Individual<%s,%s_Env>",x,x))
+    expect_is(pl, sprintf("Individual<%s,%s>",x,e))
     # expect_is(pp, sprintf("IndividualPlus<%s>",x))
     # expect_identical(pp$strategy, s)
     expect_identical(pl$strategy, s)
@@ -90,7 +92,8 @@ for (x in names(strategy_types)) {
   test_that("stochastic support", {
 
     s <- strategy_types[[x]]()
-    p <- Individual(x, paste0(x, "_Env"))(s)
+    e <- environment_types[[x]]
+    p <- Individual(x, e)(s)
 
     expect_equal(p$state("mortality"), 0.0)
     expect_equal(p$mortality_probability, 0.0)
@@ -127,7 +130,8 @@ test_that("lcp_whole_plant", {
       }
     }
 
-    p <- Individual(x, paste0(x, "_Env"))(strategy_types[[x]]())
+    e <- environment_types[[x]]
+    p <- Individual(x, e)(strategy_types[[x]]())
     # skip("Comparison no longer evaluate the nesting is too deep")
     expect_equal(p$lcp_whole_plant(), lcp_whole_plant_R(x, p), tolerance=1e-5)
   }

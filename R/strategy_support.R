@@ -22,6 +22,8 @@ param_hyperpar <- function(parameters) {
          stop("Unknown type ", type))
 }
 
+
+
 ##' @rdname Hyperparameter_functions
 ##' @export
 # if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
@@ -30,6 +32,14 @@ hyperpar <- function(type) {
          FF16=FF16_hyperpar,
          FF16r=FF16r_hyperpar,
          K93=K93_hyperpar,
+         stop("Unknown type ", type))
+}
+
+environment_type <- function(type) {
+  switch(type,
+         FF16=sprintf("FF16_Env"),
+         FF16r=sprintf("FF16_Env"),
+         K93=sprintf("K93_Env"),
          stop("Unknown type ", type))
 }
 
