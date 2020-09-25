@@ -24,7 +24,7 @@ OdeRunner:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
-      - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16r_Environment>"]
+      - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
@@ -259,7 +259,7 @@ Individual:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [s: T]
@@ -317,7 +317,7 @@ IndividualRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::tools::IndividualRunner<T,E>"
@@ -369,7 +369,7 @@ Parameters:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   # TODO: This is broken:
   # roxygen: |
@@ -401,7 +401,7 @@ Cohort:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::make_cohort<T,E>"
@@ -438,7 +438,7 @@ Species:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: T]
@@ -481,7 +481,7 @@ Patch:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
@@ -536,7 +536,7 @@ SCM:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
@@ -604,7 +604,7 @@ StochasticSpecies:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [strategy: "T"]
@@ -648,7 +648,7 @@ StochasticPatch:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
@@ -709,7 +709,7 @@ StochasticPatchRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16r_Env": "plant::FF16r_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [parameters: "plant::Parameters<T,E>"]
@@ -875,43 +875,6 @@ FF16r_Strategy:
     - a_dG2: double
     - control: "plant::Control" 
     - collect_all_auxillary: bool
-
-
-# The following environment was built from FF16 on Wed Aug 12 11:12:34 2020
-FF16r_Environment:
-  name_cpp: "plant::FF16r_Environment"
-  constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
-    roxygen: |
-      FF16r_Environment object
-      @param disturbance_mean_interval mean disturbance interval in years
-      @param seed_rain vector of seed rains
-      @param k_I light extinction coefficient
-      @param control A Control object
-      @export
-  methods:
-    canopy_openness:
-      args: [height: double]
-      return_type: double
-    patch_survival_conditional:
-      args: [time_at_birth: double]
-      return_type: double
-    clear:
-      return_type: void
-    set_seed_rain_index:
-      args: [x: "plant::util::index"]
-      return_type: void
-      name_cpp: r_set_seed_rain_index
-    set_fixed_environment:
-      args: [value: double, height_max: double]
-      return_type: void
-  active:
-    patch_survival: {type: double, access: member}
-    seed_rain_dt: {type: double, access: member}
-    disturbance_regime: {type: "plant::Disturbance", access: field}
-    time: {type: double, access: field}
-    canopy: {type: "plant::Canopy", access: field}
-
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
 K93_Strategy:
