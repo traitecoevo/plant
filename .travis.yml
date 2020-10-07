@@ -3,7 +3,6 @@ cache:
   packages: true
   apt: true
 warnings_are_errors: false
-sudo: false
 
 env:
   global:
@@ -14,7 +13,14 @@ branches:
     - gh-pages
     - remove_plant_plus
     - scaffolder
-matrix:
+
+r_github_packages:
+  - richfitz/RcppR6
+  - richfitz/grader
+  - smbache/loggr
+  - jimhester/covr
+      
+jobs:
   include:
     - os: linux
       dist: bionic
@@ -24,11 +30,10 @@ matrix:
     - os: osx
       latex: false
 
-r_github_packages:
-  - richfitz/RcppR6
-  - richfitz/grader
-  - smbache/loggr
-  - jimhester/covr
+script: 
+  - |
+    R CMD build .
+    travis_wait 20 R CMD check plant*tar.gz
 
 after_success:
   - if [[ "${R_CODECOV}" ]]; then R -e 'covr::coveralls()'; fi
