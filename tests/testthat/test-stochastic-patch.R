@@ -5,6 +5,8 @@ environment_types <- get_list_of_environment_types()
 
 test_that("empty", {
   for (x in names(strategy_types)) {
+    context(sprintf("StochasticPatch-%s",x))
+
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
@@ -29,6 +31,8 @@ test_that("empty", {
 
 test_that("non empty", {
   for (x in names(strategy_types)) {
+    context(sprintf("StochasticPatch-%s",x))
+
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
