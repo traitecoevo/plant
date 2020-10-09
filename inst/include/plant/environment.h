@@ -72,7 +72,7 @@ public:
 
   void r_init_interpolators(const std::vector<double>& state) {}
 
-  double get_environment_at_height(double height) {};
+  double get_environment_at_height(double height) { return 0.0 };
 
   double time;
   Disturbance disturbance_regime;
