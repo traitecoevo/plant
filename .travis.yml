@@ -36,7 +36,7 @@ jobs:
 
 script: 
   - R CMD build .
-  - R CMD check plant*tar.gz --no-tests
+  - R CMD check plant*tar.gz --no-tests --no-manual 
   - Rscript -e 'devtools::install();devtools::test()'
 
 after_success:
