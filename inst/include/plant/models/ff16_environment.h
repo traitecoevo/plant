@@ -57,7 +57,7 @@ public:
   }
 
   double get_environment_at_height(double height) const {
-    canopy.get_canopy_at_height(height);
+    return canopy.get_canopy_at_height(height);
   }
 
   double canopy_openness(double height) const {
