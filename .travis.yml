@@ -14,7 +14,7 @@ branches:
     - remove_plant_plus
     - scaffolder
 
-r_binary_packages:
+r_binary_packages: 
   - devtools
   - roxygen2
 
@@ -34,10 +34,10 @@ jobs:
     - os: osx
       latex: false
 
-script: 
+script:
   - R CMD build .
   - R CMD check plant*tar.gz --no-tests --no-manual 
-  - Rscript -e 'devtools::install();devtools::test()'
+  - Rscript -e 'devtools::install();devtools::test(stop_on_failure=TRUE)'
 
 after_success:
   - if [[ "${R_CODECOV}" ]]; then R -e 'covr::coveralls()'; fi
