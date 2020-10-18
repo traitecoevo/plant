@@ -15,11 +15,10 @@ public:
 
   FF16r_Strategy();
 
-  // Overrides ----------------------------------------------
+  // Overloads ----------------------------------------------
 
-
-  // [eqn 16] Fraction of whole plan growth that is leaf
-  double fraction_allocation_reproduction(double height) const;
+  // [eqn 16] Fraction of whole plant growth that is leaf
+  virtual double fraction_allocation_reproduction(double height) const;
 
   
 };

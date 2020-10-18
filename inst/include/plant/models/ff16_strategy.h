@@ -46,10 +46,7 @@ public:
 
   double competition_effect(double height) const {
     return area_leaf(height);
-  }
-
-  /* double competition_effect_state(Internals& vars) const { */
-    /* return area_leaf_state(vars); */
+  } /* double competition_effect_state(Internals& vars) const { */ /* return area_leaf_state(vars); */
   /* } */
 
   double compute_competition(double z, double height) const {
@@ -124,7 +121,7 @@ public:
                                 bool reuse_intervals=false);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
-  double fraction_allocation_reproduction(double height) const;
+  virtual double fraction_allocation_reproduction(double height) const;
   double fraction_allocation_growth(double height) const;
   // [eqn 17] Rate of offspring production
   double fecundity_dt(double net_mass_production_dt,
