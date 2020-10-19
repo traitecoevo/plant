@@ -717,7 +717,7 @@ StochasticPatchRunner:
     run:
       return_type: void
     run_next:
-      return_type: plant::util::index
+      return_type: "plant::util::index"
       name_cpp: r_run_next
     reset:
       return_type: void
@@ -830,7 +830,7 @@ FF16_Environment:
     seed_rain_dt: {type: double, access: member}
     disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
-    canopy: {type: plant::Canopy, access: field}
+    canopy: {type: "plant::Canopy", access: field}
 
 
 # The following strategy was built from FF16 on Wed Aug 12 11:12:34 2020
@@ -910,7 +910,7 @@ FF16r_Environment:
     seed_rain_dt: {type: double, access: member}
     disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
-    canopy: {type: plant::Canopy, access: field}
+    canopy: {type: "plant::Canopy", access: field}
 
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
@@ -968,5 +968,5 @@ K93_Environment:
     seed_rain_dt: {type: double, access: member}
     disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
-    canopy: {type: plant::Canopy, access: field}
+    canopy: {type: "plant::Canopy", access: field}
 
