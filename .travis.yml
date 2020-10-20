@@ -39,7 +39,7 @@ script: |
   R CMD check plant*tar.gz --no-tests --no-manual 
   Rscript -e 'devtools::install();devtools::test()'
   pass=$?
-  Rscript ./inst/scripts/benchmark.R
+  Rscript -e 'plant::run_plant_benchmarks()'
   if [[ $pass -ne 0 || $(grep -i "WARNING\|ERROR" plant.Rcheck/00check.log) != "" ]]; then
     (exit 1)
   else

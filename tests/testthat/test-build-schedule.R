@@ -13,7 +13,7 @@ test_that("Corner case", {
 
 ## TODO: Not yet done.
 test_that("Schedule building", {
-  for (x in names(strategy_types)[[1]]) {
+  for (x in c("FF16")) {
     ## This is a really dumb test but it should act as a regression test
     ## at least.
     p <- scm_base_parameters(x)
