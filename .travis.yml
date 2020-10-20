@@ -3,7 +3,6 @@ cache:
   packages: true
   apt: true
 warnings_are_errors: false
-sudo: false
 
 env:
   global:
@@ -14,7 +13,18 @@ branches:
     - gh-pages
     - remove_plant_plus
     - scaffolder
-matrix:
+
+r_binary_packages: 
+  - devtools
+  - roxygen2
+
+r_github_packages:
+  - richfitz/RcppR6
+  - richfitz/grader
+  - smbache/loggr
+  - jimhester/covr
+      
+jobs:
   include:
     - os: linux
       dist: bionic
@@ -24,11 +34,16 @@ matrix:
     - os: osx
       latex: false
 
-r_github_packages:
-  - richfitz/RcppR6
-  - richfitz/grader
-  - smbache/loggr
-  - jimhester/covr
+script: | 
+  R CMD build .
+  R CMD check plant*tar.gz --no-tests --no-manual 
+  Rscript -e 'devtools::install();devtools::test()'
+  pass=$?
+  if [[ $pass -ne 0 || $(grep -i "WARNING\|ERROR" plant.Rcheck/00check.log) != "" ]]; then
+    (exit 1)
+  else
+    (exit 0)
+  fi
 
 after_success:
   - if [[ "${R_CODECOV}" ]]; then R -e 'covr::coveralls()'; fi
