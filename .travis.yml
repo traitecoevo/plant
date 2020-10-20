@@ -39,6 +39,7 @@ script: |
   R CMD check plant*tar.gz --no-tests --no-manual 
   Rscript -e 'devtools::install();devtools::test()'
   pass=$?
+  Rscript ./inst/scripts/benchmark.R
   if [[ $pass -ne 0 || $(grep -i "WARNING\|ERROR" plant.Rcheck/00check.log) != "" ]]; then
     (exit 1)
   else
@@ -46,7 +47,6 @@ script: |
   fi
 
 after_success:
-  - Rscript ./inst/scripts/benchmark.R
   - if [[ "${R_CODECOV}" ]]; then R -e 'covr::coveralls()'; fi
 
 notifications:
