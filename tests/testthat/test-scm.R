@@ -1,10 +1,11 @@
-context("SCM")
+context("SCM-general")
 
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
 test_that("Ported from tree1", {
   for (x in names(strategy_types)) {
+
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     plant <- Individual(x, e)(s)
@@ -237,8 +238,8 @@ test_that("schedule setting", {
   ## })
 
 test_that("Seed rain & error calculations correct", {
-  for (x in names(strategy_types)) {
-    context(sprintf("SCM: %s", x))
+  for (x in c("FF16")) {
+    context(sprintf("SCM-%s", x))
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE)
@@ -283,7 +284,7 @@ test_that("Seed rain & error calculations correct", {
 })
 
 test_that("Can create empty SCM", {
-  context("empty SCM")
+  context("SCM-empty")
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
