@@ -1,10 +1,9 @@
-context("SCM")
+context("SCM-FF16")
 
 strategy_types <- get_list_of_strategy_types()["FF16"]
 
 test_that("Ported from tree1", {
   for (x in names(strategy_types)) {
-    cat(x," ")
 
     s <- strategy_types[[x]]()
     plant <- Individual(x, paste0(x, "_Env"))(s)

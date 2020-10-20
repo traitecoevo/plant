@@ -1,4 +1,4 @@
-context("Build_schedule")
+context("Schedule_build-FF16")
 
 strategy_types <- get_list_of_strategy_types()
 
