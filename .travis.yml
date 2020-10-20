@@ -46,6 +46,7 @@ script: |
   fi
 
 after_success:
+  - Rscript ./inst/scripts/benchmark.R
   - if [[ "${R_CODECOV}" ]]; then R -e 'covr::coveralls()'; fi
 
 notifications:
