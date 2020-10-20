@@ -37,7 +37,7 @@ jobs:
 script:
   - R CMD build .
   - R CMD check plant*tar.gz --no-tests --no-manual 
-  - Rscript -e 'devtools::install();devtools::test(stop_on_failure=TRUE)'
+  - Rscript -e 'devtools::install();devtools::test(stop_on_failure=TRUE); plant::run_plant_benchmarks()'
 
 after_success:
   - if [[ "${R_CODECOV}" ]]; then R -e 'covr::coveralls()'; fi
