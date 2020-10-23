@@ -45,7 +45,6 @@ test_that("Reference comparison", {
   h0 <- 10
   p$set_state("height", h0)
 
-
   expect_identical(p$state("height"), h0)
 
   ## Check: Is this redundant now
@@ -62,18 +61,43 @@ test_that("Critical Names", {
 
 test_that("K93_Strategy hyper-parameterisation", {
   s <- K93_Strategy()
-
-  # Possibly update to be relevant?
-
-  # b_0 <- c(0.059)
-  #ret <- K93_hyperpar(trait_matrix(b_0, "b_0"), s)
-
- #s expect_true(all(c("b_0", "b_1", "b_2") %in% colnames(ret)))
-  #expect_equal(ret[, "b_0"], b_0)
-  #expect_equal(ret[, "b_0"], c(1.46678,0.028600), tolerance=1e-5)
-
-  ## Empty trait matrix:
+  
+  ## Hyperpars should just pass through:
   ret <- K93_hyperpar(trait_matrix(numeric(0), "b_0"), s)
   expect_equal(ret, trait_matrix(numeric(0), "b_0"))
 })
 
+
+test_that("K93 seed rain is unchanged", {
+  
+  # Generic parameters
+  p0 <- scm_base_parameters("K93")
+  p0$k_I <- 1e-6
+  p0$disturbance_mean_interval <- 200
+  
+  # Use single sp. defaults
+  p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0, mutant = FALSE)
+  p1$seed_rain <- 20
+  
+  out <- run_scm(p1)
+  expect_equal(out$seed_rains, 0.11391, tolerance = 1e-5)
+  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.500004), tolerance = 1e-5)
+  
+  # Three species from paper
+  sp <- trait_matrix(c(0.042, 0.063, 0.052,
+                       8.5e-3, 0.014, 0.015,
+                       2.2e-4, 4.6e-4, 3e-4,
+                       0.008, 0.008, 0.008,
+                       1.8e-4, 4.4e-4, 5.1e-4,
+                       1.4e-4, 2.5e-3, 8.8e-3, 
+                       0.044, 0.044, 0.044), 
+                     c("b_0", "b_1", "b_2",
+                       "c_0", "c_1", "d_0", "d_1"))
+  
+  p2 <- expand_parameters(sp, p0, mutant = FALSE)
+  p2$seed_rain <- c(20, 20, 20)
+  out <- run_scm(p2)
+  
+  expect_equal(out$seed_rains, c(0.00030, 0.34744, 0.01303), tolerance = 1e-5)
+  expect_equal(length(out$ode_times), 1017)
+})
