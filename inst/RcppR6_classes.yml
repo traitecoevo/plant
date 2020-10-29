@@ -24,6 +24,7 @@ OdeRunner:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
+      - ["FF16ppa": "plant::tools::IndividualRunner<plant::FF16ppa_Strategy, plant::FF16_Environment>"]
       - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
@@ -259,6 +260,7 @@ Individual:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16ppa": "plant::FF16ppa_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -317,6 +319,7 @@ IndividualRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16ppa": "plant::FF16ppa_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -330,7 +333,7 @@ Internals:
   constructor:
     args: [s_size: size_t, a_size: size_t]
     roxygen: |
-      Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
+      Internals class holding vectors of states, thier associated rates and auxiliary (aux) state
       which is calculated from the state through running compute_rates
       @export
   active:
@@ -369,6 +372,7 @@ Parameters:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16ppa": "plant::FF16ppa_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   # TODO: This is broken:
@@ -401,6 +405,7 @@ Cohort:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16ppa": "plant::FF16ppa_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -438,6 +443,7 @@ Species:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16ppa": "plant::FF16ppa_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -481,6 +487,7 @@ Patch:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16ppa": "plant::FF16ppa_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -536,6 +543,7 @@ SCM:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16ppa": "plant::FF16ppa_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -604,6 +612,7 @@ StochasticSpecies:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16ppa": "plant::FF16ppa_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -648,6 +657,7 @@ StochasticPatch:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16ppa": "plant::FF16ppa_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -709,6 +719,7 @@ StochasticPatchRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16ppa": "plant::FF16ppa_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -795,7 +806,7 @@ FF16_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control" 
+    - control: "plant::Control"
     - collect_all_auxillary: bool
 
 FF16_Environment:
@@ -873,7 +884,7 @@ FF16r_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control" 
+    - control: "plant::Control"
     - collect_all_auxillary: bool
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
@@ -933,3 +944,46 @@ K93_Environment:
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
 
+
+# The following strategy was built from FF16 on Thu Oct 29 11:14:41 2020
+FF16ppa_Strategy:
+  name_cpp: "plant::FF16ppa_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - lma: double
+    - rho: double
+    - hmat: double
+    - omega: double
+    - eta: double
+    - theta: double
+    - a_l1: double
+    - a_l2: double
+    - a_r1: double
+    - a_b1: double
+    - r_s: double
+    - r_b: double
+    - r_r: double
+    - r_l: double
+    - a_y: double
+    - a_bio: double
+    - k_l: double
+    - k_b: double
+    - k_s: double
+    - k_r: double
+    - a_p1: double
+    - a_p2: double
+    - a_f3: double
+    - a_f1: double
+    - a_f2: double
+    - S_D: double
+    - a_d0: double
+    - d_I: double
+    - a_dG1: double
+    - a_dG2: double
+    - control: "plant::Control"
+    - collect_all_auxillary: bool
