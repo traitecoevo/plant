@@ -5,7 +5,6 @@
 
 #include <plant/models/ff16_strategy.h>
 #include <plant/models/ff16_environment.h>
-#include <plant/models/assimilation.h>
 
 namespace plant {
 
@@ -15,7 +14,14 @@ public:
   FF16ppa_Strategy();
 
   // Overrides ----------------------------------------------
+  // Perfect plasticity approximation
+  virtual double ppa(const FF16_Environment& environment,
+                      double height, double area_leaf_);
 
+  // [eqn 16] Fraction of whole plant growth that is leaf
+  virtual double net_mass_production_dt(const FF16_Environment& environment,
+                                        double height, double area_leaf_,
+                                        bool reuse_intervals=false);
 };
 
 FF16ppa_Strategy::ptr make_strategy_ptr(FF16ppa_Strategy s);

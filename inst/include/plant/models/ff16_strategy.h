@@ -116,7 +116,7 @@ public:
   // [eqn 15] Net production
   double net_mass_production_dt_A(double assimilation, double respiration,
                                   double turnover) const;
-  double net_mass_production_dt(const FF16_Environment& environment,
+  virtual double net_mass_production_dt(const FF16_Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals=false);
 
@@ -273,7 +273,7 @@ public:
 
   Assimilation<FF16_Environment> assimilator;
 
-  
+
 };
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);
