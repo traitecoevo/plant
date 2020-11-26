@@ -46,12 +46,9 @@ Rcpp::List get_state(const Patch<T,E>& patch) {
 }
 
 inline Rcpp::NumericMatrix get_state(const Environment environment) {
-  using namespace Rcpp;
-  NumericMatrix xy = environment.environment_interpolator.r_get_xy();
-  Rcpp::CharacterVector colnames =
-    Rcpp::CharacterVector::create("height", "canopy_openness");
-  xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
-  return xy;
+  // Empty vector
+  std::vector<std::vector<double>> xy;
+  return Rcpp::wrap(util::to_rcpp_matrix(xy));
 }
 
 template <typename T, typename E>

@@ -3,6 +3,7 @@
 #define PLANT_PLANT_FF16_ENVIRONMENT_H_
 
 #include <plant/environment.h>
+#include <plant/canopy.h>
 
 using namespace Rcpp;
 
@@ -17,86 +18,71 @@ public:
     disturbance_regime = 0;
     seed_rain = { 1.0, 1.0, 1.0 };
     seed_rain_index = 0;
-    k_I = NA_REAL;
-    environment_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
-    environment_interpolator = environment_generator.construct(
-      [&](double height) {
-          return get_environment_at_height(height);
-      }, 0, 1); // these are update with init(x, y) when patch is created
+    canopy = Canopy();
   };
 
   FF16_Environment(double disturbance_mean_interval,
                    std::vector<double> seed_rain_,
-                   double k_I_,
+                   double k_I,
                    Control control) {
-    k_I = k_I_;
     time = 0.0;
     disturbance_regime = disturbance_mean_interval;
     seed_rain = seed_rain_;
     seed_rain_index = 0;
-    environment_generator = interpolator::AdaptiveInterpolator(
-      control.environment_light_tol,
-      control.environment_light_tol,
-      control.environment_light_nbase,
-      control.environment_light_max_depth
-    );
-    environment_interpolator = environment_generator.construct(
-      [&](double height) {
-          return get_environment_at_height(height);
-      }, 0, 1); // these are update with init(x, y) when patch is created
+    canopy = Canopy(k_I, control);
   };
 
   template <typename Function>
   void compute_environment(Function f_compute_competition, double height_max) {
-    const double lower_bound = 0.0;
-    double upper_bound = height_max;
-
-    auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
-    environment_interpolator =
-      environment_generator.construct(f_canopy_openness, lower_bound, upper_bound);
+    canopy.compute_canopy(f_compute_competition, height_max);
   }
 
   template <typename Function>
   void rescale_environment(Function f_compute_competition, double height_max) {
-    std::vector<double> h = environment_interpolator.get_x();
-    const double min = environment_interpolator.min(), // 0.0?
-      height_max_old = environment_interpolator.max();
+    canopy.rescale_canopy(f_compute_competition, height_max);
+  }
 
-    auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
-    util::rescale(h.begin(), h.end(), min, height_max_old, min, height_max);
-    h.back() = height_max; // Avoid round-off error.
-
-    environment_interpolator.clear();
-    for (auto hi : h) {
-      environment_interpolator.add_point(hi, f_canopy_openness(hi));
-    }
-    environment_interpolator.initialise();
+  void clear_environment() {
+    canopy.clear();
   }
 
   void set_fixed_environment(double value, double height_max) {
-    std::vector<double> x = {0, height_max/2.0, height_max};
-    std::vector<double> y = {value, value, value};
-    clear_environment();
-    environment_interpolator.init(x, y);
+    canopy.set_fixed_canopy(value, height_max);
   }
 
+  // Should this be here or in canopy?
   void set_fixed_environment(double value) {
     double height_max = 150.0;
     set_fixed_environment(value, height_max);
   }
 
-  double canopy_openness(double height) const {
-    return get_environment_at_height(height);
+  double get_environment_at_height(double height) const {
+    return canopy.get_canopy_at_height(height);
   }
+
+  double canopy_openness(double height) const {
+    return canopy.canopy_openness(height);
+  }
+
+  void r_init_interpolators(const std::vector<double>& state) {
+    canopy.r_init_interpolators(state);
+  }
+
+  const double k_I() {
+    return canopy.k_I;
+  }
+
+  const double get_k_I(const FF16_Environment environment) {
+    return environment.canopy.k_I;
+  }
+
+  Canopy canopy;
 };
 
+const double get_k_I(const FF16_Environment environment);
+
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
-  using namespace Rcpp;
-  NumericMatrix xy = environment.environment_interpolator.r_get_xy();
-  Rcpp::CharacterVector colnames =
-    Rcpp::CharacterVector::create("height", "canopy_openness");
-  xy.attr("dimnames") = Rcpp::List::create(R_NilValue, colnames);
-  return xy;
+  return get_state(environment.canopy);
 }
 
 

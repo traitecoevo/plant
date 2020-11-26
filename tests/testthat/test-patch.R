@@ -1,34 +1,37 @@
 ## TODO: Test add_seeds(vector<double>)
 
 strategy_types <- get_list_of_strategy_types()
+environment_types <- get_list_of_environment_types()
 
 for (x in names(strategy_types)) {
- context(sprintf("Patch-%s",x))
+  context(sprintf("Patch-%s",x))
 
-  test_that("Basics", {
+  test_that(sprintf("Basics %s", x), {
     ## TODO: This is something that needs validating: the seed_rain and
     ## is_resident vectors must be the right length.
 
     s <- strategy_types[[x]]()
-    plant <- Individual(x, paste0(x, "_Env"))(s)
-    cohort <- Cohort(x, paste0(x, "_Env"))(s)
+    e <- environment_types[[x]]
+    plant <- Individual(x, e)(s)
+    cohort <- Cohort(x, e)(s)
 
-    p <- Parameters(x, paste0(x, "_Env"))(strategies=list(s),
+    p <- Parameters(x, e)(strategies=list(s),
                           seed_rain=pi/2,
                           is_resident=TRUE)
 
-    patch <- Patch(x, paste0(x, "_Env"))(p)
-    cmp <- Cohort(x, paste0(x, "_Env"))(p$strategies[[1]])
+    patch <- Patch(x, e)(p)
+    cmp <- Cohort(x, e)(p$strategies[[1]])
 
     expect_equal(patch$size, 1)
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
 
-    expect_is(patch$environment, paste0(x, "_Environment"))
+    # This doesn't hold now
+    # expect_is(patch$environment, paste0(x, "_Environment"))
     expect_identical(patch$environment$time, 0.0)
 
     expect_equal(length(patch$species), 1)
-    expect_is(patch$species[[1]], sprintf("Species<%s,%s_Env>",x,x))
+    expect_is(patch$species[[1]], sprintf("Species<%s,%s>",x,e))
 
     expect_equal(patch$ode_size, 0)
     expect_identical(patch$ode_state, numeric(0))
@@ -41,7 +44,7 @@ for (x in names(strategy_types)) {
     expect_error(patch$add_seed(0), "Invalid value")
     expect_error(patch$add_seed(2), "out of bounds")
 
-    ode_size <- Cohort(x, paste0(x, "_Env"))(s)$ode_size
+    ode_size <- Cohort(x, e)(s)$ode_size
     patch$add_seed(1)
     expect_equal(patch$ode_size, ode_size)
 

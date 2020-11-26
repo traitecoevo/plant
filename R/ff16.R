@@ -119,7 +119,7 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
   parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- FF16_make_environment(parameters)
-  ret$environment_interpolator <- interpolator
+  ret$canopy$canopy_interpolator <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }
