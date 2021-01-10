@@ -2593,6 +2593,18 @@ make_cohort_schedule__Parameters___FF16__FF16_Env <- function(p) {
     .Call('_plant_make_cohort_schedule__Parameters___FF16__FF16_Env', PACKAGE = 'plant', p)
 }
 
+cohort_schedule_max_time_default__Parameters___FF16bg__FF16_Env <- function(p) {
+    .Call('_plant_cohort_schedule_max_time_default__Parameters___FF16bg__FF16_Env', PACKAGE = 'plant', p)
+}
+
+cohort_schedule_default__Parameters___FF16bg__FF16_Env <- function(p) {
+    .Call('_plant_cohort_schedule_default__Parameters___FF16bg__FF16_Env', PACKAGE = 'plant', p)
+}
+
+make_cohort_schedule__Parameters___FF16bg__FF16_Env <- function(p) {
+    .Call('_plant_make_cohort_schedule__Parameters___FF16bg__FF16_Env', PACKAGE = 'plant', p)
+}
+
 cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env <- function(p) {
     .Call('_plant_cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env', PACKAGE = 'plant', p)
 }

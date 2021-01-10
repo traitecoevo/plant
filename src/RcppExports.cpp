@@ -7231,6 +7231,39 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// cohort_schedule_max_time_default__Parameters___FF16bg__FF16_Env
+double cohort_schedule_max_time_default__Parameters___FF16bg__FF16_Env(const plant::Parameters<plant::FF16bg_Strategy,plant::FF16_Environment>& p);
+RcppExport SEXP _plant_cohort_schedule_max_time_default__Parameters___FF16bg__FF16_Env(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16bg_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(cohort_schedule_max_time_default__Parameters___FF16bg__FF16_Env(p));
+    return rcpp_result_gen;
+END_RCPP
+}
+// cohort_schedule_default__Parameters___FF16bg__FF16_Env
+plant::CohortSchedule cohort_schedule_default__Parameters___FF16bg__FF16_Env(const plant::Parameters<plant::FF16bg_Strategy,plant::FF16_Environment>& p);
+RcppExport SEXP _plant_cohort_schedule_default__Parameters___FF16bg__FF16_Env(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16bg_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(cohort_schedule_default__Parameters___FF16bg__FF16_Env(p));
+    return rcpp_result_gen;
+END_RCPP
+}
+// make_cohort_schedule__Parameters___FF16bg__FF16_Env
+plant::CohortSchedule make_cohort_schedule__Parameters___FF16bg__FF16_Env(const plant::Parameters<plant::FF16bg_Strategy,plant::FF16_Environment>& p);
+RcppExport SEXP _plant_make_cohort_schedule__Parameters___FF16bg__FF16_Env(SEXP pSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16bg_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
+    rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___FF16bg__FF16_Env(p));
+    return rcpp_result_gen;
+END_RCPP
+}
 // cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env
 double cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env(const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>& p);
 RcppExport SEXP _plant_cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env(SEXP pSEXP) {
@@ -8081,6 +8114,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_cohort_schedule_max_time_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___FF16__FF16_Env, 1},
     {"_plant_cohort_schedule_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16__FF16_Env, 1},
     {"_plant_make_cohort_schedule__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16__FF16_Env, 1},
+    {"_plant_cohort_schedule_max_time_default__Parameters___FF16bg__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___FF16bg__FF16_Env, 1},
+    {"_plant_cohort_schedule_default__Parameters___FF16bg__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16bg__FF16_Env, 1},
+    {"_plant_make_cohort_schedule__Parameters___FF16bg__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16bg__FF16_Env, 1},
     {"_plant_cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env, 1},
     {"_plant_cohort_schedule_default__Parameters___FF16r__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16r__FF16_Env, 1},
     {"_plant_make_cohort_schedule__Parameters___FF16r__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16r__FF16_Env, 1},
