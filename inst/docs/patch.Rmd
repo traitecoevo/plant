@@ -258,6 +258,7 @@ lines(t2, lai2_1, col=cols[[1]])
 # Species 2 LAI (blue)
 lines(t2, lai2_2, col=cols[[2]])
 ```
+
 <!-- TODO: Introduce meta populations:
 
 To find the average value over the metapopulation we weight by patch abundance:
@@ -282,3 +283,43 @@ axis(4, at=lai2_2_av, tck=0.1, col.ticks=cols[[2]], labels=NA)
 axis(1, at=108, labels="Av")
 ```
 -->
+
+# Appendix - `ggplot` example
+
+```{r}
+#' A standard plot for density weighted cohort trajectories
+#'
+#' Parameters:
+#'  - result: the output of `run_scm_collect`
+#'  - threshold: lower bound on density
+#' 
+#' Requires:
+#'  - ggplot2
+#'  - dplyr
+
+patch <- function(result, threshold = 1e-3) {
+
+  # Unpack state and density
+  t <- result$time
+  h <- result$species[[1]]["height", , ]
+  d <- result$species[[1]]["log_density", , ]
+  n <- ncol(d)
+  
+  # Convert to long format
+  df <- data.frame(cohort = rep(1:n, each = length(t)),
+                   time = rep(t, times = n),
+                   height = as.vector(h),
+                   log_density = as.vector(d)) %>%
+    mutate(density = exp(log_density)) 
+    filter(!is.na(density))
+  
+  # Plot with densities
+  ggplot(df, aes(x = time, y = height,
+                 group = cohort, alpha = density)) +
+    geom_line() + 
+    labs(x = "Time (years)",
+         y = "Height (m)",
+         alpha = "Density") +
+    theme_bw()
+}
+```
