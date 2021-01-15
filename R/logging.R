@@ -65,11 +65,12 @@ make_plant_format_log_entry <- function(colour) {
 ##' errors?  By default (and in contrast to \code{loggr::log_file}
 ##' these are disabled here.
 ##' @export
-plant_log_console <- function(...,
+plant_log_console <- function(file_name="console",
                               .message=FALSE,
                               .warning=FALSE,
-                              .error=FALSE) {
-  loggr::log_file(file_name="console", ...,
+                              .error=FALSE,
+                              ...) {
+  loggr::log_file(file_name, ...,
                   .message=.message,
                   .warning=.warning,
                   .error=.error,
