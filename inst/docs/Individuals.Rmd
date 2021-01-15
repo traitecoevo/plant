@@ -1,5 +1,5 @@
 ---
-title: "Plant-level properties"
+title: "Individual-level properties"
 author:
 - Rich FitzJohn
 - Daniel Falster
@@ -238,9 +238,10 @@ Then we can use the `params` object to set a low LMA ("fast growth") species:
 ```{r }
 s1 <- strategy(trait_matrix(0.0825,  "lma"), params)
 ```
+
 and a high LMA ("low growth") species:
 ```{r }
-s2 <- strategy(trait_matrix(0.2625, "lma"), p)
+s2 <- strategy(trait_matrix(0.2625, "lma"), params)
 ```
 
 In the FF16 model, LMA is related to leaf turnover (`k_l`) and
@@ -249,9 +250,10 @@ the ratio of dark respiration to leaf mass (`r_l`):
 lapply(list(s1, s2), `[`, c("lma", "k_l", "r_l"))
 
 ```
+
 We use these specific strategies to create Individuals:
 ```{r }
-indiv1 <- FF16_Individual(s1)
+indv1 <- FF16_Individual(s1)
 indv2 <- FF16_Individual(s2)
 ```
 
