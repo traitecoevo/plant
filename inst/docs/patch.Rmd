@@ -10,198 +10,211 @@ output:
     number_sections: false
 ---
 
-The aim here is to use plant to investigate dynamics of plants
-within a single patch.
+# Background
+
+Having explored the Individual class in (Individual-level properties)[https://traitecoevo.github.io/plant/articles/individuals.html], the aim here is to use `plant` to investigate dynamics of many individuals within a single patch. First we instantiate the basic parameters of the `FF16` strategy, particularly the probability that a patch is disturbed (via `disturbance_mean_interval`):
 
 ```{r}
 library(plant)
 
-p0 <- scm_base_parameters("FF16")
-p0$control$equilibrium_nsteps <- 30
-p0$control$equilibrium_solver_name <- "hybrid"
-p0$disturbance_mean_interval <- 30.0
+params <- scm_base_parameters("FF16")
+
+params$disturbance_mean_interval <- 30.0
 ```
 
-First, with a single species:
+# One patch
+
+Next, we configure a patch containing a single species:
 
 ```{r}
-p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FALSE)
+patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
 ```
 
-<!-- TODO: should really start here using a patch with fixed seed rain -->
-
-Run everything out to equilibrium:
+<!-- TODO: rename SCM to solve_characteristic_method (issue: \#206) -->
+and run the `plant` characteristic solver to step the equations defining cohorts of individuals forward in time:
 
 ```{r}
-p1_eq <- equilibrium_seed_rain(p1)
+result <- run_scm_collect(patch)
 ```
 
-This collects information about the state of the system at every
-ODE step:
+#
+
+`run_scm_collect` collects information about the state of the system at every ODE step:
 
 ```{r}
-data1 <- run_scm_collect(p1_eq)
+names(result)
 ```
 
 Entries are:
   * time: time of the step
-  * species: a list with the state of each species (in this case
-    there is only 1).  The contents is a 3d array of variable /
-    time step / cohort
-  * light_env: a list with the points of the light environment
-    spline (height / canopy openness)
-  * seed_rain: output seed rain
-  * p: input parameters
+  * species: a list with the state of each species (in this case there is only 1).  The contents is a 3D array of variable /
+    time step / cohort 
+  * env: a list containing 2D splines that describe the competitive environment of the patch at each step (e.g a matrix of canopy openness at a given height in the FF16 strategy)
+  * seed_rain: the seed rain output from the patch during it's development
+  * p: a copy of the input parameters
+
+First we explore patch state:
 
 ```{r}
-names(data1)
-
-t <- data1$time
-h <- data1$species[[1]]["height", , ]
+t <- result$time
+h <- result$species[[1]]["height", , ]
 ```
 
-h here is two of the three dimensions of the state array; each row
-is a *time* and each column is a *cohort*.
+here `h` is two of the three dimensions of the state array; each row is a *time* and each column is a *cohort*:
 
 ```{r}
 dim(h)
 ```
-
-So the ith row is the height of all extant cohorts in the patch
-(some are NA if they have not been introduced yet)
+While the solver ran the patch ODEs for 142 steps, the time points are not evenly distributed:
 
 ```{r}
-h[150, ]
+signif(t[c(1, 10, 50, 100, 142)], 1)
 ```
+higher temporal resolution is needed to resolve early patch development, where small differences are magnified through competitive feedbacks. Our patch ran for 105 yrs, but the solver spent half the recorded steps exploring the first year alone. More on timing can be found in the [cohort scheduling algorithm](https://traitecoevo.github.io/plant/articles/cohort_spacing.html).
 
-And the jth column is the heights of a particular cohort, NA if
-that time is before it was introduced:
+Cohorts are introduced at each time-step, except the last. At time step $i$, the rows of `h` record the height of all previously introduced cohorts in the patch:
 
 ```{r}
-h[, 60]
+h[10, 1:10]
+```
+with `NA` for cohorts that have not yet been introduced:
+```{r}
+h[10, 11]
 ```
 
-With a single species there is always one more time step than
-cohort introduction, with the last two steps having the same number
-of cohorts.  With multiple species there can be more time steps
-than cohort introductions, as we'll record data every cohort
-introduction for *either* species, which will be refined to
-different schedules.
+Similarly, the $j$th column of `h` records the heights of a particular cohort: 
 
-Individual plants increase in height with respect to time, but
-because they are competing the growth rate depends on the amount of
-shading above them, in addition to size dependent growth rate (see
-vignette:plant)
+```{r}
+h[10:19, 10]
+```
+with `NA` at time steps before it was introduced:
+```{r}
+sum(is.na(h[, 10]))
+```
+
+With a single species there is always one more time step than cohort introduction, with the last two steps having the same number
+of cohorts. With multiple species there can be more time steps than cohort introductions, as we'll record data every cohort
+introduction for *either* species, each of which will be refined to different schedules.
+
+In the `FF16` strategy, Individuals increase in height with respect to time, but because they are competing the growth rate depends on the state of the environment (e.g. the amount of shading above an Individual's canopy), in addition to size dependent growth.
+
+<!-- TODO: Dead link- "(see vignette:plant)" -->
+
+We can plot the trajectories of cohorts developing within a patch over time:
 
 ```{r}
 matplot(t, h, lty=1, col=make_transparent("black", 0.25), type="l",
         las=1, xlab="Time (years)", ylab="Height (m)")
 ```
 
-The light environment is stored over each time step:
+The light environment is stored over each time step, meaning that we can also plot how it changes during patch development:
 
 ```{r}
+# Set limits
 xlim <- c(0, 1.1)
-ylim <- range(data1$light_env[[length(data1$light_env)]][, "height"])
-plot(NA, xlim=xlim, ylim=ylim, las=1,
-     xlab="Canopy openness", ylab="Height (m)")
-for (i in data1$light_env) {
+ylim <- range(result$env[[length(result$env)]][, "height"])
+
+# Draw the spline at each step
+plot(NA, xlim=xlim, ylim=ylim, las=1, xlab="Canopy openness", ylab="Height (m)")
+for (i in result$env) {
   lines(i[, "canopy_openness"], i[, "height"], col="grey")
 }
 
+# Add labels at specific times
 blues <- c("#DEEBF7", "#C6DBEF", "#9ECAE1", "#6BAED6",
            "#4292C6", "#2171B5", "#08519C", "#08306B")
-times <- c(5, 10, 20, 40, data1$time[[length(data1$time)]])
+
+times <- c(5, 10, 20, 40, result$time[[length(result$time)]])
 cols <- colorRampPalette(blues[-(1:2)])(length(times))
+
 for (i in seq_along(times)) {
-  x <- data1$light_env[[which.min(abs(times[[i]] - data1$time))]]
+  x <- result$env[[which.min(abs(times[[i]] - result$time))]]
   lines(x[, "canopy_openness"], x[, "height"], col=cols[[i]])
+
   y <- x[nrow(x), "height"]
   points(1, y, pch=19, col=cols[[i]])
   text(1 + strwidth("x"), y, paste(round(times[[i]]), "years"),
        adj=c(0, 0))
 }
 ```
+initally (bottom right) all cohorts in the patch are short and the canopy is rather open (close to one). In later stages of patch development, we see that only the tallest individuals experience an open canopy. Notably, the canopy openness experienced by shorter individuals fluctuates as older individuals die and canopy gaps are filled in.
 
-The amount of light at the ground level is perhaps the most
-relevant metric:
+This is best shown by plotting the canopy openness at ground level over time:
 
 ```{r}
-y <- sapply(data1$light_env, function(x) x[1, "canopy_openness"])
-plot(data1$time, y, type="l", las=1,
+y <- sapply(result$env, function(x) x[1, "canopy_openness"])
+plot(result$time, y, type="l", las=1,
      ylim=c(0, 1), xlab="Time (years)", ylab="Canopy openness")
 ```
 
-The waves here are due to rounds of recruitment and self thinning.
-Mortality is not instantaneous, so species recruit to a density
-that generates a canopy that they cannot survive under.
+Again, the waves here are show rounds of recruitment and self thinning. Mortality is not instantaneous, so monocultures (patches of one species) recruit to a density that generates a canopy that they cannot survive under.
 
-Leaf area index is the driver that controls the canopy openness
-(via the light extinction coefficient `p1$k_I`, following
-exponential extinction).  This is not returned by
-`run_scm_collect` so instead we need to rebuild patches using
+# Multiple patches
+
+In the `FF16` strategy, leaf area index (LAI) is the driver that controls the canopy openness (via the light extinction coefficient `params$k_I`, following exponential extinction).  This is not returned by `run_scm_collect` so instead we need to rebuild patches using
 `scm_patch`.
 
 ```{r}
-patches1 <- lapply(seq_along(data1$time), scm_patch, data1)
+patches <- lapply(seq_along(result$time), scm_patch, result)
+length(patches)
 ```
-
-Each element of the resulting list is a Patch object, the same as
-was observed when running the model.
+Each element of the resulting list is a Patch object, the same as was observed when running the model, but at each time step. This allows us to interrogate (via the internal functions of the Patch), rather than exploring summary results. Here we calculate the competition experienced at ground level (height = 0) in terms of LAI:
 
 ```{r}
-lai1 <- sapply(patches1, function(x) x$area_leaf_above(0.0))
-plot(data1$time, lai1, type="l", las=1, xlab="Time (years)",
-     ylab="Leaf area index")
+lai <- sapply(patches, function(x) x$compute_competition(0.0))
+plot(result$time, lai, type="l", las=1, xlab="Time (years)", ylab="Leaf area index")
 ```
 
-If multiple species are grown at once, they compete with one
-another.  This adds a second species -- with a higher lma value
-than the first species -- to the population and runs them until
-they reach equilibrium seed rain at the metapopulation level.
+# Multi-species patches
+
+If multiple species are grown at once, they compete with one another.  This adds a second species -- with a higher leaf mass area (LMA) than the first species -- to the population (see [Comparing Indivudals][https://traitecoevo.github.io/plant/articles/individuals.html#comparing-individuals] for a refresher on species traits)
 
 ```{r}
-p2 <- expand_parameters(trait_matrix(0.2625, "lma"), p1, FALSE)
-p2_eq <- equilibrium_seed_rain(p2)
+patch_2sp <- expand_parameters(trait_matrix(0.2625, "lma"), patch, mutant = FALSE)
 ```
 
 Then collect the patch-level dynamics:
 
 ```{r}
-data2 <- run_scm_collect(p2_eq)
+result_2sp <- run_scm_collect(patch_2sp)
+```
 
-t2 <- data2$time
-h1 <- data2$species[[1]]["height", , ]
-h2 <- data2$species[[2]]["height", , ]
+We can plot the development of each species within the patch:
+```{r}
+t2 <- result_2sp$time
+h1 <- result_2sp$species[[1]]["height", , ]
+h2 <- result_2sp$species[[2]]["height", , ]
 
 cols <- c("#e34a33", "#045a8d")
+
+# Species 1 - red
 matplot(t2, h1, lty=1, col=make_transparent(cols[[1]], .25), type="l",
         las=1, xlab="Time (years)", ylab="Height (m)")
+
+# Species 2 - blue
 matlines(t2, h2, lty=1, col=make_transparent(cols[[2]], .25))
 ```
 
-Alternatively we can compare the growth of species 1 by itself or
-with another species:
+Alternatively we can compare the growth of the low LMA species (red) in a patch by itself or with another species:
 
 ```{r}
+# Monoculture patch (black)
 matplot(t, h, lty=1, col=make_transparent("black", .25), type="l",
         las=1, xlab="Time (years)", ylab="Height (m)")
+
+# Two species patch (red)
 matlines(t2, h1, lty=1, col=make_transparent(cols[[1]], .25))
 ```
 
-This shows that the additional species does not affect the growth
-of the *initial* wave of cohorts (because the second species is
-growing more slowly and is shorter than the first species), but
-subsequent waves are slowed or eliminated.
+This shows that the additional species does not significantly affect the growth of the *initial* wave of cohorts (because the second species is growing more slowly and is shorter than the first species). However, once canopy closure has occurred (around year 5), subsequent waves of arriving cohorts are competitively suppressed, slowed or eliminated.
 
-The dynamics are easier to see when coded by cohort density (some
-of the lines here represent cohorts at close to zero density).
+The dynamics are easier to see when cohort trajectories are weighted by cohort density (some of the lines here represent cohorts at close to zero density). Log density is available as a characteristic variable of all `plant` strategies:
 
-Relativise the log densities onto (-4, max)
 
 ```{r}
-d1 <- data2$species[[1]]["log_density", , ]
-d2 <- data2$species[[2]]["log_density", , ]
+# Relativise the log densities onto (-4, max)
+d1 <- result_2sp$species[[1]]["log_density", , ]
+d2 <- result_2sp$species[[2]]["log_density", , ]
 rel <- function(x, xmin) {
   x[x < xmin] <- xmin
   xmax <- max(x, na.rm=TRUE)
@@ -209,13 +222,10 @@ rel <- function(x, xmin) {
 }
 rd1 <- rel(d1, -4)
 rd2 <- rel(d2, -4)
-```
 
-R doesn't seem to offer a way to plot lines that vary in colour, so
-this is quite roundabout using `segments`, shaded by the density at
-the first part of the line segment:
-
-```{r}
+# R doesn't seem to offer a way to plot lines that vary in colour, so
+# this is quite roundabout using `segments`, shaded by the density at
+# the first part of the line segment:
 n <- length(t2)
 x <- matrix(rep(t2, ncol(h1)), nrow(h1))
 col1 <- matrix(make_transparent(cols[[1]], rd1), nrow(d1))
@@ -225,30 +235,36 @@ plot(NA, xlim=range(t2), ylim=range(h1, na.rm=TRUE),
 segments(x[-1, ], h2[-1, ], x[-n, ], h2[-n, ], col=col2[-n, ], lend="butt")
 segments(x[-1, ], h1[-1, ], x[-n, ], h1[-n, ], col=col1[-n, ], lend="butt")
 ```
+Now we see that the high LMA species (blue) becomes dominant, excluding the low LMA species (red) from the canopy.
 
-Then, the total leaf area:
 
-Each element of the resulting list is a Patch object, the same as
-was observed when running the model.
+The changing intensity of competition can be shown as the total leaf area of each species:
+
 
 ```{r}
-patches2 <- lapply(seq_along(data2$time), scm_patch, data2)
-lai2 <- sapply(patches2, function(x) x$area_leaf_above(0.0))
+patches2 <- lapply(seq_along(result_2sp$time), scm_patch, result_2sp)
+lai2 <- sapply(patches2, function(x) x$compute_competition(0.0))
 
-lai2_1 <- sapply(patches2, function(x) x$species[[1]]$area_leaf_above(0.0))
-lai2_2 <- sapply(patches2, function(x) x$species[[2]]$area_leaf_above(0.0))
+lai2_1 <- sapply(patches2, function(x) x$species[[1]]$compute_competition(0.0))
+lai2_2 <- sapply(patches2, function(x) x$species[[2]]$compute_competition(0.0))
 
+# Patch total LAI (dashed)
 plot(t2, lai2, type="l", las=1, lty=2,
      xlab="Time (years)", ylab="Leaf area index")
+
+# Species 1 LAI (red)
 lines(t2, lai2_1, col=cols[[1]])
+
+# Species 2 LAI (blue)
 lines(t2, lai2_2, col=cols[[2]])
 ```
+<!-- TODO: Introduce meta populations:
 
 To find the average value over the metapopulation we weight by patch abundance:
 
 ```{r}
 metapopulation <- function(x){
-  plant:::trapezium(t2, x*data2$patch_density)
+  plant:::trapezium(t2, x*result_2sp$patch_density)
 }
 
 lai2_av <- metapopulation(lai2)
@@ -262,6 +278,7 @@ lines(t2, lai2_2, col=cols[[2]])
 
 axis(4, at=lai2_av,   tck=0.1, lty = 2, labels=NA)
 axis(4, at=lai2_1_av, tck=0.1, col.ticks=cols[[1]], labels=NA)
-axis(4, at=lai2_2_av, tck=0.1, col.ticks=cols[[1]], labels=NA)
+axis(4, at=lai2_2_av, tck=0.1, col.ticks=cols[[2]], labels=NA)
 axis(1, at=108, labels="Av")
 ```
+-->
