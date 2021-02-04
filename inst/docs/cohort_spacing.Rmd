@@ -10,41 +10,77 @@ output:
     number_sections: false
 ---
 
-This vignette shows some details of cohort splitting.  It's
-probably not very interesting to most people, only those
+# Background
+
+As described in the [demography vignette](https://traitecoevo.github.io/plant/articles/demography.html#approximation-of-size-density-distribution-via-the-scm),
+the spacing of cohorts can affect the accuracy of integration over the
+size-density distribution. `plant` uses an adaptive algorithm to build an 
+appropriately spaced cohort schedule with the desired accuracy at every time 
+point, using as few cohorts as possible.
+
+The `build_schedule` function takes an
+initial vector of introduction times and considers for each cohort
+whether removing that cohort causes the error introduced when
+integrating two specified functions over the size-density distribution to jump
+over the allowable error threshold `schedule_eps`. This
+calculation is repeated for every time step in the development of the
+patch. A new cohort is introduced immediately prior to any cohort
+failing these tests. The dynamics of the patch are
+then simulated again and the process is repeated, until all integrations at
+all time points have an error below the tolerable limit
+`schedule_eps`. Decreasing `schedule_eps` demands higher
+accuracy from the solver, and thus increases the number of cohorts being
+introduced. Note that we are assessing whether removing an existing cohort
+causes the error to jump above the threshold limit, and using this to decide
+whether an extra cohort -- in addition to the one used in the test --
+should be introduced. Thus, the actual error is likely to
+be lower than, but at most equal to, `schedule_eps`.
+
+This vignette shows some details of cohort splitting, most of which happens 
+automatically. It's probably not very interesting to most people, only those
 interested in knowing how the SCM technique works in detail.  It also uses a lot
 of non-exported, non-documented functions from plant so you'll see
-a lot of `plant:::` prefixes.
+a lot of `plant:::` prefixes. 
 
-```{r}
-library(plant)
-library(parallel)
 
-p0 <- scm_base_parameters("FF16")
-p <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FALSE)
-p$seed_rain <- 20 # close to equilibrium
-```
+# Cohort introduction times
+
+<!-- TODO: elaborate on why concentrating concentrating early helps -->
 
 The default cohort introduction times are designed to concentrate
 cohort introductions onto earlier times, based on empirical
 patterns of cohort refining:
 
 ```{r}
-t1 <- p$cohort_schedule_times[[1]]
-plot(t1, cex=.2, pch=19, ylab="Time (years)", las=1)
+library(plant)
+library(parallel)
+
+params <- scm_base_parameters("FF16")
+patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
+
+times_default <- patch$cohort_schedule_times[[1]]
+plot(times_default, cex=.2, pch=19, ylab="Time (years)", las=1)
 ```
+<!-- TODO: explain how introducing two species together reduces work -->
 
 The actual differences are stepped in order to increase the chance
 that cohorts from different species will be introduced at the same
 time and reduce the total amount of work being done.
 
 ```{r}
-plot(diff(t1), log="y", pch=19, cex=.2,
-     ylab="Time difference (years)", las=1)
+plot(diff(times_default), pch=19, cex=.2, ylab="Time difference (years)", las=1)
 ```
 
-We can create more refined schedules by interleaving points between
-these points:
+
+# Seed rain
+
+We can assess the impact of cohort spacing on integration error by examining
+the cumulative propagule output (e.g. seed rain) of a patch.
+
+Increasing the number of cohorts is expected to increase integration accuracy
+at the expense of more computational effort. We can create more refined schedules
+by interleaving points into the existing schedule:
+
 
 ```{r}
 interleave <- function(x) {
@@ -53,28 +89,69 @@ interleave <- function(x) {
   c(rbind(x, xp))[- 2 * n]
 }
 
-t2 <- interleave(t1)
-t3 <- interleave(t2)
+
+times_med <- interleave(times_default)
+times_high <- interleave(times_med)
+times_xl <- interleave(times_high)
+
+plot(times_default, ylab="Time difference (years)", 
+     xlim = c(1, length(times_high)), las=1, pch = 19, cex=.2,)
+points(times_med, pch=19, cex=.2, las=1, col = "blue")
+points(times_high, pch=19, cex=.2, las=1, col = "red")
 ```
+Each schedule runs for the same duration, but `times_high` has 4x as many cohorts.
+Running a patch with each cohort schedule allows us to compare the propagule 
+outputs:
+
+
+```{r}
+run_with_times <- function(p, t) {
+  p$cohort_schedule_times[[1]] <- t
+  
+  start <- Sys.time()
+  seed_rain <- run_scm(p)$seed_rains
+  print(paste("Time to solve:", round(Sys.time() - start, 2)))
+  
+  return(seed_rain)
+}
+
+seed_rain_default <- run_with_times(p, times_default)
+seed_rain_med <- run_with_times(p, times_med)
+seed_rain_high <- run_with_times(p, times_high)
+seed_rain_xl <- run_with_times(p, times_xl)
+```
+Quadrupling the number of cohorts results in nearly a 6x increase in runtime.
+
+```{r}
+plot(x = c(length(times_default), length(times_med), length(times_high), length(times_xl)),
+     y = c(seed_rain_default, seed_rain_med, seed_rain_high, seed_rain_xl),
+     xlab="Number of cohort introductions", ylab="Seed rain", las=1)
+```
+Seed rain increases as cohorts are introduced more finely, though at a potentially saturating rate. 
+
+
+
+we integrate
+two different functions over the size-density distribution, within the function
+`run_scm_error`. We then assess how much removing the focal
+cohort increases the error in these two integrations. The first
+integration, performed by the function `area_leaf_error`, determines
+how much the removal of the focal cohort increases the error in the
+estimate of the total leaf area in the patch. The second integration,
+performed by the function `seed_rain_error`, determines how much
+the removal of the focal cohort increases the error in the estimate of the total seed
+production from the patch. The relative error in each integration is then
+calculated using the `local_error_integration` function.
+
+
+
 
 Consider running the SCM and computing seed rain at the end; this
 is one of the key outputs from the model so a reasonable one to
 look for differences in.
 
-```{r}
-run_with_times <- function(p, t) {
-  p$cohort_schedule_times[[1]] <- t
-  run_scm(p)$seed_rains
-}
 
-sr_1 <- run_with_times(p, t1)
-sr_2 <- run_with_times(p, t2)
-sr_3 <- run_with_times(p, t3)
-```
 
-Seed rain increases as cohorts are introduced more finely,
-though at a potentially saturating rate.  We're doing lots more
-work at the more refined end!
 
 ```{r}
 sr <- c(sr_1, sr_2, sr_3)
@@ -86,8 +163,7 @@ The differences in seed rain are not actually that striking
 some runs can be more, and the *variation* creates instabilities.
 
 ```{r}
-plot(c(length(t1), length(t2), length(t3)), sr,
-     las=1, xlab="Number of cohort introductions", ylab="Seed rain")
+
 ```
 
 Where is the fitness difference coming from?
@@ -108,6 +184,8 @@ run_with_insert <- function(i, p, t) {
 The internal function `plant:::run_scm_error` runs the SCM and
 computes errors as the integration proceeds; this helps shed some
 light.
+
+<!-- Huh? move below -->
 
 ```{r}
 i <- seq_len(length(t1) - 1)
@@ -177,10 +255,10 @@ f <- function(e, h) {
   y[j] <- i$eval(h[j])
   y
 }
-hmax <- max(dat1$light_env[[length(dat1$light_env)]][, "height"])
+hmax <- max(dat1$env[[length(dat1$env)]][, "height"])
 h <- seq(0, hmax, length.out=201)
-y1 <- sapply(dat1$light_env, f, h)
-y2 <- sapply(dat2$light_env, f, h)[, -(j[[1]] + 1L)]
+y1 <- sapply(dat1$env, f, h)
+y2 <- sapply(dat2$env, f, h)[, -(j[[1]] + 1L)]
 dy <- t(y2 - y1)
 dy[abs(dy) < 1e-10] <- NA
 ```
