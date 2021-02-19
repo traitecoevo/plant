@@ -33,7 +33,6 @@ Suggests:
     parallel,
     RcppR6 (>= 0.2.3),
     knitr,
-    plant.ml,
     rmarkdown,
     bench
 VignetteBuilder: knitr
