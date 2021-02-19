@@ -54,6 +54,8 @@ targets:
     knitr: vignette
   parameters.md:
     knitr: vignette
+  strategy.md:
+    knitr: vignette
 
   install_vignettes:
     command: copy_assets_figures()
@@ -68,6 +70,7 @@ targets:
       - vignettes/cohort_spacing.Rmd
       - vignettes/developer_notes.Rmd
       - vignettes/parameters.Rmd
+      - vignettes/strategy.Rmd
 
   vignettes/individuals.Rmd:
     command: file.copy("individuals.md", target_name, overwrite=TRUE)
@@ -89,3 +92,5 @@ targets:
     command: file.copy("demography.Rmd", target_name, overwrite=TRUE)
   vignettes/physiology.Rmd:
     command: file.copy("physiology.Rmd", target_name, overwrite=TRUE)
+  vignettes/strategy.Rmd:
+    command: file.copy("strategy.Rmd", target_name, overwrite=TRUE)

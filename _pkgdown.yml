@@ -12,7 +12,7 @@ navbar:
     - text: "Home"
       icon: fa-home
       href: index.html
-    - text: "Getting Started" 
+    - text: "Getting Started"
       icon: fa-tree
       href: articles/plant.html
     - text: "Reference"
@@ -31,7 +31,7 @@ navbar:
         - text: "Individual plants"
           href: articles/individuals.html
         - text: "Patches of competing plants"
-          href: articles/patch.html    
+          href: articles/patch.html
         - text: "Finding demographic equilibrium"
           href: articles/equilibrium.html
         - text: "Emergent properties of patches"
@@ -42,6 +42,8 @@ navbar:
           href: articles/cohort_spacing.html
         - text: "Changing parameters"
           href: articles/parameters.html
+        - text: "Implementing a new strategy"
+          href: articles/strategy.html
     - text: "Developer Notes"
       icon: fa-terminal
       href: articles/developer_notes.html
