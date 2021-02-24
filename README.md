@@ -26,38 +26,47 @@ If you are interested in developing plant you should read the [Developer Notes](
 
 ## Installation
 
-You must be using R 3.3.0 or newer. At this stage the package is not on CRAN. You're options for installing are described below.
+**Requirements**
 
-Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, as do standard linux Ubuntu 12.04 and 14.04). On Windows machines you will need to install [Rtools](http://cran.r-project.org/bin/windows/Rtools/). When I tried this in [Rstudio](https://www.rstudio.com/), the program [automagically](https://en.oxforddictionaries.com/definition/automagically) sensed the absence of a compiler and asked if I wanted to install Rtools. Click `Yes`!
+- You must be using R 3.3.0 or newer. At this stage the package is not on CRAN. You're options for installing are described below.
 
-**Option 1, using `remotes::install_github`**
+- Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, as do standard linux Ubuntu 12.04 and 14.04). On Windows machines you will need to install [Rtools](http://cran.r-project.org/bin/windows/Rtools/). When I tried this in [Rstudio](https://www.rstudio.com/), the program [automagically](https://en.oxforddictionaries.com/definition/automagically) sensed the absence of a compiler and asked if I wanted to install Rtools. Click `Yes`!
 
-(install `remotes` with `install.packages("remotes")`)
-
-The `plant` package can be installed direct from github using the [`remotes`](https://cran.r-project.org/web/packages/remotes/index.html) package. `plant` also requires the packages `loggr` and `RcppR6` packages. Install those with
+- The `plant` package can be installed direct from github using the [`remotes`](https://cran.r-project.org/web/packages/remotes/index.html) package. `plant` also requires the packages `loggr` and `RcppR6` packages. Install those with
 
 ```r
+install.packages("remotes")
 remotes::install_github("smbache/loggr", dependencies=TRUE)
 remotes::install_github("richfitz/RcppR6", dependencies=TRUE)
 ```
 
-Then install plant:
-
-```r
-remotes::install_github("traitecoevo/plant", dependencies=TRUE)
-```
-
-**Option 2, download and install locally**
-
-If installing locally you will still need to install the `loggr` and `RcppR6` packages. Install using `remotes::install_github` as above, or alternatively do as follows.
-
-Additionally install other dependencies from CRAN:
+- `plant` also depends on several packages available from CRAN. You can either install these yourself or let `remotes` handle if following installation **Option 1**. Package management in R can sometimes be messy, if you run into errors please try installing these pacakges one at a time.
 
 ```r
 install.packages(c("Rcpp", "R6", "crayon", "nleqslv", "BB" ,"BH"))
 ``` 
 
-Then download a zip file from github of the dependencies [RcppR6](https://github.com/richfitz/RcppR6/archive/master.zip) and [loggr](https://github.com/smbache/loggr/archive/master.zip) (if needed), plus [plant](https://github.com/traitecoevo/plant/archive/master.zip). 
+
+**Option 1, using `remotes::install_github`**
+
+```r
+remotes::install_github("traitecoevo/plant", dependencies=TRUE)
+```
+
+or if you have already installed the `plant` dependencies
+
+```r
+remotes::install_github("traitecoevo/plant")
+```
+
+
+**Option 2, download and install locally**
+
+If installing locally you will still need to install the `loggr` and `RcppR6` packages. Install using `remotes::install_github` as above or, alternatively, download a zip file from github:
+
+- [RcppR6](https://github.com/richfitz/RcppR6/archive/master.zip)
+- [loggr](https://github.com/smbache/loggr/archive/master.zip) (if needed)
+- [plant](https://github.com/traitecoevo/plant/archive/master.zip). 
 
 Unzip these archives and then for each package run the command
 
@@ -67,7 +76,8 @@ install.packages("path_to_package", repos = NULL, type="source")
 ```
 where `path_to_package` is the folder for each package, e.g. `~/Downloads/plant-master`
 
-**Installing different versions** 
+
+**Option 3, installing different versions** 
 
 To install a specific (older) release, decide for the version number that you want to install in https://github.com/traitecoevo/plant/releases  e.g.
 
@@ -75,7 +85,29 @@ To install a specific (older) release, decide for the version number that you wa
 remotes::install_github("traitecoevo/plant", ref = "v1.0.0", dependencies=TRUE)
 ```
 
-with `"v1.0.0"` replaced by the appropriate version number.
+with `"v1.0.0"` replaced by the appropriate version number. Note, the latest version of `plant` resides on the `develop` branch, which is sporadically relased. `plant` follows [semantic versioning](https://semver.org/) meaning that major version indicate a potential break in backward compatibility.
+
+**Option 4, building from source**
+
+If familiar with [git](https://git-scm.com/) you might find it easiest to build `plant` directly from the source code. This is most useful if developing new models or strategies, or to contribute new features.
+
+First, clone the `plant` repository
+
+```
+git clone https://github.com/traitecoevo/plant
+```
+
+then in the terminal or command line
+
+```
+cd plant
+make
+```
+
+If using Rstudio, you might like to use `devtools`
+```
+devtools::load_all('path/to/plant')
+```
 
 ## Usage
 

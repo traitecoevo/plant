@@ -11,6 +11,10 @@ output:
       smooth_scroll: true
     theme: united
 ---
+# 🚧 Under construction 🚧
+
+This vignette is still under active development. Some parts may appear incomplete or refer to a previous version of `plant`. We include it as reference material for advanced users looking to develop their own modules. Please raise issues or pull requests any time you encounter a mistake or area for improvement.
+
 
 # Background
 
@@ -58,7 +62,7 @@ Maps a gradient of environmental conditions onto a monotonic spline bounded betw
 #### SCM
 Solves for the trajectories of different cohorts along all defined characteristics.
 
-\**likely only need to edit these two*
+\**When developing your own strategy, you'll likely only need to create a Strategy and an Environment*
 
 ## R Interface
 
@@ -500,11 +504,7 @@ matplot(data1$time, data1$species[[1]]["height", , ],
 
 We changed disturbance from 30 to 200 yrs.
 
-## Exploring results
+<!-- ## Exploring results
 compare plant vs graphs in paper
   - age, size density distn
-  - see: plant paper for size dstn
-
-# Final takeaways
-
-Although `plant` looks complex, pretty straightforward
+  - see: plant paper for size dstn -->

@@ -1,13 +1,13 @@
 ---
 title: "Modelling the demography of plants, patches, and metacommunities"
-author: 
+author:
 - Daniel Falster
 - Ake Brannstrom
 - Ulf Dieckmann
 date: 2016
 bibliography: assets/refs.bib
 csl: assets/methods-in-ecology-and-evolution.csl
-output: 
+output:
   bookdown::html_document2:
     toc: yes
 ---
@@ -355,7 +355,7 @@ which is solved via the IVP
 (\#eq:surv-y0)
 \end{equation}
 
-Survival is then 
+Survival is then
 \begin{equation}
  S_{\rm I} (x, a_0, a) = \exp\left( - y(a) \right).
 (\#eq:surv-SI)
@@ -471,7 +471,7 @@ code ported directly from the [GNU Scientific Library](http://www.gnu.org/softwa
 control parameters for relative and absolute accuracy,
 `ode_tol_rel` and `ode_tol_abs`.
 
-### Approximation of size-density distribution via the characteristic method  {#approximation-of-size-density-distribution-via-the-ebt}
+### Approximation of size-density distribution via the characteristic method  {#approximation-of-size-density-distribution-via-the-scm}
 
 Errors in the approximation of the size-density distribution arise from two sources:
 (i) coarse stepping of cohorts through time and
@@ -500,42 +500,11 @@ directly with the inappropriate spacing of cohorts. Thus, our algorithm aims to 
 appropriately refined schedule, which allows the required integrations to be
 performed with the desired accuracy at every time point. At the same
 time, for reasons of computational efficiency, we want as few cohorts as possible.
-
-A suitable schedule is found using the function `build_schedule`.
-This function takes an
-initial vector of introduction times and considers for each cohort
-whether removing that cohort causes the error introduced when
-integrating two specified functions over the size-density distribution to jump
-over the allowable error threshold `schedule_eps`. This
-calculation is repeated for every time step in the development of the
-patch. A new cohort is introduced immediately prior to any cohort
-failing these tests. The dynamics of the patch are
-then simulated again and the process is repeated, until all integrations at
-all time points have an error below the tolerable limit
-`schedule_eps`. Decreasing `schedule_eps` demands higher
-accuracy from the solver, and thus increases the number of cohorts being
-introduced. Note that we are assessing whether removing an existing cohort
-causes the error to jump above the threshold limit, and using this to decide
-whether an extra cohort -- in addition to the one used in the test --
-should be introduced. Thus, the actual error is likely to
-be lower than, but at most equal to, `schedule_eps`. The general idea
-of adaptively refining the vector of introduction times was first applied
+The general idea of adaptively refining cohort spacing times was first applied
 by @Falster-2011, and was described further by @Falster-2015.
 
-To determine the error associated with a given cohort, we integrate
-two different functions over the size-density distribution, within the function
-`run_scm_error`. We then assess how much removing the focal
-cohort increases the error in these two integrations. The first
-integration, performed by the function `area_leaf_error`, determines
-how much the removal of the focal cohort increases the error in the
-estimate of the total leaf area in the patch. The second integration,
-performed by the function `seed_rain_error`, determines how much
-the removal of the focal cohort increases the error in the estimate of the total seed
-production from the patch. The relative error in each integration is then
-calculated using the `local_error_integration` function.
-
 For a worked example illustrating the `build_schedule` function,
-see the section `cohort_spacing` of Appendix S3.
+see the [cohort scheduling vignette](https://traitecoevo.github.io/plant/articles/cohort_spacing.html).
 
 ### Calculation of light environment and influence on assimilation {#calculation-of-light-environment-and-influence-on-assimilation}
 
