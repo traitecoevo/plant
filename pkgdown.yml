@@ -1,16 +1,18 @@
-urls:
-  reference: http://github.com/traitecoevo/plant/reference
-  article: http://github.com/traitecoevo/plant/articles
+pandoc: '2.5'
+pkgdown: 1.6.1
+pkgdown_sha: ~
 articles:
   cohort_spacing: cohort_spacing.html
-  demography: demography.html
   developer_notes: developer_notes.html
   emergent: emergent.html
   equilibrium: equilibrium.html
   fitness: fitness.html
   individuals: individuals.html
-  parameters: parameters.html
   patch: patch.html
-  physiology: physiology.html
   plant: plant.html
+  strategy: strategy.html
+last_built: 2021-02-25T02:32Z
+urls:
+  reference: https://traitecoevo.github.io/plant//reference
+  article: https://traitecoevo.github.io/plant//articles
 
