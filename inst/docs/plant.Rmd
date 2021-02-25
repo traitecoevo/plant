@@ -137,7 +137,7 @@ plot(env)
 If we look at the light environment at the forest floor (height = 0.0) we can see that it varies through time as older cohorts thin out and gaps form
 
 ```{r}
-env_min <- lapply(result$env, function(e) e[1, "canopy_openness"]))
+env_min <- lapply(result$env, function(e) e[1, "canopy_openness"])
 plot(t, env_min)
 ```
 
