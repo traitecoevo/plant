@@ -19,7 +19,7 @@ parameters we'll use.
 ```{r}
 library(plant)
 library(parallel)
-n_cores = min(4, detectCores() - 1)
+n_cores = max(1, detectCores() - 1)
 
 params <- scm_base_parameters("FF16")
 params$control$equilibrium_solver_name <- "hybrid"
@@ -91,9 +91,9 @@ LMA values of 0.0825:
 
 ```{r}
 lma_attr <- 0.0825
-patch_attr <- add_eq(lma_attr, params)
+patch_eq_attr <- add_eq(lma_attr, params)
 
-fitness_attr <- fitness_landscape(lma, patch_attr)
+fitness_attr <- fitness_landscape(lma, patch_eq_attr)
 plot(lma, fitness_attr, log="x", type="l", las=1,
      xlab="Leaf mass per unit leaf area", ylab="Fitness")
 abline(h=0, col="grey")
@@ -106,7 +106,7 @@ resident!
 
 ```{r}
 lma_detail <- trait_matrix(seq_log(lma_attr * 0.95, lma_attr * 1.05, 51), "lma")
-fitness_detail <- fitness_landscape(lma_detail, patch_attr)
+fitness_detail <- fitness_landscape(lma_detail, patch_eq_attr)
 plot(lma_detail, fitness_detail, log="x", type="l", las=1,
      xlab="Leaf mass per unit leaf area", ylab="Fitness")
 abline(h=0, col="grey")
@@ -122,7 +122,7 @@ this point might move substantially as new species are introduced).
 Consider the point of maximum fitness:
 
 ```{r}
-lma_max <- lma[which.max(w1b)]
+lma_max <- lma[which.max(fitness_attr)]
 lma_max
 
 plot(lma, fitness_attr, log="x", type="l", las=1,
@@ -137,7 +137,7 @@ Introducing a new species the point of maximum fitness
 with a fitness gradient that points towards increased LMA.
 
 ```{r}
-patch_eq_max <- add_eq(lma_max, fitness_attr)
+patch_eq_max <- add_eq(lma_max, patch_eq_attr)
 fitness_max <- fitness_landscape(lma, patch_eq_max)
 
 plot(lma, fitness_attr, log="x", type="l", las=1,
