@@ -30,12 +30,14 @@ If you are interested in developing plant you should read the [Developer Notes](
 
 - You must be using R 3.3.0 or newer. At this stage the package is not on CRAN. You're options for installing are described below.
 
+
 - Installation requires a C++11 compatible C compiler (OSX >= 10.10/Yosemite satisfies this, as do standard linux Ubuntu 12.04 and 14.04). On Windows machines you will need to install [Rtools](http://cran.r-project.org/bin/windows/Rtools/). When I tried this in [Rstudio](https://www.rstudio.com/), the program [automagically](https://en.oxforddictionaries.com/definition/automagically) sensed the absence of a compiler and asked if I wanted to install Rtools. Click `Yes`!
 
 - The `plant` package can be installed direct from github using the [`remotes`](https://cran.r-project.org/web/packages/remotes/index.html) package. `plant` also requires the packages `loggr` and `RcppR6` packages. Install those with
 
 ```r
 install.packages("remotes")
+
 remotes::install_github("smbache/loggr", dependencies=TRUE)
 remotes::install_github("richfitz/RcppR6", dependencies=TRUE)
 ```
@@ -43,9 +45,9 @@ remotes::install_github("richfitz/RcppR6", dependencies=TRUE)
 - `plant` also depends on several packages available from CRAN. You can either install these yourself or let `remotes` handle if following installation **Option 1**. Package management in R can sometimes be messy, if you run into errors please try installing these pacakges one at a time.
 
 ```r
+
 install.packages(c("Rcpp", "R6", "crayon", "nleqslv", "BB" ,"BH"))
 ``` 
-
 
 **Option 1, using `remotes::install_github`**
 
@@ -58,7 +60,6 @@ or if you have already installed the `plant` dependencies
 ```r
 remotes::install_github("traitecoevo/plant")
 ```
-
 
 **Option 2, download and install locally**
 
@@ -83,6 +84,7 @@ To install a specific (older) release, decide for the version number that you wa
 
 ```r
 remotes::install_github("traitecoevo/plant", ref = "v1.0.0", dependencies=TRUE)
+
 ```
 
 with `"v1.0.0"` replaced by the appropriate version number. Note, the latest version of `plant` resides on the `develop` branch, which is sporadically relased. `plant` follows [semantic versioning](https://semver.org/) meaning that major version indicate a potential break in backward compatibility.
