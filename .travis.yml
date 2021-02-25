@@ -1,29 +1,43 @@
 language: r
-cache: 
+cache:
   packages: true
   apt: true
 warnings_are_errors: false
-sudo: false
 
 env:
   global:
     - _R_CHECK_FORCE_SUGGESTS_=false
 
-matrix:
-  include:
-    - os: linux
-      dist: trusty
-      env:
-        - R_CODECOV=true
-        - MAKEFLAGS="-j 2"
-    - os: osx
-      latex: false
+branches:
+  except:
+    - gh-pages
+    - remove_plant_plus
+    - scaffolder
+
+r_binary_packages: 
+  - devtools
+  - roxygen2
 
 r_github_packages:
   - richfitz/RcppR6
   - richfitz/grader
   - smbache/loggr
   - jimhester/covr
+      
+jobs:
+  include:
+    - os: linux
+      dist: bionic
+      env:
+        - R_CODECOV=true
+        - MAKEFLAGS="-j 2"
+    - os: osx
+      latex: false
+
+script:
+  - R CMD build .
+  - R CMD check plant*tar.gz --no-tests --no-manual 
+  - Rscript -e 'devtools::install();devtools::test(stop_on_failure=TRUE); plant::run_plant_benchmarks()'
 
 after_success:
   - if [[ "${R_CODECOV}" ]]; then R -e 'covr::coveralls()'; fi
@@ -32,4 +46,4 @@ notifications:
   email:
     on_success: change
     on_failure: change
-  slack: bdkd:DPfom03G2FgVC9z69XMi9g4L
+  slack: traitecoevo:pYviKwrn6lAvBZUOxxktBwcO

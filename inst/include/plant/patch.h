@@ -6,16 +6,19 @@
 #include <plant/species.h>
 #include <plant/ode_interface.h>
 
+using namespace Rcpp;
+
 namespace plant {
 
-template <typename T>
+template <typename T, typename E>
 class Patch {
 public:
   typedef T             strategy_type;
-  typedef Plant<T>      plant_type;
-  typedef Cohort<T>     cohort_type;
-  typedef Species<T>    species_type;
-  typedef Parameters<T> parameters_type;
+  typedef E             environment_type;
+  typedef Individual<T,E>    individual_type;
+  typedef Cohort<T,E>   cohort_type;
+  typedef Species<T,E>  species_type;
+  typedef Parameters<T,E> parameters_type;
 
   Patch(parameters_type p);
 
@@ -26,8 +29,7 @@ public:
   double height_max() const;
 
   // [eqn 11] Canopy openness at `height`
-  double area_leaf_above(double height) const;
-  double canopy_openness(double height) const;
+  double compute_competition(double height) const;
 
   void add_seed(size_t species_index);
   void add_seeds(const std::vector<size_t>& species_index);
@@ -49,13 +51,13 @@ public:
   // * R interface
   // Data accessors:
   parameters_type r_parameters() const {return parameters;}
-  Environment r_environment() const {return environment;}
+  environment_type r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
-  std::vector<double> r_area_leaf_error(size_t species_index) const;
+  std::vector<double> r_competition_effect_error(size_t species_index) const;
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
-                   const std::vector<double>& light_env);
+                   const std::vector<double>& env);
   void r_add_seed(util::index species_index) {
     add_seed(species_index.check_bounds(size()));
   }
@@ -63,44 +65,46 @@ public:
     at(species_index.check_bounds(size()));
   }
   // These are only here because they wrap private functions.
-  void r_compute_light_environment() {compute_light_environment();}
-  void r_compute_vars_phys() {compute_vars_phys();}
+  void r_compute_environment() {compute_environment();}
+  void r_compute_rates() {compute_rates();}
 
 private:
-  void compute_light_environment();
-  void rescale_light_environment();
-  void compute_vars_phys();
+  void compute_environment();
+  void rescale_environment();
+  void compute_rates();
 
   parameters_type parameters;
   std::vector<bool> is_resident;
-  Environment environment;
+  environment_type environment;
   std::vector<species_type> species;
 };
 
-template <typename T>
-Patch<T>::Patch(parameters_type p)
+/* E(p.disturbance_mean_interval, p.seed_rain, p.control) */
+
+template <typename T, typename E>
+Patch<T,E>::Patch(parameters_type p)
   : parameters(p),
-    is_resident(p.is_resident),
-    environment(make_environment(parameters)) {
+    is_resident(p.is_resident) {
   parameters.validate();
+  environment = p.environment;
   for (auto s : parameters.strategies) {
-    species.push_back(Species<T>(s));
+    species.push_back(Species<T,E>(s));
   }
   reset();
 }
 
-template <typename T>
-void Patch<T>::reset() {
+template <typename T, typename E>
+void Patch<T,E>::reset() {
   for (auto& s : species) {
     s.clear();
   }
   environment.clear();
-  compute_light_environment();
-  compute_vars_phys();
+  compute_environment();
+  compute_rates();
 }
 
-template <typename T>
-double Patch<T>::height_max() const {
+template <typename T, typename E>
+double Patch<T,E>::height_max() const {
   double ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
@@ -110,75 +114,77 @@ double Patch<T>::height_max() const {
   return ret;
 }
 
-template <typename T>
-double Patch<T>::area_leaf_above(double height) const {
+template <typename T, typename E>
+double Patch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      tot += species[i].area_leaf_above(height);
+      tot += species[i].compute_competition(height);
     }
   }
   return tot;
 }
 
-template <typename T>
-double Patch<T>::canopy_openness(double height) const {
-  // NOTE: patch_area does not appear in the SCM model formulation;
-  // really we should require that it is 1.0, or drop it entirely.
-  return exp(-parameters.k_I * area_leaf_above(height) /
-             parameters.patch_area);
+template <typename T, typename E>
+std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index) const {
+  const double tot_competition_effect = compute_competition(0.0);
+  return species[species_index].r_competition_effects_error(tot_competition_effect);
 }
 
-template <typename T>
-std::vector<double> Patch<T>::r_area_leaf_error(size_t species_index) const {
-  const double tot_area_leaf = area_leaf_above(0.0);
-  return species[species_index].r_area_leafs_error(tot_area_leaf);
-}
-
-template <typename T>
-void Patch<T>::compute_light_environment() {
+template <typename T, typename E>
+void Patch<T,E>::compute_environment() {
   if (parameters.n_residents() > 0) {
-    auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.compute_light_environment(f, height_max());
+    auto f = [&] (double x) -> double {return compute_competition(x);};
+    environment.compute_environment(f, height_max());
   }
 }
 
-template <typename T>
-void Patch<T>::rescale_light_environment() {
+template <typename T, typename E>
+void Patch<T,E>::rescale_environment() {
   if (parameters.n_residents() > 0) {
-    auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.rescale_light_environment(f, height_max());
+    auto f = [&] (double x) -> double {return compute_competition(x);};
+    environment.rescale_environment(f, height_max());
   }
 }
 
-template <typename T>
-void Patch<T>::compute_vars_phys() {
+template <typename T, typename E>
+void Patch<T,E>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
     environment.set_seed_rain_index(i);
-    species[i].compute_vars_phys(environment);
+    // 1. Specify an inflow rate
+    // 2. Make sure ODE is stepping - water should accumulate linearly
+    // 3. Make sure the soil water state is visible in compute_rates in strategy
+    // 4. Extraction rate is subrated from soil water state
+    
+    // Compute environment rate
+    // Compute rates in cohort, multiply rate per plant by density
+    // sum all cohorts and species in a patch to find the outflow for the patch
+    // subtract total extraction rate from state
+    species[i].compute_rates(environment);
+    //environment.compute_rates();
   }
 }
 
 // TODO: We should only be recomputing the light environment for the
 // points that are below the height of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
-template <typename T>
-void Patch<T>::add_seed(size_t species_index) {
+template <typename T, typename E>
+void Patch<T,E>::add_seed(size_t species_index) {
   species[species_index].add_seed();
   if (parameters.is_resident[species_index]) {
-    compute_light_environment();
+    compute_environment();
   }
 }
 
-template <typename T>
-void Patch<T>::add_seeds(const std::vector<size_t>& species_index) {
+template <typename T, typename E>
+void Patch<T,E>::add_seeds(const std::vector<size_t>& species_index) {
   bool recompute = false;
   for (size_t i : species_index) {
     species[i].add_seed();
     recompute = recompute || parameters.is_resident[i];
   }
   if (recompute) {
-    compute_light_environment();
+    compute_environment();
   }
 }
 
@@ -186,11 +192,11 @@ void Patch<T>::add_seeds(const std::vector<size_t>& species_index) {
 //   time: time
 //   state: vector of ode state; we'll pass an iterator with that in
 //   n: number of *individuals* of each species
-template <typename T>
-void Patch<T>::r_set_state(double time,
+template <typename T, typename E>
+void Patch<T,E>::r_set_state(double time,
                            const std::vector<double>& state,
                            const std::vector<size_t>& n,
-                           const std::vector<double>& light_env) {
+                           const std::vector<double>& env) {
   const size_t n_species = species.size();
   util::check_length(n.size(), n_species);
   reset();
@@ -201,55 +207,48 @@ void Patch<T>::r_set_state(double time,
   }
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
-
-  // See issue #144; this is important as we have to at least refine
-  // the light environment, but doing this is better because it means
-  // that if rescale_usually is on we do get the same light
-  // environment as before.
-  if (light_env.size() % 2 != 0) {
-    util::stop("Expected even number of elements in light environment");
-  }
-  const size_t light_env_n = light_env.size() / 2;
-  auto it = light_env.begin();
-  std::vector<double> light_env_x, light_env_y;
-  std::copy_n(it,               light_env_n, std::back_inserter(light_env_x));
-  std::copy_n(it + light_env_n, light_env_n, std::back_inserter(light_env_y));
-  environment.light_environment.init(light_env_x, light_env_y);
+  environment.r_init_interpolators(env);
 }
 
 // ODE interface
-template <typename T>
-size_t Patch<T>::ode_size() const {
-  return ode::ode_size(species.begin(), species.end());
+template <typename T, typename E>
+size_t Patch<T,E>::ode_size() const {
+  return ode::ode_size(species.begin(), species.end()) + environment.ode_size();
 }
 
-template <typename T>
-double Patch<T>::ode_time() const {
+template <typename T, typename E>
+double Patch<T,E>::ode_time() const {
   return time();
 }
 
-template <typename T>
-ode::const_iterator Patch<T>::set_ode_state(ode::const_iterator it,
+template <typename T, typename E>
+ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                             double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
+  it = environment.set_ode_state(it);
+
   environment.time = time;
-  if (parameters.control.environment_light_rescale_usually) {
-    rescale_light_environment();
+  if (parameters.control.environment_rescale_usually) {
+    rescale_environment();
   } else {
-    compute_light_environment();
+    compute_environment();
   }
-  compute_vars_phys();
+  compute_rates();
   return it;
 }
 
-template <typename T>
-ode::iterator Patch<T>::ode_state(ode::iterator it) const {
-  return ode::ode_state(species.begin(), species.end(), it);
+template <typename T, typename E>
+ode::iterator Patch<T,E>::ode_state(ode::iterator it) const {
+  it = ode::ode_state(species.begin(), species.end(), it);
+  it = environment.ode_state(it);
+  return it;
 }
 
-template <typename T>
-ode::iterator Patch<T>::ode_rates(ode::iterator it) const {
-  return ode::ode_rates(species.begin(), species.end(), it);
+template <typename T, typename E>
+ode::iterator Patch<T,E>::ode_rates(ode::iterator it) const {
+  it = ode::ode_rates(species.begin(), species.end(), it);
+  it = environment.ode_rates(it);
+  return it;
 }
 
 }

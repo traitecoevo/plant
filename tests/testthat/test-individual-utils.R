@@ -1,9 +1,11 @@
-context("Plant utilities")
+context("Individual utilities")
 
 strategy_types <- get_list_of_strategy_types()
+environment_types <- get_list_of_environment_types()
 
 test_that("Default times", {
   for (x in names(strategy_types)) {
+    e <- environment_types[[x]]
     ## This is the original function, from tree1:
     cmp_cohort_introduction_times <- function(max_time, multiplier=0.2,
                                               min_step_size=1e-5,
@@ -32,7 +34,8 @@ test_that("Default times", {
 
 test_that("Cohort schedule max time", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x)()
+    e <- environment_types[[x]]
+    p <- Parameters(x, e)()
     t <- cohort_schedule_max_time_default(p)
     d <- Disturbance(p$disturbance_mean_interval)
     expect_equal(t, d$cdf(p$control$schedule_patch_survival))
@@ -41,7 +44,8 @@ test_that("Cohort schedule max time", {
 
 test_that("Default schedule", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x)(strategies=list(strategy_types[[x]](), strategy_types[[x]]()),
+    e <- environment_types[[x]]
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]](), strategy_types[[x]]()),
       seed_rain=c(pi/2, pi),
       is_resident=c(TRUE, TRUE))
     cohort_schedule <- cohort_schedule_default(p)
@@ -55,23 +59,25 @@ test_that("Default schedule", {
 })
 
 test_that("strategy_list", {
-  for (x in names(strategy_types)) {
-    p <- Parameters(x)()
-    s <- strategy_list(trait_matrix(1, "lma"), p)
+  for (x in c("FF16", "FF16r")) {
+    e <- environment_types[[x]]
+    p <- Parameters(x, e)()
+    s <- strategy_list(trait_matrix(1, "lma"), p, make_hyperpar(x)())
     expect_equal(length(s), 1)
     expect_is(s, "list")
     expect_is(s[[1]], sprintf("%s_Strategy", x))
   }
 })
 
-test_that("plant_list", {
+test_that("individual_list", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x)()
+    e <- environment_types[[x]]
+    p <- Parameters(x, e)()
 
-    obj <- plant_list(trait_matrix(1, "lma"), p)
+    obj <- individual_list(trait_matrix(1, "lma"), p, make_hyperpar(x)())
     expect_equal(length(obj), 1)
     expect_is(obj, "list")
-    expect_is(obj[[1]], "Plant")
-    expect_is(obj[[1]], sprintf("Plant<%s>", x))
+    expect_is(obj[[1]], "Individual")
+    expect_is(obj[[1]], sprintf("Individual<%s,%s>", x, e))
   }
 })

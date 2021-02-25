@@ -1,16 +1,21 @@
 context("StochasticPatchRunner")
 
 strategy_types <- get_list_of_strategy_types()
+environment_types <- get_list_of_environment_types()
 
 test_that("empty", {
   for (x in names(strategy_types)) {
+    e <- environment_types[[x]]
     set.seed(1)
-    p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
                           is_resident=TRUE,
                           control=fast_control())
+    
+    if(grepl("K93", x))
+      p$k_I <- 1e-3
 
-    obj <- StochasticPatchRunner(x)(p)
+    obj <- StochasticPatchRunner(x, e)(p)
     expect_identical(obj$time, 0.0)
 
     sched <- obj$schedule
@@ -37,7 +42,7 @@ test_that("empty", {
     expect_equal(res, 1L)
     expect_identical(obj$time, sched2$all_times[[1]][[2]])
 
-    ode_size <- Plant(x)(strategy_types[[x]]())$ode_size
+    ode_size <- Individual(x, e)(strategy_types[[x]]())$ode_size
     expect_equal(length(obj$patch$ode_state), ode_size)
     expect_equal(obj$patch$size, 1)
 
@@ -47,12 +52,16 @@ test_that("empty", {
 
 test_that("collect", {
   for (x in names(strategy_types)) {
+    e <- environment_types[[x]]
     set.seed(1)
-    p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           seed_rain=5/50,
                           patch_area=50,
                           is_resident=TRUE,
                           control=fast_control())
+    if(grepl("K93", x))
+      p$k_I <- 1e-3
+    
     expect_silent(res <- run_stochastic_collect(p))
     ## TODO: more tests on collect output
 

@@ -1,0 +1,172 @@
+---
+title: "Introduction to the plant model"
+author:
+- Daniel Falster
+output:
+  bookdown::html_document2:
+    toc: yes
+    number_sections: false
+---
+
+# Background
+
+This page contains a brief introduction to get you started with plant. More extensive information and tutorials are available, such as:
+
+**Details of the modelling approaches:**
+
+[Modelling demography of individuals, patches and metapopulations](https://traitecoevo.github.io/plant/articles/demography.html)
+[The `FF16` physiological strategy model](https://traitecoevo.github.io/plant/articles/demography.html)
+
+**Details of using `plant` in R:**
+
+[Individual level properties](https://traitecoevo.github.io/plant/articles/individuals.html)
+[The cohort spacing algorithm](https://traitecoevo.github.io/plant/articles/cohort_spacing.html)
+[Finding demographic equilibrium](https://traitecoevo.github.io/plant/articles/equilibrium.html)
+[Patch level dynamics](https://traitecoevo.github.io/plant/articles/patch.html)
+[Patch level emergent properties](https://traitecoevo.github.io/plant/articles/emergent.html)
+[Calculating fitness](https://traitecoevo.github.io/plant/articles/fitness.html)
+[Modifying parameters of the physiological model](https://traitecoevo.github.io/plant/articles/parameters.html)
+[Implementing a new strategy](https://traitecoevo.github.io/plant/articles/strategy.html)
+
+# Setup
+
+First, load plant:
+
+```{r}
+library(plant)
+```
+For a full list of available functions run library(help=plant), or see the [online reference](https://traitecoevo.github.io/plant/reference/index.html).
+
+# Strategy objects
+
+Strategies are the corner stone of `plant`, describing the system of dynamical equations that determine processes such as growth, reproduction and mortality. The `plant` includes the `FF16` strategy for you to get started.
+
+A strategy object holds two kinds of parameters, those that relate to physiological processes of the model and control parameters that are used by the `plant` solver. The physological parameters are strategy specific, oftend describing traits or rates of individuals and their effects on the environment, while control parameters are usually general to all `plant` models.
+
+```{r}
+s <- FF16_Strategy()
+str(s)
+```
+
+# Individual plants
+
+We can define one or more individuals for a given strategy. These are accessed using the `Individual` class:
+
+```{r}
+ind = FF16_Individual()
+```
+
+noting that `FF16_Individual` uses the `FF16_Strategy` by default (see `?FF16_Individual` for more information).
+
+We can see that our individual also shares the `FF16_Environment` (more on that soon) and a number of rates and functions for us to explore. The [Individuals vignette](https://traitecoevo.github.io/plant/articles/individuals.html) describes the nuts and bolts of all these functions, for now we're only going to grow and plot our individual's height.
+
+```{r}
+str(ind)
+```
+First we set a fixed environment (here `1.0` represents full light exposure in an open canopy) then use the `grow_plant_to_time` function to grow our individual for a range of time steps
+
+```{r}
+env <- FF16_fixed_environment(1.0)
+times <- seq(0, 50, length.out = 101)
+result <- grow_plant_to_time(ind, times, env)
+```
+
+Examining our result, we see a matrix of our state variables at each timestep
+
+```{r}
+head(result$state)
+```
+
+Which we can plot against time
+
+```{r}
+plot(times, result$state[,"height"])
+```
+
+
+# Patches
+
+While we can torture our individual into all sorts of shapes and sizes, it's often more interesting to see how many individuals interact. `plant` describes groups of individuals as Cohorts that interact within a shared Patch. Cohorts are groups individuals of roughly the same age. As cohorts grow, they often alter their environment. In the `FF16` Strategy, individuals intercept light and shade other cohorts within the patch.
+
+"Solving" a Patch therefore means stepping cohorts through time, integrating the rate of change on individuals to describe their state (such as height) and integrating the impact their state has on other cohorts in a patch. While it's possible to solve a Patch for very long time periods, in reality they are more likely to be disturbed and reset. By default `plant` starts with a bare Patch and introduces successive cohorts, stepping them through time, until the average disturbance related mortality has wiped the patch bare again.
+
+First we load some parameters for our FF16 Strategy and set the mean disturbance interval
+
+```{r}
+params <- scm_base_parameters("FF16")
+params$disturbance_mean_interval <- 30.0
+```
+
+Then we load a patch by applying those parameters to a FF16 Species with a leaf mass area of 0.0825 (admittedly this could be simpler, but the [Patch vignette](https://traitecoevo.github.io/plant/articles/patch.html) explains what is going on)
+
+```{r}
+patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
+```
+
+Then we run `plant` solver (SCM) to step the patch through time
+
+```{r}
+result <- run_scm_collect(patch)
+```
+
+If you're working through this yourself, the SCM solver should be blazingly fast. Our results contain the timesteps the patch was solved at, the species in the patch, the environment at each timestep, `p` the patch parameters, and two entries related to the metapopulation of patches: seed rain and patch density
+
+```{r}
+str(result, max.level = 1)
+```
+We'll explain these latter entries, but for now we focus species and the patch environment. The species object is a N-dimensional array describing each state, for each cohort at each timestep
+
+```{r}
+str(result$species)
+```
+Let's look at height. Each line represents the height of a cohort of individuals over time, beginning from the point at which the cohort recruited into the patch. Notably, the first cohorts follow much the same growth curve as our individual above, but subsequent cohorts have a bumpier ride, with growth slowing as the canopy closes over
+
+```{r}
+t <- result$time
+h <- result$species[[1]]["height", , ]
+
+matplot(t, h, lty=1, col=make_transparent("black", 0.25), type="l",
+        las=1, xlab="Time (years)", ylab="Height (m)")
+```
+To see the change in canopy opennes over time we can explore the patch Environment. Lets look at year 20 first, which corresponds to the 99th timestep in our model (not all timesteps are equal!) Our FF16 environment is described in terms of canopy openness, with 1.0 being completely open and 0.0 being completely shaded. We see that the shortest cohorts experience intense shading while taller cohorts enjoy full sunlight:
+
+```{r}
+env <- result$env[[99]]
+plot(env)
+```
+If we look at the light environment at the forest floor (height = 0.0) we can see that it varies through time as older cohorts thin out and gaps form
+
+```{r}
+env_min <- lapply(result$env, function(e) e[1, "canopy_openness"])
+plot(t, env_min)
+```
+
+This suggests that competition is density dependent and that our earlier figure of height over time is incomplete as many individuals will die out before reaching their potential maximum height. The final variable of our species `state` array is the log density of the cohorts, which we can use to weight the growth trajectories to show thinning
+
+```{r}
+# Relativise the log densities onto (-4, max)
+rel <- function(x, xmin = -4) {
+  x[x < xmin] <- xmin
+  xmax <- max(x, na.rm=TRUE)
+  (x - xmin) / (xmax - xmin)
+}
+
+d <- result$species[[1]]["log_density", , ]
+
+rd <- rel(d)
+
+# R doesn't seem to offer a way to plot lines that vary in colour, so
+# this is quite roundabout using `segments`, shaded by the density at
+# the first part of the line segment:
+n <- length(t)
+x <- matrix(rep(t, ncol(h)), nrow(h))
+col <- matrix(make_transparent("black", rd), nrow(d))
+
+plot(NA, xlim=range(t), ylim=range(h, na.rm=TRUE),
+     las=1, xlab="Time (years)", ylab="Cohort height (m)")
+segments(x[-1, ], h[-1, ], x[-n, ], h[-n, ], col=col[-n, ], lend="butt")
+```
+
+# Meta-populations
+
+🚧 Coming soon 🚧

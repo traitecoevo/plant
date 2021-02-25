@@ -1,0 +1,505 @@
+---
+title: "Individual-level properties"
+author:
+- Rich FitzJohn
+- Daniel Falster
+date: 2016
+output:
+  bookdown::html_document2:
+    toc: yes
+    number_sections: false
+---
+
+# Background
+
+Any `plant` model defines a strategy that implements a system of equations
+describing the change of one or more characteristics (state variables) of
+individuals. These individuals are aggregated as cohorts of different ages
+that compete within a patch.
+
+This vignette illustrates the how to model the dynamics of individuals and
+the analysis used to generate  figure (Fig 2) in the manuscript.
+Throughout we use the `FF16` strategy, describing the Falster Fitzjohn model
+of light competition in forest stands, however an equivalent `Individual` component
+of the model will be present in all strategies.
+
+```{r }
+library(plant)
+```
+
+# Individuals
+
+Individuals are constructed with the `FF16_Individual` function. That
+function takes as its only argument a "strategy" object; the
+default is `FF16_Strategy`, but alternative strategies can be
+provided (see below). The "strategy" object contains all
+the physiological underpinning the dynamics of individual plants
+and entire meta-populations.
+```{r }
+indv <- FF16_Individual()
+```
+
+Individuals are an [R6](https://github.com/wch/R6) class, and have a
+number of elements and fields that can be accessed:
+```{r }
+indv
+```
+
+Things labelled 'active binding' are "fields" and can be read from
+and (sometimes) set:
+```{r }
+indv$state("height")
+indv$set_state("height", 10)
+indv$state("height")
+
+indv$state("fecundity")
+indv$state("mortality")
+```
+
+Height, fecundity and mortality are the three key variables of the FF16
+strategy, each propagated by the internal system of differential equations:
+```{r }
+indv$ode_state
+```
+
+While we can get and set variable state for a single individual,
+computing the rates of change requires information about the environment an
+individual inhabits. In the FF16 model, individuals compete through a shared
+light environment, described in terms of canopy openness.
+The function `fixed_environment` creates an
+environment that has the same canopy openness (here 100%) at all
+heights. *Note: The `indv` individual does not affect this light environment*.
+```{r }
+env <- FF16_fixed_environment(1.0)
+```
+
+In the FF16 model, the `compute_rates` method computes net mass production for
+the individual, and from that demographic rates:
+```{r }
+indv$ode_rates
+indv$compute_rates(env)
+indv$ode_rates
+```
+
+<!-- TODO: next bit is a bit vague -->
+While we have focused on three key variables, height, mortality and fecundity,
+the FF16 model describes variable for five characteristics.
+The name vector of these variables is available via
+
+```{r}
+indv$ode_names
+```
+
+There is also a function to directly access particular rates:
+
+```{r }
+indv$rate("height")
+```
+
+Individuals are a type of *reference object*. They are different to
+almost every other R object you regularly interact with in that
+they do not make copies when you rename them, meaning changes to one
+will be reflected in another.
+```{r }
+indv2 <- indv
+indv2$set_state("height", 1)
+indv2$state("height")
+indv$state("height") # also 1!
+```
+There's not actually that much that can be done with Individual
+objects; they're designed to be small and light to work well with
+the larger simulation code that does not particularly care about
+most of the internal calculations.
+
+# Growing plants
+
+Rather than setting the size of Individuals to given values,
+it will often be required to *grow* them to a size. In the FF16 model,
+this allows us to compute seed output (integrated over the plant's lifetime)
+stem diameter, survival, etc; basically everything except for
+height.
+
+It's possible to directly integrate the equations exposed by the
+Individual, using the `ode_state` field, `compute_rates` method and
+`ode_rates` field.  For example, we can use the R package `deSolve`:
+```{r }
+# deSolve wrapper of Individual ODEs
+derivs <- function(t, y, individual, env) {
+  individual$ode_state <- y
+  individual$compute_rates(env)
+  list(individual$ode_rates)
+}
+
+# initialise indiidual, timesteps and initial conditions
+indv <- FF16_Individual()
+tt <- seq(0, 50, length.out=101)
+y0 <- setNames(indv$ode_state, indv$ode_names)
+
+# solve and plot
+yy <- deSolve::lsoda(y0, tt, derivs, indv, env=env)
+plot(height ~ time, yy, type="l")
+```
+
+Alternatively, it might desirable to grow a Individual to a particular
+size.  We could interpolate from the previous results easily
+enough.  E.g., to find a plant with height of 15 m:
+```{r }
+h <- 15.0
+```
+
+that happened approximately here:
+```{r }
+t <- spline(yy[, "height"], yy[, "time"], xout=h)$y
+```
+
+Interpolate to find the state:
+```{r }
+y <- apply(yy[, -1], 2, function(y) spline(yy[, "time"], y, xout=t)$y)
+
+indv2 <- FF16_Individual()
+indv2$ode_state <- y
+indv2$compute_rates(env)
+```
+Plant is expected height:
+```{r }
+indv2$state("height")
+```
+And at this height, here is the total seed production:
+```{r }
+indv2$state("fecundity")
+```
+
+To make this type of operation easier, we provide the function
+`grow_plant_to_time`
+
+```{r }
+res <- grow_plant_to_time(FF16_Individual(), tt, env)
+```
+
+Here is the result using the internal ODE solver (black line),
+plotted against the result  obtained from using `deSolve` above (grey dots):
+```{r }
+plot(height ~ tt, res$state, type="l", las=1,
+     xlab="Time (years)", ylab="Height (m)")
+
+points(height ~ time, yy, col="grey", cex=.5)
+```
+
+Completing the set, `plant` also provides a function for growing
+individuals to a particular size; `grow_plant_to_size`.  This takes
+*any* size measurement in the individuals and can grow the individuals to that
+size.  So, for height:
+
+```{r }
+# create a sequence from the initial size to height at maturity
+indv <- FF16_Individual()
+heights <- seq(indv$state("height"), indv$strategy$hmat, length.out=20)
+res <- grow_plant_to_size(indv, heights, "height", env)
+```
+
+This returns a vector of times; this is when the heights were
+achieved
+```{r }
+res$time
+```
+
+A matrix of states, showing the state of related characteristics:
+```{r }
+head(res$state)
+```
+
+And a list of individualss
+```{r }
+res$plant[[10]]
+res$plant[[10]]$state("height")
+heights[[10]]
+```
+
+# Comparing individuals
+
+With all relevant components  in place, let's look at growth trajectories of
+individuals of two species that differ in their trait values.
+This presented in Fig. 2a of the paper.
+
+Note that we're using an alternative way of specifying strategies
+here, to trigger our "hyper-parameterisation" approach. This allows us to relate
+the values of one trait, here leaf-mass area (LMA), to other traits that
+form fundamental trade-offs in plant physiology. This may be
+simplified in future, but currently the "hyper-parameterisation" function
+resides on the `params` object.
+
+First, we load the FF16 strategy pre-populated with a set of default parameters
+
+```{r }
+params <- scm_base_parameters("FF16")
+```
+
+Then we can use the `params` object to set a low LMA ("fast growth") species:
+```{r }
+s1 <- strategy(trait_matrix(0.0825,  "lma"), params)
+```
+
+and a high LMA ("low growth") species:
+```{r }
+s2 <- strategy(trait_matrix(0.2625, "lma"), params)
+```
+
+In the FF16 model, LMA is related to leaf turnover (`k_l`) and
+the ratio of dark respiration to leaf mass (`r_l`):
+```{r }
+lapply(list(s1, s2), `[`, c("lma", "k_l", "r_l"))
+
+```
+
+We use these specific strategies to create Individuals:
+```{r }
+indv1 <- FF16_Individual(s1)
+indv2 <- FF16_Individual(s2)
+```
+
+
+Then, collect information of their characteristic variables
+over a sequence of heights. Note that range of heights are different
+for the two Individuals because they have different
+starting heights. The lower LMA of s1 allows it to achieve a greater
+initial height for given seed mass.
+
+```{r }
+heights1 <- seq(indv1$state("height"), s1$hmat, length.out=100L)
+heights2 <- seq(indv2$state("height"), s2$hmat, length.out=100L)
+
+dat1 <- grow_plant_to_height(indv1, heights1, env,
+                             time_max=100, warn=FALSE, filter=TRUE)
+dat2 <- grow_plant_to_height(indv2, heights2, env,
+                             time_max=100, warn=FALSE, filter=TRUE)
+
+plot(dat1$trajectory[, "time"], dat1$trajectory[, "height"],
+     type="l", lty=1,
+     las=1, xlab="Time (years)", ylab="Height (m)")
+lines(dat2$trajectory[, "time"], dat2$trajectory[, "height"], lty=2)
+legend("bottomright", c("Low LMA", "High LMA"), lty=1:2, bty="n")
+```
+
+We cam see each species fares under lower light:
+
+```{r }
+env_low <- FF16_fixed_environment(0.5)
+dat1_low <- grow_plant_to_height(indv1, heights1, env_low,
+                                 time_max=100, warn=FALSE, filter=TRUE)
+dat2_low <- grow_plant_to_height(indv2, heights2, env_low,
+                                 time_max=100, warn=FALSE, filter=TRUE)
+
+cols <- c("black", "#e34a33")
+plot(dat1$trajectory[, "time"], dat1$trajectory[, "height"],
+     type="l", lty=1,
+     las=1, xlab="Time (years)", ylab="Height (m)")
+lines(dat2$trajectory[, "time"], dat2$trajectory[, "height"], lty=2)
+lines(dat1_low$trajectory[, "time"], dat1_low$trajectory[, "height"],
+      lty=1, col=cols[[2]])
+lines(dat2_low$trajectory[, "time"], dat2_low$trajectory[, "height"],
+      lty=2, col=cols[[2]])
+legend("bottomright",
+       c("High light", "Low light"), lty=1, col=cols,
+       bty="n")
+```
+
+The *height growth rate* is the derivative of height with respect
+to time - the slope of the plot above.  It is really the core
+quantity in the model; the actual heights are computed by solving
+the set of ODEs that includes height growth rate.
+
+Growth rate with respect to height shows a hump-shaped pattern that
+is affected by both traits and by light environment.  To extract
+this information from the trajectories takes a little more work
+though.
+
+Here is an inidivdual from part way through one run
+```{r }
+indv <- dat1$plant[[50]]
+```
+
+Here is the set of ODE state variables:
+```{r }
+setNames(indv$ode_state, indv$ode_names)
+```
+And the set of *rate* variables
+```{r }
+setNames(indv$ode_rates, indv$ode_names)
+```
+...however, the rates might not be correct.  They are whatever was
+left by the ODE stepper when it was advancing the plant, so it's
+best to update them:
+```{r }
+indv$compute_rates(dat1$env)
+setNames(indv$ode_rates, indv$ode_names)
+```
+(in this case they are the same because the light environment is
+unchanging, but that not be the case generally)
+
+Alternatively, we can access the height growth rate via the
+internals, which is the same as accessing directly from the ODE
+rates but more explicit:
+```{r }
+indv$rate("height")
+indv$ode_rates[[1]]
+```
+
+Collecting height growth for high and low LMA individauls
+in high and low light environments:
+```{r }
+f <- function(x) x$rate("height")
+dhdt1 <- sapply(dat1$plant, f)
+dhdt2 <- sapply(dat2$plant, f)
+dhdt1_low <- sapply(dat1_low$plant, f)
+dhdt2_low <- sapply(dat2_low$plant, f)
+
+plot(dat1$time, dhdt1, type="l", lty=1,
+     las=1, xlab="Time (years)", ylab="Height growth rate (m / yr)")
+lines(dat2$time, dhdt2, lty=2)
+lines(dat1_low$time, dhdt1_low, lty=1, col=cols[[2]])
+lines(dat2_low$time, dhdt2_low, lty=2, col=cols[[2]])
+legend("topright",
+       c("High light", "Low light"), lty=1, col=cols,
+       bty="n")
+```
+
+Alternatively, change in height plotted against height itself:
+```{r }
+ylim <- c(0, max(dhdt1))
+plot(dat1$state[, "height"], dhdt1, type="l", lty=1,
+     las=1, xlab="Height (m)", ylab="Height growth rate (m / yr)", ylim=ylim)
+lines(dat2$state[, "height"], dhdt2, lty=2)
+lines(dat1_low$state[, "height"], dhdt1_low, lty=1, col=cols[[2]])
+lines(dat2_low$state[, "height"], dhdt2_low, lty=2, col=cols[[2]])
+legend("topright",
+       c("High light", "Low light"), lty=1, col=cols,
+       bty="n")
+```
+
+<!--
+TODO: Remove Plant Plus
+Over a plant's life, allocation to different structures varies.
+This is captured by a set of variables stored within the internals:
+e.g., `mass_leaf` `mass_sapwood`.
+```{}
+indv$internals$mass_leaf
+indv$internals$mass_sapwood
+```
+
+(these numbers seem a bit off: one of the motivations here is to
+develop and use better models of plant allometry.  The
+parameterisation used at present are derived from adults and
+perform poorly with small plants.  However, based on height / area
+relationships [Falster 2011, supporting information], for an 8m
+tall plant total leaf areas of 5-10 m are plausible and with an LMA
+of 0.08 that implies a total *dry* weight of 400 - 800 g).
+
+Total live dry mass fraction to leaf and stem can be computed as:
+```{}
+f <- function(p) {
+  p_ints <- p$internals
+  c(leaf=p_ints$mass_leaf / p_ints$mass_live,
+    sapwood=p_ints$mass_sapwood / p_ints$mass_live)
+}
+
+cols_part <- c("black", "#045a8d")
+matplot(dat1$state[, "height"], t(sapply(dat1$plant, f)),
+        type="l", col=cols_part, lty=1, ylim=c(0, 1),
+        xlab="Height (m)", ylab="Fractional allocation", las=1)
+matlines(dat2$state[, "height"], t(sapply(dat2$plant, f)),
+         col=cols_part, lty=2)
+legend("topright", c("Sapwood", "Leaf"), lty=1, col=rev(cols_part), bty="n")
+```
+
+Relative allocation to leaf mass drops steeply as a plant grows and
+is replaced by allocation to sapwood mass.
+-->
+
+The growth rates vary with both size and light environment (see
+above).
+
+```{r }
+indv <- FF16_Individual()
+indv$set_state("height", 10)
+indv$compute_rates(FF16_fixed_environment(1.0))
+indv$rate("height") # in full light
+
+indv$compute_rates(FF16_fixed_environment(0.5))
+indv$rate("height") # in 1/2 light
+```
+
+At some point the individual cannot maintain positive carbon balance and
+therefore cannot grow; for example at 25% canopy openness
+```{r }
+indv$compute_rates(FF16_fixed_environment(0.25))
+indv$rate("height")
+```
+
+The light level at which carbon gain becomes zero is the "whole
+plant light compensation point".
+
+<!-- TODO: Remove below once lcp works -->
+```{r}
+openness <- seq(0, 1, length.out=51)
+lcp <- 0.299
+```
+
+Height growth rate increases in a saturating fashion with
+increasing canopy openness from the light compensation point.
+```{r }
+f <- function(x, indv) {
+  env <- FF16_fixed_environment(x)
+  indv$compute_rates(env)
+  indv$rate("height")
+}
+x <- c(lcp, openness[openness > lcp])
+plot(x, sapply(x, f, indv), type="l", xlim=c(0, 1),
+     las=1, xlab="Canopy openness", ylab="Height growth rate (m / yr)")
+points(lcp, 0.0, pch=19)
+
+```
+
+<!-- TODO: refactor once lcp works
+
+Now, consider this for a seedling and for a plant at half its
+maximum size
+size:
+```{ }
+indv_seed <- FF16_Individual(s1)
+y_seed <- g(openness, indv_seed)
+indv_adult <- FF16_Individual(s1)
+indv_adult$state("height", indv_adult$strategy$hmat / 2)
+y_adult <- g(openness, indv_adult)
+cols_height <- c("#31a354", "black")
+
+ymax <- max(y_seed[, 2], y_adult[, 2])
+plot(y_seed, type="l", col=cols_height[[1]],
+     xlim=c(0, 1), ylim=c(0, ymax), las=1,
+     xlab="Canopy openness", ylab="Height growth year (m / yr)")
+lines(y_adult, col=cols_height[[2]])
+legend("bottomright", c("Seedling", "Adult"), lty=1, col=cols_height, bty="n")
+```
+
+The light compensation point and curve varies with traits, too:
+```{ }
+pl2_seed <- FF16_IndividualPlus(s2)
+pl2_adult <- FF16_IndividualPlus(s2)
+pl2_adult$height <- pl2_adult$strategy$hmat / 2
+y2_seed <- g(openness, pl2_seed)
+y2_adult <- g(openness, pl2_adult)
+
+ymax <- max(ymax, y2_seed[, 2], y2_adult[, 2])
+plot(y_seed, type="l", col=cols_height[[1]],
+     xlim=c(0, 1), ylim=c(0, ymax), las=1,
+     xlab="Canopy openness", ylab="Height growth year (m / yr)")
+lines(y_adult, col=cols_height[[2]])
+lines(y2_seed, col=cols_height[[1]], lty=2)
+lines(y2_adult, col=cols_height[[2]], lty=2)
+legend("bottomright", c("Seedling", "Adult"), lty=1, col=cols_height, bty="n")
+```
+
+Note that the traits with the lowest growth rate in most lights
+while a seedling (dotted lines) has the highest growth rate in all
+lights as an adult.
+
+-->

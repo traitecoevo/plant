@@ -21,7 +21,7 @@ Control::Control() : integrator(15, 1, 0, 0) {
   environment_light_tol = 1e-6;
   environment_light_nbase = 17;
   environment_light_max_depth = 16;
-  environment_light_rescale_usually = false;
+  environment_rescale_usually = false;
 
   ode_step_size_initial = 1e-6;
   ode_step_size_min = 1e-6;

@@ -1,0 +1,510 @@
+---
+title: "Implementing Kohyama 1993"
+subtitle: "A forest architecture hypothesis for the stable coexistence of species"
+author: Andrew O'Reilly-Nugent
+date: August 28, 2020
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: true
+      smooth_scroll: true
+    theme: united
+---
+# 🚧 Under construction 🚧
+
+This vignette is still under active development. Some parts may appear incomplete or refer to a previous version of `plant`. We include it as reference material for advanced users looking to develop their own modules. Please raise issues or pull requests any time you encounter a mistake or area for improvement.
+
+
+# Background
+
+`plant` is a generalised characteristic solver for models of size-structured competition and patch dynamics. Any `plant` model defines a strategy that implements a system of equations describing the change of one or more characteristics (state variables) of individuals. These individuals are aggregated as cohorts of different ages that compete within a patch. Competition occurs through a shared environment, where individuals reduce the resources available within the patch and limit the growth of the surrounding community. The `plant` solver steps these equations through time, integrating over a meta-population of patches and adaptively refining the rate at which cohorts are introduced, to describe the expected development of patch dynamics.
+
+Phew.
+
+`plant` has a lot of moving parts but, helpfully, most of these are general and will work for many (all? 🤞) size structured models. Implementing a new model typically involves only changing the Strategy and sometimes the Environment classes, using existing models as a template. Below we describe the classes of `plant` that provide the basic building blocks, then implement a new model as an example. For users more interested in exploring an existing model, we refer to [vignette 2](vignette2).
+
+## C++ Classes
+
+`plant` is written in C++ for speed, with an interface (binding) to R for interactive analyses. This means that `plant` follows an Object Oriented design (OO). The structure of `plant` objects are defined by classes which provide a set of properties and functions (methods?) that are common to all objects of the same type.
+
+An important feature of (OO) is the 'inheritance' of classes. This allows us to implement our models as specialisations of a general case. For example, all bespoke `plant` models can (and will) inherit the general Strategy class. This provides the base set of properties and methods the solver requires without having to re-invent the wheel (and saving us a lot of repeated work).
+
+Because we rely on this pattern of inheriting base properties, it is useful to review several key `plant` classes, even though we might only change one or two.
+
+#### Individual
+Represents an individual
+
+#### Cohort
+Represents individuals of a similar age
+
+#### Environment\*\*
+Defines environmental conditions
+
+#### Patch
+A patch hosting many cohorts, of many individuals, all interacting with the environment
+
+#### Schedule
+The times at which cohorts of different species are introduced in a patch
+
+#### Species
+Defines the attributes of groups of individuals
+
+#### Parameters
+Settings of species, patches and environment
+
+#### Strategy\*\*
+The processes that determine species' characteristics such as growth, death and reproduction, including competitive interactions.
+
+#### AdaptiveInterpolator
+Maps a gradient of environmental conditions onto a monotonic spline bounded between (0, 1) to simplify the calculation of competitive interactions.
+
+#### SCM
+Solves for the trajectories of different cohorts along all defined characteristics.
+
+\**When developing your own strategy, you'll likely only need to create a Strategy and an Environment*
+
+## R Interface
+
+The C++ framework provides a fast and powerful implementation of the SCM solver, but we anticipate that many users will prefer to interact with their models through a more familiar language like R.
+
+`plant` currently includes an R-to-C++ binding using two R libraries: Rcpp and RcppR6
+
+#### Rcpp
+
+Rcpp is a (very) popular library that maps R types to C++ objects, and *vice versa*. This allows authors to wrap C++ code as functions that can be used within their R package.
+
+#### RcppR6
+
+An extension of Rcpp is the library RcppR6, which maps a specific R type, the R6 class, to complex C++ objects like the `plant` SCM solver.
+
+R6 classes differ from normal R types (i.e. S3, S4) in that methods (functions) belong to objects of a given class, rather than existing as generic objects themselves. This means that a given plant object `p` has specific methods available as `p$method()` (rather than `method(p)`).
+
+The other quirk of R6 classes is that they use reference semantics. This means that the state of R6 objects (derived from an R6 class) can be changed in place (i.e. without re-assignment).
+
+```
+# S3 example: p_new != p_old
+p_new <- method(p_old)
+
+# R6 example: p == p_new
+p$method()
+
+```
+RcppR6 is a good match for `scm` objects which have many layers of properties and methods (see above), but also maintains a natural concept of state.
+
+The binding between RcppR6 and C++ is handled in a RcppR6_classes.yml file. Here we define which of the `plant` classes we would like to access from R and which properties and methods we would like in our interface. Again, most of this is general and only a few classes will need specialisation when implementing a new `plant` model.
+
+### Build tools
+
+Lastly, we need to compile C++ whenever we edit it. Both the R interface and the C++ library can be compiled using `devtools::load_all()` which calls a build step described in the `makefile`.
+
+#### make
+
+Occasionally, we need to interact with make directly, for example when recompiling the RcppR6 classes.
+
+```
+make clean
+
+make RcppR6
+```
+
+### testthat
+
+A test suite is included on the R side using the `testthat` library. `devtools::test()` will test both the RcppR6 integration, the C++ numerical routines and specific models. A test framework aims to prevent regressions, such as breaking one feature by introducing another, so we may like to add tests for our model once we have finished.
+
+It is good practice to run the tests **before** working with your model.
+
+# Implementing Kohyama 1993
+
+Growth, reproduction, mortality related to basal area.
+
+
+## Model structure
+
+### Size structured competition
+
+**Eq. 8**
+$$
+B(t, a, x) = \frac{\pi}{4 \cdot s(t, a)} \int_{x}^{x_{max}} y^2 \cdot f(t, a, y) dy
+$$
+
+
+*added additional smoothing parameter to interpolate competitive effect using a continuous function. $\eta = 12.0$*
+
+### Growth
+
+**Eq. 10**
+$$
+G(t, a, x) = x \cdot \Bigg(b_0 - b_1 \cdot ln{x} - b_2 \cdot B(t, a, x)\Bigg)
+$$
+
+### Fecundity
+
+**Eq. 12**
+
+$$
+R(t, a, x0) = d_0 \cdot B_0 \cdot exp{-d_1 \cdot B(t, a, x_0)}
+$$
+
+*$B_0$ re-interpreted as an individual basal area, integrated over whole stand, providing equivalent total reproductive output as Eq 9.*
+
+### Mortality
+**Eq. 11**
+$$
+\mu(t, a, x) = - c_0 + c_1 \cdot B(t, a, x_0)
+$$
+
+*Growth independent mortality provided by disturbance regime*
+
+### Dispersal and establishment
+
+Dispersal and establishment are fixtures of the `plant` framework, but not used in the original formulation of Kohyama. We set them both to $1.0$.
+
+
+## Adding a new `plant` strategy
+
+### 0. Choose a name
+
+*"As a naming convention, strategies are named using two initials (eg. the first two authors) followed by a year, e.g. FF16. A single letter suffix can be added to indicate a minor modification of an existing strategy, e.g. FF16r"*
+
+[Developer Notes](https://traitecoevo.github.io/plant/articles/developer_notes.html)
+
+### 1. Use scaffolder to create template files
+
+```
+source('inst/scripts/new_strategy_scaffolder.R')
+create_strategy_scaffold("K93", "FF16")
+```
+
+Three important files
+
+* K93_strategy.h
+* K93_strategy.cpp
+* K93_environment.h
+
+### 1. Add growth, mortality and reproduction
+
+In `K93_strategy.cpp` add:
+
+```{c++}
+// [eqn 10] Growth
+double K93_Strategy::size_dt(double size,
+                             double cumulative_basal_area) const {
+
+  double growth = size * (b_0 - b_1 * log(size) - b_2 * cumulative_basal_area);
+
+  if(growth < 0.0) {
+    growth = 0.0;
+  }
+
+  return growth;
+}
+
+// [eqn 12] Reproduction
+double K93_Strategy::fecundity_dt(double size,
+                                  double cumulative_basal_area) const {
+  double basal_area = size_to_basal_area(size);
+  return d_0 * basal_area * exp(-d_1 * cumulative_basal_area);
+}
+
+// [eqn 11] Mortality
+double K93_Strategy::mortality_dt(double cumulative_basal_area,
+                                  double cumulative_mortality) const {
+  // If mortality probability is 1 (latency = Inf) then the rate
+  // calculations break.  Setting them to zero gives the correct
+  // behaviour.
+  if (R_FINITE(cumulative_mortality)) {
+    double mu = -c_0 + c_1 * cumulative_basal_area;
+    return (mu > 0)? mu:0.0;
+ } else {
+    return 0.0;
+  }
+}
+```
+
+### 1. Map competition to environment
+
+In `K93_strategy.cpp`
+
+```{c++}
+double K93_Strategy::size_to_basal_area(double size) const {
+  return M_PI / 4 * pow(size, 2);
+}
+
+double K93_Strategy::compute_competition(double z, double size) const {
+
+  // Competition only felt if plant bigger than target size z
+  return size_to_basal_area(size) * Q(z, size);
+ };
+```
+
+This does a round-about-trip to `K93_environment.h`:
+
+```{c++}
+void compute_environment(Function f_compute_competition, double height_max) {
+  const double lower_bound = 0.0;
+  double upper_bound = height_max;
+
+  auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
+  environment_interpolator =
+    environment_generator.construct(f_canopy_openness, lower_bound, upper_bound);
+}
+```
+
+which maps basal area onto a spline between (0, 1).
+
+### 1. Integrate into rates function
+
+Back transform environment interpolator so that smallest individual experience largest competitive effect
+
+```{c++}
+  // i.e. setting rates of ode vars from the state and updating aux vars
+  void K93_Strategy::compute_rates(const K93_Environment& environment,
+                                bool reuse_intervals,
+                                Internals& vars) {
+
+    double height = vars.state(HEIGHT_INDEX);
+
+    // suppression integral mapped [0, 1] using adaptive spline
+    // back transform to basal area and add suppression from self
+    double competition = environment.get_environment_at_height(height);
+    double basal_area = size_to_basal_area(height);
+
+    double cumulative_basal_area = -log(competition) / environment.k_I;
+
+    if (!util::is_finite(cumulative_basal_area)) {
+      util::stop("Environmental interpolation out of bounds");
+    }
+```
+
+Then calculate impact on growth:
+
+```{c++}
+    vars.set_rate(HEIGHT_INDEX,
+      size_dt(height, cumulative_basal_area));
+
+    vars.set_rate(FECUNDITY_INDEX,
+      fecundity_dt(height, cumulative_basal_area));
+
+    vars.set_rate(MORTALITY_INDEX,
+      mortality_dt(cumulative_basal_area, vars.state(MORTALITY_INDEX)));
+  }
+```
+
+### 1. Declare model methods in header file
+
+C++ keeps track of method declarations in a header file.
+
+In `K93_strategy.h` the structure of our new class begins with:
+
+```{c++}
+class K93_Strategy: public Strategy<K93_Environment> {
+public:
+  typedef std::shared_ptr<K93_Strategy> ptr;
+  K93_Strategy();
+
+  ...
+
+  void update_dependent_aux(const int index, Internals& vars);
+```
+
+the abbreviated section describing the naming and maintenance of characteristic indices.
+
+There are two special methods that must be defined:
+
+```{c++}
+  void compute_rates(const K93_Environment& environment,
+                     bool reuse_intervals,
+                     Internals& vars);
+
+  double compute_competition(double z, double size) const;
+```
+
+Our parameters
+
+```{c++}
+  // K93 Parameters  -------------------------------------------
+  // Initial seedling size (dbh cm)
+  double height_0;
+
+  // * Growth
+  // Growth intercept (yr-1)
+  double b_0;
+  // Growth asymptote (yr-1.(ln cm)-1)
+  double b_1;
+  // Growth suppression rate (m2.cm-2.yr-1)
+  double b_2;
+
+
+  // * Reproduction
+  // Recruitment rate (cm2.yr-1)
+  double d_0;
+  // Reduction from suppression (m2.cm-2.yr-1)
+  double d_1;
+
+  // * Mortality
+  // Intercept (yr-1)
+  double c_0;
+  // Suppression rate (m2.cm-2.yr-1)
+  double c_1;
+```
+
+Now our method arguments:
+
+```{c++}
+  // K93 Methods  ----------------------------------------------
+  double size_to_basal_area(double size) const;
+
+  // Growth rate of a plant per unit time:
+  double size_dt(double size, double cumulative_basal_area) const;
+
+  // Rate of offspring production
+  double fecundity_dt(double size, double cumulative_basal_area) const;
+
+  // Rate of mortality over time
+  double mortality_dt(double cumulative_basal_area,
+                      double cumulative_mortality) const;
+
+```
+
+We have some nuisance parameters for dispersal, establishment and smoothing
+
+```{c++}
+  // Probability of survival during dispersal
+  // required by scm.h
+  double S_D = 1.0;
+
+  // Smoothing parameter
+  double eta = 12;
+
+  double K93_Strategy::establishment_probability(const K93_Environment& environment){
+    //TODO: may want to make this dependent on achieving positive growth rate
+    return 1.0;
+  }
+
+  // Smoothing function for competition effect
+  double K93_Strategy::Q(double z, double size) const {
+    if (z > size) {
+      return 0.0;
+    }
+    const double tmp = 1.0 - pow(z / size, eta);
+
+    return tmp * tmp;
+  }
+```
+
+Finally, the K93_Strategy class ends with:
+
+```{c++}
+  // Set constants within K93_Strategy
+  void prepare_strategy();
+
+  std::string name;
+};
+```
+
+and a pointer.
+
+### 1. Add to RcppR6.yml
+
+Section already added by scaffolder, need to adapt to method names.
+
+```
+# The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
+K93_Strategy:
+  name_cpp: "plant::K93_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - height_0: double
+    - b_0: double
+    - b_1: double
+    - b_2: double
+    - c_0: double
+    - c_1: double
+    - d_0: double
+    - d_1: double
+    - control: "plant::Control"
+```
+
+`K93_Environment` also created, but no changes needed.
+
+### 1. Expose new strategy to R
+
+In `K93.R`
+
+```
+##' Hyperparameters for K93 physiological model
+##' @title Hyperparameters for K93 physiological model
+##' @export
+##' @rdname K93_hyperpar
+make_K93_hyperpar <- function(
+        b_0 = 0.059,    # Growth intercept year-1
+        b_1 = 0.012,    # Growth asymptote year-1.(ln cm)-1
+        b_2 = 0.00041,  # Growth suppression rate m2.cm-2.year-1
+        c_0 = 0.008,    # Mortality intercept year-1
+        c_1 = 0.00044,  # Mortality suppression rate m2.cm-2.year-1
+        d_0 = 0.00073,  # Recruitment rate (cm2.year-1)
+        d_1 = 0.044    # Recruitment suppression rate (m2.cm-2)
+  ) {
+  assert_scalar <- function(x, name=deparse(substitute(x))) {
+    if (length(x) != 1L) {
+      stop(sprintf("%s must be a scalar", name), call. = FALSE)
+    }
+  }
+
+  assert_scalar(b_0)
+  assert_scalar(b_1)
+  assert_scalar(b_2)
+  assert_scalar(c_0)
+  assert_scalar(c_1)
+  assert_scalar(d_0)
+  assert_scalar(d_1)
+
+  function(m, s, filter=TRUE) {
+    with_default <- function(name, default_value=s[[name]]) {
+      rep_len(if (name %in% colnames(m)) m[, name] else default_value,
+              nrow(m))
+    }
+
+    m
+  }
+
+}
+
+```
+
+Add tests to `test-strategy-k93.R`
+
+### 1. Build and run
+
+```
+make clean
+make RcppR6
+```
+
+Then `devtools::load_all(".")`
+
+```
+# Patches of competing plants
+p0 <- scm_base_parameters("K93")
+p1 <- expand_parameters(trait_matrix(0.0825, "b_0"), p = p0, mutant = FALSE)
+p1$seed_rain <- 20
+
+data1 <- run_scm_collect(p1)
+
+matplot(data1$time, data1$species[[1]]["height", , ],
+        lty=1, col=make_transparent("black", 0.25), type="l",
+        las=1, xlab="Time (years)", ylab="Height (m)")
+```
+
+We changed disturbance from 30 to 200 yrs.
+
+<!-- ## Exploring results
+compare plant vs graphs in paper
+  - age, size density distn
+  - see: plant paper for size dstn -->

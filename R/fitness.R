@@ -13,9 +13,9 @@
 ##' production per capita.
 ##' @author Rich FitzJohn
 ##' @export
-fitness_landscape <- function(trait_matrix, p, raw_seed_rain=FALSE) {
+fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), raw_seed_rain=FALSE) {
   n_residents <- length(p$strategies)
-  p_with_mutants <- expand_parameters(trait_matrix, p)
+  p_with_mutants <- expand_parameters(trait_matrix, p, hyperpar)
   scm <- run_scm(p_with_mutants,
                  use_ode_times=length(p$cohort_schedule_ode_times) > 0)
   seed_rain <- scm$seed_rains

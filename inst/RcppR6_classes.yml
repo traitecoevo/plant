@@ -23,8 +23,9 @@ OdeRunner:
     concrete:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
-      - ["FF16": "plant::tools::PlantRunner<plant::FF16_Strategy>"]
-      - ["FF16r": "plant::tools::PlantRunner<plant::FF16r_Strategy>"]
+      - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
+      - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>"]
+      - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
     args: [obj: T, control: "plant::ode::OdeControl=OdeControl()"]
   active:
@@ -142,7 +143,7 @@ Control:
     - environment_light_tol: double
     - environment_light_nbase: size_t
     - environment_light_max_depth: size_t
-    - environment_light_rescale_usually: bool
+    - environment_rescale_usually: bool
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -229,6 +230,7 @@ QAG:
     last_intervals: {type: "plant::quadrature::intervals_type", access: member, name_cpp: get_last_intervals}
     is_adaptive: {type: bool, access: member}
 
+
 Interpolator:
   name_cpp: "plant::interpolator::Interpolator"
   constructor:
@@ -251,104 +253,508 @@ Interpolator:
     min: {type: double, access: member}
     max: {type: double, access: member}
 
-Environment:
-  name_cpp: "plant::Environment"
-  constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", control: "plant::Control"]
-    roxygen: |
-      Environment object
-      @param disturbance_mean_interval mean disturbance interval in years
-      @param seed_rain vector of seed rains
-      @param control A Control object
-      @export
-  methods:
-    canopy_openness:
-      args: [height: double]
-      return_type: double
-    patch_survival_conditional:
-      args: [time_at_birth: double]
-      return_type: double
-    clear:
-      return_type: void
-    set_seed_rain_index:
-      args: [x: "plant::util::index"]
-      return_type: void
-      name_cpp: r_set_seed_rain_index
-  active:
-    patch_survival: {type: double, access: member}
-    seed_rain_dt: {type: double, access: member}
-    disturbance_regime: {type: "plant::Disturbance", access: field}
-    time: {type: double, access: field}
-    light_environment: {type: "plant::interpolator::Interpolator", access: field}
-
-Plant_internals:
-  name_cpp: "plant::Plant_internals"
-  list:
-    - area_leaf: double
-    - height: double
-    - height_dt: double
-    - mortality: double
-    - mortality_dt: double
-    - fecundity: double
-    - fecundity_dt: double
-    - area_heartwood: double
-    - area_heartwood_dt: double
-    - mass_heartwood: double
-    - mass_heartwood_dt: double
-
-Plant:
-  name_cpp: "plant::Plant<T>"
+Individual:
+  name_cpp: "plant::Individual<T,E>"
   templates:
-    parameters: T
+    parameters: [T,E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args: [s: T]
-    name_cpp: "plant::make_plant<T>"
+    name_cpp: "plant::make_individual<T,E>"
     roxygen: |
-      Plant object
-      @param T String containing class of plant to create; currently
-      must be \code{"FF16"}.  See \code{\link{FF16_Plant}} for more
-      details.
+      Individual object
+      @param T String containing class of plant strategy to create;
+      @param E String containing class of environmnet to create;
       @export
   active:
-    height: {type: double, access: member, name_cpp: height, name_cpp_set: set_height}
-    mortality: {type: double, access: member, name_cpp_set: set_mortality}
-    fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
     strategy: {type: "T", access: member, name_cpp: r_get_strategy}
-    internals: {type: "plant::Plant<T>::internals", access: member, name_cpp: "r_internals"}
+    internals: {type: "plant::Internals", access: member, name_cpp: "r_internals"}
+    aux_size: {type: size_t, access: member}
+    ode_size: {type: size_t, access: member}
+    ode_names: {type: "std::vector<std::string>", access: member}
+    aux_names: {type: "std::vector<std::string>", access: member}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+    mortality_probability: {type: double, access: member}
+    strategy_name: {type: "std::string", access: member}
+  methods:
+    state:
+      args: [name: "std::string"]
+      return_type: double
+    rate:
+      args: [name: "std::string"]
+      return_type: double
+    aux:
+      args: [name: "std::string"]
+      return_type: double
+    set_state:
+      args: [name: "std::string", v: double]
+      return_type: void
+    compute_competition:
+      args: [h: double]
+      return_type: double
+    compute_rates:
+      args: [environment: E]
+      return_type: void
+    establishment_probability:
+      args: [environment: E]
+      return_type: double
+    net_mass_production_dt:
+      args: [environment: E]
+      return_type: double
+    reset_mortality:
+      return_type: void
+    lcp_whole_plant:
+      args: []
+      return_type: double
+
+IndividualRunner:
+  name_cpp: "plant::tools::IndividualRunner<T,E>"
+  templates:
+    parameters: [T,E]
+    concrete:
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
+  constructor:
+    name_cpp: "plant::tools::IndividualRunner<T,E>"
+    args: [plant: "plant::Individual<T,E>", environment: E]
+  active:
+    plant: {access: field, type: "plant::Individual<T,E>"}
+
+Internals:
+  name_cpp: "plant::Internals"
+  constructor:
+    args: [s_size: size_t, a_size: size_t]
+    roxygen: |
+      Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
+      which is calculated from the state through running compute_rates
+      @export
+  active:
+    state_size: {type: size_t, access: field}
+    aux_size: {type: size_t, access: field}
+    states: {type: "std::vector<double>", access: field}
+    rates: {type: "std::vector<double>", access: field}
+    auxs: {type: "std::vector<double>", access: field}
+  methods:
+    state:
+      args: [i: int]
+      return_type: double
+    rate:
+      args: [i: int]
+      return_type: double
+    aux:
+      args: [i: int]
+      return_type: double
+    set_aux:
+      args: [i: int, v: double]
+      return_type: void
+    set_state:
+      args: [i: int, v: double]
+      return_type: void
+    set_rate:
+      args: [i: int, v: double]
+      return_type: void
+    resize:
+      args: [new_size: size_t, new_aux_size: size_t]
+      return_type: void
+
+
+Parameters:
+  name_cpp: "plant::Parameters<T,E>"
+  templates:
+    parameters: [T, E]
+    concrete:
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
+  # TODO: This is broken:
+  # roxygen: |
+  #   Strategy parameters that tune various aspects of the biological model.
+  #   @title Strategy parameters
+  #   @param ...,values Values to initialise the struct with (either as
+  #   variadic arguments, or as a list, but not both).
+  #   @export
+  validator:
+    name_cpp: validate
+  list:
+    - k_I: double
+    - patch_area: double
+    - n_patches: size_t
+    - disturbance_mean_interval: double
+    - strategies: "std::vector<T>"
+    - seed_rain: "std::vector<double>"
+    - is_resident: "std::vector<bool>"
+    - control: "plant::Control"
+    - strategy_default: "T"
+    - cohort_schedule_max_time: double
+    - cohort_schedule_times_default: "std::vector<double>"
+    - cohort_schedule_times: "std::vector<std::vector<double> >"
+    - cohort_schedule_ode_times: "std::vector<double>"
+
+Cohort:
+  name_cpp: "plant::Cohort<T,E>"
+  templates:
+    parameters: [T,E]
+    concrete:
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
+  constructor:
+    name_cpp: "plant::make_cohort<T,E>"
+    args: [strategy: T]
+  active:
+    plant: {type: "plant::Individual<T,E>", access: field, readonly: true}
+    height: {type: double, access: member}
+    log_density: {type: double, access: member, name_cpp: get_log_density}
+    competition_effect: {type: double, access: member}
+    fecundity: {type: double, access: member}
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_names: {type: "std::vector<std::string>", access: member}
-    mortality_probability: {type: double, access: member}
-    strategy_name: {type: "std::string", access: member}
   methods:
-    area_leaf_above:
-      args: [h: double]
+    compute_competition:
       return_type: double
-    compute_vars_phys:
-      args: [environment: "const plant::Environment&"]
+      args: [height: double]
+    growth_rate_gradient:
+      return_type: double
+      name_cpp: "r_growth_rate_gradient"
+      args: [environment: E]
+    compute_rates:
       return_type: void
-    germination_probability:
-      args: [environment: "const plant::Environment&"]
+      args: [environment: E]
+    compute_initial_conditions:
+      return_type: void
+      args: [environment: E]
+
+# For now, also not templated
+Species:
+  name_cpp: "plant::Species<T,E>"
+  templates:
+    parameters: [T,E]
+    concrete:
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
+  constructor:
+    args: [strategy: T]
+  active:
+    size: {type: size_t, access: member}
+    seed: {type: "plant::Cohort<T,E>", access: member, name_cpp: r_seed}
+    height_max: {type: double, access: member, readonly: true}
+    heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
+    log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
+    cohorts: {type: "std::vector<plant::Cohort<T,E> >", access: member, name_cpp: r_cohorts}
+    seeds: {type: "std::vector<double>", access: member}
+    competition_effects: {type: "std::vector<double>", access: member, name_cpp: r_competition_effects}
+    ## ODE interface:
+    ode_size: {type: size_t, access: member}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+  methods:
+    clear:
+      return_type: void
+    compute_rates:
+      return_type: void
+      args: [environment: E]
+    compute_competition:
       return_type: double
-    reset_mortality:
+      args: [height: double]
+    add_seed:
+      return_type: void
+    cohort_at:
+      return_type: "plant::Cohort<T,E>"
+      args: [index: "plant::util::index"]
+      name_cpp: r_cohort_at
+    competition_effects_error:
+      return_type: "std::vector<double>"
+      args: [scal: double=1]
+      name_cpp: r_competition_effects_error
+
+Patch:
+  name_cpp: "plant::Patch<T,E>"
+  templates:
+    parameters: [T, E]
+    concrete:
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
+  constructor:
+    args: [parameters: "plant::Parameters<T,E>"]
+  active:
+    time: {type: double, access: member}
+    size: {type: size_t, access: member}
+    height_max: {type: double, access: member}
+    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
+    environment: {type: E, access: member, name_cpp: r_environment}
+    species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
+    ## ODE interface:
+    ode_size: {type: size_t, access: member}
+    ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+  methods:
+    compute_competition: {return_type: double, args: [height: double]}
+    add_seed:
+      return_type: void
+      args: [species_index: "plant::util::index"]
+      name_cpp: r_add_seed
+    compute_environment:
+      return_type: void
+      name_cpp: r_compute_environment
+    compute_rates:
+      return_type: void
+      name_cpp: r_compute_rates
+    # TODO: Not 100% sure this is needed from R:
+    reset:
+      return_type: void
+    # Because we now care about time, we need to make sure that the
+    # setter function passes time along, so can't be done via the
+    # active binding (unlike Species, Cohort, etc).
+    set_ode_state:
+      return_type: void
+      access: function
+      name_cpp: "plant::ode::r_set_ode_state"
+      args: [values: "plant::ode::state_type", time: double]
+    derivs:
+      return_type: "plant::ode::state_type"
+      access: function
+      name_cpp: "plant::ode::r_derivs"
+      args: [y: "const plant::ode::state_type&", time: double]
+    set_state:
+      args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&", env: "const std::vector<double>&"]
+      name_cpp: r_set_state
       return_type: void
 
-PlantRunner:
-  name_cpp: "plant::tools::PlantRunner<T>"
+SCM:
+  name_cpp: "plant::SCM<T,E>"
   templates:
-    parameters: T
+    parameters: [T, E]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    name_cpp: "plant::tools::PlantRunner<T>"
-    args: [plant: "plant::PlantPlus<T>", environment: "plant::Environment"]
+    args: [parameters: "plant::Parameters<T,E>"]
+  methods:
+    run:
+      return_type: void
+    run_next:
+      return_type: "std::vector<plant::util::index>"
+      name_cpp: r_run_next
+    reset:
+      return_type: void
+    seed_rain:
+      args: [species_index: "plant::util::index"]
+      return_type: double
+      name_cpp: r_seed_rain
+    seed_rain_cohort:
+      args: [species_index: "plant::util::index"]
+      return_type: "std::vector<double>"
+      name_cpp: r_seed_rain_cohort
+    competition_effect_error:
+      args: [species_index: "plant::util::index"]
+      return_type: "std::vector<double>"
+      name_cpp: r_competition_effect_error
+    set_cohort_schedule_times:
+      args: [times: "std::vector<std::vector<double> >"]
+      return_type: void
+      name_cpp: r_set_cohort_schedule_times
+    # times
+    # set_times
   active:
-    plant: {access: field, type: "plant::PlantPlus<T>"}
+    complete: {type: bool, access: member}
+    time: {type: double, access: member}
+    seed_rains: {type: "std::vector<double>", access: member}
+    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
+    patch:
+      type: "plant::Patch<T,E>"
+      access: member
+      name_cpp: r_patch
+    cohort_schedule:
+      type: "plant::CohortSchedule"
+      access: member
+      name_cpp: r_cohort_schedule
+      name_cpp_set: r_set_cohort_schedule
+    ode_times:
+      type: "std::vector<double>"
+      access: member
+      name_cpp: r_ode_times
+    state:
+      type: "Rcpp::List"
+      access: function
+      name_cpp: "plant::get_state"
+    use_ode_times:
+      type: bool
+      access: member
+      name_cpp: r_use_ode_times
+      name_cpp_set: r_set_use_ode_times
+    seed_rain_error:
+      type: "std::vector<std::vector<double> >"
+      access: member
+      name_cpp: r_seed_rain_error
+
+StochasticSpecies:
+  name_cpp: "plant::StochasticSpecies<T,E>"
+  templates:
+    parameters: [T,E]
+    concrete:
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
+  constructor:
+    args: [strategy: "T"]
+  active:
+    size: {type: size_t, access: member}
+    size_plants: {type: size_t, access: member}
+    seed: {type: "plant::Individual<T,E>", access: member, name_cpp: r_seed}
+    height_max: {type: double, access: member, readonly: true}
+    heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
+    plants: {type: "std::vector<plant::Individual<T,E> >", access: member, name_cpp: r_plants}
+    is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
+    seeds: {type: "std::vector<double>", access: member}
+    ## ODE interface:
+    ode_size: {type: size_t, access: member}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+  methods:
+    clear:
+      return_type: void
+    compute_rates:
+      return_type: void
+      args: [environment: E]
+    compute_competition:
+      return_type: double
+      args: [height: double]
+    add_seed:
+      return_type: void
+    plant_at:
+      return_type: "plant::Individual<T,E>"
+      args: [index: "plant::util::index"]
+      name_cpp: r_plant_at
+    deaths:
+      return_type: size_t
+    establishment_probability:
+      args: [environment: E]
+      return_type: double
+
+StochasticPatch:
+  name_cpp: "plant::StochasticPatch<T,E>"
+  templates:
+    parameters: [T,E]
+    concrete:
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
+  constructor:
+    args: [parameters: "plant::Parameters<T,E>"]
+  active:
+    time: {type: double, access: member}
+    size: {type: size_t, access: member}
+    height_max: {type: double, access: member}
+    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
+    environment: {type: E, access: member, name_cpp: r_environment}
+    species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
+    ## ODE interface:
+    ode_size: {type: size_t, access: member}
+    ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
+    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
+    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+  methods:
+    compute_competition: {return_type: double, args: [height: double]}
+    add_seed:
+      return_type: bool
+      args: [species_index: "plant::util::index"]
+      name_cpp: r_add_seed
+    add_seedling:
+      return_type: void
+      args: [species_index: "plant::util::index"]
+      name_cpp: r_add_seedling
+    compute_environment:
+      return_type: void
+      name_cpp: r_compute_environment
+    compute_rates:
+      return_type: void
+      name_cpp: r_compute_rates
+    # TODO: Not 100% sure this is needed from R:
+    reset:
+      return_type: void
+    # Because we now care about time, we need to make sure that the
+    # setter function passes time along, so can't be done via the
+    # active binding (unlike Species, Cohort, etc).
+    set_ode_state:
+      return_type: void
+      access: function
+      name_cpp: "plant::ode::r_set_ode_state"
+      args: [values: "plant::ode::state_type", time: double]
+    derivs:
+      return_type: "plant::ode::state_type"
+      access: function
+      name_cpp: "plant::ode::r_derivs"
+      args: [y: "const plant::ode::state_type&", time: double]
+    set_state:
+      args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&"]
+      name_cpp: r_set_state
+      return_type: void
+    deaths:
+      return_type: "std::vector<size_t>"
+
+StochasticPatchRunner:
+  name_cpp: "plant::StochasticPatchRunner<T,E>"
+  templates:
+    parameters: [T,E]
+    concrete:
+      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
+  constructor:
+    args: [parameters: "plant::Parameters<T,E>"]
+  methods:
+    run:
+      return_type: void
+    run_next:
+      return_type: "plant::util::index"
+      name_cpp: r_run_next
+    reset:
+      return_type: void
+    set_schedule_times:
+      args: [times: "std::vector<std::vector<double> >"]
+      return_type: void
+      name_cpp: r_set_schedule_times
+  active:
+    complete: {type: bool, access: member}
+    time: {type: double, access: member}
+    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
+    patch:
+      type: "plant::StochasticPatch<T,E>"
+      access: member
+      name_cpp: r_patch
+    schedule:
+      type: "plant::CohortSchedule"
+      access: member
+      name_cpp: r_schedule
+      name_cpp_set: r_set_schedule
+    state:
+      type: "Rcpp::List"
+      access: function
+      name_cpp: "plant::get_state"
+
+Canopy:
+  name_cpp: "plant::Canopy"
+  constructor:
+    args: [k_I: double, control: "plant::Control"]
+  methods:
+    canopy_openness:
+      args: [height: double]
+      return_type: double
+    clear:
+      return_type: void
+  active:
+    canopy_interpolator: {type: "plant::interpolator::Interpolator", access: field}
 
 FF16_Strategy:
   name_cpp: "plant::FF16_Strategy"
@@ -389,8 +795,45 @@ FF16_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control"
+    - control: "plant::Control" 
+    - collect_all_auxillary: bool
 
+FF16_Environment:
+  name_cpp: "plant::FF16_Environment"
+  constructor:
+    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
+    roxygen: |
+      FF16_Environment object
+      @param disturbance_mean_interval mean disturbance interval in years
+      @param seed_rain vector of seed rains
+      @param k_I light extinction coefficient
+      @param control A Control object
+      @export
+  methods:
+    canopy_openness:
+      args: [height: double]
+      return_type: double
+    patch_survival_conditional:
+      args: [time_at_birth: double]
+      return_type: double
+    clear:
+      return_type: void
+    set_seed_rain_index:
+      args: [x: "plant::util::index"]
+      return_type: void
+      name_cpp: r_set_seed_rain_index
+    set_fixed_environment:
+      args: [value: double, height_max: double]
+      return_type: void
+  active:
+    patch_survival: {type: double, access: member}
+    seed_rain_dt: {type: double, access: member}
+    disturbance_regime: {type: "plant::Disturbance", access: field}
+    time: {type: double, access: field}
+    canopy: {type: "plant::Canopy", access: field}
+
+
+# The following strategy was built from FF16 on Wed Aug 12 11:12:34 2020
 FF16r_Strategy:
   name_cpp: "plant::FF16r_Strategy"
   roxygen: |
@@ -430,471 +873,63 @@ FF16r_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control"
+    - control: "plant::Control" 
+    - collect_all_auxillary: bool
 
-Parameters:
-  name_cpp: "plant::Parameters<T>"
-  templates:
-    parameters: T
-    concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
-  # TODO: This is broken:
-  # roxygen: |
-  #   Strategy parameters that tune various aspects of the biological model.
-  #   @title Strategy parameters
-  #   @param ...,values Values to initialise the struct with (either as
-  #   variadic arguments, or as a list, but not both).
-  #   @export
-  validator:
-    name_cpp: validate
+# The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
+K93_Strategy:
+  name_cpp: "plant::K93_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
   list:
-    - k_I: double
-    - patch_area: double
-    - n_patches: size_t
-    - disturbance_mean_interval: double
-    - strategies: "std::vector<T>"
-    - seed_rain: "std::vector<double>"
-    - is_resident: "std::vector<bool>"
+    - height_0: double
+    - b_0: double
+    - b_1: double
+    - b_2: double
+    - c_0: double
+    - c_1: double
+    - d_0: double
+    - d_1: double
+    - S_D: double
     - control: "plant::Control"
-    - strategy_default: "T"
-    - cohort_schedule_max_time: double
-    - cohort_schedule_times_default: "std::vector<double>"
-    - cohort_schedule_times: "std::vector<std::vector<double> >"
-    - cohort_schedule_ode_times: "std::vector<double>"
-    - hyperpar: SEXP
 
-PlantPlus:
-  name_cpp: "plant::PlantPlus<T>"
-  templates:
-    parameters: T
-    concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
+
+# The following environment was built from FF16r on Wed Aug 12 15:46:38 2020
+K93_Environment:
+  name_cpp: "plant::K93_Environment"
   constructor:
-    name_cpp: "plant::make_plant_plus<T>"
-    args: [strategy: T]
+    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
     roxygen: |
-      PlantPlus object
-      @param T String containing class of plant to create; currently
-      must be \code{"FF16"}.  See \code{\link{FF16_Plant}} for more
-      details.
+      K93_Environment object
+      @param disturbance_mean_interval mean disturbance interval in years
+      @param seed_rain vector of seed rains
+      @param k_I light extinction coefficient
+      @param control A Control object
       @export
-  active:
-    height: {type: double, access: member, name_cpp: height, name_cpp_set: set_height}
-    # Possibly these four should be read-only?
-    mortality: {type: double, access: member, name_cpp_set: set_mortality}
-    fecundity: {type: double, access: member, name_cpp_set: set_fecundity}
-    area_heartwood: {type: double, access: member, name_cpp_set: set_area_heartwood}
-    mass_heartwood: {type: double, access: member, name_cpp_set: set_mass_heartwood}
-    area_leaf: {type: double, access: member}
-    strategy: {type: "T", access: member, name_cpp: r_get_strategy}
-    internals: {type: "plant::PlantPlus_internals", access: member, name_cpp: "r_internals"}
-    ode_size: {type: size_t, access: member}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
-    ode_names: {type: "std::vector<std::string>", access: member}
-    strategy_name: {type: "std::string", access: member}
   methods:
-    area_leaf_above:
-      args: [h: double]
-      return_type: double
-    compute_vars_phys:
-      args: [environment: "const plant::Environment&"]
-      return_type: void
-    compute_vars_growth:
-      return_type: void
-    germination_probability:
-      args: [environment: "const plant::Environment&"]
-      return_type: double
-    to_plant:
-      return_type: "plant::Plant<T>"
-PlantPlus_internals:
-  name_cpp: "plant::PlantPlus_internals"
-  list:
-    - mass_leaf: double
-    - area_leaf: double
-    - height: double
-    - area_sapwood: double
-    - mass_sapwood: double
-    - area_bark: double
-    - mass_bark: double
-    - area_heartwood: double
-    - mass_heartwood: double
-    - area_stem: double
-    - mass_root: double
-    - mass_live: double
-    - mass_total: double
-    - mass_above_ground: double
-    - diameter_stem: double
-    - assimilation: double
-    - respiration: double
-    - turnover: double
-    - net_mass_production_dt: double
-    - fraction_allocation_reproduction: double
-    - fraction_allocation_growth: double
-    - fecundity_dt: double
-    - area_leaf_dt: double
-    - darea_leaf_dmass_live: double
-    - height_dt: double
-    - area_heartwood_dt: double
-    - mass_heartwood_dt: double
-    - mortality_dt: double
-    - mortality: double
-    - fecundity: double
-    - dheight_darea_leaf: double
-    - dmass_sapwood_darea_leaf: double
-    - dmass_bark_darea_leaf: double
-    - dmass_root_darea_leaf: double
-    - area_sapwood_dt: double
-    - area_bark_dt: double
-    - area_stem_dt: double
-    - ddiameter_stem_darea_stem: double
-    - diameter_stem_dt: double
-    - mass_root_dt: double
-    - mass_live_dt: double
-    - mass_total_dt: double
-    - mass_above_ground_dt: double
-
-Cohort:
-  name_cpp: "plant::Cohort<T>"
-  templates:
-    parameters: T
-    concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
-  constructor:
-    name_cpp: "plant::make_cohort<T>"
-    args: [strategy: T]
-  active:
-    plant: {type: "plant::Plant<T>", access: field, readonly: true}
-    height: {type: double, access: member}
-    log_density: {type: double, access: member, name_cpp: get_log_density}
-    area_leaf: {type: double, access: member}
-    fecundity: {type: double, access: member}
-    ode_size: {type: size_t, access: member}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
-    ode_names: {type: "std::vector<std::string>", access: member}
-  methods:
-    area_leaf_above:
-      return_type: double
+    canopy_openness:
       args: [height: double]
-    growth_rate_gradient:
       return_type: double
-      name_cpp: "r_growth_rate_gradient"
-      args: [environment: "const plant::Environment&"]
-    compute_vars_phys:
-      return_type: void
-      args: [environment: "const plant::Environment&"]
-    compute_initial_conditions:
-      return_type: void
-      args: [environment: "const plant::Environment&"]
-
-# For now, also not templated
-Species:
-  name_cpp: "plant::Species<T>"
-  templates:
-    parameters: T
-    concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
-  constructor:
-    args: [strategy: T]
-  active:
-    size: {type: size_t, access: member}
-    seed: {type: "plant::Cohort<T>", access: member, name_cpp: r_seed}
-    height_max: {type: double, access: member, readonly: true}
-    heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
-    log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
-    cohorts: {type: "std::vector<plant::Cohort<T> >", access: member, name_cpp: r_cohorts}
-    seeds: {type: "std::vector<double>", access: member}
-    area_leafs: {type: "std::vector<double>", access: member, name_cpp: r_area_leafs}
-    ## ODE interface:
-    ode_size: {type: size_t, access: member}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
-  methods:
+    patch_survival_conditional:
+      args: [time_at_birth: double]
+      return_type: double
     clear:
       return_type: void
-    compute_vars_phys:
+    set_seed_rain_index:
+      args: [x: "plant::util::index"]
       return_type: void
-      args: [environment: "const plant::Environment&"]
-    area_leaf_above:
-      return_type: double
-      args: [height: double]
-    add_seed:
+      name_cpp: r_set_seed_rain_index
+    set_fixed_environment:
+      args: [value: double, height_max: double]
       return_type: void
-    cohort_at:
-      return_type: "plant::Cohort<T>"
-      args: [index: "plant::util::index"]
-      name_cpp: r_cohort_at
-    area_leafs_error:
-      return_type: "std::vector<double>"
-      args: [scal: double=1]
-      name_cpp: r_area_leafs_error
-
-Patch:
-  name_cpp: "plant::Patch<T>"
-  templates:
-    parameters: T
-    concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
-  constructor:
-    args: [parameters: "plant::Parameters<T>"]
   active:
-    time: {type: double, access: member}
-    size: {type: size_t, access: member}
-    height_max: {type: double, access: member}
-    parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
-    environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
-    species: {type: "std::vector<plant::Species<T> >", access: member, name_cpp: r_species}
-    ## ODE interface:
-    ode_size: {type: size_t, access: member}
-    ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
-  methods:
-    area_leaf_above: {return_type: double, args: [height: double]}
-    canopy_openness: {return_type: double, args: [height: double]}
-    add_seed:
-      return_type: void
-      args: [species_index: "plant::util::index"]
-      name_cpp: r_add_seed
-    compute_light_environment:
-      return_type: void
-      name_cpp: r_compute_light_environment
-    compute_vars_phys:
-      return_type: void
-      name_cpp: r_compute_vars_phys
-    # TODO: Not 100% sure this is needed from R:
-    reset:
-      return_type: void
-    # Because we now care about time, we need to make sure that the
-    # setter function passes time along, so can't be done via the
-    # active binding (unlike Species, Cohort, etc).
-    set_ode_state:
-      return_type: void
-      access: function
-      name_cpp: "plant::ode::r_set_ode_state"
-      args: [values: "plant::ode::state_type", time: double]
-    derivs:
-      return_type: "plant::ode::state_type"
-      access: function
-      name_cpp: "plant::ode::r_derivs"
-      args: [y: "const plant::ode::state_type&", time: double]
-    set_state:
-      args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&", light_env: "const std::vector<double>&"]
-      name_cpp: r_set_state
-      return_type: void
+    patch_survival: {type: double, access: member}
+    seed_rain_dt: {type: double, access: member}
+    disturbance_regime: {type: "plant::Disturbance", access: field}
+    time: {type: double, access: field}
+    canopy: {type: "plant::Canopy", access: field}
 
-SCM:
-  name_cpp: "plant::SCM<T>"
-  templates:
-    parameters: T
-    concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
-  constructor:
-    args: [parameters: "plant::Parameters<T>"]
-  methods:
-    run:
-      return_type: void
-    run_next:
-      return_type: "std::vector<plant::util::index>"
-      name_cpp: r_run_next
-    reset:
-      return_type: void
-    seed_rain:
-      args: [species_index: "plant::util::index"]
-      return_type: double
-      name_cpp: r_seed_rain
-    seed_rain_cohort:
-      args: [species_index: "plant::util::index"]
-      return_type: "std::vector<double>"
-      name_cpp: r_seed_rain_cohort
-    area_leaf_error:
-      args: [species_index: "plant::util::index"]
-      return_type: "std::vector<double>"
-      name_cpp: r_area_leaf_error
-    set_cohort_schedule_times:
-      args: [times: "std::vector<std::vector<double> >"]
-      return_type: void
-      name_cpp: r_set_cohort_schedule_times
-    # times
-    # set_times
-  active:
-    complete: {type: bool, access: member}
-    time: {type: double, access: member}
-    seed_rains: {type: "std::vector<double>", access: member}
-    parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
-    patch:
-      type: "plant::Patch<T>"
-      access: member
-      name_cpp: r_patch
-    cohort_schedule:
-      type: "plant::CohortSchedule"
-      access: member
-      name_cpp: r_cohort_schedule
-      name_cpp_set: r_set_cohort_schedule
-    ode_times:
-      type: "std::vector<double>"
-      access: member
-      name_cpp: r_ode_times
-    state:
-      type: "Rcpp::List"
-      access: function
-      name_cpp: "plant::get_state"
-    use_ode_times:
-      type: bool
-      access: member
-      name_cpp: r_use_ode_times
-      name_cpp_set: r_set_use_ode_times
-    seed_rain_error:
-      type: "std::vector<std::vector<double> >"
-      access: member
-      name_cpp: r_seed_rain_error
-
-StochasticSpecies:
-  name_cpp: "plant::StochasticSpecies<T>"
-  templates:
-    parameters: T
-    concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
-  constructor:
-    args: [strategy: "T"]
-  active:
-    size: {type: size_t, access: member}
-    size_plants: {type: size_t, access: member}
-    seed: {type: "plant::Plant<T>", access: member, name_cpp: r_seed}
-    height_max: {type: double, access: member, readonly: true}
-    heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
-    plants: {type: "std::vector<plant::Plant<T> >", access: member, name_cpp: r_plants}
-    is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
-    seeds: {type: "std::vector<double>", access: member}
-    ## ODE interface:
-    ode_size: {type: size_t, access: member}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
-  methods:
-    clear:
-      return_type: void
-    compute_vars_phys:
-      return_type: void
-      args: [environment: "const plant::Environment&"]
-    area_leaf_above:
-      return_type: double
-      args: [height: double]
-    add_seed:
-      return_type: void
-    plant_at:
-      return_type: "plant::Plant<T>"
-      args: [index: "plant::util::index"]
-      name_cpp: r_plant_at
-    deaths:
-      return_type: size_t
-    germination_probability:
-      args: [environment: "const plant::Environment&"]
-      return_type: double
-
-StochasticPatch:
-  name_cpp: "plant::StochasticPatch<T>"
-  templates:
-    parameters: T
-    concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
-  constructor:
-    args: [parameters: "plant::Parameters<T>"]
-  active:
-    time: {type: double, access: member}
-    size: {type: size_t, access: member}
-    height_max: {type: double, access: member}
-    parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
-    environment: {type: "plant::Environment", access: member, name_cpp: r_environment}
-    species: {type: "std::vector<plant::StochasticSpecies<T> >", access: member, name_cpp: r_species}
-    ## ODE interface:
-    ode_size: {type: size_t, access: member}
-    ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
-    ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
-    ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
-  methods:
-    area_leaf_above: {return_type: double, args: [height: double]}
-    canopy_openness: {return_type: double, args: [height: double]}
-    add_seed:
-      return_type: bool
-      args: [species_index: "plant::util::index"]
-      name_cpp: r_add_seed
-    add_seedling:
-      return_type: void
-      args: [species_index: "plant::util::index"]
-      name_cpp: r_add_seedling
-    compute_light_environment:
-      return_type: void
-      name_cpp: r_compute_light_environment
-    compute_vars_phys:
-      return_type: void
-      name_cpp: r_compute_vars_phys
-    # TODO: Not 100% sure this is needed from R:
-    reset:
-      return_type: void
-    # Because we now care about time, we need to make sure that the
-    # setter function passes time along, so can't be done via the
-    # active binding (unlike Species, Cohort, etc).
-    set_ode_state:
-      return_type: void
-      access: function
-      name_cpp: "plant::ode::r_set_ode_state"
-      args: [values: "plant::ode::state_type", time: double]
-    derivs:
-      return_type: "plant::ode::state_type"
-      access: function
-      name_cpp: "plant::ode::r_derivs"
-      args: [y: "const plant::ode::state_type&", time: double]
-    set_state:
-      args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&"]
-      name_cpp: r_set_state
-      return_type: void
-    deaths:
-      return_type: "std::vector<size_t>"
-
-StochasticPatchRunner:
-  name_cpp: "plant::StochasticPatchRunner<T>"
-  templates:
-    parameters: T
-    concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
-  constructor:
-    args: [parameters: "plant::Parameters<T>"]
-  methods:
-    run:
-      return_type: void
-    run_next:
-      return_type: plant::util::index
-      name_cpp: r_run_next
-    reset:
-      return_type: void
-    set_schedule_times:
-      args: [times: "std::vector<std::vector<double> >"]
-      return_type: void
-      name_cpp: r_set_schedule_times
-  active:
-    complete: {type: bool, access: member}
-    time: {type: double, access: member}
-    parameters: {type: "plant::Parameters<T>", access: member, name_cpp: r_parameters}
-    patch:
-      type: "plant::StochasticPatch<T>"
-      access: member
-      name_cpp: r_patch
-    schedule:
-      type: "plant::CohortSchedule"
-      access: member
-      name_cpp: r_schedule
-      name_cpp_set: r_set_schedule
-    state:
-      type: "Rcpp::List"
-      access: function
-      name_cpp: "plant::get_state"

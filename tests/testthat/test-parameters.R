@@ -1,21 +1,14 @@
 context("Parameters")
 
 strategy_types <- get_list_of_strategy_types()
-
-test_that("hyperpar creation", {
-  for (x in names(strategy_types)) {
-    h <- hyperpar(x)
-    expect_is(h, "function")
-    expect_equal(names(formals(h)), c("m", "s", "filter"))
-    expect_equal(make_hyperpar(x)(), h)
-  }
-})
+environment_types <- get_list_of_environment_types()
 
 test_that("Creation & defaults", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
-    p <- Parameters(x)()
-    expect_is(p, sprintf("Parameters<%s>", x))
+    e <- environment_types[[x]]
+    p <- Parameters(x, e)()
+    expect_is(p, sprintf("Parameters<%s,%s>", x, e))
 
     expect_equal(length(p$strategies), 0)
     expect_equal(length(p$is_resident), 0)
@@ -24,8 +17,7 @@ test_that("Creation & defaults", {
     expected <- list(k_I=0.5,
                      n_patches=1,    # NOTE: Different to tree 0.1
                      patch_area=1.0, # NOTE: Different to tree 0.1
-                     disturbance_mean_interval=30.0,
-                     hyperpar=hyperpar(x))
+                     disturbance_mean_interval=30.0)
 
     expect_equal(p[names(expected)], expected)
     expect_equal(p$strategy_default, s)
@@ -39,23 +31,24 @@ test_that("Creation & defaults", {
 test_that("Nontrivial creation", {
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
-    p <- Parameters(x)(strategies=list(s))
+    e <- environment_types[[x]]
+    p <- Parameters(x, e)(strategies=list(s))
     expect_equal(p$seed_rain, 1.0)
     expect_true(p$is_resident)
 
-    expect_error(Parameters(x)(seed_rain=pi), "Incorrect length seed_rain")
-    expect_error(Parameters(x)(is_resident=FALSE), "Incorrect length is_resident")
+    expect_error(Parameters(x, e)(seed_rain=pi), "Incorrect length seed_rain")
+    expect_error(Parameters(x, e)(is_resident=FALSE), "Incorrect length is_resident")
 
-    expect_error(Parameters(x)(strategies=list(strategy_types[[x]](),
+    expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
                                    strategy_types[[x]]()),
                                  seed_rain=pi),
                  "Incorrect length seed_rain")
-    expect_error(Parameters(x)(strategies=list(strategy_types[[x]](),
+    expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
                                    strategy_types[[x]]()),
                                  is_resident=TRUE),
                  "Incorrect length is_resident")
 
-    p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi,
                           is_resident=TRUE)
 
@@ -64,7 +57,7 @@ test_that("Nontrivial creation", {
     expect_identical(p$cohort_schedule_times, list(p$cohort_schedule_times_default))
 
     ## Now, with some of these set:
-    p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi,
                           is_resident=TRUE,
                           disturbance_mean_interval=2)
@@ -83,10 +76,11 @@ test_that("Parameters overwrites Strategy control", {
     ctrl_p$schedule_eps <- 2
 
     s <- strategy_types[[x]](control=ctrl_s)
+    e <- environment_types[[x]]
     expect_identical(s$control, ctrl_s)
     expect_false(identical(s$control, ctrl_p))
 
-    p <- Parameters(x)(control=ctrl_p)
+    p <- Parameters(x, e)(control=ctrl_p)
     expect_false(identical(p$control, ctrl_s))
     expect_identical(p$control, ctrl_p)
 
@@ -94,12 +88,12 @@ test_that("Parameters overwrites Strategy control", {
     p$seed_rain <- 1
     p$is_resident <- TRUE
     ## Pass though to force validation:
-    tmp <- Patch(x)(p)$parameters
+    tmp <- Patch(x, e)(p)$parameters
     expect_identical(tmp$control, ctrl_p)
     expect_identical(tmp$strategies[[1]]$control, ctrl_p)
 
     ## In one shot:
-    p2 <- Parameters(x)(control=ctrl_p, strategies=list(s),
+    p2 <- Parameters(x, e)(control=ctrl_p, strategies=list(s),
                            seed_rain=1, is_resident=TRUE)
     expect_identical(p2$control, ctrl_p)
     expect_identical(p2$strategies[[1]]$control, ctrl_p)
@@ -108,7 +102,8 @@ test_that("Parameters overwrites Strategy control", {
 
 test_that("Generate cohort schedule", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x)(strategies=list(strategy_types[[x]]()),
+    e <- environment_types[[x]]
+    p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2, is_resident=TRUE)
     sched <- make_cohort_schedule(p)
 
@@ -119,18 +114,10 @@ test_that("Generate cohort schedule", {
   }
 })
 
-test_that("Store hyperparams", {
-  for (x in names(strategy_types)) {
-    p <- Parameters(x)(hyperpar=hyperpar(x))
-    expect_identical(p$hyperpar, hyperpar(x))
-    tmp <- Patch(x)(p)$parameters
-    expect_identical(tmp$hyperpar, hyperpar(x))
-  }
-})
-
 test_that("Validate", {
   for (x in names(strategy_types)) {
-    p <- Parameters(x)()
+    e <- environment_types[[x]]
+    p <- Parameters(x, e)()
     expect_equal(validate(p), p)
     p$is_resident <- TRUE
     expect_error(validate(p), "Incorrect length is_resident")
@@ -140,9 +127,9 @@ test_that("Validate", {
 
 test_that("scm_base_parameters", {
   for (x in names(strategy_types)) {
+    e <- environment_types[[x]]
     p <- scm_base_parameters(x)
-    expect_equal(p$hyperpar, hyperpar(x))
-    expect_is(p, sprintf("Parameters<%s>", x))
+    expect_is(p, sprintf("Parameters<%s,%s>", x, e))
   }
 })
 
@@ -169,14 +156,4 @@ test_that("Disturbance interval", {
     p$cohort_schedule_time <- list(1:11)
     expect_equal(validate(p), p2)
   }
-})
-
-test_that("narea calculation", {
-  x <- c(1.38, 3.07, 2.94)
-  p0 <- FF16_Parameters()
-  m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- strategy_list(m, p0))
-
-  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0))
-  expect_equal(sl, cmp)
 })

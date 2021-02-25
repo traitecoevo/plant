@@ -35,8 +35,6 @@
  * 
  */ 
 
-#define NDEBUG 
-   
 #include <cstdio>
 #include <cassert>
 #include <vector>

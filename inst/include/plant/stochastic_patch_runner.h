@@ -16,17 +16,17 @@ namespace plant {
 // tracking who is who; deaths are going to make it hard to plot sizes
 // vs time without some care.
 //
-// One option is to make "StochasticCohort<T>" that would include an
+// One option is to make "StochasticCohort<T,E>" that would include an
 // ID.  Another option is to track required bits of data that within
 // the patch somehow?
-template <typename T>
+template <typename T, typename E>
 class StochasticPatchRunner {
 public:
-  typedef T                    strategy_type;
-  typedef Plant<T>             plant_type;
-  typedef StochasticSpecies<T> species_type;
-  typedef StochasticPatch<T>   patch_type;
-  typedef Parameters<T>        parameters_type;
+  typedef T                      strategy_type;
+  typedef Individual<T,E>             individual_type;
+  typedef StochasticSpecies<T,E> species_type;
+  typedef StochasticPatch<T,E>   patch_type;
+  typedef Parameters<T,E>        parameters_type;
 
   StochasticPatchRunner(parameters_type p);
 
@@ -56,8 +56,8 @@ private:
   ode::Solver<patch_type> solver;
 };
 
-template <typename T>
-StochasticPatchRunner<T>::StochasticPatchRunner(parameters_type p)
+template <typename T, typename E>
+StochasticPatchRunner<T,E>::StochasticPatchRunner(parameters_type p)
   : parameters(p),
     patch(parameters),
     schedule(make_empty_stochastic_schedule(parameters)),
@@ -65,16 +65,16 @@ StochasticPatchRunner<T>::StochasticPatchRunner(parameters_type p)
   parameters.validate();
 }
 
-template <typename T>
-void StochasticPatchRunner<T>::run() {
+template <typename T, typename E>
+void StochasticPatchRunner<T,E>::run() {
   reset();
   while (!complete()) {
     run_next();
   }
 }
 
-template <typename T>
-size_t StochasticPatchRunner<T>::run_next() {
+template <typename T, typename E>
+size_t StochasticPatchRunner<T,E>::run_next() {
   const double t0 = time();
 
   // NOTE: Unlike SCM::run_next(), this assumes that there is only a
@@ -96,9 +96,9 @@ size_t StochasticPatchRunner<T>::run_next() {
   return idx;
 }
 
-template <typename T>
-void StochasticPatchRunner<T>::advance(double time_) {
-  // Clones some of Solver<T>::advance()
+template <typename T, typename E>
+void StochasticPatchRunner<T,E>::advance(double time_) {
+  // Clones some of Solver<T,E>::advance()
   solver.set_time_max(time_);
   while (solver.get_time() < time_) {
     solver.step(patch);
@@ -108,8 +108,8 @@ void StochasticPatchRunner<T>::advance(double time_) {
   }
 }
 
-template <typename T>
-bool StochasticPatchRunner<T>::deaths() {
+template <typename T, typename E>
+bool StochasticPatchRunner<T,E>::deaths() {
   const auto ret = patch.deaths();
   return std::any_of(ret.begin(), ret.end(), [](size_t i) {return i > 0;});
 }
@@ -118,8 +118,8 @@ bool StochasticPatchRunner<T>::deaths() {
 // However, there is no other current way of setting the time within
 // the solver.  It might be better to add a set_time method within
 // ode::Solver, and then here do explicitly ode_solver.set_time(0)?
-template <typename T>
-void StochasticPatchRunner<T>::reset() {
+template <typename T, typename E>
+void StochasticPatchRunner<T,E>::reset() {
   patch.reset();
   schedule.reset();
   solver.reset(patch);
@@ -131,18 +131,18 @@ void StochasticPatchRunner<T>::reset() {
   }
 }
 
-template <typename T>
-bool StochasticPatchRunner<T>::complete() const {
+template <typename T, typename E>
+bool StochasticPatchRunner<T,E>::complete() const {
   return schedule.remaining() == 0;
 }
 
-template <typename T>
-util::index StochasticPatchRunner<T>::r_run_next() {
+template <typename T, typename E>
+util::index StochasticPatchRunner<T,E>::r_run_next() {
   return util::index(run_next());
 }
 
-template <typename T>
-void StochasticPatchRunner<T>::r_set_schedule(CohortSchedule x) {
+template <typename T, typename E>
+void StochasticPatchRunner<T,E>::r_set_schedule(CohortSchedule x) {
   if (patch.ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
@@ -156,8 +156,8 @@ void StochasticPatchRunner<T>::r_set_schedule(CohortSchedule x) {
   reset();
 }
 
-template <typename T>
-void StochasticPatchRunner<T>::r_set_schedule_times(std::vector<std::vector<double> > x) {
+template <typename T, typename E>
+void StochasticPatchRunner<T,E>::r_set_schedule_times(std::vector<std::vector<double> > x) {
   if (patch.ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }

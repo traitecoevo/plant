@@ -8,76 +8,120 @@
 ##' @export
 ##' @rdname FF16
 ##' @examples
-##' pl <- FF16_Plant()
+##' pl <- FF16_Individual()
 ##' pl$height
-FF16_Plant <- function(s=FF16_Strategy()) {
-  Plant("FF16")(s)
+FF16_Individual <- function(s=FF16_Strategy()) {
+  Individual("FF16", "FF16_Env")(s)
+}
+
+#' Compute the whole plant light compensation point for a single
+#' plant with FF16 strategy. Called via general function in plant.R
+##' @export
+##' @rdname FF16
+`lcp_whole_plant.Plant<FF16>` <- function(p, ...) {
+  FF16_lcp_whole_plant(p, ...)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_Cohort <- function(s=FF16_Strategy()) {
-  Cohort("FF16")(s)
+  Cohort("FF16", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_Species <- function(s=FF16_Strategy()) {
-  Species("FF16")(s)
+  Species("FF16", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname FF16
 ##' @param ... Arguments!
-FF16_Parameters <- function(...) {
-  Parameters("FF16")(...)
+FF16_Parameters <- function() {
+  Parameters("FF16","FF16_Env")()
 }
 
 ##' @export
 ##' @rdname FF16
-##' @param p A \code{Parameters<FF16>} object
+##' @param p A \code{Parameters<FF16,FF16_Env>} object
 FF16_Patch <- function(p) {
-  Patch("FF16")(p)
+  Patch("FF16", "FF16_Env")(p)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_SCM <- function(p) {
-  SCM("FF16")(p)
+  SCM("FF16", "FF16_Env")(p)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_StochasticSpecies <- function(s=FF16_Strategy()) {
-  StochasticSpecies("FF16")(s)
+  StochasticSpecies("FF16", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_StochasticPatch <- function(p) {
-  StochasticPatch("FF16")(p)
+  StochasticPatch("FF16", "FF16_Env")(p)
 }
 
 ##' @export
 ##' @rdname FF16
 FF16_StochasticPatchRunner <- function(p) {
-  StochasticPatchRunner("FF16")(p)
+  StochasticPatchRunner("FF16", "FF16_Env")(p)
 }
 
-##' @export
-##' @rdname FF16
-FF16_PlantPlus <- function(s=FF16_Strategy()) {
-  PlantPlus("FF16")(s)
-}
 
 ## Helper:
 ##' @export
-##' @rdname Environment
+##' @rdname FF16_Environment
 ##' @param p A Parameters object
-make_environment <- function(p) {
-  Environment(p$disturbance_mean_interval,
-              p$seed_rain,
-              p$control)
+FF16_make_environment <- function(p) {
+  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
+}
+
+##' Construct a fixed environment for FF16 strategy
+##'
+##' @param e=1.0 Value of environment 
+##' @param p A Parameters object
+##' @param height_max = 150.0 maximum possible height in environment
+##' @rdname FF16_Environment
+##'
+##' @export
+FF16_fixed_environment <- function(e=1.0, p = FF16_Parameters(), height_max = 150.0) {
+  env <- FF16_make_environment(p)
+  env$set_fixed_environment(e, height_max)
+  env
+}
+
+
+## This makes a pretend light environment over the plant height,
+## slightly concave up, whatever.
+FF16_test_environment <- function(height, n=101, light_env=NULL,
+                             n_strategies=1, seed_rain=0) {
+  if (length(seed_rain) == 1) {
+    seed_rain <- rep(seed_rain, length.out=n_strategies)
+  }
+  hh <- seq(0, height, length.out=n)
+  if (is.null(light_env)) {
+    light_env <- function(x) {
+      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
+    }
+  }
+  ee <- light_env(hh)
+  interpolator <- Interpolator()
+  interpolator$init(hh, ee)
+
+  parameters <- FF16_Parameters()
+  parameters$strategies <- rep(list(FF16_Strategy()), n_strategies)
+  parameters$seed_rain <- seed_rain
+  parameters$is_resident <- rep(TRUE, n_strategies)
+
+  ret <- FF16_make_environment(parameters)
+  ret$canopy$canopy_interpolator <- interpolator
+  attr(ret, "light_env") <- light_env
+  ret
 }
 
 ##' Hyperparameters for FF16 physiological model

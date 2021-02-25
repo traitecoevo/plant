@@ -9,16 +9,13 @@
 ##'   will be applied.
 ##'
 ##' @export
-strategy_list <- function(x, parameters) {
+strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
   if (!is.matrix(x)) {
     stop("Invalid type x -- expected a matrix")
   }
 
   strategy <- parameters$strategy_default
-  hyperpar <- parameters$hyperpar
-  if (!is.null(hyperpar)) {
-    x <- hyperpar(x, strategy)
-  }
+  x <- hyperpar(x, strategy)
 
   trait_names <- colnames(x)
   f <- function(xi) {
@@ -30,27 +27,28 @@ strategy_list <- function(x, parameters) {
 
 ##' @export
 ##' @rdname strategy_list
-strategy_default <- function(parameters) {
-  strategy(trait_matrix(1, "a")[, -1, drop=FALSE], parameters)
+strategy_default <- function(parameters, hyperpar=param_hyperpar(parameters)) {
+  strategy(trait_matrix(1, "a")[, -1, drop=FALSE], parameters, hyperpar)
 }
 
 ##' @export
 ##' @rdname strategy_list
-strategy <- function(x, parameters) {
+strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
   if (nrow(x) != 1L) {
     stop("Expected a single type")
   }
-  strategy_list(x, parameters)[[1]]
+  strategy_list(x, parameters, hyperpar)[[1]]
 }
 
 ##' @rdname strategy_list
 ##' @export
-plant_list <- function(x, parameters) {
+individual_list <- function(x, parameters, hyperpar=parram_hyperpar(parameters)) {
+
   if (!inherits(parameters, "Parameters")) {
     stop("parameters must be a 'Parameters' object")
   }
-  type <- extract_RcppR6_template_type(parameters, "Parameters")
-  lapply(strategy_list(x, parameters), Plant(type))
+  types <- extract_RcppR6_template_types(parameters, "Parameters")
+  lapply(strategy_list(x, parameters, hyperpar), do.call('Individual', types))
 }
 
 ##' Helper function to create trait matrices suitable for
@@ -82,11 +80,11 @@ trait_matrix <- function(x, trait_name) {
 ##' density).
 ##' @author Rich FitzJohn
 ##' @export
-expand_parameters <- function(trait_matrix, p, mutant=TRUE) {
+expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutant=TRUE) {
   if (length(mutant) != 1L) {
     stop("mutant must be scalar")
   }
-  extra <- strategy_list(trait_matrix, p)
+  extra <- strategy_list(trait_matrix, p, hyperpar)
   n_extra <- length(extra)
 
   ret <- p <- validate(p) # Ensure times are set up correctly.

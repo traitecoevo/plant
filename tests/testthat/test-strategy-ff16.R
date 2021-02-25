@@ -32,7 +32,8 @@ test_that("Defaults", {
     rho    = 608,
     omega  = 3.8e-5,
     theta  = 1.0/4669,
-    control = Control())
+    control = Control(),
+    collect_all_auxillary = FALSE)
 
   keys <- sort(names(expected))
 
@@ -43,27 +44,55 @@ test_that("Defaults", {
   expect_identical(unclass(s)[keys], expected[keys])
 })
 
+test_that("FF16 collect_all_auxillary option", {
+
+  s <- FF16_Strategy()
+  p <- FF16_Individual(s)
+  expect_equal(p$aux_size, 2)
+  expect_equal(length(p$internals$auxs), 2)
+  expect_equal(p$aux_names, c(
+    "competition_effect",
+    "net_mass_production_dt"
+  ))
+
+  s <- FF16_Strategy(collect_all_auxillary=TRUE)
+  expect_true(s$collect_all_auxillary)
+  p <- FF16_Individual(s)
+  expect_equal(p$aux_size, 3)
+  expect_equal(length(p$internals$auxs), 3)
+  expect_equal(p$aux_names, c(
+    "competition_effect",
+    "net_mass_production_dt",
+    "area_sapwood"
+  ))
+})
+
 test_that("Reference comparison", {
   s <- FF16_Strategy()
-  p <- FF16_PlantPlus(s)
+  p <- FF16_Individual(s)
 
   expect_identical(p$strategy, s)
 
   ## Set the height to something (here 10)
   h0 <- 10
-  p$height <- h0
+  p$set_state("height", h0)
 
+
+  expect_identical(p$state("height"), h0)
+
+  ## Check: Is this redundant now
+  ## We now use 
   vars <- p$internals
-
-  expect_identical(vars[["height"]], h0)
-
-
-  expect_identical(p$height, vars[["height"]])
-  expect_identical(p$area_leaf, vars[["area_leaf"]])
+  expect_identical(p$state("height"), vars$states[which(p$ode_names == "height")])
 })
 
 
 
+test_that("Critical Names", {
+  s <- FF16_Strategy()
+  my_names <- FF16_Individual(s)$ode_names
+  expect_identical(my_names[1:3], c("height", "mortality", "fecundity"))
+})
 test_that("FF16_Strategy hyper-parameterisation", {
   s <- FF16_Strategy()
 
@@ -124,8 +153,42 @@ test_that("FF16_Strategy hyper-parameterisation", {
     expect_equal(a_p1[[1]], s$a_p1, tolerance=1e-7)
   }
 
+
   ## Empty trait matrix:
   ret <- FF16_hyperpar(trait_matrix(numeric(0), "lma"), s)
   expect_equal(ret, trait_matrix(numeric(0), "lma"))
+})
+
+test_that("narea calculation", {
+  x <- c(1.38, 3.07, 2.94)
+  p0 <- FF16_Parameters()
+  m <- trait_matrix(x, "hmat")
+  expect_silent(sl <- strategy_list(m, p0, FF16_hyperpar))
+
+  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0, FF16_hyperpar))
+  expect_equal(sl, cmp)
+})
+
+# integration test - runs a full patch metapopultaion
+# the seed rain produced integrates all demographic behaviours
+
+test_that("seed rain", {
+
+  p0 <- scm_base_parameters("FF16")
+
+  # one species
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE)
+
+  p1$seed_rain <- 20
+  out <- run_scm(p1)
+  expect_equal(out$seed_rains, 16.88946, tolerance=1e-5)
+  expect_equal( out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
+
+  # two species
+  p2 <- expand_parameters(trait_matrix(0.2625, "lma"), p1, FF16_hyperpar, FALSE)
+  p2$seed_rain <- c(11.99177, 16.51006)
+  out <- run_scm(p2)
+  expect_equal(out$seed_rains, c(11.99529, 16.47519), tolerance=1e-5)
+  expect_equal(length(out$ode_times), 297)
 })
 

@@ -12,6 +12,7 @@ namespace plant {
 
 class Disturbance {
 public:
+  Disturbance();
   Disturbance(double mean_interval_);
   double density(double time) const;
   double r_mean_interval() const;

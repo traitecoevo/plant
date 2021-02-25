@@ -10,14 +10,15 @@ output:
     number_sections: false
 ---
 
-``` {r }
+```{r}
 library(plant)
 ```
 
 There are a large number of parameters to the physiological model,
 but all are changeable.  The default strategy is detailed in the
 "physiology" vignette:
-``` {r }
+
+```{r}
 s <- FF16_Strategy()
 names(s)
 ```
@@ -30,19 +31,22 @@ of the model.
 
 All parameters except for `control` are floating point (decimal)
 numbers:
-``` {r }
+
+```{r}
 unlist(s[names(s) != "control"])
 ```
 
 All of these parameters can be directly changed.  For example, we
 can double the leaf mass per unit leaf area (lma) value:
-``` {r }
+
+```{r}
 s$lma <- s$lma * 2
 ```
 
 and then from this construct a plant:
-``` {r }
-pl <- FF16_Plant(s)
+
+```{r}
+pl <- FF16_Individual(s)
 pl$strategy$lma
 ```
 
@@ -58,13 +62,15 @@ additional parameters and functions that mean that changing one
 parameter might affect a number of other lower-level parameters.
 Our default hyper-parameterisation is via the
 `FF16_hyperpar` function:
-``` {r }
+
+```{r}
 FF16_hyperpar
 ```
 
 You will rarely need to call this function directly (see below) but
 note how setting of lma affects parameters `k_l`, `a_p1` and `r_l`
-``` {r }
+
+```{r}
 FF16_hyperpar(trait_matrix(0.1, "lma"), s)
 ```
 
@@ -80,7 +86,8 @@ the underlying physiological model in C++.
 
 The `trait_matrix` function is a simple wrapper that just makes
 sure the trait matrix has the right format:
-``` {r }
+
+```{r}
 trait_matrix(0.1, "lma")
 trait_matrix(c(0.1, 500), "rho")
 ```
@@ -88,30 +95,35 @@ trait_matrix(c(0.1, 500), "rho")
 To make use of the hyper-parameterisation, the preferred way of
 setting parameters is through the utility functions `strategy` and
 `strategy_list`.  These take a `Parameters` object:
-``` {r }
+
+```{r}
 p <- FF16_Parameters()
 ```
 
 The Parameters object mostly contains information about the patch:
-``` {r }
+
+```{r}
 names(p)
 ```
 
 and it comes pre-set with the hyper-parameterisation function:
-``` {r }
+
+```{r}
 identical(p$hyperpar, FF16_hyperpar)
 ```
 
 `k_I` is the light extinction coefficient,
 `disturbance_mean_interval` is the mean disturbance interval.  The
 `strategy_default` member is a Strategy:
-``` {r }
+
+```{r}
 class(p$strategy_default)
 ```
 
 This is the Strategy object that all others will be built from by
 difference.  Running
-``` {r }
+
+```{r}
 s <- strategy(trait_matrix(0.1, "lma"), p)
 ```
 
@@ -120,7 +132,8 @@ parameters that *depend* on lma.
 
 The function `strategy_list` can be used to create a list of
 strategies:
-``` {r }
+
+```{r}
 lma <- trait_matrix(seq(0.1, 0.5, length.out=5), "lma")
 FF16_hyperpar(trait_matrix(lma, "lma"), s)
 
@@ -129,7 +142,8 @@ length(ss)
 ```
 
 We can then use standard R commands to extract variable from this list
-``` {r }
+
+```{r}
 sapply(ss, function(x) x$lma)
 sapply(ss, function(x) x$k_l)
 sapply(ss, function(x) x$a_p1)
@@ -138,7 +152,8 @@ sapply(ss, function(x) x$r_l)
 
 There's a convenience function `plant_list` that returns a set of
 *plants* based on a vector of traits:
-``` {r }
+
+```{r}
 pp <- plant_list(lma, p)
 
 sapply(pp, function(p) p$area_leaf_above(0))
@@ -148,7 +163,8 @@ In addition to the physiological parameters there are large number
 of "control" parameters that affect the behaviour of the various
 numerical algorithms used (note that in contrast to the
 physiological parameters these have a variety of types)
-``` {r }
+
+```{r}
 p$control
 ```
 
@@ -156,7 +172,7 @@ The defaults are rather too slow for many uses, so
 `scm_base_parameters` provides a faster set by using `fast_control`
 to set many of these to less accurate values.
 
-``` {r }
+```{r}
 p2 <- scm_base_parameters("FF16")
 p2$control[unlist(p$control) != unlist(p2$control)]
 ```

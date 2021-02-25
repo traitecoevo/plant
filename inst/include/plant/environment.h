@@ -6,79 +6,79 @@
 #include <plant/disturbance.h>
 #include <plant/interpolator.h>
 #include <plant/adaptive_interpolator.h>
+#include <plant/ode_interface.h>
 #include <plant/util.h>
+#include <Rcpp.h>
+
+using namespace Rcpp;
 
 namespace plant {
 
 class Environment {
 public:
-  Environment(double disturbance_mean_interval,
-              std::vector<double> seed_rain_,
-              Control control);
-  double canopy_openness(double height) const;
-  template <typename Function>
-  void compute_light_environment(Function f_canopy_openness, double height_max);
-  template <typename Function>
-  void rescale_light_environment(Function f_canopy_openness, double height_max);
-  double patch_survival() const;
-  double patch_survival_conditional(double time_at_birth) const;
-  void clear();
-  void clear_light_environment();
 
-  // NOTE: Interface here will change
-  double seed_rain_dt() const;
-  void set_seed_rain_index(size_t x);
+  template <typename Function>
+  void compute_environment(Function f, double height_max);
+  template <typename Function>
+  void rescale_environment(Function f, double height_max);
+
+  void set_fixed_environment(double value, double height_max);
+  void set_fixed_environment(double value);
+  void init_interpolators(const std::vector<double>& state);
+
+  void compute_rates();
+
+  // Dummy iterators: do nothing if the environment has no state. 
+  ode::iterator ode_state(ode::iterator it) const { return it; }
+  ode::const_iterator set_ode_state(ode::const_iterator it) { return it; }
+  ode::iterator ode_rates(ode::iterator it) const { return it; }
+  int ode_size() const { return 0; }
+
+  // Computes the probability of survival from 0 to time.
+  double patch_survival() const {
+    return disturbance_regime.pr_survival(time);
+  }
+
+  // Computes the probability of survival from time_at_birth to time, by
+  // conditioning survival over [0,time] on survival over
+  // [0,time_at_birth].
+  double patch_survival_conditional(double time_at_birth) const {
+    return disturbance_regime.pr_survival_conditional(time, time_at_birth);
+  }
+
+  // Reset the environment.
+  void clear() {
+    time = 0.0;
+    clear_environment();
+  }
+
+  void clear_environment() {}
+
+  double seed_rain_dt() const {
+    if (seed_rain.empty()) {
+      Rcpp::stop("Cannot get seed rain for empty environment");
+    }
+    return seed_rain[seed_rain_index];
+  }
+
+  void set_seed_rain_index(size_t x) {
+    seed_rain_index = x;
+  }
 
   // * R interface
-  void r_set_seed_rain_index(util::index x);
+  void r_set_seed_rain_index(util::index x) {
+    set_seed_rain_index(x.check_bounds(seed_rain.size()));
+  }
+
+  void r_init_interpolators(const std::vector<double>& state) {}
+
+  double get_environment_at_height(double height) { return 0.0; };
 
   double time;
   Disturbance disturbance_regime;
-  interpolator::Interpolator light_environment;
-
-private:
   std::vector<double> seed_rain;
   size_t seed_rain_index;
-  interpolator::AdaptiveInterpolator light_environment_generator;
 };
-
-template <typename Function>
-void Environment::compute_light_environment(Function f_canopy_openness,
-                                            double height_max) {
-  light_environment =
-    light_environment_generator.construct(f_canopy_openness, 0, height_max);
-}
-
-template <typename Function>
-void Environment::rescale_light_environment(Function f_canopy_openness,
-                                            double height_max) {
-  std::vector<double> h = light_environment.get_x();
-  const double min = light_environment.min(), // 0.0?
-    height_max_old = light_environment.max();
-
-  util::rescale(h.begin(), h.end(), min, height_max_old, min, height_max);
-  h.back() = height_max; // Avoid round-off error.
-
-  light_environment.clear();
-  for (auto hi : h) {
-    light_environment.add_point(hi, f_canopy_openness(hi));
-  }
-  light_environment.initialise();
-}
-
-inline interpolator::AdaptiveInterpolator
-make_interpolator(const Control& control) {
-  using namespace interpolator;
-  return AdaptiveInterpolator(control.environment_light_tol,
-                              control.environment_light_tol,
-                              control.environment_light_nbase,
-                              control.environment_light_max_depth);
-}
-
-template <typename T>
-Environment make_environment(T p) {
-  return Environment(p.disturbance_mean_interval, p.seed_rain, p.control);
-}
 
 }
 

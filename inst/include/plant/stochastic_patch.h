@@ -4,7 +4,7 @@
 
 namespace plant {
 
-// NOTE: compute_light_environment() here might fail (especially for
+// NOTE: compute_environment() here might fail (especially for
 // rare seed arrivals) because the adaptive refinement can't deal with
 // the sharp corners that are implied.  The simplest thing to do is to
 // tone down the tolerance (fast_control() seems good enough) but that
@@ -13,13 +13,13 @@ namespace plant {
 // confirmation that the issue is simply in a couple of places rather
 // than throughout.  Running the spline piecewise would be the best
 // bet there.
-template <typename T>
+template <typename T, typename E>
 class StochasticPatch {
 public:
-  typedef T                    strategy_type;
-  typedef Plant<T>             plant_type;
-  typedef StochasticSpecies<T> species_type;
-  typedef Parameters<T>        parameters_type;
+  typedef T                      strategy_type;
+  typedef Individual<T,E>             individual_type;
+  typedef StochasticSpecies<T,E> species_type;
+  typedef Parameters<T,E>        parameters_type;
   StochasticPatch(parameters_type p);
   void reset();
 
@@ -29,8 +29,7 @@ public:
   double height_max() const;
 
   // [eqn 11] Canopy openness at `height`
-  double area_leaf_above(double height) const;
-  double canopy_openness(double height) const;
+  double compute_competition(double height) const;
 
   bool add_seed(size_t species_index);
   void add_seedling(size_t species_index);
@@ -54,7 +53,7 @@ public:
   // * R interface
   // Data accessors:
   parameters_type r_parameters() const {return parameters;}
-  Environment r_environment() const {return environment;}
+  E r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
   void r_set_state(double time,
                    const std::vector<double>& state,
@@ -72,43 +71,43 @@ public:
     at(species_index.check_bounds(size()));
   }
   // These are only here because they wrap private functions.
-  void r_compute_light_environment() {compute_light_environment();}
-  void r_compute_vars_phys() {compute_vars_phys();}
+  void r_compute_environment() {compute_environment();}
+  void r_compute_rates() {compute_rates();}
 private:
-  void compute_light_environment();
-  void rescale_light_environment();
-  void compute_vars_phys();
+  void compute_environment();
+  void rescale_environment();
+  void compute_rates();
 
   parameters_type parameters;
   std::vector<bool> is_resident;
-  Environment environment;
+  E environment;
   std::vector<species_type> species;
 };
 
-template <typename T>
-StochasticPatch<T>::StochasticPatch(parameters_type p)
+template <typename T, typename E>
+StochasticPatch<T,E>::StochasticPatch(parameters_type p)
   : parameters(p),
-    is_resident(p.is_resident),
-    environment(make_environment(parameters)) {
+    is_resident(p.is_resident) {
   parameters.validate();
+  environment = p.environment;
   for (auto s : parameters.strategies) {
     species.push_back(species_type(s));
   }
   reset();
 }
 
-template <typename T>
-void StochasticPatch<T>::reset() {
+template <typename T, typename E>
+void StochasticPatch<T,E>::reset() {
   for (auto& s : species) {
     s.clear();
   }
   environment.clear();
-  compute_light_environment();
-  compute_vars_phys();
+  compute_environment();
+  compute_rates();
 }
 
-template <typename T>
-double StochasticPatch<T>::height_max() const {
+template <typename T, typename E>
+double StochasticPatch<T,E>::height_max() const {
   double ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
@@ -118,48 +117,41 @@ double StochasticPatch<T>::height_max() const {
   return ret;
 }
 
-template <typename T>
-double StochasticPatch<T>::area_leaf_above(double height) const {
+template <typename T, typename E>
+double StochasticPatch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      tot += species[i].area_leaf_above(height);
+      tot += species[i].compute_competition(height);
     }
   }
   return tot;
 }
 
-template <typename T>
-double StochasticPatch<T>::canopy_openness(double height) const {
-  return exp(-parameters.k_I * area_leaf_above(height) /
-             parameters.patch_area);
-}
-
-
-template <typename T>
-void StochasticPatch<T>::compute_light_environment() {
+template <typename T, typename E>
+void StochasticPatch<T,E>::compute_environment() {
   if (parameters.n_residents() > 0 & height_max() > 0.0) {
-    auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.compute_light_environment(f, height_max());
+    auto f = [&] (double x) -> double {return compute_competition(x);};
+    environment.compute_environment(f, height_max());
   } else {
-    environment.clear_light_environment();
+    environment.clear_environment();
   }
 }
 
-template <typename T>
-void StochasticPatch<T>::rescale_light_environment() {
+template <typename T, typename E>
+void StochasticPatch<T,E>::rescale_environment() {
   if (parameters.n_residents() > 0 & height_max() > 0.0) {
-    auto f = [&] (double x) -> double {return canopy_openness(x);};
-    environment.rescale_light_environment(f, height_max());
+    auto f = [&] (double x) -> double {return compute_competition(x);};
+    environment.rescale_environment(f, height_max());
   }
 }
 
-template <typename T>
-void StochasticPatch<T>::compute_vars_phys() {
+template <typename T, typename E>
+void StochasticPatch<T,E>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
     // NOTE: No need for this, but other bits will change...
     // environment.set_seed_rain_index(i);
-    species[i].compute_vars_phys(environment);
+    species[i].compute_rates(environment);
   }
 }
 
@@ -167,20 +159,20 @@ void StochasticPatch<T>::compute_vars_phys() {
 // case, using the values stored in the species seed.  But we don't
 // really get that here.  It might be better to move add_seed /
 // add_seedling within Species, given this.
-template <typename T>
-void StochasticPatch<T>::add_seedling(size_t species_index) {
+template <typename T, typename E>
+void StochasticPatch<T,E>::add_seedling(size_t species_index) {
   // Add a seed, setting ODE variables based on the *current* light environment
   species[species_index].add_seed(environment);
   // Then we update the light environment.
   if (parameters.is_resident[species_index]) {
-    compute_light_environment();
+    compute_environment();
   }
 }
 
-template <typename T>
-bool StochasticPatch<T>::add_seed(size_t species_index) {
+template <typename T, typename E>
+bool StochasticPatch<T,E>::add_seed(size_t species_index) {
   const double pr_germinate =
-    species[species_index].germination_probability(environment);
+    species[species_index].establishment_probability(environment);
   const bool added = unif_rand() < pr_germinate;
   if (added) {
     add_seedling(species_index);
@@ -188,8 +180,8 @@ bool StochasticPatch<T>::add_seed(size_t species_index) {
   return added;
 }
 
-template <typename T>
-std::vector<size_t> StochasticPatch<T>::deaths() {
+template <typename T, typename E>
+std::vector<size_t> StochasticPatch<T,E>::deaths() {
   std::vector<size_t> ret;
   ret.reserve(size());
   bool recompute = false;
@@ -199,8 +191,8 @@ std::vector<size_t> StochasticPatch<T>::deaths() {
     recompute = recompute || n_deaths > 0;
   }
   if (recompute) {
-    compute_light_environment();
-    compute_vars_phys();
+    compute_environment();
+    compute_rates();
   }
   return ret;
 }
@@ -209,8 +201,8 @@ std::vector<size_t> StochasticPatch<T>::deaths() {
 //   time: time
 //   state: vector of ode state; we'll pass an iterator with that in
 //   n: number of *individuals* of each species
-template <typename T>
-void StochasticPatch<T>::r_set_state(double time,
+template <typename T, typename E>
+void StochasticPatch<T,E>::r_set_state(double time,
                            const std::vector<double>& state,
                            const std::vector<size_t>& n) {
   const size_t n_species = species.size();
@@ -226,37 +218,37 @@ void StochasticPatch<T>::r_set_state(double time,
 }
 
 // ODE interface
-template <typename T>
-size_t StochasticPatch<T>::ode_size() const {
+template <typename T, typename E>
+size_t StochasticPatch<T,E>::ode_size() const {
   return ode::ode_size(species.begin(), species.end());
 }
 
-template <typename T>
-double StochasticPatch<T>::ode_time() const {
+template <typename T, typename E>
+double StochasticPatch<T,E>::ode_time() const {
   return time();
 }
 
-template <typename T>
-ode::const_iterator StochasticPatch<T>::set_ode_state(ode::const_iterator it,
+template <typename T, typename E>
+ode::const_iterator StochasticPatch<T,E>::set_ode_state(ode::const_iterator it,
                                                       double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
-  if (parameters.control.environment_light_rescale_usually) {
-    rescale_light_environment();
+  if (parameters.control.environment_rescale_usually) {
+    rescale_environment();
   } else {
-    compute_light_environment();
+    compute_environment();
   }
-  compute_vars_phys();
+  compute_rates();
   return it;
 }
 
-template <typename T>
-ode::iterator StochasticPatch<T>::ode_state(ode::iterator it) const {
+template <typename T, typename E>
+ode::iterator StochasticPatch<T,E>::ode_state(ode::iterator it) const {
   return ode::ode_state(species.begin(), species.end(), it);
 }
 
-template <typename T>
-ode::iterator StochasticPatch<T>::ode_rates(ode::iterator it) const {
+template <typename T, typename E>
+ode::iterator StochasticPatch<T,E>::ode_rates(ode::iterator it) const {
   return ode::ode_rates(species.begin(), species.end(), it);
 }
 

@@ -1,27 +1,29 @@
 context("StochasticSpecies")
 
 strategy_types <- get_list_of_strategy_types()
+environment_types <- get_list_of_environment_types()
 
 test_that("empty", {
   for (x in names(strategy_types)) {
-    env <- test_environment(3, seed_rain=1.0)
+    env <- test_environment(x, 3, seed_rain=1.0)
+    e <- environment_types[[x]]
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x)(s)
+    sp <- StochasticSpecies(x, e)(s)
 
-    expect_is(sp, sprintf("StochasticSpecies<%s>",x))
+    expect_is(sp, sprintf("StochasticSpecies<%s,%s>",x,e))
     expect_equal(sp$size, 0)
     expect_equal(sp$size_plants, 0)
 
     seed <- sp$seed
-    expect_is(seed, "Plant")
-    expect_is(seed, sprintf("Plant<%s>",x))
+    expect_is(seed, "Individual")
+    expect_is(seed, sprintf("Individual<%s,%s>",x,e))
 
     expect_equal(sp$heights, numeric(0))
     expect_equal(sp$height_max, 0.0)
     expect_identical(sp$species, NULL)
     expect_equal(sp$plants, list())
     expect_equal(sp$is_alive, logical())
-    expect_equal(sp$area_leaf_above(0), 0.0)
+    expect_equal(sp$compute_competition(0), 0.0)
     expect_equal(sp$ode_size, 0)
     expect_identical(sp$ode_state, numeric(0))
     expect_identical(sp$ode_rates, numeric(0))
@@ -30,10 +32,11 @@ test_that("empty", {
 
 test_that("Single individual", {
   for (x in names(strategy_types)) {
-    env <- test_environment(3, seed_rain=1.0)
+    env <- test_environment(x, 3, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x)(s)
-    p <- Plant(x)(s)
+    e <- environment_types[[x]]
+    sp <- StochasticSpecies(x, e)(s)
+    p <- Individual(x, e)(s)
 
     sp$add_seed()
 
@@ -45,8 +48,8 @@ test_that("Single individual", {
     expect_equal(sp$ode_rates, rep(NA_real_, p$ode_size))
     expect_equal(sp$is_alive, TRUE)
 
-    sp$compute_vars_phys(env)
-    p$compute_vars_phys(env)
+    sp$compute_rates(env)
+    p$compute_rates(env)
     expect_equal(sp$ode_rates, p$ode_rates)
 
     if (x == "FF16") {
@@ -60,16 +63,17 @@ test_that("Single individual", {
     expect_equal(length(pl), 1)
     expect_equal(class(pl[[1]]), class(p))
     expect_equal(pl[[1]]$ode_state, p$ode_state)
-    expect_equal(sp$height_max, p$height)
+    expect_equal(sp$height_max, p$state("height"))
   }
 })
 
 test_that("Multiple individuals", {
   for (x in names(strategy_types)) {
     h <- 10
-    env <- test_environment(h, seed_rain=1.0)
+    env <- test_environment(x, h, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x)(s)
+    e <- environment_types[[x]]
+    sp <- StochasticSpecies(x, e)(s)
     n <- 10
     for (i in seq_len(n)) {
       sp$add_seed()
@@ -85,7 +89,7 @@ test_that("Multiple individuals", {
     expect_equal(sp$heights, hh)
 
     for (i in seq_len(n)) {
-      expect_equal(sp$plant_at(i)$height, hh[[i]])
+      expect_equal(sp$plant_at(i)$state("height"), hh[[i]])
     }
 
     n_ode <- sp$plant_at(1)$ode_size
@@ -107,7 +111,7 @@ test_that("Multiple individuals", {
     sp$ode_state <- m
     expect_equal(sp$plant_at(i)$mortality_probability, 1)
     expect_equal(sp$plant_at(j)$mortality_probability, 0)
-    expect_gt(sp$plant_at(j)$mortality, 0.0)
+    expect_gt(sp$plant_at(j)$state("mortality"), 0.0)
     m[2, j] <- 0.0 # reset back to original for later comparison
 
     nd <- sp$deaths()
@@ -116,10 +120,10 @@ test_that("Multiple individuals", {
     expect_equal(sp$size_plants, n)
     expect_equal(sp$is_alive, seq_len(n) != i)
 
-    hh2 <- sapply(sp$plants, function(x) x$height)
+    hh2 <- sapply(sp$plants, function(x) x$state("height"))
     ## still the same:
     expect_equal(hh2, hh)
-    expect_identical(sp$plant_at(j)$mortality, 0.0)
+    expect_identical(sp$plant_at(j)$state("mortality"), 0.0)
 
     m2 <- matrix(sp$ode_state, n_ode)
     expect_equal(ncol(m2), n - 1)
@@ -127,13 +131,14 @@ test_that("Multiple individuals", {
   }
 })
 
-test_that("germination probability", {
+test_that("establishment probability", {
   for (x in names(strategy_types)) {
-    env <- test_environment(3, seed_rain=1.0)
+    env <- test_environment(x, 3, seed_rain=1.0)
     s <- strategy_types[[x]]()
-    sp <- StochasticSpecies(x)(s)
-    p <- Plant(x)(s)
+    e <- environment_types[[x]]
+    sp <- StochasticSpecies(x, e)(s)
+    p <- Individual(x, e)(s)
 
-    expect_equal(sp$germination_probability(env), p$germination_probability(env))
+    expect_equal(sp$establishment_probability(env), p$establishment_probability(env))
   }
 })
