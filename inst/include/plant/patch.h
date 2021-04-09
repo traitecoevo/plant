@@ -37,8 +37,20 @@ public:
   const species_type& at(size_t species_index) const {
     return species[species_index];
   }
-  const Disturbance& disturbance_regime() const {
-    return environment.disturbance_regime;
+
+  // Patch disturbance
+  Disturbance disturbance_regime;
+
+  // Computes the probability of survival from 0 to time.
+  double patch_survival() const {
+    return disturbance_regime.pr_survival(time);
+  }
+
+  // Computes the probability of survival from time_at_birth to time, by
+  // conditioning survival over [0,time] on survival over
+  // [0,time_at_birth].
+  double patch_survival_conditional(double time_at_birth) const {
+    return disturbance_regime.pr_survival_conditional(time, time_at_birth);
   }
 
   // * ODE interface
@@ -155,12 +167,13 @@ void Patch<T,E>::compute_rates() {
     // 2. Make sure ODE is stepping - water should accumulate linearly
     // 3. Make sure the soil water state is visible in compute_rates in strategy
     // 4. Extraction rate is subrated from soil water state
-    
+
     // Compute environment rate
     // Compute rates in cohort, multiply rate per plant by density
     // sum all cohorts and species in a patch to find the outflow for the patch
     // subtract total extraction rate from state
-    species[i].compute_rates(environment);
+    double pr_patch_survival = patch_survival_conditional(0.0);
+    species[i].compute_rates(environment, pr_patch_survival);
     //environment.compute_rates();
   }
 }

@@ -17,8 +17,8 @@ public:
   typedef typename strategy_type::ptr strategy_type_ptr;
   Cohort(strategy_type_ptr s);
 
-  void compute_rates(const environment_type& environment);
-  void compute_initial_conditions(const environment_type& environment);
+  void compute_rates(const environment_type& environment, double pr_patch_survival);
+  void compute_initial_conditions(const environment_type& environment, double pr_patch_survival);
 
   // * R interface (testing only, really)
   double r_growth_rate_gradient(const environment_type& environment);
@@ -63,7 +63,6 @@ private:
   double density; // hmm...
   double seeds_survival_weighted;
   double seeds_survival_weighted_dt;
-  double pr_patch_survival_at_birth;
 };
 
 template <typename T, typename E>
@@ -73,13 +72,13 @@ Cohort<T,E>::Cohort(strategy_type_ptr s)
     log_density_dt(0),
     density(0),
     seeds_survival_weighted(0),
-    seeds_survival_weighted_dt(0),
-    pr_patch_survival_at_birth(1) {
+    seeds_survival_weighted_dt(0) {
 }
 
 template <typename T, typename E>
-void Cohort<T,E>::compute_rates(const environment_type& environment) {
-  plant.compute_rates(environment);
+void Cohort<T,E>::compute_rates(const environment_type& environment,
+                                double pr_patch_survival) {
+  plant.compute_rates(environment, pr_patch_survival);
 
   // NOTE: This must be called *after* compute_rates, but given we
   // need mortality_dt() that's always going to be the case.
@@ -89,7 +88,6 @@ void Cohort<T,E>::compute_rates(const environment_type& environment) {
 
   // survival_plant: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
-  const double survival_patch = environment.patch_survival();
   double survival_plant = exp(-plant.state(MORTALITY_INDEX));
   if (!R_FINITE(survival_plant)) {
     // This is caused by NaN values in plant.mortality and log
@@ -100,8 +98,7 @@ void Cohort<T,E>::compute_rates(const environment_type& environment) {
   }
 
   seeds_survival_weighted_dt =
-    plant.rate("fecundity") * survival_plant *
-    survival_patch / pr_patch_survival_at_birth;
+    plant.rate("fecundity") * survival_plant * pr_patch_survival;
 }
 
 // NOTE: There will be a discussion of why the mortality rate initial
@@ -111,10 +108,10 @@ void Cohort<T,E>::compute_rates(const environment_type& environment) {
 // NOTE: The initial condition for log_density is also a bit tricky, and
 // defined on p 7 at the moment.
 template <typename T, typename E>
-void Cohort<T,E>::compute_initial_conditions(const environment_type& environment) {
-  compute_rates(environment);
+void Cohort<T,E>::compute_initial_conditions(const environment_type& environment,
+                                             double pr_patch_survival) {
+  plant.compute_rates(environment, pr_patch_survival);
 
-  pr_patch_survival_at_birth = environment.patch_survival();
   const double pr_germ = plant.establishment_probability(environment);
   plant.set_state("mortality", -log(pr_germ));
   const double g = plant.rate("height");

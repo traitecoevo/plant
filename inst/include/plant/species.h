@@ -28,7 +28,7 @@ public:
 
   double height_max() const;
   double compute_competition(double height) const;
-  void compute_rates(const environment_type& environment);
+  void compute_rates(const environment_type& environment, double pr_patch_survival);
   std::vector<double> seeds() const;
 
   // * ODE interface
@@ -51,7 +51,7 @@ public:
 
   // Do this with set_ode_state, using an iterator?
   /* double state(int i) const { return vars.state(i); } */
-  
+
   /* double rate(int i) const { return vars.rate(i); } */
 
   /* void set_state(int i, double v) { */
@@ -170,11 +170,11 @@ double Species<T,E>::compute_competition(double height) const {
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
 template <typename T, typename E>
-void Species<T,E>::compute_rates(const E& environment) {
+void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival) {
   for (auto& c : cohorts) {
-    c.compute_rates(environment);
+    c.compute_rates(environment, pr_patch_survival);
   }
-  seed.compute_initial_conditions(environment);
+  seed.compute_initial_conditions(environment, pr_patch_survival);
 }
 
 template <typename T, typename E>

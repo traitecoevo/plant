@@ -330,7 +330,7 @@ Internals:
   constructor:
     args: [s_size: size_t, a_size: size_t]
     roxygen: |
-      Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
+      Internals class holding vectors of states, thier associated rates and auxiliary (aux) state
       which is calculated from the state through running compute_rates
       @export
   active:
@@ -426,10 +426,10 @@ Cohort:
       args: [environment: E]
     compute_rates:
       return_type: void
-      args: [environment: E]
+      args: [environment: E, pr_patch_survival: double]
     compute_initial_conditions:
       return_type: void
-      args: [environment: E]
+      args: [environment: E, pr_patch_survival: double]
 
 # For now, also not templated
 Species:
@@ -460,7 +460,7 @@ Species:
       return_type: void
     compute_rates:
       return_type: void
-      args: [environment: E]
+      args: [environment: E, pr_patch_survival: double]
     compute_competition:
       return_type: double
       args: [height: double]
@@ -491,7 +491,9 @@ Patch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
+    # disturbance_regime: {type: "plant::Disturbance", access: field}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
+    # patch_survival: {type: double, access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -529,6 +531,9 @@ Patch:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&", env: "const std::vector<double>&"]
       name_cpp: r_set_state
       return_type: void
+    # patch_survival_conditional:
+    #   args: [time_at_birth: double]
+    #   return_type: double
 
 SCM:
   name_cpp: "plant::SCM<T,E>"
@@ -795,7 +800,7 @@ FF16_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control" 
+    - control: "plant::Control"
     - collect_all_auxillary: bool
 
 FF16_Environment:
@@ -813,9 +818,6 @@ FF16_Environment:
     canopy_openness:
       args: [height: double]
       return_type: double
-    patch_survival_conditional:
-      args: [time_at_birth: double]
-      return_type: double
     clear:
       return_type: void
     set_seed_rain_index:
@@ -826,9 +828,7 @@ FF16_Environment:
       args: [value: double, height_max: double]
       return_type: void
   active:
-    patch_survival: {type: double, access: member}
     seed_rain_dt: {type: double, access: member}
-    disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
 
@@ -873,7 +873,7 @@ FF16r_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control" 
+    - control: "plant::Control"
     - collect_all_auxillary: bool
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
@@ -914,9 +914,6 @@ K93_Environment:
     canopy_openness:
       args: [height: double]
       return_type: double
-    patch_survival_conditional:
-      args: [time_at_birth: double]
-      return_type: double
     clear:
       return_type: void
     set_seed_rain_index:
@@ -927,9 +924,6 @@ K93_Environment:
       args: [value: double, height_max: double]
       return_type: void
   active:
-    patch_survival: {type: double, access: member}
     seed_rain_dt: {type: double, access: member}
-    disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
-
