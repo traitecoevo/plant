@@ -131,6 +131,7 @@ update_test_helper <- function(name, template_strategy) {
 
   templates <- c(
   '    {{name}}={{name}}_Strategy',
+  '    {{name}}="{{name}}_Env"',
   '    {{name}}={{name}}_fixed_environment(...)',
   '    {{name}}={{name}}_test_environment(...)',
   '    {{name}}={{name}}_hyperpar'
