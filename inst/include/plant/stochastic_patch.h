@@ -39,8 +39,20 @@ public:
   const species_type& at(size_t species_index) const {
     return species[species_index];
   }
-  const Disturbance& disturbance_regime() const {
-    return environment.disturbance_regime;
+
+  // Patch disturbance
+  Disturbance disturbance_regime;
+
+  // Computes the probability of survival from 0 to time.
+  double patch_survival() const {
+    return disturbance_regime.pr_survival(time());
+  }
+
+  // Computes the probability of survival from time_at_birth to time, by
+  // conditioning survival over [0,time] on survival over
+  // [0,time_at_birth].
+  double patch_survival_conditional(double time_at_birth) const {
+    return disturbance_regime.pr_survival_conditional(time(), time_at_birth);
   }
 
   // * ODE interface

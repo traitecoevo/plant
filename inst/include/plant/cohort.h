@@ -78,7 +78,7 @@ Cohort<T,E>::Cohort(strategy_type_ptr s)
 template <typename T, typename E>
 void Cohort<T,E>::compute_rates(const environment_type& environment,
                                 double pr_patch_survival) {
-  plant.compute_rates(environment, pr_patch_survival);
+  plant.compute_rates(environment);
 
   // NOTE: This must be called *after* compute_rates, but given we
   // need mortality_dt() that's always going to be the case.
@@ -110,7 +110,7 @@ void Cohort<T,E>::compute_rates(const environment_type& environment,
 template <typename T, typename E>
 void Cohort<T,E>::compute_initial_conditions(const environment_type& environment,
                                              double pr_patch_survival) {
-  plant.compute_rates(environment, pr_patch_survival);
+  compute_rates(environment, pr_patch_survival);
 
   const double pr_germ = plant.establishment_probability(environment);
   plant.set_state("mortality", -log(pr_germ));
