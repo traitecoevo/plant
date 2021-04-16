@@ -6,26 +6,25 @@ environment_types <- get_list_of_environment_types()
 for (x in names(strategy_types)) {
   context(sprintf("Patch-%s",x))
 
+  s <- strategy_types[[x]]()
+  e <- environment_types[[x]]
+  plant <- Individual(x, e)(s)
+  cohort <- Cohort(x, e)(s)
+  
+  p <- Parameters(x, e)(strategies=list(s),
+                        seed_rain=pi/2,
+                        is_resident=TRUE)
+  
+  patch <- Patch(x, e)(p)
+  cmp <- Cohort(x, e)(p$strategies[[1]])
+
   test_that(sprintf("Basics %s", x), {
     ## TODO: This is something that needs validating: the seed_rain and
     ## is_resident vectors must be the right length.
-
-    s <- strategy_types[[x]]()
-    e <- environment_types[[x]]
-    plant <- Individual(x, e)(s)
-    cohort <- Cohort(x, e)(s)
-
-    p <- Parameters(x, e)(strategies=list(s),
-                          seed_rain=pi/2,
-                          is_resident=TRUE)
-
-    patch <- Patch(x, e)(p)
-    cmp <- Cohort(x, e)(p$strategies[[1]])
-
     expect_equal(patch$size, 1)
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
-
+    
     # This doesn't hold now
     # expect_is(patch$environment, paste0(x, "_Environment"))
     expect_identical(patch$environment$time, 0.0)
@@ -49,7 +48,7 @@ for (x in names(strategy_types)) {
     expect_equal(patch$ode_size, ode_size)
 
     ## Then pull this out:
-    cmp$compute_initial_conditions(patch$environment)
+    cmp$compute_initial_conditions(patch$environment, patch$patch_survival)
 
     expect_identical(patch$ode_state, cmp$ode_state)
     expect_identical(patch$ode_rates, cmp$ode_rates)
@@ -141,5 +140,23 @@ for (x in names(strategy_types)) {
     ##   expect_identical(patch2$height, patch$state("height"))
     ##   expect_identical(patch2$ode_rates, patch$ode_rates)
     ## })
+  })
+  
+  test_that("Disturbance related parameters", {
+    expect_identical(patch$time, 0.0)
+    expect_identical(patch$patch_survival_conditional(patch$time), 1.0)
+    
+    disturbance <- Disturbance(30.0)
+    expect_equal(patch$disturbance_regime$mean_interval, 30)
+    
+    # read-only
+    # patch$environment$time <- 10
+
+    expect_identical(patch$patch_survival_conditional(0), 
+                     disturbance$pr_survival_conditional(patch$time, 0))
+    expect_identical(patch$patch_survival_conditional(2),
+                     disturbance$pr_survival_conditional(patch$time, 2))
+  
+    expect_is(patch$disturbance_regime, "Disturbance")
   })
 }

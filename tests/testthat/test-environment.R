@@ -41,19 +41,6 @@ for (x in names(strategy_types)) {
     expect_identical(sapply(hmid, env$canopy$canopy_interpolator$eval), sapply(hmid, interplator$eval))
   })
 
-  test_that("Disturbance related parameters", {
-    env <- make_environment(x, Parameters(x, e)())
-    expect_identical(env$time, 0.0)
-    expect_identical(env$patch_survival_conditional(env$time), 1.0)
-
-    disturbance <- Disturbance(30.0)
-    env$time <- 10
-    expect_identical(env$patch_survival_conditional(0), disturbance$pr_survival_conditional(env$time, 0))
-    expect_identical(env$patch_survival_conditional(2), disturbance$pr_survival_conditional(env$time, 2))
-
-    expect_is(env$disturbance_regime, "Disturbance")
-  })
-
   test_that("Seed rain related parameters", {
     env <- make_environment(x, Parameters(x, e)())
     expect_error(env$seed_rain_dt, "Cannot get seed rain for empty environment")

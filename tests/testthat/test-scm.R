@@ -252,7 +252,7 @@ test_that("Seed rain & error calculations correct", {
 
     seed_rain_R <- function(scm, error=FALSE) {
       a <- scm$cohort_schedule$times(1)
-      d <- scm$patch$environment$disturbance_regime
+      d <- scm$patch$disturbance_regime
       pa <- d$density(a)
       p <- scm$parameters
       scale <- scm$parameters$strategies[[1]]$S_D * p$seed_rain
