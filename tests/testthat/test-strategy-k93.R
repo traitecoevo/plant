@@ -13,6 +13,8 @@ test_that("Defaults", {
    d_0 = 0.00073,
    d_1 = 0.044,
    S_D = 1,
+   eta = 12,
+   k_I = 1e-3,
    control = Control())
 
   keys <- sort(names(expected))
@@ -72,7 +74,6 @@ test_that("K93_Strategy hyper-parameterisation", {
 
 #  # Generic parameters
 #  p0 <- scm_base_parameters("K93")
-#  p0$k_I <- 1e-6
 #  p0$disturbance_mean_interval <- 10
 
 #  # Use single sp. defaults

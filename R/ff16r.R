@@ -78,7 +78,7 @@ FF16r_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param p A Parameters object
 FF16r_make_environment <- function(p) {
-  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
+  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$control)
 }
 
 ## This makes a pretend light environment over the plant height,

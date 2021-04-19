@@ -80,7 +80,7 @@ K93_StochasticPatchRunner <- function(p) {
 ##' @rdname K93_Environment
 ##' @param p A Parameters object
 K93_make_environment <- function(p) {
-  K93_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
+  K93_Environment(p$disturbance_mean_interval, p$seed_rain, p$control)
 }
 
 ##' Construct a fixed environment for K93 strategy

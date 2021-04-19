@@ -1,10 +1,11 @@
 context("IndividualRunner")
 
-strategy_types <- get_list_of_strategy_types()
-environment_types <- get_list_of_environment_types()
+strategy_types <- get_list_of_strategy_types()[1:2]
+environment_types <- get_list_of_environment_types()[1:2]
 
 test_that("IndividualRunner", {
   for (x in names(strategy_types)) {
+
     e <- environment_types[[x]]
     p <- Individual(x, e)(strategy_types[[x]]())
     env <- test_environment(x, 10)

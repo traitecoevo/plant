@@ -51,7 +51,7 @@ double K93_Strategy::Q(double z, double size) const {
 double K93_Strategy::compute_competition(double z, double size) const {
 
   // Competition only felt if plant bigger than target size z
-  return size_to_basal_area(size) * Q(z, size);
+  return k_I * size_to_basal_area(size) * Q(z, size);
  };
 
 double K93_Strategy::establishment_probability(const K93_Environment& environment){
@@ -91,7 +91,6 @@ void K93_Strategy::compute_rates(const K93_Environment& environment,
   // back transform to basal area and add suppression from self
   double competition = environment.get_environment_at_height(height);
   double basal_area = size_to_basal_area(height);
-  const double k_I = get_k_I(environment);
 
   double cumulative_basal_area = -log(competition) / k_I;
 

@@ -50,7 +50,7 @@ public:
   /* } */
 
   double compute_competition(double z, double height) const {
-    return area_leaf_above(z, height);
+    return shading_above(z, height);
   }
 
   void refresh_indices();
@@ -175,8 +175,8 @@ public:
   double establishment_probability(const FF16_Environment& environment);
 
   // * Competitive environment
-  // [eqn 11] total leaf area above height above height `z` for given plant
-  double area_leaf_above(double z, double height) const;
+  // [eqn 11] total projected leaf area above height above height `z` for given plant
+  double shading_above(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
   double Q(double z, double height) const;
 
@@ -265,6 +265,9 @@ public:
   // Risk coefficient for dry mass production (per area)
   double a_dG2    = 20.0;// [yr m2 / kg ]
 
+  // * Light capture parameters
+  double k_I = 0.5;
+
   // Height and leaf area of a (germinated) seed
   double height_0  = NA_REAL;
   double area_leaf_0;
@@ -273,7 +276,6 @@ public:
 
   Assimilation<FF16_Environment> assimilator;
 
-  
 };
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s);

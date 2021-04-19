@@ -107,7 +107,7 @@ for (x in names(strategy_types)) {
   }
 
   ## 3: Single cohort; one round of trapezium:
-  test_that("Leaf area sensible with one cohort", {
+  test_that("Competition sensible with one cohort", {
     env <- test_environment(x, 3, seed_rain=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env)
@@ -132,7 +132,7 @@ for (x in names(strategy_types)) {
     expect_identical(ode_state, p$ode_state)
   })
 
-  test_that("Leaf area sensible with two cohorts", {
+  test_that("Competition sensible with two cohorts", {
     env <- test_environment(x, 3, seed_rain=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env)
@@ -158,7 +158,7 @@ for (x in names(strategy_types)) {
     expect_identical(ode_state, unlist(lapply(cohorts, function(p) p$ode_state)))
   })
 
-  test_that("Leaf area sensible with three cohorts", {
+  test_that("Competition sensible with three cohorts", {
     env <- test_environment(x, 3, seed_rain=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env)
