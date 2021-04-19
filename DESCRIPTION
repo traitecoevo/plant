@@ -1,15 +1,16 @@
 Package: plant
 Title: A package for modelling forest trait ecology and evolution
-Version: 1.2.1
+Version: 2.0.0
 Author: Daniel Falster [aut, cre], Rich FitzJohn [aut], John Wilshire [ctb]
 Authors@R: c(
-    person("Daniel", "Falster", , "daniel.falster@unsw.edu.au", c("aut", "cre"), 
+    person("Daniel", "Falster", , "daniel.falster@unsw.edu.au", c("aut", "cre"),
             comment = c(ORCID = "0002-9814-092X")),
     person("Richard", "FitzJohn", , "", "aut"),
     person("Rafael", "Schouten", , "", "aut"),
+    person("Andrew", "O'Reilly-Nugent", , "", "aut"),
     person("John", "Wilshire", , "", "ctb")
     )
-Maintainer: Daniel Falster <daniel.falster@unsw.edu.au> 
+Maintainer: Daniel Falster <daniel.falster@unsw.edu.au>
 Description: Solves trait, size and patch structured model
     from (Falster et al. 2016) using either method of
     characteristics or as stochastic, finite-sized population.
