@@ -146,16 +146,16 @@ for (x in names(strategy_types)) {
     expect_identical(patch$time, 0.0)
     expect_identical(patch$patch_survival_conditional(patch$time), 1.0)
     
-    disturbance <- Disturbance(30.0)
     expect_equal(patch$disturbance_regime$mean_interval, 30)
+    disturbance <- Disturbance(30.0)
     
-    # read-only
-    # patch$environment$time <- 10
+    patch$set_time(10)
+    expect_equal(patch$time, 10)
 
     expect_identical(patch$patch_survival_conditional(0), 
-                     disturbance$pr_survival_conditional(patch$time, 0))
+                     disturbance$pr_survival_conditional(10, 0))
     expect_identical(patch$patch_survival_conditional(2),
-                     disturbance$pr_survival_conditional(patch$time, 2))
+                     disturbance$pr_survival_conditional(10, 2))
   
     expect_is(patch$disturbance_regime, "Disturbance")
   })

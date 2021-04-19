@@ -1537,8 +1537,16 @@ plant::ode::state_type Patch___FF16__FF16_Env__derivs(plant::RcppR6::RcppR6<plan
   return plant::ode::r_derivs(*obj_, y, time);
 }
 // [[Rcpp::export]]
+void Patch___FF16__FF16_Env__set_time(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time) {
+  obj_->r_set_time(time);
+}
+// [[Rcpp::export]]
 void Patch___FF16__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& env) {
   obj_->r_set_state(time, state, n, env);
+}
+// [[Rcpp::export]]
+double Patch___FF16__FF16_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time_at_birth) {
+  return obj_->patch_survival_conditional(time_at_birth);
 }
 // [[Rcpp::export]]
 double Patch___FF16__FF16_Env__time__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
@@ -1566,8 +1574,22 @@ plant::FF16_Environment Patch___FF16__FF16_Env__environment__get(plant::RcppR6::
 }
 
 // [[Rcpp::export]]
+plant::Disturbance Patch___FF16__FF16_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->disturbance_regime;
+}
+// [[Rcpp::export]]
+void Patch___FF16__FF16_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::Disturbance value) {
+  obj_->disturbance_regime = value;
+}
+
+// [[Rcpp::export]]
 std::vector<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > Patch___FF16__FF16_Env__species__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_species();
+}
+
+// [[Rcpp::export]]
+double Patch___FF16__FF16_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->patch_survival();
 }
 
 // [[Rcpp::export]]
@@ -1624,8 +1646,16 @@ plant::ode::state_type Patch___FF16r__FF16_Env__derivs(plant::RcppR6::RcppR6<pla
   return plant::ode::r_derivs(*obj_, y, time);
 }
 // [[Rcpp::export]]
+void Patch___FF16r__FF16_Env__set_time(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time) {
+  obj_->r_set_time(time);
+}
+// [[Rcpp::export]]
 void Patch___FF16r__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& env) {
   obj_->r_set_state(time, state, n, env);
+}
+// [[Rcpp::export]]
+double Patch___FF16r__FF16_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time_at_birth) {
+  return obj_->patch_survival_conditional(time_at_birth);
 }
 // [[Rcpp::export]]
 double Patch___FF16r__FF16_Env__time__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
@@ -1653,8 +1683,22 @@ plant::FF16_Environment Patch___FF16r__FF16_Env__environment__get(plant::RcppR6:
 }
 
 // [[Rcpp::export]]
+plant::Disturbance Patch___FF16r__FF16_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->disturbance_regime;
+}
+// [[Rcpp::export]]
+void Patch___FF16r__FF16_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::Disturbance value) {
+  obj_->disturbance_regime = value;
+}
+
+// [[Rcpp::export]]
 std::vector<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > Patch___FF16r__FF16_Env__species__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_species();
+}
+
+// [[Rcpp::export]]
+double Patch___FF16r__FF16_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->patch_survival();
 }
 
 // [[Rcpp::export]]
@@ -1711,8 +1755,16 @@ plant::ode::state_type Patch___K93__K93_Env__derivs(plant::RcppR6::RcppR6<plant:
   return plant::ode::r_derivs(*obj_, y, time);
 }
 // [[Rcpp::export]]
+void Patch___K93__K93_Env__set_time(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, double time) {
+  obj_->r_set_time(time);
+}
+// [[Rcpp::export]]
 void Patch___K93__K93_Env__set_state(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& env) {
   obj_->r_set_state(time, state, n, env);
+}
+// [[Rcpp::export]]
+double Patch___K93__K93_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, double time_at_birth) {
+  return obj_->patch_survival_conditional(time_at_birth);
 }
 // [[Rcpp::export]]
 double Patch___K93__K93_Env__time__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
@@ -1740,8 +1792,22 @@ plant::K93_Environment Patch___K93__K93_Env__environment__get(plant::RcppR6::Rcp
 }
 
 // [[Rcpp::export]]
+plant::Disturbance Patch___K93__K93_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->disturbance_regime;
+}
+// [[Rcpp::export]]
+void Patch___K93__K93_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Disturbance value) {
+  obj_->disturbance_regime = value;
+}
+
+// [[Rcpp::export]]
 std::vector<plant::Species<plant::K93_Strategy,plant::K93_Environment> > Patch___K93__K93_Env__species__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_species();
+}
+
+// [[Rcpp::export]]
+double Patch___K93__K93_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->patch_survival();
 }
 
 // [[Rcpp::export]]
@@ -2367,6 +2433,10 @@ void StochasticPatch___FF16__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::St
   obj_->r_set_state(time, state, n);
 }
 // [[Rcpp::export]]
+double StochasticPatch___FF16__FF16_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time_at_birth) {
+  return obj_->patch_survival_conditional(time_at_birth);
+}
+// [[Rcpp::export]]
 std::vector<size_t> StochasticPatch___FF16__FF16_Env__deaths(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->deaths();
 }
@@ -2396,8 +2466,22 @@ plant::FF16_Environment StochasticPatch___FF16__FF16_Env__environment__get(plant
 }
 
 // [[Rcpp::export]]
+plant::Disturbance StochasticPatch___FF16__FF16_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->disturbance_regime;
+}
+// [[Rcpp::export]]
+void StochasticPatch___FF16__FF16_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::Disturbance value) {
+  obj_->disturbance_regime = value;
+}
+
+// [[Rcpp::export]]
 std::vector<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> > StochasticPatch___FF16__FF16_Env__species__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_species();
+}
+
+// [[Rcpp::export]]
+double StochasticPatch___FF16__FF16_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->patch_survival();
 }
 
 // [[Rcpp::export]]
@@ -2462,6 +2546,10 @@ void StochasticPatch___FF16r__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::S
   obj_->r_set_state(time, state, n);
 }
 // [[Rcpp::export]]
+double StochasticPatch___FF16r__FF16_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time_at_birth) {
+  return obj_->patch_survival_conditional(time_at_birth);
+}
+// [[Rcpp::export]]
 std::vector<size_t> StochasticPatch___FF16r__FF16_Env__deaths(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->deaths();
 }
@@ -2491,8 +2579,22 @@ plant::FF16_Environment StochasticPatch___FF16r__FF16_Env__environment__get(plan
 }
 
 // [[Rcpp::export]]
+plant::Disturbance StochasticPatch___FF16r__FF16_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->disturbance_regime;
+}
+// [[Rcpp::export]]
+void StochasticPatch___FF16r__FF16_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::Disturbance value) {
+  obj_->disturbance_regime = value;
+}
+
+// [[Rcpp::export]]
 std::vector<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> > StochasticPatch___FF16r__FF16_Env__species__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->r_species();
+}
+
+// [[Rcpp::export]]
+double StochasticPatch___FF16r__FF16_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->patch_survival();
 }
 
 // [[Rcpp::export]]
@@ -2557,6 +2659,10 @@ void StochasticPatch___K93__K93_Env__set_state(plant::RcppR6::RcppR6<plant::Stoc
   obj_->r_set_state(time, state, n);
 }
 // [[Rcpp::export]]
+double StochasticPatch___K93__K93_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_, double time_at_birth) {
+  return obj_->patch_survival_conditional(time_at_birth);
+}
+// [[Rcpp::export]]
 std::vector<size_t> StochasticPatch___K93__K93_Env__deaths(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->deaths();
 }
@@ -2586,8 +2692,22 @@ plant::K93_Environment StochasticPatch___K93__K93_Env__environment__get(plant::R
 }
 
 // [[Rcpp::export]]
+plant::Disturbance StochasticPatch___K93__K93_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->disturbance_regime;
+}
+// [[Rcpp::export]]
+void StochasticPatch___K93__K93_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Disturbance value) {
+  obj_->disturbance_regime = value;
+}
+
+// [[Rcpp::export]]
 std::vector<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> > StochasticPatch___K93__K93_Env__species__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return obj_->r_species();
+}
+
+// [[Rcpp::export]]
+double StochasticPatch___K93__K93_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->patch_survival();
 }
 
 // [[Rcpp::export]]
