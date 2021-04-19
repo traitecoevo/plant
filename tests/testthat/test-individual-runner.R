@@ -1,7 +1,7 @@
 context("IndividualRunner")
 
-strategy_types <- get_list_of_strategy_types()[1:2]
-environment_types <- get_list_of_environment_types()[1:2]
+strategy_types <- get_list_of_strategy_types()
+environment_types <- get_list_of_environment_types()
 
 test_that("IndividualRunner", {
   for (x in names(strategy_types)) {

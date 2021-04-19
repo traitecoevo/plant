@@ -92,10 +92,10 @@ public:
   double S_D = 1.0;
 
   // Smoothing parameter
-  double eta = 12;
+  double eta;
 
   // Light capture parameters
-  double k_I = 1e-3;
+  double k_I;
 
   // Rate of mortality over time
   double mortality_dt(double cumulative_basal_area,

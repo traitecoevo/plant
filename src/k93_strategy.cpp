@@ -23,10 +23,12 @@ K93_Strategy::K93_Strategy() {
    c_1 = 0.00044;  // Mortality suppression rate m2.cm-2.year-1
    d_0 = 0.00073;  // Recruitment rate (cm2.year-1)
    d_1 = 0.044;    // Recruitment suppression rate (m2.cm-2)
+   eta = 12;
+   k_I = 0.5;
 
-  // build the string state/aux name to index map
-  refresh_indices();
-  name = "K93";
+   // build the string state/aux name to index map
+   refresh_indices();
+   name = "K93";
 }
 
 // Signatures fixed in plant.h
@@ -90,11 +92,11 @@ void K93_Strategy::compute_rates(const K93_Environment& environment,
   // suppression integral mapped [0, 1] using adaptive spline
   // back transform to basal area and add suppression from self
   double competition = environment.get_environment_at_height(height);
-  double basal_area = size_to_basal_area(height);
 
   double cumulative_basal_area = -log(competition) / k_I;
 
-  if (!util::is_finite(cumulative_basal_area)) {
+  if (!util::is_finite(cumulative_basal_area))
+  {
     util::stop("Environmental interpolator has gone out of bounds, try lowering the extinction coefficient k_I");
   }
 
