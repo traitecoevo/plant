@@ -527,6 +527,10 @@ Patch:
       access: function
       name_cpp: "plant::ode::r_derivs"
       args: [y: "const plant::ode::state_type&", time: double]
+    set_time:
+      args: [time: double]
+      name_cpp: r_set_time
+      return_type: void
     set_state:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&", env: "const std::vector<double>&"]
       name_cpp: r_set_state

@@ -66,6 +66,7 @@ public:
   environment_type r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
   std::vector<double> r_competition_effect_error(size_t species_index) const;
+  void r_set_time(double time);
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
@@ -201,6 +202,13 @@ void Patch<T,E>::add_seeds(const std::vector<size_t>& species_index) {
     compute_environment();
   }
 }
+
+
+template <typename T, typename E>
+void Patch<T,E>::r_set_time(double time) {
+  environment.time = time;
+}
+
 
 // Arguments here are:
 //   time: time
