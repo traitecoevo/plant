@@ -174,7 +174,7 @@ void Patch<T,E>::compute_rates() {
     // Compute rates in cohort, multiply rate per plant by density
     // sum all cohorts and species in a patch to find the outflow for the patch
     // subtract total extraction rate from state
-    double pr_patch_survival = patch_survival_conditional(0.0);
+    double pr_patch_survival = patch_survival();
     species[i].compute_rates(environment, pr_patch_survival);
     //environment.compute_rates();
   }
