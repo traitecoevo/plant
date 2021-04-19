@@ -21,7 +21,7 @@ public:
   typedef Parameters<T,E> parameters_type;
 
   Patch(parameters_type p);
-
+  
   void reset();
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
@@ -99,6 +99,7 @@ Patch<T,E>::Patch(parameters_type p)
     is_resident(p.is_resident) {
   parameters.validate();
   environment = p.environment;
+  disturbance_regime = Disturbance(p.disturbance_mean_interval);
   for (auto s : parameters.strategies) {
     species.push_back(Species<T,E>(s));
   }
