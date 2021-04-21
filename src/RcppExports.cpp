@@ -6782,14 +6782,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // Canopy__ctor
-plant::Canopy Canopy__ctor(double k_I, plant::Control control);
-RcppExport SEXP _plant_Canopy__ctor(SEXP k_ISEXP, SEXP controlSEXP) {
+plant::Canopy Canopy__ctor(plant::Control control);
+RcppExport SEXP _plant_Canopy__ctor(SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type k_I(k_ISEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(Canopy__ctor(k_I, control));
+    rcpp_result_gen = Rcpp::wrap(Canopy__ctor(control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6848,16 +6847,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__ctor
-plant::FF16_Environment FF16_Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, double k_I, plant::Control control);
-RcppExport SEXP _plant_FF16_Environment__ctor(SEXP disturbance_mean_intervalSEXP, SEXP seed_rainSEXP, SEXP k_ISEXP, SEXP controlSEXP) {
+plant::FF16_Environment FF16_Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, plant::Control control);
+RcppExport SEXP _plant_FF16_Environment__ctor(SEXP disturbance_mean_intervalSEXP, SEXP seed_rainSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type disturbance_mean_interval(disturbance_mean_intervalSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type seed_rain(seed_rainSEXP);
-    Rcpp::traits::input_parameter< double >::type k_I(k_ISEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(disturbance_mean_interval, seed_rain, k_I, control));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(disturbance_mean_interval, seed_rain, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7027,16 +7025,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // K93_Environment__ctor
-plant::K93_Environment K93_Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, double k_I, plant::Control control);
-RcppExport SEXP _plant_K93_Environment__ctor(SEXP disturbance_mean_intervalSEXP, SEXP seed_rainSEXP, SEXP k_ISEXP, SEXP controlSEXP) {
+plant::K93_Environment K93_Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, plant::Control control);
+RcppExport SEXP _plant_K93_Environment__ctor(SEXP disturbance_mean_intervalSEXP, SEXP seed_rainSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< double >::type disturbance_mean_interval(disturbance_mean_intervalSEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type seed_rain(seed_rainSEXP);
-    Rcpp::traits::input_parameter< double >::type k_I(k_ISEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(K93_Environment__ctor(disturbance_mean_interval, seed_rain, k_I, control));
+    rcpp_result_gen = Rcpp::wrap(K93_Environment__ctor(disturbance_mean_interval, seed_rain, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8041,13 +8038,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___K93__K93_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__state__get, 1},
-    {"_plant_Canopy__ctor", (DL_FUNC) &_plant_Canopy__ctor, 2},
+    {"_plant_Canopy__ctor", (DL_FUNC) &_plant_Canopy__ctor, 1},
     {"_plant_Canopy__canopy_openness", (DL_FUNC) &_plant_Canopy__canopy_openness, 2},
     {"_plant_Canopy__clear", (DL_FUNC) &_plant_Canopy__clear, 1},
     {"_plant_Canopy__canopy_interpolator__get", (DL_FUNC) &_plant_Canopy__canopy_interpolator__get, 1},
     {"_plant_Canopy__canopy_interpolator__set", (DL_FUNC) &_plant_Canopy__canopy_interpolator__set, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
-    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 4},
+    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 3},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__patch_survival_conditional", (DL_FUNC) &_plant_FF16_Environment__patch_survival_conditional, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
@@ -8063,7 +8060,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__canopy__set", (DL_FUNC) &_plant_FF16_Environment__canopy__set, 2},
     {"_plant_FF16r_Strategy__ctor", (DL_FUNC) &_plant_FF16r_Strategy__ctor, 0},
     {"_plant_K93_Strategy__ctor", (DL_FUNC) &_plant_K93_Strategy__ctor, 0},
-    {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 4},
+    {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 3},
     {"_plant_K93_Environment__canopy_openness", (DL_FUNC) &_plant_K93_Environment__canopy_openness, 2},
     {"_plant_K93_Environment__patch_survival_conditional", (DL_FUNC) &_plant_K93_Environment__patch_survival_conditional, 2},
     {"_plant_K93_Environment__clear", (DL_FUNC) &_plant_K93_Environment__clear, 1},

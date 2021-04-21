@@ -497,7 +497,6 @@ template <> inline plant::Internals as(SEXP x) {
 }
 template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   Rcpp::List ret;
-  ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
@@ -522,8 +521,6 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   // field twice.  No current support for a hook.
   plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> ret;
   Rcpp::List xl(x);
-  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
-  ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
   ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
@@ -554,7 +551,6 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
 
 template <> inline SEXP wrap(const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
   Rcpp::List ret;
-  ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
@@ -579,8 +575,6 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environme
   // field twice.  No current support for a hook.
   plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> ret;
   Rcpp::List xl(x);
-  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
-  ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
   ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
@@ -611,7 +605,6 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environme
 
 template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& x) {
   Rcpp::List ret;
-  ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
@@ -636,8 +629,6 @@ template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment>
   // field twice.  No current support for a hook.
   plant::Parameters<plant::K93_Strategy,plant::K93_Environment> ret;
   Rcpp::List xl(x);
-  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
-  ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
   ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
@@ -843,6 +834,7 @@ template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
   ret["d_I"] = Rcpp::wrap(x.d_I);
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
+  ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
   ret.attr("class") = "FF16_Strategy";
@@ -917,6 +909,8 @@ template <> inline plant::FF16_Strategy as(SEXP x) {
   ret.a_dG1 = Rcpp::as<double >(xl["a_dG1"]);
   // ret.a_dG2 = Rcpp::as<decltype(reta_dG2) >(xl["a_dG2"]);
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
+  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
+  ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
@@ -961,6 +955,7 @@ template <> inline SEXP wrap(const plant::FF16r_Strategy& x) {
   ret["d_I"] = Rcpp::wrap(x.d_I);
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
+  ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
   ret.attr("class") = "FF16r_Strategy";
@@ -1035,6 +1030,8 @@ template <> inline plant::FF16r_Strategy as(SEXP x) {
   ret.a_dG1 = Rcpp::as<double >(xl["a_dG1"]);
   // ret.a_dG2 = Rcpp::as<decltype(reta_dG2) >(xl["a_dG2"]);
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
+  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
+  ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
@@ -1052,6 +1049,8 @@ template <> inline SEXP wrap(const plant::K93_Strategy& x) {
   ret["d_0"] = Rcpp::wrap(x.d_0);
   ret["d_1"] = Rcpp::wrap(x.d_1);
   ret["S_D"] = Rcpp::wrap(x.S_D);
+  ret["eta"] = Rcpp::wrap(x.eta);
+  ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["control"] = Rcpp::wrap(x.control);
   ret.attr("class") = "K93_Strategy";
   return ret;
@@ -1083,6 +1082,10 @@ template <> inline plant::K93_Strategy as(SEXP x) {
   ret.d_1 = Rcpp::as<double >(xl["d_1"]);
   // ret.S_D = Rcpp::as<decltype(retS_D) >(xl["S_D"]);
   ret.S_D = Rcpp::as<double >(xl["S_D"]);
+  // ret.eta = Rcpp::as<decltype(reteta) >(xl["eta"]);
+  ret.eta = Rcpp::as<double >(xl["eta"]);
+  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
+  ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   return ret;

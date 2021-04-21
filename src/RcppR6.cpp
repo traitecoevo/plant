@@ -2777,8 +2777,8 @@ Rcpp::List StochasticPatchRunner___K93__K93_Env__state__get(plant::RcppR6::RcppR
 
 
 // [[Rcpp::export]]
-plant::Canopy Canopy__ctor(double k_I, plant::Control control) {
-  return plant::Canopy(k_I, control);
+plant::Canopy Canopy__ctor(plant::Control control) {
+  return plant::Canopy(control);
 }
 // [[Rcpp::export]]
 double Canopy__canopy_openness(plant::RcppR6::RcppR6<plant::Canopy> obj_, double height) {
@@ -2805,8 +2805,8 @@ SEXP FF16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::FF16_Environment FF16_Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, double k_I, plant::Control control) {
-  return plant::FF16_Environment(disturbance_mean_interval, seed_rain, k_I, control);
+plant::FF16_Environment FF16_Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, plant::Control control) {
+  return plant::FF16_Environment(disturbance_mean_interval, seed_rain, control);
 }
 // [[Rcpp::export]]
 double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
@@ -2879,8 +2879,8 @@ SEXP K93_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::K93_Environment K93_Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, double k_I, plant::Control control) {
-  return plant::K93_Environment(disturbance_mean_interval, seed_rain, k_I, control);
+plant::K93_Environment K93_Environment__ctor(double disturbance_mean_interval, std::vector<double> seed_rain, plant::Control control) {
+  return plant::K93_Environment(disturbance_mean_interval, seed_rain, control);
 }
 // [[Rcpp::export]]
 double K93_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, double height) {

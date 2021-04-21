@@ -6,7 +6,7 @@
 \alias{K93_fixed_environment}
 \title{K93_Environment object}
 \usage{
-K93_Environment(disturbance_mean_interval, seed_rain, k_I, control)
+K93_Environment(disturbance_mean_interval, seed_rain, control)
 
 K93_make_environment(p)
 
@@ -16,8 +16,6 @@ K93_fixed_environment(e = 1, p = K93_Parameters(), height_max = 300)
 \item{disturbance_mean_interval}{mean disturbance interval in years}
 
 \item{seed_rain}{vector of seed rains}
-
-\item{k_I}{light extinction coefficient}
 
 \item{control}{A Control object}
 

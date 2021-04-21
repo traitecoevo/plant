@@ -108,7 +108,9 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
   hh <- seq(0, height, length.out=n)
   if (is.null(light_env)) {
     light_env <- function(x) {
-      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
+      # arbitary function. aiming to produce values of -log(light_env)/0.01 
+      # in range 0:100
+      exp(x/(height*2)) - (exp(.5) - 1)
     }
   }
   ee <- light_env(hh)
