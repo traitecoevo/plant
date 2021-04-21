@@ -24,7 +24,7 @@ K93_Strategy::K93_Strategy() {
    d_0 = 0.00073;  // Recruitment rate (cm2.year-1)
    d_1 = 0.044;    // Recruitment suppression rate (m2.cm-2)
    eta = 12;
-   k_I = 0.5;
+   k_I = 0.01;     // Sclaing factor for competition
 
    // build the string state/aux name to index map
    refresh_indices();
