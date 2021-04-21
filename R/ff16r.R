@@ -183,8 +183,6 @@ make_FF16r_hyperpar <- function(
   assert_scalar(k_I)
   assert_scalar(latitude)
 
-  ## TODO: k_I should actually be in default parameter set, so perhaps don't pass into function?
-
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,

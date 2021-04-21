@@ -15,7 +15,7 @@ namespace plant {
 // TODO: Consider moving to activating as an initialisation list?
 K93_Strategy::K93_Strategy() {
    // * Empirical parameters - Table 1.
-   height_0 = 2.0;
+   height_0 = 2.0; // Height at birth
    b_0 = 0.059;    // Growth intercept year-1
    b_1 = 0.012;    // Growth asymptote year-1.(ln cm)-1
    b_2 = 0.00041;  // Growth suppression rate m2.cm-2.year-1
@@ -23,8 +23,8 @@ K93_Strategy::K93_Strategy() {
    c_1 = 0.00044;  // Mortality suppression rate m2.cm-2.year-1
    d_0 = 0.00073;  // Recruitment rate (cm2.year-1)
    d_1 = 0.044;    // Recruitment suppression rate (m2.cm-2)
-   eta = 12;
-   k_I = 0.01;     // Sclaing factor for competition
+   eta = 12;       // Canopy shape parameter
+   k_I = 0.01;     // Scaling factor for competition
 
    // build the string state/aux name to index map
    refresh_indices();

@@ -240,9 +240,6 @@ test_that("Seed rain & error calculations correct", {
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE)
-    
-    if(grepl("K93", x))
-      p1$k_I <- 1e-3
 
     scm <- run_scm(p1)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))

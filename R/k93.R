@@ -140,7 +140,9 @@ make_K93_hyperpar <- function(
         c_0 = 0.008,    # Mortality intercept year-1
         c_1 = 0.00044,  # Mortality suppression rate m2.cm-2.year-1
         d_0 = 0.00073,  # Recruitment rate (cm2.year-1)
-        d_1 = 0.044    # Recruitment suppression rate (m2.cm-2)
+        d_1 = 0.044,    # Recruitment suppression rate (m2.cm-2)
+        eta = 12,       # Canopy shape parameter
+        k_I = 0.01      # Scaling factor for competition
   ) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
     if (length(x) != 1L) {
@@ -155,6 +157,8 @@ make_K93_hyperpar <- function(
   assert_scalar(c_1)
   assert_scalar(d_0)
   assert_scalar(d_1)
+  assert_scalar(eta)
+  assert_scalar(k_I)
 
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {

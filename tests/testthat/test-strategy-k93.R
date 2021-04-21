@@ -75,15 +75,13 @@ test_that("K93 seed rain is unchanged", {
   # Generic parameters
   p0 <- scm_base_parameters("K93")
   p0$disturbance_mean_interval <- 10
-  p0$strategy_default$k_I <- 1e-6  
 
   # Use single sp. defaults
   p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0, mutant = FALSE)
   p1$seed_rain <- 20
 
   out <- run_scm(p1)
-  expect_equal(out$seed_rains, 0.0752, tolerance = 1e-4)
-  # expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.500004), tolerance = 1e-5)
+  expect_equal(out$seed_rains, 0.0753, tolerance = 1e-4)
 
   # Three species from paper
   sp <- trait_matrix(c(0.042, 0.063, 0.052,
@@ -100,6 +98,5 @@ test_that("K93 seed rain is unchanged", {
   p2$seed_rain <- c(20, 20, 20)
   out <- run_scm(p2)
 
-  expect_equal(out$seed_rains, c(0.0025, 0.2314, 0.2195), tolerance = 1e-4)
-  #expect_equal(length(out$ode_times), 224)
+  expect_equal(out$seed_rains, c(0.0025, 0.2321, 0.2194), tolerance = 1e-4)
 })

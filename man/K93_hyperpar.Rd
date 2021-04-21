@@ -12,7 +12,9 @@ make_K93_hyperpar(
   c_0 = 0.008,
   c_1 = 0.00044,
   d_0 = 0.00073,
-  d_1 = 0.044
+  d_1 = 0.044,
+  eta = 12,
+  k_I = 0.01
 )
 
 K93_hyperpar(m, s, filter = TRUE)
