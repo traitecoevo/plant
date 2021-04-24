@@ -12,7 +12,7 @@ test_that("Ported from tree1", {
     cohort <- Cohort(x, e)(s)
 
     p <- Parameters(x, e)(strategies=list(s),
-                          seed_rain=pi/2,
+                          offspring_arriving=pi/2,
                           patch_area=10,
                           is_resident=TRUE)
     
@@ -101,7 +101,7 @@ test_that("Ported from tree1", {
     expect_equal(scm$patch$ode_size, 0)
     expect_equal(scm$cohort_schedule$remaining, length(t))
 
-    ## At this point, and possibly before scm$seed_rains is corrupt.
+    ## At this point, and possibly before scm$all_offspring_produced is corrupt.
 
     ## This is stalling really badly, but it's not totally clear why.
     ## It's *not* the ODE system thrashing (thankfully) because the
@@ -165,11 +165,11 @@ test_that("Ported from tree1", {
 })
 
 test_that("schedule setting", {
-  for (x in names(strategy_types)) { 
+  for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(
       strategies=list(strategy_types[[x]]()),
-      seed_rain=pi/2,
+      offspring_arriving=pi/2,
       is_resident=TRUE,
       cohort_schedule_max_time=5.0)
     scm <- SCM(x, e)(p)
@@ -250,20 +250,20 @@ test_that("Seed rain & error calculations correct", {
     scm <- run_scm(p1)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
 
-    seed_rain_R <- function(scm, error=FALSE) {
+    offspring_produced_R <- function(scm, error=FALSE) {
       a <- scm$cohort_schedule$times(1)
       d <- scm$patch$environment$disturbance_regime
       pa <- d$density(a)
       p <- scm$parameters
-      scale <- scm$parameters$strategies[[1]]$S_D * p$seed_rain
-      seeds <- pa * scm$patch$species[[1]]$seeds * scale
-      total <- trapezium(a, seeds)
-      if (error) local_error_integration(a, seeds, total) else total
+      scale <- scm$parameters$strategies[[1]]$S_D * p$offspring_arriving
+      offspring <- pa * scm$patch$species[[1]]$offspring * scale
+      total <- trapezium(a, offspring)
+      if (error) local_error_integration(a, offspring, total) else total
     }
 
-    expect_equal(scm$seed_rain(1), seed_rain_R(scm))
-    expect_equal(scm$seed_rains, seed_rain_R(scm))
-    expect_equal(scm$seed_rain_error[[1]], seed_rain_R(scm, error=TRUE))
+    expect_equal(scm$offspring_produced(1), offspring_produced_R(scm))
+    expect_equal(scm$all_offspring_produced, offspring_produced_R(scm))
+    expect_equal(scm$offspring_produced_error[[1]], offspring_produced_R(scm, error=TRUE))
 
     lae_cmp <-
       scm$patch$species[[1]]$competition_effects_error(scm$patch$compute_competition(0))
@@ -271,12 +271,12 @@ test_that("Seed rain & error calculations correct", {
 
     int <- make_scm_integrate(scm)
     S_D <- scm$parameters$strategies[[1]]$S_D
-    expect_equal(int("seeds_survival_weighted") * S_D, scm$seed_rain(1))
+    expect_equal(int("seeds_survival_weighted") * S_D, scm$offspring_produced(1))
 
     res <- run_scm_collect(p1)
     int2 <- make_scm_integrate(res)
 
-    expect_equal(int2("seeds_survival_weighted"), int("seeds_survival_weighted"))
+    expect_equal(int2("offspring_produced_survival_weighted"), int("offspring_produced_survival_weighted"))
     expect_equal(int2("height"), int("height"))
     expect_equal(int2("mortality"), int("mortality"))
     expect_equal(int2("fecundity"), int("fecundity"))

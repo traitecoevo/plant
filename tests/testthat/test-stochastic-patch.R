@@ -9,7 +9,7 @@ test_that("empty", {
 
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          seed_rain=pi/2,
+                          offspring_arriving=pi/2,
                           is_resident=TRUE)
     patch <- StochasticPatch(x, e)(p)
 
@@ -35,7 +35,7 @@ test_that("non empty", {
 
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          seed_rain=pi/2,
+                          offspring_arriving=pi/2,
                           is_resident=TRUE)
     patch <- StochasticPatch(x, e)(p)
     cmp <- Individual(x, e)(p$strategies[[1]])

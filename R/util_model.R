@@ -90,7 +90,7 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
   ret <- p <- validate(p) # Ensure times are set up correctly.
   ret$strategies <- c(p$strategies, extra)
   ret$is_resident <- c(p$is_resident, rep(!mutant, n_extra))
-  ret$seed_rain <- c(p$seed_rain, rep(1.0, n_extra))
+  ret$offspring_arriving <- c(p$offspring_arriving, rep(1.0, n_extra))
 
   ## Introduce mutants at all unique times:
   if (length(p$strategies) == 0L || !mutant) {
@@ -102,7 +102,7 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
                                  rep(list(times_new), n_extra))
 
   ## Clear this if it's present:
-  attr(ret, "seed_rain_out") <- NULL
+  attr(ret, "offspring_produced") <- NULL
 
   ret
 }
@@ -111,7 +111,7 @@ remove_residents <- function(p) {
   if (length(p$strategies) > 0L) {
     p$strategies <- list()
     p$is_resident <- logical(0)
-    p$seed_rain <- numeric(0)
+    p$offspring_arriving <- numeric(0)
     p$cohort_schedule_times <- list()
   }
   p

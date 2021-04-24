@@ -5,27 +5,27 @@
 ##' introduce into the light environment constructed by the residents
 ##' in \code{p}.
 ##' @param p Parameters object.  Needs to contain residents with their
-##' incoming seed rain.
-##' @param raw_seed_rain Logical; if \code{TRUE} report per capita
-##' seed rain rather than fitness.
-##' @return Vector with the output seed rain.  Mutants have an
-##' arbitrary seed rain of one, so this is the rate of seed
+##' arriving offspring.
+##' @param raw_offspring_produced Logical; if \code{TRUE} report per capita
+##' offspring production rather than fitness.
+##' @return Vector with the output offspring produced.  Mutants have an
+##' arbitrary offspring of one, so this is the rate of offspring
 ##' production per capita.
 ##' @author Rich FitzJohn
 ##' @export
-fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), raw_seed_rain=FALSE) {
+fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), raw_offspring_produced=FALSE) {
   n_residents <- length(p$strategies)
   p_with_mutants <- expand_parameters(trait_matrix, p, hyperpar)
   scm <- run_scm(p_with_mutants,
                  use_ode_times=length(p$cohort_schedule_ode_times) > 0)
-  seed_rain <- scm$seed_rains
+  offspring_produced <- scm$all_offspring_produced
   if (n_residents > 0L) {
-    seed_rain <- seed_rain[-seq_len(n_residents)]
+    offspring_produced <- offspring_produced[-seq_len(n_residents)]
   }
-  if (raw_seed_rain) {
-    seed_rain
+  if (raw_offspring_produced) {
+    offspring_produced
   } else {
-    log(seed_rain)
+    log(offspring_produced)
   }
 }
 
@@ -52,11 +52,11 @@ max_growth_rate <- function(trait_matrix, p) {
 ##' @param trait_matrix A matrix of traits
 ##' @param p Parameters object to use.  Importantly, the
 ##' \code{strategy_default} element gets used here.
-##' @param seed_rain Initial seed rain (optional)
+##' @param offspring_arriving Initial seed rain (optional)
 ##' @param parallel Use multiple processors?
 ##' @author Rich FitzJohn
 ##' @export
-carrying_capacity <- function(trait_matrix, p, seed_rain=1,
+carrying_capacity <- function(trait_matrix, p, offspring_arriving=1,
                               parallel=FALSE) {
   f <- function(x) {
     ## NOTE: This is not very pretty because matrix_to_list, which we
@@ -65,8 +65,8 @@ carrying_capacity <- function(trait_matrix, p, seed_rain=1,
     p <- expand_parameters(trait_matrix(x, traits),
                            remove_residents(p),
                            mutant=FALSE)
-    p$seed_rain <- seed_rain
-    equilibrium_seed_rain(p)$seed_rain
+    p$offspring_arriving <- offspring_arriving
+    equilibrium_offspring_arriving(p)$offspring_arriving
   }
   traits <- colnames(trait_matrix)
   unlist(loop(matrix_to_list(trait_matrix), f, parallel=parallel))

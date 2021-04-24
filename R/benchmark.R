@@ -18,18 +18,18 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
       p$k_I <- 1e-3
     res <- run_scm(p)
   }
-  
+
   f_build_schedule <- function(x) {
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
-    p$seed_rain <- 0.1
-    
+    p$offspring_arriving <- 0.1
+
     if (grepl("K93", x))
       p$k_I <- 1e-3
-    
+
     p <- build_schedule(p)
   }
-  
+
   message("Running benchmarks via `run_plant_benchmarks`")
   bench::press(strategy = names(strategy_types),
                {

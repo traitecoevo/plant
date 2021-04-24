@@ -46,7 +46,7 @@ test_that("Default schedule", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]](), strategy_types[[x]]()),
-      seed_rain=c(pi/2, pi),
+      offspring_arriving=c(pi/2, pi),
       is_resident=c(TRUE, TRUE))
     cohort_schedule <- cohort_schedule_default(p)
     expect_is(cohort_schedule, "CohortSchedule")

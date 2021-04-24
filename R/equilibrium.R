@@ -6,21 +6,21 @@
 ##' elements set.
 ##' @export
 ##' @author Rich FitzJohn
-equilibrium_seed_rain <- function(p) {
+equilibrium_offspring_arriving <- function(p) {
   solver <- p$control$equilibrium_solver_name
   plant_log_info(sprintf("Solving seed rain using %s", solver),
                  routine="equilibrium", stage="start", solver=solver)
   switch(solver,
-         iteration=equilibrium_seed_rain_iteration(p),
-         nleqslv=equilibrium_seed_rain_solve_robust(p, solver),
-         dfsane=equilibrium_seed_rain_solve_robust(p, solver),
-         hybrid=equilibrium_seed_rain_hybrid(p),
+         iteration=equilibrium_offspring_arriving_iteration(p),
+         nleqslv=equilibrium_offspring_arriving_solve_robust(p, solver),
+         dfsane=equilibrium_offspring_arriving_solve_robust(p, solver),
+         hybrid=equilibrium_offspring_arriving_hybrid(p),
          stop("Unknown solver ", solver))
 }
 
 ## This is the simplest solver: it simply iterates the outgoing seed
 ## rain as incoming seed rain.  No attempt at projection is made.
-equilibrium_seed_rain_iteration <- function(p) {
+equilibrium_offspring_arriving_iteration <- function(p) {
   check <- function(x_in, x_out, eps, verbose) {
     achange <- x_out - x_in
     rchange <- 1 - x_out / x_in
@@ -38,13 +38,13 @@ equilibrium_seed_rain_iteration <- function(p) {
 
   eps <- p$control$equilibrium_eps
   verbose <- p$control$equilibrium_verbose
-  seed_rain <- p$seed_rain
+  offspring_arriving <- p$offspring_arriving
   runner <- make_equilibrium_runner(p)
 
   for (i in seq_len(p$control$equilibrium_nsteps)) {
-    seed_rain_out <- runner(seed_rain)
-    converged <- check(seed_rain, seed_rain_out, eps, verbose)
-    seed_rain <- seed_rain_out
+    offspring_produced <- runner(offspring_arriving)
+    converged <- check(offspring_arriving, offspring_produced, eps, verbose)
+    offspring_arriving <- offspring_produced
     if (converged) {
       break
     }
@@ -53,31 +53,31 @@ equilibrium_seed_rain_iteration <- function(p) {
   equilibrium_runner_cleanup(runner, converged)
 }
 
-equilibrium_seed_rain_solve <- function(p, solver="nleqslv") {
+equilibrium_offspring_arriving_solve <- function(p, solver="nleqslv") {
   try_keep <- p$control$equilibrium_solver_try_keep
   logN <- p$control$equilibrium_solver_logN
-  min_seed_rain <- 1e-10 # TODO: should also be in the controls?
+  min_offspring_arriving <- 1e-10 # TODO: should also be in the controls?
 
   plant_log_eq(paste("Solving seed rain using", solver),
                stage="start", solver=solver)
 
-  seed_rain <- p$seed_rain
+  offspring_arriving <- p$offspring_arriving
   runner <- make_equilibrium_runner(p)
 
   ## First, we exclude species that have seed rains below some minimum
   ## level.
-  to_drop <- seed_rain < min_seed_rain
+  to_drop <- offspring_arriving < min_offspring_arriving
   if (any(to_drop)) {
     i_keep <- which(!to_drop)
     msg <- sprintf("Species %s extinct: excluding from search",
                    paste(which(to_drop), collapse=" & "))
     plant_log_eq(msg, stage="drop species", drop=which(to_drop))
-    seed_rain_full <- seed_rain
-    seed_rain <- seed_rain_full[i_keep]
+    offspring_arriving_full <- offspring_arriving
+    offspring_arriving <- offspring_arriving_full[i_keep]
 
     runner_full <- runner
     runner <- function(x) {
-      x_full <- rep(0, length(seed_rain_full))
+      x_full <- rep(0, length(offspring_arriving_full))
       x_full[i_keep] <- x
       runner_full(x_full)[i_keep]
     }
@@ -85,8 +85,8 @@ equilibrium_seed_rain_solve <- function(p, solver="nleqslv") {
 
   ## Then see if any species should be retained:
   if (try_keep) {
-    ans <- runner(seed_rain)
-    keep <- unname(ans >= seed_rain)
+    ans <- runner(offspring_arriving)
+    keep <- unname(ans >= offspring_arriving)
 
     msg <- sprintf("Keeping species %s",
                    paste(which(!to_drop)[keep], collapse=", "))
@@ -97,11 +97,11 @@ equilibrium_seed_rain_solve <- function(p, solver="nleqslv") {
 
   ## TODO: This is annoying, but turns out to be a problem for getting
   ## the solution working nicely.
-  max_seed_rain <- pmax(seed_rain * 100, 10000)
-  target <- equilibrium_seed_rain_solve_target(runner, keep, logN,
-                                               min_seed_rain, max_seed_rain,
+  max_offspring_arriving <- pmax(offspring_arriving * 100, 10000)
+  target <- equilibrium_offspring_arriving_solve_target(runner, keep, logN,
+                                               min_offspring_arriving, max_offspring_arriving,
                                                p$control$equilibrium_verbose)
-  x0 <- if (logN) log(seed_rain) else seed_rain
+  x0 <- if (logN) log(offspring_arriving) else offspring_arriving
 
   tol <- p$control$equilibrium_eps
   ## NOTE: Hard coded minimum of 100 steps here.
@@ -114,17 +114,17 @@ equilibrium_seed_rain_solve <- function(p, solver="nleqslv") {
 }
 
 ## NOTE: I don't know that this is used?  Perhaps it is?
-equilibrium_seed_rain_solve_robust <- function(p, solver="nleqslv") {
-  fit <- try(equilibrium_seed_rain_solve(p, solver))
+equilibrium_offspring_arriving_solve_robust <- function(p, solver="nleqslv") {
+  fit <- try(equilibrium_offspring_arriving_solve(p, solver))
   if (failed(fit)) {
     plant_log_eq("Falling back on iteration")
-    fit_it <- equilibrium_seed_rain_iteration(p)
+    fit_it <- equilibrium_offspring_arriving_iteration(p)
     ## Here, we might want to pick a set of values that look good from
     ## the previous set.
 
     plant_log_eq("Trying again with the solver")
-    p$seed_rain <- unname(fit_it$seed_rain)
-    fit2 <- try(equilibrium_seed_rain_solve(p, solver))
+    p$offspring_arriving <- unname(fit_it$offspring_arriving)
+    fit2 <- try(equilibrium_offspring_arriving_solve(p, solver))
 
     if (failed(fit2)) {
       plant_log_eq("Solver failed again: using iteration version")
@@ -144,38 +144,38 @@ equilibrium_seed_rain_solve_robust <- function(p, solver="nleqslv") {
 ## will happily select zero seed rains for species that are not
 ## zeros.  So after running a round with the solver, check any species
 ## that were zeroed to make sure they're really dead.
-equilibrium_seed_rain_hybrid <- function(p) {
+equilibrium_offspring_arriving_hybrid <- function(p) {
   attempts <- p$control$equilibrium_nattempts
 
   ## Then expand this out so that we can try alternating solvers
   solver <- rep(c("nleqslv", "dfsane"), length.out=attempts)
 
   for (i in seq_len(attempts)) {
-    ans_it <- equilibrium_seed_rain_iteration(p)
-    p$seed_rain <- ans_it$seed_rain
+    ans_it <- equilibrium_offspring_arriving_iteration(p)
+    p$offspring_arriving <- ans_it$offspring_arriving
     converged_it <- isTRUE(attr(ans_it, "converged"))
     msg <- sprintf("Iteration %d %s",
                    i, if (converged_it) "converged" else "did not converge")
     plant_log_eq(msg, step="iteration", converged=converged_it, iteration=i)
 
-    ans_sol <- try(equilibrium_seed_rain_solve(p, solver[[i]]))
+    ans_sol <- try(equilibrium_offspring_arriving_solve(p, solver[[i]]))
     converged_sol <- isTRUE(attr(ans_sol, "converged"))
     msg <- sprintf("Solve %d %s",
                     i, if (converged_sol) "converged" else "did not converge")
     plant_log_eq(msg, step="solve", converged=converged_sol, iteration=i)
 
     if (converged_sol) {
-      if (any(ans_sol$seed_rain == 0.0)) {
+      if (any(ans_sol$offspring_arriving == 0.0)) {
         plant_log_eq("Checking species driven to extinction")
         ## Add these species back at extremely low density and make sure
         ## that this looks like a legit extinction.
-        y_in <- ans_sol$seed_rain
+        y_in <- ans_sol$offspring_arriving
         i <- y_in <= 0.0
-        y_in[i] <- p$control$equilibrium_extinct_seed_rain
+        y_in[i] <- p$control$equilibrium_extinct_offspring_arriving
 
         p_check <- p
-        p_check$seed_rain <- y_in
-        y_out <- run_scm(p_check)$seed_rains
+        p_check$offspring_arriving <- y_in
+        y_out <- run_scm(p_check)$all_offspring_produced
         if (any(y_out[i] > y_in[i])) {
           plant_log_eq("Solver drove viable species extinct: rejecting")
           next
@@ -199,44 +199,44 @@ make_equilibrium_runner <- function(p) {
 
   p <- validate(p)
 
-  large_seed_rain_change <- p$control$equilibrium_large_seed_rain_change
+  large_offspring_arriving_change <- p$control$equilibrium_large_offspring_arriving_change
 
   i <- 1L
-  last_seed_rain <- p$seed_rain
+  last_offspring_arriving <- p$offspring_arriving
   default_schedule_times <- rep(list(p$cohort_schedule_times_default),
-                                length(p$seed_rain))
+                                length(p$offspring_arriving))
   last_schedule_times <- p$cohort_schedule_times
   history <- NULL
 
-  function(seed_rain_in) {
-    if (any(abs(seed_rain_in - last_seed_rain) > large_seed_rain_change)) {
+  function(offspring_arriving) {
+    if (any(abs(offspring_arriving - last_offspring_arriving) > large_offspring_arriving_change)) {
       p$cohort_schedule_times <- default_schedule_times
     }
 
-    p$seed_rain <- seed_rain_in
+    p$offspring_arriving <- last_offspring_arriving
 
     p_new <- build_schedule(p)
-    seed_rain_out <- attr(p_new, "seed_rain_out", exact=TRUE)
+    offspring_produced <- attr(p_new, "offspring_produced", exact=TRUE)
 
     ## These all write up to the containing environment:
     p <<- p_new
     last_schedule_times <<- p_new$cohort_schedule_times
-    last_seed_rain      <<- seed_rain_in
-    history <<- c(history, list(c("in"=seed_rain_in, out=seed_rain_out)))
+    offspring_arriving      <<- offspring_arriving
+    history <<- c(history, list(c("in"=offspring_arriving, out=offspring_produced)))
 
     msg <- sprintf("eq> %d: %s -> %s (delta = %s)", i,
-                   pretty_num_collapse(seed_rain_in),
-                   pretty_num_collapse(seed_rain_out),
-                   pretty_num_collapse(seed_rain_out - seed_rain_in))
+                   pretty_num_collapse(offspring_arriving),
+                   pretty_num_collapse(offspring_produced),
+                   pretty_num_collapse(offspring_produced - offspring_arriving))
     plant_log_eq(msg,
                  stage="runner",
                  iteration=i,
-                 seed_rain_in=seed_rain_in,
-                 seed_rain_out=seed_rain_out)
+                 offspring_arriving=offspring_arriving,
+                 offspring_produced=offspring_produced)
     i <<- i + 1L
 
-    attr(seed_rain_out, "schedule_times") <- last_schedule_times
-    seed_rain_out
+    attr(offspring_produced, "schedule_times") <- last_schedule_times
+    offspring_produced
   }
 }
 
@@ -249,7 +249,7 @@ equilibrium_runner_cleanup <- function(runner, converged=TRUE) {
   }
 
   p <- e$p
-  p$seed_rain <- as.numeric(e$last_seed_rain)
+  p$offspring_arriving <- as.numeric(e$last_offspring_arriving)
   p$cohort_schedule_times <- e$last_schedule_times
   attr(p, "progress") <- rbind_list(e$history)
   attr(p, "converged") <- converged
@@ -257,33 +257,33 @@ equilibrium_runner_cleanup <- function(runner, converged=TRUE) {
 }
 
 ## Another layer of runner for the solver code:
-equilibrium_seed_rain_solve_target <- function(runner, keep, logN,
-                                               min_seed_rain, max_seed_rain,
+equilibrium_offspring_arriving_solve_target <- function(runner, keep, logN,
+                                               min_offspring_arriving, max_offspring_arriving,
                                                verbose) {
   force(runner)
   force(keep)
   force(logN)
-  force(min_seed_rain)
-  force(max_seed_rain)
+  force(min_offspring_arriving)
+  force(max_offspring_arriving)
   function(x, ...) {
     if (logN) {
       x <- exp(x)
     }
     ## TODO: most of the plant_log_eq things here should be DEBUG not INFO?
     ## Avoid negative seed rains:
-    x[x < min_seed_rain & keep] <- min_seed_rain
-    x[x < min_seed_rain & !keep] <- 0.0
+    x[x < min_offspring_arriving & keep] <- min_offspring_arriving
+    x[x < min_offspring_arriving & !keep] <- 0.0
     if (!any(x > 0)) {
       plant_log_eq("All species extinct?")
     }
-    too_high <- x > max_seed_rain
+    too_high <- x > max_offspring_arriving
     if (any(too_high)) {
       plant_log_eq(sprintf("Truncating seed rain of species %s",
                            paste(which(too_high), collapse=", ")))
-      if (length(max_seed_rain) == 1L) {
-        max_seed_rain <- rep(max_seed_rain, length.out=length(x))
+      if (length(max_offspring_arriving) == 1L) {
+        max_offspring_arriving <- rep(max_offspring_arriving, length.out=length(x))
       }
-      x[too_high] <- max_seed_rain[too_high]
+      x[too_high] <- max_offspring_arriving[too_high]
     }
     xout <- unname(runner(x))
 
@@ -307,31 +307,31 @@ equilibrium_seed_rain_solve_target <- function(runner, keep, logN,
 check_inviable <- function(p) {
   ## eps_test: *Relative* value to use for determining what
   ## "low abundance" means.  Species that have a seed rain of less than
-  ## `eps_test * max(p$seed_rain)` will be tested.  By default
+  ## `eps_test * max(p$offspring_arriving)` will be tested.  By default
   ##  this is 1 100th of the maximum seed rain.
   ## TODO: don't do anything if we don't have at least 2 species?
-  eps <- p$control$equilibrium_extinct_seed_rain
+  eps <- p$control$equilibrium_extinct_offspring_arriving
   ## TODO: This was p$control$equilibrium_inviable_test, but I think
   ## that birth seed rain actually makes more sense?  It's fractional
   ## though so who knows.
   eps_test <- 1e-2
-  seed_rain <- p$seed_rain
+  offspring_arriving <- p$offspring_arriving
   ## NOTE: We don't actually run to equilibrium here; this is just
   ## because it's a useful way of doing incoming -> outgoing seed
   ## rain.
   runner <- make_equilibrium_runner(p)
-  seed_rain_out <- runner(seed_rain)
+  offspring_produced <- runner(offspring_produced)
 
-  test <- which(seed_rain_out < seed_rain &
-                seed_rain < max(seed_rain_out) * eps_test)
-  test <- test[order(seed_rain_out[test])]
+  test <- which(offspring_produced < offspring_arriving &
+                offspring_arriving < max(offspring_produced) * eps_test)
+  test <- test[order(offspring_produced[test])]
 
-  drop <- logical(length(seed_rain_out))
+  drop <- logical(length(offspring_produced))
 
   for (i in test) {
     plant_log_inviable(paste("Testing species", i),
                        stage="testing", species=i)
-    x <- seed_rain_out
+    x <- offspring_produced
     x[i] <- eps
     res <- runner(x)
     if (res[[i]] < eps) {
@@ -339,14 +339,14 @@ check_inviable <- function(p) {
                          stage="removing", species=i)
       drop[[i]] <- TRUE
       res[[i]] <- 0.0
-      seed_rain_out <- res
+      offspring_produced <- res
     }
   }
 
   ## It's possible that things slip through and get driven extinct by
   ## the time that they reach here.
-  drop <- drop | seed_rain_out < eps
+  drop <- drop | offspring_produced < eps
 
-  attr(seed_rain_out, "drop") <- drop
-  seed_rain_out
+  attr(offspring_produced, "drop") <- drop
+  offspring_produced
 }

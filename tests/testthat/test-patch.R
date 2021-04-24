@@ -7,7 +7,7 @@ for (x in names(strategy_types)) {
   context(sprintf("Patch-%s",x))
 
   test_that(sprintf("Basics %s", x), {
-    ## TODO: This is something that needs validating: the seed_rain and
+    ## TODO: This is something that needs validating: the offspring_arriving and
     ## is_resident vectors must be the right length.
 
     s <- strategy_types[[x]]()
@@ -16,7 +16,7 @@ for (x in names(strategy_types)) {
     cohort <- Cohort(x, e)(s)
 
     p <- Parameters(x, e)(strategies=list(s),
-                          seed_rain=pi/2,
+                          offspring_arriving=pi/2,
                           is_resident=TRUE)
 
     patch <- Patch(x, e)(p)

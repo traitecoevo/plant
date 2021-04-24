@@ -8,10 +8,10 @@ test_that("empty", {
     e <- environment_types[[x]]
     set.seed(1)
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          seed_rain=pi/2,
+                          offspring_arriving=pi/2,
                           is_resident=TRUE,
                           control=fast_control())
-    
+
     if(grepl("K93", x))
       p$k_I <- 1e-3
 
@@ -55,13 +55,13 @@ test_that("collect", {
     e <- environment_types[[x]]
     set.seed(1)
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          seed_rain=5/50,
+                          offspring_arriving=5/50,
                           patch_area=50,
                           is_resident=TRUE,
                           control=fast_control())
     if(grepl("K93", x))
       p$k_I <- 1e-3
-    
+
     expect_silent(res <- run_stochastic_collect(p))
     ## TODO: more tests on collect output
 

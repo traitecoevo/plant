@@ -11,7 +11,7 @@ for (x in names(strategy_types)) {
   context(sprintf("Species-%s",x))
 
   test_that("Basics", {
-    env <- test_environment(x, 3, seed_rain=1.0)
+    env <- test_environment(x, 3, offspring_arriving=1.0)
     s <- strategy_types[[x]]()
     sp <- Species(x, e)(s)
     seed <- Cohort(x, e)(s)
@@ -90,7 +90,7 @@ for (x in names(strategy_types)) {
 
   ## 2: Cohort up against boundary has no leaf area:
   test_that("species with only boundary cohort no leaf area", {
-    env <- test_environment(x, 3, seed_rain=1.0)
+    env <- test_environment(x, 3, offspring_arriving=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$add_seed()
     sp$compute_rates(env)
@@ -108,7 +108,7 @@ for (x in names(strategy_types)) {
 
   ## 3: Single cohort; one round of trapezium:
   test_that("Leaf area sensible with one cohort", {
-    env <- test_environment(x, 3, seed_rain=1.0)
+    env <- test_environment(x, 3, offspring_arriving=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env)
     sp$add_seed()
@@ -133,7 +133,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Leaf area sensible with two cohorts", {
-    env <- test_environment(x, 3, seed_rain=1.0)
+    env <- test_environment(x, 3, offspring_arriving=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env)
     sp$add_seed()
@@ -159,7 +159,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Leaf area sensible with three cohorts", {
-    env <- test_environment(x, 3, seed_rain=1.0)
+    env <- test_environment(x, 3, offspring_arriving=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env)
     sp$add_seed()

@@ -19,7 +19,7 @@ for (x in names(strategy_types)) {
 
     env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
-                            seed_rain=1.0)
+                            offspring_arriving=1.0)
 
     ## The big unknown is the growth rate gradient calculation; that is,
     ## the derivative d(dh/dt)/dh.
@@ -106,12 +106,12 @@ for (x in names(strategy_types)) {
 
     env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
-                            seed_rain=1.0)
+                            offspring_arriving=1.0)
 
     cohort$compute_initial_conditions(env)
     plant$compute_rates(env)
 
-    nms <- c(plant$ode_names, 
+    nms <- c(plant$ode_names,
              "seeds_survival_weighted", "log_density")
     expect_equal(cohort$ode_size, length(nms))
     expect_equal(cohort$ode_names, nms)
@@ -130,30 +130,30 @@ for (x in names(strategy_types)) {
     ## Ode *values*:
     cmp <- c(plant$internals$states,
              0, # seeds_survival_weighted
-             log(pr_estab * env$seed_rain_dt / g) # log density
+             log(pr_estab * env$offspring_produced_dt / g) # log density
              )
     cmp[which(plant$ode_names == 'mortality')] <- -log(pr_estab)
     expect_equal(cohort$ode_state, cmp)
 
     expect_identical(cohort$fecundity, 0.0);
 
-    ## Ode *rates*:    
+    ## Ode *rates*:
     cmp <- c(plant$internals$rates,
              ## This is different to the approach in tree1?
              plant$rate("fecundity") * env$patch_survival * exp(-plant$state("mortality")),
              -plant$rate("mortality") - cohort$growth_rate_gradient(env))
 
-   
+
     expect_equal(cohort$ode_rates, cmp)
   })
 
   test_that("leaf area calculations", {
-    plant <- Individual(x, e)(s) 
+    plant <- Individual(x, e)(s)
     cohort <- Cohort(x, e)(s)
 
     env <- test_environment(x, 10,
                             light_env=function(x) rep(1, length(x)),
-                            seed_rain=1.0)
+                            offspring_arriving=1.0)
 
     h <- cohort$height
 

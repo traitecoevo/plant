@@ -77,10 +77,10 @@ test_that("K93_Strategy hyper-parameterisation", {
 
 #  # Use single sp. defaults
 #  p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0, mutant = FALSE)
-#  p1$seed_rain <- 20
+#  p1$offspring_arriving <- 20
 
 #  out <- run_scm(p1)
-#  expect_equal(out$seed_rains, 0.0752, tolerance = 1e-4)
+#  expect_equal(out$all_offspring_produced, 0.0752, tolerance = 1e-4)
 #  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.500004), tolerance = 1e-5)
 
 #  # Three species from paper
@@ -95,9 +95,9 @@ test_that("K93_Strategy hyper-parameterisation", {
 #                       "c_0", "c_1", "d_0", "d_1"))
 
 #  p2 <- expand_parameters(sp, p0, mutant = FALSE)
-#  p2$seed_rain <- c(20, 20, 20)
+#  p2$offspring_arriving <- c(20, 20, 20)
 #  out <- run_scm(p2)
 
-#  expect_equal(out$seed_rains, c(0.0025, 0.2314, 0.2195), tolerance = 1e-4)
+#  expect_equal(out$all_offspring_produced, c(0.0025, 0.2314, 0.2195), tolerance = 1e-4)
 #  expect_equal(length(out$ode_times), 224)
 #})

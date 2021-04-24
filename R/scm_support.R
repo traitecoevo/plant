@@ -24,7 +24,7 @@ fast_control <- function(base=Control()) {
   base
 }
 
-##' Control parameters for \code{\link{equilibrium_seed_rain}} that
+##' Control parameters for \code{\link{equilibrium_offspring_arriving}} that
 ##' make progress noisier.  This is just a convenience function.
 ##'
 ##' @title Noisy Parameters for Equilibrium Finding
@@ -137,7 +137,7 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
 
   ret <- list(time=time, species=species,
               env=env,
-              seed_rain=scm$seed_rains,
+              offspring_produced=scm$all_offspring_produced,
               patch_density=patch_density,
               p=p)
 
@@ -195,15 +195,15 @@ run_scm_error <- function(p) {
   }
 
   lai_error <- lapply(lai_error, function(x) rbind_list(pad_matrix(x)))
-  seed_rain_error <- scm$seed_rain_error
+  offspring_produced_error <- scm$offspring_produced_error
   f <- function(m) {
     suppressWarnings(apply(m, 2, max, na.rm=TRUE))
   }
   total <- lapply(seq_len(n_spp), function(idx)
-                  f(rbind(lai_error[[idx]], seed_rain_error[[idx]])))
+                  f(rbind(lai_error[[idx]], offspring_produced_error[[idx]])))
 
-  list(seed_rain=scm$seed_rains,
-       err=list(lai=lai_error, seed_rain=seed_rain_error, total=total),
+  list(offspring_produced=scm$all_offspring_produced,
+       err=list(lai=lai_error, offspring_produced=offspring_produced_error, total=total),
        ode_times=scm$ode_times)
 }
 
@@ -269,7 +269,7 @@ patch_to_internals <- function(x, use_environment=TRUE) {
 
 species_to_internals <- function(sp, environment=NULL) {
   # Aggregate and extract plants
-  sp_p <- lapply(sp$cohorts, function(x) x$plant ) 
+  sp_p <- lapply(sp$cohorts, function(x) x$plant )
   new_names <- c(sp_p[[1]]$ode_names, paste0(sp_p[[1]]$ode_names, '_dt'), sp_p[[1]]$aux_names)
   ints <- do.call("rbind", lapply(sp_p, function(x) c(x$internals$states, x$internals$rates, x$internals$auxs)))
   colnames(ints) <- new_names
@@ -332,4 +332,3 @@ make_scm_integrate <- function(obj) {
     vnapply(seq_len(n), f1, name, error)
   }
 }
-

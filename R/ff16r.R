@@ -78,15 +78,15 @@ FF16r_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param p A Parameters object
 FF16r_make_environment <- function(p) {
-  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
+  FF16_Environment(p$disturbance_mean_interval, p$offspring_arriving, p$k_I, p$control)
 }
 
 ## This makes a pretend light environment over the plant height,
 ## slightly concave up, whatever.
 FF16r_test_environment <- function(height, n=101, light_env=NULL,
-                             n_strategies=1, seed_rain=0) {
-  if (length(seed_rain) == 1) {
-    seed_rain <- rep(seed_rain, length.out=n_strategies)
+                             n_strategies=1, offspring_arriving=0) {
+  if (length(offspring_arriving) == 1) {
+    offspring_arriving <- rep(offspring_arriving, length.out=n_strategies)
   }
   hh <- seq(0, height, length.out=n)
   if (is.null(light_env)) {
@@ -100,7 +100,7 @@ FF16r_test_environment <- function(height, n=101, light_env=NULL,
 
   parameters <- FF16r_Parameters()
   parameters$strategies <- rep(list(FF16r_Strategy()), n_strategies)
-  parameters$seed_rain <- seed_rain
+  parameters$offspring_arriving <- offspring_arriving
   parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- FF16_make_environment(parameters)
@@ -313,7 +313,7 @@ make_FF16r_hyperpar <- function(
 ##' @title Hyperparameter function for FF16r physiological model
 ##' @param m A matrix of trait values, as returned by \code{trait_matrix}
 ##' @param s A strategy object
-##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers 
+##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers
 ##' that are within eps of the default strategy are not replaced.
 ##' @export
 FF16r_hyperpar <- make_FF16r_hyperpar()

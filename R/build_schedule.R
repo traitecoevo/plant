@@ -10,7 +10,7 @@
 ##' @param p Parameters object
 ##' @return A Parameters object, with schedule components set.  The
 ##' output seed rain is also available as an attribute
-##' \code{seed_rain}.
+##' \code{offspring_arriving}.
 ##' @author Rich FitzJohn
 ##' @export
 build_schedule <- function(p) {
@@ -25,7 +25,7 @@ build_schedule <- function(p) {
 
   for (i in seq_len(control$schedule_nsteps)) {
     res <- run_scm_error(p)
-    seed_rain_out <- res[["seed_rain"]]
+    offspring_produced <- res[["offspring_produced"]]
     split <- lapply(res$err$total, function(x) x > eps)
 
     if (!any(unlist(split), na.rm=TRUE)) {
@@ -48,7 +48,7 @@ build_schedule <- function(p) {
 
   p$cohort_schedule_ode_times <- res$ode_times
   ## Useful to record the last seed rain out:
-  attr(p, "seed_rain_out") <- seed_rain_out
+  attr(p, "offspring_produced") <- offspring_produced
 
   p
 }
