@@ -62,7 +62,7 @@ private:
   double log_density_dt;
   double density; // hmm...
   double offspring_produced_survival_weighted;
-  double soffspring_produced_survival_weighted_dt;
+  double offspring_produced_survival_weighted_dt;
   double pr_patch_survival_at_birth;
 };
 

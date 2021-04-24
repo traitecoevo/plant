@@ -32,9 +32,9 @@ public:
   void reset();
   bool complete() const;
 
-  // * Output total offsrping calculation (not per capita)
+  // * Output total offspring calculation (not per capita)
   double offspring_produced(size_t species_index) const;
-  std::vector<double> offspring_produced() const;
+  std::vector<double> all_offspring_produced() const;
 
   // * R interface
   std::vector<util::index> r_run_next();
@@ -105,7 +105,7 @@ std::vector<size_t> SCM<T,E>::run_next() {
       e = cohort_schedule.next_event();
     }
   }
-  patch.add_offpring_entering(ret);
+  patch.add_all_offspring(ret);
 
   const bool use_ode_times = cohort_schedule.using_ode_times();
   solver.set_state_from_system(patch);
@@ -244,7 +244,7 @@ template <typename T, typename E>
 double SCM<T,E>::offspring_produced_total() const {
   double tot = 0.0;
   for (size_t i = 0; i < patch.size(); ++i) {
-    tot += offspring_produced_total(i);
+    tot += offspring_produced(i);
   }
   return tot;
 }
@@ -252,14 +252,14 @@ double SCM<T,E>::offspring_produced_total() const {
 template <typename T, typename E>
 std::vector<double> SCM<T,E>::offspring_produced_cohort(size_t species_index) const {
   const std::vector<double> times = cohort_schedule.times(species_index);
-  const Disturbance& disturbance_regime = patch.disturbance_regime;
+  const Disturbance& disturbance_regime = patch.disturbance_regime();
   const double S_D = parameters.strategies[species_index].S_D;
   const double scal = S_D * parameters.offspring_arriving[species_index];
-  std::vector<double> offspring = patch.at(species_index).offspring();
-  for (size_t i = 0; i < offspring.size(); ++i) {
-    offspring[i] *= disturbance_regime.density(times[i]) * scal;
+  std::vector<double> offspring_produced = patch.at(species_index).all_offspring();
+  for (size_t i = 0; i < offspring_produced.size(); ++i) {
+    offspring_produced[i] *= disturbance_regime.density(times[i]) * scal;
   }
-  return offspring;
+  return offspring_produced;
 }
 
 }

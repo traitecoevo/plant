@@ -1,4 +1,4 @@
-offspring arrival## This might yet move into the compiled code if we need it there.
+## This might yet move into the compiled code if we need it there.
 ##
 ## Generate a vector of arrival times.
 ##

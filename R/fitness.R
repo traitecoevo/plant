@@ -1,4 +1,4 @@
-offspring arrival##' Construct a fitness landscape.
+##' Construct a fitness landscape.
 ##'
 ##' @title Fitness Landscape
 ##' @param trait_matrix A matrix of traits corresponding to mutants to

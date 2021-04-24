@@ -256,9 +256,9 @@ test_that("Seed rain & error calculations correct", {
       pa <- d$density(a)
       p <- scm$parameters
       scale <- scm$parameters$strategies[[1]]$S_D * p$offspring_arriving
-      offspring <- pa * scm$patch$species[[1]]$offspring * scale
-      total <- trapezium(a, offspring)
-      if (error) local_error_integration(a, offspring, total) else total
+      all_offspring <- pa * scm$patch$species[[1]]$all_offspring * scale
+      total <- trapezium(a, all_offspring)
+      if (error) local_error_integration(a, all_offspring, total) else total
     }
 
     expect_equal(scm$offspring_produced(1), offspring_produced_R(scm))

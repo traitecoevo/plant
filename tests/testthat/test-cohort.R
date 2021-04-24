@@ -130,7 +130,7 @@ for (x in names(strategy_types)) {
     ## Ode *values*:
     cmp <- c(plant$internals$states,
              0, # offspring_produced_survival_weighted
-             log(pr_estab * env$offspring_produced_dt / g) # log density
+             log(pr_estab * env$offspring_arriving_dt / g) # log density
              )
     cmp[which(plant$ode_names == 'mortality')] <- -log(pr_estab)
     expect_equal(cohort$ode_state, cmp)
