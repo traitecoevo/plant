@@ -14,9 +14,9 @@ test_that("empty", {
     expect_equal(sp$size, 0)
     expect_equal(sp$size_plants, 0)
 
-    seed <- sp$seed
-    expect_is(seed, "Individual")
-    expect_is(seed, sprintf("Individual<%s,%s>",x,e))
+    offspring <- sp$offspring
+    expect_is(offspring, "Individual")
+    expect_is(offspring, sprintf("Individual<%s,%s>",x,e))
 
     expect_equal(sp$heights, numeric(0))
     expect_equal(sp$height_max, 0.0)
@@ -38,7 +38,7 @@ test_that("Single individual", {
     sp <- StochasticSpecies(x, e)(s)
     p <- Individual(x, e)(s)
 
-    sp$add_seed()
+    sp$add_offspring()
 
     expect_equal(sp$size, 1)
     expect_equal(sp$size_plants, 1)
@@ -76,7 +76,7 @@ test_that("Multiple individuals", {
     sp <- StochasticSpecies(x, e)(s)
     n <- 10
     for (i in seq_len(n)) {
-      sp$add_seed()
+      sp$add_offspring()
     }
 
     expect_equal(sp$size, n)

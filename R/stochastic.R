@@ -1,4 +1,4 @@
-## This might yet move into the compiled code if we need it there.
+offspring arrival## This might yet move into the compiled code if we need it there.
 ##
 ## Generate a vector of arrival times.
 ##
@@ -43,7 +43,7 @@ stochastic_schedule <- function(p) {
 ##' @title Run a stochastic patch, Collecting Output
 ##' @param p A \code{\link{FF16_Parameters}} object
 ##' @param random_schedule setting to TRUE causes algorithm to generate
-##' a random schedule based on seed rain and area.
+##' a random schedule based on offspring arrival and area.
 ##' @author Rich FitzJohn
 ##' @export
 run_stochastic_collect <- function(p, random_schedule=TRUE) {

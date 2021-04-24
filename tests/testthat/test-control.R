@@ -22,8 +22,8 @@ test_that("Defaults", {
     plant_assimilation_rule = 21, # size_t so not int
     plant_assimilation_over_distribution = FALSE,
     plant_assimilation_tol = 1e-6,
-    plant_seed_iterations = 1000, # size_t
-    plant_seed_tol = 1e-8, # 1e-6, Had to change this...
+    plant_offspring_iterations = 1000, # size_t
+    plant_offspring_tol = 1e-8, # 1e-6, Had to change this...
 
     schedule_nsteps   = 20, # size_t
     schedule_eps      = 1e-3,

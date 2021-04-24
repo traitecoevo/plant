@@ -170,9 +170,9 @@ test_that("narea calculation", {
 })
 
 # integration test - runs a full patch metapopultaion
-# the seed rain produced integrates all demographic behaviours
+# the offspring arrival produced integrates all demographic behaviours
 
-test_that("seed rain", {
+test_that("offspring arrival", {
 
   p0 <- scm_base_parameters("FF16")
 

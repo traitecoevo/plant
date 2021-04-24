@@ -1,4 +1,4 @@
-## Find the equilibrium seed rain a few different ways:
+## Find the equilibrium offspring arrival a few different ways:
 plant_log_console()
 p <- scm_base_parameters()
 p$strategies <- list(FF16_Strategy())

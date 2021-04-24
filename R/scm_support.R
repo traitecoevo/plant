@@ -275,7 +275,7 @@ species_to_internals <- function(sp, environment=NULL) {
   colnames(ints) <- new_names
   cbind(ints,
         log_density=sp$log_densities,
-        seeds_survival_weighted=sp$seeds)
+        offspring_produced_survival_weighted=sp$all_offspring)
 }
 
 ##' Create a function that allows integrating aggregate properties of

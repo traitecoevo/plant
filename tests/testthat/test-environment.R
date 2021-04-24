@@ -56,7 +56,7 @@ for (x in names(strategy_types)) {
 
   test_that("Seed rain related parameters", {
     env <- make_environment(x, Parameters(x, e)())
-    expect_error(env$offspring_produced_dt, "Cannot get seed rain for empty environment")
+    expect_error(env$offspring_produced_dt, "Cannot get offspring arrival for empty environment")
 
     z <- c(.1, .2)
     env <- test_environment(x, 10, n_strategies=2, offspring_arriving=z)

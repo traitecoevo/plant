@@ -1,14 +1,14 @@
-##' Run system to seed rain equilibrium
+##' Run system to offspring arrival equilibrium
 ##'
-##' @title Run system to seed rain equilibrium
+##' @title Run system to offspring arrival equilibrium
 ##' @param p A \code{Parameters} object
-##' @return A Parameters object, with seed rain and cohort schedule
+##' @return A Parameters object, with offspring arrival and cohort schedule
 ##' elements set.
 ##' @export
 ##' @author Rich FitzJohn
 equilibrium_offspring_arriving <- function(p) {
   solver <- p$control$equilibrium_solver_name
-  plant_log_info(sprintf("Solving seed rain using %s", solver),
+  plant_log_info(sprintf("Solving offspring arrival using %s", solver),
                  routine="equilibrium", stage="start", solver=solver)
   switch(solver,
          iteration=equilibrium_offspring_arriving_iteration(p),
@@ -18,8 +18,8 @@ equilibrium_offspring_arriving <- function(p) {
          stop("Unknown solver ", solver))
 }
 
-## This is the simplest solver: it simply iterates the outgoing seed
-## rain as incoming seed rain.  No attempt at projection is made.
+## This is the simplest solver: it simply iterates the outgoing offspring
+## produced as incoming offspring arrival.  No attempt at projection is made.
 equilibrium_offspring_arriving_iteration <- function(p) {
   check <- function(x_in, x_out, eps, verbose) {
     achange <- x_out - x_in
@@ -58,13 +58,13 @@ equilibrium_offspring_arriving_solve <- function(p, solver="nleqslv") {
   logN <- p$control$equilibrium_solver_logN
   min_offspring_arriving <- 1e-10 # TODO: should also be in the controls?
 
-  plant_log_eq(paste("Solving seed rain using", solver),
+  plant_log_eq(paste("Solving offspring arrival using", solver),
                stage="start", solver=solver)
 
   offspring_arriving <- p$offspring_arriving
   runner <- make_equilibrium_runner(p)
 
-  ## First, we exclude species that have seed rains below some minimum
+  ## First, we exclude species that have offspring arrivals below some minimum
   ## level.
   to_drop <- offspring_arriving < min_offspring_arriving
   if (any(to_drop)) {
@@ -141,7 +141,7 @@ equilibrium_offspring_arriving_solve_robust <- function(p, solver="nleqslv") {
 ## system into the basin of attraction of the stable equilibrium.  The
 ## final approach is slow so use a root-finding approach there.
 ## However, if we are *not* in the basin of attraction the root finder
-## will happily select zero seed rains for species that are not
+## will happily select zero offspring arrivals for species that are not
 ## zeros.  So after running a round with the solver, check any species
 ## that were zeroed to make sure they're really dead.
 equilibrium_offspring_arriving_hybrid <- function(p) {
@@ -270,7 +270,7 @@ equilibrium_offspring_arriving_solve_target <- function(runner, keep, logN,
       x <- exp(x)
     }
     ## TODO: most of the plant_log_eq things here should be DEBUG not INFO?
-    ## Avoid negative seed rains:
+    ## Avoid negative offspring arrivals:
     x[x < min_offspring_arriving & keep] <- min_offspring_arriving
     x[x < min_offspring_arriving & !keep] <- 0.0
     if (!any(x > 0)) {
@@ -278,7 +278,7 @@ equilibrium_offspring_arriving_solve_target <- function(runner, keep, logN,
     }
     too_high <- x > max_offspring_arriving
     if (any(too_high)) {
-      plant_log_eq(sprintf("Truncating seed rain of species %s",
+      plant_log_eq(sprintf("Truncating offspring arrival of species %s",
                            paste(which(too_high), collapse=", ")))
       if (length(max_offspring_arriving) == 1L) {
         max_offspring_arriving <- rep(max_offspring_arriving, length.out=length(x))
@@ -306,18 +306,18 @@ equilibrium_offspring_arriving_solve_target <- function(runner, keep, logN,
 ##' @export
 check_inviable <- function(p) {
   ## eps_test: *Relative* value to use for determining what
-  ## "low abundance" means.  Species that have a seed rain of less than
+  ## "low abundance" means.  Species that have a offspring arrival of less than
   ## `eps_test * max(p$offspring_arriving)` will be tested.  By default
-  ##  this is 1 100th of the maximum seed rain.
+  ##  this is 1 100th of the maximum offspring arrival.
   ## TODO: don't do anything if we don't have at least 2 species?
   eps <- p$control$equilibrium_extinct_offspring_arriving
   ## TODO: This was p$control$equilibrium_inviable_test, but I think
-  ## that birth seed rain actually makes more sense?  It's fractional
+  ## that birth offspring arrival actually makes more sense?  It's fractional
   ## though so who knows.
   eps_test <- 1e-2
   offspring_arriving <- p$offspring_arriving
   ## NOTE: We don't actually run to equilibrium here; this is just
-  ## because it's a useful way of doing incoming -> outgoing seed
+  ## because it's a useful way of doing incoming -> outgoing offspring
   ## rain.
   runner <- make_equilibrium_runner(p)
   offspring_produced <- runner(offspring_produced)

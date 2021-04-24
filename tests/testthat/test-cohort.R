@@ -112,7 +112,7 @@ for (x in names(strategy_types)) {
     plant$compute_rates(env)
 
     nms <- c(plant$ode_names,
-             "seeds_survival_weighted", "log_density")
+             "offspring_produced_survival_weighted", "log_density")
     expect_equal(cohort$ode_size, length(nms))
     expect_equal(cohort$ode_names, nms)
 
@@ -129,7 +129,7 @@ for (x in names(strategy_types)) {
 
     ## Ode *values*:
     cmp <- c(plant$internals$states,
-             0, # seeds_survival_weighted
+             0, # offspring_produced_survival_weighted
              log(pr_estab * env$offspring_produced_dt / g) # log density
              )
     cmp[which(plant$ode_names == 'mortality')] <- -log(pr_estab)

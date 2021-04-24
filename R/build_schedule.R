@@ -9,7 +9,7 @@
 ##' @title Build Cohort Schedule
 ##' @param p Parameters object
 ##' @return A Parameters object, with schedule components set.  The
-##' output seed rain is also available as an attribute
+##' output offspring produced is also available as an attribute
 ##' \code{offspring_arriving}.
 ##' @author Rich FitzJohn
 ##' @export
@@ -47,7 +47,7 @@ build_schedule <- function(p) {
   }
 
   p$cohort_schedule_ode_times <- res$ode_times
-  ## Useful to record the last seed rain out:
+  ## Useful to record the last offspring produced:
   attr(p, "offspring_produced") <- offspring_produced
 
   p

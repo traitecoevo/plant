@@ -1,4 +1,4 @@
-##' Construct a fitness landscape.
+offspring arrival##' Construct a fitness landscape.
 ##'
 ##' @title Fitness Landscape
 ##' @param trait_matrix A matrix of traits corresponding to mutants to
@@ -30,7 +30,7 @@ fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), raw_o
 }
 
 ##' Compute max growth rate of a given set of values for a trait.
-##' This is the log of per-capita seed production (i.e., fitness).
+##' This is the log of per-capita offspring production (i.e., fitness).
 ##'
 ##' Only works in one dimension
 ##' @title Compute Max Growth Rate
@@ -44,7 +44,7 @@ max_growth_rate <- function(trait_matrix, p) {
   fitness_landscape(trait_matrix, remove_residents(p))
 }
 
-##' Compute the carrying capacity (equilibrium per-capita seed
+##' Compute the carrying capacity (equilibrium per-capita offspring
 ##' production) for a set of values of a trait.  Each is considered in
 ##' isolation.
 ##'
@@ -52,7 +52,7 @@ max_growth_rate <- function(trait_matrix, p) {
 ##' @param trait_matrix A matrix of traits
 ##' @param p Parameters object to use.  Importantly, the
 ##' \code{strategy_default} element gets used here.
-##' @param offspring_arriving Initial seed rain (optional)
+##' @param offspring_arriving Initial offspring arrival (optional)
 ##' @param parallel Use multiple processors?
 ##' @author Rich FitzJohn
 ##' @export

@@ -32,7 +32,7 @@ test_that("Ported from tree1", {
     expect_is(scm$patch, sprintf("Patch<%s,%s>", x, e))
     expect_equal(length(scm$patch$species), 1)
     expect_is(scm$patch$species[[1]], sprintf("Species<%s,%s>",x,e))
-    expect_is(scm$patch$species[[1]]$seed, sprintf("Cohort<%s,%s>",x,e))
+    expect_is(scm$patch$species[[1]]$offspring, sprintf("Cohort<%s,%s>",x,e))
     expect_identical(scm$patch$time, 0.0)
 
     sched <- scm$cohort_schedule
@@ -271,7 +271,7 @@ test_that("Seed rain & error calculations correct", {
 
     int <- make_scm_integrate(scm)
     S_D <- scm$parameters$strategies[[1]]$S_D
-    expect_equal(int("seeds_survival_weighted") * S_D, scm$offspring_produced(1))
+    expect_equal(int("offspring_produced_survival_weighted") * S_D, scm$offspring_produced(1))
 
     res <- run_scm_collect(p1)
     int2 <- make_scm_integrate(res)
