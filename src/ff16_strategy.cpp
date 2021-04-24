@@ -111,12 +111,12 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
 
   if (net_mass_production_dt_ > 0) {
-    
+
     const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
     const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_);
     const double fraction_allocation_growth_ = fraction_allocation_growth(height);
     const double area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
-      
+
     vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
     vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
@@ -422,8 +422,8 @@ double FF16_Strategy::height_seed(void) const {
     h0 = height_given_mass_leaf(std::numeric_limits<double>::min()),
     h1 = height_given_mass_leaf(omega);
 
-  const double tol = control.plant_seed_tol;
-  const size_t max_iterations = control.plant_seed_iterations;
+  const double tol = control.plant_offspring_tol;
+  const size_t max_iterations = control.plant_offspring_iterations;
 
   auto target = [&] (double x) mutable -> double {
     return mass_live_given_height(x) - omega;

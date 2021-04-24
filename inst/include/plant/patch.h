@@ -31,8 +31,8 @@ public:
   // [eqn 11] Canopy openness at `height`
   double compute_competition(double height) const;
 
-  void add_seed(size_t species_index);
-  void add_seeds(const std::vector<size_t>& species_index);
+  void add_offspring(size_t species_index);
+  void add_all_offspring(const std::vector<size_t>& species_index);
 
   const species_type& at(size_t species_index) const {
     return species[species_index];
@@ -58,8 +58,8 @@ public:
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
                    const std::vector<double>& env);
-  void r_add_seed(util::index species_index) {
-    add_seed(species_index.check_bounds(size()));
+  void r_add_offspring(util::index species_index) {
+    add_offspring(species_index.check_bounds(size()));
   }
   species_type r_at(util::index species_index) const {
     at(species_index.check_bounds(size()));
@@ -169,18 +169,18 @@ void Patch<T,E>::compute_rates() {
 // points that are below the height of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
 template <typename T, typename E>
-void Patch<T,E>::add_seed(size_t species_index) {
-  species[species_index].add_seed();
+void Patch<T,E>::add_offspring(size_t species_index) {
+  species[species_index].add_offspring();
   if (parameters.is_resident[species_index]) {
     compute_environment();
   }
 }
 
 template <typename T, typename E>
-void Patch<T,E>::add_seeds(const std::vector<size_t>& species_index) {
+void Patch<T,E>::add_all_offspring(const std::vector<size_t>& species_index) {
   bool recompute = false;
   for (size_t i : species_index) {
-    species[i].add_seed();
+    species[i].add_offspring();
     recompute = recompute || parameters.is_resident[i];
   }
   if (recompute) {
@@ -202,7 +202,7 @@ void Patch<T,E>::r_set_state(double time,
   reset();
   for (size_t i = 0; i < n_species; ++i) {
     for (size_t j = 0; j < n[i]; ++j) {
-      species[i].add_seed();
+      species[i].add_offspring();
     }
   }
   util::check_length(state.size(), ode_size());

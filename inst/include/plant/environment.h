@@ -56,7 +56,7 @@ public:
 
   double offspring_arriving_dt() const {
     if (offspring_arriving.empty()) {
-      Rcpp::stop("Cannot get seed rain for empty environment");
+      Rcpp::stop("Cannot get offspring arrivals for empty environment");
     }
     return offspring_arriving[offspring_arriving_index];
   }

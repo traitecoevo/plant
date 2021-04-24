@@ -134,8 +134,8 @@ Control:
     - plant_assimilation_tol: double
     - plant_assimilation_iterations: size_t
     - plant_assimilation_rule: size_t
-    - plant_seed_tol: double
-    - plant_seed_iterations: int
+    - plant_offspring_tol: double
+    - plant_offspring_iterations: int
     - cohort_gradient_eps: double
     - cohort_gradient_direction: int
     - cohort_gradient_richardson: bool
@@ -444,12 +444,12 @@ Species:
     args: [strategy: T]
   active:
     size: {type: size_t, access: member}
-    seed: {type: "plant::Cohort<T,E>", access: member, name_cpp: r_seed}
+    offspring: {type: "plant::Cohort<T,E>", access: member, name_cpp: r_offspring}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
     cohorts: {type: "std::vector<plant::Cohort<T,E> >", access: member, name_cpp: r_cohorts}
-    seeds: {type: "std::vector<double>", access: member}
+    all_offspring: {type: "std::vector<double>", access: member}
     competition_effects: {type: "std::vector<double>", access: member, name_cpp: r_competition_effects}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -464,7 +464,7 @@ Species:
     compute_competition:
       return_type: double
       args: [height: double]
-    add_seed:
+    add_offspring:
       return_type: void
     cohort_at:
       return_type: "plant::Cohort<T,E>"
@@ -499,10 +499,10 @@ Patch:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
     compute_competition: {return_type: double, args: [height: double]}
-    add_seed:
+    add_offspring:
       return_type: void
       args: [species_index: "plant::util::index"]
-      name_cpp: r_add_seed
+      name_cpp: r_add_offspring
     compute_environment:
       return_type: void
       name_cpp: r_compute_environment
@@ -611,12 +611,12 @@ StochasticSpecies:
   active:
     size: {type: size_t, access: member}
     size_plants: {type: size_t, access: member}
-    seed: {type: "plant::Individual<T,E>", access: member, name_cpp: r_seed}
+    offspring: {type: "plant::Individual<T,E>", access: member, name_cpp: r_offspring}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     plants: {type: "std::vector<plant::Individual<T,E> >", access: member, name_cpp: r_plants}
     is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
-    seeds: {type: "std::vector<double>", access: member}
+    all_offspring: {type: "std::vector<double>", access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
@@ -630,7 +630,7 @@ StochasticSpecies:
     compute_competition:
       return_type: double
       args: [height: double]
-    add_seed:
+    add_offspring:
       return_type: void
     plant_at:
       return_type: "plant::Individual<T,E>"
@@ -666,14 +666,14 @@ StochasticPatch:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
     compute_competition: {return_type: double, args: [height: double]}
-    add_seed:
+    add_offspring:
       return_type: bool
       args: [species_index: "plant::util::index"]
-      name_cpp: r_add_seed
-    add_seedling:
+      name_cpp: r_add_offspring
+    add_offspring_update:
       return_type: void
       args: [species_index: "plant::util::index"]
-      name_cpp: r_add_seedling
+      name_cpp: r_add_offspring_update
     compute_environment:
       return_type: void
       name_cpp: r_compute_environment
@@ -805,7 +805,7 @@ FF16_Environment:
     roxygen: |
       FF16_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
-      @param seed_rain vector of seed rains
+      @param offspring_arriving vector of seed rains
       @param k_I light extinction coefficient
       @param control A Control object
       @export
@@ -906,7 +906,7 @@ K93_Environment:
     roxygen: |
       K93_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
-      @param seed_rain vector of seed rains
+      @param offspring_arriving vector of seed rains
       @param k_I light extinction coefficient
       @param control A Control object
       @export

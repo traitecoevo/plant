@@ -10,8 +10,8 @@ Control::Control() : integrator(15, 1, 0, 0) {
   plant_assimilation_iterations = 1000;
   plant_assimilation_rule = 21;
 
-  plant_seed_tol = 1e-8;
-  plant_seed_iterations = 1000;
+  plant_offspring_tol = 1e-8;
+  plant_offspring_iterations = 1000;
 
   cohort_gradient_eps = 1e-6;
   cohort_gradient_direction = 1;

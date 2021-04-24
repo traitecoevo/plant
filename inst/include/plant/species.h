@@ -24,12 +24,12 @@ public:
 
   size_t size() const;
   void clear();
-  void add_seed();
+  void add_offspring();
 
   double height_max() const;
   double compute_competition(double height) const;
   void compute_rates(const environment_type& environment);
-  std::vector<double> seeds() const;
+  std::vector<double> all_offspring() const;
 
   // * ODE interface
   // NOTE: We are a time-independent model here so no need to pass
@@ -43,7 +43,7 @@ public:
   // * R interface
   std::vector<double> r_heights() const;
   void r_set_heights(std::vector<double> heights);
-  const cohort_type& r_seed() const {return seed;}
+  const cohort_type& r_offspring() const {return offspring;}
   std::vector<cohort_type> r_cohorts() const {return cohorts;}
   const cohort_type& r_cohort_at(util::index idx) const {
     return cohorts[idx.check_bounds(size())];
@@ -51,7 +51,7 @@ public:
 
   // Do this with set_ode_state, using an iterator?
   /* double state(int i) const { return vars.state(i); } */
-  
+
   /* double rate(int i) const { return vars.rate(i); } */
 
   /* void set_state(int i, double v) { */
@@ -69,7 +69,7 @@ public:
 private:
   const Control& control() const {return strategy->get_control();}
   strategy_type_ptr strategy;
-  cohort_type seed;
+  cohort_type offspring;
   std::vector<cohort_type> cohorts;
 
   typedef typename std::vector<cohort_type>::iterator cohorts_iterator;
@@ -79,7 +79,7 @@ private:
 template <typename T, typename E>
 Species<T,E>::Species(strategy_type s)
   : strategy(make_strategy_ptr(s)),
-    seed(strategy) {
+    offspring(strategy) {
 }
 
 template <typename T, typename E>
@@ -90,14 +90,14 @@ size_t Species<T,E>::size() const {
 template <typename T, typename E>
 void Species<T,E>::clear() {
   cohorts.clear();
-  // Reset the seed to a blank seed, too.
-  seed = cohort_type(strategy);
+  // Reset the offspring to a blank offspring, too.
+  offspring = cohort_type(strategy);
 }
 
 template <typename T, typename E>
-void Species<T,E>::add_seed() {
-  cohorts.push_back(seed);
-  // TODO: Should the seed be recomputed here?
+void Species<T,E>::add_offspring() {
+  cohorts.push_back(offspring);
+  // TODO: Should the offspring be recomputed here?
 }
 
 // If a species contains no individuals, we return the height of a
@@ -106,7 +106,7 @@ void Species<T,E>::add_seed() {
 // tall as a seed.
 template <typename T, typename E>
 double Species<T,E>::height_max() const {
-  return cohorts.empty() ? seed.height() : cohorts.front().height();
+  return cohorts.empty() ? offspring.height() : cohorts.front().height();
 }
 
 // Because of cohorts are always ordered from largest to smallest, we
@@ -160,7 +160,7 @@ double Species<T,E>::compute_competition(double height) const {
   }
 
   if (size() == 1 || f_h1 > 0) {
-    const double h0 = seed.height(), f_h0 = seed.compute_competition(height);
+    const double h0 = offspring.height(), f_h0 = offspring.compute_competition(height);
     tot += (h1 - h0) * (f_h1 + f_h0);
   }
 
@@ -174,11 +174,11 @@ void Species<T,E>::compute_rates(const E& environment) {
   for (auto& c : cohorts) {
     c.compute_rates(environment);
   }
-  seed.compute_initial_conditions(environment);
+  offspring.compute_initial_conditions(environment);
 }
 
 template <typename T, typename E>
-std::vector<double> Species<T,E>::seeds() const {
+std::vector<double> Species<T,E>::all_offspring() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : cohorts) {

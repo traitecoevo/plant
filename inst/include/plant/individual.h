@@ -24,13 +24,13 @@ public:
     vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
     set_state("height", strategy->height_0);
   }
-  
+
   // useage: state(HEIGHT_INDEX)
   double state(std::string name) const {
     return vars.state(strategy->state_index.at(name));
   }
   double state(int i) const { return vars.state(i); }
-  
+
   // useage:_rate("area_heartwood")
   double rate(std::string name) const {
     return vars.rate(strategy->state_index.at(name));
@@ -52,7 +52,7 @@ public:
   double aux(std::string name) const {
     return vars.aux(strategy->aux_index.at(name));
   }
-  double aux(int i) const { return vars.aux(i); } 
+  double aux(int i) const { return vars.aux(i); }
 
   double compute_competition(double z) const {
     return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));
@@ -62,13 +62,13 @@ public:
                          bool reuse_intervals = false) {
     strategy->compute_rates(environment, reuse_intervals, vars);
   }
-  
+
   double establishment_probability(const environment_type &environment) {
     return strategy->establishment_probability(environment);
   }
 
   double net_mass_production_dt(const environment_type &environment) {
-    // TODO:  maybe reuse intervals? default false 
+    // TODO:  maybe reuse intervals? default false
     return strategy->net_mass_production_dt(environment, state(HEIGHT_INDEX), aux("competition_effect"));
   }
 
@@ -103,7 +103,7 @@ public:
 
   // Used in the stochastic model:
   double mortality_probability() const { return 1 - exp(-state(MORTALITY_INDEX)); }
-  
+
   void reset_mortality() { set_state("mortality", 0.0); }
 
   // TODO: Eventually change to growth rate given size
@@ -127,8 +127,8 @@ public:
     if (f1 < 0.0) {
       return NA_REAL;
     } else {
-      const double tol = control().plant_seed_tol;
-      const size_t max_iterations = control().plant_seed_iterations;
+      const double tol = control().plant_offspring_tol;
+      const size_t max_iterations = control().plant_offspring_iterations;
       return util::uniroot(target, 0.0, 1.0, tol, max_iterations);
     }
   }
