@@ -6,6 +6,7 @@ Authors@R: c(
     person("Daniel", "Falster", , "daniel.falster@unsw.edu.au", c("aut", "cre"), 
             comment = c(ORCID = "0002-9814-092X")),
     person("Richard", "FitzJohn", , "", "aut"),
+    person("Andrew", "O'Reilly-Nugent", , "", "aut"),
     person("Rafael", "Schouten", , "", "aut"),
     person("John", "Wilshire", , "", "ctb")
     )
@@ -34,6 +35,7 @@ Suggests:
     RcppR6 (>= 0.2.3),
     knitr,
     rmarkdown,
+    markdown,
     bench
 VignetteBuilder: knitr
 URL: https://github.com/traitecoevo/plant
