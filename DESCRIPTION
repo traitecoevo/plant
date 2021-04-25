@@ -1,5 +1,5 @@
 Package: plant
-Title: A package for modelling forest trait ecology and evolution
+Title: A Package For Modelling Forest Trait Ecology And Evolution
 Version: 1.2.1
 Author: Daniel Falster [aut, cre], Rich FitzJohn [aut], John Wilshire [ctb]
 Authors@R: c(
@@ -37,6 +37,9 @@ Suggests:
     rmarkdown,
     markdown,
     bench
+Remotes:
+    smbache/loggr,
+    richfitz/RcppR6
 VignetteBuilder: knitr
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
