@@ -330,7 +330,7 @@ Internals:
   constructor:
     args: [s_size: size_t, a_size: size_t]
     roxygen: |
-      Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
+      Internals class holding vectors of states, thier associated rates and auxiliary (aux) state
       which is calculated from the state through running compute_rates
       @title Extract Internals from plant object
       @param s_size ???
@@ -421,10 +421,10 @@ Cohort:
       args: [environment: E]
     compute_rates:
       return_type: void
-      args: [environment: E]
+      args: [environment: E, pr_patch_survival: double]
     compute_initial_conditions:
       return_type: void
-      args: [environment: E]
+      args: [environment: E, pr_patch_survival: double]
 
 # For now, also not templated
 Species:
@@ -455,7 +455,7 @@ Species:
       return_type: void
     compute_rates:
       return_type: void
-      args: [environment: E]
+      args: [environment: E, pr_patch_survival: double]
     compute_competition:
       return_type: double
       args: [height: double]
@@ -486,7 +486,9 @@ Patch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
+    disturbance_regime: {type: "plant::Disturbance", access: field}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
+    patch_survival: {type: double, access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -520,10 +522,17 @@ Patch:
       access: function
       name_cpp: "plant::ode::r_derivs"
       args: [y: "const plant::ode::state_type&", time: double]
+    set_time:
+      args: [time: double]
+      name_cpp: r_set_time
+      return_type: void
     set_state:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&", env: "const std::vector<double>&"]
       name_cpp: r_set_state
       return_type: void
+    patch_survival_conditional:
+      args: [time_at_birth: double]
+      return_type: double
 
 SCM:
   name_cpp: "plant::SCM<T,E>"
@@ -653,7 +662,9 @@ StochasticPatch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
+    disturbance_regime: {type: "plant::Disturbance", access: field}
     species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
+    patch_survival: {type: double, access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -695,6 +706,9 @@ StochasticPatch:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&"]
       name_cpp: r_set_state
       return_type: void
+    patch_survival_conditional:
+      args: [time_at_birth: double]
+      return_type: double
     deaths:
       return_type: "std::vector<size_t>"
 
@@ -808,9 +822,6 @@ FF16_Environment:
     canopy_openness:
       args: [height: double]
       return_type: double
-    patch_survival_conditional:
-      args: [time_at_birth: double]
-      return_type: double
     clear:
       return_type: void
     set_seed_rain_index:
@@ -821,9 +832,7 @@ FF16_Environment:
       args: [value: double, height_max: double]
       return_type: void
   active:
-    patch_survival: {type: double, access: member}
     seed_rain_dt: {type: double, access: member}
-    disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
 
@@ -911,9 +920,6 @@ K93_Environment:
     canopy_openness:
       args: [height: double]
       return_type: double
-    patch_survival_conditional:
-      args: [time_at_birth: double]
-      return_type: double
     clear:
       return_type: void
     set_seed_rain_index:
@@ -924,9 +930,6 @@ K93_Environment:
       args: [value: double, height_max: double]
       return_type: void
   active:
-    patch_survival: {type: double, access: member}
     seed_rain_dt: {type: double, access: member}
-    disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
-

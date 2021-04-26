@@ -909,12 +909,12 @@ Cohort___FF16__FF16_Env__growth_rate_gradient <- function(obj_, environment) {
     .Call('_plant_Cohort___FF16__FF16_Env__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
 }
 
-Cohort___FF16__FF16_Env__compute_rates <- function(obj_, environment) {
-    invisible(.Call('_plant_Cohort___FF16__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment))
+Cohort___FF16__FF16_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
+    invisible(.Call('_plant_Cohort___FF16__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
 }
 
-Cohort___FF16__FF16_Env__compute_initial_conditions <- function(obj_, environment) {
-    invisible(.Call('_plant_Cohort___FF16__FF16_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment))
+Cohort___FF16__FF16_Env__compute_initial_conditions <- function(obj_, environment, pr_patch_survival) {
+    invisible(.Call('_plant_Cohort___FF16__FF16_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
 }
 
 Cohort___FF16__FF16_Env__plant__get <- function(obj_) {
@@ -969,12 +969,12 @@ Cohort___FF16r__FF16_Env__growth_rate_gradient <- function(obj_, environment) {
     .Call('_plant_Cohort___FF16r__FF16_Env__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
 }
 
-Cohort___FF16r__FF16_Env__compute_rates <- function(obj_, environment) {
-    invisible(.Call('_plant_Cohort___FF16r__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment))
+Cohort___FF16r__FF16_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
+    invisible(.Call('_plant_Cohort___FF16r__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
 }
 
-Cohort___FF16r__FF16_Env__compute_initial_conditions <- function(obj_, environment) {
-    invisible(.Call('_plant_Cohort___FF16r__FF16_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment))
+Cohort___FF16r__FF16_Env__compute_initial_conditions <- function(obj_, environment, pr_patch_survival) {
+    invisible(.Call('_plant_Cohort___FF16r__FF16_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
 }
 
 Cohort___FF16r__FF16_Env__plant__get <- function(obj_) {
@@ -1029,12 +1029,12 @@ Cohort___K93__K93_Env__growth_rate_gradient <- function(obj_, environment) {
     .Call('_plant_Cohort___K93__K93_Env__growth_rate_gradient', PACKAGE = 'plant', obj_, environment)
 }
 
-Cohort___K93__K93_Env__compute_rates <- function(obj_, environment) {
-    invisible(.Call('_plant_Cohort___K93__K93_Env__compute_rates', PACKAGE = 'plant', obj_, environment))
+Cohort___K93__K93_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
+    invisible(.Call('_plant_Cohort___K93__K93_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
 }
 
-Cohort___K93__K93_Env__compute_initial_conditions <- function(obj_, environment) {
-    invisible(.Call('_plant_Cohort___K93__K93_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment))
+Cohort___K93__K93_Env__compute_initial_conditions <- function(obj_, environment, pr_patch_survival) {
+    invisible(.Call('_plant_Cohort___K93__K93_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
 }
 
 Cohort___K93__K93_Env__plant__get <- function(obj_) {
@@ -1085,8 +1085,8 @@ Species___FF16__FF16_Env__clear <- function(obj_) {
     invisible(.Call('_plant_Species___FF16__FF16_Env__clear', PACKAGE = 'plant', obj_))
 }
 
-Species___FF16__FF16_Env__compute_rates <- function(obj_, environment) {
-    invisible(.Call('_plant_Species___FF16__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment))
+Species___FF16__FF16_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
+    invisible(.Call('_plant_Species___FF16__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
 }
 
 Species___FF16__FF16_Env__compute_competition <- function(obj_, height) {
@@ -1165,8 +1165,8 @@ Species___FF16r__FF16_Env__clear <- function(obj_) {
     invisible(.Call('_plant_Species___FF16r__FF16_Env__clear', PACKAGE = 'plant', obj_))
 }
 
-Species___FF16r__FF16_Env__compute_rates <- function(obj_, environment) {
-    invisible(.Call('_plant_Species___FF16r__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment))
+Species___FF16r__FF16_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
+    invisible(.Call('_plant_Species___FF16r__FF16_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
 }
 
 Species___FF16r__FF16_Env__compute_competition <- function(obj_, height) {
@@ -1245,8 +1245,8 @@ Species___K93__K93_Env__clear <- function(obj_) {
     invisible(.Call('_plant_Species___K93__K93_Env__clear', PACKAGE = 'plant', obj_))
 }
 
-Species___K93__K93_Env__compute_rates <- function(obj_, environment) {
-    invisible(.Call('_plant_Species___K93__K93_Env__compute_rates', PACKAGE = 'plant', obj_, environment))
+Species___K93__K93_Env__compute_rates <- function(obj_, environment, pr_patch_survival) {
+    invisible(.Call('_plant_Species___K93__K93_Env__compute_rates', PACKAGE = 'plant', obj_, environment, pr_patch_survival))
 }
 
 Species___K93__K93_Env__compute_competition <- function(obj_, height) {
@@ -1349,8 +1349,16 @@ Patch___FF16__FF16_Env__derivs <- function(obj_, y, time) {
     .Call('_plant_Patch___FF16__FF16_Env__derivs', PACKAGE = 'plant', obj_, y, time)
 }
 
+Patch___FF16__FF16_Env__set_time <- function(obj_, time) {
+    invisible(.Call('_plant_Patch___FF16__FF16_Env__set_time', PACKAGE = 'plant', obj_, time))
+}
+
 Patch___FF16__FF16_Env__set_state <- function(obj_, time, state, n, env) {
     invisible(.Call('_plant_Patch___FF16__FF16_Env__set_state', PACKAGE = 'plant', obj_, time, state, n, env))
+}
+
+Patch___FF16__FF16_Env__patch_survival_conditional <- function(obj_, time_at_birth) {
+    .Call('_plant_Patch___FF16__FF16_Env__patch_survival_conditional', PACKAGE = 'plant', obj_, time_at_birth)
 }
 
 Patch___FF16__FF16_Env__time__get <- function(obj_) {
@@ -1373,8 +1381,20 @@ Patch___FF16__FF16_Env__environment__get <- function(obj_) {
     .Call('_plant_Patch___FF16__FF16_Env__environment__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___FF16__FF16_Env__disturbance_regime__get <- function(obj_) {
+    .Call('_plant_Patch___FF16__FF16_Env__disturbance_regime__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___FF16__FF16_Env__disturbance_regime__set <- function(obj_, value) {
+    invisible(.Call('_plant_Patch___FF16__FF16_Env__disturbance_regime__set', PACKAGE = 'plant', obj_, value))
+}
+
 Patch___FF16__FF16_Env__species__get <- function(obj_) {
     .Call('_plant_Patch___FF16__FF16_Env__species__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___FF16__FF16_Env__patch_survival__get <- function(obj_) {
+    .Call('_plant_Patch___FF16__FF16_Env__patch_survival__get', PACKAGE = 'plant', obj_)
 }
 
 Patch___FF16__FF16_Env__ode_size__get <- function(obj_) {
@@ -1425,8 +1445,16 @@ Patch___FF16r__FF16_Env__derivs <- function(obj_, y, time) {
     .Call('_plant_Patch___FF16r__FF16_Env__derivs', PACKAGE = 'plant', obj_, y, time)
 }
 
+Patch___FF16r__FF16_Env__set_time <- function(obj_, time) {
+    invisible(.Call('_plant_Patch___FF16r__FF16_Env__set_time', PACKAGE = 'plant', obj_, time))
+}
+
 Patch___FF16r__FF16_Env__set_state <- function(obj_, time, state, n, env) {
     invisible(.Call('_plant_Patch___FF16r__FF16_Env__set_state', PACKAGE = 'plant', obj_, time, state, n, env))
+}
+
+Patch___FF16r__FF16_Env__patch_survival_conditional <- function(obj_, time_at_birth) {
+    .Call('_plant_Patch___FF16r__FF16_Env__patch_survival_conditional', PACKAGE = 'plant', obj_, time_at_birth)
 }
 
 Patch___FF16r__FF16_Env__time__get <- function(obj_) {
@@ -1449,8 +1477,20 @@ Patch___FF16r__FF16_Env__environment__get <- function(obj_) {
     .Call('_plant_Patch___FF16r__FF16_Env__environment__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___FF16r__FF16_Env__disturbance_regime__get <- function(obj_) {
+    .Call('_plant_Patch___FF16r__FF16_Env__disturbance_regime__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___FF16r__FF16_Env__disturbance_regime__set <- function(obj_, value) {
+    invisible(.Call('_plant_Patch___FF16r__FF16_Env__disturbance_regime__set', PACKAGE = 'plant', obj_, value))
+}
+
 Patch___FF16r__FF16_Env__species__get <- function(obj_) {
     .Call('_plant_Patch___FF16r__FF16_Env__species__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___FF16r__FF16_Env__patch_survival__get <- function(obj_) {
+    .Call('_plant_Patch___FF16r__FF16_Env__patch_survival__get', PACKAGE = 'plant', obj_)
 }
 
 Patch___FF16r__FF16_Env__ode_size__get <- function(obj_) {
@@ -1501,8 +1541,16 @@ Patch___K93__K93_Env__derivs <- function(obj_, y, time) {
     .Call('_plant_Patch___K93__K93_Env__derivs', PACKAGE = 'plant', obj_, y, time)
 }
 
+Patch___K93__K93_Env__set_time <- function(obj_, time) {
+    invisible(.Call('_plant_Patch___K93__K93_Env__set_time', PACKAGE = 'plant', obj_, time))
+}
+
 Patch___K93__K93_Env__set_state <- function(obj_, time, state, n, env) {
     invisible(.Call('_plant_Patch___K93__K93_Env__set_state', PACKAGE = 'plant', obj_, time, state, n, env))
+}
+
+Patch___K93__K93_Env__patch_survival_conditional <- function(obj_, time_at_birth) {
+    .Call('_plant_Patch___K93__K93_Env__patch_survival_conditional', PACKAGE = 'plant', obj_, time_at_birth)
 }
 
 Patch___K93__K93_Env__time__get <- function(obj_) {
@@ -1525,8 +1573,20 @@ Patch___K93__K93_Env__environment__get <- function(obj_) {
     .Call('_plant_Patch___K93__K93_Env__environment__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___K93__K93_Env__disturbance_regime__get <- function(obj_) {
+    .Call('_plant_Patch___K93__K93_Env__disturbance_regime__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___K93__K93_Env__disturbance_regime__set <- function(obj_, value) {
+    invisible(.Call('_plant_Patch___K93__K93_Env__disturbance_regime__set', PACKAGE = 'plant', obj_, value))
+}
+
 Patch___K93__K93_Env__species__get <- function(obj_) {
     .Call('_plant_Patch___K93__K93_Env__species__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___K93__K93_Env__patch_survival__get <- function(obj_) {
+    .Call('_plant_Patch___K93__K93_Env__patch_survival__get', PACKAGE = 'plant', obj_)
 }
 
 Patch___K93__K93_Env__ode_size__get <- function(obj_) {
@@ -2077,6 +2137,10 @@ StochasticPatch___FF16__FF16_Env__set_state <- function(obj_, time, state, n) {
     invisible(.Call('_plant_StochasticPatch___FF16__FF16_Env__set_state', PACKAGE = 'plant', obj_, time, state, n))
 }
 
+StochasticPatch___FF16__FF16_Env__patch_survival_conditional <- function(obj_, time_at_birth) {
+    .Call('_plant_StochasticPatch___FF16__FF16_Env__patch_survival_conditional', PACKAGE = 'plant', obj_, time_at_birth)
+}
+
 StochasticPatch___FF16__FF16_Env__deaths <- function(obj_) {
     .Call('_plant_StochasticPatch___FF16__FF16_Env__deaths', PACKAGE = 'plant', obj_)
 }
@@ -2101,8 +2165,20 @@ StochasticPatch___FF16__FF16_Env__environment__get <- function(obj_) {
     .Call('_plant_StochasticPatch___FF16__FF16_Env__environment__get', PACKAGE = 'plant', obj_)
 }
 
+StochasticPatch___FF16__FF16_Env__disturbance_regime__get <- function(obj_) {
+    .Call('_plant_StochasticPatch___FF16__FF16_Env__disturbance_regime__get', PACKAGE = 'plant', obj_)
+}
+
+StochasticPatch___FF16__FF16_Env__disturbance_regime__set <- function(obj_, value) {
+    invisible(.Call('_plant_StochasticPatch___FF16__FF16_Env__disturbance_regime__set', PACKAGE = 'plant', obj_, value))
+}
+
 StochasticPatch___FF16__FF16_Env__species__get <- function(obj_) {
     .Call('_plant_StochasticPatch___FF16__FF16_Env__species__get', PACKAGE = 'plant', obj_)
+}
+
+StochasticPatch___FF16__FF16_Env__patch_survival__get <- function(obj_) {
+    .Call('_plant_StochasticPatch___FF16__FF16_Env__patch_survival__get', PACKAGE = 'plant', obj_)
 }
 
 StochasticPatch___FF16__FF16_Env__ode_size__get <- function(obj_) {
@@ -2161,6 +2237,10 @@ StochasticPatch___FF16r__FF16_Env__set_state <- function(obj_, time, state, n) {
     invisible(.Call('_plant_StochasticPatch___FF16r__FF16_Env__set_state', PACKAGE = 'plant', obj_, time, state, n))
 }
 
+StochasticPatch___FF16r__FF16_Env__patch_survival_conditional <- function(obj_, time_at_birth) {
+    .Call('_plant_StochasticPatch___FF16r__FF16_Env__patch_survival_conditional', PACKAGE = 'plant', obj_, time_at_birth)
+}
+
 StochasticPatch___FF16r__FF16_Env__deaths <- function(obj_) {
     .Call('_plant_StochasticPatch___FF16r__FF16_Env__deaths', PACKAGE = 'plant', obj_)
 }
@@ -2185,8 +2265,20 @@ StochasticPatch___FF16r__FF16_Env__environment__get <- function(obj_) {
     .Call('_plant_StochasticPatch___FF16r__FF16_Env__environment__get', PACKAGE = 'plant', obj_)
 }
 
+StochasticPatch___FF16r__FF16_Env__disturbance_regime__get <- function(obj_) {
+    .Call('_plant_StochasticPatch___FF16r__FF16_Env__disturbance_regime__get', PACKAGE = 'plant', obj_)
+}
+
+StochasticPatch___FF16r__FF16_Env__disturbance_regime__set <- function(obj_, value) {
+    invisible(.Call('_plant_StochasticPatch___FF16r__FF16_Env__disturbance_regime__set', PACKAGE = 'plant', obj_, value))
+}
+
 StochasticPatch___FF16r__FF16_Env__species__get <- function(obj_) {
     .Call('_plant_StochasticPatch___FF16r__FF16_Env__species__get', PACKAGE = 'plant', obj_)
+}
+
+StochasticPatch___FF16r__FF16_Env__patch_survival__get <- function(obj_) {
+    .Call('_plant_StochasticPatch___FF16r__FF16_Env__patch_survival__get', PACKAGE = 'plant', obj_)
 }
 
 StochasticPatch___FF16r__FF16_Env__ode_size__get <- function(obj_) {
@@ -2245,6 +2337,10 @@ StochasticPatch___K93__K93_Env__set_state <- function(obj_, time, state, n) {
     invisible(.Call('_plant_StochasticPatch___K93__K93_Env__set_state', PACKAGE = 'plant', obj_, time, state, n))
 }
 
+StochasticPatch___K93__K93_Env__patch_survival_conditional <- function(obj_, time_at_birth) {
+    .Call('_plant_StochasticPatch___K93__K93_Env__patch_survival_conditional', PACKAGE = 'plant', obj_, time_at_birth)
+}
+
 StochasticPatch___K93__K93_Env__deaths <- function(obj_) {
     .Call('_plant_StochasticPatch___K93__K93_Env__deaths', PACKAGE = 'plant', obj_)
 }
@@ -2269,8 +2365,20 @@ StochasticPatch___K93__K93_Env__environment__get <- function(obj_) {
     .Call('_plant_StochasticPatch___K93__K93_Env__environment__get', PACKAGE = 'plant', obj_)
 }
 
+StochasticPatch___K93__K93_Env__disturbance_regime__get <- function(obj_) {
+    .Call('_plant_StochasticPatch___K93__K93_Env__disturbance_regime__get', PACKAGE = 'plant', obj_)
+}
+
+StochasticPatch___K93__K93_Env__disturbance_regime__set <- function(obj_, value) {
+    invisible(.Call('_plant_StochasticPatch___K93__K93_Env__disturbance_regime__set', PACKAGE = 'plant', obj_, value))
+}
+
 StochasticPatch___K93__K93_Env__species__get <- function(obj_) {
     .Call('_plant_StochasticPatch___K93__K93_Env__species__get', PACKAGE = 'plant', obj_)
+}
+
+StochasticPatch___K93__K93_Env__patch_survival__get <- function(obj_) {
+    .Call('_plant_StochasticPatch___K93__K93_Env__patch_survival__get', PACKAGE = 'plant', obj_)
 }
 
 StochasticPatch___K93__K93_Env__ode_size__get <- function(obj_) {
@@ -2465,10 +2573,6 @@ FF16_Environment__canopy_openness <- function(obj_, height) {
     .Call('_plant_FF16_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
 }
 
-FF16_Environment__patch_survival_conditional <- function(obj_, time_at_birth) {
-    .Call('_plant_FF16_Environment__patch_survival_conditional', PACKAGE = 'plant', obj_, time_at_birth)
-}
-
 FF16_Environment__clear <- function(obj_) {
     invisible(.Call('_plant_FF16_Environment__clear', PACKAGE = 'plant', obj_))
 }
@@ -2481,20 +2585,8 @@ FF16_Environment__set_fixed_environment <- function(obj_, value, height_max) {
     invisible(.Call('_plant_FF16_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
 }
 
-FF16_Environment__patch_survival__get <- function(obj_) {
-    .Call('_plant_FF16_Environment__patch_survival__get', PACKAGE = 'plant', obj_)
-}
-
 FF16_Environment__seed_rain_dt__get <- function(obj_) {
     .Call('_plant_FF16_Environment__seed_rain_dt__get', PACKAGE = 'plant', obj_)
-}
-
-FF16_Environment__disturbance_regime__get <- function(obj_) {
-    .Call('_plant_FF16_Environment__disturbance_regime__get', PACKAGE = 'plant', obj_)
-}
-
-FF16_Environment__disturbance_regime__set <- function(obj_, value) {
-    invisible(.Call('_plant_FF16_Environment__disturbance_regime__set', PACKAGE = 'plant', obj_, value))
 }
 
 FF16_Environment__time__get <- function(obj_) {
@@ -2529,10 +2621,6 @@ K93_Environment__canopy_openness <- function(obj_, height) {
     .Call('_plant_K93_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
 }
 
-K93_Environment__patch_survival_conditional <- function(obj_, time_at_birth) {
-    .Call('_plant_K93_Environment__patch_survival_conditional', PACKAGE = 'plant', obj_, time_at_birth)
-}
-
 K93_Environment__clear <- function(obj_) {
     invisible(.Call('_plant_K93_Environment__clear', PACKAGE = 'plant', obj_))
 }
@@ -2545,20 +2633,8 @@ K93_Environment__set_fixed_environment <- function(obj_, value, height_max) {
     invisible(.Call('_plant_K93_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
 }
 
-K93_Environment__patch_survival__get <- function(obj_) {
-    .Call('_plant_K93_Environment__patch_survival__get', PACKAGE = 'plant', obj_)
-}
-
 K93_Environment__seed_rain_dt__get <- function(obj_) {
     .Call('_plant_K93_Environment__seed_rain_dt__get', PACKAGE = 'plant', obj_)
-}
-
-K93_Environment__disturbance_regime__get <- function(obj_) {
-    .Call('_plant_K93_Environment__disturbance_regime__get', PACKAGE = 'plant', obj_)
-}
-
-K93_Environment__disturbance_regime__set <- function(obj_, value) {
-    invisible(.Call('_plant_K93_Environment__disturbance_regime__set', PACKAGE = 'plant', obj_, value))
 }
 
 K93_Environment__time__get <- function(obj_) {

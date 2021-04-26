@@ -15,7 +15,6 @@ public:
 
   Water_Environment() {
     time = NA_REAL;
-    disturbance_regime = 30;
     seed_rain = { 1.0, 1.0, 1.0 };
     seed_rain_index = 0;
     environment_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
@@ -36,7 +35,6 @@ public:
                               control.environment_light_nbase,
                               control.environment_light_max_depth);
     time = 0.0;
-    disturbance_regime = disturbance_mean_interval;
     seed_rain = seed_rain_;
     seed_rain_index = 0;
     inflow_rate = 1.0;
@@ -78,7 +76,7 @@ public:
   }
 
 
-  // TODO: move these to Environment 
+  // TODO: move these to Environment
   template <typename Function>
   void compute_environment(Function f_compute_competition,
                            double height_max) {

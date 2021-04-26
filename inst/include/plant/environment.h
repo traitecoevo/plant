@@ -28,23 +28,11 @@ public:
 
   void compute_rates();
 
-  // Dummy iterators: do nothing if the environment has no state. 
+  // Dummy iterators: do nothing if the environment has no state.
   ode::iterator ode_state(ode::iterator it) const { return it; }
   ode::const_iterator set_ode_state(ode::const_iterator it) { return it; }
   ode::iterator ode_rates(ode::iterator it) const { return it; }
   int ode_size() const { return 0; }
-
-  // Computes the probability of survival from 0 to time.
-  double patch_survival() const {
-    return disturbance_regime.pr_survival(time);
-  }
-
-  // Computes the probability of survival from time_at_birth to time, by
-  // conditioning survival over [0,time] on survival over
-  // [0,time_at_birth].
-  double patch_survival_conditional(double time_at_birth) const {
-    return disturbance_regime.pr_survival_conditional(time, time_at_birth);
-  }
 
   // Reset the environment.
   void clear() {
@@ -75,7 +63,7 @@ public:
   double get_environment_at_height(double height) { return 0.0; };
 
   double time;
-  Disturbance disturbance_regime;
+
   std::vector<double> seed_rain;
   size_t seed_rain_index;
 };

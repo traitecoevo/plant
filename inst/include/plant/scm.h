@@ -252,7 +252,7 @@ double SCM<T,E>::seed_rain_total() const {
 template <typename T, typename E>
 std::vector<double> SCM<T,E>::seed_rain_cohort(size_t species_index) const {
   const std::vector<double> times = cohort_schedule.times(species_index);
-  const Disturbance& disturbance_regime = patch.disturbance_regime();
+  const Disturbance& disturbance_regime = patch.disturbance_regime;
   const double S_D = parameters.strategies[species_index].S_D;
   const double scal = S_D * parameters.seed_rain[species_index];
   std::vector<double> seeds = patch.at(species_index).seeds();

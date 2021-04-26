@@ -30,8 +30,8 @@ for (x in names(strategy_types)) {
     expect_identical(sp$ode_rates, numeric(0))
 
     ## Causes initial conditions to be estimated:
-    sp$compute_rates(env)
-    seed$compute_initial_conditions(env)
+    sp$compute_rates(env, pr_patch_survival = 1)
+    seed$compute_initial_conditions(env, pr_patch_survival = 1)
 
     ## Internal and test seed report same values:
     expect_identical(sp$seed$rates, seed$rates)
@@ -74,7 +74,7 @@ for (x in names(strategy_types)) {
     sp$clear()
 
     ## Re-set up the initial conditions
-    sp$compute_rates(env)
+    sp$compute_rates(env, pr_patch_survival = 1)
 
     expect_error(sp$cohort_at(1), "Index 1 out of bounds")
     expect_error(sp$cohort_at(0), "Invalid value for index")
@@ -93,7 +93,7 @@ for (x in names(strategy_types)) {
     env <- test_environment(x, 3, seed_rain=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$add_seed()
-    sp$compute_rates(env)
+    sp$compute_rates(env, pr_patch_survival = 1)
     expect_equal(sp$compute_competition(0), 0)
     expect_equal(sp$compute_competition(10), 0)
     expect_equal(sp$compute_competition(Inf), 0)
@@ -110,7 +110,7 @@ for (x in names(strategy_types)) {
   test_that("Competition sensible with one cohort", {
     env <- test_environment(x, 3, seed_rain=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
-    sp$compute_rates(env)
+    sp$compute_rates(env, pr_patch_survival = 1)
     sp$add_seed()
     h_top <- sp$height_max * 4
     sp$heights <- h_top
@@ -135,7 +135,7 @@ for (x in names(strategy_types)) {
   test_that("Competition sensible with two cohorts", {
     env <- test_environment(x, 3, seed_rain=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
-    sp$compute_rates(env)
+    sp$compute_rates(env, pr_patch_survival = 1)
     sp$add_seed()
     h_top <- sp$height_max * 4
     sp$add_seed()
@@ -161,7 +161,7 @@ for (x in names(strategy_types)) {
   test_that("Competition sensible with three cohorts", {
     env <- test_environment(x, 3, seed_rain=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
-    sp$compute_rates(env)
+    sp$compute_rates(env, pr_patch_survival = 1)
     sp$add_seed()
     h_top <- sp$height_max * 4
     sp$add_seed()

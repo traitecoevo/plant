@@ -21,7 +21,7 @@ public:
   typedef Parameters<T,E> parameters_type;
 
   Patch(parameters_type p);
-
+  
   void reset();
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
@@ -37,8 +37,20 @@ public:
   const species_type& at(size_t species_index) const {
     return species[species_index];
   }
-  const Disturbance& disturbance_regime() const {
-    return environment.disturbance_regime;
+
+  // Patch disturbance
+  Disturbance disturbance_regime;
+
+  // Computes the probability of survival from 0 to time.
+  double patch_survival() const {
+    return disturbance_regime.pr_survival(time());
+  }
+
+  // Computes the probability of survival from time_at_birth to time, by
+  // conditioning survival over [0,time] on survival over
+  // [0,time_at_birth].
+  double patch_survival_conditional(double time_at_birth) const {
+    return disturbance_regime.pr_survival_conditional(time(), time_at_birth);
   }
 
   // * ODE interface
@@ -54,6 +66,7 @@ public:
   environment_type r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
   std::vector<double> r_competition_effect_error(size_t species_index) const;
+  void r_set_time(double time);
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
@@ -87,6 +100,7 @@ Patch<T,E>::Patch(parameters_type p)
     is_resident(p.is_resident) {
   parameters.validate();
   environment = p.environment;
+  disturbance_regime = Disturbance(p.disturbance_mean_interval);
   for (auto s : parameters.strategies) {
     species.push_back(Species<T,E>(s));
   }
@@ -155,12 +169,13 @@ void Patch<T,E>::compute_rates() {
     // 2. Make sure ODE is stepping - water should accumulate linearly
     // 3. Make sure the soil water state is visible in compute_rates in strategy
     // 4. Extraction rate is subrated from soil water state
-    
+
     // Compute environment rate
     // Compute rates in cohort, multiply rate per plant by density
     // sum all cohorts and species in a patch to find the outflow for the patch
     // subtract total extraction rate from state
-    species[i].compute_rates(environment);
+    double pr_patch_survival = patch_survival();
+    species[i].compute_rates(environment, pr_patch_survival);
     //environment.compute_rates();
   }
 }
@@ -187,6 +202,13 @@ void Patch<T,E>::add_seeds(const std::vector<size_t>& species_index) {
     compute_environment();
   }
 }
+
+
+template <typename T, typename E>
+void Patch<T,E>::r_set_time(double time) {
+  environment.time = time;
+}
+
 
 // Arguments here are:
 //   time: time

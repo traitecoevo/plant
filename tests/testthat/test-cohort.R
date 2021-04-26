@@ -108,7 +108,7 @@ for (x in names(strategy_types)) {
                             light_env=function(x) rep(1, length(x)),
                             seed_rain=1.0)
 
-    cohort$compute_initial_conditions(env)
+    cohort$compute_initial_conditions(env, pr_patch_survival = 1)
     plant$compute_rates(env)
 
     nms <- c(plant$ode_names, 
@@ -140,7 +140,7 @@ for (x in names(strategy_types)) {
     ## Ode *rates*:    
     cmp <- c(plant$internals$rates,
              ## This is different to the approach in tree1?
-             plant$rate("fecundity") * env$patch_survival * exp(-plant$state("mortality")),
+             plant$rate("fecundity") * exp(-plant$state("mortality")),
              -plant$rate("mortality") - cohort$growth_rate_gradient(env))
 
    
@@ -160,7 +160,7 @@ for (x in names(strategy_types)) {
     expect_equal(cohort$log_density, -Inf) # zero
     expect_equal(exp(cohort$log_density), 0.0) # zero
     expect_equal(cohort$competition_effect, 0) # zero density
-    cohort$compute_initial_conditions(env)
+    cohort$compute_initial_conditions(env, pr_patch_survival = 1)
 
     expect_equal(cohort$ode_state[[cohort$ode_size]], cohort$log_density)
     density <- exp(cohort$log_density)
