@@ -264,7 +264,7 @@ test_that("Seed rain & error calculations correct", {
 
     expect_equal(scm$net_reproduction_ratio_for_species(1), net_reproduction_ratio_R(scm))
     expect_equal(scm$net_reproduction_ratios, net_reproduction_ratio_R(scm))
-    expect_equal(scm$net_reproduction_ratio_error[[1]], net_reproduction_ratio_R(scm, error=TRUE))
+    expect_equal(scm$net_reproduction_ratio_errors[[1]], net_reproduction_ratio_R(scm, error=TRUE))
 
     lae_cmp <-
       scm$patch$species[[1]]$competition_effects_error(scm$patch$compute_competition(0))
@@ -272,7 +272,7 @@ test_that("Seed rain & error calculations correct", {
 
     int <- make_scm_integrate(scm)
     S_D <- scm$parameters$strategies[[1]]$S_D
-    expect_equal(int("offspring_produced_survival_weighted") * S_D, scm$average_fecundity(1))
+    expect_equal(int("offspring_produced_survival_weighted") * S_D, scm$net_reproduction_ratio_for_species(1))
 
     res <- run_scm_collect(p1)
     int2 <- make_scm_integrate(res)
