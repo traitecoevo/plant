@@ -33,6 +33,7 @@ test_that("Defaults", {
     rho    = 608,
     omega  = 3.8e-5,
     theta  = 1.0/4669,
+    k_I    = 0.5,
     control = Control(),
     collect_all_auxillary = FALSE)
 

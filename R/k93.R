@@ -71,7 +71,7 @@ K93_StochasticPatchRunner <- function(p) {
 ##' @rdname K93_Environment
 ##' @param p A Parameters object
 K93_make_environment <- function(p) {
-  K93_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
+  K93_Environment(p$disturbance_mean_interval, p$seed_rain, p$control)
 }
 
 ##' Construct a fixed environment for K93 strategy
@@ -109,7 +109,9 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
   hh <- seq(0, height, length.out=n)
   if (is.null(light_env)) {
     light_env <- function(x) {
-      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
+      # arbitary function. aiming to produce values of -log(light_env)/0.01 
+      # in range 0:100
+      exp(x/(height*2)) - (exp(.5) - 1)
     }
   }
   ee <- light_env(hh)
@@ -145,7 +147,9 @@ make_K93_hyperpar <- function(
         c_0 = 0.008,    # Mortality intercept year-1
         c_1 = 0.00044,  # Mortality suppression rate m2.cm-2.year-1
         d_0 = 0.00073,  # Recruitment rate (cm2.year-1)
-        d_1 = 0.044    # Recruitment suppression rate (m2.cm-2)
+        d_1 = 0.044,    # Recruitment suppression rate (m2.cm-2)
+        eta = 12,       # Canopy shape parameter
+        k_I = 0.01      # Scaling factor for competition
   ) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
     if (length(x) != 1L) {
@@ -160,6 +164,8 @@ make_K93_hyperpar <- function(
   assert_scalar(c_1)
   assert_scalar(d_0)
   assert_scalar(d_1)
+  assert_scalar(eta)
+  assert_scalar(k_I)
 
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {

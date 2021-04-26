@@ -25,7 +25,6 @@ struct Parameters {
   typedef E environment_type;
 
   Parameters() : 
-    k_I(0.5),
     patch_area(1.0),
     n_patches(1),
     disturbance_mean_interval(30),
@@ -35,7 +34,6 @@ struct Parameters {
   }
 
   // Data -- public for now (see github issue #17).
-  double k_I;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
   double disturbance_mean_interval; // Disturbance interval (years)
@@ -114,7 +112,7 @@ void Parameters<T,E>::validate() {
     s.control = control;
   }
 
-  environment = environment_type(disturbance_mean_interval, seed_rain, k_I, control);
+  environment = environment_type(disturbance_mean_interval, seed_rain, control);
 }
 
 // Separating this out just because it's a bit crap:

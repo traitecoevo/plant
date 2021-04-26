@@ -46,3 +46,6 @@ p.k_r = 1.0;
 p.a_f1=1;
 p.a_f2=50;
 p.a_f3=3*3.8e-5;
+
+# light interception
+p.k_I=0.5;

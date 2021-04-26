@@ -53,7 +53,7 @@ make_reference_plant_FF16 <- function() {
             "n_area", "r_l", "r_r", "r_s", "r_b", "a_y",
             "a_bio", "k_l", "k_b", "k_s", "k_r", "a_p1", "a_p2",
             "a_f3","d_I", "a_dG1", "a_dG2", "a_d0",
-            "a_f1", "a_f2")
+            "a_f1", "a_f2", "k_I")
   get.pars <- function() {
     vars.traits <- list(lma=e$traits$lma, rho=e$traits$rho,
                         hmat=e$traits$hmat, omega=e$traits$omega)

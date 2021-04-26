@@ -66,7 +66,7 @@ FF16r_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param p A Parameters object
 FF16r_make_environment <- function(p) {
-  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
+  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$control)
 }
 
 ##' This makes a pretend light environment over the plant height,
@@ -180,8 +180,6 @@ make_FF16r_hyperpar <- function(
   assert_scalar(B_lf5)
   assert_scalar(k_I)
   assert_scalar(latitude)
-
-  ## TODO: k_I should actually be in default parameter set, so perhaps don't pass into function?
 
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {

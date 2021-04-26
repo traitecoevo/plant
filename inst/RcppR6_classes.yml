@@ -377,7 +377,6 @@ Parameters:
   validator:
     name_cpp: validate
   list:
-    - k_I: double
     - patch_area: double
     - n_patches: size_t
     - disturbance_mean_interval: double
@@ -742,7 +741,7 @@ StochasticPatchRunner:
 Canopy:
   name_cpp: "plant::Canopy"
   constructor:
-    args: [k_I: double, control: "plant::Control"]
+    args: [control: "plant::Control"]
   methods:
     canopy_openness:
       args: [height: double]
@@ -791,18 +790,18 @@ FF16_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
+    - k_I: double
     - control: "plant::Control" 
     - collect_all_auxillary: bool
 
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
+    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", control: "plant::Control"]
     roxygen: |
       FF16_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
       @param seed_rain vector of seed rains
-      @param k_I light extinction coefficient
       @param control A Control object
       @export
   methods:
@@ -869,6 +868,7 @@ FF16r_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
+    - k_I: double
     - control: "plant::Control" 
     - collect_all_auxillary: bool
 
@@ -891,6 +891,8 @@ K93_Strategy:
     - d_0: double
     - d_1: double
     - S_D: double
+    - eta: double
+    - k_I: double
     - control: "plant::Control"
 
 
@@ -898,12 +900,11 @@ K93_Strategy:
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
+    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", control: "plant::Control"]
     roxygen: |
       K93_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
       @param seed_rain vector of seed rains
-      @param k_I light extinction coefficient
       @param control A Control object
       @export
   methods:

@@ -2433,8 +2433,8 @@ StochasticPatchRunner___K93__K93_Env__state__get <- function(obj_) {
     .Call('_plant_StochasticPatchRunner___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Canopy__ctor <- function(k_I, control) {
-    .Call('_plant_Canopy__ctor', PACKAGE = 'plant', k_I, control)
+Canopy__ctor <- function(control) {
+    .Call('_plant_Canopy__ctor', PACKAGE = 'plant', control)
 }
 
 Canopy__canopy_openness <- function(obj_, height) {
@@ -2457,8 +2457,8 @@ FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-FF16_Environment__ctor <- function(disturbance_mean_interval, seed_rain, k_I, control) {
-    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', disturbance_mean_interval, seed_rain, k_I, control)
+FF16_Environment__ctor <- function(disturbance_mean_interval, seed_rain, control) {
+    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', disturbance_mean_interval, seed_rain, control)
 }
 
 FF16_Environment__canopy_openness <- function(obj_, height) {
@@ -2521,8 +2521,8 @@ K93_Strategy__ctor <- function() {
     .Call('_plant_K93_Strategy__ctor', PACKAGE = 'plant')
 }
 
-K93_Environment__ctor <- function(disturbance_mean_interval, seed_rain, k_I, control) {
-    .Call('_plant_K93_Environment__ctor', PACKAGE = 'plant', disturbance_mean_interval, seed_rain, k_I, control)
+K93_Environment__ctor <- function(disturbance_mean_interval, seed_rain, control) {
+    .Call('_plant_K93_Environment__ctor', PACKAGE = 'plant', disturbance_mean_interval, seed_rain, control)
 }
 
 K93_Environment__canopy_openness <- function(obj_, height) {
