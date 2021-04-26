@@ -10,43 +10,42 @@ on:
       - master
       - develop
 
-name: benchmark
-
-name: Continuous Benchmarks
+name: lint
 
 jobs:
-  build:
+  lint:
     runs-on: macOS-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@master
+      - uses: actions/checkout@v2
 
-      - name: Setup R
-        uses: r-lib/actions/setup-r@master
+      - uses: r-lib/actions/setup-r@master
+
+      - name: Query dependencies
+        run: |
+          install.packages('remotes')
+          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
+          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
+        shell: Rscript {0}
+
+      - name: Restore R package cache
+        uses: actions/cache@v2
         with:
-          r-version: 'release'
+          path: ${{ env.R_LIBS_USER }}
+          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
+          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
 
       - name: Install dependencies
         run: |
-          install.packages("remotes")
+          install.packages(c("remotes"))
           remotes::install_deps(dependencies = TRUE)
-          remotes::install_github("r-lib/bench")
+          remotes::install_cran("bench")
         shell: Rscript {0}
 
       - name: Install package
         run: R CMD INSTALL .
 
-      - name: Fetch existing benchmarks
-        run: Rscript -e 'bench::cb_fetch()'
-
-      - name: Run benchmarks
-        run: |
-          git config --local user.email "actions@github.com"
-          git config --local user.name "GitHub Actions"
-          Rscript -e 'bench::cb_run()'
-      - name: Show benchmarks
-        run: git notes --ref benchmarks show
-
-      - name: Push benchmarks
-        run: Rscript -e "bench::cb_push()"
-        
+      - name: Benchmark
+        run: plant::run_plant_benchmarks()
+        shell: Rscript {0}

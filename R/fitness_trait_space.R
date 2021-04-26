@@ -119,7 +119,7 @@ viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
     ## positive points but need to get the bilinear interpolation
     ## done.  Until then, this is lost.
     
-    error("review implementation of 2D landscape")
+    stop("review implementation of 2D landscape")
     ##out <- positive_2d(f, x, lower=bounds[,1], upper=bounds[,2])
     ret <- t(apply(out$points[out$labels,], 2, range))
   }
