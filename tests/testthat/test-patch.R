@@ -26,6 +26,8 @@ for (x in names(strategy_types)) {
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
 
+    expect_equal(patch$get_area, 1.0)
+
     # This doesn't hold now
     # expect_is(patch$environment, paste0(x, "_Environment"))
     expect_identical(patch$environment$time, 0.0)
@@ -141,5 +143,25 @@ for (x in names(strategy_types)) {
     ##   expect_identical(patch2$height, patch$state("height"))
     ##   expect_identical(patch2$ode_rates, patch$ode_rates)
     ## })
+  })
+
+  test_that("change patch size", {
+  
+    e <- environment_types[[x]]
+    p2 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
+                          patch_area= 2,
+                          seed_rain=pi/2,
+                          is_resident=TRUE)
+    patch2 <- Patch(x, e)(p2)
+    expect_equal(p2$patch_area, 2)
+    expect_equal(patch2$get_area, 2)
+
+    p10 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
+                          patch_area= 10,
+                          seed_rain=pi/2,
+                          is_resident=TRUE)
+    patch10 <- Patch(x, e)(p10)
+    expect_equal(p10$patch_area, 10)
+    expect_equal(patch10$get_area, 10)
   })
 }

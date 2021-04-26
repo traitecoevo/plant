@@ -25,6 +25,7 @@ public:
 
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
+  double get_area() const { return area;}
 
   double height_max() const;
 
@@ -46,6 +47,8 @@ public:
   // * ODE interface
   size_t ode_size() const;
   double ode_time() const;
+  double area;
+
   ode::const_iterator set_ode_state(ode::const_iterator it, double time);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
@@ -87,6 +90,7 @@ private:
 template <typename T, typename E>
 StochasticPatch<T,E>::StochasticPatch(parameters_type p)
   : parameters(p),
+    area(p.patch_area),
     is_resident(p.is_resident) {
   parameters.validate();
   environment = p.environment;
@@ -122,7 +126,7 @@ double StochasticPatch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      tot += species[i].compute_competition(height);
+      tot += species[i].compute_competition(height) / area;
     }
   }
   return tot;

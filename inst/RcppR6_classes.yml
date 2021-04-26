@@ -483,6 +483,7 @@ Patch:
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
+    get_area: {type: double, access: member}
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
@@ -651,6 +652,7 @@ StochasticPatch:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
+    get_area: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}

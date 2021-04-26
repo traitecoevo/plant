@@ -25,7 +25,7 @@ public:
   void reset();
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
-
+  double get_area() const { return area;}
   double height_max() const;
 
   // [eqn 11] Canopy openness at `height`
@@ -75,6 +75,7 @@ private:
 
   parameters_type parameters;
   std::vector<bool> is_resident;
+  double area;
   environment_type environment;
   std::vector<species_type> species;
 };
@@ -84,6 +85,7 @@ private:
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p)
   : parameters(p),
+    area(p.patch_area),
     is_resident(p.is_resident) {
   parameters.validate();
   environment = p.environment;
@@ -119,7 +121,7 @@ double Patch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
     if (is_resident[i]) {
-      tot += species[i].compute_competition(height);
+      tot += species[i].compute_competition(height) / area;
     }
   }
   return tot;

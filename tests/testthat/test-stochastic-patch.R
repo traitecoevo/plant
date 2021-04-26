@@ -3,10 +3,12 @@ context("StochasticPatch")
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
-test_that("empty", {
-  for (x in names(strategy_types)) {
-    context(sprintf("StochasticPatch-%s",x))
 
+for (x in names(strategy_types)) {
+  context(sprintf("StochasticPatch-%s",x))
+
+  test_that("empty", {
+  
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
@@ -17,6 +19,8 @@ test_that("empty", {
 
     expect_equal(patch$size, 1)
     expect_equal(patch$height_max, 0.0)
+    expect_equal(patch$get_area, 1.0)
+
     expect_equal(patch$compute_competition(0), 0.0)
     expect_equal(patch$ode_state, numeric(0))
     expect_equal(patch$ode_rates, numeric(0))
@@ -26,13 +30,10 @@ test_that("empty", {
     expect_equal(length(sp), 1)
     expect_is(sp[[1]], sprintf("StochasticSpecies<%s,%s>",x,e))
     expect_equal(sp[[1]]$size, 0)
-  }
-})
+  })
 
-test_that("non empty", {
-  for (x in names(strategy_types)) {
-    context(sprintf("StochasticPatch-%s",x))
-
+  test_that("non empty", {
+  
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           seed_rain=pi/2,
@@ -60,5 +61,26 @@ test_that("non empty", {
       expect_true(all(patch$ode_rates[-3] > 0.0))
       expect_equal(patch$ode_rates[[3]], 0)
     }
-  }
-})
+  })
+
+
+  test_that("change patch size", {
+  
+    e <- environment_types[[x]]
+    p2 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
+                          patch_area= 2,
+                          seed_rain=pi/2,
+                          is_resident=TRUE)
+    patch2 <- StochasticPatch(x, e)(p2)
+    expect_equal(patch2$get_area, 2)
+    expect_equal(p2$patch_area, 2)
+
+    p10 <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
+                          patch_area= 10,
+                          seed_rain=pi/2,
+                          is_resident=TRUE)
+    patch10 <- StochasticPatch(x, e)(p10)
+    expect_equal(p10$patch_area, 10)
+    expect_equal(patch10$get_area, 10)
+  })
+}
