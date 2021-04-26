@@ -16,14 +16,6 @@ K93_Individual <- function(s=K93_Strategy()) {
   Individual("K93", "K93_Env")(s)
 }
 
-#' Compute the whole plant light compensation point for a single
-#' plant with K93 strategy. Called via general function in plant.R
-##' @export
-##' @rdname K93
-`lcp_whole_plant.Individual<K93>` <- function(p, ...) {
-  K93_lcp_whole_plant(p, ...)
-}
-
 ##' @export
 ##' @rdname K93
 K93_Cohort <- function(s=K93_Strategy()) {
@@ -38,7 +30,6 @@ K93_Species <- function(s=K93_Strategy()) {
 
 ##' @export
 ##' @rdname K93
-##' @param ... Arguments!
 K93_Parameters <- function() {
   Parameters("K93","K93_Env")()
 }
@@ -85,7 +76,7 @@ K93_make_environment <- function(p) {
 
 ##' Construct a fixed environment for K93 strategy
 ##'
-##' @param e=1.0 Value of environment 
+##' @param e Value of environment (default=1.0)
 ##' @param p A Parameters object
 ##' @param height_max = 150.0 maximum possible height in environment
 ##' @rdname K93_Environment
@@ -98,8 +89,18 @@ K93_fixed_environment <- function(e=1.0, p = K93_Parameters(), height_max = 300.
 }
 
 
-## This makes a pretend light environment over the plant height,
-## slightly concave up, whatever.
+##' This makes a pretend light environment over the plant height,
+##' slightly concave up, whatever.
+##' @title Create a test environment for K93 startegy
+##' @param height top height of environment object
+##' @param n number of points
+##' @param light_env function for light environment in test object
+##' @param n_strategies number of strategies for test environment
+##' @param seed_rain seed_rain for test environment
+##' @export
+##' @rdname K93_test_environment
+##' @examples
+##' environment <- K93_test_environment(10)
 K93_test_environment <- function(height, n=101, light_env=NULL,
                              n_strategies=1, seed_rain=0) {
   if (length(seed_rain) == 1) {
@@ -126,11 +127,17 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
   ret
 }
 
-
-##' Hyperparameters for K93 physiological model
+##' Construct hyperparameter object for K93 physiological model
 ##' @title Hyperparameters for K93 physiological model
+##' @param b_0 Growth intercept year-1
+##' @param b_1 Growth asymptote year-1.(ln cm)-1
+##' @param b_2 Growth suppression rate m2.cm-2.year-1
+##' @param c_0 Mortality intercept year-1
+##' @param c_1 Mortality suppression rate m2.cm-2.year-1
+##' @param d_0 Recruitment rate (cm2.year-1)
+##' @param d_1 Recruitment suppression rate (m2.cm-2)
 ##' @export
-##' @rdname K93_hyperpar
+##' @rdname make_K93_hyperpar
 make_K93_hyperpar <- function(
         b_0 = 0.059,    # Growth intercept year-1
         b_1 = 0.012,    # Growth asymptote year-1.(ln cm)-1
@@ -172,5 +179,6 @@ make_K93_hyperpar <- function(
 ##' @param s A strategy object
 ##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers 
 ##' that are within eps of the default strategy are not replaced.
+##' @rdname K93_hyperpar
 ##' @export
 K93_hyperpar <- make_K93_hyperpar()
