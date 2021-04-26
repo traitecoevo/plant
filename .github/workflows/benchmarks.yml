@@ -3,14 +3,14 @@ on:
     branches:
       - main
       - master
-      - actions
+      - develop
   pull_request:
     branches:
       - main
       - master
       - develop
 
-name: lint
+name: bench
 
 jobs:
   lint:
