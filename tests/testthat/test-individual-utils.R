@@ -37,8 +37,7 @@ test_that("Cohort schedule max time", {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
     t <- cohort_schedule_max_time_default(p)
-    d <- Disturbance(p$disturbance_mean_interval)
-    expect_equal(t, d$cdf(p$control$schedule_patch_survival))
+    expect_equal(t, p$control$schedule_max_time)
   }
 })
 

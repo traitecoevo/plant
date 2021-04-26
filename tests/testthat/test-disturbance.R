@@ -17,11 +17,9 @@ make_disturbance <- function(site.mean) {
     p0 * Pi(age)
   weight <- function(time.start, time)
     Pi(time)/ Pi(time.start)
-  cdf <- function(p)
-    pow(log(p) / -lam, 1/psi)
 
   list(site.mean=site.mean, psi=psi, lam=lam, p0=p0,
-       rate=rate, freq=freq, Pi=Pi, weight=weight, cdf=cdf)
+       rate=rate, freq=freq, Pi=Pi, weight=weight)
 }
 
 test_that("Creation", {
@@ -54,9 +52,6 @@ test_that("Disturbance calculations are expected", {
   ## density is vectorised
   expect_equal(obj$density(tt), disturbance$freq(tt))
 
-  expect_equal(disturbance$cdf(p_t), tt)
-  expect_equal(sapply(p_t, function(p) obj$cdf(p)), tt)
-
   ## Now, look at the rest of the issues.
 
   ## A Weibull distribution has PDF proportional to
@@ -68,23 +63,23 @@ test_that("Disturbance calculations are expected", {
   expect_equal(pweibull(tt, shape, scale, FALSE), disturbance$weight(0, tt))
 })
 
-test_that("Reference survival eps gives correct running time", {
-  ## From falster-traitdiversity: src/base/ebt/site.cpp,
-  ## site::solve_patchage_dist():
-  f1 <- function(mean) {
-    2.633 * mean / 3.0 * 4.0
-  }
-
-  ## Wrapper for getting same out of our disturbance class:
-  ctrl <- Control()
-  eps <- ctrl$schedule_patch_survival
-  f2 <- function(mean) {
-    Disturbance(mean)$cdf(eps)
-  }
-
-  age <- seq(1, 200, length.out=101)
-  y1 <- f1(age)
-  y2 <- sapply(age, f2)
-
-  expect_equal(y1, y2)
-})
+# test_that("Reference survival eps gives correct running time", {
+#   ## From falster-traitdiversity: src/base/ebt/site.cpp,
+#   ## site::solve_patchage_dist():
+#   f1 <- function(mean) {
+#     2.633 * mean / 3.0 * 4.0
+#   }
+#
+#   ## Wrapper for getting same out of our disturbance class:
+#   ctrl <- Control()
+#   eps <- ctrl$schedule_patch_survival
+#   f2 <- function(mean) {
+#     Disturbance(mean)$cdf(eps)
+#   }
+#
+#   age <- seq(1, 200, length.out=101)
+#   y1 <- f1(age)
+#   y2 <- sapply(age, f2)
+#
+#   expect_equal(y1, y2)
+# })

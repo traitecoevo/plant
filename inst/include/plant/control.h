@@ -59,7 +59,7 @@ struct Control {
   size_t schedule_nsteps;
   double schedule_eps;
   bool   schedule_verbose;
-  double schedule_patch_survival;
+  double schedule_max_time;
 
   size_t equilibrium_nsteps;
   double equilibrium_eps;

@@ -114,9 +114,6 @@ Disturbance:
     pr_survival_conditional:
       args: [time: double, time_start: double]
       return_type: double
-    cdf:
-      args: [time: double]
-      return_type: double
   active:
     mean_interval: {type: double, access: member, name_cpp: r_mean_interval}
 
@@ -154,7 +151,7 @@ Control:
     - schedule_nsteps: size_t
     - schedule_eps: double
     - schedule_verbose: bool
-    - schedule_patch_survival: double
+    - schedule_max_time: double
     - equilibrium_nsteps: size_t
     - equilibrium_eps: double
     - equilibrium_large_offspring_arriving_change: double

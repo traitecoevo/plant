@@ -11,8 +11,7 @@ std::vector<double> cohort_schedule_times_default(double max_time);
 
 template <typename Parameters>
 double cohort_schedule_max_time_default(const Parameters& p) {
-  Disturbance d(p.disturbance_mean_interval);
-  return d.cdf(p.control.schedule_patch_survival);
+  return p.control.schedule_max_time;
 }
 
 template <typename Parameters>
