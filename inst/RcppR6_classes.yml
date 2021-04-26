@@ -332,6 +332,9 @@ Internals:
     roxygen: |
       Internals class holding vectors of states, thier associated rates and auxiliary (aux) state
       which is calculated from the state through running compute_rates
+      @title Extract Internals from plant object
+      @param s_size ???
+      @param a_size ???
       @export
   active:
     state_size: {type: size_t, access: field}
@@ -371,17 +374,9 @@ Parameters:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
-  # TODO: This is broken:
-  # roxygen: |
-  #   Strategy parameters that tune various aspects of the biological model.
-  #   @title Strategy parameters
-  #   @param ...,values Values to initialise the struct with (either as
-  #   variadic arguments, or as a list, but not both).
-  #   @export
   validator:
     name_cpp: validate
   list:
-    - k_I: double
     - patch_area: double
     - n_patches: size_t
     - disturbance_mean_interval: double
@@ -760,7 +755,7 @@ StochasticPatchRunner:
 Canopy:
   name_cpp: "plant::Canopy"
   constructor:
-    args: [k_I: double, control: "plant::Control"]
+    args: [control: "plant::Control"]
   methods:
     canopy_openness:
       args: [height: double]
@@ -809,18 +804,18 @@ FF16_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control"
+    - k_I: double
+    - control: "plant::Control" 
     - collect_all_auxillary: bool
 
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
+    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", control: "plant::Control"]
     roxygen: |
       FF16_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
       @param seed_rain vector of seed rains
-      @param k_I light extinction coefficient
       @param control A Control object
       @export
   methods:
@@ -882,7 +877,8 @@ FF16r_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control"
+    - k_I: double
+    - control: "plant::Control" 
     - collect_all_auxillary: bool
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
@@ -904,6 +900,8 @@ K93_Strategy:
     - d_0: double
     - d_1: double
     - S_D: double
+    - eta: double
+    - k_I: double
     - control: "plant::Control"
 
 
@@ -911,12 +909,11 @@ K93_Strategy:
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
+    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", control: "plant::Control"]
     roxygen: |
       K93_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
       @param seed_rain vector of seed rains
-      @param k_I light extinction coefficient
       @param control A Control object
       @export
   methods:

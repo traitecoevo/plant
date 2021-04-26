@@ -11,9 +11,6 @@ test_that("empty", {
                           seed_rain=pi/2,
                           is_resident=TRUE,
                           control=fast_control())
-    
-    if(grepl("K93", x))
-      p$k_I <- 1e-3
 
     obj <- StochasticPatchRunner(x, e)(p)
     expect_identical(obj$time, 0.0)
@@ -59,8 +56,6 @@ test_that("collect", {
                           patch_area=50,
                           is_resident=TRUE,
                           control=fast_control())
-    if(grepl("K93", x))
-      p$k_I <- 1e-3
     
     expect_silent(res <- run_stochastic_collect(p))
     ## TODO: more tests on collect output

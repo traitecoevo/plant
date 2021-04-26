@@ -16,7 +16,6 @@ public:
 
   Canopy() {
     // Define an anonymous function to pass got the environment generator
-    k_I = NA_REAL;
     canopy_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
     canopy_interpolator = canopy_generator.construct(
       [&](double height) {
@@ -24,8 +23,7 @@ public:
       }, 0, 1); // these are update with init(x, y) when patch is created
   };
 
-  Canopy(double k_I_, Control control) {
-    k_I = k_I_;
+  Canopy(Control control) {
     canopy_generator = interpolator::AdaptiveInterpolator(
       control.environment_light_tol,
       control.environment_light_tol,
@@ -43,7 +41,7 @@ public:
     const double lower_bound = 0.0;
     double upper_bound = height_max;
 
-    auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
+    auto f_canopy_openness = [&] (double height) -> double {return exp(-f_compute_competition(height));};
     canopy_interpolator =
       canopy_generator.construct(f_canopy_openness, lower_bound, upper_bound);
   }
@@ -54,7 +52,7 @@ public:
     const double min = canopy_interpolator.min(), // 0.0?
       height_max_old = canopy_interpolator.max();
 
-    auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
+    auto f_canopy_openness = [&] (double height) -> double {return exp(-f_compute_competition(height));};
     util::rescale(h.begin(), h.end(), min, height_max_old, min, height_max);
     h.back() = height_max; // Avoid round-off error.
 
@@ -103,7 +101,6 @@ public:
     canopy_interpolator.init(state_x, state_y);
   }
 
-  double k_I;
   interpolator::Interpolator canopy_interpolator;
   interpolator::AdaptiveInterpolator canopy_generator;
 };

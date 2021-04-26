@@ -14,8 +14,6 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
     p0 <- scm_base_parameters(x)
     p <-
       expand_parameters(trait_matrix(0.0825, "lma"), p0, mutant = FALSE)
-    if (grepl("K93", x))
-      p$k_I <- 1e-3
     res <- run_scm(p)
   }
   
@@ -23,9 +21,6 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
     p$seed_rain <- 0.1
-    
-    if (grepl("K93", x))
-      p$k_I <- 1e-3
     
     p <- build_schedule(p)
   }

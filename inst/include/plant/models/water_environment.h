@@ -17,7 +17,6 @@ public:
     time = NA_REAL;
     seed_rain = { 1.0, 1.0, 1.0 };
     seed_rain_index = 0;
-    k_I = NA_REAL;
     environment_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
     // Define an anonymous function to pass got the environment generator
     environment_interpolator = environment_generator.construct(
@@ -29,9 +28,8 @@ public:
   };
 
   Water_Environment(double disturbance_mean_interval,
-                   std::vector<double> seed_rain_, double k_I_,
+                   std::vector<double> seed_rain_,
                    Control control) {
-    k_I = k_I_;
     environment_generator = interpolator::AdaptiveInterpolator(control.environment_light_tol,
                               control.environment_light_tol,
                               control.environment_light_nbase,
@@ -85,7 +83,7 @@ public:
     const double lower_bound = 0.0;
     double upper_bound = height_max;
 
-    auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
+    auto f_canopy_openness = [&] (double height) -> double {return exp(-f_compute_competition(height));};
     environment_interpolator =
       environment_generator.construct(f_canopy_openness, lower_bound, upper_bound);
   }
@@ -97,7 +95,7 @@ public:
     const double min = environment_interpolator.min(), // 0.0?
       height_max_old = environment_interpolator.max();
 
-    auto f_canopy_openness = [&] (double height) -> double {return exp(-k_I * f_compute_competition(height));};
+    auto f_canopy_openness = [&] (double height) -> double {return exp(-f_compute_competition(height));};
     util::rescale(h.begin(), h.end(), min, height_max_old, min, height_max);
     h.back() = height_max; // Avoid round-off error.
 
@@ -112,7 +110,6 @@ public:
     return get_environment_at_height(height);
   }
 
-  double k_I;
   double inflow_rate;
 
   Internals r_internals() const { return vars; }

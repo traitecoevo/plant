@@ -22,12 +22,11 @@ public:
 
   FF16_Environment(double disturbance_mean_interval,
                    std::vector<double> seed_rain_,
-                   double k_I,
                    Control control) {
     time = 0.0;
     seed_rain = seed_rain_;
     seed_rain_index = 0;
-    canopy = Canopy(k_I, control);
+    canopy = Canopy(control);
   };
 
   template <typename Function>
@@ -66,18 +65,8 @@ public:
     canopy.r_init_interpolators(state);
   }
 
-  const double k_I() {
-    return canopy.k_I;
-  }
-
-  const double get_k_I(const FF16_Environment environment) {
-    return environment.canopy.k_I;
-  }
-
   Canopy canopy;
 };
-
-const double get_k_I(const FF16_Environment environment);
 
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
   return get_state(environment.canopy);

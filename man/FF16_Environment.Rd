@@ -7,7 +7,7 @@
 \alias{FF16r_make_environment}
 \title{FF16_Environment object}
 \usage{
-FF16_Environment(disturbance_mean_interval, seed_rain, k_I, control)
+FF16_Environment(disturbance_mean_interval, seed_rain, control)
 
 FF16_make_environment(p)
 
@@ -19,8 +19,6 @@ FF16r_make_environment(p)
 \item{disturbance_mean_interval}{mean disturbance interval in years}
 
 \item{seed_rain}{vector of seed rains}
-
-\item{k_I}{light extinction coefficient}
 
 \item{control}{A Control object}
 

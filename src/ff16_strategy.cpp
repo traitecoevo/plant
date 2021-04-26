@@ -395,8 +395,8 @@ double FF16_Strategy::establishment_probability(const FF16_Environment& environm
   }
 }
 
-double FF16_Strategy::area_leaf_above(double z, double height) const {
-  return area_leaf(height) * Q(z, height);
+double FF16_Strategy::shading_above(double z, double height) const {
+  return k_I * area_leaf(height) * Q(z, height);
 }
 
 // [eqn 10] ... Fraction of leaf area above height 'z' for an

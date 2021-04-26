@@ -1,7 +1,3 @@
-## We can probably actually do better than this with an S3 method on
-## the actual strategy?  That would need to be organised by the
-## templating though and that's stretched to the limit.
-
 ##' Create a FF16 Plant or Cohort
 ##' @title Create a FF16 Plant or Cohort
 ##' @param s A \code{\link{FF16_Strategy}} object
@@ -12,14 +8,6 @@
 ##' pl$height
 FF16_Individual <- function(s=FF16_Strategy()) {
   Individual("FF16", "FF16_Env")(s)
-}
-
-#' Compute the whole plant light compensation point for a single
-#' plant with FF16 strategy. Called via general function in plant.R
-##' @export
-##' @rdname FF16
-`lcp_whole_plant.Plant<FF16>` <- function(p, ...) {
-  FF16_lcp_whole_plant(p, ...)
 }
 
 ##' @export
@@ -36,7 +24,6 @@ FF16_Species <- function(s=FF16_Strategy()) {
 
 ##' @export
 ##' @rdname FF16
-##' @param ... Arguments!
 FF16_Parameters <- function() {
   Parameters("FF16","FF16_Env")()
 }
@@ -78,12 +65,12 @@ FF16_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param p A Parameters object
 FF16_make_environment <- function(p) {
-  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
+  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$control)
 }
 
 ##' Construct a fixed environment for FF16 strategy
 ##'
-##' @param e=1.0 Value of environment 
+##' @param e Value of environment (deafult  = 1.0)
 ##' @param p A Parameters object
 ##' @param height_max = 150.0 maximum possible height in environment
 ##' @rdname FF16_Environment
@@ -96,8 +83,18 @@ FF16_fixed_environment <- function(e=1.0, p = FF16_Parameters(), height_max = 15
 }
 
 
-## This makes a pretend light environment over the plant height,
-## slightly concave up, whatever.
+##' This makes a pretend light environment over the plant height,
+##' slightly concave up, whatever.
+##' @title Create a test environment for FF16 startegy
+##' @param height top height of environment object
+##' @param n number of points
+##' @param light_env function for light environment in test object
+##' @param n_strategies number of strategies for test environment
+##' @param seed_rain seed_rain for test environment
+##' @export
+##' @rdname FF16_test_environment
+##' @examples
+##' environment <- FF16_test_environment(10)
 FF16_test_environment <- function(height, n=101, light_env=NULL,
                              n_strategies=1, seed_rain=0) {
   if (length(seed_rain) == 1) {
@@ -195,8 +192,6 @@ make_FF16_hyperpar <- function(
   assert_scalar(B_lf5)
   assert_scalar(k_I)
   assert_scalar(latitude)
-
-  ## TODO: k_I should actually be in default parameter set, so perhaps don't pass into function?
 
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {

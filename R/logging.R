@@ -61,6 +61,7 @@ make_plant_format_log_entry <- function(colour) {
 ##' @param ... Additional parameters passed to \code{loggr::log_file},
 ##' but \emph{not} \code{file_name} which is hard coded here to
 ##' \code{"console"}.
+##' @param file_name File to save output (default = console)
 ##' @param .message,.warning,.error Include messages, warnings or
 ##' errors?  By default (and in contrast to \code{loggr::log_file}
 ##' these are disabled here.

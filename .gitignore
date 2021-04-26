@@ -3,6 +3,8 @@ inst/website
 *Rproj*
 *.Rhistory*
 ^plant.Rcheck$
+check/*
+src/symbols.rds
 .Rproj.user
 src/*.o.tmp
 src/*.o
@@ -10,3 +12,4 @@ src/*.so
 tmp*
 .vscode
 scrap.R
+

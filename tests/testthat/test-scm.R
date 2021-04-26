@@ -3,7 +3,7 @@ context("SCM-general")
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
-test_that("Ported from tree1", {
+test_that("Run SCM", {
   for (x in names(strategy_types)) {
 
     s <- strategy_types[[x]]()
@@ -15,9 +15,6 @@ test_that("Ported from tree1", {
                           seed_rain=pi/2,
                           patch_area=10,
                           is_resident=TRUE)
-    
-    if(grepl("K93", x))
-      p$k_I <- 1e-3
 
     expect_error(scm <- SCM(x, e)(p), "Patch area must be exactly 1 for the SCM")
 
@@ -243,9 +240,6 @@ test_that("Seed rain & error calculations correct", {
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE)
-    
-    if(grepl("K93", x))
-      p1$k_I <- 1e-3
 
     scm <- run_scm(p1)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
