@@ -12,10 +12,10 @@ test_that("Ported from tree1", {
     cohort <- Cohort(x, e)(s)
 
     p <- Parameters(x, e)(strategies=list(s),
-                          offspring_arriving=pi/2,
+                          birth_rate=pi/2,
                           patch_area=10,
                           is_resident=TRUE)
-    
+
     if(grepl("K93", x))
       p$k_I <- 1e-3
 
@@ -32,7 +32,7 @@ test_that("Ported from tree1", {
     expect_is(scm$patch, sprintf("Patch<%s,%s>", x, e))
     expect_equal(length(scm$patch$species), 1)
     expect_is(scm$patch$species[[1]], sprintf("Species<%s,%s>",x,e))
-    expect_is(scm$patch$species[[1]]$offspring, sprintf("Cohort<%s,%s>",x,e))
+    expect_is(scm$patch$species[[1]]$new_cohort, sprintf("Cohort<%s,%s>",x,e))
     expect_identical(scm$patch$time, 0.0)
 
     sched <- scm$cohort_schedule
@@ -101,7 +101,7 @@ test_that("Ported from tree1", {
     expect_equal(scm$patch$ode_size, 0)
     expect_equal(scm$cohort_schedule$remaining, length(t))
 
-    ## At this point, and possibly before scm$all_offspring_produced is corrupt.
+    ## At this point, and possibly before scm$average_fecundity is corrupt.
 
     ## This is stalling really badly, but it's not totally clear why.
     ## It's *not* the ODE system thrashing (thankfully) because the
@@ -169,7 +169,7 @@ test_that("schedule setting", {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(
       strategies=list(strategy_types[[x]]()),
-      offspring_arriving=pi/2,
+      birth_rate=pi/2,
       is_resident=TRUE,
       cohort_schedule_max_time=5.0)
     scm <- SCM(x, e)(p)
@@ -243,27 +243,28 @@ test_that("Seed rain & error calculations correct", {
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE)
-    
+
     if(grepl("K93", x))
       p1$k_I <- 1e-3
 
     scm <- run_scm(p1)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
 
-    offspring_produced_R <- function(scm, error=FALSE) {
+    net_reproduction_ratio_R <- function(scm, error=FALSE) {
       a <- scm$cohort_schedule$times(1)
       d <- scm$patch$environment$disturbance_regime
-      pa <- d$density(a)
-      p <- scm$parameters
-      scale <- scm$parameters$strategies[[1]]$S_D * p$offspring_arriving
-      all_offspring <- pa * scm$patch$species[[1]]$all_offspring * scale
-      total <- trapezium(a, all_offspring)
-      if (error) local_error_integration(a, all_offspring, total) else total
+      net_reproduction_ratio_by_cohort_weighted <- d$density(a)
+        scm$patch$species[[1]]$net_reproduction_ratio_by_cohort * 
+        scm$parameters$strategies[[1]]$S_D
+      total <- trapezium(a, net_reproduction_ratio_by_cohort_weighted)
+      if (error) 
+        local_error_integration(a, net_reproduction_ratio_by_cohort_weighted, total) 
+      else total
     }
 
-    expect_equal(scm$offspring_produced(1), offspring_produced_R(scm))
-    expect_equal(scm$all_offspring_produced, offspring_produced_R(scm))
-    expect_equal(scm$offspring_produced_error[[1]], offspring_produced_R(scm, error=TRUE))
+    expect_equal(scm$net_reproduction_ratio_for_species(1), net_reproduction_ratio_R(scm))
+    expect_equal(scm$net_reproduction_ratios, net_reproduction_ratio_R(scm))
+    expect_equal(scm$net_reproduction_ratio_error[[1]], net_reproduction_ratio_R(scm, error=TRUE))
 
     lae_cmp <-
       scm$patch$species[[1]]$competition_effects_error(scm$patch$compute_competition(0))
@@ -271,7 +272,7 @@ test_that("Seed rain & error calculations correct", {
 
     int <- make_scm_integrate(scm)
     S_D <- scm$parameters$strategies[[1]]$S_D
-    expect_equal(int("offspring_produced_survival_weighted") * S_D, scm$offspring_produced(1))
+    expect_equal(int("offspring_produced_survival_weighted") * S_D, scm$average_fecundity(1))
 
     res <- run_scm_collect(p1)
     int2 <- make_scm_integrate(res)

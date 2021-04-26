@@ -1,4 +1,4 @@
-## TODO: Test add_all_offspring(vector<double>)
+## TODO: Test introduce_new_cohorts(vector<double>)
 
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
@@ -7,7 +7,7 @@ for (x in names(strategy_types)) {
   context(sprintf("Patch-%s",x))
 
   test_that(sprintf("Basics %s", x), {
-    ## TODO: This is something that needs validating: the offspring_arriving and
+    ## TODO: This is something that needs validating: the birth_rate and
     ## is_resident vectors must be the right length.
 
     s <- strategy_types[[x]]()
@@ -16,7 +16,7 @@ for (x in names(strategy_types)) {
     cohort <- Cohort(x, e)(s)
 
     p <- Parameters(x, e)(strategies=list(s),
-                          offspring_arriving=pi/2,
+                          birth_rate=pi/2,
                           is_resident=TRUE)
 
     patch <- Patch(x, e)(p)
@@ -41,11 +41,11 @@ for (x in names(strategy_types)) {
     patch$compute_environment()
     expect_identical(patch$compute_competition(0), 0)
 
-    expect_error(patch$add_offspring(0), "Invalid value")
-    expect_error(patch$add_offspring(2), "out of bounds")
+    expect_error(patch$introduce_new_cohort(0), "Invalid value")
+    expect_error(patch$introduce_new_cohort(2), "out of bounds")
 
     ode_size <- Cohort(x, e)(s)$ode_size
-    patch$add_offspring(1)
+    patch$introduce_new_cohort(1)
     expect_equal(patch$ode_size, ode_size)
 
     ## Then pull this out:
@@ -63,7 +63,7 @@ for (x in names(strategy_types)) {
 
     ## solver <- solver_from_ode_target(patch, p$control$ode_control)
     ## solver$step()
-    ## patch$add_offspring(1)
+    ## patch$introduce_new_cohort(1)
     ## expect_equal(patch$ode_size,
     ##             cmp$ode_size * patch$n_individuals)
 
@@ -73,7 +73,7 @@ for (x in names(strategy_types)) {
 
     t <- patch$environment$time # do via environment only?
 
-    ## patch$add_offspring(1)
+    ## patch$introduce_new_cohort(1)
     ## h <- patch$state("height")[[1]]
     ## while (patch$time < 25) {
     ##   solver$step()
@@ -89,7 +89,7 @@ for (x in names(strategy_types)) {
     ## }
 
     ## patch$reset()
-    ## patch$add_offspring(1)
+    ## patch$introduce_new_cohort(1)
     ## solver <- solver_from_ode_target(patch, p$control$ode_control)
 
     ## tt <- seq(0, 25, length.out=26)
@@ -115,14 +115,14 @@ for (x in names(strategy_types)) {
 
     ## test_that("State get/set works", {
     ##   patch$reset()
-    ##   patch$add_offspring(1)
+    ##   patch$introduce_new_cohort(1)
     ##   ode.control <- p$control$ode_control
     ##   ode.control$set_parameters(list(step_size_min = 1e-4))
     ##   solver <- solver_from_ode_target(patch, ode.control)
     ##   while (patch$time < 5) {
     ##     solver$step()
     ##     if (patch$time > patch$n_individuals) {
-    ##       patch$add_offspring(1)
+    ##       patch$introduce_new_cohort(1)
     ##       solver <- solver_from_ode_target(patch, ode.control)
     ##     }
     ##   }

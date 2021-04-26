@@ -18,14 +18,14 @@ fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), raw_o
   p_with_mutants <- expand_parameters(trait_matrix, p, hyperpar)
   scm <- run_scm(p_with_mutants,
                  use_ode_times=length(p$cohort_schedule_ode_times) > 0)
-  offspring_produced <- scm$all_offspring_produced
+  net_reproduction_ratios <- scm$net_reproduction_ratios
   if (n_residents > 0L) {
-    offspring_produced <- offspring_produced[-seq_len(n_residents)]
+    net_reproduction_ratios <- net_reproduction_ratios[-seq_len(n_residents)]
   }
   if (raw_offspring_produced) {
-    offspring_produced
+    net_reproduction_ratios
   } else {
-    log(offspring_produced)
+    log(net_reproduction_ratios)
   }
 }
 
@@ -52,11 +52,11 @@ max_growth_rate <- function(trait_matrix, p) {
 ##' @param trait_matrix A matrix of traits
 ##' @param p Parameters object to use.  Importantly, the
 ##' \code{strategy_default} element gets used here.
-##' @param offspring_arriving Initial offspring arrival (optional)
+##' @param birth_rate Initial offspring arrival (optional)
 ##' @param parallel Use multiple processors?
 ##' @author Rich FitzJohn
 ##' @export
-carrying_capacity <- function(trait_matrix, p, offspring_arriving=1,
+carrying_capacity <- function(trait_matrix, p, birth_rate=1,
                               parallel=FALSE) {
   f <- function(x) {
     ## NOTE: This is not very pretty because matrix_to_list, which we
@@ -65,8 +65,8 @@ carrying_capacity <- function(trait_matrix, p, offspring_arriving=1,
     p <- expand_parameters(trait_matrix(x, traits),
                            remove_residents(p),
                            mutant=FALSE)
-    p$offspring_arriving <- offspring_arriving
-    equilibrium_offspring_arriving(p)$offspring_arriving
+    p$birth_rate <- birth_rate
+    equilibrium_offspring_arriving(p)$birth_rate
   }
   traits <- colnames(trait_matrix)
   unlist(loop(matrix_to_list(trait_matrix), f, parallel=parallel))

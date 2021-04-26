@@ -118,9 +118,9 @@ void Cohort<T,E>::compute_initial_conditions(const environment_type& environment
   const double pr_germ = plant.establishment_probability(environment);
   plant.set_state("mortality", -log(pr_germ));
   const double g = plant.rate("height");
-  const double offspring_arriving = environment.offspring_arriving_dt();
+  const double birth_rate = environment.offspring_arriving_dt();
   // NOTE: log(0.0) -> -Inf, which should behave fine.
-  set_log_density(g > 0 ? log(offspring_arriving * pr_germ / g) : log(0.0));
+  set_log_density(g > 0 ? log(birth_rate * pr_germ / g) : log(0.0));
 
   // Need to check that the rates are valid after setting the
   // mortality value here (can go to -Inf and that requires squashing

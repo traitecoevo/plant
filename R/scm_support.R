@@ -137,7 +137,7 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
 
   ret <- list(time=time, species=species,
               env=env,
-              offspring_produced=scm$all_offspring_produced,
+              net_reproduction_ratios=scm$net_reproduction_ratios,
               patch_density=patch_density,
               p=p)
 
@@ -195,15 +195,15 @@ run_scm_error <- function(p) {
   }
 
   lai_error <- lapply(lai_error, function(x) rbind_list(pad_matrix(x)))
-  offspring_produced_error <- scm$offspring_produced_error
+  average_fecundity_error <- scm$average_fecundity_error
   f <- function(m) {
     suppressWarnings(apply(m, 2, max, na.rm=TRUE))
   }
   total <- lapply(seq_len(n_spp), function(idx)
-                  f(rbind(lai_error[[idx]], offspring_produced_error[[idx]])))
+                  f(rbind(lai_error[[idx]], average_fecundity_error[[idx]])))
 
-  list(offspring_produced=scm$all_offspring_produced,
-       err=list(lai=lai_error, offspring_produced=offspring_produced_error, total=total),
+  list(net_reproduction_ratios=scm$net_reproduction_ratios,
+       err=list(lai=lai_error, net_reproduction_ratios=average_fecundity_error, total=total),
        ode_times=scm$ode_times)
 }
 
@@ -275,7 +275,7 @@ species_to_internals <- function(sp, environment=NULL) {
   colnames(ints) <- new_names
   cbind(ints,
         log_density=sp$log_densities,
-        offspring_produced_survival_weighted=sp$all_offspring)
+        offspring_produced_survival_weighted=sp$net_reproduction_ratios)
 }
 
 ##' Create a function that allows integrating aggregate properties of

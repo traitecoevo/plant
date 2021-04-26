@@ -16,8 +16,8 @@ public:
   Water_Environment() {
     time = NA_REAL;
     disturbance_regime = 30;
-    offspring_arriving = { 1.0, 1.0, 1.0 };
-    offspring_arriving_index = 0;
+    birth_rate = { 1.0, 1.0, 1.0 };
+    species_arriving_index = 0;
     k_I = NA_REAL;
     environment_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
     // Define an anonymous function to pass got the environment generator
@@ -39,8 +39,8 @@ public:
                               control.environment_light_max_depth);
     time = 0.0;
     disturbance_regime = disturbance_mean_interval;
-    offspring_arriving = offspring_arriving_;
-    offspring_arriving_index = 0;
+    birth_rate = offspring_arriving_;
+    species_arriving_index = 0;
     inflow_rate = 1.0;
     vars = Internals(1);
   };

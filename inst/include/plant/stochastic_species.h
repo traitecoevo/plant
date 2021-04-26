@@ -44,13 +44,13 @@ public:
   size_t size() const;
   size_t size_plants() const {return plants.size();}
   void clear();
-  void add_offspring();
-  void add_offspring(const E& environment);
+  void introduce_new_cohort();
+  void introduce_new_cohort(const E& environment);
 
   double height_max() const;
   double compute_competition(double height) const;
   void compute_rates(const E& environment);
-  std::vector<double> all_offspring() const;
+  std::vector<double> net_reproduction_ratio_by_cohort() const;
 
   // This is totally new, relative to the deterministic model; this
   // will destructively modify the species by removing individuals.
@@ -72,7 +72,7 @@ public:
   std::vector<bool> r_is_alive() const {return is_alive;}
   std::vector<double> r_heights() const;
   void r_set_heights(std::vector<double> heights);
-  const individual_type& r_offspring() const {return offspring;}
+  const individual_type& r_new_cohort() const {return offspring;}
   std::vector<individual_type> r_plants() const {return plants;}
   const individual_type& r_plant_at(util::index idx) const {
     return plants[idx.check_bounds(size_plants())];
@@ -109,14 +109,14 @@ void StochasticSpecies<T,E>::clear() {
 // Note that this does not do establishment probability; suggest that
 // this is best to do in the StochasticPatch perhaps?
 template <typename T, typename E>
-void StochasticSpecies<T,E>::add_offspring() {
+void StochasticSpecies<T,E>::introduce_new_cohort() {
   plants.push_back(offspring);
   is_alive.push_back(true);
 }
 
 template <typename T, typename E>
-void StochasticSpecies<T,E>::add_offspring(const E& environment) {
-  add_offspring();
+void StochasticSpecies<T,E>::introduce_new_cohort(const E& environment) {
+  introduce_new_cohort();
   plants.back().compute_rates(environment);
 }
 
@@ -182,7 +182,7 @@ void StochasticSpecies<T,E>::compute_rates(const E& environment) {
 
 // TODO: This is going to change...
 template <typename T, typename E>
-std::vector<double> StochasticSpecies<T,E>::all_offspring() const {
+std::vector<double> StochasticSpecies<T,E>::net_reproduction_ratio_by_cohort() const {
   std::vector<double> ret;
   ret.reserve(size());
   // I don't think that this is quite right; is it fecundity that we

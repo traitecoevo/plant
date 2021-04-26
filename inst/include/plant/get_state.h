@@ -30,7 +30,7 @@ Rcpp::NumericMatrix get_state(const Species<T,E>& species) {
   for (size_t i = 0; i < np; ++i) {
     it = get_state(species.r_cohort_at(i), it);
   }
-  it = get_state(species.r_offspring(), it);
+  it = get_state(species.r_new_cohort(), it);
   ret.attr("dimnames") =
     Rcpp::List::create(cohort_type::ode_names(), R_NilValue);
   return ret;

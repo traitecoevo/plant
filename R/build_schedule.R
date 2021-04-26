@@ -10,7 +10,7 @@
 ##' @param p Parameters object
 ##' @return A Parameters object, with schedule components set.  The
 ##' output offspring produced is also available as an attribute
-##' \code{offspring_arriving}.
+##' \code{birth_rate}.
 ##' @author Rich FitzJohn
 ##' @export
 build_schedule <- function(p) {
@@ -25,7 +25,7 @@ build_schedule <- function(p) {
 
   for (i in seq_len(control$schedule_nsteps)) {
     res <- run_scm_error(p)
-    offspring_produced <- res[["offspring_produced"]]
+    net_reproduction_ratios <- res[["net_reproduction_ratios"]]
     split <- lapply(res$err$total, function(x) x > eps)
 
     if (!any(unlist(split), na.rm=TRUE)) {
@@ -48,7 +48,7 @@ build_schedule <- function(p) {
 
   p$cohort_schedule_ode_times <- res$ode_times
   ## Useful to record the last offspring produced:
-  attr(p, "offspring_produced") <- offspring_produced
+  attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
 
   p
 }

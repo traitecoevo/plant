@@ -33,8 +33,10 @@ public:
   bool complete() const;
 
   // * Output total offspring calculation (not per capita)
-  double offspring_produced(size_t species_index) const;
-  std::vector<double> all_offspring_produced() const;
+  std::vector<double> net_reproduction_ratio_by_cohort_weighted(size_t species_index) const;
+  double net_reproduction_ratio_for_species(size_t species_index) const;
+  std::vector<double> net_reproduction_ratios() const;
+  std::vector<double> offspring_production() const;
 
   // * R interface
   std::vector<util::index> r_run_next();
@@ -44,10 +46,8 @@ public:
   // default.  The pluralisation difference between
   // SCM::r_competition_effect_error and Species::r_competition_effects_error will get
   // dealt with then.
-  double              r_offspring_produced(util::index species_index) const;
-  std::vector<double> r_offspring_produced_cohort(util::index species_index) const;
-  std::vector<double> r_offspring_produced_error(util::index species_index) const;
-  std::vector<std::vector<double> > r_offspring_produced_error() const;
+  double r_net_reproduction_ratio_for_species(util::index species_index) const;
+  std::vector<std::vector<double> > r_net_reproduction_ratio_errors() const;
   std::vector<double> r_competition_effect_error(util::index species_index) const;
   std::vector<double> r_ode_times() const;
   bool r_use_ode_times() const;
@@ -58,8 +58,7 @@ public:
   void r_set_cohort_schedule_times(std::vector<std::vector<double> > x);
 
 private:
-  double offspring_produced_total() const;
-  std::vector<double> offspring_produced_cohort(size_t species_index) const;
+  double total_offspring_production() const;
 
   parameters_type parameters;
   patch_type patch;
@@ -105,7 +104,7 @@ std::vector<size_t> SCM<T,E>::run_next() {
       e = cohort_schedule.next_event();
     }
   }
-  patch.add_all_offspring(ret);
+  patch.introduce_new_cohorts(ret);
 
   const bool use_ode_times = cohort_schedule.using_ode_times();
   solver.set_state_from_system(patch);
@@ -140,57 +139,8 @@ bool SCM<T,E>::complete() const {
 }
 
 template <typename T, typename E>
-double SCM<T,E>::offspring_produced(size_t species_index) const {
-  return util::trapezium(cohort_schedule.times(species_index),
-                         offspring_produced_cohort(species_index));
-}
-
-template <typename T, typename E>
-std::vector<double> SCM<T,E>::all_offspring_produced() const {
-  std::vector<double> ret;
-  for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(offspring_produced(i));
-  }
-  return ret;
-}
-
-template <typename T, typename E>
 std::vector<util::index> SCM<T,E>::r_run_next() {
   return util::index_vector(run_next());
-}
-
-template <typename T, typename E>
-double SCM<T,E>::r_offspring_produced(util::index species_index) const {
-  return offspring_produced(species_index.check_bounds(patch.size()));
-}
-
-template <typename T, typename E>
-std::vector<double>
-SCM<T,E>::r_offspring_produced_cohort(util::index species_index) const {
-  return offspring_produced_cohort(species_index.check_bounds(patch.size()));
-}
-
-template <typename T, typename E>
-std::vector<double> SCM<T,E>::r_offspring_produced_error(util::index species_index) const {
-  // TODO: This causes this to happen too often, given we usually get
-  // all the errors I think? (see TODO in class definition)
-  double total_offspring = offspring_produced_total();
-  const size_t idx = species_index.check_bounds(patch.size());
-  return util::local_error_integration(cohort_schedule.times(idx),
-                                       offspring_produced_cohort(idx),
-                                       total_offspring);
-}
-
-template <typename T, typename E>
-std::vector<std::vector<double> > SCM<T,E>::r_offspring_produced_error() const {
-  std::vector<std::vector<double> > ret;
-  double total_offspring = offspring_produced_total();
-  for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(util::local_error_integration(cohort_schedule.times(i),
-                                                offspring_produced_cohort(i),
-                                                total_offspring));
-  }
-  return ret;
 }
 
 template <typename T, typename E>
@@ -240,26 +190,86 @@ void SCM<T,E>::r_set_cohort_schedule_times(std::vector<std::vector<double> > x) 
   parameters.cohort_schedule_times = x;
 }
 
+
+// Offspring production, equal to overall fitness scaled by the birth rate
 template <typename T, typename E>
-double SCM<T,E>::offspring_produced_total() const {
-  double tot = 0.0;
+std::vector<double> SCM<T,E>::offspring_production() const {
+  std::vector<double> ret;
   for (size_t i = 0; i < patch.size(); ++i) {
-    tot += offspring_produced(i);
+    ret.push_back(net_reproduction_ratio_for_species(i) *
+                  parameters.birth_rate[i]);
   }
-  return tot;
+  return ret;
 }
 
+// Overall fitness
 template <typename T, typename E>
-std::vector<double> SCM<T,E>::offspring_produced_cohort(size_t species_index) const {
-  const std::vector<double> times = cohort_schedule.times(species_index);
-  const Disturbance& disturbance_regime = patch.disturbance_regime();
-  const double S_D = parameters.strategies[species_index].S_D;
-  const double scal = S_D * parameters.offspring_arriving[species_index];
-  std::vector<double> offspring_produced = patch.at(species_index).all_offspring();
-  for (size_t i = 0; i < offspring_produced.size(); ++i) {
-    offspring_produced[i] *= disturbance_regime.density(times[i]) * scal;
+std::vector<double> SCM<T,E>::net_reproduction_ratios() const {
+  std::vector<double> ret;
+  for (size_t i = 0; i < patch.size(); ++i) {
+    ret.push_back(net_reproduction_ratio_for_species(i));
   }
-  return offspring_produced;
+  return ret;
+}
+
+// Integrate over lifetime fitness of individual cohorts
+template <typename T, typename E>
+double SCM<T,E>::net_reproduction_ratio_for_species(size_t species_index) const {
+  return util::trapezium(cohort_schedule.times(species_index),
+                         net_reproduction_ratio_by_cohort_weighted(species_index));
+}
+
+// R interface method
+template <typename T, typename E>
+double SCM<T,E>::r_net_reproduction_ratio_for_species(util::index species_index) const {
+  return net_reproduction_ratio_for_species(species_index.check_bounds(patch.size()));
+}
+
+// Cohort fitness within a meta-population of patches
+template <typename T, typename E>
+std::vector<double> SCM<T,E>::net_reproduction_ratio_by_cohort_weighted(size_t species_index) const {
+  // cohort introduction times
+  const std::vector<double> times = cohort_schedule.times(species_index);
+
+  // pointer to query patch disturbance regime
+  const Disturbance& disturbance_regime = patch.disturbance_regime();
+
+  // retrieve lifetime fitness for each cohort
+  std::vector<double> net_reproduction_ratio_by_cohort_weighted =
+                        patch.at(species_index).net_reproduction_ratio_by_cohort();
+
+  // weight by probabilty of reproduction
+  for (size_t i = 0; i < net_reproduction_ratio_by_cohort_weighted.size(); ++i) {
+    net_reproduction_ratio_by_cohort_weighted[i] *=
+      disturbance_regime.density(times[i]) * // probability of landing in patch of a given age
+      parameters.strategies[species_index].S_D; // probability of survival during dispersal (assumed constant)
+  }
+
+  return net_reproduction_ratio_by_cohort_weighted;
+}
+
+// Sum up all offspring produced
+template <typename T, typename E>
+double SCM<T,E>::total_offspring_production() const {
+  double total = 0.0;
+  std::vector<double> offspring = offspring_production();
+  for (size_t i = 0; i < patch.size(); ++i) {
+    total += offspring[i];
+  }
+  return total;
+}
+
+// Check integration errors
+template <typename T, typename E>
+std::vector<std::vector<double> > SCM<T,E>::r_net_reproduction_ratio_errors() const {
+  std::vector<std::vector<double> > ret;
+  double total_offspring = total_offspring_production();
+  for (size_t i = 0; i < patch.size(); ++i) {
+    ret.push_back(util::local_error_integration(cohort_schedule.times(i),
+                                                net_reproduction_ratio_by_cohort_weighted(i),
+                                                total_offspring));
+  }
+  return ret;
 }
 
 }

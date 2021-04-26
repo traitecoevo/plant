@@ -23,12 +23,12 @@ stochastic_arrival_times <- function(max_time, offspring_arriving_total, n=NULL)
 
 stochastic_schedule <- function(p) {
   max_time  <- p$cohort_schedule_max_time
-  offspring_arriving <- p$offspring_arriving * p$patch_area
-  n_species <- length(offspring_arriving)
+  birth_rate <- p$birth_rate * p$patch_area
+  n_species <- length(birth_rate)
   sched <- CohortSchedule(n_species)
   sched$max_time <- max_time
-  for (i in seq_along(offspring_arriving)) {
-    sched$set_times(stochastic_arrival_times(max_time, offspring_arriving[[i]]), i)
+  for (i in seq_along(birth_rate)) {
+    sched$set_times(stochastic_arrival_times(max_time, birth_rate[[i]]), i)
   }
   sched
 }
@@ -85,7 +85,7 @@ run_stochastic_collect <- function(p, random_schedule=TRUE) {
   ret <- list(time=time,
               species=species,
               light_env=light_env,
-              offspring_produced=obj$all_offspring_produced,
+              net_reproduction_ratios=obj$net_reproduction_ratios,
               patch_density=patch_density,
               p=p)
 

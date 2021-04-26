@@ -22,7 +22,7 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
   f_build_schedule <- function(x) {
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
-    p$offspring_arriving <- 0.1
+    p$birth_rate <- 0.1
 
     if (grepl("K93", x))
       p$k_I <- 1e-3

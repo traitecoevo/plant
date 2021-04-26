@@ -12,7 +12,7 @@ test_that("Creation & defaults", {
 
     expect_equal(length(p$strategies), 0)
     expect_equal(length(p$is_resident), 0)
-    expect_equal(length(p$offspring_arriving), 0)
+    expect_equal(length(p$birth_rate), 0)
 
     expected <- list(k_I=0.5,
                      n_patches=1,    # NOTE: Different to tree 0.1
@@ -33,23 +33,23 @@ test_that("Nontrivial creation", {
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(s))
-    expect_equal(p$offspring_arriving, 1.0)
+    expect_equal(p$birth_rate, 1.0)
     expect_true(p$is_resident)
 
-    expect_error(Parameters(x, e)(offspring_arriving=pi), "Incorrect length offspring_arriving")
+    expect_error(Parameters(x, e)(birth_rate=pi), "Incorrect length birth_rate")
     expect_error(Parameters(x, e)(is_resident=FALSE), "Incorrect length is_resident")
 
     expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
                                    strategy_types[[x]]()),
-                                 offspring_arriving=pi),
-                 "Incorrect length offspring_arriving")
+                                 birth_rate=pi),
+                 "Incorrect length birth_rate")
     expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
                                    strategy_types[[x]]()),
                                  is_resident=TRUE),
                  "Incorrect length is_resident")
 
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          offspring_arriving=pi,
+                          birth_rate=pi,
                           is_resident=TRUE)
 
     expect_identical(p$cohort_schedule_max_time, cohort_schedule_max_time_default(p))
@@ -58,7 +58,7 @@ test_that("Nontrivial creation", {
 
     ## Now, with some of these set:
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          offspring_arriving=pi,
+                          birth_rate=pi,
                           is_resident=TRUE,
                           disturbance_mean_interval=2)
 
@@ -85,7 +85,7 @@ test_that("Parameters overwrites Strategy control", {
     expect_identical(p$control, ctrl_p)
 
     p$strategies <- list(s)
-    p$offspring_arriving <- 1
+    p$birth_rate <- 1
     p$is_resident <- TRUE
     ## Pass though to force validation:
     tmp <- Patch(x, e)(p)$parameters
@@ -94,7 +94,7 @@ test_that("Parameters overwrites Strategy control", {
 
     ## In one shot:
     p2 <- Parameters(x, e)(control=ctrl_p, strategies=list(s),
-                           offspring_arriving=1, is_resident=TRUE)
+                           birth_rate=1, is_resident=TRUE)
     expect_identical(p2$control, ctrl_p)
     expect_identical(p2$strategies[[1]]$control, ctrl_p)
   }
@@ -104,7 +104,7 @@ test_that("Generate cohort schedule", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          offspring_arriving=pi/2, is_resident=TRUE)
+                          birth_rate=pi/2, is_resident=TRUE)
     sched <- make_cohort_schedule(p)
 
     expect_equal(sched$n_species, 1)

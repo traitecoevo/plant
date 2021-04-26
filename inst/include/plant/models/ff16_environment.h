@@ -16,8 +16,8 @@ public:
     // Define an anonymous function to pass got the environment generator
     time = NA_REAL;
     disturbance_regime = 0;
-    offspring_arriving = { 1.0, 1.0, 1.0 };
-    offspring_arriving_index = 0;
+    birth_rate = { 1.0, 1.0, 1.0 };
+    species_arriving_index = 0;
     canopy = Canopy();
   };
 
@@ -27,8 +27,8 @@ public:
                    Control control) {
     time = 0.0;
     disturbance_regime = disturbance_mean_interval;
-    offspring_arriving = offspring_arriving_;
-    offspring_arriving_index = 0;
+    birth_rate = offspring_arriving_;
+    species_arriving_index = 0;
     canopy = Canopy(k_I, control);
   };
 

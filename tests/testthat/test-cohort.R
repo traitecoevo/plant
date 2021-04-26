@@ -19,7 +19,7 @@ for (x in names(strategy_types)) {
 
     env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
-                            offspring_arriving=1.0)
+                            birth_rate=1.0)
 
     ## The big unknown is the growth rate gradient calculation; that is,
     ## the derivative d(dh/dt)/dh.
@@ -106,7 +106,7 @@ for (x in names(strategy_types)) {
 
     env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
-                            offspring_arriving=1.0)
+                            birth_rate=1.0)
 
     cohort$compute_initial_conditions(env)
     plant$compute_rates(env)
@@ -153,7 +153,7 @@ for (x in names(strategy_types)) {
 
     env <- test_environment(x, 10,
                             light_env=function(x) rep(1, length(x)),
-                            offspring_arriving=1.0)
+                            birth_rate=1.0)
 
     h <- cohort$height
 

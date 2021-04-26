@@ -11,12 +11,12 @@ for (x in names(strategy_types)) {
   context(sprintf("Species-%s",x))
 
   test_that("Basics", {
-    env <- test_environment(x, 3, offspring_arriving=1.0)
+    env <- test_environment(x, 3, birth_rate=1.0)
     s <- strategy_types[[x]]()
     sp <- Species(x, e)(s)
-    offspring <- Cohort(x, e)(s)
+    new_cohort <- Cohort(x, e)(s)
     plant <- Individual(x, e)(s)
-    h0 <- offspring$height
+    h0 <- new_cohort$height
 
     expect_equal(sp$size, 0)
     expect_identical(sp$height_max, h0)
@@ -31,40 +31,40 @@ for (x in names(strategy_types)) {
 
     ## Causes initial conditions to be estimated:
     sp$compute_rates(env)
-    offspring$compute_initial_conditions(env)
+    new_cohort$compute_initial_conditions(env)
 
-    ## Internal and test offspring report same values:
-    expect_identical(sp$offspring$rates, offspring$rates)
-    expect_identical(sp$offspring$ode_state, offspring$ode_state)
+    ## Internal and test new_cohort report same values:
+    expect_identical(sp$new_cohort$rates, new_cohort$rates)
+    expect_identical(sp$new_cohort$ode_state, new_cohort$ode_state)
 
-    sp$add_offspring()
+    sp$introduce_new_cohort()
     expect_equal(sp$size, 1)
 
     cohorts <- sp$cohorts
     expect_is(cohorts, "list")
     expect_equal(length(cohorts), 1)
-    expect_identical(cohorts[[1]]$rates, offspring$rates)
-    expect_equal(sp$heights, offspring$height)
-    expect_equal(sp$log_densities, offspring$log_density)
-    expect_equal(sp$competition_effects, offspring$competition_effect)
+    expect_identical(cohorts[[1]]$rates, new_cohort$rates)
+    expect_equal(sp$heights, new_cohort$height)
+    expect_equal(sp$log_densities, new_cohort$log_density)
+    expect_equal(sp$competition_effects, new_cohort$competition_effect)
     ## NOTE: Didn't check ode values
 
-    ## Internal and test offspring report same values:
-    expect_identical(sp$offspring$rates, offspring$rates)
+    ## Internal and test new_cohort report same values:
+    expect_identical(sp$new_cohort$rates, new_cohort$rates)
 
     expect_is(sp$cohort_at(1), sprintf("Cohort<%s,%s>",x,e))
     expect_identical(sp$cohort_at(1)$rates, cohorts[[1]]$rates)
 
     ## Not sure about this -- do we need more immediate access?
-    expect_identical(sp$offspring$plant$establishment_probability(env), plant$establishment_probability(env))
+    expect_identical(sp$new_cohort$plant$establishment_probability(env), plant$establishment_probability(env))
 
     expect_equal(sp$compute_competition(0), 0)
 
     sp$heights <- 1
 
     h <- 0
-    xx <- c(sp$offspring$height, sp$heights)
-    y <- c(sp$offspring$compute_competition(h),
+    xx <- c(sp$new_cohort$height, sp$heights)
+    y <- c(sp$new_cohort$compute_competition(h),
            sp$cohort_at(1)$compute_competition(h))
 
     expect_identical(sp$compute_competition(h), trapezium(xx, y))
@@ -90,9 +90,9 @@ for (x in names(strategy_types)) {
 
   ## 2: Cohort up against boundary has no leaf area:
   test_that("species with only boundary cohort no leaf area", {
-    env <- test_environment(x, 3, offspring_arriving=1.0)
+    env <- test_environment(x, 3, birth_rate=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
-    sp$add_offspring()
+    sp$introduce_new_cohort()
     sp$compute_rates(env)
     expect_equal(sp$compute_competition(0), 0)
     expect_equal(sp$compute_competition(10), 0)
@@ -100,18 +100,18 @@ for (x in names(strategy_types)) {
   })
 
   cmp_compute_competition <- function(h, sp) {
-    x <- c(sp$heights, sp$offspring$height)
+    x <- c(sp$heights, sp$new_cohort$height)
     y <- c(sapply(sp$cohorts, function(p) p$compute_competition(h)),
-           sp$offspring$compute_competition(h))
+           sp$new_cohort$compute_competition(h))
     trapezium(rev(x), rev(y))
   }
 
   ## 3: Single cohort; one round of trapezium:
   test_that("Leaf area sensible with one cohort", {
-    env <- test_environment(x, 3, offspring_arriving=1.0)
+    env <- test_environment(x, 3, birth_rate=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env)
-    sp$add_offspring()
+    sp$introduce_new_cohort()
     h_top <- sp$height_max * 4
     sp$heights <- h_top
 
@@ -133,12 +133,12 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Leaf area sensible with two cohorts", {
-    env <- test_environment(x, 3, offspring_arriving=1.0)
+    env <- test_environment(x, 3, birth_rate=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env)
-    sp$add_offspring()
+    sp$introduce_new_cohort()
     h_top <- sp$height_max * 4
-    sp$add_offspring()
+    sp$introduce_new_cohort()
     sp$heights <- h_top * c(1, .6)
 
     ## At base and top
@@ -159,13 +159,13 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Leaf area sensible with three cohorts", {
-    env <- test_environment(x, 3, offspring_arriving=1.0)
+    env <- test_environment(x, 3, birth_rate=1.0)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$compute_rates(env)
-    sp$add_offspring()
+    sp$introduce_new_cohort()
     h_top <- sp$height_max * 4
-    sp$add_offspring()
-    sp$add_offspring()
+    sp$introduce_new_cohort()
+    sp$introduce_new_cohort()
     sp$heights <- h_top * c(1, .75, .6)
 
     ## At base and top

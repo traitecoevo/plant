@@ -502,7 +502,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant:
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
   ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["offspring_arriving"] = Rcpp::wrap(x.offspring_arriving);
+  ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
@@ -532,8 +532,8 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   ret.disturbance_mean_interval = Rcpp::as<double >(xl["disturbance_mean_interval"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
   ret.strategies = Rcpp::as<std::vector<plant::FF16_Strategy> >(xl["strategies"]);
-  // ret.offspring_arriving = Rcpp::as<decltype(retoffspring_arriving) >(xl["offspring_arriving"]);
-  ret.offspring_arriving = Rcpp::as<std::vector<double> >(xl["offspring_arriving"]);
+  // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
+  ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
@@ -559,7 +559,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16r_Strategy,plant
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
   ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["offspring_arriving"] = Rcpp::wrap(x.offspring_arriving);
+  ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
@@ -589,8 +589,8 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environme
   ret.disturbance_mean_interval = Rcpp::as<double >(xl["disturbance_mean_interval"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
   ret.strategies = Rcpp::as<std::vector<plant::FF16r_Strategy> >(xl["strategies"]);
-  // ret.offspring_arriving = Rcpp::as<decltype(retoffspring_arriving) >(xl["offspring_arriving"]);
-  ret.offspring_arriving = Rcpp::as<std::vector<double> >(xl["offspring_arriving"]);
+  // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
+  ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
@@ -616,7 +616,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
   ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
   ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["offspring_arriving"] = Rcpp::wrap(x.offspring_arriving);
+  ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
@@ -646,8 +646,8 @@ template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment>
   ret.disturbance_mean_interval = Rcpp::as<double >(xl["disturbance_mean_interval"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
   ret.strategies = Rcpp::as<std::vector<plant::K93_Strategy> >(xl["strategies"]);
-  // ret.offspring_arriving = Rcpp::as<decltype(retoffspring_arriving) >(xl["offspring_arriving"]);
-  ret.offspring_arriving = Rcpp::as<std::vector<double> >(xl["offspring_arriving"]);
+  // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
+  ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
