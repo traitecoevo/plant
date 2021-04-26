@@ -18,7 +18,6 @@ public:
   double r_mean_interval() const;
   double pr_survival(double time) const;
   double pr_survival_conditional(double time, double time_start) const;
-  double cdf(double pr) const;
 
   std::vector<double> r_density(std::vector<double> time) const;
 

@@ -61,6 +61,7 @@ test_that("Nontrivial creation", {
                           is_resident=TRUE,
                           disturbance_mean_interval=2)
 
+    message(x, " ", p$cohort_schedule_max_time)
     expect_lt(p$cohort_schedule_max_time, 10)
     expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$cohort_schedule_max_time))
     expect_identical(p$cohort_schedule_times, list(p$cohort_schedule_times_default))
