@@ -28,7 +28,7 @@ public:
 
   void compute_rates();
 
-  // Dummy iterators: do nothing if the environment has no state. 
+  // Dummy iterators: do nothing if the environment has no state.
   ode::iterator ode_state(ode::iterator it) const { return it; }
   ode::const_iterator set_ode_state(ode::const_iterator it) { return it; }
   ode::iterator ode_rates(ode::iterator it) const { return it; }
@@ -54,20 +54,20 @@ public:
 
   void clear_environment() {}
 
-  double seed_rain_dt() const {
-    if (seed_rain.empty()) {
+  double offspring_arriving_dt() const {
+    if (offspring_arriving.empty()) {
       Rcpp::stop("Cannot get seed rain for empty environment");
     }
-    return seed_rain[seed_rain_index];
+    return offspring_arriving[offspring_arriving_index];
   }
 
-  void set_seed_rain_index(size_t x) {
-    seed_rain_index = x;
+  void set_offspring_arriving_index(size_t x) {
+    offspring_arriving_index = x;
   }
 
   // * R interface
-  void r_set_seed_rain_index(util::index x) {
-    set_seed_rain_index(x.check_bounds(seed_rain.size()));
+  void r_set_offspring_arriving_index(util::index x) {
+    set_offspring_arriving_index(x.check_bounds(offspring_arriving.size()));
   }
 
   void r_init_interpolators(const std::vector<double>& state) {}
@@ -76,8 +76,8 @@ public:
 
   double time;
   Disturbance disturbance_regime;
-  std::vector<double> seed_rain;
-  size_t seed_rain_index;
+  std::vector<double> offspring_arriving;
+  size_t offspring_arriving_index;
 };
 
 }

@@ -157,10 +157,10 @@ Control:
     - schedule_patch_survival: double
     - equilibrium_nsteps: size_t
     - equilibrium_eps: double
-    - equilibrium_large_seed_rain_change: double
+    - equilibrium_large_offspring_arriving_change: double
     - equilibrium_verbose: bool
     - equilibrium_solver_name: "std::string"
-    - equilibrium_extinct_seed_rain: double
+    - equilibrium_extinct_offspring_arriving: double
     - equilibrium_nattempts: int
     - equilibrium_solver_logN: bool
     - equilibrium_solver_try_keep: bool
@@ -330,7 +330,7 @@ Internals:
   constructor:
     args: [s_size: size_t, a_size: size_t]
     roxygen: |
-      Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
+      Internals class holding vectors of states, thier associated rates and auxiliary (aux) state
       which is calculated from the state through running compute_rates
       @export
   active:
@@ -386,7 +386,7 @@ Parameters:
     - n_patches: size_t
     - disturbance_mean_interval: double
     - strategies: "std::vector<T>"
-    - seed_rain: "std::vector<double>"
+    - offspring_arriving: "std::vector<double>"
     - is_resident: "std::vector<bool>"
     - control: "plant::Control"
     - strategy_default: "T"
@@ -548,14 +548,14 @@ SCM:
       name_cpp: r_run_next
     reset:
       return_type: void
-    seed_rain:
+    offspring_produced:
       args: [species_index: "plant::util::index"]
       return_type: double
-      name_cpp: r_seed_rain
-    seed_rain_cohort:
+      name_cpp: r_offspring_produced
+    offspring_produced_cohort:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
-      name_cpp: r_seed_rain_cohort
+      name_cpp: r_offspring_produced_cohort
     competition_effect_error:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
@@ -569,7 +569,7 @@ SCM:
   active:
     complete: {type: bool, access: member}
     time: {type: double, access: member}
-    seed_rains: {type: "std::vector<double>", access: member}
+    all_offspring_produced: {type: "std::vector<double>", access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     patch:
       type: "plant::Patch<T,E>"
@@ -593,10 +593,10 @@ SCM:
       access: member
       name_cpp: r_use_ode_times
       name_cpp_set: r_set_use_ode_times
-    seed_rain_error:
+    offspring_produced_error:
       type: "std::vector<std::vector<double> >"
       access: member
-      name_cpp: r_seed_rain_error
+      name_cpp: r_offspring_produced_error
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"
@@ -795,7 +795,7 @@ FF16_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control" 
+    - control: "plant::Control"
     - collect_all_auxillary: bool
 
 FF16_Environment:
@@ -818,16 +818,16 @@ FF16_Environment:
       return_type: double
     clear:
       return_type: void
-    set_seed_rain_index:
+    set_offspring_arriving_index:
       args: [x: "plant::util::index"]
       return_type: void
-      name_cpp: r_set_seed_rain_index
+      name_cpp: r_set_offspring_arriving_index
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
   active:
     patch_survival: {type: double, access: member}
-    seed_rain_dt: {type: double, access: member}
+    offspring_arriving_dt: {type: double, access: member}
     disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
@@ -873,7 +873,7 @@ FF16r_Strategy:
     - d_I: double
     - a_dG1: double
     - a_dG2: double
-    - control: "plant::Control" 
+    - control: "plant::Control"
     - collect_all_auxillary: bool
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
@@ -919,17 +919,16 @@ K93_Environment:
       return_type: double
     clear:
       return_type: void
-    set_seed_rain_index:
+    set_offspring_arriving_index:
       args: [x: "plant::util::index"]
       return_type: void
-      name_cpp: r_set_seed_rain_index
+      name_cpp: r_set_offspring_arriving_index
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
   active:
     patch_survival: {type: double, access: member}
-    seed_rain_dt: {type: double, access: member}
+    offspring_arriving_dt: {type: double, access: member}
     disturbance_regime: {type: "plant::Disturbance", access: field}
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
-

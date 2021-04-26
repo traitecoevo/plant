@@ -24,7 +24,7 @@ struct Parameters {
   typedef T strategy_type;
   typedef E environment_type;
 
-  Parameters() : 
+  Parameters() :
     k_I(0.5),
     patch_area(1.0),
     n_patches(1),
@@ -40,7 +40,7 @@ struct Parameters {
   size_t n_patches;  // Number of patches in the metacommunity
   double disturbance_mean_interval; // Disturbance interval (years)
   std::vector<strategy_type> strategies;
-  std::vector<double> seed_rain;
+  std::vector<double> offspring_arriving;
   std::vector<bool> is_resident;
 
   // Algorithm control.
@@ -92,10 +92,10 @@ void Parameters<T,E>::validate() {
 
   // Set some defaults and check lengths.  Number of strategies is
   // taken as the "true" size.
-  if (seed_rain.empty()) {
-    seed_rain = std::vector<double>(n_spp, 1.0);
-  } else if (seed_rain.size() != n_spp) {
-    util::stop("Incorrect length seed_rain");
+  if (offspring_arriving.empty()) {
+    offspring_arriving = std::vector<double>(n_spp, 1.0);
+  } else if (offspring_arriving.size() != n_spp) {
+    util::stop("Incorrect length offspring_arriving");
   }
   if (is_resident.empty()) {
     is_resident = std::vector<bool>(n_spp, true);

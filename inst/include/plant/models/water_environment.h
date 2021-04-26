@@ -16,8 +16,8 @@ public:
   Water_Environment() {
     time = NA_REAL;
     disturbance_regime = 30;
-    seed_rain = { 1.0, 1.0, 1.0 };
-    seed_rain_index = 0;
+    offspring_arriving = { 1.0, 1.0, 1.0 };
+    offspring_arriving_index = 0;
     k_I = NA_REAL;
     environment_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
     // Define an anonymous function to pass got the environment generator
@@ -30,7 +30,7 @@ public:
   };
 
   Water_Environment(double disturbance_mean_interval,
-                   std::vector<double> seed_rain_, double k_I_,
+                   std::vector<double> offspring_arriving_, double k_I_,
                    Control control) {
     k_I = k_I_;
     environment_generator = interpolator::AdaptiveInterpolator(control.environment_light_tol,
@@ -39,8 +39,8 @@ public:
                               control.environment_light_max_depth);
     time = 0.0;
     disturbance_regime = disturbance_mean_interval;
-    seed_rain = seed_rain_;
-    seed_rain_index = 0;
+    offspring_arriving = offspring_arriving_;
+    offspring_arriving_index = 0;
     inflow_rate = 1.0;
     vars = Internals(1);
   };
@@ -80,7 +80,7 @@ public:
   }
 
 
-  // TODO: move these to Environment 
+  // TODO: move these to Environment
   template <typename Function>
   void compute_environment(Function f_compute_competition,
                            double height_max) {

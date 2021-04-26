@@ -150,7 +150,7 @@ template <typename T, typename E>
 void StochasticPatch<T,E>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
     // NOTE: No need for this, but other bits will change...
-    // environment.set_seed_rain_index(i);
+    // environment.set_offspring_arriving_index(i);
     species[i].compute_rates(environment);
   }
 }

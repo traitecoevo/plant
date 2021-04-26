@@ -79,7 +79,7 @@ private:
   std::vector<species_type> species;
 };
 
-/* E(p.disturbance_mean_interval, p.seed_rain, p.control) */
+/* E(p.disturbance_mean_interval, p.offspring_arriving, p.control) */
 
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p)
@@ -150,12 +150,12 @@ void Patch<T,E>::rescale_environment() {
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
-    environment.set_seed_rain_index(i);
+    environment.set_offspring_arriving_index(i);
     // 1. Specify an inflow rate
     // 2. Make sure ODE is stepping - water should accumulate linearly
     // 3. Make sure the soil water state is visible in compute_rates in strategy
     // 4. Extraction rate is subrated from soil water state
-    
+
     // Compute environment rate
     // Compute rates in cohort, multiply rate per plant by density
     // sum all cohorts and species in a patch to find the outflow for the patch

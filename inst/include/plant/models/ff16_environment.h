@@ -16,8 +16,8 @@ public:
     // Define an anonymous function to pass got the environment generator
     time = NA_REAL;
     disturbance_regime = 0;
-    seed_rain = { 1.0, 1.0, 1.0 };
-    seed_rain_index = 0;
+    offspring_arriving = { 1.0, 1.0, 1.0 };
+    offspring_arriving_index = 0;
     canopy = Canopy();
   };
 

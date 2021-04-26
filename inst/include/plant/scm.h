@@ -32,9 +32,9 @@ public:
   void reset();
   bool complete() const;
 
-  // * Output total seed rain calculation (not per capita)
-  double seed_rain(size_t species_index) const;
-  std::vector<double> seed_rains() const;
+  // * Output total offsrping calculation (not per capita)
+  double offspring_produced(size_t species_index) const;
+  std::vector<double> offspring_produced() const;
 
   // * R interface
   std::vector<util::index> r_run_next();
@@ -44,10 +44,10 @@ public:
   // default.  The pluralisation difference between
   // SCM::r_competition_effect_error and Species::r_competition_effects_error will get
   // dealt with then.
-  double              r_seed_rain(util::index species_index) const;
-  std::vector<double> r_seed_rain_cohort(util::index species_index) const;
-  std::vector<double> r_seed_rain_error(util::index species_index) const;
-  std::vector<std::vector<double> > r_seed_rain_error() const;
+  double              r_offspring_produced(util::index species_index) const;
+  std::vector<double> r_offspring_produced_cohort(util::index species_index) const;
+  std::vector<double> r_offspring_produced_error(util::index species_index) const;
+  std::vector<std::vector<double> > r_offspring_produced_error() const;
   std::vector<double> r_competition_effect_error(util::index species_index) const;
   std::vector<double> r_ode_times() const;
   bool r_use_ode_times() const;
@@ -58,8 +58,8 @@ public:
   void r_set_cohort_schedule_times(std::vector<std::vector<double> > x);
 
 private:
-  double seed_rain_total() const;
-  std::vector<double> seed_rain_cohort(size_t species_index) const;
+  double offspring_produced_total() const;
+  std::vector<double> offspring_produced_cohort(size_t species_index) const;
 
   parameters_type parameters;
   patch_type patch;
@@ -105,7 +105,7 @@ std::vector<size_t> SCM<T,E>::run_next() {
       e = cohort_schedule.next_event();
     }
   }
-  patch.add_seeds(ret);
+  patch.add_offpring_entering(ret);
 
   const bool use_ode_times = cohort_schedule.using_ode_times();
   solver.set_state_from_system(patch);
@@ -140,16 +140,16 @@ bool SCM<T,E>::complete() const {
 }
 
 template <typename T, typename E>
-double SCM<T,E>::seed_rain(size_t species_index) const {
+double SCM<T,E>::offspring_produced(size_t species_index) const {
   return util::trapezium(cohort_schedule.times(species_index),
-                         seed_rain_cohort(species_index));
+                         offspring_produced_cohort(species_index));
 }
 
 template <typename T, typename E>
-std::vector<double> SCM<T,E>::seed_rains() const {
+std::vector<double> SCM<T,E>::all_offspring_produced() const {
   std::vector<double> ret;
   for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(seed_rain(i));
+    ret.push_back(offspring_produced(i));
   }
   return ret;
 }
@@ -160,35 +160,35 @@ std::vector<util::index> SCM<T,E>::r_run_next() {
 }
 
 template <typename T, typename E>
-double SCM<T,E>::r_seed_rain(util::index species_index) const {
-  return seed_rain(species_index.check_bounds(patch.size()));
+double SCM<T,E>::r_offspring_produced(util::index species_index) const {
+  return offspring_produced(species_index.check_bounds(patch.size()));
 }
 
 template <typename T, typename E>
 std::vector<double>
-SCM<T,E>::r_seed_rain_cohort(util::index species_index) const {
-  return seed_rain_cohort(species_index.check_bounds(patch.size()));
+SCM<T,E>::r_offspring_produced_cohort(util::index species_index) const {
+  return offspring_produced_cohort(species_index.check_bounds(patch.size()));
 }
 
 template <typename T, typename E>
-std::vector<double> SCM<T,E>::r_seed_rain_error(util::index species_index) const {
+std::vector<double> SCM<T,E>::r_offspring_produced_error(util::index species_index) const {
   // TODO: This causes this to happen too often, given we usually get
   // all the errors I think? (see TODO in class definition)
-  double tot_seed_out = seed_rain_total();
+  double total_offspring = offspring_produced_total();
   const size_t idx = species_index.check_bounds(patch.size());
   return util::local_error_integration(cohort_schedule.times(idx),
-                                       seed_rain_cohort(idx),
-                                       tot_seed_out);
+                                       offspring_produced_cohort(idx),
+                                       total_offspring);
 }
 
 template <typename T, typename E>
-std::vector<std::vector<double> > SCM<T,E>::r_seed_rain_error() const {
+std::vector<std::vector<double> > SCM<T,E>::r_offspring_produced_error() const {
   std::vector<std::vector<double> > ret;
-  double tot_seed_out = seed_rain_total();
+  double total_offspring = offspring_produced_total();
   for (size_t i = 0; i < patch.size(); ++i) {
     ret.push_back(util::local_error_integration(cohort_schedule.times(i),
-                                                seed_rain_cohort(i),
-                                                tot_seed_out));
+                                                offspring_produced_cohort(i),
+                                                total_offspring));
   }
   return ret;
 }
@@ -241,25 +241,25 @@ void SCM<T,E>::r_set_cohort_schedule_times(std::vector<std::vector<double> > x) 
 }
 
 template <typename T, typename E>
-double SCM<T,E>::seed_rain_total() const {
+double SCM<T,E>::offspring_produced_total() const {
   double tot = 0.0;
   for (size_t i = 0; i < patch.size(); ++i) {
-    tot += seed_rain(i);
+    tot += offspring_produced_total(i);
   }
   return tot;
 }
 
 template <typename T, typename E>
-std::vector<double> SCM<T,E>::seed_rain_cohort(size_t species_index) const {
+std::vector<double> SCM<T,E>::offspring_produced_cohort(size_t species_index) const {
   const std::vector<double> times = cohort_schedule.times(species_index);
-  const Disturbance& disturbance_regime = patch.disturbance_regime();
+  const Disturbance& disturbance_regime = patch.disturbance_regime;
   const double S_D = parameters.strategies[species_index].S_D;
-  const double scal = S_D * parameters.seed_rain[species_index];
-  std::vector<double> seeds = patch.at(species_index).seeds();
-  for (size_t i = 0; i < seeds.size(); ++i) {
-    seeds[i] *= disturbance_regime.density(times[i]) * scal;
+  const double scal = S_D * parameters.offspring_arriving[species_index];
+  std::vector<double> offspring = patch.at(species_index).offspring();
+  for (size_t i = 0; i < offspring.size(); ++i) {
+    offspring[i] *= disturbance_regime.density(times[i]) * scal;
   }
-  return seeds;
+  return offspring;
 }
 
 }
