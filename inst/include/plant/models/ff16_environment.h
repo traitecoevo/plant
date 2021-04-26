@@ -22,13 +22,13 @@ public:
   };
 
   FF16_Environment(double disturbance_mean_interval,
-                   std::vector<double> seed_rain_,
+                   std::vector<double> offspring_arriving_,
                    double k_I,
                    Control control) {
     time = 0.0;
     disturbance_regime = disturbance_mean_interval;
-    seed_rain = seed_rain_;
-    seed_rain_index = 0;
+    offspring_arriving = offspring_arriving_;
+    offspring_arriving_index = 0;
     canopy = Canopy(k_I, control);
   };
 

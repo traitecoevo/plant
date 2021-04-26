@@ -801,7 +801,7 @@ FF16_Strategy:
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
+    args: [disturbance_mean_interval: double, offspring_arriving: "std::vector<double>", k_I: double, control: "plant::Control"]
     roxygen: |
       FF16_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
@@ -902,7 +902,7 @@ K93_Strategy:
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", k_I: double, control: "plant::Control"]
+    args: [disturbance_mean_interval: double, offspring_arriving: "std::vector<double>", k_I: double, control: "plant::Control"]
     roxygen: |
       K93_Environment object
       @param disturbance_mean_interval mean disturbance interval in years

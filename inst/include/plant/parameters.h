@@ -114,7 +114,7 @@ void Parameters<T,E>::validate() {
     s.control = control;
   }
 
-  environment = environment_type(disturbance_mean_interval, seed_rain, k_I, control);
+  environment = environment_type(disturbance_mean_interval, offspring_arriving, k_I, control);
 }
 
 // Separating this out just because it's a bit crap:
