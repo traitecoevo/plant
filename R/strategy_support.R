@@ -45,10 +45,10 @@ environment_type <- function(type) {
 
 make_environment <- function(type, ...) {
   switch(type,
-    FF16=FF16_make_environment(...),
-    FF16r=FF16r_make_environment(...),
-    K93=K93_make_environment(...),
-    stop("Unknown type ", type))
+         FF16=FF16_make_environment(...),
+         FF16r=FF16r_make_environment(...),
+         K93=K93_make_environment(...),
+         stop("Unknown type ", type))
 }
 
 
