@@ -131,6 +131,7 @@ update_test_helper <- function(name, template_strategy) {
 
   templates <- c(
   '    {{name}}={{name}}_Strategy',
+  '    {{name}}="{{name}}_Env"',
   '    {{name}}={{name}}_fixed_environment(...)',
   '    {{name}}={{name}}_test_environment(...)',
   '    {{name}}={{name}}_hyperpar'
@@ -145,7 +146,8 @@ update_strategy_support <- function (name, template_strategy) {
   '         {{name}}=make_{{name}}_hyperpar',
   '         {{name}}={{name}}_hyperpar',
   '         {{name}}_Strategy={{name}}_hyperpar',
-  '    {{name}}={{name}}_make_environment(...)',
+  '         {{name}}=sprintf("{{name}}_Env")',
+  '         {{name}}={{name}}_make_environment(...)',
   '         "Parameters<{{name}},{{name}}_Env>"=`cohort_schedule_max_time_default__Parameters___{{name}}__{{name}}_Env`',
   '         "Parameters<{{name}},{{name}}_Env>"=`cohort_schedule_default__Parameters___{{name}}__{{name}}_Env`',
   '         "Parameters<{{name}},{{name}}_Env>"=`make_cohort_schedule__Parameters___{{name}}__{{name}}_Env`'

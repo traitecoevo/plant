@@ -6,6 +6,8 @@
 ##' in \code{p}.
 ##' @param p Parameters object.  Needs to contain residents with their
 ##' incoming seed rain.
+##' @param hyperpar Hyperparameter function to use. By default links 
+##' to standard function for this strategy type.
 ##' @param raw_seed_rain Logical; if \code{TRUE} report per capita
 ##' seed rain rather than fitness.
 ##' @return Vector with the output seed rain.  Mutants have an

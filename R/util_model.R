@@ -4,6 +4,8 @@
 ##' @param x Values for the trait.  This must be a \emph{matrix}, with
 ##'   column names corresponding to entries in \code{Strategy} and
 ##'   rows representing different values.
+##' @param hyperpar Hyperparameter function to use. By default links 
+##' to standard function for this strategy type. 
 ##' @param parameters \code{Parameters} object containing a
 ##'   default strategy to modify.  Any hyperparameterisation included
 ##'   will be applied.
@@ -42,7 +44,7 @@ strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
 
 ##' @rdname strategy_list
 ##' @export
-individual_list <- function(x, parameters, hyperpar=parram_hyperpar(parameters)) {
+individual_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
 
   if (!inherits(parameters, "Parameters")) {
     stop("parameters must be a 'Parameters' object")
@@ -75,6 +77,8 @@ trait_matrix <- function(x, trait_name) {
 ##' @param trait_matrix A matrix of traits corresponding to the
 ##' new types to introduce.
 ##' @param p A \code{Parameters} object.
+##' @param hyperpar Hyperparameter function to use. By default links 
+##' to standard function for this strategy type. 
 ##' @param mutant Create new types as \emph{mutants}?  These will have
 ##' no effect on other plants in the community (i.e. have zero
 ##' density).
