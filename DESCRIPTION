@@ -1,7 +1,6 @@
 Package: plant
 Title: A Package For Modelling Forest Trait Ecology And Evolution
 Version: 1.2.1
-Author: Daniel Falster [aut, cre], Rich FitzJohn [aut], John Wilshire [ctb]
 Authors@R: c(
     person("Daniel", "Falster", , "daniel.falster@unsw.edu.au", c("aut", "cre"), 
             comment = c(ORCID = "0002-9814-092X")),

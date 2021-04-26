@@ -332,6 +332,9 @@ Internals:
     roxygen: |
       Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
       which is calculated from the state through running compute_rates
+      @title Extract Internals from plant object
+      @param s_size ???
+      @param a_size ???
       @export
   active:
     state_size: {type: size_t, access: field}
@@ -371,13 +374,6 @@ Parameters:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
-  # TODO: This is broken:
-  # roxygen: |
-  #   Strategy parameters that tune various aspects of the biological model.
-  #   @title Strategy parameters
-  #   @param ...,values Values to initialise the struct with (either as
-  #   variadic arguments, or as a list, but not both).
-  #   @export
   validator:
     name_cpp: validate
   list:

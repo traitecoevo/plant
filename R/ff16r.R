@@ -1,7 +1,4 @@
 # Built from  R/ff16.R on Wed Aug 12 11:12:34 2020 using the scaffolder, from the strategy:  FF16
-## We can probably actually do better than this with an S3 method on
-## the actual strategy?  That would need to be organised by the
-## templating though and that's stretched to the limit.
 
 ##' Create a FF16r Plant or Cohort
 ##' @title Create a FF16r Plant or Cohort
@@ -13,14 +10,6 @@
 ##' pl$height
 FF16r_Individual <- function(s=FF16r_Strategy()) {
   Individual("FF16r", "FF16_Env")(s)
-}
-
-#' Compute the whole plant light compensation point for a single
-#' plant with FF16r strategy. Called via general function in plant.R
-##' @export
-##' @rdname FF16r
-`lcp_whole_plant.Plant<FF16r>` <- function(p, ...) {
-  FF16r_lcp_whole_plant(p, ...)
 }
 
 ##' @export
@@ -37,7 +26,6 @@ FF16r_Species <- function(s=FF16r_Strategy()) {
 
 ##' @export
 ##' @rdname FF16r
-##' @param ... Arguments!
 FF16r_Parameters <- function() {
   Parameters("FF16r","FF16_Env")()
 }
@@ -81,8 +69,18 @@ FF16r_make_environment <- function(p) {
   FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$k_I, p$control)
 }
 
-## This makes a pretend light environment over the plant height,
-## slightly concave up, whatever.
+##' This makes a pretend light environment over the plant height,
+##' slightly concave up, whatever.
+##' @title Create a test environment for FF16r startegy
+##' @param height top height of environment object
+##' @param n number of points
+##' @param light_env function for light environment in test object
+##' @param n_strategies number of strategies for test environment
+##' @param seed_rain seed_rain for test environment
+##' @export
+##' @rdname FF16r_test_environment
+##' @examples
+##' environment <- FF16r_test_environment(10)
 FF16r_test_environment <- function(height, n=101, light_env=NULL,
                              n_strategies=1, seed_rain=0) {
   if (length(seed_rain) == 1) {
@@ -103,7 +101,7 @@ FF16r_test_environment <- function(height, n=101, light_env=NULL,
   parameters$seed_rain <- seed_rain
   parameters$is_resident <- rep(TRUE, n_strategies)
 
-  ret <- FF16_make_environment(parameters)
+  ret <- FF16r_make_environment(parameters)
   ret$canopy$canopy_interpolator <- interpolator
   attr(ret, "light_env") <- light_env
   ret

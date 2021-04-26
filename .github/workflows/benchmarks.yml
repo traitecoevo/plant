@@ -10,42 +10,43 @@ on:
       - master
       - develop
 
-name: lint
+name: benchmark
+
+name: Continuous Benchmarks
 
 jobs:
-  lint:
+  build:
     runs-on: macOS-latest
-    env:
-      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repo
+        uses: actions/checkout@master
 
-      - uses: r-lib/actions/setup-r@master
-
-      - name: Query dependencies
-        run: |
-          install.packages('remotes')
-          saveRDS(remotes::dev_package_deps(dependencies = TRUE), ".github/depends.Rds", version = 2)
-          writeLines(sprintf("R-%i.%i", getRversion()$major, getRversion()$minor), ".github/R-version")
-        shell: Rscript {0}
-
-      - name: Restore R package cache
-        uses: actions/cache@v2
+      - name: Setup R
+        uses: r-lib/actions/setup-r@master
         with:
-          path: ${{ env.R_LIBS_USER }}
-          key: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-${{ hashFiles('.github/depends.Rds') }}
-          restore-keys: ${{ runner.os }}-${{ hashFiles('.github/R-version') }}-1-
+          r-version: 'release'
 
       - name: Install dependencies
         run: |
-          install.packages(c("remotes"))
+          install.packages("remotes")
           remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("bench")
+          remotes::install_github("r-lib/bench")
         shell: Rscript {0}
 
       - name: Install package
         run: R CMD INSTALL .
 
-      - name: Benchmark
-        run: plant::run_plant_benchmarks()
-        shell: Rscript {0}
+      - name: Fetch existing benchmarks
+        run: Rscript -e 'bench::cb_fetch()'
+
+      - name: Run benchmarks
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+          Rscript -e 'bench::cb_run()'
+      - name: Show benchmarks
+        run: git notes --ref benchmarks show
+
+      - name: Push benchmarks
+        run: Rscript -e "bench::cb_push()"
+        

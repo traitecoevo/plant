@@ -26,16 +26,6 @@ test_ode_make_solver <- function(sys) {
   OdeRunner(class(sys)[[1]])(sys)
 }
 
-skip_if_no_plant_ml_python <- function() {
-  skip_if_not_installed("plant.ml")
-  ok <- !inherits(try(plant.ml:::ensure_python_loaded(), silent=TRUE),
-                  "try-error")
-  if (ok) {
-    return()
-  }
-  skip("python packages missing")
-}
-
 # ! Important the whitespace in the following function is used by the strategy scaffolder
 get_list_of_strategy_types <- function() {
   list(

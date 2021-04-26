@@ -70,11 +70,11 @@ run_scm <- function(p, use_ode_times=FALSE) {
 ##' @author Rich FitzJohn
 ##' @param type Name of model (defaults to FF16 but any strategy name is valid).
 ##' @export
-scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
+scm_base_parameters <- function(type="FF16") {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
-  Parameters(type, env)(patch_area=1.0, control=ctrl)
+  Parameters(type, environment_type(type))(patch_area=1.0, control=ctrl)
 }
 
 ##' Run the SCM model, given a Parameters and CohortSchedule
