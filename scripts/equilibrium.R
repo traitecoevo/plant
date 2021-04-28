@@ -1,24 +1,24 @@
-## Find the equilibrium seed rain a few different ways:
+## Find the equilibrium offspring arrival a few different ways:
 plant_log_console()
 p <- scm_base_parameters()
 p$strategies <- list(FF16_Strategy())
-p$seed_rain <- 1.1
+p$birth_rate <- 1.1
 
 p$control$equilibrium_solver_name <- "iteration"
-ans <- equilibrium_seed_rain(p)
-ans$seed_rain
+ans <- equilibrium_birth_rate(p)
+ans$birth_rate
 
 p$control$equilibrium_solver_name <- "nleqslv"
-ans <- equilibrium_seed_rain(p)
-ans$seed_rain
+ans <- equilibrium_birth_rate(p)
+ans$birth_rate
 
 p$control$equilibrium_solver_name <- "dfsane"
-ans <- equilibrium_seed_rain(p)
-ans$seed_rain
+ans <- equilibrium_birth_rate(p)
+ans$birth_rate
 
 p$control$equilibrium_solver_name <- "hybrid"
-ans <- equilibrium_seed_rain(p)
-ans$seed_rain
+ans <- equilibrium_birth_rate(p)
+ans$birth_rate
 
 bounds <- viable_fitness(bounds(lma=c(0.01, 10.0)), p)
 traits <- cbind(lma=seq_log_range(bounds, length.out=50))

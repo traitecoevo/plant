@@ -24,7 +24,8 @@ struct Parameters {
   typedef T strategy_type;
   typedef E environment_type;
 
-  Parameters() : 
+  Parameters() :
+    k_I(0.5),
     patch_area(1.0),
     n_patches(1),
     disturbance_mean_interval(30),
@@ -34,11 +35,12 @@ struct Parameters {
   }
 
   // Data -- public for now (see github issue #17).
+  double k_I;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
   double disturbance_mean_interval; // Disturbance interval (years)
   std::vector<strategy_type> strategies;
-  std::vector<double> seed_rain;
+  std::vector<double> birth_rate;
   std::vector<bool> is_resident;
 
   // Algorithm control.
@@ -90,10 +92,10 @@ void Parameters<T,E>::validate() {
 
   // Set some defaults and check lengths.  Number of strategies is
   // taken as the "true" size.
-  if (seed_rain.empty()) {
-    seed_rain = std::vector<double>(n_spp, 1.0);
-  } else if (seed_rain.size() != n_spp) {
-    util::stop("Incorrect length seed_rain");
+  if (birth_rate.empty()) {
+    birth_rate = std::vector<double>(n_spp, 1.0);
+  } else if (birth_rate.size() != n_spp) {
+    util::stop("Incorrect length birth_rate");
   }
   if (is_resident.empty()) {
     is_resident = std::vector<bool>(n_spp, true);
@@ -112,7 +114,7 @@ void Parameters<T,E>::validate() {
     s.control = control;
   }
 
-  environment = environment_type(disturbance_mean_interval, seed_rain, control);
+  environment = environment_type(disturbance_mean_interval, birth_rate, control);
 }
 
 // Separating this out just because it's a bit crap:

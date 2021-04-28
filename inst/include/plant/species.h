@@ -24,12 +24,12 @@ public:
 
   size_t size() const;
   void clear();
-  void add_seed();
+  void introduce_new_cohort();
 
   double height_max() const;
   double compute_competition(double height) const;
   void compute_rates(const environment_type& environment, double pr_patch_survival);
-  std::vector<double> seeds() const;
+  std::vector<double> net_reproduction_ratio_by_cohort() const;
 
   // * ODE interface
   // NOTE: We are a time-independent model here so no need to pass
@@ -43,7 +43,7 @@ public:
   // * R interface
   std::vector<double> r_heights() const;
   void r_set_heights(std::vector<double> heights);
-  const cohort_type& r_seed() const {return seed;}
+  const cohort_type& r_new_cohort() const {return new_cohort;}
   std::vector<cohort_type> r_cohorts() const {return cohorts;}
   const cohort_type& r_cohort_at(util::index idx) const {
     return cohorts[idx.check_bounds(size())];
@@ -69,7 +69,7 @@ public:
 private:
   const Control& control() const {return strategy->get_control();}
   strategy_type_ptr strategy;
-  cohort_type seed;
+  cohort_type new_cohort;
   std::vector<cohort_type> cohorts;
 
   typedef typename std::vector<cohort_type>::iterator cohorts_iterator;
@@ -79,7 +79,7 @@ private:
 template <typename T, typename E>
 Species<T,E>::Species(strategy_type s)
   : strategy(make_strategy_ptr(s)),
-    seed(strategy) {
+    new_cohort(strategy) {
 }
 
 template <typename T, typename E>
@@ -90,14 +90,14 @@ size_t Species<T,E>::size() const {
 template <typename T, typename E>
 void Species<T,E>::clear() {
   cohorts.clear();
-  // Reset the seed to a blank seed, too.
-  seed = cohort_type(strategy);
+  // Reset the new_cohort to a blank new_cohort, too.
+  new_cohort = cohort_type(strategy);
 }
 
 template <typename T, typename E>
-void Species<T,E>::add_seed() {
-  cohorts.push_back(seed);
-  // TODO: Should the seed be recomputed here?
+void Species<T,E>::introduce_new_cohort() {
+  cohorts.push_back(new_cohort);
+  // TODO: Should the new_cohort be recomputed here?
 }
 
 // If a species contains no individuals, we return the height of a
@@ -106,7 +106,7 @@ void Species<T,E>::add_seed() {
 // tall as a seed.
 template <typename T, typename E>
 double Species<T,E>::height_max() const {
-  return cohorts.empty() ? seed.height() : cohorts.front().height();
+  return cohorts.empty() ? new_cohort.height() : cohorts.front().height();
 }
 
 // Because of cohorts are always ordered from largest to smallest, we
@@ -160,7 +160,7 @@ double Species<T,E>::compute_competition(double height) const {
   }
 
   if (size() == 1 || f_h1 > 0) {
-    const double h0 = seed.height(), f_h0 = seed.compute_competition(height);
+    const double h0 = new_cohort.height(), f_h0 = new_cohort.compute_competition(height);
     tot += (h1 - h0) * (f_h1 + f_h0);
   }
 
@@ -174,11 +174,11 @@ void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival)
   for (auto& c : cohorts) {
     c.compute_rates(environment, pr_patch_survival);
   }
-  seed.compute_initial_conditions(environment, pr_patch_survival);
+  new_cohort.compute_initial_conditions(environment, pr_patch_survival);
 }
 
 template <typename T, typename E>
-std::vector<double> Species<T,E>::seeds() const {
+std::vector<double> Species<T,E>::net_reproduction_ratio_by_cohort() const {
   std::vector<double> ret;
   ret.reserve(size());
   for (auto& c : cohorts) {

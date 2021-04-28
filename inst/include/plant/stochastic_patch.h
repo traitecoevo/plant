@@ -31,8 +31,8 @@ public:
   // [eqn 11] Canopy openness at `height`
   double compute_competition(double height) const;
 
-  bool add_seed(size_t species_index);
-  void add_seedling(size_t species_index);
+  bool introduce_new_cohort(size_t species_index);
+  void introduce_new_cohort_and_update(size_t species_index);
 
   std::vector<size_t> deaths();
 
@@ -72,11 +72,11 @@ public:
                    const std::vector<size_t>& n);
   // TODO: No support here for setting *vectors* of species.  Might
   // want to supoprt that?
-  bool r_add_seed(util::index species_index) {
-    return add_seed(species_index.check_bounds(size()));
+  bool r_introduce_new_cohort(util::index species_index) {
+    return introduce_new_cohort(species_index.check_bounds(size()));
   }
-  void r_add_seedling(util::index species_index) {
-    add_seedling(species_index.check_bounds(size()));
+  void r_introduce_new_cohort_and_update(util::index species_index) {
+    introduce_new_cohort_and_update(species_index.check_bounds(size()));
   }
 
   species_type r_at(util::index species_index) const {
@@ -162,19 +162,19 @@ template <typename T, typename E>
 void StochasticPatch<T,E>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
     // NOTE: No need for this, but other bits will change...
-    // environment.set_seed_rain_index(i);
+    // environment.set_species_arriving_index(i);
     species[i].compute_rates(environment);
   }
 }
 
-// In theory, this could be done more efficiently by, in the add_seed
-// case, using the values stored in the species seed.  But we don't
-// really get that here.  It might be better to move add_seed /
-// add_seedling within Species, given this.
+// In theory, this could be done more efficiently by, in the introdudce_new_cohort
+// case, using the values stored in the species offspring.  But we don't
+// really get that here.  It might be better to move introdudce_new_cohort /
+// introduce_new_cohort_and_update within Species, given this.
 template <typename T, typename E>
-void StochasticPatch<T,E>::add_seedling(size_t species_index) {
-  // Add a seed, setting ODE variables based on the *current* light environment
-  species[species_index].add_seed(environment);
+void StochasticPatch<T,E>::introduce_new_cohort_and_update(size_t species_index) {
+  // Add a offspring, setting ODE variables based on the *current* light environment
+  species[species_index].introduce_new_cohort(environment);
   // Then we update the light environment.
   if (parameters.is_resident[species_index]) {
     compute_environment();
@@ -182,12 +182,12 @@ void StochasticPatch<T,E>::add_seedling(size_t species_index) {
 }
 
 template <typename T, typename E>
-bool StochasticPatch<T,E>::add_seed(size_t species_index) {
+bool StochasticPatch<T,E>::introduce_new_cohort(size_t species_index) {
   const double pr_germinate =
     species[species_index].establishment_probability(environment);
   const bool added = unif_rand() < pr_germinate;
   if (added) {
-    add_seedling(species_index);
+    introduce_new_cohort_and_update(species_index);
   }
   return added;
 }
@@ -222,7 +222,7 @@ void StochasticPatch<T,E>::r_set_state(double time,
   reset();
   for (size_t i = 0; i < n_species; ++i) {
     for (size_t j = 0; j < n[i]; ++j) {
-      species[i].add_seed();
+      species[i].introduce_new_cohort();
     }
   }
   util::check_length(state.size(), ode_size());

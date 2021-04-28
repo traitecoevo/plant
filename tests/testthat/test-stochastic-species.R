@@ -5,7 +5,7 @@ environment_types <- get_list_of_environment_types()
 
 test_that("empty", {
   for (x in names(strategy_types)) {
-    env <- test_environment(x, 3, seed_rain=1.0)
+    env <- test_environment(x, 3, birth_rate=1.0)
     e <- environment_types[[x]]
     s <- strategy_types[[x]]()
     sp <- StochasticSpecies(x, e)(s)
@@ -14,9 +14,9 @@ test_that("empty", {
     expect_equal(sp$size, 0)
     expect_equal(sp$size_plants, 0)
 
-    seed <- sp$seed
-    expect_is(seed, "Individual")
-    expect_is(seed, sprintf("Individual<%s,%s>",x,e))
+    new_cohort <- sp$new_cohort
+    expect_is(new_cohort, "Individual")
+    expect_is(new_cohort, sprintf("Individual<%s,%s>",x,e))
 
     expect_equal(sp$heights, numeric(0))
     expect_equal(sp$height_max, 0.0)
@@ -32,13 +32,13 @@ test_that("empty", {
 
 test_that("Single individual", {
   for (x in names(strategy_types)) {
-    env <- test_environment(x, 3, seed_rain=1.0)
+    env <- test_environment(x, 3, birth_rate=1.0)
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     sp <- StochasticSpecies(x, e)(s)
     p <- Individual(x, e)(s)
 
-    sp$add_seed()
+    sp$introduce_new_cohort()
 
     expect_equal(sp$size, 1)
     expect_equal(sp$size_plants, 1)
@@ -70,13 +70,13 @@ test_that("Single individual", {
 test_that("Multiple individuals", {
   for (x in names(strategy_types)) {
     h <- 10
-    env <- test_environment(x, h, seed_rain=1.0)
+    env <- test_environment(x, h, birth_rate=1.0)
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     sp <- StochasticSpecies(x, e)(s)
     n <- 10
     for (i in seq_len(n)) {
-      sp$add_seed()
+      sp$introduce_new_cohort()
     }
 
     expect_equal(sp$size, n)
@@ -133,7 +133,7 @@ test_that("Multiple individuals", {
 
 test_that("establishment probability", {
   for (x in names(strategy_types)) {
-    env <- test_environment(x, 3, seed_rain=1.0)
+    env <- test_environment(x, 3, birth_rate=1.0)
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     sp <- StochasticSpecies(x, e)(s)

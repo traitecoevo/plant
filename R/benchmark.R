@@ -16,15 +16,14 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
       expand_parameters(trait_matrix(0.0825, "lma"), p0, mutant = FALSE)
     res <- run_scm(p)
   }
-  
+
   f_build_schedule <- function(x) {
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
-    p$seed_rain <- 0.1
-    
+    p$birth_rate <- 0.1
     p <- build_schedule(p)
   }
-  
+
   message("Running benchmarks via `run_plant_benchmarks`")
   bench::press(strategy = names(strategy_types),
                {

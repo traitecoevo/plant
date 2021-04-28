@@ -31,8 +31,8 @@ public:
   // [eqn 11] Canopy openness at `height`
   double compute_competition(double height) const;
 
-  void add_seed(size_t species_index);
-  void add_seeds(const std::vector<size_t>& species_index);
+  void introduce_new_cohort(size_t species_index);
+  void introduce_new_cohorts(const std::vector<size_t>& species_index);
 
   const species_type& at(size_t species_index) const {
     return species[species_index];
@@ -71,8 +71,8 @@ public:
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
                    const std::vector<double>& env);
-  void r_add_seed(util::index species_index) {
-    add_seed(species_index.check_bounds(size()));
+  void r_introduce_new_cohort(util::index species_index) {
+    introduce_new_cohort(species_index.check_bounds(size()));
   }
   species_type r_at(util::index species_index) const {
     at(species_index.check_bounds(size()));
@@ -92,7 +92,7 @@ private:
   std::vector<species_type> species;
 };
 
-/* E(p.disturbance_mean_interval, p.seed_rain, p.control) */
+/* E(p.disturbance_mean_interval, p.birth_rate, p.control) */
 
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p)
@@ -164,7 +164,7 @@ void Patch<T,E>::rescale_environment() {
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
-    environment.set_seed_rain_index(i);
+    environment.set_species_arriving_index(i);
     // 1. Specify an inflow rate
     // 2. Make sure ODE is stepping - water should accumulate linearly
     // 3. Make sure the soil water state is visible in compute_rates in strategy
@@ -184,18 +184,18 @@ void Patch<T,E>::compute_rates() {
 // points that are below the height of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
 template <typename T, typename E>
-void Patch<T,E>::add_seed(size_t species_index) {
-  species[species_index].add_seed();
+void Patch<T,E>::introduce_new_cohort(size_t species_index) {
+  species[species_index].introduce_new_cohort();
   if (parameters.is_resident[species_index]) {
     compute_environment();
   }
 }
 
 template <typename T, typename E>
-void Patch<T,E>::add_seeds(const std::vector<size_t>& species_index) {
+void Patch<T,E>::introduce_new_cohorts(const std::vector<size_t>& species_index) {
   bool recompute = false;
   for (size_t i : species_index) {
-    species[i].add_seed();
+    species[i].introduce_new_cohort();
     recompute = recompute || parameters.is_resident[i];
   }
   if (recompute) {
@@ -224,7 +224,7 @@ void Patch<T,E>::r_set_state(double time,
   reset();
   for (size_t i = 0; i < n_species; ++i) {
     for (size_t j = 0; j < n[i]; ++j) {
-      species[i].add_seed();
+      species[i].introduce_new_cohort();
     }
   }
   util::check_length(state.size(), ode_size());

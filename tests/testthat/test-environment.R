@@ -43,17 +43,17 @@ for (x in names(strategy_types)) {
 
   test_that("Seed rain related parameters", {
     env <- make_environment(x, Parameters(x, e)())
-    expect_error(env$seed_rain_dt, "Cannot get seed rain for empty environment")
+    expect_error(env$offspring_arriving_dt, "Cannot get offspring arrivals for empty environment")
 
     z <- c(.1, .2)
-    env <- test_environment(x, 10, n_strategies=2, seed_rain=z)
+    env <- test_environment(x, 10, n_strategies=2, birth_rate=z)
 
-    expect_identical(env$seed_rain_dt, z[[1]])
-    env$set_seed_rain_index(1)
-    expect_identical(env$seed_rain_dt, z[[1]])
-    env$set_seed_rain_index(2)
-    expect_identical(env$seed_rain_dt, z[[2]])
-    expect_error(env$set_seed_rain_index(0), "Invalid value for index")
-    expect_error(env$set_seed_rain_index(3), "Index 3 out of bounds")
+    expect_identical(env$offspring_arriving_dt, z[[1]])
+    env$set_species_arriving_index(1)
+    expect_identical(env$offspring_arriving_dt, z[[1]])
+    env$set_species_arriving_index(2)
+    expect_identical(env$offspring_arriving_dt, z[[2]])
+    expect_error(env$set_species_arriving_index(0), "Invalid value for index")
+    expect_error(env$set_species_arriving_index(3), "Index 3 out of bounds")
   })
 }

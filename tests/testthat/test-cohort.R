@@ -19,7 +19,7 @@ for (x in names(strategy_types)) {
 
     env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
-                            seed_rain=1.0)
+                            birth_rate=1.0)
 
     ## The big unknown is the growth rate gradient calculation; that is,
     ## the derivative d(dh/dt)/dh.
@@ -106,13 +106,13 @@ for (x in names(strategy_types)) {
 
     env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)),
-                            seed_rain=1.0)
+                            birth_rate=1.0)
 
     cohort$compute_initial_conditions(env, pr_patch_survival = 1)
     plant$compute_rates(env)
 
-    nms <- c(plant$ode_names, 
-             "seeds_survival_weighted", "log_density")
+    nms <- c(plant$ode_names,
+             "offspring_produced_survival_weighted", "log_density")
     expect_equal(cohort$ode_size, length(nms))
     expect_equal(cohort$ode_names, nms)
 
@@ -129,8 +129,8 @@ for (x in names(strategy_types)) {
 
     ## Ode *values*:
     cmp <- c(plant$internals$states,
-             0, # seeds_survival_weighted
-             log(pr_estab * env$seed_rain_dt / g) # log density
+             0, # offspring_produced_survival_weighted
+             log(pr_estab * env$offspring_arriving_dt / g) # log density
              )
     cmp[which(plant$ode_names == 'mortality')] <- -log(pr_estab)
     expect_equal(cohort$ode_state, cmp)
@@ -153,7 +153,7 @@ for (x in names(strategy_types)) {
 
     env <- test_environment(x, 10,
                             light_env=function(x) rep(1, length(x)),
-                            seed_rain=1.0)
+                            birth_rate=1.0)
 
     h <- cohort$height
 

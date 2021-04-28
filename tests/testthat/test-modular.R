@@ -32,7 +32,7 @@ test_that("Construction", {
 
     expect_is(sp, "Species")
     expect_is(sp, sprintf("Species<%s,%s>", x, e))
-    expect_equal(class(sp$seed), class(coh))
+    expect_equal(class(sp$new_cohort), class(coh))
 
     par <- Parameters(x, e)(strategies=list(s))
     expect_is(par, "Parameters")
@@ -53,7 +53,7 @@ test_that("Construction", {
     s_sp <- StochasticSpecies(x, e)(s)
     expect_is(s_sp, "StochasticSpecies")
     expect_is(s_sp, sprintf("StochasticSpecies<%s,%s>", x, e))
-    expect_equal(class(s_sp$seed), class(p))
+    expect_equal(class(s_sp$new_cohort), class(p))
 
     s_pat <- StochasticPatch(x, e)(par)
     expect_is(s_pat, "StochasticPatch")

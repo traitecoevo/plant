@@ -157,10 +157,10 @@ Control:
     - schedule_patch_survival: double
     - equilibrium_nsteps: size_t
     - equilibrium_eps: double
-    - equilibrium_large_seed_rain_change: double
+    - equilibrium_large_birth_rate_change: double
     - equilibrium_verbose: bool
     - equilibrium_solver_name: "std::string"
-    - equilibrium_extinct_seed_rain: double
+    - equilibrium_extinct_birth_rate: double
     - equilibrium_nattempts: int
     - equilibrium_solver_logN: bool
     - equilibrium_solver_try_keep: bool
@@ -381,7 +381,7 @@ Parameters:
     - n_patches: size_t
     - disturbance_mean_interval: double
     - strategies: "std::vector<T>"
-    - seed_rain: "std::vector<double>"
+    - birth_rate: "std::vector<double>"
     - is_resident: "std::vector<bool>"
     - control: "plant::Control"
     - strategy_default: "T"
@@ -439,12 +439,12 @@ Species:
     args: [strategy: T]
   active:
     size: {type: size_t, access: member}
-    seed: {type: "plant::Cohort<T,E>", access: member, name_cpp: r_seed}
+    new_cohort: {type: "plant::Cohort<T,E>", access: member, name_cpp: r_new_cohort}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
     cohorts: {type: "std::vector<plant::Cohort<T,E> >", access: member, name_cpp: r_cohorts}
-    seeds: {type: "std::vector<double>", access: member}
+    net_reproduction_ratio_by_cohort: {type: "std::vector<double>", access: member}
     competition_effects: {type: "std::vector<double>", access: member, name_cpp: r_competition_effects}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -459,7 +459,7 @@ Species:
     compute_competition:
       return_type: double
       args: [height: double]
-    add_seed:
+    introduce_new_cohort:
       return_type: void
     cohort_at:
       return_type: "plant::Cohort<T,E>"
@@ -496,10 +496,10 @@ Patch:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
     compute_competition: {return_type: double, args: [height: double]}
-    add_seed:
+    introduce_new_cohort:
       return_type: void
       args: [species_index: "plant::util::index"]
-      name_cpp: r_add_seed
+      name_cpp: r_introduce_new_cohort
     compute_environment:
       return_type: void
       name_cpp: r_compute_environment
@@ -552,14 +552,10 @@ SCM:
       name_cpp: r_run_next
     reset:
       return_type: void
-    seed_rain:
+    net_reproduction_ratio_for_species:
       args: [species_index: "plant::util::index"]
       return_type: double
-      name_cpp: r_seed_rain
-    seed_rain_cohort:
-      args: [species_index: "plant::util::index"]
-      return_type: "std::vector<double>"
-      name_cpp: r_seed_rain_cohort
+      name_cpp: r_net_reproduction_ratio_for_species
     competition_effect_error:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
@@ -573,7 +569,8 @@ SCM:
   active:
     complete: {type: bool, access: member}
     time: {type: double, access: member}
-    seed_rains: {type: "std::vector<double>", access: member}
+    net_reproduction_ratios: {type: "std::vector<double>", access: member}
+    offspring_production: {type: "std::vector<double>", access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     patch:
       type: "plant::Patch<T,E>"
@@ -597,10 +594,10 @@ SCM:
       access: member
       name_cpp: r_use_ode_times
       name_cpp_set: r_set_use_ode_times
-    seed_rain_error:
+    net_reproduction_ratio_errors:
       type: "std::vector<std::vector<double> >"
       access: member
-      name_cpp: r_seed_rain_error
+      name_cpp: r_net_reproduction_ratio_errors
 
 StochasticSpecies:
   name_cpp: "plant::StochasticSpecies<T,E>"
@@ -615,12 +612,12 @@ StochasticSpecies:
   active:
     size: {type: size_t, access: member}
     size_plants: {type: size_t, access: member}
-    seed: {type: "plant::Individual<T,E>", access: member, name_cpp: r_seed}
+    new_cohort: {type: "plant::Individual<T,E>", access: member, name_cpp: r_new_cohort}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     plants: {type: "std::vector<plant::Individual<T,E> >", access: member, name_cpp: r_plants}
     is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
-    seeds: {type: "std::vector<double>", access: member}
+    net_reproduction_ratio_by_cohort: {type: "std::vector<double>", access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
@@ -634,7 +631,7 @@ StochasticSpecies:
     compute_competition:
       return_type: double
       args: [height: double]
-    add_seed:
+    introduce_new_cohort:
       return_type: void
     plant_at:
       return_type: "plant::Individual<T,E>"
@@ -672,14 +669,14 @@ StochasticPatch:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
     compute_competition: {return_type: double, args: [height: double]}
-    add_seed:
+    introduce_new_cohort:
       return_type: bool
       args: [species_index: "plant::util::index"]
-      name_cpp: r_add_seed
-    add_seedling:
+      name_cpp: r_introduce_new_cohort
+    introduce_new_cohort_and_update:
       return_type: void
       args: [species_index: "plant::util::index"]
-      name_cpp: r_add_seedling
+      name_cpp: r_introduce_new_cohort_and_update
     compute_environment:
       return_type: void
       name_cpp: r_compute_environment
@@ -805,17 +802,17 @@ FF16_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
-    - control: "plant::Control" 
+    - control: "plant::Control"
     - collect_all_auxillary: bool
 
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", control: "plant::Control"]
+    args: [disturbance_mean_interval: double, birth_rate: "std::vector<double>", control: "plant::Control"]
     roxygen: |
       FF16_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
-      @param seed_rain vector of seed rains
+      @param birth_rate vector of offspring arrival rates
       @param control A Control object
       @export
   methods:
@@ -824,15 +821,15 @@ FF16_Environment:
       return_type: double
     clear:
       return_type: void
-    set_seed_rain_index:
+    set_species_arriving_index:
       args: [x: "plant::util::index"]
       return_type: void
-      name_cpp: r_set_seed_rain_index
+      name_cpp: r_set_species_arriving_index
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
   active:
-    seed_rain_dt: {type: double, access: member}
+    offspring_arriving_dt: {type: double, access: member}
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
 
@@ -878,7 +875,7 @@ FF16r_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
-    - control: "plant::Control" 
+    - control: "plant::Control"
     - collect_all_auxillary: bool
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
@@ -909,11 +906,11 @@ K93_Strategy:
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, seed_rain: "std::vector<double>", control: "plant::Control"]
+    args: [disturbance_mean_interval: double, birth_rate: "std::vector<double>", control: "plant::Control"]
     roxygen: |
       K93_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
-      @param seed_rain vector of seed rains
+      @param birth_rate vector of offspring arrival rates
       @param control A Control object
       @export
   methods:
@@ -922,14 +919,14 @@ K93_Environment:
       return_type: double
     clear:
       return_type: void
-    set_seed_rain_index:
+    set_species_arriving_index:
       args: [x: "plant::util::index"]
       return_type: void
-      name_cpp: r_set_seed_rain_index
+      name_cpp: r_set_species_arriving_index
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
   active:
-    seed_rain_dt: {type: double, access: member}
+    offspring_arriving_dt: {type: double, access: member}
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
