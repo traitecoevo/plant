@@ -300,7 +300,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["schedule_nsteps"] = Rcpp::wrap(x.schedule_nsteps);
   ret["schedule_eps"] = Rcpp::wrap(x.schedule_eps);
   ret["schedule_verbose"] = Rcpp::wrap(x.schedule_verbose);
-  ret["schedule_patch_survival"] = Rcpp::wrap(x.schedule_patch_survival);
+  ret["schedule_max_time"] = Rcpp::wrap(x.schedule_max_time);
   ret["equilibrium_nsteps"] = Rcpp::wrap(x.equilibrium_nsteps);
   ret["equilibrium_eps"] = Rcpp::wrap(x.equilibrium_eps);
   ret["equilibrium_large_seed_rain_change"] = Rcpp::wrap(x.equilibrium_large_seed_rain_change);
@@ -372,8 +372,8 @@ template <> inline plant::Control as(SEXP x) {
   ret.schedule_eps = Rcpp::as<double >(xl["schedule_eps"]);
   // ret.schedule_verbose = Rcpp::as<decltype(retschedule_verbose) >(xl["schedule_verbose"]);
   ret.schedule_verbose = Rcpp::as<bool >(xl["schedule_verbose"]);
-  // ret.schedule_patch_survival = Rcpp::as<decltype(retschedule_patch_survival) >(xl["schedule_patch_survival"]);
-  ret.schedule_patch_survival = Rcpp::as<double >(xl["schedule_patch_survival"]);
+  // ret.schedule_max_time = Rcpp::as<decltype(retschedule_max_time) >(xl["schedule_max_time"]);
+  ret.schedule_max_time = Rcpp::as<double >(xl["schedule_max_time"]);
   // ret.equilibrium_nsteps = Rcpp::as<decltype(retequilibrium_nsteps) >(xl["equilibrium_nsteps"]);
   ret.equilibrium_nsteps = Rcpp::as<size_t >(xl["equilibrium_nsteps"]);
   // ret.equilibrium_eps = Rcpp::as<decltype(retequilibrium_eps) >(xl["equilibrium_eps"]);

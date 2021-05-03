@@ -381,10 +381,6 @@ Disturbance__pr_survival_conditional <- function(obj_, time, time_start) {
     .Call('_plant_Disturbance__pr_survival_conditional', PACKAGE = 'plant', obj_, time, time_start)
 }
 
-Disturbance__cdf <- function(obj_, time) {
-    .Call('_plant_Disturbance__cdf', PACKAGE = 'plant', obj_, time)
-}
-
 Disturbance__mean_interval__get <- function(obj_) {
     .Call('_plant_Disturbance__mean_interval__get', PACKAGE = 'plant', obj_)
 }

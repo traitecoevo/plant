@@ -428,10 +428,6 @@ double Disturbance__pr_survival_conditional(plant::RcppR6::RcppR6<plant::Disturb
   return obj_->pr_survival_conditional(time, time_start);
 }
 // [[Rcpp::export]]
-double Disturbance__cdf(plant::RcppR6::RcppR6<plant::Disturbance> obj_, double time) {
-  return obj_->cdf(time);
-}
-// [[Rcpp::export]]
 double Disturbance__mean_interval__get(plant::RcppR6::RcppR6<plant::Disturbance> obj_) {
   return obj_->r_mean_interval();
 }

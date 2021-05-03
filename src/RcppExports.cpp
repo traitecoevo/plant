@@ -1060,18 +1060,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Disturbance__cdf
-double Disturbance__cdf(plant::RcppR6::RcppR6<plant::Disturbance> obj_, double time);
-RcppExport SEXP _plant_Disturbance__cdf(SEXP obj_SEXP, SEXP timeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Disturbance__cdf(obj_, time));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Disturbance__mean_interval__get
 double Disturbance__mean_interval__get(plant::RcppR6::RcppR6<plant::Disturbance> obj_);
 RcppExport SEXP _plant_Disturbance__mean_interval__get(SEXP obj_SEXP) {
@@ -7747,7 +7735,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Disturbance__density", (DL_FUNC) &_plant_Disturbance__density, 2},
     {"_plant_Disturbance__pr_survival", (DL_FUNC) &_plant_Disturbance__pr_survival, 2},
     {"_plant_Disturbance__pr_survival_conditional", (DL_FUNC) &_plant_Disturbance__pr_survival_conditional, 3},
-    {"_plant_Disturbance__cdf", (DL_FUNC) &_plant_Disturbance__cdf, 2},
     {"_plant_Disturbance__mean_interval__get", (DL_FUNC) &_plant_Disturbance__mean_interval__get, 1},
     {"_plant_Control__ctor", (DL_FUNC) &_plant_Control__ctor, 0},
     {"_plant_OdeControl__ctor", (DL_FUNC) &_plant_OdeControl__ctor, 0},
