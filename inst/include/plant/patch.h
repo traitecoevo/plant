@@ -21,7 +21,7 @@ public:
   typedef Parameters<T,E> parameters_type;
 
   Patch(parameters_type p);
-  
+
   void reset();
   size_t size() const {return species.size();}
   double time() const {return environment.time;}
@@ -164,7 +164,6 @@ void Patch<T,E>::rescale_environment() {
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
-    environment.set_species_arriving_index(i);
     // 1. Specify an inflow rate
     // 2. Make sure ODE is stepping - water should accumulate linearly
     // 3. Make sure the soil water state is visible in compute_rates in strategy
@@ -175,7 +174,8 @@ void Patch<T,E>::compute_rates() {
     // sum all cohorts and species in a patch to find the outflow for the patch
     // subtract total extraction rate from state
     double pr_patch_survival = patch_survival();
-    species[i].compute_rates(environment, pr_patch_survival);
+    double birth_rate = parameters.birth_rate[i];
+    species[i].compute_rates(environment, pr_patch_survival, birth_rate);
     //environment.compute_rates();
   }
 }

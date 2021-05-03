@@ -28,7 +28,7 @@ public:
 
   double height_max() const;
   double compute_competition(double height) const;
-  void compute_rates(const environment_type& environment, double pr_patch_survival);
+  void compute_rates(const environment_type& environment, double pr_patch_survival, double birth_rate);
   std::vector<double> net_reproduction_ratio_by_cohort() const;
 
   // * ODE interface
@@ -170,11 +170,11 @@ double Species<T,E>::compute_competition(double height) const {
 // NOTE: We should probably prefer to rescale when this is called
 // through the ode stepper.
 template <typename T, typename E>
-void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival) {
+void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival, double birth_rate) {
   for (auto& c : cohorts) {
     c.compute_rates(environment, pr_patch_survival);
   }
-  new_cohort.compute_initial_conditions(environment, pr_patch_survival);
+  new_cohort.compute_initial_conditions(environment, pr_patch_survival, birth_rate);
 }
 
 template <typename T, typename E>

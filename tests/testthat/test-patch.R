@@ -48,7 +48,7 @@ for (x in names(strategy_types)) {
     expect_equal(patch$ode_size, ode_size)
 
     ## Then pull this out:
-    cmp$compute_initial_conditions(patch$environment, patch$patch_survival)
+    cmp$compute_initial_conditions(patch$environment, patch$patch_survival, p$birth_rate)
 
     expect_identical(patch$ode_state, cmp$ode_state)
     expect_identical(patch$ode_rates, cmp$ode_rates)

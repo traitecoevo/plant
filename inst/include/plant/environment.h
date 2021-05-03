@@ -42,29 +42,12 @@ public:
 
   void clear_environment() {}
 
-  double offspring_arriving_dt() const {
-    if (birth_rate.empty()) {
-      Rcpp::stop("Cannot get offspring arrivals for empty environment");
-    }
-    return birth_rate[species_arriving_index];
-  }
-
-  void set_species_arriving_index(size_t x) {
-    species_arriving_index = x;
-  }
-
-  // * R interface
-  void r_set_species_arriving_index(util::index x) {
-    set_species_arriving_index(x.check_bounds(birth_rate.size()));
-  }
-
   void r_init_interpolators(const std::vector<double>& state) {}
 
   double get_environment_at_height(double height) { return 0.0; };
 
   double time;
 
-  std::vector<double> birth_rate;
   size_t species_arriving_index;
 };
 

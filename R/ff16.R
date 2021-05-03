@@ -65,7 +65,7 @@ FF16_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param p A Parameters object
 FF16_make_environment <- function(p) {
-  FF16_Environment(p$disturbance_mean_interval, p$birth_rate, p$control)
+  FF16_Environment(p$disturbance_mean_interval, p$control)
 }
 
 ##' Construct a fixed environment for FF16 strategy
@@ -96,10 +96,7 @@ FF16_fixed_environment <- function(e=1.0, p = FF16_Parameters(), height_max = 15
 ##' @examples
 ##' environment <- FF16_test_environment(10)
 FF16_test_environment <- function(height, n=101, light_env=NULL,
-                             n_strategies=1, birth_rate=0) {
-  if (length(birth_rate) == 1) {
-    birth_rate <- rep(birth_rate, length.out=n_strategies)
-  }
+                             n_strategies=1) {
   hh <- seq(0, height, length.out=n)
   if (is.null(light_env)) {
     light_env <- function(x) {
@@ -112,7 +109,7 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
 
   parameters <- FF16_Parameters()
   parameters$strategies <- rep(list(FF16_Strategy()), n_strategies)
-  parameters$birth_rate <- birth_rate
+
   parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- FF16_make_environment(parameters)

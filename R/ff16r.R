@@ -66,7 +66,7 @@ FF16r_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param p A Parameters object
 FF16r_make_environment <- function(p) {
-  FF16_Environment(p$disturbance_mean_interval, p$birth_rate, p$control)
+  FF16_Environment(p$disturbance_mean_interval, p$control)
 }
 
 ##' This makes a pretend light environment over the plant height,
@@ -82,10 +82,7 @@ FF16r_make_environment <- function(p) {
 ##' @examples
 ##' environment <- FF16r_test_environment(10)
 FF16r_test_environment <- function(height, n=101, light_env=NULL,
-                             n_strategies=1, birth_rate=0) {
-  if (length(birth_rate) == 1) {
-    birth_rate <- rep(birth_rate, length.out=n_strategies)
-  }
+                             n_strategies=1) {
   hh <- seq(0, height, length.out=n)
   if (is.null(light_env)) {
     light_env <- function(x) {
@@ -98,7 +95,7 @@ FF16r_test_environment <- function(height, n=101, light_env=NULL,
 
   parameters <- FF16r_Parameters()
   parameters$strategies <- rep(list(FF16r_Strategy()), n_strategies)
-  parameters$birth_rate <- birth_rate
+
   parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- FF16r_make_environment(parameters)

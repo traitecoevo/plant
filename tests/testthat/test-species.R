@@ -11,7 +11,7 @@ for (x in names(strategy_types)) {
   context(sprintf("Species-%s",x))
 
   test_that("Basics", {
-    env <- test_environment(x, 3, birth_rate=1.0)
+    env <- test_environment(x, 3)
     s <- strategy_types[[x]]()
     sp <- Species(x, e)(s)
     new_cohort <- Cohort(x, e)(s)
@@ -30,8 +30,8 @@ for (x in names(strategy_types)) {
     expect_identical(sp$ode_rates, numeric(0))
 
     ## Causes initial conditions to be estimated:
-    sp$compute_rates(env, pr_patch_survival = 1)
-    new_cohort$compute_initial_conditions(env, pr_patch_survival = 1)
+    sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
+    new_cohort$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 1)
 
     ## Internal and test new_cohort report same values:
     expect_identical(sp$new_cohort$rates, new_cohort$rates)
@@ -74,7 +74,7 @@ for (x in names(strategy_types)) {
     sp$clear()
 
     ## Re-set up the initial conditions
-    sp$compute_rates(env, pr_patch_survival = 1)
+    sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
 
     expect_error(sp$cohort_at(1), "Index 1 out of bounds")
     expect_error(sp$cohort_at(0), "Invalid value for index")
@@ -90,10 +90,10 @@ for (x in names(strategy_types)) {
 
   ## 2: Cohort up against boundary has no leaf area:
   test_that("species with only boundary cohort no leaf area", {
-    env <- test_environment(x, 3, birth_rate=1.0)
+    env <- test_environment(x, 3)
     sp <- Species(x, e)(strategy_types[[x]]())
     sp$introduce_new_cohort()
-    sp$compute_rates(env, pr_patch_survival = 1)
+    sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     expect_equal(sp$compute_competition(0), 0)
     expect_equal(sp$compute_competition(10), 0)
     expect_equal(sp$compute_competition(Inf), 0)
@@ -108,9 +108,9 @@ for (x in names(strategy_types)) {
 
   ## 3: Single cohort; one round of trapezium:
   test_that("Leaf area sensible with one cohort", {
-    env <- test_environment(x, 3, birth_rate=1.0)
+    env <- test_environment(x, 3)
     sp <- Species(x, e)(strategy_types[[x]]())
-    sp$compute_rates(env, pr_patch_survival = 1)
+    sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     sp$introduce_new_cohort()
     h_top <- sp$height_max * 4
     sp$heights <- h_top
@@ -133,9 +133,9 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Leaf area sensible with two cohorts", {
-    env <- test_environment(x, 3, birth_rate=1.0)
+    env <- test_environment(x, 3)
     sp <- Species(x, e)(strategy_types[[x]]())
-    sp$compute_rates(env, pr_patch_survival = 1)
+    sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     sp$introduce_new_cohort()
     h_top <- sp$height_max * 4
     sp$introduce_new_cohort()
@@ -159,9 +159,9 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Leaf area sensible with three cohorts", {
-    env <- test_environment(x, 3, birth_rate=1.0)
+    env <- test_environment(x, 3)
     sp <- Species(x, e)(strategy_types[[x]]())
-    sp$compute_rates(env, pr_patch_survival = 1)
+    sp$compute_rates(env, pr_patch_survival = 1, birth_rate = 1)
     sp$introduce_new_cohort()
     h_top <- sp$height_max * 4
     sp$introduce_new_cohort()

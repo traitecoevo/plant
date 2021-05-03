@@ -18,7 +18,7 @@ public:
   Cohort(strategy_type_ptr s);
 
   void compute_rates(const environment_type& environment, double pr_patch_survival);
-  void compute_initial_conditions(const environment_type& environment, double pr_patch_survival);
+  void compute_initial_conditions(const environment_type& environment, double pr_patch_survival, double birth_rate);
 
   // * R interface (testing only, really)
   double r_growth_rate_gradient(const environment_type& environment);
@@ -111,16 +111,15 @@ void Cohort<T,E>::compute_rates(const environment_type& environment,
 // defined on p 7 at the moment.
 template <typename T, typename E>
 void Cohort<T,E>::compute_initial_conditions(const environment_type& environment,
-                                             double pr_patch_survival) {
+                                             double pr_patch_survival, double birth_rate) {
   pr_patch_survival_at_birth = pr_patch_survival;
   compute_rates(environment, pr_patch_survival);
 
-  const double pr_germ = plant.establishment_probability(environment);
-  plant.set_state("mortality", -log(pr_germ));
+  const double pr_estab = plant.establishment_probability(environment);
+  plant.set_state("mortality", -log(pr_estab));
   const double g = plant.rate("height");
-  const double birth_rate = environment.offspring_arriving_dt();
   // NOTE: log(0.0) -> -Inf, which should behave fine.
-  set_log_density(g > 0 ? log(birth_rate * pr_germ / g) : log(0.0));
+  set_log_density(g > 0 ? log(birth_rate * pr_estab / g) : log(0.0));
 
   // Need to check that the rates are valid after setting the
   // mortality value here (can go to -Inf and that requires squashing

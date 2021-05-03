@@ -114,7 +114,7 @@ void Parameters<T,E>::validate() {
     s.control = control;
   }
 
-  environment = environment_type(disturbance_mean_interval, birth_rate, control);
+  environment = environment_type(disturbance_mean_interval, control);
 }
 
 // Separating this out just because it's a bit crap:

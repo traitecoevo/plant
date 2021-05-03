@@ -424,7 +424,7 @@ Cohort:
       args: [environment: E, pr_patch_survival: double]
     compute_initial_conditions:
       return_type: void
-      args: [environment: E, pr_patch_survival: double]
+      args: [environment: E, pr_patch_survival: double, birth_rate: double]
 
 # For now, also not templated
 Species:
@@ -455,7 +455,7 @@ Species:
       return_type: void
     compute_rates:
       return_type: void
-      args: [environment: E, pr_patch_survival: double]
+      args: [environment: E, pr_patch_survival: double, birth_rate: double]
     compute_competition:
       return_type: double
       args: [height: double]
@@ -808,7 +808,7 @@ FF16_Strategy:
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, birth_rate: "std::vector<double>", control: "plant::Control"]
+    args: [disturbance_mean_interval: double, control: "plant::Control"]
     roxygen: |
       FF16_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
@@ -821,15 +821,10 @@ FF16_Environment:
       return_type: double
     clear:
       return_type: void
-    set_species_arriving_index:
-      args: [x: "plant::util::index"]
-      return_type: void
-      name_cpp: r_set_species_arriving_index
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
   active:
-    offspring_arriving_dt: {type: double, access: member}
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
 
@@ -906,7 +901,7 @@ K93_Strategy:
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, birth_rate: "std::vector<double>", control: "plant::Control"]
+    args: [disturbance_mean_interval: double, control: "plant::Control"]
     roxygen: |
       K93_Environment object
       @param disturbance_mean_interval mean disturbance interval in years
@@ -919,14 +914,9 @@ K93_Environment:
       return_type: double
     clear:
       return_type: void
-    set_species_arriving_index:
-      args: [x: "plant::util::index"]
-      return_type: void
-      name_cpp: r_set_species_arriving_index
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
   active:
-    offspring_arriving_dt: {type: double, access: member}
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
