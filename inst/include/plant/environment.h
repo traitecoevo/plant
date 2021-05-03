@@ -42,30 +42,13 @@ public:
 
   void clear_environment() {}
 
-  double seed_rain_dt() const {
-    if (seed_rain.empty()) {
-      Rcpp::stop("Cannot get seed rain for empty environment");
-    }
-    return seed_rain[seed_rain_index];
-  }
-
-  void set_seed_rain_index(size_t x) {
-    seed_rain_index = x;
-  }
-
-  // * R interface
-  void r_set_seed_rain_index(util::index x) {
-    set_seed_rain_index(x.check_bounds(seed_rain.size()));
-  }
-
   void r_init_interpolators(const std::vector<double>& state) {}
 
   double get_environment_at_height(double height) { return 0.0; };
 
   double time;
 
-  std::vector<double> seed_rain;
-  size_t seed_rain_index;
+  size_t species_arriving_index;
 };
 
 }

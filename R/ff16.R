@@ -65,7 +65,7 @@ FF16_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param p A Parameters object
 FF16_make_environment <- function(p) {
-  FF16_Environment(p$disturbance_mean_interval, p$seed_rain, p$control)
+  FF16_Environment(p$disturbance_mean_interval, p$control)
 }
 
 ##' Construct a fixed environment for FF16 strategy
@@ -90,16 +90,13 @@ FF16_fixed_environment <- function(e=1.0, p = FF16_Parameters(), height_max = 15
 ##' @param n number of points
 ##' @param light_env function for light environment in test object
 ##' @param n_strategies number of strategies for test environment
-##' @param seed_rain seed_rain for test environment
+##' @param birth_rate birth_rate for test environment
 ##' @export
 ##' @rdname FF16_test_environment
 ##' @examples
 ##' environment <- FF16_test_environment(10)
 FF16_test_environment <- function(height, n=101, light_env=NULL,
-                             n_strategies=1, seed_rain=0) {
-  if (length(seed_rain) == 1) {
-    seed_rain <- rep(seed_rain, length.out=n_strategies)
-  }
+                             n_strategies=1) {
   hh <- seq(0, height, length.out=n)
   if (is.null(light_env)) {
     light_env <- function(x) {
@@ -112,7 +109,7 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
 
   parameters <- FF16_Parameters()
   parameters$strategies <- rep(list(FF16_Strategy()), n_strategies)
-  parameters$seed_rain <- seed_rain
+
   parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- FF16_make_environment(parameters)
@@ -321,7 +318,7 @@ make_FF16_hyperpar <- function(
 ##' @title Hyperparameter function for FF16 physiological model
 ##' @param m A matrix of trait values, as returned by \code{trait_matrix}
 ##' @param s A strategy object
-##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers 
+##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers
 ##' that are within eps of the default strategy are not replaced.
 ##' @export
 FF16_hyperpar <- make_FF16_hyperpar()

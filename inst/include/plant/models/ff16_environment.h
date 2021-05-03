@@ -15,17 +15,12 @@ public:
   FF16_Environment() {
     // Define an anonymous function to pass got the environment generator
     time = NA_REAL;
-    seed_rain = { 1.0, 1.0, 1.0 };
-    seed_rain_index = 0;
     canopy = Canopy();
   };
 
   FF16_Environment(double disturbance_mean_interval,
-                   std::vector<double> seed_rain_,
                    Control control) {
     time = 0.0;
-    seed_rain = seed_rain_;
-    seed_rain_index = 0;
     canopy = Canopy(control);
   };
 

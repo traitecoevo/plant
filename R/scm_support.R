@@ -24,7 +24,7 @@ fast_control <- function(base=Control()) {
   base
 }
 
-##' Control parameters for \code{\link{equilibrium_seed_rain}} that
+##' Control parameters for \code{\link{equilibrium_birth_rate}} that
 ##' make progress noisier.  This is just a convenience function.
 ##'
 ##' @title Noisy Parameters for Equilibrium Finding
@@ -70,11 +70,11 @@ run_scm <- function(p, use_ode_times=FALSE) {
 ##' @author Rich FitzJohn
 ##' @param type Name of model (defaults to FF16 but any strategy name is valid).
 ##' @export
-scm_base_parameters <- function(type="FF16") {
+scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
-  Parameters(type, environment_type(type))(patch_area=1.0, control=ctrl)
+  Parameters(type, env)(patch_area=1.0, control=ctrl)
 }
 
 ##' Run the SCM model, given a Parameters and CohortSchedule
@@ -137,7 +137,7 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
 
   ret <- list(time=time, species=species,
               env=env,
-              seed_rain=scm$seed_rains,
+              net_reproduction_ratios=scm$net_reproduction_ratios,
               patch_density=patch_density,
               p=p)
 
@@ -195,15 +195,15 @@ run_scm_error <- function(p) {
   }
 
   lai_error <- lapply(lai_error, function(x) rbind_list(pad_matrix(x)))
-  seed_rain_error <- scm$seed_rain_error
+  average_fecundity_error <- scm$average_fecundity_error
   f <- function(m) {
     suppressWarnings(apply(m, 2, max, na.rm=TRUE))
   }
   total <- lapply(seq_len(n_spp), function(idx)
-                  f(rbind(lai_error[[idx]], seed_rain_error[[idx]])))
+                  f(rbind(lai_error[[idx]], average_fecundity_error[[idx]])))
 
-  list(seed_rain=scm$seed_rains,
-       err=list(lai=lai_error, seed_rain=seed_rain_error, total=total),
+  list(net_reproduction_ratios=scm$net_reproduction_ratios,
+       err=list(lai=lai_error, net_reproduction_ratios=average_fecundity_error, total=total),
        ode_times=scm$ode_times)
 }
 
@@ -269,13 +269,13 @@ patch_to_internals <- function(x, use_environment=TRUE) {
 
 species_to_internals <- function(sp, environment=NULL) {
   # Aggregate and extract plants
-  sp_p <- lapply(sp$cohorts, function(x) x$plant ) 
+  sp_p <- lapply(sp$cohorts, function(x) x$plant )
   new_names <- c(sp_p[[1]]$ode_names, paste0(sp_p[[1]]$ode_names, '_dt'), sp_p[[1]]$aux_names)
   ints <- do.call("rbind", lapply(sp_p, function(x) c(x$internals$states, x$internals$rates, x$internals$auxs)))
   colnames(ints) <- new_names
   cbind(ints,
         log_density=sp$log_densities,
-        seeds_survival_weighted=sp$seeds)
+        offspring_produced_survival_weighted=sp$net_reproduction_ratio_by_cohort)
 }
 
 ##' Create a function that allows integrating aggregate properties of
@@ -332,4 +332,3 @@ make_scm_integrate <- function(obj) {
     vnapply(seq_len(n), f1, name, error)
   }
 }
-

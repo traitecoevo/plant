@@ -18,7 +18,7 @@ public:
   Cohort(strategy_type_ptr s);
 
   void compute_rates(const environment_type& environment, double pr_patch_survival);
-  void compute_initial_conditions(const environment_type& environment, double pr_patch_survival);
+  void compute_initial_conditions(const environment_type& environment, double pr_patch_survival, double birth_rate);
 
   // * R interface (testing only, really)
   double r_growth_rate_gradient(const environment_type& environment);
@@ -26,7 +26,7 @@ public:
   double height() const {return plant.state(HEIGHT_INDEX);}
   double compute_competition(double z) const;
   double competition_effect() const;
-  double fecundity() const {return seeds_survival_weighted;}
+  double fecundity() const {return offspring_produced_survival_weighted;}
 
   // Unfortunate, but need a get_ here because of name shadowing...
   double get_log_density() const {return log_density;}
@@ -47,7 +47,7 @@ public:
 
   static std::vector<std::string> ode_names() {
     std::vector<std::string> plant_names = strategy_type::state_names();
-    plant_names.push_back("seeds_survival_weighted");
+    plant_names.push_back("offspring_produced_survival_weighted");
     plant_names.push_back("log_density");
     return plant_names;
   }
@@ -61,8 +61,8 @@ private:
   double log_density;
   double log_density_dt;
   double density; // hmm...
-  double seeds_survival_weighted;
-  double seeds_survival_weighted_dt;
+  double offspring_produced_survival_weighted;
+  double offspring_produced_survival_weighted_dt;
   double pr_patch_survival_at_birth;
 };
 
@@ -72,8 +72,8 @@ Cohort<T,E>::Cohort(strategy_type_ptr s)
     log_density(R_NegInf),
     log_density_dt(0),
     density(0),
-    seeds_survival_weighted(0),
-    seeds_survival_weighted_dt(0) {
+    offspring_produced_survival_weighted(0),
+    offspring_produced_survival_weighted_dt(0) {
 }
 
 template <typename T, typename E>
@@ -98,7 +98,7 @@ void Cohort<T,E>::compute_rates(const environment_type& environment,
     survival_plant = 0.0;
   }
 
-  seeds_survival_weighted_dt =
+  offspring_produced_survival_weighted_dt =
     plant.rate("fecundity") * survival_plant *
     pr_patch_survival / pr_patch_survival_at_birth;
 }
@@ -111,16 +111,15 @@ void Cohort<T,E>::compute_rates(const environment_type& environment,
 // defined on p 7 at the moment.
 template <typename T, typename E>
 void Cohort<T,E>::compute_initial_conditions(const environment_type& environment,
-                                             double pr_patch_survival) {
+                                             double pr_patch_survival, double birth_rate) {
   pr_patch_survival_at_birth = pr_patch_survival;
   compute_rates(environment, pr_patch_survival);
 
-  const double pr_germ = plant.establishment_probability(environment);
-  plant.set_state("mortality", -log(pr_germ));
+  const double pr_estab = plant.establishment_probability(environment);
+  plant.set_state("mortality", -log(pr_estab));
   const double g = plant.rate("height");
-  const double seed_rain = environment.seed_rain_dt();
   // NOTE: log(0.0) -> -Inf, which should behave fine.
-  set_log_density(g > 0 ? log(seed_rain * pr_germ / g) : log(0.0));
+  set_log_density(g > 0 ? log(birth_rate * pr_estab / g) : log(0.0));
 
   // Need to check that the rates are valid after setting the
   // mortality value here (can go to -Inf and that requires squashing
@@ -179,7 +178,7 @@ ode::const_iterator Cohort<T,E>::set_ode_state(ode::const_iterator it) {
   for (int i = 0; i < plant.ode_size(); i++) {
     plant.set_state(i, *it++);
   }
-  seeds_survival_weighted = *it++;
+  offspring_produced_survival_weighted = *it++;
   set_log_density(*it++);
   return it;
 }
@@ -188,7 +187,7 @@ ode::iterator Cohort<T,E>::ode_state(ode::iterator it) const {
   for (int i = 0; i < plant.ode_size(); i++) {
     *it++ = plant.state(i);
   }
-  *it++ = seeds_survival_weighted;
+  *it++ = offspring_produced_survival_weighted;
   *it++ = log_density;
   return it;
 }
@@ -197,7 +196,7 @@ ode::iterator Cohort<T,E>::ode_rates(ode::iterator it) const {
   for (int i = 0; i < plant.ode_size(); i++) {
     *it++ = plant.rate(i);
   }
-  *it++ = seeds_survival_weighted_dt;
+  *it++ = offspring_produced_survival_weighted_dt;
   *it++ = log_density_dt;
   return it;
 }

@@ -4,14 +4,14 @@
 ##
 ## This will be slow, but fairly easy to get right.
 ##' @importFrom stats rexp
-stochastic_arrival_times <- function(max_time, seed_rain_total, n=NULL) {
+stochastic_arrival_times <- function(max_time, offspring_arriving_total, n=NULL) {
   if (is.null(n)) {
-    n <- max_time * seed_rain_total
+    n <- max_time * offspring_arriving_total
   }
   ret <- numeric(0)
   t0 <- 0.0
   while (t0 < max_time) {
-    t <- t0 + cumsum(rexp(n, seed_rain_total))
+    t <- t0 + cumsum(rexp(n, offspring_arriving_total))
     t0 <- t[[n]]
     if (t0 > max_time) {
       t <- t[t <= max_time]
@@ -23,12 +23,12 @@ stochastic_arrival_times <- function(max_time, seed_rain_total, n=NULL) {
 
 stochastic_schedule <- function(p) {
   max_time  <- p$cohort_schedule_max_time
-  seed_rain <- p$seed_rain * p$patch_area
-  n_species <- length(seed_rain)
+  birth_rate <- p$birth_rate * p$patch_area
+  n_species <- length(birth_rate)
   sched <- CohortSchedule(n_species)
   sched$max_time <- max_time
-  for (i in seq_along(seed_rain)) {
-    sched$set_times(stochastic_arrival_times(max_time, seed_rain[[i]]), i)
+  for (i in seq_along(birth_rate)) {
+    sched$set_times(stochastic_arrival_times(max_time, birth_rate[[i]]), i)
   }
   sched
 }
@@ -43,7 +43,7 @@ stochastic_schedule <- function(p) {
 ##' @title Run a stochastic patch, Collecting Output
 ##' @param p A \code{\link{FF16_Parameters}} object
 ##' @param random_schedule setting to TRUE causes algorithm to generate
-##' a random schedule based on seed rain and area.
+##' a random schedule based on offspring arrival and area.
 ##' @author Rich FitzJohn
 ##' @export
 run_stochastic_collect <- function(p, random_schedule=TRUE) {
@@ -85,7 +85,7 @@ run_stochastic_collect <- function(p, random_schedule=TRUE) {
   ret <- list(time=time,
               species=species,
               light_env=light_env,
-              seed_rain=obj$seed_rains,
+              net_reproduction_ratios=obj$net_reproduction_ratios,
               patch_density=patch_density,
               p=p)
 

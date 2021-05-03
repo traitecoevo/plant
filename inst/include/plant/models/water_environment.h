@@ -15,8 +15,6 @@ public:
 
   Water_Environment() {
     time = NA_REAL;
-    seed_rain = { 1.0, 1.0, 1.0 };
-    seed_rain_index = 0;
     environment_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
     // Define an anonymous function to pass got the environment generator
     environment_interpolator = environment_generator.construct(
@@ -28,15 +26,12 @@ public:
   };
 
   Water_Environment(double disturbance_mean_interval,
-                   std::vector<double> seed_rain_,
                    Control control) {
     environment_generator = interpolator::AdaptiveInterpolator(control.environment_light_tol,
                               control.environment_light_tol,
                               control.environment_light_nbase,
                               control.environment_light_max_depth);
     time = 0.0;
-    seed_rain = seed_rain_;
-    seed_rain_index = 0;
     inflow_rate = 1.0;
     vars = Internals(1);
   };
