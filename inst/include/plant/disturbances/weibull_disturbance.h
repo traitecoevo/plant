@@ -12,15 +12,37 @@ namespace plant {
 
 class Weibull_Disturbance_Regime: public Disturbance_Regime {
 public:
-  Weibull_Disturbance_Regime();
-  Weibull_Disturbance_Regime(double mean_interval_);
+  Weibull_Disturbance_Regime()
+    : shape(2.0),
+      mean_interval(1.0) {
+    scale = pow(R::gammafn(1.0/shape)/shape/mean_interval, shape);
+    p0 = shape*pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);
+  }
 
-  // overloaded from base class
-  virtual double density(double time) const;
-  virtual double pr_survival(double time) const;
+  Weibull_Disturbance_Regime(double mean_interval_)
+    : shape(2.0),
+      mean_interval(mean_interval_) {
+    scale = pow(R::gammafn(1.0/shape)/shape/mean_interval, shape);
+    p0 = shape*pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);
+  }
 
-  double r_mean_interval() const;
-  double icdf(double pr) const;
+  virtual double density(double time) const {
+    return p0 * pr_survival(time);
+  }
+
+  // probability that a patch survives from time 0 to time
+  virtual double pr_survival(double time) const {
+    return exp(-scale * pow(time, shape));
+  }
+
+  double r_mean_interval() const {
+    return mean_interval;
+  }
+
+  // Inverse cumulative density function
+  double icdf(double p) const {
+    return pow(log(p) / -scale, 1/shape);
+  }
 
 private:
   double shape;

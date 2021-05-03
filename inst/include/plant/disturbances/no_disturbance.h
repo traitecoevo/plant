@@ -9,9 +9,8 @@ namespace plant {
 
 class No_Disturbance: public Disturbance_Regime {
 public:
-  No_Disturbance();
-  virtual double density(double time) const;
-  virtual double pr_survival(double time) const;
+  virtual double density(double time) const {return 1.0;};
+  virtual double pr_survival(double time) const {return 1.0;};
 };
 
 }

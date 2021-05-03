@@ -8,9 +8,10 @@ namespace plant {
 
 class Disturbance_Regime {
 public:
-  double density(double time) const;
-  double pr_survival(double time) const;
+  virtual double density(double time) const {return 0.0;};
+  virtual double pr_survival(double time) const {return 0.0;};
   std::vector<double> r_density(std::vector<double> time) const;
+
 };
 
 }
