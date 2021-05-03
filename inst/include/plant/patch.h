@@ -6,7 +6,7 @@
 #include <plant/species.h>
 #include <plant/ode_interface.h>
 
-#include <plant/disturbances_regime.h>
+#include <plant/disturbance_regime.h>
 #include <plant/disturbances/no_disturbance.h>
 #include <plant/disturbances/weibull_disturbance.h>
 
@@ -91,11 +91,11 @@ Patch<T,E>::Patch(parameters_type p)
   parameters.validate();
   environment = p.environment;
 
-  if p.patch_type == 'meta-population' {
+  if(p.patch_type == "meta-population") {
     survival_weighting = Weibull_Disturbance_Regime(p.max_patch_lifetime);
   }
   else {
-    survival_weighting = No_Disturbance()
+    survival_weighting = No_Disturbance();
   }
 
   for (auto s : parameters.strategies) {

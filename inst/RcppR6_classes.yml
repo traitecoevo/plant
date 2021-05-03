@@ -95,14 +95,12 @@ CohortSchedule:
       return_type: "plant::CohortSchedule"
       name_cpp: r_copy
 
-Disturbance:
-  name_cpp: "plant::Disturbance"
+Disturbance_Regime:
+  name_cpp: "plant::Disturbance_Regime"
   constructor:
     roxygen: |
-      Disturbance control object
-      @param mean_interval Mean disturbance interval in years
+      Disturbance_Regime control object
       @export
-    args: [mean_interval: double]
   methods:
     density:
       args: [time: "std::vector<double>"]
@@ -111,14 +109,6 @@ Disturbance:
     pr_survival:
       args: [time: double]
       return_type: double
-    pr_survival_conditional:
-      args: [time: double, time_start: double]
-      return_type: double
-    cdf:
-      args: [time: double]
-      return_type: double
-  active:
-    mean_interval: {type: double, access: member, name_cpp: r_mean_interval}
 
 Control:
   name_cpp: "plant::Control"
@@ -378,6 +368,7 @@ Parameters:
   list:
     - patch_area: double
     - n_patches: size_t
+    - patch_type: "std::string"
     - max_patch_lifetime: double
     - strategies: "std::vector<T>"
     - birth_rate: "std::vector<double>"

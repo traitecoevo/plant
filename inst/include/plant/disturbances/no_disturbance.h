@@ -14,14 +14,6 @@ public:
   virtual double pr_survival(double time) const;
 };
 
-double Disturbance::density(double time) const {
-  return 1.0;
-}
-
-double Disturbance::pr_survival(double time) const {
-  return 1.0;
-}
-
 }
 
 #endif

@@ -8,9 +8,9 @@ R6_yaml_path <- function() {
 check <- function(name, template_strategy) {
   r6 <- yaml::read_yaml(R6_yaml_path())
 
-  if(length(names(r6)) == 0) 
+  if(length(names(r6)) == 0)
     stop(paste(name, "Cannot find", R6_yaml_path()))
-  if(name %in% names(r6)) 
+  if(name %in% names(r6))
     stop(paste(name, "is reserved, try again with a different strategy name."))
   if(paste0(name, "_Strategy") %in% names(r6))
     stop(paste("Strategy name:", name, "is already in use, try again with a different strategy name."))
@@ -34,11 +34,11 @@ update_file <- function(file, templates, name, template_strategy, sep = "\n") {
   # add the extra templates after the templated ones
   update_txt <- function(template_function) {
     function(x, sep)
-      gsub(template_function(template_strategy), 
-           sprintf("%s%s%s", 
-                   template_function(template_strategy), 
-                   sep, 
-                   template_function(name)), 
+      gsub(template_function(template_strategy),
+           sprintf("%s%s%s",
+                   template_function(template_strategy),
+                   sep,
+                   template_function(name)),
            x, fixed= TRUE)
   }
 
@@ -93,7 +93,7 @@ update_classes_yml <- function (name, template_strategy) {
   env_candidates <- which(grepl("^$", r6_templates)) # get blank lines
   env_candidates <- env_candidates - env_start
   env_entry <- env_start + min(env_candidates <- env_candidates[env_candidates > 0])
-  
+
   # grab the parts of the yaml strategy that we will copy and replace
   yml_environment <- c(
     paste('\n# The following environment was built from', template_strategy, 'on', date()),
@@ -136,19 +136,18 @@ update_test_helper <- function(name, template_strategy) {
   '    {{name}}={{name}}_test_environment(...)',
   '    {{name}}={{name}}_hyperpar'
   )
-  
+
   update_file("tests/testthat/helper-plant.R", templates, name, template_strategy, sep=",\n")
 }
 
 update_strategy_support <- function (name, template_strategy) {
-  
+
   templates <- c(
   '         {{name}}=make_{{name}}_hyperpar',
   '         {{name}}={{name}}_hyperpar',
   '         {{name}}_Strategy={{name}}_hyperpar',
   '         {{name}}=sprintf("{{name}}_Env")',
   '         {{name}}={{name}}_make_environment(...)',
-  '         "Parameters<{{name}},{{name}}_Env>"=`cohort_schedule_max_time_default__Parameters___{{name}}__{{name}}_Env`',
   '         "Parameters<{{name}},{{name}}_Env>"=`cohort_schedule_default__Parameters___{{name}}__{{name}}_Env`',
   '         "Parameters<{{name}},{{name}}_Env>"=`make_cohort_schedule__Parameters___{{name}}__{{name}}_Env`'
   )
@@ -158,14 +157,14 @@ update_strategy_support <- function (name, template_strategy) {
 
 # Reads the file, finds and replaces both lower case and uppercase of strategy
 # with name and writes the new file to out_file
-template_file <- function (name, template_strategy,  file, 
-  out_file = gsub(template_strategy, name, 
+template_file <- function (name, template_strategy,  file,
+  out_file = gsub(template_strategy, name,
               gsub(tolower(template_strategy), tolower(name), file))) {
 
   creating_message(out_file)
 
   comment_char <- ifelse(grepl("R$", file), '#', '//')
-  comment <- paste(comment_char, 'Built from ', file, 'on', date(), 
+  comment <- paste(comment_char, 'Built from ', file, 'on', date(),
     'using the scaffolder, from the strategy: ',  template_strategy)
 
   l_name <- tolower(name)
@@ -178,7 +177,7 @@ template_file <- function (name, template_strategy,  file,
   unlist(c(comment, out)) -> out
 
   writeLines(out, out_file)
-} 
+}
 
 scaffold_files <- function (name, template_strategy) {
   files <- c(
@@ -191,7 +190,7 @@ scaffold_files <- function (name, template_strategy) {
   )
   for (file in files) {
     template_file(name, template_strategy, file)
-  }  
+  }
 }
 
 create_strategy_scaffold <- function(name, template_strategy="FF16") {

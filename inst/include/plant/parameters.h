@@ -25,10 +25,10 @@ struct Parameters {
   typedef E environment_type;
 
   Parameters() :
-    k_I(0.5),
     patch_area(1.0),
     n_patches(1),
-    max_patch_lifetime(105.32), // designed to agree with Daniel's implementation
+    patch_type("meta-population"),
+    max_patch_lifetime(105.32) // designed to agree with Daniel's implementation
   {
     validate();
   }
@@ -37,6 +37,7 @@ struct Parameters {
   double k_I;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
+  std::string patch_type;
   double max_patch_lifetime; // Disturbance interval (years)
   std::vector<strategy_type> strategies;
   std::vector<double> birth_rate;
@@ -52,6 +53,7 @@ struct Parameters {
   strategy_type strategy_default;
 
   // Cohort information.
+  double cohort_schedule_max_time;
   std::vector<double> cohort_schedule_times_default;
   std::vector<std::vector<double> > cohort_schedule_times;
   std::vector<double> cohort_schedule_ode_times;

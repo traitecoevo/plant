@@ -3,7 +3,6 @@
 #define PLANT_PLANT_SCM_UTILS_H_
 
 #include <plant/cohort_schedule.h>
-#include <plant/disturbance.h>
 
 namespace plant {
 
