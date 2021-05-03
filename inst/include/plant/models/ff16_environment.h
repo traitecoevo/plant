@@ -13,13 +13,11 @@ class FF16_Environment : public Environment {
 public:
 
   FF16_Environment() {
-    // Define an anonymous function to pass got the environment generator
     time = NA_REAL;
     canopy = Canopy();
   };
 
-  FF16_Environment(double disturbance_mean_interval,
-                   Control control) {
+  FF16_Environment(Control control) {
     time = 0.0;
     canopy = Canopy(control);
   };

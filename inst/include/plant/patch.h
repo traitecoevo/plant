@@ -84,8 +84,6 @@ private:
   std::vector<species_type> species;
 };
 
-/* E(p.disturbance_mean_interval, p.birth_rate, p.control) */
-
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p)
   : parameters(p),

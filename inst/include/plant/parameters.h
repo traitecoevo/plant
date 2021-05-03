@@ -28,8 +28,7 @@ struct Parameters {
     k_I(0.5),
     patch_area(1.0),
     n_patches(1),
-    disturbance_mean_interval(30),
-    cohort_schedule_max_time(NA_REAL)
+    max_patch_lifetime(105.32), // designed to agree with Daniel's implementation
   {
     validate();
   }
@@ -38,7 +37,7 @@ struct Parameters {
   double k_I;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
-  double disturbance_mean_interval; // Disturbance interval (years)
+  double max_patch_lifetime; // Disturbance interval (years)
   std::vector<strategy_type> strategies;
   std::vector<double> birth_rate;
   std::vector<bool> is_resident;
@@ -53,7 +52,6 @@ struct Parameters {
   strategy_type strategy_default;
 
   // Cohort information.
-  double cohort_schedule_max_time;
   std::vector<double> cohort_schedule_times_default;
   std::vector<std::vector<double> > cohort_schedule_times;
   std::vector<double> cohort_schedule_ode_times;
@@ -114,20 +112,19 @@ void Parameters<T,E>::validate() {
     s.control = control;
   }
 
-  environment = environment_type(disturbance_mean_interval, control);
+  environment = environment_type(control);
 }
 
 // Separating this out just because it's a bit crap:
 // TODO: Consider adding this to scm_utils.h perhaps?
 template <typename T, typename E>
 void Parameters<T,E>::setup_cohort_schedule() {
-  const double max_time = cohort_schedule_max_time_default(*this);
   const bool update =
     !(util::is_finite(cohort_schedule_max_time) &&
-      util::identical(cohort_schedule_max_time, max_time));
+      util::identical(cohort_schedule_max_time, max_patch_lifetime));
 
   if (update || !util::is_finite(cohort_schedule_max_time)) {
-    cohort_schedule_max_time = max_time;
+    cohort_schedule_max_time = max_patch_lifetime;
   }
   if (update || cohort_schedule_times_default.empty()) {
     cohort_schedule_times_default =
