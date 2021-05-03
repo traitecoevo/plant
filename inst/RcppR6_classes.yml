@@ -95,21 +95,6 @@ CohortSchedule:
       return_type: "plant::CohortSchedule"
       name_cpp: r_copy
 
-Disturbance_Regime:
-  name_cpp: "plant::Disturbance_Regime"
-  constructor:
-    roxygen: |
-      Disturbance_Regime control object
-      @export
-  methods:
-    density:
-      args: [time: "std::vector<double>"]
-      return_type: "std::vector<double>"
-      name_cpp: r_density
-    pr_survival:
-      args: [time: double]
-      return_type: double
-
 Control:
   name_cpp: "plant::Control"
   roxygen: |
@@ -475,7 +460,7 @@ Patch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
-    survival_weighting: {type: "plant::Disturbance_Regime", access: field}
+    # survival_weighting: {type: "plant::Disturbance_Regime", access: field}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -741,6 +726,31 @@ Canopy:
       return_type: void
   active:
     canopy_interpolator: {type: "plant::interpolator::Interpolator", access: field}
+
+Weibull_Disturbance_Regime:
+  name_cpp: "plant::Weibull_Disturbance_Regime"
+  constructor:
+    args: [max_patch_lifetime: double]
+    roxygen: |
+      The frequency of disturbance in a meta-population of patches follows a Weibull distribution
+      @title Weibull disturbance regime
+      Weibull_Disturbance_Regime control object
+      @export
+  methods:
+    density:
+      args: [time: "std::vector<double>"]
+      return_type: "std::vector<double>"
+      name_cpp: r_density
+    pr_survival:
+      args: [time: double]
+      return_type: double
+    mean_interval:
+      return_type: double
+      name_cpp: r_mean_interval
+    icdf:
+      args: [prob: double]
+      return_type: double
+
 
 FF16_Strategy:
   name_cpp: "plant::FF16_Strategy"
