@@ -62,7 +62,7 @@ test_that("Nontrivial creation", {
                           disturbance_mean_interval=2)
 
     message(x, " ", p$cohort_schedule_max_time)
-    expect_lt(p$cohort_schedule_max_time, 10)
+    expect_lt(p$cohort_schedule_max_time, 106)
     expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$cohort_schedule_max_time))
     expect_identical(p$cohort_schedule_times, list(p$cohort_schedule_times_default))
   }
@@ -144,8 +144,10 @@ test_that("Disturbance interval", {
     ## This is going to force us back through the validator
     p2 <- validate(p)
     expect_identical(p2$cohort_schedule_max_time, cohort_schedule_max_time_default(p2))
-    expect_lt(p2$cohort_schedule_max_time, p$cohort_schedule_max_time)
-    expect_lt(last(p2$cohort_schedule_times_default), p2$cohort_schedule_max_time)
+    
+    # Test no longer makes sense given fixed runtime
+    # expect_lt(p2$cohort_schedule_max_time, p$cohort_schedule_max_time)
+    
     expect_lt(last(p2$cohort_schedule_times_default), p2$cohort_schedule_max_time)
     expect_equal(p2$cohort_schedule_times, list(p2$cohort_schedule_times_default))
 
