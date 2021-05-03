@@ -486,9 +486,8 @@ Patch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
-    disturbance_regime: {type: "plant::Disturbance", access: field}
+    survival_weighting: {type: "plant::Disturbance_Regime", access: field}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
-    patch_survival: {type: double, access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -530,9 +529,6 @@ Patch:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&", env: "const std::vector<double>&"]
       name_cpp: r_set_state
       return_type: void
-    patch_survival_conditional:
-      args: [time_at_birth: double]
-      return_type: double
 
 SCM:
   name_cpp: "plant::SCM<T,E>"
@@ -659,9 +655,7 @@ StochasticPatch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
-    disturbance_regime: {type: "plant::Disturbance", access: field}
     species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
-    patch_survival: {type: double, access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -703,9 +697,6 @@ StochasticPatch:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&"]
       name_cpp: r_set_state
       return_type: void
-    patch_survival_conditional:
-      args: [time_at_birth: double]
-      return_type: double
     deaths:
       return_type: "std::vector<size_t>"
 

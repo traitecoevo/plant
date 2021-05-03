@@ -6,6 +6,10 @@
 #include <plant/species.h>
 #include <plant/ode_interface.h>
 
+#include <plant/disturbances_regime.h>
+#include <plant/disturbances/no_disturbance.h>
+#include <plant/disturbances/weibull_disturbance.h>
+
 using namespace Rcpp;
 
 namespace plant {
@@ -39,19 +43,7 @@ public:
   }
 
   // Patch disturbance
-  Disturbance disturbance_regime;
-
-  // Computes the probability of survival from 0 to time.
-  double patch_survival() const {
-    return disturbance_regime.pr_survival(time());
-  }
-
-  // Computes the probability of survival from time_at_birth to time, by
-  // conditioning survival over [0,time] on survival over
-  // [0,time_at_birth].
-  double patch_survival_conditional(double time_at_birth) const {
-    return disturbance_regime.pr_survival_conditional(time(), time_at_birth);
-  }
+  Disturbance_Regime survival_weighting;
 
   // * ODE interface
   size_t ode_size() const;
@@ -100,7 +92,14 @@ Patch<T,E>::Patch(parameters_type p)
     is_resident(p.is_resident) {
   parameters.validate();
   environment = p.environment;
-  disturbance_regime = Disturbance(p.disturbance_mean_interval);
+
+  if p.patch_type == 'meta-population' {
+    survival_weighting = Weibull_Disturbance_Regime(p.max_patch_lifetime);
+  }
+  else {
+    survival_weighting = No_Disturbance()
+  }
+
   for (auto s : parameters.strategies) {
     species.push_back(Species<T,E>(s));
   }
@@ -173,7 +172,7 @@ void Patch<T,E>::compute_rates() {
     // Compute rates in cohort, multiply rate per plant by density
     // sum all cohorts and species in a patch to find the outflow for the patch
     // subtract total extraction rate from state
-    double pr_patch_survival = patch_survival();
+    double pr_patch_survival = survival_weighting.pr_survival(time());
     double birth_rate = parameters.birth_rate[i];
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
     //environment.compute_rates();
