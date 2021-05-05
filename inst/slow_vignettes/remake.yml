@@ -33,7 +33,7 @@ targets:
 
   cohort_spacing.md:
     knitr: vignette
-  equilibrium.md:
+  demographic_equilibrium.md:
     knitr: vignette
   fitness.md:
     knitr: vignette
@@ -41,12 +41,12 @@ targets:
   update_vignettes:
     command: file.copy(I("figure"), I("vignettes"), recursive=TRUE, overwrite=TRUE)
     depends:
-      - vignettes/equilibrium.Rmd
+      - vignettes/demographic_equilibrium.Rmd
       - vignettes/fitness.Rmd
       - vignettes/cohort_spacing.Rmd
 
-  vignettes/equilibrium.Rmd:
-    command: file.copy("equilibrium.md", target_name, overwrite=TRUE)
+  vignettes/demographic_equilibrium.Rmd:
+    command: file.copy("demographic_equilibrium.md", target_name, overwrite=TRUE)
   vignettes/cohort_spacing.Rmd:
     command: file.copy("cohort_spacing.md", target_name, overwrite=TRUE)
   vignettes/fitness.Rmd:

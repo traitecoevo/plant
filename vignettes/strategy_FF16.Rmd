@@ -1,12 +1,12 @@
 ---
-title: "The `FF16` growth strategy"
+title: "The `FF16` model"
 author: DS Falster, RG FitzJohn, Å Brännström, U Dieckmann, M Westoby
 date: 2016
 bibliography: assets/refs.bib
 csl: assets/methods-in-ecology-and-evolution.csl
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{tmp}
+  %\VignetteIndexEntry{strategy_FF16}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -1,5 +1,5 @@
 ---
-title: "Modelling the demography of plants, patches, and metacommunities"
+title: "Demography of plants, patches, and metacommunities"
 author:
 - Daniel Falster
 - Ake Brannstrom
@@ -9,7 +9,7 @@ bibliography: assets/refs.bib
 csl: assets/methods-in-ecology-and-evolution.csl
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{tmp}
+  %\VignetteIndexEntry{demography}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 

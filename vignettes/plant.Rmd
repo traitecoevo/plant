@@ -5,7 +5,7 @@ author:
 - Andrew O'Reilly-Nugent
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{tmp}
+  %\VignetteIndexEntry{plant}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

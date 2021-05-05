@@ -1,12 +1,12 @@
 ---
-title: "Individual-level properties"
+title: "Growing individuals"
 author:
 - Rich FitzJohn
 - Daniel Falster
 date: 2016
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{tmp}
+  %\VignetteIndexEntry{Individuals}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

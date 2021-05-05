@@ -6,7 +6,7 @@ author:
 date: 2016
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{tmp}
+  %\VignetteIndexEntry{parameters}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

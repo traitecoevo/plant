@@ -1,11 +1,11 @@
 ---
-title: "Implementing Kohyama 1993"
-subtitle: "A forest architecture hypothesis for the stable coexistence of species"
+title: "Implementing a new startegy"
+subtitle: "(Using Kohymama 1993 - forest architecture model)"
 author: Andrew O'Reilly-Nugent
 date: August 28, 2020
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{tmp}
+  %\VignetteIndexEntry{strategy_new}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
