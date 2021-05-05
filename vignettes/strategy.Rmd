@@ -3,13 +3,11 @@ title: "Implementing Kohyama 1993"
 subtitle: "A forest architecture hypothesis for the stable coexistence of species"
 author: Andrew O'Reilly-Nugent
 date: August 28, 2020
-output:
-  html_document:
-    toc: true
-    toc_float:
-      collapsed: true
-      smooth_scroll: true
-    theme: united
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{tmp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 # 🚧 Under construction 🚧
 

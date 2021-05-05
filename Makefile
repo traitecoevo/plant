@@ -37,8 +37,11 @@ check: build
 clean:
 	rm -f src/*.o src/*.so
 
+slow_vignettes:
+	(cd inst/slow_vignettes; ln -sfn ../../vignettes vignettes; remake update_vignettes)
+
 vignettes:
-	(cd inst/docs; ln -sfn ../../vignettes vignettes; remake install_vignettes)
+	Rscript -e "devtools::build_vignettes()"
 
 website: vignettes
 	Rscript -e "pkgdown::build_site()" /

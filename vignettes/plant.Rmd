@@ -2,10 +2,12 @@
 title: "Introduction to the plant model"
 author:
 - Daniel Falster
-output:
-  bookdown::html_document2:
-    toc: yes
-    number_sections: false
+- Andrew O'Reilly-Nugent
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{tmp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 # Background

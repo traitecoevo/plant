@@ -4,11 +4,17 @@ author:
 - Rich FitzJohn
 - Daniel Falster
 date: 2016
-output:
-  bookdown::html_document2:
-    toc: yes
-    number_sections: false
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{tmp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
+
+```{r, echo=FALSE, results="asis"}
+txt <- "<!-- This file is generated from the Rmd in inst/slow_vignettes. Make any edits there-->"
+writeLines(txt)
+```
 
 # Background
 

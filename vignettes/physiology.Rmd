@@ -4,10 +4,11 @@ author: DS Falster, RG FitzJohn, Å Brännström, U Dieckmann, M Westoby
 date: 2016
 bibliography: assets/refs.bib
 csl: assets/methods-in-ecology-and-evolution.csl
-output:
-  html_document:
-    toc: yes
-    number_sections: false
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{tmp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r, echo=FALSE}

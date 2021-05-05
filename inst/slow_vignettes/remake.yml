@@ -1,0 +1,53 @@
+packages:
+  - rmarkdown
+  - plant
+  - BB
+  - nleqslv
+  - xtable
+
+plot_options:
+  wide:
+    width: 12
+    height: 4
+  square:
+    width: 8
+    height: 8
+  med_square:
+    width: 10
+    height: 10
+  large_square:
+    width: 12
+    height: 12
+
+knitr_options:
+  vignette:
+    auto_figure_prefix: true
+    chdir: true
+    options:
+      fig.cap: ""
+
+targets:
+  all:
+    depends:
+      - update_vignettes
+
+  cohort_spacing.md:
+    knitr: vignette
+  equilibrium.md:
+    knitr: vignette
+  fitness.md:
+    knitr: vignette
+
+  update_vignettes:
+    command: file.copy(I("figure"), I("vignettes"), recursive=TRUE, overwrite=TRUE)
+    depends:
+      - vignettes/equilibrium.Rmd
+      - vignettes/fitness.Rmd
+      - vignettes/cohort_spacing.Rmd
+
+  vignettes/equilibrium.Rmd:
+    command: file.copy("equilibrium.md", target_name, overwrite=TRUE)
+  vignettes/cohort_spacing.Rmd:
+    command: file.copy("cohort_spacing.md", target_name, overwrite=TRUE)
+  vignettes/fitness.Rmd:
+    command: file.copy("fitness.md", target_name, overwrite=TRUE)

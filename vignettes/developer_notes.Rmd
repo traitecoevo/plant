@@ -1,10 +1,11 @@
 ---
 title: "Developer Notes"
 date: "`r Sys.Date()`"
-output:
-  bookdown::html_document2:
-    toc: yes
-    number_sections: false
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{tmp}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 # Development
@@ -202,6 +203,6 @@ After the project compiles, you will notices even more files that have changed, 
 ## Building the website:
 
 To build and push the website to the `gh-pages` branch run `make website`.
-This first builds the vignettes from `/inst/docs` then builds the site with [pkgdown](http://pkgdown.r-lib.org).
+This builds the site with [pkgdown](http://pkgdown.r-lib.org).
 The site is then pushed to the `gh-pages` branch. (https://traitecoevo.github.io/plant)
 

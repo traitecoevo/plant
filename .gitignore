@@ -1,5 +1,5 @@
-vignettes/*
 inst/website
+vignettes/figure/*
 *Rproj*
 *.Rhistory*
 ^plant.Rcheck$
@@ -13,3 +13,7 @@ tmp*
 .vscode
 scrap.R
 
+
+inst/doc
+doc
+Meta
