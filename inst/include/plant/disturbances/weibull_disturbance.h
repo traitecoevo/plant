@@ -12,18 +12,15 @@ namespace plant {
 
 class Weibull_Disturbance_Regime: public Disturbance_Regime {
 public:
-  Weibull_Disturbance_Regime()
-    : shape(2.0),
-      mean_interval(1.0) {
-    scale = pow(R::gammafn(1.0/shape)/shape/mean_interval, shape);
-    p0 = shape*pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);
-  }
 
-  Weibull_Disturbance_Regime(double mean_interval_)
-    : shape(2.0),
-      mean_interval(mean_interval_) {
-    scale = pow(R::gammafn(1.0/shape)/shape/mean_interval, shape);
-    p0 = shape*pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);
+  // icdf_limit chosen to match Falster 2011
+  Weibull_Disturbance_Regime(double max_patch_lifetime)
+    : icdf_limit(6.25302620663814e-05),
+      shape(2.0) {
+    mean_interval = (max_patch_lifetime * R::gammafn(1.0 / shape)) /
+                      (shape * sqrt(-log(icdf_limit)));
+    scale = pow(R::gammafn(1.0 / shape) / shape / mean_interval, shape);
+    p0 = shape * pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);
   }
 
   virtual double density(double time) const {
@@ -45,8 +42,9 @@ public:
   }
 
 private:
-  double shape;
+  double icdf_limit;
   double mean_interval;
+  double shape;
   double scale;
   double p0;
 };
