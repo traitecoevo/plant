@@ -306,7 +306,7 @@ make_scm_integrate <- function(obj) {
     internals <- patch_to_internals(scm_patch(length(obj$time), obj))
     n <- length(internals)
     a <- obj$p$cohort_schedule_times
-    pa <- lapply(a, Disturbance(obj$p$disturbance_mean_interval)$density)
+    pa <- lapply(a, Disturbance(obj$p$max_patch_lifetime)$density)
   }
 
   if (n == 0L) {
