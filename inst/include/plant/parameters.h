@@ -63,6 +63,7 @@ struct Parameters {
   size_t n_residents() const;
   size_t n_mutants() const;
   void validate();
+  
 private:
   void setup_cohort_schedule();
 };

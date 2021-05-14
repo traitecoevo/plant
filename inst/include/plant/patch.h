@@ -17,12 +17,12 @@ namespace plant {
 template <typename T, typename E>
 class Patch {
 public:
-  typedef T             strategy_type;
-  typedef E             environment_type;
-  typedef Individual<T,E>    individual_type;
-  typedef Cohort<T,E>   cohort_type;
-  typedef Species<T,E>  species_type;
-  typedef Parameters<T,E> parameters_type;
+  typedef T                 strategy_type;
+  typedef E                 environment_type;
+  typedef Individual<T,E>   individual_type;
+  typedef Cohort<T,E>       cohort_type;
+  typedef Species<T,E>      species_type;
+  typedef Parameters<T,E>   parameters_type;
 
   Patch(parameters_type p);
 
@@ -43,7 +43,7 @@ public:
   }
 
   // Patch disturbance
-  Disturbance_Regime survival_weighting;
+  Disturbance_Regime * survival_weighting;
 
   // * ODE interface
   size_t ode_size() const;
@@ -54,6 +54,7 @@ public:
 
   // * R interface
   // Data accessors:
+  Disturbance_Regime* r_survival_weighting() const {return survival_weighting;};
   parameters_type r_parameters() const {return parameters;}
   environment_type r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
@@ -91,11 +92,14 @@ Patch<T,E>::Patch(parameters_type p)
   parameters.validate();
   environment = p.environment;
 
+  // Disturbances used to describe evolution of a metapopulation of patches
+  // when calculating fitness, otherwise defaults to fixed-duration run without
+  // disturbance
   if(p.patch_type == "meta-population") {
-    survival_weighting = Weibull_Disturbance_Regime(p.max_patch_lifetime);
+    survival_weighting = &Weibull_Disturbance_Regime(p.max_patch_lifetime);
   }
   else {
-    survival_weighting = No_Disturbance();
+    survival_weighting = &No_Disturbance();
   }
 
   for (auto s : parameters.strategies) {
@@ -170,7 +174,7 @@ void Patch<T,E>::compute_rates() {
     // Compute rates in cohort, multiply rate per plant by density
     // sum all cohorts and species in a patch to find the outflow for the patch
     // subtract total extraction rate from state
-    double pr_patch_survival = survival_weighting.pr_survival(time());
+    double pr_patch_survival = survival_weighting->pr_survival(time());
     double birth_rate = parameters.birth_rate[i];
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
     //environment.compute_rates();

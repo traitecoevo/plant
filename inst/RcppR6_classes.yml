@@ -460,7 +460,7 @@ Patch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
-    # survival_weighting: {type: "plant::Disturbance_Regime", access: field}
+    # survival_weighting: {type: "plant::Disturbance_Regime*", access: member, name_cpp: r_survival_weighting}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -727,6 +727,39 @@ Canopy:
   active:
     canopy_interpolator: {type: "plant::interpolator::Interpolator", access: field}
 
+Disturbance_Regime:
+  name_cpp: "plant::Disturbance_Regime"
+  constructor:
+    roxygen: |
+      Base class of representing patch disturbance
+      @title Disturbance regime
+      @export
+  methods:
+    density:
+      args: [time: "std::vector<double>"]
+      return_type: "std::vector<double>"
+      name_cpp: r_density
+    pr_survival:
+      args: [time: double]
+      return_type: double
+
+No_Disturbance:
+  name_cpp: "plant::No_Disturbance"
+  constructor:
+    roxygen: |
+      A disturbance-free regime for running individual patches
+      @title No disturbance regime
+      No_Disturbance_Regime control object
+      @export
+  methods:
+    density:
+      args: [time: "std::vector<double>"]
+      return_type: "std::vector<double>"
+      name_cpp: r_density
+    pr_survival:
+      args: [time: double]
+      return_type: double
+
 Weibull_Disturbance_Regime:
   name_cpp: "plant::Weibull_Disturbance_Regime"
   constructor:
@@ -747,10 +780,12 @@ Weibull_Disturbance_Regime:
     mean_interval:
       return_type: double
       name_cpp: r_mean_interval
+    cdf:
+      args: [time: double]
+      return_type: double
     icdf:
       args: [prob: double]
       return_type: double
-
 
 FF16_Strategy:
   name_cpp: "plant::FF16_Strategy"

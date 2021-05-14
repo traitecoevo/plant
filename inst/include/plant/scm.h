@@ -238,7 +238,7 @@ std::vector<double> SCM<T,E>::net_reproduction_ratio_by_cohort_weighted(size_t s
   // weight by probabilty of reproduction
   for (size_t i = 0; i < net_reproduction_ratio_by_cohort_weighted.size(); ++i) {
     net_reproduction_ratio_by_cohort_weighted[i] *=
-      patch.survival_weighting.density(times[i]) * // probability of landing in patch of a given age
+      patch.survival_weighting->density(times[i]) * // probability of landing in patch of a given age
       parameters.strategies[species_index].S_D; // probability of survival during dispersal (assumed constant)
   }
 
