@@ -1012,77 +1012,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Disturbance__ctor
-plant::Disturbance Disturbance__ctor(double mean_interval);
-RcppExport SEXP _plant_Disturbance__ctor(SEXP mean_intervalSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type mean_interval(mean_intervalSEXP);
-    rcpp_result_gen = Rcpp::wrap(Disturbance__ctor(mean_interval));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Disturbance__density
-std::vector<double> Disturbance__density(plant::RcppR6::RcppR6<plant::Disturbance> obj_, std::vector<double> time);
-RcppExport SEXP _plant_Disturbance__density(SEXP obj_SEXP, SEXP timeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Disturbance__density(obj_, time));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Disturbance__pr_survival
-double Disturbance__pr_survival(plant::RcppR6::RcppR6<plant::Disturbance> obj_, double time);
-RcppExport SEXP _plant_Disturbance__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Disturbance__pr_survival(obj_, time));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Disturbance__pr_survival_conditional
-double Disturbance__pr_survival_conditional(plant::RcppR6::RcppR6<plant::Disturbance> obj_, double time, double time_start);
-RcppExport SEXP _plant_Disturbance__pr_survival_conditional(SEXP obj_SEXP, SEXP timeSEXP, SEXP time_startSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
-    Rcpp::traits::input_parameter< double >::type time_start(time_startSEXP);
-    rcpp_result_gen = Rcpp::wrap(Disturbance__pr_survival_conditional(obj_, time, time_start));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Disturbance__cdf
-double Disturbance__cdf(plant::RcppR6::RcppR6<plant::Disturbance> obj_, double time);
-RcppExport SEXP _plant_Disturbance__cdf(SEXP obj_SEXP, SEXP timeSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Disturbance__cdf(obj_, time));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Disturbance__mean_interval__get
-double Disturbance__mean_interval__get(plant::RcppR6::RcppR6<plant::Disturbance> obj_);
-RcppExport SEXP _plant_Disturbance__mean_interval__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Disturbance__mean_interval__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Control__ctor
 SEXP Control__ctor();
 RcppExport SEXP _plant_Control__ctor() {
@@ -3714,6 +3643,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___FF16__FF16_Env__density
+double Patch___FF16__FF16_Env__density(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__density(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__density(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___FF16__FF16_Env__pr_survival
+double Patch___FF16__FF16_Env__pr_survival(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__pr_survival(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___FF16__FF16_Env__compute_competition
 double Patch___FF16__FF16_Env__compute_competition(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double height);
 RcppExport SEXP _plant_Patch___FF16__FF16_Env__compute_competition(SEXP obj_SEXP, SEXP heightSEXP) {
@@ -3817,18 +3770,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Patch___FF16__FF16_Env__patch_survival_conditional
-double Patch___FF16__FF16_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time_at_birth);
-RcppExport SEXP _plant_Patch___FF16__FF16_Env__patch_survival_conditional(SEXP obj_SEXP, SEXP time_at_birthSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time_at_birth(time_at_birthSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__patch_survival_conditional(obj_, time_at_birth));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Patch___FF16__FF16_Env__time__get
 double Patch___FF16__FF16_Env__time__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Patch___FF16__FF16_Env__time__get(SEXP obj_SEXP) {
@@ -3884,28 +3825,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___FF16__FF16_Env__disturbance_regime__get
-plant::Disturbance Patch___FF16__FF16_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Patch___FF16__FF16_Env__disturbance_regime__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__disturbance_regime__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Patch___FF16__FF16_Env__disturbance_regime__set
-void Patch___FF16__FF16_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::Disturbance value);
-RcppExport SEXP _plant_Patch___FF16__FF16_Env__disturbance_regime__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::Disturbance >::type value(valueSEXP);
-    Patch___FF16__FF16_Env__disturbance_regime__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // Patch___FF16__FF16_Env__species__get
 std::vector<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > Patch___FF16__FF16_Env__species__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Patch___FF16__FF16_Env__species__get(SEXP obj_SEXP) {
@@ -3914,17 +3833,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__species__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Patch___FF16__FF16_Env__patch_survival__get
-double Patch___FF16__FF16_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Patch___FF16__FF16_Env__patch_survival__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__patch_survival__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3980,6 +3888,30 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__ctor(parameters));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___FF16r__FF16_Env__density
+double Patch___FF16r__FF16_Env__density(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time);
+RcppExport SEXP _plant_Patch___FF16r__FF16_Env__density(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__density(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___FF16r__FF16_Env__pr_survival
+double Patch___FF16r__FF16_Env__pr_survival(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time);
+RcppExport SEXP _plant_Patch___FF16r__FF16_Env__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__pr_survival(obj_, time));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4086,18 +4018,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Patch___FF16r__FF16_Env__patch_survival_conditional
-double Patch___FF16r__FF16_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time_at_birth);
-RcppExport SEXP _plant_Patch___FF16r__FF16_Env__patch_survival_conditional(SEXP obj_SEXP, SEXP time_at_birthSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time_at_birth(time_at_birthSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__patch_survival_conditional(obj_, time_at_birth));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Patch___FF16r__FF16_Env__time__get
 double Patch___FF16r__FF16_Env__time__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Patch___FF16r__FF16_Env__time__get(SEXP obj_SEXP) {
@@ -4153,28 +4073,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___FF16r__FF16_Env__disturbance_regime__get
-plant::Disturbance Patch___FF16r__FF16_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Patch___FF16r__FF16_Env__disturbance_regime__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__disturbance_regime__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Patch___FF16r__FF16_Env__disturbance_regime__set
-void Patch___FF16r__FF16_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::Disturbance value);
-RcppExport SEXP _plant_Patch___FF16r__FF16_Env__disturbance_regime__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::Disturbance >::type value(valueSEXP);
-    Patch___FF16r__FF16_Env__disturbance_regime__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // Patch___FF16r__FF16_Env__species__get
 std::vector<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > Patch___FF16r__FF16_Env__species__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Patch___FF16r__FF16_Env__species__get(SEXP obj_SEXP) {
@@ -4183,17 +4081,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__species__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Patch___FF16r__FF16_Env__patch_survival__get
-double Patch___FF16r__FF16_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Patch___FF16r__FF16_Env__patch_survival__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__patch_survival__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4249,6 +4136,30 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type parameters(parametersSEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__ctor(parameters));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___K93__K93_Env__density
+double Patch___K93__K93_Env__density(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, double time);
+RcppExport SEXP _plant_Patch___K93__K93_Env__density(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__density(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___K93__K93_Env__pr_survival
+double Patch___K93__K93_Env__pr_survival(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, double time);
+RcppExport SEXP _plant_Patch___K93__K93_Env__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__pr_survival(obj_, time));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4355,18 +4266,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Patch___K93__K93_Env__patch_survival_conditional
-double Patch___K93__K93_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, double time_at_birth);
-RcppExport SEXP _plant_Patch___K93__K93_Env__patch_survival_conditional(SEXP obj_SEXP, SEXP time_at_birthSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time_at_birth(time_at_birthSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__patch_survival_conditional(obj_, time_at_birth));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Patch___K93__K93_Env__time__get
 double Patch___K93__K93_Env__time__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_Patch___K93__K93_Env__time__get(SEXP obj_SEXP) {
@@ -4422,28 +4321,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Patch___K93__K93_Env__disturbance_regime__get
-plant::Disturbance Patch___K93__K93_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Patch___K93__K93_Env__disturbance_regime__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__disturbance_regime__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Patch___K93__K93_Env__disturbance_regime__set
-void Patch___K93__K93_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Disturbance value);
-RcppExport SEXP _plant_Patch___K93__K93_Env__disturbance_regime__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::Disturbance >::type value(valueSEXP);
-    Patch___K93__K93_Env__disturbance_regime__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // Patch___K93__K93_Env__species__get
 std::vector<plant::Species<plant::K93_Strategy,plant::K93_Environment> > Patch___K93__K93_Env__species__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_Patch___K93__K93_Env__species__get(SEXP obj_SEXP) {
@@ -4452,17 +4329,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__species__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Patch___K93__K93_Env__patch_survival__get
-double Patch___K93__K93_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Patch___K93__K93_Env__patch_survival__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__patch_survival__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5980,18 +5846,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// StochasticPatch___FF16__FF16_Env__patch_survival_conditional
-double StochasticPatch___FF16__FF16_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time_at_birth);
-RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__patch_survival_conditional(SEXP obj_SEXP, SEXP time_at_birthSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time_at_birth(time_at_birthSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16__FF16_Env__patch_survival_conditional(obj_, time_at_birth));
-    return rcpp_result_gen;
-END_RCPP
-}
 // StochasticPatch___FF16__FF16_Env__deaths
 std::vector<size_t> StochasticPatch___FF16__FF16_Env__deaths(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__deaths(SEXP obj_SEXP) {
@@ -6058,28 +5912,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// StochasticPatch___FF16__FF16_Env__disturbance_regime__get
-plant::Disturbance StochasticPatch___FF16__FF16_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__disturbance_regime__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16__FF16_Env__disturbance_regime__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// StochasticPatch___FF16__FF16_Env__disturbance_regime__set
-void StochasticPatch___FF16__FF16_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::Disturbance value);
-RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__disturbance_regime__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::Disturbance >::type value(valueSEXP);
-    StochasticPatch___FF16__FF16_Env__disturbance_regime__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // StochasticPatch___FF16__FF16_Env__species__get
 std::vector<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> > StochasticPatch___FF16__FF16_Env__species__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__species__get(SEXP obj_SEXP) {
@@ -6088,17 +5920,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16__FF16_Env__species__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// StochasticPatch___FF16__FF16_Env__patch_survival__get
-double StochasticPatch___FF16__FF16_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__patch_survival__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16__FF16_Env__patch_survival__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6260,18 +6081,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// StochasticPatch___FF16r__FF16_Env__patch_survival_conditional
-double StochasticPatch___FF16r__FF16_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time_at_birth);
-RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__patch_survival_conditional(SEXP obj_SEXP, SEXP time_at_birthSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time_at_birth(time_at_birthSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16r__FF16_Env__patch_survival_conditional(obj_, time_at_birth));
-    return rcpp_result_gen;
-END_RCPP
-}
 // StochasticPatch___FF16r__FF16_Env__deaths
 std::vector<size_t> StochasticPatch___FF16r__FF16_Env__deaths(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__deaths(SEXP obj_SEXP) {
@@ -6338,28 +6147,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// StochasticPatch___FF16r__FF16_Env__disturbance_regime__get
-plant::Disturbance StochasticPatch___FF16r__FF16_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__disturbance_regime__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16r__FF16_Env__disturbance_regime__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// StochasticPatch___FF16r__FF16_Env__disturbance_regime__set
-void StochasticPatch___FF16r__FF16_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::Disturbance value);
-RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__disturbance_regime__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::Disturbance >::type value(valueSEXP);
-    StochasticPatch___FF16r__FF16_Env__disturbance_regime__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // StochasticPatch___FF16r__FF16_Env__species__get
 std::vector<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> > StochasticPatch___FF16r__FF16_Env__species__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__species__get(SEXP obj_SEXP) {
@@ -6368,17 +6155,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16r__FF16_Env__species__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// StochasticPatch___FF16r__FF16_Env__patch_survival__get
-double StochasticPatch___FF16r__FF16_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__patch_survival__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16r__FF16_Env__patch_survival__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6540,18 +6316,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// StochasticPatch___K93__K93_Env__patch_survival_conditional
-double StochasticPatch___K93__K93_Env__patch_survival_conditional(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_, double time_at_birth);
-RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__patch_survival_conditional(SEXP obj_SEXP, SEXP time_at_birthSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type time_at_birth(time_at_birthSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___K93__K93_Env__patch_survival_conditional(obj_, time_at_birth));
-    return rcpp_result_gen;
-END_RCPP
-}
 // StochasticPatch___K93__K93_Env__deaths
 std::vector<size_t> StochasticPatch___K93__K93_Env__deaths(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__deaths(SEXP obj_SEXP) {
@@ -6618,28 +6382,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// StochasticPatch___K93__K93_Env__disturbance_regime__get
-plant::Disturbance StochasticPatch___K93__K93_Env__disturbance_regime__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__disturbance_regime__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___K93__K93_Env__disturbance_regime__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// StochasticPatch___K93__K93_Env__disturbance_regime__set
-void StochasticPatch___K93__K93_Env__disturbance_regime__set(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Disturbance value);
-RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__disturbance_regime__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< plant::Disturbance >::type value(valueSEXP);
-    StochasticPatch___K93__K93_Env__disturbance_regime__set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
 // StochasticPatch___K93__K93_Env__species__get
 std::vector<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> > StochasticPatch___K93__K93_Env__species__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__species__get(SEXP obj_SEXP) {
@@ -6648,17 +6390,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(StochasticPatch___K93__K93_Env__species__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// StochasticPatch___K93__K93_Env__patch_survival__get
-double StochasticPatch___K93__K93_Env__patch_survival__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__patch_survival__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___K93__K93_Env__patch_survival__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7151,6 +6882,144 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Disturbance_Regime__ctor
+plant::Disturbance_Regime Disturbance_Regime__ctor();
+RcppExport SEXP _plant_Disturbance_Regime__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(Disturbance_Regime__ctor());
+    return rcpp_result_gen;
+END_RCPP
+}
+// Disturbance_Regime__density
+std::vector<double> Disturbance_Regime__density(plant::RcppR6::RcppR6<plant::Disturbance_Regime> obj_, std::vector<double> time);
+RcppExport SEXP _plant_Disturbance_Regime__density(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Disturbance_Regime__density(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Disturbance_Regime__pr_survival
+double Disturbance_Regime__pr_survival(plant::RcppR6::RcppR6<plant::Disturbance_Regime> obj_, double time);
+RcppExport SEXP _plant_Disturbance_Regime__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Disturbance_Regime__pr_survival(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// No_Disturbance__ctor
+plant::No_Disturbance No_Disturbance__ctor();
+RcppExport SEXP _plant_No_Disturbance__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(No_Disturbance__ctor());
+    return rcpp_result_gen;
+END_RCPP
+}
+// No_Disturbance__density
+std::vector<double> No_Disturbance__density(plant::RcppR6::RcppR6<plant::No_Disturbance> obj_, std::vector<double> time);
+RcppExport SEXP _plant_No_Disturbance__density(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::No_Disturbance> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(No_Disturbance__density(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// No_Disturbance__pr_survival
+double No_Disturbance__pr_survival(plant::RcppR6::RcppR6<plant::No_Disturbance> obj_, double time);
+RcppExport SEXP _plant_No_Disturbance__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::No_Disturbance> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(No_Disturbance__pr_survival(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Weibull_Disturbance_Regime__ctor
+plant::Weibull_Disturbance_Regime Weibull_Disturbance_Regime__ctor(double max_patch_lifetime);
+RcppExport SEXP _plant_Weibull_Disturbance_Regime__ctor(SEXP max_patch_lifetimeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type max_patch_lifetime(max_patch_lifetimeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__ctor(max_patch_lifetime));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Weibull_Disturbance_Regime__density
+std::vector<double> Weibull_Disturbance_Regime__density(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> obj_, std::vector<double> time);
+RcppExport SEXP _plant_Weibull_Disturbance_Regime__density(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__density(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Weibull_Disturbance_Regime__pr_survival
+double Weibull_Disturbance_Regime__pr_survival(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> obj_, double time);
+RcppExport SEXP _plant_Weibull_Disturbance_Regime__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__pr_survival(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Weibull_Disturbance_Regime__mean_interval
+double Weibull_Disturbance_Regime__mean_interval(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> obj_);
+RcppExport SEXP _plant_Weibull_Disturbance_Regime__mean_interval(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__mean_interval(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Weibull_Disturbance_Regime__cdf
+double Weibull_Disturbance_Regime__cdf(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> obj_, double time);
+RcppExport SEXP _plant_Weibull_Disturbance_Regime__cdf(SEXP obj_SEXP, SEXP timeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__cdf(obj_, time));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Weibull_Disturbance_Regime__icdf
+double Weibull_Disturbance_Regime__icdf(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> obj_, double prob);
+RcppExport SEXP _plant_Weibull_Disturbance_Regime__icdf(SEXP obj_SEXP, SEXP probSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type prob(probSEXP);
+    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__icdf(obj_, prob));
+    return rcpp_result_gen;
+END_RCPP
+}
 // FF16_Strategy__ctor
 SEXP FF16_Strategy__ctor();
 RcppExport SEXP _plant_FF16_Strategy__ctor() {
@@ -7162,14 +7031,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__ctor
-plant::FF16_Environment FF16_Environment__ctor(double disturbance_mean_interval, plant::Control control);
-RcppExport SEXP _plant_FF16_Environment__ctor(SEXP disturbance_mean_intervalSEXP, SEXP controlSEXP) {
+plant::FF16_Environment FF16_Environment__ctor(plant::Control control);
+RcppExport SEXP _plant_FF16_Environment__ctor(SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type disturbance_mean_interval(disturbance_mean_intervalSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(disturbance_mean_interval, control));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7272,14 +7140,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // K93_Environment__ctor
-plant::K93_Environment K93_Environment__ctor(double disturbance_mean_interval, plant::Control control);
-RcppExport SEXP _plant_K93_Environment__ctor(SEXP disturbance_mean_intervalSEXP, SEXP controlSEXP) {
+plant::K93_Environment K93_Environment__ctor(plant::Control control);
+RcppExport SEXP _plant_K93_Environment__ctor(SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type disturbance_mean_interval(disturbance_mean_intervalSEXP);
     Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(K93_Environment__ctor(disturbance_mean_interval, control));
+    rcpp_result_gen = Rcpp::wrap(K93_Environment__ctor(control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7374,17 +7241,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// cohort_schedule_max_time_default__Parameters___FF16__FF16_Env
-double cohort_schedule_max_time_default__Parameters___FF16__FF16_Env(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& p);
-RcppExport SEXP _plant_cohort_schedule_max_time_default__Parameters___FF16__FF16_Env(SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(cohort_schedule_max_time_default__Parameters___FF16__FF16_Env(p));
-    return rcpp_result_gen;
-END_RCPP
-}
 // cohort_schedule_default__Parameters___FF16__FF16_Env
 plant::CohortSchedule cohort_schedule_default__Parameters___FF16__FF16_Env(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& p);
 RcppExport SEXP _plant_cohort_schedule_default__Parameters___FF16__FF16_Env(SEXP pSEXP) {
@@ -7404,17 +7260,6 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
     rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___FF16__FF16_Env(p));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env
-double cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env(const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>& p);
-RcppExport SEXP _plant_cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env(SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env(p));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7466,17 +7311,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type d(dSEXP);
     Rcpp::traits::input_parameter< size_t >::type r(rSEXP);
     rcpp_result_gen = Rcpp::wrap(test_gradient_richardson(f, x, d, r));
-    return rcpp_result_gen;
-END_RCPP
-}
-// cohort_schedule_max_time_default__Parameters___K93__K93_Env
-double cohort_schedule_max_time_default__Parameters___K93__K93_Env(const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& p);
-RcppExport SEXP _plant_cohort_schedule_max_time_default__Parameters___K93__K93_Env(SEXP pSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(cohort_schedule_max_time_default__Parameters___K93__K93_Env(p));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7700,12 +7534,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_CohortSchedule__use_ode_times__set", (DL_FUNC) &_plant_CohortSchedule__use_ode_times__set, 2},
     {"_plant_CohortSchedule__all_times__get", (DL_FUNC) &_plant_CohortSchedule__all_times__get, 1},
     {"_plant_CohortSchedule__all_times__set", (DL_FUNC) &_plant_CohortSchedule__all_times__set, 2},
-    {"_plant_Disturbance__ctor", (DL_FUNC) &_plant_Disturbance__ctor, 1},
-    {"_plant_Disturbance__density", (DL_FUNC) &_plant_Disturbance__density, 2},
-    {"_plant_Disturbance__pr_survival", (DL_FUNC) &_plant_Disturbance__pr_survival, 2},
-    {"_plant_Disturbance__pr_survival_conditional", (DL_FUNC) &_plant_Disturbance__pr_survival_conditional, 3},
-    {"_plant_Disturbance__cdf", (DL_FUNC) &_plant_Disturbance__cdf, 2},
-    {"_plant_Disturbance__mean_interval__get", (DL_FUNC) &_plant_Disturbance__mean_interval__get, 1},
     {"_plant_Control__ctor", (DL_FUNC) &_plant_Control__ctor, 0},
     {"_plant_OdeControl__ctor", (DL_FUNC) &_plant_OdeControl__ctor, 0},
     {"_plant_QK__ctor", (DL_FUNC) &_plant_QK__ctor, 1},
@@ -7939,6 +7767,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___K93__K93_Env__ode_state__set", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_state__set, 2},
     {"_plant_Species___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_rates__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ctor, 1},
+    {"_plant_Patch___FF16__FF16_Env__density", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__density, 2},
+    {"_plant_Patch___FF16__FF16_Env__pr_survival", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__pr_survival, 2},
     {"_plant_Patch___FF16__FF16_Env__compute_competition", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__compute_competition, 2},
     {"_plant_Patch___FF16__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__introduce_new_cohort, 2},
     {"_plant_Patch___FF16__FF16_Env__compute_environment", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__compute_environment, 1},
@@ -7948,21 +7778,19 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16__FF16_Env__derivs", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__derivs, 3},
     {"_plant_Patch___FF16__FF16_Env__set_time", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__set_time, 2},
     {"_plant_Patch___FF16__FF16_Env__set_state", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__set_state, 5},
-    {"_plant_Patch___FF16__FF16_Env__patch_survival_conditional", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__patch_survival_conditional, 2},
     {"_plant_Patch___FF16__FF16_Env__time__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__time__get, 1},
     {"_plant_Patch___FF16__FF16_Env__size__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__size__get, 1},
     {"_plant_Patch___FF16__FF16_Env__height_max__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__height_max__get, 1},
     {"_plant_Patch___FF16__FF16_Env__parameters__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__parameters__get, 1},
     {"_plant_Patch___FF16__FF16_Env__environment__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__environment__get, 1},
-    {"_plant_Patch___FF16__FF16_Env__disturbance_regime__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__disturbance_regime__get, 1},
-    {"_plant_Patch___FF16__FF16_Env__disturbance_regime__set", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__disturbance_regime__set, 2},
     {"_plant_Patch___FF16__FF16_Env__species__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__species__get, 1},
-    {"_plant_Patch___FF16__FF16_Env__patch_survival__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__patch_survival__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ode_size__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_size__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_rates__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ctor, 1},
+    {"_plant_Patch___FF16r__FF16_Env__density", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__density, 2},
+    {"_plant_Patch___FF16r__FF16_Env__pr_survival", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__pr_survival, 2},
     {"_plant_Patch___FF16r__FF16_Env__compute_competition", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__compute_competition, 2},
     {"_plant_Patch___FF16r__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__introduce_new_cohort, 2},
     {"_plant_Patch___FF16r__FF16_Env__compute_environment", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__compute_environment, 1},
@@ -7972,21 +7800,19 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16r__FF16_Env__derivs", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__derivs, 3},
     {"_plant_Patch___FF16r__FF16_Env__set_time", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__set_time, 2},
     {"_plant_Patch___FF16r__FF16_Env__set_state", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__set_state, 5},
-    {"_plant_Patch___FF16r__FF16_Env__patch_survival_conditional", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__patch_survival_conditional, 2},
     {"_plant_Patch___FF16r__FF16_Env__time__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__time__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__size__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__size__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__height_max__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__height_max__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__parameters__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__parameters__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__environment__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__environment__get, 1},
-    {"_plant_Patch___FF16r__FF16_Env__disturbance_regime__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__disturbance_regime__get, 1},
-    {"_plant_Patch___FF16r__FF16_Env__disturbance_regime__set", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__disturbance_regime__set, 2},
     {"_plant_Patch___FF16r__FF16_Env__species__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__species__get, 1},
-    {"_plant_Patch___FF16r__FF16_Env__patch_survival__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__patch_survival__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ode_size__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_size__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_rates__get, 1},
     {"_plant_Patch___K93__K93_Env__ctor", (DL_FUNC) &_plant_Patch___K93__K93_Env__ctor, 1},
+    {"_plant_Patch___K93__K93_Env__density", (DL_FUNC) &_plant_Patch___K93__K93_Env__density, 2},
+    {"_plant_Patch___K93__K93_Env__pr_survival", (DL_FUNC) &_plant_Patch___K93__K93_Env__pr_survival, 2},
     {"_plant_Patch___K93__K93_Env__compute_competition", (DL_FUNC) &_plant_Patch___K93__K93_Env__compute_competition, 2},
     {"_plant_Patch___K93__K93_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___K93__K93_Env__introduce_new_cohort, 2},
     {"_plant_Patch___K93__K93_Env__compute_environment", (DL_FUNC) &_plant_Patch___K93__K93_Env__compute_environment, 1},
@@ -7996,16 +7822,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___K93__K93_Env__derivs", (DL_FUNC) &_plant_Patch___K93__K93_Env__derivs, 3},
     {"_plant_Patch___K93__K93_Env__set_time", (DL_FUNC) &_plant_Patch___K93__K93_Env__set_time, 2},
     {"_plant_Patch___K93__K93_Env__set_state", (DL_FUNC) &_plant_Patch___K93__K93_Env__set_state, 5},
-    {"_plant_Patch___K93__K93_Env__patch_survival_conditional", (DL_FUNC) &_plant_Patch___K93__K93_Env__patch_survival_conditional, 2},
     {"_plant_Patch___K93__K93_Env__time__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__time__get, 1},
     {"_plant_Patch___K93__K93_Env__size__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__size__get, 1},
     {"_plant_Patch___K93__K93_Env__height_max__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__height_max__get, 1},
     {"_plant_Patch___K93__K93_Env__parameters__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__parameters__get, 1},
     {"_plant_Patch___K93__K93_Env__environment__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__environment__get, 1},
-    {"_plant_Patch___K93__K93_Env__disturbance_regime__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__disturbance_regime__get, 1},
-    {"_plant_Patch___K93__K93_Env__disturbance_regime__set", (DL_FUNC) &_plant_Patch___K93__K93_Env__disturbance_regime__set, 2},
     {"_plant_Patch___K93__K93_Env__species__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__species__get, 1},
-    {"_plant_Patch___K93__K93_Env__patch_survival__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__patch_survival__get, 1},
     {"_plant_Patch___K93__K93_Env__ode_size__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_size__get, 1},
     {"_plant_Patch___K93__K93_Env__ode_time__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_time__get, 1},
     {"_plant_Patch___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_state__get, 1},
@@ -8143,17 +7965,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___FF16__FF16_Env__set_ode_state", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__set_ode_state, 3},
     {"_plant_StochasticPatch___FF16__FF16_Env__derivs", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__derivs, 3},
     {"_plant_StochasticPatch___FF16__FF16_Env__set_state", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__set_state, 4},
-    {"_plant_StochasticPatch___FF16__FF16_Env__patch_survival_conditional", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__patch_survival_conditional, 2},
     {"_plant_StochasticPatch___FF16__FF16_Env__deaths", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__deaths, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__time__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__time__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__size__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__size__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__height_max__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__height_max__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__parameters__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__parameters__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__environment__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__environment__get, 1},
-    {"_plant_StochasticPatch___FF16__FF16_Env__disturbance_regime__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__disturbance_regime__get, 1},
-    {"_plant_StochasticPatch___FF16__FF16_Env__disturbance_regime__set", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__disturbance_regime__set, 2},
     {"_plant_StochasticPatch___FF16__FF16_Env__species__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__species__get, 1},
-    {"_plant_StochasticPatch___FF16__FF16_Env__patch_survival__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__patch_survival__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_size__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_size__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_state__get, 1},
@@ -8168,17 +7986,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___FF16r__FF16_Env__set_ode_state", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__set_ode_state, 3},
     {"_plant_StochasticPatch___FF16r__FF16_Env__derivs", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__derivs, 3},
     {"_plant_StochasticPatch___FF16r__FF16_Env__set_state", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__set_state, 4},
-    {"_plant_StochasticPatch___FF16r__FF16_Env__patch_survival_conditional", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__patch_survival_conditional, 2},
     {"_plant_StochasticPatch___FF16r__FF16_Env__deaths", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__deaths, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__time__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__time__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__size__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__size__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__height_max__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__height_max__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__parameters__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__parameters__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__environment__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__environment__get, 1},
-    {"_plant_StochasticPatch___FF16r__FF16_Env__disturbance_regime__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__disturbance_regime__get, 1},
-    {"_plant_StochasticPatch___FF16r__FF16_Env__disturbance_regime__set", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__disturbance_regime__set, 2},
     {"_plant_StochasticPatch___FF16r__FF16_Env__species__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__species__get, 1},
-    {"_plant_StochasticPatch___FF16r__FF16_Env__patch_survival__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__patch_survival__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__ode_size__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ode_size__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ode_state__get, 1},
@@ -8193,17 +8007,13 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___K93__K93_Env__set_ode_state", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__set_ode_state, 3},
     {"_plant_StochasticPatch___K93__K93_Env__derivs", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__derivs, 3},
     {"_plant_StochasticPatch___K93__K93_Env__set_state", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__set_state, 4},
-    {"_plant_StochasticPatch___K93__K93_Env__patch_survival_conditional", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__patch_survival_conditional, 2},
     {"_plant_StochasticPatch___K93__K93_Env__deaths", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__deaths, 1},
     {"_plant_StochasticPatch___K93__K93_Env__time__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__time__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__size__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__size__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__height_max__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__height_max__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__parameters__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__parameters__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__environment__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__environment__get, 1},
-    {"_plant_StochasticPatch___K93__K93_Env__disturbance_regime__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__disturbance_regime__get, 1},
-    {"_plant_StochasticPatch___K93__K93_Env__disturbance_regime__set", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__disturbance_regime__set, 2},
     {"_plant_StochasticPatch___K93__K93_Env__species__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__species__get, 1},
-    {"_plant_StochasticPatch___K93__K93_Env__patch_survival__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__patch_survival__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__ode_size__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_size__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_state__get, 1},
@@ -8249,8 +8059,20 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Canopy__clear", (DL_FUNC) &_plant_Canopy__clear, 1},
     {"_plant_Canopy__canopy_interpolator__get", (DL_FUNC) &_plant_Canopy__canopy_interpolator__get, 1},
     {"_plant_Canopy__canopy_interpolator__set", (DL_FUNC) &_plant_Canopy__canopy_interpolator__set, 2},
+    {"_plant_Disturbance_Regime__ctor", (DL_FUNC) &_plant_Disturbance_Regime__ctor, 0},
+    {"_plant_Disturbance_Regime__density", (DL_FUNC) &_plant_Disturbance_Regime__density, 2},
+    {"_plant_Disturbance_Regime__pr_survival", (DL_FUNC) &_plant_Disturbance_Regime__pr_survival, 2},
+    {"_plant_No_Disturbance__ctor", (DL_FUNC) &_plant_No_Disturbance__ctor, 0},
+    {"_plant_No_Disturbance__density", (DL_FUNC) &_plant_No_Disturbance__density, 2},
+    {"_plant_No_Disturbance__pr_survival", (DL_FUNC) &_plant_No_Disturbance__pr_survival, 2},
+    {"_plant_Weibull_Disturbance_Regime__ctor", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__ctor, 1},
+    {"_plant_Weibull_Disturbance_Regime__density", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__density, 2},
+    {"_plant_Weibull_Disturbance_Regime__pr_survival", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__pr_survival, 2},
+    {"_plant_Weibull_Disturbance_Regime__mean_interval", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__mean_interval, 1},
+    {"_plant_Weibull_Disturbance_Regime__cdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__cdf, 2},
+    {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
-    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 2},
+    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 1},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
@@ -8260,7 +8082,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__canopy__set", (DL_FUNC) &_plant_FF16_Environment__canopy__set, 2},
     {"_plant_FF16r_Strategy__ctor", (DL_FUNC) &_plant_FF16r_Strategy__ctor, 0},
     {"_plant_K93_Strategy__ctor", (DL_FUNC) &_plant_K93_Strategy__ctor, 0},
-    {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 2},
+    {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 1},
     {"_plant_K93_Environment__canopy_openness", (DL_FUNC) &_plant_K93_Environment__canopy_openness, 2},
     {"_plant_K93_Environment__clear", (DL_FUNC) &_plant_K93_Environment__clear, 1},
     {"_plant_K93_Environment__set_fixed_environment", (DL_FUNC) &_plant_K93_Environment__set_fixed_environment, 3},
@@ -8269,15 +8091,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_K93_Environment__canopy__get", (DL_FUNC) &_plant_K93_Environment__canopy__get, 1},
     {"_plant_K93_Environment__canopy__set", (DL_FUNC) &_plant_K93_Environment__canopy__set, 2},
     {"_plant_test_adaptive_interpolator", (DL_FUNC) &_plant_test_adaptive_interpolator, 3},
-    {"_plant_cohort_schedule_max_time_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___FF16__FF16_Env, 1},
     {"_plant_cohort_schedule_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16__FF16_Env, 1},
     {"_plant_make_cohort_schedule__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16__FF16_Env, 1},
-    {"_plant_cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___FF16r__FF16_Env, 1},
     {"_plant_cohort_schedule_default__Parameters___FF16r__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16r__FF16_Env, 1},
     {"_plant_make_cohort_schedule__Parameters___FF16r__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16r__FF16_Env, 1},
     {"_plant_test_gradient_fd1", (DL_FUNC) &_plant_test_gradient_fd1, 5},
     {"_plant_test_gradient_richardson", (DL_FUNC) &_plant_test_gradient_richardson, 4},
-    {"_plant_cohort_schedule_max_time_default__Parameters___K93__K93_Env", (DL_FUNC) &_plant_cohort_schedule_max_time_default__Parameters___K93__K93_Env, 1},
     {"_plant_cohort_schedule_default__Parameters___K93__K93_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___K93__K93_Env, 1},
     {"_plant_make_cohort_schedule__Parameters___K93__K93_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___K93__K93_Env, 1},
     {"_plant_FF16_oderunner_plant_internals", (DL_FUNC) &_plant_FF16_oderunner_plant_internals, 1},
