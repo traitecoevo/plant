@@ -7,8 +7,6 @@
 #include <plant/ode_interface.h>
 
 #include <plant/disturbance_regime.h>
-#include <plant/disturbances/no_disturbance.h>
-#include <plant/disturbances/weibull_disturbance.h>
 
 using namespace Rcpp;
 
@@ -23,6 +21,7 @@ public:
   typedef Cohort<T,E>       cohort_type;
   typedef Species<T,E>      species_type;
   typedef Parameters<T,E>   parameters_type;
+
 
   Patch(parameters_type p);
 
@@ -43,7 +42,7 @@ public:
   }
 
   // Patch disturbance
-  Disturbance_Regime * survival_weighting;
+  Disturbance_Regime* survival_weighting;
 
   // * ODE interface
   size_t ode_size() const;
@@ -54,7 +53,14 @@ public:
 
   // * R interface
   // Data accessors:
-  Disturbance_Regime* r_survival_weighting() const {return survival_weighting;};
+
+  // this sucks - we couldn't get Rcpp to resolve disturbance pointers
+  double r_survival_weighting_density(double time) const {return survival_weighting->density(time);}
+  double r_survival_weighting_pr_survival(double time) const {return survival_weighting->pr_survival(time);}
+  // double r_survival_weighting_mean_interval(double time) const {return survival_weighting->mean_interval();}
+  // double r_survival_weighting_cdf(double time) const {return survival_weighting->cdf(time);}
+  // double r_survival_weighting_icdf(double prob) const {return survival_weighting->icdf(prob);}
+
   parameters_type r_parameters() const {return parameters;}
   environment_type r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
@@ -91,16 +97,7 @@ Patch<T,E>::Patch(parameters_type p)
     is_resident(p.is_resident) {
   parameters.validate();
   environment = p.environment;
-
-  // Disturbances used to describe evolution of a metapopulation of patches
-  // when calculating fitness, otherwise defaults to fixed-duration run without
-  // disturbance
-  if(p.patch_type == "meta-population") {
-    survival_weighting = &Weibull_Disturbance_Regime(p.max_patch_lifetime);
-  }
-  else {
-    survival_weighting = &No_Disturbance();
-  }
+  survival_weighting = p.survival_weighting;
 
   for (auto s : parameters.strategies) {
     species.push_back(Species<T,E>(s));

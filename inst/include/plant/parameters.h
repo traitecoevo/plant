@@ -10,6 +10,10 @@
 #include <plant/cohort_schedule.h>
 #include <plant/scm_utils.h> // Unfortunately needed for setup_cohort_schedule
 
+#include <plant/disturbance_regime.h>
+#include <plant/disturbances/no_disturbance.h>
+#include <plant/disturbances/weibull_disturbance.h>
+
 // TODO: I will possibly move out the "Patch" parameters out into
 // their own simple list class at some point, to make this a bit more
 // coherent.
@@ -49,6 +53,8 @@ struct Parameters {
   // Templated environment
   environment_type environment;
 
+  Disturbance_Regime* survival_weighting;
+
   // Default strategy.
   strategy_type strategy_default;
 
@@ -63,7 +69,7 @@ struct Parameters {
   size_t n_residents() const;
   size_t n_mutants() const;
   void validate();
-  
+
 private:
   void setup_cohort_schedule();
 };
@@ -113,6 +119,16 @@ void Parameters<T,E>::validate() {
   // Parameters' control object.
   for (auto& s : strategies) {
     s.control = control;
+  }
+
+  // Disturbances used to describe evolution of a metapopulation of patches
+  // when calculating fitness, otherwise defaults to fixed-duration run without
+  // disturbance
+  if(patch_type == "meta-population") {
+    survival_weighting = new Weibull_Disturbance_Regime(max_patch_lifetime);
+  }
+  else {
+    survival_weighting = new No_Disturbance();
   }
 
   environment = environment_type(control);

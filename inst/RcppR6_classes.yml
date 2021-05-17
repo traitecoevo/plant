@@ -460,7 +460,6 @@ Patch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
-    # survival_weighting: {type: "plant::Disturbance_Regime*", access: member, name_cpp: r_survival_weighting}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -468,6 +467,12 @@ Patch:
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
+    # Disturbance interface
+    density: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_density}
+    pr_survival: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_pr_survival}
+    # disturbance_mean_interval: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_mean_interval}
+    # disturbance_cdf: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_cdf}
+    # disturbance_icdf: {return_type: double, args: [prob: double], name_cpp: r_survival_weighting_icdf}
     compute_competition: {return_type: double, args: [height: double]}
     introduce_new_cohort:
       return_type: void
