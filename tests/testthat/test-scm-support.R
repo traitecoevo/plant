@@ -18,7 +18,7 @@ test_that("collect / make_patch", {
   expect_lt(exp(-p1_113$compute_competition(0)), 0.5)
   expect_gt(p1_113$height_max, 10)
 
-  cmp_patch_density <- Disturbance(p1$max_patch_lifetime)$density(res$time)
+  cmp_patch_density <- Weibull_Disturbance_Regime(p1$max_patch_lifetime)$density(res$time)
   expect_equal(res$patch_density, cmp_patch_density)
 
   dat <- patch_to_internals(p1_113)

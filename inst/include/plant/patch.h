@@ -54,12 +54,13 @@ public:
   // * R interface
   // Data accessors:
 
-  // this sucks - we couldn't get Rcpp to resolve disturbance pointers
-  double r_survival_weighting_density(double time) const {return survival_weighting->density(time);}
-  double r_survival_weighting_pr_survival(double time) const {return survival_weighting->pr_survival(time);}
-  // double r_survival_weighting_mean_interval(double time) const {return survival_weighting->mean_interval();}
-  // double r_survival_weighting_cdf(double time) const {return survival_weighting->cdf(time);}
-  // double r_survival_weighting_icdf(double prob) const {return survival_weighting->icdf(prob);}
+  // this sucks - we couldn't get Rcpp to resolve disturbance pointers needed
+  // to switch between No_Disturbance and Weibull_Disturbance safely
+  std::vector<double> r_density(std::vector<double> time) const {return survival_weighting->r_density(time);}
+  double r_pr_survival(double time) const {return survival_weighting->pr_survival(time);}
+  double r_disturbance_mean_interval() const {return survival_weighting->r_mean_interval();}
+  double r_survival_weighting_cdf(double time) const {return survival_weighting->cdf(time);}
+  double r_survival_weighting_icdf(double prob) const {return survival_weighting->icdf(prob);}
 
   parameters_type r_parameters() const {return parameters;}
   environment_type r_environment() const {return environment;}

@@ -26,7 +26,7 @@ for (x in names(strategy_types)) {
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
     
-    # This doesn't hold now
+    # This doesn't work for some reason
     # expect_is(patch$environment, paste0(x, "_Environment"))
     expect_identical(patch$environment$time, 0.0)
 
@@ -49,7 +49,7 @@ for (x in names(strategy_types)) {
     expect_equal(patch$ode_size, ode_size)
     
     ## Then pull this out:
-    cmp$compute_initial_conditions(patch$environment, patch$patch_survival, p$birth_rate)
+    cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), p$birth_rate)
     
     expect_identical(patch$ode_state, cmp$ode_state)
     expect_identical(patch$ode_rates, cmp$ode_rates)
@@ -143,21 +143,42 @@ for (x in names(strategy_types)) {
     ## })
   })
   
-  test_that("Disturbance related parameters", {
+  test_that("Weibull Disturbance as default", {
     expect_identical(patch$time, 0.0)
-    expect_identical(patch$patch_survival_conditional(patch$time), 1.0)
+    expect_identical(patch$pr_survival(patch$time), 1.0)
     
-    expect_equal(patch$disturbance_regime$mean_interval, 30)
-    disturbance <- Disturbance(30.0)
+    expect_equal(patch$disturbance_mean_interval(), 30)
+    disturbance <- Weibull_Disturbance_Regime(105.32)
     
     patch$set_time(10)
     expect_equal(patch$time, 10)
     
-    expect_identical(patch$patch_survival_conditional(0), 
-                     disturbance$pr_survival_conditional(10, 0))
-    expect_identical(patch$patch_survival_conditional(2),
-                     disturbance$pr_survival_conditional(10, 2))
+    expect_identical(patch$pr_survival(10), 
+                     disturbance$pr_survival(10))
+
+    # This is how we'd like it but Rcpp wouldn't handle a disturbance pointer
+    #expect_is(patch$disturbance_regime, "Disturbance")
+  })
+  
+  test_that("No Disturbance for fixed-time patches", {
+    p$patch_type <- "fixed"
+    patch <- Patch(x, e)(p)
     
-    expect_is(patch$disturbance_regime, "Disturbance")
+    expect_identical(patch$time, 0.0)
+    expect_identical(patch$pr_survival(patch$time), 1.0)
+    
+    expect_true(is.na(patch$disturbance_mean_interval()))
+    disturbance <- No_Disturbance()
+    
+    patch$set_time(10)
+    expect_equal(patch$time, 10)
+    
+    expect_identical(patch$pr_survival(10), 1)
+    
+    expect_identical(patch$pr_survival(10), 
+                     disturbance$pr_survival(10))
+    
+    # This is how we'd like it but Rcpp wouldn't handle a disturbance pointer
+    #expect_is(patch$disturbance_regime, "Disturbance")
   })
 }

@@ -168,7 +168,7 @@ test_that("schedule setting", {
       strategies=list(strategy_types[[x]]()),
       birth_rate=pi/2,
       is_resident=TRUE,
-      cohort_schedule_max_time=5.0)
+      max_patch_lifetime=5.0)
     scm <- SCM(x, e)(p)
 
     ## Then set a cohort schedule:
@@ -246,8 +246,7 @@ test_that("Seed rain & error calculations correct", {
 
     net_reproduction_ratio_R <- function(scm, error=FALSE) {
       a <- scm$cohort_schedule$times(1)
-      d <- scm$patch$disturbance_regime
-      net_reproduction_ratio_by_cohort_weighted <- d$density(a) *
+      net_reproduction_ratio_by_cohort_weighted <- patch$density(a) *
         scm$patch$species[[1]]$net_reproduction_ratio_by_cohort *
         scm$parameters$strategies[[1]]$S_D
       total <- trapezium(a, net_reproduction_ratio_by_cohort_weighted)

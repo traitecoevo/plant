@@ -39,9 +39,6 @@ template <> inline std::string generator_name<plant::CohortScheduleEvent >() {re
 template <> inline std::string   class_name_r<plant::CohortSchedule >() {return "CohortSchedule";}
 template <> inline std::string   package_name<plant::CohortSchedule >() {return "plant";}
 template <> inline std::string generator_name<plant::CohortSchedule >() {return ".R6_CohortSchedule";}
-template <> inline std::string   class_name_r<plant::Disturbance >() {return "Disturbance";}
-template <> inline std::string   package_name<plant::Disturbance >() {return "plant";}
-template <> inline std::string generator_name<plant::Disturbance >() {return ".R6_Disturbance";}
 template <> inline std::string   class_name_r<plant::Control >() {return "Control";}
 template <> inline std::string   package_name<plant::Control >() {return "plant";}
 template <> inline std::string generator_name<plant::Control >() {return "";}
@@ -173,6 +170,15 @@ template <> inline std::string generator_name<plant::StochasticPatchRunner<plant
 template <> inline std::string   class_name_r<plant::Canopy >() {return "Canopy";}
 template <> inline std::string   package_name<plant::Canopy >() {return "plant";}
 template <> inline std::string generator_name<plant::Canopy >() {return ".R6_Canopy";}
+template <> inline std::string   class_name_r<plant::Disturbance_Regime >() {return "Disturbance_Regime";}
+template <> inline std::string   package_name<plant::Disturbance_Regime >() {return "plant";}
+template <> inline std::string generator_name<plant::Disturbance_Regime >() {return ".R6_Disturbance_Regime";}
+template <> inline std::string   class_name_r<plant::No_Disturbance >() {return "No_Disturbance";}
+template <> inline std::string   package_name<plant::No_Disturbance >() {return "plant";}
+template <> inline std::string generator_name<plant::No_Disturbance >() {return ".R6_No_Disturbance";}
+template <> inline std::string   class_name_r<plant::Weibull_Disturbance_Regime >() {return "Weibull_Disturbance_Regime";}
+template <> inline std::string   package_name<plant::Weibull_Disturbance_Regime >() {return "plant";}
+template <> inline std::string generator_name<plant::Weibull_Disturbance_Regime >() {return ".R6_Weibull_Disturbance_Regime";}
 template <> inline std::string   class_name_r<plant::FF16_Strategy >() {return "FF16_Strategy";}
 template <> inline std::string   package_name<plant::FF16_Strategy >() {return "plant";}
 template <> inline std::string generator_name<plant::FF16_Strategy >() {return "";}
@@ -267,12 +273,6 @@ template <> inline SEXP wrap(const plant::CohortSchedule& x) {
 template <> inline plant::CohortSchedule as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::CohortSchedule>(x));
 }
-template <> inline SEXP wrap(const plant::Disturbance& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::Disturbance>(x));
-}
-template <> inline plant::Disturbance as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::Disturbance>(x));
-}
 template <> inline SEXP wrap(const plant::Control& x) {
   Rcpp::List ret;
   ret["plant_assimilation_adaptive"] = Rcpp::wrap(x.plant_assimilation_adaptive);
@@ -300,7 +300,6 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["schedule_nsteps"] = Rcpp::wrap(x.schedule_nsteps);
   ret["schedule_eps"] = Rcpp::wrap(x.schedule_eps);
   ret["schedule_verbose"] = Rcpp::wrap(x.schedule_verbose);
-  ret["schedule_patch_survival"] = Rcpp::wrap(x.schedule_patch_survival);
   ret["equilibrium_nsteps"] = Rcpp::wrap(x.equilibrium_nsteps);
   ret["equilibrium_eps"] = Rcpp::wrap(x.equilibrium_eps);
   ret["equilibrium_large_birth_rate_change"] = Rcpp::wrap(x.equilibrium_large_birth_rate_change);
@@ -372,8 +371,6 @@ template <> inline plant::Control as(SEXP x) {
   ret.schedule_eps = Rcpp::as<double >(xl["schedule_eps"]);
   // ret.schedule_verbose = Rcpp::as<decltype(retschedule_verbose) >(xl["schedule_verbose"]);
   ret.schedule_verbose = Rcpp::as<bool >(xl["schedule_verbose"]);
-  // ret.schedule_patch_survival = Rcpp::as<decltype(retschedule_patch_survival) >(xl["schedule_patch_survival"]);
-  ret.schedule_patch_survival = Rcpp::as<double >(xl["schedule_patch_survival"]);
   // ret.equilibrium_nsteps = Rcpp::as<decltype(retequilibrium_nsteps) >(xl["equilibrium_nsteps"]);
   ret.equilibrium_nsteps = Rcpp::as<size_t >(xl["equilibrium_nsteps"]);
   // ret.equilibrium_eps = Rcpp::as<decltype(retequilibrium_eps) >(xl["equilibrium_eps"]);
@@ -499,13 +496,13 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant:
   Rcpp::List ret;
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
+  ret["patch_type"] = Rcpp::wrap(x.patch_type);
+  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
-  ret["cohort_schedule_max_time"] = Rcpp::wrap(x.cohort_schedule_max_time);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
@@ -525,8 +522,10 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.disturbance_mean_interval = Rcpp::as<decltype(retdisturbance_mean_interval) >(xl["disturbance_mean_interval"]);
-  ret.disturbance_mean_interval = Rcpp::as<double >(xl["disturbance_mean_interval"]);
+  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
+  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
+  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
+  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
   ret.strategies = Rcpp::as<std::vector<plant::FF16_Strategy> >(xl["strategies"]);
   // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
@@ -537,8 +536,6 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16_Strategy >(xl["strategy_default"]);
-  // ret.cohort_schedule_max_time = Rcpp::as<decltype(retcohort_schedule_max_time) >(xl["cohort_schedule_max_time"]);
-  ret.cohort_schedule_max_time = Rcpp::as<double >(xl["cohort_schedule_max_time"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
   ret.cohort_schedule_times_default = Rcpp::as<std::vector<double> >(xl["cohort_schedule_times_default"]);
   // ret.cohort_schedule_times = Rcpp::as<decltype(retcohort_schedule_times) >(xl["cohort_schedule_times"]);
@@ -553,13 +550,13 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16r_Strategy,plant
   Rcpp::List ret;
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
+  ret["patch_type"] = Rcpp::wrap(x.patch_type);
+  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
-  ret["cohort_schedule_max_time"] = Rcpp::wrap(x.cohort_schedule_max_time);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
@@ -579,8 +576,10 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environme
   ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.disturbance_mean_interval = Rcpp::as<decltype(retdisturbance_mean_interval) >(xl["disturbance_mean_interval"]);
-  ret.disturbance_mean_interval = Rcpp::as<double >(xl["disturbance_mean_interval"]);
+  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
+  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
+  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
+  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
   ret.strategies = Rcpp::as<std::vector<plant::FF16r_Strategy> >(xl["strategies"]);
   // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
@@ -591,8 +590,6 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environme
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16r_Strategy >(xl["strategy_default"]);
-  // ret.cohort_schedule_max_time = Rcpp::as<decltype(retcohort_schedule_max_time) >(xl["cohort_schedule_max_time"]);
-  ret.cohort_schedule_max_time = Rcpp::as<double >(xl["cohort_schedule_max_time"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
   ret.cohort_schedule_times_default = Rcpp::as<std::vector<double> >(xl["cohort_schedule_times_default"]);
   // ret.cohort_schedule_times = Rcpp::as<decltype(retcohort_schedule_times) >(xl["cohort_schedule_times"]);
@@ -607,13 +604,13 @@ template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::
   Rcpp::List ret;
   ret["patch_area"] = Rcpp::wrap(x.patch_area);
   ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["disturbance_mean_interval"] = Rcpp::wrap(x.disturbance_mean_interval);
+  ret["patch_type"] = Rcpp::wrap(x.patch_type);
+  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
-  ret["cohort_schedule_max_time"] = Rcpp::wrap(x.cohort_schedule_max_time);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
@@ -633,8 +630,10 @@ template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment>
   ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
   // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
   ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.disturbance_mean_interval = Rcpp::as<decltype(retdisturbance_mean_interval) >(xl["disturbance_mean_interval"]);
-  ret.disturbance_mean_interval = Rcpp::as<double >(xl["disturbance_mean_interval"]);
+  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
+  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
+  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
+  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
   // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
   ret.strategies = Rcpp::as<std::vector<plant::K93_Strategy> >(xl["strategies"]);
   // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
@@ -645,8 +644,6 @@ template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment>
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::K93_Strategy >(xl["strategy_default"]);
-  // ret.cohort_schedule_max_time = Rcpp::as<decltype(retcohort_schedule_max_time) >(xl["cohort_schedule_max_time"]);
-  ret.cohort_schedule_max_time = Rcpp::as<double >(xl["cohort_schedule_max_time"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
   ret.cohort_schedule_times_default = Rcpp::as<std::vector<double> >(xl["cohort_schedule_times_default"]);
   // ret.cohort_schedule_times = Rcpp::as<decltype(retcohort_schedule_times) >(xl["cohort_schedule_times"]);
@@ -801,6 +798,24 @@ template <> inline SEXP wrap(const plant::Canopy& x) {
 }
 template <> inline plant::Canopy as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Canopy>(x));
+}
+template <> inline SEXP wrap(const plant::Disturbance_Regime& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Disturbance_Regime>(x));
+}
+template <> inline plant::Disturbance_Regime as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Disturbance_Regime>(x));
+}
+template <> inline SEXP wrap(const plant::No_Disturbance& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::No_Disturbance>(x));
+}
+template <> inline plant::No_Disturbance as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::No_Disturbance>(x));
+}
+template <> inline SEXP wrap(const plant::Weibull_Disturbance_Regime& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime>(x));
+}
+template <> inline plant::Weibull_Disturbance_Regime as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime>(x));
 }
 template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
   Rcpp::List ret;

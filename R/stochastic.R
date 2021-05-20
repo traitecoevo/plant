@@ -80,7 +80,7 @@ run_stochastic_collect <- function(p, random_schedule=TRUE) {
     aperm(pad_list_to_array(lapply(species, "[[", i)), c(1, 3, 2)))
   attr(species, "is_alive") <- species_is_alive
 
-  patch_density <- obj$patch$disturbance_regime$density(time)
+  patch_density <- obj$patch$density(time)
 
   ret <- list(time=time,
               species=species,

@@ -467,13 +467,6 @@ Patch:
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
-    # Disturbance interface
-    density: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_density}
-    pr_survival: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_pr_survival}
-    # disturbance_mean_interval: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_mean_interval}
-    # disturbance_cdf: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_cdf}
-    # disturbance_icdf: {return_type: double, args: [prob: double], name_cpp: r_survival_weighting_icdf}
-    compute_competition: {return_type: double, args: [height: double]}
     introduce_new_cohort:
       return_type: void
       args: [species_index: "plant::util::index"]
@@ -508,6 +501,13 @@ Patch:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&", env: "const std::vector<double>&"]
       name_cpp: r_set_state
       return_type: void
+    # Disturbance interface
+    density: {return_type: "std::vector<double>", args: [time: "std::vector<double>"], name_cpp: r_density}
+    pr_survival: {return_type: double, args: [time: double], name_cpp: r_pr_survival}
+    disturbance_mean_interval: {return_type: double, name_cpp: r_disturbance_mean_interval}
+    survival_weighting_cdf: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_cdf}
+    survival_weighting_icdf: {return_type: double, args: [prob: double], name_cpp: r_survival_weighting_icdf}
+    compute_competition: {return_type: double, args: [height: double]}
 
 SCM:
   name_cpp: "plant::SCM<T,E>"
