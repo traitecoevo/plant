@@ -151,7 +151,6 @@ void StochasticPatchRunner<T,E>::r_set_schedule(CohortSchedule x) {
 
   // Update these here so that extracting Parameters would give the
   // new schedule, this making Parameters sufficient.
-  parameters.cohort_schedule_max_time = schedule.get_max_time();
   parameters.cohort_schedule_times = schedule.get_times();
   reset();
 }

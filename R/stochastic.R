@@ -22,7 +22,7 @@ stochastic_arrival_times <- function(max_time, offspring_arriving_total, n=NULL)
 }
 
 stochastic_schedule <- function(p) {
-  max_time  <- p$cohort_schedule_max_time
+  max_time  <- p$max_patch_lifetime
   birth_rate <- p$birth_rate * p$patch_area
   n_species <- length(birth_rate)
   sched <- CohortSchedule(n_species)

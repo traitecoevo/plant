@@ -23,7 +23,7 @@ CohortSchedule cohort_schedule_default(const Parameters& p) {
 template <typename Parameters>
 CohortSchedule make_cohort_schedule(const Parameters& p) {
   CohortSchedule ret(p.size());
-  ret.r_set_max_time(p.cohort_schedule_max_time);
+  ret.r_set_max_time(p.max_patch_lifetime);
   ret.set_times(p.cohort_schedule_times);
   ret.r_set_ode_times(p.cohort_schedule_ode_times);
   return ret;
