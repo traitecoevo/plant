@@ -53,13 +53,12 @@ struct Parameters {
   // Templated environment
   environment_type environment;
 
-  Disturbance_Regime* survival_weighting;
+  Disturbance_Regime* disturbance;
 
   // Default strategy.
   strategy_type strategy_default;
 
   // Cohort information.
-  double cohort_schedule_max_time;
   std::vector<double> cohort_schedule_times_default;
   std::vector<std::vector<double> > cohort_schedule_times;
   std::vector<double> cohort_schedule_ode_times;
@@ -125,10 +124,10 @@ void Parameters<T,E>::validate() {
   // when calculating fitness, otherwise defaults to fixed-duration run without
   // disturbance
   if(patch_type == "meta-population") {
-    survival_weighting = new Weibull_Disturbance_Regime(max_patch_lifetime);
+    disturbance = new Weibull_Disturbance_Regime(max_patch_lifetime);
   }
   else {
-    survival_weighting = new No_Disturbance();
+    disturbance = new No_Disturbance();
   }
 
   environment = environment_type(control);
@@ -138,19 +137,10 @@ void Parameters<T,E>::validate() {
 // TODO: Consider adding this to scm_utils.h perhaps?
 template <typename T, typename E>
 void Parameters<T,E>::setup_cohort_schedule() {
-  const bool update =
-    !(util::is_finite(cohort_schedule_max_time) &&
-      util::identical(cohort_schedule_max_time, max_patch_lifetime));
+  cohort_schedule_times_default =
+      plant::cohort_schedule_times_default(max_patch_lifetime);
 
-  if (update || !util::is_finite(cohort_schedule_max_time)) {
-    cohort_schedule_max_time = max_patch_lifetime;
-  }
-  if (update || cohort_schedule_times_default.empty()) {
-    cohort_schedule_times_default =
-      plant::cohort_schedule_times_default(cohort_schedule_max_time);
-  }
-
-  if (update || (cohort_schedule_times.empty() && size() > 0)) {
+  if ((cohort_schedule_times.empty() && size() > 0)) {
     cohort_schedule_times.clear();
     for (size_t i = 0; i < size(); ++i) {
       cohort_schedule_times.push_back(cohort_schedule_times_default);

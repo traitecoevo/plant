@@ -98,7 +98,7 @@ Patch<T,E>::Patch(parameters_type p)
     is_resident(p.is_resident) {
   parameters.validate();
   environment = p.environment;
-  survival_weighting = p.survival_weighting;
+  survival_weighting = p.disturbance;
 
   for (auto s : parameters.strategies) {
     species.push_back(Species<T,E>(s));
