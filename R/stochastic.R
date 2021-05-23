@@ -80,13 +80,15 @@ run_stochastic_collect <- function(p, random_schedule=TRUE) {
     aperm(pad_list_to_array(lapply(species, "[[", i)), c(1, 3, 2)))
   attr(species, "is_alive") <- species_is_alive
 
-  patch_density <- obj$patch$density(time)
+  # Not sure how this works in a stochastic patch, I wouldn't have thought
+  # meta-populations worked without a continuous gradient to integrate over.
+  # patch_density <- obj$patch$density(time)
 
   ret <- list(time=time,
               species=species,
               light_env=light_env,
               net_reproduction_ratios=obj$net_reproduction_ratios,
-              patch_density=patch_density,
+              # patch_density=patch_density,
               p=p)
 
   ret
