@@ -65,7 +65,7 @@ FF16_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param p A Parameters object
 FF16_make_environment <- function(p) {
-  FF16_Environment(p$disturbance_mean_interval, p$control)
+  FF16_Environment(p$control)
 }
 
 ##' Construct a fixed environment for FF16 strategy

@@ -22,7 +22,7 @@ stochastic_arrival_times <- function(max_time, offspring_arriving_total, n=NULL)
 }
 
 stochastic_schedule <- function(p) {
-  max_time  <- p$cohort_schedule_max_time
+  max_time  <- p$max_patch_lifetime
   birth_rate <- p$birth_rate * p$patch_area
   n_species <- length(birth_rate)
   sched <- CohortSchedule(n_species)
@@ -80,13 +80,15 @@ run_stochastic_collect <- function(p, random_schedule=TRUE) {
     aperm(pad_list_to_array(lapply(species, "[[", i)), c(1, 3, 2)))
   attr(species, "is_alive") <- species_is_alive
 
-  patch_density <- obj$patch$disturbance_regime$density(time)
+  # Not sure how this works in a stochastic patch, I wouldn't have thought
+  # meta-populations worked without a continuous gradient to integrate over.
+  # patch_density <- obj$patch$density(time)
 
   ret <- list(time=time,
               species=species,
               light_env=light_env,
               net_reproduction_ratios=obj$net_reproduction_ratios,
-              patch_density=patch_density,
+              # patch_density=patch_density,
               p=p)
 
   ret

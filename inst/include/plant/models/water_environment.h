@@ -16,7 +16,7 @@ public:
   Water_Environment() {
     time = NA_REAL;
     environment_generator = interpolator::AdaptiveInterpolator(1e-6, 1e-6, 17, 16);
-    // Define an anonymous function to pass got the environment generator
+    // Define an anonymous function to pass tp the environment generator
     environment_interpolator = environment_generator.construct(
       [&](double height) {
           return get_environment_at_height(height);
@@ -25,8 +25,7 @@ public:
     vars = Internals(1);
   };
 
-  Water_Environment(double disturbance_mean_interval,
-                   Control control) {
+  Water_Environment(Control control) {
     environment_generator = interpolator::AdaptiveInterpolator(control.environment_light_tol,
                               control.environment_light_tol,
                               control.environment_light_nbase,

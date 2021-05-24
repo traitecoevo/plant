@@ -21,7 +21,7 @@ nlsolve <- function(x, fn, tol=1e-6, maxit=100, solver="nleqslv") {
                  attr(res, "code"), attr(res, "message")),
          immediate.=TRUE)
   }
-
+  
   res
 }
 

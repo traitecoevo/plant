@@ -17,7 +17,7 @@ test_that("empty", {
 
     sched <- obj$schedule
     expect_equal(sched$size, 0)
-    expect_equal(sched$max_time, p$cohort_schedule_max_time)
+    expect_equal(sched$max_time, p$max_patch_lifetime)
 
     ## Now, create a new set of times:
     sched2 <- stochastic_schedule(p)

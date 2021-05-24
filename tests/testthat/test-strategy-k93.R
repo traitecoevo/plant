@@ -74,7 +74,7 @@ test_that("K93 seed rain is unchanged", {
 
   # Generic parameters
   p0 <- scm_base_parameters("K93")
-  p0$disturbance_mean_interval <- 10
+  p0$max_patch_lifetime <- 35.10667
 
   # Use single sp. defaults
   p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0, mutant = FALSE)

@@ -6,6 +6,8 @@
 #include <plant/species.h>
 #include <plant/ode_interface.h>
 
+#include <plant/disturbance_regime.h>
+
 using namespace Rcpp;
 
 namespace plant {
@@ -13,12 +15,13 @@ namespace plant {
 template <typename T, typename E>
 class Patch {
 public:
-  typedef T             strategy_type;
-  typedef E             environment_type;
-  typedef Individual<T,E>    individual_type;
-  typedef Cohort<T,E>   cohort_type;
-  typedef Species<T,E>  species_type;
-  typedef Parameters<T,E> parameters_type;
+  typedef T                 strategy_type;
+  typedef E                 environment_type;
+  typedef Individual<T,E>   individual_type;
+  typedef Cohort<T,E>       cohort_type;
+  typedef Species<T,E>      species_type;
+  typedef Parameters<T,E>   parameters_type;
+
 
   Patch(parameters_type p);
 
@@ -39,19 +42,7 @@ public:
   }
 
   // Patch disturbance
-  Disturbance disturbance_regime;
-
-  // Computes the probability of survival from 0 to time.
-  double patch_survival() const {
-    return disturbance_regime.pr_survival(time());
-  }
-
-  // Computes the probability of survival from time_at_birth to time, by
-  // conditioning survival over [0,time] on survival over
-  // [0,time_at_birth].
-  double patch_survival_conditional(double time_at_birth) const {
-    return disturbance_regime.pr_survival_conditional(time(), time_at_birth);
-  }
+  Disturbance_Regime* survival_weighting;
 
   // * ODE interface
   size_t ode_size() const;
@@ -62,6 +53,15 @@ public:
 
   // * R interface
   // Data accessors:
+
+  // this sucks - we couldn't get Rcpp to resolve disturbance pointers needed
+  // to switch between No_Disturbance and Weibull_Disturbance safely
+  std::vector<double> r_density(std::vector<double> time) const {return survival_weighting->r_density(time);}
+  double r_pr_survival(double time) const {return survival_weighting->pr_survival(time);}
+  double r_disturbance_mean_interval() const {return survival_weighting->r_mean_interval();}
+  double r_survival_weighting_cdf(double time) const {return survival_weighting->cdf(time);}
+  double r_survival_weighting_icdf(double prob) const {return survival_weighting->icdf(prob);}
+
   parameters_type r_parameters() const {return parameters;}
   environment_type r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
@@ -92,15 +92,14 @@ private:
   std::vector<species_type> species;
 };
 
-/* E(p.disturbance_mean_interval, p.birth_rate, p.control) */
-
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p)
   : parameters(p),
     is_resident(p.is_resident) {
   parameters.validate();
   environment = p.environment;
-  disturbance_regime = Disturbance(p.disturbance_mean_interval);
+  survival_weighting = p.disturbance;
+
   for (auto s : parameters.strategies) {
     species.push_back(Species<T,E>(s));
   }
@@ -173,7 +172,7 @@ void Patch<T,E>::compute_rates() {
     // Compute rates in cohort, multiply rate per plant by density
     // sum all cohorts and species in a patch to find the outflow for the patch
     // subtract total extraction rate from state
-    double pr_patch_survival = patch_survival();
+    double pr_patch_survival = survival_weighting->pr_survival(time());
     double birth_rate = parameters.birth_rate[i];
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
     //environment.compute_rates();

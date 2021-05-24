@@ -133,7 +133,7 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
   ## little more obvious.
   species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
 
-  patch_density <- scm$patch$disturbance_regime$density(time)
+  patch_density <- scm$patch$density(time)
 
   ret <- list(time=time, species=species,
               env=env,
@@ -301,12 +301,16 @@ make_scm_integrate <- function(obj) {
     n <- length(internals)
     sched <- obj$cohort_schedule
     a <- lapply(seq_len(n), sched$times)
-    pa <- lapply(a, obj$patch$disturbance_regime$density)
+    pa <- lapply(a, obj$patch$density)
   } else {
     internals <- patch_to_internals(scm_patch(length(obj$time), obj))
     n <- length(internals)
     a <- obj$p$cohort_schedule_times
-    pa <- lapply(a, Disturbance(obj$p$disturbance_mean_interval)$density)
+    if(obj$p$patch_type == 'meta-population')
+      d = Weibull_Disturbance_Regime(obj$p$max_patch_lifetime)
+    else
+      d = No_Disturbance()
+    pa = lapply(a, d$density)
   }
 
   if (n == 0L) {

@@ -177,7 +177,6 @@ void SCM<T,E>::r_set_cohort_schedule(CohortSchedule x) {
 
   // Update these here so that extracting Parameters would give the
   // new schedule, this making Parameters sufficient.
-  parameters.cohort_schedule_max_time = cohort_schedule.get_max_time();
   parameters.cohort_schedule_times = cohort_schedule.get_times();
 }
 
@@ -238,7 +237,7 @@ std::vector<double> SCM<T,E>::net_reproduction_ratio_by_cohort_weighted(size_t s
   // weight by probabilty of reproduction
   for (size_t i = 0; i < net_reproduction_ratio_by_cohort_weighted.size(); ++i) {
     net_reproduction_ratio_by_cohort_weighted[i] *=
-      patch.disturbance_regime.density(times[i]) * // probability of landing in patch of a given age
+      patch.survival_weighting->density(times[i]) * // probability of landing in patch of a given age
       parameters.strategies[species_index].S_D; // probability of survival during dispersal (assumed constant)
   }
 

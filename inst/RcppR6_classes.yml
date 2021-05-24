@@ -95,31 +95,6 @@ CohortSchedule:
       return_type: "plant::CohortSchedule"
       name_cpp: r_copy
 
-Disturbance:
-  name_cpp: "plant::Disturbance"
-  constructor:
-    roxygen: |
-      Disturbance control object
-      @param mean_interval Mean disturbance interval in years
-      @export
-    args: [mean_interval: double]
-  methods:
-    density:
-      args: [time: "std::vector<double>"]
-      return_type: "std::vector<double>"
-      name_cpp: r_density
-    pr_survival:
-      args: [time: double]
-      return_type: double
-    pr_survival_conditional:
-      args: [time: double, time_start: double]
-      return_type: double
-    cdf:
-      args: [time: double]
-      return_type: double
-  active:
-    mean_interval: {type: double, access: member, name_cpp: r_mean_interval}
-
 Control:
   name_cpp: "plant::Control"
   roxygen: |
@@ -154,7 +129,6 @@ Control:
     - schedule_nsteps: size_t
     - schedule_eps: double
     - schedule_verbose: bool
-    - schedule_patch_survival: double
     - equilibrium_nsteps: size_t
     - equilibrium_eps: double
     - equilibrium_large_birth_rate_change: double
@@ -379,13 +353,13 @@ Parameters:
   list:
     - patch_area: double
     - n_patches: size_t
-    - disturbance_mean_interval: double
+    - patch_type: "std::string"
+    - max_patch_lifetime: double
     - strategies: "std::vector<T>"
     - birth_rate: "std::vector<double>"
     - is_resident: "std::vector<bool>"
     - control: "plant::Control"
     - strategy_default: "T"
-    - cohort_schedule_max_time: double
     - cohort_schedule_times_default: "std::vector<double>"
     - cohort_schedule_times: "std::vector<std::vector<double> >"
     - cohort_schedule_ode_times: "std::vector<double>"
@@ -486,16 +460,13 @@ Patch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
-    disturbance_regime: {type: "plant::Disturbance", access: field}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
-    patch_survival: {type: double, access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
-    compute_competition: {return_type: double, args: [height: double]}
     introduce_new_cohort:
       return_type: void
       args: [species_index: "plant::util::index"]
@@ -530,9 +501,13 @@ Patch:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&", env: "const std::vector<double>&"]
       name_cpp: r_set_state
       return_type: void
-    patch_survival_conditional:
-      args: [time_at_birth: double]
-      return_type: double
+    # Disturbance interface
+    density: {return_type: "std::vector<double>", args: [time: "std::vector<double>"], name_cpp: r_density}
+    pr_survival: {return_type: double, args: [time: double], name_cpp: r_pr_survival}
+    disturbance_mean_interval: {return_type: double, name_cpp: r_disturbance_mean_interval}
+    survival_weighting_cdf: {return_type: double, args: [time: double], name_cpp: r_survival_weighting_cdf}
+    survival_weighting_icdf: {return_type: double, args: [prob: double], name_cpp: r_survival_weighting_icdf}
+    compute_competition: {return_type: double, args: [height: double]}
 
 SCM:
   name_cpp: "plant::SCM<T,E>"
@@ -659,9 +634,7 @@ StochasticPatch:
     height_max: {type: double, access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
-    disturbance_regime: {type: "plant::Disturbance", access: field}
     species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
-    patch_survival: {type: double, access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -703,9 +676,6 @@ StochasticPatch:
       args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&"]
       name_cpp: r_set_state
       return_type: void
-    patch_survival_conditional:
-      args: [time_at_birth: double]
-      return_type: double
     deaths:
       return_type: "std::vector<size_t>"
 
@@ -762,6 +732,66 @@ Canopy:
   active:
     canopy_interpolator: {type: "plant::interpolator::Interpolator", access: field}
 
+Disturbance_Regime:
+  name_cpp: "plant::Disturbance_Regime"
+  constructor:
+    roxygen: |
+      Base class of representing patch disturbance
+      @title Disturbance regime
+      @export
+  methods:
+    density:
+      args: [time: "std::vector<double>"]
+      return_type: "std::vector<double>"
+      name_cpp: r_density
+    pr_survival:
+      args: [time: double]
+      return_type: double
+
+No_Disturbance:
+  name_cpp: "plant::No_Disturbance"
+  constructor:
+    roxygen: |
+      A disturbance-free regime for running individual patches
+      @title No disturbance regime
+      No_Disturbance_Regime control object
+      @export
+  methods:
+    density:
+      args: [time: "std::vector<double>"]
+      return_type: "std::vector<double>"
+      name_cpp: r_density
+    pr_survival:
+      args: [time: double]
+      return_type: double
+
+Weibull_Disturbance_Regime:
+  name_cpp: "plant::Weibull_Disturbance_Regime"
+  constructor:
+    args: [max_patch_lifetime: double]
+    roxygen: |
+      The frequency of disturbance in a meta-population of patches follows a Weibull distribution
+      @title Weibull disturbance regime
+      Weibull_Disturbance_Regime control object
+      @export
+  methods:
+    density:
+      args: [time: "std::vector<double>"]
+      return_type: "std::vector<double>"
+      name_cpp: r_density
+    pr_survival:
+      args: [time: double]
+      return_type: double
+    mean_interval:
+      return_type: double
+      name_cpp: r_mean_interval
+    cdf:
+      args: [time: double]
+      return_type: double
+    icdf:
+      args: [prob: double]
+      return_type: double
+
 FF16_Strategy:
   name_cpp: "plant::FF16_Strategy"
   roxygen: |
@@ -808,11 +838,9 @@ FF16_Strategy:
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, control: "plant::Control"]
+    args: [control: "plant::Control"]
     roxygen: |
       FF16_Environment object
-      @param disturbance_mean_interval mean disturbance interval in years
-      @param birth_rate vector of offspring arrival rates
       @param control A Control object
       @export
   methods:
@@ -901,11 +929,9 @@ K93_Strategy:
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
-    args: [disturbance_mean_interval: double, control: "plant::Control"]
+    args: [control: "plant::Control"]
     roxygen: |
       K93_Environment object
-      @param disturbance_mean_interval mean disturbance interval in years
-      @param birth_rate vector of offspring arrival rates
       @param control A Control object
       @export
   methods:

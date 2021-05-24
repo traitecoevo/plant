@@ -3,7 +3,6 @@
 #define PLANT_PLANT_ENVIRONMENT_H_
 
 #include <plant/control.h>
-#include <plant/disturbance.h>
 #include <plant/interpolator.h>
 #include <plant/adaptive_interpolator.h>
 #include <plant/ode_interface.h>
