@@ -38,7 +38,6 @@ struct Parameters {
   }
 
   // Data -- public for now (see github issue #17).
-  double k_I;      // Light extinction coefficient
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
   std::string patch_type;
