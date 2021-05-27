@@ -1,0 +1,432 @@
+---
+title: "water_bucket_model"
+author: "Isaac Towers"
+date: "19/05/2021"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Here I will develop the prototype for the simple water bucket model for the **plant** model tracking the rate of change in $\theta$:
+
+
+$$\frac{d\theta}{dt} = R *I(\theta) - D (\theta) - E(\theta) - T (\theta). $$
+Variables
+
+$\theta ( t)$: soil volumetric water content $(m^3 / m^3)$
+
+Parameters
+
+$R$: Rainfall $(m^3 m^{-2} yr^{-1})$
+$T$: Transpiration (water used by plants and evaporation) $(m^3 m^{-2} yr^{-1})$
+$D$: Drainage from plant available water from soil profile $(m^3 m^{-2} yr^{-1})$
+$b$: Unitless parameter determining the shape of water accumulation in the soil moisture bank
+
+Infiltration $I(\theta)$ is a reducing factor on rainfall which declines as $\theta$ approaches the total porosity of the soil, $\theta_{sat}~(m^3 / m^3)$:  
+
+$$I(\theta) =  1-\bigg(\frac{\theta(t)}{\theta_{sat}}\bigg)^b.$$
+$b$ is a unitless parameter determining the shape of the rate of infiltration in the soil moisture bank.
+
+Combining the two equations together:
+
+$$\frac{d\theta}{dt} = R *\bigg({1-\bigg(\frac{\theta(t)}{\theta_{sat}}\bigg)^b}\bigg)- D (\theta) - E(\theta) - T (\theta).$$
+Let's start **extremely** simple by showing that soil moisture rises with yearly rainfall,
+$$\frac{d\theta}{dt} = R.$$
+
+```{r warning=FALSE}
+library(tidyverse)
+library(deSolve)
+```
+
+```{r warning=FALSE}
+# Timestep
+t <- seq(0,10, by = 0.1)
+
+# Variables
+theta_init <- c(theta=0)
+
+# Model parameters
+params <- c(theta_sat = 0.7, 
+            R  = 1.0,
+            b = 0.4)
+
+# Rates of change
+theta_rates <- function(t, theta, params) {
+  with(as.list(c(theta, params)), {
+    
+    dtheta_dt = R
+
+    return(list(c(dtheta_dt)))
+  })
+}
+```
+
+```{r}
+logistic_solution <-
+  ode(
+    y = theta_init,
+    times = t,
+    func = theta_rates,
+    parms = params) %>%
+  as.data.frame()
+```
+```{r}
+```
+
+
+```{r}
+
+logistic_solution %>% 
+  ggplot(aes(time, theta)) +
+  geom_line()
+
+```
+
+Ok, lets now show that rain will eventually fill up the soil moisture bank until $(\theta_{sat})$ without any water outputs if we include a saturated water content:
+$$\frac{d\theta}{dt} = R *\bigg(1-\bigg(\frac{\theta(t)}{\theta_{sat}}\bigg)^b\bigg).$$
+
+```{r warning=FALSE}
+# Timestep
+t <- seq(0,100, by = 0.5)
+
+# Variables
+theta_init <- c(theta=0)
+
+# Model parameters
+params <- 
+  expand_grid(theta_sat = 0.7, 
+            R  = 1.0,
+            b = c(1, 0.5, 2, 4, 0.1)) %>%
+        split(., .$b)
+
+# Rates of change
+theta_rates <- function(t, theta, params) {
+  with(as.list(c(theta, params)), {
+    
+    dtheta_dt = R*(1-(theta/theta_sat)^b)
+
+    return(list(c(dtheta_dt)))
+  })
+}
+```
+
+```{r}
+
+logistic_solution <-
+  map_dfr(
+    params,
+    ~ode(
+    y = theta_init,
+    times = t,
+    func = theta_rates,
+    parms = .x) %>%
+  as.data.frame(), .id = "b")
+```
+
+
+```{r}
+
+logistic_solution %>% 
+  ggplot(aes(time, theta, col=b)) +
+  geom_line()
+
+```
+Higher values of $b$ lead to more rapid infiltration of rainfall as the soil moisture balance apporaches saturation. Cool, let's now include a drainage factor
+
+$$\frac{d\theta}{dt} = R *\bigg(1-\bigg(\frac{\theta(t)}{\theta_{sat}}\bigg)^b\bigg)-D(\theta).$$
+Drainage is equal to the hydraulic conductivity of the soil $K_s$ when $\theta = \theta_{sat}$ but declines with soil soil moisture (Zavala et al. 2005):
+
+$$D(\theta) = K_s\bigg(\frac{\theta(t)}{\theta_{sat}}\bigg)^c,$$
+where $K_s$ is the saturated soil hydraulic conductivity $(m^3 m^{-2} yr^{-1})$ and $c$ is a unitless empirical soil parameter ranging from ~11 for sand to ~25 for clay (Rodriguez-Iturbe et al. 1999). Let's first just assess how soil moisture drains from saturation with no inputs and drainage as the only output.
+
+```{r warning=FALSE}
+# Timestep
+t <- seq(0,10, by = 0.01)
+
+# Variables
+theta_init <- c(theta=0.482)
+
+# Model parameters
+params <- 
+  expand_grid(theta_sat = 0.482, 
+            ks = c(31.39, 4745),
+            c = 11) %>%
+        split(., .$ks)
+
+# Rates of change
+theta_rates <- function(t, theta, params) {
+  with(as.list(c(theta, params)), {
+    
+    dtheta_dt = -ks*(theta/theta_sat)^c
+
+    return(list(c(dtheta_dt)))
+  })
+}
+
+```
+
+```{r}
+
+logistic_solution <-
+  map_dfr(
+    params,
+    ~ode(
+    y = theta_init,
+    times = t,
+    func = theta_rates,
+    parms = .x) %>%
+  as.data.frame(), .id = "ks")
+```
+
+
+```{r}
+
+logistic_solution %>% 
+  ggplot(aes(time, theta, col=ks)) +
+  geom_line()
+
+
+```
+Great, so higher rates of drainage lead to similar rates of initial decline but the asymptote is lower for soils with more rapid drainage. Let's now combine rainfall inputs, infiltration reduction, and drainage outputs.31.39 is a very slow rate of drainage representing clay while 4745 is very fast and represents sand (Rodriguez-Iturbe et al. 1999). Let's now combine drainage with rainfall inputs and infiltration.
+
+```{r warning=FALSE}
+# Timestep
+t <- seq(0,10, by = 0.01)
+
+# Variables
+theta_init <- c(theta=0)
+
+# Model parameters
+params <- 
+  expand_grid(theta_sat = 0.482, 
+            R  = 1.0,
+            ks = c(31.39, 4745),
+            c = 11,
+            b = 0.5) %>%
+        split(., .$ks)
+
+# Rates of change
+theta_rates <- function(t, theta, params) {
+  with(as.list(c(theta, params)), {
+    
+    dtheta_dt = R*(1-(theta/theta_sat)^b)-ks*(theta/theta_sat)^c
+
+    return(list(c(dtheta_dt)))
+  })
+}
+
+```
+
+```{r}
+
+logistic_solution <-
+  map_dfr(
+    params,
+    ~ode(
+    y = theta_init,
+    times = t,
+    func = theta_rates,
+    parms = .x) %>%
+  as.data.frame(), .id = "ks")
+```
+
+
+```{r}
+
+logistic_solution %>% 
+  ggplot(aes(time, theta, col=ks)) +
+  geom_line()
+
+
+```
+$$\frac{d\theta}{dt} = R *\bigg({1-\bigg(\frac{\theta(t)}{\theta_{sat}}\bigg)^b}\bigg)- D (\theta) - E(\theta) .$$
+
+Evaporation is next. At the moment, we will use a very simple conceptualisation of how evaporation works:
+$$E = \frac{PE*\tau}{1 + e^{-d * (\frac{\theta(t)}{\theta_{sat}} - M)}}.$$ 
+Potential evaporation $PE~(m^{3} m^{-2}yr^{-1})$ is the annual evaporation recorded for a grid cell using a Class A evaporation pan and represents evaporation from an open and non-limiting body of water. Can also look into using calculated potential evaporation which takes into account physical variables including vapour pressure deficit, temperature, wind speed etc. from CSIRO.
+
+We assume that the amount of soil surface evaporation is dependent on the proportion of radiation intercepted by the canopy, $\tau$:
+
+$$\tau=e^{-kL}.$$
+$\k$ is the extinction coefficient of the canopy and L is the leaf area index of the canopy (Rambal 1993).
+
+The numerator is then reduced by the amount of soil moisture, which assumes that evaporation occurs at a high constant rate above a certain soil moisture threshold before the rate falls steeply and then flattens off close to zero. The steepness of the decline in evaporation rate is determined by an empirical parameter $d$. $M$ is an empirical parameter and determines where the sigmoid midpoint is located.
+
+Lets first inspect evaporation from a saturated soil moisture balance with no inputs or other outouts.
+
+$$\frac{d\theta}{dt} =  - E(\theta) .$$
+
+
+```{r}
+# Timestep
+t <- seq(0,10, by = 0.01)
+
+# Variables
+theta_init <- c(theta=1)
+
+# Model parameters
+params <- 
+  expand_grid(theta_sat = 0.482, 
+            R  = 1.0,
+            ks = c(31.39),
+            c = 11,
+            b = 4,
+            pe = c(1.0,1.5,4),
+            k = 0.46,
+            L = 0) %>%
+        split(., .$pe)
+
+
+# Rates of change
+theta_rates <- function(t, theta, params) {
+  with(as.list(c(theta, params)), {
+    
+    dtheta_dt = -(pe/(1 + exp (-12*(theta /theta_sat-0.5))))
+
+    return(list(c(dtheta_dt)))
+  })
+}
+
+```
+
+```{r}
+
+logistic_solution <-
+  map_dfr(
+    params,
+    ~ode(
+    y = theta_init,
+    times = t,
+    func = theta_rates,
+    parms = .x) %>%
+  as.data.frame(), .id = "pe")
+```
+
+```{r}
+
+logistic_solution %>% 
+  ggplot(aes(time, theta, col=pe)) +
+  geom_line()
+
+
+```
+Evaporation needs to be pretty substantial at the moment in order to strongly impact soil moisture (i.e. 1 is equal to northwest Tassie, 4 is higher than Birdsville). Might need to look into the shape of these curves.
+
+Let's now add in seasonal variability in rainfall. We can approximate this with a sine wave with a periodicity equal to one unit of time (i.e. one year):
+
+$$\frac{d\theta}{dt} = (R+Asin(2{\pi}t) *\bigg({1-\bigg(\frac{\theta(t)}{\theta_{sat}}\bigg)^b}\bigg)- D (\theta) - E(\theta).$$
+
+```{r}
+# Timestep
+t <- seq(0,10, by = 0.01)
+
+# Variables
+theta_init <- c(theta=0)
+
+# Model parameters
+params <- 
+  expand_grid(theta_sat = 0.482, 
+            R  = 1.0,
+            ks = c(31.39),
+            c = 11,
+            b = 4,
+            pe = c(1.0,1.5,4),
+            k = 0.46,
+            L = 0) %>%
+        split(., .$pe)
+
+
+# Rates of change
+theta_rates <- function(t, theta, params) {
+  with(as.list(c(theta, params)), {
+    
+    dtheta_dt = (R+R*sin(2*pi*t))*(1-(theta/theta_sat)^b)-ks*(theta/theta_sat)^c - 
+    pe*(exp(-k * L)/(1 + exp (-12 * (theta /theta_sat - 0.5))))
+
+    return(list(c(dtheta_dt)))
+  })
+}
+
+```
+
+```{r}
+
+logistic_solution <-
+  map_dfr(
+    params,
+    ~ode(
+    y = theta_init,
+    times = t,
+    func = theta_rates,
+    parms = .x) %>%
+  as.data.frame(), .id = "pe")
+```
+
+```{r}
+
+logistic_solution %>% 
+  ggplot(aes(time, theta, col=pe)) +
+  geom_line()
+
+
+```
+What about a decadal pattern of rainfall of mean annual rainfall equivalent to 10% range around the global mean?
+
+```{r}
+# Timestep
+t <- seq(0,30, by = 0.01)
+
+# Variables
+theta_init <- c(theta=0)
+
+# Model parameters
+params <- 
+  expand_grid(theta_sat = 0.482, 
+            R  = 1.0,
+            ks = c(31.39),
+            c = 11,
+            b = 4,
+            pe = c(1.0,1.5,4),
+            k = 0.46,
+            L = 0) %>%
+        split(., .$pe)
+
+
+# Rates of change
+theta_rates <- function(t, theta, params) {
+  with(as.list(c(theta, params)), {
+    
+    dtheta_dt = (R+R/10*sin(0.2*pi*t)+R*sin(2*pi*t))*(1-(theta/theta_sat)^b)-ks*(theta/theta_sat)^c - 
+    pe*(exp(-k * L)/(1 + exp (-12 * (theta /theta_sat - 0.5))))
+
+    return(list(c(dtheta_dt)))
+  })
+}
+
+```
+
+```{r}
+
+logistic_solution <-
+  map_dfr(
+    params,
+    ~ode(
+    y = theta_init,
+    times = t,
+    func = theta_rates,
+    parms = .x) %>%
+  as.data.frame(), .id = "pe")
+```
+
+```{r}
+
+logistic_solution %>% 
+  ggplot(aes(time, theta, col=pe)) +
+  geom_line()
+
+
+```
