@@ -89,7 +89,7 @@ scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
 ##' issue #138)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, include_competition_effect=FALSE) {
+run_scm_collect <- function(p, state = NULL, include_competition_effect=FALSE) {
   collect_default <- function(scm) {
     scm$state
   }
@@ -105,10 +105,31 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
     ret$competition_effect <- competition_effect
     ret
   }
-  collect <- if (include_competition_effect) collect_competition_effect else collect_default
-  types <- extract_RcppR6_template_types(p, "Parameters")
 
+  collect <- if (include_competition_effect) collect_competition_effect else collect_default
+  
+  types <- extract_RcppR6_template_types(p, "Parameters")
   scm <- do.call('SCM', types)(p)
+  
+  if(!is.null(state)) {
+    i = ncol(x$species[[1]])
+    
+    if(state$time != 0)
+      message("Solver must start from 0, resetting initial state time")
+    
+    # append zeros to introduction schedule and initialise using defaults
+    times <- scm$cohort_schedule$all_times[1]
+    times[[1]] <- c(rep(0, i), times[[1]][-1])
+    scm$set_cohort_schedule_times(times)
+    
+    # this initialises the right number of cohorts but has the 
+    # unintended effect of setting `next_event` to start at t1
+    scm$run_next()
+  
+    # now set state and set start time to t1
+    scm$set_state(times[[1]][i+1], state$species[[1]], n = i, env = state$env)
+  }
+  
   res <- list(collect(scm))
 
   while (!scm$complete) {
