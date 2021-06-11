@@ -42,6 +42,12 @@ public:
   std::vector<util::index> r_run_next();
   parameters_type r_parameters() const {return parameters;}
   const patch_type& r_patch() const {return patch;}
+
+  void r_set_state(double time,
+                   const std::vector<double>& state,
+                   const std::vector<size_t>& n,
+                   const std::vector<double>& env){patch.r_set_state(time, state, n, env);};
+
   // TODO: These are liable to change to return all species at once by
   // default.  The pluralisation difference between
   // SCM::r_competition_effect_error and Species::r_competition_effects_error will get

@@ -539,6 +539,10 @@ SCM:
       args: [times: "std::vector<std::vector<double> >"]
       return_type: void
       name_cpp: r_set_cohort_schedule_times
+    set_state:
+      args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&", env: "const std::vector<double>&"]
+      name_cpp: r_set_state
+      return_type: void
     # times
     # set_times
   active:

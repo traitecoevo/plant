@@ -1840,6 +1840,10 @@ void SCM___FF16__FF16_Env__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant
   obj_->r_set_cohort_schedule_times(times);
 }
 // [[Rcpp::export]]
+void SCM___FF16__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& env) {
+  obj_->r_set_state(time, state, n, env);
+}
+// [[Rcpp::export]]
 bool SCM___FF16__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->complete();
 }
@@ -1932,6 +1936,10 @@ void SCM___FF16r__FF16_Env__set_cohort_schedule_times(plant::RcppR6::RcppR6<plan
   obj_->r_set_cohort_schedule_times(times);
 }
 // [[Rcpp::export]]
+void SCM___FF16r__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& env) {
+  obj_->r_set_state(time, state, n, env);
+}
+// [[Rcpp::export]]
 bool SCM___FF16r__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->complete();
 }
@@ -2022,6 +2030,10 @@ std::vector<double> SCM___K93__K93_Env__competition_effect_error(plant::RcppR6::
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<double> > times) {
   obj_->r_set_cohort_schedule_times(times);
+}
+// [[Rcpp::export]]
+void SCM___K93__K93_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& env) {
+  obj_->r_set_state(time, state, n, env);
 }
 // [[Rcpp::export]]
 bool SCM___K93__K93_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {
