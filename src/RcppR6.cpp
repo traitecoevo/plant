@@ -1840,8 +1840,8 @@ void SCM___FF16__FF16_Env__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant
   obj_->r_set_cohort_schedule_times(times);
 }
 // [[Rcpp::export]]
-void SCM___FF16__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& env) {
-  obj_->r_set_state(time, state, n, env);
+void SCM___FF16__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n) {
+  obj_->r_set_state(time, state, n);
 }
 // [[Rcpp::export]]
 bool SCM___FF16__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
@@ -1936,8 +1936,8 @@ void SCM___FF16r__FF16_Env__set_cohort_schedule_times(plant::RcppR6::RcppR6<plan
   obj_->r_set_cohort_schedule_times(times);
 }
 // [[Rcpp::export]]
-void SCM___FF16r__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& env) {
-  obj_->r_set_state(time, state, n, env);
+void SCM___FF16r__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n) {
+  obj_->r_set_state(time, state, n);
 }
 // [[Rcpp::export]]
 bool SCM___FF16r__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
@@ -2032,8 +2032,8 @@ void SCM___K93__K93_Env__set_cohort_schedule_times(plant::RcppR6::RcppR6<plant::
   obj_->r_set_cohort_schedule_times(times);
 }
 // [[Rcpp::export]]
-void SCM___K93__K93_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n, const std::vector<double>& env) {
-  obj_->r_set_state(time, state, n, env);
+void SCM___K93__K93_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n) {
+  obj_->r_set_state(time, state, n);
 }
 // [[Rcpp::export]]
 bool SCM___K93__K93_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {

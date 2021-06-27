@@ -45,8 +45,8 @@ public:
 
   void r_set_state(double time,
                    const std::vector<double>& state,
-                   const std::vector<size_t>& n,
-                   const std::vector<double>& env){patch.r_set_state(time, state, n, env);};
+                   const std::vector<size_t>& n)
+                   {patch.r_set_state(time, state, n, std::vector<double>());};
 
   // TODO: These are liable to change to return all species at once by
   // default.  The pluralisation difference between
