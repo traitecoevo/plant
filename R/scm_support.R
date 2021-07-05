@@ -178,24 +178,30 @@ make_scm <- function(p, state=NULL) {
     if(n_spp != n_str)
       stop("State object has more species than strategies defined in Parameters")
   
-    cohorts <- sapply(state$species, ncol)
-      
     # need to append cohort times to enable integration of net fecundity
     if(state$time != 0)
       message("Solver must start from 0, resetting initial state time")
-    
+
     times <- scm$cohort_schedule$all_times
-    start_time <- sapply(times, function(t) min(t[-1]))
-    new_times <- mapply(function(i, t) c(rep(0, i), t[-1]), 
-                        cohorts, times, SIMPLIFY = F)
+
+    initial_cohorts <- sapply(times, function(t) sum(t == 0), simplify = F)
+    new_cohorts <- mapply(function(s, i) max(0, ncol(s) - i), 
+                          state$species, initial_cohorts, SIMPLIFY = F)
     
+    new_times <- mapply(function(i, t) c(rep(0, i), t), 
+                        new_cohorts, times, SIMPLIFY = F)
+
     # this introduces one more ind. than necessary, but if we
     # overwrite the oldest cohorts first then we can just start at t1
     scm$set_cohort_schedule_times(new_times)
     scm$run_next()
-    
-    
-    scm$set_state(min(start_time), unlist(state$species), n = cohorts)
+
+    # next step starts from first non-zero time
+    start_time <- sapply(times, function(t) min(t[t>0]))
+        
+    # add as many new cohorts as required to fit `state` object
+    scm$set_state(min(start_time), unlist(state$species), 
+                  n = mapply(`+`, new_cohorts, initial_cohorts))
   }  
   
   return(scm)  
@@ -241,8 +247,12 @@ run_scm_error <- function(p, state=NULL) {
   total <- lapply(seq_len(n_spp), function(idx)
                   f(rbind(lai_error[[idx]], net_reproduction_ratio_errors[[idx]])))
 
+  # schedule is needed to update parameters, not sure why ode_times is carried through
+  # saving min height here is lazy, but I'm not sure where else build_schedule can get it
   list(net_reproduction_ratios=scm$net_reproduction_ratios,
        err=list(lai=lai_error, net_reproduction_ratios=net_reproduction_ratio_errors, total=total),
+       schedule=scm$cohort_schedule$all_times,
+       min_heights = sapply(scm$state$species, function(s) min(s["height", ])),
        ode_times=scm$ode_times)
 }
 

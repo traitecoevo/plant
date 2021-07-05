@@ -3,18 +3,6 @@ context("Initial size distribution")
 # using SCM collect to generate starting conditions is slow, I should just
 # transcribe a few cohorts with realish initial states.
 
-# p0 <- scm_base_parameters("FF16")
-# p0$patch_type = 'fixed'
-# 
-# p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE)
-# p1$birth_rate <- 20
-# 
-# out <- run_scm_collect(p1)
-# 
-# # select a time slice
-# i = 120
-# x <- scm_state(i, out)
-# 
 # test_that("Set patch state", {
 #   # editable patch object
 #   types <- extract_RcppR6_template_types(p1, "Parameters")
@@ -77,15 +65,13 @@ test_that("Multi-species case", {
   # Create some arbitrary state
   vars <- sapply(scm$state$species, rownames, simplify = F)
   
-  # warns that Species #3 has no data
-  expect_warning(
-    state <- mapply(function(names, values, n) 
-      matrix(c(values, rep(0, length(names) - 1)),
-             nrow=length(names), ncol=n, dimnames=list(names)),
-      vars, c(2, 3, 4), c(2, 1, 0), SIMPLIFY=FALSE)
-    )
-  
-  expect_equal(sapply(state, dim)[2, ], c(2, 1, 0))
+  # this breaks if not introducing a cohort for one species
+  state <- mapply(function(names, values, n) 
+    matrix(c(values, rep(0, length(names) - 1)),
+           nrow=length(names), ncol=n, dimnames=list(names)),
+    vars, c(2, 3, 4), c(2, 1, 1), SIMPLIFY=FALSE)
+
+  expect_equal(sapply(state, dim)[2, ], c(2, 1, 1))
   
   z <- list(time = 2,
             species = state)
@@ -104,19 +90,19 @@ test_that("Multi-species case", {
   scm$set_state(min(start_time), unlist(z$species), n = cohorts)
   
   # state above + one default cohort (min 2cm height)
-  expect_equal(sapply(scm$state$species, rowSums)["height", ], c(6, 5, 2))
+  expect_equal(sapply(scm$state$species, rowSums)["height", ], c(6, 5, 6))
   
   
   # works through the run_scm api
   x <- run_scm_collect(p2, z)
   
   # check fitness
-  expect_equal(x$net_reproduction_ratios, c(1.176e-05, 1.176e-03, 9.132e-04), tolerance = 0.0001)
+  expect_equal(x$net_reproduction_ratios, c(3.981e-06, 4.585e-04, 3.514e-04), tolerance = 0.0001)
   
   # check # states, time steps, cohorts
-  expect_equal(sapply(x$species, dim)[3, ], c(107, 106, 105))
+  expect_equal(sapply(x$species, dim)[3, ], c(107, 106, 106))
   
-  # This is kinda cool, plot the results
+  # Plot the results
   # t2 <- x$time
   # h1 <- x$species[[1]]["height", , ]
   # h2 <- x$species[[2]]["height", , ]
@@ -131,9 +117,54 @@ test_that("Multi-species case", {
   # # Species 2 - blue
   # matlines(t2, h2, lty=1, col=make_transparent(cols[[2]], .25))
   # 
-  # 
   # # Species 3 - black
   # matlines(t2, h3, lty=1, col=make_transparent(cols[[3]], .25))
 })
 
+# Not actually recommending this as a test but it's a good demo for a hard
+# problem - starting with just a single cohort makes it difficult to resolve
+# whether cohorts should be introduced from the initial size distribution
+# or from the cohort schedule.
 
+# `run_scm_error` is somewhat specialised for the build_schedule function,
+# particularly persisting the schedule with cohorts at t0. 
+
+# Left unattended, cohorts introduced below the minimum viable height
+# of the FF16 strategy trip up the adaptive interpolator. Some ugly patches
+# pass the minimum back to split_densities. split_densities doesn't handle
+# density properly.
+test_that("Build schedule works", {
+  p0 <- scm_base_parameters("FF16")
+  p0$patch_type = 'fixed'
+  p0$control$schedule_nsteps = 5
+  
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE)
+  p1$cohort_schedule_times[[1]] <- seq(0.01, p1$max_patch_lifetime, length = 10)
+  p1$birth_rate <- 20
+  
+  init <- matrix(c(10, 0, 0, 0, 0, 0, -10))
+  rownames(init) <- c("height", "mortality", "fecundity", "area_heartwood",
+                      "mass_heartwood", "offspring_produced_survival_weighted",
+                      "log_density")
+
+  state <- list(time = 10, species = list(init))
+  x <- run_scm_collect(p1, state)
+  
+  t2 <- x$time
+  h1 <- x$species[[1]]["height", , ]
+  
+  # Species 1 - red
+  matplot(t2, h1, lty=1, type="l", col = "black",
+          las=1, xlab="Time (years)", ylab="Height (m)")
+    
+  res <- build_schedule(p1, state)
+  
+  x <- run_scm_collect(res$parameters, res$state)
+  
+  t2 <- x$time
+  h1 <- x$species[[1]]["height", , ]
+  
+  # Species 1 - red
+  matplot(t2, h1, lty=1, type="l", col = "black",
+          las=1, xlab="Time (years)", ylab="Height (m)")
+})

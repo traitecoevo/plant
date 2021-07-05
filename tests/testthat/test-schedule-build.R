@@ -21,7 +21,14 @@ test_that("Schedule building", {
     p$strategies <- list(strategy_types[[x]]())
     p$birth_rate <- 0.1
     p <- build_schedule(p)
-    expect_equal(length(p$cohort_schedule_times_default), 141)
-    expect_equal(length(p$cohort_schedule_times[[1]]), 176)
+
+    # This has changed, perhaps due split_times missing a cohort
+    pars <- p$parameters
+    expect_equal(length(pars$cohort_schedule_times_default), 141)
+    expect_equal(length(pars$cohort_schedule_times[[1]]), 176)
+
+    # not really relevant, just showing it's here
+    state <- p$state
+    expect_null(state)
   }
 })
