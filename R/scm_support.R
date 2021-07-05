@@ -234,15 +234,15 @@ run_scm_error <- function(p, state=NULL) {
   }
 
   lai_error <- lapply(lai_error, function(x) rbind_list(pad_matrix(x)))
-  average_fecundity_error <- scm$average_fecundity_error
+  net_reproduction_ratio_errors <- scm$net_reproduction_ratio_errors
   f <- function(m) {
     suppressWarnings(apply(m, 2, max, na.rm=TRUE))
   }
   total <- lapply(seq_len(n_spp), function(idx)
-                  f(rbind(lai_error[[idx]], average_fecundity_error[[idx]])))
+                  f(rbind(lai_error[[idx]], net_reproduction_ratio_errors[[idx]])))
 
   list(net_reproduction_ratios=scm$net_reproduction_ratios,
-       err=list(lai=lai_error, net_reproduction_ratios=average_fecundity_error, total=total),
+       err=list(lai=lai_error, net_reproduction_ratios=net_reproduction_ratio_errors, total=total),
        ode_times=scm$ode_times)
 }
 
