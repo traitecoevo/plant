@@ -49,13 +49,13 @@ equilibrium_quiet <- function(base=Control()) {
 ##' This is the simplest way of using the SCM, probably.
 ##' @title Run SCM
 ##' @param p Parameters object
+##' @param state A optional State object matching the strategies in \code{p}
 ##' @param use_ode_times Should ODE times be used?
 ##' @return A \code{SCM} object.
 ##' @author Rich FitzJohn
 ##' @export
-run_scm <- function(p, use_ode_times=FALSE) {
-  types <- extract_RcppR6_template_types(p, "Parameters")
-  scm <- do.call('SCM', types)(p)
+run_scm <- function(p, state=NULL, use_ode_times=FALSE) {
+  scm <- make_scm(p, state)
   if (use_ode_times) {
     scm$use_ode_times <- TRUE
   }
@@ -85,11 +85,12 @@ scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
 ##'
 ##' @title Run the SCM, Collecting Output
 ##' @param p A \code{Parameters} object
+##' @param state An optional State object matching the strategies in \code{p}
 ##' @param include_competition_effect Include total leaf area (will change; see
 ##' issue #138)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, include_competition_effect=FALSE) {
+run_scm_collect <- function(p, state = NULL, include_competition_effect=FALSE) {
   collect_default <- function(scm) {
     scm$state
   }
@@ -105,10 +106,10 @@ run_scm_collect <- function(p, include_competition_effect=FALSE) {
     ret$competition_effect <- competition_effect
     ret
   }
-  collect <- if (include_competition_effect) collect_competition_effect else collect_default
-  types <- extract_RcppR6_template_types(p, "Parameters")
 
-  scm <- do.call('SCM', types)(p)
+  collect <- if (include_competition_effect) collect_competition_effect else collect_default
+  
+  scm <- make_scm(p, state)
   res <- list(collect(scm))
 
   while (!scm$complete) {
@@ -161,6 +162,51 @@ make_patch <- function(state, p) {
   patch
 }
 
+##' Functions for reconstructing a Patch from an SCM
+##' @title Reconstruct a patch
+##' @param p Parameters object
+##' @param state An optional State object matching the strategies in \code{p}
+##' @export
+make_scm <- function(p, state=NULL) {
+  types <- extract_RcppR6_template_types(p, "Parameters")
+  scm <- do.call('SCM', types)(p)
+  
+  if(!is.null(state)) {
+    n_str <- length(p$strategies)
+    n_spp = length(state$species)
+    
+    if(n_spp != n_str)
+      stop("State object has more species than strategies defined in Parameters")
+  
+    # need to append cohort times to enable integration of net fecundity
+    if(state$time != 0)
+      message("Solver must start from 0, resetting initial state time")
+
+    times <- scm$cohort_schedule$all_times
+
+    initial_cohorts <- sapply(times, function(t) sum(t == 0), simplify = F)
+    new_cohorts <- mapply(function(s, i) max(0, ncol(s) - i), 
+                          state$species, initial_cohorts, SIMPLIFY = F)
+    
+    new_times <- mapply(function(i, t) c(rep(0, i), t), 
+                        new_cohorts, times, SIMPLIFY = F)
+
+    # this introduces one more ind. than necessary, but if we
+    # overwrite the oldest cohorts first then we can just start at t1
+    scm$set_cohort_schedule_times(new_times)
+    scm$run_next()
+
+    # next step starts from first non-zero time
+    start_time <- sapply(times, function(t) min(t[t>0]))
+        
+    # add as many new cohorts as required to fit `state` object
+    scm$set_state(min(start_time), unlist(state$species), 
+                  n = mapply(`+`, new_cohorts, initial_cohorts))
+  }  
+  
+  return(scm)  
+}
+  
 ##' @rdname make_patch
 ##' @param i Index to extract from \code{x}
 ##' @param x Result of running \code{\link{run_scm_collect}}
@@ -180,9 +226,8 @@ scm_patch <- function(i, x) {
   make_patch(scm_state(i, x), x$p)
 }
 
-run_scm_error <- function(p) {
-  types <- extract_RcppR6_template_types(p, "Parameters")
-  scm <- do.call('SCM', types)(p)
+run_scm_error <- function(p, state=NULL) {
+  scm <- make_scm(p, state)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)
@@ -195,15 +240,19 @@ run_scm_error <- function(p) {
   }
 
   lai_error <- lapply(lai_error, function(x) rbind_list(pad_matrix(x)))
-  average_fecundity_error <- scm$average_fecundity_error
+  net_reproduction_ratio_errors <- scm$net_reproduction_ratio_errors
   f <- function(m) {
     suppressWarnings(apply(m, 2, max, na.rm=TRUE))
   }
   total <- lapply(seq_len(n_spp), function(idx)
-                  f(rbind(lai_error[[idx]], average_fecundity_error[[idx]])))
+                  f(rbind(lai_error[[idx]], net_reproduction_ratio_errors[[idx]])))
 
+  # schedule is needed to update parameters, not sure why ode_times is carried through
+  # saving min height here is lazy, but I'm not sure where else build_schedule can get it
   list(net_reproduction_ratios=scm$net_reproduction_ratios,
-       err=list(lai=lai_error, net_reproduction_ratios=average_fecundity_error, total=total),
+       err=list(lai=lai_error, net_reproduction_ratios=net_reproduction_ratio_errors, total=total),
+       schedule=scm$cohort_schedule$all_times,
+       min_heights = sapply(scm$state$species, function(s) min(s["height", ])),
        ode_times=scm$ode_times)
 }
 

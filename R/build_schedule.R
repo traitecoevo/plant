@@ -13,7 +13,7 @@
 ##' \code{birth_rate}.
 ##' @author Rich FitzJohn
 ##' @export
-build_schedule <- function(p) {
+build_schedule <- function(p, state=NULL) {
   p <- validate(p)
 
   n_spp <- length(p$strategies)
@@ -24,7 +24,7 @@ build_schedule <- function(p) {
   eps <- control$schedule_eps
 
   for (i in seq_len(control$schedule_nsteps)) {
-    res <- run_scm_error(p)
+    res <- run_scm_error(p, state)
     net_reproduction_ratios <- res[["net_reproduction_ratios"]]
     split <- lapply(res$err$total, function(x) x > eps)
 
@@ -33,12 +33,24 @@ build_schedule <- function(p) {
     }
 
     ## Prepare for the next iteration:
-    times <- p$cohort_schedule_times
+    times <- res$schedule
+    
+    # split cohorts
     for (idx in seq_len(n_spp)) {
+      
+      # by introduction time
       times[[idx]] <- split_times(times[[idx]], split[[idx]])
+      
+      # or by initial size
+      if(!is.null(state)) {
+        state$species[[idx]] <- split_state(state$species[[idx]], 
+                                            times[[idx]], split[[idx]],
+                                            res$min_heights[[idx]])
+      }
     }
+    
+    # set schedule for next patch
     p$cohort_schedule_times <- times
-
     msg <- sprintf("%d: Splitting {%s} times (%s)",
                    i,
                    paste(sapply(split, sum),    collapse=","),
@@ -50,7 +62,7 @@ build_schedule <- function(p) {
   ## Useful to record the last offspring produced:
   attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
 
-  p
+  return(list(parameters = p, state = state))
 }
 
 split_times <- function(times, i) {
@@ -61,5 +73,40 @@ split_times <- function(times, i) {
   ## point twice; one from upstream and one from downstream.
   dt <- diff(times)
   i <- which(i)
+  
+  # can't split cohorts introduced in the same time step
+  i <- i[dt[i] > 0]
+  
   sort(c(times, times[i] - dt[i-1]/2))
 }
+
+split_state <- function(state, times, i, min_height) {
+  ## oversimplified splitting scheme, introduce a new cohort 
+  # half a step between two existing cohorts, even thought this leaves density
+  # uncorrected and results in a different initial size distribution
+  
+  # can only split cohorts introduced at t0
+  i <- which(i)
+  
+  # which is tricky when there's only one - we want to bring the 
+  # first introduced (non-initialised) cohort up to meet it
+  if(ncol(state) == 1 & i[1] == 2) 
+    return(cbind(state, state - state / 2))
+  
+  # otherwise proceed normally
+  i <- i[times[i] == 0]
+  
+  if(length(i) == 0)
+    return(state)
+  
+  # append a blank cohort
+  dh <- matrix(0, ncol = ncol(state), nrow = nrow(state), 
+               dimnames = dimnames(state)) 
+  
+  dh["height", ] <- diff(c(state["height", ], min_height))
+  
+  st <- cbind(state, state[, i-1] + dh[, i-1] / 2)
+
+  return(st[, order(st["height", ], decreasing = T)])
+}
+

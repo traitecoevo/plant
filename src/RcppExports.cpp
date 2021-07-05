@@ -4558,6 +4558,19 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// SCM___FF16__FF16_Env__set_state
+void SCM___FF16__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__set_state(SEXP obj_SEXP, SEXP timeSEXP, SEXP stateSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const std::vector<size_t>& >::type n(nSEXP);
+    SCM___FF16__FF16_Env__set_state(obj_, time, state, n);
+    return R_NilValue;
+END_RCPP
+}
 // SCM___FF16__FF16_Env__complete__get
 bool SCM___FF16__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___FF16__FF16_Env__complete__get(SEXP obj_SEXP) {
@@ -4778,6 +4791,19 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// SCM___FF16r__FF16_Env__set_state
+void SCM___FF16r__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n);
+RcppExport SEXP _plant_SCM___FF16r__FF16_Env__set_state(SEXP obj_SEXP, SEXP timeSEXP, SEXP stateSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const std::vector<size_t>& >::type n(nSEXP);
+    SCM___FF16r__FF16_Env__set_state(obj_, time, state, n);
+    return R_NilValue;
+END_RCPP
+}
 // SCM___FF16r__FF16_Env__complete__get
 bool SCM___FF16r__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___FF16r__FF16_Env__complete__get(SEXP obj_SEXP) {
@@ -4995,6 +5021,19 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<std::vector<double> > >::type times(timesSEXP);
     SCM___K93__K93_Env__set_cohort_schedule_times(obj_, times);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___K93__K93_Env__set_state
+void SCM___K93__K93_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n);
+RcppExport SEXP _plant_SCM___K93__K93_Env__set_state(SEXP obj_SEXP, SEXP timeSEXP, SEXP stateSEXP, SEXP nSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type time(timeSEXP);
+    Rcpp::traits::input_parameter< const std::vector<double>& >::type state(stateSEXP);
+    Rcpp::traits::input_parameter< const std::vector<size_t>& >::type n(nSEXP);
+    SCM___K93__K93_Env__set_state(obj_, time, state, n);
     return R_NilValue;
 END_RCPP
 }
@@ -7953,6 +7992,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_for_species, 2},
     {"_plant_SCM___FF16__FF16_Env__competition_effect_error", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__competition_effect_error, 2},
     {"_plant_SCM___FF16__FF16_Env__set_cohort_schedule_times", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__set_cohort_schedule_times, 2},
+    {"_plant_SCM___FF16__FF16_Env__set_state", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__set_state, 4},
     {"_plant_SCM___FF16__FF16_Env__complete__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__complete__get, 1},
     {"_plant_SCM___FF16__FF16_Env__time__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__time__get, 1},
     {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratios__get, 1},
@@ -7973,6 +8013,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_for_species, 2},
     {"_plant_SCM___FF16r__FF16_Env__competition_effect_error", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__competition_effect_error, 2},
     {"_plant_SCM___FF16r__FF16_Env__set_cohort_schedule_times", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__set_cohort_schedule_times, 2},
+    {"_plant_SCM___FF16r__FF16_Env__set_state", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__set_state, 4},
     {"_plant_SCM___FF16r__FF16_Env__complete__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__complete__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__time__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__time__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__net_reproduction_ratios__get, 1},
@@ -7993,6 +8034,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species", (DL_FUNC) &_plant_SCM___K93__K93_Env__net_reproduction_ratio_for_species, 2},
     {"_plant_SCM___K93__K93_Env__competition_effect_error", (DL_FUNC) &_plant_SCM___K93__K93_Env__competition_effect_error, 2},
     {"_plant_SCM___K93__K93_Env__set_cohort_schedule_times", (DL_FUNC) &_plant_SCM___K93__K93_Env__set_cohort_schedule_times, 2},
+    {"_plant_SCM___K93__K93_Env__set_state", (DL_FUNC) &_plant_SCM___K93__K93_Env__set_state, 4},
     {"_plant_SCM___K93__K93_Env__complete__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__complete__get, 1},
     {"_plant_SCM___K93__K93_Env__time__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__time__get, 1},
     {"_plant_SCM___K93__K93_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__net_reproduction_ratios__get, 1},

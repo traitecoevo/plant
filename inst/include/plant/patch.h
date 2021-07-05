@@ -215,9 +215,9 @@ void Patch<T,E>::r_set_time(double time) {
 //   n: number of *individuals* of each species
 template <typename T, typename E>
 void Patch<T,E>::r_set_state(double time,
-                           const std::vector<double>& state,
-                           const std::vector<size_t>& n,
-                           const std::vector<double>& env) {
+                             const std::vector<double>& state,
+                             const std::vector<size_t>& n,
+                             const std::vector<double>& env) {
   const size_t n_species = species.size();
   util::check_length(n.size(), n_species);
   reset();
@@ -228,7 +228,11 @@ void Patch<T,E>::r_set_state(double time,
   }
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
-  environment.r_init_interpolators(env);
+
+  // todo
+  if(!env.empty()) {
+    environment.r_init_interpolators(env);
+  }
 }
 
 // ODE interface
