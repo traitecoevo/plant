@@ -175,7 +175,7 @@ void Patch<T,E>::compute_rates() {
     double pr_patch_survival = survival_weighting->pr_survival(time());
     double birth_rate = parameters.birth_rate[i];
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
-    //environment.compute_rates();
+    environment.compute_rates();
   }
 }
 
