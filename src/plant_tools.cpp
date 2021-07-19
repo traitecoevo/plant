@@ -22,3 +22,11 @@ plant::Internals K93_oderunner_plant_internals(
 }
 
 
+
+// [[Rcpp::export]]
+plant::Internals Water_oderunner_plant_internals(
+  const plant::ode::Runner<plant::tools::IndividualRunner<plant::Water_Strategy, plant::Water_Environment>>& obj) {
+  return obj.obj.plant.r_internals();
+}
+
+

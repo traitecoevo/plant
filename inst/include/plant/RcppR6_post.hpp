@@ -26,6 +26,10 @@ template <> inline std::string   class_name_r<plant::ode::Runner<plant::tools::I
 template <> inline std::string   package_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return "plant";}
 template <> inline std::string generator_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >() {return ".R6_OdeRunner___FF16";}
 
+template <> inline std::string   class_name_r<plant::ode::Runner<plant::tools::IndividualRunner<plant::Water_Strategy, plant::Water_Environment> > >() {return "OdeRunner<Water>";}
+template <> inline std::string   package_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::Water_Strategy, plant::Water_Environment> > >() {return "plant";}
+template <> inline std::string generator_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::Water_Strategy, plant::Water_Environment> > >() {return ".R6_OdeRunner___Water";}
+
 template <> inline std::string   class_name_r<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment> > >() {return "OdeRunner<FF16r>";}
 template <> inline std::string   package_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment> > >() {return "plant";}
 template <> inline std::string generator_name<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment> > >() {return ".R6_OdeRunner___FF16r";}
@@ -58,6 +62,10 @@ template <> inline std::string   class_name_r<plant::Individual<plant::FF16_Stra
 template <> inline std::string   package_name<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Individual___FF16__FF16_Env";}
 
+template <> inline std::string   class_name_r<plant::Individual<plant::Water_Strategy,plant::Water_Environment> >() {return "Individual<Water,Water_Env>";}
+template <> inline std::string   package_name<plant::Individual<plant::Water_Strategy,plant::Water_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::Individual<plant::Water_Strategy,plant::Water_Environment> >() {return ".R6_Individual___Water__Water_Env";}
+
 template <> inline std::string   class_name_r<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "Individual<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> >() {return ".R6_Individual___FF16r__FF16_Env";}
@@ -68,6 +76,10 @@ template <> inline std::string generator_name<plant::Individual<plant::K93_Strat
 template <> inline std::string   class_name_r<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return "IndividualRunner<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_IndividualRunner___FF16__FF16_Env";}
+
+template <> inline std::string   class_name_r<plant::tools::IndividualRunner<plant::Water_Strategy,plant::Water_Environment> >() {return "IndividualRunner<Water,Water_Env>";}
+template <> inline std::string   package_name<plant::tools::IndividualRunner<plant::Water_Strategy,plant::Water_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::tools::IndividualRunner<plant::Water_Strategy,plant::Water_Environment> >() {return ".R6_IndividualRunner___Water__Water_Env";}
 
 template <> inline std::string   class_name_r<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "IndividualRunner<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
@@ -83,6 +95,10 @@ template <> inline std::string   class_name_r<plant::Parameters<plant::FF16_Stra
 template <> inline std::string   package_name<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >() {return "";}
 
+template <> inline std::string   class_name_r<plant::Parameters<plant::Water_Strategy,plant::Water_Environment> >() {return "Parameters<Water,Water_Env>";}
+template <> inline std::string   package_name<plant::Parameters<plant::Water_Strategy,plant::Water_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::Parameters<plant::Water_Strategy,plant::Water_Environment> >() {return "";}
+
 template <> inline std::string   class_name_r<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "Parameters<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "";}
@@ -93,6 +109,10 @@ template <> inline std::string generator_name<plant::Parameters<plant::K93_Strat
 template <> inline std::string   class_name_r<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >() {return "Cohort<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Cohort___FF16__FF16_Env";}
+
+template <> inline std::string   class_name_r<plant::Cohort<plant::Water_Strategy,plant::Water_Environment> >() {return "Cohort<Water,Water_Env>";}
+template <> inline std::string   package_name<plant::Cohort<plant::Water_Strategy,plant::Water_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::Cohort<plant::Water_Strategy,plant::Water_Environment> >() {return ".R6_Cohort___Water__Water_Env";}
 
 template <> inline std::string   class_name_r<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "Cohort<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
@@ -105,6 +125,10 @@ template <> inline std::string   class_name_r<plant::Species<plant::FF16_Strateg
 template <> inline std::string   package_name<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Species___FF16__FF16_Env";}
 
+template <> inline std::string   class_name_r<plant::Species<plant::Water_Strategy,plant::Water_Environment> >() {return "Species<Water,Water_Env>";}
+template <> inline std::string   package_name<plant::Species<plant::Water_Strategy,plant::Water_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::Species<plant::Water_Strategy,plant::Water_Environment> >() {return ".R6_Species___Water__Water_Env";}
+
 template <> inline std::string   class_name_r<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "Species<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> >() {return ".R6_Species___FF16r__FF16_Env";}
@@ -115,6 +139,10 @@ template <> inline std::string generator_name<plant::Species<plant::K93_Strategy
 template <> inline std::string   class_name_r<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> >() {return "Patch<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Patch___FF16__FF16_Env";}
+
+template <> inline std::string   class_name_r<plant::Patch<plant::Water_Strategy,plant::Water_Environment> >() {return "Patch<Water,Water_Env>";}
+template <> inline std::string   package_name<plant::Patch<plant::Water_Strategy,plant::Water_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::Patch<plant::Water_Strategy,plant::Water_Environment> >() {return ".R6_Patch___Water__Water_Env";}
 
 template <> inline std::string   class_name_r<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "Patch<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
@@ -127,6 +155,10 @@ template <> inline std::string   class_name_r<plant::SCM<plant::FF16_Strategy,pl
 template <> inline std::string   package_name<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_SCM___FF16__FF16_Env";}
 
+template <> inline std::string   class_name_r<plant::SCM<plant::Water_Strategy,plant::Water_Environment> >() {return "SCM<Water,Water_Env>";}
+template <> inline std::string   package_name<plant::SCM<plant::Water_Strategy,plant::Water_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::SCM<plant::Water_Strategy,plant::Water_Environment> >() {return ".R6_SCM___Water__Water_Env";}
+
 template <> inline std::string   class_name_r<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "SCM<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> >() {return ".R6_SCM___FF16r__FF16_Env";}
@@ -137,6 +169,10 @@ template <> inline std::string generator_name<plant::SCM<plant::K93_Strategy,pla
 template <> inline std::string   class_name_r<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> >() {return "StochasticSpecies<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_StochasticSpecies___FF16__FF16_Env";}
+
+template <> inline std::string   class_name_r<plant::StochasticSpecies<plant::Water_Strategy,plant::Water_Environment> >() {return "StochasticSpecies<Water,Water_Env>";}
+template <> inline std::string   package_name<plant::StochasticSpecies<plant::Water_Strategy,plant::Water_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::StochasticSpecies<plant::Water_Strategy,plant::Water_Environment> >() {return ".R6_StochasticSpecies___Water__Water_Env";}
 
 template <> inline std::string   class_name_r<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "StochasticSpecies<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
@@ -149,6 +185,10 @@ template <> inline std::string   class_name_r<plant::StochasticPatch<plant::FF16
 template <> inline std::string   package_name<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_StochasticPatch___FF16__FF16_Env";}
 
+template <> inline std::string   class_name_r<plant::StochasticPatch<plant::Water_Strategy,plant::Water_Environment> >() {return "StochasticPatch<Water,Water_Env>";}
+template <> inline std::string   package_name<plant::StochasticPatch<plant::Water_Strategy,plant::Water_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::StochasticPatch<plant::Water_Strategy,plant::Water_Environment> >() {return ".R6_StochasticPatch___Water__Water_Env";}
+
 template <> inline std::string   class_name_r<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "StochasticPatch<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> >() {return ".R6_StochasticPatch___FF16r__FF16_Env";}
@@ -159,6 +199,10 @@ template <> inline std::string generator_name<plant::StochasticPatch<plant::K93_
 template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return "StochasticPatchRunner<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_StochasticPatchRunner___FF16__FF16_Env";}
+
+template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::Water_Strategy,plant::Water_Environment> >() {return "StochasticPatchRunner<Water,Water_Env>";}
+template <> inline std::string   package_name<plant::StochasticPatchRunner<plant::Water_Strategy,plant::Water_Environment> >() {return "plant";}
+template <> inline std::string generator_name<plant::StochasticPatchRunner<plant::Water_Strategy,plant::Water_Environment> >() {return ".R6_StochasticPatchRunner___Water__Water_Env";}
 
 template <> inline std::string   class_name_r<plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "StochasticPatchRunner<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
@@ -194,6 +238,12 @@ template <> inline std::string generator_name<plant::K93_Strategy >() {return ""
 template <> inline std::string   class_name_r<plant::K93_Environment >() {return "K93_Environment";}
 template <> inline std::string   package_name<plant::K93_Environment >() {return "plant";}
 template <> inline std::string generator_name<plant::K93_Environment >() {return ".R6_K93_Environment";}
+template <> inline std::string   class_name_r<plant::Water_Strategy >() {return "Water_Strategy";}
+template <> inline std::string   package_name<plant::Water_Strategy >() {return "plant";}
+template <> inline std::string generator_name<plant::Water_Strategy >() {return "";}
+template <> inline std::string   class_name_r<plant::Water_Environment >() {return "Water_Environment";}
+template <> inline std::string   package_name<plant::Water_Environment >() {return "plant";}
+template <> inline std::string generator_name<plant::Water_Environment >() {return ".R6_Water_Environment";}
 }
 }
 }
@@ -248,6 +298,13 @@ template <> inline plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16
   return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment> > >(x));
 }
 
+template <> inline SEXP wrap(const plant::ode::Runner<plant::tools::IndividualRunner<plant::Water_Strategy, plant::Water_Environment> >& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::Water_Strategy, plant::Water_Environment> > >(x));
+}
+template <> inline plant::ode::Runner<plant::tools::IndividualRunner<plant::Water_Strategy, plant::Water_Environment> > as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::Water_Strategy, plant::Water_Environment> > >(x));
+}
+
 template <> inline SEXP wrap(const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment> >& x) {
   return wrap(plant::RcppR6::RcppR6<plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment> > >(x));
 }
@@ -282,6 +339,8 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["plant_assimilation_rule"] = Rcpp::wrap(x.plant_assimilation_rule);
   ret["plant_seed_tol"] = Rcpp::wrap(x.plant_seed_tol);
   ret["plant_seed_iterations"] = Rcpp::wrap(x.plant_seed_iterations);
+  ret["soil_infiltration_rate"] = Rcpp::wrap(x.soil_infiltration_rate);
+  ret["soil_number_of_depths"] = Rcpp::wrap(x.soil_number_of_depths);
   ret["cohort_gradient_eps"] = Rcpp::wrap(x.cohort_gradient_eps);
   ret["cohort_gradient_direction"] = Rcpp::wrap(x.cohort_gradient_direction);
   ret["cohort_gradient_richardson"] = Rcpp::wrap(x.cohort_gradient_richardson);
@@ -335,6 +394,10 @@ template <> inline plant::Control as(SEXP x) {
   ret.plant_seed_tol = Rcpp::as<double >(xl["plant_seed_tol"]);
   // ret.plant_seed_iterations = Rcpp::as<decltype(retplant_seed_iterations) >(xl["plant_seed_iterations"]);
   ret.plant_seed_iterations = Rcpp::as<int >(xl["plant_seed_iterations"]);
+  // ret.soil_infiltration_rate = Rcpp::as<decltype(retsoil_infiltration_rate) >(xl["soil_infiltration_rate"]);
+  ret.soil_infiltration_rate = Rcpp::as<double >(xl["soil_infiltration_rate"]);
+  // ret.soil_number_of_depths = Rcpp::as<decltype(retsoil_number_of_depths) >(xl["soil_number_of_depths"]);
+  ret.soil_number_of_depths = Rcpp::as<int >(xl["soil_number_of_depths"]);
   // ret.cohort_gradient_eps = Rcpp::as<decltype(retcohort_gradient_eps) >(xl["cohort_gradient_eps"]);
   ret.cohort_gradient_eps = Rcpp::as<double >(xl["cohort_gradient_eps"]);
   // ret.cohort_gradient_direction = Rcpp::as<decltype(retcohort_gradient_direction) >(xl["cohort_gradient_direction"]);
@@ -453,6 +516,13 @@ template <> inline plant::Individual<plant::FF16_Strategy,plant::FF16_Environmen
   return *(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
 
+template <> inline SEXP wrap(const plant::Individual<plant::Water_Strategy,plant::Water_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Individual<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+template <> inline plant::Individual<plant::Water_Strategy,plant::Water_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Individual<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+
 template <> inline SEXP wrap(const plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> >(x));
 }
@@ -471,6 +541,13 @@ template <> inline SEXP wrap(const plant::tools::IndividualRunner<plant::FF16_St
 }
 template <> inline plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> >(x));
+}
+
+template <> inline SEXP wrap(const plant::tools::IndividualRunner<plant::Water_Strategy,plant::Water_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+template <> inline plant::tools::IndividualRunner<plant::Water_Strategy,plant::Water_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::Water_Strategy,plant::Water_Environment> >(x));
 }
 
 template <> inline SEXP wrap(const plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
@@ -536,6 +613,60 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16_Strategy >(xl["strategy_default"]);
+  // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
+  ret.cohort_schedule_times_default = Rcpp::as<std::vector<double> >(xl["cohort_schedule_times_default"]);
+  // ret.cohort_schedule_times = Rcpp::as<decltype(retcohort_schedule_times) >(xl["cohort_schedule_times"]);
+  ret.cohort_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["cohort_schedule_times"]);
+  // ret.cohort_schedule_ode_times = Rcpp::as<decltype(retcohort_schedule_ode_times) >(xl["cohort_schedule_ode_times"]);
+  ret.cohort_schedule_ode_times = Rcpp::as<std::vector<double> >(xl["cohort_schedule_ode_times"]);
+  ret.validate();
+  return ret;
+}
+
+template <> inline SEXP wrap(const plant::Parameters<plant::Water_Strategy,plant::Water_Environment>& x) {
+  Rcpp::List ret;
+  ret["patch_area"] = Rcpp::wrap(x.patch_area);
+  ret["n_patches"] = Rcpp::wrap(x.n_patches);
+  ret["patch_type"] = Rcpp::wrap(x.patch_type);
+  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
+  ret["strategies"] = Rcpp::wrap(x.strategies);
+  ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
+  ret["is_resident"] = Rcpp::wrap(x.is_resident);
+  ret["control"] = Rcpp::wrap(x.control);
+  ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
+  ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
+  ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
+  ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
+  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<Water,Water_Env>", "Parameters");
+  return ret;
+}
+template <> inline plant::Parameters<plant::Water_Strategy,plant::Water_Environment> as(SEXP x) {
+  if (!plant::RcppR6::is<plant::Parameters<plant::Water_Strategy,plant::Water_Environment> >(x)) {
+    Rcpp::stop("Expected an object of type Parameters<Water,Water_Env>");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::Parameters<plant::Water_Strategy,plant::Water_Environment> ret;
+  Rcpp::List xl(x);
+  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
+  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
+  // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
+  ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
+  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
+  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
+  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
+  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
+  // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
+  ret.strategies = Rcpp::as<std::vector<plant::Water_Strategy> >(xl["strategies"]);
+  // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
+  ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
+  // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
+  ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
+  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
+  ret.control = Rcpp::as<plant::Control >(xl["control"]);
+  // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
+  ret.strategy_default = Rcpp::as<plant::Water_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
   ret.cohort_schedule_times_default = Rcpp::as<std::vector<double> >(xl["cohort_schedule_times_default"]);
   // ret.cohort_schedule_times = Rcpp::as<decltype(retcohort_schedule_times) >(xl["cohort_schedule_times"]);
@@ -660,6 +791,13 @@ template <> inline plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> a
   return *(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
 
+template <> inline SEXP wrap(const plant::Cohort<plant::Water_Strategy,plant::Water_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+template <> inline plant::Cohort<plant::Water_Strategy,plant::Water_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+
 template <> inline SEXP wrap(const plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> >(x));
 }
@@ -678,6 +816,13 @@ template <> inline SEXP wrap(const plant::Species<plant::FF16_Strategy,plant::FF
 }
 template <> inline plant::Species<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> >(x));
+}
+
+template <> inline SEXP wrap(const plant::Species<plant::Water_Strategy,plant::Water_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Species<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+template <> inline plant::Species<plant::Water_Strategy,plant::Water_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Species<plant::Water_Strategy,plant::Water_Environment> >(x));
 }
 
 template <> inline SEXP wrap(const plant::Species<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
@@ -700,6 +845,13 @@ template <> inline plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> as
   return *(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
 
+template <> inline SEXP wrap(const plant::Patch<plant::Water_Strategy,plant::Water_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Patch<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+template <> inline plant::Patch<plant::Water_Strategy,plant::Water_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Patch<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+
 template <> inline SEXP wrap(const plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> >(x));
 }
@@ -718,6 +870,13 @@ template <> inline SEXP wrap(const plant::SCM<plant::FF16_Strategy,plant::FF16_E
 }
 template <> inline plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> >(x));
+}
+
+template <> inline SEXP wrap(const plant::SCM<plant::Water_Strategy,plant::Water_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::SCM<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+template <> inline plant::SCM<plant::Water_Strategy,plant::Water_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::SCM<plant::Water_Strategy,plant::Water_Environment> >(x));
 }
 
 template <> inline SEXP wrap(const plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
@@ -740,6 +899,13 @@ template <> inline plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Env
   return *(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
 
+template <> inline SEXP wrap(const plant::StochasticSpecies<plant::Water_Strategy,plant::Water_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+template <> inline plant::StochasticSpecies<plant::Water_Strategy,plant::Water_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+
 template <> inline SEXP wrap(const plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> >(x));
 }
@@ -760,6 +926,13 @@ template <> inline plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Envir
   return *(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
 
+template <> inline SEXP wrap(const plant::StochasticPatch<plant::Water_Strategy,plant::Water_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+template <> inline plant::StochasticPatch<plant::Water_Strategy,plant::Water_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+
 template <> inline SEXP wrap(const plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> >(x));
 }
@@ -778,6 +951,13 @@ template <> inline SEXP wrap(const plant::StochasticPatchRunner<plant::FF16_Stra
 }
 template <> inline plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> >(x));
+}
+
+template <> inline SEXP wrap(const plant::StochasticPatchRunner<plant::Water_Strategy,plant::Water_Environment>& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::Water_Strategy,plant::Water_Environment> >(x));
+}
+template <> inline plant::StochasticPatchRunner<plant::Water_Strategy,plant::Water_Environment> as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::Water_Strategy,plant::Water_Environment> >(x));
 }
 
 template <> inline SEXP wrap(const plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
@@ -1110,6 +1290,127 @@ template <> inline SEXP wrap(const plant::K93_Environment& x) {
 }
 template <> inline plant::K93_Environment as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::K93_Environment>(x));
+}
+template <> inline SEXP wrap(const plant::Water_Strategy& x) {
+  Rcpp::List ret;
+  ret["lma"] = Rcpp::wrap(x.lma);
+  ret["rho"] = Rcpp::wrap(x.rho);
+  ret["hmat"] = Rcpp::wrap(x.hmat);
+  ret["omega"] = Rcpp::wrap(x.omega);
+  ret["eta"] = Rcpp::wrap(x.eta);
+  ret["theta"] = Rcpp::wrap(x.theta);
+  ret["a_l1"] = Rcpp::wrap(x.a_l1);
+  ret["a_l2"] = Rcpp::wrap(x.a_l2);
+  ret["a_r1"] = Rcpp::wrap(x.a_r1);
+  ret["a_b1"] = Rcpp::wrap(x.a_b1);
+  ret["r_s"] = Rcpp::wrap(x.r_s);
+  ret["r_b"] = Rcpp::wrap(x.r_b);
+  ret["r_r"] = Rcpp::wrap(x.r_r);
+  ret["r_l"] = Rcpp::wrap(x.r_l);
+  ret["a_y"] = Rcpp::wrap(x.a_y);
+  ret["a_bio"] = Rcpp::wrap(x.a_bio);
+  ret["k_l"] = Rcpp::wrap(x.k_l);
+  ret["k_b"] = Rcpp::wrap(x.k_b);
+  ret["k_s"] = Rcpp::wrap(x.k_s);
+  ret["k_r"] = Rcpp::wrap(x.k_r);
+  ret["a_p1"] = Rcpp::wrap(x.a_p1);
+  ret["a_p2"] = Rcpp::wrap(x.a_p2);
+  ret["a_f3"] = Rcpp::wrap(x.a_f3);
+  ret["a_f1"] = Rcpp::wrap(x.a_f1);
+  ret["a_f2"] = Rcpp::wrap(x.a_f2);
+  ret["S_D"] = Rcpp::wrap(x.S_D);
+  ret["a_d0"] = Rcpp::wrap(x.a_d0);
+  ret["d_I"] = Rcpp::wrap(x.d_I);
+  ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
+  ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
+  ret["k_I"] = Rcpp::wrap(x.k_I);
+  ret["control"] = Rcpp::wrap(x.control);
+  ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
+  ret.attr("class") = "Water_Strategy";
+  return ret;
+}
+template <> inline plant::Water_Strategy as(SEXP x) {
+  if (!plant::RcppR6::is<plant::Water_Strategy >(x)) {
+    Rcpp::stop("Expected an object of type Water_Strategy");
+    // NOTE: Won't drop through or return anything.
+  }
+  // NOTE: assumes default constructable, and will assign *every*
+  // field twice.  No current support for a hook.
+  plant::Water_Strategy ret;
+  Rcpp::List xl(x);
+  // ret.lma = Rcpp::as<decltype(retlma) >(xl["lma"]);
+  ret.lma = Rcpp::as<double >(xl["lma"]);
+  // ret.rho = Rcpp::as<decltype(retrho) >(xl["rho"]);
+  ret.rho = Rcpp::as<double >(xl["rho"]);
+  // ret.hmat = Rcpp::as<decltype(rethmat) >(xl["hmat"]);
+  ret.hmat = Rcpp::as<double >(xl["hmat"]);
+  // ret.omega = Rcpp::as<decltype(retomega) >(xl["omega"]);
+  ret.omega = Rcpp::as<double >(xl["omega"]);
+  // ret.eta = Rcpp::as<decltype(reteta) >(xl["eta"]);
+  ret.eta = Rcpp::as<double >(xl["eta"]);
+  // ret.theta = Rcpp::as<decltype(rettheta) >(xl["theta"]);
+  ret.theta = Rcpp::as<double >(xl["theta"]);
+  // ret.a_l1 = Rcpp::as<decltype(reta_l1) >(xl["a_l1"]);
+  ret.a_l1 = Rcpp::as<double >(xl["a_l1"]);
+  // ret.a_l2 = Rcpp::as<decltype(reta_l2) >(xl["a_l2"]);
+  ret.a_l2 = Rcpp::as<double >(xl["a_l2"]);
+  // ret.a_r1 = Rcpp::as<decltype(reta_r1) >(xl["a_r1"]);
+  ret.a_r1 = Rcpp::as<double >(xl["a_r1"]);
+  // ret.a_b1 = Rcpp::as<decltype(reta_b1) >(xl["a_b1"]);
+  ret.a_b1 = Rcpp::as<double >(xl["a_b1"]);
+  // ret.r_s = Rcpp::as<decltype(retr_s) >(xl["r_s"]);
+  ret.r_s = Rcpp::as<double >(xl["r_s"]);
+  // ret.r_b = Rcpp::as<decltype(retr_b) >(xl["r_b"]);
+  ret.r_b = Rcpp::as<double >(xl["r_b"]);
+  // ret.r_r = Rcpp::as<decltype(retr_r) >(xl["r_r"]);
+  ret.r_r = Rcpp::as<double >(xl["r_r"]);
+  // ret.r_l = Rcpp::as<decltype(retr_l) >(xl["r_l"]);
+  ret.r_l = Rcpp::as<double >(xl["r_l"]);
+  // ret.a_y = Rcpp::as<decltype(reta_y) >(xl["a_y"]);
+  ret.a_y = Rcpp::as<double >(xl["a_y"]);
+  // ret.a_bio = Rcpp::as<decltype(reta_bio) >(xl["a_bio"]);
+  ret.a_bio = Rcpp::as<double >(xl["a_bio"]);
+  // ret.k_l = Rcpp::as<decltype(retk_l) >(xl["k_l"]);
+  ret.k_l = Rcpp::as<double >(xl["k_l"]);
+  // ret.k_b = Rcpp::as<decltype(retk_b) >(xl["k_b"]);
+  ret.k_b = Rcpp::as<double >(xl["k_b"]);
+  // ret.k_s = Rcpp::as<decltype(retk_s) >(xl["k_s"]);
+  ret.k_s = Rcpp::as<double >(xl["k_s"]);
+  // ret.k_r = Rcpp::as<decltype(retk_r) >(xl["k_r"]);
+  ret.k_r = Rcpp::as<double >(xl["k_r"]);
+  // ret.a_p1 = Rcpp::as<decltype(reta_p1) >(xl["a_p1"]);
+  ret.a_p1 = Rcpp::as<double >(xl["a_p1"]);
+  // ret.a_p2 = Rcpp::as<decltype(reta_p2) >(xl["a_p2"]);
+  ret.a_p2 = Rcpp::as<double >(xl["a_p2"]);
+  // ret.a_f3 = Rcpp::as<decltype(reta_f3) >(xl["a_f3"]);
+  ret.a_f3 = Rcpp::as<double >(xl["a_f3"]);
+  // ret.a_f1 = Rcpp::as<decltype(reta_f1) >(xl["a_f1"]);
+  ret.a_f1 = Rcpp::as<double >(xl["a_f1"]);
+  // ret.a_f2 = Rcpp::as<decltype(reta_f2) >(xl["a_f2"]);
+  ret.a_f2 = Rcpp::as<double >(xl["a_f2"]);
+  // ret.S_D = Rcpp::as<decltype(retS_D) >(xl["S_D"]);
+  ret.S_D = Rcpp::as<double >(xl["S_D"]);
+  // ret.a_d0 = Rcpp::as<decltype(reta_d0) >(xl["a_d0"]);
+  ret.a_d0 = Rcpp::as<double >(xl["a_d0"]);
+  // ret.d_I = Rcpp::as<decltype(retd_I) >(xl["d_I"]);
+  ret.d_I = Rcpp::as<double >(xl["d_I"]);
+  // ret.a_dG1 = Rcpp::as<decltype(reta_dG1) >(xl["a_dG1"]);
+  ret.a_dG1 = Rcpp::as<double >(xl["a_dG1"]);
+  // ret.a_dG2 = Rcpp::as<decltype(reta_dG2) >(xl["a_dG2"]);
+  ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
+  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
+  ret.k_I = Rcpp::as<double >(xl["k_I"]);
+  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
+  ret.control = Rcpp::as<plant::Control >(xl["control"]);
+  // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
+  ret.collect_all_auxillary = Rcpp::as<bool >(xl["collect_all_auxillary"]);
+  return ret;
+}
+template <> inline SEXP wrap(const plant::Water_Environment& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Water_Environment>(x));
+}
+template <> inline plant::Water_Environment as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Water_Environment>(x));
 }
 }
 
