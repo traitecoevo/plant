@@ -1,3 +1,4 @@
+// Built from  inst/include/plant/models/ff16_strategy.h using the scaffolder, from the strategy:  FF16
 // -*-c++-*-
 #ifndef PLANT_PLANT_WATER_STRATEGY_H_
 #define PLANT_PLANT_WATER_STRATEGY_H_
@@ -14,7 +15,6 @@ public:
   Water_Strategy();
 
   // Overrides ----------------------------------------------
-
   // update this when the length of state_names changes
   static size_t state_size () { return 5; }
   // update this when the length of aux_names changes
@@ -34,7 +34,6 @@ public:
     std::vector<std::string> ret({
       "competition_effect",
       "net_mass_production_dt"
-      "water_use_dt"
     });
     // add the associated computation to compute_rates and compute there
     if (collect_all_auxillary) {
@@ -43,30 +42,20 @@ public:
     return ret;
   }
 
-  // Translate generic methods to Water strategy leaf area methods
+  // Translate generic methods to FF16 strategy leaf area methods
 
   double competition_effect(double height) const {
     return area_leaf(height);
   }
 
-  /* double competition_effect_state(Internals& vars) const { */
-    /* return area_leaf_state(vars); */
-  /* } */
-
   double compute_competition(double z, double height) const {
-    return area_leaf_above(z, height);
+    return shading_above(z, height);
   }
-
-
-  void compute_rates(const Water_Environment& environment, bool reuse_intervals,
-                Internals& vars);
-
-  void update_dependent_aux(const int index, Internals& vars);
 
   void refresh_indices();
 
 
-  // Water Methods ----------------------------------------------
+  // FF16 Methods  ----------------------------------------------
 
   // [eqn 2] area_leaf (inverse of [eqn 3])
   double area_leaf(double height) const;
@@ -100,6 +89,12 @@ public:
                            double mass_sapwood, double mass_root) const;
 
 
+  void compute_rates(const Water_Environment& environment, bool reuse_intervals,
+                Internals& vars);
+
+  void update_dependent_aux(const int index, Internals& vars);
+
+
   // [eqn 13] Total maintenance respiration
   double respiration(double mass_leaf, double mass_sapwood,
                      double mass_bark, double mass_root) const;
@@ -125,7 +120,7 @@ public:
                                 bool reuse_intervals=false);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
-  double fraction_allocation_reproduction(double height) const;
+  virtual double fraction_allocation_reproduction(double height) const;
   double fraction_allocation_growth(double height) const;
   // [eqn 17] Rate of offspring production
   double fecundity_dt(double net_mass_production_dt,
@@ -179,71 +174,110 @@ public:
   double establishment_probability(const Water_Environment& environment);
 
   // * Competitive environment
-  // [eqn 11] total leaf area above height above height `z` for given plant
-  double area_leaf_above(double z, double height) const;
+  // [eqn 11] total projected leaf area above height above height `z` for given plant
+  double shading_above(double z, double height) const;
   // [eqn 10] Fraction of leaf area above height `z`
   double Q(double z, double height) const;
 
   // The aim is to find a plant height that gives the correct seed mass.
   double height_seed(void) const;
 
-  // Set constants within Water_Strategy
+  // Set constants within FF16_Strategy
   void prepare_strategy();
 
   // Previously there was an "integrator" here.  I'm going to stick
   // that into Control or Water_Environment instead.
 
   // * Core traits
-  double lma, rho, hmat, omega;
+  double lma       = 0.1978791;  // Leaf mass per area [kg / m2]
+  double rho       = 608.0;      // Wood density [kg/m3]
+  double hmat      = 16.5958691; // Height at maturation [m]
+  double omega     = 3.8e-5;     // Seed mass [kg]
   // * Individual allometry
   // Canopy shape parameters
-  double eta, eta_c;
+  double eta       = 12.0; // [dimensionless]
+  double eta_c     = NA_REAL; // [dimensionless]
   // Sapwood area per leaf area
-  double theta;
-  // Empirical constants for scaling relationships
-  double a_l1, a_l2, a_r1;
-  // Bark area per sapwood area
-  double a_b1;
+  // Ratio sapwood area area to leaf area
+  double theta     = 1.0/4669; // [dimensionless]
+  // Height - leaf mass scaling
+  double a_l1        = 5.44; // height with 1m2 leaf [m]
+  double a_l2        = 0.306; // dimensionless scaling of height with leaf area
+  // Root mass per leaf area
+  double a_r1        = 0.07;  //[kg / m]
+  // Ratio of bark area : sapwood area
+  double a_b1         = 0.17; // [dimensionless]
+
   // * Production
-  // Respiration constants
-  double r_s, r_b, r_r, r_l;
-  // Yield = carbon fixed in tissue per carbon assimilated;
-  double a_y;
-  // Conversion factor
-  double a_bio;
-  // Leaf, bark sapwood, and root turnover rates
-  double k_l, k_b, k_s, k_r;
-  // Leaf productivity parameters  - only used when no N reallocation
-  double a_p1, a_p2;
+  // Ratio of leaf dark respiration to leaf mass [mol CO2 / yr  / kg]
+  // =  [mol CO2 / m2 / yr]  |  (39.27 = 2100 * 0.00187)  | narea * photosynthesis_per_nitrogen
+  //    / [kg(leaf) / m2 ]   |    / (0.1978791)           | lma
+  // Hard coded in value of lma here so that this value doesn't change
+  // if that trait changes above.
+  double r_l    = 39.27 / 0.1978791;
+  // Root respiration per mass [mol CO2 / yr / kg]
+  double r_r    = 217.0;
+  // Sapwood respiration per stem mass  [mol CO2 / yr / kg]
+  // = respiration per volume [mol CO2 / m3 / yr]
+  // /  wood density [kg/m3]
+  double r_s    = 4012.0 / 608.0;
+  // Bark respiration per stem mass
+  // assumed to be twice rate of sapwood
+  // (NOTE that there is a re-parametrisation here relative to the paper
+  // -- r_b is defined (new) as 2*r_s, whereas the paper assumes a
+  // fixed multiplication by 2)
+  double r_b    = 2.0 * r_s;
+  // Carbon conversion parameter
+  double a_y    = 0.7;
+  // Constant converting assimilated CO2 to dry mass [kg / mol]
+  // (12E-3 / 0.49)
+  double a_bio  = 2.45e-2;
+  // Leaf turnover [/yr]
+  double k_l    =  0.4565855;
+  // Bark turnover [/yr]
+  double k_b    = 0.2;
+  // Sapwood turnover [/yr]
+  double k_s           = 0.2;
+  // Root turnover [/yr]
+  double k_r    = 1.0;
+  // Parameters of the hyperbola for annual LRC
+  double a_p1   = 151.177775377968; // [mol CO2 / yr / m2]
+  double a_p2   = 0.204716166503633; // [dimensionless]
 
   // * Seed production
-  // Accessory cost of reproduction, per seed
-  double a_f3;
-  // Proportion production allocated to reproduction
-  double a_f1;
+  // Accessory cost of reproduction
+  double a_f3  = 3.0 *  3.8e-5; // [kg per seed]
+  // Maximum allocation to reproduction
+  double a_f1   = 1.0; //[dimensionless]
   // Size range across which individuals mature
-  double a_f2;
+  double a_f2   = 50; // [dimensionless]
 
-  // * Mortality
+  // * Mortality parameters
   // Probability of survival during dispersal
-  double S_D;
-  // Parameter for seedling mortality
-  double a_d0;
-  // Baseline structural mortality rate
-  double d_I;
- // Baseline for growth mortality rate
-  double a_dG1;
-  // Coefficient for dry mass production in mortality function
-  double a_dG2;
+  double S_D   = 0.25; // [dimensionless]
+  // Parameter for seedling survival
+  double a_d0    = 0.1; //[kg / yr / m2]
+  // Baseline for intrinsic mortality
+  double d_I    = 0.01; // [ / yr]
+  // Baseline rate for growth-related mortality
+  double a_dG1    = 5.5; // [ / yr]
+  // Risk coefficient for dry mass production (per area)
+  double a_dG2    = 20.0;// [yr m2 / kg ]
+
+  // * Light capture parameters
+  double k_I = 0.5;
 
   // Height and leaf area of a (germinated) seed
-  double height_0;
+  double height_0  = NA_REAL;
   double area_leaf_0;
 
   std::string name;
 
   Assimilation<Water_Environment> assimilator;
+
 };
+
+Water_Strategy::ptr make_strategy_ptr(Water_Strategy s);
 
 }
 
