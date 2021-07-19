@@ -38,6 +38,9 @@ struct Control {
   double plant_seed_tol;
   size_t plant_seed_iterations;
 
+  double soil_infiltration_rate;
+  size_t soil_number_of_depths;
+
   double cohort_gradient_eps;
   int    cohort_gradient_direction;
   bool   cohort_gradient_richardson;

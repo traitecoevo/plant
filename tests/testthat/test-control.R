@@ -24,7 +24,10 @@ test_that("Defaults", {
     plant_assimilation_tol = 1e-6,
     plant_seed_iterations = 1000, # size_t
     plant_seed_tol = 1e-8, # 1e-6, Had to change this...
-
+    
+    soil_infiltration_rate = 0.0,
+    soil_number_of_depths = 0,
+    
     schedule_nsteps   = 20, # size_t
     schedule_eps      = 1e-3,
     schedule_verbose  = FALSE,
