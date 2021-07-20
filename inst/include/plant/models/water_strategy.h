@@ -13,7 +13,12 @@ public:
   Water_Strategy();
 
   // Overrides ----------------------------------------------
+  virtual double net_mass_production_dt(const FF16_Environment& environment,
+                                        double height, double area_leaf_,
+                                        bool reuse_intervals=false);
 
+  double water_access(const FF16_Environment& environment,
+                      double height, double area_leaf_);
 };
 
 Water_Strategy::ptr make_strategy_ptr(Water_Strategy s);

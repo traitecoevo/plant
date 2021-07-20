@@ -74,6 +74,10 @@ public:
     }
   }
 
+  std::vector<double> get_soil_water_state() const {
+    return vars.states;
+  }
+
   // R interface
   void set_soil_water_state(double v) {
     for (int i = 0; i < vars.state_size; i++) {
