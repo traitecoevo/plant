@@ -8,65 +8,65 @@
 ##' pl <- Water_Individual()
 ##' pl$height
 Water_Individual <- function(s=Water_Strategy()) {
-  Individual("Water", "Water_Env")(s)
+  Individual("Water", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname Water
 Water_Cohort <- function(s=Water_Strategy()) {
-  Cohort("Water", "Water_Env")(s)
+  Cohort("Water", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname Water
 Water_Species <- function(s=Water_Strategy()) {
-  Species("Water", "Water_Env")(s)
+  Species("Water", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname Water
 Water_Parameters <- function() {
-  Parameters("Water","Water_Env")()
+  Parameters("Water","FF16_Env")()
 }
 
 ##' @export
 ##' @rdname Water
-##' @param p A \code{Parameters<Water,Water_Env>} object
+##' @param p A \code{Parameters<Water,FF16_Env>} object
 Water_Patch <- function(p) {
-  Patch("Water", "Water_Env")(p)
+  Patch("Water", "FF16_Env")(p)
 }
 
 ##' @export
 ##' @rdname Water
 Water_SCM <- function(p) {
-  SCM("Water", "Water_Env")(p)
+  SCM("Water", "FF16_Env")(p)
 }
 
 ##' @export
 ##' @rdname Water
 Water_StochasticSpecies <- function(s=Water_Strategy()) {
-  StochasticSpecies("Water", "Water_Env")(s)
+  StochasticSpecies("Water", "FF16_Env")(s)
 }
 
 ##' @export
 ##' @rdname Water
 Water_StochasticPatch <- function(p) {
-  StochasticPatch("Water", "Water_Env")(p)
+  StochasticPatch("Water", "FF16_Env")(p)
 }
 
 ##' @export
 ##' @rdname Water
 Water_StochasticPatchRunner <- function(p) {
-  StochasticPatchRunner("Water", "Water_Env")(p)
+  StochasticPatchRunner("Water", "FF16_Env")(p)
 }
 
 
 ## Helper:
 ##' @export
-##' @rdname Water_Environment
+##' @rdname FF16_Environment
 ##' @param p A Parameters object
 Water_make_environment <- function(p) {
-  Water_Environment(p$control)
+  FF16_Environment(p$control)
 }
 
 ##' Construct a fixed environment for Water strategy
@@ -74,7 +74,7 @@ Water_make_environment <- function(p) {
 ##' @param e Value of environment (deafult  = 1.0)
 ##' @param p A Parameters object
 ##' @param height_max = 150.0 maximum possible height in environment
-##' @rdname Water_Environment
+##' @rdname FF16_Environment
 ##'
 ##' @export
 Water_fixed_environment <- function(e=1.0, p = Water_Parameters(), height_max = 150.0) {

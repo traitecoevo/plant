@@ -41,7 +41,7 @@ hyperpar <- function(type) {
 environment_type <- function(type) {
   switch(type,
          FF16=sprintf("FF16_Env"),
-         Water=sprintf("Water_Env"),
+         Water=sprintf("FF16_Env"),
          FF16r=sprintf("FF16_Env"),
          K93=sprintf("K93_Env"),
          stop("Unknown type ", type))
@@ -60,7 +60,7 @@ cohort_schedule_default <- function(p) {
   cl <- class(p)[[1]]
   switch(cl,
          "Parameters<FF16,FF16_Env>"=`cohort_schedule_default__Parameters___FF16__FF16_Env`,
-         "Parameters<Water,Water_Env>"=`cohort_schedule_default__Parameters___Water__Water_Env`,
+         "Parameters<Water,FF16_Env>"=`cohort_schedule_default__Parameters___Water__FF16_Env`,
          "Parameters<FF16r,FF16_Env>"=`cohort_schedule_default__Parameters___FF16r__FF16_Env`,
          "Parameters<K93,K93_Env>"=`cohort_schedule_default__Parameters___K93__K93_Env`,
          stop("Unknown type: ", cl))(p)
@@ -70,7 +70,7 @@ make_cohort_schedule <- function(p) {
   cl <- class(p)[[1]]
   switch(cl,
          "Parameters<FF16,FF16_Env>"=`make_cohort_schedule__Parameters___FF16__FF16_Env`,
-         "Parameters<Water,Water_Env>"=`make_cohort_schedule__Parameters___Water__Water_Env`,
+         "Parameters<Water,FF16_Env>"=`make_cohort_schedule__Parameters___Water__FF16_Env`,
          "Parameters<FF16r,FF16_Env>"=`make_cohort_schedule__Parameters___FF16r__FF16_Env`,
          "Parameters<K93,K93_Env>"=`make_cohort_schedule__Parameters___K93__K93_Env`,
                   stop("Unknown type: ", cl))(p)

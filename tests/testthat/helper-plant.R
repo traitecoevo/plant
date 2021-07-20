@@ -39,7 +39,7 @@ get_list_of_strategy_types <- function() {
 get_list_of_environment_types <- function() {
   list(
     FF16="FF16_Env",
-    Water="Water_Env",
+    Water="FF16_Env",
     FF16r="FF16_Env",
     K93="K93_Env"
     )

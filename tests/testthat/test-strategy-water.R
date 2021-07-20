@@ -3,7 +3,7 @@ context("Strategy-Water")
 
 test_that("Water Environment", {
   control <- Control()
-  e <- Water_Environment(control)
+  e <- FF16_Environment(control)
 
   # Empty by default
   expect_equal(e$ode_size, 0)
@@ -11,7 +11,7 @@ test_that("Water Environment", {
   
   # Add one layer
   control$soil_number_of_depths <- 1
-  e <- Water_Environment(control)
+  e <- FF16_Environment(control)
   
   expect_equal(e$ode_size, 1)
   expect_equal(e$soil$state_size, 1)
@@ -24,7 +24,7 @@ test_that("Water Environment", {
   
   # Make it rain
   control$soil_infiltration_rate <- 10
-  e <- Water_Environment(control)
+  e <- FF16_Environment(control)
   
   expect_equal(e$soil$states, 0)
   e$compute_rates()
