@@ -267,6 +267,7 @@ theta_rates <- function(t, theta, params) {
     
     I = (1-I_constant*(theta[i]/theta_sat)^b)
     S = amp*sin(t/frequency*pi)+sine_height
+    i=1
 
     for(i in 1:n){
     
@@ -295,10 +296,10 @@ theta_rates <- function(t, theta, params) {
     dtheta_dt[i] = inflow - outflow
     runoff = runoff
     deep_drainage = deep_drainage
-    cum_rain = R*S
+    cumulative_rain = R*S
     }
     
-    return(list(c(dtheta_dt, runoff, deep_drainage, cum_rain)))
+    return(list(c(dtheta_dt, runoff, deep_drainage, cumulative_rain)))
   })
 }
 
