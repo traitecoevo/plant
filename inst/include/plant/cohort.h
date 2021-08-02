@@ -17,11 +17,11 @@ public:
   typedef typename strategy_type::ptr strategy_type_ptr;
   Cohort(strategy_type_ptr s);
 
-  void compute_rates(const environment_type& environment, double pr_patch_survival);
-  void compute_initial_conditions(const environment_type& environment, double pr_patch_survival, double birth_rate);
+  void compute_rates(const environment_type& environment, double pr_patch_survival, const Control& control);
+  void compute_initial_conditions(const environment_type& environment, double pr_patch_survival, double birth_rate, const Control& control);
 
   // * R interface (testing only, really)
-  double r_growth_rate_gradient(const environment_type& environment);
+  double r_growth_rate_gradient(const environment_type& environment, const Control& control);
 
   double height() const {return plant.state(HEIGHT_INDEX);}
   double compute_competition(double z) const;
@@ -56,7 +56,7 @@ public:
 
 private:
   // This is the gradient of growth rate with respect to height:
-  double growth_rate_gradient(const environment_type& environment) const;
+  double growth_rate_gradient(const environment_type& environment, const Control& control) const;
 
   double log_density;
   double log_density_dt;
@@ -78,13 +78,13 @@ Cohort<T,E>::Cohort(strategy_type_ptr s)
 
 template <typename T, typename E>
 void Cohort<T,E>::compute_rates(const environment_type& environment,
-                                double pr_patch_survival) {
+                                double pr_patch_survival, const Control& control) {
   plant.compute_rates(environment);
 
   // NOTE: This must be called *after* compute_rates, but given we
   // need mortality_dt() that's always going to be the case.
   log_density_dt =
-    - growth_rate_gradient(environment)
+    - growth_rate_gradient(environment, control)
     - plant.rate("mortality");
 
   // survival_plant: converts from the mean of the poisson process (on
@@ -111,9 +111,9 @@ void Cohort<T,E>::compute_rates(const environment_type& environment,
 // defined on p 7 at the moment.
 template <typename T, typename E>
 void Cohort<T,E>::compute_initial_conditions(const environment_type& environment,
-                                             double pr_patch_survival, double birth_rate) {
+                                             double pr_patch_survival, double birth_rate, const Control& control) {
   pr_patch_survival_at_birth = pr_patch_survival;
-  compute_rates(environment, pr_patch_survival);
+  compute_rates(environment, pr_patch_survival, control);
 
   const double pr_estab = plant.establishment_probability(environment);
   plant.set_state("mortality", -log(pr_estab));
@@ -134,13 +134,12 @@ void Cohort<T,E>::compute_initial_conditions(const environment_type& environment
 }
 
 template <typename T, typename E>
-double Cohort<T,E>::growth_rate_gradient(const environment_type& environment) const {
+double Cohort<T,E>::growth_rate_gradient(const environment_type& environment, const Control& control) const {
   individual_type p = plant;
   auto fun = [&] (double h) mutable -> double {
     return p.growth_rate_given_height(h, environment);
   };
 
-  const Control& control = plant.control();
   const double eps = control.cohort_gradient_eps;
   if (control.cohort_gradient_richardson) {
     return util::gradient_richardson(fun,  plant.state(HEIGHT_INDEX), eps,
@@ -152,13 +151,13 @@ double Cohort<T,E>::growth_rate_gradient(const environment_type& environment) co
 }
 
 template <typename T, typename E>
-double Cohort<T,E>::r_growth_rate_gradient(const environment_type& environment) {
+double Cohort<T,E>::r_growth_rate_gradient(const environment_type& environment, const Control& control) {
   // We need to compute the physiological variables here, first, so
   // that reusing intervals works as expected.  This would ordinarily
   // be taken care of because of the calling order of
   // compute_rates / growth_rate_gradient.
   plant.compute_rates(environment);
-  return growth_rate_gradient(environment);
+  return growth_rate_gradient(environment, control);
 }
 
 template <typename T, typename E>
