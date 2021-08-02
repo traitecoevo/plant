@@ -7,7 +7,7 @@
 
 namespace plant {
 
-class No_Disturbance: public Disturbance_Regime {
+class No_Disturbance: public DisturbanceRegime {
 public:
   virtual double density(double time) const {return 1.0;};
   virtual double pr_survival(double time) const {return 1.0;};

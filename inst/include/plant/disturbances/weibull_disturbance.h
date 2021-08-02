@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_WEIBULL_DISTURBANCE_REGIME_H_
-#define PLANT_PLANT_WEIBULL_DISTURBANCE_REGIME_H_
+#ifndef PLANT_PLANT_WEIBULL_DisturbanceRegime_H_
+#define PLANT_PLANT_WEIBULL_DisturbanceRegime_H_
 
 #include <vector>
 #include <plant/disturbance_regime.h>
@@ -10,14 +10,14 @@ using namespace Rcpp;
 
 namespace plant {
 
-class Weibull_Disturbance_Regime: public Disturbance_Regime {
+class Weibull_DisturbanceRegime: public DisturbanceRegime {
 public:
 
   // icdf_limit chosen to match Falster 2011
-  Weibull_Disturbance_Regime(double max_patch_lifetime)
+  Weibull_DisturbanceRegime(double patch_max_lifetime)
     : icdf_limit(6.25302620663814e-05),
       shape(2.0) {
-    mean_interval = (max_patch_lifetime * R::gammafn(1.0 / shape)) /
+    mean_interval = (patch_max_lifetime * R::gammafn(1.0 / shape)) /
                       (shape * sqrt(-log(icdf_limit)));
     scale = pow(R::gammafn(1 + 1.0 / shape) / mean_interval, shape);
     p0 = shape * pow(scale, 1.0 / shape) / R::gammafn(1.0 / shape);

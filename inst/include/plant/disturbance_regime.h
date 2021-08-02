@@ -1,13 +1,13 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_DISTURBANCE_REGIME_H_
-#define PLANT_PLANT_DISTURBANCE_REGIME_H_
+#ifndef PLANT_PLANT_DisturbanceRegime_H_
+#define PLANT_PLANT_DisturbanceRegime_H_
 
 #include <vector>
 #include <RcppCommon.h> // NA_REAL
 
 namespace plant {
 
-class Disturbance_Regime {
+class DisturbanceRegime {
 public:
   virtual double density(double time) const {return NA_REAL;}
   virtual double pr_survival(double time) const {return NA_REAL;}
