@@ -2,64 +2,33 @@
 #ifndef PLANT_PLANT_PARAMETERS_H_
 #define PLANT_PLANT_PARAMETERS_H_
 
-#include <vector>
 #include <RcppCommon.h> // SEXP
+#include <vector>
 
-#include <plant/control.h>
-#include <plant/models/ff16_strategy.h>
 #include <plant/cohort_schedule.h>
 #include <plant/scm_utils.h> // Unfortunately needed for setup_cohort_schedule
 
-#include <plant/disturbance_regime.h>
-#include <plant/disturbances/no_disturbance.h>
-#include <plant/disturbances/weibull_disturbance.h>
-
-// TODO: I will possibly move out the "Patch" parameters out into
-// their own simple list class at some point, to make this a bit more
-// coherent.
-//
 // TODO: Will require some free functions on the R side:
 //   * add_strategy (with flag for mutant/non mutant)
 
 namespace plant {
 
-template <typename T, typename E>
-struct Parameters {
+template <typename T> struct SpeciesParameters {
   typedef T strategy_type;
-  typedef E environment_type;
 
-  Parameters() :
-    patch_area(1.0),
-    n_patches(1),
-    patch_type("meta-population"),
-    max_patch_lifetime(105.32) // designed to agree with Daniel's implementation
-  {
-    validate();
-  }
+  SpeciesParameters() { validate(); }
 
-  // Data -- public for now (see github issue #17).
-  double patch_area; // Size of the patch (m^2)
-  size_t n_patches;  // Number of patches in the metacommunity
-  std::string patch_type;
-  double max_patch_lifetime; // Disturbance interval (years)
-  std::vector<strategy_type> strategies;
+  // Species info
+  std::vector<strategy_type> species;
   std::vector<double> birth_rate;
   std::vector<bool> is_resident;
-
-  // Algorithm control.
-  Control control;
-
-  // Templated environment
-  environment_type environment;
-
-  Disturbance_Regime* disturbance;
 
   // Default strategy.
   strategy_type strategy_default;
 
   // Cohort information.
   std::vector<double> cohort_schedule_times_default;
-  std::vector<std::vector<double> > cohort_schedule_times;
+  std::vector<std::vector<double>> cohort_schedule_times;
   std::vector<double> cohort_schedule_ode_times;
 
   // Some little query functions for use on the C side:
@@ -72,31 +41,26 @@ private:
   void setup_cohort_schedule();
 };
 
-template <typename T, typename E>
-size_t Parameters<T,E>::size() const {
-  return strategies.size();
+template <typename T> size_t SpeciesParameters<T>::size() const {
+  return species.size();
 }
 
-template <typename T, typename E>
-size_t Parameters<T,E>::n_residents() const {
-  return static_cast<size_t>
-    (std::count(is_resident.begin(), is_resident.end(), true));
+template <typename T> size_t SpeciesParameters<T>::n_residents() const {
+  return static_cast<size_t>(
+      std::count(is_resident.begin(), is_resident.end(), true));
 }
 
-template <typename T, typename E>
-size_t Parameters<T,E>::n_mutants() const {
+template <typename T> size_t SpeciesParameters<T>::n_mutants() const {
   return size() - n_residents();
 }
 
 // NOTE: this will be called *every time* that the object is passed in
 // from R -> C++.  That's unlikely to be that often, but it does incur
 // a penalty.  So don't put anything too stupidly heavy in here.
-template <typename T, typename E>
-void Parameters<T,E>::validate() {
+template <typename T> void SpeciesParameters<T>::validate() {
   const size_t n_spp = size();
 
-  // Set some defaults and check lengths.  Number of strategies is
-  // taken as the "true" size.
+  // Set some defaults and check lengths
   if (birth_rate.empty()) {
     birth_rate = std::vector<double>(n_spp, 1.0);
   } else if (birth_rate.size() != n_spp) {
@@ -108,37 +72,16 @@ void Parameters<T,E>::validate() {
     util::stop("Incorrect length is_resident");
   }
 
+  // Set up cohort introductions
   setup_cohort_schedule();
   if (cohort_schedule_times.size() != n_spp) {
     util::stop("Incorrect length cohort_schedule_times");
   }
-
-  // Overwrite all strategy control objects so that they take the
-  // Parameters' control object.
-  for (auto& s : strategies) {
-    s.control = control;
-  }
-
-  // Disturbances used to describe evolution of a metapopulation of patches
-  // when calculating fitness, otherwise defaults to fixed-duration run without
-  // disturbance
-  if(patch_type == "meta-population") {
-    disturbance = new Weibull_Disturbance_Regime(max_patch_lifetime);
-  }
-  else {
-    disturbance = new No_Disturbance();
-  }
-
-  environment = environment_type(control);
 }
 
 // Separating this out just because it's a bit crap:
 // TODO: Consider adding this to scm_utils.h perhaps?
-template <typename T, typename E>
-void Parameters<T,E>::setup_cohort_schedule() {
-  cohort_schedule_times_default =
-      plant::cohort_schedule_times_default(max_patch_lifetime);
-
+template <typename T> void SpeciesParameters<T>::setup_cohort_schedule() {
   if ((cohort_schedule_times.empty() && size() > 0)) {
     cohort_schedule_times.clear();
     for (size_t i = 0; i < size(); ++i) {
@@ -147,6 +90,6 @@ void Parameters<T,E>::setup_cohort_schedule() {
   }
 }
 
-}
+} // namespace plant
 
 #endif
