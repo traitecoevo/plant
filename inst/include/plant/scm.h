@@ -20,10 +20,10 @@ public:
   typedef Cohort<T,E>   cohort_type;
   typedef Species<T,E>  species_type;
   typedef Patch<T,E>    patch_type;
-  typedef Parameters<T,E> parameters_type;
+  typedef SpeciesParameters<T> species_params_type;
 
 
-  SCM(parameters_type p);
+  SCM(species_params_type s, environment_type e, DisturbanceRegime d, Control c);
 
   void run();
   std::vector<size_t> run_next();
@@ -40,12 +40,9 @@ public:
 
   // * R interface
   std::vector<util::index> r_run_next();
-  parameters_type r_parameters() const {return parameters;}
+  species_params_type r_species_parameters() const {return species_parameters;}
   const patch_type& r_patch() const {return patch;}
-  // TODO: These are liable to change to return all species at once by
-  // default.  The pluralisation difference between
-  // SCM::r_competition_effect_error and Species::r_competition_effects_error will get
-  // dealt with then.
+
   double r_net_reproduction_ratio_for_species(util::index species_index) const;
   std::vector<std::vector<double> > r_net_reproduction_ratio_errors() const;
   std::vector<double> r_competition_effect_error(util::index species_index) const;
@@ -60,20 +57,24 @@ public:
 private:
   double total_offspring_production() const;
 
-  parameters_type parameters;
+  species_params_type species_parameters;
   patch_type patch;
   CohortSchedule cohort_schedule;
+
   ode::Solver<patch_type> solver;
 };
 
 template <typename T, typename E>
-SCM<T,E>::SCM(parameters_type p)
-  : parameters(p),
-    patch(parameters),
-    cohort_schedule(make_cohort_schedule(parameters)),
-    solver(patch, make_ode_control(p.control)) {
-  parameters.validate();
-  if (!util::identical(parameters.patch_area, 1.0)) {
+SCM<T,E>::SCM(species_params_type s, environment_type e, DisturbanceRegime d, Control c)
+  : species_parameters(s),
+    patch(s, e, d, c),
+    cohort_schedule(make_cohort_schedule(s, c)),
+    solver(patch, make_ode_control(c)) {
+
+  // TODO: Check why we do this on SCM and on Patch constructors
+  species_parameters.validate();
+
+  if (!util::identical(c.patch_area, 1.0)) {
     util::stop("Patch area must be exactly 1 for the SCM");
   }
 }
@@ -175,9 +176,9 @@ void SCM<T,E>::r_set_cohort_schedule(CohortSchedule x) {
   util::check_length(x.get_n_species(), patch.size());
   cohort_schedule = x;
 
-  // Update these here so that extracting Parameters would give the
-  // new schedule, this making Parameters sufficient.
-  parameters.cohort_schedule_times = cohort_schedule.get_times();
+  // Update these here so that extracting SpeciesParameters would give the
+  // new schedule, this making SpeciesParameters sufficient.
+  species_parameters.cohort_schedule_times = cohort_schedule.get_times();
 }
 
 template <typename T, typename E>
@@ -186,7 +187,7 @@ void SCM<T,E>::r_set_cohort_schedule_times(std::vector<std::vector<double> > x) 
     util::stop("Cannot set schedule without resetting first");
   }
   cohort_schedule.set_times(x);
-  parameters.cohort_schedule_times = x;
+  species_parameters.cohort_schedule_times = x;
 }
 
 
@@ -196,7 +197,7 @@ std::vector<double> SCM<T,E>::offspring_production() const {
   std::vector<double> ret;
   for (size_t i = 0; i < patch.size(); ++i) {
     ret.push_back(net_reproduction_ratio_for_species(i) *
-                  parameters.birth_rate[i]);
+                  species_parameters.birth_rate[i]);
   }
   return ret;
 }
@@ -237,8 +238,8 @@ std::vector<double> SCM<T,E>::net_reproduction_ratio_by_cohort_weighted(size_t s
   // weight by probabilty of reproduction
   for (size_t i = 0; i < net_reproduction_ratio_by_cohort_weighted.size(); ++i) {
     net_reproduction_ratio_by_cohort_weighted[i] *=
-      patch.survival_weighting->density(times[i]) * // probability of landing in patch of a given age
-      parameters.strategies[species_index].S_D; // probability of survival during dispersal (assumed constant)
+      patch.survival_weighting.density(times[i]) * // probability of landing in patch of a given age
+      species_parameters.species[species_index].S_D; // probability of survival during dispersal (assumed constant)
   }
 
   return net_reproduction_ratio_by_cohort_weighted;

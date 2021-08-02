@@ -23,12 +23,13 @@ template <typename T, typename E>
 class StochasticPatchRunner {
 public:
   typedef T                      strategy_type;
+  typedef E                 environment_type;
   typedef Individual<T,E>             individual_type;
   typedef StochasticSpecies<T,E> species_type;
   typedef StochasticPatch<T,E>   patch_type;
-  typedef Parameters<T,E>        parameters_type;
+  typedef SpeciesParameters<T>        species_params_type;
 
-  StochasticPatchRunner(parameters_type p);
+  StochasticPatchRunner(species_params_type s, environment_type e, Control c);
 
   void run();
   size_t run_next();
@@ -40,29 +41,31 @@ public:
 
   // * R interface
   util::index r_run_next();
-  parameters_type r_parameters() const {return parameters;}
+  species_params_type r_species_parameters() const {return species_parameters;}
   const patch_type& r_patch() const {return patch;}
 
-  // TODO: consider renaming CohortSchedule -> Schedule
-  CohortSchedule r_schedule() const {return schedule;}
+  CohortSchedule r_schedule() const {return cohort_schedule;}
   void r_set_schedule(CohortSchedule x);
   void r_set_schedule_times(std::vector<std::vector<double> > x);
+
 private:
   bool deaths();
 
-  parameters_type parameters;
+  species_params_type species_parameters;
   patch_type patch;
-  CohortSchedule schedule;
+  CohortSchedule cohort_schedule;
   ode::Solver<patch_type> solver;
 };
 
 template <typename T, typename E>
-StochasticPatchRunner<T,E>::StochasticPatchRunner(parameters_type p)
-  : parameters(p),
-    patch(parameters),
-    schedule(make_empty_stochastic_schedule(parameters)),
-    solver(patch, make_ode_control(p.control)) {
-  parameters.validate();
+StochasticPatchRunner<T,E>::StochasticPatchRunner(species_params_type s, environment_type e, Control c)
+  : species_parameters(s),
+    patch(s, e, c),
+    cohort_schedule(make_empty_stochastic_schedule(s, c)),
+    solver(patch, make_ode_control(c)) {
+
+  // TODO: Check why we do this on SCM and on Patch constructors
+  species_parameters.validate();
 }
 
 template <typename T, typename E>
@@ -81,12 +84,12 @@ size_t StochasticPatchRunner<T,E>::run_next() {
   // single event at a given time.  That's not all bad -- multiple
   // events could occur at a single time but the time-saving trick of
   // not computing the light environment would not work.
-  CohortSchedule::Event e = schedule.next_event();
+  CohortSchedule::Event e = cohort_schedule.next_event();
   if (!util::identical(t0, e.time_introduction())) {
     util::stop("Start time not what was expected");
   }
   const size_t idx = e.species_index;
-  schedule.pop();
+  cohort_schedule.pop();
 
   if (patch.introduce_new_cohort(idx)) {
     solver.set_state_from_system(patch);
@@ -121,10 +124,10 @@ bool StochasticPatchRunner<T,E>::deaths() {
 template <typename T, typename E>
 void StochasticPatchRunner<T,E>::reset() {
   patch.reset();
-  schedule.reset();
+  cohort_schedule.reset();
   solver.reset(patch);
-  if (schedule.size() > 0) {
-    const double t = schedule.next_event().time_introduction();
+  if (cohort_schedule.size() > 0) {
+    const double t = cohort_schedule.next_event().time_introduction();
     if (t >= 0.0) {
       solver.step_to(patch, t);
     }
@@ -133,7 +136,7 @@ void StochasticPatchRunner<T,E>::reset() {
 
 template <typename T, typename E>
 bool StochasticPatchRunner<T,E>::complete() const {
-  return schedule.remaining() == 0;
+  return cohort_schedule.remaining() == 0;
 }
 
 template <typename T, typename E>
@@ -147,11 +150,11 @@ void StochasticPatchRunner<T,E>::r_set_schedule(CohortSchedule x) {
     util::stop("Cannot set schedule without resetting first");
   }
   util::check_length(x.get_n_species(), patch.size());
-  schedule = x;
+  cohort_schedule = x;
 
-  // Update these here so that extracting Parameters would give the
-  // new schedule, this making Parameters sufficient.
-  parameters.cohort_schedule_times = schedule.get_times();
+  // Update these here so that extracting SpeciesParameters would give the
+  // new schedule, this making SpeciesParameters sufficient.
+  species_parameters.cohort_schedule_times = cohort_schedule.get_times();
   reset();
 }
 
@@ -160,8 +163,8 @@ void StochasticPatchRunner<T,E>::r_set_schedule_times(std::vector<std::vector<do
   if (patch.ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
-  schedule.set_times(x);
-  parameters.cohort_schedule_times = x;
+  cohort_schedule.set_times(x);
+  species_parameters.cohort_schedule_times = x;
   reset();
 }
 

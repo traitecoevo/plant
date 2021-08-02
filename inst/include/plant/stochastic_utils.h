@@ -7,10 +7,10 @@
 
 namespace plant {
 
-template <typename Parameters>
-CohortSchedule make_empty_stochastic_schedule(const Parameters& p) {
+template <typename SpeciesParameters>
+CohortSchedule make_empty_stochastic_schedule(const SpeciesParameters& p, const Control& c) {
   CohortSchedule ret(p.size());
-  ret.r_set_max_time(p.max_patch_lifetime);
+  ret.r_set_max_time(c.patch_max_lifetime);
   return ret;
 }
 
