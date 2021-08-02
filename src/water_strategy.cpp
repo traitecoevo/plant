@@ -31,10 +31,11 @@ double Water_Strategy::net_mass_production_dt(const FF16_Environment& environmen
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
-double Water_Strategy::water_access(const FF16_Environment& environment,
+ // TODO: segfaults when not initialised correctly
+ double Water_Strategy::water_access(const FF16_Environment& environment,
                                     double height, double area_leaf_){
-  std::vector<double> water_ = environment.get_soil_water_state();
-  return water_[0];
+  //std::vector<double> water_ = environment.get_soil_water_state();
+  //return water_[0];
 }
 
 Water_Strategy::ptr make_strategy_ptr(Water_Strategy s) {
