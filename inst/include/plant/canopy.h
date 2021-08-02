@@ -23,12 +23,9 @@ public:
       }, 0, 1); // these are update with init(x, y) when patch is created
   };
 
-  Canopy(Control control) {
+  Canopy(double tol, size_t nbase, size_t max_depth) {
     canopy_generator = interpolator::AdaptiveInterpolator(
-      control.environment_light_tol,
-      control.environment_light_tol,
-      control.environment_light_nbase,
-      control.environment_light_max_depth
+      tol, tol, nbase, max_depth
     );
     canopy_interpolator = canopy_generator.construct(
       [&](double height) {
