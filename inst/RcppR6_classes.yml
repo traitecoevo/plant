@@ -24,6 +24,7 @@ OdeRunner:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
+      - ["Water": "plant::tools::IndividualRunner<plant::Water_Strategy, plant::FF16_Environment>"]
       - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
@@ -104,31 +105,22 @@ Control:
     variadic arguments, or as a list, but not both).
     @export
   list:
-    - plant_assimilation_adaptive: bool
-    - plant_assimilation_over_distribution: bool
-    - plant_assimilation_tol: double
-    - plant_assimilation_iterations: size_t
-    - plant_assimilation_rule: size_t
+    - patch_area: double
+    - patch_max_lifetime: double
     - plant_seed_tol: double
     - plant_seed_iterations: int
     - cohort_gradient_eps: double
     - cohort_gradient_direction: int
     - cohort_gradient_richardson: bool
     - cohort_gradient_richardson_depth: size_t
-    - environment_light_tol: double
-    - environment_light_nbase: size_t
-    - environment_light_max_depth: size_t
-    - environment_rescale_usually: bool
-    - ode_step_size_initial: double
-    - ode_step_size_min: double
-    - ode_step_size_max: double
-    - ode_tol_rel: double
-    - ode_tol_abs: double
-    - ode_a_y: double
-    - ode_a_dydt: double
-    - schedule_nsteps: size_t
-    - schedule_eps: double
-    - schedule_verbose: bool
+    - plant_assimilation_adaptive: bool
+    - plant_assimilation_over_distribution: bool
+    - plant_assimilation_tol: double
+    - plant_assimilation_iterations: size_t
+    - plant_assimilation_rule: size_t
+    - build_schedule_nsteps: size_t
+    - build_schedule_eps: double
+    - build_schedule_verbose: bool
     - equilibrium_nsteps: size_t
     - equilibrium_eps: double
     - equilibrium_large_birth_rate_change: double
@@ -138,6 +130,13 @@ Control:
     - equilibrium_nattempts: int
     - equilibrium_solver_logN: bool
     - equilibrium_solver_try_keep: bool
+    - ode_tol_rel: double
+    - ode_tol_abs: double
+    - ode_a_y: double
+    - ode_a_dydt: double
+    - ode_step_size_min: double
+    - ode_step_size_max: double
+    - ode_step_size_initial: double
 
 OdeControl:
   name_cpp: "plant::ode::OdeControl"
@@ -233,6 +232,7 @@ Individual:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -291,6 +291,7 @@ IndividualRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -340,25 +341,21 @@ Internals:
       return_type: void
 
 
-Parameters:
-  name_cpp: "plant::Parameters<T,E>"
+SpeciesParameters:
+  name_cpp: "plant::SpeciesParameters<T>"
   templates:
-    parameters: [T, E]
+    parameters: [T]
     concrete:
-      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
+      - ["FF16": "plant::FF16_Strategy"]
+      - ["Water": "plant::Water_Strategy"]
+      - ["FF16r": "plant::FF16r_Strategy"]
+      - ["K93": "plant::K93_Strategy"]
   validator:
     name_cpp: validate
   list:
-    - patch_area: double
-    - n_patches: size_t
-    - patch_type: "std::string"
-    - max_patch_lifetime: double
-    - strategies: "std::vector<T>"
+    - species: "std::vector<T>"
     - birth_rate: "std::vector<double>"
     - is_resident: "std::vector<bool>"
-    - control: "plant::Control"
     - strategy_default: "T"
     - cohort_schedule_times_default: "std::vector<double>"
     - cohort_schedule_times: "std::vector<std::vector<double> >"
@@ -370,6 +367,7 @@ Cohort:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -392,13 +390,20 @@ Cohort:
     growth_rate_gradient:
       return_type: double
       name_cpp: "r_growth_rate_gradient"
-      args: [environment: E]
+      args: [environment: E, control: "plant::Control"]
     compute_rates:
       return_type: void
-      args: [environment: E, pr_patch_survival: double]
+      args:
+        - environment: E
+        - pr_patch_survival: double
+        - control: "plant::Control"
     compute_initial_conditions:
       return_type: void
-      args: [environment: E, pr_patch_survival: double, birth_rate: double]
+      args:
+        - environment: E
+        - pr_patch_survival: double
+        - birth_rate: double
+        - control: "plant::Control"
 
 # For now, also not templated
 Species:
@@ -407,6 +412,7 @@ Species:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -429,7 +435,11 @@ Species:
       return_type: void
     compute_rates:
       return_type: void
-      args: [environment: E, pr_patch_survival: double, birth_rate: double]
+      args:
+        - environment: E
+        - pr_patch_survival: double
+        - birth_rate: double
+        - control: "plant::Control"
     compute_competition:
       return_type: double
       args: [height: double]
@@ -450,15 +460,20 @@ Patch:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>"]
+    args:
+      - species_parameters: "plant::SpeciesParameters<T>"
+      - environment: "E"
+      - disturbance: "plant::DisturbanceRegime"
+      - control: "plant::Control"
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
-    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::SpeciesParameters<T>", access: member, name_cpp: r_species_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
@@ -515,10 +530,15 @@ SCM:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>"]
+    args:
+      - species_parameters: "plant::SpeciesParameters<T>"
+      - environment: "E"
+      - disturbance: "plant::DisturbanceRegime"
+      - control: "plant::Control"
   methods:
     run:
       return_type: void
@@ -546,7 +566,7 @@ SCM:
     time: {type: double, access: member}
     net_reproduction_ratios: {type: "std::vector<double>", access: member}
     offspring_production: {type: "std::vector<double>", access: member}
-    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::SpeciesParameters<T>", access: member, name_cpp: r_species_parameters}
     patch:
       type: "plant::Patch<T,E>"
       access: member
@@ -580,6 +600,7 @@ StochasticSpecies:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -624,15 +645,19 @@ StochasticPatch:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>"]
+    args:
+      - species_parameters: "plant::SpeciesParameters<T>"
+      - environment: "E"
+      - control: "plant::Control"
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
     height_max: {type: double, access: member}
-    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::SpeciesParameters<T>", access: member, name_cpp: r_species_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::StochasticSpecies<T,E> >", access: member, name_cpp: r_species}
     ## ODE interface:
@@ -685,10 +710,14 @@ StochasticPatchRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>"]
+    args:
+      - species_parameters: "plant::SpeciesParameters<T>"
+      - environment: "E"
+      - control: "plant::Control"
   methods:
     run:
       return_type: void
@@ -704,7 +733,7 @@ StochasticPatchRunner:
   active:
     complete: {type: bool, access: member}
     time: {type: double, access: member}
-    parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
+    parameters: {type: "plant::SpeciesParameters<T>", access: member, name_cpp: r_species_parameters}
     patch:
       type: "plant::StochasticPatch<T,E>"
       access: member
@@ -722,7 +751,10 @@ StochasticPatchRunner:
 Canopy:
   name_cpp: "plant::Canopy"
   constructor:
-    args: [control: "plant::Control"]
+    args:
+      - tol: double
+      - nbase: double
+      - max_depth: double
   methods:
     canopy_openness:
       args: [height: double]
@@ -732,8 +764,8 @@ Canopy:
   active:
     canopy_interpolator: {type: "plant::interpolator::Interpolator", access: field}
 
-Disturbance_Regime:
-  name_cpp: "plant::Disturbance_Regime"
+DisturbanceRegime:
+  name_cpp: "plant::DisturbanceRegime"
   constructor:
     roxygen: |
       Base class of representing patch disturbance
@@ -754,7 +786,7 @@ No_Disturbance:
     roxygen: |
       A disturbance-free regime for running individual patches
       @title No disturbance regime
-      No_Disturbance_Regime control object
+      No_DisturbanceRegime object
       @export
   methods:
     density:
@@ -765,14 +797,14 @@ No_Disturbance:
       args: [time: double]
       return_type: double
 
-Weibull_Disturbance_Regime:
-  name_cpp: "plant::Weibull_Disturbance_Regime"
+Weibull_DisturbanceRegime:
+  name_cpp: "plant::Weibull_DisturbanceRegime"
   constructor:
-    args: [max_patch_lifetime: double]
+    args: [patch_max_lifetime: double]
     roxygen: |
       The frequency of disturbance in a meta-population of patches follows a Weibull distribution
       @title Weibull disturbance regime
-      Weibull_Disturbance_Regime control object
+      Weibull_DisturbanceRegime object
       @export
   methods:
     density:
@@ -832,16 +864,13 @@ FF16_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
-    - control: "plant::Control"
     - collect_all_auxillary: bool
 
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
-    args: [control: "plant::Control"]
     roxygen: |
       FF16_Environment object
-      @param control A Control object
       @export
   methods:
     canopy_openness:
@@ -852,9 +881,28 @@ FF16_Environment:
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
+    set_soil_water_state:
+      args: [v: double]
+      return_type: void
+    compute_rates:
+      return_type: void
   active:
     time: {type: double, access: field}
-    canopy: {type: "plant::Canopy", access: field}
+    ode_size: {type: size_t, access: member}
+    canopy_light_tol: {type: double, access: field}
+    canopy_light_nbase: {type: double, access: field}
+    canopy_light_max_depth: {type: double, access: field}
+    canopy_rescale_usually: {type: bool, access: field}
+    canopy:
+      type: "plant::Canopy"
+      access: field
+    soil_number_of_depths: {type: int, access: field}
+    soil_initial_state: {type: double, access: field}
+    soil_infiltration_rate: {type: double, access: field}
+    soil:
+      name_cpp: "r_internals"
+      type: "plant::Internals"
+      access: member
 
 
 # The following strategy was built from FF16 on Wed Aug 12 11:12:34 2020
@@ -898,7 +946,6 @@ FF16r_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
-    - control: "plant::Control"
     - collect_all_auxillary: bool
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
@@ -922,17 +969,13 @@ K93_Strategy:
     - S_D: double
     - eta: double
     - k_I: double
-    - control: "plant::Control"
-
 
 # The following environment was built from FF16r on Wed Aug 12 15:46:38 2020
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
-    args: [control: "plant::Control"]
     roxygen: |
       K93_Environment object
-      @param control A Control object
       @export
   methods:
     canopy_openness:
@@ -946,3 +989,46 @@ K93_Environment:
   active:
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
+
+# The following strategy was built from FF16 on Mon Jul 19 11:01:04 2021
+Water_Strategy:
+  name_cpp: "plant::Water_Strategy"
+  roxygen: |
+    Strategy parameters that tune various aspects of the biological model.
+    @title Strategy parameters
+    @param ...,values Values to initialise the struct with (either as
+    variadic arguments, or as a list, but not both).
+    @export
+  list:
+    - lma: double
+    - rho: double
+    - hmat: double
+    - omega: double
+    - eta: double
+    - theta: double
+    - a_l1: double
+    - a_l2: double
+    - a_r1: double
+    - a_b1: double
+    - r_s: double
+    - r_b: double
+    - r_r: double
+    - r_l: double
+    - a_y: double
+    - a_bio: double
+    - k_l: double
+    - k_b: double
+    - k_s: double
+    - k_r: double
+    - a_p1: double
+    - a_p2: double
+    - a_f3: double
+    - a_f1: double
+    - a_f2: double
+    - S_D: double
+    - a_d0: double
+    - d_I: double
+    - a_dG1: double
+    - a_dG2: double
+    - k_I: double
+    - collect_all_auxillary: bool
