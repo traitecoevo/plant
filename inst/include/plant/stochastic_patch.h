@@ -17,10 +17,13 @@ template <typename T, typename E>
 class StochasticPatch {
 public:
   typedef T                      strategy_type;
+  typedef E                 environment_type;
   typedef Individual<T,E>             individual_type;
   typedef StochasticSpecies<T,E> species_type;
-  typedef Parameters<T,E>        parameters_type;
-  StochasticPatch(parameters_type p);
+  typedef SpeciesParameters<T>        species_params_type;
+
+  StochasticPatch(species_params_type s, environment_type e, Control c);
+
   void reset();
 
   size_t size() const {return species.size();}
@@ -49,12 +52,14 @@ public:
 
   // * R interface
   // Data accessors:
-  parameters_type r_parameters() const {return parameters;}
-  E r_environment() const {return environment;}
+  species_params_type r_species_parameters() const {return species_parameters;}
+  environment_type r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
+
   void r_set_state(double time,
                    const std::vector<double>& state,
                    const std::vector<size_t>& n);
+
   // TODO: No support here for setting *vectors* of species.  Might
   // want to supoprt that?
   bool r_introduce_new_cohort(util::index species_index) {
@@ -70,24 +75,28 @@ public:
   // These are only here because they wrap private functions.
   void r_compute_environment() {compute_environment();}
   void r_compute_rates() {compute_rates();}
+
 private:
   void compute_environment();
   void rescale_environment();
   void compute_rates();
 
-  parameters_type parameters;
-  std::vector<bool> is_resident;
-  E environment;
+  species_params_type species_parameters;
+  environment_type environment;
+  Control control;
+
   std::vector<species_type> species;
 };
 
 template <typename T, typename E>
-StochasticPatch<T,E>::StochasticPatch(parameters_type p)
-  : parameters(p),
-    is_resident(p.is_resident) {
-  parameters.validate();
-  environment = p.environment;
-  for (auto s : parameters.strategies) {
+StochasticPatch<T,E>::StochasticPatch(species_params_type s, environment_type e, Control c)
+  : species_parameters(s), environment(e), control(c) {
+
+  // check parameters
+  species_parameters.validate();
+
+  // load species
+  for (auto s : species_parameters.species) {
     species.push_back(species_type(s));
   }
   reset();
@@ -107,7 +116,7 @@ template <typename T, typename E>
 double StochasticPatch<T,E>::height_max() const {
   double ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-    if (is_resident[i]) {
+    if (species_parameters.is_resident[i]) {
       ret = std::max(ret, species[i].height_max());
     }
   }
@@ -118,7 +127,7 @@ template <typename T, typename E>
 double StochasticPatch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-    if (is_resident[i]) {
+    if (species_parameters.is_resident[i]) {
       tot += species[i].compute_competition(height);
     }
   }
@@ -127,7 +136,7 @@ double StochasticPatch<T,E>::compute_competition(double height) const {
 
 template <typename T, typename E>
 void StochasticPatch<T,E>::compute_environment() {
-  if (parameters.n_residents() > 0 & height_max() > 0.0) {
+  if (species_parameters.n_residents() > 0 & height_max() > 0.0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.compute_environment(f, height_max());
   } else {
@@ -137,7 +146,7 @@ void StochasticPatch<T,E>::compute_environment() {
 
 template <typename T, typename E>
 void StochasticPatch<T,E>::rescale_environment() {
-  if (parameters.n_residents() > 0 & height_max() > 0.0) {
+  if (species_parameters.n_residents() > 0 & height_max() > 0.0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.rescale_environment(f, height_max());
   }
@@ -159,7 +168,7 @@ void StochasticPatch<T,E>::introduce_new_cohort_and_update(size_t species_index)
   // Add a offspring, setting ODE variables based on the *current* light environment
   species[species_index].introduce_new_cohort(environment);
   // Then we update the light environment.
-  if (parameters.is_resident[species_index]) {
+  if (species_parameters.is_resident[species_index]) {
     compute_environment();
   }
 }
@@ -228,7 +237,7 @@ ode::const_iterator StochasticPatch<T,E>::set_ode_state(ode::const_iterator it,
                                                       double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
-  if (parameters.control.environment_rescale_usually) {
+  if (environment.canopy_rescale_usually) {
     rescale_environment();
   } else {
     compute_environment();

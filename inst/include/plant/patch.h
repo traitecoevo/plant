@@ -4,6 +4,8 @@
 
 #include <plant/parameters.h>
 #include <plant/species.h>
+
+#include <plant/control.h>
 #include <plant/ode_interface.h>
 
 #include <plant/disturbance_regime.h>
@@ -20,10 +22,9 @@ public:
   typedef Individual<T,E>   individual_type;
   typedef Cohort<T,E>       cohort_type;
   typedef Species<T,E>      species_type;
-  typedef Parameters<T,E>   parameters_type;
+  typedef SpeciesParameters<T>   species_params_type;
 
-
-  Patch(parameters_type p);
+  Patch(species_params_type s, environment_type e, DisturbanceRegime d, Control c);
 
   void reset();
   size_t size() const {return species.size();}
@@ -42,7 +43,7 @@ public:
   }
 
   // Patch disturbance
-  Disturbance_Regime* survival_weighting;
+  DisturbanceRegime survival_weighting;
 
   // * ODE interface
   size_t ode_size() const;
@@ -56,13 +57,13 @@ public:
 
   // this sucks - we couldn't get Rcpp to resolve disturbance pointers needed
   // to switch between No_Disturbance and Weibull_Disturbance safely
-  std::vector<double> r_density(std::vector<double> time) const {return survival_weighting->r_density(time);}
-  double r_pr_survival(double time) const {return survival_weighting->pr_survival(time);}
-  double r_disturbance_mean_interval() const {return survival_weighting->r_mean_interval();}
-  double r_survival_weighting_cdf(double time) const {return survival_weighting->cdf(time);}
-  double r_survival_weighting_icdf(double prob) const {return survival_weighting->icdf(prob);}
+  std::vector<double> r_density(std::vector<double> time) const {return survival_weighting.r_density(time);}
+  double r_pr_survival(double time) const {return survival_weighting.pr_survival(time);}
+  double r_disturbance_mean_interval() const {return survival_weighting.r_mean_interval();}
+  double r_survival_weighting_cdf(double time) const {return survival_weighting.cdf(time);}
+  double r_survival_weighting_icdf(double prob) const {return survival_weighting.icdf(prob);}
 
-  parameters_type r_parameters() const {return parameters;}
+  species_params_type r_species_parameters() const {return species_parameters;}
   environment_type r_environment() const {return environment;}
   std::vector<species_type> r_species() const {return species;}
   std::vector<double> r_competition_effect_error(size_t species_index) const;
@@ -86,21 +87,21 @@ private:
   void rescale_environment();
   void compute_rates();
 
-  parameters_type parameters;
-  std::vector<bool> is_resident;
+  species_params_type species_parameters;
   environment_type environment;
+  Control control;
+
   std::vector<species_type> species;
 };
 
 template <typename T, typename E>
-Patch<T,E>::Patch(parameters_type p)
-  : parameters(p),
-    is_resident(p.is_resident) {
-  parameters.validate();
-  environment = p.environment;
-  survival_weighting = p.disturbance;
+Patch<T,E>::Patch(species_params_type s, environment_type e, DisturbanceRegime d, Control c)
+  : species_parameters(s), environment(e), survival_weighting(d), control(c) {
 
-  for (auto s : parameters.strategies) {
+  // check parameters
+  species_parameters.validate();
+
+  for (auto s : species_parameters.species) {
     species.push_back(Species<T,E>(s));
   }
   reset();
@@ -120,7 +121,7 @@ template <typename T, typename E>
 double Patch<T,E>::height_max() const {
   double ret = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-    if (is_resident[i]) {
+    if (species_parameters.is_resident[i]) {
       ret = std::max(ret, species[i].height_max());
     }
   }
@@ -131,7 +132,7 @@ template <typename T, typename E>
 double Patch<T,E>::compute_competition(double height) const {
   double tot = 0.0;
   for (size_t i = 0; i < species.size(); ++i) {
-    if (is_resident[i]) {
+    if (species_parameters.is_resident[i]) {
       tot += species[i].compute_competition(height);
     }
   }
@@ -146,7 +147,7 @@ std::vector<double> Patch<T,E>::r_competition_effect_error(size_t species_index)
 
 template <typename T, typename E>
 void Patch<T,E>::compute_environment() {
-  if (parameters.n_residents() > 0) {
+  if (species_parameters.n_residents() > 0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.compute_environment(f, height_max());
   }
@@ -154,7 +155,7 @@ void Patch<T,E>::compute_environment() {
 
 template <typename T, typename E>
 void Patch<T,E>::rescale_environment() {
-  if (parameters.n_residents() > 0) {
+  if (species_parameters.n_residents() > 0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.rescale_environment(f, height_max());
   }
@@ -172,10 +173,10 @@ void Patch<T,E>::compute_rates() {
     // Compute rates in cohort, multiply rate per plant by density
     // sum all cohorts and species in a patch to find the outflow for the patch
     // subtract total extraction rate from state
-    double pr_patch_survival = survival_weighting->pr_survival(time());
-    double birth_rate = parameters.birth_rate[i];
-    species[i].compute_rates(environment, pr_patch_survival, birth_rate);
-    //environment.compute_rates();
+    double pr_patch_survival = survival_weighting.pr_survival(time());
+    double birth_rate = species_parameters.birth_rate[i];
+    species[i].compute_rates(environment, pr_patch_survival, birth_rate, control);
+    environment.compute_rates();
   }
 }
 
@@ -185,7 +186,7 @@ void Patch<T,E>::compute_rates() {
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_cohort(size_t species_index) {
   species[species_index].introduce_new_cohort();
-  if (parameters.is_resident[species_index]) {
+  if (species_parameters.is_resident[species_index]) {
     compute_environment();
   }
 }
@@ -195,7 +196,7 @@ void Patch<T,E>::introduce_new_cohorts(const std::vector<size_t>& species_index)
   bool recompute = false;
   for (size_t i : species_index) {
     species[i].introduce_new_cohort();
-    recompute = recompute || parameters.is_resident[i];
+    recompute = recompute || species_parameters.is_resident[i];
   }
   if (recompute) {
     compute_environment();
@@ -249,7 +250,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   it = environment.set_ode_state(it);
 
   environment.time = time;
-  if (parameters.control.environment_rescale_usually) {
+  if (environment.canopy_rescale_usually) {
     rescale_environment();
   } else {
     compute_environment();
