@@ -28,6 +28,21 @@ struct Control {
   Control();
   void initialize();
 
+  // patch settings
+  double patch_area;
+  double patch_max_lifetime; // designed to agree with Daniel's implementation
+
+  // integration rules for net_reproduction
+  double plant_seed_tol;
+  size_t plant_seed_iterations;
+
+  // integration rules for cohorts
+  double cohort_gradient_eps;
+  int    cohort_gradient_direction;
+  bool   cohort_gradient_richardson;
+  size_t cohort_gradient_richardson_depth;
+
+  // integration rules for environment splines (I think..)
   bool   plant_assimilation_adaptive;
 
   bool   plant_assimilation_over_distribution;
@@ -35,31 +50,12 @@ struct Control {
   size_t plant_assimilation_iterations;
   size_t plant_assimilation_rule;
 
-  double plant_seed_tol;
-  size_t plant_seed_iterations;
+  // used to optimise cohort introduction schedules
+  size_t build_schedule_nsteps;
+  double build_schedule_eps;
+  bool   build_schedule_verbose;
 
-  double cohort_gradient_eps;
-  int    cohort_gradient_direction;
-  bool   cohort_gradient_richardson;
-  size_t cohort_gradient_richardson_depth;
-
-  double environment_light_tol;
-  size_t environment_light_nbase;
-  size_t environment_light_max_depth;
-  bool   environment_rescale_usually;
-
-  double ode_step_size_initial;
-  double ode_step_size_min;
-  double ode_step_size_max;
-  double ode_tol_rel;
-  double ode_tol_abs;
-  double ode_a_y;
-  double ode_a_dydt;
-
-  size_t schedule_nsteps;
-  double schedule_eps;
-  bool   schedule_verbose;
-
+  // used to find equilibrium seed rain
   size_t equilibrium_nsteps;
   double equilibrium_eps;
   double equilibrium_large_birth_rate_change;
@@ -69,6 +65,15 @@ struct Control {
   size_t equilibrium_nattempts;
   bool   equilibrium_solver_logN;
   bool   equilibrium_solver_try_keep;
+
+  // ODE configuration
+  double ode_tol_rel;
+  double ode_tol_abs;
+  double ode_a_y;
+  double ode_a_dydt;
+  double ode_step_size_min;
+  double ode_step_size_max;
+  double ode_step_size_initial;
 
   // Things derived from this:
   quadrature::QAG integrator;
