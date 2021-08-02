@@ -36,6 +36,7 @@ double Water_Strategy::net_mass_production_dt(const FF16_Environment& environmen
                                     double height, double area_leaf_){
   //std::vector<double> water_ = environment.get_soil_water_state();
   //return water_[0];
+  return 0.0;
 }
 
 Water_Strategy::ptr make_strategy_ptr(Water_Strategy s) {
