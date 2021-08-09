@@ -2,7 +2,7 @@
 #ifndef PLANT_GET_STATE_H_
 #define PLANT_GET_STATE_H_
 
-#include <plant/parameters.h>
+#include <plant/species_parameters.h>
 #include <plant/cohort_schedule.h>
 #include <plant/scm.h>
 #include <plant/stochastic_patch_runner.h>

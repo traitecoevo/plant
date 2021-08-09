@@ -2793,87 +2793,87 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Parameters___FF16__FF16_Env__ctor
-SEXP Parameters___FF16__FF16_Env__ctor();
-RcppExport SEXP _plant_Parameters___FF16__FF16_Env__ctor() {
+// SpeciesParameters___FF16__ctor
+SEXP SpeciesParameters___FF16__ctor();
+RcppExport SEXP _plant_SpeciesParameters___FF16__ctor() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(Parameters___FF16__FF16_Env__ctor());
+    rcpp_result_gen = Rcpp::wrap(SpeciesParameters___FF16__ctor());
     return rcpp_result_gen;
 END_RCPP
 }
-// Parameters___FF16__FF16_Env__vdor
-SEXP Parameters___FF16__FF16_Env__vdor(SEXP obj);
-RcppExport SEXP _plant_Parameters___FF16__FF16_Env__vdor(SEXP objSEXP) {
+// SpeciesParameters___FF16__vdor
+SEXP SpeciesParameters___FF16__vdor(SEXP obj);
+RcppExport SEXP _plant_SpeciesParameters___FF16__vdor(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type obj(objSEXP);
-    rcpp_result_gen = Rcpp::wrap(Parameters___FF16__FF16_Env__vdor(obj));
+    rcpp_result_gen = Rcpp::wrap(SpeciesParameters___FF16__vdor(obj));
     return rcpp_result_gen;
 END_RCPP
 }
-// Parameters___Water__FF16_Env__ctor
-SEXP Parameters___Water__FF16_Env__ctor();
-RcppExport SEXP _plant_Parameters___Water__FF16_Env__ctor() {
+// SpeciesParameters___Water__ctor
+SEXP SpeciesParameters___Water__ctor();
+RcppExport SEXP _plant_SpeciesParameters___Water__ctor() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(Parameters___Water__FF16_Env__ctor());
+    rcpp_result_gen = Rcpp::wrap(SpeciesParameters___Water__ctor());
     return rcpp_result_gen;
 END_RCPP
 }
-// Parameters___Water__FF16_Env__vdor
-SEXP Parameters___Water__FF16_Env__vdor(SEXP obj);
-RcppExport SEXP _plant_Parameters___Water__FF16_Env__vdor(SEXP objSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< SEXP >::type obj(objSEXP);
-    rcpp_result_gen = Rcpp::wrap(Parameters___Water__FF16_Env__vdor(obj));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Parameters___FF16r__FF16_Env__ctor
-SEXP Parameters___FF16r__FF16_Env__ctor();
-RcppExport SEXP _plant_Parameters___FF16r__FF16_Env__ctor() {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(Parameters___FF16r__FF16_Env__ctor());
-    return rcpp_result_gen;
-END_RCPP
-}
-// Parameters___FF16r__FF16_Env__vdor
-SEXP Parameters___FF16r__FF16_Env__vdor(SEXP obj);
-RcppExport SEXP _plant_Parameters___FF16r__FF16_Env__vdor(SEXP objSEXP) {
+// SpeciesParameters___Water__vdor
+SEXP SpeciesParameters___Water__vdor(SEXP obj);
+RcppExport SEXP _plant_SpeciesParameters___Water__vdor(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type obj(objSEXP);
-    rcpp_result_gen = Rcpp::wrap(Parameters___FF16r__FF16_Env__vdor(obj));
+    rcpp_result_gen = Rcpp::wrap(SpeciesParameters___Water__vdor(obj));
     return rcpp_result_gen;
 END_RCPP
 }
-// Parameters___K93__K93_Env__ctor
-SEXP Parameters___K93__K93_Env__ctor();
-RcppExport SEXP _plant_Parameters___K93__K93_Env__ctor() {
+// SpeciesParameters___FF16r__ctor
+SEXP SpeciesParameters___FF16r__ctor();
+RcppExport SEXP _plant_SpeciesParameters___FF16r__ctor() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(Parameters___K93__K93_Env__ctor());
+    rcpp_result_gen = Rcpp::wrap(SpeciesParameters___FF16r__ctor());
     return rcpp_result_gen;
 END_RCPP
 }
-// Parameters___K93__K93_Env__vdor
-SEXP Parameters___K93__K93_Env__vdor(SEXP obj);
-RcppExport SEXP _plant_Parameters___K93__K93_Env__vdor(SEXP objSEXP) {
+// SpeciesParameters___FF16r__vdor
+SEXP SpeciesParameters___FF16r__vdor(SEXP obj);
+RcppExport SEXP _plant_SpeciesParameters___FF16r__vdor(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< SEXP >::type obj(objSEXP);
-    rcpp_result_gen = Rcpp::wrap(Parameters___K93__K93_Env__vdor(obj));
+    rcpp_result_gen = Rcpp::wrap(SpeciesParameters___FF16r__vdor(obj));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SpeciesParameters___K93__ctor
+SEXP SpeciesParameters___K93__ctor();
+RcppExport SEXP _plant_SpeciesParameters___K93__ctor() {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    rcpp_result_gen = Rcpp::wrap(SpeciesParameters___K93__ctor());
+    return rcpp_result_gen;
+END_RCPP
+}
+// SpeciesParameters___K93__vdor
+SEXP SpeciesParameters___K93__vdor(SEXP obj);
+RcppExport SEXP _plant_SpeciesParameters___K93__vdor(SEXP objSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type obj(objSEXP);
+    rcpp_result_gen = Rcpp::wrap(SpeciesParameters___K93__vdor(obj));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2901,39 +2901,42 @@ BEGIN_RCPP
 END_RCPP
 }
 // Cohort___FF16__FF16_Env__growth_rate_gradient
-double Cohort___FF16__FF16_Env__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment);
-RcppExport SEXP _plant_Cohort___FF16__FF16_Env__growth_rate_gradient(SEXP obj_SEXP, SEXP environmentSEXP) {
+double Cohort___FF16__FF16_Env__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, plant::Control control);
+RcppExport SEXP _plant_Cohort___FF16__FF16_Env__growth_rate_gradient(SEXP obj_SEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
-    rcpp_result_gen = Rcpp::wrap(Cohort___FF16__FF16_Env__growth_rate_gradient(obj_, environment));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Cohort___FF16__FF16_Env__growth_rate_gradient(obj_, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
 // Cohort___FF16__FF16_Env__compute_rates
-void Cohort___FF16__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival);
-RcppExport SEXP _plant_Cohort___FF16__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP) {
+void Cohort___FF16__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, plant::Control control);
+RcppExport SEXP _plant_Cohort___FF16__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
-    Cohort___FF16__FF16_Env__compute_rates(obj_, environment, pr_patch_survival);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Cohort___FF16__FF16_Env__compute_rates(obj_, environment, pr_patch_survival, control);
     return R_NilValue;
 END_RCPP
 }
 // Cohort___FF16__FF16_Env__compute_initial_conditions
-void Cohort___FF16__FF16_Env__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate);
-RcppExport SEXP _plant_Cohort___FF16__FF16_Env__compute_initial_conditions(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP) {
+void Cohort___FF16__FF16_Env__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate, plant::Control control);
+RcppExport SEXP _plant_Cohort___FF16__FF16_Env__compute_initial_conditions(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
     Rcpp::traits::input_parameter< double >::type birth_rate(birth_rateSEXP);
-    Cohort___FF16__FF16_Env__compute_initial_conditions(obj_, environment, pr_patch_survival, birth_rate);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Cohort___FF16__FF16_Env__compute_initial_conditions(obj_, environment, pr_patch_survival, birth_rate, control);
     return R_NilValue;
 END_RCPP
 }
@@ -3071,39 +3074,42 @@ BEGIN_RCPP
 END_RCPP
 }
 // Cohort___Water__FF16_Env__growth_rate_gradient
-double Cohort___Water__FF16_Env__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment);
-RcppExport SEXP _plant_Cohort___Water__FF16_Env__growth_rate_gradient(SEXP obj_SEXP, SEXP environmentSEXP) {
+double Cohort___Water__FF16_Env__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, plant::Control control);
+RcppExport SEXP _plant_Cohort___Water__FF16_Env__growth_rate_gradient(SEXP obj_SEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
-    rcpp_result_gen = Rcpp::wrap(Cohort___Water__FF16_Env__growth_rate_gradient(obj_, environment));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Cohort___Water__FF16_Env__growth_rate_gradient(obj_, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
 // Cohort___Water__FF16_Env__compute_rates
-void Cohort___Water__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival);
-RcppExport SEXP _plant_Cohort___Water__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP) {
+void Cohort___Water__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, plant::Control control);
+RcppExport SEXP _plant_Cohort___Water__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
-    Cohort___Water__FF16_Env__compute_rates(obj_, environment, pr_patch_survival);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Cohort___Water__FF16_Env__compute_rates(obj_, environment, pr_patch_survival, control);
     return R_NilValue;
 END_RCPP
 }
 // Cohort___Water__FF16_Env__compute_initial_conditions
-void Cohort___Water__FF16_Env__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate);
-RcppExport SEXP _plant_Cohort___Water__FF16_Env__compute_initial_conditions(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP) {
+void Cohort___Water__FF16_Env__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate, plant::Control control);
+RcppExport SEXP _plant_Cohort___Water__FF16_Env__compute_initial_conditions(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::Water_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
     Rcpp::traits::input_parameter< double >::type birth_rate(birth_rateSEXP);
-    Cohort___Water__FF16_Env__compute_initial_conditions(obj_, environment, pr_patch_survival, birth_rate);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Cohort___Water__FF16_Env__compute_initial_conditions(obj_, environment, pr_patch_survival, birth_rate, control);
     return R_NilValue;
 END_RCPP
 }
@@ -3241,39 +3247,42 @@ BEGIN_RCPP
 END_RCPP
 }
 // Cohort___FF16r__FF16_Env__growth_rate_gradient
-double Cohort___FF16r__FF16_Env__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment);
-RcppExport SEXP _plant_Cohort___FF16r__FF16_Env__growth_rate_gradient(SEXP obj_SEXP, SEXP environmentSEXP) {
+double Cohort___FF16r__FF16_Env__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, plant::Control control);
+RcppExport SEXP _plant_Cohort___FF16r__FF16_Env__growth_rate_gradient(SEXP obj_SEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
-    rcpp_result_gen = Rcpp::wrap(Cohort___FF16r__FF16_Env__growth_rate_gradient(obj_, environment));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Cohort___FF16r__FF16_Env__growth_rate_gradient(obj_, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
 // Cohort___FF16r__FF16_Env__compute_rates
-void Cohort___FF16r__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival);
-RcppExport SEXP _plant_Cohort___FF16r__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP) {
+void Cohort___FF16r__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, plant::Control control);
+RcppExport SEXP _plant_Cohort___FF16r__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
-    Cohort___FF16r__FF16_Env__compute_rates(obj_, environment, pr_patch_survival);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Cohort___FF16r__FF16_Env__compute_rates(obj_, environment, pr_patch_survival, control);
     return R_NilValue;
 END_RCPP
 }
 // Cohort___FF16r__FF16_Env__compute_initial_conditions
-void Cohort___FF16r__FF16_Env__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate);
-RcppExport SEXP _plant_Cohort___FF16r__FF16_Env__compute_initial_conditions(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP) {
+void Cohort___FF16r__FF16_Env__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate, plant::Control control);
+RcppExport SEXP _plant_Cohort___FF16r__FF16_Env__compute_initial_conditions(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
     Rcpp::traits::input_parameter< double >::type birth_rate(birth_rateSEXP);
-    Cohort___FF16r__FF16_Env__compute_initial_conditions(obj_, environment, pr_patch_survival, birth_rate);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Cohort___FF16r__FF16_Env__compute_initial_conditions(obj_, environment, pr_patch_survival, birth_rate, control);
     return R_NilValue;
 END_RCPP
 }
@@ -3411,39 +3420,42 @@ BEGIN_RCPP
 END_RCPP
 }
 // Cohort___K93__K93_Env__growth_rate_gradient
-double Cohort___K93__K93_Env__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment);
-RcppExport SEXP _plant_Cohort___K93__K93_Env__growth_rate_gradient(SEXP obj_SEXP, SEXP environmentSEXP) {
+double Cohort___K93__K93_Env__growth_rate_gradient(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment, plant::Control control);
+RcppExport SEXP _plant_Cohort___K93__K93_Env__growth_rate_gradient(SEXP obj_SEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
-    rcpp_result_gen = Rcpp::wrap(Cohort___K93__K93_Env__growth_rate_gradient(obj_, environment));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Cohort___K93__K93_Env__growth_rate_gradient(obj_, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
 // Cohort___K93__K93_Env__compute_rates
-void Cohort___K93__K93_Env__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment, double pr_patch_survival);
-RcppExport SEXP _plant_Cohort___K93__K93_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP) {
+void Cohort___K93__K93_Env__compute_rates(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment, double pr_patch_survival, plant::Control control);
+RcppExport SEXP _plant_Cohort___K93__K93_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
-    Cohort___K93__K93_Env__compute_rates(obj_, environment, pr_patch_survival);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Cohort___K93__K93_Env__compute_rates(obj_, environment, pr_patch_survival, control);
     return R_NilValue;
 END_RCPP
 }
 // Cohort___K93__K93_Env__compute_initial_conditions
-void Cohort___K93__K93_Env__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment, double pr_patch_survival, double birth_rate);
-RcppExport SEXP _plant_Cohort___K93__K93_Env__compute_initial_conditions(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP) {
+void Cohort___K93__K93_Env__compute_initial_conditions(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment, double pr_patch_survival, double birth_rate, plant::Control control);
+RcppExport SEXP _plant_Cohort___K93__K93_Env__compute_initial_conditions(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
     Rcpp::traits::input_parameter< double >::type birth_rate(birth_rateSEXP);
-    Cohort___K93__K93_Env__compute_initial_conditions(obj_, environment, pr_patch_survival, birth_rate);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Cohort___K93__K93_Env__compute_initial_conditions(obj_, environment, pr_patch_survival, birth_rate, control);
     return R_NilValue;
 END_RCPP
 }
@@ -3579,15 +3591,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Species___FF16__FF16_Env__compute_rates
-void Species___FF16__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate);
-RcppExport SEXP _plant_Species___FF16__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP) {
+void Species___FF16__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate, plant::Control control);
+RcppExport SEXP _plant_Species___FF16__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
     Rcpp::traits::input_parameter< double >::type birth_rate(birth_rateSEXP);
-    Species___FF16__FF16_Env__compute_rates(obj_, environment, pr_patch_survival, birth_rate);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Species___FF16__FF16_Env__compute_rates(obj_, environment, pr_patch_survival, birth_rate, control);
     return R_NilValue;
 END_RCPP
 }
@@ -3802,15 +3815,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Species___Water__FF16_Env__compute_rates
-void Species___Water__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::Water_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate);
-RcppExport SEXP _plant_Species___Water__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP) {
+void Species___Water__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::Water_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate, plant::Control control);
+RcppExport SEXP _plant_Species___Water__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::Water_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
     Rcpp::traits::input_parameter< double >::type birth_rate(birth_rateSEXP);
-    Species___Water__FF16_Env__compute_rates(obj_, environment, pr_patch_survival, birth_rate);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Species___Water__FF16_Env__compute_rates(obj_, environment, pr_patch_survival, birth_rate, control);
     return R_NilValue;
 END_RCPP
 }
@@ -4025,15 +4039,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Species___FF16r__FF16_Env__compute_rates
-void Species___FF16r__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate);
-RcppExport SEXP _plant_Species___FF16r__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP) {
+void Species___FF16r__FF16_Env__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::FF16_Environment environment, double pr_patch_survival, double birth_rate, plant::Control control);
+RcppExport SEXP _plant_Species___FF16r__FF16_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
     Rcpp::traits::input_parameter< double >::type birth_rate(birth_rateSEXP);
-    Species___FF16r__FF16_Env__compute_rates(obj_, environment, pr_patch_survival, birth_rate);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Species___FF16r__FF16_Env__compute_rates(obj_, environment, pr_patch_survival, birth_rate, control);
     return R_NilValue;
 END_RCPP
 }
@@ -4248,15 +4263,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Species___K93__K93_Env__compute_rates
-void Species___K93__K93_Env__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment, double pr_patch_survival, double birth_rate);
-RcppExport SEXP _plant_Species___K93__K93_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP) {
+void Species___K93__K93_Env__compute_rates(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::K93_Environment environment, double pr_patch_survival, double birth_rate, plant::Control control);
+RcppExport SEXP _plant_Species___K93__K93_Env__compute_rates(SEXP obj_SEXP, SEXP environmentSEXP, SEXP pr_patch_survivalSEXP, SEXP birth_rateSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
     Rcpp::traits::input_parameter< double >::type pr_patch_survival(pr_patch_survivalSEXP);
     Rcpp::traits::input_parameter< double >::type birth_rate(birth_rateSEXP);
-    Species___K93__K93_Env__compute_rates(obj_, environment, pr_patch_survival, birth_rate);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    Species___K93__K93_Env__compute_rates(obj_, environment, pr_patch_survival, birth_rate, control);
     return R_NilValue;
 END_RCPP
 }
@@ -4450,13 +4466,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___FF16__FF16_Env__ctor
-plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> Patch___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_Patch___FF16__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> Patch___FF16__FF16_Env__ctor(plant::SpeciesParameters<plant::FF16_Strategy> species_parameters, plant::FF16_Environment environment, plant::DisturbanceRegime disturbance, plant::Control control);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP disturbanceSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::FF16_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::DisturbanceRegime >::type disturbance(disturbanceSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__ctor(species_parameters, environment, disturbance, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4656,7 +4675,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___FF16__FF16_Env__parameters__get
-plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> Patch___FF16__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::FF16_Strategy> Patch___FF16__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Patch___FF16__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -4733,13 +4752,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___Water__FF16_Env__ctor
-plant::Patch<plant::Water_Strategy,plant::FF16_Environment> Patch___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_Patch___Water__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::Patch<plant::Water_Strategy,plant::FF16_Environment> Patch___Water__FF16_Env__ctor(plant::SpeciesParameters<plant::Water_Strategy> species_parameters, plant::FF16_Environment environment, plant::DisturbanceRegime disturbance, plant::Control control);
+RcppExport SEXP _plant_Patch___Water__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP disturbanceSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___Water__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::Water_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::DisturbanceRegime >::type disturbance(disturbanceSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___Water__FF16_Env__ctor(species_parameters, environment, disturbance, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4939,7 +4961,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___Water__FF16_Env__parameters__get
-plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> Patch___Water__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::Water_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::Water_Strategy> Patch___Water__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::Water_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Patch___Water__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -5016,13 +5038,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___FF16r__FF16_Env__ctor
-plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> Patch___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_Patch___FF16r__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> Patch___FF16r__FF16_Env__ctor(plant::SpeciesParameters<plant::FF16r_Strategy> species_parameters, plant::FF16_Environment environment, plant::DisturbanceRegime disturbance, plant::Control control);
+RcppExport SEXP _plant_Patch___FF16r__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP disturbanceSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::FF16r_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::DisturbanceRegime >::type disturbance(disturbanceSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__ctor(species_parameters, environment, disturbance, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5222,7 +5247,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___FF16r__FF16_Env__parameters__get
-plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> Patch___FF16r__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::FF16r_Strategy> Patch___FF16r__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Patch___FF16r__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -5299,13 +5324,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___K93__K93_Env__ctor
-plant::Patch<plant::K93_Strategy,plant::K93_Environment> Patch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters);
-RcppExport SEXP _plant_Patch___K93__K93_Env__ctor(SEXP parametersSEXP) {
+plant::Patch<plant::K93_Strategy,plant::K93_Environment> Patch___K93__K93_Env__ctor(plant::SpeciesParameters<plant::K93_Strategy> species_parameters, plant::K93_Environment environment, plant::DisturbanceRegime disturbance, plant::Control control);
+RcppExport SEXP _plant_Patch___K93__K93_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP disturbanceSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::K93_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::DisturbanceRegime >::type disturbance(disturbanceSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__ctor(species_parameters, environment, disturbance, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5505,7 +5533,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___K93__K93_Env__parameters__get
-plant::Parameters<plant::K93_Strategy,plant::K93_Environment> Patch___K93__K93_Env__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
+plant::SpeciesParameters<plant::K93_Strategy> Patch___K93__K93_Env__parameters__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_Patch___K93__K93_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -5582,13 +5610,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16__FF16_Env__ctor
-plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__ctor(plant::SpeciesParameters<plant::FF16_Strategy> species_parameters, plant::FF16_Environment environment, plant::DisturbanceRegime disturbance, plant::Control control);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP disturbanceSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::FF16_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::DisturbanceRegime >::type disturbance(disturbanceSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__ctor(species_parameters, environment, disturbance, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5703,7 +5734,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16__FF16_Env__parameters__get
-plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::FF16_Strategy> SCM___FF16__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___FF16__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -5802,13 +5833,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___Water__FF16_Env__ctor
-plant::SCM<plant::Water_Strategy,plant::FF16_Environment> SCM___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_SCM___Water__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::SCM<plant::Water_Strategy,plant::FF16_Environment> SCM___Water__FF16_Env__ctor(plant::SpeciesParameters<plant::Water_Strategy> species_parameters, plant::FF16_Environment environment, plant::DisturbanceRegime disturbance, plant::Control control);
+RcppExport SEXP _plant_SCM___Water__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP disturbanceSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___Water__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::Water_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::DisturbanceRegime >::type disturbance(disturbanceSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___Water__FF16_Env__ctor(species_parameters, environment, disturbance, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5923,7 +5957,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___Water__FF16_Env__parameters__get
-plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> SCM___Water__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::Water_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::Water_Strategy> SCM___Water__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::Water_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___Water__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -6022,13 +6056,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16r__FF16_Env__ctor
-plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> SCM___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_SCM___FF16r__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> SCM___FF16r__FF16_Env__ctor(plant::SpeciesParameters<plant::FF16r_Strategy> species_parameters, plant::FF16_Environment environment, plant::DisturbanceRegime disturbance, plant::Control control);
+RcppExport SEXP _plant_SCM___FF16r__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP disturbanceSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16r__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::FF16r_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::DisturbanceRegime >::type disturbance(disturbanceSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16r__FF16_Env__ctor(species_parameters, environment, disturbance, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6143,7 +6180,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16r__FF16_Env__parameters__get
-plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> SCM___FF16r__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::FF16r_Strategy> SCM___FF16r__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___FF16r__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -6242,13 +6279,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___K93__K93_Env__ctor
-plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters);
-RcppExport SEXP _plant_SCM___K93__K93_Env__ctor(SEXP parametersSEXP) {
+plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(plant::SpeciesParameters<plant::K93_Strategy> species_parameters, plant::K93_Environment environment, plant::DisturbanceRegime disturbance, plant::Control control);
+RcppExport SEXP _plant_SCM___K93__K93_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP disturbanceSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::K93_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::DisturbanceRegime >::type disturbance(disturbanceSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__ctor(species_parameters, environment, disturbance, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6363,7 +6403,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___K93__K93_Env__parameters__get
-plant::Parameters<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+plant::SpeciesParameters<plant::K93_Strategy> SCM___K93__K93_Env__parameters__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_SCM___K93__K93_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -7390,13 +7430,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___FF16__FF16_Env__ctor
-plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> StochasticPatch___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> StochasticPatch___FF16__FF16_Env__ctor(plant::SpeciesParameters<plant::FF16_Strategy> species_parameters, plant::FF16_Environment environment, plant::Control control);
+RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::FF16_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16__FF16_Env__ctor(species_parameters, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7548,7 +7590,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___FF16__FF16_Env__parameters__get
-plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> StochasticPatch___FF16__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::FF16_Strategy> StochasticPatch___FF16__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -7625,13 +7667,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___Water__FF16_Env__ctor
-plant::StochasticPatch<plant::Water_Strategy,plant::FF16_Environment> StochasticPatch___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatch___Water__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatch<plant::Water_Strategy,plant::FF16_Environment> StochasticPatch___Water__FF16_Env__ctor(plant::SpeciesParameters<plant::Water_Strategy> species_parameters, plant::FF16_Environment environment, plant::Control control);
+RcppExport SEXP _plant_StochasticPatch___Water__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___Water__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::Water_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___Water__FF16_Env__ctor(species_parameters, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7783,7 +7827,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___Water__FF16_Env__parameters__get
-plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> StochasticPatch___Water__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::Water_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::Water_Strategy> StochasticPatch___Water__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::Water_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___Water__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -7860,13 +7904,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___FF16r__FF16_Env__ctor
-plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> StochasticPatch___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> StochasticPatch___FF16r__FF16_Env__ctor(plant::SpeciesParameters<plant::FF16r_Strategy> species_parameters, plant::FF16_Environment environment, plant::Control control);
+RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16r__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::FF16r_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16r__FF16_Env__ctor(species_parameters, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8018,7 +8064,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___FF16r__FF16_Env__parameters__get
-plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> StochasticPatch___FF16r__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::FF16r_Strategy> StochasticPatch___FF16r__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -8095,13 +8141,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___K93__K93_Env__ctor
-plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> StochasticPatch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> StochasticPatch___K93__K93_Env__ctor(plant::SpeciesParameters<plant::K93_Strategy> species_parameters, plant::K93_Environment environment, plant::Control control);
+RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___K93__K93_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::K93_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___K93__K93_Env__ctor(species_parameters, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8253,7 +8301,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___K93__K93_Env__parameters__get
-plant::Parameters<plant::K93_Strategy,plant::K93_Environment> StochasticPatch___K93__K93_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_);
+plant::SpeciesParameters<plant::K93_Strategy> StochasticPatch___K93__K93_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -8330,13 +8378,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___FF16__FF16_Env__ctor
-plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> StochasticPatchRunner___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatchRunner___FF16__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> StochasticPatchRunner___FF16__FF16_Env__ctor(plant::SpeciesParameters<plant::FF16_Strategy> species_parameters, plant::FF16_Environment environment, plant::Control control);
+RcppExport SEXP _plant_StochasticPatchRunner___FF16__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___FF16__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::FF16_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___FF16__FF16_Env__ctor(species_parameters, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8405,7 +8455,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___FF16__FF16_Env__parameters__get
-plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> StochasticPatchRunner___FF16__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::FF16_Strategy> StochasticPatchRunner___FF16__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatchRunner___FF16__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -8460,13 +8510,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___Water__FF16_Env__ctor
-plant::StochasticPatchRunner<plant::Water_Strategy,plant::FF16_Environment> StochasticPatchRunner___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatchRunner___Water__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatchRunner<plant::Water_Strategy,plant::FF16_Environment> StochasticPatchRunner___Water__FF16_Env__ctor(plant::SpeciesParameters<plant::Water_Strategy> species_parameters, plant::FF16_Environment environment, plant::Control control);
+RcppExport SEXP _plant_StochasticPatchRunner___Water__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___Water__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::Water_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___Water__FF16_Env__ctor(species_parameters, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8535,7 +8587,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___Water__FF16_Env__parameters__get
-plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> StochasticPatchRunner___Water__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::Water_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::Water_Strategy> StochasticPatchRunner___Water__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::Water_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatchRunner___Water__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -8590,13 +8642,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___FF16r__FF16_Env__ctor
-plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16_Environment> StochasticPatchRunner___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatchRunner___FF16r__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16_Environment> StochasticPatchRunner___FF16r__FF16_Env__ctor(plant::SpeciesParameters<plant::FF16r_Strategy> species_parameters, plant::FF16_Environment environment, plant::Control control);
+RcppExport SEXP _plant_StochasticPatchRunner___FF16r__FF16_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___FF16r__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::FF16r_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___FF16r__FF16_Env__ctor(species_parameters, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8665,7 +8719,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___FF16r__FF16_Env__parameters__get
-plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> StochasticPatchRunner___FF16r__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+plant::SpeciesParameters<plant::FF16r_Strategy> StochasticPatchRunner___FF16r__FF16_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatchRunner___FF16r__FF16_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -8720,13 +8774,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___K93__K93_Env__ctor
-plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> StochasticPatchRunner___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatchRunner___K93__K93_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> StochasticPatchRunner___K93__K93_Env__ctor(plant::SpeciesParameters<plant::K93_Strategy> species_parameters, plant::K93_Environment environment, plant::Control control);
+RcppExport SEXP _plant_StochasticPatchRunner___K93__K93_Env__ctor(SEXP species_parametersSEXP, SEXP environmentSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___K93__K93_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::SpeciesParameters<plant::K93_Strategy> >::type species_parameters(species_parametersSEXP);
+    Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___K93__K93_Env__ctor(species_parameters, environment, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8795,7 +8851,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___K93__K93_Env__parameters__get
-plant::Parameters<plant::K93_Strategy,plant::K93_Environment> StochasticPatchRunner___K93__K93_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_);
+plant::SpeciesParameters<plant::K93_Strategy> StochasticPatchRunner___K93__K93_Env__parameters__get(plant::RcppR6::RcppR6<plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_StochasticPatchRunner___K93__K93_Env__parameters__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -8850,13 +8906,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // Canopy__ctor
-plant::Canopy Canopy__ctor(plant::Control control);
-RcppExport SEXP _plant_Canopy__ctor(SEXP controlSEXP) {
+plant::Canopy Canopy__ctor(double tol, double nbase, double max_depth);
+RcppExport SEXP _plant_Canopy__ctor(SEXP tolSEXP, SEXP nbaseSEXP, SEXP max_depthSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(Canopy__ctor(control));
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    Rcpp::traits::input_parameter< double >::type nbase(nbaseSEXP);
+    Rcpp::traits::input_parameter< double >::type max_depth(max_depthSEXP);
+    rcpp_result_gen = Rcpp::wrap(Canopy__ctor(tol, nbase, max_depth));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8904,37 +8962,37 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Disturbance_Regime__ctor
-plant::Disturbance_Regime Disturbance_Regime__ctor();
-RcppExport SEXP _plant_Disturbance_Regime__ctor() {
+// DisturbanceRegime__ctor
+plant::DisturbanceRegime DisturbanceRegime__ctor();
+RcppExport SEXP _plant_DisturbanceRegime__ctor() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(Disturbance_Regime__ctor());
+    rcpp_result_gen = Rcpp::wrap(DisturbanceRegime__ctor());
     return rcpp_result_gen;
 END_RCPP
 }
-// Disturbance_Regime__density
-std::vector<double> Disturbance_Regime__density(plant::RcppR6::RcppR6<plant::Disturbance_Regime> obj_, std::vector<double> time);
-RcppExport SEXP _plant_Disturbance_Regime__density(SEXP obj_SEXP, SEXP timeSEXP) {
+// DisturbanceRegime__density
+std::vector<double> DisturbanceRegime__density(plant::RcppR6::RcppR6<plant::DisturbanceRegime> obj_, std::vector<double> time);
+RcppExport SEXP _plant_DisturbanceRegime__density(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DisturbanceRegime> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Disturbance_Regime__density(obj_, time));
+    rcpp_result_gen = Rcpp::wrap(DisturbanceRegime__density(obj_, time));
     return rcpp_result_gen;
 END_RCPP
 }
-// Disturbance_Regime__pr_survival
-double Disturbance_Regime__pr_survival(plant::RcppR6::RcppR6<plant::Disturbance_Regime> obj_, double time);
-RcppExport SEXP _plant_Disturbance_Regime__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
+// DisturbanceRegime__pr_survival
+double DisturbanceRegime__pr_survival(plant::RcppR6::RcppR6<plant::DisturbanceRegime> obj_, double time);
+RcppExport SEXP _plant_DisturbanceRegime__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::DisturbanceRegime> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Disturbance_Regime__pr_survival(obj_, time));
+    rcpp_result_gen = Rcpp::wrap(DisturbanceRegime__pr_survival(obj_, time));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8972,73 +9030,73 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Weibull_Disturbance_Regime__ctor
-plant::Weibull_Disturbance_Regime Weibull_Disturbance_Regime__ctor(double max_patch_lifetime);
-RcppExport SEXP _plant_Weibull_Disturbance_Regime__ctor(SEXP max_patch_lifetimeSEXP) {
+// Weibull_DisturbanceRegime__ctor
+plant::Weibull_DisturbanceRegime Weibull_DisturbanceRegime__ctor(double patch_max_lifetime);
+RcppExport SEXP _plant_Weibull_DisturbanceRegime__ctor(SEXP patch_max_lifetimeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type max_patch_lifetime(max_patch_lifetimeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__ctor(max_patch_lifetime));
+    Rcpp::traits::input_parameter< double >::type patch_max_lifetime(patch_max_lifetimeSEXP);
+    rcpp_result_gen = Rcpp::wrap(Weibull_DisturbanceRegime__ctor(patch_max_lifetime));
     return rcpp_result_gen;
 END_RCPP
 }
-// Weibull_Disturbance_Regime__density
-std::vector<double> Weibull_Disturbance_Regime__density(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> obj_, std::vector<double> time);
-RcppExport SEXP _plant_Weibull_Disturbance_Regime__density(SEXP obj_SEXP, SEXP timeSEXP) {
+// Weibull_DisturbanceRegime__density
+std::vector<double> Weibull_DisturbanceRegime__density(plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime> obj_, std::vector<double> time);
+RcppExport SEXP _plant_Weibull_DisturbanceRegime__density(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< std::vector<double> >::type time(timeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__density(obj_, time));
+    rcpp_result_gen = Rcpp::wrap(Weibull_DisturbanceRegime__density(obj_, time));
     return rcpp_result_gen;
 END_RCPP
 }
-// Weibull_Disturbance_Regime__pr_survival
-double Weibull_Disturbance_Regime__pr_survival(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> obj_, double time);
-RcppExport SEXP _plant_Weibull_Disturbance_Regime__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
+// Weibull_DisturbanceRegime__pr_survival
+double Weibull_DisturbanceRegime__pr_survival(plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime> obj_, double time);
+RcppExport SEXP _plant_Weibull_DisturbanceRegime__pr_survival(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__pr_survival(obj_, time));
+    rcpp_result_gen = Rcpp::wrap(Weibull_DisturbanceRegime__pr_survival(obj_, time));
     return rcpp_result_gen;
 END_RCPP
 }
-// Weibull_Disturbance_Regime__mean_interval
-double Weibull_Disturbance_Regime__mean_interval(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> obj_);
-RcppExport SEXP _plant_Weibull_Disturbance_Regime__mean_interval(SEXP obj_SEXP) {
+// Weibull_DisturbanceRegime__mean_interval
+double Weibull_DisturbanceRegime__mean_interval(plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime> obj_);
+RcppExport SEXP _plant_Weibull_DisturbanceRegime__mean_interval(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__mean_interval(obj_));
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Weibull_DisturbanceRegime__mean_interval(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// Weibull_Disturbance_Regime__cdf
-double Weibull_Disturbance_Regime__cdf(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> obj_, double time);
-RcppExport SEXP _plant_Weibull_Disturbance_Regime__cdf(SEXP obj_SEXP, SEXP timeSEXP) {
+// Weibull_DisturbanceRegime__cdf
+double Weibull_DisturbanceRegime__cdf(plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime> obj_, double time);
+RcppExport SEXP _plant_Weibull_DisturbanceRegime__cdf(SEXP obj_SEXP, SEXP timeSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type time(timeSEXP);
-    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__cdf(obj_, time));
+    rcpp_result_gen = Rcpp::wrap(Weibull_DisturbanceRegime__cdf(obj_, time));
     return rcpp_result_gen;
 END_RCPP
 }
-// Weibull_Disturbance_Regime__icdf
-double Weibull_Disturbance_Regime__icdf(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> obj_, double prob);
-RcppExport SEXP _plant_Weibull_Disturbance_Regime__icdf(SEXP obj_SEXP, SEXP probSEXP) {
+// Weibull_DisturbanceRegime__icdf
+double Weibull_DisturbanceRegime__icdf(plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime> obj_, double prob);
+RcppExport SEXP _plant_Weibull_DisturbanceRegime__icdf(SEXP obj_SEXP, SEXP probSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type prob(probSEXP);
-    rcpp_result_gen = Rcpp::wrap(Weibull_Disturbance_Regime__icdf(obj_, prob));
+    rcpp_result_gen = Rcpp::wrap(Weibull_DisturbanceRegime__icdf(obj_, prob));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9053,13 +9111,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__ctor
-plant::FF16_Environment FF16_Environment__ctor(plant::Control control);
-RcppExport SEXP _plant_FF16_Environment__ctor(SEXP controlSEXP) {
+plant::FF16_Environment FF16_Environment__ctor();
+RcppExport SEXP _plant_FF16_Environment__ctor() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(control));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor());
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9140,6 +9197,105 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// FF16_Environment__ode_size__get
+size_t FF16_Environment__ode_size__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__ode_size__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ode_size__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__canopy_light_tol__get
+double FF16_Environment__canopy_light_tol__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__canopy_light_tol__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__canopy_light_tol__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__canopy_light_tol__set
+void FF16_Environment__canopy_light_tol__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value);
+RcppExport SEXP _plant_FF16_Environment__canopy_light_tol__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Environment__canopy_light_tol__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__canopy_light_nbase__get
+double FF16_Environment__canopy_light_nbase__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__canopy_light_nbase__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__canopy_light_nbase__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__canopy_light_nbase__set
+void FF16_Environment__canopy_light_nbase__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value);
+RcppExport SEXP _plant_FF16_Environment__canopy_light_nbase__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Environment__canopy_light_nbase__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__canopy_light_max_depth__get
+double FF16_Environment__canopy_light_max_depth__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__canopy_light_max_depth__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__canopy_light_max_depth__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__canopy_light_max_depth__set
+void FF16_Environment__canopy_light_max_depth__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value);
+RcppExport SEXP _plant_FF16_Environment__canopy_light_max_depth__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Environment__canopy_light_max_depth__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__canopy_rescale_usually__get
+bool FF16_Environment__canopy_rescale_usually__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__canopy_rescale_usually__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__canopy_rescale_usually__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__canopy_rescale_usually__set
+void FF16_Environment__canopy_rescale_usually__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, bool value);
+RcppExport SEXP _plant_FF16_Environment__canopy_rescale_usually__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
+    FF16_Environment__canopy_rescale_usually__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
 // FF16_Environment__canopy__get
 plant::Canopy FF16_Environment__canopy__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
 RcppExport SEXP _plant_FF16_Environment__canopy__get(SEXP obj_SEXP) {
@@ -9162,15 +9318,70 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// FF16_Environment__ode_size__get
-size_t FF16_Environment__ode_size__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
-RcppExport SEXP _plant_FF16_Environment__ode_size__get(SEXP obj_SEXP) {
+// FF16_Environment__soil_number_of_depths__get
+int FF16_Environment__soil_number_of_depths__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__soil_number_of_depths__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ode_size__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__soil_number_of_depths__get(obj_));
     return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__soil_number_of_depths__set
+void FF16_Environment__soil_number_of_depths__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, int value);
+RcppExport SEXP _plant_FF16_Environment__soil_number_of_depths__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< int >::type value(valueSEXP);
+    FF16_Environment__soil_number_of_depths__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__soil_initial_state__get
+double FF16_Environment__soil_initial_state__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__soil_initial_state__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__soil_initial_state__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__soil_initial_state__set
+void FF16_Environment__soil_initial_state__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value);
+RcppExport SEXP _plant_FF16_Environment__soil_initial_state__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Environment__soil_initial_state__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__soil_infiltration_rate__get
+double FF16_Environment__soil_infiltration_rate__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__soil_infiltration_rate__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__soil_infiltration_rate__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__soil_infiltration_rate__set
+void FF16_Environment__soil_infiltration_rate__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value);
+RcppExport SEXP _plant_FF16_Environment__soil_infiltration_rate__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Environment__soil_infiltration_rate__set(obj_, value);
+    return R_NilValue;
 END_RCPP
 }
 // FF16_Environment__soil__get
@@ -9205,13 +9416,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // K93_Environment__ctor
-plant::K93_Environment K93_Environment__ctor(plant::Control control);
-RcppExport SEXP _plant_K93_Environment__ctor(SEXP controlSEXP) {
+plant::K93_Environment K93_Environment__ctor();
+RcppExport SEXP _plant_K93_Environment__ctor() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
-    rcpp_result_gen = Rcpp::wrap(K93_Environment__ctor(control));
+    rcpp_result_gen = Rcpp::wrap(K93_Environment__ctor());
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9317,46 +9527,50 @@ BEGIN_RCPP
 END_RCPP
 }
 // cohort_schedule_default__Parameters___FF16__FF16_Env
-plant::CohortSchedule cohort_schedule_default__Parameters___FF16__FF16_Env(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& p);
-RcppExport SEXP _plant_cohort_schedule_default__Parameters___FF16__FF16_Env(SEXP pSEXP) {
+plant::CohortSchedule cohort_schedule_default__Parameters___FF16__FF16_Env(const plant::SpeciesParameters<plant::FF16_Strategy>& p, const plant::Control& c);
+RcppExport SEXP _plant_cohort_schedule_default__Parameters___FF16__FF16_Env(SEXP pSEXP, SEXP cSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(cohort_schedule_default__Parameters___FF16__FF16_Env(p));
+    Rcpp::traits::input_parameter< const plant::SpeciesParameters<plant::FF16_Strategy>& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const plant::Control& >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(cohort_schedule_default__Parameters___FF16__FF16_Env(p, c));
     return rcpp_result_gen;
 END_RCPP
 }
 // make_cohort_schedule__Parameters___FF16__FF16_Env
-plant::CohortSchedule make_cohort_schedule__Parameters___FF16__FF16_Env(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& p);
-RcppExport SEXP _plant_make_cohort_schedule__Parameters___FF16__FF16_Env(SEXP pSEXP) {
+plant::CohortSchedule make_cohort_schedule__Parameters___FF16__FF16_Env(const plant::SpeciesParameters<plant::FF16_Strategy>& p, const plant::Control& c);
+RcppExport SEXP _plant_make_cohort_schedule__Parameters___FF16__FF16_Env(SEXP pSEXP, SEXP cSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___FF16__FF16_Env(p));
+    Rcpp::traits::input_parameter< const plant::SpeciesParameters<plant::FF16_Strategy>& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const plant::Control& >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___FF16__FF16_Env(p, c));
     return rcpp_result_gen;
 END_RCPP
 }
 // cohort_schedule_default__Parameters___FF16r__FF16_Env
-plant::CohortSchedule cohort_schedule_default__Parameters___FF16r__FF16_Env(const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>& p);
-RcppExport SEXP _plant_cohort_schedule_default__Parameters___FF16r__FF16_Env(SEXP pSEXP) {
+plant::CohortSchedule cohort_schedule_default__Parameters___FF16r__FF16_Env(const plant::SpeciesParameters<plant::FF16r_Strategy>& p, const plant::Control& c);
+RcppExport SEXP _plant_cohort_schedule_default__Parameters___FF16r__FF16_Env(SEXP pSEXP, SEXP cSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(cohort_schedule_default__Parameters___FF16r__FF16_Env(p));
+    Rcpp::traits::input_parameter< const plant::SpeciesParameters<plant::FF16r_Strategy>& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const plant::Control& >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(cohort_schedule_default__Parameters___FF16r__FF16_Env(p, c));
     return rcpp_result_gen;
 END_RCPP
 }
 // make_cohort_schedule__Parameters___FF16r__FF16_Env
-plant::CohortSchedule make_cohort_schedule__Parameters___FF16r__FF16_Env(const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>& p);
-RcppExport SEXP _plant_make_cohort_schedule__Parameters___FF16r__FF16_Env(SEXP pSEXP) {
+plant::CohortSchedule make_cohort_schedule__Parameters___FF16r__FF16_Env(const plant::SpeciesParameters<plant::FF16r_Strategy>& p, const plant::Control& c);
+RcppExport SEXP _plant_make_cohort_schedule__Parameters___FF16r__FF16_Env(SEXP pSEXP, SEXP cSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___FF16r__FF16_Env(p));
+    Rcpp::traits::input_parameter< const plant::SpeciesParameters<plant::FF16r_Strategy>& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const plant::Control& >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___FF16r__FF16_Env(p, c));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9390,24 +9604,26 @@ BEGIN_RCPP
 END_RCPP
 }
 // cohort_schedule_default__Parameters___K93__K93_Env
-plant::CohortSchedule cohort_schedule_default__Parameters___K93__K93_Env(const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& p);
-RcppExport SEXP _plant_cohort_schedule_default__Parameters___K93__K93_Env(SEXP pSEXP) {
+plant::CohortSchedule cohort_schedule_default__Parameters___K93__K93_Env(const plant::SpeciesParameters<plant::K93_Strategy>& p, const plant::Control& c);
+RcppExport SEXP _plant_cohort_schedule_default__Parameters___K93__K93_Env(SEXP pSEXP, SEXP cSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(cohort_schedule_default__Parameters___K93__K93_Env(p));
+    Rcpp::traits::input_parameter< const plant::SpeciesParameters<plant::K93_Strategy>& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const plant::Control& >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(cohort_schedule_default__Parameters___K93__K93_Env(p, c));
     return rcpp_result_gen;
 END_RCPP
 }
 // make_cohort_schedule__Parameters___K93__K93_Env
-plant::CohortSchedule make_cohort_schedule__Parameters___K93__K93_Env(const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& p);
-RcppExport SEXP _plant_make_cohort_schedule__Parameters___K93__K93_Env(SEXP pSEXP) {
+plant::CohortSchedule make_cohort_schedule__Parameters___K93__K93_Env(const plant::SpeciesParameters<plant::K93_Strategy>& p, const plant::Control& c);
+RcppExport SEXP _plant_make_cohort_schedule__Parameters___K93__K93_Env(SEXP pSEXP, SEXP cSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___K93__K93_Env(p));
+    Rcpp::traits::input_parameter< const plant::SpeciesParameters<plant::K93_Strategy>& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const plant::Control& >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___K93__K93_Env(p, c));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9528,24 +9744,26 @@ BEGIN_RCPP
 END_RCPP
 }
 // cohort_schedule_default__Parameters___Water__FF16_Env
-plant::CohortSchedule cohort_schedule_default__Parameters___Water__FF16_Env(const plant::Parameters<plant::Water_Strategy,plant::FF16_Environment>& p);
-RcppExport SEXP _plant_cohort_schedule_default__Parameters___Water__FF16_Env(SEXP pSEXP) {
+plant::CohortSchedule cohort_schedule_default__Parameters___Water__FF16_Env(const plant::SpeciesParameters<plant::Water_Strategy>& p, const plant::Control& c);
+RcppExport SEXP _plant_cohort_schedule_default__Parameters___Water__FF16_Env(SEXP pSEXP, SEXP cSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::Water_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(cohort_schedule_default__Parameters___Water__FF16_Env(p));
+    Rcpp::traits::input_parameter< const plant::SpeciesParameters<plant::Water_Strategy>& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const plant::Control& >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(cohort_schedule_default__Parameters___Water__FF16_Env(p, c));
     return rcpp_result_gen;
 END_RCPP
 }
 // make_cohort_schedule__Parameters___Water__FF16_Env
-plant::CohortSchedule make_cohort_schedule__Parameters___Water__FF16_Env(const plant::Parameters<plant::Water_Strategy,plant::FF16_Environment>& p);
-RcppExport SEXP _plant_make_cohort_schedule__Parameters___Water__FF16_Env(SEXP pSEXP) {
+plant::CohortSchedule make_cohort_schedule__Parameters___Water__FF16_Env(const plant::SpeciesParameters<plant::Water_Strategy>& p, const plant::Control& c);
+RcppExport SEXP _plant_make_cohort_schedule__Parameters___Water__FF16_Env(SEXP pSEXP, SEXP cSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< const plant::Parameters<plant::Water_Strategy,plant::FF16_Environment>& >::type p(pSEXP);
-    rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___Water__FF16_Env(p));
+    Rcpp::traits::input_parameter< const plant::SpeciesParameters<plant::Water_Strategy>& >::type p(pSEXP);
+    Rcpp::traits::input_parameter< const plant::Control& >::type c(cSEXP);
+    rcpp_result_gen = Rcpp::wrap(make_cohort_schedule__Parameters___Water__FF16_Env(p, c));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9799,19 +10017,19 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Internals__rates__set", (DL_FUNC) &_plant_Internals__rates__set, 2},
     {"_plant_Internals__auxs__get", (DL_FUNC) &_plant_Internals__auxs__get, 1},
     {"_plant_Internals__auxs__set", (DL_FUNC) &_plant_Internals__auxs__set, 2},
-    {"_plant_Parameters___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_Parameters___FF16__FF16_Env__ctor, 0},
-    {"_plant_Parameters___FF16__FF16_Env__vdor", (DL_FUNC) &_plant_Parameters___FF16__FF16_Env__vdor, 1},
-    {"_plant_Parameters___Water__FF16_Env__ctor", (DL_FUNC) &_plant_Parameters___Water__FF16_Env__ctor, 0},
-    {"_plant_Parameters___Water__FF16_Env__vdor", (DL_FUNC) &_plant_Parameters___Water__FF16_Env__vdor, 1},
-    {"_plant_Parameters___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_Parameters___FF16r__FF16_Env__ctor, 0},
-    {"_plant_Parameters___FF16r__FF16_Env__vdor", (DL_FUNC) &_plant_Parameters___FF16r__FF16_Env__vdor, 1},
-    {"_plant_Parameters___K93__K93_Env__ctor", (DL_FUNC) &_plant_Parameters___K93__K93_Env__ctor, 0},
-    {"_plant_Parameters___K93__K93_Env__vdor", (DL_FUNC) &_plant_Parameters___K93__K93_Env__vdor, 1},
+    {"_plant_SpeciesParameters___FF16__ctor", (DL_FUNC) &_plant_SpeciesParameters___FF16__ctor, 0},
+    {"_plant_SpeciesParameters___FF16__vdor", (DL_FUNC) &_plant_SpeciesParameters___FF16__vdor, 1},
+    {"_plant_SpeciesParameters___Water__ctor", (DL_FUNC) &_plant_SpeciesParameters___Water__ctor, 0},
+    {"_plant_SpeciesParameters___Water__vdor", (DL_FUNC) &_plant_SpeciesParameters___Water__vdor, 1},
+    {"_plant_SpeciesParameters___FF16r__ctor", (DL_FUNC) &_plant_SpeciesParameters___FF16r__ctor, 0},
+    {"_plant_SpeciesParameters___FF16r__vdor", (DL_FUNC) &_plant_SpeciesParameters___FF16r__vdor, 1},
+    {"_plant_SpeciesParameters___K93__ctor", (DL_FUNC) &_plant_SpeciesParameters___K93__ctor, 0},
+    {"_plant_SpeciesParameters___K93__vdor", (DL_FUNC) &_plant_SpeciesParameters___K93__vdor, 1},
     {"_plant_Cohort___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__ctor, 1},
     {"_plant_Cohort___FF16__FF16_Env__compute_competition", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__compute_competition, 2},
-    {"_plant_Cohort___FF16__FF16_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__growth_rate_gradient, 2},
-    {"_plant_Cohort___FF16__FF16_Env__compute_rates", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__compute_rates, 3},
-    {"_plant_Cohort___FF16__FF16_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__compute_initial_conditions, 4},
+    {"_plant_Cohort___FF16__FF16_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__growth_rate_gradient, 3},
+    {"_plant_Cohort___FF16__FF16_Env__compute_rates", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__compute_rates, 4},
+    {"_plant_Cohort___FF16__FF16_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__compute_initial_conditions, 5},
     {"_plant_Cohort___FF16__FF16_Env__plant__get", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__plant__get, 1},
     {"_plant_Cohort___FF16__FF16_Env__height__get", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__height__get, 1},
     {"_plant_Cohort___FF16__FF16_Env__log_density__get", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__log_density__get, 1},
@@ -9824,9 +10042,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___FF16__FF16_Env__ode_names__get", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__ode_names__get, 1},
     {"_plant_Cohort___Water__FF16_Env__ctor", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__ctor, 1},
     {"_plant_Cohort___Water__FF16_Env__compute_competition", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__compute_competition, 2},
-    {"_plant_Cohort___Water__FF16_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__growth_rate_gradient, 2},
-    {"_plant_Cohort___Water__FF16_Env__compute_rates", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__compute_rates, 3},
-    {"_plant_Cohort___Water__FF16_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__compute_initial_conditions, 4},
+    {"_plant_Cohort___Water__FF16_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__growth_rate_gradient, 3},
+    {"_plant_Cohort___Water__FF16_Env__compute_rates", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__compute_rates, 4},
+    {"_plant_Cohort___Water__FF16_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__compute_initial_conditions, 5},
     {"_plant_Cohort___Water__FF16_Env__plant__get", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__plant__get, 1},
     {"_plant_Cohort___Water__FF16_Env__height__get", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__height__get, 1},
     {"_plant_Cohort___Water__FF16_Env__log_density__get", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__log_density__get, 1},
@@ -9839,9 +10057,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___Water__FF16_Env__ode_names__get", (DL_FUNC) &_plant_Cohort___Water__FF16_Env__ode_names__get, 1},
     {"_plant_Cohort___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__ctor, 1},
     {"_plant_Cohort___FF16r__FF16_Env__compute_competition", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__compute_competition, 2},
-    {"_plant_Cohort___FF16r__FF16_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__growth_rate_gradient, 2},
-    {"_plant_Cohort___FF16r__FF16_Env__compute_rates", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__compute_rates, 3},
-    {"_plant_Cohort___FF16r__FF16_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__compute_initial_conditions, 4},
+    {"_plant_Cohort___FF16r__FF16_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__growth_rate_gradient, 3},
+    {"_plant_Cohort___FF16r__FF16_Env__compute_rates", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__compute_rates, 4},
+    {"_plant_Cohort___FF16r__FF16_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__compute_initial_conditions, 5},
     {"_plant_Cohort___FF16r__FF16_Env__plant__get", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__plant__get, 1},
     {"_plant_Cohort___FF16r__FF16_Env__height__get", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__height__get, 1},
     {"_plant_Cohort___FF16r__FF16_Env__log_density__get", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__log_density__get, 1},
@@ -9854,9 +10072,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___FF16r__FF16_Env__ode_names__get", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__ode_names__get, 1},
     {"_plant_Cohort___K93__K93_Env__ctor", (DL_FUNC) &_plant_Cohort___K93__K93_Env__ctor, 1},
     {"_plant_Cohort___K93__K93_Env__compute_competition", (DL_FUNC) &_plant_Cohort___K93__K93_Env__compute_competition, 2},
-    {"_plant_Cohort___K93__K93_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___K93__K93_Env__growth_rate_gradient, 2},
-    {"_plant_Cohort___K93__K93_Env__compute_rates", (DL_FUNC) &_plant_Cohort___K93__K93_Env__compute_rates, 3},
-    {"_plant_Cohort___K93__K93_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___K93__K93_Env__compute_initial_conditions, 4},
+    {"_plant_Cohort___K93__K93_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___K93__K93_Env__growth_rate_gradient, 3},
+    {"_plant_Cohort___K93__K93_Env__compute_rates", (DL_FUNC) &_plant_Cohort___K93__K93_Env__compute_rates, 4},
+    {"_plant_Cohort___K93__K93_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___K93__K93_Env__compute_initial_conditions, 5},
     {"_plant_Cohort___K93__K93_Env__plant__get", (DL_FUNC) &_plant_Cohort___K93__K93_Env__plant__get, 1},
     {"_plant_Cohort___K93__K93_Env__height__get", (DL_FUNC) &_plant_Cohort___K93__K93_Env__height__get, 1},
     {"_plant_Cohort___K93__K93_Env__log_density__get", (DL_FUNC) &_plant_Cohort___K93__K93_Env__log_density__get, 1},
@@ -9869,7 +10087,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___K93__K93_Env__ode_names__get", (DL_FUNC) &_plant_Cohort___K93__K93_Env__ode_names__get, 1},
     {"_plant_Species___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_Species___FF16__FF16_Env__ctor, 1},
     {"_plant_Species___FF16__FF16_Env__clear", (DL_FUNC) &_plant_Species___FF16__FF16_Env__clear, 1},
-    {"_plant_Species___FF16__FF16_Env__compute_rates", (DL_FUNC) &_plant_Species___FF16__FF16_Env__compute_rates, 4},
+    {"_plant_Species___FF16__FF16_Env__compute_rates", (DL_FUNC) &_plant_Species___FF16__FF16_Env__compute_rates, 5},
     {"_plant_Species___FF16__FF16_Env__compute_competition", (DL_FUNC) &_plant_Species___FF16__FF16_Env__compute_competition, 2},
     {"_plant_Species___FF16__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Species___FF16__FF16_Env__introduce_new_cohort, 1},
     {"_plant_Species___FF16__FF16_Env__cohort_at", (DL_FUNC) &_plant_Species___FF16__FF16_Env__cohort_at, 2},
@@ -9889,7 +10107,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__ode_rates__get, 1},
     {"_plant_Species___Water__FF16_Env__ctor", (DL_FUNC) &_plant_Species___Water__FF16_Env__ctor, 1},
     {"_plant_Species___Water__FF16_Env__clear", (DL_FUNC) &_plant_Species___Water__FF16_Env__clear, 1},
-    {"_plant_Species___Water__FF16_Env__compute_rates", (DL_FUNC) &_plant_Species___Water__FF16_Env__compute_rates, 4},
+    {"_plant_Species___Water__FF16_Env__compute_rates", (DL_FUNC) &_plant_Species___Water__FF16_Env__compute_rates, 5},
     {"_plant_Species___Water__FF16_Env__compute_competition", (DL_FUNC) &_plant_Species___Water__FF16_Env__compute_competition, 2},
     {"_plant_Species___Water__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Species___Water__FF16_Env__introduce_new_cohort, 1},
     {"_plant_Species___Water__FF16_Env__cohort_at", (DL_FUNC) &_plant_Species___Water__FF16_Env__cohort_at, 2},
@@ -9909,7 +10127,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___Water__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Species___Water__FF16_Env__ode_rates__get, 1},
     {"_plant_Species___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__ctor, 1},
     {"_plant_Species___FF16r__FF16_Env__clear", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__clear, 1},
-    {"_plant_Species___FF16r__FF16_Env__compute_rates", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__compute_rates, 4},
+    {"_plant_Species___FF16r__FF16_Env__compute_rates", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__compute_rates, 5},
     {"_plant_Species___FF16r__FF16_Env__compute_competition", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__compute_competition, 2},
     {"_plant_Species___FF16r__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__introduce_new_cohort, 1},
     {"_plant_Species___FF16r__FF16_Env__cohort_at", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__cohort_at, 2},
@@ -9929,7 +10147,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16r__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__ode_rates__get, 1},
     {"_plant_Species___K93__K93_Env__ctor", (DL_FUNC) &_plant_Species___K93__K93_Env__ctor, 1},
     {"_plant_Species___K93__K93_Env__clear", (DL_FUNC) &_plant_Species___K93__K93_Env__clear, 1},
-    {"_plant_Species___K93__K93_Env__compute_rates", (DL_FUNC) &_plant_Species___K93__K93_Env__compute_rates, 4},
+    {"_plant_Species___K93__K93_Env__compute_rates", (DL_FUNC) &_plant_Species___K93__K93_Env__compute_rates, 5},
     {"_plant_Species___K93__K93_Env__compute_competition", (DL_FUNC) &_plant_Species___K93__K93_Env__compute_competition, 2},
     {"_plant_Species___K93__K93_Env__introduce_new_cohort", (DL_FUNC) &_plant_Species___K93__K93_Env__introduce_new_cohort, 1},
     {"_plant_Species___K93__K93_Env__cohort_at", (DL_FUNC) &_plant_Species___K93__K93_Env__cohort_at, 2},
@@ -9947,7 +10165,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_state__get, 1},
     {"_plant_Species___K93__K93_Env__ode_state__set", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_state__set, 2},
     {"_plant_Species___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_rates__get, 1},
-    {"_plant_Patch___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ctor, 1},
+    {"_plant_Patch___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ctor, 4},
     {"_plant_Patch___FF16__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__introduce_new_cohort, 2},
     {"_plant_Patch___FF16__FF16_Env__compute_environment", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__compute_environment, 1},
     {"_plant_Patch___FF16__FF16_Env__compute_rates", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__compute_rates, 1},
@@ -9972,7 +10190,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_rates__get, 1},
-    {"_plant_Patch___Water__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___Water__FF16_Env__ctor, 1},
+    {"_plant_Patch___Water__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___Water__FF16_Env__ctor, 4},
     {"_plant_Patch___Water__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___Water__FF16_Env__introduce_new_cohort, 2},
     {"_plant_Patch___Water__FF16_Env__compute_environment", (DL_FUNC) &_plant_Patch___Water__FF16_Env__compute_environment, 1},
     {"_plant_Patch___Water__FF16_Env__compute_rates", (DL_FUNC) &_plant_Patch___Water__FF16_Env__compute_rates, 1},
@@ -9997,7 +10215,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___Water__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___Water__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___Water__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___Water__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___Water__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___Water__FF16_Env__ode_rates__get, 1},
-    {"_plant_Patch___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ctor, 1},
+    {"_plant_Patch___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ctor, 4},
     {"_plant_Patch___FF16r__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__introduce_new_cohort, 2},
     {"_plant_Patch___FF16r__FF16_Env__compute_environment", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__compute_environment, 1},
     {"_plant_Patch___FF16r__FF16_Env__compute_rates", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__compute_rates, 1},
@@ -10022,7 +10240,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16r__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_rates__get, 1},
-    {"_plant_Patch___K93__K93_Env__ctor", (DL_FUNC) &_plant_Patch___K93__K93_Env__ctor, 1},
+    {"_plant_Patch___K93__K93_Env__ctor", (DL_FUNC) &_plant_Patch___K93__K93_Env__ctor, 4},
     {"_plant_Patch___K93__K93_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___K93__K93_Env__introduce_new_cohort, 2},
     {"_plant_Patch___K93__K93_Env__compute_environment", (DL_FUNC) &_plant_Patch___K93__K93_Env__compute_environment, 1},
     {"_plant_Patch___K93__K93_Env__compute_rates", (DL_FUNC) &_plant_Patch___K93__K93_Env__compute_rates, 1},
@@ -10047,7 +10265,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___K93__K93_Env__ode_time__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_time__get, 1},
     {"_plant_Patch___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_state__get, 1},
     {"_plant_Patch___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_rates__get, 1},
-    {"_plant_SCM___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ctor, 1},
+    {"_plant_SCM___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ctor, 4},
     {"_plant_SCM___FF16__FF16_Env__run", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run, 1},
     {"_plant_SCM___FF16__FF16_Env__run_next", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_next, 1},
     {"_plant_SCM___FF16__FF16_Env__reset", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__reset, 1},
@@ -10067,7 +10285,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__FF16_Env__use_ode_times__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__use_ode_times__get, 1},
     {"_plant_SCM___FF16__FF16_Env__use_ode_times__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__use_ode_times__set, 2},
     {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___Water__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___Water__FF16_Env__ctor, 1},
+    {"_plant_SCM___Water__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___Water__FF16_Env__ctor, 4},
     {"_plant_SCM___Water__FF16_Env__run", (DL_FUNC) &_plant_SCM___Water__FF16_Env__run, 1},
     {"_plant_SCM___Water__FF16_Env__run_next", (DL_FUNC) &_plant_SCM___Water__FF16_Env__run_next, 1},
     {"_plant_SCM___Water__FF16_Env__reset", (DL_FUNC) &_plant_SCM___Water__FF16_Env__reset, 1},
@@ -10087,7 +10305,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___Water__FF16_Env__use_ode_times__get", (DL_FUNC) &_plant_SCM___Water__FF16_Env__use_ode_times__get, 1},
     {"_plant_SCM___Water__FF16_Env__use_ode_times__set", (DL_FUNC) &_plant_SCM___Water__FF16_Env__use_ode_times__set, 2},
     {"_plant_SCM___Water__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___Water__FF16_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__ctor, 1},
+    {"_plant_SCM___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__ctor, 4},
     {"_plant_SCM___FF16r__FF16_Env__run", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__run, 1},
     {"_plant_SCM___FF16r__FF16_Env__run_next", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__run_next, 1},
     {"_plant_SCM___FF16r__FF16_Env__reset", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__reset, 1},
@@ -10107,7 +10325,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16r__FF16_Env__use_ode_times__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__use_ode_times__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__use_ode_times__set", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__use_ode_times__set, 2},
     {"_plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___K93__K93_Env__ctor", (DL_FUNC) &_plant_SCM___K93__K93_Env__ctor, 1},
+    {"_plant_SCM___K93__K93_Env__ctor", (DL_FUNC) &_plant_SCM___K93__K93_Env__ctor, 4},
     {"_plant_SCM___K93__K93_Env__run", (DL_FUNC) &_plant_SCM___K93__K93_Env__run, 1},
     {"_plant_SCM___K93__K93_Env__run_next", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_next, 1},
     {"_plant_SCM___K93__K93_Env__reset", (DL_FUNC) &_plant_SCM___K93__K93_Env__reset, 1},
@@ -10211,7 +10429,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticSpecies___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_StochasticSpecies___K93__K93_Env__ode_state__get, 1},
     {"_plant_StochasticSpecies___K93__K93_Env__ode_state__set", (DL_FUNC) &_plant_StochasticSpecies___K93__K93_Env__ode_state__set, 2},
     {"_plant_StochasticSpecies___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticSpecies___K93__K93_Env__ode_rates__get, 1},
-    {"_plant_StochasticPatch___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatch___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ctor, 3},
     {"_plant_StochasticPatch___FF16__FF16_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__compute_competition, 2},
     {"_plant_StochasticPatch___FF16__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__introduce_new_cohort, 2},
     {"_plant_StochasticPatch___FF16__FF16_Env__introduce_new_cohort_and_update", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__introduce_new_cohort_and_update, 2},
@@ -10232,7 +10450,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_rates__get, 1},
-    {"_plant_StochasticPatch___Water__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatch___Water__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__ctor, 3},
     {"_plant_StochasticPatch___Water__FF16_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__compute_competition, 2},
     {"_plant_StochasticPatch___Water__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__introduce_new_cohort, 2},
     {"_plant_StochasticPatch___Water__FF16_Env__introduce_new_cohort_and_update", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__introduce_new_cohort_and_update, 2},
@@ -10253,7 +10471,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___Water__FF16_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___Water__FF16_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___Water__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__ode_rates__get, 1},
-    {"_plant_StochasticPatch___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatch___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ctor, 3},
     {"_plant_StochasticPatch___FF16r__FF16_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__compute_competition, 2},
     {"_plant_StochasticPatch___FF16r__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__introduce_new_cohort, 2},
     {"_plant_StochasticPatch___FF16r__FF16_Env__introduce_new_cohort_and_update", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__introduce_new_cohort_and_update, 2},
@@ -10274,7 +10492,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___FF16r__FF16_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ode_rates__get, 1},
-    {"_plant_StochasticPatch___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ctor, 1},
+    {"_plant_StochasticPatch___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ctor, 3},
     {"_plant_StochasticPatch___K93__K93_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__compute_competition, 2},
     {"_plant_StochasticPatch___K93__K93_Env__introduce_new_cohort", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__introduce_new_cohort, 2},
     {"_plant_StochasticPatch___K93__K93_Env__introduce_new_cohort_and_update", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__introduce_new_cohort_and_update, 2},
@@ -10295,7 +10513,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___K93__K93_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_rates__get, 1},
-    {"_plant_StochasticPatchRunner___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatchRunner___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__run, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__run_next, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__reset", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__reset, 1},
@@ -10307,7 +10525,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__state__get, 1},
-    {"_plant_StochasticPatchRunner___Water__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatchRunner___Water__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___Water__FF16_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__run, 1},
     {"_plant_StochasticPatchRunner___Water__FF16_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__run_next, 1},
     {"_plant_StochasticPatchRunner___Water__FF16_Env__reset", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__reset, 1},
@@ -10319,7 +10537,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___Water__FF16_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___Water__FF16_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___Water__FF16_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__state__get, 1},
-    {"_plant_StochasticPatchRunner___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatchRunner___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__run, 1},
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__run_next, 1},
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__reset", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__reset, 1},
@@ -10331,7 +10549,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__state__get, 1},
-    {"_plant_StochasticPatchRunner___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__ctor, 1},
+    {"_plant_StochasticPatchRunner___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__ctor, 3},
     {"_plant_StochasticPatchRunner___K93__K93_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__run, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__run_next, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__reset", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__reset, 1},
@@ -10343,25 +10561,25 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___K93__K93_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__state__get, 1},
-    {"_plant_Canopy__ctor", (DL_FUNC) &_plant_Canopy__ctor, 1},
+    {"_plant_Canopy__ctor", (DL_FUNC) &_plant_Canopy__ctor, 3},
     {"_plant_Canopy__canopy_openness", (DL_FUNC) &_plant_Canopy__canopy_openness, 2},
     {"_plant_Canopy__clear", (DL_FUNC) &_plant_Canopy__clear, 1},
     {"_plant_Canopy__canopy_interpolator__get", (DL_FUNC) &_plant_Canopy__canopy_interpolator__get, 1},
     {"_plant_Canopy__canopy_interpolator__set", (DL_FUNC) &_plant_Canopy__canopy_interpolator__set, 2},
-    {"_plant_Disturbance_Regime__ctor", (DL_FUNC) &_plant_Disturbance_Regime__ctor, 0},
-    {"_plant_Disturbance_Regime__density", (DL_FUNC) &_plant_Disturbance_Regime__density, 2},
-    {"_plant_Disturbance_Regime__pr_survival", (DL_FUNC) &_plant_Disturbance_Regime__pr_survival, 2},
+    {"_plant_DisturbanceRegime__ctor", (DL_FUNC) &_plant_DisturbanceRegime__ctor, 0},
+    {"_plant_DisturbanceRegime__density", (DL_FUNC) &_plant_DisturbanceRegime__density, 2},
+    {"_plant_DisturbanceRegime__pr_survival", (DL_FUNC) &_plant_DisturbanceRegime__pr_survival, 2},
     {"_plant_No_Disturbance__ctor", (DL_FUNC) &_plant_No_Disturbance__ctor, 0},
     {"_plant_No_Disturbance__density", (DL_FUNC) &_plant_No_Disturbance__density, 2},
     {"_plant_No_Disturbance__pr_survival", (DL_FUNC) &_plant_No_Disturbance__pr_survival, 2},
-    {"_plant_Weibull_Disturbance_Regime__ctor", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__ctor, 1},
-    {"_plant_Weibull_Disturbance_Regime__density", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__density, 2},
-    {"_plant_Weibull_Disturbance_Regime__pr_survival", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__pr_survival, 2},
-    {"_plant_Weibull_Disturbance_Regime__mean_interval", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__mean_interval, 1},
-    {"_plant_Weibull_Disturbance_Regime__cdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__cdf, 2},
-    {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
+    {"_plant_Weibull_DisturbanceRegime__ctor", (DL_FUNC) &_plant_Weibull_DisturbanceRegime__ctor, 1},
+    {"_plant_Weibull_DisturbanceRegime__density", (DL_FUNC) &_plant_Weibull_DisturbanceRegime__density, 2},
+    {"_plant_Weibull_DisturbanceRegime__pr_survival", (DL_FUNC) &_plant_Weibull_DisturbanceRegime__pr_survival, 2},
+    {"_plant_Weibull_DisturbanceRegime__mean_interval", (DL_FUNC) &_plant_Weibull_DisturbanceRegime__mean_interval, 1},
+    {"_plant_Weibull_DisturbanceRegime__cdf", (DL_FUNC) &_plant_Weibull_DisturbanceRegime__cdf, 2},
+    {"_plant_Weibull_DisturbanceRegime__icdf", (DL_FUNC) &_plant_Weibull_DisturbanceRegime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
-    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 1},
+    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 0},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
@@ -10369,13 +10587,27 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__compute_rates", (DL_FUNC) &_plant_FF16_Environment__compute_rates, 1},
     {"_plant_FF16_Environment__time__get", (DL_FUNC) &_plant_FF16_Environment__time__get, 1},
     {"_plant_FF16_Environment__time__set", (DL_FUNC) &_plant_FF16_Environment__time__set, 2},
+    {"_plant_FF16_Environment__ode_size__get", (DL_FUNC) &_plant_FF16_Environment__ode_size__get, 1},
+    {"_plant_FF16_Environment__canopy_light_tol__get", (DL_FUNC) &_plant_FF16_Environment__canopy_light_tol__get, 1},
+    {"_plant_FF16_Environment__canopy_light_tol__set", (DL_FUNC) &_plant_FF16_Environment__canopy_light_tol__set, 2},
+    {"_plant_FF16_Environment__canopy_light_nbase__get", (DL_FUNC) &_plant_FF16_Environment__canopy_light_nbase__get, 1},
+    {"_plant_FF16_Environment__canopy_light_nbase__set", (DL_FUNC) &_plant_FF16_Environment__canopy_light_nbase__set, 2},
+    {"_plant_FF16_Environment__canopy_light_max_depth__get", (DL_FUNC) &_plant_FF16_Environment__canopy_light_max_depth__get, 1},
+    {"_plant_FF16_Environment__canopy_light_max_depth__set", (DL_FUNC) &_plant_FF16_Environment__canopy_light_max_depth__set, 2},
+    {"_plant_FF16_Environment__canopy_rescale_usually__get", (DL_FUNC) &_plant_FF16_Environment__canopy_rescale_usually__get, 1},
+    {"_plant_FF16_Environment__canopy_rescale_usually__set", (DL_FUNC) &_plant_FF16_Environment__canopy_rescale_usually__set, 2},
     {"_plant_FF16_Environment__canopy__get", (DL_FUNC) &_plant_FF16_Environment__canopy__get, 1},
     {"_plant_FF16_Environment__canopy__set", (DL_FUNC) &_plant_FF16_Environment__canopy__set, 2},
-    {"_plant_FF16_Environment__ode_size__get", (DL_FUNC) &_plant_FF16_Environment__ode_size__get, 1},
+    {"_plant_FF16_Environment__soil_number_of_depths__get", (DL_FUNC) &_plant_FF16_Environment__soil_number_of_depths__get, 1},
+    {"_plant_FF16_Environment__soil_number_of_depths__set", (DL_FUNC) &_plant_FF16_Environment__soil_number_of_depths__set, 2},
+    {"_plant_FF16_Environment__soil_initial_state__get", (DL_FUNC) &_plant_FF16_Environment__soil_initial_state__get, 1},
+    {"_plant_FF16_Environment__soil_initial_state__set", (DL_FUNC) &_plant_FF16_Environment__soil_initial_state__set, 2},
+    {"_plant_FF16_Environment__soil_infiltration_rate__get", (DL_FUNC) &_plant_FF16_Environment__soil_infiltration_rate__get, 1},
+    {"_plant_FF16_Environment__soil_infiltration_rate__set", (DL_FUNC) &_plant_FF16_Environment__soil_infiltration_rate__set, 2},
     {"_plant_FF16_Environment__soil__get", (DL_FUNC) &_plant_FF16_Environment__soil__get, 1},
     {"_plant_FF16r_Strategy__ctor", (DL_FUNC) &_plant_FF16r_Strategy__ctor, 0},
     {"_plant_K93_Strategy__ctor", (DL_FUNC) &_plant_K93_Strategy__ctor, 0},
-    {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 1},
+    {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 0},
     {"_plant_K93_Environment__canopy_openness", (DL_FUNC) &_plant_K93_Environment__canopy_openness, 2},
     {"_plant_K93_Environment__clear", (DL_FUNC) &_plant_K93_Environment__clear, 1},
     {"_plant_K93_Environment__set_fixed_environment", (DL_FUNC) &_plant_K93_Environment__set_fixed_environment, 3},
@@ -10385,14 +10617,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_K93_Environment__canopy__set", (DL_FUNC) &_plant_K93_Environment__canopy__set, 2},
     {"_plant_Water_Strategy__ctor", (DL_FUNC) &_plant_Water_Strategy__ctor, 0},
     {"_plant_test_adaptive_interpolator", (DL_FUNC) &_plant_test_adaptive_interpolator, 3},
-    {"_plant_cohort_schedule_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16__FF16_Env, 1},
-    {"_plant_make_cohort_schedule__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16__FF16_Env, 1},
-    {"_plant_cohort_schedule_default__Parameters___FF16r__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16r__FF16_Env, 1},
-    {"_plant_make_cohort_schedule__Parameters___FF16r__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16r__FF16_Env, 1},
+    {"_plant_cohort_schedule_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16__FF16_Env, 2},
+    {"_plant_make_cohort_schedule__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16__FF16_Env, 2},
+    {"_plant_cohort_schedule_default__Parameters___FF16r__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___FF16r__FF16_Env, 2},
+    {"_plant_make_cohort_schedule__Parameters___FF16r__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___FF16r__FF16_Env, 2},
     {"_plant_test_gradient_fd1", (DL_FUNC) &_plant_test_gradient_fd1, 5},
     {"_plant_test_gradient_richardson", (DL_FUNC) &_plant_test_gradient_richardson, 4},
-    {"_plant_cohort_schedule_default__Parameters___K93__K93_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___K93__K93_Env, 1},
-    {"_plant_make_cohort_schedule__Parameters___K93__K93_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___K93__K93_Env, 1},
+    {"_plant_cohort_schedule_default__Parameters___K93__K93_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___K93__K93_Env, 2},
+    {"_plant_make_cohort_schedule__Parameters___K93__K93_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___K93__K93_Env, 2},
     {"_plant_FF16_oderunner_plant_internals", (DL_FUNC) &_plant_FF16_oderunner_plant_internals, 1},
     {"_plant_FF16r_oderunner_plant_internals", (DL_FUNC) &_plant_FF16r_oderunner_plant_internals, 1},
     {"_plant_K93_oderunner_plant_internals", (DL_FUNC) &_plant_K93_oderunner_plant_internals, 1},
@@ -10403,8 +10635,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_trapezium_vector", (DL_FUNC) &_plant_trapezium_vector, 2},
     {"_plant_local_error_integration", (DL_FUNC) &_plant_local_error_integration, 3},
     {"_plant_matrix_to_list", (DL_FUNC) &_plant_matrix_to_list, 1},
-    {"_plant_cohort_schedule_default__Parameters___Water__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___Water__FF16_Env, 1},
-    {"_plant_make_cohort_schedule__Parameters___Water__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___Water__FF16_Env, 1},
+    {"_plant_cohort_schedule_default__Parameters___Water__FF16_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___Water__FF16_Env, 2},
+    {"_plant_make_cohort_schedule__Parameters___Water__FF16_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___Water__FF16_Env, 2},
     {NULL, NULL, 0}
 };
 

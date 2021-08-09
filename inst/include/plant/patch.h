@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_PATCH_H_
 #define PLANT_PLANT_PATCH_H_
 
-#include <plant/parameters.h>
+#include <plant/species_parameters.h>
 #include <plant/species.h>
 
 #include <plant/control.h>

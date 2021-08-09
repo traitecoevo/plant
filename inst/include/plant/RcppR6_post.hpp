@@ -91,21 +91,21 @@ template <> inline std::string generator_name<plant::tools::IndividualRunner<pla
 template <> inline std::string   class_name_r<plant::Internals >() {return "Internals";}
 template <> inline std::string   package_name<plant::Internals >() {return "plant";}
 template <> inline std::string generator_name<plant::Internals >() {return ".R6_Internals";}
-template <> inline std::string   class_name_r<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >() {return "Parameters<FF16,FF16_Env>";}
-template <> inline std::string   package_name<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
-template <> inline std::string generator_name<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >() {return "";}
+template <> inline std::string   class_name_r<plant::SpeciesParameters<plant::FF16_Strategy> >() {return "SpeciesParameters<FF16>";}
+template <> inline std::string   package_name<plant::SpeciesParameters<plant::FF16_Strategy> >() {return "plant";}
+template <> inline std::string generator_name<plant::SpeciesParameters<plant::FF16_Strategy> >() {return "";}
 
-template <> inline std::string   class_name_r<plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >() {return "Parameters<Water,FF16_Env>";}
-template <> inline std::string   package_name<plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >() {return "plant";}
-template <> inline std::string generator_name<plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >() {return "";}
+template <> inline std::string   class_name_r<plant::SpeciesParameters<plant::Water_Strategy> >() {return "SpeciesParameters<Water>";}
+template <> inline std::string   package_name<plant::SpeciesParameters<plant::Water_Strategy> >() {return "plant";}
+template <> inline std::string generator_name<plant::SpeciesParameters<plant::Water_Strategy> >() {return "";}
 
-template <> inline std::string   class_name_r<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "Parameters<FF16r,FF16_Env>";}
-template <> inline std::string   package_name<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
-template <> inline std::string generator_name<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "";}
+template <> inline std::string   class_name_r<plant::SpeciesParameters<plant::FF16r_Strategy> >() {return "SpeciesParameters<FF16r>";}
+template <> inline std::string   package_name<plant::SpeciesParameters<plant::FF16r_Strategy> >() {return "plant";}
+template <> inline std::string generator_name<plant::SpeciesParameters<plant::FF16r_Strategy> >() {return "";}
 
-template <> inline std::string   class_name_r<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >() {return "Parameters<K93,K93_Env>";}
-template <> inline std::string   package_name<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
-template <> inline std::string generator_name<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >() {return "";}
+template <> inline std::string   class_name_r<plant::SpeciesParameters<plant::K93_Strategy> >() {return "SpeciesParameters<K93>";}
+template <> inline std::string   package_name<plant::SpeciesParameters<plant::K93_Strategy> >() {return "plant";}
+template <> inline std::string generator_name<plant::SpeciesParameters<plant::K93_Strategy> >() {return "";}
 template <> inline std::string   class_name_r<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >() {return "Cohort<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Cohort___FF16__FF16_Env";}
@@ -214,15 +214,15 @@ template <> inline std::string generator_name<plant::StochasticPatchRunner<plant
 template <> inline std::string   class_name_r<plant::Canopy >() {return "Canopy";}
 template <> inline std::string   package_name<plant::Canopy >() {return "plant";}
 template <> inline std::string generator_name<plant::Canopy >() {return ".R6_Canopy";}
-template <> inline std::string   class_name_r<plant::Disturbance_Regime >() {return "Disturbance_Regime";}
-template <> inline std::string   package_name<plant::Disturbance_Regime >() {return "plant";}
-template <> inline std::string generator_name<plant::Disturbance_Regime >() {return ".R6_Disturbance_Regime";}
+template <> inline std::string   class_name_r<plant::DisturbanceRegime >() {return "DisturbanceRegime";}
+template <> inline std::string   package_name<plant::DisturbanceRegime >() {return "plant";}
+template <> inline std::string generator_name<plant::DisturbanceRegime >() {return ".R6_DisturbanceRegime";}
 template <> inline std::string   class_name_r<plant::No_Disturbance >() {return "No_Disturbance";}
 template <> inline std::string   package_name<plant::No_Disturbance >() {return "plant";}
 template <> inline std::string generator_name<plant::No_Disturbance >() {return ".R6_No_Disturbance";}
-template <> inline std::string   class_name_r<plant::Weibull_Disturbance_Regime >() {return "Weibull_Disturbance_Regime";}
-template <> inline std::string   package_name<plant::Weibull_Disturbance_Regime >() {return "plant";}
-template <> inline std::string generator_name<plant::Weibull_Disturbance_Regime >() {return ".R6_Weibull_Disturbance_Regime";}
+template <> inline std::string   class_name_r<plant::Weibull_DisturbanceRegime >() {return "Weibull_DisturbanceRegime";}
+template <> inline std::string   package_name<plant::Weibull_DisturbanceRegime >() {return "plant";}
+template <> inline std::string generator_name<plant::Weibull_DisturbanceRegime >() {return ".R6_Weibull_DisturbanceRegime";}
 template <> inline std::string   class_name_r<plant::FF16_Strategy >() {return "FF16_Strategy";}
 template <> inline std::string   package_name<plant::FF16_Strategy >() {return "plant";}
 template <> inline std::string generator_name<plant::FF16_Strategy >() {return "";}
@@ -329,33 +329,22 @@ template <> inline plant::CohortSchedule as(SEXP x) {
 }
 template <> inline SEXP wrap(const plant::Control& x) {
   Rcpp::List ret;
+  ret["patch_area"] = Rcpp::wrap(x.patch_area);
+  ret["patch_max_lifetime"] = Rcpp::wrap(x.patch_max_lifetime);
+  ret["plant_seed_tol"] = Rcpp::wrap(x.plant_seed_tol);
+  ret["plant_seed_iterations"] = Rcpp::wrap(x.plant_seed_iterations);
+  ret["cohort_gradient_eps"] = Rcpp::wrap(x.cohort_gradient_eps);
+  ret["cohort_gradient_direction"] = Rcpp::wrap(x.cohort_gradient_direction);
+  ret["cohort_gradient_richardson"] = Rcpp::wrap(x.cohort_gradient_richardson);
+  ret["cohort_gradient_richardson_depth"] = Rcpp::wrap(x.cohort_gradient_richardson_depth);
   ret["plant_assimilation_adaptive"] = Rcpp::wrap(x.plant_assimilation_adaptive);
   ret["plant_assimilation_over_distribution"] = Rcpp::wrap(x.plant_assimilation_over_distribution);
   ret["plant_assimilation_tol"] = Rcpp::wrap(x.plant_assimilation_tol);
   ret["plant_assimilation_iterations"] = Rcpp::wrap(x.plant_assimilation_iterations);
   ret["plant_assimilation_rule"] = Rcpp::wrap(x.plant_assimilation_rule);
-  ret["plant_seed_tol"] = Rcpp::wrap(x.plant_seed_tol);
-  ret["plant_seed_iterations"] = Rcpp::wrap(x.plant_seed_iterations);
-  ret["soil_infiltration_rate"] = Rcpp::wrap(x.soil_infiltration_rate);
-  ret["soil_number_of_depths"] = Rcpp::wrap(x.soil_number_of_depths);
-  ret["cohort_gradient_eps"] = Rcpp::wrap(x.cohort_gradient_eps);
-  ret["cohort_gradient_direction"] = Rcpp::wrap(x.cohort_gradient_direction);
-  ret["cohort_gradient_richardson"] = Rcpp::wrap(x.cohort_gradient_richardson);
-  ret["cohort_gradient_richardson_depth"] = Rcpp::wrap(x.cohort_gradient_richardson_depth);
-  ret["environment_light_tol"] = Rcpp::wrap(x.environment_light_tol);
-  ret["environment_light_nbase"] = Rcpp::wrap(x.environment_light_nbase);
-  ret["environment_light_max_depth"] = Rcpp::wrap(x.environment_light_max_depth);
-  ret["environment_rescale_usually"] = Rcpp::wrap(x.environment_rescale_usually);
-  ret["ode_step_size_initial"] = Rcpp::wrap(x.ode_step_size_initial);
-  ret["ode_step_size_min"] = Rcpp::wrap(x.ode_step_size_min);
-  ret["ode_step_size_max"] = Rcpp::wrap(x.ode_step_size_max);
-  ret["ode_tol_rel"] = Rcpp::wrap(x.ode_tol_rel);
-  ret["ode_tol_abs"] = Rcpp::wrap(x.ode_tol_abs);
-  ret["ode_a_y"] = Rcpp::wrap(x.ode_a_y);
-  ret["ode_a_dydt"] = Rcpp::wrap(x.ode_a_dydt);
-  ret["schedule_nsteps"] = Rcpp::wrap(x.schedule_nsteps);
-  ret["schedule_eps"] = Rcpp::wrap(x.schedule_eps);
-  ret["schedule_verbose"] = Rcpp::wrap(x.schedule_verbose);
+  ret["build_schedule_nsteps"] = Rcpp::wrap(x.build_schedule_nsteps);
+  ret["build_schedule_eps"] = Rcpp::wrap(x.build_schedule_eps);
+  ret["build_schedule_verbose"] = Rcpp::wrap(x.build_schedule_verbose);
   ret["equilibrium_nsteps"] = Rcpp::wrap(x.equilibrium_nsteps);
   ret["equilibrium_eps"] = Rcpp::wrap(x.equilibrium_eps);
   ret["equilibrium_large_birth_rate_change"] = Rcpp::wrap(x.equilibrium_large_birth_rate_change);
@@ -365,6 +354,13 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["equilibrium_nattempts"] = Rcpp::wrap(x.equilibrium_nattempts);
   ret["equilibrium_solver_logN"] = Rcpp::wrap(x.equilibrium_solver_logN);
   ret["equilibrium_solver_try_keep"] = Rcpp::wrap(x.equilibrium_solver_try_keep);
+  ret["ode_tol_rel"] = Rcpp::wrap(x.ode_tol_rel);
+  ret["ode_tol_abs"] = Rcpp::wrap(x.ode_tol_abs);
+  ret["ode_a_y"] = Rcpp::wrap(x.ode_a_y);
+  ret["ode_a_dydt"] = Rcpp::wrap(x.ode_a_dydt);
+  ret["ode_step_size_min"] = Rcpp::wrap(x.ode_step_size_min);
+  ret["ode_step_size_max"] = Rcpp::wrap(x.ode_step_size_max);
+  ret["ode_step_size_initial"] = Rcpp::wrap(x.ode_step_size_initial);
   ret.attr("class") = "Control";
   return ret;
 }
@@ -377,6 +373,22 @@ template <> inline plant::Control as(SEXP x) {
   // field twice.  No current support for a hook.
   plant::Control ret;
   Rcpp::List xl(x);
+  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
+  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
+  // ret.patch_max_lifetime = Rcpp::as<decltype(retpatch_max_lifetime) >(xl["patch_max_lifetime"]);
+  ret.patch_max_lifetime = Rcpp::as<double >(xl["patch_max_lifetime"]);
+  // ret.plant_seed_tol = Rcpp::as<decltype(retplant_seed_tol) >(xl["plant_seed_tol"]);
+  ret.plant_seed_tol = Rcpp::as<double >(xl["plant_seed_tol"]);
+  // ret.plant_seed_iterations = Rcpp::as<decltype(retplant_seed_iterations) >(xl["plant_seed_iterations"]);
+  ret.plant_seed_iterations = Rcpp::as<int >(xl["plant_seed_iterations"]);
+  // ret.cohort_gradient_eps = Rcpp::as<decltype(retcohort_gradient_eps) >(xl["cohort_gradient_eps"]);
+  ret.cohort_gradient_eps = Rcpp::as<double >(xl["cohort_gradient_eps"]);
+  // ret.cohort_gradient_direction = Rcpp::as<decltype(retcohort_gradient_direction) >(xl["cohort_gradient_direction"]);
+  ret.cohort_gradient_direction = Rcpp::as<int >(xl["cohort_gradient_direction"]);
+  // ret.cohort_gradient_richardson = Rcpp::as<decltype(retcohort_gradient_richardson) >(xl["cohort_gradient_richardson"]);
+  ret.cohort_gradient_richardson = Rcpp::as<bool >(xl["cohort_gradient_richardson"]);
+  // ret.cohort_gradient_richardson_depth = Rcpp::as<decltype(retcohort_gradient_richardson_depth) >(xl["cohort_gradient_richardson_depth"]);
+  ret.cohort_gradient_richardson_depth = Rcpp::as<size_t >(xl["cohort_gradient_richardson_depth"]);
   // ret.plant_assimilation_adaptive = Rcpp::as<decltype(retplant_assimilation_adaptive) >(xl["plant_assimilation_adaptive"]);
   ret.plant_assimilation_adaptive = Rcpp::as<bool >(xl["plant_assimilation_adaptive"]);
   // ret.plant_assimilation_over_distribution = Rcpp::as<decltype(retplant_assimilation_over_distribution) >(xl["plant_assimilation_over_distribution"]);
@@ -387,50 +399,12 @@ template <> inline plant::Control as(SEXP x) {
   ret.plant_assimilation_iterations = Rcpp::as<size_t >(xl["plant_assimilation_iterations"]);
   // ret.plant_assimilation_rule = Rcpp::as<decltype(retplant_assimilation_rule) >(xl["plant_assimilation_rule"]);
   ret.plant_assimilation_rule = Rcpp::as<size_t >(xl["plant_assimilation_rule"]);
-  // ret.plant_seed_tol = Rcpp::as<decltype(retplant_seed_tol) >(xl["plant_seed_tol"]);
-  ret.plant_seed_tol = Rcpp::as<double >(xl["plant_seed_tol"]);
-  // ret.plant_seed_iterations = Rcpp::as<decltype(retplant_seed_iterations) >(xl["plant_seed_iterations"]);
-  ret.plant_seed_iterations = Rcpp::as<int >(xl["plant_seed_iterations"]);
-  // ret.soil_infiltration_rate = Rcpp::as<decltype(retsoil_infiltration_rate) >(xl["soil_infiltration_rate"]);
-  ret.soil_infiltration_rate = Rcpp::as<double >(xl["soil_infiltration_rate"]);
-  // ret.soil_number_of_depths = Rcpp::as<decltype(retsoil_number_of_depths) >(xl["soil_number_of_depths"]);
-  ret.soil_number_of_depths = Rcpp::as<int >(xl["soil_number_of_depths"]);
-  // ret.cohort_gradient_eps = Rcpp::as<decltype(retcohort_gradient_eps) >(xl["cohort_gradient_eps"]);
-  ret.cohort_gradient_eps = Rcpp::as<double >(xl["cohort_gradient_eps"]);
-  // ret.cohort_gradient_direction = Rcpp::as<decltype(retcohort_gradient_direction) >(xl["cohort_gradient_direction"]);
-  ret.cohort_gradient_direction = Rcpp::as<int >(xl["cohort_gradient_direction"]);
-  // ret.cohort_gradient_richardson = Rcpp::as<decltype(retcohort_gradient_richardson) >(xl["cohort_gradient_richardson"]);
-  ret.cohort_gradient_richardson = Rcpp::as<bool >(xl["cohort_gradient_richardson"]);
-  // ret.cohort_gradient_richardson_depth = Rcpp::as<decltype(retcohort_gradient_richardson_depth) >(xl["cohort_gradient_richardson_depth"]);
-  ret.cohort_gradient_richardson_depth = Rcpp::as<size_t >(xl["cohort_gradient_richardson_depth"]);
-  // ret.environment_light_tol = Rcpp::as<decltype(retenvironment_light_tol) >(xl["environment_light_tol"]);
-  ret.environment_light_tol = Rcpp::as<double >(xl["environment_light_tol"]);
-  // ret.environment_light_nbase = Rcpp::as<decltype(retenvironment_light_nbase) >(xl["environment_light_nbase"]);
-  ret.environment_light_nbase = Rcpp::as<size_t >(xl["environment_light_nbase"]);
-  // ret.environment_light_max_depth = Rcpp::as<decltype(retenvironment_light_max_depth) >(xl["environment_light_max_depth"]);
-  ret.environment_light_max_depth = Rcpp::as<size_t >(xl["environment_light_max_depth"]);
-  // ret.environment_rescale_usually = Rcpp::as<decltype(retenvironment_rescale_usually) >(xl["environment_rescale_usually"]);
-  ret.environment_rescale_usually = Rcpp::as<bool >(xl["environment_rescale_usually"]);
-  // ret.ode_step_size_initial = Rcpp::as<decltype(retode_step_size_initial) >(xl["ode_step_size_initial"]);
-  ret.ode_step_size_initial = Rcpp::as<double >(xl["ode_step_size_initial"]);
-  // ret.ode_step_size_min = Rcpp::as<decltype(retode_step_size_min) >(xl["ode_step_size_min"]);
-  ret.ode_step_size_min = Rcpp::as<double >(xl["ode_step_size_min"]);
-  // ret.ode_step_size_max = Rcpp::as<decltype(retode_step_size_max) >(xl["ode_step_size_max"]);
-  ret.ode_step_size_max = Rcpp::as<double >(xl["ode_step_size_max"]);
-  // ret.ode_tol_rel = Rcpp::as<decltype(retode_tol_rel) >(xl["ode_tol_rel"]);
-  ret.ode_tol_rel = Rcpp::as<double >(xl["ode_tol_rel"]);
-  // ret.ode_tol_abs = Rcpp::as<decltype(retode_tol_abs) >(xl["ode_tol_abs"]);
-  ret.ode_tol_abs = Rcpp::as<double >(xl["ode_tol_abs"]);
-  // ret.ode_a_y = Rcpp::as<decltype(retode_a_y) >(xl["ode_a_y"]);
-  ret.ode_a_y = Rcpp::as<double >(xl["ode_a_y"]);
-  // ret.ode_a_dydt = Rcpp::as<decltype(retode_a_dydt) >(xl["ode_a_dydt"]);
-  ret.ode_a_dydt = Rcpp::as<double >(xl["ode_a_dydt"]);
-  // ret.schedule_nsteps = Rcpp::as<decltype(retschedule_nsteps) >(xl["schedule_nsteps"]);
-  ret.schedule_nsteps = Rcpp::as<size_t >(xl["schedule_nsteps"]);
-  // ret.schedule_eps = Rcpp::as<decltype(retschedule_eps) >(xl["schedule_eps"]);
-  ret.schedule_eps = Rcpp::as<double >(xl["schedule_eps"]);
-  // ret.schedule_verbose = Rcpp::as<decltype(retschedule_verbose) >(xl["schedule_verbose"]);
-  ret.schedule_verbose = Rcpp::as<bool >(xl["schedule_verbose"]);
+  // ret.build_schedule_nsteps = Rcpp::as<decltype(retbuild_schedule_nsteps) >(xl["build_schedule_nsteps"]);
+  ret.build_schedule_nsteps = Rcpp::as<size_t >(xl["build_schedule_nsteps"]);
+  // ret.build_schedule_eps = Rcpp::as<decltype(retbuild_schedule_eps) >(xl["build_schedule_eps"]);
+  ret.build_schedule_eps = Rcpp::as<double >(xl["build_schedule_eps"]);
+  // ret.build_schedule_verbose = Rcpp::as<decltype(retbuild_schedule_verbose) >(xl["build_schedule_verbose"]);
+  ret.build_schedule_verbose = Rcpp::as<bool >(xl["build_schedule_verbose"]);
   // ret.equilibrium_nsteps = Rcpp::as<decltype(retequilibrium_nsteps) >(xl["equilibrium_nsteps"]);
   ret.equilibrium_nsteps = Rcpp::as<size_t >(xl["equilibrium_nsteps"]);
   // ret.equilibrium_eps = Rcpp::as<decltype(retequilibrium_eps) >(xl["equilibrium_eps"]);
@@ -449,6 +423,20 @@ template <> inline plant::Control as(SEXP x) {
   ret.equilibrium_solver_logN = Rcpp::as<bool >(xl["equilibrium_solver_logN"]);
   // ret.equilibrium_solver_try_keep = Rcpp::as<decltype(retequilibrium_solver_try_keep) >(xl["equilibrium_solver_try_keep"]);
   ret.equilibrium_solver_try_keep = Rcpp::as<bool >(xl["equilibrium_solver_try_keep"]);
+  // ret.ode_tol_rel = Rcpp::as<decltype(retode_tol_rel) >(xl["ode_tol_rel"]);
+  ret.ode_tol_rel = Rcpp::as<double >(xl["ode_tol_rel"]);
+  // ret.ode_tol_abs = Rcpp::as<decltype(retode_tol_abs) >(xl["ode_tol_abs"]);
+  ret.ode_tol_abs = Rcpp::as<double >(xl["ode_tol_abs"]);
+  // ret.ode_a_y = Rcpp::as<decltype(retode_a_y) >(xl["ode_a_y"]);
+  ret.ode_a_y = Rcpp::as<double >(xl["ode_a_y"]);
+  // ret.ode_a_dydt = Rcpp::as<decltype(retode_a_dydt) >(xl["ode_a_dydt"]);
+  ret.ode_a_dydt = Rcpp::as<double >(xl["ode_a_dydt"]);
+  // ret.ode_step_size_min = Rcpp::as<decltype(retode_step_size_min) >(xl["ode_step_size_min"]);
+  ret.ode_step_size_min = Rcpp::as<double >(xl["ode_step_size_min"]);
+  // ret.ode_step_size_max = Rcpp::as<decltype(retode_step_size_max) >(xl["ode_step_size_max"]);
+  ret.ode_step_size_max = Rcpp::as<double >(xl["ode_step_size_max"]);
+  // ret.ode_step_size_initial = Rcpp::as<decltype(retode_step_size_initial) >(xl["ode_step_size_initial"]);
+  ret.ode_step_size_initial = Rcpp::as<double >(xl["ode_step_size_initial"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::ode::OdeControl& x) {
@@ -566,48 +554,33 @@ template <> inline SEXP wrap(const plant::Internals& x) {
 template <> inline plant::Internals as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Internals>(x));
 }
-template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& x) {
+template <> inline SEXP wrap(const plant::SpeciesParameters<plant::FF16_Strategy>& x) {
   Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
-  ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
-  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
-  ret["strategies"] = Rcpp::wrap(x.strategies);
+  ret["species"] = Rcpp::wrap(x.species);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
-  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<FF16,FF16_Env>", "Parameters");
+  ret.attr("class") = Rcpp::CharacterVector::create("SpeciesParameters<FF16>", "SpeciesParameters");
   return ret;
 }
-template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP x) {
-  if (!plant::RcppR6::is<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >(x)) {
-    Rcpp::stop("Expected an object of type Parameters<FF16,FF16_Env>");
+template <> inline plant::SpeciesParameters<plant::FF16_Strategy> as(SEXP x) {
+  if (!plant::RcppR6::is<plant::SpeciesParameters<plant::FF16_Strategy> >(x)) {
+    Rcpp::stop("Expected an object of type SpeciesParameters<FF16>");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> ret;
+  plant::SpeciesParameters<plant::FF16_Strategy> ret;
   Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
-  // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
-  ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
-  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
-  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
-  // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
-  ret.strategies = Rcpp::as<std::vector<plant::FF16_Strategy> >(xl["strategies"]);
+  // ret.species = Rcpp::as<decltype(retspecies) >(xl["species"]);
+  ret.species = Rcpp::as<std::vector<plant::FF16_Strategy> >(xl["species"]);
   // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -620,48 +593,33 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   return ret;
 }
 
-template <> inline SEXP wrap(const plant::Parameters<plant::Water_Strategy,plant::FF16_Environment>& x) {
+template <> inline SEXP wrap(const plant::SpeciesParameters<plant::Water_Strategy>& x) {
   Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
-  ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
-  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
-  ret["strategies"] = Rcpp::wrap(x.strategies);
+  ret["species"] = Rcpp::wrap(x.species);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
-  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<Water,FF16_Env>", "Parameters");
+  ret.attr("class") = Rcpp::CharacterVector::create("SpeciesParameters<Water>", "SpeciesParameters");
   return ret;
 }
-template <> inline plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> as(SEXP x) {
-  if (!plant::RcppR6::is<plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >(x)) {
-    Rcpp::stop("Expected an object of type Parameters<Water,FF16_Env>");
+template <> inline plant::SpeciesParameters<plant::Water_Strategy> as(SEXP x) {
+  if (!plant::RcppR6::is<plant::SpeciesParameters<plant::Water_Strategy> >(x)) {
+    Rcpp::stop("Expected an object of type SpeciesParameters<Water>");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> ret;
+  plant::SpeciesParameters<plant::Water_Strategy> ret;
   Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
-  // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
-  ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
-  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
-  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
-  // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
-  ret.strategies = Rcpp::as<std::vector<plant::Water_Strategy> >(xl["strategies"]);
+  // ret.species = Rcpp::as<decltype(retspecies) >(xl["species"]);
+  ret.species = Rcpp::as<std::vector<plant::Water_Strategy> >(xl["species"]);
   // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::Water_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -674,48 +632,33 @@ template <> inline plant::Parameters<plant::Water_Strategy,plant::FF16_Environme
   return ret;
 }
 
-template <> inline SEXP wrap(const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
+template <> inline SEXP wrap(const plant::SpeciesParameters<plant::FF16r_Strategy>& x) {
   Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
-  ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
-  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
-  ret["strategies"] = Rcpp::wrap(x.strategies);
+  ret["species"] = Rcpp::wrap(x.species);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
-  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<FF16r,FF16_Env>", "Parameters");
+  ret.attr("class") = Rcpp::CharacterVector::create("SpeciesParameters<FF16r>", "SpeciesParameters");
   return ret;
 }
-template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> as(SEXP x) {
-  if (!plant::RcppR6::is<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >(x)) {
-    Rcpp::stop("Expected an object of type Parameters<FF16r,FF16_Env>");
+template <> inline plant::SpeciesParameters<plant::FF16r_Strategy> as(SEXP x) {
+  if (!plant::RcppR6::is<plant::SpeciesParameters<plant::FF16r_Strategy> >(x)) {
+    Rcpp::stop("Expected an object of type SpeciesParameters<FF16r>");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> ret;
+  plant::SpeciesParameters<plant::FF16r_Strategy> ret;
   Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
-  // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
-  ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
-  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
-  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
-  // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
-  ret.strategies = Rcpp::as<std::vector<plant::FF16r_Strategy> >(xl["strategies"]);
+  // ret.species = Rcpp::as<decltype(retspecies) >(xl["species"]);
+  ret.species = Rcpp::as<std::vector<plant::FF16r_Strategy> >(xl["species"]);
   // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16r_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -728,48 +671,33 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environme
   return ret;
 }
 
-template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& x) {
+template <> inline SEXP wrap(const plant::SpeciesParameters<plant::K93_Strategy>& x) {
   Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
-  ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
-  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
-  ret["strategies"] = Rcpp::wrap(x.strategies);
+  ret["species"] = Rcpp::wrap(x.species);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
   ret["cohort_schedule_ode_times"] = Rcpp::wrap(x.cohort_schedule_ode_times);
-  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<K93,K93_Env>", "Parameters");
+  ret.attr("class") = Rcpp::CharacterVector::create("SpeciesParameters<K93>", "SpeciesParameters");
   return ret;
 }
-template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
-  if (!plant::RcppR6::is<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >(x)) {
-    Rcpp::stop("Expected an object of type Parameters<K93,K93_Env>");
+template <> inline plant::SpeciesParameters<plant::K93_Strategy> as(SEXP x) {
+  if (!plant::RcppR6::is<plant::SpeciesParameters<plant::K93_Strategy> >(x)) {
+    Rcpp::stop("Expected an object of type SpeciesParameters<K93>");
     // NOTE: Won't drop through or return anything.
   }
   // NOTE: assumes default constructable, and will assign *every*
   // field twice.  No current support for a hook.
-  plant::Parameters<plant::K93_Strategy,plant::K93_Environment> ret;
+  plant::SpeciesParameters<plant::K93_Strategy> ret;
   Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
-  // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
-  ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
-  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
-  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
-  // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
-  ret.strategies = Rcpp::as<std::vector<plant::K93_Strategy> >(xl["strategies"]);
+  // ret.species = Rcpp::as<decltype(retspecies) >(xl["species"]);
+  ret.species = Rcpp::as<std::vector<plant::K93_Strategy> >(xl["species"]);
   // ret.birth_rate = Rcpp::as<decltype(retbirth_rate) >(xl["birth_rate"]);
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::K93_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -976,11 +904,11 @@ template <> inline SEXP wrap(const plant::Canopy& x) {
 template <> inline plant::Canopy as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Canopy>(x));
 }
-template <> inline SEXP wrap(const plant::Disturbance_Regime& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::Disturbance_Regime>(x));
+template <> inline SEXP wrap(const plant::DisturbanceRegime& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::DisturbanceRegime>(x));
 }
-template <> inline plant::Disturbance_Regime as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::Disturbance_Regime>(x));
+template <> inline plant::DisturbanceRegime as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::DisturbanceRegime>(x));
 }
 template <> inline SEXP wrap(const plant::No_Disturbance& x) {
   return wrap(plant::RcppR6::RcppR6<plant::No_Disturbance>(x));
@@ -988,11 +916,11 @@ template <> inline SEXP wrap(const plant::No_Disturbance& x) {
 template <> inline plant::No_Disturbance as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::No_Disturbance>(x));
 }
-template <> inline SEXP wrap(const plant::Weibull_Disturbance_Regime& x) {
-  return wrap(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime>(x));
+template <> inline SEXP wrap(const plant::Weibull_DisturbanceRegime& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime>(x));
 }
-template <> inline plant::Weibull_Disturbance_Regime as(SEXP x) {
-  return *(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime>(x));
+template <> inline plant::Weibull_DisturbanceRegime as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Weibull_DisturbanceRegime>(x));
 }
 template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
   Rcpp::List ret;
@@ -1027,7 +955,6 @@ template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
   ret.attr("class") = "FF16_Strategy";
   return ret;
@@ -1103,8 +1030,6 @@ template <> inline plant::FF16_Strategy as(SEXP x) {
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
   ret.collect_all_auxillary = Rcpp::as<bool >(xl["collect_all_auxillary"]);
   return ret;
@@ -1148,7 +1073,6 @@ template <> inline SEXP wrap(const plant::FF16r_Strategy& x) {
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
   ret.attr("class") = "FF16r_Strategy";
   return ret;
@@ -1224,8 +1148,6 @@ template <> inline plant::FF16r_Strategy as(SEXP x) {
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
   ret.collect_all_auxillary = Rcpp::as<bool >(xl["collect_all_auxillary"]);
   return ret;
@@ -1243,7 +1165,6 @@ template <> inline SEXP wrap(const plant::K93_Strategy& x) {
   ret["S_D"] = Rcpp::wrap(x.S_D);
   ret["eta"] = Rcpp::wrap(x.eta);
   ret["k_I"] = Rcpp::wrap(x.k_I);
-  ret["control"] = Rcpp::wrap(x.control);
   ret.attr("class") = "K93_Strategy";
   return ret;
 }
@@ -1278,8 +1199,6 @@ template <> inline plant::K93_Strategy as(SEXP x) {
   ret.eta = Rcpp::as<double >(xl["eta"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::K93_Environment& x) {
@@ -1321,7 +1240,6 @@ template <> inline SEXP wrap(const plant::Water_Strategy& x) {
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
   ret.attr("class") = "Water_Strategy";
   return ret;
@@ -1397,8 +1315,6 @@ template <> inline plant::Water_Strategy as(SEXP x) {
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
   ret.collect_all_auxillary = Rcpp::as<bool >(xl["collect_all_auxillary"]);
   return ret;

@@ -1,5 +1,5 @@
 #include <plant/cohort_schedule.h>
-#include <plant/parameters.h>
+#include <plant/species_parameters.h>
 #include <plant/util.h>
 #include <Rcpp.h>
 #include <cmath> // log2, exp2

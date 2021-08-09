@@ -78,17 +78,17 @@ template <> SEXP wrap(const plant::tools::IndividualRunner<plant::K93_Strategy,p
 template <> plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::Internals&);
 template <> plant::Internals as(SEXP);
-template <> SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>&);
-template <> plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
+template <> SEXP wrap(const plant::SpeciesParameters<plant::FF16_Strategy>&);
+template <> plant::SpeciesParameters<plant::FF16_Strategy> as(SEXP);
 
-template <> SEXP wrap(const plant::Parameters<plant::Water_Strategy,plant::FF16_Environment>&);
-template <> plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> as(SEXP);
+template <> SEXP wrap(const plant::SpeciesParameters<plant::Water_Strategy>&);
+template <> plant::SpeciesParameters<plant::Water_Strategy> as(SEXP);
 
-template <> SEXP wrap(const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>&);
-template <> plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> as(SEXP);
+template <> SEXP wrap(const plant::SpeciesParameters<plant::FF16r_Strategy>&);
+template <> plant::SpeciesParameters<plant::FF16r_Strategy> as(SEXP);
 
-template <> SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>&);
-template <> plant::Parameters<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
+template <> SEXP wrap(const plant::SpeciesParameters<plant::K93_Strategy>&);
+template <> plant::SpeciesParameters<plant::K93_Strategy> as(SEXP);
 template <> SEXP wrap(const plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
@@ -168,12 +168,12 @@ template <> SEXP wrap(const plant::StochasticPatchRunner<plant::K93_Strategy,pla
 template <> plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::Canopy&);
 template <> plant::Canopy as(SEXP);
-template <> SEXP wrap(const plant::Disturbance_Regime&);
-template <> plant::Disturbance_Regime as(SEXP);
+template <> SEXP wrap(const plant::DisturbanceRegime&);
+template <> plant::DisturbanceRegime as(SEXP);
 template <> SEXP wrap(const plant::No_Disturbance&);
 template <> plant::No_Disturbance as(SEXP);
-template <> SEXP wrap(const plant::Weibull_Disturbance_Regime&);
-template <> plant::Weibull_Disturbance_Regime as(SEXP);
+template <> SEXP wrap(const plant::Weibull_DisturbanceRegime&);
+template <> plant::Weibull_DisturbanceRegime as(SEXP);
 template <> SEXP wrap(const plant::FF16_Strategy&);
 template <> plant::FF16_Strategy as(SEXP);
 template <> SEXP wrap(const plant::FF16_Environment&);

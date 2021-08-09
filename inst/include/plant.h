@@ -19,7 +19,7 @@
 
 #include <plant/control.h>
 #include <plant/strategy.h>
-#include <plant/parameters.h>
+#include <plant/species_parameters.h>
 #include <plant/cohort_schedule.h>
 
 // Disturbance regimes for meta-population
