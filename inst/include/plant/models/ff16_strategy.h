@@ -46,8 +46,7 @@ public:
 
   double competition_effect(double height) const {
     return area_leaf(height);
-  } /* double competition_effect_state(Internals& vars) const { */ /* return area_leaf_state(vars); */
-  /* } */
+  }
 
   double compute_competition(double z, double height) const {
     return shading_above(z, height);
@@ -116,7 +115,8 @@ public:
   // [eqn 15] Net production
   double net_mass_production_dt_A(double assimilation, double respiration,
                                   double turnover) const;
-  double net_mass_production_dt(const FF16_Environment& environment,
+
+  virtual double net_mass_production_dt(const FF16_Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals=false);
 
