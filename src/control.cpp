@@ -13,6 +13,9 @@ Control::Control() : integrator(15, 1, 0, 0) {
   plant_seed_tol = 1e-8;
   plant_seed_iterations = 1000;
 
+  soil_infiltration_rate = 0.0;
+  soil_number_of_depths = 0;
+
   cohort_gradient_eps = 1e-6;
   cohort_gradient_direction = 1;
   cohort_gradient_richardson = false;
