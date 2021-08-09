@@ -24,7 +24,13 @@ public:
   typedef Species<T,E>      species_type;
   typedef SpeciesParameters<T>   species_params_type;
 
+  // constructor
   Patch(species_params_type s, environment_type e, DisturbanceRegime d, Control c);
+
+  species_params_type species_parameters;
+  environment_type environment;
+  Control control;
+  DisturbanceRegime survival_weighting;
 
   void reset();
   size_t size() const {return species.size();}
@@ -41,9 +47,6 @@ public:
   const species_type& at(size_t species_index) const {
     return species[species_index];
   }
-
-  // Patch disturbance
-  DisturbanceRegime survival_weighting;
 
   // * ODE interface
   size_t ode_size() const;
@@ -87,9 +90,7 @@ private:
   void rescale_environment();
   void compute_rates();
 
-  species_params_type species_parameters;
-  environment_type environment;
-  Control control;
+
 
   std::vector<species_type> species;
 };

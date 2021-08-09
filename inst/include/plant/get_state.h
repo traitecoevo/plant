@@ -102,7 +102,7 @@ Rcpp::List get_state(const StochasticPatchRunner<T,E>& obj) {
   return List::create(_["time"] = obj.time(),
                       _["species"] = get_state(patch),
                       _["env"] = get_state(patch.r_environment()));
-};
+}
 
 }
 

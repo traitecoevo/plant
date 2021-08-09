@@ -16,6 +16,8 @@ public:
   virtual double r_mean_interval() const {return NA_REAL;}
 
   std::vector<double> r_density(std::vector<double> time) const;
+
+  virtual ~DisturbanceRegime() {}; // destructor
 };
 
 }

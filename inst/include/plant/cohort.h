@@ -174,7 +174,7 @@ double Cohort<T,E>::competition_effect() const {
 // only Patch and above does.
 template <typename T, typename E>
 ode::const_iterator Cohort<T,E>::set_ode_state(ode::const_iterator it) {
-  for (int i = 0; i < plant.ode_size(); i++) {
+  for (size_t i = 0; i < plant.ode_size(); i++) {
     plant.set_state(i, *it++);
   }
   offspring_produced_survival_weighted = *it++;
@@ -183,7 +183,7 @@ ode::const_iterator Cohort<T,E>::set_ode_state(ode::const_iterator it) {
 }
 template <typename T, typename E>
 ode::iterator Cohort<T,E>::ode_state(ode::iterator it) const {
-  for (int i = 0; i < plant.ode_size(); i++) {
+  for (size_t i = 0; i < plant.ode_size(); i++) {
     *it++ = plant.state(i);
   }
   *it++ = offspring_produced_survival_weighted;
@@ -192,7 +192,7 @@ ode::iterator Cohort<T,E>::ode_state(ode::iterator it) const {
 }
 template <typename T, typename E>
 ode::iterator Cohort<T,E>::ode_rates(ode::iterator it) const {
-  for (int i = 0; i < plant.ode_size(); i++) {
+  for (size_t i = 0; i < plant.ode_size(); i++) {
     *it++ = plant.rate(i);
   }
   *it++ = offspring_produced_survival_weighted_dt;

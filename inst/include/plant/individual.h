@@ -80,20 +80,20 @@ public:
   std::vector<std::string> aux_names() { return strategy->aux_names(); }
 
   ode::const_iterator set_ode_state(ode::const_iterator it) {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       vars.states[i] = *it++;
       strategy->update_dependent_aux(i, vars);
     }
     return it;
   }
   ode::iterator ode_state(ode::iterator it) const {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       *it++ = vars.states[i];
     }
     return it;
   }
   ode::iterator ode_rates(ode::iterator it) const {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       *it++ = vars.rates[i];
     }
     return it;
