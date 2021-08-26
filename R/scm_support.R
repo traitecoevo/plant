@@ -21,7 +21,7 @@ fast_control <- function(base=Control()) {
   base$cohort_gradient_direction <- -1
   base$cohort_gradient_richardson <- FALSE
 
-  base
+  return(base)
 }
 
 ##' Control parameters for \code{\link{equilibrium_birth_rate}} that
@@ -34,26 +34,57 @@ fast_control <- function(base=Control()) {
 equilibrium_verbose <- function(base=Control()) {
   base$schedule_verbose <- TRUE
   base$equilibrium_verbose <- TRUE
-  base
+  return(base)
 }
 ##' @export
 ##' @rdname equilibrium_verbose
 equilibrium_quiet <- function(base=Control()) {
   base$schedule_verbose <- FALSE
   base$equilibrium_verbose <- FALSE
-  base
+  return(base)
 }
+
+##' Hopefully sensible set of parameters for use with the SCM.  Turns
+##' accuracy down a bunch, makes it noisy. Consider using using Control()
+##' when higher accuracy is needed.
+##' @title Sensible, fast (ish) SCM parameters
+##' @author Rich FitzJohn
+##' @export
+scm_default_control <- function() {
+  ctrl <- equilibrium_verbose(Control())
+  ctrl$schedule_eps <- 0.005
+  ctrl$equilibrium_eps <- 1e-3
+  return(ctrl)
+}
+
+
+##' Hopefully sensible set of parameters for use with the SCM.  Turns
+##' accuracy down a bunch, makes it noisy. Consider using 
+##' @title Sensible, fast (ish) SCM parameters
+##' @author Rich FitzJohn
+##' @export
+scm_fast_control <- function() {
+  ctrl <- equilibrium_verbose(fast_control())
+  ctrl$schedule_eps <- 0.005
+  ctrl$equilibrium_eps <- 1e-3
+  return(ctrl)
+}
+
+
 
 ##' Run the SCM, returning the SCM object for interrogation
 ##'
 ##' This is the simplest way of using the SCM, probably.
 ##' @title Run SCM
-##' @param p Parameters object
 ##' @param use_ode_times Should ODE times be used?
 ##' @return A \code{SCM} object.
 ##' @author Rich FitzJohn
 ##' @export
-run_scm <- function(p, use_ode_times=FALSE) {
+run_scm <- function(traits,
+                    environment = FF16_Environment(),
+                    disturbance = WeibullDisturbance(),
+                    control = scm_default_control(),
+                    use_ode_times=FALSE) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   scm <- do.call('SCM', types)(p)
   if (use_ode_times) {
@@ -63,19 +94,6 @@ run_scm <- function(p, use_ode_times=FALSE) {
   scm
 }
 
-##' Hopefully sensible set of parameters for use with the SCM.  Turns
-##' accuracy down a bunch, makes it noisy, sets up the
-##' hyperparameterisation that we most often use.
-##' @title Sensible, fast (ish) SCM parameters
-##' @author Rich FitzJohn
-##' @param type Name of model (defaults to FF16 but any strategy name is valid).
-##' @export
-scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
-  ctrl <- equilibrium_verbose(fast_control())
-  ctrl$schedule_eps <- 0.005
-  ctrl$equilibrium_eps <- 1e-3
-  Parameters(type, env)(patch_area=1.0, control=ctrl)
-}
 
 ##' Run the SCM model, given a Parameters and CohortSchedule
 ##'
@@ -90,22 +108,23 @@ scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
 ##' @author Rich FitzJohn
 ##' @export
 run_scm_collect <- function(p, include_competition_effect=FALSE) {
+  
   collect_default <- function(scm) {
     scm$state
   }
+  
   collect_competition_effect <- function(scm) {
     ret <- scm$state
     competition_effect <- numeric(length(ret$species))
     for (i in seq_along(ret$species)) {
-      ## ret$species[[i]] <- rbind(
-      ##   ret$species[[i]]
-      ##   competition_effect=c(scm$patch$species[[i]]$competition_effects, 0.0))
       competition_effect[i] <- scm$patch$species[[i]]$compute_competition(0.0)
     }
     ret$competition_effect <- competition_effect
     ret
   }
+  
   collect <- if (include_competition_effect) collect_competition_effect else collect_default
+  
   types <- extract_RcppR6_template_types(p, "Parameters")
 
   scm <- do.call('SCM', types)(p)
@@ -212,10 +231,10 @@ run_scm_error <- function(p) {
 ##' @title Helper function for creating parameter objects
 ##' @param ... Named set of parameters
 ##' @param pars A list of parameters
-##' @param base_parameters_fn Function for creating base parameter set (default scm_base_parameters)
+##' @param base_parameters_fn Function for creating base parameter set (default scm_default_control)
 ##' @param make_hyperpar_fn Function for creating hyperparameterisation (default make_FF16_hyperpar)
 ##' @export
-assembly_parameters <- function(..., pars=NULL, base_parameters_fn = scm_base_parameters,
+assembly_parameters <- function(..., pars=NULL, base_parameters_fn = scm_default_control,
                                 make_hyperpar_fn = make_FF16_hyperpar) {
 
   p <- base_parameters_fn()
@@ -307,9 +326,9 @@ make_scm_integrate <- function(obj) {
     n <- length(internals)
     a <- obj$p$cohort_schedule_times
     if(obj$p$patch_type == 'meta-population')
-      d = Weibull_Disturbance_Regime(obj$p$max_patch_lifetime)
+      d = WeibullDisturbance_Regime(obj$p$max_patch_lifetime)
     else
-      d = No_Disturbance()
+      d = NoDisturbance()
     pa = lapply(a, d$density)
   }
 

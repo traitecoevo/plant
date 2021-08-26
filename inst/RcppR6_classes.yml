@@ -346,20 +346,24 @@ SpeciesParameters:
   templates:
     parameters: [T]
     concrete:
-      - ["FF16": "plant::FF16_Strategy"]
-      - ["Water": "plant::Water_Strategy"]
-      - ["FF16r": "plant::FF16r_Strategy"]
-      - ["K93": "plant::K93_Strategy"]
-  validator:
-    name_cpp: validate
-  list:
-    - species: "std::vector<T>"
-    - birth_rate: "std::vector<double>"
-    - is_resident: "std::vector<bool>"
-    - strategy_default: "T"
-    - cohort_schedule_times_default: "std::vector<double>"
-    - cohort_schedule_times: "std::vector<std::vector<double> >"
-    - cohort_schedule_ode_times: "std::vector<double>"
+      - ["FF16_Strategy": "plant::FF16_Strategy"]
+      - ["Water_Strategy": "plant::Water_Strategy"]
+      - ["FF16r_Strategy": "plant::FF16r_Strategy"]
+      - ["K93_Strategy": "plant::K93_Strategy"]
+  active:
+    species: {type: "std::vector<T>", access: field}
+    birth_rate: {type: "std::vector<double>", access: field}
+    is_resident: {type: "std::vector<bool>", access: field}
+    cohort_schedule_times_default: {type: "std::vector<double>", access: field}
+    cohort_schedule_times: {type: "std::vector<std::vector<double>>", access: field}
+    cohort_schedule_ode_times: {type: "std::vector<double>", access: field}
+  methods:
+    validate:
+      return_type: void
+    setup_cohort_schedule:
+      name_cpp: "r_setup_cohort_schedule"
+      return_type: void
+      args: [control: "plant::Control"]
 
 Cohort:
   name_cpp: "plant::Cohort<T,E>"

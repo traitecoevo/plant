@@ -11,21 +11,7 @@
 ##'   will be applied.
 ##'
 ##' @export
-strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
-  if (!is.matrix(x)) {
-    stop("Invalid type x -- expected a matrix")
-  }
 
-  strategy <- parameters$strategy_default
-  x <- hyperpar(x, strategy)
-
-  trait_names <- colnames(x)
-  f <- function(xi) {
-    strategy[trait_names] <- xi
-    strategy
-  }
-  lapply(matrix_to_list(x), f)
-}
 
 ##' @export
 ##' @rdname strategy_list
@@ -74,9 +60,9 @@ trait_matrix <- function(x, trait_name) {
 ##' reasonable most of the time.
 ##'
 ##' @title Expand Parameters to include mutants
+##' @param strategy A model of species traits to use as a template
 ##' @param trait_matrix A matrix of traits corresponding to the
 ##' new types to introduce.
-##' @param p A \code{Parameters} object.
 ##' @param hyperpar Hyperparameter function to use. By default links 
 ##' to standard function for this strategy type. 
 ##' @param mutant Create new types as \emph{mutants}?  These will have
@@ -84,31 +70,50 @@ trait_matrix <- function(x, trait_name) {
 ##' density).
 ##' @author Rich FitzJohn
 ##' @export
-expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutant=TRUE) {
+expand_traits <- function(strategy = FF16_Strategy(), 
+                          trait_matrix, 
+                          hyperpar_fn = NULL) {
+  
+  if (!is.matrix(trait_matrix)) {
+    stop("Invalid type of trait_matrix -- expected a matrix")
+  }
+  
+  # some strategies don't use hyperparameterisation
+  # in which case this passes through
+  if (is.null(hyperpar)) {
+    hyperpar_fn = hyperpar(strategy)
+  }
+  
+  # override defaults with hyper-parameterisation
+  species_matrix <- hyperpar_fn(trait_matrix, strategy)
+  trait_names <- colnames(species_matrix)
+    
+  f <- function(xi) {
+    new_traits <- strategy
+    new_traits[trait_names] <- xi
+    new_traits
+  }
+  
+  species_list <- lapply(matrix_to_list(species_matrix), f)
+  return(species_list)
+}
+
+set_introduction_parameters <- function(species_list, strategy, control, mutant = FALSE) {
   if (length(mutant) != 1L) {
     stop("mutant must be scalar")
   }
-  extra <- strategy_list(trait_matrix, p, hyperpar)
-  n_extra <- length(extra)
+  type <- class(strategy)
+  species_parameters <- SpeciesParameters(type)()
+
+  n_spp <- length(species_list)
+  species_parameters$species <- species_list
+  species_parameters$is_resident <- rep(!mutant, n_spp)
+  species_parameters$birth_rate <- rep(1.0, n_spp)
+
+  species_parameters$setup_cohort_schedule(control)  
+  species_parameters$validate()
   
-  ret <- p <- validate(p) # Ensure times are set up correctly.
-  ret$strategies <- c(p$strategies, extra)
-  ret$is_resident <- c(p$is_resident, rep(!mutant, n_extra))
-  ret$birth_rate <- c(p$birth_rate, rep(1.0, n_extra))
-  
-  ## Introduce mutants at all unique times:
-  if (length(p$strategies) == 0L || !mutant) {
-    times_new <- p$cohort_schedule_times_default
-  } else {
-    times_new <- unique(sort(unlist(p$cohort_schedule_times)))
-  }
-  ret$cohort_schedule_times <- c(p$cohort_schedule_times,
-                                 rep(list(times_new), n_extra))
-  
-  ## Clear this if it's present:
-  attr(ret, "net_reproduction_ratios") <- NULL
-  
-  ret
+  return(species_parameters)
 }
 
 remove_residents <- function(p) {

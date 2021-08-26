@@ -5,37 +5,27 @@
 ##' @rdname Hyperparameter_functions
 ##' @export
 # if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
-make_hyperpar <- function(type) {
+make_hyperpar <- function(strategy) {
+  type = class(strategy)
   switch(type,
-         FF16=make_FF16_hyperpar,
-         Water=make_Water_hyperpar,
-         FF16r=make_FF16r_hyperpar,
-         K93=make_K93_hyperpar,
+         FF16_Strategy=make_FF16_hyperpar,
+         Water_Strategy=make_Water_hyperpar,
+         FF16r_Strategy=make_FF16r_hyperpar,
+         K93_Strategy=make_K93_hyperpar,
          stop("Unknown type ", type))
 }
 
-param_hyperpar <- function(parameters) {
-  type <- attr(parameters$strategy_default, "class")
+##' @rdname Hyperparameter_functions
+##' @export
+# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
+hyperpar <- function(strategy) {
+  type = class(strategy)
   switch(type,
          FF16_Strategy=FF16_hyperpar,
          Water_Strategy=Water_hyperpar,
          FF16r_Strategy=FF16r_hyperpar,
          K93_Strategy=K93_hyperpar,
-         stop("Unknown type ", type))
-}
-
-
-
-##' @rdname Hyperparameter_functions
-##' @export
-# if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
-hyperpar <- function(type) {
-  switch(type,
-         FF16=FF16_hyperpar,
-         Water=Water_hyperpar,
-         FF16r=FF16r_hyperpar,
-         K93=K93_hyperpar,
-         stop("Unknown type ", type))
+         stop("Unknown strategy ", type))
 }
 
 environment_type <- function(type) {
@@ -56,22 +46,22 @@ make_environment <- function(type, ...) {
          stop("Unknown type ", type))
 }
 
-cohort_schedule_default <- function(p) {
-  cl <- class(p)[[1]]
-  switch(cl,
-         "Parameters<FF16,FF16_Env>"=`cohort_schedule_default__Parameters___FF16__FF16_Env`,
-         "Parameters<Water,FF16_Env>"=`cohort_schedule_default__Parameters___Water__FF16_Env`,
-         "Parameters<FF16r,FF16_Env>"=`cohort_schedule_default__Parameters___FF16r__FF16_Env`,
-         "Parameters<K93,K93_Env>"=`cohort_schedule_default__Parameters___K93__K93_Env`,
-         stop("Unknown type: ", cl))(p)
-}
-
-make_cohort_schedule <- function(p) {
-  cl <- class(p)[[1]]
-  switch(cl,
-         "Parameters<FF16,FF16_Env>"=`make_cohort_schedule__Parameters___FF16__FF16_Env`,
-         "Parameters<Water,FF16_Env>"=`make_cohort_schedule__Parameters___Water__FF16_Env`,
-         "Parameters<FF16r,FF16_Env>"=`make_cohort_schedule__Parameters___FF16r__FF16_Env`,
-         "Parameters<K93,K93_Env>"=`make_cohort_schedule__Parameters___K93__K93_Env`,
-                  stop("Unknown type: ", cl))(p)
-}
+# cohort_schedule_default <- function(p) {
+#   cl <- class(p)[[1]]
+#   switch(cl,
+#          "Parameters<FF16,FF16_Env>"=`cohort_schedule_default__Parameters___FF16__FF16_Env`,
+#          "Parameters<Water,FF16_Env>"=`cohort_schedule_default__Parameters___Water__FF16_Env`,
+#          "Parameters<FF16r,FF16_Env>"=`cohort_schedule_default__Parameters___FF16r__FF16_Env`,
+#          "Parameters<K93,K93_Env>"=`cohort_schedule_default__Parameters___K93__K93_Env`,
+#          stop("Unknown type: ", cl))(p)
+# }
+# 
+# make_cohort_schedule <- function(p) {
+#   cl <- class(p)[[1]]
+#   switch(cl,
+#          "Parameters<FF16,FF16_Env>"=`make_cohort_schedule__Parameters___FF16__FF16_Env`,
+#          "Parameters<Water,FF16_Env>"=`make_cohort_schedule__Parameters___Water__FF16_Env`,
+#          "Parameters<FF16r,FF16_Env>"=`make_cohort_schedule__Parameters___FF16r__FF16_Env`,
+#          "Parameters<K93,K93_Env>"=`make_cohort_schedule__Parameters___K93__K93_Env`,
+#                   stop("Unknown type: ", cl))(p)
+# }
