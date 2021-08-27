@@ -30,7 +30,7 @@ public:
   species_params_type species_parameters;
   environment_type environment;
   Control control;
-  DisturbanceRegime survival_weighting;
+  DisturbanceRegime* survival_weighting;
 
   void reset();
   size_t size() const {return species.size();}
@@ -96,11 +96,23 @@ private:
 };
 
 template <typename T, typename E>
-Patch<T,E>::Patch(species_params_type s, environment_type e, DisturbanceRegime d, Control c)
+Patch<T,E>::Patch(species_params_type s, environment_type e, Control c)
   : species_parameters(s), environment(e), survival_weighting(d), control(c) {
 
   // check parameters
   species_parameters.validate();
+
+
+  // Disturbances used to describe evolution of a metapopulation of patches
+  // when calculating fitness, otherwise defaults to fixed-duration run without
+  // disturbance
+  if(control.patch_type == "meta-population") {
+    survival_weighting = new Weibull_Disturbance_Regime(max_patch_lifetime);
+  }
+  else {
+    survival_weighting = new No_Disturbance();
+  }
+
 
   for (auto s : species_parameters.species) {
     species.push_back(Species<T,E>(s));

@@ -7,6 +7,7 @@
 
 namespace plant {
 
+
 class No_Disturbance: public DisturbanceRegime {
 public:
   virtual double density(double time) const {return 1.0;};

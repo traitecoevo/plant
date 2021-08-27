@@ -15,7 +15,8 @@ public:
 
   // icdf_limit chosen to match Falster 2011
   Weibull_DisturbanceRegime(double patch_max_lifetime)
-    : icdf_limit(6.25302620663814e-05),
+    : DisturbanceRegime(),
+      icdf_limit(6.25302620663814e-05),
       shape(2.0) {
     mean_interval = (patch_max_lifetime * R::gammafn(1.0 / shape)) /
                       (shape * sqrt(-log(icdf_limit)));

@@ -19,18 +19,12 @@ namespace plant {
 class CohortScheduleEvent {
 public:
   CohortScheduleEvent(double introduction, size_t species_index_)
-    : species_index(species_index_) {
+      : species_index(species_index_) {
     times.push_back(introduction);
   }
-  size_t species_index_raw() const {
-    return species_index;
-  }
-  double time_introduction() const {
-    return times.front();
-  }
-  double time_end() const {
-    return times.back();
-  }
+  size_t species_index_raw() const { return species_index; }
+  double time_introduction() const { return times.front(); }
+  double time_end() const { return times.back(); }
 
   size_t species_index;
   std::vector<double> times;
@@ -42,11 +36,12 @@ public:
   CohortSchedule(size_t n_species_);
   size_t size() const;
   size_t get_n_species() const;
+
   CohortSchedule expand(size_t n_extra, std::vector<double> times);
 
   void clear_times(size_t species_index);
-  void set_times(const std::vector<double>& times_, size_t species_index);
-  void set_times(const std::vector<std::vector<double> >& times);
+  void set_times(const std::vector<double> &times_, size_t species_index);
+  void set_times(const std::vector<std::vector<double>> &times);
   std::vector<double> times(size_t species_index) const;
   void reset();
   void pop();
@@ -54,7 +49,7 @@ public:
   size_t remaining() const;
 
   double get_max_time() const;
-  std::vector<std::vector<double> > get_times() const;
+  std::vector<std::vector<double>> get_times() const;
   bool using_ode_times() const;
 
   // * R interface:
@@ -86,6 +81,6 @@ private:
   bool use_ode_times;
 };
 
-}
+} // namespace plant
 
 #endif

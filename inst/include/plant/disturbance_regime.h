@@ -20,6 +20,18 @@ public:
   virtual ~DisturbanceRegime() {}; // destructor
 };
 
+DisturbanceRegime () {
+  // Disturbances used to describe evolution of a metapopulation of patches
+  // when calculating fitness, otherwise defaults to fixed-duration run without
+  // disturbance
+  if(patch_type == "meta-population") {
+    disturbance = new Weibull_Disturbance_Regime(max_patch_lifetime);
+  }
+  else {
+    disturbance = new No_Disturbance();
+  }
+}
+
 }
 
 #endif

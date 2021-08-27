@@ -68,7 +68,7 @@ template <typename T, typename E>
 SCM<T,E>::SCM(species_params_type s, environment_type e, DisturbanceRegime d, Control c)
   : species_parameters(s),
     patch(s, e, d, c),
-    cohort_schedule(make_cohort_schedule(s, c)),
+    cohort_schedule(make_cohort_schedule(species_parameters, c)),
     solver(patch, make_ode_control(c)) {
 
   // TODO: Check why we do this on SCM and on Patch constructors

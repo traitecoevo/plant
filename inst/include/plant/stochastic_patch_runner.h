@@ -61,10 +61,9 @@ template <typename T, typename E>
 StochasticPatchRunner<T,E>::StochasticPatchRunner(species_params_type s, environment_type e, Control c)
   : species_parameters(s),
     patch(s, e, c),
-    cohort_schedule(make_empty_stochastic_schedule(s, c)),
+    cohort_schedule(make_empty_stochastic_schedule(species_parameters, c)),
     solver(patch, make_ode_control(c)) {
 
-  // TODO: Check why we do this on SCM and on Patch constructors
   species_parameters.validate();
 }
 
