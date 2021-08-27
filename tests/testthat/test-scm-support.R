@@ -2,12 +2,16 @@ context("SCM support")
 
 
 test_that("collect / make_patch", {
-  p0 <- scm_base_parameters()
-  hyperpar <- make_FF16_hyperpar()
-  p0$disturbance_mean_interval <- 30.0
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE)
+  ctrl <- scm_default_control()
 
-  res <- run_scm_collect(p1)
+  s <- FF16_Strategy()
+  tm <- trait_matrix(0.08, "lma")
+  sp_list <- expand_traits(s, tm)
+  
+  # I don't love this step, might fold into expand_traits
+  sp_pars <- set_introduction_parameters(sp_list, s, ctrl)
+
+  res <- run_scm_collect(species_parameters = sp_pars)
 
   st_113 <- scm_state(113, res)
   p1_113 <- make_patch(st_113, p1)
@@ -18,7 +22,7 @@ test_that("collect / make_patch", {
   expect_lt(exp(-p1_113$compute_competition(0)), 0.5)
   expect_gt(p1_113$height_max, 10)
 
-  cmp_patch_density <- Weibull_Disturbance_Regime(p1$max_patch_lifetime)$density(res$time)
+  cmp_patch_density <- WeibullDisturbance_Regime(p1$max_patch_lifetime)$density(res$time)
   expect_equal(res$patch_density, cmp_patch_density)
 
   dat <- patch_to_internals(p1_113)
@@ -55,7 +59,7 @@ test_that("collect / make_patch", {
 
 test_that("expand_parameters", {
   hyperpar <- make_FF16_hyperpar()
-  p0 <- scm_base_parameters()
+  p0 <- scm_default_control()
   p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, mutant=FALSE)
   ## This will trigger rebuilding the times:
   p1$max_patch_lifetime <- 100

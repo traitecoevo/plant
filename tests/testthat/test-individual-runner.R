@@ -231,7 +231,7 @@ test_that("Sensible behaviour on integration failure", {
     c("eta","lma","rho","theta","a_l1","a_l2","a_r1","a_b1","r_r","k_b","k_r","omega","B_kl1","B_kl2","B_ks1","narea","B_lf1","B_lf5","B_lf4","B_rs1","B_rb1","hmat","c_r1")
   )
 
-  s <- strategy(traits, scm_base_parameters(), hyperpar)
+  s <- strategy(traits, scm_default_control(), hyperpar)
   pl <- FF16_Individual(s)
 
   env <- fixed_environment("FF16", 1)

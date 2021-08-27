@@ -33,7 +33,7 @@ test_that("Water Environment", {
 
 test_that("Basic run", {
   # one species
-  p0 <- scm_base_parameters("Water")
+  p0 <- scm_default_control("Water")
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, Water_hyperpar,FALSE)
 
   p1$birth_rate <- 20

@@ -148,7 +148,7 @@ for (x in names(strategy_types)) {
     expect_identical(patch$pr_survival(patch$time), 1.0)
     
     expect_equal(patch$disturbance_mean_interval(), 30)
-    disturbance <- Weibull_Disturbance_Regime(105.32)
+    disturbance <- WeibullDisturbance_Regime(105.32)
     
     patch$set_time(10)
     expect_equal(patch$time, 10)
@@ -168,7 +168,7 @@ for (x in names(strategy_types)) {
     expect_identical(patch$pr_survival(patch$time), 1.0)
     
     expect_true(is.na(patch$disturbance_mean_interval()))
-    disturbance <- No_Disturbance()
+    disturbance <- NoDisturbance()
     
     patch$set_time(10)
     expect_equal(patch$time, 10)

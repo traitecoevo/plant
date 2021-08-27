@@ -11,7 +11,7 @@ test_that("Base class", {
 })
 
 test_that("No disturbance", {
-  obj <- No_Disturbance()
+  obj <- NoDisturbance()
   
   # always 1 for individual patches
   expect_equal(obj$pr_survival(1), 1.0)
@@ -26,7 +26,7 @@ test_that("No disturbance", {
 test_that("Weibull disturbance regime", {
   # max_patch_lifetime determines the shape of the disturbance distribution
   m <- 105.32
-  obj <- Weibull_Disturbance_Regime(m)
+  obj <- WeibullDisturbance_Regime(m)
   
   # check mean interval
   expect_equal(obj$mean_interval(), 30)

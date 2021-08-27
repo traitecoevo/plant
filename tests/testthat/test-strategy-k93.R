@@ -73,7 +73,7 @@ test_that("K93_Strategy hyper-parameterisation", {
 test_that("K93 seed rain is unchanged", {
 
   # Generic parameters
-  p0 <- scm_base_parameters("K93")
+  p0 <- scm_default_control("K93")
   p0$max_patch_lifetime <- 35.10667
 
   # Use single sp. defaults

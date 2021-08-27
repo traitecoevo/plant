@@ -175,7 +175,7 @@ test_that("narea calculation", {
 
 test_that("offspring arrival", {
 
-  p0 <- scm_base_parameters("FF16")
+  p0 <- scm_default_control("FF16")
 
   # one species
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE)
