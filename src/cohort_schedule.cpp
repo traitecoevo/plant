@@ -1,25 +1,19 @@
+#include <Rcpp.h>
+#include <cmath> // log2, exp2
 #include <plant/cohort_schedule.h>
 #include <plant/species_parameters.h>
 #include <plant/util.h>
-#include <Rcpp.h>
-#include <cmath> // log2, exp2
 
 namespace plant {
 
 CohortSchedule::CohortSchedule(size_t n_species_)
-  : n_species(n_species_),
-    max_time(R_PosInf),
-    use_ode_times(false) {
+    : n_species(n_species_), max_time(R_PosInf), use_ode_times(false) {
   reset();
 }
 
-size_t CohortSchedule::size() const {
-  return events.size();
-}
+size_t CohortSchedule::size() const { return events.size(); }
 
-size_t CohortSchedule::get_n_species() const {
-  return n_species;
-}
+size_t CohortSchedule::get_n_species() const { return n_species; }
 
 CohortSchedule CohortSchedule::expand(size_t n_extra,
                                       std::vector<double> times) {
@@ -43,19 +37,17 @@ void CohortSchedule::clear_times(size_t species_index) {
   reset();
 }
 
-double CohortSchedule::get_max_time() const {
-  return max_time;
-}
+double CohortSchedule::get_max_time() const { return max_time; }
 
-std::vector<std::vector<double> > CohortSchedule::get_times() const {
-  std::vector<std::vector<double> > ret;
+std::vector<std::vector<double>> CohortSchedule::get_times() const {
+  std::vector<std::vector<double>> ret;
   for (size_t i = 0; i < n_species; ++i) {
     ret.push_back(times(i));
   }
   return ret;
 }
 
-void CohortSchedule::set_times(const std::vector<double>& times_,
+void CohortSchedule::set_times(const std::vector<double> &times_,
                                size_t species_index) {
   clear_times(species_index);
   events_iterator e = events.begin();
@@ -66,7 +58,7 @@ void CohortSchedule::set_times(const std::vector<double>& times_,
   reset();
 }
 
-void CohortSchedule::set_times(const std::vector<std::vector<double> >& times_) {
+void CohortSchedule::set_times(const std::vector<std::vector<double>> &times_) {
   util::check_length(times_.size(), n_species);
   for (size_t i = 0; i < n_species; ++i) {
     set_times(times_[i], i);
@@ -92,8 +84,8 @@ void CohortSchedule::reset() {
   while (e != queue.end()) {
     events_iterator e_next = e;
     ++e_next;
-    e->times.push_back(e_next == queue.end() ?
-                       max_time : e_next->time_introduction());
+    e->times.push_back(e_next == queue.end() ? max_time
+                                             : e_next->time_introduction());
     e = e_next;
   }
 
@@ -152,9 +144,7 @@ CohortScheduleEvent CohortSchedule::next_event() const {
   return queue.front();
 }
 
-size_t CohortSchedule::remaining() const {
-  return queue.size();
-}
+size_t CohortSchedule::remaining() const { return queue.size(); }
 
 // * R interface
 void CohortSchedule::r_clear_times(util::index species_index) {
@@ -193,9 +183,7 @@ void CohortSchedule::r_set_max_time(double x) {
   reset();
 }
 
-std::vector<double> CohortSchedule::r_ode_times() const {
-  return ode_times;
-}
+std::vector<double> CohortSchedule::r_ode_times() const { return ode_times; }
 
 void CohortSchedule::r_set_ode_times(std::vector<double> x) {
   if (x.empty()) {
@@ -228,9 +216,7 @@ void CohortSchedule::r_clear_ode_times() {
   reset();
 }
 
-bool CohortSchedule::using_ode_times() const {
-  return use_ode_times;
-}
+bool CohortSchedule::using_ode_times() const { return use_ode_times; }
 
 void CohortSchedule::r_set_use_ode_times(bool x) {
   if (x) {
@@ -246,16 +232,14 @@ void CohortSchedule::r_set_use_ode_times(bool x) {
   reset();
 }
 
-SEXP CohortSchedule::r_all_times() const {
-  return Rcpp::wrap(get_times());
-}
+SEXP CohortSchedule::r_all_times() const { return Rcpp::wrap(get_times()); }
 
 void CohortSchedule::r_set_all_times(SEXP rx) {
   Rcpp::List x(Rcpp::as<Rcpp::List>(rx));
   // Ensure that we can get all the times out:
-  std::vector< std::vector<double> > new_times;
+  std::vector<std::vector<double>> new_times;
   for (Rcpp::List::iterator el = x.begin(); el != x.end(); ++el) {
-    new_times.push_back(Rcpp::as<std::vector<double> >(*el));
+    new_times.push_back(Rcpp::as<std::vector<double>>(*el));
   }
   // set_all_times(new_times);
   util::check_length(new_times.size(), n_species);
@@ -264,14 +248,12 @@ void CohortSchedule::r_set_all_times(SEXP rx) {
   }
 }
 
-CohortSchedule CohortSchedule::r_copy() const {
-  return *this;
-}
+CohortSchedule CohortSchedule::r_copy() const { return *this; }
 
 // * Private methods
-CohortSchedule::events_iterator
-CohortSchedule::add_time(double time, size_t species_index,
-                         events_iterator it) {
+CohortSchedule::events_iterator CohortSchedule::add_time(double time,
+                                                         size_t species_index,
+                                                         events_iterator it) {
   Event e(time, species_index);
   it = events.begin();
   while (it != events.end() && time > it->time_introduction()) {
@@ -281,4 +263,4 @@ CohortSchedule::add_time(double time, size_t species_index,
   return it;
 }
 
-}
+} // namespace plant
