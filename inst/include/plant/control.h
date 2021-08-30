@@ -26,7 +26,6 @@ namespace plant {
 
 struct Control {
   Control();
-  void initialize();
 
   bool   plant_assimilation_adaptive;
 
@@ -73,8 +72,6 @@ struct Control {
   bool   equilibrium_solver_logN;
   bool   equilibrium_solver_try_keep;
 
-  // Things derived from this:
-  quadrature::QAG integrator;
 };
 
 inline ode::OdeControl make_ode_control(const Control& control) {
