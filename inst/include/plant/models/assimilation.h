@@ -27,12 +27,10 @@ class Assimilation {
   //
   // NOTE: In contrast with Daniel's implementation (but following
   // Falster 2012), we do not normalise by a_y*a_bio here.
-  double assimilate(quadrature::QAG& integrator,
-                    const E& environment,
+  double assimilate(const E& environment,
                     double height,
                     double area_leaf,
-                    bool reuse_intervals
-                    ) {
+                    bool reuse_intervals) {
     //const bool over_distribution = control.plant_assimilation_over_distribution;
     const double x_min = 0.0, x_max = height; //over_distribution ? 1.0 : height;
 
@@ -102,11 +100,31 @@ class Assimilation {
     return 2 * eta * (1 - tmp) * tmp / z;
   }
 
-  void initialize(double a1, double a2, double e) {
+  void initialize(double a1, double a2, double e,
+                  bool adaptive_integration=true,
+                  int integration_rule=21,
+                  int iterations=1000,
+                  double integration_tol=1e-6) {
+
+    // strategy parameters
     a_p1 = a1;
     a_p2 = a2;
     eta = e;
+
+    // set up integrator
+    if(!adaptive_integration) {
+      iterations = 1;
+    }
+
+    integrator = quadrature::QAG(integration_rule,
+                                 iterations,
+                                 integration_tol,
+                                 integration_tol);
   }
+
+  // Used for assimilation
+  quadrature::QAG integrator;
+
 
 };
 

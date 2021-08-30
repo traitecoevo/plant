@@ -212,7 +212,7 @@ double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
-  const double assimilation_ = assimilator.assimilate(integrator, environment, height,
+  const double assimilation_ = assimilator.assimilate(environment, height,
                                             area_leaf_, reuse_intervals);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
@@ -432,21 +432,14 @@ double FF16_Strategy::height_seed(void) const {
   return util::uniroot(target, h0, h1, tol, max_iterations);
 }
 
-
-
 void FF16_Strategy::prepare_strategy() {
-
   // Set up the integrator
-  int iterations = control.plant_assimilation_adaptive
-                       ? control.plant_assimilation_iterations
-                       : 1;
+  assimilator.initialize(a_p1, a_p2, eta,
+                         control.plant_assimilation_adaptive,
+                         control.plant_assimilation_rule,
+                         control.plant_assimilation_iterations,
+                         control.plant_assimilation_tol);
 
-  integrator = quadrature::QAG(control.plant_assimilation_rule, iterations,
-                               control.plant_assimilation_tol,
-                               control.plant_assimilation_tol);
-
-
-  assimilator.initialize(a_p1, a_p2, eta);
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);
   // NOTE: Also pre-computing, though less trivial
