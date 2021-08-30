@@ -33,16 +33,24 @@ class Assimilation {
                     double area_leaf,
                     bool reuse_intervals
                     ) {
-    const bool over_distribution = control.plant_assimilation_over_distribution;
-    const double x_min = 0.0, x_max = over_distribution ? 1.0 : height;
+    //const bool over_distribution = control.plant_assimilation_over_distribution;
+    const double x_min = 0.0, x_max = height; //over_distribution ? 1.0 : height;
 
     double A = 0.0;
 
     std::function<double(double)> f;
-    if (over_distribution) {
-      f = [&] (double x) -> double {
-        return compute_assimilation_p(x, height, environment);
-      };
+    // if (over_distribution) {
+    //   f = [&] (double x) -> double {
+    //     return compute_assimilation_p(x, height, environment);
+    //   };
+    // } else {
+    //   f = [&] (double x) -> double {
+    //     return compute_assimilation_h(x, height, environment);
+    //   };
+    // }
+    f = [&] (double x) -> double {
+         return compute_assimilation_h(x, height, environment);
+       };
     } else {
       f = [&] (double x) -> double {
         return compute_assimilation_h(x, height, environment);
@@ -76,10 +84,10 @@ class Assimilation {
     return assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height);
   }
 
-  double compute_assimilation_p(double p, double height,
-                                const E& environment) const {
-    return assimilation_leaf(environment.get_environment_at_height(Qp(p, height)));
-  }
+  // double compute_assimilation_p(double p, double height,
+  //                               const E& environment) const {
+  //   return assimilation_leaf(environment.get_environment_at_height(Qp(p, height)));
+  // }
 
   // [Appendix S6] Per-leaf photosynthetic rate.
   // Here, `x` is openness, ranging from 0 to 1.
