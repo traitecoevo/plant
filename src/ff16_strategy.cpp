@@ -111,12 +111,12 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
 
   if (net_mass_production_dt_ > 0) {
-    
+
     const double fraction_allocation_reproduction_ = fraction_allocation_reproduction(height);
     const double darea_leaf_dmass_live_ = darea_leaf_dmass_live(area_leaf_);
     const double fraction_allocation_growth_ = fraction_allocation_growth(height);
     const double area_leaf_dt = net_mass_production_dt_ * fraction_allocation_growth_ * darea_leaf_dmass_live_;
-      
+
     vars.set_rate(HEIGHT_INDEX, dheight_darea_leaf(area_leaf_) * area_leaf_dt);
     vars.set_rate(FECUNDITY_INDEX,
       fecundity_dt(net_mass_production_dt_, fraction_allocation_reproduction_));
@@ -212,7 +212,7 @@ double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
-  const double assimilation_ = assimilator.assimilate(control, environment, height,
+  const double assimilation_ = assimilator.assimilate(integrator, environment, height,
                                             area_leaf_, reuse_intervals);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
@@ -432,9 +432,20 @@ double FF16_Strategy::height_seed(void) const {
   return util::uniroot(target, h0, h1, tol, max_iterations);
 }
 
+
+
 void FF16_Strategy::prepare_strategy() {
+
   // Set up the integrator
-  control.initialize();
+  int iterations = control.plant_assimilation_adaptive
+                       ? control.plant_assimilation_iterations
+                       : 1;
+
+  integrator = quadrature::QAG(control.plant_assimilation_rule, iterations,
+                               control.plant_assimilation_tol,
+                               control.plant_assimilation_tol);
+
+
   assimilator.initialize(a_p1, a_p2, eta);
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);

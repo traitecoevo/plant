@@ -13,6 +13,8 @@ public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
 
+  // Used for assimilation
+  quadrature::QAG integrator;
   // Overrides ----------------------------------------------
 
   // update this when the length of state_names changes

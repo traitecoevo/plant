@@ -27,7 +27,7 @@ class Assimilation {
   //
   // NOTE: In contrast with Daniel's implementation (but following
   // Falster 2012), we do not normalise by a_y*a_bio here.
-  double assimilate(Control& control,
+  double assimilate(quadrature::QAG& integrator,
                     const E& environment,
                     double height,
                     double area_leaf,
@@ -51,16 +51,11 @@ class Assimilation {
     f = [&] (double x) -> double {
          return compute_assimilation_h(x, height, environment);
        };
-    } else {
-      f = [&] (double x) -> double {
-        return compute_assimilation_h(x, height, environment);
-      };
-    }
 
-    if (control.plant_assimilation_adaptive && reuse_intervals) {
-      A = control.integrator.integrate_with_last_intervals(f, x_min, x_max);
+    if (integrator.is_adaptive() && reuse_intervals) {
+      A = integrator.integrate_with_last_intervals(f, x_min, x_max);
     } else {
-      A = control.integrator.integrate(f, x_min, x_max);
+      A = integrator.integrate(f, x_min, x_max);
     }
 
     return area_leaf * A;

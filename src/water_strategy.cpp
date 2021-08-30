@@ -20,7 +20,7 @@ double Water_Strategy::net_mass_production_dt(const FF16_Environment& environmen
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
-  const double assimilation_ = assimilator.assimilate(control, environment, height,
+  const double assimilation_ = assimilator.assimilate(integrator, environment, height,
                                                       area_leaf_, reuse_intervals);
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);

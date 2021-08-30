@@ -2,7 +2,7 @@
 
 namespace plant {
 
-Control::Control() : integrator(15, 1, 0, 0) {
+Control::Control() {
   plant_assimilation_adaptive = true;
 
   plant_assimilation_over_distribution = false;
@@ -47,16 +47,6 @@ Control::Control() : integrator(15, 1, 0, 0) {
   equilibrium_nattempts = 5;
   equilibrium_solver_logN = true;
   equilibrium_solver_try_keep = true;
-}
-
-void Control::initialize() {
-  if (!plant_assimilation_adaptive) {
-    plant_assimilation_iterations = 1;
-  }
-  integrator = quadrature::QAG(plant_assimilation_rule,
-                               plant_assimilation_iterations,
-                               plant_assimilation_tol,
-                               plant_assimilation_tol);
 }
 
 }
