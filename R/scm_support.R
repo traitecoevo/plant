@@ -6,13 +6,12 @@
 ##' @param base An optional \code{Control} object.  If omitted, the
 ##' defaults are used.
 fast_control <- function(base=Control()) {
-  base$environment_rescale_usually <- TRUE
-  base$environment_light_tol <- 1e-4
+  base$canopy_rescale_usually <- TRUE
+  base$canopy_light_tol <- 1e-4
 
-  base$plant_assimilation_adaptive <- FALSE
-  base$plant_assimilation_rule <- 21
-  base$plant_assimilation_over_distribution <- FALSE
-  base$plant_assimilation_tol <- 1e-4
+  base$assimilator_adaptive_integration <- FALSE
+  base$assimilator_integration_rule <- 21
+  base$assimilator_integration_tol <- 1e-4
 
   base$ode_tol_rel <- 1e-4
   base$ode_tol_abs <- 1e-4

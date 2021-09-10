@@ -249,7 +249,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   it = environment.set_ode_state(it);
 
   environment.time = time;
-  if (parameters.control.environment_rescale_usually) {
+  if (parameters.control.canopy_rescale_usually) {
     rescale_environment();
   } else {
     compute_environment();

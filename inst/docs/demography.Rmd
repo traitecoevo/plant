@@ -547,7 +547,7 @@ Starting with an initial set of 33 points, we assess how much each point
 contributes to the accuracy of the spline fit at the location of each
 cohort, first via exact calculation, and second by linearly interpolating
 from adjacent cohorts. The absolute difference in these values is
-compared to the control parameter `environment_light_tol`. If
+compared to the control parameter `canopy_light_tol`. If
 the error is greater than this tolerance, the interval is bisected and the is
 process repeated (see [adaptive_interpolator.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/adaptive_interpolator.h) for details).
 
@@ -558,9 +558,9 @@ a plant's assimilation at each time step thus requires integrating
 leaf-level rates over the plant. The integration is performed using
 Gaussian quadrature, using the QUADPACK routines [@Piessens-1983]
 adapted from the [GNU Scientific Library](http://www.gnu.org/software/gsl/) [@Galassi-2009]; see [qag.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/qag.h) for details.
-If the control parameter `plant_assimilation_adaptive` is `TRUE`,
+If the control parameter `assimilator_adaptive_integration` is `TRUE`,
 the integration is performed using adaptive refinement with an accuracy
-controlled by the parameter `plant_assimilation_tol`.
+controlled by the parameter `assimilator_integration_tol`.
 
 ### Solving for seed rains {#solving-demographic-seed-rain}
 

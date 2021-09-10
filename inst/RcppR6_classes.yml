@@ -105,11 +105,10 @@ Control:
     variadic arguments, or as a list, but not both).
     @export
   list:
-    - plant_assimilation_adaptive: bool
-    - plant_assimilation_over_distribution: bool
-    - plant_assimilation_tol: double
-    - plant_assimilation_iterations: size_t
-    - plant_assimilation_rule: size_t
+    - assimilator_adaptive_integration: bool
+    - assimilator_integration_tol: double
+    - assimilator_integration_iterations: size_t
+    - assimilator_integration_rule: size_t
     - plant_seed_tol: double
     - plant_seed_iterations: int
     - soil_infiltration_rate: double
@@ -118,10 +117,10 @@ Control:
     - cohort_gradient_direction: int
     - cohort_gradient_richardson: bool
     - cohort_gradient_richardson_depth: size_t
-    - environment_light_tol: double
-    - environment_light_nbase: size_t
-    - environment_light_max_depth: size_t
-    - environment_rescale_usually: bool
+    - canopy_light_tol: double
+    - canopy_light_nbase: size_t
+    - canopy_light_max_depth: size_t
+    - canopy_rescale_usually: bool
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double

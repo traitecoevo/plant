@@ -228,7 +228,7 @@ ode::const_iterator StochasticPatch<T,E>::set_ode_state(ode::const_iterator it,
                                                       double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
-  if (parameters.control.environment_rescale_usually) {
+  if (parameters.control.canopy_rescale_usually) {
     rescale_environment();
   } else {
     compute_environment();
