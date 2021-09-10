@@ -75,7 +75,7 @@ scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
 ##' @return A \code{SCM} object.
 ##' @author Rich FitzJohn
 ##' @export
-run_scm <- function(p, ctrl, use_ode_times=FALSE) {
+run_scm <- function(p, ctrl = scm_base_control(), use_ode_times=FALSE) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   scm <- do.call('SCM', types)(p, ctrl)
   if (use_ode_times) {
@@ -99,7 +99,8 @@ run_scm <- function(p, ctrl, use_ode_times=FALSE) {
 ##' issue #138)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, ctrl, include_competition_effect=FALSE) {
+run_scm_collect <- function(p, ctrl = scm_base_control(),
+                            include_competition_effect=FALSE) {
   collect_default <- function(scm) {
     scm$state
   }
@@ -191,7 +192,7 @@ scm_patch <- function(i, x) {
   make_patch(scm_state(i, x), x$p)
 }
 
-run_scm_error <- function(p, ctrl) {
+run_scm_error <- function(p, ctrl = scm_base_control()) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   scm <- do.call('SCM', types)(p, ctrl)
   n_spp <- length(p$strategies)
