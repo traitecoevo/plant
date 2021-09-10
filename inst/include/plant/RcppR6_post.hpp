@@ -329,11 +329,10 @@ template <> inline plant::CohortSchedule as(SEXP x) {
 }
 template <> inline SEXP wrap(const plant::Control& x) {
   Rcpp::List ret;
-  ret["plant_assimilation_adaptive"] = Rcpp::wrap(x.plant_assimilation_adaptive);
-  ret["plant_assimilation_over_distribution"] = Rcpp::wrap(x.plant_assimilation_over_distribution);
-  ret["plant_assimilation_tol"] = Rcpp::wrap(x.plant_assimilation_tol);
-  ret["plant_assimilation_iterations"] = Rcpp::wrap(x.plant_assimilation_iterations);
-  ret["plant_assimilation_rule"] = Rcpp::wrap(x.plant_assimilation_rule);
+  ret["assimilator_adaptive_integration"] = Rcpp::wrap(x.assimilator_adaptive_integration);
+  ret["assimilator_integration_tol"] = Rcpp::wrap(x.assimilator_integration_tol);
+  ret["assimilator_integration_iterations"] = Rcpp::wrap(x.assimilator_integration_iterations);
+  ret["assimilator_integration_rule"] = Rcpp::wrap(x.assimilator_integration_rule);
   ret["plant_seed_tol"] = Rcpp::wrap(x.plant_seed_tol);
   ret["plant_seed_iterations"] = Rcpp::wrap(x.plant_seed_iterations);
   ret["soil_infiltration_rate"] = Rcpp::wrap(x.soil_infiltration_rate);
@@ -342,10 +341,10 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["cohort_gradient_direction"] = Rcpp::wrap(x.cohort_gradient_direction);
   ret["cohort_gradient_richardson"] = Rcpp::wrap(x.cohort_gradient_richardson);
   ret["cohort_gradient_richardson_depth"] = Rcpp::wrap(x.cohort_gradient_richardson_depth);
-  ret["environment_light_tol"] = Rcpp::wrap(x.environment_light_tol);
-  ret["environment_light_nbase"] = Rcpp::wrap(x.environment_light_nbase);
-  ret["environment_light_max_depth"] = Rcpp::wrap(x.environment_light_max_depth);
-  ret["environment_rescale_usually"] = Rcpp::wrap(x.environment_rescale_usually);
+  ret["canopy_light_tol"] = Rcpp::wrap(x.canopy_light_tol);
+  ret["canopy_light_nbase"] = Rcpp::wrap(x.canopy_light_nbase);
+  ret["canopy_light_max_depth"] = Rcpp::wrap(x.canopy_light_max_depth);
+  ret["canopy_rescale_usually"] = Rcpp::wrap(x.canopy_rescale_usually);
   ret["ode_step_size_initial"] = Rcpp::wrap(x.ode_step_size_initial);
   ret["ode_step_size_min"] = Rcpp::wrap(x.ode_step_size_min);
   ret["ode_step_size_max"] = Rcpp::wrap(x.ode_step_size_max);
@@ -377,16 +376,14 @@ template <> inline plant::Control as(SEXP x) {
   // field twice.  No current support for a hook.
   plant::Control ret;
   Rcpp::List xl(x);
-  // ret.plant_assimilation_adaptive = Rcpp::as<decltype(retplant_assimilation_adaptive) >(xl["plant_assimilation_adaptive"]);
-  ret.plant_assimilation_adaptive = Rcpp::as<bool >(xl["plant_assimilation_adaptive"]);
-  // ret.plant_assimilation_over_distribution = Rcpp::as<decltype(retplant_assimilation_over_distribution) >(xl["plant_assimilation_over_distribution"]);
-  ret.plant_assimilation_over_distribution = Rcpp::as<bool >(xl["plant_assimilation_over_distribution"]);
-  // ret.plant_assimilation_tol = Rcpp::as<decltype(retplant_assimilation_tol) >(xl["plant_assimilation_tol"]);
-  ret.plant_assimilation_tol = Rcpp::as<double >(xl["plant_assimilation_tol"]);
-  // ret.plant_assimilation_iterations = Rcpp::as<decltype(retplant_assimilation_iterations) >(xl["plant_assimilation_iterations"]);
-  ret.plant_assimilation_iterations = Rcpp::as<size_t >(xl["plant_assimilation_iterations"]);
-  // ret.plant_assimilation_rule = Rcpp::as<decltype(retplant_assimilation_rule) >(xl["plant_assimilation_rule"]);
-  ret.plant_assimilation_rule = Rcpp::as<size_t >(xl["plant_assimilation_rule"]);
+  // ret.assimilator_adaptive_integration = Rcpp::as<decltype(retassimilator_adaptive_integration) >(xl["assimilator_adaptive_integration"]);
+  ret.assimilator_adaptive_integration = Rcpp::as<bool >(xl["assimilator_adaptive_integration"]);
+  // ret.assimilator_integration_tol = Rcpp::as<decltype(retassimilator_integration_tol) >(xl["assimilator_integration_tol"]);
+  ret.assimilator_integration_tol = Rcpp::as<double >(xl["assimilator_integration_tol"]);
+  // ret.assimilator_integration_iterations = Rcpp::as<decltype(retassimilator_integration_iterations) >(xl["assimilator_integration_iterations"]);
+  ret.assimilator_integration_iterations = Rcpp::as<size_t >(xl["assimilator_integration_iterations"]);
+  // ret.assimilator_integration_rule = Rcpp::as<decltype(retassimilator_integration_rule) >(xl["assimilator_integration_rule"]);
+  ret.assimilator_integration_rule = Rcpp::as<size_t >(xl["assimilator_integration_rule"]);
   // ret.plant_seed_tol = Rcpp::as<decltype(retplant_seed_tol) >(xl["plant_seed_tol"]);
   ret.plant_seed_tol = Rcpp::as<double >(xl["plant_seed_tol"]);
   // ret.plant_seed_iterations = Rcpp::as<decltype(retplant_seed_iterations) >(xl["plant_seed_iterations"]);
@@ -403,14 +400,14 @@ template <> inline plant::Control as(SEXP x) {
   ret.cohort_gradient_richardson = Rcpp::as<bool >(xl["cohort_gradient_richardson"]);
   // ret.cohort_gradient_richardson_depth = Rcpp::as<decltype(retcohort_gradient_richardson_depth) >(xl["cohort_gradient_richardson_depth"]);
   ret.cohort_gradient_richardson_depth = Rcpp::as<size_t >(xl["cohort_gradient_richardson_depth"]);
-  // ret.environment_light_tol = Rcpp::as<decltype(retenvironment_light_tol) >(xl["environment_light_tol"]);
-  ret.environment_light_tol = Rcpp::as<double >(xl["environment_light_tol"]);
-  // ret.environment_light_nbase = Rcpp::as<decltype(retenvironment_light_nbase) >(xl["environment_light_nbase"]);
-  ret.environment_light_nbase = Rcpp::as<size_t >(xl["environment_light_nbase"]);
-  // ret.environment_light_max_depth = Rcpp::as<decltype(retenvironment_light_max_depth) >(xl["environment_light_max_depth"]);
-  ret.environment_light_max_depth = Rcpp::as<size_t >(xl["environment_light_max_depth"]);
-  // ret.environment_rescale_usually = Rcpp::as<decltype(retenvironment_rescale_usually) >(xl["environment_rescale_usually"]);
-  ret.environment_rescale_usually = Rcpp::as<bool >(xl["environment_rescale_usually"]);
+  // ret.canopy_light_tol = Rcpp::as<decltype(retcanopy_light_tol) >(xl["canopy_light_tol"]);
+  ret.canopy_light_tol = Rcpp::as<double >(xl["canopy_light_tol"]);
+  // ret.canopy_light_nbase = Rcpp::as<decltype(retcanopy_light_nbase) >(xl["canopy_light_nbase"]);
+  ret.canopy_light_nbase = Rcpp::as<size_t >(xl["canopy_light_nbase"]);
+  // ret.canopy_light_max_depth = Rcpp::as<decltype(retcanopy_light_max_depth) >(xl["canopy_light_max_depth"]);
+  ret.canopy_light_max_depth = Rcpp::as<size_t >(xl["canopy_light_max_depth"]);
+  // ret.canopy_rescale_usually = Rcpp::as<decltype(retcanopy_rescale_usually) >(xl["canopy_rescale_usually"]);
+  ret.canopy_rescale_usually = Rcpp::as<bool >(xl["canopy_rescale_usually"]);
   // ret.ode_step_size_initial = Rcpp::as<decltype(retode_step_size_initial) >(xl["ode_step_size_initial"]);
   ret.ode_step_size_initial = Rcpp::as<double >(xl["ode_step_size_initial"]);
   // ret.ode_step_size_min = Rcpp::as<decltype(retode_step_size_min) >(xl["ode_step_size_min"]);
@@ -575,7 +572,6 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant:
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
@@ -606,8 +602,6 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -629,7 +623,6 @@ template <> inline SEXP wrap(const plant::Parameters<plant::Water_Strategy,plant
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
@@ -660,8 +653,6 @@ template <> inline plant::Parameters<plant::Water_Strategy,plant::FF16_Environme
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::Water_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -683,7 +674,6 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16r_Strategy,plant
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
@@ -714,8 +704,6 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environme
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16r_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -737,7 +725,6 @@ template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["control"] = Rcpp::wrap(x.control);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
@@ -768,8 +755,6 @@ template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment>
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::K93_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
