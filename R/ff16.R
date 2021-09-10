@@ -63,21 +63,21 @@ FF16_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
-##' @param p A Parameters object
-FF16_make_environment <- function(p) {
-  FF16_Environment(p$control)
+##' @param ctrl Control object
+FF16_make_environment <- function(ctrl = scm_base_control()) {
+  FF16_Environment(ctrl)
 }
 
 ##' Construct a fixed environment for FF16 strategy
 ##'
 ##' @param e Value of environment (deafult  = 1.0)
-##' @param p A Parameters object
+##' @param ctrl Control object
 ##' @param height_max = 150.0 maximum possible height in environment
 ##' @rdname FF16_Environment
 ##'
 ##' @export
-FF16_fixed_environment <- function(e=1.0, p = FF16_Parameters(), height_max = 150.0) {
-  env <- FF16_make_environment(p)
+FF16_fixed_environment <- function(e=1.0, ctrl = scm_base_control(), height_max = 150.0) {
+  env <- FF16_make_environment(ctrl)
   env$set_fixed_environment(e, height_max)
   env
 }
@@ -107,12 +107,7 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
   interpolator <- Interpolator()
   interpolator$init(hh, ee)
 
-  parameters <- FF16_Parameters()
-  parameters$strategies <- rep(list(FF16_Strategy()), n_strategies)
-
-  parameters$is_resident <- rep(TRUE, n_strategies)
-
-  ret <- FF16_make_environment(parameters)
+  ret <- FF16_make_environment()
   ret$canopy$canopy_interpolator <- interpolator
   attr(ret, "light_env") <- light_env
   ret

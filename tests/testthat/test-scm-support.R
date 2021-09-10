@@ -2,15 +2,16 @@ context("SCM support")
 
 
 test_that("collect / make_patch", {
+  ctrl <- scm_base_control()
   p0 <- scm_base_parameters()
   hyperpar <- make_FF16_hyperpar()
   p0$disturbance_mean_interval <- 30.0
   p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE)
 
-  res <- run_scm_collect(p1)
+  res <- run_scm_collect(p1, ctrl)
 
   st_113 <- scm_state(113, res)
-  p1_113 <- make_patch(st_113, p1)
+  p1_113 <- make_patch(st_113, p1, ctrl)
 
   expect_equal(p1_113$ode_state, unlist(st_113$species))
   expect_equal(p1_113$time, st_113$time)

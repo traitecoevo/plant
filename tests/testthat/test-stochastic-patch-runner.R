@@ -9,10 +9,11 @@ test_that("empty", {
     set.seed(1)
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           birth_rate=pi/2,
-                          is_resident=TRUE,
-                          control=fast_control())
+                          is_resident=TRUE)
+    
+    ctrl <- scm_base_control()
 
-    obj <- StochasticPatchRunner(x, e)(p)
+    obj <- StochasticPatchRunner(x, e)(p, ctrl)
     expect_identical(obj$time, 0.0)
 
     sched <- obj$schedule
@@ -54,10 +55,11 @@ test_that("collect", {
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           birth_rate=5/50,
                           patch_area=50,
-                          is_resident=TRUE,
-                          control=fast_control())
+                          is_resident=TRUE)
     
-    expect_silent(res <- run_stochastic_collect(p))
+    ctrl <- Control()
+    
+    expect_silent(res <- run_stochastic_collect(p, ctrl))
     ## TODO: more tests on collect output
 
     ## This shows that we're probably over-aggressively killing plants.

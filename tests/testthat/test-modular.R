@@ -39,12 +39,13 @@ test_that("Construction", {
     expect_is(par, sprintf("Parameters<%s,%s>", x, e))
     expect_equal(par$strategies[[1]], s)
 
-    pat <- Patch(x, e)(par)
+    ctrl <- Control()
+    pat <- Patch(x, e)(par, ctrl)
     expect_is(pat, "Patch")
     expect_is(pat, sprintf("Patch<%s,%s>", x, e))
     expect_equal(class(pat$species[[1]]), class(sp))
 
-    scm <- SCM(x, e)(par)
+    scm <- SCM(x, e)(par, ctrl)
     expect_is(scm, "SCM")
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
     expect_equal(class(scm$patch), class(pat))
@@ -55,12 +56,12 @@ test_that("Construction", {
     expect_is(s_sp, sprintf("StochasticSpecies<%s,%s>", x, e))
     expect_equal(class(s_sp$new_cohort), class(p))
 
-    s_pat <- StochasticPatch(x, e)(par)
+    s_pat <- StochasticPatch(x, e)(par, ctrl)
     expect_is(s_pat, "StochasticPatch")
     expect_is(s_pat, sprintf("StochasticPatch<%s,%s>", x, e))
     expect_equal(class(s_pat$species[[1]]), class(s_sp))
 
-    s_pr <- StochasticPatchRunner(x, e)(par)
+    s_pr <- StochasticPatchRunner(x, e)(par, ctrl)
     expect_is(s_pr, "StochasticPatchRunner")
     expect_is(s_pr, sprintf("StochasticPatchRunner<%s,%s>", x, e))
     expect_equal(class(s_pr$patch), class(s_pat))

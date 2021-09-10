@@ -23,7 +23,7 @@ public:
   typedef Parameters<T,E> parameters_type;
 
 
-  SCM(parameters_type p);
+  SCM(parameters_type p, plant::Control c);
 
   void run();
   std::vector<size_t> run_next();
@@ -67,11 +67,11 @@ private:
 };
 
 template <typename T, typename E>
-SCM<T,E>::SCM(parameters_type p)
+SCM<T,E>::SCM(parameters_type p, Control c)
   : parameters(p),
-    patch(parameters),
+    patch(parameters, c),
     cohort_schedule(make_cohort_schedule(parameters)),
-    solver(patch, make_ode_control(p.control)) {
+    solver(patch, make_ode_control(c)) {
   parameters.validate();
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::stop("Patch area must be exactly 1 for the SCM");

@@ -1,23 +1,24 @@
 ## Find the equilibrium offspring arrival a few different ways:
 plant_log_console()
+ctrl <- scm_base_control()
 p <- scm_base_parameters()
 p$strategies <- list(FF16_Strategy())
 p$birth_rate <- 1.1
 
-p$control$equilibrium_solver_name <- "iteration"
-ans <- equilibrium_birth_rate(p)
+ctrl$equilibrium_solver_name <- "iteration"
+ans <- equilibrium_birth_rate(p, ctrl)
 ans$birth_rate
 
-p$control$equilibrium_solver_name <- "nleqslv"
-ans <- equilibrium_birth_rate(p)
+ctrl$equilibrium_solver_name <- "nleqslv"
+ans <- equilibrium_birth_rate(p, ctrl)
 ans$birth_rate
 
-p$control$equilibrium_solver_name <- "dfsane"
-ans <- equilibrium_birth_rate(p)
+ctrl$equilibrium_solver_name <- "dfsane"
+ans <- equilibrium_birth_rate(p, ctrl)
 ans$birth_rate
 
-p$control$equilibrium_solver_name <- "hybrid"
-ans <- equilibrium_birth_rate(p)
+ctrl$equilibrium_solver_name <- "hybrid"
+ans <- equilibrium_birth_rate(p, ctrl)
 ans$birth_rate
 
 bounds <- viable_fitness(bounds(lma=c(0.01, 10.0)), p)

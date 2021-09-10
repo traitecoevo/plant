@@ -36,11 +36,14 @@ test_that("Basic run", {
   p0 <- scm_base_parameters("Water")
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, Water_hyperpar,FALSE)
 
+
   p1$birth_rate <- 20
-  p1$control$soil_infiltration_rate <- 1
-  p1$control$soil_number_of_depths <- 10
+
+  ctrl <- scm_base_control()
+  ctrl$soil_infiltration_rate <- 1
+  ctrl$soil_number_of_depths <- 10
   
-  out <- run_scm(p1)
+  out <- run_scm(p1, ctrl)
   
   expect_equal(out$patch$environment$ode_size, 10)
 
