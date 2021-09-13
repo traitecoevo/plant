@@ -12,35 +12,25 @@ namespace plant {
 class FF16_Environment : public Environment {
 public:
 
-  FF16_Environment() {
-    time = NA_REAL;
-    canopy = Canopy();
-    inflow_rate = 0.0;
-    vars = Internals(0);
-    set_soil_water_state(0.0);
-  };
+  FF16_Environment();
 
-  FF16_Environment(Control control) {
-    time = 0.0;
-    canopy = Canopy(control);
-    inflow_rate = control.soil_infiltration_rate;
-    vars = Internals(control.soil_number_of_depths);
-    set_soil_water_state(0.0);
-  };
+  // Need to refactor this so that canopy and soil pars. set
+  // directly in environment e. For now just overwrite with same control.
+  // FF16_Environment(Control control) {
+  //   time = 0.0;
+  //   canopy = Canopy(control);
+  //   inflow_rate = control.soil_infiltration_rate;
+  //   vars = Internals(control.soil_number_of_depths);
+  //   set_soil_water_state(0.0);
+  // };
 
-  template <typename Function>
-  void compute_environment(Function f_compute_competition, double height_max) {
-    canopy.compute_canopy(f_compute_competition, height_max);
-  }
+  // Light interface
+  double canopy_light_tol;
+  size_t canopy_light_nbase;
+  size_t canopy_light_max_depth;
+  bool canopy_rescale_usually;
 
-  template <typename Function>
-  void rescale_environment(Function f_compute_competition, double height_max) {
-    canopy.rescale_canopy(f_compute_competition, height_max);
-  }
-
-  void clear_environment() {
-    canopy.clear();
-  }
+  Canopy canopy;
 
   // Should this be here or in canopy?
   void set_fixed_environment(double value, double height_max) {
@@ -64,19 +54,23 @@ public:
     canopy.r_init_interpolators(state);
   }
 
-  Canopy canopy;
-
   // Soil interface
-  double inflow_rate;
+  double soil_infiltration_rate;
+  size_t soil_number_of_depths;
+  double soil_initial_state;
+
   virtual void compute_rates() {
     for (int i = 0; i < vars.state_size; i++) {
-      vars.set_rate(i, inflow_rate / (i+1));
+      vars.set_rate(i, soil_infiltration_rate / (i+1));
     }
   }
 
   std::vector<double> get_soil_water_state() const {
     return vars.states;
   }
+
+  // I wonder if this needs a better name? See also environment.h
+  Internals r_internals() const { return vars; }
 
   // R interface
   void set_soil_water_state(double v) {
@@ -85,7 +79,22 @@ public:
     }
   }
 
-  Internals r_internals() const { return vars; }
+
+  // Core functions
+  template <typename Function>
+  void compute_environment(Function f_compute_competition, double height_max) {
+    canopy.compute_canopy(f_compute_competition, height_max);
+  }
+
+  template <typename Function>
+  void rescale_environment(Function f_compute_competition, double height_max) {
+    canopy.rescale_canopy(f_compute_competition, height_max);
+  }
+
+  void clear_environment() {
+    canopy.clear();
+  }
+
 };
 
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {

@@ -23,7 +23,7 @@ public:
   typedef Parameters<T,E>   parameters_type;
 
 
-  Patch(parameters_type p, plant::Control c);
+  Patch(parameters_type p, environment_type e, plant::Control c);
 
   void reset();
   size_t size() const {return species.size();}
@@ -94,12 +94,13 @@ private:
 };
 
 template <typename T, typename E>
-Patch<T,E>::Patch(parameters_type p, Control c)
+Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   : parameters(p),
+    environment(e),
     control(c),
     is_resident(p.is_resident) {
   parameters.validate();
-  environment = environment_type(control);
+
   survival_weighting = p.disturbance;
 
   // Overwrite all strategy control objects so that they take the
@@ -254,7 +255,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   it = environment.set_ode_state(it);
 
   environment.time = time;
-  if (control.canopy_rescale_usually) {
+  if (environment.canopy_rescale_usually) {
     rescale_environment();
   } else {
     compute_environment();

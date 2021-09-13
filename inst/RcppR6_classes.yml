@@ -111,16 +111,10 @@ Control:
     - assimilator_integration_rule: size_t
     - plant_seed_tol: double
     - plant_seed_iterations: int
-    - soil_infiltration_rate: double
-    - soil_number_of_depths: int
     - cohort_gradient_eps: double
     - cohort_gradient_direction: int
     - cohort_gradient_richardson: bool
     - cohort_gradient_richardson_depth: size_t
-    - canopy_light_tol: double
-    - canopy_light_nbase: size_t
-    - canopy_light_max_depth: size_t
-    - canopy_rescale_usually: bool
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -460,7 +454,10 @@ Patch:
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>", control: "plant::Control"]
+    args:
+      - parameters: "plant::Parameters<T,E>"
+      - environment: "E"
+      - control: "plant::Control"
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
@@ -526,7 +523,10 @@ SCM:
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>", control: "plant::Control"]
+    args:
+      - parameters: "plant::Parameters<T,E>"
+      - environment: "E"
+      - control: "plant::Control"
   methods:
     run:
       return_type: void
@@ -637,7 +637,10 @@ StochasticPatch:
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>", control: "plant::Control"]
+    args:
+      - parameters: "plant::Parameters<T,E>"
+      - environment: "E"
+      - control: "plant::Control"
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
@@ -699,7 +702,10 @@ StochasticPatchRunner:
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>", control: "plant::Control"]
+    args:
+      - parameters: "plant::Parameters<T,E>"
+      - environment: "E"
+      - control: "plant::Control"
   methods:
     run:
       return_type: void
@@ -733,7 +739,10 @@ StochasticPatchRunner:
 Canopy:
   name_cpp: "plant::Canopy"
   constructor:
-    args: [control: "plant::Control"]
+    args:
+      - tol: double
+      - nbase: double
+      - max_depth: double
   methods:
     canopy_openness:
       args: [height: double]
@@ -849,10 +858,8 @@ FF16_Strategy:
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
-    args: [control: "plant::Control"]
     roxygen: |
       FF16_Environment object
-      @param control A Control object
       @export
   methods:
     canopy_openness:
@@ -870,8 +877,17 @@ FF16_Environment:
       return_type: void
   active:
     time: {type: double, access: field}
-    canopy: {type: "plant::Canopy", access: field}
     ode_size: {type: size_t, access: member}
+    canopy:
+      type: "plant::Canopy"
+      access: field
+    canopy_light_tol: {type: double, access: field}
+    canopy_light_nbase: {type: double, access: field}
+    canopy_light_max_depth: {type: double, access: field}
+    canopy_rescale_usually: {type: bool, access: field}
+    soil_number_of_depths: {type: int, access: field}
+    soil_initial_state: {type: double, access: field}
+    soil_infiltration_rate: {type: double, access: field}
     soil:
       type: "plant::Internals"
       access: member
@@ -949,10 +965,8 @@ K93_Strategy:
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
-    args: [control: "plant::Control"]
     roxygen: |
       K93_Environment object
-      @param control A Control object
       @export
   methods:
     canopy_openness:
