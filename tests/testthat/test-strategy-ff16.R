@@ -176,13 +176,14 @@ test_that("narea calculation", {
 test_that("offspring arrival", {
 
   p0 <- scm_base_parameters("FF16")
+  env <- make_environment("FF16")
   ctrl <- scm_base_control()
 
   # one species
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE)
 
   p1$birth_rate <- 20
-  out <- run_scm(p1, ctrl)
+  out <- run_scm(p1, env, ctrl)
   expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 

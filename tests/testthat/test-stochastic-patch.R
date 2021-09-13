@@ -11,8 +11,10 @@ test_that("empty", {
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           birth_rate=pi/2,
                           is_resident=TRUE)
+    
+    env <- make_environment(x)
     ctrl <- Control()
-    patch <- StochasticPatch(x, e)(p, ctrl)
+    patch <- StochasticPatch(x, e)(p, env, ctrl)
 
     expect_is(patch, sprintf("StochasticPatch<%s,%s>",x,e))
 
@@ -38,8 +40,10 @@ test_that("non empty", {
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           birth_rate=pi/2,
                           is_resident=TRUE)
+    
+    env <- make_environment(x)
     ctrl <- Control()
-    patch <- StochasticPatch(x, e)(p, ctrl)
+    patch <- StochasticPatch(x, e)(p, env, ctrl)
     cmp <- Individual(x, e)(p$strategies[[1]])
 
     expect_error(patch$introduce_new_cohort(0), "Invalid value")

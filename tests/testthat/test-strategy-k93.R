@@ -76,13 +76,14 @@ test_that("K93 seed rain is unchanged", {
   p0 <- scm_base_parameters("K93")
   p0$max_patch_lifetime <- 35.10667
   
+  env <- make_environment("K93")
   ctrl <- scm_base_control()
 
   # Use single sp. defaults
   p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0, mutant = FALSE)
   p1$birth_rate <- 20
 
-  out <- run_scm(p1, ctrl)
+  out <- run_scm(p1, env, ctrl)
   expect_equal(out$offspring_production, 0.0753, tolerance = 1e-4)
 
   # Three species from paper

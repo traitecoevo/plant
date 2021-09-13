@@ -16,12 +16,13 @@ test_that("Run SCM", {
                           patch_area=10,
                           is_resident=TRUE)
     
+    env <- make_environment(x)
     ctrl <- Control()
 
-    expect_error(scm <- SCM(x, e)(p, ctrl), "Patch area must be exactly 1 for the SCM")
+    expect_error(scm <- SCM(x, e)(p, env, ctrl), "Patch area must be exactly 1 for the SCM")
 
     p$patch_area <- 1.0
-    scm <- SCM(x, e)(p, ctrl)
+    scm <- SCM(x, e)(p, env, ctrl)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
 
     ## NOTE: I'm not sure where these are only equal and not identical.
@@ -171,8 +172,9 @@ test_that("schedule setting", {
       birth_rate=pi/2,
       is_resident=TRUE,
       max_patch_lifetime=5.0)
+    env <- make_environment(x)
     ctrl <- scm_base_control()
-    scm <- SCM(x, e)(p, ctrl)
+    scm <- SCM(x, e)(p, env, ctrl)
 
     ## Then set a cohort schedule:
     ## Build a schedule for 14 introductions from t=0 to t=5
@@ -193,7 +195,7 @@ test_that("schedule setting", {
     expect_identical(sched2$max_time, sched$max_time)
     expect_identical(sched2$all_times, list(t))
 
-    scm2 <- SCM(x, e)(p2, ctrl)
+    scm2 <- SCM(x, e)(p2, env, ctrl)
     expect_identical(scm2$cohort_schedule$max_time, sched2$max_time)
     expect_identical(scm2$cohort_schedule$all_times, sched2$all_times)
   }
@@ -242,10 +244,12 @@ test_that("Seed rain & error calculations correct", {
     context(sprintf("SCM-%s", x))
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
-    ctrl <- scm_base_control()
     p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE)
+    
+    env <- make_environment(x)
+    ctrl <- scm_base_control()
 
-    scm <- run_scm(p1, ctrl)
+    scm <- run_scm(p1, env, ctrl)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
 
     net_reproduction_ratio_R <- function(scm, error=FALSE) {
@@ -271,7 +275,7 @@ test_that("Seed rain & error calculations correct", {
     S_D <- scm$parameters$strategies[[1]]$S_D
     expect_equal(int("offspring_produced_survival_weighted") * S_D, scm$net_reproduction_ratio_for_species(1))
 
-    res <- run_scm_collect(p1, ctrl)
+    res <- run_scm_collect(p1, env, ctrl)
     int2 <- make_scm_integrate(res)
 
     expect_equal(int2("offspring_produced_survival_weighted"), int("offspring_produced_survival_weighted"))
@@ -286,8 +290,9 @@ test_that("Can create empty SCM", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
+    env <- make_environment(x)
     ctrl <- scm_base_control()
-    scm <- SCM(x, e)(p, ctrl)
+    scm <- SCM(x, e)(p, env, ctrl)
 
     ## Check light environment is empty:
     env <- scm$patch$environment

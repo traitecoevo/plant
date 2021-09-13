@@ -16,8 +16,9 @@ for (x in names(strategy_types)) {
                         is_resident=TRUE,
                         patch_type = 'meta-population')
   
+  env <- make_environment(x)
   ctrl <- Control()
-  patch <- Patch(x, e)(p, ctrl)
+  patch <- Patch(x, e)(p, env, ctrl)
   cmp <- Cohort(x, e)(p$strategies[[1]])
 
   test_that(sprintf("Basics %s", x), {
@@ -163,9 +164,10 @@ for (x in names(strategy_types)) {
   
   test_that("No Disturbance for fixed-time patches", {
     p$patch_type <- "fixed"
+    env <- make_environment(x)
     ctrl <- scm_base_control()
 
-    patch <- Patch(x, e)(p, ctrl)
+    patch <- Patch(x, e)(p, env, ctrl)
     
     expect_identical(patch$time, 0.0)
     expect_identical(patch$pr_survival(patch$time), 1.0)
