@@ -1585,8 +1585,8 @@ Species___K93__K93_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Species___K93__K93_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FF16__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_Patch___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+Patch___FF16__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_Patch___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 Patch___FF16__FF16_Env__introduce_new_cohort <- function(obj_, species_index) {
@@ -1685,8 +1685,8 @@ Patch___FF16__FF16_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Patch___FF16__FF16_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___Water__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_Patch___Water__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+Patch___Water__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_Patch___Water__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 Patch___Water__FF16_Env__introduce_new_cohort <- function(obj_, species_index) {
@@ -1785,8 +1785,8 @@ Patch___Water__FF16_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Patch___Water__FF16_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FF16r__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_Patch___FF16r__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+Patch___FF16r__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_Patch___FF16r__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 Patch___FF16r__FF16_Env__introduce_new_cohort <- function(obj_, species_index) {
@@ -1885,8 +1885,8 @@ Patch___FF16r__FF16_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Patch___FF16r__FF16_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___K93__K93_Env__ctor <- function(parameters, control) {
-    .Call('_plant_Patch___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, control)
+Patch___K93__K93_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_Patch___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 Patch___K93__K93_Env__introduce_new_cohort <- function(obj_, species_index) {
@@ -1985,8 +1985,8 @@ Patch___K93__K93_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Patch___K93__K93_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_SCM___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+SCM___FF16__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_SCM___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 SCM___FF16__FF16_Env__run <- function(obj_) {
@@ -2065,8 +2065,8 @@ SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___Water__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_SCM___Water__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+SCM___Water__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_SCM___Water__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 SCM___Water__FF16_Env__run <- function(obj_) {
@@ -2145,8 +2145,8 @@ SCM___Water__FF16_Env__net_reproduction_ratio_errors__get <- function(obj_) {
     .Call('_plant_SCM___Water__FF16_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16r__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_SCM___FF16r__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+SCM___FF16r__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_SCM___FF16r__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 SCM___FF16r__FF16_Env__run <- function(obj_) {
@@ -2225,8 +2225,8 @@ SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get <- function(obj_) {
     .Call('_plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__ctor <- function(parameters, control) {
-    .Call('_plant_SCM___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, control)
+SCM___K93__K93_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_SCM___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 SCM___K93__K93_Env__run <- function(obj_) {
@@ -2641,8 +2641,8 @@ StochasticSpecies___K93__K93_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_StochasticSpecies___K93__K93_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FF16__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_StochasticPatch___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+StochasticPatch___FF16__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_StochasticPatch___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 StochasticPatch___FF16__FF16_Env__compute_competition <- function(obj_, height) {
@@ -2725,8 +2725,8 @@ StochasticPatch___FF16__FF16_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_StochasticPatch___FF16__FF16_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___Water__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_StochasticPatch___Water__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+StochasticPatch___Water__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_StochasticPatch___Water__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 StochasticPatch___Water__FF16_Env__compute_competition <- function(obj_, height) {
@@ -2809,8 +2809,8 @@ StochasticPatch___Water__FF16_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_StochasticPatch___Water__FF16_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___FF16r__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_StochasticPatch___FF16r__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+StochasticPatch___FF16r__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_StochasticPatch___FF16r__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 StochasticPatch___FF16r__FF16_Env__compute_competition <- function(obj_, height) {
@@ -2893,8 +2893,8 @@ StochasticPatch___FF16r__FF16_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_StochasticPatch___FF16r__FF16_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatch___K93__K93_Env__ctor <- function(parameters, control) {
-    .Call('_plant_StochasticPatch___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, control)
+StochasticPatch___K93__K93_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_StochasticPatch___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 StochasticPatch___K93__K93_Env__compute_competition <- function(obj_, height) {
@@ -2977,8 +2977,8 @@ StochasticPatch___K93__K93_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_StochasticPatch___K93__K93_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___FF16__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_StochasticPatchRunner___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+StochasticPatchRunner___FF16__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_StochasticPatchRunner___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 StochasticPatchRunner___FF16__FF16_Env__run <- function(obj_) {
@@ -3025,8 +3025,8 @@ StochasticPatchRunner___FF16__FF16_Env__state__get <- function(obj_) {
     .Call('_plant_StochasticPatchRunner___FF16__FF16_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___Water__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_StochasticPatchRunner___Water__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+StochasticPatchRunner___Water__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_StochasticPatchRunner___Water__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 StochasticPatchRunner___Water__FF16_Env__run <- function(obj_) {
@@ -3073,8 +3073,8 @@ StochasticPatchRunner___Water__FF16_Env__state__get <- function(obj_) {
     .Call('_plant_StochasticPatchRunner___Water__FF16_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___FF16r__FF16_Env__ctor <- function(parameters, control) {
-    .Call('_plant_StochasticPatchRunner___FF16r__FF16_Env__ctor', PACKAGE = 'plant', parameters, control)
+StochasticPatchRunner___FF16r__FF16_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_StochasticPatchRunner___FF16r__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 StochasticPatchRunner___FF16r__FF16_Env__run <- function(obj_) {
@@ -3121,8 +3121,8 @@ StochasticPatchRunner___FF16r__FF16_Env__state__get <- function(obj_) {
     .Call('_plant_StochasticPatchRunner___FF16r__FF16_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-StochasticPatchRunner___K93__K93_Env__ctor <- function(parameters, control) {
-    .Call('_plant_StochasticPatchRunner___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, control)
+StochasticPatchRunner___K93__K93_Env__ctor <- function(parameters, environment, control) {
+    .Call('_plant_StochasticPatchRunner___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
 }
 
 StochasticPatchRunner___K93__K93_Env__run <- function(obj_) {
@@ -3169,8 +3169,8 @@ StochasticPatchRunner___K93__K93_Env__state__get <- function(obj_) {
     .Call('_plant_StochasticPatchRunner___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
-Canopy__ctor <- function(control) {
-    .Call('_plant_Canopy__ctor', PACKAGE = 'plant', control)
+Canopy__ctor <- function(tol, nbase, max_depth) {
+    .Call('_plant_Canopy__ctor', PACKAGE = 'plant', tol, nbase, max_depth)
 }
 
 Canopy__canopy_openness <- function(obj_, height) {
@@ -3241,8 +3241,8 @@ FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-FF16_Environment__ctor <- function(control) {
-    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', control)
+FF16_Environment__ctor <- function() {
+    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant')
 }
 
 FF16_Environment__canopy_openness <- function(obj_, height) {
@@ -3273,6 +3273,10 @@ FF16_Environment__time__set <- function(obj_, value) {
     invisible(.Call('_plant_FF16_Environment__time__set', PACKAGE = 'plant', obj_, value))
 }
 
+FF16_Environment__ode_size__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__ode_size__get', PACKAGE = 'plant', obj_)
+}
+
 FF16_Environment__canopy__get <- function(obj_) {
     .Call('_plant_FF16_Environment__canopy__get', PACKAGE = 'plant', obj_)
 }
@@ -3281,8 +3285,60 @@ FF16_Environment__canopy__set <- function(obj_, value) {
     invisible(.Call('_plant_FF16_Environment__canopy__set', PACKAGE = 'plant', obj_, value))
 }
 
-FF16_Environment__ode_size__get <- function(obj_) {
-    .Call('_plant_FF16_Environment__ode_size__get', PACKAGE = 'plant', obj_)
+FF16_Environment__canopy_light_tol__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__canopy_light_tol__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__canopy_light_tol__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__canopy_light_tol__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Environment__canopy_light_nbase__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__canopy_light_nbase__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__canopy_light_nbase__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__canopy_light_nbase__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Environment__canopy_light_max_depth__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__canopy_light_max_depth__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__canopy_light_max_depth__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__canopy_light_max_depth__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Environment__canopy_rescale_usually__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__canopy_rescale_usually__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__canopy_rescale_usually__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__canopy_rescale_usually__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Environment__soil_number_of_depths__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__soil_number_of_depths__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__soil_number_of_depths__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__soil_number_of_depths__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Environment__soil_initial_state__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__soil_initial_state__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__soil_initial_state__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__soil_initial_state__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Environment__soil_infiltration_rate__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__soil_infiltration_rate__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__soil_infiltration_rate__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__soil_infiltration_rate__set', PACKAGE = 'plant', obj_, value))
 }
 
 FF16_Environment__soil__get <- function(obj_) {
@@ -3297,8 +3353,8 @@ K93_Strategy__ctor <- function() {
     .Call('_plant_K93_Strategy__ctor', PACKAGE = 'plant')
 }
 
-K93_Environment__ctor <- function(control) {
-    .Call('_plant_K93_Environment__ctor', PACKAGE = 'plant', control)
+K93_Environment__ctor <- function() {
+    .Call('_plant_K93_Environment__ctor', PACKAGE = 'plant')
 }
 
 K93_Environment__canopy_openness <- function(obj_, height) {
