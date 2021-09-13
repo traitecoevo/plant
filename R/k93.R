@@ -70,8 +70,8 @@ K93_StochasticPatchRunner <- function(p) {
 ##' @export
 ##' @rdname K93_Environment
 ##' @param ctrl Control object
-K93_make_environment <- function(ctrl = scm_base_control()) {
-  K93_Environment(ctrl)
+K93_make_environment <- function() {
+  K93_Environment()
 }
 
 ##' Construct a fixed environment for K93 strategy
@@ -82,8 +82,8 @@ K93_make_environment <- function(ctrl = scm_base_control()) {
 ##' @rdname K93_Environment
 ##'
 ##' @export
-K93_fixed_environment <- function(e=1.0, ctrl = scm_base_control(), height_max = 300.0) {
-  env <- K93_make_environment(ctrl)
+K93_fixed_environment <- function(e=1.0, height_max = 300.0) {
+  env <- K93_make_environment()
   env$set_fixed_environment(e, height_max)
   env
 }

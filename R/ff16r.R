@@ -65,8 +65,8 @@ FF16r_StochasticPatchRunner <- function(p) {
 ##' @export
 ##' @rdname FF16_Environment
 ##' @param ctrl Control object
-FF16r_make_environment <- function(ctrl = scm_base_control()) {
-  FF16_Environment(ctrl)
+FF16r_make_environment <- function() {
+  FF16_Environment()
 }
 
 ##' This makes a pretend light environment over the plant height,

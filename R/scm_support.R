@@ -70,14 +70,16 @@ scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
 ##' This is the simplest way of using the SCM, probably.
 ##' @title Run SCM
 ##' @param p Parameters object
+##' @param env Environment object (defaults to FF16_Environment)
 ##' @param ctrl Control object
 ##' @param use_ode_times Should ODE times be used?
 ##' @return A \code{SCM} object.
 ##' @author Rich FitzJohn
 ##' @export
-run_scm <- function(p, ctrl = scm_base_control(), use_ode_times=FALSE) {
+run_scm <- function(p, env = make_environment(), 
+                    ctrl = scm_base_control(), use_ode_times=FALSE) {
   types <- extract_RcppR6_template_types(p, "Parameters")
-  scm <- do.call('SCM', types)(p, ctrl)
+  scm <- do.call('SCM', types)(p, env, ctrl)
   if (use_ode_times) {
     scm$use_ode_times <- TRUE
   }
@@ -94,12 +96,14 @@ run_scm <- function(p, ctrl = scm_base_control(), use_ode_times=FALSE) {
 ##'
 ##' @title Run the SCM, Collecting Output
 ##' @param p A \code{Parameters} object
+##' @param env Environment object (defaults to FF16_Environment)
 ##' @param ctrl Control object
 ##' @param include_competition_effect Include total leaf area (will change; see
 ##' issue #138)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, ctrl = scm_base_control(),
+run_scm_collect <- function(p, env = make_environment(), 
+                            ctrl = scm_base_control(),
                             include_competition_effect=FALSE) {
   collect_default <- function(scm) {
     scm$state
@@ -119,7 +123,7 @@ run_scm_collect <- function(p, ctrl = scm_base_control(),
   collect <- if (include_competition_effect) collect_competition_effect else collect_default
   types <- extract_RcppR6_template_types(p, "Parameters")
 
-  scm <- do.call('SCM', types)(p, ctrl)
+  scm <- do.call('SCM', types)(p, env, ctrl)
   res <- list(collect(scm))
 
   while (!scm$complete) {
@@ -163,12 +167,14 @@ run_scm_collect <- function(p, ctrl = scm_base_control(),
 ##' @title Reconstruct a patch
 ##' @param state State object created by \code{scm_state}
 ##' @param p Parameters object
+##' @param env Environment object (defaults to FF16_Environment)
 ##' @param ctrl Control object
 ##' @export
-make_patch <- function(state, p, ctrl = scm_base_control()) {
+make_patch <- function(state, p, env = make_environment(),
+                       ctrl = scm_base_control()) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   n <- viapply(state$species, ncol)
-  patch <- do.call('Patch', types)(p, ctrl)
+  patch <- do.call('Patch', types)(p, env, ctrl)
   patch$set_state(state$time, unlist(state$species), n, state$env)
   patch
 }
@@ -192,9 +198,10 @@ scm_patch <- function(i, x) {
   make_patch(scm_state(i, x), x$p)
 }
 
-run_scm_error <- function(p, ctrl = scm_base_control()) {
+run_scm_error <- function(p, env = make_environment(),
+                          ctrl = scm_base_control()) {
   types <- extract_RcppR6_template_types(p, "Parameters")
-  scm <- do.call('SCM', types)(p, ctrl)
+  scm <- do.call('SCM', types)(p, env, ctrl)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)

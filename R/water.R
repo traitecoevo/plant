@@ -64,9 +64,22 @@ Water_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
-##' @param ctrl Control object
-Water_make_environment <- function(ctrl = scm_base_control()) {
-  FF16_Environment(ctrl)
+##' @param infil_rate rate of water entering the first layer
+##' @param n_layers the number of layers
+##' @param init starting conditions
+Water_make_environment <- function(infil_rate = 1, n_layers = 1, init = c(1)) {
+  if(n_layers != length(init))
+    stop("Not enough starting points for all layers")
+  
+  env <- FF16_Environment()
+  env$soil_infiltration_rate <- infil_rate
+  env$soil_number_of_depths <- n_layers
+  
+  # not sure keeping initial state as a variable is useful?
+  env$soil_initial_state <- init
+  env$set_soil_water_state(init)
+  
+  return(env)
 }
 
 ##' Construct a fixed environment for Water strategy
@@ -77,8 +90,8 @@ Water_make_environment <- function(ctrl = scm_base_control()) {
 ##' @rdname FF16_Environment
 ##'
 ##' @export
-Water_fixed_environment <- function(e=1.0, ctrl = scm_base_control(), height_max = 150.0) {
-  env <- Water_make_environment(ctrl)
+Water_fixed_environment <- function(e=1.0, height_max = 150.0) {
+  env <- Water_make_environment()
   env$set_fixed_environment(e, height_max)
   env
 }

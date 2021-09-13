@@ -63,9 +63,8 @@ FF16_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
-##' @param ctrl Control object
-FF16_make_environment <- function(ctrl = scm_base_control()) {
-  FF16_Environment(ctrl)
+FF16_make_environment <- function() {
+  FF16_Environment()
 }
 
 ##' Construct a fixed environment for FF16 strategy
@@ -76,8 +75,8 @@ FF16_make_environment <- function(ctrl = scm_base_control()) {
 ##' @rdname FF16_Environment
 ##'
 ##' @export
-FF16_fixed_environment <- function(e=1.0, ctrl = scm_base_control(), height_max = 150.0) {
-  env <- FF16_make_environment(ctrl)
+FF16_fixed_environment <- function(e=1.0, height_max = 150.0) {
+  env <- FF16_make_environment()
   env$set_fixed_environment(e, height_max)
   env
 }

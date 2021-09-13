@@ -47,7 +47,7 @@ environment_type <- function(type) {
          stop("Unknown type ", type))
 }
 
-make_environment <- function(type, ...) {
+make_environment <- function(type = "FF16", ...) {
   switch(type,
          FF16=FF16_make_environment(...),
          Water=Water_make_environment(...),
