@@ -5,10 +5,10 @@ namespace plant {
 FF16_Environment::FF16_Environment() {
   time = 0.0;
 
-  canopy_light_tol = 1e-6;
+  canopy_light_tol = 1e-4;
   canopy_light_nbase = 17;
   canopy_light_max_depth = 16;
-  canopy_rescale_usually = false;
+  canopy_rescale_usually = true;
 
   canopy = Canopy(canopy_light_tol, canopy_light_nbase, canopy_light_max_depth);
 
