@@ -858,6 +858,14 @@ FF16_Strategy:
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
+    args:
+      - canopy_light_tol: double
+      - canopy_light_nbase: int
+      - canopy_light_max_depth: int
+      - canopy_rescale_usually: bool
+      - soil_number_of_depths: int
+      - soil_initial_state: "std::vector<double>"
+      - infil_rate: double
     roxygen: |
       FF16_Environment object
       @export
@@ -871,7 +879,7 @@ FF16_Environment:
       args: [value: double, height_max: double]
       return_type: void
     set_soil_water_state:
-      args: [v: double]
+      args: [state: "std::vector<double>"]
       return_type: void
     compute_rates:
       return_type: void

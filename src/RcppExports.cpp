@@ -9087,12 +9087,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__ctor
-plant::FF16_Environment FF16_Environment__ctor();
-RcppExport SEXP _plant_FF16_Environment__ctor() {
+plant::FF16_Environment FF16_Environment__ctor(double canopy_light_tol, int canopy_light_nbase, int canopy_light_max_depth, bool canopy_rescale_usually, int soil_number_of_depths, std::vector<double> soil_initial_state, double infil_rate);
+RcppExport SEXP _plant_FF16_Environment__ctor(SEXP canopy_light_tolSEXP, SEXP canopy_light_nbaseSEXP, SEXP canopy_light_max_depthSEXP, SEXP canopy_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP, SEXP soil_initial_stateSEXP, SEXP infil_rateSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor());
+    Rcpp::traits::input_parameter< double >::type canopy_light_tol(canopy_light_tolSEXP);
+    Rcpp::traits::input_parameter< int >::type canopy_light_nbase(canopy_light_nbaseSEXP);
+    Rcpp::traits::input_parameter< int >::type canopy_light_max_depth(canopy_light_max_depthSEXP);
+    Rcpp::traits::input_parameter< bool >::type canopy_rescale_usually(canopy_rescale_usuallySEXP);
+    Rcpp::traits::input_parameter< int >::type soil_number_of_depths(soil_number_of_depthsSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type soil_initial_state(soil_initial_stateSEXP);
+    Rcpp::traits::input_parameter< double >::type infil_rate(infil_rateSEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(canopy_light_tol, canopy_light_nbase, canopy_light_max_depth, canopy_rescale_usually, soil_number_of_depths, soil_initial_state, infil_rate));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9131,13 +9138,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__set_soil_water_state
-void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double v);
-RcppExport SEXP _plant_FF16_Environment__set_soil_water_state(SEXP obj_SEXP, SEXP vSEXP) {
+void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> state);
+RcppExport SEXP _plant_FF16_Environment__set_soil_water_state(SEXP obj_SEXP, SEXP stateSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type v(vSEXP);
-    FF16_Environment__set_soil_water_state(obj_, v);
+    Rcpp::traits::input_parameter< std::vector<double> >::type state(stateSEXP);
+    FF16_Environment__set_soil_water_state(obj_, state);
     return R_NilValue;
 END_RCPP
 }
@@ -10547,7 +10554,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Weibull_Disturbance_Regime__cdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__cdf, 2},
     {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
-    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 0},
+    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 7},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},

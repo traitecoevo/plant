@@ -3241,8 +3241,8 @@ FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-FF16_Environment__ctor <- function() {
-    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant')
+FF16_Environment__ctor <- function(canopy_light_tol, canopy_light_nbase, canopy_light_max_depth, canopy_rescale_usually, soil_number_of_depths, soil_initial_state, infil_rate) {
+    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', canopy_light_tol, canopy_light_nbase, canopy_light_max_depth, canopy_rescale_usually, soil_number_of_depths, soil_initial_state, infil_rate)
 }
 
 FF16_Environment__canopy_openness <- function(obj_, height) {
@@ -3257,8 +3257,8 @@ FF16_Environment__set_fixed_environment <- function(obj_, value, height_max) {
     invisible(.Call('_plant_FF16_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
 }
 
-FF16_Environment__set_soil_water_state <- function(obj_, v) {
-    invisible(.Call('_plant_FF16_Environment__set_soil_water_state', PACKAGE = 'plant', obj_, v))
+FF16_Environment__set_soil_water_state <- function(obj_, state) {
+    invisible(.Call('_plant_FF16_Environment__set_soil_water_state', PACKAGE = 'plant', obj_, state))
 }
 
 FF16_Environment__compute_rates <- function(obj_) {

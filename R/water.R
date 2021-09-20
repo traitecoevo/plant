@@ -67,20 +67,29 @@ Water_StochasticPatchRunner <- function(p) {
 ##' @param infil_rate rate of water entering the first layer
 ##' @param n_layers the number of layers
 ##' @param init starting conditions
-Water_make_environment <- function(infil_rate = 1, n_layers = 1, init = c(1)) {
-  if(n_layers != length(init))
+Water_make_environment <- function(canopy_light_tol = 1e-4,
+                                   canopy_light_nbase = 17,
+                                   canopy_light_max_depth = 16,
+                                   canopy_rescale_usually = TRUE,
+                                   soil_number_of_depths = 0,
+                                   soil_initial_state = 0.0,
+                                   soil_infiltration_rate = 0.0) {
+  
+  if (soil_number_of_depths > 0 &&
+      soil_number_of_depths != length(soil_initial_state))
     stop("Not enough starting points for all layers")
   
-  env <- FF16_Environment()
-  env$soil_infiltration_rate <- infil_rate
-  env$soil_number_of_depths <- n_layers
-  
-  # not sure keeping initial state as a variable is useful?
-  env$soil_initial_state <- init
-  env$set_soil_water_state(init)
-  
-  return(env)
+  FF16_Environment(
+    canopy_light_tol,
+    canopy_light_nbase,
+    canopy_light_max_depth,
+    canopy_rescale_usually,
+    soil_number_of_depths,
+    soil_initial_state,
+    soil_infiltration_rate
+  )
 }
+  
 
 ##' Construct a fixed environment for Water strategy
 ##'

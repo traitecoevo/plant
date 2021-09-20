@@ -12,17 +12,23 @@ namespace plant {
 class FF16_Environment : public Environment {
 public:
 
-  FF16_Environment();
+  // defaults for internal calls e.g. lcp_whole_plant
+  FF16_Environment() {
+    time = 0.0;
+    canopy = Canopy();
+    soil_infiltration_rate = 0.0;
+    vars = Internals(0);
+    set_soil_water_state(std::vector<double>(1, 0.0));
+  };
 
-  // Need to refactor this so that canopy and soil pars. set
-  // directly in environment e. For now just overwrite with same control.
-  // FF16_Environment(Control control) {
-  //   time = 0.0;
-  //   canopy = Canopy(control);
-  //   inflow_rate = control.soil_infiltration_rate;
-  //   vars = Internals(control.soil_number_of_depths);
-  //   set_soil_water_state(0.0);
-  // };
+  // constructor for R interface
+  FF16_Environment(double canopy_light_tol,
+                   int canopy_light_nbase,
+                   int canopy_light_max_depth,
+                   bool canopy_rescale_usually,
+                   int soil_number_of_depths,
+                   std::vector<double> soil_initial_state,
+                   double infil_rate);
 
   // Light interface
   double canopy_light_tol;
@@ -73,9 +79,9 @@ public:
   Internals r_internals() const { return vars; }
 
   // R interface
-  void set_soil_water_state(double v) {
+  void set_soil_water_state(std::vector<double> state) {
     for (int i = 0; i < vars.state_size; i++) {
-      vars.set_state(i, v / (i+1));
+      vars.set_state(i, state[i]);
     }
   }
 
