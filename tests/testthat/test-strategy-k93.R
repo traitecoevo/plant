@@ -99,7 +99,7 @@ test_that("K93 seed rain is unchanged", {
 
   p2 <- expand_parameters(sp, p0, mutant = FALSE)
   p2$birth_rate <- c(20, 20, 20)
-  out <- run_scm(p2, ctrl)
+  out <- run_scm(p2, env, ctrl)
 
   expect_equal(out$offspring_production, c(0.0025, 0.2321, 0.2194), tolerance = 1e-4)
 })

@@ -190,7 +190,7 @@ test_that("offspring arrival", {
   # two species
   p2 <- expand_parameters(trait_matrix(0.2625, "lma"), p1, FF16_hyperpar, FALSE)
   p2$birth_rate <- c(11.99177, 16.51006)
-  out <- run_scm(p2, ctrl)
+  out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production, c(11.99529, 16.47519), tolerance=1e-5)
   expect_equal(length(out$ode_times), 297)
 })
