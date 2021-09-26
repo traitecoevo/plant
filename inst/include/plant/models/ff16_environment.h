@@ -26,9 +26,9 @@ public:
                    int canopy_light_nbase,
                    int canopy_light_max_depth,
                    bool canopy_rescale_usually,
-                   int soil_number_of_depths,
-                   std::vector<double> soil_initial_state,
-                   double infil_rate);
+                   int soil_ndepths,
+                   std::vector<double> soil_init,
+                   double soil_infil_rate);
 
   // Light interface
   double canopy_light_tol;
@@ -63,7 +63,7 @@ public:
   // Soil interface
   double soil_infiltration_rate;
   size_t soil_number_of_depths;
-  double soil_initial_state;
+  std::vector<double> soil_initial_state;
 
   virtual void compute_rates() {
     for (int i = 0; i < vars.state_size; i++) {

@@ -17,6 +17,7 @@ for (x in names(strategy_types)) {
                         patch_type = 'meta-population')
   
   env <- make_environment(x)
+  
   ctrl <- Control()
   patch <- Patch(x, e)(p, env, ctrl)
   cmp <- Cohort(x, e)(p$strategies[[1]])
@@ -35,9 +36,9 @@ for (x in names(strategy_types)) {
     expect_equal(length(patch$species), 1)
     expect_is(patch$species[[1]], sprintf("Species<%s,%s>",x,e))
     
-    expect_equal(patch$ode_size, 0)
-    expect_identical(patch$ode_state, numeric(0))
-    expect_identical(patch$ode_rates, numeric(0))
+    expect_equal(patch$ode_size, env$soil_number_of_depths)
+    expect_identical(patch$ode_state, numeric(env$soil_number_of_depths))
+    expect_identical(patch$ode_rates, numeric(env$soil_number_of_depths))
     
     ## Empty light environment:
     patch$compute_environment()
@@ -48,13 +49,13 @@ for (x in names(strategy_types)) {
     
     ode_size <- Cohort(x, e)(s)$ode_size
     patch$introduce_new_cohort(1)
-    expect_equal(patch$ode_size, ode_size)
+    expect_equal(patch$ode_size, ode_size + env$soil_number_of_depths)
     
     ## Then pull this out:
     cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), p$birth_rate)
-    
-    expect_identical(patch$ode_state, cmp$ode_state)
-    expect_identical(patch$ode_rates, cmp$ode_rates)
+     
+    expect_identical(patch$ode_state, c(cmp$ode_state, numeric(env$soil_number_of_depths)))
+    expect_identical(patch$ode_rates, c(cmp$ode_rates, numeric(env$soil_number_of_depths)))
     
     y <- patch$ode_state
     patch$set_ode_state(y, 0)

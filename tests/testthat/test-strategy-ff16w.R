@@ -1,16 +1,16 @@
 # Built from  tests/testthat/test-strategy-ff16.R on Mon Jul 19 11:01:04 2021 using the scaffolder, from the strategy:  FF16
-context("Strategy-Water")
+context("Strategy-FF16w")
 
-test_that("Water Environment", {
+test_that("FF16w Environment", {
   control <- Control()
-  e <- make_environment("Water")
+  e <- make_environment("FF16w")
 
   # Empty by default
   expect_equal(e$ode_size, 0)
   expect_equal(e$soil$state_size, 0)
   
   # Add one layer
-  e <- make_environment("Water", soil_number_of_depths = 1)
+  e <- make_environment("FF16w", soil_number_of_depths = 1)
   
   expect_equal(e$ode_size, 1)
   expect_equal(e$soil$state_size, 1)
@@ -22,7 +22,7 @@ test_that("Water Environment", {
   expect_equal(e$soil$rates, 0)
   
   # Make it rain
-  e <- make_environment("Water", 
+  e <- make_environment("FF16w", 
                         soil_number_of_depths = 1,
                         soil_infiltration_rate = 10)
   
@@ -33,11 +33,11 @@ test_that("Water Environment", {
 
 test_that("Basic run", {
   # one species
-  p0 <- scm_base_parameters("Water")
-  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, Water_hyperpar,FALSE)
+  p0 <- scm_base_parameters("FF16w")
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE)
   p1$birth_rate <- 20
 
-  env <- make_environment("Water", 
+  env <- make_environment("FF16w", 
                           soil_number_of_depths = 10,
                           soil_initial_state = rep(1, 10),
                           soil_infiltration_rate = 1)
