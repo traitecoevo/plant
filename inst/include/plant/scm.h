@@ -162,7 +162,7 @@ template <typename T, typename E> void SCM<T, E>::r_set_use_ode_times(bool x) {
 
 template <typename T, typename E>
 void SCM<T, E>::r_set_cohort_schedule(CohortSchedule x) {
-  if (patch.ode_size() > 0) {
+  if (patch.cohort_ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
   util::check_length(x.get_n_species(), patch.size());
@@ -176,7 +176,7 @@ void SCM<T, E>::r_set_cohort_schedule(CohortSchedule x) {
 template <typename T, typename E>
 void SCM<T, E>::r_set_cohort_schedule_times(
     std::vector<std::vector<double>> x) {
-  if (patch.ode_size() > 0) {
+  if (patch.cohort_ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
   cohort_schedule.set_times(x);

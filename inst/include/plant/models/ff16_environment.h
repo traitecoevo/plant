@@ -11,29 +11,20 @@ namespace plant {
 
 class FF16_Environment : public Environment {
 public:
-
-  // defaults for internal calls e.g. lcp_whole_plant
-  FF16_Environment() {
+  // constructor for R interface - default settings can be modified
+  // except for soil_number_of_depths and canopy_rescale_usually
+  // which are only updated on construction
+  FF16_Environment(bool canopy_rescale_usually = false,
+                   int soil_number_of_depths = 0)
+      : canopy_rescale_usually(canopy_rescale_usually) {
     time = 0.0;
     canopy = Canopy();
     soil_infiltration_rate = 0.0;
-    vars = Internals(0);
-    set_soil_water_state(std::vector<double>(1, 0.0));
+    vars = Internals(soil_number_of_depths);
+    set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
   };
 
-  // constructor for R interface
-  FF16_Environment(double canopy_light_tol,
-                   int canopy_light_nbase,
-                   int canopy_light_max_depth,
-                   bool canopy_rescale_usually,
-                   int soil_ndepths,
-                   std::vector<double> soil_init,
-                   double soil_infil_rate);
-
   // Light interface
-  double canopy_light_tol;
-  size_t canopy_light_nbase;
-  size_t canopy_light_max_depth;
   bool canopy_rescale_usually;
 
   Canopy canopy;
@@ -62,8 +53,6 @@ public:
 
   // Soil interface
   double soil_infiltration_rate;
-  size_t soil_number_of_depths;
-  std::vector<double> soil_initial_state;
 
   virtual void compute_rates() {
     for (int i = 0; i < vars.state_size; i++) {
@@ -85,6 +74,9 @@ public:
     }
   }
 
+  void set_soil_infiltration_rate(double rate) {
+    soil_infiltration_rate = rate;
+  }
 
   // Core functions
   template <typename Function>

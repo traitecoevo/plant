@@ -3,16 +3,11 @@ context("Strategy-FF16w")
 
 test_that("FF16w Environment", {
   control <- Control()
-  e <- make_environment("FF16w")
-
-  # Empty by default
-  expect_equal(e$ode_size, 0)
-  expect_equal(e$soil$state_size, 0)
+  e <- make_environment("FF16w") 
   
-  # Add one layer
-  e <- make_environment("FF16w", soil_number_of_depths = 1)
-  
+  # One layer by default
   expect_equal(e$ode_size, 1)
+  expect_equal(e$soil_number_of_depths, 1)
   expect_equal(e$soil$state_size, 1)
   
   # Initialised with no water, no inflow
@@ -22,6 +17,16 @@ test_that("FF16w Environment", {
   expect_equal(e$soil$rates, 0)
   
   # Make it rain
+  e$set_soil_infiltration_rate(10)
+  expect_equal(e$soil$states, 0)
+  e$compute_rates()
+  expect_equal(e$soil$rates, 10)
+  
+  # Water logged
+  e$set_soil_water_state(100)
+  expect_equal(e$soil$states, 100)
+  
+  # Check construction
   e <- make_environment("FF16w", 
                         soil_number_of_depths = 1,
                         soil_infiltration_rate = 10)
@@ -29,6 +34,22 @@ test_that("FF16w Environment", {
   expect_equal(e$soil$states, 0)
   e$compute_rates()
   expect_equal(e$soil$rates, 10)
+
+  e <- make_environment("FF16w", soil_number_of_depths = 2)
+  
+  expect_equal(e$ode_size, 2)
+  expect_equal(e$soil_number_of_depths, 2)
+  expect_equal(e$soil$state_size, 2)
+  
+  expect_error(e <- make_environment("FF16w", soil_number_of_depths = 0),
+               "FF16w Environment must have at least one soil layer")
+  
+  expect_error(e <- make_environment("FF16w", 
+                                     soil_number_of_depths = 1,
+                                     soil_initial_state = c(1, 1)),
+               "Not enough starting points for all layers")
+  
+  
 })
 
 test_that("Basic run", {
@@ -56,6 +77,6 @@ test_that("Basic run", {
                c(105, 52, 35, 26, 21, 17, 15, 13, 11, 10),
                tolerance = 0.1)
   
-  expect_equal(out$offspring_production, 16.89277, tolerance=1e-5)
-  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.221202), tolerance=1e-5)
+  expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
+  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 })

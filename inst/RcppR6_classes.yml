@@ -470,6 +470,7 @@ Patch:
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+    cohort_ode_size: {type: size_t, access: member}
   methods:
     introduce_new_cohort:
       return_type: void
@@ -859,13 +860,8 @@ FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
     args:
-      - canopy_light_tol: double
-      - canopy_light_nbase: int
-      - canopy_light_max_depth: int
       - canopy_rescale_usually: bool
-      - soil_ndepths: int
-      - soil_init: "std::vector<double>"
-      - soil_infil_rate: double
+      - soil_number_of_depths: int
     roxygen: |
       FF16_Environment object
       @export
@@ -878,6 +874,9 @@ FF16_Environment:
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
+    set_soil_infiltration_rate:
+      args: [rate: double]
+      return_type: void
     set_soil_water_state:
       args: [state: "std::vector<double>"]
       return_type: void
@@ -886,16 +885,10 @@ FF16_Environment:
   active:
     time: {type: double, access: field}
     ode_size: {type: size_t, access: member}
+    soil_number_of_depths: {type: size_t, access: member, name_cpp: ode_size}
     canopy:
       type: "plant::Canopy"
       access: field
-    canopy_light_tol: {type: double, access: field}
-    canopy_light_nbase: {type: double, access: field}
-    canopy_light_max_depth: {type: double, access: field}
-    canopy_rescale_usually: {type: bool, access: field}
-    soil_number_of_depths: {type: int, access: field}
-    soil_initial_state: {type: std::vector<double>, access: field}
-    soil_infiltration_rate: {type: double, access: field}
     soil:
       type: "plant::Internals"
       access: member
@@ -988,6 +981,7 @@ K93_Environment:
   active:
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
+    ode_size: {type: size_t, access: member}
 
 # The following strategy was built from FF16 on Mon Jul 19 11:01:04 2021
 FF16w_Strategy:

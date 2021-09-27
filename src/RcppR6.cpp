@@ -1922,6 +1922,11 @@ plant::ode::state_type Patch___FF16__FF16_Env__ode_rates__get(plant::RcppR6::Rcp
   return plant::ode::r_ode_rates(*obj_);
 }
 
+// [[Rcpp::export]]
+size_t Patch___FF16__FF16_Env__cohort_ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->cohort_ode_size();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> Patch___FF16w__FF16_Env__ctor(plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> parameters, plant::FF16_Environment environment, plant::Control control) {
@@ -2031,6 +2036,11 @@ plant::ode::state_type Patch___FF16w__FF16_Env__ode_state__get(plant::RcppR6::Rc
 // [[Rcpp::export]]
 plant::ode::state_type Patch___FF16w__FF16_Env__ode_rates__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+size_t Patch___FF16w__FF16_Env__cohort_ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->cohort_ode_size();
 }
 
 
@@ -2144,6 +2154,11 @@ plant::ode::state_type Patch___FF16r__FF16_Env__ode_rates__get(plant::RcppR6::Rc
   return plant::ode::r_ode_rates(*obj_);
 }
 
+// [[Rcpp::export]]
+size_t Patch___FF16r__FF16_Env__cohort_ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->cohort_ode_size();
+}
+
 
 // [[Rcpp::export]]
 plant::Patch<plant::K93_Strategy,plant::K93_Environment> Patch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control) {
@@ -2253,6 +2268,11 @@ plant::ode::state_type Patch___K93__K93_Env__ode_state__get(plant::RcppR6::RcppR
 // [[Rcpp::export]]
 plant::ode::state_type Patch___K93__K93_Env__ode_rates__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+size_t Patch___K93__K93_Env__cohort_ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->cohort_ode_size();
 }
 
 
@@ -3688,8 +3708,8 @@ SEXP FF16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::FF16_Environment FF16_Environment__ctor(double canopy_light_tol, int canopy_light_nbase, int canopy_light_max_depth, bool canopy_rescale_usually, int soil_ndepths, std::vector<double> soil_init, double soil_infil_rate) {
-  return plant::FF16_Environment(canopy_light_tol, canopy_light_nbase, canopy_light_max_depth, canopy_rescale_usually, soil_ndepths, soil_init, soil_infil_rate);
+plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths) {
+  return plant::FF16_Environment(canopy_rescale_usually, soil_number_of_depths);
 }
 // [[Rcpp::export]]
 double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
@@ -3702,6 +3722,10 @@ void FF16_Environment__clear(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_
 // [[Rcpp::export]]
 void FF16_Environment__set_fixed_environment(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value, double height_max) {
   obj_->set_fixed_environment(value, height_max);
+}
+// [[Rcpp::export]]
+void FF16_Environment__set_soil_infiltration_rate(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double rate) {
+  obj_->set_soil_infiltration_rate(rate);
 }
 // [[Rcpp::export]]
 void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> state) {
@@ -3726,75 +3750,17 @@ size_t FF16_Environment__ode_size__get(plant::RcppR6::RcppR6<plant::FF16_Environ
 }
 
 // [[Rcpp::export]]
+size_t FF16_Environment__soil_number_of_depths__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->ode_size();
+}
+
+// [[Rcpp::export]]
 plant::Canopy FF16_Environment__canopy__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
   return obj_->canopy;
 }
 // [[Rcpp::export]]
 void FF16_Environment__canopy__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::Canopy value) {
   obj_->canopy = value;
-}
-
-// [[Rcpp::export]]
-double FF16_Environment__canopy_light_tol__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->canopy_light_tol;
-}
-// [[Rcpp::export]]
-void FF16_Environment__canopy_light_tol__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value) {
-  obj_->canopy_light_tol = value;
-}
-
-// [[Rcpp::export]]
-double FF16_Environment__canopy_light_nbase__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->canopy_light_nbase;
-}
-// [[Rcpp::export]]
-void FF16_Environment__canopy_light_nbase__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value) {
-  obj_->canopy_light_nbase = value;
-}
-
-// [[Rcpp::export]]
-double FF16_Environment__canopy_light_max_depth__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->canopy_light_max_depth;
-}
-// [[Rcpp::export]]
-void FF16_Environment__canopy_light_max_depth__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value) {
-  obj_->canopy_light_max_depth = value;
-}
-
-// [[Rcpp::export]]
-bool FF16_Environment__canopy_rescale_usually__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->canopy_rescale_usually;
-}
-// [[Rcpp::export]]
-void FF16_Environment__canopy_rescale_usually__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, bool value) {
-  obj_->canopy_rescale_usually = value;
-}
-
-// [[Rcpp::export]]
-int FF16_Environment__soil_number_of_depths__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->soil_number_of_depths;
-}
-// [[Rcpp::export]]
-void FF16_Environment__soil_number_of_depths__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, int value) {
-  obj_->soil_number_of_depths = value;
-}
-
-// [[Rcpp::export]]
-std::vector<double> FF16_Environment__soil_initial_state__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->soil_initial_state;
-}
-// [[Rcpp::export]]
-void FF16_Environment__soil_initial_state__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> value) {
-  obj_->soil_initial_state = value;
-}
-
-// [[Rcpp::export]]
-double FF16_Environment__soil_infiltration_rate__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->soil_infiltration_rate;
-}
-// [[Rcpp::export]]
-void FF16_Environment__soil_infiltration_rate__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value) {
-  obj_->soil_infiltration_rate = value;
 }
 
 // [[Rcpp::export]]
@@ -3847,6 +3813,11 @@ plant::Canopy K93_Environment__canopy__get(plant::RcppR6::RcppR6<plant::K93_Envi
 // [[Rcpp::export]]
 void K93_Environment__canopy__set(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, plant::Canopy value) {
   obj_->canopy = value;
+}
+
+// [[Rcpp::export]]
+size_t K93_Environment__ode_size__get(plant::RcppR6::RcppR6<plant::K93_Environment> obj_) {
+  return obj_->ode_size();
 }
 
 

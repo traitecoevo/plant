@@ -67,27 +67,35 @@ FF16w_StochasticPatchRunner <- function(p) {
 ##' @param infil_rate rate of water entering the first layer
 ##' @param n_layers the number of layers
 ##' @param init starting conditions
-FF16w_make_environment <- function(canopy_light_tol = 1e-4,
+FF16w_make_environment <- function(canopy_light_tol = 1e-4, 
                                    canopy_light_nbase = 17,
-                                   canopy_light_max_depth = 16,
+                                   canopy_light_max_depth = 16, 
                                    canopy_rescale_usually = TRUE,
                                    soil_number_of_depths = 1,
                                    soil_initial_state = 0.0,
                                    soil_infiltration_rate = 0.0) {
   
-  if (soil_number_of_depths > 0 &&
-      soil_number_of_depths != length(soil_initial_state))
-    stop("Not enough starting points for all layers")
+  if(soil_number_of_depths < 1)
+    stop("FF16w Environment must have at least one soil layer")
   
-  FF16_Environment(
-    canopy_light_tol,
-    canopy_light_nbase,
-    canopy_light_max_depth,
-    canopy_rescale_usually,
-    soil_number_of_depths,
-    soil_initial_state,
-    soil_infiltration_rate
-  )
+  e <- FF16_Environment(canopy_rescale_usually, 
+                        soil_number_of_depths)
+  
+  e$canopy <- Canopy(canopy_light_tol, 
+                     canopy_light_nbase, 
+                     canopy_light_max_depth)
+
+  # there might be a better way to skip this if using defaultss
+  if(sum(soil_initial_state) > 0.0) {
+    if(soil_number_of_depths != length(soil_initial_state))
+      stop("Not enough starting points for all layers")
+    
+    e$set_soil_water_state(soil_initial_state)
+  }
+    
+  e$set_soil_infiltration_rate(soil_infiltration_rate)
+  
+  return(e)
 }
   
 

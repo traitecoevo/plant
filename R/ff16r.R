@@ -65,22 +65,9 @@ FF16r_StochasticPatchRunner <- function(p) {
 ##' @export
 ##' @rdname FF16_Environment
 ##' @param ctrl Control object
-FF16r_make_environment <- function(canopy_light_tol = 1e-4,
-                                   canopy_light_nbase = 17,
-                                   canopy_light_max_depth = 16,
-                                   canopy_rescale_usually = TRUE,
-                                   soil_number_of_depths = 0,
-                                   soil_initial_state = 0,
-                                   soil_infiltration_rate = 0.0) {
-  FF16_Environment(
-    canopy_light_tol,
-    canopy_light_nbase,
-    canopy_light_max_depth,
-    canopy_rescale_usually,
-    soil_number_of_depths,
-    soil_initial_state,
-    soil_infiltration_rate
-  )
+FF16r_make_environment <- function(canopy_rescale_usually = TRUE) {
+  
+  FF16_make_environment(canopy_rescale_usually)
 }
 
 

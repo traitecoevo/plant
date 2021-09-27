@@ -60,8 +60,7 @@ test_that("Run SCM", {
 
     ## Before starting, check that the SCM is actually empty
     expect_equal(scm$time, 0.0)
-    expect_equal(scm$patch$ode_size, 0)
-    expect_equal(scm$patch$ode_size, 0)
+    expect_equal(scm$patch$cohort_ode_size, 0)
     expect_false(scm$complete)
 
     ## TODO: The unlist here is annoying...
@@ -79,7 +78,7 @@ test_that("Run SCM", {
     ## introduction, and the end time of the first introduction.
     expect_identical(scm$time, times$end[1])
     expect_identical(scm$time, times$start[2])
-    expect_equal(scm$patch$ode_size, ode_size)
+    expect_equal(scm$patch$cohort_ode_size, ode_size)
 
     ## Trying to set schedule for partly run scm fails
     expect_error(scm$cohort_schedule <- sched, "Cannot set schedule without resetting first")
@@ -91,14 +90,14 @@ test_that("Run SCM", {
     expect_false(scm$complete)
     expect_identical(scm$time, times$end[2])
     expect_identical(scm$time, times$start[3])
-    expect_equal(scm$patch$ode_size, ode_size * 2)
+    expect_equal(scm$patch$cohort_ode_size, ode_size * 2)
 
     ## Reset everything
     ## "SCM reset successful"
     scm$reset()
     expect_equal(scm$time, 0.0)
     expect_equal(scm$time, 0.0)
-    expect_equal(scm$patch$ode_size, 0)
+    expect_equal(scm$patch$cohort_ode_size, 0)
     expect_equal(scm$cohort_schedule$remaining, length(t))
 
     ## At this point, and possibly before scm$net_reproduction_ratio is corrupt.

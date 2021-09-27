@@ -37,6 +37,12 @@ public:
   void introduce_new_cohort(size_t species_index);
   void introduce_new_cohorts(const std::vector<size_t>& species_index);
 
+  // Open to better ways to test whether cohorts have been introduced
+  int cohort_ode_size() const {
+    int cohort_ode_size = ode_size() - environment.ode_size();
+    return(cohort_ode_size);
+  }
+
   const species_type& at(size_t species_index) const {
     return species[species_index];
   }
@@ -241,7 +247,7 @@ double Patch<T,E>::ode_time() const {
 
 template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
-                                            double time) {
+                                              double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
 
