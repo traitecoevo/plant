@@ -47,7 +47,13 @@ environment_type <- function(type) {
          stop("Unknown type ", type))
 }
 
-make_environment <- function(type = "FF16", ...) {
+make_environment <- function(type = "FF16", parameters = NULL, ...) {
+  
+  if(!is.null(parameters)) {
+    type = extract_RcppR6_template_types(parameters, "Parameters")[[1]][1]
+    message(sprintf('Creating default %s environemnt', type))
+  }
+    
   switch(type,
          FF16=FF16_make_environment(...),
          FF16w=FF16w_make_environment(...),

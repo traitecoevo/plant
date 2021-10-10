@@ -73,7 +73,7 @@ scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
 ##' @return A \code{SCM} object.
 ##' @author Rich FitzJohn
 ##' @export
-run_scm <- function(p, env = make_environment(), 
+run_scm <- function(p, env = make_environment(parameters = p), 
                     ctrl = scm_base_control(), use_ode_times=FALSE) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   scm <- do.call('SCM', types)(p, env, ctrl)
@@ -99,7 +99,7 @@ run_scm <- function(p, env = make_environment(),
 ##' issue #138)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, env = make_environment(), 
+run_scm_collect <- function(p, env = make_environment(parameters = p), 
                             ctrl = scm_base_control(),
                             include_competition_effect=FALSE) {
   collect_default <- function(scm) {
@@ -167,7 +167,7 @@ run_scm_collect <- function(p, env = make_environment(),
 ##' @param env Environment object (defaults to FF16_Environment)
 ##' @param ctrl Control object
 ##' @export
-make_patch <- function(state, p, env = make_environment(),
+make_patch <- function(state, p, env = make_environment(parameters = p),
                        ctrl = scm_base_control()) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   n <- viapply(state$species, ncol)
@@ -195,7 +195,7 @@ scm_patch <- function(i, x) {
   make_patch(scm_state(i, x), x$p)
 }
 
-run_scm_error <- function(p, env = make_environment(),
+run_scm_error <- function(p, env = make_environment(parameters = p),
                           ctrl = scm_base_control()) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   scm <- do.call('SCM', types)(p, env, ctrl)
