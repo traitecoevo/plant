@@ -82,7 +82,6 @@ FF16_make_environment <- function(canopy_light_tol = 1e-4,
 ##' Construct a fixed environment for FF16 strategy
 ##'
 ##' @param e Value of environment (deafult  = 1.0)
-##' @param ctrl Control object
 ##' @param height_max = 150.0 maximum possible height in environment
 ##' @rdname FF16_Environment
 ##'

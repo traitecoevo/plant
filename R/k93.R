@@ -69,7 +69,6 @@ K93_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname K93_Environment
-##' @param ctrl Control object
 K93_make_environment <- function() {
   K93_Environment()
 }
@@ -77,8 +76,7 @@ K93_make_environment <- function() {
 ##' Construct a fixed environment for K93 strategy
 ##'
 ##' @param e Value of environment (default=1.0)
-##' @param ctrl Control object
-##' @param height_max = 150.0 maximum possible height in environment
+##' @param height_max = 300.0 maximum possible height in environment
 ##' @rdname K93_Environment
 ##'
 ##' @export
