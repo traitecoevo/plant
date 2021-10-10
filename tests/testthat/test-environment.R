@@ -9,7 +9,7 @@ for (x in names(strategy_types)) {
 
   test_that("Empty environment", {
     p <- Parameters(x, e)()
-    env <- make_environment(x, p)
+    env <- make_environment(x)
 
     ## At this point, we should have full canopy openness, partly because
     ## the spline is just not constructed.
@@ -22,7 +22,7 @@ for (x in names(strategy_types)) {
   })
 
   test_that("Manually set environment", {
-    env <- make_environment(x, Parameters(x, e)())
+    env <- make_environment(x)
     ## Now, set the light environment.
     hh <- seq(0, 10, length.out=101)
     light_env <- function(x) {

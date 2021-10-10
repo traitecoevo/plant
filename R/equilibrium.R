@@ -2,12 +2,13 @@
 ##'
 ##' @title Run system to offspring arrival equilibrium
 ##' @param p A \code{Parameters} object
+##' @param ctrl Control object
 ##' @return A Parameters object, with offspring arrival and cohort schedule
 ##' elements set.
 ##' @export
 ##' @author Rich FitzJohn
-equilibrium_birth_rate <- function(p) {
-  solver <- p$control$equilibrium_solver_name
+equilibrium_birth_rate <- function(p, ctrl) {
+  solver <- ctrl$equilibrium_solver_name
   plant_log_info(sprintf("Solving offspring arrival using %s", solver),
                  routine="equilibrium", stage="start", solver=solver)
   switch(solver,
@@ -20,7 +21,7 @@ equilibrium_birth_rate <- function(p) {
 
 ## This is the simplest solver: it simply iterates the outgoing offspring
 ## produced as incoming offspring arrival.  No attempt at projection is made.
-equilibrium_birth_rate_iteration <- function(p) {
+equilibrium_birth_rate_iteration <- function(p, ctrl) {
   check <- function(x_in, x_out, eps, verbose) {
     achange <- x_out - x_in
     rchange <- 1 - x_out / x_in
@@ -36,12 +37,12 @@ equilibrium_birth_rate_iteration <- function(p) {
     converged
   }
 
-  eps <- p$control$equilibrium_eps
-  verbose <- p$control$equilibrium_verbose
+  eps <- ctrl$equilibrium_eps
+  verbose <- ctrl$equilibrium_verbose
   birth_rate <- p$birth_rate
   runner <- make_equilibrium_runner(p)
 
-  for (i in seq_len(p$control$equilibrium_nsteps)) {
+  for (i in seq_len(ctrl$equilibrium_nsteps)) {
     net_reproduction_ratios <- runner(birth_rate)
     converged <- check(birth_rate, net_reproduction_ratios, eps, verbose)
     birth_rate <- net_reproduction_ratios
@@ -53,9 +54,10 @@ equilibrium_birth_rate_iteration <- function(p) {
   equilibrium_runner_cleanup(runner, converged)
 }
 
-equilibrium_birth_rate_solve <- function(p, solver="nleqslv") {
-  try_keep <- p$control$equilibrium_solver_try_keep
-  logN <- p$control$equilibrium_solver_logN
+equilibrium_birth_rate_solve <- function(p, ctrl = scm_base_control(),
+                                         solver="nleqslv") {
+  try_keep <- ctrl$equilibrium_solver_try_keep
+  logN <- ctrl$equilibrium_solver_logN
   min_offspring_arriving <- 1e-10 # TODO: should also be in the controls?
 
   plant_log_eq(paste("Solving offspring arrival using", solver),
@@ -100,10 +102,10 @@ equilibrium_birth_rate_solve <- function(p, solver="nleqslv") {
   max_offspring_arriving <- pmax(birth_rate * 100, 10000)
   target <- equilibrium_birth_rate_solve_target(runner, keep, logN,
                                                min_offspring_arriving, max_offspring_arriving,
-                                               p$control$equilibrium_verbose)
+                                               ctrl$equilibrium_verbose)
   x0 <- if (logN) log(birth_rate) else birth_rate
 
-  tol <- p$control$equilibrium_eps
+  tol <- ctrl$equilibrium_eps
   ## NOTE: Hard coded minimum of 100 steps here.
   maxit <- max(100,
                p$control$equilibrium_nsteps)
@@ -144,8 +146,8 @@ equilibrium_birth_rate_solve_robust <- function(p, solver="nleqslv") {
 ## will happily select zero offspring arrivals for species that are not
 ## zeros.  So after running a round with the solver, check any species
 ## that were zeroed to make sure they're really dead.
-equilibrium_birth_rate_hybrid <- function(p) {
-  attempts <- p$control$equilibrium_nattempts
+equilibrium_birth_rate_hybrid <- function(p, ctrl) {
+  attempts <- ctrl$equilibrium_nattempts
 
   ## Then expand this out so that we can try alternating solvers
   solver <- rep(c("nleqslv", "dfsane"), length.out=attempts)
@@ -171,7 +173,7 @@ equilibrium_birth_rate_hybrid <- function(p) {
         ## that this looks like a legit extinction.
         y_in <- ans_sol$birth_rate
         i <- y_in <= 0.0
-        y_in[i] <- p$control$equilibrium_extinct_offspring_arriving
+        y_in[i] <- ctrl$equilibrium_extinct_offspring_arriving
 
         p_check <- p
         p_check$birth_rate <- y_in
@@ -192,14 +194,14 @@ equilibrium_birth_rate_hybrid <- function(p) {
 }
 
 ## Support code:
-make_equilibrium_runner <- function(p) {
+make_equilibrium_runner <- function(p, ctrl) {
   pretty_num_collapse <- function(x, collapse=", ") {
     paste0("{", paste(prettyNum(x), collapse=collapse), "}")
   }
 
   p <- validate(p)
 
-  large_offspring_arriving_change <- p$control$equilibrium_large_offspring_arriving_change
+  large_offspring_arriving_change <- ctrl$equilibrium_large_offspring_arriving_change
 
   i <- 1L
   last_offspring_arriving <- p$birth_rate
@@ -215,7 +217,7 @@ make_equilibrium_runner <- function(p) {
 
     p$birth_rate <- last_offspring_arriving
 
-    p_new <- build_schedule(p)
+    p_new <- build_schedule(p, ctrl)
     net_reproduction_ratios <- attr(p_new, "net_reproduction_ratios", exact=TRUE)
 
     ## These all write up to the containing environment:
@@ -303,15 +305,16 @@ equilibrium_birth_rate_solve_target <- function(runner, keep, logN,
 ##'
 ##' @title Check low-abundance strategies for viability
 ##' @param p A Parameters object
+##' @param ctrl Control object
 ##' @export
-check_inviable <- function(p) {
+check_inviable <- function(p, ctrl) {
   ## eps_test: *Relative* value to use for determining what
   ## "low abundance" means.  Species that have a offspring arrival of less than
   ## `eps_test * max(p$birth_rate)` will be tested.  By default
   ##  this is 1 100th of the maximum offspring arrival.
   ## TODO: don't do anything if we don't have at least 2 species?
-  eps <- p$control$equilibrium_extinct_offspring_arriving
-  ## TODO: This was p$control$equilibrium_inviable_test, but I think
+  eps <- ctrl$equilibrium_extinct_offspring_arriving
+  ## TODO: This was ctrl$equilibrium_inviable_test, but I think
   ## that birth offspring arrival actually makes more sense?  It's fractional
   ## though so who knows.
   eps_test <- 1e-2

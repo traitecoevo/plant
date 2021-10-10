@@ -25,10 +25,10 @@ public:
 
   Canopy(Control control) {
     canopy_generator = interpolator::AdaptiveInterpolator(
-      control.environment_light_tol,
-      control.environment_light_tol,
-      control.environment_light_nbase,
-      control.environment_light_max_depth
+      control.canopy_light_tol,
+      control.canopy_light_tol,
+      control.canopy_light_nbase,
+      control.canopy_light_max_depth
     );
     canopy_interpolator = canopy_generator.construct(
       [&](double height) {

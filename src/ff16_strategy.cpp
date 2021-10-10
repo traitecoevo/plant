@@ -435,10 +435,10 @@ double FF16_Strategy::height_seed(void) const {
 void FF16_Strategy::prepare_strategy() {
   // Set up the integrator
   assimilator.initialize(a_p1, a_p2, eta,
-                         control.plant_assimilation_adaptive,
-                         control.plant_assimilation_rule,
-                         control.plant_assimilation_iterations,
-                         control.plant_assimilation_tol);
+                         control.assimilator_adaptive_integration,
+                         control.assimilator_integration_rule,
+                         control.assimilator_integration_iterations,
+                         control.assimilator_integration_tol);
 
   // NOTE: this pre-computes something to save a very small amount of time
   eta_c = 1 - 2/(1 + eta) + 1/(1 + 2*eta);

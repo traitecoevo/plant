@@ -4,12 +4,12 @@ test_that("Some support functions", {
   expect_is(fast_control(), "Control")
   expect_is(equilibrium_verbose(), "Control")
   expect_is(equilibrium_quiet(), "Control")
-  p <- scm_base_parameters()
-  expect_is(p, "Parameters<FF16,FF16_Env>")
+  base <- scm_base_control()
+  expect_is(base, "Control")
   cmp <- equilibrium_verbose(fast_control())
   cmp$schedule_eps <- 0.005
   cmp$equilibrium_eps <- 1e-3
-  expect_equal(p$control, cmp)
+  expect_equal(base, cmp)
 })
 
 test_that("assembly_parameters", {

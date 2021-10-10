@@ -18,9 +18,10 @@ test_that("Schedule building", {
     ## This is a really dumb test but it should act as a regression test
     ## at least.
     p <- scm_base_parameters(x)
+    ctrl <- scm_base_control()
     p$strategies <- list(strategy_types[[x]]())
     p$birth_rate <- 0.1
-    p <- build_schedule(p)
+    p <- build_schedule(p, ctrl)
     expect_equal(length(p$cohort_schedule_times_default), 141)
     expect_equal(length(p$cohort_schedule_times[[1]]), 176)
   }

@@ -42,16 +42,18 @@ stochastic_schedule <- function(p) {
 ##'
 ##' @title Run a stochastic patch, Collecting Output
 ##' @param p A \code{\link{FF16_Parameters}} object
+##' @param ctrl Control object
 ##' @param random_schedule setting to TRUE causes algorithm to generate
 ##' a random schedule based on offspring arrival and area.
 ##' @author Rich FitzJohn
 ##' @export
-run_stochastic_collect <- function(p, random_schedule=TRUE) {
+run_stochastic_collect <- function(p, ctrl = scm_base_control(), 
+                                   random_schedule=TRUE) {
   collect <- function(obj) {
     obj$state
   }
   types <- extract_RcppR6_template_types(p, "Parameters")
-  obj <- do.call('StochasticPatchRunner', types)(p)
+  obj <- do.call('StochasticPatchRunner', types)(p, ctrl)
   if (random_schedule) {
     obj$schedule <- stochastic_schedule(p)
   }

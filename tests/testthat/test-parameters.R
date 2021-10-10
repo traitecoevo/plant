@@ -67,37 +67,38 @@ test_that("Nontrivial creation", {
   }
 })
 
-test_that("Parameters overwrites Strategy control", {
-  for (x in names(strategy_types)) {
-    ctrl <- ctrl_s <- ctrl_p <- Control()
-    ## set these just as markers:
-    ctrl_s$schedule_eps <- 1
-    ctrl_p$schedule_eps <- 2
-
-    s <- strategy_types[[x]](control=ctrl_s)
-    e <- environment_types[[x]]
-    expect_identical(s$control, ctrl_s)
-    expect_false(identical(s$control, ctrl_p))
-
-    p <- Parameters(x, e)(control=ctrl_p)
-    expect_false(identical(p$control, ctrl_s))
-    expect_identical(p$control, ctrl_p)
-
-    p$strategies <- list(s)
-    p$birth_rate <- 1
-    p$is_resident <- TRUE
-    ## Pass though to force validation:
-    tmp <- Patch(x, e)(p)$parameters
-    expect_identical(tmp$control, ctrl_p)
-    expect_identical(tmp$strategies[[1]]$control, ctrl_p)
-
-    ## In one shot:
-    p2 <- Parameters(x, e)(control=ctrl_p, strategies=list(s),
-                           birth_rate=1, is_resident=TRUE)
-    expect_identical(p2$control, ctrl_p)
-    expect_identical(p2$strategies[[1]]$control, ctrl_p)
-  }
-})
+# Now overwritten in call to SCM or Patch - will need appropriate test
+# test_that("Parameters overwrites Strategy control", {
+#   for (x in names(strategy_types)) {
+#     ctrl <- ctrl_s <- ctrl_p <- Control()
+#     ## set these just as markers:
+#     ctrl_s$schedule_eps <- 1
+#     ctrl_p$schedule_eps <- 2
+# 
+#     s <- strategy_types[[x]](control=ctrl_s)
+#     e <- environment_types[[x]]
+#     expect_identical(s$control, ctrl_s)
+#     expect_false(identical(s$control, ctrl_p))
+# 
+#     p <- Parameters(x, e)(control=ctrl_p)
+#     expect_false(identical(p$control, ctrl_s))
+#     expect_identical(p$control, ctrl_p)
+# 
+#     p$strategies <- list(s)
+#     p$birth_rate <- 1
+#     p$is_resident <- TRUE
+#     ## Pass though to force validation:
+#     tmp <- Patch(x, e)(p)$parameters
+#     expect_identical(tmp$control, ctrl_p)
+#     expect_identical(tmp$strategies[[1]]$control, ctrl_p)
+# 
+#     ## In one shot:
+#     p2 <- Parameters(x, e)(control=ctrl_p, strategies=list(s),
+#                            birth_rate=1, is_resident=TRUE)
+#     expect_identical(p2$control, ctrl_p)
+#     expect_identical(p2$strategies[[1]]$control, ctrl_p)
+#   }
+# })
 
 test_that("Generate cohort schedule", {
   for (x in names(strategy_types)) {

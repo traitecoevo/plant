@@ -46,12 +46,6 @@ struct Parameters {
   std::vector<double> birth_rate;
   std::vector<bool> is_resident;
 
-  // Algorithm control.
-  Control control;
-
-  // Templated environment
-  environment_type environment;
-
   Disturbance_Regime* disturbance;
 
   // Default strategy.
@@ -113,12 +107,6 @@ void Parameters<T,E>::validate() {
     util::stop("Incorrect length cohort_schedule_times");
   }
 
-  // Overwrite all strategy control objects so that they take the
-  // Parameters' control object.
-  for (auto& s : strategies) {
-    s.control = control;
-  }
-
   // Disturbances used to describe evolution of a metapopulation of patches
   // when calculating fitness, otherwise defaults to fixed-duration run without
   // disturbance
@@ -128,8 +116,6 @@ void Parameters<T,E>::validate() {
   else {
     disturbance = new No_Disturbance();
   }
-
-  environment = environment_type(control);
 }
 
 // Separating this out just because it's a bit crap:

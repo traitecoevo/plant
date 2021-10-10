@@ -64,21 +64,21 @@ Water_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
-##' @param p A Parameters object
-Water_make_environment <- function(p) {
-  FF16_Environment(p$control)
+##' @param ctrl Control object
+Water_make_environment <- function(ctrl = scm_base_control()) {
+  FF16_Environment(ctrl)
 }
 
 ##' Construct a fixed environment for Water strategy
 ##'
 ##' @param e Value of environment (deafult  = 1.0)
-##' @param p A Parameters object
+##' @param ctrl Control object
 ##' @param height_max = 150.0 maximum possible height in environment
 ##' @rdname FF16_Environment
 ##'
 ##' @export
-Water_fixed_environment <- function(e=1.0, p = Water_Parameters(), height_max = 150.0) {
-  env <- Water_make_environment(p)
+Water_fixed_environment <- function(e=1.0, ctrl = scm_base_control(), height_max = 150.0) {
+  env <- Water_make_environment(ctrl)
   env$set_fixed_environment(e, height_max)
   env
 }
@@ -108,12 +108,7 @@ Water_test_environment <- function(height, n=101, light_env=NULL,
   interpolator <- Interpolator()
   interpolator$init(hh, ee)
 
-  parameters <- Water_Parameters()
-  parameters$strategies <- rep(list(Water_Strategy()), n_strategies)
-
-  parameters$is_resident <- rep(TRUE, n_strategies)
-
-  ret <- Water_make_environment(parameters)
+  ret <- Water_make_environment()
   ret$canopy$canopy_interpolator <- interpolator
   attr(ret, "light_env") <- light_env
   ret

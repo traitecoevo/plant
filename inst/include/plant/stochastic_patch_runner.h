@@ -28,7 +28,7 @@ public:
   typedef StochasticPatch<T,E>   patch_type;
   typedef Parameters<T,E>        parameters_type;
 
-  StochasticPatchRunner(parameters_type p);
+  StochasticPatchRunner(parameters_type p, Control c);
 
   void run();
   size_t run_next();
@@ -57,11 +57,11 @@ private:
 };
 
 template <typename T, typename E>
-StochasticPatchRunner<T,E>::StochasticPatchRunner(parameters_type p)
+StochasticPatchRunner<T,E>::StochasticPatchRunner(parameters_type p, Control c)
   : parameters(p),
-    patch(parameters),
+    patch(parameters, c),
     schedule(make_empty_stochastic_schedule(parameters)),
-    solver(patch, make_ode_control(p.control)) {
+    solver(patch, make_ode_control(c)) {
   parameters.validate();
 }
 

@@ -69,21 +69,21 @@ K93_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname K93_Environment
-##' @param p A Parameters object
-K93_make_environment <- function(p) {
-  K93_Environment(p$control)
+##' @param ctrl Control object
+K93_make_environment <- function(ctrl = scm_base_control()) {
+  K93_Environment(ctrl)
 }
 
 ##' Construct a fixed environment for K93 strategy
 ##'
 ##' @param e Value of environment (default=1.0)
-##' @param p A Parameters object
+##' @param ctrl Control object
 ##' @param height_max = 150.0 maximum possible height in environment
 ##' @rdname K93_Environment
 ##'
 ##' @export
-K93_fixed_environment <- function(e=1.0, p = K93_Parameters(), height_max = 300.0) {
-  env <- K93_make_environment(p)
+K93_fixed_environment <- function(e=1.0, ctrl = scm_base_control(), height_max = 300.0) {
+  env <- K93_make_environment(ctrl)
   env$set_fixed_environment(e, height_max)
   env
 }
@@ -115,12 +115,12 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
   interpolator <- Interpolator()
   interpolator$init(hh, ee)
 
-  parameters <- K93_Parameters()
-  parameters$strategies <- rep(list(K93_Strategy()), n_strategies)
+  # parameters <- K93_Parameters()
+  # parameters$strategies <- rep(list(K93_Strategy()), n_strategies)
+  # 
+  # parameters$is_resident <- rep(TRUE, n_strategies)
 
-  parameters$is_resident <- rep(TRUE, n_strategies)
-
-  ret <- K93_make_environment(parameters)
+  ret <- K93_make_environment()
   ret$canopy$canopy_interpolator <- interpolator
   attr(ret, "light_env") <- light_env
   ret

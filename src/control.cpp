@@ -3,12 +3,10 @@
 namespace plant {
 
 Control::Control() {
-  plant_assimilation_adaptive = true;
-
-  plant_assimilation_over_distribution = false;
-  plant_assimilation_tol = 1e-6;
-  plant_assimilation_iterations = 1000;
-  plant_assimilation_rule = 21;
+  assimilator_adaptive_integration = true;
+  assimilator_integration_tol = 1e-6;
+  assimilator_integration_iterations = 1000;
+  assimilator_integration_rule = 21;
 
   plant_seed_tol = 1e-8;
   plant_seed_iterations = 1000;
@@ -21,10 +19,10 @@ Control::Control() {
   cohort_gradient_richardson = false;
   cohort_gradient_richardson_depth = 4;
 
-  environment_light_tol = 1e-6;
-  environment_light_nbase = 17;
-  environment_light_max_depth = 16;
-  environment_rescale_usually = false;
+  canopy_light_tol = 1e-6;
+  canopy_light_nbase = 17;
+  canopy_light_max_depth = 16;
+  canopy_rescale_usually = false;
 
   ode_step_size_initial = 1e-6;
   ode_step_size_min = 1e-6;

@@ -27,12 +27,10 @@ namespace plant {
 struct Control {
   Control();
 
-  bool   plant_assimilation_adaptive;
-
-  bool   plant_assimilation_over_distribution;
-  double plant_assimilation_tol;
-  size_t plant_assimilation_iterations;
-  size_t plant_assimilation_rule;
+  bool   assimilator_adaptive_integration;
+  double assimilator_integration_tol;
+  size_t assimilator_integration_iterations;
+  size_t assimilator_integration_rule;
 
   double plant_seed_tol;
   size_t plant_seed_iterations;
@@ -45,10 +43,10 @@ struct Control {
   bool   cohort_gradient_richardson;
   size_t cohort_gradient_richardson_depth;
 
-  double environment_light_tol;
-  size_t environment_light_nbase;
-  size_t environment_light_max_depth;
-  bool   environment_rescale_usually;
+  double canopy_light_tol;
+  size_t canopy_light_nbase;
+  size_t canopy_light_max_depth;
+  bool   canopy_rescale_usually;
 
   double ode_step_size_initial;
   double ode_step_size_min;

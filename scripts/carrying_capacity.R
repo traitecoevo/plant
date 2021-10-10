@@ -1,6 +1,6 @@
 plant_log_console()
 p <- scm_base_parameters()
-p$control <- equilibrium_quiet(p$control)
+ctrl <- equilibrium_quiet(Control())
 
 ## Find the viable range for lma for the default parameters:
 r <- viable_fitness(bounds(lma=c(1e-5, 1e3)), p)

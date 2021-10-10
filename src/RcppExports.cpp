@@ -4450,13 +4450,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___FF16__FF16_Env__ctor
-plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> Patch___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_Patch___FF16__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> Patch___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4733,13 +4734,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___Water__FF16_Env__ctor
-plant::Patch<plant::Water_Strategy,plant::FF16_Environment> Patch___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_Patch___Water__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::Patch<plant::Water_Strategy,plant::FF16_Environment> Patch___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_Patch___Water__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___Water__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___Water__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5016,13 +5018,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___FF16r__FF16_Env__ctor
-plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> Patch___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_Patch___FF16r__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> Patch___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_Patch___FF16r__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5299,13 +5302,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // Patch___K93__K93_Env__ctor
-plant::Patch<plant::K93_Strategy,plant::K93_Environment> Patch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters);
-RcppExport SEXP _plant_Patch___K93__K93_Env__ctor(SEXP parametersSEXP) {
+plant::Patch<plant::K93_Strategy,plant::K93_Environment> Patch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_Patch___K93__K93_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5582,13 +5586,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16__FF16_Env__ctor
-plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_SCM___FF16__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5802,13 +5807,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___Water__FF16_Env__ctor
-plant::SCM<plant::Water_Strategy,plant::FF16_Environment> SCM___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_SCM___Water__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::SCM<plant::Water_Strategy,plant::FF16_Environment> SCM___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_SCM___Water__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___Water__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___Water__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6022,13 +6028,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16r__FF16_Env__ctor
-plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> SCM___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_SCM___FF16r__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> SCM___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_SCM___FF16r__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___FF16r__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16r__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6242,13 +6249,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___K93__K93_Env__ctor
-plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters);
-RcppExport SEXP _plant_SCM___K93__K93_Env__ctor(SEXP parametersSEXP) {
+plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_SCM___K93__K93_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7390,13 +7398,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___FF16__FF16_Env__ctor
-plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> StochasticPatch___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatch<plant::FF16_Strategy,plant::FF16_Environment> StochasticPatch___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_StochasticPatch___FF16__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7625,13 +7634,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___Water__FF16_Env__ctor
-plant::StochasticPatch<plant::Water_Strategy,plant::FF16_Environment> StochasticPatch___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatch___Water__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatch<plant::Water_Strategy,plant::FF16_Environment> StochasticPatch___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_StochasticPatch___Water__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___Water__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___Water__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -7860,13 +7870,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___FF16r__FF16_Env__ctor
-plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> StochasticPatch___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatch<plant::FF16r_Strategy,plant::FF16_Environment> StochasticPatch___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_StochasticPatch___FF16r__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16r__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___FF16r__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8095,13 +8106,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatch___K93__K93_Env__ctor
-plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> StochasticPatch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatch<plant::K93_Strategy,plant::K93_Environment> StochasticPatch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_StochasticPatch___K93__K93_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatch___K93__K93_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatch___K93__K93_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8330,13 +8342,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___FF16__FF16_Env__ctor
-plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> StochasticPatchRunner___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatchRunner___FF16__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatchRunner<plant::FF16_Strategy,plant::FF16_Environment> StochasticPatchRunner___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_StochasticPatchRunner___FF16__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___FF16__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___FF16__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8460,13 +8473,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___Water__FF16_Env__ctor
-plant::StochasticPatchRunner<plant::Water_Strategy,plant::FF16_Environment> StochasticPatchRunner___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatchRunner___Water__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatchRunner<plant::Water_Strategy,plant::FF16_Environment> StochasticPatchRunner___Water__FF16_Env__ctor(plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_StochasticPatchRunner___Water__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::Water_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___Water__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___Water__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8590,13 +8604,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___FF16r__FF16_Env__ctor
-plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16_Environment> StochasticPatchRunner___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatchRunner___FF16r__FF16_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatchRunner<plant::FF16r_Strategy,plant::FF16_Environment> StochasticPatchRunner___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_StochasticPatchRunner___FF16r__FF16_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___FF16r__FF16_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___FF16r__FF16_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -8720,13 +8735,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // StochasticPatchRunner___K93__K93_Env__ctor
-plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> StochasticPatchRunner___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters);
-RcppExport SEXP _plant_StochasticPatchRunner___K93__K93_Env__ctor(SEXP parametersSEXP) {
+plant::StochasticPatchRunner<plant::K93_Strategy,plant::K93_Environment> StochasticPatchRunner___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::Control control);
+RcppExport SEXP _plant_StochasticPatchRunner___K93__K93_Env__ctor(SEXP parametersSEXP, SEXP controlSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >::type parameters(parametersSEXP);
-    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___K93__K93_Env__ctor(parameters));
+    Rcpp::traits::input_parameter< plant::Control >::type control(controlSEXP);
+    rcpp_result_gen = Rcpp::wrap(StochasticPatchRunner___K93__K93_Env__ctor(parameters, control));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9947,7 +9963,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_state__get, 1},
     {"_plant_Species___K93__K93_Env__ode_state__set", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_state__set, 2},
     {"_plant_Species___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_rates__get, 1},
-    {"_plant_Patch___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ctor, 1},
+    {"_plant_Patch___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ctor, 2},
     {"_plant_Patch___FF16__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__introduce_new_cohort, 2},
     {"_plant_Patch___FF16__FF16_Env__compute_environment", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__compute_environment, 1},
     {"_plant_Patch___FF16__FF16_Env__compute_rates", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__compute_rates, 1},
@@ -9972,7 +9988,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_rates__get, 1},
-    {"_plant_Patch___Water__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___Water__FF16_Env__ctor, 1},
+    {"_plant_Patch___Water__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___Water__FF16_Env__ctor, 2},
     {"_plant_Patch___Water__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___Water__FF16_Env__introduce_new_cohort, 2},
     {"_plant_Patch___Water__FF16_Env__compute_environment", (DL_FUNC) &_plant_Patch___Water__FF16_Env__compute_environment, 1},
     {"_plant_Patch___Water__FF16_Env__compute_rates", (DL_FUNC) &_plant_Patch___Water__FF16_Env__compute_rates, 1},
@@ -9997,7 +10013,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___Water__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___Water__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___Water__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___Water__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___Water__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___Water__FF16_Env__ode_rates__get, 1},
-    {"_plant_Patch___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ctor, 1},
+    {"_plant_Patch___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ctor, 2},
     {"_plant_Patch___FF16r__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__introduce_new_cohort, 2},
     {"_plant_Patch___FF16r__FF16_Env__compute_environment", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__compute_environment, 1},
     {"_plant_Patch___FF16r__FF16_Env__compute_rates", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__compute_rates, 1},
@@ -10022,7 +10038,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16r__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_rates__get, 1},
-    {"_plant_Patch___K93__K93_Env__ctor", (DL_FUNC) &_plant_Patch___K93__K93_Env__ctor, 1},
+    {"_plant_Patch___K93__K93_Env__ctor", (DL_FUNC) &_plant_Patch___K93__K93_Env__ctor, 2},
     {"_plant_Patch___K93__K93_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___K93__K93_Env__introduce_new_cohort, 2},
     {"_plant_Patch___K93__K93_Env__compute_environment", (DL_FUNC) &_plant_Patch___K93__K93_Env__compute_environment, 1},
     {"_plant_Patch___K93__K93_Env__compute_rates", (DL_FUNC) &_plant_Patch___K93__K93_Env__compute_rates, 1},
@@ -10047,7 +10063,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___K93__K93_Env__ode_time__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_time__get, 1},
     {"_plant_Patch___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_state__get, 1},
     {"_plant_Patch___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_rates__get, 1},
-    {"_plant_SCM___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ctor, 1},
+    {"_plant_SCM___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ctor, 2},
     {"_plant_SCM___FF16__FF16_Env__run", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run, 1},
     {"_plant_SCM___FF16__FF16_Env__run_next", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run_next, 1},
     {"_plant_SCM___FF16__FF16_Env__reset", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__reset, 1},
@@ -10067,7 +10083,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__FF16_Env__use_ode_times__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__use_ode_times__get, 1},
     {"_plant_SCM___FF16__FF16_Env__use_ode_times__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__use_ode_times__set, 2},
     {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___Water__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___Water__FF16_Env__ctor, 1},
+    {"_plant_SCM___Water__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___Water__FF16_Env__ctor, 2},
     {"_plant_SCM___Water__FF16_Env__run", (DL_FUNC) &_plant_SCM___Water__FF16_Env__run, 1},
     {"_plant_SCM___Water__FF16_Env__run_next", (DL_FUNC) &_plant_SCM___Water__FF16_Env__run_next, 1},
     {"_plant_SCM___Water__FF16_Env__reset", (DL_FUNC) &_plant_SCM___Water__FF16_Env__reset, 1},
@@ -10087,7 +10103,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___Water__FF16_Env__use_ode_times__get", (DL_FUNC) &_plant_SCM___Water__FF16_Env__use_ode_times__get, 1},
     {"_plant_SCM___Water__FF16_Env__use_ode_times__set", (DL_FUNC) &_plant_SCM___Water__FF16_Env__use_ode_times__set, 2},
     {"_plant_SCM___Water__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___Water__FF16_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__ctor, 1},
+    {"_plant_SCM___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__ctor, 2},
     {"_plant_SCM___FF16r__FF16_Env__run", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__run, 1},
     {"_plant_SCM___FF16r__FF16_Env__run_next", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__run_next, 1},
     {"_plant_SCM___FF16r__FF16_Env__reset", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__reset, 1},
@@ -10107,7 +10123,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16r__FF16_Env__use_ode_times__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__use_ode_times__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__use_ode_times__set", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__use_ode_times__set, 2},
     {"_plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get, 1},
-    {"_plant_SCM___K93__K93_Env__ctor", (DL_FUNC) &_plant_SCM___K93__K93_Env__ctor, 1},
+    {"_plant_SCM___K93__K93_Env__ctor", (DL_FUNC) &_plant_SCM___K93__K93_Env__ctor, 2},
     {"_plant_SCM___K93__K93_Env__run", (DL_FUNC) &_plant_SCM___K93__K93_Env__run, 1},
     {"_plant_SCM___K93__K93_Env__run_next", (DL_FUNC) &_plant_SCM___K93__K93_Env__run_next, 1},
     {"_plant_SCM___K93__K93_Env__reset", (DL_FUNC) &_plant_SCM___K93__K93_Env__reset, 1},
@@ -10211,7 +10227,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticSpecies___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_StochasticSpecies___K93__K93_Env__ode_state__get, 1},
     {"_plant_StochasticSpecies___K93__K93_Env__ode_state__set", (DL_FUNC) &_plant_StochasticSpecies___K93__K93_Env__ode_state__set, 2},
     {"_plant_StochasticSpecies___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticSpecies___K93__K93_Env__ode_rates__get, 1},
-    {"_plant_StochasticPatch___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatch___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ctor, 2},
     {"_plant_StochasticPatch___FF16__FF16_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__compute_competition, 2},
     {"_plant_StochasticPatch___FF16__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__introduce_new_cohort, 2},
     {"_plant_StochasticPatch___FF16__FF16_Env__introduce_new_cohort_and_update", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__introduce_new_cohort_and_update, 2},
@@ -10232,7 +10248,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___FF16__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___FF16__FF16_Env__ode_rates__get, 1},
-    {"_plant_StochasticPatch___Water__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatch___Water__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__ctor, 2},
     {"_plant_StochasticPatch___Water__FF16_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__compute_competition, 2},
     {"_plant_StochasticPatch___Water__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__introduce_new_cohort, 2},
     {"_plant_StochasticPatch___Water__FF16_Env__introduce_new_cohort_and_update", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__introduce_new_cohort_and_update, 2},
@@ -10253,7 +10269,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___Water__FF16_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___Water__FF16_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___Water__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___Water__FF16_Env__ode_rates__get, 1},
-    {"_plant_StochasticPatch___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatch___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ctor, 2},
     {"_plant_StochasticPatch___FF16r__FF16_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__compute_competition, 2},
     {"_plant_StochasticPatch___FF16r__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__introduce_new_cohort, 2},
     {"_plant_StochasticPatch___FF16r__FF16_Env__introduce_new_cohort_and_update", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__introduce_new_cohort_and_update, 2},
@@ -10274,7 +10290,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___FF16r__FF16_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___FF16r__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___FF16r__FF16_Env__ode_rates__get, 1},
-    {"_plant_StochasticPatch___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ctor, 1},
+    {"_plant_StochasticPatch___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ctor, 2},
     {"_plant_StochasticPatch___K93__K93_Env__compute_competition", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__compute_competition, 2},
     {"_plant_StochasticPatch___K93__K93_Env__introduce_new_cohort", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__introduce_new_cohort, 2},
     {"_plant_StochasticPatch___K93__K93_Env__introduce_new_cohort_and_update", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__introduce_new_cohort_and_update, 2},
@@ -10295,7 +10311,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatch___K93__K93_Env__ode_time__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_time__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_state__get, 1},
     {"_plant_StochasticPatch___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_StochasticPatch___K93__K93_Env__ode_rates__get, 1},
-    {"_plant_StochasticPatchRunner___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatchRunner___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__ctor, 2},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__run, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__run_next, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__reset", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__reset, 1},
@@ -10307,7 +10323,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___FF16__FF16_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16__FF16_Env__state__get, 1},
-    {"_plant_StochasticPatchRunner___Water__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatchRunner___Water__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__ctor, 2},
     {"_plant_StochasticPatchRunner___Water__FF16_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__run, 1},
     {"_plant_StochasticPatchRunner___Water__FF16_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__run_next, 1},
     {"_plant_StochasticPatchRunner___Water__FF16_Env__reset", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__reset, 1},
@@ -10319,7 +10335,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___Water__FF16_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___Water__FF16_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___Water__FF16_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___Water__FF16_Env__state__get, 1},
-    {"_plant_StochasticPatchRunner___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__ctor, 1},
+    {"_plant_StochasticPatchRunner___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__ctor, 2},
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__run, 1},
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__run_next, 1},
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__reset", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__reset, 1},
@@ -10331,7 +10347,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__schedule__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__schedule__get, 1},
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__schedule__set", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__schedule__set, 2},
     {"_plant_StochasticPatchRunner___FF16r__FF16_Env__state__get", (DL_FUNC) &_plant_StochasticPatchRunner___FF16r__FF16_Env__state__get, 1},
-    {"_plant_StochasticPatchRunner___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__ctor, 1},
+    {"_plant_StochasticPatchRunner___K93__K93_Env__ctor", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__ctor, 2},
     {"_plant_StochasticPatchRunner___K93__K93_Env__run", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__run, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__run_next", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__run_next, 1},
     {"_plant_StochasticPatchRunner___K93__K93_Env__reset", (DL_FUNC) &_plant_StochasticPatchRunner___K93__K93_Env__reset, 1},
