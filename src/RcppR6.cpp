@@ -3782,8 +3782,8 @@ SEXP K93_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::K93_Environment K93_Environment__ctor() {
-  return plant::K93_Environment();
+plant::K93_Environment K93_Environment__ctor(bool canopy_rescale_usually) {
+  return plant::K93_Environment(canopy_rescale_usually);
 }
 // [[Rcpp::export]]
 double K93_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::K93_Environment> obj_, double height) {

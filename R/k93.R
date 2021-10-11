@@ -69,8 +69,18 @@ K93_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname K93_Environment
-K93_make_environment <- function() {
-  K93_Environment()
+K93_make_environment <- function(canopy_light_tol = 1e-4, 
+                                 canopy_light_nbase = 17,
+                                 canopy_light_max_depth = 16, 
+                                 canopy_rescale_usually = TRUE) {
+  
+  e <- K93_Environment(canopy_rescale_usually = TRUE)
+  
+  e$canopy <- Canopy(canopy_light_tol, 
+                     canopy_light_nbase, 
+                     canopy_light_max_depth)
+  
+  return(e)
 }
 
 ##' Construct a fixed environment for K93 strategy

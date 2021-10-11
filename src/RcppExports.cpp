@@ -9306,12 +9306,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // K93_Environment__ctor
-plant::K93_Environment K93_Environment__ctor();
-RcppExport SEXP _plant_K93_Environment__ctor() {
+plant::K93_Environment K93_Environment__ctor(bool canopy_rescale_usually);
+RcppExport SEXP _plant_K93_Environment__ctor(SEXP canopy_rescale_usuallySEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    rcpp_result_gen = Rcpp::wrap(K93_Environment__ctor());
+    Rcpp::traits::input_parameter< bool >::type canopy_rescale_usually(canopy_rescale_usuallySEXP);
+    rcpp_result_gen = Rcpp::wrap(K93_Environment__ctor(canopy_rescale_usually));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10492,7 +10493,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__soil__get", (DL_FUNC) &_plant_FF16_Environment__soil__get, 1},
     {"_plant_FF16r_Strategy__ctor", (DL_FUNC) &_plant_FF16r_Strategy__ctor, 0},
     {"_plant_K93_Strategy__ctor", (DL_FUNC) &_plant_K93_Strategy__ctor, 0},
-    {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 0},
+    {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 1},
     {"_plant_K93_Environment__canopy_openness", (DL_FUNC) &_plant_K93_Environment__canopy_openness, 2},
     {"_plant_K93_Environment__clear", (DL_FUNC) &_plant_K93_Environment__clear, 1},
     {"_plant_K93_Environment__set_fixed_environment", (DL_FUNC) &_plant_K93_Environment__set_fixed_environment, 3},

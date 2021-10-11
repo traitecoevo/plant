@@ -3321,8 +3321,8 @@ K93_Strategy__ctor <- function() {
     .Call('_plant_K93_Strategy__ctor', PACKAGE = 'plant')
 }
 
-K93_Environment__ctor <- function() {
-    .Call('_plant_K93_Environment__ctor', PACKAGE = 'plant')
+K93_Environment__ctor <- function(canopy_rescale_usually) {
+    .Call('_plant_K93_Environment__ctor', PACKAGE = 'plant', canopy_rescale_usually)
 }
 
 K93_Environment__canopy_openness <- function(obj_, height) {
