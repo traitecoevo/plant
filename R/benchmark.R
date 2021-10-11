@@ -8,14 +8,13 @@
 
 run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
                                                        FF16r = FF16r_Strategy,
+                                                       FF16w = FF16w_Strategy,
                                                        K93 = K93_Strategy),
                                  iterations = 1) {
   f_scm <- function(x) {
     p0 <- scm_base_parameters(x)
-    ctrl <- scm_base_control()
-    p <-
-      expand_parameters(trait_matrix(0.0825, "lma"), p0, mutant = FALSE)
-    res <- run_scm(p, ctrl)
+    p <- expand_parameters(trait_matrix(0.0825, "lma"), p0, mutant = FALSE)
+    res <- run_scm(p)
   }
 
   f_build_schedule <- function(x) {
