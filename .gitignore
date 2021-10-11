@@ -1,4 +1,5 @@
 inst/website
+inst/docs
 vignettes/figure/*
 *Rproj*
 *.Rhistory*
