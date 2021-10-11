@@ -18,7 +18,7 @@ test_that("collect / make_patch", {
   expect_lt(exp(-p1_113$compute_competition(0)), 0.5)
   expect_gt(p1_113$height_max, 10)
 
-  cmp_patch_density <- Disturbance(p1$disturbance_mean_interval)$density(res$time)
+  cmp_patch_density <- Weibull_Disturbance_Regime(p1$max_patch_lifetime)$density(res$time)
   expect_equal(res$patch_density, cmp_patch_density)
 
   dat <- patch_to_internals(p1_113)
@@ -29,7 +29,7 @@ test_that("collect / make_patch", {
   expect_is(dat, "matrix")
   expect_equal(nrow(dat), length(p1_113$species[[1]]$cohorts))
   # once for rates, once for states
-  n_int <- (Individual("FF16","FF16_Env")(p1$strategies[[1]])$ode_size * 2) + 
+  n_int <- (Individual("FF16","FF16_Env")(p1$strategies[[1]])$ode_size * 2) +
     Individual("FF16","FF16_Env")(p1$strategies[[1]])$aux_size
   cat(ncol(dat), n_int + 2L)
   expect_equal(ncol(dat), n_int + 2L)
@@ -58,6 +58,6 @@ test_that("expand_parameters", {
   p0 <- scm_base_parameters()
   p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, mutant=FALSE)
   ## This will trigger rebuilding the times:
-  p1$cohort_schedule_max_time <- 100
+  p1$max_patch_lifetime <- 100
   expect_silent(p2 <- expand_parameters(trait_matrix(0.2, "lma"), p1, mutant=FALSE))
 })

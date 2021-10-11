@@ -26,7 +26,6 @@ namespace plant {
 
 struct Control {
   Control();
-  void initialize();
 
   bool   plant_assimilation_adaptive;
 
@@ -37,6 +36,9 @@ struct Control {
 
   double plant_seed_tol;
   size_t plant_seed_iterations;
+
+  double soil_infiltration_rate;
+  size_t soil_number_of_depths;
 
   double cohort_gradient_eps;
   int    cohort_gradient_direction;
@@ -59,20 +61,17 @@ struct Control {
   size_t schedule_nsteps;
   double schedule_eps;
   bool   schedule_verbose;
-  double schedule_patch_survival;
 
   size_t equilibrium_nsteps;
   double equilibrium_eps;
-  double equilibrium_large_seed_rain_change;
+  double equilibrium_large_birth_rate_change;
   bool   equilibrium_verbose;
   std::string equilibrium_solver_name;
-  double equilibrium_extinct_seed_rain;
+  double equilibrium_extinct_birth_rate;
   size_t equilibrium_nattempts;
   bool   equilibrium_solver_logN;
   bool   equilibrium_solver_try_keep;
 
-  // Things derived from this:
-  quadrature::QAG integrator;
 };
 
 inline ode::OdeControl make_ode_control(const Control& control) {

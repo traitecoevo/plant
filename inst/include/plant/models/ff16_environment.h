@@ -13,20 +13,19 @@ class FF16_Environment : public Environment {
 public:
 
   FF16_Environment() {
-    // Define an anonymous function to pass got the environment generator
     time = NA_REAL;
-    seed_rain = { 1.0, 1.0, 1.0 };
-    seed_rain_index = 0;
     canopy = Canopy();
+    inflow_rate = 0.0;
+    vars = Internals(0);
+    set_soil_water_state(0.0);
   };
 
-  FF16_Environment(double disturbance_mean_interval,
-                   std::vector<double> seed_rain_,
-                   Control control) {
+  FF16_Environment(Control control) {
     time = 0.0;
-    seed_rain = seed_rain_;
-    seed_rain_index = 0;
     canopy = Canopy(control);
+    inflow_rate = control.soil_infiltration_rate;
+    vars = Internals(control.soil_number_of_depths);
+    set_soil_water_state(0.0);
   };
 
   template <typename Function>
@@ -43,11 +42,11 @@ public:
     canopy.clear();
   }
 
+  // Should this be here or in canopy?
   void set_fixed_environment(double value, double height_max) {
     canopy.set_fixed_canopy(value, height_max);
   }
 
-  // Should this be here or in canopy?
   void set_fixed_environment(double value) {
     double height_max = 150.0;
     set_fixed_environment(value, height_max);
@@ -66,6 +65,27 @@ public:
   }
 
   Canopy canopy;
+
+  // Soil interface
+  double inflow_rate;
+  virtual void compute_rates() {
+    for (int i = 0; i < vars.state_size; i++) {
+      vars.set_rate(i, inflow_rate / (i+1));
+    }
+  }
+
+  std::vector<double> get_soil_water_state() const {
+    return vars.states;
+  }
+
+  // R interface
+  void set_soil_water_state(double v) {
+    for (int i = 0; i < vars.state_size; i++) {
+      vars.set_state(i, v / (i+1));
+    }
+  }
+
+  Internals r_internals() const { return vars; }
 };
 
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {

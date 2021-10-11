@@ -45,7 +45,7 @@ strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
 ##' @rdname strategy_list
 ##' @export
 individual_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
-
+  
   if (!inherits(parameters, "Parameters")) {
     stop("parameters must be a 'Parameters' object")
   }
@@ -90,12 +90,12 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
   }
   extra <- strategy_list(trait_matrix, p, hyperpar)
   n_extra <- length(extra)
-
+  
   ret <- p <- validate(p) # Ensure times are set up correctly.
   ret$strategies <- c(p$strategies, extra)
   ret$is_resident <- c(p$is_resident, rep(!mutant, n_extra))
-  ret$seed_rain <- c(p$seed_rain, rep(1.0, n_extra))
-
+  ret$birth_rate <- c(p$birth_rate, rep(1.0, n_extra))
+  
   ## Introduce mutants at all unique times:
   if (length(p$strategies) == 0L || !mutant) {
     times_new <- p$cohort_schedule_times_default
@@ -104,10 +104,10 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
   }
   ret$cohort_schedule_times <- c(p$cohort_schedule_times,
                                  rep(list(times_new), n_extra))
-
+  
   ## Clear this if it's present:
-  attr(ret, "seed_rain_out") <- NULL
-
+  attr(ret, "net_reproduction_ratios") <- NULL
+  
   ret
 }
 
@@ -115,7 +115,7 @@ remove_residents <- function(p) {
   if (length(p$strategies) > 0L) {
     p$strategies <- list()
     p$is_resident <- logical(0)
-    p$seed_rain <- numeric(0)
+    p$birth_rate <- numeric(0)
     p$cohort_schedule_times <- list()
   }
   p

@@ -29,7 +29,7 @@ list_to_array <- function(x) {
     }
     d <- length(x[[1]])
   }
-
+  
   dimnames2 <- function(x) {
     dn <- dimnames(x)
     if (is.null(dn)) rep(list(NULL), length(dim(x))) else dn

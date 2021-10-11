@@ -9,8 +9,8 @@
 ##' @title Build Cohort Schedule
 ##' @param p Parameters object
 ##' @return A Parameters object, with schedule components set.  The
-##' output seed rain is also available as an attribute
-##' \code{seed_rain}.
+##' output offspring produced is also available as an attribute
+##' \code{birth_rate}.
 ##' @author Rich FitzJohn
 ##' @export
 build_schedule <- function(p) {
@@ -25,7 +25,7 @@ build_schedule <- function(p) {
 
   for (i in seq_len(control$schedule_nsteps)) {
     res <- run_scm_error(p)
-    seed_rain_out <- res[["seed_rain"]]
+    net_reproduction_ratios <- res[["net_reproduction_ratios"]]
     split <- lapply(res$err$total, function(x) x > eps)
 
     if (!any(unlist(split), na.rm=TRUE)) {
@@ -47,8 +47,8 @@ build_schedule <- function(p) {
   }
 
   p$cohort_schedule_ode_times <- res$ode_times
-  ## Useful to record the last seed rain out:
-  attr(p, "seed_rain_out") <- seed_rain_out
+  ## Useful to record the last offspring produced:
+  attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
 
   p
 }

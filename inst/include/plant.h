@@ -14,7 +14,6 @@
 #include <plant/ode_solver.h>
 #include <plant/ode_runner.h>
 
-#include <plant/disturbance.h>
 #include <plant/environment.h>
 #include <plant/canopy.h>
 
@@ -23,8 +22,14 @@
 #include <plant/parameters.h>
 #include <plant/cohort_schedule.h>
 
+// Disturbance regimes for meta-population
+#include <plant/disturbance_regime.h>
+#include <plant/disturbances/no_disturbance.h>
+#include <plant/disturbances/weibull_disturbance.h>
+
 // Specific models
 #include <plant/models/ff16_strategy.h>
+#include <plant/models/water_strategy.h>
 #include <plant/models/ff16r_strategy.h>
 #include <plant/models/k93_strategy.h>
 // #include <plant/models/water_strategy.h>

@@ -18,8 +18,7 @@ for (x in names(strategy_types)) {
     expect_is(cohort$plant, sprintf("Individual<%s,%s>", x, e))
 
     env <- test_environment(x, 2 * plant$state("height"),
-                            light_env=function(x) rep(1, length(x)),
-                            seed_rain=1.0)
+                            light_env=function(x) rep(1, length(x)))
 
     ## The big unknown is the growth rate gradient calculation; that is,
     ## the derivative d(dh/dt)/dh.
@@ -105,14 +104,13 @@ for (x in names(strategy_types)) {
     cohort <- Cohort(x, e)(s)
 
     env <- test_environment(x, 2 * plant$state("height"),
-                            light_env=function(x) rep(1, length(x)),
-                            seed_rain=1.0)
+                            light_env=function(x) rep(1, length(x)))
 
-    cohort$compute_initial_conditions(env, pr_patch_survival = 1)
+    cohort$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 1)
     plant$compute_rates(env)
 
-    nms <- c(plant$ode_names, 
-             "seeds_survival_weighted", "log_density")
+    nms <- c(plant$ode_names,
+             "offspring_produced_survival_weighted", "log_density")
     expect_equal(cohort$ode_size, length(nms))
     expect_equal(cohort$ode_names, nms)
 
@@ -129,38 +127,37 @@ for (x in names(strategy_types)) {
 
     ## Ode *values*:
     cmp <- c(plant$internals$states,
-             0, # seeds_survival_weighted
-             log(pr_estab * env$seed_rain_dt / g) # log density
+             0, # offspring_produced_survival_weighted
+             log(pr_estab / g) # log density
              )
     cmp[which(plant$ode_names == 'mortality')] <- -log(pr_estab)
     expect_equal(cohort$ode_state, cmp)
 
     expect_identical(cohort$fecundity, 0.0);
 
-    ## Ode *rates*:    
+    ## Ode *rates*:
     cmp <- c(plant$internals$rates,
              ## This is different to the approach in tree1?
              plant$rate("fecundity") * exp(-plant$state("mortality")),
              -plant$rate("mortality") - cohort$growth_rate_gradient(env))
 
-   
+
     expect_equal(cohort$ode_rates, cmp)
   })
 
   test_that("leaf area calculations", {
-    plant <- Individual(x, e)(s) 
+    plant <- Individual(x, e)(s)
     cohort <- Cohort(x, e)(s)
 
     env <- test_environment(x, 10,
-                            light_env=function(x) rep(1, length(x)),
-                            seed_rain=1.0)
+                            light_env=function(x) rep(1, length(x)))
 
     h <- cohort$height
 
     expect_equal(cohort$log_density, -Inf) # zero
     expect_equal(exp(cohort$log_density), 0.0) # zero
     expect_equal(cohort$competition_effect, 0) # zero density
-    cohort$compute_initial_conditions(env, pr_patch_survival = 1)
+    cohort$compute_initial_conditions(env, pr_patch_survival = 1, birth_rate = 1)
 
     expect_equal(cohort$ode_state[[cohort$ode_size]], cohort$log_density)
     density <- exp(cohort$log_density)

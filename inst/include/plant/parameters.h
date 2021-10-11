@@ -10,6 +10,10 @@
 #include <plant/cohort_schedule.h>
 #include <plant/scm_utils.h> // Unfortunately needed for setup_cohort_schedule
 
+#include <plant/disturbance_regime.h>
+#include <plant/disturbances/no_disturbance.h>
+#include <plant/disturbances/weibull_disturbance.h>
+
 // TODO: I will possibly move out the "Patch" parameters out into
 // their own simple list class at some point, to make this a bit more
 // coherent.
@@ -24,11 +28,11 @@ struct Parameters {
   typedef T strategy_type;
   typedef E environment_type;
 
-  Parameters() : 
+  Parameters() :
     patch_area(1.0),
     n_patches(1),
-    disturbance_mean_interval(30),
-    cohort_schedule_max_time(NA_REAL)
+    patch_type("meta-population"),
+    max_patch_lifetime(105.32) // designed to agree with Daniel's implementation
   {
     validate();
   }
@@ -36,9 +40,10 @@ struct Parameters {
   // Data -- public for now (see github issue #17).
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
-  double disturbance_mean_interval; // Disturbance interval (years)
+  std::string patch_type;
+  double max_patch_lifetime; // Disturbance interval (years)
   std::vector<strategy_type> strategies;
-  std::vector<double> seed_rain;
+  std::vector<double> birth_rate;
   std::vector<bool> is_resident;
 
   // Algorithm control.
@@ -47,11 +52,12 @@ struct Parameters {
   // Templated environment
   environment_type environment;
 
+  Disturbance_Regime* disturbance;
+
   // Default strategy.
   strategy_type strategy_default;
 
   // Cohort information.
-  double cohort_schedule_max_time;
   std::vector<double> cohort_schedule_times_default;
   std::vector<std::vector<double> > cohort_schedule_times;
   std::vector<double> cohort_schedule_ode_times;
@@ -61,6 +67,7 @@ struct Parameters {
   size_t n_residents() const;
   size_t n_mutants() const;
   void validate();
+
 private:
   void setup_cohort_schedule();
 };
@@ -90,10 +97,10 @@ void Parameters<T,E>::validate() {
 
   // Set some defaults and check lengths.  Number of strategies is
   // taken as the "true" size.
-  if (seed_rain.empty()) {
-    seed_rain = std::vector<double>(n_spp, 1.0);
-  } else if (seed_rain.size() != n_spp) {
-    util::stop("Incorrect length seed_rain");
+  if (birth_rate.empty()) {
+    birth_rate = std::vector<double>(n_spp, 1.0);
+  } else if (birth_rate.size() != n_spp) {
+    util::stop("Incorrect length birth_rate");
   }
   if (is_resident.empty()) {
     is_resident = std::vector<bool>(n_spp, true);
@@ -112,27 +119,27 @@ void Parameters<T,E>::validate() {
     s.control = control;
   }
 
-  environment = environment_type(disturbance_mean_interval, seed_rain, control);
+  // Disturbances used to describe evolution of a metapopulation of patches
+  // when calculating fitness, otherwise defaults to fixed-duration run without
+  // disturbance
+  if(patch_type == "meta-population") {
+    disturbance = new Weibull_Disturbance_Regime(max_patch_lifetime);
+  }
+  else {
+    disturbance = new No_Disturbance();
+  }
+
+  environment = environment_type(control);
 }
 
 // Separating this out just because it's a bit crap:
 // TODO: Consider adding this to scm_utils.h perhaps?
 template <typename T, typename E>
 void Parameters<T,E>::setup_cohort_schedule() {
-  const double max_time = cohort_schedule_max_time_default(*this);
-  const bool update =
-    !(util::is_finite(cohort_schedule_max_time) &&
-      util::identical(cohort_schedule_max_time, max_time));
+  cohort_schedule_times_default =
+      plant::cohort_schedule_times_default(max_patch_lifetime);
 
-  if (update || !util::is_finite(cohort_schedule_max_time)) {
-    cohort_schedule_max_time = max_time;
-  }
-  if (update || cohort_schedule_times_default.empty()) {
-    cohort_schedule_times_default =
-      plant::cohort_schedule_times_default(cohort_schedule_max_time);
-  }
-
-  if (update || (cohort_schedule_times.empty() && size() > 0)) {
+  if ((cohort_schedule_times.empty() && size() > 0)) {
     cohort_schedule_times.clear();
     for (size_t i = 0; i < size(); ++i) {
       cohort_schedule_times.push_back(cohort_schedule_times_default);

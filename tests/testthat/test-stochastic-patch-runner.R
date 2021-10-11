@@ -8,7 +8,7 @@ test_that("empty", {
     e <- environment_types[[x]]
     set.seed(1)
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          seed_rain=pi/2,
+                          birth_rate=pi/2,
                           is_resident=TRUE,
                           control=fast_control())
 
@@ -17,7 +17,7 @@ test_that("empty", {
 
     sched <- obj$schedule
     expect_equal(sched$size, 0)
-    expect_equal(sched$max_time, p$cohort_schedule_max_time)
+    expect_equal(sched$max_time, p$max_patch_lifetime)
 
     ## Now, create a new set of times:
     sched2 <- stochastic_schedule(p)
@@ -52,7 +52,7 @@ test_that("collect", {
     e <- environment_types[[x]]
     set.seed(1)
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          seed_rain=5/50,
+                          birth_rate=5/50,
                           patch_area=50,
                           is_resident=TRUE,
                           control=fast_control())

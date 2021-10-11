@@ -12,17 +12,17 @@ test_that("Creation & defaults", {
 
     expect_equal(length(p$strategies), 0)
     expect_equal(length(p$is_resident), 0)
-    expect_equal(length(p$seed_rain), 0)
-
+    expect_equal(length(p$birth_rate), 0)
+    
     expected <- list(n_patches=1,
                      patch_area=1.0,
-                     disturbance_mean_interval=30.0)
+                     patch_type = "meta-population",
+                     max_patch_lifetime=105.32)
 
     expect_equal(p[names(expected)], expected)
     expect_equal(p$strategy_default, s)
 
-    expect_identical(p$cohort_schedule_max_time, cohort_schedule_max_time_default(p))
-    expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$cohort_schedule_max_time))
+    expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$max_patch_lifetime))
     expect_identical(p$cohort_schedule_times, list())
   }
 })
@@ -32,37 +32,37 @@ test_that("Nontrivial creation", {
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(s))
-    expect_equal(p$seed_rain, 1.0)
+    expect_equal(p$birth_rate, 1.0)
     expect_true(p$is_resident)
-
-    expect_error(Parameters(x, e)(seed_rain=pi), "Incorrect length seed_rain")
+    
+    expect_error(Parameters(x, e)(birth_rate=pi), "Incorrect length birth_rate")
     expect_error(Parameters(x, e)(is_resident=FALSE), "Incorrect length is_resident")
 
     expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
                                    strategy_types[[x]]()),
-                                 seed_rain=pi),
-                 "Incorrect length seed_rain")
+                                 birth_rate=pi),
+                 "Incorrect length birth_rate")
     expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
                                    strategy_types[[x]]()),
                                  is_resident=TRUE),
                  "Incorrect length is_resident")
 
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          seed_rain=pi,
+                          birth_rate=pi,
                           is_resident=TRUE)
 
-    expect_identical(p$cohort_schedule_max_time, cohort_schedule_max_time_default(p))
-    expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$cohort_schedule_max_time))
+    expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$max_patch_lifetime))
     expect_identical(p$cohort_schedule_times, list(p$cohort_schedule_times_default))
 
     ## Now, with some of these set:
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          seed_rain=pi,
+                          birth_rate=pi,
                           is_resident=TRUE,
-                          disturbance_mean_interval=2)
+                          max_patch_lifetime=7.021333)
 
-    expect_lt(p$cohort_schedule_max_time, 10)
-    expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$cohort_schedule_max_time))
+    message(x, " ", p$max_patch_lifetime)
+    expect_lt(p$max_patch_lifetime, 10)
+    expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$max_patch_lifetime))
     expect_identical(p$cohort_schedule_times, list(p$cohort_schedule_times_default))
   }
 })
@@ -84,7 +84,7 @@ test_that("Parameters overwrites Strategy control", {
     expect_identical(p$control, ctrl_p)
 
     p$strategies <- list(s)
-    p$seed_rain <- 1
+    p$birth_rate <- 1
     p$is_resident <- TRUE
     ## Pass though to force validation:
     tmp <- Patch(x, e)(p)$parameters
@@ -93,7 +93,7 @@ test_that("Parameters overwrites Strategy control", {
 
     ## In one shot:
     p2 <- Parameters(x, e)(control=ctrl_p, strategies=list(s),
-                           seed_rain=1, is_resident=TRUE)
+                           birth_rate=1, is_resident=TRUE)
     expect_identical(p2$control, ctrl_p)
     expect_identical(p2$strategies[[1]]$control, ctrl_p)
   }
@@ -103,11 +103,11 @@ test_that("Generate cohort schedule", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          seed_rain=pi/2, is_resident=TRUE)
+                          birth_rate=pi/2, is_resident=TRUE)
     sched <- make_cohort_schedule(p)
 
     expect_equal(sched$n_species, 1)
-    expect_equal(sched$max_time, p$cohort_schedule_max_time)
+    expect_equal(sched$max_time, p$max_patch_lifetime)
     expect_equal(sched$times(1), p$cohort_schedule_times_default)
     expect_equal(sched$all_times, p$cohort_schedule_times)
   }
@@ -132,25 +132,19 @@ test_that("scm_base_parameters", {
   }
 })
 
-test_that("Disturbance interval", {
+test_that("Patch runtime", {
   for (x in names(strategy_types)[[1]]) {
     p <- scm_base_parameters(x)
-    expect_equal(p$disturbance_mean_interval, 30.0)
-    expect_identical(p$cohort_schedule_max_time, cohort_schedule_max_time_default(p))
+    expect_equal(p$max_patch_lifetime, 105.32)
     p$strategies <- list(strategy_types[[x]]())
 
-    p$disturbance_mean_interval <- 10.0
     ## This is going to force us back through the validator
+    p$max_patch_lifetime <- 35.10667
     p2 <- validate(p)
-    expect_identical(p2$cohort_schedule_max_time, cohort_schedule_max_time_default(p2))
-    expect_lt(p2$cohort_schedule_max_time, p$cohort_schedule_max_time)
-    expect_lt(last(p2$cohort_schedule_times_default), p2$cohort_schedule_max_time)
-    expect_lt(last(p2$cohort_schedule_times_default), p2$cohort_schedule_max_time)
+    expect_lt(last(p2$cohort_schedule_times_default), p2$max_patch_lifetime)
     expect_equal(p2$cohort_schedule_times, list(p2$cohort_schedule_times_default))
 
     ## We will blow away any data that is stored in p$cohort_schedule*
-    expect_gt(p$cohort_schedule_max_time, 100)
-    p$cohort_schedule_max_time <- 1
     p$cohort_schedule_times_default <- 1:10
     p$cohort_schedule_time <- list(1:11)
     expect_equal(validate(p), p2)

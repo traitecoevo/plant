@@ -71,7 +71,7 @@ K93_StochasticPatchRunner <- function(p) {
 ##' @rdname K93_Environment
 ##' @param p A Parameters object
 K93_make_environment <- function(p) {
-  K93_Environment(p$disturbance_mean_interval, p$seed_rain, p$control)
+  K93_Environment(p$control)
 }
 
 ##' Construct a fixed environment for K93 strategy
@@ -96,20 +96,17 @@ K93_fixed_environment <- function(e=1.0, p = K93_Parameters(), height_max = 300.
 ##' @param n number of points
 ##' @param light_env function for light environment in test object
 ##' @param n_strategies number of strategies for test environment
-##' @param seed_rain seed_rain for test environment
+##' @param birth_rate birth_rate for test environment
 ##' @export
 ##' @rdname K93_test_environment
 ##' @examples
 ##' environment <- K93_test_environment(10)
 K93_test_environment <- function(height, n=101, light_env=NULL,
-                             n_strategies=1, seed_rain=0) {
-  if (length(seed_rain) == 1) {
-    seed_rain <- rep(seed_rain, length.out=n_strategies)
-  }
+                             n_strategies=1) {
   hh <- seq(0, height, length.out=n)
   if (is.null(light_env)) {
     light_env <- function(x) {
-      # arbitary function. aiming to produce values of -log(light_env)/0.01 
+      # arbitary function. aiming to produce values of -log(light_env)/0.01
       # in range 0:100
       exp(x/(height*2)) - (exp(.5) - 1)
     }
@@ -120,7 +117,7 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
 
   parameters <- K93_Parameters()
   parameters$strategies <- rep(list(K93_Strategy()), n_strategies)
-  parameters$seed_rain <- seed_rain
+
   parameters$is_resident <- rep(TRUE, n_strategies)
 
   ret <- K93_make_environment(parameters)
@@ -172,7 +169,7 @@ make_K93_hyperpar <- function(
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
               nrow(m))
     }
-    
+
     m
   }
 
@@ -183,7 +180,7 @@ make_K93_hyperpar <- function(
 ##' @title Hyperparameter function for K93 physiological model
 ##' @param m A matrix of trait values, as returned by \code{trait_matrix}
 ##' @param s A strategy object
-##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers 
+##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers
 ##' that are within eps of the default strategy are not replaced.
 ##' @rdname K93_hyperpar
 ##' @export

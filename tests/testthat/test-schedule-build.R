@@ -19,7 +19,7 @@ test_that("Schedule building", {
     ## at least.
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
-    p$seed_rain <- 0.1
+    p$birth_rate <- 0.1
     p <- build_schedule(p)
     expect_equal(length(p$cohort_schedule_times_default), 141)
     expect_equal(length(p$cohort_schedule_times[[1]]), 176)

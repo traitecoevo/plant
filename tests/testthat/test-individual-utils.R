@@ -36,9 +36,7 @@ test_that("Cohort schedule max time", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
-    t <- cohort_schedule_max_time_default(p)
-    d <- Disturbance(p$disturbance_mean_interval)
-    expect_equal(t, d$cdf(p$control$schedule_patch_survival))
+    expect_lt(max(p$cohort_schedule_times_default), p$max_patch_lifetime)
   }
 })
 
@@ -46,13 +44,12 @@ test_that("Default schedule", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]](), strategy_types[[x]]()),
-      seed_rain=c(pi/2, pi),
-      is_resident=c(TRUE, TRUE))
+                          birth_rate=c(pi/2, pi),
+                          is_resident=c(TRUE, TRUE))
     cohort_schedule <- cohort_schedule_default(p)
     expect_is(cohort_schedule, "CohortSchedule")
     expect_equal(cohort_schedule$n_species, length(p$strategies))
-    t_max <- cohort_schedule_max_time_default(p)
-    tt <- cohort_schedule_times_default(t_max)
+    tt <- cohort_schedule_times_default(p$max_patch_lifetime)
     expect_identical(cohort_schedule$times(1), tt)
     expect_identical(cohort_schedule$times(2), tt)
   }
@@ -73,7 +70,7 @@ test_that("individual_list", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
-
+    
     obj <- individual_list(trait_matrix(1, "lma"), p, make_hyperpar(x)())
     expect_equal(length(obj), 1)
     expect_is(obj, "list")

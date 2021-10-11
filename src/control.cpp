@@ -2,7 +2,7 @@
 
 namespace plant {
 
-Control::Control() : integrator(15, 1, 0, 0) {
+Control::Control() {
   plant_assimilation_adaptive = true;
 
   plant_assimilation_over_distribution = false;
@@ -12,6 +12,9 @@ Control::Control() : integrator(15, 1, 0, 0) {
 
   plant_seed_tol = 1e-8;
   plant_seed_iterations = 1000;
+
+  soil_infiltration_rate = 0.0;
+  soil_number_of_depths = 0;
 
   cohort_gradient_eps = 1e-6;
   cohort_gradient_direction = 1;
@@ -34,29 +37,16 @@ Control::Control() : integrator(15, 1, 0, 0) {
   schedule_nsteps   = 20;
   schedule_eps      = 1e-3;
   schedule_verbose  = false;
-  // This odd number is designed to agree with Daniel's implementation
-  // of the model.
-  schedule_patch_survival = 6.25302620663814e-05;
 
   equilibrium_nsteps   = 20;
   equilibrium_eps      = 1e-5;
-  equilibrium_large_seed_rain_change = 10;
+  equilibrium_large_birth_rate_change = 10;
   equilibrium_verbose  = true;
   equilibrium_solver_name = "iteration";
-  equilibrium_extinct_seed_rain = 1e-3;
+  equilibrium_extinct_birth_rate = 1e-3;
   equilibrium_nattempts = 5;
   equilibrium_solver_logN = true;
   equilibrium_solver_try_keep = true;
-}
-
-void Control::initialize() {
-  if (!plant_assimilation_adaptive) {
-    plant_assimilation_iterations = 1;
-  }
-  integrator = quadrature::QAG(plant_assimilation_rule,
-                               plant_assimilation_iterations,
-                               plant_assimilation_tol,
-                               plant_assimilation_tol);
 }
 
 }

@@ -44,19 +44,19 @@ public:
   size_t size() const;
   size_t size_plants() const {return plants.size();}
   void clear();
-  void add_seed();
-  void add_seed(const E& environment);
+  void introduce_new_cohort();
+  void introduce_new_cohort(const E& environment);
 
   double height_max() const;
   double compute_competition(double height) const;
   void compute_rates(const E& environment);
-  std::vector<double> seeds() const;
+  std::vector<double> net_reproduction_ratio_by_cohort() const;
 
   // This is totally new, relative to the deterministic model; this
   // will destructively modify the species by removing individuals.
   size_t deaths();
   double establishment_probability(const E& environment) {
-    return seed.establishment_probability(environment);
+    return offspring.establishment_probability(environment);
   }
 
   // * ODE interface
@@ -72,7 +72,7 @@ public:
   std::vector<bool> r_is_alive() const {return is_alive;}
   std::vector<double> r_heights() const;
   void r_set_heights(std::vector<double> heights);
-  const individual_type& r_seed() const {return seed;}
+  const individual_type& r_new_cohort() const {return offspring;}
   std::vector<individual_type> r_plants() const {return plants;}
   const individual_type& r_plant_at(util::index idx) const {
     return plants[idx.check_bounds(size_plants())];
@@ -81,7 +81,7 @@ public:
 private:
   const Control& control() const {return strategy->get_control();}
   strategy_type_ptr strategy;
-  individual_type seed;
+  individual_type offspring;
   std::vector<individual_type> plants;
   std::vector<bool>       is_alive;
 };
@@ -89,7 +89,7 @@ private:
 template <typename T, typename E>
 StochasticSpecies<T,E>::StochasticSpecies(strategy_type s)
   : strategy(make_strategy_ptr(s)),
-    seed(strategy) {
+    offspring(strategy) {
 }
 
 template <typename T, typename E>
@@ -102,21 +102,21 @@ template <typename T, typename E>
 void StochasticSpecies<T,E>::clear() {
   plants.clear();
   is_alive.clear();
-  // Reset the seed to a blank seed, too.
-  seed = individual_type(strategy);
+  // Reset the offspring to a blank offspring, too.
+  offspring = individual_type(strategy);
 }
 
 // Note that this does not do establishment probability; suggest that
 // this is best to do in the StochasticPatch perhaps?
 template <typename T, typename E>
-void StochasticSpecies<T,E>::add_seed() {
-  plants.push_back(seed);
+void StochasticSpecies<T,E>::introduce_new_cohort() {
+  plants.push_back(offspring);
   is_alive.push_back(true);
 }
 
 template <typename T, typename E>
-void StochasticSpecies<T,E>::add_seed(const E& environment) {
-  add_seed();
+void StochasticSpecies<T,E>::introduce_new_cohort(const E& environment) {
+  introduce_new_cohort();
   plants.back().compute_rates(environment);
 }
 
@@ -182,7 +182,7 @@ void StochasticSpecies<T,E>::compute_rates(const E& environment) {
 
 // TODO: This is going to change...
 template <typename T, typename E>
-std::vector<double> StochasticSpecies<T,E>::seeds() const {
+std::vector<double> StochasticSpecies<T,E>::net_reproduction_ratio_by_cohort() const {
   std::vector<double> ret;
   ret.reserve(size());
   // I don't think that this is quite right; is it fecundity that we

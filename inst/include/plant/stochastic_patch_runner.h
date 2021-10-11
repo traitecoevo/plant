@@ -88,7 +88,7 @@ size_t StochasticPatchRunner<T,E>::run_next() {
   const size_t idx = e.species_index;
   schedule.pop();
 
-  if (patch.add_seed(idx)) {
+  if (patch.introduce_new_cohort(idx)) {
     solver.set_state_from_system(patch);
   }
   advance(e.time_end());
@@ -151,7 +151,6 @@ void StochasticPatchRunner<T,E>::r_set_schedule(CohortSchedule x) {
 
   // Update these here so that extracting Parameters would give the
   // new schedule, this making Parameters sufficient.
-  parameters.cohort_schedule_max_time = schedule.get_max_time();
   parameters.cohort_schedule_times = schedule.get_times();
   reset();
 }

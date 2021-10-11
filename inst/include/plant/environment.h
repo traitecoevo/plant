@@ -3,10 +3,10 @@
 #define PLANT_PLANT_ENVIRONMENT_H_
 
 #include <plant/control.h>
-#include <plant/disturbance.h>
 #include <plant/interpolator.h>
 #include <plant/adaptive_interpolator.h>
 #include <plant/ode_interface.h>
+#include <plant/internals.h>
 #include <plant/util.h>
 #include <Rcpp.h>
 
@@ -26,13 +26,30 @@ public:
   void set_fixed_environment(double value);
   void init_interpolators(const std::vector<double>& state);
 
-  void compute_rates();
+  // ODE interface: do nothing if the environment has no state.
+  size_t ode_size() const { return vars.state_size; }
+  virtual void compute_rates(){};
 
-  // Dummy iterators: do nothing if the environment has no state.
-  ode::iterator ode_state(ode::iterator it) const { return it; }
-  ode::const_iterator set_ode_state(ode::const_iterator it) { return it; }
-  ode::iterator ode_rates(ode::iterator it) const { return it; }
-  int ode_size() const { return 0; }
+  ode::const_iterator set_ode_state(ode::const_iterator it) {
+    for (int i = 0; i < vars.state_size; i++) {
+      vars.states[i] = *it++;
+    }
+    return it;
+  }
+
+  ode::iterator ode_state(ode::iterator it) const {
+    for (int i = 0; i < vars.state_size; i++) {
+      *it++ = vars.states[i];
+    }
+    return it;
+  }
+
+  ode::iterator ode_rates(ode::iterator it) const {
+    for (int i = 0; i < vars.state_size; i++) {
+      *it++ = vars.rates[i];
+    }
+    return it;
+  }
 
   // Reset the environment.
   void clear() {
@@ -42,30 +59,15 @@ public:
 
   void clear_environment() {}
 
-  double seed_rain_dt() const {
-    if (seed_rain.empty()) {
-      Rcpp::stop("Cannot get seed rain for empty environment");
-    }
-    return seed_rain[seed_rain_index];
-  }
-
-  void set_seed_rain_index(size_t x) {
-    seed_rain_index = x;
-  }
-
-  // * R interface
-  void r_set_seed_rain_index(util::index x) {
-    set_seed_rain_index(x.check_bounds(seed_rain.size()));
-  }
-
   void r_init_interpolators(const std::vector<double>& state) {}
 
   double get_environment_at_height(double height) { return 0.0; };
 
   double time;
 
-  std::vector<double> seed_rain;
-  size_t seed_rain_index;
+  size_t species_arriving_index;
+
+  Internals vars;
 };
 
 }

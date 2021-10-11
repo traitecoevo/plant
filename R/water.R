@@ -1,87 +1,102 @@
-# Built from  R/ff16.R on Wed Aug 12 11:12:34 2020 using the scaffolder, from the strategy:  FF16
-
-##' Create a FF16r Plant or Cohort
-##' @title Create a FF16r Plant or Cohort
-##' @param s A \code{\link{FF16r_Strategy}} object
+# Built from  R/ff16.R on Mon Jul 19 11:01:04 2021 using the scaffolder, from the strategy:  FF16
+##' Create a Water Plant or Cohort
+##' @title Create a Water Plant or Cohort
+##' @param s A \code{\link{Water_Strategy}} object
 ##' @export
-##' @rdname FF16r
+##' @rdname Water
 ##' @examples
-##' pl <- FF16r_Individual()
+##' pl <- Water_Individual()
 ##' pl$height
-FF16r_Individual <- function(s=FF16r_Strategy()) {
-  Individual("FF16r", "FF16_Env")(s)
+Water_Individual <- function(s=Water_Strategy()) {
+  Individual("Water", "FF16_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16r
-FF16r_Cohort <- function(s=FF16r_Strategy()) {
-  Cohort("FF16r", "FF16_Env")(s)
+##' @rdname Water
+Water_Cohort <- function(s=Water_Strategy()) {
+  Cohort("Water", "FF16_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16r
-FF16r_Species <- function(s=FF16r_Strategy()) {
-  Species("FF16r", "FF16_Env")(s)
+##' @rdname Water
+Water_Species <- function(s=Water_Strategy()) {
+  Species("Water", "FF16_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16r
-FF16r_Parameters <- function() {
-  Parameters("FF16r","FF16_Env")()
+##' @rdname Water
+Water_Parameters <- function() {
+  Parameters("Water","FF16_Env")()
 }
 
 ##' @export
-##' @rdname FF16r
-##' @param p A \code{Parameters<FF16r,FF16_Env>} object
-FF16r_Patch <- function(p) {
-  Patch("FF16r", "FF16_Env")(p)
+##' @rdname Water
+##' @param p A \code{Parameters<Water,FF16_Env>} object
+Water_Patch <- function(p) {
+  Patch("Water", "FF16_Env")(p)
 }
 
 ##' @export
-##' @rdname FF16r
-FF16r_SCM <- function(p) {
-  SCM("FF16r", "FF16_Env")(p)
+##' @rdname Water
+Water_SCM <- function(p) {
+  SCM("Water", "FF16_Env")(p)
 }
 
 ##' @export
-##' @rdname FF16r
-FF16r_StochasticSpecies <- function(s=FF16r_Strategy()) {
-  StochasticSpecies("FF16r", "FF16_Env")(s)
+##' @rdname Water
+Water_StochasticSpecies <- function(s=Water_Strategy()) {
+  StochasticSpecies("Water", "FF16_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16r
-FF16r_StochasticPatch <- function(p) {
-  StochasticPatch("FF16r", "FF16_Env")(p)
+##' @rdname Water
+Water_StochasticPatch <- function(p) {
+  StochasticPatch("Water", "FF16_Env")(p)
 }
 
 ##' @export
-##' @rdname FF16r
-FF16r_StochasticPatchRunner <- function(p) {
-  StochasticPatchRunner("FF16r", "FF16_Env")(p)
+##' @rdname Water
+Water_StochasticPatchRunner <- function(p) {
+  StochasticPatchRunner("Water", "FF16_Env")(p)
 }
+
 
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
 ##' @param p A Parameters object
-FF16r_make_environment <- function(p) {
+Water_make_environment <- function(p) {
   FF16_Environment(p$control)
 }
 
+##' Construct a fixed environment for Water strategy
+##'
+##' @param e Value of environment (deafult  = 1.0)
+##' @param p A Parameters object
+##' @param height_max = 150.0 maximum possible height in environment
+##' @rdname FF16_Environment
+##'
+##' @export
+Water_fixed_environment <- function(e=1.0, p = Water_Parameters(), height_max = 150.0) {
+  env <- Water_make_environment(p)
+  env$set_fixed_environment(e, height_max)
+  env
+}
+
+
 ##' This makes a pretend light environment over the plant height,
 ##' slightly concave up, whatever.
-##' @title Create a test environment for FF16r startegy
+##' @title Create a test environment for Water startegy
 ##' @param height top height of environment object
 ##' @param n number of points
 ##' @param light_env function for light environment in test object
 ##' @param n_strategies number of strategies for test environment
-##' @param seed_rain seed_rain for test environment
+##' @param birth_rate birth_rate for test environment
 ##' @export
-##' @rdname FF16r_test_environment
+##' @rdname Water_test_environment
 ##' @examples
-##' environment <- FF16r_test_environment(10)
-FF16r_test_environment <- function(height, n=101, light_env=NULL,
+##' environment <- Water_test_environment(10)
+Water_test_environment <- function(height, n=101, light_env=NULL,
                              n_strategies=1) {
   hh <- seq(0, height, length.out=n)
   if (is.null(light_env)) {
@@ -93,21 +108,19 @@ FF16r_test_environment <- function(height, n=101, light_env=NULL,
   interpolator <- Interpolator()
   interpolator$init(hh, ee)
 
-  parameters <- FF16r_Parameters()
-  parameters$strategies <- rep(list(FF16r_Strategy()), n_strategies)
+  parameters <- Water_Parameters()
+  parameters$strategies <- rep(list(Water_Strategy()), n_strategies)
 
   parameters$is_resident <- rep(TRUE, n_strategies)
 
-  ret <- FF16r_make_environment(parameters)
+  ret <- Water_make_environment(parameters)
   ret$canopy$canopy_interpolator <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }
 
-
-
-##' Hyperparameters for FF16r physiological model
-##' @title Hyperparameters for FF16r physiological model
+##' Hyperparameters for Water physiological model
+##' @title Hyperparameters for Water physiological model
 ##' @param lma_0 Central (mean) value for leaf mass per area [kg /m2]
 ##' @param B_kl1 Rate of leaf turnover at lma_0 [/yr]
 ##' @param B_kl2 Scaling slope for phi in leaf turnover [dimensionless]
@@ -130,8 +143,8 @@ FF16r_test_environment <- function(height, n=101, light_env=NULL,
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @importFrom stats coef nls
 ##' @export
-##' @rdname FF16r_hyperpar
-make_FF16r_hyperpar <- function(
+##' @rdname Water_hyperpar
+make_Water_hyperpar <- function(
                                 lma_0=0.1978791,
                                 B_kl1=0.4565855,
                                 B_kl2=1.71,
@@ -302,11 +315,11 @@ make_FF16r_hyperpar <- function(
   }
 }
 
-##' Hyperparameter function for FF16r physiological model
-##' @title Hyperparameter function for FF16r physiological model
+##' Hyperparameter function for Water physiological model
+##' @title Hyperparameter function for Water physiological model
 ##' @param m A matrix of trait values, as returned by \code{trait_matrix}
 ##' @param s A strategy object
 ##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers
 ##' that are within eps of the default strategy are not replaced.
 ##' @export
-FF16r_hyperpar <- make_FF16r_hyperpar()
+Water_hyperpar <- make_Water_hyperpar()

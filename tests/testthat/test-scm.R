@@ -12,7 +12,7 @@ test_that("Run SCM", {
     cohort <- Cohort(x, e)(s)
 
     p <- Parameters(x, e)(strategies=list(s),
-                          seed_rain=pi/2,
+                          birth_rate=pi/2,
                           patch_area=10,
                           is_resident=TRUE)
 
@@ -29,7 +29,7 @@ test_that("Run SCM", {
     expect_is(scm$patch, sprintf("Patch<%s,%s>", x, e))
     expect_equal(length(scm$patch$species), 1)
     expect_is(scm$patch$species[[1]], sprintf("Species<%s,%s>",x,e))
-    expect_is(scm$patch$species[[1]]$seed, sprintf("Cohort<%s,%s>",x,e))
+    expect_is(scm$patch$species[[1]]$new_cohort, sprintf("Cohort<%s,%s>",x,e))
     expect_identical(scm$patch$time, 0.0)
 
     sched <- scm$cohort_schedule
@@ -98,7 +98,7 @@ test_that("Run SCM", {
     expect_equal(scm$patch$ode_size, 0)
     expect_equal(scm$cohort_schedule$remaining, length(t))
 
-    ## At this point, and possibly before scm$seed_rains is corrupt.
+    ## At this point, and possibly before scm$net_reproduction_ratio is corrupt.
 
     ## This is stalling really badly, but it's not totally clear why.
     ## It's *not* the ODE system thrashing (thankfully) because the
@@ -162,13 +162,13 @@ test_that("Run SCM", {
 })
 
 test_that("schedule setting", {
-  for (x in names(strategy_types)) { 
+  for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(
       strategies=list(strategy_types[[x]]()),
-      seed_rain=pi/2,
+      birth_rate=pi/2,
       is_resident=TRUE,
-      cohort_schedule_max_time=5.0)
+      max_patch_lifetime=5.0)
     scm <- SCM(x, e)(p)
 
     ## Then set a cohort schedule:
@@ -182,7 +182,7 @@ test_that("schedule setting", {
 
     ## And updated in the parameters:
     p2 <- scm$parameters
-    expect_identical(p2$cohort_schedule_max_time, sched$max_time)
+    expect_identical(p2$max_patch_lifetime, sched$max_time)
     expect_identical(p2$cohort_schedule_times, list(t))
 
     ## Remake the schedule:
@@ -244,20 +244,20 @@ test_that("Seed rain & error calculations correct", {
     scm <- run_scm(p1)
     expect_is(scm, sprintf("SCM<%s,%s>", x, e))
 
-    seed_rain_R <- function(scm, error=FALSE) {
+    net_reproduction_ratio_R <- function(scm, error=FALSE) {
       a <- scm$cohort_schedule$times(1)
-      d <- scm$patch$disturbance_regime
-      pa <- d$density(a)
-      p <- scm$parameters
-      scale <- scm$parameters$strategies[[1]]$S_D * p$seed_rain
-      seeds <- pa * scm$patch$species[[1]]$seeds * scale
-      total <- trapezium(a, seeds)
-      if (error) local_error_integration(a, seeds, total) else total
+      net_reproduction_ratio_by_cohort_weighted <- scm$patch$density(a) *
+        scm$patch$species[[1]]$net_reproduction_ratio_by_cohort *
+        scm$parameters$strategies[[1]]$S_D
+      total <- trapezium(a, net_reproduction_ratio_by_cohort_weighted)
+      if (error)
+        local_error_integration(a, net_reproduction_ratio_by_cohort_weighted, total)
+      else total
     }
 
-    expect_equal(scm$seed_rain(1), seed_rain_R(scm))
-    expect_equal(scm$seed_rains, seed_rain_R(scm))
-    expect_equal(scm$seed_rain_error[[1]], seed_rain_R(scm, error=TRUE))
+    expect_equal(scm$net_reproduction_ratio_for_species(1), net_reproduction_ratio_R(scm))
+    expect_equal(scm$net_reproduction_ratios, net_reproduction_ratio_R(scm))
+    expect_equal(scm$net_reproduction_ratio_errors[[1]], net_reproduction_ratio_R(scm, error=TRUE))
 
     lae_cmp <-
       scm$patch$species[[1]]$competition_effects_error(scm$patch$compute_competition(0))
@@ -265,12 +265,12 @@ test_that("Seed rain & error calculations correct", {
 
     int <- make_scm_integrate(scm)
     S_D <- scm$parameters$strategies[[1]]$S_D
-    expect_equal(int("seeds_survival_weighted") * S_D, scm$seed_rain(1))
+    expect_equal(int("offspring_produced_survival_weighted") * S_D, scm$net_reproduction_ratio_for_species(1))
 
     res <- run_scm_collect(p1)
     int2 <- make_scm_integrate(res)
 
-    expect_equal(int2("seeds_survival_weighted"), int("seeds_survival_weighted"))
+    expect_equal(int2("offspring_produced_survival_weighted"), int("offspring_produced_survival_weighted"))
     expect_equal(int2("height"), int("height"))
     expect_equal(int2("mortality"), int("mortality"))
     expect_equal(int2("fecundity"), int("fecundity"))
@@ -292,3 +292,4 @@ test_that("Can create empty SCM", {
     expect_equal(env$canopy_openness(0), 1.0)
   }
 })
+
