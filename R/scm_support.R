@@ -43,7 +43,7 @@ equilibrium_quiet <- function(base=Control()) {
 ##' Hopefully sensible set of parameters for use with the SCM.  Turns
 ##' accuracy down a bunch, makes it noisy, sets up the
 ##' hyperparameterisation that we most often use.
-##' @title Sensible, fast (ish) SCM parameters
+##' @title Sensible, fast (ish) SCM control settings
 ##' @author Rich FitzJohn
 ##' @export
 scm_base_control <- function() {
@@ -54,13 +54,14 @@ scm_base_control <- function() {
 }
 
 
-##' This used to be bundled into base control but refactoring to separate
-##' concerns. May disappear in the future.
+##' Basic default settings for a given strategy, environment only really
+##' used for templating initially and will be overloaded later by passing
+##' an environment to the SCM API (suggesting perhaps the template could be
+##' removed).
+##' @title Basic default parameters for a given strategy
+##' @author Rich FitzJohn
+##' @export
 scm_base_parameters <- function(type = NA, env = environment_type(type)) {
-  types <- names(get_list_of_strategy_types())
-  
-  if(!type %in% types)
-    stop(paste(c("Requires one of", types), collapse = " "))
   
    Parameters(type, env)(patch_area=1.0)
 }

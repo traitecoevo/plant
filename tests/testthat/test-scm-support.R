@@ -4,7 +4,7 @@ context("SCM support")
 test_that("collect / make_patch", {
   env <- make_environment()
   ctrl <- scm_base_control()
-  p0 <- scm_base_parameters()
+  p0 <- scm_base_parameters("FF16")
   hyperpar <- make_FF16_hyperpar()
   p0$disturbance_mean_interval <- 30.0
   p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE)
@@ -57,7 +57,7 @@ test_that("collect / make_patch", {
 
 test_that("expand_parameters", {
   hyperpar <- make_FF16_hyperpar()
-  p0 <- scm_base_parameters()
+  p0 <- scm_base_parameters("FF16")
   p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, mutant=FALSE)
   ## This will trigger rebuilding the times:
   p1$max_patch_lifetime <- 100

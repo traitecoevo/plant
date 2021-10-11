@@ -47,7 +47,7 @@ environment_type <- function(type) {
          stop("Unknown type ", type))
 }
 
-make_environment <- function(type = "FF16", parameters = NULL, ...) {
+make_environment <- function(type = NULL, parameters = NULL, ...) {
   
   if(!is.null(parameters)) {
     type = extract_RcppR6_template_types(parameters, "Parameters")[[1]][1]
