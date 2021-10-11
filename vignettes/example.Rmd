@@ -1,0 +1,151 @@
+---
+title: "Example worklfow"
+author: 
+- Daniel Falster
+date: 2016
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{patch}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# installation
+
+```{r load libraries}
+library(plant)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+```
+
+Activate logger
+
+```{r}
+plant_log_console()
+```
+
+Settign some base parameters
+
+```{r}
+
+base_parameters <- function() {
+  p0 <- scm_base_parameters("FF16", "FF16_Env")
+
+  p0$strategy_default$lma <- 0.07
+  p0$strategy_default$hmat <- 15
+  p0$strategy_default$rho <- 700
+  p0$strategy_default$a_l1 <- 2.17
+  p0$strategy_default$a_l2 <- 0.5
+  
+  p0
+}
+
+
+
+run_mypatch <- function(
+  traits =  trait_matrix(c(0.07), c("lma")),
+  B_lf1 = 1,
+  seed_rain = 100,
+  p0 = base_mulga_parameters(),
+  find_equilbrium = FALSE
+  ) {
+  
+  hyper_par_fn = make_FF16_hyperpar(B_lf1 = B_lf1, latitude = 28.182)
+  p1 <- expand_parameters(traits, p0, hyper_par_fn, mutant = FALSE)
+  p1$seed_rain <- seed_rain
+  
+  if(find_equilbrium)
+    result <- equilibrium_seed_rain(p1)
+  else
+    result <- build_schedule(p1)
+  
+  # gather outputs at each time step
+  run_scm_collect(result)
+}
+```
+
+
+Run patch
+
+```{r}
+results <- 
+  run_mypatch(seed_rain = 180)
+```
+
+Tidy into tidy state, expand state
+```{r}
+results2 <- 
+  results %>% 
+  tidy_patch() %>% 
+  expand_state()
+```
+
+Calculate totals by species for each step
+
+```{r}
+data_species_tot <- 
+  results2$species %>% patch_species_total()
+```
+
+
+## Plot size distirbuion
+
+```{r}
+plot_size_distribution_patch(results2$species)
+```
+
+## total leaf area over time
+
+```{r}
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf)) +
+  geom_line()
+```
+
+## biomass components over time
+
+Mass in kg/m2
+```{r}
+v <- c("mass_heartwood", "mass_sapwood", "mass_bark", "mass_leaf")
+
+data_long <- 
+  data_species_tot %>% 
+  select(time, one_of(v)) %>%
+  pivot_longer(cols=starts_with("mass"), names_to = "tissue")
+
+data_long$tissue <- factor(data_long$tissue, levels = v)
+
+data_long %>%
+  ggplot(aes(time, value, fill=tissue)) +
+  geom_area() +
+  labs(x = "Patch age (yr)", y = "Above ground mass (kg/m2)") +
+  theme_classic() + 
+  xlim(c(0,50))
+```
+
+
+## Classic Self thinnning plot
+
+For this we need average size over time. Get average size by dividing total by the sum of individuals per unit area
+
+Note this plot has some noise in it. Suggests integration in previous step may need more resolution, or a better method. 
+
+```{r}
+p1 <- results2$species %>% plot_size_distribution_patch() 
+p2 <- data_species_tot %>% 
+  mutate(size_av = area_stem / individuals) %>% 
+  ggplot(aes(size_av, individuals)) +
+  geom_line() +
+  scale_x_log10() +
+  scale_y_log10() + 
+  theme_classic()
+
+p1 + p2
+```
+
