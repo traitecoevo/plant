@@ -13,7 +13,7 @@ strategy_default(parameters, hyperpar = param_hyperpar(parameters))
 
 strategy(x, parameters, hyperpar = param_hyperpar(parameters))
 
-individual_list(x, parameters, hyperpar = parram_hyperpar(parameters))
+individual_list(x, parameters, hyperpar = param_hyperpar(parameters))
 }
 \arguments{
 \item{x}{Values for the trait.  This must be a \emph{matrix}, with
@@ -23,6 +23,9 @@ rows representing different values.}
 \item{parameters}{\code{Parameters} object containing a
 default strategy to modify.  Any hyperparameterisation included
 will be applied.}
+
+\item{hyperpar}{Hyperparameter function to use. By default links 
+to standard function for this strategy type.}
 }
 \description{
 Create a list of Strategies or Plants by varying a single trait.

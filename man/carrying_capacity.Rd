@@ -4,7 +4,7 @@
 \alias{carrying_capacity}
 \title{Carrying Capacity}
 \usage{
-carrying_capacity(trait_matrix, p, seed_rain = 1, parallel = FALSE)
+carrying_capacity(trait_matrix, p, birth_rate = 1, parallel = FALSE)
 }
 \arguments{
 \item{trait_matrix}{A matrix of traits}
@@ -12,7 +12,7 @@ carrying_capacity(trait_matrix, p, seed_rain = 1, parallel = FALSE)
 \item{p}{Parameters object to use.  Importantly, the
 \code{strategy_default} element gets used here.}
 
-\item{seed_rain}{Initial seed rain (optional)}
+\item{birth_rate}{Initial offspring arrival (optional)}
 
 \item{parallel}{Use multiple processors?}
 }

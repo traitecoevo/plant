@@ -4,10 +4,12 @@
 \alias{run_scm}
 \title{Run SCM}
 \usage{
-run_scm(p, use_ode_times = FALSE)
+run_scm(p, ctrl = scm_base_control(), use_ode_times = FALSE)
 }
 \arguments{
 \item{p}{Parameters object}
+
+\item{ctrl}{Control object}
 
 \item{use_ode_times}{Should ODE times be used?}
 }

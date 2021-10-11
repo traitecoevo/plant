@@ -6,7 +6,7 @@
 \alias{scm_patch}
 \title{Reconstruct a patch}
 \usage{
-make_patch(state, p)
+make_patch(state, p, ctrl = scm_base_control())
 
 scm_state(i, x)
 
@@ -16,6 +16,8 @@ scm_patch(i, x)
 \item{state}{State object created by \code{scm_state}}
 
 \item{p}{Parameters object}
+
+\item{ctrl}{Control object}
 
 \item{i}{Index to extract from \code{x}}
 

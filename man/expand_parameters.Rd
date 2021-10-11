@@ -12,6 +12,9 @@ new types to introduce.}
 
 \item{p}{A \code{Parameters} object.}
 
+\item{hyperpar}{Hyperparameter function to use. By default links 
+to standard function for this strategy type.}
+
 \item{mutant}{Create new types as \emph{mutants}?  These will have
 no effect on other plants in the community (i.e. have zero
 density).}
