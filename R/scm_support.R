@@ -45,9 +45,8 @@ equilibrium_quiet <- function(base=Control()) {
 ##' hyperparameterisation that we most often use.
 ##' @title Sensible, fast (ish) SCM parameters
 ##' @author Rich FitzJohn
-##' @param type Name of model (defaults to FF16 but any strategy name is valid).
 ##' @export
-scm_base_control <- function(type="FF16", env=environment_type(type)) {
+scm_base_control <- function() {
   ctrl <- equilibrium_verbose(fast_control())
   ctrl$schedule_eps <- 0.005
   ctrl$equilibrium_eps <- 1e-3
@@ -57,7 +56,12 @@ scm_base_control <- function(type="FF16", env=environment_type(type)) {
 
 ##' This used to be bundled into base control but refactoring to separate
 ##' concerns. May disappear in the future.
-scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
+scm_base_parameters <- function(type = NA, env = environment_type(type)) {
+  types <- names(get_list_of_strategy_types())
+  
+  if(!type %in% types)
+    stop(paste(c("Requires one of", types), collapse = " "))
+  
    Parameters(type, env)(patch_area=1.0)
 }
 
