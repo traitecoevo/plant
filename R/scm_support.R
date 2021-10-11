@@ -237,12 +237,12 @@ run_scm_error <- function(p, env = make_environment(parameters = p),
 ##' @param base_control_fn Function for creating base Control object (default scm_base_control)
 ##' @param make_hyperpar_fn Function for creating hyperparameterisation (default make_FF16_hyperpar)
 ##' @export
-assembly_parameters <- function(..., pars=NULL, 
+assembly_parameters <- function(..., pars=NULL, type = NA,
                                 base_parameters_fn = scm_base_parameters,
                                 base_control_fn = scm_base_control,
                                 make_hyperpar_fn = make_FF16_hyperpar) {
 
-  p <- base_parameters_fn()
+  p <- base_parameters_fn(type)
   ctrl <- base_control_fn()
 
   ## These are nice to have:

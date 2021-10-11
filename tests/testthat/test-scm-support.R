@@ -2,7 +2,7 @@ context("SCM support")
 
 
 test_that("collect / make_patch", {
-  env <- make_environment()
+  env <- make_environment("FF16")
   ctrl <- scm_base_control()
   p0 <- scm_base_parameters("FF16")
   hyperpar <- make_FF16_hyperpar()
@@ -30,10 +30,11 @@ test_that("collect / make_patch", {
   dat <- dat[[1]]
   expect_is(dat, "matrix")
   expect_equal(nrow(dat), length(p1_113$species[[1]]$cohorts))
+  
   # once for rates, once for states
   n_int <- (Individual("FF16","FF16_Env")(p1$strategies[[1]])$ode_size * 2) +
     Individual("FF16","FF16_Env")(p1$strategies[[1]])$aux_size
-  cat(ncol(dat), n_int + 2L)
+  
   expect_equal(ncol(dat), n_int + 2L)
 
   # NOTE: this currently takes *longer* than the SCM to run due to (I
