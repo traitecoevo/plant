@@ -16,7 +16,9 @@
 ^NEWS.md
 ^plant.Rcheck$
 ^check$
-^inst/docs$
+^inst/slow_vignettes$
 ^inst/scripts$
 ^inst/website$
 ^vignettes/(?!plant).*$
+^doc$
+^Meta$

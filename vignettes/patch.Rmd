@@ -1,13 +1,14 @@
 ---
-title: "Patch-level dynamics"
+title: "Growing a patch of competiting individuals"
 author: 
 - Rich FitzJohn
 - Daniel Falster
-date: "`r Sys.Date()`"
-output:
-  bookdown::html_document2:
-    toc: yes
-    number_sections: false
+date: 2016
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{patch}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 # Background

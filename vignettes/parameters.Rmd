@@ -4,10 +4,11 @@ author:
 - Rich FitzJohn
 - Daniel Falster
 date: 2016
-output:
-  bookdown::html_document2:
-    toc: yes
-    number_sections: false
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{parameters}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
 ---
 
 ```{r}
@@ -154,9 +155,9 @@ There's a convenience function `plant_list` that returns a set of
 *plants* based on a vector of traits:
 
 ```{r}
-pp <- plant_list(lma, p)
+pp <- individual_list(lma, p)
 
-sapply(pp, function(p) p$area_leaf_above(0))
+sapply(pp, function(p) p$compute_competition(0))
 ```
 
 In addition to the physiological parameters there are large number
