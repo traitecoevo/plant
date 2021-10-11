@@ -13,7 +13,7 @@ plot_size_distribution_patch <- function(data_species) {
   data_species %>%
     dplyr::filter(!is.na(density)) %>%
     ggplot2::ggplot(ggplot2::aes(x = time, y = height, color = as.character(species),
-                        group = cohort, alpha = density)) +
+                        group = interaction(cohort,species), alpha = density)) +
     ggplot2::geom_line() + 
     ggplot2::labs(x = "Time (years)",
          y = "Height (m)",
