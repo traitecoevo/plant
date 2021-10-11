@@ -17,6 +17,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # installation
 
 ```{r load libraries}
+devtools::load_all()
+
 library(plant)
 library(dplyr)
 library(tidyr)
@@ -49,10 +51,10 @@ base_parameters <- function() {
 
 
 run_mypatch <- function(
-  traits =  trait_matrix(c(0.07), c("lma")),
+  traits =  trait_matrix(c(0.07, 0.24), c("lma")),
   B_lf1 = 1,
   seed_rain = 100,
-  p0 = base_mulga_parameters(),
+  p0 = base_parameters(),
   find_equilbrium = FALSE
   ) {
   
@@ -104,7 +106,7 @@ plot_size_distribution_patch(results2$species)
 
 ```{r}
 data_species_tot %>% 
-  ggplot(aes(time, area_leaf)) +
+  ggplot(aes(time, area_leaf, colour=species)) +
   geom_line()
 ```
 
@@ -116,17 +118,22 @@ v <- c("mass_heartwood", "mass_sapwood", "mass_bark", "mass_leaf")
 
 data_long <- 
   data_species_tot %>% 
-  select(time, one_of(v)) %>%
+  select(time,species, one_of(v)) %>%
   pivot_longer(cols=starts_with("mass"), names_to = "tissue")
 
 data_long$tissue <- factor(data_long$tissue, levels = v)
 
+species_names <- tibble(species = unique(data_long$species),
+                      species_name = c("Species_1","Species_2"))
+
 data_long %>%
+  left_join(species_names) %>%
   ggplot(aes(time, value, fill=tissue)) +
   geom_area() +
   labs(x = "Patch age (yr)", y = "Above ground mass (kg/m2)") +
   theme_classic() + 
-  xlim(c(0,50))
+  xlim(c(0,50)) +
+  facet_wrap(~species_name)
 ```
 
 
@@ -140,7 +147,7 @@ Note this plot has some noise in it. Suggests integration in previous step may n
 p1 <- results2$species %>% plot_size_distribution_patch() 
 p2 <- data_species_tot %>% 
   mutate(size_av = area_stem / individuals) %>% 
-  ggplot(aes(size_av, individuals)) +
+  ggplot(aes(size_av, individuals, colour=species)) +
   geom_line() +
   scale_x_log10() +
   scale_y_log10() + 
