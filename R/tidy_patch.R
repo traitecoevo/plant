@@ -23,7 +23,7 @@ tidy_species <- function(data) {
   # bind each onto main data frame
   for(v in vars) {
     data_species[[v]] <- 
-      results$species[[1]][v, , ] %>% 
+      data[v, , ] %>% 
       as.data.frame %>% tidyr::as_tibble() %>%
       tidyr::pivot_longer(cols=starts_with("V"), names_to = "cohort") %>% 
       pull(value)
