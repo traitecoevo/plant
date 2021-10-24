@@ -114,7 +114,7 @@ devtools::load_all('path/to/plant')
 Here are some example publications using plant:
 
 - Falster DS, FitzJohn RG, Brännström Å, Dieckmann U, Westoby M (2016) plant: A package for modelling forest trait ecology & evolution. *Methods in Ecology and Evolution* 7: 136-146. DOI: [10.1111/2041-210X.12525](http://doi.org/10.1111/2041-210X.12525)&nbsp; code: [github](https://github.com/traitecoevo/plant_paper)
-- Falster DS et al. (2018) How functional traits influence plant growth and shade tolerance across the life cycle. *Proceedings of the National Academy of Sciences* 115: E6789–E6798. DOI: [10.1073/pnas.1714044115](http://doi.org/10.1073/pnas.1714044115)&nbsp; code: [github](https://github.com/traitecoevo/growth_trajectories)
-- Falster DS, Kunstler GK,  et al. (2021) Emergent shapes of trait-based competition functions from resource-based models: a Gaussian is not normal in plant communities. *The American Naturalist* 198: 256–267. DOI: [10.1086/714868](http://doi.org/10.1086/714868)&nbsp; code: [github](https://github.com/traitecoevo/competition_kernels)
+- Falster DS, Duursma RA, FitzJohn RG (2018) How functional traits influence plant growth and shade tolerance across the life cycle. *Proceedings of the National Academy of Sciences* 115: E6789–E6798. DOI: [10.1073/pnas.1714044115](http://doi.org/10.1073/pnas.1714044115)&nbsp; code: [github](https://github.com/traitecoevo/growth_trajectories)
+- Falster DS, Kunstler GK, FitzJohn RG, Westoby M (2021) Emergent shapes of trait-based competition functions from resource-based models: a Gaussian is not normal in plant communities. *The American Naturalist* 198: 256–267. DOI: [10.1086/714868](http://doi.org/10.1086/714868)&nbsp; code: [github](https://github.com/traitecoevo/competition_kernels)
 
 
