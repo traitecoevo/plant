@@ -42,10 +42,9 @@ remotes::install_github("smbache/loggr", dependencies=TRUE)
 remotes::install_github("richfitz/RcppR6", dependencies=TRUE)
 ```
 
-- `plant` also depends on several packages available from CRAN. You can either install these yourself or let `remotes` handle if following installation **Option 1**. Package management in R can sometimes be messy, if you run into errors please try installing these pacakges one at a time.
+- `plant` also depends on several packages available from CRAN. You can either install these yourself or let `remotes` handle if following installation **Option 1**. Package management in R can sometimes be messy, if you run into errors please try installing these packages one at a time.
 
 ```r
-
 install.packages(c("Rcpp", "R6", "crayon", "nleqslv", "BB" ,"BH"))
 ``` 
 
@@ -73,7 +72,6 @@ Unzip these archives and then for each package run the command
 
 ```r
 install.packages("path_to_package", repos = NULL, type="source")
-
 ```
 where `path_to_package` is the folder for each package, e.g. `~/Downloads/plant-master`
 
@@ -84,10 +82,9 @@ To install a specific (older) release, decide for the version number that you wa
 
 ```r
 remotes::install_github("traitecoevo/plant", ref = "v1.0.0", dependencies=TRUE)
-
 ```
 
-with `"v1.0.0"` replaced by the appropriate version number. Note, the latest version of `plant` resides on the `develop` branch, which is sporadically relased. `plant` follows [semantic versioning](https://semver.org/) meaning that major version indicate a potential break in backward compatibility.
+with `"v1.0.0"` replaced by the appropriate version number. Note, the latest version of `plant` resides on the `develop` branch, which is sporadically released. `plant` follows [semantic versioning](https://semver.org/) meaning that major version indicate a potential break in backward compatibility.
 
 **Option 4, building from source**
 
@@ -103,17 +100,21 @@ then in the terminal or command line
 
 ```
 cd plant
-make
+make install
 ```
 
 If using Rstudio, you might like to use `devtools`
+
 ```
 devtools::load_all('path/to/plant')
 ```
 
 ## Usage
 
-Plant has been used in the following publications:
+Here are some example publications using plant:
 
-- Falster DS, FitzJohn RG, Brännström Å, Dieckmann U, Westoby M (2016) plant: A package for modelling forest trait ecology & evolution. *Methods in Ecology and Evolution* 7: 136-146. doi: [10.1111/2041-210X.12525](http://doi.org/10.1111/2041-210X.12525)&nbsp; code: [github](https://github.com/traitecoevo/plant_paper)
-- Falster DS, Duursma RA, FitzJohn RG (2016) Trajectories: how functional traits influence plant growth and shade tolerance across the life-cycle. *bioRxiv*: 083451. doi: [10.1101/083451](http://doi.org/10.1101/083451)&nbsp; code: [github](https://github.com/traitecoevo/growth_trajectories)
+- Falster DS, FitzJohn RG, Brännström Å, Dieckmann U, Westoby M (2016) plant: A package for modelling forest trait ecology & evolution. *Methods in Ecology and Evolution* 7: 136-146. DOI: [10.1111/2041-210X.12525](http://doi.org/10.1111/2041-210X.12525)&nbsp; code: [github](https://github.com/traitecoevo/plant_paper)
+- Falster DS et al. (2018) How functional traits influence plant growth and shade tolerance across the life cycle. *Proceedings of the National Academy of Sciences* 115: E6789–E6798. DOI: [10.1073/pnas.1714044115](http://doi.org/10.1073/pnas.1714044115)&nbsp; code: [github](https://github.com/traitecoevo/growth_trajectories)
+- Falster DS, Kunstler GK,  et al. (2021) Emergent shapes of trait-based competition functions from resource-based models: a Gaussian is not normal in plant communities. *The American Naturalist* 198: 256–267. DOI: [10.1086/714868](http://doi.org/10.1086/714868)&nbsp; code: [github](https://github.com/traitecoevo/competition_kernels)
+
+
