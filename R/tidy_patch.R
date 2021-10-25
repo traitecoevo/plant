@@ -29,7 +29,7 @@ tidy_species <- function(data) {
       dplyr::pull(value)
   }
   
-  data_species %>% dplyr::mutate(density = exp(log_density)) %>% dplyr::select(-log_density)
+  data_species %>% dplyr::mutate(density = exp(log_density))
 }
 
 

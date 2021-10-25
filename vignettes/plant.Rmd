@@ -188,7 +188,7 @@ The results is a list with a number of objects, which are explained in full at X
 str(result, max.level = 1)
 ```
 
-For easy usage, the `tidy_patch` function puts the `species` and `env` outputs into `tidy format`, as defined in the tidyverse. The species obecjt looks like this:
+For easy usage, the `tidy_patch` function puts the `species` and `env` outputs into `tidy format`, as defined in the tidyverse. The species object looks like this:
 
 ```{r}
 result %>% 
@@ -196,17 +196,17 @@ result %>%
   drop_na()
 ```
 
-Let's look at height. Each line represents the height of a cohort of individuals over time, beginning from the point at which the cohort recruited into the patch. Notably, the first cohorts follow much the same growth curve as our individual above, but subsequent cohorts have a bumpier ride, with growth slowing as the canopy closes over
+Let's look at height. Each line represents the height of an example individual growing along a characteristic curve over time, beginning from the point at which the example individual recruited into the patch. Notably, the first example individuals follow much the same growth curve as our individual above, but subsequent individuals have a bumpier ride, with growth slowing as the canopy closes over. Another variable in the species output is the log density of the example individual, which we can use to weight the growth trajectories to show thinning. For example, by following the growth of an example individual we can see that the relative density of these individuals is initially high after recruitment into the patch and declines progressively through time. 
+
 
 ```{r}
 result%>%
   pluck("species") %>%
   drop_na() %>%
-  ggplot() +
-  geom_line(aes(x = time, y = height, group = cohort), alpha = 0.25) 
+  plot_size_distribution_patch()
 ```
 
-To see the change in canopy openness over time we can explore the patch Environment. Lets look at year 20 first, which corresponds to the 99th timestep in our model (not all timesteps are equal!) Our FF16 environment is described in terms of canopy openness, with 1.0 being completely open and 0.0 being completely shaded. We see that the shortest cohorts experience intense shading while taller cohorts enjoy full sunlight:
+To see the change in canopy openness over time we can explore the patch Environment. Lets look at year 20 first, which corresponds to the 99th timestep in our model (not all timesteps are equal!) Our FF16 environment is described in terms of canopy openness, with 1.0 being completely open and 0.0 being completely shaded. We see that the shortest individuals experience intense shading while taller individuals enjoy full sunlight:
 
 ```{r}
 result %>%
@@ -216,7 +216,7 @@ result %>%
   geom_line(aes(x=height, y = canopy_openness), size=1.5) +
   theme_classic()
 ```
-If we look at the light environment at the forest floor (height = 0.0) we can see that it varies through time as older cohorts thin out and gaps form
+If we look at the light environment at the forest floor (height = 0.0) we can see that it varies through time as older individuals thin out and gaps form
 
 ```{r}
 result%>%
@@ -227,38 +227,28 @@ result%>%
   theme_classic()
 ```
 
-This suggests that competition is density dependent and that our earlier figure of height over time is incomplete as many individuals will die out before reaching their potential maximum height. The final variable of our species `state` array is the log density of the cohorts, which we can use to weight the growth trajectories to show thinning
+We can now look at the size distributions of two species competing in a patch. We can use the trait matrix function to specify multiple values for a given trait, each representing a different species in the community, or, as below, we can build upon the one-patch example above by using the expand_parameters function, including species_parameters as an argument.
 
 ```{r}
-# Relativise the log densities onto (-4, max)
-rel <- function(x, xmin = -4) {
-  x[x < xmin] <- xmin
-  xmax <- max(x, na.rm=TRUE)
-  (x - xmin) / (xmax - xmin)
-}
+species_parameters_2sp <- expand_parameters(trait_matrix(0.2625, "lma"), species_parameters, mutant = FALSE)
+```
 
-result %>%
-  pluck("species") %>%
-  mutate(log_density = log(density)) %>%
-  mutate(relative_log_density = rel(log_density)) %>%
-  ggplot()+
-  geom_line(aes(x = time, y = height, group = cohort, alpha=relative_log_density)) +
-  scale_alpha(range=c(0,1)) 
+As above in the single-species patch, we then determine the appropriate number of characteristics and rerun the solver, collecting the output from the patch-level dynamics.
 
-# d <- result$species[[1]]["log_density", , ]
-# 
-# rd <- rel(d)
-# 
-# # R doesn't seem to offer a way to plot lines that vary in colour, so
-# # this is quite roundabout using `segments`, shaded by the density at
-# # the first part of the line segment:
-# n <- length(t)
-# x <- matrix(rep(t, ncol(h)), nrow(h))
-# col <- matrix(make_transparent("black", rd), nrow(d))
-# 
-# plot(NA, xlim=range(t), ylim=range(h, na.rm=TRUE),
-#      las=1, xlab="Time (years)", ylab="Cohort height (m)")
-# segments(x[-1, ], h[-1, ], x[-n, ], h[-n, ], col=col[-n, ], lend="butt")
+```{r}
+species_parameters_2sp <- build_schedule(species_parameters_2sp)
+
+result <- 
+  run_scm_collect(species_parameters_2sp) %>% 
+  tidy_patch()
+```
+
+We can now plot the size distributions of these two species through time
+
+```{r}
+result$species %>%
+  drop_na() %>%
+plot_size_distribution_patch()
 ```
 
 
