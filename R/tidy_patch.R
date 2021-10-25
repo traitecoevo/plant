@@ -26,10 +26,10 @@ tidy_species <- function(data) {
       data[v, , ] %>% 
       as.data.frame %>% tidyr::as_tibble() %>%
       tidyr::pivot_longer(cols=starts_with("V"), names_to = "cohort") %>% 
-      pull(value)
+      dplyr::pull(value)
   }
   
-  data_species %>% mutate(density = exp(log_density)) %>% select(-log_density)
+  data_species %>% dplyr::mutate(density = exp(log_density)) %>% dplyr::select(-log_density)
 }
 
 
@@ -40,9 +40,9 @@ tidy_species <- function(data) {
 #'
 #' @return a tibble describing the environment in a patch
 tidy_env <- function(env) {
-  tibble(step = seq_len(length(env))) %>%
-    left_join(by = "step", 
-    env %>% purrr::map_df(as_tibble, .id= "step") %>% mutate(step = as.integer(step))
+  dplyr::tibble(step = seq_len(length(env))) %>%
+    dplyr::left_join(by = "step", 
+    env %>% purrr::map_df(tidyr::as_tibble, .id= "step") %>% dplyr::mutate(step = as.integer(step))
     )
 }
 
@@ -60,19 +60,19 @@ tidy_patch <- function(results) {
 
   out <- results
   
-  data <- tibble(
+  data <- dplyr::tibble(
     step = seq_len(length(results$time)),
     time = results$time, 
     patch_density = results$patch_density
     )
   
   out[["species"]] <- 
-    left_join(by = "step", data,
+    dplyr::left_join(by = "step", data,
       purrr::map_df(results$species, tidy_species, .id="species")
     )
   
   out[["env"]] <- 
-    left_join(by = "step", data,
+    dplyr::left_join(by = "step", data,
       tidy_env(results$env)
     )
   
