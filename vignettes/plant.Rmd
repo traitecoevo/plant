@@ -6,8 +6,10 @@ author:
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{plant}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 # Background
@@ -35,10 +37,12 @@ Plant has two key use cases - growing individuals or growing patches. Growing ei
 
 # Setup
 
-First, load plant:
+First, load plant, tidyverse and purrr (for working with list objects):
 
 ```{r}
 library(plant)
+library(tidyverse)
+library(purrr)
 ```
 For a full list of available functions run library(help=plant), or see the [online reference](https://traitecoevo.github.io/plant/reference/index.html).
 
@@ -79,13 +83,25 @@ result <- grow_plant_to_time(ind, times, env)
 Examining our result, we see a matrix of our state variables at each timestep
 
 ```{r}
-head(result$state)
+result$state %>%
+  head()
+
+# head(result$state)
 ```
 
 Which we can plot against time
 
 ```{r}
-plot(times, result$state[,"height"])
+#need to create a function to convert individual results to tidy-format
+#just do ggplot for now
+result$state %>%
+  as_tibble() %>%
+  bind_cols(times = times) %>%
+  ggplot() +
+  geom_line(aes(x=times, y=height), size=1.5) +
+  theme_classic()
+
+# plot(times, result$state[,"height"])
 ```
 
 
@@ -127,23 +143,47 @@ str(result$species)
 Let's look at height. Each line represents the height of a cohort of individuals over time, beginning from the point at which the cohort recruited into the patch. Notably, the first cohorts follow much the same growth curve as our individual above, but subsequent cohorts have a bumpier ride, with growth slowing as the canopy closes over
 
 ```{r}
-t <- result$time
-h <- result$species[[1]]["height", , ]
+result %>%
+  tidy_patch() -> tidy_result
 
-matplot(t, h, lty=1, col=make_transparent("black", 0.25), type="l",
-        las=1, xlab="Time (years)", ylab="Height (m)")
+tidy_result%>%
+  pluck("species") %>%
+  drop_na() %>%
+  ggplot() +
+  geom_line(aes(x = time, y = height, group = cohort), alpha = 0.25) 
+
+# t <- result$time
+# h <- result$species[[1]]["height", , ]
+# 
+# matplot(t, h, lty=1, col=make_transparent("black", 0.25), type="l",
+#         las=1, xlab="Time (years)", ylab="Height (m)")
+
 ```
 To see the change in canopy openness over time we can explore the patch Environment. Lets look at year 20 first, which corresponds to the 99th timestep in our model (not all timesteps are equal!) Our FF16 environment is described in terms of canopy openness, with 1.0 being completely open and 0.0 being completely shaded. We see that the shortest cohorts experience intense shading while taller cohorts enjoy full sunlight:
 
 ```{r}
-env <- result$env[[99]]
-plot(env)
+tidy_result %>%
+  pluck("env") %>%
+  filter(step == "99") %>%
+  ggplot() +
+  geom_line(aes(x=height, y = canopy_openness), size=1.5) +
+  theme_classic()
+
+# env <- result$env[[99]]
+# plot(env)
 ```
 If we look at the light environment at the forest floor (height = 0.0) we can see that it varies through time as older cohorts thin out and gaps form
 
 ```{r}
-env_min <- lapply(result$env, function(e) e[1, "canopy_openness"])
-plot(t, env_min)
+tidy_result%>%
+  pluck("env") %>%
+  filter(height == 0) %>%
+  ggplot() +
+  geom_line(aes(x= time, y=canopy_openness), size=1.5) +
+  theme_classic()
+
+# env_min <- lapply(result$env, function(e) e[1, "canopy_openness"])
+# plot(t, env_min)
 ```
 
 This suggests that competition is density dependent and that our earlier figure of height over time is incomplete as many individuals will die out before reaching their potential maximum height. The final variable of our species `state` array is the log density of the cohorts, which we can use to weight the growth trajectories to show thinning
@@ -156,20 +196,28 @@ rel <- function(x, xmin = -4) {
   (x - xmin) / (xmax - xmin)
 }
 
-d <- result$species[[1]]["log_density", , ]
+tidy_result %>%
+  pluck("species") %>%
+  mutate(log_density = log(density)) %>%
+  mutate(relative_log_density = rel(log_density)) %>%
+  ggplot()+
+  geom_line(aes(x = time, y = height, group = cohort, alpha=relative_log_density)) +
+  scale_alpha(range=c(0,1)) 
 
-rd <- rel(d)
-
-# R doesn't seem to offer a way to plot lines that vary in colour, so
-# this is quite roundabout using `segments`, shaded by the density at
-# the first part of the line segment:
-n <- length(t)
-x <- matrix(rep(t, ncol(h)), nrow(h))
-col <- matrix(make_transparent("black", rd), nrow(d))
-
-plot(NA, xlim=range(t), ylim=range(h, na.rm=TRUE),
-     las=1, xlab="Time (years)", ylab="Cohort height (m)")
-segments(x[-1, ], h[-1, ], x[-n, ], h[-n, ], col=col[-n, ], lend="butt")
+# d <- result$species[[1]]["log_density", , ]
+# 
+# rd <- rel(d)
+# 
+# # R doesn't seem to offer a way to plot lines that vary in colour, so
+# # this is quite roundabout using `segments`, shaded by the density at
+# # the first part of the line segment:
+# n <- length(t)
+# x <- matrix(rep(t, ncol(h)), nrow(h))
+# col <- matrix(make_transparent("black", rd), nrow(d))
+# 
+# plot(NA, xlim=range(t), ylim=range(h, na.rm=TRUE),
+#      las=1, xlab="Time (years)", ylab="Cohort height (m)")
+# segments(x[-1, ], h[-1, ], x[-n, ], h[-n, ], col=col[-n, ], lend="butt")
 ```
 
 # Meta-populations
