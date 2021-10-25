@@ -12,26 +12,29 @@ vignette: >
 
 # Background
 
-This page contains a brief introduction to get you started with plant. More extensive information and tutorials are available, such as:
+This page contains a brief introduction to get you started with `plant`. 
+  
+At a high level, `plant` has two key use cases - growing individuals or growing patches. Growing either is dependent on the defined strategy (physiological parameters), the environment and the starting point. By modifying these *insert word here* you can grow different individuals or patches of species.
+  
+  XXXX diagram here
+  
+More extensive information and tutorials are available, such as:
 
-Plant has two key use cases - growing individuals or growing patches. Growing either is dependent on the defined strategy by  
+**Details of the modelling approaches (concepts):**
 
-
-**Details of the modelling approaches:**
-
-[Modelling demography of individuals, patches and metapopulations](https://traitecoevo.github.io/plant/articles/demography.html)
-[The `FF16` physiological strategy model](https://traitecoevo.github.io/plant/articles/demography.html)
+[Modelling demography of individuals, patches and metapopulations](https://traitecoevo.github.io/plant/articles/demography.html)  
+[The `FF16` physiological strategy model](https://traitecoevo.github.io/plant/articles/demography.html)  
 
 **Details of using `plant` in R:**
 
-[Individual level properties](https://traitecoevo.github.io/plant/articles/individuals.html)
-[The cohort spacing algorithm](https://traitecoevo.github.io/plant/articles/cohort_spacing.html)
-[Finding demographic equilibrium](https://traitecoevo.github.io/plant/articles/equilibrium.html)
-[Patch level dynamics](https://traitecoevo.github.io/plant/articles/patch.html)
-[Patch level emergent properties](https://traitecoevo.github.io/plant/articles/emergent.html)
-[Calculating fitness](https://traitecoevo.github.io/plant/articles/fitness.html)
-[Modifying parameters of the physiological model](https://traitecoevo.github.io/plant/articles/parameters.html)
-[Implementing a new strategy](https://traitecoevo.github.io/plant/articles/strategy.html)
+- [Individuals](https://traitecoevo.github.io/plant/articles/individuals.html)  
+- [Patches of competing individuals (patch level dynamics)](https://traitecoevo.github.io/plant/articles/patch.html)  
+- [Finding demographic equilibrium](https://traitecoevo.github.io/plant/articles/equilibrium.html)  
+- [Emergent properties of patches](https://traitecoevo.github.io/plant/articles/emergent.html)  
+- [Calculating fitness](https://traitecoevo.github.io/plant/articles/fitness.html)  
+- [The cohort spacing algorithm](https://traitecoevo.github.io/plant/articles/cohort_spacing.html)  
+- [Modifying parameters of strategies (modifying parameters of physiological model)](https://traitecoevo.github.io/plant/articles/parameters.html)  
+- [Implementing a new strategy](https://traitecoevo.github.io/plant/articles/strategy.html)  
 
 # Setup
 
@@ -42,20 +45,33 @@ library(plant)
 ```
 For a full list of available functions run library(help=plant), or see the [online reference](https://traitecoevo.github.io/plant/reference/index.html).
 
+
+
 # Strategy objects
 
 Strategies are the corner stone of `plant`, describing the system of dynamical equations that determine processes such as growth, reproduction and mortality. The `plant` includes the `FF16` strategy for you to get started.
 
 A strategy object holds two kinds of parameters, those that relate to physiological processes of the model and control parameters that are used by the `plant` solver. The physiological parameters are strategy specific, often describing traits or rates of individuals and their effects on the environment, while control parameters are usually general to all `plant` models.
 
+You can feed these strategies into either individuals or patches to alter the solver outcomes. 
+
+For definitions of each of these parameters see [Concepts: FF16 Strategy tables](https://traitecoevo.github.io/plant/articles/physiology.html#tables).
+
+For further information on how to adjust the strategies see [Modifying parameters of strategies](https://traitecoevo.github.io/plant/articles/parameters.html)
+
 ```{r}
 s <- FF16_Strategy()
 str(s)
 ```
 
+
+
+
 # Individuals
 
-We can define one or more individuals for a given strategy. These are accessed using the `Individual` class:
+We can define one or more individuals for a given strategy. 
+
+These are accessed using the `Individual` class:
 
 ```{r}
 ind = FF16_Individual()
@@ -89,7 +105,12 @@ plot(times, result$state[,"height"])
 ```
 
 
+You can find out more about how to grow individuals [under the Individual plants example](https://traitecoevo.github.io/plant/articles/individuals.html) OR if you're wanting to learn more about the concept and equations underlying individuals you can find them under [Concepts: demography of plants, patches and metacommunities](https://traitecoevo.github.io/plant/articles/demography.html#individual-plants)
+
+
 # Patches Fiona dont touch
+
+Concept link for [patches](https://traitecoevo.github.io/plant/articles/demography.html#patches-of-competing-plants-size-structured-populations) .
 
 While we can torture our individual into all sorts of shapes and sizes, it's often more interesting to see how many individuals interact. `plant` describes groups of individuals as Cohorts that interact within a shared Patch. Cohorts are groups individuals of roughly the same age. As cohorts grow, they often alter their environment. In the `FF16` Strategy, individuals intercept light and shade other cohorts within the patch.
 
