@@ -89,18 +89,21 @@ Our individual also shares the `FF16_Environment` (more on that soon) and a numb
 ```{r}
 str(ind)
 ```
+
+
 First we set a fixed environment (here `1.0` represents full light exposure in an open canopy) then use the `grow_plant_to_time` function to grow our individual for a range of time steps. 
 
 ```{r}
 env <- FF16_fixed_environment(1.0)
 times <- seq(0, 50, length.out = 101)
-result <- grow_plant_to_time(ind, times, env)
+result <- grow_plant_to_time(ind, times, env) %>%
+  tidy_individual()
 ```
 
-Examining our result, we see a matrix of our state variables at each timestep
+The tidy_indivdual function puts the outputs from grow_plant_to_time into `tidy format`, as defined in the tidyverse. Examining our result, we see a matrix of our state variables at each timestep
 
 ```{r}
-result$state %>%
+result %>%
   head()
 ```
 
@@ -109,14 +112,10 @@ Which we can plot against time
 ```{r}
 #need to create a function to convert individual results to tidy-format
 #just do ggplot for now
-result$state %>%
-  as_tibble() %>%
-  bind_cols(times = times) %>%
+result %>%
   ggplot() +
-  geom_line(aes(x=times, y=height), size=1.5) +
+  geom_line(aes(x=time, y=height), size=1.5) +
   theme_classic()
-
-# plot(times, result$state[,"height"])
 ```
 
 You can find out more about how to grow individuals [under the Individual plants example](https://traitecoevo.github.io/plant/articles/individuals.html) OR if you're wanting to learn more about the concept and equations underlying individuals you can find them under [Concepts: demography of plants, patches and metacommunities](https://traitecoevo.github.io/plant/articles/demography.html#individual-plants)
