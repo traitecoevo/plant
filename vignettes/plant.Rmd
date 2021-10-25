@@ -1,5 +1,5 @@
 ---
-title: "Introduction to the plant model"
+title: "Getting started with the plant model"
 author:
 - Daniel Falster
 - Andrew O'Reilly-Nugent
@@ -13,6 +13,9 @@ vignette: >
 # Background
 
 This page contains a brief introduction to get you started with plant. More extensive information and tutorials are available, such as:
+
+Plant has two key use cases - growing individuals or growing patches. Growing either is dependent on the defined strategy by  
+
 
 **Details of the modelling approaches:**
 
@@ -43,14 +46,14 @@ For a full list of available functions run library(help=plant), or see the [onli
 
 Strategies are the corner stone of `plant`, describing the system of dynamical equations that determine processes such as growth, reproduction and mortality. The `plant` includes the `FF16` strategy for you to get started.
 
-A strategy object holds two kinds of parameters, those that relate to physiological processes of the model and control parameters that are used by the `plant` solver. The physological parameters are strategy specific, oftend describing traits or rates of individuals and their effects on the environment, while control parameters are usually general to all `plant` models.
+A strategy object holds two kinds of parameters, those that relate to physiological processes of the model and control parameters that are used by the `plant` solver. The physiological parameters are strategy specific, often describing traits or rates of individuals and their effects on the environment, while control parameters are usually general to all `plant` models.
 
 ```{r}
 s <- FF16_Strategy()
 str(s)
 ```
 
-# Individual plants
+# Individuals
 
 We can define one or more individuals for a given strategy. These are accessed using the `Individual` class:
 
@@ -65,7 +68,7 @@ We can see that our individual also shares the `FF16_Environment` (more on that 
 ```{r}
 str(ind)
 ```
-First we set a fixed environment (here `1.0` represents full light exposure in an open canopy) then use the `grow_plant_to_time` function to grow our individual for a range of time steps
+First we set a fixed environment (here `1.0` represents full light exposure in an open canopy) then use the `grow_plant_to_time` function to grow our individual for a range of time steps. 
 
 ```{r}
 env <- FF16_fixed_environment(1.0)
@@ -86,7 +89,7 @@ plot(times, result$state[,"height"])
 ```
 
 
-# Patches
+# Patches Fiona dont touch
 
 While we can torture our individual into all sorts of shapes and sizes, it's often more interesting to see how many individuals interact. `plant` describes groups of individuals as Cohorts that interact within a shared Patch. Cohorts are groups individuals of roughly the same age. As cohorts grow, they often alter their environment. In the `FF16` Strategy, individuals intercept light and shade other cohorts within the patch.
 
@@ -130,7 +133,7 @@ h <- result$species[[1]]["height", , ]
 matplot(t, h, lty=1, col=make_transparent("black", 0.25), type="l",
         las=1, xlab="Time (years)", ylab="Height (m)")
 ```
-To see the change in canopy opennes over time we can explore the patch Environment. Lets look at year 20 first, which corresponds to the 99th timestep in our model (not all timesteps are equal!) Our FF16 environment is described in terms of canopy openness, with 1.0 being completely open and 0.0 being completely shaded. We see that the shortest cohorts experience intense shading while taller cohorts enjoy full sunlight:
+To see the change in canopy openness over time we can explore the patch Environment. Lets look at year 20 first, which corresponds to the 99th timestep in our model (not all timesteps are equal!) Our FF16 environment is described in terms of canopy openness, with 1.0 being completely open and 0.0 being completely shaded. We see that the shortest cohorts experience intense shading while taller cohorts enjoy full sunlight:
 
 ```{r}
 env <- result$env[[99]]
