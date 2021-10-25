@@ -966,8 +966,6 @@ K93_Strategy:
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
-    args:
-      - canopy_rescale_usually: bool
     roxygen: |
       K93_Environment object
       @export

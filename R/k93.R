@@ -74,7 +74,12 @@ K93_make_environment <- function(canopy_light_tol = 1e-4,
                                  canopy_light_max_depth = 16, 
                                  canopy_rescale_usually = TRUE) {
   
-  e <- K93_Environment(canopy_rescale_usually = TRUE)
+  # for reasons unknown, we can't add arguments to the K93 constructor
+  # as it causes the FF16 StochasticPatch tests to fail 🙃  opted to hard-code
+  # these defaults into the K93_Environment
+  
+  # e <- K93_Environment(canopy_rescale_usually = TRUE)
+  e <- K93_Environment()
   
   e$canopy <- Canopy(canopy_light_tol, 
                      canopy_light_nbase, 
