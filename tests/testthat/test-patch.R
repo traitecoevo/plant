@@ -16,8 +16,10 @@ for (x in names(strategy_types)) {
                         is_resident=TRUE,
                         patch_type = 'meta-population')
   
+  env <- make_environment(x)
+  
   ctrl <- Control()
-  patch <- Patch(x, e)(p, ctrl)
+  patch <- Patch(x, e)(p, env, ctrl)
   cmp <- Cohort(x, e)(p$strategies[[1]])
 
   test_that(sprintf("Basics %s", x), {
@@ -27,40 +29,50 @@ for (x in names(strategy_types)) {
     expect_identical(patch$height_max, cmp$height)
     expect_equal(patch$parameters, p)
     
-    # This doesn't work for some reason
-    # expect_is(patch$environment, paste0(x, "_Environment"))
+    expect_is(patch$environment, c(paste0(x, "_Environment"), "R6"))
     expect_identical(patch$environment$time, 0.0)
 
     expect_equal(length(patch$species), 1)
     expect_is(patch$species[[1]], sprintf("Species<%s,%s>",x,e))
     
-    expect_equal(patch$ode_size, 0)
-    expect_identical(patch$ode_state, numeric(0))
-    expect_identical(patch$ode_rates, numeric(0))
+    # with no cohorts, we only expect env vars
+    env_size <- env$ode_size
+    env_state <- patch$ode_state
+    env_rates <- patch$ode_rates
+    expect_equal(patch$ode_size, env_size)
     
-    ## Empty light environment:
+    # either 0 or numeric(0)
+    expect_identical(patch$ode_state, numeric(env_size))
+    expect_identical(patch$ode_rates, numeric(env_size))
+    
+    ## Empty environment:
     patch$compute_environment()
     expect_identical(patch$compute_competition(0), 0)
     
     expect_error(patch$introduce_new_cohort(0), "Invalid value")
     expect_error(patch$introduce_new_cohort(2), "out of bounds")
     
-    ode_size <- Cohort(x, e)(s)$ode_size
+    # introduce a cohort and expect different results
+    cohort_size <- Cohort(x, e)(s)$ode_size 
+    ode_size = cohort_size + env_size
     patch$introduce_new_cohort(1)
+    expect_equal(patch$cohort_ode_size, cohort_size)
     expect_equal(patch$ode_size, ode_size)
     
     ## Then pull this out:
     cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), p$birth_rate)
-    
-    expect_identical(patch$ode_state, cmp$ode_state)
-    expect_identical(patch$ode_rates, cmp$ode_rates)
+     
+    ode_state <- c(cmp$ode_state, env_state)
+    ode_rates <- c(cmp$ode_rates, env_rates)
+    expect_identical(patch$ode_state, ode_state)
+    expect_identical(patch$ode_rates, ode_rates)
     
     y <- patch$ode_state
     patch$set_ode_state(y, 0)
     expect_identical(patch$ode_state, y)
     
     ## NOTE: These should be identical, but are merely equal...
-    expect_equal(patch$derivs(y, 0), cmp$ode_rates)
+    expect_equal(patch$derivs(y, 0), ode_rates)
     
     ## solver <- solver_from_ode_target(patch, p$control$ode_control)
     ## solver$step()
@@ -69,7 +81,7 @@ for (x in names(strategy_types)) {
     ##             cmp$ode_size * patch$n_individuals)
     
     patch$reset()
-    expect_equal(patch$ode_size, 0)
+    expect_equal(patch$ode_size, env_size)
     expect_identical(patch$environment$time, 0.0)
     
     t <- patch$environment$time # do via environment only?
@@ -163,9 +175,10 @@ for (x in names(strategy_types)) {
   
   test_that("No Disturbance for fixed-time patches", {
     p$patch_type <- "fixed"
+    env <- make_environment(x)
     ctrl <- scm_base_control()
 
-    patch <- Patch(x, e)(p, ctrl)
+    patch <- Patch(x, e)(p, env, ctrl)
     
     expect_identical(patch$time, 0.0)
     expect_identical(patch$pr_survival(patch$time), 1.0)

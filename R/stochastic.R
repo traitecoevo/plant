@@ -47,13 +47,14 @@ stochastic_schedule <- function(p) {
 ##' a random schedule based on offspring arrival and area.
 ##' @author Rich FitzJohn
 ##' @export
-run_stochastic_collect <- function(p, ctrl = scm_base_control(), 
+run_stochastic_collect <- function(p, env = make_environment(parameters = p), 
+                                   ctrl = scm_base_control(), 
                                    random_schedule=TRUE) {
   collect <- function(obj) {
     obj$state
   }
   types <- extract_RcppR6_template_types(p, "Parameters")
-  obj <- do.call('StochasticPatchRunner', types)(p, ctrl)
+  obj <- do.call('StochasticPatchRunner', types)(p, env, ctrl)
   if (random_schedule) {
     obj$schedule <- stochastic_schedule(p)
   }

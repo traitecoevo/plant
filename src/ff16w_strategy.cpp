@@ -1,17 +1,17 @@
 // Inherit from FF16, like FF16r
-#include <plant/models/water_strategy.h>
+#include <plant/models/ff16w_strategy.h>
 
 namespace plant {
-Water_Strategy::Water_Strategy() {
+FF16w_Strategy::FF16w_Strategy() {
   collect_all_auxillary = false;
   // build the string state/aux name to index map
   refresh_indices();
-  name = "Water";
+  name = "FF16w";
 }
 
 // One shot calculation of net_mass_production_dt
 // Used by establishment_probability() and compute_rates().
-double Water_Strategy::net_mass_production_dt(const FF16_Environment& environment,
+double FF16w_Strategy::net_mass_production_dt(const FF16_Environment& environment,
                                 double height, double area_leaf_,
                                 bool reuse_intervals) {
   const double mass_leaf_    = mass_leaf(area_leaf_);
@@ -31,16 +31,16 @@ double Water_Strategy::net_mass_production_dt(const FF16_Environment& environmen
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
- // TODO: segfaults when not initialised correctly
- double Water_Strategy::water_access(const FF16_Environment& environment,
-                                    double height, double area_leaf_){
-  //std::vector<double> water_ = environment.get_soil_water_state();
-  //return water_[0];
-  return 0.0;
+// TODO: basic test of accessing environment state
+double FF16w_Strategy::water_access(const FF16_Environment &environment,
+                                    double height, double area_leaf_) {
+
+  std::vector<double> water_ = environment.get_soil_water_state();
+  return water_[0];
 }
 
-Water_Strategy::ptr make_strategy_ptr(Water_Strategy s) {
+FF16w_Strategy::ptr make_strategy_ptr(FF16w_Strategy s) {
   s.prepare_strategy();
-  return std::make_shared<Water_Strategy>(s);
+  return std::make_shared<FF16w_Strategy>(s);
 }
 }

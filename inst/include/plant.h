@@ -29,10 +29,9 @@
 
 // Specific models
 #include <plant/models/ff16_strategy.h>
-#include <plant/models/water_strategy.h>
+#include <plant/models/ff16w_strategy.h>
 #include <plant/models/ff16r_strategy.h>
 #include <plant/models/k93_strategy.h>
-// #include <plant/models/water_strategy.h>
 
 // Getting more serious down here.
 #include <plant/individual.h>
