@@ -31,21 +31,21 @@ public:
   virtual void compute_rates(){};
 
   ode::const_iterator set_ode_state(ode::const_iterator it) {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       vars.states[i] = *it++;
     }
     return it;
   }
 
   ode::iterator ode_state(ode::iterator it) const {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       *it++ = vars.states[i];
     }
     return it;
   }
 
   ode::iterator ode_rates(ode::iterator it) const {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       *it++ = vars.rates[i];
     }
     return it;

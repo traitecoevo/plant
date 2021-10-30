@@ -55,7 +55,7 @@ public:
   double soil_infiltration_rate;
 
   virtual void compute_rates() {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       vars.set_rate(i, soil_infiltration_rate / (i+1));
     }
   }
@@ -69,7 +69,7 @@ public:
 
   // R interface
   void set_soil_water_state(std::vector<double> state) {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       vars.set_state(i, state[i]);
     }
   }

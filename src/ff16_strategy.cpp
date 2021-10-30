@@ -19,10 +19,10 @@ void FF16_Strategy::refresh_indices () {
   aux_index   = std::map<std::string,int>();
   std::vector<std::string> aux_names_vec = aux_names();
   std::vector<std::string> state_names_vec = state_names();
-  for (int i = 0; i < state_names_vec.size(); i++) {
+  for (size_t i = 0; i < state_names_vec.size(); i++) {
     state_index[state_names_vec[i]] = i;
   }
-  for (int i = 0; i < aux_names_vec.size(); i++) {
+  for (size_t i = 0; i < aux_names_vec.size(); i++) {
     aux_index[aux_names_vec[i]] = i;
   }
 }
