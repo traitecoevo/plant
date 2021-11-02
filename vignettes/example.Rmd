@@ -6,8 +6,10 @@ date: 2016
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{patch}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -19,7 +21,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ```{r load libraries}
 devtools::load_all()
 
-library(plant)
+# library(plant)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -35,7 +37,6 @@ plant_log_console()
 Settign some base parameters
 
 ```{r}
-
 base_parameters <- function() {
   p0 <- scm_base_parameters("FF16", "FF16_Env")
 
@@ -47,11 +48,12 @@ base_parameters <- function() {
   
   p0
 }
+```
 
 
-
+```{r}
 run_mypatch <- function(
-  traits =  trait_matrix(c(0.07, 0.24), c("lma")),
+  traits =  trait_matrix(c(0.07), c("lma")),
   B_lf1 = 1,
   seed_rain = 100,
   p0 = base_parameters(),
@@ -99,7 +101,9 @@ data_species_tot <-
 ## Plot size distirbuion
 
 ```{r}
-plot_size_distribution_patch(results2$species)
+results2$species %>%
+  drop_na() %>%
+plot_size_distribution_patch()
 ```
 
 ## total leaf area over time

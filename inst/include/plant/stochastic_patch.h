@@ -21,7 +21,7 @@ public:
   typedef Individual<T,E>        individual_type;
   typedef StochasticSpecies<T,E> species_type;
   typedef Parameters<T,E>        parameters_type;
-  StochasticPatch(parameters_type p, Control c);
+  StochasticPatch(parameters_type p, environment_type e, Control c);
   void reset();
 
   size_t size() const {return species.size();}
@@ -84,12 +84,12 @@ private:
 };
 
 template <typename T, typename E>
-StochasticPatch<T,E>::StochasticPatch(parameters_type p, Control c)
+StochasticPatch<T,E>::StochasticPatch(parameters_type p, environment_type e, Control c)
   : parameters(p),
+    environment(e),
     control(c),
     is_resident(p.is_resident) {
   parameters.validate();
-  environment = environment_type(control);
   for (auto s : parameters.strategies) {
     s.control = control;
     species.push_back(species_type(s));
@@ -232,7 +232,7 @@ ode::const_iterator StochasticPatch<T,E>::set_ode_state(ode::const_iterator it,
                                                       double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   environment.time = time;
-  if (control.canopy_rescale_usually) {
+  if (environment.canopy_rescale_usually) {
     rescale_environment();
   } else {
     compute_environment();

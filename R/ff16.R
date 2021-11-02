@@ -63,21 +63,31 @@ FF16_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
-##' @param ctrl Control object
-FF16_make_environment <- function(ctrl = scm_base_control()) {
-  FF16_Environment(ctrl)
+FF16_make_environment <- function(canopy_light_tol = 1e-4, 
+                                  canopy_light_nbase = 17,
+                                  canopy_light_max_depth = 16, 
+                                  canopy_rescale_usually = TRUE) {
+  
+  e <- FF16_Environment(canopy_rescale_usually, 
+                        soil_number_of_depths = 0)
+  
+  # Canopy defaults have lower tolerance which are overwritten for speed
+  e$canopy <- Canopy(canopy_light_tol, 
+                     canopy_light_nbase, 
+                     canopy_light_max_depth)
+  
+  return(e)
 }
 
 ##' Construct a fixed environment for FF16 strategy
 ##'
 ##' @param e Value of environment (deafult  = 1.0)
-##' @param ctrl Control object
 ##' @param height_max = 150.0 maximum possible height in environment
 ##' @rdname FF16_Environment
 ##'
 ##' @export
-FF16_fixed_environment <- function(e=1.0, ctrl = scm_base_control(), height_max = 150.0) {
-  env <- FF16_make_environment(ctrl)
+FF16_fixed_environment <- function(e=1.0, height_max = 150.0) {
+  env <- FF16_make_environment()
   env$set_fixed_environment(e, height_max)
   env
 }
@@ -96,7 +106,8 @@ FF16_fixed_environment <- function(e=1.0, ctrl = scm_base_control(), height_max 
 ##' @examples
 ##' environment <- FF16_test_environment(10)
 FF16_test_environment <- function(height, n=101, light_env=NULL,
-                             n_strategies=1) {
+                                  n_strategies=1) {
+  
   hh <- seq(0, height, length.out=n)
   if (is.null(light_env)) {
     light_env <- function(x) {

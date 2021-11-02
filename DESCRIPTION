@@ -28,6 +28,10 @@ Imports:
     nleqslv,
     BB
 Suggests:
+    dplyr,
+    tidyr,
+    purrr,
+    ggplot2,
     testthat,
     deSolve,
     numDeriv,
