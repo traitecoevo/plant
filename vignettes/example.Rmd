@@ -34,7 +34,7 @@ Activate logger
 plant_log_console()
 ```
 
-Settign some base parameters
+Setting some base parameters
 
 ```{r}
 base_parameters <- function() {
@@ -82,21 +82,14 @@ results <-
   run_mypatch(seed_rain = 180)
 ```
 
-Tidy into tidy state, expand state
+Tidy into tidy state
 ```{r}
 results2 <- 
   results %>% 
-  tidy_patch() %>% 
-  expand_state()
+  tidy_patch()
+
+results2
 ```
-
-Calculate totals by species for each step
-
-```{r}
-data_species_tot <- 
-  results2$species %>% patch_species_total()
-```
-
 
 ## Plot size distirbuion
 
@@ -105,6 +98,44 @@ results2$species %>%
   drop_na() %>%
 plot_size_distribution_patch()
 ```
+
+
+## Calculate totals by species for each step
+
+```{r}
+data_species_tot <- 
+  results2$species %>% patch_species_total()
+
+data_species_tot
+```
+
+total leaf area over time
+
+```{r}
+data_species_tot %>% 
+  ggplot(aes(time, individuals)) +
+  geom_line()
+```
+
+## Expand state
+
+```{r}
+results3 <- results2 %>% expand_state()
+
+results3$species
+```
+
+total leaf area over time
+
+```{r}
+data_species_tot <- 
+  results2$species %>% patch_species_total()
+
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf, colour=species)) +
+  geom_line()
+```
+
 
 ## total leaf area over time
 
@@ -148,15 +179,219 @@ For this we need average size over time. Get average size by dividing total by t
 Note this plot has some noise in it. Suggests integration in previous step may need more resolution, or a better method. 
 
 ```{r}
+
+data_species_tot <- 
+  results2$species %>% patch_species_total()
+
 p1 <- results2$species %>% plot_size_distribution_patch() 
-p2 <- data_species_tot %>% 
-  mutate(size_av = area_stem / individuals) %>% 
-  ggplot(aes(size_av, individuals, colour=species)) +
+p2 <- 
+  data_species_tot %>%
+  filter(species==1) %>%
+  mutate(area_stem_av = area_stem / individuals) %>% 
+  ggplot(aes(area_stem_av, individuals, colour=species)) +
   geom_line() +
   scale_x_log10() +
   scale_y_log10() + 
   theme_classic()
 
 p1 + p2
+
+results2$species %>% filter(height > 1, time> 20, time<50) %>% 
+  patch_species_total() %>%
+  mutate(area_stem_av = area_stem / individuals) %>% 
+  ggplot(aes(area_stem_av, individuals, colour=species)) +
+  geom_line() +
+  scale_y_log10() +
+  scale_x_log10() + 
+```
+
+Note, get cleaner results if use first cohorts
+
+```{r}
+results2$species %>% filter(cohort < 150) %>% 
+  patch_species_total() %>%
+  mutate(
+    area_stem_av = area_stem / individuals,
+    # A = pi*D^2/4 -> D = 
+    diam_stem_av = sqrt(area_stem_av)
+    ) %>% 
+  ggplot(aes(area_stem_av, individuals, colour=species)) +
+  geom_line() +
+  scale_y_log10() +
+  scale_x_log10() +
+  theme_classic()
+```
+
+
+Note bottom density fluctuates over time, this makes sense if germination is responding to leaf area above
+
+Possibility this is error in calculating competition -- i.e. total leaf area?
+
+How is integral achieved in plant?
+
+```{r}
+results2$species %>% 
+  drop_na() %>%
+  group_by(step, species, time) %>%
+  slice_tail() %>% 
+  ungroup() %>%
+  ggplot(aes(time, density)) + geom_line()
+```
+
+
+
+```{r}
+results2$species %>% 
+  patch_species_total() %>%
+  mutate(
+    area_stem_av = area_stem / individuals,
+    diam_av = 
+    ) %>% 
+  ggplot(aes(area_stem_av, individuals, colour=species)) +
+  geom_line() +
+  scale_y_log10() +
+  scale_x_log10()  
+
+  
+results2$species %>% filter(height > 1, time> 20, time<50) %>% 
+  patch_species_total() %>%
+  mutate(area_stem_av = area_stem / individuals) %>% 
+  ggplot(aes(area_stem_av, individuals, colour=species)) +
+  geom_line() +
+  scale_y_log10() +
+  scale_x_log10() + 
+  theme_classic()
+
+results2$species %>% filter(height > 0, time> 0, time<150) %>% 
+  patch_species_total() %>%
+  ggplot(aes(time, individuals, colour=species)) +
+  geom_line()
+
+results2$species %>% filter(step%in% c(138, 139, 140, 141)) %>% 
+  select(step, height, density) %>%
+  arrange(step,height) %>%
+  group_by(step) %>%
+  mutate(
+    dx = lead(height) -height,
+    y = 0.5*(density + lead(density)),
+    xy = dx*y
+  ) %>% ungroup() -> tmp
+
+tmp %>% filter(step==138) %>% pull(xy) %>% sum(na.rm=TRUE)
+
+data_species_tot%>% filter(species==1, step==138)
+
+ggplot(tmp %>% filter(height > 0.5), aes(height, y, group=step, col=as.character(step))) + geom_point() + geom_line() + scale_x_log10()
+
+  
+results2$species %>% filter(height > 0, time> 30, time<31) %>% View() 
+  ggplot(aes(height, density, colour=time, group=time)) +
+  geom_line() +
+  scale_y_log10() +
+  scale_x_log10() + 
+  theme_classic()
+
+
+
+
+results2$species %>% filter(species==1) %>% plot_size_distribution_patch()   
+
+
+```
+
+## Two species
+
+```{r}
+run_mypatch(traits =  trait_matrix(c(0.07, 0.24)))
+
+
+```
+
+
+## Interpolatign to specific time points
+
+```{r}
+times <- c(1, 5, 10, 1000)
+
+tidy_species_data <- results2$species
+
+tidy_species_new <- interpolate_to_times(tidy_species_data, times)
+```
+
+Gives predictions at new time points. 
+
+```{r}
+tidy_species_new
+```
+
+To see how good these are, plot together with old points
+
+```{r}
+data_combined <- 
+  tidy_species_data %>%
+  bind_rows(tidy_species_new) %>%
+  arrange(species, cohort, time) %>% 
+  filter(cohort %in% seq(1, 101, by=20))
+
+data_combined_long <- 
+  data_combined  %>% 
+  select(cohort, time, step, density, height) %>% 
+  pivot_longer(cols = c("density", "height"))
+
+data_combined_long %>% 
+  ggplot(aes(time, value, group=cohort)) +
+  geom_line(col=1) +
+  geom_point(data = data_combined_long %>% filter(is.na(step)), col=2) +
+  scale_y_log10() +
+  xlim(c(0, 20)) +
+  facet_wrap(~name, scales="free")
+```
+
+## Interpolate to heights
+
+Similar to above, can interpolate across cohorts at given time to sepcific heights
+
+```{r}
+heights <- c(1, 5, 10)
+
+tidy_species_new <- interpolate_to_heights(tidy_species_data, heights)
+```
+
+Gives predictions at new time points. 
+
+```{r}
+tidy_species_new %>% drop_na()
+```
+
+To see how good these are, plot together with old points
+
+```{r}
+data_combined <- 
+  tidy_species_data %>%
+  bind_rows(tidy_species_new) %>%
+  arrange(species, time, height) %>% 
+  filter(step %in% c(100, 150, 200))
+
+data_combined_long <- 
+  data_combined  %>% 
+  select(cohort, time, step, height, density, mortality, area_heartwood) %>% 
+  pivot_longer(cols = c("density", "mortality", "area_heartwood"))
+
+data_combined_long %>% 
+    filter(!is.na(cohort)) %>%
+  ggplot(aes(height, value, group=step)) +
+  geom_line(col=1) +
+  geom_point(data = data_combined_long %>% filter(is.na(cohort)), col="red") +
+  xlim(c(0, 20)) +
+  facet_grid(vars(name), vars(step), scales="free")
+```
+
+
+## Sampling from population
+
+(not implemented)
+
+```{r}
+sample_size_distribution(tidy_species_data, patch_area)
 ```
 

@@ -83,6 +83,77 @@ tidy_patch <- function(results) {
   out
 }
 
+#' Interpolate tidyspecies data to specific time points
+#'
+#' @param tidy_species_data 
+#' @param times times to interpolate to
+#' @param method Method for interpolation. For more info see help on stats::spline
+#'
+#' @return
+#' @export
+#' @importFrom stats spline
+#'
+interpolate_to_times <- function(tidy_species_data, times, method="natural") {
+  
+  # helper function - predicts to new values with spline
+  # only needed to ensure predictions for xout outside the ange of x are set to NA
+  f <- function(x, y, xout) {
+    y_pred <- stats::spline(x, y, xout=xout, method=method)$y
+    y_pred[!dplyr::between(xout, min(x), max(x))] <- NA
+    y_pred
+  }
+  
+  tidy_species_data %>%
+    tidyr::drop_na() %>%
+    dplyr::group_by(species, cohort) %>%
+    dplyr::summarise(
+      dplyr::across(where(is.double), ~f(time, .x, xout=times)),
+      .groups = "keep") %>%
+    dplyr::mutate(time=times) %>%
+    dplyr::ungroup()
+}
+
+
+#' Interpolate tidyspecies data to specific heights at every time point
+#'
+#' @param tidy_species_data 
+#' @param heights heights to interpolate to
+#' @param method Method for interpolation. For more info see help on stats::spline
+#'
+#' @return
+#' @export
+#' @importFrom stats spline
+#'
+
+
+interpolate_to_heights <- function(tidy_species_data, heights, method="natural") {
+  
+  # helper function - predicts to new values with spline
+  # only needed to ensure predictions for xout outside the ange of x are set to NA
+  f <- function(x, y, xout) {
+    y_pred <- stats::spline(x, y, xout=xout, method=method)$y
+    y_pred[!dplyr::between(xout, min(x), max(x))] <- NA
+    y_pred
+  }
+  
+  tidy_species_data %>%
+    tidyr::drop_na() %>%
+    dplyr::group_by(species, time, step) %>%
+    dplyr::summarise(
+      dplyr::across(where(is.double), ~f(height, .x, xout=heights)),
+      .groups = "keep") %>%
+    dplyr::mutate(height=heights,
+                  density = exp(log_density)) %>%
+    dplyr::ungroup()
+}
+
+sample_size_distribution <- function(tidy_species_data, patch_area) {
+  
+  
+  
+  
+}
+
 
 #' XXXXX
 #'
@@ -99,6 +170,7 @@ patch_species_total <- function(data) {
     group_by(step, time, patch_density, species) %>% 
     summarise(
       individuals = -plant:::trapezium(height, density),
+      min_h = min(height),
       across(c(starts_with("area"), starts_with("mass")), ~ -plant:::trapezium(height, density*.x)),#, .names = "{.col}_tot"),
       .groups="drop"
     )
