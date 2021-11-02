@@ -53,7 +53,7 @@ base_parameters <- function() {
 
 ```{r}
 run_mypatch <- function(
-  traits =  trait_matrix(c(0.07), c("lma")),
+  traits =  trait_matrix(c(0.07,0.24), c("lma")),
   B_lf1 = 1,
   seed_rain = 100,
   p0 = base_parameters(),
