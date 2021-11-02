@@ -24,7 +24,7 @@ OdeRunner:
       - ["Lorenz": "plant::ode::test::Lorenz"]
       - ["OdeR":   "plant::ode::test::OdeR"]
       - ["FF16": "plant::tools::IndividualRunner<plant::FF16_Strategy, plant::FF16_Environment>"]
-      - ["Water": "plant::tools::IndividualRunner<plant::Water_Strategy, plant::FF16_Environment>"]
+      - ["FF16w": "plant::tools::IndividualRunner<plant::FF16w_Strategy, plant::FF16_Environment>"]
       - ["FF16r": "plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>"]
       - ["K93": "plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>"]
   constructor:
@@ -111,16 +111,10 @@ Control:
     - assimilator_integration_rule: size_t
     - plant_seed_tol: double
     - plant_seed_iterations: int
-    - soil_infiltration_rate: double
-    - soil_number_of_depths: int
     - cohort_gradient_eps: double
     - cohort_gradient_direction: int
     - cohort_gradient_richardson: bool
     - cohort_gradient_richardson_depth: size_t
-    - canopy_light_tol: double
-    - canopy_light_nbase: size_t
-    - canopy_light_max_depth: size_t
-    - canopy_rescale_usually: bool
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -235,7 +229,7 @@ Individual:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -294,7 +288,7 @@ IndividualRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -350,7 +344,7 @@ Parameters:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   validator:
@@ -374,7 +368,7 @@ Cohort:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -412,7 +406,7 @@ Species:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -456,11 +450,14 @@ Patch:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>", control: "plant::Control"]
+    args:
+      - parameters: "plant::Parameters<T,E>"
+      - environment: "E"
+      - control: "plant::Control"
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
@@ -473,6 +470,7 @@ Patch:
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+    cohort_ode_size: {type: size_t, access: member}
   methods:
     introduce_new_cohort:
       return_type: void
@@ -522,11 +520,14 @@ SCM:
     parameters: [T, E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>", control: "plant::Control"]
+    args:
+      - parameters: "plant::Parameters<T,E>"
+      - environment: "E"
+      - control: "plant::Control"
   methods:
     run:
       return_type: void
@@ -588,7 +589,7 @@ StochasticSpecies:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
@@ -633,11 +634,14 @@ StochasticPatch:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>", control: "plant::Control"]
+    args:
+      - parameters: "plant::Parameters<T,E>"
+      - environment: "E"
+      - control: "plant::Control"
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
@@ -695,11 +699,14 @@ StochasticPatchRunner:
     parameters: [T,E]
     concrete:
       - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
-      - ["Water": "plant::Water_Strategy", "FF16_Env": "plant::FF16_Environment"]
+      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [parameters: "plant::Parameters<T,E>", control: "plant::Control"]
+    args:
+      - parameters: "plant::Parameters<T,E>"
+      - environment: "E"
+      - control: "plant::Control"
   methods:
     run:
       return_type: void
@@ -733,7 +740,10 @@ StochasticPatchRunner:
 Canopy:
   name_cpp: "plant::Canopy"
   constructor:
-    args: [control: "plant::Control"]
+    args:
+      - tol: double
+      - nbase: double
+      - max_depth: double
   methods:
     canopy_openness:
       args: [height: double]
@@ -849,10 +859,11 @@ FF16_Strategy:
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
   constructor:
-    args: [control: "plant::Control"]
+    args:
+      - canopy_rescale_usually: bool
+      - soil_number_of_depths: int
     roxygen: |
       FF16_Environment object
-      @param control A Control object
       @export
   methods:
     canopy_openness:
@@ -863,15 +874,21 @@ FF16_Environment:
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
+    set_soil_infiltration_rate:
+      args: [rate: double]
+      return_type: void
     set_soil_water_state:
-      args: [v: double]
+      args: [state: "std::vector<double>"]
       return_type: void
     compute_rates:
       return_type: void
   active:
     time: {type: double, access: field}
-    canopy: {type: "plant::Canopy", access: field}
     ode_size: {type: size_t, access: member}
+    soil_number_of_depths: {type: size_t, access: member, name_cpp: ode_size}
+    canopy:
+      type: "plant::Canopy"
+      access: field
     soil:
       type: "plant::Internals"
       access: member
@@ -949,10 +966,8 @@ K93_Strategy:
 K93_Environment:
   name_cpp: "plant::K93_Environment"
   constructor:
-    args: [control: "plant::Control"]
     roxygen: |
       K93_Environment object
-      @param control A Control object
       @export
   methods:
     canopy_openness:
@@ -966,10 +981,11 @@ K93_Environment:
   active:
     time: {type: double, access: field}
     canopy: {type: "plant::Canopy", access: field}
+    ode_size: {type: size_t, access: member}
 
 # The following strategy was built from FF16 on Mon Jul 19 11:01:04 2021
-Water_Strategy:
-  name_cpp: "plant::Water_Strategy"
+FF16w_Strategy:
+  name_cpp: "plant::FF16w_Strategy"
   roxygen: |
     Strategy parameters that tune various aspects of the biological model.
     @title Strategy parameters

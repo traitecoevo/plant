@@ -11,9 +11,10 @@ test_that("empty", {
                           birth_rate=pi/2,
                           is_resident=TRUE)
     
+    env <- make_environment(x)
     ctrl <- scm_base_control()
 
-    obj <- StochasticPatchRunner(x, e)(p, ctrl)
+    obj <- StochasticPatchRunner(x, e)(p, env, ctrl)
     expect_identical(obj$time, 0.0)
 
     sched <- obj$schedule
@@ -57,9 +58,10 @@ test_that("collect", {
                           patch_area=50,
                           is_resident=TRUE)
     
+    env <- make_environment(x)
     ctrl <- Control()
     
-    expect_silent(res <- run_stochastic_collect(p, ctrl))
+    expect_silent(res <- run_stochastic_collect(p, env, ctrl))
     ## TODO: more tests on collect output
 
     ## This shows that we're probably over-aggressively killing plants.

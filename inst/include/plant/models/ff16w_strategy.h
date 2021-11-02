@@ -7,10 +7,10 @@
 
 namespace plant {
 
-class Water_Strategy: public FF16_Strategy {
+class FF16w_Strategy: public FF16_Strategy {
 public:
-  typedef std::shared_ptr<Water_Strategy> ptr;
-  Water_Strategy();
+  typedef std::shared_ptr<FF16w_Strategy> ptr;
+  FF16w_Strategy();
 
   // Overrides ----------------------------------------------
   virtual double net_mass_production_dt(const FF16_Environment& environment,
@@ -21,7 +21,7 @@ public:
                       double height, double area_leaf_);
 };
 
-Water_Strategy::ptr make_strategy_ptr(Water_Strategy s);
+FF16w_Strategy::ptr make_strategy_ptr(FF16w_Strategy s);
 
 }
 

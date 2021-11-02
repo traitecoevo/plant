@@ -64,10 +64,12 @@ FF16r_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
-##' @param ctrl Control object
-FF16r_make_environment <- function(ctrl = scm_base_control()) {
-  FF16_Environment(ctrl)
+##' @param canopy_rescale_usually turns on environment rescaling (default = TRUE)
+FF16r_make_environment <- function(canopy_rescale_usually = TRUE) {
+  
+  FF16_make_environment(canopy_rescale_usually)
 }
+
 
 ##' This makes a pretend light environment over the plant height,
 ##' slightly concave up, whatever.
