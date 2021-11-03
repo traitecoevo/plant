@@ -86,9 +86,9 @@ private:
 template <typename T, typename E>
 StochasticPatch<T,E>::StochasticPatch(parameters_type p, environment_type e, Control c)
   : parameters(p),
+    is_resident(p.is_resident),
     environment(e),
-    control(c),
-    is_resident(p.is_resident) {
+    control(c) {
   parameters.validate();
   for (auto s : parameters.strategies) {
     s.control = control;
