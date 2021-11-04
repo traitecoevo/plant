@@ -16,7 +16,6 @@ namespace plant {
 
 class Environment {
 public:
-
   template <typename Function>
   void compute_environment(Function f, double height_max);
   template <typename Function>
@@ -31,21 +30,21 @@ public:
   virtual void compute_rates(){};
 
   ode::const_iterator set_ode_state(ode::const_iterator it) {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       vars.states[i] = *it++;
     }
     return it;
   }
 
   ode::iterator ode_state(ode::iterator it) const {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       *it++ = vars.states[i];
     }
     return it;
   }
 
   ode::iterator ode_rates(ode::iterator it) const {
-    for (int i = 0; i < vars.state_size; i++) {
+    for (size_t i = 0; i < vars.state_size; i++) {
       *it++ = vars.rates[i];
     }
     return it;
@@ -62,6 +61,8 @@ public:
   void r_init_interpolators(const std::vector<double>& state) {}
 
   double get_environment_at_height(double height) { return 0.0; };
+  
+  virtual ~Environment() = default;
 
   double time;
 
