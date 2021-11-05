@@ -102,9 +102,9 @@ private:
 template <typename T, typename E>
 Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   : parameters(p),
+    is_resident(p.is_resident),
     environment(e),
-    control(c),
-    is_resident(p.is_resident) {
+    control(c) {
   parameters.validate();
 
   survival_weighting = p.disturbance;

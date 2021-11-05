@@ -86,9 +86,9 @@ private:
 template <typename T, typename E>
 StochasticPatch<T,E>::StochasticPatch(parameters_type p, environment_type e, Control c)
   : parameters(p),
+    is_resident(p.is_resident),
     environment(e),
-    control(c),
-    is_resident(p.is_resident) {
+    control(c) {
   parameters.validate();
   for (auto s : parameters.strategies) {
     s.control = control;
@@ -131,7 +131,7 @@ double StochasticPatch<T,E>::compute_competition(double height) const {
 
 template <typename T, typename E>
 void StochasticPatch<T,E>::compute_environment() {
-  if (parameters.n_residents() > 0 & height_max() > 0.0) {
+  if (parameters.n_residents() > 0 && height_max() > 0.0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.compute_environment(f, height_max());
   } else {
@@ -141,7 +141,7 @@ void StochasticPatch<T,E>::compute_environment() {
 
 template <typename T, typename E>
 void StochasticPatch<T,E>::rescale_environment() {
-  if (parameters.n_residents() > 0 & height_max() > 0.0) {
+  if (parameters.n_residents() > 0 && height_max() > 0.0) {
     auto f = [&] (double x) -> double {return compute_competition(x);};
     environment.rescale_environment(f, height_max());
   }
