@@ -23,7 +23,7 @@ public:
   typedef Parameters<T,E>   parameters_type;
 
 
-  Patch(parameters_type p);
+  Patch(parameters_type p, environment_type e, plant::Control c);
 
   void reset();
   size_t size() const {return species.size();}
@@ -36,6 +36,12 @@ public:
 
   void introduce_new_cohort(size_t species_index);
   void introduce_new_cohorts(const std::vector<size_t>& species_index);
+
+  // Open to better ways to test whether cohorts have been introduced
+  int cohort_ode_size() const {
+    int cohort_ode_size = ode_size() - environment.ode_size();
+    return(cohort_ode_size);
+  }
 
   const species_type& at(size_t species_index) const {
     return species[species_index];
@@ -90,17 +96,23 @@ private:
   std::vector<bool> is_resident;
   environment_type environment;
   std::vector<species_type> species;
+  Control control;
 };
 
 template <typename T, typename E>
-Patch<T,E>::Patch(parameters_type p)
+Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   : parameters(p),
+    environment(e),
+    control(c),
     is_resident(p.is_resident) {
   parameters.validate();
-  environment = p.environment;
+
   survival_weighting = p.disturbance;
 
+  // Overwrite all strategy control objects so that they take the
+  // patch control object.
   for (auto s : parameters.strategies) {
+    s.control = control;
     species.push_back(Species<T,E>(s));
   }
   reset();
@@ -163,19 +175,10 @@ void Patch<T,E>::rescale_environment() {
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
-    // 1. Specify an inflow rate
-    // 2. Make sure ODE is stepping - water should accumulate linearly
-    // 3. Make sure the soil water state is visible in compute_rates in strategy
-    // 4. Extraction rate is subrated from soil water state
-
-    // Compute environment rate
-    // Compute rates in cohort, multiply rate per plant by density
-    // sum all cohorts and species in a patch to find the outflow for the patch
-    // subtract total extraction rate from state
     double pr_patch_survival = survival_weighting->pr_survival(time());
     double birth_rate = parameters.birth_rate[i];
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
-    //environment.compute_rates();
+    environment.compute_rates();
   }
 }
 
@@ -248,12 +251,12 @@ double Patch<T,E>::ode_time() const {
 
 template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
-                                            double time) {
+                                              double time) {
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
 
   environment.time = time;
-  if (parameters.control.environment_rescale_usually) {
+  if (environment.canopy_rescale_usually) {
     rescale_environment();
   } else {
     compute_environment();

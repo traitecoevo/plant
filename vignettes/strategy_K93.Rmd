@@ -1,0 +1,90 @@
+---
+title: "The `K93` model"
+subtitle: "Kohymama 1993 - The Forest Architecture Hypothesis for the Stable Coexistence of Species"
+author: Andrew O'Reilly-Nugent, Daniel Falster
+date: August 28, 2020
+bibliography: assets/refs.bib
+csl: assets/methods-in-ecology-and-evolution.csl
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{strategy_new}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+# Background
+
+This document outlines the `K93` physiological model used in the `plant`
+package. This model was first described primarily been developed elsewhere, in particular in
+@Kohyama-1993. The model's equations are presented here not as original findings,
+but rather so that users can understand the full system of equations being
+solved within `plant`.
+
+The purpose of a physiological model in `plant` is to take a plant's
+current size, light environment, and physiological parameters as inputs,
+and return its growth, mortality, and fecundity rates. In the `K93`
+physiological model, these vital rates are all estimated using simple 
+phenomonolgocail equations, as functions of diamater and competition.
+
+# Model description
+
+## Growth
+
+**Eq. 10**
+$$
+G(t, a, x) = x \cdot \Bigg(b_0 - b_1 \cdot ln{x} - b_2 \cdot B(t, a, x)\Bigg)
+$$
+
+## Fecundity
+
+**Eq. 12**
+
+$$
+R(t, a, x0) = d_0 \cdot B_0 \cdot exp{-d_1 \cdot B(t, a, x_0)}
+$$
+
+*$B_0$ re-interpreted as an individual basal area, integrated over whole stand, providing equivalent total reproductive output as Eq 9.*
+
+### Mortality
+**Eq. 11**
+$$
+\mu(t, a, x) = - c_0 + c_1 \cdot B(t, a, x_0)
+$$
+
+*Growth independent mortality provided by disturbance regime*
+
+## Size structured competition
+
+**Eq. 8**
+$$
+B(t, a, x) = \frac{\pi}{4 \cdot s(t, a)} \int_{x}^{x_{max}} y^2 \cdot f(t, a, y) dy
+$$
+
+*added additional smoothing parameter to interpolate competitive effect using a continuous function. $\eta = 12.0$*
+
+
+## Dispersal and establishment
+
+Dispersal and establishment are fixtures of the `plant` framework, but not used in the original formulation of Kohyama. We set them both to $1.0$.
+
+# Examples
+```{r]}
+p0 <- scm_base_parameters("K93")
+p1 <- expand_parameters(trait_matrix(0.0825, "b_0"), p = p0, mutant = FALSE)
+p1$seed_rain <- 20
+
+data1 <- run_scm_collect(p1)
+
+matplot(data1$time, data1$species[[1]]["height", , ],
+        lty=1, col=make_transparent("black", 0.25), type="l",
+        las=1, xlab="Time (years)", ylab="Height (m)")
+```
+
+We changed disturbance from 30 to 200 yrs.
+
+(WIP)
+
+compare plant vs graphs in paper
+
+- age, size density distn
+- see: plant paper for size dstn

@@ -69,21 +69,34 @@ K93_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname K93_Environment
-##' @param p A Parameters object
-K93_make_environment <- function(p) {
-  K93_Environment(p$control)
+K93_make_environment <- function(canopy_light_tol = 1e-4, 
+                                 canopy_light_nbase = 17,
+                                 canopy_light_max_depth = 16, 
+                                 canopy_rescale_usually = TRUE) {
+  
+  # for reasons unknown, we can't add arguments to the K93 constructor
+  # as it causes the FF16 StochasticPatch tests to fail 🙃  opted to hard-code
+  # these defaults into the K93_Environment
+  
+  # e <- K93_Environment(canopy_rescale_usually = TRUE)
+  e <- K93_Environment()
+  
+  e$canopy <- Canopy(canopy_light_tol, 
+                     canopy_light_nbase, 
+                     canopy_light_max_depth)
+  
+  return(e)
 }
 
 ##' Construct a fixed environment for K93 strategy
 ##'
 ##' @param e Value of environment (default=1.0)
-##' @param p A Parameters object
-##' @param height_max = 150.0 maximum possible height in environment
+##' @param height_max = 300.0 maximum possible height in environment
 ##' @rdname K93_Environment
 ##'
 ##' @export
-K93_fixed_environment <- function(e=1.0, p = K93_Parameters(), height_max = 300.0) {
-  env <- K93_make_environment(p)
+K93_fixed_environment <- function(e=1.0, height_max = 300.0) {
+  env <- K93_make_environment()
   env$set_fixed_environment(e, height_max)
   env
 }
@@ -115,12 +128,12 @@ K93_test_environment <- function(height, n=101, light_env=NULL,
   interpolator <- Interpolator()
   interpolator$init(hh, ee)
 
-  parameters <- K93_Parameters()
-  parameters$strategies <- rep(list(K93_Strategy()), n_strategies)
+  # parameters <- K93_Parameters()
+  # parameters$strategies <- rep(list(K93_Strategy()), n_strategies)
+  # 
+  # parameters$is_resident <- rep(TRUE, n_strategies)
 
-  parameters$is_resident <- rep(TRUE, n_strategies)
-
-  ret <- K93_make_environment(parameters)
+  ret <- K93_make_environment()
   ret$canopy$canopy_interpolator <- interpolator
   attr(ret, "light_env") <- light_env
   ret

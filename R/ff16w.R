@@ -1,93 +1,113 @@
-##' Create a FF16 Plant or Cohort
-##' @title Create a FF16 Plant or Cohort
-##' @param s A \code{\link{FF16_Strategy}} object
+# Built from  R/ff16.R on Mon Jul 19 11:01:04 2021 using the scaffolder, from the strategy:  FF16
+##' Create a FF16w Plant or Cohort
+##' @title Create a FF16w Plant or Cohort
+##' @param s A \code{\link{FF16w_Strategy}} object
 ##' @export
-##' @rdname FF16
+##' @rdname FF16w
 ##' @examples
-##' pl <- FF16_Individual()
+##' pl <- FF16w_Individual()
 ##' pl$height
-FF16_Individual <- function(s=FF16_Strategy()) {
-  Individual("FF16", "FF16_Env")(s)
+FF16w_Individual <- function(s=FF16w_Strategy()) {
+  Individual("FF16w", "FF16_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_Cohort <- function(s=FF16_Strategy()) {
-  Cohort("FF16", "FF16_Env")(s)
+##' @rdname FF16w
+FF16w_Cohort <- function(s=FF16w_Strategy()) {
+  Cohort("FF16w", "FF16_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_Species <- function(s=FF16_Strategy()) {
-  Species("FF16", "FF16_Env")(s)
+##' @rdname FF16w
+FF16w_Species <- function(s=FF16w_Strategy()) {
+  Species("FF16w", "FF16_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_Parameters <- function() {
-  Parameters("FF16","FF16_Env")()
+##' @rdname FF16w
+FF16w_Parameters <- function() {
+  Parameters("FF16w","FF16_Env")()
 }
 
 ##' @export
-##' @rdname FF16
-##' @param p A \code{Parameters<FF16,FF16_Env>} object
-FF16_Patch <- function(p) {
-  Patch("FF16", "FF16_Env")(p)
+##' @rdname FF16w
+##' @param p A \code{Parameters<FF16w,FF16_Env>} object
+FF16w_Patch <- function(p) {
+  Patch("FF16w", "FF16_Env")(p)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_SCM <- function(p) {
-  SCM("FF16", "FF16_Env")(p)
+##' @rdname FF16w
+FF16w_SCM <- function(p) {
+  SCM("FF16w", "FF16_Env")(p)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_StochasticSpecies <- function(s=FF16_Strategy()) {
-  StochasticSpecies("FF16", "FF16_Env")(s)
+##' @rdname FF16w
+FF16w_StochasticSpecies <- function(s=FF16w_Strategy()) {
+  StochasticSpecies("FF16w", "FF16_Env")(s)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_StochasticPatch <- function(p) {
-  StochasticPatch("FF16", "FF16_Env")(p)
+##' @rdname FF16w
+FF16w_StochasticPatch <- function(p) {
+  StochasticPatch("FF16w", "FF16_Env")(p)
 }
 
 ##' @export
-##' @rdname FF16
-FF16_StochasticPatchRunner <- function(p) {
-  StochasticPatchRunner("FF16", "FF16_Env")(p)
+##' @rdname FF16w
+FF16w_StochasticPatchRunner <- function(p) {
+  StochasticPatchRunner("FF16w", "FF16_Env")(p)
 }
 
 
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
-FF16_make_environment <- function(canopy_light_tol = 1e-4, 
-                                  canopy_light_nbase = 17,
-                                  canopy_light_max_depth = 16, 
-                                  canopy_rescale_usually = TRUE) {
+##' @param infil_rate rate of water entering the first layer
+##' @param n_layers the number of layers
+##' @param init starting conditions
+FF16w_make_environment <- function(canopy_light_tol = 1e-4, 
+                                   canopy_light_nbase = 17,
+                                   canopy_light_max_depth = 16, 
+                                   canopy_rescale_usually = TRUE,
+                                   soil_number_of_depths = 1,
+                                   soil_initial_state = 0.0,
+                                   soil_infiltration_rate = 0.0) {
+  
+  if(soil_number_of_depths < 1)
+    stop("FF16w Environment must have at least one soil layer")
   
   e <- FF16_Environment(canopy_rescale_usually, 
-                        soil_number_of_depths = 0)
+                        soil_number_of_depths)
   
-  # Canopy defaults have lower tolerance which are overwritten for speed
   e$canopy <- Canopy(canopy_light_tol, 
                      canopy_light_nbase, 
                      canopy_light_max_depth)
+
+  # there might be a better way to skip this if using defaultss
+  if(sum(soil_initial_state) > 0.0) {
+    if(soil_number_of_depths != length(soil_initial_state))
+      stop("Not enough starting points for all layers")
+    
+    e$set_soil_water_state(soil_initial_state)
+  }
+    
+  e$set_soil_infiltration_rate(soil_infiltration_rate)
   
   return(e)
 }
+  
 
-##' Construct a fixed environment for FF16 strategy
+##' Construct a fixed environment for FF16w strategy
 ##'
 ##' @param e Value of environment (deafult  = 1.0)
 ##' @param height_max = 150.0 maximum possible height in environment
 ##' @rdname FF16_Environment
 ##'
 ##' @export
-FF16_fixed_environment <- function(e=1.0, height_max = 150.0) {
-  env <- FF16_make_environment()
+FF16w_fixed_environment <- function(e=1.0, height_max = 150.0) {
+  env <- FF16w_make_environment()
   env$set_fixed_environment(e, height_max)
   env
 }
@@ -95,37 +115,39 @@ FF16_fixed_environment <- function(e=1.0, height_max = 150.0) {
 
 ##' This makes a pretend light environment over the plant height,
 ##' slightly concave up, whatever.
-##' @title Create a test environment for FF16 startegy
+##' @title Create a test environment for FF16w startegy
 ##' @param height top height of environment object
 ##' @param n number of points
 ##' @param light_env function for light environment in test object
 ##' @param n_strategies number of strategies for test environment
 ##' @param birth_rate birth_rate for test environment
 ##' @export
-##' @rdname FF16_test_environment
+##' @rdname FF16w_test_environment
 ##' @examples
-##' environment <- FF16_test_environment(10)
-FF16_test_environment <- function(height, n=101, light_env=NULL,
-                                  n_strategies=1) {
+##' environment <- FF16w_test_environment(10)
+FF16w_test_environment <- function(height,
+                                   n = 101,
+                                   light_env = NULL,
+                                   n_strategies = 1) {
   
-  hh <- seq(0, height, length.out=n)
+  hh <- seq(0, height, length.out = n)
   if (is.null(light_env)) {
     light_env <- function(x) {
-      exp(x/(height*2)) - 1 + (1 - (exp(.5) - 1))/2
+      exp(x / (height * 2)) - 1 + (1 - (exp(.5) - 1)) / 2
     }
   }
   ee <- light_env(hh)
   interpolator <- Interpolator()
   interpolator$init(hh, ee)
-
-  ret <- FF16_make_environment()
+  
+  ret <- FF16w_make_environment()
   ret$canopy$canopy_interpolator <- interpolator
   attr(ret, "light_env") <- light_env
   ret
 }
 
-##' Hyperparameters for FF16 physiological model
-##' @title Hyperparameters for FF16 physiological model
+##' Hyperparameters for FF16w physiological model
+##' @title Hyperparameters for FF16w physiological model
 ##' @param lma_0 Central (mean) value for leaf mass per area [kg /m2]
 ##' @param B_kl1 Rate of leaf turnover at lma_0 [/yr]
 ##' @param B_kl2 Scaling slope for phi in leaf turnover [dimensionless]
@@ -148,8 +170,8 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
 ##' @param latitude degrees from equator (0-90), used in solar model [deg]
 ##' @importFrom stats coef nls
 ##' @export
-##' @rdname FF16_hyperpar
-make_FF16_hyperpar <- function(
+##' @rdname FF16w_hyperpar
+make_FF16w_hyperpar <- function(
                                 lma_0=0.1978791,
                                 B_kl1=0.4565855,
                                 B_kl2=1.71,
@@ -320,11 +342,11 @@ make_FF16_hyperpar <- function(
   }
 }
 
-##' Hyperparameter function for FF16 physiological model
-##' @title Hyperparameter function for FF16 physiological model
+##' Hyperparameter function for FF16w physiological model
+##' @title Hyperparameter function for FF16w physiological model
 ##' @param m A matrix of trait values, as returned by \code{trait_matrix}
 ##' @param s A strategy object
 ##' @param filter A flag indicating whether to filter columns. If TRUE, any numbers
 ##' that are within eps of the default strategy are not replaced.
 ##' @export
-FF16_hyperpar <- make_FF16_hyperpar()
+FF16w_hyperpar <- make_FF16w_hyperpar()

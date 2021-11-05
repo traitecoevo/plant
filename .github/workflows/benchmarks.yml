@@ -5,6 +5,7 @@ on:
       - master
       - develop
   pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - main
       - master
@@ -14,6 +15,7 @@ name: bench
 
 jobs:
   lint:
+    if: github.event.pull_request.draft == false
     runs-on: macOS-latest
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}

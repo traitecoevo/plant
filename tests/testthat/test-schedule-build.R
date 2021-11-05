@@ -20,15 +20,18 @@ test_that("Schedule building", {
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
     p$birth_rate <- 0.1
-    p <- build_schedule(p)
+    env <- make_environment(x)
+    ctrl <- scm_base_control()
+
+    res <- build_schedule(p, env, ctrl) # state = NULL since no arg provided
 
     # This has changed, perhaps due split_times missing a cohort
-    pars <- p$parameters
+    pars <- res$parameters
     expect_equal(length(pars$cohort_schedule_times_default), 141)
     expect_equal(length(pars$cohort_schedule_times[[1]]), 176)
 
     # not really relevant, just showing it's here
-    state <- p$state
+    state <- res$state
     expect_null(state)
   }
 })

@@ -11,36 +11,29 @@ namespace plant {
 
 class FF16_Environment : public Environment {
 public:
-
-  FF16_Environment() {
-    time = NA_REAL;
-    canopy = Canopy();
-  };
-
-  FF16_Environment(Control control) {
+  // constructor for R interface - default settings can be modified
+  // except for soil_number_of_depths and canopy_rescale_usually
+  // which are only updated on construction
+  FF16_Environment(bool canopy_rescale_usually = false,
+                   int soil_number_of_depths = 0)
+      : canopy_rescale_usually(canopy_rescale_usually) {
     time = 0.0;
-    canopy = Canopy(control);
+    canopy = Canopy();
+    soil_infiltration_rate = 0.0;
+    vars = Internals(soil_number_of_depths);
+    set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
   };
 
-  template <typename Function>
-  void compute_environment(Function f_compute_competition, double height_max) {
-    canopy.compute_canopy(f_compute_competition, height_max);
-  }
+  // Light interface
+  bool canopy_rescale_usually;
 
-  template <typename Function>
-  void rescale_environment(Function f_compute_competition, double height_max) {
-    canopy.rescale_canopy(f_compute_competition, height_max);
-  }
+  Canopy canopy;
 
-  void clear_environment() {
-    canopy.clear();
-  }
-
+  // Should this be here or in canopy?
   void set_fixed_environment(double value, double height_max) {
     canopy.set_fixed_canopy(value, height_max);
   }
 
-  // Should this be here or in canopy?
   void set_fixed_environment(double value) {
     double height_max = 150.0;
     set_fixed_environment(value, height_max);
@@ -58,7 +51,48 @@ public:
     canopy.r_init_interpolators(state);
   }
 
-  Canopy canopy;
+  // Soil interface
+  double soil_infiltration_rate;
+
+  virtual void compute_rates() {
+    for (int i = 0; i < vars.state_size; i++) {
+      vars.set_rate(i, soil_infiltration_rate / (i+1));
+    }
+  }
+
+  std::vector<double> get_soil_water_state() const {
+    return vars.states;
+  }
+
+  // I wonder if this needs a better name? See also environment.h
+  Internals r_internals() const { return vars; }
+
+  // R interface
+  void set_soil_water_state(std::vector<double> state) {
+    for (int i = 0; i < vars.state_size; i++) {
+      vars.set_state(i, state[i]);
+    }
+  }
+
+  void set_soil_infiltration_rate(double rate) {
+    soil_infiltration_rate = rate;
+  }
+
+  // Core functions
+  template <typename Function>
+  void compute_environment(Function f_compute_competition, double height_max) {
+    canopy.compute_canopy(f_compute_competition, height_max);
+  }
+
+  template <typename Function>
+  void rescale_environment(Function f_compute_competition, double height_max) {
+    canopy.rescale_canopy(f_compute_competition, height_max);
+  }
+
+  void clear_environment() {
+    canopy.clear();
+  }
+
 };
 
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {

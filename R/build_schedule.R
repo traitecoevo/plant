@@ -8,23 +8,26 @@
 ##'
 ##' @title Build Cohort Schedule
 ##' @param p Parameters object
+##' @param ctrl Control object
 ##' @return A Parameters object, with schedule components set.  The
 ##' output offspring produced is also available as an attribute
 ##' \code{birth_rate}.
 ##' @author Rich FitzJohn
 ##' @export
-build_schedule <- function(p, state=NULL) {
+
+build_schedule <- function(p, env = make_environment(parameters = p),
+                           ctrl = scm_base_control(), state=NULL) {
   p <- validate(p)
 
   n_spp <- length(p$strategies)
   if (n_spp == 0L || !any(p$is_resident)) {
     stop("Can't build a schedule with no residents")
   }
-  control <- p$control
-  eps <- control$schedule_eps
 
-  for (i in seq_len(control$schedule_nsteps)) {
-    res <- run_scm_error(p, state)
+  eps <- ctrl$schedule_eps
+
+  for (i in seq_len(ctrl$schedule_nsteps)) {
+    res <- run_scm_error(p, env, ctrl, state)
     net_reproduction_ratios <- res[["net_reproduction_ratios"]]
     split <- lapply(res$err$total, function(x) x > eps)
 

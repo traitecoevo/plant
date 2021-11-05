@@ -6,13 +6,9 @@
 ##' @param base An optional \code{Control} object.  If omitted, the
 ##' defaults are used.
 fast_control <- function(base=Control()) {
-  base$environment_rescale_usually <- TRUE
-  base$environment_light_tol <- 1e-4
-
-  base$plant_assimilation_adaptive <- FALSE
-  base$plant_assimilation_rule <- 21
-  base$plant_assimilation_over_distribution <- FALSE
-  base$plant_assimilation_tol <- 1e-4
+  base$assimilator_adaptive_integration <- FALSE
+  base$assimilator_integration_rule <- 21
+  base$assimilator_integration_tol <- 1e-4
 
   base$ode_tol_rel <- 1e-4
   base$ode_tol_abs <- 1e-4
@@ -44,18 +40,50 @@ equilibrium_quiet <- function(base=Control()) {
   base
 }
 
+##' Hopefully sensible set of parameters for use with the SCM.  Turns
+##' accuracy down a bunch, makes it noisy, sets up the
+##' hyperparameterisation that we most often use.
+##' @title Sensible, fast (ish) SCM control settings
+##' @author Rich FitzJohn
+##' @export
+scm_base_control <- function() {
+  ctrl <- equilibrium_verbose(fast_control())
+  ctrl$schedule_eps <- 0.005
+  ctrl$equilibrium_eps <- 1e-3
+  return(ctrl)
+}
+
+
+##' Basic default settings for a given strategy, environment only really
+##' used for templating initially and will be overloaded later by passing
+##' an environment to the SCM API (suggesting perhaps the template could be
+##' removed).
+##' @title Basic default parameters for a given strategy
+##' @author Rich FitzJohn
+##' @export
+scm_base_parameters <- function(type = NA, env = environment_type(type)) {
+  
+   Parameters(type, env)(patch_area=1.0)
+}
+
+
 ##' Run the SCM, returning the SCM object for interrogation
 ##'
 ##' This is the simplest way of using the SCM, probably.
 ##' @title Run SCM
 ##' @param p Parameters object
+##' @param env Environment object (defaults to FF16_Environment)
+##' @param ctrl Control object
 ##' @param state A optional State object matching the strategies in \code{p}
 ##' @param use_ode_times Should ODE times be used?
 ##' @return A \code{SCM} object.
 ##' @author Rich FitzJohn
 ##' @export
-run_scm <- function(p, state=NULL, use_ode_times=FALSE) {
-  scm <- make_scm(p, state)
+run_scm <- function(p, env = make_environment(parameters = p),
+                       ctrl = scm_base_control(), 
+                       state=NULL, 
+                       use_ode_times=FALSE) {
+  scm <- make_scm(p, env, ctrl, state)
   if (use_ode_times) {
     scm$use_ode_times <- TRUE
   }
@@ -63,19 +91,6 @@ run_scm <- function(p, state=NULL, use_ode_times=FALSE) {
   scm
 }
 
-##' Hopefully sensible set of parameters for use with the SCM.  Turns
-##' accuracy down a bunch, makes it noisy, sets up the
-##' hyperparameterisation that we most often use.
-##' @title Sensible, fast (ish) SCM parameters
-##' @author Rich FitzJohn
-##' @param type Name of model (defaults to FF16 but any strategy name is valid).
-##' @export
-scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
-  ctrl <- equilibrium_verbose(fast_control())
-  ctrl$schedule_eps <- 0.005
-  ctrl$equilibrium_eps <- 1e-3
-  Parameters(type, env)(patch_area=1.0, control=ctrl)
-}
 
 ##' Run the SCM model, given a Parameters and CohortSchedule
 ##'
@@ -85,12 +100,17 @@ scm_base_parameters <- function(type="FF16", env=environment_type(type)) {
 ##'
 ##' @title Run the SCM, Collecting Output
 ##' @param p A \code{Parameters} object
+##' @param env Environment object (defaults to FF16_Environment)
+##' @param ctrl Control object
 ##' @param state An optional State object matching the strategies in \code{p}
 ##' @param include_competition_effect Include total leaf area (will change; see
 ##' issue #138)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, state = NULL, include_competition_effect=FALSE) {
+run_scm_collect <- function(p, env = make_environment(parameters = p), 
+                            ctrl = scm_base_control(),
+                            state = NULL,
+                            include_competition_effect=FALSE,) {
   collect_default <- function(scm) {
     scm$state
   }
@@ -109,7 +129,7 @@ run_scm_collect <- function(p, state = NULL, include_competition_effect=FALSE) {
 
   collect <- if (include_competition_effect) collect_competition_effect else collect_default
   
-  scm <- make_scm(p, state)
+  scm <- make_scm(p, env, ctrl, state)
   res <- list(collect(scm))
 
   while (!scm$complete) {
@@ -153,11 +173,14 @@ run_scm_collect <- function(p, state = NULL, include_competition_effect=FALSE) {
 ##' @title Reconstruct a patch
 ##' @param state State object created by \code{scm_state}
 ##' @param p Parameters object
+##' @param env Environment object (defaults to FF16_Environment)
+##' @param ctrl Control object
 ##' @export
-make_patch <- function(state, p) {
+make_patch <- function(state, p, env = make_environment(parameters = p),
+                       ctrl = scm_base_control()) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   n <- viapply(state$species, ncol)
-  patch <- do.call('Patch', types)(p)
+  patch <- do.call('Patch', types)(p, env, ctrl)
   patch$set_state(state$time, unlist(state$species), n, state$env)
   patch
 }
@@ -167,9 +190,9 @@ make_patch <- function(state, p) {
 ##' @param p Parameters object
 ##' @param state An optional State object matching the strategies in \code{p}
 ##' @export
-make_scm <- function(p, state=NULL) {
+make_scm <- function(p, env, ctrl, state=NULL) {
   types <- extract_RcppR6_template_types(p, "Parameters")
-  scm <- do.call('SCM', types)(p)
+  scm <- do.call('SCM', types)(p, env, ctrl, state)
   
   if(!is.null(state)) {
     n_str <- length(p$strategies)
@@ -226,8 +249,9 @@ scm_patch <- function(i, x) {
   make_patch(scm_state(i, x), x$p)
 }
 
-run_scm_error <- function(p, state=NULL) {
-  scm <- make_scm(p, state)
+run_scm_error <- function(p, env = make_environment(parameters = p),
+                          ctrl = scm_base_control(), state = NULL) {
+  scm <- make_scm(p, env, ctrl, state)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)
@@ -262,16 +286,20 @@ run_scm_error <- function(p, state=NULL) {
 ##' @param ... Named set of parameters
 ##' @param pars A list of parameters
 ##' @param base_parameters_fn Function for creating base parameter set (default scm_base_parameters)
+##' @param base_control_fn Function for creating base Control object (default scm_base_control)
 ##' @param make_hyperpar_fn Function for creating hyperparameterisation (default make_FF16_hyperpar)
 ##' @export
-assembly_parameters <- function(..., pars=NULL, base_parameters_fn = scm_base_parameters,
+assembly_parameters <- function(..., pars=NULL, type = NA,
+                                base_parameters_fn = scm_base_parameters,
+                                base_control_fn = scm_base_control,
                                 make_hyperpar_fn = make_FF16_hyperpar) {
 
-  p <- base_parameters_fn()
+  p <- base_parameters_fn(type)
+  ctrl <- base_control_fn()
 
   ## These are nice to have:
-  p$control$equilibrium_solver_name <- "hybrid"
-  p$control$equilibrium_nsteps <- 60
+  ctrl$equilibrium_solver_name <- "hybrid"
+  ctrl$equilibrium_nsteps <- 60
 
   if (is.null(pars)) {
     pars <- list(...)
@@ -282,10 +310,9 @@ assembly_parameters <- function(..., pars=NULL, base_parameters_fn = scm_base_pa
   if (length(pars) > 0L) {
     assert_named_if_not_empty(pars)
 
-    excl <- c("control", "strategy_default", "hyperpar")
+    excl <- c("strategy_default", "hyperpar")
     pos <- setdiff(c(names(formals(make_hyperpar_fn)),
                      names(p),
-                     names(p$control),
                      names(p$strategy_default)),
                    excl)
     unk <- setdiff(names(pars), pos)
@@ -295,7 +322,6 @@ assembly_parameters <- function(..., pars=NULL, base_parameters_fn = scm_base_pa
 
     nms_hyper <- intersect(names(pars), names(formals(make_hyperpar_fn)))
     p                  <- modify_list(p,                  pars)
-    p$control          <- modify_list(p$control,          pars)
     p$strategy_default <- modify_list(p$strategy_default, pars)
   }
   p
