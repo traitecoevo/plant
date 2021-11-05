@@ -110,7 +110,7 @@ run_scm <- function(p, env = make_environment(parameters = p),
 run_scm_collect <- function(p, env = make_environment(parameters = p), 
                             ctrl = scm_base_control(),
                             state = NULL,
-                            include_competition_effect=FALSE,) {
+                            include_competition_effect=FALSE) {
   collect_default <- function(scm) {
     scm$state
   }
@@ -192,7 +192,7 @@ make_patch <- function(state, p, env = make_environment(parameters = p),
 ##' @export
 make_scm <- function(p, env, ctrl, state=NULL) {
   types <- extract_RcppR6_template_types(p, "Parameters")
-  scm <- do.call('SCM', types)(p, env, ctrl, state)
+  scm <- do.call('SCM', types)(p, env, ctrl)
   
   if(!is.null(state)) {
     n_str <- length(p$strategies)
