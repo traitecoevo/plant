@@ -56,9 +56,12 @@ p2 <- expand_parameters(sp, p0, mutant = FALSE)
 p2$birth_rate <- c(20, 20, 20)
 
 test_that("Multi-species case", {
+  env <- make_environment("K93")
+  ctrl <- scm_base_control()
   # manually create an SCM and set state
   types <- extract_RcppR6_template_types(p2, "Parameters")
-  scm <- do.call('SCM', types)(p2)
+
+  scm <- do.call('SCM', types)(p2, env, ctrl)
   
   times <- scm$cohort_schedule$all_times
   
@@ -94,7 +97,7 @@ test_that("Multi-species case", {
   
   
   # works through the run_scm api
-  x <- run_scm_collect(p2, z)
+  x <- run_scm_collect(p2, env, ctrl, state = z)
   
   # check fitness
   expect_equal(x$net_reproduction_ratios, c(3.981e-06, 4.585e-04, 3.514e-04), tolerance = 0.0001)
@@ -134,9 +137,11 @@ test_that("Multi-species case", {
 # pass the minimum back to split_densities. split_densities doesn't handle
 # density properly.
 test_that("Build schedule works", {
+  env <- make_environment("FF16")
+  ctrl <- scm_base_control()
   p0 <- scm_base_parameters("FF16")
   p0$patch_type = 'fixed'
-  p0$control$schedule_nsteps = 5
+  ctrl$schedule_nsteps = 5
   
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE)
   p1$cohort_schedule_times[[1]] <- seq(0.01, p1$max_patch_lifetime, length = 10)
@@ -148,7 +153,7 @@ test_that("Build schedule works", {
                       "log_density")
 
   state <- list(time = 10, species = list(init))
-  x <- run_scm_collect(p1, state)
+  x <- run_scm_collect(p1, env, ctrl, state)
   
   t2 <- x$time
   h1 <- x$species[[1]]["height", , ]
@@ -157,9 +162,9 @@ test_that("Build schedule works", {
   matplot(t2, h1, lty=1, type="l", col = "black",
           las=1, xlab="Time (years)", ylab="Height (m)")
     
-  res <- build_schedule(p1, state)
+  res <- build_schedule(p1, env, ctrl, state)
   
-  x <- run_scm_collect(res$parameters, res$state)
+  x <- run_scm_collect(res$parameters, env, ctrl, res$state)
   
   t2 <- x$time
   h1 <- x$species[[1]]["height", , ]
