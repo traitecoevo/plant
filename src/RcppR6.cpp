@@ -2401,6 +2401,10 @@ void SCM___FF16w__FF16_Env__set_cohort_schedule_times(plant::RcppR6::RcppR6<plan
   obj_->r_set_cohort_schedule_times(times);
 }
 // [[Rcpp::export]]
+void SCM___FF16w__FF16_Env__set_state(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, double time, const std::vector<double>& state, const std::vector<size_t>& n) {
+  obj_->r_set_state(time, state, n);
+}
+// [[Rcpp::export]]
 bool SCM___FF16w__FF16_Env__complete__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->complete();
 }

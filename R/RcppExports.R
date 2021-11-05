@@ -2113,6 +2113,10 @@ SCM___FF16w__FF16_Env__set_cohort_schedule_times <- function(obj_, times) {
     invisible(.Call('_plant_SCM___FF16w__FF16_Env__set_cohort_schedule_times', PACKAGE = 'plant', obj_, times))
 }
 
+SCM___FF16w__FF16_Env__set_state <- function(obj_, time, state, n) {
+    invisible(.Call('_plant_SCM___FF16w__FF16_Env__set_state', PACKAGE = 'plant', obj_, time, state, n))
+}
+
 SCM___FF16w__FF16_Env__complete__get <- function(obj_) {
     .Call('_plant_SCM___FF16w__FF16_Env__complete__get', PACKAGE = 'plant', obj_)
 }
