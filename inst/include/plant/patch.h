@@ -244,7 +244,7 @@ size_t Patch<T,E>::ode_size() const {
 
 template <typename T, typename E>
 size_t Patch<T,E>::aux_size() const {
-  // no use for auxillary environment variables (yet)
+  // no use for auxiliary environment variables (yet)
   return ode::aux_size(species.begin(), species.end());// + environment.ode_size();
 }
 

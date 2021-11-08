@@ -11,7 +11,7 @@ FF16r_Strategy::FF16r_Strategy() {
   // height above hmat at which allocation to reproduction is half its max value
   a_f2   = 2; // [dimensionless]
 
-  collect_all_auxillary = false;
+  collect_all_auxiliary = false;
   // build the string state/aux name to index map
   refresh_indices();
   name = "FF16r";

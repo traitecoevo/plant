@@ -859,7 +859,7 @@ FF16_Strategy:
     - a_dG2: double
     - k_I: double
     - control: "plant::Control"
-    - collect_all_auxillary: bool
+    - collect_all_auxiliary: bool
 
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
@@ -941,7 +941,7 @@ FF16r_Strategy:
     - a_dG2: double
     - k_I: double
     - control: "plant::Control"
-    - collect_all_auxillary: bool
+    - collect_all_auxiliary: bool
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
 K93_Strategy:
@@ -1030,4 +1030,4 @@ FF16w_Strategy:
     - a_dG2: double
     - k_I: double
     - control: "plant::Control"
-    - collect_all_auxillary: bool
+    - collect_all_auxiliary: bool

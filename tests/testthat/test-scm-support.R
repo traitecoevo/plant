@@ -65,7 +65,7 @@ test_that("expand_parameters", {
   expect_silent(p2 <- expand_parameters(trait_matrix(0.2, "lma"), p1, mutant=FALSE))
 })
 
-test_that("collect_auxillary_variables", {
+test_that("collect_auxiliary_variables", {
   env <- make_environment("FF16")
   ctrl <- scm_base_control()
   p0 <- scm_base_parameters("FF16")
@@ -73,7 +73,7 @@ test_that("collect_auxillary_variables", {
   p0$disturbance_mean_interval <- 30.0
   p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE)
   
-  res <- run_scm_collect(p1, env, ctrl, collect_auxillary_variables=TRUE)
+  res <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables=TRUE)
   state <- res$species[[1]]
   expect_equal(nrow(state), 9)
   expect_equal(rownames(state)[8:9], c("competition_effect", "net_mass_production_dt"))

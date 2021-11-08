@@ -26,7 +26,7 @@ test_that("Defaults", {
   expect_identical(unclass(s)[keys], expected[keys])
 })
 
-test_that("K93 collect_all_auxillary option", {
+test_that("K93 collect_all_auxiliary option", {
 
   s <- K93_Strategy()
   p <- K93_Individual(s)

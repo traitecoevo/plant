@@ -3,7 +3,7 @@
 
 namespace plant {
 FF16w_Strategy::FF16w_Strategy() {
-  collect_all_auxillary = false;
+  collect_all_auxiliary = false;
   // build the string state/aux name to index map
   refresh_indices();
   name = "FF16w";

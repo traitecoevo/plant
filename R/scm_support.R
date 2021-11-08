@@ -100,13 +100,13 @@ run_scm <- function(p, env = make_environment(parameters = p),
 ##' @param p A \code{Parameters} object
 ##' @param env Environment object (defaults to FF16_Environment)
 ##' @param ctrl Control object
-##' @param collect_auxillary_variables Return additional strategy variables (eg
+##' @param collect_auxiliary_variables Return additional strategy variables (eg
 ##' competition_effect)
 ##' @author Rich FitzJohn
 ##' @export
 run_scm_collect <- function(p, env = make_environment(parameters = p), 
                             ctrl = scm_base_control(),
-                            collect_auxillary_variables=FALSE) {
+                            collect_auxiliary_variables=FALSE) {
   collect_default <- function(scm) {
     scm$state
   }
@@ -116,7 +116,7 @@ run_scm_collect <- function(p, env = make_environment(parameters = p),
     ret$species <- mapply(rbind, ret$species, aux$species, SIMPLIFY=FALSE)
     ret
   }
-  collect <- if (collect_auxillary_variables) collect_aux else collect_default
+  collect <- if (collect_auxiliary_variables) collect_aux else collect_default
   types <- extract_RcppR6_template_types(p, "Parameters")
   
   scm <- do.call('SCM', types)(p, env, ctrl)

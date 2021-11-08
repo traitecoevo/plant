@@ -12,7 +12,7 @@ test_that("FF16_Strategy parameters agree with reference model", {
   expect_true(all(v %in% names(s)))
 
   ## And v.v., except for a few additions:
-  extra <- c("control", "S_D", "collect_all_auxillary")
+  extra <- c("control", "S_D", "collect_all_auxiliary")
   common <- setdiff(names(s), extra)
   expect_true(all(extra %in% names(s)))
   expect_true(all(common %in% names(cmp_pars)))
@@ -42,7 +42,7 @@ test_that("Reference comparison", {
   p$set_state("height", h0)
 
   expect_identical(p$state("height"), h0)
-  # testing set auxillary state as well as area_leaf/competition_effect depends on height only
+  # testing set auxiliary state as well as area_leaf/competition_effect depends on height only
   expect_equal(p$aux("competition_effect"), cmp$LeafArea(h0))
   # expect_equal(p$state("mass_leaf"), cmp$LeafMass(cmp$traits$lma, cmp$LeafArea(h0)))
   # expect_equal(p$state("mass_sapwood"), cmp$SapwoodMass(cmp$traits$rho, cmp$LeafArea(h0), h0))
