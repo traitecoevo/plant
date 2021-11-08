@@ -76,7 +76,8 @@ public:
   static size_t ode_size() { return strategy_type::state_size(); }
   static std::vector<std::string> ode_names() { return strategy_type::state_names(); }
 
-  size_t aux_size() { return strategy->aux_size(); }
+  // why doesn't strategy->aux_size() also need to be const-qualified? is it because strategy is a pointer?
+  size_t aux_size() const { return strategy->aux_size(); }
   std::vector<std::string> aux_names() { return strategy->aux_names(); }
 
   ode::const_iterator set_ode_state(ode::const_iterator it) {
@@ -95,6 +96,13 @@ public:
   ode::iterator ode_rates(ode::iterator it) const {
     for (size_t i = 0; i < vars.state_size; i++) {
       *it++ = vars.rates[i];
+    }
+    return it;
+  }
+
+  ode::iterator ode_aux(ode::iterator it) const {
+    for (size_t i = 0; i < vars.aux_size; i++) {
+      *it++ = vars.auxs[i];
     }
     return it;
   }

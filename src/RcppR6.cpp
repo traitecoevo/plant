@@ -1923,6 +1923,11 @@ plant::ode::state_type Patch___FF16__FF16_Env__ode_rates__get(plant::RcppR6::Rcp
 }
 
 // [[Rcpp::export]]
+plant::ode::state_type Patch___FF16__FF16_Env__ode_aux__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return plant::ode::r_ode_aux(*obj_);
+}
+
+// [[Rcpp::export]]
 size_t Patch___FF16__FF16_Env__cohort_ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->cohort_ode_size();
 }
@@ -2036,6 +2041,11 @@ plant::ode::state_type Patch___FF16w__FF16_Env__ode_state__get(plant::RcppR6::Rc
 // [[Rcpp::export]]
 plant::ode::state_type Patch___FF16w__FF16_Env__ode_rates__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+plant::ode::state_type Patch___FF16w__FF16_Env__ode_aux__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return plant::ode::r_ode_aux(*obj_);
 }
 
 // [[Rcpp::export]]
@@ -2155,6 +2165,11 @@ plant::ode::state_type Patch___FF16r__FF16_Env__ode_rates__get(plant::RcppR6::Rc
 }
 
 // [[Rcpp::export]]
+plant::ode::state_type Patch___FF16r__FF16_Env__ode_aux__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return plant::ode::r_ode_aux(*obj_);
+}
+
+// [[Rcpp::export]]
 size_t Patch___FF16r__FF16_Env__cohort_ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->cohort_ode_size();
 }
@@ -2268,6 +2283,11 @@ plant::ode::state_type Patch___K93__K93_Env__ode_state__get(plant::RcppR6::RcppR
 // [[Rcpp::export]]
 plant::ode::state_type Patch___K93__K93_Env__ode_rates__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
   return plant::ode::r_ode_rates(*obj_);
+}
+
+// [[Rcpp::export]]
+plant::ode::state_type Patch___K93__K93_Env__ode_aux__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return plant::ode::r_ode_aux(*obj_);
 }
 
 // [[Rcpp::export]]

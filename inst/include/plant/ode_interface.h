@@ -65,6 +65,16 @@ iterator ode_rates(ForwardIterator first, ForwardIterator last,
   return it;
 }
 
+template <typename ForwardIterator>
+iterator ode_aux(ForwardIterator first, ForwardIterator last,
+                   iterator it) {
+  while (first != last) {
+    it = first->ode_aux(it);
+    ++first;
+  }
+  return it;
+}
+
 template <typename T>
 typename std::enable_if<needs_time<T>::value, double>::type
 ode_time(const T& obj) {
@@ -143,6 +153,13 @@ template <typename T>
 state_type r_ode_rates(const T& obj) {
   state_type dydt(obj.ode_size());
   obj.ode_rates(dydt.begin());
+  return dydt;
+}
+
+template <typename T>
+state_type r_ode_aux(const T& obj) {
+  state_type dydt(obj.ode_size());
+  obj.ode_aux(dydt.begin());
   return dydt;
 }
 

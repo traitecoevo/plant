@@ -39,6 +39,7 @@ public:
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
+  ode::iterator       ode_aux(ode::iterator it) const;
 
   // * R interface
   std::vector<double> r_heights() const;
@@ -207,6 +208,11 @@ ode::iterator Species<T,E>::ode_rates(ode::iterator it) const {
   return ode::ode_rates(cohorts.begin(), cohorts.end(), it);
 }
 //double sum_aux(int index) {}
+
+template <typename T, typename E>
+ode::iterator Species<T,E>::ode_aux(ode::iterator it) const {
+  return ode::ode_aux(cohorts.begin(), cohorts.end(), it);
+}
 
 
 template <typename T, typename E>

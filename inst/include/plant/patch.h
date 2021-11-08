@@ -56,6 +56,7 @@ public:
   ode::const_iterator set_ode_state(ode::const_iterator it, double time);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
+  ode::iterator       ode_aux(ode::iterator it) const;
 
   // * R interface
   // Data accessors:
@@ -272,6 +273,13 @@ template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_rates(ode::iterator it) const {
   it = ode::ode_rates(species.begin(), species.end(), it);
   it = environment.ode_rates(it);
+  return it;
+}
+
+template <typename T, typename E>
+ode::iterator Patch<T,E>::ode_aux(ode::iterator it) const {
+  it = ode::ode_aux(species.begin(), species.end(), it);
+  //it = environment.ode_rates(it);
   return it;
 }
 

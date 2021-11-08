@@ -44,6 +44,7 @@ public:
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
+  ode::iterator       ode_aux(ode::iterator it) const;
 
   static std::vector<std::string> ode_names() {
     std::vector<std::string> plant_names = strategy_type::state_names();
@@ -198,6 +199,14 @@ ode::iterator Cohort<T,E>::ode_rates(ode::iterator it) const {
   }
   *it++ = offspring_produced_survival_weighted_dt;
   *it++ = log_density_dt;
+  return it;
+}
+
+template <typename T, typename E>
+ode::iterator Cohort<T,E>::ode_aux(ode::iterator it) const {
+  for (size_t i = 0; i < plant.aux_size(); i++) {
+    *it++ = plant.aux(i);
+  }
   return it;
 }
 
