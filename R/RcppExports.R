@@ -2085,6 +2085,10 @@ SCM___FF16__FF16_Env__state__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___FF16__FF16_Env__aux__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__aux__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___FF16__FF16_Env__use_ode_times__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__use_ode_times__get', PACKAGE = 'plant', obj_)
 }
@@ -2163,6 +2167,10 @@ SCM___FF16w__FF16_Env__ode_times__get <- function(obj_) {
 
 SCM___FF16w__FF16_Env__state__get <- function(obj_) {
     .Call('_plant_SCM___FF16w__FF16_Env__state__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16w__FF16_Env__aux__get <- function(obj_) {
+    .Call('_plant_SCM___FF16w__FF16_Env__aux__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___FF16w__FF16_Env__use_ode_times__get <- function(obj_) {
@@ -2245,6 +2253,10 @@ SCM___FF16r__FF16_Env__state__get <- function(obj_) {
     .Call('_plant_SCM___FF16r__FF16_Env__state__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___FF16r__FF16_Env__aux__get <- function(obj_) {
+    .Call('_plant_SCM___FF16r__FF16_Env__aux__get', PACKAGE = 'plant', obj_)
+}
+
 SCM___FF16r__FF16_Env__use_ode_times__get <- function(obj_) {
     .Call('_plant_SCM___FF16r__FF16_Env__use_ode_times__get', PACKAGE = 'plant', obj_)
 }
@@ -2323,6 +2335,10 @@ SCM___K93__K93_Env__ode_times__get <- function(obj_) {
 
 SCM___K93__K93_Env__state__get <- function(obj_) {
     .Call('_plant_SCM___K93__K93_Env__state__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___K93__K93_Env__aux__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__aux__get', PACKAGE = 'plant', obj_)
 }
 
 SCM___K93__K93_Env__use_ode_times__get <- function(obj_) {

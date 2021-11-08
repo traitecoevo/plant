@@ -574,6 +574,10 @@ SCM:
       type: "Rcpp::List"
       access: function
       name_cpp: "plant::get_state"
+    aux:
+      type: "Rcpp::List"
+      access: function
+      name_cpp: "plant::get_aux"
     use_ode_times:
       type: bool
       access: member

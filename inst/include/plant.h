@@ -71,6 +71,7 @@
 #include <plant/RcppR6_post.hpp>
 #include <plant/util_post_rcpp.h>
 #include <plant/get_state.h>
+#include <plant/get_aux.h>
 #include <plant/plant_tools.h>
 
 #endif

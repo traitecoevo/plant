@@ -42,7 +42,7 @@ public:
   // care of by Environment for us.
   // +2 for log_density and offspring_production_dt
   static size_t ode_size() { return strategy_type::state_size() + 2; }
-  size_t aux_size() { return plant.aux_size(); }
+  size_t aux_size() const { return plant.aux_size(); }
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
