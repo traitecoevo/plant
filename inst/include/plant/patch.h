@@ -52,6 +52,7 @@ public:
 
   // * ODE interface
   size_t ode_size() const;
+  size_t aux_size() const;
   double ode_time() const;
   ode::const_iterator set_ode_state(ode::const_iterator it, double time);
   ode::iterator       ode_state(ode::iterator it) const;
@@ -239,6 +240,12 @@ void Patch<T,E>::r_set_state(double time,
 template <typename T, typename E>
 size_t Patch<T,E>::ode_size() const {
   return ode::ode_size(species.begin(), species.end()) + environment.ode_size();
+}
+
+template <typename T, typename E>
+size_t Patch<T,E>::aux_size() const {
+  // no use for auxillary environment variables (yet)
+  return ode::aux_size(species.begin(), species.end());// + environment.ode_size();
 }
 
 template <typename T, typename E>

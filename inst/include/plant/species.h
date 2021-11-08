@@ -36,6 +36,7 @@ public:
   // time in as an argument.  All the bits involving time are taken
   // care of by Environment for us.
   size_t ode_size() const;
+  size_t aux_size() const;
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
@@ -191,6 +192,11 @@ std::vector<double> Species<T,E>::net_reproduction_ratio_by_cohort() const {
 template <typename T, typename E>
 size_t Species<T,E>::ode_size() const {
   return size() * cohort_type::ode_size();
+}
+
+template <typename T, typename E>
+size_t Species<T,E>::aux_size() const {
+  return size() * strategy->aux_size();
 }
 
 template <typename T, typename E>

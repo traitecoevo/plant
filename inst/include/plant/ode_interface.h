@@ -36,6 +36,16 @@ size_t ode_size(ForwardIterator first, ForwardIterator last) {
 }
 
 template <typename ForwardIterator>
+size_t aux_size(ForwardIterator first, ForwardIterator last) {
+  size_t ret = 0;
+  while (first != last) {
+    ret += first->aux_size();
+    ++first;
+  }
+  return ret;
+}
+
+template <typename ForwardIterator>
 const_iterator set_ode_state(ForwardIterator first, ForwardIterator last,
                              const_iterator it) {
   while (first != last) {
@@ -158,7 +168,7 @@ state_type r_ode_rates(const T& obj) {
 
 template <typename T>
 state_type r_ode_aux(const T& obj) {
-  state_type dydt(obj.ode_size());
+  state_type dydt(obj.aux_size());
   obj.ode_aux(dydt.begin());
   return dydt;
 }
