@@ -84,17 +84,17 @@ results <-
 
 Tidy into tidy state
 ```{r}
-results2 <- 
+results_tidy <- 
   results %>% 
   tidy_patch()
 
-results2
+results_tidy
 ```
 
 ## Plot size distirbuion
 
 ```{r}
-results2$species %>%
+results_tidy$species %>%
   drop_na() %>%
 plot_size_distribution_patch()
 ```
@@ -104,7 +104,7 @@ plot_size_distribution_patch()
 
 ```{r}
 data_species_tot <- 
-  results2$species %>% patch_species_total()
+  results_tidy$species %>% patch_species_total()
 
 data_species_tot
 ```
@@ -120,16 +120,16 @@ data_species_tot %>%
 ## Expand state
 
 ```{r}
-results3 <- results2 %>% expand_state()
+results_tidy_expand <- results_tidy %>% expand_state()
 
-results3$species
+results_tidy_expand$species
 ```
 
 total leaf area over time
 
 ```{r}
 data_species_tot <- 
-  results2$species %>% patch_species_total()
+  results_tidy_expand$species %>% patch_species_total()
 
 data_species_tot %>% 
   ggplot(aes(time, area_leaf, colour=species)) +
@@ -181,9 +181,9 @@ Note this plot has some noise in it. Suggests integration in previous step may n
 ```{r}
 
 data_species_tot <- 
-  results2$species %>% patch_species_total()
+  results_tidy_expand$species %>% patch_species_total()
 
-p1 <- results2$species %>% plot_size_distribution_patch() 
+p1 <- results_tidy_expand$species %>% plot_size_distribution_patch() 
 p2 <- 
   data_species_tot %>%
   filter(species==1) %>%
@@ -196,19 +196,20 @@ p2 <-
 
 p1 + p2
 
-results2$species %>% filter(height > 1, time> 20, time<50) %>% 
+results_tidy_expand$species %>% filter(height > 1, time> 20, time<50) %>% 
   patch_species_total() %>%
   mutate(area_stem_av = area_stem / individuals) %>% 
   ggplot(aes(area_stem_av, individuals, colour=species)) +
   geom_line() +
   scale_y_log10() +
   scale_x_log10() + 
+  theme_classic()
 ```
 
 Note, get cleaner results if use first cohorts
 
 ```{r}
-results2$species %>% filter(cohort < 150) %>% 
+results_tidy_expand$species %>% filter(cohort < 150) %>% 
   patch_species_total() %>%
   mutate(
     area_stem_av = area_stem / individuals,
@@ -230,7 +231,7 @@ Possibility this is error in calculating competition -- i.e. total leaf area?
 How is integral achieved in plant?
 
 ```{r}
-results2$species %>% 
+results_tidy_expand$species %>% 
   drop_na() %>%
   group_by(step, species, time) %>%
   slice_tail() %>% 
@@ -241,7 +242,7 @@ results2$species %>%
 
 
 ```{r}
-results2$species %>% 
+results_tidy_expand$species %>% 
   patch_species_total() %>%
   mutate(
     area_stem_av = area_stem / individuals,
@@ -250,10 +251,11 @@ results2$species %>%
   ggplot(aes(area_stem_av, individuals, colour=species)) +
   geom_line() +
   scale_y_log10() +
-  scale_x_log10()  
+  scale_x_log10() +
+  theme_classic()
 
   
-results2$species %>% filter(height > 1, time> 20, time<50) %>% 
+results_tidy_expand$species %>% filter(height > 1, time> 20, time<50) %>% 
   patch_species_total() %>%
   mutate(area_stem_av = area_stem / individuals) %>% 
   ggplot(aes(area_stem_av, individuals, colour=species)) +
@@ -262,12 +264,13 @@ results2$species %>% filter(height > 1, time> 20, time<50) %>%
   scale_x_log10() + 
   theme_classic()
 
-results2$species %>% filter(height > 0, time> 0, time<150) %>% 
+results_tidy_expand$species %>% filter(height > 0, time> 0, time<150) %>% 
   patch_species_total() %>%
   ggplot(aes(time, individuals, colour=species)) +
-  geom_line()
+  geom_line() + 
+  theme_classic()
 
-results2$species %>% filter(step%in% c(138, 139, 140, 141)) %>% 
+results_tidy_expand$species %>% filter(step%in% c(138, 139, 140, 141)) %>% 
   select(step, height, density) %>%
   arrange(step,height) %>%
   group_by(step) %>%
@@ -284,8 +287,10 @@ data_species_tot%>% filter(species==1, step==138)
 ggplot(tmp %>% filter(height > 0.5), aes(height, y, group=step, col=as.character(step))) + geom_point() + geom_line() + scale_x_log10()
 
   
-results2$species %>% filter(height > 0, time> 30, time<31) %>% View() 
-  ggplot(aes(height, density, colour=time, group=time)) +
+results_tidy_expand$species %>% filter(height > 0, time> 30, time<31) %>% View() 
+  
+results_tidy_expand$species %>%
+ggplot(aes(height, density, colour=time, group=time)) +
   geom_line() +
   scale_y_log10() +
   scale_x_log10() + 
@@ -294,7 +299,7 @@ results2$species %>% filter(height > 0, time> 30, time<31) %>% View()
 
 
 
-results2$species %>% filter(species==1) %>% plot_size_distribution_patch()   
+results_tidy_expand$species %>% filter(species==1) %>% plot_size_distribution_patch()   
 
 
 ```
@@ -302,8 +307,10 @@ results2$species %>% filter(species==1) %>% plot_size_distribution_patch()
 ## Two species
 
 ```{r}
-run_mypatch(traits =  trait_matrix(c(0.07, 0.24)))
+results <- run_mypatch(traits =  trait_matrix(c(0.07, 0.24), c("lma")))
 
+results_tidy <- results %>%
+  tidy_patch()
 
 ```
 
@@ -313,7 +320,7 @@ run_mypatch(traits =  trait_matrix(c(0.07, 0.24)))
 ```{r}
 times <- c(1, 5, 10, 1000)
 
-tidy_species_data <- results2$species
+tidy_species_data <- results_tidy$species
 
 tidy_species_new <- interpolate_to_times(tidy_species_data, times)
 ```
