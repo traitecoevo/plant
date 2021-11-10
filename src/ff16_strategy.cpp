@@ -7,7 +7,7 @@ namespace plant {
 // before physiology, before compound things?)
 // TODO: Consider moving to activating as an initialisation list?
 FF16_Strategy::FF16_Strategy() {
-  collect_all_auxillary = false;
+  collect_all_auxiliary = false;
   // build the string state/aux name to index map
   refresh_indices();
   name = "FF16";
@@ -86,7 +86,7 @@ double FF16_Strategy::mass_above_ground(double mass_leaf, double mass_bark,
   return mass_leaf + mass_bark + mass_sapwood + mass_root;
 }
 
-// for updating auxillary state
+// for updating auxiliary state
 void FF16_Strategy::update_dependent_aux(const int index, Internals& vars) {
   if (index == HEIGHT_INDEX) {
     double height = vars.state(HEIGHT_INDEX);
@@ -126,7 +126,7 @@ void FF16_Strategy::compute_rates(const FF16_Environment& environment,
     const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
     vars.set_rate(state_index.at("mass_heartwood"), mass_heartwood_dt(mass_sapwood_));
 
-    if (collect_all_auxillary) {
+    if (collect_all_auxiliary) {
       vars.set_aux(aux_index.at("area_sapwood"), area_sapwood_);
     }
   } else {

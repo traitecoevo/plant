@@ -470,6 +470,7 @@ Patch:
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
+    ode_aux: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_aux"}
     cohort_ode_size: {type: size_t, access: member}
   methods:
     introduce_new_cohort:
@@ -573,6 +574,10 @@ SCM:
       type: "Rcpp::List"
       access: function
       name_cpp: "plant::get_state"
+    aux:
+      type: "Rcpp::List"
+      access: function
+      name_cpp: "plant::get_aux"
     use_ode_times:
       type: bool
       access: member
@@ -854,7 +859,7 @@ FF16_Strategy:
     - a_dG2: double
     - k_I: double
     - control: "plant::Control"
-    - collect_all_auxillary: bool
+    - collect_all_auxiliary: bool
 
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
@@ -936,7 +941,7 @@ FF16r_Strategy:
     - a_dG2: double
     - k_I: double
     - control: "plant::Control"
-    - collect_all_auxillary: bool
+    - collect_all_auxiliary: bool
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
 K93_Strategy:
@@ -1025,4 +1030,4 @@ FF16w_Strategy:
     - a_dG2: double
     - k_I: double
     - control: "plant::Control"
-    - collect_all_auxillary: bool
+    - collect_all_auxiliary: bool

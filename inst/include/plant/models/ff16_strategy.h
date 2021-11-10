@@ -36,7 +36,7 @@ public:
       "net_mass_production_dt"
     });
     // add the associated computation to compute_rates and compute there
-    if (collect_all_auxillary) {
+    if (collect_all_auxiliary) {
       ret.push_back("area_sapwood");
     }
     return ret;

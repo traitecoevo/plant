@@ -35,7 +35,7 @@ public:
   std::map<std::string, int> aux_index; 
 
 
-  bool collect_all_auxillary;
+  bool collect_all_auxiliary;
 
   void refresh_indices();
 

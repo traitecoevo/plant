@@ -52,10 +52,12 @@ public:
 
   // * ODE interface
   size_t ode_size() const;
+  size_t aux_size() const;
   double ode_time() const;
   ode::const_iterator set_ode_state(ode::const_iterator it, double time);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
+  ode::iterator       ode_aux(ode::iterator it) const;
 
   // * R interface
   // Data accessors:
@@ -241,6 +243,12 @@ size_t Patch<T,E>::ode_size() const {
 }
 
 template <typename T, typename E>
+size_t Patch<T,E>::aux_size() const {
+  // no use for auxiliary environment variables (yet)
+  return ode::aux_size(species.begin(), species.end());// + environment.ode_size();
+}
+
+template <typename T, typename E>
 double Patch<T,E>::ode_time() const {
   return time();
 }
@@ -272,6 +280,13 @@ template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_rates(ode::iterator it) const {
   it = ode::ode_rates(species.begin(), species.end(), it);
   it = environment.ode_rates(it);
+  return it;
+}
+
+template <typename T, typename E>
+ode::iterator Patch<T,E>::ode_aux(ode::iterator it) const {
+  it = ode::ode_aux(species.begin(), species.end(), it);
+  //it = environment.ode_rates(it);
   return it;
 }
 

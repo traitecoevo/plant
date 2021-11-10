@@ -34,7 +34,7 @@ test_that("Defaults", {
     theta  = 1.0/4669,
     k_I = 0.5,
     control = Control(),
-    collect_all_auxillary = FALSE)
+    collect_all_auxiliary = FALSE)
 
   keys <- sort(names(expected))
 
@@ -45,7 +45,7 @@ test_that("Defaults", {
   expect_identical(unclass(s)[keys], expected[keys])
 })
 
-test_that("FF16 collect_all_auxillary option", {
+test_that("FF16 collect_all_auxiliary option", {
 
   s <- FF16_Strategy()
   p <- FF16_Individual(s)
@@ -56,8 +56,8 @@ test_that("FF16 collect_all_auxillary option", {
     "net_mass_production_dt"
   ))
 
-  s <- FF16_Strategy(collect_all_auxillary=TRUE)
-  expect_true(s$collect_all_auxillary)
+  s <- FF16_Strategy(collect_all_auxiliary=TRUE)
+  expect_true(s$collect_all_auxiliary)
   p <- FF16_Individual(s)
   expect_equal(p$aux_size, 3)
   expect_equal(length(p$internals$auxs), 3)

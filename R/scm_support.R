@@ -100,31 +100,25 @@ run_scm <- function(p, env = make_environment(parameters = p),
 ##' @param p A \code{Parameters} object
 ##' @param env Environment object (defaults to FF16_Environment)
 ##' @param ctrl Control object
-##' @param include_competition_effect Include total leaf area (will change; see
-##' issue #138)
+##' @param collect_auxiliary_variables Return additional strategy variables (eg
+##' competition_effect)
 ##' @author Rich FitzJohn
 ##' @export
 run_scm_collect <- function(p, env = make_environment(parameters = p), 
                             ctrl = scm_base_control(),
-                            include_competition_effect=FALSE) {
+                            collect_auxiliary_variables=FALSE) {
   collect_default <- function(scm) {
     scm$state
   }
-  collect_competition_effect <- function(scm) {
+  collect_aux <- function(scm) {
     ret <- scm$state
-    competition_effect <- numeric(length(ret$species))
-    for (i in seq_along(ret$species)) {
-      ## ret$species[[i]] <- rbind(
-      ##   ret$species[[i]]
-      ##   competition_effect=c(scm$patch$species[[i]]$competition_effects, 0.0))
-      competition_effect[i] <- scm$patch$species[[i]]$compute_competition(0.0)
-    }
-    ret$competition_effect <- competition_effect
+    aux <- scm$aux
+    ret$species <- mapply(rbind, ret$species, aux$species, SIMPLIFY=FALSE)
     ret
   }
-  collect <- if (include_competition_effect) collect_competition_effect else collect_default
+  collect <- if (collect_auxiliary_variables) collect_aux else collect_default
   types <- extract_RcppR6_template_types(p, "Parameters")
-
+  
   scm <- do.call('SCM', types)(p, env, ctrl)
   res <- list(collect(scm))
 
@@ -157,12 +151,6 @@ run_scm_collect <- function(p, env = make_environment(parameters = p),
               net_reproduction_ratios=scm$net_reproduction_ratios,
               patch_density=patch_density,
               p=p)
-
-  if (include_competition_effect) {
-    ret$competition_effect <- do.call("rbind", lapply(res, "[[", "competition_effect"))
-  }
-
-  ret
 }
 
 ##' Functions for reconstructing a Patch from an SCM
