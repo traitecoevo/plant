@@ -239,7 +239,7 @@ results_tidy_expand$species %>%
   ggplot(aes(time, density)) + geom_line()
 ```
 
-
+# Work in progress why is there noise in the self thinning relationship
 
 ```{r}
 results_tidy_expand$species %>% 
@@ -294,9 +294,8 @@ ggplot(aes(height, density, colour=time, group=time)) +
   geom_line() +
   scale_y_log10() +
   scale_x_log10() + 
-  theme_classic()
-
-
+  theme_classic() + 
+  facet_wrap(~species)
 
 
 results_tidy_expand$species %>% filter(species==1) %>% plot_size_distribution_patch()   
@@ -323,6 +322,7 @@ times <- c(1, 5, 10, 1000)
 tidy_species_data <- results_tidy$species
 
 tidy_species_new <- interpolate_to_times(tidy_species_data, times)
+
 ```
 
 Gives predictions at new time points. 
@@ -342,16 +342,17 @@ data_combined <-
 
 data_combined_long <- 
   data_combined  %>% 
-  select(cohort, time, step, density, height) %>% 
+  select(cohort, time, step, density, height, species) %>% 
   pivot_longer(cols = c("density", "height"))
 
 data_combined_long %>% 
-  ggplot(aes(time, value, group=cohort)) +
-  geom_line(col=1) +
+  ggplot(aes(time, value, group=cohort,colour=cohort)) +
+  geom_line() +
   geom_point(data = data_combined_long %>% filter(is.na(step)), col=2) +
   scale_y_log10() +
   xlim(c(0, 20)) +
-  facet_wrap(~name, scales="free")
+  facet_grid(name~species, scales="free") +
+  theme_classic()
 ```
 
 ## Interpolate to heights
@@ -377,20 +378,20 @@ data_combined <-
   tidy_species_data %>%
   bind_rows(tidy_species_new) %>%
   arrange(species, time, height) %>% 
-  filter(step %in% c(100, 150, 200))
+  filter(step %in% c(100, 150))
 
 data_combined_long <- 
   data_combined  %>% 
-  select(cohort, time, step, height, density, mortality, area_heartwood) %>% 
+  select(cohort, time, step, height, density, mortality, area_heartwood, species) %>% 
   pivot_longer(cols = c("density", "mortality", "area_heartwood"))
 
 data_combined_long %>% 
-    filter(!is.na(cohort)) %>%
-  ggplot(aes(height, value, group=step)) +
-  geom_line(col=1) +
-  geom_point(data = data_combined_long %>% filter(is.na(cohort)), col="red") +
-  xlim(c(0, 20)) +
-  facet_grid(vars(name), vars(step), scales="free")
+    filter(!is.na(cohort)) %>% 
+  ggplot() +
+  geom_line(aes(height, value, group=step, colour=step)) +
+  geom_point(data = data_combined_long %>% filter(is.na(cohort)), aes(x=height, y=value), col="red")+
+  facet_grid(name~species, scales="free") +
+  theme_classic()
 ```
 
 
