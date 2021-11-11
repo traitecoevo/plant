@@ -362,6 +362,8 @@ Similar to above, can interpolate across cohorts at given time to sepcific heigh
 ```{r}
 heights <- c(1, 5, 10)
 
+tidy_species_data <- results_tidy$species
+
 tidy_species_new <- interpolate_to_heights(tidy_species_data, heights)
 ```
 

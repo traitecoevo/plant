@@ -135,9 +135,14 @@ interpolate_to_heights <- function(tidy_species_data, heights, method="natural")
     y_pred[!dplyr::between(xout, min(x), max(x))] <- NA
     y_pred
   }
-  
+
+  if(!exists("step", tidy_species_data)){
+    tidy_species_data <- tidy_species_data %>%
+      tibble::add_column(step = NA)
+  }
+
   tidy_species_data %>%
-    tidyr::drop_na() %>%
+    tidyr::drop_na(-step) %>%
     dplyr::group_by(species, time, step) %>%
     dplyr::summarise(
       dplyr::across(where(is.double), ~f(height, .x, xout=heights)),
