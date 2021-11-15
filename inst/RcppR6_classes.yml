@@ -465,6 +465,7 @@ Patch:
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
+    total_cohorts: {type: int, access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}

@@ -43,6 +43,15 @@ public:
     return(cohort_ode_size);
   }
 
+  int total_cohorts() {
+    int n_cohorts = 0;
+    for (auto& s : species) {
+      n_cohorts += s.size();
+    }
+    return n_cohorts;
+  }
+
+
   const species_type& at(size_t species_index) const {
     return species[species_index];
   }
