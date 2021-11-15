@@ -995,7 +995,7 @@ template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["control"] = Rcpp::wrap(x.control);
-  ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
+  ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
   ret.attr("class") = "FF16_Strategy";
   return ret;
 }
@@ -1072,8 +1072,8 @@ template <> inline plant::FF16_Strategy as(SEXP x) {
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
-  // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
-  ret.collect_all_auxillary = Rcpp::as<bool >(xl["collect_all_auxillary"]);
+  // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);
+  ret.collect_all_auxiliary = Rcpp::as<bool >(xl["collect_all_auxiliary"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::FF16_Environment& x) {
@@ -1116,7 +1116,7 @@ template <> inline SEXP wrap(const plant::FF16r_Strategy& x) {
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["control"] = Rcpp::wrap(x.control);
-  ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
+  ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
   ret.attr("class") = "FF16r_Strategy";
   return ret;
 }
@@ -1193,8 +1193,8 @@ template <> inline plant::FF16r_Strategy as(SEXP x) {
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
-  // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
-  ret.collect_all_auxillary = Rcpp::as<bool >(xl["collect_all_auxillary"]);
+  // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);
+  ret.collect_all_auxiliary = Rcpp::as<bool >(xl["collect_all_auxiliary"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::K93_Strategy& x) {
@@ -1289,7 +1289,7 @@ template <> inline SEXP wrap(const plant::FF16w_Strategy& x) {
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["control"] = Rcpp::wrap(x.control);
-  ret["collect_all_auxillary"] = Rcpp::wrap(x.collect_all_auxillary);
+  ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
   ret.attr("class") = "FF16w_Strategy";
   return ret;
 }
@@ -1366,8 +1366,8 @@ template <> inline plant::FF16w_Strategy as(SEXP x) {
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
-  // ret.collect_all_auxillary = Rcpp::as<decltype(retcollect_all_auxillary) >(xl["collect_all_auxillary"]);
-  ret.collect_all_auxillary = Rcpp::as<bool >(xl["collect_all_auxillary"]);
+  // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);
+  ret.collect_all_auxiliary = Rcpp::as<bool >(xl["collect_all_auxiliary"]);
   return ret;
 }
 }

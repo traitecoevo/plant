@@ -40,10 +40,13 @@ public:
   // NOTE: We are a time-independent model here so no need to pass
   // time in as an argument.  All the bits involving time are taken
   // care of by Environment for us.
+  // +2 for log_density and offspring_production_dt
   static size_t ode_size() { return strategy_type::state_size() + 2; }
+  size_t aux_size() const { return plant.aux_size(); }
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
+  ode::iterator       ode_aux(ode::iterator it) const;
 
   static std::vector<std::string> ode_names() {
     std::vector<std::string> plant_names = strategy_type::state_names();
@@ -198,6 +201,14 @@ ode::iterator Cohort<T,E>::ode_rates(ode::iterator it) const {
   }
   *it++ = offspring_produced_survival_weighted_dt;
   *it++ = log_density_dt;
+  return it;
+}
+
+template <typename T, typename E>
+ode::iterator Cohort<T,E>::ode_aux(ode::iterator it) const {
+  for (size_t i = 0; i < plant.aux_size(); i++) {
+    *it++ = plant.aux(i);
+  }
   return it;
 }
 

@@ -4739,6 +4739,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___FF16__FF16_Env__ode_aux__get
+plant::ode::state_type Patch___FF16__FF16_Env__ode_aux__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Patch___FF16__FF16_Env__ode_aux__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16__FF16_Env__ode_aux__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___FF16__FF16_Env__cohort_ode_size__get
 size_t Patch___FF16__FF16_Env__cohort_ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Patch___FF16__FF16_Env__cohort_ode_size__get(SEXP obj_SEXP) {
@@ -5032,6 +5043,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Patch___FF16w__FF16_Env__ode_rates__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Patch___FF16w__FF16_Env__ode_aux__get
+plant::ode::state_type Patch___FF16w__FF16_Env__ode_aux__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Patch___FF16w__FF16_Env__ode_aux__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16w__FF16_Env__ode_aux__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5331,6 +5353,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___FF16r__FF16_Env__ode_aux__get
+plant::ode::state_type Patch___FF16r__FF16_Env__ode_aux__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Patch___FF16r__FF16_Env__ode_aux__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___FF16r__FF16_Env__ode_aux__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___FF16r__FF16_Env__cohort_ode_size__get
 size_t Patch___FF16r__FF16_Env__cohort_ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Patch___FF16r__FF16_Env__cohort_ode_size__get(SEXP obj_SEXP) {
@@ -5627,6 +5660,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Patch___K93__K93_Env__ode_aux__get
+plant::ode::state_type Patch___K93__K93_Env__ode_aux__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Patch___K93__K93_Env__ode_aux__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Patch___K93__K93_Env__ode_aux__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Patch___K93__K93_Env__cohort_ode_size__get
 size_t Patch___K93__K93_Env__cohort_ode_size__get(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_Patch___K93__K93_Env__cohort_ode_size__get(SEXP obj_SEXP) {
@@ -5837,6 +5881,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__state__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16__FF16_Env__aux__get
+Rcpp::List SCM___FF16__FF16_Env__aux__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__aux__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__aux__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -6075,6 +6130,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// SCM___FF16w__FF16_Env__aux__get
+Rcpp::List SCM___FF16w__FF16_Env__aux__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16w__FF16_Env__aux__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16w__FF16_Env__aux__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___FF16w__FF16_Env__use_ode_times__get
 bool SCM___FF16w__FF16_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___FF16w__FF16_Env__use_ode_times__get(SEXP obj_SEXP) {
@@ -6310,6 +6376,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// SCM___FF16r__FF16_Env__aux__get
+Rcpp::List SCM___FF16r__FF16_Env__aux__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16r__FF16_Env__aux__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16r__FF16_Env__aux__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // SCM___FF16r__FF16_Env__use_ode_times__get
 bool SCM___FF16r__FF16_Env__use_ode_times__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___FF16r__FF16_Env__use_ode_times__get(SEXP obj_SEXP) {
@@ -6542,6 +6619,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__state__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___K93__K93_Env__aux__get
+Rcpp::List SCM___K93__K93_Env__aux__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_SCM___K93__K93_Env__aux__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__aux__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10140,6 +10228,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___FF16__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_rates__get, 1},
+    {"_plant_Patch___FF16__FF16_Env__ode_aux__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__ode_aux__get, 1},
     {"_plant_Patch___FF16__FF16_Env__cohort_ode_size__get", (DL_FUNC) &_plant_Patch___FF16__FF16_Env__cohort_ode_size__get, 1},
     {"_plant_Patch___FF16w__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16w__FF16_Env__ctor, 3},
     {"_plant_Patch___FF16w__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___FF16w__FF16_Env__introduce_new_cohort, 2},
@@ -10166,6 +10255,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16w__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___FF16w__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___FF16w__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___FF16w__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___FF16w__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___FF16w__FF16_Env__ode_rates__get, 1},
+    {"_plant_Patch___FF16w__FF16_Env__ode_aux__get", (DL_FUNC) &_plant_Patch___FF16w__FF16_Env__ode_aux__get, 1},
     {"_plant_Patch___FF16w__FF16_Env__cohort_ode_size__get", (DL_FUNC) &_plant_Patch___FF16w__FF16_Env__cohort_ode_size__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ctor, 3},
     {"_plant_Patch___FF16r__FF16_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__introduce_new_cohort, 2},
@@ -10192,6 +10282,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___FF16r__FF16_Env__ode_time__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_time__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_state__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_rates__get, 1},
+    {"_plant_Patch___FF16r__FF16_Env__ode_aux__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__ode_aux__get, 1},
     {"_plant_Patch___FF16r__FF16_Env__cohort_ode_size__get", (DL_FUNC) &_plant_Patch___FF16r__FF16_Env__cohort_ode_size__get, 1},
     {"_plant_Patch___K93__K93_Env__ctor", (DL_FUNC) &_plant_Patch___K93__K93_Env__ctor, 3},
     {"_plant_Patch___K93__K93_Env__introduce_new_cohort", (DL_FUNC) &_plant_Patch___K93__K93_Env__introduce_new_cohort, 2},
@@ -10218,6 +10309,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Patch___K93__K93_Env__ode_time__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_time__get, 1},
     {"_plant_Patch___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_state__get, 1},
     {"_plant_Patch___K93__K93_Env__ode_rates__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_rates__get, 1},
+    {"_plant_Patch___K93__K93_Env__ode_aux__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__ode_aux__get, 1},
     {"_plant_Patch___K93__K93_Env__cohort_ode_size__get", (DL_FUNC) &_plant_Patch___K93__K93_Env__cohort_ode_size__get, 1},
     {"_plant_SCM___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ctor, 3},
     {"_plant_SCM___FF16__FF16_Env__run", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__run, 1},
@@ -10237,6 +10329,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__FF16_Env__cohort_schedule__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__cohort_schedule__set, 2},
     {"_plant_SCM___FF16__FF16_Env__ode_times__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__ode_times__get, 1},
     {"_plant_SCM___FF16__FF16_Env__state__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__state__get, 1},
+    {"_plant_SCM___FF16__FF16_Env__aux__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__aux__get, 1},
     {"_plant_SCM___FF16__FF16_Env__use_ode_times__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__use_ode_times__get, 1},
     {"_plant_SCM___FF16__FF16_Env__use_ode_times__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__use_ode_times__set, 2},
     {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get, 1},
@@ -10258,6 +10351,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16w__FF16_Env__cohort_schedule__set", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__cohort_schedule__set, 2},
     {"_plant_SCM___FF16w__FF16_Env__ode_times__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__ode_times__get, 1},
     {"_plant_SCM___FF16w__FF16_Env__state__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__state__get, 1},
+    {"_plant_SCM___FF16w__FF16_Env__aux__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__aux__get, 1},
     {"_plant_SCM___FF16w__FF16_Env__use_ode_times__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__use_ode_times__get, 1},
     {"_plant_SCM___FF16w__FF16_Env__use_ode_times__set", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__use_ode_times__set, 2},
     {"_plant_SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get, 1},
@@ -10279,6 +10373,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16r__FF16_Env__cohort_schedule__set", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__cohort_schedule__set, 2},
     {"_plant_SCM___FF16r__FF16_Env__ode_times__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__ode_times__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__state__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__state__get, 1},
+    {"_plant_SCM___FF16r__FF16_Env__aux__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__aux__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__use_ode_times__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__use_ode_times__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__use_ode_times__set", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__use_ode_times__set, 2},
     {"_plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get, 1},
@@ -10300,6 +10395,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___K93__K93_Env__cohort_schedule__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__cohort_schedule__set, 2},
     {"_plant_SCM___K93__K93_Env__ode_times__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__ode_times__get, 1},
     {"_plant_SCM___K93__K93_Env__state__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__state__get, 1},
+    {"_plant_SCM___K93__K93_Env__aux__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__aux__get, 1},
     {"_plant_SCM___K93__K93_Env__use_ode_times__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__use_ode_times__get, 1},
     {"_plant_SCM___K93__K93_Env__use_ode_times__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__use_ode_times__set, 2},
     {"_plant_SCM___K93__K93_Env__net_reproduction_ratio_errors__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__net_reproduction_ratio_errors__get, 1},

@@ -62,7 +62,7 @@ scm_base_control <- function() {
 ##' @author Rich FitzJohn
 ##' @export
 scm_base_parameters <- function(type = NA, env = environment_type(type)) {
-  
+
    Parameters(type, env)(patch_area=1.0)
 }
 
@@ -80,8 +80,8 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @author Rich FitzJohn
 ##' @export
 run_scm <- function(p, env = make_environment(parameters = p),
-                       ctrl = scm_base_control(), 
-                       state=NULL, 
+                       ctrl = scm_base_control(),
+                       state=NULL,
                        use_ode_times=FALSE) {
   scm <- make_scm(p, env, ctrl, state)
   if (use_ode_times) {
@@ -103,33 +103,27 @@ run_scm <- function(p, env = make_environment(parameters = p),
 ##' @param env Environment object (defaults to FF16_Environment)
 ##' @param ctrl Control object
 ##' @param state An optional State object matching the strategies in \code{p}
-##' @param include_competition_effect Include total leaf area (will change; see
-##' issue #138)
+##' @param collect_auxiliary_variables Return additional strategy variables (eg
+##' competition_effect)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, env = make_environment(parameters = p), 
+run_scm_collect <- function(p, env = make_environment(parameters = p),
                             ctrl = scm_base_control(),
                             state = NULL,
-                            include_competition_effect=FALSE) {
+                            collect_auxiliary_variables=FALSE) {
   collect_default <- function(scm) {
     scm$state
   }
-  collect_competition_effect <- function(scm) {
+  collect_aux <- function(scm) {
     ret <- scm$state
-    competition_effect <- numeric(length(ret$species))
-    for (i in seq_along(ret$species)) {
-      ## ret$species[[i]] <- rbind(
-      ##   ret$species[[i]]
-      ##   competition_effect=c(scm$patch$species[[i]]$competition_effects, 0.0))
-      competition_effect[i] <- scm$patch$species[[i]]$compute_competition(0.0)
-    }
-    ret$competition_effect <- competition_effect
+    aux <- scm$aux
+    ret$species <- mapply(rbind, ret$species, aux$species, SIMPLIFY=FALSE)
     ret
   }
 
-  collect <- if (include_competition_effect) collect_competition_effect else collect_default
-  
+  collect <- if (collect_auxiliary_variables) collect_aux else collect_default
   scm <- make_scm(p, env, ctrl, state)
+
   res <- list(collect(scm))
 
   while (!scm$complete) {
@@ -161,12 +155,6 @@ run_scm_collect <- function(p, env = make_environment(parameters = p),
               net_reproduction_ratios=scm$net_reproduction_ratios,
               patch_density=patch_density,
               p=p)
-
-  if (include_competition_effect) {
-    ret$competition_effect <- do.call("rbind", lapply(res, "[[", "competition_effect"))
-  }
-
-  ret
 }
 
 ##' Functions for reconstructing a Patch from an SCM
@@ -193,14 +181,14 @@ make_patch <- function(state, p, env = make_environment(parameters = p),
 make_scm <- function(p, env, ctrl, state=NULL) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   scm <- do.call('SCM', types)(p, env, ctrl)
-  
+
   if(!is.null(state)) {
     n_str <- length(p$strategies)
     n_spp = length(state$species)
-    
+
     if(n_spp != n_str)
       stop("State object has more species than strategies defined in Parameters")
-  
+
     # need to append cohort times to enable integration of net fecundity
     if(state$time != 0)
       warning("Solver must start from 0, resetting initial state time")
@@ -208,10 +196,10 @@ make_scm <- function(p, env, ctrl, state=NULL) {
     times <- scm$cohort_schedule$all_times
 
     initial_cohorts <- sapply(times, function(t) sum(t == 0), simplify = F)
-    new_cohorts <- mapply(function(s, i) max(0, ncol(s) - i), 
+    new_cohorts <- mapply(function(s, i) max(0, ncol(s) - i),
                           state$species, initial_cohorts, SIMPLIFY = F)
-    
-    new_times <- mapply(function(i, t) c(rep(0, i), t), 
+
+    new_times <- mapply(function(i, t) c(rep(0, i), t),
                         new_cohorts, times, SIMPLIFY = F)
 
     # this introduces one more ind. than necessary, but if we
@@ -221,15 +209,15 @@ make_scm <- function(p, env, ctrl, state=NULL) {
 
     # next step starts from first non-zero time
     start_time <- sapply(times, function(t) min(t[t>0]))
-        
+
     # add as many new cohorts as required to fit `state` object
-    scm$set_state(min(start_time), unlist(state$species), 
+    scm$set_state(min(start_time), unlist(state$species),
                   n = mapply(`+`, new_cohorts, initial_cohorts))
   }  
-  
-  return(scm)  
+
+  return(scm)
 }
-  
+
 ##' @rdname make_patch
 ##' @param i Index to extract from \code{x}
 ##' @param x Result of running \code{\link{run_scm_collect}}

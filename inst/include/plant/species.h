@@ -36,9 +36,14 @@ public:
   // time in as an argument.  All the bits involving time are taken
   // care of by Environment for us.
   size_t ode_size() const;
+  size_t aux_size() const;
+  size_t strategy_aux_size() const;
+  std::vector<std::string> aux_names() const;
+  
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
+  ode::iterator       ode_aux(ode::iterator it) const;
 
   // * R interface
   std::vector<double> r_heights() const;
@@ -114,7 +119,7 @@ double Species<T,E>::height_max() const {
 // height is zero, because it will be zero for all cohorts further down
 // the list.
 //
-// NOTE: This is simply performing numerical integration, via the
+// NOTE: This is simply performing numerical integration,  via the
 // trapezium rule, of the compute_competition with respect to plant
 // height.  You'd think that this would be nicer to do in terms of a
 // call to an external trapezium integration function, but building
@@ -192,6 +197,23 @@ size_t Species<T,E>::ode_size() const {
   return size() * cohort_type::ode_size();
 }
 
+// bit clunky...
+template <typename T, typename E>
+size_t Species<T,E>::aux_size() const {
+  return size() * strategy_aux_size();
+}
+
+// these 2 only really used in get_aux.h
+template <typename T, typename E>
+size_t Species<T,E>::strategy_aux_size() const {
+  return strategy->aux_size();
+}
+
+template <typename T, typename E>
+std::vector<std::string> Species<T,E>::aux_names() const {
+  return strategy->aux_names();
+}
+
 template <typename T, typename E>
 ode::const_iterator Species<T,E>::set_ode_state(ode::const_iterator it) {
   return ode::set_ode_state(cohorts.begin(), cohorts.end(), it);
@@ -207,6 +229,11 @@ ode::iterator Species<T,E>::ode_rates(ode::iterator it) const {
   return ode::ode_rates(cohorts.begin(), cohorts.end(), it);
 }
 //double sum_aux(int index) {}
+
+template <typename T, typename E>
+ode::iterator Species<T,E>::ode_aux(ode::iterator it) const {
+  return ode::ode_aux(cohorts.begin(), cohorts.end(), it);
+}
 
 
 template <typename T, typename E>

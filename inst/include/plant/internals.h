@@ -27,6 +27,8 @@ public:
   size_t state_size;
   size_t aux_size;
 
+
+  // Perhaps make these private so the () overloads below have some use
   std::vector<double> states;
   std::vector<double> rates;
   std::vector<double> auxs;
