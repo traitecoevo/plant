@@ -21,6 +21,9 @@ void Interpolator::init(const std::vector<double>& x_,
 // Compute the interpolated function from the points contained in 'x'
 // and 'y'.
 void Interpolator::initialise() {
+  if (not std::is_sorted(x.begin(), x.end())) {
+    util::stop("spline control points must be in non-descending order");
+  }
   if (x.size() > 0) {
     tk_spline.set_points(x, y);
     active = true;
@@ -34,6 +37,14 @@ void Interpolator::add_point(double xi, double yi) {
   y.push_back(yi);
 }
 
+// adds point in sorted position (slower than above)
+void Interpolator::add_point_sorted(double xi, double yi) {
+  auto x_upper = std::upper_bound(x.begin(), x.end(), xi); // find smallest number larger than xi
+  x.insert(x_upper, xi); // add xi below that number
+  auto y_upper = std::upper_bound(y.begin(), y.end(), yi);
+  y.insert(y_upper, yi);
+}
+
 // Remove all the contents, being ready to be refilled.
 void Interpolator::clear() {
   x.clear();
@@ -43,6 +54,12 @@ void Interpolator::clear() {
 
 // Compute the value of the interpolated function at point `x=u`
 double Interpolator::eval(double u) const {
+  check_active();
+  return tk_spline(u);
+}
+
+// faster version
+double Interpolator::operator()(double u) const {
   return tk_spline(u);
 }
 
@@ -84,9 +101,10 @@ std::vector<double> Interpolator::r_eval(std::vector<double> u) const {
   check_active();
   const size_t n = u.size();
   std::vector<double> ret(n);
-  for (size_t i = 0; i < n; ++i) {
-    ret[i] = eval(u[i]);
-  }
+  // for (size_t i = 0; i < n; ++i) {
+  //   ret[i] = operator()(u[i]);
+  // }
+  std::transform(u.begin(), u.end(), ret.begin(), [&](double x){return operator()(x);});
   return ret;
 }
 

@@ -871,6 +871,30 @@ FF16_Environment:
       FF16_Environment object
       @export
   methods:
+    rainfall_init:
+      args: [x: "std::vector<double>", y: "std::vector<double>"]
+      return_type: void
+    rainfall_recompute:
+      args: []
+      return_type: void
+    rainfall_eval:
+      args: [u: double]
+      return_type: double
+    rainfall_eval_range:
+      args: [u: "std::vector<double>"]
+      return_type: "std::vector<double>"
+    rainfall_add_point:
+      args: [x: double, y: double]
+      return_type: void
+    rainfall_add_point_sorted:
+      args: [x: double, y: double]
+      return_type: void
+    rainfall_add_points:
+      args: [x: "std::vector<double>", y: "std::vector<double>"]
+      return_type: void
+    rainfall_clear_points:
+      args: []
+      return_type: void
     canopy_openness:
       args: [height: double]
       return_type: double

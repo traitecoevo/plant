@@ -9235,6 +9235,98 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_Environment__rainfall_init
+void FF16_Environment__rainfall_init(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> x, std::vector<double> y);
+RcppExport SEXP _plant_FF16_Environment__rainfall_init(SEXP obj_SEXP, SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP);
+    FF16_Environment__rainfall_init(obj_, x, y);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__rainfall_recompute
+void FF16_Environment__rainfall_recompute(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__rainfall_recompute(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    FF16_Environment__rainfall_recompute(obj_);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__rainfall_eval
+double FF16_Environment__rainfall_eval(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double u);
+RcppExport SEXP _plant_FF16_Environment__rainfall_eval(SEXP obj_SEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__rainfall_eval(obj_, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__rainfall_eval_range
+std::vector<double> FF16_Environment__rainfall_eval_range(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> u);
+RcppExport SEXP _plant_FF16_Environment__rainfall_eval_range(SEXP obj_SEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__rainfall_eval_range(obj_, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__rainfall_add_point
+void FF16_Environment__rainfall_add_point(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double x, double y);
+RcppExport SEXP _plant_FF16_Environment__rainfall_add_point(SEXP obj_SEXP, SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type y(ySEXP);
+    FF16_Environment__rainfall_add_point(obj_, x, y);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__rainfall_add_point_sorted
+void FF16_Environment__rainfall_add_point_sorted(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double x, double y);
+RcppExport SEXP _plant_FF16_Environment__rainfall_add_point_sorted(SEXP obj_SEXP, SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type x(xSEXP);
+    Rcpp::traits::input_parameter< double >::type y(ySEXP);
+    FF16_Environment__rainfall_add_point_sorted(obj_, x, y);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__rainfall_add_points
+void FF16_Environment__rainfall_add_points(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> x, std::vector<double> y);
+RcppExport SEXP _plant_FF16_Environment__rainfall_add_points(SEXP obj_SEXP, SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP);
+    FF16_Environment__rainfall_add_points(obj_, x, y);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__rainfall_clear_points
+void FF16_Environment__rainfall_clear_points(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__rainfall_clear_points(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    FF16_Environment__rainfall_clear_points(obj_);
+    return R_NilValue;
+END_RCPP
+}
 // FF16_Environment__canopy_openness
 double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height);
 RcppExport SEXP _plant_FF16_Environment__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
@@ -10578,6 +10670,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
     {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 2},
+    {"_plant_FF16_Environment__rainfall_init", (DL_FUNC) &_plant_FF16_Environment__rainfall_init, 3},
+    {"_plant_FF16_Environment__rainfall_recompute", (DL_FUNC) &_plant_FF16_Environment__rainfall_recompute, 1},
+    {"_plant_FF16_Environment__rainfall_eval", (DL_FUNC) &_plant_FF16_Environment__rainfall_eval, 2},
+    {"_plant_FF16_Environment__rainfall_eval_range", (DL_FUNC) &_plant_FF16_Environment__rainfall_eval_range, 2},
+    {"_plant_FF16_Environment__rainfall_add_point", (DL_FUNC) &_plant_FF16_Environment__rainfall_add_point, 3},
+    {"_plant_FF16_Environment__rainfall_add_point_sorted", (DL_FUNC) &_plant_FF16_Environment__rainfall_add_point_sorted, 3},
+    {"_plant_FF16_Environment__rainfall_add_points", (DL_FUNC) &_plant_FF16_Environment__rainfall_add_points, 3},
+    {"_plant_FF16_Environment__rainfall_clear_points", (DL_FUNC) &_plant_FF16_Environment__rainfall_clear_points, 1},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},

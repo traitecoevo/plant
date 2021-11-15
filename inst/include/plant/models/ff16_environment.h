@@ -4,6 +4,7 @@
 
 #include <plant/environment.h>
 #include <plant/canopy.h>
+#include <plant/interpolator.h>
 
 using namespace Rcpp;
 
@@ -22,11 +23,58 @@ public:
     soil_infiltration_rate = 0.0;
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
+
+    rainfall_spline = interpolator::Interpolator();
   };
+
+  // first spline computation
+  void rainfall_init(std::vector<double> const& x, std::vector<double> const& y) {
+    rainfall_spline.init(x, y); // set x, y points and compute spline
+  }
+
+  // if any points are added to the spline, need to recompute spline
+  void rainfall_recompute() {
+    rainfall_spline.initialise();
+  }
+
+  double rainfall_eval(double u) const {
+    return rainfall_spline.eval(u);
+  }
+
+  std::vector<double> rainfall_eval_range(std::vector<double> const& u) const {
+    return rainfall_spline.r_eval(u);
+  }
+
+  /* if xi is not larger than every other x in the spline, recomputing the spline 
+  will throw an error and will need to clear_points() and reconstruct spline */
+  void rainfall_add_point(double xi, double yi) {
+    rainfall_spline.add_point(xi, yi);
+  }
+
+  // safe add point
+  void rainfall_add_point_sorted(double xi, double yi) {
+    rainfall_spline.add_point_sorted(xi, yi);
+  }
+
+  /* not sure if these two are necessary for the rainfall model. could also move these
+  to be general interpolator.h functions? */
+  void rainfall_add_points(std::vector<double> const& x, std::vector<double> const& y) {
+    util::check_length(x.size(), y.size());
+    for (size_t i = 0; i < x.size(); ++i) {
+      rainfall_add_point(x[i], y[i]); // refactor?
+    }
+  }
+
+  // rainfall_add_points_sorted ?
+
+  void rainfall_clear_points() {
+    rainfall_spline.clear();
+  }
 
   // Light interface
   bool canopy_rescale_usually;
 
+  // private?
   Canopy canopy;
 
   // Should this be here or in canopy?
@@ -92,7 +140,9 @@ public:
   void clear_environment() {
     canopy.clear();
   }
-
+  
+private:
+  interpolator::Interpolator rainfall_spline;
 };
 
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {

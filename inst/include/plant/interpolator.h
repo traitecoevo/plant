@@ -16,9 +16,11 @@ public:
   void initialise();
 
   void add_point(double xi, double yi);
+  void add_point_sorted(double xi, double yi);
   void clear();
 
   double eval(double u) const;
+  double operator()(double u) const;
   size_t size() const;
 
   double min() const;
@@ -26,6 +28,7 @@ public:
 
   std::vector<double> get_x() const;
   std::vector<double> get_y() const;
+  
 
   // * R interface
   SEXP r_get_xy() const;

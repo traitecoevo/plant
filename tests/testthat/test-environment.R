@@ -41,3 +41,35 @@ for (x in names(strategy_types)) {
     expect_identical(sapply(hmid, env$canopy$canopy_interpolator$eval), sapply(hmid, interplator$eval))
   })
 }
+
+test_that("FF16 rainfall spline", {
+  context(sprintf("Rainfall-FF16",x))
+  env <- make_environment("FF16")
+  
+  ## simple quadratic
+  x <- seq(-10, 10, 2)
+  y <- x^2
+  env$rainfall_init(x, y)
+  
+  ## discrete points used for spline creation
+  expect_equal(env$rainfall_eval(2), 4)
+  expect_equal(env$rainfall_eval(-2), 4)
+  
+  ## interpolated points
+  expect_equal(env$rainfall_eval(3), 9, tolerance=1e-2)
+  expect_equal(env$rainfall_eval(-3), 9, tolerance=1e-2)
+  expect_equal(env$rainfall_eval(5.5), 30.25, tolerance=1e-2)
+  expect_equal(env$rainfall_eval(-5.5), 30.25, tolerance=1e-2)
+  
+  ## interpolated range of points
+  expect_equal(env$rainfall_eval_range(c(-7, 1, 7.8345)), c(49, 1, 61.37939025), tolerance=1e-2)
+  
+  ## clear points, set new points and recompute spline
+  env$rainfall_clear_points()
+  x <- seq(-10, 10, 1)
+  y <- 2*x
+  env$rainfall_add_points(x, y)
+  env$rainfall_recompute()
+  expect_equal(env$rainfall_eval(3), 6, tolerance=1e-2)
+  expect_equal(env$rainfall_eval(3.3), 6.6, tolerance=1e-2)
+})
