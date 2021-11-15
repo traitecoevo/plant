@@ -184,20 +184,16 @@ make_scm <- function(p, env, ctrl, state=NULL) {
 
   if(!is.null(state)) {
     n_str <- length(p$strategies)
-    n_spp = length(state$species)
+    n_spp = length(species)
 
     if(n_spp != n_str)
       stop("State object has more species than strategies defined in Parameters")
-
-    # need to append cohort times to enable integration of net fecundity
-    if(state$time != 0)
-      warning("Solver must start from 0, resetting initial state time")
 
     times <- scm$cohort_schedule$all_times
 
     initial_cohorts <- sapply(times, function(t) sum(t == 0), simplify = F)
     new_cohorts <- mapply(function(s, i) max(0, ncol(s) - i),
-                          state$species, initial_cohorts, SIMPLIFY = F)
+                          state, initial_cohorts, SIMPLIFY = F)
 
     new_times <- mapply(function(i, t) c(rep(0, i), t),
                         new_cohorts, times, SIMPLIFY = F)
@@ -211,11 +207,71 @@ make_scm <- function(p, env, ctrl, state=NULL) {
     start_time <- sapply(times, function(t) min(t[t>0]))
 
     # add as many new cohorts as required to fit `state` object
-    scm$set_state(min(start_time), unlist(state$species),
+    scm$set_state(min(start_time), unlist(state),
                   n = mapply(`+`, new_cohorts, initial_cohorts))
-  }  
+  }
 
   return(scm)
+}
+
+##' @rdname make_patch
+##' @param i Index to extract from \code{x}
+##' @param x Result of running \code{\link{run_scm_collect}}
+##' @param size_idx Index of the strategy size characteristic
+##' @export
+scm_spline <- function(i, x, size_idx = 1) {
+  state_to_spline <- function(x) {
+    vars = rownames(x)
+
+    s <- x[vars[size_idx], ]
+    m <- c(min(s), max(s))
+
+    # identity for size, log for everything else
+    f_ <- lapply(vars,
+                 function(v) {
+                   if(v == vars[size_idx])
+                     splinefun(s, s)
+                   else if(v == "log_density")
+                     splinefun_log(s, x[v, ])
+                   else {
+                     y = x[v, ]
+                     splinefun_loglog(s[y>0], y[y>0])
+                   }})
+
+    # set bounds
+    f_ <- lapply(f_, clamp_domain, m)
+
+    # rename to: size_variable
+    spline_names <- paste(vars[size_idx], vars, sep = "_")
+    names(f_) <- spline_names
+
+    # useful attributes
+    attr(f_, 'size_idx') <- size_idx
+    attr(f_, 'domain') <- m
+
+    return(f_)
+  }
+  state <- scm_state(i, x)$species
+  splines <- lapply(state, state_to_spline)
+}
+
+##' @rdname make_patch
+##' @param splines Output of \code{\link{scm_spline}}
+##' @param sizes Size of initial cohorts
+##' @param n Number of initial cohorts, if sizes is missing (default = 10)
+##' @export
+partition_spline <- function(splines, sizes=NULL, n=10) {
+  if(is.null(sizes)) {
+    m <- attr(splines, 'domain')
+    sizes = seq(m[1], m[2], len = n)
+  }
+
+  state <- t(sapply(splines, function(f) f(rev(sizes))))
+
+  # regex magic to remove first word and underscore
+  rownames(state) <- gsub("^[^_]+(?=_)_", "", names(splines), perl=T)
+
+  return(state)
 }
 
 ##' @rdname make_patch
@@ -227,7 +283,8 @@ scm_state <- function(i, x) {
     el <- el[, i, ]
     el[, !is.na(el[1, ]), drop=FALSE]
   }
-  list(time=x$time[[i]], species=lapply(x$species, f_sp),
+  list(time=x$time[[i]],
+       species=lapply(x$species, f_sp),
        env=x$env[[i]])
 }
 
@@ -264,7 +321,6 @@ run_scm_error <- function(p, env = make_environment(parameters = p),
   list(net_reproduction_ratios=scm$net_reproduction_ratios,
        err=list(lai=lai_error, net_reproduction_ratios=net_reproduction_ratio_errors, total=total),
        schedule=scm$cohort_schedule$all_times,
-       min_heights = sapply(scm$state$species, function(s) min(s["height", ])),
        ode_times=scm$ode_times)
 }
 

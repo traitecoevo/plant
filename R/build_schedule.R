@@ -8,6 +8,8 @@
 ##'
 ##' @title Build Cohort Schedule
 ##' @param p Parameters object
+##' @param splines the output of \code{\link{scm_spline}}, describing the initial size distribution for the patch.
+##' @param n_init the number of initial cohorts to start with (default = 10)
 ##' @param ctrl Control object
 ##' @return A Parameters object, with schedule components set.  The
 ##' output offspring produced is also available as an attribute
@@ -16,7 +18,8 @@
 ##' @export
 
 build_schedule <- function(p, env = make_environment(parameters = p),
-                           ctrl = scm_base_control(), state=NULL) {
+                           ctrl = scm_base_control(),
+                           splines=NULL, n_init=10) {
   p <- validate(p)
 
   n_spp <- length(p$strategies)
@@ -27,6 +30,11 @@ build_schedule <- function(p, env = make_environment(parameters = p),
   eps <- ctrl$schedule_eps
   complete = FALSE
 
+  # generate coarse initial size distribution
+  if(!is.null(splines))
+    state = lapply(splines, partition_spline, n = n_init)
+
+  # the refine cohorts
   for (i in seq_len(ctrl$schedule_nsteps)) {
     res <- run_scm_error(p, env, ctrl, state)
     net_reproduction_ratios <- res[["net_reproduction_ratios"]]
@@ -35,26 +43,27 @@ build_schedule <- function(p, env = make_environment(parameters = p),
     # schedule is resolved when no more cohorts are required
     if (!any(unlist(split), na.rm=TRUE)) {
       complete = TRUE
+      plant_log_debug("All cohorts below the integration error threshold",
+                routine="schedule")
       break
     }
 
-    ## Prepare for the next iteration:
+    # schedule from SCM includes initial cohorts
     times <- res$schedule
-    
+
     # split cohorts
     for (idx in seq_len(n_spp)) {
-      
+
       # by introduction time
       times[[idx]] <- split_times(times[[idx]], split[[idx]])
-      
+
       # or by initial size
       if(!is.null(state)) {
-        state$species[[idx]] <- split_state(state$species[[idx]], 
-                                            times[[idx]], split[[idx]],
-                                            res$min_heights[[idx]])
+        state[[idx]] <- split_state(times[[idx]], split[[idx]],
+                                    state[[idx]], splines[[idx]])
       }
     }
-    
+
     # set schedule for next patch
     p$cohort_schedule_times <- times
     msg <- sprintf("%d: Splitting {%s} times (%s)",
@@ -64,10 +73,13 @@ build_schedule <- function(p, env = make_environment(parameters = p),
     plant_log_debug(msg, routine="schedule", event="split", round=i)
   }
 
+  # record useful attributies
   p$cohort_schedule_ode_times <- res$ode_times
-  ## Useful to record the last offspring produced:
   attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
 
+  plant_log_debug("Maximum number of iterations reached", routine="schedule")
+
+  # return parameters with refined schedule and corresponding initial state
   return(list(parameters = p, state = state, complete = complete))
 }
 
@@ -79,40 +91,35 @@ split_times <- function(times, i) {
   ## point twice; one from upstream and one from downstream.
   dt <- diff(times)
   i <- which(i)
-  
-  # can't split cohorts introduced in the same time step
+
+  # can't split cohorts introduced in the same time step (inc. t0)
   i <- i[dt[i] > 0]
-  
+
   sort(c(times, times[i] - dt[i-1]/2))
 }
 
-split_state <- function(state, times, i, min_height) {
-  ## oversimplified splitting scheme, introduce a new cohort 
-  # half a step between two existing cohorts, even thought this leaves density
-  # uncorrected and results in a different initial size distribution
-  
+split_state <- function(times, i, state, splines) {
+  # Interpolates the intial size distrbution using splines, by halving
+  # the size of t0 cohorts with large integration errors. A better scheme
+  # would be to split by density (rather than size) but this requires a more
+  # complicated splines object (see: scm_spline).
+
   # can only split cohorts introduced at t0
   i <- which(i)
-  
-  # which is tricky when there's only one - we want to bring the 
-  # first introduced (non-initialised) cohort up to meet it
-  if(ncol(state) == 1 & i[1] == 2) 
-    return(cbind(state, state - state / 2))
-  
-  # otherwise proceed normally
   i <- i[times[i] == 0]
-  
+
   if(length(i) == 0)
     return(state)
-  
-  # append a blank cohort
-  dh <- matrix(0, ncol = ncol(state), nrow = nrow(state), 
-               dimnames = dimnames(state)) 
-  
-  dh["height", ] <- diff(c(state["height", ], min_height))
-  
-  st <- cbind(state, state[, i-1] + dh[, i-1] / 2)
 
-  return(st[, order(st["height", ], decreasing = T)])
+  size_idx <- attr(splines, 'size_idx')
+  domain <- attr(splines, 'domain')
+
+  sizes <- state[size_idx, ]
+  ds <- diff(c(sizes, domain[1])) # clamp domain
+  new_sizes <- sort(c(sizes, sizes[i-1] + ds[i-1] / 2), decreasing = T)
+
+  # interpolate density, other vars.
+  new_state <- partition_spline(splines, sizes = new_sizes)
+
+  return(new_state)
 }
-
