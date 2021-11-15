@@ -203,7 +203,7 @@ make_scm <- function(p, env, ctrl, state=NULL) {
   
     # need to append cohort times to enable integration of net fecundity
     if(state$time != 0)
-      message("Solver must start from 0, resetting initial state time")
+      warning("Solver must start from 0, resetting initial state time")
 
     times <- scm$cohort_schedule$all_times
 
