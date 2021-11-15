@@ -3,22 +3,30 @@ RSCRIPT = Rscript --no-init-file
 
 all: compile
 
-compile: RcppR6
-	Rscript -e 'pkgbuild::compile_dll()' \ 
-	make roxygen
+rebuild: clean RcppR6 full_compile roxygen
 
-test:
-	Rscript -e 'library(methods); devtools::test()'
+compile:
+	Rscript -e 'pkgbuild::compile_dll(compile_attributes = FALSE)' 
 
+# compared to compile, also generates src/RcppExports.cpp, R/RcppExports.R 
+full_compile:
+	Rscript -e 'pkgbuild::compile_dll()' 
+
+# generates 
 RcppR6:
 	Rscript -e "library(methods); RcppR6::RcppR6()"
 
+# generates src/RcppExports.cpp, R/RcppExports.R from anything with Rcpp::export. 
 attributes:
 	Rscript -e "Rcpp::compileAttributes()"
 
+# generates documentation
 roxygen:
 	@mkdir -p man
 	Rscript -e "library(methods); devtools::document()"
+
+test:
+	Rscript -e 'library(methods); devtools::test()'
 
 benchmark:
 	Rscript scripts/benchmark.R
