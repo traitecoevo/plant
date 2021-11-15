@@ -1669,6 +1669,10 @@ Patch___FF16__FF16_Env__species__get <- function(obj_) {
     .Call('_plant_Patch___FF16__FF16_Env__species__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___FF16__FF16_Env__total_cohorts__get <- function(obj_) {
+    .Call('_plant_Patch___FF16__FF16_Env__total_cohorts__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___FF16__FF16_Env__ode_size__get <- function(obj_) {
     .Call('_plant_Patch___FF16__FF16_Env__ode_size__get', PACKAGE = 'plant', obj_)
 }
@@ -1775,6 +1779,10 @@ Patch___FF16w__FF16_Env__environment__get <- function(obj_) {
 
 Patch___FF16w__FF16_Env__species__get <- function(obj_) {
     .Call('_plant_Patch___FF16w__FF16_Env__species__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___FF16w__FF16_Env__total_cohorts__get <- function(obj_) {
+    .Call('_plant_Patch___FF16w__FF16_Env__total_cohorts__get', PACKAGE = 'plant', obj_)
 }
 
 Patch___FF16w__FF16_Env__ode_size__get <- function(obj_) {
@@ -1885,6 +1893,10 @@ Patch___FF16r__FF16_Env__species__get <- function(obj_) {
     .Call('_plant_Patch___FF16r__FF16_Env__species__get', PACKAGE = 'plant', obj_)
 }
 
+Patch___FF16r__FF16_Env__total_cohorts__get <- function(obj_) {
+    .Call('_plant_Patch___FF16r__FF16_Env__total_cohorts__get', PACKAGE = 'plant', obj_)
+}
+
 Patch___FF16r__FF16_Env__ode_size__get <- function(obj_) {
     .Call('_plant_Patch___FF16r__FF16_Env__ode_size__get', PACKAGE = 'plant', obj_)
 }
@@ -1991,6 +2003,10 @@ Patch___K93__K93_Env__environment__get <- function(obj_) {
 
 Patch___K93__K93_Env__species__get <- function(obj_) {
     .Call('_plant_Patch___K93__K93_Env__species__get', PACKAGE = 'plant', obj_)
+}
+
+Patch___K93__K93_Env__total_cohorts__get <- function(obj_) {
+    .Call('_plant_Patch___K93__K93_Env__total_cohorts__get', PACKAGE = 'plant', obj_)
 }
 
 Patch___K93__K93_Env__ode_size__get <- function(obj_) {
