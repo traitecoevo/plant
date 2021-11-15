@@ -184,7 +184,7 @@ make_scm <- function(p, env, ctrl, state=NULL) {
 
   if(!is.null(state)) {
     n_str <- length(p$strategies)
-    n_spp = length(species)
+    n_spp = length(state)
 
     if(n_spp != n_str)
       stop("State object has more species than strategies defined in Parameters")
@@ -216,42 +216,44 @@ make_scm <- function(p, env, ctrl, state=NULL) {
 
 ##' @rdname make_patch
 ##' @param i Index to extract from \code{x}
-##' @param x Result of running \code{\link{run_scm_collect}}
+##' @param state List object with initial cohorts for each species
 ##' @param size_idx Index of the strategy size characteristic
 ##' @export
-scm_spline <- function(i, x, size_idx = 1) {
+init_spline <- function(i, state, size_idx = 1) {
   state_to_spline <- function(x) {
     vars = rownames(x)
-
+    
     s <- x[vars[size_idx], ]
     m <- c(min(s), max(s))
-
-    # identity for size, log for everything else
+    
+    # identity for size, zero for zeros, log for everything else
     f_ <- lapply(vars,
                  function(v) {
+                   y = x[v, ]
                    if(v == vars[size_idx])
-                     splinefun(s, s)
+                     splinefun(s, y)
                    else if(v == "log_density")
-                     splinefun_log(s, x[v, ])
-                   else {
-                     y = x[v, ]
+                     splinefun_log(s, y)
+                   else if(length(y[y>0]) == 0)
+                     splinefun(s, 0)
+                   else 
                      splinefun_loglog(s[y>0], y[y>0])
-                   }})
-
+                   })
+    
     # set bounds
     f_ <- lapply(f_, clamp_domain, m)
-
+    
     # rename to: size_variable
     spline_names <- paste(vars[size_idx], vars, sep = "_")
     names(f_) <- spline_names
-
+    
     # useful attributes
     attr(f_, 'size_idx') <- size_idx
     attr(f_, 'domain') <- m
-
+    
     return(f_)
   }
-  state <- scm_state(i, x)$species
+  
   splines <- lapply(state, state_to_spline)
 }
 

@@ -1,43 +1,5 @@
 context("Initial size distribution")
 
-# using SCM collect to generate starting conditions is slow, I should just
-# transcribe a few cohorts with realish initial states.
-
-# test_that("Set patch state", {
-#   # editable patch object
-#   types <- extract_RcppR6_template_types(p1, "Parameters")
-#   patch <- do.call('Patch', types)(p1)
-# 
-#   expect_equal(patch$size, 1) # species
-#   expect_equal(patch$species[[1]]$size, 0) # cohorts
-# 
-#   patch$introduce_new_cohort(species_index = 1)
-#   expect_equal(patch$species[[1]]$size, 1) # cohorts
-# 
-#   patch$set_state(x$time, x$species[[1]], n = 1)
-#   expect_equal(patch$species[[1]]$size, 120)
-# })
-# 
-# test_that("Set SCM state", {
-#   types <- extract_RcppR6_template_types(p1, "Parameters")
-#   scm <- do.call('SCM', types)(p1)
-#   
-#   # update introduction schedule
-#   times <- scm$cohort_schedule$all_times[1]
-#   expect_equal(length(times[[1]]), 141)
-#   
-#   times[[1]] <- c(rep(0, i), times[[1]][-1])
-#   
-#   scm$set_cohort_schedule_times(times)
-#   expect_equal(length(scm$cohort_schedule$all_times[1][[1]]), i + 141 - 1)
-#   
-#   # update patch state
-#   expect_equal(scm$patch$species[[1]]$size, 0)
-#   
-#   scm$set_state(0, x$species[[1]], n = i)
-#   expect_equal(scm$patch$species[[1]]$size, i)
-# })
-
 test_that("Multi-species case", {
   p0 <- scm_base_parameters("K93")
   p0$max_patch_lifetime <- 35.10667
@@ -59,11 +21,9 @@ test_that("Multi-species case", {
   env <- make_environment("K93")
   ctrl <- scm_base_control()
   
-  # manually create an SCM and set state
+  # manually create an SCM and extract the schedule
   types <- extract_RcppR6_template_types(p2, "Parameters")
-
   scm <- do.call('SCM', types)(p2, env, ctrl)
-  
   times <- scm$cohort_schedule$all_times
   
   # Create some arbitrary state - while concise, using mapply 
@@ -77,12 +37,8 @@ test_that("Multi-species case", {
 
   expect_equal(sapply(state, dim)[2, ], c(2, 1, 1))
   
-  # We follow the same data structure as make_patch, but always use time = 0
-  z <- list(time = 0,
-            species = state)
-  
   # Create introduction schedule for new cohorts
-  cohorts <- sapply(z$species, ncol)
+  cohorts <- sapply(state, ncol)
   
   start_time <- sapply(times, function(t) min(t[-1]))
   new_times <- mapply(function(i, t) c(rep(0, i), t[-1]), 
@@ -101,23 +57,24 @@ test_that("Multi-species case", {
   # state above + one default cohort (min 2cm height)
   expect_equal(sapply(scm$state$species, rowSums)["height", ], c(6, 5, 6))
   
+  # these steps are bundled into make_scm
+  scm2 <- make_scm(p2, env, ctrl, state)
+  expect_equal(sapply(scm2$state$species, rowSums)["height", ], c(6, 5, 6))
+  expect_equal(scm2$cohort_schedule, scm$cohort_schedule)
   
   # verify that this works through the run_scm api
-  x <- run_scm_collect(p2, env, ctrl, state = z)
+  x <- run_scm_collect(p2, env, ctrl, state)
   
   # check fitness
-  expect_equal(x$net_reproduction_ratios, c(3.981e-06, 4.585e-04, 3.514e-04), tolerance = 0.0001)
+  expect_equal(x$net_reproduction_ratios, 
+               c(3.981e-06, 4.585e-04, 3.514e-04), 
+               tolerance = 0.0001)
   
   # check # states, time steps, cohorts
   expect_equal(sapply(x$species, dim)[3, ], c(107, 106, 106))
   
   # check warnings
-  z$time = 2
-  expect_warning(make_scm(p2, env, ctrl, z), 
-                 "Solver must start from 0, resetting initial state time")
-  
-  z$species <- z$species[[1]]
-  expect_error(make_scm(p2, env, ctrl, z), 
+  expect_error(make_scm(p2, env, ctrl, state[[1]]), 
                "State object has more species than strategies defined in Parameters")
   
   
@@ -163,29 +120,38 @@ test_that("Build schedule works", {
   p1$cohort_schedule_times[[1]] <- seq(0.01, p1$max_patch_lifetime, length = 10)
   p1$birth_rate <- 20
   
-  init <- matrix(c(10, 0, 0, 0, 0, 0, -10))
+  init <- matrix(c(10, 0, 0, 0, 0, 0, -2))
   rownames(init) <- c("height", "mortality", "fecundity", "area_heartwood",
                       "mass_heartwood", "offspring_produced_survival_weighted",
                       "log_density")
 
-  state <- list(time = 0, species = list(init))
-  x <- run_scm_collect(p1, env, ctrl, state)
-  
-  t2 <- x$time
-  h1 <- x$species[[1]]["height", , ]
-  
-  # Species 1 - red
-  matplot(t2, h1, lty=1, type="l", col = "black",
-          las=1, xlab="Time (years)", ylab="Height (m)")
+  # interpolate initial size distribution
+  splines <- init_spline(1, list(init), size_idx = 1)
     
-  res <- build_schedule(p1, env, ctrl, state)
+  res <- build_schedule(p1, env, ctrl, splines, n_init = 2)
+  expect_false(res$complete)
+  expect_equal(res$n_steps, 5)
+  expect_equal(attr(res$parameters, "net_reproduction_ratios"), 4997.393, tolerance = 1e-6)
   
-  x <- run_scm_collect(res$parameters, env, ctrl, res$state)
   
-  t2 <- x$time
-  h1 <- x$species[[1]]["height", , ]
-  
-  # Species 1 - red
-  matplot(t2, h1, lty=1, type="l", col = "black",
-          las=1, xlab="Time (years)", ylab="Height (m)")
+  # Plot for fun
+  # par(mfrow=c(2, 1))
+  # x <- run_scm_collect(p1, env, ctrl, state = list(init))
+  # 
+  # t2 <- x$time
+  # h1 <- x$species[[1]]["height", , ]
+  # 
+  # matplot(t2, h1, lty=1, type="l", col = "black",
+  #         las=1, xlab="Time (years)", ylab="Height (m)")
+  # title("Unresolved schedule")
+  # 
+  # x <- run_scm_collect(res$parameters, env, ctrl, res$state)
+  # 
+  # t2 <- x$time
+  # h1 <- x$species[[1]]["height", , ]
+  # 
+  # # Species 1
+  # matplot(t2, h1, lty=1, type="l", col = "black",
+  #         las=1, xlab="Time (years)", ylab="Height (m)")
+  # title("Resolved schedule")
 })
