@@ -25,13 +25,16 @@ build_schedule <- function(p, env = make_environment(parameters = p),
   }
 
   eps <- ctrl$schedule_eps
+  complete = FALSE
 
   for (i in seq_len(ctrl$schedule_nsteps)) {
     res <- run_scm_error(p, env, ctrl, state)
     net_reproduction_ratios <- res[["net_reproduction_ratios"]]
     split <- lapply(res$err$total, function(x) x > eps)
 
+    # schedule is resolved when no more cohorts are required
     if (!any(unlist(split), na.rm=TRUE)) {
+      complete = TRUE
       break
     }
 
@@ -65,7 +68,7 @@ build_schedule <- function(p, env = make_environment(parameters = p),
   ## Useful to record the last offspring produced:
   attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
 
-  return(list(parameters = p, state = state))
+  return(list(parameters = p, state = state, complete = complete))
 }
 
 split_times <- function(times, i) {
