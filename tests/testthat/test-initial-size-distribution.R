@@ -38,26 +38,27 @@ context("Initial size distribution")
 #   expect_equal(scm$patch$species[[1]]$size, i)
 # })
 
-p0 <- scm_base_parameters("K93")
-p0$max_patch_lifetime <- 35.10667
-
-# Three species from paper
-sp <- trait_matrix(c(0.042, 0.063, 0.052,
-                     8.5e-3, 0.014, 0.015,
-                     2.2e-4, 4.6e-4, 3e-4,
-                     0.008, 0.008, 0.008,
-                     1.8e-4, 4.4e-4, 5.1e-4,
-                     1.4e-4, 2.5e-3, 8.8e-3,
-                     0.044, 0.044, 0.044),
-                   c("b_0", "b_1", "b_2",
-                     "c_0", "c_1", "d_0", "d_1"))
-
-p2 <- expand_parameters(sp, p0, mutant = FALSE)
-p2$birth_rate <- c(20, 20, 20)
-
 test_that("Multi-species case", {
+  p0 <- scm_base_parameters("K93")
+  p0$max_patch_lifetime <- 35.10667
+  
+  # Three species from paper
+  sp <- trait_matrix(c(0.042, 0.063, 0.052,
+                       8.5e-3, 0.014, 0.015,
+                       2.2e-4, 4.6e-4, 3e-4,
+                       0.008, 0.008, 0.008,
+                       1.8e-4, 4.4e-4, 5.1e-4,
+                       1.4e-4, 2.5e-3, 8.8e-3,
+                       0.044, 0.044, 0.044),
+                     c("b_0", "b_1", "b_2",
+                       "c_0", "c_1", "d_0", "d_1"))
+  
+  p2 <- expand_parameters(sp, p0, mutant = FALSE)
+  p2$birth_rate <- c(20, 20, 20)
+  
   env <- make_environment("K93")
   ctrl <- scm_base_control()
+  
   # manually create an SCM and set state
   types <- extract_RcppR6_template_types(p2, "Parameters")
 
@@ -65,10 +66,10 @@ test_that("Multi-species case", {
   
   times <- scm$cohort_schedule$all_times
   
-  # Create some arbitrary state
+  # Create some arbitrary state - while concise, using mapply 
+  # fails if not introducing a cohort for one species
   vars <- sapply(scm$state$species, rownames, simplify = F)
   
-  # this breaks if not introducing a cohort for one species
   state <- mapply(function(names, values, n) 
     matrix(c(values, rep(0, length(names) - 1)),
            nrow=length(names), ncol=n, dimnames=list(names)),
@@ -76,19 +77,24 @@ test_that("Multi-species case", {
 
   expect_equal(sapply(state, dim)[2, ], c(2, 1, 1))
   
-  z <- list(time = 2,
+  # We follow the same data structure as make_patch, but always use time = 0
+  z <- list(time = 0,
             species = state)
   
+  # Create introduction schedule for new cohorts
   cohorts <- sapply(z$species, ncol)
   
   start_time <- sapply(times, function(t) min(t[-1]))
   new_times <- mapply(function(i, t) c(rep(0, i), t[-1]), 
                       cohorts, times, SIMPLIFY = F)
   
+  # Run in cohort schedule, then initialse state of initial cohorts
   # this introduces one more cohort than necessary, but if we
   # overwrite the oldest cohorts first then we can just start at t1
   scm$set_cohort_schedule_times(new_times)
-  scm$run_next()
+  
+  # run_next returns species indexes - one cohort for 3 & 2, two cohorts for 1
+  expect_equal(scm$run_next(), c(3, 2, 1, 1))
   
   scm$set_state(min(start_time), unlist(z$species), n = cohorts)
   
@@ -96,7 +102,7 @@ test_that("Multi-species case", {
   expect_equal(sapply(scm$state$species, rowSums)["height", ], c(6, 5, 6))
   
   
-  # works through the run_scm api
+  # verify that this works through the run_scm api
   x <- run_scm_collect(p2, env, ctrl, state = z)
   
   # check fitness
@@ -104,6 +110,16 @@ test_that("Multi-species case", {
   
   # check # states, time steps, cohorts
   expect_equal(sapply(x$species, dim)[3, ], c(107, 106, 106))
+  
+  # check warnings
+  z$time = 2
+  expect_warning(make_scm(p2, env, ctrl, z), 
+                 "Solver must start from 0, resetting initial state time")
+  
+  z$species <- z$species[[1]]
+  expect_error(make_scm(p2, env, ctrl, z), 
+               "State object has more species than strategies defined in Parameters")
+  
   
   # Plot the results
   # t2 <- x$time
@@ -152,7 +168,7 @@ test_that("Build schedule works", {
                       "mass_heartwood", "offspring_produced_survival_weighted",
                       "log_density")
 
-  state <- list(time = 10, species = list(init))
+  state <- list(time = 0, species = list(init))
   x <- run_scm_collect(p1, env, ctrl, state)
   
   t2 <- x$time
