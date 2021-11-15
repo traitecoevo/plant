@@ -34,7 +34,7 @@ Activate logger
 plant_log_console()
 ```
 
-Setting some base parameters
+Setting some base parameters.
 
 ```{r}
 base_parameters <- function() {
@@ -50,17 +50,19 @@ base_parameters <- function() {
 }
 ```
 
+We can now create a function called "run_mypatch" which takes a number of a arguments, including "traits" which we assign a trait matrix. The "expand_parameters" function takes this trait matrix as an argument which allows us to simulate patches with multiple functional strategis, in addition to the base_parameters and any newly defined hyperparameters such as B_lf1. We also provide a latitude as an argument, as well as whether or not we want to run the patch to equilibrium seed rain.
 
 ```{r}
 run_mypatch <- function(
-  traits =  trait_matrix(c(0.07,0.24), c("lma")),
+  traits =  trait_matrix(c(0.07), c("lma")),
   B_lf1 = 1,
   seed_rain = 100,
   p0 = base_parameters(),
-  find_equilbrium = FALSE
+  find_equilbrium = FALSE,
+  latitude = 28.182
   ) {
   
-  hyper_par_fn = make_FF16_hyperpar(B_lf1 = B_lf1, latitude = 28.182)
+  hyper_par_fn = make_FF16_hyperpar(B_lf1 = B_lf1, latitude = latitude)
   p1 <- expand_parameters(traits, p0, hyper_par_fn, mutant = FALSE)
   p1$seed_rain <- seed_rain
   
@@ -75,14 +77,15 @@ run_mypatch <- function(
 ```
 
 
-Run patch
+Run patch for two species.  Here, we have provided two values of lma, being thin leaves (0.07) or thick leaves (0.24). You could run this patch for just one species by defining just one lma value, or none if you just want to use the default trait values.
 
 ```{r}
 results <- 
-  run_mypatch(seed_rain = 180)
+  run_mypatch(traits=trait_matrix(c(0.07, 0.24), c("lma")))
 ```
 
-Tidy into tidy state
+The results from run_scm_collect in run_mypatch are in a 3D matrix state To convert this output to a more interpretable format, we can use tidy_patch to convert the results output into a tidy state.
+
 ```{r}
 results_tidy <- 
   results %>% 
@@ -91,7 +94,7 @@ results_tidy <-
 results_tidy
 ```
 
-## Plot size distirbuion
+By pulling out the 'species' object from our list of tidied result outputs, we can plot the size distibution for each of the species in the patch. In this plot, each line represents the height over time of a characteristic originating at a given height (given by seed mass) at each step. Note that steps in this case are not equivalent to years, where the distance between steps is instead determined by the cohort spacing algorithm. We can take advantage of varying line transparency in ggplot2 to plot the relative log(Density) of each characteristic the size distribution of each species in the pathc. 
 
 ```{r}
 results_tidy$species %>%
@@ -102,6 +105,8 @@ plot_size_distribution_patch()
 
 ## Calculate totals by species for each step
 
+For each species, we can integrate over the height distribution to get the total value of the state variable per $m^2$
+
 ```{r}
 data_species_tot <- 
   results_tidy$species %>% patch_species_total()
@@ -109,15 +114,15 @@ data_species_tot <-
 data_species_tot
 ```
 
-total leaf area over time
+For example, the number of individuals per $m^2$ is found by integrating the density of each characteristic at a given step over height.
 
 ```{r}
 data_species_tot %>% 
-  ggplot(aes(time, individuals)) +
+  ggplot(aes(time, individuals, colour=species)) +
   geom_line()
 ```
 
-## Expand state
+We can use the function 'expand_state' to capture a large number of additional state variables (e.g.leaf area)
 
 ```{r}
 results_tidy_expand <- results_tidy %>% expand_state()
@@ -125,7 +130,7 @@ results_tidy_expand <- results_tidy %>% expand_state()
 results_tidy_expand$species
 ```
 
-total leaf area over time
+In the same way as individuals above, we can have a look at the total leaf area over time by intergrating across the size (i.e. height) distribution for a given step or time. This involves finding the product of the density of each of the characteristics present multiplied by the state variable in question (i.e. leaf area) before integrating across height. 
 
 ```{r}
 data_species_tot <- 
@@ -137,7 +142,8 @@ data_species_tot %>%
 ```
 
 
-## total leaf area over time
+In this case, species 1 with cheap, thin leaves briefly has a much higher total leaf area deployed comapred across the height distribution before eventually being overtaken by species with thicker, more expensive leaves. 
+
 
 ```{r}
 data_species_tot %>% 
@@ -145,9 +151,8 @@ data_species_tot %>%
   geom_line()
 ```
 
-## biomass components over time
+We can convert these integrated total state variables into their respective biomass components to get an idea of how total biomass and relative biomass allocation varies through time for each species. 
 
-Mass in kg/m2
 ```{r}
 v <- c("mass_heartwood", "mass_sapwood", "mass_bark", "mass_leaf")
 
@@ -167,7 +172,7 @@ data_long %>%
   geom_area() +
   labs(x = "Patch age (yr)", y = "Above ground mass (kg/m2)") +
   theme_classic() + 
-  xlim(c(0,50)) +
+  xlim(c(0,100)) +
   facet_wrap(~species_name)
 ```
 
@@ -303,7 +308,9 @@ results_tidy_expand$species %>% filter(species==1) %>% plot_size_distribution_pa
 
 ```
 
-## Two species
+The cohort spacing algorithim determines the optimum introduction times for characterstics, which means that the time values associated with steps may not correspond to known times that we might like to extract information about. For example, what the total amount of biomass per $m^2$ be at 50 years. By doing this, it also means that we can integrate between defined times.
+
+
 
 ```{r}
 results <- run_mypatch(traits =  trait_matrix(c(0.07, 0.24), c("lma")))
@@ -314,7 +321,7 @@ results_tidy <- results %>%
 ```
 
 
-## Interpolatign to specific time points
+Lets interpolate our results from the run_mypatch above for timepoints 1,5,10, 1000. Note that time in unit years. 
 
 ```{r}
 times <- c(1, 5, 10, 1000)
@@ -325,13 +332,13 @@ tidy_species_new <- interpolate_to_times(tidy_species_data, times)
 
 ```
 
-Gives predictions at new time points. 
+Gives interpolated values for state variables at new time points. 
 
 ```{r}
 tidy_species_new
 ```
 
-To see how good these are, plot together with old points
+We can now assess their correspondence with the values already predicted in the original results output. We can see in this case that the points (represneting the interpolated values) fall along the curves which indicates good correspondence bewteen our interpolation and the original simulation. 
 
 ```{r}
 data_combined <- 
