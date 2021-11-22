@@ -84,6 +84,72 @@ build_schedule <- function(p, env = make_environment(parameters = p),
   return(list(parameters = p, state = state, n_steps = i, complete = complete))
 }
 
+##' @rdname initialise_scm
+##' @param i Index to extract from \code{x}
+##' @param state List object with initial cohorts for each species
+##' @param size_idx Index of the strategy size characteristic
+##' @export
+init_spline <- function(state, size_idx = 1) {
+  state_to_spline <- function(x) {
+    vars = rownames(x)
+    
+    s <- x[vars[size_idx], ]
+    
+    if(length(s) < 2)
+      stop("At least two cohorts needed to define a spline")
+    
+    m <- c(min(s), max(s))
+    
+    # identity for size, zero for zeros, log for everything else
+    f_ <- lapply(vars,
+                 function(v) {
+                   y = x[v, ]
+                   if(v == vars[size_idx])
+                     splinefun(s, y)
+                   else if(v == "log_density")
+                     splinefun_log(s, y)
+                   else if(length(y[y>0]) == 0)
+                     splinefun(s, rep(0, length(s)))
+                   else 
+                     splinefun_loglog(s[y>0], y[y>0])
+                 })
+    
+    # set bounds
+    f_ <- lapply(f_, clamp_domain, m)
+    
+    # rename to: size_variable
+    spline_names <- paste(vars[size_idx], vars, sep = "_")
+    names(f_) <- spline_names
+    
+    # useful attributes
+    attr(f_, 'size_idx') <- size_idx
+    attr(f_, 'domain') <- m
+    
+    return(f_)
+  }
+  
+  splines <- lapply(state, state_to_spline)
+}
+
+##' @rdname initialise_scm
+##' @param splines Output of \code{\link{init_spline}}
+##' @param sizes Size of initial cohorts
+##' @param n Number of initial cohorts, if sizes is missing (default = 10)
+##' @export
+partition_spline <- function(splines, sizes=NULL, n=10) {
+  if(is.null(sizes)) {
+    m <- attr(splines, 'domain')
+    sizes = seq(m[1], m[2], len = n)
+  }
+  
+  state <- t(sapply(splines, function(f) f(rev(sizes))))
+  
+  # regex magic to remove first word and underscore
+  rownames(state) <- gsub("^[^_]+(?=_)_", "", names(splines), perl=T)
+  
+  return(state)
+}
+
 split_times <- function(times, i) {
   ## Upwind splitting scheme only, which means that we will never
   ## split the last interval [assuming OK for now].  Inefficiently
