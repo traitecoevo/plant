@@ -5,6 +5,7 @@
 #include <plant/environment.h>
 #include <plant/canopy.h>
 #include <plant/interpolator.h>
+#include <iostream>
 
 using namespace Rcpp;
 
@@ -104,7 +105,7 @@ public:
 
   virtual void compute_rates() {
     for (size_t i = 0; i < vars.state_size; i++) {
-      vars.set_rate(i, soil_infiltration_rate / (i+1));
+      vars.set_rate(i, rainfall_eval(time) / (i+1));
     }
   }
 

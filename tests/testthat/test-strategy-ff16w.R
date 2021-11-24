@@ -80,3 +80,41 @@ test_that("Basic run", {
   expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 })
+
+test_that("Rainfall spline", {
+  # one species
+  p0 <- scm_base_parameters("FF16w")
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE)
+  p1$birth_rate <- 20
+  
+  env <- make_environment("FF16w", 
+                          soil_number_of_depths = 10,
+                          soil_initial_state = rep(1, 10),
+                          soil_infiltration_rate = 1)
+  
+  # init rainfall spline for env
+  x <- seq(0, 110, 1)
+  integrand <- function(x) {x^2}
+  y <- integrand(x)
+  env$rainfall_init(x, y)
+  
+  ctrl <- scm_base_control()
+  
+  out <- run_scm(p1, env, ctrl)
+  
+  expect_equal(out$patch$environment$ode_size, 10)
+  
+  # model is currently 1/z * int(0, t)(f(x)), where z is depth, 
+  # x is time, f is spline, t is number of years
+  
+  expect_equal(out$patch$environment$soil$rates, 
+               sapply(seq(1, 10), function(x) { (out$time^2)/x }),
+               tolerance = .01)
+  
+  expect_equal(out$patch$environment$soil$states,
+               sapply(seq(1, 10), function(i) { (1/i) * integrate(integrand, 0, out$time)$value }),
+               tolerance = 0.1)
+  
+  expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
+  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
+})
