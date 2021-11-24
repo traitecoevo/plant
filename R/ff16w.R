@@ -73,7 +73,9 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
                                    canopy_rescale_usually = TRUE,
                                    soil_number_of_depths = 1,
                                    soil_initial_state = 0.0,
-                                   soil_infiltration_rate = 0.0) {
+                                   soil_infiltration_rate = 0.0,
+                                   rainfall_x = seq(0, 9, 1),
+                                   rainfall_y = rep(0, 10)) {
   
   if(soil_number_of_depths < 1)
     stop("FF16w Environment must have at least one soil layer")
@@ -85,7 +87,7 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
                      canopy_light_nbase, 
                      canopy_light_max_depth)
 
-  # there might be a better way to skip this if using defaultss
+  # there might be a better way to skip this if using defaults
   if(sum(soil_initial_state) > 0.0) {
     if(soil_number_of_depths != length(soil_initial_state))
       stop("Not enough starting points for all layers")
@@ -94,6 +96,7 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
   }
     
   e$set_soil_infiltration_rate(soil_infiltration_rate)
+  e$rainfall_init(rainfall_x, rainfall_y)
   
   return(e)
 }
