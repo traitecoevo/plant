@@ -3796,10 +3796,6 @@ void FF16_Environment__set_fixed_environment(plant::RcppR6::RcppR6<plant::FF16_E
   obj_->set_fixed_environment(value, height_max);
 }
 // [[Rcpp::export]]
-void FF16_Environment__set_soil_infiltration_rate(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double rate) {
-  obj_->set_soil_infiltration_rate(rate);
-}
-// [[Rcpp::export]]
 void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> state) {
   obj_->set_soil_water_state(state);
 }

@@ -21,10 +21,8 @@ public:
       : canopy_rescale_usually(canopy_rescale_usually) {
     time = 0.0;
     canopy = Canopy();
-    soil_infiltration_rate = 0.0;
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
-
     rainfall_spline = interpolator::Interpolator();
   };
 
@@ -100,8 +98,6 @@ public:
     canopy.r_init_interpolators(state);
   }
 
-  // Soil interface
-  double soil_infiltration_rate;
 
   virtual void compute_rates() {
     for (size_t i = 0; i < vars.state_size; i++) {
@@ -121,10 +117,6 @@ public:
     for (size_t i = 0; i < vars.state_size; i++) {
       vars.set_state(i, state[i]);
     }
-  }
-
-  void set_soil_infiltration_rate(double rate) {
-    soil_infiltration_rate = rate;
   }
 
   // Core functions

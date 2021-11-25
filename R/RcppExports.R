@@ -3337,10 +3337,6 @@ FF16_Environment__set_fixed_environment <- function(obj_, value, height_max) {
     invisible(.Call('_plant_FF16_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
 }
 
-FF16_Environment__set_soil_infiltration_rate <- function(obj_, rate) {
-    invisible(.Call('_plant_FF16_Environment__set_soil_infiltration_rate', PACKAGE = 'plant', obj_, rate))
-}
-
 FF16_Environment__set_soil_water_state <- function(obj_, state) {
     invisible(.Call('_plant_FF16_Environment__set_soil_water_state', PACKAGE = 'plant', obj_, state))
 }

@@ -9361,17 +9361,6 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// FF16_Environment__set_soil_infiltration_rate
-void FF16_Environment__set_soil_infiltration_rate(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double rate);
-RcppExport SEXP _plant_FF16_Environment__set_soil_infiltration_rate(SEXP obj_SEXP, SEXP rateSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type rate(rateSEXP);
-    FF16_Environment__set_soil_infiltration_rate(obj_, rate);
-    return R_NilValue;
-END_RCPP
-}
 // FF16_Environment__set_soil_water_state
 void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> state);
 RcppExport SEXP _plant_FF16_Environment__set_soil_water_state(SEXP obj_SEXP, SEXP stateSEXP) {
@@ -10681,7 +10670,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
-    {"_plant_FF16_Environment__set_soil_infiltration_rate", (DL_FUNC) &_plant_FF16_Environment__set_soil_infiltration_rate, 2},
     {"_plant_FF16_Environment__set_soil_water_state", (DL_FUNC) &_plant_FF16_Environment__set_soil_water_state, 2},
     {"_plant_FF16_Environment__compute_rates", (DL_FUNC) &_plant_FF16_Environment__compute_rates, 1},
     {"_plant_FF16_Environment__time__get", (DL_FUNC) &_plant_FF16_Environment__time__get, 1},

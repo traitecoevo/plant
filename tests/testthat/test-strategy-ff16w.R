@@ -19,7 +19,6 @@ test_that("FF16w Environment", {
   # Make it rain
   x <- seq(0, 9, 1)
   y <- rep(1, 10)
-  #e$set_soil_infiltration_rate(10)
   e$rainfall_init(x, y)
   expect_equal(e$soil$states, 0)
   e$compute_rates()
@@ -33,7 +32,6 @@ test_that("FF16w Environment", {
   # Check construction
   e <- make_environment("FF16w", 
                         soil_number_of_depths = 1,
-                        soil_infiltration_rate = 10, # not needed anymore?
                         rainfall_x = seq(0, 9, 1),
                         rainfall_y = rep(10, 10))
   
@@ -58,35 +56,6 @@ test_that("FF16w Environment", {
   
 })
 
-# test_that("Basic run", {
-#   # one species
-#   p0 <- scm_base_parameters("FF16w")
-#   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE)
-#   p1$birth_rate <- 20
-# 
-#   env <- make_environment("FF16w", 
-#                           soil_number_of_depths = 10,
-#                           soil_initial_state = rep(1, 10),
-#                           soil_infiltration_rate = 1)
-#   
-#   ctrl <- scm_base_control()
-#   
-#   out <- run_scm(p1, env, ctrl)
-#   
-#   expect_equal(out$patch$environment$ode_size, 10)
-# 
-#   expect_equal(out$patch$environment$soil$rates, 
-#                c(1.00, 0.50, 0.33, 0.25, 0.20, 0.17, 0.14, 0.13, 0.11, 0.10),
-#                tolerance = .01)
-#   
-#   expect_equal(out$patch$environment$soil$states,
-#                c(105, 52, 35, 26, 21, 17, 15, 13, 11, 10),
-#                tolerance = 0.1)
-#   
-#   expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
-#   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
-# })
-
 test_that("Rainfall spline basic run", {
   # one species
   p0 <- scm_base_parameters("FF16w")
@@ -95,8 +64,7 @@ test_that("Rainfall spline basic run", {
   
   env <- make_environment("FF16w", 
                           soil_number_of_depths = 10,
-                          soil_initial_state = rep(1, 10),
-                          soil_infiltration_rate = 1)
+                          soil_initial_state = rep(1, 10))
   
   # init rainfall spline for env
   x <- seq(0, 110, 1)

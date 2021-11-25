@@ -903,9 +903,6 @@ FF16_Environment:
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
-    set_soil_infiltration_rate:
-      args: [rate: double]
-      return_type: void
     set_soil_water_state:
       args: [state: "std::vector<double>"]
       return_type: void
