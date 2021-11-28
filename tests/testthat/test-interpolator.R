@@ -26,7 +26,7 @@ test_that("Splines require sensible data", {
   s <- Interpolator()
   expect_error(s$init(c(1, 2, 3), 1), "Incorrect length input")
   expect_error(s$init(numeric(0), numeric(0)), "insufficient number of points")
-  expect_error(s$init(c(3, 2, 1), c(1, 1, 1)), "spline control points must be in non-descending order")
+  expect_error(s$init(c(3, 2, 1), c(1, 1, 1)), "spline control points must be unique and in ascending order")
 })
 
 test_that("Spline contains correct data", {

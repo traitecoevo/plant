@@ -22,7 +22,7 @@ void Interpolator::init(const std::vector<double>& x_,
 // and 'y'.
 void Interpolator::initialise() {
   if (not std::is_sorted(x.begin(), x.end())) {
-    util::stop("spline control points must be in non-descending order");
+    util::stop("spline control points must be unique and in ascending order");
   }
   if (x.size() > 0) {
     tk_spline.set_points(x, y);
