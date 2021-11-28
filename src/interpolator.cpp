@@ -21,7 +21,8 @@ void Interpolator::init(const std::vector<double>& x_,
 // Compute the interpolated function from the points contained in 'x'
 // and 'y'.
 void Interpolator::initialise() {
-  if (not std::is_sorted(x.begin(), x.end())) {
+  // https://stackoverflow.com/questions/17769114/stdis-sorted-and-strictly-less-comparison
+  if (not std::is_sorted(x.begin(), x.end(), std::less_equal<double>())) {
     util::stop("spline control points must be unique and in ascending order");
   }
   if (x.size() > 0) {
