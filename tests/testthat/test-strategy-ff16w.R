@@ -91,7 +91,7 @@ test_that("Rainfall spline basic run", {
   # x is time, f is spline, t is number of years
   expect_equal(out$patch$environment$soil$states,
                sapply(seq(1, 10), function(i) { (1/i) * integrate(integrand, 0, out$time)$value }),
-               tolerance = 1e-6)
+               tolerance = 1e-5)
   
   expect_equal(out$offspring_production, 16.88946, tolerance=1e-7)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-7)
