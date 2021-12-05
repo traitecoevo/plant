@@ -8,9 +8,11 @@
 #include <plant/ode_interface.h>
 #include <plant/internals.h>
 #include <plant/util.h>
+#include <unordered_map>
 #include <Rcpp.h>
 
 using namespace Rcpp;
+// interpolator has its own namespace, doing this for cleaner code
 
 namespace plant {
 
@@ -69,6 +71,32 @@ public:
   size_t species_arriving_index;
 
   Internals vars;
+
+  /* EXSTRINSIC DRIVERS API*/
+
+  // initialise spline of driver with x, y control points
+  void set_extrinsic_driver(std::string driver_name, std::vector<double> const& x, std::vector<double> const& y) {
+    // if we wanted to be faster we could skip this check (but less safe)
+    if (extrinsic_drivers.count(driver_name) == 0) {
+      util::stop(driver_name + " doesn't exist in the list of extrinsic_drivers.");
+    } else {
+      extrinsic_drivers[driver_name].init(x, y);
+    }
+  }
+
+  // evaluate/query interpolated spline for driver at point u, return s(u), where s is interpolated function
+  double extrinsic_driver_evaluate(std::string driver_name, double u) const {
+    extrinsic_drivers.at(driver_name).eval(u);
+  }
+
+  // // evaluate/query interpolated spline for driver at vector of points, return vector of values
+  std::vector<double> extrinsic_driver_evaluate_range(std::string driver_name, std::vector<double> u) const {
+    return extrinsic_drivers.at(driver_name).r_eval(u);
+  }
+
+// private?
+protected:
+  std::unordered_map<std::string, interpolator::Interpolator> extrinsic_drivers;
 };
 
 }

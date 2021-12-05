@@ -14,15 +14,15 @@ test_that("FF16w Environment", {
   expect_equal(e$soil$states, 0)
   
   e$compute_rates()
-  expect_equal(e$soil$rates, 0)
+  expect_equal(e$soil$rates, 1) # default rainfall is now y = 1
   
   # Make it rain
   x <- seq(0, 9, 1)
-  y <- rep(1, 10)
-  e$rainfall_init(x, y)
+  y <- rep(5, 10)
+  e$set_extrinsic_driver("rainfall", x, y)
   expect_equal(e$soil$states, 0)
   e$compute_rates()
-  expect_equal(e$soil$rates, 1)
+  expect_equal(e$soil$rates, 5)
   
   # not needed anymore? should we still be able to set the states manually?
   # Water logged
@@ -32,8 +32,7 @@ test_that("FF16w Environment", {
   # Check construction
   e <- make_environment("FF16w", 
                         soil_number_of_depths = 1,
-                        rainfall_x = seq(0, 9, 1),
-                        rainfall_y = rep(10, 10))
+                        rainfall = 10)
   
   expect_equal(e$soil$states, 0)
   e$compute_rates()
@@ -70,7 +69,7 @@ test_that("Rainfall spline basic run", {
   x <- seq(0, 110, 0.1)
   integrand <- function(x) {x^2}
   y <- integrand(x)
-  env$rainfall_init(x, y)
+  env$set_extrinsic_driver("rainfall", x, y)
   
   ctrl <- scm_base_control()
   

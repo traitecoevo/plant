@@ -3293,36 +3293,16 @@ FF16_Environment__ctor <- function(canopy_rescale_usually, soil_number_of_depths
     .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', canopy_rescale_usually, soil_number_of_depths)
 }
 
-FF16_Environment__rainfall_init <- function(obj_, x, y) {
-    invisible(.Call('_plant_FF16_Environment__rainfall_init', PACKAGE = 'plant', obj_, x, y))
+FF16_Environment__set_extrinsic_driver <- function(obj_, driver_name, x, y) {
+    invisible(.Call('_plant_FF16_Environment__set_extrinsic_driver', PACKAGE = 'plant', obj_, driver_name, x, y))
 }
 
-FF16_Environment__rainfall_recompute <- function(obj_) {
-    invisible(.Call('_plant_FF16_Environment__rainfall_recompute', PACKAGE = 'plant', obj_))
+FF16_Environment__extrinsic_driver_evaluate <- function(obj_, driver_name, u) {
+    .Call('_plant_FF16_Environment__extrinsic_driver_evaluate', PACKAGE = 'plant', obj_, driver_name, u)
 }
 
-FF16_Environment__rainfall_eval <- function(obj_, u) {
-    .Call('_plant_FF16_Environment__rainfall_eval', PACKAGE = 'plant', obj_, u)
-}
-
-FF16_Environment__rainfall_eval_range <- function(obj_, u) {
-    .Call('_plant_FF16_Environment__rainfall_eval_range', PACKAGE = 'plant', obj_, u)
-}
-
-FF16_Environment__rainfall_add_point <- function(obj_, x, y) {
-    invisible(.Call('_plant_FF16_Environment__rainfall_add_point', PACKAGE = 'plant', obj_, x, y))
-}
-
-FF16_Environment__rainfall_add_point_sorted <- function(obj_, x, y) {
-    invisible(.Call('_plant_FF16_Environment__rainfall_add_point_sorted', PACKAGE = 'plant', obj_, x, y))
-}
-
-FF16_Environment__rainfall_add_points <- function(obj_, x, y) {
-    invisible(.Call('_plant_FF16_Environment__rainfall_add_points', PACKAGE = 'plant', obj_, x, y))
-}
-
-FF16_Environment__rainfall_clear_points <- function(obj_) {
-    invisible(.Call('_plant_FF16_Environment__rainfall_clear_points', PACKAGE = 'plant', obj_))
+FF16_Environment__extrinsic_driver_evaluate_range <- function(obj_, driver_name, u) {
+    .Call('_plant_FF16_Environment__extrinsic_driver_evaluate_range', PACKAGE = 'plant', obj_, driver_name, u)
 }
 
 FF16_Environment__canopy_openness <- function(obj_, height) {

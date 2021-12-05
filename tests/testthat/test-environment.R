@@ -44,30 +44,29 @@ for (x in names(strategy_types)) {
 
 test_that("FF16 rainfall spline", {
   context(sprintf("Rainfall-FF16",x))
-  env <- make_environment("FF16")
+  env <- make_environment("FF16w")
+  # test extrapolation on default spline of y = 1
+  expect_equal(env$extrinsic_driver_evaluate("rainfall", 100), 1)
+  expect_equal(env$extrinsic_driver_evaluate("rainfall", 10000000), 1)
+  
+  # test extrapolation on spline of y = 5.613432
+  env <- make_environment("FF16w", rainfall=5.613432)
+  expect_equal(env$extrinsic_driver_evaluate("rainfall", 100), 5.613432)
+  expect_equal(env$extrinsic_driver_evaluate("rainfall", 10000000), 5.613432)
   
   ## simple quadratic
   x <- seq(-10, 10, 0.41)
   y <- x^2
-  env$rainfall_init(x, y)
+  env$set_extrinsic_driver("rainfall", x, y) # overwrites previously created spline
   
   # interpolated points
-  expect_equal(env$rainfall_eval(2), 4)
-  expect_equal(env$rainfall_eval(-2), 4)
-  expect_equal(env$rainfall_eval(3), 9, tolerance=1e-7)
-  expect_equal(env$rainfall_eval(-3), 9, tolerance=1e-7)
-  expect_equal(env$rainfall_eval(5.5), 30.25, tolerance=1e-7)
-  expect_equal(env$rainfall_eval(-5.5), 30.25, tolerance=1e-7)
+  expect_equal(env$extrinsic_driver_evaluate("rainfall", 2), 4)
+  expect_equal(env$extrinsic_driver_evaluate("rainfall", -2), 4)
+  expect_equal(env$extrinsic_driver_evaluate("rainfall", 3), 9, tolerance=1e-7)
+  expect_equal(env$extrinsic_driver_evaluate("rainfall", -3), 9, tolerance=1e-7)
+  expect_equal(env$extrinsic_driver_evaluate("rainfall", 5.5), 30.25, tolerance=1e-7)
+  expect_equal(env$extrinsic_driver_evaluate("rainfall", -5.5), 30.25, tolerance=1e-7)
   
   ## interpolated range of points
-  expect_equal(env$rainfall_eval_range(c(-7, 1, 7.8345)), c(49, 1, 61.37939025), tolerance=1e-6)
-  
-  ## clear points, set new points and recompute spline
-  env$rainfall_clear_points()
-  x <- seq(-10, 10, 0.23)
-  y <- 2*x
-  env$rainfall_add_points(x, y)
-  env$rainfall_recompute()
-  expect_equal(env$rainfall_eval(3), 6, tolerance=1e-7)
-  expect_equal(env$rainfall_eval(3.3), 6.6, tolerance=1e-7)
+  expect_equal(env$extrinsic_driver_evaluate_range("rainfall", c(-7, 1, 7.8345)), c(49, 1, 61.37939025), tolerance=1e-6)
 })

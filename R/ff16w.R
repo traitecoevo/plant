@@ -65,16 +65,14 @@ FF16w_StochasticPatchRunner <- function(p) {
 ##' @export
 ##' @rdname FF16_Environment
 ##' @param soil_number_of_depths the number of soil layers
-##' @param rainfall_x list of x (time) positions for rainfall spline
-##' @param rainfall_y list of y (rainfall) positions for rainfall spline
+##' @param rainfall constant function value for rainfall driver, y = rainfall
 FF16w_make_environment <- function(canopy_light_tol = 1e-4, 
                                    canopy_light_nbase = 17,
                                    canopy_light_max_depth = 16, 
                                    canopy_rescale_usually = TRUE,
                                    soil_number_of_depths = 1,
                                    soil_initial_state = 0.0,
-                                   rainfall_x = seq(0, 9, 1),
-                                   rainfall_y = rep(0, 10)) {
+                                   rainfall = 1) {
   
   if(soil_number_of_depths < 1)
     stop("FF16w Environment must have at least one soil layer")
@@ -94,7 +92,9 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
     e$set_soil_water_state(soil_initial_state)
   }
     
-  e$rainfall_init(rainfall_x, rainfall_y)
+  x <- seq(0, 10, 1)
+  y <- rep(rainfall, 11)
+  e$set_extrinsic_driver("rainfall", x, y)
   
   return(e)
 }

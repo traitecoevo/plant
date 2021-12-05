@@ -55,12 +55,7 @@ void Interpolator::clear() {
 
 // Compute the value of the interpolated function at point `x=u`
 double Interpolator::eval(double u) const {
-  check_active();
-  return tk_spline(u);
-}
-
-// faster version
-double Interpolator::operator()(double u) const {
+  check_active(); // slower to check this every time
   return tk_spline(u);
 }
 
@@ -99,13 +94,8 @@ SEXP Interpolator::r_get_xy() const {
 // Compute the value of the interpolated function at a vector of
 // points `x=u`, returning a vector of the same length.
 std::vector<double> Interpolator::r_eval(std::vector<double> u) const {
-  check_active();
-  const size_t n = u.size();
-  std::vector<double> ret(n);
-  // for (size_t i = 0; i < n; ++i) {
-  //   ret[i] = operator()(u[i]);
-  // }
-  std::transform(u.begin(), u.end(), ret.begin(), [&](double x){return operator()(x);});
+  std::vector<double> ret(u.size());
+  std::transform(u.begin(), u.end(), ret.begin(), [&](double x){ return eval(x); });
   return ret;
 }
 
