@@ -94,8 +94,11 @@ SEXP Interpolator::r_get_xy() const {
 // Compute the value of the interpolated function at a vector of
 // points `x=u`, returning a vector of the same length.
 std::vector<double> Interpolator::r_eval(std::vector<double> u) const {
-  std::vector<double> ret(u.size());
-  std::transform(u.begin(), u.end(), ret.begin(), [&](double x){ return eval(x); });
+  auto ret = std::vector<double>();
+  ret.reserve(u.size()); // fast to do this once rather than multiple times with push_back
+  for (auto const& x : u) {
+    ret.push_back(eval(x));
+  }
   return ret;
 }
 

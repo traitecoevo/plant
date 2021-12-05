@@ -881,6 +881,9 @@ FF16_Environment:
     extrinsic_driver_evaluate_range:
       args: [driver_name: "std::string", u: "std::vector<double>"]
       return_type: "std::vector<double>"
+    get_extrinsic_driver_names:
+      args: []
+      return_type: "std::vector<std::string>"
     canopy_openness:
       args: [height: double]
       return_type: double

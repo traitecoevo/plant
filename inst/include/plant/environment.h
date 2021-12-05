@@ -94,6 +94,14 @@ public:
     return extrinsic_drivers.at(driver_name).r_eval(u);
   }
 
+  std::vector<std::string> get_extrinsic_driver_names() {
+    auto ret = std::vector<std::string>();
+    for (auto const& driver : extrinsic_drivers) {
+      ret.push_back(driver.first);
+    }
+    return ret;
+  }
+
 // private?
 protected:
   std::unordered_map<std::string, interpolator::Interpolator> extrinsic_drivers;

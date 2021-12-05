@@ -3305,6 +3305,10 @@ FF16_Environment__extrinsic_driver_evaluate_range <- function(obj_, driver_name,
     .Call('_plant_FF16_Environment__extrinsic_driver_evaluate_range', PACKAGE = 'plant', obj_, driver_name, u)
 }
 
+FF16_Environment__get_extrinsic_driver_names <- function(obj_) {
+    .Call('_plant_FF16_Environment__get_extrinsic_driver_names', PACKAGE = 'plant', obj_)
+}
+
 FF16_Environment__canopy_openness <- function(obj_, height) {
     .Call('_plant_FF16_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
 }

@@ -45,6 +45,9 @@ for (x in names(strategy_types)) {
 test_that("FF16 rainfall spline", {
   context(sprintf("Rainfall-FF16",x))
   env <- make_environment("FF16w")
+  # get list of extrinsic drivers for the environment
+  expect_equal(env$get_extrinsic_driver_names(), c("rainfall"))
+  
   # test extrapolation on default spline of y = 1
   expect_equal(env$extrinsic_driver_evaluate("rainfall", 100), 1)
   expect_equal(env$extrinsic_driver_evaluate("rainfall", 10000000), 1)

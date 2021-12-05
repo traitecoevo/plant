@@ -9274,6 +9274,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_Environment__get_extrinsic_driver_names
+std::vector<std::string> FF16_Environment__get_extrinsic_driver_names(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__get_extrinsic_driver_names(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__get_extrinsic_driver_names(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // FF16_Environment__canopy_openness
 double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height);
 RcppExport SEXP _plant_FF16_Environment__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
@@ -10609,6 +10620,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__set_extrinsic_driver", (DL_FUNC) &_plant_FF16_Environment__set_extrinsic_driver, 4},
     {"_plant_FF16_Environment__extrinsic_driver_evaluate", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_evaluate, 3},
     {"_plant_FF16_Environment__extrinsic_driver_evaluate_range", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_evaluate_range, 3},
+    {"_plant_FF16_Environment__get_extrinsic_driver_names", (DL_FUNC) &_plant_FF16_Environment__get_extrinsic_driver_names, 1},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},

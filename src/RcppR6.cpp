@@ -3764,6 +3764,10 @@ std::vector<double> FF16_Environment__extrinsic_driver_evaluate_range(plant::Rcp
   return obj_->extrinsic_driver_evaluate_range(driver_name, u);
 }
 // [[Rcpp::export]]
+std::vector<std::string> FF16_Environment__get_extrinsic_driver_names(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->get_extrinsic_driver_names();
+}
+// [[Rcpp::export]]
 double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
   return obj_->canopy_openness(height);
 }
