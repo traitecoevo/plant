@@ -80,8 +80,8 @@ public:
     if (extrinsic_drivers.count(driver_name) == 0) {
       util::stop(driver_name + " doesn't exist in the list of extrinsic_drivers.");
     } else {
-      extrinsic_drivers[driver_name].init(x, y);
-      extrinsic_drivers[driver_name].setExtrapolate(false); // default no extrapolation
+      extrinsic_drivers.at(driver_name).init(x, y);
+      extrinsic_drivers.at(driver_name).setExtrapolate(false); // default no extrapolation
     }
   }
 
