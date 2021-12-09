@@ -81,7 +81,12 @@ public:
       util::stop(driver_name + " doesn't exist in the list of extrinsic_drivers.");
     } else {
       extrinsic_drivers[driver_name].init(x, y);
+      extrinsic_drivers[driver_name].setExtrapolate(false); // default no extrapolation
     }
+  }
+
+  void extrinsic_driver_extrapolation(std::string driver_name, bool extrapolate) {
+    extrinsic_drivers.at(driver_name).setExtrapolate(extrapolate);
   }
 
   // evaluate/query interpolated spline for driver at point u, return s(u), where s is interpolated function

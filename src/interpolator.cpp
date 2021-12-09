@@ -18,8 +18,7 @@ void Interpolator::init(const std::vector<double>& x_,
   initialise();
 }
 
-// Compute the interpolated function from the points contained in 'x'
-// and 'y'.
+// Compute the interpolated function from the points contained in 'x' and 'y'.
 void Interpolator::initialise() {
   // https://stackoverflow.com/questions/17769114/stdis-sorted-and-strictly-less-comparison
   if (not std::is_sorted(x.begin(), x.end(), std::less_equal<double>())) {
@@ -55,7 +54,17 @@ void Interpolator::clear() {
 
 // Compute the value of the interpolated function at point `x=u`
 double Interpolator::eval(double u) const {
-  check_active(); // slower to check this every time
+  check_active();
+  if (not extrapolate and (u < min() or u > max())) {
+    auto err = std::ostringstream{};
+    err << "Extrapolation disabled and evaluation point of " << u << " outside of interpolated domain.";
+    util::stop(err.str());
+  }
+  return tk_spline(u);
+}
+
+// faster version of above
+double Interpolator::operator()(double u) const {
   return tk_spline(u);
 }
 
@@ -73,6 +82,10 @@ double Interpolator::min() const {
 }
 double Interpolator::max() const {
   return size() > 0 ? x.back() : R_NegInf;
+}
+
+void Interpolator::setExtrapolate(bool e) {
+  extrapolate = e;
 }
 
 std::vector<double> Interpolator::get_x() const {
@@ -94,6 +107,7 @@ SEXP Interpolator::r_get_xy() const {
 // Compute the value of the interpolated function at a vector of
 // points `x=u`, returning a vector of the same length.
 std::vector<double> Interpolator::r_eval(std::vector<double> u) const {
+  check_active();
   auto ret = std::vector<double>();
   ret.reserve(u.size()); // fast to do this once rather than multiple times with push_back
   for (auto const& x : u) {

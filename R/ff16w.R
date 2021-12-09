@@ -95,6 +95,7 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
   x <- seq(0, 10, 1)
   y <- rep(rainfall, 11)
   e$set_extrinsic_driver("rainfall", x, y)
+  e$extrinsic_driver_extrapolation("rainfall", TRUE);
   
   return(e)
 }

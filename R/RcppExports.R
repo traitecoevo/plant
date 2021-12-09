@@ -3297,6 +3297,10 @@ FF16_Environment__set_extrinsic_driver <- function(obj_, driver_name, x, y) {
     invisible(.Call('_plant_FF16_Environment__set_extrinsic_driver', PACKAGE = 'plant', obj_, driver_name, x, y))
 }
 
+FF16_Environment__extrinsic_driver_extrapolation <- function(obj_, driver_name, extrapolate) {
+    invisible(.Call('_plant_FF16_Environment__extrinsic_driver_extrapolation', PACKAGE = 'plant', obj_, driver_name, extrapolate))
+}
+
 FF16_Environment__extrinsic_driver_evaluate <- function(obj_, driver_name, u) {
     .Call('_plant_FF16_Environment__extrinsic_driver_evaluate', PACKAGE = 'plant', obj_, driver_name, u)
 }

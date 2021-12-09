@@ -9248,6 +9248,18 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// FF16_Environment__extrinsic_driver_extrapolation
+void FF16_Environment__extrinsic_driver_extrapolation(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, bool extrapolate);
+RcppExport SEXP _plant_FF16_Environment__extrinsic_driver_extrapolation(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP extrapolateSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
+    Rcpp::traits::input_parameter< bool >::type extrapolate(extrapolateSEXP);
+    FF16_Environment__extrinsic_driver_extrapolation(obj_, driver_name, extrapolate);
+    return R_NilValue;
+END_RCPP
+}
 // FF16_Environment__extrinsic_driver_evaluate
 double FF16_Environment__extrinsic_driver_evaluate(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, double u);
 RcppExport SEXP _plant_FF16_Environment__extrinsic_driver_evaluate(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP uSEXP) {
@@ -10618,6 +10630,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
     {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 2},
     {"_plant_FF16_Environment__set_extrinsic_driver", (DL_FUNC) &_plant_FF16_Environment__set_extrinsic_driver, 4},
+    {"_plant_FF16_Environment__extrinsic_driver_extrapolation", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_extrapolation, 3},
     {"_plant_FF16_Environment__extrinsic_driver_evaluate", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_evaluate, 3},
     {"_plant_FF16_Environment__extrinsic_driver_evaluate_range", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_evaluate_range, 3},
     {"_plant_FF16_Environment__get_extrinsic_driver_names", (DL_FUNC) &_plant_FF16_Environment__get_extrinsic_driver_names, 1},

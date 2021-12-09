@@ -25,6 +25,7 @@ public:
 
   double min() const;
   double max() const;
+  void setExtrapolate(bool e);
 
   std::vector<double> get_x() const;
   std::vector<double> get_y() const;
@@ -38,7 +39,8 @@ private:
   void check_active() const;
   std::vector<double> x, y;
   tk::spline tk_spline;
-  bool active;
+  bool active = false;
+  bool extrapolate = true;
 };
 
 }
