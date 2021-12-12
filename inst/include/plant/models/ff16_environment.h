@@ -89,9 +89,6 @@ public:
   void clear_environment() {
     canopy.clear();
   }
-  
-private:
-  interpolator::Interpolator rainfall_spline;
 };
 
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
