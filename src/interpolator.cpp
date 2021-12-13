@@ -56,7 +56,11 @@ void Interpolator::clear() {
 double Interpolator::eval(double u) const {
   check_active();
   if (not extrapolate and (u < min() or u > max())) {
-    util::stop("Extrapolation disabled and evaluation point of " + std::to_string(u) + " outside of interpolated domain.");
+    auto err = std::string{"Extrapolation disabled and evaluation point of "};
+    err += std::to_string(u);
+    err += " outside of interpolated domain: ";
+    err += "[" + std::to_string(min()) +  ", " + std::to_string(min()) + "]";
+    util::stop(err);
   }
   return tk_spline(u);
 }
