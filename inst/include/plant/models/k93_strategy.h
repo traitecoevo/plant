@@ -38,7 +38,8 @@ public:
                      bool reuse_intervals,
                      Internals& vars);
 
-
+  // no shared resources modelled through environment
+  double compute_consumption(int resource_index) {}
 
   void refresh_indices();
 

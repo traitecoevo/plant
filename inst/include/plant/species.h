@@ -30,6 +30,8 @@ public:
   double compute_competition(double height) const;
   void compute_rates(const environment_type& environment, double pr_patch_survival, double birth_rate);
   std::vector<double> net_reproduction_ratio_by_cohort() const;
+  std::vector<double> auxilliary_variable_by_cohort(std::string aux_name) const;
+  std::vector<double> integrate_shared_resource_consumption(const E& environment) const;
 
   // * ODE interface
   // NOTE: We are a time-independent model here so no need to pass
@@ -39,7 +41,8 @@ public:
   size_t aux_size() const;
   size_t strategy_aux_size() const;
   std::vector<std::string> aux_names() const;
-  
+
+
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
@@ -188,6 +191,44 @@ std::vector<double> Species<T,E>::net_reproduction_ratio_by_cohort() const {
   ret.reserve(size());
   for (auto& c : cohorts) {
     ret.push_back(c.fecundity());
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::integrate_shared_resource_consumption(const E& environment) const {
+  int n_resources = environment.vars.state_size;
+  std::vector<double> ret;
+  ret.reserve(n_resources);
+
+  for(size_t i = 0; i < n_resources; i++){
+    std::vector<double> heights;
+    heights.reserve(size());
+
+    std::vector<double> consumption;
+    consumption.reserve(size());
+    for(auto& c : cohorts) {
+      heights.push_back(c.height());
+      consumption.push_back(c.compute_consumption(i));
+    }
+
+    // integrate over cohorts; use sum when only a few cohorts
+    if(size() < 3) {
+      ret.push_back(accumulate(consumption.begin(), consumption.end(), 0));
+    } else {
+      ret.push_back(util::trapezium(heights, consumption));
+    }
+  }
+  return ret;
+}
+
+// Temporary - refactor into something more generic
+template <typename T, typename E>
+std::vector<double> Species<T,E>::auxilliary_variable_by_cohort(std::string aux_name) const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (auto& c : cohorts) {
+    ret.push_back(c.aux(aux_name));
   }
   return ret;
 }

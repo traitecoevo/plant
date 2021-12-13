@@ -28,6 +28,10 @@ public:
   double competition_effect() const;
   double fecundity() const {return offspring_produced_survival_weighted;}
 
+  double compute_consumption(int resource_index) const {
+    return plant.compute_consumption(resource_index) * density;
+  }
+
   // Unfortunate, but need a get_ here because of name shadowing...
   double get_log_density() const {return log_density;}
   void set_log_density(double x) {

@@ -58,6 +58,10 @@ public:
     return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));
   }
 
+  double compute_consumption(int resource_index) const {
+    return strategy->compute_consumption(resource_index);
+  }
+
   void compute_rates(const environment_type &environment,
                          bool reuse_intervals = false) {
     strategy->compute_rates(environment, reuse_intervals, vars);

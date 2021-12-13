@@ -55,9 +55,23 @@ public:
     canopy.r_init_interpolators(state);
   }
 
-  virtual void compute_rates() {
+  // currently only used by FF16w but present in both FF16 and K93
+  // avoids uninitialised variables/splines because vars.state_size = 0
+  // perhaps not completely user safe, but I think diffcult to break from R API
+  virtual void compute_rates(std::vector<std::vector<double>> const& resource_depletion) {
+    // treat each soil layer as a separate resource pool
     for (size_t i = 0; i < vars.state_size; i++) {
-      vars.set_rate(i, extrinsic_driver_evaluate("rainfall", time) / (i+1));
+      double water_infiltration = extrinsic_drivers["rainfall"].eval(time) / (i+1);
+
+      double water_exfiltration;
+
+      // sum species to get the total depletion at each layer
+      for(size_t j = 0; resource_depletion.size(); j++) {
+        water_exfiltration += resource_depletion[j][i];
+      }
+      double water_balance = water_infiltration - water_exfiltration;
+
+      vars.set_rate(i, water_balance);
     }
   }
 

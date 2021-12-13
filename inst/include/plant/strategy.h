@@ -46,6 +46,8 @@ public:
   void compute_rates(const environment_type& environment, bool reuse_intervals,
                 Internals& vars);
 
+  double compute_consumption(const int resource_index);
+
   void update_dependent_aux(const int index, Internals& vars);
 
   double net_mass_production_dt(const environment_type& environment,

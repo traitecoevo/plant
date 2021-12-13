@@ -30,7 +30,7 @@ public:
       });
   }
 
-  std::vector<std::string> aux_names() {
+  virtual std::vector<std::string> aux_names() {
     std::vector<std::string> ret({
       "competition_effect",
       "net_mass_production_dt"
@@ -51,6 +51,9 @@ public:
   double compute_competition(double z, double height) const {
     return shading_above(z, height);
   }
+
+  // no shared resources
+  double compute_consumption(int resource_index) {}
 
   void refresh_indices();
 

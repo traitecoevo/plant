@@ -899,6 +899,7 @@ FF16_Environment:
       args: [state: "std::vector<double>"]
       return_type: void
     compute_rates:
+      args: [resource_consumption: "std::vector<std::vector<double> >"]
       return_type: void
   active:
     time: {type: double, access: field}
