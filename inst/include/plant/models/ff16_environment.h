@@ -66,7 +66,7 @@ public:
       double water_exfiltration;
 
       // sum species to get the total depletion at each layer
-      for(size_t j = 0; resource_depletion.size(); j++) {
+      for(size_t j = 0; j < resource_depletion.size(); j++) {
         water_exfiltration += resource_depletion[j][i];
       }
       double water_balance = water_infiltration - water_exfiltration;
