@@ -3293,6 +3293,26 @@ FF16_Environment__ctor <- function(canopy_rescale_usually, soil_number_of_depths
     .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', canopy_rescale_usually, soil_number_of_depths)
 }
 
+FF16_Environment__set_extrinsic_driver <- function(obj_, driver_name, x, y) {
+    invisible(.Call('_plant_FF16_Environment__set_extrinsic_driver', PACKAGE = 'plant', obj_, driver_name, x, y))
+}
+
+FF16_Environment__extrinsic_driver_extrapolation <- function(obj_, driver_name, extrapolate) {
+    invisible(.Call('_plant_FF16_Environment__extrinsic_driver_extrapolation', PACKAGE = 'plant', obj_, driver_name, extrapolate))
+}
+
+FF16_Environment__extrinsic_driver_evaluate <- function(obj_, driver_name, u) {
+    .Call('_plant_FF16_Environment__extrinsic_driver_evaluate', PACKAGE = 'plant', obj_, driver_name, u)
+}
+
+FF16_Environment__extrinsic_driver_evaluate_range <- function(obj_, driver_name, u) {
+    .Call('_plant_FF16_Environment__extrinsic_driver_evaluate_range', PACKAGE = 'plant', obj_, driver_name, u)
+}
+
+FF16_Environment__get_extrinsic_driver_names <- function(obj_) {
+    .Call('_plant_FF16_Environment__get_extrinsic_driver_names', PACKAGE = 'plant', obj_)
+}
+
 FF16_Environment__canopy_openness <- function(obj_, height) {
     .Call('_plant_FF16_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
 }
@@ -3303,10 +3323,6 @@ FF16_Environment__clear <- function(obj_) {
 
 FF16_Environment__set_fixed_environment <- function(obj_, value, height_max) {
     invisible(.Call('_plant_FF16_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
-}
-
-FF16_Environment__set_soil_infiltration_rate <- function(obj_, rate) {
-    invisible(.Call('_plant_FF16_Environment__set_soil_infiltration_rate', PACKAGE = 'plant', obj_, rate))
 }
 
 FF16_Environment__set_soil_water_state <- function(obj_, state) {

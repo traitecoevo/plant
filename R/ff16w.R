@@ -64,16 +64,15 @@ FF16w_StochasticPatchRunner <- function(p) {
 ## Helper:
 ##' @export
 ##' @rdname FF16_Environment
-##' @param infil_rate rate of water entering the first layer
-##' @param n_layers the number of layers
-##' @param init starting conditions
+##' @param soil_number_of_depths the number of soil layers
+##' @param rainfall constant function value for rainfall driver, y = rainfall
 FF16w_make_environment <- function(canopy_light_tol = 1e-4, 
                                    canopy_light_nbase = 17,
                                    canopy_light_max_depth = 16, 
                                    canopy_rescale_usually = TRUE,
                                    soil_number_of_depths = 1,
                                    soil_initial_state = 0.0,
-                                   soil_infiltration_rate = 0.0) {
+                                   rainfall = 1) {
   
   if(soil_number_of_depths < 1)
     stop("FF16w Environment must have at least one soil layer")
@@ -85,7 +84,7 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
                      canopy_light_nbase, 
                      canopy_light_max_depth)
 
-  # there might be a better way to skip this if using defaultss
+  # there might be a better way to skip this if using defaults
   if(sum(soil_initial_state) > 0.0) {
     if(soil_number_of_depths != length(soil_initial_state))
       stop("Not enough starting points for all layers")
@@ -93,7 +92,10 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
     e$set_soil_water_state(soil_initial_state)
   }
     
-  e$set_soil_infiltration_rate(soil_infiltration_rate)
+  x <- seq(0, 10, 1)
+  y <- rep(rainfall, 11)
+  e$set_extrinsic_driver("rainfall", x, y)
+  e$extrinsic_driver_extrapolation("rainfall", TRUE);
   
   return(e)
 }

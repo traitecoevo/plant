@@ -4,6 +4,8 @@
 
 #include <plant/environment.h>
 #include <plant/canopy.h>
+#include <plant/interpolator.h>
+#include <iostream>
 
 using namespace Rcpp;
 
@@ -19,14 +21,16 @@ public:
       : canopy_rescale_usually(canopy_rescale_usually) {
     time = 0.0;
     canopy = Canopy();
-    soil_infiltration_rate = 0.0;
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
+    extrinsic_drivers["rainfall"] = interpolator::Interpolator();
   };
+
 
   // Light interface
   bool canopy_rescale_usually;
 
+  // private?
   Canopy canopy;
 
   // Should this be here or in canopy?
@@ -51,12 +55,9 @@ public:
     canopy.r_init_interpolators(state);
   }
 
-  // Soil interface
-  double soil_infiltration_rate;
-
   virtual void compute_rates() {
     for (size_t i = 0; i < vars.state_size; i++) {
-      vars.set_rate(i, soil_infiltration_rate / (i+1));
+      vars.set_rate(i, extrinsic_driver_evaluate("rainfall", time) / (i+1));
     }
   }
 
@@ -74,10 +75,6 @@ public:
     }
   }
 
-  void set_soil_infiltration_rate(double rate) {
-    soil_infiltration_rate = rate;
-  }
-
   // Core functions
   template <typename Function>
   void compute_environment(Function f_compute_competition, double height_max) {
@@ -92,7 +89,6 @@ public:
   void clear_environment() {
     canopy.clear();
   }
-
 };
 
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {

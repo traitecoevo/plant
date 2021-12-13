@@ -42,8 +42,8 @@ for (x in names(strategy_types)) {
     expect_equal(patch$ode_size, env_size)
     
     # either 0 or numeric(0)
-    expect_identical(patch$ode_state, numeric(env_size))
-    expect_identical(patch$ode_rates, numeric(env_size))
+    expect_identical(patch$ode_state, env_state)
+    expect_identical(patch$ode_rates, env_rates)
     
     ## Empty environment:
     patch$compute_environment()
