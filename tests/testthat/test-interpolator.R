@@ -51,7 +51,7 @@ test_that("Spline extrapolation fails when certain conditions are met", {
   x <- seq(0, 10, 1)
   y <- rep(1, 11)
   s$init(x, y)
-  s$setExtrapolate(FALSE)
+  s$set_extrapolate(FALSE)
   # below lower bound
   expect_error(s$eval(-1), "Extrapolation disabled and evaluation point outside of interpolated domain.")
   # above upper bound

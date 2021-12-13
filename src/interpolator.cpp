@@ -82,7 +82,7 @@ double Interpolator::max() const {
   return size() > 0 ? x.back() : R_NegInf;
 }
 
-void Interpolator::setExtrapolate(bool e) {
+void Interpolator::set_extrapolate(bool e) {
   extrapolate = e;
 }
 

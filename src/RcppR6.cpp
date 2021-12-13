@@ -564,8 +564,8 @@ std::vector<double> Interpolator__eval(plant::RcppR6::RcppR6<plant::interpolator
   return obj_->r_eval(x);
 }
 // [[Rcpp::export]]
-void Interpolator__setExtrapolate(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, bool e) {
-  obj_->setExtrapolate(e);
+void Interpolator__set_extrapolate(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, bool e) {
+  obj_->set_extrapolate(e);
 }
 // [[Rcpp::export]]
 std::vector<double> Interpolator__x__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_) {

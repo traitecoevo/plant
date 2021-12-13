@@ -497,8 +497,8 @@ Interpolator__eval <- function(obj_, x) {
     .Call('_plant_Interpolator__eval', PACKAGE = 'plant', obj_, x)
 }
 
-Interpolator__setExtrapolate <- function(obj_, e) {
-    invisible(.Call('_plant_Interpolator__setExtrapolate', PACKAGE = 'plant', obj_, e))
+Interpolator__set_extrapolate <- function(obj_, e) {
+    invisible(.Call('_plant_Interpolator__set_extrapolate', PACKAGE = 'plant', obj_, e))
 }
 
 Interpolator__x__get <- function(obj_) {

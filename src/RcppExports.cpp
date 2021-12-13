@@ -1393,14 +1393,14 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Interpolator__setExtrapolate
-void Interpolator__setExtrapolate(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, bool e);
-RcppExport SEXP _plant_Interpolator__setExtrapolate(SEXP obj_SEXP, SEXP eSEXP) {
+// Interpolator__set_extrapolate
+void Interpolator__set_extrapolate(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, bool e);
+RcppExport SEXP _plant_Interpolator__set_extrapolate(SEXP obj_SEXP, SEXP eSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< bool >::type e(eSEXP);
-    Interpolator__setExtrapolate(obj_, e);
+    Interpolator__set_extrapolate(obj_, e);
     return R_NilValue;
 END_RCPP
 }
@@ -9936,7 +9936,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Interpolator__ctor", (DL_FUNC) &_plant_Interpolator__ctor, 0},
     {"_plant_Interpolator__init", (DL_FUNC) &_plant_Interpolator__init, 3},
     {"_plant_Interpolator__eval", (DL_FUNC) &_plant_Interpolator__eval, 2},
-    {"_plant_Interpolator__setExtrapolate", (DL_FUNC) &_plant_Interpolator__setExtrapolate, 2},
+    {"_plant_Interpolator__set_extrapolate", (DL_FUNC) &_plant_Interpolator__set_extrapolate, 2},
     {"_plant_Interpolator__x__get", (DL_FUNC) &_plant_Interpolator__x__get, 1},
     {"_plant_Interpolator__y__get", (DL_FUNC) &_plant_Interpolator__y__get, 1},
     {"_plant_Interpolator__xy__get", (DL_FUNC) &_plant_Interpolator__xy__get, 1},
