@@ -24,7 +24,6 @@ test_that("FF16w Environment", {
   e$compute_rates()
   expect_equal(e$soil$rates, 5)
   
-  # not needed anymore? should we still be able to set the states manually?
   # Water logged
   e$set_soil_water_state(100)
   expect_equal(e$soil$states, 100)

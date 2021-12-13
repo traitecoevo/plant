@@ -57,7 +57,7 @@ public:
 
   virtual void compute_rates() {
     for (size_t i = 0; i < vars.state_size; i++) {
-      vars.set_rate(i, extrinsic_drivers["rainfall"].eval(time) / (i+1));
+      vars.set_rate(i, extrinsic_driver_evaluate("rainfall", time) / (i+1));
     }
   }
 

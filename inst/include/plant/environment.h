@@ -12,7 +12,6 @@
 #include <Rcpp.h>
 
 using namespace Rcpp;
-// interpolator has its own namespace, doing this for cleaner code
 
 namespace plant {
 
@@ -81,7 +80,7 @@ public:
       util::stop(driver_name + " doesn't exist in the list of extrinsic_drivers.");
     } else {
       extrinsic_drivers.at(driver_name).init(x, y);
-      extrinsic_drivers.at(driver_name).setExtrapolate(false); // default no extrapolation
+      extrinsic_driver_extrapolation(driver_name, false); // default no extrapolation
     }
   }
 
@@ -107,7 +106,6 @@ public:
     return ret;
   }
 
-// private?
 protected:
   std::unordered_map<std::string, interpolator::Interpolator> extrinsic_drivers;
 };
