@@ -186,7 +186,7 @@ void Patch<T,E>::compute_rates() {
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
 
     // returns n_layers
-    resource_depletion[i] = species[i].integrate_shared_resource_consumption(environment);
+    resource_depletion.push_back(species[i].integrate_shared_resource_consumption(environment));
   }
 
   environment.compute_rates(resource_depletion);
