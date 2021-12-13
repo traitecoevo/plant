@@ -91,7 +91,7 @@ public:
 
   // evaluate/query interpolated spline for driver at point u, return s(u), where s is interpolated function
   double extrinsic_driver_evaluate(std::string driver_name, double u) const {
-    extrinsic_drivers.at(driver_name).eval(u);
+    return extrinsic_drivers.at(driver_name).eval(u);
   }
 
   // // evaluate/query interpolated spline for driver at vector of points, return vector of values
