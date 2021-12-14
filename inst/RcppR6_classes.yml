@@ -215,6 +215,9 @@ Interpolator:
       return_type: "std::vector<double>"
       args: [x: "std::vector<double>"]
       name_cpp: r_eval
+    set_extrapolate:
+      return_type: void
+      args: [e: bool]
   active:
     x: {type: "std::vector<double>", access: member, name_cpp: get_x}
     y: {type: "std::vector<double>", access: member, name_cpp: get_y}
