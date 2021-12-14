@@ -1,3 +1,12 @@
+
+#' Title
+#'
+#' @param results 
+#'
+#' @return
+#' @export
+#'
+#' @examples
 expand_state <- function(results) {
   
   data <- 
