@@ -86,7 +86,7 @@ public:
   }
 
   void extrinsic_driver_extrapolation(std::string driver_name, bool extrapolate) {
-    extrinsic_drivers.at(driver_name).setExtrapolate(extrapolate);
+    extrinsic_drivers.at(driver_name).set_extrapolate(extrapolate);
   }
 
   // evaluate/query interpolated spline for driver at point u, return s(u), where s is interpolated function

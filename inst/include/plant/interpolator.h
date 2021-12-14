@@ -25,7 +25,7 @@ public:
 
   double min() const;
   double max() const;
-  void setExtrapolate(bool e);
+  void set_extrapolate(bool e);
 
   std::vector<double> get_x() const;
   std::vector<double> get_y() const;

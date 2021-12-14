@@ -788,6 +788,9 @@ OdeRunner <- function(T) {
       },
       eval = function(x) {
         Interpolator__eval(self, x)
+      },
+      set_extrapolate = function(e) {
+        Interpolator__set_extrapolate(self, e)
       }),
     active=list(
       x = function(value) {
