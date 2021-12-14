@@ -5,7 +5,6 @@
 #include <plant/environment.h>
 #include <plant/canopy.h>
 #include <plant/interpolator.h>
-#include <iostream>
 
 using namespace Rcpp;
 
@@ -70,8 +69,6 @@ public:
         water_exfiltration += resource_depletion[j][i];
       }
       double water_balance = water_infiltration - water_exfiltration;
-      // water exfiltration is negative
-      double water_balance = water_infiltration + water_exfiltration;
 
       vars.set_rate(i, water_balance);
     }

@@ -207,9 +207,10 @@ std::vector<double> Species<T,E>::integrate_shared_resource_consumption(const E&
 
     std::vector<double> consumption;
     consumption.reserve(size());
-    for(auto& c : cohorts) {
-      heights.push_back(c.height());
-      consumption.push_back(c.compute_consumption(i));
+    // cohort heights are in descending order - we need ascending for integration
+    for(auto it = cohorts.rbegin(); it != cohorts.rend(); ++it) {
+      heights.push_back(it->height());
+      consumption.push_back(it->compute_consumption(i));
     }
 
     // integrate over cohorts; use sum when only a few cohorts
