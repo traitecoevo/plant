@@ -55,6 +55,14 @@ public:
     return plant_names;
   }
 
+  void resize_consumption_rates(int i) {
+    plant.resize_consumption_rates(i);
+  }
+
+  double consumption_rate(int i) const {
+    return plant.consumption_rate(i) * density;
+  }
+  
   individual_type plant;
 
 private:

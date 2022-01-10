@@ -52,7 +52,13 @@ public:
   double aux(std::string name) const {
     return vars.aux(strategy->aux_index.at(name));
   }
-  double aux(int i) const { return vars.aux(i); } 
+  double aux(int i) const { return vars.aux(i); }
+
+  // set # consumable resources based on env. variables
+  void resize_consumption_rates(int i) {
+    vars.resize_consumption_rates(i);
+  }
+  double consumption_rate(int i) const { return vars.consumption_rate(i); }
 
   double compute_competition(double z) const {
     return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));

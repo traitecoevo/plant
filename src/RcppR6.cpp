@@ -3792,8 +3792,8 @@ void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_En
   obj_->set_soil_water_state(state);
 }
 // [[Rcpp::export]]
-void FF16_Environment__compute_rates(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  obj_->compute_rates();
+void FF16_Environment__compute_rates(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> resource_depletion) {
+  obj_->compute_rates(resource_depletion);
 }
 // [[Rcpp::export]]
 double FF16_Environment__time__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {

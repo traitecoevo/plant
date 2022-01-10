@@ -12,13 +12,11 @@ public:
   typedef std::shared_ptr<FF16w_Strategy> ptr;
   FF16w_Strategy();
 
-  // Overrides ----------------------------------------------
-  virtual double net_mass_production_dt(const FF16_Environment& environment,
-                                        double height, double area_leaf_,
-                                        bool reuse_intervals=false);
+  double evapotranspiration_dt(double area_leaf) const;
 
-  double water_access(const FF16_Environment& environment,
-                      double height, double area_leaf_);
+  virtual void compute_rates(const FF16_Environment& environment,
+                             bool reuse_intervals,
+                             Internals& vars);
 };
 
 FF16w_Strategy::ptr make_strategy_ptr(FF16w_Strategy s);

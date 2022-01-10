@@ -28,7 +28,7 @@ public:
 
   // ODE interface: do nothing if the environment has no state.
   size_t ode_size() const { return vars.state_size; }
-  virtual void compute_rates(){};
+  virtual void compute_rates(std::vector<double> const& resource_depletion){};
 
   ode::const_iterator set_ode_state(ode::const_iterator it) {
     for (size_t i = 0; i < vars.state_size; i++) {
