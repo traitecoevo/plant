@@ -215,6 +215,9 @@ Interpolator:
       return_type: "std::vector<double>"
       args: [x: "std::vector<double>"]
       name_cpp: r_eval
+    set_extrapolate:
+      return_type: void
+      args: [e: bool]
   active:
     x: {type: "std::vector<double>", access: member, name_cpp: get_x}
     y: {type: "std::vector<double>", access: member, name_cpp: get_y}
@@ -876,6 +879,22 @@ FF16_Environment:
       FF16_Environment object
       @export
   methods:
+    # unforunately need to expose these base Environment functions for every derived class...
+    set_extrinsic_driver:
+      args: [driver_name: "std::string", x: "std::vector<double>", y: "std::vector<double>"]
+      return_type: void
+    extrinsic_driver_extrapolation:
+      args: [driver_name: "std::string", extrapolate: bool]
+      return_type: void
+    extrinsic_driver_evaluate:
+      args: [driver_name: "std::string", u: double]
+      return_type: double
+    extrinsic_driver_evaluate_range:
+      args: [driver_name: "std::string", u: "std::vector<double>"]
+      return_type: "std::vector<double>"
+    get_extrinsic_driver_names:
+      args: []
+      return_type: "std::vector<std::string>"
     canopy_openness:
       args: [height: double]
       return_type: double
@@ -883,9 +902,6 @@ FF16_Environment:
       return_type: void
     set_fixed_environment:
       args: [value: double, height_max: double]
-      return_type: void
-    set_soil_infiltration_rate:
-      args: [rate: double]
       return_type: void
     set_soil_water_state:
       args: [state: "std::vector<double>"]

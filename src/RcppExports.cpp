@@ -1393,6 +1393,17 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Interpolator__set_extrapolate
+void Interpolator__set_extrapolate(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_, bool e);
+RcppExport SEXP _plant_Interpolator__set_extrapolate(SEXP obj_SEXP, SEXP eSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::interpolator::Interpolator> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type e(eSEXP);
+    Interpolator__set_extrapolate(obj_, e);
+    return R_NilValue;
+END_RCPP
+}
 // Interpolator__x__get
 std::vector<double> Interpolator__x__get(plant::RcppR6::RcppR6<plant::interpolator::Interpolator> obj_);
 RcppExport SEXP _plant_Interpolator__x__get(SEXP obj_SEXP) {
@@ -9326,6 +9337,68 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_Environment__set_extrinsic_driver
+void FF16_Environment__set_extrinsic_driver(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, std::vector<double> x, std::vector<double> y);
+RcppExport SEXP _plant_FF16_Environment__set_extrinsic_driver(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP);
+    FF16_Environment__set_extrinsic_driver(obj_, driver_name, x, y);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__extrinsic_driver_extrapolation
+void FF16_Environment__extrinsic_driver_extrapolation(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, bool extrapolate);
+RcppExport SEXP _plant_FF16_Environment__extrinsic_driver_extrapolation(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP extrapolateSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
+    Rcpp::traits::input_parameter< bool >::type extrapolate(extrapolateSEXP);
+    FF16_Environment__extrinsic_driver_extrapolation(obj_, driver_name, extrapolate);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__extrinsic_driver_evaluate
+double FF16_Environment__extrinsic_driver_evaluate(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, double u);
+RcppExport SEXP _plant_FF16_Environment__extrinsic_driver_evaluate(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
+    Rcpp::traits::input_parameter< double >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__extrinsic_driver_evaluate(obj_, driver_name, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__extrinsic_driver_evaluate_range
+std::vector<double> FF16_Environment__extrinsic_driver_evaluate_range(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, std::vector<double> u);
+RcppExport SEXP _plant_FF16_Environment__extrinsic_driver_evaluate_range(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP uSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type u(uSEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__extrinsic_driver_evaluate_range(obj_, driver_name, u));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__get_extrinsic_driver_names
+std::vector<std::string> FF16_Environment__get_extrinsic_driver_names(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__get_extrinsic_driver_names(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__get_extrinsic_driver_names(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // FF16_Environment__canopy_openness
 double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height);
 RcppExport SEXP _plant_FF16_Environment__canopy_openness(SEXP obj_SEXP, SEXP heightSEXP) {
@@ -9357,17 +9430,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     Rcpp::traits::input_parameter< double >::type height_max(height_maxSEXP);
     FF16_Environment__set_fixed_environment(obj_, value, height_max);
-    return R_NilValue;
-END_RCPP
-}
-// FF16_Environment__set_soil_infiltration_rate
-void FF16_Environment__set_soil_infiltration_rate(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double rate);
-RcppExport SEXP _plant_FF16_Environment__set_soil_infiltration_rate(SEXP obj_SEXP, SEXP rateSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type rate(rateSEXP);
-    FF16_Environment__set_soil_infiltration_rate(obj_, rate);
     return R_NilValue;
 END_RCPP
 }
@@ -9970,6 +10032,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Interpolator__ctor", (DL_FUNC) &_plant_Interpolator__ctor, 0},
     {"_plant_Interpolator__init", (DL_FUNC) &_plant_Interpolator__init, 3},
     {"_plant_Interpolator__eval", (DL_FUNC) &_plant_Interpolator__eval, 2},
+    {"_plant_Interpolator__set_extrapolate", (DL_FUNC) &_plant_Interpolator__set_extrapolate, 2},
     {"_plant_Interpolator__x__get", (DL_FUNC) &_plant_Interpolator__x__get, 1},
     {"_plant_Interpolator__y__get", (DL_FUNC) &_plant_Interpolator__y__get, 1},
     {"_plant_Interpolator__xy__get", (DL_FUNC) &_plant_Interpolator__xy__get, 1},
@@ -10677,10 +10740,14 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
     {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 2},
+    {"_plant_FF16_Environment__set_extrinsic_driver", (DL_FUNC) &_plant_FF16_Environment__set_extrinsic_driver, 4},
+    {"_plant_FF16_Environment__extrinsic_driver_extrapolation", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_extrapolation, 3},
+    {"_plant_FF16_Environment__extrinsic_driver_evaluate", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_evaluate, 3},
+    {"_plant_FF16_Environment__extrinsic_driver_evaluate_range", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_evaluate_range, 3},
+    {"_plant_FF16_Environment__get_extrinsic_driver_names", (DL_FUNC) &_plant_FF16_Environment__get_extrinsic_driver_names, 1},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
-    {"_plant_FF16_Environment__set_soil_infiltration_rate", (DL_FUNC) &_plant_FF16_Environment__set_soil_infiltration_rate, 2},
     {"_plant_FF16_Environment__set_soil_water_state", (DL_FUNC) &_plant_FF16_Environment__set_soil_water_state, 2},
     {"_plant_FF16_Environment__compute_rates", (DL_FUNC) &_plant_FF16_Environment__compute_rates, 1},
     {"_plant_FF16_Environment__time__get", (DL_FUNC) &_plant_FF16_Environment__time__get, 1},

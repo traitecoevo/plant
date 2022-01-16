@@ -26,6 +26,10 @@ test_that("Splines require sensible data", {
   s <- Interpolator()
   expect_error(s$init(c(1, 2, 3), 1), "Incorrect length input")
   expect_error(s$init(numeric(0), numeric(0)), "insufficient number of points")
+  # ascending order
+  expect_error(s$init(c(3, 2, 4), c(1, 1, 1)), "spline control points must be unique and in ascending order")
+  # unique
+  expect_error(s$init(c(1, 1, 2), c(1, 1, 1)), "spline control points must be unique and in ascending order")
 })
 
 test_that("Spline contains correct data", {
@@ -40,4 +44,18 @@ test_that("Splines are accurate enough", {
   s$init(xx, yy)
   yy_C <- s$eval(xx_cmp)
   expect_equal(yy_C, yy_cmp, tolerance=1e-6)
+})
+
+test_that("Spline extrapolation fails when certain conditions are met", {
+  s <- Interpolator()
+  x <- seq(0, 10, 1)
+  y <- rep(1, 11)
+  s$init(x, y)
+  s$set_extrapolate(FALSE)
+  # below lower bound
+  expect_error(s$eval(-1), "Extrapolation disabled and evaluation point outside of interpolated domain.")
+  # above upper bound
+  expect_error(s$eval(20), "Extrapolation disabled and evaluation point outside of interpolated domain.")
+  # inside domain
+  expect_equal(s$eval(5), 1)
 })

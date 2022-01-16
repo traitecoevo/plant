@@ -18,9 +18,12 @@ void Interpolator::init(const std::vector<double>& x_,
   initialise();
 }
 
-// Compute the interpolated function from the points contained in 'x'
-// and 'y'.
+// Compute the interpolated function from the points contained in 'x' and 'y'.
 void Interpolator::initialise() {
+  // https://stackoverflow.com/questions/17769114/stdis-sorted-and-strictly-less-comparison
+  if (not std::is_sorted(x.begin(), x.end(), std::less_equal<double>())) {
+    util::stop("spline control points must be unique and in ascending order");
+  }
   if (x.size() > 0) {
     tk_spline.set_points(x, y);
     active = true;
@@ -34,6 +37,14 @@ void Interpolator::add_point(double xi, double yi) {
   y.push_back(yi);
 }
 
+// adds point in sorted position (slower than above)
+void Interpolator::add_point_sorted(double xi, double yi) {
+  auto x_upper = std::upper_bound(x.begin(), x.end(), xi); // find smallest number larger than xi
+  x.insert(x_upper, xi); // add xi below that number
+  auto y_upper = std::upper_bound(y.begin(), y.end(), yi);
+  y.insert(y_upper, yi);
+}
+
 // Remove all the contents, being ready to be refilled.
 void Interpolator::clear() {
   x.clear();
@@ -43,6 +54,15 @@ void Interpolator::clear() {
 
 // Compute the value of the interpolated function at point `x=u`
 double Interpolator::eval(double u) const {
+  check_active();
+  if (not extrapolate and (u < min() or u > max())) {
+    util::stop("Extrapolation disabled and evaluation point outside of interpolated domain.");
+  }
+  return tk_spline(u);
+}
+
+// faster version of above
+double Interpolator::operator()(double u) const {
   return tk_spline(u);
 }
 
@@ -60,6 +80,10 @@ double Interpolator::min() const {
 }
 double Interpolator::max() const {
   return size() > 0 ? x.back() : R_NegInf;
+}
+
+void Interpolator::set_extrapolate(bool e) {
+  extrapolate = e;
 }
 
 std::vector<double> Interpolator::get_x() const {
@@ -82,10 +106,10 @@ SEXP Interpolator::r_get_xy() const {
 // points `x=u`, returning a vector of the same length.
 std::vector<double> Interpolator::r_eval(std::vector<double> u) const {
   check_active();
-  const size_t n = u.size();
-  std::vector<double> ret(n);
-  for (size_t i = 0; i < n; ++i) {
-    ret[i] = eval(u[i]);
+  auto ret = std::vector<double>();
+  ret.reserve(u.size()); // fast to do this once rather than multiple times with push_back
+  for (auto const& x : u) {
+    ret.push_back(eval(x));
   }
   return ret;
 }
