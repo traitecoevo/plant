@@ -36,3 +36,34 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
                  )
                })
 }
+
+run_resource_consumption_benchmarks <- function(its = 10) {
+  
+  f_scm <- function(layers) {
+    p0 <- scm_base_parameters("FF16w")
+    p0$max_patch_lifetime = 10
+    
+    p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE)
+    p1$cohort_schedule_times <- list(seq(0, 10, len = 3))
+    
+    env <- make_environment("FF16w", 
+                            soil_number_of_depths = layers,
+                            soil_initial_state = rep(1, layers))
+    
+    ctrl <- scm_base_control()
+    env$set_extrinsic_driver("rainfall", 0:10, 0:10)
+    
+    out <- run_scm(p1, env, ctrl)
+  }
+  
+  message("Running resource consumption benchmarks`")
+  bench::press(soil_layers = c(10, 100, 1000),
+               {
+                 bench::mark(
+                   check = FALSE,
+                   # We're not expecting different results to be equivalent
+                   iterations = its,
+                   scm = f_scm(soil_layers),
+                 )
+               })
+}

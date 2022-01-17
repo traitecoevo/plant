@@ -60,7 +60,7 @@ public:
 
     double drainage_multiplier = 0.1; // experimental only;
 
-    std::cout << "Time: " << time << std::endl;
+    // std::cout << "Time: " << time << std::endl;
 
     // treat each soil layer as a separate resource pool
     for (size_t i = 0; i < vars.state_size; i++) {
@@ -79,11 +79,11 @@ public:
       net_flux = infiltration - resource_depletion[i] - drainage_rate;
       vars.set_rate(i, net_flux);
 
-      std::cout << std::setprecision(2) << std::fixed;
-      std::cout << "Soil layer: " << i << "; infil. rate: " << infiltration << "; extraction rate: " << resource_depletion[i] << "; net flux: " << net_flux << "; water balance " << vars.state(i) << std::endl;
+      // std::cout << std::setprecision(2) << std::fixed;
+      // std::cout << "Soil layer: " << i << "; infil. rate: " << infiltration << "; extraction rate: " << resource_depletion[i] << "; net flux: " << net_flux << "; water balance " << vars.state(i) << std::endl;
     }
 
-    std::cout << "\n " << std::endl;
+    // std::cout << "\n " << std::endl;
   }
 
   std::vector<double> get_soil_water_state() const {
