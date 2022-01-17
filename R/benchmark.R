@@ -44,7 +44,7 @@ run_resource_consumption_benchmarks <- function(its = 10) {
     p0$max_patch_lifetime = 10
     
     p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE)
-
+    
     env <- make_environment("FF16w", 
                             soil_number_of_depths = layers,
                             soil_initial_state = rep(1, layers))
@@ -56,7 +56,7 @@ run_resource_consumption_benchmarks <- function(its = 10) {
   }
   
   message("Running resource consumption benchmarks`")
-  bench::press(soil_layers = c(10, 100, 1000),
+  bench::press(soil_layers = c(10, 50, 100),
                {
                  bench::mark(
                    check = FALSE,
