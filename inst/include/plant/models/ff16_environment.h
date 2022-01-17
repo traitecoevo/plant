@@ -5,7 +5,6 @@
 #include <plant/environment.h>
 #include <plant/canopy.h>
 #include <plant/interpolator.h>
-#include <iostream>
 
 using namespace Rcpp;
 
