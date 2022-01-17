@@ -194,6 +194,7 @@ void Patch<T,E>::compute_rates() {
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
   }
 
+  resource_depletion.reserve(environment.ode_size());
   for(size_t i = 0; i < environment.ode_size(); i++) {
     double resource_consumed = std::accumulate(species.begin(), species.end(), 0.0, [i](double r, const species_type& s) {
       return r + s.consumption_rate(i); // accumulates r from zero
