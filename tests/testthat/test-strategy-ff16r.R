@@ -21,7 +21,7 @@ test_that("Defaults", {
     a_p1   = 151.177775377968,
     a_p2   = 0.204716166503633,
     a_f1   = 1,
-    a_f2   = 2,
+    a_f2   = 50,
     a_d0   = 0.1,
     eta    = 12,
     hmat   = 16.5958691,
@@ -34,6 +34,7 @@ test_that("Defaults", {
     omega  = 3.8e-5,
     theta  = 1.0/4669,
     k_I    = 0.5,
+    recruitment_decay = 1,
     control = Control(),
     collect_all_auxiliary = FALSE)
 

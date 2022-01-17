@@ -17,10 +17,11 @@ public:
 
   // Overloads ----------------------------------------------
 
-  // [eqn 16] Fraction of whole plant growth that is leaf
-  virtual double fraction_allocation_reproduction(double height) const;
+  // [eqn 20] Survival of seedlings during establishment
+  virtual double establishment_probability(const FF16_Environment& environment);
 
-  
+  double recruitment_decay = 1;
+
 };
 
 FF16r_Strategy::ptr make_strategy_ptr(FF16r_Strategy s);

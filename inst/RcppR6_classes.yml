@@ -956,6 +956,7 @@ FF16r_Strategy:
     - a_dG1: double
     - a_dG2: double
     - k_I: double
+    - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
 
