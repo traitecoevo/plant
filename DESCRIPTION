@@ -28,6 +28,7 @@ Imports:
     nleqslv,
     BB
 Suggests:
+    magrittr,
     dplyr,
     tidyr,
     purrr,
