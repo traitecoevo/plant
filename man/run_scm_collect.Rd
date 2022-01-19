@@ -4,10 +4,16 @@
 \alias{run_scm_collect}
 \title{Run the SCM, Collecting Output}
 \usage{
-run_scm_collect(p, include_competition_effect = FALSE)
+run_scm_collect(
+  p,
+  ctrl = scm_base_control(),
+  include_competition_effect = FALSE
+)
 }
 \arguments{
 \item{p}{A \code{Parameters} object}
+
+\item{ctrl}{Control object}
 
 \item{include_competition_effect}{Include total leaf area (will change; see
 issue #138)}

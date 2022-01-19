@@ -8,7 +8,7 @@ fitness_landscape(
   trait_matrix,
   p,
   hyperpar = param_hyperpar(p),
-  raw_seed_rain = FALSE
+  log_fitness = FALSE
 )
 }
 \arguments{
@@ -19,7 +19,10 @@ in \code{p}.}
 \item{p}{Parameters object.  Needs to contain residents with their
 incoming seed rain.}
 
-\item{raw_seed_rain}{Logical; if \code{TRUE} report per capita
+\item{hyperpar}{Hyperparameter function to use. By default links
+to standard function for this strategy type.}
+
+\item{log_fitness}{Logical; if \code{TRUE} report per capita
 seed rain rather than fitness.}
 }
 \value{

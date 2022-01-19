@@ -4,13 +4,15 @@
 \alias{run_stochastic_collect}
 \title{Run a stochastic patch, Collecting Output}
 \usage{
-run_stochastic_collect(p, random_schedule = TRUE)
+run_stochastic_collect(p, ctrl = scm_base_control(), random_schedule = TRUE)
 }
 \arguments{
 \item{p}{A \code{\link{FF16_Parameters}} object}
 
+\item{ctrl}{Control object}
+
 \item{random_schedule}{setting to TRUE causes algorithm to generate
-a random schedule based on seed rain and area.}
+a random schedule based on offspring arrival and area.}
 }
 \description{
 Run a stochastic simulation of a patch, given a Parameters

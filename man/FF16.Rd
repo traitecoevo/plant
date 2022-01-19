@@ -2,7 +2,6 @@
 % Please edit documentation in r/ff16.R
 \name{FF16_Individual}
 \alias{FF16_Individual}
-\alias{lcp_whole_plant.Plant<FF16>}
 \alias{FF16_Cohort}
 \alias{FF16_Species}
 \alias{FF16_Parameters}
@@ -14,8 +13,6 @@
 \title{Create a FF16 Plant or Cohort}
 \usage{
 FF16_Individual(s = FF16_Strategy())
-
-\method{lcp_whole_plant}{`Plant<FF16>`}(p, ...)
 
 FF16_Cohort(s = FF16_Strategy())
 
@@ -37,8 +34,6 @@ FF16_StochasticPatchRunner(p)
 \item{s}{A \code{\link{FF16_Strategy}} object}
 
 \item{p}{A \code{Parameters<FF16,FF16_Env>} object}
-
-\item{...}{Arguments!}
 }
 \description{
 Create a FF16 Plant or Cohort

@@ -4,10 +4,12 @@
 \alias{check_inviable}
 \title{Check low-abundance strategies for viability}
 \usage{
-check_inviable(p)
+check_inviable(p, ctrl)
 }
 \arguments{
 \item{p}{A Parameters object}
+
+\item{ctrl}{Control object}
 }
 \description{
 Check low-abundance strategies for viability.

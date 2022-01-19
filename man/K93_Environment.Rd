@@ -6,24 +6,20 @@
 \alias{K93_fixed_environment}
 \title{K93_Environment object}
 \usage{
-K93_Environment(disturbance_mean_interval, seed_rain, control)
+K93_Environment(control)
 
-K93_make_environment(p)
+K93_make_environment(ctrl = scm_base_control())
 
-K93_fixed_environment(e = 1, p = K93_Parameters(), height_max = 300)
+K93_fixed_environment(e = 1, ctrl = scm_base_control(), height_max = 300)
 }
 \arguments{
-\item{disturbance_mean_interval}{mean disturbance interval in years}
-
-\item{seed_rain}{vector of seed rains}
-
 \item{control}{A Control object}
 
-\item{p}{A Parameters object}
+\item{ctrl}{Control object}
+
+\item{e}{Value of environment (default=1.0)}
 
 \item{height_max}{= 150.0 maximum possible height in environment}
-
-\item{e=1.0}{Value of environment}
 }
 \description{
 K93_Environment object
