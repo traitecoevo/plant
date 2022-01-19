@@ -48,7 +48,9 @@ First, load plant, tidyverse and purrr, which will be useful (for working with l
 
 ```{r}
 library(plant)
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
 library(purrr)
 ```
 
