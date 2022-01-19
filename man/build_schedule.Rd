@@ -4,7 +4,11 @@
 \alias{build_schedule}
 \title{Build Cohort Schedule}
 \usage{
-build_schedule(p, ctrl = scm_base_control())
+build_schedule(
+  p,
+  env = make_environment(parameters = p),
+  ctrl = scm_base_control()
+)
 }
 \arguments{
 \item{p}{Parameters object}

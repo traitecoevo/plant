@@ -4,10 +4,17 @@
 \alias{run_scm}
 \title{Run SCM}
 \usage{
-run_scm(p, ctrl = scm_base_control(), use_ode_times = FALSE)
+run_scm(
+  p,
+  env = make_environment(parameters = p),
+  ctrl = scm_base_control(),
+  use_ode_times = FALSE
+)
 }
 \arguments{
 \item{p}{Parameters object}
+
+\item{env}{Environment object (defaults to FF16_Environment)}
 
 \item{ctrl}{Control object}
 

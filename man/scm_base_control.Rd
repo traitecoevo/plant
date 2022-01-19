@@ -2,12 +2,9 @@
 % Please edit documentation in r/scm_support.R
 \name{scm_base_control}
 \alias{scm_base_control}
-\title{Sensible, fast (ish) SCM parameters}
+\title{Sensible, fast (ish) SCM control settings}
 \usage{
-scm_base_control(type = "FF16", env = environment_type(type))
-}
-\arguments{
-\item{type}{Name of model (defaults to FF16 but any strategy name is valid).}
+scm_base_control()
 }
 \description{
 Hopefully sensible set of parameters for use with the SCM.  Turns

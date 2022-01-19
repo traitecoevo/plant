@@ -5,6 +5,7 @@
 #' @param data a list, the `species` component of scm output.
 #'
 #' @return a tibble describing columns of the output for each cohort in each species
+#' @importFrom rlang .data
 tidy_species <- function(data) {
   
   # get dimensions of data = number of steps * number of cohorts
@@ -25,11 +26,11 @@ tidy_species <- function(data) {
     data_species[[v]] <- 
       data[v, , ] %>% 
       as.data.frame %>% tidyr::as_tibble() %>%
-      tidyr::pivot_longer(cols=starts_with("V"), names_to = "cohort") %>% 
-      dplyr::pull(value)
+      tidyr::pivot_longer(cols=dplyr::starts_with("V"), names_to = "cohort") %>% 
+      dplyr::pull(.data$value)
   }
   
-  data_species %>% dplyr::mutate(density = exp(log_density))
+  data_species %>% dplyr::mutate(density = exp(.data$log_density))
 }
 
 
@@ -39,10 +40,11 @@ tidy_species <- function(data) {
 #' @param data a list, the `env` component of scm output.
 #'
 #' @return a tibble describing the environment in a patch
+#' @importFrom rlang .data
 tidy_env <- function(env) {
   dplyr::tibble(step = seq_len(length(env))) %>%
     dplyr::left_join(by = "step", 
-    env %>% purrr::map_df(tidyr::as_tibble, .id= "step") %>% dplyr::mutate(step = as.integer(step))
+    env %>% purrr::map_df(tidyr::as_tibble, .id= "step") %>% dplyr::mutate(step = as.integer(.data$step))
     )
 }
 
@@ -56,6 +58,7 @@ tidy_env <- function(env) {
 #'
 #' @return a list
 #' @export
+#' @importFrom rlang .data
 tidy_patch <- function(results) {
 
   out <- results
@@ -89,10 +92,10 @@ tidy_patch <- function(results) {
 #' @param times times to interpolate to
 #' @param method Method for interpolation. For more info see help on stats::spline
 #'
-#' @return
+#' @return ??
 #' @export
 #' @importFrom stats spline
-#'
+#' @importFrom rlang .data
 interpolate_to_times <- function(tidy_species_data, times, method="natural") {
   
   # helper function - predicts to new values with spline
@@ -105,27 +108,25 @@ interpolate_to_times <- function(tidy_species_data, times, method="natural") {
   
   tidy_species_data %>%
     tidyr::drop_na() %>%
-    dplyr::group_by(species, cohort) %>%
+    dplyr::group_by(.data$species, .data$cohort) %>%
     dplyr::summarise(
-      dplyr::across(where(is.double), ~f(time, .x, xout=times)),
+      dplyr::across(where(is.double), ~f(.data$time, .x, xout=times)),
       .groups = "keep") %>%
-    dplyr::mutate(time=times) %>%
+    dplyr::mutate(time=.data$times) %>%
     dplyr::ungroup()
 }
 
 
 #' Interpolate tidyspecies data to specific heights at every time point
 #'
-#' @param tidy_species_data 
+#' @param tidy_species_data ???
 #' @param heights heights to interpolate to
 #' @param method Method for interpolation. For more info see help on stats::spline
 #'
-#' @return
+#' @return ??
 #' @export
 #' @importFrom stats spline
-#'
-
-
+#' @importFrom rlang .data
 interpolate_to_heights <- function(tidy_species_data, heights, method="natural") {
   
   # helper function - predicts to new values with spline
@@ -142,41 +143,35 @@ interpolate_to_heights <- function(tidy_species_data, heights, method="natural")
   }
 
   tidy_species_data %>%
-    tidyr::drop_na(-step) %>%
-    dplyr::group_by(species, time, step) %>%
+    tidyr::drop_na(-.data$step) %>%
+    dplyr::group_by(.data$species, .data$time, .data$step) %>%
     dplyr::summarise(
-      dplyr::across(where(is.double), ~f(height, .x, xout=heights)),
+      dplyr::across(where(is.double), ~f(.data$height, .x, xout=heights)),
       .groups = "keep") %>%
-    dplyr::mutate(height=heights,
-                  density = exp(log_density)) %>%
+    dplyr::mutate(height=.data$heights,
+                  density = exp(.data$log_density)) %>%
     dplyr::ungroup()
 }
 
-sample_size_distribution <- function(tidy_species_data, patch_area) {
-  
-  
-  
-  
-}
 
 
 #' XXXXX
 #'
-#' @param data 
+#' @param data ???
 #'
-#' @return
+#' @return ??
 #' @export
 #'
-#' @examples
+#' @importFrom rlang .data
 patch_species_total <- function(data) {
   data  %>%
-    select(-cohort) %>% na.omit() %>% 
-    filter(step > 1) %>% 
-    group_by(step, time, patch_density, species) %>% 
-    summarise(
-      individuals = -plant:::trapezium(height, density),
-      min_h = min(height),
-      across(c(starts_with("area"), starts_with("mass")), ~ -plant:::trapezium(height, density*.x)),#, .names = "{.col}_tot"),
+    dplyr::select(-.data$cohort) %>% stats::na.omit() %>% 
+    dplyr::filter(.data$step > 1) %>% 
+    dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
+    dplyr::summarise(
+      individuals = -trapezium(.data$height, .data$density),
+      min_h = min(.data$height),
+      dplyr::across(c(dplyr::starts_with("area"), dplyr::starts_with("mass")), ~ -trapezium(height, density*.x)),#, .names = "{.col}_tot"),
       .groups="drop"
     )
 }

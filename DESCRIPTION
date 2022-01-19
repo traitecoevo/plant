@@ -26,12 +26,14 @@ Imports:
     loggr,
     crayon,
     nleqslv,
-    BB
-Suggests:
+    BB,
     magrittr,
+    tibble,
+    rlang,
     dplyr,
     tidyr,
-    purrr,
+    purrr
+Suggests:
     ggplot2,
     testthat,
     deSolve,

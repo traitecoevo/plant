@@ -2,19 +2,17 @@
 
 #' Title
 #'
-#' @param data_species 
+#' @param data_species ??
 #'
-#' @return
 #' @export
-#'
-#' @examples
+#' @importFrom rlang .data
 plot_size_distribution_patch <- function(data_species) {
   
   data_species %>%
-    dplyr::filter(!is.na(density)) %>%
-    mutate(relative_log_density = rel(log_density)) %>%
-    ggplot2::ggplot(ggplot2::aes(x = time, y = height, color = as.character(species),
-                        group = interaction(cohort,species), alpha = relative_log_density)) +
+    dplyr::filter(!is.na(.data$density)) %>%
+    dplyr::mutate(relative_log_density = rel(.data$log_density)) %>%
+    ggplot2::ggplot(ggplot2::aes(x = .data$time, y = .data$height, color = as.character(.data$species),
+                        group = interaction(.data$cohort, .data$species), alpha = .data$relative_log_density)) +
     ggplot2::geom_line() + 
     ggplot2::labs(x = "Time (years)",
          y = "Height (m)",
@@ -26,13 +24,11 @@ plot_size_distribution_patch <- function(data_species) {
 
 #' Relativise a score 
 #'
-#' @param x 
-#' @param xmin 
+#' @param x ???
+#' @param xmin ???
 #'
-#' @return
+#' @return ??
 #' @export
-#'
-#' @examples
 rel <- function(x, xmin = -4) {
   x[x < xmin] <- xmin
   xmax <- max(x, na.rm=TRUE)
@@ -41,22 +37,21 @@ rel <- function(x, xmin = -4) {
 
 #' Title
 #'
-#' @param patch_output_data 
-#' @param steps 
+#' @param patch_output_data ???
+#' @param steps ???
 #'
-#' @return
+#' @return ??
 #' @export
-#'
-#' @examples
+#' @importFrom rlang .data
 plot_patch_output_across_time <- function(patch_output_data,
                                           steps = c(100, 200, 250, 300, 308)) 
   {
   patch_output_data %>% 
-    dplyr::mutate(time_easy = format(time, digits = 0)) %>% 
-    dplyr::filter(step %in% steps) %>% 
-    ggplot2::ggplot(ggplot2::aes(x = canopy_openness, y = height, group = time_easy)) +
+    dplyr::mutate(time_easy = format(.data$time, digits = 0)) %>% 
+    dplyr::filter(.data$step %in% steps) %>% 
+    ggplot2::ggplot(ggplot2::aes(x = .data$canopy_openness, y = .data$height, group = .data$time_easy)) +
     ggplot2::geom_line() +
     ggplot2::theme_light() + 
-    ggplot2::facet_wrap(~time_easy)
+    ggplot2::facet_wrap(~.data$time_easy)
 }
 

@@ -7,10 +7,10 @@
 patch_species_total(data)
 }
 \arguments{
-\item{data}{}
+\item{data}{???}
 }
 \value{
-
+??
 }
 \description{
 XXXXX

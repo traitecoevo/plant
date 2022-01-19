@@ -6,20 +6,21 @@
 \alias{K93_fixed_environment}
 \title{K93_Environment object}
 \usage{
-K93_Environment(control)
+K93_Environment()
 
-K93_make_environment(ctrl = scm_base_control())
+K93_make_environment(
+  canopy_light_tol = 1e-04,
+  canopy_light_nbase = 17,
+  canopy_light_max_depth = 16,
+  canopy_rescale_usually = TRUE
+)
 
-K93_fixed_environment(e = 1, ctrl = scm_base_control(), height_max = 300)
+K93_fixed_environment(e = 1, height_max = 300)
 }
 \arguments{
-\item{control}{A Control object}
-
-\item{ctrl}{Control object}
-
 \item{e}{Value of environment (default=1.0)}
 
-\item{height_max}{= 150.0 maximum possible height in environment}
+\item{height_max}{= 300.0 maximum possible height in environment}
 }
 \description{
 K93_Environment object

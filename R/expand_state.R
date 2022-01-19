@@ -1,17 +1,16 @@
 
 #' Title
 #'
-#' @param results 
+#' @param results ??
 #'
-#' @return
+#' @return ???
 #' @export
-#'
-#' @examples
+#' @importFrom rlang .data
 expand_state <- function(results) {
   
   data <- 
     results$species %>% 
-    split(., .$species)
+    split(.data, .data$species)
   
   for(i in seq_len(results$n_spp)) {
 
@@ -20,28 +19,28 @@ expand_state <- function(results) {
     
     data[[i]] <- 
       data[[i]] %>%
-      mutate(
+      dplyr::mutate(
         # These are formulas from ff16_strategy.cpp 
         # ideally wouldn't have to copy them here
         # could we expose them from startegy object
         # and call them directly?
         
-        area_leaf = (height / s$a_l1)^(1.0 / s$a_l2),
-        mass_leaf = area_leaf * s$lma,
-        area_sapwood = area_leaf * s$theta,
-        mass_sapwood = area_sapwood * height * s$eta_c * s$rho,
-        area_bark = s$a_b1 * area_leaf * s$theta,
-        mass_bark = area_bark * height * s$eta_c * s$rho,
-        area_stem = area_bark + area_sapwood + area_heartwood,
-        diameter_stem = sqrt(4 * area_stem / pi),
-        mass_root = s$a_r1 * area_leaf,
-        mass_live = mass_leaf + mass_sapwood + mass_bark + mass_root,
-        mass_total =  mass_leaf + mass_bark + mass_sapwood +  mass_heartwood + mass_root,
-        mass_above_ground = mass_leaf + mass_bark + mass_sapwood +  mass_heartwood
+        area_leaf = (.data$height / s$a_l1)^(1.0 / s$a_l2),
+        mass_leaf = .data$area_leaf * s$lma,
+        area_sapwood = .data$area_leaf * s$theta,
+        mass_sapwood = .data$area_sapwood * .data$height * s$eta_c * s$rho,
+        area_bark = s$a_b1 * .data$area_leaf * s$theta,
+        mass_bark = .data$area_bark * .data$height * s$eta_c * s$rho,
+        area_stem = .data$area_bark + .data$area_sapwood + .data$area_heartwood,
+        diameter_stem = sqrt(4 * .data$area_stem / pi),
+        mass_root = s$a_r1 * .data$area_leaf,
+        mass_live = .data$mass_leaf + .data$mass_sapwood + .data$mass_bark + .data$mass_root,
+        mass_total =  .data$mass_leaf + .data$mass_bark + .data$mass_sapwood +  .data$mass_heartwood + .data$mass_root,
+        mass_above_ground = .data$mass_leaf + .data$mass_bark + .data$mass_sapwood +  .data$mass_heartwood
       )
     }
   
-  results$species <- data %>% bind_rows()
+  results$species <- data %>% dplyr::bind_rows()
   
   results
 }

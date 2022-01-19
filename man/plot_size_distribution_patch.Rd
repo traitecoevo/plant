@@ -7,10 +7,7 @@
 plot_size_distribution_patch(data_species)
 }
 \arguments{
-\item{data_species}{}
-}
-\value{
-
+\item{data_species}{??}
 }
 \description{
 Title

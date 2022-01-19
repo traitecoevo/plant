@@ -6,7 +6,12 @@
 \alias{scm_patch}
 \title{Reconstruct a patch}
 \usage{
-make_patch(state, p, ctrl = scm_base_control())
+make_patch(
+  state,
+  p,
+  env = make_environment(parameters = p),
+  ctrl = scm_base_control()
+)
 
 scm_state(i, x)
 
@@ -16,6 +21,8 @@ scm_patch(i, x)
 \item{state}{State object created by \code{scm_state}}
 
 \item{p}{Parameters object}
+
+\item{env}{Environment object (defaults to FF16_Environment)}
 
 \item{ctrl}{Control object}
 

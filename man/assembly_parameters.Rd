@@ -7,6 +7,7 @@
 assembly_parameters(
   ...,
   pars = NULL,
+  type = NA,
   base_parameters_fn = scm_base_parameters,
   base_control_fn = scm_base_control,
   make_hyperpar_fn = make_FF16_hyperpar

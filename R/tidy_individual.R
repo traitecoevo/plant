@@ -1,11 +1,9 @@
 #' Title
 #'
-#' @param results 
+#' @param results ???
 #'
-#' @return
+#' @return ??
 #' @export
-#'
-#' @examples
 tidy_individual <- function(results) {
   
   out <- dplyr::tibble(

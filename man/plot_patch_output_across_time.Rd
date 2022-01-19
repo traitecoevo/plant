@@ -10,12 +10,12 @@ plot_patch_output_across_time(
 )
 }
 \arguments{
-\item{patch_output_data}{}
+\item{patch_output_data}{???}
 
-\item{steps}{}
+\item{steps}{???}
 }
 \value{
-
+??
 }
 \description{
 Title
