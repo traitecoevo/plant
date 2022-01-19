@@ -3,26 +3,27 @@
 
 namespace plant {
 
+// TODO: Document consistent argument order: l, b, s, h, r
+// TODO: Document ordering of different types of variables (size
+// before physiology, before compound things?)
+// TODO: Consider moving to activating as an initialisation list?
 FF16r_Strategy::FF16r_Strategy() {
+  // height above hmat at which allocation to reproduction is half its max value
+  a_f2   = 2; // [dimensionless]
+
   collect_all_auxiliary = false;
   // build the string state/aux name to index map
   refresh_indices();
   name = "FF16r";
 }
 
-// probabilty of establishment decays over time
-double FF16r_Strategy::establishment_probability(const FF16_Environment& environment) {
-  const double net_mass_production_dt_ =
-    net_mass_production_dt(environment, height_0, area_leaf_0);
 
-  double decay_over_time = exp(-recruitment_decay * environment.time);
-
-  if (net_mass_production_dt_ > 0) {
-    const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
-    return (1.0 / (tmp * tmp + 1.0)) * decay_over_time;
-  } else {
+// [eqn 16] Fraction of production allocated to reproduction
+double FF16r_Strategy::fraction_allocation_reproduction(double height) const {
+  if(height <= hmat)
     return 0.0;
-  }
+  else
+    return a_f1 * (height - hmat) / (a_f2  + (height - hmat));
 }
 
 
