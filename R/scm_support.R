@@ -185,36 +185,6 @@ make_scm <- function(p, env, ctrl, state=NULL) {
   types <- extract_RcppR6_template_types(p, "Parameters")
   scm <- do.call('SCM', types)(p, env, ctrl)
 
-  if(!is.null(state)) {
-    n_str <- length(p$strategies)
-    n_spp = length(state)
-
-    if(n_spp != n_str)
-      stop("State object has more species than strategies defined in Parameters")
-
-    times <- scm$cohort_schedule$all_times
-
-    initial_cohorts <- sapply(times, function(t) sum(t == 0), simplify = F)
-    new_cohorts <- mapply(function(s, i) max(0, ncol(s) - i),
-                          state, initial_cohorts, SIMPLIFY = F)
-
-    new_times <- mapply(function(i, t) c(rep(0, i), t),
-                        new_cohorts, times, SIMPLIFY = F)
-
-    # this introduces one more ind. than necessary, but if we
-    # overwrite the oldest cohorts first then we can just start at t1
-    scm$set_cohort_schedule_times(new_times)
-    scm$run_next()
-
-    # next step starts from first non-zero time
-    start_time <- sapply(times, function(t) min(t[t>0]))
-
-    # add as many new cohorts as required to fit `state` object
-    scm$set_state(min(start_time), unlist(state),
-                  n = mapply(`+`, new_cohorts, initial_cohorts))
-    
-  }
-
   return(scm)
 }
 
@@ -239,8 +209,8 @@ scm_patch <- function(i, x) {
 }
 
 run_scm_error <- function(p, env = make_environment(parameters = p),
-                          ctrl = scm_base_control(), state = NULL) {
-  scm <- make_scm(p, env, ctrl, state)
+                          ctrl = scm_base_control()) {
+  scm <- make_scm(p, env, ctrl)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)

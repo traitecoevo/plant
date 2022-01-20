@@ -59,6 +59,9 @@ public:
   // Patch disturbance
   Disturbance_Regime* survival_weighting;
 
+  void set_initial_state(const std::vector<double>& state,
+                         const std::vector<size_t>& n_cohorts);
+
   // * ODE interface
   size_t ode_size() const;
   size_t aux_size() const;
@@ -135,8 +138,45 @@ void Patch<T,E>::reset() {
     s.clear();
   }
   environment.clear();
+
+
+  std::cout << "-- RESETTING PATCH --" << std::endl;
+
+  std::cout << "Before update: " << time() << std::endl;
+  std::cout << "Initial states: "  << std::endl;
+  for (auto i: plant::ode::r_ode_state(species[0]))
+      std::cout << i << ' ';
+
+  std::cout << std::endl;
+
+  std::cout << "Initial rates: " << std::endl;
+  for (auto i: plant::ode::r_ode_rates(species[0]))
+      std::cout << i << ' ';
+
+  std::cout << std::endl;
+  std::cout << std::endl;
+
+  if(parameters.initial_state.size() > 0)
+
+    std::cout << "-- SETTING INITIAL STATE --" << std::endl;
+    set_initial_state(parameters.initial_state,
+                      parameters.n_initial_cohorts);
+
   compute_environment();
   compute_rates();
+
+  std::cout << "Cohort states after compute_environent and compute_rates(again): "  << std::endl;
+  for (auto i: plant::ode::r_ode_state(species[0]))
+      std::cout << i << ' ';
+
+  std::cout << std::endl;
+
+  std::cout << "Cohort rates after compute_environent and compute_rates(again): " << std::endl;
+  for (auto i: plant::ode::r_ode_rates(species[0]))
+      std::cout << i << ' ';
+
+  std::cout<< std::endl;
+
 }
 
 template <typename T, typename E>
@@ -207,10 +247,41 @@ void Patch<T,E>::introduce_new_cohort(size_t species_index) {
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_cohorts(const std::vector<size_t>& species_index) {
   bool recompute = false;
+
+  std::cout << "Before new cohort: " << time() << std::endl;
+  std::cout << "ODE states: "  << std::endl;
+  for (auto i: plant::ode::r_ode_state(species[0]))
+      std::cout << i << ' ';
+
+  std::cout << std::endl;
+
+  std::cout << "ODE rates: " << std::endl;
+  for (auto i: plant::ode::r_ode_rates(species[0]))
+      std::cout << i << ' ';
+
+  std::cout << std::endl;
+  std::cout << std::endl;
+
   for (size_t i : species_index) {
     species[i].introduce_new_cohort();
     recompute = recompute || parameters.is_resident[i];
   }
+
+  std::cout << "After new cohort: " << time() << std::endl;
+  std::cout << "ODE states: "  << std::endl;
+  for (auto i: plant::ode::r_ode_state(species[0]))
+      std::cout << i << ' ';
+
+  std::cout << std::endl;
+
+  std::cout << "ODE rates: " << std::endl;
+  for (auto i: plant::ode::r_ode_rates(species[0]))
+      std::cout << i << ' ';
+
+  std::cout << std::endl;
+  std::cout << std::endl;
+
+
   if (recompute) {
     compute_environment();
   }
@@ -222,6 +293,25 @@ void Patch<T,E>::r_set_time(double time) {
   environment.time = time;
 }
 
+
+template <typename T, typename E>
+void Patch<T,E>::set_initial_state(const std::vector<double>& state,
+                                   const std::vector<size_t>& n_cohorts) {
+
+  if(time() > 0)
+    util::stop("Unable to set initial patch state for existing patches; try reset() first");
+
+  const size_t n_species = species.size();
+  util::check_length(n_cohorts.size(), n_species);
+
+  for (size_t i = 0; i < n_species; ++i) {
+    for (size_t j = 0; j < n_cohorts[i]; ++j) {
+      species[i].introduce_new_cohort();
+    }
+  }
+  util::check_length(state.size(), ode_size());
+  set_ode_state(state.begin(), 0.0);
+}
 
 // Arguments here are:
 //   time: time
@@ -278,7 +368,33 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   } else {
     compute_environment();
   }
+
+
+  std::cout << "Cohort states before compute_rates: " << std::endl;
+  for (auto i: plant::ode::r_ode_state(species[0]))
+      std::cout << i << ' ';
+
+  std::cout << std::endl;
+
+  std::cout << "Cohort rates before compute_rates: " << std::endl;
+  for (auto i: plant::ode::r_ode_rates(species[0]))
+      std::cout << i << ' ';
+
+  std::cout << std::endl << std::endl;
+
   compute_rates();
+
+  std::cout << "Cohort states after compute_rates: " << std::endl;
+  for (auto i: plant::ode::r_ode_state(species[0]))
+      std::cout << i << ' ';
+
+  std::cout<< std::endl;
+
+  std::cout << "Cohort rates after compute_rates: " << std::endl;
+  for (auto i: plant::ode::r_ode_rates(species[0]))
+      std::cout << i << ' ';
+
+  std::cout << std::endl << std::endl;
   return it;
 }
 

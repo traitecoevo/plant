@@ -32,12 +32,15 @@ build_schedule <- function(p, env = make_environment(parameters = p),
   complete = FALSE
 
   # generate coarse initial size distribution
-  if(!is.null(splines))
+  if(!is.null(splines)) {
     state = lapply(splines, partition_spline, n = n_init)
-
+    p$initial_state = unlist(lapply(state, as.vector))
+    p$n_initial_cohorts = unlist(lapply(state, ncol))
+  }
+    
   # the refine cohorts
   for (i in seq_len(ctrl$schedule_nsteps)) {
-    res <- run_scm_error(p, env, ctrl, state)
+    res <- run_scm_error(p, env, ctrl)
     net_reproduction_ratios <- res[["net_reproduction_ratios"]]
     split <- lapply(res$err$total, function(x) x > eps)
 

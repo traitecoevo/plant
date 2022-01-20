@@ -56,6 +56,10 @@ struct Parameters {
   std::vector<std::vector<double> > cohort_schedule_times;
   std::vector<double> cohort_schedule_ode_times;
 
+  // Initial size distribution
+  std::vector<double> initial_state;
+  std::vector<size_t> n_initial_cohorts;
+
   // Some little query functions for use on the C side:
   size_t size() const;
   size_t n_residents() const;

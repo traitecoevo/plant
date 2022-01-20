@@ -78,6 +78,7 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
       cohort_schedule(make_cohort_schedule(parameters)),
       solver(patch, make_ode_control(c)) {
   parameters.validate();
+
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::stop("Patch area must be exactly 1 for the SCM");
   }
@@ -92,7 +93,9 @@ template <typename T, typename E> void SCM<T, E>::run() {
 
 template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   std::vector<size_t> ret;
+
   const double t0 = time();
+  std::cout << "SCM TIME: " << t0 << std::endl;
 
   CohortSchedule::Event e = cohort_schedule.next_event();
   while (true) {
@@ -107,16 +110,30 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
       e = cohort_schedule.next_event();
     }
   }
-  patch.introduce_new_cohorts(ret);
+
+  // multiple cohorts introduced at t0 during patch.reset()
+  if(parameters.initial_state.size() > 0 && t0 == 0.0) {
+    std::cout << "Initial cohorts already introduced"<< std::endl;
+  } else {
+    std::cout << "Introducing new cohorts: " << ret.size() << std::endl;
+    patch.introduce_new_cohorts(ret);
+  }
 
   const bool use_ode_times = cohort_schedule.using_ode_times();
+
+  std::cout << "Set solver state from patch: " << t0<< std::endl;
   solver.set_state_from_system(patch);
+
   if (use_ode_times) {
+    std::cout << "Advancing using ODE times: " << t0<< std::endl;
     solver.advance_fixed(patch, e.times);
   } else {
+
+    std::cout << "Advancing using schedule times: " << t0<< std::endl;
     solver.advance(patch, e.time_end());
   }
 
+  std::cout << "Solver finished: " << t0<< std::endl;
   return ret;
 }
 
