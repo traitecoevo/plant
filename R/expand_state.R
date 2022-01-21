@@ -8,9 +8,7 @@
 #' @importFrom rlang .data
 expand_state <- function(results) {
   
-  data <- 
-    results$species %>% 
-    split(.data, .data$species)
+  data <- split(results$species, results$species$species)
   
   for(i in seq_len(results$n_spp)) {
 
