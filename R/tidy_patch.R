@@ -170,8 +170,8 @@ patch_species_total <- function(data) {
     dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
     dplyr::summarise(
       individuals = -trapezium(.data$height, .data$density),
-      min_h = min(.data$height),
-      dplyr::across(c(dplyr::starts_with("area"), dplyr::starts_with("mass")), ~ -trapezium(height, density*.x)),#, .names = "{.col}_tot"),
+      min_height = min(.data$height),
+      dplyr::across(c("height", dplyr::starts_with("area"), dplyr::starts_with("mass")), ~ -trapezium(height, density*.x)),#, .names = "{.col}_tot"),
       .groups="drop"
     )
 }
