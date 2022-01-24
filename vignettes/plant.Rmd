@@ -204,7 +204,7 @@ Let's look at height. Each line represents the height of an example individual g
 result%>%
   pluck("species") %>%
   drop_na() %>%
-  plot_size_distribution_patch()
+  plot_size_distribution()
 ```
 
 To see the change in canopy openness over time we can explore the patch Environment. Lets look at year 20 first, which corresponds to the 99th timestep in our model (not all timesteps are equal!) Our FF16 environment is described in terms of canopy openness, with 1.0 being completely open and 0.0 being completely shaded. We see that the shortest individuals experience intense shading while taller individuals enjoy full sunlight:
@@ -249,7 +249,7 @@ We can now plot the size distributions of these two species through time
 ```{r}
 result$species %>%
   drop_na() %>%
-plot_size_distribution_patch()
+plot_size_distribution()
 ```
 
 

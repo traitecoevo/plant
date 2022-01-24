@@ -1,18 +1,19 @@
 
-#' Title
+#' Add additonal state variables to the species component in output of FF16 model.
+#' 
 #'
-#' @param results ??
+#' @param output from `tidy_patch`
 #'
-#' @return ???
+#' @return similar format to input, but with additional columns for additonal state variables 
 #' @export
 #' @importFrom rlang .data
-expand_state <- function(results) {
+expand_state_FF16 <- function(tidy_patch_results) {
   
-  data <- split(results$species, results$species$species)
+  data <- split(tidy_patch_results$species, tidy_patch_results$species$species)
   
-  for(i in seq_len(results$n_spp)) {
+  for(i in seq_len(tidy_patch_results$n_spp)) {
 
-    s <- results$p$strategies[[i]]
+    s <- tidy_patch_results$p$strategies[[i]]
     s$eta_c <- 1 - 2/(1 + s$eta) + 1/(1 + 2*s$eta)
     
     data[[i]] <- 
@@ -38,7 +39,7 @@ expand_state <- function(results) {
       )
     }
   
-  results$species <- data %>% dplyr::bind_rows()
+  tidy_patch_results$species <- data %>% dplyr::bind_rows()
   
-  results
+  tidy_patch_results
 }

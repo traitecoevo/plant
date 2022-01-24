@@ -1,10 +1,8 @@
-
-
-#' Turn `species` component of scm output into a tidy data object 
+#' Turn `species` component of plant solver output into a tidy data object 
 #'
-#' @param data a list, the `species` component of scm output.
+#' @param data a list, the `species` component of plant solver output.
 #'
-#' @return a tibble describing columns of the output for each cohort in each species
+#' @return a tibble whose columns provide metrics on each breakpoint in species size distribution
 #' @importFrom rlang .data
 tidy_species <- function(data) {
   
@@ -34,10 +32,9 @@ tidy_species <- function(data) {
 }
 
 
-
-#' Turn `env` component of scm output into a tidy data object 
+#' Turn `env` component of solver output into a tidy data object 
 #'
-#' @param data a list, the `env` component of scm output.
+#' @param env a list, the `env` component of solver output.
 #'
 #' @return a tibble describing the environment in a patch
 #' @importFrom rlang .data
@@ -49,14 +46,11 @@ tidy_env <- function(env) {
 }
 
 
-
-
-
-#' Turns scm output into a tidy data object 
+#' Turns output of plant solver into a tidy data object 
 #'
-#' @param data output of run_scm_collect
+#' @param results output of run_scm_collect
 #'
-#' @return a list
+#' @return a list, containing outputs of plant solver in tidy format
 #' @export
 #' @importFrom rlang .data
 tidy_patch <- function(results) {
@@ -86,13 +80,14 @@ tidy_patch <- function(results) {
   out
 }
 
-#' Interpolate tidyspecies data to specific time points
+
+#' Interpolate data on size distributions for each species to specific timer points, using specified interpolation method
 #'
-#' @param tidy_species_data 
+#' @param tidy_species_data output of either `tidy_patch` or `tidy_species`
 #' @param times times to interpolate to
 #' @param method Method for interpolation. For more info see help on stats::spline
 #'
-#' @return ??
+#' @return Returns a tibble of similar format to input, but with all outputs interpolated to specified hieghts.
 #' @export
 #' @importFrom stats spline
 #' @importFrom rlang .data
@@ -112,18 +107,17 @@ interpolate_to_times <- function(tidy_species_data, times, method="natural") {
     dplyr::summarise(
       dplyr::across(where(is.double), ~f(.data$time, .x, xout=times)),
       .groups = "keep") %>%
-    dplyr::mutate(time=.data$times) %>%
     dplyr::ungroup()
 }
 
 
-#' Interpolate tidyspecies data to specific heights at every time point
+#' Interpolate data on size distributions for each species to specific heights at every time point
 #'
-#' @param tidy_species_data ???
+#' @param tidy_species_data output of either `tidy_patch` or `tidy_species`
 #' @param heights heights to interpolate to
 #' @param method Method for interpolation. For more info see help on stats::spline
 #'
-#' @return ??
+#' @return Returns a tibble of similar format to input, but with all outputs interpolated to specified hieghts.
 #' @export
 #' @importFrom stats spline
 #' @importFrom rlang .data
@@ -148,30 +142,54 @@ interpolate_to_heights <- function(tidy_species_data, heights, method="natural")
     dplyr::summarise(
       dplyr::across(where(is.double), ~f(.data$height, .x, xout=heights)),
       .groups = "keep") %>%
-    dplyr::mutate(height=.data$heights,
-                  density = exp(.data$log_density)) %>%
+    dplyr::mutate(density = exp(.data$log_density)) %>%
     dplyr::ungroup()
 }
 
 
+#' Turn `results` of plant solver, when solving individuals into a tidy data object
+#'
+#' @param results plant solver output.
+#'
+#' @return a tibble whose columns provide metrics on each individual over time
+#'
+#' @export
+tidy_individual <- function(results) {
+  out <- dplyr::tibble(
+    step = seq_len(length(results$time)),
+    time = results$time
+  ) %>%
+    dplyr::bind_cols(
+      height = results$state[, 1],
+      mortality = results$state[, 2],
+      fecundity = results$state[, 3],
+      area_heartwood = results$state[, 4],
+      mass_heartwood = results$state[, 5]
+    )
 
-#' XXXXX
+  out
+}
+
+
+#' Integrate over the size distribution for each species at each time point, to give totals of each variable
+#' Integrations are performed using trapezium integration
 #'
-#' @param data ???
+#' @param tidy_species_data output of either `tidy_patch` or `tidy_species`
 #'
-#' @return ??
+#' @return a tibble whose columns provide metrics on integrated totals for each variable for each species at each time
+
 #' @export
 #'
 #' @importFrom rlang .data
-patch_species_total <- function(data) {
-  data  %>%
+integrate_over_size_distribution <- function(tidy_species_data) {
+  tidy_species_data  %>%
     dplyr::select(-.data$cohort) %>% stats::na.omit() %>% 
     dplyr::filter(.data$step > 1) %>% 
     dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
     dplyr::summarise(
       individuals = -trapezium(.data$height, .data$density),
       min_height = min(.data$height),
-      dplyr::across(c("height", dplyr::starts_with("area"), dplyr::starts_with("mass")), ~ -trapezium(height, density*.x)),#, .names = "{.col}_tot"),
+      dplyr::across(where(is.double), ~ -trapezium(height, density*.x)),
       .groups="drop"
     )
 }

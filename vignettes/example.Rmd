@@ -2,7 +2,7 @@
 title: "Example worklfow"
 author: 
 - Daniel Falster
-date: 2016
+date: 2022
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{patch}
@@ -19,8 +19,6 @@ knitr::opts_chunk$set(echo = TRUE)
 # installation
 
 ```{r load libraries}
-#devtools::load_all()
-
 library(plant)
 library(dplyr)
 library(tidyr)
@@ -50,7 +48,7 @@ base_parameters <- function() {
 }
 ```
 
-We can now create a function called "run_mypatch" which takes a number of a arguments, including "traits" which we assign a trait matrix. The "expand_parameters" function takes this trait matrix as an argument which allows us to simulate patches with multiple functional strategis, in addition to the base_parameters and any newly defined hyperparameters such as B_lf1. We also provide a latitude as an argument, as well as whether or not we want to run the patch to equilibrium seed rain.
+We can now create a function called `run_mypatch` which takes a number of a arguments, including `traits` which we assign a trait matrix. The `expand_parameters` function takes this trait matrix as an argument which allows us to simulate patches with multiple functional strategis, in addition to the base_parameters and any newly defined hyperparameters such as B_lf1. We also provide a latitude as an argument, as well as whether or not we want to run the patch to equilibrium seed rain.
 
 ```{r}
 run_mypatch <- function(
@@ -84,7 +82,7 @@ results <-
   run_mypatch(traits=trait_matrix(c(0.07, 0.24), c("lma")))
 ```
 
-The results from run_scm_collect in run_mypatch are in a 3D matrix state To convert this output to a more interpretable format, we can use tidy_patch to convert the results output into a tidy state.
+The results from `run_scm_collect` in run_mypatch are in a 3D matrix state To convert this output to a more interpretable format, we can use tidy_patch to convert the results output into a tidy state.
 
 ```{r}
 results_tidy <- 
@@ -99,7 +97,7 @@ By pulling out the 'species' object from our list of tidied result outputs, we c
 ```{r}
 results_tidy$species %>%
   drop_na() %>%
-plot_size_distribution_patch()
+  plot_size_distribution()
 ```
 
 
@@ -109,7 +107,7 @@ For each species, we can integrate over the height distribution to get the total
 
 ```{r}
 data_species_tot <- 
-  results_tidy$species %>% patch_species_total()
+  results_tidy$species %>% integrate_over_size_distribution()
 
 data_species_tot
 ```
@@ -125,7 +123,7 @@ data_species_tot %>%
 We can use the function 'expand_state' to capture a large number of additional state variables (e.g.leaf area)
 
 ```{r}
-results_tidy_expand <- results_tidy %>% expand_state()
+results_tidy_expand <- results_tidy %>% expand_state_FF16()
 
 results_tidy_expand$species
 ```
@@ -134,10 +132,11 @@ In the same way as individuals above, we can have a look at the total leaf area 
 
 ```{r}
 data_species_tot <- 
-  results_tidy_expand$species %>% patch_species_total()
+  results_tidy_expand$species %>% 
+  integrate_over_size_distribution()
 
 data_species_tot %>% 
-  ggplot(aes(time, area_leaf, colour=species)) +
+  ggplot(aes(time, area_leaf, colour = species)) +
   geom_line()
 ```
 
@@ -147,7 +146,7 @@ In this case, species 1 with cheap, thin leaves briefly has a much higher total 
 
 ```{r}
 data_species_tot %>% 
-  ggplot(aes(time, area_leaf, colour=species)) +
+  ggplot(aes(time, area_leaf, colour = species)) +
   geom_line()
 ```
 
@@ -177,136 +176,8 @@ data_long %>%
 ```
 
 
-## Classic Self thinnning plot
 
-For this we need average size over time. Get average size by dividing total by the sum of individuals per unit area
-
-Note this plot has some noise in it. Suggests integration in previous step may need more resolution, or a better method. 
-
-```{r}
-
-data_species_tot <- 
-  results_tidy_expand$species %>% patch_species_total()
-
-p1 <- results_tidy_expand$species %>% plot_size_distribution_patch() 
-p2 <- 
-  data_species_tot %>%
-  filter(species==1) %>%
-  mutate(area_stem_av = area_stem / individuals) %>% 
-  ggplot(aes(area_stem_av, individuals, colour=species)) +
-  geom_line() +
-  scale_x_log10() +
-  scale_y_log10() + 
-  theme_classic()
-
-p1 + p2
-
-results_tidy_expand$species %>% filter(height > 1, time> 20, time<50) %>% 
-  patch_species_total() %>%
-  mutate(area_stem_av = area_stem / individuals) %>% 
-  ggplot(aes(area_stem_av, individuals, colour=species)) +
-  geom_line() +
-  scale_y_log10() +
-  scale_x_log10() + 
-  theme_classic()
-```
-
-Note, get cleaner results if use first cohorts
-
-```{r}
-results_tidy_expand$species %>% filter(cohort < 150) %>% 
-  patch_species_total() %>%
-  mutate(
-    area_stem_av = area_stem / individuals,
-    # A = pi*D^2/4 -> D = 
-    diam_stem_av = sqrt(area_stem_av)
-    ) %>% 
-  ggplot(aes(area_stem_av, individuals, colour=species)) +
-  geom_line() +
-  scale_y_log10() +
-  scale_x_log10() +
-  theme_classic()
-```
-
-
-Note bottom density fluctuates over time, this makes sense if germination is responding to leaf area above
-
-Possibility this is error in calculating competition -- i.e. total leaf area?
-
-How is integral achieved in plant?
-
-```{r}
-results_tidy_expand$species %>% 
-  drop_na() %>%
-  group_by(step, species, time) %>%
-  slice_tail() %>% 
-  ungroup() %>%
-  ggplot(aes(time, density)) + geom_line()
-```
-
-# Work in progress why is there noise in the self thinning relationship
-
-```{r}
-results_tidy_expand$species %>% 
-  patch_species_total() %>%
-  mutate(
-    area_stem_av = area_stem / individuals,
-    diam_av = 
-    ) %>% 
-  ggplot(aes(area_stem_av, individuals, colour=species)) +
-  geom_line() +
-  scale_y_log10() +
-  scale_x_log10() +
-  theme_classic()
-
-  
-results_tidy_expand$species %>% filter(height > 1, time> 20, time<50) %>% 
-  patch_species_total() %>%
-  mutate(area_stem_av = area_stem / individuals) %>% 
-  ggplot(aes(area_stem_av, individuals, colour=species)) +
-  geom_line() +
-  scale_y_log10() +
-  scale_x_log10() + 
-  theme_classic()
-
-results_tidy_expand$species %>% filter(height > 0, time> 0, time<150) %>% 
-  patch_species_total() %>%
-  ggplot(aes(time, individuals, colour=species)) +
-  geom_line() + 
-  theme_classic()
-
-results_tidy_expand$species %>% filter(step%in% c(138, 139, 140, 141)) %>% 
-  select(step, height, density) %>%
-  arrange(step,height) %>%
-  group_by(step) %>%
-  mutate(
-    dx = lead(height) -height,
-    y = 0.5*(density + lead(density)),
-    xy = dx*y
-  ) %>% ungroup() -> tmp
-
-tmp %>% filter(step==138) %>% pull(xy) %>% sum(na.rm=TRUE)
-
-data_species_tot%>% filter(species==1, step==138)
-
-ggplot(tmp %>% filter(height > 0.5), aes(height, y, group=step, col=as.character(step))) + geom_point() + geom_line() + scale_x_log10()
-
-  
-results_tidy_expand$species %>% filter(height > 0, time> 30, time<31) %>% View() 
-  
-results_tidy_expand$species %>%
-ggplot(aes(height, density, colour=time, group=time)) +
-  geom_line() +
-  scale_y_log10() +
-  scale_x_log10() + 
-  theme_classic() + 
-  facet_wrap(~species)
-
-
-results_tidy_expand$species %>% filter(species==1) %>% plot_size_distribution_patch()   
-
-
-```
+## Interpolate to specific times
 
 The cohort spacing algorithim determines the optimum introduction times for characterstics, which means that the time values associated with steps may not correspond to known times that we might like to extract information about. For example, what the total amount of biomass per $m^2$ be at 50 years. By doing this, it also means that we can integrate between defined times.
 
@@ -321,7 +192,7 @@ results_tidy <- results %>%
 ```
 
 
-Lets interpolate our results from the run_mypatch above for timepoints 1,5,10, 1000. Note that time in unit years. 
+Lets interpolate our results from the `run_mypatch` above for timepoints 1,5,10,1000 using the funcion `interpolate_to_times`. Note that time in units of years. 
 
 ```{r}
 times <- c(1, 5, 10, 1000)
@@ -362,9 +233,9 @@ data_combined_long %>%
   theme_classic()
 ```
 
-## Interpolate to heights
+## Interpolate to specific heights
 
-Similar to above, can interpolate across cohorts at given time to sepcific heights
+Similar to above, we can interpolate across cohorts at given time to sepcific heights, suing the function `interpolate_to_heights`
 
 ```{r}
 heights <- c(1, 5, 10)
@@ -401,14 +272,5 @@ data_combined_long %>%
   geom_point(data = data_combined_long %>% filter(is.na(cohort)), aes(x=height, y=value), col="red")+
   facet_grid(name~species, scales="free") +
   theme_classic()
-```
-
-
-## Sampling from population
-
-(not implemented)
-
-```{r}
-sample_size_distribution(tidy_species_data, patch_area)
 ```
 
