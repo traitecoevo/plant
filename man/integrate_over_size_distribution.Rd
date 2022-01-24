@@ -2,7 +2,7 @@
 % Please edit documentation in r/tidy_outputs.R
 \name{integrate_over_size_distribution}
 \alias{integrate_over_size_distribution}
-\title{Integrates over size distribution for each species at each time point, to give totals of each variable
+\title{Integrate over the size distribution for each species at each time point, to give totals of each variable
 Integrations are performed using trapezium integration}
 \usage{
 integrate_over_size_distribution(tidy_species_data)
@@ -14,6 +14,6 @@ integrate_over_size_distribution(tidy_species_data)
 a tibble whose columns provide metrics on integrated totals for each variable for each species at each time
 }
 \description{
-Integrates over size distribution for each species at each time point, to give totals of each variable
+Integrate over the size distribution for each species at each time point, to give totals of each variable
 Integrations are performed using trapezium integration
 }

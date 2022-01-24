@@ -74,15 +74,13 @@ for (x in c("FF16", "K93")) {
     expect_true(all(names(tidy_species_new) %in% setdiff(names(results_tidy$species), c("step"))))
     # TODO: test interpolation actually works, also failures
 
-    if(x == "FF16")
+    if(x == "FF16") {
       heights <- c(1, 5, 10)
-    if(x == "K93")
-      heights <- c(1, 2, 4)
-    
-    expect_silent(
-      tidy_species_new <- interpolate_to_heights(results_tidy$species, heights)
-    )
-    expect_true(all(names(tidy_species_new) %in% setdiff(names(results_tidy$species), c("cohort"))))
-    # TODO: test interpolation actually works, also failures
+      expect_silent(
+        tidy_species_new <- interpolate_to_heights(results_tidy$species, heights)
+      )
+      expect_true(all(names(tidy_species_new) %in% setdiff(names(results_tidy$species), c("cohort"))))
+      # TODO: test interpolation actually works, also failures
+    }
   })
 }
