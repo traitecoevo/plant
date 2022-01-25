@@ -56,7 +56,7 @@ run_resource_consumption_benchmarks <- function(its = 10) {
   }
   
   message("Running resource consumption benchmarks`")
-  bench::press(soil_layers = c(10, 50, 100),
+  bench::press(soil_layers = c(1, 10, 50, 100),
                {
                  bench::mark(
                    check = FALSE,
