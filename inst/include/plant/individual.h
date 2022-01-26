@@ -24,7 +24,7 @@ public:
     vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
     set_state("height", strategy->height_0);
 
-    vars.resize_consumption_rates(vars.state_size); // idk?
+    vars.resize_consumption_rates(vars.state_size); // could also be strategy_type::state_size() to be consistent with line above
   }
   
   // useage: state(HEIGHT_INDEX)
