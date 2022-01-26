@@ -14,7 +14,7 @@ public:
 
   double evapotranspiration_dt(double area_leaf) const;
 
-  virtual void compute_rates(const FF16_Environment& environment,
+  void compute_rates(const FF16_Environment& environment,
                              bool reuse_intervals,
                              Internals& vars);
 };

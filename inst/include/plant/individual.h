@@ -23,6 +23,8 @@ public:
     }
     vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
     set_state("height", strategy->height_0);
+
+    vars.resize_consumption_rates(vars.state_size); // idk?
   }
   
   // useage: state(HEIGHT_INDEX)
@@ -64,7 +66,7 @@ public:
     return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));
   }
 
-  void compute_rates(const environment_type &environment,
+  void compute_rates(const environment_type& environment,
                          bool reuse_intervals = false) {
     strategy->compute_rates(environment, reuse_intervals, vars);
   }
