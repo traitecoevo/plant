@@ -1,11 +1,11 @@
 ---
-title: "Example worklfow"
+title: "Example workflow"
 author: 
 - Daniel Falster
 date: 2022
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{patch}
+  %\VignetteIndexEntry{workflow}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # installation
 
 ```{r load libraries}
-library(plant)
+devtools::load_all()
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -38,7 +38,6 @@ Setting some base parameters.
 base_parameters <- function() {
   p0 <- scm_base_parameters("FF16", "FF16_Env")
 
-  p0$strategy_default$lma <- 0.07
   p0$strategy_default$hmat <- 15
   p0$strategy_default$rho <- 700
   p0$strategy_default$a_l1 <- 2.17
@@ -57,6 +56,7 @@ run_mypatch <- function(
   seed_rain = 100,
   p0 = base_parameters(),
   find_equilbrium = FALSE,
+  optimise_schedule = FALSE,
   latitude = 28.182
   ) {
   
@@ -64,10 +64,12 @@ run_mypatch <- function(
   p1 <- expand_parameters(traits, p0, hyper_par_fn, mutant = FALSE)
   p1$seed_rain <- seed_rain
   
-  if(find_equilbrium)
+   if(find_equilbrium)
     result <- equilibrium_seed_rain(p1)
-  else
+  else if(optimise_schedule)
     result <- build_schedule(p1)
+  else
+    result <- p1
   
   # gather outputs at each time step
   run_scm_collect(result)
@@ -192,10 +194,10 @@ results_tidy <- results %>%
 ```
 
 
-Lets interpolate our results from the `run_mypatch` above for timepoints 1,5,10,1000 using the funcion `interpolate_to_times`. Note that time in units of years. 
+Lets interpolate our results from the `run_mypatch` above for timepoints 1,5,10 using the function `interpolate_to_times`. Note that time in units of years. 
 
 ```{r}
-times <- c(1, 5, 10, 1000)
+times <- c(1, 5, 10)
 
 tidy_species_data <- results_tidy$species
 
