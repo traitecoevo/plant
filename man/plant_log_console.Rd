@@ -4,16 +4,24 @@
 \alias{plant_log_console}
 \title{Activate logging with loggr}
 \usage{
-plant_log_console(..., .message = FALSE, .warning = FALSE, .error = FALSE)
+plant_log_console(
+  file_name = "console",
+  .message = FALSE,
+  .warning = FALSE,
+  .error = FALSE,
+  ...
+)
 }
 \arguments{
-\item{...}{Additional parameters passed to \code{loggr::log_file},
-but \emph{not} \code{file_name} which is hard coded here to
-\code{"console"}.}
+\item{file_name}{File to save output (default = console)}
 
 \item{.message, .warning, .error}{Include messages, warnings or
 errors?  By default (and in contrast to \code{loggr::log_file}
 these are disabled here.}
+
+\item{...}{Additional parameters passed to \code{loggr::log_file},
+but \emph{not} \code{file_name} which is hard coded here to
+\code{"console"}.}
 }
 \description{
 Activate logging with loggr

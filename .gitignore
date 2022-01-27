@@ -10,6 +10,7 @@ src/symbols.rds
 src/*.o.tmp
 src/*.o
 src/*.so
+src/*.dll
 tmp*
 .vscode
 scrap.R

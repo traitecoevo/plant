@@ -26,8 +26,15 @@ Imports:
     loggr,
     crayon,
     nleqslv,
-    BB
+    BB,
+    magrittr,
+    tibble,
+    rlang,
+    dplyr,
+    tidyr,
+    purrr
 Suggests:
+    ggplot2,
     testthat,
     deSolve,
     numDeriv,

@@ -2,17 +2,15 @@
 % Please edit documentation in r/scm_support.R
 \name{scm_base_parameters}
 \alias{scm_base_parameters}
-\title{Sensible, fast (ish) SCM parameters}
+\title{Basic default parameters for a given strategy}
 \usage{
-scm_base_parameters(type = "FF16", env = environment_type(type))
-}
-\arguments{
-\item{type}{Name of model (defaults to FF16 but any strategy name is valid).}
+scm_base_parameters(type = NA, env = environment_type(type))
 }
 \description{
-Hopefully sensible set of parameters for use with the SCM.  Turns
-accuracy down a bunch, makes it noisy, sets up the
-hyperparameterisation that we most often use.
+Basic default settings for a given strategy, environment only really
+used for templating initially and will be overloaded later by passing
+an environment to the SCM API (suggesting perhaps the template could be
+removed).
 }
 \author{
 Rich FitzJohn

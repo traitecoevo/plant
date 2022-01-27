@@ -385,11 +385,14 @@ double FF16_Strategy::mortality_growth_dependent_dt(double productivity_area) co
 
 // [eqn 20] Survival of seedlings during establishment
 double FF16_Strategy::establishment_probability(const FF16_Environment& environment) {
+  
+  double decay_over_time = exp(-recruitment_decay * environment.time);
+  
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height_0, area_leaf_0);
   if (net_mass_production_dt_ > 0) {
     const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
-    return 1.0 / (tmp * tmp + 1.0);
+    return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
   } else {
     return 0.0;
   }

@@ -12,7 +12,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r warning=FALSE}
-library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(purrr)
 library(deSolve)
 ```
 

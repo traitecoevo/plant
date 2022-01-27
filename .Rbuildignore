@@ -19,6 +19,7 @@
 ^inst/slow_vignettes$
 ^inst/scripts$
 ^inst/website$
+^inst/docs$
 ^vignettes/(?!plant).*$
-^doc$
 ^Meta$
+^water_bucket_submodel$

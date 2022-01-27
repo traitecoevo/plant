@@ -5,7 +5,7 @@
 \title{Check performance on current system using package bench}
 \usage{
 run_plant_benchmarks(
-  strategy_types = list(FF16 = FF16_Strategy, FF16r = FF16r_Strategy, K93 =
+  strategy_types = list(FF16 = FF16_Strategy, FF16w = FF16w_Strategy, K93 =
     K93_Strategy),
   iterations = 1
 )
