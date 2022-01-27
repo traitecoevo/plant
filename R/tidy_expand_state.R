@@ -7,7 +7,7 @@
 #' @return similar format to input, but with additional columns for additonal state variables 
 #' @export
 #' @importFrom rlang .data
-expand_state_FF16 <- function(tidy_patch_results) {
+FF16_expand_state <- function(tidy_patch_results) {
   
   data <- split(tidy_patch_results$species, tidy_patch_results$species$species)
   

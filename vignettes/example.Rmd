@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # installation
 
 ```{r load libraries}
-devtools::load_all()
+library(plant)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
@@ -94,7 +94,7 @@ results_tidy <-
 results_tidy
 ```
 
-By pulling out the 'species' object from our list of tidied result outputs, we can plot the size distibution for each of the species in the patch. In this plot, each line represents the height over time of a characteristic originating at a given height (given by seed mass) at each step. Note that steps in this case are not equivalent to years, where the distance between steps is instead determined by the cohort spacing algorithm. We can take advantage of varying line transparency in ggplot2 to plot the relative log(Density) of each characteristic the size distribution of each species in the pathc. 
+By pulling out the 'species' object from our list of tidied result outputs, we can plot the size distribution for each of the species in the patch. In this plot, each line represents the height over time of a characteristic originating at a given height (given by seed mass) at each step. Note that steps in this case are not equivalent to years, where the distance between steps is instead determined by the cohort spacing algorithm. We can take advantage of varying line transparency in ggplot2 to plot the relative log(Density) of each characteristic the size distribution of each species in the patch. 
 
 ```{r}
 results_tidy$species %>%
@@ -122,10 +122,10 @@ data_species_tot %>%
   geom_line()
 ```
 
-We can use the function 'expand_state' to capture a large number of additional state variables (e.g.leaf area)
+We can use the function `FF16_expand_state` to capture a large number of additional state variables (e.g.leaf area)
 
 ```{r}
-results_tidy_expand <- results_tidy %>% expand_state_FF16()
+results_tidy_expand <- results_tidy %>% FF16_expand_state()
 
 results_tidy_expand$species
 ```
