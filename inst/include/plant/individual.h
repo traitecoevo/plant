@@ -24,7 +24,7 @@ public:
     vars.resize(strategy_type::state_size(), s->aux_size()); // = Internals(strategy_type::state_size());
     set_state("height", strategy->height_0);
 
-    vars.resize_consumption_rates(vars.state_size); // could also be strategy_type::state_size() to be consistent with line above
+    //vars.resize_consumption_rates(vars.state_size); // could also be strategy_type::state_size() to be consistent with line above
   }
   
   // useage: state(HEIGHT_INDEX)
@@ -68,6 +68,10 @@ public:
 
   void compute_rates(const environment_type& environment,
                          bool reuse_intervals = false) {
+    if (vars.resource_size != environment.ode_size()) {
+      // handles when Individual hasn't been instantiated in a Patch (ie with an environment)
+      vars.resize_consumption_rates(environment.ode_size());
+    }
     strategy->compute_rates(environment, reuse_intervals, vars);
   }
   
