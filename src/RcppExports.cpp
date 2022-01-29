@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // Lorenz__ctor
 plant::ode::test::Lorenz Lorenz__ctor(double sigma, double R, double b);
 RcppExport SEXP _plant_Lorenz__ctor(SEXP sigmaSEXP, SEXP RSEXP, SEXP bSEXP) {
@@ -2948,14 +2953,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Cohort___FF16__FF16_Env__plant__get
-plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> Cohort___FF16__FF16_Env__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Cohort___FF16__FF16_Env__plant__get(SEXP obj_SEXP) {
+// Cohort___FF16__FF16_Env__individual__get
+plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> Cohort___FF16__FF16_Env__individual__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Cohort___FF16__FF16_Env__individual__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Cohort___FF16__FF16_Env__plant__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Cohort___FF16__FF16_Env__individual__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3118,14 +3123,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Cohort___FF16w__FF16_Env__plant__get
-plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> Cohort___FF16w__FF16_Env__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Cohort___FF16w__FF16_Env__plant__get(SEXP obj_SEXP) {
+// Cohort___FF16w__FF16_Env__individual__get
+plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> Cohort___FF16w__FF16_Env__individual__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Cohort___FF16w__FF16_Env__individual__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Cohort___FF16w__FF16_Env__plant__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Cohort___FF16w__FF16_Env__individual__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3288,14 +3293,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Cohort___FF16r__FF16_Env__plant__get
-plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> Cohort___FF16r__FF16_Env__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Cohort___FF16r__FF16_Env__plant__get(SEXP obj_SEXP) {
+// Cohort___FF16r__FF16_Env__individual__get
+plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> Cohort___FF16r__FF16_Env__individual__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Cohort___FF16r__FF16_Env__individual__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Cohort___FF16r__FF16_Env__plant__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Cohort___FF16r__FF16_Env__individual__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -3458,14 +3463,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Cohort___K93__K93_Env__plant__get
-plant::Individual<plant::K93_Strategy,plant::K93_Environment> Cohort___K93__K93_Env__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Cohort___K93__K93_Env__plant__get(SEXP obj_SEXP) {
+// Cohort___K93__K93_Env__individual__get
+plant::Individual<plant::K93_Strategy,plant::K93_Environment> Cohort___K93__K93_Env__individual__get(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Cohort___K93__K93_Env__individual__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Cohort___K93__K93_Env__plant__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Cohort___K93__K93_Env__individual__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10074,7 +10079,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___FF16__FF16_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__growth_rate_gradient, 2},
     {"_plant_Cohort___FF16__FF16_Env__compute_rates", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__compute_rates, 3},
     {"_plant_Cohort___FF16__FF16_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__compute_initial_conditions, 4},
-    {"_plant_Cohort___FF16__FF16_Env__plant__get", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__plant__get, 1},
+    {"_plant_Cohort___FF16__FF16_Env__individual__get", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__individual__get, 1},
     {"_plant_Cohort___FF16__FF16_Env__height__get", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__height__get, 1},
     {"_plant_Cohort___FF16__FF16_Env__log_density__get", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__log_density__get, 1},
     {"_plant_Cohort___FF16__FF16_Env__competition_effect__get", (DL_FUNC) &_plant_Cohort___FF16__FF16_Env__competition_effect__get, 1},
@@ -10089,7 +10094,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___FF16w__FF16_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___FF16w__FF16_Env__growth_rate_gradient, 2},
     {"_plant_Cohort___FF16w__FF16_Env__compute_rates", (DL_FUNC) &_plant_Cohort___FF16w__FF16_Env__compute_rates, 3},
     {"_plant_Cohort___FF16w__FF16_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___FF16w__FF16_Env__compute_initial_conditions, 4},
-    {"_plant_Cohort___FF16w__FF16_Env__plant__get", (DL_FUNC) &_plant_Cohort___FF16w__FF16_Env__plant__get, 1},
+    {"_plant_Cohort___FF16w__FF16_Env__individual__get", (DL_FUNC) &_plant_Cohort___FF16w__FF16_Env__individual__get, 1},
     {"_plant_Cohort___FF16w__FF16_Env__height__get", (DL_FUNC) &_plant_Cohort___FF16w__FF16_Env__height__get, 1},
     {"_plant_Cohort___FF16w__FF16_Env__log_density__get", (DL_FUNC) &_plant_Cohort___FF16w__FF16_Env__log_density__get, 1},
     {"_plant_Cohort___FF16w__FF16_Env__competition_effect__get", (DL_FUNC) &_plant_Cohort___FF16w__FF16_Env__competition_effect__get, 1},
@@ -10104,7 +10109,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___FF16r__FF16_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__growth_rate_gradient, 2},
     {"_plant_Cohort___FF16r__FF16_Env__compute_rates", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__compute_rates, 3},
     {"_plant_Cohort___FF16r__FF16_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__compute_initial_conditions, 4},
-    {"_plant_Cohort___FF16r__FF16_Env__plant__get", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__plant__get, 1},
+    {"_plant_Cohort___FF16r__FF16_Env__individual__get", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__individual__get, 1},
     {"_plant_Cohort___FF16r__FF16_Env__height__get", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__height__get, 1},
     {"_plant_Cohort___FF16r__FF16_Env__log_density__get", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__log_density__get, 1},
     {"_plant_Cohort___FF16r__FF16_Env__competition_effect__get", (DL_FUNC) &_plant_Cohort___FF16r__FF16_Env__competition_effect__get, 1},
@@ -10119,7 +10124,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Cohort___K93__K93_Env__growth_rate_gradient", (DL_FUNC) &_plant_Cohort___K93__K93_Env__growth_rate_gradient, 2},
     {"_plant_Cohort___K93__K93_Env__compute_rates", (DL_FUNC) &_plant_Cohort___K93__K93_Env__compute_rates, 3},
     {"_plant_Cohort___K93__K93_Env__compute_initial_conditions", (DL_FUNC) &_plant_Cohort___K93__K93_Env__compute_initial_conditions, 4},
-    {"_plant_Cohort___K93__K93_Env__plant__get", (DL_FUNC) &_plant_Cohort___K93__K93_Env__plant__get, 1},
+    {"_plant_Cohort___K93__K93_Env__individual__get", (DL_FUNC) &_plant_Cohort___K93__K93_Env__individual__get, 1},
     {"_plant_Cohort___K93__K93_Env__height__get", (DL_FUNC) &_plant_Cohort___K93__K93_Env__height__get, 1},
     {"_plant_Cohort___K93__K93_Env__log_density__get", (DL_FUNC) &_plant_Cohort___K93__K93_Env__log_density__get, 1},
     {"_plant_Cohort___K93__K93_Env__competition_effect__get", (DL_FUNC) &_plant_Cohort___K93__K93_Env__competition_effect__get, 1},

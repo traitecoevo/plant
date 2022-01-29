@@ -1049,8 +1049,8 @@ Cohort___FF16__FF16_Env__compute_initial_conditions <- function(obj_, environmen
     invisible(.Call('_plant_Cohort___FF16__FF16_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
 }
 
-Cohort___FF16__FF16_Env__plant__get <- function(obj_) {
-    .Call('_plant_Cohort___FF16__FF16_Env__plant__get', PACKAGE = 'plant', obj_)
+Cohort___FF16__FF16_Env__individual__get <- function(obj_) {
+    .Call('_plant_Cohort___FF16__FF16_Env__individual__get', PACKAGE = 'plant', obj_)
 }
 
 Cohort___FF16__FF16_Env__height__get <- function(obj_) {
@@ -1109,8 +1109,8 @@ Cohort___FF16w__FF16_Env__compute_initial_conditions <- function(obj_, environme
     invisible(.Call('_plant_Cohort___FF16w__FF16_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
 }
 
-Cohort___FF16w__FF16_Env__plant__get <- function(obj_) {
-    .Call('_plant_Cohort___FF16w__FF16_Env__plant__get', PACKAGE = 'plant', obj_)
+Cohort___FF16w__FF16_Env__individual__get <- function(obj_) {
+    .Call('_plant_Cohort___FF16w__FF16_Env__individual__get', PACKAGE = 'plant', obj_)
 }
 
 Cohort___FF16w__FF16_Env__height__get <- function(obj_) {
@@ -1169,8 +1169,8 @@ Cohort___FF16r__FF16_Env__compute_initial_conditions <- function(obj_, environme
     invisible(.Call('_plant_Cohort___FF16r__FF16_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
 }
 
-Cohort___FF16r__FF16_Env__plant__get <- function(obj_) {
-    .Call('_plant_Cohort___FF16r__FF16_Env__plant__get', PACKAGE = 'plant', obj_)
+Cohort___FF16r__FF16_Env__individual__get <- function(obj_) {
+    .Call('_plant_Cohort___FF16r__FF16_Env__individual__get', PACKAGE = 'plant', obj_)
 }
 
 Cohort___FF16r__FF16_Env__height__get <- function(obj_) {
@@ -1229,8 +1229,8 @@ Cohort___K93__K93_Env__compute_initial_conditions <- function(obj_, environment,
     invisible(.Call('_plant_Cohort___K93__K93_Env__compute_initial_conditions', PACKAGE = 'plant', obj_, environment, pr_patch_survival, birth_rate))
 }
 
-Cohort___K93__K93_Env__plant__get <- function(obj_) {
-    .Call('_plant_Cohort___K93__K93_Env__plant__get', PACKAGE = 'plant', obj_)
+Cohort___K93__K93_Env__individual__get <- function(obj_) {
+    .Call('_plant_Cohort___K93__K93_Env__individual__get', PACKAGE = 'plant', obj_)
 }
 
 Cohort___K93__K93_Env__height__get <- function(obj_) {

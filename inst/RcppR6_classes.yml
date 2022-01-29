@@ -378,7 +378,7 @@ Cohort:
     name_cpp: "plant::make_cohort<T,E>"
     args: [strategy: T]
   active:
-    plant: {type: "plant::Individual<T,E>", access: field, readonly: true}
+    individual: {type: "plant::Individual<T,E>", access: field, readonly: true}
     height: {type: double, access: member}
     log_density: {type: double, access: member, name_cpp: get_log_density}
     competition_effect: {type: double, access: member}

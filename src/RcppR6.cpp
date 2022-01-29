@@ -1189,8 +1189,8 @@ void Cohort___FF16__FF16_Env__compute_initial_conditions(plant::RcppR6::RcppR6<p
   obj_->compute_initial_conditions(environment, pr_patch_survival, birth_rate);
 }
 // [[Rcpp::export]]
-plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> Cohort___FF16__FF16_Env__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->plant;
+plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> Cohort___FF16__FF16_Env__individual__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->individual;
 }
 
 // [[Rcpp::export]]
@@ -1259,8 +1259,8 @@ void Cohort___FF16w__FF16_Env__compute_initial_conditions(plant::RcppR6::RcppR6<
   obj_->compute_initial_conditions(environment, pr_patch_survival, birth_rate);
 }
 // [[Rcpp::export]]
-plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> Cohort___FF16w__FF16_Env__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->plant;
+plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> Cohort___FF16w__FF16_Env__individual__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->individual;
 }
 
 // [[Rcpp::export]]
@@ -1329,8 +1329,8 @@ void Cohort___FF16r__FF16_Env__compute_initial_conditions(plant::RcppR6::RcppR6<
   obj_->compute_initial_conditions(environment, pr_patch_survival, birth_rate);
 }
 // [[Rcpp::export]]
-plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> Cohort___FF16r__FF16_Env__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->plant;
+plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> Cohort___FF16r__FF16_Env__individual__get(plant::RcppR6::RcppR6<plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->individual;
 }
 
 // [[Rcpp::export]]
@@ -1399,8 +1399,8 @@ void Cohort___K93__K93_Env__compute_initial_conditions(plant::RcppR6::RcppR6<pla
   obj_->compute_initial_conditions(environment, pr_patch_survival, birth_rate);
 }
 // [[Rcpp::export]]
-plant::Individual<plant::K93_Strategy,plant::K93_Environment> Cohort___K93__K93_Env__plant__get(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->plant;
+plant::Individual<plant::K93_Strategy,plant::K93_Environment> Cohort___K93__K93_Env__individual__get(plant::RcppR6::RcppR6<plant::Cohort<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->individual;
 }
 
 // [[Rcpp::export]]
