@@ -2479,25 +2479,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// IndividualRunner___FF16__FF16_Env__plant__get
-plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> IndividualRunner___FF16__FF16_Env__plant__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_IndividualRunner___FF16__FF16_Env__plant__get(SEXP obj_SEXP) {
+// IndividualRunner___FF16__FF16_Env__indv__get
+plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> IndividualRunner___FF16__FF16_Env__indv__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_IndividualRunner___FF16__FF16_Env__indv__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16__FF16_Env__plant__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16__FF16_Env__indv__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// IndividualRunner___FF16__FF16_Env__plant__set
-void IndividualRunner___FF16__FF16_Env__plant__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> value);
-RcppExport SEXP _plant_IndividualRunner___FF16__FF16_Env__plant__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// IndividualRunner___FF16__FF16_Env__indv__set
+void IndividualRunner___FF16__FF16_Env__indv__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> value);
+RcppExport SEXP _plant_IndividualRunner___FF16__FF16_Env__indv__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> >::type value(valueSEXP);
-    IndividualRunner___FF16__FF16_Env__plant__set(obj_, value);
+    IndividualRunner___FF16__FF16_Env__indv__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -2513,25 +2513,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// IndividualRunner___FF16w__FF16_Env__plant__get
-plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> IndividualRunner___FF16w__FF16_Env__plant__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_IndividualRunner___FF16w__FF16_Env__plant__get(SEXP obj_SEXP) {
+// IndividualRunner___FF16w__FF16_Env__indv__get
+plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> IndividualRunner___FF16w__FF16_Env__indv__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_IndividualRunner___FF16w__FF16_Env__indv__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16w__FF16_Env__plant__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16w__FF16_Env__indv__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// IndividualRunner___FF16w__FF16_Env__plant__set
-void IndividualRunner___FF16w__FF16_Env__plant__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> value);
-RcppExport SEXP _plant_IndividualRunner___FF16w__FF16_Env__plant__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// IndividualRunner___FF16w__FF16_Env__indv__set
+void IndividualRunner___FF16w__FF16_Env__indv__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> value);
+RcppExport SEXP _plant_IndividualRunner___FF16w__FF16_Env__indv__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> >::type value(valueSEXP);
-    IndividualRunner___FF16w__FF16_Env__plant__set(obj_, value);
+    IndividualRunner___FF16w__FF16_Env__indv__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -2547,25 +2547,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// IndividualRunner___FF16r__FF16_Env__plant__get
-plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> IndividualRunner___FF16r__FF16_Env__plant__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_IndividualRunner___FF16r__FF16_Env__plant__get(SEXP obj_SEXP) {
+// IndividualRunner___FF16r__FF16_Env__indv__get
+plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> IndividualRunner___FF16r__FF16_Env__indv__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_IndividualRunner___FF16r__FF16_Env__indv__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16r__FF16_Env__plant__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16r__FF16_Env__indv__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// IndividualRunner___FF16r__FF16_Env__plant__set
-void IndividualRunner___FF16r__FF16_Env__plant__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> value);
-RcppExport SEXP _plant_IndividualRunner___FF16r__FF16_Env__plant__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// IndividualRunner___FF16r__FF16_Env__indv__set
+void IndividualRunner___FF16r__FF16_Env__indv__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> value);
+RcppExport SEXP _plant_IndividualRunner___FF16r__FF16_Env__indv__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> >::type value(valueSEXP);
-    IndividualRunner___FF16r__FF16_Env__plant__set(obj_, value);
+    IndividualRunner___FF16r__FF16_Env__indv__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -2581,25 +2581,25 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// IndividualRunner___K93__K93_Env__plant__get
-plant::Individual<plant::K93_Strategy,plant::K93_Environment> IndividualRunner___K93__K93_Env__plant__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_IndividualRunner___K93__K93_Env__plant__get(SEXP obj_SEXP) {
+// IndividualRunner___K93__K93_Env__indv__get
+plant::Individual<plant::K93_Strategy,plant::K93_Environment> IndividualRunner___K93__K93_Env__indv__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_IndividualRunner___K93__K93_Env__indv__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(IndividualRunner___K93__K93_Env__plant__get(obj_));
+    rcpp_result_gen = Rcpp::wrap(IndividualRunner___K93__K93_Env__indv__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// IndividualRunner___K93__K93_Env__plant__set
-void IndividualRunner___K93__K93_Env__plant__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Individual<plant::K93_Strategy,plant::K93_Environment> value);
-RcppExport SEXP _plant_IndividualRunner___K93__K93_Env__plant__set(SEXP obj_SEXP, SEXP valueSEXP) {
+// IndividualRunner___K93__K93_Env__indv__set
+void IndividualRunner___K93__K93_Env__indv__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Individual<plant::K93_Strategy,plant::K93_Environment> value);
+RcppExport SEXP _plant_IndividualRunner___K93__K93_Env__indv__set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< plant::Individual<plant::K93_Strategy,plant::K93_Environment> >::type value(valueSEXP);
-    IndividualRunner___K93__K93_Env__plant__set(obj_, value);
+    IndividualRunner___K93__K93_Env__indv__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -10037,17 +10037,17 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Individual___K93__K93_Env__mortality_probability__get", (DL_FUNC) &_plant_Individual___K93__K93_Env__mortality_probability__get, 1},
     {"_plant_Individual___K93__K93_Env__strategy_name__get", (DL_FUNC) &_plant_Individual___K93__K93_Env__strategy_name__get, 1},
     {"_plant_IndividualRunner___FF16__FF16_Env__ctor", (DL_FUNC) &_plant_IndividualRunner___FF16__FF16_Env__ctor, 2},
-    {"_plant_IndividualRunner___FF16__FF16_Env__plant__get", (DL_FUNC) &_plant_IndividualRunner___FF16__FF16_Env__plant__get, 1},
-    {"_plant_IndividualRunner___FF16__FF16_Env__plant__set", (DL_FUNC) &_plant_IndividualRunner___FF16__FF16_Env__plant__set, 2},
+    {"_plant_IndividualRunner___FF16__FF16_Env__indv__get", (DL_FUNC) &_plant_IndividualRunner___FF16__FF16_Env__indv__get, 1},
+    {"_plant_IndividualRunner___FF16__FF16_Env__indv__set", (DL_FUNC) &_plant_IndividualRunner___FF16__FF16_Env__indv__set, 2},
     {"_plant_IndividualRunner___FF16w__FF16_Env__ctor", (DL_FUNC) &_plant_IndividualRunner___FF16w__FF16_Env__ctor, 2},
-    {"_plant_IndividualRunner___FF16w__FF16_Env__plant__get", (DL_FUNC) &_plant_IndividualRunner___FF16w__FF16_Env__plant__get, 1},
-    {"_plant_IndividualRunner___FF16w__FF16_Env__plant__set", (DL_FUNC) &_plant_IndividualRunner___FF16w__FF16_Env__plant__set, 2},
+    {"_plant_IndividualRunner___FF16w__FF16_Env__indv__get", (DL_FUNC) &_plant_IndividualRunner___FF16w__FF16_Env__indv__get, 1},
+    {"_plant_IndividualRunner___FF16w__FF16_Env__indv__set", (DL_FUNC) &_plant_IndividualRunner___FF16w__FF16_Env__indv__set, 2},
     {"_plant_IndividualRunner___FF16r__FF16_Env__ctor", (DL_FUNC) &_plant_IndividualRunner___FF16r__FF16_Env__ctor, 2},
-    {"_plant_IndividualRunner___FF16r__FF16_Env__plant__get", (DL_FUNC) &_plant_IndividualRunner___FF16r__FF16_Env__plant__get, 1},
-    {"_plant_IndividualRunner___FF16r__FF16_Env__plant__set", (DL_FUNC) &_plant_IndividualRunner___FF16r__FF16_Env__plant__set, 2},
+    {"_plant_IndividualRunner___FF16r__FF16_Env__indv__get", (DL_FUNC) &_plant_IndividualRunner___FF16r__FF16_Env__indv__get, 1},
+    {"_plant_IndividualRunner___FF16r__FF16_Env__indv__set", (DL_FUNC) &_plant_IndividualRunner___FF16r__FF16_Env__indv__set, 2},
     {"_plant_IndividualRunner___K93__K93_Env__ctor", (DL_FUNC) &_plant_IndividualRunner___K93__K93_Env__ctor, 2},
-    {"_plant_IndividualRunner___K93__K93_Env__plant__get", (DL_FUNC) &_plant_IndividualRunner___K93__K93_Env__plant__get, 1},
-    {"_plant_IndividualRunner___K93__K93_Env__plant__set", (DL_FUNC) &_plant_IndividualRunner___K93__K93_Env__plant__set, 2},
+    {"_plant_IndividualRunner___K93__K93_Env__indv__get", (DL_FUNC) &_plant_IndividualRunner___K93__K93_Env__indv__get, 1},
+    {"_plant_IndividualRunner___K93__K93_Env__indv__set", (DL_FUNC) &_plant_IndividualRunner___K93__K93_Env__indv__set, 2},
     {"_plant_Internals__ctor", (DL_FUNC) &_plant_Internals__ctor, 2},
     {"_plant_Internals__state", (DL_FUNC) &_plant_Internals__state, 2},
     {"_plant_Internals__rate", (DL_FUNC) &_plant_Internals__rate, 2},

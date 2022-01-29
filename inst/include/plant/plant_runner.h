@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_PLANT_RUNNER_H_
-#define PLANT_PLANT_PLANT_RUNNER_H_
+#ifndef PLANT_RUNNER
+#define PLANT_RUNNER
 
 #include <plant/individual.h>
 #include <plant/environment.h>
@@ -11,32 +11,32 @@ namespace tools {
 template <typename T, typename E>
 class IndividualRunner {
 public:
-  IndividualRunner(Individual<T,E> plant_, E environment_)
-    : plant(plant_), environment(environment_) {
-    plant.compute_rates(environment);
+  IndividualRunner(Individual<T,E> indv_, E environment_)
+    : indv(indv_), environment(environment_) {
+    indv.compute_rates(environment);
   }
 
   static size_t ode_size() {return Individual<T,E>::ode_size();}
   
   double ode_time() const {return environment.time;}
   ode::const_iterator set_ode_state(ode::const_iterator it, double time) {
-    it = plant.set_ode_state(it);
+    it = indv.set_ode_state(it);
     environment.time = time;
-    plant.compute_rates(environment);
+    indv.compute_rates(environment);
     return it;
   }
   ode::iterator ode_state(ode::iterator it) const {
-    return plant.ode_state(it);
+    return indv.ode_state(it);
   }
   ode::iterator ode_rates(ode::iterator it) const {
-    return plant.ode_rates(it);
+    return indv.ode_rates(it);
   }
   
-  Individual<T,E> plant;
+  Individual<T,E> indv;
   E environment;
 };
 
 }
 }
 
-#endif
+#endif /* PLANT_RUNNER */

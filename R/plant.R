@@ -101,7 +101,7 @@ grow_plant_to_time <- function(plant, times, env) {
       runner_detail$set_state(y0, t0)
       runner_detail$step_to(t_next)
       state[i, ] <- runner_detail$state
-      plant[[i]] <- runner_detail$object$plant
+      plant[[i]] <- runner_detail$object$indv
       i <- i + 1L
       t_next <- times[i] # allows out-of-bounds extraction
     }
@@ -132,7 +132,7 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   size_index <- (which(plant$ode_names == size_name) - 1)
 
   runner <- OdeRunner(strategy_name)(IndividualRunner(strategy_name, environment_type(strategy_name))(plant, env))
-  internals <- get_plant_internals_fun(runner$object$plant)
+  internals <- get_plant_internals_fun(runner$object$indv)
   i <- 1L
   n <- length(sizes)
   j <- rep_len(NA_integer_, n)
@@ -150,7 +150,7 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
         warning(paste(msg, collapse="\n"), immediate.=TRUE)
       }
       ## TODO: Consider making this an error, or making the test a bit better.
-      if (runner$object$plant$ode_rates[[2]] < 1e-10) {
+      if (runner$object$indv$ode_rates[[2]] < 1e-10) {
         warning("Integration may have failed for reasons other than mortality",
                 immediate.=TRUE)
       }
@@ -178,7 +178,7 @@ grow_plant_bracket <- function(plant, sizes, size_name, env,
   t <- vnapply(state, "[[", "time")
   m <- t(sapply(state, "[[", "state"))
   k <- j + 1L
-  colnames(m) <- runner$object$plant$ode_names
+  colnames(m) <- runner$object$indv$ode_names
   list(t0=t[j],
        t1=t[k],
        y0=m[j, , drop=FALSE],
@@ -196,9 +196,9 @@ grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
   
   # TODO: size index uses index from 0
   # can we clarify?
-  size_index <- (which(runner$object$plant$ode_names == size_name) - 1)
+  size_index <- (which(runner$object$indv$ode_names == size_name) - 1)
 
-  internals <- get_plant_internals_fun(runner$object$plant)
+  internals <- get_plant_internals_fun(runner$object$indv)
   f <- function(t1) {
     runner$set_state(y0, t0)
     runner$step_to(t1)
@@ -210,7 +210,7 @@ grow_plant_bisect <- function(runner, size, size_name, t0, t1, y0) {
     list(time=NA_real_, state=y0, plant=NULL)
   } else {
     root <- uniroot(f, lower=t0, upper=t1)
-    list(time=root$root, state=runner$state, plant=runner$object$plant)
+    list(time=root$root, state=runner$state, plant=runner$object$indv)
   }
 }
 

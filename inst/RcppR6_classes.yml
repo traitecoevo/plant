@@ -296,9 +296,9 @@ IndividualRunner:
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     name_cpp: "plant::tools::IndividualRunner<T,E>"
-    args: [plant: "plant::Individual<T,E>", environment: E]
+    args: [indv: "plant::Individual<T,E>", environment: E]
   active:
-    plant: {access: field, type: "plant::Individual<T,E>"}
+    indv: {access: field, type: "plant::Individual<T,E>"}
 
 Internals:
   name_cpp: "plant::Internals"
