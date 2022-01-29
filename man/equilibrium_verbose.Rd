@@ -14,6 +14,6 @@ equilibrium_quiet(base = Control())
 defaults are used.}
 }
 \description{
-Control parameters for \code{\link{equilibrium_seed_rain}} that
+Control parameters for \code{\link{equilibrium_birth_rate}} that
 make progress noisier.  This is just a convenience function.
 }

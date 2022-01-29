@@ -6,8 +6,9 @@ Authors@R: c(
             comment = c(ORCID = "0000-0002-9814-092X")),
     person("Richard", "FitzJohn", , "", "aut"),
     person("Andrew", "O'Reilly-Nugent", , "", "aut"),
-    person("Rafael", "Schouten", , "", "aut"),
-    person("Andrew", "O'Reilly-Nugent", , "", "aut"),
+    person("Mitchell", "Henry", , "", "ctb"),
+    person("Rafael", "Schouten", , "", "ctb"),
+    person("Isaac", "Towers", , "", "ctb"),
     person("John", "Wilshire", , "", "ctb")
     )
 Maintainer: Daniel Falster <daniel.falster@unsw.edu.au>
@@ -26,8 +27,15 @@ Imports:
     loggr,
     crayon,
     nleqslv,
-    BB
+    BB,
+    magrittr,
+    tibble,
+    rlang,
+    dplyr,
+    tidyr,
+    purrr
 Suggests:
+    ggplot2,
     testthat,
     deSolve,
     numDeriv,

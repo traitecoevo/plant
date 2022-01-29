@@ -2468,14 +2468,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // IndividualRunner___FF16__FF16_Env__ctor
-plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> IndividualRunner___FF16__FF16_Env__ctor(plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> plant, plant::FF16_Environment environment);
-RcppExport SEXP _plant_IndividualRunner___FF16__FF16_Env__ctor(SEXP plantSEXP, SEXP environmentSEXP) {
+plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> IndividualRunner___FF16__FF16_Env__ctor(plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> indv, plant::FF16_Environment environment);
+RcppExport SEXP _plant_IndividualRunner___FF16__FF16_Env__ctor(SEXP indvSEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> >::type plant(plantSEXP);
+    Rcpp::traits::input_parameter< plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> >::type indv(indvSEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
-    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16__FF16_Env__ctor(plant, environment));
+    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16__FF16_Env__ctor(indv, environment));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2502,14 +2502,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // IndividualRunner___FF16w__FF16_Env__ctor
-plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> IndividualRunner___FF16w__FF16_Env__ctor(plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> plant, plant::FF16_Environment environment);
-RcppExport SEXP _plant_IndividualRunner___FF16w__FF16_Env__ctor(SEXP plantSEXP, SEXP environmentSEXP) {
+plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> IndividualRunner___FF16w__FF16_Env__ctor(plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> indv, plant::FF16_Environment environment);
+RcppExport SEXP _plant_IndividualRunner___FF16w__FF16_Env__ctor(SEXP indvSEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> >::type plant(plantSEXP);
+    Rcpp::traits::input_parameter< plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> >::type indv(indvSEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
-    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16w__FF16_Env__ctor(plant, environment));
+    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16w__FF16_Env__ctor(indv, environment));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2536,14 +2536,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // IndividualRunner___FF16r__FF16_Env__ctor
-plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> IndividualRunner___FF16r__FF16_Env__ctor(plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> plant, plant::FF16_Environment environment);
-RcppExport SEXP _plant_IndividualRunner___FF16r__FF16_Env__ctor(SEXP plantSEXP, SEXP environmentSEXP) {
+plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> IndividualRunner___FF16r__FF16_Env__ctor(plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> indv, plant::FF16_Environment environment);
+RcppExport SEXP _plant_IndividualRunner___FF16r__FF16_Env__ctor(SEXP indvSEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> >::type plant(plantSEXP);
+    Rcpp::traits::input_parameter< plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> >::type indv(indvSEXP);
     Rcpp::traits::input_parameter< plant::FF16_Environment >::type environment(environmentSEXP);
-    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16r__FF16_Env__ctor(plant, environment));
+    rcpp_result_gen = Rcpp::wrap(IndividualRunner___FF16r__FF16_Env__ctor(indv, environment));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2570,14 +2570,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // IndividualRunner___K93__K93_Env__ctor
-plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> IndividualRunner___K93__K93_Env__ctor(plant::Individual<plant::K93_Strategy,plant::K93_Environment> plant, plant::K93_Environment environment);
-RcppExport SEXP _plant_IndividualRunner___K93__K93_Env__ctor(SEXP plantSEXP, SEXP environmentSEXP) {
+plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> IndividualRunner___K93__K93_Env__ctor(plant::Individual<plant::K93_Strategy,plant::K93_Environment> indv, plant::K93_Environment environment);
+RcppExport SEXP _plant_IndividualRunner___K93__K93_Env__ctor(SEXP indvSEXP, SEXP environmentSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::Individual<plant::K93_Strategy,plant::K93_Environment> >::type plant(plantSEXP);
+    Rcpp::traits::input_parameter< plant::Individual<plant::K93_Strategy,plant::K93_Environment> >::type indv(indvSEXP);
     Rcpp::traits::input_parameter< plant::K93_Environment >::type environment(environmentSEXP);
-    rcpp_result_gen = Rcpp::wrap(IndividualRunner___K93__K93_Env__ctor(plant, environment));
+    rcpp_result_gen = Rcpp::wrap(IndividualRunner___K93__K93_Env__ctor(indv, environment));
     return rcpp_result_gen;
 END_RCPP
 }

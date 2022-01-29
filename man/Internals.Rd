@@ -2,12 +2,16 @@
 % Please edit documentation in r/RcppR6.R
 \name{Internals}
 \alias{Internals}
-\title{Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
-which is calculated from the state through running compute_rates}
+\title{Extract Internals from plant object}
 \usage{
 Internals(s_size, a_size)
 }
+\arguments{
+\item{s_size}{???}
+
+\item{a_size}{???}
+}
 \description{
-Internals class holding vectors of states, thier associated rates and auxiliary (aux) state 
+Internals class holding vectors of states, thier associated rates and auxiliary (aux) state
 which is calculated from the state through running compute_rates
 }
