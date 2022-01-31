@@ -199,7 +199,7 @@ tidy_species_new <- interpolate_to_times(tidy_species_data, times)
 Gives interpolated values for state variables at new time points. 
 
 ```{r}
-tidy_species_new
+tidy_species_new %>% drop_na()
 ```
 
 We can now assess their correspondence with the values already predicted in the original results output. We can see in this case that the points (represneting the interpolated values) fall along the curves which indicates good correspondence bewteen our interpolation and the original simulation. 
@@ -238,7 +238,7 @@ tidy_species_data <- results_tidy$species
 tidy_species_new <- interpolate_to_heights(tidy_species_data, heights)
 ```
 
-Gives predictions at new time points. 
+Gives predictions at new height. 
 
 ```{r}
 tidy_species_new %>% drop_na()
