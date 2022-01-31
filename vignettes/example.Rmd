@@ -19,6 +19,8 @@ knitr::opts_chunk$set(echo = TRUE)
 # installation
 
 ```{r load libraries}
+devtools::load_all()
+
 library(plant)
 library(dplyr)
 library(tidyr)
@@ -145,13 +147,6 @@ data_species_tot %>%
 
 In this case, species 1 with cheap, thin leaves briefly has a much higher total leaf area deployed comapred across the height distribution before eventually being overtaken by species with thicker, more expensive leaves. 
 
-
-```{r}
-data_species_tot %>% 
-  ggplot(aes(time, area_leaf, colour = species)) +
-  geom_line()
-```
-
 We can convert these integrated total state variables into their respective biomass components to get an idea of how total biomass and relative biomass allocation varies through time for each species. 
 
 ```{r}
@@ -178,19 +173,15 @@ data_long %>%
 ```
 
 
-
 ## Interpolate to specific times
 
-The cohort spacing algorithim determines the optimum introduction times for characterstics, which means that the time values associated with steps may not correspond to known times that we might like to extract information about. For example, what the total amount of biomass per $m^2$ be at 50 years. By doing this, it also means that we can integrate between defined times.
-
-
+The cohort spacing algorithim determines the optimum introduction times for characterstics, which means that the time values associated with steps may not correspond to known times that we might like to extract information about. For example, what the total amount of biomass per $m^2$ will be at 50 years. By doing this, it also means that we can integrate between defined times. Let's work with our results again by running a patch again and then tidying.
 
 ```{r}
 results <- run_mypatch(traits =  trait_matrix(c(0.07, 0.24), c("lma")))
 
 results_tidy <- results %>%
   tidy_patch()
-
 ```
 
 
@@ -237,7 +228,7 @@ data_combined_long %>%
 
 ## Interpolate to specific heights
 
-Similar to above, we can interpolate across cohorts at given time to sepcific heights, suing the function `interpolate_to_heights`
+Similar to above, we can interpolate across cohorts at given time to sepcific heights, using the function `interpolate_to_heights`
 
 ```{r}
 heights <- c(1, 5, 10)
@@ -260,7 +251,7 @@ data_combined <-
   tidy_species_data %>%
   bind_rows(tidy_species_new) %>%
   arrange(species, time, height) %>% 
-  filter(step %in% c(100, 150))
+  filter(step %in% c(100, 142))
 
 data_combined_long <- 
   data_combined  %>% 
