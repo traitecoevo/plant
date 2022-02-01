@@ -112,10 +112,10 @@ for (x in names(strategy_types)) {
 }
 
 
-test_that("lcp_whole_plant", {
+test_that("competition_compensation_point", {
   for (x in "FF16") {
     ## R implementation:
-    lcp_whole_plant_R <- function(x, plant, ...) {
+    competition_compensation_point_R <- function(x, plant, ...) {
       target <- function(canopy_openness) {
         env <- fixed_environment(x, canopy_openness)
         plant$compute_rates(env)
@@ -133,6 +133,6 @@ test_that("lcp_whole_plant", {
     e <- environment_types[[x]]
     p <- Individual(x, e)(strategy_types[[x]]())
     # skip("Comparison no longer evaluate the nesting is too deep")
-    expect_equal(p$lcp_whole_plant(), lcp_whole_plant_R(x, p), tolerance=1e-5)
+    expect_equal(p$competition_compensation_point(), competition_compensation_point_R(x, p), tolerance=1e-5)
   }
 })

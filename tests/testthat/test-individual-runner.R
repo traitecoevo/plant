@@ -24,7 +24,7 @@ test_that("IndividualRunner", {
     expect_is(runner, sprintf("OdeRunner<%s>", x))
     expect_equal(runner$time, 0.0)
 
-    expect_equal((get_plant_internals_fun(p))(runner), p$internals)
+    expect_equal((get_individual_internals_fun(p))(runner), p$internals)
     
     continue_if <- function(obj) {
       obj$state[[1]] < 15
@@ -68,7 +68,7 @@ test_that("get_plant_internals_fun", {
   }
 })
 
-test_that("grow_plant_to_size", {
+test_that("grow_individual_to_size", {
   for (x in names(strategy_types)) {
     env <- test_environment(x, 10)
 
@@ -82,7 +82,7 @@ test_that("grow_plant_to_size", {
     if(grepl("K93", x))
       heights <- subset(heights, heights >  pp$strategy$height_0)
 
-    res <- grow_plant_bracket(pp, heights, "height", env)
+    res <- grow_individual_bracket(pp, heights, "height", env)
 
     expect_identical(res$t0, res$time[res$index])
     expect_identical(res$t1, res$time[res$index + 1L])
@@ -95,7 +95,7 @@ test_that("grow_plant_to_size", {
 
     ## Then, do the search for a single case:
     i <- 3L
-    tmp <- grow_plant_bisect(res$runner,
+    tmp <- grow_individual_bisect(res$runner,
                              heights[[i]], "height",
                              res$t0[[i]], res$t1[[i]], res$y0[i,])
 
@@ -126,7 +126,7 @@ test_that("grow_plant_to_size", {
       plot(tmp$state - res$y1[i,], col = "pink", pch = 4)
     }
     ## Do all plants using the proper function:
-    obj <- grow_plant_to_size(Individual(x, e)(s), heights, "height", env)
+    obj <- grow_individual_to_size(Individual(x, e)(s), heights, "height", env)
     expect_is(obj$time, "numeric")
     expect_true(all(obj$time > res$t0))
     expect_true(all(obj$time < res$t1))
@@ -136,16 +136,16 @@ test_that("grow_plant_to_size", {
     expect_true(all(obj$state[,j2] >= res$y0[,j2]))
     expect_true(all(obj$state[,j2] <= res$y1[,j2]))
 
-    expect_equal(length(obj$plant), length(heights))
-    expect_true(all(sapply(obj$plant, inherits, sprintf("Individual<%s,%s>",x,e))))
-    expect_equal(sapply(obj$plant, function(p) p$state("height")), heights, tolerance=1e-6)
+    expect_equal(length(obj$individual), length(heights))
+    expect_true(all(sapply(obj$individual, inherits, sprintf("Individual<%s,%s>",x,e))))
+    expect_equal(sapply(obj$individual, function(p) p$state("height")), heights, tolerance=1e-6)
   }
 })
 
 ## TODO: another useful function could be to construct splines for
 ## arbitrary variables during a run; we end up with all the state here
 ## so that should be fairly straightforward.
-test_that("grow_plant_to_size", {
+test_that("grow_individual_to_size", {
   for (x in names(strategy_types)) {
     strategy <- strategy_types[[x]]()
     e <- environment_types[[x]]
@@ -154,23 +154,23 @@ test_that("grow_plant_to_size", {
     if(grepl("K93", x)) 
       sizes <- c(2.5, 5, 10, 12)
     env <- fixed_environment(x, 1.0)
-    res <- grow_plant_to_size(pl, sizes, "height", env, 10000)
+    res <- grow_individual_to_size(pl, sizes, "height", env, 10000)
 
     expect_equal(res$state[, "height"], sizes, tolerance=1e-4)
 
     sizes2 <- c(sizes, last(sizes) * 2)
     if(x == "FF16") {
-      expect_warning(res2 <- grow_plant_to_size(pl, sizes2, "height", env, 100),
+      expect_warning(res2 <- grow_individual_to_size(pl, sizes2, "height", env, 100),
                 "Time exceeded time_max")
       expect_equal(length(res2$time), length(sizes2))
       expect_equal(last(res2$time), NA_real_)
       expect_false(any(is.na(res2$time[-length(sizes2)])))
 
-      expect_silent(res3 <- grow_plant_to_size(pl, sizes2, "height", env,
+      expect_silent(res3 <- grow_individual_to_size(pl, sizes2, "height", env,
                                            100, warn=FALSE))
       expect_equal(res3, res2)
 
-      expect_silent(res4 <- grow_plant_to_size(pl, sizes2, "height", env,
+      expect_silent(res4 <- grow_individual_to_size(pl, sizes2, "height", env,
                                            100, warn=FALSE, filter=TRUE))
 
       ## Manually filter:
@@ -192,16 +192,16 @@ test_that("grow_plant_to_size", {
   }
 })
 
-test_that("grow_plant_to_time", {
+test_that("grow_individual_to_time", {
   for (x in names(strategy_types)) {
     strategy <- strategy_types[[x]]()
     e <- environment_types[[x]]
     pl <- Individual(x, e)(strategy)
     env <- fixed_environment(x, 1.0)
     times <- c(0, 10^(-4:3))
-    res <- grow_plant_to_time(pl, times, env)
-    expect_is(res$plant, "list")
-    expect_equal(length(res$plant), length(times))
+    res <- grow_individual_to_time(pl, times, env)
+    expect_is(res$individual, "list")
+    expect_equal(length(res$individual), length(times))
 
     expect_is(res$state, "matrix")
     expect_equal(colnames(res$state), pl$ode_names)
@@ -219,9 +219,9 @@ test_that("Sensible behaviour on integration failure", {
 
   env <- fixed_environment("FF16", 1)
   sizes <- seq_range(c(pl$state("height"), 50), 50)
-  expect_warning(res <- grow_plant_to_size(pl, sizes, "height", env, 10, warn = TRUE, filter = TRUE),
+  expect_warning(res <- grow_individual_to_size(pl, sizes, "height", env, 10, warn = TRUE, filter = TRUE),
                   "Time exceeded time_max")
-  expect_is(res$plant, "list")
+  expect_is(res$individual, "list")
   expect_equal(nrow(res$state), length(res$time))
   expect_equal(res$state[,"height"], sizes[seq_len(length(res$time))], tol = 1E-5)
 
@@ -236,9 +236,9 @@ test_that("Sensible behaviour on integration failure", {
 
   env <- fixed_environment("FF16", 1)
   sizes <- seq_range(c(pl$state("height"), 50), 50)
-  expect_warning(res <- grow_plant_to_size(pl, sizes, "height", env, 1000, warn = TRUE, filter = TRUE),
+  expect_warning(res <- grow_individual_to_size(pl, sizes, "height", env, 1000, warn = TRUE, filter = TRUE),
                   "50 larger sizes dropped")
-  expect_equal(res$plant, list())
+  expect_equal(res$individual, list())
   expect_equal(res$time, numeric(0))
   expect_equal(nrow(res$state), 0)
 })
