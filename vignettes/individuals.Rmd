@@ -171,10 +171,10 @@ indv2$state("fecundity")
 ```
 
 To make this type of operation easier, we provide the function
-`grow_plant_to_time`
+`grow_individual_to_time`
 
 ```{r }
-res <- grow_plant_to_time(FF16_Individual(), tt, env)
+res <- grow_individual_to_time(FF16_Individual(), tt, env)
 ```
 
 Here is the result using the internal ODE solver (black line),
@@ -187,7 +187,7 @@ points(height ~ time, yy, col="grey", cex=.5)
 ```
 
 Completing the set, `plant` also provides a function for growing
-individuals to a particular size; `grow_plant_to_size`.  This takes
+individuals to a particular size; `grow_individual_to_size`.  This takes
 *any* size measurement in the individuals and can grow the individuals to that
 size.  So, for height:
 
@@ -195,7 +195,7 @@ size.  So, for height:
 # create a sequence from the initial size to height at maturity
 indv <- FF16_Individual()
 heights <- seq(indv$state("height"), indv$strategy$hmat, length.out=20)
-res <- grow_plant_to_size(indv, heights, "height", env)
+res <- grow_individual_to_size(indv, heights, "height", env)
 ```
 
 This returns a vector of times; this is when the heights were
@@ -269,9 +269,9 @@ initial height for given seed mass.
 heights1 <- seq(indv1$state("height"), s1$hmat, length.out=100L)
 heights2 <- seq(indv2$state("height"), s2$hmat, length.out=100L)
 
-dat1 <- grow_plant_to_height(indv1, heights1, env,
+dat1 <- grow_individual_to_height(indv1, heights1, env,
                              time_max=100, warn=FALSE, filter=TRUE)
-dat2 <- grow_plant_to_height(indv2, heights2, env,
+dat2 <- grow_individual_to_height(indv2, heights2, env,
                              time_max=100, warn=FALSE, filter=TRUE)
 
 plot(dat1$trajectory[, "time"], dat1$trajectory[, "height"],
@@ -285,9 +285,9 @@ We cam see each species fares under lower light:
 
 ```{r }
 env_low <- FF16_fixed_environment(0.5)
-dat1_low <- grow_plant_to_height(indv1, heights1, env_low,
+dat1_low <- grow_individual_to_height(indv1, heights1, env_low,
                                  time_max=100, warn=FALSE, filter=TRUE)
-dat2_low <- grow_plant_to_height(indv2, heights2, env_low,
+dat2_low <- grow_individual_to_height(indv2, heights2, env_low,
                                  time_max=100, warn=FALSE, filter=TRUE)
 
 cols <- c("black", "#e34a33")
