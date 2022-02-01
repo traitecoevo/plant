@@ -94,6 +94,6 @@ test_that("Rainfall spline basic run", {
                  25943.457, 18463.828, 12629.179, 8230.835, 5017.614),
                tolerance = 1e-7)
 
-  expect_equal(out$offspring_production, 16.88961, tolerance=1e-5)
+  expect_equal(out$offspring_production, 16.88961056463, tolerance=1e-7)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.101857), tolerance=1e-7)
 })
