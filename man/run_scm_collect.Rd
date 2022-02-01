@@ -4,13 +4,22 @@
 \alias{run_scm_collect}
 \title{Run the SCM, Collecting Output}
 \usage{
-run_scm_collect(p, include_competition_effect = FALSE)
+run_scm_collect(
+  p,
+  env = make_environment(parameters = p),
+  ctrl = scm_base_control(),
+  collect_auxiliary_variables = FALSE
+)
 }
 \arguments{
 \item{p}{A \code{Parameters} object}
 
-\item{include_competition_effect}{Include total leaf area (will change; see
-issue #138)}
+\item{env}{Environment object (defaults to FF16_Environment)}
+
+\item{ctrl}{Control object}
+
+\item{collect_auxiliary_variables}{Return additional strategy variables (eg
+competition_effect)}
 }
 \description{
 Run the SCM model, given a Parameters and CohortSchedule

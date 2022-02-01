@@ -265,6 +265,9 @@ public:
   // Risk coefficient for dry mass production (per area)
   double a_dG2    = 20.0;// [yr m2 / kg ]
 
+  // Germination
+  double recruitment_decay = 0.0;
+  
   // * Light capture parameters
   double k_I = 0.5;
 

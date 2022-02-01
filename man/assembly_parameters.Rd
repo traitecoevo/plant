@@ -7,7 +7,9 @@
 assembly_parameters(
   ...,
   pars = NULL,
+  type = NA,
   base_parameters_fn = scm_base_parameters,
+  base_control_fn = scm_base_control,
   make_hyperpar_fn = make_FF16_hyperpar
 )
 }
@@ -17,6 +19,8 @@ assembly_parameters(
 \item{pars}{A list of parameters}
 
 \item{base_parameters_fn}{Function for creating base parameter set (default scm_base_parameters)}
+
+\item{base_control_fn}{Function for creating base Control object (default scm_base_control)}
 
 \item{make_hyperpar_fn}{Function for creating hyperparameterisation (default make_FF16_hyperpar)}
 }

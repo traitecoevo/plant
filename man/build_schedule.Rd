@@ -4,15 +4,21 @@
 \alias{build_schedule}
 \title{Build Cohort Schedule}
 \usage{
-build_schedule(p)
+build_schedule(
+  p,
+  env = make_environment(parameters = p),
+  ctrl = scm_base_control()
+)
 }
 \arguments{
 \item{p}{Parameters object}
+
+\item{ctrl}{Control object}
 }
 \value{
 A Parameters object, with schedule components set.  The
-output seed rain is also available as an attribute
-\code{seed_rain}.
+output offspring produced is also available as an attribute
+\code{birth_rate}.
 }
 \description{
 Build an appropriately refined schedule.

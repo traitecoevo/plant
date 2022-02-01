@@ -34,6 +34,7 @@ test_that("Defaults", {
     omega  = 3.8e-5,
     theta  = 1.0/4669,
     k_I    = 0.5,
+    recruitment_decay = 0,
     control = Control(),
     collect_all_auxiliary = FALSE)
 

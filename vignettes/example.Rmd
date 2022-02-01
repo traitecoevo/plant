@@ -1,0 +1,269 @@
+---
+title: "Example workflow"
+author: 
+- Daniel Falster
+date: 2022
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{workflow}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# installation
+
+```{r load libraries}
+devtools::load_all()
+
+library(plant)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(patchwork)
+```
+
+Activate logger
+
+```{r}
+plant_log_console()
+```
+
+Setting some base parameters.
+
+```{r}
+base_parameters <- function() {
+  p0 <- scm_base_parameters("FF16", "FF16_Env")
+
+  p0$strategy_default$hmat <- 15
+  p0$strategy_default$rho <- 700
+  p0$strategy_default$a_l1 <- 2.17
+  p0$strategy_default$a_l2 <- 0.5
+  
+  p0
+}
+```
+
+We can now create a function called `run_mypatch` which takes a number of a arguments, including `traits` which we assign a trait matrix. The `expand_parameters` function takes this trait matrix as an argument which allows us to simulate patches with multiple functional strategis, in addition to the base_parameters and any newly defined hyperparameters such as B_lf1. We also provide a latitude as an argument, as well as whether or not we want to run the patch to equilibrium seed rain.
+
+```{r}
+run_mypatch <- function(
+  traits =  trait_matrix(c(0.07), c("lma")),
+  B_lf1 = 1,
+  seed_rain = 100,
+  p0 = base_parameters(),
+  find_equilbrium = FALSE,
+  optimise_schedule = FALSE,
+  latitude = 28.182
+  ) {
+  
+  hyper_par_fn = make_FF16_hyperpar(B_lf1 = B_lf1, latitude = latitude)
+  p1 <- expand_parameters(traits, p0, hyper_par_fn, mutant = FALSE)
+  p1$seed_rain <- seed_rain
+  
+   if(find_equilbrium)
+    result <- equilibrium_seed_rain(p1)
+  else if(optimise_schedule)
+    result <- build_schedule(p1)
+  else
+    result <- p1
+  
+  # gather outputs at each time step
+  run_scm_collect(result)
+}
+```
+
+
+Run patch for two species.  Here, we have provided two values of lma, being thin leaves (0.07) or thick leaves (0.24). You could run this patch for just one species by defining just one lma value, or none if you just want to use the default trait values.
+
+```{r}
+results <- 
+  run_mypatch(traits=trait_matrix(c(0.07, 0.24), c("lma")))
+```
+
+The results from `run_scm_collect` in run_mypatch are in a 3D matrix state To convert this output to a more interpretable format, we can use tidy_patch to convert the results output into a tidy state.
+
+```{r}
+results_tidy <- 
+  results %>% 
+  tidy_patch()
+
+results_tidy
+```
+
+By pulling out the 'species' object from our list of tidied result outputs, we can plot the size distribution for each of the species in the patch. In this plot, each line represents the height over time of a characteristic originating at a given height (given by seed mass) at each step. Note that steps in this case are not equivalent to years, where the distance between steps is instead determined by the cohort spacing algorithm. We can take advantage of varying line transparency in ggplot2 to plot the relative log(Density) of each characteristic the size distribution of each species in the patch. 
+
+```{r}
+results_tidy$species %>%
+  drop_na() %>%
+  plot_size_distribution()
+```
+
+
+## Calculate totals by species for each step
+
+For each species, we can integrate over the height distribution to get the total value of the state variable per $m^2$
+
+```{r}
+data_species_tot <- 
+  results_tidy$species %>% integrate_over_size_distribution()
+
+data_species_tot
+```
+
+For example, the number of individuals per $m^2$ is found by integrating the density of each characteristic at a given step over height.
+
+```{r}
+data_species_tot %>% 
+  ggplot(aes(time, individuals, colour=species)) +
+  geom_line()
+```
+
+We can use the function `FF16_expand_state` to capture a large number of additional state variables (e.g.leaf area)
+
+```{r}
+results_tidy_expand <- results_tidy %>% FF16_expand_state()
+
+results_tidy_expand$species
+```
+
+In the same way as individuals above, we can have a look at the total leaf area over time by intergrating across the size (i.e. height) distribution for a given step or time. This involves finding the product of the density of each of the characteristics present multiplied by the state variable in question (i.e. leaf area) before integrating across height. 
+
+```{r}
+data_species_tot <- 
+  results_tidy_expand$species %>% 
+  integrate_over_size_distribution()
+
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf, colour = species)) +
+  geom_line()
+```
+
+
+In this case, species 1 with cheap, thin leaves briefly has a much higher total leaf area deployed comapred across the height distribution before eventually being overtaken by species with thicker, more expensive leaves. 
+
+We can convert these integrated total state variables into their respective biomass components to get an idea of how total biomass and relative biomass allocation varies through time for each species. 
+
+```{r}
+v <- c("mass_heartwood", "mass_sapwood", "mass_bark", "mass_leaf")
+
+data_long <- 
+  data_species_tot %>% 
+  select(time,species, one_of(v)) %>%
+  pivot_longer(cols=starts_with("mass"), names_to = "tissue")
+
+data_long$tissue <- factor(data_long$tissue, levels = v)
+
+species_names <- tibble(species = unique(data_long$species),
+                      species_name = c("Species_1","Species_2"))
+
+data_long %>%
+  left_join(species_names) %>%
+  ggplot(aes(time, value, fill=tissue)) +
+  geom_area() +
+  labs(x = "Patch age (yr)", y = "Above ground mass (kg/m2)") +
+  theme_classic() + 
+  xlim(c(0,100)) +
+  facet_wrap(~species_name)
+```
+
+
+## Interpolate to specific times
+
+The cohort spacing algorithim determines the optimum introduction times for characterstics, which means that the time values associated with steps may not correspond to known times that we might like to extract information about. For example, what the total amount of biomass per $m^2$ will be at 50 years. By doing this, it also means that we can integrate between defined times. Let's work with our results again by running a patch again and then tidying.
+
+```{r}
+results <- run_mypatch(traits =  trait_matrix(c(0.07, 0.24), c("lma")))
+
+results_tidy <- results %>%
+  tidy_patch()
+```
+
+
+Lets interpolate our results from the `run_mypatch` above for timepoints 1,5,10 using the function `interpolate_to_times`. Note that time in units of years. 
+
+```{r}
+times <- c(1, 5, 10)
+
+tidy_species_data <- results_tidy$species
+
+tidy_species_new <- interpolate_to_times(tidy_species_data, times)
+
+```
+
+Gives interpolated values for state variables at new time points. 
+
+```{r}
+tidy_species_new %>% drop_na()
+```
+
+We can now assess their correspondence with the values already predicted in the original results output. We can see in this case that the points (represneting the interpolated values) fall along the curves which indicates good correspondence bewteen our interpolation and the original simulation. 
+
+```{r}
+data_combined <- 
+  tidy_species_data %>%
+  bind_rows(tidy_species_new) %>%
+  arrange(species, cohort, time) %>% 
+  filter(cohort %in% seq(1, 101, by=20))
+
+data_combined_long <- 
+  data_combined  %>% 
+  select(cohort, time, step, density, height, species) %>% 
+  pivot_longer(cols = c("density", "height"))
+
+data_combined_long %>% 
+  ggplot(aes(time, value, group=cohort,colour=cohort)) +
+  geom_line() +
+  geom_point(data = data_combined_long %>% filter(is.na(step)), col=2) +
+  scale_y_log10() +
+  xlim(c(0, 20)) +
+  facet_grid(name~species, scales="free") +
+  theme_classic()
+```
+
+## Interpolate to specific heights
+
+Similar to above, we can interpolate across cohorts at given time to sepcific heights, using the function `interpolate_to_heights`
+
+```{r}
+heights <- c(1, 5, 10)
+
+tidy_species_data <- results_tidy$species
+
+tidy_species_new <- interpolate_to_heights(tidy_species_data, heights)
+```
+
+Gives predictions at new height. 
+
+```{r}
+tidy_species_new %>% drop_na()
+```
+
+To see how good these are, plot together with old points
+
+```{r}
+data_combined <- 
+  tidy_species_data %>%
+  bind_rows(tidy_species_new) %>%
+  arrange(species, time, height) %>% 
+  filter(step %in% c(100, 142))
+
+data_combined_long <- 
+  data_combined  %>% 
+  select(cohort, time, step, height, density, mortality, area_heartwood, species) %>% 
+  pivot_longer(cols = c("density", "mortality", "area_heartwood"))
+
+data_combined_long %>% 
+    filter(!is.na(cohort)) %>% 
+  ggplot() +
+  geom_line(aes(height, value, group=step, colour=step)) +
+  geom_point(data = data_combined_long %>% filter(is.na(cohort)), aes(x=height, y=value), col="red")+
+  facet_grid(name~species, scales="free") +
+  theme_classic()
+```
+

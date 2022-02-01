@@ -8,11 +8,11 @@ test_that("FF16_Strategy parameters agree with reference model", {
 
   ## Expect that all parameters in the R version are found in the C++
   ## version, *except* for n_area
-  v <- setdiff(names(cmp_pars), "n_area")
+  v <- setdiff(names(cmp_pars), c("n_area"))
   expect_true(all(v %in% names(s)))
 
   ## And v.v., except for a few additions:
-  extra <- c("control", "S_D", "collect_all_auxiliary")
+  extra <- c("control", "S_D", "collect_all_auxiliary", "recruitment_decay")
   common <- setdiff(names(s), extra)
   expect_true(all(extra %in% names(s)))
   expect_true(all(common %in% names(cmp_pars)))
