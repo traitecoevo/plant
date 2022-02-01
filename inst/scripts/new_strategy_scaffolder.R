@@ -110,7 +110,7 @@ update_plant_tools <- function (name) {
 // [[Rcpp::export]]
 plant::Internals {{name}}_oderunner_plant_internals(
   const plant::ode::Runner<plant::tools::IndividualRunner<plant::{{name}}_Strategy, plant::{{name}}_Environment>>& obj) {
-  return obj.obj.plant.r_internals();
+  return obj.obj.individual.r_internals();
 }
 
 ", list(name=name)) -> debt

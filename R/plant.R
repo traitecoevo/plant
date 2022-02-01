@@ -1,28 +1,28 @@
-## Support functions for growing a plant to a given size, etc.  Used
+## Support functions for growing an individual to a given size, etc.  Used
 ## in dfalster/TraitGrowthTrajectories
 
-##' Grow a plant up to particular sizes.
+##' Grow an individual up to particular sizes.
 ##'
-##' @title Grow plant to given size
-##' @param indv An \code{Individual} object.
+##' @title Grow individual to given size
+##' @param individual An \code{Individual} object.
 ##' @param sizes A vector of sizes to grow the plant to (increasing in
 ##' size).
 ##' @param size_name The name of the size variable within
-##' \code{Plant$rates} (e.g., height).
+##' \code{individual$rates} (e.g., height).
 ##' @param env An \code{Environment} object.
 ##' @param time_max Time to run the ODE out for -- only exists to
 ##' prevent an infinite loop (say, on an unreachable size).
 ##' @param warn Warn if requesting a plant that is too large?
-##' @param filter Filter plants that are too large?
+##' @param filter Filter individuals that are too large?
 ##' @return A list with elements \code{time} (the time that a given
 ##' size was reached), \code{state} (the \emph{ode state} at these
-##' times, as a matrix) and \code{plant} a list of plants grown to the
+##' times, as a matrix) and \code{plant} a list of individuals grown to the
 ##' appropriate size.  Note that if only a single size is given,
 ##' a list of length 1 is returned.
 ##' @export
-grow_individual_to_size <- function(indv, sizes, size_name, env,
+grow_individual_to_size <- function(individual, sizes, size_name, env,
                                time_max=Inf, warn=TRUE, filter=FALSE) {
-  obj <- grow_individual_bracket(indv, sizes, size_name, env, time_max, warn)
+  obj <- grow_individual_bracket(individual, sizes, size_name, env, time_max, warn)
 
   polish <- function(i) {
     grow_individual_bisect(obj$runner, sizes[[i]], size_name,
@@ -54,18 +54,18 @@ grow_individual_to_size <- function(indv, sizes, size_name, env,
 ##' @param ... Additional parameters passed to
 ##' \code{grow_individual_to_size}.
 ##' @param heights Heights (when using \code{grow_individual_to_height})
-grow_individual_to_height <- function(indv, heights, env, ...) {
-  grow_individual_to_size(indv, heights, "height", env, ...)
+grow_individual_to_height <- function(individual, heights, env, ...) {
+  grow_individual_to_size(individual, heights, "height", env, ...)
 }
 
 ##' Grow a plant up for particular time lengths
 ##'
 ##' @title Grow a plant
-##' @param plant A \code{Plant} object
+##' @param individual An \code{Individual} object
 ##' @param times A vector of times
 ##' @param env An \code{Environment} object
 ##' @export
-grow_individual_to_time <- function(indv, times, env) {
+grow_individual_to_time <- function(individual, times, env) {
   if (any(times < 0.0)) {
     stop("Times must be positive")
   }
@@ -74,14 +74,14 @@ grow_individual_to_time <- function(indv, times, env) {
     stop("At least one time must be given")
   }
 
-  y0 <- indv$ode_state
+  y0 <- individual$ode_state
   t0 <- 0.0
   i <- 1L
   t_next <- times[[i]]
-  strategy_name <- indv$strategy_name
+  strategy_name <- individual$strategy_name
 
-  ir1 <- IndividualRunner(strategy_name, environment_type(strategy_name))(indv, env)
-  ir2 <- IndividualRunner(strategy_name, environment_type(strategy_name))(indv, env)
+  ir1 <- IndividualRunner(strategy_name, environment_type(strategy_name))(individual, env)
+  ir2 <- IndividualRunner(strategy_name, environment_type(strategy_name))(individual, env)
 
   runner <- OdeRunner(strategy_name)(ir1)
   runner_detail <- OdeRunner(strategy_name)(ir2)
@@ -90,7 +90,7 @@ grow_individual_to_time <- function(indv, times, env) {
   ## underlying ODE runner, but this seems a reasonable way of getting
   ## things run for now.
   state <- matrix(NA, n, length(y0))
-  colnames(state) <- indv$ode_names
+  colnames(state) <- individual$ode_names
 
   individual <- vector("list", n)
   while (i <= n) {
@@ -101,7 +101,7 @@ grow_individual_to_time <- function(indv, times, env) {
       runner_detail$set_state(y0, t0)
       runner_detail$step_to(t_next)
       state[i, ] <- runner_detail$state
-      individual[[i]] <- runner_detail$object$indv
+      individual[[i]] <- runner_detail$object$individual
       i <- i + 1L
       t_next <- times[i] # allows out-of-bounds extraction
     }
@@ -113,26 +113,26 @@ grow_individual_to_time <- function(indv, times, env) {
 }
 
 ## internal funciton to grab the internal state of the ode runner:
-get_individual_internals_fun <- function (indv) {
-  get(paste0(indv$strategy_name, '_oderunner_plant_internals')) #!
+get_individual_internals_fun <- function (individual) {
+  get(paste0(individual$strategy_name, '_oderunner_plant_internals')) #!
 }
 
-grow_individual_bracket <- function(indv, sizes, size_name, env,
+grow_individual_bracket <- function(individual, sizes, size_name, env,
                                time_max=Inf, warn=TRUE) {
   if (length(sizes) == 0L || is.unsorted(sizes)) {
     stop("sizes must be non-empty and sorted")
   }
-  if (indv$state(size_name) > sizes[[1]]) {
+  if (individual$state(size_name) > sizes[[1]]) {
     stop("Individual already bigger than smallest target size")
   }
-  strategy_name <- indv$strategy_name
+  strategy_name <- individual$strategy_name
 
   # TODO: size index uses index from 0
   # can we clarify?
-  size_index <- (which(indv$ode_names == size_name) - 1)
+  size_index <- (which(individual$ode_names == size_name) - 1)
 
-  runner <- OdeRunner(strategy_name)(IndividualRunner(strategy_name, environment_type(strategy_name))(indv, env))
-  internals <- get_individual_internals_fun(runner$object$indv)
+  runner <- OdeRunner(strategy_name)(IndividualRunner(strategy_name, environment_type(strategy_name))(individual, env))
+  internals <- get_individual_internals_fun(runner$object$individual)
   i <- 1L
   n <- length(sizes)
   j <- rep_len(NA_integer_, n)
@@ -150,7 +150,7 @@ grow_individual_bracket <- function(indv, sizes, size_name, env,
         warning(paste(msg, collapse="\n"), immediate.=TRUE)
       }
       ## TODO: Consider making this an error, or making the test a bit better.
-      if (runner$object$indv$ode_rates[[2]] < 1e-10) {
+      if (runner$object$individual$ode_rates[[2]] < 1e-10) {
         warning("Integration may have failed for reasons other than mortality",
                 immediate.=TRUE)
       }
@@ -178,7 +178,7 @@ grow_individual_bracket <- function(indv, sizes, size_name, env,
   t <- vnapply(state, "[[", "time")
   m <- t(sapply(state, "[[", "state"))
   k <- j + 1L
-  colnames(m) <- runner$object$indv$ode_names
+  colnames(m) <- runner$object$individual$ode_names
   list(t0=t[j],
        t1=t[k],
        y0=m[j, , drop=FALSE],
@@ -196,9 +196,9 @@ grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
   
   # TODO: size index uses index from 0
   # can we clarify?
-  size_index <- (which(runner$object$indv$ode_names == size_name) - 1)
+  size_index <- (which(runner$object$individual$ode_names == size_name) - 1)
 
-  internals <- get_individual_internals_fun(runner$object$indv)
+  internals <- get_individual_internals_fun(runner$object$individual)
   f <- function(t1) {
     runner$set_state(y0, t0)
     runner$step_to(t1)
@@ -210,7 +210,7 @@ grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
     list(time=NA_real_, state=y0, individual=NULL)
   } else {
     root <- uniroot(f, lower=t0, upper=t1)
-    list(time=root$root, state=runner$state, individual=runner$object$indv)
+    list(time=root$root, state=runner$state, individual=runner$object$individual)
   }
 }
 

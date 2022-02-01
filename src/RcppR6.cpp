@@ -995,58 +995,58 @@ std::string Individual___K93__K93_Env__strategy_name__get(plant::RcppR6::RcppR6<
 
 
 // [[Rcpp::export]]
-plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> IndividualRunner___FF16__FF16_Env__ctor(plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> indv, plant::FF16_Environment environment) {
-  return plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>(indv, environment);
+plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> IndividualRunner___FF16__FF16_Env__ctor(plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> individual, plant::FF16_Environment environment) {
+  return plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>(individual, environment);
 }
 // [[Rcpp::export]]
-plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> IndividualRunner___FF16__FF16_Env__indv__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->indv;
+plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> IndividualRunner___FF16__FF16_Env__individual__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->individual;
 }
 // [[Rcpp::export]]
-void IndividualRunner___FF16__FF16_Env__indv__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> value) {
-  obj_->indv = value;
-}
-
-
-// [[Rcpp::export]]
-plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> IndividualRunner___FF16w__FF16_Env__ctor(plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> indv, plant::FF16_Environment environment) {
-  return plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment>(indv, environment);
-}
-// [[Rcpp::export]]
-plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> IndividualRunner___FF16w__FF16_Env__indv__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->indv;
-}
-// [[Rcpp::export]]
-void IndividualRunner___FF16w__FF16_Env__indv__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> value) {
-  obj_->indv = value;
+void IndividualRunner___FF16__FF16_Env__individual__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> value) {
+  obj_->individual = value;
 }
 
 
 // [[Rcpp::export]]
-plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> IndividualRunner___FF16r__FF16_Env__ctor(plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> indv, plant::FF16_Environment environment) {
-  return plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment>(indv, environment);
+plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> IndividualRunner___FF16w__FF16_Env__ctor(plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> individual, plant::FF16_Environment environment) {
+  return plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment>(individual, environment);
 }
 // [[Rcpp::export]]
-plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> IndividualRunner___FF16r__FF16_Env__indv__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->indv;
+plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> IndividualRunner___FF16w__FF16_Env__individual__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->individual;
 }
 // [[Rcpp::export]]
-void IndividualRunner___FF16r__FF16_Env__indv__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> value) {
-  obj_->indv = value;
+void IndividualRunner___FF16w__FF16_Env__individual__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> value) {
+  obj_->individual = value;
 }
 
 
 // [[Rcpp::export]]
-plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> IndividualRunner___K93__K93_Env__ctor(plant::Individual<plant::K93_Strategy,plant::K93_Environment> indv, plant::K93_Environment environment) {
-  return plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment>(indv, environment);
+plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> IndividualRunner___FF16r__FF16_Env__ctor(plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> individual, plant::FF16_Environment environment) {
+  return plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment>(individual, environment);
 }
 // [[Rcpp::export]]
-plant::Individual<plant::K93_Strategy,plant::K93_Environment> IndividualRunner___K93__K93_Env__indv__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->indv;
+plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> IndividualRunner___FF16r__FF16_Env__individual__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->individual;
 }
 // [[Rcpp::export]]
-void IndividualRunner___K93__K93_Env__indv__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Individual<plant::K93_Strategy,plant::K93_Environment> value) {
-  obj_->indv = value;
+void IndividualRunner___FF16r__FF16_Env__individual__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> value) {
+  obj_->individual = value;
+}
+
+
+// [[Rcpp::export]]
+plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> IndividualRunner___K93__K93_Env__ctor(plant::Individual<plant::K93_Strategy,plant::K93_Environment> individual, plant::K93_Environment environment) {
+  return plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment>(individual, environment);
+}
+// [[Rcpp::export]]
+plant::Individual<plant::K93_Strategy,plant::K93_Environment> IndividualRunner___K93__K93_Env__individual__get(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->individual;
+}
+// [[Rcpp::export]]
+void IndividualRunner___K93__K93_Env__individual__set(plant::RcppR6::RcppR6<plant::tools::IndividualRunner<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::Individual<plant::K93_Strategy,plant::K93_Environment> value) {
+  obj_->individual = value;
 }
 
 

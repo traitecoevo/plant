@@ -13,9 +13,9 @@ test_that("IndividualRunner", {
 
     pr <- IndividualRunner(x, e)(p, env)
     expect_is(pr, sprintf("IndividualRunner<%s,%s>",x,e))
-    expect_is(pr$indv, sprintf("Individual<%s,%s>",x,e))
+    expect_is(pr$individual, sprintf("Individual<%s,%s>",x,e))
 
-    expect_equal(pr$indv$internals, p$internals)
+    expect_equal(pr$individual$internals, p$internals)
 
     ## This going to work with a *copy* of pr; so that won't propagate
     ## back.
@@ -42,7 +42,7 @@ test_that("IndividualRunner", {
     }
 
     m <- do.call("rbind", ret)
-    colnames(m) <- c("time", runner$object$indv$ode_names)
+    colnames(m) <- c("time", runner$object$individual$ode_names)
 
     if (interactive()) {
       plot(height ~ time, as.data.frame(m))
@@ -58,12 +58,12 @@ test_that("get_plant_internals_fun", {
     p$compute_rates(env)
 
     runner <- OdeRunner(x)(IndividualRunner(x, e)(p, env))
-    h0 <- runner$object$indv$state("height")
+    h0 <- runner$object$individual$state("height")
     runner$step()
     runner$step()
     runner$step()
     runner$step()
-    h1 <- runner$object$indv$state("height")
+    h1 <- runner$object$individual$state("height")
     expect_gt(h1, h0) ## test that plants grow
   }
 })
