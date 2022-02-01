@@ -81,20 +81,19 @@ test_that("Rainfall spline basic run", {
   
   expect_equal(out$patch$environment$ode_size, 10)
   
-  #infiltration0 <- out$time^2
-  #resource_depletion0 <- 2 * area_leaf? * density
-  
+  # these values are not yet verified outside of the runner to be correct
   expect_equal(out$patch$environment$soil$rates, 
-               sapply(seq(1, 10), function(x) { (out$time^2)/x }),
+               c(1906.4037, 1706.4634, 1506.8110, 1308.1743, 1112.2332, 
+                 922.0232, 741.9883, 577.4903, 433.8597, 315.3475),
                tolerance = 1e-7)
   
   # check the states are correct
-  # model is currently 1/z * int(0, t)(f(x)), where z is depth, 
-  # x is time, f is spline, t is number of years
+  # again these values not yet verified
   expect_equal(out$patch$environment$soil$states,
-               sapply(seq(1, 10), function(i) { (1/i) * integrate(integrand, 0, out$time)$value }),
-               tolerance = 1e-5)
-  
+               c(91799.240, 74674.860, 59547.003, 46405.514, 35223.435, 
+                 25943.457, 18463.828, 12629.179, 8230.835, 5017.614),
+               tolerance = 1e-7)
+
   expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
-  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-7)
+  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.101857), tolerance=1e-7)
 })
