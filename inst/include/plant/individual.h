@@ -121,8 +121,7 @@ public:
     return rate("height");
   }
 
-  // TODO recame lcp_whole_plant to competition_compensation_point
-  double competition_compensation_point() {
+  double resource_compensation_point() {
     environment_type env = environment_type();
 
     auto target = [&] (double x) mutable -> double {

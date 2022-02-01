@@ -639,8 +639,8 @@ void Individual___FF16__FF16_Env__reset_mortality(plant::RcppR6::RcppR6<plant::I
   obj_->reset_mortality();
 }
 // [[Rcpp::export]]
-double Individual___FF16__FF16_Env__competition_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->competition_compensation_point();
+double Individual___FF16__FF16_Env__resource_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->resource_compensation_point();
 }
 // [[Rcpp::export]]
 plant::FF16_Strategy Individual___FF16__FF16_Env__strategy__get(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
@@ -738,8 +738,8 @@ void Individual___FF16w__FF16_Env__reset_mortality(plant::RcppR6::RcppR6<plant::
   obj_->reset_mortality();
 }
 // [[Rcpp::export]]
-double Individual___FF16w__FF16_Env__competition_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->competition_compensation_point();
+double Individual___FF16w__FF16_Env__resource_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->resource_compensation_point();
 }
 // [[Rcpp::export]]
 plant::FF16w_Strategy Individual___FF16w__FF16_Env__strategy__get(plant::RcppR6::RcppR6<plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
@@ -837,8 +837,8 @@ void Individual___FF16r__FF16_Env__reset_mortality(plant::RcppR6::RcppR6<plant::
   obj_->reset_mortality();
 }
 // [[Rcpp::export]]
-double Individual___FF16r__FF16_Env__competition_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->competition_compensation_point();
+double Individual___FF16r__FF16_Env__resource_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->resource_compensation_point();
 }
 // [[Rcpp::export]]
 plant::FF16r_Strategy Individual___FF16r__FF16_Env__strategy__get(plant::RcppR6::RcppR6<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
@@ -936,8 +936,8 @@ void Individual___K93__K93_Env__reset_mortality(plant::RcppR6::RcppR6<plant::Ind
   obj_->reset_mortality();
 }
 // [[Rcpp::export]]
-double Individual___K93__K93_Env__competition_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->competition_compensation_point();
+double Individual___K93__K93_Env__resource_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->resource_compensation_point();
 }
 // [[Rcpp::export]]
 plant::K93_Strategy Individual___K93__K93_Env__strategy__get(plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > obj_) {

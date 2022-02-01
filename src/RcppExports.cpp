@@ -1591,14 +1591,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Individual___FF16__FF16_Env__competition_compensation_point
-double Individual___FF16__FF16_Env__competition_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Individual___FF16__FF16_Env__competition_compensation_point(SEXP obj_SEXP) {
+// Individual___FF16__FF16_Env__resource_compensation_point
+double Individual___FF16__FF16_Env__resource_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Individual___FF16__FF16_Env__resource_compensation_point(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Individual___FF16__FF16_Env__competition_compensation_point(obj_));
+    rcpp_result_gen = Rcpp::wrap(Individual___FF16__FF16_Env__resource_compensation_point(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -1839,14 +1839,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Individual___FF16w__FF16_Env__competition_compensation_point
-double Individual___FF16w__FF16_Env__competition_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Individual___FF16w__FF16_Env__competition_compensation_point(SEXP obj_SEXP) {
+// Individual___FF16w__FF16_Env__resource_compensation_point
+double Individual___FF16w__FF16_Env__resource_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Individual___FF16w__FF16_Env__resource_compensation_point(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Individual___FF16w__FF16_Env__competition_compensation_point(obj_));
+    rcpp_result_gen = Rcpp::wrap(Individual___FF16w__FF16_Env__resource_compensation_point(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2087,14 +2087,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Individual___FF16r__FF16_Env__competition_compensation_point
-double Individual___FF16r__FF16_Env__competition_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Individual___FF16r__FF16_Env__competition_compensation_point(SEXP obj_SEXP) {
+// Individual___FF16r__FF16_Env__resource_compensation_point
+double Individual___FF16r__FF16_Env__resource_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Individual___FF16r__FF16_Env__resource_compensation_point(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Individual___FF16r__FF16_Env__competition_compensation_point(obj_));
+    rcpp_result_gen = Rcpp::wrap(Individual___FF16r__FF16_Env__resource_compensation_point(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -2335,14 +2335,14 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Individual___K93__K93_Env__competition_compensation_point
-double Individual___K93__K93_Env__competition_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Individual___K93__K93_Env__competition_compensation_point(SEXP obj_SEXP) {
+// Individual___K93__K93_Env__resource_compensation_point
+double Individual___K93__K93_Env__resource_compensation_point(plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Individual___K93__K93_Env__resource_compensation_point(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Individual___K93__K93_Env__competition_compensation_point(obj_));
+    rcpp_result_gen = Rcpp::wrap(Individual___K93__K93_Env__resource_compensation_point(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -9958,7 +9958,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Individual___FF16__FF16_Env__establishment_probability", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__establishment_probability, 2},
     {"_plant_Individual___FF16__FF16_Env__net_mass_production_dt", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__net_mass_production_dt, 2},
     {"_plant_Individual___FF16__FF16_Env__reset_mortality", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__reset_mortality, 1},
-    {"_plant_Individual___FF16__FF16_Env__competition_compensation_point", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__competition_compensation_point, 1},
+    {"_plant_Individual___FF16__FF16_Env__resource_compensation_point", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__resource_compensation_point, 1},
     {"_plant_Individual___FF16__FF16_Env__strategy__get", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__strategy__get, 1},
     {"_plant_Individual___FF16__FF16_Env__internals__get", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__internals__get, 1},
     {"_plant_Individual___FF16__FF16_Env__aux_size__get", (DL_FUNC) &_plant_Individual___FF16__FF16_Env__aux_size__get, 1},
@@ -9980,7 +9980,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Individual___FF16w__FF16_Env__establishment_probability", (DL_FUNC) &_plant_Individual___FF16w__FF16_Env__establishment_probability, 2},
     {"_plant_Individual___FF16w__FF16_Env__net_mass_production_dt", (DL_FUNC) &_plant_Individual___FF16w__FF16_Env__net_mass_production_dt, 2},
     {"_plant_Individual___FF16w__FF16_Env__reset_mortality", (DL_FUNC) &_plant_Individual___FF16w__FF16_Env__reset_mortality, 1},
-    {"_plant_Individual___FF16w__FF16_Env__competition_compensation_point", (DL_FUNC) &_plant_Individual___FF16w__FF16_Env__competition_compensation_point, 1},
+    {"_plant_Individual___FF16w__FF16_Env__resource_compensation_point", (DL_FUNC) &_plant_Individual___FF16w__FF16_Env__resource_compensation_point, 1},
     {"_plant_Individual___FF16w__FF16_Env__strategy__get", (DL_FUNC) &_plant_Individual___FF16w__FF16_Env__strategy__get, 1},
     {"_plant_Individual___FF16w__FF16_Env__internals__get", (DL_FUNC) &_plant_Individual___FF16w__FF16_Env__internals__get, 1},
     {"_plant_Individual___FF16w__FF16_Env__aux_size__get", (DL_FUNC) &_plant_Individual___FF16w__FF16_Env__aux_size__get, 1},
@@ -10002,7 +10002,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Individual___FF16r__FF16_Env__establishment_probability", (DL_FUNC) &_plant_Individual___FF16r__FF16_Env__establishment_probability, 2},
     {"_plant_Individual___FF16r__FF16_Env__net_mass_production_dt", (DL_FUNC) &_plant_Individual___FF16r__FF16_Env__net_mass_production_dt, 2},
     {"_plant_Individual___FF16r__FF16_Env__reset_mortality", (DL_FUNC) &_plant_Individual___FF16r__FF16_Env__reset_mortality, 1},
-    {"_plant_Individual___FF16r__FF16_Env__competition_compensation_point", (DL_FUNC) &_plant_Individual___FF16r__FF16_Env__competition_compensation_point, 1},
+    {"_plant_Individual___FF16r__FF16_Env__resource_compensation_point", (DL_FUNC) &_plant_Individual___FF16r__FF16_Env__resource_compensation_point, 1},
     {"_plant_Individual___FF16r__FF16_Env__strategy__get", (DL_FUNC) &_plant_Individual___FF16r__FF16_Env__strategy__get, 1},
     {"_plant_Individual___FF16r__FF16_Env__internals__get", (DL_FUNC) &_plant_Individual___FF16r__FF16_Env__internals__get, 1},
     {"_plant_Individual___FF16r__FF16_Env__aux_size__get", (DL_FUNC) &_plant_Individual___FF16r__FF16_Env__aux_size__get, 1},
@@ -10024,7 +10024,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Individual___K93__K93_Env__establishment_probability", (DL_FUNC) &_plant_Individual___K93__K93_Env__establishment_probability, 2},
     {"_plant_Individual___K93__K93_Env__net_mass_production_dt", (DL_FUNC) &_plant_Individual___K93__K93_Env__net_mass_production_dt, 2},
     {"_plant_Individual___K93__K93_Env__reset_mortality", (DL_FUNC) &_plant_Individual___K93__K93_Env__reset_mortality, 1},
-    {"_plant_Individual___K93__K93_Env__competition_compensation_point", (DL_FUNC) &_plant_Individual___K93__K93_Env__competition_compensation_point, 1},
+    {"_plant_Individual___K93__K93_Env__resource_compensation_point", (DL_FUNC) &_plant_Individual___K93__K93_Env__resource_compensation_point, 1},
     {"_plant_Individual___K93__K93_Env__strategy__get", (DL_FUNC) &_plant_Individual___K93__K93_Env__strategy__get, 1},
     {"_plant_Individual___K93__K93_Env__internals__get", (DL_FUNC) &_plant_Individual___K93__K93_Env__internals__get, 1},
     {"_plant_Individual___K93__K93_Env__aux_size__get", (DL_FUNC) &_plant_Individual___K93__K93_Env__aux_size__get, 1},

@@ -565,8 +565,8 @@ Individual___FF16__FF16_Env__reset_mortality <- function(obj_) {
     invisible(.Call('_plant_Individual___FF16__FF16_Env__reset_mortality', PACKAGE = 'plant', obj_))
 }
 
-Individual___FF16__FF16_Env__competition_compensation_point <- function(obj_) {
-    .Call('_plant_Individual___FF16__FF16_Env__competition_compensation_point', PACKAGE = 'plant', obj_)
+Individual___FF16__FF16_Env__resource_compensation_point <- function(obj_) {
+    .Call('_plant_Individual___FF16__FF16_Env__resource_compensation_point', PACKAGE = 'plant', obj_)
 }
 
 Individual___FF16__FF16_Env__strategy__get <- function(obj_) {
@@ -653,8 +653,8 @@ Individual___FF16w__FF16_Env__reset_mortality <- function(obj_) {
     invisible(.Call('_plant_Individual___FF16w__FF16_Env__reset_mortality', PACKAGE = 'plant', obj_))
 }
 
-Individual___FF16w__FF16_Env__competition_compensation_point <- function(obj_) {
-    .Call('_plant_Individual___FF16w__FF16_Env__competition_compensation_point', PACKAGE = 'plant', obj_)
+Individual___FF16w__FF16_Env__resource_compensation_point <- function(obj_) {
+    .Call('_plant_Individual___FF16w__FF16_Env__resource_compensation_point', PACKAGE = 'plant', obj_)
 }
 
 Individual___FF16w__FF16_Env__strategy__get <- function(obj_) {
@@ -741,8 +741,8 @@ Individual___FF16r__FF16_Env__reset_mortality <- function(obj_) {
     invisible(.Call('_plant_Individual___FF16r__FF16_Env__reset_mortality', PACKAGE = 'plant', obj_))
 }
 
-Individual___FF16r__FF16_Env__competition_compensation_point <- function(obj_) {
-    .Call('_plant_Individual___FF16r__FF16_Env__competition_compensation_point', PACKAGE = 'plant', obj_)
+Individual___FF16r__FF16_Env__resource_compensation_point <- function(obj_) {
+    .Call('_plant_Individual___FF16r__FF16_Env__resource_compensation_point', PACKAGE = 'plant', obj_)
 }
 
 Individual___FF16r__FF16_Env__strategy__get <- function(obj_) {
@@ -829,8 +829,8 @@ Individual___K93__K93_Env__reset_mortality <- function(obj_) {
     invisible(.Call('_plant_Individual___K93__K93_Env__reset_mortality', PACKAGE = 'plant', obj_))
 }
 
-Individual___K93__K93_Env__competition_compensation_point <- function(obj_) {
-    .Call('_plant_Individual___K93__K93_Env__competition_compensation_point', PACKAGE = 'plant', obj_)
+Individual___K93__K93_Env__resource_compensation_point <- function(obj_) {
+    .Call('_plant_Individual___K93__K93_Env__resource_compensation_point', PACKAGE = 'plant', obj_)
 }
 
 Individual___K93__K93_Env__strategy__get <- function(obj_) {

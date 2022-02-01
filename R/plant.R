@@ -222,11 +222,11 @@ grow_individual_bisect <- function(runner, size, size_name, t0, t1, y0) {
 #' @param ... Additional arguments that are ignored
 #' @export
 #' @author Rich FitzJohn
-competition_compensation_point <- function(p, ...) {
-  UseMethod("competition_compensation_point")
+resource_compensation_point <- function(p, ...) {
+  UseMethod("resource_compensation_point")
 }
 
 ##' @export
-competition_compensation_point.Plant <- function(p, ...) {
-  competition_compensation_point(p, ...)
+resource_compensation_point.Plant <- function(p, ...) {
+  resource_compensation_point(p, ...)
 }
