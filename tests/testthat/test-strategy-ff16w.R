@@ -85,15 +85,15 @@ test_that("Rainfall spline basic run", {
   expect_equal(out$patch$environment$soil$rates, 
                c(1906.4037, 1706.4634, 1506.8110, 1308.1743, 1112.2332, 
                  922.0232, 741.9883, 577.4903, 433.8597, 315.3475),
-               tolerance = 1e-7)
+               tolerance = 1e-5)
   
   # check the states are correct
   # again these values not yet verified
   expect_equal(out$patch$environment$soil$states,
                c(91799.240, 74674.860, 59547.003, 46405.514, 35223.435, 
                  25943.457, 18463.828, 12629.179, 8230.835, 5017.614),
-               tolerance = 1e-7)
+               tolerance = 1e-5)
 
-  expect_equal(out$offspring_production, 16.88961056463, tolerance=1e-7)
+  expect_equal(out$offspring_production, 16.88961056463, tolerance=1e-5)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.101857), tolerance=1e-7)
 })
