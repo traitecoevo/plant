@@ -12,7 +12,7 @@ test_that("empty", {
 
     expect_is(sp, sprintf("StochasticSpecies<%s,%s>",x,e))
     expect_equal(sp$size, 0)
-    expect_equal(sp$size_plants, 0)
+    expect_equal(sp$size_individuals, 0)
 
     new_cohort <- sp$new_cohort
     expect_is(new_cohort, "Individual")
@@ -21,7 +21,7 @@ test_that("empty", {
     expect_equal(sp$heights, numeric(0))
     expect_equal(sp$height_max, 0.0)
     expect_identical(sp$species, NULL)
-    expect_equal(sp$plants, list())
+    expect_equal(sp$individuals, list())
     expect_equal(sp$is_alive, logical())
     expect_equal(sp$compute_competition(0), 0.0)
     expect_equal(sp$ode_size, 0)
@@ -41,7 +41,7 @@ test_that("Single individual", {
     sp$introduce_new_cohort()
 
     expect_equal(sp$size, 1)
-    expect_equal(sp$size_plants, 1)
+    expect_equal(sp$size_individuals, 1)
     expect_equal(sp$ode_size, p$ode_size)
     expect_equal(length(sp$ode_state), p$ode_size)
     expect_equal(sp$ode_state, p$ode_state)
@@ -59,7 +59,7 @@ test_that("Single individual", {
       expect_identical(sp$ode_rates[[3]], 0.0)
     }
 
-    pl <- sp$plants
+    pl <- sp$individuals
     expect_equal(length(pl), 1)
     expect_equal(class(pl[[1]]), class(p))
     expect_equal(pl[[1]]$ode_state, p$ode_state)
@@ -80,7 +80,7 @@ test_that("Multiple individuals", {
     }
 
     expect_equal(sp$size, n)
-    expect_equal(sp$size_plants, n)
+    expect_equal(sp$size_individuals, n)
     expect_equal(sp$is_alive, rep(TRUE, n))
 
     hh <- sort(runif(n, sp$height_max, h), decreasing=TRUE)
@@ -89,17 +89,17 @@ test_that("Multiple individuals", {
     expect_equal(sp$heights, hh)
 
     for (i in seq_len(n)) {
-      expect_equal(sp$plant_at(i)$state("height"), hh[[i]])
+      expect_equal(sp$individual_at(i)$state("height"), hh[[i]])
     }
 
-    n_ode <- sp$plant_at(1)$ode_size
+    n_ode <- sp$individual_at(1)$ode_size
     m <- matrix(sp$ode_state, n_ode)
     expect_identical(max(m[-1, ]), 0.0)
 
     nd <- sp$deaths()
     expect_equal(nd, 0)
     expect_equal(sp$size, n)
-    expect_equal(sp$size_plants, n)
+    expect_equal(sp$size_individuals, n)
 
     m <- matrix(sp$ode_state, n_ode)
     ## Basically set up individual 4 for death:
@@ -109,21 +109,21 @@ test_that("Multiple individuals", {
     j <- 8
     m[2, j] <- .Machine$double.eps
     sp$ode_state <- m
-    expect_equal(sp$plant_at(i)$mortality_probability, 1)
-    expect_equal(sp$plant_at(j)$mortality_probability, 0)
-    expect_gt(sp$plant_at(j)$state("mortality"), 0.0)
+    expect_equal(sp$individual_at(i)$mortality_probability, 1)
+    expect_equal(sp$individual_at(j)$mortality_probability, 0)
+    expect_gt(sp$individual_at(j)$state("mortality"), 0.0)
     m[2, j] <- 0.0 # reset back to original for later comparison
 
     nd <- sp$deaths()
     expect_equal(nd, 1)
     expect_equal(sp$size, n - 1)
-    expect_equal(sp$size_plants, n)
+    expect_equal(sp$size_individuals, n)
     expect_equal(sp$is_alive, seq_len(n) != i)
 
-    hh2 <- sapply(sp$plants, function(x) x$state("height"))
+    hh2 <- sapply(sp$individuals, function(x) x$state("height"))
     ## still the same:
     expect_equal(hh2, hh)
-    expect_identical(sp$plant_at(j)$state("mortality"), 0.0)
+    expect_identical(sp$individual_at(j)$state("mortality"), 0.0)
 
     m2 <- matrix(sp$ode_state, n_ode)
     expect_equal(ncol(m2), n - 1)

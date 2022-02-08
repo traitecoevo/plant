@@ -2709,8 +2709,8 @@ void StochasticSpecies___FF16__FF16_Env__introduce_new_cohort(plant::RcppR6::Rcp
   obj_->introduce_new_cohort();
 }
 // [[Rcpp::export]]
-plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> StochasticSpecies___FF16__FF16_Env__plant_at(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::util::index index) {
-  return obj_->r_plant_at(index);
+plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> StochasticSpecies___FF16__FF16_Env__individual_at(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::util::index index) {
+  return obj_->r_individual_at(index);
 }
 // [[Rcpp::export]]
 size_t StochasticSpecies___FF16__FF16_Env__deaths(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
@@ -2726,8 +2726,8 @@ size_t StochasticSpecies___FF16__FF16_Env__size__get(plant::RcppR6::RcppR6<plant
 }
 
 // [[Rcpp::export]]
-size_t StochasticSpecies___FF16__FF16_Env__size_plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->size_plants();
+size_t StochasticSpecies___FF16__FF16_Env__size_individuals__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->size_individuals();
 }
 
 // [[Rcpp::export]]
@@ -2750,8 +2750,8 @@ void StochasticSpecies___FF16__FF16_Env__heights__set(plant::RcppR6::RcppR6<plan
 }
 
 // [[Rcpp::export]]
-std::vector<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > StochasticSpecies___FF16__FF16_Env__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_plants();
+std::vector<plant::Individual<plant::FF16_Strategy,plant::FF16_Environment> > StochasticSpecies___FF16__FF16_Env__individuals__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_individuals();
 }
 
 // [[Rcpp::export]]
@@ -2805,8 +2805,8 @@ void StochasticSpecies___FF16w__FF16_Env__introduce_new_cohort(plant::RcppR6::Rc
   obj_->introduce_new_cohort();
 }
 // [[Rcpp::export]]
-plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> StochasticSpecies___FF16w__FF16_Env__plant_at(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, plant::util::index index) {
-  return obj_->r_plant_at(index);
+plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> StochasticSpecies___FF16w__FF16_Env__individual_at(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, plant::util::index index) {
+  return obj_->r_individual_at(index);
 }
 // [[Rcpp::export]]
 size_t StochasticSpecies___FF16w__FF16_Env__deaths(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
@@ -2822,8 +2822,8 @@ size_t StochasticSpecies___FF16w__FF16_Env__size__get(plant::RcppR6::RcppR6<plan
 }
 
 // [[Rcpp::export]]
-size_t StochasticSpecies___FF16w__FF16_Env__size_plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->size_plants();
+size_t StochasticSpecies___FF16w__FF16_Env__size_individuals__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->size_individuals();
 }
 
 // [[Rcpp::export]]
@@ -2846,8 +2846,8 @@ void StochasticSpecies___FF16w__FF16_Env__heights__set(plant::RcppR6::RcppR6<pla
 }
 
 // [[Rcpp::export]]
-std::vector<plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> > StochasticSpecies___FF16w__FF16_Env__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_plants();
+std::vector<plant::Individual<plant::FF16w_Strategy,plant::FF16_Environment> > StochasticSpecies___FF16w__FF16_Env__individuals__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_individuals();
 }
 
 // [[Rcpp::export]]
@@ -2901,8 +2901,8 @@ void StochasticSpecies___FF16r__FF16_Env__introduce_new_cohort(plant::RcppR6::Rc
   obj_->introduce_new_cohort();
 }
 // [[Rcpp::export]]
-plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> StochasticSpecies___FF16r__FF16_Env__plant_at(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::util::index index) {
-  return obj_->r_plant_at(index);
+plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> StochasticSpecies___FF16r__FF16_Env__individual_at(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::util::index index) {
+  return obj_->r_individual_at(index);
 }
 // [[Rcpp::export]]
 size_t StochasticSpecies___FF16r__FF16_Env__deaths(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
@@ -2918,8 +2918,8 @@ size_t StochasticSpecies___FF16r__FF16_Env__size__get(plant::RcppR6::RcppR6<plan
 }
 
 // [[Rcpp::export]]
-size_t StochasticSpecies___FF16r__FF16_Env__size_plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->size_plants();
+size_t StochasticSpecies___FF16r__FF16_Env__size_individuals__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->size_individuals();
 }
 
 // [[Rcpp::export]]
@@ -2942,8 +2942,8 @@ void StochasticSpecies___FF16r__FF16_Env__heights__set(plant::RcppR6::RcppR6<pla
 }
 
 // [[Rcpp::export]]
-std::vector<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> > StochasticSpecies___FF16r__FF16_Env__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
-  return obj_->r_plants();
+std::vector<plant::Individual<plant::FF16r_Strategy,plant::FF16_Environment> > StochasticSpecies___FF16r__FF16_Env__individuals__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->r_individuals();
 }
 
 // [[Rcpp::export]]
@@ -2997,8 +2997,8 @@ void StochasticSpecies___K93__K93_Env__introduce_new_cohort(plant::RcppR6::RcppR
   obj_->introduce_new_cohort();
 }
 // [[Rcpp::export]]
-plant::Individual<plant::K93_Strategy,plant::K93_Environment> StochasticSpecies___K93__K93_Env__plant_at(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::util::index index) {
-  return obj_->r_plant_at(index);
+plant::Individual<plant::K93_Strategy,plant::K93_Environment> StochasticSpecies___K93__K93_Env__individual_at(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::util::index index) {
+  return obj_->r_individual_at(index);
 }
 // [[Rcpp::export]]
 size_t StochasticSpecies___K93__K93_Env__deaths(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> > obj_) {
@@ -3014,8 +3014,8 @@ size_t StochasticSpecies___K93__K93_Env__size__get(plant::RcppR6::RcppR6<plant::
 }
 
 // [[Rcpp::export]]
-size_t StochasticSpecies___K93__K93_Env__size_plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->size_plants();
+size_t StochasticSpecies___K93__K93_Env__size_individuals__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->size_individuals();
 }
 
 // [[Rcpp::export]]
@@ -3038,8 +3038,8 @@ void StochasticSpecies___K93__K93_Env__heights__set(plant::RcppR6::RcppR6<plant:
 }
 
 // [[Rcpp::export]]
-std::vector<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > StochasticSpecies___K93__K93_Env__plants__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> > obj_) {
-  return obj_->r_plants();
+std::vector<plant::Individual<plant::K93_Strategy,plant::K93_Environment> > StochasticSpecies___K93__K93_Env__individuals__get(plant::RcppR6::RcppR6<plant::StochasticSpecies<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->r_individuals();
 }
 
 // [[Rcpp::export]]

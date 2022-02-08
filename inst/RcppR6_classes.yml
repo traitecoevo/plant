@@ -604,11 +604,11 @@ StochasticSpecies:
     args: [strategy: "T"]
   active:
     size: {type: size_t, access: member}
-    size_plants: {type: size_t, access: member}
+    size_individuals: {type: size_t, access: member}
     new_cohort: {type: "plant::Individual<T,E>", access: member, name_cpp: r_new_cohort}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
-    plants: {type: "std::vector<plant::Individual<T,E> >", access: member, name_cpp: r_plants}
+    individuals: {type: "std::vector<plant::Individual<T,E> >", access: member, name_cpp: r_individuals}
     is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
     net_reproduction_ratio_by_cohort: {type: "std::vector<double>", access: member}
     ## ODE interface:
@@ -626,10 +626,10 @@ StochasticSpecies:
       args: [height: double]
     introduce_new_cohort:
       return_type: void
-    plant_at:
+    individual_at:
       return_type: "plant::Individual<T,E>"
       args: [index: "plant::util::index"]
-      name_cpp: r_plant_at
+      name_cpp: r_individual_at
     deaths:
       return_type: size_t
     establishment_probability:
