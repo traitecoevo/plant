@@ -211,8 +211,8 @@ head(res$state)
 
 And a list of individualss
 ```{r }
-res$plant[[10]]
-res$plant[[10]]$state("height")
+res$individual[[10]]
+res$individual[[10]]$state("height")
 heights[[10]]
 ```
 
@@ -316,7 +316,7 @@ though.
 
 Here is an inidivdual from part way through one run
 ```{r }
-indv <- dat1$plant[[50]]
+indv <- dat1$individual[[50]]
 ```
 
 Here is the set of ODE state variables:
@@ -349,10 +349,10 @@ Collecting height growth for high and low LMA individauls
 in high and low light environments:
 ```{r }
 f <- function(x) x$rate("height")
-dhdt1 <- sapply(dat1$plant, f)
-dhdt2 <- sapply(dat2$plant, f)
-dhdt1_low <- sapply(dat1_low$plant, f)
-dhdt2_low <- sapply(dat2_low$plant, f)
+dhdt1 <- sapply(dat1$individual, f)
+dhdt2 <- sapply(dat2$individual, f)
+dhdt1_low <- sapply(dat1_low$individual, f)
+dhdt2_low <- sapply(dat2_low$individual, f)
 
 plot(dat1$time, dhdt1, type="l", lty=1,
      las=1, xlab="Time (years)", ylab="Height growth rate (m / yr)")
