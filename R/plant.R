@@ -114,7 +114,7 @@ grow_individual_to_time <- function(individual, times, env) {
 
 ## internal funciton to grab the internal state of the ode runner:
 get_individual_internals_fun <- function (individual) {
-  get(paste0(individual$strategy_name, '_oderunner_plant_internals')) #!
+  get(paste0(individual$strategy_name, '_oderunner_individual_internals')) #!
 }
 
 grow_individual_bracket <- function(individual, sizes, size_name, env,

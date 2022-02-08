@@ -3457,20 +3457,20 @@ make_cohort_schedule__Parameters___K93__K93_Env <- function(p) {
     .Call('_plant_make_cohort_schedule__Parameters___K93__K93_Env', PACKAGE = 'plant', p)
 }
 
-FF16_oderunner_plant_internals <- function(obj) {
-    .Call('_plant_FF16_oderunner_plant_internals', PACKAGE = 'plant', obj)
+FF16_oderunner_individual_internals <- function(obj) {
+    .Call('_plant_FF16_oderunner_individual_internals', PACKAGE = 'plant', obj)
 }
 
-FF16r_oderunner_plant_internals <- function(obj) {
-    .Call('_plant_FF16r_oderunner_plant_internals', PACKAGE = 'plant', obj)
+FF16r_oderunner_individual_internals <- function(obj) {
+    .Call('_plant_FF16r_oderunner_individual_internals', PACKAGE = 'plant', obj)
 }
 
-K93_oderunner_plant_internals <- function(obj) {
-    .Call('_plant_K93_oderunner_plant_internals', PACKAGE = 'plant', obj)
+K93_oderunner_individual_internals <- function(obj) {
+    .Call('_plant_K93_oderunner_individual_internals', PACKAGE = 'plant', obj)
 }
 
-FF16w_oderunner_plant_internals <- function(obj) {
-    .Call('_plant_FF16w_oderunner_plant_internals', PACKAGE = 'plant', obj)
+FF16w_oderunner_individual_internals <- function(obj) {
+    .Call('_plant_FF16w_oderunner_individual_internals', PACKAGE = 'plant', obj)
 }
 
 #' Generate a suitable set of default cohort introduction times,

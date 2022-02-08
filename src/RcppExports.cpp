@@ -9699,47 +9699,47 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16_oderunner_plant_internals
-plant::Internals FF16_oderunner_plant_internals(const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>>& obj);
-RcppExport SEXP _plant_FF16_oderunner_plant_internals(SEXP objSEXP) {
+// FF16_oderunner_individual_internals
+plant::Internals FF16_oderunner_individual_internals(const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>>& obj);
+RcppExport SEXP _plant_FF16_oderunner_individual_internals(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16_Strategy,plant::FF16_Environment>>& >::type obj(objSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_oderunner_plant_internals(obj));
+    rcpp_result_gen = Rcpp::wrap(FF16_oderunner_individual_internals(obj));
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16r_oderunner_plant_internals
-plant::Internals FF16r_oderunner_plant_internals(const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>>& obj);
-RcppExport SEXP _plant_FF16r_oderunner_plant_internals(SEXP objSEXP) {
+// FF16r_oderunner_individual_internals
+plant::Internals FF16r_oderunner_individual_internals(const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>>& obj);
+RcppExport SEXP _plant_FF16r_oderunner_individual_internals(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16r_Strategy, plant::FF16_Environment>>& >::type obj(objSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16r_oderunner_plant_internals(obj));
+    rcpp_result_gen = Rcpp::wrap(FF16r_oderunner_individual_internals(obj));
     return rcpp_result_gen;
 END_RCPP
 }
-// K93_oderunner_plant_internals
-plant::Internals K93_oderunner_plant_internals(const plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>>& obj);
-RcppExport SEXP _plant_K93_oderunner_plant_internals(SEXP objSEXP) {
+// K93_oderunner_individual_internals
+plant::Internals K93_oderunner_individual_internals(const plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>>& obj);
+RcppExport SEXP _plant_K93_oderunner_individual_internals(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment>>& >::type obj(objSEXP);
-    rcpp_result_gen = Rcpp::wrap(K93_oderunner_plant_internals(obj));
+    rcpp_result_gen = Rcpp::wrap(K93_oderunner_individual_internals(obj));
     return rcpp_result_gen;
 END_RCPP
 }
-// FF16w_oderunner_plant_internals
-plant::Internals FF16w_oderunner_plant_internals(const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16w_Strategy, plant::FF16_Environment>>& obj);
-RcppExport SEXP _plant_FF16w_oderunner_plant_internals(SEXP objSEXP) {
+// FF16w_oderunner_individual_internals
+plant::Internals FF16w_oderunner_individual_internals(const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16w_Strategy, plant::FF16_Environment>>& obj);
+RcppExport SEXP _plant_FF16w_oderunner_individual_internals(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16w_Strategy, plant::FF16_Environment>>& >::type obj(objSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16w_oderunner_plant_internals(obj));
+    rcpp_result_gen = Rcpp::wrap(FF16w_oderunner_individual_internals(obj));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10681,10 +10681,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_test_gradient_richardson", (DL_FUNC) &_plant_test_gradient_richardson, 4},
     {"_plant_cohort_schedule_default__Parameters___K93__K93_Env", (DL_FUNC) &_plant_cohort_schedule_default__Parameters___K93__K93_Env, 1},
     {"_plant_make_cohort_schedule__Parameters___K93__K93_Env", (DL_FUNC) &_plant_make_cohort_schedule__Parameters___K93__K93_Env, 1},
-    {"_plant_FF16_oderunner_plant_internals", (DL_FUNC) &_plant_FF16_oderunner_plant_internals, 1},
-    {"_plant_FF16r_oderunner_plant_internals", (DL_FUNC) &_plant_FF16r_oderunner_plant_internals, 1},
-    {"_plant_K93_oderunner_plant_internals", (DL_FUNC) &_plant_K93_oderunner_plant_internals, 1},
-    {"_plant_FF16w_oderunner_plant_internals", (DL_FUNC) &_plant_FF16w_oderunner_plant_internals, 1},
+    {"_plant_FF16_oderunner_individual_internals", (DL_FUNC) &_plant_FF16_oderunner_individual_internals, 1},
+    {"_plant_FF16r_oderunner_individual_internals", (DL_FUNC) &_plant_FF16r_oderunner_individual_internals, 1},
+    {"_plant_K93_oderunner_individual_internals", (DL_FUNC) &_plant_K93_oderunner_individual_internals, 1},
+    {"_plant_FF16w_oderunner_individual_internals", (DL_FUNC) &_plant_FF16w_oderunner_individual_internals, 1},
     {"_plant_cohort_schedule_times_default", (DL_FUNC) &_plant_cohort_schedule_times_default, 1},
     {"_plant_test_uniroot", (DL_FUNC) &_plant_test_uniroot, 3},
     {"_plant_trapezium", (DL_FUNC) &_plant_trapezium, 2},
