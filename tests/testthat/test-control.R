@@ -20,8 +20,8 @@ test_that("Defaults", {
     assimilator_integration_rule = 21, # size_t so not int
     assimilator_integration_tol = 1e-6,
 
-    plant_seed_iterations = 1000, # size_t
-    plant_seed_tol = 1e-8, # 1e-6, Had to change this...
+    offspring_production_iterations = 1000, # size_t
+    offspring_production_tol = 1e-8, # 1e-6, Had to change this...
 
     schedule_nsteps   = 20, # size_t
     schedule_eps      = 1e-3,

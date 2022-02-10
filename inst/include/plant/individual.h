@@ -134,8 +134,8 @@ public:
     if (f1 < 0.0) {
       return NA_REAL;
     } else {
-      const double tol = control().plant_seed_tol;
-      const size_t max_iterations = control().plant_seed_iterations;
+      const double tol = control().offspring_production_tol;
+      const size_t max_iterations = control().offspring_production_iterations;
       return util::uniroot(target, 0.0, 1.0, tol, max_iterations);
     }
   }

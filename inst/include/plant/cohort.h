@@ -90,19 +90,19 @@ void Cohort<T,E>::compute_rates(const environment_type& environment,
     - growth_rate_gradient(environment)
     - individual.rate("mortality");
 
-  // survival_plant: converts from the mean of the poisson process (on
+  // survival_individual: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).
-  double survival_plant = exp(-individual.state(MORTALITY_INDEX));
-  if (!R_FINITE(survival_plant)) {
+  double survival_individual = exp(-individual.state(MORTALITY_INDEX));
+  if (!R_FINITE(survival_individual)) {
     // This is caused by NaN values in plant.mortality and log
     // density; this should only be an issue when density is so low
     // that we can throw these away.  I think that with smaller step
     // sizes this is better behaved too?
-    survival_plant = 0.0;
+    survival_individual = 0.0;
   }
 
   offspring_produced_survival_weighted_dt =
-    individual.rate("fecundity") * survival_plant *
+    individual.rate("fecundity") * survival_individual *
     pr_patch_survival / pr_patch_survival_at_birth;
 }
 

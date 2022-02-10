@@ -3449,14 +3449,6 @@ test_gradient_richardson <- function(f, x, d, r) {
     .Call('_plant_test_gradient_richardson', PACKAGE = 'plant', f, x, d, r)
 }
 
-cohort_schedule_default__Parameters___K93__K93_Env <- function(p) {
-    .Call('_plant_cohort_schedule_default__Parameters___K93__K93_Env', PACKAGE = 'plant', p)
-}
-
-make_cohort_schedule__Parameters___K93__K93_Env <- function(p) {
-    .Call('_plant_make_cohort_schedule__Parameters___K93__K93_Env', PACKAGE = 'plant', p)
-}
-
 FF16_oderunner_individual_internals <- function(obj) {
     .Call('_plant_FF16_oderunner_individual_internals', PACKAGE = 'plant', obj)
 }
@@ -3471,6 +3463,14 @@ K93_oderunner_individual_internals <- function(obj) {
 
 FF16w_oderunner_individual_internals <- function(obj) {
     .Call('_plant_FF16w_oderunner_individual_internals', PACKAGE = 'plant', obj)
+}
+
+cohort_schedule_default__Parameters___K93__K93_Env <- function(p) {
+    .Call('_plant_cohort_schedule_default__Parameters___K93__K93_Env', PACKAGE = 'plant', p)
+}
+
+make_cohort_schedule__Parameters___K93__K93_Env <- function(p) {
+    .Call('_plant_make_cohort_schedule__Parameters___K93__K93_Env', PACKAGE = 'plant', p)
 }
 
 #' Generate a suitable set of default cohort introduction times,

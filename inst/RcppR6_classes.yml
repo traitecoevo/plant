@@ -109,8 +109,8 @@ Control:
     - assimilator_integration_tol: double
     - assimilator_integration_iterations: size_t
     - assimilator_integration_rule: size_t
-    - plant_seed_tol: double
-    - plant_seed_iterations: int
+    - offspring_production_tol: double
+    - offspring_production_iterations: int
     - cohort_gradient_eps: double
     - cohort_gradient_direction: int
     - cohort_gradient_richardson: bool
