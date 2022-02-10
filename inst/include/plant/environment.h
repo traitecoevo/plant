@@ -93,11 +93,12 @@ public:
     return extrinsic_drivers.at(driver_name).eval(u);
   }
 
-  // // evaluate/query interpolated spline for driver at vector of points, return vector of values
+  // evaluate/query interpolated spline for driver at vector of points, return vector of values
   std::vector<double> extrinsic_driver_evaluate_range(std::string driver_name, std::vector<double> u) const {
     return extrinsic_drivers.at(driver_name).r_eval(u);
   }
 
+  // returns the name of each active driver - useful for R output
   std::vector<std::string> get_extrinsic_driver_names() {
     auto ret = std::vector<std::string>();
     for (auto const& driver : extrinsic_drivers) {
