@@ -32,8 +32,8 @@ struct Control {
   size_t assimilator_integration_iterations;
   size_t assimilator_integration_rule;
 
-  double plant_seed_tol;
-  size_t plant_seed_iterations;
+  double offspring_production_tol;
+  size_t offspring_production_iterations;
 
   double cohort_gradient_eps;
   int    cohort_gradient_direction;

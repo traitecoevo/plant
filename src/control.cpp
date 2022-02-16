@@ -8,8 +8,8 @@ Control::Control() {
   assimilator_integration_iterations = 1000;
   assimilator_integration_rule = 21;
 
-  plant_seed_tol = 1e-8;
-  plant_seed_iterations = 1000;
+  offspring_production_tol= 1e-8;
+  offspring_production_iterations = 1000;
 
   cohort_gradient_eps = 1e-6;
   cohort_gradient_direction = 1;

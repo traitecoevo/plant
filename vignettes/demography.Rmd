@@ -462,7 +462,7 @@ for this height numerically. The calculation is performed by the function
 `height_seed` within the physiological model, using the Boost
 library's one-dimensional `bisect` routine
 [@Schaling-2014, @Eddelbuettel-2015]. The accuracy of the solution
-is controlled by the parameter `plant_seed_tol`.
+is controlled by the parameter `offspring_production_tol`.
 
 ### Stepping of ODEs
 
