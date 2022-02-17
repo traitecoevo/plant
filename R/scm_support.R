@@ -280,7 +280,7 @@ patch_to_internals <- function(x, use_environment=TRUE) {
 
 species_to_internals <- function(sp, environment=NULL) {
   # Aggregate and extract plants
-  sp_p <- lapply(sp$cohorts, function(x) x$plant )
+  sp_p <- lapply(sp$cohorts, function(x) x$individual )
   new_names <- c(sp_p[[1]]$ode_names, paste0(sp_p[[1]]$ode_names, '_dt'), sp_p[[1]]$aux_names)
   ints <- do.call("rbind", lapply(sp_p, function(x) c(x$internals$states, x$internals$rates, x$internals$auxs)))
   colnames(ints) <- new_names
