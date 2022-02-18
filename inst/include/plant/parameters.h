@@ -43,7 +43,9 @@ struct Parameters {
   std::string patch_type;
   double max_patch_lifetime; // Disturbance interval (years)
   std::vector<strategy_type> strategies;
-  std::vector<double> birth_rate;
+	// birth rate spline control points for each species
+  std::vector<std::vector<double>> birth_rate_x;
+	std::vector<std::vector<double>> birth_rate_y;
   std::vector<bool> is_resident;
 
   Disturbance_Regime* disturbance;
@@ -88,13 +90,15 @@ size_t Parameters<T,E>::n_mutants() const {
 template <typename T, typename E>
 void Parameters<T,E>::validate() {
   const size_t n_spp = size();
+  std::cout << n_spp << "\n";
 
   // Set some defaults and check lengths.  Number of strategies is
   // taken as the "true" size.
-  if (birth_rate.empty()) {
-    birth_rate = std::vector<double>(n_spp, 1.0);
-  } else if (birth_rate.size() != n_spp) {
-    util::stop("Incorrect length birth_rate");
+  if (birth_rate_x.empty() || birth_rate_y.empty()) {
+    birth_rate_x = std::vector<std::vector<double>>(n_spp);
+		birth_rate_y = std::vector<std::vector<double>>(n_spp);
+  } else if (birth_rate_x.size() != n_spp || birth_rate_y.size() != n_spp) {
+    util::stop("Incorrect birth_rate lengths");
   }
   if (is_resident.empty()) {
     is_resident = std::vector<bool>(n_spp, true);

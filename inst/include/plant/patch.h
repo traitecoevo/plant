@@ -112,10 +112,13 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   survival_weighting = p.disturbance;
 
   // Overwrite all strategy control objects so that they take the
-  // patch control object.
-  for (auto s : parameters.strategies) {
+  // patch control object and also set per species birth rates
+	for (auto i = 0; i < parameters.strategies.size(); ++i) {
+		auto s = parameters.strategies[i];
     s.control = control;
-    species.push_back(Species<T,E>(s));
+    auto spec = Species<T,E>(s);
+    spec.set_extrinsic_driver("birth_rate", parameters.birth_rate_x[i], parameters.birth_rate_y[i]);
+    species.push_back(spec);
   }
   reset();
 }
@@ -178,7 +181,8 @@ template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
   for (size_t i = 0; i < size(); ++i) {
     double pr_patch_survival = survival_weighting->pr_survival(time());
-    double birth_rate = parameters.birth_rate[i];
+    //double birth_rate = parameters.birth_rate[i];
+		double birth_rate = species[i].extrinsic_driver_evaluate("birth_rate", time());
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
     environment.compute_rates();
   }

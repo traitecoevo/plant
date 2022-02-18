@@ -188,8 +188,7 @@ template <typename T, typename E>
 std::vector<double> SCM<T, E>::offspring_production() const {
   std::vector<double> ret;
   for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(net_reproduction_ratio_for_species(i) *
-                  parameters.birth_rate[i]);
+    ret.push_back(net_reproduction_ratio_for_species(i));
   }
   return ret;
 }
@@ -208,9 +207,16 @@ std::vector<double> SCM<T, E>::net_reproduction_ratios() const {
 template <typename T, typename E>
 double
 SCM<T, E>::net_reproduction_ratio_for_species(size_t species_index) const {
+	auto net_prod = net_reproduction_ratio_by_cohort_weighted(species_index);
+	auto times = cohort_schedule.times(species_index);
+	auto net_prod_scaled = std::vector<double>(times.size());
+	for (auto i = 0; i < net_prod_scaled.size(); ++i) {
+			net_prod_scaled[i] = net_prod[i] * patch.at(species_index).extrinsic_driver_evaluate("birth_rate", times[i]);
+	}
   return util::trapezium(
-      cohort_schedule.times(species_index),
-      net_reproduction_ratio_by_cohort_weighted(species_index));
+      times,
+      net_prod_scaled
+	);
 }
 
 // R interface method

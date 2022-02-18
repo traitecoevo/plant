@@ -358,7 +358,8 @@ Parameters:
     - patch_type: "std::string"
     - max_patch_lifetime: double
     - strategies: "std::vector<T>"
-    - birth_rate: "std::vector<double>"
+    - birth_rate_x: "std::vector<std::vector<double> >"
+    - birth_rate_y: "std::vector<std::vector<double> >"
     - is_resident: "std::vector<bool>"
     - strategy_default: "T"
     - cohort_schedule_times_default: "std::vector<double>"
