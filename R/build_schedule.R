@@ -32,12 +32,36 @@ build_schedule <- function(p, env = make_environment(parameters = p),
   complete = FALSE
 
   # generate coarse initial size distribution
-  if(!is.null(splines))
+  if(!is.null(splines)) {
     state = lapply(splines, partition_spline, n = n_init)
-
+    p$initial_state = unlist(lapply(state, as.vector))
+    p$n_initial_cohorts = unlist(lapply(state, ncol))
+  }
+    
+  is_error <- FALSE
   # the refine cohorts
   for (i in seq_len(ctrl$schedule_nsteps)) {
-    res <- run_scm_error(p, env, ctrl, state)
+    
+    # saves prev. result on error
+    res <- tryCatch(
+      run_scm_error(p, env, ctrl),
+      error = function(e) {
+        message(paste("Build schedule failed at step", i))
+        message("Here's the original error message:")
+        message(e)
+        
+        is_error <<- TRUE
+        return(res)
+      }) 
+    
+    if(is_error) {
+      p$cohort_schedule_times = res$schedule
+      p$initial_state = res$initial_state
+      p$n_initial_cohorts = res$n_initial_cohorts
+      
+      break
+    }
+      
     net_reproduction_ratios <- res[["net_reproduction_ratios"]]
     split <- lapply(res$err$total, function(x) x > eps)
 
@@ -67,6 +91,11 @@ build_schedule <- function(p, env = make_environment(parameters = p),
 
     # set schedule for next patch
     p$cohort_schedule_times <- times
+    
+    # set initial state for next patch
+    p$initial_state = unlist(lapply(state, as.vector))
+    p$n_initial_cohorts = unlist(lapply(state, ncol))
+    
     msg <- sprintf("%d: Splitting {%s} times (%s)",
                    i,
                    paste(sapply(split, sum),    collapse=","),
@@ -75,13 +104,19 @@ build_schedule <- function(p, env = make_environment(parameters = p),
   }
 
   # record useful attributies
-  p$cohort_schedule_ode_times <- res$ode_times
-  attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
-
-  plant_log_debug("Maximum number of iterations reached", routine="schedule")
-
+  if(exists("res")) {
+    p$cohort_schedule_ode_times <- res$ode_times
+    attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
+  }
+  
+  if(i == ctrl$schedule_nsteps)
+    plant_log_debug("Maximum number of iterations reached", routine="schedule")
+  else
+    plant_log_debug("Finished before maximum number of iterations reached without reaching integration error threshold", 
+                    routine="schedule")
+  
   # return parameters with refined schedule and corresponding initial state
-  return(list(parameters = p, state = state, n_steps = i, complete = complete))
+  return(list(parameters = p, n_steps = i, complete = complete))
 }
 
 ##' @rdname initialise_scm

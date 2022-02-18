@@ -107,7 +107,12 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
       e = cohort_schedule.next_event();
     }
   }
-  patch.introduce_new_cohorts(ret);
+
+  // multiple cohorts introduced at t0 during patch.reset()
+  if(parameters.initial_state.size() > 0 && t0 == 0.0) {}
+  else {
+    patch.introduce_new_cohorts(ret);
+  }
 
   const bool use_ode_times = cohort_schedule.using_ode_times();
   solver.set_state_from_system(patch);

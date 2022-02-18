@@ -360,6 +360,8 @@ Parameters:
     - strategies: "std::vector<T>"
     - birth_rate: "std::vector<double>"
     - is_resident: "std::vector<bool>"
+    - initial_state: "std::vector<double>"
+    - n_initial_cohorts: "std::vector<size_t>"
     - strategy_default: "T"
     - cohort_schedule_times_default: "std::vector<double>"
     - cohort_schedule_times: "std::vector<std::vector<double> >"

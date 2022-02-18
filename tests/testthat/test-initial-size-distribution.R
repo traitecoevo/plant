@@ -114,15 +114,15 @@ test_that("Build schedule works", {
   ctrl <- scm_base_control()
   p0 <- scm_base_parameters("FF16")
   p0$patch_type = 'fixed'
-  ctrl$schedule_nsteps = 20
+  ctrl$schedule_nsteps = 10
   
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE)
   p1$cohort_schedule_times[[1]] <- seq(0, p1$max_patch_lifetime, length = 10)
   p1$birth_rate <- 20
   
   # manual construction (see also: scm_state)
-  init <- matrix(c(10, 0, 0, 0, 0, 0, 1,
-                   0.3920458, 0, 0, 0, 0, 0, -4), ncol = 2)
+  init <- matrix(c(10, 0, 0, 0, 0, 0, -3,
+                   0.5, 0, 0, 0, 0, 0, -4), ncol = 2)
   rownames(init) <- c("height", "mortality", "fecundity", "area_heartwood",
                       "mass_heartwood", "offspring_produced_survival_weighted",
                       "log_density")
@@ -131,6 +131,8 @@ test_that("Build schedule works", {
   splines <- init_spline(list(init), size_idx = 1)
     
   res <- build_schedule(p1, env, ctrl, splines, n_init = 20)
+  
+  
   expect_false(res$complete)
   expect_equal(res$n_steps, 5)
   expect_equal(attr(res$parameters, "net_reproduction_ratios"), 
@@ -138,7 +140,7 @@ test_that("Build schedule works", {
   
   # Plot for fun
   par(mfrow=c(2, 1))
-  x <- run_scm_collect(p1, env, ctrl, list(init))
+  x <- run_scm_collect(res$parameters, env, ctrl)
 
   t2 <- x$time
   h1 <- x$species[[1]]["height", , ]

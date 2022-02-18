@@ -39,7 +39,7 @@ public:
   size_t aux_size() const;
   size_t strategy_aux_size() const;
   std::vector<std::string> aux_names() const;
-  
+
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
@@ -70,6 +70,7 @@ public:
 
   // This is just kind of useful
   std::vector<double> r_log_densities() const;
+  std::vector<double> r_log_density_rates() const;
 
 private:
   const Control& control() const {return strategy->get_control();}
@@ -152,7 +153,8 @@ double Species<T,E>::compute_competition(double height) const {
   for (++it; it != cohorts.end(); ++it) {
     const double h0 = it->height(), f_h0 = it->compute_competition(height);
     if (!util::is_finite(f_h0)) {
-      util::stop("Detected non-finite contribution");
+      std::cout << "Height: " << h0 << "; log density: " << it->get_log_density() << "; density: " << exp(it->get_log_density()) << "; competition: " << f_h0 << std::endl;
+      util::stop("Detected non-finite contribution in species.compute_competition; check that `density` is finite. Previous experience suggests that ODE stepper is producing infinite densities, causing calculations based on density (like competition) to fail.");
     }
     // Integration
     tot += (h1 - h0) * (f_h1 + f_h0);
@@ -281,6 +283,17 @@ std::vector<double> Species<T,E>::r_log_densities() const {
   for (cohorts_const_iterator it = cohorts.begin();
        it != cohorts.end(); ++it) {
     ret.push_back(it->get_log_density());
+  }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::r_log_density_rates() const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (cohorts_const_iterator it = cohorts.begin();
+       it != cohorts.end(); ++it) {
+    ret.push_back(it->get_log_density_rate());
   }
   return ret;
 }

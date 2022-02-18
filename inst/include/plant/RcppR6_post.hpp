@@ -554,6 +554,8 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant:
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
+  ret["initial_state"] = Rcpp::wrap(x.initial_state);
+  ret["n_initial_cohorts"] = Rcpp::wrap(x.n_initial_cohorts);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
@@ -584,6 +586,10 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
+  // ret.initial_state = Rcpp::as<decltype(retinitial_state) >(xl["initial_state"]);
+  ret.initial_state = Rcpp::as<std::vector<double> >(xl["initial_state"]);
+  // ret.n_initial_cohorts = Rcpp::as<decltype(retn_initial_cohorts) >(xl["n_initial_cohorts"]);
+  ret.n_initial_cohorts = Rcpp::as<std::vector<size_t> >(xl["n_initial_cohorts"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -605,6 +611,8 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16w_Strategy,plant
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
+  ret["initial_state"] = Rcpp::wrap(x.initial_state);
+  ret["n_initial_cohorts"] = Rcpp::wrap(x.n_initial_cohorts);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
@@ -635,6 +643,10 @@ template <> inline plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environme
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
+  // ret.initial_state = Rcpp::as<decltype(retinitial_state) >(xl["initial_state"]);
+  ret.initial_state = Rcpp::as<std::vector<double> >(xl["initial_state"]);
+  // ret.n_initial_cohorts = Rcpp::as<decltype(retn_initial_cohorts) >(xl["n_initial_cohorts"]);
+  ret.n_initial_cohorts = Rcpp::as<std::vector<size_t> >(xl["n_initial_cohorts"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16w_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -656,6 +668,8 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16r_Strategy,plant
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
+  ret["initial_state"] = Rcpp::wrap(x.initial_state);
+  ret["n_initial_cohorts"] = Rcpp::wrap(x.n_initial_cohorts);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
@@ -686,6 +700,10 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environme
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
+  // ret.initial_state = Rcpp::as<decltype(retinitial_state) >(xl["initial_state"]);
+  ret.initial_state = Rcpp::as<std::vector<double> >(xl["initial_state"]);
+  // ret.n_initial_cohorts = Rcpp::as<decltype(retn_initial_cohorts) >(xl["n_initial_cohorts"]);
+  ret.n_initial_cohorts = Rcpp::as<std::vector<size_t> >(xl["n_initial_cohorts"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::FF16r_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);
@@ -707,6 +725,8 @@ template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate"] = Rcpp::wrap(x.birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
+  ret["initial_state"] = Rcpp::wrap(x.initial_state);
+  ret["n_initial_cohorts"] = Rcpp::wrap(x.n_initial_cohorts);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
   ret["cohort_schedule_times"] = Rcpp::wrap(x.cohort_schedule_times);
@@ -737,6 +757,10 @@ template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment>
   ret.birth_rate = Rcpp::as<std::vector<double> >(xl["birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
+  // ret.initial_state = Rcpp::as<decltype(retinitial_state) >(xl["initial_state"]);
+  ret.initial_state = Rcpp::as<std::vector<double> >(xl["initial_state"]);
+  // ret.n_initial_cohorts = Rcpp::as<decltype(retn_initial_cohorts) >(xl["n_initial_cohorts"]);
+  ret.n_initial_cohorts = Rcpp::as<std::vector<size_t> >(xl["n_initial_cohorts"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
   ret.strategy_default = Rcpp::as<plant::K93_Strategy >(xl["strategy_default"]);
   // ret.cohort_schedule_times_default = Rcpp::as<decltype(retcohort_schedule_times_default) >(xl["cohort_schedule_times_default"]);

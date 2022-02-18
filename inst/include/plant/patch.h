@@ -59,6 +59,9 @@ public:
   // Patch disturbance
   Disturbance_Regime* survival_weighting;
 
+  void set_initial_state(const std::vector<double>& state,
+                         const std::vector<size_t>& n_cohorts);
+
   // * ODE interface
   size_t ode_size() const;
   size_t aux_size() const;
@@ -135,8 +138,28 @@ void Patch<T,E>::reset() {
     s.clear();
   }
   environment.clear();
+
+  if(parameters.initial_state.size() > 0) {
+    set_initial_state(parameters.initial_state,
+                      parameters.n_initial_cohorts);
+
+  }
   compute_environment();
   compute_rates();
+
+  for(auto s: species){
+    std::vector<double> log_densities = s.r_log_density_rates();
+    auto const limits = [&](const double v) { return v < -100; };
+
+    bool exceeds_density_limit = std::any_of(std::begin(log_densities),
+                                             std::end(log_densities),
+                                             limits);
+
+    if(exceeds_density_limit) {
+      util::stop("Rates of initial cohort densities exceed 1e43 and will likely result in a non-finite density.");
+    }
+  }
+
 }
 
 template <typename T, typename E>
@@ -222,6 +245,25 @@ void Patch<T,E>::r_set_time(double time) {
   environment.time = time;
 }
 
+
+template <typename T, typename E>
+void Patch<T,E>::set_initial_state(const std::vector<double>& state,
+                                   const std::vector<size_t>& n_cohorts) {
+
+  if(time() > 0)
+    util::stop("Unable to set initial patch state for existing patches; try reset() first");
+
+  const size_t n_species = species.size();
+  util::check_length(n_cohorts.size(), n_species);
+
+  for (size_t i = 0; i < n_species; ++i) {
+    for (size_t j = 0; j < n_cohorts[i]; ++j) {
+      species[i].introduce_new_cohort();
+    }
+  }
+  util::check_length(state.size(), ode_size());
+  set_ode_state(state.begin(), 0.0);
+}
 
 // Arguments here are:
 //   time: time
