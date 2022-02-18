@@ -56,7 +56,7 @@ for (x in names(strategy_types)) {
     expect_identical(sp$cohort_at(1)$rates, cohorts[[1]]$rates)
 
     ## Not sure about this -- do we need more immediate access?
-    expect_identical(sp$new_cohort$plant$establishment_probability(env), plant$establishment_probability(env))
+    expect_identical(sp$new_cohort$individual$establishment_probability(env), plant$establishment_probability(env))
 
     expect_equal(sp$compute_competition(0), 0)
 

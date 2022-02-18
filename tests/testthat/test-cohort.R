@@ -15,7 +15,7 @@ for (x in names(strategy_types)) {
     cohort <- Cohort(x, e)(s)
 
     expect_is(cohort, sprintf("Cohort<%s,%s>", x, e))
-    expect_is(cohort$plant, sprintf("Individual<%s,%s>", x, e))
+    expect_is(cohort$individual, sprintf("Individual<%s,%s>", x, e))
 
     env <- test_environment(x, 2 * plant$state("height"),
                             light_env=function(x) rep(1, length(x)))
@@ -64,7 +64,7 @@ for (x in names(strategy_types)) {
     ## Again with Richardson extrapolation:
         cohort <- Cohort(x, e)(s)
     cohort2 <- Cohort(x, e)(strategy_types[[x]](control=Control(cohort_gradient_richardson=TRUE)))
-    expect_true(cohort2$plant$strategy$control$cohort_gradient_richardson)
+    expect_true(cohort2$individual$strategy$control$cohort_gradient_richardson)
 
     ## NOTE: Not sure why this is not identical: it's either a bug
     ## somewhere or an issue due to reusing intervals.
@@ -72,7 +72,7 @@ for (x in names(strategy_types)) {
     ## expect_identical(dgdh2, dgdh_richardson)
     expect_false(identical(dgdh2, dgdh))
 
-    ## p <- cohort2$plant
+    ## p <- cohort2$individual
     ## p$compute_rates(env)
     ## f <- function(x) {
     ##   growth_rate_given_height(x, p, env)
@@ -116,7 +116,7 @@ for (x in names(strategy_types)) {
 
     ## Mortality is different because that's what Cohorts track
     for( v in setdiff(plant$ode_names, "mortality")) {
-      expect_equal(cohort$plant$state(v), plant$state(v))
+      expect_equal(cohort$individual$state(v), plant$state(v))
     }
 
     ## Set up plant too:

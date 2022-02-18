@@ -26,7 +26,7 @@ test_that("Construction", {
 
     expect_is(coh, "Cohort")
     expect_is(coh, sprintf("Cohort<%s,%s>", x, e))
-    expect_equal(class(coh$plant), class(p))
+    expect_equal(class(coh$individual), class(p))
 
     sp <- Species(x, e)(s)
 

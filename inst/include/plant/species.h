@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_SPECIES_H_
-#define PLANT_PLANT_SPECIES_H_
+#ifndef SPECIES
+#define SPECIES
 
 #include <vector>
 #include <plant/util.h>
@@ -257,7 +257,7 @@ void Species<T,E>::r_set_heights(std::vector<double> heights) {
   }
   size_t i = 0;
   for (cohorts_iterator it = cohorts.begin(); it != cohorts.end(); ++it, ++i) {
-    it->plant.set_state("height", heights[i]);
+    it->individual.set_state("height", heights[i]);
   }
 }
 
@@ -300,4 +300,4 @@ std::vector<double> Species<T,E>::r_log_density_rates() const {
 
 }
 
-#endif
+#endif /* SPECIES */

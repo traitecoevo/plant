@@ -385,11 +385,14 @@ double FF16_Strategy::mortality_growth_dependent_dt(double productivity_area) co
 
 // [eqn 20] Survival of seedlings during establishment
 double FF16_Strategy::establishment_probability(const FF16_Environment& environment) {
+  
+  double decay_over_time = exp(-recruitment_decay * environment.time);
+  
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height_0, area_leaf_0);
   if (net_mass_production_dt_ > 0) {
     const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
-    return 1.0 / (tmp * tmp + 1.0);
+    return 1.0 / (tmp * tmp + 1.0) * decay_over_time;
   } else {
     return 0.0;
   }
@@ -422,8 +425,8 @@ double FF16_Strategy::height_seed(void) const {
     h0 = height_given_mass_leaf(std::numeric_limits<double>::min()),
     h1 = height_given_mass_leaf(omega);
 
-  const double tol = control.plant_seed_tol;
-  const size_t max_iterations = control.plant_seed_iterations;
+  const double tol = control.offspring_production_tol;
+  const size_t max_iterations = control.offspring_production_iterations;
 
   auto target = [&] (double x) mutable -> double {
     return mass_live_given_height(x) - omega;

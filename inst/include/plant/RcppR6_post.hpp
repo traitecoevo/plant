@@ -333,8 +333,8 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["assimilator_integration_tol"] = Rcpp::wrap(x.assimilator_integration_tol);
   ret["assimilator_integration_iterations"] = Rcpp::wrap(x.assimilator_integration_iterations);
   ret["assimilator_integration_rule"] = Rcpp::wrap(x.assimilator_integration_rule);
-  ret["plant_seed_tol"] = Rcpp::wrap(x.plant_seed_tol);
-  ret["plant_seed_iterations"] = Rcpp::wrap(x.plant_seed_iterations);
+  ret["offspring_production_tol"] = Rcpp::wrap(x.offspring_production_tol);
+  ret["offspring_production_iterations"] = Rcpp::wrap(x.offspring_production_iterations);
   ret["cohort_gradient_eps"] = Rcpp::wrap(x.cohort_gradient_eps);
   ret["cohort_gradient_direction"] = Rcpp::wrap(x.cohort_gradient_direction);
   ret["cohort_gradient_richardson"] = Rcpp::wrap(x.cohort_gradient_richardson);
@@ -378,10 +378,10 @@ template <> inline plant::Control as(SEXP x) {
   ret.assimilator_integration_iterations = Rcpp::as<size_t >(xl["assimilator_integration_iterations"]);
   // ret.assimilator_integration_rule = Rcpp::as<decltype(retassimilator_integration_rule) >(xl["assimilator_integration_rule"]);
   ret.assimilator_integration_rule = Rcpp::as<size_t >(xl["assimilator_integration_rule"]);
-  // ret.plant_seed_tol = Rcpp::as<decltype(retplant_seed_tol) >(xl["plant_seed_tol"]);
-  ret.plant_seed_tol = Rcpp::as<double >(xl["plant_seed_tol"]);
-  // ret.plant_seed_iterations = Rcpp::as<decltype(retplant_seed_iterations) >(xl["plant_seed_iterations"]);
-  ret.plant_seed_iterations = Rcpp::as<int >(xl["plant_seed_iterations"]);
+  // ret.offspring_production_tol = Rcpp::as<decltype(retoffspring_production_tol) >(xl["offspring_production_tol"]);
+  ret.offspring_production_tol = Rcpp::as<double >(xl["offspring_production_tol"]);
+  // ret.offspring_production_iterations = Rcpp::as<decltype(retoffspring_production_iterations) >(xl["offspring_production_iterations"]);
+  ret.offspring_production_iterations = Rcpp::as<int >(xl["offspring_production_iterations"]);
   // ret.cohort_gradient_eps = Rcpp::as<decltype(retcohort_gradient_eps) >(xl["cohort_gradient_eps"]);
   ret.cohort_gradient_eps = Rcpp::as<double >(xl["cohort_gradient_eps"]);
   // ret.cohort_gradient_direction = Rcpp::as<decltype(retcohort_gradient_direction) >(xl["cohort_gradient_direction"]);
@@ -1018,6 +1018,7 @@ template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
+  ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
   ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
   ret.attr("class") = "FF16_Strategy";
@@ -1094,6 +1095,8 @@ template <> inline plant::FF16_Strategy as(SEXP x) {
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
+  // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
+  ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);
@@ -1139,6 +1142,7 @@ template <> inline SEXP wrap(const plant::FF16r_Strategy& x) {
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
+  ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
   ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
   ret.attr("class") = "FF16r_Strategy";
@@ -1215,6 +1219,8 @@ template <> inline plant::FF16r_Strategy as(SEXP x) {
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
+  // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
+  ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);
@@ -1312,6 +1318,7 @@ template <> inline SEXP wrap(const plant::FF16w_Strategy& x) {
   ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
   ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
   ret["k_I"] = Rcpp::wrap(x.k_I);
+  ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
   ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
   ret.attr("class") = "FF16w_Strategy";
@@ -1388,6 +1395,8 @@ template <> inline plant::FF16w_Strategy as(SEXP x) {
   ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
   // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
   ret.k_I = Rcpp::as<double >(xl["k_I"]);
+  // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
+  ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
   // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);
