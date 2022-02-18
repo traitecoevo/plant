@@ -90,7 +90,6 @@ size_t Parameters<T,E>::n_mutants() const {
 template <typename T, typename E>
 void Parameters<T,E>::validate() {
   const size_t n_spp = size();
-  std::cout << n_spp << "\n";
 
   // Set some defaults and check lengths.  Number of strategies is
   // taken as the "true" size.
