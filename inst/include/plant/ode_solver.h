@@ -147,6 +147,7 @@ void Solver<System>::step(System& system) {
   const size_t size = y.size();
 
   // Compute the derivatives at the beginning.
+  std::cout << "Computing derivatives" << std::endl;
   setup_dydt_in(system);
 
   while (true) {
@@ -157,9 +158,8 @@ void Solver<System>::step(System& system) {
     }
     stepper.step(system, time, step_size, y, yerr, dydt_in, dydt_out);
 
-    const double step_size_next =
-      control.adjust_step_size(size, stepper.order(), step_size,
-			       y, yerr, dydt_out);
+    const double step_size_next = control.adjust_step_size(
+        size, stepper.order(), step_size, y, yerr, dydt_out);
 
     if (control.step_size_shrank()) {
       // GSL checks that the step size is actually decreased.
@@ -168,15 +168,15 @@ void Solver<System>::step(System& system) {
       // hmin << t
       const double time_next = time + step_size_next;
       if (step_size_next < step_size && time_next > time_orig) {
-	// Step was decreased. Undo step (resetting the state y and
-	// time), and try again with the new step_size.
-	y         = y_orig;
-	time      = time_orig;
-	step_size = step_size_next;
+        // Step was decreased. Undo step (resetting the state y and
+        // time), and try again with the new step_size.
+        y = y_orig;
+        time = time_orig;
+        step_size = step_size_next;
       } else {
-	// We've reached limits of machine accuracy in differences of
-	// step sizes or time (or both).
-	util::stop("Cannot achive the desired accuracy");
+        // We've reached limits of machine accuracy in differences of
+        // step sizes or time (or both).
+        util::stop("Cannot achive the desired accuracy");
       }
     } else {
       // We have successfully taken a step and will return.  Update
@@ -187,10 +187,10 @@ void Solver<System>::step(System& system) {
       //  suggested in the final step, because that step can be very
       //  small compared to previous step, to reach time_max.
       if (final_step) {
-	time = time_max;
+        time = time_max;
       } else {
-	time += step_size;
-	step_size_last = step_size_next;
+        time += step_size;
+        step_size_last = step_size_next;
       }
       prev_times.push_back(time);
       save_dydt_out_as_in();
