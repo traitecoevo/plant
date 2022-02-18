@@ -95,8 +95,6 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   std::vector<size_t> ret;
 
   const double t0 = time();
-  std::cout << "SCM TIME: " << t0 << std::endl;
-
   CohortSchedule::Event e = cohort_schedule.next_event();
   while (true) {
     if (!util::identical(t0, e.time_introduction())) {
@@ -119,19 +117,13 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
 
   const bool use_ode_times = cohort_schedule.using_ode_times();
 
-  std::cout << "Set solver state from patch: " << t0<< std::endl;
   solver.set_state_from_system(patch);
 
   if (use_ode_times) {
-    std::cout << "Advancing using ODE times: " << t0<< std::endl;
-    solver.advance_fixed(patch, e.times);
+      solver.advance_fixed(patch, e.times);
   } else {
-
-    std::cout << "Advancing using schedule times: " << t0<< std::endl;
     solver.advance(patch, e.time_end());
   }
-
-  std::cout << "Solver finished: " << t0<< std::endl;
   return ret;
 }
 

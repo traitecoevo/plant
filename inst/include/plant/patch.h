@@ -231,39 +231,10 @@ template <typename T, typename E>
 void Patch<T,E>::introduce_new_cohorts(const std::vector<size_t>& species_index) {
   bool recompute = false;
 
-  std::cout << "Before new cohort: " << time() << std::endl;
-  std::cout << "ODE states: "  << std::endl;
-  for (auto i: plant::ode::r_ode_state(species[0]))
-      std::cout << i << ' ';
-
-  std::cout << std::endl;
-
-  std::cout << "ODE rates: " << std::endl;
-  for (auto i: plant::ode::r_ode_rates(species[0]))
-      std::cout << i << ' ';
-
-  std::cout << std::endl;
-  std::cout << std::endl;
-
   for (size_t i : species_index) {
     species[i].introduce_new_cohort();
     recompute = recompute || parameters.is_resident[i];
   }
-
-  std::cout << "After new cohort: " << time() << std::endl;
-  std::cout << "ODE states: "  << std::endl;
-  for (auto i: plant::ode::r_ode_state(species[0]))
-      std::cout << i << ' ';
-
-  std::cout << std::endl;
-
-  std::cout << "ODE rates: " << std::endl;
-  for (auto i: plant::ode::r_ode_rates(species[0]))
-      std::cout << i << ' ';
-
-  std::cout << std::endl;
-  std::cout << std::endl;
-
 
   if (recompute) {
     compute_environment();
@@ -352,32 +323,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
     compute_environment();
   }
 
-
-  std::cout << "Cohort states before compute_rates: " << std::endl;
-  for (auto i: plant::ode::r_ode_state(species[0]))
-      std::cout << i << ' ';
-
-  std::cout << std::endl;
-
-  std::cout << "Cohort rates before compute_rates: " << std::endl;
-  for (auto i: plant::ode::r_ode_rates(species[0]))
-      std::cout << i << ' ';
-
-  std::cout << std::endl << std::endl;
-
   compute_rates();
-
-  std::cout << "Cohort states after compute_rates: " << std::endl;
-  for (auto i: plant::ode::r_ode_state(species[0]))
-      std::cout << i << ' ';
-
-  std::cout<< std::endl;
-
-  std::cout << "Cohort rates after compute_rates: " << std::endl;
-  for (auto i: plant::ode::r_ode_rates(species[0]))
-      std::cout << i << ' ';
-
-  std::cout << std::endl << std::endl;
   return it;
 }
 

@@ -153,8 +153,7 @@ double Species<T,E>::compute_competition(double height) const {
   for (++it; it != cohorts.end(); ++it) {
     const double h0 = it->height(), f_h0 = it->compute_competition(height);
     if (!util::is_finite(f_h0)) {
-      std::cout << "Height: " << h0 << "; log density: " << it->get_log_density() << "; density: " << exp(it->get_log_density()) << "; competition: " << f_h0 << std::endl;
-      util::stop("Detected non-finite contribution in species.compute_competition; check that `density` is finite. Previous experience suggests that ODE stepper is producing infinite densities, causing calculations based on density (like competition) to fail.");
+        util::stop("Detected non-finite contribution in species.compute_competition; check that `density` is finite. Previous experience suggests that ODE stepper is producing infinite densities, causing calculations based on density (like competition) to fail.");
     }
     // Integration
     tot += (h1 - h0) * (f_h1 + f_h0);

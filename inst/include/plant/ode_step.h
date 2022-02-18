@@ -18,7 +18,6 @@ public:
             state_type &yerr, const state_type &dydt_in, state_type &dydt_out);
 
   void derivs(System &system, const state_type &y, state_type &dydt, double t) {
-    std::cout << "Derivs. at solver time: " << t << std::endl;
     return ode::derivs(system, y, dydt, t);
   }
 
@@ -77,7 +76,6 @@ void Step<System>::step(System& system,
                         state_type &dydt_out) {
   const double h = step_size; // Historical reasons.
 
-  std::cout << "STEPPING: " << time << std::endl;
   // k1 step:
   std::copy(dydt_in.begin(), dydt_in.end(), k1.begin());
   for (size_t i = 0; i < size; ++i) {
@@ -126,8 +124,6 @@ void Step<System>::step(System& system,
     yerr[i] = h * (ec[1] * k1[i] + ec[3] * k3[i] + ec[4] * k4[i] +
 		   ec[5] * k5[i] + ec[6] * k6[i]);
   }
-
-  std::cout << "FINISHED STEP" << std::endl << std::endl;
 }
 
 // RKCK coefficients, from GSL

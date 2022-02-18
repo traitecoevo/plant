@@ -147,7 +147,6 @@ void Solver<System>::step(System& system) {
   const size_t size = y.size();
 
   // Compute the derivatives at the beginning.
-  std::cout << "Computing derivatives" << std::endl;
   setup_dydt_in(system);
 
   while (true) {
