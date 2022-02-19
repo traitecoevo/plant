@@ -64,6 +64,9 @@ struct Parameters {
   size_t n_mutants() const;
   void validate();
 
+	// birth rate api
+	void set_constant_birth_rate(int species_index, double birth_rate);
+
 private:
   void setup_cohort_schedule();
 };
@@ -96,6 +99,9 @@ void Parameters<T,E>::validate() {
   if (birth_rate_x.empty() || birth_rate_y.empty()) {
     birth_rate_x = std::vector<std::vector<double>>(n_spp);
 		birth_rate_y = std::vector<std::vector<double>>(n_spp);
+		for (auto i = 0; i < n_spp; ++i) {
+				set_constant_birth_rate(i, 1.0);
+		}
   } else if (birth_rate_x.size() != n_spp || birth_rate_y.size() != n_spp) {
     util::stop("Incorrect birth_rate lengths");
   }
@@ -134,6 +140,21 @@ void Parameters<T,E>::setup_cohort_schedule() {
       cohort_schedule_times.push_back(cohort_schedule_times_default);
     }
   }
+}
+
+template <typename T, typename E>
+void Parameters<T, E>::set_constant_birth_rate(int species_index, double birth_rate) {
+		birth_rate_x[species_index] = std::vector<double>(10);
+		for (auto t = 0; t < 10; ++t) {
+				birth_rate_x[species_index][t] = t;
+		}
+		birth_rate_y[species_index] = std::vector<double>(10, birth_rate);
+}
+
+template <typename T, typename E>
+void Parameters<T, E>::set_interpolated_birth_rate(int species_index, std::vector<double> x, std::vector<double> y) {
+		birth_rate_x[species_index] = x;
+		birth_rate_y[species_index] = y;
 }
 
 }
