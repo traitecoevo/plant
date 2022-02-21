@@ -46,6 +46,8 @@ struct Parameters {
 	// birth rate spline control points for each species
   std::vector<std::vector<double>> birth_rate_x;
 	std::vector<std::vector<double>> birth_rate_y;
+	// whether the spline for each species should be constant fn or not (extrapolation on/off)
+	std::vector<bool> is_constant_birth_rate;
   std::vector<bool> is_resident;
 
   Disturbance_Regime* disturbance;
@@ -64,8 +66,9 @@ struct Parameters {
   size_t n_mutants() const;
   void validate();
 
-	// birth rate api
-	void set_constant_birth_rate(int species_index, double birth_rate);
+//	// birth rate api
+//	void set_constant_birth_rate(int species_index, double birth_rate);
+//	void set_interpolated_birth_rate(int species_index, std::vector<double> x, std::vector<double> y);
 
 private:
   void setup_cohort_schedule();
@@ -93,15 +96,20 @@ size_t Parameters<T,E>::n_mutants() const {
 template <typename T, typename E>
 void Parameters<T,E>::validate() {
   const size_t n_spp = size();
+	std::cout << "strategies size: " << n_spp << "\n";
 
   // Set some defaults and check lengths.  Number of strategies is
   // taken as the "true" size.
+	std::cout << "birth_rate_x size: " << birth_rate_x.size() << "\n";
+	std::cout << "birth_rate_y size: " << birth_rate_y.size() << "\n";
   if (birth_rate_x.empty() || birth_rate_y.empty()) {
+		std::cout << "new birth rate vectors\n";
     birth_rate_x = std::vector<std::vector<double>>(n_spp);
 		birth_rate_y = std::vector<std::vector<double>>(n_spp);
-		for (auto i = 0; i < n_spp; ++i) {
-				set_constant_birth_rate(i, 1.0);
-		}
+		is_constant_birth_rate = std::vector<bool>(n_spp);
+//		for (auto i = 0; i < n_spp; ++i) {
+//				set_constant_birth_rate(i, 1.0);
+//		}
   } else if (birth_rate_x.size() != n_spp || birth_rate_y.size() != n_spp) {
     util::stop("Incorrect birth_rate lengths");
   }
@@ -142,20 +150,20 @@ void Parameters<T,E>::setup_cohort_schedule() {
   }
 }
 
-template <typename T, typename E>
-void Parameters<T, E>::set_constant_birth_rate(int species_index, double birth_rate) {
-		birth_rate_x[species_index] = std::vector<double>(10);
-		for (auto t = 0; t < 10; ++t) {
-				birth_rate_x[species_index][t] = t;
-		}
-		birth_rate_y[species_index] = std::vector<double>(10, birth_rate);
-}
-
-template <typename T, typename E>
-void Parameters<T, E>::set_interpolated_birth_rate(int species_index, std::vector<double> x, std::vector<double> y) {
-		birth_rate_x[species_index] = x;
-		birth_rate_y[species_index] = y;
-}
+//template <typename T, typename E>
+//void Parameters<T, E>::set_constant_birth_rate(int species_index, double birth_rate) {
+//		birth_rate_x[species_index] = std::vector<double>(10);
+//		for (auto t = 0; t < 10; ++t) {
+//				birth_rate_x[species_index][t] = t;
+//		}
+//		birth_rate_y[species_index] = std::vector<double>(10, birth_rate);
+//}
+//
+//template <typename T, typename E>
+//void Parameters<T, E>::set_interpolated_birth_rate(int species_index, std::vector<double> x, std::vector<double> y) {
+//		birth_rate_x[species_index] = x;
+//		birth_rate_y[species_index] = y;
+//}
 
 }
 

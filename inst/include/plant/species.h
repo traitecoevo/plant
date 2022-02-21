@@ -308,6 +308,7 @@ void Species<T,E>::set_extrinsic_driver(std::string driver_name, std::vector<dou
 
 template <typename T, typename E>
 void Species<T,E>::extrinsic_driver_extrapolation(std::string driver_name, bool extrapolate) {
+		std::cout << "called set extrapolation and set to: " << extrapolate << "\n";
     extrinsic_drivers.at(driver_name).set_extrapolate(extrapolate);
 }
 

@@ -118,6 +118,7 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
     s.control = control;
     auto spec = Species<T,E>(s);
     spec.set_extrinsic_driver("birth_rate", parameters.birth_rate_x[i], parameters.birth_rate_y[i]);
+		spec.extrinsic_driver_extrapolation("birth_rate", parameters.is_constant_birth_rate[i]);
     species.push_back(spec);
   }
   reset();
