@@ -96,14 +96,10 @@ size_t Parameters<T,E>::n_mutants() const {
 template <typename T, typename E>
 void Parameters<T,E>::validate() {
   const size_t n_spp = size();
-	std::cout << "strategies size: " << n_spp << "\n";
 
   // Set some defaults and check lengths.  Number of strategies is
   // taken as the "true" size.
-	std::cout << "birth_rate_x size: " << birth_rate_x.size() << "\n";
-	std::cout << "birth_rate_y size: " << birth_rate_y.size() << "\n";
   if (birth_rate_x.empty() || birth_rate_y.empty()) {
-		std::cout << "new birth rate vectors\n";
     birth_rate_x = std::vector<std::vector<double>>(n_spp);
 		birth_rate_y = std::vector<std::vector<double>>(n_spp);
 		is_constant_birth_rate = std::vector<bool>(n_spp);

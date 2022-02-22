@@ -1477,6 +1477,26 @@ std::vector<double> Species___FF16__FF16_Env__competition_effects_error(plant::R
   return obj_->r_competition_effects_error(scal);
 }
 // [[Rcpp::export]]
+void Species___FF16__FF16_Env__set_extrinsic_driver(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, std::vector<double> x, std::vector<double> y) {
+  obj_->set_extrinsic_driver(driver_name, x, y);
+}
+// [[Rcpp::export]]
+void Species___FF16__FF16_Env__extrinsic_driver_extrapolation(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, bool extrapolate) {
+  obj_->extrinsic_driver_extrapolation(driver_name, extrapolate);
+}
+// [[Rcpp::export]]
+double Species___FF16__FF16_Env__extrinsic_driver_evaluate(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, double u) {
+  return obj_->extrinsic_driver_evaluate(driver_name, u);
+}
+// [[Rcpp::export]]
+std::vector<double> Species___FF16__FF16_Env__extrinsic_driver_evaluate_range(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, std::vector<double> u) {
+  return obj_->extrinsic_driver_evaluate_range(driver_name, u);
+}
+// [[Rcpp::export]]
+std::vector<std::string> Species___FF16__FF16_Env__get_extrinsic_driver_names(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->get_extrinsic_driver_names();
+}
+// [[Rcpp::export]]
 size_t Species___FF16__FF16_Env__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->size();
 }
@@ -1567,6 +1587,26 @@ plant::Cohort<plant::FF16w_Strategy,plant::FF16_Environment> Species___FF16w__FF
 // [[Rcpp::export]]
 std::vector<double> Species___FF16w__FF16_Env__competition_effects_error(plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, double scal) {
   return obj_->r_competition_effects_error(scal);
+}
+// [[Rcpp::export]]
+void Species___FF16w__FF16_Env__set_extrinsic_driver(plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, std::vector<double> x, std::vector<double> y) {
+  obj_->set_extrinsic_driver(driver_name, x, y);
+}
+// [[Rcpp::export]]
+void Species___FF16w__FF16_Env__extrinsic_driver_extrapolation(plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, bool extrapolate) {
+  obj_->extrinsic_driver_extrapolation(driver_name, extrapolate);
+}
+// [[Rcpp::export]]
+double Species___FF16w__FF16_Env__extrinsic_driver_evaluate(plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, double u) {
+  return obj_->extrinsic_driver_evaluate(driver_name, u);
+}
+// [[Rcpp::export]]
+std::vector<double> Species___FF16w__FF16_Env__extrinsic_driver_evaluate_range(plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, std::vector<double> u) {
+  return obj_->extrinsic_driver_evaluate_range(driver_name, u);
+}
+// [[Rcpp::export]]
+std::vector<std::string> Species___FF16w__FF16_Env__get_extrinsic_driver_names(plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->get_extrinsic_driver_names();
 }
 // [[Rcpp::export]]
 size_t Species___FF16w__FF16_Env__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
@@ -1661,6 +1701,26 @@ std::vector<double> Species___FF16r__FF16_Env__competition_effects_error(plant::
   return obj_->r_competition_effects_error(scal);
 }
 // [[Rcpp::export]]
+void Species___FF16r__FF16_Env__set_extrinsic_driver(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, std::vector<double> x, std::vector<double> y) {
+  obj_->set_extrinsic_driver(driver_name, x, y);
+}
+// [[Rcpp::export]]
+void Species___FF16r__FF16_Env__extrinsic_driver_extrapolation(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, bool extrapolate) {
+  obj_->extrinsic_driver_extrapolation(driver_name, extrapolate);
+}
+// [[Rcpp::export]]
+double Species___FF16r__FF16_Env__extrinsic_driver_evaluate(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, double u) {
+  return obj_->extrinsic_driver_evaluate(driver_name, u);
+}
+// [[Rcpp::export]]
+std::vector<double> Species___FF16r__FF16_Env__extrinsic_driver_evaluate_range(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::string driver_name, std::vector<double> u) {
+  return obj_->extrinsic_driver_evaluate_range(driver_name, u);
+}
+// [[Rcpp::export]]
+std::vector<std::string> Species___FF16r__FF16_Env__get_extrinsic_driver_names(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->get_extrinsic_driver_names();
+}
+// [[Rcpp::export]]
 size_t Species___FF16r__FF16_Env__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
   return obj_->size();
 }
@@ -1751,6 +1811,26 @@ plant::Cohort<plant::K93_Strategy,plant::K93_Environment> Species___K93__K93_Env
 // [[Rcpp::export]]
 std::vector<double> Species___K93__K93_Env__competition_effects_error(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_, double scal) {
   return obj_->r_competition_effects_error(scal);
+}
+// [[Rcpp::export]]
+void Species___K93__K93_Env__set_extrinsic_driver(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_, std::string driver_name, std::vector<double> x, std::vector<double> y) {
+  obj_->set_extrinsic_driver(driver_name, x, y);
+}
+// [[Rcpp::export]]
+void Species___K93__K93_Env__extrinsic_driver_extrapolation(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_, std::string driver_name, bool extrapolate) {
+  obj_->extrinsic_driver_extrapolation(driver_name, extrapolate);
+}
+// [[Rcpp::export]]
+double Species___K93__K93_Env__extrinsic_driver_evaluate(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_, std::string driver_name, double u) {
+  return obj_->extrinsic_driver_evaluate(driver_name, u);
+}
+// [[Rcpp::export]]
+std::vector<double> Species___K93__K93_Env__extrinsic_driver_evaluate_range(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_, std::string driver_name, std::vector<double> u) {
+  return obj_->extrinsic_driver_evaluate_range(driver_name, u);
+}
+// [[Rcpp::export]]
+std::vector<std::string> Species___K93__K93_Env__get_extrinsic_driver_names(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->get_extrinsic_driver_names();
 }
 // [[Rcpp::export]]
 size_t Species___K93__K93_Env__size__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_) {

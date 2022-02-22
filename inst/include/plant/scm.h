@@ -33,7 +33,7 @@ public:
   // * Output total offspring calculation (not per capita)
   std::vector<double>
   net_reproduction_ratio_by_cohort_weighted(size_t species_index) const;
-  double net_reproduction_ratio_for_species(size_t species_index) const;
+  double net_reproduction_ratio_for_species(size_t species_index, std::vector<double> const& scalars) const;
   std::vector<double> net_reproduction_ratios() const;
   std::vector<double> offspring_production() const;
 
@@ -186,9 +186,15 @@ void SCM<T, E>::r_set_cohort_schedule_times(
 // Offspring production, equal to overall fitness scaled by the birth rate
 template <typename T, typename E>
 std::vector<double> SCM<T, E>::offspring_production() const {
-  std::vector<double> ret;
+	auto ret = std::vector<double>(patch.size());
   for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(net_reproduction_ratio_for_species(i));
+		// scale by birth rate function over time
+		auto const& times = cohort_schedule.times(i);
+		auto scalars = std::vector<double>(times.size());
+		for (size_t j = 0; j < times.size(); ++j) {
+			scalars[j] = patch.at(i).extrinsic_driver_evaluate("birth_rate", times[j]);
+		}
+		ret[i] = net_reproduction_ratio_for_species(i, scalars);
   }
   return ret;
 }
@@ -196,9 +202,12 @@ std::vector<double> SCM<T, E>::offspring_production() const {
 // Overall fitness
 template <typename T, typename E>
 std::vector<double> SCM<T, E>::net_reproduction_ratios() const {
-  std::vector<double> ret;
+	auto ret = std::vector<double>(patch.size());
   for (size_t i = 0; i < patch.size(); ++i) {
-    ret.push_back(net_reproduction_ratio_for_species(i));
+		// no scaling, ie set scalars to 1.0
+		auto const& times = cohort_schedule.times(i);
+		auto scalars = std::vector<double>(times.size(), 1.0);
+		ret[i] = net_reproduction_ratio_for_species(i, scalars);
   }
   return ret;
 }
@@ -206,12 +215,13 @@ std::vector<double> SCM<T, E>::net_reproduction_ratios() const {
 // Integrate over lifetime fitness of individual cohorts
 template <typename T, typename E>
 double
-SCM<T, E>::net_reproduction_ratio_for_species(size_t species_index) const {
+SCM<T, E>::net_reproduction_ratio_for_species(size_t species_index, std::vector<double> const& scalars) const {
 	auto net_prod = net_reproduction_ratio_by_cohort_weighted(species_index);
-	auto times = cohort_schedule.times(species_index);
+	auto const& times = cohort_schedule.times(species_index);
 	auto net_prod_scaled = std::vector<double>(times.size());
-	for (auto i = 0; i < net_prod_scaled.size(); ++i) {
-			net_prod_scaled[i] = net_prod[i] * patch.at(species_index).extrinsic_driver_evaluate("birth_rate", times[i]);
+	// should be showing compiler warning for int (auto) comparison, but isn't anymore...
+	for (auto i = 0; i < times.size(); ++i) {
+			net_prod_scaled[i] = net_prod[i] * scalars[i];
 	}
   return util::trapezium(
       times,
@@ -223,8 +233,10 @@ SCM<T, E>::net_reproduction_ratio_for_species(size_t species_index) const {
 template <typename T, typename E>
 double SCM<T, E>::r_net_reproduction_ratio_for_species(
     util::index species_index) const {
+	auto const& times = cohort_schedule.times(species_index.check_bounds(patch.size()));
+	auto scalars = std::vector<double>(times.size(), 1.0);
   return net_reproduction_ratio_for_species(
-      species_index.check_bounds(patch.size()));
+      species_index.x, scalars);
 }
 
 // Cohort fitness within a meta-population of patches
