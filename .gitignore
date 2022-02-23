@@ -13,8 +13,9 @@ src/*.so
 src/*.dll
 tmp*
 .vscode
+.idea
 scrap.R
-
+.RData
 
 inst/doc
 doc
