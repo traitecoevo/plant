@@ -554,7 +554,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant:
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
   ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
-  ret["is_constant_birth_rate"] = Rcpp::wrap(x.is_constant_birth_rate);
+  ret["is_interpolated_birth_rate"] = Rcpp::wrap(x.is_interpolated_birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
@@ -586,8 +586,8 @@ template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environmen
   ret.birth_rate_x = Rcpp::as<std::vector<std::vector<double> > >(xl["birth_rate_x"]);
   // ret.birth_rate_y = Rcpp::as<decltype(retbirth_rate_y) >(xl["birth_rate_y"]);
   ret.birth_rate_y = Rcpp::as<std::vector<std::vector<double> > >(xl["birth_rate_y"]);
-  // ret.is_constant_birth_rate = Rcpp::as<decltype(retis_constant_birth_rate) >(xl["is_constant_birth_rate"]);
-  ret.is_constant_birth_rate = Rcpp::as<std::vector<bool> >(xl["is_constant_birth_rate"]);
+  // ret.is_interpolated_birth_rate = Rcpp::as<decltype(retis_interpolated_birth_rate) >(xl["is_interpolated_birth_rate"]);
+  ret.is_interpolated_birth_rate = Rcpp::as<std::vector<bool> >(xl["is_interpolated_birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
@@ -611,7 +611,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16w_Strategy,plant
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
   ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
-  ret["is_constant_birth_rate"] = Rcpp::wrap(x.is_constant_birth_rate);
+  ret["is_interpolated_birth_rate"] = Rcpp::wrap(x.is_interpolated_birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
@@ -643,8 +643,8 @@ template <> inline plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environme
   ret.birth_rate_x = Rcpp::as<std::vector<std::vector<double> > >(xl["birth_rate_x"]);
   // ret.birth_rate_y = Rcpp::as<decltype(retbirth_rate_y) >(xl["birth_rate_y"]);
   ret.birth_rate_y = Rcpp::as<std::vector<std::vector<double> > >(xl["birth_rate_y"]);
-  // ret.is_constant_birth_rate = Rcpp::as<decltype(retis_constant_birth_rate) >(xl["is_constant_birth_rate"]);
-  ret.is_constant_birth_rate = Rcpp::as<std::vector<bool> >(xl["is_constant_birth_rate"]);
+  // ret.is_interpolated_birth_rate = Rcpp::as<decltype(retis_interpolated_birth_rate) >(xl["is_interpolated_birth_rate"]);
+  ret.is_interpolated_birth_rate = Rcpp::as<std::vector<bool> >(xl["is_interpolated_birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
@@ -668,7 +668,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::FF16r_Strategy,plant
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
   ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
-  ret["is_constant_birth_rate"] = Rcpp::wrap(x.is_constant_birth_rate);
+  ret["is_interpolated_birth_rate"] = Rcpp::wrap(x.is_interpolated_birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
@@ -700,8 +700,8 @@ template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environme
   ret.birth_rate_x = Rcpp::as<std::vector<std::vector<double> > >(xl["birth_rate_x"]);
   // ret.birth_rate_y = Rcpp::as<decltype(retbirth_rate_y) >(xl["birth_rate_y"]);
   ret.birth_rate_y = Rcpp::as<std::vector<std::vector<double> > >(xl["birth_rate_y"]);
-  // ret.is_constant_birth_rate = Rcpp::as<decltype(retis_constant_birth_rate) >(xl["is_constant_birth_rate"]);
-  ret.is_constant_birth_rate = Rcpp::as<std::vector<bool> >(xl["is_constant_birth_rate"]);
+  // ret.is_interpolated_birth_rate = Rcpp::as<decltype(retis_interpolated_birth_rate) >(xl["is_interpolated_birth_rate"]);
+  ret.is_interpolated_birth_rate = Rcpp::as<std::vector<bool> >(xl["is_interpolated_birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
@@ -725,7 +725,7 @@ template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::
   ret["strategies"] = Rcpp::wrap(x.strategies);
   ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
   ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
-  ret["is_constant_birth_rate"] = Rcpp::wrap(x.is_constant_birth_rate);
+  ret["is_interpolated_birth_rate"] = Rcpp::wrap(x.is_interpolated_birth_rate);
   ret["is_resident"] = Rcpp::wrap(x.is_resident);
   ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
   ret["cohort_schedule_times_default"] = Rcpp::wrap(x.cohort_schedule_times_default);
@@ -757,8 +757,8 @@ template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment>
   ret.birth_rate_x = Rcpp::as<std::vector<std::vector<double> > >(xl["birth_rate_x"]);
   // ret.birth_rate_y = Rcpp::as<decltype(retbirth_rate_y) >(xl["birth_rate_y"]);
   ret.birth_rate_y = Rcpp::as<std::vector<std::vector<double> > >(xl["birth_rate_y"]);
-  // ret.is_constant_birth_rate = Rcpp::as<decltype(retis_constant_birth_rate) >(xl["is_constant_birth_rate"]);
-  ret.is_constant_birth_rate = Rcpp::as<std::vector<bool> >(xl["is_constant_birth_rate"]);
+  // ret.is_interpolated_birth_rate = Rcpp::as<decltype(retis_interpolated_birth_rate) >(xl["is_interpolated_birth_rate"]);
+  ret.is_interpolated_birth_rate = Rcpp::as<std::vector<bool> >(xl["is_interpolated_birth_rate"]);
   // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
   ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
   // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);

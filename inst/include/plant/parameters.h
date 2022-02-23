@@ -47,7 +47,7 @@ struct Parameters {
   std::vector<std::vector<double>> birth_rate_x;
 	std::vector<std::vector<double>> birth_rate_y;
 	// whether the spline for each species should be constant fn or not (extrapolation on/off)
-	std::vector<bool> is_constant_birth_rate;
+	std::vector<bool> is_interpolated_birth_rate;
   std::vector<bool> is_resident;
 
   Disturbance_Regime* disturbance;
@@ -102,10 +102,15 @@ void Parameters<T,E>::validate() {
   if (birth_rate_x.empty() || birth_rate_y.empty()) {
     birth_rate_x = std::vector<std::vector<double>>(n_spp);
 		birth_rate_y = std::vector<std::vector<double>>(n_spp);
-		is_constant_birth_rate = std::vector<bool>(n_spp);
-//		for (auto i = 0; i < n_spp; ++i) {
-//				set_constant_birth_rate(i, 1.0);
-//		}
+		is_interpolated_birth_rate = std::vector<bool>(n_spp);
+		// set default birth rate to a constant 1 for all species
+		for (auto i = 0; i < n_spp; ++i) {
+				birth_rate_x[i] = std::vector<double>(10);
+				for (auto t = 0; t < 10; ++t) {
+						birth_rate_x[i][t] = t;
+				}
+				birth_rate_y[i] = std::vector<double>(10, 1.0);
+		}
   } else if (birth_rate_x.size() != n_spp || birth_rate_y.size() != n_spp) {
     util::stop("Incorrect birth_rate lengths");
   }
