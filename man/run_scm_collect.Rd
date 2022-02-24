@@ -22,7 +22,7 @@ run_scm_collect(
 competition_effect)}
 }
 \description{
-Run the SCM model, given a Parameters and CohortSchedule
+Run the SCM model, given a Parameters and NodeSchedule
 }
 \details{
 This is mostly a simple wrapper around some of the SCM functions.

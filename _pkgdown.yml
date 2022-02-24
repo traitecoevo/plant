@@ -38,8 +38,8 @@ navbar:
           href: articles/emergent.html
         - text: "Calculating fitness"
           href: articles/fitness.html
-        - text: "The cohort spacing algorithm"
-          href: articles/cohort_spacing.html
+        - text: "The node spacing algorithm"
+          href: articles/node_spacing.html
         - text: "Changing parameters"
           href: articles/parameters.html
         - text: "Implementing a new strategy"

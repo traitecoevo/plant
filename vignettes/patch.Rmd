@@ -32,7 +32,7 @@ patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
 ```
 
 <!-- TODO: rename SCM to solve_characteristic_method (issue: \#206) -->
-and run the `plant` characteristic solver to step the equations defining cohorts of individuals forward in time:
+and run the `plant` characteristic solver to step the equations defining nodes of individuals forward in time:
 
 ```{r}
 result <- run_scm_collect(patch)
@@ -49,7 +49,7 @@ names(result)
 Entries are:
   * time: time of the step
   * species: a list with the state of each species (in this case there is only 1).  The contents is a 3D array of variable /
-    time step / cohort 
+    time step / node
   * env: a list containing 2D splines that describe the competitive environment of the patch at each step (e.g a matrix of canopy openness at a given height in the FF16 strategy)
   * seed_rain: the seed rain output from the patch during it's development
   * p: a copy of the input parameters
@@ -61,7 +61,7 @@ t <- result$time
 h <- result$species[[1]]["height", , ]
 ```
 
-here `h` is two of the three dimensions of the state array; each row is a *time* and each column is a *cohort*:
+here `h` is two of the three dimensions of the state array; each row is a *time* and each column is a *node*:
 
 ```{r}
 dim(h)
@@ -71,19 +71,19 @@ While the solver ran the patch ODEs for 142 steps, the time points are not evenl
 ```{r}
 signif(t[c(1, 10, 50, 100, 142)], 1)
 ```
-higher temporal resolution is needed to resolve early patch development, where small differences are magnified through competitive feedbacks. Our patch ran for 105 yrs, but the solver spent half the recorded steps exploring the first year alone. More on timing can be found in the [cohort scheduling algorithm](https://traitecoevo.github.io/plant/articles/cohort_spacing.html).
+higher temporal resolution is needed to resolve early patch development, where small differences are magnified through competitive feedbacks. Our patch ran for 105 yrs, but the solver spent half the recorded steps exploring the first year alone. More on timing can be found in the [node scheduling algorithm](https://traitecoevo.github.io/plant/articles/node_spacing.html).
 
-Cohorts are introduced at each time-step, except the last. At time step $i$, the rows of `h` record the height of all previously introduced cohorts in the patch:
+Nodes are introduced at each time-step, except the last. At time step $i$, the rows of `h` record the height of all previously introduced nodes in the patch:
 
 ```{r}
 h[10, 1:10]
 ```
-with `NA` for cohorts that have not yet been introduced:
+with `NA` for nodes that have not yet been introduced:
 ```{r}
 h[10, 11]
 ```
 
-Similarly, the $j$th column of `h` records the heights of a particular cohort: 
+Similarly, the $j$th column of `h` records the heights of a particular node:
 
 ```{r}
 h[10:19, 10]
@@ -93,15 +93,15 @@ with `NA` at time steps before it was introduced:
 sum(is.na(h[, 10]))
 ```
 
-With a single species there is always one more time step than cohort introduction, with the last two steps having the same number
-of cohorts. With multiple species there can be more time steps than cohort introductions, as we'll record data every cohort
+With a single species there is always one more time step than node introduction, with the last two steps having the same number
+of nodes. With multiple species there can be more time steps than node introductions, as we'll record data every node
 introduction for *either* species, each of which will be refined to different schedules.
 
 In the `FF16` strategy, Individuals increase in height with respect to time, but because they are competing the growth rate depends on the state of the environment (e.g. the amount of shading above an Individual's canopy), in addition to size dependent growth.
 
 <!-- TODO: Dead link- "(see vignette:plant)" -->
 
-We can plot the trajectories of cohorts developing within a patch over time:
+We can plot the trajectories of nodes developing within a patch over time:
 
 ```{r}
 matplot(t, h, lty=1, col=make_transparent("black", 0.25), type="l",
@@ -138,7 +138,7 @@ for (i in seq_along(times)) {
        adj=c(0, 0))
 }
 ```
-initally (bottom right) all cohorts in the patch are short and the canopy is rather open (close to one). In later stages of patch development, we see that only the tallest individuals experience an open canopy. Notably, the canopy openness experienced by shorter individuals fluctuates as older individuals die and canopy gaps are filled in.
+initally (bottom right) all nodes in the patch are short and the canopy is rather open (close to one). In later stages of patch development, we see that only the tallest individuals experience an open canopy. Notably, the canopy openness experienced by shorter individuals fluctuates as older individuals die and canopy gaps are filled in.
 
 This is best shown by plotting the canopy openness at ground level over time:
 
@@ -207,9 +207,9 @@ matplot(t, h, lty=1, col=make_transparent("black", .25), type="l",
 matlines(t2, h1, lty=1, col=make_transparent(cols[[1]], .25))
 ```
 
-This shows that the additional species does not significantly affect the growth of the *initial* wave of cohorts (because the second species is growing more slowly and is shorter than the first species). However, once canopy closure has occurred (around year 5), subsequent waves of arriving cohorts are competitively suppressed, slowed or eliminated.
+This shows that the additional species does not significantly affect the growth of the *initial* wave of nodes (because the second species is growing more slowly and is shorter than the first species). However, once canopy closure has occurred (around year 5), subsequent waves of arriving nodes are competitively suppressed, slowed or eliminated.
 
-The dynamics are easier to see when cohort trajectories are weighted by cohort density (some of the lines here represent cohorts at close to zero density). Log density is available as a characteristic variable of all `plant` strategies:
+The dynamics are easier to see when node trajectories are weighted by node density (some of the lines here represent nodes at close to zero density). Log density is available as a characteristic variable of all `plant` strategies:
 
 
 ```{r}
@@ -232,7 +232,7 @@ x <- matrix(rep(t2, ncol(h1)), nrow(h1))
 col1 <- matrix(make_transparent(cols[[1]], rd1), nrow(d1))
 col2 <- matrix(make_transparent(cols[[2]], rd2), nrow(d2))
 plot(NA, xlim=range(t2), ylim=range(h1, na.rm=TRUE),
-     las=1, xlab="Time (years)", ylab="Cohort height (m)")
+     las=1, xlab="Time (years)", ylab="Node height (m)")
 segments(x[-1, ], h2[-1, ], x[-n, ], h2[-n, ], col=col2[-n, ], lend="butt")
 segments(x[-1, ], h1[-1, ], x[-n, ], h1[-n, ], col=col1[-n, ], lend="butt")
 ```
@@ -288,7 +288,7 @@ axis(1, at=108, labels="Av")
 # Appendix - `ggplot` example
 
 ```{r}
-#' A standard plot for density weighted cohort trajectories
+#' A standard plot for density weighted node trajectories
 #'
 #' Parameters:
 #'  - result: the output of `run_scm_collect`
@@ -307,7 +307,7 @@ patch <- function(result, threshold = 1e-3) {
   n <- ncol(d)
   
   # Convert to long format
-  df <- data.frame(cohort = rep(1:n, each = length(t)),
+  df <- data.frame(node = rep(1:n, each = length(t)),
                    time = rep(t, times = n),
                    height = as.vector(h),
                    log_density = as.vector(d)) %>%
@@ -316,7 +316,7 @@ patch <- function(result, threshold = 1e-3) {
   
   # Plot with densities
   ggplot(df, aes(x = time, y = height,
-                 group = cohort, alpha = density)) +
+                 group = node, alpha = density)) +
     geom_line() + 
     labs(x = "Time (years)",
          y = "Height (m)",

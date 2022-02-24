@@ -1,61 +1,63 @@
 ---
-title: "Cohort spacing algorithm"
+title: "Node spacing algorithm"
 author: 
 - Rich FitzJohn
 - Daniel Falster
 date: 2016
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{cohort_spacing}
+  %\VignetteIndexEntry{node_spacing}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-<!-- This file is generated from the Rmd in inst/slow_vignettes. Make any edits there-->
+```{r, echo=FALSE, results="asis"}
+txt <- "<!-- This file is generated from the Rmd in inst/slow_vignettes. Make any edits there-->"
+writeLines(txt)
+```
 
 # Background
 
 As described in the [demography vignette](https://traitecoevo.github.io/plant/articles/demography.html#approximation-of-size-density-distribution-via-the-scm),
-the spacing of cohorts can affect the accuracy of integration over the
+the spacing of nodes can affect the accuracy of integration over the
 size-density distribution. `plant` uses an adaptive algorithm to build an 
-appropriately spaced cohort schedule with the desired accuracy at every time 
-point, using as few cohorts as possible.
+appropriately spaced node schedule with the desired accuracy at every time
+point, using as few nodes as possible.
 
 The `build_schedule` function takes an
-initial vector of introduction times and considers for each cohort
-whether removing that cohort causes the error introduced when
+initial vector of introduction times and considers for each node
+whether removing that node causes the error introduced when
 integrating two specified functions over the size-density distribution to jump
 over the allowable error threshold `schedule_eps`. This
 calculation is repeated for every time step in the development of the
-patch. A new cohort is introduced immediately prior to any cohort
+patch. A new node is introduced immediately prior to any node
 failing these tests. The dynamics of the patch are
 then simulated again and the process is repeated, until all integrations at
 all time points have an error below the tolerable limit
 `schedule_eps`. Decreasing `schedule_eps` demands higher
-accuracy from the solver, and thus increases the number of cohorts being
-introduced. Note that we are assessing whether removing an existing cohort
+accuracy from the solver, and thus increases the number of nodes being
+introduced. Note that we are assessing whether removing an existing node
 causes the error to jump above the threshold limit, and using this to decide
-whether an extra cohort -- in addition to the one used in the test --
+whether an extra node -- in addition to the one used in the test --
 should be introduced. Thus, the actual error is likely to
 be lower than, but at most equal to, `schedule_eps`.
 
-This vignette shows some details of cohort splitting, most of which happens 
+This vignette shows some details of node splitting, most of which happens
 automatically. It's probably not very interesting to most people, only those
 interested in knowing how the SCM technique works in detail.  It also uses a lot
 of non-exported, non-documented functions from plant so you'll see
 a lot of `plant:::` prefixes. 
 
 
-# Cohort introduction times
+# Node introduction times
 
 <!-- TODO: elaborate on why concentrating concentrating early helps -->
 
-The default cohort introduction times are designed to concentrate
-cohort introductions onto earlier times, based on empirical
-patterns of cohort refining:
+The default node introduction times are designed to concentrate
+node introductions onto earlier times, based on empirical
+patterns of node refining:
 
-
-```r
+```{r}
 library(plant)
 library(parallel)
 n_cores = max(1, detectCores() - 1)
@@ -64,37 +66,31 @@ params <- scm_base_parameters("FF16")
 patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
 patch$seed_rain <- 20
 
-times_default <- patch$cohort_schedule_times[[1]]
+times_default <- patch$node_schedule_times[[1]]
 plot(times_default, cex=.2, pch=19, ylab="Time (years)", las=1)
 ```
-
-![](figure/cohort_spacing__unnamed-chunk-2-1.png)
 <!-- TODO: explain how introducing two species together reduces work -->
 
 The actual differences are stepped in order to increase the chance
-that cohorts from different species will be introduced at the same
+that nodes from different species will be introduced at the same
 time and reduce the total amount of work being done.
 
-
-```r
+```{r}
 plot(diff(times_default), pch=19, cex=.2, ylab="Time difference (years)", las=1)
 ```
-
-![](figure/cohort_spacing__unnamed-chunk-3-1.png)
 
 
 # Seed rain
 
-We can assess the impact of cohort spacing on integration error by examining
+We can assess the impact of node spacing on integration error by examining
 the cumulative propagule output (e.g. seed rain) of a patch.
 
-Increasing the number of cohorts is expected to increase integration accuracy
+Increasing the number of nodes is expected to increase integration accuracy
 at the expense of more computational effort. We can create more refined schedules
 by interleaving points into the existing schedule:
 
 
-
-```r
+```{r}
 interleave <- function(x) {
   n <- length(x)
   xp <- c(x[-n] + diff(x) / 2, NA)
@@ -106,23 +102,20 @@ times_2x <- interleave(times_default)
 times_4x <- interleave(times_2x)
 times_8x <- interleave(times_4x)
 
-plot(times_default, xlab = "Cohort #", ylab="Time (years)", 
+plot(times_default, xlab = "Node #", ylab="Time (years)",
      xlim = c(1, length(times_8x)), las=1, pch = 19, cex=.2,)
 points(times_2x, pch=19, cex=.2, las=1, col = "blue")
 points(times_4x, pch=19, cex=.2, las=1, col = "red")
 points(times_8x, pch=19, cex=.2, las=1, col = "black")
 ```
-
-![](figure/cohort_spacing__unnamed-chunk-4-1.png)
-Each schedule runs for the same duration, but `times_high` has 4x as many cohorts.
-Running a patch with each cohort schedule allows us to compare the propagule 
+Each schedule runs for the same duration, but `times_high` has 4x as many nodes.
+Running a patch with each node schedule allows us to compare the propagule
 outputs:
 
 
-
-```r
+```{r}
 run_with_times <- function(patch, t) {
-  patch$cohort_schedule_times[[1]] <- t
+  patch$node_schedule_times[[1]] <- t
   
   start <- Sys.time()
   seed_rain <- run_scm(patch)$seed_rains
@@ -132,72 +125,41 @@ run_with_times <- function(patch, t) {
 }
 
 seed_rain_default <- run_with_times(patch, times_default)
-```
-
-```
-## [1] "Time to solve: 1.47"
-```
-
-```r
 seed_rain_2x <- run_with_times(patch, times_2x)
-```
-
-```
-## [1] "Time to solve: 2.97"
-```
-
-```r
 seed_rain_4x <- run_with_times(patch, times_4x)
-```
-
-```
-## [1] "Time to solve: 9.05"
-```
-
-```r
 seed_rain_8x <- run_with_times(patch, times_8x)
-```
 
-```
-## [1] "Time to solve: 28.6"
-```
-
-```r
-cohort_range <- c(length(times_default), length(times_2x), 
+node_range <- c(length(times_default), length(times_2x),
                   length(times_4x), length(times_8x))
 seed_rain_range <- c(seed_rain_default, seed_rain_2x, 
                      seed_rain_4x, seed_rain_8x)
 ```
-Quadrupling the number of cohorts results in nearly a 6x increase in runtime, 
-eight times the cohorts takes roughly 26x longer.
+Quadrupling the number of nodes results in nearly a 6x increase in runtime,
+eight times the nodes takes roughly 26x longer.
 
-
-```r
-plot(x = cohort_range, y = seed_rain_range,
-     xlab="Number of cohort introductions", ylab="Seed rain", las=1)
+```{r}
+plot(x = node_range, y = seed_rain_range,
+     xlab="Number of node introductions", ylab="Seed rain", las=1)
 ```
-
-![](figure/cohort_spacing__unnamed-chunk-6-1.png)
-Seed rain increases as cohorts are introduced more finely, 
+Seed rain increases as nodes are introduced more finely,
 though at a saturating rate, meaning there are diminishing returns in accuracy
-for additional cohorts.
+for additional nodes.
 
 
 The differences in seed rain are not actually that striking
 (perhaps 
-2%) but 
+`r signif(100 * diff(range(seed_rain_range)) / mean(seed_rain_range), 1)`%) but 
 the introduced  *variation* creates instabilities of sufficient concern.
 
 # Individual seed rain contributions
 
 Where is the fitness difference driving change in seed rain coming from? 
 
-Consider adding a *single* additional cohort at one of the points
+Consider adding a *single* additional node at one of the points
 along the first vector of times `times_default` and computing the 
 output seed rain:
 
-
-```r
+```{r}
 insert_time <- function(i, x) {
   j <- seq_len(i)
   c(x[j], (x[i] + x[i+1])/2, x[-j])
@@ -213,18 +175,15 @@ seed_rains <- unlist(mclapply(insert_positions, run_with_insert,
 seed_rain_differences <- seed_rains - seed_rain_default
 
 plot(insert_positions, seed_rain_differences, 
-     xlab="Cohort #", ylab="Difference from default seed rain", las=1)
+     xlab="Node #", ylab="Difference from default seed rain", las=1)
 abline(h=0, col="grey")
 ```
-
-![](figure/cohort_spacing__unnamed-chunk-7-1.png)
 
 The biggest deviations in output seed rain come about half way
 through the schedule, though because of the compression of early times 
 this occurs fairly early in patch development:
 
-
-```r
+```{r}
 times_interpolated <- (times_default[-1L] + 
                          times_default[-length(times_default)]) / 2
 
@@ -232,55 +191,49 @@ plot(times_interpolated, seed_rain_differences,
      xlab="Time (years)", ylab="Difference from default seed rain", las=1)
 abline(h=0, col="grey")
 ```
-
-![](figure/cohort_spacing__unnamed-chunk-8-1.png)
-Now look at the contribution of different cohorts to the overall patch output
+Now look at the contribution of different nodes to the overall patch output
 (log scaled for clarity):
 
-
-```r
+```{r}
 default <- run_scm(patch)
 
-# remove first cohort to avoid log(0)
-plot(times_default[-1], default$seed_rain_cohort(1)[-1], log = "y",
+# remove first node to avoid log(0)
+plot(times_default[-1], default$seed_rain_node(1)[-1], log = "y",
      xlab="Time (years)", ylab="Seed rain (log scale)")
 
 top_5 <- order(abs(seed_rain_differences), decreasing=TRUE)[1:5]
 abline(v=times_interpolated[top_5], col=c("red", rep("grey", 4)))
 ```
-
-![](figure/cohort_spacing__unnamed-chunk-9-1.png)
 <!-- TODO: there might be a clearer way to summarise this point -->
 
-In this case almost all the contribution comes from early cohorts 
+In this case almost all the contribution comes from early nodes
 (this is essentially a single-age stand of pioneers).  
 
-Overlaid on this are the five cohorts where extra refinement 
-(i.e. inserting an additional cohort) causes the largest
+Overlaid on this are the five nodes where extra refinement
+(i.e. inserting an additional node) causes the largest
 change in overall seed rain output (biggest difference in red).  
 
 The difference is not coming from seed rain contributions of those
-cohorts, which is basically zero, though it is higher than the
-surrounding cohorts.
+nodes, which is basically zero, though it is higher than the
+surrounding nodes.
 
 
 # Individual competitive impacts
 
-If the inserted cohorts are not altering seed rain through individual 
-contributions, they may be altering the output of neighbouring cohorts
+If the inserted nodes are not altering seed rain through individual
+contributions, they may be altering the output of neighbouring nodes
 through comepttive interactions.
 
 Here we investigate the differences in patch light environment after
-introducing the single cohort driving the greatest difference in seed output
+introducing the single node driving the greatest difference in seed output
 identified above.
 
-First we run patches with and without the extra cohort, collecting the complete
+First we run patches with and without the extra node, collecting the complete
 set of patch conditions at each timestep.
 
-
-```r
+```{r}
 collect_with_times <- function(patch, t) {
-  patch$cohort_schedule_times[[1]] <- t
+  patch$node_schedule_times[[1]] <- t
   result <- run_scm_collect(patch)
   return(result)
 }
@@ -297,8 +250,7 @@ environment over a common set of heights at each time step.
 We reconstruct the light environment spline for both runs, and compute
 canopy openness in both:
 
-
-```r
+```{r}
 interpolated_environment <- function(env, heights) {
   # intialise new spline with existing values
   spline <- plant:::Interpolator()
@@ -329,12 +281,11 @@ canopy_difference[abs(canopy_difference) < 1e-10] <- NA
 
 Taking the difference between light environments at each height and timestep,
 the resulting image plot is blue in regions where the refined light environment,
-with the additional cohort is lighter (higher canopy openness)
+with the additional node is lighter (higher canopy openness)
 and red in regions where the the light environment is darker with the additional
-cohort.
+node.
 
-
-```r
+```{r}
 # ColorBrewer's RdBu palette
 cols <- c("#B2182B", "#D6604D", "#F4A582", "#FDDBC7",
           "#D1E5F0", "#92C5DE", "#4393C3", "#2166AC")
@@ -343,11 +294,9 @@ pal <- colorRampPalette(cols)(20)
 image(results_default$time, heights, canopy_difference,
       xlab="Time (years)", ylab="Height (m)", las=1, col=pal)
 ```
-
-![](figure/cohort_spacing__unnamed-chunk-12-1.png)
 Canopy openness is
-9.68%
-lower for ~7 m tall cohorts at year 25. This increased competitive intensity
+`r round(100 * max(abs(canopy_difference), na.rm = T) / mean(canopy_default), 2)`%
+lower for ~7 m tall nodes at year 25. This increased competitive intensity
 may be driving differences in seed rain.
 
 # Monitoring integration accuracy
@@ -359,48 +308,43 @@ computes errors as the integration proceeds.
 
 We integrate two different functions over the size-density distribution,
 `area_leaf_error` and `seed_rain_error`, and assess how much removing the focal
-cohort increases the error in these two integrations. 
+node increases the error in these two integrations.
 
-`area_leaf_error`, determines how much the removal of the focal cohort 
+`area_leaf_error`, determines how much the removal of the focal node
 increases the error in the estimate of the total leaf area in the patch. 
 
-Similarly, `seed_rain_error`, determines how much the removal of the focal cohort 
+Similarly, `seed_rain_error`, determines how much the removal of the focal node
 increases the error in the estimate of the total seed
 production from the patch. The relative error in each integration is then
 calculated using the `local_error_integration` function.
 
 We've shown that large differences  manifest in canopy openness.
 Here we use `plant:::run_scm_error` to assess the integration error of
-the leaf area for all cohorts. 
+the leaf area for all nodes.
 
-The black line indicates the cohort identified as problematic above.
+The black line indicates the node identified as problematic above.
 
-
-```r
+```{r}
 patch_error <- plant:::run_scm_error(patch)
 image(times_default, times_default, patch_error$err$lai[[1]],
       xlab="Patch age (years)", ylab="Introduction time (years)", las=1)
 abline(h=times_default[top_5[1]])
 ```
 
-![](figure/cohort_spacing__unnamed-chunk-13-1.png)
-
 `plant:::run_scm_error` is used by the `build_schedule` function to find
-an appropriately refined cohort spacing algorithm that minimises both 
+an appropriately refined node spacing algorithm that minimises both
 integration errors. 
 
-
-```r
+```{r}
 patch_refined <- build_schedule(patch)
 seed_rain_refined <- attr(patch_refined, "seed_rain_out")
 ```
 
 We can see the impact of this refinement by repeating our earlier analysis
-and inserting a new cohort at each timestep and extracting the seed rain:
+and inserting a new node at each timestep and extracting the seed rain:
 
-
-```r
-times_refined <- patch_refined$cohort_schedule_times[[1]]
+```{r}
+times_refined <- patch_refined$node_schedule_times[[1]]
 
 insert_positions <- seq_len(length(times_refined) - 1)
 
@@ -415,18 +359,14 @@ plot(insert_positions, refined_differences,
 abline(h=0, col="grey")
 ```
 
-![](figure/cohort_spacing__unnamed-chunk-15-1.png)
-
-Some cohorts still introduce variation, however errors in seed rain are reduced
+Some nodes still introduce variation, however errors in seed rain are reduced
 by an order of magnitude, and are even smaller if considering relative error:
 
+```{r}
 
-```r
 plot(insert_positions, seed_rains_refined / seed_rain_refined - 1, 
      xlab="Index", ylab="Relative seed rain differences", las=1)
 ```
-
-![](figure/cohort_spacing__unnamed-chunk-16-1.png)
-The refined cohort introduction schedule results in a seed rain near the 
-saturating value identified in [# Seed rain] but with 211
-cohorts rather than the 1121 cohorts used in naive interpolation.
+The refined node introduction schedule results in a seed rain near the
+saturating value identified in [# Seed rain] but with `r length(times_refined)`
+nodes rather than the `r length(times_8x)` nodes used in naive interpolation.

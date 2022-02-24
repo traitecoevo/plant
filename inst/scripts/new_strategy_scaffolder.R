@@ -148,8 +148,8 @@ update_strategy_support <- function (name, template_strategy) {
   '         {{name}}_Strategy={{name}}_hyperpar',
   '         {{name}}=sprintf("{{name}}_Env")',
   '         {{name}}={{name}}_make_environment(...)',
-  '         "Parameters<{{name}},{{name}}_Env>"=`cohort_schedule_default__Parameters___{{name}}__{{name}}_Env`',
-  '         "Parameters<{{name}},{{name}}_Env>"=`make_cohort_schedule__Parameters___{{name}}__{{name}}_Env`'
+  '         "Parameters<{{name}},{{name}}_Env>"=`node_schedule_default__Parameters___{{name}}__{{name}}_Env`',
+  '         "Parameters<{{name}},{{name}}_Env>"=`make_node_schedule__Parameters___{{name}}__{{name}}_Env`'
   )
 
   update_file("R/strategy_support.R", templates, name, template_strategy, sep=",\n")
@@ -183,7 +183,7 @@ scaffold_files <- function (name, template_strategy) {
   files <- c(
     paste0('R/', tolower(template_strategy), '.R'),
     paste0('src/', tolower(template_strategy), '_strategy.cpp'),
-    paste0('src/', tolower(template_strategy), '_cohort.cpp'),
+    paste0('src/', tolower(template_strategy), '_node.cpp'),
     paste0('inst/include/plant/models/', tolower(template_strategy), '_strategy.h'),
     paste0('inst/include/plant/models/', tolower(template_strategy), '_environment.h'),
     paste0('tests/testthat/test-strategy-', tolower(template_strategy), '.R')

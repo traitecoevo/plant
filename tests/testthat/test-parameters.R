@@ -22,8 +22,8 @@ test_that("Creation & defaults", {
     expect_equal(p[names(expected)], expected)
     expect_equal(p$strategy_default, s)
 
-    expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$max_patch_lifetime))
-    expect_identical(p$cohort_schedule_times, list())
+    expect_identical(p$node_schedule_times_default, node_schedule_times_default(p$max_patch_lifetime))
+    expect_identical(p$node_schedule_times, list())
   }
 })
 
@@ -51,8 +51,8 @@ test_that("Nontrivial creation", {
                           birth_rate=pi,
                           is_resident=TRUE)
 
-    expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$max_patch_lifetime))
-    expect_identical(p$cohort_schedule_times, list(p$cohort_schedule_times_default))
+    expect_identical(p$node_schedule_times_default, node_schedule_times_default(p$max_patch_lifetime))
+    expect_identical(p$node_schedule_times, list(p$node_schedule_times_default))
 
     ## Now, with some of these set:
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
@@ -62,8 +62,8 @@ test_that("Nontrivial creation", {
 
     message(x, " ", p$max_patch_lifetime)
     expect_lt(p$max_patch_lifetime, 10)
-    expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$max_patch_lifetime))
-    expect_identical(p$cohort_schedule_times, list(p$cohort_schedule_times_default))
+    expect_identical(p$node_schedule_times_default, node_schedule_times_default(p$max_patch_lifetime))
+    expect_identical(p$node_schedule_times, list(p$node_schedule_times_default))
   }
 })
 
@@ -100,17 +100,17 @@ test_that("Nontrivial creation", {
 #   }
 # })
 
-test_that("Generate cohort schedule", {
+test_that("Generate node schedule", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
                           birth_rate=pi/2, is_resident=TRUE)
-    sched <- make_cohort_schedule(p)
+    sched <- make_node_schedule(p)
 
     expect_equal(sched$n_species, 1)
     expect_equal(sched$max_time, p$max_patch_lifetime)
-    expect_equal(sched$times(1), p$cohort_schedule_times_default)
-    expect_equal(sched$all_times, p$cohort_schedule_times)
+    expect_equal(sched$times(1), p$node_schedule_times_default)
+    expect_equal(sched$all_times, p$node_schedule_times)
   }
 })
 
@@ -142,12 +142,12 @@ test_that("Patch runtime", {
     ## This is going to force us back through the validator
     p$max_patch_lifetime <- 35.10667
     p2 <- validate(p)
-    expect_lt(last(p2$cohort_schedule_times_default), p2$max_patch_lifetime)
-    expect_equal(p2$cohort_schedule_times, list(p2$cohort_schedule_times_default))
+    expect_lt(last(p2$node_schedule_times_default), p2$max_patch_lifetime)
+    expect_equal(p2$node_schedule_times, list(p2$node_schedule_times_default))
 
-    ## We will blow away any data that is stored in p$cohort_schedule*
-    p$cohort_schedule_times_default <- 1:10
-    p$cohort_schedule_time <- list(1:11)
+    ## We will blow away any data that is stored in p$node_schedule*
+    p$node_schedule_times_default <- 1:10
+    p$node_schedule_time <- list(1:11)
     expect_equal(validate(p), p2)
   }
 })

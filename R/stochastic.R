@@ -25,7 +25,7 @@ stochastic_schedule <- function(p) {
   max_time  <- p$max_patch_lifetime
   birth_rate <- p$birth_rate * p$patch_area
   n_species <- length(birth_rate)
-  sched <- CohortSchedule(n_species)
+  sched <- NodeSchedule(n_species)
   sched$max_time <- max_time
   for (i in seq_along(birth_rate)) {
     sched$set_times(stochastic_arrival_times(max_time, birth_rate[[i]]), i)

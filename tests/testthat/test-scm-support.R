@@ -29,7 +29,7 @@ test_that("collect / make_patch", {
 
   dat <- dat[[1]]
   expect_is(dat, "matrix")
-  expect_equal(nrow(dat), length(p1_113$species[[1]]$cohorts))
+  expect_equal(nrow(dat), length(p1_113$species[[1]]$nodes))
   
   # once for rates, once for states
   n_int <- (Individual("FF16","FF16_Env")(p1$strategies[[1]])$ode_size * 2) +
@@ -43,7 +43,7 @@ test_that("collect / make_patch", {
   # possibly we could do this within C++ for a major speedup.
   ints <- scm_to_internals(res)
 
-  n_times <- length(p1$cohort_schedule_times[[1]])
+  n_times <- length(p1$node_schedule_times[[1]])
   expect_equal(length(ints), 1)
   ints <- ints[[1]]
   expect_is(ints, "array")

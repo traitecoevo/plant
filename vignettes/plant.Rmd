@@ -38,7 +38,7 @@ More extensive information and tutorials are available, such as:
 - [Finding demographic equilibrium](https://traitecoevo.github.io/plant/articles/equilibrium.html)  
 - [Emergent properties of patches](https://traitecoevo.github.io/plant/articles/emergent.html)  
 - [Calculating fitness](https://traitecoevo.github.io/plant/articles/fitness.html)  
-- [The cohort spacing algorithm](https://traitecoevo.github.io/plant/articles/cohort_spacing.html)  
+- [The node spacing algorithm](https://traitecoevo.github.io/plant/articles/node_spacing.html)
 - [Modifying parameters of strategies (modifying parameters of physiological model)](https://traitecoevo.github.io/plant/articles/parameters.html)  
 - [Implementing a new strategy](https://traitecoevo.github.io/plant/articles/strategy.html)  
 

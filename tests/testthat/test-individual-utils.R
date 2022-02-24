@@ -7,7 +7,7 @@ test_that("Default times", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     ## This is the original function, from tree1:
-    cmp_cohort_introduction_times <- function(max_time, multiplier=0.2,
+    cmp_node_introduction_times <- function(max_time, multiplier=0.2,
                                               min_step_size=1e-5,
                                               max_step_size=2.0) {
       if (min_step_size <= 0)
@@ -24,19 +24,19 @@ test_that("Default times", {
     }
 
     t1 <- 10.123
-    tt <- cohort_schedule_times_default(t1)
+    tt <- node_schedule_times_default(t1)
     expect_identical(tt[[1]], 0.0)
 
     expect_lt(last(tt), t1)
-    expect_equal(c(tt, t1), cmp_cohort_introduction_times(t1))
+    expect_equal(c(tt, t1), cmp_node_introduction_times(t1))
   }
 })
 
-test_that("Cohort schedule max time", {
+test_that("Node schedule max time", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)()
-    expect_lt(max(p$cohort_schedule_times_default), p$max_patch_lifetime)
+    expect_lt(max(p$node_schedule_times_default), p$max_patch_lifetime)
   }
 })
 
@@ -46,12 +46,12 @@ test_that("Default schedule", {
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]](), strategy_types[[x]]()),
                           birth_rate=c(pi/2, pi),
                           is_resident=c(TRUE, TRUE))
-    cohort_schedule <- cohort_schedule_default(p)
-    expect_is(cohort_schedule, "CohortSchedule")
-    expect_equal(cohort_schedule$n_species, length(p$strategies))
-    tt <- cohort_schedule_times_default(p$max_patch_lifetime)
-    expect_identical(cohort_schedule$times(1), tt)
-    expect_identical(cohort_schedule$times(2), tt)
+    node_schedule <- node_schedule_default(p)
+    expect_is(node_schedule, "NodeSchedule")
+    expect_equal(node_schedule$n_species, length(p$strategies))
+    tt <- node_schedule_times_default(p$max_patch_lifetime)
+    expect_identical(node_schedule$times(1), tt)
+    expect_identical(node_schedule$times(2), tt)
   }
 })
 

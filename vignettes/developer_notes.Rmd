@@ -99,7 +99,7 @@ strategies: ff16_strategy.h
 
 plant.h
 
-cohort.h
+node.h
 
 species.h
 
@@ -110,7 +110,7 @@ SCM.h
 Helpers:
 
 - parameters.h
-- cohort_schedule.h
+- node_schedule.h
 - control.h
 - disturbance.h
 - environment.h

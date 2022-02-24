@@ -12,7 +12,7 @@ equilibrium_birth_rate(p, ctrl)
 \item{ctrl}{Control object}
 }
 \value{
-A Parameters object, with offspring arrival and cohort schedule
+A Parameters object, with offspring arrival and node schedule
 elements set.
 }
 \description{
