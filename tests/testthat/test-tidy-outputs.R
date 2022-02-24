@@ -52,10 +52,10 @@ for (x in c("FF16", "K93")) {
     n_spp <- length(results$species)
     for(n in seq_len(n_spp))
       for(v in c("height", "mortality", "fecundity"))
-        for(node in c(1, 5, 10))
+        for(node_ in c(1, 5, 10))
           expect_equal(
-            results_tidy$species %>% dplyr::filter(species==n, node==node) %>% dplyr::pull(v),
-            results$species[[n]][v, ,node]
+            results_tidy$species %>% dplyr::filter(species==n, node==node_) %>% dplyr::pull(v),
+            results$species[[n]][v, ,node_]
             ) 
     
     core_vars_integrated <- setdiff(c("node"), names(results_tidy$species))
