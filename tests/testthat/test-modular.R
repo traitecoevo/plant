@@ -22,17 +22,17 @@ test_that("Construction", {
     expect_equal(class(p$strategy), class(s))
     expect_equal(p$strategy, s)
 
-    coh <- Node(x, e)(s)
+    node <- Node(x, e)(s)
 
-    expect_is(coh, "Node")
-    expect_is(coh, sprintf("Node<%s,%s>", x, e))
-    expect_equal(class(coh$individual), class(p))
+    expect_is(node, "Node")
+    expect_is(node, sprintf("Node<%s,%s>", x, e))
+    expect_equal(class(node$individual), class(p))
 
     sp <- Species(x, e)(s)
 
     expect_is(sp, "Species")
     expect_is(sp, sprintf("Species<%s,%s>", x, e))
-    expect_equal(class(sp$new_node), class(coh))
+    expect_equal(class(sp$new_node), class(node))
 
     par <- Parameters(x, e)(strategies=list(s))
     expect_is(par, "Parameters")
