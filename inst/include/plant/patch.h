@@ -18,7 +18,7 @@ public:
   typedef T                 strategy_type;
   typedef E                 environment_type;
   typedef Individual<T,E>   individual_type;
-  typedef Cohort<T,E>       cohort_type;
+  typedef Node<T,E>       node_type;
   typedef Species<T,E>      species_type;
   typedef Parameters<T,E>   parameters_type;
 
@@ -34,13 +34,13 @@ public:
   // [eqn 11] Canopy openness at `height`
   double compute_competition(double height) const;
 
-  void introduce_new_cohort(size_t species_index);
-  void introduce_new_cohorts(const std::vector<size_t>& species_index);
+  void introduce_new_node(size_t species_index);
+  void introduce_new_nodes(const std::vector<size_t>& species_index);
 
-  // Open to better ways to test whether cohorts have been introduced
-  int cohort_ode_size() const {
-    int cohort_ode_size = ode_size() - environment.ode_size();
-    return(cohort_ode_size);
+  // Open to better ways to test whether nodes have been introduced
+  int node_ode_size() const {
+    int node_ode_size = ode_size() - environment.ode_size();
+    return(node_ode_size);
   }
 
   const species_type& at(size_t species_index) const {
@@ -79,8 +79,8 @@ public:
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
                    const std::vector<double>& env);
-  void r_introduce_new_cohort(util::index species_index) {
-    introduce_new_cohort(species_index.check_bounds(size()));
+  void r_introduce_new_node(util::index species_index) {
+    introduce_new_node(species_index.check_bounds(size()));
   }
   species_type r_at(util::index species_index) const {
     at(species_index.check_bounds(size()));
@@ -188,18 +188,18 @@ void Patch<T,E>::compute_rates() {
 // points that are below the height of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
 template <typename T, typename E>
-void Patch<T,E>::introduce_new_cohort(size_t species_index) {
-  species[species_index].introduce_new_cohort();
+void Patch<T,E>::introduce_new_node(size_t species_index) {
+  species[species_index].introduce_new_node();
   if (parameters.is_resident[species_index]) {
     compute_environment();
   }
 }
 
 template <typename T, typename E>
-void Patch<T,E>::introduce_new_cohorts(const std::vector<size_t>& species_index) {
+void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
   bool recompute = false;
   for (size_t i : species_index) {
-    species[i].introduce_new_cohort();
+    species[i].introduce_new_node();
     recompute = recompute || parameters.is_resident[i];
   }
   if (recompute) {
@@ -228,7 +228,7 @@ void Patch<T,E>::r_set_state(double time,
   reset();
   for (size_t i = 0; i < n_species; ++i) {
     for (size_t j = 0; j < n[i]; ++j) {
-      species[i].introduce_new_cohort();
+      species[i].introduce_new_node();
     }
   }
   util::check_length(state.size(), ode_size());

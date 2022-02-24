@@ -16,7 +16,7 @@ namespace plant {
 // tracking who is who; deaths are going to make it hard to plot sizes
 // vs time without some care.
 //
-// One option is to make "StochasticCohort<T,E>" that would include an
+// One option is to make "StochasticNode<T,E>" that would include an
 // ID.  Another option is to track required bits of data that within
 // the patch somehow?
 template <typename T, typename E> class StochasticPatchRunner {
@@ -43,9 +43,9 @@ public:
   parameters_type r_parameters() const { return parameters; }
   const patch_type &r_patch() const { return patch; }
 
-  // TODO: consider renaming CohortSchedule -> Schedule
-  CohortSchedule r_schedule() const { return schedule; }
-  void r_set_schedule(CohortSchedule x);
+  // TODO: consider renaming NodeSchedule -> Schedule
+  NodeSchedule r_schedule() const { return schedule; }
+  void r_set_schedule(NodeSchedule x);
   void r_set_schedule_times(std::vector<std::vector<double>> x);
 
 private:
@@ -53,7 +53,7 @@ private:
 
   parameters_type parameters;
   patch_type patch;
-  CohortSchedule schedule;
+  NodeSchedule schedule;
   ode::Solver<patch_type> solver;
 };
 
@@ -82,14 +82,14 @@ size_t StochasticPatchRunner<T, E>::run_next() {
   // single event at a given time.  That's not all bad -- multiple
   // events could occur at a single time but the time-saving trick of
   // not computing the light environment would not work.
-  CohortSchedule::Event e = schedule.next_event();
+  NodeSchedule::Event e = schedule.next_event();
   if (!util::identical(t0, e.time_introduction())) {
     util::stop("Start time not what was expected");
   }
   const size_t idx = e.species_index;
   schedule.pop();
 
-  if (patch.introduce_new_cohort(idx)) {
+  if (patch.introduce_new_node(idx)) {
     solver.set_state_from_system(patch);
   }
   advance(e.time_end());
@@ -141,7 +141,7 @@ util::index StochasticPatchRunner<T, E>::r_run_next() {
 }
 
 template <typename T, typename E>
-void StochasticPatchRunner<T, E>::r_set_schedule(CohortSchedule x) {
+void StochasticPatchRunner<T, E>::r_set_schedule(NodeSchedule x) {
   if (patch.ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
@@ -150,7 +150,7 @@ void StochasticPatchRunner<T, E>::r_set_schedule(CohortSchedule x) {
 
   // Update these here so that extracting Parameters would give the
   // new schedule, this making Parameters sufficient.
-  parameters.cohort_schedule_times = schedule.get_times();
+  parameters.node_schedule_times = schedule.get_times();
   reset();
 }
 
@@ -161,7 +161,7 @@ void StochasticPatchRunner<T, E>::r_set_schedule_times(
     util::stop("Cannot set schedule without resetting first");
   }
   schedule.set_times(x);
-  parameters.cohort_schedule_times = x;
+  parameters.node_schedule_times = x;
   reset();
 }
 

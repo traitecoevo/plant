@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef PLANT_PLANT_COHORT_SCHEDULE_H_
-#define PLANT_PLANT_COHORT_SCHEDULE_H_
+#ifndef PLANT_PLANT_NODE_SCHEDULE_H_
+#define PLANT_PLANT_NODE_SCHEDULE_H_
 
 #include <RcppCommon.h> // SEXP
 #include <plant/util.h>
@@ -16,9 +16,9 @@ namespace plant {
 // now.  The main reason for keeping this as a separate class is it
 // only makes sense to have a nontrivial constructor, and that's not
 // yet supported for RcppR6 lists.
-class CohortScheduleEvent {
+class NodeScheduleEvent {
 public:
-  CohortScheduleEvent(double introduction, size_t species_index_)
+  NodeScheduleEvent(double introduction, size_t species_index_)
     : species_index(species_index_) {
     times.push_back(introduction);
   }
@@ -36,13 +36,13 @@ public:
   std::vector<double> times;
 };
 
-class CohortSchedule {
+class NodeSchedule {
 public:
-  typedef CohortScheduleEvent Event;
-  CohortSchedule(size_t n_species_);
+  typedef NodeScheduleEvent Event;
+  NodeSchedule(size_t n_species_);
   size_t size() const;
   size_t get_n_species() const;
-  CohortSchedule expand(size_t n_extra, std::vector<double> times);
+  NodeSchedule expand(size_t n_extra, std::vector<double> times);
 
   void clear_times(size_t species_index);
   void set_times(const std::vector<double>& times_, size_t species_index);
@@ -68,7 +68,7 @@ public:
   void r_set_use_ode_times(bool x);
   SEXP r_all_times() const;
   void r_set_all_times(SEXP x);
-  CohortSchedule r_copy() const;
+  NodeSchedule r_copy() const;
 
 private:
   typedef std::list<Event>::iterator events_iterator;

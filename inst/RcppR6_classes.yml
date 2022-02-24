@@ -42,8 +42,8 @@ OdeRunner:
     set_state: {return_type: void, args: [y: "plant::ode::state_type", time: double]}
     set_state_from_system: {return_type: void}
 
-CohortScheduleEvent:
-  name_cpp: "plant::CohortScheduleEvent"
+NodeScheduleEvent:
+  name_cpp: "plant::NodeScheduleEvent"
   constructor:
     args: [introduction: double, species_index: "plant::util::index"]
   active:
@@ -53,18 +53,18 @@ CohortScheduleEvent:
     time_end: {type: double, access: member}
     species_index_raw: {type: "size_t", access: member, name_cpp: species_index_raw}
 
-CohortSchedule:
-  name_cpp: "plant::CohortSchedule"
+NodeSchedule:
+  name_cpp: "plant::NodeSchedule"
   constructor:
     roxygen: |
-      Schedule of cohort introduction times
+      Schedule of node introduction times
       @param n_species number of species
       @export
     args: [n_species: size_t]
   active:
     size: {type: size_t, access: member}
     n_species: {type: size_t, access: member, name_cpp: get_n_species}
-    next_event: {type: "plant::CohortScheduleEvent", access: member}
+    next_event: {type: "plant::NodeScheduleEvent", access: member}
     remaining: {type: size_t, access: member}
     max_time: {type: double, access: member, name_cpp: get_max_time, name_cpp_set: r_set_max_time}
     ode_times: {type: "std::vector<double>", access: member, name_cpp: r_ode_times, name_cpp_set: r_set_ode_times}
@@ -72,7 +72,7 @@ CohortSchedule:
     all_times: {type: SEXP, access: member, name_cpp: r_all_times, name_cpp_set: r_set_all_times}
   methods:
     expand:
-      return_type: "plant::CohortSchedule"
+      return_type: "plant::NodeSchedule"
       args: [n_extra: size_t, times: "std::vector<double>"]
     clear_times:
       return_type: void
@@ -93,7 +93,7 @@ CohortSchedule:
     pop:
       return_type: void
     copy:
-      return_type: "plant::CohortSchedule"
+      return_type: "plant::NodeSchedule"
       name_cpp: r_copy
 
 Control:
@@ -111,10 +111,10 @@ Control:
     - assimilator_integration_rule: size_t
     - offspring_production_tol: double
     - offspring_production_iterations: int
-    - cohort_gradient_eps: double
-    - cohort_gradient_direction: int
-    - cohort_gradient_richardson: bool
-    - cohort_gradient_richardson_depth: size_t
+    - node_gradient_eps: double
+    - node_gradient_direction: int
+    - node_gradient_richardson: bool
+    - node_gradient_richardson_depth: size_t
     - ode_step_size_initial: double
     - ode_step_size_min: double
     - ode_step_size_max: double
@@ -361,12 +361,12 @@ Parameters:
     - birth_rate: "std::vector<double>"
     - is_resident: "std::vector<bool>"
     - strategy_default: "T"
-    - cohort_schedule_times_default: "std::vector<double>"
-    - cohort_schedule_times: "std::vector<std::vector<double> >"
-    - cohort_schedule_ode_times: "std::vector<double>"
+    - node_schedule_times_default: "std::vector<double>"
+    - node_schedule_times: "std::vector<std::vector<double> >"
+    - node_schedule_ode_times: "std::vector<double>"
 
-Cohort:
-  name_cpp: "plant::Cohort<T,E>"
+Node:
+  name_cpp: "plant::Node<T,E>"
   templates:
     parameters: [T,E]
     concrete:
@@ -375,7 +375,7 @@ Cohort:
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    name_cpp: "plant::make_cohort<T,E>"
+    name_cpp: "plant::make_node<T,E>"
     args: [strategy: T]
   active:
     individual: {type: "plant::Individual<T,E>", access: field, readonly: true}
@@ -416,12 +416,12 @@ Species:
     args: [strategy: T]
   active:
     size: {type: size_t, access: member}
-    new_cohort: {type: "plant::Cohort<T,E>", access: member, name_cpp: r_new_cohort}
+    new_node: {type: "plant::Node<T,E>", access: member, name_cpp: r_new_node}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     log_densities: {type: "std::vector<double>", access: member, name_cpp: r_log_densities}
-    cohorts: {type: "std::vector<plant::Cohort<T,E> >", access: member, name_cpp: r_cohorts}
-    net_reproduction_ratio_by_cohort: {type: "std::vector<double>", access: member}
+    nodes: {type: "std::vector<plant::Node<T,E> >", access: member, name_cpp: r_nodes}
+    net_reproduction_ratio_by_node: {type: "std::vector<double>", access: member}
     competition_effects: {type: "std::vector<double>", access: member, name_cpp: r_competition_effects}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
@@ -436,12 +436,12 @@ Species:
     compute_competition:
       return_type: double
       args: [height: double]
-    introduce_new_cohort:
+    introduce_new_node:
       return_type: void
-    cohort_at:
-      return_type: "plant::Cohort<T,E>"
+    node_at:
+      return_type: "plant::Node<T,E>"
       args: [index: "plant::util::index"]
-      name_cpp: r_cohort_at
+      name_cpp: r_node_at
     competition_effects_error:
       return_type: "std::vector<double>"
       args: [scal: double=1]
@@ -474,12 +474,12 @@ Patch:
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state"}
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
     ode_aux: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_aux"}
-    cohort_ode_size: {type: size_t, access: member}
+    node_ode_size: {type: size_t, access: member}
   methods:
-    introduce_new_cohort:
+    introduce_new_node:
       return_type: void
       args: [species_index: "plant::util::index"]
-      name_cpp: r_introduce_new_cohort
+      name_cpp: r_introduce_new_node
     compute_environment:
       return_type: void
       name_cpp: r_compute_environment
@@ -491,7 +491,7 @@ Patch:
       return_type: void
     # Because we now care about time, we need to make sure that the
     # setter function passes time along, so can't be done via the
-    # active binding (unlike Species, Cohort, etc).
+    # active binding (unlike Species, Node, etc).
     set_ode_state:
       return_type: void
       access: function
@@ -548,10 +548,10 @@ SCM:
       args: [species_index: "plant::util::index"]
       return_type: "std::vector<double>"
       name_cpp: r_competition_effect_error
-    set_cohort_schedule_times:
+    set_node_schedule_times:
       args: [times: "std::vector<std::vector<double> >"]
       return_type: void
-      name_cpp: r_set_cohort_schedule_times
+      name_cpp: r_set_node_schedule_times
     # times
     # set_times
   active:
@@ -564,11 +564,11 @@ SCM:
       type: "plant::Patch<T,E>"
       access: member
       name_cpp: r_patch
-    cohort_schedule:
-      type: "plant::CohortSchedule"
+    node_schedule:
+      type: "plant::NodeSchedule"
       access: member
-      name_cpp: r_cohort_schedule
-      name_cpp_set: r_set_cohort_schedule
+      name_cpp: r_node_schedule
+      name_cpp_set: r_set_node_schedule
     ode_times:
       type: "std::vector<double>"
       access: member
@@ -605,12 +605,12 @@ StochasticSpecies:
   active:
     size: {type: size_t, access: member}
     size_individuals: {type: size_t, access: member}
-    new_cohort: {type: "plant::Individual<T,E>", access: member, name_cpp: r_new_cohort}
+    new_node: {type: "plant::Individual<T,E>", access: member, name_cpp: r_new_node}
     height_max: {type: double, access: member, readonly: true}
     heights: {type: "std::vector<double>", access: member, name_cpp: r_heights, name_cpp_set: r_set_heights}
     individuals: {type: "std::vector<plant::Individual<T,E> >", access: member, name_cpp: r_individuals}
     is_alive: {type: "std::vector<bool>", access: member, name_cpp: r_is_alive}
-    net_reproduction_ratio_by_cohort: {type: "std::vector<double>", access: member}
+    net_reproduction_ratio_by_node: {type: "std::vector<double>", access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
@@ -624,7 +624,7 @@ StochasticSpecies:
     compute_competition:
       return_type: double
       args: [height: double]
-    introduce_new_cohort:
+    introduce_new_node:
       return_type: void
     individual_at:
       return_type: "plant::Individual<T,E>"
@@ -664,14 +664,14 @@ StochasticPatch:
     ode_rates: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_rates"}
   methods:
     compute_competition: {return_type: double, args: [height: double]}
-    introduce_new_cohort:
+    introduce_new_node:
       return_type: bool
       args: [species_index: "plant::util::index"]
-      name_cpp: r_introduce_new_cohort
-    introduce_new_cohort_and_update:
+      name_cpp: r_introduce_new_node
+    introduce_new_node_and_update:
       return_type: void
       args: [species_index: "plant::util::index"]
-      name_cpp: r_introduce_new_cohort_and_update
+      name_cpp: r_introduce_new_node_and_update
     compute_environment:
       return_type: void
       name_cpp: r_compute_environment
@@ -683,7 +683,7 @@ StochasticPatch:
       return_type: void
     # Because we now care about time, we need to make sure that the
     # setter function passes time along, so can't be done via the
-    # active binding (unlike Species, Cohort, etc).
+    # active binding (unlike Species, Node, etc).
     set_ode_state:
       return_type: void
       access: function
@@ -736,7 +736,7 @@ StochasticPatchRunner:
       access: member
       name_cpp: r_patch
     schedule:
-      type: "plant::CohortSchedule"
+      type: "plant::NodeSchedule"
       access: member
       name_cpp: r_schedule
       name_cpp_set: r_set_schedule
