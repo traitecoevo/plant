@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <Rcpp.h>
 
+#include <plant/extrinsic_drivers.h>
+
 using namespace Rcpp;
 
 namespace plant {
