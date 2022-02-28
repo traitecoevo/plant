@@ -27,16 +27,20 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment& environmen
   const double turnover_ =
     turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
 
-  const double water_ = water_access(environment, height, area_leaf_);
+water_use(environment, assimilation_);
   return net_mass_production_dt_A(assimilation_, respiration_, turnover_);
 }
 
 // TODO: basic test of accessing environment state
-double FF16w_Strategy::water_access(const FF16_Environment &environment,
-                                    double height, double area_leaf_) {
-
-  std::vector<double> water_ = environment.get_soil_water_state();
-  return water_[0];
+void FF16w_Strategy::water_use(const FF16_Environment &environment,
+                                    double assimilation) {
+//calculate water use based on assimilation
+std::vector<double> water = environment.get_soil_water_state();
+//just working with one layer first
+double water_ = water[0];
+double water_use_ = assimilation * gd;
+// will use consumption rates once merged
+  environment.set_soil_water_rate(-water_use_);
 }
 
 FF16w_Strategy::ptr make_strategy_ptr(FF16w_Strategy s) {
