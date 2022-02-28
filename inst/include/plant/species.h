@@ -91,7 +91,7 @@ template <typename T, typename E>
 Species<T,E>::Species(strategy_type s)
   : strategy(make_strategy_ptr(s)),
     new_cohort(strategy) {
-			extrinsic_drivers["birth_rate"] = interpolator::Interpolator();
+//			extrinsic_drivers["birth_rate"] = interpolator::Interpolator();
 }
 
 template <typename T, typename E>
