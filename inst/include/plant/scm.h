@@ -192,7 +192,7 @@ std::vector<double> SCM<T, E>::offspring_production() const {
 		auto const& times = cohort_schedule.times(i);
 		auto scalars = std::vector<double>(times.size());
 		for (size_t j = 0; j < times.size(); ++j) {
-			scalars[j] = patch.at(i).extrinsic_driver_evaluate("birth_rate", times[j]);
+			scalars[j] = patch.at(i).extrinsic_drivers().evaluate("birth_rate", times[j]);
 		}
 		ret[i] = net_reproduction_ratio_for_species(i, scalars);
   }

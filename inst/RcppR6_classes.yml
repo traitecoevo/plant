@@ -358,9 +358,6 @@ Parameters:
     - patch_type: "std::string"
     - max_patch_lifetime: double
     - strategies: "std::vector<T>"
-    - birth_rate_x: "std::vector<std::vector<double> >"
-    - birth_rate_y: "std::vector<std::vector<double> >"
-    - is_interpolated_birth_rate: "std::vector<bool>"
     - is_resident: "std::vector<bool>"
     - strategy_default: "T"
     - cohort_schedule_times_default: "std::vector<double>"
@@ -448,21 +445,21 @@ Species:
       return_type: "std::vector<double>"
       args: [scal: double=1]
       name_cpp: r_competition_effects_error
-    set_extrinsic_driver:
-      args: [driver_name: "std::string", x: "std::vector<double>", y: "std::vector<double>"]
-      return_type: void
-    extrinsic_driver_extrapolation:
-      args: [driver_name: "std::string", extrapolate: bool]
-      return_type: void
-    extrinsic_driver_evaluate:
-      args: [driver_name: "std::string", u: double]
-      return_type: double
-    extrinsic_driver_evaluate_range:
-      args: [driver_name: "std::string", u: "std::vector<double>"]
-      return_type: "std::vector<double>"
-    get_extrinsic_driver_names:
-      args: []
-      return_type: "std::vector<std::string>"
+#    set_extrinsic_driver:
+#      args: [driver_name: "std::string", x: "std::vector<double>", y: "std::vector<double>"]
+#      return_type: void
+#    extrinsic_driver_extrapolation:
+#      args: [driver_name: "std::string", extrapolate: bool]
+#      return_type: void
+#    extrinsic_driver_evaluate:
+#      args: [driver_name: "std::string", u: double]
+#      return_type: double
+#    extrinsic_driver_evaluate_range:
+#      args: [driver_name: "std::string", u: "std::vector<double>"]
+#      return_type: "std::vector<double>"
+#    get_extrinsic_driver_names:
+#      args: []
+#      return_type: "std::vector<std::string>"
 
 Patch:
   name_cpp: "plant::Patch<T,E>"

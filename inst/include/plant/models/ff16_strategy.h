@@ -13,6 +13,11 @@ public:
   typedef std::shared_ptr<FF16_Strategy> ptr;
   FF16_Strategy();
 
+  // birth rate spline control points for each species
+  std::vector<double> birth_rate_x;
+  std::vector<double> birth_rate_y;
+  // whether the spline for each species should be constant fn or not (extrapolation on/off)
+  bool is_variable_birth_rate;
   // Overrides ----------------------------------------------
 
   // update this when the length of state_names changes

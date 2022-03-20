@@ -7,6 +7,7 @@
 #include <plant/environment.h>
 #include <plant/ode_interface.h>
 #include <plant/cohort.h>
+#include <plant/extrinsic_drivers.h>
 
 namespace plant {
 
@@ -70,18 +71,19 @@ public:
 
   // This is just kind of useful
   std::vector<double> r_log_densities() const;
-	void set_extrinsic_driver(std::string driver_name, std::vector<double> const& x, std::vector<double> const& y);
-	void extrinsic_driver_extrapolation(std::string driver_name, bool extrapolate);
-	double extrinsic_driver_evaluate(std::string driver_name, double u) const;
-	std::vector<std::string> get_extrinsic_driver_names() const;
-	std::vector<double> extrinsic_driver_evaluate_range(std::string driver_name, std::vector<double> u) const;
+  const ExtrinsicDrivers& extrinsic_drivers() const {return strategy->extrinsic_drivers;}
+//	void set_extrinsic_driver(std::string driver_name, std::vector<double> const& x, std::vector<double> const& y);
+//	void extrinsic_driver_extrapolation(std::string driver_name, bool extrapolate);
+//	double extrinsic_driver_evaluate(std::string driver_name, double u) const;
+//	std::vector<std::string> get_extrinsic_driver_names() const;
+//	std::vector<double> extrinsic_driver_evaluate_range(std::string driver_name, std::vector<double> u) const;
 
 private:
   const Control& control() const {return strategy->get_control();}
   strategy_type_ptr strategy;
   cohort_type new_cohort;
   std::vector<cohort_type> cohorts;
-  std::unordered_map<std::string, interpolator::Interpolator> extrinsic_drivers;
+  //std::unordered_map<std::string, interpolator::Interpolator> extrinsic_drivers;
 
   typedef typename std::vector<cohort_type>::iterator cohorts_iterator;
   typedef typename std::vector<cohort_type>::const_iterator cohorts_const_iterator;
@@ -291,47 +293,47 @@ std::vector<double> Species<T,E>::r_log_densities() const {
   return ret;
 }
 
-/* extrinsic drivers - if we run with this and there are no difference between these functions and the ones in
+/* extrinsic drivers - if  e run with this and there are no difference between these functions and the ones in
  * environment.h, we should abstract it all to an extrinsic_drivers class*/
 
-// initialise spline of driver with x, y control points
-template <typename T, typename E>
-void Species<T,E>::set_extrinsic_driver(std::string driver_name, std::vector<double> const& x, std::vector<double> const& y) {
-    // if we wanted to be faster we could skip this check (but less safe)
-    if (extrinsic_drivers.count(driver_name) == 0) {
-        util::stop(driver_name + " doesn't exist in the list of extrinsic_drivers.");
-    } else {
-        extrinsic_drivers.at(driver_name).init(x, y);
-        extrinsic_driver_extrapolation(driver_name, false); // default no extrapolation
-    }
-}
-
-template <typename T, typename E>
-void Species<T,E>::extrinsic_driver_extrapolation(std::string driver_name, bool extrapolate) {
-    extrinsic_drivers.at(driver_name).set_extrapolate(extrapolate);
-}
-
-// evaluate/query interpolated spline for driver at point u, return s(u), where s is interpolated function
-template <typename T, typename E>
-double Species<T,E>::extrinsic_driver_evaluate(std::string driver_name, double u) const {
-    return extrinsic_drivers.at(driver_name).eval(u);
-}
-
-// evaluate/query interpolated spline for driver at vector of points, return vector of values
-template <typename T, typename E>
-std::vector<double> Species<T,E>::extrinsic_driver_evaluate_range(std::string driver_name, std::vector<double> u) const {
-    return extrinsic_drivers.at(driver_name).r_eval(u);
-}
-
-// returns the name of each active driver - useful for R output
-template <typename T, typename E>
-std::vector<std::string> Species<T,E>::get_extrinsic_driver_names() const {
-    auto ret = std::vector<std::string>();
-    for (auto const& driver : extrinsic_drivers) {
-        ret.push_back(driver.first);
-    }
-    return ret;
-}
+//// initialise spline of driver with x, y control points
+//template <typename T, typename E>
+//void Species<T,E>::set_extrinsic_driver(std::string driver_name, std::vector<double> const& x, std::vector<double> const& y) {
+//    // if we wanted to be faster we could skip this check (but less safe)
+//    if (extrinsic_drivers.count(driver_name) == 0) {
+//        util::stop(driver_name + " doesn't exist in the list of extrinsic_drivers.");
+//    } else {
+//        extrinsic_drivers.at(driver_name).init(x, y);
+//        extrinsic_driver_extrapolation(driver_name, false); // default no extrapolation
+//    }
+//}
+//
+//template <typename T, typename E>
+//void Species<T,E>::extrinsic_driver_extrapolation(std::string driver_name, bool extrapolate) {
+//    extrinsic_drivers.at(driver_name).set_extrapolate(extrapolate);
+//}
+//
+//// evaluate/query interpolated spline for driver at point u, return s(u), where s is interpolated function
+//template <typename T, typename E>
+//double Species<T,E>::extrinsic_driver_evaluate(std::string driver_name, double u) const {
+//    return extrinsic_drivers.at(driver_name).eval(u);
+//}
+//
+//// evaluate/query interpolated spline for driver at vector of points, return vector of values
+//template <typename T, typename E>
+//std::vector<double> Species<T,E>::extrinsic_driver_evaluate_range(std::string driver_name, std::vector<double> u) const {
+//    return extrinsic_drivers.at(driver_name).r_eval(u);
+//}
+//
+//// returns the name of each active driver - useful for R output
+//template <typename T, typename E>
+//std::vector<std::string> Species<T,E>::get_extrinsic_driver_names() const {
+//    auto ret = std::vector<std::string>();
+//    for (auto const& driver : extrinsic_drivers) {
+//        ret.push_back(driver.first);
+//    }
+//    return ret;
+//}
 
 }
 

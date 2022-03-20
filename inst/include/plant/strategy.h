@@ -8,6 +8,7 @@
 #include <plant/uniroot.h>
 #include <RcppCommon.h> // NA_REAL
 #include <plant/uniroot.h>
+#include <plant/extrinsic_drivers.h>
 
 
 namespace plant {
@@ -71,6 +72,8 @@ public:
   Control control;
 
   std::string name;
+
+  ExtrinsicDrivers extrinsic_drivers;
 };
 
 
