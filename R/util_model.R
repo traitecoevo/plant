@@ -11,7 +11,7 @@
 ##'   will be applied.
 ##'
 ##' @export
-strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
+strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list) {
   if (!is.matrix(x)) {
     stop("Invalid type x -- expected a matrix")
   }
@@ -20,11 +20,18 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
   x <- hyperpar(x, strategy)
 
   trait_names <- colnames(x)
-  f <- function(xi) {
+  f <- function(xi, br) {
     strategy[trait_names] <- xi
+    strategy$birth_rate_x <- br$x
+    strategy$birth_rate_y <- br$y
+    if (length(br$y) == 1) {
+      strategy$is_variable_birth_rate <- TRUE
+    } else {
+      strategy$is_variable_birth_rate <- FALSE
+    }
     strategy
   }
-  lapply(matrix_to_list(x), f)
+  mapply(f, matrix_to_list(x), birth_rate_list)
 }
 
 ##' @export
@@ -84,11 +91,14 @@ trait_matrix <- function(x, trait_name) {
 ##' density).
 ##' @author Rich FitzJohn
 ##' @export
-expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutant=TRUE) {
+expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutant=TRUE, birth_rate_list) {
   if (length(mutant) != 1L) {
     stop("mutant must be scalar")
   }
-  extra <- strategy_list(trait_matrix, p, hyperpar)
+  if(2*nrow(trait_matrix) != length(birth_rate_list)) {
+    stop("Must provide a birth rate input for each species")
+  }
+  extra <- strategy_list(trait_matrix, p, hyperpar, birth_rate_list)
   n_extra <- length(extra)
   
   ret <- p <- validate(p) # Ensure times are set up correctly.
