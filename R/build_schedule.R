@@ -109,6 +109,7 @@ build_schedule <- function(p, env = make_environment(parameters = p),
     attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
   }
 
+  # This gives the wrong message if integration succeeds.
   if(i == ctrl$schedule_nsteps)
     plant_log_debug("Maximum number of iterations reached", routine="schedule")
   else
