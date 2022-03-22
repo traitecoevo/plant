@@ -24,14 +24,14 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
     strategy[trait_names] <- xi
     strategy$birth_rate_x <- br$x
     strategy$birth_rate_y <- br$y
-    if (length(br$y) == 1) {
+    if (length(br$y) > 1) {
       strategy$is_variable_birth_rate <- TRUE
     } else {
       strategy$is_variable_birth_rate <- FALSE
     }
     strategy
   }
-  mapply(f, matrix_to_list(x), birth_rate_list)
+  mapply(f, matrix_to_list(x), birth_rate_list, SIMPLIFY = FALSE)
 }
 
 ##' @export
@@ -95,7 +95,7 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
   if (length(mutant) != 1L) {
     stop("mutant must be scalar")
   }
-  if(2*nrow(trait_matrix) != length(birth_rate_list)) {
+  if(nrow(trait_matrix) != length(birth_rate_list)) {
     stop("Must provide a birth rate input for each species")
   }
   extra <- strategy_list(trait_matrix, p, hyperpar, birth_rate_list)
@@ -104,7 +104,6 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
   ret <- p <- validate(p) # Ensure times are set up correctly.
   ret$strategies <- c(p$strategies, extra)
   ret$is_resident <- c(p$is_resident, rep(!mutant, n_extra))
-  ret$birth_rate <- c(p$birth_rate, rep(1.0, n_extra))
   
   ## Introduce mutants at all unique times:
   if (length(p$strategies) == 0L || !mutant) {
