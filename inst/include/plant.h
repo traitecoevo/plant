@@ -16,6 +16,7 @@
 
 #include <plant/environment.h>
 #include <plant/canopy.h>
+#include <plant/leaf_model.h>
 
 #include <plant/control.h>
 #include <plant/strategy.h>

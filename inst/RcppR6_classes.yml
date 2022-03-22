@@ -1,3 +1,30 @@
+Leaf:
+  name_cpp: "plant::Leaf"
+  constructor:
+  # active:
+  #   integrator: {type: "plant::quadrature::QAG", access: field}
+  methods:
+    initialize_integrator:
+      return_type: void
+      args: [integration_rule: int, integration_tol: double]
+    calc_soil_water_pot:
+      return_type: double
+      args: [environment: "plant::FF16_Environment", psi_aep: double, b_CH: double]
+    calc_k_l_max:
+      return_type: double
+      args: [K_s: double, h_v: double, h: double]
+    calc_vul_b:
+      return_type: double
+      args: [p_50: double, c: double]
+    # calc_cond_vuln:
+    # calc_E_supply:
+    # calc_g_c:
+    # calc_A_c:
+    # calc_A_j:
+    # calc_A_lim:
+    # diff_ci:
+    # solve_A_lim:
+
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
   constructor:
