@@ -985,6 +985,9 @@ template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
   ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
   ret["control"] = Rcpp::wrap(x.control);
   ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
+  ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
+  ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
+  ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
   ret.attr("class") = "FF16_Strategy";
   return ret;
 }
@@ -1065,6 +1068,12 @@ template <> inline plant::FF16_Strategy as(SEXP x) {
   ret.control = Rcpp::as<plant::Control >(xl["control"]);
   // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);
   ret.collect_all_auxiliary = Rcpp::as<bool >(xl["collect_all_auxiliary"]);
+  // ret.birth_rate_x = Rcpp::as<decltype(retbirth_rate_x) >(xl["birth_rate_x"]);
+  ret.birth_rate_x = Rcpp::as<std::vector<double> >(xl["birth_rate_x"]);
+  // ret.birth_rate_y = Rcpp::as<decltype(retbirth_rate_y) >(xl["birth_rate_y"]);
+  ret.birth_rate_y = Rcpp::as<std::vector<double> >(xl["birth_rate_y"]);
+  // ret.is_variable_birth_rate = Rcpp::as<decltype(retis_variable_birth_rate) >(xl["is_variable_birth_rate"]);
+  ret.is_variable_birth_rate = Rcpp::as<bool >(xl["is_variable_birth_rate"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::FF16_Environment& x) {

@@ -878,6 +878,9 @@ FF16_Strategy:
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
 
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"

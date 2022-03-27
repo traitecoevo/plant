@@ -1,6 +1,6 @@
 context("Extrinisic drivers")
 
-test_that("Can set birth rate splines correctly"{
+test_that("Can set birth rate splines correctly", {
   p0 <- scm_base_parameters("FF16")
   
   # two species
@@ -19,7 +19,7 @@ test_that("Can set birth rate splines correctly"{
   
   # no longer stored in parameters
   p1$birth_rate
-  
+  p1$strategies[[1]]$birth_rate_x
   p1$strategies[[1]]$birth_rate_y
   p1$strategies[[1]]$is_variable_birth_rate
   
