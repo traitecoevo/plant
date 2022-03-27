@@ -11,7 +11,7 @@ test_that("Can set birth rate splines correctly", {
   
   birth_rates <- list(
     species1 = list(x = x, y = 1 + sin(x)),
-    species2 = list(x = 1, y = 2)
+    species2 = list(x = 1, y = 2) # probably a better way to set a constant birth_rate since we only use y
   )
   
   p1 <- expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates)
