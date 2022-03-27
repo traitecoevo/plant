@@ -7,7 +7,7 @@ test_that("Can set birth rate splines correctly", {
   lmas <- trait_matrix(c(0.0825, 0.125), "lma")
   
   # constant birth rates
-  x <- seq(1, 200, len = 200)
+  x <- seq(0, 200, len = 200)
   
   birth_rates <- list(
     species1 = list(x = x, y = 1 + sin(x)),
@@ -27,9 +27,9 @@ test_that("Can set birth rate splines correctly", {
   # strategy
   s <- FF16_Species(p1$strategies[[1]]) # unable to initialise Interpolator
   
-  s$extrinsic_drivers$evaluate("birth_rate", 200) # might need changes to RcppR6 API
+  s$extrinsic_drivers()$evaluate("birth_rate", 200) # might need changes to RcppR6 API
   s$extrinsic_drivers()$evaluate_range("birth_rate", c(1, 2, 3))
-  s$extrinsic_drivers()$get_names
+  s$extrinsic_drivers()$get_names()
   
   # trial run
   env <- make_environment("FF16")
