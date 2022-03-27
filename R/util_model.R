@@ -129,19 +129,3 @@ remove_residents <- function(p) {
   }
   p
 }
-
-set_constant_birth_rate <- function(p, i, k) {
-  #p <- validate(p)
-  p$birth_rate_x[[i]] <- seq(1, 10)
-  p$birth_rate_y[[i]] <- rep(k, 10)
-  p$is_interpolated_birth_rate[[i]] = FALSE
-  p
-}
-
-set_interpolated_birth_rate <- function(p, i, x, y) {
-  #p <- validate(p)
-  p$birth_rate_x[i] <- x
-  p$birth_rate_y[i] <- y
-  p$is_interpolated_birth_rate[i] = TRUE
-  p
-}

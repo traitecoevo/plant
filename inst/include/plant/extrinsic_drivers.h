@@ -32,7 +32,11 @@ public:
   }
 
   std::vector<double> evaluate_range(const std::vector<double> &u) const {
-    return variable.r_eval(u);
+    if (is_variable) {
+      return variable.r_eval(u);
+    } else {
+      return std::vector<double>(u.size(), constant);
+    }
   }
 
   void set_extrapolate(bool extrapolate) {
