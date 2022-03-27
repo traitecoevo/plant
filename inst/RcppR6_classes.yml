@@ -445,21 +445,8 @@ Species:
       return_type: "std::vector<double>"
       args: [scal: double=1]
       name_cpp: r_competition_effects_error
-#    set_extrinsic_driver:
-#      args: [driver_name: "std::string", x: "std::vector<double>", y: "std::vector<double>"]
-#      return_type: void
-#    extrinsic_driver_extrapolation:
-#      args: [driver_name: "std::string", extrapolate: bool]
-#      return_type: void
-#    extrinsic_driver_evaluate:
-#      args: [driver_name: "std::string", u: double]
-#      return_type: double
-#    extrinsic_driver_evaluate_range:
-#      args: [driver_name: "std::string", u: "std::vector<double>"]
-#      return_type: "std::vector<double>"
-#    get_extrinsic_driver_names:
-#      args: []
-#      return_type: "std::vector<std::string>"
+    extrinsic_drivers:
+      return_type: "plant::ExtrinsicDrivers"
 
 Patch:
   name_cpp: "plant::Patch<T,E>"
@@ -1067,3 +1054,15 @@ FF16w_Strategy:
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
+
+ExtrinsicDrivers:
+  name_cpp: "plant::ExtrinsicDrivers"
+  methods:
+    evaluate:
+      return_type: double
+      args: [driver_name: std::string, u: double]
+    evaluate_range:
+      return_type: std::vector<double>
+      args: [ driver_name: std::string, u: std::vector<double>]
+    get_names:
+      return_type: std::vector<std::string>

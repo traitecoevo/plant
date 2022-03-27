@@ -28,6 +28,8 @@ test_that("Can set birth rate splines correctly", {
   s <- FF16_Species(p1$strategies[[1]]) # unable to initialise Interpolator
   
   s$extrinsic_drivers$evaluate("birth_rate", 200) # might need changes to RcppR6 API
+  s$extrinsic_drivers()$evaluate_range("birth_rate", c(1, 2, 3))
+  s$extrinsic_drivers()$get_names
   
   # trial run
   env <- make_environment("FF16")

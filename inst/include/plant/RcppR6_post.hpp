@@ -241,6 +241,9 @@ template <> inline std::string generator_name<plant::K93_Environment >() {return
 template <> inline std::string   class_name_r<plant::FF16w_Strategy >() {return "FF16w_Strategy";}
 template <> inline std::string   package_name<plant::FF16w_Strategy >() {return "plant";}
 template <> inline std::string generator_name<plant::FF16w_Strategy >() {return "";}
+template <> inline std::string   class_name_r<plant::ExtrinsicDrivers >() {return "ExtrinsicDrivers";}
+template <> inline std::string   package_name<plant::ExtrinsicDrivers >() {return "plant";}
+template <> inline std::string generator_name<plant::ExtrinsicDrivers >() {return ".R6_ExtrinsicDrivers";}
 }
 }
 }
@@ -1375,6 +1378,12 @@ template <> inline plant::FF16w_Strategy as(SEXP x) {
   // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);
   ret.collect_all_auxiliary = Rcpp::as<bool >(xl["collect_all_auxiliary"]);
   return ret;
+}
+template <> inline SEXP wrap(const plant::ExtrinsicDrivers& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers>(x));
+}
+template <> inline plant::ExtrinsicDrivers as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers>(x));
 }
 }
 
