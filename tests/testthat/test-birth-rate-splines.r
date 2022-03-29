@@ -17,26 +17,27 @@ test_that("Can set birth rate splines correctly", {
   p1 <- expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates)
   
   # no longer stored in parameters
-  p1$birth_rate
-  p1$strategies[[1]]$birth_rate_x
-  p1$strategies[[1]]$birth_rate_y
-  p1$strategies[[1]]$is_variable_birth_rate
-  p1$strategies[[2]]$is_variable_birth_rate
+  expect_null(p1$birth_rate)
+  expect_equal(p1$strategies[[1]]$birth_rate_x, x)
+  expect_equal(p1$strategies[[1]]$birth_rate_y,  1 + sin(x))
+  expect_true(p1$strategies[[1]]$is_variable_birth_rate)
+  expect_false(p1$strategies[[2]]$is_variable_birth_rate)
   
   
   # strategy 1 (variable)
-  s <- FF16_Species(p1$strategies[[1]])
-  
-  s$extrinsic_drivers()$evaluate("birth_rate", 200)
-  s$extrinsic_drivers()$evaluate_range("birth_rate", c(1, 2, 3))
-  s$extrinsic_drivers()$get_names()
+  s1 <- FF16_Species(p1$strategies[[1]])
+
+  k = c(1, 2, 3)
+  expect_equal(s1$extrinsic_drivers()$evaluate("birth_rate", 200), 1 + sin(200))
+  expect_equal(s1$extrinsic_drivers()$evaluate_range("birth_rate", k), 1 + sin(k))
+  expect_equal(s1$extrinsic_drivers()$get_names(), c("birth_rate"))
   
   # strategy 2 (constant)
-  s <- FF16_Species(p1$strategies[[2]])
+  s2 <- FF16_Species(p1$strategies[[2]])
   
-  s$extrinsic_drivers()$evaluate("birth_rate", 200)
-  s$extrinsic_drivers()$evaluate_range("birth_rate", c(1, 2, 3))
-  s$extrinsic_drivers()$get_names()
+  expect_equal(s2$extrinsic_drivers()$evaluate("birth_rate", 200), 2)
+  expect_equal(s2$extrinsic_drivers()$evaluate_range("birth_rate", k), c(2, 2, 2))
+  expect_equal(s2$extrinsic_drivers()$get_names(), c("birth_rate"))
   
   # trial run
   env <- make_environment("FF16")
