@@ -45,22 +45,22 @@ strategy_default <- function(parameters, hyperpar=param_hyperpar(parameters)) {
 
 ##' @export
 ##' @rdname strategy_list
-strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
+strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list) {
   if (nrow(x) != 1L) {
     stop("Expected a single type")
   }
-  strategy_list(x, parameters, hyperpar)[[1]]
+  strategy_list(x, parameters, hyperpar, birth_rate_list)[[1]]
 }
 
 ##' @rdname strategy_list
 ##' @export
-individual_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
+individual_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list) {
   
   if (!inherits(parameters, "Parameters")) {
     stop("parameters must be a 'Parameters' object")
   }
   types <- extract_RcppR6_template_types(parameters, "Parameters")
-  lapply(strategy_list(x, parameters, hyperpar), do.call('Individual', types))
+  lapply(strategy_list(x, parameters, hyperpar, birth_rate_list), do.call('Individual', types))
 }
 
 ##' Helper function to create trait matrices suitable for
@@ -99,7 +99,7 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
     stop("mutant must be scalar")
   }
   if(nrow(trait_matrix) != length(birth_rate_list)) {
-    stop("Must provide a birth rate input for each species")
+    stop("Must provide exactly one birth rate input for each species")
   }
   extra <- strategy_list(trait_matrix, p, hyperpar, birth_rate_list)
   n_extra <- length(extra)

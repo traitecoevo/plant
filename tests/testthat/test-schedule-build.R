@@ -19,7 +19,7 @@ test_that("Schedule building", {
     ## at least.
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
-    p$birth_rate <- 0.1
+    #p$birth_rate <- 0.1
     
     env <- make_environment(x)
     ctrl <- scm_base_control()

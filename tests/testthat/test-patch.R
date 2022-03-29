@@ -12,7 +12,6 @@ for (x in names(strategy_types)) {
   cohort <- Cohort(x, e)(s)
   
   p <- Parameters(x, e)(strategies=list(s),
-                        birth_rate=pi/2,
                         is_resident=TRUE,
                         patch_type = 'meta-population')
   
@@ -60,7 +59,7 @@ for (x in names(strategy_types)) {
     expect_equal(patch$ode_size, ode_size)
     
     ## Then pull this out:
-    cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), p$birth_rate)
+    cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), p$birth_rate) # birth_rate doesn't belong in parameters anymore...
      
     ode_state <- c(cmp$ode_state, env_state)
     ode_rates <- c(cmp$ode_rates, env_rates)

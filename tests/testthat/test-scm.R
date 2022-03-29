@@ -12,7 +12,6 @@ test_that("Run SCM", {
     cohort <- Cohort(x, e)(s)
 
     p <- Parameters(x, e)(strategies=list(s),
-                          birth_rate=pi/2,
                           patch_area=10,
                           is_resident=TRUE)
     
@@ -168,7 +167,6 @@ test_that("schedule setting", {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(
       strategies=list(strategy_types[[x]]()),
-      birth_rate=pi/2,
       is_resident=TRUE,
       max_patch_lifetime=5.0)
     env <- make_environment(x)

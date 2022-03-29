@@ -9,6 +9,19 @@ test_that("Can set birth rate splines correctly", {
   # constant birth rates
   x <- seq(0, 200)
   
+  # need exactly one birth_rate spline for each species
+  birth_rates <- list(
+    species1 = list(x = x, y = 1 + sin(x))
+  )
+  expect_error(expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates), "Must provide exactly one birth rate input for each species")
+  
+  birth_rates <- list(
+    species1 = list(x = x, y = 1 + sin(x)),
+    species2 = list(x = x, y = 1 + sin(x)),
+    species3 = list(x = x, y = 1 + sin(x))
+  )
+  expect_error(expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates), "Must provide exactly one birth rate input for each species")
+  
   # cannot have types other than numeric/list
   birth_rates <- list(
     species1 = list(x = x, y = 1 + sin(x)),
