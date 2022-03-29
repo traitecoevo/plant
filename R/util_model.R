@@ -30,7 +30,7 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
       strategy$birth_rate_y <- br
       strategy$is_variable_birth_rate <- FALSE
     } else {
-      stop("Invalid type in birth_rate_list - need either a data frame with x, y control points or a numeric")
+      stop("Invalid type in birth_rate_list - need either a list with x, y control points or a numeric")
     }
     strategy
   }
