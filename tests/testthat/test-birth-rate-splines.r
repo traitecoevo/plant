@@ -9,9 +9,16 @@ test_that("Can set birth rate splines correctly", {
   # constant birth rates
   x <- seq(0, 200)
   
+  # cannot have types other than numeric/list
   birth_rates <- list(
     species1 = list(x = x, y = 1 + sin(x)),
-    species2 = list(x = 1, y = 2) # probably a better way to set a constant birth_rate since we only use y
+    species2 = "hello"
+  )
+  expect_error(expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates), "Invalid type in birth_rate_list - need either a data frame with x, y control points or a numeric")
+  
+  birth_rates <- list(
+    species1 = list(x = x, y = 1 + sin(x)),
+    species2 = 2
   )
   
   p1 <- expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates)

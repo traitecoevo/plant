@@ -22,12 +22,15 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
   trait_names <- colnames(x)
   f <- function(xi, br) {
     strategy[trait_names] <- xi
-    strategy$birth_rate_x <- br$x
-    strategy$birth_rate_y <- br$y
-    if (length(br$y) > 1) {
+    if (is.list(br)) {
+      strategy$birth_rate_x <- br$x
+      strategy$birth_rate_y <- br$y
       strategy$is_variable_birth_rate <- TRUE
-    } else {
+    } else if (is.numeric(br)) {
+      strategy$birth_rate_y <- br
       strategy$is_variable_birth_rate <- FALSE
+    } else {
+      stop("Invalid type in birth_rate_list - need either a data frame with x, y control points or a numeric")
     }
     strategy
   }
