@@ -1,0 +1,262 @@
+---
+title: "R Notebook"
+output:  rmarkdown::github_document
+---
+
+# Starting a patch with an initial size distribution
+
+🚧🚧 Under construction 🚧🚧
+
+We demonstrate how to solve a set of characteristic equations for patches that have a non-zero initial size distribution - meaning that there are already plants growing in the patch.
+
+This involves adding nodes at $t = 0$ with heights greater than `h_0` and non-zero densities. The state of other characterstics can also be set, but are not in this example.
+
+# Set up log-normal initialisation
+
+Here a vanilla FF16 simulation of forest stand development is used as our starting point. The `ln_init` generates $n$ nodes, evenly spaced between `h_0` and an upper limit, drawn from a log-normal distribution. A user defined density argument is also provided to scale the total density of inital cohorts - meaning it is no longer a probability distribution.
+
+```{r}
+devtools::load_all()
+library(tidyverse)
+library(patchwork)
+
+env <- make_environment("FF16")
+ctrl <- scm_base_control()
+p0 <- scm_base_parameters("FF16")
+
+names <- c("height", "mortality", "fecundity", "area_heartwood",
+           "mass_heartwood", "offspring_produced_survival_weighted",
+           "log_density")
+
+p1 <- expand_parameters(trait_matrix(c(0.0825), "lma"), p0, FF16_hyperpar,FALSE)
+s = p1$strategies[[1]]
+
+# log-normal
+ln_init <- function(mean_height = 6, log_sd = 0.8,
+                    density = 1,
+                    min_h = 0.3920458,
+                    max_h = 10,
+                    n = 100) {
+  
+    log_mu <- log(mean_height)
+  
+    init_height <- seq(min_h, max_h, len = n)
+    init_density <- dlnorm(init_height, log_mu, log_sd)
+    
+    # normalise to user density
+    area_density <-   trapezium(init_height, init_density)
+    init_density_scaled <- init_density / area_density * density
+  
+    # sense check initial leaf area
+    la = (init_height / s$a_l1)^(1.0 / s$a_l2)
+    leaf_area <- trapezium(init_height, init_density_scaled * la)
+    
+    # fit splines
+    init_log_normal <- c(init_height, 
+                         rep(0, n),
+                         rep(0, n),
+                         rep(0, n), 
+                         rep(0, n),
+                         rep(0, n),
+                         log(init_density_scaled)) %>%
+      matrix(., ncol = n, byrow = T)
+    
+    rownames(init_log_normal) <- names
+    
+    splines <- init_spline(list(init_log_normal), size_idx = 1)
+    
+
+    return(list(leaf_area = leaf_area,
+                splines = splines))
+}
+```
+
+# Low initial height
+
+We create six scenarios, with a mean of 2 m tall and a standard deviation \~1.5. In each scenario, we decrease the total intial density from 1 to 0.01 to compare the effect on stand development.
+
+The placement of both the initial and subsequent nodes are optimised using the `build_schedule` algorithm which accepts a list of splines, interpolating the initial height distribution described above, for each characteristic. In our case, we only set the height and density of the initial nodes.
+
+```{r}
+# create six scenarios
+init_df <- data.frame(mu = c(2, 2, 2, 2, 2, 2),
+                      log_sd = c(0.4, 0.4, 0.4, 0.4, 0.4, 0.4),
+                      density = c(1.0, 0.5, 0.1, 0.05, 0.02, 0.01)) %>%
+  mutate(init = pmap(list(mu, log_sd, density), ~ ln_init(..1, ..2, density = ..3))) %>%
+  unnest_wider(init)
+
+map(init_df$splines[[1]], map, class)
+```
+
+We loop over our scenarios using map, then check whether the optimisation was completed. Some initial height distributions fail to converge, which we explore later in diagnostic graphs.
+
+```{r}
+res <- map(init_df$splines, ~ build_schedule(p1, env, ctrl, splines = .x))
+
+map(res, ~ .$complete) %>% unlist
+```
+
+`build_schedule` returns the last good node schedule before optimisation failed, so we can still explore the results.
+
+```{r}
+# collate results
+out <- map(res, ~ run_scm_collect(.$parameters, env, ctrl))
+
+results <- map(out, tidy_patch)
+```
+
+## Diagnostics
+
+We use `patchwork::wrap_plots` to combine the individual size-time plots into a single figure. Diagnostics regarding the inital size distribution and the convergence of the `build_schedule` optimisation are provided for each figure. $LA$ corresponds to the pre-computed leaf-area of the initial size distribution.
+
+We find that the optimised schedules depend on the initial density, but often in unexpected ways. We later explore the effect of changing the mean height of the distribution. Generally, we see convergence improve with declining density, however two of the six scenarios failed to converge. Valid schedules may exist for these scenarios, but more detailed investigation into the starting schedule of integration nodes is required. Some schedules have a significantly more nodes than others, suggesting the `build_schedule` algorithm is having trouble exploring variation in some areas of stand development - often resulting in a large number of initial nodes (this has a visual effect of dark shading, even if the total initial density is low).
+
+```{r, fig.width = 14}
+# create size-time plot with diagnostics
+fn <- function(init_df, tidy_patch, build_schedule_results) {
+  scenario = sprintf("Mean: %d, density: %.2f, LA: %.2f", 
+                 init_df$mu, init_df$density, init_df$leaf_area)
+  
+  n_nodes = length(build_schedule_results$parameters$cohort_schedule_times[[1]])
+  diagnostics = sprintf("Complete: %s, # steps: %d, # nodes: %d",
+                        build_schedule_results$complete,
+                        build_schedule_results$n_steps,
+                        n_nodes)
+  
+  tidy_patch %>%
+    {.$species} %>%
+    tidyr::drop_na() %>%
+    plot_size_distribution() +
+    coord_cartesian(expand = F) +
+    labs(title = scenario,
+         subtitle = diagnostics) +
+    scale_colour_manual(values = "black")
+}
+
+y <- transpose(init_df)
+
+p <- pmap(list(y, results, res), ~ fn(..1, ..2, ..3))
+
+wrap_plots(p) + 
+  plot_layout(guides = 'collect')
+```
+
+We next explore the dynamics of leaf area and density. All schedules show an initial bottleneck, where density drops before rebounding - suggesting that much of the pre-existing vegetation dies, possibly due to a mismatch in the shape of the initial size distribution and the ecological dynamics presented in the FF16 model (e.g. a log normal distribution, with a low mean, may represent a greater density of understory species than is possible). Notably, scenarios with an higher initial size density start with a lower number of individuals, possibly meaning a greater number of recruits at $t=1$.
+
+During the first few years, leaf area is increasing quickly before reaching a second bottleneck, where density drops again, this time to near zero. Leaf area and density then oscillate until reaching a stable equilibrium. This occurs in all scenarios, however there is a minor kink around year 25, corresponding to inividuals reaching their maximum attainable height that differs. This may reflect minor differences in the impact of the initial size distribution.
+
+```{r, fig.width = 10}
+fn2 <- function(tidy_results) {
+  tidy_results %>%
+    FF16_expand_state() %>%
+    {.$species} %>%
+    integrate_over_size_distribution() %>%
+    slice(-n()) # final node looks weird
+}
+
+fn3 <- function(totals) {
+  totals %>% 
+    select(time, area_leaf, individuals) %>%
+    gather(metric, value, -time) %>%
+    ggplot(., aes(time, value)) +
+      geom_line() +
+      theme_classic() +
+      facet_wrap(~ metric, scales = "free")
+}
+
+totals <- map(results, fn2)
+p <- map(totals, fn3)
+
+wrap_plots(p) + 
+  plot_layout(guides = 'collect')
+```
+
+Looking at the biomass allocation of different plant components raises some alarm bells. The first two scenarios (one optimised, one failed) show negative biomass in the first years. This is somethign to debug. Only minor variations are seen in other scenarios.
+
+```{r, fig.width = 12}
+v <- c("mass_heartwood", "mass_sapwood", "mass_bark", "mass_leaf")
+
+fn4 <- function(totals) {
+  totals %>% 
+    select(time, species, one_of(v)) %>%
+    pivot_longer(cols=starts_with("mass"), names_to = "tissue") %>%
+    mutate(across(tissue, factor, levels = v)) %>%
+    ggplot(., aes(time, value, fill=tissue)) +
+      geom_area() +
+      labs(x = "Patch age (yr)", y = "Above ground mass (kg/m2)") +
+      theme_classic() + 
+      coord_cartesian(expand = F)
+}
+
+p <- map(totals, fn4)
+
+wrap_plots(p) + 
+  plot_layout(guides = 'collect')
+```
+
+# Taller initial height
+
+We repeat this exercise with a top-heavy distribution. A quick and dirty histogram describes this shape:
+
+```{r, fig.width = 4}
+hist({x <- rlnorm(10000, log(10), 0.1); x[x<10]}, main = NULL, xlab = "Height")
+```
+
+This time we start from a lower initial density, which is manually optimised through trial and error. Presumably higher densities are not viable with the increased leaf area of taller trees. Even so, the first scenario runs for a few steps and then fails.
+
+```{r}
+init_df <- data.frame(mu = c(10, 10, 10, 10, 10, 10),
+                      sd = c(0.1, 0.1, 0.1, 0.1, 0.1, 0.1),
+                      density = c( 0.1, 0.05, 0.01, 0.005, 0.002, 0.001)) %>%
+  mutate(init = pmap(list(mu, sd, density), ~ ln_init(..1, ..2, density = ..3))) %>%
+  unnest_wider(init)
+
+res <- map(init_df$splines, ~ build_schedule(p1, env, ctrl, splines = .x))
+
+map(res, ~ .$complete) %>% unlist
+```
+
+We get the results for each scenario:
+
+```{r}
+out <- map(res, ~ run_scm_collect(.$parameters, env, ctrl))
+
+results <- map(out, tidy_patch)
+```
+
+We find that the taller initial size density has a greater impact on stand development than our previous experiment, likely due to higher total leaf area (upper limit of viable simulations seems to be about 0.8). In the first scenario, we see that the tallest individuals of the canopy persist and grow, effectively delaying further recruitment for about 75yrs. As the initial density decreases, the delay of recruitment declines and we see an initial wave of recruits take hold, but die after only a few years.
+
+In some scenarios, a group of early recruits appear to 'pause' but this is likely an artefact of the figures. Integration nodes are required throughout the simulation to adequately resolve the dynamics of the pre-existing individuals, even if there is little to no growth associated with these nodes in the intervening years. If this is an ecologically relevant phenomenon, we can see the benefit of retaining a head start as these 'paused' nodes increase in height faster than new recruits after the pre-existing vegetation begins to thin.
+
+At the lowest densities, we see that pre-existing individuals can have an impact on the growth dynamics of subsequent regeneration.
+
+```{r, fig.width = 14}
+y <- transpose(init_df)
+
+p <- pmap(list(y, results, res), ~ fn(..1, ..2, ..3))
+
+wrap_plots(p) + 
+  plot_layout(guides = 'collect')
+
+```
+
+We observe several artefacts in our leaf area and density diagnostics. Many scenarios have an unusual 'pulse' of leaf area around year 25, exceeding typical values by several orders of magnitude (recall from the previous experiment that the equilibrium leaf area of this patch was around 1.7) We also see an unusual number of individuals in the initial size distribution, or introduced immediately after $t_0$. These initial individuals undergo a mortality/thinning event and decline to near zero. This effect is not observed in scenarios where leaf area remains within typical values.
+
+```{r, fig.width = 10}
+totals <- map(results, fn2)
+p <- map(totals, fn3)
+
+wrap_plots(p) + 
+  plot_layout(guides = 'collect')
+```
+
+Similar oddities are observed in other vegetative tissue, reaching a cumulative biomass of 2500 km/m2. Cross referencing this pulse of vegetative growth with the dynamics of stand density, it appears that the mortality event observed after initialization is followed by rapid growth or thickening of the remaining individuals.
+
+```{r, fig.width = 12}
+p <- map(totals, fn4)
+
+wrap_plots(p) + 
+  plot_layout(guides = 'collect')
+```
+
+# 
