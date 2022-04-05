@@ -1,0 +1,47 @@
+---
+title: "Untitled"
+output: html_document
+date: '2022-04-04'
+---
+
+```{r setup, include=FALSE}
+knitr::knit_engines$set(python = reticulate::eng_python)
+knitr::opts_chunk$set(echo = TRUE)
+
+library(reticulate)
+use_python("C:/Users/andrew.oreilly-nugen/.pyenv/pyenv-win/versions/3.9.6/python.exe")
+
+if(!virtualenv_exists("r-adaptive")) {
+  virtualenv_create("r-adaptive")
+  virtualenv_install("r-adaptive", c("pandas", "adaptive"))
+}
+
+use_virtualenv("r-adaptive")
+```
+
+
+```{python}
+from adaptive import Runner, Learner1D, notebook_extension
+from adaptive.runner import simple as simple_runner
+
+def peak(x, a=0.01):
+    return x + a**2 / (a**2 + x**2)
+
+learner = Learner1D(r.calibrate, bounds=(-1, 1))
+runner = simple_runner(learner, goal=lambda l: l.npoints >= 100)
+```
+
+```{python}
+import pandas as pd
+df = pd.DataFrame.from_dict(learner.data, orient='index')
+df
+```
+
+```{r}
+as.data.frame(py$df) %>%
+  rownames_to_column("time") %>%
+  mutate(across(time, parse_number)) %>%
+  ggplot(., aes(time, `0`)) +
+  geom_point()
+
+```
