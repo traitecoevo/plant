@@ -14,14 +14,10 @@ class Step {
 public:
   void resize(size_t size_);
   size_t order() const;
-  void step(System& system,
-            double time, double step_size,
-	    state_type &y,
-	    state_type &yerr,
-	    const state_type &dydt_in,
-	    state_type &dydt_out);
-  void derivs(System& system,
-              const state_type& y, state_type& dydt, double t) {
+  void step(System &system, double time, double step_size, state_type &y,
+            state_type &yerr, const state_type &dydt_in, state_type &dydt_out);
+
+  void derivs(System &system, const state_type &y, state_type &dydt, double t) {
     return ode::derivs(system, y, dydt, t);
   }
 

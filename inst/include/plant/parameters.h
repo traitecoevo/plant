@@ -56,6 +56,10 @@ struct Parameters {
   std::vector<std::vector<double> > cohort_schedule_times;
   std::vector<double> cohort_schedule_ode_times;
 
+  // Initial size distribution
+  std::vector<double> initial_state;
+  std::vector<size_t> n_initial_cohorts;
+
   // Some little query functions for use on the C side:
   size_t size() const;
   size_t n_residents() const;
@@ -129,6 +133,19 @@ void Parameters<T,E>::setup_cohort_schedule() {
     cohort_schedule_times.clear();
     for (size_t i = 0; i < size(); ++i) {
       cohort_schedule_times.push_back(cohort_schedule_times_default);
+    }
+  }
+
+  if (n_initial_cohorts.size() > 0){
+    for (size_t i = 0; i < size(); ++i){
+      std::vector<double> s = cohort_schedule_times[i];
+      int init_cohorts = std::count(s.begin(), s.end(), 0.0);
+      int new_init_cohorts = n_initial_cohorts[i] - init_cohorts;
+
+      if(new_init_cohorts < 0)
+        util::stop("Initial cohorts in schedule not accounted for in parameters.n_initial_cohorts");
+
+      cohort_schedule_times[i].insert(cohort_schedule_times[i].begin(), new_init_cohorts, 0.0);
     }
   }
 }

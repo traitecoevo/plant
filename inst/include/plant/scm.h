@@ -39,8 +39,14 @@ public:
 
   // * R interface
   std::vector<util::index> r_run_next();
-  parameters_type r_parameters() const { return parameters; }
-  const patch_type &r_patch() const { return patch; }
+  parameters_type r_parameters() const {return parameters;}
+  const patch_type& r_patch() const {return patch;}
+
+  void r_set_state(double time,
+                   const std::vector<double>& state,
+                   const std::vector<size_t>& n)
+                   {patch.r_set_state(time, state, n, std::vector<double>());};
+
   // TODO: These are liable to change to return all species at once by
   // default.  The pluralisation difference between
   // SCM::r_competition_effect_error and Species::r_competition_effects_error
@@ -72,6 +78,7 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
       cohort_schedule(make_cohort_schedule(parameters)),
       solver(patch, make_ode_control(c)) {
   parameters.validate();
+
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::stop("Patch area must be exactly 1 for the SCM");
   }
@@ -86,8 +93,8 @@ template <typename T, typename E> void SCM<T, E>::run() {
 
 template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   std::vector<size_t> ret;
-  const double t0 = time();
 
+  const double t0 = time();
   CohortSchedule::Event e = cohort_schedule.next_event();
   while (true) {
     if (!util::identical(t0, e.time_introduction())) {
@@ -101,16 +108,22 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
       e = cohort_schedule.next_event();
     }
   }
-  patch.introduce_new_cohorts(ret);
+
+  // multiple cohorts introduced at t0 during patch.reset()
+  if(parameters.initial_state.size() > 0 && t0 == 0.0) {}
+  else {
+    patch.introduce_new_cohorts(ret);
+  }
 
   const bool use_ode_times = cohort_schedule.using_ode_times();
+
   solver.set_state_from_system(patch);
+
   if (use_ode_times) {
-    solver.advance_fixed(patch, e.times);
+      solver.advance_fixed(patch, e.times);
   } else {
     solver.advance(patch, e.time_end());
   }
-
   return ret;
 }
 

@@ -62,7 +62,7 @@ scm_base_control <- function() {
 ##' @author Rich FitzJohn
 ##' @export
 scm_base_parameters <- function(type = NA, env = environment_type(type)) {
-  
+
    Parameters(type, env)(patch_area=1.0)
 }
 
@@ -74,14 +74,16 @@ scm_base_parameters <- function(type = NA, env = environment_type(type)) {
 ##' @param p Parameters object
 ##' @param env Environment object (defaults to FF16_Environment)
 ##' @param ctrl Control object
+##' @param state A optional State object matching the strategies in \code{p}
 ##' @param use_ode_times Should ODE times be used?
 ##' @return A \code{SCM} object.
 ##' @author Rich FitzJohn
 ##' @export
-run_scm <- function(p, env = make_environment(parameters = p), 
-                    ctrl = scm_base_control(), use_ode_times=FALSE) {
-  types <- extract_RcppR6_template_types(p, "Parameters")
-  scm <- do.call('SCM', types)(p, env, ctrl)
+run_scm <- function(p, env = make_environment(parameters = p),
+                       ctrl = scm_base_control(),
+                       state=NULL,
+                       use_ode_times=FALSE) {
+  scm <- make_scm(p, env, ctrl, state)
   if (use_ode_times) {
     scm$use_ode_times <- TRUE
   }
@@ -100,12 +102,14 @@ run_scm <- function(p, env = make_environment(parameters = p),
 ##' @param p A \code{Parameters} object
 ##' @param env Environment object (defaults to FF16_Environment)
 ##' @param ctrl Control object
+##' @param state An optional State object matching the strategies in \code{p}
 ##' @param collect_auxiliary_variables Return additional strategy variables (eg
 ##' competition_effect)
 ##' @author Rich FitzJohn
 ##' @export
-run_scm_collect <- function(p, env = make_environment(parameters = p), 
+run_scm_collect <- function(p, env = make_environment(parameters = p),
                             ctrl = scm_base_control(),
+                            state = NULL,
                             collect_auxiliary_variables=FALSE) {
   collect_default <- function(scm) {
     scm$state
@@ -116,10 +120,10 @@ run_scm_collect <- function(p, env = make_environment(parameters = p),
     ret$species <- mapply(rbind, ret$species, aux$species, SIMPLIFY=FALSE)
     ret
   }
+
   collect <- if (collect_auxiliary_variables) collect_aux else collect_default
-  types <- extract_RcppR6_template_types(p, "Parameters")
-  
-  scm <- do.call('SCM', types)(p, env, ctrl)
+  scm <- make_scm(p, env, ctrl, state)
+
   res <- list(collect(scm))
 
   while (!scm$complete) {
@@ -154,6 +158,7 @@ run_scm_collect <- function(p, env = make_environment(parameters = p),
 }
 
 ##' Functions for reconstructing a Patch from an SCM
+##' @rdname make_patch
 ##' @title Reconstruct a patch
 ##' @param state State object created by \code{scm_state}
 ##' @param p Parameters object
@@ -169,7 +174,21 @@ make_patch <- function(state, p, env = make_environment(parameters = p),
   patch
 }
 
-##' @rdname make_patch
+##' Functions for reconstructing a Patch from an SCM
+##' @title Construct an SCM
+##' @param p Parameters object
+##' @param env Environment object (defaults to FF16_Environment)
+##' @param ctrl Control object
+##' @param state List object with initial cohorts for each species
+##' @export
+make_scm <- function(p, env, ctrl, state=NULL) {
+  types <- extract_RcppR6_template_types(p, "Parameters")
+  scm <- do.call('SCM', types)(p, env, ctrl)
+
+  return(scm)
+}
+
+##' @rdname initialise_scm
 ##' @param i Index to extract from \code{x}
 ##' @param x Result of running \code{\link{run_scm_collect}}
 ##' @export
@@ -178,7 +197,8 @@ scm_state <- function(i, x) {
     el <- el[, i, ]
     el[, !is.na(el[1, ]), drop=FALSE]
   }
-  list(time=x$time[[i]], species=lapply(x$species, f_sp),
+  list(time=x$time[[i]],
+       species=lapply(x$species, f_sp),
        env=x$env[[i]])
 }
 
@@ -190,8 +210,7 @@ scm_patch <- function(i, x) {
 
 run_scm_error <- function(p, env = make_environment(parameters = p),
                           ctrl = scm_base_control()) {
-  types <- extract_RcppR6_template_types(p, "Parameters")
-  scm <- do.call('SCM', types)(p, env, ctrl)
+  scm <- make_scm(p, env, ctrl)
   n_spp <- length(p$strategies)
 
   lai_error <- rep(list(NULL), n_spp)
@@ -204,16 +223,21 @@ run_scm_error <- function(p, env = make_environment(parameters = p),
   }
 
   lai_error <- lapply(lai_error, function(x) rbind_list(pad_matrix(x)))
-  average_fecundity_error <- scm$average_fecundity_error
+  net_reproduction_ratio_errors <- scm$net_reproduction_ratio_errors
   f <- function(m) {
     suppressWarnings(apply(m, 2, max, na.rm=TRUE))
   }
   total <- lapply(seq_len(n_spp), function(idx)
-                  f(rbind(lai_error[[idx]], average_fecundity_error[[idx]])))
+                  f(rbind(lai_error[[idx]], net_reproduction_ratio_errors[[idx]])))
 
+  # schedule is needed to update parameters, not sure why ode_times is carried through
+  # saving min height here is lazy, but I'm not sure where else build_schedule can get it
   list(net_reproduction_ratios=scm$net_reproduction_ratios,
-       err=list(lai=lai_error, net_reproduction_ratios=average_fecundity_error, total=total),
-       ode_times=scm$ode_times)
+       err=list(lai=lai_error, net_reproduction_ratios=net_reproduction_ratio_errors, total=total),
+       schedule=scm$cohort_schedule$all_times,
+       ode_times=scm$ode_times,
+       initial_state=p$initial_state,
+       n_initial_cohorts=p$n_initial_cohorts)
 }
 
 ##' Helper function for creating parameter objects suitable for an

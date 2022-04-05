@@ -360,6 +360,8 @@ Parameters:
     - strategies: "std::vector<T>"
     - birth_rate: "std::vector<double>"
     - is_resident: "std::vector<bool>"
+    - initial_state: "std::vector<double>"
+    - n_initial_cohorts: "std::vector<size_t>"
     - strategy_default: "T"
     - cohort_schedule_times_default: "std::vector<double>"
     - cohort_schedule_times: "std::vector<std::vector<double> >"
@@ -468,6 +470,7 @@ Patch:
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
     environment: {type: E, access: member, name_cpp: r_environment}
     species: {type: "std::vector<plant::Species<T,E> >", access: member, name_cpp: r_species}
+    total_cohorts: {type: int, access: member}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_time: {type: double, access: function, name_cpp: "plant::ode::r_ode_time"}
@@ -552,6 +555,10 @@ SCM:
       args: [times: "std::vector<std::vector<double> >"]
       return_type: void
       name_cpp: r_set_cohort_schedule_times
+    set_state:
+      args: [time: double, state: "const std::vector<double>&", n: "const std::vector<size_t>&"]
+      name_cpp: r_set_state
+      return_type: void
     # times
     # set_times
   active:

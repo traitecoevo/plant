@@ -8,6 +8,7 @@ run_scm_collect(
   p,
   env = make_environment(parameters = p),
   ctrl = scm_base_control(),
+  state = NULL,
   collect_auxiliary_variables = FALSE
 )
 }
@@ -17,6 +18,8 @@ run_scm_collect(
 \item{env}{Environment object (defaults to FF16_Environment)}
 
 \item{ctrl}{Control object}
+
+\item{state}{An optional State object matching the strategies in \code{p}}
 
 \item{collect_auxiliary_variables}{Return additional strategy variables (eg
 competition_effect)}

@@ -8,6 +8,7 @@ run_scm(
   p,
   env = make_environment(parameters = p),
   ctrl = scm_base_control(),
+  state = NULL,
   use_ode_times = FALSE
 )
 }
@@ -17,6 +18,8 @@ run_scm(
 \item{env}{Environment object (defaults to FF16_Environment)}
 
 \item{ctrl}{Control object}
+
+\item{state}{A optional State object matching the strategies in \code{p}}
 
 \item{use_ode_times}{Should ODE times be used?}
 }

@@ -43,12 +43,24 @@ public:
     return(cohort_ode_size);
   }
 
+  int total_cohorts() {
+    int n_cohorts = 0;
+    for (auto& s : species) {
+      n_cohorts += s.size();
+    }
+    return n_cohorts;
+  }
+
+
   const species_type& at(size_t species_index) const {
     return species[species_index];
   }
 
   // Patch disturbance
   Disturbance_Regime* survival_weighting;
+
+  void set_initial_state(const std::vector<double>& state,
+                         const std::vector<size_t>& n_cohorts);
 
   // * ODE interface
   size_t ode_size() const;
@@ -126,8 +138,28 @@ void Patch<T,E>::reset() {
     s.clear();
   }
   environment.clear();
+
+  if(parameters.initial_state.size() > 0) {
+    set_initial_state(parameters.initial_state,
+                      parameters.n_initial_cohorts);
+
+  }
   compute_environment();
   compute_rates();
+
+  for(auto s: species){
+    std::vector<double> log_densities = s.r_log_density_rates();
+    auto const limits = [&](const double v) { return v < -100; };
+
+    bool exceeds_density_limit = std::any_of(std::begin(log_densities),
+                                             std::end(log_densities),
+                                             limits);
+
+    if(exceeds_density_limit) {
+      util::stop("Rates of initial cohort densities exceed 1e43 and will likely result in a non-finite density.");
+    }
+  }
+
 }
 
 template <typename T, typename E>
@@ -198,10 +230,12 @@ void Patch<T,E>::introduce_new_cohort(size_t species_index) {
 template <typename T, typename E>
 void Patch<T,E>::introduce_new_cohorts(const std::vector<size_t>& species_index) {
   bool recompute = false;
+
   for (size_t i : species_index) {
     species[i].introduce_new_cohort();
     recompute = recompute || parameters.is_resident[i];
   }
+
   if (recompute) {
     compute_environment();
   }
@@ -214,15 +248,34 @@ void Patch<T,E>::r_set_time(double time) {
 }
 
 
+template <typename T, typename E>
+void Patch<T,E>::set_initial_state(const std::vector<double>& state,
+                                   const std::vector<size_t>& n_cohorts) {
+
+  if(time() > 0)
+    util::stop("Unable to set initial patch state for existing patches; try reset() first");
+
+  const size_t n_species = species.size();
+  util::check_length(n_cohorts.size(), n_species);
+
+  for (size_t i = 0; i < n_species; ++i) {
+    for (size_t j = 0; j < n_cohorts[i]; ++j) {
+      species[i].introduce_new_cohort();
+    }
+  }
+  util::check_length(state.size(), ode_size());
+  set_ode_state(state.begin(), 0.0);
+}
+
 // Arguments here are:
 //   time: time
 //   state: vector of ode state; we'll pass an iterator with that in
 //   n: number of *individuals* of each species
 template <typename T, typename E>
 void Patch<T,E>::r_set_state(double time,
-                           const std::vector<double>& state,
-                           const std::vector<size_t>& n,
-                           const std::vector<double>& env) {
+                             const std::vector<double>& state,
+                             const std::vector<size_t>& n,
+                             const std::vector<double>& env) {
   const size_t n_species = species.size();
   util::check_length(n.size(), n_species);
   reset();
@@ -233,7 +286,11 @@ void Patch<T,E>::r_set_state(double time,
   }
   util::check_length(state.size(), ode_size());
   set_ode_state(state.begin(), time);
-  environment.r_init_interpolators(env);
+
+  // todo
+  if(!env.empty()) {
+    environment.r_init_interpolators(env);
+  }
 }
 
 // ODE interface
@@ -265,6 +322,7 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   } else {
     compute_environment();
   }
+
   compute_rates();
   return it;
 }

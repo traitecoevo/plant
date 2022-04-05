@@ -35,6 +35,8 @@ public:
     density = exp(log_density);
   }
 
+  double get_log_density_rate() const {return log_density_dt;}
+
   // ODE interface.
   //
   // NOTE: We are a time-independent model here so no need to pass
