@@ -20,15 +20,21 @@ devtools::load_all()
 library(tidyverse)
 library(patchwork)
 
+# patch setup
 env <- make_environment("FF16")
 ctrl <- scm_base_control()
 p0 <- scm_base_parameters("FF16")
 
+# characteristics
 names <- c("height", "mortality", "fecundity", "area_heartwood",
            "mass_heartwood", "offspring_produced_survival_weighted",
            "log_density")
 
+# one-species
 p1 <- expand_parameters(trait_matrix(c(0.0825), "lma"), p0, FF16_hyperpar,FALSE)
+#p1$birth_rate <- 0
+
+# used for leaf area calculation
 s = p1$strategies[[1]]
 
 # log-normal
@@ -96,7 +102,7 @@ res <- map(init_df$splines, ~ build_schedule(p1, env, ctrl, splines = .x))
 map(res, ~ .$complete) %>% unlist
 ```
 
-`build_schedule` returns the last good node schedule before optimisation failed, so we can still explore the results.
+Having optimised the integration schedules, we now collect the results. `build_schedule` returns the last good node schedule before optimisation failed, so we can still run a simulation to explore the results.
 
 ```{r}
 # collate results
@@ -198,7 +204,7 @@ wrap_plots(p) +
 
 We repeat this exercise with a top-heavy distribution. A quick and dirty histogram describes this shape:
 
-```{r, fig.width = 4}
+```{r, fig.width = 8}
 hist({x <- rlnorm(10000, log(10), 0.1); x[x<10]}, main = NULL, xlab = "Height")
 ```
 
@@ -207,7 +213,7 @@ This time we start from a lower initial density, which is manually optimised thr
 ```{r}
 init_df <- data.frame(mu = c(10, 10, 10, 10, 10, 10),
                       sd = c(0.1, 0.1, 0.1, 0.1, 0.1, 0.1),
-                      density = c( 0.1, 0.05, 0.01, 0.005, 0.002, 0.001)) %>%
+                      density = c(0.1, 0.05, 0.01, 0.005, 0.002, 0.001)) %>%
   mutate(init = pmap(list(mu, sd, density), ~ ln_init(..1, ..2, density = ..3))) %>%
   unnest_wider(init)
 
@@ -223,6 +229,8 @@ out <- map(res, ~ run_scm_collect(.$parameters, env, ctrl))
 
 results <- map(out, tidy_patch)
 ```
+
+## Diagnostics
 
 We find that the taller initial size density has a greater impact on stand development than our previous experiment, likely due to higher total leaf area (upper limit of viable simulations seems to be about 0.8). In the first scenario, we see that the tallest individuals of the canopy persist and grow, effectively delaying further recruitment for about 75yrs. As the initial density decreases, the delay of recruitment declines and we see an initial wave of recruits take hold, but die after only a few years.
 
