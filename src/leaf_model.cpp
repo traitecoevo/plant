@@ -1,7 +1,16 @@
 #include <plant/leaf_model.h>
 
 namespace plant {
-Leaf::Leaf() {}
+Leaf::Leaf(): 
+ci(3, NA_REAL),
+g_c(3, NA_REAL),
+A_lim(3, NA_REAL),
+E(3, NA_REAL),
+psi(3, NA_REAL),
+profit(2, NA_REAL),
+max_bound(3, NA_REAL),
+min_bound(3, NA_REAL)
+{}
 
 // TODO: vectorise for soil layers
 double Leaf::calc_soil_water_pot(const FF16_Environment &environment,
@@ -44,14 +53,14 @@ double Leaf::calc_g_c(const FF16_Environment &environment, double psi_aep,
   return atm_kpa * E_supply * kg_2_mol_h2o / atm_vpd / 1.6;
 }
 
-double Leaf::calc_A_c(double c_i, double vcmax, double gamma_25,
+double Leaf::calc_A_c(double ci_, double vcmax, double gamma_25,
                       double umol_per_mol_2_Pa, double km_25) {
-  return (vcmax * (c_i - gamma_25 * umol_per_mol_2_Pa)) / (c_i + km_25);
+  return (vcmax * (ci_ - gamma_25 * umol_per_mol_2_Pa)) / (ci_ + km_25);
 }
 
 double Leaf::calc_A_j(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
                       double curv_fact, double a, double gamma_25,
-                      double umol_per_mol_2_Pa, double c_i) {
+                      double umol_per_mol_2_Pa, double ci_) {
 
   double jmax = vcmax * vcmax_25_2_jmax_25;
   double j = (a * PPFD + jmax -
@@ -59,17 +68,17 @@ double Leaf::calc_A_j(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
              (2 * curv_fact);  // check brackets are correct
 
   return j / 4 *
-         ((c_i - gamma_25 * umol_per_mol_2_Pa) /
-          (c_i + 2 * gamma_25 * umol_per_mol_2_Pa));
+         ((ci_ - gamma_25 * umol_per_mol_2_Pa) /
+          (ci_ + 2 * gamma_25 * umol_per_mol_2_Pa));
 }
 
 double Leaf::calc_A_lim(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
                         double curv_fact, double a, double gamma_25,
-                        double umol_per_mol_2_Pa, double c_i, double km_25) {
+                        double umol_per_mol_2_Pa, double ci_, double km_25) {
 
-  double A_c = calc_A_c(c_i, vcmax, gamma_25, umol_per_mol_2_Pa, km_25);
+  double A_c = calc_A_c(ci_, vcmax, gamma_25, umol_per_mol_2_Pa, km_25);
   double A_j = calc_A_j(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25,
-                        umol_per_mol_2_Pa, c_i);
+                        umol_per_mol_2_Pa, ci_);
 
   return (A_c + A_j - sqrt(pow(A_c + A_j, 2) - 4 * 0.98 * A_c * A_j)) / (2 * 0.98);
 }
@@ -94,7 +103,7 @@ double Leaf::diff_ci(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
 }
 
 // need to fill in tol and max_iteratiosn
-double Leaf::solve_A_lim(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
+double Leaf::calc_assim_gross(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
                          double curv_fact, double a, double gamma_25,
                          double umol_per_mol_2_Pa, double km_25,
                          const FF16_Environment &environment, double psi_aep,
@@ -121,10 +130,12 @@ double Leaf::solve_A_lim(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
 
   g_c[i] = calc_g_c(environment, psi_aep, b_CH, psi_stem, k_l_max, p_50, c,
                          b, atm_kpa, kg_2_mol_h2o, atm_vpd);
-                         
+
+  E[i] = g_c[i] * 1.6 * atm_vpd / kg_2_mol_h2o / atm_kpa;                         
 
   return A_lim[i];
 }
+
 
 double Leaf::calc_hydraulic_cost(const FF16_Environment &environment, double psi_stem, double k_l_max, double b, double c, double psi_aep, double b_CH) {
   double psi_soil_ = calc_soil_water_pot(environment, psi_aep, b_CH);
@@ -134,23 +145,15 @@ double Leaf::calc_hydraulic_cost(const FF16_Environment &environment, double psi
   return k_l_soil_ - k_l_stem_;
 }
 
-double Leaf::calc_lambda(double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double km_25, const FF16_Environment &environment, double psi_aep, double b_CH, double psi_crit, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, double umol_per_mol_2_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa) {
-  double psi_soil_ = calc_soil_water_pot(environment, psi_aep, b_CH);
-  double assim_gross_max_ = solve_A_lim(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi_crit, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa);
-  double max_diff_cond_ = calc_cond_vuln(psi_soil_, k_l_max, b, c) - k_l_max * 0.05;
 
-  return assim_gross_max_ / max_diff_cond_;
-}
-
-double Leaf::calc_assim_gross(double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double km_25, const FF16_Environment &environment, double psi_aep, double b_CH, double psi_stem, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, double umol_per_mol_2_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa) {
-  return solve_A_lim(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi_stem, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa);
-}
-
-double Leaf::calc_profit(double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double km_25, const FF16_Environment &environment, double psi_aep, double b_CH, double psi_stem, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, double umol_per_mol_2_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa, double psi_crit, int i) {
+double Leaf::calc_profit(double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double km_25, 
+const FF16_Environment &environment, double psi_aep, double b_CH, double psi_stem, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, 
+double umol_per_mol_2_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa, double psi_crit, int i) {
   double psi_soil_ = calc_soil_water_pot(environment, psi_aep, b_CH);
   
+  double lambda_ = calc_assim_gross(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi_crit, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, i)/
+    calc_cond_vuln(psi_soil_, k_l_max, b, c) - k_l_max * 0.05;
   double benefit_ = calc_assim_gross(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi_stem, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, i);
-  double lambda_ = calc_lambda(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi_crit, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa);
   double cost_ = calc_hydraulic_cost(environment, psi_stem, k_l_max, b, c, psi_aep, b_CH);
   
   return benefit_ - lambda_*cost_;
@@ -161,48 +164,97 @@ double Leaf::optimise_profit(double PPFD, double vcmax, double vcmax_25_2_jmax_2
   double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa, double psi_crit) {
   
   double psi_soil_ = calc_soil_water_pot(environment, psi_aep, b_CH);
-  double psi_curr = psi_soil_;
+  psi[0] = psi_soil_;
 
-  if (psi_soil_ >= psi_crit) {
-    return(psi_curr);
-  } else {
-   
-  double delta = 0.01;
-  double profit_curr = calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi_curr, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, 1) ;
-  double delta_crit = 1e-5;
-  double psi_next = psi_soil_;
-  double profit_next = psi_soil_;
-  
-  while (delta > delta_crit) {
-    psi_next = psi_curr + delta;
-    double psi_next2 = psi_curr + 2*delta;
-
-    profit[2]
-    profit_next = calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi_next, k_l_max, 
-    p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, 2) ;
-
-    double profit_next2 = calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi_next2, k_l_max, 
-    p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, 3) ;
-  
-  
-    if (profit_next2 > profit_curr){
-      profit_curr = profit_next;
-      profit_next = profit_next2;
-
-      psi_curr = psi_next;
-      psi_curr = psi_next;
-      
-      psi[1] = psi[2];
-      A_lim[1] = A_lim[2];
-      g_c[1] = g_c[2];
-      ci[1] = c1[2];
-
+  profit[0] = calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi[0], k_l_max, 
+  p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, 0) ;
     
-    } else {
-      delta = delta/2;
+  if (psi_soil_ < psi_crit) {
+    double delta = 0.01;
+    double delta_crit = 1e-5;
+    psi[1] = psi[0] + delta;
+
+    profit[1] = calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi[1], k_l_max, 
+      p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, 1) ;
+
+    while (delta > delta_crit) {
+      
+      psi[2] = psi[1] + delta;
+      profit[2]  = calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi[2], k_l_max, 
+      p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, 2) ;    
+    
+      if ((profit[2] > profit[1]) && (profit[1] > profit[0])) {
+        profit[0] = profit[1];
+        profit[1] = profit[2];
+
+        psi[0] = psi[1];
+        psi[1] = psi[2];
+
+        A_lim[0] = A_lim[1];
+        A_lim[1] = A_lim[2];
+
+        g_c[0] = g_c[1];
+        g_c[1] = g_c[2];
+
+        ci[0] = ci[1];
+        ci[1] = ci[2];
+
+        E[0] = E[1];
+        E[1] = E[2];
+      
+      } else {
+        delta = delta/2;
+      }
     }
   }
-  return(profit_curr);
+
+  return(profit[0]);
   }
+
+double Leaf::optimise_profit_gss(double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double km_25, 
+  const FF16_Environment &environment, double psi_aep, double b_CH, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, double umol_per_mol_2_mol_per_mol, 
+  double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa, double psi_crit) {
+  
+  double psi_soil_ = calc_soil_water_pot(environment, psi_aep, b_CH);
+  double gr = (sqrt(5) + 1)/2;
+
+  //profit[0] = calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, psi_soil_, k_l_max, 
+  //p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, 0);
+
+  min_bound[0] = psi_soil_; 
+  max_bound[0] = psi_crit;
+
+  double opt_psi_stem = psi_soil_;
+
+  if (psi_soil_ < psi_crit) {
+    double delta_crit = 1e-5;
+      
+    while (abs(max_bound[0] - min_bound[0]) > delta_crit) {
+      
+     min_bound[1] = min_bound[0] + (max_bound[0] - min_bound[0])/gr;
+     max_bound[1] = max_bound[0] - (max_bound[0] - min_bound[0])/gr;
+
+      if(calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, max_bound[1], k_l_max, 
+      p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, 2) >
+      calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, min_bound[1], k_l_max, 
+      p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, 2)) {
+        min_bound[0] = min_bound[1];
+      } else {
+        max_bound[0] = max_bound[1];
+      }
+
+     min_bound[1] = min_bound[0] + (max_bound[0] - min_bound[0])/gr;
+     max_bound[1] = max_bound[0] - (max_bound[0] - min_bound[0])/gr;
+
+
+    }
+    opt_psi_stem  = ((max_bound[0] + min_bound[0])/2);
+    
+  //profit[1] = calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, environment, psi_aep, b_CH, opt_psi_stem, k_l_max, 
+  //p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, 1) ;
+
   }
-} // namespace plant
+  return(opt_psi_stem);
+}
+}
+// namespace plant
