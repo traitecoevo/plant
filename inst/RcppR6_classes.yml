@@ -15,9 +15,6 @@ Leaf:
     initialize_integrator:
       return_type: void
       args: [integration_rule: int, integration_tol: double]
-    calc_soil_water_pot:
-      return_type: double
-      args: [environment: "plant::FF16_Environment", psi_aep: double, b_CH: double]
     calc_k_l_max:
       return_type: double
       args: [K_s: double, h_v: double, h: double]
@@ -32,7 +29,7 @@ Leaf:
       args: [k_l_max: double, b: double, c: double, psi_soil: double, psi_stem: double]   
     calc_g_c:
       return_type: double
-      args: [environment: "plant::FF16_Environment", psi_aep: double, b_CH: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, atm_kpa: double, kg_2_mol_h2o: double, atm_vpd: double]
+      args: [psi_soil: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, atm_kpa: double, kg_2_mol_h2o: double, atm_vpd: double]
     calc_A_c:
       return_type: double
       args: [ci_: double, vcmax: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double]
@@ -44,22 +41,22 @@ Leaf:
       args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, ci_: double, km_25: double]
     diff_ci:
       return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, x: double, km_25: double,environment: "plant::FF16_Environment", psi_aep: double, b_CH: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double]   
+      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, x: double, km_25: double, psi_soil: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double]   
     calc_hydraulic_cost:
       return_type: double
-      args: [environment: "plant::FF16_Environment", psi_stem: double, k_l_max: double, b: double, c: double, psi_aep: double, b_CH: double]
+      args: [psi_soil: double, psi_stem: double, k_l_max: double, b: double, c: double]
     calc_assim_gross:
       return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double,environment: "plant::FF16_Environment", psi_aep: double, b_CH: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, i: int]
+      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double, psi_soil: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double]
     calc_profit:
       return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double,environment: "plant::FF16_Environment", psi_aep: double, b_CH: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double, i: int]
-    optimise_profit:
-      return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double,environment: "plant::FF16_Environment", psi_aep: double, b_CH: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double]
+      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double,psi_soil: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double]
+    # optimise_profit:
+    #   return_type: double
+    #   args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double, psi_soil: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double]
     optimise_profit_gss:
       return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double,environment: "plant::FF16_Environment", psi_aep: double, b_CH: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double]
+      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double,psi_soil: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double]
 
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"

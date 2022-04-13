@@ -41,8 +41,6 @@ public:
                                  integration_tol, integration_tol);
   }
 
-  double calc_soil_water_pot(const FF16_Environment &environment,
-                             double psi_aep, double b_CH);
   double calc_k_l_max(double K_s, double h_v, double h) const;
 
   double calc_vul_b(double p_50, double c) const;
@@ -51,8 +49,7 @@ public:
   double calc_E_supply(double k_l_max, double b, double c, double psi_soil,
                        double psi_stem);
 
-  double calc_g_c(const FF16_Environment &environment, double psi_aep,
-                  double b_CH, double psi_stem, double k_l_max, double p_50,
+  double calc_g_c(double psi_soil, double psi_stem, double k_l_max, double p_50,
                   double c, double b, double atm_kpa, const double kg_2_mol_h2o,
                   double atm_vpd); // define as a constant
 
@@ -68,8 +65,7 @@ public:
   double diff_ci(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
                      double curv_fact, double a, double gamma_25,
                      double umol_per_mol_2_Pa, double x, double km_25,
-                     const FF16_Environment &environment, double psi_aep,
-                     double b_CH, double psi_stem, double k_l_max, double p_50,
+                     double psi_soil, double psi_stem, double k_l_max, double p_50,
                      double c, double b, const double kg_2_mol_h2o,
                      double umol_per_mol_2_mol_per_mol, double atm_vpd,
                      double ca, double atm_kpa, double kPa_2_Pa);
@@ -77,45 +73,30 @@ public:
   double calc_assim_gross(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
                          double curv_fact, double a, double gamma_25,
                          double umol_per_mol_2_Pa, double km_25,
-                         const FF16_Environment &environment, double psi_aep,
-                         double b_CH, double psi_stem, double k_l_max,
-                         double p_50, double c, double b,
-                         const double kg_2_mol_h2o,
-                         double umol_per_mol_2_mol_per_mol, double atm_vpd,
-                         double ca, double atm_kpa, double kPa_2_Pa, int i);
-  double calc_hydraulic_cost(const FF16_Environment &environment, double psi_stem, double k_l_max, double b, double c, double psi_aep, double b_CH);
-  double calc_assim_gross(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
-                         double curv_fact, double a, double gamma_25,
-                         double umol_per_mol_2_Pa, double km_25,
-                         const FF16_Environment &environment, double psi_aep,
-                         double b_CH, double psi_stem, double k_l_max,
+                         double psi_soil, double psi_stem, double k_l_max,
                          double p_50, double c, double b,
                          const double kg_2_mol_h2o,
                          double umol_per_mol_2_mol_per_mol, double atm_vpd,
                          double ca, double atm_kpa, double kPa_2_Pa);
-double calc_profit(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
+  double calc_hydraulic_cost(double psi_soil, double psi_stem, double k_l_max, double b, double c);
+  double calc_profit(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
                          double curv_fact, double a, double gamma_25,
-                         double umol_per_mol_2_Pa, double km_25,
-                         const FF16_Environment &environment, double psi_aep,
-                         double b_CH, double psi_stem, double k_l_max,
+                         double umol_per_mol_2_Pa, double km_25, double psi_soil, double psi_stem, double k_l_max,
                          double p_50, double c, double b,
                          const double kg_2_mol_h2o,
                          double umol_per_mol_2_mol_per_mol, double atm_vpd,
-                         double ca, double atm_kpa, double kPa_2_Pa, double psi_crit, int i);                                                 
-double optimise_profit(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
-                         double curv_fact, double a, double gamma_25,
-                         double umol_per_mol_2_Pa, double km_25,
-                         const FF16_Environment &environment, double psi_aep,
-                         double b_CH, double k_l_max,
-                         double p_50, double c, double b,
-                         const double kg_2_mol_h2o,
-                         double umol_per_mol_2_mol_per_mol, double atm_vpd,
-                         double ca, double atm_kpa, double kPa_2_Pa, double psi_crit); 
+                         double ca, double atm_kpa, double kPa_2_Pa, double psi_crit);                                                 
+// double optimise_profit(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
+//                          double curv_fact, double a, double gamma_25,
+//                          double umol_per_mol_2_Pa, double km_25, double psi_soil, double k_l_max,
+//                          double p_50, double c, double b,
+//                          const double kg_2_mol_h2o,
+//                          double umol_per_mol_2_mol_per_mol, double atm_vpd,
+//                          double ca, double atm_kpa, double kPa_2_Pa, double psi_crit); 
 double optimise_profit_gss(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
                          double curv_fact, double a, double gamma_25,
                          double umol_per_mol_2_Pa, double km_25,
-                         const FF16_Environment &environment, double psi_aep,
-                         double b_CH, double k_l_max,
+                         double psi_soil, double k_l_max,
                          double p_50, double c, double b,
                          const double kg_2_mol_h2o,
                          double umol_per_mol_2_mol_per_mol, double atm_vpd,

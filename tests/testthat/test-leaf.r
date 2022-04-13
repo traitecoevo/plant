@@ -26,22 +26,7 @@ test_that("Basic functions", {
   
   expect_equal(l$calc_cond_vuln(psi, k_l_max, b, c), k_l_max*exp(-(psi/b)^c), tolerance = 1e-6)
   
-  
-  control <- Control()
-  e <- make_environment("FF16w") 
-  
-  #set rel_theta at 0.5
-  
-  e$set_soil_water_state(1)
-
-  psi_aep <- 0.025
-  b_ch <- 6.0
-  
-  expect_equal(l$calc_soil_water_pot(e, psi_aep, b_ch), psi_aep*1^-b_ch, tolerance = 1e-6)
-  
-  # Make it rain
-  x <- seq(0, 9, 1)
-  y <- rep(5, 10)
+  psi_soil <- 0
   
   atm_kpa <- 101.3 #kPa
   kg_to_g = 1000 #g kg^-1
@@ -51,15 +36,11 @@ test_that("Basic functions", {
   
   kg_2_mol_h20 <- kg_to_g * gh2O_to_molh20
   
-  e$set_extrinsic_driver("rainfall", x, y)
-  e$set_soil_water_state(1)
-  psi_soil <- l$calc_soil_water_pot(e, psi_aep, b_ch)
-  
   psi_stem <- psi_soil+1
   
   E_supply <- l$calc_E_supply(k_l_max, b, c, psi_soil, psi_stem)
   
-  expect_equal(l$calc_g_c(e, psi_aep, b_ch, psi_stem, k_l_max, p_50, c, b, atm_kpa, kg_2_mol_h20, atm_vpd), atm_kpa*E_supply*kg_2_mol_h20/atm_vpd/1.6)
+  expect_equal(l$calc_g_c(psi_soil, psi_stem, k_l_max, p_50, c, b, atm_kpa, kg_2_mol_h20, atm_vpd), atm_kpa*E_supply*kg_2_mol_h20/atm_vpd/1.6)
   
   vcmax = 100
   c_i = 30
@@ -89,77 +70,17 @@ test_that("Basic functions", {
   
   expect_equal(l$calc_A_lim(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, c_i, km_25), (A_c + A_j  - sqrt((A_c + A_j)^2-4*0.98*A_c*A_j))/(2*0.98))
   
-  g_c <- atm_kpa*E_supply*kg_2_mol_h20/atm_vpd/1.6
+  g_c <- l$calc_g_c(psi_soil, psi_stem, k_l_max, p_50, c, b, atm_kpa, kg_2_mol_h20, atm_vpd)
   
-
-  expect_equal(l$calc_hydraulic_cost(e, psi_stem, k_l_max, b, c, psi_aep, b_ch), calc_hydraulic_cost(psi_soil = psi_soil, psi_stem = psi_stem,  b = b, c = c, k_l_max = k_l_max), tolerance = 1e-6)
+  expect_equal(l$calc_A_lim(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, 29.32673, km_25), calc_A_lim(29.32673, vcmax, PPFD))
   
-  expect_equal(l$calc_assim_gross(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, e, psi_aep, b_ch, psi_stem, k_l_max, p_50, c, b, kg_2_mol_h20, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, 1), calc_ben_gross(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c, vcmax= vcmax, PPFD = PPFD), tolerance = 1e-6)
+  expect_equal(l$calc_hydraulic_cost(psi_soil, psi_stem, k_l_max, b, c), calc_hydraulic_cost(psi_soil = psi_soil, psi_stem = psi_stem,  b = b, c = c, k_l_max = k_l_max), tolerance = 1e-6)
   
-  expect_equal(l$calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, e, psi_aep, b_ch, psi_stem, k_l_max, p_50, c, b, kg_2_mol_h20, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, -log(0.05)*b/c), calc_profit(psi_stem, psi_soil, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd), tolerance = 1e-6)
+  expect_equal(l$calc_assim_gross(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, psi_soil, psi_stem, k_l_max, p_50, c, b, kg_2_mol_h20, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa), calc_ben_gross(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c, vcmax= vcmax, PPFD = PPFD), tolerance = 1e-6)
   
-  expect_equal(l$optimise_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, e, psi_aep, b_ch, k_l_max, p_50, c, b, kg_2_mol_h20, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, -log(0.05)*b/c), find_opt_psi_stem(psi_soil, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd)$profit_root, tolerance = 1e-6)
-
-  expect_equal(l$optimise_profit_gss(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, e, psi_aep, b_ch, k_l_max, p_50, c, b, kg_2_mol_h20, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, -log(0.05)*b/c), find_opt_psi_stem(psi_soil, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd)$profit_root, tolerance = 1e-6)
+  expect_equal(l$calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, psi_soil, psi_stem, k_l_max, p_50, c, b, kg_2_mol_h20, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, -log(0.05)*b/c), calc_profit(0.701, psi_soil, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd), tolerance = 1e-6)
   
+  expect_equal(l$optimise_profit_gss(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, psi_soil, k_l_max, p_50, c, b, kg_2_mol_h20, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, -log(0.05)*b/c), find_opt_psi_stem(psi_soil, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd)$profit_root , tolerance = 1e-6)
   
   }
 )
-
-
-psi_soil = 0
-b <- 2.072101
-c <- 2
-
-K_s = 2
-h_v = 0.000157
-h = 5
-k_l_max <- calc_k_l_max(K_s, h_v, h)
-
-vcmax = 100
-PPFD = 900
-
-atm_vpd = 1
-
-gr = (sqrt(5) + 1) / 2
-
-a_bound <- psi_soil
-b_bound <- -log(0.05)*b/c
-c_bound = b_bound - (b_bound-a_bound)/gr
-d_bound = a_bound + (b_bound-a_bound)/gr
-
-tol <- 1e-5
-
-while(abs(b_bound-a_bound) > tol){
-  if (calc_profit(c_bound, psi_soil, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd) > calc_profit(d_bound, psi_soil, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd)){
-    b_bound = d_bound
-  } else {
-    a_bound = c_bound
-  }
-  c_bound = b_bound - (b_bound-a_bound)/gr
-  d_bound = a_bound + (b_bound-a_bound)/gr
-}
-
-calc_profit(a_bound+0.01, psi_soil, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd)
-
-find_opt_psi_stem(0.1, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd)$profit_root 
-0.02500338
-
-
-psi_stem
-
-find_opt_psi_stem(c_bound, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd)$profit_root > find_opt_psi_stem(d_bound, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd)$profit_root
-calc_profit(0.02500338, psi_soil, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd)
-
-
-psi_stem <- seq(psi_soil, -log(0.05)*b/c, length.out = 100)
-
-calc_profit_func <- function(psi_stem_input){
-  calc_profit(psi_stem_input, psi_soil, k_l_max, vcmax, PPFD, b, c, -log(0.05)*b/c, atm_vpd)
-}  
-
-
-map(psi_stem, calc_profit_func) %>%
-  unlist() -> profits
-
-plot(profits~psi_stem)
