@@ -27,7 +27,7 @@ test_that("Can set birth rate splines correctly", {
     species1 = list(x = x, y = 1 + sin(x)),
     species2 = "hello"
   )
-  expect_error(expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates), "Invalid type in birth_rate_list - need either a data frame with x, y control points or a numeric")
+  expect_error(expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates), "Invalid type in birth_rate_list - need either a list with x, y control points or a numeric")
   
   birth_rates <- list(
     species1 = list(x = x, y = 1 + sin(x)),

@@ -78,7 +78,7 @@ public:
   }
 
   // returns the name of each active driver - useful for R output
-  std::vector <std::string> get_names() {
+  std::vector<std::string> get_names() {
     auto ret = std::vector<std::string>();
     for (auto const &driver: drivers) {
       ret.push_back(driver.first);

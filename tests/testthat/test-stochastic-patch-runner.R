@@ -8,7 +8,6 @@ test_that("empty", {
     e <- environment_types[[x]]
     set.seed(1)
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          birth_rate=pi/2,
                           is_resident=TRUE)
     
     env <- make_environment(x)
@@ -54,7 +53,6 @@ test_that("collect", {
     e <- environment_types[[x]]
     set.seed(1)
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          birth_rate=5/50,
                           patch_area=50,
                           is_resident=TRUE)
     

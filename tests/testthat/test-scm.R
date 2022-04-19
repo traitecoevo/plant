@@ -241,7 +241,7 @@ test_that("Seed rain & error calculations correct", {
     context(sprintf("SCM-%s", x))
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
-    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE)
+    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE, birth_rate_list=1.0)
     
     env <- make_environment(x)
     ctrl <- scm_base_control()

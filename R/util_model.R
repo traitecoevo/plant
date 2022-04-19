@@ -37,6 +37,23 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
   mapply(f, matrix_to_list(x), birth_rate_list, SIMPLIFY = FALSE)
 }
 
+# set_birth_rates(strategies, birth_rate_list) {
+#   f <- function(xi, br) {
+#     strategy[trait_names] <- xi
+#     if (is.list(br)) {
+#       strategy$birth_rate_x <- br$x
+#       strategy$birth_rate_y <- br$y
+#       strategy$is_variable_birth_rate <- TRUE
+#     } else if (is.numeric(br)) {
+#       strategy$birth_rate_y <- br
+#       strategy$is_variable_birth_rate <- FALSE
+#     } else {
+#       stop("Invalid type in birth_rate_list - need either a list with x, y control points or a numeric")
+#     }
+#     strategy
+#   }
+# }
+
 ##' @export
 ##' @rdname strategy_list
 strategy_default <- function(parameters, hyperpar=param_hyperpar(parameters)) {

@@ -35,7 +35,10 @@ test_that("Defaults", {
     k_I = 0.5,
     recruitment_decay = 0,
     control = Control(),
-    collect_all_auxiliary = FALSE)
+    collect_all_auxiliary = FALSE,
+    birth_rate_x = numeric(0), # empty
+    birth_rate_y = c(1.0), 
+    is_variable_birth_rate = FALSE)
 
   keys <- sort(names(expected))
 
@@ -165,9 +168,9 @@ test_that("narea calculation", {
   x <- c(1.38, 3.07, 2.94)
   p0 <- FF16_Parameters()
   m <- trait_matrix(x, "hmat")
-  expect_silent(sl <- strategy_list(m, p0, FF16_hyperpar))
+  expect_silent(sl <- strategy_list(m, p0, FF16_hyperpar, birth_rate_list=1.0))
 
-  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0, FF16_hyperpar))
+  cmp <- lapply(x, function(xi) strategy(trait_matrix(xi, "hmat"), p0, FF16_hyperpar, birth_rate_list=1.0))
   expect_equal(sl, cmp)
 })
 
@@ -181,16 +184,16 @@ test_that("offspring arrival", {
   ctrl <- scm_base_control()
 
   # one species
-  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE)
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE, 20)
 
-  p1$birth_rate <- 20
+  #p1$birth_rate <- 20
   out <- run_scm(p1, env, ctrl)
   expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 
   # two species
-  p2 <- expand_parameters(trait_matrix(0.2625, "lma"), p1, FF16_hyperpar, FALSE)
-  p2$birth_rate <- c(11.99177, 16.51006)
+  p2 <- expand_parameters(trait_matrix(0.2625, "lma"), p1, FF16_hyperpar, FALSE, c(11.99177, 16.51006))
+  #p2$birth_rate <- c(11.99177, 16.51006)
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production, c(11.99529, 16.47519), tolerance=1e-5)
   expect_equal(length(out$ode_times), 297)

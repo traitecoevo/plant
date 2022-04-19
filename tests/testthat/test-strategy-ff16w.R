@@ -57,8 +57,8 @@ test_that("FF16w Environment", {
 test_that("Rainfall spline basic run", {
   # one species
   p0 <- scm_base_parameters("FF16w")
-  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE)
-  p1$birth_rate <- 20
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE,20)
+  #p1$birth_rate <- 20
   
   env <- make_environment("FF16w", 
                           soil_number_of_depths = 10,

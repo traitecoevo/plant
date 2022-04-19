@@ -9,7 +9,6 @@ test_that("empty", {
 
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          birth_rate=pi/2,
                           is_resident=TRUE)
     
     env <- make_environment(x)
@@ -38,7 +37,6 @@ test_that("non empty", {
 
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          birth_rate=pi/2,
                           is_resident=TRUE)
     
     env <- make_environment(x)

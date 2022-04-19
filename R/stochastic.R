@@ -4,14 +4,21 @@
 ##
 ## This will be slow, but fairly easy to get right.
 ##' @importFrom stats rexp
-stochastic_arrival_times <- function(max_time, offspring_arriving_total, n=NULL) {
+stochastic_arrival_times <- function(max_time, species, n=NULL) {
   if (is.null(n)) {
-    n <- max_time * offspring_arriving_total
+    if (species$is_variable_birth_rate) {
+      x <- species$birth_rate_x[species$birth_rate_x < max_time]
+      y <- species$birth_rate_y[species$birth_rate_x < max_time]
+      n <- trapezium(x, y)
+    } else {
+      y <- species$birth_rate_y[species$birth_rate_x < max_time]
+      n <- max_time * y
+    }
   }
   ret <- numeric(0)
   t0 <- 0.0
   while (t0 < max_time) {
-    t <- t0 + cumsum(rexp(n, offspring_arriving_total))
+    t <- t0 + cumsum(rexp(n, 1))
     t0 <- t[[n]]
     if (t0 > max_time) {
       t <- t[t <= max_time]
@@ -23,12 +30,12 @@ stochastic_arrival_times <- function(max_time, offspring_arriving_total, n=NULL)
 
 stochastic_schedule <- function(p) {
   max_time  <- p$max_patch_lifetime
+  n_species <- length(p$strategies)
   birth_rate <- p$birth_rate * p$patch_area
-  n_species <- length(birth_rate)
   sched <- CohortSchedule(n_species)
   sched$max_time <- max_time
-  for (i in seq_along(birth_rate)) {
-    sched$set_times(stochastic_arrival_times(max_time, birth_rate[[i]]), i)
+  for (i in 1:n_species) {
+    sched$set_times(stochastic_arrival_times(max_time, p$strategies[[i]]), i)
   }
   sched
 }
