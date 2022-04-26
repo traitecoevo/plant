@@ -37,6 +37,8 @@ run_plant_benchmarks <- function(strategy_types = list(FF16 = FF16_Strategy,
                })
 }
 
+# Evaluate overheads of having multiple soil layers in FF16w, to ensure that
+# our approach to computing individual resource consumption is scalable.
 run_resource_consumption_benchmarks <- function(its = 10) {
   
   f_scm <- function(layers) {
