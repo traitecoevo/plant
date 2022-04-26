@@ -121,7 +121,7 @@ trait_matrix <- function(x, trait_name) {
 ##  \code{`is_variable_bithrate = TRUE`}
 ##' @author Rich FitzJohn
 ##' @export
-expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutant=TRUE, birth_rate_list) {
+expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutant=TRUE, birth_rate_list = 1) {
   if (length(mutant) != 1L) {
     stop("mutant must be scalar")
   }
