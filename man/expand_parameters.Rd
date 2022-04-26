@@ -9,7 +9,7 @@ expand_parameters(
   p,
   hyperpar = param_hyperpar(p),
   mutant = TRUE,
-  birth_rate_list
+  birth_rate_list = 1
 )
 }
 \arguments{

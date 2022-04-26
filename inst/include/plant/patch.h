@@ -98,6 +98,7 @@ private:
   std::vector<bool> is_resident;
   environment_type environment;
   std::vector<species_type> species;
+  std::vector<double> resource_depletion;
   Control control;
 };
 
@@ -121,6 +122,9 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 //		spec.extrinsic_driver_extrapolation("birth_rate", !parameters.is_interpolated_birth_rate[i]);
     species.push_back(spec);
   }
+
+  resource_depletion.reserve(environment.ode_size());
+
   reset();
 }
 
@@ -128,9 +132,16 @@ template <typename T, typename E>
 void Patch<T,E>::reset() {
   for (auto& s : species) {
     s.clear();
+
+    // allocate variables for tracking resource consumption
+    s.resize_consumption_rates(environment.ode_size());
   }
+
+  // compute ephemeral effects like canopy
   environment.clear();
   compute_environment();
+
+  // compute effects of resource consumption
   compute_rates();
 }
 
@@ -180,13 +191,26 @@ void Patch<T,E>::rescale_environment() {
 
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
+  double pr_patch_survival = survival_weighting->pr_survival(time());
+
   for (size_t i = 0; i < size(); ++i) {
     double pr_patch_survival = survival_weighting->pr_survival(time());
     //double birth_rate = parameters.birth_rate[i];
 		double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time());
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
-    environment.compute_rates();
   }
+
+  resource_depletion.reserve(environment.ode_size());
+  for(size_t i = 0; i < environment.ode_size(); i++) {
+    double resource_consumed = std::accumulate(species.begin(), species.end(), 0.0, [i](double r, const species_type& s) {
+      return r + s.consumption_rate(i); // accumulates r from zero
+    });
+
+    resource_depletion.push_back(resource_consumed);
+  }
+
+  environment.compute_rates(resource_depletion);
+  resource_depletion.clear();
 }
 
 // TODO: We should only be recomputing the light environment for the

@@ -3349,8 +3349,8 @@ FF16_Environment__set_soil_water_state <- function(obj_, state) {
     invisible(.Call('_plant_FF16_Environment__set_soil_water_state', PACKAGE = 'plant', obj_, state))
 }
 
-FF16_Environment__compute_rates <- function(obj_) {
-    invisible(.Call('_plant_FF16_Environment__compute_rates', PACKAGE = 'plant', obj_))
+FF16_Environment__compute_rates <- function(obj_, resource_depletion) {
+    invisible(.Call('_plant_FF16_Environment__compute_rates', PACKAGE = 'plant', obj_, resource_depletion))
 }
 
 FF16_Environment__time__get <- function(obj_) {
