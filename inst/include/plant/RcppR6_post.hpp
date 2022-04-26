@@ -333,8 +333,8 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["assimilator_integration_tol"] = Rcpp::wrap(x.assimilator_integration_tol);
   ret["assimilator_integration_iterations"] = Rcpp::wrap(x.assimilator_integration_iterations);
   ret["assimilator_integration_rule"] = Rcpp::wrap(x.assimilator_integration_rule);
-  ret["plant_seed_tol"] = Rcpp::wrap(x.plant_seed_tol);
-  ret["plant_seed_iterations"] = Rcpp::wrap(x.plant_seed_iterations);
+  ret["offspring_production_tol"] = Rcpp::wrap(x.offspring_production_tol);
+  ret["offspring_production_iterations"] = Rcpp::wrap(x.offspring_production_iterations);
   ret["cohort_gradient_eps"] = Rcpp::wrap(x.cohort_gradient_eps);
   ret["cohort_gradient_direction"] = Rcpp::wrap(x.cohort_gradient_direction);
   ret["cohort_gradient_richardson"] = Rcpp::wrap(x.cohort_gradient_richardson);
@@ -378,10 +378,10 @@ template <> inline plant::Control as(SEXP x) {
   ret.assimilator_integration_iterations = Rcpp::as<size_t >(xl["assimilator_integration_iterations"]);
   // ret.assimilator_integration_rule = Rcpp::as<decltype(retassimilator_integration_rule) >(xl["assimilator_integration_rule"]);
   ret.assimilator_integration_rule = Rcpp::as<size_t >(xl["assimilator_integration_rule"]);
-  // ret.plant_seed_tol = Rcpp::as<decltype(retplant_seed_tol) >(xl["plant_seed_tol"]);
-  ret.plant_seed_tol = Rcpp::as<double >(xl["plant_seed_tol"]);
-  // ret.plant_seed_iterations = Rcpp::as<decltype(retplant_seed_iterations) >(xl["plant_seed_iterations"]);
-  ret.plant_seed_iterations = Rcpp::as<int >(xl["plant_seed_iterations"]);
+  // ret.offspring_production_tol = Rcpp::as<decltype(retoffspring_production_tol) >(xl["offspring_production_tol"]);
+  ret.offspring_production_tol = Rcpp::as<double >(xl["offspring_production_tol"]);
+  // ret.offspring_production_iterations = Rcpp::as<decltype(retoffspring_production_iterations) >(xl["offspring_production_iterations"]);
+  ret.offspring_production_iterations = Rcpp::as<int >(xl["offspring_production_iterations"]);
   // ret.cohort_gradient_eps = Rcpp::as<decltype(retcohort_gradient_eps) >(xl["cohort_gradient_eps"]);
   ret.cohort_gradient_eps = Rcpp::as<double >(xl["cohort_gradient_eps"]);
   // ret.cohort_gradient_direction = Rcpp::as<decltype(retcohort_gradient_direction) >(xl["cohort_gradient_direction"]);

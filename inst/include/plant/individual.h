@@ -131,8 +131,7 @@ public:
     return rate("height");
   }
 
-  // TODO recame lcp_whole_plant to competition_compensation_point
-  double lcp_whole_plant() {
+  double resource_compensation_point() {
     environment_type env = environment_type();
 
     auto target = [&] (double x) mutable -> double {
@@ -145,8 +144,8 @@ public:
     if (f1 < 0.0) {
       return NA_REAL;
     } else {
-      const double tol = control().plant_seed_tol;
-      const size_t max_iterations = control().plant_seed_iterations;
+      const double tol = control().offspring_production_tol;
+      const size_t max_iterations = control().offspring_production_iterations;
       return util::uniroot(target, 0.0, 1.0, tol, max_iterations);
     }
   }

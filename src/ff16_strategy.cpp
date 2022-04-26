@@ -425,8 +425,8 @@ double FF16_Strategy::height_seed(void) const {
     h0 = height_given_mass_leaf(std::numeric_limits<double>::min()),
     h1 = height_given_mass_leaf(omega);
 
-  const double tol = control.plant_seed_tol;
-  const size_t max_iterations = control.plant_seed_iterations;
+  const double tol = control.offspring_production_tol;
+  const size_t max_iterations = control.offspring_production_iterations;
 
   auto target = [&] (double x) mutable -> double {
     return mass_live_given_height(x) - omega;

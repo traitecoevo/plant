@@ -73,12 +73,12 @@ Rcpp::NumericMatrix::iterator get_state(const Individual<T,E>& plant,
 template <typename T, typename E>
 Rcpp::NumericMatrix get_state(const StochasticSpecies<T,E>& species) {
   typedef Individual<T,E> individual_type;
-  size_t ode_size = individual_type::ode_size(), np = species.size_plants();
+  size_t ode_size = individual_type::ode_size(), np = species.size_individuals();
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np);
 
   Rcpp::NumericMatrix::iterator it = ret.begin();
   for (size_t i = 0; i < np; ++i) {
-    it = get_state(species.r_plant_at(i), it);
+    it = get_state(species.r_individual_at(i), it);
   }
   ret.attr("dimnames") =
     Rcpp::List::create(individual_type::ode_names(), R_NilValue);

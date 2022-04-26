@@ -116,7 +116,7 @@ Helpers:
 - environment.h
 
 plant_runner.h
-plant_tools.h
+individual_tools.h
 scm_utils.h
 
 stochastic_patch_runner.h
@@ -171,7 +171,7 @@ In addition, the following files must be modified to include appropriate details
 * `inst/include/RccpR6_classes.yml`
 * `inst/include/plant.h`
 * `src/plant_plus.cpp`
-* `src/plant_tools.cpp`
+* `src/individual_tools.cpp`
 * `tests/testthat/helper-plant.R`
 * `R/scm_support.R` (Currently uses the FF16 hyperpar and make_hyperpar)
 

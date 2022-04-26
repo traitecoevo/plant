@@ -104,18 +104,18 @@ update_classes_yml <- function (name, template_strategy) {
   append_to_file(file, c(yml_strategy, yml_environment), env_entry, FALSE)
 }
 
-# updates src/plant_tools.cpp
-update_plant_tools <- function (name) {
+# updates src/individual_tools.cpp
+update_individual_tools <- function (name) {
   whisker.render("
 // [[Rcpp::export]]
-plant::Internals {{name}}_oderunner_plant_internals(
+plant::Internals {{name}}_oderunner_individual_internals(
   const plant::ode::Runner<plant::tools::IndividualRunner<plant::{{name}}_Strategy, plant::{{name}}_Environment>>& obj) {
-  return obj.obj.plant.r_internals();
+  return obj.obj.individual.r_internals();
 }
 
 ", list(name=name)) -> debt
 
-  append_to_file("src/plant_tools.cpp", debt, 1)
+  append_to_file("src/individual_tools.cpp", debt, 1)
 }
 
 # updates inst/include/plant.h
@@ -199,7 +199,7 @@ create_strategy_scaffold <- function(name, template_strategy="FF16") {
   scaffold_files(name, template_strategy)
   update_classes_yml(name, template_strategy)
   update_plant(name, template_strategy)
-  update_plant_tools(name)
+  update_individual_tools(name)
   update_test_helper(name, template_strategy)
   update_strategy_support(name, template_strategy)
 }

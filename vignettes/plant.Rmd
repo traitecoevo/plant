@@ -93,16 +93,16 @@ str(ind)
 ```
 
 
-First we set a fixed environment (here `1.0` represents full light exposure in an open canopy) then use the `grow_plant_to_time` function to grow our individual for a range of time steps. 
+First we set a fixed environment (here `1.0` represents full light exposure in an open canopy) then use the `grow_individual_to_time` function to grow our individual for a range of time steps. 
 
 ```{r}
 env <- FF16_fixed_environment(1.0)
 times <- seq(0, 50, length.out = 101)
-result <- grow_plant_to_time(ind, times, env) %>%
+result <- grow_individual_to_time(ind, times, env) %>%
   tidy_individual()
 ```
 
-The tidy_indivdual function puts the outputs from grow_plant_to_time into `tidy format`, as defined in the tidyverse. Examining our result, we see a matrix of our state variables at each timestep
+The tidy_indivdual function puts the outputs from grow_individual_to_time into `tidy format`, as defined in the tidyverse. Examining our result, we see a matrix of our state variables at each timestep
 
 ```{r}
 result %>%
