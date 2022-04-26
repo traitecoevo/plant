@@ -9354,12 +9354,13 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__compute_rates
-void FF16_Environment__compute_rates(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
-RcppExport SEXP _plant_FF16_Environment__compute_rates(SEXP obj_SEXP) {
+void FF16_Environment__compute_rates(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> resource_depletion);
+RcppExport SEXP _plant_FF16_Environment__compute_rates(SEXP obj_SEXP, SEXP resource_depletionSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    FF16_Environment__compute_rates(obj_);
+    Rcpp::traits::input_parameter< std::vector<double> >::type resource_depletion(resource_depletionSEXP);
+    FF16_Environment__compute_rates(obj_, resource_depletion);
     return R_NilValue;
 END_RCPP
 }
@@ -10650,7 +10651,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
     {"_plant_FF16_Environment__set_soil_water_state", (DL_FUNC) &_plant_FF16_Environment__set_soil_water_state, 2},
-    {"_plant_FF16_Environment__compute_rates", (DL_FUNC) &_plant_FF16_Environment__compute_rates, 1},
+    {"_plant_FF16_Environment__compute_rates", (DL_FUNC) &_plant_FF16_Environment__compute_rates, 2},
     {"_plant_FF16_Environment__time__get", (DL_FUNC) &_plant_FF16_Environment__time__get, 1},
     {"_plant_FF16_Environment__time__set", (DL_FUNC) &_plant_FF16_Environment__time__set, 2},
     {"_plant_FF16_Environment__ode_size__get", (DL_FUNC) &_plant_FF16_Environment__ode_size__get, 1},

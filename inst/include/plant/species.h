@@ -39,7 +39,11 @@ public:
   size_t aux_size() const;
   size_t strategy_aux_size() const;
   std::vector<std::string> aux_names() const;
-  
+
+  void resize_consumption_rates(int i);
+  double consumption_rate(int i) const;
+  std::vector<double> consumption_rate_by_cohort_rev(int i) const;
+
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
@@ -47,6 +51,7 @@ public:
 
   // * R interface
   std::vector<double> r_heights() const;
+  std::vector<double> r_heights_rev() const;
   void r_set_heights(std::vector<double> heights);
   const cohort_type& r_new_cohort() const {return new_cohort;}
   std::vector<cohort_type> r_cohorts() const {return cohorts;}
@@ -193,6 +198,32 @@ std::vector<double> Species<T,E>::net_reproduction_ratio_by_cohort() const {
 }
 
 template <typename T, typename E>
+void Species<T,E>::resize_consumption_rates(int r) {
+  new_cohort.resize_consumption_rates(r);
+}
+
+template <typename T, typename E>
+double Species<T,E>::consumption_rate(int i) const {
+  // can't determine density for one cohort
+  if(size() < 2) {
+    return 0.0;
+  } else {
+    // cohort heights are in descending order - we need ascending for integration
+    return util::trapezium(r_heights_rev(), consumption_rate_by_cohort_rev(i));
+  }
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::consumption_rate_by_cohort_rev(int i) const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for(auto it = cohorts.rbegin(); it != cohorts.rend(); ++it) {
+    ret.push_back(it->consumption_rate(i));
+  }
+  return ret;
+}
+
+template <typename T, typename E>
 size_t Species<T,E>::ode_size() const {
   return size() * cohort_type::ode_size();
 }
@@ -244,6 +275,18 @@ std::vector<double> Species<T,E>::r_heights() const {
        it != cohorts.end(); ++it) {
     ret.push_back(it->height());
   }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::r_heights_rev() const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (cohorts_const_iterator it = cohorts.begin();
+       it != cohorts.end(); ++it) {
+    ret.push_back(it->height());
+  }
+  std::reverse(ret.begin(), ret.end());
   return ret;
 }
 
