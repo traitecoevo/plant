@@ -62,7 +62,7 @@ test_that("FF16w Environment", {
 test_that("Rainfall spline basic run", {
   # one species
   p0 <- scm_base_parameters("FF16w")
-  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar,FALSE)
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16w_hyperpar, FALSE)
   p1$birth_rate <- 20
   
   env <- make_environment("FF16w", 
@@ -71,7 +71,7 @@ test_that("Rainfall spline basic run", {
   
   # init rainfall spline for env
   x <- seq(0, 110, 0.1)
-  integrand <- function(x) {x^2}
+  integrand <- function(x) {1000 + sin(x)}
   y <- integrand(x)
   env$set_extrinsic_driver("rainfall", x, y)
   
@@ -81,18 +81,18 @@ test_that("Rainfall spline basic run", {
   
   expect_equal(out$patch$environment$ode_size, 10)
   
-  # these values are not yet verified outside of the runner to be correct
-  expect_equal(out$patch$environment$soil$rates, 
-               c(1906.4037, 1706.4634, 1506.8110, 1308.1743, 1112.2332, 
-                 922.0232, 741.9883, 577.4903, 433.8597, 315.3475),
-               tolerance = 1e-5)
+  # This test only validates reproducibility across operating systems,
+  # not any kind of ecological process. It should be replaced once the
+  # water model is completed
+  expect_equal(out$patch$environment$soil$rates,  
+               c(-0.9529, 0.2508, 1.4740, 5.1409, 13.5231, 28.4528, 49.8749, 
+                 74.9231, 98.4965, 115.2373), tolerance = 1e-5)
   
   # check the states are correct
   # again these values not yet verified
   expect_equal(out$patch$environment$soil$states,
-               c(91799.240, 74674.860, 59547.003, 46405.514, 35223.435, 
-                 25943.457, 18463.828, 12629.179, 8230.835, 5017.614),
-               tolerance = 1e-5)
+               c(9939.809, 9877.551, 9803.061, 9691.901, 9496.920, 9152.641, 
+                 8594.141, 7785.160, 6740.445, 5528.322), tolerance = 1e-5)
 
   expect_equal(out$offspring_production, 16.88961056463, tolerance=1e-5)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.101857), tolerance=1e-7)
