@@ -4,35 +4,39 @@
 ##
 ## This will be slow, but fairly easy to get right.
 ##' @importFrom stats rexp
-stochastic_arrival_times <- function(max_time, species, n=NULL) {
-  if (is.null(n)) {
-    y <- species$birth_rate_y
-    
-    if (species$is_variable_birth_rate) {
-      x <- species$birth_rate_x
-      n <- trapezium(x, y)
-      rate = 1 / y
-    } else {
-      n <- max_time * y
-      rate = 1
-    }
-  }
-  
+stochastic_arrival_times <- function(max_time, species, delta_t = 0.1, patch_area = 1) {
   ret <- numeric(0)
   t0 <- 0.0
+  t1 <- t0 + delta_t
   
   while (t0 < max_time) {
-    t <- t0 + cumsum(rexp(n, rate))
-    t0 <- t[[n]]
-    if (t0 > max_time) {
-      t <- t[t <= max_time]
+    # first calculate average arrival rate in this interval
+    if (species$is_variable_birth_rate) {
+      interpolated <- spline(species$birth_rate_x, species$birth_rate_y,
+                             n = 100, xmin = t0, xmax = t1)
+      rate = mean(interpolated$y)
+    } else {
+      rate <- species$birth_rate_y
     }
+    
+    # now calculate actual number arriving, given the rate
+    n <- rpois(1,  delta_t * rate * patch_area)
+    
+    # now generate arrival times in this interval, from a uniform distribution
+    t <- sort(runif(n, t0, t1))
     ret <- c(ret, t)
+    
+    # update for next iteration
+    t0 <- t1
+    t1 <- t1 + delta_t
   }
-  ret
+  
+  ret[ret < max_time]
 }
 
+
 stochastic_schedule <- function(p) {
+  patch_area <- p$patch_area
   max_time  <- p$max_patch_lifetime
   n_species <- length(p$strategies)
 
@@ -41,7 +45,7 @@ stochastic_schedule <- function(p) {
   
   for (i in 1:n_species) {
     species <- p$strategies[[i]]
-    times <- stochastic_arrival_times(max_time, species)
+    times <- stochastic_arrival_times(max_time, species, patch_area)
     sched$set_times(times, i)
   }
   
