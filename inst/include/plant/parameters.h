@@ -61,10 +61,6 @@ struct Parameters {
   size_t n_mutants() const;
   void validate();
 
-//	// birth rate api
-//	void set_constant_birth_rate(int species_index, double birth_rate);
-//	void set_interpolated_birth_rate(int species_index, std::vector<double> x, std::vector<double> y);
-
 private:
   void setup_cohort_schedule();
 };
@@ -92,24 +88,6 @@ template <typename T, typename E>
 void Parameters<T,E>::validate() {
   const size_t n_spp = size();
 
-  // MAYBE need these checks elsewhere now that birthrate stuff doesn't belong here
-  // Set some defaults and check lengths.  Number of strategies is
-  // taken as the "true" size.
-//  if (birth_rate_x.empty() || birth_rate_y.empty()) {
-//    birth_rate_x = std::vector<std::vector<double>>(n_spp);
-//		birth_rate_y = std::vector<std::vector<double>>(n_spp);
-//		is_interpolated_birth_rate = std::vector<bool>(n_spp);
-//		// set default birth rate to a constant 1 for all species
-//		for (auto i = 0; i < n_spp; ++i) {
-//				birth_rate_x[i] = std::vector<double>(10);
-//				for (auto t = 0; t < 10; ++t) {
-//						birth_rate_x[i][t] = t;
-//				}
-//				birth_rate_y[i] = std::vector<double>(10, 1.0);
-//		}
-//  } else if (birth_rate_x.size() != n_spp || birth_rate_y.size() != n_spp) {
-//    util::stop("Incorrect birth_rate lengths");
-//  }
   if (is_resident.empty()) {
     is_resident = std::vector<bool>(n_spp, true);
   } else if (is_resident.size() != n_spp) {
@@ -146,22 +124,6 @@ void Parameters<T,E>::setup_cohort_schedule() {
     }
   }
 }
-
-//template <typename T, typename E>
-//void Parameters<T, E>::set_constant_birth_rate(int species_index, double birth_rate) {
-//		birth_rate_x[species_index] = std::vector<double>(10);
-//		for (auto t = 0; t < 10; ++t) {
-//				birth_rate_x[species_index][t] = t;
-//		}
-//		birth_rate_y[species_index] = std::vector<double>(10, birth_rate);
-//}
-//
-//template <typename T, typename E>
-//void Parameters<T, E>::set_interpolated_birth_rate(int species_index, std::vector<double> x, std::vector<double> y) {
-//		birth_rate_x[species_index] = x;
-//		birth_rate_y[species_index] = y;
-//}
-
 }
 
 #endif

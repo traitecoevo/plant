@@ -118,8 +118,6 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 		auto s = parameters.strategies[i];
     s.control = control;
     auto spec = Species<T,E>(s);
-//    spec.extrinsic_drivers().set_variable("birth_rate", parameters.birth_rate_x[i], parameters.birth_rate_y[i]);
-//		spec.extrinsic_driver_extrapolation("birth_rate", !parameters.is_interpolated_birth_rate[i]);
     species.push_back(spec);
   }
 
@@ -195,7 +193,6 @@ void Patch<T,E>::compute_rates() {
 
   for (size_t i = 0; i < size(); ++i) {
     double pr_patch_survival = survival_weighting->pr_survival(time());
-    //double birth_rate = parameters.birth_rate[i];
 		double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time());
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
   }
