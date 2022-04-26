@@ -9,6 +9,11 @@
 ##' @param parameters \code{Parameters} object containing a
 ##'   default strategy to modify.  Any hyperparameterisation included
 ##'   will be applied.
+##' @param birth_rate_list List object with birth rates for each species in
+##' x. Birth rates can take the form of a scalar (constant) or a vector. 
+##' In either case birth rates are set as \code{strategy$birth_rate_y}, however
+##' varying birth rates will also have \code{strategy$birth_rate_x} and 
+##  \code{`is_variable_bithrate = TRUE`}
 ##'
 ##' @export
 strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list) {
@@ -109,6 +114,11 @@ trait_matrix <- function(x, trait_name) {
 ##' @param mutant Create new types as \emph{mutants}?  These will have
 ##' no effect on other plants in the community (i.e. have zero
 ##' density).
+##' @param birth_rate_list List object with birth rates for each species in
+##' x. Birth rates can take the form of a scalar (constant) or a vector. 
+##' In either case birth rates are set as \code{strategy$birth_rate_y}, however
+##' varying birth rates will also have \code{strategy$birth_rate_x} and 
+##  \code{`is_variable_bithrate = TRUE`}
 ##' @author Rich FitzJohn
 ##' @export
 expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutant=TRUE, birth_rate_list) {

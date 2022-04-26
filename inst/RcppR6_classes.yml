@@ -964,6 +964,9 @@ FF16r_Strategy:
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
 K93_Strategy:
@@ -987,7 +990,9 @@ K93_Strategy:
     - eta: double
     - k_I: double
     - control: "plant::Control"
-
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
 
 # The following environment was built from FF16r on Wed Aug 12 15:46:38 2020
 K93_Environment:
@@ -1054,7 +1059,10 @@ FF16w_Strategy:
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
-
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
+    
 ExtrinsicDrivers:
   name_cpp: "plant::ExtrinsicDrivers"
   methods:

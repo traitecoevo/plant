@@ -174,7 +174,7 @@ test_that("narea calculation", {
   expect_equal(sl, cmp)
 })
 
-# integration test - runs a full patch metapopultaion
+# integration test - runs a full patch meta-population
 # the offspring arrival produced integrates all demographic behaviours
 
 test_that("offspring arrival", {
@@ -182,9 +182,10 @@ test_that("offspring arrival", {
   p0 <- scm_base_parameters("FF16")
   env <- make_environment("FF16")
   ctrl <- scm_base_control()
-
+  
   # one species
-  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar,FALSE, 20)
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar, 
+                          mutant = FALSE, birth_rate_list = list(20))
 
   #p1$birth_rate <- 20
   out <- run_scm(p1, env, ctrl)
@@ -192,8 +193,9 @@ test_that("offspring arrival", {
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 
   # two species
-  p2 <- expand_parameters(trait_matrix(0.2625, "lma"), p1, FF16_hyperpar, FALSE, c(11.99177, 16.51006))
-  #p2$birth_rate <- c(11.99177, 16.51006)
+  p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0, FF16_hyperpar, 
+                          mutant = FALSE, birth_rate_list = list(11.99177, 16.51006))
+  
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production, c(11.99529, 16.47519), tolerance=1e-5)
   expect_equal(length(out$ode_times), 297)

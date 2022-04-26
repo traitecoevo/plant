@@ -24,7 +24,7 @@ test_that("empty", {
     sched2 <- stochastic_schedule(p)
     expect_gt(sched2$size, 0)
 
-    ## Does thuis need to happen twice?
+    ## Does this need to happen twice?
     obj$schedule <- sched2
     expect_equal(obj$schedule$size, sched2$size)
 

@@ -15,7 +15,10 @@ test_that("Defaults", {
    S_D = 1,
    eta = 12,
    k_I = 0.01,
-   control = Control())
+   control = Control(),
+   birth_rate_x = numeric(0), # empty
+   birth_rate_y = c(1.0), 
+   is_variable_birth_rate = FALSE)
 
   keys <- sort(names(expected))
 

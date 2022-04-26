@@ -6,19 +6,23 @@
 ##' @importFrom stats rexp
 stochastic_arrival_times <- function(max_time, species, n=NULL) {
   if (is.null(n)) {
+    y <- species$birth_rate_y
+    
     if (species$is_variable_birth_rate) {
-      x <- species$birth_rate_x[species$birth_rate_x < max_time]
-      y <- species$birth_rate_y[species$birth_rate_x < max_time]
+      x <- species$birth_rate_x
       n <- trapezium(x, y)
+      rate = 1 / y
     } else {
-      y <- species$birth_rate_y[species$birth_rate_x < max_time]
       n <- max_time * y
+      rate = 1
     }
   }
+  
   ret <- numeric(0)
   t0 <- 0.0
+  
   while (t0 < max_time) {
-    t <- t0 + cumsum(rexp(n, 1))
+    t <- t0 + cumsum(rexp(n, rate))
     t0 <- t[[n]]
     if (t0 > max_time) {
       t <- t[t <= max_time]
@@ -31,12 +35,16 @@ stochastic_arrival_times <- function(max_time, species, n=NULL) {
 stochastic_schedule <- function(p) {
   max_time  <- p$max_patch_lifetime
   n_species <- length(p$strategies)
-  birth_rate <- p$birth_rate * p$patch_area
+
   sched <- CohortSchedule(n_species)
   sched$max_time <- max_time
+  
   for (i in 1:n_species) {
-    sched$set_times(stochastic_arrival_times(max_time, p$strategies[[i]]), i)
+    species <- p$strategies[[i]]
+    times <- stochastic_arrival_times(max_time, species)
+    sched$set_times(times, i)
   }
+  
   sched
 }
 
