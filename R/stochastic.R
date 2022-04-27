@@ -9,15 +9,19 @@ stochastic_arrival_times <- function(max_time, species, delta_t = 0.1, patch_are
   t0 <- 0.0
   t1 <- t0 + delta_t
   
+  # first calculate average arrival rate in this interval
+  if (species$is_variable_birth_rate) {
+    interpolated <- splinefun(species$birth_rate_x, species$birth_rate_y)
+  } else {
+    rate <- species$birth_rate_y
+  }
+  
   while (t0 < max_time) {
     # first calculate average arrival rate in this interval
     if (species$is_variable_birth_rate) {
-      interpolated <- spline(species$birth_rate_x, species$birth_rate_y,
-                             n = 100, xmin = t0, xmax = t1)
-      rate = mean(interpolated$y)
-    } else {
-      rate <- species$birth_rate_y
-    }
+      x = seq(t0, t1, len = 10)
+      rate = mean(interpolated(x))
+    } 
     
     # now calculate actual number arriving, given the rate
     n <- rpois(1,  delta_t * rate * patch_area)
