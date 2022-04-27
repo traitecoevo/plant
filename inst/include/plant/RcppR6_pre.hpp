@@ -186,6 +186,8 @@ template <> SEXP wrap(const plant::K93_Environment&);
 template <> plant::K93_Environment as(SEXP);
 template <> SEXP wrap(const plant::FF16w_Strategy&);
 template <> plant::FF16w_Strategy as(SEXP);
+template <> SEXP wrap(const plant::ExtrinsicDrivers&);
+template <> plant::ExtrinsicDrivers as(SEXP);
 }
 
 #endif

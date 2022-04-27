@@ -4,14 +4,19 @@
 ##' @param x Values for the trait.  This must be a \emph{matrix}, with
 ##'   column names corresponding to entries in \code{Strategy} and
 ##'   rows representing different values.
-##' @param hyperpar Hyperparameter function to use. By default links 
-##' to standard function for this strategy type. 
+##' @param hyperpar Hyperparameter function to use. By default links
+##' to standard function for this strategy type.
 ##' @param parameters \code{Parameters} object containing a
 ##'   default strategy to modify.  Any hyperparameterisation included
 ##'   will be applied.
+##' @param birth_rate_list List object with birth rates for each species in
+##' x. Birth rates can take the form of a scalar (constant) or a vector.
+##' In either case birth rates are set as \code{strategy$birth_rate_y}, however
+##' varying birth rates will also have \code{strategy$birth_rate_x} and
+##  \code{`is_variable_bithrate = TRUE`}
 ##'
 ##' @export
-strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
+strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list) {
   if (!is.matrix(x)) {
     stop("Invalid type x -- expected a matrix")
   }
@@ -20,11 +25,21 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
   x <- hyperpar(x, strategy)
 
   trait_names <- colnames(x)
-  f <- function(xi) {
+  f <- function(xi, br) {
     strategy[trait_names] <- xi
+    if (is.list(br)) {
+      strategy$birth_rate_x <- br$x
+      strategy$birth_rate_y <- br$y
+      strategy$is_variable_birth_rate <- TRUE
+    } else if (is.numeric(br)) {
+      strategy$birth_rate_y <- br
+      strategy$is_variable_birth_rate <- FALSE
+    } else {
+      stop("Invalid type in birth_rate_list - need either a list with x, y control points or a numeric")
+    }
     strategy
   }
-  lapply(matrix_to_list(x), f)
+  mapply(f, matrix_to_list(x), birth_rate_list, SIMPLIFY = FALSE)
 }
 
 ##' @export
@@ -35,22 +50,22 @@ strategy_default <- function(parameters, hyperpar=param_hyperpar(parameters)) {
 
 ##' @export
 ##' @rdname strategy_list
-strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
+strategy <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list) {
   if (nrow(x) != 1L) {
     stop("Expected a single type")
   }
-  strategy_list(x, parameters, hyperpar)[[1]]
+  strategy_list(x, parameters, hyperpar, birth_rate_list)[[1]]
 }
 
 ##' @rdname strategy_list
 ##' @export
-individual_list <- function(x, parameters, hyperpar=param_hyperpar(parameters)) {
-  
+individual_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), birth_rate_list) {
+
   if (!inherits(parameters, "Parameters")) {
     stop("parameters must be a 'Parameters' object")
   }
   types <- extract_RcppR6_template_types(parameters, "Parameters")
-  lapply(strategy_list(x, parameters, hyperpar), do.call('Individual', types))
+  lapply(strategy_list(x, parameters, hyperpar, birth_rate_list), do.call('Individual', types))
 }
 
 ##' Helper function to create trait matrices suitable for
@@ -77,25 +92,32 @@ trait_matrix <- function(x, trait_name) {
 ##' @param trait_matrix A matrix of traits corresponding to the
 ##' new types to introduce.
 ##' @param p A \code{Parameters} object.
-##' @param hyperpar Hyperparameter function to use. By default links 
-##' to standard function for this strategy type. 
+##' @param hyperpar Hyperparameter function to use. By default links
+##' to standard function for this strategy type.
 ##' @param mutant Create new types as \emph{mutants}?  These will have
 ##' no effect on other plants in the community (i.e. have zero
 ##' density).
+##' @param birth_rate_list List object with birth rates for each species in
+##' x. Birth rates can take the form of a scalar (constant) or a vector.
+##' In either case birth rates are set as \code{strategy$birth_rate_y}, however
+##' varying birth rates will also have \code{strategy$birth_rate_x} and
+##  \code{`is_variable_bithrate = TRUE`}
 ##' @author Rich FitzJohn
 ##' @export
-expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutant=TRUE) {
+expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutant=TRUE, birth_rate_list = 1) {
   if (length(mutant) != 1L) {
     stop("mutant must be scalar")
   }
-  extra <- strategy_list(trait_matrix, p, hyperpar)
+  if(nrow(trait_matrix) != length(birth_rate_list)) {
+    stop("Must provide exactly one birth rate input for each species")
+  }
+  extra <- strategy_list(trait_matrix, p, hyperpar, birth_rate_list)
   n_extra <- length(extra)
-  
+
   ret <- p <- validate(p) # Ensure times are set up correctly.
   ret$strategies <- c(p$strategies, extra)
   ret$is_resident <- c(p$is_resident, rep(!mutant, n_extra))
-  ret$birth_rate <- c(p$birth_rate, rep(1.0, n_extra))
-  
+
   ## Introduce mutants at all unique times:
   if (length(p$strategies) == 0L || !mutant) {
     times_new <- p$cohort_schedule_times_default
@@ -104,10 +126,10 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
   }
   ret$cohort_schedule_times <- c(p$cohort_schedule_times,
                                  rep(list(times_new), n_extra))
-  
+
   ## Clear this if it's present:
   attr(ret, "net_reproduction_ratios") <- NULL
-  
+
   ret
 }
 

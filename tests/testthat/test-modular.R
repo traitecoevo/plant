@@ -9,7 +9,7 @@ test_that("Construction", {
 
   strategy_types <- get_list_of_strategy_types()
   environment_types <- get_list_of_environment_types()
-
+  
   for (x in names(strategy_types)) {
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
@@ -29,11 +29,11 @@ test_that("Construction", {
     expect_equal(class(coh$individual), class(p))
 
     sp <- Species(x, e)(s)
-
+    
     expect_is(sp, "Species")
     expect_is(sp, sprintf("Species<%s,%s>", x, e))
     expect_equal(class(sp$new_cohort), class(coh))
-
+    
     par <- Parameters(x, e)(strategies=list(s))
     expect_is(par, "Parameters")
     expect_is(par, sprintf("Parameters<%s,%s>", x, e))

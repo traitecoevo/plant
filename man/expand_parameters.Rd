@@ -4,7 +4,13 @@
 \alias{expand_parameters}
 \title{Expand Parameters to include mutants}
 \usage{
-expand_parameters(trait_matrix, p, hyperpar = param_hyperpar(p), mutant = TRUE)
+expand_parameters(
+  trait_matrix,
+  p,
+  hyperpar = param_hyperpar(p),
+  mutant = TRUE,
+  birth_rate_list = 1
+)
 }
 \arguments{
 \item{trait_matrix}{A matrix of traits corresponding to the
@@ -18,6 +24,11 @@ to standard function for this strategy type.}
 \item{mutant}{Create new types as \emph{mutants}?  These will have
 no effect on other plants in the community (i.e. have zero
 density).}
+
+\item{birth_rate_list}{List object with birth rates for each species in
+x. Birth rates can take the form of a scalar (constant) or a vector. 
+In either case birth rates are set as \code{strategy$birth_rate_y}, however
+varying birth rates will also have \code{strategy$birth_rate_x} and}
 }
 \description{
 Expand Parameters to include mutants.  All mutants get the same

@@ -1297,6 +1297,10 @@ Species___FF16__FF16_Env__competition_effects_error <- function(obj_, scal) {
     .Call('_plant_Species___FF16__FF16_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
 }
 
+Species___FF16__FF16_Env__extrinsic_drivers <- function(obj_) {
+    .Call('_plant_Species___FF16__FF16_Env__extrinsic_drivers', PACKAGE = 'plant', obj_)
+}
+
 Species___FF16__FF16_Env__size__get <- function(obj_) {
     .Call('_plant_Species___FF16__FF16_Env__size__get', PACKAGE = 'plant', obj_)
 }
@@ -1375,6 +1379,10 @@ Species___FF16w__FF16_Env__cohort_at <- function(obj_, index) {
 
 Species___FF16w__FF16_Env__competition_effects_error <- function(obj_, scal) {
     .Call('_plant_Species___FF16w__FF16_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
+}
+
+Species___FF16w__FF16_Env__extrinsic_drivers <- function(obj_) {
+    .Call('_plant_Species___FF16w__FF16_Env__extrinsic_drivers', PACKAGE = 'plant', obj_)
 }
 
 Species___FF16w__FF16_Env__size__get <- function(obj_) {
@@ -1457,6 +1465,10 @@ Species___FF16r__FF16_Env__competition_effects_error <- function(obj_, scal) {
     .Call('_plant_Species___FF16r__FF16_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
 }
 
+Species___FF16r__FF16_Env__extrinsic_drivers <- function(obj_) {
+    .Call('_plant_Species___FF16r__FF16_Env__extrinsic_drivers', PACKAGE = 'plant', obj_)
+}
+
 Species___FF16r__FF16_Env__size__get <- function(obj_) {
     .Call('_plant_Species___FF16r__FF16_Env__size__get', PACKAGE = 'plant', obj_)
 }
@@ -1535,6 +1547,10 @@ Species___K93__K93_Env__cohort_at <- function(obj_, index) {
 
 Species___K93__K93_Env__competition_effects_error <- function(obj_, scal) {
     .Call('_plant_Species___K93__K93_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
+}
+
+Species___K93__K93_Env__extrinsic_drivers <- function(obj_) {
+    .Call('_plant_Species___K93__K93_Env__extrinsic_drivers', PACKAGE = 'plant', obj_)
 }
 
 Species___K93__K93_Env__size__get <- function(obj_) {
@@ -3411,6 +3427,22 @@ K93_Environment__ode_size__get <- function(obj_) {
 
 FF16w_Strategy__ctor <- function() {
     .Call('_plant_FF16w_Strategy__ctor', PACKAGE = 'plant')
+}
+
+ExtrinsicDrivers__ctor <- function() {
+    .Call('_plant_ExtrinsicDrivers__ctor', PACKAGE = 'plant')
+}
+
+ExtrinsicDrivers__evaluate <- function(obj_, driver_name, u) {
+    .Call('_plant_ExtrinsicDrivers__evaluate', PACKAGE = 'plant', obj_, driver_name, u)
+}
+
+ExtrinsicDrivers__evaluate_range <- function(obj_, driver_name, u) {
+    .Call('_plant_ExtrinsicDrivers__evaluate_range', PACKAGE = 'plant', obj_, driver_name, u)
+}
+
+ExtrinsicDrivers__get_names <- function(obj_) {
+    .Call('_plant_ExtrinsicDrivers__get_names', PACKAGE = 'plant', obj_)
 }
 
 test_adaptive_interpolator <- function(f, a, b) {

@@ -43,7 +43,6 @@ struct Parameters {
   std::string patch_type;
   double max_patch_lifetime; // Disturbance interval (years)
   std::vector<strategy_type> strategies;
-  std::vector<double> birth_rate;
   std::vector<bool> is_resident;
 
   Disturbance_Regime* disturbance;
@@ -89,13 +88,6 @@ template <typename T, typename E>
 void Parameters<T,E>::validate() {
   const size_t n_spp = size();
 
-  // Set some defaults and check lengths.  Number of strategies is
-  // taken as the "true" size.
-  if (birth_rate.empty()) {
-    birth_rate = std::vector<double>(n_spp, 1.0);
-  } else if (birth_rate.size() != n_spp) {
-    util::stop("Incorrect length birth_rate");
-  }
   if (is_resident.empty()) {
     is_resident = std::vector<bool>(n_spp, true);
   } else if (is_resident.size() != n_spp) {
@@ -132,7 +124,6 @@ void Parameters<T,E>::setup_cohort_schedule() {
     }
   }
 }
-
 }
 
 #endif

@@ -7,7 +7,7 @@ test_that("Corner case", {
   for (x in names(strategy_types)) {
     p <- scm_base_parameters(x)
     expect_error(build_schedule(p), "no residents")
-    p <- expand_parameters(trait_matrix(0.1, "lma"), p)
+    p <- expand_parameters(trait_matrix(0.1, "lma"), p, birth_rate_list=0.1)
     expect_error(build_schedule(p), "no residents")
   }
 })
@@ -19,7 +19,7 @@ test_that("Schedule building", {
     ## at least.
     p <- scm_base_parameters(x)
     p$strategies <- list(strategy_types[[x]]())
-    p$birth_rate <- 0.1
+    p$strategies[[1]]$birth_rate_y <- 0.1
     
     env <- make_environment(x)
     ctrl <- scm_base_control()

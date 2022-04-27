@@ -12,7 +12,7 @@ test_that("Creation & defaults", {
 
     expect_equal(length(p$strategies), 0)
     expect_equal(length(p$is_resident), 0)
-    expect_equal(length(p$birth_rate), 0)
+    # expect_equal(length(p$birth_rate), 0)
     
     expected <- list(n_patches=1,
                      patch_area=1.0,
@@ -32,23 +32,22 @@ test_that("Nontrivial creation", {
     s <- strategy_types[[x]]()
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(s))
-    expect_equal(p$birth_rate, 1.0)
+    #expect_equal(p$birth_rate, 1.0)
     expect_true(p$is_resident)
     
-    expect_error(Parameters(x, e)(birth_rate=pi), "Incorrect length birth_rate")
+    #expect_error(Parameters(x, e)(birth_rate=pi), "Incorrect length birth_rate")
     expect_error(Parameters(x, e)(is_resident=FALSE), "Incorrect length is_resident")
 
-    expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
-                                   strategy_types[[x]]()),
-                                 birth_rate=pi),
-                 "Incorrect length birth_rate")
+    # expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
+    #                                strategy_types[[x]]()),
+    #                              birth_rate=pi),
+    #              "Incorrect length birth_rate")
     expect_error(Parameters(x, e)(strategies=list(strategy_types[[x]](),
                                    strategy_types[[x]]()),
                                  is_resident=TRUE),
                  "Incorrect length is_resident")
 
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          birth_rate=pi,
                           is_resident=TRUE)
 
     expect_identical(p$cohort_schedule_times_default, cohort_schedule_times_default(p$max_patch_lifetime))
@@ -56,7 +55,6 @@ test_that("Nontrivial creation", {
 
     ## Now, with some of these set:
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          birth_rate=pi,
                           is_resident=TRUE,
                           max_patch_lifetime=7.021333)
 
@@ -104,7 +102,7 @@ test_that("Generate cohort schedule", {
   for (x in names(strategy_types)) {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(strategies=list(strategy_types[[x]]()),
-                          birth_rate=pi/2, is_resident=TRUE)
+                          is_resident=TRUE)
     sched <- make_cohort_schedule(p)
 
     expect_equal(sched$n_species, 1)

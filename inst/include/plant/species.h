@@ -7,6 +7,7 @@
 #include <plant/environment.h>
 #include <plant/ode_interface.h>
 #include <plant/cohort.h>
+#include <plant/extrinsic_drivers.h>
 
 namespace plant {
 
@@ -75,12 +76,14 @@ public:
 
   // This is just kind of useful
   std::vector<double> r_log_densities() const;
+  const ExtrinsicDrivers& extrinsic_drivers() const {return strategy->extrinsic_drivers;}
 
 private:
   const Control& control() const {return strategy->get_control();}
   strategy_type_ptr strategy;
   cohort_type new_cohort;
   std::vector<cohort_type> cohorts;
+  //std::unordered_map<std::string, interpolator::Interpolator> extrinsic_drivers;
 
   typedef typename std::vector<cohort_type>::iterator cohorts_iterator;
   typedef typename std::vector<cohort_type>::const_iterator cohorts_const_iterator;
@@ -265,7 +268,6 @@ template <typename T, typename E>
 ode::iterator Species<T,E>::ode_aux(ode::iterator it) const {
   return ode::ode_aux(cohorts.begin(), cohorts.end(), it);
 }
-
 
 template <typename T, typename E>
 std::vector<double> Species<T,E>::r_heights() const {
