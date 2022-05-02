@@ -20,14 +20,12 @@ public:
 
   quadrature::QAG integrator;
 
-  std::vector<double> ci;
-  std::vector<double> g_c;
-  std::vector<double> A_lim;
-  std::vector<double> E;
-  std::vector<double> psi;
-  std::vector<double> profit;
-  std::vector<double> max_bound;
-  std::vector<double> min_bound;
+  double ci;
+  double g_c;
+  double A_lim;
+  double E;
+  double psi;
+  double profit;
 
 
 
@@ -86,13 +84,6 @@ public:
                          const double kg_2_mol_h2o,
                          double umol_per_mol_2_mol_per_mol, double atm_vpd,
                          double ca, double atm_kpa, double kPa_2_Pa, double psi_crit);                                                 
-// double optimise_profit(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
-//                          double curv_fact, double a, double gamma_25,
-//                          double umol_per_mol_2_Pa, double km_25, double psi_soil, double k_l_max,
-//                          double p_50, double c, double b,
-//                          const double kg_2_mol_h2o,
-//                          double umol_per_mol_2_mol_per_mol, double atm_vpd,
-//                          double ca, double atm_kpa, double kPa_2_Pa, double psi_crit); 
 double optimise_profit_gss(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
                          double curv_fact, double a, double gamma_25,
                          double umol_per_mol_2_Pa, double km_25,
@@ -100,7 +91,24 @@ double optimise_profit_gss(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
                          double p_50, double c, double b,
                          const double kg_2_mol_h2o,
                          double umol_per_mol_2_mol_per_mol, double atm_vpd,
-                         double ca, double atm_kpa, double kPa_2_Pa, double psi_crit);                          
+                         double ca, double atm_kpa, double kPa_2_Pa, double psi_crit);
+double calc_hydraulic_cost_bartlett(double psi_soil, double psi_stem, double k_l_max, double b, double c, double beta, double beta_2, double huber_value, double height);
+  double calc_profit_bartlett(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
+                         double curv_fact, double a, double gamma_25,
+                         double umol_per_mol_2_Pa, double km_25, double psi_soil, double psi_stem, double k_l_max,
+                         double p_50, double c, double b,
+                         const double kg_2_mol_h2o,
+                         double umol_per_mol_2_mol_per_mol, double atm_vpd,
+                         double ca, double atm_kpa, double kPa_2_Pa, double psi_crit, double beta, double beta_2, double huber_value, double height);                                                 
+double optimise_profit_gss_bartlett(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
+                         double curv_fact, double a, double gamma_25,
+                         double umol_per_mol_2_Pa, double km_25,
+                         double psi_soil, double k_l_max,
+                         double p_50, double c, double b,
+                         const double kg_2_mol_h2o,
+                         double umol_per_mol_2_mol_per_mol, double atm_vpd,
+                         double ca, double atm_kpa, double kPa_2_Pa, double psi_crit, double beta, double beta_2, double huber_value, double height);                          
+                          
 };
 
 } // namespace plant

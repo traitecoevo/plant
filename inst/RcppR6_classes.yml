@@ -2,14 +2,12 @@ Leaf:
   name_cpp: "plant::Leaf"
   constructor:
   active:
-    ci: {type: "std::vector<double>", access: field}
-    g_c: {type: "std::vector<double>", access: field}
-    A_lim: {type: "std::vector<double>", access: field}
-    E: {type: "std::vector<double>", access: field}
-    psi: {type: "std::vector<double>", access: field}
-    profit: {type: "std::vector<double>", access: field}
-    max_bound: {type: "std::vector<double>", access: field}
-    min_bound: {type: "std::vector<double>", access: field}
+    ci: {type: double, access: field}
+    g_c: {type: double, access: field}
+    A_lim: {type: double, access: field}
+    E: {type: double, access: field}
+    psi: {type: double, access: field}
+    profit: {type: double, access: field}
   #   integrator: {type: "plant::quadrature::QAG", access: field}
   methods:
     initialize_integrator:
@@ -51,12 +49,18 @@ Leaf:
     calc_profit:
       return_type: double
       args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double,psi_soil: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double]
-    # optimise_profit:
-    #   return_type: double
-    #   args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double, psi_soil: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double]
     optimise_profit_gss:
       return_type: double
       args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double,psi_soil: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double]
+    calc_hydraulic_cost_bartlett:
+      return_type: double
+      args: [psi_soil: double, psi_stem: double, k_l_max: double, b: double, c: double, beta: double, beta_2: double, huber_value: double, height: double]
+    calc_profit_bartlett:
+      return_type: double
+      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double,psi_soil: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double, beta: double, beta_2: double, huber_value: double, height: double]
+    optimise_profit_gss_bartlett:
+      return_type: double
+      args: [PPFD: double, vcmax: double, vcmax_25_2_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_2_Pa: double, km_25: double,psi_soil: double, k_l_max: double, p_50: double, c: double, b: double, kg_2_mol_h2o: double, umol_per_mol_2_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_2_Pa: double, psi_crit: double, beta: double, beta_2: double, huber_value: double, height: double]
 
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
