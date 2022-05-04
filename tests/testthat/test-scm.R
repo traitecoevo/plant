@@ -12,7 +12,6 @@ test_that("Run SCM", {
     node <- Node(x, e)(s)
 
     p <- Parameters(x, e)(strategies=list(s),
-                          birth_rate=pi/2,
                           patch_area=10,
                           is_resident=TRUE)
     
@@ -168,7 +167,6 @@ test_that("schedule setting", {
     e <- environment_types[[x]]
     p <- Parameters(x, e)(
       strategies=list(strategy_types[[x]]()),
-      birth_rate=pi/2,
       is_resident=TRUE,
       max_patch_lifetime=5.0)
     env <- make_environment(x)
@@ -243,7 +241,7 @@ test_that("Seed rain & error calculations correct", {
     context(sprintf("SCM-%s", x))
     e <- environment_types[[x]]
     p0 <- scm_base_parameters(x)
-    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE)
+    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant=FALSE, birth_rate_list=1.0)
     
     env <- make_environment(x)
     ctrl <- scm_base_control()

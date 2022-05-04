@@ -6,13 +6,16 @@ environment_types <- get_list_of_environment_types()
 for (x in names(strategy_types)) {
   context(sprintf("Patch-%s",x))
 
+  # initialise birth rate per species
   s <- strategy_types[[x]]()
+  s$birth_rate_y <- 1
+  s$is_variable_birth_rate <- FALSE
+  
   e <- environment_types[[x]]
   plant <- Individual(x, e)(s)
   node <- Node(x, e)(s)
   
   p <- Parameters(x, e)(strategies=list(s),
-                        birth_rate=pi/2,
                         is_resident=TRUE,
                         patch_type = 'meta-population')
   
@@ -60,7 +63,8 @@ for (x in names(strategy_types)) {
     expect_equal(patch$ode_size, ode_size)
     
     ## Then pull this out:
-    cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), p$birth_rate)
+    cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), 
+                                   patch$species[[1]]$extrinsic_drivers()$evaluate("birth_rate", 0))
      
     ode_state <- c(cmp$ode_state, env_state)
     ode_rates <- c(cmp$ode_rates, env_rates)

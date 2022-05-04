@@ -55,6 +55,14 @@ public:
     return names;
   }
 
+  void resize_consumption_rates(int i) {
+    individual.resize_consumption_rates(i);
+  }
+
+  double consumption_rate(int i) const {
+    return individual.consumption_rate(i) * density;
+  }
+
   individual_type individual;
 
 private:

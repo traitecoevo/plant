@@ -33,6 +33,7 @@ public:
 
   // * R interface
   SEXP r_get_xy() const;
+	// change to const& vec?
   std::vector<double> r_eval(std::vector<double> u) const;
 
 private:

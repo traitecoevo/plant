@@ -150,6 +150,11 @@ double K93_Strategy::mortality_dt(double cumulative_basal_area,
 
 // useful for pre-computing expensive objects
 void K93_Strategy::prepare_strategy() {
+  if (is_variable_birth_rate) {
+    extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y);
+  } else {
+    extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
+  }
 }
 
 K93_Strategy::ptr make_strategy_ptr(K93_Strategy s) {

@@ -358,7 +358,6 @@ Parameters:
     - patch_type: "std::string"
     - max_patch_lifetime: double
     - strategies: "std::vector<T>"
-    - birth_rate: "std::vector<double>"
     - is_resident: "std::vector<bool>"
     - strategy_default: "T"
     - node_schedule_times_default: "std::vector<double>"
@@ -446,6 +445,8 @@ Species:
       return_type: "std::vector<double>"
       args: [scal: double=1]
       name_cpp: r_competition_effects_error
+    extrinsic_drivers:
+      return_type: "plant::ExtrinsicDrivers"
 
 Patch:
   name_cpp: "plant::Patch<T,E>"
@@ -864,6 +865,9 @@ FF16_Strategy:
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
 
 FF16_Environment:
   name_cpp: "plant::FF16_Environment"
@@ -903,6 +907,7 @@ FF16_Environment:
       args: [state: "std::vector<double>"]
       return_type: void
     compute_rates:
+      args: [resource_depletion: "std::vector<double>"]
       return_type: void
   active:
     time: {type: double, access: field}
@@ -960,6 +965,9 @@ FF16r_Strategy:
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
 
 # The following strategy was built from FF16r on Wed Aug 12 15:33:08 2020
 K93_Strategy:
@@ -983,7 +991,9 @@ K93_Strategy:
     - eta: double
     - k_I: double
     - control: "plant::Control"
-
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
 
 # The following environment was built from FF16r on Wed Aug 12 15:46:38 2020
 K93_Environment:
@@ -1050,3 +1060,18 @@ FF16w_Strategy:
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool
+    - birth_rate_x: std::vector<double>
+    - birth_rate_y: std::vector<double>
+    - is_variable_birth_rate: bool
+    
+ExtrinsicDrivers:
+  name_cpp: "plant::ExtrinsicDrivers"
+  methods:
+    evaluate:
+      return_type: double
+      args: [driver_name: std::string, u: double]
+    evaluate_range:
+      return_type: std::vector<double>
+      args: [ driver_name: std::string, u: std::vector<double>]
+    get_names:
+      return_type: std::vector<std::string>

@@ -8,6 +8,7 @@
 #include <plant/uniroot.h>
 #include <RcppCommon.h> // NA_REAL
 #include <plant/uniroot.h>
+#include <plant/extrinsic_drivers.h>
 
 
 namespace plant {
@@ -32,8 +33,14 @@ public:
   // static std::vector<std::string> state_names() { return strategy_type::state_names(); }
   // the index of variables in the internals extra vector
   std::map<std::string, int> state_index; 
-  std::map<std::string, int> aux_index; 
+  std::map<std::string, int> aux_index;
 
+  // birth rate spline control points for each species
+  // default is constant birth_rate of 1.0
+  std::vector<double> birth_rate_x;
+  std::vector<double> birth_rate_y = {1.0};
+  // whether the spline for each species should be constant fn or not (extrapolation on/off)
+  bool is_variable_birth_rate = false;
 
   bool collect_all_auxiliary;
 
@@ -71,6 +78,8 @@ public:
   Control control;
 
   std::string name;
+
+  ExtrinsicDrivers extrinsic_drivers;
 };
 
 

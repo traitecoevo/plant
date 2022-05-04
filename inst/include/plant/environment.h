@@ -11,6 +11,8 @@
 #include <unordered_map>
 #include <Rcpp.h>
 
+#include <plant/extrinsic_drivers.h>
+
 using namespace Rcpp;
 
 namespace plant {
@@ -28,7 +30,7 @@ public:
 
   // ODE interface: do nothing if the environment has no state.
   size_t ode_size() const { return vars.state_size; }
-  virtual void compute_rates(){};
+  virtual void compute_rates(std::vector<double> const& resource_depletion){};
 
   ode::const_iterator set_ode_state(ode::const_iterator it) {
     for (size_t i = 0; i < vars.state_size; i++) {
@@ -93,11 +95,12 @@ public:
     return extrinsic_drivers.at(driver_name).eval(u);
   }
 
-  // // evaluate/query interpolated spline for driver at vector of points, return vector of values
+  // evaluate/query interpolated spline for driver at vector of points, return vector of values
   std::vector<double> extrinsic_driver_evaluate_range(std::string driver_name, std::vector<double> u) const {
     return extrinsic_drivers.at(driver_name).r_eval(u);
   }
 
+  // returns the name of each active driver - useful for R output
   std::vector<std::string> get_extrinsic_driver_names() {
     auto ret = std::vector<std::string>();
     for (auto const& driver : extrinsic_drivers) {

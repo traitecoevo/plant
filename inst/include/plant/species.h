@@ -7,6 +7,7 @@
 #include <plant/environment.h>
 #include <plant/ode_interface.h>
 #include <plant/node.h>
+#include <plant/extrinsic_drivers.h>
 
 namespace plant {
 
@@ -39,7 +40,11 @@ public:
   size_t aux_size() const;
   size_t strategy_aux_size() const;
   std::vector<std::string> aux_names() const;
-  
+
+  void resize_consumption_rates(int i);
+  double consumption_rate(int i) const;
+  std::vector<double> consumption_rate_by_node_rev(int i) const;
+
   ode::const_iterator set_ode_state(ode::const_iterator it);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
@@ -47,6 +52,7 @@ public:
 
   // * R interface
   std::vector<double> r_heights() const;
+  std::vector<double> r_heights_rev() const;
   void r_set_heights(std::vector<double> heights);
   const node_type& r_new_node() const {return new_node;}
   std::vector<node_type> r_nodes() const {return nodes;}
@@ -70,6 +76,7 @@ public:
 
   // This is just kind of useful
   std::vector<double> r_log_densities() const;
+  const ExtrinsicDrivers& extrinsic_drivers() const {return strategy->extrinsic_drivers;}
 
 private:
   const Control& control() const {return strategy->get_control();}
@@ -193,6 +200,32 @@ std::vector<double> Species<T,E>::net_reproduction_ratio_by_node() const {
 }
 
 template <typename T, typename E>
+void Species<T,E>::resize_consumption_rates(int r) {
+  new_node.resize_consumption_rates(r);
+}
+
+template <typename T, typename E>
+double Species<T,E>::consumption_rate(int i) const {
+  // can't determine density for one node
+  if(size() < 2) {
+    return 0.0;
+  } else {
+    // node heights are in descending order - we need ascending for integration
+    return util::trapezium(r_heights_rev(), consumption_rate_by_node_rev(i));
+  }
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::consumption_rate_by_node_rev(int i) const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for(auto it = nodes.rbegin(); it != nodes.rend(); ++it) {
+    ret.push_back(it->consumption_rate(i));
+  }
+  return ret;
+}
+
+template <typename T, typename E>
 size_t Species<T,E>::ode_size() const {
   return size() * node_type::ode_size();
 }
@@ -235,7 +268,6 @@ ode::iterator Species<T,E>::ode_aux(ode::iterator it) const {
   return ode::ode_aux(nodes.begin(), nodes.end(), it);
 }
 
-
 template <typename T, typename E>
 std::vector<double> Species<T,E>::r_heights() const {
   std::vector<double> ret;
@@ -244,6 +276,18 @@ std::vector<double> Species<T,E>::r_heights() const {
        it != nodes.end(); ++it) {
     ret.push_back(it->height());
   }
+  return ret;
+}
+
+template <typename T, typename E>
+std::vector<double> Species<T,E>::r_heights_rev() const {
+  std::vector<double> ret;
+  ret.reserve(size());
+  for (nodes_const_iterator it = nodes.begin();
+       it != nodes.end(); ++it) {
+    ret.push_back(it->height());
+  }
+  std::reverse(ret.begin(), ret.end());
   return ret;
 }
 
