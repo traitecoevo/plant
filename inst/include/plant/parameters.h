@@ -7,8 +7,8 @@
 
 #include <plant/control.h>
 #include <plant/models/ff16_strategy.h>
-#include <plant/cohort_schedule.h>
-#include <plant/scm_utils.h> // Unfortunately needed for setup_cohort_schedule
+#include <plant/node_schedule.h>
+#include <plant/scm_utils.h> // Unfortunately needed for setup_node_schedule
 
 #include <plant/disturbance_regime.h>
 #include <plant/disturbances/no_disturbance.h>
@@ -50,10 +50,10 @@ struct Parameters {
   // Default strategy.
   strategy_type strategy_default;
 
-  // Cohort information.
-  std::vector<double> cohort_schedule_times_default;
-  std::vector<std::vector<double> > cohort_schedule_times;
-  std::vector<double> cohort_schedule_ode_times;
+  // Node information.
+  std::vector<double> node_schedule_times_default;
+  std::vector<std::vector<double> > node_schedule_times;
+  std::vector<double> node_schedule_ode_times;
 
   // Some little query functions for use on the C side:
   size_t size() const;
@@ -62,7 +62,7 @@ struct Parameters {
   void validate();
 
 private:
-  void setup_cohort_schedule();
+  void setup_node_schedule();
 };
 
 template <typename T, typename E>
@@ -94,9 +94,9 @@ void Parameters<T,E>::validate() {
     util::stop("Incorrect length is_resident");
   }
 
-  setup_cohort_schedule();
-  if (cohort_schedule_times.size() != n_spp) {
-    util::stop("Incorrect length cohort_schedule_times");
+  setup_node_schedule();
+  if (node_schedule_times.size() != n_spp) {
+    util::stop("Incorrect length node_schedule_times");
   }
 
   // Disturbances used to describe evolution of a metapopulation of patches
@@ -113,14 +113,14 @@ void Parameters<T,E>::validate() {
 // Separating this out just because it's a bit crap:
 // TODO: Consider adding this to scm_utils.h perhaps?
 template <typename T, typename E>
-void Parameters<T,E>::setup_cohort_schedule() {
-  cohort_schedule_times_default =
-      plant::cohort_schedule_times_default(max_patch_lifetime);
+void Parameters<T,E>::setup_node_schedule() {
+  node_schedule_times_default =
+      plant::node_schedule_times_default(max_patch_lifetime);
 
-  if ((cohort_schedule_times.empty() && size() > 0)) {
-    cohort_schedule_times.clear();
+  if ((node_schedule_times.empty() && size() > 0)) {
+    node_schedule_times.clear();
     for (size_t i = 0; i < size(); ++i) {
-      cohort_schedule_times.push_back(cohort_schedule_times_default);
+      node_schedule_times.push_back(node_schedule_times_default);
     }
   }
 }

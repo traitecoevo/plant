@@ -20,7 +20,7 @@
 #include <plant/control.h>
 #include <plant/strategy.h>
 #include <plant/parameters.h>
-#include <plant/cohort_schedule.h>
+#include <plant/node_schedule.h>
 
 // Disturbance regimes for meta-population
 #include <plant/disturbance_regime.h>
@@ -37,7 +37,7 @@
 #include <plant/individual.h>
 #include <plant/internals.h>
 
-#include <plant/cohort.h>
+#include <plant/node.h>
 #include <plant/species.h>
 #include <plant/patch.h>
 #include <plant/scm.h>

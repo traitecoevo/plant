@@ -1,6 +1,6 @@
 // -*-c++-*-
-#ifndef COHORT
-#define COHORT
+#ifndef NODE
+#define NODE
 
 #include <plant/environment.h>
 #include <plant/gradient.h>
@@ -9,13 +9,13 @@
 namespace plant {
 
 template <typename T, typename E>
-class Cohort {
+class Node {
 public:
   typedef T        strategy_type;
   typedef E        environment_type;
   typedef Individual<T,E> individual_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
-  Cohort(strategy_type_ptr s);
+  Node(strategy_type_ptr s);
 
   void compute_rates(const environment_type& environment, double pr_patch_survival);
   void compute_initial_conditions(const environment_type& environment, double pr_patch_survival, double birth_rate);
@@ -78,7 +78,7 @@ private:
 };
 
 template <typename T, typename E>
-Cohort<T,E>::Cohort(strategy_type_ptr s)
+Node<T,E>::Node(strategy_type_ptr s)
   : individual(s),
     log_density(R_NegInf),
     log_density_dt(0),
@@ -88,7 +88,7 @@ Cohort<T,E>::Cohort(strategy_type_ptr s)
 }
 
 template <typename T, typename E>
-void Cohort<T,E>::compute_rates(const environment_type& environment,
+void Node<T,E>::compute_rates(const environment_type& environment,
                                 double pr_patch_survival) {
   individual.compute_rates(environment);
 
@@ -121,7 +121,7 @@ void Cohort<T,E>::compute_rates(const environment_type& environment,
 // NOTE: The initial condition for log_density is also a bit tricky, and
 // defined on p 7 at the moment.
 template <typename T, typename E>
-void Cohort<T,E>::compute_initial_conditions(const environment_type& environment,
+void Node<T,E>::compute_initial_conditions(const environment_type& environment,
                                              double pr_patch_survival, double birth_rate) {
   pr_patch_survival_at_birth = pr_patch_survival;
   compute_rates(environment, pr_patch_survival);
@@ -145,25 +145,25 @@ void Cohort<T,E>::compute_initial_conditions(const environment_type& environment
 }
 
 template <typename T, typename E>
-double Cohort<T,E>::growth_rate_gradient(const environment_type& environment) const {
+double Node<T,E>::growth_rate_gradient(const environment_type& environment) const {
   individual_type p = individual;
   auto fun = [&] (double h) mutable -> double {
     return p.growth_rate_given_height(h, environment);
   };
 
   const Control& control = individual.control();
-  const double eps = control.cohort_gradient_eps;
-  if (control.cohort_gradient_richardson) {
+  const double eps = control.node_gradient_eps;
+  if (control.node_gradient_richardson) {
     return util::gradient_richardson(fun,  individual.state(HEIGHT_INDEX), eps,
-                                     control.cohort_gradient_richardson_depth);
+                                     control.node_gradient_richardson_depth);
   } else {
     return util::gradient_fd(fun, individual.state(HEIGHT_INDEX), eps, individual.rate("height"),
-                             control.cohort_gradient_direction);
+                             control.node_gradient_direction);
   }
 }
 
 template <typename T, typename E>
-double Cohort<T,E>::r_growth_rate_gradient(const environment_type& environment) {
+double Node<T,E>::r_growth_rate_gradient(const environment_type& environment) {
   // We need to compute the physiological variables here, first, so
   // that reusing intervals works as expected.  This would ordinarily
   // be taken care of because of the calling order of
@@ -173,19 +173,19 @@ double Cohort<T,E>::r_growth_rate_gradient(const environment_type& environment) 
 }
 
 template <typename T, typename E>
-double Cohort<T,E>::compute_competition(double height_) const {
+double Node<T,E>::compute_competition(double height_) const {
   return density * individual.compute_competition(height_);
 }
 
 template <typename T, typename E>
-double Cohort<T,E>::competition_effect() const {
+double Node<T,E>::competition_effect() const {
   return compute_competition(0.0);
 }
 
-// ODE interface -- note that the don't care about time in the cohort;
+// ODE interface -- note that the don't care about time in the node;
 // only Patch and above does.
 template <typename T, typename E>
-ode::const_iterator Cohort<T,E>::set_ode_state(ode::const_iterator it) {
+ode::const_iterator Node<T,E>::set_ode_state(ode::const_iterator it) {
   for (size_t i = 0; i < individual.ode_size(); i++) {
     individual.set_state(i, *it++);
   }
@@ -194,7 +194,7 @@ ode::const_iterator Cohort<T,E>::set_ode_state(ode::const_iterator it) {
   return it;
 }
 template <typename T, typename E>
-ode::iterator Cohort<T,E>::ode_state(ode::iterator it) const {
+ode::iterator Node<T,E>::ode_state(ode::iterator it) const {
   for (size_t i = 0; i < individual.ode_size(); i++) {
     *it++ = individual.state(i);
   }
@@ -203,7 +203,7 @@ ode::iterator Cohort<T,E>::ode_state(ode::iterator it) const {
   return it;
 }
 template <typename T, typename E>
-ode::iterator Cohort<T,E>::ode_rates(ode::iterator it) const {
+ode::iterator Node<T,E>::ode_rates(ode::iterator it) const {
   for (size_t i = 0; i < individual.ode_size(); i++) {
     *it++ = individual.rate(i);
   }
@@ -213,7 +213,7 @@ ode::iterator Cohort<T,E>::ode_rates(ode::iterator it) const {
 }
 
 template <typename T, typename E>
-ode::iterator Cohort<T,E>::ode_aux(ode::iterator it) const {
+ode::iterator Node<T,E>::ode_aux(ode::iterator it) const {
   for (size_t i = 0; i < individual.aux_size(); i++) {
     *it++ = individual.aux(i);
   }
@@ -221,10 +221,10 @@ ode::iterator Cohort<T,E>::ode_aux(ode::iterator it) const {
 }
 
 template <typename T, typename E>
-Cohort<T,E> make_cohort(typename Cohort<T,E>::strategy_type s) {
-  return Cohort<T,E>(make_strategy_ptr(s));
+Node<T,E> make_node(typename Node<T,E>::strategy_type s) {
+  return Node<T,E>(make_strategy_ptr(s));
 }
 
 }
 
-#endif /* COHORT */
+#endif /* NODE */

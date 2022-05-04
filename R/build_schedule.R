@@ -6,7 +6,7 @@
 ##' the schedule will end up, and \code{schedule_verbose} controls if
 ##' details are printed to the screen during construction.
 ##'
-##' @title Build Cohort Schedule
+##' @title Build Node Schedule
 ##' @param p Parameters object
 ##' @param ctrl Control object
 ##' @return A Parameters object, with schedule components set.  The
@@ -35,11 +35,11 @@ build_schedule <- function(p, env = make_environment(parameters = p),
     }
 
     ## Prepare for the next iteration:
-    times <- p$cohort_schedule_times
+    times <- p$node_schedule_times
     for (idx in seq_len(n_spp)) {
       times[[idx]] <- split_times(times[[idx]], split[[idx]])
     }
-    p$cohort_schedule_times <- times
+    p$node_schedule_times <- times
 
     msg <- sprintf("%d: Splitting {%s} times (%s)",
                    i,
@@ -48,7 +48,7 @@ build_schedule <- function(p, env = make_environment(parameters = p),
     plant_log_debug(msg, routine="schedule", event="split", round=i)
   }
 
-  p$cohort_schedule_ode_times <- res$ode_times
+  p$node_schedule_ode_times <- res$ode_times
   ## Useful to record the last offspring produced:
   attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
 

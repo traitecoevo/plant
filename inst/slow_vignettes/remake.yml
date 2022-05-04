@@ -31,7 +31,7 @@ targets:
     depends:
       - update_vignettes
 
-  cohort_spacing.md:
+  node_spacing.md:
     knitr: vignette
   demographic_equilibrium.md:
     knitr: vignette
@@ -43,11 +43,11 @@ targets:
     depends:
       - vignettes/demographic_equilibrium.Rmd
       - vignettes/fitness.Rmd
-      - vignettes/cohort_spacing.Rmd
+      - vignettes/node_spacing.Rmd
 
   vignettes/demographic_equilibrium.Rmd:
     command: file.copy("demographic_equilibrium.md", target_name, overwrite=TRUE)
-  vignettes/cohort_spacing.Rmd:
-    command: file.copy("cohort_spacing.md", target_name, overwrite=TRUE)
+  vignettes/node_spacing.Rmd:
+    command: file.copy("node_spacing.md", target_name, overwrite=TRUE)
   vignettes/fitness.Rmd:
     command: file.copy("fitness.md", target_name, overwrite=TRUE)

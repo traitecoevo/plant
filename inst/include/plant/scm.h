@@ -2,7 +2,7 @@
 #ifndef PLANT_PLANT_SCM_H_
 #define PLANT_PLANT_SCM_H_
 
-#include <plant/cohort_schedule.h>
+#include <plant/node_schedule.h>
 #include <plant/ode_solver.h>
 #include <plant/patch.h>
 #include <plant/scm_utils.h>
@@ -16,7 +16,7 @@ public:
   typedef T                strategy_type;
   typedef E                environment_type;
   typedef Individual<T, E> individual_type;
-  typedef Cohort<T, E>     cohort_type;
+  typedef Node<T, E>     node_type;
   typedef Species<T, E>    species_type;
   typedef Patch<T, E>      patch_type;
   typedef Parameters<T, E> parameters_type;
@@ -32,7 +32,7 @@ public:
 
   // * Output total offspring calculation (not per capita)
   std::vector<double>
-  net_reproduction_ratio_by_cohort_weighted(size_t species_index) const;
+  net_reproduction_ratio_by_node_weighted(size_t species_index) const;
   double net_reproduction_ratio_for_species(size_t species_index, std::vector<double> const& scalars) const;
   std::vector<double> net_reproduction_ratios() const;
   std::vector<double> offspring_production() const;
@@ -53,23 +53,23 @@ public:
   bool r_use_ode_times() const;
   void r_set_use_ode_times(bool x);
 
-  CohortSchedule r_cohort_schedule() const { return cohort_schedule; }
-  void r_set_cohort_schedule(CohortSchedule x);
-  void r_set_cohort_schedule_times(std::vector<std::vector<double>> x);
+  NodeSchedule r_node_schedule() const { return node_schedule; }
+  void r_set_node_schedule(NodeSchedule x);
+  void r_set_node_schedule_times(std::vector<std::vector<double>> x);
 
 private:
   double total_offspring_production() const;
 
   parameters_type parameters;
   patch_type patch;
-  CohortSchedule cohort_schedule;
+  NodeSchedule node_schedule;
   ode::Solver<patch_type> solver;
 };
 
 template <typename T, typename E>
 SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
     : parameters(p), patch(parameters, e, c),
-      cohort_schedule(make_cohort_schedule(parameters)),
+      node_schedule(make_node_schedule(parameters)),
       solver(patch, make_ode_control(c)) {
   parameters.validate();
   if (!util::identical(parameters.patch_area, 1.0)) {
@@ -88,22 +88,22 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   std::vector<size_t> ret;
   const double t0 = time();
 
-  CohortSchedule::Event e = cohort_schedule.next_event();
+  NodeSchedule::Event e = node_schedule.next_event();
   while (true) {
     if (!util::identical(t0, e.time_introduction())) {
       util::stop("Start time not what was expected");
     }
     ret.push_back(e.species_index);
-    cohort_schedule.pop();
+    node_schedule.pop();
     if (e.time_end() > t0 || complete()) {
       break;
     } else {
-      e = cohort_schedule.next_event();
+      e = node_schedule.next_event();
     }
   }
-  patch.introduce_new_cohorts(ret);
+  patch.introduce_new_nodes(ret);
 
-  const bool use_ode_times = cohort_schedule.using_ode_times();
+  const bool use_ode_times = node_schedule.using_ode_times();
   solver.set_state_from_system(patch);
   if (use_ode_times) {
     solver.advance_fixed(patch, e.times);
@@ -124,12 +124,12 @@ template <typename T, typename E> double SCM<T, E>::time() const {
 // ode::Solver, and then here do explicitly ode_solver.set_time(0)?
 template <typename T, typename E> void SCM<T, E>::reset() {
   patch.reset();
-  cohort_schedule.reset();
+  node_schedule.reset();
   solver.reset(patch);
 }
 
 template <typename T, typename E> bool SCM<T, E>::complete() const {
-  return cohort_schedule.remaining() == 0;
+  return node_schedule.remaining() == 0;
 }
 
 template <typename T, typename E>
@@ -153,34 +153,34 @@ std::vector<double> SCM<T, E>::r_ode_times() const {
 }
 
 template <typename T, typename E> bool SCM<T, E>::r_use_ode_times() const {
-  return cohort_schedule.using_ode_times();
+  return node_schedule.using_ode_times();
 }
 
 template <typename T, typename E> void SCM<T, E>::r_set_use_ode_times(bool x) {
-  cohort_schedule.r_set_use_ode_times(x);
+  node_schedule.r_set_use_ode_times(x);
 }
 
 template <typename T, typename E>
-void SCM<T, E>::r_set_cohort_schedule(CohortSchedule x) {
-  if (patch.cohort_ode_size() > 0) {
+void SCM<T, E>::r_set_node_schedule(NodeSchedule x) {
+  if (patch.node_ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
   util::check_length(x.get_n_species(), patch.size());
-  cohort_schedule = x;
+  node_schedule = x;
 
   // Update these here so that extracting Parameters would give the
   // new schedule, this making Parameters sufficient.
-  parameters.cohort_schedule_times = cohort_schedule.get_times();
+  parameters.node_schedule_times = node_schedule.get_times();
 }
 
 template <typename T, typename E>
-void SCM<T, E>::r_set_cohort_schedule_times(
+void SCM<T, E>::r_set_node_schedule_times(
     std::vector<std::vector<double>> x) {
-  if (patch.cohort_ode_size() > 0) {
+  if (patch.node_ode_size() > 0) {
     util::stop("Cannot set schedule without resetting first");
   }
-  cohort_schedule.set_times(x);
-  parameters.cohort_schedule_times = x;
+  node_schedule.set_times(x);
+  parameters.node_schedule_times = x;
 }
 
 // Offspring production, equal to overall fitness scaled by the birth rate
@@ -189,7 +189,7 @@ std::vector<double> SCM<T, E>::offspring_production() const {
 	auto ret = std::vector<double>(patch.size());
   for (size_t i = 0; i < patch.size(); ++i) {
 		// scale by birth rate function over time
-		auto const& times = cohort_schedule.times(i);
+		auto const& times = node_schedule.times(i);
 		auto scalars = std::vector<double>(times.size());
 		for (size_t j = 0; j < times.size(); ++j) {
 			scalars[j] = patch.at(i).extrinsic_drivers().evaluate("birth_rate", times[j]);
@@ -205,19 +205,19 @@ std::vector<double> SCM<T, E>::net_reproduction_ratios() const {
 	auto ret = std::vector<double>(patch.size());
   for (size_t i = 0; i < patch.size(); ++i) {
 		// no scaling, ie set scalars to 1.0
-		auto const& times = cohort_schedule.times(i);
+		auto const& times = node_schedule.times(i);
 		auto scalars = std::vector<double>(times.size(), 1.0);
 		ret[i] = net_reproduction_ratio_for_species(i, scalars);
   }
   return ret;
 }
 
-// Integrate over lifetime fitness of individual cohorts
+// Integrate over lifetime fitness of individual nodes
 template <typename T, typename E>
 double
 SCM<T, E>::net_reproduction_ratio_for_species(size_t species_index, std::vector<double> const& scalars) const {
-	auto net_prod = net_reproduction_ratio_by_cohort_weighted(species_index);
-	auto const& times = cohort_schedule.times(species_index);
+	auto net_prod = net_reproduction_ratio_by_node_weighted(species_index);
+	auto const& times = node_schedule.times(species_index);
 	auto net_prod_scaled = std::vector<double>(times.size());
 	// should be showing compiler warning for int (auto) comparison, but isn't anymore...
 	for (auto i = 0; i < times.size(); ++i) {
@@ -233,34 +233,34 @@ SCM<T, E>::net_reproduction_ratio_for_species(size_t species_index, std::vector<
 template <typename T, typename E>
 double SCM<T, E>::r_net_reproduction_ratio_for_species(
     util::index species_index) const {
-	auto const& times = cohort_schedule.times(species_index.check_bounds(patch.size()));
+	auto const& times = node_schedule.times(species_index.check_bounds(patch.size()));
 	auto scalars = std::vector<double>(times.size(), 1.0);
   return net_reproduction_ratio_for_species(
       species_index.x, scalars);
 }
 
-// Cohort fitness within a meta-population of patches
+// Node fitness within a meta-population of patches
 template <typename T, typename E>
-std::vector<double> SCM<T, E>::net_reproduction_ratio_by_cohort_weighted(
+std::vector<double> SCM<T, E>::net_reproduction_ratio_by_node_weighted(
     size_t species_index) const {
-  // cohort introduction times
-  const std::vector<double> times = cohort_schedule.times(species_index);
+  // node introduction times
+  const std::vector<double> times = node_schedule.times(species_index);
 
-  // retrieve lifetime fitness for each cohort
-  std::vector<double> net_reproduction_ratio_by_cohort_weighted =
-      patch.at(species_index).net_reproduction_ratio_by_cohort();
+  // retrieve lifetime fitness for each node
+  std::vector<double> net_reproduction_ratio_by_node_weighted =
+      patch.at(species_index).net_reproduction_ratio_by_node();
 
   // weight by probabilty of reproduction
-  for (size_t i = 0; i < net_reproduction_ratio_by_cohort_weighted.size();
+  for (size_t i = 0; i < net_reproduction_ratio_by_node_weighted.size();
        ++i) {
-    net_reproduction_ratio_by_cohort_weighted[i] *=
+    net_reproduction_ratio_by_node_weighted[i] *=
         patch.survival_weighting->density(
             times[i]) * // probability of landing in patch of a given age
         parameters.strategies[species_index]
             .S_D; // probability of survival during dispersal (assumed constant)
   }
 
-  return net_reproduction_ratio_by_cohort_weighted;
+  return net_reproduction_ratio_by_node_weighted;
 }
 
 // Sum up all offspring produced
@@ -282,7 +282,7 @@ SCM<T, E>::r_net_reproduction_ratio_errors() const {
   double total_offspring = total_offspring_production();
   for (size_t i = 0; i < patch.size(); ++i) {
     ret.push_back(util::local_error_integration(
-        cohort_schedule.times(i), net_reproduction_ratio_by_cohort_weighted(i),
+        node_schedule.times(i), net_reproduction_ratio_by_node_weighted(i),
         total_offspring));
   }
   return ret;

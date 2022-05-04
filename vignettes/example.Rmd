@@ -96,7 +96,7 @@ results_tidy <-
 results_tidy
 ```
 
-By pulling out the 'species' object from our list of tidied result outputs, we can plot the size distribution for each of the species in the patch. In this plot, each line represents the height over time of a characteristic originating at a given height (given by seed mass) at each step. Note that steps in this case are not equivalent to years, where the distance between steps is instead determined by the cohort spacing algorithm. We can take advantage of varying line transparency in ggplot2 to plot the relative log(Density) of each characteristic the size distribution of each species in the patch. 
+By pulling out the 'species' object from our list of tidied result outputs, we can plot the size distribution for each of the species in the patch. In this plot, each line represents the height over time of a characteristic originating at a given height (given by seed mass) at each step. Note that steps in this case are not equivalent to years, where the distance between steps is instead determined by the node spacing algorithm. We can take advantage of varying line transparency in ggplot2 to plot the relative log(Density) of each characteristic the size distribution of each species in the patch.
 
 ```{r}
 results_tidy$species %>%
@@ -175,7 +175,7 @@ data_long %>%
 
 ## Interpolate to specific times
 
-The cohort spacing algorithim determines the optimum introduction times for characterstics, which means that the time values associated with steps may not correspond to known times that we might like to extract information about. For example, what the total amount of biomass per $m^2$ will be at 50 years. By doing this, it also means that we can integrate between defined times. Let's work with our results again by running a patch again and then tidying.
+The node spacing algorithim determines the optimum introduction times for characterstics, which means that the time values associated with steps may not correspond to known times that we might like to extract information about. For example, what the total amount of biomass per $m^2$ will be at 50 years. By doing this, it also means that we can integrate between defined times. Let's work with our results again by running a patch again and then tidying.
 
 ```{r}
 results <- run_mypatch(traits =  trait_matrix(c(0.07, 0.24), c("lma")))
@@ -208,16 +208,16 @@ We can now assess their correspondence with the values already predicted in the 
 data_combined <- 
   tidy_species_data %>%
   bind_rows(tidy_species_new) %>%
-  arrange(species, cohort, time) %>% 
-  filter(cohort %in% seq(1, 101, by=20))
+  arrange(species, node, time) %>%
+  filter(node %in% seq(1, 101, by=20))
 
 data_combined_long <- 
   data_combined  %>% 
-  select(cohort, time, step, density, height, species) %>% 
+  select(node, time, step, density, height, species) %>%
   pivot_longer(cols = c("density", "height"))
 
 data_combined_long %>% 
-  ggplot(aes(time, value, group=cohort,colour=cohort)) +
+  ggplot(aes(time, value, group=node,colour=node)) +
   geom_line() +
   geom_point(data = data_combined_long %>% filter(is.na(step)), col=2) +
   scale_y_log10() +
@@ -228,7 +228,7 @@ data_combined_long %>%
 
 ## Interpolate to specific heights
 
-Similar to above, we can interpolate across cohorts at given time to sepcific heights, using the function `interpolate_to_heights`
+Similar to above, we can interpolate across nodes at given time to sepcific heights, using the function `interpolate_to_heights`
 
 ```{r}
 heights <- c(1, 5, 10)
@@ -255,14 +255,14 @@ data_combined <-
 
 data_combined_long <- 
   data_combined  %>% 
-  select(cohort, time, step, height, density, mortality, area_heartwood, species) %>% 
+  select(node, time, step, height, density, mortality, area_heartwood, species) %>%
   pivot_longer(cols = c("density", "mortality", "area_heartwood"))
 
 data_combined_long %>% 
-    filter(!is.na(cohort)) %>% 
+    filter(!is.na(node)) %>%
   ggplot() +
   geom_line(aes(height, value, group=step, colour=step)) +
-  geom_point(data = data_combined_long %>% filter(is.na(cohort)), aes(x=height, y=value), col="red")+
+  geom_point(data = data_combined_long %>% filter(is.na(node)), aes(x=height, y=value), col="red")+
   facet_grid(name~species, scales="free") +
   theme_classic()
 ```

@@ -3,7 +3,7 @@
 ##' @title Run system to offspring arrival equilibrium
 ##' @param p A \code{Parameters} object
 ##' @param ctrl Control object
-##' @return A Parameters object, with offspring arrival and cohort schedule
+##' @return A Parameters object, with offspring arrival and node schedule
 ##' elements set.
 ##' @export
 ##' @author Rich FitzJohn
@@ -205,14 +205,14 @@ make_equilibrium_runner <- function(p, ctrl) {
 
   i <- 1L
   last_offspring_arriving <- p$birth_rate
-  default_schedule_times <- rep(list(p$cohort_schedule_times_default),
+  default_schedule_times <- rep(list(p$node_schedule_times_default),
                                 length(p$birth_rate))
-  last_schedule_times <- p$cohort_schedule_times
+  last_schedule_times <- p$node_schedule_times
   history <- NULL
 
   function(birth_rate) {
     if (any(abs(birth_rate - last_offspring_arriving) > large_offspring_arriving_change)) {
-      p$cohort_schedule_times <- default_schedule_times
+      p$node_schedule_times <- default_schedule_times
     }
 
     p$birth_rate <- last_offspring_arriving
@@ -222,7 +222,7 @@ make_equilibrium_runner <- function(p, ctrl) {
 
     ## These all write up to the containing environment:
     p <<- p_new
-    last_schedule_times <<- p_new$cohort_schedule_times
+    last_schedule_times <<- p_new$node_schedule_times
     birth_rate      <<- birth_rate
     history <<- c(history, list(c("in"=birth_rate, "out"=net_reproduction_ratios)))
 
@@ -252,7 +252,7 @@ equilibrium_runner_cleanup <- function(runner, converged=TRUE) {
 
   p <- e$p
   p$birth_rate <- as.numeric(e$last_offspring_arriving)
-  p$cohort_schedule_times <- e$last_schedule_times
+  p$node_schedule_times <- e$last_schedule_times
   attr(p, "progress") <- rbind_list(e$history)
   attr(p, "converged") <- converged
   p

@@ -14,8 +14,8 @@ fast_control <- function(base=Control()) {
   base$ode_tol_abs <- 1e-4
   base$ode_step_size_max <- 5
 
-  base$cohort_gradient_direction <- -1
-  base$cohort_gradient_richardson <- FALSE
+  base$node_gradient_direction <- -1
+  base$node_gradient_richardson <- FALSE
 
   base
 }
@@ -90,7 +90,7 @@ run_scm <- function(p, env = make_environment(parameters = p),
 }
 
 
-##' Run the SCM model, given a Parameters and CohortSchedule
+##' Run the SCM model, given a Parameters and NodeSchedule
 ##'
 ##' This is mostly a simple wrapper around some of the SCM functions.
 ##' Not sure if this is how we will generally want to do this.
@@ -131,8 +131,8 @@ run_scm_collect <- function(p, env = make_environment(parameters = p),
   env <- lapply(res, "[[", "env")
   species <- lapply(res, "[[", "species")
   ## The aperm() here means that dimensions are
-  ## [variable,time,cohort], so that taking species[[1]]["height",,]
-  ## gives a matrix that has time down rows and cohorts across columns
+  ## [variable,time,node], so that taking species[[1]]["height",,]
+  ## gives a matrix that has time down rows and nodes across columns
   ## (so is therefore plottable with matplot)
   species <- lapply(seq_along(species[[1]]), function(i)
                     aperm(pad_list_to_array(lapply(species, "[[", i)),
@@ -140,7 +140,7 @@ run_scm_collect <- function(p, env = make_environment(parameters = p),
   ## Drop the boundary condition; we do this mostly because it cannot
   ## be compared against the reference output, which does not contain
   ## this.  This does have the nice property of giving a non-square
-  ## matrix, so the difference between time and cohort becomes a
+  ## matrix, so the difference between time and node becomes a
   ## little more obvious.
   species <- lapply(species, function(m) m[,,-dim(m)[[3]]])
 
@@ -280,13 +280,13 @@ patch_to_internals <- function(x, use_environment=TRUE) {
 
 species_to_internals <- function(sp, environment=NULL) {
   # Aggregate and extract plants
-  sp_p <- lapply(sp$cohorts, function(x) x$individual )
+  sp_p <- lapply(sp$nodes, function(x) x$individual )
   new_names <- c(sp_p[[1]]$ode_names, paste0(sp_p[[1]]$ode_names, '_dt'), sp_p[[1]]$aux_names)
   ints <- do.call("rbind", lapply(sp_p, function(x) c(x$internals$states, x$internals$rates, x$internals$auxs)))
   colnames(ints) <- new_names
   cbind(ints,
         log_density=sp$log_densities,
-        offspring_produced_survival_weighted=sp$net_reproduction_ratio_by_cohort)
+        offspring_produced_survival_weighted=sp$net_reproduction_ratio_by_node)
 }
 
 ##' Create a function that allows integrating aggregate properties of
@@ -310,13 +310,13 @@ make_scm_integrate <- function(obj) {
   if (inherits(obj, "SCM")) {
     internals <- patch_to_internals(obj$patch)
     n <- length(internals)
-    sched <- obj$cohort_schedule
+    sched <- obj$node_schedule
     a <- lapply(seq_len(n), sched$times)
     pa <- lapply(a, obj$patch$density)
   } else {
     internals <- patch_to_internals(scm_patch(length(obj$time), obj))
     n <- length(internals)
-    a <- obj$p$cohort_schedule_times
+    a <- obj$p$node_schedule_times
     if(obj$p$patch_type == 'meta-population')
       d = Weibull_Disturbance_Regime(obj$p$max_patch_lifetime)
     else

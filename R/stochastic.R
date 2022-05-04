@@ -8,33 +8,33 @@ stochastic_arrival_times <- function(max_time, species, delta_t = 0.1, patch_are
   ret <- numeric(0)
   t0 <- 0.0
   t1 <- t0 + delta_t
-  
+
   # first calculate average arrival rate in this interval
   if (species$is_variable_birth_rate) {
     interpolated <- splinefun(species$birth_rate_x, species$birth_rate_y)
   } else {
     rate <- species$birth_rate_y
   }
-  
+
   while (t0 < max_time) {
     # first calculate average arrival rate in this interval
     if (species$is_variable_birth_rate) {
       x = seq(t0, t1, len = 10)
       rate = mean(interpolated(x))
-    } 
-    
+    }
+
     # now calculate actual number arriving, given the rate
     n <- rpois(1,  delta_t * rate * patch_area)
-    
+
     # now generate arrival times in this interval, from a uniform distribution
     t <- sort(runif(n, t0, t1))
     ret <- c(ret, t)
-    
+
     # update for next iteration
     t0 <- t1
     t1 <- t1 + delta_t
   }
-  
+
   ret[ret < max_time]
 }
 
@@ -44,15 +44,15 @@ stochastic_schedule <- function(p) {
   max_time  <- p$max_patch_lifetime
   n_species <- length(p$strategies)
 
-  sched <- CohortSchedule(n_species)
+  sched <- NodeSchedule(n_species)
   sched$max_time <- max_time
-  
+
   for (i in 1:n_species) {
     species <- p$strategies[[i]]
     times <- stochastic_arrival_times(max_time, species, patch_area)
     sched$set_times(times, i)
   }
-  
+
   sched
 }
 

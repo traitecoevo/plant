@@ -14,9 +14,9 @@ test_that("empty", {
     expect_equal(sp$size, 0)
     expect_equal(sp$size_individuals, 0)
 
-    new_cohort <- sp$new_cohort
-    expect_is(new_cohort, "Individual")
-    expect_is(new_cohort, sprintf("Individual<%s,%s>",x,e))
+    new_node <- sp$new_node
+    expect_is(new_node, "Individual")
+    expect_is(new_node, sprintf("Individual<%s,%s>",x,e))
 
     expect_equal(sp$heights, numeric(0))
     expect_equal(sp$height_max, 0.0)
@@ -38,7 +38,7 @@ test_that("Single individual", {
     sp <- StochasticSpecies(x, e)(s)
     p <- Individual(x, e)(s)
 
-    sp$introduce_new_cohort()
+    sp$introduce_new_node()
 
     expect_equal(sp$size, 1)
     expect_equal(sp$size_individuals, 1)
@@ -76,7 +76,7 @@ test_that("Multiple individuals", {
     sp <- StochasticSpecies(x, e)(s)
     n <- 10
     for (i in seq_len(n)) {
-      sp$introduce_new_cohort()
+      sp$introduce_new_node()
     }
 
     expect_equal(sp$size, n)

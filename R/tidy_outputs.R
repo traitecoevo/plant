@@ -6,14 +6,14 @@
 #' @importFrom rlang .data
 tidy_species <- function(data) {
   
-  # get dimensions of data = number of steps * number of cohorts
+  # get dimensions of data = number of steps * number of nodes
   dimensions <- dim(data[1,,] )
   
   # establish data structure for results    
   data_species <- 
     tidyr::expand_grid(
       step = seq_len(dimensions[1]), 
-      cohort = seq_len(dimensions[2])
+      node = seq_len(dimensions[2])
     )
   
   # retrieve bnames of all tracked variables
@@ -24,7 +24,7 @@ tidy_species <- function(data) {
     data_species[[v]] <- 
       data[v, , ] %>% 
       as.data.frame %>% tidyr::as_tibble() %>%
-      tidyr::pivot_longer(cols=dplyr::starts_with("V"), names_to = "cohort") %>% 
+      tidyr::pivot_longer(cols=dplyr::starts_with("V"), names_to = "node") %>%
       dplyr::pull(.data$value)
   }
   
@@ -103,7 +103,7 @@ interpolate_to_times <- function(tidy_species_data, times, method="natural") {
   
   tidy_species_data %>%
     tidyr::drop_na() %>%
-    dplyr::group_by(.data$species, .data$cohort) %>%
+    dplyr::group_by(.data$species, .data$node) %>%
     dplyr::summarise(
       dplyr::across(where(is.double), ~f(.data$time, .x, xout=times)),
       .groups = "keep") %>%
@@ -183,7 +183,7 @@ tidy_individual <- function(results) {
 #' @importFrom rlang .data
 integrate_over_size_distribution <- function(tidy_species_data) {
   tidy_species_data  %>%
-    dplyr::select(-.data$cohort) %>% stats::na.omit() %>% 
+    dplyr::select(-.data$node) %>% stats::na.omit() %>%
     dplyr::filter(.data$step > 1) %>% 
     dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
     dplyr::summarise(

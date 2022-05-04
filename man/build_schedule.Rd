@@ -2,7 +2,7 @@
 % Please edit documentation in R/build_schedule.R
 \name{build_schedule}
 \alias{build_schedule}
-\title{Build Cohort Schedule}
+\title{Build Node Schedule}
 \usage{
 build_schedule(
   p,
