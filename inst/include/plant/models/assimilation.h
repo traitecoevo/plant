@@ -3,6 +3,7 @@
 #define PLANT_PLANT_ASSIMILATION_H_
 
 #include <memory>
+#include <functional>
 #include <plant/environment.h>
 #include <plant/control.h>
 #include <plant/qag.h> // quadrature::intervals_type
@@ -22,33 +23,18 @@ class Assimilation {
   // Canopy shape parameter
   double eta;
 
-
   // [eqn 12] Gross annual CO2 assimilation
   //
   // NOTE: In contrast with Daniel's implementation (but following
   // Falster 2012), we do not normalise by a_y*a_bio here.
-  double assimilate(const E& environment,
+  double assimilate(std::function<double(double)> f,
                     double height,
+                    const E &environment,
                     double area_leaf,
                     bool reuse_intervals) {
-    //const bool over_distribution = control.plant_assimilation_over_distribution;
-    const double x_min = 0.0, x_max = height; //over_distribution ? 1.0 : height;
 
+    const double x_min = 0.0, x_max = height;
     double A = 0.0;
-
-    std::function<double(double)> f;
-    // if (over_distribution) {
-    //   f = [&] (double x) -> double {
-    //     return compute_assimilation_p(x, height, environment);
-    //   };
-    // } else {
-    //   f = [&] (double x) -> double {
-    //     return compute_assimilation_h(x, height, environment);
-    //   };
-    // }
-    f = [&] (double x) -> double {
-         return compute_assimilation_h(x, height, environment);
-       };
 
     if (integrator.is_adaptive() && reuse_intervals) {
       A = integrator.integrate_with_last_intervals(f, x_min, x_max);
@@ -58,29 +44,6 @@ class Assimilation {
 
     return area_leaf * A;
   }
-
-  // This is used in the calculation of assimilation by
-  // `compute_assimilation` above; it is the term within the integral in
-  // [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
-  // where `z` is height.
-  /* double compute_assimilation_x(Control control, double x, double height, */
-  /*                                      const E& environment) const { */
-  /*   if (control.plant_assimilation_over_distribution) { */
-  /*     return compute_assimilation_p(x, height, environment); */
-  /*   } else { */
-  /*     return compute_assimilation_h(x, height, environment); */
-  /*   } */
-  /* } */
-
-  double compute_assimilation_h(double z, double height,
-                                       const E& environment) const {
-    return assimilation_leaf(environment.get_environment_at_height(z)) * q(z, height);
-  }
-
-  // double compute_assimilation_p(double p, double height,
-  //                               const E& environment) const {
-  //   return assimilation_leaf(environment.get_environment_at_height(Qp(p, height)));
-  // }
 
   // [Appendix S6] Per-leaf photosynthetic rate.
   // Here, `x` is openness, ranging from 0 to 1.

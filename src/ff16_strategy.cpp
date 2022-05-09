@@ -201,6 +201,17 @@ double FF16_Strategy::net_mass_production_dt_A(double assimilation, double respi
   return a_bio * a_y * (assimilation - respiration) - turnover;
 }
 
+// This is used in the calculation of assimilation by
+// `compute_assimilation` above; it is the term within the integral in
+// [eqn 12]; i.e., A_lf(A_0v, E(z,a)) * q(z,h(m_l))
+// where `z` is height.
+
+double FF16_Strategy::compute_assimilation(double z, double height,
+                                     const FF16_Environment& environment) {
+  return assimilator.assimilation_leaf(environment.get_environment_at_height(z)) * assimilator.q(z, height);
+}
+
+
 // One shot calculation of net_mass_production_dt
 // Used by establishment_probability() and compute_rates().
 double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment,
@@ -212,8 +223,15 @@ double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment
   const double area_bark_    = area_bark(area_leaf_);
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
-  const double assimilation_ = assimilator.assimilate(environment, height,
-                                            area_leaf_, reuse_intervals);
+
+  // integrate over x from zero to `height`, with fixed canopy openness
+  auto f = [&](double x) -> double {
+    return compute_assimilation(x, height, environment);
+  };
+
+  const double assimilation_ = assimilator.assimilate(
+    f, height, environment, area_leaf_, reuse_intervals);
+
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =

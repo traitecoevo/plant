@@ -6,11 +6,6 @@
 
 using namespace Rcpp;
 
-#ifdef RCPP_USE_GLOBAL_ROSTREAM
-Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
-Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
-#endif
-
 // Lorenz__ctor
 plant::ode::test::Lorenz Lorenz__ctor(double sigma, double R, double b);
 RcppExport SEXP _plant_Lorenz__ctor(SEXP sigmaSEXP, SEXP RSEXP, SEXP bSEXP) {
