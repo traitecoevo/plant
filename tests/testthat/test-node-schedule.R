@@ -18,10 +18,10 @@ drain_schedule <- function(sched) {
   cmp
 }
 
-context("CohortSchedule")
+context("NodeSchedule")
 
-test_that("CohortScheduleEvent", {
-  e <- CohortScheduleEvent(pi, 1)
+test_that("NodeScheduleEvent", {
+  e <- NodeScheduleEvent(pi, 1)
 
   expect_identical(e$species_index, 1L)
   expect_identical(e$species_index_raw, 0.0)
@@ -35,11 +35,11 @@ test_that("CohortScheduleEvent", {
   expect_identical(e$time_end, pi)
 })
 
-test_that("Empty CohortSchedule", {
+test_that("Empty NodeSchedule", {
   n_species <- 2
-  sched <- CohortSchedule(n_species)
+  sched <- NodeSchedule(n_species)
 
-  expect_is(sched, "CohortSchedule")
+  expect_is(sched, "NodeSchedule")
   expect_equal(sched$size, 0)
   expect_equal(sched$n_species, n_species)
 
@@ -52,7 +52,7 @@ test_that("Empty CohortSchedule", {
 
 test_that("Corner cases", {
   n_species <- 2
-  sched <- CohortSchedule(n_species)
+  sched <- NodeSchedule(n_species)
 
   set.seed(1)
   t1 <- c(0.0, runif(10))
@@ -74,7 +74,7 @@ test_that("Set times (one species)", {
   t2 <- sort(c(0.0, runif(12)))
 
   n_species <- 2
-  sched <- CohortSchedule(n_species)
+  sched <- NodeSchedule(n_species)
   sched$set_times(t1, 1L)
 
   expect_equal(sched$size, length(t1))
@@ -104,7 +104,7 @@ test_that("Set times (two species)", {
   t2 <- sort(c(0.0, runif(12)))
 
   n_species <- 2
-  sched <- CohortSchedule(n_species)
+  sched <- NodeSchedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
 
@@ -142,7 +142,7 @@ test_that("Resetting times replaces them", {
   t2 <- sort(c(0.0, runif(12)))
 
   n_species <- 2
-  sched <- CohortSchedule(n_species)
+  sched <- NodeSchedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
 
@@ -158,7 +158,7 @@ test_that("Setting max time behaves sensibly", {
   t1 <- sort(c(0.0, runif(10)))
   t2 <- sort(c(0.0, runif(12)))
 
-  sched <- CohortSchedule(2)
+  sched <- NodeSchedule(2)
   sched$set_times(t1, 1)
 
   last_event <- function(x) {
@@ -193,7 +193,7 @@ test_that("Setting max time behaves sensibly", {
 
 test_that("Bulk get/set of times works", {
   n <- 3
-  sched <- CohortSchedule(n)
+  sched <- NodeSchedule(n)
 
   set.seed(1)
   t_new <- lapply(seq_len(n), function(...) sort(runif(rpois(1, 10))))
@@ -215,7 +215,7 @@ test_that("ode_times", {
   n_species <- 2
   max_t <- max(c(t1, t2)) + mean(diff(sort(c(t1, t2))))
 
-  sched <- CohortSchedule(n_species)
+  sched <- NodeSchedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
   sched$max_time <- max_t
@@ -252,9 +252,9 @@ test_that("ode_times", {
                            setdiff(t_ode[idx == i], tmp[i,]),
                            tmp[i,2]))
 
-  ## New schedule because setting and resetting may have changed cohort
+  ## New schedule because setting and resetting may have changed node
   ## order.
-  sched <- CohortSchedule(n_species)
+  sched <- NodeSchedule(n_species)
   sched$set_times(t1, 1L)
   sched$set_times(t2, 2L)
   sched$max_time <- max_t
@@ -285,8 +285,8 @@ test_that("ode_times", {
   expect_identical(sched$max_time, max(t_ode))
 })
 
-test_that("Can expand CohortSchedule", {
-  sched <- CohortSchedule(1)
+test_that("Can expand NodeSchedule", {
+  sched <- NodeSchedule(1)
   max_t <- 10
   times1 <- sort(runif(10))
   sched$max_time <- max_t

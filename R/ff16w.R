@@ -1,6 +1,6 @@
 # Built from  R/ff16.R on Mon Jul 19 11:01:04 2021 using the scaffolder, from the strategy:  FF16
-##' Create a FF16w Plant or Cohort
-##' @title Create a FF16w Plant or Cohort
+##' Create a FF16w Plant or Node
+##' @title Create a FF16w Plant or Node
 ##' @param s A \code{\link{FF16w_Strategy}} object
 ##' @export
 ##' @rdname FF16w
@@ -13,8 +13,8 @@ FF16w_Individual <- function(s=FF16w_Strategy()) {
 
 ##' @export
 ##' @rdname FF16w
-FF16w_Cohort <- function(s=FF16w_Strategy()) {
-  Cohort("FF16w", "FF16_Env")(s)
+FF16w_Node <- function(s=FF16w_Strategy()) {
+  Node("FF16w", "FF16_Env")(s)
 }
 
 ##' @export

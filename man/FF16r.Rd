@@ -2,7 +2,7 @@
 % Please edit documentation in R/ff16r.R
 \name{FF16r_Individual}
 \alias{FF16r_Individual}
-\alias{FF16r_Cohort}
+\alias{FF16r_Node}
 \alias{FF16r_Species}
 \alias{FF16r_Parameters}
 \alias{FF16r_Patch}
@@ -10,11 +10,11 @@
 \alias{FF16r_StochasticSpecies}
 \alias{FF16r_StochasticPatch}
 \alias{FF16r_StochasticPatchRunner}
-\title{Create a FF16r Plant or Cohort}
+\title{Create a FF16r Plant or Node}
 \usage{
 FF16r_Individual(s = FF16r_Strategy())
 
-FF16r_Cohort(s = FF16r_Strategy())
+FF16r_Node(s = FF16r_Strategy())
 
 FF16r_Species(s = FF16r_Strategy())
 
@@ -36,7 +36,7 @@ FF16r_StochasticPatchRunner(p)
 \item{p}{A \code{Parameters<FF16r,FF16_Env>} object}
 }
 \description{
-Create a FF16r Plant or Cohort
+Create a FF16r Plant or Node
 }
 \examples{
 pl <- FF16r_Individual()

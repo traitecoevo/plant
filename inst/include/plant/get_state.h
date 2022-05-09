@@ -3,7 +3,7 @@
 #define PLANT_GET_STATE_H_
 
 #include <plant/parameters.h>
-#include <plant/cohort_schedule.h>
+#include <plant/node_schedule.h>
 #include <plant/scm.h>
 #include <plant/stochastic_patch_runner.h>
 #include <Rcpp.h>
@@ -15,24 +15,24 @@ namespace plant {
 // and is kind of separate to the rest of the model.  It won't matter
 // though; if it does move in then we just adjust the yml.
 template <typename T, typename E>
-Rcpp::NumericMatrix::iterator get_state(const Cohort<T,E>& cohort,
+Rcpp::NumericMatrix::iterator get_state(const Node<T,E>& node,
                                         Rcpp::NumericMatrix::iterator it) {
-  std::vector<double> tmp = ode::r_ode_state(cohort);
+  std::vector<double> tmp = ode::r_ode_state(node);
   return std::copy(tmp.begin(), tmp.end(), it);
 }
 
 template <typename T, typename E>
 Rcpp::NumericMatrix get_state(const Species<T,E>& species) {
-  typedef Cohort<T,E> cohort_type;
-  size_t ode_size = cohort_type::ode_size(), np = species.size();
+  typedef Node<T,E> node_type;
+  size_t ode_size = node_type::ode_size(), np = species.size();
   Rcpp::NumericMatrix ret(static_cast<int>(ode_size), np + 1); // +1 is seed
   Rcpp::NumericMatrix::iterator it = ret.begin();
   for (size_t i = 0; i < np; ++i) {
-    it = get_state(species.r_cohort_at(i), it);
+    it = get_state(species.r_node_at(i), it);
   }
-  it = get_state(species.r_new_cohort(), it);
+  it = get_state(species.r_new_node(), it);
   ret.attr("dimnames") =
-    Rcpp::List::create(cohort_type::ode_names(), R_NilValue);
+    Rcpp::List::create(node_type::ode_names(), R_NilValue);
   return ret;
 }
 
@@ -64,7 +64,7 @@ Rcpp::List get_state(const SCM<T,E>& scm) {
 template <typename T, typename E>
 Rcpp::NumericMatrix::iterator get_state(const Individual<T,E>& plant,
                                         Rcpp::NumericMatrix::iterator it) {
-  // TODO: this should work (also up in get_state(Cohort<T,E>, ...)).
+  // TODO: this should work (also up in get_state(Node<T,E>, ...)).
   // return plant.ode_state(it);
   std::vector<double> tmp = ode::r_ode_state(plant);
   return std::copy(tmp.begin(), tmp.end(), it);

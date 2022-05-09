@@ -1,5 +1,5 @@
-##' Create a FF16 Plant or Cohort
-##' @title Create a FF16 Plant or Cohort
+##' Create a FF16 Plant or Node
+##' @title Create a FF16 Plant or Node
 ##' @param s A \code{\link{FF16_Strategy}} object
 ##' @export
 ##' @rdname FF16
@@ -12,8 +12,8 @@ FF16_Individual <- function(s=FF16_Strategy()) {
 
 ##' @export
 ##' @rdname FF16
-FF16_Cohort <- function(s=FF16_Strategy()) {
-  Cohort("FF16", "FF16_Env")(s)
+FF16_Node <- function(s=FF16_Strategy()) {
+  Node("FF16", "FF16_Env")(s)
 }
 
 ##' @export

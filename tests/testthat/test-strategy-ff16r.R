@@ -36,7 +36,10 @@ test_that("Defaults", {
     k_I    = 0.5,
     recruitment_decay = 0,
     control = Control(),
-    collect_all_auxiliary = FALSE)
+    collect_all_auxiliary = FALSE,
+    birth_rate_x = numeric(0), # empty
+    birth_rate_y = c(1.0), 
+    is_variable_birth_rate = FALSE)
 
   keys <- sort(names(expected))
 

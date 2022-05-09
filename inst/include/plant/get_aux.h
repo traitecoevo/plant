@@ -3,29 +3,29 @@
 #define PLANT_GET_AUX_H_
 
 #include <plant/parameters.h>
-#include <plant/cohort_schedule.h>
+#include <plant/node_schedule.h>
 #include <plant/scm.h>
 #include <Rcpp.h>
 
 namespace plant {
 
 template <typename T, typename E>
-Rcpp::NumericMatrix::iterator get_aux(const Cohort<T,E>& cohort,
+Rcpp::NumericMatrix::iterator get_aux(const Node<T,E>& node,
                                         Rcpp::NumericMatrix::iterator it) {
-  std::vector<double> tmp = ode::r_ode_aux(cohort);
+  std::vector<double> tmp = ode::r_ode_aux(node);
   return std::copy(tmp.begin(), tmp.end(), it);
 }
 
 template <typename T, typename E>
 Rcpp::NumericMatrix get_aux(const Species<T,E>& species) {
-  typedef Cohort<T,E> cohort_type;
+  typedef Node<T,E> node_type;
   size_t aux_size = species.strategy_aux_size(), np = species.size();
   Rcpp::NumericMatrix ret(static_cast<int>(aux_size), np + 1); // +1 is seed
   Rcpp::NumericMatrix::iterator it = ret.begin();
   for (size_t i = 0; i < np; ++i) {
-    it = get_aux(species.r_cohort_at(i), it);
+    it = get_aux(species.r_node_at(i), it);
   }
-  it = get_aux(species.r_new_cohort(), it);
+  it = get_aux(species.r_new_node(), it);
   ret.attr("dimnames") =
     Rcpp::List::create(species.aux_names(), R_NilValue);
   return ret;

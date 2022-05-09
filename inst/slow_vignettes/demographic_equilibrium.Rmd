@@ -59,7 +59,7 @@ patch_eq <- equilibrium_seed_rain(patch)
 Here, the characteristic solver is run four times. At each iteration, the arrival rate is mapped to a propagule output (e.g. `{1} -> {19.97}`), with proagule outputs used as the arrival rate for the next iteration. `delta` shows the difference between input and output and the process is repeated until an accuracy target is reached (i.e. there is little difference between input an output.)
 
 <!-- TODO: provide better description of adaptive sampling -->
-Note that logging also demonstrates adaptive cohort spacing algorthim that `plant` uses to refine the time steps and arrival schedule, splitting cohorts where greater accuracy is required. More on timing can be found in the [cohort scheduling algorithm](https://traitecoevo.github.io/plant/articles/cohort_spacing.html).
+Note that logging also demonstrates adaptive node spacing algorthim that `plant` uses to refine the time steps and arrival schedule, splitting nodes where greater accuracy is required. More on timing can be found in the [node scheduling algorithm](https://traitecoevo.github.io/plant/articles/node_spacing.html).
 
 In this example, we see that propagule outputs quickly approach demographic equilibrium. These values can be accessed using the `progress` attribute and visualised with a cobweb plot:
 ``` {r equilibrium_approach}
@@ -120,7 +120,7 @@ propagule_output_global <- unlist(mclapply(arrival_rates_global,
                                            patch, mc.cores = n_cores))
 
 # This is pretty patchy, which is due to incompletely refining the
-# cohort schedule, I believe.  Tighten `schedule_eps` to make the
+# node schedule, I believe.  Tighten `schedule_eps` to make the
 # curve smoother, at the cost of potentially a lot more effort.
 plot(arrival_rates_global, propagule_output_global,
      las=1, type="l",
@@ -216,7 +216,7 @@ Like before, we can describe the global relationship of arrival rate to propagul
 ```{r}
 # note that the approximations here mean that these equilibria are not
 # terribly well polished - there are a set of nested approximations that make
-# this difficult. Possibly the biggest culprit is the cohort refinement step
+# this difficult. Possibly the biggest culprit is the node refinement step
 
 plant_log_console(file_name = "stdout")
 
@@ -245,7 +245,7 @@ We visualise these results using a two dimensional vector field:
 ```{r}
 # NOTE: I'm not sure why the point really close to the equilibrium here looks
 # like it's moving so quickly, and possibly in the wrong direction.  
-# Cohort instability perhaps?
+# Node instability perhaps?
 
 
 plot(nn_in, xlab="Species 1", ylab="Species 2", pch=19, cex=.25,

@@ -3,7 +3,7 @@
 
 namespace plant {
 
-std::vector<double> cohort_schedule_times_default(double max_time) {
+std::vector<double> node_schedule_times_default(double max_time) {
   const double multiplier=0.2, min_step_size=1e-5, max_step_size=2.0;
   if (min_step_size <= 0) {
     util::stop("The minimum step size must be greater than zero");
@@ -23,7 +23,7 @@ std::vector<double> cohort_schedule_times_default(double max_time) {
 
 }
 
-//' Generate a suitable set of default cohort introduction times,
+//' Generate a suitable set of default node introduction times,
 //' biased so that introductions are more closely packed at the
 //' beginning of time, become increasingly spread out.
 //'
@@ -33,13 +33,13 @@ std::vector<double> cohort_schedule_times_default(double max_time) {
 //' very limited subset of values (based on combinations of 1, 0.5,
 //' 0.25, 0.125 etc).  The reason for doing this is to minimise the
 //' number of unique introduction times across all species. The ODE
-//' stepper needs to stop at each point where a cohort is introduced.
+//' stepper needs to stop at each point where a node is introduced.
 //' If each species was selecting a bunch of points that was
 //' essentially unique (compared to those selected for all other
-//' species), the number of unique cohort introductions times could
+//' species), the number of unique node introductions times could
 //' get very large, requiring more ODE steps.
 //'
-//' @title Generate Default Cohort Introduction Times
+//' @title Generate Default Node Introduction Times
 //' @param max_time Time to generate introduction times up to (the
 //' last introduction time will be at least \code{max_time}).
 //' @return Vector of introduction times.
@@ -47,6 +47,6 @@ std::vector<double> cohort_schedule_times_default(double max_time) {
 //' @author Rich FitzJohn, adapted from original C++ code by Daniel
 //' S. Falster.
 // [[Rcpp::export]]
-std::vector<double> cohort_schedule_times_default(double max_time) {
-  return plant::cohort_schedule_times_default(max_time);
+std::vector<double> node_schedule_times_default(double max_time) {
+  return plant::node_schedule_times_default(max_time);
 }

@@ -1,6 +1,6 @@
 Package: plant
 Title: A Package for Modelling Forest Trait Ecology and Evolution
-Version: 2.0.0
+Version: 2.0.0.9000
 Authors@R: c(
     person("Daniel", "Falster", , "daniel.falster@unsw.edu.au", c("aut", "cre"), 
             comment = c(ORCID = "0000-0002-9814-092X")),

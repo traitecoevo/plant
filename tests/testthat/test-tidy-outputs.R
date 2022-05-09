@@ -5,9 +5,9 @@ for (x in c("FF16", "K93")) {
   p0 <- scm_base_parameters(x)
 
   if(x == "FF16")
-    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant = FALSE)
+    p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, mutant = FALSE, birth_rate_list=1.0)
   if (x == "K93")
-    p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0, mutant = FALSE)
+    p1 <- expand_parameters(trait_matrix(0.059, "b_0"), p0, mutant = FALSE, birth_rate_list=1.0)
 
   env <- make_environment(x)
   ctrl <- scm_base_control()
@@ -46,19 +46,19 @@ for (x in c("FF16", "K93")) {
     expect_equal(results_tidy$time, results$time, info = "time")
     expect_equal(results_tidy$n_spp, length(results$species))
 
-    core_vars <- c("step", "time", "patch_density", "species", "cohort", "height", "mortality", "fecundity", "offspring_produced_survival_weighted", "log_density", "density")
+    core_vars <- c("step", "time", "patch_density", "species", "node", "height", "mortality", "fecundity", "offspring_produced_survival_weighted", "log_density", "density")
     expect_true(all(core_vars %in% names(results_tidy$species)))
 
     n_spp <- length(results$species)
     for(n in seq_len(n_spp))
       for(v in c("height", "mortality", "fecundity"))
-        for(coh in c(1, 5, 10))
+        for(node_ in c(1, 5, 10))
           expect_equal(
-            results_tidy$species %>% dplyr::filter(species==n, cohort==coh) %>% dplyr::pull(v),
-            results$species[[n]][v, ,coh] 
+            results_tidy$species %>% dplyr::filter(species==n, node==node_) %>% dplyr::pull(v),
+            results$species[[n]][v, ,node_]
             ) 
     
-    core_vars_integrated <- setdiff(c("cohort"), names(results_tidy$species))
+    core_vars_integrated <- setdiff(c("node"), names(results_tidy$species))
 
     expect_true(all(core_vars_integrated %in% names(results_tidy_integrated)))
 
@@ -79,7 +79,7 @@ for (x in c("FF16", "K93")) {
       expect_silent(
         tidy_species_new <- interpolate_to_heights(results_tidy$species, heights)
       )
-      expect_true(all(names(tidy_species_new) %in% setdiff(names(results_tidy$species), c("cohort"))))
+      expect_true(all(names(tidy_species_new) %in% setdiff(names(results_tidy$species), c("node"))))
       # TODO: test interpolation actually works, also failures
     }
   })

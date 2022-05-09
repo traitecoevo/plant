@@ -7,13 +7,23 @@
 \alias{individual_list}
 \title{Create a list of Strategies}
 \usage{
-strategy_list(x, parameters, hyperpar = param_hyperpar(parameters))
+strategy_list(
+  x,
+  parameters,
+  hyperpar = param_hyperpar(parameters),
+  birth_rate_list
+)
 
 strategy_default(parameters, hyperpar = param_hyperpar(parameters))
 
-strategy(x, parameters, hyperpar = param_hyperpar(parameters))
+strategy(x, parameters, hyperpar = param_hyperpar(parameters), birth_rate_list)
 
-individual_list(x, parameters, hyperpar = param_hyperpar(parameters))
+individual_list(
+  x,
+  parameters,
+  hyperpar = param_hyperpar(parameters),
+  birth_rate_list
+)
 }
 \arguments{
 \item{x}{Values for the trait.  This must be a \emph{matrix}, with
@@ -26,6 +36,11 @@ will be applied.}
 
 \item{hyperpar}{Hyperparameter function to use. By default links 
 to standard function for this strategy type.}
+
+\item{birth_rate_list}{List object with birth rates for each species in
+x. Birth rates can take the form of a scalar (constant) or a vector. 
+In either case birth rates are set as \code{strategy$birth_rate_y}, however
+varying birth rates will also have \code{strategy$birth_rate_x} and}
 }
 \description{
 Create a list of Strategies or Plants by varying a single trait.

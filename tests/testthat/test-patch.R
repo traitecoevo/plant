@@ -1,4 +1,4 @@
-## TODO: Test introduce_new_cohorts(vector<double>)
+## TODO: Test introduce_new_nodes(vector<double>)
 
 strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
@@ -6,13 +6,16 @@ environment_types <- get_list_of_environment_types()
 for (x in names(strategy_types)) {
   context(sprintf("Patch-%s",x))
 
+  # initialise birth rate per species
   s <- strategy_types[[x]]()
+  s$birth_rate_y <- 1
+  s$is_variable_birth_rate <- FALSE
+  
   e <- environment_types[[x]]
   plant <- Individual(x, e)(s)
-  cohort <- Cohort(x, e)(s)
+  node <- Node(x, e)(s)
   
   p <- Parameters(x, e)(strategies=list(s),
-                        birth_rate=pi/2,
                         is_resident=TRUE,
                         patch_type = 'meta-population')
   
@@ -20,7 +23,7 @@ for (x in names(strategy_types)) {
   
   ctrl <- Control()
   patch <- Patch(x, e)(p, env, ctrl)
-  cmp <- Cohort(x, e)(p$strategies[[1]])
+  cmp <- Node(x, e)(p$strategies[[1]])
 
   test_that(sprintf("Basics %s", x), {
     ## TODO: This is something that needs validating: the birth_rate and
@@ -35,7 +38,7 @@ for (x in names(strategy_types)) {
     expect_equal(length(patch$species), 1)
     expect_is(patch$species[[1]], sprintf("Species<%s,%s>",x,e))
     
-    # with no cohorts, we only expect env vars
+    # with no nodes, we only expect env vars
     env_size <- env$ode_size
     env_state <- patch$ode_state
     env_rates <- patch$ode_rates
@@ -49,18 +52,19 @@ for (x in names(strategy_types)) {
     patch$compute_environment()
     expect_identical(patch$compute_competition(0), 0)
     
-    expect_error(patch$introduce_new_cohort(0), "Invalid value")
-    expect_error(patch$introduce_new_cohort(2), "out of bounds")
+    expect_error(patch$introduce_new_node(0), "Invalid value")
+    expect_error(patch$introduce_new_node(2), "out of bounds")
     
-    # introduce a cohort and expect different results
-    cohort_size <- Cohort(x, e)(s)$ode_size 
-    ode_size = cohort_size + env_size
-    patch$introduce_new_cohort(1)
-    expect_equal(patch$cohort_ode_size, cohort_size)
+    # introduce a node and expect different results
+    node_size <- Node(x, e)(s)$ode_size
+    ode_size = node_size + env_size
+    patch$introduce_new_node(1)
+    expect_equal(patch$node_ode_size, node_size)
     expect_equal(patch$ode_size, ode_size)
     
     ## Then pull this out:
-    cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), p$birth_rate)
+    cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), 
+                                   patch$species[[1]]$extrinsic_drivers()$evaluate("birth_rate", 0))
      
     ode_state <- c(cmp$ode_state, env_state)
     ode_rates <- c(cmp$ode_rates, env_rates)
@@ -76,7 +80,7 @@ for (x in names(strategy_types)) {
     
     ## solver <- solver_from_ode_target(patch, p$control$ode_control)
     ## solver$step()
-    ## patch$introduce_new_cohort(1)
+    ## patch$introduce_new_node(1)
     ## expect_equal(patch$ode_size,
     ##             cmp$ode_size * patch$n_individuals)
     
@@ -86,7 +90,7 @@ for (x in names(strategy_types)) {
     
     t <- patch$environment$time # do via environment only?
     
-    ## patch$introduce_new_cohort(1)
+    ## patch$introduce_new_node(1)
     ## h <- patch$state("height")[[1]]
     ## while (patch$time < 25) {
     ##   solver$step()
@@ -102,7 +106,7 @@ for (x in names(strategy_types)) {
     ## }
     
     ## patch$reset()
-    ## patch$introduce_new_cohort(1)
+    ## patch$introduce_new_node(1)
     ## solver <- solver_from_ode_target(patch, p$control$ode_control)
     
     ## tt <- seq(0, 25, length.out=26)
@@ -128,21 +132,21 @@ for (x in names(strategy_types)) {
     
     ## test_that("State get/set works", {
     ##   patch$reset()
-    ##   patch$introduce_new_cohort(1)
+    ##   patch$introduce_new_node(1)
     ##   ode.control <- p$control$ode_control
     ##   ode.control$set_parameters(list(step_size_min = 1e-4))
     ##   solver <- solver_from_ode_target(patch, ode.control)
     ##   while (patch$time < 5) {
     ##     solver$step()
     ##     if (patch$time > patch$n_individuals) {
-    ##       patch$introduce_new_cohort(1)
+    ##       patch$introduce_new_node(1)
     ##       solver <- solver_from_ode_target(patch, ode.control)
     ##     }
     ##   }
     ##   patch$compute_rates() # require because we just added offspring
     ##   state <- patch$state
     
-    ##   patch2 <- new(PatchCohortTop, patch$parameters)
+    ##   patch2 <- new(PatchNodeTop, patch$parameters)
     ##   expect_error(patch2$state <- state)
     ##   patch2$force_state(state)
     ##   expect_identical(patch2$state, state)
