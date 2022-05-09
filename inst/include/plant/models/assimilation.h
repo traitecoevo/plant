@@ -29,7 +29,6 @@ class Assimilation {
   // Falster 2012), we do not normalise by a_y*a_bio here.
   double assimilate(std::function<double(double)> f,
                     double height,
-                    const E &environment,
                     double area_leaf,
                     bool reuse_intervals) {
 

@@ -230,7 +230,7 @@ double FF16_Strategy::net_mass_production_dt(const FF16_Environment& environment
   };
 
   const double assimilation_ = assimilator.assimilate(
-    f, height, environment, area_leaf_, reuse_intervals);
+    f, height, area_leaf_, reuse_intervals);
 
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
@@ -403,9 +403,9 @@ double FF16_Strategy::mortality_growth_dependent_dt(double productivity_area) co
 
 // [eqn 20] Survival of seedlings during establishment
 double FF16_Strategy::establishment_probability(const FF16_Environment& environment) {
-  
+
   double decay_over_time = exp(-recruitment_decay * environment.time);
-  
+
   const double net_mass_production_dt_ =
     net_mass_production_dt(environment, height_0, area_leaf_0);
   if (net_mass_production_dt_ > 0) {
