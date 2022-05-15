@@ -880,21 +880,21 @@ FF16_Environment:
       @export
   methods:
     # unforunately need to expose these base Environment functions for every derived class...
-    set_extrinsic_driver:
-      args: [driver_name: "std::string", x: "std::vector<double>", y: "std::vector<double>"]
-      return_type: void
-    extrinsic_driver_extrapolation:
-      args: [driver_name: "std::string", extrapolate: bool]
-      return_type: void
-    extrinsic_driver_evaluate:
-      args: [driver_name: "std::string", u: double]
-      return_type: double
-    extrinsic_driver_evaluate_range:
-      args: [driver_name: "std::string", u: "std::vector<double>"]
-      return_type: "std::vector<double>"
-    get_extrinsic_driver_names:
-      args: []
-      return_type: "std::vector<std::string>"
+#    set_extrinsic_driver:
+#      args: [driver_name: "std::string", x: "std::vector<double>", y: "std::vector<double>"]
+#      return_type: void
+#    extrinsic_driver_extrapolation:
+#      args: [driver_name: "std::string", extrapolate: bool]
+#      return_type: void
+#    extrinsic_driver_evaluate:
+#      args: [driver_name: "std::string", u: double]
+#      return_type: double
+#    extrinsic_driver_evaluate_range:
+#      args: [driver_name: "std::string", u: "std::vector<double>"]
+#      return_type: "std::vector<double>"
+#    get_extrinsic_driver_names:
+#      args: []
+#      return_type: "std::vector<std::string>"
     canopy_openness:
       args: [height: double]
       return_type: double
@@ -920,6 +920,9 @@ FF16_Environment:
       type: "plant::Internals"
       access: member
       name_cpp: "r_internals"
+    extrinsic_drivers: # this actually exists in the base class, not in the derived environment classes
+      type: "plant::ExtrinsicDrivers"
+      access: field
 
 # The following strategy was built from FF16 on Wed Aug 12 11:12:34 2020
 FF16r_Strategy:
@@ -1075,3 +1078,12 @@ ExtrinsicDrivers:
       args: [ driver_name: std::string, u: std::vector<double>]
     get_names:
       return_type: std::vector<std::string>
+    set_constant:
+      return_type: void
+      args: [ driver_name: std::string, k: double]
+    set_variable:
+      return_type: void
+      args: [ driver_name: std::string, x: std::vector<double>, y: std::vector<double> ]
+    set_extrapolate:
+      return_type: void
+      args: [ driver_name: std::string, extrapolate: bool]

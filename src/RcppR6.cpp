@@ -3772,26 +3772,6 @@ plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int 
   return plant::FF16_Environment(canopy_rescale_usually, soil_number_of_depths);
 }
 // [[Rcpp::export]]
-void FF16_Environment__set_extrinsic_driver(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, std::vector<double> x, std::vector<double> y) {
-  obj_->set_extrinsic_driver(driver_name, x, y);
-}
-// [[Rcpp::export]]
-void FF16_Environment__extrinsic_driver_extrapolation(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, bool extrapolate) {
-  obj_->extrinsic_driver_extrapolation(driver_name, extrapolate);
-}
-// [[Rcpp::export]]
-double FF16_Environment__extrinsic_driver_evaluate(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, double u) {
-  return obj_->extrinsic_driver_evaluate(driver_name, u);
-}
-// [[Rcpp::export]]
-std::vector<double> FF16_Environment__extrinsic_driver_evaluate_range(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, std::vector<double> u) {
-  return obj_->extrinsic_driver_evaluate_range(driver_name, u);
-}
-// [[Rcpp::export]]
-std::vector<std::string> FF16_Environment__get_extrinsic_driver_names(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
-  return obj_->get_extrinsic_driver_names();
-}
-// [[Rcpp::export]]
 double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double height) {
   return obj_->canopy_openness(height);
 }
@@ -3842,6 +3822,15 @@ void FF16_Environment__canopy__set(plant::RcppR6::RcppR6<plant::FF16_Environment
 // [[Rcpp::export]]
 plant::Internals FF16_Environment__soil__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
   return obj_->r_internals();
+}
+
+// [[Rcpp::export]]
+plant::ExtrinsicDrivers FF16_Environment__extrinsic_drivers__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->extrinsic_drivers;
+}
+// [[Rcpp::export]]
+void FF16_Environment__extrinsic_drivers__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::ExtrinsicDrivers value) {
+  obj_->extrinsic_drivers = value;
 }
 
 
@@ -3918,6 +3907,18 @@ std::vector<double> ExtrinsicDrivers__evaluate_range(plant::RcppR6::RcppR6<plant
 // [[Rcpp::export]]
 std::vector<std::string> ExtrinsicDrivers__get_names(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> obj_) {
   return obj_->get_names();
+}
+// [[Rcpp::export]]
+void ExtrinsicDrivers__set_constant(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> obj_, std::string driver_name, double k) {
+  obj_->set_constant(driver_name, k);
+}
+// [[Rcpp::export]]
+void ExtrinsicDrivers__set_variable(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> obj_, std::string driver_name, std::vector<double> x, std::vector<double> y) {
+  obj_->set_variable(driver_name, x, y);
+}
+// [[Rcpp::export]]
+void ExtrinsicDrivers__set_extrapolate(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> obj_, std::string driver_name, bool extrapolate) {
+  obj_->set_extrapolate(driver_name, extrapolate);
 }
 
 

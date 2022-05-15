@@ -10,7 +10,6 @@
 #include <plant/util.h>
 #include <unordered_map>
 #include <Rcpp.h>
-
 #include <plant/extrinsic_drivers.h>
 
 using namespace Rcpp;
@@ -72,46 +71,47 @@ public:
   size_t species_arriving_index;
 
   Internals vars;
+  ExtrinsicDrivers extrinsic_drivers;
 
-  /* EXSTRINSIC DRIVERS API*/
+//  /* EXSTRINSIC DRIVERS API*/
+//
+//  // initialise spline of driver with x, y control points
+//  void set_extrinsic_driver(std::string driver_name, std::vector<double> const& x, std::vector<double> const& y) {
+//    // if we wanted to be faster we could skip this check (but less safe)
+//    if (extrinsic_drivers.count(driver_name) == 0) {
+//      util::stop(driver_name + " doesn't exist in the list of extrinsic_drivers.");
+//    } else {
+//      extrinsic_drivers.at(driver_name).init(x, y);
+//      extrinsic_driver_extrapolation(driver_name, false); // default no extrapolation
+//    }
+//  }
+//
+//  void extrinsic_driver_extrapolation(std::string driver_name, bool extrapolate) {
+//    extrinsic_drivers.at(driver_name).set_extrapolate(extrapolate);
+//  }
+//
+//  // evaluate/query interpolated spline for driver at point u, return s(u), where s is interpolated function
+//  double extrinsic_driver_evaluate(std::string driver_name, double u) const {
+//    return extrinsic_drivers.at(driver_name).eval(u);
+//  }
+//
+//  // evaluate/query interpolated spline for driver at vector of points, return vector of values
+//  std::vector<double> extrinsic_driver_evaluate_range(std::string driver_name, std::vector<double> u) const {
+//    return extrinsic_drivers.at(driver_name).r_eval(u);
+//  }
+//
+//  // returns the name of each active driver - useful for R output
+//  std::vector<std::string> get_extrinsic_driver_names() {
+//    auto ret = std::vector<std::string>();
+//    for (auto const& driver : extrinsic_drivers) {
+//      ret.push_back(driver.first);
+//    }
+//    return ret;
+//  }
 
-  // initialise spline of driver with x, y control points
-  void set_extrinsic_driver(std::string driver_name, std::vector<double> const& x, std::vector<double> const& y) {
-    // if we wanted to be faster we could skip this check (but less safe)
-    if (extrinsic_drivers.count(driver_name) == 0) {
-      util::stop(driver_name + " doesn't exist in the list of extrinsic_drivers.");
-    } else {
-      extrinsic_drivers.at(driver_name).init(x, y);
-      extrinsic_driver_extrapolation(driver_name, false); // default no extrapolation
-    }
-  }
-
-  void extrinsic_driver_extrapolation(std::string driver_name, bool extrapolate) {
-    extrinsic_drivers.at(driver_name).set_extrapolate(extrapolate);
-  }
-
-  // evaluate/query interpolated spline for driver at point u, return s(u), where s is interpolated function
-  double extrinsic_driver_evaluate(std::string driver_name, double u) const {
-    return extrinsic_drivers.at(driver_name).eval(u);
-  }
-
-  // evaluate/query interpolated spline for driver at vector of points, return vector of values
-  std::vector<double> extrinsic_driver_evaluate_range(std::string driver_name, std::vector<double> u) const {
-    return extrinsic_drivers.at(driver_name).r_eval(u);
-  }
-
-  // returns the name of each active driver - useful for R output
-  std::vector<std::string> get_extrinsic_driver_names() {
-    auto ret = std::vector<std::string>();
-    for (auto const& driver : extrinsic_drivers) {
-      ret.push_back(driver.first);
-    }
-    return ret;
-  }
-
-protected:
-  std::unordered_map<std::string, interpolator::Interpolator> extrinsic_drivers;
-};
+//protected:
+//  //std::unordered_map<std::string, interpolator::Interpolator> extrinsic_drivers;
+//};
 
 }
 
