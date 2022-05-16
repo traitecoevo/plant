@@ -1,152 +1,98 @@
-library(GPfit)
-
-# Source: https://github.com/bearloga/bayesopt-tutorial-r/blob/master/BayesOpt.R
-bayesian_optimize <- function(fn, 
-                              evals = NULL,
-                              iter = 1,
-                              n_seed_evals = 4,
-                              n_eval_pts = 1000,
-                              minimize = TRUE, 
-                              control = NULL, 
-                              bounds = c(0, 1)) {
-  
-  
-  if (is.null(control)) {
-    control <- list(cov = list(type = "exponential", power = 1.95))
-    # control <- list(cov = list(type = "matern", nu = 5/2))
-  }
-  
-  # need seed evaluations to fit GP
-  if(is.null(evals)) {
-    evals <- data.frame(x = seq(bounds[1], bounds[2], 
-                                length.out = n_seed_evals))
-    
-    evals$y <- map_dbl(evals$x, calibrate)
-  }
-  
-  # TODO: GPfit wants x-scale on (0, 1]
-  x_new = seq(bounds[1], bounds[2], len = n_eval_pts)
-  
-  for(i in 0:iter) {
-    
-    # current best eval
-    if (minimize) {
-      y_best <- min(evals$y, na.rm = TRUE)
-    } else {
-      y_best <- max(evals$y, na.rm = TRUE)
-    }
-    
-    # evaluate next place to sample
-    if(i > 0) {
-      # Expected improvement acquisition function
-      acq <- purrr::map2_dbl(mu, sigma, function(m, s) {
-        if (s == 0) return(0)
-        gamma <- (y_best - m) / s
-        if (minimize) {
-          phi <- pnorm(gamma)
-        } else {
-          phi <- 1 - pnorm(gamma)
-        }
-        return(s * (gamma * phi + dnorm(gamma)))
-      })
-      
-      x_next <- x_new[which.max(acq)]
-      y_next <- fn(x_next)
-      
-      evals <- rbind(evals, c(x_next, y_next))
-    }
-    
-    # fit/re-fit emulator
-    fit <- GP_fit(
-      x = evals$x,
-      Y = evals$y,
-      corr = control$cov
-    )
-    
-    preds <- predict.GP(fit, xnew = data.frame(x = x_new))
-    mu <- preds$Y_hat
-    sigma <- sqrt(preds$MSE)
-  }
-  
-  minima = x_new[which.min(preds$Y_hat)]
-  
-  plot(preds$complete_data, type = "l", 
-       main = paste("Expected improvement evaluations;",
-                    "n = ", nrow(evals)),
-       xlab = "B_lf1", ylab = "Error")
-  
-  points(evals, pch = 16)
-  
-  abline(v = minima, col = "red")
-  legend("topleft", legend = "optima",
-         pch = "|", col = "red")
-  
-  return(list(fit = fit, 
-              evaluations = evals,
-              minima = minima))
-}
-
-
 # source: https://bookdown.org/rbg/surrogates/chap7.html
 library(laGP)
 library(lhs)
 
 eps <- sqrt(.Machine$double.eps) ## used lots below
 
-# expected improvement of sampling x compared to the currently observed minima
-EI <- function(gp, x, fmin) {
-  if(is.null(nrow(x))) 
-    x <- matrix(x, nrow=1)
-  
-  p <- predGPsep(gp, x, lite=TRUE)
-  
-  d <- fmin - p$mean
-  sigma <- sqrt(p$s2)
-  dn <- d / sigma
-  ei <- d * pnorm(dn) + sigma * dnorm(dn)
 
-  return(ei)
+# strategy defaults
+mulga <- function() {
+  p0 <- scm_base_parameters("FF16bg", "FF16_Env")
+  
+  p0$strategy_default$lma <- 0.0645
+  p0$strategy_default$hmat <- 5
+  p0$strategy_default$rho <- 1100
+  p0$strategy_default$narea <- 0.0032
+  p0$strategy_default$a_l1 <- 2.17
+  p0$strategy_default$a_l2 <- 0.5
+  p0$strategy_default$omega <- 0.00000926
+  p0$strategy_default$k_2 <- 0.00
+  p0
 }
 
 
-# @param bounds a list with upper and lower limits for each variable
-generate_seeds <- function(f, bounds, n = 1,
-                           log_scale = FALSE,
-                           target = NULL,
-                           parameters = NULL,
-                           evaluate = T) {
-  x <- randomLHS(n, length(bounds))
+create_environment <- function() FF16bg_make_environment()
+create_site <- make_FF16bg_hyperpar
+
+create_species <- function(lma = 0.0645, hmat = 5, eta = 12, k_2 = 0,
+                           birth_rate = 100,
+                           site) {
   
-  for(i in 1:length(bounds)) {
-    x[, i] = bounds[[i]]$min + x[, i] * (bounds[[i]]$max - bounds[[i]]$min)
-  }
+  traits = trait_matrix(c(lma, hmat, eta, k_2), c("lma", "hmat", "eta", "k_2"))
+  sp = expand_parameters(traits, mulga(), site, mutant = FALSE,
+                        birth_rate_list = list(birth_rate))
+
+  # base <- scm_base_parameters("FF16bg", "FF16_Env")
+  # sp = expand_parameters(traits, base, site, mutant = FALSE, 
+  #                      birth_rate_list = list(birth_rate))
+  # 
+   
+  return(sp)
+}
+
+# This is clunky - assumes one schedule will be suitable even while optimising
+# traits and site characteristics
+create_schedule <- function(max_patch_lifetime = 250,
+                            optimise_schedule = FALSE,
+                            schedule_reduction_factor = 5) {
   
-  colnames(x) <- names(bounds)
+  site <- create_site()
+  parameters <- create_species(site = site)
   
-  if(evaluate == T) {
-    if(is.null(target) | is.null(parameters)) {
-      stop("Target and parameters must be provided to evaluate seeds")
+  # update patch longevity
+  parameters$max_patch_lifetime <- max_patch_lifetime
+  
+  if(optimise_schedule) {
+    
+    # start with built-in schedule
+    nodes <- node_schedule_times_default(max_patch_lifetime)
+    
+    # then downsample, taking every nth integration node 
+    nth_element <- function(vector, n = 1, starting_position = 1) { 
+      vector[c(1:starting_position, seq(starting_position, length(vector), n))] 
     }
     
-    y <- apply(x, 1, f, target = target, parameters = parameters)
-    return(list(x = x, y = y))
+    times <- nth_element(nodes, schedule_reduction_factor)
     
-  } else {
-    return(list(x = x))
+    parameters$node_schedule_times[[1]] <- times #1spp
+    
+    # and rebuild
+    parameters <- build_schedule(parameters)
   }
+  
+  return(parameters)
 }
 
 
-generate_range <- function(bounds, n = 1000) {
-  x = matrix(nrow = n, ncol= length(bounds))
-  basis = seq(0, 1, len = n)
+calculate_net_biomass <- function(parameters, environment = create_environment()) {
   
-  for(i in 1:length(bounds)) {
-    x[, i] = bounds[[i]]$min + basis * (bounds[[i]]$max - bounds[[i]]$min)
-  }
+  # gather outputs at each time step
+  results <- run_scm_collect(parameters, environment) %>% 
+    tidy_patch() %>%
+    FF16_expand_state()
   
-  return(x)
+  v <- c("mass_leaf", "mass_bark", "mass_sapwood", "mass_heartwood")
+  
+  tissues <- results$species %>% 
+    integrate_over_size_distribution() %>%
+    select(time,species, one_of(v)) %>%
+    pivot_longer(cols=starts_with("mass"), names_to = "tissue") %>%
+    mutate(across(tissue, factor, levels = v)) %>%
+    filter(time != max(time)) # drop last node
+  
+  return(tissues)
 }
+
 
 
 # @param x optimisable parameters
@@ -154,32 +100,29 @@ generate_range <- function(bounds, n = 1000) {
 # @param latitude used to specify site characteristics
 # @param n_control_points number of points to evaluate LL if target is a function
 calibrate <- function(x, target, 
-                      log_scale = TRUE,
                       latitude = 28.182,
                       parameters, 
                       environment = NULL,
                       match_tissue = "total_biomass",
-                      plot_comparison = FALSE) {
+                      plot_comparison = TRUE) {
   
   if(is.null(parameters$node_schedule_times)) {
     stop("Please run `create_schedule` first")
   }
   
-  if(log_scale == T) {
-    x = exp(x)
-  }
-  
   # assume optimising B_lf1 and hmat
   with(as.list(x), {
-    site <- create_site(B_lf1 = B_lf1, latitude = latitude)
+    site <- create_site(B_lf1 = B_lf1, 
+                        latitude = latitude)
     
-    sp <- create_species(hmat = hmat, eta = eta, site = site)
-    # sp <- create_species(site = site)
-    
+    sp <- create_species(hmat = hmat, 
+                         eta = eta, 
+                         k_2 = k_2,
+                         site = site)
+
     # overwrite species
     parameters$strategies <- sp$strategies
-    parameters$birth_rate <- sp$birth_rate
-    
+
     if(is.null(environment)) {
       environment = create_environment()
     }
@@ -195,8 +138,8 @@ calibrate <- function(x, target,
                     .groups = "drop")
       }
       
-      predictions <- filter(biomass, 
-                            tissue == match_tissue)
+      # something odd with the last point
+      predictions <- filter(biomass, tissue == match_tissue) 
       
       if(plot_comparison == T) {
         ggplot(predictions, aes(time, value)) +
@@ -207,25 +150,43 @@ calibrate <- function(x, target,
           facet_wrap(~species)
       }
       
-      # fit GP to residuals
+      # https://bookdown.org/rbg/surrogates/chap8.html#chap8calibopt
+      # fit GP to plant results
       x <- matrix(predictions$time, ncol = 1)
-      eps <- predictions$value - target(x)
       
       da <- darg(list(mle=TRUE), x)
-      ga <- garg(list(mle=TRUE), eps)
-            
-      residuals <- newGPsep(x, eps, d=da$start, g=ga$start, dK=TRUE)
+      ga <- garg(list(mle=TRUE), predictions$value)
       
-      jmleGPsep(residuals, 
-                drange = c(da$min, da$max), 
-                grange = c(ga$min, ga$max))
+      surrogate <- newGPsep(x, predictions$value, d=da$start, g=ga$start, dK=TRUE)
+      mleGPsep(surrogate, 
+               param = "d", 
+               tmin=c(da$min),
+               tmax=c(da$max))
+      
+      z <- predGPsep(surrogate, x, lite=T, nonug=T)$mean
+      
+
+      # fit GP to residuals
+      delta <- target(x) - z
+      residuals <- newGPsep(x, delta, d=da$start, g=ga$start, dK=TRUE)
+      
+      mleGPsep(residuals, 
+               param = "both", 
+               tmin=c(da$min, ga$min),
+               tmax=c(da$max, ga$max),
+               ab = c(da$ab, ga$ab))
+
+      # plot to see interpolation of residuals 
+      if(FALSE) {
+        xx = matrix(seq(0, max(x), len = 100), ncol=1)
+        plot(xx, predGPsep(residuals, xx, lite=T, nonug=T)$mean)
+        points(x, delta, col = "red", type = "l")
+      }
       
       # extract neg. log. lik.
-      nll <- -llikGPsep(residuals)
+      nll <- -llikGPsep(residuals, dab = da$ab, gab = ga$ab)
       
-      # or posterior prob. 
-      # pp <- llikGPsep(residuals, da$ab, ga$ab)
-      
+      deleteGPsep(surrogate)
       deleteGPsep(residuals)
       
     } else {
@@ -237,23 +198,45 @@ calibrate <- function(x, target,
 }
 
 
+# https://bookdown.org/rbg/surrogates/chap7.html#classic-ei-illustration
 EI.search <- function(x, y, gp, bounds, multi_start = 5, tol = eps) {
-  
+
   # find minima of data and start there
   m <- which.min(y)
   fmin <- y[m]
   start <- matrix(x[m, ], nrow=1)
   
-  # randomly sample around starting point (ignoring bounds)
+  # optionally add extra samples
   if(multi_start > 1) {
     n = multi_start - 1
-    jitter = apply(x, 2, function(x) rnorm(n, x[m], sd(x) / 1e-6))
+    jitter <- generate_seeds(gp, bounds, n = n, evaluate = F)$x_raw
     start <- rbind(start, jitter)
   } else {
     message("Using a multi-start optimisation routine can improve numerical stability")
   }
   
+  # expected improvement of sampling x compared to the currently observed minima
+  EI <- function(gp, x, fmin) {
+    if(is.null(nrow(x))) 
+      x <- matrix(x, nrow=1)
+    
+    p <- predGPsep(gp, x, lite=TRUE)
+    
+    d <- fmin - p$mean
+    sigma <- sqrt(p$s2)
+    dn <- d / sigma
+    ei <- d * pnorm(dn) + sigma * dnorm(dn)
+    
+    return(ei)
+  }
+  
   max_ei = 0
+
+  # optim likes to minimise things, in this case the negative expected 
+  # improvement of the next acquisition of the neg. log. likelihood (curly!)
+  objective <- function(x, fmin, gp) {
+    - EI(gp, x, fmin)
+  }
   
   # repeatedly optimise
   for(i in 1:nrow(start)) {
@@ -262,25 +245,68 @@ EI.search <- function(x, y, gp, bounds, multi_start = 5, tol = eps) {
       out <- list(value = -Inf)
       next 
     }
-    
-    # optim likes to minimise things, in this case the negative expected 
-    # improvement of the next acquisition of the neg. log. likelihood (curly!)
-    objective <- function(x, fmin, gp) {
-      - EI(gp, x, fmin)
-    }
-    
-    limits = tibble(bounds) %>% unnest_wider(bounds)
-    
+
     out <- optim(start[i, ], objective, method = "L-BFGS-B", 
-                 lower = limits$min,
-                 upper = limits$max,
+                 lower = rep(0, length(bounds)),
+                 upper = rep(1, length(bounds)),
                  gp = gp, fmin = fmin)
     
     ei = -out$value
-    
+                 
     # save best acquisition location
     if(ei > max_ei) {
       max_ei = ei
+      x_next = matrix(out$par, nrow = 1)
+    }
+  }
+
+  return(x_next)
+}
+
+
+# https://bookdown.org/rbg/surrogates/chap7.html#chap7ieci
+IECI.search <- function(x, y, gp, bounds, multi_start = 5, tol = eps) {
+  
+  # find minima of data and start there
+  fmin <- min(predGPsep(gp, x, lite=TRUE, nonug = T)$mean)
+
+  m <- which(y == min(y))
+  start <- x[m, ]
+
+  # optionally add extra samples
+  if(multi_start > 1) {
+    n = multi_start - 1
+    jitter <- generate_seeds(gp, bounds, n = n, evaluate = F)$x_raw
+    start <- rbind(start, jitter)
+  } else {
+    message("Using a multi-start optimisation routine can improve numerical stability")
+  }
+  
+  max_ieci = 0
+
+  # optim likes to minimise things, in this case the negative expected 
+  # conditional improvement of the next acquisition of the neg. log. likelihood (curly!)
+  objective <- function(x_next, fmin, gp) {
+    xx <- seq(0, 1, len = 100)
+  
+     -ieciGPsep(gp, matrix(x_next, ncol = length(bounds)), fmin, 
+                Xref = matrix(rep(xx, length(bounds)),
+                              ncol=length(bounds)), nonug=TRUE)
+  }
+  
+  # repeatedly optimise
+  for(i in 1:nrow(start)) {
+    out <- optim(start[i, ], objective, 
+                 method = "L-BFGS-B", 
+                 lower = rep(0, length(bounds)),
+                 upper = rep(1, length(bounds)),
+                 gp = gp, fmin = fmin)
+    
+    ieci = -out$value
+    
+    # save best acquisition location
+    if(ieci > max_ieci) {
+      max_ieci = ieci
       x_next = matrix(out$par, nrow = 1)
     } 
   }
@@ -290,8 +316,8 @@ EI.search <- function(x, y, gp, bounds, multi_start = 5, tol = eps) {
 
 
 
-optim.EI <- function(f, target, bounds, parameters, n_iter = 1, n_init = 6,
-                     gp = NULL, evals = NULL) {
+bayesopt <- function(f, target, bounds, parameters, n_iter = 1, n_init = 6,
+                     gp = NULL, evals = NULL, search_fn = "EI") {
 
   if(is.null(bounds))
     stop("Please specify the bounds of optimisable parameters")
@@ -304,17 +330,17 @@ optim.EI <- function(f, target, bounds, parameters, n_iter = 1, n_init = 6,
     evals <- generate_seeds(f, n_init, target, bounds, parameters)
   }
   
-  x <- evals$x
+  x_raw <- evals$x_raw
   y <- evals$y
   
   # initialise GP in C, with separable correlation for >1 dimensions
   # d = length scale, g = nugget, dK = save derivative for optimisation of d
   if(is.null(gp)) {
-    gp_ptr <- newGPsep(x, y, d=0.1, g=1e-6, dK=TRUE)
+    gp_ptr <- newGPsep(x_raw, y, d=0.1, g=1e-6, dK=TRUE)
     
     # priors for GP lengthscale, optimised using MLE
     da <- darg(list(mle = T), 
-               generate_seeds(calibrate, bounds, n = 1000, evaluate = F)$x)
+               generate_seeds(calibrate, bounds, n = 1000, evaluate = F)$x_raw)
 
   } else if(is.list(gp)) {
     gp_ptr = gp$pointer
@@ -325,31 +351,82 @@ optim.EI <- function(f, target, bounds, parameters, n_iter = 1, n_init = 6,
   
   mleGPsep(gp_ptr, param="d", tmin= da$min, tmax= da$max)  
   
-  
-
   ## optimization loop of sequential acquisitions
   for(i in 1:n_iter) {
     
-    # find best expected improvement
-    x_next <- EI.search(x, y, gp_ptr, bounds)
-    colnames(x_next) <- names(bounds)
+    # find best expected conditional improvement (IECI)
+    if(search_fn == "IECI") {
+      search = IECI.search
+    } else {
+      search = EI.search
+    }
+    
+    x_next_raw <- search(x_raw, y, gp_ptr, bounds)
+    colnames(x_next_raw) <- names(bounds)
 
     # collect data at proposed location
+    x_next <- unscale(x_next_raw, bounds)
     y_next <- apply(x_next, 1, f, target = target, parameters = parameters)
     
     # update GP and length-scale
-    updateGPsep(gp_ptr, x_next, y_next)
+    updateGPsep(gp_ptr, x_next_raw, y_next)
     mleGPsep(gp_ptr, param = "d", tmin = da$min, tmax = da$max, ab = da$ab)
     
     # save new simulation
-    x <- rbind(x, x_next)
+    x_raw <- rbind(x_raw, x_next_raw)
     y <- c(y, y_next)
   }
   
 
   return(list(gp = list(pointer = gp_ptr, priors = da), 
-              evaluations = list(x = x, y = y),
+              evaluations = list(x_raw = x_raw, y = y),
               minima = min(y)))
+}
+
+
+unscale <- function(x_raw, bounds) {
+  x = x_raw
+  
+  for(i in 1:length(bounds)) {
+    diff = bounds[[i]]$max - bounds[[i]]$min
+    x[, i] = x_raw[, i] * diff + bounds[[i]]$min
+  }
+  
+  return(x)
+}
+
+# @param bounds a list with upper and lower limits for each variable
+generate_seeds <- function(f, bounds, n = 1,
+                           target = NULL,
+                           parameters = NULL,
+                           evaluate = T) {
+  x_raw <- randomLHS(n, length(bounds))
+  colnames(x_raw) <- names(bounds)
+  
+  if(evaluate == T) {
+    if(is.null(target) | is.null(parameters)) {
+      stop("Target and parameters must be provided to evaluate seeds")
+    }
+    
+    x <- unscale(x_raw, bounds)
+    y <- apply(x, 1, f, target = target, parameters = parameters)
+    return(list(x_raw = x_raw, y = y))
+    
+  } else {
+    return(list(x_raw = x_raw))
+  }
+}
+
+
+generate_range <- function(bounds, n = 1000) {
+  x = matrix(nrow = n, ncol= length(bounds))
+  basis = seq(0, 1, len = n)
+  
+  for(i in 1:length(bounds)) {
+    x[, i] = basis
+  }
+  
+  return(x)
 }
 
 
@@ -370,12 +447,14 @@ plot_preds <- function(gp_ptr, bounds, evals, par = 1, `3d` = FALSE) {
   
   pred <- predGPsep(gp_ptr, xx, lite=TRUE)
   
-  plot(xx[, par], pred$mean, type = "l", 
+  x <- unscale(xx, bounds)[, par]
+  plot(x, pred$mean, type = "l", 
        xlab = "B_lf1", ylab = "negLogLik")
 
-  lines(xx[, par], pred$mean + 1.96 * sqrt(pred$s2), col=2, lty=2)
-  lines(xx[, par], pred$mean - 1.96 * sqrt(pred$s2), col=2, lty=2)
+  lines(x, pred$mean + 1.96 * sqrt(pred$s2), col=2, lty=2)
+  lines(x, pred$mean - 1.96 * sqrt(pred$s2), col=2, lty=2)
   
-  points(evals$x[, par], evals$y, col = "red")
+  
+  points(unscale(evals$x, bounds)[, par], evals$y, col = "red")
   
 }
