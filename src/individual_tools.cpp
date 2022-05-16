@@ -13,6 +13,11 @@ plant::Internals FF16r_oderunner_individual_internals(
   return obj.obj.individual.r_internals();
 }
 
+// [[Rcpp::export]]
+plant::Internals FF16bg_oderunner_individual_internals(
+  const plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16bg_Strategy, plant::FF16_Environment>>& obj) {
+  return obj.obj.individual.r_internals();
+}
 
 
 // [[Rcpp::export]]
