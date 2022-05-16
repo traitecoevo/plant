@@ -39,7 +39,7 @@ test_that("Defaults", {
     control = Control(),
     collect_all_auxiliary = FALSE,
     birth_rate_x = numeric(0), # empty
-    birth_rate_y = c(1.0), 
+    birth_rate_y = c(1.0),
     is_variable_birth_rate = FALSE)
 
   keys <- sort(names(expected))
@@ -184,9 +184,9 @@ test_that("offspring production", {
   p0 <- scm_base_parameters("FF16")
   env <- make_environment("FF16")
   ctrl <- scm_base_control()
-  
+
   # Should default to FF16
-  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16bg_hyperpar, 
+  p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16bg_hyperpar,
                           mutant = FALSE, birth_rate_list = list(20))
 
   out <- run_scm(p1, env, ctrl)
@@ -194,9 +194,9 @@ test_that("offspring production", {
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 
   # Increasing below-ground importance
-  p2 <- expand_parameters(trait_matrix(0.05, "k_2"), p0, FF16bg_hyperpar, 
+  p2 <- expand_parameters(trait_matrix(0.05, "k_2"), p0, FF16bg_hyperpar,
                           mutant = FALSE, birth_rate_list = list(20))
-  
+
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production, 48.5288, tolerance=1e-5)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.768224), tolerance=1e-5)

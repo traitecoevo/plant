@@ -79,7 +79,7 @@ FF16bg_StochasticPatchRunner <- function(p) {
 ##' @rdname FF16_Environment
 ##' @param canopy_rescale_usually turns on environment rescaling (default = TRUE)
 FF16bg_make_environment <- function(canopy_rescale_usually = TRUE) {
-  
+
   FF16_make_environment(canopy_rescale_usually)
 }
 
@@ -185,7 +185,7 @@ make_FF16bg_hyperpar <- function(
   assert_scalar(k_I)
   assert_scalar(k_2)
   assert_scalar(latitude)
-  
+
   function(m, s, filter=TRUE) {
     with_default <- function(name, default_value=s[[name]]) {
       rep_len(if (name %in% colnames(m)) m[, name] else default_value,
@@ -195,18 +195,18 @@ make_FF16bg_hyperpar <- function(
     rho       <- with_default("rho")
     omega     <- with_default("omega")
     narea     <- with_default("narea", narea)
-    
+
     ## lma / leaf turnover relationship:
     k_l   <- B_kl1 * (lma / lma_0) ^ (-B_kl2)
-    
+
     ## rho / mortality relationship:
     d_I  <- B_dI1 * (rho / rho_0) ^ (-B_dI2)
-    
+
     ## rho / wood turnover relationship:
     k_s  <- B_ks1 *  (rho / rho_0) ^ (-B_ks2)
-    
+
     ## rho / sapwood respiration relationship:
-    
+
     ## Respiration rates are per unit mass, so this next line has the
     ## effect of holding constant the respiration rate per unit volume.
     ## So respiration rates per unit mass vary with rho, respiration
@@ -214,30 +214,30 @@ make_FF16bg_hyperpar <- function(
     r_s <- B_rs1 / rho
     # bark respiration follows from sapwood
     r_b <- B_rb1 / rho
-    
+
     ## omega / accessory cost relationship
     a_f3 <- B_f1 * omega
-    
+
     ## Narea, photosynthesis, respiration
-    
+
     assimilation_rectangular_hyperbolae <- function(I, Amax, theta, QY) {
       x <- QY * I + Amax
       (x - sqrt(x^2 - 4 * theta * QY * I * Amax)) / (2 * theta)
     }
-    
+
     ## Photosynthesis  [mol CO2 / m2 / yr]
     approximate_annual_assimilation <- function(narea, latitude) {
       E <- seq(0, 1, by=0.02)
       ## Only integrate over half year, as solar path is symmetrical
       D <- seq(0, 365/2, length.out = 10000)
       I <- PAR_given_solar_angle(solar_angle(D, latitude = abs(latitude)))
-      
+
       Amax <- B_lf1 * (narea/narea_0) ^  B_lf5
       theta <- B_lf2
       QY <- B_lf3
-      
+
       AA <- NA * E
-      
+
       for (i in seq_len(length(E))) {
         AA[i] <- 2 * trapezium(D, assimilation_rectangular_hyperbolae(
           k_I * I * E[i], Amax, theta, QY))
@@ -252,7 +252,7 @@ make_FF16bg_hyperpar <- function(
       }
       ret
     }
-    
+
     # This needed in case narea has length zero, in which case trapezium fails
     a_p1 <- a_p2 <- 0 * narea
     ## TODO: Remove the 0.5 hardcoded default for k_I here, and deal
@@ -264,25 +264,25 @@ make_FF16bg_hyperpar <- function(
       a_p1  <- y["p1", i]
       a_p2  <- y["p2", i]
     }
-    
+
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
     ## respiration rates per unit area don't.
     r_l  <- B_lf4 * narea / lma
-    
+
     extra <- cbind(k_l,                # lma
                    d_I, k_s, r_s, r_b, # rho
                    a_f3,               # omega
                    a_p1, a_p2,         # narea
                    r_l)                # lma, narea
-    
+
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {
       stop("Attempt to overwrite generated parameters: ",
            paste(overlap, collapse=", "))
     }
-    
+
     ## Filter extra so that any column where all numbers are with eps
     ## of the default strategy are not replaced:
     if (filter) {
@@ -302,7 +302,7 @@ make_FF16bg_hyperpar <- function(
         }
       }
     }
-    
+
     if (!is.null(extra)) {
       m <- cbind(m, extra)
     }
