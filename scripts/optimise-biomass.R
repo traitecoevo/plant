@@ -1,5 +1,6 @@
 devtools::load_all()
 library(tidyverse)
+library(tictoc)
 
 source("scripts/optimise-bayesopt.R")
 
@@ -22,11 +23,11 @@ mulga <- function() {
 create_environment <- function() FF16_make_environment()
 create_site <- make_FF16_hyperpar
 
-create_species <- function(lma = 0.0645, hmat = 5, 
+create_species <- function(lma = 0.0645, hmat = 5, eta = 12,
                            birth_rate = 100,
                            site) {
   
-  traits = trait_matrix(c(lma, hmat), c("lma", "hmat"))
+  traits = trait_matrix(c(lma, hmat, eta), c("lma", "hmat", "eta"))
   sp = expand_parameters(traits, mulga(), site, mutant = FALSE)
   
   sp$birth_rate <- birth_rate
@@ -49,7 +50,7 @@ create_schedule <- function(max_patch_lifetime = 250,
   if(optimise_schedule) {
 
     # start with built-in schedule
-    nodes <- cohort_schedule_times_default(max_patch_lifetime)
+    nodes <- node_schedule_times_default(max_patch_lifetime)
     
     # then downsample, taking every nth integration node 
     nth_element <- function(vector, n = 1, starting_position = 1) { 
@@ -58,7 +59,7 @@ create_schedule <- function(max_patch_lifetime = 250,
     
     times <- nth_element(nodes, schedule_reduction_factor)
     
-    parameters$cohort_schedule_times[[1]] <- times #1spp
+    parameters$node_schedule_times[[1]] <- times #1spp
     
     # and rebuild
     parameters <- build_schedule(parameters)
@@ -106,21 +107,33 @@ tyf <- function(t, m = 50, g=12.25, r=1){
 
 # bounds = list(B_lf1 = list(min = 0.5, max = 1.5))
 
-bounds = list(B_lf1 = list(min = 0.5, max = 1.5),
-              hmat = list(min = 2, max = 10))
+bounds = list(B_lf1 = list(min = log(0.5), max = log(1.5)),
+              hmat = list(min = log(2), max = log(8)),
+              eta = list(min = log(2), max = log(15)))
 
 
 seed <- generate_seeds(calibrate, bounds, n = 6, target = tyf, parameters = p)
 
-fit <- optim.EI(calibrate, tyf, bounds, n_iter = 20, parameters = p, evals = seed)
+fit <- optim.EI(calibrate, tyf, bounds, n_iter = 4, parameters = p, evals = seed)
 
-fit <- optim.EI(calibrate, tyf, bounds, n_iter = 20, parameters = p, 
+tic()
+fit <- optim.EI(calibrate, tyf, bounds, n_iter = 50, parameters = p, 
                 evals = fit$evaluations,
                 gp = fit$gp)
+toc()
 
-plot_preds(fit$gp$pointer, bounds, fit$evaluations, par = 1)
+plot_preds(fit$gp$pointer, bounds, fit$evaluations, par = 2,)
 
-deleteGPseps()
+ggplot(data.frame(fit$evaluations),
+       aes(x.B_lf1, x.eta, size = y, color = y)) +
+  geom_point() +
+  scale_color_viridis_c()
+
+
+plot(diff(fit$evaluations$x[, 1]), fit$evaluations$y[-1])
+plot(diff(fit$evaluations$x[, 2]), fit$evaluations$y[-1])
+
+# deleteGPseps()
 
 # # optimise using expected improvement acquisition fn
 # fit <- bayesian_optimize(calibrate, bounds = c(0.5, 1))
@@ -128,21 +141,25 @@ deleteGPseps()
 
 # Test results
 m = which.min(fit$evaluations$y)
+pred <- exp(fit$evaluations$x)
 
-fit$evaluations$x[m, ]
+best <- pred[m, ]
 
-site <- create_site(B_lf1 = fit$evaluations$x[m, 1], latitude = 28.182)
-sp <- create_species(hmat = fit$evaluations$x[m, 2], site = site)
+
+site <- create_site(B_lf1 = best[1], latitude = 28.182)
+sp <- create_species(hmat = best[2],
+                     eta = best[3],
+                     site = site)
 
 # sp <- create_species(site = site)
 
-sp$cohort_schedule_times <- p$cohort_schedule_times
+sp$node_schedule_times <- p$node_schedule_times
 
 e <- create_environment()
 
 # re-run with current optima
 tissues <- calculate_net_biomass(sp, e) %>%
-  filter(time != max(p$cohort_schedule_times[[1]]))
+  filter(time != max(p$node_schedule_times[[1]]))
 
 ggplot(tissues, aes(time, value)) +
   geom_area(aes(fill = tissue)) +
@@ -150,7 +167,6 @@ ggplot(tissues, aes(time, value)) +
   labs(x = "Patch age (yr)", y = "Above ground mass (kg/m2)") +
   theme_classic() + 
   facet_wrap(~species)
-
 
 
 

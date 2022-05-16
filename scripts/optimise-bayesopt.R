@@ -109,58 +109,9 @@ EI <- function(gp, x, fmin) {
 }
 
 
-EI.search <- function(x, y, gp, bounds, multi_start = 5, tol = eps) {
-  
-  # find minima of data and start there
-  m <- which.min(y)
-  fmin <- y[m]
-  start <- matrix(x[m, ], nrow=1)
-  
-  # randomly sample around starting point
-  if(multi_start > 1) {
-    start <- rbind(start, randomLHS(multi_start - 1, ncol(x)))
-  } else {
-    message("Using a multi-start optimisation routine
-            can improve numerical instability")
-  }
-  
-  max_ei = 0
-  
-  # repeatedly optimise
-  for(i in 1:nrow(start)) {
-    
-    if(EI(gp, start[i, ], fmin) <= tol) {
-      out <- list(value = -Inf)
-      next 
-    }
-    
-    # optim likes to minimise things, in this case the negative expected 
-    # improvement of the next acquisition to improve the predicted minima of GP
-    objective <- function(x, fmin, gp) {
-      - EI(gp, x, fmin)
-    }
-    
-    limits = tibble(bounds) %>% unnest_wider(bounds)
-    
-    out <- optim(start[i, ], objective, method = "L-BFGS-B", 
-                 lower = limits$min,
-                 upper = limits$max,
-                 gp = gp, fmin = fmin)
-    
-    ei = -out$value
-
-    # save best acquisition location
-    if(ei > max_ei) {
-      max_ei = ei
-      x_next = matrix(out$par, nrow = 1)
-    } 
-  }
-
-  return(x_next)
-}
-
 # @param bounds a list with upper and lower limits for each variable
 generate_seeds <- function(f, bounds, n = 1,
+                           log_scale = FALSE,
                            target = NULL,
                            parameters = NULL,
                            evaluate = T) {
@@ -181,7 +132,7 @@ generate_seeds <- function(f, bounds, n = 1,
     return(list(x = x, y = y))
     
   } else {
-    return(x)
+    return(list(x = x))
   }
 }
 
@@ -202,21 +153,27 @@ generate_range <- function(bounds, n = 1000) {
 # @param target a function or vector of points to calculate the marginal likelihood 
 # @param latitude used to specify site characteristics
 # @param n_control_points number of points to evaluate LL if target is a function
-calibrate <- function(x, target, latitude = 28.182,
+calibrate <- function(x, target, 
+                      log_scale = TRUE,
+                      latitude = 28.182,
                       parameters, 
                       environment = NULL,
-                      n_control_pts = 10,
-                      match_tissue = "mass_heartwood") {
+                      match_tissue = "total_biomass",
+                      plot_comparison = FALSE) {
   
-  if(is.null(parameters$cohort_schedule_times)) {
+  if(is.null(parameters$node_schedule_times)) {
     stop("Please run `create_schedule` first")
+  }
+  
+  if(log_scale == T) {
+    x = exp(x)
   }
   
   # assume optimising B_lf1 and hmat
   with(as.list(x), {
     site <- create_site(B_lf1 = B_lf1, latitude = latitude)
     
-    sp <- create_species(hmat = hmat, site = site)
+    sp <- create_species(hmat = hmat, eta = eta, site = site)
     # sp <- create_species(site = site)
     
     # overwrite species
@@ -231,41 +188,104 @@ calibrate <- function(x, target, latitude = 28.182,
     
     if(is.function(target)) {
 
-      # drop final timepoint
-      s = parameters$cohort_schedule_times[[1]]
-      s = s[-length(s)]
-
-      if(n_control_pts == 1) {
-         # target endpoint
-         pts <- max(s)
-      } else { 
-        # generate equidistant control points - not actually n :/
-        pts <- s[findInterval(seq(0, max(s), len = n_control_pts), s)] %>%
-          unique()
-      }
-      
-      if(match_tissue == "total") {
+      if(match_tissue == "total_biomass") {
         biomass <- group_by(biomass, time, species) %>%
-          summarise(tissue = "total",
+          summarise(tissue = "total_biomass",
                     value = sum(value), 
                     .groups = "drop")
       }
       
-      totals <- filter(biomass, 
-                       tissue == match_tissue, 
-                       time %in% pts) %>%
-        mutate(target = target(time)) %>%
-        mutate(error = target - value)
+      predictions <- filter(biomass, 
+                            tissue == match_tissue)
+      
+      if(plot_comparison == T) {
+        ggplot(predictions, aes(time, value)) +
+          geom_area(aes(fill = tissue)) +
+          geom_function(fun=tyf, linetype = "dashed") +
+          labs(x = "Patch age (yr)", y = "Above ground mass (kg/m2)") +
+          theme_classic() + 
+          facet_wrap(~species)
+      }
+      
+      # fit GP to residuals
+      x <- matrix(predictions$time, ncol = 1)
+      eps <- predictions$value - target(x)
+      
+      da <- darg(list(mle=TRUE), x)
+      ga <- garg(list(mle=TRUE), eps)
+            
+      residuals <- newGPsep(x, eps, d=da$start, g=ga$start, dK=TRUE)
+      
+      jmleGPsep(residuals, 
+                drange = c(da$min, da$max), 
+                grange = c(ga$min, ga$max))
+      
+      # extract neg. log. lik.
+      nll <- -llikGPsep(residuals)
+      
+      # or posterior prob. 
+      # pp <- llikGPsep(residuals, da$ab, ga$ab)
+      
+      deleteGPsep(residuals)
+      
     } else {
       stop("Calibration for dataframes not yet implemented")
     }
     
-    # loss fn - emphasise fit of total biomass by downweighting early ctrl pts
-    weights = seq(0.1, 1, len = n_distinct(totals$time))
-    error <- matrix(log(sum(abs(totals$error) * weights)), ncol = 1)
-    
-    return(error)
+    return(nll)
   })
+}
+
+
+EI.search <- function(x, y, gp, bounds, multi_start = 5, tol = eps) {
+  
+  # find minima of data and start there
+  m <- which.min(y)
+  fmin <- y[m]
+  start <- matrix(x[m, ], nrow=1)
+  
+  # randomly sample around starting point (ignoring bounds)
+  if(multi_start > 1) {
+    n = multi_start - 1
+    jitter = apply(x, 2, function(x) rnorm(n, x[m], sd(x) / 1e-6))
+    start <- rbind(start, jitter)
+  } else {
+    message("Using a multi-start optimisation routine can improve numerical stability")
+  }
+  
+  max_ei = 0
+  
+  # repeatedly optimise
+  for(i in 1:nrow(start)) {
+    
+    if(EI(gp, start[i, ], fmin) <= tol) {
+      out <- list(value = -Inf)
+      next 
+    }
+    
+    # optim likes to minimise things, in this case the negative expected 
+    # improvement of the next acquisition of the neg. log. likelihood (curly!)
+    objective <- function(x, fmin, gp) {
+      - EI(gp, x, fmin)
+    }
+    
+    limits = tibble(bounds) %>% unnest_wider(bounds)
+    
+    out <- optim(start[i, ], objective, method = "L-BFGS-B", 
+                 lower = limits$min,
+                 upper = limits$max,
+                 gp = gp, fmin = fmin)
+    
+    ei = -out$value
+    
+    # save best acquisition location
+    if(ei > max_ei) {
+      max_ei = ei
+      x_next = matrix(out$par, nrow = 1)
+    } 
+  }
+  
+  return(x_next)
 }
 
 
@@ -294,7 +314,7 @@ optim.EI <- function(f, target, bounds, parameters, n_iter = 1, n_init = 6,
     
     # priors for GP lengthscale, optimised using MLE
     da <- darg(list(mle = T), 
-               generate_seeds(calibrate, bounds, n = 1000, evaluate = F))
+               generate_seeds(calibrate, bounds, n = 1000, evaluate = F)$x)
 
   } else if(is.list(gp)) {
     gp_ptr = gp$pointer
@@ -303,9 +323,9 @@ optim.EI <- function(f, target, bounds, parameters, n_iter = 1, n_init = 6,
     stop("GP should have a pointer and a priors object")
   }
   
-  ga <- garg(list(mle = T), y)
-  
   mleGPsep(gp_ptr, param="d", tmin= da$min, tmax= da$max)  
+  
+  
 
   ## optimization loop of sequential acquisitions
   for(i in 1:n_iter) {
@@ -350,8 +370,8 @@ plot_preds <- function(gp_ptr, bounds, evals, par = 1, `3d` = FALSE) {
   
   pred <- predGPsep(gp_ptr, xx, lite=TRUE)
   
-  plot(xx[, par], pred$mean, type = "l", ylim = c(0, max(evals$y)), 
-       xlab = "B_lf1", ylab = "log(MAE)")
+  plot(xx[, par], pred$mean, type = "l", 
+       xlab = "B_lf1", ylab = "negLogLik")
 
   lines(xx[, par], pred$mean + 1.96 * sqrt(pred$s2), col=2, lty=2)
   lines(xx[, par], pred$mean - 1.96 * sqrt(pred$s2), col=2, lty=2)
