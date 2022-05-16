@@ -22,8 +22,8 @@ public:
 
   // Incorporates FF16 extensions above
   virtual double net_mass_production_dt(const FF16_Environment& environment,
-                                double height, double area_leaf_,
-                                bool reuse_intervals=false);
+                                        double height, double area_leaf_,
+                                        bool reuse_intervals=false);
 };
 
 FF16bg_Strategy::ptr make_strategy_ptr(FF16bg_Strategy s);

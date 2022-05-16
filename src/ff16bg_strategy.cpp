@@ -20,9 +20,10 @@ double FF16bg_Strategy::below_ground_influence(const FF16_Environment& environme
 }
 
 // Add rate limit based on total stand leaf area
-double FF16bg_Strategy::net_mass_production_dt(const FF16_Environment& environment,
-                                double height, double area_leaf_,
-                                bool reuse_intervals) {
+double
+FF16bg_Strategy::net_mass_production_dt(const FF16_Environment &environment,
+                                        double height, double area_leaf_,
+                                        bool reuse_intervals) {
   const double mass_leaf_    = mass_leaf(area_leaf_);
   const double area_sapwood_ = area_sapwood(area_leaf_);
   const double mass_sapwood_ = mass_sapwood(area_sapwood_, height);
@@ -30,10 +31,13 @@ double FF16bg_Strategy::net_mass_production_dt(const FF16_Environment& environme
   const double mass_bark_    = mass_bark(area_bark_, height);
   const double mass_root_    = mass_root(area_leaf_);
 
+
+  double assimilation_ = assimilator.assimilate(environment, height,
+                                                      area_leaf_, reuse_intervals);
+
   // Reduce net assimilation of all individuals
-  const double assimilation_ = assimilator.assimilate(environment, height,
-                                            area_leaf_, reuse_intervals);
-                                below_ground_influence(environment);
+  assimilation_ *= below_ground_influence(environment);
+
   const double respiration_ =
     respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =

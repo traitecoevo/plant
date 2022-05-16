@@ -181,7 +181,7 @@ test_that("narea calculation", {
 
 test_that("offspring production", {
 
-  p0 <- scm_base_parameters("FF16")
+  p0 <- scm_base_parameters("FF16bg")
   env <- make_environment("FF16")
   ctrl <- scm_base_control()
 
@@ -194,10 +194,11 @@ test_that("offspring production", {
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
 
   # Increasing below-ground importance
-  p2 <- expand_parameters(trait_matrix(0.05, "k_2"), p0, FF16bg_hyperpar,
-                          mutant = FALSE, birth_rate_list = list(20))
+  p2 <- expand_parameters(trait_matrix(c(0.0825, 0.05), c("lma", "k_2")),
+                          p0, FF16bg_hyperpar, mutant = FALSE, 
+                          birth_rate_list = list(20))
 
   out <- run_scm(p2, env, ctrl)
-  expect_equal(out$offspring_production, 48.5288, tolerance=1e-5)
-  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.768224), tolerance=1e-5)
+  expect_equal(out$offspring_production, 0.000236, tolerance=1e-5)
+  expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.425353), tolerance=1e-5)
 })
