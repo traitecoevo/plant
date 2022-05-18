@@ -8,6 +8,9 @@
 namespace plant {
 namespace RcppR6 {
 namespace traits {
+template <> inline std::string   class_name_r<plant::Leaf >() {return "Leaf";}
+template <> inline std::string   package_name<plant::Leaf >() {return "plant";}
+template <> inline std::string generator_name<plant::Leaf >() {return ".R6_Leaf";}
 template <> inline std::string   class_name_r<plant::ode::test::Lorenz >() {return "Lorenz";}
 template <> inline std::string   package_name<plant::ode::test::Lorenz >() {return "plant";}
 template <> inline std::string generator_name<plant::ode::test::Lorenz >() {return ".R6_Lorenz";}
@@ -262,6 +265,12 @@ private:
 };
 }
 
+template <> inline SEXP wrap(const plant::Leaf& x) {
+  return wrap(plant::RcppR6::RcppR6<plant::Leaf>(x));
+}
+template <> inline plant::Leaf as(SEXP x) {
+  return *(plant::RcppR6::RcppR6<plant::Leaf>(x));
+}
 template <> inline SEXP wrap(const plant::ode::test::Lorenz& x) {
   return wrap(plant::RcppR6::RcppR6<plant::ode::test::Lorenz>(x));
 }

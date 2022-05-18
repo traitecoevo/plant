@@ -82,30 +82,36 @@ calc_E_supply <- function(psi_stem, psi_soil, ...){
   integrate(integrate_E_supply, lower = psi_soil, upper = psi_stem, abs.tol = 1e-6 , ...)
 }
 
-
+#calculate stomatal conductance to h20 (g_w) and co2 (g_c) from E supply and VPD
 calc_g_c <- function(psi_stem, psi_soil, atm_vpd,...){
   g_w = atm_kpa*calc_E_supply(psi_stem = psi_stem, psi_soil = psi_soil, ...)$value*kg_2_mol_h20/atm_vpd
   g_w/1.6
 }
 
+#calculate carboxylation limited assimilation rate
 calc_A_c <- function(c_i, vcmax){
   (vcmax * (c_i - gamma_25*umol_per_mol_2_Pa))/(c_i + km_25)
 }
 
+#calculate electron transport rate
 calc_j <- function(PPFD, vcmax){
   jmax <- vcmax*vcmax_25_2_jmax_25
   
   (a*PPFD + jmax - sqrt((a*PPFD+jmax)^2-4*curv_fact*a*PPFD*jmax))/(2*curv_fact)
 }
 
+
+#calculate electron transport rate-limited assimilation
 calc_A_j <- function(c_i, ...){
   calc_j(...)/4 * ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + 2*gamma_25*umol_per_mol_2_Pa))
 }
 
+#calculate co-limited assimilation rate including leaf-level dark respiration (R_d)
 calc_A_lim <- function(c_i, vcmax, PPFD){
   A_j = calc_A_j(c_i = c_i, PPFD = PPFD, vcmax = vcmax)
   A_c = calc_A_c(c_i = c_i, vcmax = vcmax)
-  (A_c + A_j  - sqrt((A_c + A_j)^2-4*0.98*A_c*A_j))/(2*0.98)
+  R_d = vcmax * 0.015
+  (A_c + A_j  - sqrt((A_c + A_j)^2-4*0.98*A_c*A_j))/(2*0.98) - R_d
 }
 
 diff_ci <- function(x, g_c, vcmax, PPFD, ca){

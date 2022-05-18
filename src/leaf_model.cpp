@@ -67,8 +67,9 @@ double Leaf::calc_A_lim(double PPFD, double vcmax, double vcmax_25_2_jmax_25,
   double A_c = calc_A_c(ci_, vcmax, gamma_25, umol_per_mol_2_Pa, km_25);
   double A_j = calc_A_j(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25,
                         umol_per_mol_2_Pa, ci_);
+  double R_d = vcmax*0.015;                      
 
-  return (A_c + A_j - sqrt(pow(A_c + A_j, 2) - 4 * 0.98 * A_c * A_j)) / (2 * 0.98);
+  return (A_c + A_j - sqrt(pow(A_c + A_j, 2) - 4 * 0.98 * A_c * A_j)) / (2 * 0.98) - R_d;
 }
 
 double Leaf::diff_ci(double PPFD, double vcmax, double vcmax_25_2_jmax_25,

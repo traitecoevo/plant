@@ -49,14 +49,24 @@ z <- c(0.022, rep(standard_depth, n-1))
 
 i=1
 
+species <- 5
+
 #set vector to collect gradients 
 dtheta_dt <- vector(length = n)
 plant_water_use <- vector(length = n)
-dLAI_dt <- vector(length = 1)
-
+dLAI_dt <- vector(length = species)
+E_supply_m_h <- vector(length = species)
+a_i <- vector(length = species)
+LAI_state <- vector(length = species)
+E_supply_m_h <- vector(length = species)
+theta_input <- 0.485
+theta_fc = 0.321#field capacity of soil
+theta_wp = 0.137#wilting point of soil
+theta_sat <- 0.485                       
 
 #set initial soil moisture content for each layer (boundary z[i] - z[i-1]) as well as the amount of water lost to deep drainage and runoff and the total amount of rainfall falling in period for sanity check, particulary important for when inclduing temporal variation
-theta_init <- c(theta=rep(0.1, n), runoff = 0, deep_drainage=0, cumulative_rain=0, evaporation = 0, drainage = 0, plant_water_use = rep(0,n), LAI_state = 1, a_i = 0, avg_theta = 0, avg_psi = 0)
+
+theta_init <- c(theta=rep(theta_input, n), runoff = 0, deep_drainage=0, cumulative_rain=0, evaporation = 0, drainage = 0, plant_water_use = rep(0,n), LAI_state = rep(0.1, species), a_i = rep(0, species), avg_theta = theta_input, avg_psi = calc_abs_psi(theta_input, theta_fc, theta_wp, theta_sat), total_E_supply_m_h = 0, E_supply_m_h = rep(0,species))
 
 ```
 
@@ -65,9 +75,11 @@ theta_init <- c(theta=rep(0.1, n), runoff = 0, deep_drainage=0, cumulative_rain=
 
 theta_rates <- function(t, theta, params) {
   with(as.list(c(theta, params)), {
+
+   
     
     I = (1-I_constant*(theta[1]/theta_sat)^b_infil)
-    S = amp*sin(t*2*pi/frequency)
+    S = R*sin(t*2*pi/frequency)
 
     #umol/m2/s
     PPFD = mean_PPFD*sin(t/12*pi-8) + mean_PPFD
@@ -76,23 +88,36 @@ theta_rates <- function(t, theta, params) {
     avg_psi <- calc_abs_psi(avg_theta, theta_fc, theta_wp, theta_sat)
     avg_psi_MPa <- avg_psi*Pa_2_MPa
     
-    b <- calc_vul_b(p_50 = p50, c = c)
-    K_s <- p_50_2_K_s(p50)
-    k_l_max <- calc_k_l_max(K_s, h_v, h)
-    psi_crit <- calc_psi_crit(b, c)
+    p50 <- seq(from = 2, to = 8, length.out = 5)
     
-    opt_psi_stem <- find_opt_psi_stem(psi_soil = avg_psi_MPa, k_l_max=  k_l_max, vcmax =vcmax, PPFD = PPFD, b = b, c= c, psi_crit = psi_crit, psi_crit_limit = psi_crit,atm_vpd =  VPD,ca = ca)
+    K_s = p_50_2_K_s(p50) #kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
+    b = calc_vul_b(p_50 = p50, c = c)
+    k_l_max = calc_k_l_max(K_s, h_v, h)
+    psi_crit = calc_psi_crit(b, c)
+        
+    for(j in 1:species){
+
+    opt_psi_stem <- find_opt_psi_stem_bartlett(psi_soil = avg_psi_MPa, k_l_max=  k_l_max[j], vcmax =vcmax, PPFD = PPFD, b = b[j], c= c, psi_crit = psi_crit[j],atm_vpd =  VPD,ca = ca, beta = beta1, beta_2 = beta2, huber_value = h_v, height= h)
+    
+    
+    LAI_state_5 <- c(LAI_state1, LAI_state2, LAI_state3, LAI_state4, LAI_state5)
+
+    
     E_supply_kg_m2_s <- opt_psi_stem$E_root
     
-
-    E_supply_m_h <- E_supply_kg_m2_s * sec_2_hr * kg_2_m3 * LAI_state
+    E_supply_m_h[j] <- E_supply_kg_m2_s * sec_2_hr * kg_2_m3 * LAI_state_5[j]
     
     a_i_umol_m2_s <- opt_psi_stem$profit_root
     a_i_mol_m2_h <- a_i_umol_m2_s *sec_2_hr * umol_2_mol
-    a_i <- a_i_mol_m2_h
+    a_i[j] <- a_i_mol_m2_h
     
-    dLAI_dt <- calc_LAI(LAI = LAI_state, lma = lma, r_l = r_l, fr_l = fr_l, a_bio = a_bio, k_l = k_l, a_i = a_i_mol_m2_h)
+    
+    dLAI_dt[j] <- calc_LAI(LAI = LAI_state_5[j], lma = lma, r_l = r_l, fr_l = fr_l, a_bio = a_bio, k_l = k_l, a_i = a_i[j])
 
+    }
+    total_E_supply_m_h <- sum(E_supply_m_h)
+    
+    
     for(i in 1:n){
     
     #top layer. Non-infiltrating rainfall is stored in runoff, but leaves the plant-accessible water budget forever. 
@@ -125,8 +150,8 @@ theta_rates <- function(t, theta, params) {
 
     inflow = (R+S)*I
     runoff = (R+S)*(1-I)
-    drainage = (-D_sat*(theta[i]/theta_sat)^(npsi+2))*((theta[i+1]-theta[i])/(z[i]/2 + z[i+1]/2))*sec_2_hr
-    outflow = drainage + Ev +E_supply_m_h *(z[i]/sum(z))
+    drainage = (-d_sat*(theta[i]/theta_sat)^(npsi+2))*((theta[i+1]-theta[i])/(z[i]/2 + z[i+1]/2))*sec_2_hr
+    outflow = drainage + Ev +total_E_supply_m_h *(z[i]/sum(z))
     
       }
     
@@ -140,7 +165,7 @@ theta_rates <- function(t, theta, params) {
       if(i == (n)) {
     inflow = drainage
     deep_drainage = ((ksat)*(theta[i]/theta_sat)^(2*npsi+3)) *sec_2_hr
-    outflow = deep_drainage + E_supply_m_h *(z[i]/sum(z))
+    outflow = deep_drainage + total_E_supply_m_h *(z[i]/sum(z))
     
       }
     
@@ -150,11 +175,12 @@ theta_rates <- function(t, theta, params) {
     deep_drainage = deep_drainage
     cumulative_rain = R+S
     evaporation = Ev
-    plant_water_use[i] = E_supply_m_h *(z[i]/sum(z))
+    plant_water_use[i] = total_E_supply_m_h *(z[i]/sum(z))
 
     }
     
-    return(list(c(dtheta_dt, runoff, deep_drainage, cumulative_rain, evaporation, drainage, plant_water_use, dLAI_dt, a_i, avg_theta, avg_psi)))
+    return(list(c(dtheta_dt, runoff, deep_drainage, cumulative_rain, evaporation, drainage, plant_water_use, dLAI_dt, a_i, avg_theta, avg_psi,total_E_supply_m_h, E_supply_m_h)))
+    
   })
 }
 
@@ -164,14 +190,13 @@ theta_rates <- function(t, theta, params) {
 
 
 ```{r}
-params <- set_params_soil(R = 1.5/365/24, mean_PPFD = 1000)
+params <- set_params_soil(R = c(0.5, 3)/365/24, mean_PPFD = 1000, evap_routine = "1")
 ```
 
 ```{r}
-t <- seq(0,100, by = 1)
+t <- seq(0,8640, by = 1)
 
-
-logistic_solution1 <-
+logistic_solution2<-
   map_dfr(
     params,
     ~ode(
@@ -190,12 +215,72 @@ logistic_solution1 <-
              avg_theta_diff = c(0, diff(avg_theta)),
              drainage_diff = c(0, diff(drainage)),
              deep_drainage_diff = c(0, diff(deep_drainage)),
-             theta_sat = .x$theta_sat)
+             theta_sat = .x$theta_sat,
+             a_i1_diff = c(0, diff(a_i1)),
+             a_i2_diff = c(0, diff(a_i2)),
+             E_supply_m_h1_diff = c(0, diff(E_supply_m_h1)),
+             E_supply_m_h2_diff = c(0, diff(E_supply_m_h2)))
   )
 ```
 
 ```{r}
 png("example_plot.png", height = 400, width = 400)
+
+logistic_solution2$rainfall <- rep(c("0.5 m/yr", "3 m/yr"), each = 8641)
+
+logistic_solution2 %>%
+  filter(time != 0) %>%
+  select(time, contains("LAI_state"), rainfall) %>% 
+  rename(Rainfall = rainfall) %>%
+  pivot_longer(contains("LAI"), names_to = "p50")%>%
+  ggplot(aes(x = time)) +
+  geom_line(aes(y=value, col =p50, linetype = Rainfall)) + 
+  ylab("LAI") +
+  xlab("Hours") + 
+  theme_classic()
+
+logistic_solution2 %>%
+  filter(time != 0) %>%
+  select(time, avg_psi_diff, rainfall) %>%
+  ggplot() +
+  geom_line(aes(x=time, y=avg_psi_diff, linetype = rainfall))
+
+
+```
+
+
+```{r}
+
+
+pivot_longer(contains("MPa"), names_to = "p50") %>%
+  ggplot(aes(x = time)) +
+  geom_line(aes(y=value, col =name, linetype = rainfall))
+  geom_line(aes(y=rain_diff*10000), linetype = "dashed") +
+  xlab("Time (hrs)") +
+  theme_classic() +
+  scale_y_continuous(
+  name = (expression(LAI~(m^2~leaf~"/"~m^2~ground))),
+  sec.axis = sec_axis(~./10000, name = expression(Rainfall~(m/"hr;"~dashed)))
+  )
+
+
+
+logistic_solution1 %>%
+  filter(time != 0) %>%
+  select(time, contains("LAI_state"), rain_diff) %>% 
+  pivot_longer(contains("LAI_state")) %>%
+  ggplot(aes(x = time)) +
+  geom_line(aes(y=value, col =name))
+  geom_line(aes(y=rain_diff*10000), linetype = "dashed") +
+  xlab("Time (hrs)") +
+  theme_classic() +
+  scale_y_continuous(
+  name = (expression(LAI~(m^2~leaf~"/"~m^2~ground))),
+  sec.axis = sec_axis(~./10000, name = expression(Rainfall~(m/"hr;"~dashed)))
+  )
+
+
+
 
 logistic_solution1 %>%
   filter(time != 0) %>%
