@@ -1617,6 +1617,9 @@ template <> inline SEXP wrap(const plant::FF16bg_Strategy& x) {
   ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
   ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
   ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
+  ret["mortality_rate_x"] = Rcpp::wrap(x.mortality_rate_x);
+  ret["mortality_rate_y"] = Rcpp::wrap(x.mortality_rate_y);
+  ret["is_variable_mortality_rate"] = Rcpp::wrap(x.is_variable_mortality_rate);
   ret.attr("class") = "FF16bg_Strategy";
   return ret;
 }
@@ -1705,6 +1708,12 @@ template <> inline plant::FF16bg_Strategy as(SEXP x) {
   ret.birth_rate_y = Rcpp::as<std::vector<double> >(xl["birth_rate_y"]);
   // ret.is_variable_birth_rate = Rcpp::as<decltype(retis_variable_birth_rate) >(xl["is_variable_birth_rate"]);
   ret.is_variable_birth_rate = Rcpp::as<bool >(xl["is_variable_birth_rate"]);
+  // ret.mortality_rate_x = Rcpp::as<decltype(retmortality_rate_x) >(xl["mortality_rate_x"]);
+  ret.mortality_rate_x = Rcpp::as<std::vector<double> >(xl["mortality_rate_x"]);
+  // ret.mortality_rate_y = Rcpp::as<decltype(retmortality_rate_y) >(xl["mortality_rate_y"]);
+  ret.mortality_rate_y = Rcpp::as<std::vector<double> >(xl["mortality_rate_y"]);
+  // ret.is_variable_mortality_rate = Rcpp::as<decltype(retis_variable_mortality_rate) >(xl["is_variable_mortality_rate"]);
+  ret.is_variable_mortality_rate = Rcpp::as<bool >(xl["is_variable_mortality_rate"]);
   return ret;
 }
 }

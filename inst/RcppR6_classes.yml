@@ -1137,3 +1137,6 @@ FF16bg_Strategy:
     - birth_rate_x: std::vector<double>
     - birth_rate_y: std::vector<double>
     - is_variable_birth_rate: bool
+    - mortality_rate_x: std::vector<double>
+    - mortality_rate_y: std::vector<double>
+    - is_variable_mortality_rate: bool
