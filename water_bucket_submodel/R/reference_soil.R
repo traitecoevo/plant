@@ -47,6 +47,10 @@ calc_avg_theta <- function(theta){
   (theta[1]*z[1] + theta[2]*z[2])/(z[1] + z[2])
 }
 
+calc_avg_theta_r_frac <- function(theta, r_frac){
+  (theta[1]*r_frac + theta[2]*(1 -r_frac))
+}
+
 calc_npsi <- function(theta_fc, theta_wp){
   -((log(1500/33))/(log(theta_wp/theta_fc)))
 }
@@ -99,9 +103,11 @@ set_params_soil <- function(R=1/365/24, #m/h
                        c = 2.04,
                        p50 = 1.731347,
                        beta1 = 15000,
-                       beta2 = 1) {
+                       beta2 = 1,
+                       psi_soil = 1,
+                       VPD_9 = 2) {
   
-  tibble(
+  expand_grid(
     R=R,
     theta_sat = theta_sat,
     b_infil=b_infil,
@@ -119,11 +125,10 @@ set_params_soil <- function(R=1/365/24, #m/h
     gb = gb,
     gc_max = gc_max,
     VPD = VPD,
-    K_s = p_50_2_K_s(p50), #kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
     h_v = h_v, #m^2 sapwood area m^-2 leaf area
     h = h, #m
     vcmax = vcmax, #-MPa
-    latitude = -23, 
+    latitude = latitude, 
     day = day, 
     E = E,
     ca = ca,
@@ -135,23 +140,23 @@ set_params_soil <- function(R=1/365/24, #m/h
     lma = lma,
     c = c,
     p50 = p50,    #kPa C-1    
-    slp = calc_slope_vpsat(air_temp_c),
     #kPa C^-1
-    gamma = calc_psych(air_temp_c),
     #J mol-1
-    lh = calc_lh(air_temp_c),
-    npsi = calc_npsi(theta_fc, theta_wp),
-    d_sat = calc_D_sat(theta_fc, theta_wp, ksat, theta_sat),
-    b = calc_vul_b(p_50 = p50, c = c),
-    k_l_max = calc_k_l_max(K_s, h_v, h),
-    psi_crit = calc_psi_crit(b, c),
     beta1 = beta1,
-    beta2 = beta2
-  ) %>%
-  expand_grid(
-    evap_routine
-  ) %>% 
-  rowwise() %>%
-  split(., 1:nrow(.))
+    beta2 = beta2,
+    psi_soil = psi_soil,
+    VPD_9 = VPD_9) %>%
+    mutate(K_s = p_50_2_K_s(p50), #kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
+           slp = calc_slope_vpsat(air_temp_c),
+           gamma = calc_psych(air_temp_c),
+           lh = calc_lh(air_temp_c),
+           npsi = calc_npsi(theta_fc, theta_wp),
+           d_sat = calc_D_sat(theta_fc, theta_wp, ksat, theta_sat),
+           b = calc_vul_b(p_50 = p50, c = c),
+           k_l_max = calc_k_l_max(K_s, h_v, h),
+           psi_crit = calc_psi_crit(b, c),
+           VPD_15 = VPD_9 *1.2
+    )
 }
+
 

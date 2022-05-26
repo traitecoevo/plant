@@ -31,6 +31,9 @@ curv_fact <- 0.9 #curvature factor for light limited transport (unitless)
 
 km_25 <- (kc_25*umol_per_mol_2_Pa)*(1 + (atm_o2_kpa*kPa_2_Pa)/(ko_25*umol_per_mol_2_Pa)) #Pa
 
+K_s_0 <- 2
+
+
 ################################ functions below calculate values outside of the leaf model
 
 #estimate sapwood-specific conductivity from p_50, estimated visually from Liu et al. 2019
@@ -64,9 +67,15 @@ calc_psi_crit <- function(b,c) {
 #calculate PPFD throughout day
 calc_PPFD_instant <- function(latitude, day, ...) {
   given_day_start <- floor(day)
-  instant_through_time <- seq(given_day_start, given_day_start+1, length.out = 200)
+  instant_through_time <- seq(given_day_start, given_day_start+1, length.out = 24)
   PPFD_instant_mol_m2_day <- PAR_given_solar_angle(solar_angle = solar_angle(latitude = (latitude), decimal_day_time = instant_through_time))
-  tibble(PPFD_umol_m2_s_instant = PPFD_instant_mol_m2_day /(60*60*24) * 1E6, instant_of_day = instant_through_time - given_day_start, day = given_day_start, latitude = latitude, ...)
+  outputs <- tibble(PPFD_umol_m2_s_instant = PPFD_instant_mol_m2_day /(60*60*24) * 1E6, instant_of_day = instant_through_time - given_day_start, day = given_day_start, latitude = latitude, ...)
+  
+  outputs %>%
+    filter(PPFD_umol_m2_s_instant != 0) %>%
+    summarise(sun_up = min(instant_of_day), sun_down = max(instant_of_day), day_length = sun_down - sun_up) -> summary_outputs
+  
+  bind_cols(outputs, summary_outputs)
 }
 
 #################
