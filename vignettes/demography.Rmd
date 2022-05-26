@@ -401,12 +401,12 @@ $\partial g / \partial H > 0$.
 
 Denoting by $\left[H_0, H_{ + } \right)$ the range of heights
 attainable by any individual, our algorithm for solving metacommunity dynamics proceeds by sub-dividing
-this interval into a series of cohorts with heights
-$H_0 < H_1 < \ldots < H_k$ at the initial points of the characteristic curves. These cohorts are then transported along
-the characteristics of Eq. \@ref(eq:PDE). The placement of cohorts
+this interval into a series of nodes with heights
+$H_0 < H_1 < \ldots < H_k$ at the initial points of the characteristic curves. These nodes are then transported along
+the characteristics of Eq. \@ref(eq:PDE). The placement of nodes
 is controlled indirectly, via the schedule of patch ages at which
-new cohorts are introduced into the metacommunity. We then track the
-demography of each such cohort.
+new nodes are introduced into the metacommunity. We then track the
+demography of each such node.
 
 The integral in Eq. \@ref(eq:boundN) is solved via the IVP
 \begin{equation}
@@ -435,8 +435,8 @@ numerically integrating over the size-density distribution within that patch.
 assimilation of a plant requires numerically integrating
 photosynthesis over this light profile.
 - To simulate patch dynamics
-requires numerically identifying a vector of patch ages at which new cohorts are
-introduced, and then numerically stepping the equations for each cohort forward in time to
+requires numerically identifying a vector of patch ages at which new nodes are
+introduced, and then numerically stepping the equations for each node forward in time to
 estimate their size, survival, and fecundity at different subsequent patch ages.
 - To solve for the initial height of a plant given
 its seed mass, and for the equilibrium seed rains across the
@@ -477,60 +477,60 @@ control parameters for relative and absolute accuracy,
 ### Approximation of size-density distribution via the characteristic method  {#approximation-of-size-density-distribution-via-the-scm}
 
 Errors in the approximation of the size-density distribution arise from two sources:
-(i) coarse stepping of cohorts through time and
-(ii) poor spacing of cohorts across the attainable size range.
+(i) coarse stepping of nodes through time and
+(ii) poor spacing of nodes across the attainable size range.
 
 As described above, the stepping of the ODE solver is controlled by two
 control parameters for relative and absolute accuracy,
 `ode_tol_rel` and `ode_tol_abs`.
 
-A second factor controlling the accuracy with which cohorts are stepped
+A second factor controlling the accuracy with which nodes are stepped
 through time is the accuracy of the derivative calculation according to Eq. \@ref(eq:boundN), calculated via standard finite differencing
 [@Abramowitz-2012]. When the parameter
-`cohort_gradient_richardson` is `TRUE` a Richardson extrapolation
+`node_gradient_richardson` is `TRUE` a Richardson extrapolation
 [@Stoer-2002] is used to refine the estimate, up to depth
-`cohort_gradient_richardson`. The overall accuracy of the
-derivative is controlled by `cohort_gradient_eps`.
+`node_gradient_richardson`. The overall accuracy of the
+derivative is controlled by `node_gradient_eps`.
 
-The primary factor controlling the spacing of cohorts is the schedule of
-cohort introduction times. Because the system of equations to be integrated is deterministic, the
-schedule of cohort introduction times determines the spacing of cohorts
-throughout the entire development of a patch. Poor cohort spacing
+The primary factor controlling the spacing of nodes is the schedule of
+node introduction times. Because the system of equations to be integrated is deterministic, the
+schedule of node introduction times determines the spacing of nodes
+throughout the entire development of a patch. Poor node spacing
 introduces error because various emergent properties -- such as total
 leaf area, biomass, or seed output -- are estimated by integrating over
 the size-density distribution. The accuracy of these integrations declines
-directly with the inappropriate spacing of cohorts. Thus, our algorithm aims to build an
+directly with the inappropriate spacing of nodes. Thus, our algorithm aims to build an
 appropriately refined schedule, which allows the required integrations to be
 performed with the desired accuracy at every time point. At the same
-time, for reasons of computational efficiency, we want as few cohorts as possible.
-The general idea of adaptively refining cohort spacing times was first applied
+time, for reasons of computational efficiency, we want as few nodes as possible.
+The general idea of adaptively refining node spacing times was first applied
 by @Falster-2011, and was described further by @Falster-2015.
 
 For a worked example illustrating the `build_schedule` function,
-see the [cohort scheduling vignette](https://traitecoevo.github.io/plant/articles/cohort_spacing.html).
+see the [node scheduling vignette](https://traitecoevo.github.io/plant/articles/node_spacing.html).
 
 ### Calculation of light environment and influence on assimilation {#calculation-of-light-environment-and-influence-on-assimilation}
 
 To progress with solving the system of ODEs requires that we calculate the amount of
-shading on each of the cohorts, from all other plants in the
+shading on each of the nodes, from all other plants in the
 patch.
 
 Calculating the canopy openness $E_a(z)$ at a given height $z$ in a patch of age $a$ requires that
 we integrate over the size-density distribution (Eq. \@ref(eq:light). This
 integration is performed using the trapezium rule, within the function
 `area_leaf_above` in [species.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/species.h). The main factor
-controlling the accuracy of the integration is the spacing of cohorts.
-The cohort introduction times determining the
-spacing of cohorts are adaptively refined as described above. This implies that also the trapezium integration
+controlling the accuracy of the integration is the spacing of nodes.
+The node introduction times determining the
+spacing of nodes are adaptively refined as described above. This implies that also the trapezium integration
 within the `area_leaf_above` function is adaptively refined
 via the `build_schedule` function.
 
 The cost of calculating $E_a(z)$ linearly increases with the number of
-cohorts in the metacommunity. Since the same calculation must be repeated
-for every cohort, the overall computational cost
+nodes in the metacommunity. Since the same calculation must be repeated
+for every node, the overall computational cost
 of a step increases as $O(k^2 )$, where $k$ is the
-total number of cohorts across all species. This disproportionate
-increase in computational cost with the number of cohorts is highly undesirable.
+total number of nodes across all species. This disproportionate
+increase in computational cost with the number of nodes is highly undesirable.
 
 We reduce the computational cost
 from $O(k^2)$ to $O(k)$ by approximating $E_a(z)$ with a
@@ -548,8 +548,8 @@ used in its construction and on their placement along the size axis. We
 select the number and locations of points via an adaptive algorithm.
 Starting with an initial set of 33 points, we assess how much each point
 contributes to the accuracy of the spline fit at the location of each
-cohort, first via exact calculation, and second by linearly interpolating
-from adjacent cohorts. The absolute difference in these values is
+node, first via exact calculation, and second by linearly interpolating
+from adjacent nodes. The absolute difference in these values is
 compared to the control parameter `canopy_light_tol`. If
 the error is greater than this tolerance, the interval is bisected and the is
 process repeated (see [adaptive_interpolator.h](https://github.com/traitecoevo/plant/blob/master/inst/include/plant/adaptive_interpolator.h) for details).

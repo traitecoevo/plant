@@ -62,22 +62,22 @@ make_environment <- function(type = NULL, parameters = NULL, ...) {
          stop("Unknown type ", type))
 }
 
-cohort_schedule_default <- function(p) {
+node_schedule_default <- function(p) {
   cl <- class(p)[[1]]
   switch(cl,
-         "Parameters<FF16,FF16_Env>"=`cohort_schedule_default__Parameters___FF16__FF16_Env`,
-         "Parameters<FF16w,FF16_Env>"=`cohort_schedule_default__Parameters___FF16w__FF16_Env`,
-         "Parameters<FF16r,FF16_Env>"=`cohort_schedule_default__Parameters___FF16r__FF16_Env`,
-         "Parameters<K93,K93_Env>"=`cohort_schedule_default__Parameters___K93__K93_Env`,
+         "Parameters<FF16,FF16_Env>"=`node_schedule_default__Parameters___FF16__FF16_Env`,
+         "Parameters<FF16w,FF16_Env>"=`node_schedule_default__Parameters___FF16w__FF16_Env`,
+         "Parameters<FF16r,FF16_Env>"=`node_schedule_default__Parameters___FF16r__FF16_Env`,
+         "Parameters<K93,K93_Env>"=`node_schedule_default__Parameters___K93__K93_Env`,
          stop("Unknown type: ", cl))(p)
 }
 
-make_cohort_schedule <- function(p) {
+make_node_schedule <- function(p) {
   cl <- class(p)[[1]]
   switch(cl,
-         "Parameters<FF16,FF16_Env>"=`make_cohort_schedule__Parameters___FF16__FF16_Env`,
-         "Parameters<FF16w,FF16_Env>"=`make_cohort_schedule__Parameters___FF16w__FF16_Env`,
-         "Parameters<FF16r,FF16_Env>"=`make_cohort_schedule__Parameters___FF16r__FF16_Env`,
-         "Parameters<K93,K93_Env>"=`make_cohort_schedule__Parameters___K93__K93_Env`,
+         "Parameters<FF16,FF16_Env>"=`make_node_schedule__Parameters___FF16__FF16_Env`,
+         "Parameters<FF16w,FF16_Env>"=`make_node_schedule__Parameters___FF16w__FF16_Env`,
+         "Parameters<FF16r,FF16_Env>"=`make_node_schedule__Parameters___FF16r__FF16_Env`,
+         "Parameters<K93,K93_Env>"=`make_node_schedule__Parameters___K93__K93_Env`,
                   stop("Unknown type: ", cl))(p)
 }

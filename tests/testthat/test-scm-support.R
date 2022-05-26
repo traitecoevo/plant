@@ -7,7 +7,7 @@ test_that("collect / make_patch", {
   p0 <- scm_base_parameters("FF16")
   hyperpar <- make_FF16_hyperpar()
   p0$disturbance_mean_interval <- 30.0
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE)
+  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE, 1.0)
 
   res <- run_scm_collect(p1, env, ctrl)
 
@@ -29,7 +29,7 @@ test_that("collect / make_patch", {
 
   dat <- dat[[1]]
   expect_is(dat, "matrix")
-  expect_equal(nrow(dat), length(p1_113$species[[1]]$cohorts))
+  expect_equal(nrow(dat), length(p1_113$species[[1]]$nodes))
   
   # once for rates, once for states
   n_int <- (Individual("FF16","FF16_Env")(p1$strategies[[1]])$ode_size * 2) +
@@ -43,7 +43,7 @@ test_that("collect / make_patch", {
   # possibly we could do this within C++ for a major speedup.
   ints <- scm_to_internals(res)
 
-  n_times <- length(p1$cohort_schedule_times[[1]])
+  n_times <- length(p1$node_schedule_times[[1]])
   expect_equal(length(ints), 1)
   ints <- ints[[1]]
   expect_is(ints, "array")
@@ -59,10 +59,10 @@ test_that("collect / make_patch", {
 test_that("expand_parameters", {
   hyperpar <- make_FF16_hyperpar()
   p0 <- scm_base_parameters("FF16")
-  p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, mutant=FALSE)
+  p1 <- expand_parameters(trait_matrix(0.1, "lma"), p0, mutant=FALSE, birth_rate_list=1.0)
   ## This will trigger rebuilding the times:
   p1$max_patch_lifetime <- 100
-  expect_silent(p2 <- expand_parameters(trait_matrix(0.2, "lma"), p1, mutant=FALSE))
+  expect_silent(p2 <- expand_parameters(trait_matrix(0.2, "lma"), p1, mutant=FALSE, birth_rate_list=1.0))
 })
 
 test_that("collect_auxiliary_variables", {
@@ -71,7 +71,7 @@ test_that("collect_auxiliary_variables", {
   p0 <- scm_base_parameters("FF16")
   hyperpar <- make_FF16_hyperpar()
   p0$disturbance_mean_interval <- 30.0
-  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE)
+  p1 <- expand_parameters(trait_matrix(0.08, "lma"), p0, hyperpar, FALSE, 1.0)
   
   res <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables=TRUE)
   state <- res$species[[1]]

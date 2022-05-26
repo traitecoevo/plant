@@ -15,7 +15,7 @@ vignette: >
 
 Any `plant` model defines a strategy that implements a system of equations
 describing the change of one or more characteristics (state variables) of
-individuals. These individuals are aggregated as cohorts of different ages
+individuals. These individuals are aggregated as nodes of different ages
 that compete within a patch.
 
 This vignette illustrates the how to model the dynamics of individuals and

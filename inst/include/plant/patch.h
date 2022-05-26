@@ -18,7 +18,7 @@ public:
   typedef T                 strategy_type;
   typedef E                 environment_type;
   typedef Individual<T,E>   individual_type;
-  typedef Cohort<T,E>       cohort_type;
+  typedef Node<T,E>       node_type;
   typedef Species<T,E>      species_type;
   typedef Parameters<T,E>   parameters_type;
 
@@ -34,13 +34,13 @@ public:
   // [eqn 11] Canopy openness at `height`
   double compute_competition(double height) const;
 
-  void introduce_new_cohort(size_t species_index);
-  void introduce_new_cohorts(const std::vector<size_t>& species_index);
+  void introduce_new_node(size_t species_index);
+  void introduce_new_nodes(const std::vector<size_t>& species_index);
 
-  // Open to better ways to test whether cohorts have been introduced
-  int cohort_ode_size() const {
-    int cohort_ode_size = ode_size() - environment.ode_size();
-    return(cohort_ode_size);
+  // Open to better ways to test whether nodes have been introduced
+  int node_ode_size() const {
+    int node_ode_size = ode_size() - environment.ode_size();
+    return(node_ode_size);
   }
 
   const species_type& at(size_t species_index) const {
@@ -79,8 +79,8 @@ public:
                    const std::vector<double>& state,
                    const std::vector<size_t>& n,
                    const std::vector<double>& env);
-  void r_introduce_new_cohort(util::index species_index) {
-    introduce_new_cohort(species_index.check_bounds(size()));
+  void r_introduce_new_node(util::index species_index) {
+    introduce_new_node(species_index.check_bounds(size()));
   }
   species_type r_at(util::index species_index) const {
     at(species_index.check_bounds(size()));
@@ -98,6 +98,7 @@ private:
   std::vector<bool> is_resident;
   environment_type environment;
   std::vector<species_type> species;
+  std::vector<double> resource_depletion;
   Control control;
 };
 
@@ -112,11 +113,16 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   survival_weighting = p.disturbance;
 
   // Overwrite all strategy control objects so that they take the
-  // patch control object.
-  for (auto s : parameters.strategies) {
+  // patch control object and also set per species birth rates
+	for (auto i = 0; i < parameters.strategies.size(); ++i) {
+		auto s = parameters.strategies[i];
     s.control = control;
-    species.push_back(Species<T,E>(s));
+    auto spec = Species<T,E>(s);
+    species.push_back(spec);
   }
+
+  resource_depletion.reserve(environment.ode_size());
+
   reset();
 }
 
@@ -124,9 +130,16 @@ template <typename T, typename E>
 void Patch<T,E>::reset() {
   for (auto& s : species) {
     s.clear();
+
+    // allocate variables for tracking resource consumption
+    s.resize_consumption_rates(environment.ode_size());
   }
+
+  // compute ephemeral effects like canopy
   environment.clear();
   compute_environment();
+
+  // compute effects of resource consumption
   compute_rates();
 }
 
@@ -176,30 +189,43 @@ void Patch<T,E>::rescale_environment() {
 
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
+  double pr_patch_survival = survival_weighting->pr_survival(time());
+
   for (size_t i = 0; i < size(); ++i) {
     double pr_patch_survival = survival_weighting->pr_survival(time());
-    double birth_rate = parameters.birth_rate[i];
+		double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time());
     species[i].compute_rates(environment, pr_patch_survival, birth_rate);
-    environment.compute_rates();
   }
+
+  resource_depletion.reserve(environment.ode_size());
+  for(size_t i = 0; i < environment.ode_size(); i++) {
+    double resource_consumed = std::accumulate(species.begin(), species.end(), 0.0, [i](double r, const species_type& s) {
+      return r + s.consumption_rate(i); // accumulates r from zero
+    });
+
+    resource_depletion.push_back(resource_consumed);
+  }
+
+  environment.compute_rates(resource_depletion);
+  resource_depletion.clear();
 }
 
 // TODO: We should only be recomputing the light environment for the
 // points that are below the height of the seedling -- not the entire
 // light environment; probably worth just doing a rescale there?
 template <typename T, typename E>
-void Patch<T,E>::introduce_new_cohort(size_t species_index) {
-  species[species_index].introduce_new_cohort();
+void Patch<T,E>::introduce_new_node(size_t species_index) {
+  species[species_index].introduce_new_node();
   if (parameters.is_resident[species_index]) {
     compute_environment();
   }
 }
 
 template <typename T, typename E>
-void Patch<T,E>::introduce_new_cohorts(const std::vector<size_t>& species_index) {
+void Patch<T,E>::introduce_new_nodes(const std::vector<size_t>& species_index) {
   bool recompute = false;
   for (size_t i : species_index) {
-    species[i].introduce_new_cohort();
+    species[i].introduce_new_node();
     recompute = recompute || parameters.is_resident[i];
   }
   if (recompute) {
@@ -228,7 +254,7 @@ void Patch<T,E>::r_set_state(double time,
   reset();
   for (size_t i = 0; i < n_species; ++i) {
     for (size_t j = 0; j < n[i]; ++j) {
-      species[i].introduce_new_cohort();
+      species[i].introduce_new_node();
     }
   }
   util::check_length(state.size(), ode_size());

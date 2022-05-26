@@ -4,8 +4,8 @@
 ## the actual strategy?  That would need to be organised by the
 ## templating though and that's stretched to the limit.
 
-##' Create a K93 Individual or Cohort
-##' @title Create a K93 Individual or Cohort
+##' Create a K93 Individual or Node
+##' @title Create a K93 Individual or Node
 ##' @param s A \code{\link{K93_Strategy}} object
 ##' @export
 ##' @rdname K93
@@ -18,8 +18,8 @@ K93_Individual <- function(s=K93_Strategy()) {
 
 ##' @export
 ##' @rdname K93
-K93_Cohort <- function(s=K93_Strategy()) {
-  Cohort("K93", "K93_Env")(s)
+K93_Node <- function(s=K93_Strategy()) {
+  Node("K93", "K93_Env")(s)
 }
 
 ##' @export

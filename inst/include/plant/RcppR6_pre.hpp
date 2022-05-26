@@ -42,10 +42,10 @@ template <> plant::ode::Runner<plant::tools::IndividualRunner<plant::FF16r_Strat
 
 template <> SEXP wrap(const plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> >&);
 template <> plant::ode::Runner<plant::tools::IndividualRunner<plant::K93_Strategy, plant::K93_Environment> > as(SEXP);
-template <> SEXP wrap(const plant::CohortScheduleEvent&);
-template <> plant::CohortScheduleEvent as(SEXP);
-template <> SEXP wrap(const plant::CohortSchedule&);
-template <> plant::CohortSchedule as(SEXP);
+template <> SEXP wrap(const plant::NodeScheduleEvent&);
+template <> plant::NodeScheduleEvent as(SEXP);
+template <> SEXP wrap(const plant::NodeSchedule&);
+template <> plant::NodeSchedule as(SEXP);
 template <> SEXP wrap(const plant::Control&);
 template <> plant::Control as(SEXP);
 template <> SEXP wrap(const plant::ode::OdeControl&);
@@ -91,17 +91,17 @@ template <> plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> as(
 
 template <> SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>&);
 template <> plant::Parameters<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
-template <> SEXP wrap(const plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment>&);
-template <> plant::Cohort<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Node<plant::FF16_Strategy,plant::FF16_Environment>&);
+template <> plant::Node<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::Cohort<plant::FF16w_Strategy,plant::FF16_Environment>&);
-template <> plant::Cohort<plant::FF16w_Strategy,plant::FF16_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Node<plant::FF16w_Strategy,plant::FF16_Environment>&);
+template <> plant::Node<plant::FF16w_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment>&);
-template <> plant::Cohort<plant::FF16r_Strategy,plant::FF16_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Node<plant::FF16r_Strategy,plant::FF16_Environment>&);
+template <> plant::Node<plant::FF16r_Strategy,plant::FF16_Environment> as(SEXP);
 
-template <> SEXP wrap(const plant::Cohort<plant::K93_Strategy,plant::K93_Environment>&);
-template <> plant::Cohort<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
+template <> SEXP wrap(const plant::Node<plant::K93_Strategy,plant::K93_Environment>&);
+template <> plant::Node<plant::K93_Strategy,plant::K93_Environment> as(SEXP);
 template <> SEXP wrap(const plant::Species<plant::FF16_Strategy,plant::FF16_Environment>&);
 template <> plant::Species<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP);
 
@@ -188,6 +188,8 @@ template <> SEXP wrap(const plant::K93_Environment&);
 template <> plant::K93_Environment as(SEXP);
 template <> SEXP wrap(const plant::FF16w_Strategy&);
 template <> plant::FF16w_Strategy as(SEXP);
+template <> SEXP wrap(const plant::ExtrinsicDrivers&);
+template <> plant::ExtrinsicDrivers as(SEXP);
 }
 
 #endif

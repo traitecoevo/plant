@@ -2,7 +2,7 @@
 % Please edit documentation in R/k93.R
 \name{K93_Individual}
 \alias{K93_Individual}
-\alias{K93_Cohort}
+\alias{K93_Node}
 \alias{K93_Species}
 \alias{K93_Parameters}
 \alias{K93_Patch}
@@ -10,11 +10,11 @@
 \alias{K93_StochasticSpecies}
 \alias{K93_StochasticPatch}
 \alias{K93_StochasticPatchRunner}
-\title{Create a K93 Individual or Cohort}
+\title{Create a K93 Individual or Node}
 \usage{
 K93_Individual(s = K93_Strategy())
 
-K93_Cohort(s = K93_Strategy())
+K93_Node(s = K93_Strategy())
 
 K93_Species(s = K93_Strategy())
 
@@ -36,7 +36,7 @@ K93_StochasticPatchRunner(p)
 \item{p}{A \code{Parameters<K93,K93_Env>} object}
 }
 \description{
-Create a K93 Individual or Cohort
+Create a K93 Individual or Node
 }
 \examples{
 pl <- K93_Individual()

@@ -16,7 +16,7 @@ This vignette is still under active development. Some parts may appear incomplet
 
 # Background
 
-`plant` is a generalised characteristic solver for models of size-structured competition and patch dynamics. Any `plant` model defines a strategy that implements a system of equations describing the change of one or more characteristics (state variables) of individuals. These individuals are aggregated as cohorts of different ages that compete within a patch. Competition occurs through a shared environment, where individuals reduce the resources available within the patch and limit the growth of the surrounding community. The `plant` solver steps these equations through time, integrating over a meta-population of patches and adaptively refining the rate at which cohorts are introduced, to describe the expected development of patch dynamics.
+`plant` is a generalised characteristic solver for models of size-structured competition and patch dynamics. Any `plant` model defines a strategy that implements a system of equations describing the change of one or more characteristics (state variables) of individuals. These individuals are aggregated as nodes of different ages that compete within a patch. Competition occurs through a shared environment, where individuals reduce the resources available within the patch and limit the growth of the surrounding community. The `plant` solver steps these equations through time, integrating over a meta-population of patches and adaptively refining the rate at which nodes are introduced, to describe the expected development of patch dynamics.
 
 Phew.
 
@@ -33,17 +33,17 @@ Because we rely on this pattern of inheriting base properties, it is useful to r
 #### Individual
 Represents an individual
 
-#### Cohort
+#### Node
 Represents individuals of a similar age
 
 #### Environment\*\*
 Defines environmental conditions
 
 #### Patch
-A patch hosting many cohorts, of many individuals, all interacting with the environment
+A patch hosting many nodes, of many individuals, all interacting with the environment
 
 #### Schedule
-The times at which cohorts of different species are introduced in a patch
+The times at which nodes of different species are introduced in a patch
 
 #### Species
 Defines the attributes of groups of individuals
@@ -58,7 +58,7 @@ The processes that determine species' characteristics such as growth, death and 
 Maps a gradient of environmental conditions onto a monotonic spline bounded between (0, 1) to simplify the calculation of competitive interactions.
 
 #### SCM
-Solves for the trajectories of different cohorts along all defined characteristics.
+Solves for the trajectories of different nodes along all defined characteristics.
 
 \**When developing your own strategy, you'll likely only need to create a Strategy and an Environment*
 
