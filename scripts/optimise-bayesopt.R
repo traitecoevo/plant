@@ -418,6 +418,31 @@ generate_seeds <- function(f, bounds, n = 1,
 }
 
 
+generate_seeds_parallel <- function(f, bounds, n = 1,
+                           target = NULL,
+                           parameters = NULL,
+                           evaluate = T) {
+  x_raw <- randomLHS(n, length(bounds))
+  colnames(x_raw) <- names(bounds)
+  
+  if(evaluate == T) {
+    if(is.null(target) | is.null(parameters)) {
+      stop("Target and parameters must be provided to evaluate seeds")
+    }
+    
+    x <- unscale(x_raw, bounds)
+    
+    y <- foreach(i=1:n, .combine=c) %dopar%
+      f(x[i, ], target = target, parameters = parameters)
+    
+    return(list(x_raw = x_raw, y = y))
+  } else {
+    return(list(x_raw = x_raw))
+  }
+}
+
+
+
 generate_range <- function(bounds, n = 1000) {
   x = matrix(nrow = n, ncol= length(bounds))
   basis = seq(0, 1, len = n)
