@@ -10,6 +10,16 @@ using namespace Rcpp;
 
 namespace plant {
 
+// double check best namespace for constants (private vs global)
+static const double PAR_to_SW = 1.0; // dummy numbers
+static const double slp = 1.0;
+static const double gamma = 1.0;
+static const double lh = 1.0;
+static const double MH2O = 1.0;
+static const double g_to_kg = 1000.0;
+static const double kg_to_m3 = 1000.0;
+static const double sec_2_hr = 3600.0;
+
 class FF16_Environment : public Environment {
 public:
   // constructor for R interface - default settings can be modified
@@ -54,36 +64,82 @@ public:
     canopy.r_init_interpolators(state);
   }
 
+  // soil variables
+  double PPFD;
+  double T;
+  double r_soil;
+  double theta_wp;
+  double theta_fc;
+  double swf;
+
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
     double infiltration;
+    double evaporation;
+    double drainage;
     double net_flux;
 
-    double drainage_multiplier = 0.1; // experimental only;
-
-    // std::cout << "Time: " << time << std::endl;
+    // canopy_openness -> shading_above -> includes k_I
+    double ground_radiation = PPFD * get_environment_at_height(0);;
 
     // treat each soil layer as a separate resource pool
     for (size_t i = 0; i < vars.state_size; i++) {
 
-      // initial representation of drainage; to be improved
       if(i == 0) {
         infiltration = extrinsic_drivers["rainfall"].eval(time);
+
+        // Evaporation at soil surface
+        double E_bare_soil_pot_mol = (1.0 - r_soil) * PPFD * PAR_to_SW * slp / ((slp + gamma) * lh);
+
+        // mols ->  m3/m2/s
+        double E_bare_soil_pot_m = std::max(0.0, E_bare_soil_pot_mol * MH2O * g_to_kg * kg_to_m3);
+
+        // need to access total leaf area for environment?
+        double patch_total_area_leaf = 1.0;
+        double Ev_pot = E_bare_soil_pot_m * std::exp(-0.398 * patch_total_area_leaf);
+
+        double soil_wetness = std::pow(((vars.state(i) - theta_wp) / (theta_fc - theta_wp)), swf);
+
+        evaporation = std::max(0.0, Ev_pot * soil_wetness) * sec_2_hr;
       } else {
-        infiltration = std::max(vars.state(i - 1), 0.0) * drainage_multiplier;
+        evaporation = 0.0;
       }
 
-      // ecologically, soil water shouldn't go below zero
-      // truncating at zero until such a model is implemented
-      double drainage_rate = std::max(vars.state(i), 0.0) * drainage_multiplier;
+      // TODO: add drainage
+      // if (i == n_soil_layers) {
+      //    drainage = something
+      // } else {
+      //    drainage = vars.state(i + 1) * something;
+      // }
 
-      net_flux = infiltration - resource_depletion[i] - drainage_rate;
+      drainage = 0.0;
+
+      net_flux = infiltration - resource_depletion[i] - evaporation - drainage;
+
       vars.set_rate(i, net_flux);
-
-      // std::cout << std::setprecision(2) << std::fixed;
-      // std::cout << "Soil layer: " << i << "; infil. rate: " << infiltration << "; extraction rate: " << resource_depletion[i] << "; net flux: " << net_flux << "; water balance " << vars.state(i) << std::endl;
     }
+  }
 
-    // std::cout << "\n " << std::endl;
+  double get_psi_soil() const {
+    // soil volumetric water: m3.m-3
+    // assume one layer for now - later extend to include layers of variable depth
+    double theta = get_soil_water_state()[0];
+
+    // later average over all layers
+    // for(i in 1:n_soil_layers)
+    //    total = sum(environment.vars.state(i))
+    //    theta_soil = total / n_soil_layers
+
+    // hardcode for now; later set in enviornment constructor
+    const double a_psi = 2539.246;
+    const double n_psi = 2.130148;
+    const double theta_sat = 0.48;
+
+    double psi = std::pow(a_psi * (theta / theta_sat), -n_psi);
+
+    // TODO: convert theta to psi
+    // calc_apsi(theta_fc, theta_wp)*(theta/theta_sat)^(-calc_npsi(theta_fc, theta_wp))
+
+    return psi;
   }
 
   std::vector<double> get_soil_water_state() const {

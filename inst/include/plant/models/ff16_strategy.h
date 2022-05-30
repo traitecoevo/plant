@@ -240,7 +240,7 @@ public:
   // Bark turnover [/yr]
   double k_b    = 0.2;
   // Sapwood turnover [/yr]
-  double k_s           = 0.2;
+  double k_s    = 0.2;
   // Root turnover [/yr]
   double k_r    = 1.0;
   // Parameters of the hyperbola for annual LRC
@@ -269,7 +269,7 @@ public:
 
   // Germination
   double recruitment_decay = 0.0;
-  
+
   // * Light capture parameters
   double k_I = 0.5;
 

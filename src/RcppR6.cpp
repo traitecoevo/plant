@@ -2,8 +2,8 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor() {
-  return plant::Leaf();
+plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double beta, double beta_2, double huber_value) {
+  return plant::Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
@@ -26,52 +26,52 @@ double Leaf__calc_E_supply(plant::RcppR6::RcppR6<plant::Leaf> obj_, double k_l_m
   return obj_->calc_E_supply(k_l_max, b, c, psi_soil, psi_stem);
 }
 // [[Rcpp::export]]
-double Leaf__calc_g_c(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_soil, double psi_stem, double k_l_max, double p_50, double c, double b, double atm_kpa, double kg_2_mol_h2o, double atm_vpd) {
-  return obj_->calc_g_c(psi_soil, psi_stem, k_l_max, p_50, c, b, atm_kpa, kg_2_mol_h2o, atm_vpd);
+double Leaf__calc_g_c(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_soil, double psi_stem, double k_l_max, double p_50, double c, double b, double atm_kpa, double kg_to_mol_h2o, double atm_vpd) {
+  return obj_->calc_g_c(psi_soil, psi_stem, k_l_max, p_50, c, b, atm_kpa, kg_to_mol_h2o, atm_vpd);
 }
 // [[Rcpp::export]]
-double Leaf__calc_A_c(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_, double vcmax, double gamma_25, double umol_per_mol_2_Pa, double km_25) {
-  return obj_->calc_A_c(ci_, vcmax, gamma_25, umol_per_mol_2_Pa, km_25);
+double Leaf__calc_A_c(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_, double vcmax, double gamma_25, double umol_per_mol_to_Pa, double km_25) {
+  return obj_->calc_A_c(ci_, vcmax, gamma_25, umol_per_mol_to_Pa, km_25);
 }
 // [[Rcpp::export]]
-double Leaf__calc_A_j(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double ci_) {
-  return obj_->calc_A_j(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, ci_);
+double Leaf__calc_A_j(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_to_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_to_Pa, double ci_) {
+  return obj_->calc_A_j(PPFD, vcmax, vcmax_25_to_jmax_25, curv_fact, a, gamma_25, umol_per_mol_to_Pa, ci_);
 }
 // [[Rcpp::export]]
-double Leaf__calc_A_lim(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double ci_, double km_25) {
-  return obj_->calc_A_lim(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, ci_, km_25);
+double Leaf__calc_A_lim(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_to_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_to_Pa, double ci_, double km_25) {
+  return obj_->calc_A_lim(PPFD, vcmax, vcmax_25_to_jmax_25, curv_fact, a, gamma_25, umol_per_mol_to_Pa, ci_, km_25);
 }
 // [[Rcpp::export]]
-double Leaf__diff_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double x, double km_25, double psi_soil, double psi_stem, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, double umol_per_mol_2_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa) {
-  return obj_->diff_ci(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, x, km_25, psi_soil, psi_stem, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa);
+double Leaf__diff_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_to_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_to_Pa, double x, double km_25, double psi_soil, double psi_stem, double k_l_max, double p_50, double c, double b, double kg_to_mol_h2o, double umol_per_mol_to_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_to_Pa) {
+  return obj_->diff_ci(PPFD, vcmax, vcmax_25_to_jmax_25, curv_fact, a, gamma_25, umol_per_mol_to_Pa, x, km_25, psi_soil, psi_stem, k_l_max, p_50, c, b, kg_to_mol_h2o, umol_per_mol_to_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_to_Pa);
 }
 // [[Rcpp::export]]
 double Leaf__calc_hydraulic_cost(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_soil, double psi_stem, double k_l_max, double b, double c) {
   return obj_->calc_hydraulic_cost(psi_soil, psi_stem, k_l_max, b, c);
 }
 // [[Rcpp::export]]
-double Leaf__calc_assim_gross(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double km_25, double psi_soil, double psi_stem, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, double umol_per_mol_2_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa) {
-  return obj_->calc_assim_gross(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, psi_soil, psi_stem, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa);
+double Leaf__calc_assim_gross(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_to_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_to_Pa, double km_25, double psi_soil, double psi_stem, double k_l_max, double p_50, double c, double b, double kg_to_mol_h2o, double umol_per_mol_to_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_to_Pa) {
+  return obj_->calc_assim_gross(PPFD, vcmax, vcmax_25_to_jmax_25, curv_fact, a, gamma_25, umol_per_mol_to_Pa, km_25, psi_soil, psi_stem, k_l_max, p_50, c, b, kg_to_mol_h2o, umol_per_mol_to_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_to_Pa);
 }
 // [[Rcpp::export]]
-double Leaf__calc_profit(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double km_25, double psi_soil, double psi_stem, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, double umol_per_mol_2_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa, double psi_crit) {
-  return obj_->calc_profit(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, psi_soil, psi_stem, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit);
+double Leaf__calc_profit(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_to_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_to_Pa, double km_25, double psi_soil, double psi_stem, double k_l_max, double p_50, double c, double b, double kg_to_mol_h2o, double umol_per_mol_to_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_to_Pa, double psi_crit) {
+  return obj_->calc_profit(PPFD, vcmax, vcmax_25_to_jmax_25, curv_fact, a, gamma_25, umol_per_mol_to_Pa, km_25, psi_soil, psi_stem, k_l_max, p_50, c, b, kg_to_mol_h2o, umol_per_mol_to_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_to_Pa, psi_crit);
 }
 // [[Rcpp::export]]
-double Leaf__optimise_profit_gss(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double km_25, double psi_soil, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, double umol_per_mol_2_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa, double psi_crit) {
-  return obj_->optimise_profit_gss(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, psi_soil, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit);
+double Leaf__optimise_profit_gss(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_to_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_to_Pa, double km_25, double psi_soil, double k_l_max, double p_50, double c, double b, double kg_to_mol_h2o, double umol_per_mol_to_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_to_Pa, double psi_crit) {
+  return obj_->optimise_profit_gss(PPFD, vcmax, vcmax_25_to_jmax_25, curv_fact, a, gamma_25, umol_per_mol_to_Pa, km_25, psi_soil, k_l_max, p_50, c, b, kg_to_mol_h2o, umol_per_mol_to_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_to_Pa, psi_crit);
 }
 // [[Rcpp::export]]
-double Leaf__calc_hydraulic_cost_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_soil, double psi_stem, double k_l_max, double b, double c, double beta, double beta_2, double huber_value, double height) {
-  return obj_->calc_hydraulic_cost_bartlett(psi_soil, psi_stem, k_l_max, b, c, beta, beta_2, huber_value, height);
+double Leaf__calc_hydraulic_cost_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_soil, double psi_stem, double k_l_max, double height) {
+  return obj_->calc_hydraulic_cost_bartlett(psi_soil, psi_stem, k_l_max, height);
 }
 // [[Rcpp::export]]
-double Leaf__calc_profit_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double km_25, double psi_soil, double psi_stem, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, double umol_per_mol_2_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa, double psi_crit, double beta, double beta_2, double huber_value, double height) {
-  return obj_->calc_profit_bartlett(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, psi_soil, psi_stem, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, beta, beta_2, huber_value, height);
+double Leaf__calc_profit_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double psi_stem, double k_l_max, double height) {
+  return obj_->calc_profit_bartlett(PPFD, psi_soil, psi_stem, k_l_max, height);
 }
 // [[Rcpp::export]]
-double Leaf__optimise_profit_gss_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double vcmax, double vcmax_25_2_jmax_25, double curv_fact, double a, double gamma_25, double umol_per_mol_2_Pa, double km_25, double psi_soil, double k_l_max, double p_50, double c, double b, double kg_2_mol_h2o, double umol_per_mol_2_mol_per_mol, double atm_vpd, double ca, double atm_kpa, double kPa_2_Pa, double psi_crit, double beta, double beta_2, double huber_value, double height) {
-  return obj_->optimise_profit_gss_bartlett(PPFD, vcmax, vcmax_25_2_jmax_25, curv_fact, a, gamma_25, umol_per_mol_2_Pa, km_25, psi_soil, k_l_max, p_50, c, b, kg_2_mol_h2o, umol_per_mol_2_mol_per_mol, atm_vpd, ca, atm_kpa, kPa_2_Pa, psi_crit, beta, beta_2, huber_value, height);
+double Leaf__optimise_profit_gss_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double height) {
+  return obj_->optimise_profit_gss_bartlett(PPFD, psi_soil, height);
 }
 // [[Rcpp::export]]
 double Leaf__ci__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
