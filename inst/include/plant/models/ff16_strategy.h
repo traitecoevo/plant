@@ -88,6 +88,8 @@ public:
   double mass_above_ground(double mass_leaf, double mass_bark,
                            double mass_sapwood, double mass_root) const;
 
+  double compute_assimilation(double z, double height,
+                              const FF16_Environment &environment);
 
   void compute_rates(const FF16_Environment& environment, bool reuse_intervals,
                 Internals& vars);
