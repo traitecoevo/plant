@@ -23,9 +23,9 @@ source("R/reference_soil.R")
 ```
 
 ```{r}
-nseq = 3
+nseq = 20
 
-soil_params <- set_params_soil(vcmax = seq(10,100, length.out = nseq), p50 = seq(1,10, length.out =nseq), h_v = seq(0.000157*0.5, 0.000157*5, length.out=nseq), h = seq(1, 100, length.out=nseq), c = seq(1,10, length.out = nseq), beta1 = seq(1000, 15000, length.out=nseq), beta2 = seq(1, 5, length.out=nseq), day = seq(1,180, length.out = nseq), latitude = seq(0, 50, length.out = nseq), evap_routine = "1")
+soil_params <- set_params_soil(day = seq(1,180, length.out = nseq), evap_routine = "1")
 ```
 
 ```{r}
@@ -35,7 +35,7 @@ calc_daily_model <- function(params){
   select(-c(latitude, day)) %>%
   unnest(daily_data) %>%
   rowwise() %>%
-  mutate(VPD_hourly = calc_VPD_daily(sun_up, sun_down, VPD_9, VPD_15, instant_of_day)) %>%
+  mutate(VPD_hourly = calc_VPD_daily(0.25, 0.75, VPD_9, VPD_15, instant_of_day)) %>%
   rowwise() %>%
   mutate(profit = find_opt_psi_stem_bartlett(psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD_umol_m2_s_instant, b = b, c = c, psi_crit = psi_crit, atm_vpd = VPD_hourly, ca = ca, beta = beta1, beta_2 = beta2, huber_value = h_v, height = h)$profit_root)
 }
@@ -45,28 +45,44 @@ calc_daily_model <- function(params){
 ```{r}
 calc_one_point <- function(data){
   data %>%
-    slice(12,1) %>%
+    slice(101,1) %>%
     pull(profit)  -> profits
   
-  night_day_profit <- c(profits[2], profits[1])
+  day_night_profit <- c(profits[1], profits[2])
   data %>%
-    filter(PPFD_umol_m2_s_instant != 0) %>%
-    summarise(length_day = max(instant_of_day) - min(instant_of_day)) %>%
-    mutate(length_night = 1 - length_day) -> night_day_length
-  
-  sum(night_day_length*night_day_profit)
+    slice(1) %>%
+    summarise(day_length = day_length, night_length = 1 - day_length) -> day_night_length
+  sum(day_night_length*day_night_profit)
 }
 
 
-calc_three_point <- function(data){
-  
-      browser()
+calc_three_point <- function(data, num_sects){
 
-  data %>%
-    spline(x = .$instant_of_day, y = .$profit, xmin = sun_up, xmax = sun_down, n = 3, method = "natural")
+  slice(data, 1) %>% pull(profit) -> night_profits
   
-
-}
+  unique(data$day_length/(num_sects-1))->day_frac
+  
+  
+  with(data, seq(from = unique(sun_up), to = unique(sun_down), by = day_frac))[2:num_sects] %>%
+    map(~which.min(abs(data$instant_of_day - .x))) %>%
+    unlist() %>%
+    slice(data, .) -> time_outputs
+  
+  
+  with(data, seq(from = unique(sun_up) - 0.5*day_frac, to = unique(sun_down) - 0.5*day_frac, by = day_frac))[2:num_sects] %>%
+    map(~which.min(abs(data$instant_of_day - .x))) %>%
+    unlist() %>%
+    slice(data, .) -> profit_outputs
+  
+  
+  times <- c(time_outputs$instant_of_day[1] - time_outputs$sun_up[1], diff(time_outputs$instant_of_day))
+  profits <- profit_outputs$profit
+  
+  day_profit <- sum(times*profits)
+  night_profit <- night_profits * (1-unique(data$day_length))
+  
+  day_profit+night_profit
+  }
 
 
 ```
@@ -83,21 +99,32 @@ outputs %>%
   ungroup() %>%
   nest(daily_data = c(profit, instant_of_day, PPFD_umol_m2_s_instant, VPD_hourly, sun_up, sun_down, day_length)) %>%
   mutate(true_daily_profit = map_dbl(daily_data, ~plant:::trapezium(.x$instant_of_day, .x$profit))) %>%
-  mutate(estimated_daily_profit = map_dbl(daily_data, calc_one_point)) -> outputs_integrated
+  mutate(estimated_daily_profit_1 = map_dbl(daily_data, calc_one_point)) %>%
+  mutate(estimated_daily_profit_3 = map_dbl(daily_data, calc_three_point, 5)) -> outputs_integrated
 ```
 
 ```{r}
 outputs_integrated %>%
-  ggplot(aes(x = true_daily_profit, y = estimated_daily_profit, col = as.factor(day), shape = as.factor(vcmax))) +
+  pivot_longer(contains("estimated")) %>%
+  ggplot(aes(x = true_daily_profit, y = value, col = name)) + 
+  geom_point()
+
+cor(outputs_integrated$true_daily_profit, outputs_integrated$estimated_daily_profit_1)
+cor(outputs_integrated$true_daily_profit, outputs_integrated$estimated_daily_profit_3)
+
+outputs_integrated %>%
+  ggplot(aes(x = true_daily_profit, y = estimated_daily_profit, col = as.factor(day))) +
   geom_point() +
   geom_abline(slope = 1, intercept = 0)
 
+outputs_integrated$daily_data[[1]] %>%
+  slice(101)
 
 outputs %>%
-  ungroup() %>%
-  mutate(group = rep(seq(1, 19683), each = 24)) %>%
-  ggplot(aes(x = instant_of_day, y = profit, group = as.factor(group), col = as.factor(day))) +
-  geom_line()
+  filter(day == 1) %>%
+  ggplot() +
+  geom_line(aes(x = instant_of_day, y = profit)) +
+  geom_polygon(data = outputs_integrated$daily_data[[1]][101,] %>% pivot_longer(contains("sun")),aes(x=value, y = profit), fill = "black")
 ```
 
 
