@@ -66,12 +66,12 @@ double Leaf__calc_hydraulic_cost_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj
   return obj_->calc_hydraulic_cost_bartlett(psi_soil, psi_stem, k_l_max, height);
 }
 // [[Rcpp::export]]
-double Leaf__calc_profit_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double psi_stem, double k_l_max, double height) {
-  return obj_->calc_profit_bartlett(PPFD, psi_soil, psi_stem, k_l_max, height);
+double Leaf__calc_profit_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double psi_stem, double height) {
+  return obj_->calc_profit_bartlett(PPFD, psi_soil, psi_stem, height);
 }
 // [[Rcpp::export]]
-double Leaf__optimise_profit_gss_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double height) {
-  return obj_->optimise_profit_gss_bartlett(PPFD, psi_soil, height);
+double Leaf__optimise_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double height) {
+  return obj_->optimise_psi_stem(PPFD, psi_soil, height);
 }
 // [[Rcpp::export]]
 double Leaf__ci__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {

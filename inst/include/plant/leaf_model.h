@@ -134,11 +134,9 @@ public:
                                       double k_l_max, double height);
 
   double calc_profit_bartlett(double PPFD, double psi_soil,
-                              double psi_stem, double k_l_max,
-                              double height);
+                              double psi_stem, double height);
 
-  double optimise_profit_gss_bartlett(double PPFD, double psi_soil, double height);
-  double optimise_E_gss_bartlett(double PPFD, double psi_soil, double height);
+  double optimise_psi_stem(double PPFD, double psi_soil, double height);
 };
 
 } // namespace plant

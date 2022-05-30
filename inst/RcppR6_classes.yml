@@ -65,8 +65,8 @@ Leaf:
       args: [psi_soil: double, psi_stem: double, k_l_max: double, height: double]
     calc_profit_bartlett:
       return_type: double
-      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double, height: double]
-    optimise_profit_gss_bartlett:
+      args: [PPFD: double, psi_soil: double, psi_stem: double, height: double]
+    optimise_psi_stem:
       return_type: double
       args: [PPFD: double, psi_soil: double, height: double]
 

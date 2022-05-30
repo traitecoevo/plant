@@ -5,7 +5,6 @@
 
 #include <plant/models/ff16_strategy.h>
 #include <plant/models/ff16_environment.h>
-#include <plant/models/assimilation.h>
 
 namespace plant {
 
@@ -20,7 +19,7 @@ public:
   // [eqn 16] Fraction of whole plant growth that is leaf
   virtual double fraction_allocation_reproduction(double height) const;
 
-  
+
 };
 
 FF16r_Strategy::ptr make_strategy_ptr(FF16r_Strategy s);

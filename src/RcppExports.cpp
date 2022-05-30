@@ -332,8 +332,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // Leaf__calc_profit_bartlett
-double Leaf__calc_profit_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double psi_stem, double k_l_max, double height);
-RcppExport SEXP _plant_Leaf__calc_profit_bartlett(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP psi_stemSEXP, SEXP k_l_maxSEXP, SEXP heightSEXP) {
+double Leaf__calc_profit_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double psi_stem, double height);
+RcppExport SEXP _plant_Leaf__calc_profit_bartlett(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP psi_stemSEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -341,15 +341,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
     Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
     Rcpp::traits::input_parameter< double >::type psi_stem(psi_stemSEXP);
-    Rcpp::traits::input_parameter< double >::type k_l_max(k_l_maxSEXP);
     Rcpp::traits::input_parameter< double >::type height(heightSEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__calc_profit_bartlett(obj_, PPFD, psi_soil, psi_stem, k_l_max, height));
+    rcpp_result_gen = Rcpp::wrap(Leaf__calc_profit_bartlett(obj_, PPFD, psi_soil, psi_stem, height));
     return rcpp_result_gen;
 END_RCPP
 }
-// Leaf__optimise_profit_gss_bartlett
-double Leaf__optimise_profit_gss_bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double height);
-RcppExport SEXP _plant_Leaf__optimise_profit_gss_bartlett(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP heightSEXP) {
+// Leaf__optimise_psi_stem
+double Leaf__optimise_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double height);
+RcppExport SEXP _plant_Leaf__optimise_psi_stem(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP heightSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -357,7 +356,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
     Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
     Rcpp::traits::input_parameter< double >::type height(heightSEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__optimise_profit_gss_bartlett(obj_, PPFD, psi_soil, height));
+    rcpp_result_gen = Rcpp::wrap(Leaf__optimise_psi_stem(obj_, PPFD, psi_soil, height));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10407,8 +10406,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__calc_profit", (DL_FUNC) &_plant_Leaf__calc_profit, 22},
     {"_plant_Leaf__optimise_profit_gss", (DL_FUNC) &_plant_Leaf__optimise_profit_gss, 21},
     {"_plant_Leaf__calc_hydraulic_cost_bartlett", (DL_FUNC) &_plant_Leaf__calc_hydraulic_cost_bartlett, 5},
-    {"_plant_Leaf__calc_profit_bartlett", (DL_FUNC) &_plant_Leaf__calc_profit_bartlett, 6},
-    {"_plant_Leaf__optimise_profit_gss_bartlett", (DL_FUNC) &_plant_Leaf__optimise_profit_gss_bartlett, 4},
+    {"_plant_Leaf__calc_profit_bartlett", (DL_FUNC) &_plant_Leaf__calc_profit_bartlett, 5},
+    {"_plant_Leaf__optimise_psi_stem", (DL_FUNC) &_plant_Leaf__optimise_psi_stem, 4},
     {"_plant_Leaf__ci__get", (DL_FUNC) &_plant_Leaf__ci__get, 1},
     {"_plant_Leaf__ci__set", (DL_FUNC) &_plant_Leaf__ci__set, 2},
     {"_plant_Leaf__g_c__get", (DL_FUNC) &_plant_Leaf__g_c__get, 1},

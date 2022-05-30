@@ -229,7 +229,11 @@ double Leaf::calc_hydraulic_cost_bartlett(double psi_soil, double psi_stem,
 }
 
 double Leaf::calc_profit_bartlett(double PPFD, double psi_soil, double psi_stem,
-                                  double k_l_max, double height) {
+                                  double height) {
+
+  // k_l_max for whole stem for ind. of given height
+  double K_s = p_50_to_K_s(p_50);
+  double k_l_max = calc_k_l_max(height, huber_value, K_s);
 
   double benefit_ =
       calc_assim_gross(PPFD, vcmax, vcmax_25_to_jmax_25, curv_fact, a, gamma_25,
@@ -243,21 +247,17 @@ double Leaf::calc_profit_bartlett(double PPFD, double psi_soil, double psi_stem,
   return benefit_ - cost_;
 }
 
-double Leaf::optimise_profit_gss_bartlett(double PPFD, double psi_soil,
-                                          double height) {
 
-  // k_l_max for whole stem for ind. of given height
-  double K_s = p_50_to_K_s(p_50);
-  double k_l_max = calc_k_l_max(height, huber_value, K_s);
+// need docs on Golden Section Search and reference to Bartlett.
+double Leaf::optimise_psi_stem(double PPFD, double psi_soil, double height) {
 
   double gr = (sqrt(5) + 1) / 2;
+  double opt_psi_stem = psi_soil;
 
   // optimise for stem water potential
   if (psi_soil < psi_crit) {
     double bound_a = psi_soil;
     double bound_b = psi_crit;
-
-    double opt_psi_stem = psi_soil;
 
     double delta_crit = 1e-5;
 
@@ -267,9 +267,10 @@ double Leaf::optimise_profit_gss_bartlett(double PPFD, double psi_soil,
     while (abs(bound_b - bound_a) > delta_crit) {
 
       double profit_at_c =
-          calc_profit_bartlett(PPFD, psi_soil, bound_c, k_l_max, height);
+          calc_profit_bartlett(PPFD, psi_soil, bound_c, height);
+
       double profit_at_d =
-          calc_profit_bartlett(PPFD, psi_soil, bound_d, k_l_max, height);
+          calc_profit_bartlett(PPFD, psi_soil, bound_d, height);
 
       if (profit_at_c > profit_at_d) {
         bound_b = bound_d;
@@ -280,65 +281,11 @@ double Leaf::optimise_profit_gss_bartlett(double PPFD, double psi_soil,
       bound_c = bound_b - (bound_b - bound_a) / gr;
       bound_d = bound_a + (bound_b - bound_a) / gr;
     }
-    opt_psi_stem = ((bound_b + bound_a) / 2);
 
-    profit =
-        calc_profit_bartlett(PPFD, psi_soil, opt_psi_stem, k_l_max, height);
-  } else {
-    // otherwise stem water pot. at equil. with soil
-    profit = calc_profit_bartlett(PPFD, psi_soil, psi_soil, k_l_max, height);
+    opt_psi_stem = ((bound_b + bound_a) / 2);
   }
 
-  return (profit);
-}
-
-double Leaf::optimise_E_gss_bartlett(double PPFD, double psi_soil,
-                                     double height) {
-
-  // k_l_max for whole stem for ind. of given height
-  double K_s = p_50_to_K_s(p_50);
-  double k_l_max = calc_k_l_max(height, huber_value, K_s);
-
-  double gr = (sqrt(5) + 1) / 2;
-
-  // optimise for stem water potential
-  if (psi_soil < psi_crit) {
-    double bound_a = psi_soil;
-    double bound_b = psi_crit;
-
-    double opt_psi_stem = psi_soil;
-
-    double delta_crit = 1e-5;
-
-    double bound_c = bound_b - (bound_b - bound_a) / gr;
-    double bound_d = bound_a + (bound_b - bound_a) / gr;
-
-    while (abs(bound_b - bound_a) > delta_crit) {
-
-      double profit_at_c =
-          calc_profit_bartlett(PPFD, psi_soil, bound_c, k_l_max, height);
-      double profit_at_d =
-          calc_profit_bartlett(PPFD, psi_soil, bound_d, k_l_max, height);
-
-      if (profit_at_c > profit_at_d) {
-        bound_b = bound_d;
-      } else {
-        bound_a = bound_c;
-      }
-
-      bound_c = bound_b - (bound_b - bound_a) / gr;
-      bound_d = bound_a + (bound_b - bound_a) / gr;
-    }
-    opt_psi_stem = ((bound_b + bound_a) / 2);
-
-    profit =
-        calc_profit_bartlett(PPFD, psi_soil, opt_psi_stem, k_l_max, height);
-  } else {
-    // otherwise stem water pot. at equil. with soil
-    profit = calc_profit_bartlett(PPFD, psi_soil, psi_soil, k_l_max, height);
-  }
-
-  return (E);
+  return opt_psi_stem;
 }
 
 } // namespace plant

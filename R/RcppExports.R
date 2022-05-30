@@ -65,12 +65,12 @@ Leaf__calc_hydraulic_cost_bartlett <- function(obj_, psi_soil, psi_stem, k_l_max
     .Call('_plant_Leaf__calc_hydraulic_cost_bartlett', PACKAGE = 'plant', obj_, psi_soil, psi_stem, k_l_max, height)
 }
 
-Leaf__calc_profit_bartlett <- function(obj_, PPFD, psi_soil, psi_stem, k_l_max, height) {
-    .Call('_plant_Leaf__calc_profit_bartlett', PACKAGE = 'plant', obj_, PPFD, psi_soil, psi_stem, k_l_max, height)
+Leaf__calc_profit_bartlett <- function(obj_, PPFD, psi_soil, psi_stem, height) {
+    .Call('_plant_Leaf__calc_profit_bartlett', PACKAGE = 'plant', obj_, PPFD, psi_soil, psi_stem, height)
 }
 
-Leaf__optimise_profit_gss_bartlett <- function(obj_, PPFD, psi_soil, height) {
-    .Call('_plant_Leaf__optimise_profit_gss_bartlett', PACKAGE = 'plant', obj_, PPFD, psi_soil, height)
+Leaf__optimise_psi_stem <- function(obj_, PPFD, psi_soil, height) {
+    .Call('_plant_Leaf__optimise_psi_stem', PACKAGE = 'plant', obj_, PPFD, psi_soil, height)
 }
 
 Leaf__ci__get <- function(obj_) {

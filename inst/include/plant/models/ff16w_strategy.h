@@ -14,15 +14,15 @@ public:
   typedef std::shared_ptr<FF16w_Strategy> ptr;
   FF16w_Strategy();
 
-  virtual double compute_assimilation(double z, double height,
-                                      const FF16_Environment &environment);
+  double compute_average_light_environment(double z, double height,
+                                           const FF16_Environment &environment);
 
-  double compute_E(double z, double height,
-                   const FF16_Environment &environment);
+  double evapotranspiration_dt(double area_leaf_);
 
-  double evapotranspiration_dt(const FF16_Environment &environment,
-                               double height, double area_leaf,
-                               bool reuse_intervals);
+  virtual double net_mass_production_dt(const FF16_Environment &environment,
+                                        double height, double area_leaf_,
+                                        bool reuse_intervals = false);
+
 
   virtual void compute_rates(const FF16_Environment &environment,
                              bool reuse_intervals, Internals &vars);
