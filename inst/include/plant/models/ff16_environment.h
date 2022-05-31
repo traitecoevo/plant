@@ -11,13 +11,13 @@ using namespace Rcpp;
 namespace plant {
 
 // double check best namespace for constants (private vs global)
-static const double PAR_to_SW = 1.0; // dummy numbers
-static const double slp = 1.0;
-static const double gamma = 1.0;
-static const double lh = 1.0;
-static const double MH2O = 1.0;
-static const double g_to_kg = 1000.0;
-static const double kg_to_m3 = 1000.0;
+static const double PAR_to_SW = 0.4376; // slp, gamma and lh are temp-dependent, but assumed at 25 deg C for now. 
+static const double slp = 0.1887;
+static const double gamma = 0.0674;
+static const double lh = 44002.59;
+static const double MH2O = 18.02;
+static const double g_to_kg = 1/1000.0;
+static const double kg_to_m3 = 1/1000.0;
 static const double sec_2_hr = 3600.0;
 
 class FF16_Environment : public Environment {
