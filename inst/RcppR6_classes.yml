@@ -10,6 +10,8 @@ Leaf:
       - beta: double
       - beta_2: double
       - huber_value: double
+      - K_s: double
+      
   active:
     ci: {type: double, access: field}
     g_c: {type: double, access: field}
@@ -21,54 +23,54 @@ Leaf:
     initialize_integrator:
       return_type: void
       args: [integration_rule: int, integration_tol: double]
-    calc_k_l_max:
-      return_type: double
-      args: [K_s: double, h_v: double, h: double]
+    # calc_k_l_max:
+    #   return_type: double
+    #   args: [K_s: double, h_v: double, h: double]
     calc_vul_b:
       return_type: double
-      args: [p_50: double, c: double]
+      args: []
     calc_cond_vuln:
       return_type: double
-      args: [psi: double, k_l_max: double, b: double, c: double]
+      args: [psi: double, k_l_max: double]
     calc_E_supply:
       return_type: double
-      args: [k_l_max: double, b: double, c: double, psi_soil: double, psi_stem: double]
+      args: [k_l_max: double, psi_soil: double, psi_stem: double]
     calc_g_c:
       return_type: double
-      args: [psi_soil: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, atm_kpa: double, kg_to_mol_h2o: double, atm_vpd: double]
+      args: [psi_soil: double, psi_stem: double, k_l_max: double]
     calc_A_c:
       return_type: double
-      args: [ci_: double, vcmax: double, gamma_25: double, umol_per_mol_to_Pa: double, km_25: double]
+      args: [ci_: double]
     calc_A_j:
       return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_to_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_to_Pa: double, ci_: double]
+      args: [PPFD: double, ci_: double]
     calc_A_lim:
       return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_to_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_to_Pa: double, ci_: double, km_25: double]
+      args: [PPFD: double, ci_: double]
     diff_ci:
       return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_to_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_to_Pa: double, x: double, km_25: double, psi_soil: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_to_mol_h2o: double, umol_per_mol_to_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_to_Pa: double]
-    calc_hydraulic_cost:
-      return_type: double
-      args: [psi_soil: double, psi_stem: double, k_l_max: double, b: double, c: double]
+      args: [PPFD: double, x: double, psi_soil: double, psi_stem: double, k_l_max: double]
     calc_assim_gross:
       return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_to_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_to_Pa: double, km_25: double, psi_soil: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_to_mol_h2o: double, umol_per_mol_to_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_to_Pa: double]
-    calc_profit:
+      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]
+    calc_hydraulic_cost_Sperry:
       return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_to_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_to_Pa: double, km_25: double,psi_soil: double, psi_stem: double, k_l_max: double, p_50: double, c: double, b: double, kg_to_mol_h2o: double, umol_per_mol_to_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_to_Pa: double, psi_crit: double]
-    optimise_profit_gss:
+      args: [psi_soil: double, psi_stem: double, k_l_max: double] 
+    calc_profit_Sperry:
       return_type: double
-      args: [PPFD: double, vcmax: double, vcmax_25_to_jmax_25: double, curv_fact: double, a: double, gamma_25: double, umol_per_mol_to_Pa: double, km_25: double,psi_soil: double, k_l_max: double, p_50: double, c: double, b: double, kg_to_mol_h2o: double, umol_per_mol_to_mol_per_mol: double, atm_vpd: double, ca: double, atm_kpa: double, kPa_to_Pa: double, psi_crit: double]
-    calc_hydraulic_cost_bartlett:
+      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]
+    calc_hydraulic_cost_Bartlett:
       return_type: double
-      args: [psi_soil: double, psi_stem: double, k_l_max: double, height: double]
-    calc_profit_bartlett:
+      args: [psi_soil: double, psi_stem: double, k_l_max: double]
+    calc_profit_Bartlett:
       return_type: double
-      args: [PPFD: double, psi_soil: double, psi_stem: double, height: double]
-    optimise_psi_stem:
+      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]
+    optimise_psi_stem_Bartlett:
       return_type: double
-      args: [PPFD: double, psi_soil: double, height: double]
+      args: [PPFD: double, psi_soil: double, k_l_max: double]
+    optimise_psi_stem_Sperry:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, k_l_max: double]
 
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"

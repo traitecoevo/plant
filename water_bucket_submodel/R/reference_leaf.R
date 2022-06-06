@@ -67,7 +67,7 @@ calc_psi_crit <- function(b,c) {
 #calculate PPFD throughout day
 calc_PPFD_instant <- function(latitude, day, ...) {
   given_day_start <- floor(day)
-  instant_through_time <- seq(given_day_start, given_day_start+1, length.out = 24)
+  instant_through_time <- seq(given_day_start, given_day_start+1, length.out = 201)
   PPFD_instant_mol_m2_day <- PAR_given_solar_angle(solar_angle = solar_angle(latitude = (latitude), decimal_day_time = instant_through_time))
   outputs <- tibble(PPFD_umol_m2_s_instant = PPFD_instant_mol_m2_day /(60*60*24) * 1E6, instant_of_day = instant_through_time - given_day_start, day = given_day_start, latitude = latitude, ...)
   

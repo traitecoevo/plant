@@ -34,7 +34,8 @@ public:
        double psi_crit     = 3.42,  // derived from b and c
        double beta         = 15000.0,
        double beta_2       = 1.0,
-       double huber_value  = 1.57e-4);
+       double huber_value  = 1.57e-4,
+       double K_s = 2);
 
   quadrature::QAG integrator;
 
@@ -46,6 +47,7 @@ public:
   double beta;
   double beta_2;
   double huber_value;
+  double K_s;
 
   double ci;
   double g_c;
@@ -68,75 +70,40 @@ public:
                                  integration_tol, integration_tol);
   }
 
-  double p_50_to_K_s(double p_50) const;
+  double p_50_to_K_s() const;
 
-  double calc_k_l_max(double K_s, double h_v, double h) const;
+  // double calc_k_l_max(double K_s, double h_v, double h) const;
 
-  double calc_vul_b(double p_50, double c) const;
-  double calc_cond_vuln(double psi, double k_l_max, double b, double c) const;
+  double calc_vul_b() const;
+  double calc_cond_vuln(double psi, double k_l_max) const;
 
-  double calc_E_supply(double k_l_max, double b, double c, double psi_soil,
+  double calc_E_supply(double k_l_max, double psi_soil,
                        double psi_stem);
 
-  double calc_g_c(double psi_soil, double psi_stem, double k_l_max, double p_50,
-                  double c, double b, double atm_kpa, const double kg_to_mol_h2o,
-                  double atm_vpd); // define as a constant
+  double calc_g_c(double psi_soil, double psi_stem, double k_l_max); // define as a constant
 
-  double calc_A_c(double ci_, double vcmax, double gamma_25,
-                  double umol_per_mol_to_Pa, double km_25);
-  double calc_A_j(double PPFD, double vcmax, double vcmax_25_to_jmax_25,
-                  double curv_fact, double a, double gamma_25,
-                  double umol_per_mol_to_Pa, double ci_);
-  double calc_A_lim(double PPFD, double vcmax, double vcmax_25_to_jmax_25,
-                    double curv_fact, double a, double gamma_25,
-                    double umol_per_mol_to_Pa, double ci_, double km_25);
+  double calc_A_c(double ci_);
+  double calc_A_j(double PPFD, double ci_);
+  double calc_A_lim(double PPFD, double ci_);
 
-  double diff_ci(double PPFD, double vcmax, double vcmax_25_to_jmax_25,
-                 double curv_fact, double a, double gamma_25,
-                 double umol_per_mol_to_Pa, double x, double km_25,
-                 double psi_soil, double psi_stem, double k_l_max, double p_50,
-                 double c, double b, const double kg_to_mol_h2o,
-                 double umol_per_mol_to_mol_per_mol, double atm_vpd, double ca,
-                 double atm_kpa, double kPa_to_Pa);
+  double diff_ci(double PPFD, double x, double psi_soil, double psi_stem, double k_l_max);
 
-  double calc_assim_gross(double PPFD, double vcmax, double vcmax_25_to_jmax_25,
-                          double curv_fact, double a, double gamma_25,
-                          double umol_per_mol_to_Pa, double km_25,
-                          double psi_soil, double psi_stem, double k_l_max,
-                          double p_50, double c, double b,
-                          const double kg_to_mol_h2o,
-                          double umol_per_mol_to_mol_per_mol, double atm_vpd,
-                          double ca, double atm_kpa, double kPa_to_Pa);
+  double calc_assim_gross(double PPFD, double psi_soil, double psi_stem, double k_l_max);
 
-  double calc_hydraulic_cost(double psi_soil, double psi_stem, double k_l_max,
-                             double b, double c);
+  double calc_hydraulic_cost_Sperry(double psi_soil, double psi_stem, double k_l_max);
 
-  double calc_profit(double PPFD, double vcmax, double vcmax_25_to_jmax_25,
-                     double curv_fact, double a, double gamma_25,
-                     double umol_per_mol_to_Pa, double km_25, double psi_soil,
-                     double psi_stem, double k_l_max, double p_50, double c,
-                     double b, const double kg_to_mol_h2o,
-                     double umol_per_mol_to_mol_per_mol, double atm_vpd,
-                     double ca, double atm_kpa, double kPa_to_Pa,
-                     double psi_crit);
+  double calc_profit_Sperry(double PPFD, double psi_soil, double psi_stem, double k_l_max);
 
-  double optimise_profit_gss(double PPFD, double vcmax,
-                             double vcmax_25_to_jmax_25, double curv_fact,
-                             double a, double gamma_25,
-                             double umol_per_mol_to_Pa, double km_25,
-                             double psi_soil, double k_l_max, double p_50,
-                             double c, double b, const double kg_to_mol_h2o,
-                             double umol_per_mol_to_mol_per_mol, double atm_vpd,
-                             double ca, double atm_kpa, double kPa_to_Pa,
-                             double psi_crit);
+  double calc_hydraulic_cost_Bartlett(double psi_soil, double psi_stem,
+                                      double k_l_max);
 
-  double calc_hydraulic_cost_bartlett(double psi_soil, double psi_stem,
-                                      double k_l_max, double height);
+  double calc_profit_Bartlett(double PPFD, double psi_soil,
+                              double psi_stem, double k_l_max);
 
-  double calc_profit_bartlett(double PPFD, double psi_soil,
-                              double psi_stem, double height);
+  double optimise_psi_stem_Bartlett(double PPFD, double psi_soil, double k_l_max);
 
-  double optimise_psi_stem(double PPFD, double psi_soil, double height);
+  double optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_max);
+
 };
 
 } // namespace plant

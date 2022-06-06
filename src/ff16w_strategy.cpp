@@ -6,7 +6,7 @@ FF16w_Strategy::FF16w_Strategy() {
   collect_all_auxiliary = false;
 
   // initialise leaf traits
-  leaf = Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value);
+  leaf = Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s);
 
   // build the string state/aux name to index map
   refresh_indices();
@@ -52,13 +52,17 @@ FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environment,
   const double average_radiation =
       k_I * average_light_environment * environment.PPFD;
 
+  std::cout << "PPFD: " << environment.PPFD << std::endl;
+
   const double psi_soil = environment.get_psi_soil();
 
   // height * eta_c = height of average leaf area
+  const double k_l_max = K_s * huber_value / (height * eta_c);
+  
   const double opt_psi_stem =
-      leaf.optimise_psi_stem(average_radiation, psi_soil, height * eta_c);
+      leaf.optimise_psi_stem_Bartlett(average_radiation, psi_soil, k_l_max);
 
-  const double assimilation_per_area = leaf.calc_profit_bartlett(
+  const double assimilation_per_area = leaf.calc_profit_Bartlett(
       average_radiation, psi_soil, opt_psi_stem, height * eta_c);
 
   const double assimilation = assimilation_per_area * area_leaf_;
