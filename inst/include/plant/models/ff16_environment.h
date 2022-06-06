@@ -73,6 +73,8 @@ public:
   double theta_wp = 0.2;
   double theta_fc = 0.4;
   double swf = 1.0;
+  double theta_sat;
+  double k_sat;
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
     double infiltration;
@@ -106,6 +108,10 @@ public:
         evaporation = 0.0;
       }
 
+      // if (i == soil_number_of_depths){
+      //   drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
+      // }
+
       // TODO: add drainage
       // if (i == n_soil_layers) {
       //    drainage = something
@@ -121,6 +127,17 @@ public:
     }
   }
 
+  double calc_n_psi() const {
+  double n_psi = -((log(1500/33))/(log(theta_wp/theta_fc)));
+  return n_psi;
+}
+
+  double calc_a_psi() const {
+  double n_psi = calc_n_psi();
+  double a_psi = 1.5e6 * std::pow(theta_wp, calc_n_psi());
+  return a_psi;
+}
+
   double get_psi_soil() const {
     // soil volumetric water: m3.m-3
     // assume one layer for now - later extend to include layers of variable depth
@@ -132,9 +149,8 @@ public:
     //    theta_soil = total / n_soil_layers
 
     // hardcode for now; later set in enviornment constructor
-    const double a_psi = 2539.246;
-    const double n_psi = 2.130148;
-    const double theta_sat = 0.48;
+    double a_psi = calc_a_psi();
+    double n_psi = calc_n_psi();
 
     double psi = std::pow(a_psi * (theta / theta_sat), -n_psi);
 

@@ -29,8 +29,8 @@ vcmax_25_2_jmax_25 <- 1.67 # estimate vcmax from jmax (unitless)
 
 curv_fact <- 0.9 #curvature factor for light limited transport (unitless)
 
-km_25 <- (kc_25*umol_per_mol_2_Pa)*(1 + (atm_o2_kpa*kPa_2_Pa)/(ko_25*umol_per_mol_2_Pa)) #Pa
-
+# km_25 <- (kc_25*umol_per_mol_2_Pa)*(1 + (atm_o2_kpa*kPa_2_Pa)/(ko_25*umol_per_mol_2_Pa)) #Pa
+km_25 = 71.56
 ################################ functions below calculate values outside of the leaf model
 
 #estimate sapwood-specific conductivity from p_50, estimated visually from Liu et al. 2019
@@ -123,7 +123,6 @@ solve_ci <- function(vcmax, PPFD, g_c, ca){
   A_lim_root <- calc_A_lim(c_i = ci_root, vcmax = vcmax, PPFD = PPFD)
   list(ci_root, A_lim_root)
 }
-
 
 
 calc_k_l <- function(psi ,k_l_max, b, c){

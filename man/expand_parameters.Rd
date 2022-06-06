@@ -18,7 +18,7 @@ new types to introduce.}
 
 \item{p}{A \code{Parameters} object.}
 
-\item{hyperpar}{Hyperparameter function to use. By default links 
+\item{hyperpar}{Hyperparameter function to use. By default links
 to standard function for this strategy type.}
 
 \item{mutant}{Create new types as \emph{mutants}?  These will have
@@ -26,7 +26,7 @@ no effect on other plants in the community (i.e. have zero
 density).}
 
 \item{birth_rate_list}{List object with birth rates for each species in
-x. Birth rates can take the form of a scalar (constant) or a vector. 
+x. Birth rates can take the form of a scalar (constant) or a vector.
 In either case birth rates are set as \code{strategy$birth_rate_y}, however
 varying birth rates will also have \code{strategy$birth_rate_x} and}
 }

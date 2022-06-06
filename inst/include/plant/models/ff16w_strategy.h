@@ -34,10 +34,11 @@ public:
   double p_50 = 1.0;
   double c = 2.04;
   double b = 2.0;
-  double psi_crit = 3.42; // derived from b and c
+  double psi_crit = 3.548059; // derived from b and c
   double beta = 15000.0;
   double beta_2 = 1.0;
   double huber_value = 1.57e-4;
+  double K_s = 1.57e-4;
 };
 
 FF16w_Strategy::ptr make_strategy_ptr(FF16w_Strategy s);

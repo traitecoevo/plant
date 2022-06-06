@@ -1,0 +1,90 @@
+---
+title: "temperature_forcing"
+author: "Isaac Towers"
+date: "06/06/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r warning=FALSE}
+rm(list=ls())
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(purrr)
+library(deSolve)
+
+
+source("R/solar_model.R")
+source("R/reference_leaf.R")
+source("R/reference_soil.R")
+```
+
+```{r}
+day <- 1
+latitude <- -23
+
+PPFD <- calc_PPFD_instant(day,latitude)
+```
+
+
+```{r}
+max_temp <- 37.3
+min_temp <- 7.2
+```
+
+```{r}
+input_data <- tibble(T_x = max_temp, T_n = min_temp, H_n = PPFD$sun_up[1]*24, H_o = PPFD$sun_down[1]*24, c = 0.39) %>%
+  expand_grid(instant_of_day = PPFD$instant_of_day * 24) %>%
+  mutate(H_p = H_n + 24, H_x = H_o - 4, T_p = T_n) %>%
+  mutate(T_o = T_x - c*(T_x - T_n)) %>%
+  mutate(a = T_x - T_n,
+         R = T_x - T_o,
+         b = T_p - T_o / sqrt(H_p - H_o)) %>%
+  mutate(instant_of_day = if_else(instant_of_day < H_n, instant_of_day))
+  split(., 1:nrow(.)) %>%
+  map(., ~calc_temp_func(.x$T_n, .x$a, .x$instant_of_day, .x$H_n, .x$H_x, .x$T_o, .x$b, .x$H_o, .x$H_p)) %>%
+  bind_rows() -> asd
+
+
+
+
+calc_temp_func <- function(T_n, a, instant_of_day, H_n, H_x, T_o, b, H_o, H_p){
+  if(H_n < instant_of_day & instant_of_day <= H_x){
+    calc_1(T_n, a, instant_of_day, H_n, H_x)
+  }
+  if(H_x < instant_of_day & instant_of_day < H_o){
+    calc_2(T_o, R, instant_of_day, H_x)
+  }
+  if(H_o < instant_of_day & instant_of_day <= H_p){
+    calc_3(T_o, b, instant_of_day, H_o)
+  }
+}
+
+
+
+calc_1 <- function(T_n, a, instant_of_day, H_n, H_x){
+  T_n + a*((instant_of_day - H_n)/(H_x - H_n)) *(pi/2)
+}
+
+calc_2 <- function(T_o, R, instant_of_day, H_x){
+  T_o + R*sin(pi/2 + ((instant_of_day - H_x)/4)*(pi/2))
+}
+
+calc_3 <- function(T_o, b, instant_of_day, H_o){
+  T_o + b * sqrt(instant_of_day - H_o)
+}
+
+
+
+```
+
+```{r}
+
+```
+
+
