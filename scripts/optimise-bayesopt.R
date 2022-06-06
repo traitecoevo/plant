@@ -7,7 +7,7 @@ eps <- sqrt(.Machine$double.eps) ## used lots below
 
 # strategy defaults
 mulga <- function() {
-  p0 <- scm_base_parameters("FF16bg", "FF16_Env")
+  p0 <- plant::scm_base_parameters("FF16bg", "FF16_Env")
   
   p0$strategy_default$lma <- 0.0645
   p0$strategy_default$hmat <- 5
@@ -28,8 +28,8 @@ create_species <- function(lma = 0.0645, hmat = 5, eta = 12, k_2 = 0,
                            birth_rate = 100,
                            site) {
   
-  traits = trait_matrix(c(lma, hmat, eta, k_2), c("lma", "hmat", "eta", "k_2"))
-  sp = expand_parameters(traits, mulga(), site, mutant = FALSE,
+  traits = plant::trait_matrix(c(lma, hmat, eta, k_2), c("lma", "hmat", "eta", "k_2"))
+  sp = plant::expand_parameters(traits, mulga(), site, mutant = FALSE,
                         birth_rate_list = list(birth_rate))
 
   # base <- scm_base_parameters("FF16bg", "FF16_Env")
@@ -55,14 +55,15 @@ create_schedule <- function(max_patch_lifetime = 250,
   if(optimise_schedule) {
     
     # start with built-in schedule
-    nodes <- node_schedule_times_default(max_patch_lifetime)
+    times <- node_schedule_times_default(max_patch_lifetime)
     
+    # NOT SURE THIS WORKS AS INTENDED - likely remove
     # then downsample, taking every nth integration node 
-    nth_element <- function(vector, n = 1, starting_position = 1) { 
-      vector[c(1:starting_position, seq(starting_position, length(vector), n))] 
-    }
-    
-    times <- nth_element(nodes, schedule_reduction_factor)
+    # nth_element <- function(vector, n = 1, starting_position = 1) { 
+    #   vector[c(1:starting_position, seq(starting_position, length(vector), n))] 
+    # }
+    # 
+    # times <- nth_element(nodes, schedule_reduction_factor)
     
     parameters$node_schedule_times[[1]] <- times #1spp
     
@@ -87,8 +88,7 @@ calculate_net_biomass <- function(parameters, environment = create_environment()
     integrate_over_size_distribution() %>%
     select(time,species, one_of(v)) %>%
     pivot_longer(cols=starts_with("mass"), names_to = "tissue") %>%
-    mutate(across(tissue, factor, levels = v)) %>%
-    filter(time != max(time)) # drop last node
+    mutate(across(tissue, factor, levels = v)) 
   
   return(tissues)
 }
@@ -118,6 +118,7 @@ calibrate <- function(x, target,
     sp <- create_species(hmat = hmat, 
                          eta = eta, 
                          k_2 = k_2,
+                         birth_rate = birth_rate,
                          site = site)
 
     # overwrite species
@@ -138,7 +139,6 @@ calibrate <- function(x, target,
                     .groups = "drop")
       }
       
-      # something odd with the last point
       predictions <- filter(biomass, tissue == match_tissue) 
       
       if(plot_comparison == T) {
@@ -474,7 +474,7 @@ plot_preds <- function(gp_ptr, bounds, evals, par = 1, `3d` = FALSE) {
   
   x <- unscale(xx, bounds)[, par]
   plot(x, pred$mean, type = "l", 
-       xlab = "B_lf1", ylab = "negLogLik")
+       xlab = names(bounds)[par], ylab = "negLogLik")
 
   lines(x, pred$mean + 1.96 * sqrt(pred$s2), col=2, lty=2)
   lines(x, pred$mean - 1.96 * sqrt(pred$s2), col=2, lty=2)
