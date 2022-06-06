@@ -3895,8 +3895,8 @@ SEXP FF16_Strategy__ctor() {
 
 
 // [[Rcpp::export]]
-plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths) {
-  return plant::FF16_Environment(canopy_rescale_usually, soil_number_of_depths);
+plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths, double PPFD_) {
+  return plant::FF16_Environment(canopy_rescale_usually, soil_number_of_depths, PPFD_);
 }
 // [[Rcpp::export]]
 void FF16_Environment__set_extrinsic_driver(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, std::vector<double> x, std::vector<double> y) {

@@ -3429,8 +3429,8 @@ FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-FF16_Environment__ctor <- function(canopy_rescale_usually, soil_number_of_depths) {
-    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', canopy_rescale_usually, soil_number_of_depths)
+FF16_Environment__ctor <- function(canopy_rescale_usually, soil_number_of_depths, PPFD_) {
+    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', canopy_rescale_usually, soil_number_of_depths, PPFD_)
 }
 
 FF16_Environment__set_extrinsic_driver <- function(obj_, driver_name, x, y) {

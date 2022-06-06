@@ -26,13 +26,15 @@ public:
   // except for soil_number_of_depths and canopy_rescale_usually
   // which are only updated on construction
   FF16_Environment(bool canopy_rescale_usually = false,
-                   int soil_number_of_depths = 0)
+                   int soil_number_of_depths = 0,
+                   double PPFD_ = 500.0)
       : canopy_rescale_usually(canopy_rescale_usually) {
     time = 0.0;
     canopy = Canopy();
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
     extrinsic_drivers["rainfall"] = interpolator::Interpolator();
+    PPFD = PPFD_;
   };
 
 
@@ -66,11 +68,11 @@ public:
 
   // soil variables
   double PPFD;
-  double T;
-  double r_soil;
-  double theta_wp;
-  double theta_fc;
-  double swf;
+  double T = 1.0;
+  double r_soil = 0.01;
+  double theta_wp = 0.2;
+  double theta_fc = 0.4;
+  double swf = 1.0;
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
     double infiltration;

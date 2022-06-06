@@ -265,7 +265,7 @@ double Leaf::optimise_psi_stem(double PPFD, double psi_soil, double height) {
     double bound_d = bound_a + (bound_b - bound_a) / gr;
 
     while (abs(bound_b - bound_a) > delta_crit) {
-
+        std::cout << "bound_b = " << bound_b << ", bound_a = " << bound_a << "\n";
       double profit_at_c =
           calc_profit_bartlett(PPFD, psi_soil, bound_c, height);
 
