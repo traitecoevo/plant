@@ -38,7 +38,7 @@ public:
   double beta = 15000.0;
   double beta_2 = 1.0;
   double huber_value = 1.57e-4;
-  double K_s = 1.57e-4;
+  double K_s = 2;
 };
 
 FF16w_Strategy::ptr make_strategy_ptr(FF16w_Strategy s);

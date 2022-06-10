@@ -18,6 +18,8 @@ double FF16w_Strategy::compute_average_light_environment(
     double z, double height, const FF16_Environment &environment) {
 
   return environment.get_environment_at_height(z) * q(z, height);
+double test = 2;
+  std::cout << "test " << test << std::endl;
 }
 
 // assumes calc_profit_bartlett has been run for optimal psi_stem
@@ -41,6 +43,8 @@ FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environment,
   // integrate over x from zero to `height`, with fixed canopy openness
   auto f = [&](double x) -> double {
     return compute_average_light_environment(x, height, environment);
+  double test = 2;
+  std::cout << "test " << test << std::endl;
   };
 
   double average_light_environment =
@@ -48,31 +52,57 @@ FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environment,
           ? integrator.integrate_with_last_intervals(f, 0.0, height)
           : integrator.integrate(f, 0.0, height);
 
+  // std::cout << "openness1 " << environment.get_environment_at_height(height*0.9) << std::endl;
+
+
+  // std::cout << get_environment_at_height(height) << std::endl        
+
   // k_I adds self shading in addition to patch competition
   const double average_radiation =
       k_I * average_light_environment * environment.PPFD;
 
-  std::cout << "PPFD: " << environment.PPFD << std::endl;
 
   const double psi_soil = environment.get_psi_soil();
+  
+  // std::cout << "K_s: " << K_s  << "huber_value: " << huber_value << "height: " << height << "eta_c: " << eta_c << std::endl;
+
 
   // height * eta_c = height of average leaf area
+  // const double k_l_max = K_s * huber_value / (height * eta_c);
   const double k_l_max = K_s * huber_value / (height * eta_c);
+
   
   const double opt_psi_stem =
       leaf.optimise_psi_stem_Bartlett(average_radiation, psi_soil, k_l_max);
 
-  const double assimilation_per_area = leaf.calc_profit_Bartlett(
-      average_radiation, psi_soil, opt_psi_stem, height * eta_c);
+    // std::cout << "opt_psi_stem: " << opt_psi_stem  << "psi_soil: " << psi_soil  << "average_radiation: " << average_radiation << "k_l_max: " << k_l_max << std::endl;
 
-  const double assimilation = assimilation_per_area * area_leaf_;
+
+  const double assimilation_per_area = leaf.calc_profit_Bartlett(
+      average_radiation, psi_soil, opt_psi_stem, k_l_max);
+
+  
+  // std::cout << "assimilation: " << assimilation_per_area << "opt_psi_stem: " << opt_psi_stem << "psi_soil: " << psi_soil << std::endl;
+
+  const double assimilation = assimilation_per_area * area_leaf_* 60*60*24*365/1000000;
+
+
+
 
   const double respiration_ =
       respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
   const double turnover_ =
       turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
 
+  // std::cout << "assimilation: " << assimilation << "respiration: " << respiration_ << "turnover: " << turnover_ << std::endl;
+
+
+  // std::cout << "net_mass: " << net_mass_production_dt_A(assimilation, respiration_, turnover_) << std::endl;
+
+
+
   return net_mass_production_dt_A(assimilation, respiration_, turnover_);
+    
 }
 
 // one-shot update of the scm variables
@@ -86,12 +116,18 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
   const double net_mass_production_dt_ =
       net_mass_production_dt(environment, height, area_leaf_, reuse_intervals);
 
+  // std::cout << "net_mass_production_dt_: " << net_mass_production_dt_ << std::endl;
+
+
   // store the aux sate
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
 
   // stubbing out E_p for integration
   for (size_t i = 0; i < environment.ode_size(); i++) {
-    vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_));
+    vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_)*60*60*24*365);
+
+  // std::cout << "consumption_rate: " << evapotranspiration_dt(area_leaf_) << std::endl;
+ 
   }
 
   if (net_mass_production_dt_ > 0) {

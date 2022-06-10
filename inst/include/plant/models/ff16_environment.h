@@ -65,13 +65,16 @@ public:
   }
 
   // soil variables
-  double PPFD;
-  double theta_sat;
-  double r_soil;
-  double theta_wp;
-  double theta_fc;
-  double swf;
-  double k_sat;
+  double PPFD = 1000;
+
+  //paramaterised for sandy loam
+  double theta_sat = 0.453;
+  double r_soil = 0.01;
+  double theta_wp = 0.081;
+  double theta_fc = 0.180;
+  double swf = 1;
+  double k_sat = 440.628;
+  double b_infil = 8;
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
     double infiltration;
@@ -82,28 +85,39 @@ public:
     // canopy_openness -> shading_above -> includes k_I
     double ground_radiation = PPFD * get_environment_at_height(0);;
 
+    double message_ = 2;    
+    // std::cout << "compute rates being run: " << message_ << std::endl;
+
     // treat each soil layer as a separate resource pool
     for (size_t i = 0; i < vars.state_size; i++) {
 
       if(i == 0) {
         infiltration = extrinsic_drivers["rainfall"].eval(time);
+        infiltration = infiltration * (1-std::pow(vars.state(i)/theta_sat, b_infil));
 
-        // Evaporation at soil surface
-        double E_bare_soil_pot_mol = (1.0 - r_soil) * PPFD * PAR_to_SW * slp / ((slp + gamma) * lh);
+        // // Evaporation at soil surface
+        // double E_bare_soil_pot_mol = (1.0 - r_soil) * PPFD * PAR_to_SW * slp / ((slp + gamma) * lh);
 
-        // mols ->  m3/m2/s
-        double E_bare_soil_pot_m = std::max(0.0, E_bare_soil_pot_mol * MH2O * g_to_kg * kg_to_m3);
+        // // mols ->  m3/m2/s
+        // double E_bare_soil_pot_m = std::max(0.0, E_bare_soil_pot_mol * MH2O * g_to_kg * kg_to_m3);
 
-        // need to access total leaf area for environment?
-        double patch_total_area_leaf = 1.0;
-        double Ev_pot = E_bare_soil_pot_m * std::exp(-0.398 * patch_total_area_leaf);
+        // // need to access total leaf area for environment?
+        // double patch_total_area_leaf = 1.0;
+        // double Ev_pot = E_bare_soil_pot_m * std::exp(-0.398 * patch_total_area_leaf);
 
-        double soil_wetness = std::pow(((vars.state(i) - theta_wp) / (theta_fc - theta_wp)), swf);
+        // double soil_wetness = std::pow(((vars.state(i) - theta_wp) / (theta_fc - theta_wp)), swf);
 
-        evaporation = std::max(0.0, Ev_pot * soil_wetness) * sec_2_hr;
+        // evaporation = std::max(0.0, Ev_pot * soil_wetness) * sec_2_hr;
       } else {
-        evaporation = 0.0;
+        infiltration = 0.0;
+        // evaporation = 0.0;
+
       }
+
+        // std::cout << "infiltration: " << infiltration << "theta: " << vars.state(i) << std::endl;
+
+
+
 
       // if (i == soil_number_of_depths){
       //   drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
@@ -116,9 +130,18 @@ public:
       //    drainage = vars.state(i + 1) * something;
       // }
 
-      drainage = 0.0;
+      // drainage = 0.4;
 
-      net_flux = infiltration - resource_depletion[i] - evaporation - drainage;
+      // net_flux = infiltration - resource_depletion[i] - evaporation - drainage;
+      // net_flux = infiltration  - resource_depletion[i] - drainage;
+      // net_flux = infiltration   - drainage;
+      
+      // drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
+
+      drainage = 0;
+
+      
+      net_flux = infiltration  - drainage -  resource_depletion[i];
 
       vars.set_rate(i, net_flux);
     }

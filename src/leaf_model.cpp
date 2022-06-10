@@ -81,12 +81,11 @@ double Leaf::diff_ci(double PPFD, double x, double psi_soil, double psi_stem, do
 double Leaf::calc_assim_gross(
     double PPFD, double psi_soil, double psi_stem, double k_l_max) {
 
+
   // not clear what x is here
   auto target = [&](double x) mutable -> double {
     return diff_ci(PPFD, x, psi_soil, psi_stem, k_l_max);
   };
-
-  std::cout << "PPFD: " << PPFD << ", vcmax: " << vcmax << ", psi_soil: " << psi_soil << ", psi_stem: " << psi_stem << ", k_l_max: " << k_l_max << std::endl;
 
   // tol and iterations copied from control defaults (for now)
   ci = util::uniroot(target, 0, ca, 1e-8, 1000);
@@ -161,7 +160,7 @@ double Leaf::optimise_psi_stem_Bartlett(double PPFD, double psi_soil, double k_l
     double bound_a = psi_soil;
     double bound_b = psi_crit;
 
-    double delta_crit = 1e-5;
+    double delta_crit = 1e-3;
 
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
