@@ -9649,15 +9649,14 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__ctor
-plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths, double PPFD_);
-RcppExport SEXP _plant_FF16_Environment__ctor(SEXP canopy_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP, SEXP PPFD_SEXP) {
+plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths);
+RcppExport SEXP _plant_FF16_Environment__ctor(SEXP canopy_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< bool >::type canopy_rescale_usually(canopy_rescale_usuallySEXP);
     Rcpp::traits::input_parameter< int >::type soil_number_of_depths(soil_number_of_depthsSEXP);
-    Rcpp::traits::input_parameter< double >::type PPFD_(PPFD_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(canopy_rescale_usually, soil_number_of_depths, PPFD_));
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(canopy_rescale_usually, soil_number_of_depths));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -11136,7 +11135,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Weibull_Disturbance_Regime__cdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__cdf, 2},
     {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
-    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 3},
+    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 2},
     {"_plant_FF16_Environment__set_extrinsic_driver", (DL_FUNC) &_plant_FF16_Environment__set_extrinsic_driver, 4},
     {"_plant_FF16_Environment__extrinsic_driver_extrapolation", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_extrapolation, 3},
     {"_plant_FF16_Environment__extrinsic_driver_evaluate", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_evaluate, 3},
