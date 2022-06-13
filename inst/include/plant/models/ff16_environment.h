@@ -77,23 +77,24 @@ public:
   double b_infil = 8;
 
   virtual void compute_rates(std::vector<double> const& resource_depletion) {
+    double saturation;
     double infiltration;
     double evaporation;
     double drainage;
     double net_flux;
 
-    // canopy_openness -> shading_above -> includes k_I
-    double ground_radiation = PPFD * get_environment_at_height(0);;
+    //debugging
+    int counter == 0;
 
-    double message_ = 2;    
-    // std::cout << "compute rates being run: " << message_ << std::endl;
+    // canopy_openness -> shading_above -> includes k_I
+    double ground_radiation = PPFD * get_environment_at_height(0);
 
     // treat each soil layer as a separate resource pool
     for (size_t i = 0; i < vars.state_size; i++) {
 
       if(i == 0) {
-        infiltration = extrinsic_drivers["rainfall"].eval(time);
-        infiltration = infiltration * (1-std::pow(vars.state(i)/theta_sat, b_infil));
+        saturation = std::max(0.0, 1 - std::pow(vars.state(i)/theta_sat, b_infil));
+        infiltration = extrinsic_drivers["rainfall"].eval(time) *  saturation;
 
         // // Evaporation at soil surface
         // double E_bare_soil_pot_mol = (1.0 - r_soil) * PPFD * PAR_to_SW * slp / ((slp + gamma) * lh);
@@ -114,11 +115,6 @@ public:
 
       }
 
-        // std::cout << "infiltration: " << infiltration << "theta: " << vars.state(i) << std::endl;
-
-
-
-
       // if (i == soil_number_of_depths){
       //   drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
       // }
@@ -135,14 +131,22 @@ public:
       // net_flux = infiltration - resource_depletion[i] - evaporation - drainage;
       // net_flux = infiltration  - resource_depletion[i] - drainage;
       // net_flux = infiltration   - drainage;
-      
+
       // drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
 
       drainage = 0;
 
-      
+
       net_flux = infiltration  - drainage -  resource_depletion[i];
 
+      // debugging: we see soil water state going below zero which shouldn't happen
+      if(counter == 100) {
+        std::cout << "time: " << time << "; infiltration: " << infiltration << "; theta: " << vars.state(i) << std::endl;
+        counter = 0;
+      }
+
+      counter += 1;
+      
       vars.set_rate(i, net_flux);
     }
   }
