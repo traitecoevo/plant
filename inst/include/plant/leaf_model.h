@@ -15,27 +15,37 @@
 namespace plant {
 
 // double check best namespace for constants (private vs global)
+// unitless
 static const double vcmax_25_to_jmax_25 = 1.67;
+// unitless
 static const double curv_fact = 0.9;
+// unitless
 static const double a = 0.3;
+// Pa
 static const double gamma_25 = 42.75;
+// Pa umol ^ -1 mol ^ 1 
 static const double umol_per_mol_to_Pa = 0.1013;
+// Pa
 static const double km_25 = 71.56;
+// mol H2o kg ^-1
 static const double kg_to_mol_h2o = 55.4939;
+// mol mol ^-1 / (umol mol ^-1)
 static const double umol_per_mol_to_mol_per_mol = 1e-6;
+// Pa kPa^-1
 static const double kPa_to_Pa = 1000.0;
+
 
 class Leaf {
 public:
-  Leaf(double vcmax        = 100,
-       double p_50         = 1.0,
-       double c            = 2.04,
-       double b            = 2.0,
+  Leaf(double vcmax        = 100, // umol m^-2 s^-1
+       double p_50         = 1.0, // MPa
+       double c            = 2.04, //unitless
+       double b            = 2.0, // MPa
        double psi_crit     = 3.42,  // derived from b and c
-       double beta         = 15000.0,
-       double beta_2       = 1.0,
-       double huber_value  = 1.57e-4,
-       double K_s = 2);
+       double beta         = 15000.0, // umol m^-2 s^-1
+       double beta_2       = 1.0, //unitless
+       double huber_value  = 1.57e-4, // m^2 sapwood area m^-2 leaf area
+       double K_s = 2); // kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
 
   quadrature::QAG integrator;
 
@@ -57,13 +67,13 @@ public:
   double profit;
 
   // TODO: move into environment?
-  double atm_vpd = 2.0;
-  double ca = 40.0;
-  double atm_kpa = 101.3;
+  double atm_vpd = 2.0; //kPa
+  double ca = 40.0; // Pa
+  double atm_kpa = 101.3; //kPa
 
   // this might end up hard-coded
   void initialize_integrator(int integration_rule = 21,
-                             double integration_tol = 1e-6) {
+                             double integration_tol = 1e-3) {
 
     integrator = quadrature::QAG(integration_rule,
                                  1, // fixed integration

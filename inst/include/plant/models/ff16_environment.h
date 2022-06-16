@@ -18,7 +18,6 @@ static const double lh = 44002.59;
 static const double MH2O = 18.02;
 static const double g_to_kg = 1/1000.0;
 static const double kg_to_m3 = 1/1000.0;
-static const double sec_2_hr = 3600.0;
 
 class FF16_Environment : public Environment {
 public:
@@ -84,10 +83,9 @@ public:
     double net_flux;
 
     //debugging
-    int counter == 0;
 
     // canopy_openness -> shading_above -> includes k_I
-    double ground_radiation = PPFD * get_environment_at_height(0);
+    // double ground_radiation = PPFD * get_environment_at_height(0);
 
     // treat each soil layer as a separate resource pool
     for (size_t i = 0; i < vars.state_size; i++) {
@@ -108,7 +106,7 @@ public:
 
         // double soil_wetness = std::pow(((vars.state(i) - theta_wp) / (theta_fc - theta_wp)), swf);
 
-        // evaporation = std::max(0.0, Ev_pot * soil_wetness) * sec_2_hr;
+        // evaporation = std::max(0.0, Ev_pot * soil_wetness)*60*60*24*365;
       } else {
         infiltration = 0.0;
         // evaporation = 0.0;
@@ -139,13 +137,8 @@ public:
 
       net_flux = infiltration  - drainage -  resource_depletion[i];
 
-      // debugging: we see soil water state going below zero which shouldn't happen
-      if(counter == 100) {
-        std::cout << "time: " << time << "; infiltration: " << infiltration << "; theta: " << vars.state(i) << std::endl;
-        counter = 0;
-      }
-
-      counter += 1;
+        // std::cout << "time: " << time << "; infiltration: " << infiltration << "; theta: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
+ 
       
       vars.set_rate(i, net_flux);
     }
@@ -162,6 +155,14 @@ public:
   return a_psi;
 }
 
+  double calc_psi(double theta_) const {
+  double n_psi = calc_n_psi();
+  double a_psi = calc_a_psi();
+
+    double psi = a_psi * std::pow(theta_, -n_psi);
+  return psi;
+}
+
   double get_psi_soil() const {
     // soil volumetric water: m3.m-3
     // assume one layer for now - later extend to include layers of variable depth
@@ -176,7 +177,7 @@ public:
     double a_psi = calc_a_psi();
     double n_psi = calc_n_psi();
 
-    double psi = std::pow(a_psi * (theta / theta_sat), -n_psi);
+    double psi = calc_psi(theta);
 
     // TODO: convert theta to psi
     // calc_apsi(theta_fc, theta_wp)*(theta/theta_sat)^(-calc_npsi(theta_fc, theta_wp))

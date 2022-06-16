@@ -12,20 +12,16 @@ double Leaf::p_50_to_K_s() const {
   return std::pow(1.638999 * (p_50 / 2), -1.38);
 }
 
-// double Leaf::calc_k_l_max(double K_s, double h_v, double h) const {
-//   return K_s * h_v / h;
-// }
-
 double Leaf::calc_vul_b() const {
   return p_50 / pow(-log(1 - 50.0 / 100.0), 1 / c);
 }
 
-// integrates
+// integrates, returns conductivity at given psi_stem kg m^-2 s^-1 MPa^-1
 double Leaf::calc_cond_vuln(double psi, double k_l_max) const {
   return k_l_max * exp(-pow((psi / b), c));
 }
 
-// replace f with some other function
+// replace f with some other function, returns E kg m^-2 s^-1
 double Leaf::calc_E_supply(double k_l_max, double psi_soil,
                            double psi_stem) {
   std::function<double(double)> f;
@@ -34,16 +30,21 @@ double Leaf::calc_E_supply(double k_l_max, double psi_soil,
   return integrator.integrate(f, psi_soil, psi_stem);
 }
 
+
+// returns E kg m^-2 s^-1
 double Leaf::calc_g_c(double psi_soil, double psi_stem, double k_l_max) {
   double E_supply = calc_E_supply(k_l_max, psi_soil, psi_stem);
 
   return atm_kpa * E_supply * kg_to_mol_h2o / atm_vpd / 1.6;
 }
 
+
+// returns A_c umol m^-2 s^-1
 double Leaf::calc_A_c(double ci_) {
   return (vcmax * (ci_ - gamma_25 * umol_per_mol_to_Pa)) / (ci_ + km_25);
 }
 
+// returns A_j umol m^-2 s^-1
 double Leaf::calc_A_j(double PPFD, double ci_) {
 
   double jmax = vcmax * vcmax_25_to_jmax_25;
@@ -56,6 +57,8 @@ double Leaf::calc_A_j(double PPFD, double ci_) {
           (ci_ + 2 * gamma_25 * umol_per_mol_to_Pa));
 }
 
+
+// returns co-limited assimilation umol m^-2 s^-1
 double Leaf::calc_A_lim(double PPFD, double ci_) {
 
   double A_c = calc_A_c(ci_);
@@ -67,6 +70,7 @@ double Leaf::calc_A_lim(double PPFD, double ci_) {
          R_d;
 }
 
+// returns difference between co-limited assimilation and g_c, to be minimised (umol m^-2 s^-1)
 double Leaf::diff_ci(double PPFD, double x, double psi_soil, double psi_stem, double k_l_max) {
 
   double A_lim_ = calc_A_lim(PPFD, x);
@@ -87,12 +91,14 @@ double Leaf::calc_assim_gross(
     return diff_ci(PPFD, x, psi_soil, psi_stem, k_l_max);
   };
 
-  // tol and iterations copied from control defaults (for now)
-  ci = util::uniroot(target, 0, ca, 1e-8, 1000);
+  // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
+  ci = util::uniroot(target, 0, ca, 1e-6, 1000);
 
   A_lim = calc_A_lim(PPFD, ci);
 
   g_c = calc_g_c(psi_soil, psi_stem, k_l_max);
+
+  //E is in m^3 m-2 
 
   E = g_c * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;
 
@@ -125,7 +131,7 @@ double Leaf::calc_profit_Sperry(double PPFD, double psi_soil, double psi_stem, d
   return benefit_ - lambda_ * cost_;
 }
 
-// Bartlett et al. implementation
+// Bartlett et al. implementation. Predicting shifts in the functional composition of tropical forests under increased drought and CO2 from trade-offs among plant hydraulic traits. Bartlett et al. (2018).
 
 double Leaf::calc_hydraulic_cost_Bartlett(double psi_soil, double psi_stem,
                                           double k_l_max) {
@@ -196,12 +202,14 @@ double Leaf::optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_m
   double gr = (sqrt(5) + 1) / 2;
   double opt_psi_stem = psi_soil;
 
+  if (PPFD > 1.5e-8){
+
   // optimise for stem water potential
   if (psi_soil < psi_crit) {
     double bound_a = psi_soil;
     double bound_b = psi_crit;
 
-    double delta_crit = 1e-5;
+    double delta_crit = 1e-3;
 
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
@@ -226,10 +234,11 @@ double Leaf::optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_m
 
     opt_psi_stem = ((bound_b + bound_a) / 2);
   }
+  }
 
   return opt_psi_stem;
-}
 
+}
 
 
 } // namespace plant

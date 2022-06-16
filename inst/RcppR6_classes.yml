@@ -972,11 +972,23 @@ FF16_Environment:
     canopy_openness:
       args: [height: double]
       return_type: double
+    calc_n_psi:
+      args: []
+      return_type: double
+    calc_a_psi:
+      args: []
+      return_type: double
+    calc_psi:
+      args: [theta_: double]
+      return_type: double 
     clear:
       return_type: void
     set_fixed_environment:
       args: [value: double, height_max: double]
       return_type: void
+    get_soil_water_state:
+      args: []
+      return_type: std::vector<double>
     set_soil_water_state:
       args: [state: "std::vector<double>"]
       return_type: void
