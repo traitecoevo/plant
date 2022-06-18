@@ -22,7 +22,6 @@ public:
     canopy = Canopy();
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
-     //extrinsic_drivers["rainfall"] = interpolator::Interpolator();
   };
 
 
@@ -65,7 +64,6 @@ public:
 
       // initial representation of drainage; to be improved
       if(i == 0) {
-        //infiltration = extrinsic_drivers["rainfall"].eval(time);
         infiltration = extrinsic_drivers.evaluate("rainfall", time);
       } else {
         infiltration = std::max(vars.state(i - 1), 0.0) * drainage_multiplier;
