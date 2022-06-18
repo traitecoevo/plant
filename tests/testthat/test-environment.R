@@ -59,8 +59,11 @@ test_that("FF16 rainfall spline", {
   
   ## simple quadratic
   x <- seq(-10, 10, 0.41)
-  y <- x^2
-  env$extrinsic_drivers$set_variable("rainfall", x, y) # overwrites previously created spline
+  quadratic_rain <- list(
+    x = x,
+    y = x^2
+  )
+  env <- make_environment("FF16w", rainfall=quadratic_rain) # overwrites previously created spline
   
   # interpolated points
   expect_equal(env$extrinsic_drivers$evaluate("rainfall", 2), 4)
