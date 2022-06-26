@@ -24,7 +24,7 @@ sets of data. This document goes through examples of setting up Extrinsic Driver
 When handling complex functions that vary over time, Extrinsic Drivers are created via interpolation. Control points are passed as input, and the 
 system creates a smooth function that interpolates the control points:
 
-(image of interpolation, at `assets/Interpolation_example_polynomial.svg`, wikipedia)
+[![Example of polynomial interpolation](assets/Interpolation_example_polynomial.svg){width="400"}](https://en.wikipedia.org/wiki/Polynomial_interpolation)
 
 ## Rainfall
 Rainfall is handled inside `FF16w_Environment`, and is set upon construction. If nothing is passed to `make_environment`, rainfall
