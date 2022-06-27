@@ -31,7 +31,7 @@ Leaf:
       args: []
     calc_cond_vuln:
       return_type: double
-      args: [psi: double, k_l_max: double]
+      args: [psi: double]
     calc_E_supply:
       return_type: double
       args: [k_l_max: double, psi_soil: double, psi_stem: double]

@@ -13,8 +13,8 @@ Leaf__calc_vul_b <- function(obj_) {
     .Call('_plant_Leaf__calc_vul_b', PACKAGE = 'plant', obj_)
 }
 
-Leaf__calc_cond_vuln <- function(obj_, psi, k_l_max) {
-    .Call('_plant_Leaf__calc_cond_vuln', PACKAGE = 'plant', obj_, psi, k_l_max)
+Leaf__calc_cond_vuln <- function(obj_, psi) {
+    .Call('_plant_Leaf__calc_cond_vuln', PACKAGE = 'plant', obj_, psi)
 }
 
 Leaf__calc_E_supply <- function(obj_, k_l_max, psi_soil, psi_stem) {
@@ -3453,12 +3453,28 @@ FF16_Environment__canopy_openness <- function(obj_, height) {
     .Call('_plant_FF16_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
 }
 
+FF16_Environment__calc_n_psi <- function(obj_) {
+    .Call('_plant_FF16_Environment__calc_n_psi', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__calc_a_psi <- function(obj_) {
+    .Call('_plant_FF16_Environment__calc_a_psi', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__calc_psi <- function(obj_, theta_) {
+    .Call('_plant_FF16_Environment__calc_psi', PACKAGE = 'plant', obj_, theta_)
+}
+
 FF16_Environment__clear <- function(obj_) {
     invisible(.Call('_plant_FF16_Environment__clear', PACKAGE = 'plant', obj_))
 }
 
 FF16_Environment__set_fixed_environment <- function(obj_, value, height_max) {
     invisible(.Call('_plant_FF16_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
+}
+
+FF16_Environment__get_soil_water_state <- function(obj_) {
+    .Call('_plant_FF16_Environment__get_soil_water_state', PACKAGE = 'plant', obj_)
 }
 
 FF16_Environment__set_soil_water_state <- function(obj_, state) {

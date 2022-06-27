@@ -91,7 +91,7 @@ public:
   double calc_E_supply(double k_l_max, double psi_soil,
                        double psi_stem);
 
-  double setup_E_supply(double resolution);
+  void setup_E_supply(double resolution);
 
   double calc_g_c(double psi_soil, double psi_stem, double k_l_max); // define as a constant
 

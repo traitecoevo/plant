@@ -35,20 +35,20 @@ double Leaf::calc_cond_vuln(double psi) const {
 double Leaf::calc_E_supply(double k_l_max, double psi_soil,
                            double psi_stem) {
     // integration of calc_cond_vuln over [psi_soil, psi_stem]
-    return k_l_max * (E_curve.evaluate(psi_stem) - E_curve.evaluate(psi_soil));
+    return k_l_max * (E_curve.eval(psi_stem) - E_curve.eval(psi_soil));
 }
 
 
 // REMOVED k_l_max
-double Leaf::setup_E_supply(double resolution) {
+void Leaf::setup_E_supply(double resolution) {
     // integrate and accumulate results
     auto x_psi = std::vector<double>{1, 0.0};  // {0.0}
     auto y_cumulative_E = std::vector<double>{1, 0.0}; // {0.0}
     double step = psi_crit/resolution;
     for (double psi = 0 + step; psi <= psi_crit; psi += step) {
-        double E_psi = step * ((calc_cond_vuln(psi-step) + (calc_cond_vuln(psi))/2) + y_cumulative_E.back();
+        double E_psi = step * ((calc_cond_vuln(psi-step) + calc_cond_vuln(psi))/2) + y_cumulative_E.back();
         x_psi.push_back(psi); // x values for spline
-        y_cumulative_E.push(E_psi); // y values for spline
+        y_cumulative_E.push_back(E_psi); // y values for spline
     }
     // setup interpolator
     E_curve.init(x_psi, y_cumulative_E);
@@ -137,8 +137,8 @@ double Leaf::calc_assim_gross(
 
 double Leaf::calc_hydraulic_cost_Sperry(double psi_soil, double psi_stem,
                                  double k_l_max) {
-  double k_l_soil_ = calc_cond_vuln(psi_soil, k_l_max);
-  double k_l_stem_ = calc_cond_vuln(psi_stem, k_l_max);
+  double k_l_soil_ = k_l_max * calc_cond_vuln(psi_soil);
+  double k_l_stem_ = k_l_max * calc_cond_vuln(psi_stem);
 
   return k_l_soil_ - k_l_stem_;
 }
@@ -147,8 +147,8 @@ double Leaf::calc_profit_Sperry(double PPFD, double psi_soil, double psi_stem, d
 
   double lambda_ =
       calc_assim_gross(PPFD, psi_soil, psi_crit, k_l_max) /
-      (calc_cond_vuln(psi_soil, k_l_max) -
-       calc_cond_vuln(psi_crit, k_l_max));
+      (k_l_max * calc_cond_vuln(psi_soil) -
+              k_l_max * calc_cond_vuln(psi_crit));
   double benefit_ =
       calc_assim_gross(PPFD, psi_soil, psi_stem, k_l_max);
   double cost_ = calc_hydraulic_cost_Sperry(psi_soil, psi_stem, k_l_max);
@@ -161,8 +161,8 @@ double Leaf::calc_profit_Sperry(double PPFD, double psi_soil, double psi_stem, d
 double Leaf::calc_hydraulic_cost_Bartlett(double psi_soil, double psi_stem,
                                           double k_l_max) {
 
-  double k_l_soil_ = calc_cond_vuln(psi_soil, k_l_max);
-  double k_l_stem_ = calc_cond_vuln(psi_stem, k_l_max);
+  double k_l_soil_ = k_l_max * calc_cond_vuln(psi_soil);
+  double k_l_stem_ = k_l_max * calc_cond_vuln(psi_stem);
   double height_ = (K_s * huber_value)/k_l_max;
 
   return beta * huber_value * height_ * pow((1 - k_l_stem_ / k_l_soil_), beta_2);
