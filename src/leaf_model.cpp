@@ -7,8 +7,8 @@ Leaf::Leaf(double vcmax, double p_50, double c, double b,
     : vcmax(vcmax), p_50(p_50), c(c), b(b), psi_crit(psi_crit), beta(beta),
       beta_2(beta_2), huber_value(huber_value), K_s(K_s), ci(NA_REAL), g_c(NA_REAL),
       A_lim(NA_REAL), E(NA_REAL), psi(NA_REAL), profit(NA_REAL) {
-        // std::cout << "K_s inside" << K_s << "K_s_ inside" << K_s_ <<  std::endl;
-      }
+    setup_E_supply(100);
+}
 
 double Leaf::p_50_to_K_s() const {
   return std::pow(1.638999 * (p_50 / 2), -1.38);
@@ -18,21 +18,41 @@ double Leaf::calc_vul_b() const {
   return p_50 / pow(-log(1 - 50.0 / 100.0), 1 / c);
 }
 
+// REMOVED k_l_max
 // integrates, returns conductivity at given psi_stem kg m^-2 s^-1 MPa^-1
-double Leaf::calc_cond_vuln(double psi, double k_l_max) const {
-    std::cout << "b" << b << std::endl;
 
-  return k_l_max * exp(-pow((psi / b), c));
-
+double Leaf::calc_cond_vuln(double psi) const {
+  return exp(-pow((psi / b), c));
 }
 
 // replace f with some other function, returns E kg m^-2 s^-1
+//    double Leaf::calc_E_supply(double k_l_max, double psi_soil,
+//                               double psi_stem) {
+//  std::function<double(double)> f;
+//  f = [&](double psi) -> double { return calc_cond_vuln(psi, k_l_max); };
+//
+//  return integrator.integrate(f, psi_soil, psi_stem);
+
 double Leaf::calc_E_supply(double k_l_max, double psi_soil,
                            double psi_stem) {
-  std::function<double(double)> f;
-  f = [&](double psi) -> double { return calc_cond_vuln(psi, k_l_max); };
+    // integration of calc_cond_vuln over [psi_soil, psi_stem]
+    return k_l_max * (E_curve.evaluate(psi_stem) - E_curve.evaluate(psi_soil));
+}
 
-  return integrator.integrate(f, psi_soil, psi_stem);
+// REMOVED k_l_max
+double Leaf::setup_E_supply(double resolution) {
+    // integrate and accumulate results
+    auto x_psi = std::vector<double>{1, 0.0};  // {0.0}
+    auto y_cumulative_E = std::vector<double>{1, 0.0}; // {0.0}
+    double step = psi_crit/resolution;
+    for (double psi = 0 + step; psi <= psi_crit; psi += step) {
+        double E_psi = step * ((calc_cond_vuln(psi-step) + (calc_cond_vuln(psi))/2) + y_cumulative_E.back();
+        x_psi.push_back(psi); // x values for spline
+        y_cumulative_E.push(E_psi); // y values for spline
+    }
+    // setup interpolator
+    E_curve.init(x_psi, y_cumulative_E);
+    E_curve.set_extrapolate(false);
 }
 
 
