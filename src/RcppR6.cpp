@@ -70,6 +70,26 @@ double Leaf__optimise_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, d
   return obj_->optimise_psi_stem_Sperry(PPFD, psi_soil, k_l_max);
 }
 // [[Rcpp::export]]
+double Leaf__optimise_ci_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->optimise_ci_Bartlett(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__calc_profit_Bartlett_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double c_i, double k_l_max) {
+  return obj_->calc_profit_Bartlett_ci(PPFD, psi_soil, c_i, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__calc_assim_gross_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double c_i) {
+  return obj_->calc_assim_gross_ci(PPFD, c_i);
+}
+// [[Rcpp::export]]
+double Leaf__calc_transp_diff(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_soil, double k_l_max, double E) {
+  return obj_->calc_transp_diff(psi_stem, psi_soil, k_l_max, E);
+}
+// [[Rcpp::export]]
+double Leaf__calc_psi_stem_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max, double E) {
+  return obj_->calc_psi_stem_ci(PPFD, psi_soil, k_l_max, E);
+}
+// [[Rcpp::export]]
 double Leaf__ci__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->ci;
 }
@@ -3919,12 +3939,28 @@ double FF16_Environment__canopy_openness(plant::RcppR6::RcppR6<plant::FF16_Envir
   return obj_->canopy_openness(height);
 }
 // [[Rcpp::export]]
+double FF16_Environment__calc_n_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->calc_n_psi();
+}
+// [[Rcpp::export]]
+double FF16_Environment__calc_a_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->calc_a_psi();
+}
+// [[Rcpp::export]]
+double FF16_Environment__calc_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double theta_) {
+  return obj_->calc_psi(theta_);
+}
+// [[Rcpp::export]]
 void FF16_Environment__clear(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
   obj_->clear();
 }
 // [[Rcpp::export]]
 void FF16_Environment__set_fixed_environment(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double value, double height_max) {
   obj_->set_fixed_environment(value, height_max);
+}
+// [[Rcpp::export]]
+std::vector<double> FF16_Environment__get_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->get_soil_water_state();
 }
 // [[Rcpp::export]]
 void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> state) {

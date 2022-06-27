@@ -6,7 +6,8 @@ FF16w_Strategy::FF16w_Strategy() {
   collect_all_auxiliary = false;
 
   // initialise leaf traits
-  leaf = Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s);
+  // leaf = Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s);
+
 
   // build the string state/aux name to index map
   refresh_indices();
@@ -67,6 +68,8 @@ FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environment,
   // height * eta_c = height of average leaf area
   // const double k_l_max = K_s * huber_value / (height * eta_c);
   const double k_l_max = K_s * huber_value / (height * eta_c);
+
+  std::cout << "K_s_inside_strategy " << K_s << std::endl;
 
 
   // const double opt_psi_stem =
@@ -161,8 +164,32 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
                              vars.state(MORTALITY_INDEX)));
 }
 
+void FF16w_Strategy::prepare_strategy() {
+  // Set up the integrator
+  initialize_integrator(control.assimilator_adaptive_integration,
+                        control.assimilator_integration_rule,
+                        control.assimilator_integration_iterations,
+                        control.assimilator_integration_tol);
+
+  // NOTE: this pre-computes something to save a very small amount of time
+  eta_c = 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta);
+
+  // NOTE: Also pre-computing, though less trivial
+  height_0 = height_seed();
+  area_leaf_0 = area_leaf(height_0);
+
+  if (is_variable_birth_rate) {
+    extrinsic_drivers.set_variable("birth_rate", birth_rate_x, birth_rate_y);
+  } else {
+    extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
+  }
+  leaf = Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s);
+}
+
+
 FF16w_Strategy::ptr make_strategy_ptr(FF16w_Strategy s) {
   s.prepare_strategy();
+
   return std::make_shared<FF16w_Strategy>(s);
 }
 } // namespace plant

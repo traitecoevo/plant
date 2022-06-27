@@ -1323,6 +1323,7 @@ template <> inline SEXP wrap(const plant::FF16w_Strategy& x) {
   ret["k_I"] = Rcpp::wrap(x.k_I);
   ret["vcmax"] = Rcpp::wrap(x.vcmax);
   ret["p_50"] = Rcpp::wrap(x.p_50);
+  ret["K_s"] = Rcpp::wrap(x.K_s);
   ret["c"] = Rcpp::wrap(x.c);
   ret["b"] = Rcpp::wrap(x.b);
   ret["psi_crit"] = Rcpp::wrap(x.psi_crit);
@@ -1413,6 +1414,8 @@ template <> inline plant::FF16w_Strategy as(SEXP x) {
   ret.vcmax = Rcpp::as<double >(xl["vcmax"]);
   // ret.p_50 = Rcpp::as<decltype(retp_50) >(xl["p_50"]);
   ret.p_50 = Rcpp::as<double >(xl["p_50"]);
+  // ret.K_s = Rcpp::as<decltype(retK_s) >(xl["K_s"]);
+  ret.K_s = Rcpp::as<double >(xl["K_s"]);
   // ret.c = Rcpp::as<decltype(retc) >(xl["c"]);
   ret.c = Rcpp::as<double >(xl["c"]);
   // ret.b = Rcpp::as<decltype(retb) >(xl["b"]);

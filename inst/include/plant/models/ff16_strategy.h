@@ -190,7 +190,7 @@ public:
   double height_seed(void) const;
 
   // Set constants within FF16_Strategy
-  void prepare_strategy();
+  virtual void prepare_strategy();
 
   // Previously there was an "integrator" here.  I'm going to stick
   // that into Control or FF16_Environment instead.

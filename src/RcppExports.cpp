@@ -249,6 +249,78 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Leaf__optimise_ci_Bartlett
+double Leaf__optimise_ci_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max);
+RcppExport SEXP _plant_Leaf__optimise_ci_Bartlett(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP k_l_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
+    Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
+    Rcpp::traits::input_parameter< double >::type k_l_max(k_l_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__optimise_ci_Bartlett(obj_, PPFD, psi_soil, k_l_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__calc_profit_Bartlett_ci
+double Leaf__calc_profit_Bartlett_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double c_i, double k_l_max);
+RcppExport SEXP _plant_Leaf__calc_profit_Bartlett_ci(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP c_iSEXP, SEXP k_l_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
+    Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
+    Rcpp::traits::input_parameter< double >::type c_i(c_iSEXP);
+    Rcpp::traits::input_parameter< double >::type k_l_max(k_l_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__calc_profit_Bartlett_ci(obj_, PPFD, psi_soil, c_i, k_l_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__calc_assim_gross_ci
+double Leaf__calc_assim_gross_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double c_i);
+RcppExport SEXP _plant_Leaf__calc_assim_gross_ci(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP c_iSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
+    Rcpp::traits::input_parameter< double >::type c_i(c_iSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__calc_assim_gross_ci(obj_, PPFD, c_i));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__calc_transp_diff
+double Leaf__calc_transp_diff(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_soil, double k_l_max, double E);
+RcppExport SEXP _plant_Leaf__calc_transp_diff(SEXP obj_SEXP, SEXP psi_stemSEXP, SEXP psi_soilSEXP, SEXP k_l_maxSEXP, SEXP ESEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type psi_stem(psi_stemSEXP);
+    Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
+    Rcpp::traits::input_parameter< double >::type k_l_max(k_l_maxSEXP);
+    Rcpp::traits::input_parameter< double >::type E(ESEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__calc_transp_diff(obj_, psi_stem, psi_soil, k_l_max, E));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__calc_psi_stem_ci
+double Leaf__calc_psi_stem_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max, double E);
+RcppExport SEXP _plant_Leaf__calc_psi_stem_ci(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP k_l_maxSEXP, SEXP ESEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
+    Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
+    Rcpp::traits::input_parameter< double >::type k_l_max(k_l_maxSEXP);
+    Rcpp::traits::input_parameter< double >::type E(ESEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__calc_psi_stem_ci(obj_, PPFD, psi_soil, k_l_max, E));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Leaf__ci__get
 double Leaf__ci__get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
 RcppExport SEXP _plant_Leaf__ci__get(SEXP obj_SEXP) {
@@ -9734,6 +9806,40 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_Environment__calc_n_psi
+double FF16_Environment__calc_n_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__calc_n_psi(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__calc_n_psi(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__calc_a_psi
+double FF16_Environment__calc_a_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__calc_a_psi(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__calc_a_psi(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__calc_psi
+double FF16_Environment__calc_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double theta_);
+RcppExport SEXP _plant_FF16_Environment__calc_psi(SEXP obj_SEXP, SEXP theta_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type theta_(theta_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__calc_psi(obj_, theta_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // FF16_Environment__clear
 void FF16_Environment__clear(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
 RcppExport SEXP _plant_FF16_Environment__clear(SEXP obj_SEXP) {
@@ -9754,6 +9860,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type height_max(height_maxSEXP);
     FF16_Environment__set_fixed_environment(obj_, value, height_max);
     return R_NilValue;
+END_RCPP
+}
+// FF16_Environment__get_soil_water_state
+std::vector<double> FF16_Environment__get_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__get_soil_water_state(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__get_soil_water_state(obj_));
+    return rcpp_result_gen;
 END_RCPP
 }
 // FF16_Environment__set_soil_water_state
@@ -10296,6 +10413,11 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__calc_profit_Bartlett", (DL_FUNC) &_plant_Leaf__calc_profit_Bartlett, 5},
     {"_plant_Leaf__optimise_psi_stem_Bartlett", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Bartlett, 4},
     {"_plant_Leaf__optimise_psi_stem_Sperry", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry, 4},
+    {"_plant_Leaf__optimise_ci_Bartlett", (DL_FUNC) &_plant_Leaf__optimise_ci_Bartlett, 4},
+    {"_plant_Leaf__calc_profit_Bartlett_ci", (DL_FUNC) &_plant_Leaf__calc_profit_Bartlett_ci, 5},
+    {"_plant_Leaf__calc_assim_gross_ci", (DL_FUNC) &_plant_Leaf__calc_assim_gross_ci, 3},
+    {"_plant_Leaf__calc_transp_diff", (DL_FUNC) &_plant_Leaf__calc_transp_diff, 5},
+    {"_plant_Leaf__calc_psi_stem_ci", (DL_FUNC) &_plant_Leaf__calc_psi_stem_ci, 5},
     {"_plant_Leaf__ci__get", (DL_FUNC) &_plant_Leaf__ci__get, 1},
     {"_plant_Leaf__ci__set", (DL_FUNC) &_plant_Leaf__ci__set, 2},
     {"_plant_Leaf__g_c__get", (DL_FUNC) &_plant_Leaf__g_c__get, 1},
@@ -11142,8 +11264,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__extrinsic_driver_evaluate_range", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_evaluate_range, 3},
     {"_plant_FF16_Environment__get_extrinsic_driver_names", (DL_FUNC) &_plant_FF16_Environment__get_extrinsic_driver_names, 1},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
+    {"_plant_FF16_Environment__calc_n_psi", (DL_FUNC) &_plant_FF16_Environment__calc_n_psi, 1},
+    {"_plant_FF16_Environment__calc_a_psi", (DL_FUNC) &_plant_FF16_Environment__calc_a_psi, 1},
+    {"_plant_FF16_Environment__calc_psi", (DL_FUNC) &_plant_FF16_Environment__calc_psi, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
+    {"_plant_FF16_Environment__get_soil_water_state", (DL_FUNC) &_plant_FF16_Environment__get_soil_water_state, 1},
     {"_plant_FF16_Environment__set_soil_water_state", (DL_FUNC) &_plant_FF16_Environment__set_soil_water_state, 2},
     {"_plant_FF16_Environment__compute_rates", (DL_FUNC) &_plant_FF16_Environment__compute_rates, 2},
     {"_plant_FF16_Environment__time__get", (DL_FUNC) &_plant_FF16_Environment__time__get, 1},

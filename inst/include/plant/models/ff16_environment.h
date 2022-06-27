@@ -130,9 +130,9 @@ public:
       // net_flux = infiltration  - resource_depletion[i] - drainage;
       // net_flux = infiltration   - drainage;
 
-      // drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
+      drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
 
-      drainage = 0;
+      // drainage = 0;
 
 
       net_flux = infiltration  - drainage -  resource_depletion[i];

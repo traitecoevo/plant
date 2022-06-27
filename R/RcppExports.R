@@ -69,6 +69,26 @@ Leaf__optimise_psi_stem_Sperry <- function(obj_, PPFD, psi_soil, k_l_max) {
     .Call('_plant_Leaf__optimise_psi_stem_Sperry', PACKAGE = 'plant', obj_, PPFD, psi_soil, k_l_max)
 }
 
+Leaf__optimise_ci_Bartlett <- function(obj_, PPFD, psi_soil, k_l_max) {
+    .Call('_plant_Leaf__optimise_ci_Bartlett', PACKAGE = 'plant', obj_, PPFD, psi_soil, k_l_max)
+}
+
+Leaf__calc_profit_Bartlett_ci <- function(obj_, PPFD, psi_soil, c_i, k_l_max) {
+    .Call('_plant_Leaf__calc_profit_Bartlett_ci', PACKAGE = 'plant', obj_, PPFD, psi_soil, c_i, k_l_max)
+}
+
+Leaf__calc_assim_gross_ci <- function(obj_, PPFD, c_i) {
+    .Call('_plant_Leaf__calc_assim_gross_ci', PACKAGE = 'plant', obj_, PPFD, c_i)
+}
+
+Leaf__calc_transp_diff <- function(obj_, psi_stem, psi_soil, k_l_max, E) {
+    .Call('_plant_Leaf__calc_transp_diff', PACKAGE = 'plant', obj_, psi_stem, psi_soil, k_l_max, E)
+}
+
+Leaf__calc_psi_stem_ci <- function(obj_, PPFD, psi_soil, k_l_max, E) {
+    .Call('_plant_Leaf__calc_psi_stem_ci', PACKAGE = 'plant', obj_, PPFD, psi_soil, k_l_max, E)
+}
+
 Leaf__ci__get <- function(obj_) {
     .Call('_plant_Leaf__ci__get', PACKAGE = 'plant', obj_)
 }
@@ -3453,12 +3473,28 @@ FF16_Environment__canopy_openness <- function(obj_, height) {
     .Call('_plant_FF16_Environment__canopy_openness', PACKAGE = 'plant', obj_, height)
 }
 
+FF16_Environment__calc_n_psi <- function(obj_) {
+    .Call('_plant_FF16_Environment__calc_n_psi', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__calc_a_psi <- function(obj_) {
+    .Call('_plant_FF16_Environment__calc_a_psi', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__calc_psi <- function(obj_, theta_) {
+    .Call('_plant_FF16_Environment__calc_psi', PACKAGE = 'plant', obj_, theta_)
+}
+
 FF16_Environment__clear <- function(obj_) {
     invisible(.Call('_plant_FF16_Environment__clear', PACKAGE = 'plant', obj_))
 }
 
 FF16_Environment__set_fixed_environment <- function(obj_, value, height_max) {
     invisible(.Call('_plant_FF16_Environment__set_fixed_environment', PACKAGE = 'plant', obj_, value, height_max))
+}
+
+FF16_Environment__get_soil_water_state <- function(obj_) {
+    .Call('_plant_FF16_Environment__get_soil_water_state', PACKAGE = 'plant', obj_)
 }
 
 FF16_Environment__set_soil_water_state <- function(obj_, state) {
