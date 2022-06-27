@@ -48,6 +48,7 @@ public:
        double K_s = 2); // kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
 
   quadrature::QAG integrator;
+  interpolator::Interpolator E_curve;
 
   double vcmax;
   double p_50;
@@ -85,10 +86,12 @@ public:
   // double calc_k_l_max(double K_s, double h_v, double h) const;
 
   double calc_vul_b() const;
-  double calc_cond_vuln(double psi, double k_l_max) const;
+  double calc_cond_vuln(double psi) const;
 
   double calc_E_supply(double k_l_max, double psi_soil,
                        double psi_stem);
+
+  double setup_E_supply(double resolution);
 
   double calc_g_c(double psi_soil, double psi_stem, double k_l_max); // define as a constant
 
