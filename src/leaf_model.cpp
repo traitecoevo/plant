@@ -36,14 +36,14 @@ double Leaf::calc_cond_vuln(double psi) const {
 double Leaf::calc_E_supply(double k_l_max, double psi_soil,
                            double psi_stem) {
     // integration of calc_cond_vuln over [psi_soil, psi_stem]
-    return k_l_max * (E_curve.eval(psi_stem) - E_curve.eval(psi_soil));
+    return k_l_max * (E_from_psi.eval(psi_stem) - E_from_psi.eval(psi_soil));
 }
 
 // REMOVED k_l_max
 void Leaf::setup_E_supply(double resolution) {
     // integrate and accumulate results
-    auto x_psi = std::vector<double>{1, 0.0};  // {0.0}
-    auto y_cumulative_E = std::vector<double>{1, 0.0}; // {0.0}
+    auto x_psi = std::vector<double>{0.0};  // {0.0}
+    auto y_cumulative_E = std::vector<double>{0.0}; // {0.0}
     double step = psi_crit/resolution;
     for (double psi = 0 + step; psi <= psi_crit; psi += step) {
         double E_psi = step * ((calc_cond_vuln(psi-step) + calc_cond_vuln(psi))/2) + y_cumulative_E.back();
@@ -51,8 +51,8 @@ void Leaf::setup_E_supply(double resolution) {
         y_cumulative_E.push_back(E_psi); // y values for spline
     }
     // setup interpolator
-    E_curve.init(x_psi, y_cumulative_E);
-    E_curve.set_extrapolate(false);
+    E_from_psi.init(x_psi, y_cumulative_E);
+    E_from_psi.set_extrapolate(false);
 }
 
 

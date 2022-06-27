@@ -48,7 +48,8 @@ public:
        double K_s = 2); // kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
 
   quadrature::QAG integrator;
-  interpolator::Interpolator E_curve;
+  interpolator::Interpolator E_from_psi;
+  // psi_from_E
 
   double vcmax;
   double p_50;

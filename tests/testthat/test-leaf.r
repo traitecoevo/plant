@@ -26,7 +26,7 @@ test_that("Basic functions", {
   
   k_l_max = calc_k_l_max(K_s, h_v, h*eta_c)
   
-  expect_equal(l$calc_cond_vuln(psi, k_l_max), calc_k_l(psi, k_l_max, b, c), tolerance = 1e-8)
+  expect_equal(l$calc_cond_vuln(psi), calc_k_l(psi, k_l_max, b, c) / k_l_max, tolerance = 1e-8)
   
   psi_soil <- 0.5 #nominated value for soil water potential for testing (-MPa)
   atm_vpd <- 2 #atmopsheric vapour pressure deficit (kPa)
@@ -34,7 +34,7 @@ test_that("Basic functions", {
   
   #for situations where psi_soil is < than psi_crit
 
-  expect_equal(l$calc_E_supply(k_l_max, psi_soil, psi_stem), calc_E_supply(psi_stem, psi_soil, k_l_max = k_l_max, b=b, c=c)$value)
+  expect_equal(l$calc_E_supply(k_l_max, psi_soil, psi_stem), calc_E_supply(psi_stem, psi_soil, k_l_max = k_l_max, b=b, c=c)$value, tolerance = 1e-8)
   expect_equal(l$calc_g_c(psi_soil, psi_stem, k_l_max), calc_g_c(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, c = c, b = b))
   
   vcmax = 100 #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
