@@ -20,6 +20,7 @@ double Leaf::calc_vul_b() const {
 
 // REMOVED k_l_max
 // integrates, returns conductivity at given psi_stem kg m^-2 s^-1 MPa^-1
+
 double Leaf::calc_cond_vuln(double psi) const {
   return exp(-pow((psi / b), c));
 }
@@ -37,7 +38,6 @@ double Leaf::calc_E_supply(double k_l_max, double psi_soil,
     // integration of calc_cond_vuln over [psi_soil, psi_stem]
     return k_l_max * (E_curve.eval(psi_stem) - E_curve.eval(psi_soil));
 }
-
 
 // REMOVED k_l_max
 void Leaf::setup_E_supply(double resolution) {
@@ -154,6 +154,8 @@ double Leaf::calc_profit_Sperry(double PPFD, double psi_soil, double psi_stem, d
   double cost_ = calc_hydraulic_cost_Sperry(psi_soil, psi_stem, k_l_max);
 
   return benefit_ - lambda_ * cost_;
+
+
 }
 
 // Bartlett et al. implementation. Predicting shifts in the functional composition of tropical forests under increased drought and CO2 from trade-offs among plant hydraulic traits. Bartlett et al. (2018).
@@ -164,6 +166,7 @@ double Leaf::calc_hydraulic_cost_Bartlett(double psi_soil, double psi_stem,
   double k_l_soil_ = k_l_max * calc_cond_vuln(psi_soil);
   double k_l_stem_ = k_l_max * calc_cond_vuln(psi_stem);
   double height_ = (K_s * huber_value)/k_l_max;
+  std::cout << "K_s_ " << K_s << "huber_value " << huber_value << std::endl;
 
   return beta * huber_value * height_ * pow((1 - k_l_stem_ / k_l_soil_), beta_2);
 }
@@ -216,6 +219,7 @@ double Leaf::optimise_psi_stem_Bartlett(double PPFD, double psi_soil, double k_l
 
     opt_psi_stem = ((bound_b + bound_a) / 2);
   }
+  std::cout << "psi_crit " << psi_crit << std::endl;
 
   return opt_psi_stem;
 }
@@ -263,7 +267,91 @@ double Leaf::optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_m
 
   return opt_psi_stem;
 
+
+
 }
 
+double Leaf::optimise_ci_Bartlett(double PPFD, double psi_soil, double k_l_max) {
+
+ double gr = (sqrt(5) + 1) / 2;
+  double opt_psi_stem = psi_soil;
+
+  // optimise for stem water potential
+  if (psi_soil < psi_crit) {
+    double bound_a = psi_soil;
+    double bound_b = psi_crit;
+
+    double delta_crit = 1e-3;
+
+    double bound_c = bound_b - (bound_b - bound_a) / gr;
+    double bound_d = bound_a + (bound_b - bound_a) / gr;
+
+    while (abs(bound_b - bound_a) > delta_crit) {
+
+      double profit_at_c =
+          calc_profit_Bartlett(PPFD, psi_soil, bound_c, k_l_max);
+
+      double profit_at_d =
+          calc_profit_Bartlett(PPFD, psi_soil, bound_d, k_l_max);
+
+      if (profit_at_c > profit_at_d) {
+        bound_b = bound_d;
+      } else {
+        bound_a = bound_c;
+      }
+
+      bound_c = bound_b - (bound_b - bound_a) / gr;
+      bound_d = bound_a + (bound_b - bound_a) / gr;
+    }
+
+    opt_psi_stem = ((bound_b + bound_a) / 2);
+  }
+  // std::cout << "psi_crit " << psi_crit << std::endl;
+
+  return opt_psi_stem;
+}
+
+
+double Leaf::calc_profit_Bartlett_ci(double PPFD, double psi_soil, double c_i,double k_l_max) {                                  
+
+  double benefit_ =
+      calc_assim_gross_ci(PPFD, c_i);
+
+  double g_c = benefit_ * umol_per_mol_to_mol_per_mol / ((ca - c_i) / (atm_kpa * kPa_to_Pa));
+  double E = g_c * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;
+  double psi_stem = calc_psi_stem_ci(PPFD, psi_soil, k_l_max, E);
+  double cost_ = calc_hydraulic_cost_Bartlett(psi_soil, psi_stem, k_l_max);
+
+  return benefit_ - cost_;
+}
+
+double Leaf::calc_assim_gross_ci(double PPFD, double ci) {
+
+  A_lim = calc_A_lim(PPFD, ci);
+  return A_lim;
+  
+}
+
+// integrates, returns conductivity at given psi_stem kg m^-2 s^-1 MPa^-1
+double Leaf::calc_transp_diff(double psi_stem, double psi_soil, double k_l_max, double E) {
+  
+  return E - calc_E_supply(k_l_max, psi_soil, psi_stem);
+}
+
+
+// need to fill in tol and max_iteratiosn
+double Leaf::calc_psi_stem_ci(double PPFD, double psi_soil, double k_l_max, double E) {
+
+  // not clear what x is here
+  auto target = [&](double x) mutable -> double {
+    return calc_transp_diff(x, psi_soil, k_l_max, E);
+  };
+
+  // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
+  double psi_stem_ci_ = util::uniroot(target, 0, psi_crit, 1e-6, 1000);
+
+  return psi_stem_ci_;
+  
+}
 
 } // namespace plant

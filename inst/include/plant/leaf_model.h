@@ -117,6 +117,12 @@ public:
 
   double optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_max);
 
+  double optimise_ci_Bartlett(double PPFD, double psi_soil, double k_l_max);
+  double calc_profit_Bartlett_ci(double PPFD, double psi_soil, double c_i,double k_l_max);
+  double calc_assim_gross_ci(double PPFD, double ci);
+  double calc_transp_diff(double psi_stem, double psi_soil, double k_l_max, double E);
+  double calc_psi_stem_ci(double PPFD, double psi_soil, double k_l_max, double E);
+
 };
 
 } // namespace plant

@@ -70,6 +70,26 @@ double Leaf__optimise_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, d
   return obj_->optimise_psi_stem_Sperry(PPFD, psi_soil, k_l_max);
 }
 // [[Rcpp::export]]
+double Leaf__optimise_ci_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->optimise_ci_Bartlett(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__calc_profit_Bartlett_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double c_i, double k_l_max) {
+  return obj_->calc_profit_Bartlett_ci(PPFD, psi_soil, c_i, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__calc_assim_gross_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double c_i) {
+  return obj_->calc_assim_gross_ci(PPFD, c_i);
+}
+// [[Rcpp::export]]
+double Leaf__calc_transp_diff(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_soil, double k_l_max, double E) {
+  return obj_->calc_transp_diff(psi_stem, psi_soil, k_l_max, E);
+}
+// [[Rcpp::export]]
+double Leaf__calc_psi_stem_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max, double E) {
+  return obj_->calc_psi_stem_ci(PPFD, psi_soil, k_l_max, E);
+}
+// [[Rcpp::export]]
 double Leaf__ci__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->ci;
 }

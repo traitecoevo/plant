@@ -27,19 +27,23 @@ public:
   virtual void compute_rates(const FF16_Environment &environment,
                              bool reuse_intervals, Internals &vars);
 
+  virtual void prepare_strategy();
+
+
   Leaf leaf;
 
   // leaf traits
   double vcmax = 100;
-  double p_50 = 1.0;
   double c = 2.04;
-  double b = 2.0;
-  double psi_crit = 3.548059; // derived from b and c
   double beta = 15000.0;
   double beta_2 = 1.0;
   double huber_value = 1.57e-4;
-  double K_s = 2;
+  double p_50 = 1;
+  double K_s = 3;
+  double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
+  double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
 };
+
 
 FF16w_Strategy::ptr make_strategy_ptr(FF16w_Strategy s);
 
