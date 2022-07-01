@@ -422,6 +422,7 @@ Species:
     nodes: {type: "std::vector<plant::Node<T,E> >", access: member, name_cpp: r_nodes}
     net_reproduction_ratio_by_node: {type: "std::vector<double>", access: member}
     competition_effects: {type: "std::vector<double>", access: member, name_cpp: r_competition_effects}
+    extrinsic_drivers: {type: "plant::ExtrinsicDrivers", access: member, name_cpp: extrinsic_drivers}
     ## ODE interface:
     ode_size: {type: size_t, access: member}
     ode_state: {type: "plant::ode::state_type", access: function, name_cpp: "plant::ode::r_ode_state", name_cpp_set: "plant::ode::r_set_ode_state"}
@@ -445,8 +446,6 @@ Species:
       return_type: "std::vector<double>"
       args: [scal: double=1]
       name_cpp: r_competition_effects_error
-    extrinsic_drivers:
-      return_type: "plant::ExtrinsicDrivers"
 
 Patch:
   name_cpp: "plant::Patch<T,E>"

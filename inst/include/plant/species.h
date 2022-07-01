@@ -76,7 +76,7 @@ public:
 
   // This is just kind of useful
   std::vector<double> r_log_densities() const;
-  const ExtrinsicDrivers& extrinsic_drivers() const {return strategy->extrinsic_drivers;}
+  ExtrinsicDrivers extrinsic_drivers() const {return strategy->extrinsic_drivers;}
 
 private:
   const Control& control() const {return strategy->get_control();}

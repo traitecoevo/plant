@@ -77,10 +77,10 @@ out <- run_scm(p1, env, ctrl)
 Evaluating the birth rate can either be done at the individual species level:
 ```
 s1 <- FF16_Species(p1$strategies[[1]])
-s1$extrinsic_drivers()$evaluate("birth_rate", 7)
+s1$extrinsic_drivers$evaluate("birth_rate", 7)
 ```
 ... or after the SCM has run:
 ```
 out <- run_scm(p1, env, ctrl)
-out$patch$species[[1]]$extrinsic_drivers()$evaluate("birth_rate", 7)
+out$patch$species[[1]]$extrinsic_drivers$evaluate("birth_rate", 7)
 ```
