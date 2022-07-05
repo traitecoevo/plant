@@ -69,7 +69,7 @@ FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environment,
   // const double k_l_max = K_s * huber_value / (height * eta_c);
   const double k_l_max = K_s * huber_value / (height * eta_c);
 
-  std::cout << "K_s_inside_strategy " << K_s << std::endl;
+  // std::cout << "K_s_inside_strategy " << K_s << std::endl;
 
 
   // const double opt_psi_stem =
@@ -77,24 +77,26 @@ FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environment,
 
 
   
-  const double opt_psi_stem =
-      leaf.optimise_psi_stem_Bartlett(average_radiation, psi_soil, k_l_max);
+  // const double opt_psi_stem =
+  //     leaf.optimise_psi_stem_Bartlett(average_radiation, psi_soil, k_l_max);
 
     // std::cout << "opt_psi_stem: " << opt_psi_stem  << "psi_soil: " << psi_soil  << "average_radiation: " << average_radiation << "k_l_max: " << k_l_max << std::endl;
+
+  const double opt_psi_stem =
+      leaf.optimise_psi_stem_Sperry_Newton(average_radiation, psi_soil, k_l_max);
+
 
 
   // const double assimilation_per_area = leaf.calc_profit_Sperry(
   //     average_radiation, psi_soil, opt_psi_stem, k_l_max);
 
 
-  const double assimilation_per_area = leaf.calc_profit_Bartlett(
+  const double assimilation_per_area = leaf.calc_profit_Sperry(
       average_radiation, psi_soil, opt_psi_stem, k_l_max);
 
 // std::cout << "assimilation_umol: " << assimilation_per_area << "area_leaf: " << area_leaf_ <<std::endl;
   
   const double assimilation = assimilation_per_area * area_leaf_* 60*60*12*365/1000000;
-
-
 
 
   const double respiration_ =

@@ -5,9 +5,10 @@ Leaf::Leaf(double vcmax, double p_50, double c, double b,
            double psi_crit, // derived from b and c
            double beta, double beta_2, double huber_value, double K_s)
     : vcmax(vcmax), p_50(p_50), c(c), b(b), psi_crit(psi_crit), beta(beta),
-      beta_2(beta_2), huber_value(huber_value), K_s(K_s), ci(NA_REAL), g_c(NA_REAL),
+      beta_2(beta_2), huber_value(huber_value), K_s(K_s), ci(20), g_c(NA_REAL),
       A_lim(NA_REAL), E(NA_REAL), psi(NA_REAL), profit(NA_REAL) {
     setup_E_supply(100);
+    // setup_psi(100);
 }
 
 double Leaf::p_50_to_K_s() const {
@@ -26,12 +27,13 @@ double Leaf::calc_cond_vuln(double psi) const {
 }
 
 // replace f with some other function, returns E kg m^-2 s^-1
-//    double Leaf::calc_E_supply(double k_l_max, double psi_soil,
-//                               double psi_stem) {
-//  std::function<double(double)> f;
-//  f = [&](double psi) -> double { return calc_cond_vuln(psi, k_l_max); };
-//
-//  return integrator.integrate(f, psi_soil, psi_stem);
+   double Leaf::calc_E_supply_full_integration(double k_l_max, double psi_soil,
+                              double psi_stem) {
+ std::function<double(double)> f;
+ f = [&](double psi) -> double { return calc_cond_vuln(psi); };
+
+ return k_l_max * integrator.integrate(f, psi_soil, psi_stem);
+                              }
 
 double Leaf::calc_E_supply(double k_l_max, double psi_soil,
                            double psi_stem) {
@@ -39,22 +41,44 @@ double Leaf::calc_E_supply(double k_l_max, double psi_soil,
     return k_l_max * (E_from_psi.eval(psi_stem) - E_from_psi.eval(psi_soil));
 }
 
+double Leaf::calc_psi_stem_ci(double k_l_max, double psi_soil,
+                           double E_ci) {
+    // integration of calc_cond_vuln over [psi_soil, psi_stem]
+    double E_psi_stem = E_ci/k_l_max +  E_from_psi.eval(psi_soil);
+    // std::cout  << "E_ci: " << E_ci << "Epsistem: " << E_psi_stem << "E out" << E_from_psi.eval(psi_soil) << std::endl;
+    return psi_from_E.eval(E_psi_stem);
+    }
+
+double Leaf::calc_psi_from_E(double E_psi_stem) {
+    // integration of calc_cond_vuln over [psi_soil, psi_stem]
+    return psi_from_E.eval(E_psi_stem);
+    }
+
+
+
 // REMOVED k_l_max
 void Leaf::setup_E_supply(double resolution) {
     // integrate and accumulate results
     auto x_psi = std::vector<double>{0.0};  // {0.0}
     auto y_cumulative_E = std::vector<double>{0.0}; // {0.0}
     double step = psi_crit/resolution;
-    for (double psi = 0 + step; psi <= psi_crit; psi += step) {
-        double E_psi = step * ((calc_cond_vuln(psi-step) + calc_cond_vuln(psi))/2) + y_cumulative_E.back();
-        x_psi.push_back(psi); // x values for spline
+   
+    for (double psi_spline = 0 + step; psi_spline <= psi_crit + 2*step; psi_spline += step) {
+        double E_psi = step * ((calc_cond_vuln(psi_spline-step) + calc_cond_vuln(psi_spline))/2) + y_cumulative_E.back();
+        x_psi.push_back(psi_spline); // x values for spline
         y_cumulative_E.push_back(E_psi); // y values for spline
-    }
-    // setup interpolator
-    E_from_psi.init(x_psi, y_cumulative_E);
-    E_from_psi.set_extrapolate(false);
+
+// std::cout << "psi_crt" << psi_crit << "psi" << psi_spline <<  "step" << step <<std::endl ;
+
 }
 
+    // setup interpolator
+    E_from_psi.init(x_psi, y_cumulative_E);
+    E_from_psi.set_extrapolate(true);
+  
+    psi_from_E.init(y_cumulative_E, x_psi);
+    psi_from_E.set_extrapolate(false);
+}
 
 // returns E kg m^-2 s^-1
 double Leaf::calc_g_c(double psi_soil, double psi_stem, double k_l_max) {
@@ -158,6 +182,146 @@ double Leaf::calc_profit_Sperry(double PPFD, double psi_soil, double psi_stem, d
 
 }
 
+
+double Leaf::optimise_psi_stem_Sperry_Newton(double PPFD, double psi_soil, double k_l_max) {
+  
+  double psi_stem_next = psi_soil;
+
+  if (PPFD > 1.5e-8){
+  // optimise for stem water potential
+  if (psi_soil < psi_crit) {
+  double diff_value = 0.01; 
+  double epsilon = 0.001;
+  double psi_stem_initial = psi_soil;
+  psi_stem_next = psi_stem_initial + 0.1;
+  
+  while(abs(psi_stem_next - psi_stem_initial) > epsilon){
+
+    psi_stem_initial = psi_stem_next;
+
+    double x_1 = psi_stem_initial - diff_value;
+    double x_2 = psi_stem_initial + diff_value;
+
+    double y_0 = calc_profit_Sperry(PPFD, psi_soil, psi_stem_initial, k_l_max);
+    double y_1 = calc_profit_Sperry(PPFD, psi_soil, x_1, k_l_max);
+    double y_2 = calc_profit_Sperry(PPFD, psi_soil, x_2, k_l_max);
+
+
+    double first_dev = (y_2 - y_1)/(2*diff_value);
+    double sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
+
+    psi_stem_next = psi_stem_initial -  first_dev/sec_dev;
+
+  }
+
+  }
+  }
+    return psi_stem_next;
+  }
+
+// need docs on Golden Section Search and reference to Bartlett.
+double Leaf::optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_max) {
+
+  double gr = (sqrt(5) + 1) / 2;
+  double opt_psi_stem = psi_soil;
+
+  if (PPFD > 1.5e-8){
+
+  // optimise for stem water potential
+  if (psi_soil < psi_crit) {
+    double bound_a = psi_soil;
+    double bound_b = psi_crit;
+
+    double delta_crit = 1e-3;
+
+    double bound_c = bound_b - (bound_b - bound_a) / gr;
+    double bound_d = bound_a + (bound_b - bound_a) / gr;
+
+    while (abs(bound_b - bound_a) > delta_crit) {
+
+      double profit_at_c =
+          calc_profit_Sperry(PPFD, psi_soil, bound_c, k_l_max);
+
+      double profit_at_d =
+          calc_profit_Sperry(PPFD, psi_soil, bound_d, k_l_max);
+
+      if (profit_at_c > profit_at_d) {
+        bound_b = bound_d;
+      } else {
+        bound_a = bound_c;
+      }
+
+      bound_c = bound_b - (bound_b - bound_a) / gr;
+      bound_d = bound_a + (bound_b - bound_a) / gr;
+    }
+
+    opt_psi_stem = ((bound_b + bound_a) / 2);
+  }
+  }
+
+  return opt_psi_stem;
+
+
+
+}
+
+double Leaf::calc_profit_Sperry_ci(double PPFD, double psi_soil, double c_i,double k_l_max) {                                  
+
+  double benefit_ =
+      calc_A_lim(PPFD, c_i);
+  double g_c_ci = (benefit_ * umol_per_mol_to_mol_per_mol * atm_kpa * kPa_to_Pa)/(ca - c_i); 
+  // std::cout << "g_c" << g_c_ci << "c_i" << c_i << std::endl;
+  double E_ci = g_c_ci * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;
+  double psi_stem = calc_psi_stem_ci(k_l_max, psi_soil, E_ci);
+  double cost_ = calc_hydraulic_cost_Sperry(psi_soil, psi_stem, k_l_max);
+  double lambda_ = calc_assim_gross(PPFD, psi_soil, psi_crit, k_l_max) / calc_hydraulic_cost_Sperry(psi_soil, psi_crit, k_l_max);
+
+  // std::cout << "lambda_" << lambda_ << "kPa_to_Pa"<<kPa_to_Pa << "atm_kpa" << atm_kpa << "umol_per_mol_to_mol_per_mol" <<umol_per_mol_to_mol_per_mol<< "benefit" << benefit_ << "g_c" << g_c <<"E" << E_ci <<"psi_stem" << psi_stem << "cost_" << cost_  << "ci" << c_i <<std::endl;
+
+
+  return benefit_ - lambda_*cost_;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // Bartlett et al. implementation. Predicting shifts in the functional composition of tropical forests under increased drought and CO2 from trade-offs among plant hydraulic traits. Bartlett et al. (2018).
 
 double Leaf::calc_hydraulic_cost_Bartlett(double psi_soil, double psi_stem,
@@ -166,7 +330,7 @@ double Leaf::calc_hydraulic_cost_Bartlett(double psi_soil, double psi_stem,
   double k_l_soil_ = k_l_max * calc_cond_vuln(psi_soil);
   double k_l_stem_ = k_l_max * calc_cond_vuln(psi_stem);
   double height_ = (K_s * huber_value)/k_l_max;
-  std::cout << "K_s_ " << K_s << "huber_value " << huber_value << std::endl;
+  // std::cout << "K_s_ " << K_s << "huber_value " << huber_value << std::endl;
 
   return beta * huber_value * height_ * pow((1 - k_l_stem_ / k_l_soil_), beta_2);
 }
@@ -219,108 +383,64 @@ double Leaf::optimise_psi_stem_Bartlett(double PPFD, double psi_soil, double k_l
 
     opt_psi_stem = ((bound_b + bound_a) / 2);
   }
-  std::cout << "psi_crit " << psi_crit << std::endl;
-
-  return opt_psi_stem;
-}
-
-
-// need docs on Golden Section Search and reference to Bartlett.
-double Leaf::optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_max) {
-
-  double gr = (sqrt(5) + 1) / 2;
-  double opt_psi_stem = psi_soil;
-
-  if (PPFD > 1.5e-8){
-
-  // optimise for stem water potential
-  if (psi_soil < psi_crit) {
-    double bound_a = psi_soil;
-    double bound_b = psi_crit;
-
-    double delta_crit = 1e-3;
-
-    double bound_c = bound_b - (bound_b - bound_a) / gr;
-    double bound_d = bound_a + (bound_b - bound_a) / gr;
-
-    while (abs(bound_b - bound_a) > delta_crit) {
-
-      double profit_at_c =
-          calc_profit_Sperry(PPFD, psi_soil, bound_c, k_l_max);
-
-      double profit_at_d =
-          calc_profit_Sperry(PPFD, psi_soil, bound_d, k_l_max);
-
-      if (profit_at_c > profit_at_d) {
-        bound_b = bound_d;
-      } else {
-        bound_a = bound_c;
-      }
-
-      bound_c = bound_b - (bound_b - bound_a) / gr;
-      bound_d = bound_a + (bound_b - bound_a) / gr;
-    }
-
-    opt_psi_stem = ((bound_b + bound_a) / 2);
-  }
-  }
-
-  return opt_psi_stem;
-
-
-
-}
-
-double Leaf::optimise_ci_Bartlett(double PPFD, double psi_soil, double k_l_max) {
-
- double gr = (sqrt(5) + 1) / 2;
-  double opt_psi_stem = psi_soil;
-
-  // optimise for stem water potential
-  if (psi_soil < psi_crit) {
-    double bound_a = psi_soil;
-    double bound_b = psi_crit;
-
-    double delta_crit = 1e-3;
-
-    double bound_c = bound_b - (bound_b - bound_a) / gr;
-    double bound_d = bound_a + (bound_b - bound_a) / gr;
-
-    while (abs(bound_b - bound_a) > delta_crit) {
-
-      double profit_at_c =
-          calc_profit_Bartlett(PPFD, psi_soil, bound_c, k_l_max);
-
-      double profit_at_d =
-          calc_profit_Bartlett(PPFD, psi_soil, bound_d, k_l_max);
-
-      if (profit_at_c > profit_at_d) {
-        bound_b = bound_d;
-      } else {
-        bound_a = bound_c;
-      }
-
-      bound_c = bound_b - (bound_b - bound_a) / gr;
-      bound_d = bound_a + (bound_b - bound_a) / gr;
-    }
-
-    opt_psi_stem = ((bound_b + bound_a) / 2);
-  }
   // std::cout << "psi_crit " << psi_crit << std::endl;
 
   return opt_psi_stem;
 }
 
 
+
+double Leaf::optimise_ci_Bartlett(double PPFD, double psi_soil, double k_l_max) {
+
+ double gr = (sqrt(5) + 1) / 2;
+
+  // optimise for stem water potential
+    double bound_a = 0;
+    double bound_b = ca;
+
+    double delta_crit = 1e-3;
+
+    double bound_c = bound_b - (bound_b - bound_a) / gr;
+    double bound_d = bound_a + (bound_b - bound_a) / gr;
+
+    while (abs(bound_b - bound_a) > delta_crit) {
+
+      double profit_at_c =
+          calc_profit_Bartlett_ci(PPFD, psi_soil, bound_c, k_l_max);
+
+      double profit_at_d =
+          calc_profit_Bartlett_ci(PPFD, psi_soil, bound_d, k_l_max);
+
+      if (profit_at_c > profit_at_d) {
+        bound_b = bound_d;
+      } else {
+        bound_a = bound_c;
+      }
+
+      bound_c = bound_b - (bound_b - bound_a) / gr;
+      bound_d = bound_a + (bound_b - bound_a) / gr;
+    }
+
+   double opt_ci = ((bound_b + bound_a) / 2);
+
+  // std::cout << "psi_crit " << psi_crit << std::endl;
+
+  return opt_ci;
+}
+
 double Leaf::calc_profit_Bartlett_ci(double PPFD, double psi_soil, double c_i,double k_l_max) {                                  
 
   double benefit_ =
       calc_assim_gross_ci(PPFD, c_i);
-
-  double g_c = benefit_ * umol_per_mol_to_mol_per_mol / ((ca - c_i) / (atm_kpa * kPa_to_Pa));
-  double E = g_c * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;
-  double psi_stem = calc_psi_stem_ci(PPFD, psi_soil, k_l_max, E);
+  
+  double g_c = (benefit_ * umol_per_mol_to_mol_per_mol * atm_kpa * kPa_to_Pa)/(ca - c_i); 
+  // std::cout << "g_c" << g_c << std::endl;
+  double E_ci = g_c * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;
+  double psi_stem = calc_psi_stem_ci(k_l_max, psi_soil, E_ci);
   double cost_ = calc_hydraulic_cost_Bartlett(psi_soil, psi_stem, k_l_max);
+
+  // std::cout << "kPa_to_Pa"<<kPa_to_Pa << "atm_kpa" << atm_kpa << "umol_per_mol_to_mol_per_mol" <<umol_per_mol_to_mol_per_mol<< "benefit" << benefit_ << "g_c" << g_c <<"E" << E_ci <<"psi_stem" << psi_stem << "cost_" << cost_  << "ci" << c_i <<std::endl;
+
 
   return benefit_ - cost_;
 }
@@ -329,28 +449,6 @@ double Leaf::calc_assim_gross_ci(double PPFD, double ci) {
 
   A_lim = calc_A_lim(PPFD, ci);
   return A_lim;
-  
-}
-
-// integrates, returns conductivity at given psi_stem kg m^-2 s^-1 MPa^-1
-double Leaf::calc_transp_diff(double psi_stem, double psi_soil, double k_l_max, double E) {
-  
-  return E - calc_E_supply(k_l_max, psi_soil, psi_stem);
-}
-
-
-// need to fill in tol and max_iteratiosn
-double Leaf::calc_psi_stem_ci(double PPFD, double psi_soil, double k_l_max, double E) {
-
-  // not clear what x is here
-  auto target = [&](double x) mutable -> double {
-    return calc_transp_diff(x, psi_soil, k_l_max, E);
-  };
-
-  // tol and iterations copied from control defaults (for now) - changed recently to 1e-6
-  double psi_stem_ci_ = util::uniroot(target, 0, psi_crit, 1e-6, 1000);
-
-  return psi_stem_ci_;
   
 }
 

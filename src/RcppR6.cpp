@@ -22,6 +22,10 @@ double Leaf__calc_E_supply(plant::RcppR6::RcppR6<plant::Leaf> obj_, double k_l_m
   return obj_->calc_E_supply(k_l_max, psi_soil, psi_stem);
 }
 // [[Rcpp::export]]
+double Leaf__calc_E_supply_full_integration(plant::RcppR6::RcppR6<plant::Leaf> obj_, double k_l_max, double psi_soil, double psi_stem) {
+  return obj_->calc_E_supply_full_integration(k_l_max, psi_soil, psi_stem);
+}
+// [[Rcpp::export]]
 double Leaf__calc_g_c(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_soil, double psi_stem, double k_l_max) {
   return obj_->calc_g_c(psi_soil, psi_stem, k_l_max);
 }
@@ -82,12 +86,20 @@ double Leaf__calc_assim_gross_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double
   return obj_->calc_assim_gross_ci(PPFD, c_i);
 }
 // [[Rcpp::export]]
-double Leaf__calc_transp_diff(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem, double psi_soil, double k_l_max, double E) {
-  return obj_->calc_transp_diff(psi_stem, psi_soil, k_l_max, E);
+double Leaf__calc_psi_stem_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double k_l_max, double psi_soil, double E_ci) {
+  return obj_->calc_psi_stem_ci(k_l_max, psi_soil, E_ci);
 }
 // [[Rcpp::export]]
-double Leaf__calc_psi_stem_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max, double E) {
-  return obj_->calc_psi_stem_ci(PPFD, psi_soil, k_l_max, E);
+double Leaf__calc_psi_from_E(plant::RcppR6::RcppR6<plant::Leaf> obj_, double E_psi_stem) {
+  return obj_->calc_psi_from_E(E_psi_stem);
+}
+// [[Rcpp::export]]
+double Leaf__calc_profit_Sperry_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double c_i, double k_l_max) {
+  return obj_->calc_profit_Sperry_ci(PPFD, psi_soil, c_i, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__optimise_psi_stem_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->optimise_psi_stem_Sperry_Newton(PPFD, psi_soil, k_l_max);
 }
 // [[Rcpp::export]]
 double Leaf__ci__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {

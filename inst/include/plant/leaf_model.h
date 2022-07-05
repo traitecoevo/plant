@@ -49,6 +49,8 @@ public:
 
   quadrature::QAG integrator;
   interpolator::Interpolator E_from_psi;
+  interpolator::Interpolator psi_from_E;
+
   // psi_from_E
 
   double vcmax;
@@ -92,7 +94,12 @@ public:
   double calc_E_supply(double k_l_max, double psi_soil,
                        double psi_stem);
 
+   double calc_E_supply_full_integration(double k_l_max, double psi_soil,
+                       double psi_stem);                    
+
   void setup_E_supply(double resolution);
+  // void setup_psi(double resolution);
+
 
   double calc_g_c(double psi_soil, double psi_stem, double k_l_max); // define as a constant
 
@@ -121,10 +128,11 @@ public:
   double optimise_ci_Bartlett(double PPFD, double psi_soil, double k_l_max);
   double calc_profit_Bartlett_ci(double PPFD, double psi_soil, double c_i,double k_l_max);
   double calc_assim_gross_ci(double PPFD, double ci);
-  double calc_transp_diff(double psi_stem, double psi_soil, double k_l_max, double E);
-  double calc_psi_stem_ci(double PPFD, double psi_soil, double k_l_max, double E);
+  double calc_psi_stem_ci(double k_l_max, double psi_soil, double E_ci);
+  double calc_psi_from_E(double E_psi_stem);
+  double calc_profit_Sperry_ci(double PPFD, double psi_soil, double c_i,double k_l_max);
+  double optimise_psi_stem_Sperry_Newton(double PPFD, double psi_soil, double k_l_max);
 
 };
-
 } // namespace plant
 #endif

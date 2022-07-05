@@ -35,6 +35,9 @@ Leaf:
     calc_E_supply:
       return_type: double
       args: [k_l_max: double, psi_soil: double, psi_stem: double]
+    calc_E_supply_full_integration:
+      return_type: double
+      args: [k_l_max: double, psi_soil: double, psi_stem: double]
     calc_g_c:
       return_type: double
       args: [psi_soil: double, psi_stem: double, k_l_max: double]
@@ -80,12 +83,18 @@ Leaf:
     calc_assim_gross_ci:
       return_type: double
       args: [PPFD: double, c_i: double]
-    calc_transp_diff:
-      return_type: double
-      args: [psi_stem: double, psi_soil: double, k_l_max: double, E: double]
     calc_psi_stem_ci:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double, E: double]
+      args: [k_l_max: double, psi_soil: double, E_ci: double]
+    calc_psi_from_E:
+      return_type: double
+      args: [E_psi_stem: double]
+    calc_profit_Sperry_ci:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, c_i: double, k_l_max: double]
+    optimise_psi_stem_Sperry_Newton:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, k_l_max: double]
 
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
