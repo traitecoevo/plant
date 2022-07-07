@@ -102,6 +102,18 @@ double Leaf__optimise_psi_stem_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> 
   return obj_->optimise_psi_stem_Sperry_Newton(PPFD, psi_soil, k_l_max);
 }
 // [[Rcpp::export]]
+double Leaf__optimise_psi_stem_Sperry_Newton_recall(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->optimise_psi_stem_Sperry_Newton_recall(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__optimise_ci_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->optimise_ci_Sperry_Newton(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__optimise_ci_Sperry_Newton_recall(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->optimise_ci_Sperry_Newton_recall(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
 double Leaf__ci__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->ci;
 }
@@ -153,6 +165,24 @@ double Leaf__profit__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__profit__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->profit = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__psi_stem_next__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->psi_stem_next;
+}
+// [[Rcpp::export]]
+void Leaf__psi_stem_next__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->psi_stem_next = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__c_i_next__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->c_i_next;
+}
+// [[Rcpp::export]]
+void Leaf__c_i_next__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->c_i_next = value;
 }
 
 

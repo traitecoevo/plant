@@ -1,12 +1,13 @@
 #include <plant/leaf_model.h>
+#include <cmath>
 
 namespace plant {
 Leaf::Leaf(double vcmax, double p_50, double c, double b,
            double psi_crit, // derived from b and c
            double beta, double beta_2, double huber_value, double K_s)
     : vcmax(vcmax), p_50(p_50), c(c), b(b), psi_crit(psi_crit), beta(beta),
-      beta_2(beta_2), huber_value(huber_value), K_s(K_s), ci(20), g_c(NA_REAL),
-      A_lim(NA_REAL), E(NA_REAL), psi(NA_REAL), profit(NA_REAL) {
+      beta_2(beta_2), huber_value(huber_value), K_s(K_s), ci(NA_REAL), g_c(NA_REAL),
+      A_lim(NA_REAL), E(NA_REAL), psi(NA_REAL), profit(NA_REAL), psi_stem_next(NA_REAL), c_i_next(NA_REAL) {
     setup_E_supply(100);
     // setup_psi(100);
 }
@@ -74,7 +75,7 @@ void Leaf::setup_E_supply(double resolution) {
 
     // setup interpolator
     E_from_psi.init(x_psi, y_cumulative_E);
-    E_from_psi.set_extrapolate(true);
+    E_from_psi.set_extrapolate(false);
   
     psi_from_E.init(y_cumulative_E, x_psi);
     psi_from_E.set_extrapolate(false);
@@ -219,6 +220,48 @@ double Leaf::optimise_psi_stem_Sperry_Newton(double PPFD, double psi_soil, doubl
     return psi_stem_next;
   }
 
+double Leaf::optimise_psi_stem_Sperry_Newton_recall(double PPFD, double psi_soil, double k_l_max) {
+  
+  // double psi_stem_next = psi_soil;
+
+  if (PPFD > 1.5e-8){
+  // optimise for stem water potential
+  if (psi_soil < psi_crit) {
+  double diff_value = 0.01; 
+  double epsilon = 0.001;
+  double psi_stem_initial = psi_soil;
+
+  if (psi_stem_next != psi_stem_next){
+  psi_stem_next = psi_stem_initial + 0.1;
+  }
+  
+  while(abs(psi_stem_next - psi_stem_initial) > epsilon){
+
+    psi_stem_initial = psi_stem_next;
+
+    double x_1 = psi_stem_initial - diff_value;
+    double x_2 = psi_stem_initial + diff_value;
+
+    double y_0 = calc_profit_Sperry(PPFD, psi_soil, psi_stem_initial, k_l_max);
+    double y_1 = calc_profit_Sperry(PPFD, psi_soil, x_1, k_l_max);
+    double y_2 = calc_profit_Sperry(PPFD, psi_soil, x_2, k_l_max);
+
+
+    double first_dev = (y_2 - y_1)/(2*diff_value);
+    double sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
+
+    psi_stem_next = psi_stem_initial -  first_dev/sec_dev;
+
+  }
+
+  } else {
+    psi_stem_next = psi_soil;
+  }
+
+  }
+    return psi_stem_next;
+  }
+
 // need docs on Golden Section Search and reference to Bartlett.
 double Leaf::optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_max) {
 
@@ -267,11 +310,15 @@ double Leaf::optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_m
 
 double Leaf::calc_profit_Sperry_ci(double PPFD, double psi_soil, double c_i,double k_l_max) {                                  
 
+// std::cout << "ci" << c_i <<std::endl;
+
+
   double benefit_ =
       calc_A_lim(PPFD, c_i);
   double g_c_ci = (benefit_ * umol_per_mol_to_mol_per_mol * atm_kpa * kPa_to_Pa)/(ca - c_i); 
-  // std::cout << "g_c" << g_c_ci << "c_i" << c_i << std::endl;
   double E_ci = g_c_ci * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;
+  std::cout << "E_ci" << E_ci << "g_c" << g_c_ci << "c_i" << c_i << std::endl;
+
   double psi_stem = calc_psi_stem_ci(k_l_max, psi_soil, E_ci);
   double cost_ = calc_hydraulic_cost_Sperry(psi_soil, psi_stem, k_l_max);
   double lambda_ = calc_assim_gross(PPFD, psi_soil, psi_crit, k_l_max) / calc_hydraulic_cost_Sperry(psi_soil, psi_crit, k_l_max);
@@ -283,6 +330,116 @@ double Leaf::calc_profit_Sperry_ci(double PPFD, double psi_soil, double c_i,doub
 }
 
 
+double Leaf::optimise_ci_Sperry_Newton(double PPFD, double psi_soil, double k_l_max) {
+
+  if (PPFD > 1.5e-8){
+  // optimise for stem water potential
+  if (psi_soil < psi_crit) {
+  double diff_value = 0.1; 
+  double epsilon = 0.001;
+  double c_i_initial = 10;
+
+  double x_1 = c_i_initial - diff_value;
+  double x_2 = c_i_initial + diff_value;
+
+  double y_0 = calc_profit_Sperry_ci(PPFD, psi_soil, c_i_initial, k_l_max);
+  double y_1 = calc_profit_Sperry_ci(PPFD, psi_soil, x_1, k_l_max);
+  double y_2 = calc_profit_Sperry_ci(PPFD, psi_soil, x_2, k_l_max);
+
+
+  double first_dev = (y_2 - y_1)/(2*diff_value);
+  double sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
+
+  double c_i_next = c_i_initial -  first_dev/sec_dev;
+
+  while(abs(c_i_next - c_i_initial) > epsilon){
+
+    c_i_initial = c_i_next;
+
+    double x_1 = c_i_initial - diff_value;
+    double x_2 = c_i_initial + diff_value;
+
+    double y_0 = calc_profit_Sperry_ci(PPFD, psi_soil, c_i_initial, k_l_max);
+    double y_1 = calc_profit_Sperry_ci(PPFD, psi_soil, x_1, k_l_max);
+    double y_2 = calc_profit_Sperry_ci(PPFD, psi_soil, x_2, k_l_max);
+
+
+    double first_dev = (y_2 - y_1)/(2*diff_value);
+    double sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
+
+    c_i_next = c_i_initial -  first_dev/sec_dev;
+  // std::cout << "c_i_next" << c_i_next <<std::endl;
+
+  }
+  return c_i_next;
+
+  }
+
+  }
+  }
+
+
+double Leaf::optimise_ci_Sperry_Newton_recall(double PPFD, double psi_soil, double k_l_max) {
+
+  if (PPFD > 1.5e-8){
+  // optimise for stem water potential
+  if (psi_soil < psi_crit) {
+  double diff_value = 0.01; 
+  double epsilon = 0.001;
+
+ 
+  double c_i_initial = c_i_next;
+ 
+
+  if (c_i_next != c_i_next){
+  c_i_initial = 20;  
+  }
+  
+
+ 
+
+  double x_1 = c_i_initial - diff_value;
+  double x_2 = c_i_initial + diff_value;
+
+  double y_0 = calc_profit_Sperry_ci(PPFD, psi_soil, c_i_initial, k_l_max);
+  double y_1 = calc_profit_Sperry_ci(PPFD, psi_soil, x_1, k_l_max);
+  double y_2 = calc_profit_Sperry_ci(PPFD, psi_soil, x_2, k_l_max);
+
+
+  double first_dev = (y_2 - y_1)/(2*diff_value);
+  double sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
+
+  c_i_next = c_i_initial -  first_dev/sec_dev;
+
+  std::cout << "c_i_initial" << c_i_initial  << "c_i_next" << c_i_next <<std::endl;
+
+
+  while(abs(c_i_next - c_i_initial) > epsilon){
+
+    c_i_initial = c_i_next;
+
+    double x_1 = c_i_initial - diff_value;
+    double x_2 = c_i_initial + diff_value;
+
+    double y_0 = calc_profit_Sperry_ci(PPFD, psi_soil, c_i_initial, k_l_max);
+    double y_1 = calc_profit_Sperry_ci(PPFD, psi_soil, x_1, k_l_max);
+    double y_2 = calc_profit_Sperry_ci(PPFD, psi_soil, x_2, k_l_max);
+
+
+    double first_dev = (y_2 - y_1)/(2*diff_value);
+    double sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
+
+    c_i_next = c_i_initial -  first_dev/sec_dev;
+    std::cout << "c_i_initial" << c_i_initial  << "c_i_next" << c_i_next <<std::endl;
+
+  }
+
+  }
+
+  }
+    return c_i_next;
+
+  }
 
 
 

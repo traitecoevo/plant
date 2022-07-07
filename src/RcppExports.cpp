@@ -359,6 +359,48 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Leaf__optimise_psi_stem_Sperry_Newton_recall
+double Leaf__optimise_psi_stem_Sperry_Newton_recall(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max);
+RcppExport SEXP _plant_Leaf__optimise_psi_stem_Sperry_Newton_recall(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP k_l_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
+    Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
+    Rcpp::traits::input_parameter< double >::type k_l_max(k_l_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__optimise_psi_stem_Sperry_Newton_recall(obj_, PPFD, psi_soil, k_l_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__optimise_ci_Sperry_Newton
+double Leaf__optimise_ci_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max);
+RcppExport SEXP _plant_Leaf__optimise_ci_Sperry_Newton(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP k_l_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
+    Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
+    Rcpp::traits::input_parameter< double >::type k_l_max(k_l_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__optimise_ci_Sperry_Newton(obj_, PPFD, psi_soil, k_l_max));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__optimise_ci_Sperry_Newton_recall
+double Leaf__optimise_ci_Sperry_Newton_recall(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max);
+RcppExport SEXP _plant_Leaf__optimise_ci_Sperry_Newton_recall(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP k_l_maxSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
+    Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
+    Rcpp::traits::input_parameter< double >::type k_l_max(k_l_maxSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__optimise_ci_Sperry_Newton_recall(obj_, PPFD, psi_soil, k_l_max));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Leaf__ci__get
 double Leaf__ci__get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
 RcppExport SEXP _plant_Leaf__ci__get(SEXP obj_SEXP) {
@@ -488,6 +530,50 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     Leaf__profit__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__psi_stem_next__get
+double Leaf__psi_stem_next__get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__psi_stem_next__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__psi_stem_next__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__psi_stem_next__set
+void Leaf__psi_stem_next__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__psi_stem_next__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__psi_stem_next__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__c_i_next__get
+double Leaf__c_i_next__get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__c_i_next__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__c_i_next__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__c_i_next__set
+void Leaf__c_i_next__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__c_i_next__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__c_i_next__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -10459,6 +10545,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__calc_psi_from_E", (DL_FUNC) &_plant_Leaf__calc_psi_from_E, 2},
     {"_plant_Leaf__calc_profit_Sperry_ci", (DL_FUNC) &_plant_Leaf__calc_profit_Sperry_ci, 5},
     {"_plant_Leaf__optimise_psi_stem_Sperry_Newton", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry_Newton, 4},
+    {"_plant_Leaf__optimise_psi_stem_Sperry_Newton_recall", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry_Newton_recall, 4},
+    {"_plant_Leaf__optimise_ci_Sperry_Newton", (DL_FUNC) &_plant_Leaf__optimise_ci_Sperry_Newton, 4},
+    {"_plant_Leaf__optimise_ci_Sperry_Newton_recall", (DL_FUNC) &_plant_Leaf__optimise_ci_Sperry_Newton_recall, 4},
     {"_plant_Leaf__ci__get", (DL_FUNC) &_plant_Leaf__ci__get, 1},
     {"_plant_Leaf__ci__set", (DL_FUNC) &_plant_Leaf__ci__set, 2},
     {"_plant_Leaf__g_c__get", (DL_FUNC) &_plant_Leaf__g_c__get, 1},
@@ -10471,6 +10560,10 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__psi__set", (DL_FUNC) &_plant_Leaf__psi__set, 2},
     {"_plant_Leaf__profit__get", (DL_FUNC) &_plant_Leaf__profit__get, 1},
     {"_plant_Leaf__profit__set", (DL_FUNC) &_plant_Leaf__profit__set, 2},
+    {"_plant_Leaf__psi_stem_next__get", (DL_FUNC) &_plant_Leaf__psi_stem_next__get, 1},
+    {"_plant_Leaf__psi_stem_next__set", (DL_FUNC) &_plant_Leaf__psi_stem_next__set, 2},
+    {"_plant_Leaf__c_i_next__get", (DL_FUNC) &_plant_Leaf__c_i_next__get, 1},
+    {"_plant_Leaf__c_i_next__set", (DL_FUNC) &_plant_Leaf__c_i_next__set, 2},
     {"_plant_Lorenz__ctor", (DL_FUNC) &_plant_Lorenz__ctor, 3},
     {"_plant_Lorenz__ode_size__get", (DL_FUNC) &_plant_Lorenz__ode_size__get, 1},
     {"_plant_Lorenz__ode_state__get", (DL_FUNC) &_plant_Lorenz__ode_state__get, 1},

@@ -69,6 +69,8 @@ public:
   double E;
   double psi;
   double profit;
+  double psi_stem_next;
+  double c_i_next;
 
   // TODO: move into environment?
   double atm_vpd = 2.0; //kPa
@@ -124,7 +126,6 @@ public:
   double optimise_psi_stem_Bartlett(double PPFD, double psi_soil, double k_l_max);
 
   double optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_max);
-
   double optimise_ci_Bartlett(double PPFD, double psi_soil, double k_l_max);
   double calc_profit_Bartlett_ci(double PPFD, double psi_soil, double c_i,double k_l_max);
   double calc_assim_gross_ci(double PPFD, double ci);
@@ -132,6 +133,9 @@ public:
   double calc_psi_from_E(double E_psi_stem);
   double calc_profit_Sperry_ci(double PPFD, double psi_soil, double c_i,double k_l_max);
   double optimise_psi_stem_Sperry_Newton(double PPFD, double psi_soil, double k_l_max);
+  double optimise_psi_stem_Sperry_Newton_recall(double PPFD, double psi_soil, double k_l_max);
+  double optimise_ci_Sperry_Newton(double PPFD, double psi_soil, double k_l_max);
+  double optimise_ci_Sperry_Newton_recall(double PPFD, double psi_soil, double k_l_max);
 
 };
 } // namespace plant
