@@ -1,6 +1,8 @@
 p0 <- scm_base_parameters("FF16w")
 p0$disturbance_mean_interval <- 2
-p1 <- expand_parameters(trait_matrix(c(0.000157*0.5, 0.000157*2), "huber_value"), p0, mutant=FALSE, birth_rate_list = c(1,1))
+p0$max_patch_lifetime <- 0.1
+
+p1 <- expand_parameters(trait_matrix(c(0.000157, 0.000157*2), "huber_value"), p0, mutant=FALSE, birth_rate_list = c(1,1))
 env <- make_environment("FF16w", soil_initial_state = rep(0.2, 1), rainfall = 1.5)
 
 ctrl = scm_base_control()
@@ -16,9 +18,12 @@ ctrl$schedule_eps <- 0.01
 # scm$run()
 
 result <- run_scm_collect(p1, env, ctrl)
+saveRDS(result, "result2species.RDS")
+
+
 saveRDS(result, "result2.RDS")
 # result <-readRDS("result.RDS")
-
+result <- readRDS("result2.RDS")
 library(tidyverse)
 
 results_tidy <- 
@@ -26,17 +31,20 @@ results_tidy <-
   tidy_patch()
 
 
+results_tidy%>% 
+  FF16_expand_state() -> results_tidy_expanded
+
+
+
 data_species_tot <- 
   results_tidy_expanded$species %>% 
   integrate_over_size_distribution()
 
+library(ggplot2)
+
 data_species_tot %>% 
   ggplot(aes(time, area_leaf, colour = species)) +
   geom_line()
-
-
-results_tidy%>% 
-  FF16_expand_state() -> results_tidy_expanded
 
 results_tidy_expanded$species %>%
   drop_na() %>%

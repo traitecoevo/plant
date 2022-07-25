@@ -1,0 +1,469 @@
+---
+title: "new_a_ci_curve"
+author: "Isaac Towers"
+date: "20/07/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+
+getwd()
+
+devtools::load_all()
+```
+
+
+```{r}
+source("tests/reference_leaf_updated.R")
+source("water_bucket_submodel/R/reference_leaf_updated.R")
+```
+
+```{r}
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 1500, length.out=5)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j)) %>%
+  ggplot(aes(x = c_i)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(vcmax~PPFD, scales = "free") +
+  xlim(c(gamma_25*umol_per_mol_2_Pa, 40)) +
+  ylim(0, NA) + 
+  scale_y_continuous(limits = c(0, NA), sec.axis = sec_axis(~ . , name = "VCMAX", breaks = NULL, labels = NULL)) +
+  scale_x_continuous(limits = c(gamma_25*umol_per_mol_2_Pa, 40), sec.axis = sec_axis(~ . , name = "PPFD", breaks = NULL, labels = NULL)) +
+  ylab("profit")
+
+
+expand_grid(c_i = seq(0, 40, length.out = 5), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 1500, length.out=5)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j)) %>%
+  ggplot(aes(x = PPFD)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(c_i~vcmax, scales = "free")
+
+```
+```{r}
+calc_A_j_fitted <- function(c_i, divisor, ...){
+  calc_j(...)/divisor * ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + 2*gamma_25*umol_per_mol_2_Pa))
+}
+
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 1000, length.out=5), divisor = seq(1,9, length.out = 5)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_j_fitted = calc_A_j_fitted(c_i, vcmax=vcmax, PPFD=PPFD, divisor = divisor)) %>%
+  filter(vcmax == 100) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j,A_j_fitted)) %>%
+  ggplot(aes(x = c_i)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(divisor~PPFD, scales = "free")
+
+
+calc_A_j_fitted <- function(c_i, divisor, ...){
+  calc_j(...)/5 * ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + 2*gamma_25*umol_per_mol_2_Pa))
+}
+
+
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 1000, length.out=5), divisor = 5) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_j_fitted = calc_A_j_fitted(c_i, vcmax=vcmax, PPFD=PPFD, divisor = divisor)) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j,A_j_fitted)) %>%
+  ggplot(aes(x = c_i)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(vcmax~PPFD, scales = "free")
+
+```
+
+
+
+
+```{r}
+calc_A_j <- function(c_i, curv_fact = 0.3, ...){
+  calc_j(curv_fact,...)/4 * ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + 2*gamma_25*umol_per_mol_2_Pa))
+}
+
+
+
+calc_j <- function(PPFD, vcmax, curv_fact){
+  jmax <- vcmax*vcmax_25_2_jmax_25
+  
+  (a*PPFD + jmax - sqrt((a*PPFD+jmax)^2-4*curv_fact*a*PPFD*jmax))/(2*curv_fact)
+}
+
+
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 1000, length.out=5), curv_fact = seq(0.00001, 0.3, length.out = 5)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_j_curv = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD, curv_fact = curv_fact)) %>%
+  filter(vcmax == 100) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j,A_j_curv)) %>%
+  ggplot(aes(x = c_i)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(curv_fact~PPFD, scales = "free")
+
+
+
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 3000, length.out=5), curv_fact = seq(0.00000000001, 0.3, length.out = 5)) %>%
+  rowwise() %>%
+  mutate(j = calc_j(curv_fact = curv_fact, vcmax=vcmax, PPFD=PPFD)) %>%
+  ggplot(aes(x = PPFD)) +
+  geom_line(aes(y = j)) +
+  facet_grid(curv_fact~vcmax, scales = "free")
+
+
+
+calc_A_j <- function(c_i, ...){
+  calc_j(...)/4 * ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + 2*gamma_25*umol_per_mol_2_Pa))
+}
+
+```
+
+```{r}
+source("water_bucket_submodel/R/reference_leaf_updated.R")
+```
+
+```{r}
+calc_A_j_curve <- function(c_i){
+  ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + 2*gamma_25*umol_per_mol_2_Pa))
+}
+calc_A_c_curve <- function(c_i){
+  ((c_i - gamma_25*umol_per_mol_2_Pa))/(c_i + km_25)
+}
+calc_A_c
+
+tibble(ci = seq(0, 40, 0.1)) %>%
+  rowwise() %>%
+  mutate(A_j_curve = calc_A_j_curve(ci), 
+         A_c_curve = calc_A_c_curve(ci)) %>%
+  ggplot() + 
+  geom_line(aes(y = A_j_curve, x= ci), col = "blue") +
+  geom_line(aes(y = A_c_curve, x= ci), col = "red")
+
+
+```
+Making the A_j curve have the same shape in response to ci as A_c doesn't help...
+```{r}
+calc_A_j_curv_one_line <- function(c_i,...){
+  calc_j(...)/4 * ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + 15))
+}
+calc_A_c_curve <- function(c_i){
+  ((c_i - gamma_25*umol_per_mol_2_Pa))/(c_i + km_25)
+}
+
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = c(0, 20, 100, 200, 400, 1000)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_j_curv = calc_A_j_curv_one_line(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j,A_j_curv)) %>%
+  filter(name %in% c("A_lim", "A_j_curv")) %>%
+  ggplot(aes(x = c_i)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(vcmax~PPFD, scales = "free") +
+  xlim(c(gamma_25*umol_per_mol_2_Pa, 40)) +
+  ylim(0, NA)
+  
+
+
+```
+
+
+
+```{r}
+expand_grid(c_i = seq(0, 40, 1), vcmax = seq(10, 100, length.out= 50), PPFD = seq(0, 1500, length.out=50)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(diff_A_lim_A_j = A_lim - A_j) %>%
+  group_by(PPFD, vcmax) %>%
+  summarise(diff_A_lim_A_j = min(diff_A_lim_A_j)) -> data
+  
+fit1<- (lm(diff_A_lim_A_j~vcmax*PPFD, data))
+summary(fit1)
+
+data%>%
+ggplot(aes(x = PPFD, y = diff_A_lim_A_j)) +
+  geom_point(aes(colour = vcmax))
+```
+
+```{r}
+ca = 40
+ci = seq(0, 40, 1)
+intercept <- fit1$coefficients[1]
+coefficient_vcmax <- fit1$coefficients[2]
+coefficient_PPFD <- fit1$coefficients[3]
+coefficient_PPFD_vcmax <- fit1$coefficients[4]
+
+vcmax <- seq(0,100,1)
+
+(intercept + coefficient*1)*((-(ca/2 - ci)^2 + (ca/2)^2)/((ca/2)^2))
+```
+```{r}
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 1500, length.out=5)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_j_fitted = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD) + (intercept + coefficient_vcmax*vcmax + coefficient_PPFD*PPFD + coefficient_PPFD_vcmax*PPFD*vcmax)*((-(ca/2 - c_i)^2 + (ca/2)^2)/((ca/2)^2))) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j, A_j_fitted)) %>%
+  ggplot(aes(x = c_i)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(vcmax~PPFD, scales = "free") +
+  xlim(c(gamma_25*umol_per_mol_2_Pa, 40)) +
+  ylim(0, NA) + 
+  scale_y_continuous(limits = c(0, NA), sec.axis = sec_axis(~ . , name = "VCMAX", breaks = NULL, labels = NULL)) +
+  scale_x_continuous(limits = c(gamma_25*umol_per_mol_2_Pa, 40), sec.axis = sec_axis(~ . , name = "PPFD", breaks = NULL, labels = NULL)) +
+  ylab("profit")
+```
+```{r}
+ca = 40
+ci = seq(0, 40, 1)
+intercept <- fit1$coefficients[1]
+coefficient_vcmax <- fit1$coefficients[2]
+coefficient_PPFD <- fit1$coefficients[3]
+coefficient_PPFD_vcmax <- fit1$coefficients[4]
+
+vcmax <- seq(0,100,1)
+
+(intercept + coefficient*1)*((-(ca/2 - ci)^2 + (ca/2)^2)/((ca/2)^2))
+```
+
+```{r}
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 1500, length.out=5)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_j_fitted = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD) + (-0.5*((-(ca/2 - c_i)^2 + (ca/2)^2)/((ca/2)^2)))) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j, A_j_fitted)) %>%
+  ggplot(aes(x = c_i)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(vcmax~PPFD, scales = "free") +
+  xlim(c(gamma_25*umol_per_mol_2_Pa, 40)) +
+  ylim(0, NA) + 
+  scale_y_continuous(limits = c(0, NA), sec.axis = sec_axis(~ . , name = "VCMAX", breaks = NULL, labels = NULL)) +
+  scale_x_continuous(limits = c(gamma_25*umol_per_mol_2_Pa, 40), sec.axis = sec_axis(~ . , name = "PPFD", breaks = NULL, labels = NULL)) +
+  ylab("profit")
+```
+
+```{r}
+calc_A_j_fitted <- function(c_i, ...){
+  calc_j(...)/(3 + 2*((-(ca/2 - c_i)^2 + (ca/2)^2)/((ca/2)^2))) * ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + 2*gamma_25*umol_per_mol_2_Pa))
+}
+
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 1000, length.out=5), divisor = seq(1,9, length.out = 5)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_j_fitted = calc_A_j_fitted(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j,A_j_fitted)) %>%
+  ggplot(aes(x = c_i)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(vcmax~PPFD, scales = "free")
+
+
+
+
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 1000, length.out=5), divisor = seq(1,9, length.out = 5)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_j_fitted = A_j*(1 - ((-(ca/2 - c_i)^2 + (ca/2)^2)/((ca/2)^2)))) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j,A_j_fitted)) %>%
+  ggplot(aes(x = c_i)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(vcmax~PPFD, scales = "free")
+
+
+
+
+
+
+calc_A_j_fitted <- function(c_i, divisor, ...){
+  calc_j(...)/5 * ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + 2*gamma_25*umol_per_mol_2_Pa))
+}
+
+
+expand_grid(c_i = seq(0, 40, 0.1), vcmax = seq(10, 100, length.out= 5), PPFD = seq(0, 1000, length.out=5), divisor = 5) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_A_lim(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_c = calc_A_c(c_i=c_i, vcmax=vcmax)) %>%
+  mutate(A_j = calc_A_j(c_i, vcmax=vcmax, PPFD=PPFD)) %>%
+  mutate(A_j_fitted = calc_A_j_fitted(c_i, vcmax=vcmax, PPFD=PPFD, divisor = divisor)) %>%
+  pivot_longer(cols = c(A_lim, A_c, A_j,A_j_fitted)) %>%
+  ggplot(aes(x = c_i)) +
+  geom_line(aes(y = value, group = name, colour = name)) +
+  facet_grid(vcmax~PPFD, scales = "free")
+
+```
+
+```{r}
+calc_A_c <- function(c_i, vcmax){
+  (vcmax * (c_i - gamma_25*umol_per_mol_2_Pa))/(c_i + km_25)}
+calc_A_j
+
+library(tidyverse)
+
+expand_grid(PPFD = seq(1, 1001, length.out = 100), vcmax = seq(1, 101), ci = seq(gamma_25*umol_per_mol_2_Pa, 40, length.out = 40)) %>%
+  rowwise() %>%
+  mutate(A_c = calc_A_c(c_i = ci, vcmax),
+         A_j = calc_A_j(c_i = ci, PPFD = PPFD, vcmax = vcmax),
+         A_lim = min(A_c, A_j),
+         c2 = calc_denominator(ci, A_lim, vcmax = vcmax, PPFD = PPFD)) %>%
+  View()
+  
+
+calc_denominator <- function(ci, A, ...){
+  calc_j(...)/4 * ((ci - gamma_25*umol_per_mol_2_Pa)/A) - ci
+}
+  
+calc_A_j_curv_one_line <- function(c_i,c2,...){
+  calc_j(...)/4 * ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + c2))
+}
+
+expand_grid(PPFD = seq(1, 1001, length.out = 100), vcmax = seq(1, 101), ci = seq(gamma_25*umol_per_mol_2_Pa, 40, length.out = 40)) %>%
+  rowwise() %>%
+  mutate(A_c = calc_A_c(c_i = ci, vcmax),
+         A_j = calc_A_j(c_i = ci, PPFD = PPFD, vcmax = vcmax),
+         A_lim = min(A_c, A_j),
+         c2 = calc_denominator(ci, A_lim, vcmax = vcmax, PPFD = PPFD)) -> output
+  group_by(vcmax) %>%
+  mutate(c2 = mean(c2, na.rm = T)) %>%
+  rowwise() %>%
+  mutate(A_j_fitted = calc_A_j_curv_one_line(c_i = ci, c2 = c2, vcmax = vcmax, PPFD = PPFD)) -> output
+         
+output %>%
+  pull(PPFD) %>%
+  unique() %>%
+  sample(5) -> sample_PPFD
+
+output %>%
+  pull(vcmax) %>%
+  unique() %>%
+  sample(5) -> sample_vcmax
+
+output %>%
+  filter(PPFD %in% sample_PPFD & vcmax %in% sample_vcmax) %>%
+  pivot_longer(cols = c(A_c, A_j, A_lim, c2, A_j_fitted)) %>%
+  ggplot(aes(x = ci, y = value)) +
+  geom_line(aes(group = name, colour = name)) +
+  facet_grid(PPFD~vcmax)
+
+output %>%
+  rowwise() %>%
+  mutate(A_j_fitted = calc_A_j_curv_one_line(c_i = ci, c2 = c2, vcmax = vcmax, PPFD = PPFD))
+
+g_c <- 0.2
+ca <- 40
+calc_ci <- function(PPFD = PPFD, vcmax = vcmax, c2 = c2){
+  
+first_term = 8 * calc_j(PPFD = PPFD, vcmax = vcmax) * umol_per_mol_2_mol_per_mol * (atm_kpa*kPa_2_Pa) * g_c * (-ca + c2 + 2 * gamma_25 * umol_per_mol_2_Pa)
+second_term = 16 * g_c^2
+third_term = (ca + c2)^2
+fourth_term = calc_j(PPFD = PPFD, vcmax = vcmax)^2 * umol_per_mol_2_mol_per_mol^2 * (atm_kpa*kPa_2_Pa)^2
+fifth_term = 4*ca*g_c
+sixth_term = 4*c2*g_c
+seventh_term = calc_j(PPFD = PPFD, vcmax = vcmax)*umol_per_mol_2_mol_per_mol*(atm_kpa*kPa_2_Pa)
+eigth_term = 8*g_c
+
+  (sqrt(first_term + second_term*third_term+ fourth_term) + fifth_term - sixth_term - seventh_term)/eigth_term
+}
+
+calc_ci(334.3333, 80, 11.52592)
+
+tibble(ci = seq(0,40,0.01), vcmax = 80, PPFD = 334.3333) %>%
+  rowwise() %>%
+  mutate(A_j_curv_one_line = calc_A_j_curv_one_line(c_i = ci, c2 = 11.52592, vcmax = 80, PPFD = 334.3333)) %>%
+  mutate(diff = A_j_curv_one_line*umol_per_mol_2_mol_per_mol - 0.2*(40-ci)/(atm_kpa*kPa_2_Pa)) %>% View()
+
+```
+
+
+
+```{r}
+l <- Leaf(vcmax = 100, p_50 = 1.731347, c = 2.04, b = 2.072101, psi_crit = 3.548059, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 2)
+
+l$calc_proi
+```
+
+```{r}
+
+ K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+  h_v = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
+  h = 5 #height/path length (m)
+  
+  p_50 = 1.731347 #stem water potential at 50% loss of conductivity
+  c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
+  
+  expect_equal(l$calc_vul_b(), calc_vul_b(p_50, c))
+  
+  psi <- 1 #nominated value for water potential for testing vulnerability curve equations only (-MPa)
+  b <- 2.072101 #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
+  
+  
+  eta <- 12.0
+  eta_c <- 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta)
+  
+  k_l_max = calc_k_l_max(K_s, h_v, h*eta_c)
+```
+
+```{r}
+
+library(ggplot2)
+library(tidyverse)
+tibble(psi_stem = seq(0, 3.54, length.out = 100), psi_soil = 0, k_l_max = k_l_max, PPFD= 900) %>%
+rowwise() %>%
+  mutate(profit_one = l$calc_profit_Sperry_one_line(PPFD, psi_soil, psi_stem, k_l_max),
+         profit = l$calc_profit_Sperry(PPFD, psi_soil, psi_stem, k_l_max)) %>%
+  pivot_longer(cols= c(profit, profit_one)) %>%
+  ggplot(aes(x = psi_stem, y = value)) +
+  geom_line(aes(colour =name, group = name))
+
+tibble(psi_stem = seq(0, 3.54, length.out = 100), psi_soil = 0, k_l_max = k_l_max, PPFD= 900) %>%
+rowwise() %>%
+  mutate(profit = l$calc_profit_Sperry(PPFD, psi_soil, psi_stem, k_l_max)) %>%
+  ggplot(aes(x = psi_stem, y = profit)) +
+  geom_line()
+
+l$calc_assim_gross_one_line(900, 0, 0.002, 7.086806e-05)
+
+l$calc_assim_gross_one_line(900, 0, 0.002, 7.086806e-05)
+l$calc_assim_gross(900, 0 , 0.001, k_l_max)
+
+
+l$calc_profit_Sperry_one_line(900, 0, 0.002, k_l_max)
+l$calc_profit_Sperry(900, 0, 1.77503, k_l_max)
+l$optimise_psi_stem_Sperry_Newton_recall(900, 0, k_l_max)
+l$optimise_psi_stem_Sperry_Newton_recall_one_line(900, 0,k_l_max)
+
+l$optimise_ci_Sperry_Newton_recall_one_line(900, 0,k_l_max)
+
+    first_dev = (0.0533815 - 0)/(2*0.001);
+    sec_dev = (0.0533815 - 2*0.0266872 + 0)/0.001^2
+    
+    first_dev/sec_dev
+
+    psi_stem_next = psi_stem_initial -  first_dev/sec_dev;
+
+    l$calc_profit_Sperry_ci_one_line(900, 0, 38.25,0.000843655)
+```
+

@@ -21,7 +21,7 @@ static const double vcmax_25_to_jmax_25 = 1.67;
 static const double curv_fact = 0.9;
 // unitless
 static const double a = 0.3;
-// Pa
+// umol ^ -1 mol ^ 1
 static const double gamma_25 = 42.75;
 // Pa umol ^ -1 mol ^ 1 
 static const double umol_per_mol_to_Pa = 0.1013;
@@ -104,7 +104,6 @@ public:
 
 
   double calc_g_c(double psi_soil, double psi_stem, double k_l_max); // define as a constant
-
   double calc_A_c(double ci_);
   double calc_A_j(double PPFD, double ci_);
   double calc_A_lim(double PPFD, double ci_);
@@ -136,6 +135,18 @@ public:
   double optimise_psi_stem_Sperry_Newton_recall(double PPFD, double psi_soil, double k_l_max);
   double optimise_ci_Sperry_Newton(double PPFD, double psi_soil, double k_l_max);
   double optimise_ci_Sperry_Newton_recall(double PPFD, double psi_soil, double k_l_max);
+  double calc_lambda_Sperry(double PPFD, double psi_soil, double k_l_max);
+  double calc_min_psi(double PPFD, double psi_soil, double k_l_max);
+  double min_psi(double PPFD, double x_ci, double psi_soil, double k_l_max);
+  double find_max_ci(double PPFD, double psi_soil, double k_l_max);
+  double calc_j(double PPFD);
+  double calc_assim_gross_one_line(double PPFD, double psi_soil, double psi_stem, double k_l_max);
+  double calc_profit_Sperry_one_line(double PPFD, double psi_soil, double psi_stem, double k_l_max);
+  double optimise_psi_stem_Sperry_Newton_recall_one_line(double PPFD, double psi_soil, double k_l_max);
+  double optimise_ci_Sperry_Newton_recall_one_line(double PPFD, double psi_soil, double k_l_max);
+  double calc_profit_Sperry_ci_one_line(double PPFD, double psi_soil, double c_i, double k_l_max);
+  double calc_A_lim_one_line(double PPFD, double c_i);
+  double optimise_psi_stem_Sperry_one_line(double PPFD, double psi_soil, double k_l_max);
 
 };
 } // namespace plant

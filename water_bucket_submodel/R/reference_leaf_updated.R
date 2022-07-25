@@ -88,12 +88,12 @@ integrate_E_supply <- function(x, k_l_max, b, c){
 
 #calculate transpiration by intergrating across conductivity curve
 calc_E_supply <- function(psi_stem, psi_soil, ...){
+
   integrate(integrate_E_supply, lower = psi_soil, upper = psi_stem, abs.tol = 1e-6 ,stop.on.error = TRUE,  ...)
 }
 
 #calculate stomatal conductance to h20 (g_w) and co2 (g_c) from E supply and VPD
 calc_g_c <- function(psi_stem, psi_soil, atm_vpd,...){
-  
   g_w = atm_kpa*calc_E_supply(psi_stem = psi_stem, psi_soil = psi_soil, ...)$value*kg_2_mol_h20/atm_vpd
   g_w/1.6
 }
@@ -128,7 +128,7 @@ diff_ci <- function(x, g_c, vcmax, PPFD, ca){
 }
 
 solve_ci <- function(vcmax, PPFD, g_c, ca){
-  ci_root <- uniroot(f = diff_ci,interval = c(0,ca), g_c = g_c, vcmax = vcmax, PPFD = PPFD, ca = ca, extendInt = 'yes', tol = 1e-8)$root
+  ci_root <- uniroot(f = diff_ci,interval = c(0,ca), g_c = g_c, vcmax = vcmax, PPFD = PPFD, ca = ca, extendInt = 'no', tol = 1e-8)$root
   A_lim_root <- calc_A_lim(c_i = ci_root, vcmax = vcmax, PPFD = PPFD)
   list(ci_root, A_lim_root)
 }
@@ -187,7 +187,7 @@ calc_lower <- function(psi_soil,...){
   psi_soil
 }
 
-find_opt_psi_stem <- function(psi_soil, k_l_max, vcmax , PPFD, b, c, psi_crit, psi_crit_limit, atm_vpd, ca){
+find_opt_psi_stem <- function(psi_soil, k_l_max, vcmax , PPFD, b, c, psi_crit, atm_vpd, ca){
 
   if(is.na(psi_soil)){
     E_root <- NA
@@ -196,17 +196,15 @@ find_opt_psi_stem <- function(psi_soil, k_l_max, vcmax , PPFD, b, c, psi_crit, p
 
   }
   else{
-  if(psi_soil < psi_crit_limit){
-  print("hello")
-    
+  if(psi_soil < psi_crit){
   psi_stem_root <- ifelse(isTRUE(all.equal(PPFD, 0)), 
                           psi_soil,
                           optimise(f = calc_profit, lower= psi_soil, upper = psi_crit, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca, maximum = TRUE, tol = 1e-5)$maximum)
   profit_root <- calc_profit(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca)
-  cost_root <- calc_hydraulic_cost(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)
-  gc_root <- calc_g_c(psi_stem = psi_stem_root, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c)
-  E_root <- calc_E_supply(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)$value
-  ci_root <- solve_ci(vcmax = vcmax, PPFD = PPFD, g_c = gc_root, ca = ca)[[1]]
+  # cost_root <- calc_hydraulic_cost(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)
+  # gc_root <- calc_g_c(psi_stem = psi_stem_root, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c)
+  # E_root <- calc_E_supply(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)$value
+  # ci_root <- solve_ci(vcmax = vcmax, PPFD = PPFD, g_c = gc_root, ca = ca)[[1]]
   }
   
   else {
@@ -221,30 +219,32 @@ find_opt_psi_stem <- function(psi_soil, k_l_max, vcmax , PPFD, b, c, psi_crit, p
     E_root <- calc_E_supply(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)$value
     ci_root <- solve_ci(vcmax = vcmax, PPFD = PPFD, g_c = gc_root, ca = ca)[[1]]
   }
-    tibble(psi_stem_root, profit_root, cost_root, gc_root, E_root, ci_root)
+    # tibble(psi_stem_root, profit_root, cost_root, gc_root, E_root, ci_root)
+    tibble(psi_stem_root, profit_root)
     
   }
   
 }
 
 find_opt_psi_stem_bartlett <- function(psi_soil, k_l_max, vcmax , PPFD, b, c, psi_crit, atm_vpd, ca, beta, beta_2, huber_value = huber_value, height = height){
-
   
-  if(psi_soil < psi_crit & PPFD > 5){
-    psi_stem_root <- optimise(f = calc_profit_bartlett, lower= psi_soil, upper = psi_crit, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca, beta = beta, beta_2 = beta_2, huber_value = huber_value, height = height, maximum = TRUE, tol = 1e-5)$maximum
+  if(psi_soil < psi_crit){
+    psi_stem_root <- ifelse(isTRUE(all.equal(PPFD, 0)), 
+                            psi_soil,
+                            optimise(f = calc_profit_bartlett, lower= psi_soil, upper = psi_crit, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca, beta = beta, beta_2 = beta_2, huber_value = huber_value, height = height, maximum = TRUE, tol = 1e-5)$maximum)
     profit_root <- calc_profit_bartlett(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca, beta = beta, beta_2 = beta_2, huber_value = huber_value, height = height)
     E_root <- calc_E_supply(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)$value
-    gc_root <- calc_g_c(psi_stem = psi_stem_root, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c)
-    ci_root <- solve_ci(vcmax = vcmax, PPFD = PPFD, g_c = gc_root, ca = ca)[[1]]
-    }
+    
+  }
   
   else {
     psi_stem_root <- psi_soil
     profit_root <- calc_profit_bartlett(psi_stem = psi_soil, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca, beta = beta, beta_2 = beta_2, huber_value = huber_value, height = height)
     E_root <- calc_E_supply(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)$value
+    
     }
   
-  tibble(psi_stem_root, profit_root, E_root,ci_root)
+  tibble(psi_stem_root, profit_root, E_root)
 }
 
 

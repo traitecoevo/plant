@@ -75,7 +75,7 @@ set_params_soil <- function(R=1/365/24, #m/h
                        amp=1/365/24, #amplitude for rainfall sine wave
                        sine_height=1/365/24, #height of sine wave
                        frequency=8760,
-                       I_constant = 1,   
+                       I_constant = 1,
                        air_temp_c = 25,#deg C
                        theta_fc = 0.321,#field capacity of soil
                        theta_wp = 0.137,#wilting point of soil
@@ -105,7 +105,9 @@ set_params_soil <- function(R=1/365/24, #m/h
                        beta1 = 15000,
                        beta2 = 1,
                        psi_soil = 1,
-                       VPD_9 = 2) {
+                       VPD_9 = 2,
+                       diff_temp = 5,
+                       diff_VH = 1.2) {
   
   expand_grid(
     R=R,
@@ -145,7 +147,9 @@ set_params_soil <- function(R=1/365/24, #m/h
     beta1 = beta1,
     beta2 = beta2,
     psi_soil = psi_soil,
-    VPD_9 = VPD_9) %>%
+    VPD_9 = VPD_9,
+    diff_temp = diff_temp,
+    diff_VH = diff_VH) %>%
     mutate(K_s = p_50_2_K_s(p50), #kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
            slp = calc_slope_vpsat(air_temp_c),
            gamma = calc_psych(air_temp_c),
@@ -155,7 +159,7 @@ set_params_soil <- function(R=1/365/24, #m/h
            b = calc_vul_b(p_50 = p50, c = c),
            k_l_max = calc_k_l_max(K_s, h_v, h),
            psi_crit = calc_psi_crit(b, c),
-           VPD_15 = VPD_9 *1.2
+           VPD_15 = VPD_9 *diff_VH
     )
 }
 

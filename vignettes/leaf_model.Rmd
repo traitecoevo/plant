@@ -1,0 +1,102 @@
+---
+title: "leaf_model_documentation"
+author: "Isaac Towers"
+date: "12/07/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is an implementation of Profit max as described in Sabot et al. 2020. Profit max is a optimal stomatal conductance model which hypothesises that plants optimise stomatal conductance $(g_x)$ to maximise profits, where gains are carbon assimilation and costs are the risks associated with xylem embolism and failure due to transpiration as well as the costs associated with maintaining the photosynthetic pathway. Although there are multiple published descriptions of the profit function, they can all be considered generally as stating that: $$Profit~(g_x) = Benefits~(g_x) - Costs~(g_x),$$
+
+in the sense that the profits are a function of benefits and costs, both of which vary as a function of stomatal conductance.
+
+To begin, let's start by considering that hydraulic costs.
+
+Hydraulic costs are based on a "supply function" (Sperry et al. 2017) which describe how transpiration, $E~(mol~s^{-1}~m^{-2})$, varies due to a pressure drop $\Delta\psi~(Pa)$ from an upstream element,in this case the soil, $\psi_{soil}~(Pa)$, to a downstream element, the leaves, $\psi_{stem}~(Pa)$, which, in turn, causes a decline in the hydraulic conductance of an element as the water pressure becomes increasingly negative.
+
+## Water supply function
+
+Fundamentally, the costs and benefits of a given stem water potential are linked by by the amount of water used by the plant, in other words, transpiration ($E$). The potential supply of water for transpiration by the plant is given by finding the integral:
+
+$$E = \int^{\psi_{stem}}_{\psi_{soil}}~k_{l,max} * e^{-(\psi/b)^c}~d\psi,$$
+where $k_{l,max~(kg~m^{-2}~leaf~area~s^{-1}~MPa^{-1})}$ is the leaf-specific hydraulic conductance and $b~(unitless)$ and $c~(unitless)$ are shape parameters describing the hydraulic vulnerability curve of xylem conductance (i.e. the rate of loss of conductance as stem water pressure becomes increasingly negative). Note that the second term of the above equation i.e. $e^{-(\psi/b)^c}~d\psi$ is constrained to $\{0,1\}$, representing a fraction of conductance which declines as $\psi$ decreases (i.e. becomes more negative). However, because there is no analytical solution to find $E$, it is necessary to numerically integrate across $d\psi$ to find $E$. Consider a simple example of this curve:
+
+```{r}
+devtools::load_all(".")
+
+library(ggplot2)
+library(tidyverse)
+
+k_l_max = 2
+b = 3
+c = 2
+psi = seq(0,5, 0.1)
+
+k_l = k_l_max * exp(-(psi/b)^c)
+
+example_data = tibble(psi = psi, k_l = k_l)
+
+example_data %>%
+ggplot(aes(x = psi, y = k_l)) +
+  geom_line() +
+  theme_classic() +
+  xlab("-Psi (MPa)")+
+  ylab("k_l (kg m^-2 s^-1 MPa ^-1)")
+```
+
+## Hydraulic vulnerability and conductance
+
+$k_{l,max}$ itself can be derived from other plant traits:
+
+$$k_{l,max} = \frac{K_s*v}{h},$$
+where $K_s~(kg~m^{-1}sapwood~s^{-1}~Mpa^{-1})$ is the sapwood-specific conductivity, $v~(m^2~sapwood~area~m^{-2}~leaf~area)$ is the Huber value, and $h~(m~sapwood)$ is the path length (i.e. the height). $K_s$ itself can be derived from trait information about xylem elements like vessel diameter and lumen fraction, but for the moment we stick with empirically observed values of $K_s$.
+
+$c$ and $b$ can be derived from empirical P50 and P88 values as:
+
+$$c = \frac{log\frac{log(1-x_1/100)}{log(1-x_2/100)}}{logP_{x_1}-logP_{x_2}},$$
+and:
+
+$$b = \frac{P_{x_1}}{(-log(1-\frac{x_1}{100}))^\frac{1}{c}}$$
+where $x_i~(\%)$ is the percentage of conductivity lost and $P_{x_i}~(MPa)$ is the water potential at which $x_i$ occurs. Alternatively, we can induce a trade-off between the sapwood-specific conductance and the P50 so that species which lose conductance at a slower rate with increasingly negative water potential have a lower maximum conductance rate. Empirical observations (e.g. Liu et al. 2019) have shown that sapwood-specific conductivity decreases as P50 declines, according to the following equation:
+
+$$P_{50} = 1.731347 * (\frac{K_s}{K_{s,0}})^{-0.7246377},$$
+where $K_s$ is normalised by a mean value of $K_s$, $K_{s,0}$, in this case, 2. Thus, given a $K_s$ value, P50 can then be predicted from the empirical relationship, which in turn allows $b$ to be found. Thus, the only unknown parameter in the hydraulic vulnerability curve is the shape parameter, c. Here, we assume that the shape of the vulnerability curve is shared across species, which we find using the average c value from empirical data.
+
+The trade-off between $K_s$ and $P_{50}$ above implies that, immediately after the $\psi_{stem}$ departs from 0 MPa, species with higher maximum conductance   On the other hand, species with lower maximum conductivity maintain a more constant rate of transpiration across the pressure gradient, which yield the hypothesised behaviour of the safety-efficiency tradeoff, with consequences for the optimsation of $psi_{can}$ later on.  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

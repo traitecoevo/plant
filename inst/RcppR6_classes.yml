@@ -65,6 +65,9 @@ Leaf:
     calc_profit_Sperry:
       return_type: double
       args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]
+    calc_lambda_Sperry:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, k_l_max: double]
     calc_hydraulic_cost_Bartlett:
       return_type: double
       args: [psi_soil: double, psi_stem: double, k_l_max: double]
@@ -107,6 +110,40 @@ Leaf:
     optimise_ci_Sperry_Newton_recall:
       return_type: double
       args: [PPFD: double, psi_soil: double, k_l_max: double] 
+    calc_min_psi:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, k_l_max: double]
+    min_psi:
+      return_type: double
+      args: [PPFD: double,x_ci: double, psi_soil: double, k_l_max: double] 
+    find_max_ci:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, k_l_max: double]
+    optimise_psi_stem_Sperry_Newton_recall_one_line:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, k_l_max: double]
+    calc_j:
+      return_type: double
+      args: [PPFD: double]
+    calc_assim_gross_one_line:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]
+    calc_profit_Sperry_one_line:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]  
+    optimise_ci_Sperry_Newton_recall_one_line:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, k_l_max: double]
+    calc_profit_Sperry_ci_one_line:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, c_i: double, k_l_max: double] 
+    calc_A_lim_one_line:
+      return_type: double
+      args: [PPFD: double, c_i: double]  
+    optimise_psi_stem_Sperry_one_line:
+      return_type: double
+      args: [PPFD: double, psi_soil: double, k_l_max: double]
+
 
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
