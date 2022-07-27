@@ -7,11 +7,18 @@ Leaf::Leaf(double vcmax, double p_50, double c, double b,
            double beta, double beta_2, double huber_value, double K_s)
     : vcmax(vcmax), p_50(p_50), c(c), b(b), psi_crit(psi_crit), beta(beta),
       beta_2(beta_2), huber_value(huber_value), K_s(K_s), ci(NA_REAL), g_c(NA_REAL),
-      A_lim(NA_REAL), E(NA_REAL), psi(NA_REAL), profit(NA_REAL), psi_stem_next(NA_REAL), c_i_next(NA_REAL) {
+      A_lim(NA_REAL), E(NA_REAL), psi(NA_REAL), profit(NA_REAL), psi_stem_next(NA_REAL), c_i_next(NA_REAL), lambda_(NA_REAL),
+      PPFD_(NA_REAL), psi_soil_(NA_REAL), k_l_max_(NA_REAL) {
     setup_E_supply(100);
     // setup_psi(100);
 }
 
+void Leaf::set_physiology(double PPFD, double psi_soil, double k_l_max) {
+   lambda_ = calc_assim_gross(PPFD, psi_soil, psi_crit, k_l_max) / (k_l_max * calc_cond_vuln(psi_soil) - k_l_max * calc_cond_vuln(psi_crit));
+   PPFD_ = PPFD;
+   psi_soil_ = psi_soil;
+   k_l_max_ = k_l_max;
+}
 
 double Leaf::p_50_to_K_s() const {
   return std::pow(1.638999 * (p_50 / 2), -1.38);
@@ -33,9 +40,9 @@ void Leaf::setup_E_supply(double resolution) {
     // integrate and accumulate results
     auto x_psi = std::vector<double>{0.0};  // {0.0}
     auto y_cumulative_E = std::vector<double>{0.0}; // {0.0}
-    double step = (psi_crit+5)/resolution;
+    double step = (psi_crit+1)/resolution;
    
-    for (double psi_spline = 0 + step; psi_spline <= (psi_crit + 5); psi_spline += step) {
+    for (double psi_spline = 0 + step; psi_spline <= (psi_crit + 1); psi_spline += step) {
         double E_psi = step * ((calc_cond_vuln(psi_spline-step) + calc_cond_vuln(psi_spline))/2) + y_cumulative_E.back();
         x_psi.push_back(psi_spline); // x values for spline
         y_cumulative_E.push_back(E_psi); // y values for spline
@@ -60,10 +67,9 @@ void Leaf::setup_E_supply(double resolution) {
  return k_l_max * integrator.integrate(f, psi_soil, psi_stem);
                               }
 
-double Leaf::calc_E_supply(double k_l_max, double psi_soil,
-                           double psi_stem) {
+double Leaf::calc_E_supply(double psi_stem) {
     // integration of calc_cond_vuln over [psi_soil, psi_stem]
-    return k_l_max * (E_from_psi.eval(psi_stem) - E_from_psi.eval(psi_soil));
+    return k_l_max_ * (E_from_psi.eval(psi_stem) - E_from_psi.eval(psi_soil_));
 }
 
 double Leaf::calc_psi_stem_ci(double k_l_max, double psi_soil,
@@ -100,7 +106,7 @@ double Leaf::min_psi(double PPFD, double x_ci, double psi_soil, double k_l_max) 
 
 // returns E kg m^-2 s^-1
 double Leaf::calc_g_c(double psi_soil, double psi_stem, double k_l_max) {
-  double E_supply = calc_E_supply(k_l_max, psi_soil, psi_stem);
+  double E_supply = calc_E_supply(psi_stem);
 
   return atm_kpa * E_supply * kg_to_mol_h2o / atm_vpd / 1.6;
 }
@@ -232,10 +238,6 @@ double Leaf::find_max_ci(
 
 double Leaf::calc_profit_Sperry(double PPFD, double psi_soil, double psi_stem, double k_l_max) {
 
-  double lambda_ =
-      calc_assim_gross(PPFD, psi_soil, psi_crit, k_l_max) /
-      (k_l_max * calc_cond_vuln(psi_soil) -
-              k_l_max * calc_cond_vuln(psi_crit));
   double benefit_ =
       calc_assim_gross(PPFD, psi_soil, psi_stem, k_l_max);
   double cost_ = calc_hydraulic_cost_Sperry(psi_soil, psi_stem, k_l_max);
@@ -330,7 +332,11 @@ double Leaf::optimise_psi_stem_Sperry_one_line(double PPFD, double psi_soil, dou
     }
 
     opt_psi_stem = ((bound_b + bound_a) / 2);
+
+    std::cout << "hello" << std::endl;
   
+
+
     return opt_psi_stem;
 
   }
@@ -413,10 +419,6 @@ double Leaf::calc_assim_gross_one_line(double PPFD, double psi_soil, double psi_
 
 double Leaf::calc_profit_Sperry_one_line(double PPFD, double psi_soil, double psi_stem, double k_l_max) {
 
-  double lambda_ =
-      calc_assim_gross_one_line(PPFD, psi_soil, psi_crit, k_l_max) /
-      (k_l_max * calc_cond_vuln(psi_soil) -
-              k_l_max * calc_cond_vuln(psi_crit));
   double benefit_ =
       calc_assim_gross_one_line(PPFD, psi_soil, psi_stem, k_l_max);
   double cost_ = calc_hydraulic_cost_Sperry(psi_soil, psi_stem, k_l_max);
@@ -440,6 +442,7 @@ double Leaf::optimise_psi_stem_Sperry_Newton_recall_one_line(double PPFD, double
   double psi_stem_initial;
 
   int finished=1;
+  int gss = 0;
 
   double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
 
@@ -458,8 +461,9 @@ double Leaf::optimise_psi_stem_Sperry_Newton_recall_one_line(double PPFD, double
     x_1 = psi_stem_initial - diff_value;
     x_2 = psi_stem_initial + diff_value;
     
-    std::cout << "x_1" << x_1 << "x_2" << x_2 << "diff_value" << diff_value << "psi_stem_initial" << psi_stem_initial <<std::endl;
+    std::cout << "x_1" << x_1 << "x_2" << x_2 << "diff_value" << diff_value << "psi_stem_initial" << psi_stem_initial << "PPFD" << PPFD << "psi_soil" << psi_soil << "k_l_max" << k_l_max << "psi_crit" << psi_crit << std::endl;
 
+    
     y_0 = calc_profit_Sperry_one_line(PPFD, psi_soil, psi_stem_initial, k_l_max);
     
     // std::cout << "y_0" <<  y_0 <<std::endl;
@@ -477,11 +481,19 @@ double Leaf::optimise_psi_stem_Sperry_Newton_recall_one_line(double PPFD, double
 
     psi_stem_next = psi_stem_initial -  first_dev/sec_dev;
 
+    if(psi_stem_next > psi_crit | psi_stem_next < psi_soil){
+      psi_stem_next = optimise_psi_stem_Sperry_one_line(PPFD, psi_soil, k_l_max);
+      gss = 1;
+      finished = 0;
+    }
+
     if(abs(psi_stem_next - psi_stem_initial) < epsilon){
       finished = 0;
     }
 
   }
+    std::cout << "psi_stem_next" << psi_stem_next << "gss" << gss <<  std::endl;
+
     return psi_stem_next;
   }
 
@@ -771,7 +783,6 @@ double Leaf::calc_profit_Sperry_ci_one_line(double PPFD, double psi_soil, double
   
   double psi_stem = calc_psi_stem_ci(k_l_max, psi_soil, E_ci);
   double cost_ = calc_hydraulic_cost_Sperry(psi_soil, psi_stem, k_l_max);
-  double lambda_ = calc_assim_gross_one_line(PPFD, psi_soil, psi_crit, k_l_max) / calc_hydraulic_cost_Sperry(psi_soil, psi_crit, k_l_max);
 
   return benefit_ - lambda_*cost_;
 }

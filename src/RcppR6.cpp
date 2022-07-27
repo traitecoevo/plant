@@ -18,8 +18,8 @@ double Leaf__calc_cond_vuln(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi)
   return obj_->calc_cond_vuln(psi);
 }
 // [[Rcpp::export]]
-double Leaf__calc_E_supply(plant::RcppR6::RcppR6<plant::Leaf> obj_, double k_l_max, double psi_soil, double psi_stem) {
-  return obj_->calc_E_supply(k_l_max, psi_soil, psi_stem);
+double Leaf__calc_E_supply(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->calc_E_supply(psi_stem);
 }
 // [[Rcpp::export]]
 double Leaf__calc_E_supply_full_integration(plant::RcppR6::RcppR6<plant::Leaf> obj_, double k_l_max, double psi_soil, double psi_stem) {
@@ -56,6 +56,10 @@ double Leaf__calc_hydraulic_cost_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_,
 // [[Rcpp::export]]
 double Leaf__calc_profit_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double psi_stem, double k_l_max) {
   return obj_->calc_profit_Sperry(PPFD, psi_soil, psi_stem, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__calc_lambda_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->calc_lambda_Sperry(PPFD, psi_soil, k_l_max);
 }
 // [[Rcpp::export]]
 double Leaf__calc_hydraulic_cost_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_soil, double psi_stem, double k_l_max) {
@@ -112,6 +116,54 @@ double Leaf__optimise_ci_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, 
 // [[Rcpp::export]]
 double Leaf__optimise_ci_Sperry_Newton_recall(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
   return obj_->optimise_ci_Sperry_Newton_recall(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__calc_min_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->calc_min_psi(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__min_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double x_ci, double psi_soil, double k_l_max) {
+  return obj_->min_psi(PPFD, x_ci, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__find_max_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->find_max_ci(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->optimise_psi_stem_Sperry_Newton_recall_one_line(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__calc_j(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD) {
+  return obj_->calc_j(PPFD);
+}
+// [[Rcpp::export]]
+double Leaf__calc_assim_gross_one_line(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double psi_stem, double k_l_max) {
+  return obj_->calc_assim_gross_one_line(PPFD, psi_soil, psi_stem, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__calc_profit_Sperry_one_line(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double psi_stem, double k_l_max) {
+  return obj_->calc_profit_Sperry_one_line(PPFD, psi_soil, psi_stem, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__optimise_ci_Sperry_Newton_recall_one_line(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->optimise_ci_Sperry_Newton_recall_one_line(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__calc_profit_Sperry_ci_one_line(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double c_i, double k_l_max) {
+  return obj_->calc_profit_Sperry_ci_one_line(PPFD, psi_soil, c_i, k_l_max);
+}
+// [[Rcpp::export]]
+double Leaf__calc_A_lim_one_line(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double c_i) {
+  return obj_->calc_A_lim_one_line(PPFD, c_i);
+}
+// [[Rcpp::export]]
+double Leaf__optimise_psi_stem_Sperry_one_line(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  return obj_->optimise_psi_stem_Sperry_one_line(PPFD, psi_soil, k_l_max);
+}
+// [[Rcpp::export]]
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
+  obj_->set_physiology(PPFD, psi_soil, k_l_max);
 }
 // [[Rcpp::export]]
 double Leaf__ci__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
@@ -183,6 +235,42 @@ double Leaf__c_i_next__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__c_i_next__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->c_i_next = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__lambda___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->lambda_;
+}
+// [[Rcpp::export]]
+void Leaf__lambda___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->lambda_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__k_l_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->k_l_max_;
+}
+// [[Rcpp::export]]
+void Leaf__k_l_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->k_l_max_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__PPFD___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->PPFD_;
+}
+// [[Rcpp::export]]
+void Leaf__PPFD___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->PPFD_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__psi_soil___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->psi_soil_;
+}
+// [[Rcpp::export]]
+void Leaf__psi_soil___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->psi_soil_ = value;
 }
 
 

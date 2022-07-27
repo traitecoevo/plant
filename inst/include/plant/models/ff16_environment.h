@@ -137,7 +137,7 @@ public:
 
       net_flux = infiltration  - drainage -  resource_depletion[i];
 
-        // std::cout << "time: " << time << "; infiltration: " << infiltration << "; theta: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
+        std::cout << "; theta: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
  
       
       vars.set_rate(i, net_flux);

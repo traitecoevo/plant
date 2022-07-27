@@ -71,6 +71,10 @@ public:
   double profit;
   double psi_stem_next;
   double c_i_next;
+  double lambda_;
+  double PPFD_;
+  double k_l_max_;
+  double psi_soil_;
 
   // TODO: move into environment?
   double atm_vpd = 2.0; //kPa
@@ -85,6 +89,7 @@ public:
                                  1, // fixed integration
                                  integration_tol, integration_tol);
   }
+  
 
   double p_50_to_K_s() const;
 
@@ -93,14 +98,15 @@ public:
   double calc_vul_b() const;
   double calc_cond_vuln(double psi) const;
 
-  double calc_E_supply(double k_l_max, double psi_soil,
-                       double psi_stem);
+  double calc_E_supply(double psi_stem);
 
    double calc_E_supply_full_integration(double k_l_max, double psi_soil,
                        double psi_stem);                    
 
   void setup_E_supply(double resolution);
   // void setup_psi(double resolution);
+
+  void set_physiology(double PPFD, double psi_soil, double k_l_max);
 
 
   double calc_g_c(double psi_soil, double psi_stem, double k_l_max); // define as a constant

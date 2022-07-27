@@ -21,6 +21,10 @@ Leaf:
     profit: {type: double, access: field}
     psi_stem_next: {type: double, access: field}
     c_i_next: {type: double, access: field}
+    lambda_: {type: double, access: field}
+    k_l_max_: {type: double, access: field}
+    PPFD_: {type: double, access: field}
+    psi_soil_: {type: double, access: field}
 
   methods:
     initialize_integrator:
@@ -37,7 +41,7 @@ Leaf:
       args: [psi: double]
     calc_E_supply:
       return_type: double
-      args: [k_l_max: double, psi_soil: double, psi_stem: double]
+      args: [psi_stem: double]
     calc_E_supply_full_integration:
       return_type: double
       args: [k_l_max: double, psi_soil: double, psi_stem: double]
@@ -143,7 +147,9 @@ Leaf:
     optimise_psi_stem_Sperry_one_line:
       return_type: double
       args: [PPFD: double, psi_soil: double, k_l_max: double]
-
+    set_physiology:
+      return_type: void 
+      args: [PPFD: double, psi_soil: double, k_l_max: double]
 
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
