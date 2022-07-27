@@ -187,9 +187,10 @@ integrate_over_size_distribution <- function(tidy_species_data) {
     dplyr::filter(.data$step > 1) %>% 
     dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
     dplyr::summarise(
-      individuals = -trapezium(.data$height, .data$density),
+      density_integrated = -plant:::trapezium(.data$height, .data$density), 
       min_height = min(.data$height),
-      dplyr::across(where(is.double), ~ -trapezium(height, density*.x)),
-      .groups="drop"
-    )
+      dplyr::across(where(is.double) & !c(.data$density, .data$density_integrated, .data$min_height) , ~-trapezium(height, density * .x)), 
+      .groups = "drop"
+    ) %>% 
+    rename(density = density_integrated)
 }
