@@ -192,5 +192,5 @@ integrate_over_size_distribution <- function(tidy_species_data) {
       dplyr::across(where(is.double) & !c(.data$density, .data$density_integrated, .data$min_height) , ~-trapezium(height, density * .x)), 
       .groups = "drop"
     ) %>% 
-    rename(density = density_integrated)
+    dplyr::rename(density = density_integrated)
 }
