@@ -54,13 +54,13 @@ double K93_Strategy::compute_competition(double z, double size) const {
   return k_I * size_to_basal_area(size) * Q(z, size);
  }
 
-double K93_Strategy::establishment_probability(const K93_Environment& environment){
+double K93_Strategy::establishment_probability(const K93_Environment& environment, Internals& vars){
   //TODO: may want to make this dependent on achieving positive growth rate
   return 1.0;
 }
 
 double K93_Strategy::net_mass_production_dt(const K93_Environment& environment,
-                                            double height, double area_leaf_,
+                                            double height, double area_leaf_, Internals& vars,
                                             bool reuse_intervals) {
   // TODO: there was no return value here - added 0.0
   return 1.0;

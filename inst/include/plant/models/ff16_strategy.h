@@ -25,7 +25,7 @@ public:
                                      "area_heartwood", "mass_heartwood"});
   }
 
-  std::vector<std::string> aux_names() {
+  virtual std::vector<std::string> aux_names() {
     std::vector<std::string> ret(
         {"competition_effect", "net_mass_production_dt"});
     // add the associated computation to compute_rates and compute there
@@ -81,7 +81,7 @@ public:
   double compute_assimilation(double z, double height,
                               const FF16_Environment &environment);
 
-  void compute_rates(const FF16_Environment &environment, bool reuse_intervals,
+  virtual void compute_rates(const FF16_Environment &environment, bool reuse_intervals,
                      Internals &vars);
 
   void update_dependent_aux(const int index, Internals &vars);
@@ -108,7 +108,7 @@ public:
                                   double turnover) const;
 
   virtual double net_mass_production_dt(const FF16_Environment &environment,
-                                        double height, double area_leaf_,
+                                        double height, double area_leaf_, Internals &vars,
                                         bool reuse_intervals = false);
 
   // [eqn 16] Fraction of whole plan growth that is leaf
@@ -162,7 +162,7 @@ public:
   double mortality_growth_independent_dt() const;
   double mortality_growth_dependent_dt(double productivity_area) const;
   // [eqn 20] Survival of seedlings during establishment
-  double establishment_probability(const FF16_Environment &environment);
+  virtual double establishment_probability(const FF16_Environment &environment, Internals &vars);
 
   // * Competitive environment
   // [eqn 11] total projected leaf area above height above height `z` for given

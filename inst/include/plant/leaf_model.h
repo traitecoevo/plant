@@ -64,6 +64,7 @@ public:
   double K_s;
 
   double ci;
+  double j_;
   double g_c;
   double A_lim;
   double E;
@@ -75,6 +76,8 @@ public:
   double PPFD_;
   double k_l_max_;
   double psi_soil_;
+  double opt_psi_stem;
+  double opt_ci;
 
   // TODO: move into environment?
   double atm_vpd = 2.0; //kPa
@@ -100,8 +103,7 @@ public:
 
   double calc_E_supply(double psi_stem);
 
-   double calc_E_supply_full_integration(double k_l_max, double psi_soil,
-                       double psi_stem);                    
+   double calc_E_supply_full_integration(double psi_stem);                    
 
   void setup_E_supply(double resolution);
   // void setup_psi(double resolution);
@@ -109,51 +111,50 @@ public:
   void set_physiology(double PPFD, double psi_soil, double k_l_max);
 
 
-  double calc_g_c(double psi_soil, double psi_stem, double k_l_max); // define as a constant
+  double calc_g_c(double psi_stem); // define as a constant
   double calc_A_c(double ci_);
-  double calc_A_j(double PPFD, double ci_);
-  double calc_A_lim(double PPFD, double ci_);
+  double calc_A_j(double ci_);
+  double calc_A_lim(double ci_);
 
-  double diff_ci(double PPFD, double x, double psi_soil, double psi_stem, double k_l_max);
+  double diff_ci(double x, double psi_stem);
 
-  double calc_assim_gross(double PPFD, double psi_soil, double psi_stem, double k_l_max);
+  double calc_assim_gross(double psi_stem);
 
-  double calc_hydraulic_cost_Sperry(double psi_soil, double psi_stem, double k_l_max);
+  double calc_hydraulic_cost_Sperry(double psi_stem);
 
-  double calc_profit_Sperry(double PPFD, double psi_soil, double psi_stem, double k_l_max);
+  double calc_profit_Sperry(double psi_stem);
 
-  double calc_hydraulic_cost_Bartlett(double psi_soil, double psi_stem,
-                                      double k_l_max);
+  double calc_hydraulic_cost_Bartlett(double psi_stem);
 
-  double calc_profit_Bartlett(double PPFD, double psi_soil,
-                              double psi_stem, double k_l_max);
+  double calc_profit_Bartlett(double psi_stem);
 
-  double optimise_psi_stem_Bartlett(double PPFD, double psi_soil, double k_l_max);
+  double optimise_psi_stem_Bartlett();
 
-  double optimise_psi_stem_Sperry(double PPFD, double psi_soil, double k_l_max);
-  double optimise_ci_Bartlett(double PPFD, double psi_soil, double k_l_max);
-  double calc_profit_Bartlett_ci(double PPFD, double psi_soil, double c_i,double k_l_max);
-  double calc_assim_gross_ci(double PPFD, double ci);
-  double calc_psi_stem_ci(double k_l_max, double psi_soil, double E_ci);
+  double optimise_psi_stem_Sperry();
+  double optimise_ci_Bartlett();
+  double calc_profit_Bartlett_ci(double c_i);
+  double calc_assim_gross_ci(double ci);
+  double calc_psi_stem_ci(double E_ci);
   double calc_psi_from_E(double E_psi_stem);
-  double calc_profit_Sperry_ci(double PPFD, double psi_soil, double c_i,double k_l_max);
-  double optimise_psi_stem_Sperry_Newton(double PPFD, double psi_soil, double k_l_max);
-  double optimise_psi_stem_Sperry_Newton_recall(double PPFD, double psi_soil, double k_l_max);
-  double optimise_ci_Sperry_Newton(double PPFD, double psi_soil, double k_l_max);
-  double optimise_ci_Sperry_Newton_recall(double PPFD, double psi_soil, double k_l_max);
-  double calc_lambda_Sperry(double PPFD, double psi_soil, double k_l_max);
-  double calc_min_psi(double PPFD, double psi_soil, double k_l_max);
-  double min_psi(double PPFD, double x_ci, double psi_soil, double k_l_max);
-  double find_max_ci(double PPFD, double psi_soil, double k_l_max);
-  double calc_j(double PPFD);
-  double calc_assim_gross_one_line(double PPFD, double psi_soil, double psi_stem, double k_l_max);
-  double calc_profit_Sperry_one_line(double PPFD, double psi_soil, double psi_stem, double k_l_max);
-  double optimise_psi_stem_Sperry_Newton_recall_one_line(double PPFD, double psi_soil, double k_l_max);
-  double optimise_ci_Sperry_Newton_recall_one_line(double PPFD, double psi_soil, double k_l_max);
-  double calc_profit_Sperry_ci_one_line(double PPFD, double psi_soil, double c_i, double k_l_max);
-  double calc_A_lim_one_line(double PPFD, double c_i);
-  double optimise_psi_stem_Sperry_one_line(double PPFD, double psi_soil, double k_l_max);
-
+  double calc_profit_Sperry_ci(double c_i);
+  double optimise_psi_stem_Sperry_Newton();
+  double optimise_psi_stem_Sperry_Newton_recall();
+  double optimise_ci_Sperry_Newton();
+  double optimise_ci_Sperry_Newton_recall();
+  double calc_min_psi();
+  double min_psi(double x_ci);
+  double find_max_ci();
+  double calc_j();
+  double calc_assim_gross_one_line(double psi_stem);
+  double calc_profit_Sperry_one_line(double psi_stem);
+  void optimise_psi_stem_Sperry_Newton_recall_one_line(double psi_guess);
+  void optimise_ci_Sperry_Newton_recall_one_line(double ci_guess);
+  double calc_profit_Sperry_ci_one_line(double c_i);
+  double calc_A_lim_one_line(double c_i);
+  double optimise_psi_stem_Sperry_one_line();
+  void optimise_psi_stem_Sperry_Newton_recall_one_line_pass();
+  double find_max_ci_one_line();
+  void optimise_ci_Sperry_Newton_recall_one_line_max(double ci_guess);
 };
 } // namespace plant
 #endif

@@ -22,9 +22,13 @@ Leaf:
     psi_stem_next: {type: double, access: field}
     c_i_next: {type: double, access: field}
     lambda_: {type: double, access: field}
+    j_: {type: double, access: field}
     k_l_max_: {type: double, access: field}
     PPFD_: {type: double, access: field}
     psi_soil_: {type: double, access: field}
+    opt_psi_stem: {type: double, access: field}
+    opt_ci: {type: double, access: field}
+
 
   methods:
     initialize_integrator:
@@ -44,112 +48,118 @@ Leaf:
       args: [psi_stem: double]
     calc_E_supply_full_integration:
       return_type: double
-      args: [k_l_max: double, psi_soil: double, psi_stem: double]
+      args: [psi_stem: double]
     calc_g_c:
       return_type: double
-      args: [psi_soil: double, psi_stem: double, k_l_max: double]
+      args: [psi_stem: double]
     calc_A_c:
       return_type: double
       args: [ci_: double]
     calc_A_j:
       return_type: double
-      args: [PPFD: double, ci_: double]
+      args: [ci_: double]
     calc_A_lim:
       return_type: double
-      args: [PPFD: double, ci_: double]
+      args: [ci_: double]
     diff_ci:
       return_type: double
-      args: [PPFD: double, x: double, psi_soil: double, psi_stem: double, k_l_max: double]
+      args: [x: double, psi_stem: double]
     calc_assim_gross:
       return_type: double
-      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]
+      args: [psi_stem: double]
     calc_hydraulic_cost_Sperry:
       return_type: double
-      args: [psi_soil: double, psi_stem: double, k_l_max: double] 
+      args: [psi_stem: double] 
     calc_profit_Sperry:
       return_type: double
-      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]
-    calc_lambda_Sperry:
-      return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: [psi_stem: double]
     calc_hydraulic_cost_Bartlett:
       return_type: double
-      args: [psi_soil: double, psi_stem: double, k_l_max: double]
+      args: [psi_stem: double]
     calc_profit_Bartlett:
       return_type: double
-      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]
+      args: [psi_stem: double]
     optimise_psi_stem_Bartlett:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: []
     optimise_psi_stem_Sperry:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: []
     optimise_ci_Bartlett:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: []
     calc_profit_Bartlett_ci:
       return_type: double
-      args: [PPFD: double, psi_soil: double, c_i: double, k_l_max: double]
+      args: [c_i: double]
     calc_assim_gross_ci:
       return_type: double
-      args: [PPFD: double, c_i: double]
+      args: [c_i: double]
     calc_psi_stem_ci:
       return_type: double
-      args: [k_l_max: double, psi_soil: double, E_ci: double]
+      args: [E_ci: double]
     calc_psi_from_E:
       return_type: double
       args: [E_psi_stem: double]
     calc_profit_Sperry_ci:
       return_type: double
-      args: [PPFD: double, psi_soil: double, c_i: double, k_l_max: double]
+      args: [c_i: double]
     optimise_psi_stem_Sperry_Newton:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: []
     optimise_psi_stem_Sperry_Newton_recall:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: []
     optimise_ci_Sperry_Newton:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: []
     optimise_ci_Sperry_Newton_recall:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double] 
+      args: [] 
     calc_min_psi:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: []
     min_psi:
       return_type: double
-      args: [PPFD: double,x_ci: double, psi_soil: double, k_l_max: double] 
+      args: [x_ci: double] 
     find_max_ci:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: []
     optimise_psi_stem_Sperry_Newton_recall_one_line:
-      return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      return_type: void
+      args: [psi_guess: double]
     calc_j:
       return_type: double
-      args: [PPFD: double]
+      args: []
     calc_assim_gross_one_line:
       return_type: double
-      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]
+      args: [psi_stem: double]
     calc_profit_Sperry_one_line:
       return_type: double
-      args: [PPFD: double, psi_soil: double, psi_stem: double, k_l_max: double]  
+      args: [psi_stem: double]  
     optimise_ci_Sperry_Newton_recall_one_line:
-      return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      return_type: void
+      args: [ci_guess: double]
     calc_profit_Sperry_ci_one_line:
       return_type: double
-      args: [PPFD: double, psi_soil: double, c_i: double, k_l_max: double] 
+      args: [c_i: double] 
     calc_A_lim_one_line:
       return_type: double
-      args: [PPFD: double, c_i: double]  
+      args: [c_i: double]  
     optimise_psi_stem_Sperry_one_line:
       return_type: double
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: []
     set_physiology:
       return_type: void 
       args: [PPFD: double, psi_soil: double, k_l_max: double]
+    optimise_psi_stem_Sperry_Newton_recall_one_line_pass:
+      return_type: void 
+      args: []
+    find_max_ci_one_line:
+      return_type: double
+      args: []
+    optimise_ci_Sperry_Newton_recall_one_line_max:
+      return_type: void
+      args: [ci_guess: double]
 
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"

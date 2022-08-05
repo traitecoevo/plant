@@ -28,9 +28,8 @@ double FF16w_Strategy::evapotranspiration_dt(double area_leaf_) {
 
 // One shot calculation of net_mass_production_dt
 // Used by establishment_probability() and compute_rates().
-double
-FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environment,
-                                       double height, double area_leaf_,
+double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environment,
+                                       double height, double area_leaf_, Internals &vars, 
                                        bool reuse_intervals) {
   const double mass_leaf_ = mass_leaf(area_leaf_);
   const double area_sapwood_ = area_sapwood(area_leaf_);
@@ -87,27 +86,34 @@ FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environment,
 
 leaf.set_physiology(average_radiation, psi_soil, k_l_max);
 
-// double psi_initial = vars.aux(aux_index.at("psi"))
+// double psi_guess = vars.aux(aux_index.at("opt_psi_stem"));
 
-double opt_ci = leaf.optimise_psi_stem_Sperry_Newton_recall_one_line(average_radiation, psi_soil, k_l_max);
+// std::cout << "psi_guess: " << psi_guess  <<std::endl;
+double ci_guess = vars.aux(aux_index.at("opt_ci"));
+leaf.optimise_ci_Sperry_Newton_recall_one_line(ci_guess);
+
+vars.set_aux(aux_index.at("opt_ci"), leaf.opt_ci);
+
+// leaf.optimise_psi_stem_Sperry_Newton_recall_one_line(psi_guess);
 
 // double ci = leaf.ci
 // double E = leaf.E
 
-// vars.set_aux(aux_index.at("ci"), ci);
+// vars.set_aux(aux_index.at("opt_psi_stem"), leaf.opt_psi_stem);
+
 // // std::cout << "k_l_max: " << k_l_max  <<std::endl;
+  // const double assimilation_per_area = leaf.profit;
+
+// leaf.optimise_psi_stem_Sperry_Newton_recall_one_line_pass();
+
+// leaf.optimise_ci_Sperry_Newton_recall_one_line()
+
+  const double assimilation_per_area = leaf.profit;
+
+  // const double assimilation_per_area = leaf.calc_profit_Sperry(leaf.opt_psi_stem);
 
 
-  const double assimilation_per_area = leaf.calc_profit_Sperry_one_line(
-      average_radiation, psi_soil, opt_ci, k_l_max);
-
-
-
-  // const double assimilation_per_area = leaf.calc_profit_Sperry(
-  //     average_radiation, psi_soil, opt_psi_stem, k_l_max);
-
-
-std::cout << "assimilation_umol: " << assimilation_per_area << "area_leaf: " << area_leaf_ <<std::endl;
+// std::cout << "assimilation_umol: " << assimilation_per_area << "area_leaf: " << area_leaf_ <<std::endl;
   
   const double assimilation = assimilation_per_area * area_leaf_* 60*60*12*365/1000000;
 
@@ -117,7 +123,7 @@ std::cout << "assimilation_umol: " << assimilation_per_area << "area_leaf: " << 
   const double turnover_ =
       turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
 
-std::cout << "net_mass_production_dt_A: " << net_mass_production_dt_A(assimilation, respiration_, turnover_) <<std::endl;
+// std::cout << "net_mass_production_dt_A: " << net_mass_production_dt_A(assimilation, respiration_, turnover_) <<std::endl;
 
 
   return net_mass_production_dt_A(assimilation, respiration_, turnover_);
@@ -136,7 +142,7 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
   double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
 
   const double net_mass_production_dt_ =
-      net_mass_production_dt(environment, height, area_leaf_, reuse_intervals);
+      net_mass_production_dt(environment, height, area_leaf_, vars, reuse_intervals);
 
 
   // store the aux sate
@@ -144,6 +150,7 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
 
   // stubbing out E_p for integration
   for (size_t i = 0; i < environment.ode_size(); i++) {
+
     vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_)*60*60*12*365/1000);
  
   }

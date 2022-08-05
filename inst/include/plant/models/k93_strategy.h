@@ -43,9 +43,9 @@ public:
   void refresh_indices();
 
   // These are stuck in plant.h
-  double establishment_probability(const K93_Environment& environment);
+  double establishment_probability(const K93_Environment& environment, Internals& vars);
   double net_mass_production_dt(const K93_Environment& environment,
-                                double size, double cumulative_basal_area,
+                                double size, double cumulative_basal_area, Internals& vars, 
                                 bool reuse_intervals=false);
 
   double Q(double z, double size) const;

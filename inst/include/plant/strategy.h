@@ -59,7 +59,7 @@ public:
                                 double size, double competition_effect_,
                                 bool reuse_intervals=false);
 
-  double establishment_probability(const environment_type& environment);
+  double establishment_probability(const environment_type& environment, Internals& vars);
 
   double fecundity_dt(double net_mass_production_dt,
                       double fraction_allocation_reproduction) const;

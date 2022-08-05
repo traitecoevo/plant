@@ -257,7 +257,7 @@ Back transform environment interpolator so that smallest individual experience l
 
 ```{c++}
   // i.e. setting rates of ode vars from the state and updating aux vars
-  void K93_Strategy::compute_rates(const K93_Environment& environment,
+  virtual void K93_Strategy::compute_rates(const K93_Environment& environment,
                                 bool reuse_intervals,
                                 Internals& vars) {
 
@@ -311,7 +311,7 @@ the abbreviated section describing the naming and maintenance of characteristic 
 There are two special methods that must be defined:
 
 ```{c++}
-  void compute_rates(const K93_Environment& environment,
+  virtual void compute_rates(const K93_Environment& environment,
                      bool reuse_intervals,
                      Internals& vars);
 

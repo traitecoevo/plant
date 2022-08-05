@@ -104,7 +104,7 @@ void FF16_Strategy::compute_rates(const FF16_Environment &environment,
   double area_leaf_ = vars.aux(aux_index.at("competition_effect"));
 
   const double net_mass_production_dt_ =
-      net_mass_production_dt(environment, height, area_leaf_, reuse_intervals);
+      net_mass_production_dt(environment, height, area_leaf_, vars, reuse_intervals);
 
   // store the aux sate
   vars.set_aux(aux_index.at("net_mass_production_dt"), net_mass_production_dt_);
@@ -206,7 +206,7 @@ FF16_Strategy::compute_assimilation(double z, double height,
 // Used by establishment_probability() and compute_rates().
 double
 FF16_Strategy::net_mass_production_dt(const FF16_Environment &environment,
-                                      double height, double area_leaf_,
+                                      double height, double area_leaf_, Internals &vars, 
                                       bool reuse_intervals) {
   const double mass_leaf_ = mass_leaf(area_leaf_);
   const double area_sapwood_ = area_sapwood(area_leaf_);
@@ -395,12 +395,12 @@ FF16_Strategy::mortality_growth_dependent_dt(double productivity_area) const {
 
 // [eqn 20] Survival of seedlings during establishment
 double
-FF16_Strategy::establishment_probability(const FF16_Environment &environment) {
+FF16_Strategy::establishment_probability(const FF16_Environment &environment, Internals &vars) {
 
   double decay_over_time = exp(-recruitment_decay * environment.time);
 
   const double net_mass_production_dt_ =
-      net_mass_production_dt(environment, height_0, area_leaf_0);
+      net_mass_production_dt(environment, height_0, area_leaf_0, vars);
   if (net_mass_production_dt_ > 0) {
     const double tmp = a_d0 * area_leaf_0 / net_mass_production_dt_;
     return 1.0 / (tmp * tmp + 1.0) * decay_over_time;

@@ -1,0 +1,23 @@
+---
+title: "test_speed_FF16_FF16w"
+author: "Isaac Towers"
+date: "2022-08-05"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+devtools::load_all(".")
+
+p0 <- scm_base_parameters("FF16")
+p0$max_patch_lifetime <- 5
+```
+
+```{r}
+
+```
+

@@ -137,7 +137,7 @@ public:
 
       net_flux = infiltration  - drainage -  resource_depletion[i];
 
-        std::cout << "; theta: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
+        // std::cout << "; theta: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
  
       
       vars.set_rate(i, net_flux);
@@ -178,7 +178,6 @@ public:
     double n_psi = calc_n_psi();
 
     double psi = calc_psi(theta);
-
     // TODO: convert theta to psi
     // calc_apsi(theta_fc, theta_wp)*(theta/theta_sat)^(-calc_npsi(theta_fc, theta_wp))
 
