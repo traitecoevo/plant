@@ -61,6 +61,7 @@ public:
   double consumption_rate(int i) const { return vars.consumption_rate(i); }
 
   double compute_competition(double z) const {
+
     return strategy->compute_competition(z, state(HEIGHT_INDEX)); // aux("competition_effect"));
   }
 

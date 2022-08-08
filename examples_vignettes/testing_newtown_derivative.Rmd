@@ -547,4 +547,54 @@ tibble(c_i = seq(20, 39, 0.01)) %>%
 
 ```
 
+Testing what the deal is with the much faster small diff value
+
+```{r}
+calc_profit_ci <- function(p50, PPFD, psi_soil,ci){
+  K_s = p_50_2_K_s(p50)
+  b = calc_vul_b(p50, c)
+  psi_crit = calc_psi_crit(b, c)
+  # k_l_max = calc_k_l_max(K_s, h_v, h*eta_c)
+  k_l_max = 0.000843655
+
+  l <- Leaf(vcmax = 100, p_50 = p50, c = 2.04, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = K_s)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max)
+  
+  ci_initial = ci;
+  diff_value = 0.001
+  # max_ci = l$find_max_ci()
+  
+  y_0 = NA
+  first_dev = NA
+  sec_dev = NA
+  thrd_dev = NA
+  x_diff_Newton = NA
+  x_diff_Halley = NA
+  
+  l$calc_assim_gross_one_line(psi_crit)
+  y_0 = l$calc_profit_Sperry_ci_one_line(ci_initial)
+  
+  x_neg_1 = ci_initial - 1*diff_value;
+  x_pos_1 = ci_initial + 1*diff_value;
+
+  y_0 = l$calc_profit_Sperry_ci_one_line(ci_initial);
+  y_neg_1 = l$calc_profit_Sperry_ci_one_line(x_neg_1);
+  y_pos_1 = l$calc_profit_Sperry_ci_one_line(x_pos_1);
+
+  
+  first_dev = (y_pos_1 - y_neg_1)/(2*diff_value);
+
+  sec_dev = (y_neg_1 - 2*y_0 + y_pos_1)/(diff_value^2);
+  
+
+  x_diff_Newton = ci_initial - first_dev/sec_dev
+  
+  tibble(a_profit = y_0, first_dev, sec_dev, x_diff_Newton)
+}
+  
+```
+
+```{r}
+
+```
 

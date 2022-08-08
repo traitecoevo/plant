@@ -45,7 +45,8 @@ public:
        double beta         = 15000.0, // umol m^-2 s^-1
        double beta_2       = 1.0, //unitless
        double huber_value  = 1.57e-4, // m^2 sapwood area m^-2 leaf area
-       double K_s = 2); // kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
+       double K_s = 2, // kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
+       double epsilon_leaf = 0.001); 
 
   quadrature::QAG integrator;
   interpolator::Interpolator E_from_psi;
@@ -62,6 +63,8 @@ public:
   double beta_2;
   double huber_value;
   double K_s;
+  double epsilon_leaf;
+
 
   double ci;
   double j_;

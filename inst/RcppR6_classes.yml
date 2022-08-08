@@ -11,6 +11,8 @@ Leaf:
       - beta_2: double
       - huber_value: double
       - K_s: double
+      - epsilon_leaf: double
+
       
   active:
     ci: {type: double, access: field}
@@ -1241,6 +1243,7 @@ FF16w_Strategy:
     - beta: double
     - beta_2: double
     - huber_value: double
+    - epsilon_leaf: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool

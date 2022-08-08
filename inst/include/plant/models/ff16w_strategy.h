@@ -50,6 +50,7 @@ virtual std::vector<std::string> aux_names() {
   double K_s = 3;
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
+  double epsilon_leaf = 0.001;
 };
 
 

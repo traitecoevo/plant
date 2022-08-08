@@ -9,7 +9,18 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-This is an implementation of Profit max as described in Sabot et al. 2020. Profit max is a optimal stomatal conductance model which hypothesises that plants optimise stomatal conductance $(g_x)$ to maximise profits, where gains are carbon assimilation and costs are the risks associated with xylem embolism and failure due to transpiration as well as the costs associated with maintaining the photosynthetic pathway. Although there are multiple published descriptions of the profit function, they can all be considered generally as stating that: $$Profit~(g_x) = Benefits~(g_x) - Costs~(g_x),$$
+```{r}
+devtools::load_all(".")
+```
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+```
+
+
+
+This is an implementation of Profit max as described in Sperry et al. (2017), Sabot et al. (2020). Profit max is a optimal stomatal conductance model which hypothesises that plants optimise stomatal conductance $(g_x)$ to maximise profits, where gains are carbon assimilation and costs are the risks associated with xylem embolism and failure due to transpiration as well as the costs associated with maintaining the photosynthetic pathway. Although there are multiple published descriptions of the profit function, they can all be considered generally as stating that: $$Profit~(g_x) = Benefits~(g_x) - Costs~(g_x),$$
 
 in the sense that the profits are a function of benefits and costs, both of which vary as a function of stomatal conductance.
 
@@ -25,10 +36,6 @@ $$E = \int^{\psi_{stem}}_{\psi_{soil}}~k_{l,max} * e^{-(\psi/b)^c}~d\psi,$$
 where $k_{l,max~(kg~m^{-2}~leaf~area~s^{-1}~MPa^{-1})}$ is the leaf-specific hydraulic conductance and $b~(unitless)$ and $c~(unitless)$ are shape parameters describing the hydraulic vulnerability curve of xylem conductance (i.e. the rate of loss of conductance as stem water pressure becomes increasingly negative). Note that the second term of the above equation i.e. $e^{-(\psi/b)^c}~d\psi$ is constrained to $\{0,1\}$, representing a fraction of conductance which declines as $\psi$ decreases (i.e. becomes more negative). However, because there is no analytical solution to find $E$, it is necessary to numerically integrate across $d\psi$ to find $E$. Consider a simple example of this curve:
 
 ```{r}
-devtools::load_all(".")
-
-library(ggplot2)
-library(tidyverse)
 
 k_l_max = 2
 b = 3
@@ -47,12 +54,14 @@ ggplot(aes(x = psi, y = k_l)) +
   ylab("k_l (kg m^-2 s^-1 MPa ^-1)")
 ```
 
+$E$ is required constantly throughout `FF16w`, being a fundamental calculation for estimating benefits and costs when determining profit, as well as for calculating plant water use for the soil water state (described below). For computational efficiency, in `plant`, rather than numerical integrating the above equation every time E is required, we numerically integrate acorss the second term from $\psi$ = 0 to a series of steps up to some high value of $psi$ (i.e equivalent to $psi_{crit}$ or higher) once, and the interpolate across these control points to create a spline relating $psi$ to $E$. Because the second shape of the second term is species-specific, but does not change throughout the growth of a forest (being depdendent on species-level traits: $b$, $c$ and $psi_{crit}$), it is possible for us to perform this numerical integration process only once when the species is being initalised, saving a lot of time for long runs. The second term, once integrated, can then be multiplied by $k_{l,max}$ to find $E$. Importantly, by default, the interpolation of transpiration is bounded by 0, on the lower end, and psi crit, on the higher end. Attempts to extrapolate outside of this range will be met with an error. At the lower end, it is because it assumed impossible to have a psi stem lower (i.e. less pressure) than the psi soil. For this reason, many of the examples below will have psi_stem ranging from 0 to psi crit. 
+
 ## Hydraulic vulnerability and conductance
 
 $k_{l,max}$ itself can be derived from other plant traits:
 
 $$k_{l,max} = \frac{K_s*v}{h},$$
-where $K_s~(kg~m^{-1}sapwood~s^{-1}~Mpa^{-1})$ is the sapwood-specific conductivity, $v~(m^2~sapwood~area~m^{-2}~leaf~area)$ is the Huber value, and $h~(m~sapwood)$ is the path length (i.e. the height). $K_s$ itself can be derived from trait information about xylem elements like vessel diameter and lumen fraction, but for the moment we stick with empirically observed values of $K_s$.
+where $K_s~(kg~m^{-1}sapwood~s^{-1}~Mpa^{-1})$ is the sapwood-specific conductivity, $v~(m^2~sapwood~area~m^{-2}~leaf~area)$ is the Huber value, and $h~(m~sapwood)$ is the path length (i.e. the height). We will elaborate on the role of height later, being a variable which changes throughout the plant run, meaning that the $k_{l,max}$ of growing cohort declines through time, all else being equal. $K_s$ itself can be derived from trait information about xylem elements like vessel diameter and lumen fraction, but for the moment we stick with empirically observed values of $K_s$.
 
 $c$ and $b$ can be derived from empirical P50 and P88 values as:
 
@@ -60,39 +69,211 @@ $$c = \frac{log\frac{log(1-x_1/100)}{log(1-x_2/100)}}{logP_{x_1}-logP_{x_2}},$$
 and:
 
 $$b = \frac{P_{x_1}}{(-log(1-\frac{x_1}{100}))^\frac{1}{c}}$$
-where $x_i~(\%)$ is the percentage of conductivity lost and $P_{x_i}~(MPa)$ is the water potential at which $x_i$ occurs. Alternatively, we can induce a trade-off between the sapwood-specific conductance and the P50 so that species which lose conductance at a slower rate with increasingly negative water potential have a lower maximum conductance rate. Empirical observations (e.g. Liu et al. 2019) have shown that sapwood-specific conductivity decreases as P50 declines, according to the following equation:
+where $x_i~(\%)$ is the percentage of conductivity lost and $P_{x_i}~(MPa)$ is the water potential at which $x_i$ occurs. Alternatively, we can induce a trade-off between the sapwood-specific conductance and the $p_{50}$ so that species which lose conductance at a slower rate with increasingly negative water potential have a lower maximum conductance rate. Empirical observations (e.g. Liu et al. 2019) have shown that sapwood-specific conductivity decreases as P50 declines, according to the following equation:
 
-$$P_{50} = 1.731347 * (\frac{K_s}{K_{s,0}})^{-0.7246377},$$
-where $K_s$ is normalised by a mean value of $K_s$, $K_{s,0}$, in this case, 2. Thus, given a $K_s$ value, P50 can then be predicted from the empirical relationship, which in turn allows $b$ to be found. Thus, the only unknown parameter in the hydraulic vulnerability curve is the shape parameter, c. Here, we assume that the shape of the vulnerability curve is shared across species, which we find using the average c value from empirical data.
+$$P_{50} = g * (\frac{K_s}{K_{s,0}})^{-h},$$
+where $g$ and $h$ are empirically fitted parameters, namely 1.731347 and 0.7246377, retrieved from Liu et al. (2019). $K_s$ is also normalised by a mean value of $K_s$, $K_{s,0}$, in this case, ~2, which centres the trade-off around a medium value, meaning that we can experimentally manipulate the strength of this trade-off in future, ensuring that the curve still fits through the central tendency of the data. Thus, given a $K_s$ value, P50 can then be predicted from the empirical relationship, which in turn allows $b$ to be found. Thus, the only unknown parameter in the hydraulic vulnerability curve is the shape parameter, c. Here, we assume that the shape of the vulnerability curve is shared across species, which we find using the average c value from empirical data (2.04, Austraits in this case).
 
-The trade-off between $K_s$ and $P_{50}$ above implies that, immediately after the $\psi_{stem}$ departs from 0 MPa, species with higher maximum conductance   On the other hand, species with lower maximum conductivity maintain a more constant rate of transpiration across the pressure gradient, which yield the hypothesised behaviour of the safety-efficiency tradeoff, with consequences for the optimsation of $psi_{can}$ later on.  
+The trade-off between $K_s$ and $P_{50}$ above implies that, immediately after the $\psi_{stem}$ departs from 0 MPa, species with higher maximum conductance conduct faster, but also lose conducatnce at a faster rate. On the other hand, species with lower maximum conductivity maintain a more constant rate of transpiration across the pressure gradient, which yield the hypothesised behaviour of the safety-efficiency tradeoff, with consequences for the optimsation of $psi_{can}$ later on.  
+
+We can start using the `Leaf` object from `plant` to demonstrate these behaviours. To use the leaf model, we must first set some trait and control parameters using the aptly named constructor `Leaf`, and then set some physiological and environmental parameters using `set_physiology`. These values are two seperate functions for an important reason. Whereas `Leaf` sets values that will remain constant for a species throughout an entire `plant` run, the parameters in `set physiology` change in response to, or are themselves, physiological and enviromnetal state variables, and would be resolved internally in `plant`. However, when demonstrating these functions, it is helpful to have `set_physiology` exposed so that we can directly manipulate env. conditions. 
+
+```{r}
+p_50_2_K_s <- function(p50){
+  1.638999*(p50/2)^(-1.38)
+}
+
+calc_vul_b <- function(p_50, c){
+  num <- p_50
+  den <- (-log(1-50/100))^(1/c)
+  num/den
+}
+
+calc_psi_crit <- function(b,c) {
+  b*(log(1/0.05))^(1/c)
+}
+
+calc_k_l_max <- function(K_s, huber_value, height) {
+  K_s * huber_value / height
+}
+
+c <- 2.04
+huber_value = 0.000157
+height = 5
+
+calc_sapwood_specific_conductivity <- function(p_50, psi_stem){
+ 
+K_s <- p_50_2_K_s(p_50)
+b <- calc_vul_b(p_50, 2.04)
+psi_crit <- calc_psi_crit(b, c)
+k_l_max = calc_k_l_max(K_s, huber_value, height) 
+  
+l <- Leaf(vcmax = 100, p_50 = p_50, c = 2.04, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.001)
+l$set_physiology(900, 0, k_l_max)
+
+return(k_l_max * l$calc_cond_vuln(psi_stem))
+}
+
+
+params <- expand_grid(p_50 = seq(3,6,0.5), psi_stem = seq(0,12,0.01)) %>%
+  rowwise() %>%
+  mutate(sapwood_specific_conductivity = calc_sapwood_specific_conductivity(p_50, psi_stem))
+
+params %>%
+  ggplot() +
+  geom_line(aes(y = sapwood_specific_conductivity, x = psi_stem, col = p_50, group = p_50)) + 
+  theme_classic() + 
+  xlab(expression(psi[stem]~(-MPa))) +
+  ylab(expression(Leaf~specific~hydraulic~conductance~(kg~m^{-1}~s^{-1}~MPa^{-1}))) +
+  theme(axis.text.x = element_text(size= 12))
+
+```
+Recall the evaporative supply function: $$E = \int^{\psi_{stem}}_{\psi_{soil}}~k_{l,max} * e^{-(\psi/b)^c}~d\psi.$$
+
+Given what is now known about the function form of the response of hydraulic conductance to increasing downstream pressure, the evaporative supply function implies that transpirative water flux increases as stem water pressure becomes increasingly negative, but at a decreasing rate due to the decline in conductance rate, as shown below.
+
+## Evaporative supply
+
+This equation implies that transpirative water flux increases as stem water pressure becomes increasingly negative, but at a decreasing rate due to the decline in conductance rate until it asymmptotes, as shown below. The dotted line in this case is $psi_{crit}$, which represents the stem water potential which plants are assumed to not exceed to avoid extreme xylem embolism, and is equal to the point at which the leaf specific conductance is at 5% of it's original value. More on $\psi_{crit}$ later.
+
+```{r}
+p_50 = 2
+K_s <- p_50_2_K_s(p_50)
+b <- calc_vul_b(p_50, 2.04)
+psi_crit <- calc_psi_crit(b, c)
+k_l_max = calc_k_l_max(K_s, huber_value, height) 
+
+l <- Leaf(vcmax = 100, p_50 = p_50, c = 2.04, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.001)
+l$set_physiology(900, 0, k_l_max)
+
+params <- expand_grid(psi_soil = 0, psi_stem = seq(0,psi_crit,length.out = 100)) %>%
+  rowwise() %>%
+  mutate(E_supply = l$calc_E_supply(psi_stem = psi_stem)) %>%
+  mutate(E_supply_full = l$calc_E_supply_full_integration(psi_stem = psi_stem))
+
+         
+params %>%
+ggplot() +
+  geom_line(data = params, aes(x = psi_stem, y = E_supply)) +
+  xlab(expression(psi[can]~(-MPa))) +
+  ylab(expression(Evapotranspirative~supply~(kg~H[2]~O~m^2~leaf~s^-1)))+
+  geom_vline(xintercept =  psi_crit, linetype = "dotted") +
+  theme_classic() +
+  theme(axis.text.x = element_text(size= 12),
+        axis.title.x = element_text(size= 24),
+        axis.text.y = element_text(size= 12),
+        axis.title.y = element_text(size= 24))
+```
+We can also compare the outcome of the single intergration and interpolatino method, versus "every-time" integration of the evaporative supply function. As can be seen here, there is only extremely small discrepancies from the more computationally intensive method.
+
+```{r}
+params %>%
+  pivot_longer(cols = c(E_supply, E_supply_full)) %>%
+  ggplot() +
+  geom_line(aes(x = psi_stem, y = value, group = name, colour = name)) +
+  xlab(expression(psi[can]~(-MPa))) +
+  ylab(expression(Evapotranspirative~supply~(kg~H[2]~O~m^2~leaf~s^-1)))+
+  geom_vline(xintercept =  psi_crit, linetype = "dotted") +
+  theme_classic() +
+  theme(axis.text.x = element_text(size= 12),
+        axis.title.x = element_text(size= 24),
+        axis.text.y = element_text(size= 12),
+        axis.title.y = element_text(size= 24))
+```
+
+
+## Evaporative demand
+
+A fortunate assumption of our model is that we can assume that plants ensure that the transpirative supply we calculted earlier should equal atmoshperic demand for water vapour. As such, we can then solve a system of equations to find stomatal conductance. 
+
+Atmoshperic demand for water vapour is defined by the following equation: 
+
+$$E=\frac{g_w*D_l}{P_{atm}},$$
+where $g_w~(mol~m^{-2}~leaf~s^{-1})$ is the stomatal conductance to water, $D~(kPa)$ is the pressure deficit and $P_atm~(kPa)$ is the atmopsheric pressure at a given elevation. Converting $E$ to molar units of H2O allows us to equate the supply and the demand as: 
+
+$$\int^{\psi_{soil}}_{\psi_{stem}}~k_{l,max} * e^{-(\psi/b)^c}~d\psi=\frac{g_w/D}{P_{atm}},$$
+allowing us to solve for stomatal conductance.
+
+## Stomatal conductance
+
+Supplied with $E$ and $D$, we can now calculate stomatal conductance to water $g_w$ and, crucially, $g_c~(mol~m^{-2}~s^{-1}.$ This is possible due to the ratio of diffusion between molecules of h20 travelling out of the stomata relative to the molecules of c02 travelling into the stomata defined by:
+
+$$g_c=g_w/1.6.$$
+As mentioned previously, to satisfy a given amount of transpiration, stomatal conductance rises by definition as the vapour pressure deficit decreases. Equally, increasing the soil-stem pressure gradient at a given atmospheric VPD increases stomatal conducatnace to c02, as shown below.
+
+```{r}
+expand_grid(psi_soil = 0, psi_stem = seq(0,psi_crit,0.01)) %>%
+  rowwise() %>%
+  mutate(g_c = l$calc_g_c(psi_stem = psi_stem)) %>%
+  ggplot() +
+  geom_line(aes(x = psi_stem, y = g_c)) +
+  xlab(psi[can]~(-MPa)) +
+  ylab(expression(g[c]~(mol~CO[2]~m^2[leaf]~s^-1)))+
+  theme_classic()
+```
 
 
 
+## Photosynthetic assimilation
+
+This has important consequences for the assimilation benefit that can be derived from regulating stem water pressure (through regulating stomata). The assimilation of carbon $A_{gross}~(umol~m^{-2}~s^{-1})$ is defined by the following equation:
+$$A_{gross} = \frac{g_c*(c_a - c_i)}{P_{atm}},$$
+where $c_a~(kPa)$ is the partial pressure of c02 in the atmospere and $c_i~(kPa)$ is the partial pressure of c02 in the intracellular spaces of leaves. The only unknwon variable is $c_i$. 
 
 
+## Biochemical assimilation equations
+
+$c_i$ can be found by equating the equation above with a biochemical assimilation equation.
+$$A_{gross} = \frac{A_j(c_i)+A_c(c_i)-\sqrt{((A_j(c_i)+A_c(c_i))^2-4*c'*A_j(c_i)*A_c(c_i))}}{2*c'}.$$
+$A_j~(umol~m^{-2}~s^{-1})$ and $A_c~(umol~m^{-2}~s^{-1})$ are the electron transport-limited and the rubisco-limited assimilation rates, respecitively, and $c'~(unitless)$ is a curvature factor set at 0.98. 
+
+The equation to find $A_c$ is:
+$$A_c  = \frac{V_{cmax}(C_i-\Gamma^*)}{C_i + K_m},$$
+
+where $V_{cmax}~(umol~m^{-2}~s^{-1}$ is the photosynthetic Rubisco capacity, which at this point is a constant value set as a parameter with no temperature dependence (i.e. multiply the constant value by 1, assumed to be at 25C). Similarly, $\Gamma^*~(Pa)$ and $K_m~(Pa)$ are the C02 compensation point and effective Michaelis-Mentis constant (accounting for the MM constant of rubisco 02 and C02, as well as oxygen partial pressure) and are set as constants corresponding to their value at 25 deg. C according to Bernacchi et al. (2001). Again, these could be made to have temepraturae dependence, either through varying air temperature, or implementing a leaf temperature model (which is currently availalbe but not employed here.) 
+
+The equation to find $A_j$ is:
+$$A_j  = \frac{J(C_i-\Gamma^*)}{4(C_i + 2\Gamma^*)},$$
+where $J~(umol~m^{-2}~s^{-1})$ is the irradiance dependence of electron transport and is found according to the following equation: 
+
+$$J = \frac{a*Q +J_{max}-\sqrt{(a*Q+J_{max})^2-4*c*a*Q*J_{max})}}{2c'_j}.$$
+
+$a~(mol~photon~mol^{-1})$ is the effective quantum yield of electron transport, $Q~(umol~m^{-2}~s^{-1})$ is the photosynthetic photon flux density, and $c'_j$ is a curvature factor (0.9). 
+
+```{r}
+calc_assimilation_curves <- function(ci_, PPFD, vcmax){
+p_50 <- 2
+K_s <- p_50_2_K_s(p_50)
+b <- calc_vul_b(p_50, 2.04)
+psi_crit <- calc_psi_crit(b, c)
+k_l_max = calc_k_l_max(K_s, huber_value, height) 
+  
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = 2.04, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.001)
+l$set_physiology(PPFD, 0, k_l_max)
+
+tibble(A_c = l$calc_A_c(ci_), A_j = l$calc_A_j(ci_), A_lim = l$calc_A_lim(ci_), j = l$calc_j())
+}
+
+expand_grid(ci_ = seq(5, 40, 1), PPFD = c(100,1000), vcmax = c(30, 100)) %>%
+  rowwise() %>%
+  mutate(outputs= calc_assimilation_curves(ci_ = ci_, PPFD=  PPFD, vcmax= vcmax)) %>%
+  unnest(outputs) %>%
+  pivot_longer(cols = c(A_c, A_j, A_lim)) -> output
+
+output %>%
+  ggplot(aes(x = ci_, y= value)) +
+  geom_line(aes(group = name, colour =name)) + 
+  facet_grid(PPFD~vcmax) +
+  ylab(expression(Assimilation~"("~umol~m^{-2}~s{-1}))
+```
 
 
+Solving these equations allows the $c_i$ at a given stem water potential and set of environmental conditions to be found, which in turn allows the assimilation rate at a given stem water potential rate to be found.
+
+```{r}
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
 
 
 

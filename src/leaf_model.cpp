@@ -4,9 +4,9 @@
 namespace plant {
 Leaf::Leaf(double vcmax, double p_50, double c, double b,
            double psi_crit, // derived from b and c
-           double beta, double beta_2, double huber_value, double K_s)
+           double beta, double beta_2, double huber_value, double K_s, double epsilon_leaf)
     : vcmax(vcmax), p_50(p_50), c(c), b(b), psi_crit(psi_crit), beta(beta),
-      beta_2(beta_2), huber_value(huber_value), K_s(K_s), ci(NA_REAL), g_c(NA_REAL),
+      beta_2(beta_2), huber_value(huber_value), K_s(K_s), epsilon_leaf(epsilon_leaf), ci(NA_REAL), g_c(NA_REAL),
       A_lim(NA_REAL), E(NA_REAL), psi(NA_REAL), profit(NA_REAL), psi_stem_next(NA_REAL),j_(NA_REAL), c_i_next(NA_REAL), lambda_(NA_REAL),
       PPFD_(NA_REAL), psi_soil_(NA_REAL), k_l_max_(NA_REAL), opt_psi_stem(NA_REAL), opt_ci(NA_REAL) {
     setup_E_supply(100);
@@ -477,8 +477,6 @@ void Leaf::optimise_psi_stem_Sperry_Newton_recall_one_line(double psi_guess) {
 
   int count = 0;
 
-
-
   double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
 
   if ((PPFD_ < 1.5e-8 )| (psi_soil_ > psi_crit)){
@@ -488,14 +486,13 @@ void Leaf::optimise_psi_stem_Sperry_Newton_recall_one_line(double psi_guess) {
   }
   // optimise for stem water potential
   double diff_value = 0.001; 
-  double epsilon_leaf = 0.0001;
+  // epsilon_leaf = 0.0001;
   
   double psi_stem_initial;
 
   int finished=1;
 
   opt_psi_stem = psi_guess;
-
 
   if (R_IsNA(opt_psi_stem) | (opt_psi_stem > psi_crit)){
 // std::cout << "psi_soil" << psi_soil_ <<  std::endl;
@@ -556,7 +553,11 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
 
   double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
 
+  // Early exit -- XXXX 
   if (psi_soil_ > psi_crit){
+
+    // std::cout << "psi_soil_exceeded" << std::endl;
+
     opt_ci = gamma_25*umol_per_mol_to_Pa;
     profit = 0;
     E = 0;
@@ -565,11 +566,13 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
 
   // optimise for stem water potential
   double diff_value = 0.001; 
-  double epsilon_leaf = 0.001;
+  // TODO: rename as delta_ci
+  
+  // epsilon_leaf = 0.001;
   
   double ci_initial;
 
-  int finished=1;
+  int finished=1; // TODO rename unfinished
 
   opt_ci = ci_guess;
 
@@ -635,7 +638,14 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
     opt_ci = ci_initial -  first_dev/sec_dev;
       // std::cout <<  "diff" << ci_initial*epsilon;
 
+    //  std::cout <<  "diff" << ci_initial*epsilon_leaf;
+      // std::cout << "opt_ci" << opt_ci << "psi_soil" << psi_soil_ << "k_l_max" << k_l_max_ << "PPFD_" << PPFD_ << "p_50" << p_50 << "K_s" <<K_s << "psi_crit" << psi_crit << "ci_initial" << ci_initial<< std::endl;
+
+
     if(abs(opt_ci - ci_initial) < (ci_initial*epsilon_leaf)){
+
+ 
+      
       finished = 0;
 
 
@@ -644,7 +654,7 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
     profit = y_0;
   }
 
-  std::cout << "" << count;
+  // std::cout << "" << count;
 
     return;
   }
@@ -664,7 +674,7 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line_max(double ci_guess) {
 
   // optimise for stem water potential
   double diff_value = 0.001; 
-  double epsilon_leaf = 0.0001;
+  // epsilon_leaf = 0.0001;
   
   double ci_initial;
 
@@ -727,7 +737,7 @@ double max_ci =find_max_ci_one_line();
     profit = y_0;
   }
 
-  std::cout << "" << count;
+  // std::cout << "" << count;
 
     return;
   }

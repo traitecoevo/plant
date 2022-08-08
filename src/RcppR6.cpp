@@ -2,8 +2,8 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double beta, double beta_2, double huber_value, double K_s) {
-  return plant::Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s);
+plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double beta, double beta_2, double huber_value, double K_s, double epsilon_leaf) {
+  return plant::Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s, epsilon_leaf);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {

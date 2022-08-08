@@ -89,10 +89,17 @@ leaf.set_physiology(average_radiation, psi_soil, k_l_max);
 // double psi_guess = vars.aux(aux_index.at("opt_psi_stem"));
 
 // std::cout << "psi_guess: " << psi_guess  <<std::endl;
+
 double ci_guess = vars.aux(aux_index.at("opt_ci"));
+
+// std::cout << "first ci" << ci_guess;
+
 leaf.optimise_ci_Sperry_Newton_recall_one_line(ci_guess);
 
 vars.set_aux(aux_index.at("opt_ci"), leaf.opt_ci);
+
+// std::cout << "second ci" << leaf.opt_ci;
+
 
 // leaf.optimise_psi_stem_Sperry_Newton_recall_one_line(psi_guess);
 
@@ -211,7 +218,7 @@ void FF16w_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s);
+  leaf = Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s, epsilon_leaf);
 }
 
 

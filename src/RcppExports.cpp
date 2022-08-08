@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // Leaf__ctor
-plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double beta, double beta_2, double huber_value, double K_s);
-RcppExport SEXP _plant_Leaf__ctor(SEXP vcmaxSEXP, SEXP p_50SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP betaSEXP, SEXP beta_2SEXP, SEXP huber_valueSEXP, SEXP K_sSEXP) {
+plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double beta, double beta_2, double huber_value, double K_s, double epsilon_leaf);
+RcppExport SEXP _plant_Leaf__ctor(SEXP vcmaxSEXP, SEXP p_50SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP betaSEXP, SEXP beta_2SEXP, SEXP huber_valueSEXP, SEXP K_sSEXP, SEXP epsilon_leafSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -26,7 +26,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type beta_2(beta_2SEXP);
     Rcpp::traits::input_parameter< double >::type huber_value(huber_valueSEXP);
     Rcpp::traits::input_parameter< double >::type K_s(K_sSEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s));
+    Rcpp::traits::input_parameter< double >::type epsilon_leaf(epsilon_leafSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s, epsilon_leaf));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10791,7 +10792,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 9},
+    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 10},
     {"_plant_Leaf__initialize_integrator", (DL_FUNC) &_plant_Leaf__initialize_integrator, 3},
     {"_plant_Leaf__calc_vul_b", (DL_FUNC) &_plant_Leaf__calc_vul_b, 1},
     {"_plant_Leaf__calc_cond_vuln", (DL_FUNC) &_plant_Leaf__calc_cond_vuln, 2},
