@@ -19,7 +19,7 @@ devtools::load_all(".")
 ```{r}
 p0 <- scm_base_parameters("FF16w")
 traits =  trait_matrix(c(0.001), c("epsilon_leaf"))
-p0$max_patch_lifetime <- 10
+p0$max_patch_lifetime <- 0.1
 
 p1 <- expand_parameters(traits, p0, mutant=FALSE, birth_rate_list = c(1))
 env <- make_environment("FF16w", soil_initial_state = rep(0.5, 1), rainfall = 1)
@@ -38,7 +38,7 @@ system.time(result_scm <- run_scm_collect(result, env))
 ```{r}
 p0 <- scm_base_parameters("FF16w")
 traits =  trait_matrix(c(0.0001), c("epsilon_leaf"))
-p0$max_patch_lifetime <- 10
+p0$max_patch_lifetime <- 0.1
 
 p1 <- expand_parameters(traits, p0, mutant=FALSE, birth_rate_list = c(1))
 env <- make_environment("FF16w", soil_initial_state = rep(0.5, 1), rainfall = 1)
@@ -50,5 +50,5 @@ ctrl = scm_base_control()
 system.time(result2 <- build_schedule(p1, env))
 
 # 3.16s
-system.time(result_scm2 <- run_scm_collect(result2, env))
+system.time(result_scm2 <- run_scm_collect(p1, env))
 ```

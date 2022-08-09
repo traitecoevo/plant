@@ -264,20 +264,67 @@ output %>%
   ggplot(aes(x = ci_, y= value)) +
   geom_line(aes(group = name, colour =name)) + 
   facet_grid(PPFD~vcmax) +
-  ylab(expression(Assimilation~"("~umol~m^{-2}~s{-1}))
+  ylab(expression(Assimilation~"("~umol~m^{-2}~s^{-1}~")")) +
+  xlab(expression(Intracellular~carbon~dioxide~"("~Pa~")"))
+
 ```
 
 
 Solving these equations allows the $c_i$ at a given stem water potential and set of environmental conditions to be found, which in turn allows the assimilation rate at a given stem water potential rate to be found.
 
-```{r}
 
+## Profitmax functions
+
+Under Profitmax, the cost of a given stem water potential is defined as:
+
+$$HC = \frac{k_{l,max(\psi_{soil})} - k_l(\psi_{stem})}{k_{l,max(\psi_{soil})}-k_{l,crit}}.$$
+$k_{l,max}$ and $k_l$ have been previously described. $k_{l,crit}$ is the conducatnce when 95% of the rate of conductance is lost and when tranpsiratino is assumed to stop due to stomata closure. Thus, the denominator relativises the lost conducatance at a given stem water potential to the maximum amount of conducatnce that it is possible to lose, such that HC is bound between 0 and 1. 
+
+Similarly, the assimilation benefit of a given stem water potential can be normalised (i.e. to be compared to the cost) by comparing the assimilation rate at a given stem water potential to the stem water potential where the assimilation rate is greatest. In general, the assimilation rate will increase as stem water potential becomes more negative (although note that extremly high transpiration rates can cool the leaf to the extent that the rubisco limited rate of photosynthesis declines, assuming that leaf temperature is modelled) until $\psi_stem = \psi_{crit}$, where $\psi_{crit}$ is the stem water potential at which $k_{crit,l}$ is reached. The equation is defined as:
+
+$$\beta (\psi_{stem})=\frac{A_{gross}(\psi_{stem})}{max[A_{gross}(\psi_{stem})]},$$
+Put together, these equations can equivalently be understood as:
+
+$$Profit~(g_x) = A_{gross}(\psi_{stem}) - \lambda * [k_{l,max} - k_l(\psi_{stem})],$$
+where $$\lambda = \frac{max[A_{gross}(\psi_{stem})]}{{k_{l,max}-k_{l,crit}}}.$$
+
+Thus, $\lambda (umol~m^{-2}~s^{-1}~kg^{-1}~m^{2}~leaf~area~s~MPa)$ is a separate parameter which relatives benefits (i.e. assimilation) to the scale of costs in units of conductance lost.  
+
+An example of the form of these functions (i.e. profits, costs, benefit, lamda) across $\psi_{stem}$ can be seen below for a range of $\psi_{soil}$ values.
+
+```{r}
+calc_profit_psi_stem <- function(psi_stem, psi_soil){
+p_50 <- 2
+K_s <- p_50_2_K_s(p_50)
+b <- calc_vul_b(p_50, 2.04)
+psi_crit <- calc_psi_crit(b, c)
+k_l_max = calc_k_l_max(K_s, huber_value, height) 
+  
+l <- Leaf(vcmax = 100, p_50 = p_50, c = 2.04, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.001)
+l$set_physiology(900, psi_soil, k_l_max)
+
+tibble(profit = l$calc_profit_Sperry_one_line(psi_stem), lambda = l$lambda_, costs = l$calc_hydraulic_cost_Sperry(psi_stem), benefit = l$calc_assim_gross_one_line(psi_stem))
+}
+
+expand_grid(psi_soil = seq(0, 3, length.out = 4), psi_stem = seq(0, 4, length.out = 100)) %>%
+  filter(psi_stem >=psi_soil) %>%
+  rowwise() %>%
+  mutate(outputs= calc_profit_psi_stem(psi_stem = psi_stem, psi_soil = psi_soil)) %>%
+  unnest(outputs) %>%
+  mutate(psi_soil = paste("Psi_soil = ", psi_soil, sep = "")) %>%
+  pivot_longer(cols = c(profit, lambda, costs, benefit))->  output
+
+output %>%
+  ggplot(aes(x = psi_stem, y= value)) +
+  geom_line() +
+  facet_grid(name~psi_soil, scales = "free_y") +
+  ylab(expression(Profit~(umol~m^-2~s^-1))) +
+  xlab(expression(psi[stem]~(Mpa)))
 
 ```
+There a few important points to take away from this plot. Firstly, and most noticeably, it is clear that as the soil becomes drier (i.e. $\psi_{soil}$ increases), the possible assimilate achievable by the plant declines (as indicated by the benefit row and the profit row). Similarly, the total costs also decline, which might seem counter-intuitive given that the soil is getting drier. However, the reason that this occurs is because $k_{l,max}(\psi_{soil})$ is the conductance at the maximum possible value if $\psi_{stem} = \psi_{soil}$, rather than the the theoretical maximum.
 
 
 
 
-
-
-
+Secondly, positive profit is bound in all cases on the lower end by $\psi_{soil}$ and, on the higher end by $\psi_{crit}$, in this case ~4 MPa. Finally, and importantly for our purposes, the position of the maxmimum profit shifts from lower vlaues to higher values as $\psi_{soil}$ increases. The reason for this is that 
