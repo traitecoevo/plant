@@ -84,7 +84,7 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   // const double opt_psi_stem =
   //     leaf.optimise_psi_stem_Sperry_Newton_recall(average_radiation, psi_soil, k_l_max);
 
-std::cout << "opt_ci_counter: " << leaf.opt_ci  ;
+std::cout << "\tbefore:\t" << leaf.opt_ci  ;
 
 
 leaf.set_physiology(average_radiation, psi_soil, k_l_max);
@@ -95,14 +95,14 @@ leaf.set_physiology(average_radiation, psi_soil, k_l_max);
 
 double ci_guess = vars.aux(aux_index.at("opt_ci"));
 
-// std::cout << "first ci" << ci_guess;
+std::cout << "\tstored\t" << ci_guess;
 
 leaf.optimise_ci_Sperry_Newton_recall_one_line(ci_guess);
 
 vars.set_aux(aux_index.at("opt_ci"), leaf.opt_ci);
 
 // std::cout << "second ci" << leaf.opt_ci;
-std::cout << "opt_ci_counter2: " << leaf.opt_ci  << std::endl;
+std::cout << "\tafter:\t" << leaf.opt_ci  << std::endl;
 
 
 // leaf.optimise_psi_stem_Sperry_Newton_recall_one_line(psi_guess);
