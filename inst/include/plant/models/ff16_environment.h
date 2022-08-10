@@ -111,8 +111,8 @@ public:
 
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
   return get_state(environment.canopy);
-
 }
+
 }
 
 #endif
