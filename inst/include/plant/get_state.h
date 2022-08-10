@@ -45,7 +45,7 @@ Rcpp::List get_state(const Patch<T,E>& patch) {
   return ret;
 }
 
-inline Rcpp::NumericMatrix get_state(const Environment environment, double time) {
+inline Rcpp::NumericMatrix get_state(const Environment environment) {
   // Empty vector
   std::vector<std::vector<double>> xy;
   return Rcpp::wrap(util::to_rcpp_matrix(xy));
@@ -57,7 +57,7 @@ Rcpp::List get_state(const SCM<T,E>& scm) {
   const Patch<T,E>& patch = scm.r_patch();
   return List::create(_["time"] = scm.time(),
                       _["species"] = get_state(patch),
-                      _["env"] = get_state(patch.r_environment(), scm.time()));
+                      _["env"] = get_state(patch.r_environment()));
 }
 
 // stochastic model:
@@ -101,7 +101,7 @@ Rcpp::List get_state(const StochasticPatchRunner<T,E>& obj) {
   const StochasticPatch<T,E>& patch = obj.r_patch();
   return List::create(_["time"] = obj.time(),
                       _["species"] = get_state(patch),
-                      _["env"] = get_state(patch.r_environment(), obj.time()));
+                      _["env"] = get_state(patch.r_environment()));
 }
 
 }
