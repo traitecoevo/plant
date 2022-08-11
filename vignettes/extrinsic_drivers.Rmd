@@ -63,7 +63,7 @@ env$extrinsic_drivers$evaluate_range("rainfall", c(5, 1.2, 78.345))
 Per species birth rates are set via the `expand_parameters()` function. Each object in the list is either a constant number or an embedded list with `x` and `y` control points. There must be the same number of items in the list as there are species:
 
 ```{r}
-p0 <- scm_base_parameters("FF16")
+p0 <- scm_base_parameters("FF16w")
   
 # two species
 lmas <- trait_matrix(c(0.0825, 0.125), "lma")
@@ -77,13 +77,16 @@ birth_rates <- list(
 p1 <- expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates)
 
 # set up env and ctrl...
-ctrl <- Control()
+print("hello")
+ctrl <- scm_base_control()
+print("after")
 out <- run_scm(p1, env, ctrl)
+print("after run scm")
 ```
 Evaluating the birth rate can either be done at the individual species level:
 
 ```{r}
-s1 <- FF16_Species(p1$strategies[[1]])
+s1 <- FF16w_Species(p1$strategies[[1]])
 s1$extrinsic_drivers$evaluate("birth_rate", 7)
 ```
 ... or after the SCM has run:
