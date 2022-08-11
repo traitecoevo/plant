@@ -22,7 +22,6 @@ public:
     canopy = Canopy();
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
-    extrinsic_drivers["rainfall"] = interpolator::Interpolator();
   };
 
 
@@ -60,14 +59,12 @@ public:
 
     double drainage_multiplier = 0.1; // experimental only;
 
-    // std::cout << "Time: " << time << std::endl;
-
     // treat each soil layer as a separate resource pool
     for (size_t i = 0; i < vars.state_size; i++) {
 
       // initial representation of drainage; to be improved
       if(i == 0) {
-        infiltration = extrinsic_drivers["rainfall"].eval(time);
+        infiltration = extrinsic_drivers.evaluate("rainfall", time);
       } else {
         infiltration = std::max(vars.state(i - 1), 0.0) * drainage_multiplier;
       }
@@ -78,12 +75,8 @@ public:
 
       net_flux = infiltration - resource_depletion[i] - drainage_rate;
       vars.set_rate(i, net_flux);
-
-      // std::cout << std::setprecision(2) << std::fixed;
-      // std::cout << "Soil layer: " << i << "; infil. rate: " << infiltration << "; extraction rate: " << resource_depletion[i] << "; net flux: " << net_flux << "; water balance " << vars.state(i) << std::endl;
     }
 
-    // std::cout << "\n " << std::endl;
   }
 
   std::vector<double> get_soil_water_state() const {
@@ -119,7 +112,6 @@ public:
 inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
   return get_state(environment.canopy);
 }
-
 
 }
 

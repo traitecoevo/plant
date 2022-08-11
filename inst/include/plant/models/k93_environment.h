@@ -66,7 +66,6 @@ inline Rcpp::NumericMatrix get_state(const K93_Environment environment) {
   return get_state(environment.canopy);
 }
 
-
 }
 
 #endif

@@ -14,6 +14,8 @@ make_hyperpar <- function(type) {
          stop("Unknown type ", type))
 }
 
+##' @rdname Hyperparameter_functions
+##' @export
 param_hyperpar <- function(parameters) {
   type <- attr(parameters$strategy_default, "class")
   switch(type,
@@ -38,6 +40,8 @@ hyperpar <- function(type) {
          stop("Unknown type ", type))
 }
 
+##' @rdname make_environment
+##' @export
 environment_type <- function(type) {
   switch(type,
          FF16=sprintf("FF16_Env"),
@@ -47,6 +51,11 @@ environment_type <- function(type) {
          stop("Unknown type ", type))
 }
 
+##' Make environment objects for a strategy
+##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
+##' @param parameters a object
+##' @rdname make_environment
+##' @export
 make_environment <- function(type = NULL, parameters = NULL, ...) {
   
   if(!is.null(parameters)) {
