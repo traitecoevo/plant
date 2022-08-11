@@ -77,11 +77,8 @@ birth_rates <- list(
 p1 <- expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates)
 
 # set up env and ctrl...
-print("hello")
 ctrl <- scm_base_control()
-print("after")
 out <- run_scm(p1, env, ctrl)
-print("after run scm")
 ```
 Evaluating the birth rate can either be done at the individual species level:
 
