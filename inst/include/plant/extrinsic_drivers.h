@@ -3,7 +3,6 @@
 
 #include <plant/util.h>
 #include <plant/interpolator.h>
-#include <type_traits> // still needed?
 #include <Rcpp.h>
 
 namespace plant {
@@ -92,8 +91,6 @@ private:
 };
 
 inline Rcpp::List get_state(const ExtrinsicDrivers& drivers, double time) {
-  // Empty vector
-  // maybe Rcpp::wrap it
   auto const& names = drivers.get_names();
   auto driver_names = Rcpp::StringVector(names.size());
   auto ret = Rcpp::List(names.size());
