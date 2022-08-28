@@ -51,4 +51,4 @@ Remotes:
 VignetteBuilder: knitr
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1

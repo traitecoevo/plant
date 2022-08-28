@@ -3,7 +3,8 @@
 
 #include <plant/util.h>
 #include <plant/interpolator.h>
-#include <type_traits>
+#include <type_traits> // still needed?
+#include <Rcpp.h>
 
 namespace plant {
 namespace {
@@ -78,7 +79,7 @@ public:
   }
 
   // returns the name of each active driver - useful for R output
-  std::vector<std::string> get_names() {
+  std::vector<std::string> get_names() const {
     auto ret = std::vector<std::string>();
     for (auto const &driver: drivers) {
       ret.push_back(driver.first);
@@ -89,6 +90,20 @@ public:
 private:
   std::unordered_map <std::string, Function> drivers;
 };
+
+inline Rcpp::List get_state(const ExtrinsicDrivers& drivers, double time) {
+  // Empty vector
+  // maybe Rcpp::wrap it
+  auto const& names = drivers.get_names();
+  auto driver_names = Rcpp::StringVector(names.size());
+  auto ret = Rcpp::List(names.size());
+  for (auto i = 0; i < names.size(); i++) {
+    ret[i] = drivers.evaluate(names[i], time);
+    driver_names[i] = names[i];
+  }
+  ret.names() = driver_names;
+  return ret;
+}
 
 }
 

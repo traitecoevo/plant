@@ -289,7 +289,7 @@ double FF16_Strategy::area_heartwood_dt(double area_leaf) const {
 
 // Growth rate of bark area at base per unit time
 double FF16_Strategy::area_bark_dt(double area_leaf_dt) const {
-  return a_b1 * area_leaf_dt * theta;
+  return a_b1 * area_leaf_dt * `theta`;
 }
 
 // Growth rate of stem basal area per unit time

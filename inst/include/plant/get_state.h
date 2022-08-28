@@ -31,8 +31,7 @@ Rcpp::NumericMatrix get_state(const Species<T,E>& species) {
     it = get_state(species.r_node_at(i), it);
   }
   it = get_state(species.r_new_node(), it);
-  ret.attr("dimnames") =
-    Rcpp::List::create(node_type::ode_names(), R_NilValue);
+  ret.attr("dimnames") = Rcpp::List::create(node_type::ode_names(), R_NilValue);
   return ret;
 }
 
@@ -45,7 +44,7 @@ Rcpp::List get_state(const Patch<T,E>& patch) {
   return ret;
 }
 
-inline Rcpp::NumericMatrix get_state(const Environment environment) {
+inline Rcpp::NumericMatrix get_state(const Environment environment, double time) {
   // Empty vector
   std::vector<std::vector<double>> xy;
   return Rcpp::wrap(util::to_rcpp_matrix(xy));
@@ -57,7 +56,7 @@ Rcpp::List get_state(const SCM<T,E>& scm) {
   const Patch<T,E>& patch = scm.r_patch();
   return List::create(_["time"] = scm.time(),
                       _["species"] = get_state(patch),
-                      _["env"] = get_state(patch.r_environment()));
+                      _["env"] = get_state(patch.r_environment(), scm.time()));
 }
 
 // stochastic model:
@@ -80,8 +79,7 @@ Rcpp::NumericMatrix get_state(const StochasticSpecies<T,E>& species) {
   for (size_t i = 0; i < np; ++i) {
     it = get_state(species.r_individual_at(i), it);
   }
-  ret.attr("dimnames") =
-    Rcpp::List::create(individual_type::ode_names(), R_NilValue);
+  ret.attr("dimnames") = Rcpp::List::create(individual_type::ode_names(), R_NilValue);
   ret.attr("is_alive") = Rcpp::wrap(species.r_is_alive());
   return ret;
 }
@@ -101,7 +99,7 @@ Rcpp::List get_state(const StochasticPatchRunner<T,E>& obj) {
   const StochasticPatch<T,E>& patch = obj.r_patch();
   return List::create(_["time"] = obj.time(),
                       _["species"] = get_state(patch),
-                      _["env"] = get_state(patch.r_environment()));
+                      _["env"] = get_state(patch.r_environment(), obj.time()));
 }
 
 }
