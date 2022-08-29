@@ -64,7 +64,7 @@ for (x in names(strategy_types)) {
     
     ## Then pull this out:
     cmp$compute_initial_conditions(patch$environment, patch$pr_survival(0.0), 
-                                   patch$species[[1]]$extrinsic_drivers()$evaluate("birth_rate", 0))
+                                   patch$species[[1]]$extrinsic_drivers$evaluate("birth_rate", 0))
      
     ode_state <- c(cmp$ode_state, env_state)
     ode_rates <- c(cmp$ode_rates, env_rates)

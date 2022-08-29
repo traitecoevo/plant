@@ -2,10 +2,13 @@
 % Please edit documentation in R/strategy_support.R
 \name{make_hyperpar}
 \alias{make_hyperpar}
+\alias{param_hyperpar}
 \alias{hyperpar}
 \title{Hyperparameters for FF16 physiological model}
 \usage{
 make_hyperpar(type)
+
+param_hyperpar(parameters)
 
 hyperpar(type)
 }

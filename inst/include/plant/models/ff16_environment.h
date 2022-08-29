@@ -11,7 +11,7 @@ using namespace Rcpp;
 namespace plant {
 
 // double check best namespace for constants (private vs global)
-static const double PAR_to_SW = 0.4376; // slp, gamma and lh are temp-dependent, but assumed at 25 deg C for now. 
+static const double PAR_to_SW = 0.4376; // slp, gamma and lh are temp-dependent, but assumed at 25 deg C for now.
 static const double slp = 0.1887;
 static const double gamma = 0.0674;
 static const double lh = 44002.59;
@@ -25,13 +25,13 @@ public:
   // except for soil_number_of_depths and canopy_rescale_usually
   // which are only updated on construction
   FF16_Environment(bool canopy_rescale_usually = false,
-                   int soil_number_of_depths = 0)
+                   int soil_number_of_depths = 0,
+                   double PPFD_ = 0)
       : canopy_rescale_usually(canopy_rescale_usually) {
     time = 0.0;
     canopy = Canopy();
     vars = Internals(soil_number_of_depths);
     set_soil_water_state(std::vector<double>(soil_number_of_depths, 0.0));
-    extrinsic_drivers["rainfall"] = interpolator::Interpolator();
   };
 
 
@@ -102,7 +102,7 @@ public:
 
 
         saturation = std::max(0.0, 1 - std::pow(vars.state(i)/theta_sat, b_infil));
-        infiltration = extrinsic_drivers["rainfall"].eval(time) *  saturation;
+        infiltration = extrinsic_drivers.evaluate("rainfall", time) * saturation;
 
         // // Evaporation at soil surface
         double E_bare_soil_pot_mol = (1.0 - r_soil) * ground_radiation * PAR_to_SW * slp / ((slp + gamma) * lh);
@@ -148,8 +148,8 @@ public:
       net_flux = infiltration - evaporation - drainage -  resource_depletion[i];
 
         // std::cout << "; theta: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
- 
-      
+
+
       vars.set_rate(i, net_flux);
     }
   }
@@ -224,10 +224,17 @@ public:
   }
 };
 
-inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
-  return get_state(environment.canopy);
+//inline Rcpp::NumericMatrix get_state(const FF16_Environment environment) {
+//  return get_state(environment.canopy);
+//}
+inline Rcpp::List get_state(const FF16_Environment environment, double time) {
+  auto ret = get_state(environment.extrinsic_drivers, time);
+  ret["canopy"] = get_state(environment.canopy); // does a full copy of ret, not efficient
+  auto const& theta_list = environment.get_soil_water_state();
+  auto rcpp_theta_vec = Rcpp::NumericVector(theta_list.begin(), theta_list.end());
+  ret["theta"] = rcpp_theta_vec;
+  return ret;
 }
-
 
 }
 
