@@ -31,15 +31,15 @@ tyf <- function(t, m = 50, g=12.25, r=1){
 }
 
 
-# parameter bounds on logscale
-bounds = list(B_lf1 = list(min = 0.5, max = 1),
+# parameter bounds
+bounds = list(B_lf1 = list(min = 0.5, max = 1.5),
               hmat = list(min = 4, max = 8),
               eta = list(min = 5, max = 12),
               k_2 = list(min = 0, max = 0.5),
-              birth_rate = list(min = 0.01, max = 2))
+              birth_rate = list(min = 1e-6, max = 1e-2))
 
 # generate seed
-seed <- generate_seeds(calibrate, bounds, n = 30, target = tyf, parameters = p)
+seed <- generate_seeds(calibrate, bounds, n = 8, target = tyf, parameters = p)
 
 # run smoke test - few iterations
 fit <- bayesopt(calibrate, tyf, bounds, n_iter = 4, parameters = p, evals = seed)
@@ -56,10 +56,12 @@ toc()
 
 
 # IECI finds optima quickly, but explores conservatively
-fit <- bayesopt(calibrate, tyf, bounds, n_iter = 5, parameters = p, 
+fit <- bayesopt(calibrate, tyf, bounds, n_iter = 1, parameters = p, 
                 evals = fit$evaluations,
                 gp = fit$gp, search_fn = "IECI")
 
+
+fit
 
 ggplot(data.frame(fit$evaluations),
        aes(x_raw.B_lf1, x_raw.birth_rate, 
@@ -73,10 +75,12 @@ ggplot(data.frame(fit$evaluations),
 
 
 # Test results
-m = which.min(fit$evaluations$y)
 pred <- unscale(fit$evaluations$x_raw, bounds)
 
+m = which.min(fit$evaluations$y)
 best <- pred[m, ]
+best
+
 
 site <- create_site(B_lf1 = best[1],
                     latitude = 28.182)

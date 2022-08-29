@@ -18,6 +18,10 @@ last <- function(x) {
   x
 }
 
+closest <- function(t, time) {
+  which.min(abs(time - t))
+}
+
 list_to_array <- function(x) {
   if (length(unique(lapply(x, dim))) > 1L) {
     stop("More than one dimension")

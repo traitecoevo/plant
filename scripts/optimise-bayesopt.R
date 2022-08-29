@@ -86,7 +86,7 @@ calculate_net_biomass <- function(parameters, environment = create_environment()
   
   tissues <- results$species %>% 
     integrate_over_size_distribution() %>%
-    select(time,species, one_of(v)) %>%
+    select(time, species, density, one_of(v)) %>%
     pivot_longer(cols=starts_with("mass"), names_to = "tissue") %>%
     mutate(across(tissue, factor, levels = v)) 
   
@@ -104,7 +104,7 @@ calibrate <- function(x, target,
                       parameters, 
                       environment = NULL,
                       match_tissue = "total_biomass",
-                      plot_comparison = TRUE) {
+                      plot_comparison = FALSE) {
   
   if(is.null(parameters$node_schedule_times)) {
     stop("Please run `create_schedule` first")
@@ -155,9 +155,8 @@ calibrate <- function(x, target,
       x <- matrix(predictions$time, ncol = 1)
       
       da <- darg(list(mle=TRUE), x)
-      ga <- garg(list(mle=TRUE), predictions$value)
-      
-      surrogate <- newGPsep(x, predictions$value, d=da$start, g=ga$start, dK=TRUE)
+
+      surrogate <- newGPsep(x, predictions$value, d=da$start, g = 1e-6, dK=TRUE)
       mleGPsep(surrogate, 
                param = "d", 
                tmin=c(da$min),
@@ -165,16 +164,25 @@ calibrate <- function(x, target,
       
       z <- predGPsep(surrogate, x, lite=T, nonug=T)$mean
       
+      # plot to see interpolation of plant biomass 
+      if(FALSE) {
+        xx = matrix(seq(0, max(x), len = 100), ncol=1)
+        plot(x, z)
+        points(x, predictions$value, col = "red", type = "l")
+      }
 
       # fit GP to residuals
       delta <- target(x) - z
-      residuals <- newGPsep(x, delta, d=da$start, g=ga$start, dK=TRUE)
+      
+      dr <- darg(list(mle=TRUE), x)
+      gr <- garg(list(mle=TRUE), delta)
+      residuals <- newGPsep(x, delta, d=dr$start, g=gr$start, dK=TRUE)
       
       mleGPsep(residuals, 
                param = "both", 
-               tmin=c(da$min, ga$min),
-               tmax=c(da$max, ga$max),
-               ab = c(da$ab, ga$ab))
+               tmin=c(dr$min, gr$min),
+               tmax=c(dr$max, gr$max),
+               ab = c(dr$ab, gr$ab))
 
       # plot to see interpolation of residuals 
       if(FALSE) {
