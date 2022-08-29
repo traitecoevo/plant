@@ -185,12 +185,12 @@ double Species<T,E>::compute_competition(double height) const {
 // through the ode stepper.
 template <typename T, typename E>
 void Species<T,E>::compute_rates(const E& environment, double pr_patch_survival, double birth_rate) {
-    int counter_species = 0; 
-  std::cout << "\ntime\t"<< environment.time; 
+  //   int counter_species = 0; 
+  // std::cout << "\ntime\t"<< environment.time; 
 
   for (auto& c : nodes) {
-  counter_species += 1;
-  std::cout << "\tnode\t" << counter_species; 
+  // counter_species += 1;
+  // std::cout << "\tnode\t" << counter_species; 
     c.compute_rates(environment, pr_patch_survival);
   }
   new_node.compute_initial_conditions(environment, pr_patch_survival, birth_rate);

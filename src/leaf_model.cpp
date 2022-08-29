@@ -38,6 +38,7 @@ double Leaf::calc_vul_b() const {
 // integrates, returns conductivity at given psi_stem kg m^-2 s^-1 MPa^-1
 
 double Leaf::calc_cond_vuln(double psi) const {
+  // std::cout << "psi" << psi << "b" << b << "c" << c;
   return exp(-pow((psi / b), c));
 }
 
@@ -46,9 +47,9 @@ void Leaf::setup_E_supply(double resolution) {
     // integrate and accumulate results
     auto x_psi = std::vector<double>{0.0};  // {0.0}
     auto y_cumulative_E = std::vector<double>{0.0}; // {0.0}
-    double step = (psi_crit+1)/resolution;
-   
-    for (double psi_spline = 0 + step; psi_spline <= (psi_crit+1); psi_spline += step) {
+    double step = (psi_crit+psi_crit*0.1)/resolution;
+    for (double psi_spline = 0 + step; psi_spline <= (psi_crit+psi_crit*0.1); psi_spline += step) {
+        // std::cout << "psi_spline" << psi_spline << std::endl;
         double E_psi = step * ((calc_cond_vuln(psi_spline-step) + calc_cond_vuln(psi_spline))/2) + y_cumulative_E.back();
         x_psi.push_back(psi_spline); // x values for spline
         y_cumulative_E.push_back(E_psi); // y values for spline
@@ -611,17 +612,25 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
     double g_c_ci = (benefit_ * umol_per_mol_to_mol_per_mol * atm_kpa * kPa_to_Pa)/(ca - x_2); 
     E = g_c_ci * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;  
 //move to top
+
     double E_max = calc_E_supply(psi_crit);
   
 
-    if((E_max < E) & (abs(E - E_max) > 1e-15)){
 
+    if(((E_max < E) & (abs(E - E_max) > 1e-15)) | (E < 0)){
+    //E_max already known, no need to do find_max_ci_one_line_again 
     opt_ci = find_max_ci_one_line() - diff_value;
+
+
     count += -0.5;
 
     continue;
     } else{
+
+    // std::cout << "E" << E << std::endl;  
     double psi_stem = calc_psi_stem_ci(E);
+
+
     double cost_ = calc_hydraulic_cost_Sperry(psi_stem);
     y_2 = benefit_ - lambda_*cost_;
     }
@@ -655,6 +664,7 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
   }
 
   // std::cout << "" << count;
+  // std::cout << "\neps" << epsilon_leaf << "diff" << abs(opt_ci - ci_initial) << "tolerated_diff" << ci_initial*epsilon_leaf << "opt_ci" << opt_ci<< "ci_initial" << ci_initial << "count" << count;
 
     return;
   }
@@ -737,7 +747,7 @@ double max_ci =find_max_ci_one_line();
     profit = y_0;
   }
 
-  // std::cout << "" << count;
+  // std::cout << "eps" << epsilon_leaf << "diff" << abs(opt_ci - ci_initial) << "tolerated_diff" << ci_initial*epsilon_leaf << "opt_ci" << opt_ci<< "ci_initial" << ci_initial;
 
     return;
   }

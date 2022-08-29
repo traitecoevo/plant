@@ -1,0 +1,592 @@
+---
+title: "wood_dens_Ks_corr"
+author: "Isaac Towers"
+date: "2022-08-10"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+devtools::load_all(".")
+```
+
+```{r}
+library(tidyverse)
+```
+
+
+```{r}
+austraits <- readRDS("examples_vignettes/data/austraits.rds")
+```
+
+```{r}
+field_traits <- austraits$traits %>%
+  filter(!(dataset_id %in% c("Ahrens_2019", "Crous_2013", "Crous_2019", "Du_2018",
+                            "Du_2019", "Duan_2015", "EsperonRodriguez_2019",
+                            "EsperonRodriguez_2020","Everingham_2020",
+                            "Farrell_2012", "Farrell_2013", "Farrell_2017", "Firn_2019",
+                            "Gallagher_2011_1", "Gallagher_2011_3","Gallagher_2012", "Gallagher_2015", 
+                            "Gardiner_2019", "Geange_2017", "Geange_2020", "Ghannoum_2010","Groom_2010",
+                            "Harrison_2009",
+                            "Hassiotou_2009", "Huang_2015", "Jagdish_2020", "Lewis_2015",
+                            "Lusk_2012", "Lusk_2014", "Moore_2019_2", "Reynolds_2018", "Roderick_1999",
+                            "Roderick_2002", "Schulze_2006", "Smith_2012",
+                            "Tomlinson_2013","Tomlinson_2019", "Turner_2010", "Vesk_2019",
+                            "Vlasveld_2018", "Warren_2005", "Warren_2006"))) %>%
+  filter(!(site_name %in% c("Currency Creek Arboretum","Currency Creek Arboretum, South Australia",
+                            "Australian National University glasshouse","MU_campus",
+                            "Australian National Botanic Gardens","Australian National University"))) %>%
+  filter(!(dataset_id %in% c("Kooyman_2011") & trait_name == "wood_density")) %>%
+  filter(!(dataset_id %in% c("Wells_2012") & trait_name %in% c("seed_mass","wood_density")))
+```
+
+
+```{r}
+focal_traits <- c("ci_over_ca", "huber_value", "leaf_area","leaf_N_per_area","leaf_N_per_dry_mass","plant_height","sapwood_specific_conductivity","sapwood_specific_conductivity_theoretical","seed_dry_mass","specific_leaf_area","stem_density","stem_hydraulic_conductivity","vessel_diameter","vessel_density","water_potential_50percent_lost_conductivity","water_potential_88percent_lost_conductivity","wood_density")
+```
+
+
+```{r}
+austraits$sites %>%
+  filter(site_name %in% field_traits$site_name) %>%
+  pivot_wider(names_from = site_property, values_from = value) %>%
+  select(longitude = `longitude (deg)`, latitude = `latitude (deg)`, site_name) %>%
+  mutate(longitude = as.numeric(longitude), latitude = as.numeric(latitude)) %>%
+  mutate(ID = 1:nrow(.)) %>%
+  drop_na()-> location_of_sites
+
+load_climate_data <- function() {
+  #### 01 Get climate data for Australia ####
+  # Download bioclim data using library (raster)
+  bioclim <- raster::getData("worldclim", var = "bio", res = 2.5, path = "examples_vignettes/data/")
+  # Pick BIO1 (Mean Annual Temperature; T), BIO12 (Annual Precipitation; P) and BIO15 (Prec Seasonality (CV))
+  bioclim <- bioclim[[c(1,5,6, 12, 15)]]
+  names(bioclim) <- c("Temp_BC","max_temp_BC", "min_temp_BC", "Prec_BC", "Prec_CV_BC")
+  
+  #### 02 Get the climate data for Australia ####
+  # Load Australia landmass binary map
+  au_map <- raster::raster("examples_vignettes/data/australia.tif")
+  # 
+  new.bioclim <-
+    raster::projectRaster(bioclim, au_map) # harmonize the spatial extent and projection
+  
+  coordinates <- dplyr::select(location_of_sites, longitude, latitude)
+  
+  raster::extract(x = new.bioclim,  y = sp::SpatialPoints(coordinates, proj4string=raster::crs(au_map)),method = "simple") %>% 
+    as_tibble() %>% 
+    mutate(ID = location_of_sites$ID,longitude = location_of_sites$longitude, latitude = location_of_sites$latitude) %>% 
+    gather(key,value,-longitude, -latitude, -ID) -> extracted_object
+  
+  extracted_object %>%
+    filter(is.na(value))%>%
+    distinct(ID, .keep_all = T) -> extracted_object_NA
+  
+  extracted_object_NA %>%
+    select(longitude, latitude)  -> extracted_object_NA_coordinates
+
+  iterate_buffer <- function(layer){
+    i = layer
+    raster::extract(x = new.bioclim[[i]],  y = sp::SpatialPoints(extracted_object_NA_coordinates, proj4string=raster::crs(au_map)), buffer = 5000, fun = mean, na.rm=T) %>%
+      as_tibble() %>%
+      mutate(key = names(new.bioclim[[i]]), latitude = extracted_object_NA$latitude,longitude = extracted_object_NA$longitude, ID = extracted_object_NA$ID, buffer_extracted = "yes")
+  }
+  
+  map(.x = seq(length(names(new.bioclim))), .f=iterate_buffer) %>%
+    bind_rows() -> extracted_NA_values
+  
+  extracted_object%>%
+    drop_na(value) %>%
+    mutate(buffer_extracted = "no") %>%
+    bind_rows(extracted_NA_values)
+
+  }
+```
+
+
+```{r}
+load_climate_data() -> climate_data
+
+location_of_sites %>%
+  left_join(climate_data) %>%
+  rename(climate_value = value) %>%
+  pivot_wider(names_from = key, values_from = climate_value) -> climate_data
+
+field_traits %>%
+  filter(trait_name %in% all_of(focal_traits)) %>%
+  mutate(value = as.numeric(value)) %>%
+  group_by(taxon_name, site_name, trait_name) %>%
+  summarise(value = mean(value, na.rm = T)) %>%
+  ungroup() %>%
+  pivot_wider(names_from = trait_name, values_from = value) %>%
+  rowwise() %>%
+  mutate(leaf_N_per_area_calc = if_else(is.na(leaf_N_per_area), leaf_N_per_dry_mass/specific_leaf_area, leaf_N_per_area)) %>%
+  left_join(climate_data) %>%
+  drop_na(latitude, longitude)-> field__focal_traits
+```
+
+```{r}
+png("examples_vignettes/K_s_theoretical_traits.png", height = 1200, width = 1600)
+
+field__focal_traits %>%
+  pivot_longer(cols = -c(taxon_name, site_name, sapwood_specific_conductivity_theoretical, latitude, longitude, ID, buffer_extracted, Temp_BC, max_temp_BC, min_temp_BC, Prec_BC, Prec_CV_BC)) %>%
+  drop_na(value) %>%
+  ggplot(aes(x = sapwood_specific_conductivity_theoretical, y = value)) +
+  geom_point(aes(colour = Prec_BC)) +
+  scale_x_log10() + 
+  scale_y_log10() +
+  facet_wrap(~name, scales = "free")+
+  scale_color_continuous(trans = "log")
+
+dev.off()
+```
+
+```{r}
+
+png("examples_vignettes/K_s_Leaf_N_area.png", height = 600, width = 800)
+
+field__focal_traits %>%
+  drop_na(leaf_N_per_area_calc, sapwood_specific_conductivity_theoretical) %>%
+  select(leaf_N_per_area_calc, sapwood_specific_conductivity_theoretical, taxon_name, Prec_BC, site_name) %>%
+  # group_by(site_name, taxon_name, Prec_BC) %>%
+  # summarise(leaf_N_per_area_calc = mean(leaf_N_per_area_calc, na.rm = T), sapwood_specific_conductivity_theoretical = mean(sapwood_specific_conductivity_theoretical, na.rm = T)) %>%
+  ggplot(aes(x = sapwood_specific_conductivity_theoretical, y = leaf_N_per_area_calc)) +
+  geom_point(aes(colour = Prec_BC)) +
+  scale_x_log10() +
+  scale_y_log10() +
+  theme_classic()
+
+dev.off()
+```
+
+
+Looks like there is a strong relationship between sapwood_specific_conductivty and wood_density
+
+```{r}
+smatr::sma(wood_density~sapwood_specific_conductivity_theoretical, field__focal_traits, method="SMA", log = "xy")
+```
+
+The allometric equation for $K_s$ and $WD$ is therefore $$log_{10}(WD) = -0.1571026 * log_{10}(K_s) -0.06260892$$
+
+```{r}
+field__focal_traits %>%
+  drop_na(sapwood_specific_conductivity_theoretical, wood_density) %>%
+  ggplot(aes(x = sapwood_specific_conductivity_theoretical, y = wood_density)) +
+  geom_point(aes(colour = Prec_BC)) +
+  scale_x_log10() +
+  scale_y_log10() + 
+  geom_abline(slope = -0.1571026, intercept = )
+```
+
+Or, alternatively, $$WD = e^{-0.06260892}*K_s^{-0.1571026} $$
+```{r}
+field__focal_traits %>%
+  drop_na(sapwood_specific_conductivity_theoretical, wood_density) %>%
+  mutate(WD_predicted = exp(-0.06260892)*sapwood_specific_conductivity_theoretical^-0.1571026) %>%
+  ggplot(aes(x = sapwood_specific_conductivity_theoretical, y = wood_density)) +
+  geom_point(aes(colour = Prec_BC)) +
+  geom_line(aes(x = sapwood_specific_conductivity_theoretical, y = WD_predicted))
+```
+
+With this known, it is possible to hyperparameterise `plant` such that an increase in wood density results in a decrease in sapwood_specific_conductivity and vice versa. Consequently, a species with higher wood density is also tends to be a species with a "safer" position on the safety-efficiency tradeoff, because a decrease in sapwood_specific_conducivity results in an increase in P50. It could be interesting to explore whether imposing the relationship between the safety-efficiency trade-off axis and wood density changes the outcome of variation along the safety-efficiency trade-off axis alone under differnt rainfall regimes. Wood density is related to a number of processes in `plant`. Firstly, increaseing wood density slows growth because it directly reduces $\frac{dA_l}{dM_a}$. However, it also decreases the probability of growth-indepdenet mortality, sapwood turnover rate and respriation rate. 
+
+We can run a number of 2-species competition models under different rainfall regimes, with and without the trade-off imposed. 
+
+
+```{r}
+p0 <- scm_base_parameters("FF16w")
+p0$max_patch_lifetime <- 40
+```
+
+```{r}
+p_50_2_K_s <- function(p50){
+  1.638999*(p50/2)^(-1.38)
+}
+
+calc_vul_b <- function(p_50, c){
+  num <- p_50
+  den <- (-log(1-50/100))^(1/c)
+  num/den
+}
+
+
+calc_psi_crit <- function(b,c) {
+  b*(log(1/0.05))^(1/c)
+}
+
+calc_WD <- function(K_s){
+  1000*exp(-0.06260892)*K_s^-0.1571026
+}
+```
+
+```{r}
+run_FF16w_model <- function(inputs){
+  
+  ctrl = scm_base_control()
+  
+  p0 <- scm_base_parameters("FF16w")
+  p0$max_patch_lifetime <- inputs$max_patch_lifetime
+  
+  p50_1 <- inputs$p50_1
+  p50_2 <- inputs$p50_2
+  
+  p1 <- expand_parameters(trait_matrix(c(p50_1, p50_2), "p_50"), p0, mutant=FALSE, birth_rate_list = c(1,1))
+  
+  p1$strategies[[1]]$K_s <- p_50_2_K_s(p50_1)
+  p1$strategies[[1]]$b <- calc_vul_b(p50_1, p1$strategies[[1]]$c)
+  p1$strategies[[1]]$psi_crit <- calc_psi_crit(p1$strategies[[1]]$b, p1$strategies[[1]]$c)
+  p1$strategies[[1]]$epsilon_leaf <- 0.00001
+  
+  p1$strategies[[2]]$K_s <- p_50_2_K_s(p50_2)
+  p1$strategies[[2]]$b <- calc_vul_b(p50_2, p1$strategies[[2]]$c)
+  p1$strategies[[2]]$psi_crit <- calc_psi_crit(p1$strategies[[2]]$b, p1$strategies[[2]]$c)
+  p1$strategies[[2]]$epsilon_leaf <- 0.00001
+  
+  if(is.na(inputs$rho)){
+    p1$strategies[[1]]$rho <- calc_WD(p1$strategies[[1]]$K_s)
+    p1$strategies[[2]]$rho <- calc_WD(p1$strategies[[2]]$K_s)
+  } else {
+    p1$strategies[[1]]$rho <- inputs$rho
+    p1$strategies[[2]]$rho <- inputs$rho
+  }
+  
+  
+  env <- make_environment("FF16w", soil_initial_state = rep(0.5, 1), rainfall = inputs$rainfall)
+  system.time(result <- build_schedule(p1, env, ctrl))
+  system.time(result <- run_scm_collect(p1, env, ctrl))
+  result
+}
+```
+
+```{r}
+poss_run_plant = safely(.f = run_FF16w_model, otherwise = "Error")
+```
+
+```{r}
+inputs <- expand_grid(rainfall = runif(10, 0.5, 3), p50_1 = runif(5, 0.1, 10), p50_2 = runif(5, 0.1, 10), rho = c(NA, 0.6), max_patch_lifetime = 50) %>%
+  slice(sample(1:n()))
+
+for(i in 1:nrow(inputs)){
+  dir <- "examples_vignettes/outputs/"
+  filename <-paste("rainfall_", round(inputs[i,]$rainfall,2), "p501_", round(inputs[i,]$p50_1, 2), "p502_", round(inputs[i,]$p50_2, 2), "rho_", round(inputs[i,]$rho, 2), "lifetime_", inputs[i,]$max_patch_lifetime, ".RDS", sep="")
+  path <- paste(dir, filename, sep="")
+
+  if(!file.exists(path)){
+  result <- poss_run_plant(inputs[i,])
+  result<-list(result, inputs[i,])
+  saveRDS(result, path)
+  }
+  else {
+    print(paste("skipping", path, "already done", sep = " "))
+  }
+}
+```
+
+
+```{r}
+results_files <- list.files("examples_vignettes/outputs/")
+
+for(i in 1:length(results_files)){
+  dir <- "examples_vignettes/outputs/"
+  filename <- list.files("examples_vignettes/outputs/")[i]
+  path <- paste(dir, filename, sep="")
+  
+  result <- readRDS(path)
+  print(result[[1]]$error)
+}
+```
+
+
+```{r}
+results_files <- list.files("examples_vignettes/outputs/")
+
+extract_function <- function(file){
+  dir <- "examples_vignettes/outputs/"
+  filename <- file
+  path <- paste(dir, filename, sep="")
+  
+  resultRDS <- readRDS(path)
+  results <- tibble(result = list(resultRDS[[1]]$result), parameters = resultRDS[[2]]) %>%
+    mutate(error = ifelse(is.null(resultRDS[[1]]$error$message), "NA", resultRDS[[1]]$error$message))
+}
+
+map(results_files, extract_function) %>%
+  bind_rows() -> collated_results
+```
+
+```{r}
+tidy_function <- function(results){
+  if(is.list(results)){
+    result <- tidy_patch(results)%>% 
+  FF16_expand_state()
+    result <- result$species %>% 
+  integrate_over_size_distribution()
+
+  }
+  else{
+    result <-   "NA"
+  }
+  
+  list(result)
+}
+
+
+collated_results2 %>%
+  filter(!is.character(result)) %>%
+  unnest(result) %>%
+  unnest(parameters) %>% 
+  filter(step == max(step)) %>% 
+  select(step, time, species, offspring_produced_survival_weighted)
+```
+
+```{r}
+collated_results %>%
+  filter(!is.character(collated_results$result)) %>%
+  unnest(result) %>%
+  unnest(parameters) %>% 
+  filter(step == max(step)) %>% 
+  select(step, time, species, area_leaf, p50_1, p50_2, rainfall, rho) %>% 
+  mutate(species_p50 = if_else(species == 1, p50_1, p50_2)) %>%
+  group_by(step, time, p50_1, p50_2, rainfall, rho) %>% 
+  mutate(run = cur_group_id()) %>%
+  mutate(total_leaf = sum(area_leaf), leaf_frac = area_leaf/total_leaf) %>%
+  ungroup() %>%
+  group_by(run) %>%
+  mutate(rainfall = rainfall + runif(1, min = -0.2, 0.2), winner = if_else((leaf_frac[1] - leaf_frac[2]) > 0, "species_1", "species_2")) %>%
+  ungroup() %>%
+  mutate(rho = if_else(is.na(rho), "coordinated", "0.6")) %>%
+  ggplot(aes(x = rainfall, y = leaf_frac)) +
+  geom_point(aes(colour = species_p50, shape = rho)) +
+  geom_line(aes(x = rainfall, y = leaf_frac, group = run, linetype = winner)) +
+  scale_color_continuous(trans = "log")
+```
+
+
+
+
+
+```{r}
+expand_grid(rainfall = seq(0.5, 3, length.out = 10), p50_1 = c(1), p50_2 = c(2), rho = c(0.5), max_patch_lifetime = 50) %>%
+  split(1:nrow(.)) %>%
+  map(., ~poss_run_plant(.)) -> results
+```
+
+```{r}
+results_tidy <- 
+  results[[1]]$result %>% 
+  tidy_patch()
+
+results_tidy%>% 
+  FF16_expand_state() -> results_tidy_expanded
+
+data_species_tot <- 
+  results_tidy_expanded$species %>% 
+  integrate_over_size_distribution()
+
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf, colour = species)) +
+  geom_line()
+```
+
+```{r}
+results_tidy <- 
+  results[[2]]$result %>% 
+  tidy_patch()
+
+results_tidy%>% 
+  FF16_expand_state() -> results_tidy_expanded
+
+data_species_tot <- 
+  results_tidy_expanded$species %>% 
+  integrate_over_size_distribution()
+
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf, colour = species)) +
+  geom_line()
+```
+
+```{r}
+results_tidy <- 
+  results[[3]]$result %>% 
+  tidy_patch()
+
+results_tidy%>% 
+  FF16_expand_state() -> results_tidy_expanded
+
+data_species_tot <- 
+  results_tidy_expanded$species %>% 
+  integrate_over_size_distribution()
+
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf, colour = species)) +
+  geom_line()
+```
+
+```{r}
+results_tidy <- 
+  results[[4]]$result %>% 
+  tidy_patch()
+
+results_tidy%>% 
+  FF16_expand_state() -> results_tidy_expanded
+
+data_species_tot <- 
+  results_tidy_expanded$species %>% 
+  integrate_over_size_distribution()
+
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf, colour = species)) +
+  geom_line()
+```
+
+
+
+```{r}
+p50_1 <- 1
+p50_2 <- 2
+p50_3 <- 3
+```
+
+
+
+```{r}
+p1 <- expand_parameters(trait_matrix(c(p50_1,p50_2, p50_3), "p_50"), p0, mutant=FALSE, birth_rate_list = c(1,1,1))
+
+p1$strategies[[1]]$K_s <- p_50_2_K_s(p50_1)
+p1$strategies[[2]]$K_s <- p_50_2_K_s(p50_2)
+p1$strategies[[3]]$K_s <- p_50_2_K_s(p50_3)
+
+p1$strategies[[1]]$b <- calc_vul_b(p50_1, p1$strategies[[1]]$c)
+p1$strategies[[2]]$b <- calc_vul_b(p50_2, p1$strategies[[2]]$c)
+p1$strategies[[3]]$b <- calc_vul_b(p50_3, p1$strategies[[3]]$c)
+
+p1$strategies[[1]]$psi_crit <- calc_psi_crit(p1$strategies[[1]]$b, p1$strategies[[1]]$c)
+p1$strategies[[2]]$psi_crit <- calc_psi_crit(p1$strategies[[2]]$b, p1$strategies[[2]]$c)
+p1$strategies[[3]]$psi_crit <- calc_psi_crit(p1$strategies[[3]]$b, p1$strategies[[3]]$c)
+
+p1$strategies[[1]]$epsilon_leaf <- 0.00001
+p1$strategies[[2]]$epsilon_leaf <- 0.00001
+p1$strategies[[3]]$epsilon_leaf <- 0.00001
+```
+
+```{r}
+env <- make_environment("FF16w", soil_initial_state = rep(0.5, 1), rainfall = 0.5)
+system.time(result_low <- build_schedule(p1, env, ctrl))
+system.time(result_low <- run_scm_collect(p1, env, ctrl))
+```
+```{r}
+env <- make_environment("FF16w", soil_initial_state = rep(0.5, 1), rainfall = 1.5)
+# system.time(result_high <- build_schedule(p1, env, ctrl))
+system.time(result_high <- run_scm_collect(result_high, env, ctrl))
+
+```
+
+```{r}
+K_s_2_WD <- function(K_s){
+  log_wd <- -0.09576*log(K_s) + -0.30460
+  wd <- exp(log_wd)
+  wd
+}
+
+
+
+p1$strategies[[1]]$rho <- K_s_2_WD(p1$strategies[[1]]$K_s)
+p1$strategies[[2]]$rho <- K_s_2_WD(p1$strategies[[2]]$K_s)
+p1$strategies[[3]]$rho <- K_s_2_WD(p1$strategies[[3]]$K_s)
+```
+
+```{r}
+env <- make_environment("FF16w", soil_initial_state = rep(0.5, 1), rainfall = 0.5)
+system.time(result_low_coord <- run_scm_collect(p1, env, ctrl))
+```
+
+```{r}
+env <- make_environment("FF16w", soil_initial_state = rep(0.5, 1), rainfall = 1.5)
+system.time(result_high_coord <- run_scm_collect(p1, env, ctrl))
+```
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+results_tidy <- 
+  result_low %>% 
+  tidy_patch()
+
+results_tidy%>% 
+  FF16_expand_state() -> results_tidy_expanded
+
+data_species_tot <- 
+  results_tidy_expanded$species %>% 
+  integrate_over_size_distribution()
+
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf, colour = species)) +
+  geom_line()
+```
+
+```{r}
+results_tidy <- 
+  result_low_coord %>% 
+  tidy_patch()
+
+results_tidy%>% 
+  FF16_expand_state() -> results_tidy_expanded
+
+data_species_tot <- 
+  results_tidy_expanded$species %>% 
+  integrate_over_size_distribution()
+
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf, colour = species)) +
+  geom_line()
+```
+
+```{r}
+results_tidy <- 
+  result_high %>% 
+  tidy_patch()
+
+results_tidy%>% 
+  FF16_expand_state() -> results_tidy_expanded
+
+data_species_tot <- 
+  results_tidy_expanded$species %>% 
+  integrate_over_size_distribution()
+
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf, colour = species)) +
+  geom_line()
+```
+
+```{r}
+results_tidy <- 
+  result_high_coord %>% 
+  tidy_patch()
+
+results_tidy%>% 
+  FF16_expand_state() -> results_tidy_expanded
+
+data_species_tot <- 
+  results_tidy_expanded$species %>% 
+  integrate_over_size_distribution()
+
+data_species_tot %>% 
+  ggplot(aes(time, area_leaf, colour = species)) +
+  geom_line()
+```
+
+```{r}
+library(plant)
+```
+
+```{r}
+log_vcmax = 1.993 + n_coefficient * log(N) + sla_coefficient * log(SLA) + n_SLA_coefficient * log(N) * log(SLA)
+```
+

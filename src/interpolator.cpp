@@ -20,11 +20,16 @@ void Interpolator::init(const std::vector<double>& x_,
 
 // Compute the interpolated function from the points contained in 'x' and 'y'.
 void Interpolator::initialise() {
+
   // https://stackoverflow.com/questions/17769114/stdis-sorted-and-strictly-less-comparison
   if (not std::is_sorted(x.begin(), x.end(), std::less_equal<double>())) {
+// for (std::vector<double>::const_iterator i = x.begin(); i != x.end(); ++i){
+//     std::cout << *i << ' ';
+// }
     util::stop("spline control points must be unique and in ascending order");
   }
   if (x.size() > 0) {
+
     tk_spline.set_points(x, y);
     active = true;
   }

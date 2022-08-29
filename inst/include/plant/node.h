@@ -151,7 +151,7 @@ double Node<T,E>::growth_rate_gradient(const environment_type& environment) cons
     return p.growth_rate_given_height(h, environment);
   };
 
-  std::cout<<"\t  grad\t";
+  // std::cout<<"\t  grad\t";
   const Control& control = individual.control();
   const double eps = control.node_gradient_eps;
   if (control.node_gradient_richardson) {

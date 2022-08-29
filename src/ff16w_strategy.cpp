@@ -66,6 +66,8 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
 
   // height * eta_c = height of average leaf area
   // const double k_l_max = K_s * huber_value / (height * eta_c);
+
+  // std::cout << "height" << height << "average_light_environment" << average_light_environment << "environment.PPFD" << environment.PPFD << std::endl;
   const double k_l_max = K_s * huber_value / (height * eta_c);
 
   // std::cout << "K_s_inside_strategy " << K_s << std::endl;
@@ -84,7 +86,7 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   // const double opt_psi_stem =
   //     leaf.optimise_psi_stem_Sperry_Newton_recall(average_radiation, psi_soil, k_l_max);
 
-std::cout << "\tbefore:\t" << leaf.opt_ci  ;
+// std::cout << "\tbefore:\t" << leaf.opt_ci  ;
 
 
 leaf.set_physiology(average_radiation, psi_soil, k_l_max);
@@ -95,14 +97,16 @@ leaf.set_physiology(average_radiation, psi_soil, k_l_max);
 
 double ci_guess = vars.aux(aux_index.at("opt_ci"));
 
-std::cout << "\tstored\t" << ci_guess;
+// std::cout << "\tstored\t" << ci_guess;
+
+// std::cout << "PPFD" << leaf.PPFD_ << "k_l_max_" << leaf.k_l_max_ << "psi_soil" << leaf.psi_soil_ << "lambda_" << leaf.lambda_  <<  " j_ "<< leaf.j_ << std::endl;
 
 leaf.optimise_ci_Sperry_Newton_recall_one_line(ci_guess);
 
 vars.set_aux(aux_index.at("opt_ci"), leaf.opt_ci);
 
 // std::cout << "second ci" << leaf.opt_ci;
-std::cout << "\tafter:\t" << leaf.opt_ci  << std::endl;
+// std::cout << "\tafter:\t" << leaf.opt_ci  << std::endl;
 
 
 // leaf.optimise_psi_stem_Sperry_Newton_recall_one_line(psi_guess);
