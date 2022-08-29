@@ -46,30 +46,33 @@ test_that("FF16 rainfall spline", {
   context(sprintf("Rainfall-FF16",x))
   env <- make_environment("FF16w")
   # get list of extrinsic drivers for the environment
-  expect_equal(env$get_extrinsic_driver_names(), c("rainfall"))
+  expect_equal(env$extrinsic_drivers$get_names(), c("rainfall"))
   
   # test extrapolation on default spline of y = 1
-  expect_equal(env$extrinsic_driver_evaluate("rainfall", 100), 1)
-  expect_equal(env$extrinsic_driver_evaluate("rainfall", 10000000), 1)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 1)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 1)
   
   # test extrapolation on spline of y = 5.613432
   env <- make_environment("FF16w", rainfall=5.613432)
-  expect_equal(env$extrinsic_driver_evaluate("rainfall", 100), 5.613432)
-  expect_equal(env$extrinsic_driver_evaluate("rainfall", 10000000), 5.613432)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 100), 5.613432)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 10000000), 5.613432)
   
   ## simple quadratic
   x <- seq(-10, 10, 0.41)
-  y <- x^2
-  env$set_extrinsic_driver("rainfall", x, y) # overwrites previously created spline
+  quadratic_rain <- list(
+    x = x,
+    y = x^2
+  )
+  env <- make_environment("FF16w", rainfall=quadratic_rain) # overwrites previously created spline
   
   # interpolated points
-  expect_equal(env$extrinsic_driver_evaluate("rainfall", 2), 4)
-  expect_equal(env$extrinsic_driver_evaluate("rainfall", -2), 4)
-  expect_equal(env$extrinsic_driver_evaluate("rainfall", 3), 9, tolerance=1e-7)
-  expect_equal(env$extrinsic_driver_evaluate("rainfall", -3), 9, tolerance=1e-7)
-  expect_equal(env$extrinsic_driver_evaluate("rainfall", 5.5), 30.25, tolerance=1e-7)
-  expect_equal(env$extrinsic_driver_evaluate("rainfall", -5.5), 30.25, tolerance=1e-7)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 2), 4)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", -2), 4)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 3), 9, tolerance=1e-7)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", -3), 9, tolerance=1e-7)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", 5.5), 30.25, tolerance=1e-7)
+  expect_equal(env$extrinsic_drivers$evaluate("rainfall", -5.5), 30.25, tolerance=1e-7)
   
   ## interpolated range of points
-  expect_equal(env$extrinsic_driver_evaluate_range("rainfall", c(-7, 1, 7.8345)), c(49, 1, 61.37939025), tolerance=1e-6)
+  expect_equal(env$extrinsic_drivers$evaluate_range("rainfall", c(-7, 1, 7.8345)), c(49, 1, 61.37939025), tolerance=1e-6)
 })

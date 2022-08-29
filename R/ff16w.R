@@ -94,8 +94,16 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
     
   x <- seq(0, 10, 1)
   y <- rep(rainfall, 11)
-  e$set_extrinsic_driver("rainfall", x, y)
-  e$extrinsic_driver_extrapolation("rainfall", TRUE);
+  drivers <- ExtrinsicDrivers()
+  if (is.list(rainfall)) {
+    drivers$set_variable("rainfall", rainfall$x, rainfall$y)
+  } else if (is.numeric(rainfall)) {
+    drivers$set_constant("rainfall", rainfall)
+    drivers$set_extrapolate("rainfall", FALSE)
+  } else {
+    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  }
+  e$extrinsic_drivers <- drivers
   
   return(e)
 }

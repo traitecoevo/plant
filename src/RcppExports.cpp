@@ -4491,17 +4491,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___FF16__FF16_Env__extrinsic_drivers
-plant::ExtrinsicDrivers Species___FF16__FF16_Env__extrinsic_drivers(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Species___FF16__FF16_Env__extrinsic_drivers(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___FF16__FF16_Env__extrinsic_drivers(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Species___FF16__FF16_Env__size__get
 size_t Species___FF16__FF16_Env__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Species___FF16__FF16_Env__size__get(SEXP obj_SEXP) {
@@ -4598,6 +4587,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Species___FF16__FF16_Env__competition_effects__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Species___FF16__FF16_Env__extrinsic_drivers__get
+plant::ExtrinsicDrivers Species___FF16__FF16_Env__extrinsic_drivers__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Species___FF16__FF16_Env__extrinsic_drivers__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Species___FF16__FF16_Env__extrinsic_drivers__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4725,17 +4725,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___FF16w__FF16_Env__extrinsic_drivers
-plant::ExtrinsicDrivers Species___FF16w__FF16_Env__extrinsic_drivers(plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Species___FF16w__FF16_Env__extrinsic_drivers(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___FF16w__FF16_Env__extrinsic_drivers(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Species___FF16w__FF16_Env__size__get
 size_t Species___FF16w__FF16_Env__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Species___FF16w__FF16_Env__size__get(SEXP obj_SEXP) {
@@ -4832,6 +4821,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Species___FF16w__FF16_Env__competition_effects__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Species___FF16w__FF16_Env__extrinsic_drivers__get
+plant::ExtrinsicDrivers Species___FF16w__FF16_Env__extrinsic_drivers__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Species___FF16w__FF16_Env__extrinsic_drivers__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Species___FF16w__FF16_Env__extrinsic_drivers__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -4959,17 +4959,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___FF16r__FF16_Env__extrinsic_drivers
-plant::ExtrinsicDrivers Species___FF16r__FF16_Env__extrinsic_drivers(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
-RcppExport SEXP _plant_Species___FF16r__FF16_Env__extrinsic_drivers(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___FF16r__FF16_Env__extrinsic_drivers(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Species___FF16r__FF16_Env__size__get
 size_t Species___FF16r__FF16_Env__size__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_Species___FF16r__FF16_Env__size__get(SEXP obj_SEXP) {
@@ -5066,6 +5055,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Species___FF16r__FF16_Env__competition_effects__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Species___FF16r__FF16_Env__extrinsic_drivers__get
+plant::ExtrinsicDrivers Species___FF16r__FF16_Env__extrinsic_drivers__get(plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_Species___FF16r__FF16_Env__extrinsic_drivers__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Species___FF16r__FF16_Env__extrinsic_drivers__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -5193,17 +5193,6 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// Species___K93__K93_Env__extrinsic_drivers
-plant::ExtrinsicDrivers Species___K93__K93_Env__extrinsic_drivers(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_);
-RcppExport SEXP _plant_Species___K93__K93_Env__extrinsic_drivers(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Species___K93__K93_Env__extrinsic_drivers(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
 // Species___K93__K93_Env__size__get
 size_t Species___K93__K93_Env__size__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_Species___K93__K93_Env__size__get(SEXP obj_SEXP) {
@@ -5300,6 +5289,17 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(Species___K93__K93_Env__competition_effects__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Species___K93__K93_Env__extrinsic_drivers__get
+plant::ExtrinsicDrivers Species___K93__K93_Env__extrinsic_drivers__get(plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_Species___K93__K93_Env__extrinsic_drivers__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Species<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Species___K93__K93_Env__extrinsic_drivers__get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10117,76 +10117,15 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Environment__ctor
-plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths);
-RcppExport SEXP _plant_FF16_Environment__ctor(SEXP canopy_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP) {
+plant::FF16_Environment FF16_Environment__ctor(bool canopy_rescale_usually, int soil_number_of_depths, double PPFD_);
+RcppExport SEXP _plant_FF16_Environment__ctor(SEXP canopy_rescale_usuallySEXP, SEXP soil_number_of_depthsSEXP, SEXP PPFD_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< bool >::type canopy_rescale_usually(canopy_rescale_usuallySEXP);
     Rcpp::traits::input_parameter< int >::type soil_number_of_depths(soil_number_of_depthsSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(canopy_rescale_usually, soil_number_of_depths));
-    return rcpp_result_gen;
-END_RCPP
-}
-// FF16_Environment__set_extrinsic_driver
-void FF16_Environment__set_extrinsic_driver(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, std::vector<double> x, std::vector<double> y);
-RcppExport SEXP _plant_FF16_Environment__set_extrinsic_driver(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP xSEXP, SEXP ySEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type x(xSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP);
-    FF16_Environment__set_extrinsic_driver(obj_, driver_name, x, y);
-    return R_NilValue;
-END_RCPP
-}
-// FF16_Environment__extrinsic_driver_extrapolation
-void FF16_Environment__extrinsic_driver_extrapolation(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, bool extrapolate);
-RcppExport SEXP _plant_FF16_Environment__extrinsic_driver_extrapolation(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP extrapolateSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
-    Rcpp::traits::input_parameter< bool >::type extrapolate(extrapolateSEXP);
-    FF16_Environment__extrinsic_driver_extrapolation(obj_, driver_name, extrapolate);
-    return R_NilValue;
-END_RCPP
-}
-// FF16_Environment__extrinsic_driver_evaluate
-double FF16_Environment__extrinsic_driver_evaluate(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, double u);
-RcppExport SEXP _plant_FF16_Environment__extrinsic_driver_evaluate(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP uSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
-    Rcpp::traits::input_parameter< double >::type u(uSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__extrinsic_driver_evaluate(obj_, driver_name, u));
-    return rcpp_result_gen;
-END_RCPP
-}
-// FF16_Environment__extrinsic_driver_evaluate_range
-std::vector<double> FF16_Environment__extrinsic_driver_evaluate_range(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::string driver_name, std::vector<double> u);
-RcppExport SEXP _plant_FF16_Environment__extrinsic_driver_evaluate_range(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP uSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
-    Rcpp::traits::input_parameter< std::vector<double> >::type u(uSEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__extrinsic_driver_evaluate_range(obj_, driver_name, u));
-    return rcpp_result_gen;
-END_RCPP
-}
-// FF16_Environment__get_extrinsic_driver_names
-std::vector<std::string> FF16_Environment__get_extrinsic_driver_names(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
-RcppExport SEXP _plant_FF16_Environment__get_extrinsic_driver_names(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(FF16_Environment__get_extrinsic_driver_names(obj_));
+    Rcpp::traits::input_parameter< double >::type PPFD_(PPFD_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__ctor(canopy_rescale_usually, soil_number_of_depths, PPFD_));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -10368,6 +10307,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_Environment__extrinsic_drivers__get
+plant::ExtrinsicDrivers FF16_Environment__extrinsic_drivers__get(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__extrinsic_drivers__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__extrinsic_drivers__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__extrinsic_drivers__set
+void FF16_Environment__extrinsic_drivers__set(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, plant::ExtrinsicDrivers value);
+RcppExport SEXP _plant_FF16_Environment__extrinsic_drivers__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::ExtrinsicDrivers >::type value(valueSEXP);
+    FF16_Environment__extrinsic_drivers__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
 // FF16r_Strategy__ctor
 SEXP FF16r_Strategy__ctor();
 RcppExport SEXP _plant_FF16r_Strategy__ctor() {
@@ -10542,6 +10503,43 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(ExtrinsicDrivers__get_names(obj_));
     return rcpp_result_gen;
+END_RCPP
+}
+// ExtrinsicDrivers__set_constant
+void ExtrinsicDrivers__set_constant(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> obj_, std::string driver_name, double k);
+RcppExport SEXP _plant_ExtrinsicDrivers__set_constant(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP kSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
+    Rcpp::traits::input_parameter< double >::type k(kSEXP);
+    ExtrinsicDrivers__set_constant(obj_, driver_name, k);
+    return R_NilValue;
+END_RCPP
+}
+// ExtrinsicDrivers__set_variable
+void ExtrinsicDrivers__set_variable(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> obj_, std::string driver_name, std::vector<double> x, std::vector<double> y);
+RcppExport SEXP _plant_ExtrinsicDrivers__set_variable(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP xSEXP, SEXP ySEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type x(xSEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type y(ySEXP);
+    ExtrinsicDrivers__set_variable(obj_, driver_name, x, y);
+    return R_NilValue;
+END_RCPP
+}
+// ExtrinsicDrivers__set_extrapolate
+void ExtrinsicDrivers__set_extrapolate(plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> obj_, std::string driver_name, bool extrapolate);
+RcppExport SEXP _plant_ExtrinsicDrivers__set_extrapolate(SEXP obj_SEXP, SEXP driver_nameSEXP, SEXP extrapolateSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::ExtrinsicDrivers> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::string >::type driver_name(driver_nameSEXP);
+    Rcpp::traits::input_parameter< bool >::type extrapolate(extrapolateSEXP);
+    ExtrinsicDrivers__set_extrapolate(obj_, driver_name, extrapolate);
+    return R_NilValue;
 END_RCPP
 }
 // test_adaptive_interpolator
@@ -11189,7 +11187,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16__FF16_Env__introduce_new_node", (DL_FUNC) &_plant_Species___FF16__FF16_Env__introduce_new_node, 1},
     {"_plant_Species___FF16__FF16_Env__node_at", (DL_FUNC) &_plant_Species___FF16__FF16_Env__node_at, 2},
     {"_plant_Species___FF16__FF16_Env__competition_effects_error", (DL_FUNC) &_plant_Species___FF16__FF16_Env__competition_effects_error, 2},
-    {"_plant_Species___FF16__FF16_Env__extrinsic_drivers", (DL_FUNC) &_plant_Species___FF16__FF16_Env__extrinsic_drivers, 1},
     {"_plant_Species___FF16__FF16_Env__size__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__size__get, 1},
     {"_plant_Species___FF16__FF16_Env__new_node__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__new_node__get, 1},
     {"_plant_Species___FF16__FF16_Env__height_max__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__height_max__get, 1},
@@ -11199,6 +11196,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16__FF16_Env__nodes__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__nodes__get, 1},
     {"_plant_Species___FF16__FF16_Env__net_reproduction_ratio_by_node__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__net_reproduction_ratio_by_node__get, 1},
     {"_plant_Species___FF16__FF16_Env__competition_effects__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__competition_effects__get, 1},
+    {"_plant_Species___FF16__FF16_Env__extrinsic_drivers__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__extrinsic_drivers__get, 1},
     {"_plant_Species___FF16__FF16_Env__ode_size__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__ode_size__get, 1},
     {"_plant_Species___FF16__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Species___FF16__FF16_Env__ode_state__get, 1},
     {"_plant_Species___FF16__FF16_Env__ode_state__set", (DL_FUNC) &_plant_Species___FF16__FF16_Env__ode_state__set, 2},
@@ -11210,7 +11208,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16w__FF16_Env__introduce_new_node", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__introduce_new_node, 1},
     {"_plant_Species___FF16w__FF16_Env__node_at", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__node_at, 2},
     {"_plant_Species___FF16w__FF16_Env__competition_effects_error", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__competition_effects_error, 2},
-    {"_plant_Species___FF16w__FF16_Env__extrinsic_drivers", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__extrinsic_drivers, 1},
     {"_plant_Species___FF16w__FF16_Env__size__get", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__size__get, 1},
     {"_plant_Species___FF16w__FF16_Env__new_node__get", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__new_node__get, 1},
     {"_plant_Species___FF16w__FF16_Env__height_max__get", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__height_max__get, 1},
@@ -11220,6 +11217,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16w__FF16_Env__nodes__get", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__nodes__get, 1},
     {"_plant_Species___FF16w__FF16_Env__net_reproduction_ratio_by_node__get", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__net_reproduction_ratio_by_node__get, 1},
     {"_plant_Species___FF16w__FF16_Env__competition_effects__get", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__competition_effects__get, 1},
+    {"_plant_Species___FF16w__FF16_Env__extrinsic_drivers__get", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__extrinsic_drivers__get, 1},
     {"_plant_Species___FF16w__FF16_Env__ode_size__get", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__ode_size__get, 1},
     {"_plant_Species___FF16w__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__ode_state__get, 1},
     {"_plant_Species___FF16w__FF16_Env__ode_state__set", (DL_FUNC) &_plant_Species___FF16w__FF16_Env__ode_state__set, 2},
@@ -11231,7 +11229,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16r__FF16_Env__introduce_new_node", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__introduce_new_node, 1},
     {"_plant_Species___FF16r__FF16_Env__node_at", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__node_at, 2},
     {"_plant_Species___FF16r__FF16_Env__competition_effects_error", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__competition_effects_error, 2},
-    {"_plant_Species___FF16r__FF16_Env__extrinsic_drivers", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__extrinsic_drivers, 1},
     {"_plant_Species___FF16r__FF16_Env__size__get", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__size__get, 1},
     {"_plant_Species___FF16r__FF16_Env__new_node__get", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__new_node__get, 1},
     {"_plant_Species___FF16r__FF16_Env__height_max__get", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__height_max__get, 1},
@@ -11241,6 +11238,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___FF16r__FF16_Env__nodes__get", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__nodes__get, 1},
     {"_plant_Species___FF16r__FF16_Env__net_reproduction_ratio_by_node__get", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__net_reproduction_ratio_by_node__get, 1},
     {"_plant_Species___FF16r__FF16_Env__competition_effects__get", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__competition_effects__get, 1},
+    {"_plant_Species___FF16r__FF16_Env__extrinsic_drivers__get", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__extrinsic_drivers__get, 1},
     {"_plant_Species___FF16r__FF16_Env__ode_size__get", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__ode_size__get, 1},
     {"_plant_Species___FF16r__FF16_Env__ode_state__get", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__ode_state__get, 1},
     {"_plant_Species___FF16r__FF16_Env__ode_state__set", (DL_FUNC) &_plant_Species___FF16r__FF16_Env__ode_state__set, 2},
@@ -11252,7 +11250,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___K93__K93_Env__introduce_new_node", (DL_FUNC) &_plant_Species___K93__K93_Env__introduce_new_node, 1},
     {"_plant_Species___K93__K93_Env__node_at", (DL_FUNC) &_plant_Species___K93__K93_Env__node_at, 2},
     {"_plant_Species___K93__K93_Env__competition_effects_error", (DL_FUNC) &_plant_Species___K93__K93_Env__competition_effects_error, 2},
-    {"_plant_Species___K93__K93_Env__extrinsic_drivers", (DL_FUNC) &_plant_Species___K93__K93_Env__extrinsic_drivers, 1},
     {"_plant_Species___K93__K93_Env__size__get", (DL_FUNC) &_plant_Species___K93__K93_Env__size__get, 1},
     {"_plant_Species___K93__K93_Env__new_node__get", (DL_FUNC) &_plant_Species___K93__K93_Env__new_node__get, 1},
     {"_plant_Species___K93__K93_Env__height_max__get", (DL_FUNC) &_plant_Species___K93__K93_Env__height_max__get, 1},
@@ -11262,6 +11259,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Species___K93__K93_Env__nodes__get", (DL_FUNC) &_plant_Species___K93__K93_Env__nodes__get, 1},
     {"_plant_Species___K93__K93_Env__net_reproduction_ratio_by_node__get", (DL_FUNC) &_plant_Species___K93__K93_Env__net_reproduction_ratio_by_node__get, 1},
     {"_plant_Species___K93__K93_Env__competition_effects__get", (DL_FUNC) &_plant_Species___K93__K93_Env__competition_effects__get, 1},
+    {"_plant_Species___K93__K93_Env__extrinsic_drivers__get", (DL_FUNC) &_plant_Species___K93__K93_Env__extrinsic_drivers__get, 1},
     {"_plant_Species___K93__K93_Env__ode_size__get", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_size__get, 1},
     {"_plant_Species___K93__K93_Env__ode_state__get", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_state__get, 1},
     {"_plant_Species___K93__K93_Env__ode_state__set", (DL_FUNC) &_plant_Species___K93__K93_Env__ode_state__set, 2},
@@ -11692,12 +11690,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Weibull_Disturbance_Regime__cdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__cdf, 2},
     {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
-    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 2},
-    {"_plant_FF16_Environment__set_extrinsic_driver", (DL_FUNC) &_plant_FF16_Environment__set_extrinsic_driver, 4},
-    {"_plant_FF16_Environment__extrinsic_driver_extrapolation", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_extrapolation, 3},
-    {"_plant_FF16_Environment__extrinsic_driver_evaluate", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_evaluate, 3},
-    {"_plant_FF16_Environment__extrinsic_driver_evaluate_range", (DL_FUNC) &_plant_FF16_Environment__extrinsic_driver_evaluate_range, 3},
-    {"_plant_FF16_Environment__get_extrinsic_driver_names", (DL_FUNC) &_plant_FF16_Environment__get_extrinsic_driver_names, 1},
+    {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 3},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__calc_n_psi", (DL_FUNC) &_plant_FF16_Environment__calc_n_psi, 1},
     {"_plant_FF16_Environment__calc_a_psi", (DL_FUNC) &_plant_FF16_Environment__calc_a_psi, 1},
@@ -11714,6 +11707,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__canopy__get", (DL_FUNC) &_plant_FF16_Environment__canopy__get, 1},
     {"_plant_FF16_Environment__canopy__set", (DL_FUNC) &_plant_FF16_Environment__canopy__set, 2},
     {"_plant_FF16_Environment__soil__get", (DL_FUNC) &_plant_FF16_Environment__soil__get, 1},
+    {"_plant_FF16_Environment__extrinsic_drivers__get", (DL_FUNC) &_plant_FF16_Environment__extrinsic_drivers__get, 1},
+    {"_plant_FF16_Environment__extrinsic_drivers__set", (DL_FUNC) &_plant_FF16_Environment__extrinsic_drivers__set, 2},
     {"_plant_FF16r_Strategy__ctor", (DL_FUNC) &_plant_FF16r_Strategy__ctor, 0},
     {"_plant_K93_Strategy__ctor", (DL_FUNC) &_plant_K93_Strategy__ctor, 0},
     {"_plant_K93_Environment__ctor", (DL_FUNC) &_plant_K93_Environment__ctor, 0},
@@ -11730,6 +11725,9 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_ExtrinsicDrivers__evaluate", (DL_FUNC) &_plant_ExtrinsicDrivers__evaluate, 3},
     {"_plant_ExtrinsicDrivers__evaluate_range", (DL_FUNC) &_plant_ExtrinsicDrivers__evaluate_range, 3},
     {"_plant_ExtrinsicDrivers__get_names", (DL_FUNC) &_plant_ExtrinsicDrivers__get_names, 1},
+    {"_plant_ExtrinsicDrivers__set_constant", (DL_FUNC) &_plant_ExtrinsicDrivers__set_constant, 3},
+    {"_plant_ExtrinsicDrivers__set_variable", (DL_FUNC) &_plant_ExtrinsicDrivers__set_variable, 4},
+    {"_plant_ExtrinsicDrivers__set_extrapolate", (DL_FUNC) &_plant_ExtrinsicDrivers__set_extrapolate, 3},
     {"_plant_test_adaptive_interpolator", (DL_FUNC) &_plant_test_adaptive_interpolator, 3},
     {"_plant_node_schedule_default__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_node_schedule_default__Parameters___FF16__FF16_Env, 1},
     {"_plant_make_node_schedule__Parameters___FF16__FF16_Env", (DL_FUNC) &_plant_make_node_schedule__Parameters___FF16__FF16_Env, 1},

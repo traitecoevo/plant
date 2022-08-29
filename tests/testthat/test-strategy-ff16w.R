@@ -4,11 +4,6 @@ context("Strategy-FF16w")
 test_that("FF16w Environment", {
   control <- Control()
   e <- make_environment("FF16w")
-  
-  # Check that variable calculation working properly
-  
-  expect_equal(e$calc_n_psi(), -((log(1500/33))/(log(0.081/0.180))))
-  
 
   # One layer by default
   expect_equal(e$ode_size, 1)
@@ -23,9 +18,12 @@ test_that("FF16w Environment", {
   expect_equal(e$soil$rates, 0.6) # default rainfall is now y = 1
 
   # Make it rain
-  x <- seq(0, 9, 1)
-  y <- rep(0.5, 10)
-  e$set_extrinsic_driver("rainfall", x, y)
+  rain = list(
+    x = seq(0, 9, 1),
+    y = rep(0.5, 10)
+  )
+  e <- make_environment("FF16w", rainfall=rain)
+
   expect_equal(e$soil$states, 0)
   e$compute_rates(c(0.3))
   # 5 - 0.4 - 0.0*0.1
@@ -71,15 +69,17 @@ test_that("Rainfall spline basic run", {
                           mutant = FALSE, birth_rate_list = list(20))
 
 
-  env <- make_environment("FF16w",
-                          soil_number_of_depths = 1,
-                          soil_initial_state = rep(1, 1))
-
   # init rainfall spline for env
-  x <- seq(0, 2, 1)
-  integrand <- function(x) {1 + sin(x)}
-  y <- integrand(x)
-  env$set_extrinsic_driver("rainfall", x, y)
+  x <- seq(0, 110, 1)
+  rain = list(
+    x = x,
+    y = 1 + sin(x)
+  )
+
+  env <- make_environment("FF16w",
+                          soil_number_of_depths = 10,
+                          soil_initial_state = rep(1, 10),
+                          rainfall = rain)
 
   ctrl <- scm_base_control()
 

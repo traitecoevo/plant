@@ -1589,10 +1589,6 @@ Species___FF16__FF16_Env__competition_effects_error <- function(obj_, scal) {
     .Call('_plant_Species___FF16__FF16_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
 }
 
-Species___FF16__FF16_Env__extrinsic_drivers <- function(obj_) {
-    .Call('_plant_Species___FF16__FF16_Env__extrinsic_drivers', PACKAGE = 'plant', obj_)
-}
-
 Species___FF16__FF16_Env__size__get <- function(obj_) {
     .Call('_plant_Species___FF16__FF16_Env__size__get', PACKAGE = 'plant', obj_)
 }
@@ -1627,6 +1623,10 @@ Species___FF16__FF16_Env__net_reproduction_ratio_by_node__get <- function(obj_) 
 
 Species___FF16__FF16_Env__competition_effects__get <- function(obj_) {
     .Call('_plant_Species___FF16__FF16_Env__competition_effects__get', PACKAGE = 'plant', obj_)
+}
+
+Species___FF16__FF16_Env__extrinsic_drivers__get <- function(obj_) {
+    .Call('_plant_Species___FF16__FF16_Env__extrinsic_drivers__get', PACKAGE = 'plant', obj_)
 }
 
 Species___FF16__FF16_Env__ode_size__get <- function(obj_) {
@@ -1673,10 +1673,6 @@ Species___FF16w__FF16_Env__competition_effects_error <- function(obj_, scal) {
     .Call('_plant_Species___FF16w__FF16_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
 }
 
-Species___FF16w__FF16_Env__extrinsic_drivers <- function(obj_) {
-    .Call('_plant_Species___FF16w__FF16_Env__extrinsic_drivers', PACKAGE = 'plant', obj_)
-}
-
 Species___FF16w__FF16_Env__size__get <- function(obj_) {
     .Call('_plant_Species___FF16w__FF16_Env__size__get', PACKAGE = 'plant', obj_)
 }
@@ -1711,6 +1707,10 @@ Species___FF16w__FF16_Env__net_reproduction_ratio_by_node__get <- function(obj_)
 
 Species___FF16w__FF16_Env__competition_effects__get <- function(obj_) {
     .Call('_plant_Species___FF16w__FF16_Env__competition_effects__get', PACKAGE = 'plant', obj_)
+}
+
+Species___FF16w__FF16_Env__extrinsic_drivers__get <- function(obj_) {
+    .Call('_plant_Species___FF16w__FF16_Env__extrinsic_drivers__get', PACKAGE = 'plant', obj_)
 }
 
 Species___FF16w__FF16_Env__ode_size__get <- function(obj_) {
@@ -1757,10 +1757,6 @@ Species___FF16r__FF16_Env__competition_effects_error <- function(obj_, scal) {
     .Call('_plant_Species___FF16r__FF16_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
 }
 
-Species___FF16r__FF16_Env__extrinsic_drivers <- function(obj_) {
-    .Call('_plant_Species___FF16r__FF16_Env__extrinsic_drivers', PACKAGE = 'plant', obj_)
-}
-
 Species___FF16r__FF16_Env__size__get <- function(obj_) {
     .Call('_plant_Species___FF16r__FF16_Env__size__get', PACKAGE = 'plant', obj_)
 }
@@ -1795,6 +1791,10 @@ Species___FF16r__FF16_Env__net_reproduction_ratio_by_node__get <- function(obj_)
 
 Species___FF16r__FF16_Env__competition_effects__get <- function(obj_) {
     .Call('_plant_Species___FF16r__FF16_Env__competition_effects__get', PACKAGE = 'plant', obj_)
+}
+
+Species___FF16r__FF16_Env__extrinsic_drivers__get <- function(obj_) {
+    .Call('_plant_Species___FF16r__FF16_Env__extrinsic_drivers__get', PACKAGE = 'plant', obj_)
 }
 
 Species___FF16r__FF16_Env__ode_size__get <- function(obj_) {
@@ -1841,10 +1841,6 @@ Species___K93__K93_Env__competition_effects_error <- function(obj_, scal) {
     .Call('_plant_Species___K93__K93_Env__competition_effects_error', PACKAGE = 'plant', obj_, scal)
 }
 
-Species___K93__K93_Env__extrinsic_drivers <- function(obj_) {
-    .Call('_plant_Species___K93__K93_Env__extrinsic_drivers', PACKAGE = 'plant', obj_)
-}
-
 Species___K93__K93_Env__size__get <- function(obj_) {
     .Call('_plant_Species___K93__K93_Env__size__get', PACKAGE = 'plant', obj_)
 }
@@ -1879,6 +1875,10 @@ Species___K93__K93_Env__net_reproduction_ratio_by_node__get <- function(obj_) {
 
 Species___K93__K93_Env__competition_effects__get <- function(obj_) {
     .Call('_plant_Species___K93__K93_Env__competition_effects__get', PACKAGE = 'plant', obj_)
+}
+
+Species___K93__K93_Env__extrinsic_drivers__get <- function(obj_) {
+    .Call('_plant_Species___K93__K93_Env__extrinsic_drivers__get', PACKAGE = 'plant', obj_)
 }
 
 Species___K93__K93_Env__ode_size__get <- function(obj_) {
@@ -3601,28 +3601,8 @@ FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
-FF16_Environment__ctor <- function(canopy_rescale_usually, soil_number_of_depths) {
-    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', canopy_rescale_usually, soil_number_of_depths)
-}
-
-FF16_Environment__set_extrinsic_driver <- function(obj_, driver_name, x, y) {
-    invisible(.Call('_plant_FF16_Environment__set_extrinsic_driver', PACKAGE = 'plant', obj_, driver_name, x, y))
-}
-
-FF16_Environment__extrinsic_driver_extrapolation <- function(obj_, driver_name, extrapolate) {
-    invisible(.Call('_plant_FF16_Environment__extrinsic_driver_extrapolation', PACKAGE = 'plant', obj_, driver_name, extrapolate))
-}
-
-FF16_Environment__extrinsic_driver_evaluate <- function(obj_, driver_name, u) {
-    .Call('_plant_FF16_Environment__extrinsic_driver_evaluate', PACKAGE = 'plant', obj_, driver_name, u)
-}
-
-FF16_Environment__extrinsic_driver_evaluate_range <- function(obj_, driver_name, u) {
-    .Call('_plant_FF16_Environment__extrinsic_driver_evaluate_range', PACKAGE = 'plant', obj_, driver_name, u)
-}
-
-FF16_Environment__get_extrinsic_driver_names <- function(obj_) {
-    .Call('_plant_FF16_Environment__get_extrinsic_driver_names', PACKAGE = 'plant', obj_)
+FF16_Environment__ctor <- function(canopy_rescale_usually, soil_number_of_depths, PPFD_) {
+    .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', canopy_rescale_usually, soil_number_of_depths, PPFD_)
 }
 
 FF16_Environment__canopy_openness <- function(obj_, height) {
@@ -3689,6 +3669,14 @@ FF16_Environment__soil__get <- function(obj_) {
     .Call('_plant_FF16_Environment__soil__get', PACKAGE = 'plant', obj_)
 }
 
+FF16_Environment__extrinsic_drivers__get <- function(obj_) {
+    .Call('_plant_FF16_Environment__extrinsic_drivers__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Environment__extrinsic_drivers__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Environment__extrinsic_drivers__set', PACKAGE = 'plant', obj_, value))
+}
+
 FF16r_Strategy__ctor <- function() {
     .Call('_plant_FF16r_Strategy__ctor', PACKAGE = 'plant')
 }
@@ -3751,6 +3739,18 @@ ExtrinsicDrivers__evaluate_range <- function(obj_, driver_name, u) {
 
 ExtrinsicDrivers__get_names <- function(obj_) {
     .Call('_plant_ExtrinsicDrivers__get_names', PACKAGE = 'plant', obj_)
+}
+
+ExtrinsicDrivers__set_constant <- function(obj_, driver_name, k) {
+    invisible(.Call('_plant_ExtrinsicDrivers__set_constant', PACKAGE = 'plant', obj_, driver_name, k))
+}
+
+ExtrinsicDrivers__set_variable <- function(obj_, driver_name, x, y) {
+    invisible(.Call('_plant_ExtrinsicDrivers__set_variable', PACKAGE = 'plant', obj_, driver_name, x, y))
+}
+
+ExtrinsicDrivers__set_extrapolate <- function(obj_, driver_name, extrapolate) {
+    invisible(.Call('_plant_ExtrinsicDrivers__set_extrapolate', PACKAGE = 'plant', obj_, driver_name, extrapolate))
 }
 
 test_adaptive_interpolator <- function(f, a, b) {
