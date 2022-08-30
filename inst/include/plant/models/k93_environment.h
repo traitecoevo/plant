@@ -62,8 +62,13 @@ public:
 
 };
 
-inline Rcpp::NumericMatrix get_state(const K93_Environment environment) {
-  return get_state(environment.canopy);
+//inline Rcpp::NumericMatrix get_state(const K93_Environment environment) {
+//  return get_state(environment.canopy);
+//}
+inline Rcpp::List get_state(const K93_Environment environment, double time) {
+  auto ret = get_state(environment.extrinsic_drivers, time);
+  ret["canopy"] = get_state(environment.canopy); // does a full copy of ret, not efficient
+  return ret;
 }
 
 }

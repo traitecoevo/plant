@@ -39,10 +39,20 @@ tidy_species <- function(data) {
 #' @return a tibble describing the environment in a patch
 #' @importFrom rlang .data
 tidy_env <- function(env) {
-  dplyr::tibble(step = seq_len(length(env))) %>%
-    dplyr::left_join(by = "step", 
-    env %>% purrr::map_df(tidyr::as_tibble, .id= "step") %>% dplyr::mutate(step = as.integer(.data$step))
-    )
+  # get list of variables
+  env_variables = names(env[[1]])
+  
+  # extract over each variable, concatenating by time, 
+  # then join all variables by step, and force unnamed vectors 
+  # to have variable names using regex magic
+  env_long <- env_variables %>%
+    purrr::map(., function(v) purrr::map_dfr(env, ~ purrr::pluck(., v) %>% 
+                                        data.frame, .id = "step") %>%
+                 dplyr::mutate(dplyr::across(step, as.integer)) %>%
+                 dplyr::rename_with(~ gsub("\\.", v, .)))
+  
+  names(env_long) <- env_variables
+  return(env_long)
 }
 
 
@@ -69,9 +79,8 @@ tidy_patch <- function(results) {
     )
   
   out[["env"]] <- 
-    dplyr::left_join(by = "step", data,
-      tidy_env(results$env)
-    )
+    tidy_env(results$env) %>%
+    purrr::map(., dplyr::left_join, data, by = "step")
   
   out[["n_spp"]] <- length(results$species)
   
