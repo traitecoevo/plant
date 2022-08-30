@@ -3309,6 +3309,302 @@ FF16_Strategy__ctor <- function() {
     .Call('_plant_FF16_Strategy__ctor', PACKAGE = 'plant')
 }
 
+FF16_Strategy__lma__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__lma__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__lma__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__lma__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__rho__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__rho__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__rho__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__rho__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__hmat__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__hmat__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__hmat__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__hmat__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__omega__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__omega__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__omega__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__omega__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__eta__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__eta__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__eta__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__eta__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__theta__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__theta__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__theta__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__theta__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_l1__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_l1__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_l1__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_l1__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_l2__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_l2__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_l2__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_l2__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_r1__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_r1__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_r1__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_r1__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_b1__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_b1__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_b1__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_b1__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__r_s__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__r_s__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__r_s__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__r_s__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__r_b__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__r_b__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__r_b__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__r_b__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__r_r__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__r_r__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__r_r__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__r_r__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__r_l__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__r_l__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__r_l__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__r_l__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_y__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_y__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_y__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_y__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_bio__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_bio__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_bio__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_bio__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__k_l__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__k_l__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__k_l__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__k_l__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__k_b__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__k_b__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__k_b__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__k_b__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__k_s__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__k_s__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__k_s__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__k_s__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__k_r__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__k_r__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__k_r__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__k_r__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_p1__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_p1__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_p1__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_p1__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_p2__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_p2__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_p2__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_p2__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_f3__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_f3__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_f3__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_f3__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_f1__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_f1__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_f1__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_f1__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_f2__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_f2__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_f2__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_f2__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__S_D__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__S_D__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__S_D__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__S_D__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_d0__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_d0__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_d0__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_d0__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__d_I__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__d_I__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__d_I__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__d_I__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_dG1__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_dG1__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_dG1__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_dG1__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__a_dG2__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__a_dG2__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__a_dG2__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__a_dG2__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__k_I__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__k_I__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__k_I__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__k_I__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__recruitment_decay__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__recruitment_decay__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__recruitment_decay__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__recruitment_decay__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__control__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__control__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__control__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__control__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__collect_all_auxiliary__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__collect_all_auxiliary__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__collect_all_auxiliary__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__collect_all_auxiliary__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__birth_rate_x__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__birth_rate_x__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__birth_rate_x__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__birth_rate_x__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__birth_rate_y__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__birth_rate_y__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__birth_rate_y__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__birth_rate_y__set', PACKAGE = 'plant', obj_, value))
+}
+
+FF16_Strategy__is_variable_birth_rate__get <- function(obj_) {
+    .Call('_plant_FF16_Strategy__is_variable_birth_rate__get', PACKAGE = 'plant', obj_)
+}
+
+FF16_Strategy__is_variable_birth_rate__set <- function(obj_, value) {
+    invisible(.Call('_plant_FF16_Strategy__is_variable_birth_rate__set', PACKAGE = 'plant', obj_, value))
+}
+
 FF16_Environment__ctor <- function(canopy_rescale_usually, soil_number_of_depths) {
     .Call('_plant_FF16_Environment__ctor', PACKAGE = 'plant', canopy_rescale_usually, soil_number_of_depths)
 }

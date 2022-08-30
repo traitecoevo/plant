@@ -225,7 +225,7 @@ template <> inline std::string   package_name<plant::Weibull_Disturbance_Regime 
 template <> inline std::string generator_name<plant::Weibull_Disturbance_Regime >() {return ".R6_Weibull_Disturbance_Regime";}
 template <> inline std::string   class_name_r<plant::FF16_Strategy >() {return "FF16_Strategy";}
 template <> inline std::string   package_name<plant::FF16_Strategy >() {return "plant";}
-template <> inline std::string generator_name<plant::FF16_Strategy >() {return "";}
+template <> inline std::string generator_name<plant::FF16_Strategy >() {return ".R6_FF16_Strategy";}
 template <> inline std::string   class_name_r<plant::FF16_Environment >() {return "FF16_Environment";}
 template <> inline std::string   package_name<plant::FF16_Environment >() {return "plant";}
 template <> inline std::string generator_name<plant::FF16_Environment >() {return ".R6_FF16_Environment";}
@@ -953,131 +953,10 @@ template <> inline plant::Weibull_Disturbance_Regime as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Weibull_Disturbance_Regime>(x));
 }
 template <> inline SEXP wrap(const plant::FF16_Strategy& x) {
-  Rcpp::List ret;
-  ret["lma"] = Rcpp::wrap(x.lma);
-  ret["rho"] = Rcpp::wrap(x.rho);
-  ret["hmat"] = Rcpp::wrap(x.hmat);
-  ret["omega"] = Rcpp::wrap(x.omega);
-  ret["eta"] = Rcpp::wrap(x.eta);
-  ret["theta"] = Rcpp::wrap(x.theta);
-  ret["a_l1"] = Rcpp::wrap(x.a_l1);
-  ret["a_l2"] = Rcpp::wrap(x.a_l2);
-  ret["a_r1"] = Rcpp::wrap(x.a_r1);
-  ret["a_b1"] = Rcpp::wrap(x.a_b1);
-  ret["r_s"] = Rcpp::wrap(x.r_s);
-  ret["r_b"] = Rcpp::wrap(x.r_b);
-  ret["r_r"] = Rcpp::wrap(x.r_r);
-  ret["r_l"] = Rcpp::wrap(x.r_l);
-  ret["a_y"] = Rcpp::wrap(x.a_y);
-  ret["a_bio"] = Rcpp::wrap(x.a_bio);
-  ret["k_l"] = Rcpp::wrap(x.k_l);
-  ret["k_b"] = Rcpp::wrap(x.k_b);
-  ret["k_s"] = Rcpp::wrap(x.k_s);
-  ret["k_r"] = Rcpp::wrap(x.k_r);
-  ret["a_p1"] = Rcpp::wrap(x.a_p1);
-  ret["a_p2"] = Rcpp::wrap(x.a_p2);
-  ret["a_f3"] = Rcpp::wrap(x.a_f3);
-  ret["a_f1"] = Rcpp::wrap(x.a_f1);
-  ret["a_f2"] = Rcpp::wrap(x.a_f2);
-  ret["S_D"] = Rcpp::wrap(x.S_D);
-  ret["a_d0"] = Rcpp::wrap(x.a_d0);
-  ret["d_I"] = Rcpp::wrap(x.d_I);
-  ret["a_dG1"] = Rcpp::wrap(x.a_dG1);
-  ret["a_dG2"] = Rcpp::wrap(x.a_dG2);
-  ret["k_I"] = Rcpp::wrap(x.k_I);
-  ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
-  ret["control"] = Rcpp::wrap(x.control);
-  ret["collect_all_auxiliary"] = Rcpp::wrap(x.collect_all_auxiliary);
-  ret["birth_rate_x"] = Rcpp::wrap(x.birth_rate_x);
-  ret["birth_rate_y"] = Rcpp::wrap(x.birth_rate_y);
-  ret["is_variable_birth_rate"] = Rcpp::wrap(x.is_variable_birth_rate);
-  ret.attr("class") = "FF16_Strategy";
-  return ret;
+  return wrap(plant::RcppR6::RcppR6<plant::FF16_Strategy>(x));
 }
 template <> inline plant::FF16_Strategy as(SEXP x) {
-  if (!plant::RcppR6::is<plant::FF16_Strategy >(x)) {
-    Rcpp::stop("Expected an object of type FF16_Strategy");
-    // NOTE: Won't drop through or return anything.
-  }
-  // NOTE: assumes default constructable, and will assign *every*
-  // field twice.  No current support for a hook.
-  plant::FF16_Strategy ret;
-  Rcpp::List xl(x);
-  // ret.lma = Rcpp::as<decltype(retlma) >(xl["lma"]);
-  ret.lma = Rcpp::as<double >(xl["lma"]);
-  // ret.rho = Rcpp::as<decltype(retrho) >(xl["rho"]);
-  ret.rho = Rcpp::as<double >(xl["rho"]);
-  // ret.hmat = Rcpp::as<decltype(rethmat) >(xl["hmat"]);
-  ret.hmat = Rcpp::as<double >(xl["hmat"]);
-  // ret.omega = Rcpp::as<decltype(retomega) >(xl["omega"]);
-  ret.omega = Rcpp::as<double >(xl["omega"]);
-  // ret.eta = Rcpp::as<decltype(reteta) >(xl["eta"]);
-  ret.eta = Rcpp::as<double >(xl["eta"]);
-  // ret.theta = Rcpp::as<decltype(rettheta) >(xl["theta"]);
-  ret.theta = Rcpp::as<double >(xl["theta"]);
-  // ret.a_l1 = Rcpp::as<decltype(reta_l1) >(xl["a_l1"]);
-  ret.a_l1 = Rcpp::as<double >(xl["a_l1"]);
-  // ret.a_l2 = Rcpp::as<decltype(reta_l2) >(xl["a_l2"]);
-  ret.a_l2 = Rcpp::as<double >(xl["a_l2"]);
-  // ret.a_r1 = Rcpp::as<decltype(reta_r1) >(xl["a_r1"]);
-  ret.a_r1 = Rcpp::as<double >(xl["a_r1"]);
-  // ret.a_b1 = Rcpp::as<decltype(reta_b1) >(xl["a_b1"]);
-  ret.a_b1 = Rcpp::as<double >(xl["a_b1"]);
-  // ret.r_s = Rcpp::as<decltype(retr_s) >(xl["r_s"]);
-  ret.r_s = Rcpp::as<double >(xl["r_s"]);
-  // ret.r_b = Rcpp::as<decltype(retr_b) >(xl["r_b"]);
-  ret.r_b = Rcpp::as<double >(xl["r_b"]);
-  // ret.r_r = Rcpp::as<decltype(retr_r) >(xl["r_r"]);
-  ret.r_r = Rcpp::as<double >(xl["r_r"]);
-  // ret.r_l = Rcpp::as<decltype(retr_l) >(xl["r_l"]);
-  ret.r_l = Rcpp::as<double >(xl["r_l"]);
-  // ret.a_y = Rcpp::as<decltype(reta_y) >(xl["a_y"]);
-  ret.a_y = Rcpp::as<double >(xl["a_y"]);
-  // ret.a_bio = Rcpp::as<decltype(reta_bio) >(xl["a_bio"]);
-  ret.a_bio = Rcpp::as<double >(xl["a_bio"]);
-  // ret.k_l = Rcpp::as<decltype(retk_l) >(xl["k_l"]);
-  ret.k_l = Rcpp::as<double >(xl["k_l"]);
-  // ret.k_b = Rcpp::as<decltype(retk_b) >(xl["k_b"]);
-  ret.k_b = Rcpp::as<double >(xl["k_b"]);
-  // ret.k_s = Rcpp::as<decltype(retk_s) >(xl["k_s"]);
-  ret.k_s = Rcpp::as<double >(xl["k_s"]);
-  // ret.k_r = Rcpp::as<decltype(retk_r) >(xl["k_r"]);
-  ret.k_r = Rcpp::as<double >(xl["k_r"]);
-  // ret.a_p1 = Rcpp::as<decltype(reta_p1) >(xl["a_p1"]);
-  ret.a_p1 = Rcpp::as<double >(xl["a_p1"]);
-  // ret.a_p2 = Rcpp::as<decltype(reta_p2) >(xl["a_p2"]);
-  ret.a_p2 = Rcpp::as<double >(xl["a_p2"]);
-  // ret.a_f3 = Rcpp::as<decltype(reta_f3) >(xl["a_f3"]);
-  ret.a_f3 = Rcpp::as<double >(xl["a_f3"]);
-  // ret.a_f1 = Rcpp::as<decltype(reta_f1) >(xl["a_f1"]);
-  ret.a_f1 = Rcpp::as<double >(xl["a_f1"]);
-  // ret.a_f2 = Rcpp::as<decltype(reta_f2) >(xl["a_f2"]);
-  ret.a_f2 = Rcpp::as<double >(xl["a_f2"]);
-  // ret.S_D = Rcpp::as<decltype(retS_D) >(xl["S_D"]);
-  ret.S_D = Rcpp::as<double >(xl["S_D"]);
-  // ret.a_d0 = Rcpp::as<decltype(reta_d0) >(xl["a_d0"]);
-  ret.a_d0 = Rcpp::as<double >(xl["a_d0"]);
-  // ret.d_I = Rcpp::as<decltype(retd_I) >(xl["d_I"]);
-  ret.d_I = Rcpp::as<double >(xl["d_I"]);
-  // ret.a_dG1 = Rcpp::as<decltype(reta_dG1) >(xl["a_dG1"]);
-  ret.a_dG1 = Rcpp::as<double >(xl["a_dG1"]);
-  // ret.a_dG2 = Rcpp::as<decltype(reta_dG2) >(xl["a_dG2"]);
-  ret.a_dG2 = Rcpp::as<double >(xl["a_dG2"]);
-  // ret.k_I = Rcpp::as<decltype(retk_I) >(xl["k_I"]);
-  ret.k_I = Rcpp::as<double >(xl["k_I"]);
-  // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);
-  ret.recruitment_decay = Rcpp::as<double >(xl["recruitment_decay"]);
-  // ret.control = Rcpp::as<decltype(retcontrol) >(xl["control"]);
-  ret.control = Rcpp::as<plant::Control >(xl["control"]);
-  // ret.collect_all_auxiliary = Rcpp::as<decltype(retcollect_all_auxiliary) >(xl["collect_all_auxiliary"]);
-  ret.collect_all_auxiliary = Rcpp::as<bool >(xl["collect_all_auxiliary"]);
-  // ret.birth_rate_x = Rcpp::as<decltype(retbirth_rate_x) >(xl["birth_rate_x"]);
-  ret.birth_rate_x = Rcpp::as<std::vector<double> >(xl["birth_rate_x"]);
-  // ret.birth_rate_y = Rcpp::as<decltype(retbirth_rate_y) >(xl["birth_rate_y"]);
-  ret.birth_rate_y = Rcpp::as<std::vector<double> >(xl["birth_rate_y"]);
-  // ret.is_variable_birth_rate = Rcpp::as<decltype(retis_variable_birth_rate) >(xl["is_variable_birth_rate"]);
-  ret.is_variable_birth_rate = Rcpp::as<bool >(xl["is_variable_birth_rate"]);
-  return ret;
+  return *(plant::RcppR6::RcppR6<plant::FF16_Strategy>(x));
 }
 template <> inline SEXP wrap(const plant::FF16_Environment& x) {
   return wrap(plant::RcppR6::RcppR6<plant::FF16_Environment>(x));

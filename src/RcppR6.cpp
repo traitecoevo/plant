@@ -3766,8 +3766,340 @@ double Weibull_Disturbance_Regime__icdf(plant::RcppR6::RcppR6<plant::Weibull_Dis
 }
 
 // [[Rcpp::export]]
-SEXP FF16_Strategy__ctor() {
-  return Rcpp::wrap(plant::FF16_Strategy());
+plant::FF16_Strategy FF16_Strategy__ctor() {
+  return plant::FF16_Strategy();
+}
+// [[Rcpp::export]]
+double FF16_Strategy__lma__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->lma;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__lma__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->lma = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__rho__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->rho;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__rho__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->rho = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__hmat__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->hmat;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__hmat__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->hmat = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__omega__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->omega;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__omega__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->omega = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__eta__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->eta;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__eta__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->eta = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__theta__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->theta;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__theta__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->theta = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_l1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_l1;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_l1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_l1 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_l2__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_l2;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_l2__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_l2 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_r1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_r1;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_r1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_r1 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_b1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_b1;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_b1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_b1 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__r_s__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->r_s;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__r_s__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->r_s = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__r_b__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->r_b;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__r_b__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->r_b = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__r_r__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->r_r;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__r_r__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->r_r = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__r_l__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->r_l;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__r_l__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->r_l = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_y__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_y;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_y__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_y = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_bio__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_bio;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_bio__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_bio = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__k_l__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->k_l;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__k_l__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->k_l = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__k_b__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->k_b;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__k_b__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->k_b = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__k_s__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->k_s;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__k_s__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->k_s = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__k_r__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->k_r;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__k_r__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->k_r = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_p1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_p1;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_p1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_p1 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_p2__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_p2;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_p2__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_p2 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_f3__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_f3;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_f3__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_f3 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_f1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_f1;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_f1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_f1 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_f2__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_f2;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_f2__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_f2 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__S_D__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->S_D;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__S_D__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->S_D = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_d0__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_d0;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_d0__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_d0 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__d_I__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->d_I;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__d_I__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->d_I = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_dG1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_dG1;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_dG1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_dG1 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__a_dG2__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->a_dG2;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__a_dG2__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->a_dG2 = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__k_I__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->k_I;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__k_I__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->k_I = value;
+}
+
+// [[Rcpp::export]]
+double FF16_Strategy__recruitment_decay__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->recruitment_decay;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__recruitment_decay__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value) {
+  obj_->recruitment_decay = value;
+}
+
+// [[Rcpp::export]]
+plant::Control FF16_Strategy__control__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->control;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__control__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, plant::Control value) {
+  obj_->control = value;
+}
+
+// [[Rcpp::export]]
+bool FF16_Strategy__collect_all_auxiliary__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->collect_all_auxiliary;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__collect_all_auxiliary__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, bool value) {
+  obj_->collect_all_auxiliary = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> FF16_Strategy__birth_rate_x__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->birth_rate_x;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__birth_rate_x__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, std::vector<double> value) {
+  obj_->birth_rate_x = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> FF16_Strategy__birth_rate_y__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->birth_rate_y;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__birth_rate_y__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, std::vector<double> value) {
+  obj_->birth_rate_y = value;
+}
+
+// [[Rcpp::export]]
+bool FF16_Strategy__is_variable_birth_rate__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_) {
+  return obj_->is_variable_birth_rate;
+}
+// [[Rcpp::export]]
+void FF16_Strategy__is_variable_birth_rate__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, bool value) {
+  obj_->is_variable_birth_rate = value;
 }
 
 

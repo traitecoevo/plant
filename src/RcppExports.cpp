@@ -9269,13 +9269,827 @@ BEGIN_RCPP
 END_RCPP
 }
 // FF16_Strategy__ctor
-SEXP FF16_Strategy__ctor();
+plant::FF16_Strategy FF16_Strategy__ctor();
 RcppExport SEXP _plant_FF16_Strategy__ctor() {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     rcpp_result_gen = Rcpp::wrap(FF16_Strategy__ctor());
     return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__lma__get
+double FF16_Strategy__lma__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__lma__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__lma__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__lma__set
+void FF16_Strategy__lma__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__lma__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__lma__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__rho__get
+double FF16_Strategy__rho__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__rho__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__rho__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__rho__set
+void FF16_Strategy__rho__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__rho__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__rho__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__hmat__get
+double FF16_Strategy__hmat__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__hmat__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__hmat__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__hmat__set
+void FF16_Strategy__hmat__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__hmat__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__hmat__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__omega__get
+double FF16_Strategy__omega__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__omega__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__omega__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__omega__set
+void FF16_Strategy__omega__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__omega__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__omega__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__eta__get
+double FF16_Strategy__eta__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__eta__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__eta__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__eta__set
+void FF16_Strategy__eta__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__eta__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__eta__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__theta__get
+double FF16_Strategy__theta__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__theta__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__theta__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__theta__set
+void FF16_Strategy__theta__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__theta__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__theta__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_l1__get
+double FF16_Strategy__a_l1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_l1__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_l1__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_l1__set
+void FF16_Strategy__a_l1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_l1__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_l1__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_l2__get
+double FF16_Strategy__a_l2__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_l2__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_l2__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_l2__set
+void FF16_Strategy__a_l2__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_l2__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_l2__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_r1__get
+double FF16_Strategy__a_r1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_r1__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_r1__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_r1__set
+void FF16_Strategy__a_r1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_r1__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_r1__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_b1__get
+double FF16_Strategy__a_b1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_b1__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_b1__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_b1__set
+void FF16_Strategy__a_b1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_b1__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_b1__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__r_s__get
+double FF16_Strategy__r_s__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__r_s__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__r_s__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__r_s__set
+void FF16_Strategy__r_s__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__r_s__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__r_s__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__r_b__get
+double FF16_Strategy__r_b__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__r_b__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__r_b__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__r_b__set
+void FF16_Strategy__r_b__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__r_b__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__r_b__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__r_r__get
+double FF16_Strategy__r_r__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__r_r__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__r_r__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__r_r__set
+void FF16_Strategy__r_r__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__r_r__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__r_r__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__r_l__get
+double FF16_Strategy__r_l__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__r_l__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__r_l__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__r_l__set
+void FF16_Strategy__r_l__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__r_l__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__r_l__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_y__get
+double FF16_Strategy__a_y__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_y__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_y__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_y__set
+void FF16_Strategy__a_y__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_y__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_y__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_bio__get
+double FF16_Strategy__a_bio__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_bio__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_bio__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_bio__set
+void FF16_Strategy__a_bio__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_bio__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_bio__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__k_l__get
+double FF16_Strategy__k_l__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__k_l__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__k_l__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__k_l__set
+void FF16_Strategy__k_l__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__k_l__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__k_l__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__k_b__get
+double FF16_Strategy__k_b__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__k_b__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__k_b__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__k_b__set
+void FF16_Strategy__k_b__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__k_b__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__k_b__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__k_s__get
+double FF16_Strategy__k_s__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__k_s__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__k_s__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__k_s__set
+void FF16_Strategy__k_s__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__k_s__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__k_s__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__k_r__get
+double FF16_Strategy__k_r__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__k_r__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__k_r__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__k_r__set
+void FF16_Strategy__k_r__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__k_r__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__k_r__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_p1__get
+double FF16_Strategy__a_p1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_p1__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_p1__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_p1__set
+void FF16_Strategy__a_p1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_p1__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_p1__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_p2__get
+double FF16_Strategy__a_p2__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_p2__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_p2__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_p2__set
+void FF16_Strategy__a_p2__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_p2__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_p2__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_f3__get
+double FF16_Strategy__a_f3__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_f3__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_f3__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_f3__set
+void FF16_Strategy__a_f3__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_f3__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_f3__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_f1__get
+double FF16_Strategy__a_f1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_f1__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_f1__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_f1__set
+void FF16_Strategy__a_f1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_f1__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_f1__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_f2__get
+double FF16_Strategy__a_f2__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_f2__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_f2__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_f2__set
+void FF16_Strategy__a_f2__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_f2__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_f2__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__S_D__get
+double FF16_Strategy__S_D__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__S_D__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__S_D__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__S_D__set
+void FF16_Strategy__S_D__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__S_D__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__S_D__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_d0__get
+double FF16_Strategy__a_d0__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_d0__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_d0__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_d0__set
+void FF16_Strategy__a_d0__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_d0__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_d0__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__d_I__get
+double FF16_Strategy__d_I__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__d_I__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__d_I__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__d_I__set
+void FF16_Strategy__d_I__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__d_I__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__d_I__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_dG1__get
+double FF16_Strategy__a_dG1__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_dG1__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_dG1__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_dG1__set
+void FF16_Strategy__a_dG1__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_dG1__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_dG1__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__a_dG2__get
+double FF16_Strategy__a_dG2__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__a_dG2__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__a_dG2__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__a_dG2__set
+void FF16_Strategy__a_dG2__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__a_dG2__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__a_dG2__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__k_I__get
+double FF16_Strategy__k_I__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__k_I__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__k_I__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__k_I__set
+void FF16_Strategy__k_I__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__k_I__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__k_I__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__recruitment_decay__get
+double FF16_Strategy__recruitment_decay__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__recruitment_decay__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__recruitment_decay__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__recruitment_decay__set
+void FF16_Strategy__recruitment_decay__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, double value);
+RcppExport SEXP _plant_FF16_Strategy__recruitment_decay__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    FF16_Strategy__recruitment_decay__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__control__get
+plant::Control FF16_Strategy__control__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__control__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__control__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__control__set
+void FF16_Strategy__control__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, plant::Control value);
+RcppExport SEXP _plant_FF16_Strategy__control__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< plant::Control >::type value(valueSEXP);
+    FF16_Strategy__control__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__collect_all_auxiliary__get
+bool FF16_Strategy__collect_all_auxiliary__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__collect_all_auxiliary__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__collect_all_auxiliary__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__collect_all_auxiliary__set
+void FF16_Strategy__collect_all_auxiliary__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, bool value);
+RcppExport SEXP _plant_FF16_Strategy__collect_all_auxiliary__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
+    FF16_Strategy__collect_all_auxiliary__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__birth_rate_x__get
+std::vector<double> FF16_Strategy__birth_rate_x__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__birth_rate_x__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__birth_rate_x__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__birth_rate_x__set
+void FF16_Strategy__birth_rate_x__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, std::vector<double> value);
+RcppExport SEXP _plant_FF16_Strategy__birth_rate_x__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type value(valueSEXP);
+    FF16_Strategy__birth_rate_x__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__birth_rate_y__get
+std::vector<double> FF16_Strategy__birth_rate_y__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__birth_rate_y__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__birth_rate_y__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__birth_rate_y__set
+void FF16_Strategy__birth_rate_y__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, std::vector<double> value);
+RcppExport SEXP _plant_FF16_Strategy__birth_rate_y__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type value(valueSEXP);
+    FF16_Strategy__birth_rate_y__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// FF16_Strategy__is_variable_birth_rate__get
+bool FF16_Strategy__is_variable_birth_rate__get(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_);
+RcppExport SEXP _plant_FF16_Strategy__is_variable_birth_rate__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Strategy__is_variable_birth_rate__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Strategy__is_variable_birth_rate__set
+void FF16_Strategy__is_variable_birth_rate__set(plant::RcppR6::RcppR6<plant::FF16_Strategy> obj_, bool value);
+RcppExport SEXP _plant_FF16_Strategy__is_variable_birth_rate__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Strategy> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
+    FF16_Strategy__is_variable_birth_rate__set(obj_, value);
+    return R_NilValue;
 END_RCPP
 }
 // FF16_Environment__ctor
@@ -10733,6 +11547,80 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Weibull_Disturbance_Regime__cdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__cdf, 2},
     {"_plant_Weibull_Disturbance_Regime__icdf", (DL_FUNC) &_plant_Weibull_Disturbance_Regime__icdf, 2},
     {"_plant_FF16_Strategy__ctor", (DL_FUNC) &_plant_FF16_Strategy__ctor, 0},
+    {"_plant_FF16_Strategy__lma__get", (DL_FUNC) &_plant_FF16_Strategy__lma__get, 1},
+    {"_plant_FF16_Strategy__lma__set", (DL_FUNC) &_plant_FF16_Strategy__lma__set, 2},
+    {"_plant_FF16_Strategy__rho__get", (DL_FUNC) &_plant_FF16_Strategy__rho__get, 1},
+    {"_plant_FF16_Strategy__rho__set", (DL_FUNC) &_plant_FF16_Strategy__rho__set, 2},
+    {"_plant_FF16_Strategy__hmat__get", (DL_FUNC) &_plant_FF16_Strategy__hmat__get, 1},
+    {"_plant_FF16_Strategy__hmat__set", (DL_FUNC) &_plant_FF16_Strategy__hmat__set, 2},
+    {"_plant_FF16_Strategy__omega__get", (DL_FUNC) &_plant_FF16_Strategy__omega__get, 1},
+    {"_plant_FF16_Strategy__omega__set", (DL_FUNC) &_plant_FF16_Strategy__omega__set, 2},
+    {"_plant_FF16_Strategy__eta__get", (DL_FUNC) &_plant_FF16_Strategy__eta__get, 1},
+    {"_plant_FF16_Strategy__eta__set", (DL_FUNC) &_plant_FF16_Strategy__eta__set, 2},
+    {"_plant_FF16_Strategy__theta__get", (DL_FUNC) &_plant_FF16_Strategy__theta__get, 1},
+    {"_plant_FF16_Strategy__theta__set", (DL_FUNC) &_plant_FF16_Strategy__theta__set, 2},
+    {"_plant_FF16_Strategy__a_l1__get", (DL_FUNC) &_plant_FF16_Strategy__a_l1__get, 1},
+    {"_plant_FF16_Strategy__a_l1__set", (DL_FUNC) &_plant_FF16_Strategy__a_l1__set, 2},
+    {"_plant_FF16_Strategy__a_l2__get", (DL_FUNC) &_plant_FF16_Strategy__a_l2__get, 1},
+    {"_plant_FF16_Strategy__a_l2__set", (DL_FUNC) &_plant_FF16_Strategy__a_l2__set, 2},
+    {"_plant_FF16_Strategy__a_r1__get", (DL_FUNC) &_plant_FF16_Strategy__a_r1__get, 1},
+    {"_plant_FF16_Strategy__a_r1__set", (DL_FUNC) &_plant_FF16_Strategy__a_r1__set, 2},
+    {"_plant_FF16_Strategy__a_b1__get", (DL_FUNC) &_plant_FF16_Strategy__a_b1__get, 1},
+    {"_plant_FF16_Strategy__a_b1__set", (DL_FUNC) &_plant_FF16_Strategy__a_b1__set, 2},
+    {"_plant_FF16_Strategy__r_s__get", (DL_FUNC) &_plant_FF16_Strategy__r_s__get, 1},
+    {"_plant_FF16_Strategy__r_s__set", (DL_FUNC) &_plant_FF16_Strategy__r_s__set, 2},
+    {"_plant_FF16_Strategy__r_b__get", (DL_FUNC) &_plant_FF16_Strategy__r_b__get, 1},
+    {"_plant_FF16_Strategy__r_b__set", (DL_FUNC) &_plant_FF16_Strategy__r_b__set, 2},
+    {"_plant_FF16_Strategy__r_r__get", (DL_FUNC) &_plant_FF16_Strategy__r_r__get, 1},
+    {"_plant_FF16_Strategy__r_r__set", (DL_FUNC) &_plant_FF16_Strategy__r_r__set, 2},
+    {"_plant_FF16_Strategy__r_l__get", (DL_FUNC) &_plant_FF16_Strategy__r_l__get, 1},
+    {"_plant_FF16_Strategy__r_l__set", (DL_FUNC) &_plant_FF16_Strategy__r_l__set, 2},
+    {"_plant_FF16_Strategy__a_y__get", (DL_FUNC) &_plant_FF16_Strategy__a_y__get, 1},
+    {"_plant_FF16_Strategy__a_y__set", (DL_FUNC) &_plant_FF16_Strategy__a_y__set, 2},
+    {"_plant_FF16_Strategy__a_bio__get", (DL_FUNC) &_plant_FF16_Strategy__a_bio__get, 1},
+    {"_plant_FF16_Strategy__a_bio__set", (DL_FUNC) &_plant_FF16_Strategy__a_bio__set, 2},
+    {"_plant_FF16_Strategy__k_l__get", (DL_FUNC) &_plant_FF16_Strategy__k_l__get, 1},
+    {"_plant_FF16_Strategy__k_l__set", (DL_FUNC) &_plant_FF16_Strategy__k_l__set, 2},
+    {"_plant_FF16_Strategy__k_b__get", (DL_FUNC) &_plant_FF16_Strategy__k_b__get, 1},
+    {"_plant_FF16_Strategy__k_b__set", (DL_FUNC) &_plant_FF16_Strategy__k_b__set, 2},
+    {"_plant_FF16_Strategy__k_s__get", (DL_FUNC) &_plant_FF16_Strategy__k_s__get, 1},
+    {"_plant_FF16_Strategy__k_s__set", (DL_FUNC) &_plant_FF16_Strategy__k_s__set, 2},
+    {"_plant_FF16_Strategy__k_r__get", (DL_FUNC) &_plant_FF16_Strategy__k_r__get, 1},
+    {"_plant_FF16_Strategy__k_r__set", (DL_FUNC) &_plant_FF16_Strategy__k_r__set, 2},
+    {"_plant_FF16_Strategy__a_p1__get", (DL_FUNC) &_plant_FF16_Strategy__a_p1__get, 1},
+    {"_plant_FF16_Strategy__a_p1__set", (DL_FUNC) &_plant_FF16_Strategy__a_p1__set, 2},
+    {"_plant_FF16_Strategy__a_p2__get", (DL_FUNC) &_plant_FF16_Strategy__a_p2__get, 1},
+    {"_plant_FF16_Strategy__a_p2__set", (DL_FUNC) &_plant_FF16_Strategy__a_p2__set, 2},
+    {"_plant_FF16_Strategy__a_f3__get", (DL_FUNC) &_plant_FF16_Strategy__a_f3__get, 1},
+    {"_plant_FF16_Strategy__a_f3__set", (DL_FUNC) &_plant_FF16_Strategy__a_f3__set, 2},
+    {"_plant_FF16_Strategy__a_f1__get", (DL_FUNC) &_plant_FF16_Strategy__a_f1__get, 1},
+    {"_plant_FF16_Strategy__a_f1__set", (DL_FUNC) &_plant_FF16_Strategy__a_f1__set, 2},
+    {"_plant_FF16_Strategy__a_f2__get", (DL_FUNC) &_plant_FF16_Strategy__a_f2__get, 1},
+    {"_plant_FF16_Strategy__a_f2__set", (DL_FUNC) &_plant_FF16_Strategy__a_f2__set, 2},
+    {"_plant_FF16_Strategy__S_D__get", (DL_FUNC) &_plant_FF16_Strategy__S_D__get, 1},
+    {"_plant_FF16_Strategy__S_D__set", (DL_FUNC) &_plant_FF16_Strategy__S_D__set, 2},
+    {"_plant_FF16_Strategy__a_d0__get", (DL_FUNC) &_plant_FF16_Strategy__a_d0__get, 1},
+    {"_plant_FF16_Strategy__a_d0__set", (DL_FUNC) &_plant_FF16_Strategy__a_d0__set, 2},
+    {"_plant_FF16_Strategy__d_I__get", (DL_FUNC) &_plant_FF16_Strategy__d_I__get, 1},
+    {"_plant_FF16_Strategy__d_I__set", (DL_FUNC) &_plant_FF16_Strategy__d_I__set, 2},
+    {"_plant_FF16_Strategy__a_dG1__get", (DL_FUNC) &_plant_FF16_Strategy__a_dG1__get, 1},
+    {"_plant_FF16_Strategy__a_dG1__set", (DL_FUNC) &_plant_FF16_Strategy__a_dG1__set, 2},
+    {"_plant_FF16_Strategy__a_dG2__get", (DL_FUNC) &_plant_FF16_Strategy__a_dG2__get, 1},
+    {"_plant_FF16_Strategy__a_dG2__set", (DL_FUNC) &_plant_FF16_Strategy__a_dG2__set, 2},
+    {"_plant_FF16_Strategy__k_I__get", (DL_FUNC) &_plant_FF16_Strategy__k_I__get, 1},
+    {"_plant_FF16_Strategy__k_I__set", (DL_FUNC) &_plant_FF16_Strategy__k_I__set, 2},
+    {"_plant_FF16_Strategy__recruitment_decay__get", (DL_FUNC) &_plant_FF16_Strategy__recruitment_decay__get, 1},
+    {"_plant_FF16_Strategy__recruitment_decay__set", (DL_FUNC) &_plant_FF16_Strategy__recruitment_decay__set, 2},
+    {"_plant_FF16_Strategy__control__get", (DL_FUNC) &_plant_FF16_Strategy__control__get, 1},
+    {"_plant_FF16_Strategy__control__set", (DL_FUNC) &_plant_FF16_Strategy__control__set, 2},
+    {"_plant_FF16_Strategy__collect_all_auxiliary__get", (DL_FUNC) &_plant_FF16_Strategy__collect_all_auxiliary__get, 1},
+    {"_plant_FF16_Strategy__collect_all_auxiliary__set", (DL_FUNC) &_plant_FF16_Strategy__collect_all_auxiliary__set, 2},
+    {"_plant_FF16_Strategy__birth_rate_x__get", (DL_FUNC) &_plant_FF16_Strategy__birth_rate_x__get, 1},
+    {"_plant_FF16_Strategy__birth_rate_x__set", (DL_FUNC) &_plant_FF16_Strategy__birth_rate_x__set, 2},
+    {"_plant_FF16_Strategy__birth_rate_y__get", (DL_FUNC) &_plant_FF16_Strategy__birth_rate_y__get, 1},
+    {"_plant_FF16_Strategy__birth_rate_y__set", (DL_FUNC) &_plant_FF16_Strategy__birth_rate_y__set, 2},
+    {"_plant_FF16_Strategy__is_variable_birth_rate__get", (DL_FUNC) &_plant_FF16_Strategy__is_variable_birth_rate__get, 1},
+    {"_plant_FF16_Strategy__is_variable_birth_rate__set", (DL_FUNC) &_plant_FF16_Strategy__is_variable_birth_rate__set, 2},
     {"_plant_FF16_Environment__ctor", (DL_FUNC) &_plant_FF16_Environment__ctor, 2},
     {"_plant_FF16_Environment__canopy_openness", (DL_FUNC) &_plant_FF16_Environment__canopy_openness, 2},
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
