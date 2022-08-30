@@ -46,7 +46,7 @@ tidy_env <- function(env) {
   # then join all variables by step, and force unnamed vectors 
   # to have variable names using regex magic
   env_long <- env_variables %>%
-    purrr::map(., function(v) map_dfr(env, ~ pluck(., v) %>% 
+    purrr::map(., function(v) purrr::map_dfr(env, ~ purrr::pluck(., v) %>% 
                                         data.frame, .id = "step") %>%
                  dplyr::mutate(dplyr::across(step, as.integer)) %>%
                  dplyr::rename_with(~ gsub("\\.", v, .)))

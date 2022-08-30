@@ -35,8 +35,8 @@ for (x in c("FF16", "K93")) {
     expect_is(results_tidy$species, "tbl")
     expect_is(results_tidy$net_reproduction_ratios, "numeric")
 
-    expect_is(results_tidy$env, "data.frame")
-    expect_is(results_tidy$env, "tbl")
+    expect_is(results_tidy$env, "list")
+    expect_is(results_tidy$env$canopy, "data.frame")
 
     # check values transferred correctly
     expect_equal(results_tidy$time, results$time, info = "time")
