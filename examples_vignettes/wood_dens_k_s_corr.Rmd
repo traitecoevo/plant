@@ -197,10 +197,13 @@ With this known, it is possible to hyperparameterise `plant` such that an increa
 We can run a number of 2-species competition models under different rainfall regimes, with and without the trade-off imposed. 
 
 
+Set base parameters
+
 ```{r}
 p0 <- scm_base_parameters("FF16w")
-p0$max_patch_lifetime <- 40
 ```
+
+Define a number of hyper-parameterisations, including the relationship between K_s and WD
 
 ```{r}
 p_50_2_K_s <- function(p50){
@@ -222,6 +225,8 @@ calc_WD <- function(K_s){
   1000*exp(-0.06260892)*K_s^-0.1571026
 }
 ```
+
+Run the models, setting the max patch lifetime, the p50s, and hyperparametersising K_s, b, psi_ crit and rho (i.e. WD)
 
 ```{r}
 run_FF16w_model <- function(inputs){
@@ -262,14 +267,22 @@ run_FF16w_model <- function(inputs){
 }
 ```
 
+Because I'm also looking to see where the `plant` model is breaking at the momemnt, I can use the `safely` function to run the function in a map or for loop, and where it breaks, I can ensure that it continues running, and saves the error for the defined parameters so that I can go back through and look at them later. 
+
 ```{r}
 poss_run_plant = safely(.f = run_FF16w_model, otherwise = "Error")
 ```
 
+Here, I set some random inputs for rainfall, p50_1, p50_2. I also defined rho as either NA (which will then be defined via hyperparametersiation depedning on p50, or set it at a constant vlaue of 0.6, which is the average value in `austraits`.)
+
 ```{r}
 inputs <- expand_grid(rainfall = runif(10, 0.5, 3), p50_1 = runif(5, 0.1, 10), p50_2 = runif(5, 0.1, 10), rho = c(NA, 0.6), max_patch_lifetime = 50) %>%
   slice(sample(1:n()))
+```
 
+After running the model, the output is saved in a folder. Because the files are named after the selected parameters, R will read the inputs, and if that file already exists it will skip it. That way, I'm safe to just run this input randomiser as many times as I would like without worrying doubling up too much, allowing me to fill parameter space more rapidly. 
+
+```{r}
 for(i in 1:nrow(inputs)){
   dir <- "examples_vignettes/outputs/"
   filename <-paste("rainfall_", round(inputs[i,]$rainfall,2), "p501_", round(inputs[i,]$p50_1, 2), "p502_", round(inputs[i,]$p50_2, 2), "rho_", round(inputs[i,]$rho, 2), "lifetime_", inputs[i,]$max_patch_lifetime, ".RDS", sep="")
@@ -286,6 +299,7 @@ for(i in 1:nrow(inputs)){
 }
 ```
 
+This just prints errors
 
 ```{r}
 results_files <- list.files("examples_vignettes/outputs/")
@@ -300,6 +314,7 @@ for(i in 1:length(results_files)){
 }
 ```
 
+Can start collating results from the saved outputs here for further analysis. 
 
 ```{r}
 results_files <- list.files("examples_vignettes/outputs/")
@@ -312,40 +327,86 @@ extract_function <- function(file){
   resultRDS <- readRDS(path)
   results <- tibble(result = list(resultRDS[[1]]$result), parameters = resultRDS[[2]]) %>%
     mutate(error = ifelse(is.null(resultRDS[[1]]$error$message), "NA", resultRDS[[1]]$error$message))
-}
+  results
+  }
 
 map(results_files, extract_function) %>%
   bind_rows() -> collated_results
 ```
 
 ```{r}
-tidy_function <- function(results){
-  if(is.list(results)){
-    result <- tidy_patch(results)%>% 
-  FF16_expand_state()
-    result <- result$species %>% 
-  integrate_over_size_distribution()
-
-  }
-  else{
-    result <-   "NA"
-  }
-  
-  list(result)
-}
-
-
-collated_results2 %>%
-  filter(!is.character(result)) %>%
-  unnest(result) %>%
-  unnest(parameters) %>% 
-  filter(step == max(step)) %>% 
-  select(step, time, species, offspring_produced_survival_weighted)
+collated_results %>%
+  filter(error != "NA") %>%
+  select(-result) %>%
+  unnest(parameters) %>%
+  ggplot(aes(x = rainfall, y = p50_1)) +
+  geom_text(aes(label = error, colour = p50_2), size = 3) +
+  theme_classic()
 ```
 
+
+
+Remove the ones with errors.
+
 ```{r}
+list_or_not  <- rep(NA, nrow(collated_results))
+for(i in 1:nrow(collated_results)){
+  list_or_not[i] <- is.list(collated_results$result[[i]])
+}
+
+collated_results <- collated_results[list_or_not,]  
+```
+
+Convert outputs from raw run_scm_collect outputs to more accessible versions. 
+
+```{r}
+extract_tidy <- function(result){
+  result %>%
+    tidy_patch() %>%
+    FF16_expand_state() -> result
+  
+    result$species %>%
+    integrate_over_size_distribution()
+}
+
 collated_results %>%
-  filter(!is.character(collated_results$result)) %>%
+  rowwise() %>%
+  mutate(result =list(extract_tidy(result))) -> collated_results2
+```
+
+Have a look at some exmaples of leaf area competition for two species across different rainfall regimes
+
+```{r}
+collated_results2 %>%
+  unnest(result) %>%
+  unnest(parameters) %>% 
+  select(step, time, species, area_leaf, p50_1, p50_2, rainfall, rho) %>% 
+  group_by(p50_1, p50_2, rainfall, rho) %>%
+  mutate(run = cur_group_id()) %>%
+  group_by(step, time, p50_1, p50_2, rainfall, rho) %>%
+  mutate(total_leaf = sum(area_leaf), leaf_frac = area_leaf/total_leaf) %>%
+  ungroup() %>%
+  mutate(species_p50 = if_else(species == 1, p50_1, p50_2)) %>%
+  filter(run %in% sample(unique(run),9)) %>%
+  group_by(rainfall, run) %>%
+  nest() %>%
+  ungroup() %>%
+  distinct(rainfall, .keep_all = TRUE) %>%
+  unnest(data)  %>%
+  
+  ggplot(aes(time, area_leaf, group = species_p50, colour = species_p50)) +
+  geom_line() +
+  facet_wrap(~rainfall, scales = "free")+
+  ylab("Leaf area") +
+  xlab("Time") +
+  labs(colour = "p50")
+
+```
+
+Start graphing some plots up - this one is too messy
+
+```{r}
+collated_results2 %>%
   unnest(result) %>%
   unnest(parameters) %>% 
   filter(step == max(step)) %>% 
@@ -360,13 +421,74 @@ collated_results %>%
   ungroup() %>%
   mutate(rho = if_else(is.na(rho), "coordinated", "0.6")) %>%
   ggplot(aes(x = rainfall, y = leaf_frac)) +
-  geom_point(aes(colour = species_p50, shape = rho)) +
-  geom_line(aes(x = rainfall, y = leaf_frac, group = run, linetype = winner)) +
-  scale_color_continuous(trans = "log")
+  geom_point(aes(colour = species_p50), size=3) +
+  # geom_line(aes(x = rainfall, y = leaf_frac, group = run)) +
+  scale_color_continuous(trans = "log") +
+  geom_text(aes(label=run), nudge_x = 0.05) +
+  facet_wrap(~rho) +
+  ylab("Fraction of leaf area") +
+  xlab("Rainfall") +
+  labs(colour = "p50")
 ```
 
 
+Fig. 1 - under what rainfall regime does the species with the higher p50 "win" (i.e has higher leaf area than its opponent)
 
+```{r}
+collated_results2 %>%
+  unnest(result) %>%
+  unnest(parameters) %>% 
+  filter(step == max(step)) %>% 
+  select(step, time, species, area_leaf, p50_1, p50_2, rainfall, rho) %>% 
+  mutate(species_p50 = if_else(species == 1, p50_1, p50_2)) %>%
+  group_by(step, time, p50_1, p50_2, rainfall, rho) %>% 
+  mutate(run = cur_group_id()) %>%
+  mutate(total_leaf = sum(area_leaf), leaf_frac = area_leaf/total_leaf) %>%
+  ungroup() %>%
+  group_by(run) %>%
+  mutate(rainfall = rainfall + runif(1, min = -0.2, 0.2), 
+         winner = if_else((leaf_frac[1] - leaf_frac[2]) > 0, "species_1", "species_2"),
+         ) %>%
+  ungroup() %>%
+  mutate(higher_p50 = if_else(p50_1 > p50_2, "species_1", "species_2")) %>%
+  mutate(higher_p50_won = if_else(winner == higher_p50, 1, 0)) %>%
+  mutate(rho = if_else(is.na(rho), "coordinated", "0.6")) %>%
+  mutate(p50_diff = abs(p50_1 - p50_2)) %>%
+  ggplot(aes(x = rainfall, y = jitter(higher_p50_won, 0.05))) +
+  geom_point(aes(colour = p50_diff)) +
+  facet_wrap(~rho) +
+  ylab("Higher p50 won") +
+  xlab("Rainfall")
+```
+
+Fig. 2 - How does the fraction of leaf area of the species with higher p50 change with rainfall regime (expectation is that it declines as rainfall increases.)
+
+```{r}
+collated_results2 %>%
+  unnest(result) %>%
+  unnest(parameters) %>% 
+  filter(step == max(step)) %>% 
+  select(step, time, species, area_leaf, p50_1, p50_2, rainfall, rho) %>% 
+  mutate(species_p50 = if_else(species == 1, p50_1, p50_2)) %>%
+  group_by(step, time, p50_1, p50_2, rainfall, rho) %>% 
+  mutate(run = cur_group_id()) %>%
+  mutate(total_leaf = sum(area_leaf), leaf_frac = area_leaf/total_leaf) %>%
+  ungroup() %>%
+  group_by(run) %>%
+  mutate(rainfall = rainfall + runif(1, min = -0.2, 0.2), 
+         winner = if_else((leaf_frac[1] - leaf_frac[2]) > 0, "species_1", "species_2"),
+         ) %>%
+  ungroup() %>%
+  mutate(higher_p50 = if_else(p50_1 > p50_2, 1, 2)) %>%
+  filter(higher_p50 == species) %>%
+  mutate(rho = if_else(is.na(rho), "coordinated", "0.6")) %>%
+  mutate(p50_diff = abs(p50_1 - p50_2)) %>%
+  ggplot(aes(x = rainfall, y = leaf_frac)) +
+  geom_point(aes(colour = p50_diff)) +
+  facet_wrap(~rho) +
+  ylab("Fraction leaf area - highest p50") +
+  xlab("Rainfall")
+```
 
 
 ```{r}
