@@ -305,9 +305,9 @@ y_0 <- l$calc_profit_Sperry_one_line(PPFD = 266.838, psi_soil = 2.31554, psi_ste
 l <- Leaf(vcmax = 100, p_50 = p50_2, c = 2.04, b = p1$strategies[[2]]$b, psi_crit = p1$strategies[[2]]$psi_crit , beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 0.6297342)
 y_1 <- l$calc_profit_Sperry_one_line(PPFD = 266.838, psi_soil = 2.31554, psi_stem = psi_stem_initial - diff_value, k_l_max = 0.000324148)
 
-l <- Leaf(vcmax = 100, p_50 = p50_2, c = 2.04, b = p1$strategies[[2]]$b, psi_crit = p1$strategies[[2]]$psi_crit, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 0.6297342)
+l <- Leaf(vcmax = 100, p_50 = p50_2, c = 2.04, b = p1$strategies[[2]]$b, psi_crit = p1$strategies[[2]]$psi_crit, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 0.6297342, epsilon_leaf =  0.0001)
 y_2 <- l$calc_profit_Sperry_one_line(PPFD = 266.838, psi_soil = 2.31554, psi_stem = psi_stem_initial + diff_value, k_l_max = 0.000324148)
-
+l$set_physiology(900,0,0.00052)
 first_dev = (y_2 - y_1)/(2*diff_value)
 sec_dev = (y_2 - 2*y_0 + y_1)/(diff_value^2)
 

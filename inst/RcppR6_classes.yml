@@ -1039,7 +1039,7 @@ FF16_Environment:
     args:
       - canopy_rescale_usually: bool
       - soil_number_of_depths: int
-      - PPFD_: double
+      # - PPFD_: double
     roxygen: |
       FF16_Environment object
       @export
