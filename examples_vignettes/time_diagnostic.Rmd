@@ -1,0 +1,98 @@
+---
+title: "time_diagnostics"
+author: "Isaac Towers"
+date: "20/07/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+devtools::load_all(".")
+```
+
+
+```{r}
+l <- Leaf(vcmax = 100, p_50 = 1.731347, c = 2.04, b = 2.072101, psi_crit = 3.548059, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 2)
+```
+
+```{r}
+calc_k_l_max <- function(K_s, h_v, h){
+  K_s * h_v / h
+}
+```
+
+```{r}
+K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+h_v = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
+h = 5 #height/path length (m)
+eta <- 12.0
+eta_c <- 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta)
+  
+
+k_l_max = calc_k_l_max(K_s, h_v, h*eta_c)
+
+PPFD = 900 #umol m^-2 s^-1
+psi_soil = 0 #-MPa
+```
+
+
+```{r}
+l <- Leaf(vcmax = 100, p_50 = 1.731347, c = 2.04, b = 2.072101, psi_crit = 3.548059, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 2)
+time1<- system.time(l$optimise_psi_stem_Sperry_Newton_recall(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max))
+
+l <- Leaf(vcmax = 100, p_50 = 1.731347, c = 2.04, b = 2.072101, psi_crit = 3.548059, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 2)
+time2<-system.time(l$optimise_psi_stem_Sperry_Newton(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max))
+
+l <- Leaf(vcmax = 100, p_50 = 1.731347, c = 2.04, b = 2.072101, psi_crit = 3.548059, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 2)
+time3<-system.time(l$optimise_psi_stem_Sperry(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max))
+
+```
+
+```{r}
+l <- Leaf(vcmax = 100, p_50 = 1.731347, c = 2.04, b = 2.072101, psi_crit = 3.548059, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 2)
+
+system.time(time1 <- tibble(PPFD = seq(900, 0, -5), k_l_max = k_l_max, psi_soil = 0) %>%
+  rowwise() %>%
+  mutate(time = sum(system.time(l$optimise_psi_stem_Sperry_Newton_recall(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max)), na.rm = T)))
+
+system.time(time2 <- tibble(PPFD = seq(900, 0, -5), k_l_max = k_l_max, psi_soil = 0) %>%
+  rowwise() %>%
+  mutate(time = sum(system.time(l$optimise_psi_stem_Sperry_Newton(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max)), na.rm = T)))
+
+system.time(time3 <- tibble(PPFD = seq(900, 0, -5), k_l_max = k_l_max, psi_soil = 0) %>%
+  rowwise() %>%
+  mutate(time = sum(system.time(l$optimise_psi_stem_Sperry(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max)), na.rm = T)))
+
+l <- Leaf(vcmax = 100, p_50 = 1.731347, c = 2.04, b = 2.072101, psi_crit = 3.548059, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 2)
+
+system.time(time4 <- tibble(PPFD = seq(900, 0, -5), k_l_max = k_l_max, psi_soil = 0) %>%
+  rowwise() %>%
+  mutate(time = sum(system.time(l$optimise_ci_Sperry_Newton_recall(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max)), na.rm = T)))
+
+system.time(time5 <- tibble(PPFD = seq(900, 0, -5), k_l_max = k_l_max, psi_soil = 0) %>%
+  rowwise() %>%
+  mutate(time = sum(system.time(l$optimise_ci_Sperry_Newton(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max)), na.rm = T)))
+
+system.time(time6 <- tibble(PPFD = seq(900, 0, -5), k_l_max = k_l_max, psi_soil = 0) %>%
+  rowwise() %>%
+  mutate(time = sum(system.time(l$optimise_ci_Sperry(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max)), na.rm = T)))
+```
+
+```{r}
+system.time(time7 <- tibble(PPFD = seq(900, 0, -5), k_l_max = k_l_max, psi_soil = 0) %>%
+  rowwise() %>%
+  mutate(time = sum(system.time(l$optimise_psi_stem_Sperry_Newton_recall_one_line(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max)), na.rm = T)))
+```
+
+
+```{r}
+tibble(c_i = seq(30,39.8, length.out = 50)) %>%
+  rowwise() %>%
+  mutate(profit = l$calc_profit_Sperry_ci(5, 0, c_i,k_l_max)) %>%
+  ggplot(aes(x = c_i, y = profit)) +
+  geom_line()
+```
+

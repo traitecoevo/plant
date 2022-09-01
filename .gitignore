@@ -27,3 +27,4 @@ examples_vignettes/outputs
 examples_vignettes/data
 katana_results/
 katana/
+examples_vignettes/*.png

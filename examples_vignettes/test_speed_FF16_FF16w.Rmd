@@ -1,0 +1,97 @@
+---
+title: "test_speed_FF16_FF16w"
+author: "Isaac Towers"
+date: "2022-08-05"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+devtools::load_all(".")
+```
+
+
+```{r}
+p0 <- scm_base_parameters("FF16w")
+traits =  trait_matrix(c(0.001), c("epsilon_leaf"))
+p0$max_patch_lifetime <- 0.1
+
+p1 <- expand_parameters(traits, p0, mutant=FALSE, birth_rate_list = c(1))
+env <- make_environment("FF16w", soil_initial_state = rep(0.5, 1), rainfall = 1)
+
+# ctrl = scm_base_control()
+# ctrl$schedule_eps <- 0.1
+
+# 123.90 s
+system.time(result <- build_schedule(p1, env))
+
+# 50.51 s
+system.time(result_scm <- run_scm_collect(result, env))
+```
+
+
+```{r}
+p0 <- scm_base_parameters("FF16w")
+traits =  trait_matrix(c(0.0001), c("epsilon_leaf"))
+p0$max_patch_lifetime <- 5
+
+p1 <- expand_parameters(traits, p0, mutant=FALSE, birth_rate_list = c(1))
+env <- make_environment("FF16w", soil_initial_state = rep(0.5, 1), rainfall = 1)
+
+ctrl = scm_base_control()
+# ctrl$schedule_eps <- 0.1
+
+# 6.23s
+system.time(result2 <- build_schedule(p1, env))
+
+# 3.16s
+system.time(result_scm2 <- run_scm_collect(p1, env))
+```
+
+```{r}
+
+l <- Leaf(vcmax = 100, p_50 = 1, c = 2.04, b =  1.196814, psi_crit = 2.049305, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 3, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = 139.412, psi_soil = 0.224773, k_l_max =0.00117535)
+
+
+ ci_initial = 36.2075;
+  diff_value = 0.0001
+  # max_ci = l$find_max_ci()
+  
+  y_0 = NA
+  first_dev = NA
+  sec_dev = NA
+  thrd_dev = NA
+  x_diff_Newton = NA
+  x_diff_Halley = NA
+  
+  l$calc_assim_gross_one_line(psi_crit)
+  ci_initial = x_diff_Newton
+  y_0 = l$calc_profit_Sperry_ci_one_line(ci_initial)
+  
+  x_neg_1 = ci_initial - 1*diff_value;
+  x_pos_1 = ci_initial + 1*diff_value;
+
+  y_0 = l$calc_profit_Sperry_ci_one_line(ci_initial);
+  y_neg_1 = l$calc_profit_Sperry_ci_one_line(x_neg_1);
+  y_pos_1 = l$calc_profit_Sperry_ci_one_line(x_pos_1);
+
+  
+  first_dev = (y_pos_1 - y_neg_1)/(2*diff_value);
+
+  sec_dev = (y_neg_1 - 2*y_0 + y_pos_1)/(diff_value^2);
+  
+
+  x_diff_Newton = ci_initial - first_dev/sec_dev
+
+y_0 <- l$calc_profit_Sperry_one_line(PPFD = 266.93, psi_soil = 2.31371, psi_stem = psi_stem_initial, k_l_max = 0.000324148)
+36.2075
+
+```
+
+
