@@ -19,8 +19,6 @@ knitr::opts_chunk$set(echo = TRUE)
 # installation
 
 ```{r load libraries}
-devtools::load_all()
-
 library(plant)
 library(dplyr)
 library(tidyr)

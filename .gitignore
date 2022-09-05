@@ -1,5 +1,6 @@
 inst/website
-inst/docs
+inst/docs/*.md
+inst/docs/figure
 vignettes/figure/*
 *Rproj*
 *.Rhistory*
@@ -16,7 +17,7 @@ tmp*
 .idea
 scrap.R
 .RData
-
+*.html
 inst/doc
 doc
 Meta
