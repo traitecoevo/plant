@@ -1,0 +1,365 @@
+---
+title: Report on FF16 stand
+output:
+  html_document:
+    df_print: kable
+    highlight: tango
+    keep_md: no
+    smart: no
+    theme: yeti
+    code_folding: hide
+    toc: yes
+    toc_depth: 3
+    toc_float:
+      collapsed: false
+      smooth_scroll: true
+params:
+    results: provide
+editor_options:
+  chunk_output_type: console
+---
+
+<!-- hack to get indentation on 3rd level of floating TOC; see
+https://stackoverflow.com/questions/46201753/rmarkdown-indentation-of-toc-items-in-html-output
+ -->
+
+<script>
+$(document).ready(function() {
+  $items = $('div#TOC li');
+  $items.each(function(idx) {
+    num_ul = $(this).parentsUntil('#TOC').length;
+    $(this).css({'text-indent': num_ul * 10, 'padding-left': 0});
+  });
+
+});
+</script>
+
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE, results="hide"}
+# knitr defaults
+knitr::opts_chunk$set(echo=TRUE, cache=FALSE, message=FALSE, warning=FALSE)
+
+options(
+  # default for table format  
+  knitr.table.format = "html", 
+  # remove warnings from dplyr about "summarise"
+  dplyr.summarise.inform = FALSE,
+  readr.show_col_types = FALSE
+  )
+
+library(ggplot2)
+library(dplyr)
+library(purrr)
+library(tidyr)
+library(gt)
+library(readr)
+
+theme_set(theme_classic())
+```
+
+```{r, echo = FALSE, eval=FALSE}
+
+p0 <- scm_base_parameters("FF16", "FF16_Env")
+
+# change some pars
+p0$strategy_default$recruitment_decay <- 5
+p0$strategy_default$a_dG2 <- 30
+
+traits <- trait_matrix(c(0.07), c("lma"))
+
+hyperpar <- make_FF16_hyperpar(B_dI1=0)
+
+p1 <- expand_parameters(traits, p0, hyperpar = hyperpar, mutant = FALSE)
+results <- build_schedule(p1)
+results <- run_scm_collect(results)
+
+```
+
+
+# Inputs
+
+## Site properties
+
+The site was simulated with following properties
+
+- Latitude: input to hyper par function, not accessible in output
+- Productivity: input to hyper par function, not accessible in output
+- Solar inputs  / cycles
+
+### Disturbance regimes
+
+### Species parameters
+
+```{r}
+
+extract_strategy <- function(strat) {
+  ex <- c("control" , "collect_all_auxiliary",   "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
+
+  x <- strat[!(names(strat) %in% ex)]
+  
+  tibble(parameter = names(x), value = unlist(x))
+}
+
+pars <-  
+  purrr::map_df(p1$strategies, extract_strategy, .id = "species") %>% 
+  mutate(species = paste("sp", species)) %>%
+  pivot_wider(values_from = value, names_from = species)
+
+pars_def <- 
+ system.file("docs/FF16", "FF16-params-core.csv", package = "plant") %>% read_csv() %>%
+  rename("parameter" = "Code")
+
+names(pars_def) <- tolower(names(pars_def))
+
+pars_def %>% 
+  left_join(by = "parameter", 
+    extract_strategy(p1$strategy_default) %>% rename(default = "value")
+  ) %>% left_join(by = "parameter", pars) %>% 
+  mutate(
+    across(starts_with("sp "), ~ifelse(.x==default, "", format(.x, scientific = TRUE))),
+    default = format(default, scientific = TRUE)
+  ) %>%
+  select(description, parameter, everything()) %>% select(-symbol) %>% 
+  knitr::kable(
+    align = "l",
+    caption = "Variable names and definitions in the demographic model of the `plant` package."
+  )
+  # gt::gt()  %>% 
+  # gt::fmt_scientific(columns = c("default", starts_with("sp ")))
+
+
+```
+
+
+Traits
+
+- Comparisons to data
+- Traits vs known vals
+- Known distributions
+
+Birth rates
+
+
+# Potential vital rates
+
+Species potentials
+
+- Max height
+- Growth rates
+- Mortality rates
+
+# Stand dynamics - size structured 
+
+For the plots below we're going to use the tidy outputs format of the results.
+
+```{r}
+results_tidy_expand <- 
+  results %>% 
+  tidy_patch() %>% 
+  FF16_expand_state()
+
+data_species <-
+  results_tidy_expand$species
+
+data_species_tot <-
+  data_species %>%
+  integrate_over_size_distribution()
+
+#results_tidy
+```
+
+## Size distributions
+
+SIZE - DENSITY
+
+```{r}
+results_tidy_expand$species %>%
+  drop_na() %>%
+  plot_size_distribution()
+```
+
+- Height 
+- relative scale?
+- Interpreting density
+
+## Growth rates
+
+Total
+Size dependent
+Growth vs independent?
+
+
+## Mortality
+
+Total
+Size dependent
+Growth vs independent?
+
+# Stand dynamics - aggregate outputs
+
+## Leaf area
+
+The following plot shows the cumulative leaf area for each species in the stand.
+
+```{r}
+data_species_tot %>%
+  ggplot(aes(time, area_leaf, colour = species, fill=species)) +
+  geom_line() + 
+  xlab("Patch age (yr") +
+     ylab("Leaf area index (m2/m2)")
+```
+
+The following plot shows the amount of leaf area contributed by plants of different height in the stand.
+
+```{r}
+library(ggridges)
+
+select_closest <- function(x, targets) {
+  f <- function(target, x) {
+    dist <- abs(x - target)
+    x[which(dist == min(dist))]
+  }
+
+  x <- unique(x)
+
+  targets %>%
+    purrr:::map_dbl(f, x)
+}
+
+target_ages <- c(0.1, seq(1,5), seq(10, 50, by =5), seq(70, data_species$time %>% max(), by=20))
+
+data_species %>% 
+filter(time %in% select_closest(time, target_ages)) %>%
+ggplot(aes(x = height, height = density * area_leaf, y = time, group = time, fill=species)) +
+  geom_density_ridges(stat = "identity", scale = 2) +
+  #scale_y_continuous(expand = c(0, 0)) + 
+  #scale_x_continuous(expand = c(0, 0)) + # remove unneeded padding
+#  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  labs( 
+    title = "Leaf area contributed by individual height",
+    y = "Patch age (yr)",
+    x = "Individual height (m)") +
+  theme_ridges() + 
+  coord_flip()
+
+```
+
+```{r}
+trapezium_segments <- function(x, y) c(0, diff(x) * 0.5 * (y[-length(y)] + y[-1]))
+
+cumulative_trapezium <- function(x,y) {
+  cumsum(trapezium_segments(x,y))
+}
+
+rev_cumulative_trapezium <- function(x,y) {
+  rev(cumsum(trapezium_segments(rev(x), rev(y))))
+}
+
+d2 <- 
+  data_species %>%
+  stats::na.omit() %>%
+  filter(time %in% select_closest(time, target_ages)) %>% 
+  group_by(time, species) %>%
+  mutate(
+    total_leaf_area = 
+    rev_cumulative_trapezium(height, density * area_leaf)
+  ) %>% ungroup()
+
+d2_max <- d2 %>%
+    group_by(time, species) %>%
+    filter(height == max(height))
+
+d2 %>%
+  ggplot(aes(x = height, y=time, height = total_leaf_area, group = time, col = species)) +  
+   geom_density_ridges(stat = "identity", scale = 2) +   
+   labs(
+     title = "Cumulutive leaf area by individual height",
+     y = "Patch age (yr)",
+     x = "Individual height (m)"
+   ) +
+   theme_ridges() +
+   coord_flip()
+
+d2 %>%
+  ggplot(aes(y = height, x = total_leaf_area, label = round(time), group = time, col = time)) +
+  geom_line() +
+  geom_text(data = d2_max, nudge_x = 0.1) +
+  labs(
+    title = "Cumulutive leaf area by individual height",
+    x = "Total leaf area (m2/m2)",
+    y = "Individual height (m)"
+  ) + facet_wrap(~species)
+```
+
+## Basal area 
+
+
+```{r}
+data_species_tot %>%
+  ggplot(aes(time, area_stem, colour = species)) +
+  geom_line() + 
+  xlab("Patch age (yr") +
+  ylab("Total basal area (m2/m2)")
+```
+
+## Seed output 
+
+Over time
+Summary value
+
+
+## BIOMASS
+Tissues 
+
+```{r}
+v <- c("mass_heartwood", "mass_sapwood", "mass_bark", "mass_leaf")
+
+data_long <-
+  data_species_tot %>%
+  select(time, species, one_of(v)) %>%
+  pivot_longer(cols = starts_with("mass"), names_to = "tissue")
+
+data_long$tissue <- factor(data_long$tissue, levels = v)
+
+species_names <- tibble(
+  species = unique(data_long$species),
+  species_name = paste("Species", species)
+)
+
+data_long %>%
+  left_join(by = "species", species_names) %>%
+  ggplot(aes(time, value, fill = tissue)) +
+  geom_area() +
+  labs(x = "Patch age (yr)", y = "Above ground mass (kg/m2)") +
+  theme_classic() +
+  xlim(c(0, 100)) +
+  facet_wrap(~species_name)
+```
+
+## Carbon budgets 
+
+### NPP
+
+### Turnover
+
+
+## Environment
+
+Light availability
+
+Water availability (1+ layers)
+
+Competitive effect (shading)
+
+
+## LEAF
+
+Photosynthesis
+
+## WATER
+
+For water model
+- Leaf level behaviour: ci, psitem, ps, A
+- Transpiration
+
+
