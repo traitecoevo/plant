@@ -51,31 +51,44 @@ library(ggplot2)
 library(dplyr)
 library(purrr)
 library(tidyr)
-library(gt)
 library(readr)
+library(ggridges)
 
 theme_set(theme_classic())
+
+select_closest <- function(x, targets) {
+  f <- function(target, x) {
+    dist <- abs(x - target)
+    x[which(dist == min(dist))]
+  }
+
+  x <- unique(x)
+
+  targets %>%
+    purrr:::map_dbl(f, x)
+}
+
 ```
 
 ```{r, echo = FALSE, eval=FALSE}
 
+# this is not run by default, just some code to generate som example data, if needed 
 p0 <- scm_base_parameters("FF16", "FF16_Env")
-
-# change some pars
 p0$strategy_default$recruitment_decay <- 5
 p0$strategy_default$a_dG2 <- 30
 
-traits <- trait_matrix(c(0.07), c("lma"))
+hyperpar <- make_FF16_hyperpar(B_dI1 = 0)
 
-hyperpar <- make_FF16_hyperpar(B_dI1=0)
-
+traits <- trait_matrix(c(0.2), c("lma"))
 p1 <- expand_parameters(traits, p0, hyperpar = hyperpar, mutant = FALSE)
 results <- build_schedule(p1)
 results <- run_scm_collect(results)
 
+
 ```
 
-
+This report
+ 
 # Inputs
 
 ## Site properties
@@ -86,11 +99,15 @@ The site was simulated with following properties
 - Productivity: input to hyper par function, not accessible in output
 - Solar inputs  / cycles
 
-### Disturbance regimes
+## Species 
 
-### Species parameters
+The simulation was run with XX species.
 
+### Parameters
+
+The following parameters were included in the model
 ```{r}
+p <- results$p
 
 extract_strategy <- function(strat) {
   ex <- c("control" , "collect_all_auxiliary",   "birth_rate_x", "birth_rate_y", "is_variable_birth_rate")
@@ -101,8 +118,12 @@ extract_strategy <- function(strat) {
 }
 
 pars <-  
-  purrr::map_df(p1$strategies, extract_strategy, .id = "species") %>% 
+  purrr::map_df(p$strategies, extract_strategy, .id = "species") %>% 
   mutate(species = paste("sp", species)) %>%
+  bind_rows(
+    extract_strategy(p1$strategy_default) %>% mutate(species = "default")
+  ) %>% 
+  mutate(value = format(value, scientific = TRUE, drop0trailing = TRUE)) %>%
   pivot_wider(values_from = value, names_from = species)
 
 pars_def <- 
@@ -112,41 +133,48 @@ pars_def <-
 names(pars_def) <- tolower(names(pars_def))
 
 pars_def %>% 
-  left_join(by = "parameter", 
-    extract_strategy(p1$strategy_default) %>% rename(default = "value")
-  ) %>% left_join(by = "parameter", pars) %>% 
-  mutate(
-    across(starts_with("sp "), ~ifelse(.x==default, "", format(.x, scientific = TRUE))),
-    default = format(default, scientific = TRUE)
-  ) %>%
+  left_join(by = "parameter", pars) %>% 
   select(description, parameter, everything()) %>% select(-symbol) %>% 
   knitr::kable(
     align = "l",
     caption = "Variable names and definitions in the demographic model of the `plant` package."
   )
-  # gt::gt()  %>% 
-  # gt::fmt_scientific(columns = c("default", starts_with("sp ")))
-
-
 ```
-
 
 Traits
 
-- Comparisons to data
-- Traits vs known vals
-- Known distributions
+- Comparisons to data (Austraits)
+- Along tradeoff curves(requires data from hyperpar?)
 
-Birth rates
+### Birth rates
 
+### Leaf photosynthesis
 
-# Potential vital rates
+Species had the following potential leaf photosynthetic rates, calculated by integrating instantaneous photosynthesis across the solar path trhoughout the year.
 
-Species potentials
+```{r}
+E <- seq(0,1, by=0.01)
 
-- Max height
-- Growth rates
-- Mortality rates
+leaf_rates <- 
+  p$strategies %>% purrr::map_df(~tibble(E, A = .x$a_p1 * E / (E+ .x$a_p2)),.id = "species") %>% 
+mutate(
+  species = paste("sp", species)
+  ) 
+  
+leaf_rates %>% 
+ggplot(aes(E, A, group = species, col= species)) + 
+geom_line() +
+labs(
+  title = "Annual leaf photosynthesis",
+  x = "Canopy openness (0-1)",
+  y = "Photosynthesis (mol/m2/yr)"
+)
+
+```
+
+# Individual trajectoires
+
+Compare to BAAD (Becca)
 
 # Stand dynamics - size structured 
 
@@ -159,13 +187,26 @@ results_tidy_expand <-
   FF16_expand_state()
 
 data_species <-
-  results_tidy_expand$species
+  results_tidy_expand$species %>%
+  drop_na()
 
 data_species_tot <-
   data_species %>%
   integrate_over_size_distribution()
 
-#results_tidy
+canopy <-
+  results_tidy_expand$env$canopy %>%
+  group_by(step) %>% 
+  mutate(
+    # LAI at height
+    LAI_above = -log(canopy_openness)/0.5,
+    # Cumulative LAI from the rgound up
+    LAI_below = max(LAI_above) - LAI_above
+  ) %>% ungroup()
+
+
+target_ages <- c(0.1, seq(1, 5), seq(10, 50, by = 5), seq(70, results_tidy_expand$species$time %>% max(), by = 20))
+
 ```
 
 ## Size distributions
@@ -173,8 +214,7 @@ data_species_tot <-
 SIZE - DENSITY
 
 ```{r}
-results_tidy_expand$species %>%
-  drop_na() %>%
+data_species %>%
   plot_size_distribution()
 ```
 
@@ -189,11 +229,91 @@ Size dependent
 Growth vs independent?
 
 
+```{r}
+
+get_dt <- function(y,x) {
+  c(diff(y)/diff(x), NA)
+}
+
+vars <- c("height", "diameter_stem", "mass_above_ground")
+
+growth_rates <-
+  data_species %>% 
+  select(time, species, node, height, mortality, fecundity, any_of(vars)) %>%
+  group_by(species, node) %>%
+  mutate(
+    dt = c(diff(time), NA),
+    across(c("height", "mortality", "fecundity", any_of(vars)), ~ c(diff(.x), NA) / dt, .names = "{.col}_dt")
+  ) %>% 
+  ungroup() %>%
+  filter(time %in% select_closest(time, target_ages)) %>% 
+  mutate(
+    species = paste("sp", species),
+    time = round(time)) %>%
+  select(-dt) %>%
+  select(time, species, height, ends_with("dt"))
+  
+growth_rates_max <- 
+  growth_rates %>%
+  group_by(time, species) %>%
+  slice(1) %>%
+  ungroup() %>%
+  pivot_longer(ends_with("dt"))
+
+growth_rates %>% 
+  select(-mortality_dt, -fecundity_dt) %>%
+  pivot_longer(ends_with("dt")) %>%
+  ggplot(aes(x = height, y = value, label = time, group = time, col = time)) +
+  geom_line() +
+  geom_text(data = growth_rates_max %>% filter(!name %in% c("mortality_dt", "fecundity_dt")), nudge_x = 0.5) +
+  facet_grid(vars(name), vars(species), scales="free") +
+  labs(
+    title = "Growth rates vs size",
+    x = "Individual height (m)",
+    y = "Growth rate (unit / yr)"
+  ) 
+```
 ## Mortality
 
-Total
-Size dependent
-Growth vs independent?
+```{r}
+
+growth_rates %>%
+  select(species, height, time, mortality_dt) %>%
+  pivot_longer(ends_with("dt")) %>%
+  ggplot(aes(x = height, y = value, label = time, group = time, col = time)) +
+  geom_line() +
+  geom_text(data = growth_rates_max %>% filter(name %in% c("mortality_dt")), nudge_x = 0.5) +
+  facet_grid(cols= vars(species), scales = "free") +
+  labs(
+    title = "Mortality rates vs size",
+    x = "Individual height (m)",
+    y = "Mortality rate ( / yr)"
+  )
+```
+
+Todo:
+
+- Growth vs independent?
+
+## Fecundity
+
+
+```{r}
+
+growth_rates %>%
+  select(species, height, time, fecundity_dt) %>%
+  pivot_longer(ends_with("dt")) %>%
+  ggplot(aes(x = height, y = value, label = time, group = time, col = time)) +
+  geom_line() +
+  geom_text(data = growth_rates_max %>% filter(name %in% c("fecundity_dt")), nudge_x = 0.5) +
+  facet_grid(cols=vars(species), scales = "free") +
+  labs(
+    title = "Fecundity rates vs size",
+    x = "Individual height (m)",
+    y = "Fedcundity rate ( / yr)"
+  )
+```
+
 
 # Stand dynamics - aggregate outputs
 
@@ -212,34 +332,20 @@ data_species_tot %>%
 The following plot shows the amount of leaf area contributed by plants of different height in the stand.
 
 ```{r}
-library(ggridges)
 
-select_closest <- function(x, targets) {
-  f <- function(target, x) {
-    dist <- abs(x - target)
-    x[which(dist == min(dist))]
-  }
-
-  x <- unique(x)
-
-  targets %>%
-    purrr:::map_dbl(f, x)
-}
-
-target_ages <- c(0.1, seq(1,5), seq(10, 50, by =5), seq(70, data_species$time %>% max(), by=20))
-
-data_species %>% 
-filter(time %in% select_closest(time, target_ages)) %>%
-ggplot(aes(x = height, height = density * area_leaf, y = time, group = time, fill=species)) +
+data_species %>%
+  filter(time %in% select_closest(time, target_ages)) %>%
+  ggplot(aes(x = height, height = density * area_leaf, y = time, group = time, fill = species)) +
   geom_density_ridges(stat = "identity", scale = 2) +
-  #scale_y_continuous(expand = c(0, 0)) + 
-  #scale_x_continuous(expand = c(0, 0)) + # remove unneeded padding
-#  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
-  labs( 
+  # scale_y_continuous(expand = c(0, 0)) +
+  # scale_x_continuous(expand = c(0, 0)) + # remove unneeded padding
+  #  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+  labs(
     title = "Leaf area contributed by individual height",
     y = "Patch age (yr)",
-    x = "Individual height (m)") +
-  theme_ridges() + 
+    x = "Individual height (m)"
+  ) +
+  theme_ridges() +
   coord_flip()
 
 ```
@@ -259,18 +365,26 @@ d2 <-
   data_species %>%
   stats::na.omit() %>%
   filter(time %in% select_closest(time, target_ages)) %>% 
+  mutate(species = paste("sp ", species)) %>%
   group_by(time, species) %>%
   mutate(
-    total_leaf_area = 
+    LAI_below = 
     rev_cumulative_trapezium(height, density * area_leaf)
   ) %>% ungroup()
+  
+d2_com <- d2 %>%
+  bind_rows(
+    canopy %>% mutate(species="canopy") %>%
+      filter(time %in% select_closest(time, target_ages))
+   )
 
-d2_max <- d2 %>%
+d2_max <- d2_com %>%
     group_by(time, species) %>%
-    filter(height == max(height))
+    filter(height == max(height)) %>%
+    ungroup()
 
 d2 %>%
-  ggplot(aes(x = height, y=time, height = total_leaf_area, group = time, col = species)) +  
+  ggplot(aes(x = height, y=time, height = LAI_below, group = time, col = species)) +  
    geom_density_ridges(stat = "identity", scale = 2) +   
    labs(
      title = "Cumulutive leaf area by individual height",
@@ -280,15 +394,16 @@ d2 %>%
    theme_ridges() +
    coord_flip()
 
-d2 %>%
-  ggplot(aes(y = height, x = total_leaf_area, label = round(time), group = time, col = time)) +
+d2_com %>%
+  ggplot(aes(y = height, x = LAI_below, label = round(time), group = time, col = time)) +
   geom_line() +
   geom_text(data = d2_max, nudge_x = 0.1) +
   labs(
-    title = "Cumulutive leaf area by individual height",
-    x = "Total leaf area (m2/m2)",
+    title = "Cumulutive leaf area from ground, total (left) and by individual (right)",
+    x = "Total leaf area from ground (m2/m2)",
     y = "Individual height (m)"
   ) + facet_wrap(~species)
+
 ```
 
 ## Basal area 
@@ -301,12 +416,6 @@ data_species_tot %>%
   xlab("Patch age (yr") +
   ylab("Total basal area (m2/m2)")
 ```
-
-## Seed output 
-
-Over time
-Summary value
-
 
 ## BIOMASS
 Tissues 
@@ -345,21 +454,30 @@ data_long %>%
 
 ## Environment
 
-Light availability
+### Light availability
 
-Water availability (1+ layers)
+```{r}
 
-Competitive effect (shading)
+d2 <-
+    canopy %>% mutate(species = "canopy") %>%
+    filter(time %in% select_closest(time, target_ages)) %>% 
+    mutate(time = round(time))
+
+d2_max <- d2 %>%
+  group_by(time, species) %>%
+  slice(n())
+
+d2 %>%
+  ggplot(aes(x = height, y = canopy_openness, label = time, group = time, col = time)) +
+  geom_line() +
+  geom_text(data = d2_max, nudge_y = 0.05) +
+  labs(
+    title = "Canopy openess through time",
+    x = "height from ground (m)",
+    y = "Canopy openness (0-1)"
+  )
+```
 
 
-## LEAF
-
-Photosynthesis
-
-## WATER
-
-For water model
-- Leaf level behaviour: ci, psitem, ps, A
-- Transpiration
 
 
