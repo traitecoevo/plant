@@ -9,10 +9,6 @@ Leaf__initialize_integrator <- function(obj_, integration_rule, integration_tol)
     invisible(.Call('_plant_Leaf__initialize_integrator', PACKAGE = 'plant', obj_, integration_rule, integration_tol))
 }
 
-Leaf__calc_vul_b <- function(obj_) {
-    .Call('_plant_Leaf__calc_vul_b', PACKAGE = 'plant', obj_)
-}
-
 Leaf__calc_cond_vuln <- function(obj_, psi) {
     .Call('_plant_Leaf__calc_cond_vuln', PACKAGE = 'plant', obj_, psi)
 }
@@ -89,10 +85,6 @@ Leaf__calc_psi_stem_ci <- function(obj_, E_ci) {
     .Call('_plant_Leaf__calc_psi_stem_ci', PACKAGE = 'plant', obj_, E_ci)
 }
 
-Leaf__calc_psi_from_E <- function(obj_, E_psi_stem) {
-    .Call('_plant_Leaf__calc_psi_from_E', PACKAGE = 'plant', obj_, E_psi_stem)
-}
-
 Leaf__calc_profit_Sperry_ci <- function(obj_, c_i) {
     .Call('_plant_Leaf__calc_profit_Sperry_ci', PACKAGE = 'plant', obj_, c_i)
 }
@@ -111,14 +103,6 @@ Leaf__optimise_ci_Sperry_Newton <- function(obj_) {
 
 Leaf__optimise_ci_Sperry_Newton_recall <- function(obj_) {
     .Call('_plant_Leaf__optimise_ci_Sperry_Newton_recall', PACKAGE = 'plant', obj_)
-}
-
-Leaf__calc_min_psi <- function(obj_) {
-    .Call('_plant_Leaf__calc_min_psi', PACKAGE = 'plant', obj_)
-}
-
-Leaf__min_psi <- function(obj_, x_ci) {
-    .Call('_plant_Leaf__min_psi', PACKAGE = 'plant', obj_, x_ci)
 }
 
 Leaf__find_max_ci <- function(obj_) {
@@ -171,6 +155,10 @@ Leaf__find_max_ci_one_line <- function(obj_) {
 
 Leaf__optimise_ci_Sperry_Newton_recall_one_line_max <- function(obj_, ci_guess) {
     invisible(.Call('_plant_Leaf__optimise_ci_Sperry_Newton_recall_one_line_max', PACKAGE = 'plant', obj_, ci_guess))
+}
+
+Leaf__optimise_ci_Sperry_one_line <- function(obj_, max_ci) {
+    invisible(.Call('_plant_Leaf__optimise_ci_Sperry_one_line', PACKAGE = 'plant', obj_, max_ci))
 }
 
 Leaf__ci__get <- function(obj_) {

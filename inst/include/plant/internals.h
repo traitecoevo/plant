@@ -26,7 +26,7 @@ public:
       auxs(a_size, 0.0),
       consumption_rates(r_size, NA_REAL)
     {
-    std::cout << "state size = " << state_size << "\n";
+    // std::cout << "state size = " << state_size << "\n";
     }
   size_t state_size;
   size_t aux_size;

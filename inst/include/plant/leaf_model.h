@@ -96,12 +96,6 @@ public:
                                  integration_tol, integration_tol);
   }
   
-
-  double p_50_to_K_s() const;
-
-  // double calc_k_l_max(double K_s, double h_v, double h) const;
-
-  double calc_vul_b() const;
   double calc_cond_vuln(double psi) const;
 
   double calc_E_supply(double psi_stem);
@@ -138,14 +132,12 @@ public:
   double calc_profit_Bartlett_ci(double c_i);
   double calc_assim_gross_ci(double ci);
   double calc_psi_stem_ci(double E_ci);
-  double calc_psi_from_E(double E_psi_stem);
+  // double calc_psi_from_E(double E_psi_stem);
   double calc_profit_Sperry_ci(double c_i);
   double optimise_psi_stem_Sperry_Newton();
   double optimise_psi_stem_Sperry_Newton_recall();
   double optimise_ci_Sperry_Newton();
   double optimise_ci_Sperry_Newton_recall();
-  double calc_min_psi();
-  double min_psi(double x_ci);
   double find_max_ci();
   double calc_j();
   double calc_assim_gross_one_line(double psi_stem);
@@ -158,6 +150,7 @@ public:
   void optimise_psi_stem_Sperry_Newton_recall_one_line_pass();
   double find_max_ci_one_line();
   void optimise_ci_Sperry_Newton_recall_one_line_max(double ci_guess);
+  void optimise_ci_Sperry_one_line(double max_ci);
 };
 } // namespace plant
 #endif

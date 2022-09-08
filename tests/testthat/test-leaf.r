@@ -4,52 +4,105 @@ context("SCM-general")
 
 test_that("Basic functions", {
   
-  l <- Leaf(vcmax = 100, p_50 = 1.731347, c = 2.04, b = 2.072101, psi_crit = 3.548059, beta=15000, beta_2 = 1, huber_value = 0.000157, K_s = 2)
+  #first set physiological parameters
+  
+  vcmax = 100 #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
+  p_50 = 1.731347 #stem water potential at 50% loss of conductivity
+  b = 2.072101 #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
+  c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
+  psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
+  huber_value = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
+  K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+  h = 5 #height or path length (m)
+  
+  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+  
+  #without setting physiology, PPFD_, k_l_max_, and psi_soil_ should all be NA
+  
+  expect_true(is.na(l$PPFD_))
+  expect_true(is.na(l$k_l_max_))
+  expect_true(is.na(l$psi_soil_))
+  expect_true(is.na(l$j_))
+  
+  
+  #now set physiology, PPFD_, k_l_max_, and psi_soil_ should be not NA
+  
+  PPFD = 900
+  k_l_max = calc_k_l_max(K_s, huber_value, h)
+  psi_soil = 2
+  
+  l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max)
+  
+  expect_equal(l$PPFD_, PPFD)
+  expect_equal(l$k_l_max_, k_l_max)
+  expect_equal(l$psi_soil_, psi_soil)
+  expect_equal(l$j_, l$calc_j())
   
   library(tidyverse)
   
-  K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
-  h_v = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
-  h = 5 #height/path length (m)
-  
-  p_50 = 1.731347 #stem water potential at 50% loss of conductivity
-  c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
-  
-  expect_equal(l$calc_vul_b(), calc_vul_b(p_50, c))
-  
   psi <- 1 #nominated value for water potential for testing vulnerability curve equations only (-MPa)
-  b <- 2.072101 #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
-  
-  
-  eta <- 12.0
-  eta_c <- 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta)
-  
-  k_l_max = calc_k_l_max(K_s, h_v, h*eta_c)
-  
   expect_equal(l$calc_cond_vuln(psi), calc_k_l(psi, k_l_max, b, c) / k_l_max, tolerance = 1e-8)
   
-  psi_soil <- 0.5 #nominated value for soil water potential for testing (-MPa)
-  atm_vpd <- 2 #atmopsheric vapour pressure deficit (kPa)
-  psi_stem <- psi_soil+1 #stem water potential [set at above soil water potential for testing] (-MPa)
   
-  #for situations where psi_soil is < than psi_crit
+  #for situations where psi_soil is < than psi_crit and psi_stem is greater than psi_soil
+  psi_stem <- psi_soil+1 #stem water potential (-MPa)
+  expect_true(l$calc_E_supply(psi_stem) > 0)
+  
+  #for situations where psi_soil is < than psi_crit and psi_stem is less than psi_soil
+  psi_stem <- psi_soil-1 #stem water potential (-MPa)
+  expect_true(l$calc_E_supply(psi_stem) < 0)
+  
+  #for situations where psi_soil is < than psi_crit and psi_stem is equal to psi_soil
+  psi_stem <- psi_soil #stem water potential (-MPa)
+  expect_true(l$calc_E_supply(psi_stem) == 0)
+  
+  #for situations where psi_stem exceeds psi_crit + tolerance
+  expect_error(l$calc_E_supply(psi_crit+psi_crit*0.1), "Extrapolation disabled and evaluation point outside of interpolated domain.")
+  
+  #for situations where psi_soil exceeds psi_crit + tolerance
+  
+  psi_soil = psi_crit + psi_crit*0.1
+  l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max)
+  psi_stem = psi_soil 
+  
+  expect_error(l$calc_E_supply(psi_stem), "Extrapolation disabled and evaluation point outside of interpolated domain.")
+  expect_error(l$calc_E_supply(psi_stem + 1), "Extrapolation disabled and evaluation point outside of interpolated domain.")
+  
+  #test that fast E supply calculation is closely approximating full integration
+  psi_soil = 0
+  l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max)
+  psi_stem = psi_soil + 3
+  
+  expect_equal(l$calc_E_supply(psi_stem), l$calc_E_supply_full_integration(psi_stem))
+  
+  #test that conversion between psi and E works properly
+  
+  expect_equal(l$calc_psi_stem_ci(l$calc_E_supply(psi_stem)), psi_stem)
 
-  expect_equal(l$calc_E_supply(k_l_max, psi_soil, psi_stem), calc_E_supply(psi_stem, psi_soil, k_l_max = k_l_max, b=b, c=c)$value, tolerance = 1e-8)
-  expect_equal(l$calc_g_c(psi_soil, psi_stem, k_l_max), calc_g_c(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, c = c, b = b), tolerance = 1e-5)
+  atm_vpd <- 2 #atmopsheric vapour pressure deficit (kPa)
+  
+  expect_equal(l$calc_g_c(psi_stem), calc_g_c(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, c = c, b = b), tolerance = 1e-5)
 
-  vcmax = 100 #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
   c_i = 30 #intra-cellular carbon dioxide parital pressure (Pa)
 
-  expect_equal(l$calc_A_c(c_i), (vcmax * (c_i - gamma_25*umol_per_mol_2_Pa))/(c_i + km_25))
-
-  PPFD <- 900 #Photon flux density (umol m^-2 s^-1)
+  c2 = 13.13652
+  
+  expect_equal(l$calc_A_lim_one_line(c_i), l$calc_j() / 4 * ((c_i - 42.75 * 0.1013) /
+                                                               (c_i + 13.13652)))
+ 
+  #for situations where psi stem is lower than psi soil
+  l$calc_assim_gross_one_line(psi_soil - 1)
+  
+  #for situations where psi stem is same as psi soil
+  l$calc_assim_gross_one_line(psi_soil)
+  
+  #for situations where psi stem is higher than psi soil
+  l$calc_assim_gross_one_line(psi_soil+ 1)
+  
   ca <- 40 #atmospheric carbon dioxide partial pressure
   
-  psi_crit <- calc_psi_crit(b, c) #stem water potential at which conductance is 95%
 
-  expect_equal(l$calc_A_c(c_i), calc_A_c(c_i = c_i, vcmax = vcmax))
-
-  expect_equal(l$calc_A_j(PPFD, c_i), calc_A_j(c_i = c_i, PPFD = PPFD, vcmax = vcmax))
+  expect_equal(l$calc_A_j(c_i), calc_A_j(c_i = c_i, PPFD = PPFD, vcmax = vcmax))
 
   expect_equal(l$calc_A_lim(PPFD, c_i), calc_A_lim(c_i, vcmax, PPFD))
 

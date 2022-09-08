@@ -10,10 +10,6 @@ void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int in
   obj_->initialize_integrator(integration_rule, integration_tol);
 }
 // [[Rcpp::export]]
-double Leaf__calc_vul_b(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->calc_vul_b();
-}
-// [[Rcpp::export]]
 double Leaf__calc_cond_vuln(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {
   return obj_->calc_cond_vuln(psi);
 }
@@ -90,10 +86,6 @@ double Leaf__calc_psi_stem_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double E_
   return obj_->calc_psi_stem_ci(E_ci);
 }
 // [[Rcpp::export]]
-double Leaf__calc_psi_from_E(plant::RcppR6::RcppR6<plant::Leaf> obj_, double E_psi_stem) {
-  return obj_->calc_psi_from_E(E_psi_stem);
-}
-// [[Rcpp::export]]
 double Leaf__calc_profit_Sperry_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double c_i) {
   return obj_->calc_profit_Sperry_ci(c_i);
 }
@@ -112,14 +104,6 @@ double Leaf__optimise_ci_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_) 
 // [[Rcpp::export]]
 double Leaf__optimise_ci_Sperry_Newton_recall(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->optimise_ci_Sperry_Newton_recall();
-}
-// [[Rcpp::export]]
-double Leaf__calc_min_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->calc_min_psi();
-}
-// [[Rcpp::export]]
-double Leaf__min_psi(plant::RcppR6::RcppR6<plant::Leaf> obj_, double x_ci) {
-  return obj_->min_psi(x_ci);
 }
 // [[Rcpp::export]]
 double Leaf__find_max_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
@@ -172,6 +156,10 @@ double Leaf__find_max_ci_one_line(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__optimise_ci_Sperry_Newton_recall_one_line_max(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_guess) {
   obj_->optimise_ci_Sperry_Newton_recall_one_line_max(ci_guess);
+}
+// [[Rcpp::export]]
+void Leaf__optimise_ci_Sperry_one_line(plant::RcppR6::RcppR6<plant::Leaf> obj_, double max_ci) {
+  obj_->optimise_ci_Sperry_one_line(max_ci);
 }
 // [[Rcpp::export]]
 double Leaf__ci__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {

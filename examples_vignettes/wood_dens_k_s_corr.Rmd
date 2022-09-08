@@ -305,7 +305,7 @@ This just prints errors
 ```{r}
 results_files <- list.files("examples_vignettes/outputs/")
 
-for(i in 1:length(results_files)){
+for(i in 2:413){
   dir <- "examples_vignettes/outputs/"
   filename <- list.files("examples_vignettes/outputs/")[i]
   path <- paste(dir, filename, sep="")
@@ -318,7 +318,7 @@ for(i in 1:length(results_files)){
 Can start collating results from the saved outputs here for further analysis. 
 
 ```{r}
-results_files <- list.files("examples_vignettes/outputs/")
+results_files <- list.files("examples_vignettes/outputs/")[2:413]
 
 extract_function <- function(file){
   dir <- "examples_vignettes/outputs/"
@@ -394,8 +394,9 @@ collated_results2 %>%
   nest() %>%
   ungroup() %>%
   distinct(rainfall, .keep_all = TRUE) %>%
-  unnest(data)  %>%
+  unnest(data)  -> data_to_plot
   
+  data_to_plot %>%
   ggplot(aes(time, area_leaf, group = species_p50, colour = species_p50)) +
   geom_line() +
   facet_wrap(~rainfall, scales = "free")+

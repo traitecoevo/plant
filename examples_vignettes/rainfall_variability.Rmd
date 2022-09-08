@@ -1,0 +1,234 @@
+---
+title: "rainfall_variability"
+author: "Isaac Towers"
+date: "2022-09-02"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+devtools::load_all(".")
+```
+
+```{r}
+library(purrr)
+library(tidyverse)
+```
+
+
+Set base parameters
+
+```{r}
+p0 <- scm_base_parameters("FF16w")
+```
+
+Define a number of hyper-parameterisations, including the relationship between K_s and WD
+
+```{r}
+p_50_2_K_s <- function(p50){
+  1.638999*(p50/2)^(-1.38)
+}
+
+calc_vul_b <- function(p_50, c){
+  num <- p_50
+  den <- (-log(1-50/100))^(1/c)
+  num/den
+}
+
+
+calc_psi_crit <- function(b,c) {
+  b*(log(1/0.05))^(1/c)
+}
+
+calc_WD <- function(K_s){
+  1000*exp(-0.06260892)*K_s^-0.1571026
+}
+```
+
+Run the models, setting the max patch lifetime, the p50s, and hyperparametersising K_s, b, psi_ crit and rho (i.e. WD)
+
+```{r}
+run_FF16w_model <- function(inputs){
+  
+  ctrl = scm_base_control()
+  
+  p0 <- scm_base_parameters("FF16w")
+  p0$max_patch_lifetime <- inputs$max_patch_lifetime
+  
+  p50_1 <- inputs$p50_1
+  p50_2 <- inputs$p50_2
+  
+  p1 <- expand_parameters(trait_matrix(c(p50_1, p50_2), "p_50"), p0, mutant=FALSE, birth_rate_list = c(1,1))
+  
+  p1$strategies[[1]]$K_s <- p_50_2_K_s(p50_1)
+  p1$strategies[[1]]$b <- calc_vul_b(p50_1, p1$strategies[[1]]$c)
+  p1$strategies[[1]]$psi_crit <- calc_psi_crit(p1$strategies[[1]]$b, p1$strategies[[1]]$c)
+  p1$strategies[[1]]$epsilon_leaf <- 0.00001
+  
+  p1$strategies[[2]]$K_s <- p_50_2_K_s(p50_2)
+  p1$strategies[[2]]$b <- calc_vul_b(p50_2, p1$strategies[[2]]$c)
+  p1$strategies[[2]]$psi_crit <- calc_psi_crit(p1$strategies[[2]]$b, p1$strategies[[2]]$c)
+  p1$strategies[[2]]$epsilon_leaf <- 0.00001
+  
+  
+  if(inputs$rainfall_regime == "variable"){
+  x <- seq(0, 110, 1/12)
+  rain = list(
+    x = x,
+    y = inputs$rainfall* (sin(2*pi*x)+1)
+  )}
+  else{
+    rain = inputs$rainfall
+  }
+  
+  
+  env <- make_environment("FF16w", soil_initial_state = rep(0.1, 1), rainfall = rain)
+  system.time(result <- build_schedule(p1, env, ctrl))
+  system.time(result <- run_scm_collect(p1, env, ctrl))
+  result
+}
+```
+
+Because I'm also looking to see where the `plant` model is breaking at the momemnt, I can use the `safely` function to run the function in a map or for loop, and where it breaks, I can ensure that it continues running, and saves the error for the defined parameters so that I can go back through and look at them later. 
+
+```{r}
+poss_run_plant = safely(.f = run_FF16w_model, otherwise = "Error")
+```
+
+Here, I set some random inputs for rainfall, p50_1, p50_2. I also defined rho as either NA (which will then be defined via hyperparametersiation depedning on p50, or set it at a constant vlaue of 0.6, which is the average value in `austraits`.)
+
+```{r}
+inputs <- expand_grid(rainfall = runif(1, 0.5, 3), p50_1 = runif(1, 0.1, 10), p50_2 = runif(1, 0.1, 10), max_patch_lifetime = 50, rainfall_regime = c("constant","variable"))
+```
+
+```{r}
+inputs <- expand_grid(rainfall = 2.07, p50_1 = 7.42, p50_2 = 8.12, max_patch_lifetime = 50, rainfall_regime = "variable")
+```
+
+```{r echo=TRUE}
+for(i in 1:nrow(inputs)){
+  dir <- "examples_vignettes/outputs/outputs_variability/"
+  filename <-paste("rainfall_", round(inputs[i,]$rainfall,2), "p501_", round(inputs[i,]$p50_1, 2), "p502_", round(inputs[i,]$p50_2, 2), "regime_", inputs[i,]$rainfall_regime, "lifetime_", inputs[i,]$max_patch_lifetime, ".RDS", sep="")
+  path <- paste(dir, filename, sep="")
+
+  if(!file.exists(path)){
+  result <- poss_run_plant(inputs[i,])
+  result<-list(result, inputs[i,])
+  saveRDS(result, path)
+  }
+  else {
+    print(paste("skipping", path, "already done", sep = " "))
+  }
+}
+```
+
+```{r}
+for(i in 1:nrow(inputs)){
+  dir <- "outputs/outputs_variability/"
+  filename <-paste("rainfall_", round(inputs[i,]$rainfall,2), "p501_", round(inputs[i,]$p50_1, 2), "p502_", round(inputs[i,]$p50_2, 2), "regime_", inputs[i,]$rainfall_regime, "lifetime_", inputs[i,]$max_patch_lifetime, ".RDS", sep="")
+  path <- paste(dir, filename, sep="")
+
+  if(!file.exists(path)){
+  result <- poss_run_plant(inputs[i,])
+  result<-list(result, inputs[i,])
+  saveRDS(result, path)
+  }
+  else {
+    print(paste("skipping", path, "already done", sep = " "))
+  }
+}
+```
+
+```{r}
+results_files <- list.files("examples_vignettes/outputs/outputs_variability/")
+
+extract_function <- function(file){
+  dir <- "examples_vignettes/outputs/outputs_variability/"
+  filename <- file
+  path <- paste(dir, filename, sep="")
+  
+  resultRDS <- readRDS(path)
+  results <- tibble(result = list(resultRDS[[1]]$result), parameters = resultRDS[[2]]) %>%
+    mutate(error = ifelse(is.null(resultRDS[[1]]$error$message), "NA", resultRDS[[1]]$error$message))
+  results
+  }
+
+map(results_files, extract_function) %>%
+  bind_rows() -> collated_results
+```
+
+```{r}
+extract_tidy <- function(result){
+  result %>%
+    tidy_patch() %>%
+    FF16_expand_state() -> result
+  
+    result$species %>%
+    integrate_over_size_distribution()
+}
+
+collated_results[1:4,] %>%
+  rowwise() %>%
+  mutate(result =list(extract_tidy(result))) -> collated_results2
+```
+
+```{r}
+collated_results2[1:2,] %>%
+  unnest(result) %>%
+  unnest(parameters) %>% 
+  select(step, time, species, area_leaf, p50_1, p50_2, rainfall_regime, rainfall) %>% 
+  group_by(p50_1, p50_2, rainfall_regime, rainfall) %>%
+  mutate(run = cur_group_id()) %>%
+  group_by(step, time, p50_1, p50_2, rainfall_regime, rainfall) %>%
+  mutate(total_leaf = sum(area_leaf), leaf_frac = area_leaf/total_leaf) %>%
+  ungroup() %>%
+  mutate(species_p50 = if_else(species == 1, p50_1, p50_2)) %>%
+  filter(run %in% sample(unique(run),2)) %>%
+  group_by(rainfall_regime, run) %>%
+  nest() %>%
+  ungroup() %>%
+  unnest(data)  %>%
+  ggplot(aes(time, area_leaf, group = species_p50, colour = species_p50)) +
+  geom_line() +
+  facet_grid(p50_1~rainfall_regime, scales = "free")+
+  ylab("Leaf area") +
+  xlab("Time") +
+  labs(colour = "p50")
+```
+
+```{r}
+list.files("examples_vignettes/outputs")
+
+result <- readRDS("examples_vignettes/outputs/outputs_variability/rainfall_2.07p501_7.42p502_8.12regime_variablelifetime_2.RDS")
+
+result[[1]]$result %>%
+  tidy_patch()%>%
+    FF16_expand_state() -> result_tidy
+
+result_tidy$species %>%
+    integrate_over_size_distribution() -> result_tidy
+
+result[[1]]$result$env %>% tidy_env() %>%
+  distinct(step, .keep_all = TRUE) -> result_env
+result_tidy %>%
+  left_join(result_env) -> result_tidy_env
+
+result_tidy_env %>%
+  ggplot() +
+  geom_line(aes(x = time, y = area_leaf, colour = species, group = species)) +
+  geom_line(aes(x = time, y = -0.5, size = theta))
+
+result[[1]]$result$env %>% tidy_env() %>%
+  distinct(rainfall, .keep_all = TRUE) %>% 
+  ggplot(aes(x = ))
+
+
+result_tidy_env %>%
+  ggplot(aes(x= time, y = rainfall)) +
+  geom_line()
+
+```
+

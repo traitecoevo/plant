@@ -92,12 +92,12 @@ public:
 
       if(i == 0) {
 
-        double k_I = 0.5;
+        // double k_I = 0.5;
 
-            double canopy_openness_at_ground = get_environment_at_height(0);
-            double total_LAI = log(canopy_openness_at_ground) / (-k_I);
-            // std::cout << "total_LAI" << total_LAI;
-            double ground_radiation = PPFD * get_environment_at_height(0);
+        //     double canopy_openness_at_ground = get_environment_at_height(0);
+        //     double total_LAI = log(canopy_openness_at_ground) / (-k_I);
+        //     // std::cout << "total_LAI" << total_LAI;
+        //     double ground_radiation = PPFD * get_environment_at_height(0);
 
 
 
@@ -105,18 +105,18 @@ public:
         infiltration = extrinsic_drivers.evaluate("rainfall", time) * saturation;
 
         // // Evaporation at soil surface
-        double E_bare_soil_pot_mol = (1.0 - r_soil) * ground_radiation * PAR_to_SW * slp / ((slp + gamma) * lh);
+        // double E_bare_soil_pot_mol = (1.0 - r_soil) * ground_radiation * PAR_to_SW * slp / ((slp + gamma) * lh);
 
         // // mols ->  m3/m2/s
-        double E_bare_soil_pot_m = std::max(0.0, E_bare_soil_pot_mol * MH2O * g_to_kg * kg_to_m3);
+        // double E_bare_soil_pot_m = std::max(0.0, E_bare_soil_pot_mol * MH2O * g_to_kg * kg_to_m3);
 
         // // need to access total leaf area for environment?
         // double patch_total_area_leaf = 1.0;
-        double Ev_pot = E_bare_soil_pot_m * std::exp(-0.398 * total_LAI);
+        // double Ev_pot = E_bare_soil_pot_m * std::exp(-0.398 * total_LAI);
 
-        double soil_wetness = std::pow(((vars.state(i) - theta_wp) / (theta_fc - theta_wp)), swf);
+        // double soil_wetness = std::pow(((vars.state(i) - theta_wp) / (theta_fc - theta_wp)), swf);
 
-        evaporation = std::max(0.0, Ev_pot * soil_wetness)*60*60*24*365;
+        // evaporation = std::max(0.0, Ev_pot * soil_wetness)*60*60*24*365;
       } else {
         infiltration = 0.0;
         // evaporation = 0.0;
@@ -140,12 +140,13 @@ public:
       // net_flux = infiltration  - resource_depletion[i] - drainage;
       // net_flux = infiltration   - drainage;
 
-      drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
+      // drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
 
       // drainage = 0;
 
+      net_flux = infiltration  -  resource_depletion[i];
 
-      net_flux = infiltration - evaporation - drainage -  resource_depletion[i];
+      // net_flux = infiltration - evaporation - drainage -  resource_depletion[i];
 
         // std::cout << "; theta: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
 
