@@ -95,7 +95,7 @@ run_FF16w_model <- function(inputs){
   p1$strategies[[2]]$psi_crit <- calc_psi_crit(p1$strategies[[2]]$b, p1$strategies[[2]]$c)
   p1$strategies[[2]]$epsilon_leaf <- epsilon_leaf
   
-  env <- make_environment("FF16w", soil_initial_state = rep(inputs$theta, 1), rainfall = inputs$rainfall)
+  env <- make_environment("FF16w", soil_initial_state = rep(inputs$initial_theta, 1), rainfall = inputs$rainfall)
   time1 <- system.time(result <- build_schedule(p1, env, ctrl))
   time2 <- system.time(result <- run_scm_collect(result, env, ctrl, collect_auxiliary_variables = TRUE))
   return(list(result, time1, time2))
@@ -111,9 +111,9 @@ poss_run_plant = safely(.f = run_FF16w_model, otherwise = "Error")
 Here, I set some random inputs for rainfall, p50_1, p50_2. I also defined rho as either NA (which will then be defined via hyperparametersiation depedning on p50, or set it at a constant vlaue of 0.6, which is the average value in `austraits`.)
 
 ```{r}
-inputs <- expand_grid(rainfall = runif(10, min = 0.5, max = 3), p50_1 = runif(10, min = 0.1, max = 10), p50_2 = runif(10, min = 0.1, max = 10), initial_theta = 0.001, max_patch_lifetime = 50, schedule_eps = NA, ode_tol_abs = NA, ode_tol_rel = NA, epsilon_leaf = NA) %>%
-  slice(sample(1:n())) %>%
-  slice(1)
+inputs <- expand_grid(rainfall = runif(10, min = 0.5, max = 3), p50_1 = runif(10, min = 0.1, max = 10), p50_2 = runif(10, min = 0.1, max = 10), initial_theta = c(0.01, 0.001), max_patch_lifetime = 2, schedule_eps = NA, ode_tol_abs = NA, ode_tol_rel = NA, epsilon_leaf = NA) %>%
+  slice(sample(1:n()))  %>%
+  slice(1:2)
 ```
 
 ```{r}
@@ -139,7 +139,7 @@ run_and_save_plant_water_model <- function(..., save = FALSE, dir = NULL){
                    "ode_tol_abs", round(input_parameters$ode_tol_abs, 6),
                    "ode_tol_rel", round(input_parameters$ode_tol_rel, 6),
                    "epsilon_leaf", round(input_parameters$epsilon_leaf, 6),
-                   "theta", input_parameters$theta, ".RDS", sep="")
+                   "theta", input_parameters$initial_theta, ".RDS", sep="")
   path <- paste(dir, filename, sep="")
   
   if(!file.exists(path)){
@@ -205,12 +205,17 @@ extract_tidy <- function(result){
       mutate(species = as.character(species))
   }
   
+
   result[[1]] %>%
     tidy_patch() %>%
     FF16_expand_state() -> focal_result
+    browser()
+
   
   focal_result$species %>%
     integrate_over_size_distribution() -> focal_result_species
+
+    browser()
   
   result[[1]]$env %>%
     plant:::tidy_env() %>%
@@ -223,9 +228,159 @@ extract_tidy <- function(result){
 
 
 ```{r}
+integrate_over_size_distribution <- function(tidy_species_data) {
+  browser()
+  tidy_species_data  %>%
+    dplyr::select(-.data$node) %>% stats::na.omit() %>%
+    dplyr::filter(.data$step > 1) %>% 
+    dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
+    dplyr::summarise(
+      density_integrated = -trapezium(.data$height, .data$density), 
+      min_height = min(.data$height),
+      dplyr::across(where(is.double) & !c(.data$density, .data$density_integrated, .data$min_height) , ~-trapezium(height, density * .x)), 
+      .groups = "drop"
+    ) %>% 
+    dplyr::rename(density = density_integrated)
+}
+
+#breaks
 collated_results %>%
   rowwise() %>%
   mutate(result =list(extract_tidy(result))) -> collated_results2
+
+#breaks
+collated_results$result[[1]][[1]] %>%
+  tidy_patch() %>%
+  pluck("species") %>%
+  # plot_size_distribution()
+  # View()
+  select(-opt_psi_stem) %>%
+  # drop_na()
+  plant:::integrate_over_size_distribution() %>% View()
+
+collated_results$result[[1]][[1]] %>%
+  tidy_patch() %>%
+  pluck("species") %>%
+  # plot_size_distribution()
+  # View()
+  select(-opt_psi_stem) %>%
+  drop_na() %>%
+  ggplot(aes(x= time, y = opt_ci)) +
+  geom_line(aes(group = interaction(node, species), colour = species)) +
+  theme(legend.position = "none") ->  opt_ci
+
+
+#fine
+collated_results[2,]$result[[1]][[1]] %>%
+  tidy_patch() %>%
+  pluck("species") %>% 
+  # plot_size_distribution()
+  # View()
+  # select(-opt_psi_stem) %>%
+  # drop_na()
+  integrate_over_size_distribution()
+
+collated_results[1,]$result[[1]][[1]] %>%
+  tidy_patch() %>%
+  pluck("species") -> species_results
+  # plot_size_distribution()
+  # View()
+  # select(-opt_psi_stem) %>%
+  # drop_na()
+  plot_size_distribution()
+
+collated_results[1,]$result[[1]][[1]]$env %>%
+  plant:::tidy_env() %>%
+  select(step, theta) %>%
+  distinct() %>%
+  mutate(n_psi = -((log(1500/33))/(log(0.081/0.180))),
+         a_psi = 1.5e6 * 0.081^n_psi,
+         psi = a_psi * theta^(-n_psi)) -> env_results
+
+extract_traits <- function(species, results){
+results$result[[1]][[1]]$p$strategies[[species]] %>% 
+      unlist() %>% 
+      tibble(name = names(.), value = .) %>%
+      pivot_wider() %>%
+      mutate(species = as.character(species))
+}
+
+
+result[[1]]$p$strategies[[species]] %>% 
+      unlist() %>% 
+      tibble(name = names(.), value = .) %>%
+      pivot_wider() %>%
+      mutate(species = as.character(species))
+
+
+
+```
+
+
+
+```{r}
+collated_results[1,]$result[[1]][[1]] %>%
+  tidy_patch() %>%
+  pluck("species") %>%
+  # plot_size_distribution()
+  # View()
+  # select(-opt_psi_stem) %>%
+  # drop_na()
+  plot_size_distribution() +
+  theme(legend.position = "none")  -> a
+
+collated_results[1,]$result[[1]][[1]] %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("species") %>%
+  select(-opt_psi_stem) %>%
+  drop_na() %>%
+  integrate_over_size_distribution() %>%
+  ggplot(aes(x= time, y = area_leaf, colour = species, group = species)) +
+  geom_line() +
+  theme(legend.position = "none") +
+  geom_vline(aes(xintercept = 0.0234), col = "red") +
+  geom_vline(aes(xintercept = 0.0273), col = "blue")-> c
+
+
+collated_results[1,]$result[[1]][[1]]$env %>%
+    plant:::tidy_env() %>%
+    select(step, theta) %>%
+    distinct() %>%
+  mutate(n_psi = -((log(1500/33))/(log(0.081/0.180))),
+         a_psi = 1.5e6 * 0.081^n_psi,
+         psi = a_psi * theta^(-n_psi)) %>%
+    right_join(species_results) %>%
+    right_join(map_dfr(list(1,2), extract_traits, collated_results[1,]) %>% select(-theta), by = "species") %>% 
+  mutate(psi_crit = as.numeric(psi_crit)) %>%
+  ggplot(aes(x = time,y= psi)) +
+  geom_line() +
+  geom_line(aes(x = time, y = 1e6*psi_crit, colour = species, group = species)) +
+  scale_y_log10() +
+  theme_classic() +
+  theme(legend.position = "none")-> b
+list.files("examples_vignettes/outputs/resolving_state_changes_shapes/trait_env_parameters")
+png("examples_vignettes/outputs/resolving_state_changes_shapes/trait_env_parameters/height_ci_psi.png", height= 900, width= 480)
+cowplot::plot_grid(a,opt_ci,b, nrow= 3)
+dev.off()
+
+collated_results[1,]$result[[1]][[1]]$env %>%
+    plant:::tidy_env() %>%
+    select(step, theta) %>%
+    distinct() %>%
+  mutate(n_psi = -((log(1500/33))/(log(0.081/0.180))),
+         a_psi = 1.5e6 * 0.081^n_psi,
+         psi = a_psi * theta^(-n_psi)) %>%
+    right_join(species_results) %>%
+    right_join(map_dfr(list(1,2), extract_traits, collated_results[1,]) %>% select(-theta), by = "species") %>% 
+  mutate(psi_crit = as.numeric(psi_crit)) %>%
+  filter(time < 0.6) %>%
+  mutate(active = if_else(psi < psi_crit*1e6, "active","not_active")) %>%
+  distinct(active, species, .keep_all = TRUE) %>%
+  filter(active == "active") %>%
+  pull(psi_crit)
+
+
 ```
 
 ```{r}
