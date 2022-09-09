@@ -520,7 +520,7 @@ void Leaf::optimise_psi_stem_Sperry_Newton_recall_one_line(double psi_guess) {
 
     opt_psi_stem = psi_stem_initial -  first_dev/sec_dev;
     
-    if(opt_psi_stem > psi_crit | (opt_psi_stem < psi_soil_)){
+    if((opt_psi_stem > psi_crit) | (opt_psi_stem < psi_soil_)){
       
       opt_psi_stem = optimise_psi_stem_Sperry_one_line();
       finished = 0;
@@ -677,7 +677,7 @@ double max_ci =find_max_ci_one_line();
   while(finished == 1){
 
 // add in the max ci
-  if (R_IsNA(opt_ci) | opt_ci > (max_ci - diff_value)){
+  if (R_IsNA(opt_ci) | (opt_ci > (max_ci - diff_value))){
   
   opt_ci = max_ci - diff_value;
 

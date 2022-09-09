@@ -1,0 +1,2 @@
+load("/Users/isaactowers/Documents/GitHub/plant/examples_vignettes/outputs/resolving_state_changes_shapes/trait_env_parameters/rainfall_2.78p501_0.36p502_0.27lifetime_50schedule_epsNAode_tol_absNAode_tol_relNAepsilon_leafNAtheta0.01.RDS")
+load("/Users/isaactowers/Documents/GitHub/plant/examples_vignettes/outputs/resolving_state_changes_shapes/trait_env_parameters/rainfall_2.29p501_2.64p502_2.75lifetime_2schedule_epsNAode_tol_absNAode_tol_relNAepsilon_leafNAtheta0.01.RDS")
