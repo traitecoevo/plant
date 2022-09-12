@@ -439,7 +439,9 @@ double FF16_Strategy::Qp(double x,
 // [eqn  9] Probability density of leaf area at height `z`
 double FF16_Strategy::q(double z, double height) const {
   const double tmp = pow(z / height, eta);
+    
   return 2 * eta * (1 - tmp) * tmp / z;
+
 }
 
 // The aim is to find a plant height that gives the correct seed mass.

@@ -96,9 +96,9 @@ run_FF16w_model <- function(inputs){
   p1$strategies[[2]]$epsilon_leaf <- epsilon_leaf
   
   env <- make_environment("FF16w", soil_initial_state = rep(inputs$initial_theta, 1), rainfall = inputs$rainfall)
-  time1 <- system.time(result <- build_schedule(p1, env, ctrl))
-  time2 <- system.time(result <- run_scm_collect(result, env, ctrl, collect_auxiliary_variables = TRUE))
-  return(list(result, time1, time2))
+  time1 <- system.time(plant_result <- build_schedule(p1, env, ctrl))
+  time2 <- system.time(plant_result <- run_scm_collect(plant_result, env, ctrl, collect_auxiliary_variables = TRUE))
+  return(list(plant_result = plant_result, time1 = time1, time2 = time2, inputs = inputs))
 }
 ```
 
@@ -111,9 +111,10 @@ poss_run_plant = safely(.f = run_FF16w_model, otherwise = "Error")
 Here, I set some random inputs for rainfall, p50_1, p50_2. I also defined rho as either NA (which will then be defined via hyperparametersiation depedning on p50, or set it at a constant vlaue of 0.6, which is the average value in `austraits`.)
 
 ```{r}
-inputs <- expand_grid(rainfall = runif(10, min = 0.5, max = 3), p50_1 = runif(10, min = 0.1, max = 10), p50_2 = runif(10, min = 0.1, max = 10), initial_theta = c(0.01, 0.001), max_patch_lifetime = 2, schedule_eps = NA, ode_tol_abs = NA, ode_tol_rel = NA, epsilon_leaf = NA) %>%
-  slice(sample(1:n()))  %>%
+inputs <- expand_grid(rainfall = runif(10, min = 0.5, max = 3), p50_1 = runif(10, min = 0.1, max = 10), p50_2 = runif(10, min = 0.1, max = 10), initial_theta = c(0.01, 0.001), max_patch_lifetime = 0.1, schedule_eps = 0.1, ode_tol_abs = NA, ode_tol_rel = NA, epsilon_leaf = NA) %>%
+  slice(sample(1:n())) %>%
   slice(1:2)
+
 ```
 
 ```{r}
@@ -143,28 +144,29 @@ run_and_save_plant_water_model <- function(..., save = FALSE, dir = NULL){
   path <- paste(dir, filename, sep="")
   
   if(!file.exists(path)){
-  result <- poss_run_plant(input_parameters)
-  result<-list(result, input_parameters)
-  saveRDS(result, path)
+  plant_run <- poss_run_plant(input_parameters)
+  saveRDS(plant_run, path)
   }
   else {
     print(paste("skipping", path, "already done", sep = " "))
   }
   } else {
   
-  result <- poss_run_plant(input_parameters)
-  result<-list(result, input_parameters)
-  
-  return(result)
+  plant_run <- poss_run_plant(input_parameters)
+  return(plant_run)
   }
-  
-  
   return
 }
 ```
 
 ```{r}
 furrr::future_pmap(inputs, run_and_save_plant_water_model, save = TRUE, dir = "resolving_state_changes_shapes/trait_env_parameters")
+output <-furrr::future_pmap(inputs, run_and_save_plant_water_model, save = FALSE)
+output[[1]]$result$result
+result[[1]]$result$result
+
+result <- pmap(inputs, run_and_save_plant_water_model, save = FALSE)
+
 ```
 
 ```{r}

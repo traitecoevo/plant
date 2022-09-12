@@ -569,7 +569,7 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
   
   double ci_initial;
 
-  int finished=1; // TODO rename unfinished
+  int unfinished=1; // TODO rename unfinished
 
   opt_ci = ci_guess;
 
@@ -580,7 +580,7 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
 
   }
 
-  while(finished == 1){
+  while(unfinished == 1){
 
     count += 1;
 
@@ -604,12 +604,17 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
 
 // start with calculation of highest ci, this is the estimate with the highest required transpiration stream so the estimate most likely to exceed maximum possible transpiration stream
     double benefit_ = calc_A_lim_one_line(x_2);
+
+
     double g_c_ci = (benefit_ * umol_per_mol_to_mol_per_mol * atm_kpa * kPa_to_Pa)/(ca - x_2); 
+    
+
     E = g_c_ci * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;  
 //move to top
 
     double E_max = calc_E_supply(psi_crit);
-  
+  // std::cout << "Benefit " << benefit_ << "E " << E << "E_max " << E_max << "psi_soil" << psi_soil_  << "PPFD "<< PPFD_ << std::endl;
+
     if(((E_max < E) & (abs(E - E_max) > 1e-15)) | (E < 0)){
     //E_max already known, no need to do find_max_ci_one_line_again 
     opt_ci = find_max_ci_one_line() - diff_value;
@@ -638,7 +643,7 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
 
     if(abs(opt_ci - ci_initial) < (ci_initial*epsilon_leaf)){
      
-      finished = 0;
+      unfinished = 0;
 
     }
 

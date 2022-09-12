@@ -18,7 +18,12 @@ FF16w_Strategy::FF16w_Strategy() {
 double FF16w_Strategy::compute_average_light_environment(
     double z, double height, const FF16_Environment &environment) {
 
+  if(z > height){
+    std::cout << "z greater than height" << std::endl;
+  }
+  
   return environment.get_environment_at_height(z) * q(z, height);
+
 }
 
 // assumes calc_profit_bartlett has been run for optimal psi_stem
@@ -49,6 +54,19 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
           ? integrator.integrate_with_last_intervals(f, 0.0, height)
           : integrator.integrate(f, 0.0, height);
 
+  // std::cout << "is_adaptive " << integrator.is_adaptive() << reuse_intervals << "reuse_intervals" << std::endl;
+
+  if(average_light_environment < 0){
+    for (double height_test = 0; height_test <= height; height_test += height/control.assimilator_integration_iterations){
+      double compute_test = compute_average_light_environment(height_test, height, environment);
+
+      std::cout  << "compute_test"  << compute_test  << "height_test" << height_test << "is_adaptive " << integrator.is_adaptive()  << "reuse_intervals" << reuse_intervals << std::endl;
+    }
+
+    util::stop("Error");
+    }
+               
+
   // std::cout << "openness1 " << environment.get_environment_at_height(height*0.9) << std::endl;
 
 
@@ -57,7 +75,6 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   // k_I adds self shading in addition to patch competition
   const double average_radiation =
       k_I * average_light_environment * environment.PPFD;
-
 
   const double psi_soil = environment.get_psi_soil() / 1000000;
   // const double theta_test = environment.get_soil_water_state()[0];
