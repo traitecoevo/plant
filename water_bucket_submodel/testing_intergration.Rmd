@@ -26,15 +26,29 @@ source("R/reference_soil.R")
 
 ```{r}
 calc_VPH <- function(instant_of_day, VP_9, VP_15){
-  gap = 18/24
+  gap = 18
   
-  if(instant_of_day <= 9/24){
-   VP_15 + (VP_9 - VP_15)*(9/24+instant_of_day)/gap  
-} else if(instant_of_day > 9/24 & instant_of_day <=15/24){
-   VP_9 + (VP_15 - VP_9)*(instant_of_day - 9/24)/(15/24-9/24)
-} else if (instant_of_day > 15/24){
-   VP_15 + (VP_9 - VP_15)*(instant_of_day - 15/24)/gap
+  if(instant_of_day <= 9){
+   VP_15 + (VP_9 - VP_15)*(9+instant_of_day)/gap  
+} else if(instant_of_day > 9 & instant_of_day <=15){
+   VP_9 + (VP_15 - VP_9)*(instant_of_day - 9)/(15-9)
+} else if (instant_of_day > 15){
+   VP_15 + (VP_9 - VP_15)*(instant_of_day - 15)/gap
 }
+}
+```
+
+```{r}
+tibble(instant_of_day = seq(0, 24, length.out = 10000), VP_9 = 2, VP_15 = 3) %>%
+  rowwise() %>%
+  mutate(VPH = calc_VPH(instant_of_day, VP_9, VP_15)) %>%
+  ggplot(aes(x = instant_of_day, y = VPH)) +
+  geom_point()
+
+```
+
+
+```{r}
 }
 
 calc_temp <- function(instant_of_day, sun_up, sun_down, day_length, min_temp, max_temp){

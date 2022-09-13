@@ -25,15 +25,29 @@ source("R/reference_soil.R")
 ```
 
 ```{r}
-day <- 1
-latitude <- -23
+calc_temp <- function(instant_of_day, sun_up, sun_down, day_length){
 
-PPFD <- calc_PPFD_instant(day,latitude)
+m = instant_of_day - sun_up + c_t
+
+if(instant_of_day >= sun_up & instant_of_day <= sun_down){
+  min_temp + (max_temp - min_temp) * sin((pi * m) / (day_length + 2.0 * a_t))
+} else {
+    NA
+  }
+}
 ```
 
 
 ```{r}
-max_temp <- 35
+day <- 180
+latitude <- -5
+
+PPFD <- calc_PPFD_instant(day = day, latitude = latitude)
+```
+
+
+```{r}
+max_temp <- 25
 min_temp <- 15
 ```
 
@@ -48,22 +62,29 @@ a_t = 1.86;
 b_t = 2.2;     #nighttime coeffcient
 c_t = -0.17;   #lag of the min temp from the time of runrise
 
-day_length = unique(PPFD$day_length) * 24
-night_length = 24 - day_length
+```
 
-sun_up = unique(PPFD$sun_up)*24 
-sun_down= unique(PPFD$sun_down)*24
- 
+```{r}
+PPFD %>%
+  mutate(instant_of_day = instant_of_day * 24,
+         day_length = day_length*24,
+         night_length = 24 - day_length,
+         sun_up = sun_up * 24,
+         sun_down = sun_down * 24) %>%
+  rowwise() %>%
+  mutate(temp = calc_temp(instant_of_day, sun_up, sun_down, day_length)) %>%
+  ggplot(aes(x = instant_of_day, y = temp)) + 
+  geom_point()
+```
+
+
+
+```{r}
+calc_temp <- function(instant_of_day, sun_up, sun_down, day_length){
+
 m = sun_down - sun_up + c_t
 tset = (max_temp - min_temp) * sin(pi * m / (day_length + 2.0 * a_t)) + min_temp
 
-PPFD$instant_of_day <- PPFD$instant_of_day*24
-PPFD$sun_up <- PPFD$sun_up*24
-PPFD$sun_down <- PPFD$sun_down*24
-PPFD$day_length <- PPFD$day_length*24
-
-calc_temp <- function(instant_of_day, sun_up, sun_down, day_length){
-  
 m = instant_of_day - sun_up + c_t
   
   if(instant_of_day >= sun_up & instant_of_day <= sun_down){
@@ -81,14 +102,10 @@ m = instant_of_day - sun_up + c_t
   (min_temp - d) + (tset - min_temp - d) * exp(-b_t*n/(24 -day_length + c_t))
   }
 }
-
-PPFD %>%
-  rowwise() %>%
-  mutate(temp = calc_temp(instant_of_day, sun_up, sun_down, day_length)) %>%
-  ggplot(aes(x = instant_of_day, y = temp)) + 
-  geom_point()
-
 ```
+
+
+
 
 
 ```{r}

@@ -45,3 +45,19 @@ solar_angle <- function(decimal_day_time, latitude) {
   SinA <- sin(lat_radians) * sin(delta) + cos(lat_radians) * cos(delta) * cos(HrAng)
   asin(SinA)
 }
+
+sun_rise <- function(decimal_day_time, latitude){
+
+  radians <- function(x) {
+    x/180 * pi
+  }
+  
+  lat_radians <- radians(latitude)
+  day <- floor(decimal_day_time)
+  delta <- 0.39785 * sin(4.869 + day/365 * 2 * pi + 0.03345 * sin(6.224 + day/365 * 
+                                                                    2 * pi))
+  
+  Hrang <- acos(-1*(sin(lat_radians)*sin(delta)) / (cos(lat_radians)*cos(delta)))
+  (Hrang / pi * 180 - 180) / -15
+}
+
