@@ -74,7 +74,7 @@ run_FF16w_model <- function(inputs){
 poss_run_plant = safely(.f = run_FF16w_model, otherwise = "Error")
 
 
-inputs <- expand_grid(rainfall = 2.93, p50_1 = 5.99, p50_2 = 8.46, initial_theta = c(0.1), max_patch_lifetime = 11, schedule_eps = NA, ode_tol_abs = NA, ode_tol_rel = NA, epsilon_leaf = NA, recruitment_decay = c(0)) %>%
+inputs <- expand_grid(rainfall = 2.93, p50_1 = 5.99, p50_2 = 8.46, initial_theta = c(0.1), max_patch_lifetime = 11, schedule_eps = NA, ode_tol_abs = NA, ode_tol_rel = NA, epsilon_leaf = NA, recruitment_decay = c(1)) %>%
   slice(sample(1:n()))
 
 run_and_save_plant_water_model <- function(..., save = FALSE, dir = NULL){

@@ -1,0 +1,397 @@
+---
+title: "testing_low_PPFD"
+output: html_document
+date: "2022-09-13"
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+devtools::load_all(".")
+```
+
+```{r}
+library(ggplot2)
+library(tidyverse)
+```
+
+
+```{r}
+source("tests/reference_leaf_updated.R")
+```
+
+```{r}
+vcmax = 100 #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
+p_50 = 1.731347 #stem water potential at 50% loss of conductivity
+b = 2.072101 #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
+c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
+psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
+huber_value = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
+K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+h = 5 #height or path length (m)
+  
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+```
+
+Set PPFD at a normal value
+
+```{r}
+PPFD = 900
+k_l_max = calc_k_l_max(K_s, huber_value, h)
+psi_soil = 2
+  
+l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max)
+```
+
+Find maximum ci
+
+```{r}
+max_ci = l$find_max_ci_one_line()
+min_ci = gamma_25*umol_per_mol_2_Pa
+
+tibble(ci = seq(min_ci, max_ci, length.out = 1000)) %>%
+  rowwise() %>%
+  mutate(profit = l$calc_profit_Sperry_ci_one_line(ci)) %>%
+  ggplot(aes(x = ci, y= profit)) +
+  geom_line()
+```
+
+
+Set PPFD at a really low value
+
+```{r}
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+
+PPFD = 1e-10
+k_l_max = calc_k_l_max(K_s, huber_value, h)
+psi_soil = 2
+  
+l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max)
+```
+
+
+```{r}
+calc_j_PPFD_function <- function(PPFD){
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max)
+l$calc_j()
+return(l$j_)
+}
+
+tibble(PPFD = seq(0,5000,length.out = 1000)) %>%
+  rowwise() %>%
+  mutate(j = calc_j_PPFD_function(PPFD)) %>%
+  ggplot(aes(x = PPFD, y = j)) +
+  geom_line()
+
+calc_Alim_PPFD_function <- function(PPFD){
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max)
+l$calc_A_lim_one_line()
+return(l$A_lim)
+}
+
+tibble(PPFD = seq(0,5000,length.out = 1000)) %>%
+  rowwise() %>%
+  mutate(A_lim = calc_j_PPFD_function(PPFD)) %>%
+  ggplot(aes(x = PPFD, y = A_lim)) +
+  geom_line()
+
+
+calc_Alim_ci_function <- function(ci){
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max)
+l$calc_A_lim_one_line(ci)
+return(l$A_lim)
+}
+
+
+tibble(ci = seq(0,40,length.out = 1000)) %>%
+  rowwise() %>%
+  mutate(A_lim = l$calc_A_lim_one_line(ci)) %>%
+  ggplot(aes(x = ci, y = A_lim)) +
+  geom_line()
+
+l$calc_A_lim_one_line(20)
+
+```
+
+
+Find maximum ci
+
+```{r}
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+
+PPFD = 1e-12
+k_l_max = calc_k_l_max(K_s, huber_value, h)
+psi_soil = 2
+  
+l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max)
+
+max_ci = l$find_max_ci_one_line()
+min_ci = gamma_25*umol_per_mol_2_Pa
+
+tibble(ci = seq(min_ci, max_ci, length.out = 1000)) %>%
+  rowwise() %>%
+  mutate(profit = l$calc_profit_Sperry_ci_one_line(ci)) %>%
+  ggplot(aes(x = ci, y= profit)) +
+  geom_line()
+```
+
+
+```{r}
+vcmax = 100 #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
+p_50 = 5.99 #stem water potential at 50% loss of conductivity
+b = 2.072101 #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
+c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
+psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
+huber_value = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
+K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+h = 5 #height or path length (m)
+  
+```
+
+```{r}
+
+calc_profit_ci <- function(ci){
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = 6.38571e+1, psi_soil = 0.000563277, k_l_max = 2.1738e-05)
+l$calc_profit_Sperry_ci_one_line(ci)
+}
+```
+
+```{r}
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = 6.38571e+0, psi_soil = 0.000563277, k_l_max = 2.1738e-05)
+max_ci = l$find_max_ci_one_line()
+min_ci = gamma_25*umol_per_mol_2_Pa
+tibble(ci = seq(min_ci, max_ci, length.out = 1000)) %>% View() 
+  rowwise() %>%
+  mutate(profit = calc_profit_ci(ci)) %>%
+  ggplot(aes(x = ci, y= profit)) +
+  geom_line()
+  
+l$calc_profit_Sperry_ci_one_line(35.97250)  
+
+4.36243e-05/2.1738e-05
+l$calc_E_supply_full_integration(psi_crit)
+
+```
+
+```{r}
+vcmax = 100 #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
+p_50 = 5.99 #stem water potential at 50% loss of conductivity
+b = calc_vul_b(p_50, c) #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
+c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
+psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
+huber_value = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
+K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+h = 5 #height or path length (m)
+```
+
+```{r}
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = 1.22124e-10, psi_soil = 0.000563277, k_l_max = 2.31732e-05)
+```
+
+```{r}
+calc_profit_ci <- function(ci){
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = 6.38662e-14, psi_soil = 0.000563277, k_l_max = 2.1738e-05)
+l$calc_profit_Sperry_ci_one_line(ci)
+}
+max_ci = l$find_max_ci_one_line()
+min_ci = gamma_25*umol_per_mol_2_Pa
+tibble(ci = seq(min_ci, max_ci, length.out = 1000)) %>% 
+  rowwise() %>%
+  mutate(profit = calc_profit_ci(ci)) %>%
+  ggplot(aes(x = ci, y= profit)) +
+  geom_line()
+```
+
+```{r}
+  benefit = l$calc_A_lim_one_line(max_ci)
+
+g_c_ci = (benefit * 1e-6 * 101.3 * 1000)/(40 - max_ci); 
+  E = g_c_ci * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;  
+  double psi_stem = calc_psi_stem_ci(E);
+  double cost_ = calc_hydraulic_cost_Sperry(psi_stem);
+  return benefit_ - lambda_*cost_;
+```
+
+
+
+```{r}
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = 6.38662e-14, psi_soil = 0.000563277, k_l_max = 2.1738e-05)
+
+ci_initial = opt_ci;
+
+diff_value = 0.001
+
+x_1 = ci_initial - diff_value;
+x_2 = ci_initial + diff_value;
+
+benefit_ = l$calc_A_lim_one_line(x_2);
+
+g_c_ci = (benefit_ * 1e-6 * 101.3 * 1000)/(40 - x_2); 
+E = g_c_ci * 1.6 * 2 / 55.4939 / 101.3;  
+
+E_max = l$calc_E_supply(psi_crit);
+
+psi_stem = l$calc_psi_stem_ci(E);
+cost_ = l$calc_hydraulic_cost_Sperry(psi_stem);
+y_2 = benefit_ - l$lambda_*cost_;
+y_1 = l$calc_profit_Sperry_ci_one_line(x_1);
+y_0 = l$calc_profit_Sperry_ci_one_line(ci_initial);
+
+    first_dev = (y_2 - y_1)/(2*diff_value);
+    sec_dev = (y_2 - 2*y_0 + y_1)/diff_value^2;
+
+    opt_ci = ci_initial -  first_dev/sec_dev;
+
+    if(abs(opt_ci - ci_initial) < (ci_initial*epsilon_leaf)){
+     
+      unfinished = 0;
+
+    }
+
+    profit = y_0;
+```
+
+```{r}
+
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = 6.38662e-14, psi_soil = 0.000563277, k_l_max = 2.1738e-05)
+
+g_c = l$calc_g_c(psi_crit);
+ c2 = 13.13652;
+j = l$calc_j();
+    
+umol_per_mol_to_mol_per_mol <- 1e-6
+atm_kpa <- 101.3
+kPa_to_Pa <- 1000     
+ca = 40
+umol_per_mol_to_Pa <- 0.1013
+first_term = 8 * j * umol_per_mol_to_mol_per_mol * (atm_kpa*kPa_to_Pa) * g_c * (-ca + c2 + 2 * gamma_25 * umol_per_mol_to_Pa);
+     second_term = 16 * g_c^2;
+     third_term = (ca + c2)^2;
+     fourth_term = j^2 * umol_per_mol_to_mol_per_mol^2 *(atm_kpa*kPa_to_Pa)^2;
+     fifth_term = 4*ca*g_c;
+     sixth_term = 4*c2*g_c;
+     seventh_term = j*umol_per_mol_to_mol_per_mol*(atm_kpa*kPa_to_Pa);
+     eigth_term = 8*g_c;
+
+    ci = (sqrt(first_term + second_term*third_term+ fourth_term) + fifth_term - sixth_term - seventh_term)/eigth_term;    
+    return ci;
+```
+
+
+```{r}
+vcmax = 100 #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
+p_50 = 5.99 #stem water potential at 50% loss of conductivity
+b = calc_vul_b(p_50, c) #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
+c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
+psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
+huber_value = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
+K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+h = 5 #height or path length (m)
+```
+
+```{r}
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = 4.87976e-16, psi_soil = 0.000563277, k_l_max = 2.31732e-05)
+
+
+max_ci <- l$find_max_ci_one_line()
+l$optimise_ci_Sperry_one_line(max_ci)
+void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
+  diff_value = 0.001; 
+  
+  opt_ci = 33.0096;
+
+  if (R_IsNA(opt_ci)){
+  
+  opt_ci = find_max_ci_one_line() - diff_value;
+
+  }
+
+  while(unfinished == 1){
+
+    if(count > 2){
+      
+      double max_ci = find_max_ci_one_line();
+      optimise_ci_Sperry_one_line(max_ci);
+
+      return;
+
+    }
+
+    ci_initial = opt_ci;
+
+    if (!util::is_finite(opt_ci)) {
+      util::stop("Detected NAN ci value");
+    }
+
+    x_1 = ci_initial - diff_value;
+    x_2 = ci_initial + diff_value;
+
+    benefit_ = l$calc_A_lim_one_line(x_2);
+
+    g_c_ci = (benefit_ * umol_per_mol_to_mol_per_mol * atm_kpa * kPa_to_Pa)/(ca - x_2); 
+    
+    E = g_c_ci * 1.6 * 2 / 55.4939 / 101.3;  
+
+    E_max = l$calc_E_supply(psi_crit);
+
+    if(((E_max < E) & (abs(E - E_max) > 1e-15)) | (E < 0)){
+    opt_ci = l$find_max_ci_one_line() - diff_value;
+    continue;
+    } else{
+    psi_stem = l$calc_psi_stem_ci(E);
+    cost_ = l$calc_hydraulic_cost_Sperry(psi_stem);
+    y_2 = benefit_ - l$lambda_*cost_;
+    }
+    y_1 = l$calc_profit_Sperry_ci_one_line(x_1);
+
+    y_0 = l$calc_profit_Sperry_ci_one_line(ci_initial);
+
+    first_dev = (y_2 - y_1)/(2*diff_value);
+    sec_dev = (y_2 - 2*y_0 + y_1)/diff_value^2;
+
+    opt_ci = ci_initial -  first_dev/sec_dev;
+
+    if(abs(opt_ci - ci_initial) < (ci_initial*epsilon_leaf)){
+      unfinished = 0;
+    }
+
+    profit = y_0;
+  }
+
+    return;
+  }
+```
+
+```{r}
+calc_j_PPFD <- function(PPFD){
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = PPFD, psi_soil = 0.000563277, k_l_max = 2.31732e-05)
+l$calc_j()
+}
+
+tibble(PPFD = seq(0,10000,  length.out = 1000)) %>%
+  rowwise() %>%
+  mutate(J = calc_j_PPFD(PPFD)) %>%
+  ggplot(aes(x= PPFD, y = J)) +
+  geom_line()
+
+PPFD<- 4.87976e-15
+
+```
+
+
+

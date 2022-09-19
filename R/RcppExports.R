@@ -141,8 +141,8 @@ Leaf__optimise_psi_stem_Sperry_one_line <- function(obj_) {
     .Call('_plant_Leaf__optimise_psi_stem_Sperry_one_line', PACKAGE = 'plant', obj_)
 }
 
-Leaf__set_physiology <- function(obj_, PPFD, psi_soil, k_l_max) {
-    invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, PPFD, psi_soil, k_l_max))
+Leaf__set_physiology <- function(obj_, PPFD, psi_soil, k_l_max, atm_vpd) {
+    invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, PPFD, psi_soil, k_l_max, atm_vpd))
 }
 
 Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line_pass <- function(obj_) {
@@ -255,6 +255,14 @@ Leaf__PPFD___get <- function(obj_) {
 
 Leaf__PPFD___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__PPFD___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__atm_vpd___get <- function(obj_) {
+    .Call('_plant_Leaf__atm_vpd___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__atm_vpd___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__atm_vpd___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__psi_soil___get <- function(obj_) {

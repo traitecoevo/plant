@@ -77,12 +77,15 @@ public:
   double c_i_next;
   double lambda_;
   double PPFD_;
+  double atm_vpd_;
   double k_l_max_;
   double psi_soil_;
   double opt_psi_stem;
   double opt_ci;
 
   // TODO: move into environment?
+
+  // TODO: atm_vpd - now set in set_physiology although ideally should be moved to enviroment
   double atm_vpd = 2.0; //kPa
   double ca = 40.0; // Pa
   double atm_kpa = 101.3; //kPa
@@ -105,7 +108,7 @@ public:
   void setup_E_supply(double resolution);
   // void setup_psi(double resolution);
 
-  void set_physiology(double PPFD, double psi_soil, double k_l_max);
+  void set_physiology(double PPFD, double psi_soil, double k_l_max, double atm_vpd);
 
 
   double calc_g_c(double psi_stem); // define as a constant

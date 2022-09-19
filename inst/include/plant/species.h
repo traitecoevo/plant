@@ -217,6 +217,14 @@ double Species<T,E>::consumption_rate(int i) const {
   if(size() < 2) {
     return 0.0;
   } else {
+    
+    // for (double i: consumption_rate_by_node_rev(i))
+    // std::cout << i << 'cons ';
+
+    //     for (double i: r_heights_rev())
+    // std::cout << i << 'heights ';
+    
+    // std::cout << "asd" << util::trapezium(r_heights_rev(), consumption_rate_by_node_rev(i)) << std::endl;
     // node heights are in descending order - we need ascending for integration
     return util::trapezium(r_heights_rev(), consumption_rate_by_node_rev(i));
   }

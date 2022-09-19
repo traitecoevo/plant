@@ -145,10 +145,13 @@ public:
       // drainage = 0;
 
       net_flux = infiltration  -  resource_depletion[i];
+      std::cout << "resource_depletion" << resource_depletion[i] << std::endl;
 
       // net_flux = infiltration - evaporation - drainage -  resource_depletion[i];
 
         // std::cout << "; theta: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
+
+      std::cout << "net_flux" << net_flux << std::endl;
 
 
       vars.set_rate(i, net_flux);
@@ -178,7 +181,7 @@ public:
     // soil volumetric water: m3.m-3
     // assume one layer for now - later extend to include layers of variable depth
     double theta = get_soil_water_state()[0];
-
+// std::cout << "theta" << theta << std::endl;
     // later average over all layers
     // for(i in 1:n_soil_layers)
     //    total = sum(environment.vars.state(i))

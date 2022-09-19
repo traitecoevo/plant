@@ -17,77 +17,256 @@ library(tidyr)
 library(ggplot2)
 library(purrr)
 library(deSolve)
+```
+
+```{r}
+devtools::load_all(".")
+
+library(plant)
+```
 
 
+```{r warning=FALSE}
 source("R/solar_model.R")
-source("R/reference_leaf.R")
-source("R/reference_soil.R")
+source("water_bucket_submodel/R/reference_soil.R")
+source("water_bucket_submodel/R/reference_leaf.R")
 ```
 
 ```{r}
-calc_VPH <- function(instant_of_day, VP_9, VP_15){
-  gap = 18
-  
-  if(instant_of_day <= 9){
-   VP_15 + (VP_9 - VP_15)*(9+instant_of_day)/gap  
-} else if(instant_of_day > 9 & instant_of_day <=15){
-   VP_9 + (VP_15 - VP_9)*(instant_of_day - 9)/(15-9)
-} else if (instant_of_day > 15){
-   VP_15 + (VP_9 - VP_15)*(instant_of_day - 15)/gap
-}
-}
-```
+calc_temp <- function(instant_of_day, day_length, mean_temp, temp_diff, sun_rise, sun_down){
 
-```{r}
-tibble(instant_of_day = seq(0, 24, length.out = 10000), VP_9 = 2, VP_15 = 3) %>%
-  rowwise() %>%
-  mutate(VPH = calc_VPH(instant_of_day, VP_9, VP_15)) %>%
-  ggplot(aes(x = instant_of_day, y = VPH)) +
-  geom_point()
+# Parton and Logan (1981) A model for dirunal variation in soil and
+#        air temperature. Agricultural Meteorology, 23, 205--216.
 
-```
+# get_chunk_and_distribute_subdaily
 
-
-```{r}
-}
-
-calc_temp <- function(instant_of_day, sun_up, sun_down, day_length, min_temp, max_temp){
-
-instant_of_day <- instant_of_day*24
-sun_up <- sun_up*24
-sun_down <- sun_down*24
-day_length <- day_length*24
-  
 a_t = 1.86;
 b_t = 2.2;     #nighttime coeffcient
 c_t = -0.17;   #lag of the min temp from the time of runrise
 
-day_length = day_length 
-night_length = 24 - day_length
-  
-m = sun_down - sun_up + c_t
-tset = (max_temp - min_temp) * sin(pi * m / (day_length + 2.0 * a_t)) + min_temp
+min_temp = mean_temp - temp_diff/2
+max_temp = mean_temp + temp_diff/2
 
-    
-m = instant_of_day - sun_up + c_t
-  
-  if(instant_of_day >= sun_up & instant_of_day <= sun_down){
-    min_temp + (max_temp - min_temp) * sin(pi * m / (day_length + 2.0 * a_t)) 
-  }
-  else{
-    if(instant_of_day > sun_down){
-      n = instant_of_day - sun_down
-    }
-    else if(instant_of_day < sun_up){
-      n = 24 + instant_of_day - sun_down
-    }
-  d = (tset - min_temp)/(exp(b_t)-1)
-  
-  (min_temp - d) + (tset - min_temp - d) * exp(-b_t*n/(night_length + c_t))
+sun_rise = sun_rise
+sun_down = sun_down
+
+m = instant_of_day - sun_rise + c_t
+
+if(instant_of_day >= sun_rise & instant_of_day <= sun_down){
+  min_temp + (max_temp - min_temp) * sin((pi * m) / (day_length + 2.0 * a_t))
+} else {
+    NA
   }
 }
 
+```
 
+```{r}
+params <- expand_grid(day = runif(10, min = 0, 180), latitude = runif(10, min = 0, max = 60), temp_diff = runif(1, min = 5, max = 20), VP = runif(1, 0.5, 2), mean_temp = 20, vcmax = runif(1, 30, 100), psi_soil = runif(1, 0, 10), p_50 = runif(1, min = 1, max = 10)) %>%
+  slice(sample(1:nrow(.))) %>%
+  slice(1:100) 
+```
+
+
+```{r}
+expand_input_data <- function(...){    
+  params = tibble(...)  
+
+  params %>%
+  mutate(sun_rise = sun_rise(day, latitude),
+         sun_down = sun_rise + (12-sun_rise)*2,
+         day_length = sun_down - sun_rise,
+         day_floor = floor(day),
+         day_length_dec = day_length/24) %>%
+  expand_grid(instant_through_day_hr = seq(sun_rise, sun_down, length.out = 201)) %>%
+  mutate(instant_through_day_dec = instant_through_day_hr/24,
+         dec_day_time = day_floor+ instant_through_day_dec) %>% 
+  mutate(solar_angle = solar_angle(dec_day_time, latitude),
+         PAR = PAR_given_solar_angle(solar_angle)) %>%
+  rowwise() %>%
+  mutate(temp = calc_temp(instant_through_day_hr, day_length, mean_temp, temp_diff, sun_rise, sun_down)) %>%
+  mutate(VPD_hr = max(0.001, calc_vpsat(temp) - VP))
+  }
+
+```
+
+```{r}
+find_profit <- function(...){
+
+params <- tibble(...)
+  
+vcmax = params$vcmax #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
+p_50 = params$p_50 #stem water potential at 50% loss of conductivity
+b = 2.072101 #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
+c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
+psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
+huber_value = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
+K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+h = 5 #height or path length (m)
+k_l_max = calc_k_l_max(K_s, huber_value, h)
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = params$PAR, psi_soil = params$psi_soil, k_l_max = k_l_max, atm_vpd = params$VPD_hr)
+l$optimise_ci_Sperry_Newton_recall_one_line(NA)
+l$profit
+}
+```
+
+
+```{r}
+calc_profit_instant <- function(...){
+  params <- tibble(...) %>%
+  mutate(profit = pmap(., find_profit) %>%
+  unlist())
+}
+```
+
+```{r}
+calc_one_point <- function(data){
+   data %>%
+    filter(abs(instant_through_day_dec - 0.5) == min(abs(instant_through_day_dec - 0.5))) %>%
+    mutate(daily_profit = profit*day_length) -> out
+  
+  return(out$daily_profit)
+}
+```
+
+
+```{r}
+future::plan("multisession", workers = 8)
+```
+
+
+```{r}
+exanded_input_data <- params %>%
+  pmap(expand_input_data) %>%
+  bind_rows() %>%
+  filter(PAR > 1e-10) %>% 
+  future_pmap(calc_profit_instant) %>%
+  bind_rows() %>%
+  nest(outputs = c(instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit, day_length))
+```
+
+```{r}
+exanded_input_data %>%
+  mutate(integrated_daily_profit = map_dbl(outputs, ~plant:::trapezium(.x$instant_through_day_hr, .x$profit)),
+         one_point_daily_profit = map_dbl(outputs, calc_one_point))
+```
+
+
+
+```{r}
+example_params <- params %>%
+  slice(6)
+
+example_params <- calc_input_data(example_params)
+example_params %>%
+  ungroup() %>%
+  slice(201) ->example_params
+
+vcmax = example_params$vcmax #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
+p_50 = example_params$p_50 #stem water potential at 50% loss of conductivity
+c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
+b = calc_vul_b(p_50, c) #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
+psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
+huber_value = 0.000157 #huber value (m^2 sapwood area m^-2 leaf area)
+K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+h = 5 #height or path length (m)
+k_l_max = calc_k_l_max(K_s, huber_value, h)
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = example_params$PAR, psi_soil = example_params$psi_soil, k_l_max = k_l_max, atm_vpd = example_params$VPD_hr)
+l$calc_j()
+l$calc_g_c(psi_crit)
+l$optimise_ci_Sperry_Newton_recall_one_line(NA)
+```
+
+```{r}
+l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = example_params$PAR*1e17, psi_soil = example_params$psi_soil, k_l_max = k_l_max, atm_vpd = example_params$VPD_hr)
+l$calc_j() == 0
+l$calc_A_lim(38) == 0
+l$find_max_ci_one_line() - 40
+l$calc_A_lim_one_line(l$find_max_ci_one_line())
+l$calc_profit_Sperry_ci_one_line(exp(log(l$find_max_ci_one_line())))
+
+
+tibble(ci = seq(gamma_25 *umol_per_mol_2_Pa, l$find_max_ci_one_line(), length.out= 100000)) %>%
+  rowwise() %>%
+  mutate(profit = l$calc_profit_Sperry_ci_one_line(ci)) %>%
+  ggplot(aes(x=ci, y= profit)) +
+  geom_line() +
+  xlim(c(39.999,40))
+```
+
+
+```{r}
+diff_value = 0.001; 
+  
+  opt_ci = NA;
+
+  if (R_IsNA(opt_ci)){
+  
+  opt_ci = l$find_max_ci_one_line() - diff_value;
+
+  }
+
+  while(unfinished == 1){
+
+    if(count > 2){
+      
+      double max_ci = find_max_ci_one_line();
+      optimise_ci_Sperry_one_line(max_ci);
+
+      return;
+
+    }
+
+    ci_initial = opt_ci;
+
+    if (!util::is_finite(opt_ci)) {
+      util::stop("Detected NAN ci value");
+    }
+
+    x_1 = ci_initial - diff_value;
+    x_2 = ci_initial + diff_value;
+
+    benefit_ = l$calc_A_lim_one_line(ci_initial);
+
+    g_c_ci = (benefit_ * 1e-6 * 101.3 * 1000)/(40 - x_2); 
+    
+    E = g_c_ci * 1.6 * 2 / 55.4939 / 101.3;  
+
+    E_max = l$calc_E_supply(psi_crit);
+
+    if(((E_max < E) & (abs(E - E_max) > 1e-15)) | (E < 0)){
+    opt_ci = l$find_max_ci_one_line() - diff_value;
+    continue;
+    } else{
+    psi_stem = l$calc_psi_stem_ci(E);
+    cost_ = l$calc_hydraulic_cost_Sperry(psi_stem);
+    y_2 = benefit_ - l$lambda_*cost_;
+    }
+    y_1 = l$calc_profit_Sperry_ci_one_line(x_1);
+
+    y_0 = l$calc_profit_Sperry_ci_one_line(ci_initial);
+
+    first_dev = (y_2 - y_1)/(2*diff_value);
+    sec_dev = (y_2 - 2*y_0 + y_1)/diff_value^2;
+
+    opt_ci = ci_initial -  first_dev/sec_dev;
+
+    if(abs(opt_ci - ci_initial) < (ci_initial*epsilon_leaf)){
+      unfinished = 0;
+    }
+
+    profit = y_0;
+  }
+
+    return;
+  }
+```
+
+
+```{r}
 calc_daily_model <- function(params){
   params %>%
   mutate(daily_data = map2(latitude, day, ~calc_PPFD_instant(.x, .y))) %>%

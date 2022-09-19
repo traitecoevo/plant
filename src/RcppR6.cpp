@@ -142,8 +142,8 @@ double Leaf__optimise_psi_stem_Sperry_one_line(plant::RcppR6::RcppR6<plant::Leaf
   return obj_->optimise_psi_stem_Sperry_one_line();
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max) {
-  obj_->set_physiology(PPFD, psi_soil, k_l_max);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max, double atm_vpd) {
+  obj_->set_physiology(PPFD, psi_soil, k_l_max, atm_vpd);
 }
 // [[Rcpp::export]]
 void Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line_pass(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
@@ -267,6 +267,15 @@ double Leaf__PPFD___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__PPFD___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->PPFD_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__atm_vpd___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->atm_vpd_;
+}
+// [[Rcpp::export]]
+void Leaf__atm_vpd___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->atm_vpd_ = value;
 }
 
 // [[Rcpp::export]]

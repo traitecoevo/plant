@@ -27,6 +27,7 @@ Leaf:
     j_: {type: double, access: field}
     k_l_max_: {type: double, access: field}
     PPFD_: {type: double, access: field}
+    atm_vpd_: {type: double, access: field}
     psi_soil_: {type: double, access: field}
     opt_psi_stem: {type: double, access: field}
     opt_ci: {type: double, access: field}
@@ -140,7 +141,7 @@ Leaf:
       args: []
     set_physiology:
       return_type: void 
-      args: [PPFD: double, psi_soil: double, k_l_max: double]
+      args: [PPFD: double, psi_soil: double, k_l_max: double, atm_vpd: double]
     optimise_psi_stem_Sperry_Newton_recall_one_line_pass:
       return_type: void 
       args: []

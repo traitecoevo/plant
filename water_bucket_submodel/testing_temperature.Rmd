@@ -47,8 +47,8 @@ PPFD <- calc_PPFD_instant(day = day, latitude = latitude)
 
 
 ```{r}
-max_temp <- 25
-min_temp <- 15
+max_temp <- 30
+min_temp <- 10
 ```
 
 
@@ -74,7 +74,8 @@ PPFD %>%
   rowwise() %>%
   mutate(temp = calc_temp(instant_of_day, sun_up, sun_down, day_length)) %>%
   ggplot(aes(x = instant_of_day, y = temp)) + 
-  geom_point()
+  geom_point() + 
+  ylim(c(0,50))
 ```
 
 

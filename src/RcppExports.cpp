@@ -429,15 +429,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // Leaf__set_physiology
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max);
-RcppExport SEXP _plant_Leaf__set_physiology(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP k_l_maxSEXP) {
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max, double atm_vpd);
+RcppExport SEXP _plant_Leaf__set_physiology(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP k_l_maxSEXP, SEXP atm_vpdSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
     Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
     Rcpp::traits::input_parameter< double >::type k_l_max(k_l_maxSEXP);
-    Leaf__set_physiology(obj_, PPFD, psi_soil, k_l_max);
+    Rcpp::traits::input_parameter< double >::type atm_vpd(atm_vpdSEXP);
+    Leaf__set_physiology(obj_, PPFD, psi_soil, k_l_max, atm_vpd);
     return R_NilValue;
 END_RCPP
 }
@@ -745,6 +746,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     Leaf__PPFD___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__atm_vpd___get
+double Leaf__atm_vpd___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__atm_vpd___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__atm_vpd___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__atm_vpd___set
+void Leaf__atm_vpd___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__atm_vpd___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__atm_vpd___set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -10789,7 +10812,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__calc_profit_Sperry_ci_one_line", (DL_FUNC) &_plant_Leaf__calc_profit_Sperry_ci_one_line, 2},
     {"_plant_Leaf__calc_A_lim_one_line", (DL_FUNC) &_plant_Leaf__calc_A_lim_one_line, 2},
     {"_plant_Leaf__optimise_psi_stem_Sperry_one_line", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry_one_line, 1},
-    {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 4},
+    {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 5},
     {"_plant_Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line_pass", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line_pass, 1},
     {"_plant_Leaf__find_max_ci_one_line", (DL_FUNC) &_plant_Leaf__find_max_ci_one_line, 1},
     {"_plant_Leaf__optimise_ci_Sperry_Newton_recall_one_line_max", (DL_FUNC) &_plant_Leaf__optimise_ci_Sperry_Newton_recall_one_line_max, 2},
@@ -10818,6 +10841,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__k_l_max___set", (DL_FUNC) &_plant_Leaf__k_l_max___set, 2},
     {"_plant_Leaf__PPFD___get", (DL_FUNC) &_plant_Leaf__PPFD___get, 1},
     {"_plant_Leaf__PPFD___set", (DL_FUNC) &_plant_Leaf__PPFD___set, 2},
+    {"_plant_Leaf__atm_vpd___get", (DL_FUNC) &_plant_Leaf__atm_vpd___get, 1},
+    {"_plant_Leaf__atm_vpd___set", (DL_FUNC) &_plant_Leaf__atm_vpd___set, 2},
     {"_plant_Leaf__psi_soil___get", (DL_FUNC) &_plant_Leaf__psi_soil___get, 1},
     {"_plant_Leaf__psi_soil___set", (DL_FUNC) &_plant_Leaf__psi_soil___set, 2},
     {"_plant_Leaf__opt_psi_stem__get", (DL_FUNC) &_plant_Leaf__opt_psi_stem__get, 1},

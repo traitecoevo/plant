@@ -17,13 +17,9 @@ FF16w_Strategy::FF16w_Strategy() {
 // not sure 'average' is the right term here..
 double FF16w_Strategy::compute_average_light_environment(
     double z, double height, const FF16_Environment &environment) {
+//NOTE: this function is currently being constrained at 0 because 
 
-  if(z > height){
-    std::cout << "z greater than height" << std::endl;
-  }
-  
-  return environment.get_environment_at_height(z) * q(z, height);
-
+     return std::max(environment.get_environment_at_height(z), 0.0001) * q(z, height);
 }
 
 // assumes calc_profit_bartlett has been run for optimal psi_stem
@@ -106,7 +102,7 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
 // std::cout << "\tbefore:\t" << leaf.opt_ci  ;
 
 
-leaf.set_physiology(average_radiation, psi_soil, k_l_max);
+leaf.set_physiology(average_radiation, psi_soil, k_l_max, leaf.atm_vpd);
 
 // double psi_guess = vars.aux(aux_index.at("opt_psi_stem"));
 
@@ -184,7 +180,8 @@ void FF16w_Strategy::compute_rates(const FF16_Environment &environment,
   for (size_t i = 0; i < environment.ode_size(); i++) {
 
     vars.set_consumption_rate(i, evapotranspiration_dt(area_leaf_)*60*60*12*365/1000);
- 
+
+    // std::cout << "area_leaf" << area_leaf_ << "water_use" << evapotranspiration_dt(area_leaf_)*60*60*12*365/1000 << std::endl;
   }
 
   if (net_mass_production_dt_ > 0) {
