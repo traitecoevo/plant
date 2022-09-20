@@ -89,8 +89,10 @@ double Leaf::calc_psi_stem_ci(double E_ci) {
 // returns E kg m^-2 s^-1
 double Leaf::calc_g_c(double psi_stem) {
   double E_supply = calc_E_supply(psi_stem);
+  // std::cout << "atm_vpd_" << atm_vpd_ << std::endl;
 
   return atm_kpa * E_supply * kg_to_mol_h2o / atm_vpd_ / 1.6;
+
 }
 
 double Leaf::calc_j() {
@@ -596,6 +598,8 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
       double max_ci = find_max_ci_one_line();
       optimise_ci_Sperry_one_line(max_ci);
 
+      // std::cout << "using GSS" << std::endl;
+
       return;
 
     }
@@ -664,6 +668,7 @@ void Leaf::optimise_ci_Sperry_Newton_recall_one_line(double ci_guess) {
     if(abs(opt_ci - ci_initial) < (ci_initial*epsilon_leaf)){
      
       unfinished = 0;
+      // std::cout << "didnt use GSS" << std::endl;
 
     }
 
