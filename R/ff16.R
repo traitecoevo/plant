@@ -303,7 +303,7 @@ make_FF16_hyperpar <- function(
         if (any(pos)) {
           eps <- sqrt(.Machine$double.eps)
           x1 <- extra[1, pos]
-          x2 <- unlist(s[names(x1)])
+          x2 <- unlist(s[[names(x1)]])
           drop <- abs(x1 - x2) < eps & abs(1 - x1/x2) < eps
           if (any(drop)) {
             keep <- setdiff(colnames(extra), names(drop)[drop])

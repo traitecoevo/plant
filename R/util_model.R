@@ -26,7 +26,7 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
 
   trait_names <- colnames(x)
   f <- function(xi, br) {
-    strategy[trait_names] <- xi
+    strategy[[trait_names]] <- xi
     if (is.list(br)) {
       strategy$birth_rate_x <- br$x
       strategy$birth_rate_y <- br$y
