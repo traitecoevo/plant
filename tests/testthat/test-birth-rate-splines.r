@@ -33,13 +33,14 @@ test_that("Can set birth rate splines correctly", {
     species1 = list(x = x, y = 1 + sin(x)),
     species2 = 2
   )
-  
+  print("START")
+  # for some reason, we are overwriting the 1 + sin(x) birthrates with 2
   p1 <- expand_parameters(lmas, p0, FF16_hyperpar, FALSE, birth_rates)
   
   # no longer stored in parameters
   expect_null(p1$birth_rate)
   expect_equal(p1$strategies[[1]]$birth_rate_x, x)
-  expect_equal(p1$strategies[[1]]$birth_rate_y,  1 + sin(x))
+  expect_equal(p1$strategies[[1]]$birth_rate_y, 1 + sin(x))
   expect_true(p1$strategies[[1]]$is_variable_birth_rate)
   expect_false(p1$strategies[[2]]$is_variable_birth_rate)
   

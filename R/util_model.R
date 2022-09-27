@@ -26,12 +26,24 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
 
   trait_names <- colnames(x)
   f <- function(xi, br) {
-    strategy[trait_names] <- xi
+    zipped <- mapply(c, trait_names, xi, SIMPLIFY = FALSE)
+    for (pair in zipped) {
+      strategy[[pair[1]]] <- as.double(pair[2]) # not sure why mapply changes the xi values to strings...
+    }
+    #strategy[trait_names] <- xi
     if (is.list(br)) {
+      print("about to set y values to")
+      print(br$y)
+      print("previously, the y value was")
+      print(strategy$birth_rate_y)
       strategy$birth_rate_x <- br$x
       strategy$birth_rate_y <- br$y
       strategy$is_variable_birth_rate <- TRUE
     } else if (is.numeric(br)) {
+      print("about to set y value to")
+      print(br)
+      print("previously, the y value was")
+      print(strategy$birth_rate_y)
       strategy$birth_rate_y <- br
       strategy$is_variable_birth_rate <- FALSE
     } else {
