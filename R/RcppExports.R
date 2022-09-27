@@ -41,10 +41,6 @@ Leaf__diff_ci <- function(obj_, x, psi_stem) {
     .Call('_plant_Leaf__diff_ci', PACKAGE = 'plant', obj_, x, psi_stem)
 }
 
-Leaf__calc_assim_gross <- function(obj_, psi_stem) {
-    .Call('_plant_Leaf__calc_assim_gross', PACKAGE = 'plant', obj_, psi_stem)
-}
-
 Leaf__calc_hydraulic_cost_Sperry <- function(obj_, psi_stem) {
     .Call('_plant_Leaf__calc_hydraulic_cost_Sperry', PACKAGE = 'plant', obj_, psi_stem)
 }
@@ -69,20 +65,8 @@ Leaf__optimise_psi_stem_Sperry <- function(obj_) {
     .Call('_plant_Leaf__optimise_psi_stem_Sperry', PACKAGE = 'plant', obj_)
 }
 
-Leaf__optimise_ci_Bartlett <- function(obj_) {
-    .Call('_plant_Leaf__optimise_ci_Bartlett', PACKAGE = 'plant', obj_)
-}
-
-Leaf__calc_profit_Bartlett_ci <- function(obj_, c_i) {
-    .Call('_plant_Leaf__calc_profit_Bartlett_ci', PACKAGE = 'plant', obj_, c_i)
-}
-
-Leaf__calc_assim_gross_ci <- function(obj_, c_i) {
-    .Call('_plant_Leaf__calc_assim_gross_ci', PACKAGE = 'plant', obj_, c_i)
-}
-
-Leaf__calc_psi_stem_ci <- function(obj_, E_ci) {
-    .Call('_plant_Leaf__calc_psi_stem_ci', PACKAGE = 'plant', obj_, E_ci)
+Leaf__convert_E_from_ci_to_psi_stem <- function(obj_, E_ci) {
+    .Call('_plant_Leaf__convert_E_from_ci_to_psi_stem', PACKAGE = 'plant', obj_, E_ci)
 }
 
 Leaf__calc_profit_Sperry_ci <- function(obj_, c_i) {
@@ -101,24 +85,12 @@ Leaf__optimise_ci_Sperry_Newton <- function(obj_) {
     .Call('_plant_Leaf__optimise_ci_Sperry_Newton', PACKAGE = 'plant', obj_)
 }
 
-Leaf__optimise_ci_Sperry_Newton_recall <- function(obj_) {
-    .Call('_plant_Leaf__optimise_ci_Sperry_Newton_recall', PACKAGE = 'plant', obj_)
-}
-
-Leaf__find_max_ci <- function(obj_) {
-    .Call('_plant_Leaf__find_max_ci', PACKAGE = 'plant', obj_)
-}
-
 Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line <- function(obj_, psi_guess) {
     invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line', PACKAGE = 'plant', obj_, psi_guess))
 }
 
 Leaf__calc_j <- function(obj_) {
     .Call('_plant_Leaf__calc_j', PACKAGE = 'plant', obj_)
-}
-
-Leaf__calc_assim_gross_one_line <- function(obj_, psi_stem) {
-    .Call('_plant_Leaf__calc_assim_gross_one_line', PACKAGE = 'plant', obj_, psi_stem)
 }
 
 Leaf__calc_profit_Sperry_one_line <- function(obj_, psi_stem) {
@@ -141,24 +113,28 @@ Leaf__optimise_psi_stem_Sperry_one_line <- function(obj_) {
     .Call('_plant_Leaf__optimise_psi_stem_Sperry_one_line', PACKAGE = 'plant', obj_)
 }
 
-Leaf__set_physiology <- function(obj_, PPFD, psi_soil, k_l_max, atm_vpd) {
-    invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, PPFD, psi_soil, k_l_max, atm_vpd))
-}
-
-Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line_pass <- function(obj_) {
-    invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line_pass', PACKAGE = 'plant', obj_))
-}
-
-Leaf__find_max_ci_one_line <- function(obj_) {
-    .Call('_plant_Leaf__find_max_ci_one_line', PACKAGE = 'plant', obj_)
-}
-
-Leaf__optimise_ci_Sperry_Newton_recall_one_line_max <- function(obj_, ci_guess) {
-    invisible(.Call('_plant_Leaf__optimise_ci_Sperry_Newton_recall_one_line_max', PACKAGE = 'plant', obj_, ci_guess))
+Leaf__set_physiology <- function(obj_, PPFD, psi_soil, k_l_max, atm_vpd, ca) {
+    invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, PPFD, psi_soil, k_l_max, atm_vpd, ca))
 }
 
 Leaf__optimise_ci_Sperry_one_line <- function(obj_, max_ci) {
     invisible(.Call('_plant_Leaf__optimise_ci_Sperry_one_line', PACKAGE = 'plant', obj_, max_ci))
+}
+
+Leaf__convert_psi_stem_to_ci_one_line <- function(obj_, psi_stem) {
+    .Call('_plant_Leaf__convert_psi_stem_to_ci_one_line', PACKAGE = 'plant', obj_, psi_stem)
+}
+
+Leaf__get_leaf_states_rates_from_psi_stem_one_line <- function(obj_, psi_stem) {
+    invisible(.Call('_plant_Leaf__get_leaf_states_rates_from_psi_stem_one_line', PACKAGE = 'plant', obj_, psi_stem))
+}
+
+Leaf__convert_psi_stem_to_ci <- function(obj_, psi_stem) {
+    .Call('_plant_Leaf__convert_psi_stem_to_ci', PACKAGE = 'plant', obj_, psi_stem)
+}
+
+Leaf__get_leaf_states_rates_from_psi_stem <- function(obj_, psi_stem) {
+    invisible(.Call('_plant_Leaf__get_leaf_states_rates_from_psi_stem', PACKAGE = 'plant', obj_, psi_stem))
 }
 
 Leaf__ci__get <- function(obj_) {
@@ -191,14 +167,6 @@ Leaf__E__get <- function(obj_) {
 
 Leaf__E__set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__E__set', PACKAGE = 'plant', obj_, value))
-}
-
-Leaf__psi__get <- function(obj_) {
-    .Call('_plant_Leaf__psi__get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__psi__set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__psi__set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__profit__get <- function(obj_) {
@@ -263,6 +231,14 @@ Leaf__atm_vpd___get <- function(obj_) {
 
 Leaf__atm_vpd___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__atm_vpd___set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__ca___get <- function(obj_) {
+    .Call('_plant_Leaf__ca___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__ca___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__ca___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__psi_soil___get <- function(obj_) {

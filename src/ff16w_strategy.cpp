@@ -102,7 +102,7 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
 // std::cout << "\tbefore:\t" << leaf.opt_ci  ;
 
 
-leaf.set_physiology(average_radiation, psi_soil, k_l_max, leaf.atm_vpd);
+leaf.set_physiology(average_radiation, psi_soil, k_l_max, leaf.atm_vpd, leaf.ca);
 
 // double psi_guess = vars.aux(aux_index.at("opt_psi_stem"));
 

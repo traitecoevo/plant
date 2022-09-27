@@ -60,7 +60,7 @@ public:
   }
 
   double consumption_rate(int i) const {
-    std::cout << "consumption_rate: " << individual.consumption_rate(i)  << "density: " <<  density << std::endl;
+    // std::cout << "consumption_rate: " << individual.consumption_rate(i)  << "density: " <<  density << std::endl;
 
     
     return individual.consumption_rate(i) * density;
@@ -102,7 +102,7 @@ void Node<T,E>::compute_rates(const environment_type& environment,
     - growth_rate_gradient(environment)
     - individual.rate("mortality");
 
-    std::cout << "growth: " << - growth_rate_gradient(environment) << "mort: " << - individual.rate("mortality") << "density_dt: " << exp(log_density_dt) << std::endl;
+    // std::cout << "growth: " << - growth_rate_gradient(environment) << "mort: " << - individual.rate("mortality") << "density_dt: " << exp(log_density_dt) << std::endl;
 
   // survival_individual: converts from the mean of the poisson process (on
   // [0,Inf)) to a probability (on [0,1]).

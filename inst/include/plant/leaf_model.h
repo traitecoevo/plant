@@ -25,8 +25,17 @@ static const double a = 0.3;
 static const double gamma_25 = 42.75;
 // Pa umol ^ -1 mol ^ 1 
 static const double umol_per_mol_to_Pa = 0.1013;
+// umol mol ^-1
+static const double kc_25 = 404.9 ;
+//partial pressure o2 (kPa)
+static const double atm_o2_kpa = 21 ;
+//multiplicative converter from kPa to Pa (Pa kPa^-1)
+static const double kPa_2_Pa = 1000;
+//umol mol ^-1
+static const double ko_25 = 278400;
+
 // Pa
-static const double km_25 = 71.56;
+static const double km_25 = (kc_25*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa*kPa_2_Pa)/(ko_25*umol_per_mol_to_Pa));
 // mol H2o kg ^-1
 static const double kg_to_mol_h2o = 55.4939;
 // mol mol ^-1 / (umol mol ^-1)
@@ -71,17 +80,19 @@ public:
   double g_c;
   double A_lim;
   double E;
-  double psi;
   double profit;
+  double psi_stem;
   double psi_stem_next;
   double c_i_next;
   double lambda_;
   double PPFD_;
   double atm_vpd_;
+  double ca_;
   double k_l_max_;
   double psi_soil_;
   double opt_psi_stem;
   double opt_ci;
+
 
   // TODO: move into environment?
 
@@ -99,61 +110,52 @@ public:
                                  integration_tol, integration_tol);
   }
   
-  double calc_cond_vuln(double psi) const;
-
-  double calc_E_supply(double psi_stem);
-
-   double calc_E_supply_full_integration(double psi_stem);                    
-
+  void set_physiology(double PPFD, double psi_soil, double k_l_max, double atm_vpd, double ca);
   void setup_E_supply(double resolution);
-  // void setup_psi(double resolution);
 
-  void set_physiology(double PPFD, double psi_soil, double k_l_max, double atm_vpd);
 
+  double calc_cond_vuln(double psi) const;
+  double calc_E_supply(double psi_stem);
+  double calc_E_supply_full_integration(double psi_stem);                    
 
   double calc_g_c(double psi_stem); // define as a constant
   double calc_A_c(double ci_);
+  double calc_j();
   double calc_A_j(double ci_);
   double calc_A_lim(double ci_);
-
+  double calc_A_lim_one_line(double c_i);
+  
   double diff_ci(double x, double psi_stem);
-
-  double calc_assim_gross(double psi_stem);
+  double convert_psi_stem_to_ci_one_line(double psi_stem);
+  void get_leaf_states_rates_from_psi_stem_one_line(double psi_stem);
+  double convert_psi_stem_to_ci(double psi_stem);
+  void get_leaf_states_rates_from_psi_stem(double psi_stem);
 
   double calc_hydraulic_cost_Sperry(double psi_stem);
-
-  double calc_profit_Sperry(double psi_stem);
-
   double calc_hydraulic_cost_Bartlett(double psi_stem);
 
+  double calc_profit_Sperry(double psi_stem);
+  
+  double convert_E_from_ci_to_psi_stem(double E_ci);
+  double calc_profit_Sperry_ci(double c_i);
+  double calc_profit_Sperry_one_line(double psi_stem);
+  double calc_profit_Sperry_ci_one_line(double c_i);
   double calc_profit_Bartlett(double psi_stem);
+  double calc_profit_Bartlett_ci(double c_i);
+
 
   double optimise_psi_stem_Bartlett();
-
   double optimise_psi_stem_Sperry();
   double optimise_ci_Bartlett();
-  double calc_profit_Bartlett_ci(double c_i);
-  double calc_assim_gross_ci(double ci);
-  double calc_psi_stem_ci(double E_ci);
-  // double calc_psi_from_E(double E_psi_stem);
-  double calc_profit_Sperry_ci(double c_i);
   double optimise_psi_stem_Sperry_Newton();
   double optimise_psi_stem_Sperry_Newton_recall();
   double optimise_ci_Sperry_Newton();
-  double optimise_ci_Sperry_Newton_recall();
-  double find_max_ci();
-  double calc_j();
-  double calc_assim_gross_one_line(double psi_stem);
-  double calc_profit_Sperry_one_line(double psi_stem);
   void optimise_psi_stem_Sperry_Newton_recall_one_line(double psi_guess);
   void optimise_ci_Sperry_Newton_recall_one_line(double ci_guess);
-  double calc_profit_Sperry_ci_one_line(double c_i);
-  double calc_A_lim_one_line(double c_i);
   double optimise_psi_stem_Sperry_one_line();
-  void optimise_psi_stem_Sperry_Newton_recall_one_line_pass();
-  double find_max_ci_one_line();
-  void optimise_ci_Sperry_Newton_recall_one_line_max(double ci_guess);
   void optimise_ci_Sperry_one_line(double max_ci);
+
+  
 };
 } // namespace plant
 #endif

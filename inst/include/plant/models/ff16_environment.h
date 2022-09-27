@@ -151,7 +151,7 @@ public:
 
         // std::cout << "; theta: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
 
-      std::cout << "net_flux" << net_flux << std::endl;
+      // std::cout << "net_flux" << net_flux << std::endl;
 
 
       vars.set_rate(i, net_flux);

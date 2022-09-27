@@ -31,7 +31,7 @@ curv_fact <- 0.9 #curvature factor for light limited transport (unitless)
 
 km_25 <- (kc_25*umol_per_mol_2_Pa)*(1 + (atm_o2_kpa*kPa_2_Pa)/(ko_25*umol_per_mol_2_Pa)) #Pa
 
-K_s_0 <- 2
+K_s_0 <- 2 #global central value K_s (Liu et al. 2019)
 
 
 ################################ functions below calculate values outside of the leaf model
@@ -82,18 +82,18 @@ calc_PPFD_instant <- function(latitude, day, ...) {
 
 
 #calculate leaf specific conductance
-integrate_E_supply <- function(x, k_l_max, b, c){
+integrate_E_supply <- function(x, b, c, k_l_max){
   k_l_max*exp(-(x/b)^c)
 }
 
 #calculate transpiration by intergrating across conductivity curve
 calc_E_supply <- function(psi_stem, psi_soil, ...){
-
   integrate(integrate_E_supply, lower = psi_soil, upper = psi_stem, abs.tol = 1e-6 ,stop.on.error = TRUE,  ...)
 }
 
 #calculate stomatal conductance to h20 (g_w) and co2 (g_c) from E supply and VPD
 calc_g_c <- function(psi_stem, psi_soil, atm_vpd,...){
+  # g_w = atm_kpa*l$calc_E_supply(psi_stem)*kg_2_mol_h20/atm_vpd
   g_w = atm_kpa*calc_E_supply(psi_stem = psi_stem, psi_soil = psi_soil, ...)$value*kg_2_mol_h20/atm_vpd
   g_w/1.6
 }
@@ -116,12 +116,22 @@ calc_A_j <- function(c_i, ...){
   calc_j(...)/4 * ((c_i - gamma_25*umol_per_mol_2_Pa)/(c_i + 2*gamma_25*umol_per_mol_2_Pa))
 }
 
-#calculate co-limited assimilation rate including leaf-level dark respiration (R_d)
+#calculate co-limited assimilation rate
 calc_A_lim <- function(c_i, vcmax, PPFD){
   A_j = calc_A_j(c_i = c_i, PPFD = PPFD, vcmax = vcmax)
   A_c = calc_A_c(c_i = c_i, vcmax = vcmax)
   (A_c + A_j  - sqrt((A_c + A_j)^2-4*0.98*A_c*A_j))/(2*0.98)
 }
+
+#calculated assimilation based on just A_j, A=gc*(ca - ci) equation to be re-arranged to find ci without root-finding
+calc_A_lim_one_line <- function(c_i,...) {
+  # estimated parameter to smooth A_j to middle of A_j and A_c
+  c2 = 13.13652;
+  
+  calc_j(...) / 4 * ((c_i - gamma_25 * umol_per_mol_2_Pa) /
+       (c_i + c2));
+}
+
 
 diff_ci <- function(x, g_c, vcmax, PPFD, ca){
   calc_A_lim(c_i = x, vcmax = vcmax, PPFD = PPFD)*umol_per_mol_2_mol_per_mol - (g_c*(ca - x)/(atm_kpa*kPa_2_Pa))
@@ -133,8 +143,6 @@ solve_ci <- function(vcmax, PPFD, g_c, ca){
   list(ci_root, A_lim_root)
 }
 
-
-
 calc_k_l <- function(psi ,k_l_max, b, c){
   k_l_max*exp(-(psi/b)^c)
 }
@@ -143,9 +151,72 @@ calc_ben_gross <- function(psi_stem, psi_soil, atm_vpd, k_l_max, b, c, PPFD, vcm
   
   g_c <- calc_g_c(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c)
   
-  R_d = vcmax * 0.015
+  as.numeric(solve_ci(g_c = g_c, vcmax = vcmax, PPFD = PPFD, ca = ca)[2]) 
+}
+
+calc_ben_gross_one_line <- function(psi_stem, psi_soil, atm_vpd, k_l_max, b, c, PPFD, vcmax, ca) {
   
-  as.numeric(solve_ci(g_c = g_c, vcmax = vcmax, PPFD = PPFD, ca = ca)[2])  - R_d 
+  g_c <- calc_g_c(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c)
+  
+  c2 = 13.13652;
+  j_ = calc_j(PPFD, vcmax)
+  
+  first_term = 8 * j_ * umol_per_mol_2_mol_per_mol * (atm_kpa*kPa_2_Pa) * g_c * (-ca + c2 + 2 * gamma_25 * umol_per_mol_2_Pa);
+  second_term = 16 * g_c^2;
+  third_term = (ca + c2)^2;
+  fourth_term = j_^2 * umol_per_mol_2_mol_per_mol^2 * (atm_kpa*kPa_2_Pa)^2;
+  fifth_term = 4*ca*g_c;
+  sixth_term = 4*c2*g_c;
+  seventh_term = j_*umol_per_mol_2_mol_per_mol*(atm_kpa*kPa_2_Pa);
+  eigth_term = 8*g_c;
+  
+  ci = (sqrt(first_term + second_term*third_term+ fourth_term) + fifth_term - sixth_term - seventh_term)/eigth_term;
+  A_lim = calc_A_lim_one_line(c_i =ci, vcmax = vcmax, PPFD = PPFD);
+  E = g_c * 1.6 * atm_vpd / kg_2_mol_h20 / atm_kpa;
+  psi = psi_stem;
+  
+  A_lim
+}
+
+find_max_ci_one_line <- function(psi_crit, psi_soil, atm_vpd, ...) {
+  
+  g_c = calc_g_c(psi_crit, psi_soil, atm_vpd, k_l_max = k_l_max, b = b, c = c)  
+  
+  c2 = 13.13652
+  j = calc_j(...)
+  first_term = 8 * j * umol_per_mol_2_mol_per_mol * (atm_kpa*kPa_2_Pa) * g_c * (-ca + c2 + 2 * gamma_25 * umol_per_mol_2_Pa);
+  second_term = 16 * g_c^2;
+  third_term = (ca + c2)^2;
+  fourth_term = j^2 * umol_per_mol_2_mol_per_mol^2 * (atm_kpa*kPa_2_Pa)^2;
+  fifth_term = 4*ca*g_c;
+  sixth_term = 4*c2*g_c;
+  seventh_term = j*umol_per_mol_2_mol_per_mol*(atm_kpa*kPa_2_Pa);
+  eigth_term = 8*g_c;
+  
+  ci = (sqrt(first_term + second_term*third_term+ fourth_term) + fifth_term - sixth_term - seventh_term)/eigth_term    
+  return(ci)
+}
+
+
+diff_psi <- function(x, psi_soil, E,...){
+    calc_E_supply(psi_stem = x, psi_soil = 0,...)$value - calc_E_supply(psi_stem = psi_soil, psi_soil = 0,...)$value - E
+}
+
+solve_psi <- function(E, ...){
+  psi_root <- uniroot(f = diff_psi,interval = c(psi_soil,psi_crit), E, ..., extendInt = 'no', tol = 1e-8)$root
+  psi_root
+}
+
+calc_profit_Sperry_ci_one_line <- function(c_i, ...){                                  
+  benefit_ = calc_A_lim_one_line(c_i = c_i, vcmax = vcmax, PPFD = PPFD)
+  g_c_ci = (benefit_ * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(ca - c_i)
+  E = g_c_ci * 1.6 * atm_vpd / kg_2_mol_h20 / atm_kpa;  
+  psi_stem = solve_psi(E = E, k_l_max = k_l_max, psi_soil = psi_soil, b =b, c= c)
+  
+  lambda_ = calc_lambda(psi_soil= psi_soil, k_l_max, vcmax = vcmax, PPFD = PPFD, b= b, c= c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca= ca)
+
+  cost_ = calc_hydraulic_cost(psi_soil = psi_soil, psi_stem = psi_stem, ...);
+  benefit_ - lambda_*cost_;
 }
 
 calc_hydraulic_cost <- function(psi_soil, psi_stem, k_l_max, b, c, ...){
@@ -164,163 +235,20 @@ calc_profit <- function(psi_stem, psi_soil, k_l_max, vcmax, PPFD, b, c, psi_crit
     calc_hydraulic_cost(psi_stem = psi_stem, psi_soil = psi_soil, k_l_max =  k_l_max, b = b, c = c)
 }
 
-calc_hydraulic_cost_bartlett <- function(psi_soil, psi_stem, k_l_max, b, c, beta, beta_2, huber_value, height){
-  if(psi_soil == psi_stem){
-    0
-  } else {
-  beta*huber_value*height*(1 - integrate_E_supply(psi_stem, k_l_max, b, c)/integrate_E_supply(psi_soil, k_l_max, b, c))^beta_2
-  }
-  }
 
-
-calc_profit_bartlett <- function(psi_stem, psi_soil, k_l_max, vcmax, PPFD, b, c, psi_crit, atm_vpd, ca, beta, beta_2, huber_value, height){
-  
-  calc_ben_gross(psi_stem = psi_stem, psi_soil = psi_soil, vcmax = vcmax, PPFD = PPFD, k_l_max = k_l_max, b = b, c = c, atm_vpd = atm_vpd, ca = ca)-
-    calc_hydraulic_cost_bartlett(psi_soil = psi_soil, psi_stem = psi_stem, k_l_max = k_l_max, b = b, c = c, beta = beta, beta_2 = beta_2, huber_value = huber_value, height = height)
-}
-
-calc_upper <- function(psi_crit,...){
-  psi_crit
-}
-
-calc_lower <- function(psi_soil,...){
-  psi_soil
-}
-
-find_opt_psi_stem <- function(psi_soil, k_l_max, vcmax , PPFD, b, c, psi_crit, atm_vpd, ca){
-
-  if(is.na(psi_soil)){
-    E_root <- NA
-    profit_root <- NA
-    tibble(E_root, profit_root)
-
-  }
-  else{
-  if(psi_soil < psi_crit){
-  psi_stem_root <- ifelse(isTRUE(all.equal(PPFD, 0)), 
-                          psi_soil,
-                          optimise(f = calc_profit, lower= psi_soil, upper = psi_crit, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca, maximum = TRUE, tol = 1e-5)$maximum)
-  profit_root <- calc_profit(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca)
-  # cost_root <- calc_hydraulic_cost(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)
-  # gc_root <- calc_g_c(psi_stem = psi_stem_root, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c)
-  # E_root <- calc_E_supply(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)$value
-  # ci_root <- solve_ci(vcmax = vcmax, PPFD = PPFD, g_c = gc_root, ca = ca)[[1]]
-  }
-  
-  else {
-    print("no hello")
-    
-    
-    psi_stem_root <- psi_soil
-    psi_crit <- psi_soil
-    profit_root <- calc_profit(psi_stem = psi_soil, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca)
-    cost_root <- calc_hydraulic_cost(psi_soil = psi_soil, psi_stem = psi_soil, k_l_max = k_l_max, b = b, c = c)
-    gc_root <- calc_g_c(psi_stem = psi_stem_root, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c)
-    E_root <- calc_E_supply(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)$value
-    ci_root <- solve_ci(vcmax = vcmax, PPFD = PPFD, g_c = gc_root, ca = ca)[[1]]
-  }
-    # tibble(psi_stem_root, profit_root, cost_root, gc_root, E_root, ci_root)
-    tibble(psi_stem_root, profit_root)
-    
-  }
-  
-}
-
-find_opt_psi_stem_bartlett <- function(psi_soil, k_l_max, vcmax , PPFD, b, c, psi_crit, atm_vpd, ca, beta, beta_2, huber_value = huber_value, height = height){
-  
-  if(psi_soil < psi_crit){
-    psi_stem_root <- ifelse(isTRUE(all.equal(PPFD, 0)), 
-                            psi_soil,
-                            optimise(f = calc_profit_bartlett, lower= psi_soil, upper = psi_crit, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca, beta = beta, beta_2 = beta_2, huber_value = huber_value, height = height, maximum = TRUE, tol = 1e-5)$maximum)
-    profit_root <- calc_profit_bartlett(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca, beta = beta, beta_2 = beta_2, huber_value = huber_value, height = height)
-    E_root <- calc_E_supply(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)$value
-    
-  }
-  
-  else {
-    psi_stem_root <- psi_soil
-    profit_root <- calc_profit_bartlett(psi_stem = psi_soil, psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax, PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca = ca, beta = beta, beta_2 = beta_2, huber_value = huber_value, height = height)
-    E_root <- calc_E_supply(psi_stem = psi_stem_root, psi_soil = psi_soil, k_l_max = k_l_max, b = b, c = c)$value
-    
-    }
-  
-  tibble(psi_stem_root, profit_root, E_root)
-}
-
-
-set_params <- function(K_s = 2,
-                       h_v = 0.000157,
-                       h = 5,
-                       atm_vpd = 1,
-                       vcmax = 100,
-                       PPFD = 900,
-                       psi_soil = 1,
-                       p50 = NULL,
-                       b = NULL,
-                       psi_stem = 1,
-                       latitude = -23, 
-                       day = 1, 
-                       k = 0.5, 
-                       E = 1
-) {
-  
-  c <- 2.04
-  
-  
-  if(is.null(p50)) p50 <- K_s_2_p_50(K_s)
-  
-  if(is.null(b)) b <- calc_vul_b(p_50 = p50, c = c)
-  
-  
-  k_l_max <- calc_k_l_max(K_s = K_s, h_v = h_v, h = h)
-  psi_crit <- calc_psi_crit(b,c)
-  
-  
-  tibble(K_s = K_s,
-         p50 = p50,
-         # p88 = p88,
-         b = b,
-         c = c,
-         psi_crit = psi_crit,
-         k_l_max = k_l_max) %>%
-    expand_grid(h_v = h_v,
-                h = h,
-                atm_vpd = atm_vpd,
-                vcmax = vcmax,
-                PPFD = PPFD,
-                psi_soil = psi_soil,
-                psi_stem = psi_stem,
-                latitude = latitude, 
-                day = day, 
-                k = k, 
-                E = E)
-}
-
-run_models <- function(params){
-  params %>%
-    rowwise()%>%
-    mutate(find_opt_psi_stem(psi_soil = psi_soil, k_l_max = k_l_max, vcmax = vcmax , PPFD = PPFD, b = b, c = c, psi_crit = psi_crit, atm_vpd = atm_vpd),
-           profit = calc_profit(k_l_max = k_l_max, b=b, c=c, psi_soil = psi_soil, atm_vpd=atm_vpd, vcmax=vcmax, PPFD = PPFD, psi_crit = psi_crit, psi_stem = psi_stem),
-           raw_cost = calc_hydraulic_cost(k_l_max = k_l_max, b=b, c=c, psi_soil = psi_soil,psi_stem = psi_stem),
-           lambda = calc_lambda(k_l_max = k_l_max, b=b, c=c, psi_soil = psi_soil, atm_vpd=atm_vpd, vcmax=vcmax, PPFD = PPFD, psi_crit = psi_crit),
-           cost = lambda*raw_cost,
-           benefit = profit+cost)
-}
-
-
-opt_psi_stem_gss <- function(psi_soil, k_l_max, vcmax, PPFD, b, c, psi_crit, atm_vpd, ca){
+opt_ci_gss <- function(psi_soil, k_l_max, vcmax, PPFD, b, c, psi_crit, atm_vpd, ca){
   gr = (sqrt(5) + 1)/2
   tol = 1e-5
   
-  a_bound = psi_soil
-  b_bound = psi_crit
+  a_bound = gamma_25 * umol_per_mol_2_Pa
+  b_bound = find_max_ci_one_line(psi_crit = psi_crit, psi_soil = psi_soil, atm_vpd = atm_vpd, vcmax = vcmax, PPFD = PPFD)
   
   c_bound = b_bound - (b_bound-a_bound)/gr
   d_bound = a_bound + (b_bound-a_bound)/gr
   
   while(abs(b_bound - a_bound) > tol){
-    if(calc_profit(c_bound, psi_soil, k_l_max, vcmax, PPFD, b, c, psi_crit, atm_vpd, ca) >
-       calc_profit(d_bound, psi_soil, k_l_max, vcmax, PPFD, b, c, psi_crit, atm_vpd, ca)) {
+    if(calc_profit_Sperry_ci_one_line(c_i = c_bound, k_l_max, b, c) >
+       calc_profit_Sperry_ci_one_line(c_i = d_bound, k_l_max, b, c)) {
       b_bound = d_bound
     } else {
       a_bound = c_bound
@@ -329,10 +257,9 @@ opt_psi_stem_gss <- function(psi_soil, k_l_max, vcmax, PPFD, b, c, psi_crit, atm
     d_bound = a_bound + (b_bound-a_bound)/gr
   }
   
-  opt_psi_stem = (b_bound+a_bound)/2
+  opt_ci = (b_bound+a_bound)/2
   
-  calc_profit(k_l_max = k_l_max, b=b, c=c, psi_soil = psi_soil, atm_vpd=atm_vpd, vcmax=vcmax, PPFD = PPFD, psi_crit = psi_crit, psi_stem = opt_psi_stem, ca = ca)
-  
+  calc_profit_Sperry_ci_one_line(c_i = opt_ci, k_l_max, b, c)
 }
 
 
