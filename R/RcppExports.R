@@ -81,10 +81,6 @@ Leaf__optimise_psi_stem_Sperry_Newton_recall <- function(obj_) {
     .Call('_plant_Leaf__optimise_psi_stem_Sperry_Newton_recall', PACKAGE = 'plant', obj_)
 }
 
-Leaf__optimise_ci_Sperry_Newton <- function(obj_) {
-    .Call('_plant_Leaf__optimise_ci_Sperry_Newton', PACKAGE = 'plant', obj_)
-}
-
 Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line <- function(obj_, psi_guess) {
     invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line', PACKAGE = 'plant', obj_, psi_guess))
 }
@@ -175,6 +171,14 @@ Leaf__profit__get <- function(obj_) {
 
 Leaf__profit__set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__profit__set', PACKAGE = 'plant', obj_, value))
+}
+
+Leaf__psi_stem__get <- function(obj_) {
+    .Call('_plant_Leaf__psi_stem__get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__psi_stem__set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__psi_stem__set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__psi_stem_next__get <- function(obj_) {

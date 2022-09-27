@@ -82,10 +82,6 @@ double Leaf__optimise_psi_stem_Sperry_Newton_recall(plant::RcppR6::RcppR6<plant:
   return obj_->optimise_psi_stem_Sperry_Newton_recall();
 }
 // [[Rcpp::export]]
-double Leaf__optimise_ci_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->optimise_ci_Sperry_Newton();
-}
-// [[Rcpp::export]]
 void Leaf__optimise_psi_stem_Sperry_Newton_recall_one_line(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_guess) {
   obj_->optimise_psi_stem_Sperry_Newton_recall_one_line(psi_guess);
 }
@@ -180,6 +176,15 @@ double Leaf__profit__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__profit__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->profit = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__psi_stem__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->psi_stem;
+}
+// [[Rcpp::export]]
+void Leaf__psi_stem__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->psi_stem = value;
 }
 
 // [[Rcpp::export]]

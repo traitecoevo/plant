@@ -6,7 +6,7 @@ FF16w_Strategy::FF16w_Strategy() {
   collect_all_auxiliary = false;
 
   // initialise leaf traits
-  // leaf = Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s);
+  // leaf = Leaf(vcmax, p_50, c, b, psi_crit, huber_value, K_s);
 
 
   // build the string state/aux name to index map
@@ -61,103 +61,34 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
 
     util::stop("Error");
     }
-               
-
-  // std::cout << "openness1 " << environment.get_environment_at_height(height*0.9) << std::endl;
-
-
-  // std::cout << get_environment_at_height(height) << std::endl        
-
-  // k_I adds self shading in addition to patch competition
-  const double average_radiation =
-      k_I * average_light_environment * environment.PPFD;
-
-  const double psi_soil = environment.get_psi_soil() / 1000000;
-  // const double theta_test = environment.get_soil_water_state()[0];
-  // std::cout << "theta_test; " << theta_test << "psi_soil: " << psi_soil  << std::endl;
-
-
-  // height * eta_c = height of average leaf area
-  // const double k_l_max = K_s * huber_value / (height * eta_c);
-
-  // std::cout << "height" << height << "average_light_environment" << average_light_environment << "environment.PPFD" << environment.PPFD << std::endl;
-  const double k_l_max = K_s * huber_value / (height * eta_c);
-
-  // std::cout << "K_s_inside_strategy " << K_s << std::endl;
-
-
-  // const double opt_psi_stem =
-  //     leaf.optimise_psi_stem_Sperry(average_radiation, psi_soil, k_l_max);
-
-
-  
-  // const double opt_psi_stem =
-  //     leaf.optimise_psi_stem_Bartlett(average_radiation, psi_soil, k_l_max);
-
-    // std::cout << "opt_psi_stem: " << opt_psi_stem  << "psi_soil: " << psi_soil  << "average_radiation: " << average_radiation << "k_l_max: " << k_l_max << std::endl;
-
-  // const double opt_psi_stem =
-  //     leaf.optimise_psi_stem_Sperry_Newton_recall(average_radiation, psi_soil, k_l_max);
-
-// std::cout << "\tbefore:\t" << leaf.opt_ci  ;
-
-
-leaf.set_physiology(average_radiation, psi_soil, k_l_max, leaf.atm_vpd, leaf.ca);
-
-// double psi_guess = vars.aux(aux_index.at("opt_psi_stem"));
-
-// std::cout << "psi_guess: " << psi_guess  <<std::endl;
-
-double ci_guess = vars.aux(aux_index.at("opt_ci"));
-
-// std::cout << "\tstored\t" << ci_guess;
-
-// std::cout << "PPFD" << leaf.PPFD_ << "k_l_max_" << leaf.k_l_max_ << "psi_soil" << leaf.psi_soil_ << "lambda_" << leaf.lambda_  <<  " j_ "<< leaf.j_ << std::endl;
-
-leaf.optimise_ci_Sperry_Newton_recall_one_line(ci_guess);
-
-vars.set_aux(aux_index.at("opt_ci"), leaf.opt_ci);
-
-// std::cout << "second ci" << leaf.opt_ci;
-// std::cout << "\tafter:\t" << leaf.opt_ci  << std::endl;
-
-
-// leaf.optimise_psi_stem_Sperry_Newton_recall_one_line(psi_guess);
-
-// double ci = leaf.ci
-// double E = leaf.E
-
-// vars.set_aux(aux_index.at("opt_psi_stem"), leaf.opt_psi_stem);
-
-// // std::cout << "k_l_max: " << k_l_max  <<std::endl;
-  // const double assimilation_per_area = leaf.profit;
-
-// leaf.optimise_psi_stem_Sperry_Newton_recall_one_line_pass();
-
-// leaf.optimise_ci_Sperry_Newton_recall_one_line()
-
-  const double assimilation_per_area = leaf.profit;
-
-  // const double assimilation_per_area = leaf.calc_profit_Sperry(leaf.opt_psi_stem);
-
-
-// std::cout << "assimilation_umol: " << assimilation_per_area << "area_leaf: " << area_leaf_ <<std::endl;
-  
-  const double assimilation = assimilation_per_area * area_leaf_* 60*60*12*365/1000000;
-
-
-  const double respiration_ =
-      respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
-  const double turnover_ =
-      turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
-
-// std::cout << "net_mass_production_dt_A: " << net_mass_production_dt_A(assimilation, respiration_, turnover_) <<std::endl;
-
-
-  return net_mass_production_dt_A(assimilation, respiration_, turnover_);
     
-
-
+    // k_I adds self shading in addition to patch competition
+  const double average_radiation = k_I * average_light_environment * environment.PPFD;
+    
+  const double psi_soil = environment.get_psi_soil() / 1000000;
+    
+  // height * eta_c = height of average leaf area
+  const double k_l_max = K_s * huber_value / (height * eta_c);
+    
+  leaf.set_physiology(average_radiation, psi_soil, k_l_max, leaf.atm_vpd, leaf.ca);
+    
+  double ci_guess = vars.aux(aux_index.at("opt_ci"));
+    
+  leaf.optimise_ci_Sperry_Newton_recall_one_line(ci_guess);
+    
+  vars.set_aux(aux_index.at("opt_ci"), leaf.opt_ci);
+    
+  const double assimilation_per_area = leaf.profit;
+    
+  const double assimilation = assimilation_per_area * area_leaf_* 60*60*12*365/1000000;
+    
+  const double respiration_ = 
+  respiration(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+      
+  const double turnover_ = 
+  turnover(mass_leaf_, mass_sapwood_, mass_bark_, mass_root_);
+  
+  return net_mass_production_dt_A(assimilation, respiration_, turnover_);
 
 }
 
@@ -240,7 +171,7 @@ void FF16w_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf(vcmax, p_50, c, b, psi_crit, beta, beta_2, huber_value, K_s, epsilon_leaf);
+  leaf = Leaf(vcmax, p_50, c, b, psi_crit, huber_value, K_s, epsilon_leaf);
 }
 
 

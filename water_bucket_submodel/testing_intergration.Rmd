@@ -23,6 +23,7 @@ library(furrr)
 
 ```{r}
 devtools::load_all(".")
+devtools::install_deps(".")
 
 library(plant)
 ```
@@ -472,8 +473,9 @@ exanded_input_data2 <- params %>%
 ```{r}
 exanded_input_data2 %>%
   mutate(integrated_daily_profit = map_dbl(outputs, ~plant:::trapezium(.x$instant_through_day_hr, .x$profit))) %>%
+  slice(1:2000) %>%
   expand_grid(focal_points = seq(1,10,1)) %>%
-  mutate(point_estimate_profit = pmap_dbl(., calc_mult_point)) -> expanded_output
+  mutate(point_estimate_profit = pmap_dbl(., calc_mult_point)) -> expanded_output2
 ```
 
 
@@ -537,7 +539,8 @@ expanded_output %>%
   ggplot(aes(x = integrated_daily_profit, y = point_estimate_profit)) +
   geom_point() +
   theme_classic() +
-  facet_wrap(~focal_points) 
+  facet_wrap(~focal_points) +
+  geom_abline(slope = 1, intercept = 0)
 ```
 
 ```{r}
@@ -545,6 +548,18 @@ expanded_output %>%
   group_by(focal_points) %>%
   mutate(correlation = cor(integrated_daily_profit, point_estimate_profit)) %>%
   ggplot(aes(x = focal_points, y = correlation)) +
+  geom_line() +
+  theme_classic()
+```
+
+```{r}
+expanded_output %>%
+  group_by(focal_points) %>%
+  mutate(sample_size = n()) %>%
+  mutate(diff = integrated_daily_profit - point_estimate_profit) %>%
+  mutate(bias = sum(diff)/sample_size) %>%
+  mutate(rmse = sqrt(sum(diff_squared^2)/sample_size)) %>%
+  ggplot(aes(x = focal_points, y = rmse)) +
   geom_line() +
   theme_classic()
 ```

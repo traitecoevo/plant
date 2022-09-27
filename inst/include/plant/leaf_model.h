@@ -83,7 +83,6 @@ public:
   double profit;
   double psi_stem;
   double psi_stem_next;
-  double c_i_next;
   double lambda_;
   double PPFD_;
   double atm_vpd_;
@@ -130,26 +129,18 @@ public:
   void get_leaf_states_rates_from_psi_stem_one_line(double psi_stem);
   double convert_psi_stem_to_ci(double psi_stem);
   void get_leaf_states_rates_from_psi_stem(double psi_stem);
+  double convert_E_from_ci_to_psi_stem(double E_ci);
 
   double calc_hydraulic_cost_Sperry(double psi_stem);
-  double calc_hydraulic_cost_Bartlett(double psi_stem);
 
-  double calc_profit_Sperry(double psi_stem);
-  
-  double convert_E_from_ci_to_psi_stem(double E_ci);
+  double profit_psi_stem_Sperry(double psi_stem);
+  double profit_psi_stem_Sperry_one_line(double psi_stem);
   double calc_profit_Sperry_ci(double c_i);
-  double calc_profit_Sperry_one_line(double psi_stem);
   double calc_profit_Sperry_ci_one_line(double c_i);
-  double calc_profit_Bartlett(double psi_stem);
-  double calc_profit_Bartlett_ci(double c_i);
 
-
-  double optimise_psi_stem_Bartlett();
   double optimise_psi_stem_Sperry();
-  double optimise_ci_Bartlett();
   double optimise_psi_stem_Sperry_Newton();
   double optimise_psi_stem_Sperry_Newton_recall();
-  double optimise_ci_Sperry_Newton();
   void optimise_psi_stem_Sperry_Newton_recall_one_line(double psi_guess);
   void optimise_ci_Sperry_Newton_recall_one_line(double ci_guess);
   double optimise_psi_stem_Sperry_one_line();
