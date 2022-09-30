@@ -23,17 +23,55 @@ library(furrr)
 
 ```{r}
 devtools::load_all(".")
-devtools::install_deps(".")
+# devtools::install(".")
 
-library(plant)
+# library(plant)
 ```
 
 
 ```{r warning=FALSE}
 source("R/solar_model.R")
-source("water_bucket_submodel/R/reference_soil.R")
-source("water_bucket_submodel/R/reference_leaf.R")
+# source("water_bucket_submodel/R/reference_soil.R")
+source("tests/reference_leaf_updated.R")
 ```
+
+```{r}
+#vpsat in kPa
+calc_vpsat <- function(air_temp_c){
+  
+    A = 17.27;
+    T_star = 273.0; #K
+    T_dash = 36.0;  #K
+    es_T_star = 0.611; #kPa
+  
+  
+  air_temp_K <- air_temp_c + 273.15
+  
+  esat = es_T_star * exp(A * (air_temp_K - T_star) / (air_temp_K - T_dash))
+  esat
+}
+```
+
+
+```{r}
+p_50_2_K_s <- function(p50){
+  1.638999*(p50/2)^(-1.38)
+}
+
+calc_vul_b <- function(p_50, c){
+  num <- p_50
+  den <- (-log(1-50/100))^(1/c)
+  num/den
+}
+
+
+calc_psi_crit <- function(b,c) {
+  b*(log(1/0.05))^(1/c)
+}
+
+
+```
+
 
 ```{r}
 calc_temp <- function(instant_of_day, day_length, mean_temp, temp_diff, sun_rise, sun_down){
@@ -41,7 +79,6 @@ calc_temp <- function(instant_of_day, day_length, mean_temp, temp_diff, sun_rise
 # Parton and Logan (1981) A model for dirunal variation in soil and
 #        air temperature. Agricultural Meteorology, 23, 205--216.
 
-# get_chunk_and_distribute_subdaily
 
 a_t = 1.86;
 b_t = 2.2;     #nighttime coeffcient
@@ -65,25 +102,11 @@ if(instant_of_day >= sun_rise & instant_of_day <= sun_down){
 ```
 
 ```{r}
-
 LHS <- randomLHS(5000, 11)
 
 params <- tibble(mean_temp = 20, temp_diff = qunif(LHS[,1], min = 5, max = 20), latitude = qunif(LHS[,2], min = 0, max = 60), VP = qunif(LHS[,3], 0.5, 2),
                    vcmax = qunif(LHS[,4], 30, 100), p_50 = qunif(LHS[,5], min = 1, max = 10), huber_value = qunif(LHS[,6], min = 0.000157/2, max =  0.000157*2),
                    day = qunif(LHS[,7], min = 0, 180), h = qunif(LHS[,8], min = 5, max = 80), E = qunif(LHS[,9], min = 0, max = 1), psi_soil = qunif(LHS[,10], 0, 10), ca = qunif(LHS[,11], 30, 45))
-
-# sites_params <- expand_grid(mean_temp = 20, temp_diff = runif(10, min = 5, max = 20), latitude = runif(10, min = 0, max = 60), VP = runif(10, 0.5, 2)) %>%
-#   sample_n(16)
-# 
-# between_spp_params <- expand_grid(vcmax = runif(10, 30, 100), p_50 = runif(10, min = 1, max = 10), huber_value = runif(10, min = 0.000157/2, max =  0.000157*2)) %>%
-#   sample_n(16)
-# 
-# within_spp_params <- expand_grid(day = runif(10, min = 0, 180), h = runif(10, min = 5, max = 80), E = runif(10, min = 0, max = 1), psi_soil = runif(10, 0, 10)) %>%
-#   sample_n(16)
-# 
-# sites_params %>%
-#   expand_grid(between_spp_params) %>%
-#   expand_grid(within_spp_params) -> params
 ```
 
 
@@ -92,7 +115,12 @@ expand_input_data <- function(...){
   params = tibble(...)  
 
   params %>%
-  mutate(sun_rise = sun_rise(day, latitude),
+    mutate(c = 2.04) %>%
+    mutate(b = calc_vul_b(p_50, c)) %>%
+    mutate(psi_crit = calc_psi_crit(b,c)) %>%
+    mutate(K_s = p_50_2_K_s(p_50)) %>%
+    mutate(k_l_max = calc_k_l_max(K_s, huber_value, h)) %>%
+    mutate(sun_rise = sun_rise(day, latitude),
          sun_down = sun_rise + (12-sun_rise)*2,
          day_length = sun_down - sun_rise,
          day_floor = floor(day),
@@ -110,57 +138,26 @@ expand_input_data <- function(...){
 ```
 
 ```{r}
-find_profit <- function(...){
+make_leaf <- function(...){
 require(plant)
+  
 params <- tibble(...)
-
-
-p_50_2_K_s <- function(p50){
-  1.638999*(p50/2)^(-1.38)
-}
-
-calc_vul_b <- function(p_50, c){
-  num <- p_50
-  den <- (-log(1-50/100))^(1/c)
-  num/den
-}
-
-
-calc_psi_crit <- function(b,c) {
-  b*(log(1/0.05))^(1/c)
-}
-
-
-
-vcmax = params$vcmax #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
-p_50 = params$p_50 #stem water potential at 50% loss of conductivity
-c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
-b = calc_vul_b(p_50, c) #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
-psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
-huber_value = params$huber_value #huber value (m^2 sapwood area m^-2 leaf area)
-K_s = p_50_2_K_s(p_50) #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
-h = params$h #height or path length (m)
-k_l_max = calc_k_l_max(K_s, huber_value, h)
-l <- plant:::Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
-l$set_physiology(PPFD = params$PAR*params$E, psi_soil = params$psi_soil, k_l_max = k_l_max, atm_vpd = params$VPD_hr, params$ca)
-l$optimise_ci_Sperry_Newton_recall_one_line(NA)
-l$profit
+leaf <- plant:::Leaf(vcmax = params$vcmax, p_50 = params$p_50, c = params$c, b = params$b, psi_crit = params$psi_crit, huber_value = params$huber_value, K_s = params$K_s, epsilon_leaf = 0.0001)
+leaf$set_physiology(PPFD = params$PAR*params$E, psi_soil = params$psi_soil, k_l_max = params$k_l_max, atm_vpd = params$VPD_hr, ca = params$ca)
+return(leaf)
 }
 ```
 
 
 ```{r}
-calc_profit_instant <- function(...){
-  require(plant)
-  params <- tibble(...) %>%
-  mutate(profit = pmap(., find_profit) %>%
-  unlist())
-}
+leaf_states_rates_from_leaf<- function(leaf){
+  leaf$optimise_psi_stem_Sperry()
+  output_tibble <- tibble(profit = leaf$profit, GSS_count = leaf$GSS_count, count = leaf$count, method = leaf$method)
+  }
 ```
 
 ```{r}
 calc_one_point <- function(data){
-  browser()
 (12 - min(data$instant_through_day_hr)) * 2 -> day_length_hr
   data %>%
     filter(abs(instant_through_day_dec - 0.5) == min(abs(instant_through_day_dec - 0.5))) %>%
@@ -168,23 +165,30 @@ calc_one_point <- function(data){
     sample_n(1) -> out
   
   out$daily_profit
-  
 }
 ```
 
 
+
 ```{r}
-future::plan("multisession", workers = 8)
+# future::plan("multisession", workers = 8)
 ```
 
 ```{r}
 exanded_input_data2 <- params %>%
-  future_pmap(expand_input_data) %>%
+  head(5) %>%
+  pmap(expand_input_data) %>%
   bind_rows() %>%
-  filter(PAR > 1e-10) %>% 
-  future_pmap(calc_profit_instant) %>%
-  bind_rows() %>%
-  nest(outputs = c(instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit))
+  filter(PAR > 1e-10) %>%
+  ungroup()
+
+exanded_input_data2 %>% 
+ mutate(leaf = pmap(., make_leaf)) %>%
+  mutate(leaf_states_rate = map(leaf, leaf_states_rates_from_leaf)) %>%
+  unnest(leaf_states_rate) %>% 
+  nest(outputs = c(leaf, instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit, GSS_count, count, method, profit)) ->exanded_input_data3
+
+map(exanded_input_data3$outputs, ~.x %>% ggplot(aes(x = instant_through_day_hr, y=profit)) + geom_line())
 ```
 
 ```{r}
@@ -208,6 +212,82 @@ expanded_output %>%
 
 ggplotly(p)
 ```
+
+
+```{r}
+calc_mult_point <- function(...){
+  
+  data = tibble(...) %>%
+    nest(outputs = outputs)
+  first_num = 1/data$focal_points/2 
+  quantiles = seq(from = first_num, 1, by = first_num*2)
+
+  data %>%
+    unnest(outputs) -> data
+  browser()
+  extract_time_slice <- function(quantile){
+    data %>%
+  filter(abs(outputs$instant_through_day_hr - quantile(outputs$instant_through_day_hr, quantile)) %in% min(abs(outputs$instant_through_day_hr - quantile(outputs$instant_through_day_hr, quantile)))) %>%
+      sample_n(1)
+  }
+  
+ map(quantiles, extract_time_slice) %>%
+   bind_rows() %>%
+   mutate(profit_integrated = outputs$profit * day_length/focal_points)  %>% unnest(outputs) %>% select(profit, instant_through_day_hr, profit_integrated) %>% rename(profit_point = profit, instant_through_day_hr_point = instant_through_day_hr) %>% nest(cols = c(profit_point, instant_through_day_hr_point))
+ }
+```
+
+```{r}
+exanded_input_data3 %>%
+  mutate(integrated_daily_profit = map_dbl(outputs, ~plant:::trapezium(.x$instant_through_day_hr, .x$profit))) %>%
+  # slice(1:5000) %>%
+  expand_grid(focal_points = seq(1,2)) %>%
+  mutate(point_estimate_profit = pmap(., calc_mult_point)) -> expanded_output2
+```
+
+```{r}
+expanded_output2 %>%
+  slice(3:4) %>%
+  unnest(point_estimate_profit) %>%
+  unnest(cols) %>%
+  mutate(coords= pmap(., make_polygon_coordinates)) -> expanded_output3
+  
+
+expanded_output3 %>% unnest(coords) %>% unnest(coords) %>% unnest(outputs) %>%ggplot(aes(x=instant_through_day_hr , y = profit)) + geom_line() +
+  geom_polygon(aes(x = x, y= y), alpha = 0.3, col = "orange" , fill = "orange") +
+  geom_point(aes(x = instant_through_day_hr_point, y= profit_point), col = "orange" , fill = "orange") +
+
+  facet_wrap(~focal_points) +
+  theme_classic()
+
+
+
+make_polygon_coordinates <- function(...){
+  data <- tibble(...)
+
+  
+data %>%
+  nest(outputs = outputs) %>%
+  select(profit_point, focal_points, day_length, instant_through_day_hr_point) %>%
+  ungroup %>%
+  mutate(coords = pmap(., create_polygon_coordinates)) %>%
+  select(coords)
+}
+  
+  
+create_polygon_coordinates <- function(...){
+  data2 <- tibble(...)
+
+data3 <- data2 %>% mutate(lower_point = instant_through_day_hr_point - instant_through_day_hr_point/focal_points/2,
+                           higher_point = instant_through_day_hr_point + instant_through_day_hr_point/focal_points/2)
+data3 %>%
+tibble(x = c(.$lower_point, .$lower_point, .$higher_point, .$higher_point), y = c(0, .$profit_point, .$profit_point, 0)) %>%
+  select(x, y)
+}
+
+
+```
+
 
 
 ```{r}
@@ -473,7 +553,7 @@ exanded_input_data2 <- params %>%
 ```{r}
 exanded_input_data2 %>%
   mutate(integrated_daily_profit = map_dbl(outputs, ~plant:::trapezium(.x$instant_through_day_hr, .x$profit))) %>%
-  slice(1:2000) %>%
+  # slice(1:5000) %>%
   expand_grid(focal_points = seq(1,10,1)) %>%
   mutate(point_estimate_profit = pmap_dbl(., calc_mult_point)) -> expanded_output2
 ```
@@ -507,60 +587,229 @@ calc_mult_point <- function(...){
 ```
 
 ```{r}
-calc_mult_point <- function(...){
-  
-  data = tibble(...) %>%
-    nest(outputs = outputs)
-  first_num = 1/data$focal_points/2 
-  quantiles = seq(from = first_num, 1, by = first_num*2)
-
-  data %>%
-    unnest(outputs) -> data
-  
-  extract_time_slice <- function(quantile){
-    data %>%
-  filter(abs(outputs$instant_through_day_hr - quantile(outputs$instant_through_day_hr, quantile)) %in% min(abs(outputs$instant_through_day_hr - quantile(outputs$instant_through_day_hr, quantile)))) %>%
-      sample_n(1)
-  }
-  
-    map(quantiles, extract_time_slice) %>%
-    bind_rows() %>%
-    mutate(profit_integrated = outputs$profit * day_length/focal_points) %>%
-    summarise(daily_profit_integrated = sum(profit_integrated)) -> out
-  
-    out$daily_profit_integrated
-
-    }
-```
-
-
-```{r}
-expanded_output %>%
+expanded_output2 %>%
+  filter(integrated_daily_profit != 0 & point_estimate_profit != 0) %>%
   ggplot(aes(x = integrated_daily_profit, y = point_estimate_profit)) +
   geom_point() +
   theme_classic() +
   facet_wrap(~focal_points) +
-  geom_abline(slope = 1, intercept = 0)
+  geom_abline(slope = 1, intercept = 0) -> a
 ```
 
 ```{r}
-expanded_output %>%
+expanded_output2 %>%
+  filter(integrated_daily_profit != 0 & point_estimate_profit != 0) %>%
   group_by(focal_points) %>%
   mutate(correlation = cor(integrated_daily_profit, point_estimate_profit)) %>%
   ggplot(aes(x = focal_points, y = correlation)) +
   geom_line() +
-  theme_classic()
+  theme_classic() -> b
 ```
 
 ```{r}
-expanded_output %>%
+expanded_output2 %>%
   group_by(focal_points) %>%
   mutate(sample_size = n()) %>%
   mutate(diff = integrated_daily_profit - point_estimate_profit) %>%
   mutate(bias = sum(diff)/sample_size) %>%
-  mutate(rmse = sqrt(sum(diff_squared^2)/sample_size)) %>%
+  mutate(rmse = sqrt(sum(diff^2)/sample_size)) %>%
   ggplot(aes(x = focal_points, y = rmse)) +
   geom_line() +
-  theme_classic()
+  theme_classic() -> c
+```
+
+```{r}
+expanded_output2 %>%
+  group_by(focal_points) %>%
+  mutate(sample_size = n()) %>%
+  mutate(diff = integrated_daily_profit - point_estimate_profit) %>%
+  mutate(bias = sum(diff)/sample_size) %>%
+  mutate(rmse = sqrt(sum(diff^2)/sample_size)) %>%
+  ggplot(aes(x = focal_points, y = bias)) +
+  geom_line() +
+  theme_classic() -> d
+```
+
+```{r}
+png("outputs_multi_point.png", height = 850, width = 850)
+cowplot::plot_grid(a,b,c,d, nrow = 2, ncol = 2, labels = "AUTO")
+dev.off()
+```
+
+```{r}
+expanded_output2 %>%
+  group_by(focal_points) %>%
+  nest() %>%
+  ungroup() %>%
+  mutate(asd = purrr::map(data, linear_model_func)) %>%
+  pull(asd)
+  
+linear_model_func <- function(...){
+  data <- tibble(...) 
+  fit <- lm(point_estimate_profit ~ integrated_daily_profit + 0, data)
+  summary(fit)
+}  
+
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+example_params <- tibble(mean_temp = 20, temp_diff = 17.8, latitude = 15.3, VP = 1.52, vcmax = 35.7, p_50 = 2.35, huber_value = 0.000250, day = 68.7, h = 8.95, E = 0.0376, psi_soil = 0.643, ca = 42.6) %>%
+  expand_input_data() %>%
+  filter(PAR > 1e-10) %>%
+  ungroup() %>%
+  pmap(calc_profit_instant) %>%
+  bind_rows() 
+example_params %>% View()
+example_params %>%
+  mutate(VPD_hr_min = (VPD_hr == min(VPD_hr))) %>%
+  pivot_longer(cols = c(profit,ci, VPD_hr, PAR)) %>%
+  ggplot(aes(x= instant_through_day_hr, y=value)) +
+  geom_line(aes(colour= VPD_hr_min)) +
+  facet_wrap(~name, nrow= 2, scales= "free") 
+
+example_params %>% slice(198) -> example_params
+
+
+vcmax = example_params$vcmax #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
+p_50 = example_params$p_50 #stem water potential at 50% loss of conductivity
+c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
+b = calc_vul_b(p_50, c) #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
+psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
+huber_value = example_params$huber_value #huber value (m^2 sapwood area m^-2 leaf area)
+K_s = p_50_2_K_s(p_50) #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
+h = example_params$h #height or path length (m)
+k_l_max = calc_k_l_max(K_s, huber_value, h)
+l <- plant:::Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+l$set_physiology(PPFD = example_params$PAR*example_params$E, psi_soil = example_params$psi_soil, k_l_max = k_l_max, atm_vpd = example_params$VPD_hr, example_params$ca)
+l$get_leaf_states_rates_from_psi_stem(psi_crit)
+tibble(psi = seq(l$psi_soil_, psi_crit, length.out = 100)) %>%
+  rowwise() %>%
+  mutate(profit = l$profit_psi_stem_Sperry(psi)) %>%
+  mutate(cost = l$calc_hydraulic_cost_Sperry(psi)) %>%
+  mutate(lambda = l$lambda_) %>%
+  mutate(benefit = profit + cost*lambda) %>%
+  mutate(cost_trans = cost*lambda) %>%
+  pivot_longer(cols = c(profit, cost_trans, benefit)) %>%
+  ggplot(aes(x=psi, y = value)) +
+  geom_line(aes(group = name, colour = name))
+  bind_rows(tibble(psi = l$opt_psi_stem, profit = l$profit)) %>%
+  ggplot(aes(x = psi , y= profit)) +
+  geom_line() +
+  geom_point(aes(x = l$opt_psi_stem, y= l$profit))
+
+
+
+
+l$optimise_psi_stem_Sperry()
+l$opt_psi_stem
+l$profit
+l$get_leaf_states_rates_from_psi_stem(psi_crit)
+max_ci <- l$ci
+
+l$optimise_ci_Sperry(max_ci) 
+
+l$opt_ci - max_ci
+l$psi_stem
+
+l$psi_soil_
+l$g_c
+```
+
+
+```{r}
+
+if (is.na(opt_psi_stem) | (opt_psi_stem > example_params$psi_crit)){
+
+  max_psi = 1;
+
+  opt_psi_stem = example_params$psi_crit - diff_value;
+}
+
+if((count > 15) | ((R_IsNA(opt_psi_stem) | (opt_psi_stem > psi_crit) | (opt_psi_stem < psi_soil)) && max_psi == 3)){
+      method = 1;
+
+      optimise_psi_stem_Sperry();
+      return;
+    }
+
+  if ((R_IsNA(opt_psi_stem) | (opt_psi_stem > example_params$psi_crit)) && max_psi == 1){
+
+std::cout << "using lower value" << std::endl;
+
+    count = 0;
+    max_psi = 2;
+
+    opt_psi_stem = leaf$psi_soil_ + diff_value;
+
+  }
+
+    if ((R_IsNA(opt_psi_stem) | (opt_psi_stem > psi_crit)) && max_psi == 2){
+
+std::cout << "using middle value" << std::endl;
+
+    count = 0;
+
+    max_psi = 3;
+
+    opt_psi_stem = (psi_soil_ + psi_crit)/2;
+
+  }
+
+    psi_stem_initial = opt_psi_stem;
+
+    x_1 = psi_stem_initial - diff_value;
+    x_2 = psi_stem_initial + diff_value;
+    
+    y_2 = leaf[[1]]$profit_psi_stem_Sperry(x_2);
+
+    y_1 = leaf[[1]]$profit_psi_stem_Sperry(x_1);
+
+    y_0 = leaf[[1]]$profit_psi_stem_Sperry(psi_stem_initial);
+
+    first_dev = (y_2 - y_1)/(2*diff_value);
+    sec_dev = (y_2 - 2*y_0 + y_1)/diff_value^2;
+
+    opt_psi_stem = psi_stem_initial -  first_dev/sec_dev;
+
+    abs(opt_psi_stem - psi_stem_initial) < 0.0001
+    leaf$profit_psi_stem_Sperry(opt_psi_stem)
+    if(abs(opt_psi_stem - psi_stem_initial) < epsilon_leaf){
+      finished = 0;
+    }
+
+    profit = y_0;
+  }
+    return;
+  }
 ```
 

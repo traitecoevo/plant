@@ -7,8 +7,6 @@ Leaf:
       - c: double
       - b: double
       - psi_crit: double
-      - beta: double
-      - beta_2: double
       - huber_value: double
       - K_s: double
       - epsilon_leaf: double
@@ -23,6 +21,7 @@ Leaf:
     psi_stem: {type: double, access: field}
     psi_stem_next: {type: double, access: field}
     lambda_: {type: double, access: field}
+    lambda_one_line_: {type: double, access: field}
     j_: {type: double, access: field}
     k_l_max_: {type: double, access: field}
     PPFD_: {type: double, access: field}
@@ -31,6 +30,9 @@ Leaf:
     psi_soil_: {type: double, access: field}
     opt_psi_stem: {type: double, access: field}
     opt_ci: {type: double, access: field}
+    method: {type: double, access: field}
+    count: {type: double, access: field}
+    GSS_count: {type: double, access: field}
 
 
   methods:
@@ -68,7 +70,7 @@ Leaf:
       return_type: double
       args: [psi_stem: double]
     optimise_psi_stem_Sperry:
-      return_type: double
+      return_type: void
       args: []
     convert_E_from_ci_to_psi_stem:
       return_type: double
@@ -77,12 +79,9 @@ Leaf:
       return_type: double
       args: [c_i: double]
     optimise_psi_stem_Sperry_Newton:
-      return_type: double
-      args: []
-    optimise_psi_stem_Sperry_Newton_recall:
-      return_type: double
-      args: []
-    optimise_psi_stem_Sperry_Newton_recall_one_line:
+      return_type: void
+      args: [psi_guess: double]
+    optimise_psi_stem_Sperry_Newton_one_line:
       return_type: void
       args: [psi_guess: double]
     calc_j:
@@ -91,9 +90,7 @@ Leaf:
     profit_psi_stem_Sperry_one_line:
       return_type: double
       args: [psi_stem: double]  
-    optimise_ci_Sperry_Newton_recall_one_line:
-      return_type: void
-      args: [ci_guess: double]
+
     calc_profit_Sperry_ci_one_line:
       return_type: double
       args: [c_i: double] 
@@ -101,14 +98,12 @@ Leaf:
       return_type: double
       args: [c_i: double]  
     optimise_psi_stem_Sperry_one_line:
-      return_type: double
+      return_type: void
       args: []
     set_physiology:
       return_type: void 
       args: [PPFD: double, psi_soil: double, k_l_max: double, atm_vpd: double, ca: double]
-    optimise_ci_Sperry_one_line:
-      return_type: void
-      args: [max_ci: double]
+
     convert_psi_stem_to_ci_one_line:
       return_type: double
       args: [psi_stem: double]
@@ -121,8 +116,18 @@ Leaf:
     get_leaf_states_rates_from_psi_stem:
       return_type: void
       args: [psi_stem: double]
-
-
+    optimise_ci_Sperry_Newton:
+      return_type: void
+      args: [ci_guess: double]
+    optimise_ci_Sperry:
+      return_type: void
+      args: [max_ci: double]
+    optimise_ci_Sperry_one_line:
+      return_type: void
+      args: [max_ci: double]
+    optimise_ci_Sperry_Newton_one_line:
+      return_type: void
+      args: [ci_guess: double]
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
   constructor:
@@ -1187,8 +1192,6 @@ FF16w_Strategy:
     - c: double
     - b: double
     - psi_crit: double
-    - beta: double
-    - beta_2: double
     - huber_value: double
     - epsilon_leaf: double
     - recruitment_decay: double

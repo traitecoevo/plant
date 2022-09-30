@@ -18,7 +18,7 @@ test_that("Basic functions", {
   K_s = 2 #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
   h = 5 #height or path length (m)
   
-  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
   
   #without setting physiology, PPFD_, k_l_max_, and psi_soil_ should all be NA
   
@@ -45,7 +45,7 @@ test_that("Basic functions", {
   
   #generating a new leaf object should wipe the previously stored values
   
-  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
   
   expect_true(is.na(l$PPFD_))
   expect_true(is.na(l$k_l_max_))
@@ -114,6 +114,11 @@ test_that("Basic functions", {
  
   #test a function which retrieves various leaf-level states and rates from a given psi_stem value
   #for situations where psi stem is lower than psi soil
+
+  psi_soil = 2
+  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
+  
   l$get_leaf_states_rates_from_psi_stem_one_line(psi_soil - 1)
   
   #assimilation becomes 0
@@ -183,6 +188,77 @@ test_that("Basic functions", {
   #test whether conversion between E and psi is equivalent between R and C++
   
   E = 0.0001109062
+  
+  l$get_leaf_states_rates_from_psi_stem(psi_crit)
+  l$get_leaf_states_rates_from_psi_stem_one_line(psi_crit)
+  l$ci  
+  
+  benefit_ = l$calc_A_lim_one_line(c_i);
+  g_c_ci = (benefit_ * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(ca - c_i); 
+  E_ci = g_c_ci * 1.6 * atm_vpd / kg_2_mol_h20 / atm_kpa;
+  psi_stem = l$convert_E_from_ci_to_psi_stem(E_ci*0.14)
+  l$convert_E_from_ci_to_psi_stem()
+  l$convert_psi_stem_to_ci(psi_crit)
+  
+  tibble(ci = seq(0,40,1)) %>%
+    rowwise() %>%
+    mutate(alim = l$calc_A_lim(ci)) %>%
+    mutate(gc = l$calc_g_c(psi_crit)) %>%
+    mutate(result = alim * umol_per_mol_2_mol_per_mol -
+             (gc* (ca - ci) / (101.3 * 1000))) %>%
+    ggplot(aes(x = ci , y = result)) +
+    geom_line() +
+    geom_point(aes(x = l$ci, y = 0))
+  
+  l$get_leaf_states_rates_from_psi_stem(psi_crit)
+  l$ci
+  g_c = (l$calc_A_lim(l$ci) * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(40 - l$ci)
+  E = g_c * 1.6 * atm_vpd / 55.4939 / 101.3
+  E/k_l_max
+  
+  l$convert_E_from_ci_to_psi_stem(E)
+  
+  
+  
+  psi_soil = 2
+  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
+  
+  l$get_leaf_states_rates_from_psi_stem(psi_crit)
+  l$ci
+  
+  benefit_ =
+    l$calc_A_lim(l$ci);
+  g_c_ci = (benefit_ * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(ca - l$ci); 
+  E_ci = g_c_ci * 1.6 * atm_vpd / 55.4939 / atm_kpa;
+  
+  psi_stem = l$convert_E_from_ci_to_psi_stem(E_ci);
+  psi_crit - psi_stem
+  
+  psi_soil = 2
+  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
+  
+  l$get_leaf_states_rates_from_psi_stem(psi_crit)
+  l$ci
+  
+  benefit_ =
+    l$calc_A_lim(l$ci);
+  g_c_ci = (benefit_ * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(ca - l$ci); 
+  E_ci = g_c_ci * 1.6 * atm_vpd / 55.4939 / atm_kpa;
+  
+  psi_stem = l$convert_E_from_ci_to_psi_stem(E_ci);
+  l$calc_hydraulic_cost_Sperry(psi_stem) * l$lambda_ / l$calc_A_lim(l$ci)
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
   
   expect_equal((l$convert_E_from_ci_to_psi_stem(0.0001109062)), solve_psi(E = 0.0001109062, k_l_max = k_l_max, psi_soil = psi_soil, b =b, c= c), tolerance = 1e-04)
   

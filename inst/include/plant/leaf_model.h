@@ -51,8 +51,6 @@ public:
        double c            = 2.04, //unitless
        double b            = 2.0, // MPa
        double psi_crit     = 3.42,  // derived from b and c
-       double beta         = 15000.0, // umol m^-2 s^-1
-       double beta_2       = 1.0, //unitless
        double huber_value  = 1.57e-4, // m^2 sapwood area m^-2 leaf area
        double K_s = 2, // kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
        double epsilon_leaf = 0.001); 
@@ -68,10 +66,10 @@ public:
   double c;
   double b;
   double psi_crit;  // derived from b and c
-  double beta;
-  double beta_2;
   double huber_value;
   double K_s;
+
+  //actually a control paramaeter and needs to be moved
   double epsilon_leaf;
 
 
@@ -84,6 +82,7 @@ public:
   double psi_stem;
   double psi_stem_next;
   double lambda_;
+  double lambda_one_line_;
   double PPFD_;
   double atm_vpd_;
   double ca_;
@@ -91,6 +90,9 @@ public:
   double psi_soil_;
   double opt_psi_stem;
   double opt_ci;
+  double method;
+  double count;
+  double GSS_count;
 
 
   // TODO: move into environment?
@@ -138,13 +140,14 @@ public:
   double calc_profit_Sperry_ci(double c_i);
   double calc_profit_Sperry_ci_one_line(double c_i);
 
-  double optimise_psi_stem_Sperry();
-  double optimise_psi_stem_Sperry_Newton();
-  double optimise_psi_stem_Sperry_Newton_recall();
-  void optimise_psi_stem_Sperry_Newton_recall_one_line(double psi_guess);
-  void optimise_ci_Sperry_Newton_recall_one_line(double ci_guess);
-  double optimise_psi_stem_Sperry_one_line();
+  void optimise_psi_stem_Sperry();
+  void optimise_psi_stem_Sperry_one_line();
+  void optimise_psi_stem_Sperry_Newton(double psi_guess);
+  void optimise_psi_stem_Sperry_Newton_one_line(double psi_guess);
+  void optimise_ci_Sperry(double ci_guess);
   void optimise_ci_Sperry_one_line(double max_ci);
+  void optimise_ci_Sperry_Newton(double ci_guess);
+  void optimise_ci_Sperry_Newton_one_line(double ci_guess);
 
   
 };

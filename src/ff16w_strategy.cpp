@@ -74,7 +74,7 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
     
   double ci_guess = vars.aux(aux_index.at("opt_ci"));
     
-  leaf.optimise_ci_Sperry_Newton_recall_one_line(ci_guess);
+  leaf.optimise_ci_Sperry_Newton_one_line(ci_guess);
     
   vars.set_aux(aux_index.at("opt_ci"), leaf.opt_ci);
     

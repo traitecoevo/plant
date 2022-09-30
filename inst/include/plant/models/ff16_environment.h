@@ -145,7 +145,7 @@ public:
       // drainage = 0;
 
       net_flux = infiltration  -  resource_depletion[i];
-      std::cout << "resource_depletion" << resource_depletion[i] << std::endl;
+      // std::cout << "resource_depletion" << resource_depletion[i] << std::endl;
 
       // net_flux = infiltration - evaporation - drainage -  resource_depletion[i];
 
