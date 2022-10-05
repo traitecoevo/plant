@@ -121,7 +121,7 @@ pars <-
   purrr::map_df(p$strategies, extract_strategy, .id = "species") %>% 
   mutate(species = paste("sp", species)) %>%
   bind_rows(
-    extract_strategy(p1$strategy_default) %>% mutate(species = "default")
+    extract_strategy(p$strategy_default) %>% mutate(species = "default")
   ) %>% 
   mutate(value = format(value, scientific = TRUE, drop0trailing = TRUE)) %>%
   pivot_wider(values_from = value, names_from = species)
