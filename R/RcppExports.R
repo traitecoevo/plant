@@ -189,6 +189,14 @@ Leaf__lambda___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__lambda___set', PACKAGE = 'plant', obj_, value))
 }
 
+Leaf__lambda_one_line___get <- function(obj_) {
+    .Call('_plant_Leaf__lambda_one_line___get', PACKAGE = 'plant', obj_)
+}
+
+Leaf__lambda_one_line___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__lambda_one_line___set', PACKAGE = 'plant', obj_, value))
+}
+
 Leaf__j___get <- function(obj_) {
     .Call('_plant_Leaf__j___get', PACKAGE = 'plant', obj_)
 }

@@ -39,7 +39,7 @@ static const double km_25 = (kc_25*umol_per_mol_to_Pa)*(1 + (atm_o2_kpa*kPa_2_Pa
 // mol H2o kg ^-1
 static const double kg_to_mol_h2o = 55.4939;
 // mol mol ^-1 / (umol mol ^-1)
-static const double umol_per_mol_to_mol_per_mol = 1e-6;
+static const double umol_to_mol = 1e-6;
 // Pa kPa^-1
 static const double kPa_to_Pa = 1000.0;
 
@@ -47,10 +47,10 @@ static const double kPa_to_Pa = 1000.0;
 class Leaf {
 public:
   Leaf(double vcmax        = 100, // umol m^-2 s^-1
-       double p_50         = 1.0, // MPa
+       double p_50         = 1.0, // (- MPa)
        double c            = 2.04, //unitless
        double b            = 2.0, // MPa
-       double psi_crit     = 3.42,  // derived from b and c
+       double psi_crit     = 3.42,  // derived from b and c (- MPa)
        double huber_value  = 1.57e-4, // m^2 sapwood area m^-2 leaf area
        double K_s = 2, // kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
        double epsilon_leaf = 0.001); 

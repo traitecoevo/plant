@@ -198,6 +198,15 @@ void Leaf__lambda___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
 }
 
 // [[Rcpp::export]]
+double Leaf__lambda_one_line___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->lambda_one_line_;
+}
+// [[Rcpp::export]]
+void Leaf__lambda_one_line___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->lambda_one_line_ = value;
+}
+
+// [[Rcpp::export]]
 double Leaf__j___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->j_;
 }

@@ -556,6 +556,28 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
+// Leaf__lambda_one_line___get
+double Leaf__lambda_one_line___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__lambda_one_line___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__lambda_one_line___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__lambda_one_line___set
+void Leaf__lambda_one_line___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__lambda_one_line___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__lambda_one_line___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
 // Leaf__j___get
 double Leaf__j___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
 RcppExport SEXP _plant_Leaf__j___get(SEXP obj_SEXP) {
@@ -10785,6 +10807,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__psi_stem_next__set", (DL_FUNC) &_plant_Leaf__psi_stem_next__set, 2},
     {"_plant_Leaf__lambda___get", (DL_FUNC) &_plant_Leaf__lambda___get, 1},
     {"_plant_Leaf__lambda___set", (DL_FUNC) &_plant_Leaf__lambda___set, 2},
+    {"_plant_Leaf__lambda_one_line___get", (DL_FUNC) &_plant_Leaf__lambda_one_line___get, 1},
+    {"_plant_Leaf__lambda_one_line___set", (DL_FUNC) &_plant_Leaf__lambda_one_line___set, 2},
     {"_plant_Leaf__j___get", (DL_FUNC) &_plant_Leaf__j___get, 1},
     {"_plant_Leaf__j___set", (DL_FUNC) &_plant_Leaf__j___set, 2},
     {"_plant_Leaf__k_l_max___get", (DL_FUNC) &_plant_Leaf__k_l_max___get, 1},

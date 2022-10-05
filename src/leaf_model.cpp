@@ -33,8 +33,7 @@ void Leaf::set_physiology(double PPFD, double psi_soil, double k_l_max, double a
 
 // transpiration supply functions
 
-// REMOVED k_l_max_
-// integrates, returns conductivity at given psi_stem kg m^-2 s^-1 MPa^-1
+// integrates, returns proportion of conductance taken from hydraulic vulnerability curve (unitless)
 double Leaf::calc_cond_vuln(double psi) const {
   return exp(-pow((psi / b), c));
 }
@@ -68,9 +67,14 @@ double Leaf::calc_E_supply_full_integration(double psi_stem) {
   return k_l_max_ * integrator.integrate(f, psi_soil_, psi_stem);
  }
 
+//returns kg h20 s^-1 m^-2 LA
 double Leaf::calc_E_supply(double psi_stem) {
   // integration of calc_cond_vuln over [psi_soil_, psi_stem]
+  // std::cout << "E_stem" << E_from_psi.eval(psi_stem) << std::endl;
+  
   return k_l_max_ * (E_from_psi.eval(psi_stem) - E_from_psi.eval(psi_soil_));
+
+  
 }
 
 double Leaf::convert_E_from_ci_to_psi_stem(double E_ci) {
@@ -80,7 +84,7 @@ double Leaf::convert_E_from_ci_to_psi_stem(double E_ci) {
   return psi_from_E.eval(E_psi_stem);
   }
 
-// returns E kg m^-2 s^-1
+// returns g_c, mol C m^-2 LA s^-1
 double Leaf::calc_g_c(double psi_stem) {
   double E_supply = calc_E_supply(psi_stem);
   return atm_kpa * E_supply * kg_to_mol_h2o / atm_vpd_ / 1.6;
@@ -133,10 +137,6 @@ double Leaf::calc_A_lim_one_line(double ci_) {
           (ci_ + c2));
 }
 
-
-
-
-
 // A - gc curves
 
 // returns difference between co-limited assimilation and g_c, to be minimised (umol m^-2 s^-1)
@@ -146,7 +146,7 @@ double Leaf::diff_ci(double x, double psi_stem) {
 
   double g_c_ = calc_g_c(psi_stem);
 
-  return A_lim_ * umol_per_mol_to_mol_per_mol -
+  return A_lim_ * umol_to_mol -
          (g_c_ * (ca_ - x) / (atm_kpa * kPa_to_Pa));
 }
 
@@ -187,13 +187,13 @@ double Leaf::convert_psi_stem_to_ci_one_line(double psi_stem) {
     g_c = calc_g_c(psi_stem);
     double c2 = 13.13652;
         
-    double first_term = 8 * j_ * umol_per_mol_to_mol_per_mol * (atm_kpa*kPa_to_Pa) * g_c * (-ca_ + c2 + 2 * gamma_25 * umol_per_mol_to_Pa);
+    double first_term = 8 * j_ * umol_to_mol * (atm_kpa*kPa_to_Pa) * g_c * (-ca_ + c2 + 2 * gamma_25 * umol_per_mol_to_Pa);
     double second_term = 16 * pow(g_c, 2);
     double third_term = pow((ca_ + c2),2);
-    double fourth_term = pow(j_, 2) * pow(umol_per_mol_to_mol_per_mol,2) * pow(atm_kpa*kPa_to_Pa, 2);
+    double fourth_term = pow(j_, 2) * pow(umol_to_mol,2) * pow(atm_kpa*kPa_to_Pa, 2);
     double fifth_term = 4*ca_*g_c;
     double sixth_term = 4*c2*g_c;
-    double seventh_term = j_*umol_per_mol_to_mol_per_mol*(atm_kpa*kPa_to_Pa);
+    double seventh_term = j_*umol_to_mol*(atm_kpa*kPa_to_Pa);
     double eigth_term = 8*g_c;
 
     return ci = (sqrt(first_term + second_term*third_term+ fourth_term) + fifth_term - sixth_term - seventh_term)/eigth_term;    
@@ -250,7 +250,7 @@ double Leaf::profit_psi_stem_Sperry_one_line(double psi_stem) {
 double Leaf::calc_profit_Sperry_ci(double c_i) {                                  
   double benefit_ =
       calc_A_lim(c_i);
-  double g_c_ci = (benefit_ * umol_per_mol_to_mol_per_mol * atm_kpa * kPa_to_Pa)/(ca_ - c_i); 
+  double g_c_ci = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - c_i); 
   double E_ci = g_c_ci * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;
   
   double psi_stem = convert_E_from_ci_to_psi_stem(E_ci);
@@ -263,7 +263,7 @@ double Leaf::calc_profit_Sperry_ci_one_line(double c_i) {
   double benefit_ =
       calc_A_lim_one_line(c_i);
 
-  double g_c_ci = (benefit_ * umol_per_mol_to_mol_per_mol * atm_kpa * kPa_to_Pa)/(ca_ - c_i); 
+  double g_c_ci = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - c_i); 
   E = g_c_ci * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;  
 
   double psi_stem = convert_E_from_ci_to_psi_stem(E);
@@ -285,6 +285,8 @@ void Leaf::optimise_psi_stem_Sperry() {
 
   if ((PPFD_ < 1.5e-8 )| (psi_soil_ > psi_crit)){
     profit = 0;
+    E = 0;
+    g_c = 0;
     return;
   }
 
@@ -292,7 +294,7 @@ void Leaf::optimise_psi_stem_Sperry() {
     double bound_a = psi_soil_;
     double bound_b = psi_crit;
 
-    double delta_crit = 1e-03;
+    double delta_crit = 1e-07;
 
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
@@ -320,6 +322,8 @@ GSS_count +=1 ;
     opt_psi_stem = ((bound_b + bound_a) / 2);
     profit = profit_psi_stem_Sperry(opt_psi_stem);
 
+    // std::cout << "E" << E << std::endl;
+
   }
   
 void Leaf::optimise_psi_stem_Sperry_one_line() {
@@ -328,8 +332,10 @@ void Leaf::optimise_psi_stem_Sperry_one_line() {
   double opt_psi_stem = psi_soil_;
 
 
-  if ((PPFD_ < 1.5e-8 )| (psi_soil_ > psi_crit)){
+  if (psi_soil_ > psi_crit){
     profit = 0;
+    E = 0;
+    g_c = 0;    
     return;  
     }
 
@@ -378,6 +384,7 @@ void Leaf::optimise_psi_stem_Sperry_Newton(double psi_guess) {
     opt_psi_stem = psi_soil_;
     profit = 0.0;
     E = 0.0;
+    g_c = 0.0;
     return;
   }
 
@@ -469,6 +476,7 @@ void Leaf::optimise_psi_stem_Sperry_Newton_one_line(double psi_guess) {
     opt_psi_stem = psi_soil_;
     profit = 0.0;
     E = 0.0;
+    g_c = 0.0;
     return;
   }
 
@@ -531,6 +539,7 @@ void Leaf::optimise_ci_Sperry_one_line(double max_ci) {
     opt_ci = gamma_25*umol_per_mol_to_Pa;
     profit = 0.0;
     E = 0.0;
+    g_c = 0.0;
     return;
   }
   
@@ -633,6 +642,7 @@ void Leaf::optimise_ci_Sperry_Newton_one_line(double ci_guess) {
     opt_ci = gamma_25*umol_per_mol_to_Pa;
     profit = 0.0;
     E = 0.0;
+    g_c = 0.0;
     return;
   }
 
@@ -681,7 +691,7 @@ void Leaf::optimise_ci_Sperry_Newton_one_line(double ci_guess) {
     double benefit_ = calc_A_lim_one_line(x_2);
 
 
-    double g_c_ci = (benefit_ * umol_per_mol_to_mol_per_mol * atm_kpa * kPa_to_Pa)/(ca_ - x_2); 
+    double g_c_ci = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - x_2); 
     
 
     E = g_c_ci * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;  
@@ -755,6 +765,7 @@ void Leaf::optimise_ci_Sperry_Newton(double ci_guess) {
     opt_ci = gamma_25*umol_per_mol_to_Pa;
     profit = 0.0;
     E = 0.0;
+    g_c = 0.0;
     return;
   }
 
@@ -805,7 +816,7 @@ void Leaf::optimise_ci_Sperry_Newton(double ci_guess) {
     double benefit_ = calc_A_lim(x_2);
 
 
-    double g_c_ci = (benefit_ * umol_per_mol_to_mol_per_mol * atm_kpa * kPa_to_Pa)/(ca_ - x_2); 
+    double g_c_ci = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - x_2); 
     
 
     E = g_c_ci * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;  
