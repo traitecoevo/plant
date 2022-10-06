@@ -111,7 +111,7 @@ Expand the params out for 3 chosen ca values, (post-industrial, near-term foreca
 ```{r}
 params %>%
     mutate(param_set = seq(1:n())) %>%
-  expand_grid(ca = seq(380, 500, 60)) %>%
+  expand_grid(ca = seq(38, 50, 6)) %>%
    pmap(expand_input_data) %>%
   bind_rows() %>%
   expand_grid(focal_points = c(1, 50)) %>%
