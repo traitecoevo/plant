@@ -1,0 +1,211 @@
+---
+title: "ca_disturbance"
+output:
+  html_document: default
+  pdf_document: default
+date: "2022-10-05"
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+rm(list=ls())
+source("R/solar_model.R")
+source("examples_vignettes/R/testing_integration.R")
+source("tests/reference_leaf_updated.R")
+
+library(tidyverse)
+library(ggplot2)
+library(purrr)
+library(deSolve)
+library(lhs)
+library(furrr)
+
+
+```
+
+
+```{r include=FALSE}
+#vpsat in kPa
+calc_vpsat <- function(air_temp_c){
+  
+    A = 17.27;
+    T_star = 273.0; #K
+    T_dash = 36.0;  #K
+    es_T_star = 0.611; #kPa
+  
+  
+  air_temp_K <- air_temp_c + 273.15
+  
+  esat = es_T_star * exp(A * (air_temp_K - T_star) / (air_temp_K - T_dash))
+  esat
+}
+```
+
+
+```{r include=FALSE}
+p_50_2_K_s <- function(p50){
+  1.638999*(p50/2)^(-1.38)
+}
+
+calc_vul_b <- function(p_50, c){
+  num <- p_50
+  den <- (-log(1-50/100))^(1/c)
+  num/den
+}
+
+
+calc_psi_crit <- function(b,c) {
+  b*(log(1/0.05))^(1/c)
+}
+
+
+```
+
+
+```{r include=FALSE}
+calc_temp <- function(instant_of_day, day_length, mean_temp, temp_diff, sun_rise, sun_down){
+
+# Parton and Logan (1981) A model for dirunal variation in soil and
+#        air temperature. Agricultural Meteorology, 23, 205--216.
+
+
+a_t = 1.86;
+b_t = 2.2;     #nighttime coeffcient
+c_t = -0.17;   #lag of the min temp from the time of runrise
+
+min_temp = mean_temp - temp_diff/2
+max_temp = mean_temp + temp_diff/2
+
+sun_rise = sun_rise
+sun_down = sun_down
+
+m = instant_of_day - sun_rise + c_t
+
+if(instant_of_day >= sun_rise & instant_of_day <= sun_down){
+  min_temp + (max_temp - min_temp) * sin((pi * m) / (day_length + 2.0 * a_t))
+} else {
+    NA
+  }
+}
+
+```
+
+Set some random parameters other than ca. We'll just extract three for now.
+
+```{r}
+set.seed(203)
+LHS <- randomLHS(3, 12)
+
+params <- tibble(mean_temp = 20, temp_diff = qunif(LHS[,1], min = 5, max = 20), latitude = qunif(LHS[,2], min = 0, max = 60), VP = qunif(LHS[,3], 0.5, 2),
+                   vcmax = qunif(LHS[,4], 30, 100), p_50 = qunif(LHS[,5], min = 1, max = 10), huber_value = qunif(LHS[,6], min = 0.000157/2, max =  0.000157*2),
+                   day = qunif(LHS[,7], min = 0, 180), h = qunif(LHS[,8], min = 5, max = 80), E = qunif(LHS[,9], min = 0, max = 1), psi_soil = qunif(LHS[,10], 0, 3), c = qunif(LHS[,12], 1, 10))
+```
+
+Expand the params out for 3 chosen ca values, (post-industrial, near-term forecast, long-term forecast), and also some calculated traits. Then expand_grid by focal points required, and then calculate timeslices throughout day corresponding to number of focal points, calculate solar angle from these time slices and and latitude, get PAR, and then also calculate temp throughout the day in order to get VPD. 
+
+```{r}
+params %>%
+    mutate(param_set = seq(1:n())) %>%
+  expand_grid(ca = seq(380, 500, 60)) %>%
+   pmap(expand_input_data) %>%
+  bind_rows() %>%
+  expand_grid(focal_points = c(1, 50)) %>%
+  mutate(instant_through_day_hr = pmap(., create_mult_point)) %>%
+  unnest(instant_through_day_hr) %>%
+  mutate(instant_through_day_dec = instant_through_day_hr/24,
+         dec_day_time = day_floor+ instant_through_day_dec) %>%
+  mutate(solar_angle = solar_angle(dec_day_time, latitude),
+         PAR = PAR_given_solar_angle(solar_angle)) %>%
+  rowwise() %>%
+  mutate(temp = calc_temp(instant_through_day_hr, day_length, mean_temp, temp_diff, sun_rise, sun_down)) %>%
+  mutate(VPD_hr = max(0.05, calc_vpsat(temp) - VP)) -> expanded_input_data
+```
+
+Create leaves corresponding to env values and trait values for each timeslice throughout the day. Individual leaves are requried for each time slice. Then, use leaf_states_from_leaf to optimise psi_stem, then extract profit, transpiraiton and other required values.
+
+```{r}
+expanded_input_data %>% 
+  ungroup() %>%
+  mutate(leaf = pmap(., make_leaf)) %>%
+  mutate(leaf_states_rate = map(leaf, leaf_states_rates_from_leaf)) %>%
+  unnest(leaf_states_rate) %>% 
+  nest(outputs = c(leaf, instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit, transpiration, psi_stem, g_c)) -> expanded_output
+```
+
+Quickly have a look at what the different params are. The first species is experiencing limited fluctuation in VPD, with limited available radiation, low vcmax, and a drought resistant hydraulic strategy. The second species is experiencing substantial fluctuation in VPD, with moderate available radiation, decent vcmax, and a moderately resitant hydraulic strategy. The third species is experiencing some fluctuation in VPD, with high available radiation, high vcmax, and a drought resitant hydraulic strategy.
+
+
+```{r}
+params
+```
+
+Let's make some plots. The first plot is the profit throughout the day for each of the three parameter sets experiencing three different levels of ca. The second is for transpiraiton. 
+
+```{r}
+expanded_output %>%
+  filter(focal_points == 50) %>%
+  unnest(outputs) %>%
+  mutate(ca = as_factor(ca)) %>%
+  ggplot() +
+  geom_line(aes(x = instant_through_day_hr, y = profit, col = ca, group = ca)) +
+  geom_point(data = expanded_output %>%
+    filter(focal_points == 1) %>% unnest(outputs) %>%
+  mutate(ca = as_factor(ca)), aes(x = instant_through_day_hr, y = profit, col = ca, group = ca)) +
+  facet_wrap(~param_set) +
+  theme(
+  text = element_text(size=16),
+  axis.title = element_text(size=18)
+  ) +
+  ylab(expression(paste("Profit (",mu,"mol ", m^{-2}~s^{-1},")"))) +
+  xlab("Time (hr)")
+
+expanded_output %>%
+  filter(focal_points == 50) %>%
+  unnest(outputs) %>%
+  mutate(ca = as_factor(ca))%>%
+  ggplot() +
+  geom_line(aes(x = instant_through_day_hr, y = transpiration, col = ca, group = ca)) +
+  geom_point(data = expanded_output %>%
+    filter(focal_points == 1) %>% unnest(outputs)%>%
+  mutate(ca = as_factor(ca)), aes(x = instant_through_day_hr, y = transpiration, col = ca, group = ca)) +
+  facet_wrap(~param_set) +
+  theme(
+  text = element_text(size=16),
+  axis.title = element_text(size=18)
+  ) +
+  ylab(expression(paste("Evapotranspiration (kg ", m^{-2}~s^{-1},")"))) +
+  xlab("Time (hr)")
+
+```
+
+```{r}
+expanded_output%>%
+  filter(focal_points == 1) %>% 
+  unnest(outputs) %>%
+  mutate(profit_curve = map2(.x = leaf, .y = psi_crit, ~profit_curves_from_leaf(.x, .y))) %>%
+  unnest(profit_curve) -> profit_curves
+```
+
+Increasing ca causes profit to increase while transpiration decreases. This is because the cost curve does not change (other than a small scaling increase associated with changing lambda). By comparison, the benefit curve increases more rapidly as ca increases, causing the optimum psi stem to move leftwards (i.e. less negetative stem water pressure). As such, for a given optimum assimilation, less transpiration is required.
+
+```{r}
+profit_curves %>%
+  mutate(ca = as_factor(ca))%>% 
+  pivot_longer(cols = c(inst_profit, inst_cost, inst_ben)) %>%
+  ggplot() +
+  geom_line(aes(x = inst_psi_stem, y = value, linetype = name, group = interaction(name, ca), colour = ca)) +
+  facet_wrap(~param_set) +
+  ylab(expression(paste("Carbon (",mu,"mol ", m^{-2}~s^{-1},")"))) +
+  xlab(expression(paste(psi[leaf]," (-MPa)"))) +
+  labs(main = "Midday profit curves") +
+  theme(
+  text = element_text(size=16),
+  axis.title = element_text(size=18) 
+  )
+```
+

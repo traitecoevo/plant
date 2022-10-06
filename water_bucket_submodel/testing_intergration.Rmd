@@ -103,11 +103,11 @@ if(instant_of_day >= sun_rise & instant_of_day <= sun_down){
 ```
 
 ```{r}
-LHS <- randomLHS(5000, 11)
+LHS <- randomLHS(5000, 12)
 
 params <- tibble(mean_temp = 20, temp_diff = qunif(LHS[,1], min = 5, max = 20), latitude = qunif(LHS[,2], min = 0, max = 60), VP = qunif(LHS[,3], 0.5, 2),
                    vcmax = qunif(LHS[,4], 30, 100), p_50 = qunif(LHS[,5], min = 1, max = 10), huber_value = qunif(LHS[,6], min = 0.000157/2, max =  0.000157*2),
-                   day = qunif(LHS[,7], min = 0, 180), h = qunif(LHS[,8], min = 5, max = 80), E = qunif(LHS[,9], min = 0, max = 1), psi_soil = qunif(LHS[,10], 0, 10), ca = qunif(LHS[,11], 30, 45))
+                   day = qunif(LHS[,7], min = 0, 180), h = qunif(LHS[,8], min = 5, max = 80), E = qunif(LHS[,9], min = 0, max = 1), psi_soil = qunif(LHS[,10], 0, 10), ca = qunif(LHS[,11], 30, 45), c = qunif(LHS[,12], 1, 10))
 ```
 
 
@@ -117,15 +117,37 @@ params <- tibble(mean_temp = 20, temp_diff = qunif(LHS[,1], min = 5, max = 20), 
 
 ```{r}
 params %>%
-  head(50) %>%
-  pmap(expand_input_data, focal_points = ) %>%
-  bind_rows() %>%
+  head(20) %>%
+  # pmap(expand_input_data, focal_points = ) %>%
+  # bind_rows() %>%
   ungroup() -> expanded_input_data
 ```
 
 ```{r}
+params %>%
+  head(100) %>%
+  pmap(expand_input_data) %>%
+  bind_rows() %>%
+  mutate(param_set = seq(1:n())) %>%
+  expand_grid(focal_points = c(1,2,3,50)) %>%
+  mutate(instant_through_day_hr = pmap(., create_mult_point)) %>%
+  unnest(instant_through_day_hr) %>%
+  mutate(instant_through_day_dec = instant_through_day_hr/24,
+         dec_day_time = day_floor+ instant_through_day_dec) %>%
+  mutate(solar_angle = solar_angle(dec_day_time, latitude),
+         PAR = PAR_given_solar_angle(solar_angle)) %>%
+  rowwise() %>%
+  mutate(temp = calc_temp(instant_through_day_hr, day_length, mean_temp, temp_diff, sun_rise, sun_down)) %>%
+  mutate(VPD_hr = max(0.05, calc_vpsat(temp) - VP)) -> expanded_input_data
+
+```
+
+
+
+```{r}
 expanded_input_data %>% 
- mutate(leaf = pmap(., make_leaf)) %>%
+  ungroup() %>%
+  mutate(leaf = pmap(., make_leaf)) %>%
   mutate(leaf_states_rate = map(leaf, leaf_states_rates_from_leaf)) %>%
   unnest(leaf_states_rate) %>% 
   nest(outputs = c(leaf, instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit, GSS_count, count, method, transpiration, psi_stem, g_c)) -> expanded_output
@@ -133,12 +155,44 @@ expanded_input_data %>%
 
 ```{r}
 expanded_output %>%
-  slice(30) %>%
-  mutate(param_set = seq(1:n())) %>%
-  mutate(integrated_daily_profit = map_dbl(outputs, ~plant:::trapezium(.x$instant_through_day_hr, .x$profit))) %>%
-  mutate(integrated_daily_transpiration = map_dbl(outputs, ~plant:::trapezium(.x$instant_through_day_hr, .x$transpiration))) %>%
-  expand_grid(focal_points = c(1,2,3,50)) %>%
-  mutate(point_estimate_integrals = pmap(., calc_mult_point)) %>%
+  unnest(outputs) %>%
+  mutate(profit_integrated = profit * day_length/focal_points) %>%
+  group_by(focal_points, param_set) %>%
+  nest() %>%
+  mutate(daily_profit_integrated = map_dbl(data, ~sum(.x$profit_integrated))) %>%
+  select(-data) %>%
+  pivot_wider(names_from = focal_points, values_from = daily_profit_integrated) %>%
+  ggplot(aes(x = `1`, y = `50`)) +
+  geom_point() +
+  geom_abline()
+  
+  
+  
+  
+  
+  expanded_output %>%
+  unnest(outputs) %>%
+  mutate(profit_integrated = profit * day_length/focal_points) %>%
+  group_by(focal_points, param_set) %>%
+  nest() %>%
+  mutate(daily_profit_integrated = map_dbl(data, ~sum(.x$profit_integrated))) %>%
+  select(-data) %>%
+  pivot_wider(names_from = focal_points, values_from = daily_profit_integrated) %>%
+  ungroup() %>%
+  summarise(cor = cor(`1`,`50`))
+  
+  
+  
+  
+  
+  # mutate(integrated_daily_profit = map_dbl(outputs, ~plant:::trapezium(.x$instant_through_day_hr, .x$profit))) %>%
+  # mutate(integrated_daily_transpiration = map_dbl(outputs, ~plant:::trapezium(.x$instant_through_day_hr, .x$transpiration))) %>%
+  # expand_grid(focal_points = c(1,2,3,50)) %>%
+  mutate(point_estimate_integrals = pmap(., calc_mult_point2)) 
+
+
+
+%>%
   mutate(point_estimate_integrated_daily_profit = map_dbl(point_estimate_integrals, ~sum(.x$profit_integrated))) %>%
   mutate(point_estimate_integrated_daily_transpiraiton = map_dbl(point_estimate_integrals, ~sum(.x$transpiration_integrated))) -> expanded_output_integration
 ```
