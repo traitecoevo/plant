@@ -4,7 +4,7 @@ strategy_types <- get_list_of_strategy_types()
 environment_types <- get_list_of_environment_types()
 
 #for (x in names(strategy_types)) {
-for (x in c("FF16", "FF16r")) {
+for (x in c()){ #"FF16", "FF16r")) {
 
   context(sprintf("Fitness-%s",x))
 
