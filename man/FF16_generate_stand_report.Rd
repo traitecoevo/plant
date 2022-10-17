@@ -9,7 +9,7 @@ FF16_generate_stand_report(
   output_file = "FF16_report.html",
   overwrite = FALSE,
   target_ages = NA,
-  input_file = system.file("scripts", "FF16_reports.Rmd", package = "plant"),
+  input_file = system.file("reports", "FF16_report.Rmd", package = "plant"),
   quiet = TRUE
 )
 }
