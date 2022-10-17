@@ -153,30 +153,28 @@ FF16_generate_stand_report <- function(results,
     dir.create(output_dir, FALSE, TRUE)
   }
   
-  output_file <- basename(output_file)
+  #output_file <- basename(output_file)
 
   if (overwrite | !file.exists(output_file)) {
-    cat(sprintf("Building report on stand %s ", output_file))
-
     # knit and render. Note, call render directly
     # in preference to knit, then render, as leaflet widget
     # requires this to work
-    result <- try(
+    result <-
       rmarkdown::render(
         input_file,
         output_dir = output_dir,
         output_file = output_file,
         quiet = quiet,
         params = list(
-          results = results
+          results = results,
+          target_ages = target_ages
         )
-      )
     )
 
     # remove temporary Rmd
-    cat(" -> ", output_file, "\n")
+    message(sprintf("Report for FF16 stand saved at %s", output_file))
   } else {
-    cat(sprintf("Report for FF16 stand already exists -> %s\n", output_file))
+    message(sprintf("Report for FF16 stand already exists at %s", output_file))
   }
 }
 

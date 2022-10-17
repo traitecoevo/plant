@@ -187,7 +187,6 @@ test_that("offspring arrival", {
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar, 
                           mutant = FALSE, birth_rate_list = list(20))
 
-  #p1$birth_rate <- 20
   out <- run_scm(p1, env, ctrl)
   expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
@@ -199,5 +198,17 @@ test_that("offspring arrival", {
   out <- run_scm(p2, env, ctrl)
   expect_equal(out$offspring_production, c(11.99529, 16.47519), tolerance=1e-5)
   expect_equal(length(out$ode_times), 297)
+
+  # test report generation
+  out <- run_scm_collect(p2, env, ctrl)
+
+  on.exit(unlink("tmp/tmp.html"))
+  expect_message(FF16_generate_stand_report(out, "tmp/tmp.html", TRUE), "Report for FF16 stand saved at tmp/tmp.html")
+
+  # don't overwrite oif already exists 
+  expect_message(FF16_generate_stand_report(out, "tmp/tmp.html", FALSE), "Report for FF16 stand already exists at tmp/tmp.html")
+  expect_true(file.exists("tmp/tmp.html"))
+
+
 })
 
