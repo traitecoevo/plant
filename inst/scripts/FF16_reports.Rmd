@@ -15,6 +15,7 @@ output:
       smooth_scroll: true
 params:
     results: provide
+    target_ages: .na
 editor_options:
   chunk_output_type: console
 ---
@@ -53,6 +54,7 @@ library(purrr)
 library(tidyr)
 library(readr)
 library(ggridges)
+library(patchwork)
 
 theme_set(theme_classic())
 
@@ -87,21 +89,26 @@ results <- run_scm_collect(results)
 
 ```
 
-This report
- 
+This reports provides some standardised reporting for simulations of stands using the `FF16` strategy within the plant model. You can reuse code for your own reports, or take this report and modify it for your own use.
+
+Each report documents a single simulation.
+
 # Inputs
 
 ## Site properties
 
+
+(This is a palceholder for now. We need further wotk to rpeort on these, as they are not curently available within the parameters object.)
+
 The site was simulated with following properties
 
-- Latitude: input to hyper par function, not accessible in output
-- Productivity: input to hyper par function, not accessible in output
-- Solar inputs  / cycles
+- Latitude: XXXX (input to hyper par function, not accessible in output)
+- Productivity: XXXX (input to hyper par function, not accessible in output)
+- Solar input: XXXX (input to hyper par function, not accessible in output)
 
 ## Species 
 
-The simulation was run with XX species.
+The simulation was run with `r length(results$p$strategies)` species.
 
 ### Parameters
 
@@ -121,9 +128,16 @@ pars <-
   purrr::map_df(p$strategies, extract_strategy, .id = "species") %>% 
   mutate(species = paste("sp", species)) %>%
   bind_rows(
-    extract_strategy(p$strategy_default) %>% mutate(species = "default")
+    extract_strategy(p$strategy_default) %>% mutate(species = "default"),
+    .
   ) %>% 
-  mutate(value = format(value, scientific = TRUE, drop0trailing = TRUE)) %>%
+  group_by(parameter, .drop = TRUE) %>%
+  mutate(
+    # format values
+    value = format(value, scientific = TRUE, drop0trailing = TRUE, digits=4),
+    # remove repated values
+    value = ifelse(duplicated(value), NA, value)
+  ) %>%
   pivot_wider(values_from = value, names_from = species)
 
 pars_def <- 
@@ -132,21 +146,30 @@ pars_def <-
 
 names(pars_def) <- tolower(names(pars_def))
 
+# detect rows for bolding
+i_bold <- grep("**", pars_def$description, fixed = TRUE)
+pars_def$description <- gsub("**", "", pars_def$description, fixed = TRUE)
+
 pars_def %>% 
   left_join(by = "parameter", pars) %>% 
-  select(description, parameter, everything()) %>% select(-symbol) %>% 
+  select(description, parameter, everything()) %>% 
+  select(-symbol) %>% 
+  mutate(across(everything(), ~replace_na(.x,""))) %>%
   knitr::kable(
-    align = "l",
-    caption = "Variable names and definitions in the demographic model of the `plant` package."
-  )
+    align = "l") %>% 
+  kableExtra::kable_material(c("striped", "hover")) %>%
+  kableExtra::row_spec(i_bold, bold = TRUE)
+
 ```
 
 Traits
 
-- Comparisons to data (Austraits)
-- Along tradeoff curves(requires data from hyperpar?)
+- XXX Comparisons to data (Austraits)
+- XXX Along tradeoff curves(requires data from hyperpar?)
 
 ### Birth rates
+
+XXX
 
 ### Leaf photosynthesis
 
@@ -174,11 +197,11 @@ labs(
 
 # Individual trajectoires
 
-Compare to BAAD (Becca)
+XXX Compare to BAAD 
 
 # Stand dynamics - size structured 
 
-For the plots below we're going to use the tidy outputs format of the results.
+This section provides plots on size-structured population dyanmics. For the plots below we're going to use the tidy outputs format of the results.
 
 ```{r}
 results_tidy_expand <- 
@@ -205,32 +228,32 @@ canopy <-
   ) %>% ungroup()
 
 
-target_ages <- c(0.1, seq(1, 5), seq(10, 50, by = 5), seq(70, results_tidy_expand$species$time %>% max(), by = 20))
+# unless specified in inputs, select ages to make plots
+if(is.na(target_ages)) {
+  target_ages <- c(0.1, 1, 2.5, 5, 10, 20, 40, 80, 160)
+}
+
+target_ages <- target_ages[target_ages <= max(results$time)]
 
 ```
 
 ## Size distributions
 
-SIZE - DENSITY
+This plot shows the size-density distribution of the population. 
+
+- XXX notes/liunks on interpretting density
 
 ```{r}
 data_species %>%
   plot_size_distribution()
 ```
 
-- Height 
-- relative scale?
-- Interpreting density
 
 ## Growth rates
 
-Total
-Size dependent
-Growth vs independent?
-
+These plots show the distribution of growth rates at different ages in the stand. 
 
 ```{r}
-
 get_dt <- function(y,x) {
   c(diff(y)/diff(x), NA)
 }
@@ -266,37 +289,57 @@ growth_rates %>%
   ggplot(aes(x = height, y = value, label = time, group = time, col = time)) +
   geom_line() +
   geom_text(data = growth_rates_max %>% filter(!name %in% c("mortality_dt", "fecundity_dt")), nudge_x = 0.5) +
-  facet_grid(vars(name), vars(species), scales="free") +
   labs(
     title = "Growth rates vs size",
     x = "Individual height (m)",
     y = "Growth rate (unit / yr)"
-  ) 
+  ) -> p
 ```
+The first plot shows species with different x and y axis, enabling best visulaisation for each species
+```{r}
+p + facet_wrap(vars(name, species), scales = "free")
+```
+
+The next plot shows all species with a common y axis and variable x, enabling comparison between species
+```{r}
+p + facet_grid(vars(name), vars(species), scales = "free")
+```
+
 ## Mortality
 
-```{r}
+These plots show the distribution of mortality rates at different ages in the stand. 
 
+```{r}
 growth_rates %>%
   select(species, height, time, mortality_dt) %>%
   pivot_longer(ends_with("dt")) %>%
   ggplot(aes(x = height, y = value, label = time, group = time, col = time)) +
   geom_line() +
   geom_text(data = growth_rates_max %>% filter(name %in% c("mortality_dt")), nudge_x = 0.5) +
-  facet_grid(cols= vars(species), scales = "free") +
   labs(
     title = "Mortality rates vs size",
     x = "Individual height (m)",
     y = "Mortality rate ( / yr)"
-  )
+  ) -> p
+```
+
+The first plot shows species with different x and y axis, enabling best visulaisation for each species
+```{r}
+p + facet_wrap(vars(species), scales = "free")
+```
+
+The next plot shows all species with a common y axis and variable x, enabling comparison between species
+```{r}
+p + facet_wrap(vars(species), scales = "free_x")
 ```
 
 Todo:
 
-- Growth vs independent?
+- XXX Do we want to seperate out growth vs independent?
 
 ## Fecundity
 
+These plots show the distribution of fecundity rates at different ages in the stand. 
 
 ```{r}
 
@@ -306,20 +349,27 @@ growth_rates %>%
   ggplot(aes(x = height, y = value, label = time, group = time, col = time)) +
   geom_line() +
   geom_text(data = growth_rates_max %>% filter(name %in% c("fecundity_dt")), nudge_x = 0.5) +
-  facet_grid(cols=vars(species), scales = "free") +
   labs(
     title = "Fecundity rates vs size",
     x = "Individual height (m)",
     y = "Fedcundity rate ( / yr)"
-  )
+  ) -> p
+```
+The first plot shows species with different x and y axis, enabling best visulaisation for each species
+```{r}
+p + facet_wrap(vars(species), scales = "free")
 ```
 
+The next plot shows all species with a common y axis and variable x, enabling comparison between species
+```{r}
+p + facet_wrap(vars(species), scales = "free_x")
+```
 
 # Stand dynamics - aggregate outputs
 
 ## Leaf area
 
-The following plot shows the cumulative leaf area for each species in the stand.
+The following plot shows the total leaf area for each species in the stand over time.
 
 ```{r}
 data_species_tot %>%
@@ -329,17 +379,25 @@ data_species_tot %>%
      ylab("Leaf area index (m2/m2)")
 ```
 
-The following plot shows the amount of leaf area contributed by plants of different height in the stand.
+The next plots shows the amount of leaf area contributed by plants of different height in the stand. We have three different ways of visualising this.
+
+Note, this is the leaf area contibuted by whole individuals, against their height; so not the precise distribution of leaf area within the stand. The leaf area for each idnividual is distributed across a range of heights.
+
+This first set shows the density of leaf area by individual height.
 
 ```{r}
+d <- data_species %>%
+  filter(time %in% select_closest(time, target_ages))
 
-data_species %>%
-  filter(time %in% select_closest(time, target_ages)) %>%
-  ggplot(aes(x = height, height = density * area_leaf, y = time, group = time, fill = species)) +
-  geom_density_ridges(stat = "identity", scale = 2) +
-  # scale_y_continuous(expand = c(0, 0)) +
-  # scale_x_continuous(expand = c(0, 0)) + # remove unneeded padding
-  #  coord_cartesian(clip = "off") + # to avoid clipping of the very top of the top ridgeline
+p <- 
+  d %>%
+  ggplot(aes(x = height, height = density * area_leaf, y = time, group = time, fill = species)) 
+  
+for(s in unique(d$species))
+  p <- p + 
+  geom_ridgeline(data = filter(d, species== s), stat = "identity", scale = 2)
+
+  p +  
   labs(
     title = "Leaf area contributed by individual height",
     y = "Patch age (yr)",
@@ -349,6 +407,8 @@ data_species %>%
   coord_flip()
 
 ```
+
+This next set shows the CUMULATIVE leaf area by individual height.
 
 ```{r}
 trapezium_segments <- function(x, y) c(0, diff(x) * 0.5 * (y[-length(y)] + y[-1]))
@@ -372,29 +432,42 @@ d2 <-
     rev_cumulative_trapezium(height, density * area_leaf)
   ) %>% ungroup()
   
-d2_com <- d2 %>%
+d2_com <- 
+  d2 %>%
   bind_rows(
-    canopy %>% mutate(species="canopy") %>%
+    canopy %>% mutate(species= "whole stand") %>%
       filter(time %in% select_closest(time, target_ages))
    )
 
-d2_max <- d2_com %>%
+d2_max <- 
+  d2_com %>%
     group_by(time, species) %>%
     filter(height == max(height)) %>%
     ungroup()
 
-d2 %>%
-  ggplot(aes(x = height, y=time, height = LAI_below, group = time, col = species)) +  
-   geom_density_ridges(stat = "identity", scale = 2) +   
-   labs(
+p <- 
+  d2 %>%
+  ggplot(aes(x = height, y=time, height = LAI_below, group = time, fill = species))
+
+  for (s in unique(d2$species)) {
+    p <- p +
+      geom_ridgeline(data = filter(d2, species == s), stat = "identity", scale = 2)
+  }
+  
+  p + 
+  labs(
      title = "Cumulutive leaf area by individual height",
      y = "Patch age (yr)",
      x = "Individual height (m)"
    ) +
    theme_ridges() +
    coord_flip()
+```
 
-d2_com %>%
+Another way of looking at the same data:
+
+```
+  d2_com %>%
   ggplot(aes(y = height, x = LAI_below, label = round(time), group = time, col = time)) +
   geom_line() +
   geom_text(data = d2_max, nudge_x = 0.1) +
@@ -402,12 +475,13 @@ d2_com %>%
     title = "Cumulutive leaf area from ground, total (left) and by individual (right)",
     x = "Total leaf area from ground (m2/m2)",
     y = "Individual height (m)"
-  ) + facet_wrap(~species)
+  ) + facet_wrap(~species, ncol =1)
 
 ```
 
 ## Basal area 
 
+The following plot shows the total stem basal area for each species in the stand over time.
 
 ```{r}
 data_species_tot %>%
@@ -417,7 +491,9 @@ data_species_tot %>%
   ylab("Total basal area (m2/m2)")
 ```
 
-## BIOMASS
+## Biomass distribution
+
+The following plot shows the cumulative leaf area for each species in the stand.
 Tissues 
 
 ```{r}
@@ -441,43 +517,71 @@ data_long %>%
   geom_area() +
   labs(x = "Patch age (yr)", y = "Above ground mass (kg/m2)") +
   theme_classic() +
-  xlim(c(0, 100)) +
-  facet_wrap(~species_name)
+  xlim(c(0, 100)) -> p
+```
+
+The first plot shows species with different y axis, enabling best visulaisation for each species
+```{r}
+p + facet_wrap(vars(species), ncol = 1, scales = "free")
+```
+
+The next plot shows all species with a common y axis, enabling comparison between species
+```{r}
+p + facet_wrap(vars(species), , ncol = 1, scales = "free_x")
 ```
 
 ## Carbon budgets 
 
+XXX
+
 ### NPP
+
+XXX
 
 ### Turnover
 
+XXX
 
 ## Environment
+
+XXX
 
 ### Light availability
 
 ```{r}
-
 d2 <-
     canopy %>% mutate(species = "canopy") %>%
     filter(time %in% select_closest(time, target_ages)) %>% 
-    mutate(time = round(time))
+    mutate(
+      time = round(time),
+      LAI = -log(canopy_openness)/ 0.5      
+      )
 
 d2_max <- d2 %>%
   group_by(time, species) %>%
   slice(n())
 
-d2 %>%
+p1 <- 
+  d2 %>%
   ggplot(aes(x = height, y = canopy_openness, label = time, group = time, col = time)) +
   geom_line() +
   geom_text(data = d2_max, nudge_y = 0.05) +
   labs(
     title = "Canopy openess through time",
-    x = "height from ground (m)",
+    x = "",
     y = "Canopy openness (0-1)"
   )
+
+
+p2 <- d2 %>%
+  ggplot(aes(x = height, y = LAI, label = time, group = time, col = time)) +
+  geom_line() +
+  geom_text(data = d2_max, nudge_y = 0.05) +
+  labs(
+    title = "Leaf area index through time",
+    x = "height from ground (m)",
+    y = "LAI above (m2/m2)"
+  )
+
+p1 / p2 
 ```
-
-
-
-

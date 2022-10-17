@@ -130,23 +130,25 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
 ##' rendered as html files and saved in the specified output folder.
 ##'
 ##' @param results results of runnning \code{run_scm_collect}
-##' @param overwrite logical value to determine whether to overwrite existing report
 ##' @param output_file name of output file
-##' @param output_dir location where rendered report will be saved
+##' @param overwrite logical value to determine whether to overwrite existing report
+##' @param target_ages Patches ages at which to make plots
 ##' @param input_file report script (.Rmd) file to build study report
 ##' @param quiet An option to suppress printing during rendering from knitr, pandoc command line and others.
 ##'
-##' @rdname dataset_generate_report
+##' @rdname FF16_generate_stand_report
 ##' @return html file of the rendered report located in the specified output folder.
 ##' @export
-
-FF16_generate_stand_report <- function(results, overwrite = FALSE,
+FF16_generate_stand_report <- function(results,
                                     output_file = "FF16_report.html",
-                                    output_dir = ".",
+                                    overwrite = FALSE,
+                                    target_ages = NA,
                                     input_file = system.file("scripts", "FF16_reports.Rmd", package = "plant"),
                                     quiet = TRUE) {
   
 
+  output_dir <- dirname(output_file)
+  
   if (!file.exists(output_dir)) {
     dir.create(output_dir, FALSE, TRUE)
   }
