@@ -80,8 +80,13 @@ p0$strategy_default$a_dG2 <- 30
 
 hyperpar <- make_FF16_hyperpar(B_dI1 = 0)
 
-traits <- trait_matrix(c(0.2), c("lma"))
-p1 <- expand_parameters(traits, p0, hyperpar = hyperpar, mutant = FALSE)
+traits <- trait_matrix(c(0.7, 5), c("lma", "eta"))
+p1 <- expand_parameters(traits, p0, hyperpar = hyperpar, mutant = FALSE,
+                        birth_rate_list = list(
+                          list(x = seq(0, 200, len = 20),
+                               y = sin(seq(0, 200, len = 20)) + 2)
+                          ))
+                        
 results <- build_schedule(p1)
 results <- run_scm_collect(results)
 
@@ -161,14 +166,39 @@ pars_def %>%
 
 ```
 
-Traits
+### Traits
 
 - XXX Comparisons to data (Austraits)
-- XXX Along tradeoff curves(requires data from hyperpar?)
+- XXX Along trade-off curves(requires data from hyperpar?)
 
 ### Birth rates
 
 XXX
+
+```{r}
+
+extract_birthrates <- function(strategy) {
+  if (strategy$is_variable_birth_rate) {
+    f <- splinefun(strategy$birth_rate_x, strategy$birth_rate_y)
+  } else {
+    f <- splinefun(results$time, strategy$birth_rate_y)
+  }
+  
+  br = data.frame(time = results$time,
+                  birth_rate = f(results$time))
+  
+  return(br)
+}
+
+map_df(p$strategies, extract_birthrates, .id = "species") %>%
+  ggplot(., aes(time, birth_rate, color = species)) +
+    geom_line() +
+    labs(title = "Annual birth rate",
+         x = "Time (years)",
+         y = "Birth rate (ind. / yr / m2)",
+         color = "Species")
+
+```
 
 ### Leaf photosynthesis
 
@@ -294,7 +324,7 @@ growth_rates %>%
     y = "Growth rate (unit / yr)"
   ) -> p
 ```
-The first plot shows species with different x and y axis, enabling best visulaisation for each species
+The first plot shows species with different x and y axis, enabling best visualisation for each species
 ```{r}
 p + facet_wrap(vars(name, species), scales = "free")
 ```
