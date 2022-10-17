@@ -100,7 +100,6 @@ FF16_fixed_environment <- function(e=1.0, height_max = 150.0) {
 ##' @param n number of points
 ##' @param light_env function for light environment in test object
 ##' @param n_strategies number of strategies for test environment
-##' @param birth_rate birth_rate for test environment
 ##' @export
 ##' @rdname FF16_test_environment
 ##' @examples

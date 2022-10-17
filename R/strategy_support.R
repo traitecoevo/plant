@@ -2,6 +2,7 @@
 ##' Set a suitable hyperparameter function for chosen physiological model
 ##' @title Hyperparameters for FF16 physiological model
 ##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
+##' @param parameters A parameters object
 ##' @rdname Hyperparameter_functions
 ##' @export
 # if you update this function (even syntactic changes) update the function update_smc_support in the scaffolder
@@ -54,6 +55,7 @@ environment_type <- function(type) {
 ##' Make environment objects for a strategy
 ##' @param type Any strategy name as a string, e.g.: \code{"FF16"}.
 ##' @param parameters a object
+##' @param ... other arguments passed through
 ##' @rdname make_environment
 ##' @export
 make_environment <- function(type = NULL, parameters = NULL, ...) {
