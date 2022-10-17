@@ -49,7 +49,10 @@ tidy_env <- function(env) {
     purrr::map(., function(v) purrr::map_dfr(env, ~ purrr::pluck(., v) %>% 
                                         data.frame, .id = "step") %>%
                  dplyr::mutate(dplyr::across(step, as.integer)) %>%
-                 dplyr::rename_with(~ gsub("\\.", v, .)))
+                 dplyr::rename_with(~ gsub("\\.", v, .)) %>%
+                 tibble::as_tibble()
+                 
+                 ) 
   
   names(env_long) <- env_variables
   return(env_long)

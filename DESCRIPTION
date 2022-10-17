@@ -35,7 +35,6 @@ Imports:
     tidyr,
     purrr
 Suggests:
-    ggplot2,
     testthat,
     deSolve,
     numDeriv,
@@ -44,11 +43,15 @@ Suggests:
     knitr,
     rmarkdown,
     markdown,
-    bench
+    bench,
+    ggplot2,
+    ggridges,
+    patchwork,
+    kableExtra
 Remotes:
     smbache/loggr,
     richfitz/RcppR6
 VignetteBuilder: knitr
 URL: https://github.com/traitecoevo/plant
 BugReports: https://github.com/traitecoevo/plant/issues
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.1

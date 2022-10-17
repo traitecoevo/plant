@@ -124,6 +124,60 @@ FF16_test_environment <- function(height, n=101, light_env=NULL,
   ret
 }
 
+##' Generates a report on stand grown with FF16 strategy
+##'
+##' Builds a detailed report on stand grown with FF16 strategy, based on the template Rmd file provided.  The reports are
+##' rendered as html files and saved in the specified output folder.
+##'
+##' @param results results of runnning \code{run_scm_collect}
+##' @param output_file name of output file
+##' @param overwrite logical value to determine whether to overwrite existing report
+##' @param target_ages Patches ages at which to make plots
+##' @param input_file report script (.Rmd) file to build study report
+##' @param quiet An option to suppress printing during rendering from knitr, pandoc command line and others.
+##'
+##' @rdname FF16_generate_stand_report
+##' @return html file of the rendered report located in the specified output folder.
+##' @export
+FF16_generate_stand_report <- function(results,
+                                    output_file = "FF16_report.html",
+                                    overwrite = FALSE,
+                                    target_ages = NA,
+                                    input_file = system.file("reports", "FF16_report.Rmd", package = "plant"),
+                                    quiet = TRUE) {
+  
+
+  output_dir <- dirname(output_file)
+  
+  if (!file.exists(output_dir)) {
+    dir.create(output_dir, FALSE, TRUE)
+  }
+  
+  #output_file <- basename(output_file)
+
+  if (overwrite | !file.exists(output_file)) {
+    # knit and render. Note, call render directly
+    # in preference to knit, then render, as leaflet widget
+    # requires this to work
+    result <-
+      rmarkdown::render(
+        input_file,
+        output_dir = output_dir,
+        output_file = output_file,
+        quiet = quiet,
+        params = list(
+          results = results,
+          target_ages = target_ages
+        )
+    )
+
+    # remove temporary Rmd
+    message(sprintf("Report for FF16 stand saved at %s", output_file))
+  } else {
+    message(sprintf("Report for FF16 stand already exists at %s", output_file))
+  }
+}
+
 ##' Hyperparameters for FF16 physiological model
 ##' @title Hyperparameters for FF16 physiological model
 ##' @param lma_0 Central (mean) value for leaf mass per area [kg /m2]

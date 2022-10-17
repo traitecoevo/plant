@@ -19,8 +19,6 @@ knitr::opts_chunk$set(echo = TRUE)
 # installation
 
 ```{r load libraries}
-devtools::load_all()
-
 library(plant)
 library(dplyr)
 library(tidyr)
@@ -34,7 +32,20 @@ Activate logger
 plant_log_console()
 ```
 
-Setting some base parameters.
+Very minimalist 
+
+```{r}
+p0 <- scm_base_parameters("FF16", "FF16_Env")
+
+traits <- trait_matrix(c(0.07), c("lma"))
+
+p1 <- expand_parameters(traits, p0, mutant = FALSE)
+
+results <- build_schedule(p1)
+results <- run_scm_collect(results)
+```
+
+This uses the default parameters in plant. But you may want alter some of the defaults. For that we recommend setting up some functions to set `base_parameters`.
 
 ```{r}
 base_parameters <- function() {
@@ -49,13 +60,13 @@ base_parameters <- function() {
 }
 ```
 
-We can now create a function called `run_mypatch` which takes a number of a arguments, including `traits` which we assign a trait matrix. The `expand_parameters` function takes this trait matrix as an argument which allows us to simulate patches with multiple functional strategis, in addition to the base_parameters and any newly defined hyperparameters such as B_lf1. We also provide a latitude as an argument, as well as whether or not we want to run the patch to equilibrium seed rain.
+We can now create a second function called `run_mypatch` which takes a number of a arguments, including `traits` which we assign a trait matrix. The `expand_parameters` function takes this trait matrix as an argument which allows us to simulate patches with multiple functional strategies, in addition to the base_parameters and any newly defined hyperparameters such as B_lf1. We also provide a latitude as an argument, as well as whether or not we want to run the patch to equilibrium seed rain.
 
 ```{r}
 run_mypatch <- function(
   traits =  trait_matrix(c(0.07), c("lma")),
+  birth_rate_list = c(10, 10), 
   B_lf1 = 1,
-  seed_rain = 100,
   p0 = base_parameters(),
   find_equilbrium = FALSE,
   optimise_schedule = FALSE,
@@ -63,8 +74,7 @@ run_mypatch <- function(
   ) {
   
   hyper_par_fn = make_FF16_hyperpar(B_lf1 = B_lf1, latitude = latitude)
-  p1 <- expand_parameters(traits, p0, hyper_par_fn, mutant = FALSE)
-  p1$seed_rain <- seed_rain
+  p1 <- expand_parameters(traits, p0, hyper_par_fn, mutant = FALSE, birth_rate_list = birth_rate_list)
   
    if(find_equilbrium)
     result <- equilibrium_seed_rain(p1)
@@ -120,7 +130,7 @@ For example, the number of individuals per $m^2$ is found by integrating the den
 
 ```{r}
 data_species_tot %>% 
-  ggplot(aes(time, individuals, colour=species)) +
+  ggplot(aes(time, density, colour=species)) +
   geom_line()
 ```
 
