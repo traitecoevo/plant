@@ -52,7 +52,6 @@ library(ggplot2)
 library(dplyr)
 library(purrr)
 library(tidyr)
-library(readr)
 library(ggridges)
 library(patchwork)
 
@@ -74,7 +73,7 @@ select_closest <- function(x, targets) {
 
 ```{r, echo = FALSE, eval=FALSE}
 
-# this is not run by default, just some code to generate som example data, if needed 
+# this is not run by default, just some code to generate some example data, if needed 
 p0 <- scm_base_parameters("FF16", "FF16_Env")
 p0$strategy_default$recruitment_decay <- 5
 p0$strategy_default$a_dG2 <- 30
@@ -98,7 +97,7 @@ Each report documents a single simulation.
 ## Site properties
 
 
-(This is a palceholder for now. We need further wotk to rpeort on these, as they are not curently available within the parameters object.)
+(This is a placeholder for now. We need further work to report on these, as they are not currently available within the parameters object.)
 
 The site was simulated with following properties
 
@@ -141,12 +140,12 @@ pars <-
   pivot_wider(values_from = value, names_from = species)
 
 pars_def <- 
- system.file("docs/FF16", "FF16-params-core.csv", package = "plant") %>% read_csv() %>%
+ system.file("docs/FF16", "FF16-params-core.csv", package = "plant") %>% read.csv(stringsAsFactors = FALSE, header = TRUE) %>%
   rename("parameter" = "Code")
 
 names(pars_def) <- tolower(names(pars_def))
 
-# detect rows for bolding
+# detect rows for bold
 i_bold <- grep("**", pars_def$description, fixed = TRUE)
 pars_def$description <- gsub("**", "", pars_def$description, fixed = TRUE)
 
@@ -173,7 +172,7 @@ XXX
 
 ### Leaf photosynthesis
 
-Species had the following potential leaf photosynthetic rates, calculated by integrating instantaneous photosynthesis across the solar path trhoughout the year.
+Species had the following potential leaf photosynthetic rates, calculated by integrating instantaneous photosynthesis across the solar path throughout the year.
 
 ```{r}
 E <- seq(0,1, by=0.01)
@@ -195,13 +194,13 @@ labs(
 
 ```
 
-# Individual trajectoires
+# Individual trajectories
 
 XXX Compare to BAAD 
 
 # Stand dynamics - size structured 
 
-This section provides plots on size-structured population dyanmics. For the plots below we're going to use the tidy outputs format of the results.
+This section provides plots on size-structured population dynamics. For the plots below we're going to use the tidy outputs format of the results.
 
 ```{r}
 results_tidy_expand <- 
@@ -241,7 +240,7 @@ target_ages <- target_ages[target_ages <= max(results$time)]
 
 This plot shows the size-density distribution of the population. 
 
-- XXX notes/liunks on interpretting density
+- XXX notes/links on interpreting density
 
 ```{r}
 data_species %>%
@@ -323,7 +322,7 @@ growth_rates %>%
   ) -> p
 ```
 
-The first plot shows species with different x and y axis, enabling best visulaisation for each species
+The first plot shows species with different x and y axis, enabling best visualisation for each species
 ```{r}
 p + facet_wrap(vars(species), scales = "free")
 ```
@@ -335,7 +334,7 @@ p + facet_wrap(vars(species), scales = "free_x")
 
 Todo:
 
-- XXX Do we want to seperate out growth vs independent?
+- XXX Do we want to separate out growth vs independent?
 
 ## Fecundity
 
@@ -352,10 +351,10 @@ growth_rates %>%
   labs(
     title = "Fecundity rates vs size",
     x = "Individual height (m)",
-    y = "Fedcundity rate ( / yr)"
+    y = "Fecundity rate ( / yr)"
   ) -> p
 ```
-The first plot shows species with different x and y axis, enabling best visulaisation for each species
+The first plot shows species with different x and y axis, enabling best visualisation for each species
 ```{r}
 p + facet_wrap(vars(species), scales = "free")
 ```
@@ -381,7 +380,7 @@ data_species_tot %>%
 
 The next plots shows the amount of leaf area contributed by plants of different height in the stand. We have three different ways of visualising this.
 
-Note, this is the leaf area contibuted by whole individuals, against their height; so not the precise distribution of leaf area within the stand. The leaf area for each idnividual is distributed across a range of heights.
+Note, this is the leaf area contributed by whole individuals, against their height; so not the precise distribution of leaf area within the stand. The leaf area for each individual is distributed across a range of heights.
 
 This first set shows the density of leaf area by individual height.
 
@@ -456,7 +455,7 @@ p <-
   
   p + 
   labs(
-     title = "Cumulutive leaf area by individual height",
+     title = "Cumulative leaf area by individual height",
      y = "Patch age (yr)",
      x = "Individual height (m)"
    ) +
@@ -472,7 +471,7 @@ Another way of looking at the same data:
   geom_line() +
   geom_text(data = d2_max, nudge_x = 0.1) +
   labs(
-    title = "Cumulutive leaf area from ground, total (left) and by individual (right)",
+    title = "Cumulative leaf area from ground, total (left) and by individual (right)",
     x = "Total leaf area from ground (m2/m2)",
     y = "Individual height (m)"
   ) + facet_wrap(~species, ncol =1)
@@ -520,7 +519,7 @@ data_long %>%
   xlim(c(0, 100)) -> p
 ```
 
-The first plot shows species with different y axis, enabling best visulaisation for each species
+The first plot shows species with different y axis, enabling best visualisation for each species
 ```{r}
 p + facet_wrap(vars(species), ncol = 1, scales = "free")
 ```
@@ -567,7 +566,7 @@ p1 <-
   geom_line() +
   geom_text(data = d2_max, nudge_y = 0.05) +
   labs(
-    title = "Canopy openess through time",
+    title = "Canopy openness through time",
     x = "",
     y = "Canopy openness (0-1)"
   )
