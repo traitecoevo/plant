@@ -45,7 +45,7 @@ results <- build_schedule(p1)
 results <- run_scm_collect(results)
 ```
 
-This useses the dault parameters in plant. But you may want alter some of the deaults. For that we recommend setting up some functions to set `base_parameters`.
+This uses the default parameters in plant. But you may want alter some of the defaults. For that we recommend setting up some functions to set `base_parameters`.
 
 ```{r}
 base_parameters <- function() {

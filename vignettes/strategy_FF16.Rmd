@@ -38,7 +38,7 @@ units and definitions of all variables, parameters, and hyper-parameters used in
 the material below. 
 
 ```{r phys, out.width = '100%', fig.cap="**Physiological model in `plant`, giving demographic rates on the basis of its traits, size, and light environment, as functions of net mass production.** The dashed arrow towards mortality indicates that, although the mortality rate is assumed to depend on mass production, no mass is actually allocated there. Figure adapted from @Falster-2011 and @Falster-2015.", echo=FALSE}
-knitr::include_graphics(file.path("assets_path", "FF16-schematic-phys.png"))
+knitr::include_graphics(file.path(assets_path, "FF16-schematic-phys.png"))
 ```
 
 # Growth {#growth}
