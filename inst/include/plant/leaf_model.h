@@ -17,7 +17,7 @@ namespace plant {
 // double check best namespace for constants (private vs global)
 // unitless
 static const double vcmax_25_to_jmax_25 = 1.67;
-// unitless
+// unitless - obtained from Sperry et al. (2017)
 static const double curv_fact = 0.9;
 // unitless
 static const double a = 0.3;

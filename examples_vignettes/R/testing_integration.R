@@ -63,21 +63,32 @@ profit_curves_from_leaf<- function(leaf, psi_crit){
 visualise_integrals <- function(variable, ...){
   data_to_plot<- tibble(...)  
   
+
   if(variable == "profit"){
-  data_to_plot  %>% unnest(coords) %>% unnest(coords) %>% unnest(outputs) %>% ggplot(aes(x=instant_through_day_hr , y = profit)) + geom_line() +
+  data_to_plot  %>% unnest(coords) %>% unnest(coords) %>% ggplot() + geom_line(data = data_to_plot %>% filter(focal_points == 50) %>% select(-focal_points), aes(x=instant_through_day_hr , y = profit)) +
     geom_polygon(aes(x = x, y= profit_y), alpha = 0.3, col = "orange" , fill = "orange") +
-    geom_point(aes(x = instant_through_day_hr_point, y= profit_point), col = "orange" , fill = "orange") +
+    geom_point(aes(x = instant_through_day_hr, y= profit), col = "orange" , fill = "orange") +
     facet_wrap(~focal_points) +
     theme_classic()
   } else{
-  data_to_plot  %>% unnest(coords) %>% unnest(coords) %>% unnest(outputs) %>% filter(focal_points == 50) %>% ggplot(aes(x=instant_through_day_hr , y = transpiration)) + geom_line() +
-    geom_polygon(aes(x = x, y= transpiration_y), alpha = 0.3, col = "orange" , fill = "orange") +
-    geom_point(aes(x = instant_through_day_hr_point, y= transpiration_point), col = "orange" , fill = "orange") +
-    facet_wrap(~focal_points) +
-    theme_classic()
+    data_to_plot  %>% unnest(coords) %>% unnest(coords) %>% ggplot() + geom_line(data = data_to_plot %>% filter(focal_points == 50) %>% select(-focal_points), aes(x=instant_through_day_hr , y = transpiration)) +
+      geom_polygon(aes(x = x, y= transpiration_y), alpha = 0.3, col = "orange" , fill = "orange") +
+      geom_point(aes(x = instant_through_day_hr, y= transpiration), col = "orange" , fill = "orange") +
+      facet_wrap(~focal_points) +
+      theme_classic()
   }
 }
 
+make_polygon_coordinates2 <- function(...){
+
+  data <- tibble(...)
+  
+  data %>%
+    select(transpiration, profit, focal_points, day_length, instant_through_day_hr, sun_rise, sun_down, day_length, run) %>%
+    ungroup %>%
+    mutate(coords = pmap(., create_polygon_coordinates)) %>%
+    select(coords)
+}
 
 
 
@@ -95,6 +106,7 @@ make_polygon_coordinates <- function(...){
 
 
 create_polygon_coordinates <- function(...){
+  
   data2 <- tibble(...)
   day_length = data2$day_length
   integral_lengths = day_length/data2$focal_points
@@ -107,7 +119,7 @@ create_polygon_coordinates <- function(...){
                             higher_point = higher_point)
 
   data3 %>%
-    tibble(x = c(.$lower_point, .$lower_point, .$higher_point, .$higher_point), profit_y = c(0, .$profit_point, .$profit_point, 0), transpiration_y = c(0, .$transpiration_point, .$transpiration_point, 0)) %>%
+    tibble(x = c(.$lower_point, .$lower_point, .$higher_point, .$higher_point), profit_y = c(0, .$profit, .$profit, 0), transpiration_y = c(0, .$transpiration, .$transpiration, 0)) %>%
     select(x, profit_y, transpiration_y)
 }
 

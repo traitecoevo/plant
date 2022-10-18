@@ -92,7 +92,7 @@ double Leaf::calc_g_c(double psi_stem) {
 
 
 // biochemical photosynthesis model equations
-
+//ensure that units of PPFD_ actually correspond to something real.
 double Leaf::calc_j() {
   double jmax = vcmax * vcmax_25_to_jmax_25;
   double j = (a * PPFD_ + jmax - sqrt(pow(a * PPFD_ + jmax, 2) - 4 * curv_fact * a * PPFD_ * jmax)) / (2 * curv_fact); // check brackets are correct
