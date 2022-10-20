@@ -14,21 +14,21 @@ Leaf:
       
   active:
     ci: {type: double, access: field}
-    g_c: {type: double, access: field}
-    A_lim_: {type: double, access: field}
-    E: {type: double, access: field}
-    profit: {type: double, access: field}
+    stom_cond_CO2_: {type: double, access: field}
+    assim_colimited_: {type: double, access: field}
+    transpiration_: {type: double, access: field}
+    profit_: {type: double, access: field}
     psi_stem: {type: double, access: field}
     lambda_: {type: double, access: field}
     lambda_analytical_: {type: double, access: field}
-    j_: {type: double, access: field}
+    electron_transport_: {type: double, access: field}
     k_l_max_: {type: double, access: field}
     PPFD_: {type: double, access: field}
     atm_vpd_: {type: double, access: field}
     ca_: {type: double, access: field}
     psi_soil_: {type: double, access: field}
-    opt_psi_stem: {type: double, access: field}
-    opt_ci: {type: double, access: field}
+    opt_psi_stem_: {type: double, access: field}
+    opt_ci_: {type: double, access: field}
     method: {type: double, access: field}
     count: {type: double, access: field}
     GSS_count: {type: double, access: field}
@@ -38,31 +38,31 @@ Leaf:
     initialize_integrator:
       return_type: void
       args: [integration_rule: int, integration_tol: double]
-    calc_cond_vuln:
+    proportion_of_conductivity:
       return_type: double
       args: [psi: double]
-    calc_E_supply:
+    transpiration:
       return_type: double
       args: [psi_stem: double]
     calc_E_supply_full_integration:
       return_type: double
       args: [psi_stem: double]
-    calc_g_c:
+    stom_cond_CO2:
       return_type: double
       args: [psi_stem: double]
-    calc_A_c:
+    assim_rubisco_limited:
       return_type: double
       args: [ci_: double]
-    calc_A_j:
+    assim_electron_limited:
       return_type: double
       args: [ci_: double]
-    A_lim:
+    assim_colimited:
       return_type: double
       args: [ci_: double]
     diff_ci:
       return_type: double
       args: [x: double, psi_stem: double]
-    calc_hydraulic_cost_Sperry:
+    hydraulic_cost_Sperry:
       return_type: double
       args: [psi_stem: double] 
     profit_psi_stem_Sperry:
@@ -83,7 +83,7 @@ Leaf:
     optimise_psi_stem_Sperry_Newton_analytical:
       return_type: void
       args: [psi_guess: double]
-    calc_j:
+    electron_transport:
       return_type: double
       args: []  
     profit_psi_stem_Sperry_analytical:
@@ -93,7 +93,7 @@ Leaf:
     calc_profit_Sperry_ci_analytical:
       return_type: double
       args: [c_i: double] 
-    A_lim_analytical:
+    assim_colimited_analytical:
       return_type: double
       args: [c_i: double]  
     optimise_psi_stem_Sperry_analytical:
@@ -106,13 +106,13 @@ Leaf:
     convert_psi_stem_to_ci_analytical:
       return_type: double
       args: [psi_stem: double]
-    get_leaf_states_rates_from_psi_stem_analytical:
+    set_leaf_states_rates_from_psi_stem_analytical:
       return_type: void
       args: [psi_stem: double]
     convert_psi_stem_to_ci:
       return_type: double
       args: [psi_stem: double]
-    get_leaf_states_rates_from_psi_stem:
+    set_leaf_states_rates_from_psi_stem:
       return_type: void
       args: [psi_stem: double]
     optimise_ci_Sperry_Newton:

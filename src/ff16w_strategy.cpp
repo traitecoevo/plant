@@ -24,7 +24,7 @@ double FF16w_Strategy::compute_average_light_environment(
 
 // assumes calc_profit_bartlett has been run for optimal psi_stem
 double FF16w_Strategy::evapotranspiration_dt(double area_leaf_) {
-  return leaf.E * area_leaf_;
+  return leaf.transpiration_ * area_leaf_;
 }
 
 // One shot calculation of net_mass_production_dt
@@ -72,11 +72,11 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
     
   leaf.set_physiology(average_radiation, psi_soil, k_l_max, leaf.atm_vpd, leaf.ca);
     
-  // double ci_guess = vars.aux(aux_index.at("opt_ci"));
+  // double ci_guess = vars.aux(aux_index.at("opt_ci_"));
     
   // leaf.optimise_ci_Sperry_Newton_analytical(ci_guess);
     // std::cout << "started a strategy" << std::endl;
-  double psi_guess = vars.aux(aux_index.at("opt_psi_stem"));
+  double psi_guess = vars.aux(aux_index.at("opt_psi_stem_"));
 
   // leaf.optimise_psi_stem_Sperry_Newton_analytical();
 
@@ -85,16 +85,16 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
 // std::cout << "finished a strategy" << std::endl;
 
 
-  vars.set_aux(aux_index.at("opt_psi_stem"), leaf.opt_psi_stem);
+  vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
     
   vars.set_aux(aux_index.at("count"), leaf.count);
 
-  vars.set_aux(aux_index.at("profit"), leaf.profit);
+  vars.set_aux(aux_index.at("profit_"), leaf.profit_);
 
-  vars.set_aux(aux_index.at("A_lim_"), leaf.A_lim_);
+  vars.set_aux(aux_index.at("assim_colimited_"), leaf.assim_colimited_);
 
 
-  const double assimilation_per_area = leaf.profit;
+  const double assimilation_per_area = leaf.profit_;
     
   const double assimilation = assimilation_per_area * area_leaf_* 60*60*12*365/1000000;
     

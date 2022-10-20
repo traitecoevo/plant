@@ -74,11 +74,11 @@ public:
 
 
   double ci;
-  double j_;
-  double g_c;
-  double A_lim_;
-  double E;
-  double profit;
+  double electron_transport_;
+  double stom_cond_CO2_;
+  double assim_colimited_;
+  double transpiration_;
+  double profit_;
   double psi_stem;
   double lambda_;
   double lambda_analytical_;
@@ -87,8 +87,8 @@ public:
   double ca_;
   double k_l_max_;
   double psi_soil_;
-  double opt_psi_stem;
-  double opt_ci;
+  double opt_psi_stem_;
+  double opt_ci_;
   double method;
   double count;
   double GSS_count;
@@ -111,28 +111,28 @@ public:
   }
   
   void set_physiology(double PPFD, double psi_soil, double k_l_max, double atm_vpd, double ca);
-  void setup_E_supply(double resolution);
+  void setup_transpiration(double resolution);
 
 
-  double calc_cond_vuln(double psi) const;
-  double calc_E_supply(double psi_stem);
+  double proportion_of_conductivity(double psi) const;
+  double transpiration(double psi_stem);
   double calc_E_supply_full_integration(double psi_stem);                    
 
-  double calc_g_c(double psi_stem); // define as a constant
-  double calc_A_c(double ci_);
-  double calc_j();
-  double calc_A_j(double ci_);
-  double A_lim(double ci_);
-  double A_lim_analytical(double c_i);
+  double stom_cond_CO2(double psi_stem); // define as a constant
+  double assim_rubisco_limited(double ci_);
+  double electron_transport();
+  double assim_electron_limited(double ci_);
+  double assim_colimited(double ci_);
+  double assim_colimited_analytical(double c_i);
   
   double diff_ci(double x, double psi_stem);
   double convert_psi_stem_to_ci_analytical(double psi_stem);
-  void get_leaf_states_rates_from_psi_stem_analytical(double psi_stem);
+  void set_leaf_states_rates_from_psi_stem_analytical(double psi_stem);
   double convert_psi_stem_to_ci(double psi_stem);
-  void get_leaf_states_rates_from_psi_stem(double psi_stem);
+  void set_leaf_states_rates_from_psi_stem(double psi_stem);
   double convert_E_from_ci_to_psi_stem(double E_ci);
 
-  double calc_hydraulic_cost_Sperry(double psi_stem);
+  double hydraulic_cost_Sperry(double psi_stem);
 
   double profit_psi_stem_Sperry(double psi_stem);
   double profit_psi_stem_Sperry_analytical(double psi_stem);

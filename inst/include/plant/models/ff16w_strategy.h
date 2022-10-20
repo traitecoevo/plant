@@ -30,7 +30,7 @@ virtual void prepare_strategy();
 
 virtual std::vector<std::string> aux_names() {
   std::vector<std::string> ret(
-      {"competition_effect", "net_mass_production_dt", "opt_psi_stem","opt_ci", "count","profit","A_lim_"});
+      {"competition_effect", "net_mass_production_dt", "opt_psi_stem_","opt_ci_", "count","profit_","assim_colimited_"});
   // add the associated computation to compute_rates and compute there
   if (collect_all_auxiliary) {
     ret.push_back("area_sapwood");
