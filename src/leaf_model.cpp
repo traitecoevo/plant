@@ -6,8 +6,8 @@ Leaf::Leaf(double vcmax, double p_50, double c, double b,
            double psi_crit, // derived from b and c
            double huber_value, double K_s, double epsilon_leaf)
     : vcmax(vcmax), p_50(p_50), c(c), b(b), psi_crit(psi_crit), huber_value(huber_value), K_s(K_s), epsilon_leaf(epsilon_leaf), 
-      ci(NA_REAL), g_c(NA_REAL), A_lim(NA_REAL), E(NA_REAL), profit(NA_REAL), psi_stem_next(NA_REAL), j_(NA_REAL), lambda_(NA_REAL),
-      lambda_one_line_(NA_REAL), PPFD_(NA_REAL), atm_vpd_(NA_REAL), ca_(NA_REAL),psi_soil_(NA_REAL), k_l_max_(NA_REAL), opt_psi_stem(NA_REAL), opt_ci(NA_REAL), method(NA_REAL),
+      ci(NA_REAL), g_c(NA_REAL), A_lim_(NA_REAL), E(NA_REAL), profit(NA_REAL), j_(NA_REAL), lambda_(NA_REAL),
+      lambda_analytical_(NA_REAL), PPFD_(NA_REAL), atm_vpd_(NA_REAL), ca_(NA_REAL),psi_soil_(NA_REAL), k_l_max_(NA_REAL), opt_psi_stem(NA_REAL), opt_ci(NA_REAL), method(NA_REAL),
       count(NA_REAL), GSS_count(NA_REAL) {
         setup_E_supply(100);
 }
@@ -22,12 +22,13 @@ void Leaf::set_physiology(double PPFD, double psi_soil, double k_l_max, double a
 
   if(psi_soil >= psi_crit){
     lambda_ = 0;
-    lambda_one_line_ = 0;
+    lambda_analytical_ = 0;
 
   } else {
     get_leaf_states_rates_from_psi_stem(psi_crit);
-    lambda_ = calc_A_lim(ci) / (k_l_max_ * calc_cond_vuln(psi_soil_) - k_l_max_ * calc_cond_vuln(psi_crit));
-    lambda_one_line_ = calc_A_lim_one_line(ci) / (k_l_max_ * calc_cond_vuln(psi_soil_) - k_l_max_ * calc_cond_vuln(psi_crit));
+    lambda_ = A_lim(ci) / calc_hydraulic_cost_Sperry(psi_crit);
+    get_leaf_states_rates_from_psi_stem_analytical(psi_crit);
+    lambda_analytical_ = A_lim_analytical(ci) / calc_hydraulic_cost_Sperry(psi_crit);
   }
 }
 
@@ -113,7 +114,7 @@ double Leaf::calc_A_j(double ci_) {
 }
 
 // returns co-limited assimilation umol m^-2 s^-1
-double Leaf::calc_A_lim(double ci_) {
+double Leaf::A_lim(double ci_) {
   
   double A_c = calc_A_c(ci_);
   double A_j = calc_A_j(ci_);
@@ -125,7 +126,7 @@ double Leaf::calc_A_lim(double ci_) {
 }
 
 // returns co-limited assimilation umol m^-2 s^-1
-double Leaf::calc_A_lim_one_line(double ci_) {
+double Leaf::A_lim_analytical(double ci_) {
 
   double c2 = 13.13652;
 
@@ -142,11 +143,11 @@ double Leaf::calc_A_lim_one_line(double ci_) {
 // returns difference between co-limited assimilation and g_c, to be minimised (umol m^-2 s^-1)
 double Leaf::diff_ci(double x, double psi_stem) {
 
-  double A_lim_ = calc_A_lim(x);
+  double A_lim_x = A_lim(x);
 
   double g_c_ = calc_g_c(psi_stem);
 
-  return A_lim_ * umol_to_mol -
+  return A_lim_x * umol_to_mol -
          (g_c_ * (ca_ - x) / (atm_kpa * kPa_to_Pa));
 }
 
@@ -171,7 +172,7 @@ void Leaf::get_leaf_states_rates_from_psi_stem(double psi_stem) {
       ci = convert_psi_stem_to_ci(psi_stem);
       }
   
-  A_lim = calc_A_lim(ci);
+  A_lim_ = A_lim(ci);
   // g_c = calc_g_c(psi_stem);
   // E = g_c * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;
 
@@ -182,7 +183,7 @@ void Leaf::get_leaf_states_rates_from_psi_stem(double psi_stem) {
 }
 
 //this set of equations can make values greater than 40 (ca) when PPFD is extremely low
-double Leaf::convert_psi_stem_to_ci_one_line(double psi_stem) {
+double Leaf::convert_psi_stem_to_ci_analytical(double psi_stem) {
 
     g_c = calc_g_c(psi_stem);
     double c2 = 13.13652;
@@ -199,16 +200,16 @@ double Leaf::convert_psi_stem_to_ci_one_line(double psi_stem) {
     return ci = (sqrt(first_term + second_term*third_term+ fourth_term) + fifth_term - sixth_term - seventh_term)/eigth_term;    
 }
 
-void Leaf::get_leaf_states_rates_from_psi_stem_one_line(double psi_stem) {
+void Leaf::get_leaf_states_rates_from_psi_stem_analytical(double psi_stem) {
 
 if (psi_soil_ >= psi_stem){
     g_c = 0;
     ci = gamma_25*umol_per_mol_to_Pa;
       } else{
-        convert_psi_stem_to_ci_one_line(psi_stem);
+        convert_psi_stem_to_ci_analytical(psi_stem);
     }
 
-    A_lim = calc_A_lim_one_line(ci);    
+    A_lim_ = A_lim_analytical(ci);    
     // g_c = calc_g_c(psi_stem);
 
     E = g_c * 1.6 * atm_vpd / kg_to_mol_h2o / atm_kpa;   
@@ -231,25 +232,25 @@ double Leaf::profit_psi_stem_Sperry(double psi_stem) {
 
 get_leaf_states_rates_from_psi_stem(psi_stem);
 
-  double benefit_ = A_lim;
+  double benefit_ = A_lim_;
   double cost_ = calc_hydraulic_cost_Sperry(psi_stem);
 
   return benefit_ - lambda_ * cost_;
 }
 
-double Leaf::profit_psi_stem_Sperry_one_line(double psi_stem) {
+double Leaf::profit_psi_stem_Sperry_analytical(double psi_stem) {
 
-  get_leaf_states_rates_from_psi_stem_one_line(psi_stem);
+  get_leaf_states_rates_from_psi_stem_analytical(psi_stem);
 
-  double benefit_ = A_lim;
+  double benefit_ = A_lim_;
   double cost_ = calc_hydraulic_cost_Sperry(psi_stem);
 
-  return benefit_ - lambda_one_line_ * cost_;
+  return benefit_ - lambda_analytical_ * cost_;
 }
 
 double Leaf::calc_profit_Sperry_ci(double c_i) {                                  
   double benefit_ =
-      calc_A_lim(c_i);
+      A_lim(c_i);
   double g_c_ci = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - c_i); 
   double E_ci = g_c_ci * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;
   
@@ -259,9 +260,9 @@ double Leaf::calc_profit_Sperry_ci(double c_i) {
   return benefit_ - lambda_*cost_;
 }
 
-double Leaf::calc_profit_Sperry_ci_one_line(double c_i) {                                  
+double Leaf::calc_profit_Sperry_ci_analytical(double c_i) {                                  
   double benefit_ =
-      calc_A_lim_one_line(c_i);
+      A_lim_analytical(c_i);
 
   double g_c_ci = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - c_i); 
   E = g_c_ci * 1.6 * atm_vpd_ / kg_to_mol_h2o / atm_kpa;  
@@ -269,7 +270,7 @@ double Leaf::calc_profit_Sperry_ci_one_line(double c_i) {
   double psi_stem = convert_E_from_ci_to_psi_stem(E);
   double cost_ = calc_hydraulic_cost_Sperry(psi_stem);
 
-  return benefit_ - lambda_one_line_*cost_;
+  return benefit_ - lambda_analytical_*cost_;
 }
 
 
@@ -326,10 +327,10 @@ GSS_count +=1 ;
 
   }
   
-void Leaf::optimise_psi_stem_Sperry_one_line() {
+void Leaf::optimise_psi_stem_Sperry_analytical() {
 
   double gr = (sqrt(5) + 1) / 2;
-  double opt_psi_stem = psi_soil_;
+  opt_psi_stem = psi_soil_;
 
 
   if (psi_soil_ > psi_crit){
@@ -343,7 +344,7 @@ void Leaf::optimise_psi_stem_Sperry_one_line() {
     double bound_a = psi_soil_;
     double bound_b = psi_crit;
 
-    double delta_crit = 1e-3;
+    double delta_crit = 1e-2;
 
     double bound_c = bound_b - (bound_b - bound_a) / gr;
     double bound_d = bound_a + (bound_b - bound_a) / gr;
@@ -351,10 +352,10 @@ void Leaf::optimise_psi_stem_Sperry_one_line() {
     while (abs(bound_b - bound_a) > delta_crit) {
 
       double profit_at_c =
-          profit_psi_stem_Sperry_one_line(bound_c);
+          profit_psi_stem_Sperry_analytical(bound_c);
 
       double profit_at_d =
-          profit_psi_stem_Sperry_one_line(bound_d);
+          profit_psi_stem_Sperry_analytical(bound_d);
 
       if (profit_at_c > profit_at_d) {
         bound_b = bound_d;
@@ -365,9 +366,9 @@ void Leaf::optimise_psi_stem_Sperry_one_line() {
       bound_c = bound_b - (bound_b - bound_a) / gr;
       bound_d = bound_a + (bound_b - bound_a) / gr;
     }
-
     opt_psi_stem = ((bound_b + bound_a) / 2);
-    profit = profit_psi_stem_Sperry_one_line(opt_psi_stem);
+    profit = profit_psi_stem_Sperry_analytical(opt_psi_stem);
+
   }
 
 
@@ -464,9 +465,9 @@ void Leaf::optimise_psi_stem_Sperry_Newton(double psi_guess) {
   }
 
 
-void Leaf::optimise_psi_stem_Sperry_Newton_one_line(double psi_guess) {
+void Leaf::optimise_psi_stem_Sperry_Newton_analytical(double psi_guess) {
 
-  int count = 0;
+  count = 0;
 
   double x_1, x_2, y_0, y_1, y_2, first_dev, sec_dev;
 
@@ -499,8 +500,16 @@ void Leaf::optimise_psi_stem_Sperry_Newton_one_line(double psi_guess) {
 
     count += 1;
 
-    if(count > 2){
-      optimise_psi_stem_Sperry_one_line();
+  if (R_IsNA(opt_psi_stem) | (opt_psi_stem > psi_crit)){
+
+  opt_psi_stem = psi_crit - diff_value;
+
+  }
+
+    if(count > 10){
+      optimise_psi_stem_Sperry_analytical();
+
+      // std::cout << "gss" << std::endl;
       return;
     }
 
@@ -510,16 +519,25 @@ void Leaf::optimise_psi_stem_Sperry_Newton_one_line(double psi_guess) {
     x_1 = psi_stem_initial - diff_value;
     x_2 = psi_stem_initial + diff_value;
     
-    y_2 = profit_psi_stem_Sperry_one_line(x_2);
+    y_2 = profit_psi_stem_Sperry_analytical(x_2);
 
-    y_1 = profit_psi_stem_Sperry_one_line(x_1);
+    y_1 = profit_psi_stem_Sperry_analytical(x_1);
 
-    y_0 = profit_psi_stem_Sperry_one_line(psi_stem_initial);
+    y_0 = profit_psi_stem_Sperry_analytical(psi_stem_initial);
 
     first_dev = (y_2 - y_1)/(2*diff_value);
     sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
 
     opt_psi_stem = psi_stem_initial -  first_dev/sec_dev;
+
+    if(y_0 == 0.0 & y_1 == 0.0 & y_2 == 0.0){
+    opt_psi_stem = psi_soil_;
+    profit = 0.0;
+    E = 0.0;
+    std::cout << "warning2" << std::endl;
+    return;
+    }
+
 
     if(abs(opt_psi_stem - psi_stem_initial) < epsilon_leaf){
       finished = 0;
@@ -532,7 +550,7 @@ void Leaf::optimise_psi_stem_Sperry_Newton_one_line(double psi_guess) {
 
 
 
-void Leaf::optimise_ci_Sperry_one_line(double max_ci) {
+void Leaf::optimise_ci_Sperry_analytical(double max_ci) {
 
   if (psi_soil_ > psi_crit){
 
@@ -557,9 +575,9 @@ void Leaf::optimise_ci_Sperry_one_line(double max_ci) {
 
     while (abs(bound_b - bound_a) > delta_crit) {
 
-      double profit_at_c = calc_profit_Sperry_ci_one_line(bound_c);
+      double profit_at_c = calc_profit_Sperry_ci_analytical(bound_c);
 
-      double profit_at_d = calc_profit_Sperry_ci_one_line(bound_d);
+      double profit_at_d = calc_profit_Sperry_ci_analytical(bound_d);
 
       if (profit_at_c > profit_at_d) {
         bound_b = bound_d;
@@ -572,7 +590,7 @@ void Leaf::optimise_ci_Sperry_one_line(double max_ci) {
     }
 
     opt_ci = ((bound_b + bound_a) / 2);
-    profit = calc_profit_Sperry_ci_one_line(opt_ci);
+    profit = calc_profit_Sperry_ci_analytical(opt_ci);
 
   
     return;
@@ -630,7 +648,7 @@ GSS_count += 1;
 
   }
 
-void Leaf::optimise_ci_Sperry_Newton_one_line(double ci_guess) {
+void Leaf::optimise_ci_Sperry_Newton_analytical(double ci_guess) {
 
   int count = 0;
 
@@ -659,7 +677,7 @@ void Leaf::optimise_ci_Sperry_Newton_one_line(double ci_guess) {
 
 // add in the max ci
   if (R_IsNA(opt_ci)){
-  get_leaf_states_rates_from_psi_stem_one_line(psi_crit);
+  get_leaf_states_rates_from_psi_stem_analytical(psi_crit);
 
   opt_ci = ci - diff_value;
 
@@ -670,8 +688,8 @@ void Leaf::optimise_ci_Sperry_Newton_one_line(double ci_guess) {
     count += 1;
 
     if(count > 5){
-      get_leaf_states_rates_from_psi_stem_one_line(psi_crit);
-      optimise_ci_Sperry_one_line(ci);
+      get_leaf_states_rates_from_psi_stem_analytical(psi_crit);
+      optimise_ci_Sperry_analytical(ci);
 
 
       return;
@@ -688,7 +706,7 @@ void Leaf::optimise_ci_Sperry_Newton_one_line(double ci_guess) {
     x_2 = ci_initial + diff_value;
 
 // start with calculation of highest ci, this is the estimate with the highest required transpiration stream so the estimate most likely to exceed maximum possible transpiration stream
-    double benefit_ = calc_A_lim_one_line(x_2);
+    double benefit_ = A_lim_analytical(x_2);
 
 
     double g_c_ci = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - x_2); 
@@ -702,7 +720,7 @@ void Leaf::optimise_ci_Sperry_Newton_one_line(double ci_guess) {
 
     if(((E_max < E) & (abs(E - E_max) > 1e-15)) | (E < 0)){
 
-    get_leaf_states_rates_from_psi_stem_one_line(psi_crit); 
+    get_leaf_states_rates_from_psi_stem_analytical(psi_crit); 
 
     opt_ci = ci - diff_value;
 
@@ -714,15 +732,15 @@ void Leaf::optimise_ci_Sperry_Newton_one_line(double ci_guess) {
     double psi_stem = convert_E_from_ci_to_psi_stem(E);
 
     double cost_ = calc_hydraulic_cost_Sperry(psi_stem);
-    y_2 = benefit_ - lambda_one_line_*cost_;
+    y_2 = benefit_ - lambda_analytical_*cost_;
 
     }
 
-    y_1 = calc_profit_Sperry_ci_one_line(x_1);
+    y_1 = calc_profit_Sperry_ci_analytical(x_1);
 
 // start with calculation of highest ci, this is the estimate with the highest required transpiration stream so the estimate most likely to exceed maximum possible transpiration stream
 
-    y_0 = calc_profit_Sperry_ci_one_line(ci_initial);
+    y_0 = calc_profit_Sperry_ci_analytical(ci_initial);
 
     first_dev = (y_2 - y_1)/(2*diff_value);
     sec_dev = (y_2 - 2*y_0 + y_1)/pow(diff_value, 2);
@@ -813,7 +831,7 @@ void Leaf::optimise_ci_Sperry_Newton(double ci_guess) {
     x_2 = ci_initial + diff_value;
 
 // start with calculation of highest ci, this is the estimate with the highest required transpiration stream so the estimate most likely to exceed maximum possible transpiration stream
-    double benefit_ = calc_A_lim(x_2);
+    double benefit_ = A_lim(x_2);
 
 
     double g_c_ci = (benefit_ * umol_to_mol * atm_kpa * kPa_to_Pa)/(ca_ - x_2); 

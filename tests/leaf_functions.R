@@ -93,8 +93,8 @@ calc_E_supply <- function(psi_stem, psi_soil, ...){
 
 #calculate stomatal conductance to h20 (g_w) and co2 (g_c) from E supply and VPD
 calc_g_c <- function(psi_stem, psi_soil, atm_vpd,...){
-  # g_w = atm_kpa*l$calc_E_supply(psi_stem)*kg_2_mol_h20/atm_vpd
-  g_w = atm_kpa*calc_E_supply(psi_stem = psi_stem, psi_soil = psi_soil, ...)$value*kg_2_mol_h20/atm_vpd
+  g_w = atm_kpa*l$calc_E_supply(psi_stem)*kg_2_mol_h20/atm_vpd
+  # g_w = atm_kpa*calc_E_supply(psi_stem = psi_stem, psi_soil = psi_soil, ...)$value*kg_2_mol_h20/atm_vpd
   g_w/1.6
 }
 
@@ -157,10 +157,9 @@ calc_ben_gross <- function(psi_stem, psi_soil, atm_vpd, k_l_max, b, c, PPFD, vcm
 calc_ben_gross_one_line <- function(psi_stem, psi_soil, atm_vpd, k_l_max, b, c, PPFD, vcmax, ca) {
   
   g_c <- calc_g_c(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c)
-  
   c2 = 13.13652;
   j_ = calc_j(PPFD, vcmax)
-  
+
   first_term = 8 * j_ * umol_per_mol_2_mol_per_mol * (atm_kpa*kPa_2_Pa) * g_c * (-ca + c2 + 2 * gamma_25 * umol_per_mol_2_Pa);
   second_term = 16 * g_c^2;
   third_term = (ca + c2)^2;
@@ -179,7 +178,6 @@ calc_ben_gross_one_line <- function(psi_stem, psi_soil, atm_vpd, k_l_max, b, c, 
 }
 
 find_max_ci_one_line <- function(psi_crit, psi_soil, atm_vpd, ...) {
-  
   g_c = calc_g_c(psi_crit, psi_soil, atm_vpd, k_l_max = k_l_max, b = b, c = c)  
   
   c2 = 13.13652
@@ -218,6 +216,16 @@ calc_profit_Sperry_ci_one_line <- function(c_i, ...){
   cost_ = calc_hydraulic_cost(psi_soil = psi_soil, psi_stem = psi_stem, ...);
   benefit_ - lambda_*cost_;
 }
+
+calc_profit_Sperry_psi_stem_one_line <- function(psi_stem, ...){                                  
+  benefit_ = calc_ben_gross_one_line(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c =c , PPFD = PPFD, vcmax = vcmax, ca = ca)
+
+  lambda_ = calc_ben_gross_one_line(psi_stem = psi_crit, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c =c , PPFD = PPFD, vcmax = vcmax, ca = ca) / calc_hydraulic_cost(psi_soil = psi_soil, psi_stem = psi_crit, ...)
+  
+  cost_ = calc_hydraulic_cost(psi_soil = psi_soil, psi_stem = psi_stem, ...);
+  benefit_ - lambda_*cost_;
+}
+
 
 calc_hydraulic_cost <- function(psi_soil, psi_stem, k_l_max, b, c, ...){
   (calc_k_l(psi = psi_soil, k_l_max = k_l_max, b = b, c = c) - calc_k_l(psi = psi_stem, k_l_max = k_l_max, b = b, c = c))
@@ -262,5 +270,31 @@ opt_ci_gss <- function(psi_soil, k_l_max, vcmax, PPFD, b, c, psi_crit, atm_vpd, 
   calc_profit_Sperry_ci_one_line(c_i = opt_ci, k_l_max, b, c)
 }
 
+
+opt_psi_gss <- function(psi_soil, k_l_max, vcmax, PPFD, b, c, psi_crit, atm_vpd, ca){
+  gr = (sqrt(5) + 1)/2
+  tol = 1e-5
+  
+  a_bound = psi_soil
+  b_bound = psi_crit
+  
+  c_bound = b_bound - (b_bound-a_bound)/gr
+  d_bound = a_bound + (b_bound-a_bound)/gr
+  
+  while(abs(b_bound - a_bound) > tol){
+    if(calc_profit_Sperry_psi_stem_one_line(c_i = c_bound, k_l_max, b, c) >
+       calc_profit_Sperry_psi_stem_one_line(c_i = d_bound, k_l_max, b, c)) {
+      b_bound = d_bound
+    } else {
+      a_bound = c_bound
+    }
+    c_bound = b_bound - (b_bound-a_bound)/gr
+    d_bound = a_bound + (b_bound-a_bound)/gr
+  }
+  
+  opt_ci = (b_bound+a_bound)/2
+  
+  calc_profit_Sperry_psi_stem_one_line(c_i = opt_ci, k_l_max, b, c)
+}
 
 

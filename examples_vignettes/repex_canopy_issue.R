@@ -127,3 +127,31 @@ run_and_save_plant_water_model <- function(..., save = FALSE, dir = NULL){
 
 
 result <- pmap(inputs, run_and_save_plant_water_model, save = FALSE, dir = "recruitment_dynamics")
+
+result[[1]][[1]]$result[[1]] %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("species") %>% drop_na(count) %>% 
+  ggplot(aes(x = time, y = opt_psi_stem)) +
+  geom_line(aes(group = interaction(species, node), colour = species)) -> a
+
+
+result[[1]][[1]]$result[[1]] %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("env") %>%
+  ggplot() +
+  geom_line(aes(x=time, y = theta)) -> c
+
+
+result[[1]][[1]]$result[[1]] %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("species") %>%
+  select(-c(opt_ci,count)) %>%
+  integrate_over_size_distribution() %>%
+  ggplot(aes(x = time, y = area_leaf)) +
+  geom_line(aes(group = species, colour = species)) -> b
+
+
+cowplot::plot_grid(a,b,c, nrow=3)

@@ -14,19 +14,19 @@ test_that("FF16w Environment", {
   expect_equal(e$soil$states, 0)
 
   e$compute_rates(c(0.4))
-  # 1 - 0.4 - 0.0*0.1 = 0.6
+  # 1 - 0.4  = 0.6
   expect_equal(e$soil$rates, 0.6) # default rainfall is now y = 1
 
   # Make it rain
   rain = list(
     x = seq(0, 9, 1),
-    y = rep(0.5, 10)
+    y = rep(0.6, 10)
   )
   e <- make_environment("FF16w", rainfall=rain)
 
   expect_equal(e$soil$states, 0)
   e$compute_rates(c(0.3))
-  # 5 - 0.4 - 0.0*0.1
+  # 0.6 - 0.3 
   expect_equal(e$soil$rates, 4.6)
 
   # Water logged

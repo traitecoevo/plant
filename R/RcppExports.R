@@ -33,8 +33,8 @@ Leaf__calc_A_j <- function(obj_, ci_) {
     .Call('_plant_Leaf__calc_A_j', PACKAGE = 'plant', obj_, ci_)
 }
 
-Leaf__calc_A_lim <- function(obj_, ci_) {
-    .Call('_plant_Leaf__calc_A_lim', PACKAGE = 'plant', obj_, ci_)
+Leaf__A_lim <- function(obj_, ci_) {
+    .Call('_plant_Leaf__A_lim', PACKAGE = 'plant', obj_, ci_)
 }
 
 Leaf__diff_ci <- function(obj_, x, psi_stem) {
@@ -65,40 +65,40 @@ Leaf__optimise_psi_stem_Sperry_Newton <- function(obj_, psi_guess) {
     invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry_Newton', PACKAGE = 'plant', obj_, psi_guess))
 }
 
-Leaf__optimise_psi_stem_Sperry_Newton_one_line <- function(obj_, psi_guess) {
-    invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry_Newton_one_line', PACKAGE = 'plant', obj_, psi_guess))
+Leaf__optimise_psi_stem_Sperry_Newton_analytical <- function(obj_, psi_guess) {
+    invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry_Newton_analytical', PACKAGE = 'plant', obj_, psi_guess))
 }
 
 Leaf__calc_j <- function(obj_) {
     .Call('_plant_Leaf__calc_j', PACKAGE = 'plant', obj_)
 }
 
-Leaf__profit_psi_stem_Sperry_one_line <- function(obj_, psi_stem) {
-    .Call('_plant_Leaf__profit_psi_stem_Sperry_one_line', PACKAGE = 'plant', obj_, psi_stem)
+Leaf__profit_psi_stem_Sperry_analytical <- function(obj_, psi_stem) {
+    .Call('_plant_Leaf__profit_psi_stem_Sperry_analytical', PACKAGE = 'plant', obj_, psi_stem)
 }
 
-Leaf__calc_profit_Sperry_ci_one_line <- function(obj_, c_i) {
-    .Call('_plant_Leaf__calc_profit_Sperry_ci_one_line', PACKAGE = 'plant', obj_, c_i)
+Leaf__calc_profit_Sperry_ci_analytical <- function(obj_, c_i) {
+    .Call('_plant_Leaf__calc_profit_Sperry_ci_analytical', PACKAGE = 'plant', obj_, c_i)
 }
 
-Leaf__calc_A_lim_one_line <- function(obj_, c_i) {
-    .Call('_plant_Leaf__calc_A_lim_one_line', PACKAGE = 'plant', obj_, c_i)
+Leaf__A_lim_analytical <- function(obj_, c_i) {
+    .Call('_plant_Leaf__A_lim_analytical', PACKAGE = 'plant', obj_, c_i)
 }
 
-Leaf__optimise_psi_stem_Sperry_one_line <- function(obj_) {
-    invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry_one_line', PACKAGE = 'plant', obj_))
+Leaf__optimise_psi_stem_Sperry_analytical <- function(obj_) {
+    invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry_analytical', PACKAGE = 'plant', obj_))
 }
 
 Leaf__set_physiology <- function(obj_, PPFD, psi_soil, k_l_max, atm_vpd, ca) {
     invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, PPFD, psi_soil, k_l_max, atm_vpd, ca))
 }
 
-Leaf__convert_psi_stem_to_ci_one_line <- function(obj_, psi_stem) {
-    .Call('_plant_Leaf__convert_psi_stem_to_ci_one_line', PACKAGE = 'plant', obj_, psi_stem)
+Leaf__convert_psi_stem_to_ci_analytical <- function(obj_, psi_stem) {
+    .Call('_plant_Leaf__convert_psi_stem_to_ci_analytical', PACKAGE = 'plant', obj_, psi_stem)
 }
 
-Leaf__get_leaf_states_rates_from_psi_stem_one_line <- function(obj_, psi_stem) {
-    invisible(.Call('_plant_Leaf__get_leaf_states_rates_from_psi_stem_one_line', PACKAGE = 'plant', obj_, psi_stem))
+Leaf__get_leaf_states_rates_from_psi_stem_analytical <- function(obj_, psi_stem) {
+    invisible(.Call('_plant_Leaf__get_leaf_states_rates_from_psi_stem_analytical', PACKAGE = 'plant', obj_, psi_stem))
 }
 
 Leaf__convert_psi_stem_to_ci <- function(obj_, psi_stem) {
@@ -117,12 +117,12 @@ Leaf__optimise_ci_Sperry <- function(obj_, max_ci) {
     invisible(.Call('_plant_Leaf__optimise_ci_Sperry', PACKAGE = 'plant', obj_, max_ci))
 }
 
-Leaf__optimise_ci_Sperry_one_line <- function(obj_, max_ci) {
-    invisible(.Call('_plant_Leaf__optimise_ci_Sperry_one_line', PACKAGE = 'plant', obj_, max_ci))
+Leaf__optimise_ci_Sperry_analytical <- function(obj_, max_ci) {
+    invisible(.Call('_plant_Leaf__optimise_ci_Sperry_analytical', PACKAGE = 'plant', obj_, max_ci))
 }
 
-Leaf__optimise_ci_Sperry_Newton_one_line <- function(obj_, ci_guess) {
-    invisible(.Call('_plant_Leaf__optimise_ci_Sperry_Newton_one_line', PACKAGE = 'plant', obj_, ci_guess))
+Leaf__optimise_ci_Sperry_Newton_analytical <- function(obj_, ci_guess) {
+    invisible(.Call('_plant_Leaf__optimise_ci_Sperry_Newton_analytical', PACKAGE = 'plant', obj_, ci_guess))
 }
 
 Leaf__ci__get <- function(obj_) {
@@ -141,12 +141,12 @@ Leaf__g_c__set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__g_c__set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__A_lim__get <- function(obj_) {
-    .Call('_plant_Leaf__A_lim__get', PACKAGE = 'plant', obj_)
+Leaf__A_lim___get <- function(obj_) {
+    .Call('_plant_Leaf__A_lim___get', PACKAGE = 'plant', obj_)
 }
 
-Leaf__A_lim__set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__A_lim__set', PACKAGE = 'plant', obj_, value))
+Leaf__A_lim___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__A_lim___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__E__get <- function(obj_) {
@@ -173,14 +173,6 @@ Leaf__psi_stem__set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__psi_stem__set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__psi_stem_next__get <- function(obj_) {
-    .Call('_plant_Leaf__psi_stem_next__get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__psi_stem_next__set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__psi_stem_next__set', PACKAGE = 'plant', obj_, value))
-}
-
 Leaf__lambda___get <- function(obj_) {
     .Call('_plant_Leaf__lambda___get', PACKAGE = 'plant', obj_)
 }
@@ -189,12 +181,12 @@ Leaf__lambda___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__lambda___set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__lambda_one_line___get <- function(obj_) {
-    .Call('_plant_Leaf__lambda_one_line___get', PACKAGE = 'plant', obj_)
+Leaf__lambda_analytical___get <- function(obj_) {
+    .Call('_plant_Leaf__lambda_analytical___get', PACKAGE = 'plant', obj_)
 }
 
-Leaf__lambda_one_line___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__lambda_one_line___set', PACKAGE = 'plant', obj_, value))
+Leaf__lambda_analytical___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__lambda_analytical___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__j___get <- function(obj_) {

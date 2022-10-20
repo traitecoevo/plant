@@ -76,13 +76,12 @@ public:
   double ci;
   double j_;
   double g_c;
-  double A_lim;
+  double A_lim_;
   double E;
   double profit;
   double psi_stem;
-  double psi_stem_next;
   double lambda_;
-  double lambda_one_line_;
+  double lambda_analytical_;
   double PPFD_;
   double atm_vpd_;
   double ca_;
@@ -123,12 +122,12 @@ public:
   double calc_A_c(double ci_);
   double calc_j();
   double calc_A_j(double ci_);
-  double calc_A_lim(double ci_);
-  double calc_A_lim_one_line(double c_i);
+  double A_lim(double ci_);
+  double A_lim_analytical(double c_i);
   
   double diff_ci(double x, double psi_stem);
-  double convert_psi_stem_to_ci_one_line(double psi_stem);
-  void get_leaf_states_rates_from_psi_stem_one_line(double psi_stem);
+  double convert_psi_stem_to_ci_analytical(double psi_stem);
+  void get_leaf_states_rates_from_psi_stem_analytical(double psi_stem);
   double convert_psi_stem_to_ci(double psi_stem);
   void get_leaf_states_rates_from_psi_stem(double psi_stem);
   double convert_E_from_ci_to_psi_stem(double E_ci);
@@ -136,18 +135,18 @@ public:
   double calc_hydraulic_cost_Sperry(double psi_stem);
 
   double profit_psi_stem_Sperry(double psi_stem);
-  double profit_psi_stem_Sperry_one_line(double psi_stem);
+  double profit_psi_stem_Sperry_analytical(double psi_stem);
   double calc_profit_Sperry_ci(double c_i);
-  double calc_profit_Sperry_ci_one_line(double c_i);
+  double calc_profit_Sperry_ci_analytical(double c_i);
 
   void optimise_psi_stem_Sperry();
-  void optimise_psi_stem_Sperry_one_line();
+  void optimise_psi_stem_Sperry_analytical();
   void optimise_psi_stem_Sperry_Newton(double psi_guess);
-  void optimise_psi_stem_Sperry_Newton_one_line(double psi_guess);
+  void optimise_psi_stem_Sperry_Newton_analytical(double psi_guess);
   void optimise_ci_Sperry(double ci_guess);
-  void optimise_ci_Sperry_one_line(double max_ci);
+  void optimise_ci_Sperry_analytical(double max_ci);
   void optimise_ci_Sperry_Newton(double ci_guess);
-  void optimise_ci_Sperry_Newton_one_line(double ci_guess);
+  void optimise_ci_Sperry_Newton_analytical(double ci_guess);
 
   
 };

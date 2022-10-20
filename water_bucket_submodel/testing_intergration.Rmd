@@ -32,7 +32,7 @@ devtools::load_all(".")
 ```{r warning=FALSE}
 source("R/solar_model.R")
 # source("water_bucket_submodel/R/reference_soil.R")
-source("tests/reference_leaf_updated.R")
+source("tests/leaf_functions.R")
 source("examples_vignettes/R/testing_integration.R")
 ```
 
@@ -351,6 +351,9 @@ data_for_fit_testing_profit %>%
   xlab(expression(paste(Total~daily~profit~(n~sample~points), " [mol ",m^{-2},"]", sep=""))) +
   geom_text(data = data_for_fit_testing_profit %>% distinct(focal_points), aes(x = 0, y = Inf, label = paste("n = ",focal_points, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6) -> a
 
+png("examples_vignettes/profit_match.png", height = 1200, width = 1200)
+a
+dev.off()
 
 data_for_fit_testing_transpiration %>%
   unnest(data) %>%

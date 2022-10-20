@@ -15,13 +15,12 @@ Leaf:
   active:
     ci: {type: double, access: field}
     g_c: {type: double, access: field}
-    A_lim: {type: double, access: field}
+    A_lim_: {type: double, access: field}
     E: {type: double, access: field}
     profit: {type: double, access: field}
     psi_stem: {type: double, access: field}
-    psi_stem_next: {type: double, access: field}
     lambda_: {type: double, access: field}
-    lambda_one_line_: {type: double, access: field}
+    lambda_analytical_: {type: double, access: field}
     j_: {type: double, access: field}
     k_l_max_: {type: double, access: field}
     PPFD_: {type: double, access: field}
@@ -57,7 +56,7 @@ Leaf:
     calc_A_j:
       return_type: double
       args: [ci_: double]
-    calc_A_lim:
+    A_lim:
       return_type: double
       args: [ci_: double]
     diff_ci:
@@ -81,33 +80,33 @@ Leaf:
     optimise_psi_stem_Sperry_Newton:
       return_type: void
       args: [psi_guess: double]
-    optimise_psi_stem_Sperry_Newton_one_line:
+    optimise_psi_stem_Sperry_Newton_analytical:
       return_type: void
       args: [psi_guess: double]
     calc_j:
       return_type: double
       args: []  
-    profit_psi_stem_Sperry_one_line:
+    profit_psi_stem_Sperry_analytical:
       return_type: double
       args: [psi_stem: double]  
 
-    calc_profit_Sperry_ci_one_line:
+    calc_profit_Sperry_ci_analytical:
       return_type: double
       args: [c_i: double] 
-    calc_A_lim_one_line:
+    A_lim_analytical:
       return_type: double
       args: [c_i: double]  
-    optimise_psi_stem_Sperry_one_line:
+    optimise_psi_stem_Sperry_analytical:
       return_type: void
       args: []
     set_physiology:
       return_type: void 
       args: [PPFD: double, psi_soil: double, k_l_max: double, atm_vpd: double, ca: double]
 
-    convert_psi_stem_to_ci_one_line:
+    convert_psi_stem_to_ci_analytical:
       return_type: double
       args: [psi_stem: double]
-    get_leaf_states_rates_from_psi_stem_one_line:
+    get_leaf_states_rates_from_psi_stem_analytical:
       return_type: void
       args: [psi_stem: double]
     convert_psi_stem_to_ci:
@@ -122,10 +121,10 @@ Leaf:
     optimise_ci_Sperry:
       return_type: void
       args: [max_ci: double]
-    optimise_ci_Sperry_one_line:
+    optimise_ci_Sperry_analytical:
       return_type: void
       args: [max_ci: double]
-    optimise_ci_Sperry_Newton_one_line:
+    optimise_ci_Sperry_Newton_analytical:
       return_type: void
       args: [ci_guess: double]
 Lorenz:

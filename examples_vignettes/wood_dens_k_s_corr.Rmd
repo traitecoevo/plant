@@ -261,9 +261,9 @@ run_FF16w_model <- function(inputs){
   }
   
   
-  env <- make_environment("FF16w", soil_initial_state = rep(0.5, 1), rainfall = inputs$rainfall)
+  env <- make_environment("FF16w", soil_initial_state = rep(0.1, 1), rainfall = inputs$rainfall)
   system.time(result <- build_schedule(p1, env, ctrl))
-  system.time(result <- run_scm_collect(p1, env, ctrl))
+  system.time(result <- run_scm_collect(p1, env, ctrl, collect_auxiliary_variables = TRUE))
   result
 }
 ```
@@ -277,9 +277,39 @@ poss_run_plant = safely(.f = run_FF16w_model, otherwise = "Error")
 Here, I set some random inputs for rainfall, p50_1, p50_2. I also defined rho as either NA (which will then be defined via hyperparametersiation depedning on p50, or set it at a constant vlaue of 0.6, which is the average value in `austraits`.)
 
 ```{r}
-inputs <- expand_grid(rainfall = runif(10, 0.5, 3), p50_1 = runif(5, 0.1, 10), p50_2 = runif(5, 0.1, 10), rho = c(NA, 0.6), max_patch_lifetime = 50) %>%
+inputs <- expand_grid(rainfall = runif(10, 0.5, 3), p50_1 = runif(5, 0.1, 10), p50_2 = runif(5, 0.1, 10), rho = c(NA, 0.6), max_patch_lifetime = 1) %>%
   slice(sample(1:n()))
 ```
+
+```{r}
+system.time(result <- run_FF16w_model(inputs %>% slice(1)))
+```
+
+```{r}
+result %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("species") %>%
+  ggplot(aes(x = time, y = opt_psi_stem)) +
+  geom_line(aes(group = interaction(species, node), colour = species)) -> a
+
+result %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("species") %>% View()
+  ggplot(aes(x = time, y = count)) +
+  geom_point(aes(group = species, colour = species)) -> b
+
+result %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("env") %>%
+  ggplot() +
+  geom_line(aes(x=time, y = theta)) -> c
+
+cowplot::plot_grid(a,b,c, nrow=2)
+```
+
 
 After running the model, the output is saved in a folder. Because the files are named after the selected parameters, R will read the inputs, and if that file already exists it will skip it. That way, I'm safe to just run this input randomiser as many times as I would like without worrying doubling up too much, allowing me to fill parameter space more rapidly. 
 

@@ -1,4 +1,4 @@
-source("tests/reference_leaf_updated.R")
+source("tests/leaf_functions.R")
 context("SCM-general")
 
 
@@ -27,6 +27,8 @@ test_that("Basic functions", {
   expect_true(is.na(l$psi_soil_))
   expect_true(is.na(l$atm_vpd_))
   expect_true(is.na(l$ca_))
+  expect_true(is.na(l$lambda_))
+  expect_true(is.na(l$lambda_analytical_))
   
   #now set physiology, PPFD_, k_l_max_, and psi_soil_, atm_vpd_ should be not NA
   
@@ -108,9 +110,9 @@ test_that("Basic functions", {
   
   expect_equal(l$calc_A_j(c_i), calc_A_j(c_i = c_i, PPFD = PPFD, vcmax = vcmax))
 
-  expect_equal(l$calc_A_lim(c_i), calc_A_lim(c_i, vcmax, PPFD))
+  expect_equal(l$A_lim(c_i), calc_A_lim(c_i, vcmax, PPFD))
   
-  expect_equal(l$calc_A_lim_one_line(c_i), calc_A_lim_one_line(c_i, vcmax = vcmax, PPFD = PPFD))
+  expect_equal(l$A_lim_analytical(c_i), calc_A_lim_one_line(c_i, vcmax = vcmax, PPFD = PPFD))
  
   #test a function which retrieves various leaf-level states and rates from a given psi_stem value
   #for situations where psi stem is lower than psi soil
@@ -119,7 +121,7 @@ test_that("Basic functions", {
   l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
   l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
   
-  l$get_leaf_states_rates_from_psi_stem_one_line(psi_soil - 1)
+  l$get_leaf_states_rates_from_psi_stem_analytical(psi_soil - 1)
   
   #assimilation becomes 0
   expect_equal(l$A_lim, 0)
@@ -152,15 +154,19 @@ test_that("Basic functions", {
   expect_equal(l$calc_hydraulic_cost_Sperry(psi_soil) == 0, TRUE)
   
   l$get_leaf_states_rates_from_psi_stem_one_line(psi_crit)
-
-  expect_equal(l$A_lim, calc_ben_gross_one_line(psi_stem = psi_crit, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c, PPFD = PPFD, vcmax= vcmax, ca = ca), tolerance = 1e-04)
+  
+  expect_equal(l$A_lim, calc_ben_gross_one_line(psi_stem = psi_crit, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c, PPFD = PPFD, vcmax= vcmax, ca = ca), tolerance = 1e-03)
+  
+  expect_equal(l$calc_hydraulic_cost_Sperry(psi_crit), calc_hydraulic_cost(psi_soil, psi_crit, k_l_max, b, c))
   
   l$get_leaf_states_rates_from_psi_stem_one_line(psi_stem)
 
   expect_equal(l$A_lim, calc_ben_gross_one_line(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c, PPFD = PPFD, vcmax= vcmax, ca = ca), tolerance = 1e-04)
   
+  l$get_leaf_states_rates_from_psi_stem_one_line(psi_crit)
+  
   #this value is constant following a call to set_physiology
-  expect_equal(l$lambda_, calc_ben_gross_one_line(psi_stem = psi_crit, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c, PPFD = PPFD, vcmax= vcmax, ca = ca) /
+  expect_equal(l$lambda_one_line_, calc_ben_gross_one_line(psi_stem = psi_crit, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, b = b, c = c, PPFD = PPFD, vcmax= vcmax, ca = ca) /
     calc_hydraulic_cost(psi_soil, psi_crit, k_l_max, b, c), tolerance = 1)
   
   #under almost all scenarios, max ci (i.e when psi stem is set to psi crit) should be less than ca
@@ -183,88 +189,31 @@ test_that("Basic functions", {
   expect_equal(ci_numerical, ci_analytical, tolerance = 0.5)
   
   #test whether finding the maximum ci (i.e at psi_crit) is roughly equivalent
-  expect_equal(ci_analytical - find_max_ci_one_line(psi_crit = psi_crit, psi_soil = psi_soil, atm_vpd = atm_vpd, vcmax = vcmax, PPFD = PPFD), 0, tolerance = 1e-04)
+  expect_equal(ci_analytical - find_max_ci_one_line(psi_crit = psi_crit, psi_soil = psi_soil, atm_vpd = atm_vpd, vcmax = vcmax, PPFD = PPFD), 0, tolerance = 1e-03)
   
   #test whether conversion between E and psi is equivalent between R and C++
   
   E = 0.0001109062
   
-  l$get_leaf_states_rates_from_psi_stem(psi_crit)
   l$get_leaf_states_rates_from_psi_stem_one_line(psi_crit)
-  l$ci  
+  c_i = l$ci  
   
   benefit_ = l$calc_A_lim_one_line(c_i);
   g_c_ci = (benefit_ * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(ca - c_i); 
   E_ci = g_c_ci * 1.6 * atm_vpd / kg_2_mol_h20 / atm_kpa;
-  psi_stem = l$convert_E_from_ci_to_psi_stem(E_ci*0.14)
-  l$convert_E_from_ci_to_psi_stem()
-  l$convert_psi_stem_to_ci(psi_crit)
+  psi_stem = l$convert_E_from_ci_to_psi_stem(E_ci)
   
-  tibble(ci = seq(0,40,1)) %>%
-    rowwise() %>%
-    mutate(alim = l$calc_A_lim(ci)) %>%
-    mutate(gc = l$calc_g_c(psi_crit)) %>%
-    mutate(result = alim * umol_per_mol_2_mol_per_mol -
-             (gc* (ca - ci) / (101.3 * 1000))) %>%
-    ggplot(aes(x = ci , y = result)) +
-    geom_line() +
-    geom_point(aes(x = l$ci, y = 0))
-  
-  l$get_leaf_states_rates_from_psi_stem(psi_crit)
-  l$ci
-  g_c = (l$calc_A_lim(l$ci) * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(40 - l$ci)
-  E = g_c * 1.6 * atm_vpd / 55.4939 / 101.3
-  E/k_l_max
-  
-  l$convert_E_from_ci_to_psi_stem(E)
-  
-  
-  
-  psi_soil = 2
-  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
-  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
-  
-  l$get_leaf_states_rates_from_psi_stem(psi_crit)
-  l$ci
-  
-  benefit_ =
-    l$calc_A_lim(l$ci);
-  g_c_ci = (benefit_ * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(ca - l$ci); 
-  E_ci = g_c_ci * 1.6 * atm_vpd / 55.4939 / atm_kpa;
-  
-  psi_stem = l$convert_E_from_ci_to_psi_stem(E_ci);
-  psi_crit - psi_stem
-  
-  psi_soil = 2
-  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
-  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
-  
-  l$get_leaf_states_rates_from_psi_stem(psi_crit)
-  l$ci
-  
-  benefit_ =
-    l$calc_A_lim(l$ci);
-  g_c_ci = (benefit_ * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(ca - l$ci); 
-  E_ci = g_c_ci * 1.6 * atm_vpd / 55.4939 / atm_kpa;
-  
-  psi_stem = l$convert_E_from_ci_to_psi_stem(E_ci);
-  l$calc_hydraulic_cost_Sperry(psi_stem) * l$lambda_ / l$calc_A_lim(l$ci)
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  expect_equal((l$convert_E_from_ci_to_psi_stem(0.0001109062)), solve_psi(E = 0.0001109062, k_l_max = k_l_max, psi_soil = psi_soil, b =b, c= c), tolerance = 1e-04)
+  #conversion back and forth is not perfect
+  expect_equal(psi_stem, psi_crit, tolerance = 1e-06)
   
   #let's start testing profit functions
   
-  expect_equal(l$calc_profit_Sperry_ci_one_line(28), calc_profit_Sperry_ci_one_line(c_i = 28, k_l_max = k_l_max, b = b, c = c), tolerance = 0.1)
+  
+  psi_soil = 0
+  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
+  l$set_physiology(PPFD = PPFD, psi_soil = psi_soil, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
+  
+  expect_equal(l$profit_psi_stem_Sperry_one_line(2), calc_profit_Sperry_psi_stem_one_line(psi_stem = 2, k_l_max = k_l_max, b = b, c = c), tolerance = 0.01)
   
   #test gss optimiser
   
@@ -279,23 +228,27 @@ test_that("Basic functions", {
   
   #first off- what happens when we moving psi_soil around
   l$set_physiology(PPFD = 900, psi_soil = psi_crit + 1, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
-  l$optimise_ci_Sperry_Newton_recall_one_line(NA)
+  l$optimise_psi_stem_Sperry_Newton_one_line(NA)
   
   expect_equal(l$profit, 0)
-  expect_equal(l$psi, psi_crit)
+  expect_equal(l$opt_psi_stem, psi_crit+1)
   expect_equal(l$E, 0)
-  expect_equal(l$opt_ci, gamma_25*umol_per_mol_2_Pa)
   
   l$set_physiology(PPFD = 900, psi_soil = 0, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
-  l$optimise_ci_Sperry_Newton_recall_one_line(NA)
-  expect_equal(l$profit, 14.14676, tolerance = 1e-6)
-  expect_equal(l$opt_ci, 19.91535, tolerance = 1e-6)
+  l$optimise_psi_stem_Sperry_Newton_one_line(NA)
+  expect_equal(l$profit, 14.14675, tolerance = 1e-6)
+  expect_equal(l$opt_psi_stem, 0.8451968, tolerance = 1e-6)
   
-  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, beta=15000, beta_2 = 1, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
-  
+  l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
   
   l$set_physiology(PPFD = 0, psi_soil = 0, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
-  l$optimise_ci_Sperry_Newton_recall_one_line(NA)
-  expect_equal(l$profit, 14.14676, tolerance = 1e-6)
-  expect_equal(l$opt_ci, 19.91535, tolerance = 1e-6)
-
+  l$optimise_psi_stem_Sperry_Newton_one_line(NA)
+  
+  
+  #when no profit can be made at any point at the three points used for newtons method, assume profit = 0, transpiration= 0, and opt_psi_stem is set to psi_soil, representing the plant completely closing stomata. 
+  expect_equal(l$profit, 0, tolerance = 1e-6)
+  expect_equal(l$opt_psi_stem, l$psi_soil_, tolerance = 1e-6)
+})
+  
+  
+  
