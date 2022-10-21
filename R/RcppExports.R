@@ -17,8 +17,8 @@ Leaf__transpiration <- function(obj_, psi_stem) {
     .Call('_plant_Leaf__transpiration', PACKAGE = 'plant', obj_, psi_stem)
 }
 
-Leaf__calc_E_supply_full_integration <- function(obj_, psi_stem) {
-    .Call('_plant_Leaf__calc_E_supply_full_integration', PACKAGE = 'plant', obj_, psi_stem)
+Leaf__transpiration_full_integration <- function(obj_, psi_stem) {
+    .Call('_plant_Leaf__transpiration_full_integration', PACKAGE = 'plant', obj_, psi_stem)
 }
 
 Leaf__stom_cond_CO2 <- function(obj_, psi_stem) {
@@ -37,8 +37,8 @@ Leaf__assim_colimited <- function(obj_, ci_) {
     .Call('_plant_Leaf__assim_colimited', PACKAGE = 'plant', obj_, ci_)
 }
 
-Leaf__diff_ci <- function(obj_, x, psi_stem) {
-    .Call('_plant_Leaf__diff_ci', PACKAGE = 'plant', obj_, x, psi_stem)
+Leaf__assim_minus_stom_cond_CO2 <- function(obj_, x, psi_stem) {
+    .Call('_plant_Leaf__assim_minus_stom_cond_CO2', PACKAGE = 'plant', obj_, x, psi_stem)
 }
 
 Leaf__hydraulic_cost_Sperry <- function(obj_, psi_stem) {
@@ -53,12 +53,12 @@ Leaf__optimise_psi_stem_Sperry <- function(obj_) {
     invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry', PACKAGE = 'plant', obj_))
 }
 
-Leaf__convert_E_from_ci_to_psi_stem <- function(obj_, E_ci) {
-    .Call('_plant_Leaf__convert_E_from_ci_to_psi_stem', PACKAGE = 'plant', obj_, E_ci)
+Leaf__transpiration_to_psi_stem <- function(obj_, transpiration_) {
+    .Call('_plant_Leaf__transpiration_to_psi_stem', PACKAGE = 'plant', obj_, transpiration_)
 }
 
-Leaf__calc_profit_Sperry_ci <- function(obj_, c_i) {
-    .Call('_plant_Leaf__calc_profit_Sperry_ci', PACKAGE = 'plant', obj_, c_i)
+Leaf__profit_Sperry_ci <- function(obj_, ci_) {
+    .Call('_plant_Leaf__profit_Sperry_ci', PACKAGE = 'plant', obj_, ci_)
 }
 
 Leaf__optimise_psi_stem_Sperry_Newton <- function(obj_, psi_guess) {
@@ -77,12 +77,12 @@ Leaf__profit_psi_stem_Sperry_analytical <- function(obj_, psi_stem) {
     .Call('_plant_Leaf__profit_psi_stem_Sperry_analytical', PACKAGE = 'plant', obj_, psi_stem)
 }
 
-Leaf__calc_profit_Sperry_ci_analytical <- function(obj_, c_i) {
-    .Call('_plant_Leaf__calc_profit_Sperry_ci_analytical', PACKAGE = 'plant', obj_, c_i)
+Leaf__profit_Sperry_ci_analytical <- function(obj_, ci_) {
+    .Call('_plant_Leaf__profit_Sperry_ci_analytical', PACKAGE = 'plant', obj_, ci_)
 }
 
-Leaf__assim_colimited_analytical <- function(obj_, c_i) {
-    .Call('_plant_Leaf__assim_colimited_analytical', PACKAGE = 'plant', obj_, c_i)
+Leaf__assim_colimited_analytical <- function(obj_, ci_) {
+    .Call('_plant_Leaf__assim_colimited_analytical', PACKAGE = 'plant', obj_, ci_)
 }
 
 Leaf__optimise_psi_stem_Sperry_analytical <- function(obj_) {
@@ -93,16 +93,16 @@ Leaf__set_physiology <- function(obj_, PPFD, psi_soil, k_l_max, atm_vpd, ca) {
     invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, PPFD, psi_soil, k_l_max, atm_vpd, ca))
 }
 
-Leaf__convert_psi_stem_to_ci_analytical <- function(obj_, psi_stem) {
-    .Call('_plant_Leaf__convert_psi_stem_to_ci_analytical', PACKAGE = 'plant', obj_, psi_stem)
+Leaf__psi_stem_to_ci_analytical <- function(obj_, psi_stem) {
+    .Call('_plant_Leaf__psi_stem_to_ci_analytical', PACKAGE = 'plant', obj_, psi_stem)
 }
 
 Leaf__set_leaf_states_rates_from_psi_stem_analytical <- function(obj_, psi_stem) {
     invisible(.Call('_plant_Leaf__set_leaf_states_rates_from_psi_stem_analytical', PACKAGE = 'plant', obj_, psi_stem))
 }
 
-Leaf__convert_psi_stem_to_ci <- function(obj_, psi_stem) {
-    .Call('_plant_Leaf__convert_psi_stem_to_ci', PACKAGE = 'plant', obj_, psi_stem)
+Leaf__psi_stem_to_ci <- function(obj_, psi_stem) {
+    .Call('_plant_Leaf__psi_stem_to_ci', PACKAGE = 'plant', obj_, psi_stem)
 }
 
 Leaf__set_leaf_states_rates_from_psi_stem <- function(obj_, psi_stem) {
@@ -125,12 +125,12 @@ Leaf__optimise_ci_Sperry_Newton_analytical <- function(obj_, ci_guess) {
     invisible(.Call('_plant_Leaf__optimise_ci_Sperry_Newton_analytical', PACKAGE = 'plant', obj_, ci_guess))
 }
 
-Leaf__ci__get <- function(obj_) {
-    .Call('_plant_Leaf__ci__get', PACKAGE = 'plant', obj_)
+Leaf__ci___get <- function(obj_) {
+    .Call('_plant_Leaf__ci___get', PACKAGE = 'plant', obj_)
 }
 
-Leaf__ci__set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__ci__set', PACKAGE = 'plant', obj_, value))
+Leaf__ci___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__ci___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__stom_cond_CO2___get <- function(obj_) {

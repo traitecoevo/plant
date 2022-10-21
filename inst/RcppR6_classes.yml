@@ -13,7 +13,7 @@ Leaf:
 
       
   active:
-    ci: {type: double, access: field}
+    ci_: {type: double, access: field}
     stom_cond_CO2_: {type: double, access: field}
     assim_colimited_: {type: double, access: field}
     transpiration_: {type: double, access: field}
@@ -22,14 +22,13 @@ Leaf:
     lambda_: {type: double, access: field}
     lambda_analytical_: {type: double, access: field}
     electron_transport_: {type: double, access: field}
-    k_l_max_: {type: double, access: field}
+    leaf_specific_conductance_max_: {type: double, access: field}
     PPFD_: {type: double, access: field}
     atm_vpd_: {type: double, access: field}
     ca_: {type: double, access: field}
     psi_soil_: {type: double, access: field}
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
-    method: {type: double, access: field}
     count: {type: double, access: field}
     GSS_count: {type: double, access: field}
 
@@ -44,7 +43,7 @@ Leaf:
     transpiration:
       return_type: double
       args: [psi_stem: double]
-    calc_E_supply_full_integration:
+    transpiration_full_integration:
       return_type: double
       args: [psi_stem: double]
     stom_cond_CO2:
@@ -59,7 +58,7 @@ Leaf:
     assim_colimited:
       return_type: double
       args: [ci_: double]
-    diff_ci:
+    assim_minus_stom_cond_CO2:
       return_type: double
       args: [x: double, psi_stem: double]
     hydraulic_cost_Sperry:
@@ -71,12 +70,12 @@ Leaf:
     optimise_psi_stem_Sperry:
       return_type: void
       args: []
-    convert_E_from_ci_to_psi_stem:
+    transpiration_to_psi_stem:
       return_type: double
-      args: [E_ci: double]
-    calc_profit_Sperry_ci:
+      args: [transpiration_: double]
+    profit_Sperry_ci:
       return_type: double
-      args: [c_i: double]
+      args: [ci_: double]
     optimise_psi_stem_Sperry_Newton:
       return_type: void
       args: [psi_guess: double]
@@ -90,26 +89,26 @@ Leaf:
       return_type: double
       args: [psi_stem: double]  
 
-    calc_profit_Sperry_ci_analytical:
+    profit_Sperry_ci_analytical:
       return_type: double
-      args: [c_i: double] 
+      args: [ci_: double] 
     assim_colimited_analytical:
       return_type: double
-      args: [c_i: double]  
+      args: [ci_: double]  
     optimise_psi_stem_Sperry_analytical:
       return_type: void
       args: []
     set_physiology:
       return_type: void 
-      args: [PPFD: double, psi_soil: double, k_l_max: double, atm_vpd: double, ca: double]
+      args: [PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double]
 
-    convert_psi_stem_to_ci_analytical:
+    psi_stem_to_ci_analytical:
       return_type: double
       args: [psi_stem: double]
     set_leaf_states_rates_from_psi_stem_analytical:
       return_type: void
       args: [psi_stem: double]
-    convert_psi_stem_to_ci:
+    psi_stem_to_ci:
       return_type: double
       args: [psi_stem: double]
     set_leaf_states_rates_from_psi_stem:

@@ -68,9 +68,9 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   const double psi_soil = environment.get_psi_soil() / 1000000;
     
   // height * eta_c = height of average leaf area
-  const double k_l_max = K_s * huber_value / (height * eta_c);
+  const double leaf_specific_conductance_max = K_s * huber_value / (height * eta_c);
     
-  leaf.set_physiology(average_radiation, psi_soil, k_l_max, leaf.atm_vpd, leaf.ca);
+  leaf.set_physiology(average_radiation, psi_soil, leaf_specific_conductance_max, leaf.atm_vpd, leaf.ca);
     
   // double ci_guess = vars.aux(aux_index.at("opt_ci_"));
     

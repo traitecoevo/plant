@@ -93,8 +93,8 @@ calc_E_supply <- function(psi_stem, psi_soil, ...){
 
 #calculate stomatal conductance to h20 (g_w) and co2 (g_c) from E supply and VPD
 calc_g_c <- function(psi_stem, psi_soil, atm_vpd,...){
-  g_w = atm_kpa*l$calc_E_supply(psi_stem)*kg_2_mol_h20/atm_vpd
-  # g_w = atm_kpa*calc_E_supply(psi_stem = psi_stem, psi_soil = psi_soil, ...)$value*kg_2_mol_h20/atm_vpd
+  # g_w = atm_kpa*l$calc_E_supply(psi_stem)*kg_2_mol_h20/atm_vpd
+  g_w = atm_kpa*calc_E_supply(psi_stem = psi_stem, psi_soil = psi_soil, ...)$value*kg_2_mol_h20/atm_vpd
   g_w/1.6
 }
 

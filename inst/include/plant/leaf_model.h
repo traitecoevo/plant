@@ -15,11 +15,11 @@
 namespace plant {
 
 // double check best namespace for constants (private vs global)
-// unitless
+// converts vcmax to jmax 25 unitless (Sperry et el. (2017))
 static const double vcmax_25_to_jmax_25 = 1.67;
 // unitless - obtained from Sperry et al. (2017)
 static const double curv_fact = 0.9;
-// unitless
+// effective quantum yield of electron transport  (mol photon mol ^-1 electron) Sabot et al. 2020
 static const double a = 0.3;
 // umol ^ -1 mol ^ 1
 static const double gamma_25 = 42.75;
@@ -73,7 +73,7 @@ public:
   double epsilon_leaf;
 
 
-  double ci;
+  double ci_;
   double electron_transport_;
   double stom_cond_CO2_;
   double assim_colimited_;
@@ -85,11 +85,10 @@ public:
   double PPFD_;
   double atm_vpd_;
   double ca_;
-  double k_l_max_;
+  double leaf_specific_conductance_max_;
   double psi_soil_;
   double opt_psi_stem_;
   double opt_ci_;
-  double method;
   double count;
   double GSS_count;
 
@@ -110,34 +109,34 @@ public:
                                  integration_tol, integration_tol);
   }
   
-  void set_physiology(double PPFD, double psi_soil, double k_l_max, double atm_vpd, double ca);
+  void set_physiology(double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca);
   void setup_transpiration(double resolution);
 
 
   double proportion_of_conductivity(double psi) const;
   double transpiration(double psi_stem);
-  double calc_E_supply_full_integration(double psi_stem);                    
+  double transpiration_full_integration(double psi_stem);                    
 
   double stom_cond_CO2(double psi_stem); // define as a constant
   double assim_rubisco_limited(double ci_);
   double electron_transport();
   double assim_electron_limited(double ci_);
   double assim_colimited(double ci_);
-  double assim_colimited_analytical(double c_i);
+  double assim_colimited_analytical(double ci_);
   
-  double diff_ci(double x, double psi_stem);
-  double convert_psi_stem_to_ci_analytical(double psi_stem);
+  double assim_minus_stom_cond_CO2(double x, double psi_stem);
+  double psi_stem_to_ci_analytical(double psi_stem);
   void set_leaf_states_rates_from_psi_stem_analytical(double psi_stem);
-  double convert_psi_stem_to_ci(double psi_stem);
+  double psi_stem_to_ci(double psi_stem);
   void set_leaf_states_rates_from_psi_stem(double psi_stem);
-  double convert_E_from_ci_to_psi_stem(double E_ci);
+  double transpiration_to_psi_stem(double transpiration_);
 
   double hydraulic_cost_Sperry(double psi_stem);
 
   double profit_psi_stem_Sperry(double psi_stem);
   double profit_psi_stem_Sperry_analytical(double psi_stem);
-  double calc_profit_Sperry_ci(double c_i);
-  double calc_profit_Sperry_ci_analytical(double c_i);
+  double profit_Sperry_ci(double ci_);
+  double profit_Sperry_ci_analytical(double ci_);
 
   void optimise_psi_stem_Sperry();
   void optimise_psi_stem_Sperry_analytical();

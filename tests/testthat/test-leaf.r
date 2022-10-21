@@ -52,7 +52,7 @@ test_that("Basic functions", {
   expect_true(is.na(l$PPFD_))
   expect_true(is.na(l$k_l_max_))
   expect_true(is.na(l$psi_soil_))
-  expect_true(is.na(l$j_))
+  expect_true(is.na(l$electron_transport_))
   
   
   #set physiology again for testing 
@@ -62,25 +62,25 @@ test_that("Basic functions", {
   psi <- 1 #nominated value for water potential for testing vulnerability curve equations only (-MPa)
   
   #test conducitvity vulnerability, should be proportion value. 
-  expect_equal(l$calc_cond_vuln(psi), calc_k_l(psi, k_l_max, b, c) / k_l_max)
+  expect_equal(l$proportion_of_conductivity(psi), calc_k_l(psi, k_l_max, b, c) / k_l_max)
   
   
   #test calcuation of transpiration stream based on water potential of stem (-MPa)
   
   #for situations where psi_soil is < than psi_crit and psi_stem is greater than psi_soil
   psi_stem <- psi_soil+1 #stem water potential (-MPa)
-  expect_true(l$calc_E_supply(psi_stem) > 0)
+  expect_true(l$transpiration(psi_stem) > 0)
   
   #for situations where psi_soil is < than psi_crit and psi_stem is less than psi_soil, creates negative value. Ordinarily an undesirable property which is typically bannen (stem assumed to have minimum water potential at psi_soil)
   psi_stem <- psi_soil-1 #stem water potential (-MPa)
-  expect_true(l$calc_E_supply(psi_stem) < 0)
+  expect_true(l$transpiration(psi_stem) < 0)
   
   #for situations where psi_soil is < than psi_crit and psi_stem is equal to psi_soil
   psi_stem <- psi_soil #stem water potential (-MPa)
-  expect_true(l$calc_E_supply(psi_stem) == 0)
+  expect_true(l$transpiration(psi_stem) == 0)
   
   #for situations where psi_stem exceeds psi_crit + tolerance
-  expect_error(l$calc_E_supply(psi_crit+psi_crit*0.1), "Extrapolation disabled and evaluation point outside of interpolated domain.")
+  expect_error(l$transpiration(psi_crit+psi_crit*0.1), "Extrapolation disabled and evaluation point outside of interpolated domain.")
   
   #for situations where psi_soil exceeds psi_crit + tolerance
   
@@ -88,18 +88,18 @@ test_that("Basic functions", {
   l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
   psi_stem = psi_soil 
   
-  expect_error(l$calc_E_supply(psi_stem), "Extrapolation disabled and evaluation point outside of interpolated domain.")
+  expect_error(l$transpiration(psi_stem), "Extrapolation disabled and evaluation point outside of interpolated domain.")
   
   #test that fast E supply calculation is closely approximating full integration
   psi_soil = 0
   l$set_physiology(PPFD, psi_soil = psi_soil, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
   psi_stem = psi_soil + 3
   
-  expect_equal(l$calc_E_supply(psi_stem), l$calc_E_supply_full_integration(psi_stem))
+  expect_equal(l$transpiration(psi_stem), l$calc_E_supply_full_integration(psi_stem))
   
   #test that conversion between psi and E works properly
   
-  expect_equal(l$convert_E_from_ci_to_psi_stem(l$calc_E_supply(psi_stem)), psi_stem)
+  expect_equal(l$transpiration_to_psi_stem(l$transpiration(psi_stem)), psi_stem)
 
   expect_equal(l$stom_cond_CO2(psi_stem), calc_g_c(psi_stem = psi_stem, psi_soil = psi_soil, atm_vpd = atm_vpd, k_l_max = k_l_max, c = c, b = b), tolerance = 1e-5)
 
@@ -128,7 +128,7 @@ test_that("Basic functions", {
   #stomatal conductance becomes 0
   expect_equal(l$stom_cond_CO2_, 0)
   #transpiration becomes 0
-  expect_equal(l$E, 0)
+  expect_equal(l$transpiration_, 0)
   
   #for situations where psi stem is same as psi soil
   l$set_leaf_states_rates_from_psi_stem_analytical(psi_soil)
@@ -138,7 +138,7 @@ test_that("Basic functions", {
   #stomatal conductance becomes 0
   expect_equal(l$stom_cond_CO2_, 0)
   #transpiration becomes 0
-  expect_equal(l$E, 0)
+  expect_equal(l$transpiration_, 0)
   
   #for situations where psi stem is greater than psi soil
   l$set_leaf_states_rates_from_psi_stem_analytical(psi_soil + 1)
@@ -148,7 +148,7 @@ test_that("Basic functions", {
   #stomatal conductance becomes 0
   expect_equal(l$stom_cond_CO2_ >0, TRUE)
   #transpiration becomes 0
-  expect_equal(l$E >0, TRUE)
+  expect_equal(l$transpiration_ >0, TRUE)
   
   #calculate the hydraulic cost usign the sperry method, should be 0 when psi_soil is equivalent to psi_stem
   expect_equal(l$hydraulic_cost_Sperry(psi_soil) == 0, TRUE)
@@ -201,13 +201,12 @@ test_that("Basic functions", {
   benefit_ = l$assim_colimited_analytical(c_i);
   g_c_ci = (benefit_ * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(ca - c_i); 
   E_ci = g_c_ci * 1.6 * atm_vpd / kg_2_mol_h20 / atm_kpa;
-  psi_stem = l$convert_E_from_ci_to_psi_stem(E_ci)
+  psi_stem = l$transpiration_to_psi_stem(E_ci)
   
   #conversion back and forth is not perfect
   expect_equal(psi_stem, psi_crit, tolerance = 1e-06)
   
   #let's start testing profit functions
-  
   
   psi_soil = 0
   l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
@@ -231,13 +230,13 @@ test_that("Basic functions", {
   l$optimise_psi_stem_Sperry_Newton_analytical(NA)
   
   expect_equal(l$profit_, 0)
-  expect_equal(l$opt_psi_stem, psi_crit+1)
-  expect_equal(l$E, 0)
+  expect_equal(l$opt_psi_stem_, psi_crit+1)
+  expect_equal(l$transpiration_, 0)
   
   l$set_physiology(PPFD = 900, psi_soil = 0, k_l_max = k_l_max, atm_vpd = atm_vpd, ca = ca)
   l$optimise_psi_stem_Sperry_Newton_analytical(NA)
   expect_equal(l$profit_, 14.14675, tolerance = 1e-6)
-  expect_equal(l$opt_psi_stem, 0.8451968, tolerance = 1e-6)
+  expect_equal(l$opt_psi_stem_, 0.8451968, tolerance = 1e-6)
   
   l <- Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
   
@@ -247,7 +246,7 @@ test_that("Basic functions", {
   
   #when no profit can be made at any point at the three points used for newtons method, assume profit = 0, transpiration= 0, and opt_psi_stem is set to psi_soil, representing the plant completely closing stomata. 
   expect_equal(l$profit_, 0, tolerance = 1e-6)
-  expect_equal(l$opt_psi_stem, l$psi_soil_, tolerance = 1e-6)
+  expect_equal(l$opt_psi_stem_, l$psi_soil_, tolerance = 1e-6)
 })
   
   
