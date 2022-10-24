@@ -90,8 +90,8 @@ void Leaf__optimise_psi_stem_Sperry_analytical(plant::RcppR6::RcppR6<plant::Leaf
   obj_->optimise_psi_stem_Sperry_analytical();
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max, double atm_vpd, double ca) {
-  obj_->set_physiology(PPFD, psi_soil, k_l_max, atm_vpd, ca);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca) {
+  obj_->set_physiology(PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca);
 }
 // [[Rcpp::export]]
 double Leaf__psi_stem_to_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
@@ -207,12 +207,12 @@ void Leaf__electron_transport___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, dou
 }
 
 // [[Rcpp::export]]
-double Leaf__k_l_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->k_l_max_;
+double Leaf__leaf_specific_conductance_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->leaf_specific_conductance_max_;
 }
 // [[Rcpp::export]]
-void Leaf__k_l_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
-  obj_->k_l_max_ = value;
+void Leaf__leaf_specific_conductance_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->leaf_specific_conductance_max_ = value;
 }
 
 // [[Rcpp::export]]
@@ -267,15 +267,6 @@ double Leaf__opt_ci___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__opt_ci___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->opt_ci_ = value;
-}
-
-// [[Rcpp::export]]
-double Leaf__method__get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  return obj_->method;
-}
-// [[Rcpp::export]]
-void Leaf__method__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
-  obj_->method = value;
 }
 
 // [[Rcpp::export]]

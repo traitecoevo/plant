@@ -76,12 +76,12 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
     
   // leaf.optimise_ci_Sperry_Newton_analytical(ci_guess);
     // std::cout << "started a strategy" << std::endl;
-  double psi_guess = vars.aux(aux_index.at("opt_psi_stem_"));
+  // double psi_guess = vars.aux(aux_index.at("opt_psi_stem_"));
 
   // leaf.optimise_psi_stem_Sperry_Newton_analytical();
 
 
-  leaf.optimise_psi_stem_Sperry_Newton_analytical(psi_guess);
+  leaf.optimise_psi_stem_Sperry_analytical();
 // std::cout << "finished a strategy" << std::endl;
 
 

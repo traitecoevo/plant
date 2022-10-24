@@ -89,8 +89,8 @@ Leaf__optimise_psi_stem_Sperry_analytical <- function(obj_) {
     invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry_analytical', PACKAGE = 'plant', obj_))
 }
 
-Leaf__set_physiology <- function(obj_, PPFD, psi_soil, k_l_max, atm_vpd, ca) {
-    invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, PPFD, psi_soil, k_l_max, atm_vpd, ca))
+Leaf__set_physiology <- function(obj_, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca) {
+    invisible(.Call('_plant_Leaf__set_physiology', PACKAGE = 'plant', obj_, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca))
 }
 
 Leaf__psi_stem_to_ci_analytical <- function(obj_, psi_stem) {
@@ -197,12 +197,12 @@ Leaf__electron_transport___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__electron_transport___set', PACKAGE = 'plant', obj_, value))
 }
 
-Leaf__k_l_max___get <- function(obj_) {
-    .Call('_plant_Leaf__k_l_max___get', PACKAGE = 'plant', obj_)
+Leaf__leaf_specific_conductance_max___get <- function(obj_) {
+    .Call('_plant_Leaf__leaf_specific_conductance_max___get', PACKAGE = 'plant', obj_)
 }
 
-Leaf__k_l_max___set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__k_l_max___set', PACKAGE = 'plant', obj_, value))
+Leaf__leaf_specific_conductance_max___set <- function(obj_, value) {
+    invisible(.Call('_plant_Leaf__leaf_specific_conductance_max___set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__PPFD___get <- function(obj_) {
@@ -251,14 +251,6 @@ Leaf__opt_ci___get <- function(obj_) {
 
 Leaf__opt_ci___set <- function(obj_, value) {
     invisible(.Call('_plant_Leaf__opt_ci___set', PACKAGE = 'plant', obj_, value))
-}
-
-Leaf__method__get <- function(obj_) {
-    .Call('_plant_Leaf__method__get', PACKAGE = 'plant', obj_)
-}
-
-Leaf__method__set <- function(obj_, value) {
-    invisible(.Call('_plant_Leaf__method__set', PACKAGE = 'plant', obj_, value))
 }
 
 Leaf__count__get <- function(obj_) {

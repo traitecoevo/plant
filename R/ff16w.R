@@ -201,6 +201,8 @@ make_FF16w_hyperpar <- function(
                                 B_lf4=21000,
                                 B_lf5=1,
                                 k_I=0.5,
+                                K_s=2,
+                                K_s_0 = 1, 
                                 latitude=0) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
     if (length(x) != 1L) {
@@ -226,6 +228,7 @@ make_FF16w_hyperpar <- function(
   assert_scalar(B_lf4)
   assert_scalar(B_lf5)
   assert_scalar(k_I)
+  assert_scalar(K_s)
   assert_scalar(latitude)
 
   function(m, s, filter=TRUE) {
@@ -246,6 +249,9 @@ make_FF16w_hyperpar <- function(
 
     ## rho / wood turnover relationship:
     k_s  <- B_ks1 *  (rho / rho_0) ^ (-B_ks2)
+    
+    p_50 <- 1.731347*(K_s/2)^(-0.7246377)
+
 
     ## rho / sapwood respiration relationship:
 

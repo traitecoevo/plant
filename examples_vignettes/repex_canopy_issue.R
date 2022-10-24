@@ -1,5 +1,6 @@
 devtools::load_all(".")
-
+devtools::install(".")
+library(plant)
 library(tidyverse)
 
 p0 <- scm_base_parameters("FF16w")
@@ -74,7 +75,7 @@ run_FF16w_model <- function(inputs){
 poss_run_plant = safely(.f = run_FF16w_model, otherwise = "Error")
 
 
-inputs <- expand_grid(rainfall = 2.93, p50_1 = 5.99, p50_2 = 8.46, initial_theta = c(0.1), max_patch_lifetime = 11, schedule_eps = NA, ode_tol_abs = NA, ode_tol_rel = NA, epsilon_leaf = NA, recruitment_decay = c(1)) %>%
+inputs <- expand_grid(rainfall = 2.93, p50_1 = 5.99, p50_2 = 8.46, initial_theta = c(0.1), max_patch_lifetime = 11, schedule_eps = NA, ode_tol_abs = NA, ode_tol_rel = NA, epsilon_leaf = 0.001, recruitment_decay = c(1)) %>%
   slice(sample(1:n()))
 
 run_and_save_plant_water_model <- function(..., save = FALSE, dir = NULL){
@@ -126,13 +127,13 @@ run_and_save_plant_water_model <- function(..., save = FALSE, dir = NULL){
 }
 
 
-result <- pmap(inputs, run_and_save_plant_water_model, save = FALSE, dir = "recruitment_dynamics")
+system.time(result <- pmap(inputs, run_and_save_plant_water_model, save = FALSE, dir = "recruitment_dynamics"))
 
 result[[1]][[1]]$result[[1]] %>%
   tidy_patch() %>%
   FF16_expand_state() %>%
   pluck("species") %>% drop_na(count) %>% 
-  ggplot(aes(x = time, y = opt_psi_stem)) +
+  ggplot(aes(x = time, y = opt_psi_stem_)) +
   geom_line(aes(group = interaction(species, node), colour = species)) -> a
 
 
@@ -148,10 +149,18 @@ result[[1]][[1]]$result[[1]] %>%
   tidy_patch() %>%
   FF16_expand_state() %>%
   pluck("species") %>%
-  select(-c(opt_ci,count)) %>%
+  select(-c(opt_ci_,count)) %>%
   integrate_over_size_distribution() %>%
   ggplot(aes(x = time, y = area_leaf)) +
   geom_line(aes(group = species, colour = species)) -> b
 
 
-cowplot::plot_grid(a,b,c, nrow=3)
+result[[1]][[1]]$result[[1]] %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("species") %>% 
+  ggplot(aes(x = time, y = count)) +
+  geom_point(aes(group = species, colour = species)) -> d
+
+
+cowplot::plot_grid(a,b,c,d, nrow=4)

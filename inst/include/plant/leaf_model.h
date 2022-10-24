@@ -56,8 +56,8 @@ public:
        double epsilon_leaf = 0.001); 
 
   quadrature::QAG integrator;
-  interpolator::Interpolator E_from_psi;
-  interpolator::Interpolator psi_from_E;
+  interpolator::Interpolator transpiration_from_psi;
+  interpolator::Interpolator psi_from_transpiration;
 
   // psi_from_E
 

@@ -276,17 +276,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // Leaf__set_physiology
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double k_l_max, double atm_vpd, double ca);
-RcppExport SEXP _plant_Leaf__set_physiology(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP k_l_maxSEXP, SEXP atm_vpdSEXP, SEXP caSEXP) {
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca);
+RcppExport SEXP _plant_Leaf__set_physiology(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP leaf_specific_conductance_maxSEXP, SEXP atm_vpdSEXP, SEXP caSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type PPFD(PPFDSEXP);
     Rcpp::traits::input_parameter< double >::type psi_soil(psi_soilSEXP);
-    Rcpp::traits::input_parameter< double >::type k_l_max(k_l_maxSEXP);
+    Rcpp::traits::input_parameter< double >::type leaf_specific_conductance_max(leaf_specific_conductance_maxSEXP);
     Rcpp::traits::input_parameter< double >::type atm_vpd(atm_vpdSEXP);
     Rcpp::traits::input_parameter< double >::type ca(caSEXP);
-    Leaf__set_physiology(obj_, PPFD, psi_soil, k_l_max, atm_vpd, ca);
+    Leaf__set_physiology(obj_, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca);
     return R_NilValue;
 END_RCPP
 }
@@ -578,25 +578,25 @@ BEGIN_RCPP
     return R_NilValue;
 END_RCPP
 }
-// Leaf__k_l_max___get
-double Leaf__k_l_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
-RcppExport SEXP _plant_Leaf__k_l_max___get(SEXP obj_SEXP) {
+// Leaf__leaf_specific_conductance_max___get
+double Leaf__leaf_specific_conductance_max___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__leaf_specific_conductance_max___get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__k_l_max___get(obj_));
+    rcpp_result_gen = Rcpp::wrap(Leaf__leaf_specific_conductance_max___get(obj_));
     return rcpp_result_gen;
 END_RCPP
 }
-// Leaf__k_l_max___set
-void Leaf__k_l_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
-RcppExport SEXP _plant_Leaf__k_l_max___set(SEXP obj_SEXP, SEXP valueSEXP) {
+// Leaf__leaf_specific_conductance_max___set
+void Leaf__leaf_specific_conductance_max___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__leaf_specific_conductance_max___set(SEXP obj_SEXP, SEXP valueSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Leaf__k_l_max___set(obj_, value);
+    Leaf__leaf_specific_conductance_max___set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -729,28 +729,6 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     Leaf__opt_ci___set(obj_, value);
-    return R_NilValue;
-END_RCPP
-}
-// Leaf__method__get
-double Leaf__method__get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
-RcppExport SEXP _plant_Leaf__method__get(SEXP obj_SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__method__get(obj_));
-    return rcpp_result_gen;
-END_RCPP
-}
-// Leaf__method__set
-void Leaf__method__set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
-RcppExport SEXP _plant_Leaf__method__set(SEXP obj_SEXP, SEXP valueSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
-    Leaf__method__set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -10787,8 +10765,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__lambda_analytical___set", (DL_FUNC) &_plant_Leaf__lambda_analytical___set, 2},
     {"_plant_Leaf__electron_transport___get", (DL_FUNC) &_plant_Leaf__electron_transport___get, 1},
     {"_plant_Leaf__electron_transport___set", (DL_FUNC) &_plant_Leaf__electron_transport___set, 2},
-    {"_plant_Leaf__k_l_max___get", (DL_FUNC) &_plant_Leaf__k_l_max___get, 1},
-    {"_plant_Leaf__k_l_max___set", (DL_FUNC) &_plant_Leaf__k_l_max___set, 2},
+    {"_plant_Leaf__leaf_specific_conductance_max___get", (DL_FUNC) &_plant_Leaf__leaf_specific_conductance_max___get, 1},
+    {"_plant_Leaf__leaf_specific_conductance_max___set", (DL_FUNC) &_plant_Leaf__leaf_specific_conductance_max___set, 2},
     {"_plant_Leaf__PPFD___get", (DL_FUNC) &_plant_Leaf__PPFD___get, 1},
     {"_plant_Leaf__PPFD___set", (DL_FUNC) &_plant_Leaf__PPFD___set, 2},
     {"_plant_Leaf__atm_vpd___get", (DL_FUNC) &_plant_Leaf__atm_vpd___get, 1},
@@ -10801,8 +10779,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__opt_psi_stem___set", (DL_FUNC) &_plant_Leaf__opt_psi_stem___set, 2},
     {"_plant_Leaf__opt_ci___get", (DL_FUNC) &_plant_Leaf__opt_ci___get, 1},
     {"_plant_Leaf__opt_ci___set", (DL_FUNC) &_plant_Leaf__opt_ci___set, 2},
-    {"_plant_Leaf__method__get", (DL_FUNC) &_plant_Leaf__method__get, 1},
-    {"_plant_Leaf__method__set", (DL_FUNC) &_plant_Leaf__method__set, 2},
     {"_plant_Leaf__count__get", (DL_FUNC) &_plant_Leaf__count__get, 1},
     {"_plant_Leaf__count__set", (DL_FUNC) &_plant_Leaf__count__set, 2},
     {"_plant_Leaf__GSS_count__get", (DL_FUNC) &_plant_Leaf__GSS_count__get, 1},
