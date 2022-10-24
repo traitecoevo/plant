@@ -31,10 +31,14 @@ grow_individual_to_size <- function(individual, sizes, size_name, env,
   res <- lapply(seq_along(sizes), polish)
 
   state <- t(sapply(res, "[[", "state"))
+  rate <- t(sapply(res, function(x) x$individual$ode_rates))
+  
   colnames(state) <- colnames(obj$state)
+  colnames(rate) <- colnames(obj$state)
 
   ret <- list(time=vnapply(res, "[[", "time"),
               state=state,
+              rate=rate,
               individual=lapply(res, "[[", "individual"),
               trajectory=cbind(time=obj$time, state=obj$state),
               env=env)
