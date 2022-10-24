@@ -47,11 +47,13 @@ run_individual <- function(...){
   
   p0 <- scm_base_parameters("FF16w")
 
-  s1 <- strategy(trait_matrix(params$K_s,  "K_s"), p0, birth_rate_list = 1)
-  s1$p_50 <- p_50_2_K_s(s1$K_s)
-  s1$b <- calc_vul_b(s1$p_50, s1$b)
-  s1$psi_crit <- calc_psi_crit(s1$b, s1$c)
-  
+  # s1 <- strategy(trait_matrix(params$K_s,  "K_s"), p0, birth_rate_list = 1)
+  # s1$p_50 <- p_50_2_K_s(s1$K_s)
+  # s1$b <- calc_vul_b(s1$p_50, s1$b)
+  # s1$psi_crit <- calc_psi_crit(s1$b, s1$c)
+  # 
+  s1 <- strategy(trait_matrix(params$H_v,  "huber_value"), p0, birth_rate_list = 1)
+
   indv1 <- FF16w_Individual(s1)
   env <- FF16w_make_environment(soil_initial_state = params$theta)
   env$set_fixed_environment(params$E, 150)
@@ -61,13 +63,15 @@ run_individual <- function(...){
 
 
 ```{r}
-# expand_grid(K_s = seq(1,3,length.out = 10), theta=seq(0.01,1,length.out=5), E=c(0.25,0.5,0.75,1), height = c(0.5, 2, 10, 15,20)) %>%
+expand_grid(H_v = seq(0.000157/2,0.000157*2,length.out = 10), theta=seq(0.01,1,length.out=5), E=c(0.25,0.5,0.75,1), height = c(0.5, 2, 10, 15,20)) %>%
+  mutate(results= pmap(., run_individual)) -> output
+# 
+# expand_grid(K_s = seq(1), theta=seq(0.1), E=c(1), height = c(0.5)) %>%
 #   mutate(results= pmap(., run_individual)) -> output
 
-expand_grid(K_s = seq(1), theta=seq(0.1), E=c(1), height = c(0.5)) %>%
-  mutate(results= pmap(., run_individual)) -> output
-
-
+get_dt <- function(y,x) {
+  c(NA, diff(y)/diff(x))
+}
 
 output %>%
   mutate(run = seq(1:nrow(.))) %>%
@@ -75,17 +79,22 @@ output %>%
   mutate(results= map(results, ~pluck(.x, "trajectory") %>% as_tibble())) %>%
   unnest(results) %>%
   group_by(run) %>%
+  mutate(height_dt = get_dt(height, time)) %>%
   mutate(max_height = max(height),
          max_time = max(time)) %>%
-  nest(states = c(time, height,mortality, fecundity, area_heartwood, mass_heartwood)) %>%
+  nest(states = c(time, height,mortality, fecundity, area_heartwood, mass_heartwood, height_dt)) %>%
   filter(max_height >= to_height) %>%
-  mutate(growth_rate = max_height/max_time) -> data_to_plot
+  mutate(height_dt = map_dbl(states, ~.x %>%
+                           tail(1) %>% 
+                           pull(height_dt)))-> data_to_plot
 ```
 
 
 ```{r}
 data_to_plot %>%
-  ggplot(aes(x= K_s, y = growth_rate)) +
+  ggplot(aes(x= H_v, y = height_dt)) +
   geom_line(aes(group = E, colour = E)) +
-  facet_grid(theta~to_height)
+  facet_grid(theta~to_height) +
+  ylab(expression(paste(Delta~Height," /", Delta~Time, "(m/yr)"))) + 
+  xlab(expression(paste(Sapwood~specific~conducitivity~(kg~m^{-1}~s^{-1}~MPa^{-1}))))
 ```
