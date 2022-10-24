@@ -66,7 +66,8 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   const double average_radiation = k_I * average_light_environment * environment.PPFD;
     
   const double psi_soil = environment.get_psi_soil() / 1000000;
-    
+
+  // std::cout << "height" << height << "psi_soil" << psi_soil << std::endl;
   // height * eta_c = height of average leaf area
   const double leaf_specific_conductance_max = K_s * huber_value / (height * eta_c);
     
@@ -81,17 +82,17 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   // leaf.optimise_psi_stem_Sperry_Newton_analytical();
 
 
+  // leaf.optimise_psi_stem_Sperry_Newton_analytical(psi_guess);
+  
   leaf.optimise_psi_stem_Sperry_analytical();
-// std::cout << "finished a strategy" << std::endl;
 
-
-  vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
+  // vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
     
-  vars.set_aux(aux_index.at("count"), leaf.count);
+  // vars.set_aux(aux_index.at("count"), leaf.count);
 
-  vars.set_aux(aux_index.at("profit_"), leaf.profit_);
+  // vars.set_aux(aux_index.at("profit_"), leaf.profit_);
 
-  vars.set_aux(aux_index.at("assim_colimited_"), leaf.assim_colimited_);
+  // vars.set_aux(aux_index.at("assim_colimited_"), leaf.assim_colimited_);
 
 
   const double assimilation_per_area = leaf.profit_;

@@ -381,6 +381,8 @@ void Leaf::optimise_psi_stem_Sperry_analytical() {
       bound_c = bound_b - (bound_b - bound_a) / gr;
       bound_d = bound_a + (bound_b - bound_a) / gr;
     }
+
+
     opt_psi_stem_ = ((bound_b + bound_a) / 2);
     profit_ = profit_psi_stem_Sperry_analytical(opt_psi_stem_);
 
