@@ -37,6 +37,11 @@ Leaf:
     initialize_integrator:
       return_type: void
       args: [integration_rule: int, integration_tol: double]
+    set_physiology:
+      return_type: void 
+      args: [PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double]
+
+    #transpiration functions
     proportion_of_conductivity:
       return_type: double
       args: [psi: double]
@@ -49,6 +54,11 @@ Leaf:
     stom_cond_CO2:
       return_type: double
       args: [psi_stem: double]
+    transpiration_to_psi_stem:
+      return_type: double
+      args: [transpiration_: double]
+    
+    # assimilation functions 
     assim_rubisco_limited:
       return_type: double
       args: [ci_: double]
@@ -61,49 +71,14 @@ Leaf:
     assim_minus_stom_cond_CO2:
       return_type: double
       args: [x: double, psi_stem: double]
-    hydraulic_cost_Sperry:
-      return_type: double
-      args: [psi_stem: double] 
-    profit_psi_stem_Sperry:
-      return_type: double
-      args: [psi_stem: double]
-    optimise_psi_stem_Sperry:
-      return_type: void
-      args: []
-    transpiration_to_psi_stem:
-      return_type: double
-      args: [transpiration_: double]
-    profit_Sperry_ci:
-      return_type: double
-      args: [ci_: double]
-    optimise_psi_stem_Sperry_Newton:
-      return_type: void
-      args: [psi_guess: double]
-    optimise_psi_stem_Sperry_Newton_analytical:
-      return_type: void
-      args: [psi_guess: double]
     electron_transport:
       return_type: double
-      args: []  
-    profit_psi_stem_Sperry_analytical:
-      return_type: double
-      args: [psi_stem: double]  
-
-    profit_Sperry_ci_analytical:
-      return_type: double
-      args: [ci_: double] 
+      args: []      
     assim_colimited_analytical:
       return_type: double
       args: [ci_: double]  
-    optimise_psi_stem_Sperry_analytical:
+      set_leaf_states_rates_from_psi_stem:
       return_type: void
-      args: []
-    set_physiology:
-      return_type: void 
-      args: [PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double]
-
-    psi_stem_to_ci_analytical:
-      return_type: double
       args: [psi_stem: double]
     set_leaf_states_rates_from_psi_stem_analytical:
       return_type: void
@@ -111,9 +86,40 @@ Leaf:
     psi_stem_to_ci:
       return_type: double
       args: [psi_stem: double]
-    set_leaf_states_rates_from_psi_stem:
-      return_type: void
+    psi_stem_to_ci_analytical:
+      return_type: double
       args: [psi_stem: double]
+    
+    #leaf economics functions
+    hydraulic_cost_Sperry:
+      return_type: double
+      args: [psi_stem: double] 
+    profit_psi_stem_Sperry:
+      return_type: double
+      args: [psi_stem: double]
+    profit_Sperry_ci:
+      return_type: double
+      args: [ci_: double]
+    profit_psi_stem_Sperry_analytical:
+      return_type: double
+      args: [psi_stem: double]  
+    profit_Sperry_ci_analytical:
+      return_type: double
+      args: [ci_: double] 
+
+      # optimiser functions
+    optimise_psi_stem_Sperry_Newton:
+      return_type: void
+      args: [psi_guess: double]
+    optimise_psi_stem_Sperry_Newton_analytical:
+      return_type: void
+      args: [psi_guess: double]
+    optimise_psi_stem_Sperry:
+      return_type: void
+      args: []
+    optimise_psi_stem_Sperry_analytical:
+      return_type: void
+      args: []
     optimise_ci_Sperry_Newton:
       return_type: void
       args: [ci_guess: double]
@@ -126,6 +132,8 @@ Leaf:
     optimise_ci_Sperry_Newton_analytical:
       return_type: void
       args: [ci_guess: double]
+
+
 Lorenz:
   name_cpp: "plant::ode::test::Lorenz"
   constructor:

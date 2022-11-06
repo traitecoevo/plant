@@ -75,7 +75,7 @@ run_FF16w_model <- function(inputs){
 poss_run_plant = safely(.f = run_FF16w_model, otherwise = "Error")
 
 
-inputs <- expand_grid(rainfall = 2.93, p50_1 = 5.99, p50_2 = 8.46, initial_theta = c(0.1), max_patch_lifetime = 11, schedule_eps = NA, ode_tol_abs = NA, ode_tol_rel = NA, epsilon_leaf = 0.001, recruitment_decay = c(1)) %>%
+inputs <- expand_grid(rainfall = 2.93, p50_1 = 5.99, p50_2 = 8.46, initial_theta = c(0.1), max_patch_lifetime = 100, schedule_eps = NA, ode_tol_abs = NA, ode_tol_rel = NA, epsilon_leaf = 0.001, recruitment_decay = c(1)) %>%
   slice(sample(1:n()))
 
 run_and_save_plant_water_model <- function(..., save = FALSE, dir = NULL){
@@ -132,18 +132,94 @@ system.time(result <- pmap(inputs, run_and_save_plant_water_model, save = FALSE,
 result[[1]][[1]]$result[[1]] %>%
   tidy_patch() %>%
   FF16_expand_state() %>%
-  pluck("species") %>% drop_na(count) %>% 
+  pluck("species") %>%  
   ggplot(aes(x = time, y = opt_psi_stem_)) +
-  geom_line(aes(group = interaction(species, node), colour = species)) -> a
+  geom_line(aes(group = interaction(species, node), colour = species)) +
+  theme_classic() +
+  theme(text = element_text(size = 18)) +
+  xlab("Years") +
+  ylab(expression(paste(psi[opt], " (-MPa)", sep = ""))) -> a
 
+
+result[[1]][[1]]$result[[1]] %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("species") %>%
+  dplyr::filter(!is.na(.data$density))  %>%
+  dplyr::mutate(relative_log_density = rel(.data$log_density)) %>%
+  ggplot(aes(x = time, y = opt_psi_stem_, alpha = relative_log_density)) +
+  geom_line(aes(group = interaction(species, node), colour = species)) +
+  theme_classic() +
+  theme(text = element_text(size = 18)) +
+  xlab("Years") +
+  ylab(expression(paste(psi[opt], " (-MPa)", sep = ""))) -> a
+
+result[[1]][[1]]$result[[1]] %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("species") %>%
+  dplyr::filter(!is.na(.data$density))  %>%
+  dplyr::mutate(relative_log_density = rel(.data$log_density)) %>%
+  ggplot(aes(x = time, y = opt_psi_stem_, alpha = relative_log_density)) +
+  geom_line(aes(group = interaction(species, node), colour = species)) +
+  theme_classic() +
+  theme(text = element_text(size = 18)) +
+  xlab("Years") +
+  ylab(expression(paste(psi[opt], " (-MPa)", sep = ""))) + 
+  ggplot2::labs(x = "Time (years)", color = "Species", alpha = "Relative log(Density [/m/m2])") + 
+  ggplot2::scale_alpha(range = c(0.01, 1)) + ggplot2::theme_classic() -> a
+  
+png("examples_vignettes/outputs/psi_distribution.png", height = 800, width =  1200, res = 200)
+a
+dev.off()
+
+
+result[[1]][[1]]$result[[1]] %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("species") %>%
+  dplyr::filter(!is.na(.data$density))  %>%
+  dplyr::mutate(relative_log_density = rel(.data$log_density)) %>%
+  ggplot(aes(x = time, y = height, alpha = relative_log_density)) +
+  geom_line(aes(group = interaction(species, node), colour = species)) +
+  theme_classic() +
+  theme(text = element_text(size = 18)) +
+  xlab("Years") +
+  ylab(expression(paste(Height, " (m)", sep = ""))) + 
+  ggplot2::labs(x = "Time (years)", color = "Species", alpha = "Relative log(Density [/m/m2])") + 
+  ggplot2::scale_alpha(range = c(0.01, 1)) + ggplot2::theme_classic() -> b
+
+png("examples_vignettes/outputs/size_distribution.png", height = 800, width = 1200, res = 200)
+b
+dev.off()
+
+
+
+
+
+
+
+
+result[[1]][[1]]$result[[1]] %>%
+  tidy_patch() %>%
+  FF16_expand_state() %>%
+  pluck("species") %>%
+  plot_size_distribution() -> b
 
 result[[1]][[1]]$result[[1]] %>%
   tidy_patch() %>%
   FF16_expand_state() %>%
   pluck("env") %>%
   ggplot() +
-  geom_line(aes(x=time, y = theta)) -> c
+  geom_line(aes(x=time, y = theta))+
+  theme_classic() +
+  theme(text = element_text(size = 18)) +
+  xlab("Years") +
+  ylab(expression(paste(Soil~moisture~content, " (",m^{3}~H[2],"O",~m^{-3}~Soil, ")",sep = ""))) -> c
 
+png("examples_vignettes/outputs/theta.png", height = 800, width = 800, res = 100)
+c
+dev.off()
 
 result[[1]][[1]]$result[[1]] %>%
   tidy_patch() %>%
@@ -152,15 +228,18 @@ result[[1]][[1]]$result[[1]] %>%
   select(-c(opt_ci_,count)) %>%
   integrate_over_size_distribution() %>%
   ggplot(aes(x = time, y = area_leaf)) +
-  geom_line(aes(group = species, colour = species)) -> b
+  geom_line(aes(group = species, colour = species)) +
+  theme_classic() +
+  theme(text = element_text(size = 18)) +
+  xlab("Years") +
+  ylab(expression(paste(Total~leaf~area, " (", m^{-2}, ")",sep = ""))) -> b
+
+png("opt_psi_stem.png", height = 500, width = 1000, res = 100)
+a
+dev.off()
 
 
-result[[1]][[1]]$result[[1]] %>%
-  tidy_patch() %>%
-  FF16_expand_state() %>%
-  pluck("species") %>% 
-  ggplot(aes(x = time, y = count)) +
-  geom_point(aes(group = species, colour = species)) -> d
+png("leaf_area_theta.png", height = 500, width = 1000, res = 100)
+cowplot::plot_grid(b,c, ncol=2, nrow =1)
+dev.off()
 
-
-cowplot::plot_grid(a,b,c,d, nrow=4)

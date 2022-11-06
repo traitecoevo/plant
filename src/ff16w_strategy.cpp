@@ -56,7 +56,6 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
     for (double height_test = 0; height_test <= height; height_test += height/control.assimilator_integration_iterations){
       double compute_test = compute_average_light_environment(height_test, height, environment);
 
-      std::cout  << "compute_test"  << compute_test  << "height_test" << height_test << "is_adaptive " << integrator.is_adaptive()  << "reuse_intervals" << reuse_intervals << std::endl;
     }
 
     util::stop("Error");
@@ -67,32 +66,18 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
     
   const double psi_soil = environment.get_psi_soil() / 1000000;
 
-  // std::cout << "height" << height << "psi_soil" << psi_soil << std::endl;
-  // height * eta_c = height of average leaf area
-  const double leaf_specific_conductance_max = K_s * huber_value / (height * eta_c);
-    
+  const double leaf_specific_conductance_max = K_s * theta / (height * eta_c);
   leaf.set_physiology(average_radiation, psi_soil, leaf_specific_conductance_max, leaf.atm_vpd, leaf.ca);
     
-  // double ci_guess = vars.aux(aux_index.at("opt_ci_"));
-    
-  // leaf.optimise_ci_Sperry_Newton_analytical(ci_guess);
-    // std::cout << "started a strategy" << std::endl;
-  // double psi_guess = vars.aux(aux_index.at("opt_psi_stem_"));
-
-  // leaf.optimise_psi_stem_Sperry_Newton_analytical();
-
-
-  // leaf.optimise_psi_stem_Sperry_Newton_analytical(psi_guess);
-  
   leaf.optimise_psi_stem_Sperry_analytical();
 
-  // vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
+  vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
     
-  // vars.set_aux(aux_index.at("count"), leaf.count);
+  vars.set_aux(aux_index.at("count"), leaf.count);
 
-  // vars.set_aux(aux_index.at("profit_"), leaf.profit_);
+  vars.set_aux(aux_index.at("profit_"), leaf.profit_);
 
-  // vars.set_aux(aux_index.at("assim_colimited_"), leaf.assim_colimited_);
+  vars.set_aux(aux_index.at("assim_colimited_"), leaf.assim_colimited_);
 
 
   const double assimilation_per_area = leaf.profit_;

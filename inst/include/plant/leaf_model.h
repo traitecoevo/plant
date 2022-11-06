@@ -109,35 +109,50 @@ public:
                                  integration_tol, integration_tol);
   }
   
+  // set-up functions
   void set_physiology(double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca);
   void setup_transpiration(double resolution);
 
+  // transpiration functions
 
+  // proportion of conductivity in xylem at a given water potential (return: unitless)
   double proportion_of_conductivity(double psi) const;
-  double transpiration(double psi_stem);
-  double transpiration_full_integration(double psi_stem);                    
 
+  // supply-side transpiration for a given water potential gradient between leaves and soil, 
+  // references setup_transpiraiton for values (return: kg h20 s^-1 m^-2 LA)
+  // should be renamed to reflect supply-side
+  double transpiration(double psi_stem);
+  // supply-side transpiration for a given water potential gradient between leaves and soil, integrated internally (return: kg h20 s^-1 m^-2 LA)
+  // should be renamed to reflect supply-side
+  double transpiration_full_integration(double psi_stem);                    
+  // stomatal conductance rate of c02 (return: mol CO2 m^-2 s^-1)
   double stom_cond_CO2(double psi_stem); // define as a constant
+  // converts transpiration in kg h20 s^-1 m^-2 LA to psi_stem (return: -MPa)
+  double transpiration_to_psi_stem(double transpiration_);
+  
+  // assimilation functions
+
+  //
   double assim_rubisco_limited(double ci_);
   double electron_transport();
   double assim_electron_limited(double ci_);
   double assim_colimited(double ci_);
   double assim_colimited_analytical(double ci_);
-  
   double assim_minus_stom_cond_CO2(double x, double psi_stem);
   double psi_stem_to_ci_analytical(double psi_stem);
   void set_leaf_states_rates_from_psi_stem_analytical(double psi_stem);
   double psi_stem_to_ci(double psi_stem);
   void set_leaf_states_rates_from_psi_stem(double psi_stem);
-  double transpiration_to_psi_stem(double transpiration_);
 
+
+// leaf economics functions
   double hydraulic_cost_Sperry(double psi_stem);
-
   double profit_psi_stem_Sperry(double psi_stem);
   double profit_psi_stem_Sperry_analytical(double psi_stem);
   double profit_Sperry_ci(double ci_);
   double profit_Sperry_ci_analytical(double ci_);
 
+// optimiser functions
   void optimise_psi_stem_Sperry();
   void optimise_psi_stem_Sperry_analytical();
   void optimise_psi_stem_Sperry_Newton(double psi_guess);

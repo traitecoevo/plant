@@ -103,7 +103,7 @@ if(instant_of_day >= sun_rise & instant_of_day <= sun_down){
 ```
 
 ```{r}
-LHS <- randomLHS(1000, 12)
+LHS <- randomLHS(100, 12)
 
 params <- tibble(mean_temp = 20, temp_diff = qunif(LHS[,1], min = 5, max = 20), latitude = qunif(LHS[,2], min = 0, max = 60), VP = qunif(LHS[,3], 0.5, 2),
                    vcmax = qunif(LHS[,4], 30, 100), p_50 = qunif(LHS[,5], min = 1, max = 10), huber_value = qunif(LHS[,6], min = 0.000157/2, max =  0.000157*2),
@@ -113,16 +113,16 @@ params <- tibble(mean_temp = 20, temp_diff = qunif(LHS[,1], min = 5, max = 20), 
 
 
 ```{r}
-future::plan("multisession", workers = 4)
+future::plan("multisession", workers = 8)
 ```
 
 ```{r}
 params %>%
-  pmap(expand_input_data) %>%
+  future_pmap(expand_input_data) %>%
   bind_rows() %>%
   mutate(param_set = seq(1:n())) %>%
-  expand_grid(focal_points = c(1,2,3,4,5,50)) %>%
-  mutate(instant_through_day_hr = pmap(., create_mult_point)) %>%
+  expand_grid(focal_points = c(1,2,3,4,5,6,7,8,9,10,60)) %>%
+  mutate(instant_through_day_hr = future_pmap(., create_mult_point)) %>%
   unnest(instant_through_day_hr) %>%
   mutate(instant_through_day_dec = instant_through_day_hr/24,
          dec_day_time = day_floor+ instant_through_day_dec) %>%
@@ -140,32 +140,7 @@ expanded_input_data %>%
   mutate(leaf = pmap(., make_leaf)) %>%
   mutate(leaf_states_rate = map(leaf, leaf_states_rates_from_leaf)) %>%
   unnest(leaf_states_rate) %>% 
-  nest(outputs = c(leaf, instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit, GSS_count, count, method, transpiration, psi_stem, g_c)) -> expanded_output
-```
-
-
-```{r}
-num_groups = 10
-
-save_slices <- function(...){
-  data = tibble(...)
-  saveRDS(data, paste("examples_vignettes/expanded_output_save/expanded_output_save_",unique(data$group),".RDS", sep =""))
-}
-
-
-expanded_output %>% 
-   group_by(group = (row_number()-1) %/% (n()/num_groups)) %>%
-   nest %>%  rename(data_slice = data) %>% pmap(., save_slices)
-```
-
-```{r}
-
-expanded_output <- list.files("examples_vignettes/expanded_output_save", full.names = TRUE) %>%
-  future_map(~readRDS(.x)) %>%
-  bind_rows
-
-
-
+  nest(outputs = c(leaf, instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit, transpiration, psi_stem, g_c)) -> expanded_output
 ```
 
 
@@ -173,18 +148,22 @@ expanded_output <- list.files("examples_vignettes/expanded_output_save", full.na
 expanded_output %>%
   unnest(outputs) %>%
   mutate(profit_hr = profit*60*60/1e6) %>%
-  mutate(transpiration_hr = transpiration*60*60) %>%
+  mutate(transpiration_hr = transpiration*60*60) %>% 
   mutate(profit_integrated = profit_hr* day_length/focal_points) %>%
   mutate(transpiration_integrated = transpiration_hr * day_length/focal_points) %>%
   group_by(focal_points, param_set) %>%
-  nest() %>%
+  nest()  %>%
   mutate(daily_profit_integrated = map_dbl(data, ~sum(.x$profit_integrated))) %>%
   mutate(daily_transpiraiton_integrated = map_dbl(data, ~sum(.x$transpiration_integrated))) -> expanded_output_integrated
 ```
 
 ```{r}
+
+
+set.seed(124)
+
 expanded_output_integrated %>%
-  filter(focal_points == "50") %>%
+  filter(focal_points == "60") %>%
   unnest(data) %>%
   filter(psi_soil < psi_crit) %>%
   group_by(param_set) %>%
@@ -205,7 +184,7 @@ data_for_plot %>%
   text = element_text(size=16),
   axis.title = element_text(size=18)
   ) +
-  ylab(expression(paste("Profit (",mu,"mol ", m^{-2}~s^{-1},")"))) +
+  ylab(expression(paste("Profit (",mu,"mol C ", m^{-2}~s^{-1},")"))) +
   xlab("Time (hr)") -> a
 
   
@@ -221,17 +200,21 @@ data_for_plot %>%
   text = element_text(size=16),
   axis.title = element_text(size=18)
   ) +
-  ylab(expression(paste("Evapotranspiration (kg ", m^{-2}~s^{-1},")"))) +
+  ylab(expression(paste("Evapotranspiration (kg ",H[2],"O ", m^{-2}~s^{-1},")"))) +
   xlab("Time (hr)")-> b
-
-cowplot::plot_grid(a,b, labels = c("a)", "b)"))
+png("examples_vignettes/outputs/testing_integration/Fig_1.png", height = 1000, width = 1500, res = 100)
+cowplot::plot_grid(a,b, labels = c("a", "b"))
+dev.off()
 ```
 
 
 ```{r}
+set.seed(136)
+
 expanded_output_integrated %>%
   ungroup() %>%
   unnest(data) %>%
+  filter(focal_points %in% c(1,2,3, 60)) %>%
   group_by(param_set, focal_points) %>%
   mutate(run = seq(1:n())) %>%
   select(-leaf) %>%
@@ -239,7 +222,7 @@ expanded_output_integrated %>%
   group_by(param_set) %>%
   nest(outputs = -param_set) %>%
   ungroup() %>%
-  head(1) %>%
+  sample_n(1) %>%
   unnest(outputs) %>%
   mutate(coords= pmap(., make_polygon_coordinates2)) %>%
   group_by(param_set) %>%
@@ -261,7 +244,7 @@ a[[1]] +
   text = element_text(size=16),
   axis.title = element_text(size=18)
   ) +
-  ylab(expression(paste("Profit (",mu,"mol ", m^{-2}~s^{-1},")"))) +
+  ylab(expression(paste("Profit (",mu,"mol C ", m^{-2}~s^{-1},")"))) +
   xlab("Time (hr)") -> a
 
 b[[1]] +
@@ -272,114 +255,258 @@ b[[1]] +
   text = element_text(size=16),
   axis.title = element_text(size=18)
   ) +
-  ylab(expression(paste("Evapotranspiration (kg ", m^{-2}~s^{-1},")"))) +
-  xlab("Time (hr)") -> b
+  ylab(expression(paste("Evapotranspiration (kg ",H[2],"O ", m^{-2}~s^{-1},")"))) +
+  xlab("Time (hr)") +
+  expand_limits(y = data_for_plot %>% unnest(params) %>% pull(transpiration) %>% max()*1.1)-> b
   
-
-cowplot::plot_grid(a,b, labels = c("a)", "b)"))
-
+png("examples_vignettes/outputs/testing_integration/Fig_2.png", height = 1200, width = 2000, res = 175)
+cowplot::plot_grid(a,b, labels = c("a", "b"))
+dev.off()
 ```
 
 ```{r}
 expanded_output_integrated %>%
+  unnest(data) %>%
+  select(-leaf) %>%
+  saveRDS("examples_vignettes/expanded_output_integrated2.RDS")
+
+expanded_output_integrated <- readRDS("examples_vignettes/expanded_output_integrated2.RDS")
+
+
+expanded_output_integrated %>%
   select(-c(data, daily_transpiraiton_integrated)) %>%
   pivot_wider(names_from = focal_points, values_from =  c(daily_profit_integrated)) %>%
-  pivot_longer(cols = c( "1","2","3","4","5"), names_to = "focal_points", values_to = "focal_point_integration") %>%
-  rename(high_resolution_integration = `50`)%>%
+  pivot_longer(cols = c( "1","2","3","4","5","6","7","8","9","10"), names_to = "focal_points", values_to = "focal_point_integration") %>%
+  rename(high_resolution_integration = `60`)%>%
   filter(high_resolution_integration != 0) %>%
+  mutate(focal_point_integration2 = focal_point_integration^2) %>%
   group_by(focal_points) %>%
   nest() %>%
-  ungroup() %>%
   mutate(linear_model = map(data, ~lm(.x$high_resolution_integration~.x$focal_point_integration +0))) %>%
-  mutate(fitted_values_linear = map(linear_model, ~fitted.values(.x))) %>%
+  mutate(linear_pred = map(linear_model, ~predict(.x))) %>%
   mutate(linear_cor = map_dbl(linear_model, ~summary(.x)$r.squared)) %>%
-  mutate(linear_coefficients = map_dbl(linear_model, ~.x$coefficients)) %>%
-  unnest(c(data, fitted_values_linear)) %>%
-  mutate(calibrated_focal_point_integration = focal_point_integration * linear_coefficients) %>%
+  mutate(linear_coefficient = map_dbl(linear_model, ~.x$coefficients)) %>%
+  mutate(linear_MD = map_dbl(linear_model, ~mean(.x$residuals))) %>%
+  mutate(linear_RMSE = map_dbl(linear_model, ~sqrt(mean(.x$residuals^2)))) %>%
+  mutate(linear_AIC = map_dbl(linear_model, ~AIC(.x))) %>%
+  mutate(linear_BIC = map_dbl(linear_model, ~BIC(.x))) %>%
+  mutate(quad_model = map(data, ~lm(.x$high_resolution_integration~.x$focal_point_integration + .x$focal_point_integration2 +0))) %>%
+  mutate(quad_pred = map(quad_model, ~predict(.x))) %>%
+  mutate(quad_cor = map_dbl(quad_model, ~summary(.x)$r.squared)) %>%
+  mutate(quad_coefficient1 = map_dbl(quad_model, ~.x$coefficients[1])) %>%
+  mutate(quad_coefficient2 = map_dbl(quad_model, ~.x$coefficients[2])) %>%
+  mutate(quad_MD = map_dbl(quad_model, ~mean(.x$residuals))) %>%
+  mutate(quad_RMSE = map_dbl(quad_model, ~sqrt(mean(.x$residuals^2)))) %>%
+  mutate(quad_AIC = map_dbl(quad_model, ~AIC(.x))) %>%
+  mutate(quad_BIC = map_dbl(quad_model, ~BIC(.x))) %>%
+  unnest(data, linear_pred, quad_pred) %>%
   group_by(focal_points) %>%
-  mutate(xy_diff= focal_point_integration - fitted_values_linear,
-         xy_diff2 = xy_diff^2) %>%
-  ungroup() %>%
-  nest(-c(focal_points, linear_cor, linear_coefficients)) %>%
-  mutate(length = map_dbl(data, ~nrow(.x))) %>%
-  mutate(sum_xydiff = map_dbl(data, ~sum(.x$xy_diff))) %>%
-  mutate(sum_xy_diff2 = map_dbl(data, ~sum(.x$xy_diff2))) %>%
-  mutate(MD = 1/length*sum_xydiff) %>%
-  mutate(RMSD = sqrt(1/length*sum_xy_diff2)) -> data_for_fit_testing_profit
+  nest() %>%
+  mutate(linear_pred_model = map(data, ~lm(.x$high_resolution_integration~.x$linear_pred))) %>%
+  mutate(quad_pred_model = map(data, ~lm(.x$high_resolution_integration~.x$quad_pred))) %>%
+  mutate(bias_linear = map_dbl(linear_pred_model, ~.x$coefficients[1])) %>%
+  mutate(offset_linear = map_dbl(linear_pred_model, ~.x$coefficients[2])) %>%
+  mutate(linear_pred_MD = map_dbl(linear_pred_model, ~mean(.x$residuals))) %>%
+  mutate(linear_pred_RMSE = map_dbl(linear_pred_model, ~sqrt(mean(.x$residuals^2)))) %>%
+  mutate(bias_quad = map_dbl(quad_pred_model, ~.x$coefficients[1])) %>%
+  mutate(offset_quad = map_dbl(quad_pred_model, ~.x$coefficients[2])) %>%
+  mutate(quad_pred_MD = map_dbl(quad_pred_model, ~mean(.x$residuals))) %>%
+  mutate(quad_pred_RMSE = map_dbl(quad_pred_model, ~sqrt(mean(.x$residuals^2))))  %>%
+  ungroup() -> data_for_table_profit
+
+data_for_table_profit %>%
+  select(focal_points, linear_cor, linear_coefficient, linear_MD, linear_RMSE, linear_AIC, linear_BIC, quad_cor, quad_coefficient1, quad_coefficient2, quad_MD, quad_RMSE, quad_AIC, quad_BIC) %>%
+  mutate(across(.cols = -(focal_points), .fns = ~round(.x,5)))%>%
+  write.csv("examples_vignettes/outputs/testing_integration/data_for_table_profit.csv")
+
 
 expanded_output_integrated %>%
   select(-c(data, daily_profit_integrated)) %>%
   pivot_wider(names_from = focal_points, values_from =  c(daily_transpiraiton_integrated)) %>%
-  pivot_longer(cols = c( "1","2","3","4","5"), names_to = "focal_points", values_to = "focal_point_integration") %>%
-  rename(high_resolution_integration = `50`)%>%
+  pivot_longer(cols = c( "1","2","3","4","5","6","7","8","9","10"), names_to = "focal_points", values_to = "focal_point_integration") %>%
+  rename(high_resolution_integration = `60`)%>%
   filter(high_resolution_integration != 0) %>%
+  mutate(focal_point_integration2 = focal_point_integration^2) %>%
   group_by(focal_points) %>%
   nest() %>%
-  ungroup() %>%
   mutate(linear_model = map(data, ~lm(.x$high_resolution_integration~.x$focal_point_integration +0))) %>%
-  mutate(fitted_values_linear = map(linear_model, ~fitted.values(.x))) %>%
+  mutate(linear_pred = map(linear_model, ~predict(.x))) %>%
   mutate(linear_cor = map_dbl(linear_model, ~summary(.x)$r.squared)) %>%
-  mutate(linear_coefficients = map_dbl(linear_model, ~.x$coefficients)) %>%
-  unnest(c(data, fitted_values_linear)) %>%
-  mutate(calibrated_focal_point_integration = focal_point_integration * linear_coefficients) %>%
+  mutate(linear_coefficient = map_dbl(linear_model, ~.x$coefficients)) %>%
+  mutate(linear_MD = map_dbl(linear_model, ~mean(.x$residuals))) %>%
+  mutate(linear_RMSE = map_dbl(linear_model, ~sqrt(mean(.x$residuals^2)))) %>%
+  mutate(linear_AIC = map_dbl(linear_model, ~AIC(.x))) %>%
+  mutate(linear_BIC = map_dbl(linear_model, ~BIC(.x))) %>%
+  mutate(quad_model = map(data, ~lm(.x$high_resolution_integration~.x$focal_point_integration + .x$focal_point_integration2 +0))) %>%
+  mutate(quad_pred = map(quad_model, ~predict(.x))) %>%
+  mutate(quad_cor = map_dbl(quad_model, ~summary(.x)$r.squared)) %>%
+  mutate(quad_coefficient1 = map_dbl(quad_model, ~.x$coefficients[1])) %>%
+  mutate(quad_coefficient2 = map_dbl(quad_model, ~.x$coefficients[2])) %>%
+  mutate(quad_MD = map_dbl(quad_model, ~mean(.x$residuals))) %>%
+  mutate(quad_RMSE = map_dbl(quad_model, ~sqrt(mean(.x$residuals^2)))) %>%
+  mutate(quad_AIC = map_dbl(quad_model, ~AIC(.x))) %>%
+  mutate(quad_BIC = map_dbl(quad_model, ~BIC(.x))) %>%
+  unnest(data, linear_pred, quad_pred) %>%
   group_by(focal_points) %>%
-  mutate(xy_diff= focal_point_integration - fitted_values_linear,
-         xy_diff2 = xy_diff^2) %>%
-  ungroup() %>%
-  nest(-c(focal_points, linear_cor, linear_coefficients)) %>%
-  mutate(length = map_dbl(data, ~nrow(.x))) %>%
-  mutate(sum_xydiff = map_dbl(data, ~sum(.x$xy_diff))) %>%
-  mutate(sum_xy_diff2 = map_dbl(data, ~sum(.x$xy_diff2))) %>%
-  mutate(MD = 1/length*sum_xydiff) %>%
-  mutate(RMSD = sqrt(1/length*sum_xy_diff2)) -> data_for_fit_testing_transpiration
+  nest() %>%
+  mutate(linear_pred_model = map(data, ~lm(.x$high_resolution_integration~.x$linear_pred))) %>%
+  mutate(quad_pred_model = map(data, ~lm(.x$high_resolution_integration~.x$quad_pred))) %>%
+  mutate(bias_linear = map_dbl(linear_pred_model, ~.x$coefficients[1])) %>%
+  mutate(offset_linear = map_dbl(linear_pred_model, ~.x$coefficients[2])) %>%
+  mutate(linear_pred_MD = map_dbl(linear_pred_model, ~mean(.x$residuals))) %>%
+  mutate(linear_pred_RMSE = map_dbl(linear_pred_model, ~sqrt(mean(.x$residuals^2)))) %>%
+  mutate(bias_quad = map_dbl(quad_pred_model, ~.x$coefficients[1])) %>%
+  mutate(offset_quad = map_dbl(quad_pred_model, ~.x$coefficients[2])) %>%
+  mutate(quad_pred_MD = map_dbl(quad_pred_model, ~mean(.x$residuals))) %>%
+  mutate(quad_pred_RMSE = map_dbl(quad_pred_model, ~sqrt(mean(.x$residuals^2))))  %>%
+  ungroup() -> data_for_table_transpiration
+  
+data_for_table_transpiration %>%
+  select(focal_points, linear_cor, linear_coefficient, linear_MD, linear_RMSE,linear_AIC,linear_BIC, quad_cor, quad_coefficient1, quad_coefficient2, quad_MD, quad_RMSE,quad_AIC,quad_BIC) %>%
+  mutate(across(.cols = -(focal_points), .fns = ~round(.x,5)))%>%
+  write.csv("examples_vignettes/outputs/testing_integration/data_for_table_transpiration.csv")
 ```
 
 
 ```{r}
 
-data_for_fit_testing_profit %>%
-  unnest(data) %>%
-  ggplot(aes(x = focal_point_integration, y = high_resolution_integration)) +
-  geom_point() +
-  geom_point(aes(x = calibrated_focal_point_integration), col = "orange") +
-  facet_wrap(~focal_points) +
-  theme_classic() +
-  geom_abline() +
-  geom_abline(aes(slope = linear_coefficients, intercept = 0), colour = "orange", linetype = "dashed") +
-  theme(strip.text = element_blank(), text = element_text(size = 18)) +
-  ylab(expression(paste(Total~daily~profit~(50~sample~points), " [mol ",m^{-2},"]", sep=""))) +
-  xlab(expression(paste(Total~daily~profit~(n~sample~points), " [mol ",m^{-2},"]", sep=""))) +
-  geom_text(data = data_for_fit_testing_profit %>% distinct(focal_points), aes(x = 0, y = Inf, label = paste("n = ",focal_points, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6) -> a
+data_for_table_profit %>%
+  mutate(focal_points_f = factor(focal_points, levels = c("1","2","3","4","5","6","7","8","9","10"))) %>%
+  unnest(data) -> data_for_fit_testing_profit_plot
 
-png("examples_vignettes/profit_match.png", height = 1200, width = 1200)
-a
+data_for_table_transpiration %>%
+  mutate(focal_points_f = factor(focal_points, levels = c("1","2","3","4","5","6","7","8","9","10"))) %>%
+  unnest(data) -> data_for_fit_testing_transpiration_plot
+
+
+data_for_fit_testing_profit_plot %>%
+  ggplot(aes(x = focal_point_integration, y = high_resolution_integration)) +
+  geom_hex(bins = 30, aes(colour = after_stat(count))) +
+  facet_wrap(~focal_points_f) +
+  theme_classic() +
+  geom_line(aes(x = focal_point_integration, y = linear_pred), linetype = "solid", size = 1.1) +
+  geom_line(aes(x = focal_point_integration, y = focal_point_integration), linetype = "dotted", size = 1.1) +
+  theme(strip.text = element_blank(), text = element_text(size = 18)) +
+  ylab(expression(paste(Total~daily~profit~(60~sample~points), " [mol C ",m^{-2},"]", sep=""))) +
+  xlab(expression(paste(Total~daily~profit~(n~sample~points), " [mol C ",m^{-2},"]", sep=""))) +
+  geom_text(data = data_for_fit_testing_profit_plot %>% distinct(focal_points_f), aes(x = 0, y = Inf, label = paste("n = ",focal_points_f, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6)+ 
+  labs(fill = "count", colour = "count") +
+  scale_color_viridis_b() +
+  scale_fill_viridis_b()  -> a_linear
+
+data_for_fit_testing_profit_plot %>%
+  ggplot(aes(x = focal_point_integration, y = high_resolution_integration)) +
+  geom_hex(bins = 30, aes(colour = after_stat(count))) +
+  facet_wrap(~focal_points_f) +
+  theme_classic() +
+  geom_line(aes(x = focal_point_integration, y = quad_pred), linetype = "solid", size = 1.1) +
+  theme(strip.text = element_blank(), text = element_text(size = 18)) +
+  ylab(expression(paste(Total~daily~profit~(60~sample~points), " [mol C ",m^{-2},"]", sep=""))) +
+  xlab(expression(paste(Total~daily~profit~(n~sample~points), " [mol C ",m^{-2},"]", sep=""))) +
+  geom_text(data = data_for_fit_testing_profit_plot %>% distinct(focal_points_f), aes(x = 0, y = Inf, label = paste("n = ",focal_points_f, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6) + 
+  labs(fill = "count", colour = "count") +
+  scale_color_viridis_b() +
+  scale_fill_viridis_b() -> a_quad
+
+
+data_for_fit_testing_transpiration_plot %>%
+  ggplot(aes(x = focal_point_integration, y = high_resolution_integration)) +
+  geom_hex(bins = 30, aes(colour = after_stat(count))) +
+  facet_wrap(~focal_points_f) +
+  theme_classic() +
+  geom_line(aes(x = focal_point_integration, y = linear_pred), linetype = "solid", size = 1.1) +
+  geom_line(aes(x = focal_point_integration, y = focal_point_integration), linetype = "dotted", size = 1.1) +
+  theme(strip.text = element_blank(), text = element_text(size = 18)) +
+  ylab(expression(paste(Total~daily~transpiration~(60~sample~points), " [kg ",H[2],"O ",m^{-2},"]", sep=""))) +
+  xlab(expression(paste(Total~daily~transpiration~(n~sample~points), " [kg ",H[2],"O ",m^{-2},"]", sep=""))) +
+  geom_text(data = data_for_fit_testing_transpiration_plot %>% distinct(focal_points_f), aes(x = 0, y = Inf, label = paste("n = ",focal_points_f, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6) + 
+  labs(fill = "count", colour = "count") +
+  scale_color_viridis_b() +
+  scale_fill_viridis_b() -> b_linear
+
+
+data_for_fit_testing_transpiration_plot %>%
+  ggplot(aes(x = focal_point_integration , y = high_resolution_integration)) +
+  geom_hex(bins = 30, aes(colour = ..count..)) +
+  facet_wrap(~focal_points_f) +
+  theme_classic() +
+  geom_line(aes(x = focal_point_integration, y = quad_pred), linetype = "solid", size = 1.1) +
+  theme(strip.text = element_blank(), text = element_text(size = 18)) +
+  ylab(expression(paste(Total~daily~transpiration~(60~sample~points), " [kg ",H[2],"O ",m^{-2},"]", sep=""))) +
+  xlab(expression(paste(Total~daily~transpiration~(n~sample~points), " [kg ",H[2],"O ",m^{-2},"]", sep=""))) +
+  geom_text(data = data_for_fit_testing_transpiration_plot %>% distinct(focal_points_f), aes(x = 0, y = Inf, label = paste("n = ",focal_points_f, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6) + 
+  labs(fill = "count", colour = "count") +
+  scale_color_viridis_b() +
+  scale_fill_viridis_b() -> b_quad
+
+png("examples_vignettes/outputs/testing_integration/Fig_3.png", height = 800, width = 1600, res = 70)
+cowplot::plot_grid(a_linear, b_linear, labels = "auto")
 dev.off()
 
-data_for_fit_testing_transpiration %>%
-  unnest(data) %>%
-  ggplot(aes(x = focal_point_integration, y = high_resolution_integration)) +
-  geom_point() +
-  geom_point(aes(x = calibrated_focal_point_integration), col = "orange") +
-  facet_wrap(~focal_points) +
-  theme_classic() +
-  geom_abline() +
-  geom_abline(aes(slope = linear_coefficients, intercept = 0), colour = "orange", linetype = "dashed")+
-  theme(strip.text = element_blank(), text = element_text(size = 18)) +
-  ylab(expression(paste(Total~daily~transpiration~(50~sample~points), " [kg ",m^{-2},"]", sep=""))) +
-  xlab(expression(paste(Total~daily~transpiration~(n~sample~points), " [kg ",m^{-2},"]", sep=""))) +
-  geom_text(data = data_for_fit_testing_profit %>% distinct(focal_points), aes(x = 0, y = Inf, label = paste("n = ",focal_points, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6) -> b
-
-cowplot::plot_grid(a,b, labels = c("a)", "b)"))
-
-
-data_for_fit_testing_transpiration %>%
-  pivot_longer(cols = c(MD, RMSD, linear_cor), names_to = "names") %>%
-  mutate(focal_points = as.numeric(focal_points)) %>%
-  ggplot(aes(x = focal_points, y = value)) +
-  geom_line() +
-  facet_wrap(~names, scales = "free")
-
+png("examples_vignettes/outputs/testing_integration/Fig_S1.png", height = 800, width = 1600, res = 70)
+cowplot::plot_grid(a_quad, b_quad, labels = "auto")
+dev.off()
 ```
+
+```{r}
+data_for_fit_testing_profit_plot %>%
+  ggplot() +
+  geom_hex(bins = 30, aes(x = linear_pred, y = high_resolution_integration, colour = after_stat(count))) +
+  facet_wrap(~focal_points_f) +
+  theme_classic() +
+  geom_abline(aes(slope = 1, intercept = 0), linetype = "dashed", size = 1.1) +
+  theme(strip.text = element_blank(), text = element_text(size = 18)) +
+  ylab(expression(paste(Total~daily~profit~(60~sample~points), " [mol C ",m^{-2},"]", sep=""))) +
+  xlab(expression(paste(Total~daily~profit~(n~sample~points), " [mol C ",m^{-2},"]", sep=""))) +
+  geom_text(data = data_for_fit_testing_profit_plot %>% distinct(focal_points_f), aes(x = 0, y = Inf, label = paste("n = ",focal_points_f, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6)+ 
+  labs(fill = "count", colour = "count") +
+  scale_color_viridis_b() +
+  scale_fill_viridis_b()  -> a_linear_pred
+
+data_for_fit_testing_profit_plot %>%
+  ggplot() +
+  geom_hex(bins = 30, aes(x = quad_pred, y = high_resolution_integration, colour = after_stat(count))) +
+  facet_wrap(~focal_points_f) +
+  theme_classic() +
+  geom_abline(aes(slope = 1, intercept = 0), linetype = "dashed", size = 1.1) +
+  theme(strip.text = element_blank(), text = element_text(size = 18)) +
+  ylab(expression(paste(Total~daily~profit~(60~sample~points), " [mol C ",m^{-2},"]", sep=""))) +
+  xlab(expression(paste(Total~daily~profit~(n~sample~points), " [mol C ",m^{-2},"]", sep=""))) +
+  geom_text(data = data_for_fit_testing_profit_plot %>% distinct(focal_points_f), aes(x = 0, y = Inf, label = paste("n = ",focal_points_f, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6)+ 
+  labs(fill = "count", colour = "count") +
+  scale_color_viridis_b() +
+  scale_fill_viridis_b()  -> a_quad_pred
+
+
+data_for_fit_testing_transpiration_plot %>%
+  ggplot() +
+  geom_hex(bins = 30, aes(x = linear_pred, y = high_resolution_integration, colour = after_stat(count))) +
+  facet_wrap(~focal_points_f) +
+  theme_classic() +
+  geom_abline(aes(slope = 1, intercept = 0), linetype = "dashed", size = 1.1) +
+  theme(strip.text = element_blank(), text = element_text(size = 18)) +
+  ylab(expression(paste(Total~daily~transpiration~(60~sample~points), " [kg ",H[2],"O ",m^{-2},"]", sep=""))) +
+  xlab(expression(paste(Total~daily~transpiration~(n~sample~points), " [kg ",H[2],"O ",m^{-2},"]", sep=""))) +
+  geom_text(data = data_for_fit_testing_transpiration_plot %>% distinct(focal_points_f), aes(x = 0, y = Inf, label = paste("n = ",focal_points_f, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6) + 
+  labs(fill = "count", colour = "count") +
+  scale_color_viridis_b() +
+  scale_fill_viridis_b() -> b_linear_pred
+
+data_for_fit_testing_transpiration_plot %>%
+  ggplot() +
+  geom_hex(bins = 30, aes(x = quad_pred, y = high_resolution_integration, colour = after_stat(count))) +
+  facet_wrap(~focal_points_f) +
+  theme_classic() +
+  geom_abline(aes(slope = 1, intercept = 0), linetype = "dashed", size = 1.1) +
+  theme(strip.text = element_blank(), text = element_text(size = 18)) +
+  ylab(expression(paste(Total~daily~transpiration~(60~sample~points), " [kg ",H[2],"O ",m^{-2},"]", sep=""))) +
+  xlab(expression(paste(Total~daily~transpiration~(n~sample~points), " [kg ",H[2],"O ",m^{-2},"]", sep=""))) +
+  geom_text(data = data_for_fit_testing_transpiration_plot %>% distinct(focal_points_f), aes(x = 0, y = Inf, label = paste("n = ",focal_points_f, sep = "")), vjust = 1.5, hjust = -0.0625, size = 6) + 
+  labs(fill = "count", colour = "count") +
+  scale_color_viridis_b() +
+  scale_fill_viridis_b() -> b_quad_pred
+```
+
 
 ```{r}
 focal_parameters <- expand_grid(continuous_parameter = c("ca","VP","day","psi_soil", "temp_diff", "E"), factorial_parameter = c("vcmax", "p_50","huber_value","h","c"))
@@ -418,7 +545,7 @@ if(focal_parameters$continuous_parameter == "day") {
 if(focal_parameters$continuous_parameter == "psi_soil") {
   psi_soil = seq(0, 5, length.out = length_required)
 } else {
-  psi_soil = 1.5
+  psi_soil = 0.5
 }
 
 if(focal_parameters$continuous_parameter == "temp_diff") {
@@ -448,7 +575,7 @@ if(focal_parameters$factorial_parameter == "huber_value") {
 
 
 if(focal_parameters$factorial_parameter == "h") {
-  h = c(10, 80)
+  h = c(5, 50)
 } else {
   h = 10
 }
@@ -468,7 +595,7 @@ expand_grid(mean_temp = 20, temp_diff = temp_diff, latitude = 27, VP = VP,
 
 ```{r}
 focal_parameters %>%
-  mutate(parameters = pmap(., set_focal_parameters, 5)) %>%
+  mutate(parameters = pmap(., set_focal_parameters, 20)) %>%
   mutate(run = 1:nrow(.)) %>%
   unnest(parameters) %>%
   group_by(run) %>%
@@ -476,7 +603,7 @@ focal_parameters %>%
   ungroup() %>%
   pmap(expand_input_data) %>%
   bind_rows() %>%
-  expand_grid(focal_points = c(1,50))%>%
+  expand_grid(focal_points = c(1,60))%>%
   mutate(instant_through_day_hr = pmap(., create_mult_point)) %>%
   unnest(instant_through_day_hr) %>%
   mutate(instant_through_day_dec = instant_through_day_hr/24,
@@ -493,17 +620,20 @@ expanded_input_data_sensitivity %>%
   mutate(leaf = pmap(., make_leaf)) %>%
   mutate(leaf_states_rate = map(leaf, leaf_states_rates_from_leaf)) %>%
   unnest(leaf_states_rate) %>% 
-  nest(outputs = c(leaf, instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit, GSS_count, count, method, transpiration, psi_stem, g_c)) -> expanded_output_sensitivity
+  nest(outputs = c(leaf, instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit, transpiration, psi_stem, g_c)) -> expanded_output_sensitivity
 
-
+# need to put this on the right scale
 expanded_output_sensitivity %>%
   unnest(outputs) %>%
-  mutate(profit_integrated = profit * day_length/focal_points) %>%
-  mutate(transpiration_integrated = transpiration * day_length/focal_points) %>%
+  mutate(profit_mol_hr = profit * 60 * 60 * 1e-06) %>%
+  mutate(profit_integrated = profit_mol_hr * day_length/focal_points) %>%
+  mutate(transpiration_hr = transpiration * 60 * 60) %>%
+  mutate(profit_integrated = profit_mol_hr * day_length/focal_points) %>%
+  mutate(transpiration_integrated = transpiration_hr * day_length/focal_points) %>%
   group_by(param_set, run, focal_points) %>%
   nest() %>%
   mutate(daily_profit_integrated = map_dbl(data, ~sum(.x$profit_integrated))) %>%
-  mutate(daily_transpiraiton_integrated = map_dbl(data, ~sum(.x$transpiration_integrated))) -> expanded_output_sensitivity_for_plotting
+  mutate(daily_transpiration_integrated = map_dbl(data, ~sum(.x$transpiration_integrated))) -> expanded_output_sensitivity_for_plotting
 
 expanded_output_sensitivity_for_plotting %>%
   unnest(data) %>%
@@ -519,516 +649,64 @@ expanded_output_sensitivity_for_plotting %>%
   group_by(run) %>%
   nest(outputs = -run) %>%
   ungroup() %>%
-  mutate(plots = map(outputs, ~plotting_function(.x)))-> plots
-
-
-plotting_function <- function(...){
-  data <- tibble(...)
-  col_name_continuous <- data$continuous_parameter[1]
-  col_name_factorial <- data$factorial_parameter[1]
-  
-  col_name_factorial2 <- data$factorial_parameter2[1]
-  col_name_continuous2 <- data$continuous_parameter2[1]
-        ggplot(data)+
-          geom_line(aes(x = .data[[col_name_continuous]], y = daily_profit_integrated, group = interaction(as.factor(.data[[col_name_factorial]]), focal_points), colour = as.factor(.data[[col_name_factorial]]), linetype = as.factor(focal_points)))+
-          theme_classic() +
-          ylab(expression(paste("Integrated daily profit (",mu,"mol ", m^{-2}~d^{-1},")"))) -> p
-          p + xlab(label = col_name_continuous2) -> p
-          p + scale_linetype_discrete(name = "Focal points") -> p
-        
-        if(!col_name_factorial %in% c("vcmax","p_50","huber_value")){
-            p + scale_colour_discrete(name = col_name_factorial2) -> p
-}
-        
-        if(col_name_continuous == "ca"){
-          p + xlab(expression(C[a]~(Pa))) -> p
-        }
-        if(col_name_continuous == "psi_soil"){
-          p + xlab(expression(psi[soil]))-> p
-        }
-        if(col_name_continuous == "temp_diff"){
-          p + xlab(expression(Delta~T~(degree*C)))-> p
-        }
-        
-        if(col_name_factorial == "vcmax"){
-          p + scale_colour_discrete(name = expression(V[c,max]~(mu*mol~m^{-2}~s^{-1}))) -> p
-        }
-        if(col_name_factorial == "p_50"){
-          p + scale_colour_discrete(name = expression(P[50]~(-MPa))) -> p
-        }
-        if(col_name_factorial == "huber_value"){
-          p + scale_colour_discrete(name = expression(HV~(m^2~Sapwood~area~m^{-2}~Leaf~area)))-> p
-        }
-        
-        return(p)
-}
-
-cowplot::plot_grid(plotlist = plots$plots, nrow = n_distinct(expanded_output_sensitivity$continuous_parameter), align = "h")  
-```
-
-
-```{r}
-
-extract_values<- function(leaf){
-  lambda_ = leaf$lambda_
-  cost_ = leaf$A_lim - leaf$profit
-  benefit_ = leaf$A_lim
-  opt_psi_stem = leaf$opt_psi_stem
-  tibble(lambda_ = lambda_, cost_ = cost_, benefit_ = benefit_, opt_psi_stem =opt_psi_stem)
-}
-
-simulate_profit_curve<- function(psi_crit, leaf){
-tibble(psi_stem_profit = seq(leaf$psi_soil_, psi_crit, length.out = 50)) %>%
-  rowwise() %>%
-  mutate(profit_psi_stem = leaf$profit_psi_stem_Sperry(psi_stem_profit)) %>%
-  mutate(cost_original = leaf$calc_hydraulic_cost_Sperry(psi_stem_profit)) %>%
-  mutate(cost_transformed = cost_original*leaf$lambda_) %>%
-  mutate(benefit_original = profit_psi_stem + cost_transformed)
-  }
-
-simulate_profit_curve2 <- function(psi_crit, leaf){
-psi_stem_profit = seq(leaf$psi_soil_, psi_crit, length.out = 50)
-  
-outputs <- tibble(benefit = rep(NA, length(psi_stem_profit)), cost = rep(NA, length(psi_stem_profit)), benefit_max = rep(NA, length(psi_stem_profit)), cost_max = rep(NA, length(psi_stem_profit)), psi_stem_profit = rep(NA, length(psi_stem_profit)))
-  for(i in 1:length(psi_stem_profit)){
-  outputs$psi_stem_profit[i] <- psi_stem_profit[i]
-  leaf$get_leaf_states_rates_from_psi_stem(psi_stem_profit[i])
-  outputs$benefit[i] <- leaf$A_lim
-  outputs$cost[i] <- leaf$calc_hydraulic_cost_Sperry(psi_stem_profit[i])
-  leaf$get_leaf_states_rates_from_psi_stem(psi_crit)
-  outputs$benefit_max[i] <- leaf$A_lim
-  outputs$cost_max[i] <- leaf$calc_hydraulic_cost_Sperry(psi_crit)
-  }
-
-outputs
-}
-
-  
-tibble(psi_stem_profit = seq(leaf$psi_soil_, psi_crit, length.out = 50)) %>%
-  rowwise() %>%
-  mutate(benefit = leaf$calc_A_lim())
-    
-  mutate(cost = leaf$calc_hydraulic_cost_Sperry(psi_stem_profit)) %>%
-  mutate(cost_transformed = cost*leaf$lambda_) %>%
-  mutate(benefit = profit_psi_stem + cost_transformed)
-  }
+  mutate(plots = map(outputs, plotting_function, variable = "profit"))-> profit_plots
 
 
 
-expanded_output_sensitivity %>%
-  filter(continuous_parameter == "E") %>%
-  filter(factorial_parameter == "p_50") %>%
-  filter(focal_points == "50") %>% 
-  unnest(outputs) %>%
-  mutate(economics = map(leaf, extract_values)) %>%
-  unnest(economics) %>%
-  ggplot() +
-  geom_line(aes(x = instant_through_day_hr, y = profit)) + 
-  geom_line(aes(x = instant_through_day_hr, y = benefit_), col = "blue") + 
-  geom_line(aes(x = instant_through_day_hr, y = cost_), col = "red") + 
-  geom_line(aes(x = instant_through_day_hr, y = opt_psi_stem), col = "gre") + 
-  facet_grid(p_50~E)
-  slice(3) -> asd
+expanded_output_sensitivity_for_plotting %>%
+  unnest(data) %>%
+  ungroup() %>%
+  mutate(continuous_parameter2= case_when(continuous_parameter == "VP"~ "Vapour pressure (kPa)",
+                                          continuous_parameter == "day"~ "Day",
+                                          continuous_parameter == "E" ~ "Canopy openness",
+                                          TRUE ~ as.character(continuous_parameter)),
+         factorial_parameter2 = case_when(factorial_parameter == "h" ~ "Height (m)",
+                                          TRUE ~ as.character(factorial_parameter))
+  ) %>%
+  mutate(factorial_parameter = as.character(factorial_parameter)) %>%
+  group_by(run) %>%
+  nest(outputs = -run) %>%
+  ungroup() %>%
+  mutate(plots = map(outputs, plotting_function, variable = "transpiration"))-> transpiration_plots
 
 
-expanded_output_sensitivity %>%
-  filter(continuous_parameter == "E") %>%
-  filter(factorial_parameter == "p_50") %>%
-  filter(focal_points == "50") %>%
-  mutate(outputs = map(outputs, ~slice(.x, 35))) %>%
-  unnest(outputs) %>%
-  filter(p_50 == "1") %>%
-  mutate(profit_landscape = map2(psi_crit, leaf, simulate_profit_curve)) %>%
-  unnest(profit_landscape) %>%
-  ggplot() +
-  geom_line(aes(x = psi_stem_profit, y = profit_psi_stem)) +
-  geom_line(aes(x = psi_stem_profit, y = cost_transformed)) +
-  geom_line(aes(x = psi_stem_profit, y = benefit)) +
-  geom_line(aes(x = psi_stem_profit, y = cost *10000)) +
-  facet_wrap(~E)
-  
+png("examples_vignettes/outputs/testing_integration/Fig_4.png", width = 2000, height = 2000, res = 160)
+plots <- cowplot::plot_grid(plotlist = profit_plots$plots, nrow = n_distinct(expanded_output_sensitivity$continuous_parameter), align = "vh", labels =c(letters, "aa","ab","ac","ad"))
+y.grob <- grid::textGrob(expression(paste("Integrated daily profit (","mol C ", m^{-2}~d^{-1},")")),
+                   gp=grid::gpar(fontface="bold", fontsize=15), rot=90)
 
-expanded_output_sensitivity %>%
-  filter(continuous_parameter == "E") %>%
-  filter(factorial_parameter == "p_50") %>%
-  filter(focal_points == "50") %>%
-  mutate(outputs = map(outputs, ~slice(.x, 35)))%>%
-  unnest(outputs) %>%
-  filter(p_50 == "1") %>%
-  mutate(outputs = map2(psi_crit, leaf, simulate_profit_curve2)) %>%
-  unnest(outputs)%>%
-  ggplot() +
-  geom_line(aes(x = psi_stem_profit, y = cost/cost_max)) +
-  geom_line(aes(x = psi_stem_profit, y = benefit/benefit_max)) +
-  geom_line(aes(x = psi_stem_profit, y = benefit/benefit_max - cost/cost_max)) +
-  facet_wrap(~E)
+gridExtra::grid.arrange(gridExtra::arrangeGrob(plots, left = y.grob))
 
+dev.off()
 
+png("examples_vignettes/outputs/testing_integration/Fig_S2.png", width = 2000, height = 2000, res = 160)
+plots <- cowplot::plot_grid(plotlist = transpiration_plots$plots, nrow = n_distinct(expanded_output_sensitivity$continuous_parameter), align = "vh", labels =c(letters, "aa","ab","ac","ad"))
+y.grob <- grid::textGrob(expression(paste("Integrated daily transpiration (","kg ",H[2],"O ", m^{-2}~d^{-1},")")),
+                   gp=grid::gpar(fontface="bold", fontsize=15), rot=90)
 
-expanded_output_sensitivity %>%
-  filter(continuous_parameter == "E") %>%
-  filter(factorial_parameter == "p_50") %>%
-  filter(focal_points == "50") %>%
-  mutate(outputs = map(outputs, ~slice(.x, 35)))%>%
-  unnest(outputs) %>%
-  filter(p_50 == "1") %>%
-  mutate(outputs = map2(psi_crit, leaf, simulate_profit_curve2)) %>%
-  mutate(profit_landscape = map2(psi_crit, leaf, simulate_profit_curve)) %>%
-  unnest(outputs, profit_landscape) %>%
-  mutate(cost_trans = cost/cost_max) %>%
-  mutate(benefit_trans = benefit/benefit_max) %>%
-  mutate(profit_trans = benefit_trans - cost_trans) %>%
-  mutate(profit_original =benefit_original-cost_transformed)  %>% View
-  
-  ggplot() +
-  geom_line(aes(x = psi_stem_profit, y= profit_trans), col = "red") +
-  geom_line(aes(x = psi_stem_profit, y= benefit_original-cost_transformed)) +
-  facet_wrap(~E)
+gridExtra::grid.arrange(gridExtra::arrangeGrob(plots, left = y.grob))
 
-```
-
-
-
-
-
-```{r}
-params <- expand_grid(mean_temp = 20, temp_diff = 5, latitude = 27, VP = c(1,3),
-                   vcmax = 70, p_50 = 1, huber_value = 0.000157,
-                   day = 60, h = 10, E = 0.7, psi_soil = 1.5, ca = seq(30, 45, 1))
-```
-
-```{r}
-PPFD_curve <- params %>%
-  pmap(expand_input_data) %>%
-  bind_rows() %>%
-  filter(PAR > 1e-10) %>% 
-  pmap(calc_profit_instant) %>%
-  bind_rows() %>%
-  nest(outputs = c(instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit))
-```
-
-```{r}
-PPFD_curve %>%
-  mutate(integrated_daily_profit = map_dbl(outputs, ~plant:::trapezium(.x$instant_through_day_hr, .x$profit))) %>%
-  mutate(one_point_profit = map_dbl(outputs, calc_one_point)) -> expanded_output
-
-expanded_output %>% 
-  pivot_longer(cols = c(integrated_daily_profit, one_point_profit)) %>%
-  ggplot(aes(x =ca,  y= value)) +
-  geom_line(aes(group=interaction(name, VP), col = name, linetype = as.factor(VP))) +
-  theme_classic() 
-
-```
-
-
-```{r}
-exanded_input_data2 <- params %>%
-  future_pmap(expand_input_data) %>%
-  bind_rows() %>%
-  filter(PAR > 1e-10) %>% 
-  future_pmap(calc_profit_instant) %>%
-  bind_rows() %>%
-  nest(outputs = c(instant_through_day_hr, instant_through_day_dec, dec_day_time, solar_angle, PAR, temp, VPD_hr, profit))
-```
-
-```{r}
-exanded_input_data2 %>%
-  mutate(integrated_daily_profit = map_dbl(outputs, ~plant:::trapezium(.x$instant_through_day_hr, .x$profit))) %>%
-  # slice(1:5000) %>%
-  expand_grid(focal_points = seq(1,10,1)) %>%
-  mutate(point_estimate_profit = pmap_dbl(., calc_mult_point)) -> expanded_output2
-```
-
-
-```{r}
-calc_mult_point <- function(...){
-  
-  data = tibble(...) %>%
-    nest(outputs = outputs)
-  first_num = 1/data$focal_points/2 
-  quantiles = seq(from = first_num, 1, by = first_num*2)
-
-  data %>%
-    unnest(outputs) -> data
-  
-  extract_time_slice <- function(quantile){
-    data %>%
-  filter(abs(outputs$instant_through_day_hr - quantile(outputs$instant_through_day_hr, quantile)) %in% min(abs(outputs$instant_through_day_hr - quantile(outputs$instant_through_day_hr, quantile)))) %>%
-      sample_n(1)
-  }
-  
-    map(quantiles, extract_time_slice) %>%
-    bind_rows() %>%
-    mutate(profit_integrated = outputs$profit * day_length/focal_points) %>%
-    summarise(daily_profit_integrated = sum(profit_integrated)) -> out
-  
-    out$daily_profit_integrated
-
-    }
-```
-
-```{r}
-expanded_output2 %>%
-  filter(integrated_daily_profit != 0 & point_estimate_profit != 0) %>%
-  ggplot(aes(x = integrated_daily_profit, y = point_estimate_profit)) +
-  geom_point() +
-  theme_classic() +
-  facet_wrap(~focal_points) +
-  geom_abline(slope = 1, intercept = 0) -> a
-```
-
-```{r}
-expanded_output2 %>%
-  filter(integrated_daily_profit != 0 & point_estimate_profit != 0) %>%
-  group_by(focal_points) %>%
-  mutate(correlation = cor(integrated_daily_profit, point_estimate_profit)) %>%
-  ggplot(aes(x = focal_points, y = correlation)) +
-  geom_line() +
-  theme_classic() -> b
-```
-
-```{r}
-expanded_output2 %>%
-  group_by(focal_points) %>%
-  mutate(sample_size = n()) %>%
-  mutate(diff = integrated_daily_profit - point_estimate_profit) %>%
-  mutate(bias = sum(diff)/sample_size) %>%
-  mutate(rmse = sqrt(sum(diff^2)/sample_size)) %>%
-  ggplot(aes(x = focal_points, y = rmse)) +
-  geom_line() +
-  theme_classic() -> c
-```
-
-```{r}
-expanded_output2 %>%
-  group_by(focal_points) %>%
-  mutate(sample_size = n()) %>%
-  mutate(diff = integrated_daily_profit - point_estimate_profit) %>%
-  mutate(bias = sum(diff)/sample_size) %>%
-  mutate(rmse = sqrt(sum(diff^2)/sample_size)) %>%
-  ggplot(aes(x = focal_points, y = bias)) +
-  geom_line() +
-  theme_classic() -> d
-```
-
-```{r}
-png("outputs_multi_point.png", height = 850, width = 850)
-cowplot::plot_grid(a,b,c,d, nrow = 2, ncol = 2, labels = "AUTO")
 dev.off()
 ```
 
 ```{r}
-expanded_output2 %>%
-  group_by(focal_points) %>%
-  nest() %>%
-  ungroup() %>%
-  mutate(asd = purrr::map(data, linear_model_func)) %>%
-  pull(asd)
-  
-linear_model_func <- function(...){
-  data <- tibble(...) 
-  fit <- lm(point_estimate_profit ~ integrated_daily_profit + 0, data)
-  summary(fit)
-}  
+species_LHS <- randomLHS(50, 12)
+
+species_params <- tibble(vcmax = qunif(LHS[,4], 30, 100), p_50 = qunif(LHS[,5], min = 1, max = 10), huber_value = qunif(LHS[,6], min = 0.000157/2, max =  0.000157*2), c = qunif(LHS[,12], 1, 10))
 
 
+env_LHS <- randomLHS(100, 12)
 
+env_params
 ```
 
 
 
 
 
+LHS <- randomLHS(100, 12)
 
+params <- tibble(mean_temp = 20, temp_diff = qunif(LHS[,1], min = 5, max = 20), latitude = qunif(LHS[,2], min = 0, max = 60), VP = qunif(LHS[,3], 0.5, 2),
+                   vcmax = qunif(LHS[,4], 30, 100), p_50 = qunif(LHS[,5], min = 1, max = 10), huber_value = qunif(LHS[,6], min = 0.000157/2, max =  0.000157*2),
+                   day = qunif(LHS[,7], min = 0, 180), h = qunif(LHS[,8], min = 5, max = 80), E = qunif(LHS[,9], min = 0, max = 1), psi_soil = qunif(LHS[,10], 0, 10), ca = qunif(LHS[,11], 30, 45), c = qunif(LHS[,12], 1, 10))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-```{r}
-example_params <- tibble(mean_temp = 20, temp_diff = 17.8, latitude = 15.3, VP = 1.52, vcmax = 35.7, p_50 = 2.35, huber_value = 0.000250, day = 68.7, h = 8.95, E = 0.0376, psi_soil = 0.643, ca = 42.6) %>%
-  expand_input_data() %>%
-  filter(PAR > 1e-10) %>%
-  ungroup() %>%
-  pmap(calc_profit_instant) %>%
-  bind_rows() 
-example_params %>% View()
-example_params %>%
-  mutate(VPD_hr_min = (VPD_hr == min(VPD_hr))) %>%
-  pivot_longer(cols = c(profit,ci, VPD_hr, PAR)) %>%
-  ggplot(aes(x= instant_through_day_hr, y=value)) +
-  geom_line(aes(colour= VPD_hr_min)) +
-  facet_wrap(~name, nrow= 2, scales= "free") 
-
-example_params %>% slice(198) -> example_params
-
-
-vcmax = example_params$vcmax #maximum carboxylation rate, defined by leaf nitrogen (umol m^-2 s^-1) 
-p_50 = example_params$p_50 #stem water potential at 50% loss of conductivity
-c = 2.04 #shape parameter for hydraulic vulnerability curve (unitless) estimated from trait data in Austraits from Choat et al. 2012
-b = calc_vul_b(p_50, c) #shape parameter for vulnerability curve, point of 37% conductance (-MPa) 
-psi_crit = calc_psi_crit(b, c) #stem water potential at which conductance is 95%
-huber_value = example_params$huber_value #huber value (m^2 sapwood area m^-2 leaf area)
-K_s = p_50_2_K_s(p_50) #stem-specific conductivity (kg h2o m^-1 stem s^-1 MPa^-1)
-h = example_params$h #height or path length (m)
-k_l_max = calc_k_l_max(K_s, huber_value, h)
-l <- plant:::Leaf(vcmax = vcmax, p_50 = p_50, c = c, b = b, psi_crit = psi_crit, huber_value = huber_value, K_s = K_s, epsilon_leaf = 0.0001)
-l$set_physiology(PPFD = example_params$PAR*example_params$E, psi_soil = example_params$psi_soil, k_l_max = k_l_max, atm_vpd = example_params$VPD_hr, example_params$ca)
-l$get_leaf_states_rates_from_psi_stem(psi_crit)
-tibble(psi = seq(l$psi_soil_, psi_crit, length.out = 100)) %>%
-  rowwise() %>%
-  mutate(profit = l$profit_psi_stem_Sperry(psi)) %>%
-  mutate(cost = l$calc_hydraulic_cost_Sperry(psi)) %>%
-  mutate(lambda = l$lambda_) %>%
-  mutate(benefit = profit + cost*lambda) %>%
-  mutate(cost_trans = cost*lambda) %>%
-  pivot_longer(cols = c(profit, cost_trans, benefit)) %>%
-  ggplot(aes(x=psi, y = value)) +
-  geom_line(aes(group = name, colour = name))
-  bind_rows(tibble(psi = l$opt_psi_stem, profit = l$profit)) %>%
-  ggplot(aes(x = psi , y= profit)) +
-  geom_line() +
-  geom_point(aes(x = l$opt_psi_stem, y= l$profit))
-
-
-
-
-l$optimise_psi_stem_Sperry()
-l$opt_psi_stem
-l$profit
-l$get_leaf_states_rates_from_psi_stem(psi_crit)
-max_ci <- l$ci
-
-l$optimise_ci_Sperry(max_ci) 
-
-l$opt_ci - max_ci
-l$psi_stem
-
-l$psi_soil_
-l$g_c
-```
-
-
-```{r}
-
-if (is.na(opt_psi_stem) | (opt_psi_stem > example_params$psi_crit)){
-
-  max_psi = 1;
-
-  opt_psi_stem = example_params$psi_crit - diff_value;
-}
-
-if((count > 15) | ((R_IsNA(opt_psi_stem) | (opt_psi_stem > psi_crit) | (opt_psi_stem < psi_soil)) && max_psi == 3)){
-      method = 1;
-
-      optimise_psi_stem_Sperry();
-      return;
-    }
-
-  if ((R_IsNA(opt_psi_stem) | (opt_psi_stem > example_params$psi_crit)) && max_psi == 1){
-
-std::cout << "using lower value" << std::endl;
-
-    count = 0;
-    max_psi = 2;
-
-    opt_psi_stem = leaf$psi_soil_ + diff_value;
-
-  }
-
-    if ((R_IsNA(opt_psi_stem) | (opt_psi_stem > psi_crit)) && max_psi == 2){
-
-std::cout << "using middle value" << std::endl;
-
-    count = 0;
-
-    max_psi = 3;
-
-    opt_psi_stem = (psi_soil_ + psi_crit)/2;
-
-  }
-
-    psi_stem_initial = opt_psi_stem;
-
-    x_1 = psi_stem_initial - diff_value;
-    x_2 = psi_stem_initial + diff_value;
-    
-    y_2 = leaf[[1]]$profit_psi_stem_Sperry(x_2);
-
-    y_1 = leaf[[1]]$profit_psi_stem_Sperry(x_1);
-
-    y_0 = leaf[[1]]$profit_psi_stem_Sperry(psi_stem_initial);
-
-    first_dev = (y_2 - y_1)/(2*diff_value);
-    sec_dev = (y_2 - 2*y_0 + y_1)/diff_value^2;
-
-    opt_psi_stem = psi_stem_initial -  first_dev/sec_dev;
-
-    abs(opt_psi_stem - psi_stem_initial) < 0.0001
-    leaf$profit_psi_stem_Sperry(opt_psi_stem)
-    if(abs(opt_psi_stem - psi_stem_initial) < epsilon_leaf){
-      finished = 0;
-    }
-
-    profit = y_0;
-  }
-    return;
-  }
-```
-
-
-
-
-map(expanded_output$outputs, ~.x %>% ggplot(aes(x = instant_through_day_hr, y=profit)) + geom_line())
-
-map(expanded_output$outputs, ~.x %>% ggplot(aes(x = instant_through_day_hr, y=transpiration)) + geom_line())
-
-map(expanded_output$outputs, ~.x %>% ggplot(aes(x = instant_through_day_hr, y=psi_stem)) + geom_line())
-
-map(expanded_output$outputs[24], ~.x %>% ggplot(aes(x = instant_through_day_hr, y=g_c)) + geom_line())
-```
-
-```{r}
-expanded_output %>% slice(24) %>%unnest(outputs) %>%
-mutate(profit_outputs = map2(leaf, psi_crit, profit_curves_from_leaf)) %>%
-  mutate(profit_max = map_dbl(profit_outputs, ~max(.x$inst_profit))) %>%
-  unnest(profit_outputs) %>%
-  ggplot() +
-  geom_line(aes(x = inst_psi_stem, y = inst_profit), col = "red") +
-  geom_line(aes(x = inst_psi_stem, y = inst_cost), col = "blue") +
-  geom_line(aes(x = inst_psi_stem, y = inst_ben), col = "green") +
-  geom_vline(aes(xintercept = psi_stem)) +
-  geom_hline(aes(yintercept = profit_max)) +
-  facet_wrap(~instant_through_day_hr)
-```
-
-
-expanded_output_integration %>%
-  ggplot(aes(x = integrated_daily_profit, y = point_estimate_integrated_daily_profit)) +
-  geom_point() +
-  facet_wrap(~focal_points)
-
-
-expanded_output_integration %>%
-  ggplot(aes(x = integrated_daily_transpiration, y = point_estimate_integrated_daily_transpiraiton)) +
-  geom_point() +
-  facet_wrap(~focal_points)
-```

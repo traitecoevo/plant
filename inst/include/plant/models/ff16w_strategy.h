@@ -18,15 +18,15 @@ public:
                                            const FF16_Environment &environment);
 
   double evapotranspiration_dt(double area_leaf_);
-
-virtual double net_mass_production_dt(const FF16_Environment &environment,
+  
+  virtual double net_mass_production_dt(const FF16_Environment &environment,
                                         double height, double area_leaf_, Internals &vars, 
                                         bool reuse_intervals = false);
-
-
-virtual void compute_rates(const FF16_Environment &environment,
+                                        
+  virtual void compute_rates(const FF16_Environment &environment,
                              bool reuse_intervals, Internals &vars);
-virtual void prepare_strategy();
+                             
+  virtual void prepare_strategy();
 
 virtual std::vector<std::string> aux_names() {
   std::vector<std::string> ret(

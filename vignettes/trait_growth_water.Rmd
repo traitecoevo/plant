@@ -11,7 +11,10 @@ knitr::opts_chunk$set(echo = TRUE)
 ```
 
 ```{r}
+rm(list=ls())
+
 devtools::load_all(".")
+library(tidyverse)
 ```
 
 Define a number of hyper-parameterisations
@@ -39,62 +42,417 @@ K_s_2_p_50 <- function(K_s){
 calc_k_l_max <- function(K_s, h_v, h){
   K_s * h_v / h
 }
-```
-
-```{r}
-run_individual <- function(...){
-  params <- tibble(...)
-  
-  p0 <- scm_base_parameters("FF16w")
-
-  # s1 <- strategy(trait_matrix(params$K_s,  "K_s"), p0, birth_rate_list = 1)
-  # s1$p_50 <- p_50_2_K_s(s1$K_s)
-  # s1$b <- calc_vul_b(s1$p_50, s1$b)
-  # s1$psi_crit <- calc_psi_crit(s1$b, s1$c)
-  # 
-  s1 <- strategy(trait_matrix(params$H_v,  "huber_value"), p0, birth_rate_list = 1)
-
-  indv1 <- FF16w_Individual(s1)
-  env <- FF16w_make_environment(soil_initial_state = params$theta)
-  env$set_fixed_environment(params$E, 150)
-  res <- plant::grow_individual_to_height(indv1, heights = params$height, env, time_max =100)
-  }
-```
-
-
-```{r}
-expand_grid(H_v = seq(0.000157/2,0.000157*2,length.out = 10), theta=seq(0.01,1,length.out=5), E=c(0.25,0.5,0.75,1), height = c(0.5, 2, 10, 15,20)) %>%
-  mutate(results= pmap(., run_individual)) -> output
-# 
-# expand_grid(K_s = seq(1), theta=seq(0.1), E=c(1), height = c(0.5)) %>%
-#   mutate(results= pmap(., run_individual)) -> output
 
 get_dt <- function(y,x) {
   c(NA, diff(y)/diff(x))
 }
 
-output %>%
-  mutate(run = seq(1:nrow(.))) %>%
-  rename(to_height = height) %>%
-  mutate(results= map(results, ~pluck(.x, "trajectory") %>% as_tibble())) %>%
-  unnest(results) %>%
-  group_by(run) %>%
-  mutate(height_dt = get_dt(height, time)) %>%
-  mutate(max_height = max(height),
-         max_time = max(time)) %>%
-  nest(states = c(time, height,mortality, fecundity, area_heartwood, mass_heartwood, height_dt)) %>%
-  filter(max_height >= to_height) %>%
-  mutate(height_dt = map_dbl(states, ~.x %>%
-                           tail(1) %>% 
-                           pull(height_dt)))-> data_to_plot
+K_s_0 <- 2
+```
+
+```{r}
+height_names <- c(
+  "0.5" = expression(paste("H = 0.5m")),
+  "2" = expression(paste("H = 2m")),
+  "10" = expression(paste("H = 10m"))
+  ,
+  "15" = expression(paste("H = 15m"))
+)
+
+psi_names <- c(
+  "0.08" = expression(paste(psi[soil], " = ", 1.59, " (-MPa)", sep = "")),
+  "0.09" = expression(paste(psi[soil], " = ", 0.91, " (-MPa)", sep = "")),
+  "0.1" = expression(paste(psi[soil], " = ", 0.55, " (-MPa)", sep = "")),
+  "0.2" = expression(paste(psi[soil], " = ", 0.02, " (-MPa)", sep = ""))
+)
 ```
 
 
 ```{r}
-data_to_plot %>%
-  ggplot(aes(x= H_v, y = height_dt)) +
-  geom_line(aes(group = E, colour = E)) +
-  facet_grid(theta~to_height) +
-  ylab(expression(paste(Delta~Height," /", Delta~Time, "(m/yr)"))) + 
-  xlab(expression(paste(Sapwood~specific~conducitivity~(kg~m^{-1}~s^{-1}~MPa^{-1}))))
+run_individual <- function(...){
+  params <- tibble(...)
+  p0 <- scm_base_parameters("FF16w")
+  
+
+  s1 <- strategy(trait_matrix(params$lma,  "lma"), p0, birth_rate_list = 1)
+  s1$K_s <- params$K_s
+  s1$p_50 <- K_s_2_p_50(3)
+  s1$b <- calc_vul_b(s1$p_50, s1$c)
+  s1$psi_crit <- calc_psi_crit(s1$b, s1$c)
+  s1$theta <- params$huber_value
+
+  # s1 <- strategy(trait_matrix(params$H_v,  "huber_value"), p0, birth_rate_list = 1)
+
+  indv1 <- FF16w_Individual(s1)
+  env <- FF16w_make_environment(soil_initial_state = params$theta)
+  env$set_fixed_environment(params$E, 150)
+  res <- plant::grow_individual_to_height(indv1, heights = params$height, env, time_max =100)
+    }
 ```
+
+
+```{r}
+env <- FF16w_make_environment()
+
+env$calc_psi(0.08)
+env$calc_psi(0.2)
+
+expand_grid(K_s = seq(1,3,length.out = 20), theta=c(0.08,0.09,0.1,0.2), E=c(0.25,0.5,0.75,1), height = c(0.5, 2, 10, 15,20), huber_value = 0.000157, lma = 0.1978791) %>%
+  mutate(results= pmap(., run_individual)) -> K_s_output
+
+K_s_output%>%
+  mutate(run = seq(1:nrow(.))) %>%
+  rename(target_height = height) %>%
+  mutate(rate = map(results, ~pluck(.x$"rate")%>% as_tibble())) %>% 
+  unnest(rate) %>%
+  drop_na(height) %>%
+  select(-height, -mortality, -fecundity, -area_heartwood, -mass_heartwood) %>%
+  filter(target_height == 15) %>%
+  filter(run %in% c(1114, 1594)) %>%
+  mutate(trajectory = map(results, ~pluck(.x$"trajectory")%>% as_tibble())) %>%
+  unnest(trajectory) %>%
+  mutate(cost_ = assim_colimited_ - profit_) -> plot_data
+
+plot_data %>%
+  mutate(K_s = as_factor(round(K_s, 2))) %>%
+  ggplot(aes(x = time, y = height)) +
+  geom_line(aes(linetype = K_s, group = K_s)) +
+  theme_classic() +
+  theme_classic() + 
+  xlab("Time (yr)") +
+  ylab(expression(paste(Height, " (m)"))) +
+  theme(text = element_text(size = 18))+
+  scale_linetype_discrete(name = expression(paste(K[s], " (kg ", m^{-2}~s^{-1}~MPa^{-1}, ")"))) -> a
+
+economic_names <- c(
+  "assim_colimited_" = "Assimilation",
+  "cost_" = "Xylem cost",
+  "profit_" = "Profit"
+)
+
+plot_data %>%
+  select(K_s, time, profit_, cost_, assim_colimited_) %>%
+  pivot_longer(-c(time, K_s)) %>%
+  mutate(K_s = as_factor(round(K_s, 2))) %>%
+  mutate_at(.vars = "name", .funs = factor, label=economic_names) %>%
+  ggplot(aes(x = time, y = value)) +
+  geom_line(aes(group = interaction(name, K_s), linetype = K_s, colour = name)) +
+  theme_classic() + 
+  xlab("Time (yr)") +
+  ylab(expression(paste(Economic~unit, " (",mu, "mol ",m^{-2}~s^{-1},")"))) +
+  theme(text = element_text(size = 18)) +
+  scale_color_discrete(name = NULL) +
+  scale_linetype_discrete(name = expression(paste(K[s], " (kg ", m^{-2}~s^{-1}~MPa^{-1}, ")"))) -> b
+
+
+plot_data %>%
+  mutate(K_s = as_factor(round(K_s, 2))) %>%
+  ggplot(aes(x = time, y = opt_psi_stem_)) +
+  geom_line(aes(linetype = K_s)) +
+  theme_classic() +
+  xlab("Time (yr)") +
+  ylab(expression(paste(psi[opt], " (-MPa)"))) +
+  theme(text = element_text(size = 18)) +
+  expand_limits(y = 0) +
+  geom_hline(aes(yintercept = 0.02), linetype = "dashed") +
+  annotate(geom = "text", x = 17.5, y = 0.04, label = expression(paste(psi[soil])), size = 6) +
+  scale_linetype_discrete(name = expression(paste(K[s], " (kg ", m^{-2}~s^{-1}~MPa^{-1}, ")"))) ->c
+
+png("examples_vignettes/outputs/trait_growth_water/example_of_profitmax.png", height = 1000, width = 600, res = 100)
+cowplot::plot_grid(a,b,c, nrow =3)
+dev.off()
+
+
+
+K_s_output%>%
+  mutate(run = seq(1:nrow(.))) %>%
+  rename(target_height = height) %>%
+  mutate(rate = map(results, ~pluck(.x$"rate")%>% as_tibble())) %>% 
+  unnest(rate) %>%
+  drop_na(height) %>%
+  select(-height, -mortality, -fecundity, -area_heartwood, -mass_heartwood) %>%
+  filter(target_height == 15) %>%
+  filter(run %in% c(1114)) %>%
+  mutate(trajectory = map(results, ~pluck(.x$"trajectory")%>% as_tibble())) %>%
+  unnest(trajectory) %>%
+  mutate(cost_ = assim_colimited_ - profit_) -> plot_data
+
+plot_data %>%
+  ggplot(aes(x = time, y = height)) +
+  geom_line() +
+  theme_classic() +
+  theme_classic() + 
+  xlab("Time (yr)") +
+  ylab(expression(paste(Height, " (m)"))) +
+  theme(text = element_text(size = 20)) -> a
+
+economic_names <- c(
+  "assim_colimited_" = "Assimilation",
+  "cost_" = "Xylem cost",
+  "profit_" = "Profit"
+)
+
+plot_data %>%
+  select(time, profit_, cost_, assim_colimited_) %>%
+  pivot_longer(-c(time)) %>%
+  mutate_at(.vars = "name", .funs = factor, label=economic_names) %>%
+  ggplot(aes(x = time, y = value)) +
+  geom_line(aes(colour = name)) +
+  theme_classic() + 
+  xlab("Time (yr)") +
+  ylab(expression(paste(Economic~unit, " (",mu, "mol ",m^{-2}~s^{-1},")"))) +
+  theme(text = element_text(size = 20)) +
+  scale_color_discrete(name = NULL)  -> b
+
+
+plot_data %>%
+  mutate(K_s = as_factor(round(K_s, 2))) %>%
+  ggplot(aes(x = time, y = opt_psi_stem_)) +
+  geom_line() +
+  theme_classic() +
+  xlab("Time (yr)") +
+  ylab(expression(paste(psi[opt], " (-MPa)"))) +
+  theme(text = element_text(size = 20)) +
+  expand_limits(y = 0) +
+  geom_hline(aes(yintercept = 0.02), linetype = "dashed") +
+  annotate(geom = "text", x = 14, y = 0.06, label = expression(paste(psi[soil])), size = 8) ->c
+
+png("examples_vignettes/outputs/trait_growth_water/example_of_profitmax_one_species.png", height = 1000, width = 1300, res = 100)
+cowplot::plot_grid(a,b,c)
+dev.off()
+
+
+```
+
+
+```{r}
+K_s_output %>%
+  mutate(run = seq(1:nrow(.))) %>%
+  rename(to_height = height) %>%
+  mutate(rate= map(results, ~pluck(.x, "rate")%>% as_tibble())) %>%
+  unnest(rate) -> data_to_plot
+```
+
+```{r}
+data_to_plot %>%
+  drop_na(height) %>%
+  mutate_at(.vars = "to_height", .funs = factor, label=height_names) %>%
+  mutate_at(.vars = "theta", .funs = factor, label=psi_names) %>%
+  ggplot(aes(x= K_s, y = height)) +
+  geom_line(aes(group = E, colour = E)) +
+  scale_x_log10() +
+  facet_grid(to_height~theta, labeller = label_parsed) +
+  ylab(expression(paste(Delta~Height," /", Delta~Time, "(m/yr)"))) + 
+  xlab(expression(paste(Sapwood~specific~conducitivity~(kg~m^{-1}~s^{-1}~MPa^{-1})))) +
+  theme_classic() +
+  theme(text = element_text(size = 18))-> a
+```
+
+```{r}
+expand_grid(K_s = 2,theta=c(0.08,0.09,0.1,0.2), E=c(0.25,0.5,0.75,1), height = c(0.5, 2, 10, 15,20), huber_value = 0.000157, lma= seq(0.01, 1, length.out = 20)) %>%
+  mutate(results= pmap(., run_individual)) -> leaf_mass_area_output
+
+leaf_mass_area_output %>%
+  mutate(run = seq(1:nrow(.))) %>%
+  rename(to_height = height) %>%
+  mutate(rate= map(results, ~pluck(.x, "rate")%>% as_tibble())) %>%
+  unnest(rate) -> data_to_plot
+
+
+data_to_plot %>%
+  drop_na(height) %>%
+  mutate_at(.vars = "to_height", .funs = factor, label=height_names) %>%
+  mutate_at(.vars = "theta", .funs = factor, label=psi_names) %>%
+  ggplot(aes(x= lma, y = height)) +
+  geom_line(aes(group = E, colour = E)) +
+  scale_x_log10() +
+  facet_grid(to_height~theta, labeller = label_parsed) +
+  ylab(expression(paste(Delta~Height," /", Delta~Time, "(m/yr)"))) + 
+  xlab(expression(paste(paste(Leaf~mass~per~area~(kg~m^{-2}~leaf~area))))) +
+  theme_classic() +
+  theme(text = element_text(size = 18))-> b
+  
+```
+
+
+```{r}
+expand_grid(K_s = 2, theta=c(0.07,0.075,0.1,0.2), E=c(0.25,0.5,0.75,1), height = c(0.5, 2, 10, 15,20), huber_value = seq(0.000157/5,0.000157*5, length.out = 20), lma= 0.1978791) %>%
+  mutate(results= pmap(., run_individual)) -> Hv_output
+
+Hv_output %>%
+  mutate(run = seq(1:nrow(.))) %>%
+  rename(to_height = height) %>%
+  mutate(rate= map(results, ~pluck(.x, "rate")%>% as_tibble())) %>%
+  unnest(rate) -> data_to_plot
+```
+
+
+```{r}
+
+data_to_plot %>%
+  drop_na(height) %>%
+  mutate_at(.vars = "to_height", .funs = factor, label=height_names) %>%
+  mutate_at(.vars = "theta", .funs = factor, label=psi_names) %>%
+  ggplot(aes(x= huber_value, y = height)) +
+  geom_line(aes(group = E, colour = E)) +
+  scale_x_log10() +
+  facet_grid(to_height~theta, labeller = label_parsed) +
+  ylab(expression(paste(Delta~Height," /", Delta~Time, "(m/yr)"))) + 
+  xlab(expression(paste(Huber~value~(m^{2}~sapwood~area~m^{-2}~leaf~area)))) +
+  theme_classic() +
+  theme(text = element_text(size = 18)) -> c
+
+png("traits_growth_rate_soil_WP_canopy_openness_Ks.png", height = 1000, width = 1000, res = 100)
+a
+dev.off()
+
+png("traits_growth_rate_soil_WP_canopy_openness_lma.png", height = 1000, width = 1000, res = 100)
+b
+dev.off()
+
+png("traits_growth_rate_soil_WP_canopy_openness_HV.png", height = 1000, width = 1000, res = 100)
+c
+dev.off()
+
+
+```
+
+```{r}
+K_s_output$results[[1]]$individual[[1]]$rate()
+```
+
+
+```{r}
+set_leaf_states_rates_analytical <- function(psi_stem, psi_soil){
+  leaf <- Leaf(vcmax= 100, p_50 = 2, c = 2.04, b = calc_vul_b(2, 2.04), psi_crit = calc_psi_crit(calc_vul_b(2, 2.04), 2.04), huber_value = 0.000157, K_s = 2, epsilon_leaf = 0.0001)
+  
+  PPFD = 1000
+  atm_vpd = 2
+  k_l_max = calc_k_l_max(K_s = 2, h_v = 0.000157, h =15)
+  psi_soil = psi_soil 
+  ca =40
+  
+  leaf$set_physiology(PPFD, psi_soil = psi_soil, k_l_max, atm_vpd, ca)
+  
+  leaf$set_leaf_states_rates_from_psi_stem_analytical(psi_stem)
+  
+  cost= leaf$hydraulic_cost_Sperry(psi_stem)
+  
+  tibble(Benefit = leaf$assim_colimited_, ci_ = leaf$ci_, E = leaf$transpiration_, gc = leaf$stom_cond_CO2_, lambda_ = leaf$lambda_, cost = cost)
+  }
+```
+
+
+```{r}
+library(tidyverse)
+
+facet_names <- c(
+  alim = expression(paste("A (", mu, "mol ", m^{-2}~s^{-1}, ")", sep ="")),
+  ci_ = expression(C[i]~(Pa)),
+  E = expression(ET~(kg~m^{-2}~s^{-1})),
+  gc = expression(paste(G[c], " (", mol~H[2], "O", m^{-2}~s^{-1}, ")", sep = ""))
+)
+expand_grid(psi_stem = seq(0, calc_psi_crit(calc_vul_b(2, 2.04), 2.04), length.out=50), psi_soil = c(0,1)) %>%
+  mutate(states_rates = map2(psi_stem, psi_soil, set_leaf_states_rates_analytical)) %>%
+  unnest(states_rates) %>%
+  filter(psi_stem >= psi_soil) %>%
+  mutate(psi_soil = as_factor(psi_soil)) %>%
+  select(-c(lambda_, cost)) %>%
+  pivot_longer(-c(psi_stem, psi_soil)) %>%
+  mutate_at(.vars = "name", .funs = factor, labels = facet_names) %>%
+  ggplot(aes(x= psi_stem, y =value)) +
+  geom_line(aes(colour = psi_soil, group = psi_soil)) +
+  expand_limits(y = 0) +
+  facet_wrap(~name, scales = "free", labeller = label_parsed) +
+  xlab(expression(psi[leaf]~(-MPa))) +
+  theme_classic() + 
+  ylab("") +
+  scale_color_discrete(name = expression(psi[soil]~(-MPa))) +
+  theme(text = element_text(size = 18))-> d
+
+png("states_rates_psi_stem.png", height=1000, width = 1000, res =100)
+d
+dev.off()
+```
+
+
+```{r}
+facet_names <- c(
+  "0" = expression(paste(psi[soil]," = ",0)),
+  "1" = expression(paste(psi[soil]," = ",1))
+)
+
+names_facets <- c(
+  "Assimilation" = "Assimilation",
+    "Cost" = "Xylem cost",
+  "Profit" = "Profit"
+ )
+
+
+expand_grid(psi_stem = seq(0, calc_psi_crit(calc_vul_b(2, 2.04), 2.04), length.out=50), psi_soil = c(0,1)) %>%
+  mutate(states_rates = map2(psi_stem, psi_soil, set_leaf_states_rates_analytical)) %>%
+  unnest(states_rates) %>%
+  mutate(Cost = cost*lambda_) %>%
+  mutate(Profit = Benefit - Cost)%>%
+  filter(psi_stem >= psi_soil) %>%
+  mutate(psi_soil = as_factor(psi_soil)) %>%
+  mutate_at(.vars = "psi_soil", .funs = factor, labels = facet_names) %>%
+  select(psi_stem, psi_soil, Benefit, Cost, Profit) %>%
+  pivot_longer(-c(psi_stem, psi_soil)) %>%
+  mutate_at(.vars = "name", .funs = factor, labels = names_facets) %>%
+  ggplot(aes(x= psi_stem, y = value)) +
+  geom_line(aes(colour = name, group = name)) +
+  facet_wrap(~psi_soil, scales = "free", labeller = label_parsed)+
+  xlab(expression(psi[leaf]~(-MPa))) +
+  theme_classic() + 
+  ylab(expression(paste("Economic unit (",mu,"mol "~m^{-2}~s^{-1},")"))) +
+  scale_color_discrete(name = "") +
+  theme(text = element_text(size = 18)) +
+  expand_limits(x = 0 )-> e
+
+png("economics.png", height=500, width = 1000, res =100)
+e
+dev.off()
+```
+
+```{r}
+plot_conductivity <- function(psi_stem, psi_soil){
+  leaf <- Leaf(vcmax= 100, p_50 = 2, c = 2.04, b = calc_vul_b(2, 2.04), psi_crit = calc_psi_crit(calc_vul_b(2, 2.04), 2.04), huber_value = 0.000157, K_s = 2, epsilon_leaf = 0.0001)
+  
+  PPFD = 1000
+  atm_vpd = 2
+  k_l_max = calc_k_l_max(K_s = 2, h_v = 0.000157, h =15)
+  psi_soil = psi_soil 
+  ca =40
+  
+  leaf$set_physiology(PPFD, psi_soil = psi_soil, k_l_max, atm_vpd, ca)
+  
+  return(leaf$proportion_of_conductivity(psi_stem))
+    }
+```
+
+```{r}
+tibble(psi = seq(0,4,0.01), psi_soil=0) %>%
+  rowwise() %>%
+  mutate(conductivity = map2_dbl(psi, psi_soil, plot_conductivity)) -> data_for_plot
+  
+
+data_for_plot %>%
+  ggplot(aes(x = psi, y = conductivity)) +
+  geom_line()+
+  geom_ribbon(data = data_for_plot %>% filter(psi > 0 & psi <2), aes(ymax = conductivity, ymin= 0, xmin = 1, xmax =  2), fill="red",colour=NA,alpha=0.2) +
+  xlab(expression(psi~(-MPa))) +
+  ylab(expression(paste(Leaf~specific~conductance, " (", kg~m^{-2}~s^{-1}~MPa^{-1}, ")"))) +
+  theme_classic() +
+  geom_vline(xintercept = 0, linetype = "dashed") +
+  geom_vline(xintercept = 2, linetype = "dashed") +
+  annotate("text", x = 0.15, y = 1.1, label = expression(psi[soil])) + 
+  annotate("text", x = 2.15, y = 1.1, label = expression(psi[leaf])) +
+  annotate("text", x = 0.9, y = 0.5, label = expression(E[supply]), col = "red", size = 12) +
+  theme(text= element_text(size = 18)) -> f
+
+png("economics.png", height=500, width = 1000, res =100)
+f
+dev.off()
+```
+

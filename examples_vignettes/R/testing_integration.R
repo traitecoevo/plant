@@ -1,62 +1,43 @@
 
+expand_input_data <- function(...){    
+  params = tibble(...)  
+  
+  params %>%
+    mutate(b = calc_vul_b(p_50, c)) %>%
+    mutate(psi_crit = calc_psi_crit(b,c)) %>%
+    mutate(K_s = p_50_2_K_s(p_50)) %>%
+    mutate(k_l_max = calc_k_l_max(K_s, huber_value, h)) %>%
+    mutate(sun_rise = sun_rise(day, latitude),
+           sun_down = sun_rise + (12-sun_rise)*2,
+           day_length = sun_down - sun_rise,
+           day_floor = floor(day),
+           day_length_dec = day_length/24) 
+}
+
+create_mult_point <- function(...){
+  data = tibble(...) 
+  day_length = data$day_length
+  integral_lengths = day_length/data$focal_points
+  first_point = data$sun_rise + integral_lengths/2
+  last_point = data$sun_down - integral_lengths/2
+  
+  if(data$focal_points == 1){
+    return(first_point)
+  } else{
+    seq(first_point, last_point, by = integral_lengths)
+  }
+}
+
 make_leaf <- function(...){
   params <- tibble(...)
   leaf <- plant:::Leaf(vcmax = params$vcmax, p_50 = params$p_50, c = params$c, b = params$b, psi_crit = params$psi_crit, huber_value = params$huber_value, K_s = params$K_s, epsilon_leaf = 0.0001)
-  leaf$set_physiology(PPFD = params$PAR*params$E, psi_soil = params$psi_soil, k_l_max = params$k_l_max, atm_vpd = params$VPD_hr, ca = params$ca)
+  leaf$set_physiology(PPFD = params$PAR*params$E, psi_soil = params$psi_soil, leaf_specific_conductance_max = params$k_l_max, atm_vpd = params$VPD_hr, ca = params$ca)
   return(leaf)
 }
 
-
 leaf_states_rates_from_leaf<- function(leaf){
   leaf$optimise_psi_stem_Sperry()
-  output_tibble <- tibble(profit = leaf$profit, GSS_count = leaf$GSS_count, count = leaf$count, method = leaf$method, transpiration = leaf$E, psi_stem = leaf$opt_psi_stem, g_c = leaf$g_c)
-}
-
-calc_one_point <- function(data){
-  (12 - min(data$instant_through_day_hr)) * 2 -> day_length_hr
-  data %>%
-    filter(abs(instant_through_day_dec - 0.5) == min(abs(instant_through_day_dec - 0.5))) %>%
-    mutate(daily_profit = profit*(day_length_hr)) %>%
-    sample_n(1) -> out
-  
-  out$daily_profit
-}
-
-extract_time_slice <- function(quantile, data){
-  
-  data %>%
-    filter(abs(outputs$instant_through_day_hr - quantile(outputs$instant_through_day_hr, quantile)) %in% min(abs(outputs$instant_through_day_hr - quantile(outputs$instant_through_day_hr, quantile)))) %>%
-    sample_n(1)
-}
-
-
-calc_mult_point <- function(...){
-  data = tibble(...) %>%
-    nest(outputs = outputs)
-  first_num = 1/data$focal_points/2 
-  quantiles = seq(from = first_num, 1, by = first_num*2)
-  
-  data %>%
-    unnest(outputs) -> data
-  
-  map(quantiles, extract_time_slice, data) %>%
-    bind_rows() %>%
-    mutate(profit_integrated = outputs$profit * day_length/focal_points,
-           transpiration_integrated = outputs$transpiration * day_length/focal_points) %>% 
-    unnest(outputs) %>% 
-    select(profit, profit_integrated, transpiration, transpiration_integrated, instant_through_day_hr) %>% 
-    rename(transpiration_point = transpiration, profit_point = profit, instant_through_day_hr_point = instant_through_day_hr) %>% 
-    nest(cols = c(transpiration_point, profit_point, instant_through_day_hr_point))
-}
-
-
-
-profit_curves_from_leaf<- function(leaf, psi_crit){
-  tibble(inst_psi_stem = seq(leaf$psi_soil_, psi_crit, length.out = 100)) %>%
-    rowwise() %>%
-    mutate(inst_profit = leaf$profit_psi_stem_Sperry(inst_psi_stem),
-           inst_cost = leaf$lambda_ * leaf$calc_hydraulic_cost_Sperry(inst_psi_stem),
-           inst_ben = inst_profit + inst_cost)
+  output_tibble <- tibble(profit = leaf$profit_, transpiration = leaf$transpiration_, psi_stem = leaf$opt_psi_stem_, g_c = leaf$stom_cond_CO2_)
 }
 
 
@@ -65,17 +46,20 @@ visualise_integrals <- function(variable, ...){
   
 
   if(variable == "profit"){
-  data_to_plot  %>% unnest(coords) %>% unnest(coords) %>% ggplot() + geom_line(data = data_to_plot %>% filter(focal_points == 50) %>% select(-focal_points), aes(x=instant_through_day_hr , y = profit)) +
+
+  data_to_plot  %>% unnest(coords) %>% unnest(coords) %>% ggplot() + geom_line(data = data_to_plot %>% filter(focal_points == 60) %>% select(-focal_points), aes(x=instant_through_day_hr , y = profit)) +
     geom_polygon(aes(x = x, y= profit_y), alpha = 0.3, col = "orange" , fill = "orange") +
     geom_point(aes(x = instant_through_day_hr, y= profit), col = "orange" , fill = "orange") +
     facet_wrap(~focal_points) +
-    theme_classic()
+    theme_classic() +
+      geom_text(aes(x = 12, y= Inf, label = paste("n = ", focal_points)), vjust = 1, size =6)
   } else{
-    data_to_plot  %>% unnest(coords) %>% unnest(coords) %>% ggplot() + geom_line(data = data_to_plot %>% filter(focal_points == 50) %>% select(-focal_points), aes(x=instant_through_day_hr , y = transpiration)) +
+    data_to_plot  %>% unnest(coords) %>% unnest(coords) %>% ggplot() + geom_line(data = data_to_plot %>% filter(focal_points == 60) %>% select(-focal_points), aes(x=instant_through_day_hr , y = transpiration)) +
       geom_polygon(aes(x = x, y= transpiration_y), alpha = 0.3, col = "orange" , fill = "orange") +
       geom_point(aes(x = instant_through_day_hr, y= transpiration), col = "orange" , fill = "orange") +
       facet_wrap(~focal_points) +
-      theme_classic()
+      theme_classic()+
+      geom_text(aes(x = 12, y= Inf, label = paste("n = ", focal_points)), vjust = 1, size =6)
   }
 }
 
@@ -90,21 +74,6 @@ make_polygon_coordinates2 <- function(...){
     select(coords)
 }
 
-
-
-make_polygon_coordinates <- function(...){
-  data <- tibble(...)
-  
-  
-  data %>%
-    nest(outputs = outputs) %>%
-    select(transpiration_point, profit_point, focal_points, day_length, instant_through_day_hr_point, sun_rise, sun_down, day_length, run) %>%
-    ungroup %>%
-    mutate(coords = pmap(., create_polygon_coordinates)) %>%
-    select(coords)
-}
-
-
 create_polygon_coordinates <- function(...){
   
   data2 <- tibble(...)
@@ -117,67 +86,73 @@ create_polygon_coordinates <- function(...){
   
   data3 <- data2 %>% mutate(lower_point = lower_point,
                             higher_point = higher_point)
-
+  
   data3 %>%
     tibble(x = c(.$lower_point, .$lower_point, .$higher_point, .$higher_point), profit_y = c(0, .$profit, .$profit, 0), transpiration_y = c(0, .$transpiration, .$transpiration, 0)) %>%
     select(x, profit_y, transpiration_y)
 }
 
-expand_input_data <- function(...){    
-  params = tibble(...)  
+
+
+
+
+plotting_function <- function(..., variable){
+  data <- tibble(...)
+  col_name_continuous <- data$continuous_parameter[1]
+  col_name_factorial <- data$factorial_parameter[1]
   
-  params %>%
-    # mutate(c = 2.04) %>%
-    mutate(b = calc_vul_b(p_50, c)) %>%
-    mutate(psi_crit = calc_psi_crit(b,c)) %>%
-    mutate(K_s = p_50_2_K_s(p_50)) %>%
-    mutate(k_l_max = calc_k_l_max(K_s, huber_value, h)) %>%
-    mutate(sun_rise = sun_rise(day, latitude),
-           sun_down = sun_rise + (12-sun_rise)*2,
-           day_length = sun_down - sun_rise,
-           day_floor = floor(day),
-           day_length_dec = day_length/24) 
-  # %>%
-    # expand_grid(instant_through_day_hr = seq(sun_rise, sun_down, length.out = 300)) %>%
-    # mutate(instant_through_day_dec = instant_through_day_hr/24,
-    #        dec_day_time = day_floor+ instant_through_day_dec) %>% 
-    # mutate(solar_angle = solar_angle(dec_day_time, latitude),
-    #        PAR = PAR_given_solar_angle(solar_angle)) %>%
-    # rowwise() %>%
-    # mutate(temp = calc_temp(instant_through_day_hr, day_length, mean_temp, temp_diff, sun_rise, sun_down)) %>%
-    # mutate(VPD_hr = max(0.05, calc_vpsat(temp) - VP))
+  col_name_factorial2 <- data$factorial_parameter2[1]
+  col_name_continuous2 <- data$continuous_parameter2[1]
+  
+  if(variable == "profit"){
+  
+  ggplot(data)+
+    geom_line(aes(x = .data[[col_name_continuous]], y = daily_profit_integrated, group = interaction(as.factor(.data[[col_name_factorial]]), focal_points), colour = as.factor(.data[[col_name_factorial]]), linetype = as.factor(focal_points)), show.legend = FALSE)+
+    theme_classic() +
+    ylab("")-> p
+  }    
+  
+  if(variable == "transpiration"){
+    
+    ggplot(data)+
+      geom_line(aes(x = .data[[col_name_continuous]], y = daily_transpiration_integrated, group = interaction(as.factor(.data[[col_name_factorial]]), focal_points), colour = as.factor(.data[[col_name_factorial]]), linetype = as.factor(focal_points)), show.legend = FALSE)+
+      theme_classic() +
+      ylab("") -> p
+
+  }
+  
+  p + xlab(label = col_name_continuous2) -> p
+  # p + scale_linetype_discrete(name = "Focal points") -> p
+  
+  if(!col_name_factorial %in% c("vcmax","p_50","huber_value")){
+    # p + scale_colour_discrete(name = col_name_factorial2) -> p
+  }
+  
+  if(col_name_continuous == "ca"){
+    p + xlab(expression(C[a]~(Pa))) -> p
+  }
+  if(col_name_continuous == "psi_soil"){
+    p + xlab(expression(psi[soil]))-> p
+  }
+  if(col_name_continuous == "temp_diff"){
+    p + xlab(expression(Delta~T~(degree*C)))-> p
+  }
+  
+  if(col_name_factorial == "vcmax"){
+    # p + scale_colour_discrete(name = expression(V[c,max]~(mu*mol~m^{-2}~s^{-1}))) -> p
+  }
+  if(col_name_factorial == "p_50"){
+    # p + scale_colour_discrete(name = expression(P[50]~(-MPa))) -> p
+  }
+  if(col_name_factorial == "huber_value"){
+    # p + scale_colour_discrete(name = expression(HV~(m^2~Sapwood~area~m^{-2}~Leaf~area)))-> p
+  }
+  
+  p+theme(text = element_text(size = 14))  
+  p + theme(legend.position = "none")  + guides(colour = FALSE, linetype = FALSE)
+  return(p)
 }
 
-create_mult_point <- function(...){
-data = tibble(...) 
-day_length = data$day_length
-integral_lengths = day_length/data$focal_points
-first_point = data$sun_rise + integral_lengths/2
-last_point = data$sun_down - integral_lengths/2
 
-if(data$focal_points == 1){
-  return(first_point)
-} else{
-seq(first_point, last_point, by = integral_lengths)
-}
-}
 
-calc_mult_point2 <- function(...){
-  data = tibble(...) %>%
-    nest(outputs = outputs)
-  first_num = 1/data$focal_points/2 
-  quantiles = seq(from = first_num, 1, by = first_num*2)
-  
-  data %>%
-    unnest(outputs) -> data
-  
-  map(quantiles, extract_time_slice, data) %>%
-    bind_rows() %>%
-    mutate(profit_integrated = outputs$profit * day_length/focal_points,
-           transpiration_integrated = outputs$transpiration * day_length/focal_points) %>% 
-    unnest(outputs) %>% 
-    select(profit, profit_integrated, transpiration, transpiration_integrated, instant_through_day_hr) %>% 
-    rename(transpiration_point = transpiration, profit_point = profit, instant_through_day_hr_point = instant_through_day_hr) %>% 
-    nest(cols = c(transpiration_point, profit_point, instant_through_day_hr_point))
-}
 
