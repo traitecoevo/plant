@@ -30,7 +30,7 @@ library(tidyverse)
 n_cores = max(1, detectCores() - 1)
 
 params <- scm_base_parameters("FF16")
-patch <- expand_parameters(trait_matrix(c(0.0825), "lma"), params, mutant = FALSE, birth_rate_list = c(2))
+patch <- expand_parameters(trait_matrix(c(0.0825), "lma"), params, mutant = FALSE, birth_rate_list = c())
 ```
 
 # Propagule arrival (seed rain)
