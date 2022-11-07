@@ -43,6 +43,14 @@ calc_k_l_max <- function(K_s, h_v, h){
   K_s * h_v / h
 }
 
+#narea g m^-2
+#lma g m^-2
+#vcmax umol m^-2 s^-1
+calc_n_area <- function(vcmax, lma){
+  0.535 + 0.009*lma*1000 + 0.007*vcmax
+}
+
+
 get_dt <- function(y,x) {
   c(NA, diff(y)/diff(x))
 }
@@ -80,6 +88,9 @@ run_individual <- function(...){
   s1$b <- calc_vul_b(s1$p_50, s1$c)
   s1$psi_crit <- calc_psi_crit(s1$b, s1$c)
   s1$theta <- params$huber_value
+  browser()
+  
+  s1$n_area <- calc_n_area(s1$vcmax, s1$lma)
 
   # s1 <- strategy(trait_matrix(params$H_v,  "huber_value"), p0, birth_rate_list = 1)
 
