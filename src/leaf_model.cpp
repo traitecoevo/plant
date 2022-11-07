@@ -33,6 +33,8 @@ Leaf::Leaf(double vcmax, double p_50, double c, double b,
       setup_transpiration(100);
 }
 
+//sets various parameters which are constant for a given node at a given time
+
 void Leaf::set_physiology(double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca) {
    atm_vpd_ = atm_vpd;
    PPFD_ = PPFD;
@@ -55,11 +57,12 @@ void Leaf::set_physiology(double PPFD, double psi_soil, double leaf_specific_con
 
 // transpiration supply functions
 
-// integrates, returns proportion of conductance taken from hydraulic vulnerability curve (unitless)
+// returns proportion of conductance taken from hydraulic vulnerability curve (unitless)
 double Leaf::proportion_of_conductivity(double psi) const {
   return exp(-pow((psi / b), c));
 }
-// REMOVED leaf_specific_conductance_max_
+
+// set spline for proportion of conductivity
 void Leaf::setup_transpiration(double resolution) {
   // integrate and accumulate results
   auto x_psi_ = std::vector<double>{0.0};  // {0.0}
