@@ -15,7 +15,7 @@
 ##' production per capita.
 ##' @author Rich FitzJohn
 ##' @export
-fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), log_fitness=FALSE) {
+fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), log_fitness=TRUE) {
   n_residents <- length(p$strategies)
   p_with_mutants <- expand_parameters(trait_matrix, p, hyperpar)
   scm <- run_scm(p_with_mutants,
