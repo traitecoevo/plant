@@ -7,8 +7,10 @@ date: 2016
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{demographic_equilibrium}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 ```{r, echo=FALSE, results="asis"}
 txt <- "<!-- This file is generated from the Rmd in inst/slow_vignettes. Make any edits there-->"
@@ -24,10 +26,11 @@ We can use this relationship of propagule input and output to find the demograph
 ```{r}
 library(plant)
 library(parallel)
+library(tidyverse)
 n_cores = max(1, detectCores() - 1)
 
 params <- scm_base_parameters("FF16")
-patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
+patch <- expand_parameters(trait_matrix(c(0.0825), "lma"), params, mutant = FALSE, birth_rate_list = c(2))
 ```
 
 # Propagule arrival (seed rain)
@@ -36,8 +39,9 @@ Patch arrival rate can be set via `seed_rain`. After running the patch character
 
 ````{r}
 generate_propagule_output <- function(arrival_rate, p) {
-  p$seed_rain <- arrival_rate
-  run_scm(p)$seed_rains
+
+  p$strategies[[1]]$birth_rate_y <- arrival_rate
+  run_scm(p)$offspring_production
 }
 
 generate_propagule_output(1.0, patch)
@@ -54,9 +58,12 @@ This functionality is provided by `equilibrium_seed_rain`. We enable logging to 
 
 ```{r}
 plant_log_console()
-patch_eq <- equilibrium_seed_rain(patch)
+
+# patch_eq <- equilibrium_seed_rain(patch)
+ctrl = scm_base_control()
+patch_eq <- equilibrium_birth_rate(p = patch, ctrl = ctrl)
 ```
-Here, the characteristic solver is run four times. At each iteration, the arrival rate is mapped to a propagule output (e.g. `{1} -> {19.97}`), with proagule outputs used as the arrival rate for the next iteration. `delta` shows the difference between input and output and the process is repeated until an accuracy target is reached (i.e. there is little difference between input an output.)
+Here, the characteristic solver is run two times. At each iteration, the arrival rate is mapped to a propagule output (e.g. `{1} -> {19.97}`), with proagule outputs used as the arrival rate for the next iteration. `delta` shows the difference between input and output and the process is repeated until an accuracy target is reached (i.e. there is little difference between input an output.)
 
 <!-- TODO: provide better description of adaptive sampling -->
 Note that logging also demonstrates adaptive node spacing algorthim that `plant` uses to refine the time steps and arrival schedule, splitting nodes where greater accuracy is required. More on timing can be found in the [node scheduling algorithm](https://traitecoevo.github.io/plant/articles/node_spacing.html).
@@ -67,13 +74,16 @@ cobweb <- function(m, ...) {
   lines(rep(m[,1], each=2), c(t(m)), ...)
 }
 
-approach <- attr(patch_eq, "progress")
-r <- range(approach)
+approach_sp1 <- attr(patch_eq, "progress")
+r <- range(approach_sp1)
 
-plot(approach, type="n", las=1, xlim=r, ylim=r)
+plot(approach_sp1, type="n", las=1, xlim=r, ylim=r)
 abline(0, 1, lty=2, col="grey")
-cobweb(approach, pch=19, cex=.5, type="o")
+cobweb(approach_sp1, pch=19, cex=.5, type="o")
+
 ```
+
+<!-- TODO: update values here -->
 This shows the first iteration (left) producing nearly 20 propagules, which in turn generate around 17, and so on.
 
 # Near equilibrium
@@ -83,8 +93,9 @@ The iterative approach is valuable when the relationship between arrival rate an
 ```{r seeds_in_seeds_out}
 # Range of arrival rates
 dr <- 2
-arrival_rates <- seq(patch_eq$seed_rain - dr,
-                    patch_eq$seed_rain + dr, length.out=31)
+arrival_rates <- seq(patch_eq$strategies[[1]]$birth_rate_y - dr,
+                    patch_eq$strategies[[1]]$birth_rate_y + dr, length.out=31)
+patch_eq$strategies
 
 # Run patches
 propagule_outputs <- unlist(mclapply(arrival_rates, generate_propagule_output, 

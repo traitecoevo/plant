@@ -12,10 +12,10 @@ equilibrium_birth_rate <- function(p, ctrl) {
   plant_log_info(sprintf("Solving offspring arrival using %s", solver),
                  routine="equilibrium", stage="start", solver=solver)
   switch(solver,
-         iteration=equilibrium_birth_rate_iteration(p),
+         iteration=equilibrium_birth_rate_iteration(p,ctrl =ctrl),
          nleqslv=equilibrium_birth_rate_solve_robust(p, solver),
          dfsane=equilibrium_birth_rate_solve_robust(p, solver),
-         hybrid=equilibrium_birth_rate_hybrid(p),
+         hybrid=equilibrium_birth_rate_hybrid(p,ctrl =ctrl),
          stop("Unknown solver ", solver))
 }
 
@@ -39,9 +39,10 @@ equilibrium_birth_rate_iteration <- function(p, ctrl) {
 
   eps <- ctrl$equilibrium_eps
   verbose <- ctrl$equilibrium_verbose
-  birth_rate <- p$birth_rate
-  runner <- make_equilibrium_runner(p)
-
+  
+  birth_rate <- sapply(patch$strategies, function(s) s$birth_rate_y, simplify = TRUE)
+  runner <- make_equilibrium_runner(p,ctrl =ctrl)
+  
   for (i in seq_len(ctrl$equilibrium_nsteps)) {
     net_reproduction_ratios <- runner(birth_rate)
     converged <- check(birth_rate, net_reproduction_ratios, eps, verbose)
@@ -63,8 +64,8 @@ equilibrium_birth_rate_solve <- function(p, ctrl = scm_base_control(),
   plant_log_eq(paste("Solving offspring arrival using", solver),
                stage="start", solver=solver)
 
-  birth_rate <- p$birth_rate
-  runner <- make_equilibrium_runner(p)
+  birth_rate <- sapply(patch$strategies, function(s) s$birth_rate_y, simplify = TRUE)
+  runner <- make_equilibrium_runner(p,ctrl =ctrl)
 
   ## First, we exclude species that have offspring arrivals below some minimum
   ## level.
@@ -125,7 +126,17 @@ equilibrium_birth_rate_solve_robust <- function(p, solver="nleqslv") {
     ## the previous set.
 
     plant_log_eq("Trying again with the solver")
-    p$birth_rate <- unname(fit_it$birth_rate)
+    
+    f <- function(s, br){
+      s$birth_rate_y <- br
+      return(s)
+    }
+    
+    #this may or may not work (original function below)     
+    #p$birth_rate <- unname(fit_it$birth_rate)
+
+    p$strategies <- mapply(f, p$strategies, fit_it$birth_rate, SIMPLIFY = FALSE)
+    
     fit2 <- try(equilibrium_birth_rate_solve(p, solver))
 
     if (failed(fit2)) {
@@ -154,7 +165,18 @@ equilibrium_birth_rate_hybrid <- function(p, ctrl) {
 
   for (i in seq_len(attempts)) {
     ans_it <- equilibrium_birth_rate_iteration(p)
-    p$birth_rate <- ans_it$birth_rate
+    
+    f <- function(s, br){
+      s$birth_rate_y <- br
+      return(s)
+    }
+    
+    #this may or may not work (original function below)     
+    # p$birth_rate <- ans_it$birth_rate
+
+    
+    p$strategies <- mapply(f, p$strategies, unname(ans_it$birth_rate), SIMPLIFY = FALSE)
+    
     converged_it <- isTRUE(attr(ans_it, "converged"))
     msg <- sprintf("Iteration %d %s",
                    i, if (converged_it) "converged" else "did not converge")
@@ -201,23 +223,30 @@ make_equilibrium_runner <- function(p, ctrl) {
 
   p <- validate(p)
 
-  large_offspring_arriving_change <- ctrl$equilibrium_large_offspring_arriving_change
+  large_offspring_arriving_change <- ctrl$equilibrium_large_birth_rate_change
 
   i <- 1L
-  last_offspring_arriving <- p$birth_rate
+  last_offspring_arriving <- sapply(p$strategies, function(s) s$birth_rate_y, simplify = TRUE)
   default_schedule_times <- rep(list(p$node_schedule_times_default),
-                                length(p$birth_rate))
+                                length(last_offspring_arriving))
   last_schedule_times <- p$node_schedule_times
   history <- NULL
 
   function(birth_rate) {
+    
     if (any(abs(birth_rate - last_offspring_arriving) > large_offspring_arriving_change)) {
       p$node_schedule_times <- default_schedule_times
     }
+    
+    f <- function(s, br){
+      s$birth_rate_y <- br
+      return(s)
+    }
+    p$strategies <- mapply(f, p$strategies, birth_rate, SIMPLIFY = FALSE)
 
-    p$birth_rate <- last_offspring_arriving
-
-    p_new <- build_schedule(p, ctrl)
+    p_new <- build_schedule(p, ctrl = ctrl)
+    
+    
     net_reproduction_ratios <- attr(p_new, "net_reproduction_ratios", exact=TRUE)
 
     ## These all write up to the containing environment:
@@ -251,7 +280,19 @@ equilibrium_runner_cleanup <- function(runner, converged=TRUE) {
   }
 
   p <- e$p
-  p$birth_rate <- as.numeric(e$last_offspring_arriving)
+  
+  f <- function(s, br){
+    s$birth_rate_y <- br
+    return(s)
+  }
+  
+  #this may or may not work (original function below)     
+  # p$birth_rate <- as.numeric(e$last_offspring_arriving)
+  
+  
+  p$strategies <- mapply(f, p$strategies, as.numeric(e$last_offspring_arriving), SIMPLIFY = FALSE)
+  
+  
   p$node_schedule_times <- e$last_schedule_times
   attr(p, "progress") <- rbind_list(e$history)
   attr(p, "converged") <- converged
@@ -318,11 +359,11 @@ check_inviable <- function(p, ctrl) {
   ## that birth offspring arrival actually makes more sense?  It's fractional
   ## though so who knows.
   eps_test <- 1e-2
-  birth_rate <- p$birth_rate
+  birth_rate <- sapply(patch$strategies, function(s) s$birth_rate_y, simplify = TRUE)
   ## NOTE: We don't actually run to equilibrium here; this is just
   ## because it's a useful way of doing incoming -> outgoing offspring
   ## rain.
-  runner <- make_equilibrium_runner(p)
+  runner <- make_equilibrium_runner(p,ctrl =ctrl)
   net_reproduction_ratios <- runner(net_reproduction_ratios)
 
   test <- which(net_reproduction_ratios < birth_rate &
