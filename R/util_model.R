@@ -39,7 +39,10 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
     }
     strategy
   }
-  mapply(f, matrix_to_list(x), birth_rate_list, SIMPLIFY = FALSE)
+  
+  # insert custom traits and birth values into default strategy template
+  strategies <- mapply(f, matrix_to_list(x), birth_rate_list, SIMPLIFY = FALSE)
+  return(strategies)
 }
 
 ##' @export
