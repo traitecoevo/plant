@@ -23,7 +23,7 @@ public:
   typedef Parameters<T,E>   parameters_type;
 
 
-  Patch(parameters_type p, environment_type e, plant::Control c);
+  Patch(std::vector<T> s, environment_type e, Control c, parameters_type p);
 
   void reset();
   size_t size() const {return species.size();}
@@ -99,11 +99,11 @@ private:
   environment_type environment;
   std::vector<species_type> species;
   std::vector<double> resource_depletion;
-  Control control;
+  Control control;  // is this ever used from here?
 };
 
 template <typename T, typename E>
-Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
+Patch<T,E>::Patch(std::vector<T> s, environment_type e, Control c, parameters_type p)
   : parameters(p),
     is_resident(p.is_resident),
     environment(e),
@@ -114,12 +114,17 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
 
   // Overwrite all strategy control objects so that they take the
   // patch control object and also set per species birth rates
-	for (auto i = 0; i < parameters.strategies.size(); ++i) {
-		auto s = parameters.strategies[i];
-    s.control = control;
-    auto spec = Species<T,E>(s);
+  for (auto& strat : s) {
+    strat.control = control;  // could maybe be done better
+    auto spec = Species<T,E>(strat);
     species.push_back(spec);
   }
+//	for (auto i = 0; i < s.size(); ++i) {
+//		auto s = s[i];
+//    s.control = control;
+//    auto spec = Species<T,E>(s);
+//    species.push_back(spec);
+//  }
 
   resource_depletion.reserve(environment.ode_size());
 

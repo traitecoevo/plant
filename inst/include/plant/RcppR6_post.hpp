@@ -93,19 +93,19 @@ template <> inline std::string   package_name<plant::Internals >() {return "plan
 template <> inline std::string generator_name<plant::Internals >() {return ".R6_Internals";}
 template <> inline std::string   class_name_r<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >() {return "Parameters<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
-template <> inline std::string generator_name<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >() {return "";}
+template <> inline std::string generator_name<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Parameters___FF16__FF16_Env";}
 
 template <> inline std::string   class_name_r<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> >() {return "Parameters<FF16w,FF16_Env>";}
 template <> inline std::string   package_name<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> >() {return "plant";}
-template <> inline std::string generator_name<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> >() {return "";}
+template <> inline std::string generator_name<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> >() {return ".R6_Parameters___FF16w__FF16_Env";}
 
 template <> inline std::string   class_name_r<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "Parameters<FF16r,FF16_Env>";}
 template <> inline std::string   package_name<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "plant";}
-template <> inline std::string generator_name<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >() {return "";}
+template <> inline std::string generator_name<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >() {return ".R6_Parameters___FF16r__FF16_Env";}
 
 template <> inline std::string   class_name_r<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >() {return "Parameters<K93,K93_Env>";}
 template <> inline std::string   package_name<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >() {return "plant";}
-template <> inline std::string generator_name<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >() {return "";}
+template <> inline std::string generator_name<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >() {return ".R6_Parameters___K93__K93_Env";}
 template <> inline std::string   class_name_r<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> >() {return "Node<FF16,FF16_Env>";}
 template <> inline std::string   package_name<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> >() {return "plant";}
 template <> inline std::string generator_name<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> >() {return ".R6_Node___FF16__FF16_Env";}
@@ -549,195 +549,31 @@ template <> inline plant::Internals as(SEXP x) {
   return *(plant::RcppR6::RcppR6<plant::Internals>(x));
 }
 template <> inline SEXP wrap(const plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>& x) {
-  Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
-  ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
-  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
-  ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
-  ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
-  ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
-  ret["node_schedule_ode_times"] = Rcpp::wrap(x.node_schedule_ode_times);
-  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<FF16,FF16_Env>", "Parameters");
-  return ret;
+  return wrap(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
 template <> inline plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> as(SEXP x) {
-  if (!plant::RcppR6::is<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >(x)) {
-    Rcpp::stop("Expected an object of type Parameters<FF16,FF16_Env>");
-    // NOTE: Won't drop through or return anything.
-  }
-  // NOTE: assumes default constructable, and will assign *every*
-  // field twice.  No current support for a hook.
-  plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> ret;
-  Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
-  // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
-  ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
-  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
-  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
-  // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
-  ret.strategies = Rcpp::as<std::vector<plant::FF16_Strategy> >(xl["strategies"]);
-  // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
-  ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
-  ret.strategy_default = Rcpp::as<plant::FF16_Strategy >(xl["strategy_default"]);
-  // ret.node_schedule_times_default = Rcpp::as<decltype(retnode_schedule_times_default) >(xl["node_schedule_times_default"]);
-  ret.node_schedule_times_default = Rcpp::as<std::vector<double> >(xl["node_schedule_times_default"]);
-  // ret.node_schedule_times = Rcpp::as<decltype(retnode_schedule_times) >(xl["node_schedule_times"]);
-  ret.node_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["node_schedule_times"]);
-  // ret.node_schedule_ode_times = Rcpp::as<decltype(retnode_schedule_ode_times) >(xl["node_schedule_ode_times"]);
-  ret.node_schedule_ode_times = Rcpp::as<std::vector<double> >(xl["node_schedule_ode_times"]);
-  ret.validate();
-  return ret;
+  return *(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >(x));
 }
 
 template <> inline SEXP wrap(const plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment>& x) {
-  Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
-  ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
-  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
-  ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
-  ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
-  ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
-  ret["node_schedule_ode_times"] = Rcpp::wrap(x.node_schedule_ode_times);
-  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<FF16w,FF16_Env>", "Parameters");
-  return ret;
+  return wrap(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> >(x));
 }
 template <> inline plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> as(SEXP x) {
-  if (!plant::RcppR6::is<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> >(x)) {
-    Rcpp::stop("Expected an object of type Parameters<FF16w,FF16_Env>");
-    // NOTE: Won't drop through or return anything.
-  }
-  // NOTE: assumes default constructable, and will assign *every*
-  // field twice.  No current support for a hook.
-  plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> ret;
-  Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
-  // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
-  ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
-  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
-  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
-  // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
-  ret.strategies = Rcpp::as<std::vector<plant::FF16w_Strategy> >(xl["strategies"]);
-  // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
-  ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
-  ret.strategy_default = Rcpp::as<plant::FF16w_Strategy >(xl["strategy_default"]);
-  // ret.node_schedule_times_default = Rcpp::as<decltype(retnode_schedule_times_default) >(xl["node_schedule_times_default"]);
-  ret.node_schedule_times_default = Rcpp::as<std::vector<double> >(xl["node_schedule_times_default"]);
-  // ret.node_schedule_times = Rcpp::as<decltype(retnode_schedule_times) >(xl["node_schedule_times"]);
-  ret.node_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["node_schedule_times"]);
-  // ret.node_schedule_ode_times = Rcpp::as<decltype(retnode_schedule_ode_times) >(xl["node_schedule_ode_times"]);
-  ret.node_schedule_ode_times = Rcpp::as<std::vector<double> >(xl["node_schedule_ode_times"]);
-  ret.validate();
-  return ret;
+  return *(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> >(x));
 }
 
 template <> inline SEXP wrap(const plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>& x) {
-  Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
-  ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
-  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
-  ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
-  ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
-  ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
-  ret["node_schedule_ode_times"] = Rcpp::wrap(x.node_schedule_ode_times);
-  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<FF16r,FF16_Env>", "Parameters");
-  return ret;
+  return wrap(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >(x));
 }
 template <> inline plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> as(SEXP x) {
-  if (!plant::RcppR6::is<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >(x)) {
-    Rcpp::stop("Expected an object of type Parameters<FF16r,FF16_Env>");
-    // NOTE: Won't drop through or return anything.
-  }
-  // NOTE: assumes default constructable, and will assign *every*
-  // field twice.  No current support for a hook.
-  plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> ret;
-  Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
-  // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
-  ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
-  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
-  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
-  // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
-  ret.strategies = Rcpp::as<std::vector<plant::FF16r_Strategy> >(xl["strategies"]);
-  // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
-  ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
-  ret.strategy_default = Rcpp::as<plant::FF16r_Strategy >(xl["strategy_default"]);
-  // ret.node_schedule_times_default = Rcpp::as<decltype(retnode_schedule_times_default) >(xl["node_schedule_times_default"]);
-  ret.node_schedule_times_default = Rcpp::as<std::vector<double> >(xl["node_schedule_times_default"]);
-  // ret.node_schedule_times = Rcpp::as<decltype(retnode_schedule_times) >(xl["node_schedule_times"]);
-  ret.node_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["node_schedule_times"]);
-  // ret.node_schedule_ode_times = Rcpp::as<decltype(retnode_schedule_ode_times) >(xl["node_schedule_ode_times"]);
-  ret.node_schedule_ode_times = Rcpp::as<std::vector<double> >(xl["node_schedule_ode_times"]);
-  ret.validate();
-  return ret;
+  return *(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >(x));
 }
 
 template <> inline SEXP wrap(const plant::Parameters<plant::K93_Strategy,plant::K93_Environment>& x) {
-  Rcpp::List ret;
-  ret["patch_area"] = Rcpp::wrap(x.patch_area);
-  ret["n_patches"] = Rcpp::wrap(x.n_patches);
-  ret["patch_type"] = Rcpp::wrap(x.patch_type);
-  ret["max_patch_lifetime"] = Rcpp::wrap(x.max_patch_lifetime);
-  ret["strategies"] = Rcpp::wrap(x.strategies);
-  ret["is_resident"] = Rcpp::wrap(x.is_resident);
-  ret["strategy_default"] = Rcpp::wrap(x.strategy_default);
-  ret["node_schedule_times_default"] = Rcpp::wrap(x.node_schedule_times_default);
-  ret["node_schedule_times"] = Rcpp::wrap(x.node_schedule_times);
-  ret["node_schedule_ode_times"] = Rcpp::wrap(x.node_schedule_ode_times);
-  ret.attr("class") = Rcpp::CharacterVector::create("Parameters<K93,K93_Env>", "Parameters");
-  return ret;
+  return wrap(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >(x));
 }
 template <> inline plant::Parameters<plant::K93_Strategy,plant::K93_Environment> as(SEXP x) {
-  if (!plant::RcppR6::is<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >(x)) {
-    Rcpp::stop("Expected an object of type Parameters<K93,K93_Env>");
-    // NOTE: Won't drop through or return anything.
-  }
-  // NOTE: assumes default constructable, and will assign *every*
-  // field twice.  No current support for a hook.
-  plant::Parameters<plant::K93_Strategy,plant::K93_Environment> ret;
-  Rcpp::List xl(x);
-  // ret.patch_area = Rcpp::as<decltype(retpatch_area) >(xl["patch_area"]);
-  ret.patch_area = Rcpp::as<double >(xl["patch_area"]);
-  // ret.n_patches = Rcpp::as<decltype(retn_patches) >(xl["n_patches"]);
-  ret.n_patches = Rcpp::as<size_t >(xl["n_patches"]);
-  // ret.patch_type = Rcpp::as<decltype(retpatch_type) >(xl["patch_type"]);
-  ret.patch_type = Rcpp::as<std::string >(xl["patch_type"]);
-  // ret.max_patch_lifetime = Rcpp::as<decltype(retmax_patch_lifetime) >(xl["max_patch_lifetime"]);
-  ret.max_patch_lifetime = Rcpp::as<double >(xl["max_patch_lifetime"]);
-  // ret.strategies = Rcpp::as<decltype(retstrategies) >(xl["strategies"]);
-  ret.strategies = Rcpp::as<std::vector<plant::K93_Strategy> >(xl["strategies"]);
-  // ret.is_resident = Rcpp::as<decltype(retis_resident) >(xl["is_resident"]);
-  ret.is_resident = Rcpp::as<std::vector<bool> >(xl["is_resident"]);
-  // ret.strategy_default = Rcpp::as<decltype(retstrategy_default) >(xl["strategy_default"]);
-  ret.strategy_default = Rcpp::as<plant::K93_Strategy >(xl["strategy_default"]);
-  // ret.node_schedule_times_default = Rcpp::as<decltype(retnode_schedule_times_default) >(xl["node_schedule_times_default"]);
-  ret.node_schedule_times_default = Rcpp::as<std::vector<double> >(xl["node_schedule_times_default"]);
-  // ret.node_schedule_times = Rcpp::as<decltype(retnode_schedule_times) >(xl["node_schedule_times"]);
-  ret.node_schedule_times = Rcpp::as<std::vector<std::vector<double> > >(xl["node_schedule_times"]);
-  // ret.node_schedule_ode_times = Rcpp::as<decltype(retnode_schedule_ode_times) >(xl["node_schedule_ode_times"]);
-  ret.node_schedule_ode_times = Rcpp::as<std::vector<double> >(xl["node_schedule_ode_times"]);
-  ret.validate();
-  return ret;
+  return *(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >(x));
 }
 template <> inline SEXP wrap(const plant::Node<plant::FF16_Strategy,plant::FF16_Environment>& x) {
   return wrap(plant::RcppR6::RcppR6<plant::Node<plant::FF16_Strategy,plant::FF16_Environment> >(x));

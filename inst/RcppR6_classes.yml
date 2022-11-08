@@ -341,6 +341,21 @@ Internals:
       return_type: void
 
 
+#IndividualRunner:
+#  name_cpp: "plant::tools::IndividualRunner<T,E>"
+#  templates:
+#    parameters: [T,E]
+#    concrete:
+#      - ["FF16": "plant::FF16_Strategy", "FF16_Env": "plant::FF16_Environment"]
+#      - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
+#      - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
+#      - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
+#  constructor:
+#    name_cpp: "plant::tools::IndividualRunner<T,E>"
+#    args: [individual: "plant::Individual<T,E>", environment: E]
+#  active:
+#    individual: {access: field, type: "plant::Individual<T,E>"}
+
 Parameters:
   name_cpp: "plant::Parameters<T,E>"
   templates:
@@ -350,19 +365,19 @@ Parameters:
       - ["FF16w": "plant::FF16w_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
-  validator:
-    name_cpp: validate
-  list:
-    - patch_area: double
-    - n_patches: size_t
-    - patch_type: "std::string"
-    - max_patch_lifetime: double
-    - strategies: "std::vector<T>"
-    - is_resident: "std::vector<bool>"
-    - strategy_default: "T"
-    - node_schedule_times_default: "std::vector<double>"
-    - node_schedule_times: "std::vector<std::vector<double> >"
-    - node_schedule_ode_times: "std::vector<double>"
+#  validator:
+#    name_cpp: validate
+  constructor:
+    name_cpp: "plant::Parameters<T,E>"
+    args: [ n_spp: double ]
+  active:
+    patch_area: {type: double, access: field}
+    n_patches: {type: size_t, access: field}
+    patch_type: {type: "std::string", access: field}
+    max_patch_lifetime: {type: double, access: field}
+    node_schedule_times_default: {type: "std::vector<double>", access: field}
+    node_schedule_times: {type: "std::vector<std::vector<double> >", access: field}
+    node_schedule_ode_times: {type: "std::vector<double>", access: field}
 
 Node:
   name_cpp: "plant::Node<T,E>"
@@ -412,7 +427,7 @@ Species:
       - ["FF16r": "plant::FF16r_Strategy", "FF16_Env": "plant::FF16_Environment"]
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
-    args: [strategy: T]
+    args: [strategy: "T"]
   active:
     size: {type: size_t, access: member}
     new_node: {type: "plant::Node<T,E>", access: member, name_cpp: r_new_node}
@@ -458,9 +473,10 @@ Patch:
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
-      - parameters: "plant::Parameters<T,E>"
+      - strategies: "std::vector<T>"
       - environment: "E"
       - control: "plant::Control"
+      - parameters: "plant::Parameters<T,E>"
   active:
     time: {type: double, access: member}
     size: {type: size_t, access: member}
@@ -529,9 +545,10 @@ SCM:
       - ["K93": "plant::K93_Strategy", "K93_Env": "plant::K93_Environment"]
   constructor:
     args:
-      - parameters: "plant::Parameters<T,E>"
+      - strategies: "std::vector<T>"
       - environment: "E"
       - control: "plant::Control"
+      - parameters: "plant::Parameters<T,E>"
   methods:
     run:
       return_type: void

@@ -1129,42 +1129,274 @@ void Internals__auxs__set(plant::RcppR6::RcppR6<plant::Internals> obj_, std::vec
 
 
 // [[Rcpp::export]]
-SEXP Parameters___FF16__FF16_Env__ctor() {
-  return Rcpp::wrap(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>());
+plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> Parameters___FF16__FF16_Env__ctor(double n_spp) {
+  return plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment>(n_spp);
 }
 // [[Rcpp::export]]
-SEXP Parameters___FF16__FF16_Env__vdor(SEXP obj) {
-  return Rcpp::wrap(Rcpp::as<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> >(obj));
+double Parameters___FF16__FF16_Env__patch_area__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->patch_area;
+}
+// [[Rcpp::export]]
+void Parameters___FF16__FF16_Env__patch_area__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double value) {
+  obj_->patch_area = value;
+}
+
+// [[Rcpp::export]]
+size_t Parameters___FF16__FF16_Env__n_patches__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->n_patches;
+}
+// [[Rcpp::export]]
+void Parameters___FF16__FF16_Env__n_patches__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_, size_t value) {
+  obj_->n_patches = value;
+}
+
+// [[Rcpp::export]]
+std::string Parameters___FF16__FF16_Env__patch_type__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->patch_type;
+}
+// [[Rcpp::export]]
+void Parameters___FF16__FF16_Env__patch_type__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::string value) {
+  obj_->patch_type = value;
+}
+
+// [[Rcpp::export]]
+double Parameters___FF16__FF16_Env__max_patch_lifetime__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->max_patch_lifetime;
+}
+// [[Rcpp::export]]
+void Parameters___FF16__FF16_Env__max_patch_lifetime__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_, double value) {
+  obj_->max_patch_lifetime = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Parameters___FF16__FF16_Env__node_schedule_times_default__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->node_schedule_times_default;
+}
+// [[Rcpp::export]]
+void Parameters___FF16__FF16_Env__node_schedule_times_default__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value) {
+  obj_->node_schedule_times_default = value;
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > Parameters___FF16__FF16_Env__node_schedule_times__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->node_schedule_times;
+}
+// [[Rcpp::export]]
+void Parameters___FF16__FF16_Env__node_schedule_times__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > value) {
+  obj_->node_schedule_times = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Parameters___FF16__FF16_Env__node_schedule_ode_times__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->node_schedule_ode_times;
+}
+// [[Rcpp::export]]
+void Parameters___FF16__FF16_Env__node_schedule_ode_times__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value) {
+  obj_->node_schedule_ode_times = value;
 }
 
 
 // [[Rcpp::export]]
-SEXP Parameters___FF16w__FF16_Env__ctor() {
-  return Rcpp::wrap(plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment>());
+plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> Parameters___FF16w__FF16_Env__ctor(double n_spp) {
+  return plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment>(n_spp);
 }
 // [[Rcpp::export]]
-SEXP Parameters___FF16w__FF16_Env__vdor(SEXP obj) {
-  return Rcpp::wrap(Rcpp::as<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> >(obj));
+double Parameters___FF16w__FF16_Env__patch_area__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->patch_area;
+}
+// [[Rcpp::export]]
+void Parameters___FF16w__FF16_Env__patch_area__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, double value) {
+  obj_->patch_area = value;
+}
+
+// [[Rcpp::export]]
+size_t Parameters___FF16w__FF16_Env__n_patches__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->n_patches;
+}
+// [[Rcpp::export]]
+void Parameters___FF16w__FF16_Env__n_patches__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, size_t value) {
+  obj_->n_patches = value;
+}
+
+// [[Rcpp::export]]
+std::string Parameters___FF16w__FF16_Env__patch_type__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->patch_type;
+}
+// [[Rcpp::export]]
+void Parameters___FF16w__FF16_Env__patch_type__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::string value) {
+  obj_->patch_type = value;
+}
+
+// [[Rcpp::export]]
+double Parameters___FF16w__FF16_Env__max_patch_lifetime__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->max_patch_lifetime;
+}
+// [[Rcpp::export]]
+void Parameters___FF16w__FF16_Env__max_patch_lifetime__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, double value) {
+  obj_->max_patch_lifetime = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Parameters___FF16w__FF16_Env__node_schedule_times_default__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->node_schedule_times_default;
+}
+// [[Rcpp::export]]
+void Parameters___FF16w__FF16_Env__node_schedule_times_default__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value) {
+  obj_->node_schedule_times_default = value;
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > Parameters___FF16w__FF16_Env__node_schedule_times__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->node_schedule_times;
+}
+// [[Rcpp::export]]
+void Parameters___FF16w__FF16_Env__node_schedule_times__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > value) {
+  obj_->node_schedule_times = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Parameters___FF16w__FF16_Env__node_schedule_ode_times__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->node_schedule_ode_times;
+}
+// [[Rcpp::export]]
+void Parameters___FF16w__FF16_Env__node_schedule_ode_times__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value) {
+  obj_->node_schedule_ode_times = value;
 }
 
 
 // [[Rcpp::export]]
-SEXP Parameters___FF16r__FF16_Env__ctor() {
-  return Rcpp::wrap(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>());
+plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> Parameters___FF16r__FF16_Env__ctor(double n_spp) {
+  return plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment>(n_spp);
 }
 // [[Rcpp::export]]
-SEXP Parameters___FF16r__FF16_Env__vdor(SEXP obj) {
-  return Rcpp::wrap(Rcpp::as<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> >(obj));
+double Parameters___FF16r__FF16_Env__patch_area__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->patch_area;
+}
+// [[Rcpp::export]]
+void Parameters___FF16r__FF16_Env__patch_area__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double value) {
+  obj_->patch_area = value;
+}
+
+// [[Rcpp::export]]
+size_t Parameters___FF16r__FF16_Env__n_patches__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->n_patches;
+}
+// [[Rcpp::export]]
+void Parameters___FF16r__FF16_Env__n_patches__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, size_t value) {
+  obj_->n_patches = value;
+}
+
+// [[Rcpp::export]]
+std::string Parameters___FF16r__FF16_Env__patch_type__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->patch_type;
+}
+// [[Rcpp::export]]
+void Parameters___FF16r__FF16_Env__patch_type__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::string value) {
+  obj_->patch_type = value;
+}
+
+// [[Rcpp::export]]
+double Parameters___FF16r__FF16_Env__max_patch_lifetime__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->max_patch_lifetime;
+}
+// [[Rcpp::export]]
+void Parameters___FF16r__FF16_Env__max_patch_lifetime__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, double value) {
+  obj_->max_patch_lifetime = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Parameters___FF16r__FF16_Env__node_schedule_times_default__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->node_schedule_times_default;
+}
+// [[Rcpp::export]]
+void Parameters___FF16r__FF16_Env__node_schedule_times_default__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value) {
+  obj_->node_schedule_times_default = value;
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > Parameters___FF16r__FF16_Env__node_schedule_times__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->node_schedule_times;
+}
+// [[Rcpp::export]]
+void Parameters___FF16r__FF16_Env__node_schedule_times__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > value) {
+  obj_->node_schedule_times = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Parameters___FF16r__FF16_Env__node_schedule_ode_times__get(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
+  return obj_->node_schedule_ode_times;
+}
+// [[Rcpp::export]]
+void Parameters___FF16r__FF16_Env__node_schedule_ode_times__set(plant::RcppR6::RcppR6<plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value) {
+  obj_->node_schedule_ode_times = value;
 }
 
 
 // [[Rcpp::export]]
-SEXP Parameters___K93__K93_Env__ctor() {
-  return Rcpp::wrap(plant::Parameters<plant::K93_Strategy,plant::K93_Environment>());
+plant::Parameters<plant::K93_Strategy,plant::K93_Environment> Parameters___K93__K93_Env__ctor(double n_spp) {
+  return plant::Parameters<plant::K93_Strategy,plant::K93_Environment>(n_spp);
 }
 // [[Rcpp::export]]
-SEXP Parameters___K93__K93_Env__vdor(SEXP obj) {
-  return Rcpp::wrap(Rcpp::as<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> >(obj));
+double Parameters___K93__K93_Env__patch_area__get(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->patch_area;
+}
+// [[Rcpp::export]]
+void Parameters___K93__K93_Env__patch_area__set(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_, double value) {
+  obj_->patch_area = value;
+}
+
+// [[Rcpp::export]]
+size_t Parameters___K93__K93_Env__n_patches__get(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->n_patches;
+}
+// [[Rcpp::export]]
+void Parameters___K93__K93_Env__n_patches__set(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_, size_t value) {
+  obj_->n_patches = value;
+}
+
+// [[Rcpp::export]]
+std::string Parameters___K93__K93_Env__patch_type__get(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->patch_type;
+}
+// [[Rcpp::export]]
+void Parameters___K93__K93_Env__patch_type__set(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_, std::string value) {
+  obj_->patch_type = value;
+}
+
+// [[Rcpp::export]]
+double Parameters___K93__K93_Env__max_patch_lifetime__get(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->max_patch_lifetime;
+}
+// [[Rcpp::export]]
+void Parameters___K93__K93_Env__max_patch_lifetime__set(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_, double value) {
+  obj_->max_patch_lifetime = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Parameters___K93__K93_Env__node_schedule_times_default__get(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->node_schedule_times_default;
+}
+// [[Rcpp::export]]
+void Parameters___K93__K93_Env__node_schedule_times_default__set(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<double> value) {
+  obj_->node_schedule_times_default = value;
+}
+
+// [[Rcpp::export]]
+std::vector<std::vector<double> > Parameters___K93__K93_Env__node_schedule_times__get(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->node_schedule_times;
+}
+// [[Rcpp::export]]
+void Parameters___K93__K93_Env__node_schedule_times__set(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<double> > value) {
+  obj_->node_schedule_times = value;
+}
+
+// [[Rcpp::export]]
+std::vector<double> Parameters___K93__K93_Env__node_schedule_ode_times__get(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_) {
+  return obj_->node_schedule_ode_times;
+}
+// [[Rcpp::export]]
+void Parameters___K93__K93_Env__node_schedule_ode_times__set(plant::RcppR6::RcppR6<plant::Parameters<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<double> value) {
+  obj_->node_schedule_ode_times = value;
 }
 
 
@@ -1837,8 +2069,8 @@ plant::ode::state_type Species___K93__K93_Env__ode_rates__get(plant::RcppR6::Rcp
 
 
 // [[Rcpp::export]]
-plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> Patch___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters, plant::FF16_Environment environment, plant::Control control) {
-  return plant::Patch<plant::FF16_Strategy,plant::FF16_Environment>(parameters, environment, control);
+plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> Patch___FF16__FF16_Env__ctor(std::vector<plant::FF16_Strategy> strategies, plant::FF16_Environment environment, plant::Control control, plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters) {
+  return plant::Patch<plant::FF16_Strategy,plant::FF16_Environment>(strategies, environment, control, parameters);
 }
 // [[Rcpp::export]]
 void Patch___FF16__FF16_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Patch<plant::FF16_Strategy,plant::FF16_Environment> > obj_, plant::util::index species_index) {
@@ -1958,8 +2190,8 @@ size_t Patch___FF16__FF16_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::P
 
 
 // [[Rcpp::export]]
-plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> Patch___FF16w__FF16_Env__ctor(plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> parameters, plant::FF16_Environment environment, plant::Control control) {
-  return plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment>(parameters, environment, control);
+plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> Patch___FF16w__FF16_Env__ctor(std::vector<plant::FF16w_Strategy> strategies, plant::FF16_Environment environment, plant::Control control, plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> parameters) {
+  return plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment>(strategies, environment, control, parameters);
 }
 // [[Rcpp::export]]
 void Patch___FF16w__FF16_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Patch<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, plant::util::index species_index) {
@@ -2079,8 +2311,8 @@ size_t Patch___FF16w__FF16_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::
 
 
 // [[Rcpp::export]]
-plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> Patch___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters, plant::FF16_Environment environment, plant::Control control) {
-  return plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment>(parameters, environment, control);
+plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> Patch___FF16r__FF16_Env__ctor(std::vector<plant::FF16r_Strategy> strategies, plant::FF16_Environment environment, plant::Control control, plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters) {
+  return plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment>(strategies, environment, control, parameters);
 }
 // [[Rcpp::export]]
 void Patch___FF16r__FF16_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Patch<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, plant::util::index species_index) {
@@ -2200,8 +2432,8 @@ size_t Patch___FF16r__FF16_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::
 
 
 // [[Rcpp::export]]
-plant::Patch<plant::K93_Strategy,plant::K93_Environment> Patch___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control) {
-  return plant::Patch<plant::K93_Strategy,plant::K93_Environment>(parameters, environment, control);
+plant::Patch<plant::K93_Strategy,plant::K93_Environment> Patch___K93__K93_Env__ctor(std::vector<plant::K93_Strategy> strategies, plant::K93_Environment environment, plant::Control control, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters) {
+  return plant::Patch<plant::K93_Strategy,plant::K93_Environment>(strategies, environment, control, parameters);
 }
 // [[Rcpp::export]]
 void Patch___K93__K93_Env__introduce_new_node(plant::RcppR6::RcppR6<plant::Patch<plant::K93_Strategy,plant::K93_Environment> > obj_, plant::util::index species_index) {
@@ -2321,8 +2553,8 @@ size_t Patch___K93__K93_Env__node_ode_size__get(plant::RcppR6::RcppR6<plant::Pat
 
 
 // [[Rcpp::export]]
-plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__ctor(plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters, plant::FF16_Environment environment, plant::Control control) {
-  return plant::SCM<plant::FF16_Strategy,plant::FF16_Environment>(parameters, environment, control);
+plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> SCM___FF16__FF16_Env__ctor(std::vector<plant::FF16_Strategy> strategies, plant::FF16_Environment environment, plant::Control control, plant::Parameters<plant::FF16_Strategy,plant::FF16_Environment> parameters) {
+  return plant::SCM<plant::FF16_Strategy,plant::FF16_Environment>(strategies, environment, control, parameters);
 }
 // [[Rcpp::export]]
 void SCM___FF16__FF16_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_) {
@@ -2418,8 +2650,8 @@ std::vector<std::vector<double> > SCM___FF16__FF16_Env__net_reproduction_ratio_e
 
 
 // [[Rcpp::export]]
-plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> SCM___FF16w__FF16_Env__ctor(plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> parameters, plant::FF16_Environment environment, plant::Control control) {
-  return plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment>(parameters, environment, control);
+plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> SCM___FF16w__FF16_Env__ctor(std::vector<plant::FF16w_Strategy> strategies, plant::FF16_Environment environment, plant::Control control, plant::Parameters<plant::FF16w_Strategy,plant::FF16_Environment> parameters) {
+  return plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment>(strategies, environment, control, parameters);
 }
 // [[Rcpp::export]]
 void SCM___FF16w__FF16_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_) {
@@ -2515,8 +2747,8 @@ std::vector<std::vector<double> > SCM___FF16w__FF16_Env__net_reproduction_ratio_
 
 
 // [[Rcpp::export]]
-plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> SCM___FF16r__FF16_Env__ctor(plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters, plant::FF16_Environment environment, plant::Control control) {
-  return plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment>(parameters, environment, control);
+plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> SCM___FF16r__FF16_Env__ctor(std::vector<plant::FF16r_Strategy> strategies, plant::FF16_Environment environment, plant::Control control, plant::Parameters<plant::FF16r_Strategy,plant::FF16_Environment> parameters) {
+  return plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment>(strategies, environment, control, parameters);
 }
 // [[Rcpp::export]]
 void SCM___FF16r__FF16_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_) {
@@ -2612,8 +2844,8 @@ std::vector<std::vector<double> > SCM___FF16r__FF16_Env__net_reproduction_ratio_
 
 
 // [[Rcpp::export]]
-plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters, plant::K93_Environment environment, plant::Control control) {
-  return plant::SCM<plant::K93_Strategy,plant::K93_Environment>(parameters, environment, control);
+plant::SCM<plant::K93_Strategy,plant::K93_Environment> SCM___K93__K93_Env__ctor(std::vector<plant::K93_Strategy> strategies, plant::K93_Environment environment, plant::Control control, plant::Parameters<plant::K93_Strategy,plant::K93_Environment> parameters) {
+  return plant::SCM<plant::K93_Strategy,plant::K93_Environment>(strategies, environment, control, parameters);
 }
 // [[Rcpp::export]]
 void SCM___K93__K93_Env__run(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_) {

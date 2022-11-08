@@ -28,27 +28,29 @@ struct Parameters {
   typedef T strategy_type;
   typedef E environment_type;
 
-  Parameters() :
+  Parameters(double n_spp) :
     patch_area(1.0),
     n_patches(1),
     patch_type("meta-population"),
-    max_patch_lifetime(105.32) // designed to agree with Daniel's implementation
+    max_patch_lifetime(105.32), // designed to agree with Daniel's implementation
+    n_spp(n_spp)
   {
     validate();
   }
 
+  double n_spp;
   // Data -- public for now (see github issue #17).
   double patch_area; // Size of the patch (m^2)
   size_t n_patches;  // Number of patches in the metacommunity
   std::string patch_type;
   double max_patch_lifetime; // Disturbance interval (years)
-  std::vector<strategy_type> strategies;
-  std::vector<bool> is_resident;
+//  std::vector<strategy_type> strategies;
+//  std::vector<bool> is_resident;
 
   Disturbance_Regime* disturbance;
 
   // Default strategy.
-  strategy_type strategy_default;
+//  strategy_type strategy_default;
 
   // Node information.
   std::vector<double> node_schedule_times_default;
@@ -56,43 +58,43 @@ struct Parameters {
   std::vector<double> node_schedule_ode_times;
 
   // Some little query functions for use on the C side:
-  size_t size() const;
-  size_t n_residents() const;
-  size_t n_mutants() const;
+//  size_t size() const;
+//  size_t n_residents() const;
+//  size_t n_mutants() const;
   void validate();
 
 private:
   void setup_node_schedule();
 };
 
-template <typename T, typename E>
-size_t Parameters<T,E>::size() const {
-  return strategies.size();
-}
+//template <typename T, typename E>
+//size_t Parameters<T,E>::size() const {
+//  return strategies.size();
+//}
 
-template <typename T, typename E>
-size_t Parameters<T,E>::n_residents() const {
-  return static_cast<size_t>
-    (std::count(is_resident.begin(), is_resident.end(), true));
-}
-
-template <typename T, typename E>
-size_t Parameters<T,E>::n_mutants() const {
-  return size() - n_residents();
-}
+//template <typename T, typename E>
+//size_t Parameters<T,E>::n_residents() const {
+//  return static_cast<size_t>
+//    (std::count(is_resident.begin(), is_resident.end(), true));
+//}
+//
+//template <typename T, typename E>
+//size_t Parameters<T,E>::n_mutants() const {
+//  return size() - n_residents();
+//}
 
 // NOTE: this will be called *every time* that the object is passed in
 // from R -> C++.  That's unlikely to be that often, but it does incur
 // a penalty.  So don't put anything too stupidly heavy in here.
 template <typename T, typename E>
 void Parameters<T,E>::validate() {
-  const size_t n_spp = size();
-
-  if (is_resident.empty()) {
-    is_resident = std::vector<bool>(n_spp, true);
-  } else if (is_resident.size() != n_spp) {
-    util::stop("Incorrect length is_resident");
-  }
+   //const size_t n_spp = size();
+//
+//  if (is_resident.empty()) {
+//    is_resident = std::vector<bool>(n_spp, true);
+//  } else if (is_resident.size() != n_spp) {
+//    util::stop("Incorrect length is_resident");
+//  }
 
   setup_node_schedule();
   if (node_schedule_times.size() != n_spp) {
@@ -117,9 +119,9 @@ void Parameters<T,E>::setup_node_schedule() {
   node_schedule_times_default =
       plant::node_schedule_times_default(max_patch_lifetime);
 
-  if ((node_schedule_times.empty() && size() > 0)) {
+  if ((node_schedule_times.empty() && n_spp > 0)) {
     node_schedule_times.clear();
-    for (size_t i = 0; i < size(); ++i) {
+    for (size_t i = 0; i < n_spp; ++i) {
       node_schedule_times.push_back(node_schedule_times_default);
     }
   }

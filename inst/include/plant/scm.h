@@ -21,7 +21,7 @@ public:
   typedef Patch<T, E>      patch_type;
   typedef Parameters<T, E> parameters_type;
 
-  SCM(parameters_type p, environment_type e, plant::Control c);
+  SCM(std::vector<T> s, environment_type e, Control c, parameters_type p);
 
   void run();
   std::vector<size_t> run_next();
@@ -66,9 +66,16 @@ private:
   ode::Solver<patch_type> solver;
 };
 
+//template <typename T>
+//std::vector<std::shared_ptr<T>> make_strategy_ptrs(std::vector<T> s) {
+//  auto ret = std::vector<std::shared_ptr<T>>(s.size());
+//  std::transform(s.begin(), s.end(), ret.begin(), make_strategy_ptr);
+//  return ret;
+//}
+
 template <typename T, typename E>
-SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
-    : parameters(p), patch(parameters, e, c),
+SCM<T, E>::SCM(std::vector<T> s, environment_type e, Control c, parameters_type p)
+    : parameters(p), patch(s, e, c, p),
       node_schedule(make_node_schedule(parameters)),
       solver(patch, make_ode_control(c)) {
   parameters.validate();

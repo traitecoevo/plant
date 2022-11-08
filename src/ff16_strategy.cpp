@@ -457,7 +457,7 @@ void FF16_Strategy::prepare_strategy() {
 }
 
 FF16_Strategy::ptr make_strategy_ptr(FF16_Strategy s) {
-  s.prepare_strategy();
+  s.prepare_strategy(); # should be moved into constructor
   return std::make_shared<FF16_Strategy>(s);
 }
 }

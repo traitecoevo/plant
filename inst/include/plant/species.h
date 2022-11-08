@@ -21,7 +21,7 @@ public:
   typedef Individual<T,E>  individual_type;
   typedef Node<T,E> node_type;
   typedef typename strategy_type::ptr strategy_type_ptr;
-  Species(strategy_type s);
+  Species(T strat_ptr);
 
   size_t size() const;
   void clear();
@@ -89,8 +89,8 @@ private:
 };
 
 template <typename T, typename E>
-Species<T,E>::Species(strategy_type s)
-  : strategy(make_strategy_ptr(s)),
+Species<T,E>::Species(T strat)
+  : strategy(make_strategy_ptr(strat)),
     new_node(strategy) {
 }
 

@@ -997,36 +997,244 @@ Internals__auxs__set <- function(obj_, value) {
     invisible(.Call('_plant_Internals__auxs__set', PACKAGE = 'plant', obj_, value))
 }
 
-Parameters___FF16__FF16_Env__ctor <- function() {
-    .Call('_plant_Parameters___FF16__FF16_Env__ctor', PACKAGE = 'plant')
+Parameters___FF16__FF16_Env__ctor <- function(n_spp) {
+    .Call('_plant_Parameters___FF16__FF16_Env__ctor', PACKAGE = 'plant', n_spp)
 }
 
-Parameters___FF16__FF16_Env__vdor <- function(obj) {
-    .Call('_plant_Parameters___FF16__FF16_Env__vdor', PACKAGE = 'plant', obj)
+Parameters___FF16__FF16_Env__patch_area__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16__FF16_Env__patch_area__get', PACKAGE = 'plant', obj_)
 }
 
-Parameters___FF16w__FF16_Env__ctor <- function() {
-    .Call('_plant_Parameters___FF16w__FF16_Env__ctor', PACKAGE = 'plant')
+Parameters___FF16__FF16_Env__patch_area__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16__FF16_Env__patch_area__set', PACKAGE = 'plant', obj_, value))
 }
 
-Parameters___FF16w__FF16_Env__vdor <- function(obj) {
-    .Call('_plant_Parameters___FF16w__FF16_Env__vdor', PACKAGE = 'plant', obj)
+Parameters___FF16__FF16_Env__n_patches__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16__FF16_Env__n_patches__get', PACKAGE = 'plant', obj_)
 }
 
-Parameters___FF16r__FF16_Env__ctor <- function() {
-    .Call('_plant_Parameters___FF16r__FF16_Env__ctor', PACKAGE = 'plant')
+Parameters___FF16__FF16_Env__n_patches__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16__FF16_Env__n_patches__set', PACKAGE = 'plant', obj_, value))
 }
 
-Parameters___FF16r__FF16_Env__vdor <- function(obj) {
-    .Call('_plant_Parameters___FF16r__FF16_Env__vdor', PACKAGE = 'plant', obj)
+Parameters___FF16__FF16_Env__patch_type__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16__FF16_Env__patch_type__get', PACKAGE = 'plant', obj_)
 }
 
-Parameters___K93__K93_Env__ctor <- function() {
-    .Call('_plant_Parameters___K93__K93_Env__ctor', PACKAGE = 'plant')
+Parameters___FF16__FF16_Env__patch_type__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16__FF16_Env__patch_type__set', PACKAGE = 'plant', obj_, value))
 }
 
-Parameters___K93__K93_Env__vdor <- function(obj) {
-    .Call('_plant_Parameters___K93__K93_Env__vdor', PACKAGE = 'plant', obj)
+Parameters___FF16__FF16_Env__max_patch_lifetime__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16__FF16_Env__max_patch_lifetime__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16__FF16_Env__max_patch_lifetime__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16__FF16_Env__max_patch_lifetime__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16__FF16_Env__node_schedule_times_default__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16__FF16_Env__node_schedule_times_default__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16__FF16_Env__node_schedule_times_default__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16__FF16_Env__node_schedule_times_default__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16__FF16_Env__node_schedule_times__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16__FF16_Env__node_schedule_times__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16__FF16_Env__node_schedule_times__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16__FF16_Env__node_schedule_times__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16__FF16_Env__node_schedule_ode_times__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16__FF16_Env__node_schedule_ode_times__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16__FF16_Env__node_schedule_ode_times__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16__FF16_Env__node_schedule_ode_times__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16w__FF16_Env__ctor <- function(n_spp) {
+    .Call('_plant_Parameters___FF16w__FF16_Env__ctor', PACKAGE = 'plant', n_spp)
+}
+
+Parameters___FF16w__FF16_Env__patch_area__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16w__FF16_Env__patch_area__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16w__FF16_Env__patch_area__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16w__FF16_Env__patch_area__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16w__FF16_Env__n_patches__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16w__FF16_Env__n_patches__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16w__FF16_Env__n_patches__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16w__FF16_Env__n_patches__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16w__FF16_Env__patch_type__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16w__FF16_Env__patch_type__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16w__FF16_Env__patch_type__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16w__FF16_Env__patch_type__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16w__FF16_Env__max_patch_lifetime__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16w__FF16_Env__max_patch_lifetime__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16w__FF16_Env__max_patch_lifetime__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16w__FF16_Env__max_patch_lifetime__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16w__FF16_Env__node_schedule_times_default__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16w__FF16_Env__node_schedule_times_default__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16w__FF16_Env__node_schedule_times_default__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16w__FF16_Env__node_schedule_times_default__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16w__FF16_Env__node_schedule_times__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16w__FF16_Env__node_schedule_times__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16w__FF16_Env__node_schedule_times__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16w__FF16_Env__node_schedule_times__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16w__FF16_Env__node_schedule_ode_times__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16w__FF16_Env__node_schedule_ode_times__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16w__FF16_Env__node_schedule_ode_times__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16w__FF16_Env__node_schedule_ode_times__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16r__FF16_Env__ctor <- function(n_spp) {
+    .Call('_plant_Parameters___FF16r__FF16_Env__ctor', PACKAGE = 'plant', n_spp)
+}
+
+Parameters___FF16r__FF16_Env__patch_area__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16r__FF16_Env__patch_area__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16r__FF16_Env__patch_area__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16r__FF16_Env__patch_area__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16r__FF16_Env__n_patches__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16r__FF16_Env__n_patches__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16r__FF16_Env__n_patches__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16r__FF16_Env__n_patches__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16r__FF16_Env__patch_type__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16r__FF16_Env__patch_type__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16r__FF16_Env__patch_type__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16r__FF16_Env__patch_type__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16r__FF16_Env__max_patch_lifetime__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16r__FF16_Env__max_patch_lifetime__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16r__FF16_Env__max_patch_lifetime__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16r__FF16_Env__max_patch_lifetime__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16r__FF16_Env__node_schedule_times_default__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16r__FF16_Env__node_schedule_times_default__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16r__FF16_Env__node_schedule_times_default__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16r__FF16_Env__node_schedule_times_default__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16r__FF16_Env__node_schedule_times__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16r__FF16_Env__node_schedule_times__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16r__FF16_Env__node_schedule_times__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16r__FF16_Env__node_schedule_times__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___FF16r__FF16_Env__node_schedule_ode_times__get <- function(obj_) {
+    .Call('_plant_Parameters___FF16r__FF16_Env__node_schedule_ode_times__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___FF16r__FF16_Env__node_schedule_ode_times__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___FF16r__FF16_Env__node_schedule_ode_times__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___K93__K93_Env__ctor <- function(n_spp) {
+    .Call('_plant_Parameters___K93__K93_Env__ctor', PACKAGE = 'plant', n_spp)
+}
+
+Parameters___K93__K93_Env__patch_area__get <- function(obj_) {
+    .Call('_plant_Parameters___K93__K93_Env__patch_area__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___K93__K93_Env__patch_area__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___K93__K93_Env__patch_area__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___K93__K93_Env__n_patches__get <- function(obj_) {
+    .Call('_plant_Parameters___K93__K93_Env__n_patches__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___K93__K93_Env__n_patches__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___K93__K93_Env__n_patches__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___K93__K93_Env__patch_type__get <- function(obj_) {
+    .Call('_plant_Parameters___K93__K93_Env__patch_type__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___K93__K93_Env__patch_type__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___K93__K93_Env__patch_type__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___K93__K93_Env__max_patch_lifetime__get <- function(obj_) {
+    .Call('_plant_Parameters___K93__K93_Env__max_patch_lifetime__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___K93__K93_Env__max_patch_lifetime__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___K93__K93_Env__max_patch_lifetime__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___K93__K93_Env__node_schedule_times_default__get <- function(obj_) {
+    .Call('_plant_Parameters___K93__K93_Env__node_schedule_times_default__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___K93__K93_Env__node_schedule_times_default__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___K93__K93_Env__node_schedule_times_default__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___K93__K93_Env__node_schedule_times__get <- function(obj_) {
+    .Call('_plant_Parameters___K93__K93_Env__node_schedule_times__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___K93__K93_Env__node_schedule_times__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___K93__K93_Env__node_schedule_times__set', PACKAGE = 'plant', obj_, value))
+}
+
+Parameters___K93__K93_Env__node_schedule_ode_times__get <- function(obj_) {
+    .Call('_plant_Parameters___K93__K93_Env__node_schedule_ode_times__get', PACKAGE = 'plant', obj_)
+}
+
+Parameters___K93__K93_Env__node_schedule_ode_times__set <- function(obj_, value) {
+    invisible(.Call('_plant_Parameters___K93__K93_Env__node_schedule_ode_times__set', PACKAGE = 'plant', obj_, value))
 }
 
 Node___FF16__FF16_Env__ctor <- function(strategy) {
@@ -1605,8 +1813,8 @@ Species___K93__K93_Env__ode_rates__get <- function(obj_) {
     .Call('_plant_Species___K93__K93_Env__ode_rates__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FF16__FF16_Env__ctor <- function(parameters, environment, control) {
-    .Call('_plant_Patch___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+Patch___FF16__FF16_Env__ctor <- function(strategies, environment, control, parameters) {
+    .Call('_plant_Patch___FF16__FF16_Env__ctor', PACKAGE = 'plant', strategies, environment, control, parameters)
 }
 
 Patch___FF16__FF16_Env__introduce_new_node <- function(obj_, species_index) {
@@ -1713,8 +1921,8 @@ Patch___FF16__FF16_Env__node_ode_size__get <- function(obj_) {
     .Call('_plant_Patch___FF16__FF16_Env__node_ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FF16w__FF16_Env__ctor <- function(parameters, environment, control) {
-    .Call('_plant_Patch___FF16w__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+Patch___FF16w__FF16_Env__ctor <- function(strategies, environment, control, parameters) {
+    .Call('_plant_Patch___FF16w__FF16_Env__ctor', PACKAGE = 'plant', strategies, environment, control, parameters)
 }
 
 Patch___FF16w__FF16_Env__introduce_new_node <- function(obj_, species_index) {
@@ -1821,8 +2029,8 @@ Patch___FF16w__FF16_Env__node_ode_size__get <- function(obj_) {
     .Call('_plant_Patch___FF16w__FF16_Env__node_ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___FF16r__FF16_Env__ctor <- function(parameters, environment, control) {
-    .Call('_plant_Patch___FF16r__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+Patch___FF16r__FF16_Env__ctor <- function(strategies, environment, control, parameters) {
+    .Call('_plant_Patch___FF16r__FF16_Env__ctor', PACKAGE = 'plant', strategies, environment, control, parameters)
 }
 
 Patch___FF16r__FF16_Env__introduce_new_node <- function(obj_, species_index) {
@@ -1929,8 +2137,8 @@ Patch___FF16r__FF16_Env__node_ode_size__get <- function(obj_) {
     .Call('_plant_Patch___FF16r__FF16_Env__node_ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-Patch___K93__K93_Env__ctor <- function(parameters, environment, control) {
-    .Call('_plant_Patch___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+Patch___K93__K93_Env__ctor <- function(strategies, environment, control, parameters) {
+    .Call('_plant_Patch___K93__K93_Env__ctor', PACKAGE = 'plant', strategies, environment, control, parameters)
 }
 
 Patch___K93__K93_Env__introduce_new_node <- function(obj_, species_index) {
@@ -2037,8 +2245,8 @@ Patch___K93__K93_Env__node_ode_size__get <- function(obj_) {
     .Call('_plant_Patch___K93__K93_Env__node_ode_size__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16__FF16_Env__ctor <- function(parameters, environment, control) {
-    .Call('_plant_SCM___FF16__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+SCM___FF16__FF16_Env__ctor <- function(strategies, environment, control, parameters) {
+    .Call('_plant_SCM___FF16__FF16_Env__ctor', PACKAGE = 'plant', strategies, environment, control, parameters)
 }
 
 SCM___FF16__FF16_Env__run <- function(obj_) {
@@ -2121,8 +2329,8 @@ SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16w__FF16_Env__ctor <- function(parameters, environment, control) {
-    .Call('_plant_SCM___FF16w__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+SCM___FF16w__FF16_Env__ctor <- function(strategies, environment, control, parameters) {
+    .Call('_plant_SCM___FF16w__FF16_Env__ctor', PACKAGE = 'plant', strategies, environment, control, parameters)
 }
 
 SCM___FF16w__FF16_Env__run <- function(obj_) {
@@ -2205,8 +2413,8 @@ SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get <- function(obj_) {
     .Call('_plant_SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___FF16r__FF16_Env__ctor <- function(parameters, environment, control) {
-    .Call('_plant_SCM___FF16r__FF16_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+SCM___FF16r__FF16_Env__ctor <- function(strategies, environment, control, parameters) {
+    .Call('_plant_SCM___FF16r__FF16_Env__ctor', PACKAGE = 'plant', strategies, environment, control, parameters)
 }
 
 SCM___FF16r__FF16_Env__run <- function(obj_) {
@@ -2289,8 +2497,8 @@ SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get <- function(obj_) {
     .Call('_plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get', PACKAGE = 'plant', obj_)
 }
 
-SCM___K93__K93_Env__ctor <- function(parameters, environment, control) {
-    .Call('_plant_SCM___K93__K93_Env__ctor', PACKAGE = 'plant', parameters, environment, control)
+SCM___K93__K93_Env__ctor <- function(strategies, environment, control, parameters) {
+    .Call('_plant_SCM___K93__K93_Env__ctor', PACKAGE = 'plant', strategies, environment, control, parameters)
 }
 
 SCM___K93__K93_Env__run <- function(obj_) {
