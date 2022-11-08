@@ -201,8 +201,7 @@ make_FF16w_hyperpar <- function(
                                 B_lf4=21000,
                                 B_lf5=1,
                                 k_I=0.5,
-                                K_s=2,
-                                K_s_0 = 1, 
+                                K_s_0 = 2, 
                                 latitude=0) {
   assert_scalar <- function(x, name=deparse(substitute(x))) {
     if (length(x) != 1L) {
@@ -228,7 +227,7 @@ make_FF16w_hyperpar <- function(
   assert_scalar(B_lf4)
   assert_scalar(B_lf5)
   assert_scalar(k_I)
-  assert_scalar(K_s)
+  assert_scalar(K_s_0)
   assert_scalar(latitude)
 
   function(m, s, filter=TRUE) {
@@ -239,7 +238,9 @@ make_FF16w_hyperpar <- function(
     lma       <- with_default("lma")
     rho       <- with_default("rho")
     omega     <- with_default("omega")
-    narea     <- with_default("narea", narea)
+    K_s     <- with_default("K_s")
+    vcmax     <- with_default("vcmax")
+    c     <- with_default("c")
 
     ## lma / leaf turnover relationship:
     k_l   <- B_kl1 * (lma / lma_0) ^ (-B_kl2)
@@ -249,9 +250,20 @@ make_FF16w_hyperpar <- function(
 
     ## rho / wood turnover relationship:
     k_s  <- B_ks1 *  (rho / rho_0) ^ (-B_ks2)
-    
-    p_50 <- 1.731347*(K_s/2)^(-0.7246377)
 
+    ## hard coded model parameters for now
+    ## p_50 sapwood specific conductivity turnover:
+    p_50 <- 1.731347*(K_s/K_s_0)^(-0.7246377)
+
+    ## sensitivity parameter hydraulic vulnerability curve (return unitless):
+    b <- p_50/((-log(1-50/100))^(1/c))
+
+    ## water potential at critical xylem failure (95%) (return -MPa):
+    psi_crit <- b*(log(1/0.05))^(1/c)
+
+    ## n_area from structural (lma) and metabolic (vcmax) N (Dong et al. 2022)
+
+    narea <- 0.535 + 0.009*lma*1000 + 0.007*vcmax
 
     ## rho / sapwood respiration relationship:
 
@@ -268,51 +280,6 @@ make_FF16w_hyperpar <- function(
 
     ## Narea, photosynthesis, respiration
 
-    assimilation_rectangular_hyperbolae <- function(I, Amax, theta, QY) {
-      x <- QY * I + Amax
-      (x - sqrt(x^2 - 4 * theta * QY * I * Amax)) / (2 * theta)
-    }
-
-    ## Photosynthesis  [mol CO2 / m2 / yr]
-    approximate_annual_assimilation <- function(narea, latitude) {
-      E <- seq(0, 1, by=0.02)
-      ## Only integrate over half year, as solar path is symmetrical
-      D <- seq(0, 365/2, length.out = 10000)
-      I <- PAR_given_solar_angle(solar_angle(D, latitude = abs(latitude)))
-
-      Amax <- B_lf1 * (narea/narea_0) ^  B_lf5
-      theta <- B_lf2
-      QY <- B_lf3
-
-      AA <- NA * E
-
-      for (i in seq_len(length(E))) {
-        AA[i] <- 2 * trapezium(D, assimilation_rectangular_hyperbolae(
-                                    k_I * I * E[i], Amax, theta, QY))
-      }
-      if(all(diff(AA) < 1E-8)) {
-        # line fitting will fail if all have are zero, or potentially same value
-        ret <- c(last(AA), 0)
-        names(ret) <- c("p1","p2")
-      } else {
-        fit <- nls(AA ~ p1 * E/(p2 + E), data.frame(E = E, AA = AA), start = list(p1 = 100, p2 = 0.2))
-        ret <- coef(fit)
-      }
-      ret
-    }
-
-    # This needed in case narea has length zero, in which case trapezium fails
-    a_p1 <- a_p2 <- 0 * narea
-    ## TODO: Remove the 0.5 hardcoded default for k_I here, and deal
-    ## with this more nicely.
-    if (length(narea) > 0 || k_I != 0.5) {
-      i <- match(narea, unique(narea))
-      y <- vapply(unique(narea), approximate_annual_assimilation,
-                  numeric(2), latitude)
-      a_p1  <- y["p1", i]
-      a_p2  <- y["p2", i]
-    }
-
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
@@ -322,8 +289,9 @@ make_FF16w_hyperpar <- function(
     extra <- cbind(k_l,                # lma
                    d_I, k_s, r_s, r_b, # rho
                    a_f3,               # omega
-                   a_p1, a_p2,         # narea
-                   r_l)                # lma, narea
+                   narea,         # narea
+                   r_l,                # lma, narea
+                   p_50, b, psi_crit)  # K_s, c              
 
     overlap <- intersect(colnames(m), colnames(extra))
     if (length(overlap) > 0L) {
