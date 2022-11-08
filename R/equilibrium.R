@@ -40,10 +40,13 @@ equilibrium_birth_rate_iteration <- function(p, ctrl) {
   eps <- ctrl$equilibrium_eps
   verbose <- ctrl$equilibrium_verbose
   
-  birth_rate <- sapply(patch$strategies, function(s) s$birth_rate_y, simplify = TRUE)
+  birth_rate <- sapply(p$strategies, function(s) s$birth_rate_y, simplify = TRUE)
+  # browser()
+
   runner <- make_equilibrium_runner(p,ctrl =ctrl)
   
   for (i in seq_len(ctrl$equilibrium_nsteps)) {
+    # browser()
     net_reproduction_ratios <- runner(birth_rate)
     converged <- check(birth_rate, net_reproduction_ratios, eps, verbose)
     birth_rate <- net_reproduction_ratios
@@ -64,7 +67,7 @@ equilibrium_birth_rate_solve <- function(p, ctrl = scm_base_control(),
   plant_log_eq(paste("Solving offspring arrival using", solver),
                stage="start", solver=solver)
 
-  birth_rate <- sapply(patch$strategies, function(s) s$birth_rate_y, simplify = TRUE)
+  birth_rate <- sapply(p$strategies, function(s) s$birth_rate_y, simplify = TRUE)
   runner <- make_equilibrium_runner(p,ctrl =ctrl)
 
   ## First, we exclude species that have offspring arrivals below some minimum
@@ -233,20 +236,17 @@ make_equilibrium_runner <- function(p, ctrl) {
   history <- NULL
 
   function(birth_rate) {
-    
     if (any(abs(birth_rate - last_offspring_arriving) > large_offspring_arriving_change)) {
       p$node_schedule_times <- default_schedule_times
     }
-    
+
     f <- function(s, br){
       s$birth_rate_y <- br
       return(s)
     }
     p$strategies <- mapply(f, p$strategies, birth_rate, SIMPLIFY = FALSE)
-
+  
     p_new <- build_schedule(p, ctrl = ctrl)
-    
-    
     net_reproduction_ratios <- attr(p_new, "net_reproduction_ratios", exact=TRUE)
 
     ## These all write up to the containing environment:
@@ -359,7 +359,7 @@ check_inviable <- function(p, ctrl) {
   ## that birth offspring arrival actually makes more sense?  It's fractional
   ## though so who knows.
   eps_test <- 1e-2
-  birth_rate <- sapply(patch$strategies, function(s) s$birth_rate_y, simplify = TRUE)
+  birth_rate <- sapply(p$strategies, function(s) s$birth_rate_y, simplify = TRUE)
   ## NOTE: We don't actually run to equilibrium here; this is just
   ## because it's a useful way of doing incoming -> outgoing offspring
   ## rain.
