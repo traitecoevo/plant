@@ -22,6 +22,7 @@ equilibrium_birth_rate <- function(p, ctrl) {
 ## This is the simplest solver: it simply iterates the outgoing offspring
 ## produced as incoming offspring arrival.  No attempt at projection is made.
 equilibrium_birth_rate_iteration <- function(p, ctrl) {
+  
   check <- function(x_in, x_out, eps, verbose) {
     achange <- x_out - x_in
     rchange <- 1 - x_out / x_in
@@ -47,9 +48,9 @@ equilibrium_birth_rate_iteration <- function(p, ctrl) {
   
   for (i in seq_len(ctrl$equilibrium_nsteps)) {
     # browser()
-    net_reproduction_ratios <- runner(birth_rate)
-    converged <- check(birth_rate, net_reproduction_ratios, eps, verbose)
-    birth_rate <- net_reproduction_ratios
+    offspring_production <- runner(birth_rate)
+    converged <- check(birth_rate, offspring_production, eps, verbose)
+    birth_rate <- offspring_production
     if (converged) {
       break
     }
@@ -202,7 +203,7 @@ equilibrium_birth_rate_hybrid <- function(p, ctrl) {
 
         p_check <- p
         p_check$birth_rate <- y_in
-        y_out <- run_scm(p_check)$net_reproduction_ratios
+        y_out <- run_scm(p_check)$offspring_production
         if (any(y_out[i] > y_in[i])) {
           plant_log_eq("Solver drove viable species extinct: rejecting")
           next
@@ -247,27 +248,30 @@ make_equilibrium_runner <- function(p, ctrl) {
     p$strategies <- mapply(f, p$strategies, birth_rate, SIMPLIFY = FALSE)
   
     p_new <- build_schedule(p, ctrl = ctrl)
-    net_reproduction_ratios <- attr(p_new, "net_reproduction_ratios", exact=TRUE)
+    
+    offspring_production <- attr(p_new, "offspring_production", exact=TRUE)
 
+    
+    
     ## These all write up to the containing environment:
     p <<- p_new
     last_schedule_times <<- p_new$node_schedule_times
     birth_rate      <<- birth_rate
-    history <<- c(history, list(c("in"=birth_rate, "out"=net_reproduction_ratios)))
+    history <<- c(history, list(c("in"=birth_rate, "out"=offspring_production)))
 
     msg <- sprintf("eq> %d: %s -> %s (delta = %s)", i,
                    pretty_num_collapse(birth_rate),
-                   pretty_num_collapse(net_reproduction_ratios),
-                   pretty_num_collapse(net_reproduction_ratios - birth_rate))
+                   pretty_num_collapse(offspring_production),
+                   pretty_num_collapse(offspring_production - birth_rate))
     plant_log_eq(msg,
                  stage="runner",
                  iteration=i,
                  birth_rate=birth_rate,
-                 net_reproduction_ratios=net_reproduction_ratios)
+                 offspring_production=offspring_production)
     i <<- i + 1L
 
-    attr(net_reproduction_ratios, "schedule_times") <- last_schedule_times
-    net_reproduction_ratios
+    attr(offspring_production, "schedule_times") <- last_schedule_times
+    offspring_production
   }
 }
 
@@ -364,18 +368,18 @@ check_inviable <- function(p, ctrl) {
   ## because it's a useful way of doing incoming -> outgoing offspring
   ## rain.
   runner <- make_equilibrium_runner(p,ctrl =ctrl)
-  net_reproduction_ratios <- runner(net_reproduction_ratios)
+  offspring_production <- runner(offspring_production)
 
-  test <- which(net_reproduction_ratios < birth_rate &
-                birth_rate < max(net_reproduction_ratios) * eps_test)
-  test <- test[order(net_reproduction_ratios[test])]
+  test <- which(offspring_production < birth_rate &
+                birth_rate < max(offspring_production) * eps_test)
+  test <- test[order(offspring_production[test])]
 
-  drop <- logical(length(net_reproduction_ratios))
+  drop <- logical(length(offspring_production))
 
   for (i in test) {
     plant_log_inviable(paste("Testing species", i),
                        stage="testing", species=i)
-    x <- net_reproduction_ratios
+    x <- offspring_production
     x[i] <- eps
     res <- runner(x)
     if (res[[i]] < eps) {
@@ -383,14 +387,14 @@ check_inviable <- function(p, ctrl) {
                          stage="removing", species=i)
       drop[[i]] <- TRUE
       res[[i]] <- 0.0
-      net_reproduction_ratios <- res
+      offspring_production <- res
     }
   }
 
   ## It's possible that things slip through and get driven extinct by
   ## the time that they reach here.
-  drop <- drop | net_reproduction_ratios < eps
+  drop <- drop | offspring_production < eps
 
-  attr(net_reproduction_ratios, "drop") <- drop
-  net_reproduction_ratios
+  attr(offspring_production, "drop") <- drop
+  offspring_production
 }

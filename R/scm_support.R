@@ -210,8 +210,8 @@ run_scm_error <- function(p, env = make_environment(parameters = p),
   }
   total <- lapply(seq_len(n_spp), function(idx)
                   f(rbind(lai_error[[idx]], average_fecundity_error[[idx]])))
-
   list(net_reproduction_ratios=scm$net_reproduction_ratios,
+       offspring_production = scm$offspring_production,
        err=list(lai=lai_error, net_reproduction_ratios=average_fecundity_error, total=total),
        ode_times=scm$ode_times)
 }
