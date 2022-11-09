@@ -131,7 +131,7 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
                                  rep(list(times_new), n_extra))
 
   ## Clear this if it's present:
-  attr(ret, "net_reproduction_ratios") <- NULL
+  attr(ret, "offspring_production") <- NULL
 
   ret
 }

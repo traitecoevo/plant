@@ -42,12 +42,10 @@ equilibrium_birth_rate_iteration <- function(p, ctrl) {
   verbose <- ctrl$equilibrium_verbose
   
   birth_rate <- sapply(p$strategies, function(s) s$birth_rate_y, simplify = TRUE)
-  # browser()
 
   runner <- make_equilibrium_runner(p,ctrl =ctrl)
   
   for (i in seq_len(ctrl$equilibrium_nsteps)) {
-    # browser()
     offspring_production <- runner(birth_rate)
     converged <- check(birth_rate, offspring_production, eps, verbose)
     birth_rate <- offspring_production

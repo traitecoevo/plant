@@ -28,7 +28,6 @@ build_schedule <- function(p, env = make_environment(parameters = p),
   for (i in seq_len(ctrl$schedule_nsteps)) {
     
     res <- run_scm_error(p, env, ctrl)
-    net_reproduction_ratios <- res[["net_reproduction_ratios"]]
     offspring_production <- res[["offspring_production"]]
     
     split <- lapply(res$err$total, function(x) x > eps)
@@ -53,8 +52,7 @@ build_schedule <- function(p, env = make_environment(parameters = p),
 
   p$node_schedule_ode_times <- res$ode_times
   ## Useful to record the last offspring produced:
-  attr(p, "net_reproduction_ratios") <- net_reproduction_ratios
-  
+
   attr(p, "offspring_production") <- offspring_production
   p
 }
