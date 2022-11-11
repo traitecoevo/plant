@@ -11,12 +11,16 @@ equilibrium_birth_rate <- function(p, ctrl) {
   solver <- ctrl$equilibrium_solver_name
   plant_log_info(sprintf("Solving offspring arrival using %s", solver),
                  routine="equilibrium", stage="start", solver=solver)
-  switch(solver,
+  patch <- 
+    switch(solver,
          iteration=equilibrium_birth_rate_iteration(p,ctrl =ctrl),
          nleqslv=equilibrium_birth_rate_solve_robust(p, solver),
          dfsane=equilibrium_birth_rate_solve_robust(p, solver),
          hybrid=equilibrium_birth_rate_hybrid(p,ctrl =ctrl),
          stop("Unknown solver ", solver))
+  
+
+
 }
 
 ## This is the simplest solver: it simply iterates the outgoing offspring
@@ -43,7 +47,7 @@ equilibrium_birth_rate_iteration <- function(p, ctrl) {
   
   birth_rate <- sapply(p$strategies, function(s) s$birth_rate_y, simplify = TRUE)
 
-  runner <- make_equilibrium_runner(p,ctrl =ctrl)
+  runner <- make_equilibrium_runner(p, ctrl =ctrl)
   
   for (i in seq_len(ctrl$equilibrium_nsteps)) {
     offspring_production <- runner(birth_rate)
@@ -283,17 +287,16 @@ equilibrium_runner_cleanup <- function(runner, converged=TRUE) {
 
   p <- e$p
   
-  f <- function(s, br){
-    s$birth_rate_y <- br
-    return(s)
-  }
+  # f <- function(s, br){
+  #   s$birth_rate_y <- br
+  #   return(s)
+  # }
   
   #this may or may not work (original function below)     
   # p$birth_rate <- as.numeric(e$last_offspring_arriving)
   
-  
-  p$strategies <- mapply(f, p$strategies, as.numeric(e$last_offspring_arriving), SIMPLIFY = FALSE)
-  
+  # browser()
+  # p$strategies <- mapply(f, p$strategies, as.numeric(e$last_offspring_arriving), SIMPLIFY = FALSE)
   
   p$node_schedule_times <- e$last_schedule_times
   attr(p, "progress") <- rbind_list(e$history)
