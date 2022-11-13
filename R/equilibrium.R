@@ -17,11 +17,15 @@ equilibrium_birth_rate <- function(p, ctrl) {
          dfsane = equilibrium_birth_rate_solve_robust(p, solver),
          hybrid = equilibrium_birth_rate_hybrid(p, ctrl),
          stop("Unknown solver ", solver))
+  
+
+
 }
 
 ## This is the simplest solver: it simply iterates the outgoing offspring
 ## produced as incoming offspring arrival.  No attempt at projection is made.
 equilibrium_birth_rate_iteration <- function(p, ctrl) {
+  
   check <- function(x_in, x_out, eps, verbose) {
     achange <- x_out - x_in
     rchange <- 1 - x_out / x_in
@@ -40,13 +44,14 @@ equilibrium_birth_rate_iteration <- function(p, ctrl) {
   eps <- ctrl$equilibrium_eps
   verbose <- ctrl$equilibrium_verbose
   
-  birth_rate <- sapply(patch$strategies, function(s) s$birth_rate_y, simplify = TRUE)
-  runner <- make_equilibrium_runner(p,ctrl =ctrl)
+  birth_rate <- sapply(p$strategies, function(s) s$birth_rate_y, simplify = TRUE)
+
+  runner <- make_equilibrium_runner(p, ctrl =ctrl)
   
   for (i in seq_len(ctrl$equilibrium_nsteps)) {
-    net_reproduction_ratios <- runner(birth_rate)
-    converged <- check(birth_rate, net_reproduction_ratios, eps, verbose)
-    birth_rate <- net_reproduction_ratios
+    offspring_production <- runner(birth_rate)
+    converged <- check(birth_rate, offspring_production, eps, verbose)
+    birth_rate <- offspring_production
     if (converged) {
       break
     }
@@ -64,7 +69,7 @@ equilibrium_birth_rate_solve <- function(p, ctrl = scm_base_control(),
   plant_log_eq(paste("Solving offspring arrival using", solver),
                stage="start", solver=solver)
 
-  birth_rate <- sapply(patch$strategies, function(s) s$birth_rate_y, simplify = TRUE)
+  birth_rate <- sapply(p$strategies, function(s) s$birth_rate_y, simplify = TRUE)
   runner <- make_equilibrium_runner(p,ctrl =ctrl)
 
   ## First, we exclude species that have offspring arrivals below some minimum
@@ -195,7 +200,7 @@ equilibrium_birth_rate_hybrid <- function(p, ctrl) {
 
         p_check <- p
         p_check$birth_rate <- y_in
-        y_out <- run_scm(p_check)$net_reproduction_ratios
+        y_out <- run_scm(p_check)$offspring_production
         if (any(y_out[i] > y_in[i])) {
           plant_log_eq("Solver drove viable species extinct: rejecting")
           next
@@ -229,41 +234,41 @@ make_equilibrium_runner <- function(p, ctrl) {
   history <- NULL
 
   function(birth_rate) {
-    
     if (any(abs(birth_rate - last_offspring_arriving) > large_offspring_arriving_change)) {
       p$node_schedule_times <- default_schedule_times
     }
-    
+
     f <- function(s, br){
       s$birth_rate_y <- br
       return(s)
     }
     p$strategies <- mapply(f, p$strategies, birth_rate, SIMPLIFY = FALSE)
-
+  
     p_new <- build_schedule(p, ctrl = ctrl)
     
-    
-    net_reproduction_ratios <- attr(p_new, "net_reproduction_ratios", exact=TRUE)
+    offspring_production <- attr(p_new, "offspring_production", exact=TRUE)
 
+    
+    
     ## These all write up to the containing environment:
     p <<- p_new
     last_schedule_times <<- p_new$node_schedule_times
     birth_rate      <<- birth_rate
-    history <<- c(history, list(c("in"=birth_rate, "out"=net_reproduction_ratios)))
+    history <<- c(history, list(c("in"=birth_rate, "out"=offspring_production)))
 
     msg <- sprintf("eq> %d: %s -> %s (delta = %s)", i,
                    pretty_num_collapse(birth_rate),
-                   pretty_num_collapse(net_reproduction_ratios),
-                   pretty_num_collapse(net_reproduction_ratios - birth_rate))
+                   pretty_num_collapse(offspring_production),
+                   pretty_num_collapse(offspring_production - birth_rate))
     plant_log_eq(msg,
                  stage="runner",
                  iteration=i,
                  birth_rate=birth_rate,
-                 net_reproduction_ratios=net_reproduction_ratios)
+                 offspring_production=offspring_production)
     i <<- i + 1L
 
-    attr(net_reproduction_ratios, "schedule_times") <- last_schedule_times
-    net_reproduction_ratios
+    attr(offspring_production, "schedule_times") <- last_schedule_times
+    offspring_production
   }
 }
 
@@ -277,17 +282,16 @@ equilibrium_runner_cleanup <- function(runner, converged=TRUE) {
 
   p <- e$p
   
-  f <- function(s, br){
-    s$birth_rate_y <- br
-    return(s)
-  }
+  # f <- function(s, br){
+  #   s$birth_rate_y <- br
+  #   return(s)
+  # }
   
   #this may or may not work (original function below)     
   # p$birth_rate <- as.numeric(e$last_offspring_arriving)
   
-  
-  p$strategies <- mapply(f, p$strategies, as.numeric(e$last_offspring_arriving), SIMPLIFY = FALSE)
-  
+  # browser()
+  # p$strategies <- mapply(f, p$strategies, as.numeric(e$last_offspring_arriving), SIMPLIFY = FALSE)
   
   p$node_schedule_times <- e$last_schedule_times
   attr(p, "progress") <- rbind_list(e$history)
@@ -355,23 +359,23 @@ check_inviable <- function(p, ctrl) {
   ## that birth offspring arrival actually makes more sense?  It's fractional
   ## though so who knows.
   eps_test <- 1e-2
-  birth_rate <- sapply(patch$strategies, function(s) s$birth_rate_y, simplify = TRUE)
+  birth_rate <- sapply(p$strategies, function(s) s$birth_rate_y, simplify = TRUE)
   ## NOTE: We don't actually run to equilibrium here; this is just
   ## because it's a useful way of doing incoming -> outgoing offspring
   ## rain.
   runner <- make_equilibrium_runner(p,ctrl =ctrl)
-  net_reproduction_ratios <- runner(net_reproduction_ratios)
+  offspring_production <- runner(offspring_production)
 
-  test <- which(net_reproduction_ratios < birth_rate &
-                birth_rate < max(net_reproduction_ratios) * eps_test)
-  test <- test[order(net_reproduction_ratios[test])]
+  test <- which(offspring_production < birth_rate &
+                birth_rate < max(offspring_production) * eps_test)
+  test <- test[order(offspring_production[test])]
 
-  drop <- logical(length(net_reproduction_ratios))
+  drop <- logical(length(offspring_production))
 
   for (i in test) {
     plant_log_inviable(paste("Testing species", i),
                        stage="testing", species=i)
-    x <- net_reproduction_ratios
+    x <- offspring_production
     x[i] <- eps
     res <- runner(x)
     if (res[[i]] < eps) {
@@ -379,14 +383,14 @@ check_inviable <- function(p, ctrl) {
                          stage="removing", species=i)
       drop[[i]] <- TRUE
       res[[i]] <- 0.0
-      net_reproduction_ratios <- res
+      offspring_production <- res
     }
   }
 
   ## It's possible that things slip through and get driven extinct by
   ## the time that they reach here.
-  drop <- drop | net_reproduction_ratios < eps
+  drop <- drop | offspring_production < eps
 
-  attr(net_reproduction_ratios, "drop") <- drop
-  net_reproduction_ratios
+  attr(offspring_production, "drop") <- drop
+  offspring_production
 }

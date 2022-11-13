@@ -347,6 +347,12 @@ make_FF16_hyperpar <- function(
            paste(overlap, collapse=", "))
     }
 
+    ## Check for infitinte values - these cause issues
+    if(any(is.infinite(extra))) {
+      stop("Attempt to use infinite value in derived parameters: ",
+           paste(colnames(extra)[is.infinite(extra)], collapse=", "))
+    }
+
     ## Filter extra so that any column where all numbers are with eps
     ## of the default strategy are not replaced:
     if (filter) {
