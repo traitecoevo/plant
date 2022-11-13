@@ -51,7 +51,6 @@ public:
        double c            = 2.04, //unitless
        double b            = 2.0, // MPa
        double psi_crit     = 3.42,  // derived from b and c (- MPa)
-       double huber_value  = 1.57e-4, // m^2 sapwood area m^-2 leaf area
        double K_s = 2, // kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
        double epsilon_leaf = 0.001); 
 
@@ -66,7 +65,6 @@ public:
   double c;
   double b;
   double psi_crit;  // derived from b and c
-  double huber_value;
   double K_s;
 
   //actually a control paramaeter and needs to be moved

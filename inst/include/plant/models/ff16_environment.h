@@ -67,10 +67,10 @@ public:
   double PPFD = 1000;
 
   //paramaterised for sandy loam
-  double theta_sat = 0.453;
+  double soil_moist_sat = 0.453;
   double r_soil = 0.01;
-  double theta_wp = 0.081;
-  double theta_fc = 0.180;
+  double soil_moist_wp = 0.081;
+  double soil_moist_fc = 0.180;
   double swf = 1;
   double k_sat = 440.628;
   double b_infil = 8;
@@ -101,7 +101,7 @@ public:
 
 
 
-        saturation = std::max(0.0, 1 - std::pow(vars.state(i)/theta_sat, b_infil));
+        saturation = std::max(0.0, 1 - std::pow(vars.state(i)/soil_moist_sat, b_infil));
         infiltration = extrinsic_drivers.evaluate("rainfall", time) * saturation;
 
         // // Evaporation at soil surface
@@ -114,7 +114,7 @@ public:
         // double patch_total_area_leaf = 1.0;
         // double Ev_pot = E_bare_soil_pot_m * std::exp(-0.398 * total_LAI);
 
-        // double soil_wetness = std::pow(((vars.state(i) - theta_wp) / (theta_fc - theta_wp)), swf);
+        // double soil_wetness = std::pow(((vars.state(i) - soil_moist_wp) / (soil_moist_fc - soil_moist_wp)), swf);
 
         // evaporation = std::max(0.0, Ev_pot * soil_wetness)*60*60*24*365;
       } else {
@@ -124,7 +124,7 @@ public:
       }
 
       // if (i == soil_number_of_depths){
-      //   drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
+      //   drainage = k_sat * std::pow(vars.state(i)/soil_moist_sat, 2*calc_n_psi() + 3);
       // }
 
       // TODO: add drainage
@@ -140,7 +140,7 @@ public:
       // net_flux = infiltration  - resource_depletion[i] - drainage;
       // net_flux = infiltration   - drainage;
 
-      // drainage = k_sat * std::pow(vars.state(i)/theta_sat, 2*calc_n_psi() + 3);
+      // drainage = k_sat * std::pow(vars.state(i)/soil_moist_sat, 2*calc_n_psi() + 3);
 
       // drainage = 0;
 
@@ -149,7 +149,7 @@ public:
 
       // net_flux = infiltration - evaporation - drainage -  resource_depletion[i];
 
-        // std::cout << "; theta: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
+        // std::cout << "; soil_moist: " << vars.state(i) << "resource depletion: " << resource_depletion[i] << std::endl;
 
       // std::cout << "net_flux" << net_flux << std::endl;
 
@@ -159,41 +159,49 @@ public:
   }
 
   double calc_n_psi() const {
-  double n_psi = -((log(1500/33))/(log(theta_wp/theta_fc)));
+  double n_psi = -((log(1500/33))/(log(soil_moist_wp/soil_moist_fc)));
   return n_psi;
 }
 
   double calc_a_psi() const {
   double n_psi = calc_n_psi();
-  double a_psi = 1.5e6 * std::pow(theta_wp, calc_n_psi());
+  double a_psi = 1.5e6 * std::pow(soil_moist_wp, calc_n_psi());
   return a_psi;
 }
 
-  double calc_psi(double theta_) const {
+  double calc_psi(double soil_moist_) const {
   double n_psi = calc_n_psi();
   double a_psi = calc_a_psi();
 
-    double psi = a_psi * std::pow(theta_, -n_psi);
+    double psi = a_psi * std::pow(soil_moist_, -n_psi);
   return psi;
 }
+
+  double soil_moist_from_psi(double psi_soil_) const {
+  double n_psi = calc_n_psi();
+  double a_psi = calc_a_psi();  
+  
+  return pow((psi_soil_/a_psi), (-1/n_psi));
+}
+
 
   double get_psi_soil() const {
     // soil volumetric water: m3.m-3
     // assume one layer for now - later extend to include layers of variable depth
-    double theta = get_soil_water_state()[0];
-// std::cout << "theta" << theta << std::endl;
+    double soil_moist = get_soil_water_state()[0];
+// std::cout << "soil_moist" << soil_moist << std::endl;
     // later average over all layers
     // for(i in 1:n_soil_layers)
     //    total = sum(environment.vars.state(i))
-    //    theta_soil = total / n_soil_layers
+    //    soil_moist_soil = total / n_soil_layers
 
     // hardcode for now; later set in enviornment constructor
     double a_psi = calc_a_psi();
     double n_psi = calc_n_psi();
 
-    double psi = calc_psi(theta);
-    // TODO: convert theta to psi
-    // calc_apsi(theta_fc, theta_wp)*(theta/theta_sat)^(-calc_npsi(theta_fc, theta_wp))
+    double psi = calc_psi(soil_moist);
+    // TODO: convert soil_moist to psi
+    // calc_apsi(soil_moist_fc, soil_moist_wp)*(soil_moist/soil_moist_sat)^(-calc_npsi(soil_moist_fc, soil_moist_wp))
 
     return psi;
   }
@@ -234,9 +242,9 @@ public:
 inline Rcpp::List get_state(const FF16_Environment environment, double time) {
   auto ret = get_state(environment.extrinsic_drivers, time);
   ret["canopy"] = get_state(environment.canopy); // does a full copy of ret, not efficient
-  auto const& theta_list = environment.get_soil_water_state();
-  auto rcpp_theta_vec = Rcpp::NumericVector(theta_list.begin(), theta_list.end());
-  ret["theta"] = rcpp_theta_vec;
+  auto const& soil_moist_list = environment.get_soil_water_state();
+  auto rcpp_soil_moist_vec = Rcpp::NumericVector(soil_moist_list.begin(), soil_moist_list.end());
+  ret["soil_moist"] = rcpp_soil_moist_vec;
   return ret;
 }
 

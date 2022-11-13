@@ -93,7 +93,7 @@ calc_E_supply <- function(psi_stem, psi_soil, ...){
 
 #calculate stomatal conductance to h20 (g_w) and co2 (g_c) from E supply and VPD
 calc_g_c <- function(psi_stem, psi_soil, atm_vpd,...){
-  # g_w = atm_kpa*l$calc_E_supply(psi_stem)*kg_2_mol_h20/atm_vpd
+  # g_w = atm_kpa*l$transpiration(psi_stem)*kg_2_mol_h20/atm_vpd
   g_w = atm_kpa*calc_E_supply(psi_stem = psi_stem, psi_soil = psi_soil, ...)$value*kg_2_mol_h20/atm_vpd
   g_w/1.6
 }
@@ -209,7 +209,7 @@ calc_profit_Sperry_ci_one_line <- function(c_i, ...){
   benefit_ = calc_A_lim_one_line(c_i = c_i, vcmax = vcmax, PPFD = PPFD)
   g_c_ci = (benefit_ * umol_per_mol_2_mol_per_mol * atm_kpa * kPa_2_Pa)/(ca - c_i)
   E = g_c_ci * 1.6 * atm_vpd / kg_2_mol_h20 / atm_kpa;  
-  psi_stem = solve_psi(E = E, k_l_max = k_l_max, psi_soil = psi_soil, b =b, c= c)
+  psi_stem = solve_psi(E = E, psi_soil = psi_soil, b =b, c= c, ...)
   
   lambda_ = calc_lambda(psi_soil= psi_soil, k_l_max, vcmax = vcmax, PPFD = PPFD, b= b, c= c, psi_crit = psi_crit, atm_vpd = atm_vpd, ca= ca)
 

@@ -261,10 +261,7 @@ make_FF16w_hyperpar <- function(
     ## water potential at critical xylem failure (95%) (return -MPa):
     psi_crit <- b*(log(1/0.05))^(1/c)
 
-    ## n_area from structural (lma) and metabolic (vcmax) N (Dong et al. 2022)
-
-    narea <- 0.535 + 0.009*lma*1000 + 0.007*vcmax
-
+    
     ## rho / sapwood respiration relationship:
 
     ## Respiration rates are per unit mass, so this next line has the
@@ -280,6 +277,10 @@ make_FF16w_hyperpar <- function(
 
     ## Narea, photosynthesis, respiration
 
+    ## n_area from structural (lma) and metabolic (vcmax) N (Dong et al. 2022)
+
+    narea <- (0.535 + 0.009*lma*1000 + 0.007*vcmax)/1000
+    
     ## Respiration rates are per unit mass, so convert to mass-based
     ## rate by dividing with lma
     ## So respiration rates per unit mass vary with lma, while
@@ -289,7 +290,6 @@ make_FF16w_hyperpar <- function(
     extra <- cbind(k_l,                # lma
                    d_I, k_s, r_s, r_b, # rho
                    a_f3,               # omega
-                   narea,         # narea
                    r_l,                # lma, narea
                    p_50, b, psi_crit)  # K_s, c              
 
@@ -310,6 +310,7 @@ make_FF16w_hyperpar <- function(
           eps <- sqrt(.Machine$double.eps)
           x1 <- extra[1, pos]
           x2 <- unlist(s[names(x1)])
+
           drop <- abs(x1 - x2) < eps & abs(1 - x1/x2) < eps
           if (any(drop)) {
             keep <- setdiff(colnames(extra), names(drop)[drop])

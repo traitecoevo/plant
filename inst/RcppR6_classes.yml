@@ -7,7 +7,6 @@ Leaf:
       - c: double
       - b: double
       - psi_crit: double
-      - huber_value: double
       - K_s: double
       - epsilon_leaf: double
 
@@ -77,7 +76,7 @@ Leaf:
     assim_colimited_analytical:
       return_type: double
       args: [ci_: double]  
-      set_leaf_states_rates_from_psi_stem:
+    set_leaf_states_rates_from_psi_stem:
       return_type: void
       args: [psi_stem: double]
     set_leaf_states_rates_from_psi_stem_analytical:
@@ -1027,6 +1026,9 @@ FF16_Environment:
     calc_psi:
       args: [theta_: double]
       return_type: double 
+    soil_moist_from_psi:
+      args: [psi_soil_: double]
+      return_type: double
     clear:
       return_type: void
     set_fixed_environment:
@@ -1198,7 +1200,6 @@ FF16w_Strategy:
     - c: double
     - b: double
     - psi_crit: double
-    - huber_value: double
     - epsilon_leaf: double
     - recruitment_decay: double
     - control: "plant::Control"

@@ -2,12 +2,16 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double huber_value, double K_s, double epsilon_leaf) {
-  return plant::Leaf(vcmax, p_50, c, b, psi_crit, huber_value, K_s, epsilon_leaf);
+plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double K_s, double epsilon_leaf) {
+  return plant::Leaf(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
   obj_->initialize_integrator(integration_rule, integration_tol);
+}
+// [[Rcpp::export]]
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca) {
+  obj_->set_physiology(PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca);
 }
 // [[Rcpp::export]]
 double Leaf__proportion_of_conductivity(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {
@@ -26,6 +30,10 @@ double Leaf__stom_cond_CO2(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_s
   return obj_->stom_cond_CO2(psi_stem);
 }
 // [[Rcpp::export]]
+double Leaf__transpiration_to_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double transpiration_) {
+  return obj_->transpiration_to_psi_stem(transpiration_);
+}
+// [[Rcpp::export]]
 double Leaf__assim_rubisco_limited(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_) {
   return obj_->assim_rubisco_limited(ci_);
 }
@@ -42,60 +50,16 @@ double Leaf__assim_minus_stom_cond_CO2(plant::RcppR6::RcppR6<plant::Leaf> obj_, 
   return obj_->assim_minus_stom_cond_CO2(x, psi_stem);
 }
 // [[Rcpp::export]]
-double Leaf__hydraulic_cost_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->hydraulic_cost_Sperry(psi_stem);
-}
-// [[Rcpp::export]]
-double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->profit_psi_stem_Sperry(psi_stem);
-}
-// [[Rcpp::export]]
-void Leaf__optimise_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  obj_->optimise_psi_stem_Sperry();
-}
-// [[Rcpp::export]]
-double Leaf__transpiration_to_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double transpiration_) {
-  return obj_->transpiration_to_psi_stem(transpiration_);
-}
-// [[Rcpp::export]]
-double Leaf__profit_Sperry_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_) {
-  return obj_->profit_Sperry_ci(ci_);
-}
-// [[Rcpp::export]]
-void Leaf__optimise_psi_stem_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_guess) {
-  obj_->optimise_psi_stem_Sperry_Newton(psi_guess);
-}
-// [[Rcpp::export]]
-void Leaf__optimise_psi_stem_Sperry_Newton_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_guess) {
-  obj_->optimise_psi_stem_Sperry_Newton_analytical(psi_guess);
-}
-// [[Rcpp::export]]
 double Leaf__electron_transport(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   return obj_->electron_transport();
-}
-// [[Rcpp::export]]
-double Leaf__profit_psi_stem_Sperry_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->profit_psi_stem_Sperry_analytical(psi_stem);
-}
-// [[Rcpp::export]]
-double Leaf__profit_Sperry_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_) {
-  return obj_->profit_Sperry_ci_analytical(ci_);
 }
 // [[Rcpp::export]]
 double Leaf__assim_colimited_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_) {
   return obj_->assim_colimited_analytical(ci_);
 }
 // [[Rcpp::export]]
-void Leaf__optimise_psi_stem_Sperry_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
-  obj_->optimise_psi_stem_Sperry_analytical();
-}
-// [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca) {
-  obj_->set_physiology(PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca);
-}
-// [[Rcpp::export]]
-double Leaf__psi_stem_to_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  return obj_->psi_stem_to_ci_analytical(psi_stem);
+void Leaf__set_leaf_states_rates_from_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  obj_->set_leaf_states_rates_from_psi_stem(psi_stem);
 }
 // [[Rcpp::export]]
 void Leaf__set_leaf_states_rates_from_psi_stem_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
@@ -106,8 +70,44 @@ double Leaf__psi_stem_to_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_
   return obj_->psi_stem_to_ci(psi_stem);
 }
 // [[Rcpp::export]]
-void Leaf__set_leaf_states_rates_from_psi_stem(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
-  obj_->set_leaf_states_rates_from_psi_stem(psi_stem);
+double Leaf__psi_stem_to_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->psi_stem_to_ci_analytical(psi_stem);
+}
+// [[Rcpp::export]]
+double Leaf__hydraulic_cost_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->hydraulic_cost_Sperry(psi_stem);
+}
+// [[Rcpp::export]]
+double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->profit_psi_stem_Sperry(psi_stem);
+}
+// [[Rcpp::export]]
+double Leaf__profit_Sperry_ci(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_) {
+  return obj_->profit_Sperry_ci(ci_);
+}
+// [[Rcpp::export]]
+double Leaf__profit_psi_stem_Sperry_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->profit_psi_stem_Sperry_analytical(psi_stem);
+}
+// [[Rcpp::export]]
+double Leaf__profit_Sperry_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_) {
+  return obj_->profit_Sperry_ci_analytical(ci_);
+}
+// [[Rcpp::export]]
+void Leaf__optimise_psi_stem_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_guess) {
+  obj_->optimise_psi_stem_Sperry_Newton(psi_guess);
+}
+// [[Rcpp::export]]
+void Leaf__optimise_psi_stem_Sperry_Newton_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_guess) {
+  obj_->optimise_psi_stem_Sperry_Newton_analytical(psi_guess);
+}
+// [[Rcpp::export]]
+void Leaf__optimise_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->optimise_psi_stem_Sperry();
+}
+// [[Rcpp::export]]
+void Leaf__optimise_psi_stem_Sperry_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->optimise_psi_stem_Sperry_analytical();
 }
 // [[Rcpp::export]]
 void Leaf__optimise_ci_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_guess) {
@@ -4077,6 +4077,10 @@ double FF16_Environment__calc_a_psi(plant::RcppR6::RcppR6<plant::FF16_Environmen
 // [[Rcpp::export]]
 double FF16_Environment__calc_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double theta_) {
   return obj_->calc_psi(theta_);
+}
+// [[Rcpp::export]]
+double FF16_Environment__soil_moist_from_psi(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, double psi_soil_) {
+  return obj_->soil_moist_from_psi(psi_soil_);
 }
 // [[Rcpp::export]]
 void FF16_Environment__clear(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {

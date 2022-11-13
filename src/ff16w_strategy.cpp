@@ -5,10 +5,6 @@ namespace plant {
 FF16w_Strategy::FF16w_Strategy() {
   collect_all_auxiliary = false;
 
-  // initialise leaf traits
-  // leaf = Leaf(vcmax, p_50, c, b, psi_crit, huber_value, K_s);
-
-
   // build the string state/aux name to index map
   refresh_indices();
   name = "FF16w";
@@ -69,7 +65,7 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   const double leaf_specific_conductance_max = K_s * theta / (height * eta_c);
   leaf.set_physiology(average_radiation, psi_soil, leaf_specific_conductance_max, leaf.atm_vpd, leaf.ca);
     
-  leaf.optimise_psi_stem_Sperry_analytical();
+  leaf.optimise_psi_stem_Sperry();
 
   vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
     
@@ -173,7 +169,7 @@ void FF16w_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf(vcmax, p_50, c, b, psi_crit, huber_value, K_s, epsilon_leaf);
+  leaf = Leaf(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf);
 }
 
 

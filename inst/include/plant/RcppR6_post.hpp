@@ -1327,7 +1327,6 @@ template <> inline SEXP wrap(const plant::FF16w_Strategy& x) {
   ret["c"] = Rcpp::wrap(x.c);
   ret["b"] = Rcpp::wrap(x.b);
   ret["psi_crit"] = Rcpp::wrap(x.psi_crit);
-  ret["huber_value"] = Rcpp::wrap(x.huber_value);
   ret["epsilon_leaf"] = Rcpp::wrap(x.epsilon_leaf);
   ret["recruitment_decay"] = Rcpp::wrap(x.recruitment_decay);
   ret["control"] = Rcpp::wrap(x.control);
@@ -1421,8 +1420,6 @@ template <> inline plant::FF16w_Strategy as(SEXP x) {
   ret.b = Rcpp::as<double >(xl["b"]);
   // ret.psi_crit = Rcpp::as<decltype(retpsi_crit) >(xl["psi_crit"]);
   ret.psi_crit = Rcpp::as<double >(xl["psi_crit"]);
-  // ret.huber_value = Rcpp::as<decltype(rethuber_value) >(xl["huber_value"]);
-  ret.huber_value = Rcpp::as<double >(xl["huber_value"]);
   // ret.epsilon_leaf = Rcpp::as<decltype(retepsilon_leaf) >(xl["epsilon_leaf"]);
   ret.epsilon_leaf = Rcpp::as<double >(xl["epsilon_leaf"]);
   // ret.recruitment_decay = Rcpp::as<decltype(retrecruitment_decay) >(xl["recruitment_decay"]);

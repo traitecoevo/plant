@@ -4,30 +4,29 @@
 namespace plant {
 Leaf::Leaf(double vcmax, double p_50, double c, double b,
            double psi_crit, // derived from b and c
-           double huber_value, double K_s, double epsilon_leaf)
-    : vcmax(vcmax), 
-    p_50(p_50), 
-    c(c), 
-    b(b), 
-    psi_crit(psi_crit), 
-    huber_value(huber_value), 
-    K_s(K_s), 
-    epsilon_leaf(epsilon_leaf), 
-    ci_(NA_REAL), 
-    stom_cond_CO2_(NA_REAL), 
-    assim_colimited_(NA_REAL), 
-    transpiration_(NA_REAL), 
-    profit_(NA_REAL), 
-    electron_transport_(NA_REAL), 
-    lambda_(NA_REAL),
-    lambda_analytical_(NA_REAL), 
-    PPFD_(NA_REAL), 
-    atm_vpd_(NA_REAL), 
-    ca_(NA_REAL),
-    psi_soil_(NA_REAL), 
-    leaf_specific_conductance_max_(NA_REAL), 
-    opt_psi_stem_(NA_REAL), 
-    opt_ci_(NA_REAL), 
+           double K_s, double epsilon_leaf)
+    : vcmax(vcmax), // umol m^-2 s^-1 
+    p_50(p_50), // -MPa
+    c(c), //unitless
+    b(b), //-MPa
+    psi_crit(psi_crit), //-MPa 
+    K_s(K_s), // kg m^-1 s^-1 MPa^-1 
+    epsilon_leaf(epsilon_leaf), //tolerance value 
+    leaf_specific_conductance_max_(NA_REAL), //kg m^-2 s^-1 MPa^-1 
+    PPFD_(NA_REAL), //? 
+    atm_vpd_(NA_REAL), //kPa 
+    ca_(NA_REAL), //Pa
+    psi_soil_(NA_REAL), //-MPa 
+    ci_(NA_REAL), // Pa
+    stom_cond_CO2_(NA_REAL), //umol Co2 m^-2 s^-1 
+    electron_transport_(NA_REAL), //electron transport rate 
+    assim_colimited_(NA_REAL), // umol C m^-2 s^-1 
+    transpiration_(NA_REAL), // kg m^-2 s^-1 
+    lambda_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
+    lambda_analytical_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
+    profit_(NA_REAL), // umol C m^-2 s^-1 
+    opt_psi_stem_(NA_REAL), //-MPa 
+    opt_ci_(NA_REAL), //Pa 
     count(NA_REAL), 
     GSS_count(NA_REAL) {
       setup_transpiration(100);
@@ -42,7 +41,7 @@ void Leaf::set_physiology(double PPFD, double psi_soil, double leaf_specific_con
    leaf_specific_conductance_max_ = leaf_specific_conductance_max;
    ca_ = ca;
    electron_transport_ = electron_transport();
-
+// set lambda, if psi_soil is higher than psi_crit, then set to 0. Currently doing both the numerical and analytical version. Ideally would do one.
   if(psi_soil >= psi_crit){
     lambda_ = 0;
     lambda_analytical_ = 0;
@@ -92,7 +91,7 @@ double Leaf::transpiration_full_integration(double psi_stem) {
   return leaf_specific_conductance_max_ * integrator.integrate(f, psi_soil_, psi_stem);
  }
 
-//returns kg h20 s^-1 m^-2 LA
+//calculates supply-side transpiration from psi_stem and psi_soil, returns kg h20 s^-1 m^-2 LA
 double Leaf::transpiration(double psi_stem) {
   // integration of proportion_of_conductivity over [psi_soil_, psi_stem]
   // std::cout << "E_stem" << transpiration_from_psi.eval(psi_stem) << std::endl;
@@ -102,6 +101,7 @@ double Leaf::transpiration(double psi_stem) {
   
 }
 
+// converts a known transpiration to its corresponding psi_stem, returns -MPa
 double Leaf::transpiration_to_psi_stem(double transpiration_) {
   // integration of proportion_of_conductivity over [psi_soil_, psi_stem]
   double E_psi_stem = transpiration_/leaf_specific_conductance_max_ +  transpiration_from_psi.eval(psi_soil_);
@@ -109,7 +109,7 @@ double Leaf::transpiration_to_psi_stem(double transpiration_) {
   return psi_from_transpiration.eval(E_psi_stem);
   }
 
-// returns stom_cond_CO2, mol C m^-2 LA s^-1
+// returns stomatal conductance to CO2, mol C m^-2 LA s^-1
 double Leaf::stom_cond_CO2(double psi_stem) {
   double transpiration_ = transpiration(psi_stem);
   return atm_kpa * transpiration_ * kg_to_mol_h2o / atm_vpd_ / 1.6;
@@ -118,6 +118,7 @@ double Leaf::stom_cond_CO2(double psi_stem) {
 
 // biochemical photosynthesis model equations
 //ensure that units of PPFD_ actually correspond to something real.
+// electron trnansport rate based on light availability and vcmax assuming co-limitation hypothesis
 double Leaf::electron_transport() {
   double jmax = vcmax * vcmax_25_to_jmax_25;
   double electron_transport_ = (a * PPFD_ + jmax - sqrt(pow(a * PPFD_ + jmax, 2) - 4 * curv_fact * a * PPFD_ * jmax)) / (2 * curv_fact); // check brackets are correct
@@ -125,12 +126,12 @@ double Leaf::electron_transport() {
   return electron_transport_;           
 }
 
-// returns assim_rubisco_limited_ umol m^-2 s^-1
+//calculate the rubisco-limited assimilation rate, returns umol m^-2 s^-1
 double Leaf::assim_rubisco_limited(double ci_) {
   return (vcmax * (ci_ - gamma_25 * umol_per_mol_to_Pa)) / (ci_ + km_25);
 }
 
-// returns assim_electron_limited_ umol m^-2 s^-1
+//calculate the light-limited assimilation rate, returns umol m^-2 s^-1
 double Leaf::assim_electron_limited(double ci_) {
   
   return electron_transport_ / 4 *
@@ -149,7 +150,7 @@ double Leaf::assim_colimited(double ci_) {
              (2 * 0.98);
 }
 
-// returns co-limited assimilation umol m^-2 s^-1
+// returns co-limited assimilation based only on light-limited transport rate and empirically-parameterised smothing term, returns umol m^-2 s^-1
 double Leaf::assim_colimited_analytical(double ci_) {
 
   double c2 = 13.13652;
@@ -174,7 +175,7 @@ double Leaf::assim_minus_stom_cond_CO2(double x, double psi_stem) {
          (stom_cond_CO2_x_ * (ca_ - x) / (atm_kpa * kPa_to_Pa));
 }
 
-
+// converts psi stem to ci, used to find ci which makes A(ci) = gc(ca - ci)
 double Leaf::psi_stem_to_ci(double psi_stem) {
   // not clear what x is here
   
@@ -186,6 +187,7 @@ double Leaf::psi_stem_to_ci(double psi_stem) {
   return ci_ = util::uniroot(target, 0, ca_, 1e-6, 1000);
 }
 
+// given psi_stem, find assimilation, transpiration and stomal conductance to c02
 void Leaf::set_leaf_states_rates_from_psi_stem(double psi_stem) {
   
   if (psi_soil_ >= psi_stem){

@@ -43,11 +43,8 @@ virtual std::vector<std::string> aux_names() {
   // leaf traits
   double vcmax = 100;
   double c = 2.04;
-  double beta = 15000.0;
-  double beta_2 = 1.0;
-  double huber_value = 1.57e-4;
-  double p_50 = 1;
   double K_s = 3;
+  double p_50 = 1.731347*pow(K_s/2,-0.7246377);
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
   double epsilon_leaf = 0.001;
