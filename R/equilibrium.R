@@ -12,10 +12,10 @@ equilibrium_birth_rate <- function(p, ctrl) {
   plant_log_info(sprintf("Solving offspring arrival using %s", solver),
                  routine="equilibrium", stage="start", solver=solver)
   switch(solver,
-         iteration=equilibrium_birth_rate_iteration(p,ctrl =ctrl),
-         nleqslv=equilibrium_birth_rate_solve_robust(p, solver),
-         dfsane=equilibrium_birth_rate_solve_robust(p, solver),
-         hybrid=equilibrium_birth_rate_hybrid(p,ctrl =ctrl),
+         iteration = equilibrium_birth_rate_iteration(p, ctrl),
+         nleqslv = equilibrium_birth_rate_solve_robust(p, solver),
+         dfsane = equilibrium_birth_rate_solve_robust(p, solver),
+         hybrid = equilibrium_birth_rate_hybrid(p, ctrl),
          stop("Unknown solver ", solver))
 }
 
@@ -164,16 +164,12 @@ equilibrium_birth_rate_hybrid <- function(p, ctrl) {
   solver <- rep(c("nleqslv", "dfsane"), length.out=attempts)
 
   for (i in seq_len(attempts)) {
-    ans_it <- equilibrium_birth_rate_iteration(p)
+    ans_it <- equilibrium_birth_rate_iteration(p, ctrl)
     
     f <- function(s, br){
       s$birth_rate_y <- br
       return(s)
     }
-    
-    #this may or may not work (original function below)     
-    # p$birth_rate <- ans_it$birth_rate
-
     
     p$strategies <- mapply(f, p$strategies, unname(ans_it$birth_rate), SIMPLIFY = FALSE)
     
