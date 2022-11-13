@@ -27,14 +27,14 @@ fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), log_f
   scm <- run_scm(p_with_mutants,
                  use_ode_times=length(p$node_schedule_ode_times) > 0)
   
-  offspring_production <- scm$offspring_production
+  net_reproduction_ratios <- scm$net_reproduction_ratios
   if (n_residents > 0L) {
-    offspring_production <- offspring_production[-seq_len(n_residents)]
+    net_reproduction_ratios <- net_reproduction_ratios[-seq_len(n_residents)]
   }
   if (log_fitness) {
-    log(offspring_production)
+    log(net_reproduction_ratios)
   } else {
-    offspring_production
+    net_reproduction_ratios
   }
 }
 
