@@ -17,6 +17,80 @@
 ##' @importFrom stats optimise optim 
 ##' @export
 ##' @author Daniel Falster, Rich FitzJohn
+
+solve_max_dH_dt <- function(bounds, p, log_scale = TRUE, tol = 1e-3, height){
+  
+  bounds <- check_bounds(bounds)
+  traits <- rownames(bounds)
+  
+  if (log_scale) {
+    bounds[bounds[,1] == -Inf, 1] <- 0
+    bounds <- log(bounds)
+    f <- function(x) {
+      s <- strategy(exp(trait_matrix(x,  "lma")), params, birth_rate_list = 1)
+      indv <- FF16_Individual(s)
+      env = FF16_make_environment()
+      res <- grow_individual_to_height(indv, height, env,
+                                        time_max=100, warn=FALSE, filter=TRUE)
+      res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == "height"]    
+      }
+  } else {
+    f <- function(x) {
+      s <- strategy(trait_matrix(x,  "lma"), params, birth_rate_list = 1)
+      indv <- FF16_Individual(s)
+      env = FF16_make_environment()
+      res <- grow_individual_to_height(indv, height, env,
+                                       time_max=100, warn=FALSE, filter=TRUE)
+      
+      res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == "height"]    
+    }
+  }
+  
+  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome ="height_growth_rate")
+  
+  if (log_scale) {
+
+    ret <- exp(ret)
+    
+    return(ret)
+  }
+  
+  return(ret)
+}
+
+solve_max_fitness <- function(bounds, p, log_scale = TRUE, tol = 1e-3){
+  
+  bounds <- check_bounds(bounds)
+  traits <- rownames(bounds)
+  
+  if (log_scale) {
+    bounds[bounds[,1] == -Inf, 1] <- 0
+    bounds <- log(bounds)
+    f <- function(x) fundamental_fitness(exp(trait_matrix(x, traits)), p)
+  } else {
+    f <- function(x) fundamental_fitness(trait_matrix(x, traits), p)
+  }
+  
+  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome ="fitness")
+  
+  if (log_scale) {
+    ret <- exp(ret)
+    
+    return(ret)
+  }
+  
+  return(ret)
+}
+
+solve_max_worker <- function(bounds, f, tol=1e-3, outcome) {
+  out <- suppressWarnings(optimise(f, interval=bounds, maximum=TRUE, tol=tol))
+  ret <- out$maximum
+  objective <- out$objective
+    
+  attr(ret, outcome) <- objective
+  ret
+}
+
 max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
@@ -24,9 +98,9 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
   if (log_scale) {
     bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)
-    f <- function(x) max_growth_rate(exp(trait_matrix(x, traits)), p)
+    f <- function(x) fundamental_fitness(exp(trait_matrix(x, traits)), p)
   } else {
-    f <- function(x) max_growth_rate(trait_matrix(x, traits), p)
+    f <- function(x) fundamental_fitness(trait_matrix(x, traits), p)
   }
 
   if (length(traits) == 1L) {
@@ -84,7 +158,7 @@ viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
     x <- unlist(p$strategy_default[traits])
   }
   x <- check_point(x, bounds)
-  w <- max_growth_rate(x, p)
+  w <- fundamental_fitness(x, p)
 
   if (w < 0) {
     plant_log_viable("Starting value had negative fitness, looking for max")
@@ -102,11 +176,11 @@ viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
     bounds <- log(bounds)
     x <- log(x)
     f <- function(x) {
-      max_growth_rate(exp(trait_matrix(x, traits)), p)
+      fundamental_fitness(exp(trait_matrix(x, traits)), p)
     }
   } else {
     f <- function(x) {
-      max_growth_rate(trait_matrix(x, traits), p)
+      fundamental_fitness(trait_matrix(x, traits), p)
     }
   }
 

@@ -49,7 +49,7 @@ fitness_landscape <- function(trait_matrix, p, hyperpar=param_hyperpar(p), log_f
 ##' \code{strategy_default} element gets used here.
 ##' @author Rich FitzJohn
 ##' @export
-max_growth_rate <- function(trait_matrix, p) {
+fundamental_fitness <- function(trait_matrix, p) {
   fitness_landscape(trait_matrix, remove_residents(p))
 }
 
