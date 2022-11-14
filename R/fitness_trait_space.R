@@ -7,19 +7,20 @@
 ##' specified range.
 ##'
 ##' @title Find point of maximum fitness within some range.
+##'
 ##' @param bounds Two element vector specifying range within which to
 ##' search
-##' @param p Parameters object to use.  Importantly, the
-##' \code{strategy_default} element gets used here.
 ##' @param log_scale Is the parameter naturally on a log scale?  If
 ##' so, this will greatly speed things up.
+##' @param params 
 ##' @param tol Tolerance used in the optimisation
+##'
 ##' @importFrom stats optimise optim 
 ##' @export
 ##' @author Daniel Falster, Rich FitzJohn
 
-#pass in trait, individuual, environment, send to ff16.r, pass in size metric
-solve_max_dH_dt <- function(bounds, params, log_scale = TRUE, tol = 1e-3, height, env = FF16_make_environment(), outcome = "height"){
+
+solve_max_fitness <- function(bounds, params, log_scale = TRUE, tol = 1e-3){
   
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
@@ -33,56 +34,46 @@ solve_max_dH_dt <- function(bounds, params, log_scale = TRUE, tol = 1e-3, height
     ff <- I
   }
   
-  f <- function(x) {
-      s <- strategy(ff(trait_matrix(x,  "lma")), params, birth_rate_list = 1)
-      indv <- FF16_Individual(s)
-      res <- grow_individual_to_height(indv, height, env,
-                                        time_max=100, warn=FALSE, filter=TRUE)
-      
-      res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == outcome]    
-  }
-  
-  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"))
-  
-  if (log_scale) {
-    ret <- exp(ret)
-    }
-  
-  return(ret)
-}
+  f <- function(x) fundamental_fitness(ff(trait_matrix(x, traits)), params)
 
-solve_max_fitness <- function(bounds, p, log_scale = TRUE, tol = 1e-3){
-  
-  bounds <- check_bounds(bounds)
-  traits <- rownames(bounds)
-  
-  if (log_scale) {
-    bounds[bounds[,1] == -Inf, 1] <- 0
-    bounds <- log(bounds)
-    f <- function(x) fundamental_fitness(exp(trait_matrix(x, traits)), p)
-  } else {
-    f <- function(x) fundamental_fitness(trait_matrix(x, traits), p)
-  }
-  
   ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome ="fitness")
-  
+  #browser()
   if (log_scale) {
     ret <- exp(ret)
-    
-    return(ret)
   }
   
   return(ret)
 }
 
 solve_max_worker <- function(bounds, f, tol=1e-3, outcome) {
-  out <- suppressWarnings(optimise(f, interval=bounds, maximum=TRUE, tol=tol))
-  # ret <- out$maximum
-  # objective <- out$objective
-  #   
-  # attr(ret, outcome) <- objective
-  out
+  if (length(rownames(bounds)) == 1L) {
+    if (!all(is.finite(bounds))) {
+      stop("Starting value did not have finite fitness; finite bounds required")
+    }
+    ## The suppressWarnings here is for warnings like:
+    ##
+    ## Warning message:
+    ## In optimise(f, interval = bounds, maximum = TRUE, tol = tol) :
+    ##   NA/Inf replaced by maximum positive value
+    ##
+    ## which is probably the desired behaviour here.
+    out <- suppressWarnings(optimise(f, interval=bounds, maximum=TRUE, tol=tol))
+    # browser()
+    ret <- out$maximum
+    attr(ret, outcome) <- out$objective
+    
+  } else {
+    ## This is not very well tested, and the tolerance is not useful:
+    out <- optim(rowMeans(bounds), f, method="L-BFGS-B",
+                 lower=bounds[, "lower"], upper=bounds[, "upper"],
+                 control=list(fnscale=-1, factr=1e10))
+    
+    ret <- out$value
+    attr(ret, outcome) <- out$par
+  }
+  return(ret)
 }
+
 
 max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
   bounds <- check_bounds(bounds)
@@ -145,6 +136,7 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
 ##' @export
 ##' @author Rich FitzJohn
 viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
+  # browser()
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
   if (is.null(x)) {

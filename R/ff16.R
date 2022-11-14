@@ -388,3 +388,49 @@ make_FF16_hyperpar <- function(
 ##' that are within eps of the default strategy are not replaced.
 ##' @export
 FF16_hyperpar <- make_FF16_hyperpar()
+
+#' Solves the maximum growth rate at a given height within the interval of the bounds of a given trait
+#'
+#' @param bounds 
+#' @param log_scale 
+#' @param tol 
+#' @param height 
+#' @param params 
+#' @param env 
+#' @param outcome 
+
+#' @export
+
+#' @author Isaac Towers, Daniel Falster and Andrew O'Reilly-Nugent
+
+FF16_solve_max_size_growth_rate_at_height <- function(bounds, log_scale = TRUE, tol = 1e-3, height = 10, params, env = FF16_make_environment(), outcome = "height"){
+  
+  bounds <- check_bounds(bounds)
+  traits <- rownames(bounds)
+  
+  if (log_scale) {
+    bounds[bounds[,1] == -Inf, 1] <- 0
+    bounds <- log(bounds)
+    
+    ff <- exp
+  } else {
+    ff <- I
+  }
+  
+  f <- function(x) {
+    
+    s <- strategy(ff(trait_matrix(x,  rownames(bounds))), params, birth_rate_list = 1)
+    indv <- FF16_Individual(s)
+    res <- grow_individual_to_height(indv, height, env,
+                                     time_max=100, warn=FALSE, filter=TRUE)
+    
+    res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == outcome]    
+  }
+  
+  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"))
+  if (log_scale) {
+    ret <- exp(ret)
+  }
+  
+  return(ret)
+}
