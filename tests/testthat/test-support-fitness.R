@@ -18,17 +18,17 @@ test_that("positive_1d", {
 
 # ANDREW: I don't have a `skip_if_no_plant_ml_python` so this fails on my
 # machine. Is it from another package?
-test_that("positive_2d", {
-  skip_if_no_plant_ml_python()
-  f <- function(x) {
-    if (!is.matrix(x)) {
-      x <- rbind(x, deparse.level=0)
-    }
-    -rowSums(x ^ 2) + 1
-  }
-
-  ans <- positive_2d(f, c(0, 0), -2, 2)
-})
+# test_that("positive_2d", {
+#   skip_if_no_plant_ml_python()
+#   f <- function(x) {
+#     if (!is.matrix(x)) {
+#       x <- rbind(x, deparse.level=0)
+#     }
+#     -rowSums(x ^ 2) + 1
+#   }
+# 
+#   ans <- positive_2d(f, c(0, 0), -2, 2)
+# })
 
 test_that("bounds", {
 
