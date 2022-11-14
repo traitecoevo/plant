@@ -18,7 +18,8 @@
 ##' @export
 ##' @author Daniel Falster, Rich FitzJohn
 
-solve_max_dH_dt <- function(bounds, p, log_scale = TRUE, tol = 1e-3, height){
+#pass in trait, individuual, environment, send to ff16.r, pass in size metric
+solve_max_dH_dt <- function(bounds, params, log_scale = TRUE, tol = 1e-3, height, env = FF16_make_environment(), outcome = "height"){
   
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
@@ -26,34 +27,26 @@ solve_max_dH_dt <- function(bounds, p, log_scale = TRUE, tol = 1e-3, height){
   if (log_scale) {
     bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)
-    f <- function(x) {
-      s <- strategy(exp(trait_matrix(x,  "lma")), params, birth_rate_list = 1)
+    
+    ff <- exp
+  } else {
+    ff <- I
+  }
+  
+  f <- function(x) {
+      s <- strategy(ff(trait_matrix(x,  "lma")), params, birth_rate_list = 1)
       indv <- FF16_Individual(s)
-      env = FF16_make_environment()
       res <- grow_individual_to_height(indv, height, env,
                                         time_max=100, warn=FALSE, filter=TRUE)
-      res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == "height"]    
-      }
-  } else {
-    f <- function(x) {
-      s <- strategy(trait_matrix(x,  "lma"), params, birth_rate_list = 1)
-      indv <- FF16_Individual(s)
-      env = FF16_make_environment()
-      res <- grow_individual_to_height(indv, height, env,
-                                       time_max=100, warn=FALSE, filter=TRUE)
       
-      res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == "height"]    
-    }
+      res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == outcome]    
   }
   
-  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome ="height_growth_rate")
+  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"))
   
   if (log_scale) {
-
     ret <- exp(ret)
-    
-    return(ret)
-  }
+    }
   
   return(ret)
 }
@@ -84,11 +77,11 @@ solve_max_fitness <- function(bounds, p, log_scale = TRUE, tol = 1e-3){
 
 solve_max_worker <- function(bounds, f, tol=1e-3, outcome) {
   out <- suppressWarnings(optimise(f, interval=bounds, maximum=TRUE, tol=tol))
-  ret <- out$maximum
-  objective <- out$objective
-    
-  attr(ret, outcome) <- objective
-  ret
+  # ret <- out$maximum
+  # objective <- out$objective
+  #   
+  # attr(ret, outcome) <- objective
+  out
 }
 
 max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
