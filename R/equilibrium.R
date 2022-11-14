@@ -12,7 +12,7 @@ equilibrium_seed_rain <- function(p) {
                  routine="equilibrium", stage="start", solver=solver)
   switch(solver,
          iteration=equilibrium_seed_rain_iteration(p),
-         nleqslv=equilibrium_seed_rain_solve_robust(p, solver),
+         nleqslv=equilibrium_seed_rain_solve(p, solver),
          dfsane=equilibrium_seed_rain_solve_robust(p, solver),
          hybrid=equilibrium_seed_rain_hybrid(p),
          stop("Unknown solver ", solver))
