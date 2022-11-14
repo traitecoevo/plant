@@ -200,12 +200,12 @@ equilibrium_birth_rate_hybrid <- function(p, ctrl) {
         
         ## Add extinct species back at extremely low density and make sure
         ## that this looks like a legit extinction.
-        p_check$strategies <- p$strategies[extinct] %>%
-           purrr:map(function(s) s$birth_rate_y <- ctrl$equilibrium_extinct_birth_rate)
+        p_check <- eq_solution
+        p_check$strategies[extinct]$birth_rate_y <- ctrl$equilibrium_extinct_birth_rate
 
         res <- run_scm(p_check)
 
-        # `next` breaks the loop iterating over solutions and does not return ``
+        # `next` breaks the loop iterating over solutions and does not return `eq_solution`
         if (any(res$offspring_production[extinct] > ctrl$equilibrium_extinct_birth_rate)) {
           plant_log_eq("Solver drove viable species extinct: rejecting")
           next
