@@ -7,7 +7,7 @@
 ##' specified range.
 ##'
 ##' @title Find point of maximum fitness within some range.
-##' @param bounds Two element vector specifing range within which to
+##' @param bounds Two element vector specifying range within which to
 ##' search
 ##' @param p Parameters object to use.  Importantly, the
 ##' \code{strategy_default} element gets used here.
@@ -136,7 +136,7 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
 ##' Compute region of positive fitness.  This will be the values where
 ##' fitness is approximately zero.
 ##'
-##' @title Compute Region of Positive Fitnes
+##' @title Compute Region of Positive Fitness
 ##' @param bounds Matrix of bounds; two columns corresponding to the
 ##' lower and upper limits, each row corresponds to a trait (the name
 ##' will be used).

@@ -13,12 +13,15 @@ equilibrium_birth_rate <- function(p, ctrl) {
                  routine = "equilibrium", stage = "start", solver = solver)
   switch(solver,
          iteration = equilibrium_birth_rate_iteration(p, ctrl = ctrl),
+<<<<<<< HEAD
          nleqslv = equilibrium_birth_rate_solve_robust(p, ctrl = ctrl, solver = solver),
          dfsane = equilibrium_birth_rate_solve_robust(p, ctrl = ctrl, solver = solver),
+=======
+         nleqslv = equilibrium_birth_rate_solve(p, solver),
+         dfsane = equilibrium_birth_rate_solve_robust(p, solver),
+>>>>>>> Add missing tests for fitness & equilibrium functions (#355)
          hybrid = equilibrium_birth_rate_hybrid(p, ctrl = ctrl),
          stop("Unknown solver ", solver))
-  
-
 
 }
 
