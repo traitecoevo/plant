@@ -12,10 +12,10 @@ equilibrium_birth_rate <- function(p, ctrl) {
   plant_log_info(sprintf("Solving offspring arrival using %s", solver),
                  routine="equilibrium", stage="start", solver=solver)
   switch(solver,
-         iteration = equilibrium_birth_rate_iteration(p, ctrl),
+         iteration = equilibrium_birth_rate_iteration(p, ctrl = ctrl),
          nleqslv = equilibrium_birth_rate_solve_robust(p, solver),
          dfsane = equilibrium_birth_rate_solve_robust(p, solver),
-         hybrid = equilibrium_birth_rate_hybrid(p, ctrl),
+         hybrid = equilibrium_birth_rate_hybrid(p, ctrl = ctrl),
          stop("Unknown solver ", solver))
   
 
@@ -169,51 +169,56 @@ equilibrium_birth_rate_hybrid <- function(p, ctrl) {
   solver <- rep(c("nleqslv", "dfsane"), length.out=attempts)
 
   for (i in seq_len(attempts)) {
-    ans_it <- equilibrium_birth_rate_iteration(p, ctrl)
+    eq_solution_iteration <- equilibrium_birth_rate_iteration(p, ctrl = ctrl)
     
-    f <- function(s, br){
-      s$birth_rate_y <- br
-      return(s)
-    }
-    
-    p$strategies <- mapply(f, p$strategies, unname(ans_it$birth_rate), SIMPLIFY = FALSE)
-    
-    converged_it <- isTRUE(attr(ans_it, "converged"))
+    converged_it <- isTRUE(attr(eq_solution_iteration, "converged"))
     msg <- sprintf("Iteration %d %s",
                    i, if (converged_it) "converged" else "did not converge")
-    plant_log_eq(msg, step="iteration", converged=converged_it, iteration=i)
+    plant_log_eq(msg, step="iteration", converged = converged_it, iteration=i)
 
-    ans_sol <- try(equilibrium_birth_rate_solve(p, solver[[i]]))
-    converged_sol <- isTRUE(attr(ans_sol, "converged"))
+    eq_solution <- try(
+      equilibrium_birth_rate_solve(
+        eq_solution_iteration, 
+        ctrl = ctrl, 
+        solver = solver[[i]]
+        )
+      )
+
+    converged_sol <- isTRUE(attr(eq_solution, "converged"))
+
     msg <- sprintf("Solve %d %s",
                     i, if (converged_sol) "converged" else "did not converge")
     plant_log_eq(msg, step="solve", converged=converged_sol, iteration=i)
 
     if (converged_sol) {
-      if (any(ans_sol$birth_rate == 0.0)) {
-        plant_log_eq("Checking species driven to extinction")
-        ## Add these species back at extremely low density and make sure
-        ## that this looks like a legit extinction.
-        y_in <- ans_sol$birth_rate
-        i <- y_in <= 0.0
-        y_in[i] <- ctrl$equilibrium_extinct_offspring_arriving
 
-        p_check <- p
-        p_check$birth_rate <- y_in
-        y_out <- run_scm(p_check)$offspring_production
-        if (any(y_out[i] > y_in[i])) {
+      # check species with zero eq. birth rate are truly unviable.
+      extinct = purrr::map_lgl(eq_solution$strategies, function(s) s$birth_rate_y == 0.0)
+
+      if (any(extinct)) {
+        plant_log_eq("Checking species driven to extinction")
+        
+        ## Add extinct species back at extremely low density and make sure
+        ## that this looks like a legit extinction.
+        p_check$strategies <- p$strategies[extinct] %>%
+           purrr:map(function(s) s$birth_rate_y <- ctrl$equilibrium_extinct_birth_rate)
+
+        res <- run_scm(p_check)
+
+        # `next` breaks the loop iterating over solutions and does not return ``
+        if (any(res$offspring_production[extinct] > ctrl$equilibrium_extinct_birth_rate)) {
           plant_log_eq("Solver drove viable species extinct: rejecting")
           next
         }
       }
       plant_log_eq("Accepting solution via solver")
-      return(ans_sol)
+      return(eq_solution)
     }
   }
 
   ## This one should be a warning?
-  plant_log_eq("Repeated rounds failed to find optimum")
-  ans_it
+  plant_log_eq("Repeated rounds failed to find optimum; returning solution from equilibrium_birth_rate_iteration")
+  return(eq_solution_iteration)
 }
 
 ## Support code:
