@@ -39,7 +39,10 @@ strategy_list <- function(x, parameters, hyperpar=param_hyperpar(parameters), bi
     }
     strategy
   }
-  mapply(f, matrix_to_list(x), birth_rate_list, SIMPLIFY = FALSE)
+  
+  # insert custom traits and birth values into default strategy template
+  strategies <- mapply(f, matrix_to_list(x), birth_rate_list, SIMPLIFY = FALSE)
+  return(strategies)
 }
 
 ##' @export
@@ -128,7 +131,7 @@ expand_parameters <- function(trait_matrix, p, hyperpar=param_hyperpar(p), mutan
                                  rep(list(times_new), n_extra))
 
   ## Clear this if it's present:
-  attr(ret, "net_reproduction_ratios") <- NULL
+  attr(ret, "offspring_production") <- NULL
 
   ret
 }

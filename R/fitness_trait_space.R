@@ -7,7 +7,7 @@
 ##' specified range.
 ##'
 ##' @title Find point of maximum fitness within some range.
-##' @param bounds Two element vector specifing range within which to
+##' @param bounds Two element vector specifying range within which to
 ##' search
 ##' @param p Parameters object to use.  Importantly, the
 ##' \code{strategy_default} element gets used here.
@@ -17,6 +17,73 @@
 ##' @importFrom stats optimise optim 
 ##' @export
 ##' @author Daniel Falster, Rich FitzJohn
+
+#pass in trait, individuual, environment, send to ff16.r, pass in size metric
+solve_max_dH_dt <- function(bounds, params, log_scale = TRUE, tol = 1e-3, height, env = FF16_make_environment(), outcome = "height"){
+  
+  bounds <- check_bounds(bounds)
+  traits <- rownames(bounds)
+  
+  if (log_scale) {
+    bounds[bounds[,1] == -Inf, 1] <- 0
+    bounds <- log(bounds)
+    
+    ff <- exp
+  } else {
+    ff <- I
+  }
+  
+  f <- function(x) {
+      s <- strategy(ff(trait_matrix(x,  "lma")), params, birth_rate_list = 1)
+      indv <- FF16_Individual(s)
+      res <- grow_individual_to_height(indv, height, env,
+                                        time_max=100, warn=FALSE, filter=TRUE)
+      
+      res$individual[[1]]$ode_rates[res$individual[[1]]$ode_names == outcome]    
+  }
+  
+  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome = paste0(outcome, "_growth_rate"))
+  
+  if (log_scale) {
+    ret <- exp(ret)
+    }
+  
+  return(ret)
+}
+
+solve_max_fitness <- function(bounds, p, log_scale = TRUE, tol = 1e-3){
+  
+  bounds <- check_bounds(bounds)
+  traits <- rownames(bounds)
+  
+  if (log_scale) {
+    bounds[bounds[,1] == -Inf, 1] <- 0
+    bounds <- log(bounds)
+    f <- function(x) fundamental_fitness(exp(trait_matrix(x, traits)), p)
+  } else {
+    f <- function(x) fundamental_fitness(trait_matrix(x, traits), p)
+  }
+  
+  ret <- solve_max_worker(bounds, f, tol = 1e-3, outcome ="fitness")
+  
+  if (log_scale) {
+    ret <- exp(ret)
+    
+    return(ret)
+  }
+  
+  return(ret)
+}
+
+solve_max_worker <- function(bounds, f, tol=1e-3, outcome) {
+  out <- suppressWarnings(optimise(f, interval=bounds, maximum=TRUE, tol=tol))
+  # ret <- out$maximum
+  # objective <- out$objective
+  #   
+  # attr(ret, outcome) <- objective
+  out
+}
+
 max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
   bounds <- check_bounds(bounds)
   traits <- rownames(bounds)
@@ -24,9 +91,9 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
   if (log_scale) {
     bounds[bounds[,1] == -Inf, 1] <- 0
     bounds <- log(bounds)
-    f <- function(x) max_growth_rate(exp(trait_matrix(x, traits)), p)
+    f <- function(x) fundamental_fitness(exp(trait_matrix(x, traits)), p)
   } else {
-    f <- function(x) max_growth_rate(trait_matrix(x, traits), p)
+    f <- function(x) fundamental_fitness(trait_matrix(x, traits), p)
   }
 
   if (length(traits) == 1L) {
@@ -62,7 +129,7 @@ max_fitness <- function(bounds, p, log_scale=TRUE, tol=1e-3) {
 ##' Compute region of positive fitness.  This will be the values where
 ##' fitness is approximately zero.
 ##'
-##' @title Compute Region of Positive Fitnes
+##' @title Compute Region of Positive Fitness
 ##' @param bounds Matrix of bounds; two columns corresponding to the
 ##' lower and upper limits, each row corresponds to a trait (the name
 ##' will be used).
@@ -84,7 +151,7 @@ viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
     x <- unlist(p$strategy_default[traits])
   }
   x <- check_point(x, bounds)
-  w <- max_growth_rate(x, p)
+  w <- fundamental_fitness(x, p)
 
   if (w < 0) {
     plant_log_viable("Starting value had negative fitness, looking for max")
@@ -102,11 +169,11 @@ viable_fitness <- function(bounds, p, x=NULL, log_scale=TRUE, dx=1) {
     bounds <- log(bounds)
     x <- log(x)
     f <- function(x) {
-      max_growth_rate(exp(trait_matrix(x, traits)), p)
+      fundamental_fitness(exp(trait_matrix(x, traits)), p)
     }
   } else {
     f <- function(x) {
-      max_growth_rate(trait_matrix(x, traits), p)
+      fundamental_fitness(trait_matrix(x, traits), p)
     }
   }
 

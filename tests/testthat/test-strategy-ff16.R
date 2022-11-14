@@ -187,7 +187,6 @@ test_that("offspring arrival", {
   p1 <- expand_parameters(trait_matrix(0.0825, "lma"), p0, FF16_hyperpar, 
                           mutant = FALSE, birth_rate_list = list(20))
 
-  #p1$birth_rate <- 20
   out <- run_scm(p1, env, ctrl)
   expect_equal(out$offspring_production, 16.88946, tolerance=1e-5)
   expect_equal(out$ode_times[c(10, 100)], c(0.000070, 4.216055), tolerance=1e-5)
@@ -201,3 +200,26 @@ test_that("offspring arrival", {
   expect_equal(length(out$ode_times), 297)
 })
 
+test_that("Report generation", {
+
+  p0 <- scm_base_parameters("FF16")
+  env <- make_environment("FF16")
+  ctrl <- scm_base_control()
+  
+  p2 <- expand_parameters(trait_matrix(c(0.0825, 0.2625), "lma"), p0,   FF16_hyperpar, 
+                          mutant = FALSE, birth_rate_list = list(11.99177, 16.51006))
+
+  # test report generation
+  out <- run_scm_collect(p2, env, ctrl)
+
+  unlink("tmp", recursive = TRUE)
+  expect_message(FF16_generate_stand_report(out, "tmp/tmp.html", overwrite = TRUE), "Report for FF16 stand saved at tmp/tmp.html")
+  expect_true(file.exists("tmp/tmp.html"))
+
+  # don't overwrite output if already exists 
+  expect_message(FF16_generate_stand_report(out, "tmp/tmp.html", overwrite = FALSE), "Report for FF16 stand already exists at tmp/tmp.html")  
+  expect_true(file.exists("tmp/tmp.html"))
+
+  unlink("tmp", recursive = TRUE)
+
+})

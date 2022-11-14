@@ -113,7 +113,7 @@ run_stochastic_collect <- function(p, env = make_environment(parameters = p),
   ret <- list(time=time,
               species=species,
               light_env=light_env,
-              net_reproduction_ratios=obj$net_reproduction_ratios,
+              offspring_production=obj$offspring_production,
               # patch_density=patch_density,
               p=p)
 

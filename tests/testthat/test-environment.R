@@ -43,7 +43,9 @@ for (x in names(strategy_types)) {
 }
 
 test_that("FF16 rainfall spline", {
-  context(sprintf("Rainfall-FF16",x))
+  
+  context("Rainfall-FF16")
+  
   env <- make_environment("FF16w")
   # get list of extrinsic drivers for the environment
   expect_equal(env$extrinsic_drivers$get_names(), c("rainfall"))
