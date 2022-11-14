@@ -10,26 +10,26 @@ make_equilibrium_runner <- function(p, ctrl) {
   large_offspring_arriving_change <- ctrl$equilibrium_large_birth_rate_change
   
   # traverse list of strategies and pull birth_rates
-  last_arrival_rate <- purrr::map_dbl(p$strategies, 
-                                      ~ purrr::pluck(., birth_rate_y))
+  last_arrival_rates <- purrr::map_dbl(p$strategies, 
+                                      ~ purrr::pluck(., "birth_rate_y"))
   
   default_schedule_times <- rep(list(p$node_schedule_times_default),
-                                length(last_offspring_arriving))
+                                length(last_arrival_rates))
   
   last_schedule_times <- p$node_schedule_times
   history <- NULL
   counter <- 1L
   
-  function(birth_rate) {
+  function(birth_rates) {
     
     # if a runner has diverged significantly in the last iteration then
     # reset the schedule to it's defaults and rebuild
-    if (any(abs(birth_rate - last_arrival_rate) > large_offspring_arriving_change)) {
+    if (any(abs(birth_rates - last_arrival_rates) > large_offspring_arriving_change)) {
       p$node_schedule_times <- default_schedule_times
     }
     
     # set birth rates
-    for(i in seq_long(p$strategies))
+    for(i in seq_along(p$strategies))
       p$strategies[[i]]$birth_rate_y <- birth_rate[i]
 
     # update schedule - starts from prev. schedule so should be fast for fine scale resolution
@@ -49,13 +49,13 @@ make_equilibrium_runner <- function(p, ctrl) {
     history <<- c(history, list(c("in" = birth_rate, "out" = offspring_production)))
     
     msg <- sprintf("eq> %d: %s -> %s (delta = %s)", counter,
-                   pretty_num_collapse(birth_rate),
+                   pretty_num_collapse(birth_rates),
                    pretty_num_collapse(offspring_production),
                    pretty_num_collapse(offspring_production - birth_rate))
     plant_log_eq(msg,
                  stage="runner",
                  iteration=counter,
-                 birth_rate=birth_rate,
+                 birth_rate=birth_rates,
                  offspring_production=offspring_production)
     
     

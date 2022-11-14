@@ -13,11 +13,10 @@ equilibrium_birth_rate <- function(p, ctrl) {
                  routine = "equilibrium", stage = "start", solver = solver)
   switch(solver,
          iteration = equilibrium_birth_rate_iteration(p, ctrl = ctrl),
-         nleqslv = equilibrium_birth_rate_solve(p, ctrl = ctrl, solver = solver),
-         dfsane = equilibrium_birth_rate_solve(p, ctrl = ctrl, solver = solver),
          hybrid = equilibrium_birth_rate_hybrid(p, ctrl = ctrl),
+         nleqslv = equilibrium_birth_rate_solve(p, ctrl = ctrl, solver = "nleqslv"),
+         dfsane = equilibrium_birth_rate_solve(p, ctrl = ctrl, solver = "dfsane"),
          stop("Unknown solver ", solver))
-
 }
 
 ## This is the simplest solver: it simply iterates the outgoing offspring
@@ -42,14 +41,14 @@ equilibrium_birth_rate_iteration <- function(p, ctrl) {
   eps <- ctrl$equilibrium_eps
   verbose <- ctrl$equilibrium_verbose
   
-  birth_rate <- purrr::map_dbl(p$strategies, ~ purrr::pluck(., birth_rate_y))
+  birth_rates <- purrr::map_dbl(p$strategies, ~ purrr::pluck(., "birth_rate_y"))
 
   runner <- make_equilibrium_runner(p, ctrl = ctrl)
   
   for (i in seq_len(ctrl$equilibrium_nsteps)) {
-    offspring_production <- runner(birth_rate)
-    converged <- check(birth_rate, offspring_production, eps, verbose)
-    birth_rate <- offspring_production
+    offspring_production <- runner(birth_rates)
+    converged <- check(birth_rates, offspring_production, eps, verbose)
+    birth_rates <- offspring_production
     if (converged) {
       break
     }
