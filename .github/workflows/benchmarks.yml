@@ -27,6 +27,9 @@ jobs:
         with:
           use-public-rspm: true
 
+      - name: Install package
+        run: R CMD INSTALL .
+
       - name: Benchmark
         run: plant::run_plant_benchmarks()
         shell: Rscript {0}
