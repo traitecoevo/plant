@@ -30,10 +30,7 @@ test_that("positive_2d", {
 
 test_that("bounds", {
 
-  params <- scm_base_parameters("FF16")
-  params$strategy_default$hmat <- 0.5
-
-  # First test object with infiite bounds
+  # First test object with infinite bounds
   expect_silent({ 
     bounds0 <- bounds_infinite("lma")
   })
@@ -111,7 +108,7 @@ test_that("fitness", {
      bounds1b <- viable_fitness(bounds1, params)
   })
   expect_equal(
-    bounds1,
+    bounds1b,
     matrix(c(0.02533822, 4.989169), nrow = 1, dimnames = list("lma", c("lower", "upper"))), 
     tolerance = 1e-4
   )
@@ -176,44 +173,40 @@ test_that("fitness", {
 
 test_that("demographic equilibrium", {
   params <- scm_base_parameters("FF16")
+  ctrl <- scm_base_control()
+  ctrl2 <- scm_base_control()
+  
   patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
   expect_silent(
-    patch_eq1 <- equilibrium_seed_rain(patch)
+    patch_eq1 <- equilibrium_birth_rate(patch, ctrl=ctrl)
   )
   expect_true(attr(patch_eq1, "converged"))
-  expect_equal(attr(patch_eq1, "seed_rain_out"), 17.30373, tolerance = 1e-4)
+  expect_equal(attr(patch_eq1, "offspring_production"), 17.31629, tolerance = 1e-4)
 
-  p2 <- params
-  p2$control$equilibrium_solver_name <- "nleqslv"
-  patch <- expand_parameters(trait_matrix(0.0825, "lma"), p2, mutant = FALSE)
+  ctrl2$equilibrium_solver_name <- "nleqslv"
   expect_silent(
-    patch_eq2 <- equilibrium_seed_rain(patch)
+    patch_eq2 <- equilibrium_birth_rate(patch, ctrl2)
   )
   expect_true(attr(patch_eq2, "converged"))
-  expect_equal(attr(patch_eq2, "seed_rain_out"), 17.31023, tolerance = 1e-4)
+  expect_equal(attr(patch_eq2, "offspring_production"), 17.31023, tolerance = 1e-4)
 
-  p2$control$equilibrium_solver_name <- "hybrid"
-  patch <- expand_parameters(trait_matrix(0.0825, "lma"), p2, mutant = FALSE)
+  ctrl2$equilibrium_solver_name <- "hybrid"
   expect_silent(
-    patch_eq3 <- equilibrium_seed_rain(patch)
+    patch_eq3 <- equilibrium_birth_rate(patch, ctrl2)
   )
   expect_true(attr(patch_eq3, "converged"))
-  expect_equal(attr(patch_eq3, "seed_rain_out"), 17.30623, tolerance = 1e-4)
+  expect_equal(attr(patch_eq3, "offspring_production"), 17.30623, tolerance = 1e-4)
 
-  p2 <- params
-  p2$control$equilibrium_solver_name <- "nonsense"
-  patch <- expand_parameters(trait_matrix(0.0825, "lma"), p2, mutant = FALSE)
+  ctrl2$equilibrium_solver_name <- "nonsense"
   expect_error(
-    patch_eq4 <- equilibrium_seed_rain(patch)
+    patch_eq4 <- equilibrium_birth_rate(patch, ctrl2)
   )
 
   ## 2spp
-  patch <- expand_parameters(trait_matrix(c(0.0825, 0.2), "lma"), params, mutant = FALSE)
+  patch <- expand_parameters(trait_matrix(c(0.0825, 0.2), "lma"), params, mutant = FALSE, birth_rate_list = c(1,1))
   expect_silent(
-    patch_eq5 <- equilibrium_seed_rain(patch)
+    patch_eq5 <- equilibrium_birth_rate(patch, ctrl)
   )
   expect_true(attr(patch_eq5, "converged"))
-  expect_equal(attr(patch_eq5, "seed_rain_out"), c(12.41046, 13.93331), tolerance = 1e-4)
-
-
+  expect_equal(attr(patch_eq5, "offspring_production"), c(12.41250, 13.9535), tolerance = 1e-4)
 })
