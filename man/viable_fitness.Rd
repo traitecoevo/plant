@@ -2,7 +2,7 @@
 % Please edit documentation in R/fitness_trait_space.R
 \name{viable_fitness}
 \alias{viable_fitness}
-\title{Compute Region of Positive Fitnes}
+\title{Compute Region of Positive Fitness}
 \usage{
 viable_fitness(bounds, p, x = NULL, log_scale = TRUE, dx = 1)
 }
