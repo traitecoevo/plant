@@ -13,11 +13,10 @@ equilibrium_birth_rate <- function(p, ctrl) {
                  routine = "equilibrium", stage = "start", solver = solver)
   switch(solver,
          iteration = equilibrium_birth_rate_iteration(p, ctrl = ctrl),
-         nleqslv = equilibrium_birth_rate_solve(p, ctrl = ctrl, solver = solver),
-         dfsane = equilibrium_birth_rate_solve(p, ctrl = ctrl, solver = solver),
          hybrid = equilibrium_birth_rate_hybrid(p, ctrl = ctrl),
+         nleqslv = equilibrium_birth_rate_solve(p, ctrl = ctrl, solver = "nleqslv"),
+         dfsane = equilibrium_birth_rate_solve(p, ctrl = ctrl, solver = "dfsane"),
          stop("Unknown solver ", solver))
-
 }
 
 ## This is the simplest solver: it simply iterates the outgoing offspring
@@ -42,14 +41,14 @@ equilibrium_birth_rate_iteration <- function(p, ctrl) {
   eps <- ctrl$equilibrium_eps
   verbose <- ctrl$equilibrium_verbose
   
-  birth_rate <- purrr::map_dbl(p$strategies, ~ purrr::pluck(., birth_rate_y))
+  birth_rates <- purrr::map_dbl(p$strategies, ~ purrr::pluck(., "birth_rate_y"))
 
   runner <- make_equilibrium_runner(p, ctrl = ctrl)
   
   for (i in seq_len(ctrl$equilibrium_nsteps)) {
-    offspring_production <- runner(birth_rate)
-    converged <- check(birth_rate, offspring_production, eps, verbose)
-    birth_rate <- offspring_production
+    offspring_production <- runner(birth_rates)
+    converged <- check(birth_rates, offspring_production, eps, verbose)
+    birth_rates <- offspring_production
     if (converged) {
       break
     }
@@ -68,19 +67,19 @@ equilibrium_birth_rate_solve <- function(p, ctrl = scm_base_control(),
   plant_log_eq(paste("Solving offspring arrival using", solver),
                stage="start", solver=solver)
 
-  birth_rate <- sapply(p$strategies, function(s) s$birth_rate_y, simplify = TRUE)
+  birth_rates <- purrr::map_dbl(p$strategies, ~ purrr::pluck(., "birth_rate_y"))
   runner <- make_equilibrium_runner(p,ctrl =ctrl)
 
   ## First, we exclude species that have offspring arrivals below some minimum
   ## level.
-  to_drop <- birth_rate < min_offspring_arriving
+  to_drop <- birth_rates < min_offspring_arriving
   if (any(to_drop)) {
     i_keep <- which(!to_drop)
     msg <- sprintf("Species %s extinct: excluding from search",
                    paste(which(to_drop), collapse=" & "))
     plant_log_eq(msg, stage="drop species", drop=which(to_drop))
-    offspring_arriving_full <- birth_rate
-    birth_rate <- offspring_arriving_full[i_keep]
+    offspring_arriving_full <- birth_rates
+    birth_rates <- offspring_arriving_full[i_keep]
 
     runner_full <- runner
     runner <- function(x) {
@@ -92,8 +91,8 @@ equilibrium_birth_rate_solve <- function(p, ctrl = scm_base_control(),
 
   ## Then see if any species should be retained:
   if (try_keep) {
-    ans <- runner(birth_rate)
-    keep <- unname(ans >= birth_rate)
+    ans <- runner(birth_rates)
+    keep <- unname(ans >= birth_rates)
 
     msg <- sprintf("Keeping species %s",
                    paste(which(!to_drop)[keep], collapse=", "))
@@ -104,11 +103,11 @@ equilibrium_birth_rate_solve <- function(p, ctrl = scm_base_control(),
 
   ## TODO: This is annoying, but turns out to be a problem for getting
   ## the solution working nicely.
-  max_offspring_arriving <- pmax(birth_rate * 100, 10000)
+  max_offspring_arriving <- pmax(birth_rates * 100, 10000)
   target <- equilibrium_birth_rate_solve_target(runner, keep, logN,
                                                min_offspring_arriving, max_offspring_arriving,
                                                ctrl$equilibrium_verbose)
-  x0 <- if (logN) log(birth_rate) else birth_rate
+  x0 <- if (logN) log(birth_rates) else birth_rates
 
   tol <- ctrl$equilibrium_eps
   ## NOTE: Hard coded minimum of 100 steps here.
