@@ -13,8 +13,8 @@ equilibrium_birth_rate <- function(p, ctrl) {
                  routine = "equilibrium", stage = "start", solver = solver)
   switch(solver,
          iteration = equilibrium_birth_rate_iteration(p, ctrl = ctrl),
-         nleqslv = equilibrium_birth_rate_solve_robust(p, ctrl = ctrl, solver = solver),
-         dfsane = equilibrium_birth_rate_solve_robust(p, ctrl = ctrl, solver = solver),
+         nleqslv = equilibrium_birth_rate_solve(p, ctrl = ctrl, solver = solver),
+         dfsane = equilibrium_birth_rate_solve(p, ctrl = ctrl, solver = solver),
          hybrid = equilibrium_birth_rate_hybrid(p, ctrl = ctrl),
          stop("Unknown solver ", solver))
 
@@ -118,40 +118,6 @@ equilibrium_birth_rate_solve <- function(p, ctrl = scm_base_control(),
   res <- equilibrium_runner_cleanup(runner, attr(sol, "converged"))
   attr(res, "sol") <- sol
   res
-}
-
-## NOTE: I don't know that this is used?  Perhaps it is?
-equilibrium_birth_rate_solve_robust <- function(p, solver="nleqslv") {
-  fit <- try(equilibrium_birth_rate_solve(p, solver))
-  if (failed(fit)) {
-    plant_log_eq("Falling back on iteration")
-    fit_it <- equilibrium_birth_rate_iteration(p)
-    ## Here, we might want to pick a set of values that look good from
-    ## the previous set.
-
-    plant_log_eq("Trying again with the solver")
-    
-    f <- function(s, br){
-      s$birth_rate_y <- br
-      return(s)
-    }
-    
-    #this may or may not work (original function below)     
-    #p$birth_rate <- unname(fit_it$birth_rate)
-
-    p$strategies <- mapply(f, p$strategies, fit_it$birth_rate, SIMPLIFY = FALSE)
-    
-    fit2 <- try(equilibrium_birth_rate_solve(p, solver))
-
-    if (failed(fit2)) {
-      plant_log_eq("Solver failed again: using iteration version")
-      fit <- fit_it
-    } else {
-      plant_log_eq("Solver worked on second attempt")
-      fit <- fit2
-    }
-  }
-  fit
 }
 
 ## The idea is to use rounds of iteration to try and push the

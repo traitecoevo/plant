@@ -39,7 +39,7 @@ lma_detail <- seq_log_range(r, 201)
 ## Construct a fitness landscape across this region showing it is the
 ## right set of bounds:
 lma <- trait_matrix(seq_log_range(r, length.out=51), "lma")
-w <- max_growth_rate(lma, p)
+w <- fundamental_fitness(lma, p)
 
 plot(w ~ lma, log="x", type="l", ylim=range(0, w), las=1,
      xlab="lma", ylab="Max growth rate")

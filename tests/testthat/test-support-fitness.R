@@ -132,7 +132,7 @@ test_that("fitness", {
 
   #@ max growth rate function
   expect_silent(
-    fitness2 <- max_growth_rate(trait_matrix(0.05, "lma"), params)
+    fitness2 <- fundamental_fitness(trait_matrix(0.05, "lma"), params)
   )
   expect_equal(
     fitness2,

@@ -29,8 +29,9 @@ make_equilibrium_runner <- function(p, ctrl) {
     }
     
     # set birth rates
-    p$strategies <- purrr::map(p$strategies, ~ .$birth_rate_y = birth_rate)
-    
+    for(i in seq_long(p$strategies))
+      p$strategies[[i]]$birth_rate_y <- birth_rate[i]
+
     # update schedule - starts from prev. schedule so should be fast for fine scale resolution
     p_new <- build_schedule(p, ctrl = ctrl)
     
