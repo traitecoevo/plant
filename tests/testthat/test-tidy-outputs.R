@@ -25,22 +25,22 @@ for (x in c("FF16", "K93")) {
         results_tidy$species %>% integrate_over_size_distribution()
     )
 
-    expect_equal(names(results), c("time", "species", "env", "net_reproduction_ratios", "patch_density", "p"))
+    expect_equal(names(results), c("time", "species", "env", "offspring_production", "patch_density", "p"))
 
-    expect_equal(names(results_tidy), c("time", "species", "env", "net_reproduction_ratios", "p", "n_spp"))
+    expect_equal(names(results_tidy), c("time", "species", "env", "offspring_production", "p", "n_spp"))
 
     expect_is(results_tidy, "list")
     expect_is(results_tidy$time, "numeric")
     expect_is(results_tidy$species, "data.frame")
     expect_is(results_tidy$species, "tbl")
-    expect_is(results_tidy$net_reproduction_ratios, "numeric")
+    expect_is(results_tidy$offspring_production, "numeric")
 
     expect_is(results_tidy$env, "list")
     expect_is(results_tidy$env$canopy, "data.frame")
 
     # check values transferred correctly
     expect_equal(results_tidy$time, results$time, info = "time")
-    expect_equal(results_tidy$net_reproduction_ratio, results$net_reproduction_ratios, info = "net_reproduction_ratios")
+    expect_equal(results_tidy$offspring_production, results$offspring_production, info = "offspring_production")
     expect_equal(results_tidy$p, results$p, info= "p")
 
     expect_equal(results_tidy$time, results$time, info = "time")

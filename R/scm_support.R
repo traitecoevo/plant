@@ -148,7 +148,7 @@ run_scm_collect <- function(p, env = make_environment(parameters = p),
 
   ret <- list(time=time, species=species,
               env=env,
-              net_reproduction_ratios=scm$net_reproduction_ratios,
+              offspring_production=scm$offspring_production,
               patch_density=patch_density,
               p=p)
 }
@@ -210,9 +210,8 @@ run_scm_error <- function(p, env = make_environment(parameters = p),
   }
   total <- lapply(seq_len(n_spp), function(idx)
                   f(rbind(lai_error[[idx]], average_fecundity_error[[idx]])))
-
-  list(net_reproduction_ratios=scm$net_reproduction_ratios,
-       err=list(lai=lai_error, net_reproduction_ratios=average_fecundity_error, total=total),
+  list(offspring_production=scm$offspring_production,
+       err=list(lai=lai_error, offspring_production=average_fecundity_error, total=total),
        ode_times=scm$ode_times)
 }
 

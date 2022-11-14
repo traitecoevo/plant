@@ -149,7 +149,7 @@ interpolate_to_heights <- function(tidy_species_data, heights, method="natural")
   }
 
   tidy_species_data %>%
-    tidyr::drop_na(-.data$step) %>%
+    tidyr::drop_na(-step) %>%
     dplyr::group_by(.data$species, .data$time, .data$step) %>%
     dplyr::summarise(
       dplyr::across(where(is.double), ~f(.data$height, .x, xout=heights)),
@@ -199,9 +199,10 @@ integrate_over_size_distribution <- function(tidy_species_data) {
     dplyr::filter(.data$step > 1) %>% 
     dplyr::group_by(.data$step, .data$time, .data$patch_density, .data$species) %>% 
     dplyr::summarise(
-      density_integrated = -trapezium(.data$height, .data$density), 
-      min_height = min(.data$height),
-      dplyr::across(where(is.double) & !c(.data$density, .data$density_integrated, .data$min_height) , ~-trapezium(height, density * .x)), 
+      density_integrated = -trapezium(height, density), 
+      min_height = min(height),
+      dplyr::across(where(is.double) & !c(density, density_integrated, min_height), 
+                    ~-trapezium(height, density * .x)), 
       .groups = "drop"
     ) %>% 
     dplyr::rename(density = density_integrated)

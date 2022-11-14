@@ -60,7 +60,7 @@ make_environment <- function(type = NULL, parameters = NULL, ...) {
   
   if(!is.null(parameters)) {
     type = extract_RcppR6_template_types(parameters, "Parameters")[[1]][1]
-    message(sprintf('Creating default %s environment', type))
+    plant_log_debug(sprintf("Creating default %s environment", type))
   }
     
   switch(type,
