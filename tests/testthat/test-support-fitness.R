@@ -15,6 +15,9 @@ test_that("positive_1d", {
   expect_error(positive_1d(f, -2, 0.1, tol=tol), "no positive values")
 })
 
+
+# ANDREW: I don't have a `skip_if_no_plant_ml_python` so this fails on my
+# machine. Is it from another package?
 test_that("positive_2d", {
   skip_if_no_plant_ml_python()
   f <- function(x) {
@@ -26,7 +29,6 @@ test_that("positive_2d", {
 
   ans <- positive_2d(f, c(0, 0), -2, 2)
 })
-
 
 test_that("bounds", {
 
@@ -130,7 +132,7 @@ test_that("fitness", {
     bounds2 <- viable_fitness(rbind(bounds0, bounds0, bounds0), params)
   )
 
-  #@ max growth rate function
+  # max growth rate function
   expect_silent(
     fitness2 <- fundamental_fitness(trait_matrix(0.05, "lma"), params)
   )
@@ -163,6 +165,7 @@ test_that("fitness", {
   )
 })
 
+# TO-DO: `check_inviable` has fallen into disuse - either deprecate or document
 # test_that("viable strategies", {
 #   params <- scm_base_parameters("FF16")
 #   patch <- expand_parameters(trait_matrix(c(0.005, 0.03, 0.1), "lma"), params, mutant = FALSE)
@@ -170,43 +173,3 @@ test_that("fitness", {
 #   expect_silent()
 #   check_inviable(patch)
 # })
-
-test_that("demographic equilibrium", {
-  params <- scm_base_parameters("FF16")
-  ctrl <- scm_base_control()
-  ctrl2 <- scm_base_control()
-  
-  patch <- expand_parameters(trait_matrix(0.0825, "lma"), params, mutant = FALSE)
-  expect_silent(
-    patch_eq1 <- equilibrium_birth_rate(patch, ctrl=ctrl)
-  )
-  expect_true(attr(patch_eq1, "converged"))
-  expect_equal(attr(patch_eq1, "offspring_production"), 17.31629, tolerance = 1e-4)
-
-  ctrl2$equilibrium_solver_name <- "nleqslv"
-  expect_silent(
-    patch_eq2 <- equilibrium_birth_rate(patch, ctrl2)
-  )
-  expect_true(attr(patch_eq2, "converged"))
-  expect_equal(attr(patch_eq2, "offspring_production"), 17.31023, tolerance = 1e-4)
-
-  ctrl2$equilibrium_solver_name <- "hybrid"
-  expect_silent(
-    patch_eq3 <- equilibrium_birth_rate(patch, ctrl2)
-  )
-  expect_true(attr(patch_eq3, "converged"))
-  expect_equal(attr(patch_eq3, "offspring_production"), 17.30623, tolerance = 1e-4)
-
-  ctrl2$equilibrium_solver_name <- "nonsense"
-  expect_error(
-    patch_eq4 <- equilibrium_birth_rate(patch, ctrl2)
-  )
-
-  ## 2spp
-  patch <- expand_parameters(trait_matrix(c(0.0825, 0.2), "lma"), params, mutant = FALSE, birth_rate_list = c(1,1))
-  expect_silent(
-    patch_eq5 <- equilibrium_birth_rate(patch, ctrl)
-  )
-  expect_true(attr(patch_eq5, "converged"))
-  expect_equal(attr(patch_eq5, "offspring_production"), c(12.41250, 13.9535), tolerance = 1e-4)
-})

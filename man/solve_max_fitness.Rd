@@ -16,6 +16,9 @@ search}
 so, this will greatly speed things up.}
 
 \item{tol}{Tolerance used in the optimisation}
+
+\item{p}{Parameters object to use.  Importantly, the
+\code{strategy_default} element gets used here.}
 }
 \description{
 Find point of maximum fitness in empty fitness landscape within a
