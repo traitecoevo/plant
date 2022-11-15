@@ -190,7 +190,7 @@ void Patch<T,E>::rescale_environment() {
 template <typename T, typename E>
 void Patch<T,E>::compute_rates() {
   double pr_patch_survival = survival_weighting->pr_survival(time());
-
+  
   for (size_t i = 0; i < size(); ++i) {
     double pr_patch_survival = survival_weighting->pr_survival(time());
 		double birth_rate = species[i].extrinsic_drivers().evaluate("birth_rate", time());
@@ -282,6 +282,9 @@ double Patch<T,E>::ode_time() const {
 template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               double time) {
+
+  std::cout << time <<" ";
+
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
 

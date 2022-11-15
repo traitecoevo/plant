@@ -80,6 +80,7 @@ void Step<System>::step(System& system,
                         state_type &dydt_out) {
   const double h = step_size; // Historical reasons.
 
+  std::cout<<"Step start\t";
   // k1 step:
   std::copy(dydt_in.begin(), dydt_in.end(), k1.begin());
   for (size_t i = 0; i < size; ++i) {
@@ -128,6 +129,7 @@ void Step<System>::step(System& system,
     yerr[i] = h * (ec[1] * k1[i] + ec[3] * k3[i] + ec[4] * k4[i] +
 		   ec[5] * k5[i] + ec[6] * k6[i]);
   }
+  std::cout << "\t end\n" << std::endl;
 }
 
 // RKCK coefficients, from GSL
