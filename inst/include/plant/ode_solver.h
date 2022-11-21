@@ -87,7 +87,9 @@ template <class System>
 void Solver<System>::advance(System& system, double time_max_) {
   set_time_max(time_max_);
   while (time < time_max) {
+    std::cout << "###### Solver advancing to next integration node ####### \n";
     step(system);
+    std::cout << "End of step\n\n" << std::endl;
   }
 }
 
@@ -162,21 +164,21 @@ void Solver<System>::step(System& system) {
 			       y, yerr, dydt_out);
 
     if (control.step_size_shrank()) {
-      // GSL checks that the step size is actually decreased.
-      // Probably we can do this by comparing against hmin?  There are
-      // probably loops that this will not catch, but require that
-      // hmin << t
-      const double time_next = time + step_size_next;
+        // GSL checks that the step size is actually decreased.
+        // Probably we can do this by comparing against hmin?  There are
+        // probably loops that this will not catch, but require that
+        // hmin << t
+         const double time_next = time + step_size_next;
       if (step_size_next < step_size && time_next > time_orig) {
-	// Step was decreased. Undo step (resetting the state y and
-	// time), and try again with the new step_size.
-	y         = y_orig;
-	time      = time_orig;
-	step_size = step_size_next;
+      	// Step was decreased. Undo step (resetting the state y and
+        // time), and try again with the new step_size.
+      	y         = y_orig;
+      	time      = time_orig;
+      	step_size = step_size_next;
       } else {
-	// We've reached limits of machine accuracy in differences of
-	// step sizes or time (or both).
-	util::stop("Cannot achive the desired accuracy");
+      	// We've reached limits of machine accuracy in differences of
+      	// step sizes or time (or both).
+      	util::stop("Cannot achive the desired accuracy");
       }
     } else {
       // We have successfully taken a step and will return.  Update
@@ -187,10 +189,10 @@ void Solver<System>::step(System& system) {
       //  suggested in the final step, because that step can be very
       //  small compared to previous step, to reach time_max.
       if (final_step) {
-	time = time_max;
+	      time = time_max;
       } else {
-	time += step_size;
-	step_size_last = step_size_next;
+	      time += step_size;
+	      step_size_last = step_size_next;
       }
       prev_times.push_back(time);
       save_dydt_out_as_in();
@@ -233,7 +235,7 @@ void Solver<System>::setup_dydt_in(System& system) {
     // be able to look up the correct dydt rates because we've already
     // set state?
     //   system.ode_rates(dydt_in.begin());
-    ode::derivs(system, y, dydt_in, time);
+    ode::derivs(system, y, dydt_in, time, 0);
     dydt_in_is_clean = true;
   }
 }
