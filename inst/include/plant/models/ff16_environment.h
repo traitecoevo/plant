@@ -206,6 +206,15 @@ public:
     return psi;
   }
 
+double get_vpd() const {
+    return extrinsic_drivers.evaluate("vpd", time);
+  }
+
+double get_co2() const {
+    return extrinsic_drivers.evaluate("co2", time);
+  }
+
+
   std::vector<double> get_soil_water_state() const {
     return vars.states;
   }

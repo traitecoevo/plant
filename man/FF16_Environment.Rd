@@ -29,7 +29,9 @@ FF16w_make_environment(
   canopy_rescale_usually = TRUE,
   soil_number_of_depths = 1,
   soil_initial_state = 0,
-  rainfall = 1
+  rainfall = 1,
+  vpd = 1,
+  co2 = 40
 )
 
 FF16w_fixed_environment(e = 1, height_max = 150)

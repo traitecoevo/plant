@@ -4,15 +4,18 @@
 namespace plant {
 Leaf::Leaf(double vcmax, double p_50, double c, double b,
            double psi_crit, // derived from b and c
-           double K_s, double epsilon_leaf)
+           double K_s, double epsilon_leaf, double beta1, double beta2)
     : vcmax(vcmax), // umol m^-2 s^-1 
     p_50(p_50), // -MPa
     c(c), //unitless
     b(b), //-MPa
     psi_crit(psi_crit), //-MPa 
     K_s(K_s), // kg m^-1 s^-1 MPa^-1 
+    beta1(beta1),
+    beta2(beta2),
     epsilon_leaf(epsilon_leaf), //tolerance value 
     leaf_specific_conductance_max_(NA_REAL), //kg m^-2 s^-1 MPa^-1 
+    sapwood_volume_per_leaf_area_ (NA_REAL),
     PPFD_(NA_REAL), //? 
     atm_vpd_(NA_REAL), //kPa 
     ca_(NA_REAL), //Pa
@@ -24,6 +27,7 @@ Leaf::Leaf(double vcmax, double p_50, double c, double b,
     transpiration_(NA_REAL), // kg m^-2 s^-1 
     lambda_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
     lambda_analytical_(NA_REAL), // umol C m^-2 s^-1 kg^-1 m^2 s^1
+    hydraulic_cost_(NA_REAL), // umol C m^-2 s^-1 
     profit_(NA_REAL), // umol C m^-2 s^-1 
     opt_psi_stem_(NA_REAL), //-MPa 
     opt_ci_(NA_REAL), //Pa 
@@ -34,13 +38,15 @@ Leaf::Leaf(double vcmax, double p_50, double c, double b,
 
 //sets various parameters which are constant for a given node at a given time
 
-void Leaf::set_physiology(double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca) {
+void Leaf::set_physiology(double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area) {
    atm_vpd_ = atm_vpd;
    PPFD_ = PPFD;
    psi_soil_ = psi_soil;
    leaf_specific_conductance_max_ = leaf_specific_conductance_max;
+   sapwood_volume_per_leaf_area_ = sapwood_volume_per_leaf_area;
    ca_ = ca;
    electron_transport_ = electron_transport();
+
 // set lambda, if psi_soil is higher than psi_crit, then set to 0. Currently doing both the numerical and analytical version. Ideally would do one.
   if(psi_soil >= psi_crit){
     lambda_ = 0;
@@ -243,8 +249,17 @@ if (psi_soil_ >= psi_stem){
 double Leaf::hydraulic_cost_Sperry(double psi_stem) {
   double k_l_soil_ = leaf_specific_conductance_max_ * proportion_of_conductivity(psi_soil_);
   double k_l_stem_ = leaf_specific_conductance_max_ * proportion_of_conductivity(psi_stem);
+  
+  hydraulic_cost_ = k_l_soil_ - k_l_stem_;
+  
+  return hydraulic_cost_;
+}
 
-  return k_l_soil_ - k_l_stem_;
+double Leaf::hydraulic_cost_Bartlett(double psi_stem) {
+
+hydraulic_cost_ = beta1 * sapwood_volume_per_leaf_area_ * pow((1 - proportion_of_conductivity(psi_stem)), beta2);
+
+return hydraulic_cost_;
 }
 
 // Profit functions
@@ -258,6 +273,27 @@ set_leaf_states_rates_from_psi_stem(psi_stem);
 
   return benefit_ - lambda_ * hydraulic_cost_;
 }
+
+double Leaf::profit_psi_stem_Bartlett(double psi_stem) {
+
+set_leaf_states_rates_from_psi_stem(psi_stem);
+
+  double benefit_ = assim_colimited_;
+  double hydraulic_cost_ = hydraulic_cost_Bartlett(psi_stem);
+
+  return benefit_ - hydraulic_cost_;
+}
+
+
+double Leaf::profit_psi_stem_Bartlett_analytical(double psi_stem) {
+
+set_leaf_states_rates_from_psi_stem_analytical(psi_stem);
+  double benefit_ = assim_colimited_;
+  double hydraulic_cost_ = hydraulic_cost_Bartlett(psi_stem);
+
+  return benefit_ - hydraulic_cost_;
+}
+
 
 double Leaf::profit_psi_stem_Sperry_analytical(double psi_stem) {
 
@@ -344,7 +380,6 @@ GSS_count +=1 ;
     opt_psi_stem_ = ((bound_b + bound_a) / 2);
     profit_ = profit_psi_stem_Sperry(opt_psi_stem_);
 
-
   }
   
 void Leaf::optimise_psi_stem_Sperry_analytical() {
@@ -392,8 +427,6 @@ void Leaf::optimise_psi_stem_Sperry_analytical() {
     profit_ = profit_psi_stem_Sperry_analytical(opt_psi_stem_);
 
   }
-
-
 
 void Leaf::optimise_psi_stem_Sperry_Newton(double psi_guess) {
 
@@ -908,6 +941,98 @@ std::cout << "warning2" << std::endl;
   }
 
     return;
+  }
+
+void Leaf::optimise_psi_stem_Bartlett() {
+
+  double gr = (sqrt(5) + 1) / 2;
+  opt_psi_stem_ = psi_soil_;
+
+
+  if ((PPFD_ < 1.5e-8 )| (psi_soil_ > psi_crit)){
+    profit_ = 0;
+    transpiration_ = 0;
+    stom_cond_CO2_ = 0;
+    return;
+  }
+
+  // optimise for stem water potential
+    double bound_a = psi_soil_;
+    double bound_b = psi_crit;
+
+    double delta_crit = 1e-07;
+
+    double bound_c = bound_b - (bound_b - bound_a) / gr;
+    double bound_d = bound_a + (bound_b - bound_a) / gr;
+GSS_count = 0;
+
+    while (abs(bound_b - bound_a) > delta_crit) {
+GSS_count +=1 ;
+
+      double profit_at_c =
+          profit_psi_stem_Bartlett(bound_c);
+
+      double profit_at_d =
+          profit_psi_stem_Bartlett(bound_d);
+
+      if (profit_at_c > profit_at_d) {
+        bound_b = bound_d;
+      } else {
+        bound_a = bound_c;
+      }
+
+      bound_c = bound_b - (bound_b - bound_a) / gr;
+      bound_d = bound_a + (bound_b - bound_a) / gr;
+    }
+
+    opt_psi_stem_ = ((bound_b + bound_a) / 2);
+    profit_ = profit_psi_stem_Bartlett(opt_psi_stem_);
+  }
+
+
+
+void Leaf::optimise_psi_stem_Bartlett_analytical() {
+  double gr = (sqrt(5) + 1) / 2;
+  opt_psi_stem_ = psi_soil_;
+
+  if ((PPFD_ < 1.5e-8 )| (psi_soil_ > psi_crit)){
+    profit_ = 0;
+    transpiration_ = 0;
+    stom_cond_CO2_ = 0;
+    return;
+  }
+
+  // optimise for stem water potential
+    double bound_a = psi_soil_;
+    double bound_b = psi_crit;
+
+    double delta_crit = 1e-07;
+
+    double bound_c = bound_b - (bound_b - bound_a) / gr;
+    double bound_d = bound_a + (bound_b - bound_a) / gr;
+GSS_count = 0;
+
+    while (abs(bound_b - bound_a) > delta_crit) {
+GSS_count +=1 ;
+
+      double profit_at_c =
+          profit_psi_stem_Bartlett_analytical(bound_c);
+
+      double profit_at_d =
+          profit_psi_stem_Bartlett_analytical(bound_d);
+
+      if (profit_at_c > profit_at_d) {
+        bound_b = bound_d;
+      } else {
+        bound_a = bound_c;
+      }
+
+      bound_c = bound_b - (bound_b - bound_a) / gr;
+      bound_d = bound_a + (bound_b - bound_a) / gr;
+    }
+
+    opt_psi_stem_ = ((bound_b + bound_a) / 2);
+    profit_ = profit_psi_stem_Bartlett_analytical(opt_psi_stem_);
   }
 
 

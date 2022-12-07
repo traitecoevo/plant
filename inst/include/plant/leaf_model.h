@@ -51,6 +51,8 @@ public:
        double c            = 2.04, //unitless
        double b            = 2.0, // MPa
        double psi_crit     = 3.42,  // derived from b and c (- MPa)
+       double beta1 = 20000, // umol m^-3 s^-1
+       double beta2 = 1.5,
        double K_s = 2, // kg m^-1 s^-1 MPa ^-1 Liu et al. 2010 
        double epsilon_leaf = 0.001); 
 
@@ -66,6 +68,8 @@ public:
   double b;
   double psi_crit;  // derived from b and c
   double K_s;
+  double beta1;
+  double beta2;
 
   //actually a control paramaeter and needs to be moved
   double epsilon_leaf;
@@ -83,7 +87,9 @@ public:
   double PPFD_;
   double atm_vpd_;
   double ca_;
+  double hydraulic_cost_;
   double leaf_specific_conductance_max_;
+  double sapwood_volume_per_leaf_area_;
   double psi_soil_;
   double opt_psi_stem_;
   double opt_ci_;
@@ -108,7 +114,7 @@ public:
   }
   
   // set-up functions
-  void set_physiology(double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca);
+  void set_physiology(double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area);
   void setup_transpiration(double resolution);
 
   // transpiration functions
@@ -144,7 +150,11 @@ public:
 
 
 // leaf economics functions
+  double hydraulic_cost_Bartlett(double psi_stem);
   double hydraulic_cost_Sperry(double psi_stem);
+  double profit_psi_stem_Bartlett(double psi_stem);
+  double profit_psi_stem_Bartlett_analytical(double psi_stem);
+
   double profit_psi_stem_Sperry(double psi_stem);
   double profit_psi_stem_Sperry_analytical(double psi_stem);
   double profit_Sperry_ci(double ci_);
@@ -159,8 +169,9 @@ public:
   void optimise_ci_Sperry_analytical(double max_ci);
   void optimise_ci_Sperry_Newton(double ci_guess);
   void optimise_ci_Sperry_Newton_analytical(double ci_guess);
+  void optimise_psi_stem_Bartlett();
+  void optimise_psi_stem_Bartlett_analytical();
 
-  
 };
 } // namespace plant
 #endif

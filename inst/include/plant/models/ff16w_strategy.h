@@ -30,7 +30,7 @@ public:
 
 virtual std::vector<std::string> aux_names() {
   std::vector<std::string> ret(
-      {"competition_effect", "net_mass_production_dt", "opt_psi_stem_","opt_ci_", "count","profit_","assim_colimited_"});
+      {"competition_effect", "net_mass_production_dt", "opt_psi_stem_","opt_ci_", "count","profit_","assim_colimited_","hydraulic_cost_"});
   // add the associated computation to compute_rates and compute there
   if (collect_all_auxiliary) {
     ret.push_back("area_sapwood");
@@ -43,11 +43,14 @@ virtual std::vector<std::string> aux_names() {
   // leaf traits
   double vcmax = 100;
   double c = 2.04;
-  double K_s = 3;
+  double K_s = 1.5;
   double p_50 = 1.731347*pow(K_s/2,-0.7246377);
   double b = p_50 / std::pow(-log(1 - 50.0 / 100.0), 1 / c);
   double psi_crit = b*std::pow(log(1/0.05),1/c); // derived from b and c
   double epsilon_leaf = 0.001;
+  double beta1 = 20000;
+  double beta2 = 1.5;
+
 };
 
 

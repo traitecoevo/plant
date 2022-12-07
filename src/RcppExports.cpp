@@ -12,8 +12,8 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // Leaf__ctor
-plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double K_s, double epsilon_leaf);
-RcppExport SEXP _plant_Leaf__ctor(SEXP vcmaxSEXP, SEXP p_50SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP K_sSEXP, SEXP epsilon_leafSEXP) {
+plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double K_s, double epsilon_leaf, double beta1, double beta2);
+RcppExport SEXP _plant_Leaf__ctor(SEXP vcmaxSEXP, SEXP p_50SEXP, SEXP cSEXP, SEXP bSEXP, SEXP psi_critSEXP, SEXP K_sSEXP, SEXP epsilon_leafSEXP, SEXP beta1SEXP, SEXP beta2SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -24,7 +24,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type psi_crit(psi_critSEXP);
     Rcpp::traits::input_parameter< double >::type K_s(K_sSEXP);
     Rcpp::traits::input_parameter< double >::type epsilon_leaf(epsilon_leafSEXP);
-    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf));
+    Rcpp::traits::input_parameter< double >::type beta1(beta1SEXP);
+    Rcpp::traits::input_parameter< double >::type beta2(beta2SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__ctor(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf, beta1, beta2));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -41,8 +43,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // Leaf__set_physiology
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca);
-RcppExport SEXP _plant_Leaf__set_physiology(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP leaf_specific_conductance_maxSEXP, SEXP atm_vpdSEXP, SEXP caSEXP) {
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area);
+RcppExport SEXP _plant_Leaf__set_physiology(SEXP obj_SEXP, SEXP PPFDSEXP, SEXP psi_soilSEXP, SEXP leaf_specific_conductance_maxSEXP, SEXP atm_vpdSEXP, SEXP caSEXP, SEXP sapwood_volume_per_leaf_areaSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
@@ -51,7 +53,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type leaf_specific_conductance_max(leaf_specific_conductance_maxSEXP);
     Rcpp::traits::input_parameter< double >::type atm_vpd(atm_vpdSEXP);
     Rcpp::traits::input_parameter< double >::type ca(caSEXP);
-    Leaf__set_physiology(obj_, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca);
+    Rcpp::traits::input_parameter< double >::type sapwood_volume_per_leaf_area(sapwood_volume_per_leaf_areaSEXP);
+    Leaf__set_physiology(obj_, PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area);
     return R_NilValue;
 END_RCPP
 }
@@ -245,6 +248,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Leaf__hydraulic_cost_Bartlett
+double Leaf__hydraulic_cost_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem);
+RcppExport SEXP _plant_Leaf__hydraulic_cost_Bartlett(SEXP obj_SEXP, SEXP psi_stemSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type psi_stem(psi_stemSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__hydraulic_cost_Bartlett(obj_, psi_stem));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Leaf__profit_psi_stem_Sperry
 double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem);
 RcppExport SEXP _plant_Leaf__profit_psi_stem_Sperry(SEXP obj_SEXP, SEXP psi_stemSEXP) {
@@ -290,6 +305,18 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type ci_(ci_SEXP);
     rcpp_result_gen = Rcpp::wrap(Leaf__profit_Sperry_ci_analytical(obj_, ci_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__profit_psi_stem_Bartlett
+double Leaf__profit_psi_stem_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem);
+RcppExport SEXP _plant_Leaf__profit_psi_stem_Bartlett(SEXP obj_SEXP, SEXP psi_stemSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type psi_stem(psi_stemSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__profit_psi_stem_Bartlett(obj_, psi_stem));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -376,6 +403,16 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type ci_guess(ci_guessSEXP);
     Leaf__optimise_ci_Sperry_Newton_analytical(obj_, ci_guess);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__optimise_psi_stem_Bartlett
+void Leaf__optimise_psi_stem_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__optimise_psi_stem_Bartlett(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Leaf__optimise_psi_stem_Bartlett(obj_);
     return R_NilValue;
 END_RCPP
 }
@@ -684,6 +721,28 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Rcpp::traits::input_parameter< double >::type value(valueSEXP);
     Leaf__psi_soil___set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__hydraulic_cost___get
+double Leaf__hydraulic_cost___get(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__hydraulic_cost___get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__hydraulic_cost___get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// Leaf__hydraulic_cost___set
+void Leaf__hydraulic_cost___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value);
+RcppExport SEXP _plant_Leaf__hydraulic_cost___set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type value(valueSEXP);
+    Leaf__hydraulic_cost___set(obj_, value);
     return R_NilValue;
 END_RCPP
 }
@@ -10145,6 +10204,28 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// FF16_Environment__get_vpd
+double FF16_Environment__get_vpd(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__get_vpd(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__get_vpd(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// FF16_Environment__get_co2
+double FF16_Environment__get_co2(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_);
+RcppExport SEXP _plant_FF16_Environment__get_co2(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::FF16_Environment> >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(FF16_Environment__get_co2(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
 // FF16_Environment__set_soil_water_state
 void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> state);
 RcppExport SEXP _plant_FF16_Environment__set_soil_water_state(SEXP obj_SEXP, SEXP stateSEXP) {
@@ -10727,9 +10808,9 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 7},
+    {"_plant_Leaf__ctor", (DL_FUNC) &_plant_Leaf__ctor, 9},
     {"_plant_Leaf__initialize_integrator", (DL_FUNC) &_plant_Leaf__initialize_integrator, 3},
-    {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 6},
+    {"_plant_Leaf__set_physiology", (DL_FUNC) &_plant_Leaf__set_physiology, 7},
     {"_plant_Leaf__proportion_of_conductivity", (DL_FUNC) &_plant_Leaf__proportion_of_conductivity, 2},
     {"_plant_Leaf__transpiration", (DL_FUNC) &_plant_Leaf__transpiration, 2},
     {"_plant_Leaf__transpiration_full_integration", (DL_FUNC) &_plant_Leaf__transpiration_full_integration, 2},
@@ -10746,10 +10827,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__psi_stem_to_ci", (DL_FUNC) &_plant_Leaf__psi_stem_to_ci, 2},
     {"_plant_Leaf__psi_stem_to_ci_analytical", (DL_FUNC) &_plant_Leaf__psi_stem_to_ci_analytical, 2},
     {"_plant_Leaf__hydraulic_cost_Sperry", (DL_FUNC) &_plant_Leaf__hydraulic_cost_Sperry, 2},
+    {"_plant_Leaf__hydraulic_cost_Bartlett", (DL_FUNC) &_plant_Leaf__hydraulic_cost_Bartlett, 2},
     {"_plant_Leaf__profit_psi_stem_Sperry", (DL_FUNC) &_plant_Leaf__profit_psi_stem_Sperry, 2},
     {"_plant_Leaf__profit_Sperry_ci", (DL_FUNC) &_plant_Leaf__profit_Sperry_ci, 2},
     {"_plant_Leaf__profit_psi_stem_Sperry_analytical", (DL_FUNC) &_plant_Leaf__profit_psi_stem_Sperry_analytical, 2},
     {"_plant_Leaf__profit_Sperry_ci_analytical", (DL_FUNC) &_plant_Leaf__profit_Sperry_ci_analytical, 2},
+    {"_plant_Leaf__profit_psi_stem_Bartlett", (DL_FUNC) &_plant_Leaf__profit_psi_stem_Bartlett, 2},
     {"_plant_Leaf__optimise_psi_stem_Sperry_Newton", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry_Newton, 2},
     {"_plant_Leaf__optimise_psi_stem_Sperry_Newton_analytical", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry_Newton_analytical, 2},
     {"_plant_Leaf__optimise_psi_stem_Sperry", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry, 1},
@@ -10758,6 +10841,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__optimise_ci_Sperry", (DL_FUNC) &_plant_Leaf__optimise_ci_Sperry, 2},
     {"_plant_Leaf__optimise_ci_Sperry_analytical", (DL_FUNC) &_plant_Leaf__optimise_ci_Sperry_analytical, 2},
     {"_plant_Leaf__optimise_ci_Sperry_Newton_analytical", (DL_FUNC) &_plant_Leaf__optimise_ci_Sperry_Newton_analytical, 2},
+    {"_plant_Leaf__optimise_psi_stem_Bartlett", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Bartlett, 1},
     {"_plant_Leaf__ci___get", (DL_FUNC) &_plant_Leaf__ci___get, 1},
     {"_plant_Leaf__ci___set", (DL_FUNC) &_plant_Leaf__ci___set, 2},
     {"_plant_Leaf__stom_cond_CO2___get", (DL_FUNC) &_plant_Leaf__stom_cond_CO2___get, 1},
@@ -10786,6 +10870,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__ca___set", (DL_FUNC) &_plant_Leaf__ca___set, 2},
     {"_plant_Leaf__psi_soil___get", (DL_FUNC) &_plant_Leaf__psi_soil___get, 1},
     {"_plant_Leaf__psi_soil___set", (DL_FUNC) &_plant_Leaf__psi_soil___set, 2},
+    {"_plant_Leaf__hydraulic_cost___get", (DL_FUNC) &_plant_Leaf__hydraulic_cost___get, 1},
+    {"_plant_Leaf__hydraulic_cost___set", (DL_FUNC) &_plant_Leaf__hydraulic_cost___set, 2},
     {"_plant_Leaf__opt_psi_stem___get", (DL_FUNC) &_plant_Leaf__opt_psi_stem___get, 1},
     {"_plant_Leaf__opt_psi_stem___set", (DL_FUNC) &_plant_Leaf__opt_psi_stem___set, 2},
     {"_plant_Leaf__opt_ci___get", (DL_FUNC) &_plant_Leaf__opt_ci___get, 1},
@@ -11630,6 +11716,8 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_FF16_Environment__clear", (DL_FUNC) &_plant_FF16_Environment__clear, 1},
     {"_plant_FF16_Environment__set_fixed_environment", (DL_FUNC) &_plant_FF16_Environment__set_fixed_environment, 3},
     {"_plant_FF16_Environment__get_soil_water_state", (DL_FUNC) &_plant_FF16_Environment__get_soil_water_state, 1},
+    {"_plant_FF16_Environment__get_vpd", (DL_FUNC) &_plant_FF16_Environment__get_vpd, 1},
+    {"_plant_FF16_Environment__get_co2", (DL_FUNC) &_plant_FF16_Environment__get_co2, 1},
     {"_plant_FF16_Environment__set_soil_water_state", (DL_FUNC) &_plant_FF16_Environment__set_soil_water_state, 2},
     {"_plant_FF16_Environment__compute_rates", (DL_FUNC) &_plant_FF16_Environment__compute_rates, 2},
     {"_plant_FF16_Environment__time__get", (DL_FUNC) &_plant_FF16_Environment__time__get, 1},

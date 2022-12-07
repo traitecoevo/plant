@@ -72,7 +72,9 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
                                    canopy_rescale_usually = TRUE,
                                    soil_number_of_depths = 1,
                                    soil_initial_state = 0.0,
-                                   rainfall = 1) {
+                                   rainfall = 1,
+                                   vpd = 1,
+                                   co2 = 40) {
   
   if(soil_number_of_depths < 1)
     stop("FF16w Environment must have at least one soil layer")
@@ -103,6 +105,32 @@ FF16w_make_environment <- function(canopy_light_tol = 1e-4,
   } else {
     stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
   }
+  
+  #TO DO: This probably wasn't the nicest way to add VPD, would recommend we think about how to do this better? - Isaac
+  x <- seq(0, 10, 1)
+  y <- rep(vpd, 11)
+  
+  if (is.list(vpd)) {
+    drivers$set_variable("vpd", vpd$x, vpd$y)
+  } else if (is.numeric(vpd)) {
+    drivers$set_constant("vpd", vpd)
+    drivers$set_extrapolate("vpd", FALSE)
+  } else {
+    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  }
+  
+  x <- seq(0, 10, 1)
+  y <- rep(co2, 11)
+  
+  if (is.list(co2)) {
+    drivers$set_variable("co2", co2$x, co2$y)
+  } else if (is.numeric(co2)) {
+    drivers$set_constant("co2", co2)
+    drivers$set_extrapolate("co2", FALSE)
+  } else {
+    stop("Invalid type in birth_rate - need either a list with x, y control points or a numeric")
+  }
+  
   e$extrinsic_drivers <- drivers
   
   return(e)

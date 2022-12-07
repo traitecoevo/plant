@@ -8,7 +8,6 @@
 #' @export
 #' @importFrom rlang .data
 FF16_expand_state <- function(tidy_patch_results) {
-  
   data <- split(tidy_patch_results$species, tidy_patch_results$species$species)
   
   for(i in seq_len(tidy_patch_results$n_spp)) {

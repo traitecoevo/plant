@@ -9,7 +9,7 @@ FF16_solve_max_size_growth_rate_at_height(
   log_scale = TRUE,
   tol = 0.001,
   height = 10,
-  params,
+  params = scm_base_parameters("FF16"),
   env = FF16_make_environment(),
   outcome = "height"
 )

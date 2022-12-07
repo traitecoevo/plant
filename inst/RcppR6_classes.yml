@@ -9,7 +9,8 @@ Leaf:
       - psi_crit: double
       - K_s: double
       - epsilon_leaf: double
-
+      - beta1: double
+      - beta2: double
       
   active:
     ci_: {type: double, access: field}
@@ -26,6 +27,7 @@ Leaf:
     atm_vpd_: {type: double, access: field}
     ca_: {type: double, access: field}
     psi_soil_: {type: double, access: field}
+    hydraulic_cost_: {type: double, access: field}
     opt_psi_stem_: {type: double, access: field}
     opt_ci_: {type: double, access: field}
     count: {type: double, access: field}
@@ -38,7 +40,7 @@ Leaf:
       args: [integration_rule: int, integration_tol: double]
     set_physiology:
       return_type: void 
-      args: [PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double]
+      args: [PPFD: double, psi_soil: double, leaf_specific_conductance_max: double, atm_vpd: double, ca: double, sapwood_volume_per_leaf_area: double]
 
     #transpiration functions
     proportion_of_conductivity:
@@ -92,6 +94,9 @@ Leaf:
     #leaf economics functions
     hydraulic_cost_Sperry:
       return_type: double
+      args: [psi_stem: double]
+    hydraulic_cost_Bartlett:
+      return_type: double
       args: [psi_stem: double] 
     profit_psi_stem_Sperry:
       return_type: double
@@ -104,7 +109,10 @@ Leaf:
       args: [psi_stem: double]  
     profit_Sperry_ci_analytical:
       return_type: double
-      args: [ci_: double] 
+      args: [ci_: double]
+    profit_psi_stem_Bartlett:
+      return_type: double
+      args: [psi_stem: double]
 
       # optimiser functions
     optimise_psi_stem_Sperry_Newton:
@@ -131,6 +139,9 @@ Leaf:
     optimise_ci_Sperry_Newton_analytical:
       return_type: void
       args: [ci_guess: double]
+    optimise_psi_stem_Bartlett:
+      return_type: void
+      args: []
 
 
 Lorenz:
@@ -1037,6 +1048,12 @@ FF16_Environment:
     get_soil_water_state:
       args: []
       return_type: std::vector<double>
+    get_vpd:
+      args: []
+      return_type: double
+    get_co2:
+      args: []
+      return_type: double
     set_soil_water_state:
       args: [state: "std::vector<double>"]
       return_type: void
@@ -1201,6 +1218,8 @@ FF16w_Strategy:
     - b: double
     - psi_crit: double
     - epsilon_leaf: double
+    - beta1: double
+    - beta2: double
     - recruitment_decay: double
     - control: "plant::Control"
     - collect_all_auxiliary: bool

@@ -2,16 +2,16 @@
 #include <plant.h>
 
 // [[Rcpp::export]]
-plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double K_s, double epsilon_leaf) {
-  return plant::Leaf(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf);
+plant::Leaf Leaf__ctor(double vcmax, double p_50, double c, double b, double psi_crit, double K_s, double epsilon_leaf, double beta1, double beta2) {
+  return plant::Leaf(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf, beta1, beta2);
 }
 // [[Rcpp::export]]
 void Leaf__initialize_integrator(plant::RcppR6::RcppR6<plant::Leaf> obj_, int integration_rule, double integration_tol) {
   obj_->initialize_integrator(integration_rule, integration_tol);
 }
 // [[Rcpp::export]]
-void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca) {
-  obj_->set_physiology(PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca);
+void Leaf__set_physiology(plant::RcppR6::RcppR6<plant::Leaf> obj_, double PPFD, double psi_soil, double leaf_specific_conductance_max, double atm_vpd, double ca, double sapwood_volume_per_leaf_area) {
+  obj_->set_physiology(PPFD, psi_soil, leaf_specific_conductance_max, atm_vpd, ca, sapwood_volume_per_leaf_area);
 }
 // [[Rcpp::export]]
 double Leaf__proportion_of_conductivity(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi) {
@@ -78,6 +78,10 @@ double Leaf__hydraulic_cost_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, doub
   return obj_->hydraulic_cost_Sperry(psi_stem);
 }
 // [[Rcpp::export]]
+double Leaf__hydraulic_cost_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->hydraulic_cost_Bartlett(psi_stem);
+}
+// [[Rcpp::export]]
 double Leaf__profit_psi_stem_Sperry(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
   return obj_->profit_psi_stem_Sperry(psi_stem);
 }
@@ -92,6 +96,10 @@ double Leaf__profit_psi_stem_Sperry_analytical(plant::RcppR6::RcppR6<plant::Leaf
 // [[Rcpp::export]]
 double Leaf__profit_Sperry_ci_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_) {
   return obj_->profit_Sperry_ci_analytical(ci_);
+}
+// [[Rcpp::export]]
+double Leaf__profit_psi_stem_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->profit_psi_stem_Bartlett(psi_stem);
 }
 // [[Rcpp::export]]
 void Leaf__optimise_psi_stem_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_guess) {
@@ -124,6 +132,10 @@ void Leaf__optimise_ci_Sperry_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_
 // [[Rcpp::export]]
 void Leaf__optimise_ci_Sperry_Newton_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double ci_guess) {
   obj_->optimise_ci_Sperry_Newton_analytical(ci_guess);
+}
+// [[Rcpp::export]]
+void Leaf__optimise_psi_stem_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->optimise_psi_stem_Bartlett();
 }
 // [[Rcpp::export]]
 double Leaf__ci___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
@@ -249,6 +261,15 @@ double Leaf__psi_soil___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
 // [[Rcpp::export]]
 void Leaf__psi_soil___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
   obj_->psi_soil_ = value;
+}
+
+// [[Rcpp::export]]
+double Leaf__hydraulic_cost___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  return obj_->hydraulic_cost_;
+}
+// [[Rcpp::export]]
+void Leaf__hydraulic_cost___set(plant::RcppR6::RcppR6<plant::Leaf> obj_, double value) {
+  obj_->hydraulic_cost_ = value;
 }
 
 // [[Rcpp::export]]
@@ -4093,6 +4114,14 @@ void FF16_Environment__set_fixed_environment(plant::RcppR6::RcppR6<plant::FF16_E
 // [[Rcpp::export]]
 std::vector<double> FF16_Environment__get_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
   return obj_->get_soil_water_state();
+}
+// [[Rcpp::export]]
+double FF16_Environment__get_vpd(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->get_vpd();
+}
+// [[Rcpp::export]]
+double FF16_Environment__get_co2(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_) {
+  return obj_->get_co2();
 }
 // [[Rcpp::export]]
 void FF16_Environment__set_soil_water_state(plant::RcppR6::RcppR6<plant::FF16_Environment> obj_, std::vector<double> state) {

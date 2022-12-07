@@ -26,20 +26,208 @@ get_dt <- function(y,x) {
 ```
 
 ```{r}
-height_names <- c(
-  "0.5" = expression(paste("H = 0.5m")),
-  "2" = expression(paste("H = 2m")),
-  "10" = expression(paste("H = 10m")),
-  "15" = expression(paste("H = 15m"))
-)
+#beers law for light extinction not yet included
+#growth rate at minimum 
+resource_compensation_individual <- function(indivdual, env, size_name){
+  
+  f <- function(x, indivdual, env, size_name){
+    indivdual$set_state(size_name, x)
+    return(indivdual$net_mass_production_dt(env))
+  }
+  
+  min_size <- indivdual$state(size_name)
+  indivdual$set_state(size_name, min_size)
+  
+  if(indivdual$net_mass_production_dt(env) < 0){
+  return(NA_real_)
+  } else{
+  uniroot(f = f,interval = c(min_size,150),indivdual, env, size_name, extendInt = 'no', tol = 1e-8)$root
+  }
+  }    
 
-psi_names <- c(
-  "0.08" = expression(paste(psi[soil], " = ", 1.59, " (-MPa)", sep = "")),
-  "0.09" = expression(paste(psi[soil], " = ", 0.91, " (-MPa)", sep = "")),
-  "0.1" = expression(paste(psi[soil], " = ", 0.55, " (-MPa)", sep = "")),
-  "0.2" = expression(paste(psi[soil], " = ", 0.02, " (-MPa)", sep = ""))
-)
+calculate_resource_compensation_point <- function(size_name = "height", ...){
+  data <- tibble(...)
+  
+  env <- FF16w_make_environment()
+  env$set_soil_water_state(env$soil_moist_from_psi(data$psi*1e06)) 
+  env$set_fixed_environment(data$E, 150)
+  
+  p0 <- scm_base_parameters("FF16w")
+  s1 <- strategy(trait_matrix(data$trait_value, data$trait_name), p0, birth_rate_list = 1)
+  individual <- FF16w_Individual(s1)  
+  
+  resource_compensation_individual(individual, env, size_name)
+}
 ```
+
+
+```{r}
+expand_grid(psi = seq(0,5,length.out = 20), E = seq(0,1,length.out = 20), trait_name = "vcmax", trait_value = seq(30, 300, length.out = 9)) %>%
+  mutate(rcp = pmap_dbl(., calculate_resource_compensation_point)) -> output
+  
+output %>%
+  ggplot +
+  geom_tile(aes(x = psi, y = E, fill = rcp)) +
+  facet_wrap(~trait_value) +
+  theme_classic() +
+  labs(y = "Canopy openness", x = "Soil moisture", fill = "Height at WPRCP") +
+  theme(text = element_text(size = 15))
+```
+
+```{r}
+expand_grid(psi = seq(0,5,length.out = 20), E = seq(0,1,length.out = 20), trait_name = "theta", trait_value = seq(0.00005, 0.0003, length.out = 9)) %>%
+  mutate(rcp = pmap_dbl(., calculate_resource_compensation_point)) -> output
+  
+output %>%
+  ggplot +
+  geom_tile(aes(x = psi, y = E, fill = rcp)) +
+  facet_wrap(~trait_value) +
+  theme_classic() +
+  labs(y = "Canopy openness", x = "Soil moisture", fill = "Height at WPRCP") +
+  theme(text = element_text(size = 15))
+```
+
+```{r}
+expand_grid(psi = seq(0,5,length.out = 20), E = seq(0,1,length.out = 20), trait_name = "theta", trait_value = seq(0.00005, 0.0003, length.out = 9)) %>%
+  mutate(rcp = pmap_dbl(., calculate_resource_compensation_point)) -> output
+
+```
+
+```{r}
+run_individual <- function(...){
+  params <- tibble(...) 
+  p0 <- scm_base_parameters("FF16w")
+  
+  s1 <- strategy(trait_matrix(params$trait_value,  params$trait), p0, birth_rate_list = 1)
+  s1$hmat <- 50
+
+  indv1 <- FF16w_Individual(s1)
+  
+  env <- FF16w_make_environment(vpd = params$vpd)
+  env$set_soil_water_state(env$soil_moist_from_psi(params$psi*1e06)) 
+  env$set_fixed_environment(params$E, 150)
+
+  res <- plant::grow_individual_to_height(indv1, heights = params$height, env, time_max =100)
+  res
+    }
+```
+
+```{r}
+future::plan(multisession, workers = 6)
+
+expand_grid(psi = seq(0,3, 1), E=c(0.25,0.5,0.75,1), height = c(0.5,1,2,5), trait_value = seq(30,200,10), trait = "vcmax") %>%
+  mutate(results= pmap(., run_individual)) -> leaf_mass_area_output
+
+expand_grid(psi = 0.1, vpd = seq(0,5,1), E=c(1), height = c(0.5,1), trait_value = seq(30,200,10), trait = "vcmax") %>%
+  mutate(results= pmap(., run_individual)) -> leaf_mass_area_o
+utput
+
+expand_grid(psi = 0.1, vpd = 1, E=c(1), height = c(1), trait_value = 30, trait = "vcmax") %>%
+  mutate(results= pmap(., run_individual)) -> leaf_mass_area_output
+
+leaf_mass_area_output %>% 
+  mutate(state= map(results, ~pluck(.x, "state")%>% as_tibble())) %>%
+  rename(to_height = height) %>%
+  mutate(individual = map(results, ~pluck(.x, "individual"))) %>%
+  mutate(strategy = map(individual[[1]], ~pluck(.x, "strategy"))) %>%
+  mutate(a_l1 = map_dbl(strategy, ~pluck(.x, "a_l1")),
+         a_l2 = map_dbl(strategy, ~pluck(.x, "a_l2")),
+         theta = map_dbl(strategy, ~pluck(.x, "theta")),
+         rho = map_dbl(strategy, ~pluck(.x, "rho")),
+         eta = map_dbl(strategy, ~pluck(.x, "eta")),
+         r_s = map_dbl(strategy, ~pluck(.x, "r_s")),
+         k_s = map_dbl(strategy, ~pluck(.x, "k_s")),
+         eta_c = 1 - 2 / (1 + eta) + 1 / (1 + 2 * eta)) %>%
+  unnest(state) %>%
+  mutate(total_area_leaf = (height / a_l1) ^(1.0 / a_l2)) %>%
+  mutate(total_area_sapwood = total_area_leaf * theta) %>%
+  mutate(total_mass_sapwood = total_area_sapwood * height * eta_c * rho)  %>%
+  mutate(total_respiration_sapwood_mol_yr = r_s * total_mass_sapwood) %>%
+  mutate(total_turnover_sapwood_mol_yr = k_s * total_mass_sapwood) %>%
+  mutate(total_maintenance_sapwood_mol_yr = total_respiration_sapwood_mol_yr + total_turnover_sapwood_mol_yr) %>% View()
+
+
+  
+  
+
+  unnest(state) %>%
+  mutate(area_leaf = height / a_l1, 1.0 / a_l2)
+  
+  
+  
+       area_leaf = (.data$height / s$a_l1)^(1.0 / s$a_l2),
+        mass_leaf = .data$area_leaf * s$lma,
+        area_sapwood = .data$area_leaf * s$theta,
+        mass_sapwood = .data$area_sapwood * .data$height * s$eta_c * s$rho,
+
+
+expand_grid(psi = (1), E=c(1), height = c(2), trait_value = c(300), trait = "vcmax") %>%
+  mutate(results= pmap(., run_individual)) -> leaf_mass_area_output
+
+
+leaf_mass_area_output %>%
+  mutate(run = seq(1:nrow(.))) %>%
+  rename(to_height = height) %>%
+  mutate(rate= map(results, ~pluck(.x, "rate")%>% as_tibble())) %>%
+  unnest(rate) -> data_to_plot
+
+data_to_plot%>%
+  drop_na(height) %>%
+  mutate_at(.vars = "to_height", .funs = factor) %>%
+  mutate_at(.vars = "psi", .funs = factor) %>%
+  ggplot(aes(x= trait_value, y = height)) +
+  geom_line(aes(group = E, colour = E))+
+  # scale_x_log10() +
+  # facet_grid(to_height~theta, labeller = label_parsed) +
+  facet_grid(to_height~psi) +
+  ylab(expression(paste(Delta~Height," /", Delta~Time, "(m/yr)"))) + 
+  xlab(expression(paste(V[{cmax25}], " (", mu,"mol ",m^2~s^{-1},")"))) +
+  # theme_classic() +
+  theme(text = element_text(size = 18))
+
+
+
+leaf_mass_area_output %>%
+  mutate(run = seq(1:nrow(.))) %>%
+  rename(to_height = height) %>%
+  mutate(rate= map(results, ~pluck(.x, "rate")%>% as_tibble())) %>%
+  unnest(rate) -> data_to_plot
+
+data_to_plot%>%
+  drop_na(height) %>%
+  mutate_at(.vars = "to_height", .funs = factor) %>%
+  mutate_at(.vars = "psi", .funs = factor) %>%
+  ggplot(aes(x= trait_value, y = height)) +
+  geom_line(aes(group = E, colour = E))+
+  # scale_x_log10() +
+  # facet_grid(to_height~theta, labeller = label_parsed) +
+  facet_grid(to_height~vpd) +
+  ylab(expression(paste(Delta~Height," /", Delta~Time, "(m/yr)"))) + 
+  xlab(expression(paste(V[{cmax25}], " (", mu,"mol ",m^2~s^{-1},")"))) +
+  # theme_classic() +
+  theme(text = element_text(size = 18))
+
+
+```
+
+
+```{r}
+leaf <- Leaf()
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ```{r}

@@ -46,8 +46,6 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
           ? integrator.integrate_with_last_intervals(f, 0.0, height)
           : integrator.integrate(f, 0.0, height);
 
-  // std::cout << "is_adaptive " << integrator.is_adaptive() << reuse_intervals << "reuse_intervals" << std::endl;
-
   if(average_light_environment < 0){
     for (double height_test = 0; height_test <= height; height_test += height/control.assimilator_integration_iterations){
       double compute_test = compute_average_light_environment(height_test, height, environment);
@@ -63,9 +61,11 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   const double psi_soil = environment.get_psi_soil() / 1000000;
 
   const double leaf_specific_conductance_max = K_s * theta / (height * eta_c);
-  leaf.set_physiology(average_radiation, psi_soil, leaf_specific_conductance_max, leaf.atm_vpd, leaf.ca);
+  const double sapwood_volume_per_leaf_area = theta * (height * eta_c);
+
+  leaf.set_physiology(average_radiation, psi_soil, leaf_specific_conductance_max, environment.get_vpd(), environment.get_co2(), sapwood_volume_per_leaf_area);
     
-  leaf.optimise_psi_stem_Sperry();
+  leaf.optimise_psi_stem_Bartlett_analytical();
 
   vars.set_aux(aux_index.at("opt_psi_stem_"), leaf.opt_psi_stem_);
     
@@ -74,6 +74,8 @@ double FF16w_Strategy::net_mass_production_dt(const FF16_Environment &environmen
   vars.set_aux(aux_index.at("profit_"), leaf.profit_);
 
   vars.set_aux(aux_index.at("assim_colimited_"), leaf.assim_colimited_);
+  
+  vars.set_aux(aux_index.at("hydraulic_cost_"), leaf.hydraulic_cost_);
 
 
   const double assimilation_per_area = leaf.profit_;
@@ -169,7 +171,8 @@ void FF16w_Strategy::prepare_strategy() {
   } else {
     extrinsic_drivers.set_constant("birth_rate", birth_rate_y[0]);
   }
-  leaf = Leaf(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf);
+  leaf = Leaf(vcmax, p_50, c, b, psi_crit, K_s, epsilon_leaf, beta1, beta2);
+  
 }
 
 
