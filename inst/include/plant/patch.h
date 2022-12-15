@@ -89,6 +89,10 @@ public:
   void r_compute_environment() {compute_environment();}
   void r_compute_rates() {compute_rates();}
 
+  // Prototype env. cache for assembly
+  void cache_environment(int step);
+  std::vector<environment_type> environment_cache;
+
 private:
   void compute_environment();
   void rescale_environment();
@@ -107,7 +111,8 @@ Patch<T,E>::Patch(parameters_type p, environment_type e, Control c)
   : parameters(p),
     is_resident(p.is_resident),
     environment(e),
-    control(c) {
+    control(c),
+    environment_cache(6) {  // length of ode::Step
   parameters.validate();
 
   survival_weighting = p.disturbance;
@@ -298,6 +303,19 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   }
   compute_rates();
   return it;
+}
+
+template <typename T, typename E>
+void Patch<T,E>::cache_environment(int step) {
+  if(control.save_history) {
+    if(step == 0) {
+      std::cout << "Resetting environment_cache" << "\n";
+      environment_cache.clear();
+    }
+
+    std::cout << "Saving environment to cache" << "\n";
+    environment_cache.push_back(environment);
+  }
 }
 
 template <typename T, typename E>

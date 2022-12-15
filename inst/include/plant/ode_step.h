@@ -69,6 +69,31 @@ size_t Step<System>::order() const {
   return 5;
 }
 
+// Have a special case where we want to store Patch state at each RK45 step
+template <typename System>
+class has_cache {
+  typedef char true_type;
+  typedef long false_type;
+  template <typename C> static true_type test(decltype(&C::environment_cache)) ;
+  template <typename C> static false_type test(...);
+public:
+  enum { value = sizeof(test<System>(0)) == sizeof(true_type) };
+};
+
+
+template <typename System>
+typename std::enable_if<has_cache<System>::value, void>::type
+cache(System& system, int rk_step) {
+  std::cout << "RK" << rk_step << "\n";
+  system.cache_environment(rk_step);
+}
+
+
+template <typename System>
+typename std::enable_if<!has_cache<System>::value, void>::type
+cache(System& system, int /* rk_step */) {}
+
+
 // Think carefully about ownership of data, draw a diagram, and go
 // from there.
 template <class System>
@@ -86,42 +111,54 @@ void Step<System>::step(System& system,
     ytmp[i] = y[i] + b21 * h * k1[i];
   }
 
+  cache(system, 0);
+
   // k2 step:
-  derivs(system, ytmp, k2, time + ah[0] * h, 1);
+  derivs(system, ytmp, k2, time + ah[0] * h);
   for (size_t i = 0; i < size; ++i) {
     ytmp[i] = y[i] + h * (b3[0] * k1[i] + b3[1] * k2[i]);
   }
 
+  cache(system, 1);
+
   // k3 step:
-  derivs(system, ytmp, k3, time + ah[1] * h, 2);
+  derivs(system, ytmp, k3, time + ah[1] * h);
   for (size_t i = 0; i < size; ++i) {
     ytmp[i] = y[i] + h * (b4[0] * k1[i] + b4[1] * k2[i] + b4[2] * k3[i]);
   }
 
+  cache(system, 2);
+
   // k4 step:
-  derivs(system, ytmp, k4, time + ah[2] * h, 3);
+  derivs(system, ytmp, k4, time + ah[2] * h);
   for (size_t i = 0; i < size; ++i) {
     ytmp[i] = y[i] + h * (b5[0] * k1[i] + b5[1] * k2[i] + b5[2] * k3[i] +
 			  b5[3] * k4[i]);
   }
 
+  cache(system, 3);
+
   // k5 step
-  derivs(system, ytmp, k5, time + ah[3] * h, 4);
+  derivs(system, ytmp, k5, time + ah[3] * h);
   for (size_t i = 0; i < size; ++i) {
     ytmp[i] = y[i] + h * (b6[0] * k1[i] + b6[1] * k2[i] + b6[2] * k3[i] +
 			  b6[3] * k4[i] + b6[4] * k5[i]);
   }
 
+  cache(system, 4);
+
   // k6 step and final sum
-  derivs(system, ytmp, k6, time + ah[4] * h, 5);
+  derivs(system, ytmp, k6, time + ah[4] * h);
   for (size_t i = 0; i < size; ++i) {
     // GSL does this in two steps, but not sure why.
     const double d_i = c1 * k1[i] + c3 * k3[i] + c4 * k4[i] + c6 * k6[i];
     y[i] += h * d_i;
   }
 
+  cache(system, 5);
+
   // Evaluate dydt_out.
-  derivs(system, y, dydt_out, time + h, 6);
+  derivs(system, y, dydt_out, time + h);
 
   // Difference between 4th and 5th order, for error calculations
   for (size_t i = 0; i < size; ++i) {

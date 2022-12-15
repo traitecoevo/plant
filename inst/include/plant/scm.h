@@ -16,7 +16,7 @@ public:
   typedef T                strategy_type;
   typedef E                environment_type;
   typedef Individual<T, E> individual_type;
-  typedef Node<T, E>     node_type;
+  typedef Node<T, E>       node_type;
   typedef Species<T, E>    species_type;
   typedef Patch<T, E>      patch_type;
   typedef Parameters<T, E> parameters_type;
@@ -31,8 +31,7 @@ public:
   bool complete() const;
 
   // * Output total offspring calculation (not per capita)
-  std::vector<double>
-  net_reproduction_ratio_by_node_weighted(size_t species_index) const;
+  std::vector<double> net_reproduction_ratio_by_node_weighted(size_t species_index) const;
   double net_reproduction_ratio_for_species(size_t species_index, std::vector<double> const& scalars) const;
   std::vector<double> net_reproduction_ratios() const;
   std::vector<double> offspring_production() const;
@@ -57,6 +56,10 @@ public:
   void r_set_node_schedule(NodeSchedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
 
+  bool save_history;
+  std::vector<double> patch_step_history;
+  std::vector<std::vector<environment_type>> environment_history;
+  
 private:
   double total_offspring_production() const;
 
@@ -71,10 +74,13 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
     : parameters(p), patch(parameters, e, c),
       node_schedule(make_node_schedule(parameters)),
       solver(patch, make_ode_control(c)) {
+
   parameters.validate();
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::stop("Patch area must be exactly 1 for the SCM");
   }
+
+  save_history = c.save_history;
 }
 
 template <typename T, typename E> void SCM<T, E>::run() {
@@ -109,6 +115,12 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
     solver.advance_fixed(patch, e.times);
   } else {
     solver.advance(patch, e.time_end());
+  }
+
+  // after each full RK45 step, save the patch cache
+  if(save_history) {
+    patch_step_history.push_back(t0);
+    environment_history.push_back(patch.environment_cache);
   }
 
   return ret;
