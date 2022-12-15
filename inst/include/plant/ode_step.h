@@ -21,8 +21,8 @@ public:
 	    const state_type &dydt_in,
 	    state_type &dydt_out);
       
-  void derivs(System& system, const state_type& y, state_type& dydt, double t, int s) {
-    return ode::derivs(system, y, dydt, t, s);
+  void derivs(System& system, const state_type& y, state_type& dydt, double t) {
+    return ode::derivs(system, y, dydt, t);
   }
 
   // These are defined in rkck_type

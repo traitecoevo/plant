@@ -235,7 +235,7 @@ void Solver<System>::setup_dydt_in(System& system) {
     // be able to look up the correct dydt rates because we've already
     // set state?
     //   system.ode_rates(dydt_in.begin());
-    ode::derivs(system, y, dydt_in, time, 0);
+    ode::derivs(system, y, dydt_in, time);
     dydt_in_is_clean = true;
   }
 }

@@ -113,9 +113,8 @@ set_ode_state(T& obj, const state_type& y, double /* time */) {
 
 template <typename T>
 void derivs(T& obj, const state_type& y, state_type& dydt,
-            const double time, int step) {
-  
-  std::cout << "RK" << step << "\n";
+            const double time) {
+
   internal::set_ode_state(obj, y, time);
   obj.ode_rates(dydt.begin());
 }
@@ -123,7 +122,7 @@ void derivs(T& obj, const state_type& y, state_type& dydt,
 template <typename T>
 state_type r_derivs(T& obj, const state_type& y, const double time) {
   state_type dydt(obj.ode_size());
-  derivs(obj, y, dydt, time, 0); // empty value for step
+  derivs(obj, y, dydt, time); 
   return dydt;
 }
 

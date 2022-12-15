@@ -213,8 +213,6 @@ void Patch<T,E>::compute_rates() {
 
   environment.compute_rates(resource_depletion);
   resource_depletion.clear();
-
-  std::cout << "computing rates\n";
 }
 
 // TODO: We should only be recomputing the light environment for the
@@ -289,9 +287,6 @@ double Patch<T,E>::ode_time() const {
 template <typename T, typename E>
 ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
                                               double time) {
-
-  std::cout << "time: " << time << "\n";
-
   it = ode::set_ode_state(species.begin(), species.end(), it);
   it = environment.set_ode_state(it);
 
@@ -329,9 +324,6 @@ template <typename T, typename E>
 ode::iterator Patch<T,E>::ode_rates(ode::iterator it) const {
   it = ode::ode_rates(species.begin(), species.end(), it);
   it = environment.ode_rates(it);
-
-  std::cout << "size of environment: " << environment.canopy.canopy_interpolator.size() << "\n\n";
-
   return it;
 }
 
