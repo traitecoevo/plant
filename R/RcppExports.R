@@ -2085,6 +2085,30 @@ SCM___FF16__FF16_Env__parameters__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___FF16__FF16_Env__save_history__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__save_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16__FF16_Env__save_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16__FF16_Env__save_history__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___FF16__FF16_Env__patch_step_history__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__patch_step_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16__FF16_Env__patch_step_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16__FF16_Env__patch_step_history__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___FF16__FF16_Env__environment_history__get <- function(obj_) {
+    .Call('_plant_SCM___FF16__FF16_Env__environment_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16__FF16_Env__environment_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16__FF16_Env__environment_history__set', PACKAGE = 'plant', obj_, value))
+}
+
 SCM___FF16__FF16_Env__patch__get <- function(obj_) {
     .Call('_plant_SCM___FF16__FF16_Env__patch__get', PACKAGE = 'plant', obj_)
 }
@@ -2167,6 +2191,30 @@ SCM___FF16w__FF16_Env__offspring_production__get <- function(obj_) {
 
 SCM___FF16w__FF16_Env__parameters__get <- function(obj_) {
     .Call('_plant_SCM___FF16w__FF16_Env__parameters__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16w__FF16_Env__save_history__get <- function(obj_) {
+    .Call('_plant_SCM___FF16w__FF16_Env__save_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16w__FF16_Env__save_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16w__FF16_Env__save_history__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___FF16w__FF16_Env__patch_step_history__get <- function(obj_) {
+    .Call('_plant_SCM___FF16w__FF16_Env__patch_step_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16w__FF16_Env__patch_step_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16w__FF16_Env__patch_step_history__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___FF16w__FF16_Env__environment_history__get <- function(obj_) {
+    .Call('_plant_SCM___FF16w__FF16_Env__environment_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16w__FF16_Env__environment_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16w__FF16_Env__environment_history__set', PACKAGE = 'plant', obj_, value))
 }
 
 SCM___FF16w__FF16_Env__patch__get <- function(obj_) {
@@ -2253,6 +2301,30 @@ SCM___FF16r__FF16_Env__parameters__get <- function(obj_) {
     .Call('_plant_SCM___FF16r__FF16_Env__parameters__get', PACKAGE = 'plant', obj_)
 }
 
+SCM___FF16r__FF16_Env__save_history__get <- function(obj_) {
+    .Call('_plant_SCM___FF16r__FF16_Env__save_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16r__FF16_Env__save_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16r__FF16_Env__save_history__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___FF16r__FF16_Env__patch_step_history__get <- function(obj_) {
+    .Call('_plant_SCM___FF16r__FF16_Env__patch_step_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16r__FF16_Env__patch_step_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16r__FF16_Env__patch_step_history__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___FF16r__FF16_Env__environment_history__get <- function(obj_) {
+    .Call('_plant_SCM___FF16r__FF16_Env__environment_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___FF16r__FF16_Env__environment_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___FF16r__FF16_Env__environment_history__set', PACKAGE = 'plant', obj_, value))
+}
+
 SCM___FF16r__FF16_Env__patch__get <- function(obj_) {
     .Call('_plant_SCM___FF16r__FF16_Env__patch__get', PACKAGE = 'plant', obj_)
 }
@@ -2335,6 +2407,30 @@ SCM___K93__K93_Env__offspring_production__get <- function(obj_) {
 
 SCM___K93__K93_Env__parameters__get <- function(obj_) {
     .Call('_plant_SCM___K93__K93_Env__parameters__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___K93__K93_Env__save_history__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__save_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___K93__K93_Env__save_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___K93__K93_Env__save_history__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___K93__K93_Env__patch_step_history__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__patch_step_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___K93__K93_Env__patch_step_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___K93__K93_Env__patch_step_history__set', PACKAGE = 'plant', obj_, value))
+}
+
+SCM___K93__K93_Env__environment_history__get <- function(obj_) {
+    .Call('_plant_SCM___K93__K93_Env__environment_history__get', PACKAGE = 'plant', obj_)
+}
+
+SCM___K93__K93_Env__environment_history__set <- function(obj_, value) {
+    invisible(.Call('_plant_SCM___K93__K93_Env__environment_history__set', PACKAGE = 'plant', obj_, value))
 }
 
 SCM___K93__K93_Env__patch__get <- function(obj_) {

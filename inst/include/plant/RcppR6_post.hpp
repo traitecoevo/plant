@@ -361,6 +361,7 @@ template <> inline SEXP wrap(const plant::Control& x) {
   ret["equilibrium_nattempts"] = Rcpp::wrap(x.equilibrium_nattempts);
   ret["equilibrium_solver_logN"] = Rcpp::wrap(x.equilibrium_solver_logN);
   ret["equilibrium_solver_try_keep"] = Rcpp::wrap(x.equilibrium_solver_try_keep);
+  ret["save_history"] = Rcpp::wrap(x.save_history);
   ret.attr("class") = "Control";
   return ret;
 }
@@ -431,6 +432,8 @@ template <> inline plant::Control as(SEXP x) {
   ret.equilibrium_solver_logN = Rcpp::as<bool >(xl["equilibrium_solver_logN"]);
   // ret.equilibrium_solver_try_keep = Rcpp::as<decltype(retequilibrium_solver_try_keep) >(xl["equilibrium_solver_try_keep"]);
   ret.equilibrium_solver_try_keep = Rcpp::as<bool >(xl["equilibrium_solver_try_keep"]);
+  // ret.save_history = Rcpp::as<decltype(retsave_history) >(xl["save_history"]);
+  ret.save_history = Rcpp::as<bool >(xl["save_history"]);
   return ret;
 }
 template <> inline SEXP wrap(const plant::ode::OdeControl& x) {

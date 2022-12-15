@@ -5806,12 +5806,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16__FF16_Env__set_node_schedule_times
-void SCM___FF16__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > times);
+void SCM___FF16__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double>> times);
 RcppExport SEXP _plant_SCM___FF16__FF16_Env__set_node_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<double> > >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type times(timesSEXP);
     SCM___FF16__FF16_Env__set_node_schedule_times(obj_, times);
     return R_NilValue;
 END_RCPP
@@ -5869,6 +5869,72 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__parameters__get(obj_));
     return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16__FF16_Env__save_history__get
+bool SCM___FF16__FF16_Env__save_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__save_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__save_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16__FF16_Env__save_history__set
+void SCM___FF16__FF16_Env__save_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, bool value);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__save_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
+    SCM___FF16__FF16_Env__save_history__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___FF16__FF16_Env__patch_step_history__get
+std::vector<double> SCM___FF16__FF16_Env__patch_step_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__patch_step_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__patch_step_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16__FF16_Env__patch_step_history__set
+void SCM___FF16__FF16_Env__patch_step_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__patch_step_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type value(valueSEXP);
+    SCM___FF16__FF16_Env__patch_step_history__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___FF16__FF16_Env__environment_history__get
+std::vector<std::vector<plant::FF16_Environment>> SCM___FF16__FF16_Env__environment_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__environment_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16__FF16_Env__environment_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16__FF16_Env__environment_history__set
+void SCM___FF16__FF16_Env__environment_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<plant::FF16_Environment>> value);
+RcppExport SEXP _plant_SCM___FF16__FF16_Env__environment_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<plant::FF16_Environment>> >::type value(valueSEXP);
+    SCM___FF16__FF16_Env__environment_history__set(obj_, value);
+    return R_NilValue;
 END_RCPP
 }
 // SCM___FF16__FF16_Env__patch__get
@@ -5960,7 +6026,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get
-std::vector<std::vector<double> > SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
+std::vector<std::vector<double>> SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___FF16__FF16_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -6039,12 +6105,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16w__FF16_Env__set_node_schedule_times
-void SCM___FF16w__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > times);
+void SCM___FF16w__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double>> times);
 RcppExport SEXP _plant_SCM___FF16w__FF16_Env__set_node_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<double> > >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type times(timesSEXP);
     SCM___FF16w__FF16_Env__set_node_schedule_times(obj_, times);
     return R_NilValue;
 END_RCPP
@@ -6102,6 +6168,72 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___FF16w__FF16_Env__parameters__get(obj_));
     return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16w__FF16_Env__save_history__get
+bool SCM___FF16w__FF16_Env__save_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16w__FF16_Env__save_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16w__FF16_Env__save_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16w__FF16_Env__save_history__set
+void SCM___FF16w__FF16_Env__save_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, bool value);
+RcppExport SEXP _plant_SCM___FF16w__FF16_Env__save_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
+    SCM___FF16w__FF16_Env__save_history__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___FF16w__FF16_Env__patch_step_history__get
+std::vector<double> SCM___FF16w__FF16_Env__patch_step_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16w__FF16_Env__patch_step_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16w__FF16_Env__patch_step_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16w__FF16_Env__patch_step_history__set
+void SCM___FF16w__FF16_Env__patch_step_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value);
+RcppExport SEXP _plant_SCM___FF16w__FF16_Env__patch_step_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type value(valueSEXP);
+    SCM___FF16w__FF16_Env__patch_step_history__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___FF16w__FF16_Env__environment_history__get
+std::vector<std::vector<plant::FF16_Environment>> SCM___FF16w__FF16_Env__environment_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16w__FF16_Env__environment_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16w__FF16_Env__environment_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16w__FF16_Env__environment_history__set
+void SCM___FF16w__FF16_Env__environment_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<plant::FF16_Environment>> value);
+RcppExport SEXP _plant_SCM___FF16w__FF16_Env__environment_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<plant::FF16_Environment>> >::type value(valueSEXP);
+    SCM___FF16w__FF16_Env__environment_history__set(obj_, value);
+    return R_NilValue;
 END_RCPP
 }
 // SCM___FF16w__FF16_Env__patch__get
@@ -6193,7 +6325,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get
-std::vector<std::vector<double> > SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
+std::vector<std::vector<double>> SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16w_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___FF16w__FF16_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -6272,12 +6404,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16r__FF16_Env__set_node_schedule_times
-void SCM___FF16r__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double> > times);
+void SCM___FF16r__FF16_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<double>> times);
 RcppExport SEXP _plant_SCM___FF16r__FF16_Env__set_node_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<double> > >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type times(timesSEXP);
     SCM___FF16r__FF16_Env__set_node_schedule_times(obj_, times);
     return R_NilValue;
 END_RCPP
@@ -6335,6 +6467,72 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___FF16r__FF16_Env__parameters__get(obj_));
     return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16r__FF16_Env__save_history__get
+bool SCM___FF16r__FF16_Env__save_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16r__FF16_Env__save_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16r__FF16_Env__save_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16r__FF16_Env__save_history__set
+void SCM___FF16r__FF16_Env__save_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, bool value);
+RcppExport SEXP _plant_SCM___FF16r__FF16_Env__save_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
+    SCM___FF16r__FF16_Env__save_history__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___FF16r__FF16_Env__patch_step_history__get
+std::vector<double> SCM___FF16r__FF16_Env__patch_step_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16r__FF16_Env__patch_step_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16r__FF16_Env__patch_step_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16r__FF16_Env__patch_step_history__set
+void SCM___FF16r__FF16_Env__patch_step_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<double> value);
+RcppExport SEXP _plant_SCM___FF16r__FF16_Env__patch_step_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type value(valueSEXP);
+    SCM___FF16r__FF16_Env__patch_step_history__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___FF16r__FF16_Env__environment_history__get
+std::vector<std::vector<plant::FF16_Environment>> SCM___FF16r__FF16_Env__environment_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+RcppExport SEXP _plant_SCM___FF16r__FF16_Env__environment_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___FF16r__FF16_Env__environment_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___FF16r__FF16_Env__environment_history__set
+void SCM___FF16r__FF16_Env__environment_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_, std::vector<std::vector<plant::FF16_Environment>> value);
+RcppExport SEXP _plant_SCM___FF16r__FF16_Env__environment_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<plant::FF16_Environment>> >::type value(valueSEXP);
+    SCM___FF16r__FF16_Env__environment_history__set(obj_, value);
+    return R_NilValue;
 END_RCPP
 }
 // SCM___FF16r__FF16_Env__patch__get
@@ -6426,7 +6624,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get
-std::vector<std::vector<double> > SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
+std::vector<std::vector<double>> SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::FF16r_Strategy,plant::FF16_Environment> > obj_);
 RcppExport SEXP _plant_SCM___FF16r__FF16_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -6505,12 +6703,12 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___K93__K93_Env__set_node_schedule_times
-void SCM___K93__K93_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<double> > times);
+void SCM___K93__K93_Env__set_node_schedule_times(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<double>> times);
 RcppExport SEXP _plant_SCM___K93__K93_Env__set_node_schedule_times(SEXP obj_SEXP, SEXP timesSEXP) {
 BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
-    Rcpp::traits::input_parameter< std::vector<std::vector<double> > >::type times(timesSEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<double>> >::type times(timesSEXP);
     SCM___K93__K93_Env__set_node_schedule_times(obj_, times);
     return R_NilValue;
 END_RCPP
@@ -6568,6 +6766,72 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
     rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__parameters__get(obj_));
     return rcpp_result_gen;
+END_RCPP
+}
+// SCM___K93__K93_Env__save_history__get
+bool SCM___K93__K93_Env__save_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_SCM___K93__K93_Env__save_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__save_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___K93__K93_Env__save_history__set
+void SCM___K93__K93_Env__save_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, bool value);
+RcppExport SEXP _plant_SCM___K93__K93_Env__save_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< bool >::type value(valueSEXP);
+    SCM___K93__K93_Env__save_history__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___K93__K93_Env__patch_step_history__get
+std::vector<double> SCM___K93__K93_Env__patch_step_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_SCM___K93__K93_Env__patch_step_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__patch_step_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___K93__K93_Env__patch_step_history__set
+void SCM___K93__K93_Env__patch_step_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<double> value);
+RcppExport SEXP _plant_SCM___K93__K93_Env__patch_step_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<double> >::type value(valueSEXP);
+    SCM___K93__K93_Env__patch_step_history__set(obj_, value);
+    return R_NilValue;
+END_RCPP
+}
+// SCM___K93__K93_Env__environment_history__get
+std::vector<std::vector<plant::K93_Environment>> SCM___K93__K93_Env__environment_history__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+RcppExport SEXP _plant_SCM___K93__K93_Env__environment_history__get(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    rcpp_result_gen = Rcpp::wrap(SCM___K93__K93_Env__environment_history__get(obj_));
+    return rcpp_result_gen;
+END_RCPP
+}
+// SCM___K93__K93_Env__environment_history__set
+void SCM___K93__K93_Env__environment_history__set(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_, std::vector<std::vector<plant::K93_Environment>> value);
+RcppExport SEXP _plant_SCM___K93__K93_Env__environment_history__set(SEXP obj_SEXP, SEXP valueSEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< std::vector<std::vector<plant::K93_Environment>> >::type value(valueSEXP);
+    SCM___K93__K93_Env__environment_history__set(obj_, value);
+    return R_NilValue;
 END_RCPP
 }
 // SCM___K93__K93_Env__patch__get
@@ -6659,7 +6923,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // SCM___K93__K93_Env__net_reproduction_ratio_errors__get
-std::vector<std::vector<double> > SCM___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
+std::vector<std::vector<double>> SCM___K93__K93_Env__net_reproduction_ratio_errors__get(plant::RcppR6::RcppR6<plant::SCM<plant::K93_Strategy,plant::K93_Environment> > obj_);
 RcppExport SEXP _plant_SCM___K93__K93_Env__net_reproduction_ratio_errors__get(SEXP obj_SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -10427,6 +10691,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16__FF16_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__net_reproduction_ratios__get, 1},
     {"_plant_SCM___FF16__FF16_Env__offspring_production__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__offspring_production__get, 1},
     {"_plant_SCM___FF16__FF16_Env__parameters__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__parameters__get, 1},
+    {"_plant_SCM___FF16__FF16_Env__save_history__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__save_history__get, 1},
+    {"_plant_SCM___FF16__FF16_Env__save_history__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__save_history__set, 2},
+    {"_plant_SCM___FF16__FF16_Env__patch_step_history__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__patch_step_history__get, 1},
+    {"_plant_SCM___FF16__FF16_Env__patch_step_history__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__patch_step_history__set, 2},
+    {"_plant_SCM___FF16__FF16_Env__environment_history__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__environment_history__get, 1},
+    {"_plant_SCM___FF16__FF16_Env__environment_history__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__environment_history__set, 2},
     {"_plant_SCM___FF16__FF16_Env__patch__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__patch__get, 1},
     {"_plant_SCM___FF16__FF16_Env__node_schedule__get", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__node_schedule__get, 1},
     {"_plant_SCM___FF16__FF16_Env__node_schedule__set", (DL_FUNC) &_plant_SCM___FF16__FF16_Env__node_schedule__set, 2},
@@ -10448,6 +10718,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16w__FF16_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__net_reproduction_ratios__get, 1},
     {"_plant_SCM___FF16w__FF16_Env__offspring_production__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__offspring_production__get, 1},
     {"_plant_SCM___FF16w__FF16_Env__parameters__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__parameters__get, 1},
+    {"_plant_SCM___FF16w__FF16_Env__save_history__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__save_history__get, 1},
+    {"_plant_SCM___FF16w__FF16_Env__save_history__set", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__save_history__set, 2},
+    {"_plant_SCM___FF16w__FF16_Env__patch_step_history__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__patch_step_history__get, 1},
+    {"_plant_SCM___FF16w__FF16_Env__patch_step_history__set", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__patch_step_history__set, 2},
+    {"_plant_SCM___FF16w__FF16_Env__environment_history__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__environment_history__get, 1},
+    {"_plant_SCM___FF16w__FF16_Env__environment_history__set", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__environment_history__set, 2},
     {"_plant_SCM___FF16w__FF16_Env__patch__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__patch__get, 1},
     {"_plant_SCM___FF16w__FF16_Env__node_schedule__get", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__node_schedule__get, 1},
     {"_plant_SCM___FF16w__FF16_Env__node_schedule__set", (DL_FUNC) &_plant_SCM___FF16w__FF16_Env__node_schedule__set, 2},
@@ -10469,6 +10745,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___FF16r__FF16_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__net_reproduction_ratios__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__offspring_production__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__offspring_production__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__parameters__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__parameters__get, 1},
+    {"_plant_SCM___FF16r__FF16_Env__save_history__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__save_history__get, 1},
+    {"_plant_SCM___FF16r__FF16_Env__save_history__set", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__save_history__set, 2},
+    {"_plant_SCM___FF16r__FF16_Env__patch_step_history__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__patch_step_history__get, 1},
+    {"_plant_SCM___FF16r__FF16_Env__patch_step_history__set", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__patch_step_history__set, 2},
+    {"_plant_SCM___FF16r__FF16_Env__environment_history__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__environment_history__get, 1},
+    {"_plant_SCM___FF16r__FF16_Env__environment_history__set", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__environment_history__set, 2},
     {"_plant_SCM___FF16r__FF16_Env__patch__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__patch__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__node_schedule__get", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__node_schedule__get, 1},
     {"_plant_SCM___FF16r__FF16_Env__node_schedule__set", (DL_FUNC) &_plant_SCM___FF16r__FF16_Env__node_schedule__set, 2},
@@ -10490,6 +10772,12 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_SCM___K93__K93_Env__net_reproduction_ratios__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__net_reproduction_ratios__get, 1},
     {"_plant_SCM___K93__K93_Env__offspring_production__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__offspring_production__get, 1},
     {"_plant_SCM___K93__K93_Env__parameters__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__parameters__get, 1},
+    {"_plant_SCM___K93__K93_Env__save_history__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__save_history__get, 1},
+    {"_plant_SCM___K93__K93_Env__save_history__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__save_history__set, 2},
+    {"_plant_SCM___K93__K93_Env__patch_step_history__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__patch_step_history__get, 1},
+    {"_plant_SCM___K93__K93_Env__patch_step_history__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__patch_step_history__set, 2},
+    {"_plant_SCM___K93__K93_Env__environment_history__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__environment_history__get, 1},
+    {"_plant_SCM___K93__K93_Env__environment_history__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__environment_history__set, 2},
     {"_plant_SCM___K93__K93_Env__patch__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__patch__get, 1},
     {"_plant_SCM___K93__K93_Env__node_schedule__get", (DL_FUNC) &_plant_SCM___K93__K93_Env__node_schedule__get, 1},
     {"_plant_SCM___K93__K93_Env__node_schedule__set", (DL_FUNC) &_plant_SCM___K93__K93_Env__node_schedule__set, 2},

@@ -37,6 +37,8 @@ Control::Control() {
   equilibrium_nattempts = 5;
   equilibrium_solver_logN = true;
   equilibrium_solver_try_keep = true;
+
+  save_history = false;
 }
 
 }
