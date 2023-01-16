@@ -320,6 +320,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// Leaf__profit_psi_stem_Bartlett_analytical
+double Leaf__profit_psi_stem_Bartlett_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem);
+RcppExport SEXP _plant_Leaf__profit_psi_stem_Bartlett_analytical(SEXP obj_SEXP, SEXP psi_stemSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Rcpp::traits::input_parameter< double >::type psi_stem(psi_stemSEXP);
+    rcpp_result_gen = Rcpp::wrap(Leaf__profit_psi_stem_Bartlett_analytical(obj_, psi_stem));
+    return rcpp_result_gen;
+END_RCPP
+}
 // Leaf__optimise_psi_stem_Sperry_Newton
 void Leaf__optimise_psi_stem_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_guess);
 RcppExport SEXP _plant_Leaf__optimise_psi_stem_Sperry_Newton(SEXP obj_SEXP, SEXP psi_guessSEXP) {
@@ -413,6 +425,16 @@ BEGIN_RCPP
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
     Leaf__optimise_psi_stem_Bartlett(obj_);
+    return R_NilValue;
+END_RCPP
+}
+// Leaf__optimise_psi_stem_Bartlett_analytical
+void Leaf__optimise_psi_stem_Bartlett_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_);
+RcppExport SEXP _plant_Leaf__optimise_psi_stem_Bartlett_analytical(SEXP obj_SEXP) {
+BEGIN_RCPP
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< plant::RcppR6::RcppR6<plant::Leaf> >::type obj_(obj_SEXP);
+    Leaf__optimise_psi_stem_Bartlett_analytical(obj_);
     return R_NilValue;
 END_RCPP
 }
@@ -10833,6 +10855,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__profit_psi_stem_Sperry_analytical", (DL_FUNC) &_plant_Leaf__profit_psi_stem_Sperry_analytical, 2},
     {"_plant_Leaf__profit_Sperry_ci_analytical", (DL_FUNC) &_plant_Leaf__profit_Sperry_ci_analytical, 2},
     {"_plant_Leaf__profit_psi_stem_Bartlett", (DL_FUNC) &_plant_Leaf__profit_psi_stem_Bartlett, 2},
+    {"_plant_Leaf__profit_psi_stem_Bartlett_analytical", (DL_FUNC) &_plant_Leaf__profit_psi_stem_Bartlett_analytical, 2},
     {"_plant_Leaf__optimise_psi_stem_Sperry_Newton", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry_Newton, 2},
     {"_plant_Leaf__optimise_psi_stem_Sperry_Newton_analytical", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry_Newton_analytical, 2},
     {"_plant_Leaf__optimise_psi_stem_Sperry", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Sperry, 1},
@@ -10842,6 +10865,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_plant_Leaf__optimise_ci_Sperry_analytical", (DL_FUNC) &_plant_Leaf__optimise_ci_Sperry_analytical, 2},
     {"_plant_Leaf__optimise_ci_Sperry_Newton_analytical", (DL_FUNC) &_plant_Leaf__optimise_ci_Sperry_Newton_analytical, 2},
     {"_plant_Leaf__optimise_psi_stem_Bartlett", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Bartlett, 1},
+    {"_plant_Leaf__optimise_psi_stem_Bartlett_analytical", (DL_FUNC) &_plant_Leaf__optimise_psi_stem_Bartlett_analytical, 1},
     {"_plant_Leaf__ci___get", (DL_FUNC) &_plant_Leaf__ci___get, 1},
     {"_plant_Leaf__ci___set", (DL_FUNC) &_plant_Leaf__ci___set, 2},
     {"_plant_Leaf__stom_cond_CO2___get", (DL_FUNC) &_plant_Leaf__stom_cond_CO2___get, 1},

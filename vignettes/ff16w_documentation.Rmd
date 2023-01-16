@@ -1,0 +1,121 @@
+---
+title: "ff16w_documentation"
+output: html_document
+date: "2023-01-10"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+This is the documentation for how to use the ff16w strategy
+
+#Introduction
+
+ff16w is a new implementation of the ff16 strategy including water dynamics. This includes an updated strategy object `ff16w`, a physiological sub-model which determines how plants assimilate carbon and transpire water dynamically in response to water availability and a soil-water submodel which takes rainfall as an input and determines how much soil moisture is available to plants after accounting for soil hydrology, evaporation and soil use.
+
+Lets look at how to use the ff16w strategy.
+
+```{r}
+devtools::load_all()
+library(tidyverse)
+```
+
+Let's start by growing a ff16w individual.
+
+As in `ff16w` we can set rates and view states for individuals.
+```{r}
+indv <- FF16w_Individual()
+```
+
+```{r}
+indv$state("height")
+```
+
+```{r}
+indv$set_state("height", 5)
+indv$state("height")
+```
+
+As in `ff16`, in `ff16w`, without information about the environment, it is not possible to compute the rates.
+
+```{r}
+indv$ode_rates
+```
+
+Let's make an `ff16w` environment object. There are a number of new environmetal variables which are currently set as defualt which we explore momentarily. For now though, lets just check that `ode_rates` works once we `compute_rates` with an `env` object.
+
+```{r}
+env <-FF16w_make_environment()
+indv$compute_rates(env)
+indv$ode_rates
+```
+
+Interesting. We get 0s for everything except mortality. Why is that?
+
+```{r}
+env$get_soil_water_state()
+```
+
+It is because soil water $(m^3~water~m^{-3}soil)$ is currently 0. With no water, photosythnesis is impossible and mortality skyrockets. Let's set a positive value of soil water to get growth growing. We work in values of soil water potential $\psi$ in (-Pa), that is, converting the negative water potential values into positive values to make them easier to work with. 1.5 -MPa is wilting point for plants, so let's set it at 1 -MPa. We convert $\psi$ to soil water using `soil_moist_from_psi` before passing the soil moisture value to `set_soil_water_state`. Even though we input water potential, we work with soil moisture because it is the units used for the soil hydrology sub-model.
+
+```{r}
+env$set_soil_water_state(env$soil_moist_from_psi(1e06))
+env$get_soil_water_state()
+```
+
+Soil water is now non-zero. Let's see `compute_rates` now.
+
+```{r}
+indv$compute_rates(env)
+indv$ode_rates
+```
+
+Great! There are two other environmental variables that we can work with, being vapour pressure deficit (kPa) and atmospheric carbon dioxide (Pa). Check out the `leaf_submodel` documentation to see how these variables work. In short though, we set them via the extrinsic drivers. These are kept seperate to soil water state, because whereas soil water state is an emergent property of the hydrology model, vpd, rainfall and co2 are directly set. 
+
+
+This doesn't actually work...
+
+```{r}
+env$extrinsic_drivers$get_names()
+env$extrinsic_drivers$set_constant("rainfall", 1)
+env$
+```
+
+We are now able to grow plants to a given height as in `ff16`
+
+```{r}
+target_height <- 10
+res <- plant::grow_individual_to_height(indv, heights = target_height, env, time_max =100)
+
+res$trajectory %>%
+  as_tibble() %>% 
+  mutate(indv = 1) -> indv1
+
+indv1 %>%
+  ggplot(aes(x = time, y = height)) +
+  geom_line() +
+  theme_classic()
+```
+
+Let's compare two plants growing under soil water regimes. We'll have individual 2 growing under nicer soil water conditions.
+
+```{r}
+indv <- FF16w_Individual()
+indv$set_state("height", 5)
+env$set_soil_water_state(env$soil_moist_from_psi(0.5e06))
+
+res <- plant::grow_individual_to_height(indv, heights = target_height, env, time_max =100)
+
+res$trajectory %>%
+  as_tibble() %>% 
+  mutate(indv = 2) -> indv2
+
+bind_rows(indv1, indv2) %>%
+  mutate(indv = as_factor(indv)) %>%
+  ggplot(aes(x = time, y = height)) +
+  geom_line(aes(colour = indv, group = indv)) + 
+  theme_classic()
+```
+
+As can be seen, individual 2 grows much faster, and will have a higher maximum growth rate. Note that because we are growing individuals here, the plants are NOT affecting the soil water, but are only responding to it. We will see plants affecting the soil water when we starting growing patches. 

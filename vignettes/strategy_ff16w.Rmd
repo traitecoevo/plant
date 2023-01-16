@@ -1,0 +1,20 @@
+---
+title: "strategy_ff16w"
+output: html_document
+date: "2023-01-16"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+ff16w is a new implementation of the ff16 strategy including water dynamics. This includes an updated strategy object `ff16w`, a physiological sub-model which determines how plants assimilate carbon and transpire water dynamically in response to water availability and a soil-water submodel which takes rainfall as an input and determines how much soil moisture is available to plants after accounting for soil hydrology, evaporation and soil use.
+
+This vignette outlines the `ff16w` strategy. Because the `ff16w` strategy is based on the same core physiological model for plant growth as `ff16`, we focus only on the differences between the strategies. 
+
+```{r}
+devtools::load_all()
+library(tidyverse)
+```
+
+The fundamental difference between `ff16` and `ff16w` is the inclusion of a detailed leaf photosynthesis model which is mechanistically linked to soil moisture availability through a stomatal optimality model known as `profitmax`. This is discussed in detail in `leaf_submodel_documentation.Rmd`. This replaces the original photosythnesis equation in `ff16`. Importantly, whereas the original photosynthesis model outputted carbon assimilation per leaf area only, the new leaf photosynthesis model outputs both carbon assimilation per leaf area, as well as water transpiration per leaf area. In this way, the outcome of leaf photosythnesis is to drive plant growth as well as the soil moisture balance which, in turn, affects plant growth. 

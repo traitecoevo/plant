@@ -102,6 +102,10 @@ double Leaf__profit_psi_stem_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_, d
   return obj_->profit_psi_stem_Bartlett(psi_stem);
 }
 // [[Rcpp::export]]
+double Leaf__profit_psi_stem_Bartlett_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_stem) {
+  return obj_->profit_psi_stem_Bartlett_analytical(psi_stem);
+}
+// [[Rcpp::export]]
 void Leaf__optimise_psi_stem_Sperry_Newton(plant::RcppR6::RcppR6<plant::Leaf> obj_, double psi_guess) {
   obj_->optimise_psi_stem_Sperry_Newton(psi_guess);
 }
@@ -136,6 +140,10 @@ void Leaf__optimise_ci_Sperry_Newton_analytical(plant::RcppR6::RcppR6<plant::Lea
 // [[Rcpp::export]]
 void Leaf__optimise_psi_stem_Bartlett(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
   obj_->optimise_psi_stem_Bartlett();
+}
+// [[Rcpp::export]]
+void Leaf__optimise_psi_stem_Bartlett_analytical(plant::RcppR6::RcppR6<plant::Leaf> obj_) {
+  obj_->optimise_psi_stem_Bartlett_analytical();
 }
 // [[Rcpp::export]]
 double Leaf__ci___get(plant::RcppR6::RcppR6<plant::Leaf> obj_) {

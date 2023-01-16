@@ -113,6 +113,10 @@ Leaf:
     profit_psi_stem_Bartlett:
       return_type: double
       args: [psi_stem: double]
+    profit_psi_stem_Bartlett_analytical:
+      return_type: double
+      args: [psi_stem: double]
+
 
       # optimiser functions
     optimise_psi_stem_Sperry_Newton:
@@ -142,6 +146,11 @@ Leaf:
     optimise_psi_stem_Bartlett:
       return_type: void
       args: []
+    optimise_psi_stem_Bartlett_analytical:
+      return_type: void
+      args: []
+
+
 
 
 Lorenz:

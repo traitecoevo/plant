@@ -101,6 +101,10 @@ Leaf__profit_psi_stem_Bartlett <- function(obj_, psi_stem) {
     .Call('_plant_Leaf__profit_psi_stem_Bartlett', PACKAGE = 'plant', obj_, psi_stem)
 }
 
+Leaf__profit_psi_stem_Bartlett_analytical <- function(obj_, psi_stem) {
+    .Call('_plant_Leaf__profit_psi_stem_Bartlett_analytical', PACKAGE = 'plant', obj_, psi_stem)
+}
+
 Leaf__optimise_psi_stem_Sperry_Newton <- function(obj_, psi_guess) {
     invisible(.Call('_plant_Leaf__optimise_psi_stem_Sperry_Newton', PACKAGE = 'plant', obj_, psi_guess))
 }
@@ -135,6 +139,10 @@ Leaf__optimise_ci_Sperry_Newton_analytical <- function(obj_, ci_guess) {
 
 Leaf__optimise_psi_stem_Bartlett <- function(obj_) {
     invisible(.Call('_plant_Leaf__optimise_psi_stem_Bartlett', PACKAGE = 'plant', obj_))
+}
+
+Leaf__optimise_psi_stem_Bartlett_analytical <- function(obj_) {
+    invisible(.Call('_plant_Leaf__optimise_psi_stem_Bartlett_analytical', PACKAGE = 'plant', obj_))
 }
 
 Leaf__ci___get <- function(obj_) {
