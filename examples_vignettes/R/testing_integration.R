@@ -30,8 +30,12 @@ create_mult_point <- function(...){
 
 make_leaf <- function(...){
   params <- tibble(...)
-  leaf <- plant:::Leaf(vcmax = params$vcmax, p_50 = params$p_50, c = params$c, b = params$b, psi_crit = params$psi_crit, huber_value = params$huber_value, K_s = params$K_s, epsilon_leaf = 0.0001)
-  leaf$set_physiology(PPFD = params$PAR*params$E, psi_soil = params$psi_soil, leaf_specific_conductance_max = params$k_l_max, atm_vpd = params$VPD_hr, ca = params$ca)
+  
+  leaf <- plant:::Leaf(vcmax = params$vcmax, p_50 = params$p_50, c = params$c, b = params$b, psi_crit = params$psi_crit, K_s = params$K_s, epsilon_leaf = 0.0001, beta1 = params$beta1, beta2 = 1.5)
+  
+  params$sapwood_volume_per_area <- params$huber_value * params$h
+  
+  leaf$set_physiology(PPFD = params$PAR*params$E, psi_soil = params$psi_soil, leaf_specific_conductance_max = params$k_l_max, atm_vpd = params$VPD_hr, ca = params$ca, sapwood_volume_per_leaf_area = params$sapwood_volume_per_area)
   return(leaf)
 }
 

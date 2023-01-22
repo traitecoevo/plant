@@ -73,7 +73,6 @@ calc_psi_crit <- function(b,c) {
 
 ```
 
-
 ```{r}
 calc_temp <- function(instant_of_day, day_length, mean_temp, temp_diff, sun_rise, sun_down){
 
@@ -103,11 +102,11 @@ if(instant_of_day >= sun_rise & instant_of_day <= sun_down){
 ```
 
 ```{r}
-LHS <- randomLHS(100, 12)
+LHS <- randomLHS(1000, 13)
 
 params <- tibble(mean_temp = 20, temp_diff = qunif(LHS[,1], min = 5, max = 20), latitude = qunif(LHS[,2], min = 0, max = 60), VP = qunif(LHS[,3], 0.5, 2),
                    vcmax = qunif(LHS[,4], 30, 100), p_50 = qunif(LHS[,5], min = 1, max = 10), huber_value = qunif(LHS[,6], min = 0.000157/2, max =  0.000157*2),
-                   day = qunif(LHS[,7], min = 0, 180), h = qunif(LHS[,8], min = 5, max = 80), E = qunif(LHS[,9], min = 0, max = 1), psi_soil = qunif(LHS[,10], 0, 10), ca = qunif(LHS[,11], 30, 45), c = qunif(LHS[,12], 1, 10))
+                   day = qunif(LHS[,7], min = 0, 180), h = qunif(LHS[,8], min = 5, max = 80), E = qunif(LHS[,9], min = 0, max = 1), psi_soil = qunif(LHS[,10], 0, 10), ca = qunif(LHS[,11], 30, 45), c = qunif(LHS[,12], 1, 10), beta1 = qunif(LHS[,13], 15000, 160000))
 
 ```
 
@@ -209,7 +208,7 @@ dev.off()
 
 
 ```{r}
-set.seed(136)
+set.seed(138)
 
 expanded_output_integrated %>%
   ungroup() %>%
