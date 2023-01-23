@@ -56,7 +56,6 @@ public:
   void r_set_node_schedule(NodeSchedule x);
   void r_set_node_schedule_times(std::vector<std::vector<double>> x);
 
-  bool save_history;
   std::vector<double> patch_step_history;
   std::vector<std::vector<environment_type>> environment_history;
   
@@ -79,8 +78,6 @@ SCM<T, E>::SCM(parameters_type p, environment_type e, Control c)
   if (!util::identical(parameters.patch_area, 1.0)) {
     util::stop("Patch area must be exactly 1 for the SCM");
   }
-
-  save_history = c.save_history;
 }
 
 template <typename T, typename E> void SCM<T, E>::run() {
@@ -118,7 +115,7 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   }
 
   // after each full RK45 step, save the patch cache
-  if(save_history) {
+  if(patch.save_RK45_cache) {
     patch_step_history.push_back(t0);
     environment_history.push_back(patch.environment_cache);
   }

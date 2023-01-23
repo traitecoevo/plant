@@ -38,7 +38,7 @@ Control::Control() {
   equilibrium_solver_logN = true;
   equilibrium_solver_try_keep = true;
 
-  save_history = false;
+  save_RK45_cache = false;
 }
 
 }

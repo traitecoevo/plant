@@ -74,7 +74,7 @@ template <typename System>
 class has_cache {
   typedef char true_type;
   typedef long false_type;
-  template <typename C> static true_type test(decltype(&C::environment_cache)) ;
+  template <typename C> static true_type test(decltype(&C::cache_RK45_step)) ;
   template <typename C> static false_type test(...);
 public:
   enum { value = sizeof(test<System>(0)) == sizeof(true_type) };
@@ -85,7 +85,7 @@ template <typename System>
 typename std::enable_if<has_cache<System>::value, void>::type
 cache(System& system, int rk_step) {
   std::cout << "RK" << rk_step << "\n";
-  system.cache_environment(rk_step);
+  system.cache_RK45_step(rk_step);
 }
 
 

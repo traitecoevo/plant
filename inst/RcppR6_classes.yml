@@ -134,7 +134,7 @@ Control:
     - equilibrium_nattempts: int
     - equilibrium_solver_logN: bool
     - equilibrium_solver_try_keep: bool
-    - save_history: bool
+    - save_RK45_cache: bool
 
 OdeControl:
   name_cpp: "plant::ode::OdeControl"
@@ -561,7 +561,6 @@ SCM:
     net_reproduction_ratios: {type: "std::vector<double>", access: member}
     offspring_production: {type: "std::vector<double>", access: member}
     parameters: {type: "plant::Parameters<T,E>", access: member, name_cpp: r_parameters}
-    save_history: {type: bool, access: field}
     patch_step_history: {type: "std::vector<double>", access: field}
     environment_history: {type: "std::vector<std::vector<E>>", access: field}
     patch:

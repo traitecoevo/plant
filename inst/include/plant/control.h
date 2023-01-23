@@ -62,7 +62,7 @@ struct Control {
   bool   equilibrium_solver_logN;
   bool   equilibrium_solver_try_keep;
 
-  bool   save_history;
+  bool   save_RK45_cache;
 };
 
 inline ode::OdeControl make_ode_control(const Control& control) {
