@@ -536,6 +536,8 @@ SCM:
   methods:
     run:
       return_type: void
+    run_mutant:
+      return_type: void
     run_next:
       return_type: "std::vector<plant::util::index>"
       name_cpp: r_run_next

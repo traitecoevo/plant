@@ -24,6 +24,17 @@ public:
   enum { value = sizeof(test<T>(0)) == sizeof(true_type) };
 };
 
+// Have a special case where we want to store and reuse Patch state at each RK45 step
+template <typename System>
+class has_cache {
+  typedef char true_type;
+  typedef long false_type;
+  template <typename C> static true_type test(decltype(&C::cache_RK45_step)) ;
+  template <typename C> static false_type test(...);
+public:
+  enum { value = sizeof(test<System>(0)) == sizeof(true_type) };
+};
+
 // The recursive interface
 template <typename ForwardIterator>
 size_t ode_size(ForwardIterator first, ForwardIterator last) {
@@ -109,13 +120,46 @@ typename std::enable_if<!needs_time<T>::value, void>::type
 set_ode_state(T& obj, const state_type& y, double /* time */) {
   obj.set_ode_state(y.begin());
 }
+
+// mutants only
+template <typename T>
+typename std::enable_if<has_cache<T>::value, void>::type
+set_ode_state(T& obj, const state_type& y, int index) {
+  obj.set_ode_state(y.begin(), index);
+}
 }
 
+// primarily for Ode_R - maybe remove
 template <typename T>
 void derivs(T& obj, const state_type& y, state_type& dydt,
             const double time) {
 
   internal::set_ode_state(obj, y, time);
+  obj.ode_rates(dydt.begin());
+}
+
+// for ODE stepping
+template <typename T>
+typename std::enable_if<!has_cache<T>::value, void>::type
+derivs(T& obj, const state_type& y, state_type& dydt,
+            const double time, const int /* index */) {
+
+  internal::set_ode_state(obj, y, time);
+  obj.ode_rates(dydt.begin());
+}
+
+// for mutants or ODE stepping
+template <typename T>
+typename std::enable_if<has_cache<T>::value, void>::type
+derivs(T& obj, const state_type& y, state_type& dydt,
+            const double time, const int index) {
+
+    if(obj.use_cached_environment) {
+      internal::set_ode_state(obj, y, index); // only works for patches
+    } else {
+      internal::set_ode_state(obj, y, time);
+    }
+  
   obj.ode_rates(dydt.begin());
 }
 

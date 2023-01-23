@@ -55,6 +55,7 @@ public:
   size_t aux_size() const;
   double ode_time() const;
   ode::const_iterator set_ode_state(ode::const_iterator it, double time);
+  ode::const_iterator set_ode_state(ode::const_iterator it, int index);
   ode::iterator       ode_state(ode::iterator it) const;
   ode::iterator       ode_rates(ode::iterator it) const;
   ode::iterator       ode_aux(ode::iterator it) const;
@@ -93,7 +94,10 @@ public:
   void cache_RK45_step(int step);
   std::vector<environment_type> environment_cache;
 
+  // use cache for mutant runs
   bool save_RK45_cache;
+  bool use_cached_environment = false;
+
 private:
   void compute_environment();
   void rescale_environment();
@@ -302,7 +306,20 @@ ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
   return it;
 }
 
+// pre-cached environments, used for mutant runs
 template <typename T, typename E>
+ode::const_iterator Patch<T,E>::set_ode_state(ode::const_iterator it,
+                                              int index) {
+  it = ode::set_ode_state(species.begin(), species.end(), it);
+  it = environment.set_ode_state(it);
+
+  std::cout << "Re-using environment_cache at RK step " << index << "\n";
+  environment = environment_cache[index];
+  compute_rates();
+  return it;
+}
+
+
 template <typename T, typename E>
 void Patch<T,E>::cache_RK45_step(int step) {
   if(save_RK45_cache) {  

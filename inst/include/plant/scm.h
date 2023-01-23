@@ -24,7 +24,8 @@ public:
   SCM(parameters_type p, environment_type e, plant::Control c);
 
   void run();
-  std::vector<size_t> run_next();
+  void run_mutant();
+  std::vector<size_t> run_next();\
 
   double time() const;
   void reset();
@@ -121,6 +122,20 @@ template <typename T, typename E> std::vector<size_t> SCM<T, E>::run_next() {
   }
 
   return ret;
+}
+
+template <typename T, typename E> void SCM<T, E>::run_mutant() {
+  patch.save_RK45_cache = false;
+  patch.use_cached_environment = true;
+
+  // need some way to add mutant strategy
+
+  for(size_t i; i < patch_step_history.size(); ++i) {
+    patch.environment_cache.clear();
+    patch.environment_cache = environment_history[i];
+
+    run_next(); 
+  }
 }
 
 template <typename T, typename E> double SCM<T, E>::time() const {
