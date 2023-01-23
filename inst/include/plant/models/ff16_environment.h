@@ -104,6 +104,8 @@ public:
         saturation = std::max(0.0, 1 - std::pow(vars.state(i)/soil_moist_sat, b_infil));
         infiltration = extrinsic_drivers.evaluate("rainfall", time) * saturation;
 
+        // drainage = 200*18.02/1000000 * pow((0.35*10e-3/calc_psi(vars.state(i))), 5)
+
         // // Evaporation at soil surface
         // double E_bare_soil_pot_mol = (1.0 - r_soil) * ground_radiation * PAR_to_SW * slp / ((slp + gamma) * lh);
 
@@ -119,6 +121,8 @@ public:
         // evaporation = std::max(0.0, Ev_pot * soil_wetness)*60*60*24*365;
       } else {
         infiltration = 0.0;
+        
+        
         // evaporation = 0.0;
 
       }
